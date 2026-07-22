@@ -31,8 +31,10 @@ public sealed partial class CSharpEmitter
     internal BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
         IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null,
         IReadOnlyList<CobolNet.Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null,
-        IReadOnlyList<CobolNet.Frontend.Preprocessor.FlagEvent>? flagEvents = null)
-        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), turnEvents, refModZlEvents, flagEvents);
+        IReadOnlyList<CobolNet.Frontend.Preprocessor.FlagEvent>? flagEvents = null,
+        CobolNet.Editions.CobolWordsMap? cobolWordsMap = null)
+        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), turnEvents, refModZlEvents,
+            flagEvents, cobolWordsMap);
 
     /// <summary>Render typed-native C# from an already-bound immutable <see cref="BoundCompilation"/> (the emit
     /// half of the bind/emit split) — a fresh <see cref="ProgramEmitter"/> per call; the compilation carries

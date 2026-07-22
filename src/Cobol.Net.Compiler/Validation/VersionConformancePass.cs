@@ -7,6 +7,7 @@ using CobolNet.Binding.Passes; // GroupBindContext — this pass is the manifest
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
+using CobolNet.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
 
 using CobolNet.Compiler.Oo;
 
@@ -74,12 +75,18 @@ internal sealed class VersionConformancePass
     public static void Run(GroupBindContext group, EditionInfo edition, IDiagnosticSink sink)
     {
         var pass = new VersionConformancePass(edition, sink);
+        // The per-compilation-group EFFECTIVE reserved-word set (ISO §7.3.10 D9 seam): the generated §8.9 table
+        // composed with the >>COBOL-WORDS overlay (RESERVE adds, UNDEFINE/SUBSTITUTE remove). Empty map ⇒ Default.
+        var reservedWords = ReservedWordSet.Compose(group.Session.CobolWords);
+        // >>COBOL-WORDS SR3/SR4 category validation (§7.3.10.3) — needs all three registries (reserved via the §8.9
+        // table + the lexer vocab, intrinsic via IntrinsicCatalog); the frontend validated SR1/SR2/SR5 already.
+        ValidateCobolWords(group.Session.CobolWords, edition, sink);
         // ── PARSE-tree arm (Step 14h): ONE walk of the raw compilation unit, firing every SYNTACTIC
         //    introduction/removal/phrase gate + the §8.9 reserved-word funnel on the construct's RECOGNITION
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
         //    has a semantic error still names its edition — the bound node it would have produced may be
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
-        new ParseArm(pass).Visit(group.Tree);
+        new ParseArm(pass, reservedWords).Visit(group.Tree);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -103,6 +110,41 @@ internal sealed class VersionConformancePass
             pass.GateData(cls.FactoryData);
         }
     }
+
+    /// <summary>&gt;&gt;COBOL-WORDS SR3/SR4 category validation (ISO §7.3.10.3): the EXISTING word (literal-1/3/4)
+    /// must be a reserved word, context-sensitive word, or intrinsic-function name (SR3); the NEW word
+    /// (literal-2/5/6) must be none of those (SR4 — the §8.3.2.2 well-formedness is the frontend half). Reserved /
+    /// context membership comes from the §8.9 table + the lexer vocabulary (<see cref="CobolKeywordTokens"/>);
+    /// intrinsic from <see cref="IntrinsicCatalog"/>. Both checks err AWAY from rejecting legal source (the
+    /// no-false-reject principle): SR3 accepts on ANY membership signal, SR4 rejects only on a CERTAIN one.</summary>
+    private static void ValidateCobolWords(CobolWordsMap map, EditionInfo edition, IDiagnosticSink sink)
+    {
+        if (map.IsEmpty) return;
+        foreach (var op in map.Ops)
+        {
+            if (op.Existing is { } e && !IsExistingWordCategory(e))
+                ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
+                    + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
+            if (op.New is { } n && IsReservedCategory(n, edition))
+                ReportCobolWordsInvalid(sink, $"the new word '{n}' is a reserved / context-sensitive / "
+                    + "intrinsic-function word and cannot be a user-defined word (ISO §7.3.10.3 SR4)");
+        }
+    }
+
+    /// <summary>SR3 membership — broad (accept on any signal): a lexer keyword/context token, an intrinsic-function
+    /// name, or ANY §8.9 table entry.</summary>
+    private static bool IsExistingWordCategory(string w) =>
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _) || ReservedWords.Find(w) is not null;
+
+    /// <summary>SR4 membership — narrow (reject only when certain): a lexer keyword/context token, an
+    /// intrinsic-function name, or a HIGH-CONFIDENCE reserved-at-edition table entry.</summary>
+    private static bool IsReservedCategory(string w, EditionInfo edition) =>
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _)
+        || (ReservedWords.Find(w) is { Confidence: "high" } r && r.IsReservedAt(edition.Year));
+
+    private static void ReportCobolWordsInvalid(IDiagnosticSink sink, string message) =>
+        sink.Report(new EditionDiagnostic(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, EditionSeverity.Error,
+            "cobol-words-directive-invalid", message, "", "ISO §7.3.10.3"));
 
     private void WalkProgram(BoundProgram? prog)
     {
@@ -398,12 +440,14 @@ internal sealed class VersionConformancePass
     /// dropped the pre-bind fail-fast), so a below-edition construct surfaces BOTH its edition diagnostic and
     /// its bind diagnostics — intended (both are true; the tests are contains-based).
     /// </summary>
-    private sealed class ParseArm(VersionConformancePass p) : CobolParserCoreBaseVisitor<object?>
+    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords)
+        : CobolParserCoreBaseVisitor<object?>
     {
         private readonly VersionConformancePass _p = p;
-        // The effective reserved-word set for THIS compilation unit (P2.4/D9 seam): the generated §8.9 table is
-        // only the default layer — the 2023 COBOL-WORDS directive mutates the set per unit (roadmap Phase 7).
-        private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
+        // The effective reserved-word set for THIS compilation group (P2.4/D9 seam): the generated §8.9 table
+        // composed with the 2023 >>COBOL-WORDS overlay (RESERVE/UNDEFINE/SUBSTITUTE); ReservedWordSet.Default when
+        // the group has no directive (byte-identical).
+        private readonly ReservedWordSet _reservedWords = reservedWords;
         // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
         // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).

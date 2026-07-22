@@ -38,7 +38,8 @@ internal sealed class BinderDriver
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
         IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
         IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null,
-        IReadOnlyList<Frontend.Preprocessor.FlagEvent>? flagEvents = null)
+        IReadOnlyList<Frontend.Preprocessor.FlagEvent>? flagEvents = null,
+        CobolNet.Editions.CobolWordsMap? cobolWordsMap = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -51,7 +52,11 @@ internal sealed class BinderDriver
         var refModZl = RefModZeroLengthState.Build(refModZlEvents);
 
         var (units, classes, table) = CollectUnits(tree, edition);
-        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl };
+        var session = new BindSession
+        {
+            Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
+            CobolWords = cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty,
+        };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)

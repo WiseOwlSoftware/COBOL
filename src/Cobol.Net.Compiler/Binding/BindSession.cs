@@ -21,6 +21,12 @@ internal sealed class BindSession
     /// Place. Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default, no directive).</summary>
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the per-compilation-group
+    /// reserved/context/intrinsic word-table modification. <see cref="VersionConformancePass"/> composes the
+    /// effective <c>ReservedWordSet</c> from it (RESERVE/UNDEFINE/SUBSTITUTE), and the intrinsic binder resolves
+    /// function-name synonyms through it. Defaults to <see cref="CobolWordsMap.Empty"/> (no directive).</summary>
+    public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
+
     private int _uidBand;
 
     /// <summary>Take the next disjoint 100k uid band (one per DataBinder, so nested-class struct/profile names

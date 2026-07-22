@@ -1,8 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System;
+using System.IO;
 using System.Linq;
+using CobolNet;
 using CobolNet.Editions;
 using CobolNet.Frontend.Diagnostics;
+using CobolNet.Frontend.Parsing;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
 
@@ -150,5 +154,100 @@ public sealed class CobolWordsDirectiveTests
         var (map, diags) = Run("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n");
         Assert.True(map.IsEmpty);
         Assert.False(diags.HasErrors);
+    }
+
+    // ══ Increment B — RESERVE/UNDEFINE via the composed ReservedWordSet + SR3/SR4 category validation ══════════
+
+    // ── ReservedWordSet.Compose (ISO §7.3.10.4 GR3/GR5) ─────────────────────────────────────────────────────
+
+    [Fact] // an empty map composes to the Default set (byte-identical).
+    public void Compose_EmptyMap_IsDefault()
+    {
+        Assert.Same(ReservedWordSet.Default, ReservedWordSet.Compose(CobolWordsMap.Empty));
+    }
+
+    [Fact] // GR5 — RESERVE makes a fresh word reject when used as a user-defined word.
+    public void Compose_Reserve_RejectsTheNewWord()
+    {
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Reserve, null, "ZZBAR", 0)]);
+        Assert.True(ReservedWordSet.Compose(map).RejectsAt("ZZBAR", 2023));
+        Assert.False(ReservedWordSet.Default.RejectsAt("ZZBAR", 2023));   // not reserved without the directive
+    }
+
+    [Fact] // GR3 — UNDEFINE de-reserves a base-reserved word (RejectsAt flips false).
+    public void Compose_Undefine_SuppressesABaseReservedWord()
+    {
+        Assert.True(ReservedWordSet.Default.RejectsAt("ACCEPT", 2023));   // ACCEPT is high-confidence reserved
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "ACCEPT", null, 0)]);
+        Assert.False(ReservedWordSet.Compose(map).RejectsAt("ACCEPT", 2023));
+    }
+
+    // ── CobolKeywordTokens (the reverse vocab map) ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Keyword_Reserved_And_Context_AreKeywords_UserWordIsNot()
+    {
+        Assert.True(CobolKeywordTokens.IsKeyword("MOVE"));       // a hard reserved word
+        Assert.True(CobolKeywordTokens.IsKeyword("display"));    // case-insensitive
+        Assert.False(CobolKeywordTokens.IsKeyword("ZZUSERWORD"));
+        Assert.True(CobolKeywordTokens.TryTokenType("DISPLAY", out int t) && t > 0);
+    }
+
+    // ── end-to-end through the compiler (RESERVE 0901 · SR3/SR4 1623) ───────────────────────────────────────
+
+    private static IReadOnlyList<string> CompileErrors(string source)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_CWords_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string src = Path.Combine(dir, "cw.cob");
+            File.WriteAllText(src, source);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true));
+            return r.Errors;
+        }
+        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+    }
+
+    [Fact] // GR5 end-to-end — a RESERVE'd word used as a user-defined name is COBOLNET0901-rejected.
+    public void Reserve_UsedAsUserWord_Rejected0901()
+    {
+        var errors = CompileErrors(
+            "       >>COBOL-WORDS RESERVE \"FOO\"\n" +
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE1.\n" +
+            "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 FOO PIC X(3) VALUE \"ABC\".\n" +
+            "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY FOO.\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOLNET0901") && e.Contains("FOO"));
+    }
+
+    [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
+    public void Sr3_ExistingNotAWord_Rejected1623()
+    {
+        var errors = CompileErrors(
+            "       >>COBOL-WORDS EQUATE \"NOTAWORD\" WITH \"SYN\"\n" +
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE2.\n" +
+            "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR3"));
+    }
+
+    [Fact] // SR4 end-to-end — the new word must not itself be reserved.
+    public void Sr4_NewWordReserved_Rejected1623()
+    {
+        var errors = CompileErrors(
+            "       >>COBOL-WORDS RESERVE \"MOVE\"\n" +
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE3.\n" +
+            "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR4"));
+    }
+
+    [Fact] // a well-formed EQUATE (existing reserved, new a user word) raises no SR / reserved diagnostic.
+    public void ValidEquate_NoDiagnostic()
+    {
+        var errors = CompileErrors(
+            "       >>COBOL-WORDS EQUATE \"DISPLAY\" WITH \"SHOW\"\n" +
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE4.\n" +
+            "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1623") || e.Contains("COBOLNET0901"));
     }
 }

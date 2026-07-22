@@ -65,15 +65,18 @@ checkpoint.
   incl. negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod
   parse node was wrong until a probe caught it — DEVLOG 956).
   **▶ ① >>COBOL-WORDS (§7.3.10; DESIGN SSOT `docs/rearchitecture/DESIGN-cobol-words-directive.md` = decision-complete;
-  DEVLOG 962):** the owner-directed post-lex token rewriter + composed `ReservedWordSet` (supersedes the prior scouts'
-  text-substitution/not-supported plan). 4 increments: **✅ Incr A LANDED** — recognition + parse (4 options) +
-  SR1/SR2/SR5 + the COBOLNET0900 introduction gate (`Constructs.CobolWordsDirective2023`); `CobolWordsMap` (Editions,
-  the frontend→compiler carrier) + `CobolWordsDirectiveProcessor` (Frontend) + `leaveCobolWordsDirectives` flag +
-  COBOLNET1623 `cobol-words-directive-invalid`; 21 unit tests + below-2023 negative golden + char 33/33 byte-exact.
-  **⏭ NEXT = Incr B** (RESERVE/UNDEFINE via the composed `ReservedWordSet` — thread `CobolWordsMap` onto `BindSession`
-  → `VersionConformancePass.Run` reads `group.Session.CobolWords`, composes over `_reservedWords` [the hard-coded
-  `ReservedWordSet.Default` at line 406], SR3/SR4 category validation via ReservedWords+vocab+IntrinsicCatalog) →
-  Incr C token rewriter (EQUATE/SUBSTITUTE + map-aware lexer data-name gate) → Incr D intrinsic-name synonyms.
+  DEVLOG 962–963):** the owner-directed post-lex token rewriter + composed `ReservedWordSet` (supersedes the prior
+  scouts' text-substitution/not-supported plan). 4 increments: **✅ Incr A LANDED** — recognition + parse (4 options) +
+  SR1/SR2/SR5 + the COBOLNET0900 introduction gate; `CobolWordsMap` (Editions) + `CobolWordsDirectiveProcessor`
+  (Frontend) + `leaveCobolWordsDirectives` + COBOLNET1623; 21 tests + below-2023 golden. **✅ Incr B LANDED** —
+  RESERVE/UNDEFINE via the composed `ReservedWordSet` (`Compose(map)`: RESERVE adds, UNDEFINE/SUBSTITUTE suppress;
+  `Empty`⇒`Default`); threaded on `BindSession.CobolWords` (Frontend→CompilerDriver→CSharpEmitter→BinderDriver);
+  `VersionConformancePass.ParseArm` takes the composed set; SR3/SR4 category validation (`ValidateCobolWords` via
+  `CobolKeywordTokens` reverse-vocab-map + `IntrinsicCatalog` + `ReservedWords`, err-away-from-reject). RESERVE fully
+  works end-to-end (0901); 29 tests (8 new) + `cobol-words-reserve-rejects` golden + reserved-word 10/10 + char 33/33.
+  **⏭ NEXT = Incr C** (the token rewriter — `CobolWordsRewriter`: EQUATE/SUBSTITUTE IDENTIFIER→keyword + UNDEFINE/
+  SUBSTITUTE keyword→IDENTIFIER using `CobolKeywordTokens`, run beside `ZeroTokenRewriter` in `Frontend.LexAndParse`;
+  + the map-aware lexer data-name gate for the subscript hazard) → Incr D intrinsic-name synonyms.
   ▷ **(historical, all pushed) the GRAMMAR BATCH is 7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
