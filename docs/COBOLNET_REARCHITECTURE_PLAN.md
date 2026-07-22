@@ -30,10 +30,13 @@ checkpoint.
   Conformance 3848/3848 (3842 baseline + 6 new EC goldens, 0 reg) · NIST 353 MATCH / 0 reg · legacy Unit 1203/1203 ·
   legacy Integration 684/685 (1 skip) / 0 fail · characterization 33/33 (DEVLOG 985; one RL203A `COMPILE FAILED`
   guard flake verified serially 4/4 = not a regression; the 6 goldens added to the legacy `GreenfieldOnly` set).
-  ✅ **V45 EXTERNAL externality (§14.8.4.2 conjunct 1) LANDED** (DEVLOG 986; compile-time COBOLNET1624 for a non-external
-  FILE STATUS/RELATIVE KEY/LINAGE on a lone external file, 2023-gated Removed-freedom; runtime `"!"`-never-equal both-face;
-  char 33/33 · Unit 575/575 · external 30/30 · legacy Integration 186/186). Surfaced a NEW §24 item **V51** (in-group
-  LINAGE consistency §13.4.5.4 GR2(c) — a longstanding always-Error, separate from V45's 2023-gated externality). ⏭ NEXT
+  ✅ **V45 EXTERNAL externality (§14.8.4.2 conjunct 1) LANDED + comprehensive gate ALL GREEN** (DEVLOG 986; compile-time
+  COBOLNET1624 for a non-external FILE STATUS/RELATIVE KEY/LINAGE on a lone external file, 2023-gated Removed-freedom;
+  runtime `"!"`-never-equal both-face). Gate: greenfield **Conformance 3853/3853 0-reg** · **NIST 353 MATCH/0 reg** ·
+  legacy Unit 1203/1203 · legacy Integration (clean) · characterization 33/33. (The gate caught a corpus-bookkeeping
+  miss — the 3 externality negatives weren't listed in `negative/manifest.json`, so unlisted + unrun; fixed; see
+  `feedback_corpus_golden_manifest_registration`.) Surfaced a NEW §24 item **V51** (in-group LINAGE consistency
+  §13.4.5.4 GR2(c) — a longstanding always-Error, separate from V45's 2023-gated externality). ⏭ NEXT
   §24 batch (spec-first, one at a time): the misc-semantics majors (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE /
   V24 OPTIONS-INITIALIZE), then the minors, the doc-slice sweep, and the owner-decision items (F1/V19/V24).**
   ─── ⚠ *EVERYTHING BELOW in this RESUME-AT bullet is HISTORICAL cycle-narrative (the P13 merge, and the
