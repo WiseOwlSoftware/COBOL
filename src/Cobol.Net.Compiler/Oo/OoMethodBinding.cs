@@ -40,4 +40,14 @@ public sealed class OoMethodBinding
     /// Entry &gt; End ⇔ an empty method body.</summary>
     public int EntryPc { get; set; } = -1;
     public int EndPc { get; set; } = -2;   // Entry > End ⇔ an empty method body
+
+    /// <summary>The method's contiguous sub-range of the class's appended Format-3 (exception-checking) PERFORM
+    /// handler pc-space (ISO §14.9.28.4 GR17; design SSOT §9.10). The class's handler pcs
+    /// <c>[F3HandlerBasePc .. F3HandlerBasePc+H−1]</c> partition into per-method sub-ranges in method order — a
+    /// method's handlers are all appended while that method's paragraphs bind (<c>StatementBinder.BindMethodRoster</c>'s
+    /// pc-order second loop). <see cref="HandlerCount"/> == 0 for a method with no F3 PERFORM (the byte-identical
+    /// default); the emitter includes <c>[HandlerStartPc .. HandlerStartPc+HandlerCount−1]</c> as extra cases in this
+    /// method's <c>__MDispatch</c> and emits the method-local F3 machinery. Stamped by <c>BindMethodRoster</c>.</summary>
+    public int HandlerStartPc { get; set; }
+    public int HandlerCount { get; set; }
 }
