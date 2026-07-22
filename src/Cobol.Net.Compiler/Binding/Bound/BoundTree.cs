@@ -409,8 +409,11 @@ public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatemen
 /// Replaces the silent bind-as-STOP-RUN mis-bind (the DEVLOG-578 latent bug; P2.6).</summary>
 public sealed record BoundStopLiteral(string Text) : BoundStatement;
 
-/// <summary><c>DISPLAY</c> of a sequence of operands (each rendered as its display image).</summary>
-public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing) : BoundStatement;
+/// <summary><c>DISPLAY</c> of a sequence of operands (each rendered as its display image). <paramref name="ToStdErr"/>
+/// carries the UPON device routing (ISO §14.9.11.3 SR2 / §14.9.11.4 GR8): a mnemonic-name bound to the SYSERR
+/// implementor device-name routes to the process standard-error stream; CONSOLE / SYSOUT and the no-UPON default use
+/// the standard display device (standard output). Default false keeps the no-UPON emission byte-identical.</summary>
+public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing, bool ToStdErr = false) : BoundStatement;
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand).</summary>
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement

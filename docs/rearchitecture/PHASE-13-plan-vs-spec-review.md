@@ -840,10 +840,21 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 Item 7 (RW SUPPRESS) was skipped as a duplicate of confirmed C5. Full verdict notes:
 `scratchpad/batch3-verdicts.json` + the batch-3 journal.
 
-### V6. DISPLAY … UPON silently dropped (SR2 unchecked, device ignored)
+### V6. DISPLAY … UPON silently dropped (SR2 unchecked, device ignored) — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** CONFIRMED (both high). Route: review-fix wave — bind displayUpon mirroring BindAcceptFromMnemonic (0817-style reject; output set CONSOLE/SYSOUT/SYSERR is an IMPLEMENTOR choice to document, §12.3.7.3 delegates), carry device on BoundDisplay, SYSERR→stderr, golden. Corrections: the intrinsics design doc :188 already PROMISES the routing; legacy-side tests cover UPON CONSOLE/SYSOUT only; nit — AcceptDisplayEmitter.cs:17 cites §14.9.8, 2023 numbering is §14.9.11. Also: MnemonicRegistry does NO device validation at declaration.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 978).** `BindDisplay` now binds `displayUpon` via `BindDisplayUpon`
+  (mirrors `BindAcceptFromMnemonic`): §14.9.11.3 SR2 rejects an undeclared mnemonic or an input-only device
+  (`COBOLNET0817`); the output-capable implementor device-names are CONSOLE / SYSOUT (→ standard output) and SYSERR
+  (→ standard error) — the §12.3.7.3-delegated choice, documented in `CONFORMANCE.md §7` A.1 items 2 + 59.
+  `BoundDisplay.ToStdErr` carries the routing; `EmitDisplay` writes `System.Console.Error` for SYSERR, else
+  `System.Console` (the no-UPON path byte-identical). The `AcceptDisplayEmitter` §14.9.8→§14.9.11 citation nit fixed.
+  `DisplayUponTests` 4/4 (SYSOUT/CONSOLE/default→stdout · SYSERR→stderr · undeclared 0817 · input-only 0817) +
+  characterization 33/33 byte-identical. RESIDUAL (a separate finding, not V6): `MnemonicRegistry` still does NO
+  device-name validation at the SPECIAL-NAMES DECLARATION (§12.3.7 rule 8) — an unknown device-name is only caught when
+  a consuming ACCEPT/DISPLAY names its mnemonic. ─── *(original)* Route: bind displayUpon mirroring BindAcceptFromMnemonic;
+  carry device on BoundDisplay, SYSERR→stderr, golden. Corrections: the intrinsics design doc :188 already PROMISES the
+  routing; legacy-side tests cover UPON CONSOLE/SYSOUT only; nit — AcceptDisplayEmitter.cs:17 cites §14.9.8, 2023 is §14.9.11.
 
 ### V8. CALL Format 2 (AS NESTED / prototype) + the OMITTED argument — zero grammar surface, SSOT reads as implemented
 
@@ -1297,7 +1308,7 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 **The prioritized fix queue for the follow-up session (majors first; each entry above carries the exact fix):**
 1. OO-surface scope decision (V16-V19 — MANDATORY surface; owner-visible).
-2. ASSIGN USING (F1) + DISPLAY UPON (V6) — the silent-semantics pair.
+2. ASSIGN USING (F1 — OPEN, owner-decision on route) + ~~DISPLAY UPON (V6)~~ ✅ **V6 LANDED 2026-07-22** — the silent-semantics pair.
 3. VALUE Format 2 + glued-multi-literal corruption (F4) → grammar batch.
 4. File-control COLLATING SEQUENCE core leg (F2) → grammar batch (with RW SUPPRESS, C5).
 5. The EC-seam batch: EC-RANGE four (V4) + EC-DATA twins (V3) + EC-FLOW trio raise side (V33) +

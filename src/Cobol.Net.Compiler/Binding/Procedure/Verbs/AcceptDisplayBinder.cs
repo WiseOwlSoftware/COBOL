@@ -25,6 +25,16 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         "CONSOLE", "SYSIN",
     };
 
+    /// <summary>The implementor device-names a DISPLAY may transfer output TO (ISO §14.9.11.3 SR2 — a device
+    /// "capable of receiving data from the program"; §12.3.7.3 rule 7/8 delegates the available names to the
+    /// implementor, COBOLNET_DESIGN §12.3). SYSIN is the ACCEPT-side (input-only) name — a mnemonic bound to it fails
+    /// SR2. SYSERR routes to standard error; CONSOLE / SYSOUT and the no-UPON default use the standard display device
+    /// (standard output).</summary>
+    private static readonly HashSet<string> DisplayOutputDevices = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "CONSOLE", "SYSOUT", "SYSERR",
+    };
+
         /// <summary>Bind ACCEPT (ISO §14.9.1). Format 1: no FROM (the implementor default device, GR5) or FROM a
     /// SPECIAL-NAMES mnemonic-name (SR2). Format 2: FROM a temporal source; the <c>YYYYMMDD</c>/<c>YYYYDDD</c>
     /// four-digit-year phrases are COBOL-2002+ and rejected below that edition (the version-gating rule). Format 3
@@ -111,6 +121,32 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
                 case Core.FunctionCallContext fc: ops.Add(host.Intrinsic.IntrinsicOperand(fc)); break;
             }
-        return new BoundDisplay(ops, display.displayNoAdvancing() is not null);
+        bool toStdErr = display.displayUpon() is { } upon && BindDisplayUpon(upon);
+        return new BoundDisplay(ops, display.displayNoAdvancing() is not null, toStdErr);
+    }
+
+    /// <summary><c>DISPLAY … UPON mnemonic-name-1</c> (ISO §14.9.11.3 SR2): the mnemonic shall be declared in
+    /// SPECIAL-NAMES and associated with a device CAPABLE OF RECEIVING data from the program. An undeclared name or an
+    /// input-only device is a bind-time rejection — the legacy silently dropped the UPON phrase and always displayed on
+    /// the standard device. Returns true iff the resolved device is SYSERR (standard error routing); every other
+    /// output device — and every rejected case — uses the standard display device (§14.9.11.4 GR8).</summary>
+    private bool BindDisplayUpon(Core.DisplayUponContext upon)
+    {
+        string name = upon.cobolWord().GetText();
+        if (!ctx.Mnemonics.Of(upon).TryGetValue(name, out string? device))
+        {
+            ctx.Edition.Error("COBOLNET0817", $"DISPLAY UPON '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
+                + "(ISO §14.9.11.3 SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
+                + "§12.3.7 Format 4 'device-name-1 IS mnemonic-name-3')");
+            return false;
+        }
+        if (!DisplayOutputDevices.Contains(device))
+        {
+            ctx.Edition.Error("COBOLNET0817", $"DISPLAY UPON '{name}': device '{device}' is not capable of receiving "
+                + "data (ISO §14.9.11.3 SR2; the output-capable implementor device-names are CONSOLE, SYSOUT, and "
+                + "SYSERR, §12.3.7.3)");
+            return false;
+        }
+        return device.Equals("SYSERR", StringComparison.OrdinalIgnoreCase);
     }
 }
