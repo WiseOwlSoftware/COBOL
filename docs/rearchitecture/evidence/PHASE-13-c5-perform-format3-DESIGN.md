@@ -458,3 +458,242 @@ Full legacy guard (`scripts/guard-fast.sh`) green before each commit (shared `.g
 - `VERSION_TEST_MATRIX_DESIGN.md` / `VERSION_CHANGE_REFERENCE.md` — new rows.
 - Grammar docs synced to the `.g4` changes; `DOC_INDEX.md` if any doc materially changes.
 - DEFERRED (NOT owner-gated — both resolved from the spec, see above): §14.9.28.3 SR8 (nested UNTIL-EXIT — spec-resolved by the non-redundancy derivation in §3.4, orthogonal scope, tracked in the §11 analysis backlog) and the FINALLY-on-abnormal-termination path (a recorded standard-defect with the default chosen in §5.4-3).
+
+---
+
+## 8. AS-BUILT RUNTIME SEAM MAP (2026-07-21 runtime scout `wf_ddb8dd1e-0f7` — persisted for the Track-③ resume; trust over re-derivation)
+
+> The binder is COMPLETE; the emitter `ControlFlowEmitter.EmitExceptionPerform` (`:64`) is a STUB (imp1 + FINALLY only). The interceptor's central seam is the ONE funnel below. The two findings that survived the scout (raise-site funnel + the F3-frame-stack home) are the two load-bearing ones; the dispatch protocol / ResumeSignal / `__RunUse` / BoundExceptionPerform shape are documented in §5.2 + §5.5 above and read directly this session.
+
+### Dispatch protocol + __RunUse/ResumeSignal
+
+**Q:** In src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs, document EVERY site that emits a __EcDispatch call (or the -1/-2/-3/>=0 dispatch-result protocol) and the __IoCheckEc site — EmitRai
+
+CRITICAL ARCHITECTURE FACT the implementer must internalize first: there is ONE funnel, not five. Every raise site in EcEmitter.cs (and the two sibling emitters) obtains its dispatch expression from the single method `EcEmitter.EcDispatchExpr(ecNameExpr, fileExpr)` at EcEmitter.cs:36-37:
+
+    public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
+        ecState.UnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
+
+So the literal text "__EcDispatch(...)" is produced in exactly ONE place in the C# source (line 37); the raise sites only choose the ecName/file arguments and consume the returned int. The §5.2 seam-6 "one substitution per site" framing is LOGICAL — the mechanical change is either (a) rewrite this funnel body to emit __EcPerform and thread a `fatal` flag as a new parameter, or (b) add a `fatal` param and emit __EcPerform. The EXCEPTION to the funnel is __IoCheckEc, which hard-codes the string "__EcDispatch(__ec!, __f)" TWICE (lines 328, 349) NOT via EcDispatchExpr — those are two separate hand-edit points.
+
+The dispatch-result protocol (documented in the class header, EcEmitter.cs:21-25) is: -1 = declarative completed / no action → continue; -2 = RESUME AT NEXT STATEMENT → fall through past the raising statement, SUPPRESS fatal termination; -3 = no qualifying declarative; >=0 = RESUME AT procedure-name's pc (== GO TO). The universal consumption idiom at every site is:
+    if (__rN >= 0) { __pc = __rN; break; }   // >=0 → pc jump
+    if (__rN != -2) throw new CobolFatalException(...);   // fatal sites only; -2 suppresses the throw
+
+=== THE FOUR EcEmitter.cs RAISE SITES (§5.2 seam-6 substitution points, LANDS-NOW core) ===
+
+1. EmitArgOrPlain — the FATAL ambient-gate catch (EC-ARGUMENT-FUNCTION, EC-BOUND-REF-MOD). EcEmitter.cs:132.
+   Exact current call text (inside `catch (CobolFatalException __af{id}) when (nameTest)`, after an optional ExceptionState.Set at 130-131):
+     int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};
+   Consumption (133-134):
+     if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name
+     if (__r{id} != -2) throw;   // fatal, unresumed → re-throw to terminate
+   No !hasPhrase gate here (this is a try/catch around the whole statement). fatal = TRUE (both gated ECs are fatal, Table 13). ecExpr is either the literal EC name (one gate) or `__af{id}.EcName` (two+ gates). file arg = "".
+
+2. EmitRaise — the RAISE statement (§14.9.29). EcEmitter.cs:164.
+   Exact current call text (after ExceptionState.Set at 163):
+     int __r{id} = {EcDispatchExpr(CsLiteral(r.EcName), "\"\"")};
+   Consumption (165-168):
+     if (__r{id} >= 0) {{ __pc = __r{id}; break; }}
+     if (r.Fatal)  // only when fatal
+         if (__r{id} != -2) throw new CobolFatalException(...);   // 167-168
+   No !hasPhrase gate. fatal = r.Fatal (a bound-node bool — the only site where fatal is a runtime-variable choice, not a constant). Note the two early-return arms at 145-159 for `!r.Enabled` (checking-off) emit NO dispatch and are out of scope for the interceptor. file arg = "".
+
+3. EmitSizeHandling — the EC-SIZE-* family (§14.7.5). EcEmitter.cs:200.
+   Gate: emitted only inside `if (!hasPhrase)` (line 198) — the statement's own ON SIZE ERROR phrase preempts (§14.6.13.1.3 #1). This is the CANONICAL !hasPhrase precedence gate the design says the WHEN interceptor slots into for free.
+   Exact current call text:
+     int __r{id} = {EcDispatchExpr(ecnVar, "\"\"")};
+   Consumption (201-203):
+     if (__r{id} >= 0) {{ __pc = __r{id}; break; }}
+     if (__r{id} != -2) throw new CobolFatalException(ecnVar, "size error and not resumed ...");
+   fatal = TRUE (every EC-SIZE-* is fatal, Table 13). ecName arg is the runtime local `ecnVar` (the latched size-error name), file arg = "". Enclosing gate: `if ({flag} && ({nameTest}))` at 195.
+
+4. EmitOverflow — EC-OVERFLOW-STRING/-UNSTRING (§14.9.43/§14.9.48). EcEmitter.cs:225.
+   Gate: emitted only inside `if (!hasPhrase)` (line 223) — the statement's ON OVERFLOW phrase preempts.
+   Exact current call text:
+     int __r{id} = {EcDispatchExpr(CsLiteral(ecName), "\"\"")};
+   Consumption (226): ONLY the pc arm — NO fatal throw:
+     if (__r{id} >= 0) {{ __pc = __r{id}; break; }}
+   fatal = FALSE (nonfatal — execution continues either way, §14.6.13.1.4 #3/#4). Enclosing gate: `if ({ovfFlag})` at 220.
+
+=== THE __IoCheckEc SITE (§5.2 seam-6 "and __IoCheckEc"; EC-I-O path) ===
+
+__IoCheckEc is a GENERATED runtime METHOD, body emitted once per program by EcEmitter.EmitIoCheckEc (EcEmitter.cs:314-359). It does NOT go through EcDispatchExpr — it hard-codes the "__EcDispatch(__ec!, __f)" string in two places. Both are substitution points:
+
+  (5a) EcEmitter.cs:328 — the '0x' EC-I-O-WARNING nonfatal path (successful completion, status begins '0'):
+     int __w = {(decls.Any(d => d.EcEntries is not null) ? "__EcDispatch(__ec!, __f)" : "-3")};
+   Consumed at 329: `return __w == -3 ? -1 : __w;` (nonfatal — never terminates). fatal = FALSE here.
+
+  (5b) EcEmitter.cs:349 — the F3 tiers behind the F1 file/mode tiers (GR3c-g):
+     if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)
+   fatal for this path = `ExceptionCatalog.IsFatalIoStatus(__st)` (already computed and available in the method body).
+
+  Consumption of __sel across the method (352-356):
+     if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed
+     if (__en && ExceptionCatalog.IsFatalIoStatus(__st))
+         throw new CobolFatalException(__ec!, "I-O status " + __st + " on " + __f ...);   // 353-355 fatal default
+     return -1;   // 356
+   Note the __IoCheckEc CALL site (where the returned int is consumed by the statement) is NOT in EcEmitter.cs — it is SequentialIoEmitter.EmitUseHook at SequentialIoEmitter.cs:39-41: `int __ior{id} = __IoCheckEc(...); if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}`. The fatal throw for I-O lives INSIDE __IoCheckEc (353-355), so the call site needs no fatal handling. The gate for emitting the EC-aware variant at all is `ec.IoMaskFor(file) is not 0` (SequentialIoEmitter.cs:35); AT END / INVALID KEY phrase precedence is handled INSIDE __IoCheckEc at 331-332, not by a !hasPhrase gate at the call.
+
+=== "ANY OTHERS" — the sibling-emitter sites that ALSO funnel through ec.EcDispatchExpr (§5.4-2 STAGED sweep) ===
+
+These live outside EcEmitter.cs but call `ec.EcDispatchExpr(...)`, so changing the funnel changes them too (see Risks). The design §5.4-2 marks them STAGED (fall to normal USE/fatal), a documented behavioral GAP:
+  - PtrEmitter.cs:139 — SET…TO ENTRY EC-PROGRAM-NOT-FOUND (fatal): `int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};` — pc arm only (140), no fatal throw.
+  - PtrEmitter.cs:169 — FREE EC-STORAGE-NOT-ALLOC (nonfatal): `int __fr{id} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};` — pc arm only (170).
+  - CallEmitter.cs:150 — EmitProgramEcCatch (CobolCallException, fatal EC-PROGRAM-*), inside `else` of `if (hasPhrase)` (146): `int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};` — pc arm (151) + `if (__r{id} != -2) throw new CobolFatalException(...)` (152).
+  - CallEmitter.cs:177 — EmitPropagationPickup EC-OO-EXCEPTION (fatal): `int __oq{id} = {ec.EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};` — pc arm (178) + fatal throw (179-180).
+  - CallEmitter.cs:186 — EmitPropagationPickup GOBACK/EXIT…RAISING propagated name: `int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};` — pc arm (187) + `if (__pr{id} != -2 && __pf{id}) throw ...` (188-190).
+
+Object-dispatch sites (EmitRaiseObject:53, EmitPropagationPickup:172) use the SEPARATE funnel `ObjDispatchExpr` → `__EcObjDispatch` (Format-4), NOT __EcDispatch; §5.4-5 stages object raises to bypass the F3 frame, so leave these alone.
+
+=== SITES THAT RAISE BUT DO NOT DISPATCH (the genuine un-swept GAP, not a substitution point) ===
+The two NONFATAL ambient gates in EmitChecked (EcEmitter.cs:81-91: EC-DATA-CONVERSION, EC-BOUND-OVERFLOW) only set/reset `ExceptionState.XxxChecking` flags and emit NO EcDispatchExpr call — the runtime raise merely records last-exception status. These have no dispatch to substitute; they are the post-statement-selection GAP already logged in PHASE-13-plan-vs-spec-review.md:229 and §5.4-2.
+
+**Risks/gotchas:** 1. FUNNEL vs PER-SITE TENSION (highest risk): the design's "one-line substitution at each site" is misleading — all four EcEmitter sites plus the five sibling sites (PtrEmitter/CallEmitter) share the SINGLE method EcDispatchExpr. Editing its body to emit __EcPerform silently sweeps the §5.4-2 STAGED sites too (they route through the frame check for free). That is arguably MORE correct, but it contradicts the design's "un-swept fall to normal USE/fatal" GAP claim — reconcile the doc, or thread a per-site opt-in. 2. THE `fatal` ARGUMENT IS NOT THREADED: EcDispatchExpr(ecNameExpr, fileExpr) has no fatal param today. You must add it and supply the constant at each site: EmitArgOrPlain=true, EmitRaise=r.Fatal, EmitSizeHandling=true, EmitOverflow=false, __IoCheckEc:349=IsFatalIoStatus(__st), __IoCheckEc:328=false. 3. UnitHasF3 GATE IS INSUFFICIENT (EcBindState.cs:41-42): when the unit has an F3 PERFORM but NO F3 USE declaratives, UnitHasF3 is false and the funnel currently emits the literal "-3" with NO call at all — so __EcPerform must ALSO be emitted on the `: "-3"` else-branch, gated on a NEW "unit HAS an F3 PERFORM" flag (proposed DispatchState.PerformWhenScopeId — does not exist yet; must be added and set by ProgramEmitter/the F3 binder). Do not simply text-replace inside the `__EcDispatch(...)` branch. 4. __IoCheckEc has TWO literal __EcDispatch strings (328, 349) that BYPASS the funnel — they are separate hand-edits and easy to miss; and __IoCheckEc is a runtime METHOD, so the frame check must be visible in its generated body (its call site is in SequentialIoEmitter, not EcEmitter). 5. ZERO-SCAFFOLDING/BYTE-IDENTICAL INVARIANT: 32 characterization snapshots + the design's "non-F3 output stays byte-identical" gate require that when no F3 PERFORM is present the emitted text is unchanged — so __EcPerform emission MUST be strictly conditional on the new per-unit F3-PERFORM flag, provably null on the existing path. 6. The two nonfatal ambient gates in EmitChecked (EC-DATA-CONVERSION, EC-BOUND-OVERFLOW, lines 81-91) emit NO dispatch — they cannot be swept by a funnel edit; they need a separate post-statement selection (already a logged GAP), so don't assume seam-6 covers them. 7. Object raises (ObjDispatchExpr/__EcObjDispatch at 41-42, 53, 172) are a DIFFERENT funnel — §5.4-5 stages object-raise-inside-imp-1 to bypass the F3 frame; do not route them through __EcPerform.
+
+---
+
+### ExceptionEngine/ExceptionState (the F3-frame stack home)
+
+**Q:** Where does run-unit EC state live, how is it accessed from generated code, and where/how would the ambient F3-PERFORM frame stack (matcher delegate + Handling flag, nesting- and CA
+
+## 1. Where run-unit EC state lives
+
+The run-unit EC state is the class `ExceptionEngine` (in `src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs`, lines 17-255). ONE instance per run unit, owned by `RunUnit.Exceptions` (`RunUnit.cs:40`: `public ExceptionEngine Exceptions { get; } = new();`). The run unit itself is ambient via `AsyncLocal<RunUnit?>` — `RunUnit.Current` (`RunUnit.cs:22-26`) lazily establishes one. So "the run unit" (and therefore the EC engine and any frame stack on it) is automatically isolated per async-flow / per embedded run unit; it is NOT a process-global static.
+
+`ExceptionEngine` today holds: `LastName/LastFatal/LastFile/LastIoStatus/LastLocation/LastStatement` (the §14.6.13.1.1 last-exception status), `ExceptionObject`, the two mutually-exclusive propagation slots `_propagated` / `_propagatedObject`, the run-unit ambient checking flags (`ArgumentFunctionChecking`, `DataConversionChecking`, `BoundOverflowChecking`, `BoundRefModChecking`), and the EC-EXTERNAL masks (`ExternalCheckMask`, `ActivatorExternalMask`). All are plain instance fields/properties — the AsyncLocal owner is what makes them run-unit-scoped, so **there is no `Stack<T>` and no `[ThreadStatic]` anywhere yet.**
+
+## 2. How generated code accesses it
+
+Generated C# never names `RunUnit` or `ExceptionEngine`. It goes through the static facade `ExceptionState` (`ExceptionState.cs:262-376`), whose every member forwards to `RunUnit.Current.Exceptions` via the private shim `private static ExceptionEngine E => RunUnit.Current.Exceptions;` (line 270). Examples the F3 raise sites already emit (in `EcEmitter.cs`): `ExceptionState.Set(name, fatal, stmt, loc)`, `ExceptionState.SetObject(...)`, `ExceptionState.SetIo(...)`, `ExceptionState.ArgumentFunctionChecking = true/false`, `ExceptionState.ExceptionObject`. The generated dispatch helpers `__EcDispatch` / `__EcObjDispatch` / `__IoCheckEc` are *instance methods on the program class* (emitted by `EcEmitter`/`DispatchEmitter`), and they call `ExceptionState.*` + `ExceptionCatalog.*` for the run-unit-state and catalog pieces. So the F3 frame stack must expose (a) an instance-side store on `ExceptionEngine` and (b) name-stable static entry points on `ExceptionState`, exactly mirroring every other emitted EC surface.
+
+## 3. Where the F3-PERFORM frame stack goes + class shape
+
+Put the stack ON `ExceptionEngine` (run-unit-scoped for free), plus a small `PerformFrame` type, plus `ExceptionState` static delegators. Recommended additions:
+
+```csharp
+// NEW type — same file (Exceptions namespace) or a sibling PerformFrame.cs
+/// One active Format-3 (exception-checking) PERFORM frame (ISO §14.9.28.4 GR14-22).
+public sealed class PerformFrame
+{
+    /// The written-order WHEN matcher the emitted PERFORM installs. Returns the
+    /// per-statement dispatch-protocol action (-1 handled-continue / -2 RESUME NEXT /
+    /// >=0 pc [not reachable from a WHEN body — bind-rejected]) or NoMatch when no WHEN
+    /// (nor WHEN OTHER) selects (ec,file). fatal is threaded so the matcher can honor
+    /// GR20's fatal-vs-nonfatal split. file == null for a non-I-O condition.
+    public required Func<string /*ec*/, string? /*file*/, bool /*fatal*/, int> Matcher { get; init; }
+
+    /// GR21 transparency: true only while this frame's OWN handler bodies (imp-2..5)
+    /// run, so an EC raised inside a handler is NOT re-caught by this same PERFORM.
+    public bool Handling { get; set; }
+
+    /// Distinct from every real action (-3 is __EcDispatch's "no declarative"; use a
+    /// value that cannot collide with a pc or -1/-2/-3).
+    public const int NoMatch = int.MinValue;
+}
+```
+
+On `ExceptionEngine` (instance state — nesting handled by the stack, CALL-safety handled per §4):
+
+```csharp
+private readonly Stack<PerformFrame> _perform = new();
+
+public void PushPerformFrame(PerformFrame f) => _perform.Push(f);
+public void PopPerformFrame()                => _perform.Pop();
+
+/// The single centralized "run the top eligible frame" primitive — keeps the GR21
+/// Handling toggle in ONE place (singular-pattern). Peeks the topmost NON-Handling
+/// frame; sets Handling around the matcher call; returns its action, or reports
+/// handled=false (caller then falls to __EcDispatch). No LINQ over the stack: only the
+/// top frame is eligible (an inner PERFORM shadows an outer — written/lexical nesting).
+public int RunTopFrame(string ec, string? file, bool fatal, out bool handled)
+{
+    handled = false;
+    if (_perform.Count == 0) { return PerformFrame.NoMatch; }
+    var top = _perform.Peek();
+    if (top.Handling) { return PerformFrame.NoMatch; }   // GR21 — transparent to its own bodies
+    top.Handling = true;
+    try
+    {
+        int a = top.Matcher(ec, file, fatal);
+        if (a != PerformFrame.NoMatch) { handled = true; return a; }
+        return PerformFrame.NoMatch;                     // fall through to USE (__EcDispatch)
+    }
+    finally { top.Handling = false; }
+}
+
+// Depth snapshot/restore hooks for the CALL boundary (see §4).
+internal int PerformDepth => _perform.Count;
+internal void TrimPerformTo(int depth) { while (_perform.Count > depth) _perform.Pop(); }
+```
+
+On `ExceptionState` (the emitted surface — thin delegators, same pattern as the existing 30-odd forwarders):
+
+```csharp
+public static void PushPerformFrame(PerformFrame f) => E.PushPerformFrame(f);
+public static void PopPerformFrame()               => E.PopPerformFrame();
+public static int  RunTopFrame(string ec, string? file, bool fatal, out bool handled)
+    => E.RunTopFrame(ec, file, fatal, out handled);
+```
+
+## 4. Nesting-safety and CALL-safety
+
+**Nesting-safe** because it's a `Stack<PerformFrame>` and every emitted F3 PERFORM pushes on entry and pops in a `finally` (see §5). A nested F3 PERFORM inside imp-1 of an outer one pushes a second frame; `RunTopFrame` peeks only the top, so the innermost active interceptor wins — exactly the lexical nesting the standard wants. The `Handling` flag independently guarantees a frame is transparent while its own handler runs (GR21).
+
+**CALL-safe**: two layers.
+- (1) Balance: because push is always paired with `finally { PopPerformFrame(); }`, an abnormal unwind through a CALL (a thrown `ProgramReturn`, `CobolFatalException`, `StopRun`, `ResumeSignal`, `CobolCallException`) still pops. So a called program can never leave the caller's stack imbalanced, and a called program's own F3 PERFORMs push/pop on the same shared stack without corrupting outer frames.
+- (2) Scope at the activation boundary: the clean, spec-defaulting choice is to have `ProgramTable.CallProgram` snapshot and restore the frame extent around `inst.Call(...)`, mirroring the EXISTING `ExternalCheckMask`/`ActivatorExternalMask` save/restore already at `ProgramTable.cs:152-161`. Concretely, inside `CallProgram`: `int savedDepth = exc.PerformDepth;` before the `try`, and in the `finally` `exc.TrimPerformTo(savedDepth);`. This makes the interceptor scope per-activation by default (a called program's raise is NOT intercepted by the caller's frame), which is the safe reading; the §14.9.28.4 GR1 "called elements are in range" cross-activation behavior then becomes a deliberate future opt-in rather than an accident. This directly matches c5-DESIGN §5.4 staged-item 2, which flags "frame-stack save/restore across CallProgram" as the cross-CALL design point. For the core wave, snapshot/restore is the low-risk default.
+
+## 5. How generated code pushes/pops a frame and calls the matcher
+
+The interceptor is per-statement, NOT a block try/catch (a block catch cannot deliver GR20 nonfatal resume-in-place). Two generated pieces:
+
+(a) `EmitExceptionPerform` (today a stub at `ControlFlowEmitter.cs:64-68`, which merely emits imp-1 then FINALLY) installs and tears down the frame around imp-1 emitted UNDER the GR14 overlay:
+
+```
+ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f, __fatal) => {
+    // written-order WHEN tests — the same predicate __EcDispatch uses:
+    //   level-3 name → __ec == "EC-...";  level-2 → ExceptionCatalog.UnderLevel2(__ec, "EC-...");
+    //   EC-ALL → true;  file-scoped operand additionally requires __f == <file key>.
+    if (<when1 matches __ec,__f>) { /* imp-2 inline; Handling already set by RunTopFrame */ return <action>; }
+    ... // WHEN OTHER → imp-3
+    return PerformFrame.NoMatch;   // → caller falls to __EcDispatch (USE)
+}});
+try { /* imp-1, compiled with the GR14 TurnState overlay */ }
+finally { ExceptionState.PopPerformFrame(); }
+/* imp-5 FINALLY block — trailing, normal fall-through only (§5.4-3 default) */
+__perfEnd{n}: ;
+```
+
+(b) At every raise site the existing `EcDispatchExpr(ec, file)` (= `"__EcDispatch(...)"` or the `-3` constant, `EcEmitter.cs:36-37`) is replaced by a new generated instance method `__EcPerform(ec, file, fatal)` that consults the top frame first, then falls to USE:
+
+```csharp
+private int __EcPerform(string __ec, string __f, bool __fatal)
+{
+    int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, __fatal, out bool __h);
+    return __h ? __a : __EcDispatch(__ec, __f);   // GR17/18 win over USE; else -3/tiers
+}
+```
+
+The return value feeds the raise site's EXISTING protocol unchanged (`EcEmitter` pattern: `int __r = <expr>; if (__r >= 0) { __pc = __r; break; }  // RESUME AT proc; if (__r != -2) throw ...  // fatal unresumed`). So: matcher returns -1 → raise site continues after the raising statement (GR20 nonfatal resume-in-place, automatic); -2 → falls through past the raiser suppressing fatal termination (RESUME NEXT STATEMENT); NoMatch → `__h==false` → `__EcDispatch` runs the USE tiers exactly as today. The one-line substitution sites are `EmitRaise`, `EmitSizeHandling`, `EmitOverflow`, the fatal ambient gates in `EmitArgOrPlain`, and `__IoCheckEc` (all in `EcEmitter.cs`), each of which already gates on `if (!hasPhrase)` so statement-own-phrase precedence is preserved for free.
+
+Note the `Handling` toggle lives centrally in `RunTopFrame` (§3), so the matcher closure does NOT manage it — the closure just runs the handler body and returns the action; any re-raise inside that body re-enters `__EcPerform` → `RunTopFrame`, sees `top.Handling==true`, returns NoMatch, and the raise falls to an OUTER frame or `__EcDispatch` (GR21).
+
+## 6. Emitter gating (byte-stability)
+
+Gate all of this on "this unit HAS an F3 PERFORM," which the binder already records: `EcBindState.F3Perform` (`EcBindState.ExceptionPerform.cs:29`, doc'd at `EcBindState.cs:40-43`). Surface it to the emitter as a new `EcState.UnitHasF3Perform` flag alongside the existing `UnitHasF3`/`UnitHasF4` (`EmitterState.cs:82-87`, set in `ProgramEmitter.cs:112-113`). Then `EcDispatchExpr` becomes: emit `__EcPerform(...)` when `UnitHasF3Perform`, else the current `__EcDispatch(...)`/`-3`. A program with no F3 PERFORM emits byte-identical source (the 33 characterization tests + battery invariant). `__EcPerform` is emitted only in that unit; when the unit also has no F3 USE declaratives, `__EcDispatch` is `-3` and `__EcPerform` still resolves the frame path.
+
+**Risks/gotchas:** 1) __EcPerform must be a GENERATED instance method, not a runtime method, because it calls __EcDispatch (a per-class generated method). Only the frame STACK + Handling toggle live in the runtime (ExceptionEngine); keep RunTopFrame as the single place the Handling flag is set/cleared (singular-pattern) so re-raise-in-handler transparency (GR21) can't drift.
+
+2) NoMatch sentinel must not collide with real actions. -1/-2 are handled/resume, >=0 is a pc, -3 is __EcDispatch's "no declarative". Use a value like int.MinValue for PerformFrame.NoMatch AND report matched via the out-bool from RunTopFrame — do NOT overload -3, or a frame that legitimately returns -1 (handled) becomes indistinguishable from "no frame".
+
+3) CALL-safety has two independent requirements: (a) balance via try/finally Pop on every push (covers abnormal unwind through ProgramReturn/CobolFatalException/ResumeSignal/StopRun/CobolCallException), and (b) scope via PerformDepth snapshot/TrimPerformTo in ProgramTable.CallProgram. (a) is mandatory for the core; (b) is the safe DEFAULT (per-activation scope) — the §14.9.28.4 GR1 cross-activation "in range" reading is explicitly a STAGED item (c5-DESIGN §5.4-2), so do not attempt cross-CALL interception in the core wave.
+
+4) Lambda limitation (recorded in D12 / c5-DESIGN §5.4-note): C# cannot `goto` out of a lambda, so EXIT PERFORM inside a WHEN handler emitted as a matcher CLOSURE cannot jump to __perfEnd. The runtime class shape here (Func matcher) is agnostic, but the EMITTER must choose c5-DESIGN option (A) synthetic pc-ranges via __RunUse, or option (B) handler methods + a new ExitPerformSignal — do not ship the lambda form if imp-2..5 can contain EXIT PERFORM.
+
+5) EC-I-O uses SetIo (file+status) — RunTopFrame's `file` param must be the connector key (pass __f, null when empty, as __IoCheckEc already threads __f). The open-mode WHEN operand form (WHEN EXCEPTION INPUT/OUTPUT/I-O/EXTEND) needs the connector's current open mode at the raise site and is a STAGED sub-GAP (c5-DESIGN §5.4-1) — the matcher for that form stays 0899 until staged.
+
+6) Byte-stability: gate every new emission on UnitHasF3Perform; a non-F3 unit must emit zero new source (33 characterization tests + battery). The construct is currently bind-REJECTED (COBOLNET0899); flipping it to accept-and-emit is the same change set that installs __EcPerform, and requires the full legacy guard + GnuCOBOL differential (shared __EcDispatch/raise-site seams touched).
+
+---
+

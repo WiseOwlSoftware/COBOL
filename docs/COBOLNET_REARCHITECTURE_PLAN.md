@@ -23,43 +23,16 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD = the EC-PROGRAM-EXCEPTIONS commit, pushed — ⭐ the Wave-D **FLAG-02/FLAG-14
-  migration-flagging subsystem is COMPLETE**: all 17 option-detectors + the 2 directive-word gates = the full
-  19-item census; `DESIGN-flag-directives.md` = IMPLEMENTED):** the full flagging subsystem (design SSOT
-  `docs/rearchitecture/DESIGN-flag-directives.md`; pipeline `FlagDirectiveProcessor`→`FlagState`→`FlagConformancePass`
-  parse-arm visitor + frontend-inline `ConditionalCompilationProcessor`; diags COBOLNET1620/1621/1622; directive-word
-  edition gates) + these detectors LANDED: READ-PREVIOUS, CLOSE-I-O-STATUS-07 (Incr 0); g NUM-ED-ZERO-FIGCONST, l
-  VALUE-ZERO, j VALUE-EDITING, k VALUE-FIG-CON-LENGTH, m WRITE-END-OF-PAGE, FLAG-02 f TERMINATE-WITH-VARYING (Incr 1);
-  b COMPILE-TIME-ARITHMETIC-EXPRESSIONS, c EVALUATE (Incr 2, frontend-inline); i REF-MOD-ZERO-LENGTH,
-  **d MOVE-TO-SAME-NAME**, **e RANGE-EXCEPTION-FOR-INDEX** (Incr 3 — COMPLETE). **d** added the per-unit
-  name-resolution scaffolding to `FlagConformancePass` (a `VisitProgramUnit` save/restore selecting the current unit's
-  `DataBinder`/`ReferenceResolver` from a `ProgramUnitContext→BoundUnit` map) — same-DDE via **exact `ReferenceEquals`**
-  of `ReferenceResolver.FindItem` results (ignores subscripts/ref-mod ⇒ `MOVE A(I) TO A(J)` is the same DDE);
-  alphanumeric-edited via `{ Category: Alphanumeric, EditMask: not null }` (**no `PicCategory.AlphanumericEdited`
-  member exists** — the scout's proposed test was impossible, verify-agent-corrected); subordinate-ODO via
-  `OdoModel.TableUnder`/`IsWithin`. **e** reuses that `_currentData`: an index-**NAME** receiver of
-  `setToValueStatement`/`setIndexStatement` via `DataBinder.IndexFields.ContainsKey`, gated by
-  `_turn.Enabled("EC-RANGE-INDEX", null, line)`. **⛔ SPEC-PRECISE (divergence from BOTH the scout and the verify
-  agent): only an index-NAME receiver range-checks — a class-index DATA item (USAGE INDEX) receiver copies UNCHANGED
-  per §14.9.39.4 Format-1 GR2b, so it is NOT flagged.** OO method bodies (both d/e) = a documented advisory
-  false-negative (no unit-map entry ⇒ `_current*` null ⇒ not resolved). **Incr 4 (part) LANDED: FLAG-14 e/f
-  I-O-STATUS-04/07** — one shared `VisitComparisonExpression` detector flags a FILE-STATUS item tested for '04'/'07'
-  via a **relation** (`comparisonExpression` = 2 operands + operator, either order) OR a **level-88 condition-name**
-  whose singleton VALUE is '04'/'07'; name-role sets built in `Run` from `unit.Data.Files[]`
-  (`FileStatusItem.CobolName` + the item's `Own88s`); operand navigation via the canonical
-  `ConditionBinder.SoleDataRef` + `valueOperand().nonNumericLiteral().STRINGLIT()` (tooling-first). **Incr 4 (part)
-  LANDED: FLAG-14 d I-O-DECLARATIVE** — two rules: (1) an INVALID-KEY-capable statement (WRITE/REWRITE/DELETE/START/
-  random-READ on a KEYED file) lacking INVALID KEY when the unit has ANY open-mode USE declarative; (2) an
-  AT-END-capable READ (sequential retrieval) lacking AT END when the unit has an INPUT/I-O declarative. Per-unit modes
-  from `unit.Bound.Declaratives` (`BoundDeclarative.ModeIndex`=`FileOpenMode`); file classification from
-  `_currentData.Files` (`IsKeyed`=RELATIVE/INDEXED; a READ is sequential iff NEXT/PREVIOUS or AccessMode Sequential).
-  ✅ **Incr 4 COMPLETE — FLAG-02 b EC-PROGRAM-EXCEPTIONS LANDED (the LAST FLAG option)**: a `>>TURN` for an
-  EC-PROGRAM-family exception (EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND) is flagged when its
-  source element calls a function or invokes a method. Flags a DIRECTIVE (not a statement), so it runs POST-walk: a
-  new `TurnState.DirectiveLinesNaming` exposes the `>>TURN` lines; `VisitFunctionCall`/`VisitInvokeStatement`/
-  `VisitInlineMethodInvocationStatement` record the current unit in `_unitsWithCall`; `FlagEcProgramDirectives` maps
-  each directive line to its INNERMOST containing unit and flags if that unit has a call/invoke.
-  **⏭ NEXT = the Wave-D residue (the FLAG subsystem is DONE; remaining, doing all IN SEQUENCE per owner):**
+- **▶ RESUME AT (2026-07-21; code HEAD = the CC-in-COPY commit `c3377315`, pushed).** ⭐ **Two Wave-D residue tracks
+  LANDED this session (owner: "do them all in sequence"):** **① `>>COBOL-WORDS` §7.3.10 COMPLETE** (4 increments A–D,
+  commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`; DESIGN SSOT `DESIGN-cobol-words-directive.md` = IMPLEMENTED;
+  DEVLOG 962–965) and **② CC-directives-inside-COPY §7.2.1 COMPLETE** (`c3377315`; DESIGN SSOT `DESIGN-cc-in-copy.md`
+  = IMPLEMENTED; DEVLOG 966; the merged interleaved text-manip driver — GnuCOBOL +2 fixes/0 regressions, legacy guard
+  ALL GREEN, greenfield Conformance 3806/0). The prior FLAG-02/FLAG-14 migration-flagging subsystem stays COMPLETE
+  (`DESIGN-flag-directives.md` = IMPLEMENTED; the full 19-item census; DEVLOG 933–961 for the detail).
+  **⏹ SESSION STOPPED HERE per owner** (land Tracks 1+2; resume Track ③ fresh next session — it is design-ready and
+  scouted, see the ▶ ③ block below).
+  **⏭ NEXT = the Wave-D residue (the FLAG subsystem + Tracks ①② are DONE; remaining, doing all IN SEQUENCE per owner):**
   **① >>COBOL-WORDS ✅ COMPLETE** · **② CC-in-COPY ✅ COMPLETE** · **③ PERFORM Format-3 RUNTIME interceptor — NEXT** ·
   ④ §24 fix-queue → Wave I merge → P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case
   incl. negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod
@@ -77,11 +50,30 @@ checkpoint.
   ⚠ lesson: USE/MODE are RESERVED — can't be compilation-variable names (COBOLNET1619); a two-pass CC→COPY→CC also
   fails (pass 1 consumes the main >>DEFINE before the copybook >>IF in pass 2 can see it) — the interleaved driver is
   the only correct shape.
-  **▶ ③ PERFORM Format-3 RUNTIME interceptor — NEXT:** the GR17–20 runtime is STAGED (F3 PERFORM REJECTED at 2023 with
-  COBOLNET0899, `perform-exception-checking-2023` = pending). Direction (recorded): the pc-RANGE architecture — reuse
-  `__RunUse`/`ResumeSignal` (singular-pattern with declaratives; NOT the design §5 lambda — C# can't `goto` out of a
-  lambda), gate `__EcPerform` on "unit HAS an F3 PERFORM" so non-F3 output stays byte-identical. Design SSOT
-  `PHASE-13-c5-perform-format3-DESIGN.md` §6. NEEDS a scout+design cycle first.
+  **▶ ③ PERFORM Format-3 RUNTIME interceptor — NEXT (DESIGN-READY + SCOUTED 2026-07-21; do NOT rush — this rewires the
+  byte-critical EC runtime every program's exception handling flows through).** The GR17–20 runtime is STAGED (F3
+  PERFORM REJECTED at 2023 with COBOLNET0899 — `EcBinder.ExceptionPerform.cs:35-40`, `perform-exception-checking-2023`
+  = `status:pending`). **✅ The BINDER IS ALREADY COMPLETE:** `EcBindExceptionPerform` produces a full
+  `BoundExceptionPerform` (imp1 bound with the GR14 `TurnState.WithImplicitEnable` overlay; WHEN descriptors
+  `BoundExceptionWhen(Mode,Ops,Body)`; other/common/final; withLocation; RESUME-in-WHEN relaxation via
+  `ctx.EcState.InF3When`; `ctx.EcState.F3Perform=true` the emitter gate). **The REMAINING work = the emitter + runtime
+  interceptor** (`ControlFlowEmitter.EmitExceptionPerform` is a STUB — imp1 + FINALLY only, `ControlFlowEmitter.cs:64`).
+  **THE PLAN = design SSOT `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §5 (the 10 integration
+  seams) — the "tractable core LANDS NOW" list + the 5 STAGED GAPs (each a COBOLNET0899 disposition so nothing silently
+  mis-compiles: WHEN open-mode operand · exhaustive raise-site sweep · FINALLY-on-abnormal-termination [a GENUINE
+  STANDARD DEFECT — chosen default: FINALLY on normal fall-through only] · EC-FLOW-USE/`>>PROPAGATE` · exception-object
+  in imp-1).** Owner-directed architecture (§0 recorded): the **pc-RANGE approach, NOT the design §5 lambda** (C# can't
+  `goto` out of a lambda). **KEY MECHANISMS (read + confirmed this session):** the dispatch-result protocol `-1`
+  continue / `-2` RESUME-NEXT / `-3` no-declarative / `≥0` pc (`EcEmitter.cs:21-25`); the central seam
+  `EcEmitter.EcDispatchExpr` = `__EcDispatch(ec,file)` gated on `ecState.UnitHasF3` (`EcEmitter.cs:36-37`) — replace
+  with `__EcPerform(ec,file,fatal)` that checks the top F3 frame first (§5.2 seam 6, one substitution at each raise
+  site: `EmitRaise`/`EmitSizeHandling`/`EmitOverflow`/`EmitArgOrPlain` + `__IoCheckEc`); the `__RunUse` pc-range
+  invoker (`DispatchEmitter.cs:176-184` — `try{__Dispatch(s,e);} catch(ResumeSignal rs){return rs.TargetPc;}`) is the
+  pattern imp-2..5 reuse; `ResumeSignal(targetPc)` (`Control/Signals/ResumeSignal.cs`, `NextStatement=-2`); the F3-frame
+  stack goes on `ExceptionEngine` (`Exceptions/ExceptionState.cs`) with a matcher `(string ec,string? file,bool
+  fatal)=>int` + a `Handling` transparency flag (GR21). ⚠ A 5-agent runtime scout ran (`wf_ddb8dd1e-0f7`, results in
+  its `journal.jsonl`) — persist its findings on resume if useful. EXIT-PERFORM-goto = §5.2 seam 9. **Gate: GnuCOBOL
+  differential before/after + full legacy guard + conformance (touches shared EC runtime).**
   **▶ ① >>COBOL-WORDS (§7.3.10; DESIGN SSOT `docs/rearchitecture/DESIGN-cobol-words-directive.md` = decision-complete;
   DEVLOG 962–963):** the owner-directed post-lex token rewriter + composed `ReservedWordSet` (supersedes the prior
   scouts' text-substitution/not-supported plan). 4 increments: **✅ Incr A LANDED** — recognition + parse (4 options) +
@@ -274,14 +266,16 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD = the EC-PROGRAM-EXCEPTIONS commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
-  unit **520** (447 baseline + **`FlagDirectiveTests` 73** — parser/fold/end-to-end for ALL 17 landed FLAG detectors; full suite re-run green) ·
-  legacy unit `Preprocessor` **11** · characterization **33** byte-exact · greenfield Conformance **3784** + the
-  `directive_expressions` 2002 golden. The FLAG subsystem added the drift-guarded catalog descriptors
-  COBOLNET1620/1621/1622 + the `flag-14-directive-2023`/`flag-02-directive-2014` version-matrix rows (full
-  Conformance **1817** green, 0 regressions). Per-commit gate this session was wave-local (fresh build +
-  characterization + `FlagDirectiveTests` filter + a CLI probe); a NEW session should re-confirm the battery green
-  (§9) before the next detector.
+- **Battery at code-HEAD = the CC-in-COPY commit `c3377315` (2026-07-21; branch `phase-13-grammar-batch`, pushed):**
+  greenfield unit green incl. **`CobolWordsDirectiveTests` 34** (Track ①) + **`CopyConditionalProcessorTests` 8**
+  (Track ②) · characterization **33** byte-exact (the zero-overhead / byte-identity invariant held through BOTH the
+  >>COBOL-WORDS token-rewriter + the CC/COPY merge-refactor) · greenfield Conformance **3806** (+ `cc_in_copy`,
+  `cobol_words_{equate,substitute,undefine,intrinsic}` goldens + 2 negative goldens) · legacy guard **ALL GREEN**
+  (NIST 353 MATCH, 0 regression — proves the CopyProcessor/ConditionalCompilationProcessor refactor is byte-identical
+  for the frozen oracle). **⚡ GnuCOBOL external differential: +2 fixes / 0 regressions** (the CC-in-COPY merge flipped
+  `listings:3788`/`3884` WE_REJECT_THEY_ACCEPT → AGREE). New descriptors: COBOLNET1623 (cobol-words-directive-invalid)
+  + the `cobol-words-directive-2023` version-matrix row. A NEW session should re-confirm the battery green (§9) before
+  Track ③.
   **⛔ TESTING DISCIPLINE (owner-corrected — a repeated miss): gate each WAVE with the WAVE-LOCAL gate (~2–3 min:
   fresh build + characterization + `CorpusRunnerTests`/targeted unit FILTERED to the wave + a CLI probe), NOT the
   full suites.** The COMPREHENSIVE gate (FULL greenfield Conformance + FULL legacy guard) is **once per BATCH,
@@ -342,9 +336,12 @@ checkpoint.
   **1620/1621/1622 SHIPPED 2026-07-21 by FLAG Incr 0** — the migration-flagging subsystem: **1620** flag-02-incompatibility
   (Warning) · **1621** flag-14-incompatibility (Warning) · **1622** flag-directive-malformed (Error); all THREE are
   `DiagnosticCatalog` descriptors (the two Warnings are the per-directive channel carrying per-option ConstructId/Citation).
-  **NEXT FREE = 1623** — allocate only
+  **1623 SHIPPED 2026-07-21 by >>COBOL-WORDS (Track ①)** — `cobol-words-directive-invalid` (Error): a malformed
+  >>COBOL-WORDS directive or a §7.3.10.3 syntax-rule violation (SR1 placement / SR2 literal / SR3 existing-word category
+  / SR4 new-word category / SR5 duplicate); a `DiagnosticCatalog` descriptor. (CC-in-COPY Track ② added NO new code.)
+  **NEXT FREE = 1624** — allocate only
   after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1622) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  (max = 1623) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
