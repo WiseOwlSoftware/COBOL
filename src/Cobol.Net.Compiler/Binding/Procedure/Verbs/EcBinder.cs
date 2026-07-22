@@ -361,6 +361,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundFree:
                     Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)
                     break;
+                // EC-RANGE-PERFORM-VARYING (fatal, §14.9.28.4 GR3): a PERFORM VARYING that initializes an index-name
+                // from a non-positive FROM item raises it. Unlike the blanket ambient gates below, a PERFORM is ONE
+                // identifiable node, so a PRECISE case (not a whole-statement gate) drives the FatalAmbientGates
+                // wrapper — the emitted index-init check (ControlFlowEmitter) throws inside that try for USE-F3.
+                case BoundInlinePerform { Control: PerformVarying { CheckIndexRange: true } }:
+                case BoundOutOfLinePerform { Control: PerformVarying { CheckIndexRange: true } }:
+                    Query(["EC-RANGE-PERFORM-VARYING"]);
+                    break;
             }
             // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
             // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).

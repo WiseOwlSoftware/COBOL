@@ -21,6 +21,7 @@
     "ec_data_not_finite",
     "ec_data_overflow",
     "ec_range_search",
+    "ec_range_perform_varying",
     "find_string",
     "goback_status",
     "inspect_backward",

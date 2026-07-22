@@ -502,7 +502,8 @@ public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr 
 
 /// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28 Format 4, GR13): nested
 /// induction loops, leftmost level outermost.</summary>
-public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter) : BoundPerformControl;
+public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter,
+    bool CheckIndexRange = false) : BoundPerformControl;
 
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;

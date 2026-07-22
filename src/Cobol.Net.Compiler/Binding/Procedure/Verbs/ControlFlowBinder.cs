@@ -211,7 +211,11 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
             levels.Add(level);
         }
-        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null);
+        // §14.9.28.4 GR3: an index-name varied/AFTER from a data-item FROM whose value is non-positive raises the
+        // fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps the
+        // directive-free output byte-identical (no check emitted when off).
+        bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
+        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, checkIndexRange);
     }
 
     /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression

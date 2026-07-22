@@ -238,6 +238,25 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
+
+    /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
+    /// The PERFORM VARYING index-name initialization site consults it.</summary>
+    public bool PerformVaryingChecking { get; set; }
+
+    /// <summary>Raise EC-RANGE-PERFORM-VARYING when a PERFORM VARYING (or AFTER) initializes an INDEX-NAME from a
+    /// data-item FROM operand whose value is NOT POSITIVE (&lt;= 0) at the time of initialization (ISO §14.9.28.4 GR3,
+    /// spec :29222; Table 13 Fatal). The <paramref name="value"/> is the DATA ITEM's value (GR3 tests the data item,
+    /// not the post-conversion index). Same fatal throw/dispatch contract as <see cref="RefModError"/>.</summary>
+    public void PerformVaryingIndexError(long value, string detail)
+    {
+        if (PerformVaryingChecking && value <= 0)
+        {
+            Set("EC-RANGE-PERFORM-VARYING", fatal: true);
+            throw new CobolFatalException("EC-RANGE-PERFORM-VARYING", detail);
+        }
+    }
+
     // ── EC-DATA-NOT-FINITE ambient statement gate (a non-finite standard-float sending operand referenced) ──────
 
     /// <summary>True while the currently-executing statement has EC-DATA-NOT-FINITE checking enabled (fatal, the twin
@@ -472,6 +491,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.RefModError"/>
     public static void RefModError(string detail) => E.RefModError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.PerformVaryingChecking"/>
+    public static bool PerformVaryingChecking
+    {
+        get => E.PerformVaryingChecking;
+        set => E.PerformVaryingChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.PerformVaryingIndexError"/>
+    public static void PerformVaryingIndexError(long value, string detail) => E.PerformVaryingIndexError(value, detail);
 
     /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteChecking"/>
     public static bool FloatNotFiniteChecking

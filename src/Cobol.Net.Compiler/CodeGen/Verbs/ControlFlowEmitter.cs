@@ -265,7 +265,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var levels = v.Levels;
         if (!v.TestAfter)
         {
-            foreach (var lv in levels) set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));   // GR13a: left-to-right init
+            foreach (var lv in levels) InitVaryingTarget(v, lv);   // GR13a: left-to-right init
             EmitBefore(0);
             void EmitBefore(int k)
             {
@@ -283,14 +283,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
                         // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
                         set.AugmentSetTarget(levels[k].Var, down: false, num.Render(levels[k].By, ReceiverContext.None));
-                        set.StoreSetTarget(levels[k + 1].Var, num.Render(levels[k + 1].From, ReceiverContext.None));
+                        InitVaryingTarget(v, levels[k + 1]);
                     }
                 }
             }
         }
         else
         {
-            set.StoreSetTarget(levels[0].Var, num.Render(levels[0].From, ReceiverContext.None));
+            InitVaryingTarget(v, levels[0]);
             EmitAfter(0);
             void EmitAfter(int k)
             {
@@ -299,7 +299,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1) body();
                     else
                     {
-                        set.StoreSetTarget(levels[k + 1].Var, num.Render(levels[k + 1].From, ReceiverContext.None));   // reinit on each entry
+                        InitVaryingTarget(v, levels[k + 1]);   // reinit on each entry
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");
@@ -307,6 +307,27 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 }
             }
         }
+    }
+
+    /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13). When the target
+    /// is an INDEX-NAME initialized from a data-item FROM and EC-RANGE-PERFORM-VARYING checking is enabled
+    /// (§14.9.28.4 GR3), materialize the FROM value ONCE, raise the fatal EC when it is not positive (the runtime
+    /// tests the DATA-ITEM value, GR3 — the throw is caught by the FatalAmbientGates guard for USE-F3 dispatch), then
+    /// assign the index; otherwise the plain store (byte-identical). GR3 governs FROM initialization only, so the
+    /// BY/augment sites are unaffected. A literal FROM (BoundNumLiteral) and an index-name FROM (BoundIndexRef) are
+    /// out of GR3 scope and take the plain path.</summary>
+    private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
+    {
+        if (v.CheckIndexRange && lv.Var is SetIndexTarget ix && lv.From is BoundNumRef)
+        {
+            string tmp = $"__pv{ctx.Names.NextVary()}";
+            ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(num.Render(lv.From, ReceiverContext.None), 0)});");
+            ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
+                + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
+            ctx.Writer.Line($"{ix.IndexField} = {tmp};");
+            return;
+        }
+        set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));
     }
 
     private static string CountExpr(BoundOperand count) => count switch
