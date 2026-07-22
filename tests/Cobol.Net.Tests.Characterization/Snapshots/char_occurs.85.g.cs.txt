@@ -65,18 +65,24 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     long __set0 = (long)(3L);
                     _IX_0 = (long)(__set0);
                     System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_0), _P_1));
-                    __search0:
-                    if (_IX_0 > 5L)
+                    if (_IX_0 < 1 || _IX_0 > 5L)
                     {
-                        goto __searchEnd0;
+                        goto __searchAtEnd0;
                     }
+                    __search0:
                     if (CobolTable.At(WS_TBL.WS_ELEM, _IX_0) == 4L)
                     {
                         System.Console.WriteLine("FOUND4");
                         goto __searchEnd0;
                     }
                     _IX_0 += 1;
+                    if (_IX_0 > 5L)
+                    {
+                        goto __searchAtEnd0;
+                    }
                     goto __search0;
+                    __searchAtEnd0: ;
+                    goto __searchEnd0;
                     __searchEnd0: ;
                     throw new StopRun();
                 }

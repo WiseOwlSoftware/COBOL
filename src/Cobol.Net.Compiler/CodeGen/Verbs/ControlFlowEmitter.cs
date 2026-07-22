@@ -340,33 +340,56 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         else EmitSearchScan(s, id);
     }
 
-    /// <summary>The serial-SEARCH scan loop (ISO §14.9.37.4): past-end → AT END; else each WHEN in order; none true →
-    /// advance the index (and the VARYING item) and loop. The AT-END bound is the table's MAXIMUM occurrence count —
-    /// or, for an occurs-depending table its CURRENT count, or (D9) a dynamic table's current <c>Capacity</c>
-    /// (GR4/GR9 → §13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an EnterSearch/ExitSearch
-    /// try/finally.</summary>
+    /// <summary>The SEARCH scan loop (ISO §14.9.37.4). An INITIAL-index guard runs BEFORE the loop: for a serial
+    /// SEARCH a starting index &lt; 1 or &gt; the highest permissible occurrence is unsuccessful and, under checking,
+    /// sets EC-RANGE-SEARCH-INDEX (GR4); for SEARCH ALL (the index is already forced to 1, GR9) only an empty table
+    /// is unsuccessful and sets EC-RANGE-SEARCH-NO-MATCH. The loop then tries each WHEN in order; none true → the
+    /// index (and the GR8 VARYING item) advance and an advance-past-end check sets EC-RANGE-SEARCH-NO-MATCH (GR6/GR9).
+    /// Both failure sites route to ONE shared AT-END emission. The <c>&lt; 1</c> serial guard is emitted
+    /// UNCONDITIONALLY (a correctness fix — the pre-slice loop-top <c>&gt; bound</c> check let a zero/negative index
+    /// read a phantom scratch occurrence); only the EC <c>Set</c> calls are checking-gated. The AT-END bound is the
+    /// table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or (D9) a dynamic table's
+    /// current <c>Capacity</c> (§13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an
+    /// EnterSearch/ExitSearch try/finally.</summary>
     private void EmitSearchScan(BoundSearch s, int id)
     {
         var w = ctx.Writer;
-        w.Line($"__search{id}:");
-        // The AT-END bound: a dynamic table's current Capacity, an occurs-depending table's current count
-        // (CobolTable.Occ over data-name-1's place), else the compile-time maximum.
         string bound = s.DynTable is { } dt ? $"{dt}.Capacity"
             : s.DependItem is { } dp ? RuntimeApi.TableOcc(PlaceRenderer.Read(dp))
             : $"{s.Count}L";
-        using (w.Block($"if ({s.IndexField} > {bound})"))
+        // (1) Initial-index guard (§14.9.37.4 GR4) — before the loop label.
+        string initGuard = s.FromStart ? $"{s.IndexField} > {bound}"
+                                        : $"{s.IndexField} < 1 || {s.IndexField} > {bound}";
+        using (w.Block($"if ({initGuard})"))
         {
-            bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
-            if (!terminated) w.Line($"goto __searchEnd{id};");
+            if (s.FromStart)
+            {
+                if (s.CheckSearchNoMatch) w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-NO-MATCH\", false);");
+            }
+            else if (s.CheckSearchIndex)
+                w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-INDEX\", false);");
+            w.Line($"goto __searchAtEnd{id};");
         }
+        w.Line($"__search{id}:");
+        // (2) the WHEN conditions, first true wins (a body that completes jumps past the search).
         foreach (var when in s.Whens)
             using (w.Block($"if ({cond.Render(when.Condition)})"))
             {
                 if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
             }
+        // (3) advance the index (+ the GR8 varied item); an advance past the end is unsuccessful → NO-MATCH.
         w.Line($"{s.IndexField} += 1;");
         if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0));
+        using (w.Block($"if ({s.IndexField} > {bound})"))
+        {
+            if (s.CheckSearchNoMatch) w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-NO-MATCH\", false);");
+            w.Line($"goto __searchAtEnd{id};");
+        }
         w.Line($"goto __search{id};");
+        // (4) the shared AT-END emission — both failure sites reach it (emitted ONCE), then the search-end label.
+        w.Line($"__searchAtEnd{id}: ;");
+        bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
+        if (!terminated) w.Line($"goto __searchEnd{id};");
         w.Line($"__searchEnd{id}: ;");
     }
 

@@ -20,6 +20,7 @@
     "ec_storage_not_avail",
     "ec_data_not_finite",
     "ec_data_overflow",
+    "ec_range_search",
     "find_string",
     "goback_status",
     "inspect_backward",

@@ -67,7 +67,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             .ToList();
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependItem: OdoModel.SearchDepending(table, ctx.Refs),
-            DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
+            DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
+            // §14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
+            // sets the nonfatal range EC when checking is enabled — captured at the statement line (F10/CONTINUE template).
+            CheckSearchIndex: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-INDEX", null, s.Start.Line),
+            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line));
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
@@ -105,6 +109,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, FromStart: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
-            DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
+            DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
+            // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
+            // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.
+            CheckSearchIndex: false,
+            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line));
     }
 }
