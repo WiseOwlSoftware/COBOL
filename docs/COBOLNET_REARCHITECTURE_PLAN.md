@@ -25,7 +25,12 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `main`'s merge commit `1f56f572`; tree clean, pushed).**
+- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `48b9033d`; tree clean, all pushed). ⭐ THE §24 EC-SEAM BATCH
+  (F10 · V3 · V4) IS COMPLETE AND MERGE-READY — the comprehensive pre-merge gate is ALL GREEN: greenfield
+  Conformance 3848/3848 (3842 baseline + 6 new EC goldens, 0 reg) · NIST 353 MATCH / 0 reg · legacy Unit 1203/1203 ·
+  legacy Integration 684/685 (1 skip) / 0 fail · characterization 33/33 (DEVLOG 985; one RL203A `COMPILE FAILED`
+  guard flake verified serially 4/4 = not a regression; the 6 goldens added to the legacy `GreenfieldOnly` set).
+  ⏭ NEXT §24 batch (spec-first, one at a time): the ref-mod-externality residue (V45-sentinel / V45-externality).**
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
   678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** the **§24 fix-queue**
