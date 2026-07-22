@@ -362,6 +362,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // inherited precedence). The frozen legacy has no boolean-expression support at all (like boolean_ops/
         // boolean_shift), so this rule-7b golden is greenfield-only. (ledger C2 — the shared BooleanExpressionResolver.)
         ("2023", "boolean_shift_mixed"),
+        // §7.3.10 >>COBOL-WORDS — the frozen legacy only recognizes-and-blanks the directive (KnownIgnoredDirectives),
+        // so it cannot re-tokenize a synonym/de-reserved word; the token rewriter + composed ReservedWordSet are
+        // greenfield-only. CorpusRunnerTests byte-compares these at --std 2023.
+        ("2023", "cobol_words_equate"),     // EQUATE DISPLAY WITH SHOW (§7.3.10.4 GR2)
+        ("2023", "cobol_words_substitute"), // SUBSTITUTE DISPLAY BY SHOW (§7.3.10.4 GR4)
+        ("2023", "cobol_words_undefine"),   // UNDEFINE MOVE, used as a subscripted data-name (§7.3.10.4 GR3)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
         ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
         // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO

@@ -241,6 +241,22 @@ public sealed class CobolWordsDirectiveTests
         Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR4"));
     }
 
+    // ── Increment C — the token rewriter's de-reserved token-type set (the lexer subscript-mode input) ─────────
+
+    [Fact] // UNDEFINE of a keyword contributes its token type to the lexer's data-name trigger set.
+    public void DeReservedTokenTypes_IncludesTheUndefinedKeyword()
+    {
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "MOVE", null, 0)]);
+        CobolKeywordTokens.TryTokenType("MOVE", out int moveType);
+        Assert.Contains(moveType, CobolWordsRewriter.DeReservedTokenTypes(map));
+    }
+
+    [Fact] // the empty map yields no de-reserved token types.
+    public void DeReservedTokenTypes_EmptyMap_Empty()
+    {
+        Assert.Empty(CobolWordsRewriter.DeReservedTokenTypes(CobolWordsMap.Empty));
+    }
+
     [Fact] // a well-formed EQUATE (existing reserved, new a user word) raises no SR / reserved diagnostic.
     public void ValidEquate_NoDiagnostic()
     {

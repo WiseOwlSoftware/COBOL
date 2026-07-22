@@ -74,9 +74,17 @@ checkpoint.
   `VersionConformancePass.ParseArm` takes the composed set; SR3/SR4 category validation (`ValidateCobolWords` via
   `CobolKeywordTokens` reverse-vocab-map + `IntrinsicCatalog` + `ReservedWords`, err-away-from-reject). RESERVE fully
   works end-to-end (0901); 29 tests (8 new) + `cobol-words-reserve-rejects` golden + reserved-word 10/10 + char 33/33.
-  **⏭ NEXT = Incr C** (the token rewriter — `CobolWordsRewriter`: EQUATE/SUBSTITUTE IDENTIFIER→keyword + UNDEFINE/
-  SUBSTITUTE keyword→IDENTIFIER using `CobolKeywordTokens`, run beside `ZeroTokenRewriter` in `Frontend.LexAndParse`;
-  + the map-aware lexer data-name gate for the subscript hazard) → Incr D intrinsic-name synonyms.
+  **✅ Incr C LANDED** — the post-lex `CobolWordsRewriter` (SYNONYM IDENTIFIER→keyword + DE-RESERVED keyword→IDENTIFIER
+  via `CobolKeywordTokens`, beside `ZeroTokenRewriter`) + the **map-aware lexer** (`CobolLexer.g4`
+  `PreviousTokenCouldBeDataName` consults `SetCobolWordsDataNames` — fixes the SUBSCRIPTED de-reserved-word hazard a
+  probe caught). EQUATE/SUBSTITUTE/UNDEFINE (plain + subscripted) all produce correct output. **Shared `.g4` ⇒ full
+  comprehensive gate: greenfield Conformance 3804/0 + guard-fast ALL GREEN (NIST 353 MATCH, 0 regression);** 3 goldens
+  `cobol_words_{equate,substitute,undefine}` + GreenfieldOnly exclusions; 31 tests; char 33/33. ⚠ lesson: a first
+  guard run flaked 2 "COMPILE FAILED" under JOBS=32 parallel cold-start — both compiled fine serially; DON'T
+  `taskkill dotnet.exe` before a guard. **⏭ NEXT = Incr D** (intrinsic-function-name synonyms — `IntrinsicBinder`
+  resolves via `ctx.CobolWords`: synonym→canonical intrinsic; UNDEFINE/SUBSTITUTE-removed intrinsic→not a function;
+  DeReserved checked on the ORIGINAL name so SUBSTITUTE works. Thread `CobolWords` onto `DataBinder` [session init
+  prop] → `BinderContext`).
   ▷ **(historical, all pushed) the GRAMMAR BATCH is 7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)

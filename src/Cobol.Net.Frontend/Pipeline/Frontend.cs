@@ -170,8 +170,18 @@ public sealed class Frontend
     private CobolParserCore.CompilationUnitContext? LexAndParse(string text, string sourcePath, DiagnosticBag diagnostics)
     {
         var lexer = new CobolLexer(new AntlrInputStream(text));
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): a de-reserved word (UNDEFINE/SUBSTITUTE) may be used as a
+        // SUBSCRIPTED data name; the lexer must open SUBSCRIPT mode at its following '(' even though the word is
+        // still lexed as its keyword token (the retype below runs post-lex, after the '(' decision is frozen).
+        // Set BEFORE any tokenization (ZeroTokenRewriter.Fill). A no-op when no de-reserved word is a keyword token.
+        if (!CobolWordsMap.IsEmpty)
+            lexer.SetCobolWordsDataNames(CobolWordsRewriter.DeReservedTokenTypes(CobolWordsMap));
         var tokens = new CommonTokenStream(lexer);
         ZeroTokenRewriter.Rewrite(tokens);
+        // >>COBOL-WORDS (ISO §7.3.10.4) — retype tokens per the per-group override: synonyms (EQUATE/SUBSTITUTE)
+        // become their canonical keyword, de-reserved words (UNDEFINE/SUBSTITUTE) become IDENTIFIERs. A no-op when
+        // the source has no directive (byte-identical).
+        CobolWordsRewriter.Rewrite(tokens, CobolWordsMap);
 
         var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel };
         parser.RemoveErrorListeners();

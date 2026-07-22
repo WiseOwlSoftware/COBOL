@@ -29,7 +29,21 @@ options {
     // used to instruct. Do NOT hand-add a token here: edit cobol-words.json and re-run the generator.
 
     private bool PreviousTokenCouldBeDataName()
-        => _dataNameTokens.Contains(_lastNonWsTokenType);
+        => _dataNameTokens.Contains(_lastNonWsTokenType) || IsCobolWordsDataName(_lastNonWsTokenType);
+
+    // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): the per-compilation-group set of KEYWORD token types the directive
+    // de-reserves (UNDEFINE/SUBSTITUTE) — a following '(' must open a SUBSCRIPT even though the word is still lexed
+    // as its keyword token here (the post-lex CobolWordsRewriter retypes it to IDENTIFIER afterwards, but the
+    // SUBSCRIPT-mode decision at '(' is frozen at lex time and cannot be repaired later). Null by default: the
+    // legacy pipeline never sets it, so the '(' decision stays byte-identical.
+    private readonly System.Collections.Generic.HashSet<int> _cobolWordsDataNames =
+        new System.Collections.Generic.HashSet<int>();
+    public void SetCobolWordsDataNames(System.Collections.Generic.IReadOnlySet<int> types)
+    {
+        _cobolWordsDataNames.Clear();
+        foreach (int t in types) _cobolWordsDataNames.Add(t);
+    }
+    private bool IsCobolWordsDataName(int t) => _cobolWordsDataNames.Contains(t);
 
     // FUNCTION-ARGUMENT REGION (P7 Step 12). '(' after "FUNCTION functionName" is the function's argument-list
     // paren (ISO §8.4.3.2 SR6) — it stays in DEFAULT mode so the arguments parse through the ONE
