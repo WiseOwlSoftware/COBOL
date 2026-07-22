@@ -10,11 +10,15 @@ contiguous free block 1597-1617 (batch 2 used 1585-1596). -->
 
 ---
 
-> ## ⚙ IMPLEMENTED 2026-07-20 (DEVLOG 940) — as-built reconciliations & the staged boundary (READ THIS FIRST)
-> The front half LANDED (recognize/validate/diagnose/gate); the runtime interceptor is STAGED. An 8-agent scout of the
-> actual tree surfaced several places this design under-specified reality — each reconciled from the spec, not improvised.
-> The **current-state design home is `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12**; the body below is the original
-> plan, corrected by these notes:
+> ## ⚙ FULLY IMPLEMENTED — the RUNTIME INTERCEPTOR LANDED 2026-07-22 (DEVLOG 970); §9 IS THE AS-BUILT SSOT (READ IT FIRST)
+> Both halves are DONE. The front half landed 2026-07-20 (recognize/validate/diagnose/gate, DEVLOG 940); the **pc-range
+> RUNTIME interceptor landed 2026-07-22** (the F3 PERFORM compiles and runs — GR17-22; the 0899 program-path staging is
+> lifted). **§9 below is the decision-complete AS-BUILT design (the implementation SSOT).** The residual staged sub-GAPs
+> (each a loud COBOLNET0899, never silent) are: the open-mode WHEN operand form, F3-PERFORM-inside-a-method, the
+> cross-CALL GR1 "in range" reading, EC-FLOW-USE/`>>PROPAGATE`, and an exception-OBJECT raise inside imp-1 (§9.7).
+> An 8-agent scout of the actual tree surfaced several places the original plan under-specified reality — each reconciled
+> from the spec, not improvised. The **current-state design home is `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12**;
+> the body below is the original front-half plan, corrected by these notes (point 6 below is SUPERSEDED by §9):
 > 1. **FINALLY is a PURE RESERVED KEYWORD, NOT a `cobolWord`** (contra §2.2's "add to the funnel"). As a trailing phrase
 >    keyword after imperative statements, a name-slot FINALLY is swallowed by a preceding DISPLAY/MOVE operand list
 >    (`DISPLAY "c" FINALLY` → FINALLY becomes a DISPLAY operand; caught by a parse test). It is reserved at every edition
@@ -36,7 +40,9 @@ contiguous free block 1597-1617 (batch 2 used 1585-1596). -->
 >    are parse-subtree walks that fall out of the F3 node's own sub-lists (simpler than the design implied).
 >    **TurnState is IMMUTABLE** ⇒ GR14 is a `WithImplicitEnable` derived-instance overlay (line-0 synthetic enables),
 >    NOT a push/pop mutator.
-> 6. **THE RUNTIME (GR17–20) IS STAGED via a 0899 REJECTION, not a partial compile.** The F3 PERFORM is REJECTED at
+> 6. **⚠ SUPERSEDED BY §9 (the runtime landed 2026-07-22).** This point recorded the runtime as STAGED at 0899 and
+>    weighed the lambda-vs-pc-range options; §9 is the as-built pc-RANGE design. Retained for history: *THE RUNTIME
+>    (GR17–20) WAS STAGED via a 0899 REJECTION, not a partial compile.* The F3 PERFORM was REJECTED at
 >    2023 with COBOLNET0899 (`perform-exception-checking-2023` row = `status:pending`) — safe (no silent on-raise
 >    divergence) and honest, per the batch-2 precedent (PICTURE EDITING/VALUE Format 2 staged their forms as 0899
 >    rejections). **The interceptor is a proper NEXT WAVE requiring a production architecture decision — do NOT rush a

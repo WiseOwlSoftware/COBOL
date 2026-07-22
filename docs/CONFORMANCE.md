@@ -156,6 +156,16 @@ of an unsupported facility.
   flagging directives (§7.3.14 / §7.3.15) are RECOGNIZED (a conforming compiler must not error on a standard
   directive), but the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item — the
   flags are not yet emitted. Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
+- **Exception-checking PERFORM — FINALLY on the fatal path (§14.9.28.4, a GENUINE STANDARD DEFECT)**: NOTE 8 says "the
+  end of the PERFORM statement includes the statements in a FINALLY phrase", while GR20's fatal branch routes an
+  unresumed fatal condition to §14.6.13.1.3 (abnormal termination), which never re-enters "the end of the PERFORM".
+  The two cannot both hold. **Pinned choice: FINALLY runs on the NORMAL (and EXIT-PERFORM) fall-through path ONLY, NOT
+  on the fatal abnormal-termination path.** (Realized structurally — a `CobolFatalException` unwinds past the inline
+  FINALLY block.) Revisit only if the four-edition inventory surfaces a conformance test pinning the other reading.
+- **Exception-checking PERFORM — RESUME NEXT STATEMENT in a WHEN skips WHEN COMMON (§14.9.28.4 GR17/GR19, spec silent)**:
+  GR17 passes control to imp-4 (WHEN COMMON) "at the completion of the execution of imperative-statement-2"; a RESUME
+  (§14.9.33) is a transfer of control OUT of imp-2, so imp-2 does not "complete" and the GR17→imp-4 hand-off is not
+  taken. **Pinned choice: a WHEN that RESUMEs (NEXT STATEMENT) does NOT run WHEN COMMON.**
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
