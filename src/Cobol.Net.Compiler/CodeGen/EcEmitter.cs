@@ -396,6 +396,18 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// (design SSOT §9.6 Q3). Both handler bodies are bounded pc-ranges run by the reused <c>__RunUse</c>.</summary>
     public void EmitPerformInterceptor(CodeWriter w)
     {
+        EmitEcPerformMember(w);
+        EmitRunF3(w, asLocal: false);
+    }
+
+    /// <summary>Emit the class-member <c>__EcPerform</c> raise-site funnel (ISO §14.9.28.4 GR17: a matching WHEN
+    /// preempts the USE declaratives). ALWAYS a class member — it reaches a handler only through
+    /// <see cref="ExceptionEngine.RunTopFrame"/> → the frame's Matcher (never <c>__RunF3</c> directly), so it is
+    /// class-callable even when the F3 PERFORM (and hence <c>__RunF3</c>/<c>__RunUse</c>) is METHOD-LOCAL (an OO
+    /// method's F3 PERFORM, design SSOT §9.10). Emitted once per program (the interceptor) and once per class that
+    /// has any method-F3 (<see cref="OoEmitter"/>, gated on <c>bound.Ec.HasF3Perform</c>).</summary>
+    public void EmitEcPerformMember(CodeWriter w)
+    {
         using (w.Block("private int __EcPerform(string __ec, string __f)"))
         {
             w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
@@ -403,7 +415,15 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 + "// GR17/18 win over USE; else the USE tiers / -3");
         }
         w.Line();
-        using (w.Block("private int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
+    }
+
+    /// <summary>Emit <c>__RunF3</c> (the WHEN handler + WHEN COMMON composer, ISO §14.9.28.4 GR19). SCOPE-PARAMETERIZED:
+    /// a class MEMBER for a program's F3 PERFORM, a method-LOCAL function for an OO method's F3 PERFORM (design SSOT
+    /// §9.10 — it calls <c>__RunUse</c>, which calls the method-local <c>__MDispatch</c>). Its sole caller is the frame
+    /// Matcher, emitted inline where the F3 PERFORM statement is (so a method-local <c>__RunF3</c> is in scope).</summary>
+    public void EmitRunF3(CodeWriter w, bool asLocal)
+    {
+        using (w.Block($"{(asLocal ? "" : "private ")}int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
         {
             w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
             w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
