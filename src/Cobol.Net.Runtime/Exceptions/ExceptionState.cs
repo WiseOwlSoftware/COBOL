@@ -223,8 +223,9 @@ public sealed class ExceptionEngine
     public bool BoundRefModChecking { get; set; }
 
     /// <summary>Raise EC-BOUND-REF-MOD for a reference-modification whose leftmost-position or length is out of
-    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a leftmost &lt; 1, or a
-    /// position outside the data item (ISO §8.4.2.3 c / the GR at spec :7089; Table 13 Fatal). When checking is
+    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a specified negative
+    /// length (never relaxable, review C14), a leftmost &lt; 1, or a position outside the data item (ISO §8.4.3.3.4
+    /// item 5b/5c, spec :7085-7089; Table 13 Fatal). When checking is
     /// enabled it throws <see cref="CobolFatalException"/> (caught by the statement guard for USE F3 dispatch, else
     /// terminating the run unit per §14.6.13.1.3 #5/#7); when checking is OFF it returns and the caller's lenient
     /// clamp/space-pad default stands (byte-identical to a pre-slice build).</summary>

@@ -86,9 +86,8 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 RUNTIME CLASS: `public static class CobolNet.Runtime.CobolStrings` (ported from legacy `InspectRuntime` + `StorageArea` STRING/UNSTRING). All algorithms operate on `string`/`char[]`; no byte arrays.
 
 === REFERENCE MODIFICATION ===
-READ:  `FIELD.Substring(p-1, len)` where p,len are 1-based leftmost-position + length (ISO §8.4.3.3.4 GR4: leftmost = ordinal 1). With length omitted: `FIELD.Substring(p-1)`. Wrap in a bounds helper that raises EC-BOUND-REF-MOD:
-  `public static string RefMod(string s, int leftmost, int length)` — validates 1<=leftmost, length>=1 (or ==0 when REF-MOD-ZERO-LENGTH on), leftmost+length-1<=s.Length; else throw CobolRuntimeException(EC-BOUND-REF-MOD).
-  `public static string RefModToEnd(string s, int leftmost)` — length-omitted form.
+READ:  `FIELD.Substring(p-1, len)` where p,len are 1-based leftmost-position + length (ISO §8.4.3.3.4 GR4: leftmost = ordinal 1). With length omitted the substring runs to the end of the item. A single bounds helper validates and (when EC-BOUND-REF-MOD checking is enabled) raises the fatal EC-BOUND-REF-MOD:
+  `public static string RefMod(string s, int leftmost, int length, bool allowZeroLength = false)` — validates 1<=leftmost<=s.Length; a SPECIFIED length shall be positive-nonzero with leftmost+length-1<=s.Length (item 5c) — a negative specified length is a violation regardless of the directive, and length==0 is a violation UNLESS `allowZeroLength` (the REF-MOD-ZERO-LENGTH directive, §7.3.23, relaxes ONLY zero). The OMITTED "to the end" form is encoded by passing the distinct sentinel **`CobolString.OmittedRefModLength`** (= `int.MinValue`, emitted via `RuntimeApi.OmittedRefModLength`) — NOT −1, so a specified length that evaluates to a negative is distinguishable from the omitted form and can raise (review C14; a −1 sentinel made the negative-length violation structurally undetectable). Checking OFF (the default) clamps/space-pads leniently (byte-identical to a pre-slice build).
 WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slice:
   COBOL `MOVE X TO FIELD(3:5)` →
   `FIELD = CobolString.SpliceInto(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`

@@ -37,30 +37,42 @@ public static class CobolString
     /// GR9). n ≤ 1 returns the image unchanged.</summary>
     public static string Repeat(string s, int n) => n <= 1 ? s : string.Concat(Enumerable.Repeat(s, n));
 
+    /// <summary>The OMITTED reference-modification length sentinel — the <c>identifier(leftmost:)</c> "to the end"
+    /// form (ISO §8.4.3.3.4: "If length is not specified … to the end"). A distinct sentinel (NOT −1) so that a
+    /// SPECIFIED length that evaluates negative at runtime is DISTINGUISHABLE from the omitted form and can raise
+    /// EC-BOUND-REF-MOD (review C14 — a −1 sentinel collided with a specified −1, making the §8.4.3.3.4 item 5c
+    /// positive-nonzero violation structurally undetectable). Emitted by <c>PlaceRenderer.RmLen</c> for the
+    /// length-omitted ref-mod and by the INVOKE §14.8.2.2 rule-1 prefix splice.</summary>
+    public const int OmittedRefModLength = int.MinValue;
+
     /// <summary>
     /// Reference modification read (ISO §8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
-    /// <paramref name="leftmost"/> for <paramref name="length"/> characters (a negative length means "to the end").
-    /// When EC-BOUND-REF-MOD checking is enabled (§14.6.13.1.1) an out-of-range leftmost/length or a zero-length
-    /// result raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4, spec :7089); with checking OFF (the default)
-    /// out-of-range positions are clamped and the result space-padded to the requested length (the lenient default).
+    /// <paramref name="leftmost"/> for <paramref name="length"/> characters (<see cref="OmittedRefModLength"/> = the
+    /// omitted "to the end" form). When EC-BOUND-REF-MOD checking is enabled (§14.6.13.1.1) an out-of-range
+    /// leftmost/length or a zero-length result raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4, spec :7089); with
+    /// checking OFF (the default) out-of-range positions are clamped and the result space-padded to the requested
+    /// length (the lenient default).
     /// </summary>
     public static string RefMod(string? s, int leftmost, int length, bool allowZeroLength = false)
     {
         s ??= "";
         int size = s.Length;
-        // §8.4.3.3.4 (spec :7089), item 5c: leftmost shall be 1..size; length (when specified, i.e. >= 0) shall be
-        // positive nonzero with leftmost+length-1 <= size — UNLESS the REF-MOD-ZERO-LENGTH directive (§7.3.23) is ON
-        // (<paramref name="allowZeroLength"/>), when the result MAY also be zero (an out-of-range leftmost still
-        // raises — the directive relaxes only the zero-length aspect). A violation raises EC-BOUND-REF-MOD (fatal)
-        // ONLY when checking is on; checking off falls through to the lenient clamp below (byte-identical).
-        if (leftmost < 1 || leftmost > size || (length == 0 && !allowZeroLength) || (length > 0 && leftmost + length - 1 > size))
+        bool omitted = length == OmittedRefModLength;
+        // §8.4.3.3.4 (spec :7089), item 5c: leftmost shall be 1..size; a SPECIFIED length shall be a positive nonzero
+        // integer (a negative specified length is a violation regardless of the directive — REF-MOD-ZERO-LENGTH,
+        // §7.3.23, <paramref name="allowZeroLength"/>, relaxes ONLY the zero case, C14), with leftmost+length-1 <= size.
+        // For the OMITTED (to-the-end) form only the leftmost is range-checked. A violation raises EC-BOUND-REF-MOD
+        // (fatal) ONLY when checking is on; checking off falls through to the lenient clamp below (byte-identical).
+        if (leftmost < 1 || leftmost > size
+            || (!omitted && length < 0) || (length == 0 && !allowZeroLength)
+            || (length > 0 && leftmost + length - 1 > size))
             ExceptionState.RefModError(
-                $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
-                + $"{size}-position item (ISO §8.4.3.3.4)");
+                $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
+                + $"{size}-position item (ISO §8.4.3.3.4 item 5c)");
         int start = leftmost - 1;
         if (start < 0) start = 0;
         int avail = Math.Max(0, s.Length - start);
-        int len = length < 0 ? avail : length;
+        int len = omitted || length < 0 ? avail : length;   // to-end for omitted; a checking-off negative clamps to-end
         if (len <= 0) return "";
         string slice = start < s.Length ? s.Substring(start, Math.Min(len, avail)) : "";
         return slice.Length < len ? slice.PadRight(len) : slice;
@@ -80,15 +92,20 @@ public static class CobolString
     {
         dst ??= ""; slice ??= "";
         int size = dst.Length;
-        // §8.4.3.3.4 item 5c — a zero-length receiving ref-mod is allowed only under REF-MOD-ZERO-LENGTH (§7.3.23);
-        // an out-of-range leftmost/length still raises regardless of the directive.
-        if (leftmost < 1 || leftmost > size || (length == 0 && !allowZeroLength) || (length > 0 && leftmost + length - 1 > size))
+        bool omitted = length == OmittedRefModLength;
+        // §8.4.3.3.4 item 5c — a SPECIFIED length shall be positive nonzero; a zero-length receiving ref-mod is
+        // allowed only under REF-MOD-ZERO-LENGTH (§7.3.23), a negative specified length never is (C14); an
+        // out-of-range leftmost/length still raises regardless of the directive. The OMITTED form range-checks only
+        // the leftmost.
+        if (leftmost < 1 || leftmost > size
+            || (!omitted && length < 0) || (length == 0 && !allowZeroLength)
+            || (length > 0 && leftmost + length - 1 > size))
             ExceptionState.RefModError(
-                $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
-                + $"{size}-position receiver (ISO §8.4.3.3.4)");
+                $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
+                + $"{size}-position receiver (ISO §8.4.3.3.4 item 5c)");
         int start = leftmost - 1;
         if (start < 0 || start >= dst.Length) return dst;
-        int len = length < 0 ? dst.Length - start : Math.Min(length, dst.Length - start);
+        int len = omitted || length < 0 ? dst.Length - start : Math.Min(length, dst.Length - start);
         if (len <= 0) return dst;
         var arr = dst.ToCharArray();
         for (int i = 0; i < len; i++) arr[start + i] = i < slice.Length ? slice[i] : pad;

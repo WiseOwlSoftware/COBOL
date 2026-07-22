@@ -708,7 +708,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
                 // LEADING positions, preserving the tail beyond the formal's width.
                 post.Add(CallEmitter.CallStringWrite(src,
-                    $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", "-1")}"));
+                    // to-the-end read from fw+1 — the OMITTED-length sentinel (NOT −1, which now denotes a specified
+                    // negative length that raises EC-BOUND-REF-MOD; review C14).
+                    $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", RuntimeApi.OmittedRefModLength)}"));
             }
             else if (src is RefModPlace)
                 post.Add(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
