@@ -277,6 +277,21 @@ public sealed class ExceptionEngine
     /// is that a called program's raise is not intercepted by the caller's frame).</summary>
     internal void TrimPerformTo(int depth) { while (_perform.Count > depth) _perform.RemoveAt(_perform.Count - 1); }
 
+    /// <summary>The activation FLOOR — <see cref="RunTopFrame"/> never walks BELOW it. Zero by default (a program's
+    /// whole stack is visible — byte-identical behaviour). An OO method is a separate source element (ISO §14.9.18.3
+    /// SR2/SR4a): on entry an F3 method RAISES the floor to the current depth so its own unmatched raises are NOT
+    /// intercepted by the ACTIVATOR's WHEN (design SSOT §9.10.1-C2 — ECs cross a method boundary only via GOBACK/EXIT
+    /// … RAISING). Nests via the saved/restored old floor. The cross-CALL/INVOKE "in range" reading stays staged.</summary>
+    private int _floor;
+
+    /// <summary>Raise the frame-stack floor to the current depth (an F3-method entry), returning the previous floor
+    /// for a later <see cref="RestorePerformFloor"/>. Below this, <see cref="RunTopFrame"/> does not walk.</summary>
+    public int RaisePerformFloor() { int old = _floor; _floor = _perform.Count; return old; }
+
+    /// <summary>Restore the frame-stack floor to a value captured by <see cref="RaisePerformFloor"/> (the F3-method
+    /// exit — paired in a generated <c>finally</c> so any unwind still balances).</summary>
+    public void RestorePerformFloor(int floor) => _floor = floor;
+
     /// <summary>Select and run the innermost matching WHEN handler of an active exception-checking PERFORM
     /// (ISO §14.9.28.4 GR17 — the closest PERFORM whose imperative-statement-1 is executing; GR18 WHEN OTHER;
     /// GR21 — a frame is transparent to exception conditions raised while it is handling). Walks the stack
@@ -293,7 +308,7 @@ public sealed class ExceptionEngine
         var marked = new List<PerformFrame>(4);   // per-raise (the EC path is rare); re-entrancy-safe
         try
         {
-            for (int i = _perform.Count - 1; i >= 0; i--)   // innermost → outermost
+            for (int i = _perform.Count - 1; i >= _floor; i--)   // innermost → the activation floor (§9.10.1-C2)
             {
                 var f = _perform[i];
                 if (f.Handling) continue;                   // GR21 — its own imp-1/handler is transparent
@@ -436,4 +451,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.RunTopFrame"/>
     public static int RunTopFrame(string ec, string? file, out bool handled) => E.RunTopFrame(ec, file, out handled);
+
+    /// <inheritdoc cref="ExceptionEngine.PerformDepth"/>
+    public static int PerformDepth => E.PerformDepth;
+
+    /// <inheritdoc cref="ExceptionEngine.TrimPerformTo"/>
+    public static void TrimPerformTo(int depth) => E.TrimPerformTo(depth);
+
+    /// <inheritdoc cref="ExceptionEngine.RaisePerformFloor"/>
+    public static int RaisePerformFloor() => E.RaisePerformFloor();
+
+    /// <inheritdoc cref="ExceptionEngine.RestorePerformFloor"/>
+    public static void RestorePerformFloor(int floor) => E.RestorePerformFloor(floor);
 }

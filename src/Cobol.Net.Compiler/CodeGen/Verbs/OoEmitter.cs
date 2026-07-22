@@ -216,7 +216,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // A method file verb under >>TURN EC-I-O … CHECKING emits an __IoCheckEc call (§9.1.13.1 fatal-status
             // default); the class type must declare it. A class has no USE declaratives (Declaratives == null), so
             // EcEmitIoCheckEc reduces to the status→EC bridge — no __RunUse/__EcDispatch needed (M2-OO-1i review).
+            // C1 (design SSOT §9.10.1): when ANY method has an F3 PERFORM (bound.Ec.HasF3Perform is class-level true),
+            // the class-member __IoCheckEc must carry its frame-first branch (GR17 — a WHEN preempts the USE) and the
+            // class needs the __EcPerform raise-site funnel. Both read ecState.UnitHasF3Perform AT EMIT TIME, and it
+            // was cleared for the class at BeginUnit (set true only PER METHOD, later) — so set it for the duration of
+            // these two class-member emissions. Byte-identical when no method has F3 (HasF3Perform false ⇒ flag false).
+            bool classHasF3Perform = bound.Ec is { HasF3Perform: true };
+            bool savedUnitF3P = ecState.UnitHasF3Perform;
+            ecState.UnitHasF3Perform = classHasF3Perform;
             if (bound.Ec is { HasIoChecked: true }) U.Ec.EmitIoCheckEc(bound, w);
+            if (classHasF3Perform) U.Ec.EmitEcPerformMember(w);   // the raise-site funnel, once per class (§9.10.1-C1)
+            ecState.UnitHasF3Perform = savedUnitF3P;
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
@@ -471,17 +481,61 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 foreach (var idx in DataBinder.IndexNamesUnder(root))
                     if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
                         w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §14.5.3)");
+            // Per-method Format-3 (exception-checking) PERFORM context (design SSOT §9.10) — set ONLY for a method
+            // that HAS an F3 PERFORM (its handler pc-ranges were appended to the class pc space), restored after, so
+            // a non-F3 method is byte-identical. F3HandlerBasePc is the CLASS handler base (region marking in
+            // EmitDispatchMethod + HandlerUseId = DeclCount + (pc − base)); DeclCount 0 (a method has no USE decls).
+            bool methodF3 = m.Binding!.HandlerCount > 0;
+            bool savedUnitF3P = ecState.UnitHasF3Perform;
+            int savedDeclCount = dispatch.DeclCount;
+            int? savedBase = dispatch.F3HandlerBasePc;
+            if (methodF3)
+            {
+                ecState.UnitHasF3Perform = true;                    // raise sites in this method emit __EcPerform
+                dispatch.DeclCount = 0;
+                dispatch.F3HandlerBasePc = bound.F3HandlerBasePc;   // the class handler base
+            }
             if (m.Binding!.EntryPc <= m.Binding!.EndPc)
             {
                 // The method's slice of the class's one pc space, as a LOCAL FUNCTION (captures the locals
                 // above by reference — zero allocation for direct calls).
                 string saved = dispatch.DispatchName;
                 dispatch.DispatchName = "__MDispatch";
-                U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.Binding!.EntryPc, m.Binding!.EndPc);
+                if (methodF3)
+                {
+                    // Method-LOCAL Format-3 machinery (§9.10): __useActive re-entrancy guards sized to the CLASS total
+                    // handler count (the ONE HandlerUseId formula; a method uses only its own contiguous sub-range of
+                    // slots). __MDispatch carries the method's real slice AND its handler sub-range as cases; __RunUse/
+                    // __RunF3 (local functions calling __MDispatch) are reached only by the frame Matcher emitted inline
+                    // in imp-1, which the method-local capture reaches (design verified SOUND, C# emission lens).
+                    int hTotal = bound.F3HandlerBasePc is int cb ? bound.Paragraphs.Count - cb : 0;
+                    w.Line($"bool[] __useActive = new bool[{hTotal}];   // method-local Format-3 handler re-entrancy guards (§14.9.49.4 GR2)");
+                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
+                        m.Binding!.EntryPc, m.Binding!.EndPc,
+                        m.Binding!.HandlerStartPc, m.Binding!.HandlerStartPc + m.Binding!.HandlerCount - 1);
+                    using (w.Block("int __RunUse(int __id, int __startPc, int __endPc)")) U.Dispatch.EmitRunUseBody(w, ecModel: true);
+                    U.Ec.EmitRunF3(w, asLocal: true);
+                }
+                else
+                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.Binding!.EntryPc, m.Binding!.EndPc);
                 dispatch.DispatchName = saved;
-                w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }}   "
-                    + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
+                if (methodF3)
+                {
+                    // The F3-method entry FLOOR (§9.10.1-C2): a method is a separate source element — its own unmatched
+                    // raises must NOT be intercepted by the ACTIVATOR's WHEN. Raise the floor to the entry depth; on
+                    // exit restore it and defensively balance the stack (matching the CALL boundary, ProgramTable).
+                    w.Line("int __f3fl = ExceptionState.RaisePerformFloor(); int __f3pd = ExceptionState.PerformDepth;   // §9.10.1-C2 — isolate from the activator's frames");
+                    w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }} "
+                        + "finally {{ ExceptionState.RestorePerformFloor(__f3fl); ExceptionState.TrimPerformTo(__f3pd); }}   "
+                        + "// GOBACK returns HERE (§14.9.18.4 GR4)");
+                }
+                else
+                    w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }}   "
+                        + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
+            ecState.UnitHasF3Perform = savedUnitF3P;
+            dispatch.DeclCount = savedDeclCount;
+            dispatch.F3HandlerBasePc = savedBase;
             // BY REFERENCE copy-out (§14.2.3 GR8) / RETURNING (§14.9.23.4 GR8). A Tier-B REDEFINES canonical's
             // storage IS its string backing (a width-correct image), not the suppressed root struct — write that
             // back / return that, else the generated C# names an undeclared local (review A/emission).
