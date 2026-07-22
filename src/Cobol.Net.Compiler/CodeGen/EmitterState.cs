@@ -83,6 +83,13 @@ internal sealed class EcState
     /// unit.</summary>
     public bool UnitHasF3 { get; set; }
 
+    /// <summary>The program class being emitted has an exception-checking (Format-3) PERFORM (§14.9.28) → the funnel
+    /// emits <c>__EcPerform</c> (consult the ambient F3-frame stack before the USE dispatch) and the pc-range
+    /// handler machinery is installed, EVEN when the unit declares no F3 USE declaratives (the <c>UnitHasF3</c>
+    /// gate alone is insufficient — §9.5). Set per unit from <c>EcFeatures.HasF3Perform</c>; false for OO methods
+    /// (F3-in-method is loud-rejected). A non-F3 unit emits byte-identical source.</summary>
+    public bool UnitHasF3Perform { get; set; }
+
     /// <summary>… has F4 (EXCEPTION OBJECT) declaratives (→ <c>__EcObjDispatch</c> exists). Set per unit.</summary>
     public bool UnitHasF4 { get; set; }
 

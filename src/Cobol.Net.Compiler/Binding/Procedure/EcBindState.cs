@@ -51,5 +51,5 @@ internal sealed class EcBindState
     public bool Functions { get; set; }
     public bool Raising { get; set; }
 
-    public EcFeatures BuildFeatures() => new(Checked, IoChecked, Raise, Resume, F3, Functions, Raising);
+    public EcFeatures BuildFeatures() => new(Checked, IoChecked, Raise, Resume, F3, Functions, Raising, F3Perform);
 }

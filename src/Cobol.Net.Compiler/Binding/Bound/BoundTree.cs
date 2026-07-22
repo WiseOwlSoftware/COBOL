@@ -24,7 +24,13 @@ public sealed record BoundProgram(
     IReadOnlyList<BoundDeclarative>? Declaratives = null,
     EcFeatures? Ec = null,
     IReadOnlyList<BoundMethod>? Methods = null,
-    IReadOnlyList<BoundDebugSubject>? DebugSubjects = null);
+    IReadOnlyList<BoundDebugSubject>? DebugSubjects = null,
+    // The exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) appended above the main pc space
+    // (ISO §14.9.28.4 GR17). F3HandlerBasePc is the first such pc (null when the unit has none — the byte-identity
+    // gate: a non-F3 unit adds zero synthetic pcs and needs no fall-through wall); F3HandlerOwners[pc - base] is the
+    // owning PERFORM's PerformId (the EXIT-PERFORM / handler-region context). Set by the pc-range synthesis wave.
+    int? F3HandlerBasePc = null,
+    IReadOnlyList<int>? F3HandlerOwners = null);
 
 /// <summary>One <c>USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES</c> subject procedure (X3.23-1985 debug
 /// module; deleted 2002, absent ISO 2023 — modeled only at <c>--std 85</c>, VCR Table 7 row 7.17). The emitter
@@ -62,10 +68,14 @@ public sealed record EcFeatures(
     bool HasResume,       // a RESUME statement (§14.9.33)
     bool HasF3,           // a USE AFTER EXCEPTION CONDITION declarative (§14.9.49 F3 — needs __EcDispatch)
     bool HasEcFunctions,  // a FUNCTION EXCEPTION-STATUS/-LOCATION/-STATEMENT reference (§15.28–15.33)
-    bool HasRaising)      // a GOBACK/EXIT … RAISING (§14.9.18 / §14.9.14)
+    bool HasRaising,      // a GOBACK/EXIT … RAISING (§14.9.18 / §14.9.14)
+    bool HasF3Perform = false)  // an exception-checking (Format-3) PERFORM (§14.9.28 F3 — installs __EcPerform + the frame stack)
 {
-    /// <summary>Any EC-model feature present (drives the group-level <c>_ecActive</c> gate).</summary>
-    public bool Any => HasChecked || HasIoChecked || HasRaise || HasResume || HasF3 || HasEcFunctions || HasRaising;
+    /// <summary>Any EC-model feature present (drives the group-level <c>_ecActive</c> gate). HasF3Perform is
+    /// included so the int-returning <c>__RunUse</c> (the pc-range handler invoker the interceptor depends on) is
+    /// emitted even for an F3 PERFORM whose imp-1 uses no OTHER EC feature (e.g. <c>PERFORM CONTINUE WHEN
+    /// EC-BOUND-SUBSCRIPT CONTINUE END-PERFORM</c>) — §14.9.28.4.</summary>
+    public bool Any => HasChecked || HasIoChecked || HasRaise || HasResume || HasF3 || HasEcFunctions || HasRaising || HasF3Perform;
 }
 
 /// <summary>One USE declarative section (ISO §14.9.49): its inclusive pc range, the §14.9.49.4 GR7 handler exit

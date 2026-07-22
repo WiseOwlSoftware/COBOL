@@ -198,6 +198,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         callState.SelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
+        ecState.UnitHasF3Perform = false;     // an F3 PERFORM inside a method is loud-rejected (§9.1-B) — never emitted here
         dispatch.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
         dispatch.OuterGlobalUse = false;
         dispatch.DebugActive = false;            // a class owns no USE FOR DEBUGGING facility — clear any bleed (VCR 7.17)

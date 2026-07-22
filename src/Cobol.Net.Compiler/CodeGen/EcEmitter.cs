@@ -31,10 +31,15 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// the edge the coupling census proved no ctor order can satisfy.</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
-    /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
-    /// declaratives — same protocol, zero machinery).</summary>
+    /// <summary>The per-statement raise-site dispatch expression. When this unit has an exception-checking
+    /// (Format-3) PERFORM (§14.9.28), every raise site routes through <c>__EcPerform</c> — which consults the
+    /// ambient F3-frame stack FIRST (GR17: a matching WHEN preempts the USE declaratives) and falls to
+    /// <c>__EcDispatch</c> only on no-match. Otherwise the historical funnel: <c>__EcDispatch</c> when the unit has
+    /// F3 declaratives, else the no-declarative constant. A non-F3-PERFORM unit emits byte-identical text.</summary>
     public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
-        ecState.UnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
+        ecState.UnitHasF3Perform ? $"__EcPerform({ecNameExpr}, {fileExpr})"
+        : ecState.UnitHasF3       ? $"__EcDispatch({ecNameExpr}, {fileExpr})"
+        :                           "-3";
 
     /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
     /// Format-4 declaratives) — the §14.9.49.4 GR14 exception-OBJECT selector (the EC-OO wave).</summary>
@@ -354,6 +359,32 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             w.Line("    throw new CobolFatalException(__ec!, \"I-O status \" + __st + \" on \" + __f"
                 + " + (__stmt is null ? \"\" : \" (\" + __stmt + \")\"));   // §9.1.13.1 fatal classes; §14.6.13.1.3 #5/#7");
             w.Line("return -1;");
+        }
+        w.Line();
+    }
+
+    /// <summary>Generate the exception-checking (Format-3) PERFORM interceptor plumbing (ISO §14.9.28.4 GR17-20) —
+    /// emitted ONLY for a unit that contains an F3 PERFORM (<see cref="EcState.UnitHasF3Perform"/>), so a non-F3
+    /// unit's source is byte-identical. <c>__EcPerform</c> consults the ambient F3-frame stack first (GR17: a
+    /// matching WHEN preempts — and ignores — the USE declaratives) and falls to <c>__EcDispatch</c> (or the
+    /// no-declarative <c>-3</c>) only when no frame handled the condition. <c>__RunF3</c> composes a WHEN handler
+    /// (imp-2/imp-3) with WHEN COMMON (imp-4, GR19): COMMON runs ONLY after the handler COMPLETES (falls off →
+    /// <c>-1</c>); a RESUME NEXT STATEMENT (<c>-2</c>) is a transfer out of the handler and short-circuits COMMON
+    /// (design SSOT §9.6 Q3). Both handler bodies are bounded pc-ranges run by the reused <c>__RunUse</c>.</summary>
+    public void EmitPerformInterceptor(CodeWriter w)
+    {
+        using (w.Block("private int __EcPerform(string __ec, string __f)"))
+        {
+            w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
+            w.Line($"return __h ? __a : {(ecState.UnitHasF3 ? "__EcDispatch(__ec, __f)" : "-3")};   "
+                + "// GR17/18 win over USE; else the USE tiers / -3");
+        }
+        w.Line();
+        using (w.Block("private int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
+        {
+            w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
+            w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
+            w.Line("return __a;");
         }
         w.Line();
     }

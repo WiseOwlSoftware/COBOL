@@ -34,11 +34,19 @@ checkpoint.
   plan, 5 flagged probes). **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
   `ExceptionEngine` frame stack (`Push/Pop/RunTopFrame` top-down walk w/ deferred `Handling`-clear + `PerformDepth`/
   `TrimPerformTo`) + `ExceptionState` delegators + `ProgramTable.CallProgram` per-activation snapshot; gate =
-  `PerformFrameStackTests` 9/9 + characterization 33/33 byte-identical + build 0/0. **⏭ NEXT = Increment 2**
-  (the gating flag flow: `EcFeatures.HasF3Perform` + `.Any` + `EcState.UnitHasF3Perform` + `BoundProgram.F3HandlerBasePc`,
-  all still INERT; gate = characterization byte-identity) → Incr 3 (funnel + `__EcPerform` + `__IoCheckEc` frame-first,
-  behind `UnitHasF3Perform`, all dead) → Incr 4 (pc-range synthesis + tier matcher + un-reject — the behavior wave, full
-  legacy guard + GnuCOBOL diff) → Incr 5–7. **THEN ④ §24 fix-queue → Wave I merge → P14.**
+  `PerformFrameStackTests` 9/9 + characterization 33/33 byte-identical + build 0/0. **✅ Increments 2+3 LANDED
+  (gated scaffolding, DEVLOG 969):** the flag flow (`EcFeatures.HasF3Perform` + `.Any`, `EcState.UnitHasF3Perform`,
+  `BoundProgram.F3HandlerBasePc`/`F3HandlerOwners`) + the emitter scaffolding (`EcDispatchExpr` → `__EcPerform` when
+  `UnitHasF3Perform`; NEW `EmitPerformInterceptor` = `__EcPerform`+`__RunF3`; both `EmitUseMachinery` gates widened
+  for the no-declarative F3 case — the BLOCKER fix). ALL gated `UnitHasF3Perform` ⇒ DEAD until Incr 4 un-rejects the
+  0899; gate = characterization 33/33 byte-identical + greenfield Unit 571/571 + build 0/0. (`__IoCheckEc` frame-first
+  DEFERRED into Incr 4 — byte-riskiest + needs a behavior test.) **⏭ NEXT = Increment 4 (THE BEHAVIOR WAVE):** the
+  pc-range synthesis (`AddF3Handler` side-list + `StatementBinder` append + node reshape `BoundExceptionMatch`+`Imp2Pc`,
+  `Other/CommonPc`, `PerformId`, `HandlerHasExit`) + the tier-sorted matcher + `EmitExceptionPerform` + the
+  `F3Region`/`BoundExitPerform` machinery (fold in Incr 6 to avoid the bare-`break` infinite-loop hazard) + the
+  `__IoCheckEc` frame-first + drop the 0899 reject (program path) + `F3StagedInMethodStub` (OO). **Gate = behavior
+  tests + full legacy guard + GnuCOBOL differential + characterization** (§9.8 Incr 4). → Incr 5–7 (RESUME/COMMON,
+  FINALLY, conformance+sweep). **THEN ④ §24 fix-queue → Wave I merge → P14.**
   **⚠ verify-by-RUNNING** (the design's 5 probes; §9.9). The per-detector build discipline is in DEVLOG 949–956.
   **⚠ guard flake lesson (DEVLOG 964): JOBS=32 parallel NIST compile can FALSE-RED 2 tests ("COMPILE FAILED"); verify
   serially before believing a regression, and NEVER `taskkill dotnet.exe` right before a guard.**
