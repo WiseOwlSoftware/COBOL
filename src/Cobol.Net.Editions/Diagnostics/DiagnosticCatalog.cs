@@ -339,6 +339,16 @@ public static class DiagnosticCatalog
         "COBOLNET1622", "flag-directive-malformed", EditionSeverity.Error,
         "A >>FLAG-02 / >>FLAG-14 directive is malformed — an unknown option word, no option or ALL named, ALL "
         + "combined with individual options, or (FLAG-14) a missing ON/OFF phrase.", "ISO §7.3.14.2 / §7.3.15.2");
+    // §7.3.10 COBOL-WORDS directive — a malformed directive or a syntax-rule violation. Error: an ill-formed or
+    // rule-violating word-modification would silently mis-shape the reserved/context/function word tables.
+    public static readonly DiagnosticDescriptor CobolWordsDirectiveInvalid = new(
+        "COBOLNET1623", "cobol-words-directive-invalid", EditionSeverity.Error,
+        "A >>COBOL-WORDS directive is malformed or violates a syntax rule — a missing/unknown option word, a "
+        + "missing WITH/BY, a non-plain-alphanumeric literal (SR2), a placement after the first IDENTIFICATION "
+        + "DIVISION (SR1), a word used in more than one directive (SR5), an existing word that is not a reserved / "
+        + "context-sensitive / intrinsic-function word (SR3), or a new word that is not a valid user-defined word "
+        + "or is itself reserved/context/intrinsic (SR4). The message names the specific rule.",
+        "ISO §7.3.10.2 / §7.3.10.3");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

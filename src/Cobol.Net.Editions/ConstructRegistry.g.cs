@@ -29,6 +29,7 @@ public static partial class ConstructRegistry
         new("ref-mod-zero-length-2023", ">>REF-MOD-ZERO-LENGTH directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.23; §8.4.3.3.4 item 5c; Annex E.3.3 item 23"),
         new("flag-14-directive-2023", ">>FLAG-14 directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.15; Annex E.2 item 5 (compiler-directive words added in 2023)"),
         new("flag-02-directive-2014", ">>FLAG-02 directive", 2014, null, 2023, "COBOLNET0900", "ISO §7.3.14; §7.3.14.1 NOTE (obsolete in 2023); §4.2.13 (obsolete elements shall be supported + warned)"),
+        new("cobol-words-directive-2023", ">>COBOL-WORDS directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.10; Annex D.12; Annex E.3.3 item 12; Annex E.2 item 5 (compiler-directive words added in 2023)"),
         new("external-type-declaration-2023", "a strongly-typed EXTERNAL type declaration", 2023, null, null, "COBOLNET0900", "ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3.3 item 20"),
         new("value-numeric-literal-numeric-edited-2023", "numeric-literal VALUE for a numeric-edited item", 2023, null, null, "COBOLNET0900", "ISO §13.18.63 SR6; Annex E.3.3 item 43"),
         new("value-numeric-edited-oversize-removed-2023", "over-size alphanumeric VALUE literal for a numeric-edited item", 85, 2023, null, "COBOLNET1570", "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"),

@@ -1,0 +1,182 @@
+# DESIGN — the `>>COBOL-WORDS` directive (ISO/IEC 1989:2023 §7.3.10)
+
+> **STATUS: DESIGN (decision-complete) — implementing.** Subsystem deep-dive for the `>>COBOL-WORDS`
+> compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this subsystem; the
+> plan (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS doc in the
+> same change set (process rule 4).
+
+## §1 What `>>COBOL-WORDS` is
+
+`>>COBOL-WORDS` (COBOL-2023, a 2014→2023 addition) lets a source **modify which words are reserved words,
+context-sensitive words, and intrinsic-function-names, and prohibit specific user-defined words**, per
+compilation group. It is processed **during the text-manipulation stage** (§7.3.10.1), and applies to the
+**entire compilation group** — it must appear *before the first IDENTIFICATION DIVISION* (SR1). General
+format (§7.3.10.2), exactly one option:
+
+```
+                 ⎧ EQUATE literal-1 WITH literal-2   ⎫
+                 ⎪ UNDEFINE literal-3                ⎪
+>>COBOL-WORDS    ⎪ SUBSTITUTE literal-4 BY literal-5 ⎪
+                 ⎩ RESERVE literal-6                 ⎭
+```
+
+Semantics (§7.3.10.4 GRs):
+- **EQUATE lit1 WITH lit2** (GR2): lit2 becomes a **synonym** for lit1 — usable in any syntax requiring lit1.
+- **UNDEFINE lit3** (GR3): lit3 is **no longer reserved/restricted** — usable as any user-defined word; the
+  syntax requiring lit3 is no longer available.
+- **SUBSTITUTE lit4 BY lit5** (GR4): lit5 **takes over lit4's role** in the syntax; lit4 becomes a user word
+  and is no longer reserved.
+- **RESERVE lit6** (GR5): lit6 **shall not be used as a user-defined word** (a new reserved word).
+- GR6: `>>COBOL-WORDS` does **not** affect compiler-directing statements or directives.
+
+Here lit1/lit3/lit4 are existing **reserved / context-sensitive / intrinsic-function** words (SR3, not a
+special-character word); lit2/lit5/lit6 are fresh **user-defined words** (SR4, per §8.3.2.2). Every literal is
+an **alphanumeric literal, non-hex, space-free, case-insensitive** (SR2). A COBOL word may appear in a literal
+of **at most one** `>>COBOL-WORDS` directive in the group (SR5).
+
+## §2 Mechanism decision — post-lex token rewriter + composed ReservedWordSet (owner-directed)
+
+The compiler uses a **static, generated ANTLR lexer**: reserved and context-sensitive words are fixed token
+types (`MOVE : 'MOVE'`, `caseInsensitive=true`), and intrinsic-function-names reach the parser as `IDENTIFIER`
+after `FUNCTION` (except nine reserved-word collisions listed explicitly in the `functionName` rule). Two prior
+scouts concluded EQUATE was doable as pre-lex text substitution but SUBSTITUTE / general UNDEFINE were "not
+faithfully implementable on the static lexer" and proposed a not-supported warning.
+
+**The owner superseded that (plan §0): "ONE runtime override layer = `CobolWordsMap` → post-lex token
+rewriter + composed `ReservedWordSet`; never regen the grammar per group."** A post-lex token rewriter (the
+established `ZeroTokenRewriter` pattern, `Frontend.LexAndParse`) is **strictly more capable** than text
+substitution and faithfully realizes all four options **without** per-group grammar regeneration:
+
+| Option | Token action (Frontend) | Reserved-set action (Compiler) | Intrinsic action (Compiler) |
+|---|---|---|---|
+| EQUATE lit1←lit2 | retype `IDENTIFIER("lit2")` → lit1's keyword token type (if lit1 has one) | — | if lit1 is intrinsic: lit2 resolves to lit1's sig |
+| UNDEFINE lit3 | retype lit3-keyword-type tokens → `IDENTIFIER` | force `RejectsAt(lit3)=false` | if lit3 is intrinsic: lit3 is no longer a function |
+| SUBSTITUTE lit4←lit5 | retype lit4-keyword-type → `IDENTIFIER`; retype `IDENTIFIER("lit5")` → lit4's type | force `RejectsAt(lit4)=false` | if lit4 is intrinsic: lit5 resolves to lit4's sig; lit4 not a function |
+| RESERVE lit6 | — (lit6 stays `IDENTIFIER`) | add lit6 as high-confidence reserved-at-edition ⇒ `RejectsAt(lit6)=true` | — |
+
+The rewriter operates on **token TYPE** (keyword→identifier) and **token TEXT** (identifier→keyword), which are
+disjoint sets, so within a directive order is irrelevant; across directives SR5 forbids overlap. A word with
+**no keyword token type** (a pure intrinsic-function-name, or an unknown SR3 violation) is simply skipped by the
+rewriter and handled by the Compiler layer — the layers compose cleanly.
+
+**Why not text substitution?** Text renaming cannot make a reserved word *stop* being a keyword (UNDEFINE /
+SUBSTITUTE lit4) and cannot distinguish keyword vs user-word uses; the token rewriter does both by construction.
+
+## §3 Architecture / layering
+
+`CobolWordsMap` is a **pure-string data carrier** built in the Frontend and threaded to the Compiler, exactly
+like `FlagState`/`RefModZeroLengthState`.
+
+- **`Cobol.Net.Editions`** — `CobolWordsMap` (the four normalized operation lists, all words upper-cased);
+  `ReservedWordSet` extended with an **overlay** (a `Reserve` set → high-confidence reserved-at-edition, and a
+  `Suppress` set from UNDEFINE + SUBSTITUTE-lit4 → forces `RejectsAt=false`). `constructs.json` row
+  `cobol-words-directive-2023` (introducedIn 2023, COBOLNET0900). Malformed/SR descriptor
+  `CobolWordsDirectiveInvalid` = **COBOLNET1623**.
+- **`Cobol.Net.Frontend`** — `CobolWordsDirectiveProcessor` (text stage): parse the four options into a
+  `CobolWordsMap`, validate SR1/SR2/SR5, edition-gate (0900 via `ConstructRegistry.Check`), blank the directive
+  lines (line-count preserving, the H3 discipline). `CobolWordsRewriter` (post-lex, beside `ZeroTokenRewriter`):
+  retype tokens using `CobolLexer.DefaultVocabulary` (the reverse word→type map). The lexer's
+  `PreviousTokenCouldBeDataName()` is made **map-aware** so a de-reserved word (UNDEFINE lit3 / SUBSTITUTE lit4)
+  triggers SUBSCRIPT mode when later subscripted (resolves the frozen-lex hazard, §6). `Frontend` exposes
+  `CobolWordsMap` and applies the rewriter in `LexAndParse`.
+- **`Cobol.Net.Compiler`** — `BinderDriver.Bind` receives the map; `VersionConformancePass` consults a
+  **composed** `ReservedWordSet` (replacing the hard-coded `ReservedWordSet.Default` at `ParseArm._reservedWords`)
+  so RESERVE rejects (COBOLNET0901) and UNDEFINE/SUBSTITUTE-lit4 no longer reject. `VersionConformancePass.Run`
+  also runs the **SR3/SR4 semantic validation** of the map (needs all three registries — `ReservedWords`
+  [Editions], `CobolLexer.DefaultVocabulary` [Frontend, context words], `IntrinsicCatalog` [Compiler]).
+  `IntrinsicBinder` consults the map to resolve function-name synonyms / removals before `IntrinsicCatalog.TryGet`.
+
+**Greenfield/legacy split:** `COBOL-WORDS` stays in `ConditionalCompilationProcessor.KnownIgnoredDirectives`
+(legacy keeps blanking it); a new `leaveCobolWordsDirectives` flag (like `leaveFlagDirectives`) lets the
+greenfield pipeline's emitting-branch directive survive to the new stage. Legacy oracle stays byte-identical.
+
+## §4 The four options — realization detail
+
+Let `W→T` be the reverse map `CobolLexer.DefaultVocabulary` yields (upper-cased literal name → token type),
+covering every **reserved word and context-sensitive word** (they are `'LITERAL'` lexer tokens). `IDENTIFIER`
+is the user-word token type.
+
+- **EQUATE lit1 WITH lit2.** If `lit1∈W→T` (reserved/context word): every `IDENTIFIER` token whose upper text
+  == lit2 is retyped to `T(lit1)` (text preserved for source fidelity). If lit1 is instead an intrinsic-name
+  (no token type): the map records `equateFn[lit2]=lit1`; the binder resolves.
+- **UNDEFINE lit3.** If `lit3∈W→T`: every token of type `T(lit3)` is retyped to `IDENTIFIER`, AND lit3 is added
+  to the ReservedWordSet suppress set (so a base-reserved lit3 used as a user word is not COBOLNET0901-rejected)
+  AND to the lexer's map-aware data-name set. If lit3 is intrinsic-only: the map records `undefFn+=lit3`.
+- **SUBSTITUTE lit4 BY lit5.** If `lit4∈W→T`: tokens of type `T(lit4)` → `IDENTIFIER` (lit4 suppressed +
+  data-name-aware, as UNDEFINE); `IDENTIFIER("lit5")` → `T(lit4)`. If lit4 intrinsic-only: `substFn[lit5]=lit4`,
+  `undefFn+=lit4`.
+- **RESERVE lit6.** lit6 added to the ReservedWordSet reserve overlay (high-confidence, reserved at the target
+  edition) ⇒ `VisitCobolWord`→`RejectsAt`→COBOLNET0901 at every user-word occurrence.
+
+## §5 Syntax-rule validation (split by where the facts live)
+
+- **SR1 (before first ID DIVISION)** — Frontend: the first line matching `IDENTIFICATION DIVISION` (or `ID
+  DIVISION`) fixes the boundary; any `>>COBOL-WORDS` at a later line ⇒ COBOLNET1623 (SR1).
+- **SR2 (alphanumeric literal, non-hex, space-free)** — Frontend, per literal at parse time.
+- **SR5 (a word in ≤1 directive's literals)** — Frontend: a group-wide multiset of every literal's content;
+  a repeat ⇒ COBOLNET1623 (SR5). (Both the modified word and its substitute count, per D.12.1.)
+- **SR3 (lit1/3/4 = reserved OR context OR intrinsic; not special-character)** — Compiler: reserved via
+  `ReservedWords.Find`, context via `DefaultVocabulary` (a keyword token exists), intrinsic via
+  `IntrinsicCatalog.TryGet`. None ⇒ COBOLNET1623 (SR3).
+- **SR4 (lit2/5/6 NOT reserved/context/intrinsic; a valid user-defined word §8.3.2.2)** — Compiler: reject if
+  the word is reserved/context/intrinsic; the §8.3.2.2 well-formedness (letters/digits/hyphens, not all-digits,
+  no leading/trailing hyphen) is a cheap Frontend check at parse time.
+
+## §6 Hazards & resolutions
+
+The lexer freezes three decisions before the post-lex rewriter runs; each is addressed:
+
+1. **SUBSCRIPT-mode entry** (`_dataNameTokens` at `(`). For IDENTIFIER→keyword (EQUATE lit2 / SUBSTITUTE lit5)
+   the source token is already `IDENTIFIER` (in the set), so the decision matches. For keyword→identifier
+   (UNDEFINE lit3 / SUBSTITUTE lit4) a later `lit3(sub)` must have entered SUBSCRIPT at lex time — resolved by
+   making `PreviousTokenCouldBeDataName()` also true for the map's de-reserved words (the map exists pre-lex).
+2. **FUNCTION-argument region** (`PreviousIsFunctionName`). Affects only the intrinsic-synonym path with the
+   keyword-omitted `name(args)` form; the `FUNCTION synonym(args)` form is unaffected. The keyword-omitted
+   synonym is a documented narrow advisory (rare; the FUNCTION form is the faithful path).
+3. **Token boundaries / maximal munch.** SR2 forbids spaces in a literal, so lit2/lit5 lex as a single
+   `IDENTIFIER`; no munch issue.
+
+## §7 Diagnostics
+
+- **COBOLNET0900** — introduction gate (below 2023), via `ConstructRegistry.Check(Constructs.CobolWordsDirective2023)`.
+- **COBOLNET1623** `cobol-words-directive-invalid` (Error) — a malformed directive (unknown option word,
+  missing `WITH`/`BY`, missing/badly-formed literal) OR a syntax-rule violation (SR1 placement, SR2 literal
+  form, SR3 lit1/3/4 category, SR4 lit2/5/6 category / user-word form, SR5 duplicate); the message names the SR.
+- **COBOLNET0901** — RESERVE's use-site rejection (existing edition-reserved-word funnel), one per distinct word.
+
+## §8 Threading
+
+`Frontend.CobolWordsMap` (built in `Preprocess`, applied in `LexAndParse`) → `CompilerDriver` →
+`BinderDriver.Bind(..., cobolWordsMap)` → `VersionConformancePass.Run(ctx, edition, sink, cobolWordsMap)` (the
+composed set + SR3/SR4 validation) and the bind session (for `IntrinsicBinder`). Empty map ⇒ every consumer is
+a no-op and output is byte-identical (the zero-overhead invariant).
+
+## §9 Increment plan
+
+- **Incr A — recognition + parse + gate (no behavior).** `CobolWordsMap` + `CobolWordsDirectiveProcessor`
+  (parse 4 options, SR1/SR2/SR5, `>>COBOL-WORDS` edition gate 0900), pipeline wiring + `leaveCobolWordsDirectives`,
+  `constructs.json` row + regen, COBOLNET1623 descriptor. Unit tests (parser) + below-2023 negative golden.
+- **Incr B — RESERVE + UNDEFINE (reserved-word semantics).** `ReservedWordSet` overlay + thread into
+  `VersionConformancePass`; SR3/SR4 semantic validation. RESERVE (0901) + UNDEFINE goldens.
+- **Incr C — token rewriter (EQUATE / UNDEFINE / SUBSTITUTE).** `CobolWordsRewriter` + map-aware lexer
+  data-name set. EQUATE + SUBSTITUTE goldens (observable stdout).
+- **Incr D — intrinsic-function-name synonyms.** `IntrinsicBinder` map consultation. Intrinsic EQUATE/SUBSTITUTE
+  goldens.
+
+Each increment: fresh build → characterization + `CobolWordsDirectiveTests` filter + a CLI probe (wave-local
+gate) → commit + push + a DEVLOG entry.
+
+## §10 Tests
+
+- **Unit** `tests/Cobol.Net.Tests.Unit/CobolWordsDirectiveTests.cs` — the directive parser (each option,
+  malformed, SR1/2/5), the `CobolWordsMap` composition, `ReservedWordSet` overlay, and end-to-end via
+  `CompilerDriver` (RESERVE→0901, EQUATE→resolves).
+- **Conformance positive** `tests/conformance/2023/cobol_words_*.cob` (+ `.out`) — EQUATE (SHOW→DISPLAY prints
+  `HI`), SUBSTITUTE, UNDEFINE, intrinsic-synonym — listed in `2023/manifest.json`.
+- **Conformance negative** `tests/conformance/negative/cobol_words_*.cob` (+ `.err`) — below-2023 (0900),
+  RESERVE-used-as-user-word (0901), SR violations (1623) — listed in `negative/manifest.json`.
+- **Version matrix** — the `cobol-words-directive-2023` row drives `VersionMatrixTests` + `ConstructRegistryDriftTests`.
+
+> **Not conflated:** `tests/version-matrix/cobol-words.json` + `scripts/gen-cobol-words.ps1` are the STATIC
+> context-sensitive word-set single-source (the `cobolWord` rule + `_dataNameTokens`); they are unrelated to
+> this §7.3.10 SOURCE directive. Do not edit them for this feature.

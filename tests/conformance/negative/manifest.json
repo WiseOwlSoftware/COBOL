@@ -26,6 +26,7 @@
     "class-alphabetic-on-boolean",
     "class-numeric-on-bit",
     "close-with-lock",
+    "cobol-words-below-2023",
     "concat_below_2002",
     "concat_class_mismatch",
     "constant-as-receiver",

@@ -27,6 +27,7 @@ public static class Constructs
     public const string RefModZeroLength2023 = "ref-mod-zero-length-2023";
     public const string Flag14Directive2023 = "flag-14-directive-2023";
     public const string Flag02Directive2014 = "flag-02-directive-2014";
+    public const string CobolWordsDirective2023 = "cobol-words-directive-2023";
     public const string ExternalTypeDeclaration2023 = "external-type-declaration-2023";
     public const string ValueNumericLiteralNumericEdited2023 = "value-numeric-literal-numeric-edited-2023";
     public const string ValueNumericEditedOversizeRemoved2023 = "value-numeric-edited-oversize-removed-2023";

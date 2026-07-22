@@ -56,6 +56,7 @@ public static class ConditionalCompilationProcessor
     /// TURN consumed here, the legacy caller untouched.</param>
     public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
         bool leaveRefModZeroLengthDirectives = false, bool leaveFlagDirectives = false,
+        bool leaveCobolWordsDirectives = false,
         DiagnosticBag? diagnostics = null, string? sourcePath = null)
     {
         var defines = new Dictionary<string, CtValue>(StringComparer.OrdinalIgnoreCase);
@@ -199,6 +200,11 @@ public static class ConditionalCompilationProcessor
                             flagScan.Apply(which, flagOpts, flagOn);
                         output[i] = line;
                     }
+                    // With leaveCobolWordsDirectives (the COBOL.NET caller), an emitting-branch >>COBOL-WORDS
+                    // survives for the CobolWordsDirectiveProcessor stage (ISO §7.3.10 — the introduction gate + the
+                    // per-group reserved/context/function word-table override). It stays in KnownIgnoredDirectives so
+                    // a legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
+                    else if (leaveCobolWordsDirectives && keyword == "COBOL-WORDS") output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

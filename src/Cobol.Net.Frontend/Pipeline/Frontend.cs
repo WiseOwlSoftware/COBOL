@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;   // ParseCanceledException (thrown by BailErrorStrategy on the SLL pass)
+using CobolNet.Editions;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
@@ -67,6 +68,12 @@ public sealed class Frontend
     /// migration-flag fold that <c>FlagConformancePass</c> queries). Empty when the source has no FLAG directives.</summary>
     public IReadOnlyList<FlagEvent> FlagEvents { get; private set; } = [];
 
+    /// <summary>The frontend's <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10) — the per-group
+    /// reserved/context-sensitive/intrinsic word-table modification the post-lex <c>CobolWordsRewriter</c>
+    /// applies to the token stream and the compiler's composed <c>ReservedWordSet</c> / intrinsic resolution
+    /// consult. <see cref="CobolWordsMap.Empty"/> when the source has no COBOL-WORDS directive.</summary>
+    public CobolWordsMap CobolWordsMap { get; private set; } = CobolWordsMap.Empty;
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -97,7 +104,8 @@ public sealed class Frontend
         // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
         // both here.
         text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
-            leaveRefModZeroLengthDirectives: true, leaveFlagDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
+            leaveRefModZeroLengthDirectives: true, leaveFlagDirectives: true, leaveCobolWordsDirectives: true,
+            diagnostics: diagnostics, sourcePath: sourcePath);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
@@ -139,6 +147,14 @@ public sealed class Frontend
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
+
+        // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
+        // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
+        // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
+        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
         return text;
     }
