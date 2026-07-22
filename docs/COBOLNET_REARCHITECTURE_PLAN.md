@@ -126,9 +126,16 @@ checkpoint.
   (`UsageGivesNoLength`: DISPLAY/absent → none; COMP-*/INDEX/… → length; CLI-verified `USAGE DISPLAY` flagged,
   `COMP-2` not), and not a group (`HasSubordinates` sibling-level lookahead; a group's figurative VALUE has a
   specified length via subordinates, §13.18.63 SR13); real data levels 1–49/77 only (level-88 condition-names
-  excluded). **Detectors done: 8 of 19.** 34 unit tests + CLI-probed all + char 33/33 byte-exact. **INCR 1 COMPLETE.**
-  ⏭ THEN Incr 2 (frontend-inline b/c) → Incr 3 (state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e
-  RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  excluded). **INCR 1 COMPLETE.** ✅ **Incr 2 LANDED** — the frontend-inline options **b
+  COMPILE-TIME-ARITHMETIC-EXPRESSIONS + c EVALUATE**, emitted in `ConditionalCompilationProcessor` (design D4's
+  second collection site — these are consumed at the CC stage, never reach the bound tree): a `FlagScanState`
+  tracks FLAG-14 ON/OFF as the CC stage scans (still leaving the >>FLAG line for the post-COPY bound-option
+  `FlagState`); c flags a >>EVALUATE carrying both a >>WHEN and a >>WHEN OTHER (Frame WHEN/WHEN-OTHER tracking); b
+  flags a compile-time arithmetic expression with a real addOp/mulOp via `diag.FlagArithmetic` in
+  `EvaluateOperandText`/`EvaluateCceText` (the fragment-parse choke points, evaluated context only). **Detectors
+  done: 10 of 19.** 38 unit tests + CLI-probed + char 33/33 byte-exact (zero-overhead). ⏭ THEN Incr 3 (state-coupled:
+  i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis: I-O-DECLARATIVE,
+  I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff

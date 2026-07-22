@@ -212,8 +212,13 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     specified, §13.18.63 SR13). Restricted to real data levels (1–49, 77) — a level-88 condition-name reaches
     `VisitDataDescriptionEntry` via `valueClause` and is excluded (`IsRealDataLevel`). k reaches ANY item (not just
     numeric-edited); g/l/j remain numeric-edited-gated.
-* **Incr 2 — the frontend-inline options** b, c (compile-time-arith, EVALUATE directive) + the `FlagScanState`
-  in `ConditionalCompilationProcessor`. Goldens exercising each.
+* **Incr 2 (DONE)** the frontend-inline options b COMPILE-TIME-ARITHMETIC-EXPRESSIONS + c EVALUATE, emitted in
+  `ConditionalCompilationProcessor` (these are consumed at the CC stage, never reach the bound tree). A
+  `FlagScanState` tracks FLAG-14 ON/OFF as the stage scans (still leaving the >>FLAG line for the post-COPY
+  bound-option `FlagState`); `DirectiveDiag.FlagWarn` emits with the same code/message shape as
+  `FlagConformancePass`. c: the `Frame` records `>>WHEN`/`>>WHEN OTHER` presence, flagged at `>>END-EVALUATE`. b:
+  `EvaluateOperandText`/`EvaluateCceText` call `diag.FlagArithmetic` on the parsed fragment (a real addOp/mulOp,
+  evaluated context only).
 * **Incr 3 — the state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`
   extension + EC-BOUND-REF-MOD read), d MOVE-TO-SAME-NAME (same-DDE via name resolution), e
   RANGE-EXCEPTION-FOR-INDEX (SET-index + EC-RANGE-INDEX TurnState read).

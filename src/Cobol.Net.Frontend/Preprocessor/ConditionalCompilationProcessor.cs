@@ -4,6 +4,7 @@ using System.Globalization;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Expressions;
+using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Frontend.Preprocessor;
@@ -58,7 +59,10 @@ public static class ConditionalCompilationProcessor
         DiagnosticBag? diagnostics = null, string? sourcePath = null)
     {
         var defines = new Dictionary<string, CtValue>(StringComparer.OrdinalIgnoreCase);
-        var diag = new DirectiveDiag(diagnostics, sourcePath);
+        // The running >>FLAG-14 state for the frontend-inline options b / c — mutated as the scan proceeds; `diag`
+        // holds a reference to it so operand evaluation can flag a compile-time arithmetic expression (b) in place.
+        var flagScan = new FlagScanState();
+        var diag = new DirectiveDiag(diagnostics, sourcePath, flagScan);
         // The ONE shared compile-time expression evaluator (ledger C2). Its name resolution reads the CURRENT
         // `defines` (a directive may reference a variable an earlier directive set); the frontend routes every
         // formation diagnostic to COBOLNET1619; a directive operand is dot-decimal (§5.3 — processed before
@@ -113,7 +117,8 @@ public static class ConditionalCompilationProcessor
                 {
                     // Format 1: >>EVALUATE selection-subject   Format 2: >>EVALUATE TRUE
                     bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
-                    var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false };
+                    var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false,
+                        StartLine = i, EvaluateFlagOn = flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
                     string subj = rest.Trim();
                     if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
                     else if (parentActive) f.Subject = EvaluateOperandText(subj, evaluator, diag, ">>EVALUATE");
@@ -126,6 +131,9 @@ public static class ConditionalCompilationProcessor
                     {
                         var f = stack.Peek();
                         string obj = rest.Trim();
+                        // c EVALUATE: record the syntactic presence of a >>WHEN / >>WHEN OTHER (independent of which
+                        // branch emits) — GR4 c flags a directive containing BOTH.
+                        if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase)) f.SawWhenOther = true; else f.SawWhen = true;
                         if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase))
                             f.Emitting = f.ParentActive && !f.BranchTaken;     // OTHER fires only if nothing matched
                         else if (!f.ParentActive || f.BranchTaken)
@@ -142,7 +150,15 @@ public static class ConditionalCompilationProcessor
                     output[i] = "";
                     break;
                 case "END-EVALUATE":
-                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate) stack.Pop();
+                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate)
+                    {
+                        var f = stack.Peek();
+                        // c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
+                        // and a >>WHEN OTHER and FLAG-14 EVALUATE was ON at the >>EVALUATE line.
+                        if (f.SawWhen && f.SawWhenOther && f.EvaluateFlagOn)
+                            diag.FlagWarn(FlagOption.Flag14Evaluate, f.StartLine);
+                        stack.Pop();
+                    }
                     output[i] = "";
                     break;
                 case "DEFINE":
@@ -173,7 +189,16 @@ public static class ConditionalCompilationProcessor
                     // survives for the FlagDirectiveProcessor stage (ISO §7.3.14 / §7.3.15 — the per-line per-option
                     // migration-flag fold). Both stay in KnownIgnoredDirectives so a legacy caller (no flag) keeps
                     // consuming them; the greenfield stage adds the real behavior.
-                    else if (leaveFlagDirectives && (keyword == "FLAG-02" || keyword == "FLAG-14")) output[i] = line;
+                    else if (leaveFlagDirectives && (keyword == "FLAG-02" || keyword == "FLAG-14"))
+                    {
+                        // Track the running FLAG state for the frontend-inline options (this arm is reached only when
+                        // emitting). The line still SURVIVES for the post-COPY FlagDirectiveProcessor (the bound-option
+                        // FlagState). A malformed operand is reported there, not here — track only a well-formed toggle.
+                        var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
+                        if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
+                            flagScan.Apply(which, flagOpts, flagOn);
+                        output[i] = line;
+                    }
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }
@@ -193,6 +218,27 @@ public static class ConditionalCompilationProcessor
         public bool BranchTaken;    // IF: the IF arm was taken (drives ELSE); EVALUATE: some WHEN already matched (drives later WHEN/OTHER)
         public bool TruthForm;      // EVALUATE: true for Format 2 (>>EVALUATE TRUE), where each WHEN carries a constant-conditional-expression
         public CtValue? Subject;    // EVALUATE Format 1: the selection-subject value
+        // FLAG-14 c EVALUATE (§7.3.15.4 GR4 c): flag a >>EVALUATE directive that carries BOTH a >>WHEN and a
+        // >>WHEN OTHER — syntactic presence (independent of which branch emits). Captured at the >>EVALUATE line.
+        public bool SawWhen;
+        public bool SawWhenOther;
+        public int StartLine;
+        public bool EvaluateFlagOn;   // FLAG-14 EVALUATE was ON at the >>EVALUATE directive's line (the GR2 anchor)
+    }
+
+    /// <summary>The running per-option <c>&gt;&gt;FLAG-02</c>/<c>&gt;&gt;FLAG-14</c> ON/OFF state, updated as the CC
+    /// stage scans directive lines in order — the frontend-inline options (b COMPILE-TIME-ARITHMETIC-EXPRESSIONS,
+    /// c EVALUATE) query it at their construct's line. Mirrors the compile-time <see cref="Binding.FlagState"/> fold
+    /// ("last toggle strictly before the site wins, default OFF") but built incrementally in source order, because
+    /// these constructs are consumed at THIS stage and never reach the bound tree.</summary>
+    private sealed class FlagScanState
+    {
+        private readonly Dictionary<FlagOption, bool> _on = [];
+        public void Apply(FlagDirective which, IReadOnlyList<FlagOption> options, bool on)
+        {
+            foreach (var opt in options.Count == 0 ? FlagOptions.OptionsOf(which) : options) _on[opt] = on;
+        }
+        public bool IsOn(FlagOption opt) => _on.TryGetValue(opt, out bool v) && v;
     }
 
     // ── DEFINE (§7.3.11) ──────────────────────────────────────────────────────────────────────────────────────
@@ -267,7 +313,9 @@ public static class ConditionalCompilationProcessor
         DirectiveDiag diag, string where)
     {
         if (DirectiveExpressionFragment.ParseOperand(text) is not { } frag) { diag.Malformed(where, text); return null; }
-        return evaluator.EvaluateOperand(frag.compileTimeOperand(), where);
+        var operand = frag.compileTimeOperand();
+        diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — evaluated context
+        return evaluator.EvaluateOperand(operand, where);
     }
 
     /// <summary>Fragment-parse and evaluate a constant-conditional-expression; a malformed cce / formation error
@@ -276,7 +324,21 @@ public static class ConditionalCompilationProcessor
         DirectiveDiag diag, string where)
     {
         if (DirectiveExpressionFragment.ParseCce(text) is not { } frag) { diag.Malformed(where, text); return false; }
-        return evaluator.EvaluateCce(frag.constantConditionalExpression(), where) ?? false;
+        var cce = frag.constantConditionalExpression();
+        diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — evaluated context
+        return evaluator.EvaluateCce(cce, where) ?? false;
+    }
+
+    /// <summary>The first descendant of type <typeparamref name="T"/> in <paramref name="node"/>'s subtree — used
+    /// to detect an arithmetic OPERATOR (<c>addOp</c>/<c>mulOp</c>) inside a directive operand for FLAG-14 b.</summary>
+    private static bool HasDescendant<T>(Antlr4.Runtime.Tree.IParseTree node) where T : class
+    {
+        for (int k = 0; k < node.ChildCount; k++)
+        {
+            var child = node.GetChild(k);
+            if (child is T || HasDescendant<T>(child)) return true;
+        }
+        return false;
     }
 
     /// <summary>Format-1 WHEN match (§7.3.13.4 GR4): subject == object, or (with THROUGH/THRU) the subject in the
@@ -362,10 +424,21 @@ public static class ConditionalCompilationProcessor
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
     /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOLNET1619 (the directive-expression
     /// violation); the §7.3.11.3 SR2 redefinition is COBOLNET1618. <see cref="Line"/> is set before each directive.</summary>
-    private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath) : ICtDiagnostics
+    private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath, FlagScanState flagScan) : ICtDiagnostics
     {
         private readonly string _path = sourcePath ?? "";
+        private readonly FlagScanState _flagScan = flagScan;
         public int Line;
+
+        /// <summary>FLAG-14 b (§7.3.15.4 GR4 b; E.2 item 6) — flag a compile-time arithmetic EXPRESSION (one with a
+        /// real <c>addOp</c>/<c>mulOp</c>, not a bare literal) when COMPILE-TIME-ARITHMETIC-EXPRESSIONS is ON at the
+        /// current directive line. Called on the already-parsed operand/cce fragment, in the evaluated context.</summary>
+        public void FlagArithmetic(Antlr4.Runtime.Tree.IParseTree tree)
+        {
+            if (_flagScan.IsOn(FlagOption.Flag14CompileTimeArithmeticExpressions)
+                && (HasDescendant<CobolParserCore.AddOpContext>(tree) || HasDescendant<CobolParserCore.MulOpContext>(tree)))
+                FlagWarn(FlagOption.Flag14CompileTimeArithmeticExpressions, Line);
+        }
 
         public void Report(CtDiagCode code, string message) => Emit("COBOLNET1619", message);
 
@@ -375,6 +448,20 @@ public static class ConditionalCompilationProcessor
 
         public void Malformed(string where, string text) => Emit("COBOLNET1619",
             $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
+
+        /// <summary>Emit a migration-flag WARNING for a frontend-inline FLAG option (b / c) at
+        /// <paramref name="line"/> — the same code/message shape as <c>FlagConformancePass</c> for the bound
+        /// options, so the two collection sites are indistinguishable to the user.</summary>
+        public void FlagWarn(FlagOption option, int line)
+        {
+            var info = FlagOptions.Info(option);
+            string code = info.Directive == FlagDirective.Flag14
+                ? Editions.Diagnostics.DiagnosticCatalog.Flag14Warning.Code
+                : Editions.Diagnostics.DiagnosticCatalog.Flag02Warning.Code;
+            bag?.ReportWarning(code,
+                $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
+                new SourceLocation(_path, 0, line, 0), default);
+        }
 
         private void Emit(string code, string message) =>
             bag?.ReportError(code, message, new SourceLocation(_path, 0, Line, 0), default);

@@ -242,6 +242,52 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
 
+    // ── Incr 2: the frontend-inline options (emitted in ConditionalCompilationProcessor, never reach the bound tree) ──
+
+    // c EVALUATE (§7.3.15.4 GR4 c) — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.
+    private static string EvaluateDirectiveProgram(string otherArm) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGEV.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
+        "       >>DEFINE N AS 1\n       >>FLAG-14 EVALUATE ON\n       >>EVALUATE N\n       >>WHEN 1\n" +
+        "           DISPLAY \"ONE\".\n" + otherArm + "       >>END-EVALUATE\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_EvaluateOn_Flags_DirectiveWithWhenAndWhenOther()
+    {
+        var warnings = CompileWarnings(EvaluateDirectiveProgram("       >>WHEN OTHER\n           DISPLAY \"OTHER\".\n"));
+        // Frontend-inline warnings carry a path(line,col) prefix (unlike the bound-option edition warnings), so match
+        // on the code + option rather than a leading "warning".
+        Assert.Contains(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains(">>FLAG-14 EVALUATE", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_Evaluate_NotFlagged_WithoutWhenOther()
+    {
+        var warnings = CompileWarnings(EvaluateDirectiveProgram(""));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — a compile-time arithmetic expression with an operator.
+    private static string DefineArithmeticProgram(string expr) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGB.\n       PROCEDURE DIVISION.\n       MAIN.\n" +
+        "       >>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS ON\n       >>DEFINE X AS " + expr + "\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_CompileTimeArithmeticOn_Flags_ExpressionWithOperator()
+    {
+        var warnings = CompileWarnings(DefineArithmeticProgram("1 + 2"));
+        Assert.Contains(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("COMPILE-TIME-ARITHMETIC-EXPRESSIONS", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_CompileTimeArithmetic_NotFlagged_ForSoleLiteral()
+    {
+        // A bare single literal is not an arithmetic expression — no operator, nothing to flag.
+        var warnings = CompileWarnings(DefineArithmeticProgram("5"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
     // ── Incr 1b: FLAG-14 j VALUE-EDITING (§7.3.15.4 GR4 j) — numeric-edited VALUE literal without editing symbols ──
 
     [Fact]
