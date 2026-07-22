@@ -283,14 +283,14 @@ findings are marked.
 - **Proposed action:** Separate the omitted-length channel from the value channel (e.g. a bool hasLength/int.MinValue sentinel, or emit `Math.Max(...)`-free explicit int with a distinct overload) and add `length < 0` to the raise predicate in both RefMod and SpliceInto; add a negative-evaluated-length golden under CHECKING ON and OFF; fix the §8.4.2.3→§8.4.3.3.4 citation in ExceptionState.cs:227.
 - **Disposition:** _unverified — Wave I re-verify_
 
-### U4. [MAJOR | plan-omission | A2-fundamentals-ec] EC-DATA-NOT-FINITE and EC-DATA-OVERFLOW are catalogued but can never be raised, have no seam, and are absent from every residue/audit list — while the enabling binary32/64 standard-float usages shipped in P12
+### U4. [MAJOR | plan-omission | A2-fundamentals-ec] EC-DATA-NOT-FINITE and EC-DATA-OVERFLOW are catalogued but can never be raised, have no seam, and are absent from every residue/audit list — while the enabling binary32/64 standard-float usages shipped in P12 — ✅ LANDED 2026-07-22 (= V3; DEVLOG 981)
 
 - **Refs:** spec §14.6.13.2 item 3 specs/ISO_COBOL.md:24897; Table 13 :24655 (EC-DATA-NOT-FINITE Fatal), :24668 (EC-DATA-OVERFLOW Fatal); src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs:35,39-40,77; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs:89-90
 - **Evidence:** §14.6.13.2 3): referencing a standard-float sending operand that is NaN/infinity sets EC-DATA-NOT-FINITE (Fatal) outside four named exemptions; Table 13 :24668 defines EC-DATA-OVERFLOW as exponent overflow during MOVE to a standard-float receiver. P12 landed FLOAT-SHORT/FLOAT-LONG as native binary32/64, so both conditions are reachable by conforming programs (e.g. MOVE of an overflowing binary64 into binary32; arithmetic reference to a NaN-bearing FLOAT-LONG). CobolFloat.ToScaled maps NaN→0 and saturates ±Inf silently (:35,:39-40 — the comment claims 'implementor-defined', but that latitude exists only while checking is DISABLED per §14.6.13.1.3 #8; under >>TURN EC-DATA-NOT-FINITE CHECKING ON the condition must be set). Both names are catalogued (ExceptionCatalog.cs:89-90) but have zero raise sites, zero named seam comments (unlike the SORT/REPORT/ODO convention), and zero mentions in any doc, the P13 audit, the scouts, or the tracked P12 residues (which stage only external-float E PICTURE and binary128/decimal non-support): grep over docs/ + src (non-catalog) + tests = 0 hits for either name.
 - **Proposed action:** Add checking-gated raise seams on the twin pattern of ExceptionEngine.DataConversionChecking/BoundOverflowChecking: an EC-DATA-NOT-FINITE gate at the float sending-reference funnel and an EC-DATA-OVERFLOW gate at the float→float store when the result lands ±Inf from a finite source; or, if deferred, add them as named rows to the P13 audit residue list + a CONFORMANCE.md staging note in the same change set so the gap is tracked.
 - **Disposition:** _unverified — Wave I re-verify_
 
-### U5. [MAJOR | plan-omission | A2-fundamentals-ec] The EC-RANGE conditions of fully-implemented statements (SEARCH, PERFORM VARYING, THROUGH ranges) are catalogued but absent entirely — no raise, no seam comment, no doc/audit row
+### U5. [MAJOR | plan-omission | A2-fundamentals-ec] The EC-RANGE conditions of fully-implemented statements (SEARCH, PERFORM VARYING, THROUGH ranges) are catalogued but absent entirely — no raise, no seam comment, no doc/audit row — ✅ LANDED 2026-07-22 (= V4; DEVLOG 982–984)
 
 - **Refs:** spec §14.9.35 GR4 specs/ISO_COBOL.md:30935 + :30946,:30962 (EC-RANGE-SEARCH-INDEX/-NO-MATCH); §14.9.28 GR3 :29561 (EC-RANGE-PERFORM-VARYING, Fatal); §14.7.8 :25189 (EC-RANGE-INVALID); src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs:162-168; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs
 - **Evidence:** SEARCH must set EC-RANGE-SEARCH-INDEX when the initial index is out of range (:30935) and EC-RANGE-SEARCH-NO-MATCH on serial/binary exhaustion (:30946,:30962); PERFORM VARYING with an index-name and a non-positive FROM identifier must set the Fatal EC-RANGE-PERFORM-VARYING (:29561); a THROUGH range whose start collates above its end must set EC-RANGE-INVALID and evaluate as empty (:25189). SEARCH/SEARCH ALL, PERFORM VARYING, and THROUGH ranges are all implemented (SearchBinder.cs; EC-FLOW-SEARCH is even raised for dynamic tables at CobolDynTable.cs:105), yet these four names have zero raise sites, zero named 'seam' comments (the convention used for every other default-off EC family: SORT/MERGE in SortEmitter.cs:42-160, ODO in CobolTable.cs:49, REPORT in the RW design), and zero mentions in any doc, audit row, scout, or test (per-name grep across docs/, src non-catalog, tests = 0/0/0). This is 'catalogued but never raised AND untracked' — unlike EC-RANGE-INSPECT-SIZE (staged in COBOLNET_STRING_OPS_DESIGN.md:176) and EC-RANGE-INDEX/PTR (VCR row 100 todo / PHASE4_RECONCILIATION unbounded-pointer disposition).
@@ -848,7 +848,17 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
   step 4a :28634 / Table 13 :24329/:24342.) Documented gaps: float numeric-edited receiver overflow; multi-float-receiver
   ADD/SUBTRACT half-commit (an undefined-results follow-on).
 
-### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID)
+### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID) — ✅ LANDED 2026-07-22
+
+> ✅ **LANDED 2026-07-22 (DEVLOG 982–984, three increments).** All four now raise, checking-gated: **SEARCH-INDEX/-NO-MATCH**
+> — `EmitSearchScan` restructured to a GR4/GR6/GR9 form (initial-index guard → SEARCH-INDEX serial-only + `<1` latent-bug
+> fix; advance-past-end → NO-MATCH; SEARCH ALL empty-table → NO-MATCH); **PERFORM-VARYING** (fatal) — a precise
+> `EcWrap.QueryFor` arm on `BoundInlinePerform/BoundOutOfLinePerform { PerformVarying { CheckIndexRange } }` + a
+> FatalAmbientGates entry + `PerformVaryingIndexError` (index-name FROM a data-item value ≤0, §14.9.28.4 GR3 — corrected
+> from the finding's "non-positive BY step"); **INVALID** — `CobolString.ThruMember` at the level-88 (`RenderMembershipTest`)
+> and EVALUATE-range (`BoundRangeMembership`) sites (§14.7.8 rule 2, alphanumeric/national only). Design validated by
+> `wf_a0883513-5f3`. Goldens `2023/ec_range_{search,perform_varying,invalid}`. (The finding's cited §s were corrected:
+> SEARCH is §14.9.37 not §14.9.35; PERFORM-VARYING is §14.9.28.4 GR3 :29222; INVALID is §14.7.8 :24863.)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED — the four names are EC-RANGE-SEARCH-INDEX (§14.9.35→serial SEARCH GR4 :30935), EC-RANGE-SEARCH-NO-MATCH (:30946/:30962), EC-RANGE-PERFORM-VARYING (§14.9.28 GR3 :29561 — non-POSITIVE, so zero too), EC-RANGE-INVALID; catalogued at ExceptionCatalog.cs:164-168 with no seam and no ledger row. Route: seams or a named residue row.

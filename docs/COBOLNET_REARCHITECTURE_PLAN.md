@@ -48,13 +48,17 @@ checkpoint.
   (single-precision finite→±Inf). Applied to ALL float usages (mandatory for standard, implementor determination for
   the rest — `CONFORMANCE.md §3`). Gate: goldens `2023/ec_data_not_finite` + `2023/ec_data_overflow` · characterization
   **33/33 byte-identical** · Unit **571/571** · float/move/display/comp/sign/class Conformance **1993/1993 0-reg**.
-  **⏭ V4 (EC-RANGE family — SEARCH-INDEX/-NO-MATCH/PERFORM-VARYING/INVALID) — DESIGN VALIDATION Workflow in flight**
-  (`wf_a0883513-5f3`): the SEARCH ECs need an `EmitSearchScan` restructure (initial-index guard `<1||>max` →
-  SEARCH-INDEX serial-only + advance-past-end → NO-MATCH; also FIXES a latent zero/negative-initial-index bug),
-  PERFORM-VARYING is §14.9.28.4 GR3 (index-name varied from a FROM identifier ≤0, FATAL — NOT the BY step), INVALID is
-  §14.7.8 THROUGH (inverted level-88/EVALUATE range, collating-aware — possibly a scoped follow-on). The comprehensive
-  gate (full Conformance + guard + GnuCOBOL) runs before the EC-seam batch merges. **⏭ REMAINING §24 majors (spec-first,
-  one batch at a time):** finish the EC-seam batch (V4 EC-RANGE) · the ref-mod-externality residue (V45-sentinel /
+  **V4** (EC-RANGE family) ✅ LANDED in 3 increments (DEVLOG 982–984; commits after B's): **V4a** SEARCH-INDEX/-NO-MATCH
+  (`EmitSearchScan` restructured — initial-index guard `<1||>max` → SEARCH-INDEX serial-only + advance-past-end →
+  NO-MATCH; SEARCH ALL empty → NO-MATCH; also FIXES a latent zero/negative-initial-index bug, one snapshot re-baseline
+  `char_occurs.85`) · **V4b** PERFORM-VARYING (fatal, §14.9.28.4 GR3 index-name FROM a data-item ≤0 — a precise
+  `EcWrap.QueryFor` arm + FatalAmbientGates + USE-F3 dispatch) · **V4c** EC-RANGE-INVALID (§14.7.8 THROUGH rule 2 —
+  `CobolString.ThruMember` at level-88 + EVALUATE range, alphanumeric/national only; "empty range" already emergent).
+  Goldens `2023/ec_range_{search,perform_varying,invalid}`; each characterization 33/33 · per-increment Conformance
+  52/99/147 · Unit 571/571. Design validated by `wf_a0883513-5f3`. **⭐ THE EC-SEAM BATCH IS COMPLETE (F10 · V3 · V4).**
+  **⏭ NEXT: the comprehensive pre-merge gate (full greenfield Conformance + legacy guard + GnuCOBOL/NIST differential —
+  the differential is the required confirmation that the SEARCH `<1` latent-bug fix moves no other program's output)
+  before the batch merges.** **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the ref-mod-externality residue (V45-sentinel /
   V45-externality) · misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) ·
   the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) ·
   the **owner-decision items** (F1 ASSIGN USING route · V19 parameterized-class route · V24 intro-gate 2014-vs-2023).
