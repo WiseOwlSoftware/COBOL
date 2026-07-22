@@ -123,7 +123,16 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         for (int wi = 0; wi < p.Whens.Count; wi++)
         {
             var m = p.Whens[wi];
-            if (m.OpenMode is not null) continue;   // open-mode WHEN is a STAGED sub-GAP (COBOLNET0899 at bind, §9.7)
+            if (m.OpenMode is { } mode)
+            {
+                // WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND — GR3b open-mode scope (tier 1): an EC-I-O whose file
+                // is CURRENTLY OPEN in that mode. (An OPEN-failure's mode is best-effort — the connector reports its
+                // mode only once open; §9.7.) __f is null for a non-I-O condition or a file-less EC-I-O RAISE.
+                arms.Add((1, wi, 0,
+                    $"ExceptionCatalog.IsIoName(__ec) && __f is not null && {RuntimeApi.FileOpenModeOf("__f")} == {ModeOrdinal(mode)}",
+                    m.Imp2Pc));
+                continue;
+            }
             for (int oi = 0; oi < m.Operands.Count; oi++)
             {
                 var (tier, test) = ClassifyOperand(m.Operands[oi]);
@@ -148,25 +157,37 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
     }
 
-    /// <summary>Classify one WHEN operand into its §14.9.49.4 GR3c-g tier + the runtime match test (mirrors
-    /// <c>__EcDispatch</c>'s per-tier tests so the two never drift). A bare file-name (Ec null) → any EC-I-O
-    /// associated with the file (tier 1, file+I-O ≈ level-2).</summary>
+    /// <summary>Classify one WHEN operand into its §14.9.49.4 GR3a-g tier + the runtime match test (the EC-name
+    /// tiers mirror <c>__EcDispatch</c>'s per-tier tests so the two never drift). GR17 selects across the WHEN
+    /// operands by GR3's a→g priority: bare file-name (GR3a) > open-mode (GR3b, in the caller) > file+L3 (GR3c) >
+    /// file+L2 (GR3d) > L3 (GR3e) > L2 (GR3f) > L1/EC-ALL (GR3g); source order only WITHIN a tier.</summary>
     private static (int Tier, string Test) ClassifyOperand(BoundWhenOperand op)
     {
-        if (op.Ec is null)
-            return (1, $"ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(op.File!)}");
+        if (op.Ec is null)   // bare file-name — GR3a (any EC-I-O associated with the file), the HIGHEST tier
+            return (0, $"ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(op.File!)}");
         int level = ExceptionCatalog.TryGet(op.Ec, out var info) ? info.Level : 3;
         if (op.File is not null)
             return level == 3
-                ? (0, $"__f == {FileKeyExpr(op.File)} && __ec == {CsLiteral(op.Ec)}")
-                : (1, $"__f == {FileKeyExpr(op.File)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})");
+                ? (2, $"__f == {FileKeyExpr(op.File)} && __ec == {CsLiteral(op.Ec)}")                             // GR3c
+                : (3, $"__f == {FileKeyExpr(op.File)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"); // GR3d
         return level switch
         {
-            3 => (2, $"__ec == {CsLiteral(op.Ec)}"),
-            2 => (3, $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"),
-            _ => (4, "true"),   // level 1 = EC-ALL
+            3 => (4, $"__ec == {CsLiteral(op.Ec)}"),                                                              // GR3e
+            2 => (5, $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"),                                  // GR3f
+            _ => (6, "true"),   // level 1 = EC-ALL                                                               // GR3g
         };
     }
+
+    /// <summary>The <c>FileOpenMode</c> ordinal of a WHEN EXCEPTION open-mode keyword (INPUT/OUTPUT/I-O/EXTEND) —
+    /// matches the binder's `useOnTarget` mode mapping and the runtime enum.</summary>
+    private static int ModeOrdinal(string mode) => mode switch
+    {
+        "INPUT" => (int)CobolNet.Runtime.IO.FileOpenMode.Input,
+        "OUTPUT" => (int)CobolNet.Runtime.IO.FileOpenMode.Output,
+        "EXTEND" => (int)CobolNet.Runtime.IO.FileOpenMode.Extend,
+        "I-O" => (int)CobolNet.Runtime.IO.FileOpenMode.IO,
+        _ => -1,
+    };
 
     /// <summary>The <c>__useActive</c> re-entrancy-array id of an appended handler pc — its slot sits above the
     /// declarative slots (§9.1): <c>DeclCount + (pc − F3HandlerBasePc)</c>.</summary>

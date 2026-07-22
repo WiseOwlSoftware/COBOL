@@ -47,16 +47,6 @@ internal sealed partial class EcBinder
 
         CheckSr14Sr15(census);
 
-        // The open-mode WHEN operand form (WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND) is a STAGED sub-GAP
-        // (§9.7 / §5.4-1): matching an EC-I-O by the raising file's CURRENT open mode needs a runtime open-mode
-        // query on the WHEN path that is not yet implemented. Reject loud (COBOLNET0899) rather than silently never
-        // fire the handler — a program not using this form is unaffected.
-        if (headers.Any(h => h.Mode is not null))
-            ctx.Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented,
-                "the open-mode operand form of a WHEN phrase (WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND) in an "
-                + "exception-checking PERFORM is recognized but its runtime match (by the raising file's current open "
-                + "mode) is not yet implemented (a P14 GAP; ISO §14.9.28.4 GR17, §14.9.49.4 GR3b)");
-
         // GR14 overlay: imp-1 binds with the WHEN-named ECs implicitly enabled over its extent (WITH LOCATION iff
         // the PERFORM specifies LOCATION). The overlay is popped (base restored) after imp-1 — imp-2..5 bind
         // against the base state (GR21/GR22).

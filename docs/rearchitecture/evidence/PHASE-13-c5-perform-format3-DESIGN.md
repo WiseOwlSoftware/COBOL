@@ -916,8 +916,9 @@ The `__EcDispatch`/`-3` fallback is gated on `UnitHasF3` so a **no-declarative**
 
 **§9.3.2 The tier-ordered matcher + COMMON composition** (per F3 PERFORM, `n = PerformId`). The emitter builds
 `(tier, whenIdx, opIdx, testExpr, imp2Pc)` for every operand, **sorts by (tier, whenIdx, opIdx)**, emits arms in
-that order (tier = the compile-time GR3 rank: `0` file+L3, `1` file+L2 and bare-file, `2` L3, `3` L2, `4` L1/EC-ALL).
-WHEN OTHER (GR18) is the final unconditional fallback:
+that order. **AS-BUILT tier = the full §14.9.49.4 GR3a→g rank** (`0` bare file-name [GR3a], `1` open-mode [GR3b],
+`2` file+L3 [GR3c], `3` file+L2 [GR3d], `4` L3 [GR3e], `5` L2 [GR3f], `6` L1/EC-ALL [GR3g]) — file/mode scope
+outranks an exception-name, source order only WITHIN a tier. WHEN OTHER (GR18) is the final unconditional fallback:
 ```csharp
 ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f) =>
 {
@@ -933,13 +934,13 @@ ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f) =>
 ```
 Per-operand test emit (mirrors `__EcDispatch`, `EcEmitter.cs:274-283`, so the two never drift):
 ```
-file+L3 :  __f == {FileKeyExpr(f)} && __ec == "EC-…"
-file+L2 :  __f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, "EC-…")
-bare file: ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(f)}        // tier 1 (file+I-O ≈ level-2) — PROBE
-L3      :  __ec == "EC-…"
-L2      :  ExceptionCatalog.UnderLevel2(__ec, "EC-…")
-L1      :  true                                                              // EC-ALL
-open-mode: STAGED — not emitted (COBOLNET0899, §5.4-1)
+bare file: ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(f)}                    // tier 0 (GR3a)
+open-mode: ExceptionCatalog.IsIoName(__ec) && __f is not null && CobolFile.OpenModeOf(__f) == {ord}  // tier 1 (GR3b)
+file+L3 :  __f == {FileKeyExpr(f)} && __ec == "EC-…"                                     // tier 2 (GR3c)
+file+L2 :  __f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, "EC-…")         // tier 3 (GR3d)
+L3      :  __ec == "EC-…"                                                                // tier 4 (GR3e)
+L2      :  ExceptionCatalog.UnderLevel2(__ec, "EC-…")                                    // tier 5 (GR3f)
+L1      :  true                                                                          // tier 6 (GR3g, EC-ALL)
 ```
 A WHEN with several operands OR-joins its per-operand arms (each keyed to the same `imp2Pc`), each in its own tier.
 The ONE COMMON-composition helper (per class):
@@ -1118,10 +1119,11 @@ walled; every bounded `__RunUse`/PERFORM passes its own `__exitPc`, so PERFORM o
   path only. (NOTE 9 is NOT the authority — it concerns a programmer's explicit transfer out during WHEN processing.)
 
 ### 9.7 Staged-GAP boundary (each a loud COBOLNET0899 / dedicated diagnostic — never silent)
-Unchanged from §5.4, kept explicit: open-mode WHEN operand (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND`, §5.4-1); **F3
-PERFORM inside an OO method** (§9.1-B — reject loud until the OO pc-space wiring lands); cross-CALL GR1 "in range"
-(per-activation `TrimPerformTo` default, §5.4-2); EC-FLOW-USE / `>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside
-imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
+✅ **The open-mode WHEN operand form LANDED** (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND` — GR3b, tier 1: matches an
+EC-I-O whose file is currently open in that mode via `CobolFile.OpenModeOf(__f)`; an OPEN-failure's mode is
+best-effort). Remaining staged (kept explicit): **F3 PERFORM inside an OO method** (§9.1-B — reject loud until the OO
+pc-space wiring lands); cross-CALL GR1 "in range" (per-activation `TrimPerformTo` default, §5.4-2); EC-FLOW-USE /
+`>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
 sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconcile the §8 doc to record them as SWEPT
 (more correct than §5.4-2's "un-swept" claim).
 
@@ -1141,7 +1143,10 @@ sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconci
 1. **Deep re-raise across nested handlers** — the `RunTopFrame` deferred-`Handling` walk is nesting-correct by
    reasoning; add a conformance probe (nested F3 where the outer handler raises an EC an inner skipped frame's WHEN
    would match — confirm the inner does NOT catch it). Single point to adjust if a test pins a different reading.
-2. **Bare-file operand tier** — `WHEN EXCEPTION file-name` (Ec null) has no direct GR3c-g analog; assigned tier 1.
+2. **Bare-file / open-mode operand tier — RESOLVED (tiers 0/1 per GR3a/GR3b).** `WHEN EXCEPTION file-name` maps to
+   GR3a (file scope, tier 0) and `WHEN EXCEPTION mode` to GR3b (open-mode, tier 1) — both OUTRANK the exception-name
+   forms (GR3c-g, tiers 2-6) per GR3's a→g order. Verified end-to-end (`OpenMode_OutranksExceptionName`,
+   `BareFileWhen_...`, `OpenModeWhen_...`). ~~[former:~~ `WHEN EXCEPTION file-name` assigned tier 1.~~]~~
    Probe against GnuCOBOL for a program mixing `WHEN EXCEPTION f` with `WHEN EC-I-O-… FILE f`; record the tier in D12.
 3. **`UsageCollectionPass`/`BoundStores` reconciliation** — verify imp-2/3/4 data-usage is collected exactly once
    (at the synthetic paragraphs), not double-counted off the F3 node; regenerate the source-gen visitor and diff.

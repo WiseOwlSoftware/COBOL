@@ -34,9 +34,11 @@ checkpoint.
   panel + a direct spec cross-check; the owner-directed pc-RANGE architecture). **All 4 increments LANDED + the
   COMPREHENSIVE GATE ALL GREEN** (characterization 33/33 byte-identical · full greenfield Conformance 3818/3818 · F3
   tests 39/39 [13 behavior + 26 diag] · legacy guard NIST 353 MATCH/0 regression · **GnuCOBOL +2 fixes/0 regressions**)
-  + the doc sweep (D12 / CONFORMANCE.md decisions recorded). **⏭ REMAINING Track ③ = the 5 STAGED sub-GAPs (each a
-  loud COBOLNET0899, owner-acknowledged, next-wave — §9.7): open-mode WHEN operand (`WHEN EXCEPTION INPUT|OUTPUT|I-O|
-  EXTEND`) · F3-PERFORM-inside-a-method (OO pc-slice wiring) · cross-CALL GR1 "in range" · EC-FLOW-USE/`>>PROPAGATE` ·
+  + the doc sweep (D12 / CONFORMANCE.md decisions recorded). **✅ + the open-mode WHEN operand sub-GAP LANDED (DEVLOG
+  971): `WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND` matches by the file's current open mode (GR3b); the full GR3a→g tier
+  order fixed (bare-file/open-mode outrank exception-names); F3 tests 42/42 + char 33/33 + GnuCOBOL 0-regression.**
+  **⏭ REMAINING Track ③ = 4 STAGED sub-GAPs (each a loud COBOLNET0899, owner-acknowledged, next-wave — §9.7):
+  F3-PERFORM-inside-a-method (OO pc-slice wiring) · cross-CALL GR1 "in range" · EC-FLOW-USE/`>>PROPAGATE` ·
   exception-OBJECT raise in imp-1.** Then ④ §24 fix-queue → Wave I merge → P14. **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
   `ExceptionEngine` frame stack (`Push/Pop/RunTopFrame` top-down walk w/ deferred `Handling`-clear + `PerformDepth`/
   `TrimPerformTo`) + `ExceptionState` delegators + `ProgramTable.CallProgram` per-activation snapshot; gate =

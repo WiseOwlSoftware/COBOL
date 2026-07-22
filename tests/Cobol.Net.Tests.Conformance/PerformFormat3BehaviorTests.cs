@@ -202,6 +202,84 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nFINALLY\nDONE");
 
+    // ── GR3a/GR3b file & open-mode WHEN operands (a READ past EOF on an INPUT file raises EC-I-O-AT-END) ─────────
+
+    /// <summary>A file-based program: creates a one-record LINE SEQUENTIAL file, reopens it INPUT, then runs
+    /// <paramref name="proc"/> (whose imp-1 reads past end-of-file to raise EC-I-O-AT-END on the INPUT-mode file).</summary>
+    private static string ProgFile(string name, string proc) => $"""
+        >>TURN EC-ALL CHECKING ON
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {name}.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN "{name}.dat" ORGANIZATION LINE SEQUENTIAL.
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 R PIC X(4).
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            OPEN OUTPUT F
+            WRITE R FROM "AAAA"
+            CLOSE F
+            OPEN INPUT F
+        {proc}
+            CLOSE F
+            DISPLAY "DONE"
+            STOP RUN.
+        """;
+
+    private static void AssertFile(string name, string proc, string expected)
+    {
+        var (ok, stdout, detail) = CobolNet.CompileAndRun(ProgFile(name, proc));
+        Assert.True(ok, $"COBOL.NET failed: {detail}\nstdout:\n{stdout}");
+        Assert.Equal(expected, stdout);
+    }
+
+    [Fact]   // GR3b open-mode scope: WHEN EXCEPTION INPUT matches any EC-I-O whose file is currently open INPUT.
+    public void OpenModeWhen_MatchesByCurrentOpenMode()
+        => AssertFile("F3OPENM", """
+                PERFORM
+                    READ F
+                    READ F
+                    DISPLAY "AFTER"
+                WHEN EXCEPTION INPUT
+                    DISPLAY "INPUT-MODE"
+                    RESUME NEXT STATEMENT
+                END-PERFORM
+            """, "INPUT-MODE\nAFTER\nDONE");
+
+    [Fact]   // GR3a file scope: WHEN EXCEPTION file-name matches any EC-I-O associated with that file.
+    public void BareFileWhen_MatchesAnyIoConditionForTheFile()
+        => AssertFile("F3BAREF", """
+                PERFORM
+                    READ F
+                    READ F
+                    DISPLAY "AFTER"
+                WHEN EXCEPTION F
+                    DISPLAY "BY-FILE"
+                    RESUME NEXT STATEMENT
+                END-PERFORM
+            """, "BY-FILE\nAFTER\nDONE");
+
+    [Fact]   // GR3 priority: the open-mode scope (GR3b, tier 1) is selected BEFORE an exception-name (GR3e/f) even
+             // when the exception-name WHEN is written first — file/mode scope outranks EC-name per GR3's a→g order.
+    public void OpenMode_OutranksExceptionName()
+        => AssertFile("F3MVSN", """
+                PERFORM
+                    READ F
+                    READ F
+                    DISPLAY "AFTER"
+                WHEN EC-I-O-AT-END
+                    DISPLAY "BY-NAME"
+                    RESUME NEXT STATEMENT
+                WHEN EXCEPTION INPUT
+                    DISPLAY "BY-MODE"
+                    RESUME NEXT STATEMENT
+                END-PERFORM
+            """, "BY-MODE\nAFTER\nDONE");
+
     // ── GR21 transparency (an EC raised inside a handler is not re-caught by the SAME PERFORM) ──────────────────
 
     [Fact]   // GR21: an exception condition raised during imp-2 behaves as in a Format-2 PERFORM (this PERFORM's
@@ -243,10 +321,11 @@ public sealed class PerformFormat3BehaviorTests
                 STOP RUN.
             """, 2014), "COBOLNET0900");
 
-    [Fact]   // §9.7 / §5.4-1: the open-mode WHEN operand form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) is a staged
-             // sub-GAP — recognized but its runtime open-mode match is not implemented → loud COBOLNET0899.
-    public void OpenModeWhen_Staged0899()
-        => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
+    [Fact]   // The open-mode WHEN operand form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) now compiles clean (GR3b
+             // open-mode scope landed — the runtime matches by the raising file's current open mode); no 0899.
+    public void OpenModeWhen_CompilesClean()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
             >>TURN EC-ALL CHECKING ON
             IDENTIFICATION DIVISION.
             PROGRAM-ID. F3M.
@@ -266,5 +345,8 @@ public sealed class PerformFormat3BehaviorTests
                     CONTINUE
                 END-PERFORM
                 STOP RUN.
-            """, 2023), "COBOLNET0899");
+            """, 2023);
+        Assert.True(ok, string.Join("\n", diag));
+        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
+    }
 }
