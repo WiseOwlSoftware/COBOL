@@ -335,10 +335,28 @@ genericDataClause
     : genericClause
     ;
 
-// PIC Clause — PIC/PICTURE triggers PICMODE in the lexer,
-// which emits a single PIC_STRING token. IS is consumed by PICMODE.
+// PIC Clause — PIC/PICTURE triggers PICMODE in the lexer, which emits a single PIC_STRING token (IS is consumed
+// by PICMODE). The optional trailing EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023) are lexed in DEFAULT
+// mode: PIC_STRING stops at whitespace and pops PICMODE, so ` EDITING …` follows as an ordinary token stream.
+// The whole EDITING group is additive/repeatable; SR11 (distinct character-1) is enforced at bind. The 2023
+// introduction gate is VersionConformancePass ParseArm.VisitPictureClause (recognition on editingPhrase presence).
 pictureClause
-    : PIC PIC_STRING
+    : PIC PIC_STRING editingPhrase*
+    ;
+
+// EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). character-1
+// and the literals are quoted literals (bind-validated: SR8 legal letter, SR9 class/≤50). `IS` is optional noise
+// (non-underlined in the figure). The FOR sub-group carries CHOICE INDICATORS (§5.2.6.4) — NEGATIVE and/or
+// POSITIVE, each at most once, in either order — so it is TWO ordered alternatives, not the exclusive stacked
+// braces the OCR transcription implied. Parse-wide/bind-narrow: `literal` (broad) surfaces SR violations as NAMED
+// bind diagnostics, never an ANTLR parse error.
+editingPhrase
+    : EDITING literal ( IS? literal | FOR editingForPhrase )
+    ;
+
+editingForPhrase
+    : NEGATIVE IS? literal ( POSITIVE IS? literal )?
+    | POSITIVE IS? literal ( NEGATIVE IS? literal )?
     ;
 
 // USAGE Clause. The optional binarySign applies to the COBOL-2002 BINARY-CHAR/SHORT/LONG/DOUBLE usages
@@ -485,9 +503,23 @@ renamesClause
 // operand — without the predicate the greedy loop consumes it as a cobolWord and the propertyClause
 // (13.18.42) that follows VALUE never matches. At 85 PROPERTY stays a legal user word (the XOR recipe).
 valueClause
-    : (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
+    // Format 2 (table, ISO §13.18.63.2, COBOL-2002) — literals keyed to occurrence subscripts by a MANDATORY FROM
+    // phrase. This arm is FIRST: the mandatory FROM terminates the operand loop, so ALL(*) selects it whenever FROM
+    // is present; a bare-list-first ordering would consume the literals then die on FROM (DEVLOG note). FROM/TO are
+    // not subscript-trigger words, so `FROM (1)` lexes as DEFAULT LPAREN/RPAREN. The 2002 introduction gate is
+    // recognition-fired by VersionConformancePass ParseArm.VisitValueClause on a valueClauseTablePhrase.
+    : (VALUE | VALUES) (IS | ARE)? valueClauseTablePhrase+
+    | (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
       (WHEN SET TO FALSE_ IS? literal)?
       (IN IDENTIFIER)?
+    ;
+
+// One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are
+// integer literals (SR19), one per OCCURS dimension (SR20/SR21) — validated at bind (COBOLNET1585-1590).
+valueClauseTablePhrase
+    : valueClauseOperand (COMMA? valueClauseOperand)*
+      FROM LPAREN integerLiteral (COMMA? integerLiteral)* RPAREN
+      (TO LPAREN integerLiteral (COMMA? integerLiteral)* RPAREN)?
     ;
 
 valueItem

@@ -157,8 +157,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 .SelectMany(s => s.statement()).LastOrDefault()?.Start.Line ?? 0;
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
+        // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole main pc
+        // space (ISO §14.9.28.4 GR17; §9.1-C). handlerBase == table.HandlerBasePc == the frozen main count, so
+        // bound[handlerBase + k] is the k-th handler — matching the pc AddF3Handler stored on each BoundExceptionMatch.
+        int handlerBase = bound.Count;
+        bound.AddRange(table.F3Handlers);
         return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
-            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null);
+            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
+            F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
+            F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null);
     }
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
@@ -299,6 +306,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
+        // ── Wave H — recognize-and-name the unsupported facilities (ISO §4.2.6 ¶3 makes the compile-time
+        //    warning mechanism MANDATORY even where the facility itself need not be implemented). Each binds
+        //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
+        //    and never an EC (licensed off by §14.6.13.1.1). ──
+        _ when s.mcsReceiveStatement() is not null || s.mcsSendStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported),
+        _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.CommitRollbackUnsupported),
+        _ when s.validateFacilityStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(s.Start.Line),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
@@ -321,6 +338,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §14.9.21)
         _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §14.9.16)
         _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
+        _ when s.suppressStatement() is { } rws => Rw.BindSuppress(rws),     // Report Writer (ISO §14.9.45)
         _ when s.raiseStatement() is { } ra => Ec.BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
         _ when s.resumeStatement() is { } rs => Ec.BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
         _ when s.allocateStatement() is { } al => Ptr.BindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
@@ -379,4 +397,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
+
+    /// <summary>Recognize-and-name an unsupported facility: emit its NAMED §4.2.6/§4.2.13 warning once per
+    /// site on the non-failing channel and bind to <see cref="BoundNop"/>. The program still compiles and
+    /// runs; the facility is inert. This is the ONE mechanism for the band — do not add a parallel
+    /// Lenient()/Unsupported() helper (feedback_singular_pattern); it routes through the same
+    /// <c>EditionContext.Warning</c> channel the SCREEN non-support warning already uses.</summary>
+    private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
+    {
+        Ctx.Edition.Warning(d.Code, d.Title);
+        return new BoundNop();
+    }
 }

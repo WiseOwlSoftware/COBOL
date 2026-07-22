@@ -68,6 +68,23 @@ public sealed class ConformanceTests : EndToEndTestBase
         // ALLOCATE based-item INITIALIZED: the §14.9.3 GR7 lowering (INITIALIZE … WITH FILLER ALL TO VALUE
         // THEN TO DEFAULT) never landed in legacy — its CIL emitter only zero-fills (CilEmitter.cs), so the
         // GR7-conforming .out (VALUE members honored, numerics ZERO, edited zero, SPACES) is greenfield-only.
+        // Wave H recognize-and-name (§4.2.6 ¶3): the MCS / COMMIT-ROLLBACK / VALIDATE statements exist only
+        // in the greenfield grammar+binder (COBOLNET1578/1579/1580). The frozen legacy compiler has no such
+        // statements at all — it still fails these programs at parse — so the golden is greenfield-only.
+        ("2023", "wave_h_facilities_inert"),
+        // §12.4.5.6 SUPPRESS WHEN on ALTERNATE RECORD KEY (COBOL-2023): the greenfield IndexedConnector filters
+        // suppressed records off the alternate access path (invisible to alt READ/START) while leaving the prime
+        // path intact. The frozen legacy compiler has no SUPPRESS WHEN grammar — greenfield-only.
+        ("2023", "altkey_suppress_when"),
+        // SUPPRESS PRINTING (§14.9.45): the statement exists only in the greenfield grammar+binder+RW engine.
+        // The frozen legacy compiler has no SUPPRESS grammar at all — it fails the program at parse — so the
+        // golden (a suppressed detail's amount still rolls into the control total, §13.18.54.4 GR7/GR2) is
+        // greenfield-only.
+        ("2002", "rw_suppress"),
+        // §12.4.5.7 file-control COLLATING SEQUENCE: per-key collating weights on the greenfield IndexedConnector
+        // (reversed/equivalence-class key ordering + uniqueness). The frozen legacy compiler has no such clause,
+        // so this golden is greenfield-only.
+        ("2002", "file_collating_seq"),
         ("2002", "allocate_initialized"),
         // ARITHMETIC IS STANDARD full consumption (P10 Step 12): SDIDI exponentiation (§8.8.1.5.4 — CobolDec.Pow),
         // the decimal128 range ECs (§8.8.1.5.2 r2), float→SDIDI operand conversion (§8.8.1.5.1), and the
@@ -341,6 +358,20 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "continue_after"),         // CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9)
         ("2023", "perform_until_exit"),     // PERFORM … UNTIL EXIT (§14.9.28.4 GR11)
         ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
+        // §8.8.2 rule 7b — a boolean shift MIXED with a binary boolean operator (grouped per the shift's context-
+        // inherited precedence). The frozen legacy has no boolean-expression support at all (like boolean_ops/
+        // boolean_shift), so this rule-7b golden is greenfield-only. (ledger C2 — the shared BooleanExpressionResolver.)
+        ("2023", "boolean_shift_mixed"),
+        // §7.2.1 CC-in-COPY — the merged interleaved text-manip driver processes directives INSIDE copybooks; the
+        // frozen legacy runs CC before COPY, so a copybook >>IF leaks to the lexer. Greenfield-only.
+        ("2023", "cc_in_copy"),
+        // §7.3.10 >>COBOL-WORDS — the frozen legacy only recognizes-and-blanks the directive (KnownIgnoredDirectives),
+        // so it cannot re-tokenize a synonym/de-reserved word; the token rewriter + composed ReservedWordSet are
+        // greenfield-only. CorpusRunnerTests byte-compares these at --std 2023.
+        ("2023", "cobol_words_equate"),     // EQUATE DISPLAY WITH SHOW (§7.3.10.4 GR2)
+        ("2023", "cobol_words_substitute"), // SUBSTITUTE DISPLAY BY SHOW (§7.3.10.4 GR4)
+        ("2023", "cobol_words_undefine"),   // UNDEFINE MOVE, used as a subscripted data-name (§7.3.10.4 GR3)
+        ("2023", "cobol_words_intrinsic"),  // EQUATE MAX WITH LARGEST — an intrinsic-function-name synonym (§7.3.10.4 GR2)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
         ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
         // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO

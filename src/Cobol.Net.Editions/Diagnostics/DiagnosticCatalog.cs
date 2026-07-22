@@ -294,6 +294,61 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportNonDisplayItem = new(
         NotImplemented, "report-non-display-item", EditionSeverity.Error,
         "A non-DISPLAY printable report item is not supported.", "ISO §13.15", RecognizedNotImplemented);
+    // SUPPRESS PRINTING (§14.9.45) syntax-rule violation: the statement may appear ONLY in a USE BEFORE
+    // REPORTING procedure (§14.9.45.3 SR1), which fixes the affected report group (§14.9.45.4 GR1). Written
+    // anywhere else there is no group to inhibit — a genuine user error, not a non-support.
+    public static readonly DiagnosticDescriptor ReportSuppressContext = new(
+        "COBOLNET1581", "report-suppress-context", EditionSeverity.Error,
+        "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §14.9.45.3 SR1");
+    // §12.4.5.7 file-control COLLATING SEQUENCE (INDEXED record-key collating).
+    public static readonly DiagnosticDescriptor FileCollatingKey = new(
+        "COBOLNET1582", "file-collating-key", EditionSeverity.Error,
+        "A file-control COLLATING SEQUENCE clause is malformed: it applies only to an INDEXED file, at most one "
+        + "file-level clause is allowed, and every key-level name shall be a declared RECORD/ALTERNATE RECORD KEY "
+        + "named in at most one clause.", "ISO §12.4.5.7.3 SR3-SR8");
+    public static readonly DiagnosticDescriptor FileCollatingAlphabet = new(
+        "COBOLNET1583", "file-collating-alphabet", EditionSeverity.Error,
+        "A file-control COLLATING SEQUENCE clause names an alphabet that is not declared in SPECIAL-NAMES or is of "
+        + "the wrong class for the key.", "ISO §12.4.5.7.3 SR1/SR2/SR7");
+    public static readonly DiagnosticDescriptor FileCollatingNationalUnsupported = new(
+        "COBOLNET1584", "file-collating-national-unsupported", EditionSeverity.Warning,
+        "A NATIONAL alphabet on a file-control COLLATING SEQUENCE clause is recognized but national-key collating "
+        + "for indexed files is not yet implemented — the key orders natively.", "ISO §12.4.5.7", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor DefineNoOverrideRedefinition = new(
+        "COBOLNET1618", "define-no-override-redefinition", EditionSeverity.Error,
+        "A >>DEFINE directive redefines a compilation variable to a different value without the OVERRIDE phrase "
+        + "(the previous definition was neither OFF nor the same value).", "ISO §7.3.11.3 SR2");
+    public static readonly DiagnosticDescriptor DirectiveExpressionViolation = new(
+        "COBOLNET1619", "directive-expression-violation", EditionSeverity.Error,
+        "A compiler-directive expression is malformed — a syntax error, or a formation-rule violation such as a "
+        + "floating-point literal / figurative constant / concatenation in a directive (§7.3.3 SR10), a non-literal "
+        + "or wrong-category operand, an exponentiation or division-by-zero in a compile-time arithmetic expression, "
+        + "or a category-mismatched / non-numeric-ordering constant-conditional relation.",
+        "ISO §7.3.6 / §7.3.7 / §7.3.8");
+    // §7.3.14 / §7.3.15 migration-flagging directives — the warning channel (one code per directive; each emit
+    // carries the specific option's message + GR4/Annex-E citation). Warning: a flag NEVER fails a compile.
+    public static readonly DiagnosticDescriptor Flag02Warning = new(
+        "COBOLNET1620", "flag-02-incompatibility", EditionSeverity.Warning,
+        "A construct is flagged by an active >>FLAG-02 option — a 2002-to-2014 incompatibility potentially "
+        + "affecting existing programs (the specific option + change is named in the message).", "ISO §7.3.14");
+    public static readonly DiagnosticDescriptor Flag14Warning = new(
+        "COBOLNET1621", "flag-14-incompatibility", EditionSeverity.Warning,
+        "A construct is flagged by an active >>FLAG-14 option — a 2014-to-2023 incompatibility potentially "
+        + "affecting existing programs (the specific option + change is named in the message).", "ISO §7.3.15");
+    public static readonly DiagnosticDescriptor FlagDirectiveMalformed = new(
+        "COBOLNET1622", "flag-directive-malformed", EditionSeverity.Error,
+        "A >>FLAG-02 / >>FLAG-14 directive is malformed — an unknown option word, no option or ALL named, ALL "
+        + "combined with individual options, or (FLAG-14) a missing ON/OFF phrase.", "ISO §7.3.14.2 / §7.3.15.2");
+    // §7.3.10 COBOL-WORDS directive — a malformed directive or a syntax-rule violation. Error: an ill-formed or
+    // rule-violating word-modification would silently mis-shape the reserved/context/function word tables.
+    public static readonly DiagnosticDescriptor CobolWordsDirectiveInvalid = new(
+        "COBOLNET1623", "cobol-words-directive-invalid", EditionSeverity.Error,
+        "A >>COBOL-WORDS directive is malformed or violates a syntax rule — a missing/unknown option word, a "
+        + "missing WITH/BY, a non-plain-alphanumeric literal (SR2), a placement after the first IDENTIFICATION "
+        + "DIVISION (SR1), a word used in more than one directive (SR5), an existing word that is not a reserved / "
+        + "context-sensitive / intrinsic-function word (SR3), or a new word that is not a valid user-defined word "
+        + "or is itself reserved/context/intrinsic (SR4). The message names the specific rule.",
+        "ISO §7.3.10.2 / §7.3.10.3");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);
@@ -478,6 +533,34 @@ public static class DiagnosticCatalog
         "A method data item's REDEFINES target shall be a preceding item in the SAME method scope — a method "
         + "item may not redefine object or program data (ISO §13.18.44.3).",
         "ISO §13.18.44.3");
+    // ── Wave H — the §4.2.6 ¶3 / §4.2.13 RECOGNIZE-AND-NAME band. These are WARNINGS, not errors: the
+    //    facilities are optional (§4.2.7) or processor-dependent (§4.2.6), so we need not implement them —
+    //    but §4.2.6 ¶3 makes the compile-time warning MECHANISM mandatory ("shall provide a warning mechanism
+    //    at compile time to indicate use of syntactically-detectable processor-dependent language elements not
+    //    supported"), and §14.6.13.1.1 licenses raising NO exception conditions for them. So the program
+    //    COMPILES, RUNS, and the facility is inert. Before this band these constructs produced a GENERIC parse
+    //    error, which satisfied neither the warning obligation nor the "never a silent wrong answer" rule. ──
+    public static readonly DiagnosticDescriptor McsFacilityUnsupported = new(
+        "COBOLNET1578", "mcs-facility-unsupported", EditionSeverity.Warning,
+        "The asynchronous messaging facility (SEND/RECEIVE, ISO §14.9.31/§14.9.38) is a processor-dependent "
+        + "element (§4.2.6; Annex A.3 item 4) that is not supported — the statement is accepted but performs no "
+        + "message I-O, and no EC-MCS-* condition is raised (§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.31 / §14.9.38", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor CommitRollbackUnsupported = new(
+        "COBOLNET1579", "commit-rollback-unsupported", EditionSeverity.Warning,
+        "The commit and rollback facility (COMMIT/ROLLBACK, ISO §14.9.7/§14.9.36) is a processor-dependent "
+        + "element (§4.2.6; Annex A.3 items 6-7) that is not supported — the statement is accepted but performs "
+        + "no transaction control and behaves as CONTINUE, and no EC-FLOW-COMMIT/ROLLBACK condition is raised "
+        + "(§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.6 ¶3 / Annex A.3 items 6-7 / §14.9.7 / §14.9.36", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
+        "COBOLNET1580", "validate-facility-unsupported", EditionSeverity.Warning,
+        "The VALIDATE facility (ISO §14.9.50) is an OPTIONAL element (§4.2.7; Annex A.4.14) and, at COBOL-2023, "
+        + "additionally OBSOLETE (§4.2.13; Annex F.2 item 5) — it is not supported. The statement is accepted "
+        + "but performs no content validation, and no EC-VALIDATE-* condition is raised (§14.6.13.1.1). Fires at "
+        + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
+        + "See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

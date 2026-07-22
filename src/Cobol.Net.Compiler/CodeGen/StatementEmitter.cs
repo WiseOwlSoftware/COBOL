@@ -109,7 +109,18 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // is the transferring statement's own source line.
     public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
-    public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
+    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5a; §14.9.28.4 GR16
+    {
+        // Inside a Format-3 PERFORM: imp-1 → goto the implicit-CONTINUE-before-FINALLY label; a handler pc-range →
+        // throw ExitPerformSignal (crosses the nested __Dispatch a goto cannot leave); FINALLY (imp-5) → goto the
+        // end label. Each transfers control (returns true — the statement sequence terminates).
+        F3Region.Imp1 => Emit($"goto __f3fin{_dispatchState.F3Cur.Id};", terminated: true),
+        F3Region.Handler => Emit($"throw new ExitPerformSignal({_dispatchState.F3Cur.Id});", terminated: true),
+        F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
+        _ => Emit(n.Cycle ? "continue;" : "break;", terminated: false),   // ordinary inline-PERFORM loop (unchanged)
+    };
+
+    private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
     public bool Visit(BoundContinueAfter n)
@@ -164,6 +175,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── Conditionals / loops / SEARCH / EVALUATE ─────────────────────────────────────────────────────────────
     public bool Visit(BoundIf n) { _controlFlow.EmitIf(n); return false; }
     public bool Visit(BoundInlinePerform n) { _controlFlow.EmitInlinePerform(n); return false; }
+    public bool Visit(BoundExceptionPerform n) { _controlFlow.EmitExceptionPerform(n); return false; }
     public bool Visit(BoundOutOfLinePerform n) { _controlFlow.EmitOutOfLinePerform(n); return false; }
     public bool Visit(BoundSetConditions n) { _set.EmitSet(n); return false; }
     public bool Visit(BoundSetSwitches n) { _alterSwitch.EmitSetSwitches(n); return false; }
@@ -211,6 +223,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundInitiate n) { _reportWriter.EmitInitiate(n); return false; }     // §14.9.21
     public bool Visit(BoundGenerate n) { _reportWriter.EmitGenerate(n); return false; }     // §14.9.16
     public bool Visit(BoundTerminate n) { _reportWriter.EmitTerminate(n); return false; }   // §14.9.46
+    public bool Visit(BoundSuppress n) { _reportWriter.EmitSuppress(n); return false; }     // §14.9.45
 
     // ── Interprogram: CALL / CANCEL / EXIT PROGRAM / GOBACK ──────────────────────────────────────────────────
     public bool Visit(BoundCallProgram n) => _call.EmitCall(n);

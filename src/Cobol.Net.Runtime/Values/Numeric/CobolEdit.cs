@@ -23,6 +23,16 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static class CobolEdit
 {
+    /// <summary>One resolved PICTURE EDITING phrase for the single-character render (ISO §13.18.40.5): the user
+    /// editing <paramref name="Char1"/> renders as <paramref name="Neg"/> when the value is negative and
+    /// <paramref name="Pos"/> otherwise. The simple-insertion (IS) form is sign-independent (<c>Neg == Pos</c> =
+    /// the single-character literal); the extended sign-control (FOR) form selects by sign, the unspecified side
+    /// defaulting to a space (SR12c). character-1 is NEVER a digit position (SR8 excludes every digit/edit symbol),
+    /// so it holds no digit and no fraction. Multi-character literals and floating (character-1 repeated ≥2 under a
+    /// FOR phrase) require abandoning the 1:1 mask model — a documented P14 render GAP staged loud at bind
+    /// (COBOLNET0899); they never reach here.</summary>
+    public readonly record struct EditRule(char Char1, char Neg, char Pos);
+
     /// <summary>Swap <c>.</c>↔<c>,</c> — the §13.18.40.2 SR13 role exchange, applied to a mask entering the
     /// dot-canonical core and to the rendered output leaving it (the swap is its own inverse).</summary>
     private static string SwapSeparators(string s)
@@ -37,12 +47,12 @@ public static class CobolEdit
     /// into <paramref name="picture"/> — the EXPANDED edited picture (repeats unrolled, uppercased, the implied
     /// decimal point <c>V</c> retained; <c>V</c> occupies no output position).</summary>
     public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false,
-        char currency = '$', bool commaMode = false)
+        char currency = '$', bool commaMode = false, EditRule[]? edits = null)
     {
         if (commaMode)
         {
             // Canonicalize the mask (dot = decimal), render, swap the rendered separators back (GR14b).
-            string canonical = Format(value, valueScale, SwapSeparators(picture), blankWhenZero, currency);
+            string canonical = Format(value, valueScale, SwapSeparators(picture), blankWhenZero, currency, false, edits);
             return SwapSeparators(canonical);
         }
         bool negative = value < 0;
@@ -99,6 +109,17 @@ public static class CobolEdit
         for (int i = pattern.Length - 1; i >= 0; i--)
         {
             char p = char.ToUpperInvariant(pattern[i]);
+            // A user PICTURE EDITING character-1 (ISO §13.18.40.5): a RAW single-character insert, resolved before
+            // the metacharacter switch so a literal that happens to be a mask symbol (':', '/', '(', …) is never
+            // re-interpreted. IS form (Neg==Pos) is sign-independent; FOR form selects Neg on a negative value,
+            // Pos otherwise (SR12c default = space). Not a digit position (SR8) — the digit index is untouched.
+            if (edits is not null)
+            {
+                bool matched = false;
+                foreach (var e in edits)
+                    if (p == char.ToUpperInvariant(e.Char1)) { output[i] = negative ? e.Neg : e.Pos; matched = true; break; }
+                if (matched) continue;
+            }
             if (p == currencyChar)
             {
                 output[i] = isFixedCurrency ? currencyChar : digitIdx >= 0 ? digits[digitIdx--] : '0';
@@ -225,7 +246,8 @@ public static class CobolEdit
     /// landing spot — contributes zero), yielding the unscaled value at the mask's fraction scale
     /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
     /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
-    public static Int128 DeEdit(string image, string picture, char currency = '$', bool commaMode = false)
+    public static Int128 DeEdit(string image, string picture, char currency = '$', bool commaMode = false,
+        EditRule[]? edits = null)
     {
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — digit POSITIONS are unchanged
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
@@ -246,6 +268,15 @@ public static class CobolEdit
         {
             char p = char.ToUpperInvariant(pattern[i]);
             char c = image[i];
+            // A user EDITING character-1 holds no digit; a sign-control (FOR) character-1 whose image char is its
+            // NEGATIVE literal recovers the sign (ISO §13.18.40.5 — the de-editing MOVE, §14.9.25.4 GR5).
+            if (edits is not null)
+            {
+                bool isChar1 = false;
+                foreach (var e in edits)
+                    if (p == char.ToUpperInvariant(e.Char1)) { isChar1 = true; if (e.Neg != e.Pos && c == e.Neg) negative = true; break; }
+                if (isChar1) continue;
+            }
             bool digitPos = p is '9' or 'Z' or '*'
                 || (p == currencyChar && !fixedCs)
                 || (p == '+' && !fixedPlus)
@@ -265,12 +296,12 @@ public static class CobolEdit
     /// store). MOVE keeps the unchecked <see cref="Format"/> — high-order truncation IS the defined MOVE behavior
     /// (§14.9.25).</summary>
     public static bool TryFormat(Int128 value, int valueScale, string picture, out string image,
-        bool blankWhenZero = false, char currency = '$', bool commaMode = false)
+        bool blankWhenZero = false, char currency = '$', bool commaMode = false, EditRule[]? edits = null)
     {
         var (capacity, fracDigits) = MaskCapacity(picture, currency, commaMode);
         Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
         if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
-        image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode);
+        image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits);
         return true;
     }
 

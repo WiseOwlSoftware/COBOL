@@ -105,6 +105,27 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return new BoundTerminate(reports);
     }
 
+    /// <summary><c>SUPPRESS PRINTING</c> (ISO §14.9.45): inhibit the current instance's printing of the report
+    /// group named by the USE BEFORE REPORTING procedure in which this SUPPRESS lexically appears. §14.9.45.4 GR1
+    /// makes that group a STATIC property of the enclosing declarative, so it is resolved HERE at bind time: the
+    /// declarative whose pc range covers the current bind cursor (a Format-2 <c>ReportGroup</c> scope) fixes the
+    /// group, and its owning report drives the emitted engine call. §14.9.45.3 SR1 — a SUPPRESS outside any USE
+    /// BEFORE REPORTING procedure has no group to inhibit and is rejected (the per-instance suppression itself is
+    /// the runtime half, GR2 — the report engine's one-shot flag).</summary>
+    public BoundStatement BindSuppress(Core.SuppressStatementContext stmt)
+    {
+        var decl = ctx.Table.Declaratives.FirstOrDefault(d =>
+            d.ReportGroup is not null && ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
+        if (decl?.ReportGroup is not { } group)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ReportSuppressContext,
+                "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
+            return new BoundUnsupported("SUPPRESS outside a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
+        }
+        var report = ctx.Data.Reports.First(r => r.Groups.Contains(group));
+        return new BoundSuppress(report);
+    }
+
     private ReportModel? RwFindReport(string name) =>
         ctx.Data.Reports.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 

@@ -25,6 +25,9 @@ public static class Constructs
     public const string ContinueAfter2023 = "continue-after-2023";
     public const string PerformUntilExit2023 = "perform-until-exit-2023";
     public const string RefModZeroLength2023 = "ref-mod-zero-length-2023";
+    public const string Flag14Directive2023 = "flag-14-directive-2023";
+    public const string Flag02Directive2014 = "flag-02-directive-2014";
+    public const string CobolWordsDirective2023 = "cobol-words-directive-2023";
     public const string ExternalTypeDeclaration2023 = "external-type-declaration-2023";
     public const string ValueNumericLiteralNumericEdited2023 = "value-numeric-literal-numeric-edited-2023";
     public const string ValueNumericEditedOversizeRemoved2023 = "value-numeric-edited-oversize-removed-2023";
@@ -124,6 +127,11 @@ public static class Constructs
     public const string LogicalXorOperator2023 = "logical-xor-operator-2023";
     public const string UserWordXor2023 = "user-word-xor-2023";
     public const string UserWordExclusiveOr2023 = "user-word-exclusive-or-2023";
+    public const string PictureEditing2023 = "picture-editing-2023";
+    public const string UserWordEditing2023 = "user-word-editing-2023";
+    public const string ValueTableFormat2002 = "value-table-format-2002";
+    public const string PerformExceptionChecking2023 = "perform-exception-checking-2023";
+    public const string UserWordLocation2023 = "user-word-location-2023";
     public const string FixedFormWordContinuationRemoved2023 = "fixed-form-word-continuation-removed-2023";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string Col7ContinuationObsolete2023 = "col7-continuation-obsolete-2023";
@@ -137,6 +145,8 @@ public static class Constructs
     public const string PointerArithmetic2002 = "pointer-arithmetic-2002";
     public const string FileSharingClause2002 = "file-sharing-clause-2002";
     public const string LockModeClause2002 = "lock-mode-clause-2002";
+    public const string FileCollatingClause2002 = "file-collating-clause-2002";
+    public const string AlternateKeySuppressWhen2023 = "alternate-key-suppress-when-2023";
     public const string RetryPhrase2002 = "retry-phrase-2002";
     public const string UnlockStatement2002 = "unlock-statement-2002";
     public const string RecordLockPhrase2002 = "record-lock-phrase-2002";

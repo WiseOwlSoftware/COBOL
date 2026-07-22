@@ -47,6 +47,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default) for direct test construction.</summary>
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
+    /// function-name synonym / removal (EQUATE/UNDEFINE/SUBSTITUTE of an intrinsic-function-name) through it.
+    /// Defaults to <see cref="Editions.CobolWordsMap.Empty"/> (no directive) for direct test construction.</summary>
+    public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
+
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
     /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
     public IReadOnlyList<DataItem> Roots => _roots;
@@ -695,7 +700,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
                 {
                     var (an, aq) = KeyReference(ak.dataReference());
-                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null));
+                    // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
+                    string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
+                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null, suppress));
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
@@ -703,6 +710,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     file.Sharing = MapSharing(sh.sharingMode());
                 else if (clauses.lockModeClause() is { } lm)   // §12.4.5.9 — edition gate: VersionConformancePass ParseArm.VisitLockModeClause (14g.4)
                     file.LockMode = MapLockMode(lm);
+                else if (clauses.fileCollatingSequenceClause() is { } col)   // §12.4.5.7 — introduction-gated post-bind; resolved in ResolveFileCollating
+                    CaptureFileCollating(file, col);
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file.
@@ -719,6 +728,109 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             _files.Add(file);
             FilesByName[name] = file;
         }
+    }
+
+    /// <summary>Capture one file-control COLLATING SEQUENCE clause as written (ISO §12.4.5.7) — resolved to per-key
+    /// weight tables post-build in <see cref="ResolveFileCollating"/> (the keys are not yet bound here). Format 2 is
+    /// OF-led; Format 1 is the FOR-split or the IS alphabet-name-1 [alphabet-name-2] form.</summary>
+    private static void CaptureFileCollating(FileModel file, Core.FileCollatingSequenceClauseContext ctx)
+    {
+        if (ctx.OF() is not null)   // Format 2 (key-level): OF {key}… IS alphabet-name-3
+        {
+            var words = ctx.cobolWord();
+            var keyNames = words.Take(words.Length - 1).Select(w => w.GetText()).ToList();
+            file.KeyLevelCollating.Add((keyNames, words[^1].GetText()));
+            return;
+        }
+        file.FileLevelCollatingCount++;   // §12.4.5.7.3 SR3 — at most one file-level clause
+        string? alnum = null, nat = null;
+        if (ctx.collatingForPhrase() is { Length: > 0 } fors)
+            foreach (var f in fors)
+            {
+                if (f.NATIONAL() is not null) nat = f.cobolWord().GetText();
+                else alnum = f.cobolWord().GetText();
+            }
+        else
+        {
+            var words = ctx.cobolWord();
+            alnum = words.Length > 0 ? words[0].GetText() : null;
+            nat = words.Length > 1 ? words[1].GetText() : null;
+        }
+        file.FileLevelCollating = (alnum, nat);
+    }
+
+    /// <summary>Resolve each INDEXED key's collating-weight table from the file's §12.4.5.7 COLLATING SEQUENCE
+    /// clauses (post-build — the keys are bound by now). Per §12.4.5.7.4 the sequence for a key is, in order: (GR6)
+    /// a Format-2 clause naming it; else (GR2/GR3) the Format-1 default for the key's class; else (GR4/GR5) native
+    /// (null weights = ordinal). SR3 (single file-level clause), SR4/SR5 (Format-2 names shall be declared keys),
+    /// and SR1/SR2/SR7 (alphabet class) are enforced. A NATIONAL alphabet on a key is recognized-but-not-yet-
+    /// implemented (national-key collating is a documented P14 GAP — never silently applied).</summary>
+    private void ResolveFileCollating(FileModel file)
+    {
+        if (file.FileLevelCollatingCount > 1)
+            Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': at most one file-level "
+                + "COLLATING SEQUENCE clause may be specified in one file control entry (ISO §12.4.5.7.3 SR3)");
+        if (file.FileLevelCollating is null && file.KeyLevelCollating.Count == 0) return;   // no clause → native
+
+        if (file.Organization != FileOrganization.Indexed)
+        {
+            Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': a file-control COLLATING "
+                + "SEQUENCE clause applies only to an INDEXED file (ISO §12.4.5.7.1)");
+            return;
+        }
+
+        // SR4/SR5: every Format-2 name shall be a declared RECORD KEY or ALTERNATE RECORD KEY of this file.
+        var keyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (file.RecordKeyName is { } pk) keyNames.Add(pk);
+        foreach (var (n, _, _, _) in file.AlternateKeyNames) keyNames.Add(n);
+        var seenInClause = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (names, _) in file.KeyLevelCollating)
+            foreach (var n in names)
+            {
+                if (!keyNames.Contains(n))
+                    Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': COLLATING SEQUENCE "
+                        + $"OF '{n}' — '{n}' is not a RECORD KEY or ALTERNATE RECORD KEY of this file "
+                        + "(ISO §12.4.5.7.3 SR4/SR5)");
+                else if (!seenInClause.Add(n))   // SR8 — a key named in more than one Format-2 clause
+                    Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': key '{n}' is named "
+                        + "in more than one COLLATING SEQUENCE clause (ISO §12.4.5.7.3 SR8)");
+            }
+
+        file.PrimeKeyWeights = ResolveKeyCollating(file, file.RecordKeyName);
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            file.AlternateKeyWeights.Add(ResolveKeyCollating(file, AltName(file, i)));
+    }
+
+    /// <summary>The declared name of the i-th resolved alternate key (index-aligned when all names resolve — the
+    /// normal case; a name that failed to resolve has already errored).</summary>
+    private static string? AltName(FileModel file, int i) =>
+        i < file.AlternateKeyNames.Count ? file.AlternateKeyNames[i].Name : null;
+
+    /// <summary>Resolve one key's collating weights (§12.4.5.7.4): a Format-2 alphabet naming the key wins (GR6),
+    /// else the file-level alphanumeric default (GR2), else native ordinal (null). An alphanumeric alphabet
+    /// resolves to its weight table; a NATIONAL alphabet is the recognized-not-implemented P14 GAP; an undeclared
+    /// name errors.</summary>
+    private ushort[]? ResolveKeyCollating(FileModel file, string? keyName)
+    {
+        string? alphabet = null;
+        if (keyName is not null)
+            foreach (var (names, a) in file.KeyLevelCollating)
+                if (names.Any(n => n.Equals(keyName, StringComparison.OrdinalIgnoreCase))) { alphabet = a; break; }
+        alphabet ??= file.FileLevelCollating?.Alnum;   // GR2 file-level alphanumeric default
+        if (alphabet is null) return null;             // GR4/GR5 — native ordinal
+
+        if (Alphabets.TryGetValue(alphabet, out var table) && table is not null)
+            return table.Positions;   // SR1 — alphanumeric collating
+        if (NationalAlphabets.ContainsKey(alphabet))
+        {
+            Edition.Error(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': COLLATING "
+                + $"SEQUENCE '{alphabet}' names a NATIONAL alphabet — national-key collating for indexed files is "
+                + "recognized but not yet implemented; the key orders natively (ISO §12.4.5.7).");
+            return null;
+        }
+        Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
+            + $"'{alphabet}' does not name an alphabet declared in SPECIAL-NAMES (ISO §12.4.5.7.3 SR1)");
+        return null;
     }
 
     /// <summary>Map the SHARING clause / phrase mode (ISO §12.4.5.15).</summary>
@@ -919,9 +1031,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 file.Records.Select(r => FindQualified(r, keyName, quals)).FirstOrDefault(x => x is not null)
                 ?? (quals.Count == 0 && ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
             if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
-            foreach (var (altName, altQuals, dups) in file.AlternateKeyNames)
+            foreach (var (altName, altQuals, dups, suppress) in file.AlternateKeyNames)
                 if (InRecords(altName, altQuals) is { } alt)
-                    file.AlternateKeys.Add((alt, dups));
+                    file.AlternateKeys.Add((alt, dups, suppress));
+            ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
@@ -1648,6 +1761,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§13.18.40.2), threaded to PictureAnalyzer
+        List<TableValueSpec>? tableValues = null;       // Format 2 (table) VALUE phrases (§13.18.63.2)
+        bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
         string? objectClassName = null;   // USAGE OBJECT REFERENCE class-name (null = universal; §13.18.60.4)
         int? occurs = null;
         OccursSpec? occursSpec = null;
@@ -1674,7 +1790,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clause in e.Clauses)
             {
                 if (clause.PictureText is { } picText)
+                {
                     pictureText = picText;
+                    editingSpecs = BuildEditingSpecs(clause.Context.pictureClause());   // PICTURE EDITING (§13.18.40.2)
+                }
                 else if (clause.Context.basedClause() is not null)
                     // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
@@ -1757,7 +1876,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
                     redefinesTargetName = redefTarget;
                 else if (clause.Context.valueClause() is { } value)
-                    rawValue = ExtractValue(value);
+                {
+                    if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
+                        tableValues = BuildTableValueSpecs(tphrases);   // Format 2 (table) — §13.18.63.2
+                    else
+                    {
+                        rawValue = ExtractValue(value);
+                        // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
+                        // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it
+                        // today (GetText over the collapsed valueItem). Flag it for a loud reject once entryWhere exists.
+                        var vi0 = value.valueItem().FirstOrDefault();
+                        if (vi0?.valueClauseRange() is null && (vi0?.valueClauseOperand().Length ?? 0) > 1)
+                            gluedMultiLiteral = true;
+                    }
+                }
                 else if (clause.Context.signClause() is { } sign)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.Context.occursClause() is { } occ)
@@ -1781,6 +1913,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
+
+        // THE GLUED-MULTI-LITERAL REJECT (ISO §13.18.63.2): a Format-1 (data-item) VALUE takes exactly one literal;
+        // a list needs Format 2's FROM (subscript) phrase. The greedy operand loop silently glued a bare list into
+        // one corrupt value for the life of the tree — reject it loud, binding nothing.
+        if (gluedMultiLiteral)
+        {
+            Edition.Error("COBOLNET1585", $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
+                + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
+                + "(ISO §13.18.63.2)");
+            rawValue = null;
+        }
 
         // An integer constant-name may specify repetition in a PICTURE character-string (ISO §13.10.3 SR2 second
         // sentence → §13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
@@ -1876,7 +2019,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         var pic = pictureText is not null
             ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
-                blankWhenZero, explicitUsage: usageText is not null)
+                blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
@@ -2010,6 +2153,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
             RawValue = rawValue,
+            TableValues = tableValues,
             Occurs = occurs,
             OccursSpec = occursSpec,
             RedefinesTargetName = redefinesTargetName,
@@ -2025,6 +2169,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             SameAsName = sameAsName,
         };
         if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
+        ValidateTableValues(item, entryWhere);   // Format 2 (table) VALUE SR18–SR22 (§13.18.63.3)
 
         // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —
         // a BASED entry is a level-01/77 record-description entry (WS/LS/LINKAGE; the file-subsystem sweep is
@@ -2213,6 +2358,130 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
+
+    /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
+    /// (ISO §13.18.40.2 Format 1) — DECODED character-1 + literal text, handed to <see cref="PictureAnalyzer"/>
+    /// for SR8–SR12 validation and render-rule construction. Null when the clause carries no EDITING phrase.</summary>
+    private static List<EditingPhraseSpec>? BuildEditingSpecs(Core.PictureClauseContext? pic)
+    {
+        var phrases = pic?.editingPhrase();
+        if (phrases is null || phrases.Length == 0) return null;
+        var list = new List<EditingPhraseSpec>(phrases.Length);
+        foreach (var ph in phrases)
+        {
+            var lits = ph.literal();
+            string char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null) ?? "";
+            if (ph.editingForPhrase() is { } forp)
+            {
+                // FOR (extended sign control): map the literals to NEGATIVE / POSITIVE by keyword position (either
+                // order is legal — §13.18.40.2 choice indicators). The keyword that appears first owns literal[0].
+                var flits = forp.literal();
+                var neg = forp.NEGATIVE();
+                var pos = forp.POSITIVE();
+                bool negFirst = neg is not null && (pos is null || neg.Symbol.TokenIndex < pos.Symbol.TokenIndex);
+                string? negLit, posLit;
+                if (negFirst)
+                {
+                    negLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
+                    posLit = pos is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                }
+                else
+                {
+                    posLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
+                    negLit = neg is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                }
+                list.Add(new EditingPhraseSpec(char1, Simple: null, Neg: negLit, Pos: posLit, IsForForm: true));
+            }
+            else
+            {
+                // IS (simple insertion): literal(1) is literal-1 (literal(0) is character-1).
+                list.Add(new EditingPhraseSpec(char1,
+                    Simple: DecodeEditLiteral(lits.Length > 1 ? lits[1] : null), Neg: null, Pos: null, IsForForm: false));
+            }
+        }
+        return list;
+    }
+
+    /// <summary>Decode a PICTURE EDITING literal (character-1 or an insertion literal). A quoted alphanumeric /
+    /// national / hex literal decodes to its content; any other shape (numeric, figurative, concatenation) is
+    /// returned raw so <see cref="PictureAnalyzer"/>'s SR8/SR9 checks reject it with a named diagnostic.</summary>
+    private static string? DecodeEditLiteral(Core.LiteralContext? lit)
+    {
+        if (lit is null) return null;
+        var nn = lit.nonNumericLiteral();
+        return nn?.STRINGLIT() is not null || nn?.NATLIT() is not null || nn?.HEXLIT() is not null
+            ? CobolLiteral.Decode(lit.GetText())
+            : lit.GetText();
+    }
+
+    /// <summary>Build the <see cref="TableValueSpec"/> list for a Format 2 (table) VALUE clause (ISO §13.18.63.2):
+    /// each phrase's literal list (raw operand text, concat/constant folded — the Format-1 currency) plus its FROM
+    /// (subscript-1 …) and optional TO (subscript-2 …) integer subscripts. The subscripts are split by the TO
+    /// token's position (FROM's precede it, TO's follow).</summary>
+    private List<TableValueSpec> BuildTableValueSpecs(Core.ValueClauseTablePhraseContext[] phrases)
+    {
+        var list = new List<TableValueSpec>(phrases.Length);
+        for (int i = 0; i < phrases.Length; i++)
+        {
+            var ph = phrases[i];
+            var literals = ph.valueClauseOperand().Select(RawValueOperandText).ToList();
+            int toIdx = ph.TO()?.Symbol.TokenIndex ?? int.MaxValue;
+            var from = new List<int>();
+            List<int>? to = ph.TO() is not null ? [] : null;
+            foreach (var il in ph.integerLiteral())
+            {
+                int v = int.TryParse(il.GetText(), out int n) ? n : 0;
+                if (il.Start.TokenIndex < toIdx) from.Add(v); else to!.Add(v);
+            }
+            list.Add(new TableValueSpec(literals, from, to, i));
+        }
+        return list;
+    }
+
+    /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22). LANDABLE scope: a SINGLE-dimension
+    /// table VALUE on the SAME entry that carries the OCCURS clause (fixed or dynamic). A multi-dimension odometer or
+    /// a table VALUE on an item SUBORDINATE to the OCCURS is recognized but its per-occurrence path threading is not
+    /// yet implemented — staged loud (COBOLNET0899, P14 GAP), TableValues cleared so the emitter skips it.</summary>
+    private void ValidateTableValues(DataItem item, string where)
+    {
+        if (item.TableValues is not { Count: > 0 } specs) return;
+
+        bool sameItemTable = item.Occurs is not null || item.IsDynamicTable;
+        bool singleDim = specs.All(s => s.From.Count == 1 && (s.To is null || s.To.Count == 1));
+        if (!sameItemTable || !singleDim)
+        {
+            Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{where}: a Format 2 (table) VALUE clause "
+                + "is recognized but currently supported only on a single-dimension table's own OCCURS entry — a "
+                + "multi-dimension or subordinate-item table VALUE is not yet implemented (ISO §13.18.63.2; P14 GAP)");
+            item.TableValues = null;
+            return;
+        }
+
+        // The physical maximum: fixed = Occurs; dynamic = the OCCURS TO expected capacity (null ⇒ unbounded).
+        int? max = item.Occurs ?? item.OccursSpec?.ExpectedMax;
+        bool dynamicNoTo = item.IsDynamicTable && item.OccursSpec?.ExpectedMax is null;
+        foreach (var s in specs)
+        {
+            int from = s.From[0];
+            if (from < 1 || (max is { } mx && from > mx))
+                Edition.Error("COBOLNET1586", $"{where}: a Format 2 VALUE FROM subscript ({from}) is out of range "
+                    + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR20)");
+            if (s.To is { } toList)
+            {
+                int t = toList[0];
+                if (t < 1 || (max is { } mx2 && t > mx2))
+                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is out of range "
+                        + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR21)");
+                else if (t < from)
+                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is less than its "
+                        + $"FROM subscript ({from}) — subscript-2 shall be the same or a successive occurrence "
+                        + "(ISO §13.18.63.3 SR21)");
+            }
+            else if (dynamicNoTo)
+                Edition.Error("COBOLNET1588", $"{where}: a Format 2 VALUE with no TO phrase is not permitted on an "
+                    + "OCCURS DYNAMIC table declared without an OCCURS TO (expected) capacity (ISO §13.18.63.3 SR22)");
+        }
+    }
 
     /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former
     /// <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pipeline pair MERGED; both effects, same order): the

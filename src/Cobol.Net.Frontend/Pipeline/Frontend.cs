@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;   // ParseCanceledException (thrown by BailErrorStrategy on the SLL pass)
+using CobolNet.Editions;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
@@ -62,6 +63,17 @@ public sealed class Frontend
     /// group's compile-time <see cref="Binding.RefModZeroLengthState"/> (the per-line zero-length allowance fold).</summary>
     public IReadOnlyList<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } = [];
 
+    /// <summary>The frontend's <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> directive events (ISO §7.3.14 /
+    /// §7.3.15) — they build the group's compile-time <see cref="Binding.FlagState"/> (the per-line per-option
+    /// migration-flag fold that <c>FlagConformancePass</c> queries). Empty when the source has no FLAG directives.</summary>
+    public IReadOnlyList<FlagEvent> FlagEvents { get; private set; } = [];
+
+    /// <summary>The frontend's <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10) — the per-group
+    /// reserved/context-sensitive/intrinsic word-table modification the post-lex <c>CobolWordsRewriter</c>
+    /// applies to the token stream and the compiler's composed <c>ReservedWordSet</c> / intrinsic resolution
+    /// consult. <see cref="CobolWordsMap.Empty"/> when the source has no COBOL-WORDS directive.</summary>
+    public CobolWordsMap CobolWordsMap { get; private set; } = CobolWordsMap.Empty;
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -87,17 +99,16 @@ public sealed class Frontend
         // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE.
         string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw, DialectLevel, Permissive, diagnostics, sourcePath);
 
-        // Conditional compilation runs on free-form text BEFORE COPY so an >>IF may include/omit COPY statements.
-        // leaveTurnDirectives / leavePropagateDirectives: an emitting-branch >>TURN / >>PROPAGATE survives for its
-        // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
-        // both here.
-        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
-            leaveRefModZeroLengthDirectives: true);
-
-        // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
+        // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
+        // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
+        // a main-source >>IF still gates a COPY (omitted-branch COPY is never expanded) and REPLACE (Step 3) runs over
+        // the expanded group. leave* keep the post-85 directive families flowing to their dedicated stages below.
+        // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive);
-        text = copy.Process(text, sourceDir);
+        text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy,
+            leaveTurnDirectives: true, leavePropagateDirectives: true, leaveRefModZeroLengthDirectives: true,
+            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
 
         if (NistTestName is { } nist)
             text = NistPreprocessor.Process(text, nist);
@@ -127,6 +138,22 @@ public sealed class Frontend
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
 
+        // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
+        // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
+        // anchoring discipline). Line-count preserving like the stages above.
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "FlagDirectiveProcessor changed the line count (hazard H3)");
+
+        // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
+        // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
+        // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
+        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
+
         return text;
     }
 
@@ -141,8 +168,18 @@ public sealed class Frontend
     private CobolParserCore.CompilationUnitContext? LexAndParse(string text, string sourcePath, DiagnosticBag diagnostics)
     {
         var lexer = new CobolLexer(new AntlrInputStream(text));
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): a de-reserved word (UNDEFINE/SUBSTITUTE) may be used as a
+        // SUBSCRIPTED data name; the lexer must open SUBSCRIPT mode at its following '(' even though the word is
+        // still lexed as its keyword token (the retype below runs post-lex, after the '(' decision is frozen).
+        // Set BEFORE any tokenization (ZeroTokenRewriter.Fill). A no-op when no de-reserved word is a keyword token.
+        if (!CobolWordsMap.IsEmpty)
+            lexer.SetCobolWordsDataNames(CobolWordsRewriter.DeReservedTokenTypes(CobolWordsMap));
         var tokens = new CommonTokenStream(lexer);
         ZeroTokenRewriter.Rewrite(tokens);
+        // >>COBOL-WORDS (ISO §7.3.10.4) — retype tokens per the per-group override: synonyms (EQUATE/SUBSTITUTE)
+        // become their canonical keyword, de-reserved words (UNDEFINE/SUBSTITUTE) become IDENTIFIERs. A no-op when
+        // the source has no directive (byte-identical).
+        CobolWordsRewriter.Rewrite(tokens, CobolWordsMap);
 
         var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel };
         parser.RemoveErrorListeners();

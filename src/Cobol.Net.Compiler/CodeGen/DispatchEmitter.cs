@@ -29,6 +29,10 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // to a containing program's GLOBAL declaratives (IC233A: the contained unit has no declaratives, yet its
         // failing OPEN must fire the outer's USE GLOBAL).
         dispatchState.UseDecls = bound.Declaratives is { Count: > 0 } || dispatchState.OuterGlobalUse;
+        // Exception-checking (Format-3) PERFORM handler context: the declarative count + the first appended handler
+        // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
+        dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
+        dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
         // X3.23-1985 USE FOR DEBUGGING procedure-trigger facility (VCR Table 7 row 7.17): active when a
         // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
@@ -70,13 +74,20 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
             dispatchState.EmitDebugCause(w, "StartProgram");
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, -1); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
+            // The top-level run is bounded at the last MAIN paragraph (F3HandlerBasePc − 1) when the unit has
+            // appended Format-3 handler pc-ranges above it, so fall-through off the last real paragraph ENDS the run
+            // unit (§14.9.18) and never runs into the synthetic handlers; a non-F3 unit renders the literal -1 (the
+            // whole pc space) — byte-identical (the wall, design §9.5.3). Only this top-level call is walled; every
+            // bounded __RunUse / out-of-line PERFORM passes its own exit pc.
+            int topExit = bound.F3HandlerBasePc is int hb ? hb - 1 : -1;
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
-        if (dispatchState.UseDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
+        if (dispatchState.UseDecls || bound.Ec is { HasIoChecked: true } || bound.Ec is { HasF3Perform: true })
+            EmitUseMachinery(bound, w);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§14.9.28)
         if (dispatchState.DebugActive) EmitDebugRunner(w);
         EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
             0, bound.Paragraphs.Count - 1);
@@ -105,6 +116,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         dispatchState.CurrentPc = i;
                         using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
                         {
+                            // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
+                            // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a
+                            // dispatcher break. Owner = F3HandlerOwners[i − base] (the PerformId).
+                            bool isHandler = bound.F3HandlerBasePc is int hb && i >= hb;
+                            var f3saved = isHandler
+                                ? dispatchState.SetF3Region(F3Region.Handler, bound.F3HandlerOwners![i - bound.F3HandlerBasePc!.Value])
+                                : default;
                             // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): a debug SUBJECT procedure fires
                             // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
                             // transfer cause (__dbgCause, set by whatever transferred control here) and run the
@@ -121,6 +139,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                                 w.Line($"__pc = {i + 1};");
                                 w.Line("break;");
                             }
+                            if (isHandler) dispatchState.RestoreF3Region(f3saved);
                         }
                     }
                     using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }
@@ -163,9 +182,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     private void EmitUseMachinery(BoundProgram bound, CodeWriter w)
     {
         var decls = bound.Declaratives ?? [];
-        if (decls.Count > 0)
+        // The exception-checking (Format-3) PERFORM handler bodies (imp-2/3/4) are appended pc-ranges invoked by the
+        // SAME __RunUse; each needs a __useActive slot above the declarative slots (§14.9.28.4 GR17). H is 0 until the
+        // pc-range synthesis wave, so a non-F3-PERFORM unit's array is byte-identical.
+        int f3Handlers = bound.F3HandlerBasePc is int hb ? bound.Paragraphs.Count - hb : 0;
+        if (decls.Count > 0 || bound.Ec is { HasF3Perform: true })
         {
-            w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
+            w.Line($"private readonly bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §14.9.49.4 GR2 re-entrancy guards");
             if (ecState.Active)
             {
                 // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
@@ -197,6 +220,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(bound, w);
         if (decls.Any(d => d.EoClassCsName is not null)) ec.EmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
         if (bound.Ec is { HasIoChecked: true }) ec.EmitIoCheckEc(bound, w);
+        if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
         if (!dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {

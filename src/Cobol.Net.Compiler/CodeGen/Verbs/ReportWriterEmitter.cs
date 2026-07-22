@@ -305,4 +305,11 @@ internal sealed class ReportWriterEmitter(
         foreach (var r in s.Reports)
             ctx.Writer.Line($"__RPT_{r.CsIndex}.Terminate();");
     }
+
+    /// <summary>SUPPRESS PRINTING (§14.9.45): set the one-shot suppression flag on the engine of the report that
+    /// owns the enclosing USE BEFORE REPORTING group (resolved at bind, <see cref="BoundSuppress.Report"/>). The
+    /// engine consumes it at the next group presentation (GR2 — current instance only), inhibiting printing,
+    /// page advance, NEXT GROUP and LINE-COUNTER changes but NOT the end-of-group sum reset.</summary>
+    public void EmitSuppress(BoundSuppress s) =>
+        ctx.Writer.Line($"__RPT_{s.Report.CsIndex}.SuppressPrinting();");
 }

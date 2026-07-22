@@ -21,10 +21,74 @@ performStatement
     | PERFORM procedureName performUntil                                       // PERFORM para UNTIL cond
     | PERFORM procedureName performVarying                                     // PERFORM para VARYING ...
     | PERFORM procedureName (THRU | THROUGH) procedureName performOptions?     // PERFORM para THRU para [options]
-    | PERFORM procedureName                                                    // PERFORM para (simple)
-    // Inline forms
-    | PERFORM performOptions+ statementBlock* END_PERFORM                 // PERFORM UNTIL/VARYING ... END-PERFORM
-    | PERFORM statementBlock+ END_PERFORM                                 // PERFORM ... END-PERFORM (block)
+    // Inline forms — Formats 2 & 3 MERGED into ONE inline alternative (design §1.4 ⇒ zero cross-format lookahead):
+    //   ≥1 WHEN ⇒ Format 3 (exception-checking, §14.9.28.2 Format 3), enforced at BIND
+    //   (PF3-STRUCT-WHEN-REQUIRED / COBOLNET1597); no WHEN ⇒ Format 2 (inline). performInlineHead? absent +
+    //   no WHEN = the old bare-block inline PERFORM; performInlineHead = performOptions+ = the old options inline.
+    // MUST precede the simple `PERFORM procedureName` below: `PERFORM LOCATION …` is genuinely ambiguous
+    // (LOCATION is a cobolWord ⇒ a valid out-of-line target), and only the inline arm's trailing END_PERFORM
+    // disambiguates — so it is tried first; a period-terminated `PERFORM LOCATION.` has no END_PERFORM and
+    // correctly falls through to the out-of-line alternative (the continuity invariant).
+    | PERFORM performInlineHead? statementBlock*
+        performWhenPhrase* performWhenOther? performWhenCommon? performFinally?
+      END_PERFORM
+    | PERFORM procedureName                                                    // PERFORM para (simple, out-of-line)
+    ;
+
+// The inline head: Format-2 loop control (TIMES/UNTIL/VARYING) OR the Format-3 [WITH] LOCATION phrase.
+performInlineHead
+    : performOptions+
+    | performLocationPhrase
+    ;
+
+// [WITH] LOCATION (§14.9.28.2 Format 3, COBOL-2023) — WITH is an optional word (§8.3.2.4.3); bare LOCATION is
+// 2023-only because below 2023 `PERFORM LOCATION` is an ordinary out-of-line PERFORM of a paragraph named
+// LOCATION (the continuity invariant — LOCATION remains a cobolWord at every edition).
+performLocationPhrase
+    : WITH LOCATION
+    | {is2023()}? LOCATION
+    ;
+
+// A Format-3 WHEN phrase (§14.9.28.2). Two DISJOINT operand forms; each operand list's CONTINUATION is bounded
+// by whenOperandAhead() so it cannot annex the leading verb of imperative-statement-2 (design §1.2/§1.5). The
+// first operand after WHEN / WHEN EXCEPTION is taken UNCONDITIONALLY (superset posture — a bad first operand
+// binds and the binder emits the specific COBOLNET0711 rather than a generic parse error).
+performWhenPhrase
+    : WHEN EXCEPTION performWhenModeList statementBlock*      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
+    | WHEN           performWhenEcList   statementBlock*      // exception-name-1… | exception-name-2 FILE file-name-2…
+    ;
+
+// EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | {file-name-1}… }. The figure's "IO" denotes I-O (§8.9; a standard
+// typesetting defect — every sibling format prints I-O), so the existing I_O token is reused. A single WHEN
+// EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOLNET1598).
+performWhenModeList
+    : INPUT | OUTPUT | I_O | EXTEND
+    | fileName ({whenOperandAhead()}? fileName)*             // gated CONTINUATION only (first operand unconditional)
+    ;
+
+// { exception-name-1 }… | { exception-name-2 FILE file-name-2 }… — the EC set is open (EC-USER-*) ⇒ cobolWord.
+performWhenEcList
+    : performWhenEcItem ({whenOperandAhead()}? performWhenEcItem)*   // gated CONTINUATION only
+    ;
+
+performWhenEcItem
+    : cobolWord (FILE fileName)*             // inner FILE-loop is self-bounding (FILE ∉ cobolWord, leads no statement)
+    ;
+// KNOWN LIMITATION (documented; masked while the F3 runtime is staged): a WHEN body that is a BARE 2023
+// inline-method-invocation (`WHEN EC-X  obj(args)`) whose object is a cobolWord can be annexed here as a
+// spurious operand — whenOperandAhead() is token-based and cannot see the following '('. The interceptor
+// wave must add an LA(2)==LPAREN gate (or equivalent). Any WHEN body with a preceding statement is unaffected.
+
+performWhenOther
+    : WHEN OTHER  EXCEPTION? statementBlock*   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
+    ;
+
+performWhenCommon
+    : WHEN COMMON EXCEPTION? statementBlock*   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
+    ;
+
+performFinally
+    : FINALLY statementBlock*
     ;
 
 performTarget

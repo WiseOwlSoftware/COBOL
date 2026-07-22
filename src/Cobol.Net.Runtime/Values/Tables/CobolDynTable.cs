@@ -18,7 +18,7 @@ public sealed class CobolDynTable<T>
     private int _count;                 // current capacity (§8.5.1.9.1)
     private int _searching;             // >0 while a SEARCH of THIS table is in progress (EC-FLOW-SEARCH guard)
     private T _scratch = default!;      // the benign out-of-range slot (COBOL-85 / checking-off policy)
-    private readonly Func<T> _seed;
+    private readonly Func<int, T> _seedAt;   // occurrence-indexed seed (1-based); a Format 2 (table) VALUE varies by occurrence
     private readonly int _min;
     private readonly int? _expected;    // TO integer-5 — the expected capacity (nonfatal to exceed)
 
@@ -33,13 +33,21 @@ public sealed class CobolDynTable<T>
     /// <param name="initialized">The INITIALIZED phrase (§8.5.1.9.5). New occurrences are ALWAYS seeded here (a
     /// crash-safe well-formed default; the INITIALIZED-absent "undefined" case permits any content).</param>
     public CobolDynTable(Func<T> seed, int min, int? expected, bool initialized)
+        : this((Func<int, T>)(_ => seed()), min, expected, initialized, min) { }
+
+    /// <summary>The Format 2 (table) VALUE overload (ISO §13.18.63.2/GR12–GR16): a PER-OCCURRENCE seed (1-based)
+    /// and an explicit initial current capacity (<paramref name="initialCapacity"/> — the GR16 value, ≥ the FROM
+    /// minimum). Occurrences 1..initialCapacity take their keyed VALUE literal; growth beyond re-seeds through the
+    /// same <paramref name="seedAt"/> (occurrences outside the VALUE range yield the element default).</summary>
+    public CobolDynTable(Func<int, T> seedAt, int min, int? expected, bool initialized, int initialCapacity)
     {
-        _seed = seed;
+        _seedAt = seedAt;
         _min = min < 0 ? 0 : min;
         _expected = expected;
-        _store = new T[Math.Max(_min, 4)];
+        int open = Math.Max(_min, initialCapacity < 0 ? 0 : initialCapacity);
+        _store = new T[Math.Max(open, 4)];
         _count = 0;
-        GrowTo(_min);   // initial current capacity = FROM (§8.5.1.9.1 line 8199); seeds occurrences 1.._min
+        GrowTo(open);   // initial current capacity = FROM (§8.5.1.9.1) raised to the VALUE's GR16 capacity
     }
 
     /// <summary>The current capacity — the number of occurrences allocated now (§8.5.1.9.1). The source-level
@@ -52,7 +60,7 @@ public sealed class CobolDynTable<T>
     public ref T RefSending(long occ)
     {
         if (occ >= 1 && occ <= _count) return ref _store[(int)(occ - 1)];
-        _scratch = _seed();
+        _scratch = _seedAt((int)occ);
         return ref _scratch;
     }
 
@@ -63,7 +71,7 @@ public sealed class CobolDynTable<T>
     /// <c>!wasExceeded</c> guard (only the first crossing raises); the growth proceeds regardless.</summary>
     public ref T RefReceiving(long occ)
     {
-        if (occ < 1) { _scratch = _seed(); return ref _scratch; }
+        if (occ < 1) { _scratch = _seedAt((int)occ); return ref _scratch; }
         if (occ > _count)
         {
             if (_expected is { } exp && occ > exp && _count <= exp)   // first implicit crossing of the expected capacity
@@ -92,7 +100,7 @@ public sealed class CobolDynTable<T>
             while (cap < newCount) cap = cap >= MaxOccurrences / 2 ? MaxOccurrences : cap * 2;
             Array.Resize(ref _store, cap);
         }
-        for (int i = _count; i < newCount; i++) _store[i] = _seed();
+        for (int i = _count; i < newCount; i++) _store[i] = _seedAt(i + 1);
         _count = newCount;
     }
 
@@ -117,7 +125,7 @@ public sealed class CobolDynTable<T>
 
     /// <summary>INITIALIZE of the whole dynamic table (§14.9 INITIALIZE GR10): re-seed occurrences [1..current];
     /// the current capacity is unchanged.</summary>
-    public void InitializeAll() { for (int i = 0; i < _count; i++) _store[i] = _seed(); }
+    public void InitializeAll() { for (int i = 0; i < _count; i++) _store[i] = _seedAt(i + 1); }
 
     /// <summary>Mark the start of a SEARCH of this table (a SET Format 14 on it while active raises EC-FLOW-SEARCH,
     /// §14.9.39 GR31). Nestable (re-entrant SEARCH).</summary>

@@ -9,8 +9,9 @@
 ## Summary
 
 The Report Writer Control System (RWCS): the REPORT SECTION (ISO §13.6/§13.14/§13.15 + the §13.18 report
-clauses) and the INITIATE / GENERATE / TERMINATE verbs (§14.9.21/§14.9.16/§14.9.46), with the per-report
-LINE-COUNTER / PAGE-COUNTER registers (§8.4.3.15) and USE BEFORE REPORTING declaratives (§14.9.49 Format 2).
+clauses) and the INITIATE / GENERATE / TERMINATE / SUPPRESS verbs (§14.9.21/§14.9.16/§14.9.46/§14.9.45), with
+the per-report LINE-COUNTER / PAGE-COUNTER registers (§8.4.3.15) and USE BEFORE REPORTING declaratives
+(§14.9.49 Format 2).
 Validated by NIST RW101A–RW104A (byte-match) **plus a spec-pinned conformance net for the report-file CONTENT
 the NIST goldens never compare** (`ReportWriterConformanceTests`) — load-bearing because the legacy oracle's
 report-file content is demonstrably WRONG in two places (see §7); the spec, not the oracle, governs.
@@ -71,6 +72,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | SUM | §13.18.54.4 GR1 (counter scale from the entry's PICTURE), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `BoundReportSumRef`), GR7c1/c2 (accumulate per GENERATE / UPON detail filter), GR9 (multi-addend) |
 | GROUP INDICATE | §13.18.29 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs via the group's `BeforeReporting` hook (a `__RunUse` bounded dispatch) just before the group is produced |
+| SUPPRESS | §14.9.45 — `SUPPRESS PRINTING` sets the engine's one-shot `_suppressCurrent` flag (`__RPT_n.SuppressPrinting()`); `RunBeforeReporting` consumes it on the presentation whose GR8 hook set it (GR2 — current instance only). The target group is the lexically-enclosing USE BEFORE REPORTING group, resolved at bind from `BindCursor` ∈ the declarative's pc range (GR1); a SUPPRESS outside such a procedure is COBOLNET1581 (SR1). GR3 a–d inhibit printing / page advance / NEXT GROUP / LINE-COUNTER, but NOT sum accumulation (GR7, already done in Generate) nor the end-of-group sum reset (GR2) — so a suppressed control footing's totals stay correct (only PRESENT WHEN / ODO absence skips the reset, GR10). Body groups run `EndOfGroupSumReset` on the suppressed path; heading/footing groups (no reset) return after the hook |
 | PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2, after the `BeforeReporting` hook); an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
 | VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `long`s, first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE); a noninteger FROM/BY truncates via `Rescale` (the GR5 EC-REPORT-VARYING seam, checking default-off §18.16) |
 | multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
@@ -156,7 +158,10 @@ off-by-one through every later counter check.
 (any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items; SOURCE
 LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
 break); SUM + UPON + RESET; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
-PD counter references incl. qualified; USE BEFORE REPORTING (Format 2 declaratives); unpaged reports;
+**SUPPRESS PRINTING** (§14.9.45 — inhibit the current instance's printing/advance/NEXT GROUP/LINE-COUNTER,
+NOT the sum accumulation or end-of-group reset; SR1/GR1 bind-resolve the enclosing USE BEFORE REPORTING group,
+COBOLNET1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2
+declaratives); unpaged reports;
 **PRESENT WHEN Format 1** (§13.18.41 — any entry level, chain semantics per GR2b, the GR3a–g LINE/COLUMN/SUM
 interactions, edition-gated 2002); **VARYING** (§13.18.64 — over the multiple-COLUMN repetition vehicle,
 counter-as-SOURCE, per-presentation FROM); **multiple + relative (PLUS) COLUMN** (§13.18.14 F1 incl. the
@@ -174,8 +179,7 @@ static columns)**; GLOBAL RD (§13.18.27); multi-report FDs (`REPORTS ARE r1 r2`
 SOURCE; SOURCE of another report's counter; rolled SUM totals (§13.18.54.4 GR6 — a report-section addend);
 cross-report SUM (`SUM x OF report`); non-DISPLAY printable items; PAGE-COUNTER as a receiving operand. PAGE
 `COLS`/width, LAST CONTROL HEADING (the GR3c default applies), and **the COLUMN LEFT/CENTER/RIGHT alignment
-phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface; **SUPPRESS
-(§14.9.45) has no grammar rule** — it cannot parse. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the
+phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the
 SR7/SR8/SR10b operand-order-vs-PRESENT-WHEN arrangement rules are not enforced (over-acceptance; the runtime
 overlap seams are EC-REPORT-COLUMN-OVERLAP/-LINE-OVERLAP, default-off). EC-REPORT-* checking is default-off
 (SSOT §18.16) — cited seam comments at every raise point.

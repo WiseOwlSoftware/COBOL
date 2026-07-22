@@ -1,0 +1,7 @@
+ALTERNATE-KEY WALK (02/XX suppressed):
+  KEY=01 ALT=AA
+  KEY=03 ALT=BB
+PRIME-KEY WALK (all three present):
+  KEY=01
+  KEY=02
+  KEY=03

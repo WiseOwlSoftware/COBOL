@@ -31,10 +31,15 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// the edge the coupling census proved no ctor order can satisfy.</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
-    /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
-    /// declaratives — same protocol, zero machinery).</summary>
+    /// <summary>The per-statement raise-site dispatch expression. When this unit has an exception-checking
+    /// (Format-3) PERFORM (§14.9.28), every raise site routes through <c>__EcPerform</c> — which consults the
+    /// ambient F3-frame stack FIRST (GR17: a matching WHEN preempts the USE declaratives) and falls to
+    /// <c>__EcDispatch</c> only on no-match. Otherwise the historical funnel: <c>__EcDispatch</c> when the unit has
+    /// F3 declaratives, else the no-declarative constant. A non-F3-PERFORM unit emits byte-identical text.</summary>
     public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
-        ecState.UnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
+        ecState.UnitHasF3Perform ? $"__EcPerform({ecNameExpr}, {fileExpr})"
+        : ecState.UnitHasF3       ? $"__EcDispatch({ecNameExpr}, {fileExpr})"
+        :                           "-3";
 
     /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
     /// Format-4 declaratives) — the §14.9.49.4 GR14 exception-OBJECT selector (the EC-OO wave).</summary>
@@ -324,36 +329,85 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             {
                 // A successful completion: '00' raises nothing; '0x' (x≠0) is EC-I-O-WARNING — F3 may select it
                 // (no F1: those fire on unsuccessful execution only, §14.9.49.4 GR6). Nonfatal — never terminates.
+                // With an exception-checking PERFORM active, a matching WHEN preempts (and ignores) the USE (GR17).
                 w.Line("if (!__en) return -1;");
-                w.Line($"int __w = {(decls.Any(d => d.EcEntries is not null) ? "__EcDispatch(__ec!, __f)" : "-3")};");
-                w.Line("return __w == -3 ? -1 : __w;");
+                if (ecState.UnitHasF3Perform)
+                {
+                    w.Line("int __w = __EcPerform(__ec!, __f);   // GR17 — a matching WHEN preempts USE; warning is nonfatal");
+                    w.Line("return __w == -3 ? -1 : __w;");
+                }
+                else
+                {
+                    w.Line($"int __w = {(decls.Any(d => d.EcEntries is not null) ? "__EcDispatch(__ec!, __f)" : "-3")};");
+                    w.Line("return __w == -3 ? -1 : __w;");
+                }
             }
             w.Line("if (__atEnd && __st[0] == '1') return -1;    // the statement's AT END phrase covers the family (§9.1.13.1)");
             w.Line("if (__invKey && __st[0] == '2') return -1;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             w.Line("int __sel = -3;");
-            if (decls.Any(d => d.Files.Count > 0))
-                using (w.Block("switch (__f)"))   // F1 file-name scope first (GR3a/GR5)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        foreach (var f in decls[i].Files)
-                            w.Line($"case {FileKeyExpr(f)}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
-                }
-            if (decls.Any(d => d.ModeIndex is not null))
-                using (w.Block($"if (__sel == -3) switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // F1 open-mode scope (GR3b/GR6b–e)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        if (decls[i].ModeIndex is { } m)
-                            w.Line($"case {m}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
-                }
-            if (decls.Any(d => d.EcEntries is not null))
-                w.Line("if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)");
-            if (dispatch.OuterGlobalUse)
-                w.Line("if (__sel == -3 && __outer.__RunGlobalUse(__f)) __sel = -1;   // outward GLOBAL walk (GR4b)");
+            // The F1 file/open-mode + F3 USE declarative tiers (§14.9.49.4 GR3a–g/GR4b) — byte-identical to a pre-F3
+            // build. With an exception-checking PERFORM active they run ONLY when no WHEN matched (GR17: a matching
+            // WHEN ignores the USE); the frame is consulted FIRST, above these tiers.
+            void EmitUseTiers()
+            {
+                if (decls.Any(d => d.Files.Count > 0))
+                    using (w.Block("switch (__f)"))   // F1 file-name scope first (GR3a/GR5)
+                    {
+                        for (int i = 0; i < decls.Count; i++)
+                            foreach (var f in decls[i].Files)
+                                w.Line($"case {FileKeyExpr(f)}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
+                    }
+                if (decls.Any(d => d.ModeIndex is not null))
+                    using (w.Block($"if (__sel == -3) switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // F1 open-mode scope (GR3b/GR6b–e)
+                    {
+                        for (int i = 0; i < decls.Count; i++)
+                            if (decls[i].ModeIndex is { } m)
+                                w.Line($"case {m}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
+                    }
+                if (decls.Any(d => d.EcEntries is not null))
+                    w.Line("if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)");
+                if (dispatch.OuterGlobalUse)
+                    w.Line("if (__sel == -3 && __outer.__RunGlobalUse(__f)) __sel = -1;   // outward GLOBAL walk (GR4b)");
+            }
+            if (ecState.UnitHasF3Perform)
+            {
+                w.Line("bool __wh = false;");
+                w.Line("__sel = ExceptionState.RunTopFrame(__ec!, __f, out __wh);   // GR17 — a matching WHEN preempts the USE declaratives");
+                w.Line("if (!__wh) __sel = -3;   // no WHEN matched → fall to the USE tiers below");
+                using (w.Block("if (!__wh)")) EmitUseTiers();
+            }
+            else EmitUseTiers();
             w.Line("if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed (§14.9.33)");
             w.Line("if (__en && ExceptionCatalog.IsFatalIoStatus(__st))");
             w.Line("    throw new CobolFatalException(__ec!, \"I-O status \" + __st + \" on \" + __f"
                 + " + (__stmt is null ? \"\" : \" (\" + __stmt + \")\"));   // §9.1.13.1 fatal classes; §14.6.13.1.3 #5/#7");
             w.Line("return -1;");
+        }
+        w.Line();
+    }
+
+    /// <summary>Generate the exception-checking (Format-3) PERFORM interceptor plumbing (ISO §14.9.28.4 GR17-20) —
+    /// emitted ONLY for a unit that contains an F3 PERFORM (<see cref="EcState.UnitHasF3Perform"/>), so a non-F3
+    /// unit's source is byte-identical. <c>__EcPerform</c> consults the ambient F3-frame stack first (GR17: a
+    /// matching WHEN preempts — and ignores — the USE declaratives) and falls to <c>__EcDispatch</c> (or the
+    /// no-declarative <c>-3</c>) only when no frame handled the condition. <c>__RunF3</c> composes a WHEN handler
+    /// (imp-2/imp-3) with WHEN COMMON (imp-4, GR19): COMMON runs ONLY after the handler COMPLETES (falls off →
+    /// <c>-1</c>); a RESUME NEXT STATEMENT (<c>-2</c>) is a transfer out of the handler and short-circuits COMMON
+    /// (design SSOT §9.6 Q3). Both handler bodies are bounded pc-ranges run by the reused <c>__RunUse</c>.</summary>
+    public void EmitPerformInterceptor(CodeWriter w)
+    {
+        using (w.Block("private int __EcPerform(string __ec, string __f)"))
+        {
+            w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
+            w.Line($"return __h ? __a : {(ecState.UnitHasF3 ? "__EcDispatch(__ec, __f)" : "-3")};   "
+                + "// GR17/18 win over USE; else the USE tiers / -3");
+        }
+        w.Line();
+        using (w.Block("private int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
+        {
+            w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
+            w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
+            w.Line("return __a;");
         }
         w.Line();
     }

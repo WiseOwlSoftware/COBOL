@@ -283,11 +283,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
-                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg())}) {onFail}");
+                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg() + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))}) {onFail}");
                 w.Line($"else {PlaceRenderer.Write(target, img)}");
                 return;
             }
-            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg())));
+            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg() + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
             return;
         }
         // A float RECEIVER (COMP-1/2/FLOAT-*, D16) takes the algebraic value as a native cast — no PICTURE, no

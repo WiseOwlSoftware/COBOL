@@ -264,7 +264,11 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   storage). The binder must **stop skipping 66s.**
 - **VALUE init** is one recursive object-initializer composed from the leaves, emitted in the static field decl
   (program) or the instance ctor (OO). Extensions: group VALUE, OCCURS VALUE (`Tbl = [.. n elements]`), figurative
-  constants (§11). `DataBinder.ExtractValue` currently grabs only `FirstOrDefault` — a bug for 88s and table VALUEs.
+  constants (§11), and the **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a
+  mandatory `FROM (subscript)` phrase; per-occurrence emission via `ValueInitializer.TableValueInit`). The Format-1
+  glued-multi-literal defect is fixed: `DataBinder.ExtractValue` GLUES a bare multi-operand list via `GetText` over
+  the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
+  (COBOLNET1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).
 - **`ByName` becomes a MULTIMAP** (`Dictionary<string,List<DataItem>>`) — COBOL permits duplicate names disambiguated
   only by qualification; the current single-value Dictionary silently overwrites (latent wrong-item bug).
 - **SYNCHRONIZED is a no-op for in-memory typed data** (the CLR aligns a `long` naturally); honored only at the

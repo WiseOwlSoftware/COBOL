@@ -41,7 +41,8 @@ internal sealed class ControlFlowBinder
             bool isTestAfter = false;
 
             BoundExpression? timesExpr = null;
-            var options = ctx.performOptions();
+            // The inline loop-control options moved under performInlineHead (the Formats-2/3 grammar merge).
+            var options = ctx.performInlineHead()?.performOptions();
             if (options != null)
             {
                 foreach (var opt in options)
@@ -132,10 +133,9 @@ internal sealed class ControlFlowBinder
             BoundExpression? untilCond = null;
             BoundPerformVarying? varyOpt = null;
             bool isTestAfter = false;
-            var options = ctx.performOptions();
-            if (options != null && options.Length > 0)
+            var opt = ctx.performOptions();   // the THRU-form performOptions? is a single direct child
+            if (opt != null)
             {
-                var opt = options[0];
                 if (opt.performTimes() is { } thruTimesCtx)
                 {
                     if (thruTimesCtx.integerLiteral() != null)

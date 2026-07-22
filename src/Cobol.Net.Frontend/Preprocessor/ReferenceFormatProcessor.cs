@@ -70,23 +70,23 @@ public static class ReferenceFormatProcessor
         return string.Join('\n', kept);
     }
 
-    /// <summary>The reference format a <c>&gt;&gt;SOURCE FORMAT</c> directive selects (Auto = no directive present).</summary>
-    private enum DeclaredFormat { Auto, Fixed, Free }
-
     /// <summary>
-    /// Matches a COBOL-2002 <c>&gt;&gt;SOURCE FORMAT [IS] {FREE|FIXED}</c> compiler directive (ISO §7.2) on a line,
-    /// case-insensitively. The directive may be preceded by a sequence area / indicator in fixed-ish layouts, so
-    /// the match is anchored to the <c>&gt;&gt;</c> rather than column 1. A trailing <c>.</c> is tolerated.
+    /// Matches a COBOL-2002 <c>&gt;&gt;SOURCE [FORMAT] [IS] {FREE|FIXED}</c> compiler directive (ISO §7.3.24) on a
+    /// line, case-insensitively. Per §7.3.24.2 <c>FORMAT</c> and <c>IS</c> are OPTIONAL words, so <c>&gt;&gt;SOURCE
+    /// FIXED</c> is valid too. The directive may be preceded by a sequence area / indicator in fixed-form layouts,
+    /// so the match is anchored to the <c>&gt;&gt;</c> rather than column 1 (SR3 places it in the program-text
+    /// area; the leniency is a superset). A trailing <c>.</c> is tolerated.
     /// </summary>
     private static readonly Regex SourceFormatDirective = new(
-        @"^[\s\d]*>>\s*SOURCE\s+FORMAT\s+(?:IS\s+)?(FREE|FIXED)\s*\.?\s*$",
+        @"^[\s\d]*>>\s*SOURCE\s+(?:FORMAT\s+)?(?:IS\s+)?(FREE|FIXED)\s*\.?\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     /// <summary>
-    /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form.
-    /// A <c>&gt;&gt;SOURCE FORMAT</c> directive, if present, overrides the structural heuristic (the spec-mandated
-    /// explicit selector). The directive lines are consumed. NOTE: only a single whole-file declaration is honored
-    /// — mid-file format switching is a documented WS-2002-FORMAT follow-up; the first directive wins.
+    /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form. Each
+    /// <c>&gt;&gt;SOURCE FORMAT [IS] {FIXED|FREE}</c> directive (ISO §7.3.24) switches the reference format of the
+    /// text that FOLLOWS it, up to the next directive — the source is partitioned into homogeneous-format segments
+    /// (§7.3.24.3 GR1) and each is converted in its own format. The directive line is discarded (§6.5 logical
+    /// conversion, step 1) and left as a blank line so downstream source-line numbers stay aligned.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText)
         => NormalizeToFreeForm(sourceText, dialectLevel: 85, permissive: false, diagnostics: null, sourcePath: "<source>");
@@ -102,13 +102,74 @@ public static class ReferenceFormatProcessor
         string sourceText, int dialectLevel, bool permissive, DiagnosticBag? diagnostics, string sourcePath)
     {
         var gates = diagnostics is null ? null : new EditionGates(dialectLevel, permissive, diagnostics, sourcePath);
-        var declared = DetectDeclaredFormat(sourceText);
-        if (declared != DeclaredFormat.Auto)
+        var lines = sourceText.Split('\n');
+
+        // Locate the >>SOURCE FORMAT switches: line index → the declared format (fixed?). Each switch partitions
+        // the source into a homogeneous-format SEGMENT (§7.3.24.3 GR1); the directive line is discarded (§6.5
+        // step 1) and the new format governs from the NEXT line. A continued character-string cannot cross a
+        // switch (§7.3.3 SR8c), so each segment's continuation/literal state is self-contained.
+        var switches = new List<(int Index, bool Fixed)>();
+        for (int i = 0; i < lines.Length; i++)
+            if (MatchDirective(lines[i]) is { Success: true } m)
+                switches.Add((i, m.Groups[1].Value.Equals("FIXED", StringComparison.OrdinalIgnoreCase)));
+
+        // No directive → the whole file is one segment in the implementor-default format. Our default is
+        // structural AUTO-DETECTION (a documented extension over the standard's fixed-form GR2 default; it is what
+        // classifies the NIST fixed corpus and free-form real-world source without a directive — DEVLOG 931).
+        if (switches.Count == 0)
+            return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText, gates) : sourceText;
+
+        // Per-segment. The INITIAL segment (before the first directive) is auto-detected; each subsequent segment
+        // is in the format its preceding directive declared (GR4 bootstrap: a leading directive makes the initial
+        // segment empty, so its format governs from the next line). Emit one output line per source line, the
+        // directive lines blanked — a fixed segment's continuation joins reduce its line count exactly as the
+        // whole-file path already does.
+        var outLines = new List<string>();
+        bool segFixed = IsFixedForm(string.Join('\n', lines[..switches[0].Index]));
+        int segStart = 0;
+        for (int s = 0; s <= switches.Count; s++)
         {
-            string stripped = StripSourceFormatDirectives(sourceText);
-            return declared == DeclaredFormat.Fixed ? ConvertFixedToFree(stripped, gates) : stripped;
+            int segEnd = s < switches.Count ? switches[s].Index : lines.Length;   // exclusive
+            if (segEnd > segStart)
+            {
+                if (segFixed)
+                    outLines.AddRange(SplitLines(
+                        ConvertFixedToFree(string.Join('\n', lines[segStart..segEnd]), gates, segStart)));
+                else
+                    for (int k = segStart; k < segEnd; k++) outLines.Add(lines[k].TrimEnd('\r'));   // free: as-is
+            }
+            if (s < switches.Count)
+            {
+                outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
+                segFixed = switches[s].Fixed;     // switch the format for the following segment
+                segStart = switches[s].Index + 1;
+            }
         }
-        return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText, gates) : sourceText;
+        return string.Join('\n', outLines);
+    }
+
+    /// <summary>Split a <see cref="ConvertFixedToFree"/> result into clean per-line strings for the per-segment
+    /// assembly. Every emitted line ends with <c>AppendLine</c>, so the result ends with exactly ONE trailing
+    /// newline (the artifact) — drop only that final empty element. A bare <c>TrimEnd('\n')</c> would instead delete
+    /// a BLANK source line that terminates the segment, losing it and misaligning the following segment.</summary>
+    private static IEnumerable<string> SplitLines(string s)
+    {
+        var parts = s.Replace("\r\n", "\n").Split('\n');
+        return parts.Length > 0 && parts[^1].Length == 0 ? parts[..^1] : parts;
+    }
+
+    /// <summary>Our documented margin R (Annex A item 158 / CONFORMANCE.md §7): the program-text area is columns
+    /// 8–72, so column position <see cref="SourceAreaStart"/>+<see cref="SourceAreaWidth"/> = 72.</summary>
+    private const int MarginR = SourceAreaStart + SourceAreaWidth;
+
+    /// <summary>Match the <c>&gt;&gt;SOURCE FORMAT</c> directive against a raw line, IGNORING any text past margin R
+    /// (§6.3 — columns 73+ are outside the program-text area; in fixed form they hold the card-image sequence tag
+    /// the corpus uses). Without this truncation the end-anchored regex would miss a fixed-form directive line that
+    /// carries such a tag, silently normalizing the following segment in the wrong format.</summary>
+    private static Match MatchDirective(string rawLine)
+    {
+        string l = rawLine.TrimEnd('\r');
+        return SourceFormatDirective.Match(l.Length > MarginR ? l[..MarginR] : l);
     }
 
     /// <summary>
@@ -156,34 +217,6 @@ public static class ReferenceFormatProcessor
             else
                 diagnostics.ReportWarning(code, message, loc, default);
         }
-    }
-
-    /// <summary>Return the format the first <c>&gt;&gt;SOURCE FORMAT</c> directive selects, or Auto if none.</summary>
-    private static DeclaredFormat DetectDeclaredFormat(string sourceText)
-    {
-        foreach (var rawLine in sourceText.Split('\n'))
-        {
-            var m = SourceFormatDirective.Match(rawLine.TrimEnd('\r'));
-            if (m.Success)
-                return m.Groups[1].Value.Equals("FIXED", StringComparison.OrdinalIgnoreCase)
-                    ? DeclaredFormat.Fixed : DeclaredFormat.Free;
-        }
-        return DeclaredFormat.Auto;
-    }
-
-    /// <summary>
-    /// Blank out every <c>&gt;&gt;SOURCE FORMAT</c> directive line (the directive is consumed by the preprocessor).
-    /// The lines are emptied rather than removed so downstream source-line numbers stay aligned for diagnostics.
-    /// </summary>
-    private static string StripSourceFormatDirectives(string sourceText)
-    {
-        var lines = sourceText.Split('\n');
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (SourceFormatDirective.IsMatch(lines[i].TrimEnd('\r')))
-                lines[i] = "";
-        }
-        return string.Join('\n', lines);
     }
 
     /// <summary>
@@ -287,11 +320,14 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static string ConvertFixedToFree(string sourceText) => ConvertFixedToFree(sourceText, gates: null);
 
-    private static string ConvertFixedToFree(string sourceText, EditionGates? gates)
+    /// <param name="lineOffset">The file-relative index (0-based) of this text's first line — nonzero when
+    /// converting one SOURCE-FORMAT SEGMENT of a larger file, so the <see cref="EditionGates"/> continuation
+    /// diagnostics report the file line, not the segment-relative one.</param>
+    private static string ConvertFixedToFree(string sourceText, EditionGates? gates, int lineOffset = 0)
     {
         var lines = sourceText.Split('\n');
         var result = new StringBuilder();
-        int lineNo = 0;
+        int lineNo = lineOffset;
 
         // Literal state carried across lines for continuation decisions
         bool inLiteral = false;

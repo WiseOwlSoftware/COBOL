@@ -40,6 +40,10 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>Compilation options (arithmetic mode for the composite cap, DEFAULT ROUNDED mode).</summary>
     public OptionsModel Options => data.Options;
 
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
+    /// function-name synonym / removal through it. <c>Empty</c> when there is no directive.</summary>
+    public CobolNet.Editions.CobolWordsMap CobolWords => data.CobolWords;
+
     /// <summary>The edition-invariant SR check catalog (P7 Step 10 — pure checks only: each reports to
     /// <see cref="Edition"/> and returns the verdict; the verb binder owns all error+placeholder control
     /// flow).</summary>

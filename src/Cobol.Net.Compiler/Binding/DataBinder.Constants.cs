@@ -4,6 +4,7 @@ using System.Globalization;
 using Antlr4.Runtime.Tree;
 using CobolNet.Common;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Expressions;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
@@ -190,15 +191,10 @@ public sealed partial class DataBinder
     private ConstantDef? BindConstantArithmetic(
         string name, bool isGlobal, Core.ArithmeticExpressionContext expr, string where)
     {
-        // §13.10.3 SR1 — a single (possibly signed) numeric literal is treated as a literal.
-        if (SoleNumericLiteral(expr) is { } lit)
-        {
-            string text = NormalizeNumericLiteral(lit.Text);
-            if (lit.Negative) text = "-" + text.TrimStart('+');
-            bool isInt = !text.Contains('.') && !text.Contains('E') && !text.Contains('e');
-            return new ConstantDef(name, PicCategory.Numeric, text, isInt, isGlobal, text);
-        }
-        // The BYTE-LENGTH OF form (§13.10.4 GR5) — recognized as the sole qualified dataReference shape.
+        // The BYTE-LENGTH OF form (§13.10.4 GR5) — a §13.10 CONSTANT-specific shape (a qualified dataReference),
+        // NOT a §7.3.6 arithmetic operand; recognized and STAGED LOUD before the shared evaluator sees it. A sole
+        // numeric literal is never this shape, so evaluating it first does not affect the GR5 single-literal
+        // reclassification the shared evaluator applies below.
         if (Procedure.ConditionBinder.SoleDataRef(expr) is { } sole
             && sole.cobolWord()?.GetText().Equals("BYTE-LENGTH", StringComparison.OrdinalIgnoreCase) is true
             && sole.dataReferenceSuffix().Any(sfx => sfx.qualification() is not null))
@@ -207,10 +203,44 @@ public sealed partial class DataBinder
                 $"{where}: CONSTANT … AS BYTE-LENGTH OF (ISO §13.10.4 GR5 / §15.14)");
             return null;
         }
-        if (EvalConstExpr(expr, where) is not { } v) return null;
-        // §7.3.6.3 GR3: the final result is truncated to its integer part and is an integer numeric literal.
-        string result = decimal.Truncate(v).ToString(CultureInfo.InvariantCulture);
-        return new ConstantDef(name, PicCategory.Numeric, result, true, isGlobal, result);
+        // §7.3.6 evaluation via the ONE shared evaluator — §7.3.11.4 GR5 (single-literal reclassification, so
+        // AS 0.25 keeps 0.25) and §7.3.6.3 GR3 (integer truncation of an expression's final result) are applied at
+        // its public boundary. The binder supplies numeric-name resolution (a prior numeric constant substitutes
+        // its literal, §13.10.3 SR2/GR1), routes the evaluator's diagnostics to its own codes, and names the
+        // operand source per §13.10.3.
+        var evaluator = new CompileTimeExpressionEvaluator(
+            resolveName: ResolveConstantName,
+            diag: new ConstantEvaluatorDiagnostics(this),
+            vocab: new CtOperandVocabulary(
+                "previously defined numeric constant-names substituting them", "ISO §13.10.3 SR7 / §7.3.6.2 SR1b"),
+            decimalPointIsComma: DecimalPointIsComma);
+        if (evaluator.EvaluateArithmeticOperand(expr, where) is not { } n) return null;
+        bool isInt = !n.Text.Contains('.') && !n.Text.Contains('E') && !n.Text.Contains('e');
+        return new ConstantDef(name, PicCategory.Numeric, n.Text, isInt, isGlobal, n.Text);
+    }
+
+    /// <summary>The value of a BARE constant-name (§7.3.6.2 SR1b / §13.10.3 SR2 substitution), or null when the
+    /// name is not a currently-defined constant — the shared compile-time evaluator's name-resolution callback.
+    /// The CONSTANT-entry arithmetic path uses only the NUMERIC case (§7.3.6.2 SR1b), so a non-numeric constant
+    /// resolves to null and is rejected there. (A constant's <see cref="ConstantDef.Text"/> is already normalized
+    /// dot-decimal.)</summary>
+    private CtValue? ResolveConstantName(string word) =>
+        _constants.TryGetValue(word, out var d) && d.Category == PicCategory.Numeric
+        && decimal.TryParse(d.Text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+            CultureInfo.InvariantCulture, out decimal v) ? CtValue.Numeric(v, d.Text) : null;
+
+    /// <summary>Routes the shared compile-time evaluator's diagnostics to the CONSTANT-entry binder's own codes: an
+    /// arithmetic rule → the <c>ConstantEntryRule</c> descriptor; a §12.3.7 GR14a separator violation →
+    /// COBOLNET0895 — unchanged from the pre-shared-evaluator binder.</summary>
+    private sealed class ConstantEvaluatorDiagnostics(DataBinder owner) : CobolNet.Frontend.Expressions.ICtDiagnostics
+    {
+        public void Report(CobolNet.Frontend.Expressions.CtDiagCode code, string message)
+        {
+            if (code == CobolNet.Frontend.Expressions.CtDiagCode.NumericSeparator)
+                owner.Edition.Error("COBOLNET0895", message);
+            else
+                owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, message);
+        }
     }
 
     /// <summary>AS LENGTH OF data-name-2 (§13.10.4 GR6): the value of the §15.50 LENGTH function — the item's
@@ -278,150 +308,6 @@ public sealed partial class DataBinder
 
         static bool HasDynamicTable(DataItem item) =>
             item.IsDynamicTable || item.Children.Any(HasDynamicTable);
-    }
-
-    // ── The §7.3.6 compile-time arithmetic evaluator ─────────────────────────────────────────────────────────
-
-    /// <summary>Evaluate a compile-time arithmetic expression (ISO §7.3.6, invoked from §13.10.4 GR4):
-    /// operands are fixed-point numeric literals (§7.3.6.2 SR1b) or already-defined numeric constant-names
-    /// (which substitute their literals, §13.10.3 SR2/GR1 — SR4/SR5 rule out circularity); exponentiation is
-    /// rejected (SR1a); division by zero is rejected (SR1c). Intermediate results ride .NET
-    /// <see cref="decimal"/> (28–29 significant digits, truncation on division) — the documented §7.3.6.2 SR2
-    /// implementor definition. Null (already reported) on any violation.</summary>
-    private decimal? EvalConstExpr(IParseTree node, string where)
-    {
-        switch (node)
-        {
-            case Core.ArithmeticExpressionContext a:
-                return EvalConstExpr(a.GetChild(0), where);
-            case Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext:
-            {
-                decimal? acc = null;
-                char op = '+';
-                for (int i = 0; i < node.ChildCount; i++)
-                {
-                    var c = node.GetChild(i);
-                    if (c is Core.AddOpContext or Core.MulOpContext) { op = c.GetText()[0]; continue; }
-                    if (EvalConstExpr(c, where) is not { } v) return null;
-                    if (acc is null) { acc = v; continue; }
-                    try
-                    {
-                        switch (op)
-                        {
-                            case '+': acc += v; break;
-                            case '-': acc -= v; break;
-                            case '*': acc *= v; break;
-                            case '/':
-                                if (v == 0m)
-                                {
-                                    Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the "
-                                        + "compile-time arithmetic expression divides by zero — the expression "
-                                        + "shall be specified in such a way that a division by zero cannot "
-                                        + "occur (ISO §7.3.6.2 SR1c)");
-                                    return null;
-                                }
-                                acc /= v;
-                                break;
-                        }
-                    }
-                    catch (OverflowException)
-                    {
-                        Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: an intermediate result "
-                            + "of the compile-time arithmetic expression exceeds the decimal128 evaluation "
-                            + "range (the documented §7.3.6.2 SR2 implementor limit)");
-                        return null;
-                    }
-                }
-                return acc;
-            }
-            case Core.PowerExpressionContext p:
-            {
-                var bases = p.unaryExpression();
-                if (bases.Length > 1)
-                {
-                    Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the exponentiation operator "
-                        + "shall not be specified in a compile-time arithmetic expression (ISO §7.3.6.2 SR1a)");
-                    return null;
-                }
-                return EvalConstExpr(bases[0], where);
-            }
-            case Core.UnaryExpressionContext u:
-            {
-                if (u.primaryExpression() is { } pr) return EvalConstExpr(pr, where);
-                var inner = EvalConstExpr(u.unaryExpression(), where);
-                return inner is null ? null : u.addOp().GetText() == "-" ? -inner : inner;
-            }
-            case Core.PrimaryExpressionContext pe:
-            {
-                if (pe.numericLiteral() is { } num) return ParseConstLiteral(num.GetText(), where);
-                if (pe.ZERO_ARITH() is not null) return 0m;
-                if (pe.arithmeticExpression() is { } paren) return EvalConstExpr(paren, where);
-                if (pe.dataReference() is { } dref)
-                {
-                    // A constant-name operand substitutes its literal (§13.10.3 SR2 / §13.10.4 GR1) — only a
-                    // NUMERIC one is a valid §7.3.6 operand.
-                    if (ConstantOf(dref) is { Category: PicCategory.Numeric } k)
-                        return ParseConstLiteral(k.Text, where);
-                    Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: '{dref.GetText()}' — all "
-                        + "operands of the compile-time arithmetic expression shall be fixed-point numeric "
-                        + "literals or previously defined numeric constant-names substituting them "
-                        + "(ISO §13.10.3 SR7 / §7.3.6.2 SR1b)");
-                    return null;
-                }
-                Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: '{pe.GetText()}' is not a valid "
-                    + "compile-time arithmetic operand — operands shall be fixed-point numeric literals "
-                    + "(ISO §13.10.3 SR7 / §7.3.6.2 SR1b)");
-                return null;
-            }
-            default:
-                Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: unsupported compile-time "
-                    + "arithmetic expression shape (ISO §7.3.6)");
-                return null;
-        }
-    }
-
-    /// <summary>Parse one fixed-point numeric literal operand (§7.3.6.2 SR1b): dot-decimal after the
-    /// DECIMAL-POINT IS COMMA normalization; a floating-point (E-form) literal is NOT fixed-point and
-    /// rejects.</summary>
-    private decimal? ParseConstLiteral(string text, string where)
-    {
-        string norm = NormalizeNumericLiteral(text);
-        if (decimal.TryParse(norm, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-                CultureInfo.InvariantCulture, out decimal v))
-            return v;
-        Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: '{text}' — all operands of a "
-            + "compile-time arithmetic expression shall be fixed-point numeric literals (ISO §7.3.6.2 SR1b)");
-        return null;
-    }
-
-    /// <summary>The single (possibly signed) numeric literal an arithmetic expression consists of, or null —
-    /// the §13.10.3 SR1 re-classification probe ("if the operand … consists of a single numeric literal, that
-    /// operand is treated as a literal, not as an arithmetic-expression"). Walks the sole-child expression
-    /// spine; unary minus toggles the sign.</summary>
-    private static (string Text, bool Negative)? SoleNumericLiteral(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        bool neg = false;
-        while (true)
-        {
-            switch (n)
-            {
-                case Core.ArithmeticExpressionContext or Core.AdditiveExpressionContext
-                    or Core.MultiplicativeExpressionContext or Core.PowerExpressionContext:
-                    if (n.ChildCount != 1) return null;
-                    n = n.GetChild(0);
-                    continue;
-                case Core.UnaryExpressionContext u:
-                    if (u.primaryExpression() is { } pr) { n = pr; continue; }
-                    if (u.addOp().GetText() == "-") neg = !neg;
-                    n = u.unaryExpression();
-                    continue;
-                case Core.PrimaryExpressionContext pe:
-                    return pe.numericLiteral() is { } num ? (num.GetText(), neg) : null;
-                default:
-                    return null;
-            }
-        }
     }
 
     // ── The data-division substitution chokepoints (§13.10.3 SR2) ────────────────────────────────────────────

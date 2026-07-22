@@ -35,6 +35,36 @@ public abstract class CobolParserCoreBase : Parser
     protected bool is2014() => Edition.Has(2014);
     protected bool is2023() => Edition.Has(2023);
 
+    /// <summary>
+    /// True when the current token spells a reserved-as-facility keyword AT THE TARGETED EDITION — i.e. it can
+    /// only be the (unsupported) facility verb here, never a user-defined word. Gates the recognize-and-name
+    /// statement arms for the facilities COBOL.NET does not implement: MCS SEND/RECEIVE (ISO §14.9.31/§14.9.38,
+    /// Annex A.3 item 4), COMMIT/ROLLBACK (A.3 items 6–7), VALIDATE (§14.9.50).
+    /// <para>
+    /// WHY A PREDICATE AT ALL, given these are now hard lexer tokens: their §8.9 reservation is NON-MONOTONIC —
+    /// RECEIVE/SEND/END-RECEIVE are reserved at 85, USER WORDS at 2002/2014, and re-reserved at 2023;
+    /// COMMIT/ROLLBACK/END-SEND are reserved at 2023 only; VALIDATE is a user word at 85; MESSAGE runs the other
+    /// way (reserved 85/2002, user word 2014/2023). The tokens are admitted to the <c>cobolWord</c> nameSlot
+    /// funnel so they remain legal user names wherever unreserved, and this predicate stops the STATEMENT arm
+    /// from firing at those editions — so <c>01 RECEIVE PIC X.</c> at --std 2002 stays a data item.
+    /// </para>
+    /// <para>
+    /// ⛔ The arms this gates are KEYWORD-TOKEN-LED, never IDENTIFIER-led. An IDENTIFIER-led <c>statement</c>
+    /// alternative poisons ANTLR's ALL(*) boolean-factor prediction DFA and regresses
+    /// <c>COMPUTE R = B-NOT A.</c> at every edition — empirically proven and reverted (DEVLOG 903). A predicate
+    /// on a distinct leading token is unreachable during arithmetic/boolean prediction and cannot poison it.
+    /// </para>
+    /// Reads the SAME <see cref="ReservedWords"/> table the §8.9 funnel uses, so recognition and reservation
+    /// can never diverge. Read-only — safe for ANTLR's repeated speculative prediction calls.
+    /// </summary>
+    protected bool facilityWord(string keyword)
+    {
+        var t = CurrentToken;
+        if (t is null) return false;
+        if (!string.Equals(t.Text, keyword, StringComparison.OrdinalIgnoreCase)) return false;
+        return ReservedWords.Find(keyword)?.IsReservedAt(Edition.Year) ?? false;
+    }
+
     protected CobolParserCoreBase(ITokenStream input) : base(input) { }
     protected CobolParserCoreBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput) { }
@@ -96,9 +126,16 @@ public abstract class CobolParserCoreBase : Parser
                 // must fall to the normal comparison unchanged (else a plain comparison mis-gates as boolean, and RETRY
                 // #4's sibling mis-fire class returns). Below 2002 B-AND/B-OR/B-XOR are legal user words; at ≥2002 the
                 // §8.9 funnel already reserves them, so a leading occurrence is a name-slot error either way — never here.
+                // The four boolean SHIFT operators (§8.8.2 rule 8, 2023) are NEVER legal user words (absent from
+                // _dataNameTokens), so a shift token always IS the operator — detecting it here recognizes a shift-only
+                // boolean expression (e.g. `A B-SHIFT-L 2`), which no binary/unary B-op precedes.
                 case CobolLexer.B_AND:
                 case CobolLexer.B_OR:
                 case CobolLexer.B_XOR:
+                case CobolLexer.B_SHIFT_L:
+                case CobolLexer.B_SHIFT_R:
+                case CobolLexer.B_SHIFT_LC:
+                case CobolLexer.B_SHIFT_RC:
                     if (IsBoolOperandTerm(prev)) return true;
                     break;
                 // UNARY prefix B-NOT is genuine when a boolean operand can immediately FOLLOW (IF B-NOT A), not when it
@@ -200,5 +237,38 @@ public abstract class CobolParserCoreBase : Parser
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// The Format-3 PERFORM WHEN operand-list CONTINUATION stop-set (design §1.3 / §1.6): the context-sensitive
+    /// verbs that are <c>cobolWord</c>s (so they would otherwise be annexed as a spurious exception-name /
+    /// file-name) yet ALSO lead a dispatcher statement (imperative-statement-2) —
+    /// RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER lead a statement now; GET/PARSE are
+    /// carried anticipatorily (future statement verbs) so the set is forward-complete.
+    /// Pure reserved verbs (MOVE, ADD, DISPLAY, IF, PERFORM…) are NOT cobolWords, so the <c>cobolWord</c> grammar
+    /// element itself stops the loop at them — no entry needed. The Format-3 phrase keywords FINALLY / OTHER /
+    /// COMMON are likewise not cobolWords (FINALLY is a pure reserved keyword; OTHER/COMMON always were), so they
+    /// stop the loop naturally too — no entry here. Completeness is enforced by <c>WhenOperandAheadDriftTests</c>.
+    /// Single source of truth: the predicate iterates this array.
+    /// </summary>
+    public static readonly int[] WhenOperandStopTokens =
+    {
+        CobolLexer.RESUME, CobolLexer.RAISE, CobolLexer.VALIDATE, CobolLexer.UNLOCK, CobolLexer.SEND,
+        CobolLexer.RECEIVE, CobolLexer.COMMIT, CobolLexer.ROLLBACK, CobolLexer.GET, CobolLexer.ENTER,
+        CobolLexer.PARSE,
+    };
+
+    /// <summary>
+    /// True when LT(1) MAY continue a Format-3 WHEN operand list — i.e. it is not one of
+    /// <see cref="WhenOperandStopTokens"/>. Gates only the CONTINUATION of the operand list (the first operand
+    /// after WHEN / WHEN EXCEPTION is taken unconditionally), so a WHEN body's leading verb cannot be annexed as
+    /// a spurious operand. (ISO §14.9.28.2 Format 3; design §1.2–§1.5.)
+    /// </summary>
+    protected bool whenOperandAhead()
+    {
+        int la1 = TokenStream.LA(1);
+        foreach (int stop in WhenOperandStopTokens)
+            if (la1 == stop) return false;
+        return true;
     }
 }

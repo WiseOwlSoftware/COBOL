@@ -59,18 +59,26 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary)};");
-        foreach (var (alt, dups) in file.AlternateKeys)
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ImageWidth, vary, WeightsLit(file.PrimeKeyWeights))};");
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
+            var (alt, dups, suppress) = file.AlternateKeys[i];
             if (Binding.Model.RecordLayout.OffsetOf(alt) is not { } aOff)
             {
                 w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.CobolName}' not "
                     + "locatable in the record image (ISO §12.4.5.6)"));
                 continue;
             }
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ImageWidth, dups ? "true" : "false")};");
+            var altWeights = i < file.AlternateKeyWeights.Count ? file.AlternateKeyWeights[i] : null;
+            string sup = suppress is null ? "null" : CsLiteral(suppress);
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ImageWidth, dups ? "true" : "false", WeightsLit(altWeights), sup)};");
         }
     }
+
+    /// <summary>The §12.4.5.7 collating-weight table as a C# <c>ushort[]</c> literal, or "null" for native order
+    /// (a no-clause key emits "null" so its registration is unchanged from the pre-clause engine).</summary>
+    private static string WeightsLit(ushort[]? weights) =>
+        weights is null ? "null" : $"new ushort[] {{ {string.Join(", ", weights)} }}";
 
     // ── READ (ISO §14.9.30) ────────────────────────────────────────────────────────────────────────────────────
 

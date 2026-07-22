@@ -658,10 +658,73 @@ statement
     | initiateStatement
     | generateStatement
     | terminateStatement
+    | suppressStatement   // §14.9.45 — SUPPRESS PRINTING; SR1/GR1 (USE-BEFORE-REPORTING context) enforced at bind
     | invokeStatement   // introduction-gated at BIND time (StatementBinder.Oo → Check(Invoke2002))
     | {is2023()}? inlineMethodInvocationStatement
+    // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. ISO §4.2.6 ¶3 makes the
+    //    compile-time WARNING MECHANISM mandatory even though the facilities themselves are optional /
+    //    processor-dependent, so a GENERIC parse error here is a live non-conformance. Each arm is
+    //    KEYWORD-TOKEN-LED and predicated on facilityWord(), which fires only at the editions where §8.9
+    //    actually reserves the word — an IDENTIFIER-led arm would poison the ALL(*) DFA (DEVLOG 903). ──
+    | {facilityWord("RECEIVE")}?  mcsReceiveStatement
+    | {facilityWord("SEND")}?     mcsSendStatement
+    | {facilityWord("VALIDATE")}? validateFacilityStatement
+    | {facilityWord("COMMIT")}?   commitFacilityStatement
+    | {facilityWord("ROLLBACK")}? rollbackFacilityStatement
     | continueStatement
     | nextSentenceStatement
+    ;
+
+// ── The unsupported-facility statements (Wave H). The operand tails are parsed for REAL, not swallowed:
+//    `statement` is reachable from `statementBlock`, so a `(~DOT)*` swallow would eat END-IF and break every
+//    enclosing block — and both MCS formats carry `imperative-statement`s of their own, which a swallow would
+//    also consume. §4.2.6 excuses us from diagnosing syntax errors WITHIN unsupported syntax, but not from
+//    leaving the surrounding program parseable. ──
+
+// ISO §14.9.31.2 — RECEIVE FROM data-name-1 GIVING identifier-1 data-name-2
+//   [ CONTINUE AFTER { arithmetic-expression-1 SECONDS | MESSAGE RECEIVED } ]
+//   [| ON EXCEPTION … |] [| NOT ON EXCEPTION … |] [ END-RECEIVE ]
+// RECEIVED is not in §8.9's reserved list and is not a §8.10 context-sensitive word either — the standard
+// simply never classifies it (recorded as a P14 Step-0 GAP row); matched as cobolWord, which is safe here.
+mcsReceiveStatement
+    : RECEIVE FROM dataReference GIVING dataReference dataReference
+      (CONTINUE AFTER (arithmeticExpression SECONDS | MESSAGE cobolWord))?
+      mcsExceptionPhrases?
+      END_RECEIVE?
+    ;
+
+// ISO §14.9.38.2 — Format 1 (to-message-server) and Format 2 (message-server-response), merged: they differ
+// only in the RETURNING vs RAISING tail, both optional here, which keeps one rule for one statement.
+mcsSendStatement
+    : SEND TO (literal | dataReference) FROM dataReference
+      (RETURNING dataReference)?
+      (RAISING (EXCEPTION cobolWord | LAST EXCEPTION))?
+      mcsExceptionPhrases?
+      END_SEND?
+    ;
+
+// ISO 5.2.6.4: the printed RECEIVE/SEND figures enclose the ON EXCEPTION / NOT ON EXCEPTION pair in CHOICE
+// INDICATORS (verified against the PDF at 700 dpi), so BOTH may be written, each once, IN EITHER ORDER.
+mcsExceptionPhrases
+    : ON EXCEPTION statementBlock (NOT ON EXCEPTION statementBlock)?
+    | NOT ON EXCEPTION statementBlock (ON EXCEPTION statementBlock)?
+    ;
+
+// ISO §14.9.50.2 — VALIDATE { identifier-1 } …
+validateFacilityStatement
+    : VALIDATE dataReference+
+    ;
+
+// A.3 items 6–7: bare-verb transaction statements. Real tokens + real rules rather than refining the §8.9
+// reserved-word diagnostic: binding COMMIT as a PARAGRAPH-NAME would split the enclosing paragraph and change
+// control flow (PERFORM would stop at the new boundary) — a silent wrong answer under a rule that requires the
+// statement to behave as CONTINUE.
+commitFacilityStatement
+    : COMMIT
+    ;
+
+rollbackFacilityStatement
+    : ROLLBACK
     ;
 
 // Safety net for vendor extensions — disabled to prevent exponential backtracking
@@ -1136,9 +1199,10 @@ raiseStatement
     : RAISE (EXCEPTION cobolWord | objectReference)
     ;
 
-// RESUME AT {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is required in the 2023 format).
+// RESUME [AT] {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is an OPTIONAL word: it is not
+// underlined in the general format, so `RESUME NEXT STATEMENT` / `RESUME procedure-name` are legal too).
 resumeStatement
-    : RESUME AT (NEXT STATEMENT | procedureName)
+    : RESUME AT? (NEXT STATEMENT | procedureName)
     ;
 
 // RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION} (ISO §14.9.18.2 / §14.9.14.2 F2) —

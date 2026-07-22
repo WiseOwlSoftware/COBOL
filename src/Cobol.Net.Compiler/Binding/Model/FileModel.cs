@@ -72,10 +72,31 @@ public sealed class FileModel
 
     /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order: base data-name + IN/OF
     /// qualifiers + WITH DUPLICATES (ISO §12.4.5.6); resolved post-build into <see cref="AlternateKeys"/>.</summary>
-    public List<(string Name, IReadOnlyList<string> Qualifiers, bool Duplicates)> AlternateKeyNames { get; } = [];
+    public List<(string Name, IReadOnlyList<string> Qualifiers, bool Duplicates, string? Suppress)> AlternateKeyNames { get; } = [];
 
-    /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).</summary>
-    public List<(DataItem Item, bool Duplicates)> AlternateKeys { get; } = [];
+    /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).
+    /// <c>Suppress</c> is the decoded §12.4.5.6.4 GR6 key suppression value (null = no SUPPRESS WHEN phrase).</summary>
+    public List<(DataItem Item, bool Duplicates, string? Suppress)> AlternateKeys { get; } = [];
+
+    // ── §12.4.5.7 COLLATING SEQUENCE (INDEXED record-key collating) — raw capture, resolved post-build ──────────
+
+    /// <summary>Format 1 (file-level) COLLATING SEQUENCE as written: (alphabet-name-1 [ALPHANUMERIC], alphabet-name-2
+    /// [NATIONAL]); null when no file-level clause is present. <see cref="FileLevelCollatingCount"/> counts them for
+    /// §12.4.5.7.3 SR3 (at most one per file control entry).</summary>
+    public (string? Alnum, string? Nat)? FileLevelCollating { get; set; }
+    public int FileLevelCollatingCount { get; set; }
+
+    /// <summary>Format 2 (key-level) COLLATING SEQUENCE clauses as written: each names one or more RECORD KEY /
+    /// ALTERNATE RECORD KEY items and their alphabet-name-3 (§12.4.5.7.2 Format 2).</summary>
+    public List<(IReadOnlyList<string> KeyNames, string Alphabet)> KeyLevelCollating { get; } = [];
+
+    /// <summary>The resolved PRIME key collating-weight table (native char code → 0-based position); null = native
+    /// ordinal (no applicable COLLATING SEQUENCE clause, §12.4.5.3 GR6). Emitted into the runtime registration.</summary>
+    public ushort[]? PrimeKeyWeights { get; set; }
+
+    /// <summary>The resolved per-alternate-key collating-weight tables, index-aligned with <see cref="AlternateKeys"/>;
+    /// each null = native ordinal.</summary>
+    public List<ushort[]?> AlternateKeyWeights { get; } = [];
 
     /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>

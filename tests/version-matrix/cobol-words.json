@@ -1,90 +1,575 @@
 {
   "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
   "words": [
-    { "token": "ARITHMETIC",       "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS, a legal data-name elsewhere" },
-    { "token": "AS",               "nameSlot": true,  "subscriptTrigger": false, "note": "the constant entry's AS phrase (13.10, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT twin; P10 Step 15). DELIBERATELY not a subscript trigger: `AS (arith-expr)` in a constant entry must lex the parenthesized expression in normal mode — a table NAMED As subscripted at 85 is the safe under-trigger (the BIT precedent, FU-1)" },
-    { "token": "AUTO",             "nameSlot": true,  "subscriptTrigger": true,  "note": "screen attribute: a legal data-name in non-screen contexts" },
-    { "token": "AUTOMATIC",        "nameSlot": true,  "subscriptTrigger": true,  "note": "LOCK MODE AUTOMATIC (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "BELL",             "nameSlot": true,  "subscriptTrigger": true,  "note": "screen attribute: a legal data-name in non-screen contexts" },
-    { "token": "BINARY_ENCODING",  "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "BIT",              "nameSlot": true,  "subscriptTrigger": false, "note": "USAGE BIT. KNOWN latent asymmetry: in cobolWord but NOT the lexer subscript-trigger set today (a safe under-trigger). Captured AS-IS for neutrality; see follow-up FU-1" },
-    { "token": "BLINK",            "nameSlot": true,  "subscriptTrigger": true,  "note": "screen attribute: a legal data-name in non-screen contexts" },
-    { "token": "B_AND",            "nameSlot": true,  "subscriptTrigger": true,  "note": "boolean conjunction operator (2002, 8.7.2): a user word below 2002; the operator meaning is gated in the expression tiers" },
-    { "token": "B_NOT",            "nameSlot": true,  "subscriptTrigger": true,  "note": "boolean negation operator (2002, 8.7.2): a user word below 2002" },
-    { "token": "B_OR",             "nameSlot": true,  "subscriptTrigger": true,  "note": "boolean inclusive-or operator (2002, 8.7.2): a user word below 2002" },
-    { "token": "B_XOR",            "nameSlot": true,  "subscriptTrigger": true,  "note": "boolean exclusive-or operator (2002, 8.7.2): a user word below 2002" },
-    { "token": "CLOCK_UNITS",      "nameSlot": true,  "subscriptTrigger": true,  "note": "RERUN EVERY n CLOCK-UNITS ('85; VCR row 7.15)" },
-    { "token": "COL",              "nameSlot": true,  "subscriptTrigger": true,  "note": "screen/report COLUMN abbreviation: a legal data-name elsewhere" },
-    { "token": "COLS",             "nameSlot": true,  "subscriptTrigger": true,  "note": "report COLUMN-clause spelling (13.18.14 SR1, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)" },
-    { "token": "COLUMN",           "nameSlot": true,  "subscriptTrigger": true,  "note": "screen/report COLUMN. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, the 8.9 funnel gates the semantic rejection (see the RW cross-check note in gen-cobol-words.ps1)" },
-    { "token": "COLUMNS",          "nameSlot": true,  "subscriptTrigger": true,  "note": "report COLUMN-clause spelling (13.18.14 SR1, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)" },
-    { "token": "CONDITION",        "nameSlot": true,  "subscriptTrigger": true,  "note": "USE AFTER EXCEPTION CONDITION (14.9.49 F3): EC family, a user word at every edition" },
-    { "token": "CONSTANT",         "nameSlot": true,  "subscriptTrigger": true,  "note": "constant entry / CONSTANT RECORD (13.10 / 13.18.15, 2002+): a user word at 85, funnel-0901'd >=2002 (the PROTOTYPE precedent; P10 Step 15)" },
-    { "token": "DEBUGGING",        "nameSlot": true,  "subscriptTrigger": true,  "note": "USE FOR DEBUGGING ('85; VCR row 7.17)" },
-    { "token": "DECIMAL_ENCODING", "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "DEFAULT",          "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph DEFAULT (ISO 11.9): reserved only inside OPTIONS, a legal data-name elsewhere" },
-    { "token": "DISPLAY",          "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision: a reserved keyword (NOT a name slot). In the lexer subscript-trigger set for the '(' that opens a function argument list; deliberately NOT in cobolWord" },
-    { "token": "EC",               "nameSlot": true,  "subscriptTrigger": true,  "note": "USE AFTER EC (14.9.49.3 SR12): EC family, a user word at every edition" },
-    { "token": "ENTER",            "nameSlot": true,  "subscriptTrigger": true,  "note": "the ENTER statement ('85; VCR row 7.16)" },
-    { "token": "ENTRY_CONVENTION", "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "EO",               "nameSlot": true,  "subscriptTrigger": true,  "note": "USE AFTER EO (14.9.49.3 SR15; EC-OO wave): a user word at every edition" },
-    { "token": "EOL",              "nameSlot": true,  "subscriptTrigger": true,  "note": "screen ERASE EOL: a legal data-name elsewhere" },
-    { "token": "EOS",              "nameSlot": true,  "subscriptTrigger": true,  "note": "screen ERASE EOS: a legal data-name elsewhere" },
-    { "token": "ERASE",            "nameSlot": true,  "subscriptTrigger": true,  "note": "screen ERASE: a legal data-name in non-screen contexts" },
-    { "token": "EVERY",            "nameSlot": true,  "subscriptTrigger": true,  "note": "RERUN EVERY ('85; VCR row 7.15)" },
-    { "token": "EXCLUSIVE_OR",     "nameSlot": true,  "subscriptTrigger": true,  "note": "= XOR logical operator (2023, 8.8.4.9; Annex E.2 item 25): a user word below 2023; the operator meaning is gated in the expression tiers" },
-    { "token": "FACTORY",          "nameSlot": true,  "subscriptTrigger": true,  "note": "the FACTORY paragraph (11.4, 2002+): a user word at 85, funnel-0901'd >=2002 (ReservedWords.Table)" },
-    { "token": "FLOAT_BINARY",     "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "FLOAT_DECIMAL",    "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "FOREVER",          "nameSlot": true,  "subscriptTrigger": true,  "note": "RETRY FOREVER (14.7.9, 2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "FULL_",            "nameSlot": true,  "subscriptTrigger": true,  "note": "screen FULL attribute (token FULL_ = 'FULL'): a legal data-name in non-screen contexts" },
-    { "token": "FUNCTION_POINTER", "nameSlot": true,  "subscriptTrigger": true,  "note": "USAGE FUNCTION-POINTER (13.18.60, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT precedent; P10 Step 7)" },
-    { "token": "GET",              "nameSlot": true,  "subscriptTrigger": true,  "note": "METHOD-ID GET PROPERTY (11.7, 2002+): a user word at 85, funnel-0901'd >=2002" },
-    { "token": "HIGHLIGHT",        "nameSlot": true,  "subscriptTrigger": true,  "note": "screen HIGHLIGHT: a legal data-name in non-screen contexts" },
-    { "token": "HIGH_ORDER_LEFT",  "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "HIGH_ORDER_RIGHT", "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "IDENTIFIER",       "nameSlot": true,  "subscriptTrigger": true,  "note": "the base user-defined word" },
-    { "token": "IGNORING",         "nameSlot": true,  "subscriptTrigger": true,  "note": "READ IGNORING LOCK (14.9.35, 2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "IMPLEMENTS",       "nameSlot": true,  "subscriptTrigger": true,  "note": "FACTORY/OBJECT IMPLEMENTS (11.8): 8.10 context-sensitive, a user word at EVERY edition (never funneled)" },
-    { "token": "INTERFACE",        "nameSlot": true,  "subscriptTrigger": true,  "note": "END INTERFACE / repository INTERFACE specifier (2002+): a user word at 85, funnel-0901'd >=2002" },
-    { "token": "INTERMEDIATE",     "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "LENGTH",           "nameSlot": true,  "subscriptTrigger": true,  "note": "START WITH LENGTH / FUNCTION LENGTH. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, funnel-gated (see the RW cross-check note in gen-cobol-words.ps1)" },
-    { "token": "LOWLIGHT",         "nameSlot": true,  "subscriptTrigger": true,  "note": "screen LOWLIGHT: a legal data-name in non-screen contexts" },
-    { "token": "MANUAL",           "nameSlot": true,  "subscriptTrigger": true,  "note": "LOCK MODE MANUAL (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "MERGE",            "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision: a reserved keyword (NOT a name slot). Lexer subscript-trigger only" },
-    { "token": "NATIONAL",         "nameSlot": true,  "subscriptTrigger": true,  "note": "FOR NATIONAL: a context-sensitive user word" },
-    { "token": "NORMAL",           "nameSlot": true,  "subscriptTrigger": true,  "note": "STOP RUN WITH NORMAL: a context-sensitive user word" },
-    { "token": "NUMBERS",          "nameSlot": true,  "subscriptTrigger": true,  "note": "COLUMN/LINE clause plural spelling (13.18.14/13.18.35): 8.10 context-sensitive, a user word at every edition (P10 Step 13)" },
-    { "token": "ONLY",             "nameSlot": true,  "subscriptTrigger": true,  "note": "WITH LOCK ON ... ONLY (2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "OVERRIDE",         "nameSlot": true,  "subscriptTrigger": true,  "note": "the METHOD-ID attribute slot (11.7, 2002+): a user word at 85, funnel-0901'd >=2002" },
-    { "token": "PARSE",            "nameSlot": true,  "subscriptTrigger": true,  "note": "JSON/XML PARSE (2014+): a legal user word everywhere else" },
-    { "token": "PRESENT",          "nameSlot": true,  "subscriptTrigger": true,  "note": "the report PRESENT WHEN clause (13.18.41, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)" },
-    { "token": "PROCEDURES",       "nameSlot": true,  "subscriptTrigger": true,  "note": "USE FOR DEBUGGING ON ALL PROCEDURES ('85; VCR row 7.17)" },
-    { "token": "PROCESSING",       "nameSlot": true,  "subscriptTrigger": true,  "note": "XML PARSE ... PROCESSING PROCEDURE (2014+): a legal user word everywhere else" },
-    { "token": "PROGRAM_POINTER",  "nameSlot": true,  "subscriptTrigger": true,  "note": "USAGE PROGRAM-POINTER (13.18.60 GR24, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT precedent; P10 Step 7)" },
-    { "token": "PROPERTY",         "nameSlot": true,  "subscriptTrigger": true,  "note": "the PROPERTY clause/selector/repository specifier (2002+): a user word at 85, funnel-0901'd >=2002" },
-    { "token": "PROTOTYPE",        "nameSlot": true,  "subscriptTrigger": true,  "note": "FUNCTION-ID IS PROTOTYPE (11.5, 2002+): a user word at 85, funnel-0901'd >=2002" },
-    { "token": "RAISE",            "nameSlot": true,  "subscriptTrigger": true,  "note": "the RAISE statement (14.9.29): EC family, a user word at every edition" },
-    { "token": "RAISING",          "nameSlot": true,  "subscriptTrigger": true,  "note": "GOBACK/EXIT RAISING, PD-header RAISING (14.9.18 / 14.2): EC family" },
-    { "token": "RANDOM",           "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision (FUNCTION RANDOM): a reserved keyword. Lexer subscript-trigger only" },
-    { "token": "REFERENCES",       "nameSlot": true,  "subscriptTrigger": true,  "note": "USE FOR DEBUGGING ON ALL REFERENCES OF ('85; VCR row 7.17)" },
-    { "token": "REQUIRED",         "nameSlot": true,  "subscriptTrigger": true,  "note": "screen REQUIRED: a legal data-name in non-screen contexts" },
-    { "token": "RERUN",            "nameSlot": true,  "subscriptTrigger": true,  "note": "the I-O-CONTROL RERUN clause ('85; VCR row 7.15)" },
-    { "token": "RESUME",           "nameSlot": true,  "subscriptTrigger": true,  "note": "the RESUME statement (14.9.33): EC family, a user word at every edition" },
-    { "token": "RETRY",            "nameSlot": true,  "subscriptTrigger": true,  "note": "the RETRY phrase (14.7.9, 2002+): a user word below 2002, funnel-0901'd >=2002" },
-    { "token": "ROUNDING",         "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph ROUNDING (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "SCREEN",           "nameSlot": true,  "subscriptTrigger": true,  "note": "the SCREEN section word: a legal data-name in non-screen contexts" },
-    { "token": "SECONDS",          "nameSlot": true,  "subscriptTrigger": true,  "note": "RETRY ... SECONDS (14.7.9, 2002+): 8.10 context-sensitive, a user word at every edition" },
-    { "token": "SECURE",           "nameSlot": true,  "subscriptTrigger": true,  "note": "screen SECURE: a legal data-name in non-screen contexts" },
-    { "token": "SHARING",          "nameSlot": true,  "subscriptTrigger": true,  "note": "the SHARING clause / OPEN SHARING (12.4.5.15/14.9.27, 2002+): a user word below 2002, funnel-0901'd >=2002" },
-    { "token": "SIGN",             "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision (FUNCTION SIGN): a reserved keyword. Lexer subscript-trigger only" },
-    { "token": "SORT",             "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision (FUNCTION SORT-*): a reserved keyword. Lexer subscript-trigger only" },
-    { "token": "STANDARD_BINARY",  "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "STANDARD_DECIMAL", "nameSlot": true,  "subscriptTrigger": true,  "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS" },
-    { "token": "STATEMENT",        "nameSlot": true,  "subscriptTrigger": true,  "note": "RESUME AT NEXT STATEMENT (14.9.33): EC family, a user word at every edition" },
-    { "token": "SUM",              "nameSlot": false, "subscriptTrigger": true,  "note": "functionName collision (FUNCTION SUM): a reserved keyword. Lexer subscript-trigger only" },
-    { "token": "UNDERLINE_",       "nameSlot": true,  "subscriptTrigger": true,  "note": "screen UNDERLINE attribute (token UNDERLINE_ = 'UNDERLINE'): a legal data-name in non-screen contexts" },
-    { "token": "UNLOCK",           "nameSlot": true,  "subscriptTrigger": true,  "note": "the UNLOCK statement (14.9.47, 2002+): a user word below 2002, funnel-0901'd >=2002" },
-    { "token": "XOR",              "nameSlot": true,  "subscriptTrigger": true,  "note": "logical exclusive-or operator (2023, 8.8.4.9; Annex E.2 item 25): a user word below 2023; the operator meaning is gated in the expression tiers" }
+    {
+      "token": "ARITHMETIC",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS, a legal data-name elsewhere"
+    },
+    {
+      "token": "AS",
+      "nameSlot": true,
+      "subscriptTrigger": false,
+      "note": "the constant entry's AS phrase (13.10, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT twin; P10 Step 15). DELIBERATELY not a subscript trigger: `AS (arith-expr)` in a constant entry must lex the parenthesized expression in normal mode — a table NAMED As subscripted at 85 is the safe under-trigger (the BIT precedent, FU-1)"
+    },
+    {
+      "token": "AUTO",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen attribute: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "AUTOMATIC",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "LOCK MODE AUTOMATIC (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "BELL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen attribute: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "BINARY_ENCODING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "BIT",
+      "nameSlot": true,
+      "subscriptTrigger": false,
+      "note": "USAGE BIT. KNOWN latent asymmetry: in cobolWord but NOT the lexer subscript-trigger set today (a safe under-trigger). Captured AS-IS for neutrality; see follow-up FU-1"
+    },
+    {
+      "token": "BLINK",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen attribute: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "B_AND",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "boolean conjunction operator (2002, 8.7.2): a user word below 2002; the operator meaning is gated in the expression tiers"
+    },
+    {
+      "token": "B_NOT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "boolean negation operator (2002, 8.7.2): a user word below 2002"
+    },
+    {
+      "token": "B_OR",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "boolean inclusive-or operator (2002, 8.7.2): a user word below 2002"
+    },
+    {
+      "token": "B_XOR",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "boolean exclusive-or operator (2002, 8.7.2): a user word below 2002"
+    },
+    {
+      "token": "CLOCK_UNITS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "RERUN EVERY n CLOCK-UNITS ('85; VCR row 7.15)"
+    },
+    {
+      "token": "COL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen/report COLUMN abbreviation: a legal data-name elsewhere"
+    },
+    {
+      "token": "COLS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "report COLUMN-clause spelling (13.18.14 SR1, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)"
+    },
+    {
+      "token": "COLUMN",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen/report COLUMN. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, the 8.9 funnel gates the semantic rejection (see the RW cross-check note in gen-cobol-words.ps1)"
+    },
+    {
+      "token": "COLUMNS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "report COLUMN-clause spelling (13.18.14 SR1, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)"
+    },
+    {
+      "token": "COMMIT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only — the negative fixture tests/conformance/negative/user-word-commit.cob pins exactly this. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "CONDITION",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE AFTER EXCEPTION CONDITION (14.9.49 F3): EC family, a user word at every edition"
+    },
+    {
+      "token": "CONSTANT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "constant entry / CONSTANT RECORD (13.10 / 13.18.15, 2002+): a user word at 85, funnel-0901'd >=2002 (the PROTOTYPE precedent; P10 Step 15)"
+    },
+    {
+      "token": "DEBUGGING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE FOR DEBUGGING ('85; VCR row 7.17)"
+    },
+    {
+      "token": "DECIMAL_ENCODING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "DEFAULT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph DEFAULT (ISO 11.9): reserved only inside OPTIONS, a legal data-name elsewhere"
+    },
+    {
+      "token": "DISPLAY",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision: a reserved keyword (NOT a name slot). In the lexer subscript-trigger set for the '(' that opens a function argument list; deliberately NOT in cobolWord"
+    },
+    {
+      "token": "EC",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE AFTER EC (14.9.49.3 SR12): EC family, a user word at every edition"
+    },
+    {
+      "token": "EDITING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "PICTURE EDITING phrase (ISO 13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for PICTURE EDITING does not break its legal user-word use below 2023 (the COMMIT/VALIDATE precedent)."
+    },
+    {
+      "token": "END_RECEIVE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "MCS scope terminator. NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "END_SEND",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "MCS scope terminator. Reserved 2023 only; USER WORD at 85/2002/2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "ENTER",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the ENTER statement ('85; VCR row 7.16)"
+    },
+    {
+      "token": "ENTRY_CONVENTION",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "EO",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE AFTER EO (14.9.49.3 SR15; EC-OO wave): a user word at every edition"
+    },
+    {
+      "token": "EOL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen ERASE EOL: a legal data-name elsewhere"
+    },
+    {
+      "token": "EOS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen ERASE EOS: a legal data-name elsewhere"
+    },
+    {
+      "token": "ERASE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen ERASE: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "EVERY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "RERUN EVERY ('85; VCR row 7.15)"
+    },
+    {
+      "token": "EXCLUSIVE_OR",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "= XOR logical operator (2023, 8.8.4.9; Annex E.2 item 25): a user word below 2023; the operator meaning is gated in the expression tiers"
+    },
+    {
+      "token": "FACTORY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the FACTORY paragraph (11.4, 2002+): a user word at 85, funnel-0901'd >=2002 (ReservedWords.Table)"
+    },
+    {
+      "token": "FLOAT_BINARY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "FLOAT_DECIMAL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "FOREVER",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "RETRY FOREVER (14.7.9, 2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "FULL_",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen FULL attribute (token FULL_ = 'FULL'): a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "FUNCTION_POINTER",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USAGE FUNCTION-POINTER (13.18.60, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT precedent; P10 Step 7)"
+    },
+    {
+      "token": "GET",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "METHOD-ID GET PROPERTY (11.7, 2002+): a user word at 85, funnel-0901'd >=2002"
+    },
+    {
+      "token": "HIGHLIGHT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen HIGHLIGHT: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "HIGH_ORDER_LEFT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "HIGH_ORDER_RIGHT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "IDENTIFIER",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the base user-defined word"
+    },
+    {
+      "token": "IGNORING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "READ IGNORING LOCK (14.9.35, 2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "IMPLEMENTS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "FACTORY/OBJECT IMPLEMENTS (11.8): 8.10 context-sensitive, a user word at EVERY edition (never funneled)"
+    },
+    {
+      "token": "INTERFACE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "END INTERFACE / repository INTERFACE specifier (2002+): a user word at 85, funnel-0901'd >=2002"
+    },
+    {
+      "token": "INTERMEDIATE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "LENGTH",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "START WITH LENGTH / FUNCTION LENGTH. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, funnel-gated (see the RW cross-check note in gen-cobol-words.ps1)"
+    },
+    {
+      "token": "LOCATION",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "exception-checking PERFORM WITH LOCATION phrase (ISO 14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so a paragraph named LOCATION and 'PERFORM LOCATION' keep parsing below 2023 (the continuity invariant; EDITING/COMMIT precedent). LOCATION appears only in the F3 head (never after a statement), so unlike FINALLY it is structurally safe in the name slot."
+    },
+    {
+      "token": "LOWLIGHT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen LOWLIGHT: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "MANUAL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "LOCK MODE MANUAL (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "MERGE",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision: a reserved keyword (NOT a name slot). Lexer subscript-trigger only"
+    },
+    {
+      "token": "MESSAGE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31). Reserved 85/2002; USER WORD at 2014/2023 — the reverse direction from the others. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "NATIONAL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "FOR NATIONAL: a context-sensitive user word"
+    },
+    {
+      "token": "NORMAL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "STOP RUN WITH NORMAL: a context-sensitive user word"
+    },
+    {
+      "token": "NUMBERS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "COLUMN/LINE clause plural spelling (13.18.14/13.18.35): 8.10 context-sensitive, a user word at every edition (P10 Step 13)"
+    },
+    {
+      "token": "ONLY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "WITH LOCK ON ... ONLY (2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "OVERRIDE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the METHOD-ID attribute slot (11.7, 2002+): a user word at 85, funnel-0901'd >=2002"
+    },
+    {
+      "token": "PARSE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "JSON/XML PARSE (2014+): a legal user word everywhere else"
+    },
+    {
+      "token": "PRESENT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the report PRESENT WHEN clause (13.18.41, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)"
+    },
+    {
+      "token": "PROCEDURES",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE FOR DEBUGGING ON ALL PROCEDURES ('85; VCR row 7.17)"
+    },
+    {
+      "token": "PROCESSING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "XML PARSE ... PROCESSING PROCEDURE (2014+): a legal user word everywhere else"
+    },
+    {
+      "token": "PROGRAM_POINTER",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USAGE PROGRAM-POINTER (13.18.60 GR24, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT precedent; P10 Step 7)"
+    },
+    {
+      "token": "PROPERTY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the PROPERTY clause/selector/repository specifier (2002+): a user word at 85, funnel-0901'd >=2002"
+    },
+    {
+      "token": "PROTOTYPE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "FUNCTION-ID IS PROTOTYPE (11.5, 2002+): a user word at 85, funnel-0901'd >=2002"
+    },
+    {
+      "token": "RAISE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the RAISE statement (14.9.29): EC family, a user word at every edition"
+    },
+    {
+      "token": "RAISING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "GOBACK/EXIT RAISING, PD-header RAISING (14.9.18 / 14.2): EC family"
+    },
+    {
+      "token": "RANDOM",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision (FUNCTION RANDOM): a reserved keyword. Lexer subscript-trigger only"
+    },
+    {
+      "token": "RECEIVE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "MCS RECEIVE (ISO 14.9.31). NON-MONOTONIC reservation: reserved 85, USER WORD 2002/2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2002/2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "REFERENCES",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "USE FOR DEBUGGING ON ALL REFERENCES OF ('85; VCR row 7.17)"
+    },
+    {
+      "token": "REQUIRED",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen REQUIRED: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "RERUN",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the I-O-CONTROL RERUN clause ('85; VCR row 7.15)"
+    },
+    {
+      "token": "RESUME",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the RESUME statement (14.9.33): EC family, a user word at every edition"
+    },
+    {
+      "token": "RETRY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the RETRY phrase (14.7.9, 2002+): a user word below 2002, funnel-0901'd >=2002"
+    },
+    {
+      "token": "ROLLBACK",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "ROUNDING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph ROUNDING (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "SCREEN",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the SCREEN section word: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "SECONDS",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "RETRY ... SECONDS (14.7.9, 2002+): 8.10 context-sensitive, a user word at every edition"
+    },
+    {
+      "token": "SECURE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen SECURE: a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "SEND",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "MCS SEND (ISO 14.9.38). NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "SHARING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the SHARING clause / OPEN SHARING (12.4.5.15/14.9.27, 2002+): a user word below 2002, funnel-0901'd >=2002"
+    },
+    {
+      "token": "SIGN",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision (FUNCTION SIGN): a reserved keyword. Lexer subscript-trigger only"
+    },
+    {
+      "token": "SORT",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision (FUNCTION SORT-*): a reserved keyword. Lexer subscript-trigger only"
+    },
+    {
+      "token": "STANDARD_BINARY",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "STANDARD_DECIMAL",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+    },
+    {
+      "token": "STATEMENT",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "RESUME AT NEXT STATEMENT (14.9.33): EC family, a user word at every edition"
+    },
+    {
+      "token": "SUM",
+      "nameSlot": false,
+      "subscriptTrigger": true,
+      "note": "functionName collision (FUNCTION SUM): a reserved keyword. Lexer subscript-trigger only"
+    },
+    {
+      "token": "UNDERLINE_",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "screen UNDERLINE attribute (token UNDERLINE_ = 'UNDERLINE'): a legal data-name in non-screen contexts"
+    },
+    {
+      "token": "UNLOCK",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the UNLOCK statement (14.9.47, 2002+): a user word below 2002, funnel-0901'd >=2002"
+    },
+    {
+      "token": "VALIDATE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "VALIDATE statement (ISO 14.9.50). USER WORD at 85; reserved 2002+. nameSlot keeps `01 VALIDATE PIC X.` legal at --std 85. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+    },
+    {
+      "token": "XOR",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "logical exclusive-or operator (2023, 8.8.4.9; Annex E.2 item 25): a user word below 2023; the operator meaning is gated in the expression tiers"
+    }
   ]
 }

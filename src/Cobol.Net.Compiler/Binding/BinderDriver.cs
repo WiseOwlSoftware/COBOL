@@ -37,7 +37,9 @@ internal sealed class BinderDriver
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
         IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
-        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null)
+        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null,
+        IReadOnlyList<Frontend.Preprocessor.FlagEvent>? flagEvents = null,
+        CobolNet.Editions.CobolWordsMap? cobolWordsMap = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -50,7 +52,11 @@ internal sealed class BinderDriver
         var refModZl = RefModZeroLengthState.Build(refModZlEvents);
 
         var (units, classes, table) = CollectUnits(tree, edition);
-        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl };
+        var session = new BindSession
+        {
+            Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
+            CobolWords = cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty,
+        };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
@@ -76,6 +82,12 @@ internal sealed class BinderDriver
             pass.Run(ctx);
             foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
         }
+
+        // The migration-flagging pass (ISO §7.3.14 FLAG-02 / §7.3.15 FLAG-14) — a SIBLING to the terminal
+        // VersionConformancePass, run right after it: it is an orthogonal axis (directive-state-driven, always a
+        // Warning, fires regardless of --std), so it is NOT a GroupTail manifest pass. A no-op (no parse-tree walk)
+        // when the source carries no >>FLAG directive — the zero-overhead invariant.
+        global::CobolNet.Validation.FlagConformancePass.Run(ctx, FlagState.Build(flagEvents), edition);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -344,6 +356,7 @@ internal sealed class BinderDriver
         {
             OoClasses = session.OoClasses,
             RefModZeroLength = session.RefModZeroLength,
+            CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§7.3.10)
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,

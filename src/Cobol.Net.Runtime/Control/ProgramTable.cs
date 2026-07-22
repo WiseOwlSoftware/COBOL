@@ -153,11 +153,17 @@ public sealed class ProgramTable
         int savedActivator = exc.ActivatorExternalMask;
         exc.ActivatorExternalMask = exc.ExternalCheckMask;
         exc.ExternalCheckMask = 0;
+        // Per-activation scope for the Format-3 exception-checking PERFORM interceptor (ISO §14.9.28.4): snapshot
+        // the frame-stack depth so a called program's raise is NOT intercepted by the caller's active WHEN frame
+        // (the cross-activation GR1 "in range" reading is a documented STAGED item). TrimPerformTo on return also
+        // balances the stack if the callee unwound abnormally past its own pops.
+        int savedPerformDepth = exc.PerformDepth;
         try { inst.Call(args, returning); }
         finally
         {
             n.Active--; _owner.Modules.Pop();
             exc.ActivatorExternalMask = savedActivator; exc.ExternalCheckMask = 0;
+            exc.TrimPerformTo(savedPerformDepth);
         }
 
         if (n.Initial)

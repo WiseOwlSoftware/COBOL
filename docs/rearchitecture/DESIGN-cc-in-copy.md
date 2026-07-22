@@ -1,0 +1,111 @@
+# DESIGN — conditional-compilation directives inside COPY (merged text-manipulation driver, ISO §7.2.1)
+
+> **STATUS: IMPLEMENTED (DEVLOG 966).** Subsystem deep-dive for merging the conditional-compilation (CC) and
+> COPY text-manipulation stages so directives INSIDE copybooks are processed (ISO §7.2.1). Design SSOT; the plan
+> (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. Keep current with the code (rule 4). The merged
+> `ConditionalCompilationProcessor.ProcessWithCopy` driver is wired into `Frontend`; the legacy `Process`/COPY
+> paths stay byte-identical. Gate: characterization 33/33 · CC/COPY unit 26/26 · CopyConditional 8/8 · the
+> `cc_in_copy` golden · GnuCOBOL +2 fixes/0 regressions · legacy guard ALL GREEN · greenfield Conformance 3806/0.
+
+## §1 The defect
+
+ISO §7.2.1 orders the text-manipulation stage: **Step 1** incorporate COPY library text (false-path IF/EVALUATE
+lines, *including* COPY'd text, may be omitted); **Step 2** process DEFINE/IF/EVALUATE + variable substitution +
+PUSH/POP + COPY REPLACING, in encounter order over the expanded group; **Step 3** REPLACE; **Step 4** COBOL-WORDS.
+
+The current greenfield pipeline (`Frontend.Preprocess`) runs **CC (Step 2a) BEFORE COPY (Step 1)** —
+deliberately, so a main-source `>>IF` can gate a `COPY` statement. Consequence: a `>>DEFINE`/`>>IF`/`>>EVALUATE`
+**inside a copybook** is never processed — it survives COPY expansion and reaches the lexer as a stray token
+(**verified:** a copybook `>>IF` → `COBOL0001: unexpected '>'`). Steps 3/4 (REPLACE, COBOL-WORDS) and Step 2d
+(COPY REPLACING) are already correctly ordered — the ONLY defect is Steps 1/2.
+
+## §2 What must be preserved (verified firsthand)
+
+1. A main-source `>>IF USEIT = 0` gating a `COPY` → the COPY is skipped (prints the un-copied value).
+2. A **missing copybook in a false branch** must NOT error (today it works because CC blanks the false-branch
+   COPY line before `CopyProcessor` runs). **This is why a simple order-swap (COPY-first) is unacceptable** —
+   it would expand the false-branch COPY and raise a spurious CBL3620.
+3. Legacy byte-identity: `ConditionalCompilationProcessor.Process` and `CopyProcessor.Process` keep their exact
+   behavior (the frozen `CobolSharp.Compiler` oracle at `Compilation.cs:345/355` + the standalone `preprocess`
+   CLI + the direct unit tests depend on them).
+4. The H3 line-count-preserving discipline: the five downstream directive-collection stages
+   (TURN/PROPAGATE/REF-MOD/FLAG/COBOL-WORDS) run AFTER, on the final expanded text; the `linesBefore` baseline is
+   captured after the merged driver. The merged driver itself changes line counts (COPY inserts lines) — it runs
+   BEFORE the baseline snapshot, exactly where CC+COPY run today.
+
+## §3 Mechanism — one interleaved recursive driver (owner-directed)
+
+A new greenfield class **`CopyConditionalProcessor`** fuses the CC branch-selection state machine with COPY
+expansion into ONE pass with **shared directive state**, so:
+- an emitting-branch `COPY` is expanded and the copybook's incorporated text is fed through the SAME pass (so
+  copybook `>>DEFINE`/`>>IF`/… are processed, with the DEFINE table shared across the copybook boundary);
+- an omitted-branch `COPY` is DROPPED (never expanded → constraint §2.2 holds);
+- a main-source `>>IF` still gates a `COPY` (constraint §2.1) — the driver reaches the `>>IF` first and its
+  false branch omits the following COPY line.
+
+This is the spec model (Step 1 flatten ⊕ Step 2 CC, processed in encounter order over the expanded group)
+realized lazily so false-path COPYs are never incorporated.
+
+### §3.1 Shared state (`CcState`)
+
+Extracted from the current `ConditionalCompilationProcessor.Process` locals into a per-run object threaded
+through recursion: the `defines` map (DEFINE/OFF/OVERRIDE), the `>>IF`/`>>EVALUATE` frame `stack`, the
+`FlagScanState` (the frontend-inline FLAG options b/c), and the shared `CompileTimeExpressionEvaluator`. One
+`CcState` per compilation group; recursion into a copybook shares it (so a copybook DEFINE is visible to
+following main-source directives — spec Step-2 encounter order).
+
+### §3.2 COPY expansion reuse
+
+The copybook mechanics stay in `CopyProcessor` (find/read, `NormalizeCopybook` fixed→free, COPY REPLACING via
+`ApplyReplacements`, the circular/`MaxCopyDepth` guards). The merged driver calls a NEW `CopyProcessor` method
+that expands ONE COPY statement at a given position — parse name + REPLACING (to the terminating period, possibly
+multi-line), resolve, normalize, apply REPLACING — and returns the copybook text (NOT recursively expanded; the
+merged driver recurses so nested COPY *and* nested CC both process). `alreadyIncluded` + `depth` thread through
+for the SR1 circular / depth-20 guards.
+
+### §3.3 The `leave*` flags + the collection stages
+
+The driver keeps the exact `leave*` behavior: an emitting-branch `>>TURN`/`>>PROPAGATE`/`>>REF-MOD-ZERO-LENGTH`/
+`>>FLAG-02`/`>>FLAG-14`/`>>COBOL-WORDS` survives to its downstream stage; an omitted-branch one drops; the FLAG
+options b/c update the shared `FlagScanState`. REPLACE (Step 3) runs after the whole interleaved expansion
+(`CopyProcessor.ApplyReplaceStatements` over the merged text); the five collection stages + COBOL-WORDS run
+unchanged on the final text.
+
+### §3.4 Copybook `>>SOURCE FORMAT` scoping (§7.3.24.3 GR5)
+
+`NormalizeCopybook` already normalizes each copybook in ISOLATION (its own `>>SOURCE FORMAT` segments are
+resolved within the copybook and do not leak out), so GR5's "scoped-and-reverting" is satisfied by construction.
+No cross-copybook SOURCE FORMAT state is threaded.
+
+## §4 Wiring (greenfield only)
+
+`Frontend.Preprocess`: replace the two calls `ConditionalCompilationProcessor.Process(...)` (before COPY) +
+`CopyProcessor.Process(...)` with ONE `CopyConditionalProcessor.Process(text, sourceDir, copySearchPaths,
+dialect, permissive, diag, sourcePath)` returning the fully expanded free-form text (COPY incorporated, CC
+applied, REPLACE applied). Everything downstream (NIST, TURN/…/COBOL-WORDS, the H3 baseline) is unchanged. The
+legacy `Compilation.cs` and the `preprocess` CLI keep the two separate calls — byte-identical.
+
+## §5 Increments
+
+- **Incr 1 — the merged driver, common case.** `CcState` extraction + `CopyConditionalProcessor` (CC
+  branch-selection + emitting-branch COPY expansion + omitted-branch COPY drop + shared DEFINE state) +
+  `CopyProcessor.ExpandOneCopy`. Wire into `Frontend`. Preserve §2.1/§2.2. Unit + conformance goldens (copybook
+  `>>IF`, copybook `>>DEFINE` seen by main `>>IF`, main `>>IF` gating COPY, false-branch missing copybook).
+- **Incr 2 — edges** (only if a probe/differential shows a gap): multi-line COPY REPLACING interleaved with CC;
+  mid-line COPY; PUSH/POP across the copybook boundary; nested-copybook directives.
+
+## §6 Gate (per the shared-core / high-blast-radius doctrine)
+
+Wave-local per commit (build + characterization + the new unit/goldens + CLI probes). **Before merge / for the
+driver-swap commit:** the FULL legacy guard (`guard.sh`/`guard-fast.sh` ALL GREEN — the legacy oracle must be
+byte-identical) + the FULL greenfield Conformance + **the GnuCOBOL external differential before/after** (the
+owner directive: diff per-case verdicts; a divergence→agree flip is a FIX, an agree→divergence flip is a
+REGRESSION, 0 tolerated). The GnuCOBOL corpus exercises COPY heavily — it is the real net for this change.
+
+## §7 Tests
+
+- **Unit** `CopyConditionalProcessorTests` — copybook `>>IF` (both branches), copybook `>>DEFINE` visible to a
+  later main `>>IF`, main `>>IF` gating COPY (taken/omitted), false-branch missing copybook (no error), nested
+  COPY with directives, the `leave*` survival (a copybook `>>TURN` reaches the TURN stage).
+- **Conformance** `tests/conformance/2023/cc_in_copy_*.cob` (+ `.out`) — an observable end-to-end (a copybook
+  `>>IF` selecting a VALUE, printed) + GreenfieldOnly exclusion (the frozen legacy can't process copybook CC).

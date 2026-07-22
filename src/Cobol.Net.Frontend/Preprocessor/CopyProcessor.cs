@@ -60,6 +60,13 @@ public sealed class CopyProcessor(
     /// <summary>Add a directory to search for copybooks.</summary>
     public void AddSearchPath(string path) => _searchPaths.Add(path);
 
+    /// <summary>Ensure the source's own directory is searched FIRST (the <see cref="Process"/> setup, ISO §7.4.2)
+    /// — used by the merged CC+COPY driver, which calls <see cref="ExpandCopiesOneLevel"/> directly.</summary>
+    internal void RegisterSourceDir(string sourceDir)
+    {
+        if (!_searchPaths.Contains(sourceDir)) _searchPaths.Insert(0, sourceDir);
+    }
+
     private void Report(DiagnosticDescriptor descriptor, int line, params object[] args)
         => _diagnostics?.Report(descriptor, new SourceLocation(_sourceName, 0, line, 0), TextSpan.Empty, args);
 
@@ -89,7 +96,7 @@ public sealed class CopyProcessor(
     /// Process REPLACE statements: REPLACE ==pseudo-text-1== BY ==pseudo-text-2==.
     /// REPLACE OFF turns off active replacements.
     /// </summary>
-    private static string ApplyReplaceStatements(string text)
+    internal static string ApplyReplaceStatements(string text)
     {
         var result = new StringBuilder();
         var activeReplacements = new List<(string from, string to, ReplaceKind kind)>();
@@ -336,76 +343,136 @@ public sealed class CopyProcessor(
 
             result.Append(text, pos, copyIdx - pos);
 
-            int afterCopy = copyIdx + "COPY".Length;
-            SkipWhitespace(text, ref afterCopy);
-
-            string libraryName = ReadTextNameOrLiteral(text, ref afterCopy);
-            SkipWhitespace(text, ref afterCopy);
-
-            // Optional library qualifier: COPY text-name (IN | OF) library-name. The library
-            // name selects which copy library the text-name is taken from (ISO §7.4.2).
-            string? libraryQualifier = null;
-            if (afterCopy < text.Length && (MatchWord(text, afterCopy, "IN") || MatchWord(text, afterCopy, "OF")))
+            var one = ResolveOneCopy(text, copyIdx, alreadyIncluded, out int afterCopy);
+            if (one.Outcome == CopyOutcome.Found)
             {
-                afterCopy += 2;
-                SkipWhitespace(text, ref afterCopy);
-                libraryQualifier = ReadTextNameOrLiteral(text, ref afterCopy);
-                SkipWhitespace(text, ref afterCopy);
-            }
-
-            var replacements = new List<(string from, string to, ReplaceKind kind)>();
-            if (afterCopy < text.Length && MatchWord(text, afterCopy, "REPLACING"))
-            {
-                afterCopy += "REPLACING".Length;
-                SkipWhitespace(text, ref afterCopy);
-                // The VCR-row-4 gate rides the operand reads (COPY only — REPLACE is not in the E.2 removal).
-                ParseReplacements(text, ref afterCopy, replacements, p => OnNonPseudoTextOperand(text, p));
-            }
-
-            while (afterCopy < text.Length && text[afterCopy] != '.')
-                afterCopy++;
-            if (afterCopy < text.Length) afterCopy++;
-
-            string? copybookPath = FindCopybook(libraryName, libraryQualifier);
-            if (copybookPath == null)
-            {
-                // ISO §7.2.3.4 GR 2: library text shall be available to the compiler. Hard error under
-                // named-strict dialects; Default/--nist keep the lenient comment fallback (NIST safe).
-                if (_strict)
-                    Report(DiagnosticDescriptors.CBL3620, LineOf(text, copyIdx),
-                        libraryName, string.Join("; ", _searchPaths));
-                result.AppendLine($"*> COPY {libraryName} — copybook not found");
-            }
-            else if (!alreadyIncluded.Add(copybookPath))
-            {
-                // ISO §7.2.3.3 SR 1: a COPY shall not directly or indirectly include itself. Always an
-                // error (a real bug; never occurs in the corpus).
-                Report(DiagnosticDescriptors.CBL3621, LineOf(text, copyIdx), libraryName);
-                result.AppendLine($"*> COPY {libraryName} — circular include skipped");
+                string expanded = ExpandCopyStatements(one.Text, alreadyIncluded, depth + 1);
+                result.AppendLine();
+                result.Append(expanded);
+                result.AppendLine();
+                alreadyIncluded.Remove(one.CopybookPath!);
             }
             else
             {
-                // Library text is itself in reference (fixed) format — normalize it to free
-                // form (strip sequence/identification areas, expand continuations) exactly as
-                // the main source was, so inserted lines align in the program's source area.
-                string copybookText = NormalizeCopybook(File.ReadAllText(copybookPath));
-
-                // COPY … REPLACING uses the same text-word matching as REPLACE (ISO §7.4.6):
-                // operands match library text-words ignoring intervening white space/line breaks.
-                copybookText = ApplyReplacements(copybookText, replacements);
-
-                copybookText = ExpandCopyStatements(copybookText, alreadyIncluded, depth + 1);
-
-                result.AppendLine();
-                result.Append(copybookText);
-                result.AppendLine();
-
-                alreadyIncluded.Remove(copybookPath);
+                result.AppendLine(one.Text);   // the not-found / circular comment fallback
             }
 
             pos = afterCopy;
         }
 
+        return result.ToString();
+    }
+
+    /// <summary>The disposition of one resolved COPY statement.</summary>
+    internal enum CopyOutcome { Found, NotFound, Circular }
+
+    /// <summary>The result of resolving ONE COPY statement (non-recursive): the text to splice and, when
+    /// <see cref="CopyOutcome.Found"/>, the copybook's path (so the caller removes it from the include set after
+    /// recursing). <see cref="Text"/> is the copybook's NormalizeCopybook+ApplyReplacements text (Found) or the
+    /// comment fallback (NotFound/Circular).</summary>
+    internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath);
+
+    /// <summary>Parse and resolve ONE COPY statement whose keyword is at <paramref name="copyIdx"/> — read the
+    /// text-name + optional IN/OF qualifier + REPLACING (advancing <paramref name="afterCopy"/> past the
+    /// terminating period), find the copybook, and return its NormalizeCopybook+ApplyReplacements text (NOT
+    /// recursively expanded — the caller recurses). Shared by <see cref="ExpandCopyStatements"/> (legacy path) and
+    /// <see cref="ExpandCopiesOneLevel"/> (the merged CC+COPY driver), so the two never diverge.</summary>
+    internal OneCopyResult ResolveOneCopy(string text, int copyIdx, HashSet<string> alreadyIncluded, out int afterCopy)
+    {
+        afterCopy = copyIdx + "COPY".Length;
+        SkipWhitespace(text, ref afterCopy);
+
+        string libraryName = ReadTextNameOrLiteral(text, ref afterCopy);
+        SkipWhitespace(text, ref afterCopy);
+
+        // Optional library qualifier: COPY text-name (IN | OF) library-name (ISO §7.4.2).
+        string? libraryQualifier = null;
+        if (afterCopy < text.Length && (MatchWord(text, afterCopy, "IN") || MatchWord(text, afterCopy, "OF")))
+        {
+            afterCopy += 2;
+            SkipWhitespace(text, ref afterCopy);
+            libraryQualifier = ReadTextNameOrLiteral(text, ref afterCopy);
+            SkipWhitespace(text, ref afterCopy);
+        }
+
+        var replacements = new List<(string from, string to, ReplaceKind kind)>();
+        if (afterCopy < text.Length && MatchWord(text, afterCopy, "REPLACING"))
+        {
+            afterCopy += "REPLACING".Length;
+            SkipWhitespace(text, ref afterCopy);
+            // The VCR-row-4 gate rides the operand reads (COPY only — REPLACE is not in the E.2 removal).
+            ParseReplacements(text, ref afterCopy, replacements, p => OnNonPseudoTextOperand(text, p));
+        }
+
+        while (afterCopy < text.Length && text[afterCopy] != '.')
+            afterCopy++;
+        if (afterCopy < text.Length) afterCopy++;
+
+        string? copybookPath = FindCopybook(libraryName, libraryQualifier);
+        if (copybookPath == null)
+        {
+            // ISO §7.2.3.4 GR 2: library text shall be available. Hard error under named-strict dialects;
+            // Default/--nist keep the lenient comment fallback (NIST safe).
+            if (_strict)
+                Report(DiagnosticDescriptors.CBL3620, LineOf(text, copyIdx),
+                    libraryName, string.Join("; ", _searchPaths));
+            return new OneCopyResult(CopyOutcome.NotFound, $"*> COPY {libraryName} — copybook not found", null);
+        }
+        if (!alreadyIncluded.Add(copybookPath))
+        {
+            // ISO §7.2.3.3 SR 1: a COPY shall not directly or indirectly include itself.
+            Report(DiagnosticDescriptors.CBL3621, LineOf(text, copyIdx), libraryName);
+            return new OneCopyResult(CopyOutcome.Circular, $"*> COPY {libraryName} — circular include skipped", null);
+        }
+
+        // Library text is itself in reference (fixed) format — normalize to free form so inserted lines align in
+        // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.4.6).
+        string copybookText = ApplyReplacements(NormalizeCopybook(File.ReadAllText(copybookPath)), replacements);
+        return new OneCopyResult(CopyOutcome.Found, copybookText, copybookPath);
+    }
+
+    /// <summary>Expand every COPY statement in <paramref name="text"/> ONE level (no recursion into the copybook):
+    /// for each found copybook, its resolved text is handed to <paramref name="expandCopybook"/> (the merged
+    /// CC+COPY driver, which processes the copybook's own directives AND its nested COPY), and the result is
+    /// spliced with the same blank-line framing as <see cref="ExpandCopyStatements"/>. This is the COPY half of the
+    /// interleaved text-manipulation driver (ISO §7.2.1) — the CC half drives, calling this only on emitting-branch
+    /// text so an omitted-branch COPY is never expanded (design SSOT <c>DESIGN-cc-in-copy.md</c>).</summary>
+    internal string ExpandCopiesOneLevel(string text, HashSet<string> alreadyIncluded, int depth,
+        Func<string, int, string> expandCopybook)
+    {
+        if (depth > MaxCopyDepth)
+        {
+            Report(DiagnosticDescriptors.CBL3622, 0, MaxCopyDepth);
+            return text;
+        }
+
+        var result = new StringBuilder();
+        int pos = 0;
+        while (pos < text.Length)
+        {
+            int copyIdx = FindCopyKeyword(text, pos);
+            if (copyIdx < 0)
+            {
+                result.Append(text, pos, text.Length - pos);
+                break;
+            }
+            result.Append(text, pos, copyIdx - pos);
+
+            var one = ResolveOneCopy(text, copyIdx, alreadyIncluded, out int afterCopy);
+            if (one.Outcome == CopyOutcome.Found)
+            {
+                string processed = expandCopybook(one.Text, depth + 1);   // CC + nested COPY on the copybook
+                result.AppendLine();
+                result.Append(processed);
+                result.AppendLine();
+                alreadyIncluded.Remove(one.CopybookPath!);
+            }
+            else
+            {
+                result.AppendLine(one.Text);
+            }
+            pos = afterCopy;
+        }
         return result.ToString();
     }
 

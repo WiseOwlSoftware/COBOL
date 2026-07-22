@@ -43,13 +43,15 @@ public static class CobolFile
 
     /// <summary>Register a SELECTed INDEXED file (emitted at program start).</summary>
     public static void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1)
+        int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1,
+        ushort[]? primeWeights = null)
         => _reg.RegisterIndexed(cobolName, assignTarget, recordWidth, optional, accessMode, primeOffset,
-            primeLength, varyMin, varyMax);
+            primeLength, varyMin, varyMax, primeWeights);
 
-    /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order.</summary>
-    public static void AddAlternateKey(string name, int offset, int length, bool duplicates)
-        => _reg.AddAlternateKey(name, offset, length, duplicates);
+    /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
+    /// §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN value.</summary>
+    public static void AddAlternateKey(string name, int offset, int length, bool duplicates, ushort[]? weights = null, string? suppress = null)
+        => _reg.AddAlternateKey(name, offset, length, duplicates, weights, suppress);
 
     public static void OpenInput(string name) => _reg.Open(name, FileOpenMode.Input);
     public static void OpenOutput(string name) => _reg.Open(name, FileOpenMode.Output);

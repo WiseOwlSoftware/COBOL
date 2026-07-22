@@ -29,7 +29,21 @@ options {
     // used to instruct. Do NOT hand-add a token here: edit cobol-words.json and re-run the generator.
 
     private bool PreviousTokenCouldBeDataName()
-        => _dataNameTokens.Contains(_lastNonWsTokenType);
+        => _dataNameTokens.Contains(_lastNonWsTokenType) || IsCobolWordsDataName(_lastNonWsTokenType);
+
+    // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): the per-compilation-group set of KEYWORD token types the directive
+    // de-reserves (UNDEFINE/SUBSTITUTE) — a following '(' must open a SUBSCRIPT even though the word is still lexed
+    // as its keyword token here (the post-lex CobolWordsRewriter retypes it to IDENTIFIER afterwards, but the
+    // SUBSCRIPT-mode decision at '(' is frozen at lex time and cannot be repaired later). Null by default: the
+    // legacy pipeline never sets it, so the '(' decision stays byte-identical.
+    private readonly System.Collections.Generic.HashSet<int> _cobolWordsDataNames =
+        new System.Collections.Generic.HashSet<int>();
+    public void SetCobolWordsDataNames(System.Collections.Generic.IReadOnlySet<int> types)
+    {
+        _cobolWordsDataNames.Clear();
+        foreach (int t in types) _cobolWordsDataNames.Add(t);
+    }
+    private bool IsCobolWordsDataName(int t) => _cobolWordsDataNames.Contains(t);
 
     // FUNCTION-ARGUMENT REGION (P7 Step 12). '(' after "FUNCTION functionName" is the function's argument-list
     // paren (ISO §8.4.3.2 SR6) — it stays in DEFAULT mode so the arguments parse through the ONE
@@ -43,15 +57,31 @@ options {
     private readonly System.Collections.Generic.List<bool> _fnParenStack = new();
     private bool _primeFunctionArgs;
 
+    // COMPILER-DIRECTIVE EXPRESSION region (compile-time expression evaluator, ISO §7.3.6/§7.3.7/§7.3.8). The
+    // frontend fragment-parses a directive operand / constant-conditional-expression with the lexer primed here.
+    // Two directive-only effects (both context-sensitive — nil global blast radius): (1) 'DEFINED' becomes a
+    // token (the §7.3.8.4.4 defined-condition keyword — reserved nowhere else); (2) every '(' is a grouping
+    // LPAREN, never a subscript. Effect (2) is required because the subscript-vs-grouping decision treats a '('
+    // after any word that COULD be a data-name as a subscript, and the boolean operators (B-AND …) are legal
+    // data-names below 2023, so `A B-AND (…)` would mis-lex the group in SUBSCRIPT mode; a directive operand
+    // never subscripts, so every '(' is unambiguously a group (confirmed by token dump, DESIGN §4.1).
+    private bool _primeDirectiveExpr;
+
     private bool InFunctionArgs() => _primeFunctionArgs || _fnParenStack.Contains(true);
 
     // Fragment re-parse hook (the D2 keyword-omitted argument re-parse): treat the WHOLE input as one
     // function-argument region (the fragment is the text inside the argument parens).
     public void PrimeFunctionArgs() => _primeFunctionArgs = true;
 
+    // Fragment re-parse hook (the compile-time directive-expression parse): treat the WHOLE input as a directive
+    // operand / cce region — DEFINED is a token and every '(' groups (DESIGN §4.1).
+    public void PrimeDirectiveExpr() => _primeDirectiveExpr = true;
+
     private void OnDefaultLParen()
     {
-        if (PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
+        // A directive-expression region never subscripts: every '(' groups (DESIGN §4.1). Checked first so a '('
+        // after a boolean-operator data-name (e.g. `A B-AND (…)`, B-AND legal as a name below 2023) stays a group.
+        if (!_primeDirectiveExpr && PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
         {
             PushMode(SUBSCRIPT);   // subscript / ref-mod capture — the matching ')' is SUB_RPAREN (popMode)
             return;
@@ -103,7 +133,9 @@ COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
 END_IF       : 'END-IF' ;
 END_PERFORM  : 'END-PERFORM' ;
 END_EVALUATE : 'END-EVALUATE' ;
+END_RECEIVE  : 'END-RECEIVE' ;  // MCS scope terminator (ISO 14.9.31)
 END_READ     : 'END-READ' ;
+END_SEND     : 'END-SEND' ;     // MCS scope terminator (ISO 14.9.38)
 END_SEARCH   : 'END-SEARCH' ;
 END_CALL     : 'END-CALL' ;
 END_SORT     : 'END-SORT' ;
@@ -281,6 +313,7 @@ ALLOCATE    : 'ALLOCATE' ;
 FREE        : 'FREE' ;
 INVOKE      : 'INVOKE' ;
 JSON        : 'JSON' ;
+MESSAGE     : 'MESSAGE' ;      // MCS: the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31)
 MERGE       : 'MERGE' ;
 MOVE        : 'MOVE' ;
 MULTIPLY    : 'MULTIPLY' ;
@@ -365,6 +398,7 @@ COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14
 COLUMN      : 'COLUMN' ;
 COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 COLLATING   : 'COLLATING' ;
+COMMIT      : 'COMMIT' ;       // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 COMMON      : 'COMMON' ;
 COMP        : 'COMP' ;
 COMP_1      : 'COMP-1' ;
@@ -413,6 +447,7 @@ RERUN       : 'RERUN' ;       // the I-O-CONTROL RERUN clause head (row 7.15)
 REFERENCES  : 'REFERENCES' ;  // USE FOR DEBUGGING ON ALL REFERENCES OF (row 7.17); distinct from REFERENCE
 PROCEDURES  : 'PROCEDURES' ;  // USE FOR DEBUGGING ON ALL PROCEDURES (row 7.17); distinct from PROCEDURE
 EDITED      : 'EDITED' ;
+EDITING     : 'EDITING' ;                 // PICTURE EDITING phrase (ISO §13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25)
 ELSE        : 'ELSE' ;
 END         : 'END' ;
 EOL         : 'EOL' ;
@@ -431,6 +466,7 @@ FALSE_      : 'FALSE' ;
 FILE        : 'FILE' ;
 FILLER      : 'FILLER' ;
 FINAL       : 'FINAL' ;
+FINALLY     : 'FINALLY' ;                 // exception-checking PERFORM FINALLY phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 FULL_       : 'FULL' ;
 POSITIVE    : 'POSITIVE' ;
 NEGATIVE    : 'NEGATIVE' ;
@@ -484,6 +520,7 @@ LENGTH      : 'LENGTH' ;
 LESS        : 'LESS' ;
 LINE        : 'LINE' ;
 LINES       : 'LINES' ;
+LOCATION    : 'LOCATION' ;                // exception-checking PERFORM WITH LOCATION phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 LOCK        : 'LOCK' ;
 LOWLIGHT    : 'LOWLIGHT' ;
 // ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9/.15, §14.7.9, §14.9.27/.30/.47). SHARING/RETRY/
@@ -551,6 +588,7 @@ EO          : 'EO' ;         // USE AFTER EO ≡ EXCEPTION OBJECT (ISO §14.9.49
 EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
                              // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
 RANDOM      : 'RANDOM' ;
+RECEIVE     : 'RECEIVE' ;      // MCS RECEIVE (ISO 14.9.31) - recognized-not-supported (4.2.6, A.3 item 4)
 RECORD      : 'RECORD' ;
 RECORDS     : 'RECORDS' ;
 REEL        : 'REEL' ;
@@ -570,6 +608,7 @@ REWIND      : 'REWIND' ;
 REVERSED    : 'REVERSED' ;
 RF          : 'RF' ;
 RH          : 'RH' ;
+ROLLBACK    : 'ROLLBACK' ;     // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 ROUNDED     : 'ROUNDED' ;
 RIGHT       : 'RIGHT' ;
 RUN         : 'RUN' ;
@@ -579,6 +618,7 @@ SORT_MERGE  : 'SORT-MERGE' ;
 MULTIPLE    : 'MULTIPLE' ;
 TAPE        : 'TAPE' ;
 POSITION    : 'POSITION' ;
+SEND        : 'SEND' ;         // MCS SEND (ISO 14.9.38) - recognized-not-supported (4.2.6, A.3 item 4)
 SECURE      : 'SECURE' ;
 SECURITY    : 'SECURITY' ;
 SELECT      : 'SELECT' ;
@@ -617,6 +657,7 @@ UNTIL       : 'UNTIL' ;
 UP          : 'UP' ;
 USAGE       : 'USAGE' ;
 USING       : 'USING' ;
+VALIDATE    : 'VALIDATE' ;     // VALIDATE (ISO 14.9.50) - optional 4.2.7/A.4.14 + obsolete 4.2.13
 VALUE       : 'VALUE' ;
 VALUES      : 'VALUES' ;
 VARYING     : 'VARYING' ;
@@ -667,6 +708,12 @@ FN_SIGNED_DECIMALLIT : {SignedLiteralCanStart()}? [+-] DEC_BODY -> type(SIGNED_D
 FN_SIGNED_INTEGERLIT : {SignedLiteralCanStart()}? [+-] INT_BODY -> type(SIGNED_INTEGERLIT) ;
 
 DECIMALLIT  : DEC_BODY ;
+
+// DEFINED — the §7.3.8.4.4 defined-condition keyword (`compilation-variable-name IS [NOT] DEFINED`). It is NOT a
+// reserved word in the source language: it is a token ONLY inside a primed compiler-directive-expression fragment
+// (the PrimeFunctionArgs precedent). Predicated + placed before IDENTIFIER so first-match picks it when primed;
+// when unprimed the predicate fails and 'DEFINED' lexes as an ordinary IDENTIFIER (a legal user data-name).
+DEFINED     : {_primeDirectiveExpr}? 'DEFINED' ;
 
 // ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
 // COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},

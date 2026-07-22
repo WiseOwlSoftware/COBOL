@@ -102,6 +102,7 @@ public sealed class CobolReport(
     private bool _rhOnThisPage;            // a report heading printed on the current page (GR5b2)
     private bool _pfOnThisPage;            // a page footing printed on the current page (GR5b5)
     private bool _indicateFresh;           // GROUP INDICATE freshness (§13.18.29 — run / page / control-group start)
+    private bool _suppressCurrent;         // §14.9.45 — a SUPPRESS executed in the presenting group's USE BEFORE REPORTING
     private int _physLine;                 // physical line position on the current page (0 = top, nothing printed)
 
     private ReportGroup? _reportHeading, _pageHeading, _pageFooting, _reportFooting;
@@ -310,6 +311,29 @@ public sealed class CobolReport(
         _started = false;
     }
 
+    // ── SUPPRESS (ISO §14.9.45) ──────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The SUPPRESS statement (ISO §14.9.45), executed within a USE BEFORE REPORTING declarative: inhibit
+    /// the PRINTING of the CURRENT instance of the associated report group (GR1). The effect is one-shot — GR2
+    /// limits it to the current instance — so the flag is consumed by the very next group presentation (the
+    /// declarative that set it runs during that presentation's §14.9.49 GR8 hook, immediately before the group is
+    /// produced). SUPPRESS inhibits only printing, page advance, NEXT GROUP and LINE-COUNTER changes (GR3 a–d); it
+    /// does NOT inhibit sum-counter accumulation (§13.18.54.4 GR7) or the end-of-group sum reset (GR2).</summary>
+    public void SuppressPrinting() => _suppressCurrent = true;
+
+    /// <summary>Invoke a report group's USE BEFORE REPORTING declarative (ISO §14.9.49 Format 2 GR8, just before
+    /// the group is produced) and report whether that declarative executed a SUPPRESS statement (§14.9.45). The
+    /// suppression flag is consumed here every time (GR2 — current instance only). A true result tells the caller
+    /// to skip the PRINTING half of this presentation (GR3 a–d); the group's remaining PROCESSING — notably the
+    /// end-of-group sum reset (§13.18.54.4 GR2) — is NOT skipped.</summary>
+    private bool RunBeforeReporting(ReportGroup group)
+    {
+        group.BeforeReporting?.Invoke();
+        if (!_suppressCurrent) return false;
+        _suppressCurrent = false;
+        return true;
+    }
+
     // ── Group presentation (ISO §13.18.35.4 / §13.18.57.4 / §14.9.16.4 GR6) ──────────────────────────────────
 
     /// <summary>Present a BODY group (detail / CH / CF — §13.18.57.3 SR15): the §13.18.35.4 GR4 page-fit test
@@ -317,7 +341,7 @@ public sealed class CobolReport(
     /// advance, then each line per GR5 (first line) / GR7 (subsequent lines).</summary>
     private void PresentBody(ReportGroup group)
     {
-        group.BeforeReporting?.Invoke();   // ISO §14.9.49 Format 2 GR8 — just before the group is produced
+        bool suppressed = RunBeforeReporting(group);   // §14.9.49 GR8; true ⇒ a §14.9.45 SUPPRESS executed
         var lines = group.Lines;
         if (lines.Length == 0) return;     // a dummy group affects no counters (§8.4.3.15.4 GR5)
 
@@ -327,6 +351,13 @@ public sealed class CobolReport(
         // no printing, no counter movement, no sum reset (the dummy-group shape above).
         var (present, first) = EvaluatePresent(lines);
         if (first < 0) return;
+
+        // §14.9.45.4 GR3 a–d: a SUPPRESSed group inhibits only the PRINTING half — no page-fit/advance, no line
+        // printing, no LINE-COUNTER movement, no NEXT GROUP, and none of the page/indicate state updates below.
+        // Its end-of-group sum reset (§13.18.54.4 GR2) STILL runs: SUPPRESS does not inhibit the reset (only
+        // PRESENT WHEN / OCCURS DEPENDING absence does, §13.18.54.4 GR10), so a suppressed control footing's
+        // totals stay correct. The addends were already accumulated in Generate/Terminate (§13.18.54.4 GR7).
+        if (suppressed) { EndOfGroupSumReset(group); return; }
 
         if (_paged && !_firstBodySinceInitiate)
         {
@@ -429,7 +460,7 @@ public sealed class CobolReport(
     private void PresentPageHeading()
     {
         var ph = _pageHeading!;
-        ph.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        if (RunBeforeReporting(ph)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in a PH)
         var (present, first) = EvaluatePresent(ph.Lines);
         if (first < 0) return;
         bool isFirst = true;
@@ -452,7 +483,7 @@ public sealed class CobolReport(
     private void PresentPageFooting()
     {
         var pf = _pageFooting!;
-        pf.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        if (RunBeforeReporting(pf)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in a PF)
         var (present, first) = EvaluatePresent(pf.Lines);
         if (first < 0) return;
         bool isFirst = true;
@@ -475,7 +506,7 @@ public sealed class CobolReport(
     /// first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent group prints nothing (GR2b).</summary>
     private void PresentHeadingFooting(ReportGroup group)
     {
-        group.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        if (RunBeforeReporting(group)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in an RH/RF)
         var (present, first) = EvaluatePresent(group.Lines);
         if (first < 0) return;
         bool isFirst = true;

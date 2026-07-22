@@ -26,6 +26,8 @@
     "class-alphabetic-on-boolean",
     "class-numeric-on-bit",
     "close-with-lock",
+    "cobol-words-below-2023",
+    "cobol-words-reserve-rejects",
     "concat_below_2002",
     "concat_class_mismatch",
     "constant-as-receiver",
@@ -109,7 +111,8 @@
     "xor_below_2023",
     "ref-mod-zero-length-malformed",
     "ec-external-turn-below-2023",
-    "external-constant-record-weak-type-at-2023"
+    "external-constant-record-weak-type-at-2023",
+    "user-word-validate"
   ],
   "pending": []
 }

@@ -7,6 +7,7 @@ using CobolNet.Binding.Passes; // GroupBindContext — this pass is the manifest
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
+using CobolNet.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
 
 using CobolNet.Compiler.Oo;
 
@@ -74,12 +75,18 @@ internal sealed class VersionConformancePass
     public static void Run(GroupBindContext group, EditionInfo edition, IDiagnosticSink sink)
     {
         var pass = new VersionConformancePass(edition, sink);
+        // The per-compilation-group EFFECTIVE reserved-word set (ISO §7.3.10 D9 seam): the generated §8.9 table
+        // composed with the >>COBOL-WORDS overlay (RESERVE adds, UNDEFINE/SUBSTITUTE remove). Empty map ⇒ Default.
+        var reservedWords = ReservedWordSet.Compose(group.Session.CobolWords);
+        // >>COBOL-WORDS SR3/SR4 category validation (§7.3.10.3) — needs all three registries (reserved via the §8.9
+        // table + the lexer vocab, intrinsic via IntrinsicCatalog); the frontend validated SR1/SR2/SR5 already.
+        ValidateCobolWords(group.Session.CobolWords, edition, sink);
         // ── PARSE-tree arm (Step 14h): ONE walk of the raw compilation unit, firing every SYNTACTIC
         //    introduction/removal/phrase gate + the §8.9 reserved-word funnel on the construct's RECOGNITION
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
         //    has a semantic error still names its edition — the bound node it would have produced may be
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
-        new ParseArm(pass).Visit(group.Tree);
+        new ParseArm(pass, reservedWords).Visit(group.Tree);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -103,6 +110,41 @@ internal sealed class VersionConformancePass
             pass.GateData(cls.FactoryData);
         }
     }
+
+    /// <summary>&gt;&gt;COBOL-WORDS SR3/SR4 category validation (ISO §7.3.10.3): the EXISTING word (literal-1/3/4)
+    /// must be a reserved word, context-sensitive word, or intrinsic-function name (SR3); the NEW word
+    /// (literal-2/5/6) must be none of those (SR4 — the §8.3.2.2 well-formedness is the frontend half). Reserved /
+    /// context membership comes from the §8.9 table + the lexer vocabulary (<see cref="CobolKeywordTokens"/>);
+    /// intrinsic from <see cref="IntrinsicCatalog"/>. Both checks err AWAY from rejecting legal source (the
+    /// no-false-reject principle): SR3 accepts on ANY membership signal, SR4 rejects only on a CERTAIN one.</summary>
+    private static void ValidateCobolWords(CobolWordsMap map, EditionInfo edition, IDiagnosticSink sink)
+    {
+        if (map.IsEmpty) return;
+        foreach (var op in map.Ops)
+        {
+            if (op.Existing is { } e && !IsExistingWordCategory(e))
+                ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
+                    + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
+            if (op.New is { } n && IsReservedCategory(n, edition))
+                ReportCobolWordsInvalid(sink, $"the new word '{n}' is a reserved / context-sensitive / "
+                    + "intrinsic-function word and cannot be a user-defined word (ISO §7.3.10.3 SR4)");
+        }
+    }
+
+    /// <summary>SR3 membership — broad (accept on any signal): a lexer keyword/context token, an intrinsic-function
+    /// name, or ANY §8.9 table entry.</summary>
+    private static bool IsExistingWordCategory(string w) =>
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _) || ReservedWords.Find(w) is not null;
+
+    /// <summary>SR4 membership — narrow (reject only when certain): a lexer keyword/context token, an
+    /// intrinsic-function name, or a HIGH-CONFIDENCE reserved-at-edition table entry.</summary>
+    private static bool IsReservedCategory(string w, EditionInfo edition) =>
+        CobolKeywordTokens.IsKeyword(w) || IntrinsicCatalog.TryGet(w, out _)
+        || (ReservedWords.Find(w) is { Confidence: "high" } r && r.IsReservedAt(edition.Year));
+
+    private static void ReportCobolWordsInvalid(IDiagnosticSink sink, string message) =>
+        sink.Report(new EditionDiagnostic(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, EditionSeverity.Error,
+            "cobol-words-directive-invalid", message, "", "ISO §7.3.10.3"));
 
     private void WalkProgram(BoundProgram? prog)
     {
@@ -398,12 +440,14 @@ internal sealed class VersionConformancePass
     /// dropped the pre-bind fail-fast), so a below-edition construct surfaces BOTH its edition diagnostic and
     /// its bind diagnostics — intended (both are true; the tests are contains-based).
     /// </summary>
-    private sealed class ParseArm(VersionConformancePass p) : CobolParserCoreBaseVisitor<object?>
+    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords)
+        : CobolParserCoreBaseVisitor<object?>
     {
         private readonly VersionConformancePass _p = p;
-        // The effective reserved-word set for THIS compilation unit (P2.4/D9 seam): the generated §8.9 table is
-        // only the default layer — the 2023 COBOL-WORDS directive mutates the set per unit (roadmap Phase 7).
-        private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
+        // The effective reserved-word set for THIS compilation group (P2.4/D9 seam): the generated §8.9 table
+        // composed with the 2023 >>COBOL-WORDS overlay (RESERVE/UNDEFINE/SUBSTITUTE); ReservedWordSet.Default when
+        // the group has no directive (byte-identical).
+        private readonly ReservedWordSet _reservedWords = reservedWords;
         // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
         // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
@@ -552,6 +596,19 @@ internal sealed class VersionConformancePass
         {
             if (ctx.EXIT() is not null)
                 _p.Check(Constructs.PerformUntilExit2023, "the PERFORM UNTIL EXIT phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The Format-3 (exception-checking) PERFORM (ISO §14.9.28.2 Format 3) — a COBOL-2023 addition.
+        /// Recognition-based on any WHEN / WHEN OTHER / WHEN COMMON / FINALLY phrase or a [WITH] LOCATION head (the
+        /// same discriminator the binder uses); disjoint from the UNTIL EXIT gate above. Parse-arm so a below-2023
+        /// occurrence names its edition even though it binds to a BoundExceptionPerform.</summary>
+        public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
+        {
+            // The ONE Format-3 discriminator, shared with the binder (ControlFlowBinder.IsFormat3), so the
+            // COBOLNET0900 gate here and the COBOLNET0899 staged-reject there cannot drift apart.
+            if (Binding.Procedure.ControlFlowBinder.IsFormat3(ctx))
+                _p.Check(Constructs.PerformExceptionChecking2023, "the Format-3 (exception-checking) PERFORM");
             return base.VisitChildren(ctx);
         }
 
@@ -714,6 +771,32 @@ internal sealed class VersionConformancePass
         public override object? VisitDynamicLengthClause(CobolParserCore.DynamicLengthClauseContext ctx)
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.DynamicLengthItem2014, "the DYNAMIC LENGTH clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The PICTURE EDITING phrase (ISO §13.18.40.2 Format 1) — a COBOL-2023 introduction (user-defined
+        /// picture editing via the new reserved word EDITING; Annex E.3.3 item 19). Recognition-based on the presence
+        /// of an <c>editingPhrase</c> under the picture clause: the phrase is a purely syntactic 2023 marker wherever
+        /// it appears, and <c>PictureAnalyzer</c> RECOVERS the item on the render-staged (sign-control / multi-char /
+        /// floating) forms, so a bound-arm gate would drop the 0900 on those paths. NOT <c>InGatedDataEntry</c>-guarded —
+        /// unlike BASED/ANY LENGTH, a PICTURE clause legally carries EDITING in the report section too. Fires once per
+        /// editing-bearing PICTURE clause; the §13.18.40.3 SR8–SR25 shape rules stay bind-time (PictureAnalyzer,
+        /// COBOLNET1591–1602).</summary>
+        public override object? VisitPictureClause(CobolParserCore.PictureClauseContext ctx)
+        {
+            if (ctx.editingPhrase().Length > 0) _p.Check(Constructs.PictureEditing2023, "the PICTURE EDITING phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The Format 2 (table) VALUE clause (ISO §13.18.40 → §13.18.63.2) — a COBOL-2002 introduction
+        /// (literals keyed to OCCURS occurrences by a mandatory FROM (subscript) phrase). Recognition-based on the
+        /// presence of a <c>valueClauseTablePhrase</c>: the binder DROPS the table spec on every §13.18.63.3 SR
+        /// violation (no OCCURS, bad subscript, …), so a bound-arm gate would lose the 0900 on those paths — the
+        /// TYPEDEF/ANY LENGTH drop-proof lesson. Fires once per written table VALUE; the SR16–SR23 shape rules stay
+        /// bind-time (DataBinder, COBOLNET1585–1590).</summary>
+        public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
+        {
+            if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
             return base.VisitChildren(ctx);
         }
 
@@ -950,6 +1033,18 @@ internal sealed class VersionConformancePass
         /// (WITH LOCK ON MULTIPLE RECORDS vs sequential) validation stays in the binder; this arm only names the edition.</summary>
         public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
         { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>The file-control COLLATING SEQUENCE clause (ISO §12.4.5.7 — programmable INDEXED record-key
+        /// collating) — a COBOL-2002 introduction. Parses at all editions (superset); this arm names the edition
+        /// below 2002. Recognition-fire on the clause's presence, drop-proof on a SELECT error (DEVLOG 724).</summary>
+        public override object? VisitFileCollatingSequenceClause(CobolParserCore.FileCollatingSequenceClauseContext ctx)
+        { _p.Check(Constructs.FileCollatingClause2002, "the file COLLATING SEQUENCE clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO §12.4.5.6.2) — a COBOL-2023
+        /// addition (Introduction p.27 / Annex E.3.3 item 42). Parses at all editions (superset); this arm names
+        /// the edition below 2023. Recognition-fire on the dedicated phrase rule (DEVLOG-736-safe).</summary>
+        public override object? VisitAlternateKeySuppressWhen(CobolParserCore.AlternateKeySuppressWhenContext ctx)
+        { _p.Check(Constructs.AlternateKeySuppressWhen2023, "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause"); return base.VisitChildren(ctx); }
 
         /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
         /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +

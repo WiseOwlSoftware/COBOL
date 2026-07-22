@@ -208,3 +208,11 @@ generateStatement
 terminateStatement
     : TERMINATE reportName+
     ;
+
+// SUPPRESS PRINTING (§14.9.45) — inhibit printing of a report group for the current instance. The statement
+// carries no operand (the single fixed form); §14.9.45.3 SR1 restricts it to a USE BEFORE REPORTING procedure,
+// and §14.9.45.4 GR1 fixes the affected group as the one that USE procedure names — both enforced at BIND time
+// (the superset grammar admits the verb anywhere; BindSuppress resolves the lexically-enclosing declarative).
+suppressStatement
+    : SUPPRESS PRINTING
+    ;

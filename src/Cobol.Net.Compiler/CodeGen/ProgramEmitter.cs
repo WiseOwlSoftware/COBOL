@@ -110,6 +110,7 @@ internal sealed class ProgramEmitter
         _callState.SelfPath = unit.Path;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
+        _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§14.9.28)
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.EoClassCsName is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.

@@ -124,7 +124,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         var names = p.procedureName();
         if (names.Length == 0)
+        {
+            // Format 3 (exception-checking, §14.9.28.2 Format 3) — any WHEN phrase, or a [WITH] LOCATION head,
+            // marks the inline PERFORM as exception-checking. Everything else is a Format-2 inline PERFORM.
+            if (IsFormat3(p))
+                return BindExceptionPerform(p);
             return new BoundInlinePerform(BindPerformControl(p), host.BindBlocks(p.statementBlock()));
+        }
 
         // Out-of-line: the resolved pc range [start, end] — a paragraph (start==end), a SECTION (its whole
         // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
@@ -145,6 +151,20 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         return new BoundOutOfLinePerform(start, end, BindPerformControl(p), p.Start.Line);
     }
 
+    /// <summary>An inline PERFORM is Format 3 (exception-checking) iff it carries any WHEN phrase (ordinary /
+    /// OTHER / COMMON), a FINALLY phrase, or a [WITH] LOCATION head (§14.9.28.2 Format 3). The ONE discriminator —
+    /// the binder (here) and the COBOLNET0900 introduction gate (<c>VersionConformancePass.VisitPerformStatement</c>)
+    /// share it, so the 0899↔0900 hand-off cannot drift (DEVLOG-724-class hazard).</summary>
+    internal static bool IsFormat3(Core.PerformStatementContext p) =>
+        p.performWhenPhrase().Length > 0 || p.performWhenOther() is not null
+        || p.performWhenCommon() is not null || p.performFinally() is not null
+        || p.performInlineHead()?.performLocationPhrase() is not null;
+
+    /// <summary>Bind a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) — delegated to the EC binder,
+    /// which owns the WHEN-operand resolution, the GR14 TurnState overlay, and the §14.9.28.3 syntax rules /
+    /// cross-statement bans.</summary>
+    private BoundStatement BindExceptionPerform(Core.PerformStatementContext p) => host.Ec.EcBindExceptionPerform(p);
+
     /// <summary>Bind the OPTIONAL control phrase (TIMES / UNTIL / VARYING) of a PERFORM. Per ISO §14.9.28 the phrase
     /// is independent of the THRU range (general format: <c>PERFORM proc-1 [THRU proc-2] [times|until|varying]</c>),
     /// but the grammar exposes it in two shapes: a direct child (<c>PERFORM proc TIMES</c>, alternatives without
@@ -154,7 +174,10 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     /// (DEVLOG 514). This one resolver handles every shape for both inline and out-of-line PERFORM.</summary>
     private BoundPerformControl BindPerformControl(Core.PerformStatementContext p)
     {
-        var opt = p.performOptions().FirstOrDefault();
+        // The optional control phrase appears in three tree shapes: a direct child (the out-of-line
+        // `PERFORM proc TIMES` alternatives), the THRU form's `performOptions?`, or the inline head's
+        // `performInlineHead performOptions+` (the Formats-2/3 merge moved the inline options under the head).
+        var opt = p.performOptions() ?? p.performInlineHead()?.performOptions().FirstOrDefault();
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
         if ((p.performUntil() ?? opt?.performUntil()) is { } u)
         {

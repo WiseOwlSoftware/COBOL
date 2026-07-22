@@ -25,7 +25,8 @@ public sealed class IndexedConnector : FileConnector
 
     private readonly KeyedAccess _access;
     private readonly int _primeOff, _primeLen;
-    private readonly List<(int Off, int Len, bool Dups)> _alts = [];
+    private readonly ushort[]? _primeWeights;   // §12.4.5.7 prime-key collating weights (native→position); null = native ordinal
+    private readonly List<(int Off, int Len, bool Dups, ushort[]? Weights, string? Suppress)> _alts = [];
     private readonly List<KeyedRec> _recs = [];   // arrival order — the persisted order
     private long _nextArrival = 1;
 
@@ -66,16 +67,49 @@ public sealed class IndexedConnector : FileConnector
     // (GR15). Out-of-bounds WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
 
     public IndexedConnector(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength,
-        int varyMin = -1, int varyMax = -1)
+        int varyMin = -1, int varyMax = -1, ushort[]? primeWeights = null)
         : base(hostPath, recordWidth, varyMin, varyMax)
     {
         _access = access;
         _primeOff = primeOffset;
         _primeLen = primeLength;
+        _primeWeights = primeWeights;
     }
 
-    /// <summary>Register one ALTERNATE RECORD KEY's (offset, length, WITH DUPLICATES) geometry (§12.4.5.6).</summary>
-    public void AddAlternateKey(int offset, int length, bool duplicates) => _alts.Add((offset, length, duplicates));
+    /// <summary>Register one ALTERNATE RECORD KEY's (offset, length, WITH DUPLICATES) geometry (§12.4.5.6), with
+    /// its optional §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN
+    /// value (null = no suppression).</summary>
+    public void AddAlternateKey(int offset, int length, bool duplicates, ushort[]? weights = null, string? suppress = null) =>
+        _alts.Add((offset, length, duplicates, weights, suppress));
+
+    /// <summary>True when this record's <paramref name="keyIndex"/> alternate key equals that key's SUPPRESS WHEN
+    /// value (ISO §12.4.5.6.4 GR6): the alternate access path to the record is NOT provided under this key, and
+    /// the record "is not considered to exist" for READ/START (the GR6 NOTE). The comparison is the §14.9.51 GR35
+    /// relation condition — under this key's collating sequence (null weights = ordinal), the shorter operand
+    /// space-extended (<see cref="KeyEq"/>). The prime key (keyIndex &lt; 0) is NEVER suppressible (GR6 scopes
+    /// suppression to alternate keys).</summary>
+    private bool IsSuppressed(string image, int keyIndex)
+    {
+        if (keyIndex < 0 || _alts[keyIndex].Suppress is not { } lit) return false;
+        return KeyEq(KeyOf(image, keyIndex), lit, keyIndex);
+    }
+
+    /// <summary>Compare two full key values under the key of reference's collating sequence (ISO §12.4.5.7.4 /
+    /// §14.9.41 GR17e / §12.4.5.12.4 GR1). <paramref name="keyIndex"/> &lt; 0 selects the prime key. With no
+    /// COLLATING SEQUENCE clause the key's weights are null and the comparison is native ordinal — byte-identical
+    /// to the pre-§12.4.5.7 engine (the NIST-IX baseline), since keys are fixed-length so no space-extension
+    /// differs. A declared alphabet routes through the §8.8.4.2.7 weighted relation-condition compare.</summary>
+    private int KeyCompare(string a, string b, int keyIndex)
+    {
+        var w = keyIndex < 0 ? _primeWeights : _alts[keyIndex].Weights;
+        return w is null ? string.CompareOrdinal(a, b) : CobolString.Compare(a, b, w);
+    }
+
+    /// <summary>Key equality under the key of reference's collating sequence: two keys that differ in bytes but
+    /// share collating weights are EQUAL (ISO §12.4.5.12.4 GR1 — "based on the collating sequence … according to
+    /// the rules for a relation condition"). Drives uniqueness, random match, target lookup, and the '02'
+    /// look-ahead.</summary>
+    private bool KeyEq(string a, string b, int keyIndex) => KeyCompare(a, b, keyIndex) == 0;
 
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
@@ -186,6 +220,15 @@ public sealed class IndexedConnector : FileConnector
         int foundIdx = -1;
         if (previous && _positioner == 'O')
             found = null;   // READ PREVIOUS immediately after OPEN → at end (row 29, 2023)
+        else if (!previous && _positioner == 'O')
+        {
+            // §14.9.27 GR14 — OPEN INPUT/I-O positions the FPI at the LOWEST record in the key-of-reference's
+            // collating sequence, so the first READ NEXT yields it. Read it off the ordered sequence directly
+            // rather than comparing against the empty-string OPEN sentinel: under a §12.4.5.7 alphabet where the
+            // pad SPACE weighs high, that sentinel is NOT the lowest value, so a PositionCompare walk would find
+            // nothing (the collating-sequence AT-END bug). Ordinal order is unaffected — seq[0] is still lowest.
+            if (seq.Count > 0) { found = seq[0]; foundIdx = 0; }
+        }
         else if (!previous)
         {
             for (int i = 0; i < seq.Count; i++)
@@ -215,7 +258,7 @@ public sealed class IndexedConnector : FileConnector
             KeyedRec? adjacent = previous
                 ? (foundIdx > 0 ? seq[foundIdx - 1] : null)
                 : (foundIdx + 1 < seq.Count ? seq[foundIdx + 1] : null);
-            if (adjacent is not null && KeyOf(adjacent.Image, _refKey) == KeyOf(found.Image, _refKey))
+            if (adjacent is not null && KeyEq(KeyOf(adjacent.Image, _refKey), KeyOf(found.Image, _refKey), _refKey))
                 status = FileStatusCode.DuplicateAlternateKey;
         }
         _fpiKey = KeyOf(found.Image, _refKey);                             // GR21 rule g
@@ -230,7 +273,7 @@ public sealed class IndexedConnector : FileConnector
 
         int PositionCompare(KeyedRec rec)
         {
-            int c = string.CompareOrdinal(KeyOf(rec.Image, _refKey), _fpiKey);
+            int c = KeyCompare(KeyOf(rec.Image, _refKey), _fpiKey, _refKey);
             return c != 0 ? c : rec.Arrival.CompareTo(_fpiArrival);
         }
     }
@@ -251,7 +294,8 @@ public sealed class IndexedConnector : FileConnector
         string value = KeyOf(Fit(keyedRecordImage), keyIndex);
         KeyedRec? found = null;
         foreach (var rec in _recs)
-            if (KeyOf(rec.Image, keyIndex) == value && (found is null || rec.Arrival < found.Arrival))
+            if (!IsSuppressed(rec.Image, keyIndex) && KeyEq(KeyOf(rec.Image, keyIndex), value, keyIndex)   // §14.9.30 GR32 + §12.4.5.6.4 GR6
+                && (found is null || rec.Arrival < found.Arrival))
                 found = rec;
         if (found is null)
         {
@@ -289,15 +333,16 @@ public sealed class IndexedConnector : FileConnector
         else if (!IsOpen || Mode is not (FileOpenMode.IO or FileOpenMode.Output))
             return Status = FileStatusCode.WriteNotOpenForOutput;          // '48' 8b
         string prime = KeyOf(image, -1);
-        if (sequential && _lastWrittenPrime is { } lastPrime && string.CompareOrdinal(prime, lastPrime) <= 0)
+        if (sequential && _lastWrittenPrime is { } lastPrime && KeyCompare(prime, lastPrime, -1) <= 0)
             return Status = FileStatusCode.SequenceError;                  // '21' GR38/GR42a
-        if (_recs.Any(r => KeyOf(r.Image, -1) == prime))
+        if (_recs.Any(r => KeyEq(KeyOf(r.Image, -1), prime, -1)))
             return Status = FileStatusCode.DuplicateKey;                   // '22' GR36/GR42b
         bool duplicateAlt = false;
         for (int i = 0; i < _alts.Count; i++)
         {
+            if (IsSuppressed(image, i)) continue;   // §14.9.51 GR41 — a suppressed alternate key provides no access path and never duplicates
             string value = KeyOf(image, i);
-            bool exists = _recs.Any(r => KeyOf(r.Image, i) == value);
+            bool exists = _recs.Any(r => !IsSuppressed(r.Image, i) && KeyEq(KeyOf(r.Image, i), value, i));
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;   // '22' GR40/GR42c
             if (exists) duplicateAlt = true;
         }
@@ -327,16 +372,21 @@ public sealed class IndexedConnector : FileConnector
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43' GR5
             if (prime != _lastReadPrime) return Status = FileStatusCode.SequenceError;          // '21' GR22
         }
-        KeyedRec? target = _recs.FirstOrDefault(r => KeyOf(r.Image, -1) == prime);
+        KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r.Image, -1), prime, -1));
         if (target is null) return Status = FileStatusCode.RecordNotFound;                      // '23' GR23
         bool duplicateAlt = false, altChanged = false;
         for (int i = 0; i < _alts.Count; i++)
         {
             string newValue = KeyOf(image, i);
-            bool exists = _recs.Any(r => !ReferenceEquals(r, target) && KeyOf(r.Image, i) == newValue);
+            // §14.9.35 GR24 + §12.4.5.6.4 GR6 — a key whose value equals its SUPPRESS WHEN value provides no
+            // access path; entering OR leaving suppression re-positions the record (GR24b), but a suppressed key
+            // is skipped for the uniqueness check (it can never duplicate, GR41 by parity with WRITE).
+            bool nowSup = IsSuppressed(image, i), wasSup = IsSuppressed(target.Image, i);
+            if (newValue != KeyOf(target.Image, i) || nowSup != wasSup) altChanged = true;
+            if (nowSup) continue;
+            bool exists = _recs.Any(r => !ReferenceEquals(r, target) && !IsSuppressed(r.Image, i) && KeyEq(KeyOf(r.Image, i), newValue, i));
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;          // '22' GR25c
             if (exists) duplicateAlt = true;
-            if (newValue != KeyOf(target.Image, i)) altChanged = true;
         }
         target.Image = stored;
         if (altChanged) target.Arrival = _nextArrival++;                                         // GR24b
@@ -360,7 +410,7 @@ public sealed class IndexedConnector : FileConnector
         }
         else
             prime = KeyOf(Fit(keyedRecordImage), -1);
-        KeyedRec? target = _recs.FirstOrDefault(r => KeyOf(r.Image, -1) == prime);
+        KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r.Image, -1), prime, -1));
         if (target is null) return Status = FileStatusCode.RecordNotFound;
         _recs.Remove(target);
         return Status = FileStatusCode.Success;
@@ -392,7 +442,7 @@ public sealed class IndexedConnector : FileConnector
         {
             var rec = seq[forward ? i : seq.Count - 1 - i];
             string part = KeyOf(rec.Image, keyIndex)[..compareLength];
-            int c = string.CompareOrdinal(part, value);
+            int c = KeyCompare(part, value, keyIndex);   // §14.9.41 GR17e — the file's collating sequence
             bool satisfied = op switch
             {
                 "==" => c == 0,
@@ -439,10 +489,14 @@ public sealed class IndexedConnector : FileConnector
 
     // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The records ordered by (key-of-reference value, arrival) — derived per call from the one record
-    /// list (the legacy's lesson: a maintained clone index goes stale across REWRITE/DELETE).</summary>
+    /// <summary>The records ordered by (key-of-reference value, arrival) under the key of reference's collating
+    /// sequence (ISO §12.4.5.5.3 GR2c) — derived per call from the one record list (the legacy's lesson: a
+    /// maintained clone index goes stale across REWRITE/DELETE). With no §12.4.5.7 COLLATING clause the key's
+    /// weights are null and the ordering is native ordinal, byte-identical to the pre-clause engine.</summary>
     private List<KeyedRec> Ordered(int keyIndex) =>
-        [.. _recs.OrderBy(r => KeyOf(r.Image, keyIndex), StringComparer.Ordinal).ThenBy(r => r.Arrival)];
+        [.. _recs.Where(r => !IsSuppressed(r.Image, keyIndex))   // §12.4.5.6.4 GR6 — suppressed records are not provided under this key
+                 .OrderBy(r => KeyOf(r.Image, keyIndex),
+                Comparer<string>.Create((x, y) => KeyCompare(x, y, keyIndex))).ThenBy(r => r.Arrival)];
 
     /// <summary>The key value at <paramref name="keyIndex"/> (−1 = prime) — a fixed (offset, length) slice of the
     /// record's character image (§12.4.5.12 GR2 — the key IS its position range in the record).</summary>

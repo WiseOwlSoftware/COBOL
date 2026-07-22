@@ -53,11 +53,36 @@ public sealed class ReservedWordSet
     /// <summary>The default set: exactly the generated table.</summary>
     public static ReservedWordSet Default { get; } = new();
 
+    // The 2023 >>COBOL-WORDS overlay (ISO §7.3.10.4): RESERVE adds a word (GR5), UNDEFINE / SUBSTITUTE remove one
+    // (GR3/GR4). Null on the Default set (no directive) so the effective behavior is byte-identical.
+    private readonly IReadOnlySet<string>? _reserved;    // RESERVE literal-6 — a NEW reserved word
+    private readonly IReadOnlySet<string>? _suppressed;  // UNDEFINE literal-3 + SUBSTITUTE literal-4 — de-reserved
+
+    private ReservedWordSet() { }
+
+    private ReservedWordSet(IReadOnlySet<string> reserved, IReadOnlySet<string> suppressed)
+    {
+        _reserved = reserved;
+        _suppressed = suppressed;
+    }
+
+    /// <summary>Compose the effective per-compilation-group set from a <see cref="CobolWordsMap"/> override (ISO
+    /// §7.3.10). An empty map yields <see cref="Default"/> (byte-identical). RESERVE words become reserved;
+    /// UNDEFINE / SUBSTITUTE words are de-reserved (SR5 forbids a word being both, so no conflict).</summary>
+    public static ReservedWordSet Compose(CobolWordsMap map) =>
+        map.IsEmpty ? Default : new ReservedWordSet(map.Reserved, map.DeReserved);
+
     /// <summary>The entry for <paramref name="upperWord"/>, or null when the word is not in the effective set.</summary>
     public ReservedWordEntry? Find(string upperWord) => ReservedWords.Find(upperWord);
 
-    /// <summary>True when <paramref name="upperWord"/> is a HIGH-CONFIDENCE reserved word at
-    /// <paramref name="edition"/> — the only case that may emit COBOLNET0901 (the conservative policy).</summary>
-    public bool RejectsAt(string upperWord, int edition) =>
-        Find(upperWord) is { Confidence: "high" } e && e.IsReservedAt(edition);
+    /// <summary>True when <paramref name="upperWord"/> is reserved for the compilation group and may emit
+    /// COBOLNET0901 when used as a user-defined word: a <c>&gt;&gt;COBOL-WORDS</c> UNDEFINE/SUBSTITUTE suppression
+    /// wins (never rejects), then a RESERVE overlay reserves unconditionally, else the generated §8.9 table's
+    /// HIGH-CONFIDENCE reserved-at-edition rule (the conservative policy).</summary>
+    public bool RejectsAt(string upperWord, int edition)
+    {
+        if (_suppressed?.Contains(upperWord) == true) return false;   // UNDEFINE/SUBSTITUTE — a user word now
+        if (_reserved?.Contains(upperWord) == true) return true;      // RESERVE — a new reserved word
+        return Find(upperWord) is { Confidence: "high" } e && e.IsReservedAt(edition);
+    }
 }

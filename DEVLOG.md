@@ -13,6 +13,1430 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 971 — 2026-07-22 02:30 PDT — Track ③ sub-GAP: the open-mode WHEN operand (GR3b) LANDS + the full GR3a→g tier order fixed
+
+Continuing Track ③'s staged sub-GAPs. **The open-mode WHEN operand form (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND`)
+now works** (the 0899 staging is lifted for it), and — forced by the same tier logic — the WHEN matcher's operand
+priority is corrected to the **full §14.9.49.4 GR3a→g order**.
+
+**The tier fix (spec re-derivation, verified in the spec):** GR17 selects across the WHEN operands by GR3's a→g
+priority. Increment 4's matcher only ranked the EC-name tiers (GR3c-g) and put a bare file-name at tier 1 — but per
+GR3, a bare file-name (GR3a) and open-mode (GR3b) OUTRANK every exception-name form. Corrected to the 7-tier scheme:
+**bare-file (GR3a, 0) > open-mode (GR3b, 1) > file+L3 (GR3c, 2) > file+L2 (GR3d, 3) > L3 (GR3e, 4) > L2 (GR3f, 5) >
+L1/EC-ALL (GR3g, 6)**; source order only within a tier. (The EC-name tiers keep their relative order, so the Incr-4
+tier tests still pass; only bare-file moved up.)
+
+**The open-mode matcher:** a `WHEN EXCEPTION <mode>` arm (tier 1) emits
+`ExceptionCatalog.IsIoName(__ec) && __f is not null && CobolFile.OpenModeOf(__f) == <FileOpenMode ordinal>` — it
+matches an EC-I-O whose file is CURRENTLY OPEN in that mode (`CobolFile.OpenModeOf` — the same query `__IoCheckEc`'s
+F1 mode switch uses). The binder's blanket open-mode 0899 is deleted; `ModeOrdinal` maps INPUT/OUTPUT/I-O/EXTEND →
+the `FileOpenMode` enum. **Documented limitation:** an OPEN-failure's mode is best-effort (the connector reports its
+mode only once open) — noted in §9.7 / CONFORMANCE.
+
+**Behavior tests (`PerformFormat3BehaviorTests`, now 42 F3 tests total):** `OpenModeWhen_MatchesByCurrentOpenMode`
+(a READ past EOF on an INPUT-mode file → `WHEN EXCEPTION INPUT` fires) · `BareFileWhen_MatchesAnyIoConditionForTheFile`
+(GR3a) · **`OpenMode_OutranksExceptionName`** (a `WHEN EC-I-O-AT-END` written BEFORE `WHEN EXCEPTION INPUT` → the
+open-mode wins — GR3b before GR3e) · the obsolete `OpenModeWhen_Staged0899` → `OpenModeWhen_CompilesClean`.
+CLI-probed the file-I/O path end-to-end on `cobol.exe`.
+
+**Gate (wave-local — F3-matcher-only, all gated `UnitHasF3Perform`): characterization 33/33 byte-identical + F3 tests
+42/42 + GnuCOBOL differential UNCHANGED from the Incr-4 baseline (478/171/106/568 — 0 regressions) + build 0/0.**
+Docs swept: §9.3.2 tier list + §9.7 (open-mode LANDED) + §9.9 (bare-file/open-mode tier RESOLVED) + D12 (the GR3a→g
+priority). **⏭ Remaining Track ③ staged sub-GAPs: F3-in-a-method (OO pc-slice wiring), cross-CALL "in range",
+EC-FLOW-USE/`>>PROPAGATE`, exception-object raise in imp-1.** Then ④ §24 fix-queue → Wave I merge → P14.
+
+## Entry 970 — 2026-07-22 01:20 PDT — Track ③ Increment 4: THE BEHAVIOR WAVE — the pc-range F3 PERFORM interceptor works end-to-end (12/12 behavior tests, tier-ordered, RESUME/COMMON/FINALLY/EXIT-PERFORM all correct)
+
+**The exception-checking (Format-3) PERFORM now COMPILES AND RUNS** — the 0899 staging is lifted (program path); a
+raised, enabled exception condition in imp-1 is intercepted by the tier-ordered WHEN, runs the handler pc-range, and
+resumes/terminates per GR20. This is the byte-critical behavior wave (the shared `__EcDispatch`/`__RunUse`/
+`__IoCheckEc`/dispatcher seams). Landed as designed in §9, in two safe sub-steps (Step A additive-infra build-green;
+Step B the atomic reshape + behavior).
+
+**pc-range synthesis (§9.1):** `ProcedureTableBuilder.AddF3Handler` registers each already-bound handler body
+(imp-2/3/4) as a synthetic UNREFERENCEABLE pc-range paragraph on a per-unit side-list; `StatementBinder` appends the
+side-list ABOVE the main pc space after the main bind loop (so `_paras.Count` = the frozen main count throughout
+binding) and threads `F3HandlerBasePc`/`F3HandlerOwners` onto `BoundProgram`. imp-1 + imp-5 (FINALLY) stay INLINE.
+
+**Bound-node reshape:** `BoundExceptionPerform(Imp1, Whens: BoundExceptionMatch[], OtherPc?, CommonPc?, FinallyBody?,
+WithLocation, PerformId, HandlerHasExit)`; `BoundExceptionMatch(OpenMode?, Operands, Imp2Pc)` — imp-2/3/4 are pc refs,
+not inline bodies. **The source-gen `BoundVisitorGenerator` auto-adapted** (`StatementChildren(BoundExceptionPerform)`
+= `Imp1` + `FinallyBody` only; the handler bodies are walked at their synthetic paragraphs — no double-count);
+`BoundStores.Visit` updated by hand (the one manual consumer). Reshape regression: BoundStatementChildren +
+BoundVisitorGenerator + F3 parse 37 + frame stack 9 = **57/57**.
+
+**Binder redirect (`EcBindExceptionPerform`):** the 0899 program-path reject DELETED; imp-2/3/4 bind IN LEXICAL
+CONTEXT (InF3When + base TurnState, GR14 overlay already popped) → `AddF3Handler`; `PerformId` per unit;
+`HandlerHasExit` (a region-C EXIT-PERFORM scan). OO-method F3 → `F3StagedInMethodStub` (loud 0899, never silent-drop,
+§9.7). The open-mode WHEN form (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND`) → loud 0899 (§5.4-1 staged).
+
+**Emitter (`EmitExceptionPerform`):** installs the `PerformFrame` with a TIER-SORTED matcher closure (per-operand
+GR3c-g tier + test, sorted `(tier, whenIdx, opIdx)`, mirroring `__EcDispatch`; WHEN OTHER as the unconditional
+fallback; a tier-4 EC-ALL is the catch-all); imp-1 under a try (with a nested try + `catch (ExitPerformSignal when
+Id==n)` ONLY when a handler EXIT-PERFORMs); `finally { PopPerformFrame(); }`; `__f3fin{n}`/`__f3end{n}` labels;
+inline FINALLY between them (skipped on the fatal throw). `BoundExitPerform` now region-aware (`DispatchState.F3Cur`):
+Imp1 → `goto __f3fin`, Handler → `throw ExitPerformSignal`, Finally → `goto __f3end`, else the ordinary loop
+`break`/`continue`; a nested inline PERFORM saves/restores `F3Cur=None` (§14.9.14.4 GR5a). The dispatcher marks each
+appended handler `case` `F3Region.Handler`; the top-level `__Dispatch` is WALLED at `F3HandlerBasePc − 1` (fall-off
+the last real paragraph ENDS the run unit, never runs into the handlers; non-F3 renders the literal `-1`, byte-identical).
+
+**`__IoCheckEc` frame-first (§9.5.1, deferred from Incr 3):** the F1/F3 USE tiers factored into a local function; with
+`UnitHasF3Perform` the frame is consulted FIRST (both the warning + unsuccessful paths) and the USE tiers run only on
+`!__wh` (GR17 — a matching WHEN ignores the USE); non-F3 emits at the base indent = byte-identical.
+
+**Behavior tests (`PerformFormat3BehaviorTests`, 13/13, all spec-pinned — 12 passed on the FIRST run):** nonfatal
+resume-in-place · fatal terminate · fatal+RESUME-NEXT-suppresses · **tier: EC-BOUND-SUBSCRIPT beats EC-ALL AND beats
+EC-BOUND regardless of source order** · WHEN OTHER · WHEN COMMON after imp-2 · RESUME-NEXT-skips-COMMON · FINALLY on
+normal path · EXIT-PERFORM-in-handler → FINALLY (skips COMMON) · **GR21 re-raise-in-handler NOT re-caught** (an
+overflowing ADD in a handler raises EC-SIZE-TRUNCATION which WHEN OTHER does NOT re-catch — the frame is transparent
+while handling — → fatal terminate; a RAISE in imp-2 is bind-banned XS-RAISE, so the trigger is a non-RAISE store) ·
+version gate 0900 at 2014 · open-mode 0899. Two OBSOLETE `PerformFormat3Tests` (that asserted the 0899 staging) updated
+to assert compiles-clean.
+
+**COMPREHENSIVE GATE — ALL GREEN:** characterization **33/33 byte-identical** (all F3 scaffolding gated
+`UnitHasF3Perform`, false for every existing program) · full greenfield Conformance **3818/3818** (3816 goldens
+byte-identical + the F3 tests; the only 2 red were the now-fixed obsolete staging assertions) · F3 tests **39/39** ·
+reshape-regression **57/57** · **legacy guard ALL GREEN (NIST 353 MATCH, 0 REGRESSION; legacy Unit 1203, Integration
+678)** · **⚡ GnuCOBOL external differential +2 FIXES / 0 REGRESSIONS** (AGREE_ACCEPT 476→478, WE_REJECT_THEY_ACCEPT
+570→568, WE_ACCEPT_THEY_REJECT + AGREE_REJECT unchanged — 2 corpus F3-PERFORM programs we previously 0899-rejected are
+now correctly accepted) · build 0/0. ⏭ NEXT = Incr 5–7 residue (the conformance-program + the doc sweep recording the
+D12 decisions [RESUME-skips-COMMON, FINALLY-on-fatal defect, bare-file tier] + `CONFORMANCE.md`) → then ④ §24
+fix-queue → Wave I merge → P14.
+
+## Entry 969 — 2026-07-22 00:05 PDT — Track ③ Increments 2+3: the gated emitter scaffolding (flag flow + funnel→__EcPerform + __RunF3), all inert/byte-identical
+
+**Increment 2 (gating flag flow) + Increment 3 (emitter scaffolding), committed together as the "gated scaffolding"
+checkpoint** — every new emission is gated on a flag that is only true for a program containing an F3 PERFORM, which
+is still bind-REJECTED (COBOLNET0899) until Increment 4. So NOTHING new is emitted for any compiled program yet;
+byte-identity is provable and characterization-confirmed.
+
+**Increment 2 — the flag flow (inert):**
+- `EcFeatures` gains an 8th field `HasF3Perform` (default false) + it is added to `.Any` (so the int-returning
+  `__RunUse` the interceptor depends on is emitted even for an F3 PERFORM whose imp-1 uses no OTHER EC feature —
+  e.g. `PERFORM CONTINUE WHEN EC-BOUND-SUBSCRIPT CONTINUE END-PERFORM`). `BuildFeatures()` threads `F3Perform`.
+- `EcState.UnitHasF3Perform` (new, parallel to `UnitHasF3`/`UnitHasF4`); set in `ProgramEmitter` from
+  `Ec?.HasF3Perform`, forced false in `OoEmitter` (F3-in-method is loud-rejected, §9.1-B).
+- `BoundProgram` gains `int? F3HandlerBasePc` + `IReadOnlyList<int>? F3HandlerOwners` (both default null — the
+  byte-identity gate: a non-F3 unit adds zero synthetic pcs). Both new record params have defaults ⇒ no construction
+  site breaks (verified the greenfield `new BoundProgram(...)` sites; the legacy `CobolSharp.Compiler.BoundProgram` is
+  a separate type).
+
+**Increment 3 — the emitter scaffolding (gated `UnitHasF3Perform`, DEAD until Incr 4 un-rejects):**
+- `EcEmitter.EcDispatchExpr` (the ONE raise-site funnel): emits `__EcPerform(ec,file)` when `UnitHasF3Perform`, else
+  the historical `__EcDispatch(...)`/`-3` — a non-F3 unit's text is unchanged (the new branch is prepended above the
+  identical middle branch). `fatal` is NOT threaded (the split is realized at the raise site).
+- NEW `EcEmitter.EmitPerformInterceptor`: emits `__EcPerform` (consult `ExceptionState.RunTopFrame` first, fall to
+  `UnitHasF3 ? __EcDispatch : -3` on no-match) + `__RunF3(u,pc,cu,cpc)` (run imp-2/3 via `__RunUse`, then WHEN COMMON
+  imp-4 ONLY on `-1`; `-2`/RESUME-NEXT short-circuits COMMON — §9.6 Q3).
+- `DispatchEmitter.EmitUseMachinery`: BOTH gates widened for the no-declarative F3 case — the outer CALL gate
+  (`|| Ec is { HasF3Perform: true }`) and the inner `__useActive`/`__RunUse` gate; `__useActive` sized
+  `declCount + f3Handlers` (f3Handlers = `Paragraphs.Count − F3HandlerBasePc`, which is 0 until Incr 4 ⇒ renders as
+  the identical `declCount`). `EmitPerformInterceptor` wired before the `__IoCheck` early-return so a no-declarative
+  F3 unit still gets it. This is the fix for the "no-declarative F3" BLOCKER all three design verdicts caught.
+
+**Deviation from the §9 increment plan (noted):** the `__IoCheckEc` frame-first restructure (§9.5.1) is DEFERRED from
+Incr 3 into Incr 4 — it is the byte-riskiest change and is only exercised by an I-O WHEN, so folding it into Incr 4
+gets it BOTH the characterization byte-identity gate AND a real behavior test (I/O WHEN preempts a matching USE),
+which is strictly better coverage than landing it dead in Incr 3.
+
+**Gate (wave-local — inert scaffolding, shared EC funnel touched but provably gated): characterization 33/33
+byte-identical + F3 parse 37 + frame stack 9 + full greenfield Unit sweep + build 0/0.** The comprehensive gate
+(full greenfield Conformance + legacy guard + GnuCOBOL differential) is reserved for Increment 4 (the behavior wave,
+where the scaffolding first activates). **⏭ NEXT = Increment 4:** the pc-range synthesis (`AddF3Handler` side-list +
+`StatementBinder` append + node reshape `BoundExceptionMatch`) + the tier-sorted matcher + `EmitExceptionPerform` +
+the `F3Region`/`BoundExitPerform` machinery + `__IoCheckEc` frame-first + drop the 0899 reject (program path) —
+the behavior wave.
+
+## Entry 968 — 2026-07-21 23:33 PDT — Track ③ PERFORM Format-3 runtime: decision-complete pc-range design (adversarial panel) + Increment 1 (runtime-additive frame stack) landed
+
+**Resuming Track ③ fresh (owner: "do NOT rush — this rewires the byte-critical EC runtime").** Two things landed
+this checkpoint: the decision-complete interceptor DESIGN, and the first (runtime-additive, zero-blast-radius)
+increment.
+
+**The design (design SSOT `PHASE-13-c5-perform-format3-DESIGN.md` §9 — the new implementation contract).** I ran an
+adversarially-verified design panel (3 independent designers under diverse lenses → 3 spec/buildability verifiers →
+1 synthesizer; 7 agents, ~1.27M tokens) to resolve the owner-directed **pc-RANGE architecture**'s open mechanisms
+BEFORE touching the funnel. I grounded it with a code-fact brief from direct reads (the single `EcDispatchExpr`
+funnel + 9 raise sites, `__RunUse`/`ResumeSignal`, the `ExceptionEngine` home, the pre-binding pc synthesis, the
+complete `EcBindExceptionPerform` binder) and cross-checked every semantic claim against the spec myself. Resolved
+decisions (each a panel disagreement or a verdict blocker/major, fixed in §9):
+- **imp-1 inline** (guarded body in the host paragraph's `case`); **imp-2/3/4 = synthetic pc-range paragraphs
+  APPENDED above the main pc space** (run via the existing `__RunUse(id,pc,pc)`); **imp-5 (FINALLY) inline** trailing.
+- **Matcher is TIERED, not written-order** — GR17 binds WHEN matching to §14.9.49.4 GR3a–g, which I confirmed
+  DIRECTLY in the spec is a tiered priority scan (file+L3 → file+L2 → L3 → L2 → L1, source order only intra-tier);
+  the binder's "first written-order match wins" comment is wrong for cross-tier cases (`WHEN EC-ALL … WHEN EC-SIZE`
+  → EC-SIZE's tier wins). Mirrors the existing `__EcDispatch` tier structure.
+- **`fatal` DROPPED** from the matcher — the fatal/nonfatal split (GR20) is realized by each raise site's own static
+  throw idiom + the `-1/-2` protocol, so threading `fatal` was dead plumbing (my own derivation flagged this before
+  the panel; the panel confirmed). `EcDispatchExpr` keeps its 2-arg signature ⇒ zero caller edits.
+- **No-declarative F3 BLOCKER (all 3 verdicts caught):** `__RunUse`/`__EcDispatch`/`__useActive`/`__IoCheckEc` are
+  gated on `decls.Count > 0`, but the canonical F3 (WHEN handlers, no USE declaratives) has zero declaratives → widen
+  BOTH the outer (`DispatchEmitter.cs:79`) AND inner (`:166`) gates to include `HasF3Perform`; `__EcPerform` fallback
+  gated `UnitHasF3 ? __EcDispatch : -3`.
+- **`__IoCheckEc` frame consulted at the TOP** (before the F1 file/mode USE switch) — GR6+GR17: a matching WHEN
+  ignores the USE.
+- **`RunTopFrame` = top-down WALK with deferred `Handling`-clear** (not "peek top") — nested F3: an EC in an inner
+  imp-1 that only the OUTER WHEN names must reach the outer handler (GR17 for the outer PERFORM); the deferred clear
+  keeps a skipped inner frame transparent while a selected outer handler runs (its imp-1 is suspended, GR21).
+- **EXIT PERFORM:** plain `goto` for imp-1/imp-5; a new `ExitPerformSignal` (sanctioned sibling of `ResumeSignal`/
+  `StopRun`/`ProgramReturn`, NOT a second dispatch mechanism) for handler pc-ranges (they cross the nested-`__Dispatch`
+  C# call boundary a goto can't); `F3Region` save/restore around nested inline PERFORMs so a plain EXIT PERFORM there
+  breaks the inner loop (§14.9.14.4 GR5a).
+- **RESUME NEXT skips COMMON** (chosen interpretation — RESUME is a transfer, not a "completion" per GR17; record in
+  D12). **FINALLY inline, normal/EXIT path only, NOT on fatal abnormal-termination** (standard defect: NOTE 8 vs GR20,
+  corrected from the panel's mis-cite of NOTE 9). **OO-method F3 = loud reject** (keep 0899), never silent-drop.
+- 5 unresolved risks flagged for verify-by-RUNNING probes (deep nested re-raise; bare-file operand tier;
+  UsageCollectionPass double-count; EcFeatures positional fan-out; SORT/MERGE-USE interplay in `__IoCheckEc`).
+
+**Increment 1 — runtime-additive (this commit).** Purely additive, nothing generated references it yet ⇒ byte-identity
+trivial. NEW `Exceptions/PerformFrame.cs` (matcher `Func<ec,file,int>` + `Handling` + `NoMatch=int.MinValue`, no
+`fatal`); NEW `Control/Signals/ExitPerformSignal.cs`; `ExceptionEngine` gains a `List<PerformFrame>` stack +
+`PushPerformFrame`/`PopPerformFrame`/`RunTopFrame(ec,file,out handled)` (the top-down walk with deferred clear) +
+internal `PerformDepth`/`TrimPerformTo`; `ExceptionState` facade delegators; `ProgramTable.CallProgram` snapshots
+`PerformDepth` + `TrimPerformTo` in `finally` (per-activation scope, mirroring the `ExternalCheckMask` save/restore).
+**Gate: `PerformFrameStackTests` 9/9** (innermost-wins, inner-no-match→outer, GR21 re-raise-not-re-caught, the
+deferred-clear nesting proof that distinguishes correct-vs-eager-clear, push/pop balance) + **characterization 33/33
+byte-identical** + solution builds 0/0. Wave-local gate only (runtime-additive, no shared `.g4`/emitter — the
+comprehensive gate is per-batch pre-merge).
+
+**Process note:** re-ran the design as a workflow (ultracode) rather than solo, because A-vs-B was owner-settled but
+the pc-synthesis + EXIT-PERFORM + RESUME/COMMON mechanisms had spec-contradiction hazards; the panel caught the
+no-declarative blocker (3/3), the tier-ordering spec violation, and the `__IoCheckEc` frame-placement violation that
+a solo pass could easily have shipped. NEXT = Increment 2 (the gating flag flow: `EcFeatures.HasF3Perform` +
+`EcState.UnitHasF3Perform` + `BoundProgram.F3HandlerBasePc`, all still inert) → Incr 3 (funnel/`__EcPerform`, dead) →
+Incr 4 (pc-range synthesis + tier matcher + un-reject).
+
+## Entry 967 — 2026-07-21 22:15 PDT — Session close: Wave-D residue Tracks ①② DONE (>>COBOL-WORDS + CC-in-COPY); Track ③ (PERFORM F3 runtime) design-ready, stopped per owner
+
+**Session summary (owner: "do them all in sequence" over the 4 Wave-D residue tracks).** Landed the first two,
+both fully gated + pushed on `phase-13-grammar-batch`:
+- **① `>>COBOL-WORDS` (§7.3.10) — COMPLETE** (DEVLOG 962–965; commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`).
+  All four options (EQUATE/UNDEFINE/SUBSTITUTE/RESERVE) for reserved, context-sensitive, AND intrinsic-function
+  words; the owner-directed post-lex token rewriter + composed `ReservedWordSet` + map-aware lexer + binder
+  intrinsic-synonym resolution; SR1–SR5; COBOLNET0900 gate + COBOLNET1623. `DESIGN-cobol-words-directive.md`.
+- **② CC-directives-inside-COPY (§7.2.1) — COMPLETE** (DEVLOG 966; `c3377315`). The merged interleaved
+  text-manipulation driver (`ProcessWithCopy`) — copybook directives processed, false-branch COPY never expanded,
+  legacy byte-identical. GnuCOBOL +2 fixes/0 regressions · legacy guard ALL GREEN · greenfield Conformance 3806/0.
+  `DESIGN-cc-in-copy.md`.
+- **③ PERFORM Format-3 RUNTIME interceptor — DESIGN-READY, NOT STARTED (stopped here per owner).** The binder is
+  already complete (`BoundExceptionPerform`); the runtime interceptor rewires the byte-critical EC runtime every
+  program's exception handling flows through — the owner chose to land ①② and resume ③ FRESH next session rather
+  than rush it (it was deliberately staged behind COBOLNET0899 in the grammar batch for exactly this reason). Full
+  resume groundwork is in plan §0 (the ▶ ③ block: binder done, `EmitExceptionPerform` stub, the dispatch protocol +
+  `EcDispatchExpr`/`__RunUse`/`ResumeSignal`/`ExceptionEngine` seams, the §5 10-seam plan, the 5 staged GAPs). A
+  5-agent runtime scout ran (`wf_ddb8dd1e-0f7`).
+- **④ §24 fix-queue → Wave I merge** — pending after ③.
+
+**Process notes (honest friction):** two `>>COBOL-WORDS` test failures + two CC-in-COPY test failures were bad
+TEST DATA (reserved words USE/MODE as compilation-variable names → correct COBOLNET1619), not code bugs. A first
+CC-in-COPY guard run FALSE-RED'd 2 NIST tests under JOBS=32 parallel cold-start — verified serially, re-ran clean
+(don't `taskkill dotnet.exe` before a guard). The long background gates (full guard ~4 min, greenfield Conformance
+~19 min, GnuCOBOL ~12 min) made for slow turns — batch them / avoid per-increment full-Conformance.
+
+## Entry 966 — 2026-07-21 22:00 PDT — Wave D: CC-directives-inside-COPY (ISO §7.2.1) — the merged interleaved text-manipulation driver
+
+**Track 2 of the Wave-D residue (owner: "do them all in sequence").** Closed the defect that
+conditional-compilation directives INSIDE a copybook were never processed: the pipeline ran CC (Step 2) BEFORE
+COPY (Step 1), so a copybook `>>DEFINE`/`>>IF`/`>>EVALUATE` survived COPY expansion and hit the lexer as a stray
+token (**verified firsthand:** a copybook `>>IF` → `COBOL0001: unexpected '>'`).
+
+A 6-agent scout mapped the pipeline + blast radius; I confirmed the two invariants firsthand (a main `>>IF` gates
+a COPY; a **false-branch missing copybook must not error** — today it works because CC blanks the false-branch
+COPY line before COPY runs). That last invariant is why a simple order-swap (COPY-first) is UNACCEPTABLE — it would
+expand the false-branch copybook and raise a spurious CBL3620. So the **interleaved driver** (the owner's recorded
+direction) is required. Two-pass (CC→COPY→CC) also fails — pass 1 consumes the main `>>DEFINE` before the copybook
+`>>IF` in pass 2 can see it (my primary test case).
+
+**The merged driver** (design SSOT `docs/rearchitecture/DESIGN-cc-in-copy.md`):
+- `ConditionalCompilationProcessor` refactored into a `Run` holding ALL directive state (defines / IF-EVALUATE
+  stack / FlagScanState / evaluator). `Render()` accumulates consecutive emitting non-directive lines into a block
+  and flushes (COPY-expanded when interleaving) at each directive/omitted-line boundary — a COPY statement always
+  lies wholly within one emitting block, so multi-line COPY REPLACING + mid-line COPY ride the copybook engine's
+  char scan. An emitting COPY is expanded and its copybook fed back through the SAME `Run` (shared state across the
+  boundary — a copybook `>>DEFINE` is visible to following source, Step-2 encounter order); an omitted COPY is
+  DROPPED (never expanded). `emitting` for a boundary directive is computed AFTER the flush so a copybook
+  `>>DEFINE` in the just-flushed block is visible.
+- `CopyProcessor`: extracted `ResolveOneCopy` (one non-recursive COPY resolve) shared by `ExpandCopyStatements`
+  (legacy, byte-identical) and the new `ExpandCopiesOneLevel` (the COPY half, which calls back into the CC `Run`).
+- `Frontend.Preprocess`: the two separate CC + COPY calls become ONE `ProcessWithCopy`. Legacy `Process`/COPY
+  stay byte-identical (the frozen oracle + `preprocess` CLI + direct tests use them).
+
+**⚠ Two test failures were bad TEST DATA, not merge bugs:** `>>DEFINE USE`/`MODE` — USE and MODE are RESERVED
+words, so the CCE evaluator correctly rejected them as compilation-variable names (COBOLNET1619). Renamed to
+USEIT/XMODE.
+
+**Gate (high blast radius, shared preprocessor):** characterization **33/33** byte-exact + the existing CC/COPY
+unit tests **26/26** (refactor byte-identity) + `CopyConditionalProcessorTests` **8/8** (the merged behavior) +
+the `cc_in_copy` conformance golden (copybook `>>IF` selecting a VALUE → `2`, run+compared) + GreenfieldOnly.
+**GnuCOBOL external differential before/after: +2 FIXES (`listings:3788`/`3884` WE_REJECT_THEY_ACCEPT →
+AGREE_ACCEPT), 0 REGRESSIONS.** Legacy guard ALL GREEN + full greenfield Conformance 3806/0. **⭐ TRACK 2 COMPLETE.
+NEXT = Track 3 (PERFORM Format-3 RUNTIME interceptor — the pc-RANGE architecture).**
+
+## Entry 965 — 2026-07-21 21:20 PDT — Wave D: `>>COBOL-WORDS` Incr D — intrinsic-function-name synonyms; ⭐ TRACK 1 COMPLETE
+
+**Incr D of Track 1 — the last increment.** Intrinsic-function-name EQUATE/UNDEFINE/SUBSTITUTE (the case the
+token rewriter cannot handle, because intrinsic names are IDENTIFIERs, not keyword tokens — the rewriter skips
+them by design). `IntrinsicBinder.BindIntrinsicCore` now resolves the FUNCTION name through `ctx.CobolWords`:
+- a SYNONYM (EQUATE literal-2 / SUBSTITUTE literal-5) whose canonical is an intrinsic → the canonical name;
+- an UNDEFINE'd (literal-3) / SUBSTITUTE'd-away (literal-4) intrinsic → no longer a function (COBOLNET1501).
+`cobolWordsRemoved` is tested on the ORIGINAL written name so SUBSTITUTE works (literal-4 is BOTH in DeReserved
+AND the synonym target — checking the original name means `FUNCTION literal-5` resolves while `FUNCTION literal-4`
+is removed). Threading: `CobolWordsMap` rides `DataBinder.CobolWords` (a session init prop set in
+`BinderDriver.BindUnitData`), exposed on `BinderContext.CobolWords`.
+
+**Gate (wave-local — no `.g4` change, so no full legacy guard):** fresh build (0 warn) · `CobolWordsDirectiveTests`
+**34/34** (3 new: EQUATE/UNDEFINE/SUBSTITUTE intrinsic) · characterization **33/33** byte-exact (the resolution is
+a no-op for the empty map) · the `cobol_words_intrinsic` golden (EQUATE MAX WITH LARGEST → `FUNCTION LARGEST(3 7 5)`
+= 7, run+compared) + its GreenfieldOnly exclusion. CLI-probed EQUATE/UNDEFINE/SUBSTITUTE(both directions).
+
+**⭐ TRACK 1 (`>>COBOL-WORDS`, §7.3.10) IS COMPLETE** — all four options fully supported for reserved,
+context-sensitive, AND intrinsic-function words; SR1–SR5 enforced; design SSOT
+`docs/rearchitecture/DESIGN-cobol-words-directive.md` = IMPLEMENTED. **NEXT = Track 2: CC-directives-inside-COPY
+(§7.2.1)** — merge the CC + COPY stages into one interleaved text-manipulation driver (spec Step 1 COPY-expand
+→ Step 2 CC-process, so copybook directives are processed; the copybook >>SOURCE FORMAT GR5 reversion rides the
+same driver). High blast radius; GnuCOBOL-differential gated before/after.
+
+## Entry 964 — 2026-07-21 21:05 PDT — Wave D: `>>COBOL-WORDS` Incr C — the post-lex token rewriter (EQUATE/UNDEFINE/SUBSTITUTE) + the map-aware lexer
+
+**Incr C of Track 1 — the heart of the feature.** The owner-directed post-lex token rewriter makes
+EQUATE/UNDEFINE/SUBSTITUTE actually re-tokenize per the `CobolWordsMap`, with no per-group grammar regen.
+- **`CobolWordsRewriter`** (Frontend/Parsing) — runs beside `ZeroTokenRewriter` in `Frontend.LexAndParse`. Two
+  disjoint retypes: SYNONYM (EQUATE lit2 / SUBSTITUTE lit5) — an `IDENTIFIER` whose text is a synonym → the
+  canonical reserved/context word's token type (spelled canonically); DE-RESERVED (UNDEFINE lit3 / SUBSTITUTE
+  lit4) — every token of the de-reserved word's keyword type → `IDENTIFIER` (source spelling kept). A word with no
+  keyword token type (a pure intrinsic-function name) is left for the binder (Incr D).
+- **Map-aware lexer** (`CobolLexer.g4`): `PreviousTokenCouldBeDataName()` now also consults a per-group set
+  `SetCobolWordsDataNames(...)`, so a de-reserved word used as a SUBSCRIPTED data name opens SUBSCRIPT mode at its
+  `(` even though it is still lexed as its keyword token (the `(` decision is frozen at lex time; the post-lex
+  retype cannot repair it). Null/empty by default ⇒ byte-identical (the legacy pipeline never sets it).
+  `Frontend.LexAndParse` sets it BEFORE tokenization when the map is non-empty.
+- **⚠ VERIFY-BY-RUNNING caught the hazard:** the FIRST rewriter (no lexer change) failed the subscripted UNDEFINE
+  case (`MOVE(2)` → "no viable alternative at input '('") because the lexer had frozen `(` as grouping — exactly the
+  §6 hazard the design predicted. The lexer map-awareness fixed it; all four forms then produced correct output.
+
+**Comprehensive gate (shared `.g4` ⇒ full legacy guard REQUIRED):** full greenfield Conformance **3804/0** (incl.
+the 3 new goldens); `guard-fast.sh` ALL GREEN (NIST 353 MATCH, 0 regression). ⚠ **The first guard run reported
+IF110A/ST107A "COMPILE FAILED — REGRESSION" — a FLAKY parallel-compile failure (JOBS=32 cold-start contention),
+NOT a real regression** (both compile cleanly standalone + via the guard's exact command run serially; aggravated
+by a `taskkill dotnet.exe` I ran right before launch — don't do that). Re-ran clean → ALL GREEN.
+`CobolWordsDirectiveTests` **31/31** (2 new) · characterization **33/33** byte-exact. Three positive goldens
+`cobol_words_{equate,substitute,undefine}` (run+compared at 2023) with GreenfieldOnly exclusions (the frozen legacy
+only blanks the directive). **NEXT = Incr D** (intrinsic-function-name synonyms — `IntrinsicBinder` resolves the
+name through `ctx.CobolWords`: a synonym → canonical intrinsic; an UNDEFINE/SUBSTITUTE-removed intrinsic → not a
+function; DeReserved checked on the ORIGINAL written name so SUBSTITUTE works).
+
+## Entry 963 — 2026-07-21 20:25 PDT — Wave D: `>>COBOL-WORDS` Incr B — RESERVE/UNDEFINE via the composed `ReservedWordSet` + SR3/SR4 category validation
+
+**Incr B of Track 1.** Wired the `CobolWordsMap` into the compiler so RESERVE/UNDEFINE actually change the
+reserved-word decision, and added the SR3/SR4 category validation that needs all three registries.
+- **Threading:** `CobolWordsMap` rides `BindSession.CobolWords` (defaulting `Empty`), passed
+  `Frontend.CobolWordsMap` → `CompilerDriver` → `CSharpEmitter.Bind` → `BinderDriver.Bind` → the session. No
+  `VersionConformancePass.Run` signature change — it reads `group.Session.CobolWords`.
+- **Composed `ReservedWordSet`** (Editions) — a `Compose(CobolWordsMap)` overlay: RESERVE (GR5) adds a word
+  (`RejectsAt`→true, high-confidence-equivalent); UNDEFINE/SUBSTITUTE-lit4 (GR3/GR4) add to a suppress set
+  (`RejectsAt`→false even for a base-reserved word — suppression wins). `Empty`⇒`Default` (byte-identical, same
+  reference). `VersionConformancePass.ParseArm` now takes the composed set (was the hard-coded
+  `ReservedWordSet.Default`), so the §8.9 funnel (`VisitCobolWord`→`RejectsAt`→COBOLNET0901) honors the directive.
+- **SR3/SR4 category validation** (`VersionConformancePass.ValidateCobolWords`) — the EXISTING word (lit1/3/4)
+  must be reserved/context/intrinsic (SR3); the NEW word (lit2/5/6) must be none (SR4). Category facts:
+  `CobolKeywordTokens` (Frontend — the reverse `word→lexer-token-type` map built once from
+  `CobolLexer.DefaultVocabulary`, reachable from the Compiler) for reserved+context words; `IntrinsicCatalog`
+  for functions; `ReservedWords` for the §8.9 table. Both checks err AWAY from rejecting legal source (SR3
+  accepts on ANY signal; SR4 rejects only on a CERTAIN one). Emits COBOLNET1623 via the edition sink.
+- `CobolKeywordTokens` iterates `GetLiteralName(t)` to a generous fixed bound (null for out-of-range — the
+  `IVocabulary`/`Vocabulary` types don't expose a MaxTokenType accessor in this ANTLR build).
+
+RESERVE is now fully functional end-to-end; UNDEFINE's suppress-set is composed but only observable once the
+token rewriter lands (Incr C — the de-reserved word must first re-lex as an IDENTIFIER to appear in a user-word
+slot). **Gate (wave-local):** fresh build (0 warn) · `CobolWordsDirectiveTests` **29/29** (8 new: Compose,
+CobolKeywordTokens, RESERVE→0901, SR3/SR4, valid-EQUATE) · `ReservedWordPosition` **10/10** (base 0901 path
+byte-identical) · characterization **33/33** · CLI-probed RESERVE→0901 / SR3 / SR4 / valid-EQUATE. Negative
+golden `cobol-words-reserve-rejects` (0901@2023). Full VersionMatrix confirmed green at Incr A (927/0 + 840/0;
+a ~15-min per-batch gate, not run per-increment). **NEXT = Incr C** (the token rewriter — EQUATE/SUBSTITUTE
+identifier↔keyword + UNDEFINE keyword→identifier + the map-aware lexer data-name gate).
+
+## Entry 962 — 2026-07-21 20:05 PDT — Wave D: `>>COBOL-WORDS` directive (ISO §7.3.10) Incr A — recognition + parse + SR1/2/5 + the 2023 introduction gate
+
+**Track 1 of the Wave-D residue (owner: "do them all in sequence").** Started the `>>COBOL-WORDS` directive
+(§7.3.10; Annex D.12; Annex E.3.3 item 12), the per-compilation-group facility that modifies which words are
+reserved / context-sensitive / intrinsic-function words and prohibits specified user-defined words. An 8-part
+question was answered by a 6-agent scout workflow (`cobol-words-scout`) before any code: the reserved-rejection
+funnel (`VersionConformancePass.ParseArm.VisitCobolWord`→`ReservedWordSet.RejectsAt`→COBOLNET0901, the
+hard-coded `_reservedWords = ReservedWordSet.Default` at line 406 being the seam), the intrinsic set
+(`IntrinsicCatalog.TryGet`, Compiler-layer), the context-word/subscript-mode hazards, the directive-word gate
+model (the FLAG/REF-MOD `ConstructRegistry.Check` pattern), and the test template.
+
+**Design SSOT written first:** `docs/rearchitecture/DESIGN-cobol-words-directive.md` (decision-complete).
+Mechanism = the owner's recorded direction — a **post-lex token rewriter + composed `ReservedWordSet`** (NOT the
+prior scouts' "text substitution for EQUATE, not-supported for SUBSTITUTE/UNDEFINE" recommendation, which the
+owner superseded): the rewriter operates on token TYPE↔TEXT and is strictly more capable than text substitution;
+the frozen-lex subscript hazard is resolved by making the lexer's `PreviousTokenCouldBeDataName()` map-aware
+(the map exists pre-lex). Four increments (A recognition/gate → B RESERVE/UNDEFINE reserved-word semantics →
+C token rewriter EQUATE/SUBSTITUTE → D intrinsic-function-name synonyms).
+
+**Incr A (this commit) — recognition + parse + gate, no behavior yet:**
+- `CobolWordsMap` (Editions) — the pure-string override carrier (Synonyms / DeReserved / Reserved derived
+  views), threaded frontend→compiler like `FlagState`/`RefModZeroLengthState`. `Empty` ⇒ every future consumer
+  is a no-op (the zero-overhead invariant).
+- `CobolWordsDirectiveProcessor` (Frontend) — the text-stage parser: the four options (EQUATE/UNDEFINE/
+  SUBSTITUTE/RESERVE), a quoted-literal operand tokenizer (rejecting hex/national-prefixed and space-bearing
+  literals per SR2), SR1 (before the first IDENTIFICATION DIVISION), SR5 (a word in ≤1 directive), the §8.3.2.2
+  user-word form for the fresh word (SR4 frontend half), and the **COBOLNET0900 introduction gate** via the ONE
+  `ConstructRegistry` (`Constructs.CobolWordsDirective2023`). Blanks the directive line (line-count preserving —
+  the H3 discipline). SR3/SR4 CATEGORY checks (reserved/context/intrinsic membership) deferred to Incr B where
+  all three registries are reachable.
+- Wiring: `Frontend.CobolWordsMap` property + the stage after the FLAG stage (H3 assert); a
+  `leaveCobolWordsDirectives` flag on `ConditionalCompilationProcessor.Process` so the greenfield emitting-branch
+  directive survives to the new stage while `COBOL-WORDS` stays in `KnownIgnoredDirectives` (legacy oracle
+  byte-identical).
+- Diagnostics: **COBOLNET1623** `cobol-words-directive-invalid` (the malformed/SR channel; the message names the
+  specific rule). `constructs.json` `cobol-words-directive-2023` row (introducedIn 2023, COBOLNET0900) + regen.
+  `DIAGNOSTICS.md` regenerated (the drift test caught the missing row — regen via `gen-diagnostics-doc.ps1`).
+
+**Gate (wave-local):** fresh `CobolSharp.sln` build (0 warn) · `CobolWordsDirectiveTests` **21/21** ·
+Construct/Diagnostic registry drift **8/8** · characterization **33/33** byte-exact (zero-overhead holds) ·
+CLI-probed all four cases (RESERVE@2023 runs; RESERVE@2014→0900; BOGUS→1623; SR1-misplacement→1623). Below-2023
+negative golden `cobol-words-below-2023` added. **NEXT = Incr B** (RESERVE/UNDEFINE via the composed
+`ReservedWordSet` + SR3/SR4 category validation).
+
+## Entry 961 — 2026-07-21 19:55 PDT — Wave D: FLAG flagging Incr 4 — b EC-PROGRAM-EXCEPTIONS; **THE FLAG SUBSYSTEM IS COMPLETE (all option-detectors)**
+
+**Detector 17 of 19 — the LAST FLAG option.** FLAG-02 **b EC-PROGRAM-EXCEPTIONS** (§7.3.14.4 GR4 b): a `>>TURN`
+directive for **EC-ALL / EC-PROGRAM / EC-PROGRAM-ARG-OMITTED / EC-PROGRAM-NOT-FOUND** is flagged when its source
+element **(1) calls any function** or **(2) invokes any method** (per spec — CALL of a program is deliberately NOT
+included; the two triggers are function activation and method invocation).
+
+**Structural note — this flags a DIRECTIVE, not a statement.** The `>>TURN` occurrences are frontend events (not
+parse nodes), so the detector runs POST-walk: a new `TurnState.DirectiveLinesNaming(ecNames)` exposes the lines of
+`>>TURN` directives naming any EC-PROGRAM-family name (ON or OFF alike; the raw events store the canonical name
+as-written, so a level-2 `EC-PROGRAM` matches without hierarchy expansion). During the walk, `VisitFunctionCall` /
+`VisitInvokeStatement` / `VisitInlineMethodInvocationStatement` record the CURRENT unit's `ProgramUnitContext` in
+`_unitsWithCall` (the per-unit `_currentUnitCtx` is save/restored in `VisitProgramUnit`, so a call in a NESTED
+program is attributed to the nested element, not its container). `FlagEcProgramDirectives` then maps each directive
+line to its INNERMOST containing unit (max Start.Line among the units whose span covers the line) and flags it if
+that unit is in `_unitsWithCall`.
+
+**CLI-probed all cases**: ✅ `>>TURN EC-PROGRAM` + `FUNCTION MAX` → flagged · ✅ `>>TURN EC-ALL` + FUNCTION → flagged ·
+✅ `>>TURN EC-PROGRAM-NOT-FOUND` (level-3) + FUNCTION → flagged · ✅ `>>TURN EC-PROGRAM` with no function/method → NOT ·
+✅ FUNCTION but `>>TURN EC-SIZE` (non-family) → NOT · ✅ directive OFF / no directive → NOT. 5 unit tests added
+(`FlagDirectiveTests` 68→73). Wave-local gate green: fresh build + FLAG 73/73 + characterization **33/33 byte-exact**;
+full greenfield unit suite re-run (touched the shared `TurnState` — a pure read-only accessor addition).
+
+**⭐ THE FLAG-02 / FLAG-14 MIGRATION-FLAGGING SUBSYSTEM IS COMPLETE** — all 17 option-detectors landed (FLAG-14 b–m,
+FLAG-02 b–f) plus the 2 directive-word edition gates (Incr 0b) = the full 19-item census. `docs/rearchitecture/
+DESIGN-flag-directives.md` is now IMPLEMENTED. Remaining Wave-D residue (a separate track): >>COBOL-WORDS ·
+CC-directives-inside-COPY · the PERFORM Format-3 runtime interceptor · the §24 fix-queue → Wave I merge.
+
+## Entry 960 — 2026-07-21 19:30 PDT — Wave D (cont.): FLAG flagging Incr 4 (part) — d I-O-DECLARATIVE (the statement→file→open-mode→declarative join)
+
+**Detector 16 of 19.** FLAG-14 **d I-O-DECLARATIVE** (§7.3.15.4 GR4 d; E.2 item 19) — the most complex FLAG
+detector. Two rules: **(1)** an INVALID-KEY-capable I-O statement (WRITE / REWRITE / DELETE / START / random READ on
+a **keyed** — RELATIVE or INDEXED — file) written WITHOUT its INVALID KEY phrase, when the unit has ANY open-mode USE
+declarative (INPUT/OUTPUT/I-O/EXTEND); **(2)** an AT-END-capable READ (a sequential retrieval) written WITHOUT its AT
+END phrase, when the unit has an INPUT or I-O declarative. E.2 item 19 confirms both: at 2023 the declarative "will
+now be executed" on the exception.
+
+**Machinery.** Per-unit USE-declarative modes read from the BOUND model (order-independent): `VisitProgramUnit` sets
+`_hasAnyModeDecl` / `_hasReadModeDecl` from `unit.Bound.Declaratives` (`BoundDeclarative.ModeIndex` = the
+`FileOpenMode` ordinal; null for a file-name-targeted or Format-3/4 declarative, which GR4 d does not consider).
+Per-statement file classification from `_currentData.Files` (source names, pre-renaming): `IsKeyed` = Organization
+RELATIVE/INDEXED; a READ is sequential-retrieval when it has a NEXT/PREVIOUS direction OR the file's AccessMode is
+Sequential (so a dynamic keyed READ with no direction is the random/INVALID-KEY arm). WRITE/REWRITE map their record
+name to its file via `FileModel.Records`. New overrides `VisitRewrite/Delete/StartStatement`; the existing
+`VisitRead/WriteStatement` extended. A file that does not resolve stays unflagged (no organization ⇒ neither branch).
+
+**CLI-probed all cases**: ✅ WRITE/REWRITE/DELETE/START on a keyed file, no INVALID KEY, USE ON I-O → flagged ·
+✅ READ NEXT (no AT END) + USE ON INPUT → flagged (rule 2) · ✅ random READ (no INVALID KEY) → flagged (rule 1) ·
+✅ WRITE INVALID KEY / START INVALID KEY / READ … AT END → NOT · ✅ SEQUENTIAL-file WRITE (not keyed) → NOT ·
+✅ no declarative → NOT · ✅ READ NEXT with a USE ON OUTPUT-only declarative → NOT (rule 2 needs INPUT/I-O) ·
+✅ directive OFF / no directive → NOT. 7 unit tests added (`FlagDirectiveTests` 61→68). Wave-local gate green: fresh
+build + FLAG 68/68 + characterization **33/33 byte-exact**. Detectors done **16 of 19**; the LAST FLAG option =
+FLAG-02 b EC-PROGRAM-EXCEPTIONS.
+
+## Entry 959 — 2026-07-21 19:05 PDT — Wave D (cont.): FLAG flagging Incr 4 (part) — I-O-STATUS-04 / I-O-STATUS-07 (FILE-STATUS reference tagging)
+
+**Detectors 14 + 15 of 19.** FLAG-14 **e I-O-STATUS-04** + **f I-O-STATUS-07** (§7.3.15.4 GR4 e/f): a reference to a
+FILE STATUS data item that tests for '04' / '07'. First Incr-4 (new-analysis) options — they introduce FILE-STATUS
+reference tagging. One shared detector (`VisitComparisonExpression`) serves both (only the literal differs).
+
+**Two reference forms, both spec-faithful:**
+1. **Relation** — `comparisonExpression` (the relation-condition leaf, in `Core/CobolExpressions.g4`) with 2
+   `comparisonOperand`s + a `comparisonOperator`, one side a FILE-STATUS item and the other the nonnumeric literal
+   '04'/'07' (either operand order, any relational operator).
+2. **Level-88 condition-name** — a bare reference to an 88 whose singleton VALUE is '04'/'07', defined ON the
+   FILE-STATUS item (a reference to that condition-name is likewise "a reference … that tests for '04'/'07'").
+
+**Machinery.** `Run` builds three name-role sets from `unit.Data.Files[]`: the FILE-STATUS item names
+(`FileModel.FileStatusItem.CobolName`) + the 88-names on such an item whose singleton `Condition88.Values` strip to
+'04' / '07' (the m/f global-name-set idiom — a role fact, not a scope-sensitive identity like d/e). Operand
+navigation uses the **canonical helpers** (tooling-first, scout-recommended): `comparisonOperand.valueOperand()` →
+`arithmeticExpression()` unwrapped by `ConditionBinder.SoleDataRef` (a lone reference, not an expression) for the
+data-name side, and `.nonNumericLiteral().STRINGLIT()` for the literal side. New override
+`VisitComparisonExpression`; the class/sign-condition and >1-operand arms are excluded so only genuine relations /
+condition-names are examined.
+
+**CLI-probed all cases**: ✅ `IF FS = "04"` → 04 · ✅ `IF "07" = FS` (reverse order) → 07 · ✅ `IF FS-AVAIL`
+(88 VALUE '04') → 04 · ✅ `IF FS-DUP-KEY` (88 VALUE '07') → 07 · ✅ `IF FS = "05"` NOT · ✅ `IF WS = "04"`
+(non-FILE-STATUS item) NOT · ✅ per-option gating (only 04 ON, `FS = "07"`) NOT · ✅ directive OFF NOT. 7 unit tests
+added (`FlagDirectiveTests` 54→61). Wave-local gate green: fresh build + FLAG 61/61 + characterization **33/33
+byte-exact**. Detectors done **15 of 19**; Incr-4 remainder = I-O-DECLARATIVE + EC-PROGRAM-EXCEPTIONS.
+
+**A transient during probing:** the first run of a fresh 88-form test file showed no warnings; a clean re-run
+flagged correctly (a stale `cobol.exe` caught mid-rebuild — the `feedback_fresh_build_before_no_build_test` hazard in
+CLI form). Every verdict here is from a post-build run.
+
+## Entry 958 — 2026-07-21 18:40 PDT — Wave D (cont.): FLAG flagging — e RANGE-EXCEPTION-FOR-INDEX; **INCR 3 COMPLETE**
+
+**Detector 13 of 19.** FLAG-02 **e RANGE-EXCEPTION-FOR-INDEX** (§7.3.14.4 GR4 e): a Format-1 index-assignment
+(`SET … TO`) or Format-2 index-arithmetic (`SET … UP/DOWN BY`) whose receiving field is an index, flagged when
+EC-RANGE-INDEX checking is enabled. Reuses d's per-unit `_currentData`: two overrides (`VisitSetToValueStatement`,
+`VisitSetIndexStatement`) — the two SET sub-rules that share their grammar with the pointer/object/dynamic-length
+formats — test each receiver's base name against the current unit's INDEXED BY registry
+(`DataBinder.IndexFields.ContainsKey`), gated by `_turn.Enabled("EC-RANGE-INDEX", null, line)` (the same TurnState
+read i uses; the fold honours the EC hierarchy, so `>>TURN EC-ALL`/`EC-RANGE` also enable it).
+
+**⛔ SPEC-PRECISE (a deliberate divergence from the scout AND the verify agent, both of which listed a USAGE INDEX
+data-item receiver as a positive):** only an **index-NAME** receiver range-checks. §14.9.39.4 Format-1 **GR2b**
+states a class-index DATA item (USAGE INDEX) receiver has its value copied **UNCHANGED** — no EC-RANGE-INDEX — and
+Format-2 GR4a checks only `index-name-3`. Since GR4 e's own gate is "flagged when checking for EC-RANGE-INDEX is
+enabled," flagging a receiver that can never raise EC-RANGE-INDEX would contradict the gate. So a USAGE INDEX
+data-item receiver is **NOT** flagged. Matching only `IndexFields` names realizes exactly this: pointer / capacity /
+dynamic-length / object-ref / USAGE-INDEX receivers of the shared SET grammar are intrinsically excluded (never an
+index-name). (`feedback_spec_fidelity_discipline` — implement the NAMED EC, cross-check the SET GRs.)
+
+**CLI-probed all cases**: ✅ `SET IDX TO 3` / ✅ `SET IDX UP BY 1` (index-name, EC on) flagged · ✅ `>>TURN EC-ALL`
+(hierarchy) flags · ✅ EC-RANGE-INDEX off NOT · ✅ `SET IXD TO IDX` (IXD = USAGE INDEX data item) NOT · ✅ `SET N TO 3`
+(plain numeric) NOT · ✅ directive OFF NOT. 7 unit tests added (`FlagDirectiveTests` 47→54). Wave-local gate green:
+fresh build + FLAG 54/54 + characterization **33/33 byte-exact**.
+
+**INCR 3 COMPLETE** (i REF-MOD-ZERO-LENGTH + d MOVE-TO-SAME-NAME + e RANGE-EXCEPTION-FOR-INDEX all landed). Next =
+Incr 4, the new-analysis options (I-O-DECLARATIVE · I-O-STATUS-04/07 · EC-PROGRAM-EXCEPTIONS).
+
+## Entry 957 — 2026-07-21 18:26 PDT — Wave D (cont.): FLAG flagging Incr 3 (part) — d MOVE-TO-SAME-NAME (per-unit name resolution + same-DDE identity)
+
+**Detector 12 of 19.** FLAG-02 **d MOVE-TO-SAME-NAME** (§7.3.14.4 GR4 d): a MOVE whose sending and a
+receiving operand are described by the **same data description entry**, when that DDE is either **(1) category
+alphanumeric-edited** or **(2) has a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to it**.
+
+**Approach (scouted + adversarially verified via an 8-agent Workflow, then CLI-probed).** The scout's central
+recommendation — implement as a bind-time detector in `SetBinder`/`MoveBinder` — was **rejected** (it would fork a
+second flagging mechanism; `feedback_singular_pattern`). Kept in the ONE `FlagConformancePass` parse-tree visitor,
+extended with **per-unit name resolution**: a new `VisitProgramUnit` override (save/restore) selects the current
+program unit's `DataBinder`/`ReferenceResolver` from a `ProgramUnitContext→BoundUnit` map, so an operand resolves in
+ITS OWN COBOL name scope (duplicate data-names across programs never cross-resolve). "Same DDE" is then **exact
+`ReferenceEquals`** of the two resolved `DataItem`s (via `ReferenceResolver.FindItem`, which resolves the
+DESCRIPTION ENTRY and ignores subscripts/ref-mod — so `MOVE A(I) TO A(J)` is the same DDE, spec-correct). Condition
+(1) = the established `{ Category: PicCategory.Alphanumeric, EditMask: not null }` test (there is **no**
+`PicCategory.AlphanumericEdited` enum member — the scout's proposed test was impossible; corrected by the verify
+agent). Condition (2) = the existing `OdoModel.TableUnder`/`IsWithin` pair (no hand-rolled tree walk).
+
+**Both MOVE forms** handled (`MOVE CORRESPONDING a TO b` — CORR on the statement — and `MOVE a TO b…` multi-receiver);
+a literal/function sender resolves to null and is skipped (can't be the same DDE). **OO method bodies** have no unit
+map entry ⇒ `_current*` null ⇒ not resolved: a documented advisory **false-NEGATIVE**, never a false-positive.
+
+**CLI-probed (verify-by-running) all cases**: ✅ `MOVE AE TO AE` (alphanumeric-edited) flagged · ✅ `MOVE G TO G`
+(subordinate ODO inside G) flagged · ✅ `MOVE PL TO PL` (plain alnum) NOT · ✅ `MOVE AE TO AF` (distinct DDEs) NOT ·
+✅ ODO DEPENDING item declared OUTSIDE the group NOT (IsWithin false, §13.18.38 SR20) · ✅ directive OFF NOT · ✅ no
+directive NOT. 6 unit tests added (`FlagDirectiveTests` 41→47). Wave-local gate green: fresh build + FLAG 47/47 +
+characterization **33/33 byte-exact** (zero-overhead invariant holds — no `>>FLAG` line = no walk change).
+
+## Entry 956 — 2026-07-21 16:55 PDT — Wave D (cont.): FLAG flagging Incr 3 (part) — i REF-MOD-ZERO-LENGTH (tri-state directive + EC-BOUND-REF-MOD TurnState)
+
+The first state-coupled option. i (§7.3.15.4 GR4 i; E.2 item 23) flags a reference modification ONLY when the
+`>>REF-MOD-ZERO-LENGTH` directive is UNSPECIFIED at the site (neither explicit ON nor OFF) AND EC-BOUND-REF-MOD
+checking is on (a zero-length result would then raise the exception). Threaded `GroupBindContext.Session`'s
+`RefModZeroLengthState` + `TurnState` into `FlagConformancePass`.
+
+* **Tri-state:** `RefModZeroLengthState.IsUnspecifiedAt(line)` added — the distinction `IsOnAt` cannot make (it
+  folds absence to OFF): true iff NO toggle precedes the site.
+* **EC state:** `TurnState.Enabled("EC-BOUND-REF-MOD", null, line)` — the EC-hierarchy-aware fold the EC model uses.
+* **The parse node — a real bug caught by probing:** my first cut hooked `refModSpec` (the default-mode ref-mod),
+  but a ref-mod on a DATA REFERENCE (`MOVE W(2:2)`) parses through `subscriptOrRefMod : subToken+` where a
+  `SUB_COLON` sub-token marks the ref-mod (the grammar leaves subscript-vs-refmod to the binder, mirroring
+  `ReferenceResolver.InterpretSubscripts`). So the common case never hit `VisitRefModSpec` and i silently didn't
+  fire. Fixed: handle BOTH paths — `VisitRefModSpec` and `VisitSubscriptOrRefMod` (when a direct `subToken` is a
+  `SUB_COLON`). (Lesson reinforced: verify by RUNNING, not by the plausible-looking node.)
+
+**Gate.** Build 0W/0E · CLI-probed (unspecified + EC on → 1621; `>>REF-MOD-ZERO-LENGTH OFF` specified → none; no
+`>>TURN EC-BOUND-REF-MOD` → none) · 41 FlagDirectiveTests (3 new) · characterization 33/33 byte-exact. **Detectors
+done: 11 of 19.** NEXT (Incr 3 remainder) = d MOVE-TO-SAME-NAME (same-DDE via name resolution) + e
+RANGE-EXCEPTION-FOR-INDEX (SET-index + EC-RANGE-INDEX), then Incr 4 (new-analysis).
+
+## Entry 955 — 2026-07-21 16:30 PDT — Wave D (cont.): FLAG flagging Incr 2 — the frontend-inline options b COMPILE-TIME-ARITHMETIC-EXPRESSIONS + c EVALUATE (emitted in ConditionalCompilationProcessor)
+
+The two options with NO bound residue — the >>EVALUATE directive and compile-time arithmetic are consumed at the
+conditional-compilation stage and never reach the bound tree, so they are flagged INLINE in
+`ConditionalCompilationProcessor` (design D4's second collection site), not in `FlagConformancePass`.
+
+**The in-scan FLAG state.** A `FlagScanState` (a per-option ON/OFF dict) is updated as the CC stage scans directive
+lines in source order — mirroring the compile-time `FlagState` fold but built incrementally, because these
+constructs are consumed here. A `>>FLAG-02`/`>>FLAG-14` line in an emitting branch applies to it (via the ONE
+`FlagDirectiveLine` parser) AND still survives for the post-COPY `FlagDirectiveProcessor` (the bound-option state).
+`DirectiveDiag` holds a reference to it and emits the flag WARNING with the SAME code/message shape as
+`FlagConformancePass`, so the two collection sites are indistinguishable to the user.
+
+* **c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8):** the `Frame` now records the syntactic presence of a `>>WHEN` and a
+  `>>WHEN OTHER` (independent of which branch emits) + the >>EVALUATE line + whether FLAG-14 EVALUATE was ON there;
+  at `>>END-EVALUATE`, a directive carrying BOTH is flagged at the >>EVALUATE line.
+* **b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b; E.2 item 6):** `EvaluateOperandText` / `EvaluateCceText`
+  (the fragment-parse choke points for every IF/EVALUATE/WHEN/DEFINE operand, incl. `MatchWhen`'s range operands)
+  call `diag.FlagArithmetic` on the already-parsed fragment — flag when the operand contains a real `addOp`/`mulOp`
+  (not a bare literal) and b is ON. Fires only in the EVALUATED context (the eval helpers run only in active
+  branches) — where the arithmetic "could give a different result."
+
+**Gate.** Build 0W/0E · CLI-probed both (c: WHEN+WHEN-OTHER flagged, WHEN-only not; b: `1 + 2` and `1 + 1 = 2`
+flagged, sole `5` and `Y = 5` not) · 38 FlagDirectiveTests (4 new; note frontend-inline warnings carry a
+`path(line,col)` prefix, unlike bound-option edition warnings) · characterization 33/33 byte-exact (zero-overhead:
+no >>FLAG ⇒ no warning, no output change). **Detectors done: 10 of 19 — INCR 2 COMPLETE.** NEXT = Incr 3
+(state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis:
+I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS).
+
+## Entry 954 — 2026-07-21 16:05 PDT — Wave D (cont.): FLAG flagging — k VALUE-FIG-CON-LENGTH implemented (NOT deferred; owner: "we fix issues, do not defer them"); INCR 1 COMPLETE
+
+Owner correction: I had recorded k for a "dedicated increment" — that is technical debt by another name. Fixed it
+now. **k VALUE-FIG-CON-LENGTH (§7.3.15.4 GR4 k; E.2 item 11)** — a figurative-constant VALUE (any figurative) on a
+data item with NO SPECIFIED LENGTH, decided precisely from the parse tree (the source-anchoring the flag fold needs):
+
+* **no PICTURE clause**, AND
+* **no length-implying USAGE** — `UsageGivesNoLength`: DISPLAY (explicit or absent, the default) has no length
+  without a PICTURE; every other usage (COMP-*/INDEX/POINTER family/float/binary families) implies a fixed one.
+  Probed both live: `01 X USAGE DISPLAY VALUE SPACE.` (no PIC) compiles and IS flagged (genuinely no length);
+  `01 Y USAGE COMP-2 VALUE ZERO.` compiles and is NOT flagged (length 8). So excluding *all* usages would have been
+  a real false-negative — the keyword is checked (`GetText().EndsWith("DISPLAY")`), AND
+* **not a group** — `HasSubordinates`: the immediately-following sibling entry is a real subordinate (level 2–49,
+  deeper). A group's figurative VALUE is filled to the subordinates' length, so its length IS specified
+  (§13.18.63 SR13). A following 66/88 entry is not a subordinate.
+
+Restricted to real data levels (1–49, 77): a level-88 condition-name reaches `VisitDataDescriptionEntry` via
+`valueClause` (confirmed) and is excluded (`IsRealDataLevel`). k reaches ANY item; g/l/j stay numeric-edited-gated.
+`VisitDataDescriptionEntry` restructured to read (picture, value, usage) once and branch k (any item) vs g/l/j
+(numeric-edited).
+
+**Gate.** Build 0W/0E · CLI-probed the full discrimination set (figurative-no-PIC + ALL + USAGE-DISPLAY flagged;
+PICTURE, COMP-2, group, level-88 not — exactly 3/8 flagged) · 34 FlagDirectiveTests (5 new k tests incl. the
+COMP-2/group/PICTURE/DISPLAY discriminators) · characterization 33/33 byte-exact. **Detectors done: 8 of 19 —
+INCR 1 COMPLETE** (all VALUE + statement options: g/j/k/l/m + FLAG-02 f, on top of Incr 0's READ-PREVIOUS/CLOSE).
+NEXT = Incr 2 (the frontend-inline options b COMPILE-TIME-ARITHMETIC-EXPRESSIONS + c EVALUATE, emitted in
+`ConditionalCompilationProcessor`) → Incr 3 (state-coupled) → Incr 4 (new-analysis).
+
+## Entry 953 — 2026-07-21 15:45 PDT — Wave D (cont.): FLAG flagging Incr 1b — j VALUE-EDITING (derived from §13.18.63 SR6/SR11 + E.2 item 29); k VALUE-FIG-CON-LENGTH scheduled with its derivation recorded
+
+The subtle VALUE options. Derived j's predicate from the spec BEFORE coding (the point of flagging it subtle): a
+numeric-edited item's VALUE that is a LITERAL (numeric or nonnumeric, NOT a figurative constant) carrying **no
+editing symbols** is flagged — §13.18.63 SR6/SR11 (a numeric literal is converted/edited; editing chars apply only
+when the literal is numeric) + E.2 item 29 (at 2023 editing is auto-supplied for a numeric literal and *compulsory*
+for an alphanumeric/national literal — both changed 2014→2023). `VisitDataDescriptionEntry` now branches: figurative
+ZERO ⇒ g/l; else a literal with no editing symbols ⇒ j. "Editing symbols" are scanned from the literal via the
+UNAMBIGUOUS numeric-editing insertion set `{space / , . + - $ *}` + a trailing CR/DB; `0` (zero insertion) and `B`
+(space insertion) are omitted — indistinguishable from a digit / a letter in the literal text without re-deriving
+the picture mask, a documented rare false-negative for this advisory flag. A numeric literal (no editing symbols by
+definition) is always flagged; a nonnumeric literal is scanned; concat/boolean/hex are not analyzed.
+
+**k VALUE-FIG-CON-LENGTH — SCHEDULED, derivation recorded (not silent debt).** A figurative-constant VALUE on an
+item with "no specified length" (E.2 item 11: "with the ALL phrase where the length is unspecified"). I confirmed
+the construct IS reachable (`01 X VALUE SPACE.` with no PICTURE compiles cleanly), but a correct predicate must
+EXCLUDE a group item — a group's figurative VALUE has a specified length via its subordinates (§13.18.63 SR13), so
+it is not flaggable — which requires group-vs-elementary discrimination (sibling lookahead: an item is a group iff a
+following entry carries a higher level number). Deferred to a dedicated increment because that discrimination
+warrants its own careful build; E.2 item 11 itself notes the case affects "few if any programs" and "could be
+expected to cause a compiler error." Recorded in the design SSOT + §0; must land (or get owner sign-off) before Wave I.
+
+**Gate.** Build 0W/0E · CLI-probed j (numeric literal + all-digits nonnumeric → flagged; comma-bearing literal,
+figurative ZERO, and a non-numeric-edited item → not) · 29 FlagDirectiveTests (4 new) · characterization 33/33
+byte-exact. **Detectors done: 7 of 19.** NEXT = Incr 2 (the frontend-inline options b COMPILE-TIME-ARITHMETIC-EXPRESSIONS
++ c EVALUATE, emitted in `ConditionalCompilationProcessor`), then k, then Incr 3/4.
+
+## Entry 952 — 2026-07-21 15:25 PDT — Wave D (cont.): FLAG flagging Incr 1c — the crisp statement options m WRITE-END-OF-PAGE + FLAG-02 f TERMINATE-WITH-VARYING (parse-arm + resolved name lookups)
+
+The two statement FLAG options with unambiguous predicates but a resolved-fact dependency — implemented on D2's
+"name-lookup off the parse-anchored construct" basis (NOT a data-arm). `FlagConformancePass.Run` builds two
+source-name lookups from `GroupBindContext.Units[].Data` before walking the tree: the WRITE targets (record- and
+file-names) whose file has a `LINAGE` clause, and the report-names whose description carries a VARYING clause. The
+lookups key on SOURCE names because the flag pass runs BEFORE the file-connector renaming (so `FileModel.CobolName`
+is still the source name).
+
+- **m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m):** `VisitWriteStatement` flags a WRITE with no `writeAtEndOfPage` whose
+  target is on a LINAGE file (a LINAGE clause is what "allows an END-OF-PAGE phrase," §14.9.51). recordName is a
+  dataReference — unqualified in practice; a qualified WRITE record name is a documented rare false-negative.
+- **f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f):** `VisitTerminateStatement` flags a TERMINATE (once) when any
+  named report's description contains a VARYING clause (`ReportModel` groups→lines→fields→`Varyings`, §13.18.64).
+
+**Gate.** Build 0W/0E · CLI-probed both (a WRITE-without-EOP on a LINAGE file → 1621, the AT-EOP form → none; a
+TERMINATE of a VARYING report → 1620) · 25 FlagDirectiveTests (5 new: m on/EOP-negative/non-LINAGE-negative, f
+on/no-VARYING-negative) · characterization 33/33 byte-exact. **Detectors done: 6 of 19** (READ-PREVIOUS, CLOSE
+I-O-STATUS-07, NUM-ED-ZERO-FIGCONST, VALUE-ZERO, WRITE-END-OF-PAGE, TERMINATE-WITH-VARYING). NEXT = Incr 1b (j
+VALUE-EDITING + k VALUE-FIG-CON-LENGTH — the subtle §13.18.63/§13.18.40 predicates, a dedicated derivation pass).
+
+## Entry 951 — 2026-07-21 15:05 PDT — Wave D (cont.): FLAG flagging Incr 1a — the VALUE-clause data options g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO (parse-arm, PictureAnalyzer for category)
+
+The first data-division FLAG detectors, on the design basis the owner's spec question settled: **parse-arm
+anchoring** (the flag fold is source-position-based per §7.3.15.4 GR2 "all text that follows"), condition from the
+**parse tree** (GR4 "the syntax to be diagnosed"). `FlagConformancePass.VisitDataDescriptionEntry` flags the
+figurative constant ZERO in the VALUE clause of a **numeric-edited** item — g (NUM-ED-ZERO-FIGCONST) and l
+(VALUE-ZERO) are the SAME predicate stated two ways, so one detector serves both, each firing only if its own
+option is ON (both ON ⇒ two warnings, the literal per-option reading).
+
+**Category via the ONE mechanism, no data-arm.** "Numeric-edited" is a PICTURE-string property (§13.18.40), so the
+detector reuses `PictureAnalyzer.Analyze` on the parse-tree PIC_STRING — with a **discard `EditionContext`** (at 2023,
+the superset) so re-classifying the already-bound picture never re-emits its bind-time diagnostics to the real sink.
+This is FILLER-safe (no name lookup) and avoids adding a source line to `DataItem`. Figurative ZERO is found by a
+small generic `FirstDescendant<FigurativeConstantContext>` over the value-operand subtree (the `ZERO` token covers
+ZERO/ZEROS/ZEROES, with or without ALL). Known minor limitation (documented): a numeric-edited picture using a
+non-default CURRENCY SIGN symbol is a rare false-NEGATIVE (never a false-positive) for this advisory flag.
+
+**Gate.** Build 0W/0E · CLI-probed (`PIC ZZ9.99 VALUE ZERO` → two 1621s [g+l]; `PIC 999 VALUE ZERO` [numeric, not
+edited] and `PIC ZZ9 VALUE 5` [numeric literal] → none) · 20 FlagDirectiveTests (4 new: g on, l on, plain-numeric
+negative, numeric-literal negative) · characterization 33/33 byte-exact. NEXT (Incr 1b) = j VALUE-EDITING + k
+VALUE-FIG-CON-LENGTH (the subtle §13.18.63 predicates), then Incr 1c = m WRITE-END-OF-PAGE + FLAG-02 f
+TERMINATE-WITH-VARYING (statement parse-arm + name lookups).
+
+## Entry 950 — 2026-07-21 14:45 PDT — Wave D (cont.): FLAG flagging Incr 0b — the directive-word edition gates (>>FLAG-14 = 2023 intro; >>FLAG-02 = 2014 intro / 2023 OBSOLETE), through the ONE ConstructRegistry
+
+Added the directive-WORD edition gating for the FLAG directives — closing the gap where `>>FLAG-14` was silently
+accepted below 2023 — through the SAME `ConstructRegistry` funnel every other construct uses (the owner's
+"uniform handling for all statements as the spec adds/deprecates/removes them"), NOT a bespoke gate.
+
+**An owner spec-fidelity question resolved against the PDF.** The question: "if FLAG-02 was removed in 2023, why
+produce a warning?" The answer, confirmed by rendering PDF page 100 (§7.3.14.1) and reading §4.2.13: FLAG-02 is
+NOT removed in 2023 — it is **obsolete** ("an obsolete element in this Working Draft … to be deleted from the
+**next** edition"). Per §4.2.13 an implementation **shall SUPPORT** obsolete elements (so it must still compile,
+not reject) and **shall provide a warning mechanism** to flag their use. So the spec-correct model is
+`introducedIn:2014, obsoleteIn:2023` → 0900 (error) below 2014, clean 2014–2022, **COBOLNET0903 obsolete WARNING**
+at 2023 — a `removedIn:2023` → 0902 rejection would violate §4.2.13. (F.2, which §4.2.13 says lists obsolete
+elements, does NOT name FLAG-02 — an ISO gap; the §7.3.14.1 NOTE is the direct authority. And §4.2.13's "optionally
+may be invoked by the user" is honored by our existing all-0903-by-default convention, a separate cross-cutting
+question, not FLAG-specific.)
+
+**Implementation.** Two `constructs.json` rows: `flag-14-directive-2023` (a clean `introducedIn:2023`, templated by
+`ref-mod-zero-length-2023`) and `flag-02-directive-2014` (`introducedIn:2014` + `obsoleteIn:2023` — the FIRST row
+in the matrix to combine introduction and obsolescence; `ConstructRegistry.StatusAt` already handles it:
+NotYetIntroduced < 2014, Available 2014–2022, Obsolete ≥ 2023). Regenerated `Constructs.g.cs` /
+`ConstructRegistry.g.cs`. `FlagDirectiveProcessor` now edition-gates each directive word via
+`ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), BagSink, …)` (the RefModZeroLength precedent),
+threaded `DialectLevel`/`Permissive` from `Frontend`.
+
+**Gate.** Build 0W/0E · CLI-probed all four editions (FLAG-02: 85→0900 reject, 2014→clean, 2023→0903 warn-and-
+compile; FLAG-14: 2014→0900 reject, 2023→clean) · ConstructRegistry/Diagnostic drift + FlagDirectiveTests 33/33
+(registry↔json agree incl. the dual-window) · characterization 33/33 byte-exact · the version-matrix suite
+(every construct × 4 editions, incl. the two new rows' Construct_MatchesEditionExpectation + FLAG-02's
+ObsoleteConstruct_CompilesEverywhere_WarnsFromObsoleteEdition). NEXT = Incr 1 (the data/VALUE + WRITE + TERMINATE
+option detectors).
+
+## Entry 949 — 2026-07-21 14:20 PDT — Wave D (cont.): FLAG flagging Incr 0 — the core pipeline + the two syntactic detectors (READ-PREVIOUS, CLOSE NO REWIND/UNIT); COBOLNET1620/1621/1622
+
+Implemented Increment 0 of the FLAG-02/FLAG-14 migration-flagging subsystem from the design SSOT
+(`DESIGN-flag-directives.md`) — the full shared pipeline plus the two purely-syntactic detectors, proving both
+directives and both warning codes end-to-end.
+
+**A design correction found during implementation (folded into the doc, same change set).** The census had the
+bound detectors as a bound-tree walk. But `BoundStatement` carries NO uniform source line (only a few nodes hold a
+`SourceLine` for DEBUG-LINE; `BoundTerminate` has none), and the flag fold is line-sensitive (GR2 — a flag applies
+to the text FOLLOWING its directive). The parse tree, by contrast, has `ctx.Start.Line` on every node, anchored to
+the same final-text lines as the collected `FlagEvent`s. So `FlagConformancePass` is a PARSE-TREE visitor (the same
+generated ANTLR base visitor VCP's ParseArm uses), not a bound walk — D2 rewritten. A bonus: FLAG-02 c I-O-STATUS-07
+is parse-visible (`closeOption` = UNIT or NO REWIND), so it needed NO `BoundClose` model change and moved from the
+planned Incr 3 up to Incr 0.
+
+**The pipeline (three seams, each on a proven template).** (1) COLLECT — `FlagDirective.cs` (enums + the ONE
+`FlagOptions` catalog of all 17 options across both directives + the `FlagDirectiveLine` operand parser + the
+`FlagEvent` record) and `FlagDirectiveProcessor` (a clone of `RefModZeroLengthDirectiveProcessor`: scans the FINAL
+text, parses each `>>FLAG-nn {ALL|opt…}{ON|OFF}` into a line-anchored event, reports a malformed operand, blanks the
+line — H3 line-count-preserving). Wired via a `leaveFlagDirectives:true` arm in `ConditionalCompilationProcessor`
+(FLAG-02/14 stay in `KnownIgnoredDirectives` so legacy callers still consume them) + a new stage in
+`Frontend.Preprocess`, exposing `Frontend.FlagEvents`. (2) FOLD — `FlagState` (a per-option clone of
+`RefModZeroLengthState`): `IsOnAt(line, option)` folds "last toggle strictly before the site wins, default OFF",
+with ALL fan-out (empty option list) and ALL-OFF reset, isolated per directive. Threaded `FlagEvents` →
+`CompilerDriver` → `CSharpEmitter.Bind` → `BinderDriver`. (3) EMIT — `FlagConformancePass.Run(group, flagState,
+sink)` invoked right after the `GroupTail` loop (a sibling to VersionConformancePass, NOT a manifest pass — flagging
+is directive-driven + always-Warning + fires regardless of `--std`); `VisitReadStatement`
+(`readDirection().PREVIOUS()`) and `VisitCloseStatement` (`closeOption` UNIT / NO REWIND) emit per-option Warnings
+gated by `flagState.IsOnAt(ctx.Start.Line, option)`. Zero-overhead: no `>>FLAG` line ⇒ `FlagState.Empty` ⇒ no walk.
+
+**Diagnostics.** COBOLNET1620 flag-02-incompatibility (Warning), 1621 flag-14-incompatibility (Warning) — the
+per-directive channels carrying per-option ConstructId/Message/Citation — and 1622 flag-directive-malformed (Error).
+DIAGNOSTICS.md regenerated.
+
+**Gate.** Build 0W/0E · 16 new `FlagDirectiveTests` (parser, fold incl. ALL/ALL-OFF/cross-directive-isolation, and
+end-to-end compile: ON emits, absent/OFF do not) all green · characterization 33/33 byte-exact (the threading
+changed no existing output) · diagnostics/construct/VCR drift 17/17 · CLI-probed (both warnings fire; absent and
+OFF are clean). NEXT = Incr 0b (the directive-word edition gates: >>FLAG-14 = 2023 introduction, >>FLAG-02 = 2014
+intro / 2023 obsolete, via ConstructRegistry + constructs.json rows).
+
+## Entry 948 — 2026-07-21 13:52 PDT — Wave D (cont.): the FLAG-02/FLAG-14 flagging DESIGN SSOT — 8-agent spec+code scout + adversarial census verify → decision-complete deep-dive
+
+**The task.** The Wave-D remainder's headline item: turn the recognized-but-ignored `>>FLAG-02` (§7.3.14) /
+`>>FLAG-14` (§7.3.15) directives into REAL migration flagging (GR1: the implementor *shall* provide a warning
+mechanism). Per the owner's "careful shared-core, do NOT rush, each direction recorded" directive + the
+persist-anchor-rescout rule, I scouted before writing code.
+
+**The scout (Workflow, 6 agents + 2 adversarial verifiers, 510k subagent tokens).** Four parallel spec+code
+scouts: FLAG-14 (all 13 GR4 sub-rules), FLAG-02 (all 6), the code-infra scout (directive intake / warning
+emission / detection hooks / VCR ledger / recommended framework), and a direction scout (>>COBOL-WORDS +
+CC-in-COPY + copybook >>SOURCE FORMAT). Then two adversarial verifiers re-derived every GR4 citation, E.2
+anchor, and spot-checked code anchor. **The verify caught one real completeness defect:** the FLAG-14 census
+dropped option **m) WRITE-END-OF-PAGE** (GR4 enumerates a–m = ALL + 12; the first pass stopped at l) and
+miscounted "twelve vs thirteen"; both fixed. FLAG-02: all 6 CONFIRMED, zero defects. I ran my own independent
+recon in parallel and confirmed all four infra anchors: `VersionConformancePass` (the two-arm walker already
+matches READ PREVIOUS/MOVE/CLOSE/SET/VALUE for edition gating), the `TurnEvents`/`RefModZeroLengthEvents`
+line-anchored toggle-stream template (REF-MOD-ZERO-LENGTH is itself BOTH a standalone directive AND FLAG-14
+option i), `EditionSeverity.Warning` catalog descriptors, and next-free diag = 1620.
+
+**Structural decision (mine, spec-first, singular-pattern).** A **dedicated `FlagConformancePass`** sibling to
+VersionConformancePass — NOT a bolt-on: flagging is an orthogonal axis (user directive-state, always Warning,
+fires regardless of `--std`), and two of its detectors (compile-time-arithmetic b, `>>EVALUATE` c) have no
+bound-tree residue at all. It reuses the ONE drift-proof `StatementChildren()` traversal (no second bespoke
+switch-walk — `feedback_path_a_leverage_tooling`). ONE `FlagState` per-option toggle-fold (the
+RefModZeroLengthState template), ONE `FlagDirectiveLine` parser + `FlagOption` catalog, TWO collection sites
+forced by construct-visibility (bound options post-COPY via a new `FlagDirectiveProcessor`; the frontend-only
+b/c inline in `ConditionalCompilationProcessor` from an in-scan `FlagScanState`). Diagnostics **COBOLNET1620**
+(Flag02Warning) / **1621** (Flag14Warning), two codes carrying per-option ConstructId/Message/Citation.
+Directive-word edition gates: `>>FLAG-14` = 2023 introduction (0900 below), `>>FLAG-02` = 2014 intro / 2023
+obsolete (0903). Copybook-internal `>>FLAG` rides the CC-in-COPY fix.
+
+**Deliverables (this commit — design-first, no code yet).** `docs/rearchitecture/DESIGN-flag-directives.md`
+(decision-complete: the verified per-option census mapped to GR4 + Annex E.2 + detection sites, the 6
+structural decisions D1–D6, the three seams, and a 5-increment plan — Incr 0 core+READ-PREVIOUS through Incr 4
+the new-analysis options I-O-DECLARATIVE / I-O-STATUS-04/07 / EC-PROGRAM-EXCEPTIONS). DOC_INDEX row added; plan
+§0 NEXT block rewritten to the SSOT pointer + the recorded directions for >>COBOL-WORDS and CC-in-COPY. Green
+baseline unchanged (docs-only). Implementation Incr 0 is next.
+
+## Entry 947 — 2026-07-21 13:30 PDT — Session resume: session-probe diag scan un-jammed (decade-pinned regex → whole COBOLNET1xxx band); green-baseline confirmed
+
+**Session bootstrap (plan §0 step ③).** `git checkout phase-13-grammar-batch` → `pwsh scripts/session-probe.ps1`. The
+probe reported `diag: src-grep max COBOLNET1599 · catalog max COBOLNET1584 ⚠ SCANS DISAGREE — reconcile before
+allocating`. Investigated before touching anything: this was a **false alarm from a stale regex in the probe itself**,
+not a real collision. The probe's two diag scans were hard-pinned to the 15xx decade (`COBOLNET15[0-9][0-9]` /
+`"(COBOLNET15\d\d)"`), so once diagnostics crossed 1600 — PERFORM Format 3 shipped 1597–1617, Wave D shipped 1618, ledger
+C2 shipped 1619 — the src scan silently capped at 1599 and the catalog scan at 1584, and the `maxGrep ≠ maxCat` equality
+test cried DISAGREE on two truncated readings. The plan's own prescribed grep (`grep -rho 'COBOLNET1[5-6][0-9][0-9]' src`)
+already reads the true max = **1619**, and both 1618/1619 ARE `DiagnosticCatalog` descriptors, so catalog max = 1619 too.
+Real next-free = **1620**, exactly as plan §0 states. The instrument, not the ledger, had drifted — and worse than a
+stale ledger, because the probe exists *specifically* to be the drift-proof mechanical check the manual ledgers can't be
+(the COBOLNET1573/1518 collision lesson). A jammed instrument silently re-broke the plan's "allocate only after BOTH scans
+agree" gate for every future wave.
+
+**Fix (`scripts/session-probe.ps1`, diag section).** Widened both scans to the whole `COBOLNET1[0-9][0-9][0-9]` band so
+the reading tracks the true ceiling regardless of decade. Reworked the cross-check for the documented **two-channel
+reality**: the compiler-channel raw `Edition.Error` codes (1585–1617) are intentionally NOT catalog descriptors (ledger
+V11 queues folding them in), so `src-max ≥ catalog-max` is the EXPECTED steady state, not drift — a bare equality test is
+structurally wrong now and would keep false-alarming on every compiler-channel allocation. Next-free is now the CEILING of
+both scans (`max(grepNum, catNum) + 1`); the one real anomaly the cross-check still flags is `catalog-max > src-max` (a
+catalog descriptor above every emitted code = an orphan reserved-but-never-emitted at the ceiling). Re-ran: `diag:
+src-grep max COBOLNET1619 · catalog max COBOLNET1619 → next free = COBOLNET1620`. ✓
+
+**Green baseline confirmed at HEAD `63c1fc6f`** (before any Wave-D code): `dotnet build CobolSharp.sln` 0W/0E · greenfield
+unit **447/447** · characterization **33/33** byte-exact. Ready for the Wave-D remainder (real FLAG-14/FLAG-02 flagging ·
+>>COBOL-WORDS · CC-directives-inside-COPY).
+
+## Entry 946 — 2026-07-21 12:53 PDT — Wave D (cont.): mid-file >>SOURCE FORMAT switching (§7.3.24.3 GR1) — ReferenceFormatProcessor restructured one-format-per-file → per-segment; validated on the GnuCOBOL corpus
+
+`>>SOURCE FORMAT [IS] {FIXED|FREE}` now switches the reference format MID-FILE (§7.3.24.3 GR1), replacing the
+old "first directive wins, whole file" model (the documented WS-2002-FORMAT deferral). This is an every-program
+path — `NormalizeToFreeForm` runs on every compiled source — so it was gated carefully and validated against the
+external GnuCOBOL corpus, not just the internal battery. Spec anchor: an 18-tool-use spec re-scout of §7.3.24 +
+§6.5 (logical conversion) + §7.2.1 (stage ordering).
+
+- **The model** (§7.3.24.3 GR1 + §6.5): SOURCE FORMAT is a stateful line-by-line mode flag resolved in §6.5
+  logical conversion (§7.2 Step 1 — BEFORE COPY-replace / conditional compilation, matching our existing pipeline
+  order). Each directive partitions the source into a homogeneous-format SEGMENT; the directive line is DISCARDED
+  (§6.5 step 1) and the new format governs the NEXT line. `NormalizeToFreeForm` now locates the directive lines,
+  splits into segments, converts each in its own format (fixed → `ConvertFixedToFree` threaded with a file-relative
+  `lineOffset` so the COBOLNET0902/0903 continuation diagnostics keep file line numbers; free → lines as-is), and
+  blanks the directive line to preserve the downstream source-line slot. A continued character-string cannot cross
+  a boundary (§7.3.3 SR8c), so per-segment continuation/literal state reset is correct. The initial segment (before
+  the first directive) uses our implementor-default STRUCTURAL AUTO-DETECT (`IsFixedForm`) — a documented extension
+  over the standard's fixed-form GR2 default (the auto-detect classifies the NIST fixed corpus + free-form
+  real-world source; DEVLOG 931). GR4 bootstrap (a leading directive) falls out naturally (empty initial segment).
+- **Spec-fidelity fix**: `FORMAT` and `IS` are OPTIONAL words (§7.3.24.2) — the regex wrongly required `FORMAT`;
+  now `>>SOURCE FIXED` / `>>SOURCE FREE` are recognized. Deleted the now-subsumed `DetectDeclaredFormat` /
+  `StripSourceFormatDirectives` / `DeclaredFormat` enum (singular-pattern).
+- **⚡ GnuCOBOL external differential in use** (owner directive — the corpus already caught a reference-format bug):
+  ran the full 1323-group differential BEFORE and AFTER. Result: **exactly ONE case flipped — a FIX**
+  (`syn_copy:660`: `WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT`, a mid-file-format program GnuCOBOL accepts that we
+  previously rejected), **zero regressions** (AGREE_ACCEPT 475→476, WE_ACCEPT_THEY_REJECT 106→106 unchanged).
+- **Byte-identity preserved**: characterization 33/33 (the every-program path did not alter any emit); the
+  no-directive and top-of-file-directive paths are unchanged (the latter still routes through the same conversion).
+- ⚔ A 3-dimension adversarial-review WORKFLOW over this every-program path caught TWO major defects (fixed +
+  regression-tested): (a) `SplitLines` used `TrimEnd('\n')`, deleting ALL trailing newlines of a converted fixed
+  segment — a BLANK source line terminating a fixed segment was LOST, misaligning the following segment; now it
+  drops only the single `AppendLine` artifact newline. (b) the directive regex is end-anchored, so a fixed-form
+  `>>SOURCE` directive line carrying a card-image sequence tag in cols 73-80 (past margin R) was NOT recognized and
+  the following segment was mis-formatted; `MatchDirective` now truncates at margin R (col 72) before matching.
+- Tests: 7 cases in a new `SourceFormatTests` (fixed→free, free→fixed, FORMAT/IS-optional, directive-line blanking /
+  line-count, top-of-file backward-compat, + the two defect regressions: trailing-blank-line preservation and the
+  cols-73-80 sequence tag) + the existing `FixedFormTests` green; a CLI probe compiled + ran a genuinely mixed
+  fixed→free program (`MIXED-OK`).
+- ⏭ Residual (noted, not in this change): `>>SOURCE FORMAT` / free-form are a 2002+ introduction and should be
+  REJECTED at `--std cobol85` (no VCR row today — a VERSION-matrix gap the spec re-scout flagged); and a copybook's
+  own `>>SOURCE FORMAT` (§7.3.24.3 GR5, scoped + reverting on COPY return) rides the separate CC-in-COPY item.
+
+## Entry 945 — 2026-07-21 12:06 PDT — Wave D (cont.): the C2 frontend DEFECT closed — boolean fold + ANTLR directive-expression grammar + frontend rewire (Tokenize/CondParser deleted), COBOLNET1619
+
+The ledger-C2 finish: the frontend conditional-compilation stage now evaluates EVERY directive operand /
+constant-conditional-expression through the ONE shared `CompileTimeExpressionEvaluator` + ANTLR, closing the
+silent-wrong-value defect (`>>DEFINE X AS 1 + 2` bound `X = 1`; boolean operands were never evaluated). The
+hand-rolled `Tokenize`/`CondParser`/`Value`/`Relate` engine is DELETED (singular-pattern). Design SSOT:
+`docs/rearchitecture/DESIGN-compile-time-expressions.md` (updated same change set for the §7.3.3 SR10 correction).
+
+- **The load-bearing spec correction — §7.3.3 SR10** (surfaced by a spec re-scout): *"A literal in a compiler
+  directive shall not be specified as a concatenation expression, a figurative constant, or a floating-point
+  numeric literal."* A blanket rule over EVERY directive. So a directive operand differs from a CONSTANT DATA
+  ENTRY (§13.10.3, which DOES admit a sole float): the §7.3.3 SR10 bar lives ONLY in the frontend `EvaluateOperand`/
+  `EvaluateDirectiveArithmetic`, never in the shared arithmetic core (the CONSTANT binder keeps float acceptance,
+  byte-identical). Figuratives are barred, so a compile-time BOOLEAN operand is a boolean LITERAL only (§7.3.7.2
+  SR1) — the runtime §8.8.2 figuratives (`ZERO`/`ALL "literal"`) never reach the fold, and `BitString` carries no
+  positionless case. This corrected the design's §6 (which had described figurative-length handling for the fold).
+- **Boolean fold** (`BitString` + `CompileTimeExpressionEvaluator.EvaluateBoolean`): folds constant bit strings via
+  the SAME `BooleanExpressionResolver.Resolve<T>` the runtime `ConditionBinder` uses (`T = BitString`), so the
+  context-inherited rule-7b shift precedence is shared, not re-derived. `BitString`'s And/Or/Xor/Not/Shift mirror the
+  runtime `CobolBool` kernel exactly (Frontend can't reference Runtime — algorithm shared, not code): right-zero-
+  extension, result length = larger operand, zero-length→zero-length, shift zero-fill vs circular, count-0 identity.
+- **cce walk** (§7.3.8): `EvaluateCce` over `cceOr/And/Not/Primary/definedCondition/cceRelationOrBoolean`. §7.3.8.2
+  SR1a.1 category match, SR1a.2 non-numeric relations = / <> only, §7.3.8.3 GR2 non-numeric equality LENGTH-SENSITIVE
+  (unequal length ⇒ unequal, NOT space-extended), §7.3.8.4.4 defined-condition, §8.8.4.3 SR1 bare-boolean length-1,
+  §8.8.4.13 formation-error-reported-regardless-of-short-circuit (every AND/OR operand evaluated). A `CtValue`
+  (category-tagged, hand-written Equals) models numeric/alnum/national/boolean; the name resolver was unified to
+  `Func<string, CtValue?>` so a bare name substitutes its value of ANY category (an alnum compilation variable like
+  SpecFixTests' SYS was the bug that drove this — a name forced through the numeric arithmetic path SR1b-rejected).
+- **ANTLR grammar** (`CobolExpressions.g4` + `CobolLexer.g4`): the isolated `compileTimeOperandFragment` /
+  `constantConditionalExpression*` fragment rules (reachable only from the frontend fragment-parse — zero blast
+  radius, the `functionArgListFragment` precedent); the `PrimeDirectiveExpr()` lexer flag (DEFINED becomes a token,
+  every `(` groups — no subscript-mode leak on `A B-AND (…)`); `DirectiveExpressionFragment` re-parse helper.
+- **`boolExprAhead()` completed**: it detected `B-AND/B-OR/B-XOR/B-NOT` but not the shift operators, so a shift-only
+  boolean expression (`A B-SHIFT-L 2`) wasn't recognized. Added `B_SHIFT_L/R/LC/RC` (never legal user words — safe on
+  the SHARED main-parse predicate); a latent-gap fix (a shift-only boolean condition now parses in the main grammar).
+- **Frontend rewire** (`ConditionalCompilationProcessor`): the line-inclusion state machine STAYS (it's a §7.2 text
+  stage — text-1/text-2 may be un-expanded COPY / non-COBOL); only the expression/cce/operand EVALUATION moved to
+  ANTLR + the shared evaluator. A small directive-syntax splitter (`SplitDefine`) still extracts name/AS/OFF/
+  PARAMETER/OVERRIDE (directive keywords, not expression syntax). All formation violations → COBOLNET1619 (a new
+  `DiagnosticCatalog` descriptor; `DIAGNOSTICS.md` regenerated). EVALUATE SR11 (same-category object) enforced.
+- **Legacy-oracle reality** (corrects the design's earlier "greenfield-only path" posture): the FROZEN legacy
+  `Compilation.cs:345` shares `Process` and IS exercised with directives (`SpecFixTests` CC1–CE3 end-to-end). The
+  shared evaluator reproduces the old single-token behavior EXACTLY, so those 9 stay green; the golden
+  `directive_expressions` (2002) passes BOTH the greenfield `CorpusRunnerTests` and the legacy auto-discovering
+  `ConformanceTests` (its cce folds to a DISPLAY-only surviving program), so no `GreenfieldOnly` needed.
+- ⚠ AI missteps: (1) drafted `BitString` WITH figurative machinery before the spec re-scout surfaced §7.3.3 SR10 —
+  removed it. (2) First `EvaluateOperand` forced a bare name through the numeric arithmetic path, SR1b-rejecting an
+  ALPHANUMERIC compilation variable (`SYS = "type A"`); fixed to resolve a bare name to its full `CtValue`. (3) A
+  test used an UNDERSCORE compilation-variable name the deleted tokenizer wrongly accepted (ANTLR/§8.3.1.2 forbid
+  underscores) — corrected the test to a hyphenated name (invalid source, not a compiler bug).
+- ⚔ A 5-dimension adversarial-review WORKFLOW (refute-verify) over the delicate pieces caught THREE major defects the
+  392-test suite missed — all fixed + regression-tested (compile-time AND runtime): (a) `BooleanExpressionResolver`
+  deferred a POSTFIX shift on the operator stack, so a higher-precedence FOLLOWING operator folded its right operand
+  INTO the shift's operand (`A B-OR B B-SHIFT-L 1 B-AND C` mis-grouped) — the shift is now applied IMMEDIATELY;
+  since the runtime `ConditionBinder` shares the resolver, COMPUTE-F2 was mis-folding too (`boolean_shift_mixed`
+  golden extended with the case). (b) The boolean cce relation used length-sensitive equality; §8.8.4.2.8 RIGHT-
+  extends the shorter operand (§7.3.8.3 GR2's length-sensitivity is for non-numeric-non-boolean) — added
+  `CtValue.RelationalEquals` / `BitString.EqualExtended` (SR2 redefinition keeps length-sensitive). (c) A shift
+  count &gt; `long.MaxValue` overflowed the `(long)` cast — the count is now reduced (logical cap-at-length, circular
+  mod-length) before the cast.
+- Tests: 13 `BitString`-fold + cce added in `CompileTimeBooleanCceTests` (30 cases), 6 defect-fix/reject cases in
+  `ConditionalCompilationDefineTests`, the `directive_expressions` 2002 golden. Full legacy guard green.
+
+## Entry 944 — 2026-07-21 10:59 PDT — Wave D (cont.): the §7.3.6 compile-time arithmetic evaluator extracted into the ONE shared CompileTimeExpressionEvaluator; CONSTANT binder rewired onto it (ledger C2)
+
+The C2 fix is ONE shared compile-time expression evaluator for both the frontend conditional-
+compilation stage and the CONSTANT-entry binder. This lands its ARITHMETIC core and moves the binder
+onto it — the "lift the battery-tested code, don't duplicate" step. The boolean fold + the frontend
+fragment-parse rewire follow. Design SSOT: docs/rearchitecture/DESIGN-compile-time-expressions.md.
+
+- New `CompileTimeExpressionEvaluator` (Cobol.Net.Frontend/Expressions): `EvaluateArithmeticOperand`
+  applies §7.3.11.4 GR5 (a single numeric literal stays a literal — AS 0.25 keeps 0.25) and §7.3.6.3
+  GR3 (an expression's FINAL result truncated to integer) at the PUBLIC boundary; the raw-decimal
+  recursion (`EvalArith`, lifted verbatim in logic from the binder's `EvalConstExpr`) stays private so
+  intermediates are un-truncated (GR1). Consumer specifics injected: numeric-name resolution, a
+  CODE-preserving `ICtDiagnostics` sink (so the binder keeps its exact codes), a `CtOperandVocabulary`
+  (per-consumer operand wording + citation — the binder says "constant-name"/§13.10.3, the frontend
+  will say "compilation variable"/§7.3.6), and the DECIMAL-POINT IS COMMA mode. Returns a
+  `CtNumber{WasSingleLiteral, Value, Text}`.
+- `DataBinder.BindConstantArithmetic` rewired; `EvalConstExpr`/`ParseConstLiteral`/`SoleNumericLiteral`
+  deleted. Byte-identical ConstantDef + diagnostics, three deliberate deltas: the SR2 overflow message
+  "decimal128"→".NET decimal"; a fractional constant-NAME under DECIMAL-POINT IS COMMA no longer emits a
+  spurious COBOLNET0895 (the old path re-normalized the already-normalized stored text — a latent-bug
+  fix, same value); and the sole-literal boundary now range-validates (below).
+
+**Adversarial verification (2-agent Workflow) caught a real regression BEFORE commit — the ultracode
+pattern working.** The extraction's new sole-literal branch added a `decimal.TryParse` whose
+`NumberStyles` omitted `AllowExponent`, so `01 C CONSTANT AS 1.5E3` (a FLOATLIT — a valid numericLiteral)
+failed to parse and returned null SILENTLY: the constant was dropped with no diagnostic (the old binder
+accepted it), and later references failed with a misleading "unknown constant-name". Both a divergence
+and a silent-failure defect. Fixed: the sole-literal boundary parses with AllowExponent (a GR5 literal
+keeps its own class — a floating-point literal is valid there, unlike a §7.3.6.2 SR1b arithmetic-
+EXPRESSION operand which stays fixed-point), and a literal beyond the decimal range is rejected LOUDLY
+(SR2), never a silent null. Two unit tests pin both.
+
+Verified: 13 CompileTimeExpressionEvaluatorTests; the constant_entry.cob golden byte-matches through the
+shared path; negative constant goldens unchanged. Guards: legacy `guard.sh` `=== ALL GREEN ===`;
+greenfield Unit 392 / Characterization 33 (byte-exact) / Conformance 3784 green.
+
+## Entry 943 — 2026-07-21 10:04 PDT — Wave D (cont.): §8.8.2 rule-7b boolean shift precedence implemented in the runtime binder — the COBOLNET1569 legal-source reject removed (ledger C2)
+
+Wired the runtime COMPUTE-Format-2 boolean binder (`ConditionBinder`) onto the shared
+`BooleanExpressionResolver` landed in Entry 942, and **removed the COBOLNET1569 reject** — the debt
+the owner's no-deferral push surfaced. The reject refused the legal mixed shift-with-binary form
+(`A B-AND B B-SHIFT-L n`) and told the user to parenthesize, because the fixed grammar tiers can't
+express §8.8.2 rule 7b (a shift inherits the precedence of the operator before it). The resolver
+re-derives the correct grouping, so the form is now ACCEPTED and grouped per the standard.
+
+- `BindBoolExpr` → `BooleanExpressionResolver.Resolve<BoundBoolExpr>(ctx, leaf, not, binary, shift)`;
+  the four tier-walk methods + `ShiftMixedWithBinary` + the 1569 emit deleted; the combine callbacks
+  (`BindBoolOperandValue` / an ALL-folding B-NOT lambda / `MakeBoolBinary` / a new
+  `BindBoolShiftSuffix`) build the SAME bound nodes as before for every non-mixed expression, so
+  existing boolean output is byte-identical (characterization 33/0 byte-exact confirms).
+- New conformance test `tests/conformance/2023/boolean_shift_mixed.cob`, **verified end-to-end**
+  (compiled + ran against a hand-computed rule-7b oracle: A=1010, B=0110 → `A B-AND B B-SHIFT-L 1`
+  = 0100, not the shift-first 1000; `A B-OR B B-SHIFT-L 1` = 1100; `A B-SHIFT-L 1 B-AND B` = 0100).
+
+**Friction (honest).** The first legacy guard came back RED — `ConformanceTests.Conformance("2023",
+"boolean_shift_mixed")` failed: the conformance corpus runs against BOTH compilers and the frozen
+legacy has no boolean support at all (`boolean_ops`/`boolean_shift` are already `GreenfieldOnly`).
+I'd omitted the `GreenfieldOnly` exclusion — exactly the `feedback_legacy_suite_on_shared_corpus`
+class. Added it in the same change set; re-ran green. (A stale CLI binary also briefly hid the fix
+until a full `CobolSharp.sln` rebuild — the fresh-build-before-no-build lesson.) Guards: legacy
+`guard.sh` `=== ALL GREEN ===`; greenfield Unit 379/0, Characterization 33/0, Conformance 3784/0.
+
+## Entry 942 — 2026-07-21 09:30 PDT — Wave D (cont.): compile-time expression evaluator FOUNDATION — shared lexical utilities relocated + the §8.8.2 rule-7b boolean precedence resolver (ledger C2)
+
+Started the go-forward fix for review-ledger **C2** (the MAJOR silent-wrong-value defect: `>>DEFINE`/
+`>>IF`/`>>EVALUATE` directive operands and CONSTANT-entry arithmetic silently mis-bind multi-token
+expressions — `>>DEFINE X AS 1 + 2` binds `X = 1`). The fix is ONE shared compile-time expression evaluator
+reachable by both the frontend conditional-compilation stage and the CONSTANT-entry binder. This entry lands
+the FOUNDATION; the evaluator, the ANTLR fragment/cce grammar, and the frontend rewire follow. Design SSOT:
+`docs/rearchitecture/DESIGN-compile-time-expressions.md`.
+
+**Landed (all guards green — see below):**
+- **`CobolLiteral` relocated** `Cobol.Net.Compiler/Common` → `Cobol.Net.Frontend/Common` (the layering forces the
+  shared evaluator into Frontend, so its one string-literal codec must live where both layers reach it). Pure
+  rename; namespace `CobolNet.Common` unchanged, so all 30 Compiler `using`s still resolve.
+- **`NumericLiteral.Normalize` extracted** to `Cobol.Net.Frontend/Common` as the one §12.3.7 GR14a normalizer;
+  `DataBinder.NormalizeNumericLiteral` delegates and keeps its COBOLNET0895 diagnostic — byte-identical (diff-
+  verified). No second normalizer for the evaluator to drift from.
+- **`BooleanExpressionResolver`** (`Cobol.Net.Frontend/Expressions`) — the one ISO §8.8.2 boolean precedence
+  mechanism. A CFG cannot express rule 7b's context-inherited shift precedence, so the resolver flattens a
+  `booleanExpression` and precedence-climbs (shunting-yard), generic over the combine ops so the SAME grouping
+  will serve the compile-time bit-string fold AND the runtime COMPUTE-Format-2 bind. 13 unit tests prove the
+  groupings (`A B-AND B B-SHIFT-L 2` → `(A B-AND B) B-SHIFT-L 2`, etc.).
+
+**Guards:** legacy `guard.sh` `=== ALL GREEN ===`; greenfield Unit **379**/0 (incl. the new resolver tests),
+Characterization **33**/0 byte-exact, Conformance **3783**/0. No compiler-output change (relocations neutral,
+resolver not yet wired).
+
+**Process, honestly (owner corrected three fundamentals — transparency).** My first design took the low-diff
+path and hit exactly the anti-patterns the owner has been correcting: (1) it kept a hand-rolled constant-
+conditional parser + bespoke operand tokenizer beside ANTLR — owner: "do not have multiple parsers; that is
+ANTLR's job." Removed; all directive-expression syntax will be ANTLR fragment rules. (2) It queried whether the
+fixed/free reference-format switch should use ANTLR lexer modes — it correctly does not (a pre-lex text pass, not
+a second lexer). (3) It proposed to **defer** the §8.8.2 rule-7b shift-precedence as a "documented non-
+conformance" — owner: "why yet again are we deferring correct per the spec implementation… you regularly prefer
+to accumulate technical debt rather than do it correctly. That is sloppy." Correct. Worse, I had *assumed* the
+runtime path silently mis-grouped; reading it showed it REJECTS the mixed form loudly with COBOLNET1569 — which
+is itself debt (it refuses legal source). The resolver removes that reject and implements rule 7b correctly for
+both paths. Two durable lessons recorded: resolve the STRUCTURAL singular-pattern first (don't anchor on existing
+code's shape); never default to deferral/"documented non-conformance"/reject-legal-source — implement to spec
+regardless of effort. A 4-lens adversarial design critique (run before coding) additionally caught the
+`NormalizeNumericLiteral` coded-diagnostic side-effect, the GR5/GR3-truncation layering, and missing §7.3.8/§7.3.13
+category rules — all folded into the design before implementation.
+
+## Entry 941 — 2026-07-20 23:25 PDT — Wave D (start): >>DEFINE §7.3.11 SR2 + AS PARAMETER + OVERRIDE + >>PUSH/>>POP recognition; the F3-runtime architecture recorded
+
+Two threads, both under the owner's firm requirement (restated mid-session): **commercial-quality, decade-supportable
+compiler** — which reshaped the plan for the remaining P13 work.
+
+**(1) The PERFORM Format-3 RUNTIME interceptor architecture — recorded, deliberately NOT rushed.** After landing the
+front half (DEVLOG 940) I started the runtime as the design's §5 lambda/frame approach, then STOPPED and reverted it:
+for a decade-supportable compiler it is the wrong architecture. `ResumeSignal.cs` records that the as-built handler-
+in-response-to-an-EC mechanism is **pc-RANGES run by the bounded dispatcher** (`__RunUse` wraps `__Dispatch(start,end)`
+in `try/catch(ResumeSignal)` and returns the resume action). A WHEN handler IS an inline declarative (GR17 — a WHEN
+match REPLACES a matching USE declarative), so the lambda approach — which needs an "am-I-in-a-lambda" statement-
+emission mode (RESUME → return-action; `EXIT PERFORM` → a thrown signal because C# cannot `goto` out of a lambda) —
+would be a SECOND mechanism for the same job (`feedback_singular_pattern` violation, a long-term maintenance hazard).
+Recorded in the design SSOT's IMPLEMENTED note: the wave must choose a SIGNAL-BASED, singular-pattern option — **(A)**
+synthetic pc-ranges dispatched exactly like declaratives, or **(B)** handler-methods + a frame matcher with RESUME →
+`ResumeSignal` and `EXIT PERFORM` → a new `ExitPerformSignal` — and gate `__EcPerform` on "unit HAS an F3 PERFORM" so
+every non-F3 program stays BYTE-IDENTICAL (the 33 characterization tests + the battery). This is a control-flow-core
+change deserving a careful, reviewed wave — staging it (0899, honest, documented) is the correct production posture.
+
+**(2) Wave D — >>DEFINE (ISO §7.3.11) production-quality fixes.** In `ConditionalCompilationProcessor`: the
+**§7.3.11.3 SR2 no-OVERRIDE redefinition check** (COBOLNET1618 — a redefinition to a DIFFERENT value without OVERRIDE
+is rejected; same-value and post-OFF redefinitions are allowed, per the three SR2 bullets), **AS PARAMETER** (GR4 —
+the compilation variable's value is sourced from the operating environment via `Environment.GetEnvironmentVariable`;
+undefined when unavailable — it previously mis-bound the literal word "PARAMETER"), and the **OVERRIDE** phrase (GR3 —
+unconditional set, bypassing SR2). Threaded the frontend `DiagnosticBag`/`sourcePath` into the CC processor (the
+established directive-processor pattern; optional params keep legacy callers untouched). COBOLNET1618 is a FRONTEND
+`ReportError` code, so it takes a `DiagnosticCatalog` descriptor (the `EveryEmittedCode_IsACatalogDescriptor` /
+DIAGNOSTICS.md drift discipline) — distinct from the F3 compiler-channel raw band. Also added **>>PUSH/>>POP** to the
+recognized-directive set (§7.3.20/§7.3.22 — consumed, a faithful no-op disposition since no compiler-directive state
+is currently varied; previously they reached the lexer as stray tokens). 7 new tests. STILL DEFERRED (recorded): the
+§7.3.6/§7.3.7 arithmetic/boolean EXPRESSION evaluator (a multi-token operand still binds only its first token) and
+CC-directives-inside-COPY.
+
+## Entry 940 — 2026-07-20 20:53 PDT — PERFORM Format 3 (§14.9.28) LANDS the recognize/validate/diagnose/gate surface; runtime interceptor STAGED
+
+Grammar-batch **7 of 7**. The exception-checking (Format-3) PERFORM (ISO §14.9.28 Format 3, COBOL-2023 — VCR row
+79) is now a first-class RECOGNIZED, BOUND, and fully SYNTAX-CHECKED construct; the WHEN/OTHER/COMMON runtime
+handler dispatch (GR17–20) is a documented next-wave GAP (COBOLNET0899). Implemented from the design SSOT
+`docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` after an 8-agent parallel anchor/convention
+scout — which surfaced several places the design UNDER-SPECIFIED reality, each reconciled from the spec (not
+improvised):
+
+**What landed (full front half).** New reserved tokens `LOCATION`/`FINALLY`; the Formats-2/3 grammar MERGE into one
+inline `performStatement` alternative + the `whenOperandAhead()` greedy-safe continuation predicate; `resumeStatement`
+`AT?` fix (§14.9.33.2); `constructs.json` rows (`perform-exception-checking-2023` gate + `user-word-location-2023`);
+`BoundExceptionPerform` bound node + its exhaustive-visitor arms; the `EcBinder.ExceptionPerform` binder — WHEN
+operand resolution (all-level EC-names per the USE GR3a–3g tiers, SR16 EC-I-O, edition windows), the §14.9.28.3
+syntax rules + cross-statement bans by lexical region (COBOLNET1597/1599/1600/1601/1604/1605/1606/1607/1608/1610/1611/
+1612/1614/1615/1616/1617), the RESUME-in-WHEN relaxation (`EcBindState.InF3When` → RESUME NEXT legal, RESUME AT proc
+= 1610), and the GR14 bind-time `TurnState.WithImplicitEnable` overlay over imp-1; the COBOLNET0900 introduction gate
+(`VersionConformancePass.VisitPerformStatement`). Tests: 36 parse (Unit), the negative/gate/staged/behaviour/region
+conformance suite (`PerformFormat3Tests`), the `WhenOperandStopTokens` completeness drift guard, and the
+version-matrix rows.
+
+**Reconciliations (design corrections, spec-grounded — all recorded in the design SSOT + D12):**
+1. **FINALLY is NOT a `cobolWord`** (the scout's registry agent flagged the design's §2.2 exclusion vs its §7
+   continuity claim). As a trailing phrase keyword after imperative statements, a FINALLY admitted to the name-slot
+   funnel is SWALLOWED by a preceding DISPLAY/MOVE operand list (`DISPLAY "c" FINALLY` → FINALLY becomes a DISPLAY
+   operand, the FINALLY phrase vanishes — caught by a parse test). Resolution: FINALLY is a pure reserved keyword at
+   every edition (a documented, negligible deviation — FINALLY was never a COBOL identifier idiom; zero corpus hits).
+   **LOCATION stays a `cobolWord`** — it appears only in the head (never after a statement), so no swallow, and the
+   continuity invariant (`PERFORM LOCATION` / a paragraph named LOCATION below 2023) needs it. Asymmetric, justified.
+2. **The merged inline arm must precede the out-of-line `PERFORM procedureName`** — `PERFORM LOCATION imp… END-PERFORM`
+   is genuinely ambiguous (LOCATION is a cobolWord ⇒ a valid target), and only the trailing END-PERFORM disambiguates;
+   ANTLR picks the first VIABLE alternative, so inline goes first (period-terminated `PERFORM LOCATION.` falls through).
+3. **COBOLNET1598 (operand-form exclusivity) NOT emitted** — no §14.9.28.3 SR backs it; SR14/15/16 are the only WHEN
+   operand rules and the figure's `{exception-name-1 | exception-name-2 FILE file-name-2}…` permits interleaving.
+   Spec-fidelity: implement the NAMED rules, invent no restriction. XS-RESUME-PLACEMENT subsumed by COBOLNET0712.
+4. **`IsLexicallyWithin` / `>>POP`/`>>PUSH` do not exist in the greenfield** (scout binder agent). Region bans are
+   parse-subtree walks (regions A–D fall out of the F3 node's own sub-lists — simpler than the design implied).
+   XS-POP/XS-PUSH (would be 1602/1603) stay RESERVED — the directives are themselves unimplemented, so the ban rides
+   that wave. **TurnState is immutable** → GR14 is a `WithImplicitEnable` derived-instance overlay (not push/pop).
+5. **The diagnostic band is compiler-channel raw codes** (the 1585–1596 pattern) — NOT DiagnosticCatalog descriptors
+   (both the src grep [max 1596] and the catalog [max 1584] confirmed; the design's stale "lands in DiagnosticCatalog"
+   line discarded).
+
+**Why the runtime is STAGED (the LANDABLE-vs-STAGED boundary, drawn honestly).** Implementing the interceptor
+surfaced a real defect in the design's lambda sketch: **C# cannot `goto` out of a lambda**, so an `EXIT PERFORM` inside
+a WHEN handler (imp-2, emitted in the matcher closure) cannot jump to the PERFORM's end label; plus threading `fatal`
+through the `EcDispatchExpr` seam touches many raise sites and the lambda-mode statement emission is subtle. A
+half-correct interceptor risks SILENT MISCOMPILES and could destabilise the differential oracle. Per the design's own
+§5.4 framework and the batch-2 precedent (PICTURE EDITING staged its render; VALUE Format 2 staged multi-dim — each a
+0899 REJECTION, not a silent partial compile), the boundary is drawn to land the complete diagnose/gate surface and
+**reject** the F3 PERFORM at 2023 with a loud COBOLNET0899 (the `perform-exception-checking-2023` construct row is
+`status:pending`). Rejection (vs compiling imp-1+FINALLY with a warning) is the safe, honest, batch-2-consistent
+choice — it avoids a silent on-raise divergence (the WHEN not firing while the program still runs). NEXT WAVE = the
+ambient F3-frame stack + `__EcPerform` per-statement interceptor (its blocker: a non-lambda handler-emission strategy,
+since C# forbids `goto` out of a lambda).
+
+**Adversarial review (5 parallel skeptics, each spec-grounded) caught real defects — fixed in the same change set.**
+(1) **SR15 (COBOLNET1600) false negative** — a BARE exception-name coexisting with a FILE-paired instance of the
+SAME name slipped through (`files.Distinct()` treated `null` as a licensing distinct file-name); fixed to reject any
+multi-occurrence group containing a bare instance (§14.9.28.3 SR15). (2) **GR14 overlay bug** — the implicit-enable
+synthetic was stamped at line 0, so a real `>>TURN OFF` *before* the PERFORM defeated it (the opposite of GR14);
+re-implemented as a line-sorted splice at imp-1's line with a "not-already-enabled" guard (GR14/GR22). Latent (the
+overlay's output is unused while the runtime is staged) but a genuine landed bug. (3) **IsFormat3 discriminator
+de-duplicated** (binder ↔ 0900 gate) to a shared `internal static` — the 0899↔0900 hand-off can no longer drift
+(DEVLOG-724 class). (4) Added the missing negative tests the review ranked (1607/1617/0712, region-C breadth, the
+mode-list file-name continuation parse test, the SR15 regression) + a `NotEmpty` guard so the stop-set drift test
+cannot pass vacuously. Documented, not fixed (masked while staged): the `inlineMethodInvocationStatement` (the one
+cobolWord-led statement) can still be annexed as a bare imp-2 — the interceptor wave adds an LA(2)==LPAREN gate; and
+1613 (multi-file DELETE FILE) is unreachable under the single-file `deleteFileStatement` grammar (reserved like
+1602/1603). Conformance F3 tests 21→27; parse/drift Unit tests grew accordingly.
+
+**Process note (transparency).** The shared `.g4` change broke the LEGACY `CobolSharp.Compiler` oracle
+(`performOptions` moved under `performInlineHead` ⇒ its accessor went array→single) — fixed the two legacy
+`ControlFlowBinder` sites in the same change set (the shared-grammar-⇒-full-legacy-guard rule).
+
+## Entry 939 — 2026-07-20 19:34 PDT — PERFORM Format 3 (§14.9.28) design corrected + persisted; the rejected re-derivation deleted
+
+Not code — a design + document-integrity pass, at owner direction ("resolve the open questions from the PDF, not
+from me"; "remove the errors and replace with the correction; no known errors in the documents"). Three threads:
+
+**(1) The three "open questions" were figure facts, resolved from the PDF — and were already in the repaired
+markdown.** I had escalated them for owner adjudication (≥1 WHEN required? WHEN operand mixing? `IO` vs `I-O`?). That
+was a process error: the standing rule is to render the PDF, never punt a figure-reading. Rendered page 712 at 400 dpi
+(`render-spec-page.py`): the outer WHEN delimiter is a BRACE (≥1 WHEN required), the operand is three STACKED
+alternatives (no mixing), and `IO` is a typesetting defect for `I-O` (an underlined format word must be §8.9-reserved;
+`IO` is not, `I-O` is). Crucially the 2026-07-19 diagram-repair had ALREADY put these in the §14.9.28.2 markdown notes
+— the render only CONFIRMED the repair held. Recorded in `PHASE-13-c5-perform-format3-pdf-resolution.md` and durably in
+memory `feedback_spec_diagrams_render_pdf` (trust the repaired figure NOTES first; render to verify; never escalate a
+figure-reading).
+
+**(2) A corrected, adversarially-verified design SSOT** (`PHASE-13-c5-perform-format3-DESIGN.md`), produced by a
+5-agent workflow (full SR enumeration · greedy-safe grammar derivation · GR14-22 runtime derivation · adversarial
+verify · synthesis). It fixes every C5 verdict defect: the greedy `useEcEntry+` mis-parse (a `whenOperandAhead()`
+continuation predicate — the exact cobolWord ∩ statement-leaders set, guarded by a build-time drift assertion — so a
+WHEN operand can't swallow a following `RESUME`); the ~16 missed cross-statement SR bans (POP/PUSH, EXIT PERFORM
+CYCLE, CLOSE/DELETE/OPEN/INITIALIZE/MERGE/SORT in imp-1, INITIATE/TERMINATE/VALIDATE, GO TO/RESUME/RAISE placement);
+the RESUME `AT?` optional-word fix; and the GR14-22 exception-checking runtime with an explicit landable-vs-staged
+boundary.
+
+**(3) Document integrity — errors REMOVED, not marked.** Per owner directive the rejected re-derivation JSON was
+DELETED (`git rm`), not annotated, and the correction put in its place; all references (§0 ×2, the resolution note,
+the historical DEVLOG pointer) repointed to the design; the SR8 and FINALLY-abnormal "route to owner" notes corrected
+to spec-resolved / recorded-standard-defect-with-a-chosen-default. THE caught error: the workflow's synthesis said
+"next-free diagnostic 1585" from a catalog-ONLY scan — but batch 2's 1585-1596 are compiler-channel raw codes not in
+`DiagnosticCatalog.cs`. Shifted the whole allocation to the true contiguous free block 1597-1617 (both scans agree);
+also caught+fixed a leading-zero corruption my own shift script introduced (`COBOLNET0900`→`COBOLNET900`). The design
+is now the ready SSOT for the PERFORM Format 3 implementation wave (starting next session after a context clear).
+
+## Entry 938 — 2026-07-20 17:31 PDT — VALUE clause Format 2 (table, §13.18.63.2, COBOL-2002) — per-occurrence init + the glued-multi-literal reject
+
+Grammar batch position 6. The Format 2 (table) VALUE clause keys a literal list to occurrence subscripts by a
+MANDATORY `FROM (subscript-1)` phrase with an optional `TO (subscript-2)` — initializing SELECTED OCCURS-table
+elements/ranges, distinct from Format 1 (one literal, every occurrence the same). Before this, the clause did not
+parse at all: `valueClause` had no FROM/TO/subscript surface, so even the spec's own Annex-D.3.7 example was a raw
+COBOL0001 — a reject-valid-input failure.
+
+Grammar: `valueClause` becomes two arms with the Format-2 arm FIRST (`valueClauseTablePhrase+`) — the mandatory FROM
+terminates the operand loop so ALL(*) selects it whenever FROM is present; a bare-list-first ordering would consume
+the literals then die on FROM. FROM/TO are not subscript-trigger words, so `FROM (1)` lexes as DEFAULT LPAREN/RPAREN.
+No new reserved word. 2002 introduction gate is recognition-fired by `VisitValueClause` (construct
+`value-table-format-2002`, COBOLNET0900 below 2002 — the edition is derived: the 2023 Annex E VALUE rows are
+numeric-edited only, the A1 authority gap D18).
+
+Runtime (ISO §13.18.63.4): `ValueInitializer.TableValueInit` resolves occurrence→literal (GR12 sequential fill, GR13
+cyclic reuse under TO, GR14 no-TO = fill to the maximum, GR15 later-FROM-wins), then emits a fixed table as
+`new T[]{ ElemInit(1) … ElemInit(n) }` and a dynamic table as a `CobolDynTable` opened at the GR16 initial capacity
+with a per-occurrence seed. `InitializerFor` gained a `rawOverride` so ONE initializer path serves both the item's
+own VALUE and each occurrence's literal (singular pattern). `CobolDynTable` gained a `Func<int,T>` per-occurrence-seed
+ctor overload; the existing `Func<T>` ctor delegates as `_ => seed()` so every current dynamic-table golden emits
+byte-identically. `OccursSpec.InitialCap` stays the FROM minimum (unchanged) — the GR16 capacity is computed at emit
+and passed as a new ctor arg, so no model field flips to a second-writer. Annex D.3.7 lands verbatim:
+`OCCURS DYNAMIC FROM 1 TO 20 VALUES ARE "Leeds","Bordeaux","Pisa" FROM (1) TO (3)` opens at capacity 3 with the three
+names.
+
+⛔ SPEC PRECISION (the verdict's one refutation): occurrences OUTSIDE every FROM..TO range are NOT asserted to default
+to spaces/zero — §13.18.63.4 leaves them UNDEFINED; the golden `FixedTable_ExplicitRange` deliberately asserts only
+the in-range elements. They take the element's implementation default (not a spec guarantee).
+
+THE GLUED-MULTI-LITERAL REJECT (the paired defect): `ExtractValue` GLUES a bare multi-operand Format-1 VALUE via
+`GetText` over the collapsed `valueItem` (the ledger's "binds the first literal" was wrong — it glues). A data-item
+VALUE with >1 operand and no FROM is now rejected loud (COBOLNET1585); 88s are untouched (BindCondition has its own
+per-operand loop, never ExtractValue). Ran the FULL battery + a corpus grep for the blast radius (a program depending
+on a glued value would break).
+
+LANDABLE scope = a single-dimension table on its OWN OCCURS entry (fixed or dynamic). A multi-dimension odometer
+(subscript per nested OCCURS) or a table VALUE on an item SUBORDINATE to the OCCURS is recognized, bound, then staged
+loud (COBOLNET0899, P14 GAP — the per-occurrence path threading through GroupValueSlicer is the model-change boundary).
+SRs: SR20 subscript range (1586), SR21 TO range / TO<FROM (1587), SR22 dynamic-no-TO (1588); SR19 is grammar-enforced
+(integerLiteral). Diag 1585-1588 used; 1589-1590 released. Conformance `ValueFormat2Tests` (12): cyclic fill, explicit
+range, last-wins, numeric element, the D.3.7 dynamic golden, the glued reject (+ the single-literal non-regression),
+SR20/SR21, multi-dim staging, the below-2002 gate. Design docs corrected (COBOLNET_DATA_MODEL_DESIGN §10 + the §"2002
+introductions" row; COBOLNET_DESIGN §"VALUE init") — the old "positional one-literal-per-element list" model was a
+spec inversion. Shared `.g4` ⇒ full legacy guard.
+
+## Entry 937 — 2026-07-20 17:05 PDT — PICTURE EDITING phrase (§13.18.40.2, COBOL-2023) — single-char render lands, multi-char/floating is a P14 GAP
+
+Grammar batch position 5. The PICTURE clause EDITING phrase (§13.18.40.2 Format 1; the new-in-2023 reserved word
+EDITING, Annex E.3.3 item 19) is user-defined picture editing: an IS (simple insertion) form inserts a literal at
+each character-1 position UNCONDITIONALLY (editing rule 3, sign-independent), and a FOR (extended sign control) form
+selects the NEGATIVE literal on a negative value and the POSITIVE literal (or spaces, SR12c) otherwise.
+
+**The sign map is Table 9 + Annex D.24, NOT the extracted Table 8** — Table 8 in the OCR'd spec is sign-INVERTED
+(its character-1 NEGATIVE-phrase row puts the negative literal on positive values, contradicting Table 9 at 20572,
+D.24's `EDITING "L" FOR NEGATIVE IS "("` → `MOVE -123.45` = leading `(`, and Table 8's own correct built-in rows).
+The spec-grounding SSOT (`PHASE-13-grammar-batch-spec-grounding.json`) caught and adversarially confirmed this.
+
+**Landable vs P14 render GAP.** The engine seam is `CobolEdit.Format`'s `char[pattern.Length]` 1:1 output array. A
+SINGLE-character literal fits that model, so the IS form (any character-1 occurrence count) and the single-occurrence
+FOR form (fixed sign control) RENDER now, threaded as a new `CobolEdit.EditRule(Char1, Neg, Pos)` (IS: Neg==Pos). A
+MULTI-character literal ("DEBIT ") or a FLOATING character-1 (the same character-1 ≥2 times under a FOR phrase) needs
+the variable-width position-group model — a documented P14 render GAP, staged loud (COBOLNET0899). Chose EditRule
+threading over compile-time mask-baking because baking a literal char that collides with a mask metacharacter (`.`,
+`+`, `Z`, …) would corrupt the mask; the EditRule resolves character-1 as a RAW insert before the metacharacter
+switch, immune to re-interpretation.
+
+**Threading.** `EditRule[]? edits` is a trailing OPTIONAL param on `Format`/`TryFormat`/`DeEdit` (default null → every
+existing call byte-identical). The emitter appends an `edits:` named argument (via `RuntimeApi.EditsArg`) only when
+`pic.EditingRules is not null`, so an ordinary program's generated code is unchanged. Threaded through the six edited
+stores (MOVE, arithmetic GIVING, STRING, ACCEPT/DISPLAY, VALUE constant-fold, group image) + DeEdit sign recovery.
+
+**Bind (`PictureAnalyzer.ValidateEditing`).** SR8 (character-1 a basic letter ≠ A B C D E N P R S V X Z / currency →
+COBOLNET1591), SR11 (distinct character-1 → 1592), SR10 (character-1 present in the mask → 1593), SR9 (literal ≤50 →
+1594), SR12a (equal NEGATIVE/POSITIVE width → 1595), SR12b (FOR picture only character-1 and 9 . cs P V Z → 1596). A
+pre-scan of ALL phrases' character-1 lets SR12b admit a SECOND extended sign symbol (SR25 leftmost/rightmost, e.g. a
+leftmost `L` and a rightmost `F`). char1Set feeds the §13.18.40.3 SR2 whitelist so character-1 letters are not
+COBOLNET0808-rejected. The IS form's repeated character-1 is LEGAL (fork2: SR24 scopes the built-in +,-,CR,DB, not
+the simple-insertion character-1).
+
+**Grammar / gating.** `pictureClause : PIC PIC_STRING editingPhrase*` (additive; PIC_STRING pops PICMODE at
+whitespace so EDITING lexes in default mode) + `editingPhrase`/`editingForPhrase` (the FOR choice indicators = one or
+both of NEGATIVE/POSITIVE, either order — verified against the re-rendered Format-1 figure). EDITING is a new hard
+lexer token admitted to the cobolWord nameSlot funnel (`cobol-words.json`) so `01 EDITING PIC 9` stays legal below
+2023 (COBOLNET0901 at 2023; the COMMIT/VALIDATE precedent). 2023 introduction gate is recognition-fired by
+`VersionConformancePass.ParseArm.VisitPictureClause` on editingPhrase presence (COBOLNET0900 below 2023). Two
+`constructs.json` rows (picture-editing-2023, user-word-editing-2023).
+
+Conformance `PictureEditingTests` (13): IS render `99T99 EDITING "T" IS ":"`→`12:30`; repeated IS `9G9G9`→`1:2:3`
+(sign-independent); FOR `L999.99F EDITING "L" FOR NEGATIVE IS "(" EDITING "F" FOR NEGATIVE IS ")"` → `(012.34)` /
+` 056.78 `; multi-char + floating → COBOLNET0899; SR8/11/10/12a negatives; below-2023 → COBOLNET0900; EDITING as a
+data-name compiles at 85, COBOLNET0901 at 2023. Diagnostics 1591-1596 (compiler channel, raw codes — the 1542/0808
+pattern); 0899 via DiagnosticCatalog.ConstructStagedNotImplemented (the split-code drift rule); reserved 1591-1602 →
+1597-1602 released. Shared `.g4` ⇒ full legacy guard.
+
+## Entry 936 — 2026-07-20 14:40 PDT — SUPPRESS WHEN alternate-key suppression (§12.4.5.6, COBOL-2023) lands on COLLATING's compare seam
+
+Grammar batch position 4, and the second half of the coupled indexed-file batch. The SUPPRESS WHEN phrase of the
+ALTERNATE RECORD KEY clause (§12.4.5.6.2, a COBOL-2023 addition — Introduction p.27 / Annex E.3.3 item 42) gives
+each alternate key a suppression value: a record whose alternate key equals literal-1 has that alternate access
+path WITHHELD (§12.4.5.6.4 GR6), and the record "is not considered to exist" for READ/START on that key — while
+the record itself and its prime-key path are untouched.
+
+This landed small precisely because COLLATING went first: the suppression equality is the SAME §14.9.51 GR35
+relation condition COLLATING already built (`KeyEq(keyOfRecord, literal, keyIndex)`, which routes through the
+per-key weights — so suppression respects a declared COLLATING SEQUENCE for free, and is ordinal otherwise). The
+runtime is ONE predicate, `IsSuppressed(image, keyIndex)` (prime key never suppressible, GR6), applied at the
+four consumers the spec touches — NOT one, as an early one-liner scout claimed: the `Ordered(keyIndex)` filter
+covers READ NEXT/PREVIOUS + START + the GR27 '02' look-ahead (all route through it), but ReadRandom (§14.9.30
+GR32), WRITE (§14.9.51 GR41 — a suppressed key never duplicates), and REWRITE (§14.9.35 GR24 — entering/leaving
+suppression re-positions) each scan `_recs` directly and needed the predicate at their own site. The alt-key
+tuple widened once (Compiler + Runtime) to carry the decoded suppression value; the emitter threads it as a
+named `suppress:` argument only when present, so a plain alternate key's registration is unchanged.
+
+Grammar: `alternateKeySuppressWhen : SUPPRESS WHEN literal`, appended after the DUPLICATES phrase (fixed order),
+parsed at all editions and 2023-gated by `VisitAlternateKeySuppressWhen` (construct `alternate-key-suppress-when-
+2023`, COBOLNET0900 below 2023). No new diagnostic code (the §12.4.5.6.3 SR7 literal-category check is a
+registered P14 refinement). Golden `tests/conformance/2023/altkey_suppress_when.cob` (GreenfieldOnly) pins the
+exact semantics: record 02 (alt key "XX" = the suppression value) is INVISIBLE on the alternate-key walk (only 01
+and 03 return) yet PRESENT on the prime-key walk (01, 02, 03). Ships as its own change set atop COLLATING; both
+constructs share the one comprehensive legacy guard for the indexed-file batch (owner's multiple-waves-per-guard
+directive).
+
+## Entry 935 — 2026-07-20 14:32 PDT — File-control COLLATING SEQUENCE (§12.4.5.7) lands; a null-default reroute keeps NIST-IX byte-identical; and the weighted compare exposed an OPEN-FPI AT-END bug
+
+Grammar batch position 3, and the largest of the remaining constructs: the file-control COLLATING SEQUENCE clause
+(§12.4.5.7) makes an INDEXED file's record keys order, position (START), and compare for uniqueness under a
+declared alphabet instead of native ordinal. Before this the clause was a generic parse error at every edition.
+
+**Spec-grounded first** (owner directive; the design SSOT is `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`, SPEC-FAITHFUL/high). The clause is a §8.8.4.2.7 weighted relation-condition applied per key of reference: READ NEXT/PREVIOUS order (§12.4.5.5.3 GR2c), START positioning (§14.9.41 GR17e), and key equality/uniqueness/'02'-lookahead (§12.4.5.12.4 GR1 / §14.9.51 GR35) all key on "the collating sequence … according to the rules for a relation condition." Grammar: `fileCollatingSequenceClause` (Format 1 reuses the shared `collatingForPhrase` + the `IS alphabet-name-1 [alphabet-name-2]` form; Format 2 is the OF-led key-level form), parsed at all editions (superset) and introduction-gated at 2002 by a new `VisitFileCollatingSequenceClause` (construct `file-collating-clause-2002`, COBOLNET0900 below 2002). Bind resolves each key's alphabet (GR6 Format-2 → GR2 file-level → native) via the existing `Alphabets` registry (cloning `ResolveProgramCollating`), enforcing SR3/SR4/SR5/SR8 (COBOLNET1582), SR1/SR2/SR7 alphabet class (1583); a NATIONAL alphabet on a key is recognized-not-implemented (1584 — national-key collating is a documented P14 GAP, the alphanumeric core is complete).
+
+**The reroute is safe because it defaults to a no-op.** The single ordering derivation `IndexedConnector.Ordered`, plus `PositionCompare`/START, the ascending-WRITE '21' check, and every equality site (prime/alt uniqueness, ReadRandom, Rewrite/Delete target lookup, the GR27 '02' look-ahead) now route through `KeyCompare(a,b,keyIndex)` / `KeyEq`, which reads a per-key `ushort[]? weights` — **null for a no-clause key, and null means `string.CompareOrdinal`, byte-identical to the pre-clause engine.** So the 39 NIST-IX tests (no COLLATING clause) are provably unaffected; only a declared alphabet takes the `CobolString.Compare(a,b,weights)` path. Weights thread emitter→`RegisterIndexed`/`AddAlternateKey` as a named arg emitted only when non-null (a no-clause file's registration is unchanged). Verified: greenfield corpus + all indexed/NIST differential = **654/654**.
+
+**A bug the weighted compare exposed and I had to fix.** OPEN INPUT/I-O seeds the file position indicator with `_fpiKey = ""` as a "before the lowest record" sentinel, and READ NEXT returned the first record whose key compared greater. That relied on `"" < everything` — true under ordinal, but under an alphabet where the pad SPACE weighs HIGH (any alphabet not listing space among the low positions — e.g. the reversed `Z..A`), `""` space-extends to a value ABOVE every letter key, so the walk found nothing and the first READ NEXT returned '10' (AT END) with records present. The FILE STATUS trace (writes 00, OPEN 00, first READ 10) pinned it. Fix: when positioned by OPEN (`_positioner=='O'`), the forward READ NEXT takes `seq[0]` (the collating-lowest) directly instead of comparing against the sentinel — behavior-identical under ordinal (still `seq[0]`), correct under weighting.
+
+The golden `tests/conformance/2002/file_collating_seq.cob` (GreenfieldOnly — the legacy has no clause) pins all three behaviors on ONE alphabet each: `REV` (Z..A) makes records written A,M,Z read back Z,M,A and START `>= "M"` walk M,A; an equivalence-class `EQV` (`"A" ALSO "B"`) makes the second WRITE of a weight-equal prime key duplicate-key '22'. Ships with grammar + binder + FileModel per-key capture/resolution + the reroute + the emitter weights + the 2002 gate + 3 catalog descriptors + regenerated DIAGNOSTICS.md/Constructs.g.cs + plan §0.
+
+## Entry 934 — 2026-07-20 13:10 PDT — RW SUPPRESS (§14.9.45) lands; the owner's "resolve from the SPEC, not the implementation" caught my inverted sum-reset research; and a Wave H fixture bug the local gate had missed
+
+Grammar batch position 2. `SUPPRESS PRINTING` (§14.9.45) inhibits the printing of a report group. The RW engine
+was already built for it — `ReportWriter.cs` carried a staged comment "the SUPPRESS statement … is not yet
+parsed — its suppression flag is staged with it," and USE BEFORE REPORTING (§14.9.49 Format 2) already fires a
+`BeforeReporting` hook just before each group is produced. So this was: a grammar rule (`suppressStatement :
+SUPPRESS PRINTING`, wired into `statement`; both tokens already existed), a `BoundSuppress(ReportModel)` node,
+`BindSuppress`, an emitter one-liner (`__RPT_n.SuppressPrinting()`), and the engine seam — plus one new
+diagnostic, COBOLNET1581 (SR1).
+
+**Where the target group comes from — resolved from the SPEC, not the code.** §14.9.45.4 GR1: SUPPRESS inhibits
+printing only "for the report group named in **the USE procedure within which the SUPPRESS statement appears**,"
+and SR1 restricts SUPPRESS to a USE BEFORE REPORTING procedure. So the target group is a STATIC, lexical
+property — fixed at compile time by which declarative encloses the statement — which settles the
+bind-vs-emit question the spec's way: WHICH group is bind-time (the enclosing declarative's group), WHETHER a
+given instance is suppressed is runtime (GR2 — "limited to the current instance"). `BindSuppress` finds the
+declarative whose pc range covers `BindCursor` (the declaratives already carry their `ReportGroup`), resolves
+its owning report, and stores it; a SUPPRESS outside any such procedure has no group and is COBOLNET1581.
+
+**The owner's process correction, and the bug it caught.** Mid-implementation the owner said: *"All questions
+about appropriate behavior of some syntax should be resolved from the PDF specification instead of the, possibly
+incorrect, implementation."* Applying that to the sum-counter interaction OVERTURNED my own prior research. My
+pre-implementation note (and the compaction summary) claimed SUPPRESS should SKIP the end-of-group sum reset,
+citing "§13.18.54.4 GR2/GR10." Reading the actual text: **GR10 scopes the "not reset" rule to PRESENT WHEN /
+OCCURS DEPENDING absence — NOT SUPPRESS** (*"If the entry is associated with an absent data item as a result of
+a PRESENT WHEN clause or an OCCURS clause with the DEPENDING phrase, the corresponding sum counter is not printed
+and is not reset to zero"*). And GR2 ties the reset to "the end of the **processing** of the report group,"
+which §14.9.45.4 GR3 does not inhibit (GR3 inhibits only printing, page advance, NEXT GROUP, and LINE-COUNTER).
+The spec even signals it by contrast: it knows how to say "not reset" (it does, for absence) and pointedly does
+NOT for SUPPRESS. So the correct behavior is the OPPOSITE of my note — **a suppressed control footing STILL
+resets its sums, and a suppressed detail STILL accumulates (GR7 happens in Generate, before the group's
+presentation)**. Had I coded my original "skip the reset," a suppressed CF would have carried its subtotal into
+the next control group — a silent wrong total. The engine seam reflects the corrected semantics: `PresentBody`
+runs `EndOfGroupSumReset` on the suppressed path and only skips the PRINTING half; the heading/footing methods
+(no sum reset) return after the hook. One shared `RunBeforeReporting` consumes the one-shot flag (GR2).
+
+The golden `tests/conformance/2002/rw_suppress.cob` pins exactly this: three details generated into group 1 with
+the MIDDLE one suppressed — its detail line never prints, yet the control footing prints `TOTAL=060` (= 10 + 20
++ 30), not 040. That single number is the whole proof; my original design would have printed 040. GreenfieldOnly
+(legacy has no SUPPRESS grammar). Verified: greenfield corpus 296/296.
+
+**A Wave H fixture bug the local gate had missed (committed separately, `ef080854`).** Running the corpus suite
+on a FRESH build surfaced a `FormatException` in the negative-case harness: my Wave H `user-word-validate.cob`
+wrote `reject-at: 2002,2014,2023` (commas), but the harness splits editions on SPACE and `int.Parse`s each
+token. Every other negative fixture uses spaces; this one was the outlier. Wave H's gate had reported 3701/0
+without catching it because the conformance assembly it ran was STALE relative to the just-added fixture (the
+`[Theory]` MemberData did not include it) — the `feedback_fresh_build_before_no_build_test` hazard, live again.
+Fixed to spaces; the negative case now rejects at all three editions with COBOLNET0901.
+
+Ships as one change set: grammar + `BoundSuppress` + `BindSuppress` + COBOLNET1581 + emitter + the 4 engine
+presentation methods + the `rw_suppress` golden + manifest + GreenfieldOnly + regenerated DIAGNOSTICS.md +
+CONFORMANCE.md (A.4.11 row) + `COBOLNET_REPORT_WRITER_DESIGN.md` (verb table + §5) + plan §0 (diag band 1581
+shipped → next-free 1582; grammar-batch worklist). Diag scans agree at 1581.
+
+## Entry 933 — 2026-07-20 12:05 PDT — Wave H (recognize-and-name MCS/COMMIT/ROLLBACK/VALIDATE) lands; and the C5 re-derivation from the CORRECTED figure finds a THIRD spec inversion
+
+`main` merged and **CI-verified green** (the Release-config check the local Debug battery cannot give — DEVLOG
+774's lesson). Then the P13 grammar batch resumed on `phase-13-grammar-batch`, position 1.
+
+**WAVE H — the §4.2.6 ¶3 recognize-and-name band.** MCS (SEND/RECEIVE), COMMIT/ROLLBACK and VALIDATE are
+facilities COBOL.NET does not implement — processor-dependent (§4.2.6, A.3 items 4/6-7) or optional-and-obsolete
+(VALIDATE, §4.2.7/§4.2.13). §4.2.6 ¶3 makes the compile-time WARNING MECHANISM mandatory anyway, and
+§14.6.13.1.1 licenses raising no EC for them, so the conforming posture is: accept, warn by a NAMED code, run
+inert. Before this they were GENERIC parse errors — satisfying neither obligation. Now COBOLNET1578 (MCS) /
+1579 (commit-rollback) / 1580 (VALIDATE), all warnings; the program compiles, runs, and the facilities are
+no-ops (`START / COUNT=3 / END` prints around them).
+
+Followed the DEVLOG-903 MECHANISM CORRECTION exactly: real lexer tokens (RECEIVE/SEND/VALIDATE/COMMIT/ROLLBACK
+/MESSAGE/END-RECEIVE/END-SEND), all admitted to the `cobolWord` nameSlot funnel, and KEYWORD-TOKEN-LED
+`statement` arms gated by a new `facilityWord()` predicate — never an IDENTIFIER-led arm (which poisons the
+ALL(*) DFA). The operand tails are PARSED, not swallowed: the prior packet's `(~DOT)*` swallow would have eaten
+END-IF, and both MCS formats carry their own imperative-statements. Split the packet's dead SEND gate
+(`{facilityWord("RECEIVE")}?` guarding a `(RECEIVE|SEND)` rule — SEND never parsed) into two rules.
+
+**The riskiest thing here was the NON-MONOTONIC reservation, and it came out clean.** These words are reserved
+at different editions (RECEIVE/SEND/END-RECEIVE: 85, user-word 2002/2014, re-reserved 2023; COMMIT/ROLLBACK/
+END-SEND: 2023 only; VALIDATE: user-word at 85; MESSAGE the reverse — reserved 85/2002, user-word 2023). Every
+profile verified against §8.9 by CLI probe and pinned by negative fixtures: `01 RECEIVE` compiles at 2002/2014
+and rejects (COBOLNET0901) at 2023; `01 VALIDATE` compiles at 85 and rejects at 2002. The hard tokens did not
+break user-word use anywhere — the cobolWord funnel absorbed them, exactly the RAISE/RESUME/SCREEN precedent.
+
+**One limitation, documented rather than hidden** (CONFORMANCE.md §1): a bare facility verb whose word is also a
+legal user-name (COMMIT/ROLLBACK/VALIDATE) written as the FIRST statement of an `EVALUATE … WHEN` arm is absorbed
+by the WHEN selection-object list, so no warning fires. Verified it is (a) LOUD at run time
+(`NotImplementedCobolFeatureException`), not a silent wrong answer, and (b) PRE-EXISTING, not a Wave H
+regression — identical at `--std 2014` where COMMIT is a user word and the Wave H arm does not fire at all.
+RECEIVE/SEND are immune (FROM/TO cannot continue an object list). Registered as a P14 Step-0 GAP row; the fix is
+a shared EVALUATE-grammar change, deliberately not bundled here.
+
+Ships as one change set per the same-commit rule: grammar + binder + 3 catalog descriptors + 8 cobol-words rows
+(regenerated) + the `facilityWord` helper + a positive inertness golden + two reservation negative fixtures +
+manifests + the GreenfieldOnly exclusion (the legacy compiler has no Wave H — it still parse-fails these) +
+regenerated DIAGNOSTICS.md. Diag band advanced 1578→**1581 next-free**; §0 corrected (it still said 1578) and
+the full 1581-1616 reservation map recorded so the parallel-agent collision that produced the ~40-site scout
+drift cannot recur.
+
+**C5 PERFORM Format 3 — re-derived from the CORRECTED figure** (the old figure was one of the page-break
+truncations, missing WHEN OTHER/WHEN COMMON/FINALLY/END-PERFORM; the prior packet designed against half a
+statement). Four fresh derivations, each adversarially verified: ALL FOUR came back REJECTED or PARTIALLY
+REFUTED, 48 defects. The synthesis then adjudicated against primary text and produced three things worth
+recording:
+- **A THIRD spec inversion** (two research passes, three now): `EXIT PERFORM` in a WHEN arm is LEGAL —
+  §14.9.14.4 GR4 verbatim: *"If an EXIT PERFORM statement is specified in an exception-checking PERFORM
+  statement, control passes to an implicit CONTINUE … immediately preceding the FINALLY phrase"* — the lowering
+  derivation wanted to diagnose it. C5 is genuinely treacherous; the owner's D19 "adjudicate, don't defer" was
+  the right call.
+- **The alleged WHEN-arm grammar ambiguity DISSOLVES on the spec's own terms**: §14.5.2 defines an unterminated
+  EVALUATE/SEARCH as a *conditional* statement, which therefore cannot be a constituent of imperative-statement-1
+  — no disambiguation predicate warranted, just a legible diagnostic.
+- **§14.9.28.4 GR17 licenses the one-mechanism fix directly**: *"The rules for determining a match are specified
+  in General rules 3a to 3g of the USE statement"* — so the WHEN operand grammar REUSES the existing USE rules
+  rather than forking a second operand grammar (the packet's worst defect). GO TO banned in a WHEN
+  (§14.9.17.3 SR3), RESUME AT NEXT STATEMENT permitted (§14.9.33.3 SR1) — both directions confirmed.
+C5 is NOT yet implementable — a 65 KB synthesized spec whose four inputs were all refuted needs a careful read
+first. (Later corrected 2026-07-20: the rejected re-derivation JSON was DELETED and replaced by the
+adversarially-verified `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md`; the figure questions
+resolved in `PHASE-13-c5-perform-format3-pdf-resolution.md`.)
+
+**Process note:** the Wave H gate was interrupted by a session boundary (no verdict recorded). Did NOT assume it
+passed — rebuilt clean, re-verified the behaviour on the fresh build, and re-ran the full comprehensive gate
+before committing. A lost gate is a gate not run.
+
 ## Entry 932 — 2026-07-20 01:30 PDT — 151 normative sentences were cut in half by page breaks; and Annex A.1's documentation obligation was never tracked
 
 Owner instruction: *"Read the actual spec on fixed-form. I suspect the compiler simply ignores characters past

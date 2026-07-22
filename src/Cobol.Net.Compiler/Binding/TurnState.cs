@@ -59,6 +59,37 @@ public sealed class TurnState
         return s;
     }
 
+    /// <summary>Return a NEW state = the base events with a synthetic ENABLING event at <paramref name="imp1Line"/>
+    /// spliced in for each named exception that is NOT already enabled there — the GR14 implicit TURN of an
+    /// exception-checking PERFORM over imperative-statement-1 (§14.9.28.4 GR14): "if checking … is NOT enabled for
+    /// imperative-statement-1 by a TURN directive, an implicit TURN directive … is assumed BEFORE the first
+    /// statement in imperative-statement-1" (WITH LOCATION iff the PERFORM specified LOCATION). Correctness of the
+    /// fold demands the event list stay LINE-SORTED (Fold keeps the last match with <c>Line &lt; statementLine</c>),
+    /// so the synthetic is placed at imp-1's line — AFTER every pre-PERFORM directive (a pre-PERFORM
+    /// <c>&gt;&gt;TURN OFF</c> therefore LOSES to it, per GR14's "not enabled ⇒ assume on") and BEFORE any real
+    /// <c>&gt;&gt;TURN OFF</c> inside imp-1 (which overrides it). The "not already enabled" guard means a real
+    /// enable BEFORE the PERFORM keeps its own settings (GR22 — no implicit is assumed). imp-2..5 bind against the
+    /// BASE state — this overlay is discarded (never assigned back) after imp-1 (GR21/GR22).
+    /// (Known edge, unobservable while the runtime is staged: a directive on the PERFORM's OWN line, and WITH
+    /// LOCATION precedence when a real enable precedes — refinements for the interceptor wave.)</summary>
+    public TurnState WithImplicitEnable(IEnumerable<(string Ec, string? File)> names, bool withLocation, int imp1Line)
+    {
+        var s = new TurnState();
+        foreach (var e in _events) if (e.Line < imp1Line) s._events.Add(e);   // pre-imp-1 directives (line-sorted)
+        foreach (var (ec, file) in names)
+            if (!Enabled(ec, file, imp1Line))   // GR14 implicit ON only when not already enabled (else GR22 persists)
+                s._events.Add(new Ev(imp1Line, ec, file, On: true, WithLocation: withLocation));
+        foreach (var e in _events) if (e.Line >= imp1Line) s._events.Add(e);   // imp-1+ directives (line-sorted)
+        return s;
+    }
+
+    /// <summary>The 1-based lines of every <c>&gt;&gt;TURN</c> directive that NAMES one of <paramref name="ecNames"/>
+    /// (matched on the canonical exception-name, ON or OFF alike) — the FLAG-02 b EC-PROGRAM-EXCEPTIONS detector
+    /// flags such a directive when its source element calls a function or invokes a method (§7.3.14.4 GR4 b). A
+    /// directive naming several of the set contributes its line once per name; the caller de-duplicates.</summary>
+    public IEnumerable<int> DirectiveLinesNaming(IReadOnlySet<string> ecNames)
+        => _events.Where(e => ecNames.Contains(e.Ec)).Select(e => e.Line);
+
     /// <summary>True when ANY enabling event exists — the group-level EC-machinery gate (a compilation group
     /// with no enabling TURN, no F3, no RAISE/RESUME emits byte-identical code to a pre-EC build).</summary>
     public bool AnyEnabled => _events.Any(e => e.On);

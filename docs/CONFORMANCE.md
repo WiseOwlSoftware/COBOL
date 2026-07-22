@@ -15,11 +15,23 @@ the 1985, 2002, and 2014 editions selected by `--std`. It implements the require
 except the optional/processor-dependent facilities listed as **not supported** below; the per-module
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
-optional element is implemented only when support is claimed. Of the five **documented non-support
-facilities** (§4), SCREEN handling is recognized at compile time with the named COBOLNET1560 warning; MCS
-(SEND/RECEIVE), COMMIT/ROLLBACK, and VALIDATE are today a generic parse error — their named recognize-and-warn
-diagnostics are the tracked PHASE-13 Wave H code half (they ship before the §4.2.6 warning-mechanism claim can
-be made for those three).
+optional element is implemented only when support is claimed. All five **documented non-support facilities**
+(§4) are now recognized at compile time with a NAMED warning, satisfying §4.2.6 ¶3's mandatory warning
+mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
+**COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
+and the facility is inert, and no associated exception condition is raised (§14.6.13.1.1 licenses this).
+
+> ⚠ **One documented position where the warning does NOT fire.** When a bare facility verb whose word is also
+> a legal user-name (`COMMIT`, `ROLLBACK`, `VALIDATE`) is written as the FIRST statement of an `EVALUATE … WHEN`
+> arm, the WHEN selection-object list absorbs it as a data reference before the statement arm is reached, so no
+> COBOLNET1579/1580 is emitted. The construct then fails LOUDLY at run time
+> (`NotImplementedCobolFeatureException: reference 'COMMIT'`) — it is not a silent wrong answer — but the
+> compile-time warning obligation is unmet in that one position. This is the pre-existing EVALUATE
+> selection-object greediness, NOT a Wave H regression: the identical behaviour occurs at `--std 2014`, where
+> `COMMIT` is a user word and the Wave H statement arm does not fire at all. `RECEIVE`/`SEND` are unaffected
+> (their `FROM`/`TO` operand keyword cannot continue an object list, so the parser recovers into the statement).
+> Registered as a P14 Step-0 GAP row; fixing it means constraining the EVALUATE object list, which is a shared
+> grammar change and is deliberately not bundled into this wave.
 
 ## 2. Annex A.3 — processor-dependent language element disposition
 
@@ -64,7 +76,7 @@ of an unsupported facility.
 | 38 | Extended letters / national literals display | 8.x | **Claimed** | National (UTF-16) repertoire supported |
 | 39 | READ PREVIOUS / START LESS, NOT GREATER, LESS OR EQUAL | 14.9.30/41 | **Claimed** | Keyed reverse read + START positioning (P10) |
 | 40 | SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | 13.x | Not claimed | The `record-key-name SOURCE IS` key form is not provided |
-| 41–42 | Cultural collating for keys / multiple alt keys with differing collating | 13.x | Not claimed | Depends on the ISO/IEC 14651 locale module (item 25) |
+| 41–42 | Cultural collating for keys / multiple alt keys with differing collating | 12.4.5.7 | **Partial** | The file-control COLLATING SEQUENCE clause (§12.4.5.7, Format 1 + Format 2 per-key) is supported for **alphanumeric** keys under a declared SPECIAL-NAMES alphabet — per-key weighted ordering/START/uniqueness on the greenfield IndexedConnector (COBOLNET1582/1583). **NATIONAL-key collating** (COBOLNET1584) and **LOCALE-based cultural collating** (ISO/IEC 14651 locale module, item 25) are NOT claimed — the national leg is a documented P14 GAP |
 | 43 | Zero-length record for relative/sequential files | 9.x | Not claimed | Minimum record length is 1 |
 | 44 | Abnormal termination indication | 14.6.12 | **Claimed** | Nonzero process exit on an unresumed fatal exception condition |
 | 45 | Parametric-polymorphism method resolution | 11.x | **Claimed** | Single-dispatch OO method resolution over the class table |
@@ -118,6 +130,42 @@ of an unsupported facility.
   (§14.9.18.4 GR3) uses the same mapping; a status phrase on a GOBACK executed in a **called** program is inert
   (GR2). Programs with no status phrase leave the exit code at 0 (the abnormal-fatal case still forces item 44's
   nonzero exit).
+- **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
+  documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
+  .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).
+  A standard mode is chosen over the native binary runtime mode for **portability** (§7.3.6.3 GR2 NOTE). *Intermediate
+  precision / magnitude / range (§7.3.6.2 SR2):* the same 28–29-digit decimal throughout; an intermediate result that
+  exceeds it is a **diagnosed error** (`DiagnosticCatalog.ConstantEntryRule`), never a silent wrap. *Intermediate
+  rounding (§7.3.6.2 SR2):* addition / subtraction / multiplication are exact within the precision; **division
+  truncates** toward the decimal precision. The exponentiation operator is rejected (§7.3.6.2 SR1a); a division by
+  zero is rejected (§7.3.6.2 SR1c). *Final result (§7.3.6.3 GR3):* the value of an arithmetic-expression operand is
+  **truncated to its integer part** (`decimal.Truncate`) and treated as an integer numeric literal — a single numeric
+  literal in the arithmetic-expression position is instead re-classified as a literal and keeps its own value and
+  scale (§13.10.3 SR1). Evaluator: `DataBinder.Constants.cs EvalConstExpr`, invoked from the §13.10 constant entry
+  now; the same determination governs the DEFINE / EVALUATE directive arithmetic-expression operands once the
+  frontend (pre-parse) evaluator lands (today a multi-token directive operand binds only its first token — a recorded
+  Wave-D GAP).
+- **Recognized-and-ignored compiler directives (§7.3 — the implementor-disposition set)**: the following standard
+  directives are RECOGNIZED (consumed during text manipulation so the program compiles unchanged) and carry no
+  effect, each because COBOL.NET provides a single behaviour with no alternative to select: **>>CALL-CONVENTION**
+  (§7.3.9) — CALL uses the single .NET managed calling convention (a native-interop convention selector has no
+  target); **>>LEAP-SECOND** (§7.3.17) — the underlying .NET date/time model does not represent leap seconds, so
+  leap-second handling is documented non-support; **>>LISTING** / **>>PAGE** (§7.3.18 / §7.3.19) — no source listing
+  is produced, so listing on/off and page ejects are inert; **>>DISPLAY** (§7.3.12) — likewise transfers text to the
+  (absent) source listing / compile-time device, so it is recognized and consumed. The **>>FLAG-02 / >>FLAG-14**
+  flagging directives (§7.3.14 / §7.3.15) are RECOGNIZED (a conforming compiler must not error on a standard
+  directive), but the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item — the
+  flags are not yet emitted. Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
+- **Exception-checking PERFORM — FINALLY on the fatal path (§14.9.28.4, a GENUINE STANDARD DEFECT)**: NOTE 8 says "the
+  end of the PERFORM statement includes the statements in a FINALLY phrase", while GR20's fatal branch routes an
+  unresumed fatal condition to §14.6.13.1.3 (abnormal termination), which never re-enters "the end of the PERFORM".
+  The two cannot both hold. **Pinned choice: FINALLY runs on the NORMAL (and EXIT-PERFORM) fall-through path ONLY, NOT
+  on the fatal abnormal-termination path.** (Realized structurally — a `CobolFatalException` unwinds past the inline
+  FINALLY block.) Revisit only if the four-edition inventory surfaces a conformance test pinning the other reading.
+- **Exception-checking PERFORM — RESUME NEXT STATEMENT in a WHEN skips WHEN COMMON (§14.9.28.4 GR17/GR19, spec silent)**:
+  GR17 passes control to imp-4 (WHEN COMMON) "at the completion of the execution of imperative-statement-2"; a RESUME
+  (§14.9.33) is a transfer of control OUT of imp-2, so imp-2 does not "complete" and the GR17→imp-4 hand-off is not
+  taken. **Pinned choice: a WHEN that RESUMEs (NEXT STATEMENT) does NOT run WHEN COMMON.**
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
@@ -166,7 +214,7 @@ summary claims only what is Claimed/Partial here.
 | A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
 | A.4.9 | Locale support and related functions | Not claimed | §4 item 5 (COBOLNET1518 error) |
 | A.4.10 | Object orientation optional items | Not claimed | The three OPTIONAL items only: multiple inheritance (×2 — multi-base INHERITS rejects COBOLNET0849) and parametric-polymorphism method resolution (rejected/deferred; §2 row 45 covers the supported single-dispatch resolution). The OO CORE is mandatory surface, claimed separately |
-| A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): SUPPRESS, COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
+| A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002) and the SUPPRESS statement (§14.9.45 — inhibits the current instance's printing/page-advance/NEXT GROUP/LINE-COUNTER but not sum accumulation or the end-of-group reset; SR1/GR1 resolve the enclosing USE BEFORE REPORTING group at bind, COBOLNET1581 rejects a misplaced SUPPRESS). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
 | A.4.12 | RESUME statement | **Claimed** | §14.9.33 (the EC declarative RESUME) |
 | A.4.13 | REWRITE FILE and WRITE FILE | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
 | A.4.14 | VALIDATE | Not claimed | §4 item 3 |

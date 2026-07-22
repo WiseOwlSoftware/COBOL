@@ -23,7 +23,7 @@ using Core = CobolParserCore;
 /// behavior-sensitive follow-up (the plan block). Host edges (InMethod/OoClasses/ResolveProcedure/
 /// Declaratives/EntryPc/Paragraphs/ParaSections) flip at 10t.
 /// </summary>
-internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
+internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Configure the EC bind context (called per bound unit — <see cref="BinderDriver"/> for program
     /// units, the OO bind half for class rosters):
@@ -119,12 +119,25 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindResume(Core.ResumeStatementContext r)
     {
         // resume-statement-2002: the pass owns the edition gate (Exec Step E).
-        // SR1 — only in a declarative (the exception-checking PERFORM WHEN form is 2023, a later wave). The
-        // declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
+        // SR1 — RESUME may appear in a declarative OR a WHEN phrase of an exception-checking PERFORM (§14.9.33.3
+        // SR1). In a WHEN phrase it shall specify NEXT STATEMENT (XS-RESUME-OPERAND, COBOLNET1610) — the
+        // ResumeSignal(targetPc) pc-jump path is bound ONLY for a declarative RESUME AT procedure-name.
+        if (ctx.EcState.InF3When)
+        {
+            ctx.EcState.Resume = true;
+            if (r.NEXT() is not null) return new BoundResume(ResumeSignal.NextStatement);
+            ctx.Edition.Error("COBOLNET1610", "RESUME in a WHEN phrase of an exception-checking PERFORM shall "
+                + "specify NEXT STATEMENT (ISO §14.9.33.3 SR1)");
+            return new BoundNop();
+        }
+        // The declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
         var decl = ctx.Table.Declaratives.FirstOrDefault(d => ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
         if (ctx.BindCursor >= ctx.Table.EntryPc || decl is null)
         {
-            ctx.Edition.Error("COBOLNET0712", "RESUME may be specified only in a declarative (ISO §14.9.33.3 SR1)");
+            // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM
+            // (neither a declarative nor a WHEN phrase) lands here too — the same "declarative or WHEN only" rule.
+            ctx.Edition.Error("COBOLNET0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
+                + "an exception-checking PERFORM (ISO §14.9.33.3 SR1)");
             return new BoundNop();
         }
         // SR2 — not in a GLOBAL-phrase declarative (a RESUME executed within a global declarative's DYNAMIC

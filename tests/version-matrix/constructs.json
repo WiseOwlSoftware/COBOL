@@ -196,6 +196,43 @@
       "source": "        >>REF-MOD-ZERO-LENGTH ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RMZL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W PIC X(5) VALUE \"HELLO\".\n       01 R PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE W (3:0) TO R.\n           DISPLAY R.\n           STOP RUN.\n"
     },
     {
+      "id": "flag-14-directive-2023",
+      "description": "The >>FLAG-14 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.15) — a COBOL-2023 addition: Annex E.2 item 5 lists FLAG-14 among the compiler-directive words new to 2023. It directs the implementor's warning mechanism to flag 2014-to-2023 incompatibilities (GR1). Recognized and collected by FlagDirectiveProcessor and folded per option per source line by FlagState (FlagConformancePass emits the per-option COBOLNET1621 warning); the introduction gate rejects the directive word below 2023.",
+      "display": ">>FLAG-14 directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.15; Annex E.2 item 5 (compiler-directive words added in 2023)",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 64 (FLAG-14 directive — 2023 introduction)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG14.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-14 READ-PREVIOUS ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+    },
+    {
+      "id": "flag-02-directive-2014",
+      "description": "The >>FLAG-02 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.14) — introduced in COBOL-2014 to flag 2002-to-2014 incompatibilities (GR1; the directive references the 2014 edition, and Annex E.2 item 5 lists only FLAG-14 as new to 2023, so FLAG-02 predates 2023). It is OBSOLETE (NOT removed) in COBOL-2023 — §7.3.14.1 NOTE: 'an obsolete element in this Working Draft International Standard and is to be deleted from the next edition'. Per §4.2.13 an implementation SHALL SUPPORT obsolete elements, so at 2023 it STILL COMPILES and carries the COBOLNET0903 obsolete warning (never a 0902 removal error). Modeled introducedIn=2014 + obsoleteIn=2023: the introduction gate rejects below 2014, the obsolete gate warns at 2023.",
+      "display": ">>FLAG-02 directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.14; §7.3.14.1 NOTE (obsolete in 2023); §4.2.13 (obsolete elements shall be supported + warned)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "obsoleteIn": 2023,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR rows 91/96/115 (FLAG-02 directive — 2014 introduction, obsolete 2023)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG02.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-02 I-O-STATUS-07 ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+    },
+    {
+      "id": "cobol-words-directive-2023",
+      "description": "The >>COBOL-WORDS { EQUATE l1 WITH l2 | UNDEFINE l3 | SUBSTITUTE l4 BY l5 | RESERVE l6 } compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12) — a COBOL-2023 addition (Annex E.2 item 5 lists COBOL-WORDS among the compiler-directive words new to 2023). It modifies which words are reserved / context-sensitive / intrinsic-function words and prohibits specified user-defined words, per compilation group, during the text-manipulation stage. Recognized and parsed by CobolWordsDirectiveProcessor into a CobolWordsMap consumed by the post-lex token rewriter + the composed ReservedWordSet + intrinsic-name resolution; the introduction gate rejects the directive word below 2023.",
+      "display": ">>COBOL-WORDS directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.10; Annex D.12; Annex E.3.3 item 12; Annex E.2 item 5 (compiler-directive words added in 2023)",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 55 (COBOL-WORDS directive — 2023 introduction)",
+      "source": "       >>COBOL-WORDS RESERVE \"FOO\"\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWORDS.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+    },
+    {
       "id": "external-type-declaration-2023",
       "description": "A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
       "display": "a strongly-typed EXTERNAL type declaration",
@@ -1423,6 +1460,67 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EXCLUSIVE-OR PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EXCLUSIVE-OR.\n    STOP RUN.\n"
     },
     {
+      "id": "picture-editing-2023",
+      "description": "The PICTURE clause EDITING phrase (ISO 13.18.40.2 Format 1) - user-defined picture editing via the new-in-2023 reserved word EDITING (Annex E.3.3 item 19). Below 2023 the whole EDITING phrase is rejected with the introduction gate, recognition-fired from VersionConformancePass.ParseArm.VisitPictureClause on editingPhrase presence (the AnyLength/DynamicLength recognition-gate precedent).",
+      "display": "the PICTURE EDITING phrase",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 13.18.40.2 Format 1 / 13.18.40.5; Annex E.3.3 item 19",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 62 (Annex E.3.3 item 19)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPEDIT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-EDIT PIC 99T99 EDITING \"T\" IS \":\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 1230 TO T-EDIT.\n    DISPLAY T-EDIT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-editing-2023",
+      "description": "The word EDITING as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the PICTURE EDITING phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name EDITING still parses; the funnel rejects 0901 at 2023.",
+      "display": "the word EDITING as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row EDITING",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWEDIT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EDITING PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EDITING.\n    STOP RUN.\n"
+    },
+    {
+      "id": "value-table-format-2002",
+      "description": "The Format 2 (table) VALUE clause (ISO 13.18.63.2) - a literal list keyed to occurrence subscripts by a mandatory FROM (subscript) phrase with optional TO, initializing selected OCCURS-table elements/ranges. A COBOL-2002 addition (derived - COBOLNET_DATA_MODEL_DESIGN.md; not citable from the 2023 spec Annex E, whose VALUE rows are numeric-edited only - the A1 authority gap, D18). Recognition-fired by VersionConformancePass.ParseArm.VisitValueClause on a valueClauseTablePhrase.",
+      "display": "the Format 2 (table) VALUE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 13.18.63.2 Format 2 (table); a COBOL-2002 addition (derived - COBOLNET_DATA_MODEL_DESIGN.md; the 2023 Annex E VALUE rows are numeric-edited only, the A1 gap D18)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "Table-format VALUE (COBOL-2002); A1 authority-sufficiency gap (D18)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVAL2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E(1).\n    STOP RUN.\n"
+    },
+    {
+      "id": "perform-exception-checking-2023",
+      "description": "PENDING (runtime staged). The Format 3 (exception-checking) PERFORM (ISO 14.9.28.2 Format 3 / 14.9.28.4 GR14-22) - a per-statement exception interceptor scoped to imperative-statement-1 that dispatches a raised exception condition to a matching WHEN handler in written order (new-in-2023). Fully recognized/validated (COBOLNET1597-1617) + introduction-gated (COBOLNET0900 below 2023, recognition-fired from VersionConformancePass.ParseArm.VisitPerformStatement on a performWhenPhrase, disjoint from the perform-until-exit-2023 gate), but the runtime handler dispatch is a documented next-wave GAP - at 2023 the construct is currently rejected with COBOLNET0899 (staged), so no 2023 program compiles yet. status flips to active + expectDiagnostic drops when the interceptor wave lands.",
+      "display": "the Format-3 (exception-checking) PERFORM",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 14.9.28.2 Format 3 / 14.9.28.3 SR14-16 / 14.9.28.4 GR14-22; Annex E.3.3",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "status": "pending",
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 79 (exception-checking PERFORM WHEN - 2023 introduction)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPERF3.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE\n        DISPLAY \"S\"\n    END-PERFORM.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-location-2023",
+      "description": "The word LOCATION as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the exception-checking PERFORM WITH LOCATION phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name/paragraph LOCATION still parses; the funnel rejects 0901 at 2023 (the continuity invariant; the EDITING precedent).",
+      "display": "the word LOCATION as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row LOCATION",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWLOC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 LOCATION PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY LOCATION.\n    STOP RUN.\n"
+    },
+    {
       "id": "fixed-form-word-continuation-removed-2023",
       "description": "Continuation of a COBOL word across fixed-form lines via the col-7 hyphen - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 2). Emit site: the frontend ReferenceFormatProcessor (only the column-aware pass sees the indicator); 0902 error strict / warning permissive at 2023, pre-removal join semantics preserved.",
       "display": "continuation of a COBOL word in fixed-form reference format",
@@ -1582,6 +1680,30 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
       "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWLM.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "file-collating-clause-2002",
+      "description": "The file-control COLLATING SEQUENCE clause (ISO 12.4.5.7) - the collating sequence for the record keys of an INDEXED file (Format 1 file-level IS/FOR ALPHANUMERIC/FOR NATIONAL, Format 2 key-level OF key... IS alphabet). 2002 introduction (programmable indexed-key collating); 0900 below 2002. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+      "display": "the file COLLATING SEQUENCE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.4.5.7; LIVE (P13 grammar batch) — per-key collating weights on the IndexedConnector; 2002 introduction (expanded indexed I-O)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWCOL.\n       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           ALPHABET AL IS \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\".\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               COLLATING SEQUENCE IS AL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-D   PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "alternate-key-suppress-when-2023",
+      "description": "The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO 12.4.5.6.2) - alternate-key suppression: a record's alternate access path is withheld when the key value equals literal-1 (12.4.5.6.4 GR6), and the record is not considered to exist for READ/START. A COBOL-2023 addition; 0900 below 2023. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+      "display": "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.4.5.6.2 / §12.4.5.6.4 GR6 (Annex E.3.3 item 42); LIVE (P13 grammar batch) — a visibility filter on the IndexedConnector; 2023 introduction",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2023 introduction (Introduction p.27 + Annex E.3.3 item 42)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSUP.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               ALTERNATE RECORD KEY IS R-ALT SUPPRESS WHEN SPACES.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-ALT PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
     },
     {
       "id": "retry-phrase-2002",

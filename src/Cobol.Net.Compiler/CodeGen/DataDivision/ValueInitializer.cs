@@ -19,6 +19,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
     public string FieldInit(DataItem item)
     {
+        // A Format 2 (table) VALUE (ISO §13.18.63.2, COBOL-2002): per-occurrence initialization. LANDABLE scope is an
+        // elementary single-dimension table on its own OCCURS entry (DataBinder.ValidateTableValues staged the rest).
+        if (item.TableValues is { Count: > 0 } && !item.IsGroup)
+            return TableValueInit(item);
+
         // A DYNAMIC-capacity table (§13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
         // the SAME one-occurrence initializer the fixed path repeats (heed DEVLOG 643 — seed EVERY occurrence). Opens
         // at FROM (min); TO is the expected capacity; INITIALIZED is carried for the (always-on) new-occurrence seed.
@@ -37,10 +42,65 @@ internal sealed class ValueInitializer(EmitContext ctx)
         return item.IsGroup ? Slicer.ComposedInit(item) : InitializerFor(item);
     }
 
+    /// <summary>The per-occurrence initializer of a Format 2 (table) VALUE (ISO §13.18.63.4 GR12–GR16): a fixed table
+    /// becomes an array literal whose occurrences take their keyed literals (default outside any FROM..TO range); a
+    /// dynamic table becomes a CobolDynTable opened at the GR16 initial capacity with a per-occurrence seed.</summary>
+    private string TableValueInit(DataItem item)
+    {
+        var s = item.OccursSpec;
+        int fillMax = item.Occurs ?? s?.ExpectedMax ?? 0;   // GR14 no-TO fill maximum
+        var map = ResolveTableValueMap(item, fillMax);
+        string ElemInit(int occ) => InitializerFor(item, map.TryGetValue(occ, out var lit) ? lit : null);
+
+        if (item.IsDynamicTable)
+        {
+            int min = s?.InitialCap ?? 0;
+            int? expected = s?.ExpectedMax;
+            int initialCap = TableInitialCapacity(map, min, expected);
+            string dflt = InitializerFor(item, null);
+            string seedFn = map.Count == 0
+                ? $"(int __i) => {dflt}"
+                : $"(int __i) => __i switch {{ {string.Join(" ", map.Keys.OrderBy(k => k).Select(k => $"{k} => {ElemInit(k)},"))} _ => {dflt} }}";
+            return $"new CobolDynTable<{item.ElementType}>({seedFn}, {min}, "
+                 + $"{(expected is int e ? e.ToString() : "null")}, {(s!.Initialized ? "true" : "false")}, {initialCap})";
+        }
+        int n = item.Occurs!.Value;
+        return $"new {item.ElementType}[] {{ {string.Join(", ", Enumerable.Range(1, n).Select(ElemInit))} }}";
+    }
+
+    /// <summary>Resolve occurrence → literal text (ISO §13.18.63.4 GR12 sequential fill, GR13 cyclic reuse under TO,
+    /// GR14 no-TO = fill to the maximum, GR15 later FROM wins on overlap). Occurrences outside every FROM..TO range
+    /// are absent (they take the element default — NOT asserted as a spec-guaranteed space/zero, §13.18.63.4).</summary>
+    private static Dictionary<int, string> ResolveTableValueMap(DataItem item, int fillMax)
+    {
+        var map = new Dictionary<int, string>();
+        foreach (var spec in item.TableValues!.OrderBy(sp => sp.Ordinal))
+        {
+            if (spec.Literals.Count == 0) continue;
+            int from = spec.From[0];
+            int to = spec.To?[0] ?? fillMax;
+            for (int occ = from, k = 0; occ <= to; occ++, k++)
+                map[occ] = spec.Literals[k % spec.Literals.Count];   // GR15 last-wins: a later phrase overwrites
+        }
+        return map;
+    }
+
+    /// <summary>The initial current capacity of a dynamic-capacity table from its Format 2 VALUE (ISO §13.18.63.4
+    /// GR16): raised to the highest covered occurrence (= the MAX subscript-2), clamped within [min, expected],
+    /// never below the minimum.</summary>
+    private static int TableInitialCapacity(Dictionary<int, string> map, int min, int? expected)
+    {
+        int cap = map.Count > 0 ? Math.Max(min, map.Keys.Max()) : min;
+        if (expected is { } exp) cap = Math.Min(cap, exp);   // GR16a proviso: within [min, expected]
+        return Math.Max(cap, min);
+    }
+
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
-    public string InitializerFor(DataItem item)
+    public string InitializerFor(DataItem item, string? rawOverride = null)
     {
         var pic = item.Pic!;
+        // A Format 2 (table) VALUE supplies a per-occurrence literal (rawOverride); otherwise the item's own VALUE.
+        string? effRaw = rawOverride ?? item.RawValue;
 
         // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
         // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no
@@ -49,7 +109,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // pic.Length = 1 for the single-symbol X/N picture), so it initializes to a single fill character, NOT "".
         if (item.IsDynamicLength)
         {
-            if (item.RawValue is not { } dv) return "\"\"";
+            if (effRaw is not { } dv) return "\"\"";
             if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
             return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynLengthLimit.ToString());
         }
@@ -58,7 +118,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // item's content (ISO §13.18.63 SR2 wants a numeric literal; the 85 corpus writes `PIC 999 VALUE "000"`
         // — NC107A's DATA-P — and the legacy oracle accepts the character form). Strict rejection is a future
         // version-conformance pass row.
-        if (item.RawValue is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
+        if (effRaw is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
             return item.StoreAsImage
                 ? RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(q)), $"{pic.Length}")
                 : EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
@@ -68,13 +128,13 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // declared textually earlier (EmitProfiles runs first), so it is initialized before this use.
         if (item.StoreAsImage)
         {
-            string unscaled = item.RawValue is { } rv && FigurativeInitializer(rv, pic) is null
+            string unscaled = effRaw is { } rv && FigurativeInitializer(rv, pic) is null
                 ? EmitText.UnscaledAtScale(rv, pic.Scale)
                 : "0L";
             return RuntimeApi.NumFormatDisplay(unscaled, item.ProfileName);
         }
 
-        if (item.RawValue is not { } raw) return pic.DefaultInitializer;
+        if (effRaw is not { } raw) return pic.DefaultInitializer;
 
         // VCR 35 (ISO §13.18.63 SR6; Annex E.2 item 28): at >=2023 a figurative ZERO/ZEROES (with or without ALL)
         // on a numeric-edited item is treated IDENTICALLY to the numeric literal zero — edited per PICTURE (so a
@@ -82,7 +142,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // Below 2023 it falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior).
         if (pic.Category is PicCategory.NumericEdited && ctx.Data.Edition.DialectLevel >= 2023 && FigurativeKind(raw) == 'Z')
             return EmitText.CsLiteral(RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
-                ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
+                ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma, pic.EditingRules));
 
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
@@ -98,7 +158,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // literal stores verbatim — NOTE 3: the programmer supplies the edited form.)
             PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
                 EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero,
-                    ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
+                    ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma, pic.EditingRules)),
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
