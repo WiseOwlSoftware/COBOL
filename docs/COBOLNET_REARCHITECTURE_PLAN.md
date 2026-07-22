@@ -32,11 +32,19 @@ checkpoint.
   (`PHASE-13-plan-vs-spec-review.md` §24 = the verified defect/fix SSOT) — **RECONCILED 2026-07-22 (8-agent triage
   `wf_3757f8d4-b04`): 5 LANDED · 33 OPEN · 6 PARTIAL · the D17 OO-surface decision already routed to P14 Step-0-W; the
   reconciled per-finding queue with exact fixes is saved at `scratchpad/p13-fixqueue-reconciled.json`.** ✅ **LANDED so
-  far this cycle (DEVLOG 978–979):** **V6** DISPLAY … UPON device routing (§14.9.11.3 SR2 — 0817 reject + SYSERR→stderr;
+  far this cycle (DEVLOG 978–980):** **V6** DISPLAY … UPON device routing (§14.9.11.3 SR2 — 0817 reject + SYSERR→stderr;
   CONFORMANCE.md A.1 items 2/59) · **C14** negative ref-mod length now raises EC-BOUND-REF-MOD (a distinct
   `OmittedRefModLength` sentinel replaces the −1 collision) · **V48** ODO zero-extent receive no longer spuriously raises ·
-  **C14-cite/V50-part** citation fixes. **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the EC-seam batch
-  (V4 EC-RANGE / V3 EC-DATA-float / F10 SET-SIZE EC-STORAGE) · the ref-mod-externality residue (V45-sentinel /
+  **C14-cite/V50-part** citation fixes · **F10** SET SIZE now raises the nonfatal EC-STORAGE-NOT-AVAIL on the GR37
+  negative + GR38 clamp legs (arithmetic-expression-5 form; full-precision sign test mirroring CONTINUE; commit
+  `1596b119`; golden `2023/ec_storage_not_avail`; Conformance **3843/3843 0-reg**). **⏭ EC-seam batch in progress
+  (spec-first, one finding at a time): F10 ✅ LANDED; V3 (EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW float paths) — seam
+  design adversarially validated (singular chokepoint `NumericRenderer:140`, emit-conditional wrap to keep the
+  source-based characterization snapshots byte-identical, class-condition exempt-for-free + sign/same-usage-MOVE/VALIDATE
+  clear the emit flag); V4 (EC-RANGE family — SEARCH-INDEX/-NO-MATCH/PERFORM-VARYING/INVALID) — spec-corrected
+  (PERFORM-VARYING is §14.9.28.4 GR3 index-name FROM≤0 NOT the BY step; SEARCH is §14.9.37; INVALID is §14.7.8 THROUGH)
+  + seams pre-scouted, implement after V3.** **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the rest of
+  the EC-seam batch (V4 EC-RANGE / V3 EC-DATA-float) · the ref-mod-externality residue (V45-sentinel /
   V45-externality) · misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) ·
   the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) ·
   the **owner-decision items** (F1 ASSIGN USING route · V19 parameterized-class route · V24 intro-gate 2014-vs-2023).
