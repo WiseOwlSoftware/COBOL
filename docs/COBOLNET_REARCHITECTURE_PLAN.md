@@ -37,14 +37,24 @@ checkpoint.
   `OmittedRefModLength` sentinel replaces the −1 collision) · **V48** ODO zero-extent receive no longer spuriously raises ·
   **C14-cite/V50-part** citation fixes · **F10** SET SIZE now raises the nonfatal EC-STORAGE-NOT-AVAIL on the GR37
   negative + GR38 clamp legs (arithmetic-expression-5 form; full-precision sign test mirroring CONTINUE; commit
-  `1596b119`; golden `2023/ec_storage_not_avail`; Conformance **3843/3843 0-reg**). **⏭ EC-seam batch in progress
-  (spec-first, one finding at a time): F10 ✅ LANDED; V3 (EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW float paths) — seam
-  design adversarially validated (singular chokepoint `NumericRenderer:140`, emit-conditional wrap to keep the
-  source-based characterization snapshots byte-identical, class-condition exempt-for-free + sign/same-usage-MOVE/VALIDATE
-  clear the emit flag); V4 (EC-RANGE family — SEARCH-INDEX/-NO-MATCH/PERFORM-VARYING/INVALID) — spec-corrected
-  (PERFORM-VARYING is §14.9.28.4 GR3 index-name FROM≤0 NOT the BY step; SEARCH is §14.9.37; INVALID is §14.7.8 THROUGH)
-  + seams pre-scouted, implement after V3.** **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the rest of
-  the EC-seam batch (V4 EC-RANGE / V3 EC-DATA-float) · the ref-mod-externality residue (V45-sentinel /
+  `1596b119`; golden `2023/ec_storage_not_avail`; Conformance **3843/3843 0-reg**) · **V3** EC-DATA-NOT-FINITE +
+  EC-DATA-OVERFLOW (float paths) now raise (DEVLOG 981; commit after `1596b119`). **⏭ EC-seam batch in progress
+  (spec-first, one finding at a time): F10 ✅ LANDED · V3 ✅ LANDED.** V3's design was adversarially validated by a
+  4-agent Workflow that OVERTURNED the first cut — the singular chokepoint is TWO (`NumericRenderer:140` numeric read
+  + `OperandText:94` `CobolFloat.Display` string-image read, both via `RuntimeApi.FloatSending`), and the pattern is
+  ALWAYS-EMIT + runtime-flag (mirror EC-BOUND-REF-MOD; the corpus is float-snapshot-free so `.g.cs` stays identical) —
+  NOT the emit-conditional single-chokepoint idea. Exemptions = raw reads (class + sign condition → `floatCheck:false`,
+  same-usage MOVE → `Usage`-equality, VALIDATE documented no-op); EC-DATA-OVERFLOW = MOVE-only `StoreSingleChecked`
+  (single-precision finite→±Inf). Applied to ALL float usages (mandatory for standard, implementor determination for
+  the rest — `CONFORMANCE.md §3`). Gate: goldens `2023/ec_data_not_finite` + `2023/ec_data_overflow` · characterization
+  **33/33 byte-identical** · Unit **571/571** · float/move/display/comp/sign/class Conformance **1993/1993 0-reg**.
+  **⏭ V4 (EC-RANGE family — SEARCH-INDEX/-NO-MATCH/PERFORM-VARYING/INVALID) — DESIGN VALIDATION Workflow in flight**
+  (`wf_a0883513-5f3`): the SEARCH ECs need an `EmitSearchScan` restructure (initial-index guard `<1||>max` →
+  SEARCH-INDEX serial-only + advance-past-end → NO-MATCH; also FIXES a latent zero/negative-initial-index bug),
+  PERFORM-VARYING is §14.9.28.4 GR3 (index-name varied from a FROM identifier ≤0, FATAL — NOT the BY step), INVALID is
+  §14.7.8 THROUGH (inverted level-88/EVALUATE range, collating-aware — possibly a scoped follow-on). The comprehensive
+  gate (full Conformance + guard + GnuCOBOL) runs before the EC-seam batch merges. **⏭ REMAINING §24 majors (spec-first,
+  one batch at a time):** finish the EC-seam batch (V4 EC-RANGE) · the ref-mod-externality residue (V45-sentinel /
   V45-externality) · misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) ·
   the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) ·
   the **owner-decision items** (F1 ASSIGN USING route · V19 parameterized-class route · V24 intro-gate 2014-vs-2023).
