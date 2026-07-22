@@ -157,8 +157,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 .SelectMany(s => s.statement()).LastOrDefault()?.Start.Line ?? 0;
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
+        // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole main pc
+        // space (ISO §14.9.28.4 GR17; §9.1-C). handlerBase == table.HandlerBasePc == the frozen main count, so
+        // bound[handlerBase + k] is the k-th handler — matching the pc AddF3Handler stored on each BoundExceptionMatch.
+        int handlerBase = bound.Count;
+        bound.AddRange(table.F3Handlers);
         return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
-            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null);
+            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
+            F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
+            F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null);
     }
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY

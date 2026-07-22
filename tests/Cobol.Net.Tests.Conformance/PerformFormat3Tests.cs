@@ -7,9 +7,11 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// PERFORM Format 3 (exception-checking, ISO §14.9.28 Format 3, COBOL-2023) conformance tests: the §14.9.28.3
-/// syntax rules + cross-statement bans (COBOLNET1597-1617), the COBOLNET0900 introduction gate, the staged-runtime
-/// COBOLNET0899 disposition, and the landed behaviour (imperative-statement-1 + FINALLY execute; the WHEN handler
-/// dispatch is a documented next-wave GAP). See docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md.
+/// syntax rules + cross-statement bans (COBOLNET1597-1617), the COBOLNET0900 introduction gate, and the LANDED
+/// runtime interceptor (the pc-range interceptor — at 2023 a well-formed F3 PERFORM compiles clean and runs;
+/// remaining staged sub-GAPs are the open-mode WHEN operand + F3-in-a-method, each a loud COBOLNET0899). The
+/// runtime BEHAVIOUR is verified in PerformFormat3BehaviorTests; the frame-stack mechanics in PerformFrameStackTests.
+/// See docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md §9.
 /// </summary>
 public sealed class PerformFormat3Tests
 {
@@ -153,28 +155,27 @@ public sealed class PerformFormat3Tests
         EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
     }
 
-    // ── Staged runtime: at 2023 a well-formed F3 PERFORM is rejected with COBOLNET0899 (the WHEN handler dispatch
-    //    is a documented next-wave GAP), consistent with the batch-2 staged-form precedent (a staged construct is
-    //    a rejection, not a silent partial compile). ──
+    // ── Landed runtime: at 2023 a well-formed F3 PERFORM compiles clean (the pc-range interceptor, §9 — the 0899
+    //    program-path staging is lifted; behaviour is verified in PerformFormat3BehaviorTests). ──
 
     [Fact]
-    public void At2023_StagedRuntime_Rejected0899()
+    public void At2023_ExceptionCheckingPerform_CompilesClean()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), 2023);
-        Assert.False(ok, "the exception-checking PERFORM runtime is staged — the construct is rejected at 2023");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0899");
+        Assert.True(ok, "the exception-checking PERFORM runtime has landed — it compiles at 2023: " + string.Join("\n", diag));
+        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
     }
 
     [Fact]
-    public void WellFormedF3_At2023_RejectedOnlyByTheStagedGap_NoSyntaxRuleFires()
+    public void WellFormedF3_At2023_CompilesClean_NoSyntaxRuleFires()
     {
-        // A fully well-formed F3 PERFORM (no SR / cross-statement-ban violation) is rejected ONLY by the staged-
-        // runtime COBOLNET0899 — none of the §14.9.28.3 rules fire on legal source.
-        var (_, diag) = EditionHarness.Compile(
+        // A fully well-formed F3 PERFORM (no SR / cross-statement-ban violation) compiles clean at 2023 — none of the
+        // §14.9.28.3 rules fire on legal source, and the runtime interceptor has landed (no 0899).
+        var (ok, diag) = EditionHarness.Compile(
             Prog("    PERFORM WITH LOCATION\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER EXCEPTION DISPLAY \"o\"\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n    STOP RUN."), 2023);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0899");
-        foreach (var code in new[] { "1597", "1598", "1599", "1600", "1601", "1604", "1608", "1610", "1611" })
+        Assert.True(ok, string.Join("\n", diag));
+        foreach (var code in new[] { "0899", "1597", "1598", "1599", "1600", "1601", "1604", "1608", "1610", "1611" })
             EditionHarness.AssertNoDiagnostic(diag, "COBOLNET" + code);
     }
 

@@ -42,6 +42,12 @@ internal sealed class EcBindState
     /// F3 USE declaratives (the <c>EcDispatchExpr</c> UnitHasF3 gate is insufficient — §5.4/§5.2-6).</summary>
     public bool F3Perform { get; set; }
 
+    /// <summary>Allocate the next per-unit Format-3 PERFORM id (0-based) — disambiguates nested F3 PERFORMs for the
+    /// emitted try/catch(<c>ExitPerformSignal</c>)-<c>when(Id==n)</c> boundary and the imp-1/FINALLY labels
+    /// (<c>__f3fin{n}</c>/<c>__f3end{n}</c>). Reset per unit.</summary>
+    private int _f3PerformCounter;
+    public int NextF3PerformId() => _f3PerformCounter++;
+
     // EcFeatures accumulators (the emitter's gating summary — BoundProgram.Ec), in ctor order.
     public bool Checked { get; set; }
     public bool IoChecked { get; set; }

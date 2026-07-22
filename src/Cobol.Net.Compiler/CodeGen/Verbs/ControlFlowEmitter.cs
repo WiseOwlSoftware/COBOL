@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
+using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.CodeGen;
 
@@ -51,21 +52,125 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 Statements.EmitStatementList(iff.Else);
     }
 
-    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
+    // A nested inline PERFORM within an F3 region resets F3Cur to None around its body so a plain EXIT PERFORM
+    // inside it breaks the INNER loop (§14.9.14.4 GR5a — "the most closely preceding, unterminated inline PERFORM"),
+    // not the enclosing F3 PERFORM.
+    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () =>
+    {
+        var s = dispatch.SetF3Region(F3Region.None, 0);
+        Statements.EmitStatementList(p.Body);
+        dispatch.RestoreF3Region(s);
+    }, inline: true);
 
-    /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) — STAGED runtime. The
-    /// construct is fully recognized, bound, and syntax-checked (COBOLNET1597-1617, §14.9.28.3), but the WHEN /
-    /// WHEN OTHER / WHEN COMMON handler DISPATCH (GR17-20 — the per-statement interceptor with resume-in-place) is
-    /// a documented next-wave GAP: the binder REJECTS the construct with COBOLNET0899 (the batch-2 staged-form
-    /// precedent — a staged construct is a rejection, not a silent partial compile), so codegen for this node is
-    /// currently unreachable. This body (imperative-statement-1 under the GR14 overlay + the FINALLY phrase, imp-5,
-    /// GR16, as ordinary sequences) is the forward-compatible fallback the interceptor wave will build on; the
-    /// bound WHEN/OTHER/COMMON handler bodies are NOT emitted.</summary>
+    /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) via the pc-RANGE interceptor
+    /// (design SSOT §9.3.3). imperative-statement-1 is emitted INLINE inside a try (under the bind-time GR14
+    /// overlay); a raise site within it consults the installed <c>PerformFrame</c> (GR17). The frame's matcher does
+    /// tier-ordered WHEN selection (§14.9.49.4 GR3c-g) and runs the matching imp-2 (+ WHEN COMMON imp-4) as bounded
+    /// pc-ranges via <c>__RunF3</c>/<c>__RunUse</c>. FINALLY (imp-5) is the INLINE trailing block, reached on every
+    /// NON-fatal exit path (normal fall-off / imp-1 EXIT-PERFORM goto / a handler EXIT-PERFORM caught here); a fatal,
+    /// unresumed EC throws PAST it (the chosen standard-defect default, §9.6 Q5). The frame pops in the finally
+    /// BEFORE FINALLY so imp-5 behaves as if in a Format-2 PERFORM (GR21).</summary>
     public void EmitExceptionPerform(BoundExceptionPerform p)
     {
-        Statements.EmitStatementList(p.Imp1);
-        if (p.FinallyBody is { } fb) Statements.EmitStatementList(fb);
+        var w = ctx.Writer;
+        int n = p.PerformId;
+
+        // Install the interceptor frame — the tier-ordered WHEN matcher closure (pure match arithmetic + __RunF3;
+        // no goto/RESUME/EXIT inside it, so C#'s no-goto-out-of-a-lambda restriction never bites).
+        w.Line("ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f) =>");
+        w.Line("{");
+        w.Indent();
+        EmitMatcherArms(p, w);
+        w.Outdent();
+        w.Line("}});");
+
+        void EmitImp1()
+        {
+            var s = dispatch.SetF3Region(F3Region.Imp1, n);
+            Statements.EmitStatementList(p.Imp1);   // inline, bound under the GR14 overlay
+            dispatch.RestoreF3Region(s);
+        }
+        using (w.Block("try"))
+        {
+            // The handler EXIT-PERFORM catch (only when a handler contains EXIT PERFORM) sits in a NESTED try so it
+            // is inside the finally that pops the frame; without it, imp-1 goes directly under the outer try.
+            if (p.HandlerHasExit)
+            {
+                using (w.Block("try")) EmitImp1();
+                w.Line($"catch (ExitPerformSignal __eps{n}) when (__eps{n}.Id == {n}) {{ }}   // handler EXIT PERFORM → §14.9.14.4 GR4");
+            }
+            else EmitImp1();
+        }
+        w.Line("finally { ExceptionState.PopPerformFrame(); }");
+        w.Line($"__f3fin{n}: ;   // implicit CONTINUE preceding FINALLY (§14.9.14.4 GR4 / §14.9.28.4 GR16)");
+        if (p.FinallyBody is { } fb)
+        {
+            var s = dispatch.SetF3Region(F3Region.Finally, n);
+            Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
+            dispatch.RestoreF3Region(s);
+        }
+        w.Line($"__f3end{n}: ;   // end of PERFORM");
     }
+
+    /// <summary>Emit the F3 matcher body: one <c>if (test) return __RunF3(...)</c> per WHEN operand, SORTED into the
+    /// §14.9.49.4 GR3c-g tiers (file+L3 → file+L2 / bare-file → L3 → L2 → L1/EC-ALL; source order only within a
+    /// tier, GR17), then WHEN OTHER (imp-3, GR18) as the unconditional fallback, else <c>NoMatch</c> (fall to the USE
+    /// declaratives). A tier-4 EC-ALL operand is the catch-all (its <c>true</c> test makes a following OTHER/NoMatch
+    /// unreachable, so it terminates the body). Every handler runs with its WHEN COMMON (imp-4) via <c>__RunF3</c>.</summary>
+    private void EmitMatcherArms(BoundExceptionPerform p, CodeWriter w)
+    {
+        var arms = new List<(int Tier, int W, int O, string Test, int Imp2Pc)>();
+        for (int wi = 0; wi < p.Whens.Count; wi++)
+        {
+            var m = p.Whens[wi];
+            if (m.OpenMode is not null) continue;   // open-mode WHEN is a STAGED sub-GAP (COBOLNET0899 at bind, §9.7)
+            for (int oi = 0; oi < m.Operands.Count; oi++)
+            {
+                var (tier, test) = ClassifyOperand(m.Operands[oi]);
+                arms.Add((tier, wi, oi, test, m.Imp2Pc));
+            }
+        }
+        arms.Sort((a, b) => a.Tier != b.Tier ? a.Tier.CompareTo(b.Tier)
+            : a.W != b.W ? a.W.CompareTo(b.W) : a.O.CompareTo(b.O));
+
+        (int cu, int cpc) = p.CommonPc is int cp ? (HandlerUseId(cp), cp) : (-1, -1);
+        bool catchAll = false;
+        foreach (var arm in arms)
+        {
+            string call = $"__RunF3({HandlerUseId(arm.Imp2Pc)}, {arm.Imp2Pc}, {cu}, {cpc})";
+            if (arm.Test == "true") { w.Line($"return {call};   // WHEN EC-ALL (§14.9.49.4 GR3g)"); catchAll = true; break; }
+            w.Line($"if ({arm.Test}) return {call};");
+        }
+        if (catchAll) return;
+        if (p.OtherPc is int opc)
+            w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §14.9.28.4 GR18)");
+        else
+            w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
+    }
+
+    /// <summary>Classify one WHEN operand into its §14.9.49.4 GR3c-g tier + the runtime match test (mirrors
+    /// <c>__EcDispatch</c>'s per-tier tests so the two never drift). A bare file-name (Ec null) → any EC-I-O
+    /// associated with the file (tier 1, file+I-O ≈ level-2).</summary>
+    private static (int Tier, string Test) ClassifyOperand(BoundWhenOperand op)
+    {
+        if (op.Ec is null)
+            return (1, $"ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(op.File!)}");
+        int level = ExceptionCatalog.TryGet(op.Ec, out var info) ? info.Level : 3;
+        if (op.File is not null)
+            return level == 3
+                ? (0, $"__f == {FileKeyExpr(op.File)} && __ec == {CsLiteral(op.Ec)}")
+                : (1, $"__f == {FileKeyExpr(op.File)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})");
+        return level switch
+        {
+            3 => (2, $"__ec == {CsLiteral(op.Ec)}"),
+            2 => (3, $"ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(op.Ec)})"),
+            _ => (4, "true"),   // level 1 = EC-ALL
+        };
+    }
+
+    /// <summary>The <c>__useActive</c> re-entrancy-array id of an appended handler pc — its slot sits above the
+    /// declarative slots (§9.1): <c>DeclCount + (pc − F3HandlerBasePc)</c>.</summary>
+    private int HandlerUseId(int pc) => dispatch.DeclCount + (pc - dispatch.F3HandlerBasePc!.Value);
 
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4). X3.23-1985 USE FOR DEBUGGING (VCR 7.17):

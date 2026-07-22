@@ -15,6 +15,15 @@ namespace CobolNet.CodeGen;
 //  gate: the 32 characterization snapshots).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
+/// <summary>The lexical region of a Format-3 (exception-checking) PERFORM currently being emitted — decides what an
+/// <c>EXIT PERFORM</c> compiles to (ISO §14.9.14.4 GR4 / §14.9.28.4 GR16): a plain <c>goto</c> to the PERFORM's
+/// implicit-CONTINUE-before-FINALLY label in imperative-statement-1, a thrown <see cref="Runtime.Exceptions.ExitPerformSignal"/>
+/// from a handler pc-range (imp-2/3/4, which runs in a nested dispatcher a goto cannot leave), a <c>goto</c> to the
+/// end label in FINALLY (imp-5), or — <see cref="None"/> — the ordinary inline-PERFORM <c>break</c>/<c>continue</c>.
+/// A nested inline PERFORM inside any of these saves/restores this to <see cref="None"/> so its own EXIT PERFORM
+/// breaks the inner loop (§14.9.14.4 GR5a).</summary>
+internal enum F3Region { None, Imp1, Handler, Finally }
+
 /// <summary>The PC-dispatcher state the statement emitters cooperate over (COBOLNET_DESIGN §5): which paragraph
 /// is being emitted, the NEXT SENTENCE label, the dispatch-method name, and the USE-declaratives hooks.</summary>
 internal sealed class DispatchState
@@ -22,6 +31,31 @@ internal sealed class DispatchState
     /// <summary>The paragraph index being emitted (for EXIT PARAGRAPH / fall-through). Written per pc case by
     /// the dispatch-method emission.</summary>
     public int CurrentPc { get; set; }
+
+    /// <summary>The current Format-3 PERFORM region + its <c>PerformId</c> (see <see cref="F3Region"/>) — read by
+    /// <c>BoundExitPerform</c>'s emit. Default <see cref="F3Region.None"/> (an ordinary loop EXIT PERFORM). Set by
+    /// <c>EmitExceptionPerform</c> (Imp1/Finally), by the dispatcher around a handler <c>case</c> (Handler), and
+    /// reset to None around a nested inline/out-of-line PERFORM body.</summary>
+    public (F3Region Region, int Id) F3Cur { get; private set; } = (F3Region.None, 0);
+
+    /// <summary>Set <see cref="F3Cur"/>, returning the previous value for a later <see cref="RestoreF3Region"/>
+    /// (the save/restore idiom around nested statement bodies).</summary>
+    public (F3Region Region, int Id) SetF3Region(F3Region region, int id)
+    {
+        var saved = F3Cur;
+        F3Cur = (region, id);
+        return saved;
+    }
+
+    /// <summary>Restore <see cref="F3Cur"/> to a value captured by <see cref="SetF3Region"/>.</summary>
+    public void RestoreF3Region((F3Region Region, int Id) saved) => F3Cur = saved;
+
+    /// <summary>The unit's declarative count and the first appended Format-3 handler pc — the emitter derives a
+    /// handler's <c>__useActive</c> id as <c>DeclCount + (pc − F3HandlerBasePc)</c> (the handler pc-ranges reuse
+    /// <c>__RunUse</c>'s re-entrancy array above the declarative slots). Set per unit by the dispatcher emission;
+    /// <see cref="F3HandlerBasePc"/> is null for a non-F3 unit.</summary>
+    public int DeclCount { get; set; }
+    public int? F3HandlerBasePc { get; set; }
 
     /// <summary>The goto target NEXT SENTENCE jumps to (null in the last sentence). Written per sentence by the
     /// paragraph-body emission.</summary>

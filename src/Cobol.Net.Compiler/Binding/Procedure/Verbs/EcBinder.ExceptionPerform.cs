@@ -26,18 +26,7 @@ internal sealed partial class EcBinder
     /// (GR21).</summary>
     public BoundStatement EcBindExceptionPerform(Core.PerformStatementContext p)
     {
-        ctx.EcState.F3Perform = true;   // this unit installs the F3-frame interceptor (emitter gate — runtime wave)
-
-        // STAGED runtime (§5.4): the construct is fully recognized/validated (COBOLNET1597-1617), but the WHEN /
-        // WHEN OTHER / WHEN COMMON handler DISPATCH (GR17-20 — the per-statement interceptor with resume-in-place)
-        // is a documented next-wave GAP. imp-1 + FINALLY execute normally; a raised exception falls to the normal
-        // USE/fatal path. Gated to the introducing edition so below 2023 only the COBOLNET0900 gate fires.
-        if (ctx.Edition.DialectLevel >= 2023)
-            ctx.Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented,
-                "the WHEN / WHEN OTHER / WHEN COMMON exception-handler dispatch of an exception-checking "
-                + "(Format-3) PERFORM is recognized and fully syntax-checked, but its runtime interception is not "
-                + "yet implemented — imperative-statement-1 and FINALLY execute normally and a raised exception "
-                + "falls to the normal USE/fatal path (a P14 GAP; ISO §14.9.28.4 GR14-22)");
+        ctx.EcState.F3Perform = true;   // this unit installs the F3-frame interceptor (emitter gate — §14.9.28)
 
         var whenPhrases = p.performWhenPhrase();
         bool withLocation = p.performInlineHead()?.performLocationPhrase()?.LOCATION() is not null;
@@ -58,6 +47,16 @@ internal sealed partial class EcBinder
 
         CheckSr14Sr15(census);
 
+        // The open-mode WHEN operand form (WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND) is a STAGED sub-GAP
+        // (§9.7 / §5.4-1): matching an EC-I-O by the raising file's CURRENT open mode needs a runtime open-mode
+        // query on the WHEN path that is not yet implemented. Reject loud (COBOLNET0899) rather than silently never
+        // fire the handler — a program not using this form is unaffected.
+        if (headers.Any(h => h.Mode is not null))
+            ctx.Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented,
+                "the open-mode operand form of a WHEN phrase (WHEN EXCEPTION INPUT | OUTPUT | I-O | EXTEND) in an "
+                + "exception-checking PERFORM is recognized but its runtime match (by the raising file's current open "
+                + "mode) is not yet implemented (a P14 GAP; ISO §14.9.28.4 GR17, §14.9.49.4 GR3b)");
+
         // GR14 overlay: imp-1 binds with the WHEN-named ECs implicitly enabled over its extent (WITH LOCATION iff
         // the PERFORM specifies LOCATION). The overlay is popped (base restored) after imp-1 — imp-2..5 bind
         // against the base state (GR21/GR22).
@@ -68,23 +67,84 @@ internal sealed partial class EcBinder
         var imp1 = host.BindBlocks(p.statementBlock());
         ctx.EcState.Turn = savedTurn;
 
-        // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind with InF3When (RESUME relaxation, GR21); imp-5 (FINALLY)
-        // without it.
+        CheckCrossStatementBans(p);   // parse-subtree walks — order-independent; run once for both paths below
+
+        // OO-method F3 PERFORM is a STAGED GAP (COBOLNET0899): the appended handler pc-ranges fall outside the
+        // method's contiguous dispatch slice, so a WHEN body would silently never run. Reject loud (§9.7).
+        if (ctx.CurrentMethodScope is not null)
+            return F3StagedInMethodStub(p, imp1, withLocation);
+
+        // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind IN LEXICAL CONTEXT with InF3When (RESUME-NEXT relaxation;
+        // base TurnState per GR21) and are REDIRECTED into synthetic pc-range paragraphs (the pc-RANGE interceptor,
+        // §9.1-B) run by the reused __RunUse; imp-5 (FINALLY) stays inline. The GR14 overlay is already popped, so
+        // these bind against the base state (GR21/GR22).
+        int performId = ctx.EcState.NextF3PerformId();
+        int line = p.Start.Line;
         bool savedInWhen = ctx.EcState.InF3When;
         ctx.EcState.InF3When = true;
-        var whens = new List<BoundExceptionWhen>();
+        var whens = new List<BoundExceptionMatch>();
         for (int i = 0; i < whenPhrases.Length; i++)
-            whens.Add(new BoundExceptionWhen(headers[i].Mode, headers[i].Ops,
-                host.BindBlocks(whenPhrases[i].statementBlock())));
-        var other = p.performWhenOther() is { } o ? (IReadOnlyList<BoundStatement>)host.BindBlocks(o.statementBlock()) : null;
-        var common = p.performWhenCommon() is { } c ? (IReadOnlyList<BoundStatement>)host.BindBlocks(c.statementBlock()) : null;
+        {
+            var body = host.BindBlocks(whenPhrases[i].statementBlock());
+            int pc = ctx.Table.AddF3Handler(body, performId, line);
+            whens.Add(new BoundExceptionMatch(headers[i].Mode, headers[i].Ops, pc));
+        }
+        int? otherPc = p.performWhenOther() is { } o
+            ? ctx.Table.AddF3Handler(host.BindBlocks(o.statementBlock()), performId, line) : null;
+        int? commonPc = p.performWhenCommon() is { } c
+            ? ctx.Table.AddF3Handler(host.BindBlocks(c.statementBlock()), performId, line) : null;
         ctx.EcState.InF3When = savedInWhen;
         var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;
 
-        var node = new BoundExceptionPerform(imp1, whens, other, common, final, withLocation);
+        bool handlerHasExit = HandlerBodiesContainExitPerform(p);
+        return new BoundExceptionPerform(imp1, whens, otherPc, commonPc, final, withLocation, performId, handlerHasExit);
+    }
 
-        CheckCrossStatementBans(p);
-        return node;
+    /// <summary>The OO-method staging stub (§9.7): reject an F3 PERFORM inside a method (COBOLNET0899 — the handler
+    /// pc-ranges fall outside the method's contiguous dispatch slice), but still bind the handler bodies for their
+    /// own diagnostics (discarded — a rejected program is never emitted) so a syntax error in a handler is reported.
+    /// Returns a node with no handler pcs (never emitted).</summary>
+    private BoundStatement F3StagedInMethodStub(Core.PerformStatementContext p, IReadOnlyList<BoundStatement> imp1, bool withLocation)
+    {
+        ctx.Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented,
+            "an exception-checking (Format-3) PERFORM inside a method is recognized and fully syntax-checked, but "
+            + "its runtime interception is not yet implemented for methods — the WHEN handler pc-ranges fall outside "
+            + "the method's contiguous dispatch slice (a P14 GAP; ISO §14.9.28.4 GR17)");
+        bool savedInWhen = ctx.EcState.InF3When;
+        ctx.EcState.InF3When = true;
+        foreach (var w in p.performWhenPhrase()) host.BindBlocks(w.statementBlock());
+        if (p.performWhenOther() is { } o) host.BindBlocks(o.statementBlock());
+        if (p.performWhenCommon() is { } c) host.BindBlocks(c.statementBlock());
+        ctx.EcState.InF3When = savedInWhen;
+        var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;
+        return new BoundExceptionPerform(imp1, [], null, null, final, withLocation, ctx.EcState.NextF3PerformId(), false);
+    }
+
+    /// <summary>True when any handler body (imp-2/3/4 — the WHEN / WHEN OTHER / WHEN COMMON statement blocks) contains
+    /// a plain <c>EXIT PERFORM</c> (recursion stops at a nested inline <c>performStatement</c>, whose EXIT PERFORM
+    /// refers to that inner loop, §14.9.14.4 GR5a). Gates the emitted <c>catch (ExitPerformSignal)</c> boundary so a
+    /// PERFORM whose handlers never EXIT-PERFORM emits no catch.</summary>
+    private static bool HandlerBodiesContainExitPerform(Core.PerformStatementContext p)
+    {
+        var bodies = p.performWhenPhrase().SelectMany(w => (IEnumerable<IParseTree>)w.statementBlock())
+            .Concat(p.performWhenOther() is { } o ? o.statementBlock() : [])
+            .Concat(p.performWhenCommon() is { } c ? c.statementBlock() : []);
+        return bodies.Any(ExitPerformOfThisPerform);
+    }
+
+    // A plain EXIT PERFORM (no CYCLE) whose nearest enclosing inline PERFORM is THIS Format-3 PERFORM (recursion
+    // stops at a nested performStatement, which owns its own EXIT PERFORM — §14.9.14.4 GR5a).
+    private static bool ExitPerformOfThisPerform(IParseTree node)
+    {
+        for (int i = 0; i < node.ChildCount; i++)
+        {
+            var child = node.GetChild(i);
+            if (child is Core.ExitStatementContext ex && ex.PERFORM() is not null && ex.CYCLE() is null)
+                return true;
+            if (child is Core.PerformStatementContext) continue;   // a nested inline PERFORM owns its own EXIT PERFORM
+            if (ExitPerformOfThisPerform(child)) return true;
+        }
+        return false;
     }
 
     /// <summary>Resolve ONE WHEN phrase's operands. The mode form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) is a

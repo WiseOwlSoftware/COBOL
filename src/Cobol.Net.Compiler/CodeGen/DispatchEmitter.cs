@@ -29,6 +29,10 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // to a containing program's GLOBAL declaratives (IC233A: the contained unit has no declaratives, yet its
         // failing OPEN must fire the outer's USE GLOBAL).
         dispatchState.UseDecls = bound.Declaratives is { Count: > 0 } || dispatchState.OuterGlobalUse;
+        // Exception-checking (Format-3) PERFORM handler context: the declarative count + the first appended handler
+        // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
+        dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
+        dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
         // X3.23-1985 USE FOR DEBUGGING procedure-trigger facility (VCR Table 7 row 7.17): active when a
         // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
@@ -70,7 +74,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
             dispatchState.EmitDebugCause(w, "StartProgram");
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, -1); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
+            // The top-level run is bounded at the last MAIN paragraph (F3HandlerBasePc − 1) when the unit has
+            // appended Format-3 handler pc-ranges above it, so fall-through off the last real paragraph ENDS the run
+            // unit (§14.9.18) and never runs into the synthetic handlers; a non-F3 unit renders the literal -1 (the
+            // whole pc space) — byte-identical (the wall, design §9.5.3). Only this top-level call is walled; every
+            // bounded __RunUse / out-of-line PERFORM passes its own exit pc.
+            int topExit = bound.F3HandlerBasePc is int hb ? hb - 1 : -1;
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
@@ -106,6 +116,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         dispatchState.CurrentPc = i;
                         using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
                         {
+                            // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
+                            // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a
+                            // dispatcher break. Owner = F3HandlerOwners[i − base] (the PerformId).
+                            bool isHandler = bound.F3HandlerBasePc is int hb && i >= hb;
+                            var f3saved = isHandler
+                                ? dispatchState.SetF3Region(F3Region.Handler, bound.F3HandlerOwners![i - bound.F3HandlerBasePc!.Value])
+                                : default;
                             // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): a debug SUBJECT procedure fires
                             // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
                             // transfer cause (__dbgCause, set by whatever transferred control here) and run the
@@ -122,6 +139,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                                 w.Line($"__pc = {i + 1};");
                                 w.Line("break;");
                             }
+                            if (isHandler) dispatchState.RestoreF3Region(f3saved);
                         }
                     }
                     using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }

@@ -40,13 +40,21 @@ checkpoint.
   `UnitHasF3Perform`; NEW `EmitPerformInterceptor` = `__EcPerform`+`__RunF3`; both `EmitUseMachinery` gates widened
   for the no-declarative F3 case — the BLOCKER fix). ALL gated `UnitHasF3Perform` ⇒ DEAD until Incr 4 un-rejects the
   0899; gate = characterization 33/33 byte-identical + greenfield Unit 571/571 + build 0/0. (`__IoCheckEc` frame-first
-  DEFERRED into Incr 4 — byte-riskiest + needs a behavior test.) **⏭ NEXT = Increment 4 (THE BEHAVIOR WAVE):** the
-  pc-range synthesis (`AddF3Handler` side-list + `StatementBinder` append + node reshape `BoundExceptionMatch`+`Imp2Pc`,
-  `Other/CommonPc`, `PerformId`, `HandlerHasExit`) + the tier-sorted matcher + `EmitExceptionPerform` + the
-  `F3Region`/`BoundExitPerform` machinery (fold in Incr 6 to avoid the bare-`break` infinite-loop hazard) + the
-  `__IoCheckEc` frame-first + drop the 0899 reject (program path) + `F3StagedInMethodStub` (OO). **Gate = behavior
-  tests + full legacy guard + GnuCOBOL differential + characterization** (§9.8 Incr 4). → Incr 5–7 (RESUME/COMMON,
-  FINALLY, conformance+sweep). **THEN ④ §24 fix-queue → Wave I merge → P14.**
+  DEFERRED into Incr 4 — byte-riskiest + needs a behavior test.) **✅ Increment 4 LANDED — THE BEHAVIOR WAVE
+  (DEVLOG 970): the F3 PERFORM COMPILES AND RUNS.** The 0899 program-path staging is LIFTED. pc-range synthesis
+  (`AddF3Handler` side-list + `StatementBinder` append + node reshape `BoundExceptionMatch`+`Imp2Pc`, `Other/CommonPc`,
+  `PerformId`, `HandlerHasExit`) + the tier-sorted matcher (`EmitExceptionPerform`, mirrors `__EcDispatch` GR3c-g) +
+  the `F3Region`/`BoundExitPerform` machinery (folded in — Imp1→goto, Handler→`ExitPerformSignal`, Finally→goto;
+  nested-inline-PERFORM save/restore) + the fall-through WALL + `__IoCheckEc` frame-first + drop the 0899 (program
+  path) + `F3StagedInMethodStub` (OO) + open-mode 0899. **The source-gen `BoundVisitorGenerator` AUTO-ADAPTED the
+  reshape** (`StatementChildren` = Imp1+FINALLY; handlers walked at their synthetic paragraphs, no double-count).
+  **Gate: `PerformFormat3BehaviorTests` 12/12 spec-pinned (passed FIRST run — tier precedence [EC-BOUND-SUBSCRIPT
+  beats EC-ALL AND EC-BOUND regardless of source order], RESUME/COMMON/FINALLY/EXIT-PERFORM all correct) +
+  reshape-regression 57/57 + characterization 33/33 byte-identical + build 0/0**; the COMPREHENSIVE gate (full
+  greenfield Conformance + guard-fast + GnuCOBOL diff — shared EC seams) runs before push. **⏭ NEXT = comprehensive-gate
+  confirm → commit/push → Incr 5–7** (a GR21 non-RAISE behavior probe; the conformance-program + doc sweep incl. the
+  D12 decisions [RESUME-skips-COMMON, FINALLY-on-fatal defect, bare-file tier] + `CONFORMANCE.md`). → THEN ④ §24
+  fix-queue → Wave I merge → P14.
   **⚠ verify-by-RUNNING** (the design's 5 probes; §9.9). The per-detector build discipline is in DEVLOG 949–956.
   **⚠ guard flake lesson (DEVLOG 964): JOBS=32 parallel NIST compile can FALSE-RED 2 tests ("COMPILE FAILED"); verify
   serially before believing a regression, and NEVER `taskkill dotnet.exe` right before a guard.**

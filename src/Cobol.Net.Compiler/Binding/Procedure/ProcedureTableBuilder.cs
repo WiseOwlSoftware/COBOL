@@ -73,6 +73,37 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paras.Add(("(sentences without a paragraph-name)", method, sentences));
     }
 
+    // ── Exception-checking (Format-3) PERFORM handler pc-ranges (ISO §14.9.28.4 GR17) ───────────────────────
+    // The WHEN / WHEN OTHER / WHEN COMMON handler bodies (imp-2/3/4) are bound IN LEXICAL CONTEXT (in
+    // EcBindExceptionPerform — correct §8.4.2.2 scope + the GR14 overlay already popped) and registered here as
+    // synthetic, UNREFERENCEABLE pc-range paragraphs. They are APPENDED ABOVE the whole main pc space by
+    // StatementBinder after the main bind loop (so `_paras.Count` is the frozen main count throughout binding),
+    // then walled off the top-level fall-through by the dispatcher (design §9.5.3). imp-1 and imp-5 (FINALLY) stay
+    // inline in the host paragraph; only imp-2/3/4 become pc-ranges (run via the reused __RunUse).
+    private readonly List<BoundParagraph> _f3Handlers = [];
+    private readonly List<int> _f3Owners = [];   // owning PerformId per handler (parallel to _f3Handlers)
+
+    /// <summary>The first appended Format-3 handler pc = the frozen main paragraph count (declaratives + all
+    /// nondeclarative paragraphs). A handler registered as the k-th lands at this pc + k, matching its eventual
+    /// index once StatementBinder appends the side-list.</summary>
+    public int HandlerBasePc => _paras.Count;
+    public IReadOnlyList<BoundParagraph> F3Handlers => _f3Handlers;
+    public IReadOnlyList<int> F3HandlerOwners => _f3Owners;
+
+    /// <summary>Register one already-bound Format-3 handler body (imp-2/3/4) as a synthetic pc-range paragraph and
+    /// return its pc (<see cref="HandlerBasePc"/> + the registration ordinal — dense, collision-free). The body is a
+    /// single sentence-group (a handler has no paragraph structure); an empty body still gets one no-op pc (the
+    /// bounded <c>__RunUse</c>/<c>__Dispatch(pc,pc)</c> needs a range). Registered in NO name map — unreferenceable
+    /// (the <see cref="AddAnonymousParagraph"/> precedent). Nesting-safe: a handler that itself binds an inner F3
+    /// PERFORM registers the inner handlers first (lower ordinals); each pc still equals its final appended index.</summary>
+    public int AddF3Handler(IReadOnlyList<BoundStatement> body, int performId, int line)
+    {
+        int pc = _paras.Count + _f3Handlers.Count;
+        _f3Handlers.Add(new BoundParagraph("(exception-checking PERFORM handler)", new[] { body }, line));
+        _f3Owners.Add(performId);
+        return pc;
+    }
+
     public void CollectParagraphs(Core.ProcedureDivisionContext pd)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);

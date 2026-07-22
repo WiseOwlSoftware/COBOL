@@ -137,8 +137,8 @@ public static class BoundStores
         public StoreKind? Visit(BoundOutOfLinePerform n) =>
             n.Control is PerformVarying pv && pv.Levels.Any(l => TargetHit(l.Var))
                 ? StoreKind.ReadWrite : StoreKind.None;
-        public StoreKind? Visit(BoundExceptionPerform n) => Kids(   // a control container — its stores are imp-1..5's
-            [.. n.Imp1, .. n.Whens.SelectMany(w => w.Body)], n.OtherBody, n.CommonBody, n.FinallyBody);
+        public StoreKind? Visit(BoundExceptionPerform n) => Kids(n.Imp1, n.FinallyBody);   // imp-2/3/4 are
+        // appended pc-range paragraphs (analyzed at their own nodes); only imp-1 + FINALLY are inline here.
 
         // ── Data movement / arithmetic (polarity per the survey: in-place vs WRITE-only) ────────────────
         public StoreKind? Visit(BoundMove n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;
