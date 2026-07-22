@@ -23,15 +23,21 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD advancing on `phase-13-grammar-batch`; the CC-in-COPY commit `c3377315` +
-  Track ③ Increment 1).** ⭐ **Wave-D residue: ①② COMPLETE; ③ IN PROGRESS (design decision-complete + Incr 1 landed):**
+- **▶ RESUME AT (2026-07-22; code HEAD = the Track-③ doc-sweep commit `2717e8da`, pushed).** ⭐ **Wave-D residue:
+  ①②③-CORE ALL COMPLETE:**
   **① `>>COBOL-WORDS` §7.3.10 COMPLETE** (commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`; `DESIGN-cobol-words-directive.md`
   = IMPLEMENTED; DEVLOG 962–965) · **② CC-directives-inside-COPY §7.2.1 COMPLETE** (`c3377315`; `DESIGN-cc-in-copy.md`
   = IMPLEMENTED; DEVLOG 966) · the prior FLAG-02/FLAG-14 subsystem stays COMPLETE (`DESIGN-flag-directives.md`; DEVLOG
-  933–961). **③ PERFORM Format-3 RUNTIME interceptor — IN PROGRESS (DEVLOG 968):** the interceptor DESIGN is now
+  933–961). **③ PERFORM Format-3 RUNTIME interceptor — ✅ CORE COMPLETE (DEVLOG 968–970; commits `1d0af8ca`/`d5987915`/
+  `02323daf`/`2717e8da`): the F3 PERFORM COMPILES AND RUNS.** The interceptor DESIGN is
   **DECISION-COMPLETE** — design SSOT `PHASE-13-c5-perform-format3-DESIGN.md` **§9** (produced by an adversarial design
-  panel + a direct spec cross-check; the owner-directed pc-RANGE architecture, 7 resolved decisions, an 8-increment
-  plan, 5 flagged probes). **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
+  panel + a direct spec cross-check; the owner-directed pc-RANGE architecture). **All 4 increments LANDED + the
+  COMPREHENSIVE GATE ALL GREEN** (characterization 33/33 byte-identical · full greenfield Conformance 3818/3818 · F3
+  tests 39/39 [13 behavior + 26 diag] · legacy guard NIST 353 MATCH/0 regression · **GnuCOBOL +2 fixes/0 regressions**)
+  + the doc sweep (D12 / CONFORMANCE.md decisions recorded). **⏭ REMAINING Track ③ = the 5 STAGED sub-GAPs (each a
+  loud COBOLNET0899, owner-acknowledged, next-wave — §9.7): open-mode WHEN operand (`WHEN EXCEPTION INPUT|OUTPUT|I-O|
+  EXTEND`) · F3-PERFORM-inside-a-method (OO pc-slice wiring) · cross-CALL GR1 "in range" · EC-FLOW-USE/`>>PROPAGATE` ·
+  exception-OBJECT raise in imp-1.** Then ④ §24 fix-queue → Wave I merge → P14. **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
   `ExceptionEngine` frame stack (`Push/Pop/RunTopFrame` top-down walk w/ deferred `Handling`-clear + `PerformDepth`/
   `TrimPerformTo`) + `ExceptionState` delegators + `ProgramTable.CallProgram` per-activation snapshot; gate =
   `PerformFrameStackTests` 9/9 + characterization 33/33 byte-identical + build 0/0. **✅ Increments 2+3 LANDED
