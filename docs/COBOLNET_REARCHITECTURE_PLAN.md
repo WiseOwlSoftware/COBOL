@@ -23,10 +23,24 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D — ⛔ ledger-C2 COMPLETE [`12f19906`, the frontend
-  compile-time-expression DEFECT closed] AND ✅ >>SOURCE FORMAT mid-file COMPLETE [`10da6c3d`]; code HEAD `10da6c3d`,
-  pushed. NEXT = the Wave-D remainder: FLAG-14/02 flagging · >>COBOL-WORDS · CC-in-COPY — see the ⏭ block below):**
-  the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; code HEAD `8c3bf923`, pushed — the Wave-D **FLAG-02/FLAG-14 migration-flagging** build
+  is IN PROGRESS at **11 of 19 detectors**):** the full flagging subsystem (design SSOT
+  `docs/rearchitecture/DESIGN-flag-directives.md`; pipeline `FlagDirectiveProcessor`→`FlagState`→`FlagConformancePass`
+  parse-arm visitor + frontend-inline `ConditionalCompilationProcessor`; diags COBOLNET1620/1621/1622; directive-word
+  edition gates) + these detectors LANDED: READ-PREVIOUS, CLOSE-I-O-STATUS-07 (Incr 0); g NUM-ED-ZERO-FIGCONST, l
+  VALUE-ZERO, j VALUE-EDITING, k VALUE-FIG-CON-LENGTH, m WRITE-END-OF-PAGE, FLAG-02 f TERMINATE-WITH-VARYING (Incr 1);
+  b COMPILE-TIME-ARITHMETIC-EXPRESSIONS, c EVALUATE (Incr 2, frontend-inline); i REF-MOD-ZERO-LENGTH (Incr 3).
+  **⏭ NEXT = the FLAG remainder (5 detectors, each needs new machinery — NOT deferrable per owner "we fix issues, do
+  not defer them"):** **d MOVE-TO-SAME-NAME** + **e RANGE-EXCEPTION-FOR-INDEX** (Incr 3 remainder — both need
+  name→DataItem resolution via `DataBinder.ByName`/`ReferenceResolver.FindItem`; e also reads the EC-RANGE-INDEX
+  `TurnState` like i's EC-BOUND-REF-MOD); then **Incr 4 the new-analysis options** I-O-DECLARATIVE (statement→file→
+  open-mode→declarative cross-ref) · I-O-STATUS-04/07 (FILE-STATUS reference tagging) · EC-PROGRAM-EXCEPTIONS
+  (element-scope function-call/method-invoke aggregation). THEN the Wave-D residue (>>COBOL-WORDS · CC-in-COPY — both
+  DIRECTIONS recorded in the §0 block below) · PERFORM Format-3 RUNTIME interceptor · §24 fix-queue → Wave I merge →
+  P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case incl.
+  negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod parse
+  node was wrong until a probe caught it — DEVLOG 956).
+  ▷ **(historical, all pushed) the GRAMMAR BATCH is 7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -156,9 +170,14 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `10da6c3d` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
-  (+ `CompileTimeBooleanCceTests`) · legacy unit `Preprocessor` **11** (+ `SourceFormatTests`) · characterization
-  **33** byte-exact · greenfield Conformance **3784** + the `directive_expressions` 2002 golden.
+- **Battery at code-HEAD `8c3bf923` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
+  baseline (+ the new **`FlagDirectiveTests` 41** — parser/fold/end-to-end for the 11 landed FLAG detectors) ·
+  legacy unit `Preprocessor` **11** · characterization **33** byte-exact · greenfield Conformance **3784** + the
+  `directive_expressions` 2002 golden. The FLAG subsystem added the drift-guarded catalog descriptors
+  COBOLNET1620/1621/1622 + the `flag-14-directive-2023`/`flag-02-directive-2014` version-matrix rows (full
+  Conformance **1817** green, 0 regressions). Per-commit gate this session was wave-local (fresh build +
+  characterization + `FlagDirectiveTests` filter + a CLI probe); a NEW session should re-confirm the battery green
+  (§9) before the next detector.
   **⛔ TESTING DISCIPLINE (owner-corrected — a repeated miss): gate each WAVE with the WAVE-LOCAL gate (~2–3 min:
   fresh build + characterization + `CorpusRunnerTests`/targeted unit FILTERED to the wave + a CLI probe), NOT the
   full suites.** The COMPREHENSIVE gate (FULL greenfield Conformance + FULL legacy guard) is **once per BATCH,
