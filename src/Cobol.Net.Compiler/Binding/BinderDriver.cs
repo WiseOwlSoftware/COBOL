@@ -133,15 +133,8 @@ internal sealed class BinderDriver
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
 
-        // The termination-status gate: any STOP RUN / GOBACK … WITH NORMAL/ERROR STATUS phrase in the group makes
-        // the generated Main pass RunUnit.ExitStatus to Environment.ExitCode (§14.9.42.4 GR5 / §14.9.18.4 GR10). A
-        // status-free group keeps its entry wrapper byte-identical (the zero-scaffolding invariant, SSOT §18.16) —
-        // the parse-tree scan finds the phrase (statusPhrase appears only on STOP/GOBACK; below-edition uses are
-        // rejected before codegen).
-        bool usesTerminationStatus = HasStatusPhrase(tree);
-
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, usesTerminationStatus);
+            anyFiles);
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
@@ -238,16 +231,6 @@ internal sealed class BinderDriver
         path.Add(r.CobolName ?? "?");
         path.Reverse();
         return string.Join(".", path).ToUpperInvariant();
-    }
-
-    /// <summary>True when <paramref name="node"/> contains a STOP RUN / GOBACK status phrase anywhere in its
-    /// subtree (ISO §14.9.42.2 / §14.9.18.2 <c>statusPhrase</c>).</summary>
-    private static bool HasStatusPhrase(IParseTree node)
-    {
-        if (node is Core.StatusPhraseContext) return true;
-        for (int i = 0; i < node.ChildCount; i++)
-            if (HasStatusPhrase(node.GetChild(i))) return true;
-        return false;
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source

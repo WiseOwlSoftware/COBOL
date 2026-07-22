@@ -83,3 +83,6 @@ scripts/__pycache__/
 # exclusion — per the owner's 2026-07-19 ruling its case titles/keywords are citable; it is simply
 # generated. The COMMITTED artifact is tests/external/gnucobol-expectations.json (our classifications).
 tests/external/gnucobol-differential-report.json
+
+# Session convenience files — untracked by convention (feedback_plans_in_repo)
+/scratchpad/

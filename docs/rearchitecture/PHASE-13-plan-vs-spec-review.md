@@ -650,7 +650,7 @@ The 3 verdicts that landed before the limit confirmed C2 (>>DEFINE AS PARAMETER)
 - **Refs:** ISO §14.9.42.4 GR5 (specs/ISO_COBOL.md:32250); E:\CobolSharp\src\Cobol.Net.Compiler\Binding\BinderDriver.cs:124-129; E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\ProgramEmitter.cs:383-387,424-427; E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\StatementEmitter.cs:93-96
 - **Evidence:** §14.9.42.4 GR5 applies to STOP wherever it executes in the run unit: the status "passed to the operating system". BoundStop always writes RunUnit.ExitStatus (StatementEmitter.cs:95), but the `Environment.ExitCode = (int) RunUnit.Current.ExitStatus` sink in the generated Main is emitted only when `UsesTerminationStatus` is true for THIS compilation group (BinderDriver.cs:129 scans only the group's parse tree; ProgramEmitter.cs:424-427). The emitter itself documents that a run unit spans sibling assemblies via the ProgramRegistry.ResolveVisible rule-4 probe (ProgramEmitter.cs:383-387). Failure scenario: a status-free main group CALLs a separately compiled program that executes STOP RUN WITH ERROR STATUS 8 → RunUnit.ExitStatus=8, StopRun unwinds to the main group's `catch (StopRun) {}` (no sink) → process exits 0 instead of 8.
 - **Proposed action:** Make the sink unconditional in the entry wrapper (read RunUnit.ExitStatus on both the normal-return and catch(StopRun) paths regardless of UsesTerminationStatus) and re-baseline the affected characterization goldens, or document the single-group restriction in docs/CONFORMANCE.md §4.2.16 alongside the existing implementor mapping.
-- **Disposition:** _raw resume-pass capture — dedupe vs sections 2/3, verify, route (Wave I)_
+- **Disposition:** ✅ **RECONCILED → V47 LANDED 2026-07-22 (DEVLOG 988).** This is the raw-capture of V47 (§19). Shipped fix chose the finding's SECOND route over the proposed unconditional-Main-sink: a runtime-side flush in the `RunUnit.ExitStatus` setter (no golden re-baseline, no per-`Main` scaffolding — §18.16 upheld). See V47 for the landed detail. The adversarial review of V47 surfaced two SAME-CLASS siblings — V52 (fatal-EC surface) and V53 (implicit CLOSE) — both still OPEN.
 
 ### R14. [MINOR | impl-vs-spec-drift | C3-ec-refmod-drift] Internal ODO-group receive splice can spuriously raise EC-BOUND-REF-MOD when the DEPENDING count makes the extent zero
 
@@ -1180,6 +1180,46 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   external connector must have a non-null ExternalItemIdentity); (c) add the compile-time LINAGE leg
   (§13.4.5.4 GR2c); (d) correct the :154 comment.
 
+### V52. Run-unit abnormal-termination surface (fatal-EC diagnostic + `Environment.ExitCode = 1`) emitted PER-MAIN, gated on the MAIN group's EC scan — NEW (surfaced by the V47 adversarial review)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47** (a run-unit-termination
+  observable gated on a compile-time scan of the MAIN group, blind to a sibling assembly / an unconditional
+  runtime raise-point).
+- **Disposition:** OPEN. `ProgramEmitter.cs:429` emits `catch (CobolFatalException __fx) { Console.Error.WriteLine(
+  "abnormal run-unit termination: " + …); Environment.ExitCode = 1; }` ONLY under `if (_ecState.Active)` (=
+  `comp.EcActive`, the MAIN group's EC scan). But `CobolFatalException` arises from raise-points INDEPENDENT of the
+  main group's EC model: EC-OO-UNIVERSAL / EC-OO-METHOD from any class's `__CobolInvoke` (the `using … Exceptions`
+  at `:72` is `_ecState.Active || classes.Count > 0` — proving EcActive and "has classes" are independent),
+  `CobolPtr` null-BASED deref (`CobolPtr.cs:27`), and a separately-compiled sub built `>>TURN … CHECKING ON`.
+  `ProgramTable.RunMain`/`CallProgram` and the dispatcher (catches only `ProgramReturn`) have NO
+  `CobolFatalException` catch, so in a main whose own group has no EC feature the exception propagates unhandled →
+  a raw CLR crash (platform exit code, stderr stack trace, §14.6.11 implicit CloseAll BYPASSED) instead of the
+  documented `abnormal run-unit termination` + exit 1 (CONFORMANCE.md item 44/193; §14.6.13.1.3 #7 → §14.6.12).
+  **Fix DIRECTION (mirror V47 — runtime-side, NOT an unconditional emitter catch):** an unconditional per-`Main`
+  `catch` would add scaffolding to EVERY EC-free `Main` (re-baselining characterization + violating §18.16), so
+  handle abnormal termination runtime-side — either a run-unit boundary that converts a `CobolFatalException`
+  escaping `RunMain` into the diagnostic + exit 1 (RunUnit.Run-style), or the raise-points set the observable
+  themselves. Tests: a class-bearing EC-free program that INVOKEs an aborting method → the abnormal-termination
+  surface + exit 1 (not a raw crash); a two-assembly run unit where a file-less main CALLs a checking-on sub that
+  raises a fatal EC → same. ALSO fold the V47-coverage sibling (a `STOP RUN … WITH STATUS n` inside an INVOKEd
+  method reaching `Main` sets the exit code via the setter-flush — assert it). Effort: M.
+
+### V53. Run-unit implicit CLOSE at termination (§14.6.11 CloseAll) + FileInit emitted PER-MAIN, gated on the MAIN group's `anyFiles` — NEW (surfaced by the V47 adversarial review)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47.**
+- **Disposition:** OPEN. `ProgramEmitter.cs:417` (`if (anyFiles) FileInit()`) and `:434-435` (`if (anyFiles)
+  finally { CobolFile.CloseAll(); }`) both key off `anyFiles = comp.AnyFiles`, computed over the MAIN group's
+  units/classes only (`BinderDriver.cs:132-134`). The `FileRegistry` is run-unit-global and `CobolFile.CloseAll`
+  closes EVERY connector — but there is NO runtime finalizer / `ProcessExit` / `IDisposable` auto-close in
+  `src/Cobol.Net.Runtime/IO`, and the default emitted driver does not use `RunUnit.Run`'s finally-CloseAll. So a
+  file-less main that CALLs a separately-compiled sub which OPENs+WRITEs a file and leaves it open at run-unit
+  termination never gets the sub's connectors implicitly closed → buffered records / LINAGE footers / EOF
+  finalization LOST (§14.6.11 violation, silent data loss). **Fix DIRECTION (mirror V47 — runtime-side):** trigger
+  the run-unit-termination CloseAll (+ the FileInit reset) whenever the RUN UNIT — not the main group — may hold
+  open connectors (e.g. at a runtime run-unit boundary), preserving §18.16 for genuinely file-free run units. Test:
+  a two-assembly run unit (file-less main CALLs a file-writing sub) asserts the sub's output file is flushed/closed
+  at termination. Effort: M.
+
 ### V46. COBOLNET1570's SR4/SR5 citation — REFUTED-as-cited; the NATIONAL half of E.2 item 27 is the real gap
 
 - **Verdicts:** spec-lens REAL-as-amended (high) · code-lens REAL (high)
@@ -1190,14 +1230,23 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   numeric-edited UNCONDITIONALLY at all editions (0898) and the ≥2023 size check reaches only '"'-leading
   literals. Route: review-fix wave (the national leg of the VALUE rework).
 
-### V47. Sibling-assembly STOP RUN WITH STATUS discarded — CONFIRMED
+### V47. Sibling-assembly STOP RUN WITH STATUS discarded — ✅ LANDED 2026-07-22 (DEVLOG 988)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** the ONLY Environment.ExitCode sink is gated on the MAIN compilation group's own
-  HasStatusPhrase parse-tree scan (BinderDriver:129; ProgramEmitter:424-427) — a STOP RUN WITH STATUS executed
-  in a separately-compiled CALLed assembly is silently discarded (exit 0). Fix shape for Opus: make the sink
-  unconditional in the entry wrapper (or a runtime-side always-on exit-status register) so the status crosses
-  assembly boundaries; golden with a two-assembly run unit.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 988).** Root cause: the ONLY `Environment.ExitCode` sink was
+  gated on the MAIN compilation group's own `HasStatusPhrase` parse-tree scan (BinderDriver / ProgramEmitter) —
+  a `STOP RUN … WITH STATUS` executed in a separately-compiled CALLed module is invisible to that scan, so its
+  status (though correctly written to the shared ambient `RunUnit.ExitStatus`) was never flushed (exit 0). Fixed
+  by the finding's **second** option — a **runtime-side always-on flush**: `RunUnit.ExitStatus`'s SETTER now
+  flushes to `Environment.ExitCode` at the write site, so the status crosses the assembly boundary (STOP RUN ends
+  the whole run unit from anywhere, §14.9.42.4 GR6). This is a NET DELETION — the `usesTerminationStatus` /
+  `HasStatusPhrase` compile-time scan + the per-`Main` `setExit` scaffolding are GONE, so the entry wrapper is now
+  UNCONDITIONALLY scaffolding-free (upholds §18.16 more purely than the gate did) and no `.g.cs` golden re-baselines
+  (status-free programs stay byte-identical; characterization 33/33). The chosen setter-flush keeps the singular
+  exit-code source AND a single flush point (the future RETURN-CODE writes the same field → same flush). Tests
+  (`StopGobackExitCodeTests`): a two-assembly run unit (`V47MAIN` no status CALLs `V47SUB` → `STOP RUN WITH ERROR
+  STATUS 16` ⇒ exit 16) + the in-group companion (exit 24); the 10 inline STOP/GOBACK cases + the GOBACK-inert
+  case remain green (22/22).
 
 ## 19. Batch-12 verdicts (2026-07-19 — minors 48/49/50, 6 agents, 0 errors) — THE ORIGINAL 50-ITEM WORKLIST IS FULLY VERIFIED
 

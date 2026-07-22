@@ -25,7 +25,23 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `48b9033d`; tree clean, all pushed). ⭐ THE §24 EC-SEAM BATCH
+- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `6f5d850c` + the V47 commit; tree clean, all pushed).
+  ✅ **§24 V47 LANDED (STOP RUN … WITH STATUS crosses the assembly boundary) — DEVLOG 988.** Root cause: the
+  `Environment.ExitCode` sink was gated on a compile-time `HasStatusPhrase` scan of the MAIN group, blind to a
+  status phrase in a separately-compiled sibling module. Fix = the finding's runtime-side flush: `RunUnit.ExitStatus`'s
+  SETTER flushes `Environment.ExitCode` at the write site — a NET DELETION (the `usesTerminationStatus`/`HasStatusPhrase`
+  scan + per-`Main` `setExit` scaffolding gone; entry wrapper now unconditionally scaffolding-free, §18.16). Tests:
+  two-assembly fix-prover (`V47MAIN` no-status CALLs `V47SUB` → `STOP RUN WITH ERROR STATUS 16` ⇒ exit 16) + in-group
+  companion; `StopGobackExitCodeTests` 22/22 · characterization 33/33 byte-identical · full greenfield Conformance
+  **3855/3855 0-reg**. V47's adversarial review (4 refuters ALL SOUND + a completeness critic, `wf_ee139367-102`)
+  surfaced **TWO SAME-CLASS siblings** — a run-unit-termination observable gated per-MAIN, blind to a sibling
+  assembly: **V52** (fatal-EC abnormal-termination surface + exit 1 gated on `_ecState.Active`) and **V53** (§14.6.11
+  implicit CLOSE + FileInit gated on `anyFiles`). Both fixes must be runtime-side (mirror V47) to preserve §18.16.
+  **⏭ NEXT §24 (spec-first, one at a time): the V47 pattern-completion FIRST — V52 (fatal-EC surface) → V53 (implicit
+  CLOSE) — then the misc-semantics majors V5 EXIT-SECTION → V46 N"…" VALUE → V24 OPTIONS-INITIALIZE, then V51
+  (§13.4.5.4 GR2(c) in-group LINAGE), the minors, the doc-slice sweep, and the owner-decision items (F1/V19/V24).**
+  ─── ⚠ *the EC-SEAM/V45 narrative below is HISTORICAL (now-DONE cycles), superseded by the live state above.* ───
+  ⭐ THE §24 EC-SEAM BATCH
   (F10 · V3 · V4) IS COMPLETE AND MERGE-READY — the comprehensive pre-merge gate is ALL GREEN: greenfield
   Conformance 3848/3848 (3842 baseline + 6 new EC goldens, 0 reg) · NIST 353 MATCH / 0 reg · legacy Unit 1203/1203 ·
   legacy Integration 684/685 (1 skip) / 0 fail · characterization 33/33 (DEVLOG 985; one RL203A `COMPILE FAILED`

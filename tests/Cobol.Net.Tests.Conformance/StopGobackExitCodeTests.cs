@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -73,5 +74,82 @@ public sealed class StopGobackExitCodeTests
         var (exit, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunExit(source);
         Assert.Equal("resumed", stdout);
         Assert.Equal(0, exit);
+    }
+
+    /// <summary>The in-group companion to the cross-assembly case below: a status-free MAIN CALLs a sub whose
+    /// <c>STOP RUN … WITH STATUS</c> ends the whole run unit (ISO §14.9.42.4 GR6). STOP RUN passes its status
+    /// regardless of whether it runs in the main or a called program (unlike GOBACK, GR2/GR3 — see
+    /// <see cref="CalledSubprogramGobackStatus_IsInert"/>). Locks that the runtime-side flush (the
+    /// <see cref="Runtime.RunUnit.ExitStatus"/> setter) — not a compile-time parse-tree scan — carries the status
+    /// to the exit code (§14.9.42.4 GR5).</summary>
+    [Fact]
+    public void CalledSubprogram_StopRunWithStatus_SetsExitCode()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SGSMAIN.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "ran".
+                CALL "SGSSUB".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SGSSUB.
+            PROCEDURE DIVISION.
+            SUBP.
+                STOP RUN WITH ERROR STATUS 24.
+            """;
+        var (exit, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunExit(source);
+        Assert.Equal("ran", stdout);   // the sub's STOP RUN ends the run unit before the main's own STOP RUN
+        Assert.Equal(24, exit);
+    }
+
+    // ── V47 (§24 review ledger): STOP RUN … WITH STATUS in a SEPARATELY-COMPILED module crosses the boundary ──
+
+    private static void CompileTo(string source, string dir, string name)
+    {
+        string src = Path.Combine(dir, name + ".cob");
+        File.WriteAllText(src, source);
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: 2023));
+        Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
+    }
+
+    /// <summary>V47 (§24 review ledger — CONFIRMED): STOP RUN terminates the WHOLE run unit from anywhere (ISO
+    /// §14.9.42.4 GR6) and its STATUS is "passed to the operating system" (GR5). When the <c>STOP RUN … WITH
+    /// STATUS</c> executes in a SEPARATELY-COMPILED CALLed module, the status is the RUN UNIT's, not the main
+    /// program's — it must reach the process exit code even though the main program's own compilation group carries
+    /// no status phrase (so a compile-time parse-tree scan of the main group can never see it). The exit-code flush
+    /// is runtime-side (the <see cref="Runtime.RunUnit.ExitStatus"/> setter over the shared ambient run unit), so
+    /// the sub's status crosses the assembly boundary. Regression lock for the pre-fix silent discard-to-0.</summary>
+    [Fact]
+    public void SeparatelyCompiledModule_StopRunWithStatus_CrossesAssemblyBoundary()
+    {
+        const string main = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V47MAIN.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "before".
+                CALL "V47SUB".
+                DISPLAY "unreached".
+                STOP RUN.
+            """;
+        const string sub = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V47SUB.
+            PROCEDURE DIVISION.
+            SUBP.
+                STOP RUN WITH ERROR STATUS 16.
+            """;
+        string dir = CutRunner.NewTempDir("v47xasm");
+        try
+        {
+            CompileTo(main, dir, "V47MAIN");
+            CompileTo(sub, dir, "V47SUB");
+            var (exit, stdout, detail) = CutRunner.RunExit(Path.Combine(dir, "V47MAIN.dll"), dir);
+            Assert.Equal("before", stdout);   // the sub's STOP RUN ends the run unit — "unreached" never prints
+            Assert.Equal(16, exit);
+        }
+        finally { CutRunner.TryDelete(dir); }
     }
 }

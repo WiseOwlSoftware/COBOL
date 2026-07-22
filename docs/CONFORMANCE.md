@@ -129,7 +129,11 @@ of an unsupported facility.
   no phrase) is 0. When a STATUS value is present it wins regardless of ERROR/NORMAL. A main-program GOBACK
   (§14.9.18.4 GR3) uses the same mapping; a status phrase on a GOBACK executed in a **called** program is inert
   (GR2). Programs with no status phrase leave the exit code at 0 (the abnormal-fatal case still forces item 44's
-  nonzero exit).
+  nonzero exit). The status is flushed to `Environment.ExitCode` at the write site by the `RunUnit.ExitStatus`
+  setter (so it crosses assembly boundaries — a separately-compiled module's STOP RUN … WITH STATUS reaches the
+  process exit code). Two host clamps apply on top of the value mapping and are outside COBOL's control: the
+  `long` status is narrowed to `Int32`, and a POSIX host reports only the low 8 bits of the exit code — so a
+  STATUS ≥ 256 (or outside `Int32`) is reduced modulo the platform's exit-code width.
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
   .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).

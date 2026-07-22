@@ -29,9 +29,6 @@ using Core = CobolParserCore;
 /// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
 /// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + Init/CloseAll).</param>
-/// <param name="UsesTerminationStatus">Any STOP RUN / GOBACK carries a WITH NORMAL/ERROR STATUS phrase — gates the
-/// generated <c>Main</c> exit-code sink (§14.9.42.4 GR5 / §14.9.18.4 GR10), keeping a status-free program's entry
-/// wrapper byte-identical (the zero-scaffolding invariant, SSOT §18.16).</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
@@ -41,5 +38,4 @@ internal sealed record BoundCompilation(
     IReadOnlyList<AdapterPair> OoAdapters,
     TurnState Turn,
     bool EcActive,
-    bool AnyFiles,
-    bool UsesTerminationStatus);
+    bool AnyFiles);

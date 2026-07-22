@@ -63,20 +63,32 @@ public sealed class RunUnit
     /// perturbing generated code.</summary>
     public bool DebugMode { get; set; } = true;
 
+    private long _exitStatus;
+
     /// <summary>The run-unit termination status "passed to the operating system" by STOP RUN / a main-program
     /// GOBACK with a status phrase (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). On .NET the single observable is the
     /// process exit code (<c>Environment.ExitCode</c>), so the STATUS value and the ERROR/NORMAL indication
     /// collapse into this ONE canonical integer (the documented implementor mapping — <c>docs/CONFORMANCE.md</c>
     /// §4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when specified, else
-    /// ERROR ⇒ 1 / NORMAL ⇒ 0. Read at run-unit termination by the generated <c>Main</c> and set to
-    /// <c>Environment.ExitCode</c>. Default 0 (a normal termination with no status phrase — byte-identical to a
-    /// pre-slice build). The future RETURN-CODE special register writes this SAME field (singular-pattern — one
-    /// exit-code source, never two).</summary>
-    public long ExitStatus { get; set; }
+    /// ERROR ⇒ 1 / NORMAL ⇒ 0. <b>Writing this field flushes to <c>Environment.ExitCode</c> AT THE WRITE SITE</b>
+    /// (the setter below), which is what makes the status cross assembly boundaries: STOP RUN terminates the WHOLE
+    /// run unit from anywhere (§14.9.42.4 GR6), so a status set by a separately-compiled CALLed module reaches the
+    /// process exit code even though the run unit's MAIN program carries no status phrase of its own — the flush
+    /// cannot live in the main group's generated <c>Main</c>, which never sees the sibling module's parse tree.
+    /// Default 0 (a status-free run unit never writes this field, so <c>Environment.ExitCode</c> keeps its 0
+    /// default and the generated <c>Main</c> stays scaffolding-free — the zero-scaffolding invariant, DESIGN §18.16).
+    /// The future RETURN-CODE special register writes this SAME field (singular-pattern — one exit-code source AND
+    /// one flush, never two).</summary>
+    public long ExitStatus
+    {
+        get => _exitStatus;
+        set { _exitStatus = value; Environment.ExitCode = (int)value; }
+    }
 
     /// <summary>The emitted-surface shim STOP RUN / GOBACK write (kept name-stable over <see cref="Current"/>,
     /// mirroring the <see cref="ExceptionState"/>/<see cref="ProgramRegistry"/> facades): set the run unit's
-    /// termination status (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10).</summary>
+    /// termination status (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). The <see cref="ExitStatus"/> setter flushes the
+    /// value to <c>Environment.ExitCode</c> at the write site (so the status crosses assembly boundaries).</summary>
     public static void SetExitStatus(long status) => Current.ExitStatus = status;
 
     /// <summary>Establish a FRESH ambient run unit for the duration of <paramref name="body"/> — the one
