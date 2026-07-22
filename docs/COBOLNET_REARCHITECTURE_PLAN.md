@@ -133,9 +133,14 @@ checkpoint.
   `FlagState`); c flags a >>EVALUATE carrying both a >>WHEN and a >>WHEN OTHER (Frame WHEN/WHEN-OTHER tracking); b
   flags a compile-time arithmetic expression with a real addOp/mulOp via `diag.FlagArithmetic` in
   `EvaluateOperandText`/`EvaluateCceText` (the fragment-parse choke points, evaluated context only). **Detectors
-  done: 10 of 19.** 38 unit tests + CLI-probed + char 33/33 byte-exact (zero-overhead). ⏭ THEN Incr 3 (state-coupled:
-  i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis: I-O-DECLARATIVE,
-  I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  done: 10 of 19.** 38 unit tests + CLI-probed + char 33/33 byte-exact (zero-overhead). ✅ **Incr 3 i LANDED** —
+  **i REF-MOD-ZERO-LENGTH**: `RefModZeroLengthState.IsUnspecifiedAt` (the tri-state `IsOnAt` can't express) +
+  `TurnState.Enabled("EC-BOUND-REF-MOD",…)`, threaded from `GroupBindContext.Session`; a ref-mod is detected on BOTH
+  parse paths (`VisitRefModSpec` + `VisitSubscriptOrRefMod` with a `SUB_COLON` sub-token — the data-reference path a
+  probe caught being missed). **Detectors done: 11 of 19.** 41 tests + CLI-probed + char 33/33.
+  ⏭ **NEXT (Incr 3 remainder)** = d MOVE-TO-SAME-NAME (same-DDE via name resolution — `DataBinder.ByName`/
+  `ReferenceResolver.FindItem`) + e RANGE-EXCEPTION-FOR-INDEX (SET-index target + `EC-RANGE-INDEX` TurnState) →
+  Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff

@@ -242,6 +242,39 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
 
+    // ── Incr 3: FLAG-14 i REF-MOD-ZERO-LENGTH (§7.3.15.4 GR4 i) — a ref-mod flagged when the >>REF-MOD-ZERO-LENGTH
+    //    directive is UNSPECIFIED at the site AND EC-BOUND-REF-MOD checking is on. ──
+
+    private static string RefModProgram(string directives) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGI.\n       DATA DIVISION.\n" +
+        "       WORKING-STORAGE SECTION.\n       01 W PIC X(5) VALUE \"HELLO\".\n       01 R PIC X(3).\n" +
+        "       PROCEDURE DIVISION.\n       MAIN.\n" + directives + "           MOVE W(2:2) TO R.\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_RefModZeroLengthOn_Flags_WhenUnspecifiedAndEcOn()
+    {
+        var warnings = CompileWarnings(RefModProgram(
+            "       >>TURN EC-BOUND-REF-MOD CHECKING ON\n       >>FLAG-14 REF-MOD-ZERO-LENGTH ON\n"));
+        Assert.Contains(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("REF-MOD-ZERO-LENGTH", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RefModZeroLength_NotFlagged_WhenDirectiveExplicitlyOff()
+    {
+        // >>REF-MOD-ZERO-LENGTH OFF makes the directive explicitly specified — GR4 i requires the UNSPECIFIED state.
+        var warnings = CompileWarnings(RefModProgram(
+            "       >>TURN EC-BOUND-REF-MOD CHECKING ON\n       >>REF-MOD-ZERO-LENGTH OFF\n       >>FLAG-14 REF-MOD-ZERO-LENGTH ON\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RefModZeroLength_NotFlagged_WhenEcBoundRefModOff()
+    {
+        var warnings = CompileWarnings(RefModProgram("       >>FLAG-14 REF-MOD-ZERO-LENGTH ON\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
     // ── Incr 2: the frontend-inline options (emitted in ConditionalCompilationProcessor, never reach the bound tree) ──
 
     // c EVALUATE (§7.3.15.4 GR4 c) — a >>EVALUATE directive carrying both a >>WHEN and a >>WHEN OTHER.

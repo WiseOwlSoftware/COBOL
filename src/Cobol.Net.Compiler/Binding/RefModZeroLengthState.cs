@@ -38,4 +38,19 @@ public sealed class RefModZeroLengthState
         }
         return on;
     }
+
+    /// <summary>Whether the <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive is NOT explicitly specified (neither ON nor
+    /// OFF) at <paramref name="siteLine"/> — no toggle precedes the site. This is the tri-state distinction
+    /// <see cref="IsOnAt"/> cannot make (it folds absence to OFF): the FLAG-14 REF-MOD-ZERO-LENGTH option
+    /// (ISO §7.3.15.4 GR4 i) flags a reference modification ONLY when the directive is in this unspecified state
+    /// (and EC-BOUND-REF-MOD checking is on).</summary>
+    public bool IsUnspecifiedAt(int siteLine)
+    {
+        foreach (var e in _events)
+        {
+            if (e.Line >= siteLine) break;   // no toggle reaches the site
+            return false;                     // a toggle (ON or OFF) precedes it — explicitly specified
+        }
+        return true;
+    }
 }

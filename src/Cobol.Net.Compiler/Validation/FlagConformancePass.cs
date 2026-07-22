@@ -35,18 +35,25 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     // has a LINAGE clause (FLAG-14 m), and the report-names whose description carries a VARYING clause (FLAG-02 f).
     private readonly IReadOnlySet<string> _linageWriteTargets;
     private readonly IReadOnlySet<string> _varyingReports;
+    // The compile-time directive states the state-coupled options read: the >>REF-MOD-ZERO-LENGTH tri-state (i) and
+    // the >>TURN EC-checking model (i needs EC-BOUND-REF-MOD; e needs EC-RANGE-INDEX).
+    private readonly RefModZeroLengthState _refModZl;
+    private readonly TurnState _turn;
     // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
     // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
     private readonly EditionContext _discard = new(2023);
 
     private FlagConformancePass(FlagState flag, IDiagnosticSink sink,
-        IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports)
+        IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports,
+        RefModZeroLengthState refModZl, TurnState turn)
     {
         _flag = flag;
         _sink = sink;
         _linageWriteTargets = linageWriteTargets;
         _varyingReports = varyingReports;
+        _refModZl = refModZl;
+        _turn = turn;
     }
 
     /// <summary>Flag every construct an active FLAG option covers. A no-op (no walk) when no FLAG directive is
@@ -74,7 +81,8 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
                     varying.Add(report.Name);
         }
 
-        new FlagConformancePass(flag, sink, linage, varying).Visit(group.Tree);
+        new FlagConformancePass(flag, sink, linage, varying,
+            group.Session.RefModZeroLength, group.Session.Turn).Visit(group.Tree);
     }
 
     /// <summary>Emit the option's Warning if it is flagging at <paramref name="line"/>. The Code is per-directive;
@@ -116,6 +124,31 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             }
         }
         return base.VisitChildren(ctx);
+    }
+
+    // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§7.3.15.4 GR4 i; E.2 item 23) — a reference modification flagged ONLY when
+    //    the >>REF-MOD-ZERO-LENGTH directive is UNSPECIFIED (neither explicit ON nor OFF) at the site AND
+    //    EC-BOUND-REF-MOD checking is on there (a zero-length result would then raise the exception). A ref-mod
+    //    reaches the parser two ways: the default-mode `refModSpec`, and — for a data reference — a
+    //    `subscriptOrRefMod` carrying a SUB_COLON (the grammar leaves subscript-vs-refmod to the binder). ──
+    public override object? VisitRefModSpec(CobolParserCore.RefModSpecContext ctx)
+    {
+        FlagRefMod(ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitSubscriptOrRefMod(CobolParserCore.SubscriptOrRefModContext ctx)
+    {
+        // A top-level SUB_COLON among the sub-tokens ⇒ a reference modification, not a subscript list.
+        if (ctx.subToken().Any(t => t.SUB_COLON() is not null)) FlagRefMod(ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    private void FlagRefMod(int line)
+    {
+        if (_refModZl.IsUnspecifiedAt(line) && _turn.Enabled("EC-BOUND-REF-MOD", null, line))
+            Flag(FlagOption.Flag14RefModZeroLength, line,
+                "the reference modification (>>REF-MOD-ZERO-LENGTH unspecified and EC-BOUND-REF-MOD checking on)");
     }
 
     // ── The VALUE-clause data options — anchored at the VALUE clause's source line (the flaggable syntax). k
