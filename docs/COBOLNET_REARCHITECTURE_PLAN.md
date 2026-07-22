@@ -36,6 +36,9 @@ checkpoint.
   LINAGE consistency §13.4.5.4 GR2(c) — a longstanding always-Error, separate from V45's 2023-gated externality). ⏭ NEXT
   §24 batch (spec-first, one at a time): the misc-semantics majors (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE /
   V24 OPTIONS-INITIALIZE), then the minors, the doc-slice sweep, and the owner-decision items (F1/V19/V24).**
+  ─── ⚠ *EVERYTHING BELOW in this RESUME-AT bullet is HISTORICAL cycle-narrative (the P13 merge, and the
+  how-we-got-here for the now-DONE EC-seam batch + V45) — SUPERSEDED by the live state above + DEVLOG 973–986.
+  A new session needs only the live state above; this history is due for consolidation at the next phase close.* ───
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
   678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** the **§24 fix-queue**
@@ -68,10 +71,12 @@ checkpoint.
   52/99/147 · Unit 571/571. Design validated by `wf_a0883513-5f3`. **⭐ THE EC-SEAM BATCH IS COMPLETE (F10 · V3 · V4).**
   **⏭ NEXT: the comprehensive pre-merge gate (full greenfield Conformance + legacy guard + GnuCOBOL/NIST differential —
   the differential is the required confirmation that the SEARCH `<1` latent-bug fix moves no other program's output)
-  before the batch merges.** **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the ref-mod-externality residue (V45-sentinel /
-  V45-externality) · misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) ·
-  the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) ·
-  the **owner-decision items** (F1 ASSIGN USING route · V19 parameterized-class route · V24 intro-gate 2014-vs-2023).
+  before the batch merges.** **⏭ REMAINING §24 majors (spec-first, one batch at a time) — the live list is the RESUME-AT
+  at the top of this §0; kept here for the queue detail:** misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION /
+  V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) · **V51** (§13.4.5.4 GR2(c) in-group LINAGE consistency — longstanding
+  always-Error, opened by the V45 validation) · the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep
+  (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) · the **owner-decision items** (F1 ASSIGN USING route ·
+  V19 parameterized-class route · V24 intro-gate 2014-vs-2023). *(V45 ref-mod-externality — DONE, DEVLOG 986.)*
   Then **PHASE-14 Step 0** (the traceability inventory; DONE = zero GAP). ─── **✅ ① F3-PERFORM-inside-a-method LANDED 2026-07-22 (DEVLOG 973–977; commits M1
   `401404c4` · M2 `eb90146b` · M3 `a63d1f0e` · M4).** The one genuine remaining P13 feature — an exception-checking
   (Format-3) PERFORM inside an OO method compiles clean and RUNS (the `F3StagedInMethodStub` 0899 is lifted). Design
