@@ -316,6 +316,44 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         => item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null }
         || (OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } && OdoModel.IsWithin(dep, item));
 
+    // ── FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or Format-2
+    //    index-arithmetic (SET … UP/DOWN BY) whose receiving field is an INDEX-NAME, flagged when EC-RANGE-INDEX
+    //    checking is enabled. **Only an index-NAME receiver range-checks** (§14.9.39.4 Format-1 GR2a / Format-2 GR4a):
+    //    a class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (Format-1 GR2b) and never raises
+    //    EC-RANGE-INDEX, so it is NOT flagged. A receiver is an index-name iff its base name is in the current unit's
+    //    INDEXED BY registry (DataBinder.IndexFields); a data-name / pointer / capacity / dynamic-length receiver of
+    //    the SHARED SET-TO / SET-UP/DOWN grammar (Formats 5/10/14/16) is intrinsically excluded (never an index-name). ──
+    public override object? VisitSetToValueStatement(CobolParserCore.SetToValueStatementContext ctx)
+    {
+        FlagIndexSet(ctx.dataReference(), ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitSetIndexStatement(CobolParserCore.SetIndexStatementContext ctx)
+    {
+        FlagIndexSet(ctx.dataReference(), ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>Flag the SET once (GR4 e) when a receiving operand is an index-name of the current unit AND
+    /// EC-RANGE-INDEX checking is enabled at the statement line — the same <see cref="TurnState"/> read i uses for
+    /// EC-BOUND-REF-MOD; the fold honours the exception hierarchy, so an enabling <c>&gt;&gt;TURN EC-RANGE</c> /
+    /// <c>EC-ALL</c> also counts. No-op outside a resolvable program unit (an OO method body — the advisory edge).</summary>
+    private void FlagIndexSet(IReadOnlyList<CobolParserCore.DataReferenceContext> receivers, int line)
+    {
+        if (_currentData is null) return;
+        foreach (var recv in receivers)
+        {
+            DataReferenceCst r = recv;
+            if (r.Register != SpecialRegister.None || r.BaseName is not { } name
+                || !_currentData.IndexFields.ContainsKey(name)) continue;
+            if (_turn.Enabled("EC-RANGE-INDEX", null, line))
+                Flag(FlagOption.Flag02RangeExceptionForIndex, line,
+                    "the SET of an index-name while EC-RANGE-INDEX checking is enabled");
+            break;   // GR4 e flags the SET once, however many receivers are index-names
+        }
+    }
+
     /// <summary>The entry's PICTURE string, VALUE clause, and USAGE clause (each null when absent) — read once from
     /// the data-description clauses.</summary>
     private static (string? Picture, CobolParserCore.ValueClauseContext? Value, CobolParserCore.UsageClauseContext? Usage)

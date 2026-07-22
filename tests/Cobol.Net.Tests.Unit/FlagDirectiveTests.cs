@@ -531,4 +531,79 @@ public sealed class FlagDirectiveTests
             "       01 AE PIC X(3)BX(3).\n", "       >>FLAG-02 MOVE-TO-SAME-NAME OFF\n", "MOVE AE TO AE."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
     }
+
+    // ── Incr 3: FLAG-02 e RANGE-EXCEPTION-FOR-INDEX (§7.3.14.4 GR4 e) — a Format-1 index-assignment (SET … TO) or
+    //    Format-2 index-arithmetic (SET … UP/DOWN BY) whose receiver is an INDEX-NAME, flagged when EC-RANGE-INDEX
+    //    checking is enabled. Only index-names range-check (§14.9.39.4 Format-1 GR2b copies a class-index DATA item
+    //    unchanged), so a USAGE INDEX data item / plain numeric receiver is NOT flagged. ──
+
+    private static string SetIndexProgram(string extraEntries, string directive, string setStmt) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGSI.\n       DATA DIVISION.\n" +
+        "       WORKING-STORAGE SECTION.\n       01 T.\n          05 E OCCURS 5 TIMES INDEXED BY IDX PIC X.\n" +
+        extraEntries + "       PROCEDURE DIVISION.\n       MAIN.\n" + directive + "           " + setStmt +
+        "\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_RangeExceptionForIndexOn_Flags_SetIndexNameTo_WhenEcOn()
+    {
+        var warnings = CompileWarnings(SetIndexProgram("",
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX TO 3."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndexOn_Flags_SetIndexNameUpBy_WhenEcOn()
+    {
+        var warnings = CompileWarnings(SetIndexProgram("",
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX UP BY 1."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndexOn_Flags_ViaEcAllHierarchy()
+    {
+        // >>TURN EC-ALL CHECKING ON enables the level-3 EC-RANGE-INDEX through the exception hierarchy.
+        var warnings = CompileWarnings(SetIndexProgram("",
+            "       >>TURN EC-ALL CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX TO 3."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndex_NotFlagged_WhenEcRangeIndexOff()
+    {
+        // GR4 e fires only when EC-RANGE-INDEX checking is enabled (default OFF) — no >>TURN, no flag.
+        var warnings = CompileWarnings(SetIndexProgram("",
+            "       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX TO 3."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndex_NotFlagged_OnUsageIndexDataItemReceiver()
+    {
+        // A class-index DATA item (USAGE INDEX) receiver copies its value UNCHANGED (§14.9.39.4 Format-1 GR2b) and
+        // never raises EC-RANGE-INDEX, so it is NOT flagged — only an index-NAME receiver range-checks.
+        var warnings = CompileWarnings(SetIndexProgram("       01 IXD USAGE INDEX.\n",
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IXD TO IDX."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndex_NotFlagged_OnPlainNumericReceiver()
+    {
+        // SET of a plain numeric item is not an index-assignment into an index — no flag.
+        var warnings = CompileWarnings(SetIndexProgram("       01 N PIC 9(4).\n",
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET N TO 3."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_RangeExceptionForIndex_NotFlagged_WhenDirectiveOff()
+    {
+        var warnings = CompileWarnings(SetIndexProgram("",
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX OFF\n", "SET IDX TO 3."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
 }

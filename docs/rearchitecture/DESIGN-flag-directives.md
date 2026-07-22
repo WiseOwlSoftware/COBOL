@@ -95,8 +95,8 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | a ALL | fan-out to b–f | directive parse | 0 | |
 | b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in an element that calls any function or invokes any method | `[B]` TurnState + element-scope call/invoke aggregation | 4 | New: whole-element "has a function-call or method-invoke" property. No clean Annex-E anchor (GR4 is normative) |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
-| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) category alphanumeric-edited, or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` `MoveBinder`/`MoveClassifier` (same-DDE = symbol identity) | 3 | GR4 normative (no Annex-E re-item) |
-| e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET with an index receiver, when EC-RANGE-INDEX checking is enabled | `[B]` `BoundSet*`/SetIndexTarget + TurnState | 3 | GR4 normative |
+| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) category alphanumeric-edited, or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `ReferenceResolver.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
+| e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `DataBinder.IndexFields` + `TurnState` | 3 | GR4 normative |
 | f TERMINATE-WITH-VARYING | a TERMINATE of a report whose RD contains a VARYING clause | `[B]` `ReportWriterBinder` BindTerminate + ReportModel `Varyings` | 1 | GR4 normative |
 
 ## 2. Structural decisions (the singular-pattern end-state)
@@ -219,9 +219,24 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
   `FlagConformancePass`. c: the `Frame` records `>>WHEN`/`>>WHEN OTHER` presence, flagged at `>>END-EVALUATE`. b:
   `EvaluateOperandText`/`EvaluateCceText` call `diag.FlagArithmetic` on the parsed fragment (a real addOp/mulOp,
   evaluated context only).
-* **Incr 3 — the state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`
-  extension + EC-BOUND-REF-MOD read), d MOVE-TO-SAME-NAME (same-DDE via name resolution), e
-  RANGE-EXCEPTION-FOR-INDEX (SET-index + EC-RANGE-INDEX TurnState read).
+* **Incr 3 — the state-coupled options (COMPLETE).**
+  * **i REF-MOD-ZERO-LENGTH** — tri-state `RefModZeroLengthState` extension + EC-BOUND-REF-MOD `TurnState` read.
+  * **d MOVE-TO-SAME-NAME** — same-DDE by **exact `ReferenceEquals`** of the two operands resolved with
+    `ReferenceResolver.FindItem` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
+    `{ Category: PicCategory.Alphanumeric, EditMask: not null }` (there is **no** `PicCategory.AlphanumericEdited`
+    member) or (2) `OdoModel.TableUnder(item) is { OccursSpec.Depending: {} dep } && OdoModel.IsWithin(dep, item)`.
+    Both MOVE forms; a literal/function sender is skipped. Introduced **per-unit name resolution** to the pass — a
+    `VisitProgramUnit` save/restore that selects the current unit's `DataBinder`/`ReferenceResolver` from a
+    `ProgramUnitContext→BoundUnit` map (§2 D2's "resolve by name in the models" made scope-exact, not a global merge).
+  * **e RANGE-EXCEPTION-FOR-INDEX** — reuses d's `_currentData`: `VisitSetToValueStatement` (Format 1) +
+    `VisitSetIndexStatement` (Format 2) flag once when a receiver's base name is in the current unit's
+    `DataBinder.IndexFields` (an INDEXED BY **index-name**) AND `_turn.Enabled("EC-RANGE-INDEX", null, line)`.
+    **⛔ Only an index-NAME receiver range-checks:** §14.9.39.4 Format-1 **GR2b** copies a class-index DATA item
+    (USAGE INDEX) receiver UNCHANGED (no EC-RANGE-INDEX), and Format-2 GR4a checks only index-name-3 — so a USAGE
+    INDEX data-item receiver is **NOT** flagged (matching only `IndexFields` names realizes this exactly, and the
+    shared SET grammar's pointer / capacity / dynamic-length / object receivers are intrinsically excluded).
+  * **Scope note (d/e):** an OO **METHOD body** MOVE/SET has no `ProgramUnitContext→BoundUnit` entry, so `_current*`
+    stays null and the operand is not resolved — a documented advisory **false-negative** (never a false-positive).
 * **Incr 4 — the new-analysis options** d I-O-DECLARATIVE, e/f I-O-STATUS-04/07 (FILE-STATUS reference
   tagging), FLAG-02 b EC-PROGRAM-EXCEPTIONS (element-scope call/invoke aggregation). Each is real
   cross-cutting analysis designed here to spec; implemented last because it introduces new machinery, NOT a
