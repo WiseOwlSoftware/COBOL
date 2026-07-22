@@ -29,8 +29,14 @@ checkpoint.
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
   678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** ① the Track ③ residue —
-  **F3-PERFORM-inside-a-method** (the one real remaining feature; loud-0899'd; needs OO pc-slice wiring; SSOT
-  `PHASE-13-c5-perform-format3-DESIGN.md` §9.7; do NOT rush) · ② the **§24 fix-queue** (`PHASE-13-plan-vs-spec-review.md`
+  **F3-PERFORM-inside-a-method** (the one real remaining feature; loud-0899'd; needs OO pc-slice wiring; do NOT rush).
+  **DESIGN DECISION-COMPLETE + 4-lens adversarially verified 2026-07-22 (DEVLOG 973, verify `wf_570480e6-06d`) — SSOT
+  `PHASE-13-c5-perform-format3-DESIGN.md` §9.10 (+ §9.10.1 the folded C1-blocker/C2-major/C3-minor corrections).** The gap
+  is TWO coupled problems (pc-reachability + data-scope); the resolution re-scopes the SAME pc-range mechanism per
+  context (handler machinery method-LOCAL where it must reach `__MDispatch`; `__EcPerform`/`__IoCheckEc` stay class
+  members via `RunTopFrame`; a per-activation frame FLOOR isolates an F3 method from its activator). **⏭ IMPLEMENTING
+  M1→M4 (M1 dead binder/data · M2 scope-parameterized machinery · M3 `EmitMethod` wiring · M4 un-reject + behavior matrix
+  + comprehensive gate); construct stays 0899-rejected in a method until M4.** · ② the **§24 fix-queue** (`PHASE-13-plan-vs-spec-review.md`
   §24 = the verified defect/fix SSOT) · ③ **PHASE-14 Step 0** = the traceability inventory (the definition of DONE =
   zero GAP). The other Track ③ staged items are intentional defaults / ride other waves / correct-by-construction
   (§0 detail below). ─── *Historical (what landed on the now-merged branch):* **Wave-D residue ①②③-CORE ALL COMPLETE:**
