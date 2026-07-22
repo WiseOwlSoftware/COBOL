@@ -84,15 +84,38 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   r2 location string). Checking-off binds the bare node — zero scaffolding by construction.
 - **EcWrap's relevant-family rule (the unimplemented-raise license).** A statement wraps only for names its kind
   can actually raise here: EC-SIZE-* (arithmetic), EC-I-O-* per referenced file, EC-OVERFLOW-STRING/-UNSTRING,
-  EC-PROGRAM-* (CALL/CANCEL), EC-ARGUMENT-FUNCTION (intrinsic-bearing statements). Conditions tied to
-  not-yet-implemented features (EC-BOUND, EC-DATA, EC-STORAGE, …) cannot occur in generated code, so no wrapper is
-  bound for them — §14.6.13.1.1 sets an indicator only "when the associated exception occurs".
+  EC-PROGRAM-* (CALL/CANCEL), EC-ARGUMENT-FUNCTION (intrinsic-bearing statements), EC-BOUND-REF-MOD/-OVERFLOW +
+  EC-DATA-NOT-FINITE (any statement — ambient gates, below) and EC-DATA-OVERFLOW (a MOVE), EC-STORAGE-NOT-AVAIL
+  (SET SIZE). A name this implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
+  "when the associated exception occurs".
 - **The EC-ARGUMENT-FUNCTION ambient statement gate.** Intrinsics render inline inside arbitrary expressions;
   threading a checked-mask through every runtime signature would fork each intrinsic into twins. Instead the guard
   wraps the STATEMENT (`ExceptionState.ArgumentFunctionChecking` set/reset + try/catch for the F3 dispatch), and
   EVERY §15.3 default-result site in the intrinsic runtime routes through `ExceptionState.ArgumentError` (raise
   when enabled, the documented default — 0 / one space — when off): `FromDouble` NaN/∞, FACTORIAL, MOD/REM zero
   divisor, NUMVAL/NUMVAL-C malformed, the CobolDate range checks, CHAR/ORD out-of-domain.
+- **The float EC-DATA ambient statement gates (EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW).** A float item's value is
+  read inline in expressions, so — exactly like EC-ARGUMENT-FUNCTION / EC-BOUND-REF-MOD — the guard wraps the
+  STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` set/reset via `FatalAmbientGates` + the try/catch F3
+  dispatch) and the runtime raise sites consult the flag. Both are **always-emitted** (the singular pattern —
+  `CobolString.RefMod`, not an emit-time fork) so a directive-free build is byte-identical (the flag defaults OFF ⇒
+  the wrap is a pass-through). **EC-DATA-NOT-FINITE (§14.6.13.2 item 3)** is wrapped at the TWO float sending-read
+  chokepoints — the numeric-value read (`NumericRenderer.FieldNumCore` line 140 → `RuntimeApi.FloatSending`) and the
+  string-image read (`OperandText.FieldAsString` float arm → `RuntimeApi.FloatSending`) — so DISPLAY, STRING,
+  MOVE-to-alphanumeric/group, arithmetic, relations, level-88, intrinsic args, and a different-usage float MOVE
+  source all raise for a NaN/±Inf content. **`CobolFloat.Sending`** raises the fatal EC. The **four exemptions** are
+  realized as a RAW (unwrapped) read at exactly the exempt sites: a **class condition** and a **sign condition** pass
+  `floatCheck:false` (a sign operand's whole sub-tree, via the re-entrant `NumericRenderer._floatSendingExempt`), a
+  **same-usage MOVE** (source and receiver share the same `Usage` — endianness is a separate phrase, not a Usage
+  value) passes the exempt flag, and **VALIDATE** will pass `floatCheck:false` once its emitter lands (documented
+  no-op today). **EC-DATA-OVERFLOW (§14.9.25.4 GR4 step 4a)** is MOVE-only: `CobolFloat.StoreSingleChecked` at the
+  single-precision-float MOVE receiver raises when a FINITE source casts to ±Inf (cast-based, `double.IsFinite(src)
+  && float.IsInfinity((float)src)` — never a MaxValue compare, since a double in `(float.MaxValue, ~3.4028e38]`
+  rounds to a finite `float.MaxValue`). An arithmetic ±Inf store (`ArithmeticEmitter.StoreArith`) stays a bare cast
+  (a valid §14.6.8.3 GR1 result, never this EC); a double receiver cannot overflow from a finite double. Both ECs
+  apply to EVERY floating-point usage in the typed-native model (all map to IEEE binary) — mandatory for the standard
+  usages (FLOAT-BINARY/-DECIMAL), an implementor determination for FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2 (see
+  `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` (both chokepoints + all exemptions) and `2023/ec_data_overflow`.
 - **RAISING propagation = a runtime staging slot + a two-tier pickup.** GOBACK/EXIT PROGRAM RAISING stages
   (name, fatal) via `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the
   PD-header RAISING phrase, checked at bind as COBOLNET0717). The ACTIVATOR raises it at the end of the CALL

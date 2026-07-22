@@ -192,6 +192,24 @@ internal static class RuntimeApi
     public static string FloatToScaled(string value, string scale, CobolRounding mode) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.ToScaled)}({value}, {scale}, {RoundingText(mode)})";
 
+    /// <summary>The checked read of a standard-float SENDING operand — <c>CobolFloat.Sending(value)</c>: raises the
+    /// fatal EC-DATA-NOT-FINITE for a NaN/±Infinity content under checking (ISO §14.6.13.2 item 3), else returns the
+    /// value. Wrapped at both float read chokepoints (the numeric-value read and the string-image read); the exempt
+    /// sites (class/sign condition, same-usage MOVE) emit the raw read instead.</summary>
+    public static string FloatSending(string value) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.Sending)}({value})";
+
+    /// <summary>A float value's DISPLAY image — <c>CobolFloat.Display(value)</c> (invariant-culture shortest
+    /// round-trip, §14.9.11 GR1 implementor-defined).</summary>
+    public static string FloatDisplay(string value) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.Display)}({value})";
+
+    /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver —
+    /// <c>CobolFloat.StoreSingleChecked(src)</c>: raises the fatal EC-DATA-OVERFLOW when a finite source overflows to
+    /// ±Infinity under checking (ISO §14.9.25.4 GR4 step 4a), else returns the cast value.</summary>
+    public static string FloatStoreSingleChecked(string src) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreSingleChecked)}({src})";
+
     /// <summary>The BOOLEAN-receiver store (§14.6.8.6 — boolean-ZERO pad, explicit justification) —
     /// <c>CobolString.Store</c> with <c>pad: '0'</c>.</summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>

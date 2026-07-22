@@ -386,6 +386,19 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // catch never fires). A precise ContainsRefMod filter is a documented follow-on.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line))
                 enabled.Add(("EC-BOUND-REF-MOD", null));
+            // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
+            // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
+            // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float
+            // read chokepoints raises only on an actual non-finite float read, so the guard around a float-free
+            // statement is harmless. A precise "references a float sending operand" filter is a documented follow-on.
+            if (ctx.EcState.Turn.Enabled("EC-DATA-NOT-FINITE", null, line))
+                enabled.Add(("EC-DATA-NOT-FINITE", null));
+            // EC-DATA-OVERFLOW (fatal, §14.9.25.4 GR4 step 4a) is MOVE-only: a MOVE whose finite algebraic value
+            // overflows a single-precision float receiver to ±Inf. A precise "has a single-float receiver" filter is
+            // a documented follow-on (like the ContainsRefMod note); MOVE CORRESPONDING expands to BoundMove steps
+            // which this sees through the BoundSequence recursion.
+            if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-OVERFLOW", null, line))
+                enabled.Add(("EC-DATA-OVERFLOW", null));
         }
         QueryFor(bound);
 

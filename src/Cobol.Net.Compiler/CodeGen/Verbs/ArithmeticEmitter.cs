@@ -32,6 +32,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // receiver-INDEPENDENT (GR4 -- the initial evaluation precedes any receiver's involvement): None.
             NumX value = num.Fold(operands, ReceiverContext.None with { InSizeError = ise });
             if (targets.Count > 1) value = Snapshot(value);
+            // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §14.6.13.2 NOTE 2), so a
+            // non-finite float receiver is caught by its CobolFloat.Sending wrap. Precise follow-on (parallel to the
+            // "precise ContainsRefMod filter" note): with MULTIPLE float receivers under EC-DATA-NOT-FINITE checking, a
+            // later receiver's non-finite read raises AFTER earlier receivers already stored — a half-commit that is
+            // only observable under USE-F3 + RESUME NEXT STATEMENT, where a fatal-EC-interrupted statement leaves
+            // undefined results anyway (§14.6.13.1.3). Pre-snapshotting all receiver reads before the first store would
+            // close it; deferred to avoid restructuring the byte-critical arithmetic store loop for an undefined case.
             foreach (var r in targets)
                 StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, ise)), r.Rounding);
         });

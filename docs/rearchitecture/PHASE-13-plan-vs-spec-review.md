@@ -832,10 +832,21 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 - **Verdicts:** spec-lens REAL (high) · code-lens refuted/dedupe (high)
 - **Disposition:** CONFIRMED-AS-DUPLICATE — merge into confirmed C14 (same defect); NEW increment for the C14 fix: ExceptionState.cs:227 still cites "ISO §8.4.2.3 c" (correct: §8.4.3.3.4), missed by the citation batch; also apply the fix to SpliceInto AND WriteFill. Spec nuance: the raise obligation for a negative is GR5c ("positive nonzero integer") — the EC trigger list never says "negative"; a specified length may NOT be reinterpreted as omission (omission is SYNTACTIC).
 
-### V3. EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW catalogued-unraisable, untracked
+### V3. EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW catalogued-unraisable, untracked — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** CONFIRMED — spec anchors: NOT-FINITE raise rule §14.6.13.2 item 3 (:24897, four exemptions: class condition, sign condition, same-standard-usage MOVE, VALIDATE); OVERFLOW = Fatal :24668. Route: raise seams at the float conversion/MOVE paths (checking-gated) or a NAMED residue row — currently in NO ledger.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 981).** Both raised via the always-emit ambient-gate pattern (mirror
+  EC-BOUND-REF-MOD): `ExceptionEngine.FloatNotFiniteChecking`/`FloatOverflowChecking` + `FatalAmbientGates` + `EcWrap`.
+  A 4-agent design-validation Workflow corrected the first cut — the singular chokepoint is TWO (`NumericRenderer:140`
+  numeric-value read + `OperandText:94` string-image read, both via `RuntimeApi.FloatSending`), not one; always-emit
+  (not emit-conditional) keeps `.g.cs` byte-identical. The four exemptions are raw reads (class + sign condition →
+  `floatCheck:false`; same-usage MOVE → `Usage`-equality; VALIDATE → documented no-op). EC-DATA-OVERFLOW = MOVE-only
+  `CobolFloat.StoreSingleChecked` (single-precision finite→±Inf; arithmetic ±Inf stays a bare cast — §14.6.8.3 GR1).
+  Applied to ALL float usages (mandatory for standard, implementor determination for FLOAT-SHORT/-LONG/-EXTENDED +
+  COMP-1/2 — `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` + `2023/ec_data_overflow`. (Correction: the
+  finding's cited lines :24897/:24668 were wrong — the real anchors are §14.6.13.2 item 3 :24571 and §14.9.25.4 GR4
+  step 4a :28634 / Table 13 :24329/:24342.) Documented gaps: float numeric-edited receiver overflow; multi-float-receiver
+  ADD/SUBTRACT half-commit (an undefined-results follow-on).
 
 ### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID)
 
@@ -1273,11 +1284,16 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 ## 23. Batch-16 verdicts (2026-07-19 — batch-1 raw findings F10/F11/F12, 6 agents, 0 errors) — FINAL BATCH
 
-### VF10 (=§8 F10). SET [SIZE OF] never sets EC-STORAGE-NOT-AVAIL (GR37/GR38) — CONFIRMED major
+### VF10 (=§8 F10). SET [SIZE OF] never sets EC-STORAGE-NOT-AVAIL (GR37/GR38) — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** §14.9.39.4 GR37/GR38 mandate "is set to exist" on the negative and clamp legs; no EC path
-  exists anywhere, while the SAME wave wired the identical nonfatal pattern for CONTINUE. STRENGTHENED: the
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 980).** Mirrors the CONTINUE pattern: bind-time
+  `Turn.Enabled("EC-STORAGE-NOT-AVAIL")` capture on `BoundSetSize.CheckStorage` (both construction sites) → runtime
+  `CobolDynString.SetSize` sets the nonfatal EC on the GR37 negative + GR38 clamp legs. Full-precision sign test
+  (a pre-commit anchor Workflow caught a fractional-negative `-0.5` bug from the pre-truncation-to-`long`). Golden
+  `2023/ec_storage_not_avail`; GR38's storage-unavailable third leg pinned N/A in `CONFORMANCE.md §3`; integer-2 form
+  is SR34-compile-bounded. §14.9.39.4 GR37/GR38 mandate "is set to exist" on the negative and clamp legs; no EC path
+  existed anywhere, while the SAME wave wired the identical nonfatal pattern for CONTINUE. STRENGTHENED: the
   persisted scout (wave-c-scout:614) explicitly specified the EC signaling — the implementation silently
   deviated from its own plan, and DEVLOG-890 falsely asserts "the runtime behavior on valid input is
   spec-correct". Fix for Opus: mirror the CONTINUE pattern (bind-time Turn.Enabled capture on BoundSetSize →

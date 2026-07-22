@@ -52,8 +52,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     public string Visit(BoundClassCondition n) => RenderClass(n);
     // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
-        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})"
-        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})";
+        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
+        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})";
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
     // A per-evaluation user-function window (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): the activations run each
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
@@ -235,7 +235,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderSign(BoundSignCondition s)
     {
-        NumX v = num.Render(s.Expr, ReceiverContext.None);
+        // §14.6.13.2 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from EC-DATA-NOT-FINITE —
+        // render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf sign test is well-defined:
+        // NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0` still raises on its own read).
+        NumX v = num.Render(s.Expr, ReceiverContext.None, floatSendingExempt: true);
         string test = s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }
@@ -250,7 +253,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         var fld = c.Operand as BoundFieldOperand;
         bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
-        string arg = OperandText.AsString(c.Operand, num);
+        // §14.6.13.2 dash-1: a float sending item referenced in a CLASS condition is EXEMPT from EC-DATA-NOT-FINITE —
+        // the class test inspects the content precisely to categorize it, so a NaN/±Inf operand must not raise.
+        string arg = OperandText.AsString(c.Operand, num, floatCheck: false);
         string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
             : $"CobolClass.IsNumeric({arg})";

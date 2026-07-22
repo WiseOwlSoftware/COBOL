@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime;
 
@@ -21,6 +22,45 @@ public static class CobolFloat
 
     /// <inheritdoc cref="Display(float)"/>
     public static string Display(double v) => v.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>The checked read of a standard-float SENDING operand (ISO §14.6.13.2 item 3): return the value, but
+    /// when EC-DATA-NOT-FINITE checking is enabled and the content is NaN or ±Infinity, raise the fatal
+    /// EC-DATA-NOT-FINITE (via <see cref="ExceptionState.FloatNotFiniteError"/>). Always-emitted at the two float
+    /// sending-read chokepoints (the numeric-value read and the string-image read), mirroring the always-emitted
+    /// <c>CobolString.RefMod</c>: the fast path is a single <c>IsFinite</c> test then an immediate return
+    /// (JIT-inlinable), so a directive-free run pays only that test and is byte-behaviour-identical. The four
+    /// exemptions (class condition, sign condition, same-usage MOVE, VALIDATE) are realized as a RAW read at those
+    /// sites, so this wrap never appears there.</summary>
+    public static double Sending(double v)
+    {
+        if (!double.IsFinite(v))
+            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §14.6.13.2 item 3)");
+        return v;
+    }
+
+    /// <inheritdoc cref="Sending(double)"/>
+    public static float Sending(float v)
+    {
+        if (!float.IsFinite(v))
+            ExceptionState.FloatNotFiniteError("a NaN or infinite standard-float sending operand was referenced (ISO §14.6.13.2 item 3)");
+        return v;
+    }
+
+    /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision standard-float receiver (ISO
+    /// §14.9.25.4 GR4 step 4a): cast to <see cref="float"/> and, when a FINITE source overflows the single-precision
+    /// exponent range to ±Infinity and EC-DATA-OVERFLOW checking is enabled, raise the fatal EC-DATA-OVERFLOW (via
+    /// <see cref="ExceptionState.FloatOverflowError"/>). The <c>double.IsFinite(src)</c> guard keeps a NaN/±Infinity
+    /// source out of overflow (that is EC-DATA-NOT-FINITE at the sending read, or the valid §14.6.8.3 GR1 result under
+    /// checking OFF). The test is cast-based — never <c>Math.Abs(src) &gt; float.MaxValue</c>, since a double in
+    /// (float.MaxValue, ~3.4028235678e38] rounds to a FINITE <c>float.MaxValue</c>, not ±Infinity. A double receiver
+    /// cannot overflow from a finite double, so it keeps a bare cast (no checked store).</summary>
+    public static float StoreSingleChecked(double src)
+    {
+        float r = (float)src;
+        if (double.IsFinite(src) && float.IsInfinity(r))
+            ExceptionState.FloatOverflowError("a MOVE algebraic value overflows the single-precision float receiver (ISO §14.9.25.4 GR4 step 4a)");
+        return r;
+    }
 
     /// <summary>Convert a native double to an UNSCALED <see cref="Int128"/> at <paramref name="scale"/> fraction
     /// digits, rounded per <paramref name="mode"/> — the double→scaled-integer landing for a store INTO a fixed-point

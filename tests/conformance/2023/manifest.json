@@ -18,6 +18,8 @@
     "external_relative_key_consistency",
     "ec_size_truncation_prohibited",
     "ec_storage_not_avail",
+    "ec_data_not_finite",
+    "ec_data_overflow",
     "find_string",
     "goback_status",
     "inspect_backward",

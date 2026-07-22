@@ -238,6 +238,49 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── EC-DATA-NOT-FINITE ambient statement gate (a non-finite standard-float sending operand referenced) ──────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-NOT-FINITE checking enabled (fatal, the twin
+    /// of <see cref="BoundRefModChecking"/>). Every non-exempt read of a standard-float SENDING operand consults it —
+    /// the always-emitted <see cref="CobolFloat.Sending(double)"/> wrap at both float read chokepoints.</summary>
+    public bool FloatNotFiniteChecking { get; set; }
+
+    /// <summary>Raise EC-DATA-NOT-FINITE when a standard-float sending operand whose content is NaN or ±Infinity is
+    /// referenced (ISO §14.6.13.2 item 3, spec :24571; Table 13 Fatal), unless one of the four exemptions applies
+    /// (class condition, sign condition, same-usage MOVE, VALIDATE — realized as a raw, unwrapped read at those sites,
+    /// so this raise never reaches them). When checking is enabled it throws <see cref="CobolFatalException"/> (caught
+    /// by the statement guard for USE F3 dispatch, else terminating the run unit per §14.6.13.1.3 #5/#7); when checking
+    /// is OFF it returns and the caller's value stands (byte-identical to a pre-slice build).</summary>
+    public void FloatNotFiniteError(string detail)
+    {
+        if (FloatNotFiniteChecking)
+        {
+            Set("EC-DATA-NOT-FINITE", fatal: true);
+            throw new CobolFatalException("EC-DATA-NOT-FINITE", detail);
+        }
+    }
+
+    // ── EC-DATA-OVERFLOW ambient statement gate (a MOVE algebraic value overflows a standard-float receiver) ─────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-OVERFLOW checking enabled (fatal). Only a
+    /// MOVE into a single-precision standard-float receiver consults it — the <see cref="CobolFloat.StoreSingleChecked"/>
+    /// store site (§14.9.25.4 GR4 step 4a is MOVE-only).</summary>
+    public bool FloatOverflowChecking { get; set; }
+
+    /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
+    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR4 step 4a,
+    /// spec :28634; Table 13 Fatal). Distinct from an arithmetic ±Inf result (a valid §14.6.8.3 GR1 value, never this
+    /// EC) and from a NaN/±Inf SOURCE (that is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
+    /// <see cref="FloatNotFiniteError"/>.</summary>
+    public void FloatOverflowError(string detail)
+    {
+        if (FloatOverflowChecking)
+        {
+            Set("EC-DATA-OVERFLOW", fatal: true);
+            throw new CobolFatalException("EC-DATA-OVERFLOW", detail);
+        }
+    }
+
     // ── EC-EXTERNAL enablement masks (§14.8.4.1 — the both-elements pairing) ──────────────────────────────────
 
     /// <summary>The pending CALL-site EC-EXTERNAL enablement mask (<see cref="ExternalChecks"/> bits): set by an
@@ -429,6 +472,26 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.RefModError"/>
     public static void RefModError(string detail) => E.RefModError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteChecking"/>
+    public static bool FloatNotFiniteChecking
+    {
+        get => E.FloatNotFiniteChecking;
+        set => E.FloatNotFiniteChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteError"/>
+    public static void FloatNotFiniteError(string detail) => E.FloatNotFiniteError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FloatOverflowChecking"/>
+    public static bool FloatOverflowChecking
+    {
+        get => E.FloatOverflowChecking;
+        set => E.FloatOverflowChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FloatOverflowError"/>
+    public static void FloatOverflowError(string detail) => E.FloatOverflowError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.ExternalCheckMask"/>
     public static int ExternalCheckMask

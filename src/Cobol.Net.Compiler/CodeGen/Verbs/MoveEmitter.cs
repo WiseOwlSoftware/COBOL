@@ -364,10 +364,21 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // oracle's '85-obsolete-element behavior — provisional, ratified decision 1). This was the
                 // BoundAllLiteral runtime-loud latent bug (W2 track A): the move compiled then died in AsNum.
                 // A float RECEIVER (COMP-1/2/FLOAT-*, D16) holds the algebraic value in a native float/double —
-                // no PICTURE, no scaled-integer store, no SIZE ERROR (IEEE overflow is Inf, a valid value;
-                // §14.6.8.3 GR1). Emit a native cast to its ClrType; a single-precision receiver rounds via (float).
+                // no PICTURE, no scaled-integer store, no SIZE ERROR (an arithmetic ±Inf is a valid value; §14.6.8.3
+                // GR1). §14.6.13.2 dash-3: the source read is EC-DATA-NOT-FINITE-EXEMPT only when sending and receiving
+                // share the SAME floating-point usage specification (a verbatim copy, endianness aside — Usage enum
+                // equality; endianness is a separate phrase, not a Usage value). A fixed source or a DIFFERENT float
+                // usage (COMP-1↔COMP-2, and the reachable narrowing) keeps the CobolFloat.Sending wrap.
                 if (pic.IsFloat)
-                    return $"({pic.ClrType})({NumericRenderer.Real(num.AsNum(source, ReceiverContext.None))})";
+                {
+                    bool sameUsage = source is BoundFieldOperand fsrc
+                        && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
+                    string srcD = NumericRenderer.Real(num.AsNum(source, ReceiverContext.None, floatSendingExempt: sameUsage));
+                    // §14.9.25.4 GR4 step 4a: a MOVE into a SINGLE-precision receiver raises EC-DATA-OVERFLOW when a
+                    // finite source overflows to ±Inf (StoreSingleChecked). A double receiver cannot overflow from a
+                    // finite double, so it keeps the bare cast.
+                    return pic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(srcD) : $"({pic.ClrType})({srcD})";
+                }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
                     : num.AsNum(source, ReceiverContext.None);
