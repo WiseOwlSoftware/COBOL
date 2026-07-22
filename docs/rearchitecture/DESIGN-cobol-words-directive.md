@@ -1,9 +1,13 @@
 # DESIGN — the `>>COBOL-WORDS` directive (ISO/IEC 1989:2023 §7.3.10)
 
-> **STATUS: DESIGN (decision-complete) — implementing.** Subsystem deep-dive for the `>>COBOL-WORDS`
-> compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this subsystem; the
-> plan (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS doc in the
-> same change set (process rule 4).
+> **STATUS: IMPLEMENTED (all four increments A–D landed; DEVLOG 962–965).** Subsystem deep-dive for the
+> `>>COBOL-WORDS` compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this
+> subsystem; the plan (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS
+> doc in the same change set (process rule 4). All four options (EQUATE/UNDEFINE/SUBSTITUTE/RESERVE) are fully
+> supported for reserved, context-sensitive, AND intrinsic-function words, with SR1–SR5 enforced; the token
+> rewriter + composed `ReservedWordSet` + the map-aware lexer + the binder intrinsic-synonym resolution are all
+> in place. The keyword-omitted intrinsic-synonym `name(args)` form (§6 hazard 2) is the one documented narrow
+> advisory (the `FUNCTION synonym(args)` form is the faithful path).
 
 ## §1 What `>>COBOL-WORDS` is
 

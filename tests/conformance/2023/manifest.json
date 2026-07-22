@@ -4,6 +4,7 @@
     "cobol_words_equate",
     "cobol_words_substitute",
     "cobol_words_undefine",
+    "cobol_words_intrinsic",
     "delete_file",
     "delete_file_absent",
     "boolean_shift",

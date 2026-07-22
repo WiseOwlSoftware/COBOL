@@ -112,6 +112,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// FUNCTION recursion).</summary>
     private BoundExpr BindIntrinsicCore(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
+        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4): an intrinsic-function-name synonym (EQUATE literal-2 /
+        // SUBSTITUTE literal-5 whose canonical is an intrinsic) resolves to the canonical name; an intrinsic that
+        // was UNDEFINE'd (literal-3) or SUBSTITUTE'd away (literal-4) is no longer a function. Only PURE
+        // intrinsic-name synonyms reach here — reserved/context synonyms were already retyped by CobolWordsRewriter.
+        // `cobolWordsRemoved` tests the ORIGINAL written name, so a SUBSTITUTE (literal-4 in DeReserved AND
+        // literal-5→literal-4 in Synonyms) still resolves literal-5 to the intrinsic while literal-4 is removed.
+        bool cobolWordsRemoved = !ctx.CobolWords.IsEmpty && ctx.CobolWords.DeReserved.Contains(name);
+        if (!ctx.CobolWords.IsEmpty && ctx.CobolWords.Synonyms.TryGetValue(name, out var cwCanonical))
+            name = cwCanonical;
+
         // §12.3.8.2 GR12 (:14885): within the environment division's scope, a REPOSITORY-declared
         // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
         // the same name" (the spec's own factorial-override example, :43651) — so the user-function
@@ -121,7 +131,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
             return host.Udf.UdfBindCall(name, argCtxs);
 
-        if (!IntrinsicCatalog.TryGet(name, out var sig))
+        if (cobolWordsRemoved || !IntrinsicCatalog.TryGet(name, out var sig))
         {
             bool definedInGroup = host.UserFunctions?.ContainsKey(name) == true;
             ctx.Edition.Error("COBOLNET1501", $"FUNCTION {name.ToUpperInvariant()} is not an intrinsic function "

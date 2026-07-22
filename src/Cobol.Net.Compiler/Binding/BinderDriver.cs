@@ -356,6 +356,7 @@ internal sealed class BinderDriver
         {
             OoClasses = session.OoClasses,
             RefModZeroLength = session.RefModZeroLength,
+            CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§7.3.10)
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,

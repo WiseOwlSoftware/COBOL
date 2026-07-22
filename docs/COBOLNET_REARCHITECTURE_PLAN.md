@@ -60,10 +60,20 @@ checkpoint.
   `VisitInlineMethodInvocationStatement` record the current unit in `_unitsWithCall`; `FlagEcProgramDirectives` maps
   each directive line to its INNERMOST containing unit and flags if that unit has a call/invoke.
   **⏭ NEXT = the Wave-D residue (the FLAG subsystem is DONE; remaining, doing all IN SEQUENCE per owner):**
-  **① >>COBOL-WORDS — IN PROGRESS** · ② CC-in-COPY · ③ PERFORM Format-3 RUNTIME interceptor · ④ §24 fix-queue →
+  **① >>COBOL-WORDS ✅ COMPLETE** · **② CC-in-COPY — NEXT** · ③ PERFORM Format-3 RUNTIME interceptor · ④ §24 fix-queue →
   Wave I merge → P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case
   incl. negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod
-  parse node was wrong until a probe caught it — DEVLOG 956).
+  parse node was wrong until a probe caught it — DEVLOG 956; the >>COBOL-WORDS subscript hazard was another — DEVLOG 964).
+  **⚠ guard flake lesson (DEVLOG 964): JOBS=32 parallel NIST compile can FALSE-RED 2 tests ("COMPILE FAILED"); verify
+  serially before believing a regression, and NEVER `taskkill dotnet.exe` right before a guard.**
+  **▶ ② CC-DIRECTIVES-INSIDE-COPY (§7.2.1) — NEXT (spec basis read):** the text-manip stage ORDER is Step 1 expand COPY
+  (incorporate library text; false-path COPY may be omitted; SOURCE FORMAT in a false path still processed) → Step 2
+  process DEFINE/IF/EVALUATE + var-substitution + PUSH/POP + COPY REPLACING → Step 3 REPLACE → Step 4 COBOL-WORDS. The
+  CURRENT pipeline runs CC (`ConditionalCompilationProcessor`) BEFORE COPY (`CopyProcessor`) — so a top-level >>IF can
+  gate COPY statements, but CC directives INSIDE copybooks are NOT processed (they reach the lexer as stray >>). The
+  recorded direction: MERGE CC+COPY into ONE interleaved text-manip driver with shared directive state (the copybook
+  >>SOURCE FORMAT §7.3.24.3 GR5 scoped-revert rides the same driver). HIGH blast radius; GnuCOBOL-differential gated
+  before/after. NEEDS a scout+design cycle first.
   **▶ ① >>COBOL-WORDS (§7.3.10; DESIGN SSOT `docs/rearchitecture/DESIGN-cobol-words-directive.md` = decision-complete;
   DEVLOG 962–963):** the owner-directed post-lex token rewriter + composed `ReservedWordSet` (supersedes the prior
   scouts' text-substitution/not-supported plan). 4 increments: **✅ Incr A LANDED** — recognition + parse (4 options) +

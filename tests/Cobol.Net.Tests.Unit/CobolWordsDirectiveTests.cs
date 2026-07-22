@@ -266,4 +266,45 @@ public sealed class CobolWordsDirectiveTests
             "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1623") || e.Contains("COBOLNET0901"));
     }
+
+    // ── Increment D — intrinsic-function-name synonyms (GR2/GR3/GR4 for a FUNCTION name) ─────────────────────
+
+    private const string IntrinsicProgram =
+        "{DIRECTIVE}" +
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWFN.\n" +
+        "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 R PIC 9.\n" +
+        "       PROCEDURE DIVISION.\n       MAIN.\n" +
+        "           COMPUTE R = FUNCTION {NAME}(3 7 5).\n           STOP RUN.\n";
+
+    [Fact] // GR2 — EQUATE a synonym for an intrinsic; FUNCTION synonym(...) resolves to the intrinsic (no error).
+    public void Intrinsic_EquateSynonym_Resolves()
+    {
+        var errors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", "       >>COBOL-WORDS EQUATE \"MAX\" WITH \"MYMAX\"\n")
+            .Replace("{NAME}", "MYMAX"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1501"));
+    }
+
+    [Fact] // GR3 — UNDEFINE an intrinsic; FUNCTION MAX(...) is no longer a function (COBOLNET1501).
+    public void Intrinsic_Undefine_NoLongerAFunction()
+    {
+        var errors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", "       >>COBOL-WORDS UNDEFINE \"MAX\"\n")
+            .Replace("{NAME}", "MAX"));
+        Assert.Contains(errors, e => e.Contains("COBOLNET1501"));
+    }
+
+    [Fact] // GR4 — SUBSTITUTE: the new name resolves; the old intrinsic name is no longer a function.
+    public void Intrinsic_Substitute_NewResolves_OldRemoved()
+    {
+        var okErrors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
+            .Replace("{NAME}", "MYMAX"));
+        Assert.DoesNotContain(okErrors, e => e.Contains("COBOLNET1501"));
+
+        var oldErrors = CompileErrors(IntrinsicProgram
+            .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
+            .Replace("{NAME}", "MAX"));
+        Assert.Contains(oldErrors, e => e.Contains("COBOLNET1501"));
+    }
 }

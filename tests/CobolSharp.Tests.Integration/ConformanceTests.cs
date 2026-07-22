@@ -368,6 +368,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "cobol_words_equate"),     // EQUATE DISPLAY WITH SHOW (§7.3.10.4 GR2)
         ("2023", "cobol_words_substitute"), // SUBSTITUTE DISPLAY BY SHOW (§7.3.10.4 GR4)
         ("2023", "cobol_words_undefine"),   // UNDEFINE MOVE, used as a subscripted data-name (§7.3.10.4 GR3)
+        ("2023", "cobol_words_intrinsic"),  // EQUATE MAX WITH LARGEST — an intrinsic-function-name synonym (§7.3.10.4 GR2)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
         ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
         // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO

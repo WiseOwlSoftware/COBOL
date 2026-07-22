@@ -47,6 +47,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default) for direct test construction.</summary>
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the intrinsic binder resolves a
+    /// function-name synonym / removal (EQUATE/UNDEFINE/SUBSTITUTE of an intrinsic-function-name) through it.
+    /// Defaults to <see cref="Editions.CobolWordsMap.Empty"/> (no directive) for direct test construction.</summary>
+    public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
+
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
     /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
     public IReadOnlyList<DataItem> Roots => _roots;
