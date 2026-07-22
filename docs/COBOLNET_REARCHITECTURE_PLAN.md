@@ -23,20 +23,23 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD = the CC-in-COPY commit `c3377315`, pushed).** ⭐ **Two Wave-D residue tracks
-  LANDED this session (owner: "do them all in sequence"):** **① `>>COBOL-WORDS` §7.3.10 COMPLETE** (4 increments A–D,
-  commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`; DESIGN SSOT `DESIGN-cobol-words-directive.md` = IMPLEMENTED;
-  DEVLOG 962–965) and **② CC-directives-inside-COPY §7.2.1 COMPLETE** (`c3377315`; DESIGN SSOT `DESIGN-cc-in-copy.md`
-  = IMPLEMENTED; DEVLOG 966; the merged interleaved text-manip driver — GnuCOBOL +2 fixes/0 regressions, legacy guard
-  ALL GREEN, greenfield Conformance 3806/0). The prior FLAG-02/FLAG-14 migration-flagging subsystem stays COMPLETE
-  (`DESIGN-flag-directives.md` = IMPLEMENTED; the full 19-item census; DEVLOG 933–961 for the detail).
-  **⏹ SESSION STOPPED HERE per owner** (land Tracks 1+2; resume Track ③ fresh next session — it is design-ready and
-  scouted, see the ▶ ③ block below).
-  **⏭ NEXT = the Wave-D residue (the FLAG subsystem + Tracks ①② are DONE; remaining, doing all IN SEQUENCE per owner):**
-  **① >>COBOL-WORDS ✅ COMPLETE** · **② CC-in-COPY ✅ COMPLETE** · **③ PERFORM Format-3 RUNTIME interceptor — NEXT** ·
-  ④ §24 fix-queue → Wave I merge → P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case
-  incl. negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod
-  parse node was wrong until a probe caught it — DEVLOG 956; the >>COBOL-WORDS subscript hazard was another — DEVLOG 964).
+- **▶ RESUME AT (2026-07-21; code HEAD advancing on `phase-13-grammar-batch`; the CC-in-COPY commit `c3377315` +
+  Track ③ Increment 1).** ⭐ **Wave-D residue: ①② COMPLETE; ③ IN PROGRESS (design decision-complete + Incr 1 landed):**
+  **① `>>COBOL-WORDS` §7.3.10 COMPLETE** (commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`; `DESIGN-cobol-words-directive.md`
+  = IMPLEMENTED; DEVLOG 962–965) · **② CC-directives-inside-COPY §7.2.1 COMPLETE** (`c3377315`; `DESIGN-cc-in-copy.md`
+  = IMPLEMENTED; DEVLOG 966) · the prior FLAG-02/FLAG-14 subsystem stays COMPLETE (`DESIGN-flag-directives.md`; DEVLOG
+  933–961). **③ PERFORM Format-3 RUNTIME interceptor — IN PROGRESS (DEVLOG 968):** the interceptor DESIGN is now
+  **DECISION-COMPLETE** — design SSOT `PHASE-13-c5-perform-format3-DESIGN.md` **§9** (produced by an adversarial design
+  panel + a direct spec cross-check; the owner-directed pc-RANGE architecture, 7 resolved decisions, an 8-increment
+  plan, 5 flagged probes). **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
+  `ExceptionEngine` frame stack (`Push/Pop/RunTopFrame` top-down walk w/ deferred `Handling`-clear + `PerformDepth`/
+  `TrimPerformTo`) + `ExceptionState` delegators + `ProgramTable.CallProgram` per-activation snapshot; gate =
+  `PerformFrameStackTests` 9/9 + characterization 33/33 byte-identical + build 0/0. **⏭ NEXT = Increment 2**
+  (the gating flag flow: `EcFeatures.HasF3Perform` + `.Any` + `EcState.UnitHasF3Perform` + `BoundProgram.F3HandlerBasePc`,
+  all still INERT; gate = characterization byte-identity) → Incr 3 (funnel + `__EcPerform` + `__IoCheckEc` frame-first,
+  behind `UnitHasF3Perform`, all dead) → Incr 4 (pc-range synthesis + tier matcher + un-reject — the behavior wave, full
+  legacy guard + GnuCOBOL diff) → Incr 5–7. **THEN ④ §24 fix-queue → Wave I merge → P14.**
+  **⚠ verify-by-RUNNING** (the design's 5 probes; §9.9). The per-detector build discipline is in DEVLOG 949–956.
   **⚠ guard flake lesson (DEVLOG 964): JOBS=32 parallel NIST compile can FALSE-RED 2 tests ("COMPILE FAILED"); verify
   serially before believing a regression, and NEVER `taskkill dotnet.exe` right before a guard.**
   **▶ ② CC-DIRECTIVES-INSIDE-COPY (§7.2.1) ✅ COMPLETE (DESIGN SSOT `docs/rearchitecture/DESIGN-cc-in-copy.md` =
@@ -50,10 +53,13 @@ checkpoint.
   ⚠ lesson: USE/MODE are RESERVED — can't be compilation-variable names (COBOLNET1619); a two-pass CC→COPY→CC also
   fails (pass 1 consumes the main >>DEFINE before the copybook >>IF in pass 2 can see it) — the interleaved driver is
   the only correct shape.
-  **▶ ③ PERFORM Format-3 RUNTIME interceptor — NEXT (DESIGN-READY + SCOUTED 2026-07-21; do NOT rush — this rewires the
-  byte-critical EC runtime every program's exception handling flows through).** The GR17–20 runtime is STAGED (F3
-  PERFORM REJECTED at 2023 with COBOLNET0899 — `EcBinder.ExceptionPerform.cs:35-40`, `perform-exception-checking-2023`
-  = `status:pending`). **✅ The BINDER IS ALREADY COMPLETE:** `EcBindExceptionPerform` produces a full
+  **▶ ③ PERFORM Format-3 RUNTIME interceptor — IN PROGRESS (design DECISION-COMPLETE in `PHASE-13-c5-perform-format3-DESIGN.md`
+  §9; Incr 1 landed — DEVLOG 968; do NOT rush — this rewires the byte-critical EC runtime every program's exception
+  handling flows through).** ⭐ **§9 (the pc-RANGE interceptor implementation SSOT) supersedes the A-vs-B question below
+  and this seam map** — read §9 FIRST; the scout detail here remains accurate as background. The GR17–20 runtime is
+  STAGED (F3 PERFORM REJECTED at 2023 with COBOLNET0899 — `EcBinder.ExceptionPerform.cs:35-40`,
+  `perform-exception-checking-2023` = `status:pending`) UNTIL Incr 4 flips it. **✅ The BINDER IS ALREADY COMPLETE:**
+  `EcBindExceptionPerform` produces a full
   `BoundExceptionPerform` (imp1 bound with the GR14 `TurnState.WithImplicitEnable` overlay; WHEN descriptors
   `BoundExceptionWhen(Mode,Ops,Body)`; other/common/final; withLocation; RESUME-in-WHEN relaxation via
   `ctx.EcState.InF3When`; `ctx.EcState.F3Perform=true` the emitter gate). **The REMAINING work = the emitter + runtime

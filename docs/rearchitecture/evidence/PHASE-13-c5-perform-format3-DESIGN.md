@@ -697,3 +697,460 @@ Gate all of this on "this unit HAS an F3 PERFORM," which the binder already reco
 
 ---
 
+## 9. THE pc-RANGE INTERCEPTOR — DECISION-COMPLETE DESIGN (the runtime-wave implementation SSOT)
+
+> Produced 2026-07-21 by an adversarially-verified design panel (3 independent designers → 3 spec/buildability
+> verifiers → synthesis) + a direct spec cross-check. **This §9 is the authoritative implementation contract for
+> the runtime interceptor and SUPERSEDES §5.4's open A-vs-B question** (the owner-directed pc-RANGE architecture is
+> option A refined). §5 remains the feature-semantics spec; §8 remains the raise-site seam map. Every literal C#
+> below is the emit contract — reproduce it exactly.
+>
+> **Spec facts confirmed DIRECTLY this session (not paraphrase):** (i) §14.9.49.4 GR3 is a TIERED priority scan
+> (a F1-file → b F1-mode → c F3 file+L3 → d F3 file+L2 → e F3 L3 → f F3 L2 → g F3 L1/EC-ALL; "the first declarative
+> that satisfies the selection criteria is executed," tiers "applied in order," source order only WITHIN a tier);
+> §14.9.28.4 GR17 binds WHEN matching to exactly GR3a–g ⇒ **the matcher is tier-ordered, NOT written-order** (the
+> binder's "first written-order match wins" comment is wrong for cross-tier cases). (ii) GR20 realizes the
+> fatal/nonfatal split at the RAISE SITE's static fatal-ness + the existing `-1/-2` protocol ⇒ **`fatal` need NOT be
+> threaded into the matcher** (dead plumbing — dropped). (iii) GR16 + NOTE 8 make FINALLY part of "the end of the
+> PERFORM"; GR20's fatal branch routes to §14.6.13.1.3 (abnormal termination, never re-entering the end of PERFORM)
+> ⇒ the **FINALLY-on-fatal contradiction is NOTE 8 vs GR20**, NOT NOTE 9 (which concerns a programmer's transfer
+> out); chosen default = FINALLY on normal/EXIT paths only.
+
+### 9.0 Architecture summary
+
+| Piece | Home | Mechanism | Spec |
+|---|---|---|---|
+| **imp-1** (guarded body) | INLINE in the host paragraph `case`, inside a `try` | ordinary emission under the GR14 overlay (already bound) | GR15 |
+| **WHEN selection** (tier-ordered match + COMMON compose) | a `PerformFrame.Matcher` **closure** — pure match arithmetic + `__RunUse` calls, NO goto/RESUME/EXIT inside it | `RunTopFrame` walks the frame stack | GR17→§14.9.49.4 GR3a-g, GR19 |
+| **imp-2 / imp-3 / imp-4 bodies** | **synthetic anonymous pc-range paragraphs APPENDED above the main pc space** | the existing `__RunUse(id,pc,pc)` → nested `__Dispatch` → `catch(ResumeSignal)` | GR17/18/19 |
+| **imp-5 (FINALLY)** | INLINE trailing block after imp-1 | ordinary emission | GR16 |
+
+Handler *bodies* are pc-ranges (not lambda bodies), so RESUME reuses `ResumeSignal`→`__RunUse`→`-2` verbatim and the
+matcher closure contains nothing C# forbids in a lambda. The one friction (an appended handler region is on the
+top-level fall-through chain) is walled off by ONE gated dispatcher-bound change. The one new control primitive is
+`ExitPerformSignal` — a sanctioned sibling of `ResumeSignal`/`StopRun`/`ProgramReturn` (NOT a second dispatch
+mechanism), required because EXIT-PERFORM-from-a-handler crosses the nested-`__Dispatch` C# call boundary a goto/pc
+cannot.
+
+**Resolved decisions (panel disagreements + verdict blockers/majors, each fixed here):**
+1. **Placement — APPEND above main pc space + a gated WALL.** Reject plain append (BLOCKER: appended region is
+   fall-through-reachable — the last real paragraph runs the handlers on implicit end-of-PD, §14.9.18). Reject the
+   below-`EntryPc` pre-binding DFS (must re-derive F3 identity in a 2nd parse walk, reconcile `SentenceContext[]` vs
+   `StatementBlockContext[]`, bind handler bodies OUT of lexical order — losing §8.4.2.2 in-section resolution +
+   §15.30 LOCATION anchoring). APPEND binds handler bodies EXACTLY where they bind today (in `EcBindExceptionPerform`,
+   correct scope/overlay/`InF3When`); the wall costs one gated line.
+2. **Matcher — TIERED, not written-order** (spec-mandated, §9 preamble (i)).
+3. **`__IoCheckEc` — frame consulted at the TOP**, before the F1 file/mode USE switch (§14.9.49.4 GR6 + GR17: a
+   matching WHEN IGNORES the USE).
+4. **`fatal` — DROPPED** (§9 preamble (ii); `EcDispatchExpr` keeps its 2-arg signature ⇒ zero caller edits).
+5. **`RunTopFrame` — top-down WALK with deferred `Handling`-clear**, not "peek top" (nested F3: an EC in an inner
+   imp-1 that matches only the OUTER WHEN must reach the outer handler, GR17 for the outer PERFORM).
+6. **FINALLY defect — NOTE 8 vs GR20** (not NOTE 9).
+7. **OO-method F3 — loud reject (keep 0899), never silent-drop** (the appended-handler pc falls outside the method's
+   contiguous slice ⇒ the WHEN body would silently never run).
+
+### 9.1 pc-range synthesis — data-flow
+
+`CollectParagraphs(pd)` runs first, unchanged; after it `_paras.Count` (`mainCount`) and `Declaratives.Count`
+(`declCount`) are frozen (`ProcedureTableBuilder.cs:86`). Handler paragraphs are bound in-context during the main
+bind loop and appended after it.
+
+**A. Per-unit side-list on `ProcedureTableBuilder`** (parallel to the appended paragraphs; NOT `_paras`, so the main
+bind loop never re-binds them):
+```csharp
+private readonly List<BoundParagraph> _f3Handlers = [];
+private readonly List<int> _f3Owners = [];              // owning PerformId per handler (parallel)
+public int HandlerBasePc => _paras.Count;               // mainCount — frozen after CollectParagraphs
+public IReadOnlyList<BoundParagraph> F3Handlers => _f3Handlers;
+public IReadOnlyList<int> F3HandlerOwners => _f3Owners;
+
+/// Register one already-bound F3 handler body (imp-2/3/4) as a synthetic, UNREFERENCEABLE pc-range paragraph
+/// appended above the whole main pc space (ISO §14.9.28.4 GR17 — a WHEN handler is an inline declarative run by
+/// the bounded dispatcher). Returns its pc. An empty body still gets one no-op pc (the empty-USE precedent).
+public int AddF3Handler(IReadOnlyList<BoundStatement> body, int performId, int line)
+{
+    int pc = _paras.Count + _f3Handlers.Count;          // mainCount + ordinal (dense, collision-free)
+    _f3Handlers.Add(new BoundParagraph("(exception-checking PERFORM handler)", new[] { body }, line));
+    _f3Owners.Add(performId);
+    return pc;
+}
+```
+Handler `useId` (for `__useActive[id]`, reused by `__RunUse`) is DERIVED, not stored:
+`useId(pc) = declCount + (pc − HandlerBasePc)`; `__useActive` is sized `declCount + H`.
+
+**B. `EcBindExceptionPerform` redirects imp-2/3/4 into pc-ranges** — the in-context binding (overlay popped at the
+current line 69; `InF3When` at 74) is preserved verbatim; only the DESTINATION changes from an inline list to
+`AddF3Handler`, and the pc threads onto the node. imp-1 and imp-5 stay inline. Replaces the current lines 73–84:
+```csharp
+// OO-method F3 PERFORM is a narrow STAGED GAP (the class pc space is per-method contiguous slices; an appended
+// handler pc falls outside every method slice → would silently never run). Reject loud, not drop — keep 0899.
+if (ctx.CurrentMethodScope is not null)
+    return F3StagedInMethodStub(p, imp1, withLocation);   // imp-1 + FINALLY inline as today
+
+int performId = ctx.EcState.NextF3PerformId();            // per-unit counter (labels + ExitPerformSignal id)
+int line = p.Start.Line;
+bool savedInWhen = ctx.EcState.InF3When;
+ctx.EcState.InF3When = true;
+var whens = new List<BoundExceptionMatch>();
+for (int i = 0; i < whenPhrases.Length; i++)
+{
+    var body = host.BindBlocks(whenPhrases[i].statementBlock());
+    int pc = ctx.Table.AddF3Handler(body, performId, line);
+    whens.Add(new BoundExceptionMatch(headers[i].Mode, headers[i].Ops, pc));
+}
+int? otherPc  = p.performWhenOther()  is { } o ? ctx.Table.AddF3Handler(host.BindBlocks(o.statementBlock()), performId, line) : null;
+int? commonPc = p.performWhenCommon() is { } c ? ctx.Table.AddF3Handler(host.BindBlocks(c.statementBlock()), performId, line) : null;
+ctx.EcState.InF3When = savedInWhen;
+var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;  // imp-5 inline (GR16)
+
+bool handlerHasExit = HandlerBodiesContainExitPerform(p);   // region-C/handler scan, stops at nested performStatement
+var node = new BoundExceptionPerform(imp1, whens, otherPc, commonPc, final, withLocation, performId, handlerHasExit);
+```
+Binding out of the generic loop but IN lexical context is correct: overlay popped (base `TurnState`, GR21/GR22),
+`InF3When` gives the RESUME-NEXT relaxation, GO TO banned (COBOLNET1608). The GR14 overlay wrapped ONLY imp-1 (current
+lines 64–69), so imp-2/3/4 bind against base `TurnState` for free.
+
+**C. `StatementBinder.Bind` appends the side-list after the main loop** and records the base pc:
+```csharp
+int handlerBase = bound.Count;                    // == table.HandlerBasePc == mainCount
+bound.AddRange(table.F3Handlers);                 // pcs handlerBase..handlerBase+H-1, 1:1 with allocation
+return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
+    DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
+    F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
+    F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null);
+```
+`bound[handlerBase + k]` is handler k, matching the pc on the node. `__N = Paragraphs.Count` now includes handlers,
+so `EmitDispatchMethod` emits a `case` per handler automatically; each is reached ONLY via `__RunUse(id, pc, pc)`.
+Synthetics are in NO name map (unreferenceable — the `AddAnonymousParagraph` precedent). `EntryPc` and every existing
+pc are untouched ⇒ byte-identity holds for non-F3 units. **The OO/method path (`StatementBinder.cs:246`) does NOT
+append (F3-in-method is loud-rejected in B) — but MUST still not mis-set `F3HandlerBasePc`.**
+
+### 9.2 Runtime additions (`src/Cobol.Net.Runtime/`)
+
+**`PerformFrame`** (`Exceptions/PerformFrame.cs`) — matcher takes NO `fatal`:
+```csharp
+public sealed class PerformFrame
+{
+    /// Tier-ordered WHEN selector the emitted PERFORM installs. Returns the per-statement dispatch action
+    /// (-1 handled-continue / -2 RESUME NEXT / >=0 pc [unreachable from a WHEN body — bind-rejected COBOLNET1610])
+    /// or NoMatch when no WHEN/OTHER selects (ec,file). file==null for a non-I-O condition. (ISO §14.9.28.4 GR17-19.)
+    public required Func<string /*ec*/, string? /*file*/, int> Matcher { get; init; }
+    public bool Handling { get; set; }                   // GR21 transparency
+    public const int NoMatch = int.MinValue;             // distinct from -1/-2/-3 and any pc
+}
+```
+
+**`ExceptionEngine` additions** (`ExceptionState.cs`) — a List-backed stack (so `RunTopFrame` can index it) + the
+nesting-correct top-down walk:
+```csharp
+private readonly List<PerformFrame> _perform = new();
+public void PushPerformFrame(PerformFrame f) => _perform.Add(f);
+public void PopPerformFrame()               => _perform.RemoveAt(_perform.Count - 1);
+internal int  PerformDepth => _perform.Count;
+internal void TrimPerformTo(int d) { while (_perform.Count > d) _perform.RemoveAt(_perform.Count - 1); }
+
+/// Select and run the innermost matching WHEN handler (ISO §14.9.28.4 GR17 — the closest exception-checking PERFORM
+/// whose imperative-statement-1 is executing; GR21 — a frame is transparent to ECs raised while it is handling).
+/// Frames tried in THIS resolution stay marked Handling until it completes, so an EC raised inside a selected
+/// (outer) handler is not re-caught by a skipped inner frame whose imp-1 is suspended.
+public int RunTopFrame(string ec, string? file, out bool handled)
+{
+    handled = false;
+    var marked = new List<PerformFrame>(4);              // per-raise (EC path is rare); re-entrancy-safe
+    try
+    {
+        for (int i = _perform.Count - 1; i >= 0; i--)    // innermost → outermost
+        {
+            var f = _perform[i];
+            if (f.Handling) continue;                    // GR21 — its own imp-1/handler is transparent
+            f.Handling = true; marked.Add(f);            // deferred clear ⇒ stays Handling for the whole walk
+            int a = f.Matcher(ec, file);                 // runs imp-2 (+COMMON) synchronously iff it matches
+            if (a != PerformFrame.NoMatch) { handled = true; return a; }
+        }
+        return PerformFrame.NoMatch;                      // → caller falls to __EcDispatch (USE) / -3
+    }
+    finally { foreach (var f in marked) f.Handling = false; }
+}
+```
+**Static facade** (`ExceptionState`): `PushPerformFrame` / `PopPerformFrame` / `RunTopFrame` delegators.
+
+**`ExitPerformSignal`** (`Control/Signals/ExitPerformSignal.cs`):
+```csharp
+/// EXIT PERFORM raised inside a Format-3 handler pc-range (imp-2/3/4) — unwinds the nested __Dispatch/__RunUse/
+/// matcher frames back to the owning PERFORM boundary, where `catch … when (Id==n)` lands control before FINALLY
+/// (ISO §14.9.14.4 GR4 / §14.9.28.4 GR16). Id disambiguates nested F3 PERFORMs. EXIT PERFORM inside imp-1 or imp-5
+/// is a plain goto, never this signal.
+public sealed class ExitPerformSignal(int id) : Exception { public int Id { get; } = id; }
+```
+
+**CALL boundary** (`ProgramTable.CallProgram`, mirroring `ExternalCheckMask` at `ProgramTable.cs:152-161`):
+`int __d = exc.PerformDepth;` before `inst.Call(...)`, `exc.TrimPerformTo(__d);` in the `finally`. Per-activation
+scope (safe default; cross-CALL GR1 "in range" stays STAGED). A propagated EC at a CALL site in imp-1 still hits the
+intact caller frame (§14.9.33.4 GR2a2).
+
+### 9.3 Generated emit shapes (literal C#)
+
+**§9.3.1 The funnel + `__EcPerform`** (per class, gated `UnitHasF3Perform`). `EcDispatchExpr` keeps its 2-arg
+signature (no `fatal`, no caller edits):
+```csharp
+public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
+    ecState.UnitHasF3Perform ? $"__EcPerform({ecNameExpr}, {fileExpr})"
+    : ecState.UnitHasF3       ? $"__EcDispatch({ecNameExpr}, {fileExpr})"   // byte-identical non-F3 text
+    :                           "-3";
+```
+```csharp
+private int __EcPerform(string __ec, string __f)
+{
+    int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);
+    return __h ? __a : {UnitHasF3 ? "__EcDispatch(__ec, __f)" : "-3"};   // GR17/18 win over USE; else USE/-3
+}
+```
+The `__EcDispatch`/`-3` fallback is gated on `UnitHasF3` so a **no-declarative** F3 unit never references the
+(unemitted) `__EcDispatch` — THE BLOCKER FIX, paired with §9.5's gate widening.
+
+**§9.3.2 The tier-ordered matcher + COMMON composition** (per F3 PERFORM, `n = PerformId`). The emitter builds
+`(tier, whenIdx, opIdx, testExpr, imp2Pc)` for every operand, **sorts by (tier, whenIdx, opIdx)**, emits arms in
+that order (tier = the compile-time GR3 rank: `0` file+L3, `1` file+L2 and bare-file, `2` L3, `3` L2, `4` L1/EC-ALL).
+WHEN OTHER (GR18) is the final unconditional fallback:
+```csharp
+ExceptionState.PushPerformFrame(new PerformFrame { Matcher = (__ec, __f) =>
+{
+    // GR17 → §14.9.49.4 GR3c-g: tier priority (file+L3 → file+L2 → L3 → L2 → L1), source order only WITHIN a tier.
+    if (__f == "MASTER" && __ec == "EC-I-O-PERMANENT-ERROR")                 // tier 0 (file+L3)
+        return __RunF3(11, 40, /*common*/ 13, 42);
+    if (__ec == "EC-BOUND-SUBSCRIPT")                                        // tier 2 (L3)
+        return __RunF3(12, 41, 13, 42);
+    if (ExceptionCatalog.UnderLevel2(__ec, "EC-BOUND"))                      // tier 3 (L2)
+        return __RunF3(12, 41, 13, 42);
+    return __RunF3(/*WHEN OTHER imp-3*/ 14, 43, 13, 42);                     // GR18; else: return PerformFrame.NoMatch;
+}});
+```
+Per-operand test emit (mirrors `__EcDispatch`, `EcEmitter.cs:274-283`, so the two never drift):
+```
+file+L3 :  __f == {FileKeyExpr(f)} && __ec == "EC-…"
+file+L2 :  __f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, "EC-…")
+bare file: ExceptionCatalog.IsIoName(__ec) && __f == {FileKeyExpr(f)}        // tier 1 (file+I-O ≈ level-2) — PROBE
+L3      :  __ec == "EC-…"
+L2      :  ExceptionCatalog.UnderLevel2(__ec, "EC-…")
+L1      :  true                                                              // EC-ALL
+open-mode: STAGED — not emitted (COBOLNET0899, §5.4-1)
+```
+A WHEN with several operands OR-joins its per-operand arms (each keyed to the same `imp2Pc`), each in its own tier.
+The ONE COMMON-composition helper (per class):
+```csharp
+// GR19: COMMON runs only after imp-2/imp-3 COMPLETES (falls off → -1). RESUME NEXT (-2) is a transfer OUT of imp-2
+// (§14.9.33) → skip COMMON, propagate -2. EXIT PERFORM never returns here (it throws).
+private int __RunF3(int __u, int __pc, int __cu, int __cpc)
+{
+    int __a = __RunUse(__u, __pc, __pc);
+    if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // imp-4; -1 → GR20, -2 → RESUME NEXT
+    return __a;
+}
+```
+**Action composition** `matcher → RunTopFrame → __EcPerform → raise site` (the raise-site consumption idiom is
+UNCHANGED): `-1` at a nonfatal site (no throw) → next inline imp-1 statement = GR20 resume-in-place; `-1` at a fatal
+site → `if (__r != -2) throw` fires = GR20 fatal abnormal-termination; `-2` anywhere → suppresses the throw, falls
+past the raiser = §14.9.33.4 GR2; `NoMatch` → `handled=false` → `__EcDispatch`/`-3` = USE runs as today.
+
+**§9.3.3 Host `EmitExceptionPerform`** (replaces the `ControlFlowEmitter.cs:64` stub):
+```csharp
+public void EmitExceptionPerform(BoundExceptionPerform p)
+{
+    var w = ctx.Writer; int n = p.PerformId;
+    /* §9.3.2 frame install (matcher closure) emitted here */
+    using (w.Block("try"))
+    {
+        using (w.Block("try"))
+        {
+            var s = dispatch.SetF3Region(F3Region.Imp1, n);          // imp-1 EXIT PERFORM → goto __f3fin{n}
+            Statements.EmitStatementList(p.Imp1);                    // inline, already bound under GR14 overlay
+            dispatch.RestoreF3Region(s);
+        }
+        if (p.HandlerHasExit)
+            w.Line($"catch (ExitPerformSignal __eps{n}) when (__eps{n}.Id == {n}) {{ }}   // handler EXIT PERFORM → §14.9.14.4 GR4");
+    }
+    w.Line($"finally {{ ExceptionState.PopPerformFrame(); }}");
+    w.Line($"__f3fin{n}: ;   // implicit CONTINUE preceding FINALLY (GR4/GR16)");
+    if (p.FinallyBody is { } fb)
+    {
+        var s = dispatch.SetF3Region(F3Region.Finally, n);           // imp-5 EXIT PERFORM → goto __f3end{n}
+        Statements.EmitStatementList(fb);                            // imp-5 inline; skipped on fatal throw
+        dispatch.RestoreF3Region(s);
+    }
+    w.Line($"__f3end{n}: ;   // end of PERFORM");
+}
+```
+All three NON-fatal exit paths (normal fall-off imp-1, imp-1 goto, handler throw→catch) converge on `__f3fin{n}`, so
+FINALLY runs once on every non-fatal path (GR4/GR16). The frame pops in `finally` BEFORE FINALLY, so imp-5 behaves
+"as if in a Format-2 PERFORM" (GR21). The nested `try` is needed so the handler `catch` sits inside the `finally`
+that pops the frame. `goto __f3fin{n}`/`__f3end{n}` out of the `try`s is C#-legal (labels are outside the try; a goto
+out of a try runs its finally). **FINALLY is skipped on the fatal path** — a `CobolFatalException` is not caught by
+`catch (ExitPerformSignal)`, so it unwinds PAST the inline block (§9.6 Q5 default).
+
+**§9.3.4 `BoundExitPerform` emit** (`StatementEmitter.cs:112`):
+```csharp
+public bool Visit(BoundExitPerform n)
+{
+    switch (_dispatch.F3Cur.Region)
+    {
+        case F3Region.Imp1:    _ctx.Writer.Line($"goto __f3fin{_dispatch.F3Cur.Id};"); return true;   // GR4
+        case F3Region.Handler: _ctx.Writer.Line($"throw new ExitPerformSignal({_dispatch.F3Cur.Id});"); return true;
+        case F3Region.Finally: _ctx.Writer.Line($"goto __f3end{_dispatch.F3Cur.Id};"); return true;   // GR16
+        default:               _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false;      // UNCHANGED
+    }
+}
+```
+`F3Cur` (region + id) is set to `Imp1`/`Finally` by `EmitExceptionPerform`, to `Handler` by `EmitDispatchMethod`
+around a handler `case` (via `F3HandlerOwners`), and **saved/restored to `None` by `EmitInlinePerform`/
+`EmitOutOfLinePerform` around their loop bodies** — so a plain EXIT PERFORM inside a nested inline PERFORM within
+imp-1 or a handler `break`s that inner loop (§14.9.14.4 GR5a), NOT the F3 PERFORM. This save/restore is load-bearing
+(a single ambient flag miscompiles the nested case). Dispatcher hook, around `EmitParagraphBody`
+(`DispatchEmitter.cs:115`):
+```csharp
+bool isHandler = bound.F3HandlerBasePc is int b && i >= b;
+var s = isHandler ? dispatch.SetF3Region(F3Region.Handler, bound.F3HandlerOwners![i - b]) : default;
+… EmitParagraphBody … ;
+if (isHandler) dispatch.RestoreF3Region(s);
+```
+
+### 9.4 Binder / bound-node changes
+```csharp
+public sealed record BoundExceptionPerform(
+    IReadOnlyList<BoundStatement> Imp1,
+    IReadOnlyList<BoundExceptionMatch> Whens,       // operands + imp-2 pc (no inline body)
+    int? OtherPc, int? CommonPc,                     // imp-3 / imp-4 pcs
+    IReadOnlyList<BoundStatement>? FinallyBody,       // imp-5 stays INLINE
+    bool WithLocation, int PerformId, bool HandlerHasExit) : BoundStatement;
+
+public sealed record BoundExceptionMatch(string? OpenMode, IReadOnlyList<BoundWhenOperand> Operands, int Imp2Pc);
+// BoundWhenOperand unchanged. Operands carry Ec/File → the emitter computes each operand's GR3 tier + test.
+```
+`BoundProgram` gains `int? F3HandlerBasePc = null` and `IReadOnlyList<int>? F3HandlerOwners = null`.
+
+**Source-gen visitor / `StatementChildren`:** imp-2/3/4 are no longer children of `BoundExceptionPerform` (they live
+in their own appended `BoundParagraph`s, walked by the per-paragraph pass). Update `BoundStores`/`UsageCollectionPass`
+so `BoundExceptionPerform`'s statement-bearing children are **`Imp1` + `FinallyBody` only**; imp-2/3/4 field-usage is
+collected at their synthetic paragraphs (automatic once bodies live there — **PROBE: verify no double-count**).
+`BoundExceptionMatch` is no longer statement-bearing.
+
+**`EcBindState`/`EcFeatures` flag flow (Q7):** add an 8th field `HasF3Perform` to the `EcFeatures` positional record,
+to `BuildFeatures()`, AND to `.Any` (so `BinderDriver` sets `ecActive=true` → `EcState.Active=true` → the int-form
+`__RunUse` is emitted — a pure `PERFORM CONTINUE WHEN EC-BOUND-SUBSCRIPT CONTINUE END-PERFORM` has NO other EC
+feature, so omitting it from `.Any` selects the void `__RunUse` and the matcher won't compile). The COBOLNET0899
+reject at `EcBinder.ExceptionPerform.cs:35-40` is DELETED for the program path (Incr 4) but RETAINED for the
+OO-method path via `F3StagedInMethodStub` (§9.1-B).
+
+### 9.5 `__IoCheckEc` frame-first + byte-identity gating
+
+**§9.5.1 `__IoCheckEc`** (spec fix, gated `UnitHasF3Perform`). Per §14.9.49.4 GR6 + GR17 the enclosing PERFORM's WHEN
+must be consulted BEFORE the F1 file/mode USE switch. **Warning path** (replace `EcEmitter.cs:328`):
+```csharp
+if (!__en) return -1;
+int __wp = __EcPerform(__ec!, __f);            // GR17 — a matching WHEN ignores USE; warning is nonfatal
+return __wp == -3 ? -1 : __wp;                 // (non-F3 unit: emits the current __EcDispatch/-3 line unchanged)
+```
+**Unsuccessful path** (restructure `EcEmitter.cs:333-356`): the F1 switch runs ONLY when no WHEN matched:
+```csharp
+int __sel = -3; bool __wh = false;
+{ if UnitHasF3Perform: }  __sel = ExceptionState.RunTopFrame(__ec!, __f, out __wh); if (!__wh) __sel = -3;
+{ if not __wh: }
+    // ... existing F1 file switch (GR3a/GR5), F1 open-mode switch (GR3b/GR6), F3 __EcDispatch (GR3c-g),
+    //     outer GLOBAL walk (GR4b) — byte-identical to today ...
+if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed
+if (__en && ExceptionCatalog.IsFatalIoStatus(__st)) throw new CobolFatalException(...);   // GR20 fatal default
+return -1;
+```
+A WHEN-handled `-1` correctly falls to the fatal default (GR20 fatal → terminate). When `UnitHasF3Perform` is false
+the frame block is not emitted ⇒ byte-identical to today.
+
+**§9.5.2 Gating summary** (every new emission gated so a non-F3 unit is byte-identical):
+
+| Emission | Gate |
+|---|---|
+| `EcDispatchExpr` → `__EcPerform` (else current `__EcDispatch`/`-3`) | `UnitHasF3Perform` |
+| `__EcPerform`, `__RunF3` methods | `UnitHasF3Perform` |
+| `__IoCheckEc` frame-first blocks (§9.5.1) | `UnitHasF3Perform` |
+| `EmitExceptionPerform` frame install / try-catch(ExitPerformSignal) / finally-pop / labels / matcher | reached only for a `BoundExceptionPerform` node |
+| Synthetic handler pcs + `case`s; the wall (§9.5.3); `F3Region.Handler` context | `F3HandlerBasePc is not null` |
+| `BoundExitPerform` goto/throw | non-`None` `F3Cur` (`Loop` default unchanged) |
+| **Outer** `EmitUseMachinery` CALL gate (`DispatchEmitter.cs:79`) | add `\|\| bound.Ec is { HasF3Perform: true }` |
+| **Inner** `__useActive`/`__RunUse` gate (`:166`), sized `declCount + (Paragraphs.Count − F3HandlerBasePc)` | `decls.Count > 0 \|\| bound.Ec is { HasF3Perform: true }` |
+
+`ProgramEmitter.cs:112`: `_ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;`. `OoEmitter.cs:200`:
+`ecState.UnitHasF3Perform = false;`. Widening BOTH the outer+inner gates is the no-declarative F3 BLOCKER fix.
+
+**§9.5.3 The fall-through wall** (`DispatchEmitter.cs:73`, gated — reproduce the EXISTING comment verbatim for
+byte-identity):
+```csharp
+int __topExit = bound.F3HandlerBasePc is int __b ? __b - 1 : -1;
+w.Line($"try {{ __Dispatch({bound.EntryPc}, {__topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
+```
+Non-F3 unit: `__topExit` renders as literal `-1` and the comment is verbatim ⇒ byte-identical. F3 unit:
+`__exitPc = mainCount-1`; when the last real paragraph falls through it sets `__pc = mainCount` and `__atExit`
+returns (`:128`) — end of run unit (§14.9.18), never a run into the appended handlers. Only the top-level call is
+walled; every bounded `__RunUse`/PERFORM passes its own `__exitPc`, so PERFORM of the last paragraph is unaffected.
+
+### 9.6 RESUME / COMMON / nonfatal / GR21 / FINALLY
+
+- **Q3 — RESUME NEXT skips COMMON (CHOSEN INTERPRETATION, record in D12).** GR17 passes control to imp-4 "at the
+  completion of the execution of imperative-statement-2"; RESUME (§14.9.33) is a transfer of control to the implicit
+  CONTINUE after the raiser — imp-2 does not "complete," so the GR17→imp-4 hand-off is never taken. `__RunF3` runs
+  COMMON only on `__a == -1`; a `-2` short-circuits. The standard does not state this explicitly (COMMON is nominally
+  "common") ⇒ a chosen interpretation, not a bare derivation.
+- **Q6 — nonfatal resume-in-place is automatic, imp-1 not abandoned.** imp-1 is inline straight-line code; a nonfatal
+  raise site (`EmitOverflow`, no throw) does nothing on `-1`, so the next inline statement runs = GR20's implicit
+  CONTINUE (§14.6.13.1.4 #2). No block-`try` wraps imp-1.
+- **GR21 transparency + nesting** — realized by `RunTopFrame`'s top-down walk with deferred `Handling`-clear (§9.2):
+  the selected frame is `Handling` during its own imp-2..5 (transparent to its own re-raises), skipped inner frames
+  stay `Handling` for the whole resolution (an EC in a selected outer handler is not re-caught by a suspended inner
+  frame), and an inner NoMatch falls to the outer frame (GR17 for the outer PERFORM).
+- **Q5 — FINALLY: inline, normal/EXIT paths only, NOT on fatal abnormal-termination (STANDARD DEFECT, record D12).**
+  A fatal, unresumed EC throws `CobolFatalException` from the raise site; the host `catch` is `catch(ExitPerformSignal)`
+  only, so it unwinds PAST the inline FINALLY. §14.9.28.4 **NOTE 8** ("the end of the PERFORM statement includes the
+  statements in a FINALLY phrase") vs **GR20**'s fatal branch ("execution continues as specified in 14.6.13.1.3",
+  abnormal termination — never re-entering "the end of the PERFORM") cannot both hold; chosen default = normal/EXIT
+  path only. (NOTE 9 is NOT the authority — it concerns a programmer's explicit transfer out during WHEN processing.)
+
+### 9.7 Staged-GAP boundary (each a loud COBOLNET0899 / dedicated diagnostic — never silent)
+Unchanged from §5.4, kept explicit: open-mode WHEN operand (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND`, §5.4-1); **F3
+PERFORM inside an OO method** (§9.1-B — reject loud until the OO pc-space wiring lands); cross-CALL GR1 "in range"
+(per-activation `TrimPerformTo` default, §5.4-2); EC-FLOW-USE / `>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside
+imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
+sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconcile the §8 doc to record them as SWEPT
+(more correct than §5.4-2's "un-swept" claim).
+
+### 9.8 Increment plan (each independently buildable + wave-local-gateable; construct stays 0899-rejected until Incr 4)
+
+| # | Increment | Lands | Gate |
+|---|---|---|---|
+| **1** | **Runtime-additive** | `PerformFrame`; `ExceptionEngine._perform` (List) + `Push/Pop/RunTopFrame/PerformDepth/TrimPerformTo`; `ExceptionState` delegators; `ExitPerformSignal`; `ProgramTable.CallProgram` snapshot+`TrimPerformTo`. | Runtime unit tests (`RunTopFrame` walk: innermost-wins, GR21 transparency, deferred-clear nesting, NoMatch on empty). Byte-identity trivial (nothing emitted references them). |
+| **2** | **Gating flag flow** | `EcFeatures.HasF3Perform` (+`.Any`), `BuildFeatures`, `EcState.UnitHasF3Perform`, `ProgramEmitter`/`OoEmitter` wiring; `BoundProgram.F3HandlerBasePc`/`F3HandlerOwners` (always null yet). | Characterization byte-identity (flag unused). |
+| **3** | **Funnel + `__EcPerform` + `__IoCheckEc` frame-first**, behind `UnitHasF3Perform`; outer+inner `EmitUseMachinery` gate widening; `__EcPerform`/`__RunF3` emission; `__useActive` sizing. All dead (no F3 accepted). | Characterization byte-identity + a hand-written USE-F3-declarative fixture proving the non-F3 funnel/`__IoCheckEc` text is unchanged. |
+| **4** | **pc-range synthesis + tier matcher + un-reject (program path)** | `AddF3Handler`/side-list; `StatementBinder` append + `F3HandlerBasePc`/`Owners`; node reshape (`BoundExceptionMatch`+`Imp2Pc`, `Other/CommonPc`, `PerformId`, `HandlerHasExit`); `EcBindExceptionPerform` redirect + drop 0899 (program) + `F3StagedInMethodStub` (OO); `EmitExceptionPerform` frame install + tier-sorted matcher + **the F3Region/BoundExitPerform machinery** (fold Incr 6 in to avoid the bare-`break` infinite-loop hazard); the wall; `UsageCollectionPass`/`BoundStores` reconciliation. | Behavior tests: WHEN name-list match; **tier precedence** (`WHEN EC-ALL … WHEN EC-SIZE`→EC-SIZE; `WHEN EC-BOUND … WHEN EC-BOUND-SUBSCRIPT`→L3); OTHER; COMMON after imp-2 and imp-3; nonfatal resume-in-place; fatal terminate; **I/O WHEN preempts a matching USE**; GR21 re-raise-in-handler→USE; nested F3 outer-handles-inner; EXIT PERFORM (imp-1/handler/FINALLY + nested inline PERFORM breaks inner loop). **Full legacy guard + GnuCOBOL differential.** Characterization byte-identity for non-F3. |
+| **5** | **RESUME NEXT + COMMON ordering** (isolate the test; lands in #4) | — | Behavior: RESUME NEXT in imp-2 with COMMON present → COMMON not run, imp-1 falls through past raiser. |
+| **6** | **FINALLY placement + defect doc** | confirm inline FINALLY; fatal throw bypasses it; record NOTE 8 vs GR20 in D12 + `CONFORMANCE.md`. | Behavior: FINALLY on normal completion + on nonfatal resume; absent on fatal-terminate. |
+| **7** | **Conformance + sweep** | conformance program (same commit); GnuCOBOL corpus rows; DEVLOG (top, dated); plan §0 NEXT; D12/`CONFORMANCE.md`; `DOC_INDEX`; this SSOT. | Full CI-equivalent `-c Release` leg + `gh run watch`; GnuCOBOL diff 0 regressions. |
+
+### 9.9 Unresolved risks — PROBE during implementation (verify-by-RUNNING)
+1. **Deep re-raise across nested handlers** — the `RunTopFrame` deferred-`Handling` walk is nesting-correct by
+   reasoning; add a conformance probe (nested F3 where the outer handler raises an EC an inner skipped frame's WHEN
+   would match — confirm the inner does NOT catch it). Single point to adjust if a test pins a different reading.
+2. **Bare-file operand tier** — `WHEN EXCEPTION file-name` (Ec null) has no direct GR3c-g analog; assigned tier 1.
+   Probe against GnuCOBOL for a program mixing `WHEN EXCEPTION f` with `WHEN EC-I-O-… FILE f`; record the tier in D12.
+3. **`UsageCollectionPass`/`BoundStores` reconciliation** — verify imp-2/3/4 data-usage is collected exactly once
+   (at the synthetic paragraphs), not double-counted off the F3 node; regenerate the source-gen visitor and diff.
+4. **`EcFeatures` positional-record fan-out** — the 8th field forces edits at `BuildFeatures` + every
+   `new EcFeatures(...)`/test site; a missed site is a loud compile break — enumerate before the commit.
+5. **Report-writer / SORT-MERGE USE interplay in `__IoCheckEc`** — the frame-first insertion sits above the F1
+   GR3a/b switch; confirm the §14.9.49.4 GR7 MERGE/SORT-invoked USE path is unaffected for an F3 unit that also SORTs.
+
+**Files touched:** runtime — `ExceptionState.cs`, new `Exceptions/PerformFrame.cs`, new `Control/Signals/ExitPerformSignal.cs`,
+`ProgramTable.cs`; compiler — `ProcedureTableBuilder.cs`, `StatementBinder.cs`, `EcBinder.ExceptionPerform.cs`,
+`EcBindState.cs`, `BoundExceptionPerform.cs`, `BoundTree.cs` (`BoundProgram`, `EcFeatures`), `EcEmitter.cs`
+(funnel + `__EcPerform`/`__RunF3` + `__IoCheckEc`), `DispatchEmitter.cs` (gates + wall + `__useActive` sizing +
+handler-region hook), `ControlFlowEmitter.cs` (`EmitExceptionPerform`), `StatementEmitter.cs` (`BoundExitPerform`),
+`EmitterState.cs`/`DispatchState` (`UnitHasF3Perform`, `F3Cur`/`SetF3Region`/`RestoreF3Region`), `ProgramEmitter.cs`/
+`OoEmitter.cs` (flag set); source-gen visitor + `UsageCollectionPass`/`BoundStores`. SSOT same change set:
+`docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12 (RESUME-skips-COMMON, FINALLY-on-fatal defect, bare-file tier),
+`CONFORMANCE.md`.
+

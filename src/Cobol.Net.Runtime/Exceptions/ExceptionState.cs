@@ -252,6 +252,60 @@ public sealed class ExceptionEngine
     /// activations. The activated element's <c>ExternalStore.Describe</c> gate is this mask ANDed with its own
     /// before-Environment-division mask. Zero at the main-program activation (no activating element).</summary>
     public int ActivatorExternalMask { get; set; }
+
+    // ── Format-3 (exception-checking) PERFORM frame stack (§14.9.28.4 GR17–GR22) ──────────────────────────────
+
+    /// <summary>The active Format-3 PERFORM interceptor frames (innermost on top). A List, not a
+    /// <c>Stack&lt;T&gt;</c>, so <see cref="RunTopFrame"/> can walk it top-down by index (§14.9.28.4 GR17 — the
+    /// innermost PERFORM whose imperative-statement-1 is executing). Run-unit-scoped for free (this engine is per
+    /// run unit); nesting is the stack; CALL-safety is <see cref="PerformDepth"/>/<see cref="TrimPerformTo"/>.</summary>
+    private readonly List<PerformFrame> _perform = new();
+
+    /// <summary>Push the interceptor frame the emitted Format-3 PERFORM installs around imperative-statement-1
+    /// (paired with <see cref="PopPerformFrame"/> in a generated <c>finally</c>, so any unwind still balances).</summary>
+    public void PushPerformFrame(PerformFrame f) => _perform.Add(f);
+
+    /// <summary>Pop the top interceptor frame at the end of a Format-3 PERFORM (before its FINALLY runs, so imp-5
+    /// behaves as if in a Format-2 PERFORM — GR21).</summary>
+    public void PopPerformFrame() => _perform.RemoveAt(_perform.Count - 1);
+
+    /// <summary>The current frame-stack depth (the CALL-boundary snapshot point).</summary>
+    internal int PerformDepth => _perform.Count;
+
+    /// <summary>Restore the frame stack to <paramref name="depth"/> — the activation boundary's per-activation
+    /// scope (§14.9.28.4 GR1's cross-activation "in range" reading is a documented STAGED item; the safe default
+    /// is that a called program's raise is not intercepted by the caller's frame).</summary>
+    internal void TrimPerformTo(int depth) { while (_perform.Count > depth) _perform.RemoveAt(_perform.Count - 1); }
+
+    /// <summary>Select and run the innermost matching WHEN handler of an active exception-checking PERFORM
+    /// (ISO §14.9.28.4 GR17 — the closest PERFORM whose imperative-statement-1 is executing; GR18 WHEN OTHER;
+    /// GR21 — a frame is transparent to exception conditions raised while it is handling). Walks the stack
+    /// innermost→outermost, skipping frames already <see cref="PerformFrame.Handling"/>; the first frame whose
+    /// matcher does not return <see cref="PerformFrame.NoMatch"/> handled it (<paramref name="handled"/> = true),
+    /// and its returned dispatch action (<c>-1</c>/<c>-2</c>/pc) is passed back to the raise site. Every frame
+    /// visited in THIS resolution stays marked <c>Handling</c> until it completes (deferred clear), so an
+    /// exception raised inside a selected (outer) handler is not re-caught by a skipped inner frame whose imp-1 is
+    /// suspended. When no frame matches, returns <see cref="PerformFrame.NoMatch"/> and the caller falls to the
+    /// USE dispatch (<c>__EcDispatch</c>) — GR17's "otherwise" tail.</summary>
+    public int RunTopFrame(string ec, string? file, out bool handled)
+    {
+        handled = false;
+        var marked = new List<PerformFrame>(4);   // per-raise (the EC path is rare); re-entrancy-safe
+        try
+        {
+            for (int i = _perform.Count - 1; i >= 0; i--)   // innermost → outermost
+            {
+                var f = _perform[i];
+                if (f.Handling) continue;                   // GR21 — its own imp-1/handler is transparent
+                f.Handling = true;
+                marked.Add(f);                              // deferred clear ⇒ stays Handling for the whole walk
+                int a = f.Matcher(ec, file);                // runs imp-2 (+COMMON) synchronously iff it matches
+                if (a != PerformFrame.NoMatch) { handled = true; return a; }
+            }
+            return PerformFrame.NoMatch;                    // → caller falls to __EcDispatch (USE) / -3
+        }
+        finally { foreach (var f in marked) f.Handling = false; }
+    }
 }
 
 /// <summary>
@@ -373,4 +427,13 @@ public static class ExceptionState
         get => E.ActivatorExternalMask;
         set => E.ActivatorExternalMask = value;
     }
+
+    /// <inheritdoc cref="ExceptionEngine.PushPerformFrame"/>
+    public static void PushPerformFrame(PerformFrame f) => E.PushPerformFrame(f);
+
+    /// <inheritdoc cref="ExceptionEngine.PopPerformFrame"/>
+    public static void PopPerformFrame() => E.PopPerformFrame();
+
+    /// <inheritdoc cref="ExceptionEngine.RunTopFrame"/>
+    public static int RunTopFrame(string ec, string? file, out bool handled) => E.RunTopFrame(ec, file, out handled);
 }
