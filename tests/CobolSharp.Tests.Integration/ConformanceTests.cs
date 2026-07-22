@@ -76,6 +76,16 @@ public sealed class ConformanceTests : EndToEndTestBase
         // suppressed records off the alternate access path (invisible to alt READ/START) while leaving the prime
         // path intact. The frozen legacy compiler has no SUPPRESS WHEN grammar — greenfield-only.
         ("2023", "altkey_suppress_when"),
+        // The §24 EC-seam batch goldens (F10 · V3 · V4): each exercises a >>TURN EC-… CHECKING ON directive over a
+        // 2023-only construct (SET SIZE dynamic-length, COMP-2 float exceptions, EC-RANGE SEARCH/PERFORM-VARYING/
+        // THROUGH). The frozen legacy compiler has neither the directive nor these constructs — it fails them at
+        // parse — so the greenfield CorpusRunnerTests owns their byte-compare (DEVLOG 980–984).
+        ("2023", "ec_storage_not_avail"),   // SET SIZE → EC-STORAGE-NOT-AVAIL (F10)
+        ("2023", "ec_data_not_finite"),     // NaN/±Inf float sending operand → EC-DATA-NOT-FINITE (V3)
+        ("2023", "ec_data_overflow"),       // MOVE overflow to a single-precision float → EC-DATA-OVERFLOW (V3)
+        ("2023", "ec_range_search"),        // serial/SEARCH-ALL out-of-range → EC-RANGE-SEARCH-INDEX/-NO-MATCH (V4a)
+        ("2023", "ec_range_perform_varying"),   // index-name varied from a non-positive item → EC-RANGE-PERFORM-VARYING (V4b)
+        ("2023", "ec_range_invalid"),       // inverted THROUGH range → EC-RANGE-INVALID (V4c)
         // SUPPRESS PRINTING (§14.9.45): the statement exists only in the greenfield grammar+binder+RW engine.
         // The frozen legacy compiler has no SUPPRESS grammar at all — it fails the program at parse — so the
         // golden (a suppressed detail's amount still rolls into the control total, §13.18.54.4 GR7/GR2) is
