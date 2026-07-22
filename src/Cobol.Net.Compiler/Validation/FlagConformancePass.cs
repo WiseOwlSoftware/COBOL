@@ -63,6 +63,17 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     // an INPUT / I-O one (the AT-END rule). Reset per unit in VisitProgramUnit (a nested unit does not inherit).
     private bool _hasAnyModeDecl;
     private bool _hasReadModeDecl;
+    // FLAG-02 b EC-PROGRAM-EXCEPTIONS: the current program unit's parse subtree, and the set of units whose body
+    // calls a function or invokes a method (collected during the walk). A >>TURN directive for an EC-PROGRAM-family
+    // exception is flagged (post-walk) when its innermost containing unit is in this set.
+    private CobolParserCore.ProgramUnitContext? _currentUnitCtx;
+    private readonly HashSet<CobolParserCore.ProgramUnitContext> _unitsWithCall = [];
+
+    /// <summary>The EC-PROGRAM-family exception-names whose <c>&gt;&gt;TURN</c> directive FLAG-02 b flags
+    /// (§7.3.14.4 GR4 b) — EC-ALL plus the three EC-PROGRAM level-3 names.</summary>
+    private static readonly IReadOnlySet<string> EcProgramFamily =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "EC-ALL", "EC-PROGRAM", "EC-PROGRAM-ARG-OMITTED", "EC-PROGRAM-NOT-FOUND" };
     // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
     // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
@@ -136,8 +147,31 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         var unitByCtx = new Dictionary<CobolParserCore.ProgramUnitContext, BoundUnit>();
         foreach (var unit in group.Units) unitByCtx[unit.Ctx] = unit;
 
-        new FlagConformancePass(flag, sink, linage, varying, fileStatus, fs88_04, fs88_07,
-            group.Session.RefModZeroLength, group.Session.Turn, unitByCtx).Visit(group.Tree);
+        var pass = new FlagConformancePass(flag, sink, linage, varying, fileStatus, fs88_04, fs88_07,
+            group.Session.RefModZeroLength, group.Session.Turn, unitByCtx);
+        pass.Visit(group.Tree);
+        pass.FlagEcProgramDirectives(group.Units);   // b EC-PROGRAM-EXCEPTIONS — cross-ref >>TURN lines with call/invoke units
+    }
+
+    /// <summary>FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b) — flag every <c>&gt;&gt;TURN</c> directive that names
+    /// an EC-PROGRAM-family exception when the source element that contains it calls a function or invokes a method.
+    /// Runs after the walk: the directive lines come from <see cref="TurnState"/> (a frontend event, not a parse
+    /// node), and <see cref="_unitsWithCall"/> was populated during the walk.</summary>
+    private void FlagEcProgramDirectives(IReadOnlyList<BoundUnit> units)
+    {
+        foreach (int line in _turn.DirectiveLinesNaming(EcProgramFamily).Distinct())
+        {
+            // The INNERMOST program unit whose parse span contains the directive line (a nested program is its own
+            // source element; its call/invoke does not count for a containing program's directive, and vice versa).
+            BoundUnit? owner = null;
+            foreach (var u in units)
+                if (u.Ctx.Start.Line <= line && line <= u.Ctx.Stop.Line
+                    && (owner is null || u.Ctx.Start.Line > owner.Ctx.Start.Line))
+                    owner = u;
+            if (owner is not null && _unitsWithCall.Contains(owner.Ctx))
+                Flag(FlagOption.Flag02EcProgramExceptions, line,
+                    "the >>TURN for an EC-PROGRAM-family exception in a source element that calls a function or invokes a method");
+        }
     }
 
     /// <summary>Select the current program unit's data + resolver for the walk of its subtree (the name-resolving
@@ -145,7 +179,8 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     /// restores its container's scope on exit.</summary>
     public override object? VisitProgramUnit(CobolParserCore.ProgramUnitContext ctx)
     {
-        var saved = (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl);
+        var saved = (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl, _currentUnitCtx);
+        _currentUnitCtx = ctx;
         if (_unitByCtx.TryGetValue(ctx, out var unit))
         {
             _currentData = unit.Data;
@@ -158,7 +193,28 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
                 d.ModeIndex == (int)FileOpenMode.Input || d.ModeIndex == (int)FileOpenMode.IO);
         }
         try { return base.VisitChildren(ctx); }
-        finally { (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl) = saved; }
+        finally { (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl, _currentUnitCtx) = saved; }
+    }
+
+    // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b) — record that the current source element calls a function
+    //    (a FUNCTION activation) or invokes a method (INVOKE / an inline 2023 method invocation). The >>TURN
+    //    directives are flagged post-walk (FlagEcProgramDirectives), keyed on the innermost containing unit. ──
+    public override object? VisitFunctionCall(CobolParserCore.FunctionCallContext ctx)
+    {
+        if (_currentUnitCtx is not null) _unitsWithCall.Add(_currentUnitCtx);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitInvokeStatement(CobolParserCore.InvokeStatementContext ctx)
+    {
+        if (_currentUnitCtx is not null) _unitsWithCall.Add(_currentUnitCtx);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitInlineMethodInvocationStatement(CobolParserCore.InlineMethodInvocationStatementContext ctx)
+    {
+        if (_currentUnitCtx is not null) _unitsWithCall.Add(_currentUnitCtx);
+        return base.VisitChildren(ctx);
     }
 
     /// <summary>Emit the option's Warning if it is flagging at <paramref name="line"/>. The Code is per-directive;

@@ -83,6 +83,13 @@ public sealed class TurnState
         return s;
     }
 
+    /// <summary>The 1-based lines of every <c>&gt;&gt;TURN</c> directive that NAMES one of <paramref name="ecNames"/>
+    /// (matched on the canonical exception-name, ON or OFF alike) — the FLAG-02 b EC-PROGRAM-EXCEPTIONS detector
+    /// flags such a directive when its source element calls a function or invokes a method (§7.3.14.4 GR4 b). A
+    /// directive naming several of the set contributes its line once per name; the caller de-duplicates.</summary>
+    public IEnumerable<int> DirectiveLinesNaming(IReadOnlySet<string> ecNames)
+        => _events.Where(e => ecNames.Contains(e.Ec)).Select(e => e.Line);
+
     /// <summary>True when ANY enabling event exists — the group-level EC-machinery gate (a compilation group
     /// with no enabling TURN, no F3, no RAISE/RESUME emits byte-identical code to a pre-EC build).</summary>
     public bool AnyEnabled => _events.Any(e => e.On);

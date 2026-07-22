@@ -763,4 +763,60 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "I-O", "", "           OPEN I-O F.\n           WRITE F-REC.\n"));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
+
+    // ── Incr 4: FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b) — a >>TURN for an EC-PROGRAM-family exception in a
+    //    source element that calls a function or invokes a method. ──
+
+    private static string EcProgramProgram(string directive, string turn, string stmt) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGECP.\n       DATA DIVISION.\n" +
+        "       WORKING-STORAGE SECTION.\n       01 N PIC 9(4) VALUE 5.\n       01 R PIC 9(4).\n" +
+        "       PROCEDURE DIVISION.\n       MAIN.\n" + directive + turn + "           " + stmt + "\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_EcProgramExceptionsOn_Flags_TurnForEcProgram_WhenElementCallsAFunction()
+    {
+        var warnings = CompileWarnings(EcProgramProgram(
+            "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-PROGRAM CHECKING ON\n",
+            "COMPUTE R = FUNCTION MAX(N 3)."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("EC-PROGRAM-EXCEPTIONS", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_EcProgramExceptionsOn_Flags_TurnForEcAll_WhenElementCallsAFunction()
+    {
+        // EC-ALL is in the EC-PROGRAM family (it covers EC-PROGRAM-*).
+        var warnings = CompileWarnings(EcProgramProgram(
+            "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-ALL CHECKING ON\n",
+            "COMPUTE R = FUNCTION MAX(N 3)."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("EC-PROGRAM-EXCEPTIONS", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_EcProgramExceptions_NotFlagged_WhenElementHasNoFunctionOrMethod()
+    {
+        var warnings = CompileWarnings(EcProgramProgram(
+            "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-PROGRAM CHECKING ON\n", "ADD 1 TO N."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_EcProgramExceptions_NotFlagged_ForANonEcProgramExceptionTurn()
+    {
+        // A >>TURN for EC-SIZE (not an EC-PROGRAM-family name) is not flagged, even with a function call present.
+        var warnings = CompileWarnings(EcProgramProgram(
+            "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-SIZE CHECKING ON\n",
+            "COMPUTE R = FUNCTION MAX(N 3)."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_EcProgramExceptions_NotFlagged_WhenDirectiveOff()
+    {
+        var warnings = CompileWarnings(EcProgramProgram(
+            "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS OFF\n", "       >>TURN EC-PROGRAM CHECKING ON\n",
+            "COMPUTE R = FUNCTION MAX(N 3)."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
 }

@@ -23,8 +23,9 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD = the I-O-DECLARATIVE commit, pushed — the Wave-D **FLAG-02/FLAG-14
-  migration-flagging** build is at **16 of 19 detectors; INCR 3 COMPLETE, Incr 4 all but the LAST option**):** the full flagging subsystem (design SSOT
+- **▶ RESUME AT (2026-07-21; code HEAD = the EC-PROGRAM-EXCEPTIONS commit, pushed — ⭐ the Wave-D **FLAG-02/FLAG-14
+  migration-flagging subsystem is COMPLETE**: all 17 option-detectors + the 2 directive-word gates = the full
+  19-item census; `DESIGN-flag-directives.md` = IMPLEMENTED):** the full flagging subsystem (design SSOT
   `docs/rearchitecture/DESIGN-flag-directives.md`; pipeline `FlagDirectiveProcessor`→`FlagState`→`FlagConformancePass`
   parse-arm visitor + frontend-inline `ConditionalCompilationProcessor`; diags COBOLNET1620/1621/1622; directive-word
   edition gates) + these detectors LANDED: READ-PREVIOUS, CLOSE-I-O-STATUS-07 (Incr 0); g NUM-ED-ZERO-FIGCONST, l
@@ -52,10 +53,14 @@ checkpoint.
   AT-END-capable READ (sequential retrieval) lacking AT END when the unit has an INPUT/I-O declarative. Per-unit modes
   from `unit.Bound.Declaratives` (`BoundDeclarative.ModeIndex`=`FileOpenMode`); file classification from
   `_currentData.Files` (`IsKeyed`=RELATIVE/INDEXED; a READ is sequential iff NEXT/PREVIOUS or AccessMode Sequential).
-  **⏭ NEXT = the Incr 4 remainder (1 detector — NOT deferrable per owner "we fix issues, do not defer them"):**
-  **FLAG-02 b EC-PROGRAM-EXCEPTIONS** — a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND
-  in a source element that calls any function or invokes any method (needs whole-element call/invoke aggregation +
-  a `TurnState` read). THEN the Wave-D residue (>>COBOL-WORDS · CC-in-COPY — both
+  ✅ **Incr 4 COMPLETE — FLAG-02 b EC-PROGRAM-EXCEPTIONS LANDED (the LAST FLAG option)**: a `>>TURN` for an
+  EC-PROGRAM-family exception (EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND) is flagged when its
+  source element calls a function or invokes a method. Flags a DIRECTIVE (not a statement), so it runs POST-walk: a
+  new `TurnState.DirectiveLinesNaming` exposes the `>>TURN` lines; `VisitFunctionCall`/`VisitInvokeStatement`/
+  `VisitInlineMethodInvocationStatement` record the current unit in `_unitsWithCall`; `FlagEcProgramDirectives` maps
+  each directive line to its INNERMOST containing unit and flags if that unit has a call/invoke.
+  **⏭ NEXT = the Wave-D residue (the FLAG subsystem is DONE; these are the remaining Wave-D items):** >>COBOL-WORDS ·
+  CC-in-COPY — both
   DIRECTIONS recorded in the §0 block below) · PERFORM Format-3 RUNTIME interceptor · §24 fix-queue → Wave I merge →
   P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case incl.
   negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod parse
@@ -202,8 +207,16 @@ checkpoint.
   NEXT/PREVIOUS or AccessMode Sequential — so a dynamic keyed READ with no direction is the random/INVALID-KEY arm);
   WRITE/REWRITE map record→file via `FileModel.Records`. **Detectors done: 16 of 19.** 68 tests + CLI-probed
   (WRITE/REWRITE/DELETE/START keyed / READ-NEXT / random-READ / phrase-present / SEQUENTIAL-file / no-declarative /
-  OUTPUT-only-rule-2-gating / OFF) + char 33/33.
-  ⏭ **NEXT = Incr 4 remainder (2 detectors)**: I-O-DECLARATIVE (an I-O statement without its INVALID KEY / AT END
+  OUTPUT-only-rule-2-gating / OFF) + char 33/33. ✅ **Incr 4 COMPLETE — FLAG-02 b EC-PROGRAM-EXCEPTIONS LANDED (the
+  LAST FLAG option)**: a `>>TURN` for an EC-PROGRAM-family exception in a source element that calls a function or
+  invokes a method. Flags a DIRECTIVE (frontend event, not a parse node) POST-walk: `TurnState.DirectiveLinesNaming`
+  gives the `>>TURN` lines; `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocationStatement` record
+  the current unit in `_unitsWithCall` (nested programs attributed to themselves via the `_currentUnitCtx`
+  save/restore); `FlagEcProgramDirectives` maps each line to its innermost containing unit. **Detectors done: 17 of
+  19** (the 2 remaining = the directive-word gates, landed Incr 0b — so the census is COMPLETE). 73 tests +
+  CLI-probed (EC-PROGRAM/EC-ALL/EC-PROGRAM-NOT-FOUND + FUNCTION / no-call / non-family-EC / OFF) + char 33/33 + full
+  greenfield unit **520/520**. **⭐ THE FLAG SUBSYSTEM IS COMPLETE.**
+  ⏭ *(historical — the Incr-4 plan, now DONE)* I-O-DECLARATIVE (an I-O statement without its INVALID KEY / AT END
   phrase while an INPUT/OUTPUT/I-O/EXTEND declarative is in effect — needs a statement→file→open-mode→declarative
   join) · EC-PROGRAM-EXCEPTIONS (FLAG-02 b — a >>TURN for an EC-PROGRAM-family EC in an element that calls a function
   or invokes a method — needs whole-element call/invoke aggregation + TurnState) → the Wave-D residue.
@@ -223,8 +236,8 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD = the I-O-DECLARATIVE commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
-  unit **447** baseline (+ the new **`FlagDirectiveTests` 68** — parser/fold/end-to-end for the 16 landed FLAG detectors) ·
+- **Battery at code-HEAD = the EC-PROGRAM-EXCEPTIONS commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
+  unit **520** (447 baseline + **`FlagDirectiveTests` 73** — parser/fold/end-to-end for ALL 17 landed FLAG detectors; full suite re-run green) ·
   legacy unit `Preprocessor` **11** · characterization **33** byte-exact · greenfield Conformance **3784** + the
   `directive_expressions` 2002 golden. The FLAG subsystem added the drift-guarded catalog descriptors
   COBOLNET1620/1621/1622 + the `flag-14-directive-2023`/`flag-02-directive-2014` version-matrix rows (full

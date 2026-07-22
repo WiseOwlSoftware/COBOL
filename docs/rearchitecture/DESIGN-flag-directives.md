@@ -1,6 +1,8 @@
 # DESIGN — FLAG-02 / FLAG-14 migration-flagging directives (§7.3.14 / §7.3.15)
 
-> **Status: IN PROGRESS (P13 Wave D).** Canonical deep-dive for the `>>FLAG-02` (§7.3.14) and `>>FLAG-14`
+> **Status: IMPLEMENTED (P13 Wave D).** All 17 option-detectors (FLAG-14 b–m, FLAG-02 b–f) + the 2 directive-word
+> edition gates are landed; `FlagConformancePass` + the frontend collection + the two frontend-inline options are the
+> shipped subsystem. Canonical deep-dive for the `>>FLAG-02` (§7.3.14) and `>>FLAG-14`
 > (§7.3.15) migration-incompatibility flagging directives — the ONE shared flagging subsystem (a
 > frontend-collected `FlagState`, a dedicated post-bind `FlagConformancePass`, and the two frontend-inline
 > option detectors that have no bound residue). Design SSOT for the Wave-D "real FLAG-14/FLAG-02 flagging"
@@ -93,7 +95,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | Opt | Construct (GR4) | Visible at | Incr | Notes |
 |-----|-----------------|-----------|------|-------|
 | a ALL | fan-out to b–f | directive parse | 0 | |
-| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in an element that calls any function or invokes any method | `[B]` TurnState + element-scope call/invoke aggregation | 4 | New: whole-element "has a function-call or method-invoke" property. No clean Annex-E anchor (GR4 is normative) |
+| b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in an element that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + `_unitsWithCall` from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocationStatement` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
 | d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) category alphanumeric-edited, or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `ReferenceResolver.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
 | e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `DataBinder.IndexFields` + `TurnState` | 3 | GR4 normative |
@@ -256,10 +258,17 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     GR4 d does not consider), set in `VisitProgramUnit` (order-independent, so it never depends on the declaratives
     preceding the body). Per-statement file classification is from `_currentData.Files` (WRITE/REWRITE map their
     record name to its file via `FileModel.Records`). A file that does not resolve stays unflagged.
-  * **FLAG-02 b EC-PROGRAM-EXCEPTIONS (remaining)** — a `>>TURN` for an EC-PROGRAM-family exception (EC-ALL,
-    EC-PROGRAM, EC-PROGRAM-ARG-OMITTED, EC-PROGRAM-NOT-FOUND) in an element that calls a function or invokes a
-    method (whole-element call/invoke aggregation + TurnState). Real cross-cutting analysis designed here to spec,
-    NOT a documented non-conformance. Wave I merges only when every option is landed or an owner decision stages one.
+  * **FLAG-02 b EC-PROGRAM-EXCEPTIONS (DONE)** — a `>>TURN` for an EC-PROGRAM-family exception (EC-ALL, EC-PROGRAM,
+    EC-PROGRAM-ARG-OMITTED, EC-PROGRAM-NOT-FOUND) is flagged when its source element **calls a function** (a
+    `functionCall` node) or **invokes a method** (an `invokeStatement` / `inlineMethodInvocationStatement`) — a CALL
+    of a program is deliberately NOT a trigger (GR4 b names only function and method). Because it flags a DIRECTIVE
+    (a frontend `>>TURN`, not a parse node), it runs POST-walk: `TurnState.DirectiveLinesNaming` exposes the `>>TURN`
+    lines naming any family name (ON/OFF alike; the raw events store the canonical name as-written, so a level-2
+    `EC-PROGRAM` matches without expansion); the walk records each unit with a call/invoke in `_unitsWithCall` (keyed
+    on the `_currentUnitCtx` save/restored per `VisitProgramUnit`, so a call in a nested program is attributed to the
+    nested element); `FlagEcProgramDirectives` maps each directive line to its innermost containing unit and flags it
+    when that unit has a call/invoke.
+  All 17 option-detectors are landed — the subsystem is COMPLETE. Wave I merges with the rest of the Wave-D work.
 
 ## 5. Testing
 
