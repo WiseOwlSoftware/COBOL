@@ -107,12 +107,13 @@ public sealed class ExternalTable
                         + "(ISO §14.8.4.3 / §13.18.22 GR6 — EC-EXTERNAL-FORMAT-CONFLICT)",
                         "EC-EXTERNAL-FORMAT-CONFLICT");
                 if ((gate & ExternalChecks.DataMismatch) != 0 && desc.Kind == "file"
-                    && (prior.FileStatusRef != desc.FileStatusRef || prior.RelativeKeyRef != desc.RelativeKeyRef
-                        || prior.LinageRef != desc.LinageRef))
+                    && (AnyNonExternalRef(prior) || AnyNonExternalRef(desc)                      // §14.8.4.2 conjunct 1: SHALL BE external
+                        || prior.FileStatusRef != desc.FileStatusRef || prior.RelativeKeyRef != desc.RelativeKeyRef
+                        || prior.LinageRef != desc.LinageRef))                                   // conjunct 2: same corresponding item
                     throw new CobolCallException(
                         $"external file '{name}': the FILE STATUS / LINAGE / RELATIVE KEY data items of '{other}' and "
-                        + $"'{describer}' are not the same corresponding external data items "
-                        + "(ISO §14.8.4.2 — EC-EXTERNAL-DATA-MISMATCH)",
+                        + $"'{describer}' are not external data items and/or do not refer to the same corresponding "
+                        + "storage in each runtime element (ISO §14.8.4.2 — EC-EXTERNAL-DATA-MISMATCH)",
                         "EC-EXTERNAL-DATA-MISMATCH");
                 if ((gate & ExternalChecks.FileMismatch) != 0 && desc.Kind == "file"
                     && prior.SelectFingerprint != desc.SelectFingerprint)
@@ -124,6 +125,17 @@ public sealed class ExternalTable
             }
         entries[describer] = desc;
     }
+
+    /// <summary>§14.8.4.2 conjunct 1: a present-but-non-external file-referencing item is the "!" sentinel (emitted by
+    /// the codegen when a specified FILE STATUS / RELATIVE KEY / LINAGE item is not an external data item). It is a
+    /// whole ";"-separated token — the entire single string for FILE STATUS / RELATIVE KEY, one token among several
+    /// for LINAGE (alongside a dotted external-item identity or an "=&lt;integer&gt;" literal, neither of which can
+    /// contain "!" or ";"), so whole-token equality is exact. A null ref (clause unspecified) is not a violation. This
+    /// closes the both-"!" false negative — two non-external describers used to compare EQUAL (<c>"!" == "!"</c>).</summary>
+    private static bool AnyNonExternalRef(ExternalDescriptor d) =>
+        IsNonExternal(d.FileStatusRef) || IsNonExternal(d.RelativeKeyRef) || IsNonExternal(d.LinageRef);
+
+    private static bool IsNonExternal(string? r) => r is { } s && s.Split(';').Contains("!");
 
     /// <summary>Drop every cell and descriptor (run-unit start hygiene; called from the run-unit reset).</summary>
     public void Reset() { _cells.Clear(); _describers.Clear(); }

@@ -16,6 +16,8 @@
     "external_type_decl",
     "external_file_status_consistency",
     "external_relative_key_consistency",
+    "external_file_status_externality_ok",
+    "external_linage_externality_ok",
     "ec_size_truncation_prohibited",
     "ec_storage_not_avail",
     "ec_data_not_finite",

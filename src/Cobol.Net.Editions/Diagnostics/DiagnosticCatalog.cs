@@ -515,6 +515,13 @@ public static class DiagnosticCatalog
         + "§14.8.4.2; Annex E.2 item 24) — a corresponding SELECT omitting RELATIVE KEY, or naming a non-external / "
         + "different external item, is rejected. Below 2023 the requirement did not exist.",
         "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24 (VCR row 31)");
+    public static readonly DiagnosticDescriptor ExternalFileItemNotExternal = new(
+        "COBOLNET1624", "external-file-item-not-external", EditionSeverity.Error,
+        "At COBOL-2023, for an external file connector the FILE STATUS, RELATIVE KEY and LINAGE data items shall "
+        + "themselves be external data items (ISO §14.8.4.2; Annex E.2 item 9) — a file/relative-key/linage clause "
+        + "naming a non-external item is rejected. Enforced per connector regardless of describer count. Below 2023 "
+        + "the requirement did not exist.",
+        "ISO §14.8.4.2 / Annex E.2 item 9");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

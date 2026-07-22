@@ -30,7 +30,12 @@ checkpoint.
   Conformance 3848/3848 (3842 baseline + 6 new EC goldens, 0 reg) · NIST 353 MATCH / 0 reg · legacy Unit 1203/1203 ·
   legacy Integration 684/685 (1 skip) / 0 fail · characterization 33/33 (DEVLOG 985; one RL203A `COMPILE FAILED`
   guard flake verified serially 4/4 = not a regression; the 6 goldens added to the legacy `GreenfieldOnly` set).
-  ⏭ NEXT §24 batch (spec-first, one at a time): the ref-mod-externality residue (V45-sentinel / V45-externality).**
+  ✅ **V45 EXTERNAL externality (§14.8.4.2 conjunct 1) LANDED** (DEVLOG 986; compile-time COBOLNET1624 for a non-external
+  FILE STATUS/RELATIVE KEY/LINAGE on a lone external file, 2023-gated Removed-freedom; runtime `"!"`-never-equal both-face;
+  char 33/33 · Unit 575/575 · external 30/30 · legacy Integration 186/186). Surfaced a NEW §24 item **V51** (in-group
+  LINAGE consistency §13.4.5.4 GR2(c) — a longstanding always-Error, separate from V45's 2023-gated externality). ⏭ NEXT
+  §24 batch (spec-first, one at a time): the misc-semantics majors (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE /
+  V24 OPTIONS-INITIALIZE), then the minors, the doc-slice sweep, and the owner-decision items (F1/V19/V24).**
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
   678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** the **§24 fix-queue**

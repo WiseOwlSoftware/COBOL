@@ -144,11 +144,13 @@ internal sealed class BinderDriver
             anyFiles, usesTerminationStatus);
     }
 
-    /// <summary>VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — the ≥2023 cross-unit
-    /// external-file conformance check. Group the compilation group's file connectors by externalized name; for each
-    /// external connector described by more than one file control entry (in-group), require that FILE STATUS (VCR 18)
-    /// and — for a relative file — RELATIVE KEY (VCR 31) are specified by ALL corresponding entries and name the SAME
-    /// corresponding external data item. "If any specifies it, all shall" plus same-external-item identity.</summary>
+    /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
+    /// Two conjuncts of §14.8.4.2. <b>Conjunct 1 — externality (COBOLNET1624, per connector, ANY describer count):</b>
+    /// a specified FILE STATUS / RELATIVE KEY / LINAGE data item shall itself be an external data item. <b>Conjunct 2 —
+    /// consistency (VCR 18/31, COBOLNET1573/1575, needs ≥2 in-group describers):</b> "if any specifies it, all shall",
+    /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
+    /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
+    /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         var byExternalName = units.SelectMany(u => u.Data.Files)
@@ -160,10 +162,36 @@ internal sealed class BinderDriver
         // continuity witnesses need (an 85 NIST program that violates the new rule, e.g. IC227A with two differently-
         // named non-external FILE STATUS items, still COMPILES under permissive and rejects under strict).
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, edition.Edition);
+        // §14.8.4.2 conjunct 1 — EXTERNALITY: a FILE STATUS / RELATIVE KEY / LINAGE data item associated with an
+        // external file connector shall ITSELF be an external data item. One shared clause-parameterized diagnostic
+        // (the §14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
+        // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
+        EditionDiagnostic Externality(string ext, string clause, string name) =>
+            new("COBOLNET1624", severity, "external-file-item-not-external",
+                $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
+                + "(ISO §14.8.4.2; Annex E.2 item 9)",
+                $"external file '{ext}'", "ISO §14.8.4.2 / Annex E.2 item 9");
         foreach (var group in byExternalName)
         {
             var conns = group.ToList();
-            if (conns.Count < 2) continue;   // one describer in-group — nothing to reconcile here (VCR-15 runtime check owns cross-compilation)
+            // Conjunct 1 (externality) is enforced for EVERY external connector, regardless of describer count — a
+            // lone-program external file whose file-referencing item is non-external is a §14.8.4.2 violation.
+            foreach (var f in conns)
+            {
+                if (f.FileStatusName is not null && ExternalItemIdentity(f.FileStatusItem) is null)
+                    edition.Report(Externality(group.Key, "FILE STATUS", f.FileStatusName));
+                if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
+                    && ExternalItemIdentity(f.RelativeKeyItem) is null)
+                    edition.Report(Externality(group.Key, "RELATIVE KEY", f.RelativeKeyName));
+                if (f.Linage is { } lin)
+                    foreach (var op in lin.Operands)
+                        if (op.DataName is not null && ExternalItemIdentity(op.Item) is null)
+                            edition.Report(Externality(group.Key, "LINAGE", op.DataName));   // literal operands are exempt
+            }
+            // Conjunct 2 (cross-unit CONSISTENCY, §12.4.5.3 GR1(h)/(i)) needs ≥2 in-group describers to reconcile; the
+            // single-describer externality face is enforced above, and cross-compilation sameness stays with the
+            // ExternalTable runtime EC-EXTERNAL-DATA-MISMATCH check.
+            if (conns.Count < 2) continue;
 
             // VCR 18 — FILE STATUS: if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming the
             // same corresponding external data item (§12.4.5.3 GR1(i)).

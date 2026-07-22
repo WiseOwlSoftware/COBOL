@@ -1141,7 +1141,32 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 ## 18. Batch-11 verdicts (2026-07-19 — minors 45/46/47, 6 agents, 0 errors)
 
-### V45. CheckExternalFileConsistency single-describer skip — CONFIRMED, with a NEW sharper bug found
+### V45. CheckExternalFileConsistency single-describer skip — ✅ LANDED 2026-07-22 (externality conjunct — both faces)
+
+> ✅ **LANDED 2026-07-22 (DEVLOG 986; design `wf_08814087-0e0`).** §14.8.4.2 conjunct 1 (EXTERNALITY) now enforced at
+> BOTH faces. **(a) V45-sentinel** — `ExternalTable.DataMismatch` OR-prefixed with `AnyNonExternalRef(prior|desc)`
+> (`IsNonExternal(r)=r?.Split(';').Contains("!")`, whole-token so an embedded LINAGE `"!"` counts); the both-`"!"`
+> false negative closed. **(b) V45-externality** — a per-connector externality conjunct hoisted ABOVE the `conns.Count<2`
+> early-out in `BinderDriver.CheckExternalFileConsistency` (FILE STATUS + RELATIVE KEY + LINAGE data-name operands →
+> ONE shared **COBOLNET1624**, 2023-gated Removed-freedom severity like 1573/1575). **(d)** the comment corrected +
+> the XML-doc rewritten to the two-conjunct model. **⚠ (c) CORRECTED:** the compile-time in-group LINAGE leg does NOT
+> add LINAGE to the CONSISTENCY conjunct (that would break `ec_external_data_mismatch.cob`, which routes its LINAGE
+> mismatch to RUNTIME) — LINAGE joins the EXTERNALITY conjunct only. In-group LINAGE CONSISTENCY (§13.4.5.4 GR2(c)) is a
+> separate LONGSTANDING always-Error requirement → tracked as **V51** below, NOT folded here. Goldens: 3 externality
+> negatives + 2 positive controls + `ExternalTableTests` (4). Byte-equivalent (existing external corpus 28/28 unchanged).
+
+### V51. In-group LINAGE consistency (§13.4.5.4 GR2(c)) unenforced at compile time — NEW (surfaced by the V45 design validation)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** OPEN. §13.4.5.4 GR2(c) — "if any of the file description entries [for an external file] has a LINAGE
+  clause, all shall have a LINAGE clause specifying (1) the same corresponding literal values and (2) the same
+  corresponding external data items." FILE STATUS / RELATIVE KEY consistency is enforced at compile time (COBOLNET1573/
+  1575, §12.4.5.3); the parallel LINAGE-consistency leg is NOT (only its EXTERNALITY half landed with V45; runtime carries
+  the sameness face). Unlike VCR 18/31, GR2(c) is **absent from Annex E.2** → a LONGSTANDING 1985/2002/2014 requirement,
+  so it must be an **edition-invariant always-Error**, NOT the 2023-gated Removed-freedom severity — a DIFFERENT diagnostic
+  and gate than 1573/1575/1624. Fix for a later batch: a compile-time in-group LINAGE-consistency check (all-or-none + same
+  literals + same external items) with edition-invariant severity; requires re-architecting `ec_external_data_mismatch.cob`
+  into two SEPARATELY-compiled assemblies so its LINAGE mismatch stays a runtime vector. Effort: M.
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** §14.8.4.2's "shall be external data items" first conjunct is UNCONDITIONAL, and the lone-
