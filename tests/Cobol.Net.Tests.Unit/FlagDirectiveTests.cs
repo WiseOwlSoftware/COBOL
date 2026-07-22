@@ -463,4 +463,72 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(ReportProgram(varying: false, "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n"));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
     }
+
+    // ── Incr 3: FLAG-02 d MOVE-TO-SAME-NAME (§7.3.14.4 GR4 d) — a MOVE whose sending and receiving operands are the
+    //    SAME data description entry, when that DDE is (1) category alphanumeric-edited, or (2) has a subordinate
+    //    OCCURS…DEPENDING whose DEPENDING item is subordinate to it. ──
+
+    private static string MoveProgram(string dataEntries, string directive, string moveStmt) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGMV.\n       DATA DIVISION.\n" +
+        "       WORKING-STORAGE SECTION.\n" + dataEntries +
+        "       PROCEDURE DIVISION.\n       MAIN.\n" + directive + "           " + moveStmt + "\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_MoveToSameNameOn_Flags_AlphanumericEditedSelfMove()
+    {
+        // MOVE AE TO AE where AE is alphanumeric-edited (PIC X(3)BX(3), a 'B' insertion) — GR4 d condition (1).
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 AE PIC X(3)BX(3).\n", "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE AE TO AE."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("MOVE-TO-SAME-NAME", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_MoveToSameNameOn_Flags_SubordinateOdoSelfMove()
+    {
+        // MOVE G TO G where G has a subordinate OCCURS…DEPENDING ON CNT and CNT is subordinate to G — GR4 d (2).
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 G.\n          05 CNT PIC 9.\n          05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.\n",
+            "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE G TO G."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("MOVE-TO-SAME-NAME", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_MoveToSameName_NotFlagged_PlainAlphanumericSelfMove()
+    {
+        // MOVE PL TO PL where PL is a plain alphanumeric item (no edit mask, no subordinate ODO) — neither GR4 d arm.
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 PL PIC X(7).\n", "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE PL TO PL."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_MoveToSameName_NotFlagged_DifferentDescriptionEntries()
+    {
+        // MOVE AE TO AF — two DISTINCT (though identically-described) DDEs are not "the same data description entry".
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 AE PIC X(3)BX(3).\n       01 AF PIC X(3)BX(3).\n",
+            "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE AE TO AF."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_MoveToSameName_NotFlagged_OdoDependingItemOutsideTheGroup()
+    {
+        // The DEPENDING item CNT is declared OUTSIDE G (§13.18.38 SR20 permits this), so it is NOT subordinate to
+        // the moved DDE — GR4 d (2) requires the DEPENDING item be subordinate to the DDE.
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 CNT PIC 9.\n       01 G.\n          05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.\n",
+            "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE G TO G."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_MoveToSameName_NotFlagged_WhenDirectiveOff()
+    {
+        var warnings = CompileWarnings(MoveProgram(
+            "       01 AE PIC X(3)BX(3).\n", "       >>FLAG-02 MOVE-TO-SAME-NAME OFF\n", "MOVE AE TO AE."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
 }

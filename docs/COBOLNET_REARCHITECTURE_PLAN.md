@@ -23,17 +23,26 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD `8c3bf923`, pushed — the Wave-D **FLAG-02/FLAG-14 migration-flagging** build
-  is IN PROGRESS at **11 of 19 detectors**):** the full flagging subsystem (design SSOT
+- **▶ RESUME AT (2026-07-21; code HEAD = the d-detector commit, pushed — the Wave-D **FLAG-02/FLAG-14
+  migration-flagging** build is IN PROGRESS at **12 of 19 detectors**):** the full flagging subsystem (design SSOT
   `docs/rearchitecture/DESIGN-flag-directives.md`; pipeline `FlagDirectiveProcessor`→`FlagState`→`FlagConformancePass`
   parse-arm visitor + frontend-inline `ConditionalCompilationProcessor`; diags COBOLNET1620/1621/1622; directive-word
   edition gates) + these detectors LANDED: READ-PREVIOUS, CLOSE-I-O-STATUS-07 (Incr 0); g NUM-ED-ZERO-FIGCONST, l
   VALUE-ZERO, j VALUE-EDITING, k VALUE-FIG-CON-LENGTH, m WRITE-END-OF-PAGE, FLAG-02 f TERMINATE-WITH-VARYING (Incr 1);
-  b COMPILE-TIME-ARITHMETIC-EXPRESSIONS, c EVALUATE (Incr 2, frontend-inline); i REF-MOD-ZERO-LENGTH (Incr 3).
-  **⏭ NEXT = the FLAG remainder (5 detectors, each needs new machinery — NOT deferrable per owner "we fix issues, do
-  not defer them"):** **d MOVE-TO-SAME-NAME** + **e RANGE-EXCEPTION-FOR-INDEX** (Incr 3 remainder — both need
-  name→DataItem resolution via `DataBinder.ByName`/`ReferenceResolver.FindItem`; e also reads the EC-RANGE-INDEX
-  `TurnState` like i's EC-BOUND-REF-MOD); then **Incr 4 the new-analysis options** I-O-DECLARATIVE (statement→file→
+  b COMPILE-TIME-ARITHMETIC-EXPRESSIONS, c EVALUATE (Incr 2, frontend-inline); i REF-MOD-ZERO-LENGTH,
+  **d MOVE-TO-SAME-NAME** (Incr 3). **d** added the per-unit name-resolution scaffolding to `FlagConformancePass`
+  (a `VisitProgramUnit` save/restore selecting the current unit's `DataBinder`/`ReferenceResolver` from a
+  `ProgramUnitContext→BoundUnit` map) — same-DDE via **exact `ReferenceEquals`** of `ReferenceResolver.FindItem`
+  results (ignores subscripts/ref-mod ⇒ `MOVE A(I) TO A(J)` is the same DDE); alphanumeric-edited via
+  `{ Category: Alphanumeric, EditMask: not null }` (**no `PicCategory.AlphanumericEdited` member exists** — the
+  scout's proposed test was impossible, verify-agent-corrected); subordinate-ODO via `OdoModel.TableUnder`/`IsWithin`.
+  OO method bodies = a documented advisory false-negative (no unit-map entry ⇒ `_current*` null ⇒ not resolved).
+  **⏭ NEXT = the FLAG remainder (4 detectors, each needs new machinery — NOT deferrable per owner "we fix issues, do
+  not defer them"):** **e RANGE-EXCEPTION-FOR-INDEX** (Incr 3 remainder — reuse d's per-unit `_currentData`; an
+  index-**NAME** receiver of `setToValueStatement`/`setIndexStatement` via `DataBinder.IndexFields.ContainsKey`, gated
+  by `_turn.Enabled("EC-RANGE-INDEX", null, line)` like i's EC-BOUND-REF-MOD. **⛔ SPEC-PRECISE: only an index-NAME
+  receiver range-checks — a class-index DATA item receiver copies UNCHANGED per §14.9.39.4 Format-1 GR2b, so
+  USAGE-INDEX receivers are NOT flagged**); then **Incr 4 the new-analysis options** I-O-DECLARATIVE (statement→file→
   open-mode→declarative cross-ref) · I-O-STATUS-04/07 (FILE-STATUS reference tagging) · EC-PROGRAM-EXCEPTIONS
   (element-scope function-call/method-invoke aggregation). THEN the Wave-D residue (>>COBOL-WORDS · CC-in-COPY — both
   DIRECTIONS recorded in the §0 block below) · PERFORM Format-3 RUNTIME interceptor · §24 fix-queue → Wave I merge →
@@ -151,9 +160,18 @@ checkpoint.
   **i REF-MOD-ZERO-LENGTH**: `RefModZeroLengthState.IsUnspecifiedAt` (the tri-state `IsOnAt` can't express) +
   `TurnState.Enabled("EC-BOUND-REF-MOD",…)`, threaded from `GroupBindContext.Session`; a ref-mod is detected on BOTH
   parse paths (`VisitRefModSpec` + `VisitSubscriptOrRefMod` with a `SUB_COLON` sub-token — the data-reference path a
-  probe caught being missed). **Detectors done: 11 of 19.** 41 tests + CLI-probed + char 33/33.
-  ⏭ **NEXT (Incr 3 remainder)** = d MOVE-TO-SAME-NAME (same-DDE via name resolution — `DataBinder.ByName`/
-  `ReferenceResolver.FindItem`) + e RANGE-EXCEPTION-FOR-INDEX (SET-index target + `EC-RANGE-INDEX` TurnState) →
+  probe caught being missed). **Detectors done: 11 of 19.** 41 tests + CLI-probed + char 33/33. ✅ **Incr 3 d
+  LANDED** — **d MOVE-TO-SAME-NAME**: the per-unit name-resolution scaffolding (`VisitProgramUnit` save/restore →
+  current unit's `DataBinder`/`ReferenceResolver` from a `ProgramUnitContext→BoundUnit` map); same-DDE via **exact
+  `ReferenceEquals`** of `ReferenceResolver.FindItem` (subscript/ref-mod-agnostic); (1) alphanumeric-edited via
+  `{ Category: Alphanumeric, EditMask: not null }` (no `PicCategory.AlphanumericEdited` member — verify-agent-
+  corrected); (2) subordinate-ODO via `OdoModel.TableUnder`/`IsWithin`; both MOVE forms (CORRESPONDING + multi-
+  receiver); OO method bodies a documented advisory false-negative. **Detectors done: 12 of 19.** 47 tests +
+  CLI-probed (7 cases incl. ODO-outside-group / distinct-DDE / OFF negatives) + char 33/33.
+  ⏭ **NEXT (Incr 3 remainder)** = e RANGE-EXCEPTION-FOR-INDEX (reuse d's per-unit `_currentData`; index-**NAME**
+  receiver of `setToValueStatement`/`setIndexStatement` via `DataBinder.IndexFields.ContainsKey`, gated by
+  `_turn.Enabled("EC-RANGE-INDEX", null, line)`; **⛔ class-index DATA-item receivers copy UNCHANGED §14.9.39.4
+  Format-1 GR2b ⇒ NOT flagged — only index-names range-check**) →
   Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
@@ -170,8 +188,8 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `8c3bf923` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
-  baseline (+ the new **`FlagDirectiveTests` 41** — parser/fold/end-to-end for the 11 landed FLAG detectors) ·
+- **Battery at code-HEAD = the d-detector commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
+  unit **447** baseline (+ the new **`FlagDirectiveTests` 47** — parser/fold/end-to-end for the 12 landed FLAG detectors) ·
   legacy unit `Preprocessor` **11** · characterization **33** byte-exact · greenfield Conformance **3784** + the
   `directive_expressions` 2002 golden. The FLAG subsystem added the drift-guarded catalog descriptors
   COBOLNET1620/1621/1622 + the `flag-14-directive-2023`/`flag-02-directive-2014` version-matrix rows (full

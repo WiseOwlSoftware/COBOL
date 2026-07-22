@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;        // Usage / PicCategory / PicInfo
 using CobolNet.Binding.Passes;       // GroupBindContext
 using CobolNet.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
+using CobolNet.Frontend.Cst;         // DataReferenceCst / SpecialRegister
 using CobolNet.Frontend.Generated;   // CobolParserCore / CobolParserCoreBaseVisitor
 using CobolNet.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
 
@@ -39,6 +40,15 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     // the >>TURN EC-checking model (i needs EC-BOUND-REF-MOD; e needs EC-RANGE-INDEX).
     private readonly RefModZeroLengthState _refModZl;
     private readonly TurnState _turn;
+    // Per-unit name resolution for the NAME-RESOLVING detectors (d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX):
+    // the map from each program unit's parse subtree to its bound model, and the CURRENT unit's data + resolver —
+    // set by VisitProgramUnit as the walk enters each unit's subtree so an operand resolves in ITS OWN COBOL name
+    // scope (duplicate data-names across programs must not cross-resolve; an index-name is likewise unit-scoped).
+    // Null outside any program unit (an OO METHOD body — a documented advisory false-NEGATIVE, never a false-positive:
+    // the flag simply does not fire there, which is safe for a migration aid).
+    private readonly IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> _unitByCtx;
+    private DataBinder? _currentData;
+    private ReferenceResolver? _currentRefs;
     // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
     // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
@@ -46,7 +56,8 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
 
     private FlagConformancePass(FlagState flag, IDiagnosticSink sink,
         IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports,
-        RefModZeroLengthState refModZl, TurnState turn)
+        RefModZeroLengthState refModZl, TurnState turn,
+        IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> unitByCtx)
     {
         _flag = flag;
         _sink = sink;
@@ -54,6 +65,7 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         _varyingReports = varyingReports;
         _refModZl = refModZl;
         _turn = turn;
+        _unitByCtx = unitByCtx;
     }
 
     /// <summary>Flag every construct an active FLAG option covers. A no-op (no walk) when no FLAG directive is
@@ -81,8 +93,25 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
                     varying.Add(report.Name);
         }
 
+        // Map each program unit's parse subtree to its bound model so VisitProgramUnit can select the current
+        // unit's data + resolver for the name-resolving detectors (d/e). OO class method bodies have no entry —
+        // their MOVE/SET operands are not resolved (the documented advisory edge; _current* stays null there).
+        var unitByCtx = new Dictionary<CobolParserCore.ProgramUnitContext, BoundUnit>();
+        foreach (var unit in group.Units) unitByCtx[unit.Ctx] = unit;
+
         new FlagConformancePass(flag, sink, linage, varying,
-            group.Session.RefModZeroLength, group.Session.Turn).Visit(group.Tree);
+            group.Session.RefModZeroLength, group.Session.Turn, unitByCtx).Visit(group.Tree);
+    }
+
+    /// <summary>Select the current program unit's data + resolver for the walk of its subtree (the name-resolving
+    /// detectors d/e resolve operands in THIS unit's COBOL name scope), with save/restore so a nested program
+    /// restores its container's scope on exit.</summary>
+    public override object? VisitProgramUnit(CobolParserCore.ProgramUnitContext ctx)
+    {
+        var (prevData, prevRefs) = (_currentData, _currentRefs);
+        if (_unitByCtx.TryGetValue(ctx, out var unit)) { _currentData = unit.Data; _currentRefs = unit.Refs; }
+        try { return base.VisitChildren(ctx); }
+        finally { (_currentData, _currentRefs) = (prevData, prevRefs); }
     }
 
     /// <summary>Emit the option's Warning if it is flagging at <paramref name="line"/>. The Code is per-directive;
@@ -227,6 +256,65 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             }
         return base.VisitChildren(ctx);
     }
+
+    // ── FLAG-02 d MOVE-TO-SAME-NAME (§7.3.14.4 GR4 d) — a MOVE whose sending and a receiving operand are described
+    //    by the SAME data description entry (symbol identity: both resolve to the one <see cref="DataItem"/>, so
+    //    differing subscripts / ref-mod of one item still count — §14.9.39 "same data description entry"), when that
+    //    DDE is (1) category alphanumeric-edited, or (2) has a subordinate OCCURS…DEPENDING whose DEPENDING item is
+    //    subordinate to it. Resolved in the CURRENT unit's scope (VisitProgramUnit). ──
+    public override object? VisitMoveStatement(CobolParserCore.MoveStatementContext ctx)
+    {
+        var (send, recvs) = MoveOperands(ctx);
+        if (send is not null && ResolveItem(send) is { } sendItem)
+            foreach (var recv in recvs)
+                if (ResolveItem(recv) is { } recvItem && ReferenceEquals(sendItem, recvItem)
+                    && MoveToSameNameFlaggable(sendItem))
+                {
+                    Flag(FlagOption.Flag02MoveToSameName, ctx.Start.Line,
+                        "the MOVE whose sending and receiving operands are the same data description entry");
+                    break;   // GR4 d flags the MOVE once, however many receivers share the sender's DDE
+                }
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>The MOVE's sending operand (null when it is a literal / function activation — never the same DDE as
+    /// a receiver) and its receiving operands, across BOTH forms: <c>MOVE CORRESPONDING a TO b</c> (the CORR keyword
+    /// sits on the statement) and the plain <c>MOVE a TO b…</c> (one or more receivers).</summary>
+    private static (CobolParserCore.DataReferenceContext? Send, IReadOnlyList<CobolParserCore.DataReferenceContext> Recvs)
+        MoveOperands(CobolParserCore.MoveStatementContext ctx)
+    {
+        if (ctx.CORRESPONDING() is not null || ctx.CORR() is not null)   // MOVE CORRESPONDING dref TO dref
+        {
+            var d = ctx.dataReference();
+            return d.Length >= 2 ? (d[0], [d[1]]) : (null, []);
+        }
+        var send = ctx.moveSendingOperand()?.dataReference();
+        IReadOnlyList<CobolParserCore.DataReferenceContext> recvs =
+            ctx.moveReceivingPhrase()?.dataReferenceList()?.dataReference() ?? [];
+        return (send, recvs);
+    }
+
+    /// <summary>Resolve a MOVE operand's <c>dataReference</c> to its <see cref="DataItem"/> in the current unit's
+    /// scope — the DESCRIPTION ENTRY the operand names (subscripts / ref-mod ignored; those select an occurrence /
+    /// span of the same DDE). Null for a special register, a name-less reference, or outside a resolvable unit.</summary>
+    private DataItem? ResolveItem(CobolParserCore.DataReferenceContext dref)
+    {
+        if (_currentRefs is null) return null;
+        DataReferenceCst r = dref;
+        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
+        var quals = new List<string>();
+        foreach (var suffix in dref.dataReferenceSuffix())
+            if (suffix.qualification()?.cobolWord()?.GetText() is { } q) quals.Add(q);
+        return _currentRefs.FindItem(name, quals);
+    }
+
+    /// <summary>Whether a same-DDE MOVE operand triggers GR4 d: (1) the DDE is category alphanumeric-edited (the ONE
+    /// established test — <see cref="PicCategory.Alphanumeric"/> storage carrying an edit mask, §13.18.40), or (2) it
+    /// includes a subordinate OCCURS…DEPENDING clause whose DEPENDING item is subordinate to it (§13.18.38 — a group
+    /// moved to itself whose length depends on a count inside the moved region).</summary>
+    private static bool MoveToSameNameFlaggable(DataItem item)
+        => item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null }
+        || (OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } && OdoModel.IsWithin(dep, item));
 
     /// <summary>The entry's PICTURE string, VALUE clause, and USAGE clause (each null when absent) — read once from
     /// the data-description clauses.</summary>
