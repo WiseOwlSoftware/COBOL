@@ -29,8 +29,18 @@ checkpoint.
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
   678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** the **§24 fix-queue**
-  (`PHASE-13-plan-vs-spec-review.md` §24 = the verified defect/fix SSOT) → then **PHASE-14 Step 0** (the traceability
-  inventory; DONE = zero GAP). ─── **✅ ① F3-PERFORM-inside-a-method LANDED 2026-07-22 (DEVLOG 973–977; commits M1
+  (`PHASE-13-plan-vs-spec-review.md` §24 = the verified defect/fix SSOT) — **RECONCILED 2026-07-22 (8-agent triage
+  `wf_3757f8d4-b04`): 5 LANDED · 33 OPEN · 6 PARTIAL · the D17 OO-surface decision already routed to P14 Step-0-W; the
+  reconciled per-finding queue with exact fixes is saved at `scratchpad/p13-fixqueue-reconciled.json`.** ✅ **LANDED so
+  far this cycle (DEVLOG 978–979):** **V6** DISPLAY … UPON device routing (§14.9.11.3 SR2 — 0817 reject + SYSERR→stderr;
+  CONFORMANCE.md A.1 items 2/59) · **C14** negative ref-mod length now raises EC-BOUND-REF-MOD (a distinct
+  `OmittedRefModLength` sentinel replaces the −1 collision) · **V48** ODO zero-extent receive no longer spuriously raises ·
+  **C14-cite/V50-part** citation fixes. **⏭ REMAINING §24 majors (spec-first, one batch at a time):** the EC-seam batch
+  (V4 EC-RANGE / V3 EC-DATA-float / F10 SET-SIZE EC-STORAGE) · the ref-mod-externality residue (V45-sentinel /
+  V45-externality) · misc-semantics (V47 STOP-STATUS / V5 EXIT-SECTION / V46 N"…" VALUE / V24 OPTIONS-INITIALIZE) ·
+  the minors (V33/V9/V32/V25/V38/F12) · the doc-slice sweep (V1/V29/V35/V37/V39/F6/F7/F8/V42/V50-remainder/C2-doc-drift) ·
+  the **owner-decision items** (F1 ASSIGN USING route · V19 parameterized-class route · V24 intro-gate 2014-vs-2023).
+  Then **PHASE-14 Step 0** (the traceability inventory; DONE = zero GAP). ─── **✅ ① F3-PERFORM-inside-a-method LANDED 2026-07-22 (DEVLOG 973–977; commits M1
   `401404c4` · M2 `eb90146b` · M3 `a63d1f0e` · M4).** The one genuine remaining P13 feature — an exception-checking
   (Format-3) PERFORM inside an OO method compiles clean and RUNS (the `F3StagedInMethodStub` 0899 is lifted). Design
   SSOT `PHASE-13-c5-perform-format3-DESIGN.md` **§9.10 = IMPLEMENTED** (+ §9.10.1 = the folded 4-lens adversarial-review
