@@ -60,20 +60,28 @@ checkpoint.
   `VisitInlineMethodInvocationStatement` record the current unit in `_unitsWithCall`; `FlagEcProgramDirectives` maps
   each directive line to its INNERMOST containing unit and flags if that unit has a call/invoke.
   **⏭ NEXT = the Wave-D residue (the FLAG subsystem is DONE; remaining, doing all IN SEQUENCE per owner):**
-  **① >>COBOL-WORDS ✅ COMPLETE** · **② CC-in-COPY — NEXT** · ③ PERFORM Format-3 RUNTIME interceptor · ④ §24 fix-queue →
-  Wave I merge → P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case
+  **① >>COBOL-WORDS ✅ COMPLETE** · **② CC-in-COPY ✅ COMPLETE** · **③ PERFORM Format-3 RUNTIME interceptor — NEXT** ·
+  ④ §24 fix-queue → Wave I merge → P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case
   incl. negatives, unit-test, wave-local gate per commit) is in DEVLOG 949–956. **⚠ verify-by-RUNNING** (i's ref-mod
   parse node was wrong until a probe caught it — DEVLOG 956; the >>COBOL-WORDS subscript hazard was another — DEVLOG 964).
   **⚠ guard flake lesson (DEVLOG 964): JOBS=32 parallel NIST compile can FALSE-RED 2 tests ("COMPILE FAILED"); verify
   serially before believing a regression, and NEVER `taskkill dotnet.exe` right before a guard.**
-  **▶ ② CC-DIRECTIVES-INSIDE-COPY (§7.2.1) — NEXT (spec basis read):** the text-manip stage ORDER is Step 1 expand COPY
-  (incorporate library text; false-path COPY may be omitted; SOURCE FORMAT in a false path still processed) → Step 2
-  process DEFINE/IF/EVALUATE + var-substitution + PUSH/POP + COPY REPLACING → Step 3 REPLACE → Step 4 COBOL-WORDS. The
-  CURRENT pipeline runs CC (`ConditionalCompilationProcessor`) BEFORE COPY (`CopyProcessor`) — so a top-level >>IF can
-  gate COPY statements, but CC directives INSIDE copybooks are NOT processed (they reach the lexer as stray >>). The
-  recorded direction: MERGE CC+COPY into ONE interleaved text-manip driver with shared directive state (the copybook
-  >>SOURCE FORMAT §7.3.24.3 GR5 scoped-revert rides the same driver). HIGH blast radius; GnuCOBOL-differential gated
-  before/after. NEEDS a scout+design cycle first.
+  **▶ ② CC-DIRECTIVES-INSIDE-COPY (§7.2.1) ✅ COMPLETE (DESIGN SSOT `docs/rearchitecture/DESIGN-cc-in-copy.md` =
+  IMPLEMENTED; DEVLOG 966):** the merged interleaved text-manip driver — `ConditionalCompilationProcessor` refactored
+  into a `Run` (shared defines/IF-EVALUATE stack/FlagScan/evaluator); `Render()` block-accumulates emitting lines and
+  flushes COPY-expanded at directive/omitted boundaries; emitting COPY → copybook fed back through the SAME Run
+  (copybook directives processed, shared DEFINE state); omitted COPY DROPPED (false-branch missing copybook no-error).
+  `CopyProcessor.ResolveOneCopy`/`ExpandCopiesOneLevel` share the copybook mechanics; `Frontend` uses one
+  `ProcessWithCopy`; legacy `Process`/COPY byte-identical. **GATE: char 33/33 · CC/COPY unit 26/26 · CopyConditional
+  8/8 · cc_in_copy golden · GnuCOBOL +2 fixes/0 regressions · legacy guard ALL GREEN · greenfield Conformance 3806/0.**
+  ⚠ lesson: USE/MODE are RESERVED — can't be compilation-variable names (COBOLNET1619); a two-pass CC→COPY→CC also
+  fails (pass 1 consumes the main >>DEFINE before the copybook >>IF in pass 2 can see it) — the interleaved driver is
+  the only correct shape.
+  **▶ ③ PERFORM Format-3 RUNTIME interceptor — NEXT:** the GR17–20 runtime is STAGED (F3 PERFORM REJECTED at 2023 with
+  COBOLNET0899, `perform-exception-checking-2023` = pending). Direction (recorded): the pc-RANGE architecture — reuse
+  `__RunUse`/`ResumeSignal` (singular-pattern with declaratives; NOT the design §5 lambda — C# can't `goto` out of a
+  lambda), gate `__EcPerform` on "unit HAS an F3 PERFORM" so non-F3 output stays byte-identical. Design SSOT
+  `PHASE-13-c5-perform-format3-DESIGN.md` §6. NEEDS a scout+design cycle first.
   **▶ ① >>COBOL-WORDS (§7.3.10; DESIGN SSOT `docs/rearchitecture/DESIGN-cobol-words-directive.md` = decision-complete;
   DEVLOG 962–963):** the owner-directed post-lex token rewriter + composed `ReservedWordSet` (supersedes the prior
   scouts' text-substitution/not-supported plan). 4 increments: **✅ Incr A LANDED** — recognition + parse (4 options) +

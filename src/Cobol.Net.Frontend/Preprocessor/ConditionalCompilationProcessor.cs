@@ -58,159 +58,220 @@ public static class ConditionalCompilationProcessor
         bool leaveRefModZeroLengthDirectives = false, bool leaveFlagDirectives = false,
         bool leaveCobolWordsDirectives = false,
         DiagnosticBag? diagnostics = null, string? sourcePath = null)
+        => new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
+                leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copy: null, sourceDir: null)
+            .Render(text);
+
+    /// <summary>
+    /// The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY expansion
+    /// so directives INSIDE copybooks are processed. On each emitting-branch region the driver expands its COPY
+    /// statements (via <paramref name="copyProcessor"/>) and feeds each incorporated copybook back through the SAME
+    /// driver (shared DEFINE / IF-EVALUATE / FlagScan state across the copybook boundary); an omitted-branch COPY is
+    /// never expanded (so a false-path missing copybook raises no error). REPLACE (Step 3) is applied over the fully
+    /// expanded text. Greenfield-only — the legacy pipeline keeps the separate <see cref="Process"/> + COPY calls,
+    /// byte-identical. Design SSOT: <c>docs/rearchitecture/DESIGN-cc-in-copy.md</c>.
+    /// </summary>
+    public static string ProcessWithCopy(string text, string sourceDir, CopyProcessor copyProcessor,
+        bool leaveTurnDirectives, bool leavePropagateDirectives, bool leaveRefModZeroLengthDirectives,
+        bool leaveFlagDirectives, bool leaveCobolWordsDirectives,
+        DiagnosticBag? diagnostics, string? sourcePath)
     {
-        var defines = new Dictionary<string, CtValue>(StringComparer.OrdinalIgnoreCase);
-        // The running >>FLAG-14 state for the frontend-inline options b / c — mutated as the scan proceeds; `diag`
-        // holds a reference to it so operand evaluation can flag a compile-time arithmetic expression (b) in place.
-        var flagScan = new FlagScanState();
-        var diag = new DirectiveDiag(diagnostics, sourcePath, flagScan);
-        // The ONE shared compile-time expression evaluator (ledger C2). Its name resolution reads the CURRENT
-        // `defines` (a directive may reference a variable an earlier directive set); the frontend routes every
-        // formation diagnostic to COBOLNET1619; a directive operand is dot-decimal (§5.3 — processed before
-        // SPECIAL-NAMES, so DECIMAL-POINT IS COMMA is not yet in effect).
-        var evaluator = new CompileTimeExpressionEvaluator(
-            resolveName: w => defines.TryGetValue(w, out var v) ? v : null,
-            diag: diag,
-            vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
-            decimalPointIsComma: false);
+        copyProcessor.RegisterSourceDir(sourceDir);
+        string expanded = new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
+            leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copyProcessor, sourceDir).Render(text);
+        return CopyProcessor.ApplyReplaceStatements(expanded);   // Step 3 — REPLACE over the expanded compilation group
+    }
 
-        var stack = new Stack<Frame>();
-        var lines = text.Split('\n');
-        var output = new string[lines.Length];
+    /// <summary>
+    /// ONE run of the conditional-compilation state machine (ISO §7.3.11/§7.3.16 line selection), optionally
+    /// INTERLEAVED with COPY expansion (§7.2.1). All directive state — the <c>defines</c> map, the
+    /// <c>&gt;&gt;IF</c>/<c>&gt;&gt;EVALUATE</c> frame stack, the <see cref="FlagScanState"/>, the shared evaluator —
+    /// lives here so it is threaded through the recursive COPY expansion (a copybook <c>&gt;&gt;DEFINE</c> is visible
+    /// to following source, per Step-2 encounter order). <see cref="Render"/> uses a LOCAL output/block buffer per
+    /// call so recursion into a copybook does not clobber the caller's output while sharing this directive state.
+    /// </summary>
+    private sealed class Run
+    {
+        private readonly bool _leaveTurn, _leavePropagate, _leaveRefMod, _leaveFlag, _leaveCobolWords;
+        private readonly Dictionary<string, CtValue> _defines = new(StringComparer.OrdinalIgnoreCase);
+        private readonly FlagScanState _flagScan = new();
+        private readonly DirectiveDiag _diag;
+        private readonly CompileTimeExpressionEvaluator _evaluator;
+        private readonly Stack<Frame> _stack = new();
+        // COPY interleave context (null = pure CC, the legacy shape): the copybook engine + the per-group include
+        // set + the current nesting depth (threaded through the recursion for the SR1 circular / depth-20 guards).
+        private readonly CopyProcessor? _copy;
+        private readonly HashSet<string> _alreadyIncluded = new(StringComparer.OrdinalIgnoreCase);
+        private int _depth;
 
-        for (int i = 0; i < lines.Length; i++)
+        public Run(bool leaveTurn, bool leavePropagate, bool leaveRefMod, bool leaveFlag, bool leaveCobolWords,
+            DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir)
         {
-            string line = lines[i];
-            string trimmed = line.TrimEnd('\r').TrimStart();
-            bool emitting = stack.Count == 0 || stack.Peek().Emitting;
-            diag.Line = i;
-
-            if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
-            {
-                output[i] = emitting ? line : "";   // ordinary line: include only when the active branch emits
-                continue;
-            }
-
-            var (keyword, rest) = SplitDirective(trimmed);
-            switch (keyword)
-            {
-                case "IF":
-                {
-                    bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
-                    bool cond = parentActive && EvaluateCceText(rest, evaluator, diag, ">>IF");
-                    stack.Push(new Frame { Kind = FrameKind.If, ParentActive = parentActive, Emitting = cond, BranchTaken = cond });
-                    output[i] = "";
-                    break;
-                }
-                case "ELSE":
-                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.If)
-                    {
-                        var f = stack.Peek();
-                        f.Emitting = f.ParentActive && !f.BranchTaken;   // the ELSE body emits only if no prior branch did
-                    }
-                    output[i] = "";
-                    break;
-                case "END-IF":
-                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.If) stack.Pop();
-                    output[i] = "";
-                    break;
-                case "EVALUATE":
-                {
-                    // Format 1: >>EVALUATE selection-subject   Format 2: >>EVALUATE TRUE
-                    bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
-                    var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false,
-                        StartLine = i, EvaluateFlagOn = flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
-                    string subj = rest.Trim();
-                    if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
-                    else if (parentActive) f.Subject = EvaluateOperandText(subj, evaluator, diag, ">>EVALUATE");
-                    stack.Push(f);
-                    output[i] = "";
-                    break;
-                }
-                case "WHEN":
-                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate)
-                    {
-                        var f = stack.Peek();
-                        string obj = rest.Trim();
-                        // c EVALUATE: record the syntactic presence of a >>WHEN / >>WHEN OTHER (independent of which
-                        // branch emits) — GR4 c flags a directive containing BOTH.
-                        if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase)) f.SawWhenOther = true; else f.SawWhen = true;
-                        if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase))
-                            f.Emitting = f.ParentActive && !f.BranchTaken;     // OTHER fires only if nothing matched
-                        else if (!f.ParentActive || f.BranchTaken)
-                            f.Emitting = false;                                // enclosing omitted, or a prior WHEN already matched
-                        else
-                        {
-                            bool match = f.TruthForm
-                                ? EvaluateCceText(obj, evaluator, diag, ">>WHEN")               // Format 2: constant-conditional-expression
-                                : MatchWhen(f.Subject, obj, evaluator, diag);                   // Format 1: subject = object [THRU object3]
-                            f.Emitting = match;
-                            if (match) f.BranchTaken = true;
-                        }
-                    }
-                    output[i] = "";
-                    break;
-                case "END-EVALUATE":
-                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate)
-                    {
-                        var f = stack.Peek();
-                        // c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
-                        // and a >>WHEN OTHER and FLAG-14 EVALUATE was ON at the >>EVALUATE line.
-                        if (f.SawWhen && f.SawWhenOther && f.EvaluateFlagOn)
-                            diag.FlagWarn(FlagOption.Flag14Evaluate, f.StartLine);
-                        stack.Pop();
-                    }
-                    output[i] = "";
-                    break;
-                case "DEFINE":
-                    if (emitting) ApplyDefine(rest, defines, evaluator, diag);   // a DEFINE in an omitted branch has no effect
-                    output[i] = "";
-                    break;
-                default:
-                    // A >> directive other than the conditional-compilation set handled above. If it is a
-                    // recognized ISO §7.3 directive that we do not yet act on (CALL-CONVENTION, LISTING, TURN, …),
-                    // consume it so the program still compiles with default behavior. A directive in an omitted
-                    // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
-                    // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
-                    // With leaveTurnDirectives (the COBOL.NET caller), an emitting-branch >>TURN survives for the
-                    // TurnDirectiveProcessor stage (ISO §7.3.25) — legacy callers keep consuming it.
-                    if (!emitting) output[i] = "";
-                    else if (leaveTurnDirectives && keyword == "TURN") output[i] = line;
-                    // With leavePropagateDirectives (the COBOL.NET caller), an emitting-branch >>PROPAGATE survives
-                    // for the PropagateDirectiveProcessor stage (ISO §7.3.21 — the edition gate). Checked BEFORE the
-                    // KnownIgnoredDirectives fallthrough, so PROPAGATE stays in that set and a legacy caller (no
-                    // flag) keeps consuming it — the greenfield stage adds the edition gate, legacy behavior intact.
-                    else if (leavePropagateDirectives && keyword == "PROPAGATE") output[i] = line;
-                    // With leaveRefModZeroLengthDirectives (the COBOL.NET caller), an emitting-branch
-                    // >>REF-MOD-ZERO-LENGTH survives for the RefModZeroLengthDirectiveProcessor stage (ISO §7.3.23 —
-                    // the introduction gate + the per-line zero-length fold). It stays in KnownIgnoredDirectives so a
-                    // legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
-                    else if (leaveRefModZeroLengthDirectives && keyword == "REF-MOD-ZERO-LENGTH") output[i] = line;
-                    // With leaveFlagDirectives (the COBOL.NET caller), an emitting-branch >>FLAG-02 / >>FLAG-14
-                    // survives for the FlagDirectiveProcessor stage (ISO §7.3.14 / §7.3.15 — the per-line per-option
-                    // migration-flag fold). Both stay in KnownIgnoredDirectives so a legacy caller (no flag) keeps
-                    // consuming them; the greenfield stage adds the real behavior.
-                    else if (leaveFlagDirectives && (keyword == "FLAG-02" || keyword == "FLAG-14"))
-                    {
-                        // Track the running FLAG state for the frontend-inline options (this arm is reached only when
-                        // emitting). The line still SURVIVES for the post-COPY FlagDirectiveProcessor (the bound-option
-                        // FlagState). A malformed operand is reported there, not here — track only a well-formed toggle.
-                        var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
-                        if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
-                            flagScan.Apply(which, flagOpts, flagOn);
-                        output[i] = line;
-                    }
-                    // With leaveCobolWordsDirectives (the COBOL.NET caller), an emitting-branch >>COBOL-WORDS
-                    // survives for the CobolWordsDirectiveProcessor stage (ISO §7.3.10 — the introduction gate + the
-                    // per-group reserved/context/function word-table override). It stays in KnownIgnoredDirectives so
-                    // a legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
-                    else if (leaveCobolWordsDirectives && keyword == "COBOL-WORDS") output[i] = line;
-                    else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
-                    break;
-            }
+            _leaveTurn = leaveTurn; _leavePropagate = leavePropagate; _leaveRefMod = leaveRefMod;
+            _leaveFlag = leaveFlag; _leaveCobolWords = leaveCobolWords;
+            _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan);
+            // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
+            // `_defines` (a directive may reference a variable an earlier directive — or a copybook — set); the
+            // frontend routes every formation diagnostic to COBOLNET1619; a directive operand is dot-decimal (§5.3).
+            _evaluator = new CompileTimeExpressionEvaluator(
+                resolveName: w => _defines.TryGetValue(w, out var v) ? v : null,
+                diag: _diag,
+                vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
+                decimalPointIsComma: false);
+            _copy = copy;
         }
 
-        return string.Join('\n', output);
+        /// <summary>Process <paramref name="text"/> (source or copybook) into the manipulated text, sharing this
+        /// run's directive state. Consecutive emitting non-directive lines are accumulated into a block and flushed
+        /// (COPY-expanded when interleaving) at each directive/omitted-line boundary — a COPY statement always lies
+        /// wholly within one emitting block, so multi-line COPY REPLACING and mid-line COPY are handled by the
+        /// copybook engine's char scan.</summary>
+        public string Render(string text)
+        {
+            var lines = text.Split('\n');
+            var output = new List<string>(lines.Length);
+            var block = new List<string>();
+
+            void Flush()
+            {
+                if (block.Count == 0) return;
+                string blockText = string.Join('\n', block);
+                block.Clear();
+                string expanded = _copy is null
+                    ? blockText
+                    : _copy.ExpandCopiesOneLevel(blockText, _alreadyIncluded, _depth, RenderCopybook);
+                output.AddRange(expanded.Split('\n'));
+            }
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                string trimmed = line.TrimEnd('\r').TrimStart();
+                _diag.Line = i;
+
+                if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
+                {
+                    if (_stack.Count == 0 || _stack.Peek().Emitting) block.Add(line);   // accumulate; COPY expands at Flush
+                    else { Flush(); output.Add(""); }                                   // omitted ordinary line
+                    continue;
+                }
+
+                // A directive ends the current emitting block (a COPY can never span a directive line). Flush FIRST
+                // so the block's copybooks' own directives (a copybook >>DEFINE / >>IF) have already run — the
+                // following directive's condition + emitting state see them (ISO §7.2.1 Step-2 encounter order).
+                Flush();
+                _diag.Line = i;   // Flush may have re-anchored _diag.Line inside a copybook; restore for this line
+                bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
+                var (keyword, rest) = SplitDirective(trimmed);
+                string emit = "";   // directives are consumed by default (output blank line)
+                switch (keyword)
+                {
+                    case "IF":
+                    {
+                        bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
+                        bool cond = parentActive && EvaluateCceText(rest, _evaluator, _diag, ">>IF");
+                        _stack.Push(new Frame { Kind = FrameKind.If, ParentActive = parentActive, Emitting = cond, BranchTaken = cond });
+                        break;
+                    }
+                    case "ELSE":
+                        if (_stack.Count > 0 && _stack.Peek().Kind == FrameKind.If)
+                        {
+                            var f = _stack.Peek();
+                            f.Emitting = f.ParentActive && !f.BranchTaken;   // the ELSE body emits only if no prior branch did
+                        }
+                        break;
+                    case "END-IF":
+                        if (_stack.Count > 0 && _stack.Peek().Kind == FrameKind.If) _stack.Pop();
+                        break;
+                    case "EVALUATE":
+                    {
+                        // Format 1: >>EVALUATE selection-subject   Format 2: >>EVALUATE TRUE
+                        bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
+                        var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false,
+                            StartLine = i, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
+                        string subj = rest.Trim();
+                        if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
+                        else if (parentActive) f.Subject = EvaluateOperandText(subj, _evaluator, _diag, ">>EVALUATE");
+                        _stack.Push(f);
+                        break;
+                    }
+                    case "WHEN":
+                        if (_stack.Count > 0 && _stack.Peek().Kind == FrameKind.Evaluate)
+                        {
+                            var f = _stack.Peek();
+                            string obj = rest.Trim();
+                            // c EVALUATE: record the syntactic presence of a >>WHEN / >>WHEN OTHER (independent of which
+                            // branch emits) — GR4 c flags a directive containing BOTH.
+                            if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase)) f.SawWhenOther = true; else f.SawWhen = true;
+                            if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase))
+                                f.Emitting = f.ParentActive && !f.BranchTaken;     // OTHER fires only if nothing matched
+                            else if (!f.ParentActive || f.BranchTaken)
+                                f.Emitting = false;                                // enclosing omitted, or a prior WHEN already matched
+                            else
+                            {
+                                bool match = f.TruthForm
+                                    ? EvaluateCceText(obj, _evaluator, _diag, ">>WHEN")               // Format 2: constant-conditional-expression
+                                    : MatchWhen(f.Subject, obj, _evaluator, _diag);                   // Format 1: subject = object [THRU object3]
+                                f.Emitting = match;
+                                if (match) f.BranchTaken = true;
+                            }
+                        }
+                        break;
+                    case "END-EVALUATE":
+                        if (_stack.Count > 0 && _stack.Peek().Kind == FrameKind.Evaluate)
+                        {
+                            var f = _stack.Peek();
+                            // c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
+                            // and a >>WHEN OTHER and FLAG-14 EVALUATE was ON at the >>EVALUATE line.
+                            if (f.SawWhen && f.SawWhenOther && f.EvaluateFlagOn)
+                                _diag.FlagWarn(FlagOption.Flag14Evaluate, f.StartLine);
+                            _stack.Pop();
+                        }
+                        break;
+                    case "DEFINE":
+                        if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag);   // a DEFINE in an omitted branch has no effect
+                        break;
+                    default:
+                        // A >> directive other than the conditional-compilation set handled above. If it is a
+                        // recognized ISO §7.3 directive that we do not yet act on (CALL-CONVENTION, LISTING, TURN, …),
+                        // consume it so the program still compiles with default behavior. A directive in an omitted
+                        // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
+                        // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
+                        if (!emitting) emit = "";
+                        else if (_leaveTurn && keyword == "TURN") emit = line;
+                        else if (_leavePropagate && keyword == "PROPAGATE") emit = line;
+                        else if (_leaveRefMod && keyword == "REF-MOD-ZERO-LENGTH") emit = line;
+                        else if (_leaveFlag && (keyword == "FLAG-02" || keyword == "FLAG-14"))
+                        {
+                            // Track the running FLAG state for the frontend-inline options (reached only when emitting).
+                            // The line still SURVIVES for the post-COPY FlagDirectiveProcessor (the bound-option FlagState).
+                            var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
+                            if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
+                                _flagScan.Apply(which, flagOpts, flagOn);
+                            emit = line;
+                        }
+                        else if (_leaveCobolWords && keyword == "COBOL-WORDS") emit = line;
+                        else emit = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
+                        break;
+                }
+                output.Add(emit);
+            }
+
+            Flush();
+            return string.Join('\n', output);
+        }
+
+        /// <summary>Expand one incorporated copybook through the SAME driver at <paramref name="depth"/> — its own
+        /// directives + nested COPY are processed with this run's shared state; the depth is restored on return so
+        /// the SR1/depth guards stay accurate across sibling copybooks.</summary>
+        private string RenderCopybook(string copybookText, int depth)
+        {
+            int saved = _depth;
+            _depth = depth;
+            string result = Render(copybookText);
+            _depth = saved;
+            return result;
+        }
     }
 
     private enum FrameKind { If, Evaluate }

@@ -362,6 +362,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // inherited precedence). The frozen legacy has no boolean-expression support at all (like boolean_ops/
         // boolean_shift), so this rule-7b golden is greenfield-only. (ledger C2 — the shared BooleanExpressionResolver.)
         ("2023", "boolean_shift_mixed"),
+        // §7.2.1 CC-in-COPY — the merged interleaved text-manip driver processes directives INSIDE copybooks; the
+        // frozen legacy runs CC before COPY, so a copybook >>IF leaks to the lexer. Greenfield-only.
+        ("2023", "cc_in_copy"),
         // §7.3.10 >>COBOL-WORDS — the frozen legacy only recognizes-and-blanks the directive (KnownIgnoredDirectives),
         // so it cannot re-tokenize a synonym/de-reserved word; the token rewriter + composed ReservedWordSet are
         // greenfield-only. CorpusRunnerTests byte-compares these at --std 2023.

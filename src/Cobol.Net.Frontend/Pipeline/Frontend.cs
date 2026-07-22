@@ -99,18 +99,16 @@ public sealed class Frontend
         // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE.
         string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw, DialectLevel, Permissive, diagnostics, sourcePath);
 
-        // Conditional compilation runs on free-form text BEFORE COPY so an >>IF may include/omit COPY statements.
-        // leaveTurnDirectives / leavePropagateDirectives: an emitting-branch >>TURN / >>PROPAGATE survives for its
-        // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
-        // both here.
-        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
-            leaveRefModZeroLengthDirectives: true, leaveFlagDirectives: true, leaveCobolWordsDirectives: true,
-            diagnostics: diagnostics, sourcePath: sourcePath);
-
-        // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
+        // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
+        // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
+        // a main-source >>IF still gates a COPY (omitted-branch COPY is never expanded) and REPLACE (Step 3) runs over
+        // the expanded group. leave* keep the post-85 directive families flowing to their dedicated stages below.
+        // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive);
-        text = copy.Process(text, sourceDir);
+        text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy,
+            leaveTurnDirectives: true, leavePropagateDirectives: true, leaveRefModZeroLengthDirectives: true,
+            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
 
         if (NistTestName is { } nist)
             text = NistPreprocessor.Process(text, nist);
