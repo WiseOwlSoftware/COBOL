@@ -28,15 +28,20 @@ checkpoint.
 - **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `main`'s merge commit `1f56f572`; tree clean, pushed).**
   **⭐ THE PHASE-13 GRAMMAR BATCH + WAVE-D + TRACK ③ ARE MERGED TO MAIN.** The comprehensive pre-merge gate was ALL
   GREEN (greenfield Conformance 3822/3822 · legacy guard NIST 353 MATCH/0 regression · legacy Unit 1203 / Integration
-  678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** ① the Track ③ residue —
-  **F3-PERFORM-inside-a-method** (the one real remaining feature; loud-0899'd; needs OO pc-slice wiring; do NOT rush).
-  **DESIGN DECISION-COMPLETE + 4-lens adversarially verified 2026-07-22 (DEVLOG 973, verify `wf_570480e6-06d`) — SSOT
-  `PHASE-13-c5-perform-format3-DESIGN.md` §9.10 (+ §9.10.1 the folded C1-blocker/C2-major/C3-minor corrections).** The gap
-  is TWO coupled problems (pc-reachability + data-scope); the resolution re-scopes the SAME pc-range mechanism per
-  context (handler machinery method-LOCAL where it must reach `__MDispatch`; `__EcPerform`/`__IoCheckEc` stay class
-  members via `RunTopFrame`; a per-activation frame FLOOR isolates an F3 method from its activator). **⏭ IMPLEMENTING
-  M1→M4 (M1 dead binder/data · M2 scope-parameterized machinery · M3 `EmitMethod` wiring · M4 un-reject + behavior matrix
-  + comprehensive gate); construct stays 0899-rejected in a method until M4.** · ② the **§24 fix-queue** (`PHASE-13-plan-vs-spec-review.md`
+  678 · GnuCOBOL 0-regression). **⏭ NEXT (top of the REMAINING list, on `phase-14`):** the **§24 fix-queue**
+  (`PHASE-13-plan-vs-spec-review.md` §24 = the verified defect/fix SSOT) → then **PHASE-14 Step 0** (the traceability
+  inventory; DONE = zero GAP). ─── **✅ ① F3-PERFORM-inside-a-method LANDED 2026-07-22 (DEVLOG 973–977; commits M1
+  `401404c4` · M2 `eb90146b` · M3 `a63d1f0e` · M4).** The one genuine remaining P13 feature — an exception-checking
+  (Format-3) PERFORM inside an OO method compiles clean and RUNS (the `F3StagedInMethodStub` 0899 is lifted). Design
+  SSOT `PHASE-13-c5-perform-format3-DESIGN.md` **§9.10 = IMPLEMENTED** (+ §9.10.1 = the folded 4-lens adversarial-review
+  corrections: C1-blocker `__IoCheckEc`/`__EcPerform` class-scope frame-first gate · C2-major cross-INVOKE frame FLOOR ·
+  C3-minor `__RunUse` DispatchName). Resolution: the SAME pc-range mechanism re-scoped per context (handler machinery
+  method-LOCAL where it must reach `__MDispatch`; `__EcPerform`/`__IoCheckEc` class members via `RunTopFrame`; the
+  per-activation frame FLOOR isolates an F3 method from its activator). Gate: `PerformFormat3MethodBehaviorTests` 12/12
+  (imp-2..5 matrix + method-local capture + C2 isolation) · F3+OO conformance 269 · characterization 33/33 byte-identical
+  · greenfield Unit 571 · **GnuCOBOL +2 fixes / 0 regressions** (2 corpus F3-in-method programs now compile — count-verified:
+  the two divergence-toward buckets unchanged, the un-reject can only remove a reject). Track ③ (the F3 PERFORM) is now
+  FUNCTIONALLY COMPLETE end-to-end (program + method). · ② the **§24 fix-queue** (`PHASE-13-plan-vs-spec-review.md`
   §24 = the verified defect/fix SSOT) · ③ **PHASE-14 Step 0** = the traceability inventory (the definition of DONE =
   zero GAP). The other Track ③ staged items are intentional defaults / ride other waves / correct-by-construction
   (§0 detail below). ─── *Historical (what landed on the now-merged branch):* **Wave-D residue ①②③-CORE ALL COMPLETE:**

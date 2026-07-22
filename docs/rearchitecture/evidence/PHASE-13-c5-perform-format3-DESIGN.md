@@ -1121,8 +1121,10 @@ walled; every bounded `__RunUse`/PERFORM passes its own `__exitPc`, so PERFORM o
 ### 9.7 Staged-GAP boundary (each a loud COBOLNET0899 / dedicated diagnostic — never silent)
 ✅ **The open-mode WHEN operand form LANDED** (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND` — GR3b, tier 1: matches an
 EC-I-O whose file is currently open in that mode via `CobolFile.OpenModeOf(__f)`; an OPEN-failure's mode is
-best-effort). Remaining staged (kept explicit): **F3 PERFORM inside an OO method** (§9.1-B — reject loud until the OO
-pc-space wiring lands); cross-CALL GR1 "in range" (per-activation `TrimPerformTo` default, §5.4-2); EC-FLOW-USE /
+best-effort). ✅ **F3 PERFORM inside an OO method LANDED** (the pc-slice wiring, §9.10 IMPLEMENTED — the
+`F3StagedInMethodStub` 0899 is lifted). Remaining staged (kept explicit): cross-CALL / cross-INVOKE GR1 "in range"
+(the per-activation `TrimPerformTo`/frame-FLOOR default isolates the callee from the activator's frames — the
+cross-activation "in range" reading is the future opt-in, §5.4-2 / §9.10.1-C2); EC-FLOW-USE /
 `>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
 sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconcile the §8 doc to record them as SWEPT
 (more correct than §5.4-2's "un-swept" claim).
@@ -1167,9 +1169,11 @@ handler-region hook), `ControlFlowEmitter.cs` (`EmitExceptionPerform`), `Stateme
 
 ### 9.10 F3 PERFORM inside an OO method — the pc-slice wiring (lifts the §9.7 `F3StagedInMethodStub` 0899)
 
-> STATUS: DESIGN — decision-complete (this section supersedes the "reject loud until the OO pc-space wiring lands"
-> placeholder in §9.1-B / §9.7 / the `F3StagedInMethodStub` comment). Owner-directed careful build (plan §0 NEXT ①,
-> "do NOT rush"). The construct stays COBOLNET0899-rejected inside a method until this design's Incr M4 lands.
+> STATUS: **IMPLEMENTED** 2026-07-22 (increments M1–M4 landed; the `F3StagedInMethodStub` 0899 is lifted — an F3
+> PERFORM inside an OO method compiles clean and runs). Gate: `PerformFormat3MethodBehaviorTests` 12/12 (the imp-2..5
+> matrix + the method-local per-activation capture + the §9.10.1-C2 cross-INVOKE isolation, all spec-pinned) +
+> characterization 33/33 byte-identical + the comprehensive gate. This section is the as-built record; the C1/C2/C3
+> corrections in §9.10.1 are folded into the code.
 
 **The two coupled problems** (both real; the second is the deeper one the §9.1-B comment under-states):
 1. **pc-reachability.** A program's `__Dispatch` covers `[0 .. Paragraphs.Count−1]` — the whole pc space, so the

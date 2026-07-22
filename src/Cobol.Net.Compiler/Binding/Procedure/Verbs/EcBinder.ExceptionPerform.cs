@@ -59,10 +59,11 @@ internal sealed partial class EcBinder
 
         CheckCrossStatementBans(p);   // parse-subtree walks — order-independent; run once for both paths below
 
-        // OO-method F3 PERFORM is a STAGED GAP (COBOLNET0899): the appended handler pc-ranges fall outside the
-        // method's contiguous dispatch slice, so a WHEN body would silently never run. Reject loud (§9.7).
-        if (ctx.CurrentMethodScope is not null)
-            return F3StagedInMethodStub(p, imp1, withLocation);
+        // An F3 PERFORM inside an OO method binds its handler pc-ranges EXACTLY like a program's (design SSOT §9.10):
+        // AddF3Handler records ctx.CurrentMethodScope so StatementBinder.BindMethodRoster stamps each method's
+        // contiguous handler sub-range, and OoEmitter emits the method-LOCAL __RunUse/__RunF3 + the two-range
+        // __MDispatch + the entry frame FLOOR. (Formerly rejected loud COBOLNET0899 — the F3StagedInMethodStub gap,
+        // lifted here.)
 
         // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind IN LEXICAL CONTEXT with InF3When (RESUME-NEXT relaxation;
         // base TurnState per GR21) and are REDIRECTED into synthetic pc-range paragraphs (the pc-RANGE interceptor,
@@ -88,26 +89,6 @@ internal sealed partial class EcBinder
 
         bool handlerHasExit = HandlerBodiesContainExitPerform(p);
         return new BoundExceptionPerform(imp1, whens, otherPc, commonPc, final, withLocation, performId, handlerHasExit);
-    }
-
-    /// <summary>The OO-method staging stub (§9.7): reject an F3 PERFORM inside a method (COBOLNET0899 — the handler
-    /// pc-ranges fall outside the method's contiguous dispatch slice), but still bind the handler bodies for their
-    /// own diagnostics (discarded — a rejected program is never emitted) so a syntax error in a handler is reported.
-    /// Returns a node with no handler pcs (never emitted).</summary>
-    private BoundStatement F3StagedInMethodStub(Core.PerformStatementContext p, IReadOnlyList<BoundStatement> imp1, bool withLocation)
-    {
-        ctx.Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented,
-            "an exception-checking (Format-3) PERFORM inside a method is recognized and fully syntax-checked, but "
-            + "its runtime interception is not yet implemented for methods — the WHEN handler pc-ranges fall outside "
-            + "the method's contiguous dispatch slice (a P14 GAP; ISO §14.9.28.4 GR17)");
-        bool savedInWhen = ctx.EcState.InF3When;
-        ctx.EcState.InF3When = true;
-        foreach (var w in p.performWhenPhrase()) host.BindBlocks(w.statementBlock());
-        if (p.performWhenOther() is { } o) host.BindBlocks(o.statementBlock());
-        if (p.performWhenCommon() is { } c) host.BindBlocks(c.statementBlock());
-        ctx.EcState.InF3When = savedInWhen;
-        var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;
-        return new BoundExceptionPerform(imp1, [], null, null, final, withLocation, ctx.EcState.NextF3PerformId(), false);
     }
 
     /// <summary>True when any handler body (imp-2/3/4 — the WHEN / WHEN OTHER / WHEN COMMON statement blocks) contains
