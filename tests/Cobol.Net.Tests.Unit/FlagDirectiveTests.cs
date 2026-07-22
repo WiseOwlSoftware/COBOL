@@ -606,4 +606,83 @@ public sealed class FlagDirectiveTests
             "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX OFF\n", "SET IDX TO 3."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
     }
+
+    // ── Incr 4: FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§7.3.15.4 GR4 e/f) — a reference to a FILE STATUS data
+    //    item that tests for '04'/'07': a relation comparing it to the literal, or a level-88 condition-name whose
+    //    VALUE is '04'/'07'. ──
+
+    private static string IoStatusProgram(string statusEntry, string directive, string conditions) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGIOS.\n       ENVIRONMENT DIVISION.\n" +
+        "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n" +
+        "           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n" +
+        "               ACCESS MODE IS DYNAMIC RECORD KEY IS F-KEY FILE STATUS IS FS.\n" +
+        "       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 F-REC.\n          05 F-KEY PIC X(4).\n" +
+        "       WORKING-STORAGE SECTION.\n" + statusEntry + "       01 WS PIC XX.\n" +
+        "       PROCEDURE DIVISION.\n       MAIN.\n" + directive + conditions + "           STOP RUN.\n";
+
+    private const string PlainFs = "       01 FS PIC XX.\n";
+    private const string FsWith88 = "       01 FS PIC XX.\n          88 FS-DUP-KEY VALUE \"07\".\n          88 FS-AVAIL VALUE \"04\".\n";
+
+    private static string If(string cond) => "           IF " + cond + "\n               CONTINUE\n           END-IF.\n";
+
+    [Fact]
+    public void Compile_IoStatus04On_Flags_RelationTestingFileStatusFor04()
+    {
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs,
+            "       >>FLAG-14 I-O-STATUS-04 ON\n", If("FS = \"04\"")));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("I-O-STATUS-04", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus07On_Flags_ReverseOrderRelation()
+    {
+        // The FILE-STATUS item may be on EITHER side of the relation ('07' = FS).
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs,
+            "       >>FLAG-14 I-O-STATUS-07 ON\n", If("\"07\" = FS")));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("I-O-STATUS-07", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus04On_Flags_Level88ConditionNameForFileStatus()
+    {
+        // A reference to a level-88 condition-name whose VALUE is '04', defined on the FILE-STATUS item.
+        var warnings = CompileWarnings(IoStatusProgram(FsWith88,
+            "       >>FLAG-14 I-O-STATUS-04 ON\n", If("FS-AVAIL")));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("I-O-STATUS-04", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus_NotFlagged_RelationAgainstADifferentStatusValue()
+    {
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs,
+            "       >>FLAG-14 I-O-STATUS-04 ON\n       >>FLAG-14 I-O-STATUS-07 ON\n", If("FS = \"05\"")));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus_NotFlagged_RelationOnANonFileStatusItem()
+    {
+        // WS is not named in any FILE STATUS clause — comparing it to '04' is not a FILE-STATUS reference.
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs,
+            "       >>FLAG-14 I-O-STATUS-04 ON\n", If("WS = \"04\"")));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus_PerOptionGating_Only04On_DoesNotFlag07()
+    {
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs,
+            "       >>FLAG-14 I-O-STATUS-04 ON\n", If("FS = \"07\"")));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoStatus_NotFlagged_WhenDirectiveOff()
+    {
+        var warnings = CompileWarnings(IoStatusProgram(PlainFs, "", If("FS = \"04\"")));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
 }

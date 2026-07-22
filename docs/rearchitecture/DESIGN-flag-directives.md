@@ -78,8 +78,8 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | b COMPILE-TIME-ARITHMETIC-EXPRESSIONS | a compile-time arithmetic expr with a real operator | `[F]` `CompileTimeExpressionEvaluator` EvalArith (Add/Mul arm) | 2 | E.2 item 6. Guard on operator present (sole literal not flagged) |
 | c EVALUATE | a `>>EVALUATE` directive with both a WHEN and a WHEN OTHER | `[F]` `ConditionalCompilationProcessor` Evaluate/When frames | 2 | E.2 item 8. NOT the EVALUATE statement |
 | d I-O-DECLARATIVE | an INVALID-KEY-capable I-O stmt (or AT-END-capable READ) without that phrase while a USE INPUT/OUTPUT/I-O/EXTEND declarative is in effect | `[B]` bound I-O nodes + declaratives model | 4 | E.2 item 19. Needs statement→file→open-mode→declarative join (new analysis) |
-| e I-O-STATUS-04 | a condition testing a FILE STATUS item against `'04'` | `[B]` needs status-ref tagging | 4 | E.2 item 15. New analysis: link data-refs to their FILE-STATUS role |
-| f I-O-STATUS-07 | a condition testing a FILE STATUS item against `'07'` | `[B]` needs status-ref tagging | 4 | E.2 item 16. Same machinery as e |
+| e I-O-STATUS-04 | a reference testing a FILE STATUS item for `'04'` — a relation, or a level-88 whose VALUE is `'04'` | `[B]` DONE — `VisitComparisonExpression` + FILE-STATUS name/88 sets from `unit.Data.Files[]` | 4 | E.2 item 15 |
+| f I-O-STATUS-07 | a reference testing a FILE STATUS item for `'07'` — a relation, or a level-88 whose VALUE is `'07'` | `[B]` DONE — same detector as e (only the literal differs) | 4 | E.2 item 16 |
 | g NUM-ED-ZERO-FIGCONST | figurative ZERO in a VALUE clause of a numeric-edited item | `[B]` `GateData`/`DataItem` (DataBinder.cs:1104 `isZeroWord`) | 1 | E.2 item 28. **Same predicate as l** — one detector serves both |
 | h READ-PREVIOUS | a `READ … PREVIOUS` | `[B]` `BoundKeyedRead` Previous (already matched VCP:200) | 0 | E.2 item 22. The first end-to-end slice |
 | i REF-MOD-ZERO-LENGTH | a ref-mod where the `>>REF-MOD-ZERO-LENGTH` directive is **not explicitly** ON/OFF **and** EC-BOUND-REF-MOD is on | `[B]` `RefModPlace` + `RefModZeroLengthState` (tri-state ext.) + TurnState | 3 | E.2 item 23. Needs tri-state `RefModZeroLengthState` + EC read |
@@ -237,10 +237,22 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     shared SET grammar's pointer / capacity / dynamic-length / object receivers are intrinsically excluded).
   * **Scope note (d/e):** an OO **METHOD body** MOVE/SET has no `ProgramUnitContext→BoundUnit` entry, so `_current*`
     stays null and the operand is not resolved — a documented advisory **false-negative** (never a false-positive).
-* **Incr 4 — the new-analysis options** d I-O-DECLARATIVE, e/f I-O-STATUS-04/07 (FILE-STATUS reference
-  tagging), FLAG-02 b EC-PROGRAM-EXCEPTIONS (element-scope call/invoke aggregation). Each is real
-  cross-cutting analysis designed here to spec; implemented last because it introduces new machinery, NOT a
-  documented non-conformance. Wave I merges only when every option is landed or an owner decision stages one.
+* **Incr 4 — the new-analysis options.**
+  * **e/f I-O-STATUS-04/07 (DONE)** — one shared `VisitComparisonExpression` detector flags a reference to a
+    FILE-STATUS item that tests for '04'/'07', in TWO forms: a **relation** (a `comparisonExpression` with 2
+    `comparisonOperand`s + a `comparisonOperator`, the FILE-STATUS item on either side and the nonnumeric literal
+    '04'/'07' on the other) and a bare **level-88 condition-name** whose singleton `Condition88.Values` strips to
+    '04'/'07' on the FILE-STATUS item. The FILE-STATUS name set + the two 88-name sets are built in `Run` from
+    `unit.Data.Files[]` (`FileModel.FileStatusItem.CobolName` + its `Own88s`) — the m/f global-name-set idiom (a
+    role fact, collision-tolerant), NOT the scope-sensitive per-unit resolution d/e use. Operand navigation reuses
+    the canonical `ConditionBinder.SoleDataRef` (a lone reference, not an expression) + `valueOperand()
+    .nonNumericLiteral().STRINGLIT()` — no bespoke tree walk (`feedback_path_a_leverage_tooling`).
+  * **d I-O-DECLARATIVE, FLAG-02 b EC-PROGRAM-EXCEPTIONS (remaining)** — an I-O statement without its INVALID
+    KEY / AT END phrase while an INPUT/OUTPUT/I-O/EXTEND declarative is in effect (statement→file→open-mode→
+    declarative join); and a `>>TURN` for an EC-PROGRAM-family exception in an element that calls a function or
+    invokes a method (whole-element call/invoke aggregation + TurnState). Each is real cross-cutting analysis
+    designed here to spec, NOT a documented non-conformance. Wave I merges only when every option is landed or an
+    owner decision stages one.
 
 ## 5. Testing
 

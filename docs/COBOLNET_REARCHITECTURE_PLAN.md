@@ -23,8 +23,8 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; code HEAD = the e-detector commit, pushed — the Wave-D **FLAG-02/FLAG-14
-  migration-flagging** build is at **13 of 19 detectors; INCR 3 COMPLETE**):** the full flagging subsystem (design SSOT
+- **▶ RESUME AT (2026-07-21; code HEAD = the I-O-STATUS commit, pushed — the Wave-D **FLAG-02/FLAG-14
+  migration-flagging** build is at **15 of 19 detectors; INCR 3 COMPLETE, Incr 4 IN PROGRESS**):** the full flagging subsystem (design SSOT
   `docs/rearchitecture/DESIGN-flag-directives.md`; pipeline `FlagDirectiveProcessor`→`FlagState`→`FlagConformancePass`
   parse-arm visitor + frontend-inline `ConditionalCompilationProcessor`; diags COBOLNET1620/1621/1622; directive-word
   edition gates) + these detectors LANDED: READ-PREVIOUS, CLOSE-I-O-STATUS-07 (Incr 0); g NUM-ED-ZERO-FIGCONST, l
@@ -41,10 +41,14 @@ checkpoint.
   `_turn.Enabled("EC-RANGE-INDEX", null, line)`. **⛔ SPEC-PRECISE (divergence from BOTH the scout and the verify
   agent): only an index-NAME receiver range-checks — a class-index DATA item (USAGE INDEX) receiver copies UNCHANGED
   per §14.9.39.4 Format-1 GR2b, so it is NOT flagged.** OO method bodies (both d/e) = a documented advisory
-  false-negative (no unit-map entry ⇒ `_current*` null ⇒ not resolved).
-  **⏭ NEXT = the FLAG remainder (Incr 4 — the new-analysis options, 4 detectors, each needs new machinery — NOT
-  deferrable per owner "we fix issues, do not defer them"):** I-O-DECLARATIVE (statement→file→
-  open-mode→declarative cross-ref) · I-O-STATUS-04/07 (FILE-STATUS reference tagging) · EC-PROGRAM-EXCEPTIONS
+  false-negative (no unit-map entry ⇒ `_current*` null ⇒ not resolved). **Incr 4 (part) LANDED: FLAG-14 e/f
+  I-O-STATUS-04/07** — one shared `VisitComparisonExpression` detector flags a FILE-STATUS item tested for '04'/'07'
+  via a **relation** (`comparisonExpression` = 2 operands + operator, either order) OR a **level-88 condition-name**
+  whose singleton VALUE is '04'/'07'; name-role sets built in `Run` from `unit.Data.Files[]`
+  (`FileStatusItem.CobolName` + the item's `Own88s`); operand navigation via the canonical
+  `ConditionBinder.SoleDataRef` + `valueOperand().nonNumericLiteral().STRINGLIT()` (tooling-first).
+  **⏭ NEXT = the Incr 4 remainder (2 detectors — NOT deferrable per owner "we fix issues, do not defer them"):**
+  I-O-DECLARATIVE (statement→file→open-mode→declarative cross-ref) · EC-PROGRAM-EXCEPTIONS
   (element-scope function-call/method-invoke aggregation). THEN the Wave-D residue (>>COBOL-WORDS · CC-in-COPY — both
   DIRECTIONS recorded in the §0 block below) · PERFORM Format-3 RUNTIME interceptor · §24 fix-queue → Wave I merge →
   P14. The per-detector build discipline (spec-derive the exact predicate FIRST, CLI-probe every case incl.
@@ -176,9 +180,19 @@ checkpoint.
   a class-index DATA item (USAGE INDEX) receiver copies UNCHANGED §14.9.39.4 Format-1 GR2b ⇒ NOT flagged** (a
   deliberate spec-precise divergence from BOTH the scout and the verify agent, which listed USAGE-INDEX as a
   positive). **Detectors done: 13 of 19.** 54 tests + CLI-probed (7 cases incl. USAGE-INDEX-item / plain-numeric /
-  EC-off / EC-ALL-hierarchy / OFF) + char 33/33.
-  ⏭ **NEXT = Incr 4 (the new-analysis options)**: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS →
-  the Wave-D residue. ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  EC-off / EC-ALL-hierarchy / OFF) + char 33/33. ✅ **Incr 4 (part) — FLAG-14 e/f I-O-STATUS-04/07 LANDED**: one
+  shared `VisitComparisonExpression` detector flags a FILE-STATUS item tested for '04'/'07' via a **relation**
+  (`comparisonExpression` = 2 operands + operator, either order, any relop) OR a bare **level-88 condition-name**
+  whose singleton VALUE is '04'/'07'; the FILE-STATUS name + 88-name role-sets are built in `Run` from
+  `unit.Data.Files[]` (`FileStatusItem.CobolName` + `Own88s` / `Condition88.Values`, the m/f global-name-set idiom);
+  canonical operand navigation via `ConditionBinder.SoleDataRef` + `valueOperand().nonNumericLiteral().STRINGLIT()`
+  (tooling-first, scout-recommended). **Detectors done: 15 of 19.** 61 tests + CLI-probed (relation both orders /
+  88-form / non-matching-value / non-FILE-STATUS / per-option-gating / OFF) + char 33/33.
+  ⏭ **NEXT = Incr 4 remainder (2 detectors)**: I-O-DECLARATIVE (an I-O statement without its INVALID KEY / AT END
+  phrase while an INPUT/OUTPUT/I-O/EXTEND declarative is in effect — needs a statement→file→open-mode→declarative
+  join) · EC-PROGRAM-EXCEPTIONS (FLAG-02 b — a >>TURN for an EC-PROGRAM-family EC in an element that calls a function
+  or invokes a method — needs whole-element call/invoke aggregation + TurnState) → the Wave-D residue.
+  ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff
@@ -194,8 +208,8 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD = the e-detector commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
-  unit **447** baseline (+ the new **`FlagDirectiveTests` 54** — parser/fold/end-to-end for the 13 landed FLAG detectors) ·
+- **Battery at code-HEAD = the I-O-STATUS commit (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield
+  unit **447** baseline (+ the new **`FlagDirectiveTests` 61** — parser/fold/end-to-end for the 15 landed FLAG detectors) ·
   legacy unit `Preprocessor` **11** · characterization **33** byte-exact · greenfield Conformance **3784** + the
   `directive_expressions` 2002 golden. The FLAG subsystem added the drift-guarded catalog descriptors
   COBOLNET1620/1621/1622 + the `flag-14-directive-2023`/`flag-02-directive-2014` version-matrix rows (full

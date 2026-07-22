@@ -3,6 +3,7 @@
 using CobolNet.Binding;              // FlagState / PictureAnalyzer / EditionContext
 using CobolNet.Binding.Model;        // Usage / PicCategory / PicInfo
 using CobolNet.Binding.Passes;       // GroupBindContext
+using CobolNet.Binding.Procedure;    // ConditionBinder.SoleDataRef (the canonical bare-operand unwrap)
 using CobolNet.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
 using CobolNet.Frontend.Cst;         // DataReferenceCst / SpecialRegister
@@ -36,6 +37,13 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     // has a LINAGE clause (FLAG-14 m), and the report-names whose description carries a VARYING clause (FLAG-02 f).
     private readonly IReadOnlySet<string> _linageWriteTargets;
     private readonly IReadOnlySet<string> _varyingReports;
+    // FILE-STATUS reference tagging (FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07): the source names of the data items
+    // named in a SELECT … FILE STATUS clause (a relation comparing one to '04'/'07' is the flagged reference), and
+    // the level-88 condition-names defined ON such an item whose (singleton) VALUE is '04' / '07' (a reference to
+    // that condition-name is likewise "a reference … that tests for '04'/'07'").
+    private readonly IReadOnlySet<string> _fileStatusNames;
+    private readonly IReadOnlySet<string> _fileStatus88Is04;
+    private readonly IReadOnlySet<string> _fileStatus88Is07;
     // The compile-time directive states the state-coupled options read: the >>REF-MOD-ZERO-LENGTH tri-state (i) and
     // the >>TURN EC-checking model (i needs EC-BOUND-REF-MOD; e needs EC-RANGE-INDEX).
     private readonly RefModZeroLengthState _refModZl;
@@ -56,6 +64,7 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
 
     private FlagConformancePass(FlagState flag, IDiagnosticSink sink,
         IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports,
+        IReadOnlySet<string> fileStatusNames, IReadOnlySet<string> fileStatus88Is04, IReadOnlySet<string> fileStatus88Is07,
         RefModZeroLengthState refModZl, TurnState turn,
         IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> unitByCtx)
     {
@@ -63,6 +72,9 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         _sink = sink;
         _linageWriteTargets = linageWriteTargets;
         _varyingReports = varyingReports;
+        _fileStatusNames = fileStatusNames;
+        _fileStatus88Is04 = fileStatus88Is04;
+        _fileStatus88Is07 = fileStatus88Is07;
         _refModZl = refModZl;
         _turn = turn;
         _unitByCtx = unitByCtx;
@@ -79,15 +91,34 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         // TERMINATE-WITH-VARYING). Files/reports live in program units (not OO class data), so units suffice.
         var linage = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var varying = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // FILE-STATUS reference tagging (I-O-STATUS-04/07): the FILE STATUS data-item names, and the level-88
+        // condition-names on such an item whose singleton VALUE is '04' / '07'.
+        var fileStatus = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var fs88_04 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var fs88_07 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var unit in group.Units)
         {
             foreach (var file in unit.Data.Files)
+            {
                 if (file.Linage is not null)
                 {
                     linage.Add(file.CobolName);
                     foreach (var rec in file.Records)
                         if (rec.CobolName is { } rn) linage.Add(rn);
                 }
+                if (file.FileStatusItem is { } fs)
+                {
+                    if (fs.CobolName is { } fsn) fileStatus.Add(fsn);
+                    foreach (var c in fs.Own88s)
+                        foreach (var v in c.Values)
+                            if (v.High is null)   // a singleton VALUE tests for exactly that status
+                                switch (StripLiteral(v.Low))
+                                {
+                                    case "04": fs88_04.Add(c.Name); break;
+                                    case "07": fs88_07.Add(c.Name); break;
+                                }
+                }
+            }
             foreach (var report in unit.Data.Reports)
                 if (report.Groups.Any(g => g.Lines.Any(l => l.Fields.Any(f => f.Varyings.Count > 0))))
                     varying.Add(report.Name);
@@ -99,7 +130,7 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         var unitByCtx = new Dictionary<CobolParserCore.ProgramUnitContext, BoundUnit>();
         foreach (var unit in group.Units) unitByCtx[unit.Ctx] = unit;
 
-        new FlagConformancePass(flag, sink, linage, varying,
+        new FlagConformancePass(flag, sink, linage, varying, fileStatus, fs88_04, fs88_07,
             group.Session.RefModZeroLength, group.Session.Turn, unitByCtx).Visit(group.Tree);
     }
 
@@ -353,6 +384,63 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             break;   // GR4 e flags the SET once, however many receivers are index-names
         }
     }
+
+    // ── FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (§7.3.15.4 GR4 e/f) — a reference to a FILE STATUS data item that
+    //    tests for '04' / '07'. Two forms: a RELATION comparing the FILE-STATUS item to the 2-character nonnumeric
+    //    literal '04'/'07' (either operand order, any relational operator), and a bare level-88 CONDITION-NAME
+    //    reference where that 88's singleton VALUE is '04'/'07' on the FILE-STATUS item. ──
+    public override object? VisitComparisonExpression(CobolParserCore.ComparisonExpressionContext ctx)
+    {
+        if (_fileStatusNames.Count > 0 || _fileStatus88Is04.Count > 0 || _fileStatus88Is07.Count > 0)
+        {
+            var ops = ctx.comparisonOperand();
+            if (ctx.comparisonOperator() is not null && ops.Length == 2)
+            {
+                // Relation form: one side the FILE-STATUS item, the other the literal '04' / '07' (either order).
+                IoStatusRelation(ops[0], ops[1], ctx.Start.Line);
+                IoStatusRelation(ops[1], ops[0], ctx.Start.Line);
+            }
+            else if (ctx.comparisonOperator() is null && ctx.className() is null && ctx.POSITIVE() is null
+                     && ctx.NEGATIVE() is null && ctx.ZERO() is null && ops.Length == 1
+                     && BareRefName(ops[0]) is { } cond)
+            {
+                // Condition-name form: a bare reference to an 88 on a FILE-STATUS item whose VALUE is '04' / '07'.
+                if (_fileStatus88Is04.Contains(cond)) Flag(FlagOption.Flag14IoStatus04, ctx.Start.Line,
+                    "a reference to a FILE STATUS condition-name that tests for '04'");
+                if (_fileStatus88Is07.Contains(cond)) Flag(FlagOption.Flag14IoStatus07, ctx.Start.Line,
+                    "a reference to a FILE STATUS condition-name that tests for '07'");
+            }
+        }
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>Flag the relation when <paramref name="nameOp"/> is a bare reference to a FILE-STATUS item and
+    /// <paramref name="litOp"/> is the nonnumeric literal '04' (I-O-STATUS-04) or '07' (I-O-STATUS-07).</summary>
+    private void IoStatusRelation(CobolParserCore.ComparisonOperandContext nameOp,
+        CobolParserCore.ComparisonOperandContext litOp, int line)
+    {
+        if (BareRefName(nameOp) is not { } name || !_fileStatusNames.Contains(name)) return;
+        switch (OperandLiteral(litOp))
+        {
+            case "04": Flag(FlagOption.Flag14IoStatus04, line, "a relation testing a FILE STATUS item for '04'"); break;
+            case "07": Flag(FlagOption.Flag14IoStatus07, line, "a relation testing a FILE STATUS item for '07'"); break;
+        }
+    }
+
+    /// <summary>The base data-name when the operand is a SOLE data reference (the canonical
+    /// <see cref="ConditionBinder.SoleDataRef"/> unwrap — non-null only when the arithmetic operand is a lone
+    /// reference, not an expression), else null.</summary>
+    private static string? BareRefName(CobolParserCore.ComparisonOperandContext op)
+    {
+        if (op.valueOperand()?.arithmeticExpression() is not { } arith
+            || ConditionBinder.SoleDataRef(arith) is not { } dref) return null;
+        DataReferenceCst r = dref;
+        return r.Register == SpecialRegister.None ? r.BaseName : null;
+    }
+
+    /// <summary>The stripped text of a SOLE nonnumeric string-literal operand (§8.3.1.2), else null.</summary>
+    private static string? OperandLiteral(CobolParserCore.ComparisonOperandContext op)
+        => op.valueOperand()?.nonNumericLiteral()?.STRINGLIT() is { } s ? StripLiteral(s.GetText()) : null;
 
     /// <summary>The entry's PICTURE string, VALUE clause, and USAGE clause (each null when absent) — read once from
     /// the data-description clauses.</summary>
