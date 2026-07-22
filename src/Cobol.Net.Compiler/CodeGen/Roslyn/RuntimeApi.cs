@@ -183,6 +183,14 @@ internal static class RuntimeApi
     public static string BoolResize(string value, string width) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Resize)}({value}, {width})";
 
+    /// <summary>Alphanumeric/national THROUGH-range membership under the effective collating sequence —
+    /// <c>CobolString.ThruMember(read, lo, hi{collate})</c>: sets the nonfatal EC-RANGE-INVALID and returns false when
+    /// <c>lo</c> collates after <c>hi</c> (§14.7.8 rule 2), else the inclusive bound test. <paramref name="collate"/>
+    /// is the trailing collating-arg fragment (empty for the default, <c>, __COLLATE</c> / <c>, __COLLATE_NAT</c>
+    /// otherwise) selecting the matching <c>Compare</c> overload.</summary>
+    public static string ThruMember(string read, string lo, string hi, string collate) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.ThruMember)}({read}, {lo}, {hi}{collate})";
+
     /// <summary>The emitted-text reference to a <see cref="CobolRounding"/> value — <c>nameof</c>-anchored so a
     /// member rename breaks HERE, never the generated text.</summary>
     public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";

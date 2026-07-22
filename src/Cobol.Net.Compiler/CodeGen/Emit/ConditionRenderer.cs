@@ -50,6 +50,22 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
     public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr, num)})";
     public string Visit(BoundClassCondition n) => RenderClass(n);
+    // An EVALUATE WHEN alphanumeric/national THRU range (§14.7.8): ThruMember sets EC-RANGE-INVALID (nonfatal) for an
+    // inverted range (Lo collating after Hi) and returns false (empty range), else the inclusive-bound membership.
+    // Produced only under EC-RANGE-INVALID checking (else the plain BoundLogical of two relations renders — byte-identical).
+    public string Visit(BoundRangeMembership n)
+    {
+        string collate = IsNationalOperand(n.Left) || IsNationalOperand(n.Lo) ? ctx.NatCollateArg : ctx.CollateArg;
+        return RuntimeApi.ThruMember(
+            OperandText.AsString(n.Left, num), OperandText.AsString(n.Lo, num), OperandText.AsString(n.Hi, num), collate);
+    }
+
+    private static bool IsNationalOperand(BoundOperand op) => op switch
+    {
+        BoundStringLiteral { Category: PicCategory.National } => true,
+        BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,
+        _ => false,
+    };
     // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
@@ -283,12 +299,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
         string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent), num) : num.FieldNum(c.Parent).Expr;
-        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
+        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High, c.CheckRangeInvalid));
         return "(" + string.Join(" || ", tests) + ")";
     }
 
-    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.</summary>
-    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high)
+    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
+    /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§14.7.8 rule 2), the range
+    /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
+    /// range (lo collating after hi) and treats it as empty.</summary>
+    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high,
+        bool checkRangeInvalid = false)
     {
         if (isString)
         {
@@ -304,7 +324,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             int width = parent.Pic?.Length ?? parent.ImageWidth;
             string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
-            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{pad}{collate}) <= 0)";
+            string hi = EmitText.CsLiteral(StringMembershipValue(high, width));
+            // §14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
+            // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
+            // otherwise emergent from the inclusive test). Boolean/other categories keep the inline byte-identical form.
+            if (checkRangeInvalid && cat is PicCategory.Alphanumeric or PicCategory.National)
+                return RuntimeApi.ThruMember(read, lo, hi, collate);
+            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{collate}) <= 0)";
         }
         // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
         // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would

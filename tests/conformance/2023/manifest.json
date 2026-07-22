@@ -22,6 +22,7 @@
     "ec_data_overflow",
     "ec_range_search",
     "ec_range_perform_varying",
+    "ec_range_invalid",
     "find_string",
     "goback_status",
     "inspect_backward",

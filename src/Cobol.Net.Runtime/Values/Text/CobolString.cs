@@ -170,4 +170,29 @@ public static class CobolString
         }
         return 0;
     }
+
+    /// <summary>Membership of <paramref name="read"/> in the alphanumeric/national THROUGH range
+    /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §14.7.8; a level-88
+    /// VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/> collates AFTER <paramref name="hi"/> (rule 2)
+    /// the nonfatal EC-RANGE-INVALID is set and the range is treated as EMPTY (returns false); otherwise the inclusive
+    /// bound test. The "empty range" behaviour was already emergent from the inclusive test — this adds only the EC.</summary>
+    public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ')
+    {
+        if (Compare(lo, hi, pad) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
+        return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
+    }
+
+    /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
+    public static bool ThruMember(string? read, string? lo, string? hi, ushort[] weights)
+    {
+        if (Compare(lo, hi, weights) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
+        return Compare(read, lo, weights) >= 0 && Compare(read, hi, weights) <= 0;
+    }
+
+    /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
+    public static bool ThruMember(string? read, string? lo, string? hi, NationalCollation national)
+    {
+        if (Compare(lo, hi, national) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
+        return Compare(read, lo, national) >= 0 && Compare(read, hi, national) <= 0;
+    }
 }

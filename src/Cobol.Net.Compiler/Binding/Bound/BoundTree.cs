@@ -345,7 +345,14 @@ public sealed record BoundNot(BoundCondition Operand) : BoundCondition;
 public sealed record BoundBooleanCondition(BoundBoolExpr Expr) : BoundCondition;
 
 /// <summary>A level-88 condition-name membership test over its (already-resolved) conditional variable place.</summary>
-public sealed record BoundCondition88(Place Parent, Condition88 Condition) : BoundCondition;
+public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool CheckRangeInvalid = false) : BoundCondition;
+
+/// <summary>An alphanumeric/national THRU-range membership test (the EVALUATE WHEN <c>lo THRU hi</c> form, and the
+/// carrier for EC-RANGE-INVALID checking): <c>Left</c> is within [<c>Lo</c>, <c>Hi</c>] in the effective collating
+/// sequence. When <paramref name="CheckInvalid"/> and <c>lo</c> collates after <c>hi</c> (§14.7.8 rule 2) the nonfatal
+/// EC-RANGE-INVALID is set and the range is treated as empty — realized by the runtime <c>CobolString.ThruMember</c>
+/// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).</summary>
+public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, BoundOperand Hi, bool CheckInvalid) : BoundCondition;
 
 /// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}.</summary>
 public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated) : BoundCondition;   // Kind: P/N/Z

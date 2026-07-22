@@ -495,8 +495,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             carry.Reset();
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
+            // Capture EC-RANGE-INVALID checking (§14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
             return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
-                ? new BoundCondition88(parent, cond)
+                ? new BoundCondition88(parent, cond,
+                    ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                 : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
         }
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
