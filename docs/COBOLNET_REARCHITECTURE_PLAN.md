@@ -37,9 +37,15 @@ checkpoint.
   + the doc sweep (D12 / CONFORMANCE.md decisions recorded). **✅ + the open-mode WHEN operand sub-GAP LANDED (DEVLOG
   971): `WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND` matches by the file's current open mode (GR3b); the full GR3a→g tier
   order fixed (bare-file/open-mode outrank exception-names); F3 tests 42/42 + char 33/33 + GnuCOBOL 0-regression.**
-  **⏭ REMAINING Track ③ = 4 STAGED sub-GAPs (each a loud COBOLNET0899, owner-acknowledged, next-wave — §9.7):
-  F3-PERFORM-inside-a-method (OO pc-slice wiring) · cross-CALL GR1 "in range" · EC-FLOW-USE/`>>PROPAGATE` ·
-  exception-OBJECT raise in imp-1.** Then ④ §24 fix-queue → Wave I merge → P14. **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
+  **⏭ REMAINING Track ③ staged items (§9.7) — only ONE is genuine remaining feature work:**
+  ① **F3-PERFORM-inside-a-method** (loud 0899) = the real remaining feature (needs OO pc-slice wiring — the class
+  pc-space is per-method contiguous slices; the appended handler pcs must fit a method's slice; next-wave, do NOT
+  rush). ② **cross-CALL GR1 "in range"** = an INTENTIONAL per-activation default (`TrimPerformTo`), not a gap — the
+  cross-activation reading is a deliberate future opt-in. ③ **EC-FLOW-USE / `>>PROPAGATE`** = rides the (not-yet-built)
+  PROPAGATE wave — cannot land until then. ④ **exception-OBJECT raise in imp-1** = CORRECT-BY-CONSTRUCTION (object
+  raises use the separate `__EcObjDispatch`/F4 funnel — untouched — so they correctly bypass the name-based WHEN
+  frame; a WHEN matches exception-NAMES only). So Track ③'s exception-checking PERFORM is FUNCTIONALLY COMPLETE for
+  every case except F3-in-a-method. Then ④ §24 fix-queue → Wave I merge → P14. **✅ Increment 1 LANDED (runtime-additive):** `PerformFrame` + `ExitPerformSignal` +
   `ExceptionEngine` frame stack (`Push/Pop/RunTopFrame` top-down walk w/ deferred `Handling`-clear + `PerformDepth`/
   `TrimPerformTo`) + `ExceptionState` delegators + `ProgramTable.CallProgram` per-activation snapshot; gate =
   `PerformFrameStackTests` 9/9 + characterization 33/33 byte-identical + build 0/0. **✅ Increments 2+3 LANDED
