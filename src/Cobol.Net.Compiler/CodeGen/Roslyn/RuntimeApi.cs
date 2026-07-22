@@ -83,9 +83,12 @@ internal static class RuntimeApi
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Store)}({value}, {limit})";
 
     /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16) — set the current length of a dynamic-length
-    /// item, space-filling grown positions (GR39) — <c>CobolDynString.SetSize(current, newLen, limit)</c>.</summary>
-    public static string DynSetSize(string current, string newLen, string limit) =>
-        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit})";
+    /// item, space-filling grown positions (GR39); the negative→0 (GR37) and clamp-to-maximum (GR38) legs set the
+    /// nonfatal EC-STORAGE-NOT-AVAIL when <paramref name="checkStorage"/> is <c>true</c>. <paramref name="newLen"/> is
+    /// the arithmetic-expression-5 value at FULL precision (a <c>double</c>) so the GR37 sign test precedes the
+    /// toward-zero truncation — <c>CobolDynString.SetSize(current, newLen, limit, check)</c>.</summary>
+    public static string DynSetSize(string current, string newLen, string limit, string checkStorage) =>
+        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit}, {checkStorage})";
 
     /// <summary>CONTINUE AFTER n SECONDS (ISO §14.9.9) — the timed pause; a negative interval sets the nonfatal
     /// EC-CONTINUE-LESS-THAN-ZERO when checking is enabled — <c>CobolTiming.ContinueAfter(seconds, check)</c>.</summary>

@@ -637,10 +637,12 @@ public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCap
 /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of the
 /// dynamic-length elementary item at <paramref name="Target"/> to <paramref name="Amount"/> characters. Growing
 /// space-fills the added positions (GR39); shrinking drops the trailing ones; a value above <paramref name="Limit"/>
-/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). A self-identifying
-/// node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the explicit SIZE OF
-/// form and the bare re-routed form.</summary>
-public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
+/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). When
+/// <paramref name="CheckStorage"/> (EC-STORAGE-NOT-AVAIL checking was enabled at this statement — captured from the
+/// TurnState at bind time) the clamp/negative legs also set the nonfatal EC-STORAGE-NOT-AVAIL (GR37/GR38). A
+/// self-identifying node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the
+/// explicit SIZE OF form and the bare re-routed form.</summary>
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit, bool CheckStorage) : BoundStatement;
 
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 

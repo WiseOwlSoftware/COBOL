@@ -79,13 +79,18 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): evaluate the amount ONCE, then
     /// resize the dynamic-length item's native string in place — <c>CobolDynString.SetSize</c> space-fills grown
     /// positions (GR39), drops trailing ones on shrink, clamps above the LIMIT and floors a negative to 0
-    /// (GR37/GR38).</summary>
+    /// (GR37/GR38), and sets the nonfatal EC-STORAGE-NOT-AVAIL on the clamp/negative legs when checking was enabled
+    /// at this statement (<see cref="BoundSetSize.CheckStorage"/>).</summary>
     public void EmitSetSize(BoundSetSize s)
     {
+        // Evaluate arithmetic-expression-5 at FULL precision (a double) — the GR37 sign test must precede the
+        // GR38 clamp and the toward-zero truncation, so a fractional negative in (−1,0) still raises. Mirrors the
+        // CONTINUE AFTER interval render (StatementEmitter.Visit(BoundContinueAfter)); the runtime does the
+        // truncation, not a (long) cast here that would lose the sign of a (−1,0) value.
         string amt = $"__sz{ctx.Names.NextSet()}";
-        ctx.Writer.Line($"long {amt} = (long)({NumericRenderer.Align(num.Render(s.Amount, ReceiverContext.None), 0)});");
+        ctx.Writer.Line($"double {amt} = {NumericRenderer.Real(num.Render(s.Amount, ReceiverContext.None))};");
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
-            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString())));
+            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString(), s.CheckStorage ? "true" : "false")));
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an

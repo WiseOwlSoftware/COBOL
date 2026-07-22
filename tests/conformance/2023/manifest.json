@@ -17,6 +17,7 @@
     "external_file_status_consistency",
     "external_relative_key_consistency",
     "ec_size_truncation_prohibited",
+    "ec_storage_not_avail",
     "find_string",
     "goback_status",
     "inspect_backward",
