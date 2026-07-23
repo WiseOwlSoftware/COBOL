@@ -86,6 +86,13 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "ec_range_search"),        // serial/SEARCH-ALL out-of-range → EC-RANGE-SEARCH-INDEX/-NO-MATCH (V4a)
         ("2023", "ec_range_perform_varying"),   // index-name varied from a non-positive item → EC-RANGE-PERFORM-VARYING (V4b)
         ("2023", "ec_range_invalid"),       // inverted THROUGH range → EC-RANGE-INVALID (V4c)
+        // CONFORMANCE-FIX-QUEUE CA31/CA32 (EXIT PERFORM / EXIT PERFORM CYCLE inside a multi-level inline PERFORM
+        // VARYING, §14.9.14.4 GR5a/GR5b): these are SPEC-DERIVED goldens fixing a bug the frozen legacy oracle
+        // SHARES (a bare break/continue leaves/cycles only the innermost lowered loop) — the legacy runner would
+        // mismatch the spec-correct .out (CA31) or INFINITE-LOOP (CA32, the augment is skipped). Greenfield owns
+        // their byte-compare; the legacy oracle is frozen and not corrected (DEVLOG-457).
+        ("2023", "exit_perform_multilevel"),   // EXIT PERFORM leaves the whole PERFORM (CA31)
+        ("2023", "exit_perform_cycle"),        // EXIT PERFORM CYCLE runs loop control (CA32)
         // SUPPRESS PRINTING (§14.9.45): the statement exists only in the greenfield grammar+binder+RW engine.
         // The frozen legacy compiler has no SUPPRESS grammar at all — it fails the program at parse — so the
         // golden (a suppressed detail's amount still rolls into the control total, §13.18.54.4 GR7/GR2) is

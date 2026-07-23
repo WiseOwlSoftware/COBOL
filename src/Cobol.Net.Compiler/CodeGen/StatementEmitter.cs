@@ -126,7 +126,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         w.Line("break;");
         return true;
     }
-    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5a; §14.9.28.4 GR16
+    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5/GR6; §14.9.28.4 GR16
     {
         // Inside a Format-3 PERFORM: imp-1 → goto the implicit-CONTINUE-before-FINALLY label; a handler pc-range →
         // throw ExitPerformSignal (crosses the nested __Dispatch a goto cannot leave); FINALLY (imp-5) → goto the
@@ -134,7 +134,12 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         F3Region.Imp1 => Emit($"goto __f3fin{_dispatchState.F3Cur.Id};", terminated: true),
         F3Region.Handler => Emit($"throw new ExitPerformSignal({_dispatchState.F3Cur.Id});", terminated: true),
         F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
-        _ => Emit(n.Cycle ? "continue;" : "break;", terminated: false),   // ordinary inline-PERFORM loop (unchanged)
+        // Ordinary inline PERFORM: EXIT PERFORM → goto __pexit (past the loop, leaving EVERY nested VARYING level,
+        // §14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
+        // re-test still run, §14.9.14.4 GR6 / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
+        // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
+        F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
+        _ => Emit(n.Cycle ? "continue;" : "break;", terminated: false),   // defensive fallback (SR8: never reached for a valid bind)
     };
 
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }

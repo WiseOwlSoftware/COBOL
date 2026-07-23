@@ -52,15 +52,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 Statements.EmitStatementList(iff.Else);
     }
 
-    // A nested inline PERFORM within an F3 region resets F3Cur to None around its body so a plain EXIT PERFORM
-    // inside it breaks the INNER loop (§14.9.14.4 GR5a — "the most closely preceding, unterminated inline PERFORM"),
-    // not the enclosing F3 PERFORM.
-    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () =>
-    {
-        var s = dispatch.SetF3Region(F3Region.None, 0);
-        Statements.EmitStatementList(p.Body);
-        dispatch.RestoreF3Region(s);
-    }, inline: true);
+    // EmitPerform(inline:true) brackets the body with a fresh F3Region.Inline(pid) + the __pcont/__pexit labels, so
+    // an EXIT PERFORM here targets THIS loop and a nested inline PERFORM (setting its OWN Inline id) targets the inner
+    // loop — §14.9.14.4 GR5a "the most closely preceding, unterminated inline PERFORM". No manual region reset needed.
+    public void EmitInlinePerform(BoundInlinePerform p) =>
+        EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
     /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) via the pc-RANGE interceptor
     /// (design SSOT §9.3.3). imperative-statement-1 is emitted INLINE inside a try (under the bind-time GR14
@@ -217,7 +213,25 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
 
+    /// <summary>Emit a PERFORM's loop scaffold. For an inline PERFORM this wrapper brackets the body with the
+    /// per-PERFORM EXIT-PERFORM machinery: a fresh <see cref="F3Region.Inline"/> region, a <c>__pcont{id}</c> label at
+    /// the loop-control boundary (target of EXIT PERFORM CYCLE — falls through to the VARYING augment + re-test), and a
+    /// <c>__pexit{id}</c> label just past the loop (target of EXIT PERFORM — leaves EVERY nested VARYING level).
+    /// §14.9.14.4 GR5/GR6 require leaving/continuing the WHOLE inline PERFORM, which a bare C# break/continue cannot do
+    /// across the nested loops a multi-level VARYING emits (CA31/CA32). An out-of-line PERFORM never contains its own
+    /// EXIT PERFORM (SR8), so it takes the bare loop with no region/labels.</summary>
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
+    {
+        if (!inline) { EmitPerformLoop(control, body, inline: false); return; }
+        var w = ctx.Writer;
+        int pid = ctx.Names.NextLoop();
+        var saved = dispatch.SetF3Region(F3Region.Inline, pid);
+        EmitPerformLoop(control, () => { body(); w.Line($"__pcont{pid}: ;"); }, inline: true);
+        dispatch.RestoreF3Region(saved);
+        w.Line($"__pexit{pid}: ;");
+    }
+
+    private void EmitPerformLoop(BoundPerformControl control, Action body, bool inline)
     {
         var w = ctx.Writer;
         switch (control)
@@ -241,8 +255,8 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 EmitVarying(v, body);
                 break;
             case PerformForever:
-                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM emits
-                // `break` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
+                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM leaves
+                // via `goto __pexit` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
                 using (w.Block("while (true)")) body();
                 break;
             default:   // PerformOnce — an inline body runs once via do/while(false); an out-of-line call is unconditional

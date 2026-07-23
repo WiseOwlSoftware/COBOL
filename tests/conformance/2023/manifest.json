@@ -35,6 +35,8 @@
     "logical_xor",
     "module_name",
     "perform_until_exit",
+    "exit_perform_multilevel",
+    "exit_perform_cycle",
     "ref_mod_zero_length",
     "set_size",
     "smallest_algebraic",

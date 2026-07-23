@@ -60,8 +60,10 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     while (!(J > 5L))
                     {
                         CobolTable.At(WS_TBL.WS_ELEM, CobolTable.Occ(J)) = (long)(CobolNum.Store(J, 0, _P_1));
+                        __pcont0: ;
                         J = (long)(CobolNum.Store(((Int128)(J) + (1L)), 0, _P_2, CobolRounding.Truncation));
                     }
+                    __pexit0: ;
                     long __set0 = (long)(3L);
                     _IX_0 = (long)(__set0);
                     System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_0), _P_1));
