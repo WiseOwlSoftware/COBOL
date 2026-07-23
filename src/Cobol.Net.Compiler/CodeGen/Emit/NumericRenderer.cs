@@ -42,6 +42,19 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// is a non-exempt reference — the narrow reading of the dash-2/dash-3 exemption).</summary>
     private bool _floatSendingExempt = false;
 
+    /// <summary>True while rendering a division node whose quotient is transferred DIRECTLY to a single resultant
+    /// identifier — the "final transfer" of §14.7.7 rule 3 NOTE 1. Set by the emit sites that own that transfer
+    /// (a single-receiver COMPUTE RHS, a DIVIDE top-level division); an outermost division computes at the
+    /// receiver's scale + ROUNDED mode in one exact step. A division NESTED inside a larger expression is NOT the
+    /// final transfer (ROUNDED applies only to that final transfer, §14.7 NOTE 1; PROHIBITED tests only the
+    /// resultant identifier, §14.7.4.3 GR7), so it always computes at the D2 guard scale with TRUNCATION — never
+    /// inheriting the receiver's mode. Re-entrant save/restore like <see cref="_rcv"/>; <see cref="Visit(BoundBinary)"/>
+    /// clears it for a node's children (they are never the final transfer) and restores it for the node's own
+    /// combine. The OLD <c>ds == _rcv.Scale</c> heuristic in <see cref="Divide"/> was a wrong proxy for this — it
+    /// let a nested integer-operand division inherit PROHIBITED (spurious size error) and let a multi-receiver root
+    /// division miss PROHIBITED (CA5).</summary>
+    private bool _outermost = false;
+
     /// <summary>The receiver of the render currently in progress — read by the mutually-recursive
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
@@ -50,27 +63,31 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// Save/restore makes every public entry RE-ENTRANT (P7 Step 12): the instance string channel renders an
     /// intrinsic's numeric arguments under <see cref="ReceiverContext.None"/> MID-render, and the outer render
     /// must resume under its own receiver — the H1 staleness class stays closed by construction.</summary>
-    public NumX Render(BoundExpr e, in ReceiverContext rcv, bool floatSendingExempt = false)
+    public NumX Render(BoundExpr e, in ReceiverContext rcv, bool floatSendingExempt = false, bool outermost = false)
     {
         var saved = _rcv;
         var savedEx = _floatSendingExempt;
+        var savedOut = _outermost;
         _rcv = rcv;
         _floatSendingExempt = floatSendingExempt;
+        _outermost = outermost;
         try { return e.Accept(this); }
-        finally { _rcv = saved; _floatSendingExempt = savedEx; }
+        finally { _rcv = saved; _floatSendingExempt = savedEx; _outermost = savedOut; }
     }
 
     /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>
     /// (re-entrant — see <see cref="Render"/>). <paramref name="floatSendingExempt"/> suppresses the float
     /// finiteness wrap for an EC-DATA-NOT-FINITE-exempt operand (a same-usage MOVE source).</summary>
-    public NumX AsNum(BoundOperand op, in ReceiverContext rcv, bool floatSendingExempt = false)
+    public NumX AsNum(BoundOperand op, in ReceiverContext rcv, bool floatSendingExempt = false, bool outermost = false)
     {
         var saved = _rcv;
         var savedEx = _floatSendingExempt;
+        var savedOut = _outermost;
         _rcv = rcv;
         _floatSendingExempt = floatSendingExempt;
+        _outermost = outermost;
         try { return op.Accept(this); }
-        finally { _rcv = saved; _floatSendingExempt = savedEx; }
+        finally { _rcv = saved; _floatSendingExempt = savedEx; _outermost = savedOut; }
     }
 
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
@@ -90,7 +107,18 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
     public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
-    public NumX Visit(BoundBinary n) => CombineCore(n.Left.Accept(this), n.Op.ToString(), n.Right.Accept(this));
+    public NumX Visit(BoundBinary n)
+    {
+        // A binary node's CHILDREN are never the final transfer (a sub-expression operand), so they render with
+        // _outermost cleared; the node's OWN combine (which may be the final-transfer division) sees the value
+        // that reached this node. §14.7.7 rule 3 NOTE 1 — ROUNDED/PROHIBITED bind to the final transfer only.
+        bool outer = _outermost;
+        _outermost = false;
+        var l = n.Left.Accept(this);
+        var r = n.Right.Accept(this);
+        _outermost = outer;
+        return CombineCore(l, n.Op.ToString(), r);
+    }
     public NumX Visit(BoundNegate n) => Negate(n.Operand.Accept(this));
     public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));
     public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
@@ -181,6 +209,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
     {
         _rcv = rcv;
+        _outermost = false;   // an ADD/SUBTRACT operand is never a final-transfer division (its result feeds the fold)
         if (xs.Count == 0) return new NumX("0L", 0);
         NumX acc = xs[0].Accept(this);
         for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
@@ -192,9 +221,10 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// of two 18-digit operands is 36 digits and an aligned sum 19+, both past the long range MID-computation even
     /// when the final receiver fits. The leading <c>(Int128)</c> cast forces wide arithmetic whatever the leaf
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
-    public NumX Combine(NumX a, string op, NumX b, in ReceiverContext rcv)
+    public NumX Combine(NumX a, string op, NumX b, in ReceiverContext rcv, bool outermost = false)
     {
         _rcv = rcv;
+        _outermost = outermost;
         return CombineCore(a, op, b);
     }
 
@@ -257,27 +287,39 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// ~28-significant-digit behavior the golden corpus encodes.</summary>
     private const int DivGuardDigits = 14;
 
-    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). When the working scale equals the receiver scale
-    /// (<see cref="ReceiverContext.Scale"/> — the common outermost-division case), the quotient is computed
-    /// directly at the receiver scale and rounded with the receiver's mode in ONE exact step (<c>CobolNum.Divide</c>
-    /// → <c>RoundDiv</c> uses the true integer remainder, so no guard digits are needed). A division NESTED inside
-    /// a larger expression computes at the D2 guard scale with TRUNCATION — clamped so the Int128 radix alignment
-    /// (dividend digits ≤ 18 + the alignment exponent) cannot exceed the wide engine's 38 digits — and the single
-    /// receiver store performs the rounding.</summary>
+    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). An OUTERMOST division (<see cref="_outermost"/> — the
+    /// quotient IS the value transferred to the single resultant identifier) is computed DIRECTLY at the receiver
+    /// scale and rounded with the receiver's mode in ONE exact step (<c>CobolNum.Divide</c> → <c>RoundDiv</c> uses
+    /// the true integer remainder, so no guard digits are needed; ROUNDED/PROHIBITED apply here, the final transfer,
+    /// §14.7.7 rule 3 NOTE 1 / §14.7.4.3 GR7). A division NESTED inside a larger expression is NOT the final
+    /// transfer — it ALWAYS computes at the D2 guard scale with TRUNCATION (never the receiver's mode), clamped so
+    /// the Int128 radix alignment (dividend digits ≤ 18 + the alignment exponent) cannot exceed the wide engine's
+    /// 38 digits — and the single receiver store performs the one rounding. The intermediate's precision is
+    /// implementor-defined (§8.8.1.3); carrying full guard precision keeps it accurate and is size-error-free
+    /// (§14.7.5 enumerates no native intermediate-inexactness case; only a zero divisor, case 2, still raises).</summary>
     private NumX Divide(NumX a, NumX b)
     {
-        int baseScale = Math.Max(_rcv.Scale, Math.Max(a.Scale, b.Scale));
-        int ds = baseScale;
-        if (baseScale != _rcv.Scale || a.Scale > _rcv.Scale || b.Scale > _rcv.Scale)
+        int ds;
+        CobolRounding mode;
+        if (_outermost)
         {
-            // Nested / higher-precision case: add guard digits, clamped to the wide engine's alignment headroom
-            // (exponent = b.Scale + ds − a.Scale must keep dividend-digits + exponent ≤ 38; 18-digit operands ⇒
-            // exponent ≤ 20).
+            // The final transfer: compute at the resultant's scale + ROUNDED mode. DivideOrThrow detects a
+            // PROHIBITED-inexact quotient via the exact integer remainder (§14.7.4.3 GR7 — tests the resultant).
+            ds = _rcv.Scale;
+            mode = _rcv.Rounding;
+        }
+        else
+        {
+            // Nested intermediate: full guard precision + truncation, clamped to the wide engine's alignment
+            // headroom (exponent = b.Scale + ds − a.Scale must keep dividend-digits + exponent ≤ 38; 18-digit
+            // operands ⇒ exponent ≤ 20). A nested quotient never inherits the receiver's mode — rounding happens
+            // once, at the receiver store (§14.7 NOTE 1).
+            int baseScale = Math.Max(_rcv.Scale, Math.Max(a.Scale, b.Scale));
             int maxExp = 20;
             int guard = Math.Min(DivGuardDigits, maxExp - (b.Scale + baseScale - a.Scale));
             ds = baseScale + Math.Max(0, guard);
+            mode = CobolRounding.Truncation;
         }
-        CobolRounding mode = ds == _rcv.Scale ? _rcv.Rounding : CobolRounding.Truncation;
         // Under an ON SIZE ERROR phrase, a zero divisor must raise the size error (ISO §14.7.5 case 2): the checked
         // DivideOrThrow signals it (caught by the statement's try); otherwise Divide returns 0 unchanged.
         string fn = _rcv.InSizeError ? "DivideOrThrow" : "Divide";

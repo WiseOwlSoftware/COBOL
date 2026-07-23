@@ -25,10 +25,9 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34+CA35 (picture-usage-value) + CA4 (arithmetic
-  ADD/SUBTRACT-GIVING composite) landed — pick up at CA5, then CA6). NB run the FULL Conformance batch gate before
-  merging the arithmetic batch (CA4 rode the wave-local gate as a pure-leniency change; CA5 TOUCHES numeric render, so
-  it needs the full gate).**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34+CA35 (picture-usage-value) + CA4+CA5
+  (arithmetic) landed — pick up at CA6 to COMPLETE the arithmetic batch, then run the FULL Conformance batch gate
+  before merging phase-14). CA5's full-gate run passed; CA6 is a small `CheckComposite` predicate change.**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -57,18 +56,21 @@ checkpoint.
   `PictureAnalyzer.Analyze` mirroring BIT/NATIONAL, reused COBOLNET0881, recover to Display; `PIC XX COMP` was silently
   misbound as alphanumeric; corpus grep 0 at-risk; DEVLOG 1007) · **CA4 (arithmetic — ADD/SUBTRACT Format-2 composite
   EXCLUDES the GIVING resultants §14.9.2.3/§14.9.44.3 SR1b; pass `[]` receivers at the two GIVING `CheckComposite` call
-  sites, MULTIPLY/DIVIDE untouched; a pure-leniency fix — the one COBOLNET0805 test is operand-driven, unaffected;
-  positive golden `2023/ca4_giving_composite`; DEVLOG 1008).** 18 landed / 28 fix-ready remain.** (Process lessons
+  sites; DEVLOG 1008) · CA5 (arithmetic — ROUNDED/PROHIBITED bind to the FINAL transfer only; an explicit `_outermost`
+  flag in `NumericRenderer` replaces the wrong `ds==_rcv.Scale` proxy — fixes a spurious size error on a nested
+  division AND a missed PROHIBITED on the multi-receiver path; 0 golden/snapshot shifts; NB the finding's Program B was
+  re-derived — §14.9.8 ROUNDED is per-resultant; DEVLOG 1009).** 19 landed / 27 fix-ready remain.** (Process lessons
   durable in `feedback_edition_gate_sweep_and_no_flake_handwave` + `feedback_fresh_build_before_no_build_test` — CA35
   re-learned the stale-DLL trap: build `CobolSharp.sln`, NOT just `src/Cobol.Net.Compiler`, before any `--no-build`
-  test/CLI smoke. Applied the sweep-BEFORE-landing rule on CA25/CA34/CA35, found zero genuine regressions.)
-  **▶ NEXT (arithmetic batch continued, spec-first, one at a time): CA5 (division rounding / PROHIBITED intermediate —
-  a two-directional defect with ONE root cause in `NumericRenderer.Divide`'s `ds==_rcv.Scale` heuristic: a spurious
-  size error on a single-receiver COMPUTE with a nested division AND a MISSED PROHIBITED on the multi-receiver path;
-  fix = an explicit `_outermost` flag; VALIDATION NOTE — re-derive affected goldens from the spec, this TOUCHES numeric
-  render so run the FULL gate) · CA6 (§14.7.7 rule 2b — the four fixed-width binary-N operands EXCLUDED from the
-  composite; a `CheckComposite` predicate `InComposite`). Then conditions (CA7) · tables-refmod (CA36), then the
-  EC-infra + OO SUPER-BATCH (exceptions-ec
+  test/CLI smoke. And CA5: a finding's golden can itself be mis-derived — re-derive from the spec, verify via `--run`.)
+  **▶ NEXT = CA6 (COMPLETES the arithmetic batch): §14.7.7 rule 2b — the four fixed-width binary usages
+  (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) are EXCLUDED from the composite (only the OTHER operands count, still ≤ 31); they
+  carry Category Numeric + IsFloat false so they wrongly pass `CheckComposite`'s Shape guard today. FIX: a predicate
+  `static bool InComposite(PicInfo p) => p is { Category: Numeric, IsFloat: false } && p.Usage is not (Usage.BinaryChar
+  or …BinaryDouble)` at both Shape sites (StatementValidation.cs:118 operand + :130 receiver); COMP-5 stays counted.
+  Leniency change (accepts a legal program); positive golden `ADD BINARY-DOUBLE TO 9(11)V9(13)`. Then run the FULL
+  Conformance batch gate + GnuCOBOL/NIST differential before merging phase-14. Then conditions (CA7) · tables-refmod
+  (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
   §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.

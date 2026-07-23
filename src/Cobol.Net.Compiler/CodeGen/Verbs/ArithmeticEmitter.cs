@@ -83,7 +83,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             {
                 // The quotient renders at the receiver's OWN scale + ROUNDED mode.
                 NumX q = dividendX ?? num.FieldNum(r.Place);            // INTO-no-GIVING divides the target
-                StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise)), r.Rounding);
+                // The DIVIDE top-level quotient IS the final transfer to r — outermost, so it rounds at r's scale +
+                // ROUNDED mode (§14.9.12.4 / §14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
+                StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise), outermost: true), r.Rounding);
             }
         });
 
@@ -170,7 +172,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 return;
             }
             foreach (var r in c.Targets)
-                StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise)), r.Rounding);
+                // Single receiver: the RHS's top-level division (if any) IS the final transfer to r — render it
+                // outermost so an outermost quotient rounds at r's scale + mode and a nested quotient does not
+                // inherit r's mode (CA5; §14.7.7 rule 3 NOTE 1).
+                StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding);
         });
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
