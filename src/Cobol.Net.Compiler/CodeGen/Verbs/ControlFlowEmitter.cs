@@ -23,6 +23,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The EC raise-site dispatcher (property-wired by <see cref="UnitEmitters"/>, the same cyclic edge as
+    /// <see cref="Statements"/>) — a SEARCH with EC-RANGE checking ON but NO AT END phrase dispatches the raised
+    /// range EC to an applicable USE declarative / Format-3 WHEN via <see cref="EcEmitter.EcDispatchExpr"/>
+    /// (ISO §14.9.37.4 GR1b2; CA36).</summary>
+    internal EcEmitter Ec { get; set; } = null!;
+
     /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.20 Format 2): a 1-based selector picks a pc; an
     /// out-of-range value transfers nowhere and falls through to the next statement.</summary>
     public void EmitGoToDepending(BoundGoToDepending d)
@@ -392,6 +398,20 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         string bound = s.DynTable is { } dt ? $"{dt}.Capacity"
             : s.DependItem is { } dp ? RuntimeApi.TableOcc(PlaceRenderer.Read(dp))
             : $"{s.Count}L";
+        // CA36 (ISO §14.9.37.4 GR1b2): when the AT END phrase is ABSENT and EC-RANGE checking is ON, a raised
+        // EC-RANGE-SEARCH-INDEX/-NO-MATCH must transfer to an applicable exception-processing statement (a USE
+        // AFTER EXCEPTION CONDITION declarative / Format-3 PERFORM WHEN) and, if control returns, to the end of the
+        // SEARCH. Track which range EC was raised so the shared AT-END funnel can DISPATCH it (mirror
+        // EcEmitter.EmitOverflow's no-phrase dispatch). Emitted ONLY in that niche, so every other SEARCH is
+        // byte-identical.
+        bool dispatchEc = s.AtEnd is null && (s.CheckSearchIndex || s.CheckSearchNoMatch);
+        string ecVar = $"__searchEc{id}";
+        if (dispatchEc) w.Line($"string {ecVar} = null;");
+        void RaiseRange(string ecName)
+        {
+            w.Line($"ExceptionState.Set(\"{ecName}\", false);");
+            if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
+        }
         // (1) Initial-index guard (§14.9.37.4 GR4) — before the loop label.
         string initGuard = s.FromStart ? $"{s.IndexField} > {bound}"
                                         : $"{s.IndexField} < 1 || {s.IndexField} > {bound}";
@@ -399,10 +419,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         {
             if (s.FromStart)
             {
-                if (s.CheckSearchNoMatch) w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-NO-MATCH\", false);");
+                if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
             }
             else if (s.CheckSearchIndex)
-                w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-INDEX\", false);");
+                RaiseRange("EC-RANGE-SEARCH-INDEX");
             w.Line($"goto __searchAtEnd{id};");
         }
         w.Line($"__search{id}:");
@@ -417,12 +437,21 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0));
         using (w.Block($"if ({s.IndexField} > {bound})"))
         {
-            if (s.CheckSearchNoMatch) w.Line("ExceptionState.Set(\"EC-RANGE-SEARCH-NO-MATCH\", false);");
+            if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
             w.Line($"goto __searchAtEnd{id};");
         }
         w.Line($"goto __search{id};");
         // (4) the shared AT-END emission — both failure sites reach it (emitted ONCE), then the search-end label.
         w.Line($"__searchAtEnd{id}: ;");
+        // GR1b2: AT END absent + checking on → dispatch the raised range EC to an applicable USE declarative / F3
+        // WHEN; >=0 = RESUME AT a procedure (transfer via the dispatcher break); -1/-2/-3 (declarative ran / RESUME
+        // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §14.6.13.1.4 #3/#4).
+        if (dispatchEc)
+            using (w.Block($"if ({ecVar} != null)"))
+            {
+                w.Line($"int __searchR{id} = {Ec.EcDispatchExpr(ecVar, "\"\"")};");
+                w.Line($"if (__searchR{id} >= 0) {{ __pc = __searchR{id}; break; }}");
+            }
         bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
         if (!terminated) w.Line($"goto __searchEnd{id};");
         w.Line($"__searchEnd{id}: ;");
