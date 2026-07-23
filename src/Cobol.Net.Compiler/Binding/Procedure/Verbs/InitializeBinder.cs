@@ -145,7 +145,22 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             if (!identifier1 && item.CobolName is null && !spec.WithFiller) return;            // GR5a2
             if (InitializeItemCategory(item) is not { } cat) return;                            // GR5a1
+            // §14.9.20.4 GR4/GR6c: a data-pointer / program-pointer / object-reference receiver is initialized by an
+            // IMPLICIT SET … TO the predefined NULL — NOT a MOVE, so it must not route through the InitializeStore
+            // MOVE path (GR5a1 keeps these as receiving operands, not MOVE-receiver-excluded). Qualification is the
+            // same GR5c test every category uses: a bare / TO DEFAULT / TO VALUE INITIALIZE touches the item, a
+            // REPLACING of a non-matching category leaves it unchanged — so InitializeSender's non-null result IS the
+            // qualification signal (its returned fill operand is unused here; the SET target is always NULL). (CA2)
+            if (cat is InitializeCategory.DataPointer or InitializeCategory.ProgramPointer or InitializeCategory.ObjectReference)
+            {
+                if (InitializeSender(cat, item.RawValue, spec) is not null)                     // GR5c qualification
+                    actions.Add(new InitializeSetNull(cur.ToPlace()));                          // GR4 SET … TO the GR6c predefined NULL
+                return;
+            }
             if (InitializeSender(cat, item.RawValue, spec) is not { } source) return;           // GR5c — left unchanged
+            // §14.9.20.4 GR7: initializing a dynamic-length elementary item sets its length to zero (overrides the
+            // GR6c figurative SPACE fill — an empty sender flows through the same dynamic-length store to length 0). (CA1)
+            if (item.IsDynamicLength) source = new BoundStringLiteral("");
             actions.Add(new InitializeStore(cur.ToPlace(), source));
             return;
         }
@@ -221,6 +236,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         { Category: PicCategory.Alphanumeric } => InitializeCategory.Alphanumeric,
         { Category: PicCategory.Boolean } => InitializeCategory.Boolean,     // GR6c: boolean → ZEROES
         { Category: PicCategory.National } => InitializeCategory.National,   // GR6c: national → SPACES
+        // GR4/GR6c: pointer & object-reference receivers are initialized by an implicit SET … TO the predefined
+        // NULL (data-pointer/program-pointer → NULL address, object-reference → NULL reference), NOT a MOVE.
+        { Category: PicCategory.Pointer } => InitializeCategory.DataPointer,
+        { Category: PicCategory.ProgramPointer } => InitializeCategory.ProgramPointer,
+        { Category: PicCategory.ObjectReference } => InitializeCategory.ObjectReference,
         _ => null,
     };
 

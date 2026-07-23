@@ -28,6 +28,12 @@ public sealed record InitializeStore(Place Target, BoundOperand Source) : Initia
 /// variable is spliced into each body place's subscript position).</summary>
 public sealed record InitializeLoop(string Var, int Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
+/// <summary>An implicit <c>SET</c> … <c>TO NULL</c> (ISO §14.9.20.4 GR4/GR6c): a data-pointer, program-pointer, or
+/// object-reference receiver is initialized to its predefined NULL value. This is a SET, NOT a MOVE — it does not
+/// route through the <see cref="InitializeStore"/> conversion/editing path; the emitter renders the item's
+/// <c>DefaultInitializer</c> (the predefined-NULL idiom) directly into the place.</summary>
+public sealed record InitializeSetNull(Place Target) : InitializeAction;
+
 /// <summary>A receiver the binder could not materialize as a typed place — the backend emits a loud runtime
 /// guard (COBOLNET_DESIGN §1.4), never a silent skip.</summary>
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
@@ -45,4 +51,4 @@ public sealed record InitializeDynLoop(string Var, string CapacityExpr, IReadOnl
 /// fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL — like NATIONAL-EDITED, the pointer
 /// categories, and OBJECT-REFERENCE — are still absent from the initializeCategory grammar rule and arrive
 /// with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).</summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National }
+public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, DataPointer, ProgramPointer, ObjectReference }

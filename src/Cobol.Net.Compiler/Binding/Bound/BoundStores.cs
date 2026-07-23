@@ -87,6 +87,7 @@ public static class BoundStores
                 switch (a)
                 {
                     case InitializeStore st when st.Target.Item == item: return true;
+                    case InitializeSetNull sn when sn.Target.Item == item: return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
                 }
             return false;

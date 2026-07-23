@@ -93,6 +93,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // their byte-compare; the legacy oracle is frozen and not corrected (DEVLOG-457).
         ("2023", "exit_perform_multilevel"),   // EXIT PERFORM leaves the whole PERFORM (CA31)
         ("2023", "exit_perform_cycle"),        // EXIT PERFORM CYCLE runs loop control (CA32)
+        // CONFORMANCE-FIX-QUEUE CA1/CA2 (INITIALIZE spec-derived goldens): CA1 (§14.9.20.4 GR7 dynamic-length →
+        // length 0) uses PIC X DYNAMIC LENGTH — a 2014 clause the frozen legacy grammar cannot parse. CA2
+        // (§14.9.20.4 GR4/GR6c INITIALIZE program-pointer → SET TO NULL) fixes a bug the legacy oracle SHARES
+        // (INITIALIZE of a pointer/object-ref emitted nothing). Greenfield owns their byte-compare.
+        ("2014", "initialize_dynamic_length"),   // INITIALIZE dynamic-length item → length 0 (CA1)
+        ("2002", "initialize_program_pointer"),  // INITIALIZE program-pointer → SET TO NULL (CA2)
         // SUPPRESS PRINTING (§14.9.45): the statement exists only in the greenfield grammar+binder+RW engine.
         // The frozen legacy compiler has no SUPPRESS grammar at all — it fails the program at parse — so the
         // golden (a suppressed detail's amount still rolls into the control total, §13.18.54.4 GR7/GR2) is

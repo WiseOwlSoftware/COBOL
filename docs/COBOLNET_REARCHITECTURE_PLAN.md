@@ -33,17 +33,19 @@ checkpoint.
   a spec-violation shared with the legacy oracle; these bugs were surfaced by two spec-first audits then independently
   VERIFIED, `wf_29a15db2` — 0 refuted, the pass even found a mirror bug + downgraded 2 to owner-decision, so trust it.)
   **HOW:** work the queue TOP-DOWN by severity, one at a time, batched by area; land each fix WITH its spec-derived
-  golden under a comprehensive gate (per-area batch). ✅ **The 2 BLOCKERS — CA31 + CA32 — LANDED (DEVLOG 995;
-  commit below).** One shared `F3Region.Inline` fix routes EXIT PERFORM / EXIT PERFORM CYCLE through `goto __pexit` /
-  `goto __pcont` labels (a bare `break`/`continue` left/cycled only the innermost lowered VARYING loop — §14.9.14.4
-  GR5a/GR5b); 2 characterization snapshots re-baselined; goldens `exit_perform_multilevel`/`exit_perform_cycle`
-  (GreenfieldOnly); greenfield Conformance **3869/3869 0-reg**. **▶ NEXT batch = the accept-display-misc majors
-  (CA1 INITIALIZE dynamic-length→length-0, CA2 INITIALIZE pointer/object-ref→NULL — both in `InitializeBinder.cs`),
-  then exceptions-ec (CA9/CA10/CA11/V57) · interprogram (CA21/CA22/V58) · files-io (CA15/CA16) · intrinsics
-  (CA23/CA24/CA25/V54) · move-convert (CA27/CA28) · picture-usage-value (CA33/CA34/CA35) · editions-gating
-  (CA13/CA39) · arithmetic (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36) · oo (CA29/V55), then the minors +
-  nits + owner-decided (CA14/V59).** ⛔ EC-infra findings share EcBinder/EcEmitter/ExceptionState → stay SERIAL. The
-  original V46 (N"…" VALUE, spec-validated §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
+  golden under a comprehensive gate (per-area batch). ✅ **LANDED so far: CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2
+  (accept-display-misc, DEVLOG 996). Greenfield Conformance 3871/3871 0-reg. 42 fix-ready remain.** **⚡ OWNER DECISION
+  2026-07-22 (DEVLOG 997): STOP GATING on the legacy differential — the legacy conformance suite is decoupled from the
+  required gate and NO new `GreenfieldOnly` exclusions are added going forward (the spec-first campaign targets bugs the
+  legacy SHARES, so it gives near-zero correctness signal and pure friction; the greenfield golden corpus + the GnuCOBOL
+  external differential are the regression net). The legacy ENGINE + `guard.sh` stay ONLY for the P14 Step-0
+  equivalence proof; full deletion stays at P15.** **▶ NEXT batch = move-convert (CA27 numeric-edited→numeric-edited
+  de-edit, CA28 group-move sign preservation — both `MoveEmitter.cs`), then editions-gating (CA13/CA39) · files-io
+  (CA15/CA16) · intrinsics (CA23/CA24/CA25/V54) · picture-usage-value (CA33/CA34/CA35) · arithmetic (CA4/CA5/CA6) ·
+  conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec CA9/CA10/CA11/CA12/V57 ·
+  interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one
+  coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** The original V46 (N"…" VALUE, §13.18.63.3
+  SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
   ✅ **The 2 owner-decisions are RESOLVED (approved 2026-07-22) — now fix-ready in `CONFORMANCE-FIX-QUEUE.md` §OWNER-DECIDED:**
   **CA14** → APPROVED the uniform introduction-error policy (route SYNC-on-group through `ConstructRegistry.Check` +
   activate the `sync-on-group-2023` row; hard error on both axes; effort S) · **V59** → APPROVED building the Tier-C

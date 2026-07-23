@@ -38,6 +38,12 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
             case InitializeStore s:
                 move.Emit(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
                 break;
+            case InitializeSetNull s:
+                // §14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,
+                // program-pointer → ProgramPointer.Null, object-reference → null). A SET, NOT a MOVE — reuses the
+                // item's DefaultInitializer, matching SetEmitter.EmitSetPointer / OoEmitter.EmitSetObjectRef.
+                w.Line(PlaceRenderer.Write(s.Target, s.Target.Item.Pic!.DefaultInitializer));
+                break;
             case InitializeLoop l:
                 using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.Count}; {l.Var}++)"))
                     foreach (var b in l.Body)
