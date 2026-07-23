@@ -266,7 +266,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     "ORD-MAX" => "OrdMaxString", _ => "OrdMinString",
                 },
             };
-            if (sig.Name is "MAX" or "MIN") category = PicCategory.Alphanumeric;
+            // §15.59.1 (MAX) / §15.63.1 (MIN) result-type table: the result category FOLLOWS the arguments — an
+            // all-national argument list yields a NATIONAL result (the selected national UTF-16 string). Hardcoding
+            // Alphanumeric mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and
+            // feeding the wrong class to comparison collation. (V54.)
+            if (sig.Name is "MAX" or "MIN")
+                category = args.All(a => OperandCategory(a) is PicCategory.National)
+                    ? PicCategory.National : PicCategory.Alphanumeric;
         }
 
         // CHAR/ORD are PCS-relative (§15.15.4 r2 / §15.70.4 r1): flag the call when a NON-identity ALPHANUMERIC
