@@ -41,6 +41,13 @@ checkpoint.
   SPEC-DERIVED golden (expected value from the spec, not the legacy).** Then the original V46 (N"…" VALUE — spec-validated
   §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE — decision-complete) batch. Also a sibling gap noted: EXIT PARAGRAPH / EXIT
   PERFORM are 2002 introductions but ungated (like V5's EXIT SECTION was — should be in the CA edition-gating findings).
+  ⛔ **P14 STEP-0 IS RE-GROUNDED = the FULL implementation↔spec review (decision-complete plan:
+  `docs/rearchitecture/DESIGN-spec-conformance-review.md`) — EXHAUSTIVE + spec-first, the definition of DONE (D13).**
+  The two audits above were bounded SAMPLING (14 areas, a few rules each), NOT exhaustive; the ~44-bug queue is the
+  FIRST INSTALLMENT. Phase A = build the spec-rule catalog (`spec-rule-catalog.json`, the DENOMINATOR — every SR/GR);
+  Phase B = map+verify each rule → code → verdict (the traceability inventory, the burn-down metric session-probe already
+  tracks); Phase C = close every DIVERGES (§24) / NOT-IMPLEMENTED / untested-CONFORMS (spec-derived golden). Editions via
+  the VERSION TEST MATRIX.
   ✅ **§24 V5 (EXIT SECTION, ISO §14.9.14 Format 4) LANDED (DEVLOG 991):** the design doc's `pc=lastPara+1` was spec-wrong
   (§14.9.14.4 GR7 — the exit-bound-aware `if (__exitPc==SectionEndPc) return` fires the section return); gate ALL GREEN
   (version-matrix 1835 · characterization 33/33 · Conformance 3867/3867 0-reg · GnuCOBOL 0-reg).
