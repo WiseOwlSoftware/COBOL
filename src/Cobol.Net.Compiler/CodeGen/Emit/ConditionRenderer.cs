@@ -146,12 +146,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
         NumX l = num.AsNum(r.Left, ReceiverContext.None), rr = num.AsNum(r.Right, ReceiverContext.None);
-        // A float operand (D16): compare the algebraic values natively in IEEE double (§8.8.4.2.4). IEEE
-        // NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# — spec-conformant, no epsilon.
-        if (l.Real || rr.Real)
+        // A float operand under NATIVE arithmetic (D16): compare the algebraic values natively in IEEE double
+        // (§8.8.4.2.4 — "when native arithmetic is in effect, comparison proceeds by the rules of native
+        // arithmetic"). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
+        // spec-conformant, no epsilon. Under STANDARD-DECIMAL this branch is SKIPPED so the float lifts to SDIDI below.
+        if ((l.Real || rr.Real) && !num.StandardDecimal)
             return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
-        // A STANDARD-DECIMAL intermediate compares algebraically in SDIDI form (§8.8.1.5).
-        if (l.Dec || rr.Dec)
+        // Under standard-decimal, §8.8.4.2.4 requires EACH operand converted to standard-decimal intermediate form
+        // and compared decimally — a float lifts via the §8.8.1.5.1 float→SDIDI conversion (DecOperand →
+        // CobolDec.FromDouble) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
+        // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
+        if (l.Dec || rr.Dec || l.Real || rr.Real)
             return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
@@ -255,7 +260,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf sign test is well-defined:
         // NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0` still raises on its own read).
         NumX v = num.Render(s.Expr, ReceiverContext.None, floatSendingExempt: true);
-        string test = s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
+        // §8.8.4.7.4 GR2 (Format 2 — a bare standard-float name): POSITIVE/NEGATIVE test the IEEE sign BIT, not the
+        // algebraic value, "regardless of whether the content would evaluate to true in a NUMERIC class test or a
+        // ZERO sign test" — so +0.0 IS POSITIVE and −0.0 IS NEGATIVE. double.IsNegative reads the sign bit (true for
+        // −0.0 and a negative-signed NaN; false for +0.0). ZERO (GR2c) is sign-agnostic. Format 1 keeps the algebraic
+        // test. Widening FLOAT-SHORT→double preserves the sign of zero and NaN, so the single-precision case is covered.
+        string test = s.Format2Float
+            ? s.Kind switch { 'P' => $"!double.IsNegative({NumericRenderer.Real(v)})", 'N' => $"double.IsNegative({NumericRenderer.Real(v)})", _ => $"{NumericRenderer.Real(v)} == 0.0" }
+            : s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }
 

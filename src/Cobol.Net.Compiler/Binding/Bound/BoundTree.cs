@@ -354,8 +354,11 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool 
 /// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).</summary>
 public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, BoundOperand Hi, bool CheckInvalid) : BoundCondition;
 
-/// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}.</summary>
-public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated) : BoundCondition;   // Kind: P/N/Z
+/// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}. <paramref
+/// name="Format2Float"/> marks the ISO §8.8.4.7.3 Format 2 form — a bare (unparenthesized) standard
+/// floating-point data-name — which tests the IEEE sign BIT (§8.8.4.7.4 GR2: +0.0 IS POSITIVE, −0.0 IS
+/// NEGATIVE) rather than the Format-1 algebraic value.</summary>
+public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated, bool Format2Float = false) : BoundCondition;   // Kind: P/N/Z
 
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
 /// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>

@@ -424,7 +424,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             carry.Reset();
             char kind = cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z';
-            return new BoundSignCondition(host.Expr.BindOperandExpr(operands[0]), kind, not);
+            return new BoundSignCondition(host.Expr.BindOperandExpr(operands[0]), kind, not, IsFormat2FloatSign(operands[0]));
         }
 
 
@@ -533,6 +533,29 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // pure-lift discharged); the node is always built (a PURE emission check, no verdict).
         ctx.Validation.CheckRelationalOperands(left, op, right);
         return new BoundRelational(left, op, right);
+    }
+
+    /// <summary>ISO §8.8.4.7.3 SR2 — a sign condition is Format 2 (the IEEE sign-bit test, §8.8.4.7.4 GR2) iff
+    /// data-name-1 is a single data item of a standard floating-point usage that is NOT enclosed in parentheses.
+    /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
+    /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
+    /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
+    private bool IsFormat2FloatSign(Core.ComparisonOperandContext operand) =>
+        SoleDataReference(operand.valueOperand()?.arithmeticExpression()) is { } dref
+        && ctx.Refs.Resolve(dref) is { Item.Pic.IsFloat: true };
+
+    /// <summary>The operand's sole unparenthesized data reference, or null when the arithmetic expression carries
+    /// any operator, a unary sign, or enclosing parentheses (the list patterns fail for ≥2 sub-terms, and
+    /// <c>primaryExpression().dataReference()</c> is null for the unary-sign and <c>LPAREN … RPAREN</c> primaries)
+    /// — the SR2 "single data item … not enclosed in parentheses" reduction, mirroring
+    /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.</summary>
+    private static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith)
+    {
+        if (arith?.additiveExpression() is not { } add) return null;
+        if (add.multiplicativeExpression() is not [{ } mul]) return null;
+        if (mul.powerExpression() is not [{ } pow]) return null;
+        if (pow.unaryExpression() is not [{ } un]) return null;
+        return un.primaryExpression()?.dataReference();
     }
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>

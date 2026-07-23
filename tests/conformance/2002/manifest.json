@@ -4,6 +4,7 @@
     "ca6_binary_operand_composite",
     "ca36_search_range_dispatch",
     "ca17_indexed_rewrite_collating",
+    "ca8_float_sign_format2",
     "address_of_qualified",
     "initialize_program_pointer",
     "intrinsic_exp_overflow",
