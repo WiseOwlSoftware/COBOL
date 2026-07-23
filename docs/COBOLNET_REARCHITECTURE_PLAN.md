@@ -43,17 +43,17 @@ checkpoint.
   for the P14 Step-0 equivalence proof; full deletion stays P15.
   ✅ **LANDED this campaign (spec-first, all pushed): CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2 (accept-display, 996) ·
   CA27+CA28 (move-convert, 998 — CA28 also retracted a spec-wrong test + VCR row 130c) · CA13+CA39 (editions-gating,
-  999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix · CA24+V54+CA23 (intrinsics — EXP/EXP10
-  ∞-saturate + LOG/LOG10 domain; MAX/MIN national result category; MAX/MIN/ORD PCS collation; DEVLOG 1001–1003).
-  13 landed / 33 fix-ready remain.** (A process lesson from CA39: gating a construct breaks tests/goldens that compile
-  it below the new edition — SWEEP for them; never call a conformance failure a "flake" without naming the failing
-  test — `feedback_edition_gate_sweep_and_no_flake_handwave`.)
-  **▶ NEXT = CA25 (finish the intrinsics batch): national result category for UPPER-CASE/LOWER-CASE/REVERSE (+ TRIM/
-  CONCAT/SUBSTITUTE/FORMATTED-*/CURRENT-DATE) — `IntrinsicCatalog.cs:125-127` hardcodes these to Alphanumeric; the fix
-  is a catalog `NationalPolymorphic` flag + binder resolution (national arg → National result), mirroring V54's MAX/MIN
-  category logic. ⚠ BROAD blast radius on §14.9.25.4 Table-16 MOVE legality — SWEEP for tests/goldens that MOVE one of
-  these results to an alphanumeric receiver (they'd newly reject) and re-baseline; do carefully, not rushed. AFTER CA25,
-  run the intrinsics-batch full-conformance gate (already run for CA24+V54+CA23).** Then picture-usage-value (CA33/CA34/CA35) · arithmetic
+  999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix · **the INTRINSICS batch COMPLETE:
+  CA24+V54+CA23+CA25 (EXP/EXP10 ∞-saturate + LOG/LOG10 domain; MAX/MIN national result category; MAX/MIN/ORD PCS
+  collation; UPPER/LOWER/REVERSE national result category; DEVLOG 1001–1004; full-conformance gate 3886/3886 for the
+  runtime-touching CA24/V54/CA23).** 14 landed / 32 fix-ready remain.** (Process lessons durable in
+  `feedback_edition_gate_sweep_and_no_flake_handwave`: gating a construct breaks tests/goldens compiling it below the
+  new edition — SWEEP; never call a failure a "flake" without naming it. Applied correctly on CA25 — swept for national
+  UPPER/LOWER/REVERSE fallout BEFORE implementing, found zero.)
+  **▶ NEXT batch = picture-usage-value (CA33 numeric-edited digit-position cap, CA34 numeric VALUE range/sign SR2/SR3,
+  CA35) — mostly `PictureAnalyzer` + `DataBinder` + `ValueInitializer`; CA34 registers a new COBOLNET0803 (confirm the
+  next-free diag code first). CA33/CA34 are strictness diagnostics (reject illegal source); watch for corpus goldens
+  with over-capacity pictures / out-of-range VALUEs that would newly reject (sweep, per the CA39 lesson).** Then arithmetic
   (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
