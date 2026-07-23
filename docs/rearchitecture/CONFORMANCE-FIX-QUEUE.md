@@ -6,9 +6,25 @@
 > Source ledgers: `CODE-SPEC-AUDIT.md` (CA*), §24 (V54–V59). Part of the P14 full spec-conformance review
 > (`DESIGN-spec-conformance-review.md`).
 
-**44 CONFIRMED · 0 refuted · 2 NEEDS-OWNER-DECISION.** Confirmed by severity: blocker=2, major=30, minor=10, nit=2
+**46 fix-ready (44 CONFIRMED + 2 OWNER-DECIDED) · 0 refuted · 0 pending.** Confirmed by severity: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L).
 
-## ⚠ NEEDS OWNER DECISION
+## ✅ OWNER-DECIDED (2026-07-22 — APPROVED, now fix-ready)
+
+- **CA14 → APPROVED option (a): enforce the uniform introduction-error policy.** Replace `DataBinder.cs:2526`
+  `Edition.Removed(EditionCodes.Introduction,…)` with the canonical funnel
+  `ConstructRegistry.Check(Edition.Edition, Sink, Constructs.SyncOnGroup2023, "data item 'G'")`, activating the
+  already-present `sync-on-group-2023` row so SYNC-on-group is a hard error on BOTH axes like every other 2023
+  introduction (removes the sole policy exception). Update the now-obsolete owner-disposition comments
+  (`constructs.json:1866`, `DataBinder.cs:2521-2530`). Effort S.
+- **V59 → APPROVED option (B): build the Tier-C byte[] canonical** (current value-faithful Tier-B zoned image is
+  ACCEPTABLE INTERIM). Route a REDEFINES/RENAMES class mixing a BINARY/PACKED leaf with a differently-represented view
+  to Tier C: a `byte[]` canonical via `RedefCodec` `GetBinary/PutBinary` (radix-2, width+endian) + `GetPacked/PutPacked`
+  (BCD nibbles + sign), so a character view reads the leaf's TRUE bytes (matches GnuCOBOL + the §13.18.60.4 GR4/GR11
+  letter + the real-program byte-pun fidelity mission). Do NOT add `Usage.Binary`/`Usage.Packed` to the zoned-image
+  branch (`ComputeTier` reject-list stays). Effort L (the RedefCodec). Interim: the current zoned image stands until it
+  lands (so this is NOT a blocker to the rest of the queue).
+
+## (Original owner-decision adjudications — retained for reference)
 
 ### CA14 [editions-gating] — Annex E §E.3.2 item 6; §13.18.55 (SYNCHRONIZED); §4.2 conforming implementation / 'standard extension' (specs/ISO_COBOL.md:2452); §4.2.1 warning mechanism (:2395)
 Independently verified. The DATE is correct and undisputed: SYNCHRONIZED-on-group is a 2023 introduction (Annex E.3.2 item 6, line 48926: 'This clause may now be specified for a group level data item'). CODE: DataBinder.cs:2526-2530 gates it via Edition.Removed(EditionCodes.Introduction,...). Edition.Removed (EditionContext.cs:95-99) = Error when strict, Warning when Permissive. So --std 2014 strict correctly REJECTS (COBOLNET0900); --std 2014 --permissive accepts with only a warning. The finding claims this must be a hard error on BOTH axes. Adjudication on the SPEC axis: ISO does not define a '--permissive' mode. §4.2 (line 2452) expressly permits an implementor to support additional syntax as a 'standard extension' provided the functionality matches the standard — SYNCHRONIZED-on-group is a spec-correct no-op in the typed-native model, so accepting-it-with-a-warning under a non-standard permissive mode is defensible as a standard extension, NOT an ISO violation; §4.2.1 (line 2395) requires only that a warning mechanism EXIST, which --permissive satisfies. The strict/default axis (the spec-governed one) is already correct. Therefore this is NOT a clear ISO-conformance bug. What the finding legitimately exposes is an INTERNAL-CONSISTENCY defect: this is the ONLY site routing an Introduction code (COBOLNET0900) through the Removed severity seam, contradicting the compiler's own documented single-policy contract — EditionContext.Permissive doc (:53 'Introduction gating ... is an error on BOTH axes'), EditionSeverityPolicy.For(NotYetIntroduced)=>Error on both (:25), and the dormant registry row sync-on-group-2023 (ConstructRegistry.g.cs:164, introducedIn=2023) which, if routed through ConstructRegistry.Check, would itself yield Error on both axes. HOWEVER the deviation is an EXPLICIT, documented OWNER disposition: constructs.json:1866 ('GATED P3 step 10 (owner-chosen disposition)', 'ACCEPTED-INERT under --permissive ... keeps INV-1 continuity') and the DataBinder.cs:2521-2530 comment. Because ISO does not compel rejection under a non-standard permissive extension mode AND the owner explicitly chose accept-inert here, this is an owner decision, not a defect to confirm or refute unilaterally. CHOICES: (a) Enforce the uniform policy — replace DataBinder.cs:2526 Edition.Removed(EditionCodes.Introduction,...) with the canonical funnel ConstructRegistry.Check(Edition.Edition, Sink, Constructs.SyncOnGroup2023, "data item 'G'"), activating the already-present sync-on-group-2023 row so it is a hard error on both axes like every other introduction (removes the sole policy exception; recommended, since migration-mode leniency exists for REMOVED features that have pre-removal semantics to preserve, not for a FUTURE feature). (b) Keep the owner's accept-inert disposition but amend the contract docs (EditionContext.Permissive summary, EditionSeverityPolicy doc, ConstructRegistry doc) to record this as a SANCTIONED exception so the 'introductions error on both axes' statement is no longer globally contradicted. Recommend (a).

@@ -1283,14 +1283,16 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 ### V58. GOBACK/EXIT PROGRAM RAISING a FATAL into an EC-free activator (and a MAIN GOBACK RAISING) terminates the run unit; spec says NOT raised (§14.9.18.4 GR1b/GR3, §14.9.14.4 GR2)
 - **File:** `ProgramTable.cs:136-139` (`ApplyPropagationDefault`: `if (…&& pf) throw CobolFatalException`), reached from `RunMain:98` + `CallProgram:216`. **Fix:** when checking for the EC is not enabled in the activator, DISCARD the staged condition (fatal or nonfatal) and continue; a main GOBACK RAISING is ignored (ordinary STOP). The nonfatal branch is already correct — only the `&& pf → throw` and the RunMain path diverge. *(Adjacent to the V52/V53 RunMain work, but a distinct pre-existing bug.)*
 
-### V59. REDEFINES/RENAMES Tier-B stores a BINARY/PACKED leaf as a zoned-decimal CHARACTER image — ⚠ RECLASSIFIED to NEEDS-OWNER-DECISION (not a §4.2.16 violation; see `CONFORMANCE-FIX-QUEUE.md`)
+### V59. REDEFINES/RENAMES Tier-B stores a BINARY/PACKED leaf as a zoned-decimal CHARACTER image — ✅ OWNER-DECIDED 2026-07-22: build Tier-C byte[] canonical (option B); current zoned image acceptable interim
 
-> ⚠ **RECLASSIFIED 2026-07-22 by the verification pass (`wf_29a15db2`):** §13.18.60.4 GR4/GR11 make the byte
-> representation of USAGE BINARY (radix-2) / PACKED (BCD) EXPLICITLY implementor-defined, the value round-trips
-> faithfully through the zoned image, and no CONFORMING program can detect the radix by standard-defined means — so
-> this is NOT a clear §4.2.16 conformance bug. It is an OWNER/architecture call on GnuCOBOL/real-program byte-pun
-> fidelity: keep the value-faithful Tier-B zoned image (conformant + simple), or build the interim-rejected Tier-C
-> byte[] canonical (radix-2 / BCD, matches GnuCOBOL + the GR4/GR11 letter). Full adjudication in `CONFORMANCE-FIX-QUEUE.md`.
+> ⚠ Reclassified from a §4.2.16 bug by the verification pass (`wf_29a15db2`): §13.18.60.4 GR4/GR11 make the byte
+> representation of USAGE BINARY (radix-2) / PACKED (BCD) EXPLICITLY implementor-defined and the value round-trips, so
+> no CONFORMING program can detect the radix — NOT a clear conformance violation; the question was GnuCOBOL/real-program
+> byte-pun fidelity. ✅ **OWNER APPROVED option (B): build the Tier-C `byte[]` canonical** (RedefCodec GetBinary/PutBinary
+> radix-2 + GetPacked/PutPacked BCD, so a character view reads the leaf's true bytes — matches GnuCOBOL + the GR4/GR11
+> letter + the byte-pun-fidelity mission); the current value-faithful Tier-B zoned image is ACCEPTABLE INTERIM (not a
+> blocker). Fix detail in `CONFORMANCE-FIX-QUEUE.md`. (CA14 SYNC-on-group was the other owner-decision — APPROVED the
+> uniform introduction-error policy.)
 
 - **File:** `DataBinder.cs:2861-2867` (`ComputeTier` Tier-C reject list omits `Usage.Binary`/`Usage.Packed` → falls to StringCanonical) + `:2795-2814` (stores the leaf as a `Pic.Digits`-wide zoned image). **Fix:** route a class mixing a BINARY/PACKED leaf with a different-representation view to Tier C (byte[] canonical via RedefCodec GetBinary/PutBinary + GetPacked/PutPacked), or the interim Tier-C loud-reject; do NOT add Binary/Packed to the zoned-image branch. Failure: `PIC S9(4) COMP` observed as 4 zoned chars through any REDEFINES/RENAMES/group-move/file view — diverges from GnuCOBOL.
 

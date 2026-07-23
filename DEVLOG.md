@@ -13,6 +13,18 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 994 — 2026-07-22 22:00 PDT — Owner decisions on CA14 + V59 — both approved; the conformance queue is 46 fully fix-ready (0 pending)
+
+Owner adjudicated the 2 reclassified items. **CA14 → APPROVED the uniform introduction-error policy** (option a):
+route SYNC-on-group through the canonical `ConstructRegistry.Check` + activate the dormant `sync-on-group-2023` row so
+it is a hard error on both axes like every other 2023 introduction, removing the sole `--permissive` accept-inert
+exception (effort S). **V59 → APPROVED building the Tier-C `byte[]` canonical** (option B): a REDEFINES/RENAMES class
+mixing a BINARY/PACKED leaf with a differently-represented view routes to a `byte[]` canonical (RedefCodec radix-2 +
+BCD) so a character pun reads the leaf's true bytes — matches GnuCOBOL + the §13.18.60.4 GR4/GR11 letter + the
+byte-pun-fidelity mission; the current value-faithful Tier-B zoned image is ACCEPTABLE INTERIM (effort L, NOT a
+blocker). `CONFORMANCE-FIX-QUEUE.md` + §24 V59 + plan §0 updated: the queue is now **46 fix-ready, 0 pending owner
+input** — the new session can work it end to end.
+
 ## Entry 993 — 2026-07-22 21:49 PDT — The ~44 candidates VERIFIED: 44 confirmed (fix-ready, with spec-derived goldens), 2 reclassified to owner-decision
 
 Independently verified every audit-surfaced candidate (V54–V59 + CA1–CA38) against the spec text AND the code

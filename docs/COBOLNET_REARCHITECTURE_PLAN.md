@@ -39,12 +39,11 @@ checkpoint.
   through goto-labels via a new `F3Region.Inline`, regenerating the 32 characterization snapshots as a spec-correct
   re-baseline; exact fix in the queue doc). The original V46 (N"…" VALUE, spec-validated §13.18.63.3 SR7) + V24 (OPTIONS
   INITIALIZE) fold into this queue as spec-conformance items.
-  ⚠ **2 NEEDS-OWNER-DECISION (do NOT fix without the owner) — in `CONFORMANCE-FIX-QUEUE.md` §"NEEDS OWNER DECISION":**
-  **CA14** (SYNC-on-group `--permissive` accept-inert vs uniform introduction-error — the strict axis is already
-  correct; agent recommends enforcing the uniform policy) · **V59** (REDEFINES Tier-B BINARY/PACKED zoned image —
-  §13.18.60.4 GR4/GR11 make the byte layout implementor-defined so it is NOT a §4.2.16 violation; the question is
-  GnuCOBOL/real-program byte-pun fidelity → keep value-faithful Tier-B, or build the Tier-C byte[] canonical). *(V59 was
-  filed as a §24 code-bug but the verification RECLASSIFIED it to owner-decision.)*
+  ✅ **The 2 owner-decisions are RESOLVED (approved 2026-07-22) — now fix-ready in `CONFORMANCE-FIX-QUEUE.md` §OWNER-DECIDED:**
+  **CA14** → APPROVED the uniform introduction-error policy (route SYNC-on-group through `ConstructRegistry.Check` +
+  activate the `sync-on-group-2023` row; hard error on both axes; effort S) · **V59** → APPROVED building the Tier-C
+  `byte[]` canonical (RedefCodec radix-2/BCD; effort L; the current value-faithful zoned image is ACCEPTABLE INTERIM, so
+  V59 is NOT a blocker to the rest of the queue). So the queue is **46 fully fix-ready, 0 pending owner input.**
   ⛔ **AFTER the queue: P14 STEP-0 = the FULL implementation↔spec review** (decision-complete plan
   `docs/rearchitecture/DESIGN-spec-conformance-review.md`) — EXHAUSTIVE + spec-first, the definition of DONE (D13). The
   two audits were bounded SAMPLING; the 44-bug queue is the FIRST INSTALLMENT. **Phase A = build the spec-rule catalog**
