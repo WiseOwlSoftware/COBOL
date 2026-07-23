@@ -35,15 +35,15 @@ checkpoint.
   **HOW:** work the queue TOP-DOWN by severity, one at a time, batched by area; land each fix WITH its spec-derived
   golden under a comprehensive gate (per-area batch). ✅ **LANDED so far: CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2
   (accept-display-misc, DEVLOG 996) · CA27+CA28 (move-convert, DEVLOG 998 — CA28 also retracted a spec-wrong test +
-  VCR row 130c that had pinned the group-move "de-sign"). Greenfield Conformance 3873/3873 0-reg. 40 fix-ready remain.**
+  VCR row 130c) · CA13+CA39 (editions-gating — OPTIONS INITIALIZE→2023, EXIT PARAGRAPH/PERFORM→2002; DEVLOG 999).
+  Greenfield Conformance 3873/3873 0-reg. 38 fix-ready remain.**
   **⚡ OWNER DECISION
   2026-07-22 (DEVLOG 997): STOP GATING on the legacy differential — the legacy conformance suite is decoupled from the
   required gate and NO new `GreenfieldOnly` exclusions are added going forward (the spec-first campaign targets bugs the
   legacy SHARES, so it gives near-zero correctness signal and pure friction; the greenfield golden corpus + the GnuCOBOL
   external differential are the regression net). The legacy ENGINE + `guard.sh` stay ONLY for the P14 Step-0
-  equivalence proof; full deletion stays at P15.** **▶ NEXT batch = editions-gating (CA13 OPTIONS INITIALIZE 2014→2023
-  registry correction, CA39 add exit-paragraph-2002/exit-perform-2002 gates — constructs.json + VersionConformancePass
-  + gen-constructs regen), then files-io
+  equivalence proof; full deletion stays at P15.** **▶ NEXT batch = files-io (CA15 line-sequential over-length READ '06'
+  + remainder, CA16 OPTIONAL I-O create → '05'/'10' — both SequentialConnector.cs + FileStatus.cs)
   (CA15/CA16) · intrinsics (CA23/CA24/CA25/V54) · picture-usage-value (CA33/CA34/CA35) · arithmetic (CA4/CA5/CA6) ·
   conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec CA9/CA10/CA11/CA12/V57 ·
   interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one

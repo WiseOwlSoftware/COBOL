@@ -91,6 +91,7 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | move-alphanumeric-figurative-removed-2023 | 85 | removed 2023 | COBOLNET0902 | done | 1 |
 | move-quote-numeric-obsolete-2014 | 85 | removed 2023 | COBOLNET0902 | done | 28 |
 | next-sentence-archaic-2023 | 85 | obsolete 2023 | COBOLNET0903 | done | 90, 127 |
+| options-initialize-2023 | 2023 | — | COBOLNET0900 | done | 76 |
 | receive-as-user-word | 2002 | removed 2023 | COBOLNET0901 | done | 32 |
 <!-- GEN:VCR-STATUS END -->
 
@@ -191,7 +192,7 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | 73 | FUNCTION SUBSTITUTE | E.3.3 item 30 | 2014→2023 | **Old:** new intrinsic. **New:** SUBSTITUTE replaces portions of strings with possibly different-length substitutions. | No | new-feature-gate <!-- todo --> |
 | 74 | FUNCTION TRIM enhanced to remove characters other than space | E.3.3 item 31 | 2014→2023 | **Old:** TRIM removed only leading/trailing spaces. **New:** TRIM can remove characters other than space. | No | new-feature-gate <!-- todo --> |
 | 75 | GOBACK statement allows status phrase like STOP (in a main program) | E.3.3 item 32 | 2014→2023 | **Old:** GOBACK had no status phrase. **New:** GOBACK allows the STOP status phrase, effective only in a COBOL main program. | No | new-feature-gate <!-- todo --> |
-| 76 | INITIALIZE clause of the OPTIONS paragraph | E.3.3 item 33 | 2014→2023 | **Old:** content of non-explicitly-initialized items was implementor-defined. **New:** with OPTIONS INITIALIZE, that content is explicitly defined. | No | new-feature-gate <!-- todo --> |
+| 76 | INITIALIZE clause of the OPTIONS paragraph | E.3.3 item 33 | 2023 (introduction) | **Old:** the clause did not exist; content of non-explicitly-initialized items was implementor-defined. **New (2023):** the OPTIONS INITIALIZE clause (using already-reserved words) explicitly defines that content. Annex E §E.3.3 item 33 places it among the 2014→2023 additions "not affecting existing programs" — i.e. NEW in 2023, not a semantic tightening of a pre-existing clause. | Yes (reject pre-2023) | gated 2023 <!-- gate:options-initialize-2023 --> |
 | 77 | INSPECT statement — BACKWARD context-sensitive word added | E.3.3 item 34 | 2014→2023 | **Old:** INSPECT scanned forward only. **New:** BACKWARD context-sensitive word added (backward scan). | No | new-feature-gate <!-- todo --> |
 | 78 | I-O status values '05','37','39','41','62' settable by DELETE FILE | E.3.3 item 35 | 2014→2023 | **Old:** these statuses not produced by DELETE FILE (which didn't exist). **New:** DELETE FILE may set '05','37','39','41','62'. | No | new-feature-gate <!-- todo --> |
 | 79 | PERFORM statement — exception-checking variant | E.3.3 item 36 | 2014→2023 | **Old:** no exception-checking PERFORM. **New:** exception-checking variant added. | No | new-feature-gate <!-- gate:perform-exception-checking-2023 (COBOLNET0900; recognize/validate/diagnose landed, runtime staged COBOLNET0899) --> |

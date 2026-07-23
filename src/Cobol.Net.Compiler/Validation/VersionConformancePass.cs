@@ -641,6 +641,10 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
             else if (ctx.SECTION() is not null)   // §14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
                 _p.Check(Constructs.ExitSection2002, "the EXIT SECTION statement");
+            else if (ctx.PARAGRAPH() is not null)   // §14.9.14.2 Format 4 — the COBOL-2002 EXIT PARAGRAPH twin of EXIT SECTION
+                _p.Check(Constructs.ExitParagraph2002, "the EXIT PARAGRAPH statement");
+            else if (ctx.PERFORM() is not null)     // §14.9.14.2 Format 3 — EXIT PERFORM [CYCLE], a COBOL-2002 structured exit
+                _p.Check(Constructs.ExitPerform2002, "the EXIT PERFORM statement");
             return base.VisitChildren(ctx);
         }
 
@@ -1421,9 +1425,10 @@ internal sealed class VersionConformancePass
         public override object? VisitFloatDecimalClause(CobolParserCore.FloatDecimalClauseContext ctx)
         { _p.Check(Constructs.OptionsFloatDecimal2014, "the FLOAT-DECIMAL clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>OPTIONS INITIALIZE (ISO §11.9.10) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        /// <summary>OPTIONS INITIALIZE (ISO §11.9.10) — a 2023 clause of the 2002 OPTIONS paragraph (Annex E §E.3.3
+        /// item 33: a NEW 2023 clause using already-reserved words, not a 2014 clause).</summary>
         public override object? VisitOptionsInitializeClause(CobolParserCore.OptionsInitializeClauseContext ctx)
-        { _p.Check(Constructs.OptionsInitialize2014, "the OPTIONS INITIALIZE clause"); return base.VisitChildren(ctx); }
+        { _p.Check(Constructs.OptionsInitialize2023, "the OPTIONS INITIALIZE clause"); return base.VisitChildren(ctx); }
 
         /// <summary>CURRENCY SIGN … WITH PICTURE SYMBOL (ISO §12.3.7) — the 1985 clause had only the
         /// single-character literal form; the PICTURE SYMBOL form is 2002+.</summary>
