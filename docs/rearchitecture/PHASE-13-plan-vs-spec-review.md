@@ -1260,6 +1260,32 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   the `finally { … _owner.Files.CloseAll(); }` closes ALL run-unit connectors regardless of which assembly opened
   them). Land V52 + V53 together in one commit + one comprehensive gate.**
 
+## 24-AUDIT. Design-doc↔spec audit code-bugs (2026-07-22; audit `wf_480d50f5` + correction `wf_16d53d4e`) — VERIFY-THEN-FIX
+
+> The design-doc audit (owner concern: supposedly-validated designs carried spec conflicts) surfaced **54 doc↔spec
+> conflicts** (doc side corrected + persisted in `DESIGN-SPEC-RECONCILIATION.md`) and **6 SPEC-WRONG-AND-IMPLEMENTED
+> designs = candidate CONFORMANCE bugs** (below). Each was code-read by the auditor; VERIFY independently before the
+> fix (spec-first, one at a time). The design docs already describe the SPEC-CORRECT target — these bring the CODE up
+> to it. Not yet a wave; slot into the §24 queue by severity.
+
+### V54. FUNCTION MAX/MIN over all-NATIONAL args binds result category Alphanumeric, not National (§15.59.1/§15.63.1 result-type table)
+- **File:** `IntrinsicBinder.cs:259-270` (the `category = PicCategory.Alphanumeric` at :269, guarded by `args.All(IsStringOperand)` which admits National). **Fix:** resolve the polymorphic result category from the §15.59.1/§15.63.1 table (National args→National; all-Index→Index), not the binary all-non-numeric→alphanumeric collapse. Downstream MOVE/compare/size then treat the selected national string correctly.
+
+### V55. OO `__CobolInvoke` raises EC-OO-UNIVERSAL UNCONDITIONALLY; §14.9.23.4 GR7c gates it on checking-enabled-in-BOTH method + activator
+- **File:** `OoEmitter.cs:266/274/280/287` (bare `throw CobolFatalException("EC-OO-UNIVERSAL")`). **Fix:** gate the raise on checking enabled in both the activated method and the activating element, route through §14.6.13 GR7g; when not enabled-in-both, EC-OO-UNIVERSAL is not set to exist (an implementor fatal path may still stop a nonconforming typed-native crossing, but must not REPORT EC-OO-UNIVERSAL raised).
+
+### V56. Relation with a float operand under ARITHMETIC IS STANDARD[-DECIMAL] emitted as native IEEE-double compare, not SDIDI (§8.8.4.2.4)
+- **File:** `ConditionRenderer.cs:151` (+ figurative `:191`): the `if (l.Real||rr.Real) return native-double` branch fires BEFORE the standard-decimal branch, and floats are only SDIDI-converted in arithmetic (`NumericRenderer.cs:210`), not comparison. **Fix:** under `NumericRenderer.StandardDecimal`, route any numeric relation with a Real/fixed operand through `CobolDec.Compare(DecOperand(l),DecOperand(r))`; the native-double branch fires only under NATIVE arithmetic. Failure: `IF F = D` (F COMP-2) compares binary64 not decimal128 images.
+
+### V57. Exception-checking PERFORM (Format 3) binds handler bodies imp-2..5 under the pre-PERFORM TurnState, not TURN OFF ALL (§14.9.28.4 GR14)
+- **File:** `EcBinder.ExceptionPerform.cs:58` (`ctx.EcState.Turn = savedTurn;`) consumed by imp-2/3/4 binding (:77-88) + FINALLY (:88). **Fix:** bind imp-2..5 under an all-OFF TurnState (GR14 implicit PUSH ALL + TURN OFF ALL), then restore `savedTurn` per GR22 for statements after END-PERFORM. Failure: a `>>TURN ec ON` enclosing the F3 PERFORM leaks EC guards into WHEN/OTHER/COMMON/FINALLY bodies.
+
+### V58. GOBACK/EXIT PROGRAM RAISING a FATAL into an EC-free activator (and a MAIN GOBACK RAISING) terminates the run unit; spec says NOT raised (§14.9.18.4 GR1b/GR3, §14.9.14.4 GR2)
+- **File:** `ProgramTable.cs:136-139` (`ApplyPropagationDefault`: `if (…&& pf) throw CobolFatalException`), reached from `RunMain:98` + `CallProgram:216`. **Fix:** when checking for the EC is not enabled in the activator, DISCARD the staged condition (fatal or nonfatal) and continue; a main GOBACK RAISING is ignored (ordinary STOP). The nonfatal branch is already correct — only the `&& pf → throw` and the RunMain path diverge. *(Adjacent to the V52/V53 RunMain work, but a distinct pre-existing bug.)*
+
+### V59. REDEFINES/RENAMES Tier-B stores a BINARY/PACKED leaf as a zoned-decimal CHARACTER image, collapsing USAGE BINARY(radix-2)/PACKED(BCD) into DISPLAY (§13.18.60 GR4/GR11)
+- **File:** `DataBinder.cs:2861-2867` (`ComputeTier` Tier-C reject list omits `Usage.Binary`/`Usage.Packed` → falls to StringCanonical) + `:2795-2814` (stores the leaf as a `Pic.Digits`-wide zoned image). **Fix:** route a class mixing a BINARY/PACKED leaf with a different-representation view to Tier C (byte[] canonical via RedefCodec GetBinary/PutBinary + GetPacked/PutPacked), or the interim Tier-C loud-reject; do NOT add Binary/Packed to the zoned-image branch. Failure: `PIC S9(4) COMP` observed as 4 zoned chars through any REDEFINES/RENAMES/group-move/file view — diverges from GnuCOBOL.
+
 ### V46. COBOLNET1570's SR4/SR5 citation — REFUTED-as-cited; the NATIONAL half of E.2 item 27 is the real gap
 
 - **Verdicts:** spec-lens REAL-as-amended (high) · code-lens REAL (high)

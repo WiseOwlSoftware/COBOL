@@ -39,11 +39,11 @@ Algorithm (port legacy ResolveQualifiedName): resolve the rightmost qualifier Z 
 == 4. SUBSCRIPTING / INDEXING, ISO §8.4.2.3 ==
 OCCURS dimensions are collected by walking item→ancestors (legacy LocationResolver does exactly this). COBOL subscripts are 1-BASED and listed OUTER→INNER (`T(outer, inner)`); C# arrays are 0-based — so each subscript emits as `[expr - 1]`. Multi-dim: COBOL-85 caps a table at 7 dimensions (the 3-dim cap was ANSI-74, out of scope); 2002+ removes the fixed cap — store dims as a list, no fixed cap; >7 dims at `--std 85` ⇒ diagnostic (G1, per-edition gating section). Each dimension is a SEPARATE C# array index because a 2-D OCCURS is an array-of-structs-containing-array (`Rows[i-1].Cols[j-1]`), NOT a flattened 1-D — this is the natural .NET shape and removes all the legacy multiplier/stepSize offset arithmetic.
   • Subscript forms: integer literal, data-name, index-name, and relative `index ± literal` (ISO §8.4.2.3) → `idx ± lit - 1`.
-  • INDEX-NAMEs (INDEXED BY): an index-name is a DISTINCT entity, NOT a data item (ISO §8.4.2.3 / §13.18.40). DECISION: an index-name → a C# `long` field holding a 1-BASED OCCURRENCE NUMBER (not a byte displacement; the legacy byte-displacement model is rejected as it leaks layout). SET idx TO n → `idx = n`; SET idx UP/DOWN BY k → `idx ±= k`; using idx as a subscript → `[idx - 1]`. (Rationale: occurrence-number semantics are layout-free and make SEARCH/SEARCH ALL emit as plain integer loops; the only observable difference — idx surviving a redefine of the table element width — is implementor-defined and not in the conformance corpus.) Index-name lives in the same static/instance scope as its table.
+  • INDEX-NAMEs (INDEXED BY): an index-name is a DISTINCT entity, NOT a data item (ISO §8.4.2.3 / §13.18.38). DECISION: an index-name → a C# `long` field holding a 1-BASED OCCURRENCE NUMBER (not a byte displacement; the legacy byte-displacement model is rejected as it leaks layout). SET idx TO n → `idx = n`; SET idx UP/DOWN BY k → `idx ±= k`; using idx as a subscript → `[idx - 1]`. (Rationale: occurrence-number semantics are layout-free and make SEARCH/SEARCH ALL emit as plain integer loops; the only observable difference — idx surviving a redefine of the table element width — is implementor-defined and not in the conformance corpus.) Index-name lives in the same static/instance scope as its table.
 
-== 5. REFERENCE MODIFICATION x(s:l), ISO §8.4.2.4 (spec lines 7028-7081) ==
-A typed substring over the item's CHARACTER image. DECISION: ref-mod always operates on the STRING image of the item (ISO §8.4.2.4 rule 2: a non-alphanumeric DISPLAY item is treated as if redefined alphanumeric of the same size; rule 3: NATIONAL likewise). So:
-  • Read: `CobolString.RefMod(<charImage>, s, l)` → `charImage.Substring(s-1, lengthOrRest)`; l omitted → to end (ISO §8.4.2.4: default length = remaining). `<charImage>` is the item's display image (string field directly; a numeric item via `CobolNum.FormatDisplay` first — but a numeric ref-mod is rare and the spec says treat-as-alphanumeric-redefinition, so we render the raw digit/zoned image).
+== 5. REFERENCE MODIFICATION x(s:l), ISO §8.4.3.3 (general rules §8.4.3.3.4; spec lines 6952-7020) ==
+A typed substring over the item's CHARACTER image. DECISION: ref-mod always operates on the STRING image of the item (ISO §8.4.3.3.4 rule 2: a non-alphanumeric DISPLAY item is treated as if redefined alphanumeric of the same size; rule 3: NATIONAL likewise). So:
+  • Read: `CobolString.RefMod(<charImage>, s, l)` → `charImage.Substring(s-1, lengthOrRest)`; l omitted → to end (ISO §8.4.3.3.4 rule 5c: default length = remaining). `<charImage>` is the item's display image (string field directly; a numeric item via `CobolNum.FormatDisplay` first — but a numeric ref-mod is rare and the spec says treat-as-alphanumeric-redefinition, so we render the raw digit/zoned image).
   • Write (ref-mod as a RECEIVER, the genuinely hard case): cannot reassign a substring in place on an immutable C# string. Runtime helper `CobolString.SpliceInto(ref string field, int start1, int len, string value)` rebuilds the string: `field = field[..(s-1)] + value-fitted-to-len + field[(s-1+len)..]`. The Place's WriteStmt for a ref-mod emits this. For ref-mod over a numeric/COMP item used as a receiver, route through the byte-image fallback (G6, deferred) — flag loud meanwhile. s and l are arbitrary arithmetic expressions (evaluated once into temps to avoid double-eval; ISO requires single evaluation of subscripts/positions).
   • ZERO-LENGTH ref-mod (l=0) is EDITION-VARYING (`VERSION_CHANGE_REFERENCE.md` #30): pre-2023 the result is undefined; at `--std 2023` it is allowed (yields "") ONLY when the REF-MOD-ZERO-LENGTH directive (§7.3.23) is in effect — otherwise EC-BOUND-REF-MOD is raised; FLAG-14 flags the ambiguous case (spec line 4523). Gate the emit by edition + directive state.
 
@@ -51,7 +51,7 @@ A typed substring over the item's CHARACTER image. DECISION: ref-mod always oper
 Fixed-point = native `long` holding the UNSCALED value; scale is compile-time metadata on PicInfo (already implemented). 19-38 digit pictures → `Int128` (PicInfo gains a `WidePrecision` flag selecting Int128 vs long for ClrType + the runtime overloads; CobolNum must gain Int128 overloads — currently long-only). COMP-1/2 → float/double; COMP-5 → native int by width with binary wrap (PicInfo.StorageWidth already computes the byte width; runtime needs the wrap path, deferred). decimal/BigInteger essentially unused. This is settled; the data-model design only needs to thread `WidePrecision` into ClrType, DefaultInitializer, ProfileInitializer, and the NumX scale-tracking expression type so wide items pick Int128 literals (`123` not `123L`).
 
 == 7. LEVELS 66 (RENAMES) and 88 (condition-names) ==
-  • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.34). The binder captures 88 entries as `Condition88` records on their conditional variable (IMPLEMENTED — `DataBinder.Conditions` multimap); ensure the captured VALUE list covers THRU ranges + multiple literals.
+  • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.39.4 GR6). The binder captures 88 entries as `Condition88` records on their conditional variable (IMPLEMENTED — `DataBinder.Conditions` multimap); ensure the captured VALUE list covers THRU ranges + multiple literals.
   • 66 RENAMES: a re-grouping alias over a contiguous run FROM..THRU of sibling elementary items. DECISION: model as a Place that is an ALIAS — for the common case (RENAMES of a single elementary, or a whole-group read/write) emit a computed property that concatenates/splits the underlying members' char images. The general overlapping-bytes RENAMES is a storage-overlay case → defer to G6 (the byte-image fallback) and flag loud. Capture RenamesInfo (FROM/THRU + qualifiers) now; resolution is deferred-pass like legacy.
 
 == 8. REDEFINES — the storage-overlay boundary ==
@@ -81,7 +81,7 @@ while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 == 9. CLAUSES: SYNCHRONIZED / JUSTIFIED / BLANK WHEN ZERO ==
   • SYNCHRONIZED: alignment is a BYTE-LAYOUT concept. In a typed-native model there are no byte boundaries to align to (a `long` field is naturally aligned by the CLR). DECISION: SYNC is a NO-OP for in-memory typed data; it only matters at the file/byte serialization boundary (G6), where the record-image builder honors it. Capture IsSynchronized for that future use. (Rationale: the only observable effect of SYNC absent byte access is on REDEFINES-overlay size, which is already the G6 byte path.)
   • JUSTIFIED RIGHT: already threaded — CobolString.Store(value,width,justifiedRight) pads/truncates on the left. `DataItem.Justified` carries the flag; the Place's WriteStmt for an alphanumeric receiver passes it.
-  • BLANK WHEN ZERO: an OUTPUT/edit-time rule (ISO §13.18.6) — a numeric/numeric-edited item displays as all spaces when its value is zero. DECISION: a property of the item's display rendering, applied in CobolNum.FormatDisplay / the numeric-edited formatter: if value==0 emit spaces of the picture width. Capture BlankWhenZero on PicInfo.
+  • BLANK WHEN ZERO: an OUTPUT/edit-time rule (ISO §13.18.8) — a numeric/numeric-edited item displays as all spaces when its value is zero. DECISION: a property of the item's display rendering, applied in CobolNum.FormatDisplay / the numeric-edited formatter: if value==0 emit spaces of the picture width. Capture BlankWhenZero on PicInfo.
 
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §13.18.63 / §14.9.4 ==
 Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, pointer→null. Already implemented for flat items. Extensions needed:
@@ -141,7 +141,7 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 ### D5. REDEFINES uses the 4-tier ONE-canonical-backing model (A Alias / B StringCanonical / C class-scoped ByteCanonical / D reject-loud); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [Canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
 
-**Rationale.** A write through any view must be visible through every other view of the same area (ISO §13.18.42 "same storage area"). One stored canonical + computed accessors guarantees that coherence with NO byte substrate for the dominant DISPLAY-homogeneous case (Tiers A/B — the entire near-term NIST path), and confines `byte[]` to genuine mixed-USAGE puns only (Tier C, owner decision §18 #1).
+**Rationale.** A write through any view must be visible through every other view of the same area (ISO §13.18.44 "same storage area"). One stored canonical + computed accessors guarantees that coherence with NO byte substrate for the dominant DISPLAY-homogeneous case (Tiers A/B — the entire near-term NIST path), and confines `byte[]` to genuine mixed-USAGE puns only (Tier C, owner decision §18 #1).
 
 **Rejected alternatives.** (a) **Separate independent typed fields** — rejected: two independent fields cannot stay coherent under a cross-type pun, reproducing the silent-stale-read the no-byte-substrate model exists to prevent — even a loud cross-type-read guard only *detects* it, it does not make the program correct. (b) Global `byte[]` for all REDEFINES — rejected: the abolished substrate. (c) `[StructLayout(Explicit)]`/`[FieldOffset]` overlay — rejected: cannot overlay a `string` on a `long`, which is the dominant pun.
 
@@ -238,7 +238,7 @@ read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding 
 ALL over current capacity · `INITIALIZE <dynamic-table>` · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
 (diagnostic, not a silent wrong answer):** variable-length-group MOVE/COMPARE + whole-group image of a containing
 group (**COBOLNET1527**, §14.6.9) · VALUE-derived initial capacity (**1528**, §13.18.63 GR16) · ref-mod of a
-subordinate (**1526**, §13.7.1 SR6) · REDEFINES subject/object a dynamic table (**1525**, §13.18.44 SR17).
+subordinate (**1526**, §13.7.1 SR6) · REDEFINES subject/object a dynamic table (**1525**, §13.18.44 SR5 + §8.5.1.9.1).
 
 **Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a DYNAMIC alt on
 `occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral; superset parse — no edition predicate) with an
@@ -300,7 +300,10 @@ that yields a `DynTablePlace` (writes via `RefReceiving`, within bounds so no gr
 table (the other GR10 case) is a variable-length group → staged LOUD (the §14.6.9 1527 family). → `dyn_search`/
 `dyn_initialize`; (5) the staged-loud
 guards. **1522** (`DynamicResolve`): SR28 (:19987) — TO ≤ FROM rejected. **1525** (`ClassifyRedefinesClasses`, via a
-`ContainsDynamicTable` subtree walk): §13.18.44 SR5 (:21497) — a dynamic table (out-of-line) shall be neither the
+`ContainsDynamicTable` subtree walk): §13.18.44 SR5 (data-name-2 shall not contain an OCCURS clause — which includes
+OCCURS DYNAMIC, so a dynamic table cannot be the REDEFINES OBJECT) + §8.5.1.9.1 (a dynamic table's out-of-line,
+implementor-allocated storage cannot form the fixed overlay §13.18.44.4 GR1 requires of the SUBJECT; §13.18.44 NOTE 3
+permits REDEFINES only SUBORDINATE to a dynamic table) — a dynamic table (out-of-line) shall be neither the
 subject nor object of a REDEFINES; the class is forced `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
 §13.18.63 GR6 (:24102) — a VALUE on an ELEMENTARY dynamic entry derives the initial capacity (staged); a VALUE on a
 GROUP dynamic table's SUBORDINATE is the element seed (capacity = FROM) and is NOT caught. **1527** (the containing-
@@ -488,7 +491,7 @@ CONCRETE COBOL→C# MAPPINGS:
 — OCCURS DEPENDING ON —
   05 N PIC 9(3).                           →  public long N;            // the length var
   05 ITM OCCURS 1 TO 100 DEPENDING ON N    →  public _T_Itm[] Itm;      // allocated at MAX (100); N bounds the live range
-      PIC X(4).                                // sending op uses [0..N); receiving whole-group uses MAX (ISO OCCURS GR7)
+      PIC X(4).                                // sending op uses [0..N); a receiving whole-group uses [0..N) when N is OUTSIDE the group (ISO §13.18.38 GR8a), MAX only when N is INSIDE (GR8b)
   ITM(K)                                   →  Itm[K - 1]                // bounds checked vs N at runtime if EC enabled
 
 — Index-name (INDEXED BY) = occurrence number —
@@ -507,11 +510,11 @@ CONCRETE COBOL→C# MAPPINGS:
      88 OK   VALUE 1.                       →  private static bool Ok      => St == 1;
      88 BAD  VALUE 2 THRU 9.                →  private static bool Bad     => St >= 2 && St <= 9;
      88 MIX  VALUE 0 5 7.                   →  private static bool Mix     => St==0 || St==5 || St==7;
-  SET OK TO TRUE                           →  St = 1;     // parent set to the (first) condition value (ISO §14.9.34)
+  SET OK TO TRUE                           →  St = 1;     // parent set to the (first) condition value (ISO §14.9.39.4 GR6)
 
 — Qualified + subscripted + ref-modded together —
   VAL OF ITEMS(I) OF WS-REC (3:2)          →  CobolString.RefMod(WsRec.Items[I - 1].Val_as_image, 3, 2)
-                                              (Val numeric → its display image first per ISO §8.4.2.4 rule 2)
+                                              (Val numeric → its display image first per ISO §8.4.3.3.4 rule 2)
 
 — CALL BY REFERENCE (Place → C# ref) —
   CALL "SUB" USING CT.                      →  Sub(ref WsRec.Ct);
@@ -535,9 +538,9 @@ Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is prove
 
 Place.Write for a RefModPlace rebuilds the whole string: `field = field[..(s-1)] + fit(value,len) + field[(s-1+len)..]` via runtime CobolString.SpliceInto(string,start1,len,value). Evaluate s and l into temps ONCE (ISO requires single evaluation of positions/subscripts) to avoid double-eval and side-effect duplication. For numeric/COMP receivers under ref-mod (rare), defer to the byte-image fallback and flag loud.
 
-### OCCURS DEPENDING ON: the array size varies at runtime, but a C# array has a fixed allocated length; and ISO OCCURS GR7 mandates that a RECEIVING whole-group operand uses the MAXIMUM length while a SENDING operand uses the CURRENT (DEPENDING-ON) length.
+### OCCURS DEPENDING ON: the array size varies at runtime, but a C# array has a fixed allocated length; and ISO OCCURS GR8 (§13.18.38.4) governs the extent of a whole occurs-depending group operand in TWO cases — GR8a: when the DEPENDING-ON item (data-name-1) is OUTSIDE the group, the CURRENT count is used for BOTH sending and receiving; GR8b: when data-name-1 is INSIDE the group, a SENDING operand uses the CURRENT count while a RECEIVING operand uses the MAXIMUM length (data-name-1 is itself overwritten by the operation and so cannot bound it).
 
-Allocate the array at MAX occurrences once; the length variable (DEPENDING ON item) bounds the LIVE range. Element access `Itm[K-1]` is unaffected. Whole-group operations branch on direction: sending → slice [0..N); receiving → full MAX (matches the legacy IrOdoGroupLocation receiving:true logic). When the DEPENDING-ON var is INSIDE the group, a receiving op still uses MAX (the legacy dependOnInside rule). Bounds-check K vs N only when the EC-bound checking class is enabled (later).
+Allocate the array at MAX occurrences once; the length variable (DEPENDING ON item) bounds the LIVE range. Element access `Itm[K-1]` is unaffected. Whole-group operations consult the GR8 quadrant carried by `OdoGroupPlace.DependingInside`: **sending** (either quadrant) → the current extent [0..N); **receiving with data-name-1 OUTSIDE the group** (GR8a, the common case) → the same current extent [0..N), positions past N left unmodified; **receiving with data-name-1 INSIDE the group** (GR8b) → the full MAX length. Bounds-check K vs N only when the EC-bound checking class is enabled (later).
 
 ### Duplicate data-names disambiguated only by qualification — a single-value name index would silently overwrite and resolve the WRONG item. (IMPLEMENTED: `DataBinder.ByName` is the multimap described below.)
 
@@ -555,12 +558,12 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 
 - FILLER: no C# member name needed when it carries no VALUE and is never referenced; but a FILLER WITH a VALUE must still initialize its position (matters for whole-group reads and the G6 byte image). Generate a synthetic _fillerN member only when it has a VALUE or affects group serialization.
 - Group item used as an alphanumeric operand (MOVE WS-REC TO X, or IF WS-REC = SPACES): a group has no scalar field — its char image is the left-to-right concatenation of all leaf display images. A generated `string AsImage()`/`FromImage()` per struct concatenates/distributes members; whole-group MOVE/compare uses it (all-string leaves and numeric-DISPLAY leaves alike). **Numeric-DISPLAY leaf refinement:** ISO §14.9 MOVE GR4 fills a group "without consideration for the individual elementary items" with **no conversion**, so a numeric-DISPLAY subordinate can receive non-numeric characters (e.g. spaces). A native `long` cannot hold that, so a numeric-DISPLAY leaf **under a group used as a whole operand** is stored as its CHARACTER IMAGE (a `string`); `DataItem.StoreAsImage` — a read-only projection of the item's computed `Storage` form, settled once by `StorageFormPass` — reports it, making `AsImage`/`FromImage` byte-faithful with NO byte[]. Numeric use of such a leaf decodes via `CobolNum.ParseDisplay` / formats via `FormatDisplay`. A leaf never referenced as part of a whole group stays a native `long` (locked invariant #2). A group with a COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C), still deferred/loud.
-- Numeric item under reference modification (ISO §8.4.2.4 rule 2): operate as if redefined alphanumeric of the same size — render the raw zoned/digit display image, ref-mod that, and (if receiving) re-parse back. Defer receiving-numeric-refmod to byte fallback, flag loud.
+- Numeric item under reference modification (ISO §8.4.3.3.4 rule 2): operate as if redefined alphanumeric of the same size — render the raw zoned/digit display image, ref-mod that, and (if receiving) re-parse back. Defer receiving-numeric-refmod to byte fallback, flag loud.
 - Subscript/position single-evaluation (ISO): `TBL(F(X)) (G(Y):H(Z))` — F,G,H must each evaluate exactly once. Emit temps for every non-trivial subscript and ref-mod position before composing the Place.
 - Relative subscript `idx - 1` where idx is at occurrence 1 → index 0-1 = -1: a runtime bounds violation (EC-BOUND-SUBSCRIPT). Honor with a checked path when EC enabled; otherwise undefined (matches no-EC corpus behavior).
 - Level-88 VALUE with multiple literals AND THRU ranges mixed (VALUE 0 5 THRU 9 12): the condition is an OR over each literal/range — `St==0 || (St>=5&&St<=9) || St==12`. Capture the full value-item list, not just the first (DataBinder.ExtractValue currently grabs only FirstOrDefault — a bug for 88s and for multi-literal table VALUEs).
-- SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §14.9.34); SET TO FALSE uses the WHEN SET TO FALSE literal if present (grammar valueClause supports it).
-- JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §13.18.30) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
+- SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §14.9.39.4 GR6); SET TO FALSE uses the WHEN SET TO FALSE literal if present (ISO §14.9.39.4 GR7; grammar valueClause supports it).
+- JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §13.18.32) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
 - COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §14.9.25 GR8 magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §13.16.3 SR8 prohibits a picture → COBOLNET0870).
 - 19-38 digit pictures overflow `long` (max 18 digits) → Int128. PicInfo.ClrType/DefaultInitializer/ProfileInitializer and the NumX literal renderer must branch on WidePrecision; CobolNum needs Int128 overloads. Pictures >38 (NATIONAL/2014) are out of scope for v1.
 - REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `COBOLNET_REDEFINES_DESIGN.md`); never independent stored fields per view.
@@ -597,15 +600,15 @@ editions that have it, rejected-with-the-right-diagnostic below its intro editio
 
 - ISO/IEC 1989:2023 §8.4.2.2 Qualification — uniqueness of reference; qualifiers specified in order of successively more inclusive levels; rules 4-6 cover 88 (includes the conditional variable in the hierarchy), condition-name, and index-name (by table-name) qualification
 - §8.4.2.3 Subscripts — 1-based occurrence numbers; integer literal / data-name / index-name / relative index ± integer forms; outer-to-inner ordering for multi-dim
-- §8.4.2.4 Reference modification (spec lines 7028-7081) — leftmost position + length define a unique subset; rule 2 (non-alphanumeric DISPLAY treated as redefined alphanumeric of same size), rule 3 (NATIONAL likewise), rule 5 (creates a unique alphanumeric subset); default length = remaining characters
-- §13.18.40 OCCURS clause + GR7 (DEPENDING ON receiving uses MAX length, sending uses current; INDEXED BY index-names are distinct entities)
-- §13.18.42 REDEFINES — same storage area; (file-record implicit redefinition)
-- §13.18.43 RENAMES (level 66) — alternative grouping over a contiguous run
+- §8.4.3.3 Reference-modification (general rules §8.4.3.3.4, spec lines 6952-7020) — leftmost position + length define a unique subset; rule 2 (non-alphanumeric DISPLAY treated as redefined alphanumeric of same size), rule 3 (NATIONAL likewise), rule 5 (creates a unique data-item subset); rule 5c default length = remaining characters
+- §13.18.38 OCCURS clause; GR8 (occurs-depending whole-group extent: with data-name-1 OUTSIDE the group the CURRENT count is used for both directions (GR8a), with it INSIDE the group sending uses the current count and receiving uses the MAX length (GR8b)); INDEXED BY index-names are distinct entities
+- §13.18.44 REDEFINES — same storage area; (file-record implicit redefinition)
+- §13.18.45 RENAMES (level 66) — alternative grouping over a contiguous run
 - §13.18.55 SYNCHRONIZED — natural-boundary alignment (a byte-layout concern; no-op for typed in-memory data)
-- §13.18.30 JUSTIFIED — right-justification for alphanumeric/alphabetic receivers only
-- §13.18.6 BLANK WHEN ZERO — display all spaces when value is zero
+- §13.18.32 JUSTIFIED — right-justification for alphanumeric/alphabetic receivers only
+- §13.18.8 BLANK WHEN ZERO — display all spaces when value is zero
 - §13.18.63 / §14.9.4 VALUE clause and initial state — default initial values; table initialization; figurative constants
-- §14.9.34 SET statement — condition-name SET TO TRUE assigns the first/low value; index-name SET semantics
+- §14.9.39 SET statement — condition-name SET TO TRUE assigns the first/low value (GR6), SET TO FALSE the WHEN-SET-TO-FALSE literal (GR7); index-name SET semantics
 - §8.8.1 / §14.9.25 arithmetic on the algebraic value regardless of representation; MOVE rules (justify, truncation, GR8 unsigned magnitude)
 - Conditional-flag REF-MOD-ZERO-LENGTH (spec line 4523) — zero-length reference modification permitted, yields empty
 

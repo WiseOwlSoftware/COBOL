@@ -21,7 +21,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 ### D1. Runtime value engine is Int128-monomorphic via a `readonly record struct CobolInt(Int128 Unscaled, int Scale)`; storage stays the narrow native type (long/Int128/native-int/float/double).
 
-**Rationale.** Native `long` overflows real COMPUTE: a long-only engine caps Pow10 at 10^18 and does `num *= Pow10(exp)` / `Rescale` on `long`, so `COMPUTE c = a*b` with two PIC 9(18) operands (36 digits) silently overflows. Int128 holds 38 digits — covers every legal COBOL fixed-point picture (max 31 digits ISO §6046, 38 in some 2002 profiles) AND their sum/product intermediates within the 31-digit composite limit. Int128 is a hardware-adjacent value type (two longs, no GC, no allocation) — orders cheaper than BigInteger and exactly the 'fixed-size Int128 escape hatch' the architecture names.
+**Rationale.** Native `long` overflows real COMPUTE: a long-only engine caps Pow10 at 10^18 and does `num *= Pow10(exp)` / `Rescale` on `long`, so `COMPUTE c = a*b` with two PIC 9(18) operands (36 digits) silently overflows. Int128 holds 38 digits — covers every legal COBOL fixed-point picture (max 31 digits ISO §8.3.3.3.2, 38 in some 2002 profiles) AND their sum/product intermediates within the 31-digit composite limit. Int128 is a hardware-adjacent value type (two longs, no GC, no allocation) — orders cheaper than BigInteger and exactly the 'fixed-size Int128 escape hatch' the architecture names.
 
 **Rejected alternatives.** (a) Keep long-only — REJECTED: silently wrong on common multiply/divide; the whole point of the rewrite is correctness. (b) decimal/BigInteger intermediates — REJECTED: owner-locked out (decimal is software 96-bit/28-digit and can't even hold standard-decimal's 34; BigInteger allocates). (c) Generic `INumber<T>` arithmetic monomorphized per storage width — REJECTED: codegen + JIT-bloat complexity, unreadable generated C#, and storage-width-typed math reintroduces the very overflow we're eliminating. One Int128 path is the singular pattern.
 
@@ -48,7 +48,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 **Rejected alternatives.** (a) Quotient at receiver scale directly (legacy IrPicDivide degenerate path) — REJECTED for the general case: rounds before the receiver knows its scale, loses guard digits, fails NIST division-rounding tests. (b) Unbounded rational/exact division — REJECTED: COBOL division is inherently lossy at a finite scale; exactness is undefined for non-terminating quotients. (c) decimal accumulator like legacy — REJECTED: locked out + caps at 28 digits anyway.
 
-**ROUNDED phrase & size-error wiring.** The ROUNDED phrase (§14.7.4) is wired per-receiver through `CobolNum.Store(value, scale, profile, mode)`; the eight modes resolve in the binder (no phrase → Truncation, MODE IS x → the named mode, bare ROUNDED → the program's DEFAULT ROUNDED mode from the OPTIONS paragraph — `OptionsModel.DefaultRounding`, resolved in `ExpressionBinder`, ISO §11.9.6, NearestAwayFromZero when absent). For a **single (outermost) division feeding a receiver** — the DIVIDE statement and a COMPUTE whose working scale equals the receiver scale — the quotient is computed *directly at the receiver scale with the receiver's mode* via `CobolNum.Divide`→`RoundDiv`, which is **exact** because `RoundDiv` rounds on the true integer remainder (it sees all lost precision), so no guard digits are needed. A division **nested inside a larger expression** (where intermediate precision must survive further operations) uses the D2 guard-scale model (compute the quotient at `max(scales)+DIV_GUARD_DIGITS`, then round once at the receiver), overflow-safe under the Int128 carrier. `TryStore` (D6) is emitted whenever an ON SIZE ERROR phrase is present — it returns false (receiver unchanged) on a high-order capacity overflow or a PROHIBITED-inexact rescale, so `ROUNDED MODE IS PROHIBITED` on an inexact result raises the size error (a division's PROHIBITED-inexactness is caught in `DivideOrThrow` from the exact remainder, since the division rounds at the receiver scale). Two-phase per §14.7.5: a `try`/`catch (CobolSizeError | OverflowException)` wraps the per-receiver stores; `DivideOrThrow` (zero divisor) and `MulChecked` (intermediate overflow, §14.7.5 case 5) are emitted ONLY in that checked context, so a statement WITHOUT the phrase keeps the unchecked `Divide`/`*`/`Store` path.
+**ROUNDED phrase & size-error wiring.** The ROUNDED phrase (§14.7.4) is wired per-receiver through `CobolNum.Store(value, scale, profile, mode)`; the eight modes resolve in the binder (no phrase → Truncation, MODE IS x → the named mode, bare ROUNDED → the program's DEFAULT ROUNDED mode from the OPTIONS paragraph — `OptionsModel.DefaultRounding`, resolved in `ExpressionBinder`, ISO §11.9.6, NearestAwayFromZero when absent). For a **single (outermost) division feeding a receiver** — the DIVIDE statement and a COMPUTE whose working scale equals the receiver scale — the quotient is computed *directly at the receiver scale with the receiver's mode* via `CobolNum.Divide`→`RoundDiv`, which is **exact** because `RoundDiv` rounds on the true integer remainder (it sees all lost precision), so no guard digits are needed. A division **nested inside a larger expression** (where intermediate precision must survive further operations) uses the D2 guard-scale model (compute the quotient at `max(scales)+DIV_GUARD_DIGITS`, then round once at the receiver), overflow-safe under the Int128 carrier. `TryStore` (D6) is emitted whenever an ON SIZE ERROR phrase is present — it returns false (receiver unchanged) on a high-order capacity overflow or a PROHIBITED-inexact rescale, so `ROUNDED MODE IS PROHIBITED` on an inexact result raises the size error (a division's PROHIBITED-inexactness is caught in `DivideOrThrow` from the exact remainder, since the division rounds at the receiver scale). Two-phase per §14.7.7 rule 4: a `try`/`catch (CobolSizeError | OverflowException)` wraps the per-receiver stores; `DivideOrThrow` (zero divisor) and `MulChecked` (intermediate overflow, §14.7.5 case 5) are emitted ONLY in that checked context, so a statement WITHOUT the phrase keeps the unchecked `Divide`/`*`/`Store` path.
 
 ### D3. Default arithmetic mode = NATIVE (§8.8.1.3); the Int128 fixed-point engine IS the documented implementor-defined native technique. ARITHMETIC IS STANDARD-DECIMAL is implemented (the SDIDI via `CobolDec`); STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
@@ -102,7 +102,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [conservative — the in-repo 85/2002
 >   evidence establishes only ARITHMETIC at 2002], `options-float-binary/decimal-2014`, `options-initialize-2014`,
 >   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOLNET0803); the
->   composite-of-operands check is 31 at EVERY edition (§14.7 rule 2 — an 85-specific tightening to 18 is
+>   composite-of-operands check is 31 at EVERY edition (§14.7.7 rule 2 — an 85-specific tightening to 18 is
 >   refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
 
 **Rationale.** §8.8.1.3 lets the implementor define native arithmetic and it is the default when no ARITHMETIC clause is present — which is the entire NIST/conformance corpus. STANDARD-DECIMAL requires a decimal128 (34-digit, exp ±6144) decimal-floating type per §8.8.1.5.2 / ISO 60559:2020 — modeled exactly by an Int128 significand (`CobolDec`), never .NET `decimal` (96-bit/28-digit). STANDARD-BINARY is marked obsolete by the spec itself (NOTE, §8.8.1.4 / p9086). Native = Int128 fixed-point is fully conformant and reproduces the NIST-passing legacy behavior.
@@ -123,7 +123,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 ### D6. Harden `Store` → `TryStore`: returns bool (false = ON SIZE ERROR), leaves receiver unchanged on overflow, raises SIZE ERROR for ROUNDED MODE PROHIBITED when the result is inexact at the receiver scale; capacity check is discipline-specific (DigitCount / PackedDecimal 2n−1 / BinaryCapacity two's-complement-by-width).
 
-**Rationale.** The current new CobolNum.Store silently `%= Pow10(Digits)` truncates with no SIZE ERROR — that is only the no-ON-SIZE-ERROR branch. The legacy clean CobolNum.TryStore is the proven correct shape (ISO §14.7.5 / §14.9.4: on SIZE ERROR the receiver is unmodified and the imperative clause runs). The three capacity disciplines are already correctly modeled by NumericTruncation; TryStore must consult them. COMP-5 unsigned-8-byte (0..ulong.Max) exceeds `long`, so its storage type is `Int128` (the monomorphic wide engine carries the full range) and the capacity check branches on signed-vs-unsigned width.
+**Rationale.** The current new CobolNum.Store silently `%= Pow10(Digits)` truncates with no SIZE ERROR — that is only the no-ON-SIZE-ERROR branch. The legacy clean CobolNum.TryStore is the proven correct shape (ISO §14.7.5: on SIZE ERROR the receiver is unmodified and the imperative clause runs). The three capacity disciplines are already correctly modeled by NumericTruncation; TryStore must consult them. COMP-5 unsigned-8-byte (0..ulong.Max) exceeds `long`, so its storage type is `Int128` (the monomorphic wide engine carries the full range) and the capacity check branches on signed-vs-unsigned width.
 
 **Rejected alternatives.** (a) Throw on overflow — REJECTED: SIZE ERROR is a recoverable COBOL condition with an imperative handler, not an exception; throwing would skip the receiver-unchanged rule and the NOT ON SIZE ERROR path. (b) Always truncate silently — REJECTED: wrong when ON SIZE ERROR is present and wrong for PROHIBITED.
 
@@ -131,7 +131,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > (WRAP by native two's-complement width: the deterministic no-ON-SIZE-ERROR truncation, the width analog of
 > high-order digit truncation) and `TryStore` (range check → SIZE ERROR when the value leaves the byte-width
 > range), keyed off `NumProfile.StorageLength` and branching signed vs unsigned (`WrapBinary` / `InBinaryRange`,
-> §14.9.25 GR8 for the unsigned magnitude rule). The unsigned 8-byte range (0..2^64−1) is carried by the
+> §14.9.25.4 GR6.d.2.b for the unsigned magnitude rule). The unsigned 8-byte range (0..2^64−1) is carried by the
 > **Int128** substrate rather than a native `ulong` — the monomorphic wide engine already represents it, so no
 > separate storage type is needed (COMP-5 and BINARY-DOUBLE both stay long/Int128 by digit tier). The
 > **BINARY-CHAR family** (USAGE BINARY-CHAR/-SHORT/-LONG/-DOUBLE, ISO §13.18.60.4 GR12) rides this exact leg:
@@ -178,8 +178,10 @@ Real` flag on the `NumX` carrier (parallel to `Dec`): a float leaf → `Real` Nu
 kinds); `Combine` takes the `Real` branch under NATIVE; `Negate`/`Power` get Real arms. **Under STANDARD /
 STANDARD-DECIMAL the mode branch runs FIRST** (P10 Step 12): a float operand converts into SDIDI form through
 `CobolDec.FromDouble` (the §8.8.1.5.1 implementor-defined conversion — the shortest round-trip decimal identity)
-and the operations are the SDIDI ones; comparisons stay native-double (§8.8.4.2.4 — comparison is not an
-arithmetic expression) unless a side already IS an SDIDI intermediate. Store to a FIXED receiver lands via a new
+and the operations are the SDIDI ones; comparisons likewise convert each operand not already in SDIDI form to
+it (a float via `CobolDec.FromDouble`) and compare in SDIDI (§8.8.4.2.4 — under standard-decimal arithmetic
+each operand not already a standard-decimal intermediate is converted to that form and the comparison is made
+between the two intermediates). Store to a FIXED receiver lands via a new
 `CobolFloat.ToScaled(double,scale,mode)` (double→unscaled Int128, rounded; ±Inf/overflow saturate so the existing
 capacity check fires SIZE ERROR; NaN→0+latch EC-SIZE) then the EXISTING `CobolNum.Store`/`TryStore` funnel (ROUNDED +
 SIZE ERROR for free; MOVE truncates toward zero §14.6.8.2, COMPUTE uses the receiver ROUNDED mode). Store INTO a float
@@ -188,9 +190,11 @@ a valid value; ROUNDED is a no-op).
 
 **MOVE/DISPLAY/compare.** literal→float = the fixed→float cast; float→fixed = `ToScaled`; float→float = a `ClrType`
 cast. DISPLAY = `CobolFloat.Display(float/double)` — invariant-culture shortest round-trip (§14.9.11 GR1
-implementor-defined; goldens use exact binary fractions for cross-platform stability). Compare = a NATIVE `double`
-comparison when either operand is `Real` (§8.8.4.2.4 algebraic-value; IEEE NaN-unordered / ±0-equal fall out of C# —
-spec-conformant, no epsilon). The runtime file is `CobolFloat.cs`.
+implementor-defined; goldens use exact binary fractions for cross-platform stability). Compare = under NATIVE
+arithmetic (the default), a native `double` comparison when either operand is `Real` (§8.8.4.2.4 — native
+arithmetic compares by native rules; IEEE NaN-unordered / ±0-equal fall out of C# — spec-conformant, no epsilon);
+under STANDARD / STANDARD-DECIMAL each operand not already in SDIDI form is converted to it (a `Real` via
+`CobolDec.FromDouble`) and the comparison is made in SDIDI (§8.8.4.2.4). The runtime file is `CobolFloat.cs`.
 
 **Floating-point LITERALS (§8.3.3.3.3).** A `FLOATLIT` lexer
 token — `( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+` (significand SHALL include a decimal point, §8.3.3.3.3
@@ -207,7 +211,7 @@ uses a native-double membership branch (exact-inverse membership, not a scale-0 
 into a float receiver uses a `TargetReal` flag that makes the whole RHS Real when every target is float (so `10/3`
 evaluates in binary64, not at receiver-scale 0; reset at the condition-render entry, the H1 staleness discipline);
 PROHIBITED on an inexact float uses a `CobolFloat.InexactAtScale` gate that raises SIZE ERROR + leaves the receiver
-unchanged (§14.7.5 r7); a transcendental intrinsic into a float receiver returns Real from `RenderFloat` when
+unchanged (§14.7.4.3 rule 7); a transcendental intrinsic into a float receiver returns Real from `RenderFloat` when
 `TargetReal` (full binary64, not quantized to 9 digits).
 
 **Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOLNET0900 below
@@ -286,7 +290,7 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 `cobol.exe` targets ISO COBOL 1985 / 2002 / 2014 / 2023 via `--std 85|2002|2014|2023`. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Derive each gate from `specs/ISO_COBOL.md` (Annex E) + `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog), and land each as (construct × edition) cases in the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` — the (construct × edition) matrix; Phase 0 done). Known gates in this subsystem:
 
 - **PICTURE digit ceiling — 18 (1985) vs 31 (2002+)**: `PIC S9(31)` (the `Int128` storage tier) is legal only at `--std ≥2002`; under `--std 85` any picture >18 digits is a compile diagnostic. The long→Int128 boundary is edition-reachable only at ≥2002.
-- **Composite-of-operands limit — 18 digits (1985) vs 31 (2002+)** (§14.7.5 rule 2): the compile-time threshold is per-edition, not the constant 31.
+- **Composite-of-operands limit — 31 digits at every edition** (§14.7.7 rule 2): the compile-time threshold is the constant 31 — the spec states it with no edition qualifier, and CCVS-85 itself (NC101A composes 21 digits in a MULTIPLY) refutes any 85-specific tightening to 18.
 - **ROUNDED MODE IS / the 8 modes / DEFAULT ROUNDED (§11.9.6) / INTERMEDIATE ROUNDING (§11.9.11) — 2014+**: at `--std 85|2002` bare ROUNDED means the single nearest-away-from-zero rounding, and `ROUNDED MODE IS …` + those OPTIONS clauses are not-yet-introduced diagnostics. 2014→2023 behavior delta: rounding raises EC-SIZE-TRUNCATION only under PROHIBITED (`VERSION_CHANGE_REFERENCE.md` row 53).
 - **ARITHMETIC clause — LIVE (P10 Step 12)**: `NATIVE`/`STANDARD` are 2002 introductions (rows `options-paragraph-2002` / `options-arithmetic-native-2002` / `arithmetic-standard-2002`; the E.2-item-21 back-derivation), `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+ keyword rows on the `VisitArithmeticMethod` arm; at 2023 `STANDARD` is REMOVED (row 28 — 0807, error strict / warning permissive) and it is OBSOLETE-flagged (0903) at 2014; `STANDARD-BINARY` is OBSOLETE at 2023 (row 116) and documented-unsupported everywhere (COBOLNET0806 — distinct from the edition gates). The 2014-only OPTIONS clauses carry their own 0900 rows (`options-default-rounded/-intermediate-rounding/-entry-convention/-float-binary/-float-decimal/-initialize-2014`). At `--std 85` the whole paragraph is not-yet-introduced (0804).
 - **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. **LIVE:** PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens), BinaryCapacity truncation, implied DISPLAY digit width 3/5/10/19·20; introduction gate COBOLNET0900 below 2002, PICTURE prohibited COBOLNET0870 (§13.16.3 SR8). COMP-5 itself is an extension — document its per-dialect availability.
@@ -310,7 +314,7 @@ Type-classify each arithmetic sub-expression: if any operand is float-usage, the
 
 ### MOVE numeric→numeric rescale across different scales/usages without going through arithmetic.
 
-MOVE is value-preserving with receiver-scale alignment (ISO §14.9.25): load sender as CobolInt at its scale, TryStore into the receiver (rescale to receiver FractionScale — TRUNCATION rounding for a plain MOVE, never ROUNDED; high-order truncation per receiver Digits; unsigned receiver drops sign = stores magnitude, GR8). A scaled→integer MOVE drops the fraction (truncate). DISPLAY↔COMP↔COMP-3 differ only in external image/capacity, not value — the same TryStore covers all, then the receiver's encoder (overpunch for signed DISPLAY, packed for COMP-3) renders the image.
+MOVE is value-preserving with receiver-scale alignment (ISO §14.9.25): load sender as CobolInt at its scale, TryStore into the receiver (rescale to receiver FractionScale — TRUNCATION rounding for a plain MOVE, never ROUNDED; high-order truncation per receiver Digits; unsigned receiver drops sign = stores magnitude, §14.9.25.4 GR6.d.2.b). A scaled→integer MOVE drops the fraction (truncate). DISPLAY↔COMP↔COMP-3 differ only in external image/capacity, not value — the same TryStore covers all, then the receiver's encoder (overpunch for signed DISPLAY, packed for COMP-3) renders the image.
 
 ### P scaling (leading and trailing) in store, divide, and edited-format paths.
 
@@ -330,7 +334,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 
 ## Edge cases
 
-- Negative value MOVEd to an UNSIGNED receiver stores the magnitude (ISO §14.9.25 GR8) — TryStore returns the signed value, the receiver's encoder/storage drops the sign; for the unscaled-long storage this means the stored long is Math.Abs (but watch long.MinValue: use %Pow10(digits) before abs, as the legacy FormatUnsignedDisplay does).
+- Negative value MOVEd to an UNSIGNED receiver stores the magnitude (ISO §14.9.25.4 GR6.d.2.b) — TryStore returns the signed value, the receiver's encoder/storage drops the sign; for the unscaled-long storage this means the stored long is Math.Abs (but watch long.MinValue: use %Pow10(digits) before abs, as the legacy FormatUnsignedDisplay does).
 - +0 and −0 are the unique value 0 for sign tests and comparison (SDIDI NOTE 1); an all-zero magnitude with a negative overpunch must still test as zero and as NOT negative.
 - DISPLAY of a zero value in a signed trailing-overpunch field: last digit '0' positive → '{' (e.g. PIC S9(4) value 0 → "000{"), NOT "0000" — confirmed by legacy table.
 - Numeric-edited zero with floating $ or Z across the whole field and no fixed 9 → entire field blanked to spaces (or '*' under check-protect); but if any fixed 9 exists the zeros print. BLANK WHEN ZERO overrides to all-spaces regardless.
@@ -341,9 +345,9 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - COMP-5 unsigned 8-byte range (long.Max, ulong.Max] requires `Int128` storage — a signed-long codec cannot hold it; the monomorphic wide engine carries the full 0..2^64−1 range.
 - Exponentiation: 0**0 → EC-SIZE-EXPONENTIATION; negative base with non-integer exponent → EC-SIZE-EXPONENTIATION; negative base with integer exponent → defined (real) result; a base whose both-roots are returned uses the positive root (§8.8.1.2 rule 6).
 - Divide by zero → EC-SIZE / SIZE ERROR, receiver unchanged (NOT a .NET DivideByZeroException — CobolInt.Div must guard b.Unscaled==0 and signal up).
-- ROUNDED MODE PROHIBITED: an inexact result at the receiver scale raises SIZE ERROR and leaves the receiver UNCHANGED even though no overflow occurred (ISO §14.9.4) — TryStore checks inexactness before the capacity check.
+- ROUNDED MODE PROHIBITED: an inexact result at the receiver scale raises SIZE ERROR and leaves the receiver UNCHANGED even though no overflow occurred (ISO §14.7.4.3 rule 7) — TryStore checks inexactness before the capacity check.
 - Trailing-P rounding grid: PIC 9(3)P value 1234 is stored as 1230 (multiple of 10^1) and capacity counts only the 3 nines; ScaleAndRound must round to the 10^P grid, not to scale 0.
-- Composite-of-operands limit is a COMPILE-time diagnostic for ADD/SUBTRACT/MULTIPLY/DIVIDE (not COMPUTE); exceeding it is a compile error, not a runtime SIZE ERROR. The threshold is PER-EDITION: 18 digits at `--std 85`, 31 from 2002 on (see the Edition gating section).
+- Composite-of-operands limit is a COMPILE-time diagnostic for ADD/SUBTRACT/MULTIPLY/DIVIDE (not COMPUTE); exceeding it is a compile error, not a runtime SIZE ERROR. The threshold is 31 digits at every edition (§14.7.7 rule 2 — see the Edition gating section).
 - Mixed signed/unsigned and DISPLAY/COMP operands in one COMPUTE all reduce to algebraic CobolInt values — representation differences vanish in the intermediate; only the final receiver's representation matters.
 
 ## ISO citations
@@ -354,11 +358,11 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - §8.8.1.3 Native arithmetic — implementor-defined; in effect when ARITHMETIC IS NATIVE or no ARITHMETIC clause (the corpus default); implementor specifies the techniques (= Int128 fixed-point here)
 - §8.8.1.5.2 Standard-decimal intermediate data item (SDIDI) — decimal128, 34 digits, exp ±6144, smallest 1.0E-6176 (the mode the lock cannot natively support)
 - §8.8.1.5.4 — exponentiation integer powers expand to repeated multiply (operand-2 = 1,2,3,4 → operand-1, op*op, ...)
-- §14.7.5 (rule 2, p595) — composite of operands ≤ 31 digits for ADD/DIVIDE/MULTIPLY/SUBTRACT under native arithmetic; when a float/intrinsic operand is present the limit applies to the OTHER operands only
-- §14.7.5 rule 4 (p595-596) — two-phase arithmetic execution: initial evaluation into an intermediate data item (SIZE ERROR here → no receiver changed), then left-to-right store into each receiver (per-receiver SIZE ERROR leaves only that receiver unchanged)
-- §14.9.4 / §11.9.6 (DEFAULT ROUNDED) / §11.9.11 (INTERMEDIATE ROUNDING) — the eight ROUNDED modes; ROUNDED MODE PROHIBITED raises SIZE ERROR on an inexact result and leaves the receiver unchanged
-- §14.9.25 GR8 — a negative result stored into an unsigned receiver stores the magnitude (sign dropped)
-- §6046 — fixed-point numeric literals 1 through 31 digits (the picture digit-count ceiling driving the long→Int128 boundary)
+- §14.7.7 rule 2 (p595) — composite of operands ≤ 31 digits for ADD/DIVIDE/MULTIPLY/SUBTRACT under native arithmetic; when a float/intrinsic operand is present the limit applies to the OTHER operands only
+- §14.7.7 rule 4 (p595-596) — two-phase arithmetic execution: initial evaluation into an intermediate data item (SIZE ERROR here → no receiver changed), then left-to-right store into each receiver (per-receiver SIZE ERROR leaves only that receiver unchanged)
+- §14.7.4.3 (rules 3-10) / §11.9.6 (DEFAULT ROUNDED) / §11.9.11 (INTERMEDIATE ROUNDING) — the eight ROUNDED modes; ROUNDED MODE PROHIBITED (§14.7.4.3 rule 7) raises the size error condition (EC-SIZE-TRUNCATION) on an inexact result and leaves the receiver unchanged
+- §14.9.25.4 GR6.d.2.b — a negative result stored into an unsigned receiver stores the magnitude (sign dropped)
+- §8.3.3.3.2 — fixed-point numeric literals 1 through 31 digits (the picture digit-count ceiling driving the long→Int128 boundary)
 - §8.5.1.2 / §13.18.60 — the three capacity disciplines (digit-count for DISPLAY/COMP/BINARY, packed 2n−1 for COMP-3, native two's-complement width for COMP-5/BINARY-*)
 - §8.8.4.2 — simple relation conditions compare algebraic values (comparison scale-alignment, +0=−0)
 

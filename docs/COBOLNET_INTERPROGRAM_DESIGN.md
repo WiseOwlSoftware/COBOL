@@ -50,7 +50,7 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 PASSING MODES — caller side:
   BY REFERENCE: CALL "INC" USING CTR.  (01 CTR PIC 9(4))  ->  _INC.Run(ManagedRef<long>.OverField(()=>CTR, v=>CTR=v));   // callee mutation visible
   BY CONTENT:   CALL "P" USING BY CONTENT CTR.            ->  _P.Run(ManagedRef<long>.Cell(CTR));                       // copy; not visible
-  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)(N)), …);   // value snapshot at call initiation (§14.9.4.4 GR5); the callee re-conforms it (GR10)
+  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)(N)), …);   // value copy allocated at call initiation and conformed to the formal (§14.2.3 GR10)
   subscripted:  CALL "P" USING TBL(I).   -> int _i=(int)I-1; _P.Run(ManagedRef<long>.OverField(()=>TBL[_i], v=>TBL[_i]=v));  // index captured once (GR3a)
   literal/expr: CALL "P" USING 5.        -> _P.Run(ManagedRef<long>.Cell(5L));                                          // inherently BY CONTENT
   OMITTED:      CALL "P" USING OMITTED.   -> _P.Run(ManagedRef<long>.Null);
@@ -79,8 +79,9 @@ POINTERS (2002):
   ALLOCATE 5 CHARACTERS RETURNING P. -> P = ManagedRef<string>.Cell(new string(' ',5));
   FREE P.                      -> P = ManagedRef<string>.Null;         // GC reclaims
   IF P = NULL                  -> if (P.IsNull)
-RETURNING / GOBACK:
-  GOBACK RETURNING WS-R.  ->  _ret = WS_R; return _ret;   // (in a called program) ; in main -> terminate run unit
+RETURNING / GOBACK (the result is the PROCEDURE DIVISION header RETURNING item, §14.9.18.4 GR2 — in ISO it is NOT a GOBACK operand):
+  PROCEDURE DIVISION … RETURNING LK-R.  GOBACK.  ->  return _ret;         // _ret tracks the header RETURNING item; called program → result to the activator, main → run unit ends
+  GOBACK RETURNING WS-R.  (accepted vendor extension, gated 2002+)  ->  _ret = WS_R; return _ret;   // moves the operand into the header RETURNING item first
 EXTERNAL / GLOBAL:
   01 SHARED PIC 9(4) EXTERNAL.  ->  long SHARED { get=>ExternalStore.GetL("SHARED"); set=>ExternalStore.SetL("SHARED",value); }   // one copy per run unit
   01 G PIC 9 GLOBAL. (outer)    ->  field on the OUTER class; nested classes read via the enclosing-instance reference
@@ -109,9 +110,13 @@ Make each program an instantiable class. RECURSIVE/function/method → new insta
 
 Uniform ICobolProgram.Call(CobolArgs) where CobolArgs is an ordered list of (PassMode, caller PicMeta, carrier) — the typed analog of the rejected ManagedPointer[]. Callee maps positionally onto LINKAGE items. Same-assembly + statically-resolvable + PIC-conforming calls specialize to a direct typed method (Run) as a fast path.
 
-### GOBACK / EXIT PROGRAM semantics differ between a called program and the main program; today's `throw StopRun` always unwinds the whole run unit.
+### GOBACK and EXIT PROGRAM terminate a unit differently by activation context — and the two statements DIVERGE in the not-under-a-caller (main) case.
 
-In a called program, GOBACK/EXIT PROGRAM = normal method return to the caller (GOBACK RETURNING sets the return value); only in the main program (or STOP RUN anywhere) does it terminate the run unit. Mechanism (settled, SSOT §9.4 + §18 #10): a called program's GOBACK/EXIT PROGRAM raises `ProgramReturn`, caught at that program's `Entry` (carrying the RETURNING value back to the caller); main-program GOBACK / STOP RUN terminates the run unit with the status as the process exit code. The greenfield `StopRun` signal (`src/Cobol.Net.Runtime/Control/StopRun.cs`) remains only the run-unit-termination half — `ProgramReturn` is a distinct called-program-return signal, not a refinement of `StopRun`.
+Distinguish by BOTH the statement and the activation context (§14.9.18.4 / §14.9.14.4):
+- In a CALLED program (under the control of a calling runtime element) GOBACK and EXIT PROGRAM both terminate the program and return control to the activator (§14.9.18.4 GR2 / §14.9.14.4 GR3); the activation result is the current value of the PROCEDURE DIVISION header RETURNING item (§14.9.18.4 GR2), and a RAISING phrase stages its exception condition for the activator.
+- In the MAIN program (not under the control of a caller) the two DIVERGE: GOBACK operates as a STOP statement and terminates the run unit (§14.9.18.4 GR3 — a RAISING phrase is then ignored, and a WITH NORMAL/ERROR STATUS reaches the OS as the exit code); EXIT PROGRAM is treated as a CONTINUE — a no-op that falls through to the next statement, raising no exception condition even when RAISING is specified (§14.9.14.4 GR2).
+
+Mechanism (settled, SSOT §9.4 + §18 #10): GOBACK raises `ProgramReturn`; EXIT PROGRAM raises `ProgramReturn` ONLY while the unit is active as a callee (guarded on the `__asCalled` activation flag) and is inert otherwise. A `ProgramReturn` is caught at the unit's own activation/dispatch boundary: for a called unit it returns control (and the header RETURNING value) to the activator; for the main unit's GOBACK it returns to that boundary and the run unit then ends, the main-program status flushing as the process exit code. The distinct `StopRun` signal (`src/Cobol.Net.Runtime/Control/Signals/StopRun.cs`) is the run-unit-termination half (STOP RUN, and the STOP-status exit-code flush); `ProgramReturn` is the called-program-return signal, not a refinement of `StopRun`.
 
 ### CANCEL must reset a program to initial state on next CALL, close its open files, cascade to contained programs, and be a no-op for never-called/already-canceled or active programs.
 
@@ -123,7 +128,7 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 
 ## Edge cases
 
-- Transitive passing mode (§14.9.4.4 GR5): default BY REFERENCE; a BY REFERENCE/CONTENT/VALUE phrase applies to all following args until the next phrase (port the legacy CallBinder mode-threading, drop its byte emission).
+- Transitive passing mode: at the CALL site the BY CONTENT and BY REFERENCE phrases are transitive across the following arguments until the next such phrase, defaulting to BY REFERENCE (§14.9.4.4 GR5 — a Format-1 CALL has no BY VALUE); BY VALUE (only in the Format-2 program-prototype CALL) rides the argument-correspondence BY REFERENCE/BY VALUE transitivity (§14.2.3 GR4). One CallBinder mode-threading pass threads all three, drop its byte emission.
 - Bare argument resolution (§14.9.4.4 GR9): a bare arg with a BY REFERENCE formal becomes BY REFERENCE if it is a valid receiving operand, else BY CONTENT (e.g. a literal/expression).
 - OMITTED / trailing-omitted argument (GR11-12): carrier = Null; omitted-argument condition = IsNull; referencing an omitted param otherwise → EC-PROGRAM-ARG-OMITTED.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.
@@ -146,13 +151,13 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 Interprogram constructs vary heavily by edition. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. At each `DialectLevel` (85/2002/2014/2023) the lacks-it diagnostic is a targeted `COBOLNET-` diagnostic — never a generic parse error. Every row gets (construct × edition) coverage per `docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition) matrix; Phase 0 done); verify rows against `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so derive 85↔2002 gating from the 2002 standard) and the per-edition spec text.
 
 - **All editions (85+):** CALL USING BY REFERENCE / BY CONTENT, CALL … ON OVERFLOW (removed at 2023 — below), CALL … [NOT] ON EXCEPTION (X3.23-1985 CALL Format 2 — CCVS-85 IC222A tests both phrases), CANCEL, nested/contained programs, COMMON / INITIAL, GLOBAL / EXTERNAL, EXIT PROGRAM.
-- **2002+ (under `--std 85` reject with an "introduced in COBOL-2002" diagnostic):** CALL … BY VALUE AND the procedure-division-header USING BY VALUE phrase (twin registry rows `call-by-value-2002` / `pd-header-by-value-2002`); RETURNING (CALL and the procedure-division header); OMITTED arguments + the omitted-argument condition; PROGRAM-ID … RECURSIVE (`program-id-recursive-2002`); LOCAL-STORAGE (`local-storage-section-2002`); GOBACK; USAGE POINTER / ADDRESS OF / SET ADDRESS OF; BASED / ALLOCATE / FREE; ANY LENGTH; and the whole EC-PROGRAM-* exception machinery (at `--std 85` CALL failures surface only via the ON OVERFLOW/EXCEPTION phrases / abnormal termination — no EC names, no `>>TURN`).
+- **2002+ (under `--std 85` reject with an "introduced in COBOL-2002" diagnostic):** CALL … BY VALUE AND the procedure-division-header USING BY VALUE phrase (twin registry rows `call-by-value-2002` / `pd-header-by-value-2002`); RETURNING (CALL and the PROCEDURE DIVISION header — the ISO §14.9.18 GOBACK/EXIT PROGRAM carry NO RETURNING operand; a `GOBACK`/`EXIT PROGRAM` `RETURNING`/`GIVING` operand is an accepted vendor extension over that header-only mechanism, `GobackReturning2002`); OMITTED arguments + the omitted-argument condition; PROGRAM-ID … RECURSIVE (`program-id-recursive-2002`); LOCAL-STORAGE (`local-storage-section-2002`); GOBACK; USAGE POINTER / ADDRESS OF / SET ADDRESS OF; BASED / ALLOCATE / FREE; ANY LENGTH; and the whole EC-PROGRAM-* exception machinery (at `--std 85` CALL failures surface only via the ON OVERFLOW/EXCEPTION phrases / abnormal termination — no EC names, no `>>TURN`).
 - **2014+:** `>>TURN` of EC-PROGRAM exceptions in a calling element is FLAG-02-flagged (`VERSION_CHANGE_REFERENCE.md` row 97).
 - **2023:** CALL … ON OVERFLOW is REMOVED (row 3, E.2 item 1c) — reject at 2023, accept at 85/2002/2014; EXIT PROGRAM is archaic (rows 89/126) — flag at 2023; GOBACK gains the STOP-style status phrase (row 75) — 2023-only; EXTERNAL-item conformance exception checking is added (row 15).
 
 ## ISO citations
 
-- ISO/IEC 1989:2023 §14.9.4 CALL statement (formats 1/2, syntax rules, general rules — incl. GR3a args-evaluated-once, GR3b-h resolution + EC-PROGRAM-NOT-FOUND/PTR-NULL/RESOURCES/ARG-MISMATCH/RECURSIVE-CALL, GR3i NOT ON EXCEPTION, GR5 transitive mode, GR11-12 OMITTED)
+- ISO/IEC 1989:2023 §14.9.4 CALL statement (formats 1/2, syntax rules, general rules — incl. GR3a args-evaluated-once, GR3b-h resolution + EC-PROGRAM-NOT-FOUND/PTR-NULL/RESOURCES/ARG-MISMATCH/RECURSIVE-CALL, GR3i NOT ON EXCEPTION, GR5 transitive BY CONTENT/BY REFERENCE (Format 1), GR11-12 OMITTED)
 - §14.2 Procedure division structure: §14.2.2 SR1 (formal param = level 01/77 in LINKAGE, no BASED/REDEFINES), §14.2.3 GR2 positional correspondence, GR4 transitive BY REFERENCE/VALUE, GR6-7 RETURNING (storage in caller), GR8 BY REFERENCE = same storage area, GR9 BY CONTENT = allocated copy then by-reference, GR10 BY VALUE = allocated value copy
 - §14.8.2 Parameters / §14.8.3 Returning items / §14.8.4 External items (conformance; EC-EXTERNAL-DATA-MISMATCH / FORMAT-CONFLICT / FILE-MISMATCH)
 - §14.6.2.3 Initial and last-used states of data (§14.6.2.3.2 initial, §14.6.2.3.3 last-used); §14.6.2.4 initial state of object data

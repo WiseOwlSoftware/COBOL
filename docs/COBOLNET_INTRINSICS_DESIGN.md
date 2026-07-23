@@ -74,7 +74,7 @@ SMALLER SURFACES (one approach each, dependency named): figurative constants mod
 
 **Rejected alternatives.** Direct DateTime.Now calls — untestable, breaks golden-output conformance.
 
-### D7. Compute LENGTH OF / FUNCTION BYTE-LENGTH from compile-time PIC+USAGE byte-size metadata kept in PicInfo; keep FUNCTION LENGTH (character positions, §15.24) separate from LENGTH OF/BYTE-LENGTH (byte size).
+### D7. Compute LENGTH OF / FUNCTION BYTE-LENGTH from compile-time PIC+USAGE byte-size metadata kept in PicInfo; keep FUNCTION LENGTH (character positions, §15.50) separate from LENGTH OF/BYTE-LENGTH (byte size).
 
 **Rationale.** The byteless data model stores no byte count, but byte-size is a pure function of PIC+USAGE known at compile time, so it folds to a constant. FUNCTION LENGTH counts character positions (already folded in legacy BindLength); LENGTH OF/BYTE-LENGTH count bytes — for COMP/COMP-3 these differ and must not be conflated.
 
@@ -137,7 +137,7 @@ direct call to the same `CobolNet.Runtime` method):
 
   private NumX EmitIntrinsicNum(Core.FunctionCallContext fc){
      string name = fc.functionName().GetText();
-     if (name.Equals("LENGTH",IC)) return new NumX($"{FoldLength(arg0)}L", 0);     // §15.24 compile-time fold
+     if (name.Equals("LENGTH",IC)) return new NumX($"{FoldLength(arg0)}L", 0);     // §15.50 compile-time fold
      var sig = IntrinsicCatalog.Get(name);
      var args = BindIntrinsicArgs(fc, sig);                                         // table(ALL) expanded, typed per sig
      return sig.Type switch {
@@ -152,8 +152,9 @@ SPECIAL REGISTERS — synthesized DataItems (in DataBinder bootstrap), reusing t
 
   // RETURN-CODE: a real static long field + a synthesized numeric DataItem in ByName, NumProfile S9(4).
   private static long RETURN_CODE = 0L;        // also written by GOBACK/STOP RUN and read as $? exit code (cross-dep: control-flow/CALL)
-  // WHEN-COMPILED: compile-time-folded constant string item.
-  private const string WHEN_COMPILED = "06/08/202612.00.00";   // captured at compile (injectable for determinism)
+  // WHEN-COMPILED: compile-time-folded constant string item (§15.99.3 r1 — the 21-char YYYYMMDDHHMMSShh±hhmm
+  // form, same structure as CURRENT-DATE, rendered by the ONE CobolDate.Format21 formatter).
+  private const string WHEN_COMPILED = "2026060812000000+0000";  // captured at compile (injectable for determinism)
   // LENGTH OF X / FUNCTION BYTE-LENGTH(X): folded long from PicByteSize(item):
   long _len_of_X = 18;   // PIC byte-size computed from PIC+USAGE metadata (NOT stored anywhere at runtime)
   // ADDRESS OF X → ManagedPointer; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER → owned by file/RW subsystem.
@@ -199,7 +200,7 @@ Map HIGH/LOW-VALUE to U+00FF/U+0000 (alphanumeric) and U+FFFF/U+0000 (national) 
 
 ### LENGTH OF / BYTE-LENGTH want a byte count that the byteless model never stores.
 
-Keep a compile-time PicByteSize derived from PIC+USAGE in PicInfo (DISPLAY=char count; COMP=1/2/4/8 by digits; COMP-3=digits/2+1; national=2×chars) and fold LENGTH OF/BYTE-LENGTH to that constant. Keep it strictly separate from FUNCTION LENGTH (§15.24 character positions).
+Keep a compile-time PicByteSize derived from PIC+USAGE in PicInfo (DISPLAY=char count; COMP=1/2/4/8 by digits; COMP-3=digits/2+1; national=2×chars) and fold LENGTH OF/BYTE-LENGTH to that constant. Keep it strictly separate from FUNCTION LENGTH (§15.50 character positions).
 
 ### RETURN-CODE has a triple role: a readable/writable special register, the process exit code, and the conduit for CALL RETURNING / GOBACK.
 
@@ -209,9 +210,9 @@ Model RETURN-CODE as a synthesized static long DataItem (normal read/store), hav
 
 The SET dispatch slots (index→long, cond-name→store the 88's first VALUE into its parent, switch→bool, pointer→ManagedPointer) rely on the 88-level binding and INDEXED BY dependencies (`Condition88`, DataBinder index-name registration), so the cond-name/index arms are implemented directly; only the level-66 and switch-mnemonic dependencies remain stubbed — the catalog/registry spines do not depend on this.
 
-### MAX/MIN are category-polymorphic — numeric args return a numeric ordinal-comparable value, all-alphanumeric args return the selected string.
+### MAX/MIN are category-polymorphic — the result TYPE follows the argument type per the §15.59.1/§15.63.1 table.
 
-Resolve MAX/MIN result category at the call site from the bound argument categories (port the legacy rule: all-non-numeric → alphanumeric result, else numeric); ORD-MAX/ORD-MIN always return a numeric ordinal. The catalog row marks them category-polymorphic and the binder resolves the result category from the bound argument categories at bind time.
+Resolve MAX/MIN result category at the call site from the §15.59.1/§15.63.1 result-type table, which is a function of the (uniform, §15.59.3/§15.63.3 r2) argument type: alphabetic or alphanumeric arguments → an ALPHANUMERIC result (the selected string); NATIONAL arguments → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX arguments → an INDEX result; all-integer arguments → an INTEGER result; otherwise (numeric, some arguments possibly integer) → a NUMERIC result. The size of an alphanumeric or national result is the size of the selected argument-1 (§15.59.4/§15.63.4 r3). ORD-MAX/ORD-MIN always return an INTEGER ordinal but dispatch their comparison by the same argument category. The catalog row marks them category-polymorphic and the binder resolves the result category from the bound argument categories at bind time.
 
 ### FUNCTION argument shapes: table(ALL) expansion, optional trailing args (e.g. RANDOM seed), and variadic statistical functions — REAL argument parse trees (P7 Step 12).
 
@@ -236,15 +237,15 @@ hand-rolled per-segment recursive-descent parser is deleted.
 - FUNCTION LENGTH of a variable-length group (OCCURS DEPENDING ON) uses the current depending value (§15.50.4) — runtime, not the max.
 - MOVE ZERO to a numeric receiver = 0L; MOVE ZERO to an alphanumeric receiver = a '0'-filled string of the receiver width — same token, different materialization (must branch on receiver category).
 - ALL literal repeat-to-width-then-truncate (§8.3.3.6): ALL "AB" into a PIC X(5) = "ABABA" (repeat until ≥ width, truncate from the right), applied before any JUSTIFIED.
-- NUMVAL / NUMVAL-C / NUMVAL-F parse human-formatted strings (currency sign, thousands separators, CR/DB, sign placement) — port the legacy parser exactly; affected by CURRENCY SIGN and DECIMAL-POINT IS COMMA config.
+- NUMVAL (§15.67), NUMVAL-C (§15.68), NUMVAL-F (§15.69) parse the spec-defined argument-1 content grammars. NUMVAL admits an optional leading sign (`+`/`-`) OR a trailing sign / `CR` / `DB`, a run of digits with an optional decimal separator; leading and trailing spaces are ignored, and embedded spaces are ignored only where they precede the first digit; a `CR`, `DB`, or minus sign makes the result negative (§15.67.3/§15.67.4). NUMVAL-C additionally admits a currency string and comma grouping separators — the currency string is argument-2 when supplied, else the SPECIAL-NAMES CURRENCY SIGN or the default currency sign (§15.68.3 r3) — and the returned value ignores the currency string and any grouping separators preceding the decimal separator (§15.68.4 r2). NUMVAL-F additionally admits an `E±n` exponent (one-to-four-digit exponent, §15.69.3). The period is the decimal separator; under DECIMAL-POINT IS COMMA the comma is the decimal separator (and, for NUMVAL-C, the period becomes the grouping separator). Under native arithmetic the total number of digits shall not exceed 31 (§15.67.3 r3 / §15.68.3 r6 / §15.69.3 r2).
 - Out-of-domain math (ACOS/ASIN of |x|>1, SQRT of negative, LOG of ≤0) → EC-ARGUMENT-FUNCTION with a defined default result (legacy returns 0) rather than a .NET exception.
 - FACTORIAL(n) for n≥21 overflows long and n large overflows Int128 → size-error / EC-ARGUMENT-FUNCTION (legacy clamped at 28! for decimal). The Int128 boundary: 33! ≈ 8.68e36 FITS (Int128.Max ≈ 1.70e38); **34! is the first overflow**; the runtime returns the EC default 0 for n > 33 or n < 0.
 - RANDOM with vs without a seed argument — seeded form is deterministic per-call, unseeded shares one generator; the optional-trailing-arg arity must be modeled so the no-arg and one-arg forms both bind.
-- WHEN-COMPILED and CURRENT-DATE differ in format (WHEN-COMPILED has no offset historically; CURRENT-DATE includes the Greenwich offset in positions 17-21) — both nondeterministic, both via the injectable clock; conformance tests must inject a fixed clock.
+- FUNCTION WHEN-COMPILED (§15.99.3 r1) and CURRENT-DATE (§15.21.3) share the SAME 21-character structure: `YYYYMMDDHHMMSShh` in positions 1-16 followed by the UTC-offset subfield in positions 17-21 (position 17 = `+`/`−`/`0`, positions 18-19 = offset hours, positions 20-21 = offset minutes). WHEN-COMPILED carries the compilation timestamp, CURRENT-DATE the run-time clock; both are nondeterministic and both route through the injectable clock (the ONE `CobolDate.Format21` formatter), so conformance tests must inject a fixed clock.
 - ADDRESS OF and SET … TO ADDRESS OF produce a ManagedPointer (managed ref), never a numeric address — and NULL/NULLS figurative sets it to the null ManagedPointer, semantically distinct from LOW-VALUE.
 - DAY-OF-WEEK ordinal: COBOL is 1=Monday..7=Sunday, .NET DayOfWeek is 0=Sunday — the (+6)%7+1 remap is easy to get wrong.
 - HIGH-VALUE used in a comparison vs in a MOVE: as a MOVE source it fills the receiver width with U+00FF; in a comparison it must compare as the highest ordinal — both fall out of the U+00FF mapping + ordinal Compare, but a national receiver needs U+FFFF.
-- INITIALIZE skips FILLER by default but INITIALIZE … REPLACING / WITH FILLER changes that; REDEFINES subordinates and items with the wrong category for the REPLACING clause are skipped (§14.9.21).
+- INITIALIZE skips FILLER by default but INITIALIZE … REPLACING / WITH FILLER changes that; REDEFINES subordinates and items with the wrong category for the REPLACING clause are skipped (§14.9.20.4 GR5).
 - Nested intrinsic calls as arguments (e.g. ACOS(FUNCTION ACOS(D/D))) — natural grammar recursion since P7 Step 12 (`functionCall` is a `primaryExpression` alternative inside the argument's `arithmeticExpression`).
 
 ## ISO citations
@@ -253,14 +254,14 @@ hand-rolled per-segment recursive-descent parser is deleted.
 - §15.2 Types of functions — alphanumeric / boolean / national / numeric / integer / index (THE return-type classification, the spine of the binding model)
 - §15.3 Arguments — number of arguments may be zero, one, more, or variable (the arity model)
 - §15.3.1 Format arguments to international date and time functions (date/time intrinsic formats)
-- §15.4 — table(ALL) subscript: each occurrence passed as a separate argument
-- §15.24 FUNCTION LENGTH — number of character positions in argument-1 (distinct from LENGTH OF byte size)
+- §15.3 — table(ALL) subscript ("When ALL is specified as a subscript, the effect is as if each table element … were specified"): each occurrence passed as a separate argument
+- §15.50 FUNCTION LENGTH — number of character positions in argument-1 (distinct from LENGTH OF byte size)
 - §15.50.4 — FUNCTION LENGTH of a variable-length (ODO) group uses the current depending value
 - §8.3.3.6 Figurative constant values — ZERO/SPACE/QUOTE/HIGH-VALUE/LOW-VALUE/ALL/symbolic, including the repeat-to-width-then-truncate rule and the highest/lowest-ordinal definition of HIGH/LOW-VALUE
 - §8.4.2 — data category of a PICTURE (drives the result-category and figurative materialization)
-- §14.9.21 INITIALIZE — REPLACING / TO VALUE / DEFAULT / FILLER handling
+- §14.9.20 INITIALIZE — REPLACING / TO VALUE / DEFAULT / FILLER handling
 - §14.9.25 MOVE — alphanumeric/numeric move rules reused by intrinsic results and figurative stores
-- §14.9.43 STOP RUN / run-unit termination — RETURN-CODE as exit code
+- §14.9.42 STOP RUN / run-unit termination — RETURN-CODE as exit code
 - §8.8.1 — arithmetic operates on the algebraic VALUE of operands (intrinsic numeric results align scales through the same engine)
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)

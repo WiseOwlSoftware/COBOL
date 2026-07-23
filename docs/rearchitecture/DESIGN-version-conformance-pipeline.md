@@ -87,8 +87,9 @@ is this closed, documented set:
    D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOLNET1502/1503, + the bespoke TRIM
    argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOLNET0878 — EcBinder, the USE
    F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
-   gate), and the §8.3.1.2 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 — `EditionInfo.MaxDigits`
-   is the table).
+   gate), and the §8.3.3.3.2 / §13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
+   `EditionInfo.MaxDigits` is the table; §8.3.3.3.2 caps fixed-point literals at 1–31 digits and §13.18.40.3 SR14
+   caps a numeric/fixed-point-numeric-edited item's PICTURE digit positions at 1–31).
 3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
    the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
    2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).

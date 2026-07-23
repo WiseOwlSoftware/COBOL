@@ -118,13 +118,20 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` (both chokepoints + all exemptions) and `2023/ec_data_overflow`.
 - **RAISING propagation = a runtime staging slot + a two-tier pickup.** GOBACK/EXIT PROGRAM RAISING stages
   (name, fatal) via `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the
-  PD-header RAISING phrase, checked at bind as COBOLNET0717). The ACTIVATOR raises it at the end of the CALL
-  (§14.6.13.1.3 #6): an EC-active caller's generated CALL site consumes it (`TakePropagated` → `__EcDispatch` →
-  RESUME honored → fatal default) and passes `siteHandlesPropagation: true` so the registry stands down; an
-  EC-free caller gets `ProgramRegistry`'s boundary default (fatal → terminate loudly — the §14.6.13.1.3 #8
-  implementor choice; nonfatal → the status stands, execution continues). The site pickup gates on the GROUP's EC
-  participation (not a per-name TURN fold) because RAISING LAST EXCEPTION makes the propagated name dynamic.
-  `RunMain` applies the same default for a MAIN program's GOBACK RAISING (its activator is the run-unit boundary).
+  PD-header RAISING phrase, checked at bind as COBOLNET0717). Per §14.9.18.4 GR1b the staged condition is raised
+  in the ACTIVATING runtime element ONLY IF checking for that exception condition is enabled there ("an exception
+  condition is raised in the activating runtime element IF checking for that exception condition is enabled in the
+  activating runtime element"): an EC-active caller's generated CALL site consumes it (`TakePropagated` →
+  `__EcDispatch` → RESUME honored → the §14.6.13 fatal/nonfatal handling) and passes `siteHandlesPropagation:
+  true`. An EC-free caller — one that does NOT enable checking for that condition — does not raise it at all: the
+  staged condition, fatal or nonfatal, is discarded and execution continues in the caller as if the CALL had
+  returned without a RAISING phrase (there is no boundary "terminate loudly" default — §14.6.13.1.3 #8 governs a
+  condition that already EXISTS, and GR1b says a condition whose checking is off in the activator is never raised
+  there). The site pickup gates on the GROUP's EC participation (not a per-name TURN fold) because RAISING LAST
+  EXCEPTION makes the propagated name dynamic. A MAIN program's GOBACK RAISING has no activator, so its RAISING
+  phrase is IGNORED and the program terminates as an ordinary STOP (§14.9.18.4 GR3); an EXIT PROGRAM RAISING with
+  no calling element raises nothing and acts as CONTINUE (§14.9.14.4 GR2) — in both cases `RunMain` discards the
+  staged condition rather than terminating on it.
 - **The EC-PROGRAM bridge rides `CobolCallException.EcName`.** The registry latches the Table 13 level-3 name
   (NOT-FOUND / RECURSIVE-CALL / CANCEL-ACTIVE / ARG-OMITTED); a CALL/CANCEL under enabled checking emits a
   name-FILTERED catch (`when (__ce.EcName == …)`) that sets the status and either flags the statement's own
@@ -186,11 +193,11 @@ repertoire translator, result category National; golden `exception_file_n`, matr
 
 **Rejected alternatives.** Rely on C# operator precedence — the ^-vs-&& ordering mismatch is a genuine correctness trap for logical XOR.
 
-### D3. Emit short-circuiting && / || for COBOL AND / OR (a deliberate divergence from the eager legacy oracle).
+### D3. Emit short-circuiting && / || for COBOL AND / OR — the left-to-right evaluation order ISO §8.8.4.13 rule 1 mandates.
 
-**Rationale.** Idiomatic, faster, and safer (suppresses faults in a guarded right operand). Empirically verified corpus-safe: a scan of tests/nist/programs found ZERO guard-then-same-variable-subscript idioms; the 44 'AND <subscripted>' cases use a subscript independent of the guard (e.g. IF SUB4 = 6 AND WZ-X-CHAR(SUB2) = SPACE).
+**Rationale.** ISO §8.8.4.13 rule 1: within a hierarchical level "the constituent connected conditions … are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated." Short-circuiting `&&` / `||` render exactly this: once the left operand fixes the level's truth value, the right operand is not evaluated. This is the conformant order (and is also idiomatic and faster). Corroborated corpus-safe: a scan of tests/nist/programs found ZERO guard-then-same-variable-subscript idioms; the 44 'AND <subscripted>' cases use a subscript independent of the guard (e.g. IF SUB4 = 6 AND WZ-X-CHAR(SUB2) = SPACE).
 
-**Rejected alternatives.** Eager evaluation matching legacy ConditionLowerer lines 188–196 (both operands into temporaries, then combine) — would defeat clean &&/|| output for a behavior no conformance test needs. If a future program relies on eager eval (IF I>0 AND TABLE(I)=X with EC-BOUND off), the local fix is to hoist that operand before the &&.
+**Rejected alternatives.** Eager (non-short-circuit) evaluation as in the legacy ConditionLowerer lines 188–196 (both operands into temporaries, then combine) — non-conforming: §8.8.4.13 rule 1 requires evaluation of a hierarchical level to stop once its truth value is known, so eager evaluation can execute a right operand (a subscript, a function, a side effect) the standard requires be skipped. For example `IF I>0 AND TABLE(I)=X` must not reference TABLE(I) when I ≤ 0 — short-circuit is the only faithful rendering; the legacy oracle's eager evaluation is the behavior to be corrected, not preserved.
 
 ### D4. EVALUATE (all forms) lowers to a chained if/else-if/else, NOT a C# switch.
 
@@ -244,7 +251,7 @@ repertoire translator, result category National; golden `exception_file_n`, matr
 
 **Grammar (greenfield, `CobolControlFlow.g4`).** Formats 2 and 3 merge into ONE inline `performStatement` alternative (`PERFORM performInlineHead? statementBlock* performWhenPhrase* performWhenOther? performWhenCommon? performFinally? END-PERFORM`); ≥1 ordinary WHEN ⇒ Format 3 (enforced at bind, COBOLNET1597). A WHEN operand list's CONTINUATION is bounded by the `whenOperandAhead()` predicate (`CobolParserCoreBase.WhenOperandStopTokens`) so a body verb that is also a `cobolWord` (RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER, + GET/PARSE forward) is not annexed as a spurious exception-name; the merged inline arm precedes the out-of-line `PERFORM procedureName` so `PERFORM LOCATION imp… END-PERFORM` disambiguates on END-PERFORM. `LOCATION`/`FINALLY` are new-2023 reserved tokens: LOCATION stays a `cobolWord` (the continuity invariant — a paragraph named LOCATION / `PERFORM LOCATION` parses below 2023; it appears only in the head, so no operand-swallow); FINALLY is a pure reserved keyword (NOT a `cobolWord`) — as a trailing phrase keyword after imperative statements it would be swallowed by a preceding DISPLAY/MOVE operand list, so it is treated as reserved at every edition (a documented, negligible deviation — FINALLY was never a COBOL identifier idiom).
 
-**Binder (`EcBinder.ExceptionPerform.cs` → `BoundExceptionPerform`).** Resolves each WHEN's operands (exception-name at ANY level per the USE GR3a–3g tiers — not the RAISE level-3-only rule; SR16 EC-I-O prefix; the per-name edition window), enforces the §14.9.28.3 syntax rules and the cross-statement bans by lexical region (A = imp-1, B = whole PERFORM, C = WHEN phrases, D = imp-2..5) via parse-subtree walks: COBOLNET1597 (≥1 WHEN), 1599/1600/1601 (SR14/15/16), 1604 (EXIT PERFORM CYCLE), 1605/1606/1607 (INITIATE/TERMINATE/VALIDATE >1), 1608 (GO TO in a WHEN), 1610 (RESUME AT proc in a WHEN), 1611 (RAISE outside imp-1), 1612/1614/1615/1616/1617 (multi-CLOSE / dup-INITIALIZE / MERGE / dup-OPEN / SORT in imp-1). RESUME's SR1 relaxes inside a WHEN (`EcBindState.InF3When`): RESUME NEXT STATEMENT is legal there, RESUME AT proc is COBOLNET1610. GR14 is a bind-time overlay on `TurnState` (`WithImplicitEnable` — a synthetic line-0 enable per WHEN-named EC over imp-1, WITH LOCATION iff the PERFORM specifies LOCATION; a real >>TURN OFF inside imp-1 overrides it), popped after imp-1 so imp-2..5 bind against the base state (GR21/GR22).
+**Binder (`EcBinder.ExceptionPerform.cs` → `BoundExceptionPerform`).** Resolves each WHEN's operands (exception-name at ANY level per the USE GR3a–3g tiers — not the RAISE level-3-only rule; SR16 EC-I-O prefix; the per-name edition window), enforces the §14.9.28.3 syntax rules and the cross-statement bans by lexical region (A = imp-1, B = whole PERFORM, C = WHEN phrases, D = imp-2..5) via parse-subtree walks: COBOLNET1597 (≥1 WHEN), 1599/1600/1601 (SR14/15/16), 1604 (EXIT PERFORM CYCLE), 1605/1606/1607 (INITIATE/TERMINATE/VALIDATE >1), 1608 (GO TO in a WHEN), 1610 (RESUME AT proc in a WHEN), 1611 (RAISE outside imp-1), 1612/1614/1615/1616/1617 (multi-CLOSE / dup-INITIALIZE / MERGE / dup-OPEN / SORT in imp-1). RESUME's SR1 relaxes inside a WHEN (`EcBindState.InF3When`): RESUME NEXT STATEMENT is legal there, RESUME AT proc is COBOLNET1610. GR14 is a bind-time overlay on `TurnState` (`WithImplicitEnable` — a synthetic line-0 enable per WHEN-named EC over imp-1, WITH LOCATION iff the PERFORM specifies LOCATION; a real >>TURN OFF inside imp-1 overrides it). At the end of imp-1 GR14 assumes an implicit PUSH ALL followed by TURN OFF ALL, so imp-2..5 (the WHEN / OTHER / COMMON handler bodies and the FINALLY block) bind with ALL exception checking OFF — no ambient >>TURN state is visible to them, not even checking that was enabled before the PERFORM. Immediately preceding END-PERFORM an implicit POP ALL restores the pre-imp-1 state and issues an implicit TURN … OFF for any exception that was implicitly enabled over imp-1; GR22 then governs what checking carries past the PERFORM (a pre-PERFORM enable that fired stays enabled, a >>TURN within the range is retained, otherwise the WHEN-named ECs are not enabled after the statement).
 
 **Runtime — the pc-RANGE interceptor (IMPLEMENTED; SSOT `PHASE-13-c5-perform-format3-DESIGN.md` §9).** A per-statement interceptor is REQUIRED (not a block try/catch): a block catch unwinds past the remaining imp-1 statements and cannot deliver GR20's nonfatal resume-in-place. As-built: imp-1 emits INLINE inside a `try`; a raise site within it consults an ambient `PerformFrame` stack (`ExceptionEngine`, run-unit-scoped) BEFORE the USE declaratives (GR17 — a matching WHEN ignores USE), via the funnel `EcDispatchExpr` → `__EcPerform` (→ `RunTopFrame`, a top-down walk with a deferred `Handling`-clear that keeps a skipped inner frame transparent while a selected outer handler runs, GR21). The WHEN/OTHER/COMMON handler bodies (imp-2/3/4) are emitted as **synthetic UNREFERENCEABLE pc-range paragraphs** appended above the main pc space (the fall-through walled off at `F3HandlerBasePc − 1`) and run via the reused `__RunUse(id, pc, pc)` — so RESUME reuses `ResumeSignal`→`__RunUse`→`-2` verbatim. The frame's matcher is a closure that does **tier-ordered** WHEN selection (GR17 → §14.9.49.4 GR3c-g: file+L3 → file+L2/bare-file → L3 → L2 → L1/EC-ALL, source order only within a tier — mirrors `__EcDispatch`) and, on match, invokes `__RunF3` (imp-2 then WHEN COMMON imp-4). FINALLY (imp-5) is the INLINE trailing block. **EXIT PERFORM** is region-aware (`DispatchState.F3Cur`): imp-1 → `goto __f3fin`, a handler pc-range → `throw ExitPerformSignal(Id)` (caught at the PERFORM boundary — a handler runs in a nested `__Dispatch` a `goto` cannot leave, the reason the rejected lambda-matcher-body approach could not implement it), FINALLY → `goto __f3end`; a nested inline PERFORM saves/restores `F3Cur=None` so its own EXIT PERFORM breaks the inner loop (§14.9.14.4 GR5a). The fatal/nonfatal split (GR20) is realized by each raise site's existing throw idiom + the `-1/-2` protocol — the matcher carries no `fatal`. Every emission is gated on `EcState.UnitHasF3Perform` so a non-F3 unit is byte-identical.
 
@@ -258,7 +265,7 @@ repertoire translator, result category National; golden `exception_file_n`, matr
 
 IF: `IF c [THEN] s1 [ELSE s2] END-IF` → `if (<RenderCondition(c)>) { s1 } else { s2 }`. CONTINUE→empty block. NEXT SENTENCE→lower the sentence as a labeled block + `goto <after_sentence>;` (COBOLNET0701). Nested IF: each branch is fully braced so C# dangling-else is structurally impossible.
 
-RELATIONAL: numeric (both operands numeric) → render as scaled longs, align to larger scale via existing NumX/Align, then `(<l> <op> <r>)` (exact, no truncation). Alphanumeric (either side non-numeric) → `(CobolString.Compare(a,b,weights?) <op> 0)` with space-extension of the shorter operand (ISO §8.8.4.1.2). Pointer (= / NOT = only) → `ReferenceEquals(p,q)` / `p is null`. Figurative ZERO vs numeric → numeric 0. Literal-vs-literal constant-folds to true/false. Operator mapping via existing MapOperator (all symbolic + word + NOT-prefixed forms; needs an ~18-form unit-test matrix).
+RELATIONAL: numeric (both operands numeric) → render as scaled longs, align to larger scale via existing NumX/Align, then `(<l> <op> <r>)` (exact, no truncation). Alphanumeric (either side non-numeric) → `(CobolString.Compare(a,b,weights?) <op> 0)` with space-extension of the shorter operand (ISO §8.8.4.2.7 rule 2). Pointer (= / NOT = only) → `ReferenceEquals(p,q)` / `p is null`. Figurative ZERO vs numeric → numeric 0. Literal-vs-literal constant-folds to true/false. Operator mapping via existing MapOperator (all symbolic + word + NOT-prefixed forms; needs an ~18-form unit-test matrix).
 
 SIGN: `op IS [NOT] POSITIVE|NEGATIVE|ZERO` → `(<num> > 0)` / `(<num> < 0)` / `(<num> == 0)`, NOT wraps in !(…). (NOT POSITIVE = ≤0, includes zero — the !(…) handles it.)
 
@@ -267,7 +274,7 @@ New runtime: `static class CobolClass { bool IsNumeric(string); bool IsNumericDi
 
 LOGICAL: AND→`(a && b)`, OR→`(a || b)`, XOR→`(a ^ b)`, NOT→`(!(p))` — all fully parenthesized, short-circuiting.
 
-ABBREVIATED COMBINED (ISO §8.8.4.2): walk keeping a current subject+operator from the last full relation; `op operand`→expand to `subject op operand`; bare `operand`→`subject currentOp operand`; leading NOT negates that relation only. Example `IF A = B OR C OR > D` → `((A==B) || (A==C) || (A>D))`.
+ABBREVIATED COMBINED (ISO §8.8.4.12): walk keeping a current subject+operator from the last full relation; `op operand`→expand to `subject op operand`; bare `operand`→`subject currentOp operand`; leading NOT negates that relation only. Example `IF A = B OR C OR > D` → `((A==B) || (A==C) || (A>D))`.
 
 LEVEL-88: 
 ```
@@ -304,9 +311,9 @@ USE declaratives: declarative SECTION→paragraph-method returning `enum ResumeA
 
 ## Hard problems
 
-### Short-circuit (C# &&/||) vs eager (legacy non-short-circuit) AND/OR — observably differs for IF I>0 AND TABLE(I)=X when the guard protects a faulting subscript (EC-BOUND off → IndexOutOfRangeException in the typed model).
+### Short-circuit (C# &&/||) is the ISO-mandated evaluation order — IF I>0 AND TABLE(I)=X must NOT evaluate TABLE(I) when I ≤ 0 (§8.8.4.13 rule 1), so the guarded subscript is never touched (no EC-BOUND, no IndexOutOfRangeException in the typed model).
 
-Chose short-circuit (idiomatic, safer). Verified corpus-safe by scanning tests/nist/programs: ZERO guard-then-same-variable-subscript idioms (the 44 'AND <subscripted>' cases use independent subscripts). Documented as a conscious divergence from the oracle; local escape hatch if a future program needs eager eval: hoist the right operand before &&.
+ISO §8.8.4.13 rule 1 terminates a hierarchical level's evaluation as soon as its truth value is determined, so `&&`/`||` are the faithful rendering: a left operand that fixes the level's truth value skips the right. The legacy oracle's eager (non-short-circuit) evaluation is the non-conforming behavior, and is corrected here. Corroborated corpus-safe by scanning tests/nist/programs: ZERO guard-then-same-variable-subscript idioms (the 44 'AND <subscripted>' cases use independent subscripts).
 
 ### Abbreviated combined conditions (IF A > B AND < C OR = D) — the subject and/or operator are elided after the first relation; the LEGACY emitter silently dropped them — the greenfield binder must expand them into full relations.
 
@@ -353,7 +360,7 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - ON SIZE ERROR leaves the receiver UNCHANGED; without the phrase, overflow silently truncates to the PICTURE low-order digits — UNLESS EC-SIZE is >>TURNed on (the bridge between the phrase and the EC mechanisms).
 - ROUNDED happens BEFORE the size-error test (round to scale, then check integer-part capacity).
 - AT END/INVALID KEY phrase, when present and the condition exists, suppresses all OTHER applicable exception processing (ISO §11409) — the phrase wins over declaratives.
-- Pointer relations support only = / NOT = (ISO §8.8.4.1.4) → ReferenceEquals / is null on ManagedPointer.
+- Pointer relations support only = / NOT = (ISO §8.8.4.2.2 Format 3 — the message-tag-object-or-pointer-reference general format admits only the EQUAL/=/<> operators; comparison rule §8.8.4.2.16) → ReferenceEquals / is null on ManagedPointer.
 - EC-I-O-WARNING can only be turned on/off explicitly in a >>TURN or PERFORM WHEN (§5006); EC-ALL does not include it.
 - Whole-group comparison routes through the record struct's AsImage() character image into CobolString.Compare.
 - User-defined exceptions EC-USER-<suffix> are always nonfatal (ISO §24505) and only raisable by RAISE / EXIT…RAISING / GOBACK RAISING.
@@ -389,11 +396,11 @@ done).
 
 ## ISO citations
 
-- ISO/IEC 1989:2023 §8.8.4.1 — relation conditions (algebraic numeric value comparison; alphanumeric space-extension §8.8.4.1.2; pointer = / NOT = §8.8.4.1.4)
-- §8.8.4.2 — abbreviated combined relation conditions (elided subject/operator; NOT is part of the operator)
-- §8.8.4.3 / §8.8.4.4 — class conditions (NUMERIC; ALPHABETIC closed set {A-Z,a-z,space}; sign conditions)
+- ISO/IEC 1989:2023 §8.8.4.2 — simple relation conditions (algebraic numeric value comparison §8.8.4.2.4; alphanumeric comparison + space-extension of the shorter operand §8.8.4.2.7 rule 2; pointer = / NOT = §8.8.4.2.16, Format 3 general format §8.8.4.2.2)
+- §8.8.4.12 — abbreviated combined relation conditions (elided subject/operator; NOT is part of the operator)
+- §8.8.4.4 — simple class condition (NUMERIC; ALPHABETIC closed set {A-Z,a-z,space}); §8.8.4.7 — simple sign condition
 - §8.8.4.5 — simple condition-name condition (88-level abbreviates 'conditional variable == one of its values')
-- §8.8.4.9 — logical operators and precedence NOT > AND > XOR > OR; logical exclusive-or
+- §8.8.4.9 — logical operators AND / OR / EXCLUSIVE-OR / XOR / NOT and their meanings; §8.8.4.11.3 — precedence NOT > AND > XOR > OR; §8.8.4.13 rule 1 — left-to-right order of evaluation with short-circuit termination of each hierarchical level
 - §8.3.1.2 — figurative ZERO as numeric 0; §8.4.3.6 — EXCEPTION-OBJECT predefined object reference
 - §13.18.63 — VALUE clause condition-name format (THRU ranges; WHEN SET TO FALSE literal-4; GR20 SET TO FALSE)
 - §14.6.13 / §14.6.13.1.1 — exception condition handling; default EC-ALL OFF; last-exception status; per-element indicators cleared at start of each statement
@@ -404,6 +411,8 @@ done).
 - §14.9.9 CONTINUE; §14.9.13 EVALUATE (§14.9.13.3 syntax incl. Table 15 operand combinations; §14.9.13.4 GR3 subjects-once, GR4 left-to-right first-match, GR5 WHEN OTHER); §14.9.19 NEXT SENTENCE
 - §14.9.29 RAISE statement (EXCEPTION ec-name / identifier object; nonfatal-unhandled acts as CONTINUE)
 - §14.9.33 RESUME statement (NEXT STATEMENT / procedure-name; GLOBAL declarative ≡ CONTINUE)
+- §14.9.18.4 GR1b/GR3 (GOBACK) + §14.9.14.4 GR2 (EXIT PROGRAM) — RAISING propagation: the condition is raised in the activator only if checking for it is enabled there; with no calling runtime element the RAISING phrase is ignored (GOBACK acts as STOP, EXIT PROGRAM as CONTINUE)
+- §14.9.28.4 GR14 — the exception-checking PERFORM's implicit TURN scoping: WHEN-named ECs implicitly enabled over imperative-statement-1, then an implicit PUSH ALL + TURN OFF ALL for the handler bodies / FINALLY, and a POP ALL immediately preceding END-PERFORM (GR20 fatal/nonfatal return, GR22 post-PERFORM checking retention)
 - §14.9.39 SET statement (GR6 condition-name TO TRUE → first VALUE literal; switch ON/OFF) ; §14.9.49 USE declaratives (GLOBAL; AFTER EXCEPTION/ERROR; ON file/INPUT/OUTPUT/I-O/EXTEND)
 - §9.1.12 input-output exception processing (applicable exception processing statements; first-match selection); §9.1.13 I-O status → EC-I-O-* mapping (1x AT-END, 2x INVALID-KEY, 3x/4x/7x fatal, etc.)
 - TURN compiler directive (§4970/§5000-§5024 — default EC-ALL OFF; EC-ALL/level-2 expansion; WITH LOCATION; EC-I-O-WARNING explicit-only); PROPAGATE directive (§4808)

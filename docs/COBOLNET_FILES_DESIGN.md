@@ -50,7 +50,7 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 
 ### D6. SORT and MERGE: the SD record is a typed struct; the sort store holds serialized images ordered by the same CobolKey policy; SORT key offsets are computed into the deterministic serialized image at compile time. Format-2 in-place table SORT operates on the typed array directly.
 
-**Rationale.** Reuses the proven stable sort plus numeric-value-versus-collated-image key rule (14.9.40 and 22; DUPLICATES IN ORDER is a stable sort). Table SORT data is already typed in memory so it diverges to a typed comparer, the one documented place the two SORT forms differ.
+**Rationale.** Reuses the proven stable sort plus numeric-value-versus-collated-image key rule (14.9.40 SORT / 8.8.4.2.4 numeric compare; DUPLICATES IN ORDER is a stable sort). Table SORT data is already typed in memory so it diverges to a typed comparer, the one documented place the two SORT forms differ.
 
 **Rejected alternatives.** A true k-way priority-queue merge (a perf optimization, deferred); a byte comparer for table sort (the data is already typed).
 
@@ -83,13 +83,13 @@ READ deserializes the raw record bytes into every 01 view of the FD via a discri
 
 The codec serializes the base (first) definition; a REDEFINES sub-view is materialized by re-deserializing the emitted bytes under the redefining layout on demand. Designed once and shared with the general working-storage REDEFINES solution.
 
-### Variable-length REWRITE must equal the replaced record length (14.9.35 GR16) or it is status 44 with the record unchanged.
+### REWRITE record-length rules are organization-dependent: a RECORD SEQUENTIAL REWRITE must equal the replaced record's length (14.9.35 GR16) or it is status 44; a RELATIVE or INDEXED REWRITE may change length (14.9.35 GR18) but must stay within the RECORD IS VARYING bounds (14.9.35 GR20) or it is status 44. On any 44 no logical updating takes place and the record area is unchanged (14.9.35 GR14).
 
-The connector remembers the last-read frame start and length; REWRITE re-serializes, compares serialized length to the remembered length, and returns 44 if different.
+For a record-sequential file the connector remembers the last-read frame start and length; REWRITE re-serializes, compares the serialized length to the remembered length, and returns 44 when they differ (GR16 — the in-place frame cannot change size). For a relative or indexed file the record length is allowed to differ (GR18), so REWRITE checks only that the serialized length lies within the file's RECORD IS VARYING minimum/maximum, returning 44 otherwise (GR20).
 
-### Read-position state machine: READ NEXT after AT END is 46; READ PREVIOUS after AT END returns the last record; a sequential REWRITE or DELETE without a preceding successful READ is 43; START establishes an inclusive file-position indicator.
+### Read-position state machine: a sequential READ (NEXT or PREVIOUS) issued after a prior unsuccessful sequential READ is 46; a sequential REWRITE or DELETE without a preceding successful READ is 43; START establishes an inclusive file-position indicator.
 
-Port the proven per-connector last-read-unsuccessful, past-end, prev-op-was-successful-read, and read-next-inclusive flags verbatim (14.9.30 GR21, 14.9.35 GR5).
+Port the proven per-connector last-read-unsuccessful, past-end, prev-op-was-successful-read, and read-next-inclusive flags. An at-end READ is itself an unsuccessful READ (14.9.30 GR24 — "when the at end condition exists, execution of the READ statement is unsuccessful"), so once the last-read-unsuccessful flag is set the NEXT sequential READ — whether READ NEXT or READ PREVIOUS — is unsuccessful with status 46 (14.9.30 GR21); it does NOT re-expose the last record. A sequential REWRITE or DELETE with no immediately preceding successful READ is status 43 (14.9.35 GR5).
 
 ### EXTERNAL files shared across programs plus GLOBAL FD inheritance in nested programs, with matching layouts.
 
@@ -114,7 +114,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   - **EC-I-O-LINAGE seam** (GR6 value rules): the evaluator validates body > 0 and 0 < footing ≤ body (footing 0 = absent phrase) and throws LOUD until the EC subsystem lands — never a silent bad page model.
   - Conformance net: `LinageConformanceTests.cs` (per-GR: GR7c1–c4/GR7d, GR26a/b discrimination incl. c==B, GR6b1/2/3 timing, GR1 no-footing, qualified/ambiguous register, ADVANCING 0, SR13/18/19).
 - On-disk framing: a fixed record-sequential file is contiguous; a variable sequential, relative, or indexed file uses a 4-byte little-endian length prefix; a sparse relative file uses 0xFF gaps.
-- DELETE FILE statement (14.9.10): delete the host path and reset the in-memory map; status 00, 05, or 35.
+- DELETE FILE statement (14.9.10 Format 2): delete the host path and reset the in-memory map. A present file that is deleted gives 00 and an absent file gives 05 — BOTH successful (14.9.10 GR14/GR20); the error paths are 41 (the connector is still open, GR13), 62 (the physical file is open by another connector, GR15), and 37 (insufficient authority or the storage medium forbids deletion, GR16/GR17). A missing file is NEVER 35 — 35 is an OPEN-only status.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
 
 ## Per-edition gating (G1 — four compilers in one `cobol.exe`)
@@ -156,7 +156,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 - Section 9.1.2 record area plus its NOTE: all 01s under an FD or SD implicitly redefine the same storage area per 13.18.33 GR3.
 - Section 9.1.1: CODE-SET or FORMAT translation occurs only when a logical record transfers to or from the physical unit; padding is added or deleted as necessary.
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
-- Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.24 and 14.9.45 SORT and MERGE, 14.9.40 and 14.9.22 numeric-key value compare, 8.8.4.1.2 alphanumeric compare with shorter-operand space-extension, 14.6.6 USE declarative.
+- Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.40 and 14.9.24 SORT and MERGE, 8.8.4.2.4 numeric-key value compare, 8.8.4.2.7 alphanumeric compare with shorter-operand space-extension, 14.9.49 USE statement (declarative).
 
 ## Open questions — RESOLVED (`COBOLNET_DESIGN.md` §15 #3 + §18, owner-confirmed 2026-06-08)
 

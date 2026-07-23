@@ -8,7 +8,7 @@
 
 ## Summary
 
-The Report Writer Control System (RWCS): the REPORT SECTION (ISO §13.6/§13.14/§13.15 + the §13.18 report
+The Report Writer Control System (RWCS): the REPORT SECTION (ISO §13.8/§13.14/§13.15 + the §13.18 report
 clauses) and the INITIATE / GENERATE / TERMINATE / SUPPRESS verbs (§14.9.21/§14.9.16/§14.9.46/§14.9.45), with
 the per-report LINE-COUNTER / PAGE-COUNTER registers (§8.4.3.15) and USE BEFORE REPORTING declaratives
 (§14.9.49 Format 2).
@@ -48,7 +48,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   code-composed byte buffers for details) — a singular-pattern violation and the proven source of its two
   §13.18.53 content bugs. The greenfield has no registration kinds, no byte buffers, no storage offsets.
 - **Printable items are SYNTHETIC `DataItem`s** (PicInfo + JUSTIFIED/BLANK WHEN ZERO flags, never added to
-  the storage forest — report groups are not storage, §13.6). The emitter renders every field through the
+  the storage forest — report items are not accessed as ordinary storage, §13.8.6.2.3). The emitter renders every field through the
   orchestrator's ONE MOVE conversion (`MoveEmitter.ConvertSource`), so a numeric SOURCE edits through the
   printable PICTURE exactly like `MOVE src TO item` (alignment, truncation, editing, BLANK WHEN ZERO) —
   §13.18.53.4 GR1 verbatim. Numeric printable items are `StoreAsImage`, so the conversion yields the
@@ -70,7 +70,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | `Terminate` | §14.9.46.4 GR1 (inactive seam), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). Break key = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves) |
 | SUM | §13.18.54.4 GR1 (counter scale from the entry's PICTURE), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `BoundReportSumRef`), GR7c1/c2 (accumulate per GENERATE / UPON detail filter), GR9 (multi-addend) |
-| GROUP INDICATE | §13.18.29 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
+| GROUP INDICATE | §13.18.28 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs via the group's `BeforeReporting` hook (a `__RunUse` bounded dispatch) just before the group is produced |
 | SUPPRESS | §14.9.45 — `SUPPRESS PRINTING` sets the engine's one-shot `_suppressCurrent` flag (`__RPT_n.SuppressPrinting()`); `RunBeforeReporting` consumes it on the presentation whose GR8 hook set it (GR2 — current instance only). The target group is the lexically-enclosing USE BEFORE REPORTING group, resolved at bind from `BindCursor` ∈ the declarative's pc range (GR1); a SUPPRESS outside such a procedure is COBOLNET1581 (SR1). GR3 a–d inhibit printing / page advance / NEXT GROUP / LINE-COUNTER, but NOT sum accumulation (GR7, already done in Generate) nor the end-of-group sum reset (GR2) — so a suppressed control footing's totals stay correct (only PRESENT WHEN / ODO absence skips the reset, GR10). Body groups run `EndOfGroupSumReset` on the suppressed path; heading/footing groups (no reset) return after the hook |
 | PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2, after the `BeforeReporting` hook); an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
