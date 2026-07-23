@@ -639,6 +639,8 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitFunctionWindow, "the EXIT FUNCTION statement");
             else if (ctx.PROGRAM() is not null)
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
+            else if (ctx.SECTION() is not null)   // §14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
+                _p.Check(Constructs.ExitSection2002, "the EXIT SECTION statement");
             return base.VisitChildren(ctx);
         }
 

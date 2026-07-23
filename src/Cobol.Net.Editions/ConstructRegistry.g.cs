@@ -13,6 +13,7 @@ public static partial class ConstructRegistry
     [
         new("nucleus-move-display", "nucleus MOVE/DISPLAY", 85, null, null, "COBOLNET0900", "edition-invariant baseline"),
         new("read-previous-2002", "READ PREVIOUS", 2002, null, null, "COBOLNET0900", "ISO §14.9.30 Format 1; VCR rows 29/108 gate after-OPEN behavior"),
+        new("exit-section-2002", "the EXIT SECTION statement", 2002, null, null, "COBOLNET0900", "ISO §14.9.14.2 Format 4 / §14.9.14.4 GR7 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)"),
         new("start-first-last-2002", "START FIRST/LAST", 2002, null, null, "COBOLNET0900", "ISO §14.9.41"),
         new("delete-file-2023", "DELETE FILE", 2023, null, null, "COBOLNET0900", "ISO 2023 §14.9.10 Format 2; Annex E.3.3 item 15"),
         new("allocate-2002", "ALLOCATE", 2002, null, null, "COBOLNET0900", "ISO §14.9.3"),

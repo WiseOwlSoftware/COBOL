@@ -534,6 +534,14 @@ public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
 public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
 
+/// <summary><c>EXIT SECTION</c> (ISO §14.9.14 Format 4, GR7) — transfer control to the unnamed empty paragraph
+/// following the LAST paragraph of the current section (pc <paramref name="SectionEndPc"/> + 1), "preceding any
+/// return mechanisms for that section". When the enclosing bounded dispatch was entered with its exit AT the section
+/// end (a PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE procedure / the top-level end wall), that
+/// section return mechanism fires — realized in the emitter by an explicit <c>return</c> when <c>__exitPc</c> equals
+/// the section end (the mid-section fall-through the bounded dispatch's own <c>__atExit</c> tail-check cannot see).</summary>
+public sealed record BoundExitSection(int SectionEndPc, int SourceLine = 0) : BoundStatement;
+
 /// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
 public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
 

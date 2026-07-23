@@ -100,6 +100,7 @@ public static class BoundStores
         public StoreKind? Visit(BoundGoTo n) => StoreKind.None;
         public StoreKind? Visit(BoundGoToDepending n) => StoreKind.None;
         public StoreKind? Visit(BoundExitParagraph n) => StoreKind.None;
+        public StoreKind? Visit(BoundExitSection n) => StoreKind.None;
         public StoreKind? Visit(BoundExitPerform n) => StoreKind.None;
         public StoreKind? Visit(BoundNop n) => StoreKind.None;
         public StoreKind? Visit(BoundContinueAfter n) => StoreKind.None;   // reads its interval expr; stores nothing

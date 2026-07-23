@@ -25,6 +25,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
     },
     {
+      "id": "exit-section-2002",
+      "description": "EXIT SECTION (ISO §14.9.14 Format 4 / §14.9.14.4 GR7) — a COBOL-2002 structured-procedure exit transferring control to the end of the current section (firing its PERFORM/SORT/USE return mechanism); introduced 2002.",
+      "display": "the EXIT SECTION statement",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.14.2 Format 4 / §14.9.14.4 GR7 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXSEC.\nPROCEDURE DIVISION.\nDRIVER SECTION.\nD1.\n    PERFORM WORK-SEC.\n    STOP RUN.\nWORK-SEC SECTION.\nW1.\n    EXIT SECTION.\nW2.\n    DISPLAY \"W2\".\n"
+    },
+    {
       "id": "start-first-last-2002",
       "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002",
       "display": "START FIRST/LAST",

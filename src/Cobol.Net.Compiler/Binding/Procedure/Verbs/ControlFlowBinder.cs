@@ -99,7 +99,16 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                     : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3)");
             return new BoundExitProgram();
         }
-        if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
+        if (e.SECTION() is not null)   // §14.9.14 Format 4, GR7 — transfer to the section's end (its return mechanism)
+        {
+            if (ctx.CurrentSection is not { } sec)   // §14.9.14.3 SR9 — EXIT SECTION may be specified only in a section
+            {
+                ctx.Edition.Error("COBOLNET0827",
+                    "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
+                return new BoundNop();
+            }
+            return new BoundExitSection(sec.EndPc, e.Start.Line);
+        }
         if (e.METHOD() is not null) return host.Oo.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
         if (e.FUNCTION() is not null) return host.Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT

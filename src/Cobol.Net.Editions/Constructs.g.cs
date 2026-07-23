@@ -11,6 +11,7 @@ public static class Constructs
 {
     public const string NucleusMoveDisplay = "nucleus-move-display";
     public const string ReadPrevious2002 = "read-previous-2002";
+    public const string ExitSection2002 = "exit-section-2002";
     public const string StartFirstLast2002 = "start-first-last-2002";
     public const string DeleteFile2023 = "delete-file-2023";
     public const string Allocate2002 = "allocate-2002";

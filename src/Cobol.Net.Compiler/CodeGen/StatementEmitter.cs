@@ -109,6 +109,23 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // is the transferring statement's own source line.
     public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
+
+    // EXIT SECTION (§14.9.14.4 GR7): transfer to the unnamed empty paragraph after the section's last paragraph
+    // (SectionEndPc+1) from ANY paragraph of the section. When the enclosing bounded dispatch was entered with its
+    // exit AT the section end (PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE / the top-level end
+    // wall), the section's return mechanism must fire — an explicit `return __pc` that mirrors the bounded loop's
+    // `__atExit` tail-check (which a MID-section EXIT SECTION cannot reach, since __atExit was captured for the
+    // current pc, not the section end). Otherwise (exit ≠ section end) the `break` falls through to SectionEndPc+1
+    // exactly as EXIT PARAGRAPH does at a paragraph boundary.
+    public bool Visit(BoundExitSection n)
+    {
+        var w = _ctx.Writer;
+        _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);
+        w.Line($"__pc = {n.SectionEndPc + 1};");
+        w.Line($"if (__exitPc == {n.SectionEndPc}) return __pc;   // §14.9.14.4 GR7 — the section's PERFORM/SORT/USE return");
+        w.Line("break;");
+        return true;
+    }
     public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5a; §14.9.28.4 GR16
     {
         // Inside a Format-3 PERFORM: imp-1 → goto the implicit-CONTINUE-before-FINALLY label; a handler pc-range →

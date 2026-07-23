@@ -202,6 +202,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundGoTo n) => false;
         public bool Visit(BoundGoToAlterable n) => false;
         public bool Visit(BoundExitParagraph n) => false;
+        public bool Visit(BoundExitSection n) => false;
         public bool Visit(BoundExitPerform n) => false;
         public bool Visit(BoundExitProgram n) => false;
         public bool Visit(BoundNop n) => false;
