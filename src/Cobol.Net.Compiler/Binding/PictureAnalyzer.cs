@@ -256,6 +256,24 @@ public static class PictureAnalyzer
             || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
             || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §13.18.40.5 Table 7)
 
+        // ── USAGE BINARY / COMPUTATIONAL / PACKED-DECIMAL against an alphabetic/alphanumeric picture (ISO
+        // §13.18.60.3 SR3): such a usage "shall be specified only with a picture character-string that describes a
+        // numeric item". Mirrors the BIT SR5 / NATIONAL SR12 guards above — without it a `PIC XX COMP` silently
+        // bound as category Alphanumeric with the numeric usage DROPPED. Recover to Display (the compile has
+        // already failed; the value only keeps the doomed emit crash-free). The picture-less BINARY-CHAR/-SHORT/
+        // -LONG/-DOUBLE usages take no PICTURE — a picture with them is a distinct error handled elsewhere.
+        if (anyAlpha && usage is Usage.Binary or Usage.Comp5 or Usage.Packed)
+        {
+            string kw = usage switch
+            {
+                Usage.Binary => "BINARY", Usage.Packed => "PACKED-DECIMAL", Usage.Comp5 => "COMPUTATIONAL-5",
+                _ => usage.ToString(),
+            };
+            edition.Error("COBOLNET0881", $"{where}: USAGE {kw} requires a PICTURE that describes a numeric "
+                + $"item — PICTURE {picture} is alphabetic/alphanumeric (ISO §13.18.60.3 SR3)");
+            usage = Usage.Display;
+        }
+
         if (anyAlpha)
         {
             // ALPHANUMERIC-EDITED (ISO §13.18.40 — X/A/9 with B 0 / simple insertion, plus any EDITING character-1):

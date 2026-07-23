@@ -25,7 +25,8 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34 just landed — pick up at CA35).**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34+CA35 just landed — the picture-usage-value
+  cluster is DONE, pick up at the ARITHMETIC batch CA4/CA5/CA6).**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -49,17 +50,18 @@ checkpoint.
   '9' count; DEVLOG 1005) · **CA34 (picture-usage — a numeric VALUE literal must be in the PICTURE range / correctly
   signed, §13.18.63.3 SR2/SR3, NOT silently mis-stored; new COBOLNET1625 — NB the scouted 0803 was WRONG, the whole
   0801–0899 band is allocated; scale-aware exponent model `[-Scale, Digits-Scale-1]`; strictness sweep `wf_ebe10542-4e0`
-  806 files / 0 regressions; full Conformance 3891/3891; DEVLOG 1006).** 16 landed / 30 fix-ready remain.** (Process
-  lessons durable in `feedback_edition_gate_sweep_and_no_flake_handwave`: gating a construct breaks tests/goldens
-  compiling it below the new edition — SWEEP; never call a failure a "flake" without naming it. Applied correctly on
-  CA25 + CA34 — swept BEFORE landing, found zero genuine regressions.)
-  **▶ NEXT = CA35 (picture-usage-value): USAGE BINARY / COMPUTATIONAL / PACKED-DECIMAL with a NON-numeric picture —
-  §13.18.60.3 SR3 (such a usage 'shall be specified only with a picture character-string that describes a numeric
-  item'). `PictureAnalyzer.Analyze` guards the BIT (SR5) and NATIONAL (SR12) cases before the category dispatch but has
-  NO guard for Binary/Comp/Packed, so `01 A PIC XX COMP` silently binds as alphanumeric (usage dropped). FIX: add an
-  SR3 guard before the `if (anyAlpha)` return (PictureAnalyzer.cs ~:245) reusing COBOLNET0881, recover to Display.
-  Golden = negative `PIC XX COMP`. Effort S. Then arithmetic
-  (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
+  806 files / 0 regressions; full Conformance 3891/3891; DEVLOG 1006) · **CA35 (picture-usage — USAGE
+  BINARY/COMP/PACKED-DECIMAL requires a numeric PICTURE, §13.18.60.3 SR3; a one-branch guard in
+  `PictureAnalyzer.Analyze` mirroring BIT/NATIONAL, reused COBOLNET0881, recover to Display; `PIC XX COMP` was silently
+  misbound as alphanumeric; corpus grep 0 at-risk; DEVLOG 1007).** 17 landed / 29 fix-ready remain.** (Process lessons
+  durable in `feedback_edition_gate_sweep_and_no_flake_handwave` + `feedback_fresh_build_before_no_build_test` — CA35
+  re-learned the stale-DLL trap: build `CobolSharp.sln`, NOT just `src/Cobol.Net.Compiler`, before any `--no-build`
+  test/CLI smoke. Applied the sweep-BEFORE-landing rule on CA25/CA34/CA35, found zero genuine regressions.)
+  **▶ NEXT = the ARITHMETIC batch (spec-first, one at a time): CA4 (ADD/SUBTRACT Format-2 composite EXCLUDES the GIVING
+  resultants — §14.9.2.3 SR1b / §14.9.44.3 SR1b; `CheckComposite` wrongly shapes them → a legal program is rejected
+  with COBOLNET0805; fix = pass `[]` receivers at the two GIVING call sites, MULTIPLY/DIVIDE untouched) · CA5 (division
+  rounding / PROHIBITED intermediate — a two-directional defect, the careful one) · CA6 (§14.7.7 rule 2b — binary-N
+  operands EXCLUDED from the composite). Then conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
   §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
