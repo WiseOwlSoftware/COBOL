@@ -6,7 +6,7 @@
 > Source ledgers: `CODE-SPEC-AUDIT.md` (CA*), §24 (V54–V59). Part of the P14 full spec-conformance review
 > (`DESIGN-spec-conformance-review.md`).
 
-**46 fix-ready (44 CONFIRMED + 2 OWNER-DECIDED) · 0 refuted · 0 pending.** Confirmed by severity: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L).
+**46 total (44 CONFIRMED + 2 OWNER-DECIDED) · 0 refuted · 0 pending · 10 LANDED · 36 REMAIN (2026-07-23).** Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; all 36 remaining are major/minor/nit + the 2 owner-decided.
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **Remaining: 36 fix-ready.** *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
