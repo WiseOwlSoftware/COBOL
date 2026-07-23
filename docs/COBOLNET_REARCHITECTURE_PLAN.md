@@ -41,16 +41,19 @@ checkpoint.
   ⚡ **OWNER DECISION (DEVLOG 997): STOP GATING on the legacy differential** — the legacy shared-corpus Conformance is
   opt-in (`COBOLSHARP_LEGACY_DIFFERENTIAL=1`); NO new `GreenfieldOnly` exclusions. Legacy engine + `guard.sh` kept ONLY
   for the P14 Step-0 equivalence proof; full deletion stays P15.
-  ✅ **LANDED this campaign (spec-first, all pushed except files-io): CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2
-  (accept-display, 996) · CA27+CA28 (move-convert, 998 — CA28 also retracted a spec-wrong test + VCR row 130c) ·
-  CA13+CA39 (editions-gating, 999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix. 36 fix-ready
-  remain.** (A process lesson from CA39: gating a construct breaks tests/goldens that compile it below the new edition —
-  SWEEP for them; and never call a conformance failure a "flake" without naming the failing test — `feedback_edition_gate_sweep_and_no_flake_handwave`.)
-  **▶ NEXT batch = intrinsics, in ASCENDING risk: CA24 (EXP/EXP10 ∞-saturate + LOG/LOG10 domain — `CobolIntrinsics.cs`
-  FromDouble split + `Float.cs`) → V54 (MAX/MIN national result category — `IntrinsicBinder` MAX/MIN block, the
-  unconditional `category=Alphanumeric`) → CA23 (MAX/MIN/ORD-MAX/ORD-MIN collation weights — runtime `Exact.cs` +
-  binder collate flags + renderer) → CA25 (national result category for UPPER/LOWER/REVERSE/TRIM… — `IntrinsicCatalog`
-  + binder; BROAD blast radius on MOVE legality, do carefully). Then picture-usage-value (CA33/CA34/CA35) · arithmetic
+  ✅ **LANDED this campaign (spec-first, all pushed): CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2 (accept-display, 996) ·
+  CA27+CA28 (move-convert, 998 — CA28 also retracted a spec-wrong test + VCR row 130c) · CA13+CA39 (editions-gating,
+  999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix · CA24+V54+CA23 (intrinsics — EXP/EXP10
+  ∞-saturate + LOG/LOG10 domain; MAX/MIN national result category; MAX/MIN/ORD PCS collation; DEVLOG 1001–1003).
+  13 landed / 33 fix-ready remain.** (A process lesson from CA39: gating a construct breaks tests/goldens that compile
+  it below the new edition — SWEEP for them; never call a conformance failure a "flake" without naming the failing
+  test — `feedback_edition_gate_sweep_and_no_flake_handwave`.)
+  **▶ NEXT = CA25 (finish the intrinsics batch): national result category for UPPER-CASE/LOWER-CASE/REVERSE (+ TRIM/
+  CONCAT/SUBSTITUTE/FORMATTED-*/CURRENT-DATE) — `IntrinsicCatalog.cs:125-127` hardcodes these to Alphanumeric; the fix
+  is a catalog `NationalPolymorphic` flag + binder resolution (national arg → National result), mirroring V54's MAX/MIN
+  category logic. ⚠ BROAD blast radius on §14.9.25.4 Table-16 MOVE legality — SWEEP for tests/goldens that MOVE one of
+  these results to an alphanumeric receiver (they'd newly reject) and re-baseline; do carefully, not rushed. AFTER CA25,
+  run the intrinsics-batch full-conformance gate (already run for CA24+V54+CA23).** Then picture-usage-value (CA33/CA34/CA35) · arithmetic
   (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
