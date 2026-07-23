@@ -1203,6 +1203,23 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   surface + exit 1 (not a raw crash); a two-assembly run unit where a file-less main CALLs a checking-on sub that
   raises a fatal EC → same. ALSO fold the V47-coverage sibling (a `STOP RUN … WITH STATUS n` inside an INVOKEd
   method reaching `Main` sets the exit code via the setter-flush — assert it). Effort: M.
+- **DECISION-COMPLETE DESIGN (V52 + V53 are ONE coupled fix; design finalized this session — spec §14.6.11/§14.6.12
+  read + `CloseAll` idempotency + byte-scope confirmed):** move the run-unit-termination epilogue OUT of the
+  generated `Main` and INTO `ProgramTable.RunMain` (the single run-unit boundary). New `RunMain` shape:
+  `try { try { inst.Activate(); ApplyPropagationDefault(); } catch (CobolFatalException fx) { Console.Error.WriteLine(
+  "abnormal run-unit termination: " + fx.Message); Environment.ExitCode = 1; } } finally { n.Active--; Modules.Pop();
+  _owner.Files.CloseAll(); }`. The generated `Main` reduces to an UNCONDITIONAL `try { ProgramRegistry.RunMain(path); }
+  catch (StopRun) { }` (drop the `_ecState.Active` fatal-catch AND the `anyFiles` FileInit/finally — ProgramEmitter.cs
+  :417,:429-435). **Byte-analysis:** EC-free + file-free programs are BYTE-IDENTICAL (their `Main` was already exactly
+  `try{RunMain}catch(StopRun){}`); only EC-active or file goldens re-baseline (they lose the inline catch/finally). §18.16
+  preserved for the common case. `StopRun` still propagates through `RunMain`'s finally to `Main`'s catch (ordering:
+  CloseAll now runs during the unwind, before `Main` catches — same observable). `CloseAll` is idempotent
+  (FileRegistry.cs:162 — sequential re-close harmless, keyed skip `!IsOpen`), so `RunUnit.Run`'s embedding-path finally
+  CloseAll double is safe. `FileInit()` also moves into RunMain (or stays emitted — verify FileInit is idempotent /
+  whether the run-unit needs it before any sub opens). The §14.6.11 non-file ops (COMMIT/ALLOCATE-release/object-destroy/
+  dynamic-free/MCS) remain .NET no-ops (GC), matching current behavior. **GATE (shared-runtime seam):** regenerate the
+  EC/file `.g.cs` goldens + characterization re-baseline + full Conformance + NIST/legacy guard + **GnuCOBOL differential
+  before/after** (the required confirmation that moving CloseAll into RunMain moves NO program's stdout). Effort: M.
 
 ### V53. Run-unit implicit CLOSE at termination (§14.6.11 CloseAll) + FileInit emitted PER-MAIN, gated on the MAIN group's `anyFiles` — NEW (surfaced by the V47 adversarial review)
 
@@ -1219,6 +1236,9 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   open connectors (e.g. at a runtime run-unit boundary), preserving §18.16 for genuinely file-free run units. Test:
   a two-assembly run unit (file-less main CALLs a file-writing sub) asserts the sub's output file is flushed/closed
   at termination. Effort: M.
+- **DECISION-COMPLETE DESIGN: fixed by the SAME `RunMain`-epilogue move as V52 (see V52's decision-complete block —
+  the `finally { … _owner.Files.CloseAll(); }` closes ALL run-unit connectors regardless of which assembly opened
+  them). Land V52 + V53 together in one commit + one comprehensive gate.**
 
 ### V46. COBOLNET1570's SR4/SR5 citation — REFUTED-as-cited; the NATIONAL half of E.2 item 27 is the real gap
 
