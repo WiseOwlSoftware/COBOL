@@ -144,42 +144,43 @@ public static partial class CobolIntrinsics
         return idx;
     }
 
-    // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric arguments (category-polymorphic, §15.59.3 r2 / §15.63.3) ──
+    // ── MAX/MIN/ORD-MAX/ORD-MIN over all-alphanumeric/national arguments (category-polymorphic; §15.59/§15.63/§15.71/§15.72) ──
+    // §15.59.4 r1 etc.: the greatest/least is determined by §8.8.4.2 simple-condition rules — the alphanumeric PROGRAM
+    // COLLATING SEQUENCE (§8.8.4.2.7) or national PCS (§8.8.4.2.9), WITH §8.8.4.2.7 r2 space-padding of unequal-length
+    // operands. All realized by CobolString.Compare, NEVER string.CompareOrdinal (which ignores the PCS and does not
+    // space-pad). Three collation variants funnel through ONE selection helper (singular pattern): the native sequence
+    // (the parameterless pad-compare body), a non-identity alphanumeric PCS (weights table — the emitter passes
+    // __COLLATE first), and a non-native national PCS (the emitter passes __COLLATE_NAT first). (CA23.)
 
-    /// <summary>MAX with all-alphanumeric arguments: the greatest per the alphanumeric collation (ordinal —
-    /// the native sequence <c>CobolString.Compare</c> realizes); the returned value IS the selected string.</summary>
-    public static string MaxString(params string[] xs)
+    /// <summary>The 0-based index of the extreme (greatest if <paramref name="max"/>, else least) under
+    /// <paramref name="cmp"/>; first-wins on a tie (strict &gt;/&lt;). The one selection algorithm the MAX/MIN/
+    /// ORD-MAX/ORD-MIN families and their three collation variants all share.</summary>
+    private static int ExtremeIndex(string[] xs, bool max, Func<string, string, int> cmp)
     {
-        string m = xs[0];
-        foreach (var x in xs) if (string.CompareOrdinal(x, m) > 0) m = x;
-        return m;
+        int k = 0;
+        for (int i = 1; i < xs.Length; i++) { int c = cmp(xs[i], xs[k]); if (max ? c > 0 : c < 0) k = i; }
+        return k;
     }
 
-    /// <summary>MIN with all-alphanumeric arguments — the least per the alphanumeric collation.</summary>
-    public static string MinString(params string[] xs)
-    {
-        string m = xs[0];
-        foreach (var x in xs) if (string.CompareOrdinal(x, m) < 0) m = x;
-        return m;
-    }
+    /// <summary>MAX (§15.59) — the greatest argument per the effective collating sequence; the value IS the selected string.</summary>
+    public static string MaxString(params string[] xs) => xs[ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b))];
+    public static string MaxString(ushort[] w, params string[] xs) => xs[ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, w))];
+    public static string MaxString(NationalCollation nat, params string[] xs) => xs[ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, nat))];
 
-    /// <summary>ORD-MAX over alphanumeric arguments (§15.71): 1-based position of the greatest; tie = first.</summary>
-    public static long OrdMaxString(params string[] xs)
-    {
-        string m = xs[0];
-        long idx = 1;
-        for (int i = 1; i < xs.Length; i++) if (string.CompareOrdinal(xs[i], m) > 0) { m = xs[i]; idx = i + 1; }
-        return idx;
-    }
+    /// <summary>MIN (§15.63) — the least argument per the effective collating sequence.</summary>
+    public static string MinString(params string[] xs) => xs[ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b))];
+    public static string MinString(ushort[] w, params string[] xs) => xs[ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, w))];
+    public static string MinString(NationalCollation nat, params string[] xs) => xs[ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, nat))];
 
-    /// <summary>ORD-MIN over alphanumeric arguments (§15.72): 1-based position of the least; tie = first.</summary>
-    public static long OrdMinString(params string[] xs)
-    {
-        string m = xs[0];
-        long idx = 1;
-        for (int i = 1; i < xs.Length; i++) if (string.CompareOrdinal(xs[i], m) < 0) { m = xs[i]; idx = i + 1; }
-        return idx;
-    }
+    /// <summary>ORD-MAX (§15.71) — 1-based position of the greatest; tie = first.</summary>
+    public static long OrdMaxString(params string[] xs) => ExtremeIndex(xs, true, static (a, b) => CobolString.Compare(a, b)) + 1;
+    public static long OrdMaxString(ushort[] w, params string[] xs) => ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, w)) + 1;
+    public static long OrdMaxString(NationalCollation nat, params string[] xs) => ExtremeIndex(xs, true, (a, b) => CobolString.Compare(a, b, nat)) + 1;
+
+    /// <summary>ORD-MIN (§15.72) — 1-based position of the least; tie = first.</summary>
+    public static long OrdMinString(params string[] xs) => ExtremeIndex(xs, false, static (a, b) => CobolString.Compare(a, b)) + 1;
+    public static long OrdMinString(ushort[] w, params string[] xs) => ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, w)) + 1;
+    public static long OrdMinString(NationalCollation nat, params string[] xs) => ExtremeIndex(xs, false, (a, b) => CobolString.Compare(a, b, nat)) + 1;
 
     // ── NUMVAL / NUMVAL-C (ISO §15.67 / §15.68) ───────────────────────────────────────────────────────────────
 

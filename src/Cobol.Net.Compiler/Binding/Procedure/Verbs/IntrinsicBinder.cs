@@ -284,9 +284,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // CollateNat flag, set only under a NON-native national sequence (an ALPHABET … FOR NATIONAL literal
         // phrase — NATIVE/UCS-4 are the D-N3 code-unit identity the parameterless runtime bodies realize).
         bool nationalArg = args.Any(a => OperandCategory(a) is PicCategory.National);
-        bool collate = sig.Name is "CHAR" or "ORD" && ctx.Data.Collating is not null && !nationalArg;
+        // MAX/MIN/ORD-MAX/ORD-MIN over string arguments compare by the SAME PCS as CHAR/ORD (§15.59.4 r1 → §8.8.4.2.7
+        // alphanumeric / §8.8.4.2.9 national) — flag the STRING form (resolved above) so the backend passes __COLLATE /
+        // __COLLATE_NAT, else it silently uses the native ordinal and disagrees with the program's relation conditions. (CA23.)
+        bool maxMinStr = resolved.RuntimeMethod is "MaxString" or "MinString" or "OrdMaxString" or "OrdMinString";
+        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.Collating is not null && !nationalArg;
         bool collateNat = ctx.Data.NationalCollating is not null
-            && (sig.Name is "CHAR-NATIONAL" || (sig.Name is "ORD" && nationalArg));
+            && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || maxMinStr) && nationalArg));
 
         // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
         // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§15.16, implemented — the P10

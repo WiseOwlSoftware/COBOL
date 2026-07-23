@@ -4,6 +4,7 @@
     "address_of_qualified",
     "initialize_program_pointer",
     "intrinsic_exp_overflow",
+    "intrinsic_max_collating",
     "allocate_initialized",
     "alphabet_national",
     "any_length_contained",
