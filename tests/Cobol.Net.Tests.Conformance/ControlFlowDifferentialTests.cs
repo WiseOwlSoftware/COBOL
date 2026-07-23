@@ -150,8 +150,10 @@ public sealed class ControlFlowDifferentialTests
             """));
 
     [Fact]
+    // EXIT PARAGRAPH is a COBOL-2002 structured-procedure exit (ISO §14.9.14.2 Format 4), so this compiles at 2002 —
+    // the DifferentialGolden default of edition 85 now correctly REJECTS it (COBOLNET0900; the CA39 introduction gate).
     public void ExitParagraph()
-        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+        => DifferentialGolden.Assert(Program("01 FILLER PIC X.", """
             MAIN-PARA.
                 PERFORM SUB-PARA.
                 DISPLAY "AFTER".
@@ -160,7 +162,7 @@ public sealed class ControlFlowDifferentialTests
                 DISPLAY "S1".
                 EXIT PARAGRAPH.
                 DISPLAY "S2".
-            """));
+            """), edition: 2002);
 
     // ISO §14.9.28: the control phrase (TIMES / UNTIL) is INDEPENDENT of the THRU range (general format
     // PERFORM proc-1 [THRU proc-2] [times|until|varying]). The combination THRU + TIMES / THRU + UNTIL was

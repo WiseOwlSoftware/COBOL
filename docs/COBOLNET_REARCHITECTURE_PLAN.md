@@ -25,30 +25,36 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `b893bb19` + the verification-landing commit; tree clean, all pushed).
-  🔴 **THE WORK NOW = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`
-  = 44 CONFIRMED bugs (2 blocker · 30 major · 10 minor · 2 nit), each with a decision-complete spec-derived FIX + a
-  spec-derived GOLDEN already written.** (Owner directive: spec-first is the ONLY going priority — memory
-  `feedback_spec_first_only_priority`. The existing NIST/GnuCOBOL/corpus checks are all DIFFERENTIAL/happy-path, blind to
-  a spec-violation shared with the legacy oracle; these bugs were surfaced by two spec-first audits then independently
-  VERIFIED, `wf_29a15db2` — 0 refuted, the pass even found a mirror bug + downgraded 2 to owner-decision, so trust it.)
-  **HOW:** work the queue TOP-DOWN by severity, one at a time, batched by area; land each fix WITH its spec-derived
-  golden under a comprehensive gate (per-area batch). ✅ **LANDED so far: CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2
-  (accept-display-misc, DEVLOG 996) · CA27+CA28 (move-convert, DEVLOG 998 — CA28 also retracted a spec-wrong test +
-  VCR row 130c) · CA13+CA39 (editions-gating — OPTIONS INITIALIZE→2023, EXIT PARAGRAPH/PERFORM→2002; DEVLOG 999).
-  Greenfield Conformance 3873/3873 0-reg. 38 fix-ready remain.**
-  **⚡ OWNER DECISION
-  2026-07-22 (DEVLOG 997): STOP GATING on the legacy differential — the legacy conformance suite is decoupled from the
-  required gate and NO new `GreenfieldOnly` exclusions are added going forward (the spec-first campaign targets bugs the
-  legacy SHARES, so it gives near-zero correctness signal and pure friction; the greenfield golden corpus + the GnuCOBOL
-  external differential are the regression net). The legacy ENGINE + `guard.sh` stay ONLY for the P14 Step-0
-  equivalence proof; full deletion stays at P15.** **▶ NEXT batch = files-io (CA15 line-sequential over-length READ '06'
-  + remainder, CA16 OPTIONAL I-O create → '05'/'10' — both SequentialConnector.cs + FileStatus.cs)
-  (CA15/CA16) · intrinsics (CA23/CA24/CA25/V54) · picture-usage-value (CA33/CA34/CA35) · arithmetic (CA4/CA5/CA6) ·
-  conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec CA9/CA10/CA11/CA12/V57 ·
-  interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one
-  coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** The original V46 (N"…" VALUE, §13.18.63.3
-  SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
+- **▶ RESUME AT (2026-07-23; on `phase-14`, HEAD = `b76c0455`; the files-io batch (CA15/CA16 + a CA39-fallout
+  ControlFlow test fix) is IN THE WORKING TREE under its batch gate — commit it first thing).**
+  🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
+  (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
+  (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
+  spec-violation shared with the legacy oracle.
+  **HOW:** work the queue TOP-DOWN by severity, batched by AREA; land each fix WITH its spec-derived golden.
+  ⚡ **TESTING DISCIPLINE (owner-corrected — obey; `feedback_execution_model_tiered_parallel`): PER COMMIT run only the
+  WAVE-LOCAL FILTERED gate (~2 min: the fix's own tests + immediate neighbors + characterization + relevant unit) —
+  do NOT run the full ~11–20 min Conformance suite per feature. Run the FULL Conformance (+ legacy guard / GnuCOBOL
+  differential) ONCE per ACCUMULATED batch as the pre-merge gate.** (Filtered examples: `dotnet test
+  tests/Cobol.Net.Tests.Conformance --filter "FullyQualifiedName~<Area>"`; for edition gates ALSO
+  `--filter "FullyQualifiedName~VersionMatrix"`. Full run only before merging phase-14 → main.)
+  ⚡ **OWNER DECISION (DEVLOG 997): STOP GATING on the legacy differential** — the legacy shared-corpus Conformance is
+  opt-in (`COBOLSHARP_LEGACY_DIFFERENTIAL=1`); NO new `GreenfieldOnly` exclusions. Legacy engine + `guard.sh` kept ONLY
+  for the P14 Step-0 equivalence proof; full deletion stays P15.
+  ✅ **LANDED this campaign (spec-first, all pushed except files-io): CA31+CA32 (blockers, DEVLOG 995) · CA1+CA2
+  (accept-display, 996) · CA27+CA28 (move-convert, 998 — CA28 also retracted a spec-wrong test + VCR row 130c) ·
+  CA13+CA39 (editions-gating, 999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix. 36 fix-ready
+  remain.** (A process lesson from CA39: gating a construct breaks tests/goldens that compile it below the new edition —
+  SWEEP for them; and never call a conformance failure a "flake" without naming the failing test — `feedback_edition_gate_sweep_and_no_flake_handwave`.)
+  **▶ NEXT batch = intrinsics, in ASCENDING risk: CA24 (EXP/EXP10 ∞-saturate + LOG/LOG10 domain — `CobolIntrinsics.cs`
+  FromDouble split + `Float.cs`) → V54 (MAX/MIN national result category — `IntrinsicBinder` MAX/MIN block, the
+  unconditional `category=Alphanumeric`) → CA23 (MAX/MIN/ORD-MAX/ORD-MIN collation weights — runtime `Exact.cs` +
+  binder collate flags + renderer) → CA25 (national result category for UPPER/LOWER/REVERSE/TRIM… — `IntrinsicCatalog`
+  + binder; BROAD blast radius on MOVE legality, do carefully). Then picture-usage-value (CA33/CA34/CA35) · arithmetic
+  (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
+  CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
+  stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
+  §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
   ✅ **The 2 owner-decisions are RESOLVED (approved 2026-07-22) — now fix-ready in `CONFORMANCE-FIX-QUEUE.md` §OWNER-DECIDED:**
   **CA14** → APPROVED the uniform introduction-error policy (route SYNC-on-group through `ConstructRegistry.Check` +
   activate the `sync-on-group-2023` row; hard error on both axes; effort S) · **V59** → APPROVED building the Tier-C

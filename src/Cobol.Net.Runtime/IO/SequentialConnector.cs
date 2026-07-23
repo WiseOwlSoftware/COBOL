@@ -29,6 +29,10 @@ public sealed class SequentialConnector : FileConnector
     // deriving the block start from it corrupted the rewrite target (IX106A REWRITE-TEST-GF-02).
     private long _lastReadBlockStart = -1;
     private long _readOffset;
+    // §14.9.30 GR15 / NOTE 3: the unread tail of an over-length LINE-SEQUENTIAL record — the file position indicator
+    // "next unread character in the record". The next READ returns this (chunked to the record width) before reading a
+    // new physical line, so a program using the GR15 multi-read pattern sees the whole logical line, not silent loss.
+    private string? _lineRemainder;
 
     // ── Record-lock identity (ISO §9.1.16 on sequential organization) ────────────────────────────────────────
     // A sequential record's lock identity is its 1-based ORDINAL position in the physical file — two connectors
@@ -189,6 +193,7 @@ public sealed class SequentialConnector : FileConnector
         _afterAdvancing = false;
         _lastReadBlockStart = -1;
         _readOffset = 0;
+        _lineRemainder = null;
         _readOrdinal = 0;
         _writeBase = -1;   // unshared default; the registry seeds a sharing-active connector (§9.1.16)
         _writesDone = 0;
@@ -233,11 +238,15 @@ public sealed class SequentialConnector : FileConnector
                     // successful READ in place), so the underlying stream must open ReadWrite — Rewrite's
                     // seek-and-write path writes through the reader's BaseStream. An absent non-optional file
                     // is 35; an optional one is created (05).
+                    // §14.9.27 GR17: an ABSENT OPTIONAL file opened I-O is CREATED (as if OPEN OUTPUT then CLOSE),
+                    // then opened I-O like an existing file — so it always ends with a ReadWrite _reader and the FPI is
+                    // effectively 1 (GR14). A first READ then finds no record → AtEnd '10' (§14.9.30 GR21 rule e + GR24),
+                    // NOT '47' (which is only for a connector not open in input/I-O, §9.1.13.7 item 7). OPEN still
+                    // returns '05'. No OptionalAbsent needed — the file now physically exists (empty).
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
-                    if (exists)
-                        _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite,
-                            SharedStreams ? FileShare.ReadWrite : FileShare.Read), Encoding.Latin1);
-                    else { _writer = new StreamWriter(HostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" }; }
+                    if (!exists) using (new StreamWriter(HostPath, append: false, Encoding.Latin1)) { }   // create empty, then close
+                    _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite,
+                        SharedStreams ? FileShare.ReadWrite : FileShare.Read), Encoding.Latin1);
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
             }
@@ -377,12 +386,25 @@ public sealed class SequentialConnector : FileConnector
         // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). Line-sequential
         // is excluded — its short/long conditions are '06'/'09', never '04'.
         bool shortLong = false;
+        bool lineTooLong = false;
         if (_lineSequential)
         {
-            string? line = _reader.ReadLine();
+            // §14.9.30 GR15: an over-length line-sequential record is truncated on the right to the record width, the
+            // READ is SUCCESSFUL with I-O status '06', and the file position indicator references the next unread
+            // character IN THE RECORD (NOTE 3) — a subsequent READ continues the remainder up to the line delimiter.
+            // _lineRemainder models that FPI: service a pending remainder before reading a new physical line.
+            string? line = _lineRemainder;
+            if (line is not null) _lineRemainder = null;
+            else line = _reader.ReadLine();
             if (line is null) { PrevOpWasSuccessfulRead = false; LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
-            LastReadLength = Math.Min(line.Length, RecordWidth);
-            image = Fit(line, RecordWidth);
+            if (line.Length > RecordWidth)
+            {
+                _lineRemainder = line[RecordWidth..];
+                image = line[..RecordWidth];
+                LastReadLength = RecordWidth;
+                lineTooLong = true;
+            }
+            else { LastReadLength = line.Length; image = Fit(line, RecordWidth); }
         }
         else if (IsVarying)
         {
@@ -416,7 +438,8 @@ public sealed class SequentialConnector : FileConnector
         }
         PrevOpWasSuccessfulRead = true;
         _readOrdinal++;   // the record just made available is ordinal N+1 (§9.1.16 lock identity)
-        Status = shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
+        Status = lineTooLong ? FileStatusCode.LineRecordTooLong
+            : shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
         return true;
     }
 
