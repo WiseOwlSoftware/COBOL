@@ -25,29 +25,33 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = the V5 commit `de95b114` + a small audit-ledger commit; tree clean).
-  🔴 **STANDING TOP PRIORITY — ~44 candidate CONFORMANCE BUGS from two spec-first audits (owner concern: the design
-  docs — and the tests — never used the spec as the oracle).** The existing NIST/GnuCOBOL/corpus checks are all
-  DIFFERENTIAL (vs legacy / vs GnuCOBOL) or happy-path goldens — structurally BLIND to a spec-violation the
-  implementations share (esp. bugs ported from the legacy). Two audits fixed that:
-  · **Design-doc audit** (`wf_480d50f5` + correction `wf_16d53d4e`): 54 doc↔spec conflicts — DOC side CORRECTED + PUSHED
-    (13 docs rewritten spec-faithful); 6 spec-wrong-AND-implemented = §24 **V54–V59**. SSOT `DESIGN-SPEC-RECONCILIATION.md`.
-  · **Code audit** (`wf_4ce42db6`): **38 candidate bugs across all 14 behavioral areas (24 blocker/major)** — SSOT
-    `CODE-SPEC-AUDIT.md` (CA1–CA38). Examples: composite-of-operands counts the GIVING receiver → rejects conformant
-    ADD…GIVING (§14.9.2.3 SR1b); ROUNDED MODE PROHIBITED on an inexact INTERMEDIATE → spurious size error (§14.7.4.3 GR7);
-    MOVE numeric-edited→numeric-edited skips de-editing → wrong value (§14.9.25.4 GR5).
-  ⏭ **NEXT: VERIFY-THEN-FIX the ~44 (V54–V59 + CA1–CA38), spec-first, one at a time, batched by area under comprehensive
-  gates; some are false positives (candidate, agent-surfaced). DURABLE FIX: convert each verified finding into a
-  SPEC-DERIVED golden (expected value from the spec, not the legacy).** Then the original V46 (N"…" VALUE — spec-validated
-  §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE — decision-complete) batch. Also a sibling gap noted: EXIT PARAGRAPH / EXIT
-  PERFORM are 2002 introductions but ungated (like V5's EXIT SECTION was — should be in the CA edition-gating findings).
-  ⛔ **P14 STEP-0 IS RE-GROUNDED = the FULL implementation↔spec review (decision-complete plan:
-  `docs/rearchitecture/DESIGN-spec-conformance-review.md`) — EXHAUSTIVE + spec-first, the definition of DONE (D13).**
-  The two audits above were bounded SAMPLING (14 areas, a few rules each), NOT exhaustive; the ~44-bug queue is the
-  FIRST INSTALLMENT. Phase A = build the spec-rule catalog (`spec-rule-catalog.json`, the DENOMINATOR — every SR/GR);
-  Phase B = map+verify each rule → code → verdict (the traceability inventory, the burn-down metric session-probe already
-  tracks); Phase C = close every DIVERGES (§24) / NOT-IMPLEMENTED / untested-CONFORMS (spec-derived golden). Editions via
-  the VERSION TEST MATRIX.
+- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = `b893bb19` + the verification-landing commit; tree clean, all pushed).
+  🔴 **THE WORK NOW = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`
+  = 44 CONFIRMED bugs (2 blocker · 30 major · 10 minor · 2 nit), each with a decision-complete spec-derived FIX + a
+  spec-derived GOLDEN already written.** (Owner directive: spec-first is the ONLY going priority — memory
+  `feedback_spec_first_only_priority`. The existing NIST/GnuCOBOL/corpus checks are all DIFFERENTIAL/happy-path, blind to
+  a spec-violation shared with the legacy oracle; these bugs were surfaced by two spec-first audits then independently
+  VERIFIED, `wf_29a15db2` — 0 refuted, the pass even found a mirror bug + downgraded 2 to owner-decision, so trust it.)
+  **HOW:** work the queue TOP-DOWN by severity, one at a time, batched by area; land each fix WITH its spec-derived
+  golden under a comprehensive gate (per-area batch). **START with the 2 BLOCKERS — CA31 + CA32** (EXIT PERFORM
+  without/with CYCLE in a multi-level inline PERFORM VARYING emits a bare `break;`/`continue;` that exits only the
+  innermost nested `while`, so the whole PERFORM isn't left — §14.9.14.4 GR5a/GR6; ONE shared fix routes EXIT PERFORM
+  through goto-labels via a new `F3Region.Inline`, regenerating the 32 characterization snapshots as a spec-correct
+  re-baseline; exact fix in the queue doc). The original V46 (N"…" VALUE, spec-validated §13.18.63.3 SR7) + V24 (OPTIONS
+  INITIALIZE) fold into this queue as spec-conformance items.
+  ⚠ **2 NEEDS-OWNER-DECISION (do NOT fix without the owner) — in `CONFORMANCE-FIX-QUEUE.md` §"NEEDS OWNER DECISION":**
+  **CA14** (SYNC-on-group `--permissive` accept-inert vs uniform introduction-error — the strict axis is already
+  correct; agent recommends enforcing the uniform policy) · **V59** (REDEFINES Tier-B BINARY/PACKED zoned image —
+  §13.18.60.4 GR4/GR11 make the byte layout implementor-defined so it is NOT a §4.2.16 violation; the question is
+  GnuCOBOL/real-program byte-pun fidelity → keep value-faithful Tier-B, or build the Tier-C byte[] canonical). *(V59 was
+  filed as a §24 code-bug but the verification RECLASSIFIED it to owner-decision.)*
+  ⛔ **AFTER the queue: P14 STEP-0 = the FULL implementation↔spec review** (decision-complete plan
+  `docs/rearchitecture/DESIGN-spec-conformance-review.md`) — EXHAUSTIVE + spec-first, the definition of DONE (D13). The
+  two audits were bounded SAMPLING; the 44-bug queue is the FIRST INSTALLMENT. **Phase A = build the spec-rule catalog**
+  (`spec-rule-catalog.json`, the DENOMINATOR — every SR/GR extracted from the spec); Phase B = map+verify each rule →
+  code → verdict (the traceability inventory, the GAP burn-down session-probe tracks); Phase C = close every
+  DIVERGES(§24)/NOT-IMPLEMENTED/untested-CONFORMS. Editions via the VERSION TEST MATRIX. **Recommended sequence: finish
+  the 44-queue, then kick off Phase A.**
   ✅ **§24 V5 (EXIT SECTION, ISO §14.9.14 Format 4) LANDED (DEVLOG 991):** the design doc's `pc=lastPara+1` was spec-wrong
   (§14.9.14.4 GR7 — the exit-bound-aware `if (__exitPc==SectionEndPc) return` fires the section return); gate ALL GREEN
   (version-matrix 1835 · characterization 33/33 · Conformance 3867/3867 0-reg · GnuCOBOL 0-reg).
