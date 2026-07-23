@@ -20,19 +20,21 @@ public static partial class CobolIntrinsics
     /// chose (≥ 9 for float functions — hazard H1's scale floor). Rounds (never truncates) at the quantization
     /// point: ISO §15.4.1 makes the returned value an implementor-defined APPROXIMATION of the equivalent
     /// arithmetic expression, and rounding is strictly the better approximation (hazard H2 — truncation turns the
-    /// double artifact LOG10(1000) = 2.9999999999999996 into 2.999999999). NaN and ±∞ (ACOS of |x|&gt;1, SQRT of
-    /// a negative, LOG of ≤ 0 …) map to the EC-ARGUMENT-FUNCTION default result 0 — §15.3: "the implementor
-    /// defines the result of the function reference" while EC checking is disabled (an infinity only arises from
-    /// an argument-rule violation at a domain edge, e.g. LOG(0) → −∞ — the same EC condition as the NaN cases);
-    /// FINITE values beyond the long range saturate (a genuine huge result, e.g. EXP10(30) — the receiver's own
-    /// store then size-truncates).
+    /// double artifact LOG10(1000) = 2.9999999999999996 into 2.999999999). NaN (ACOS of |x|&gt;1, SQRT of a negative)
+    /// maps to the EC-ARGUMENT-FUNCTION default result 0 — §15.3: "the implementor defines the result of the function
+    /// reference" while EC checking is disabled. ±∞ SATURATES to long.Max/MinValue: it is NOT necessarily a domain
+    /// error — a LEGAL class-numeric argument whose e**x / 10**x result merely overflows binary64 (EXP(710) ≈ 2.25e308
+    /// = +∞) is a genuine huge result under §14.7.4 receiver handling, exactly like a FINITE over-range value
+    /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §15.55.3/§15.56.3 violation and is caught at the
+    /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
     /// </summary>
     public static long FromDouble(double d, int scale)
     {
-        if (double.IsNaN(d) || double.IsInfinity(d))
-            // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.1 Table 13, fatal): the §15.3 default result 0 when
-            // checking is off; the raise when the statement carries enabled checking (the ambient gate).
-            return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN/infinity result)");
+        // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.1 Table 13, fatal): the §15.3 default 0 when checking is off,
+        // the raise (throw) when the statement carries enabled checking (the ambient gate). NaN only — an over-range
+        // ±∞ is a legal overflow that saturates like a finite over-range value (the receiver store size-truncates).
+        if (double.IsNaN(d)) return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)");
+        if (double.IsInfinity(d)) return d > 0 ? long.MaxValue : long.MinValue;
         double scaled = d * Pow10.AsDouble(scale);
         if (scaled >= 9.2e18) return long.MaxValue;
         if (scaled <= -9.2e18) return long.MinValue;
