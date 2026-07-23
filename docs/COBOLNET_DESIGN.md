@@ -1540,7 +1540,10 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
     subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS plus the historical postfix superset):
-    - **Alphanumeric**: `CollatingTable` (256-entry position table, §12.3.7 GR7 k1–k6 incl. the k3
+    - **Alphanumeric**: `CollatingTable` (a native-code→position table over the alphabet's Latin-1 domain; the native
+      alphanumeric REPERTOIRE is Unicode/UTF-16 [CA26] — a code unit beyond the domain keeps its native position, NOT
+      capped at 256, and `CobolString.Compare` no longer masks `& 0xFF`; Latin-1 is only the byte serialization,
+      §8.1.2 NOTE 2 — §12.3.7 GR7 k1–k6 incl. the k3
       distinct-ascending unspecified tail), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
       the generated `__COLLATE` field, consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
       relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware

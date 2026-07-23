@@ -174,7 +174,7 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   residue lands (RESIDUE-11 coordination with the pointer track).
 - **D-N3 collating**: national comparisons order by UTF-16 code-unit ordinal (the implementor default national
   sequence); the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the
-  256-entry weight table would alias national chars through `& 0xFF`). A NON-native national sequence exists via
+  alphanumeric table is a distinct full-UTF-16-range sequence, never consulted for national comparisons and no longer `& 0xFF`-masked, post-CA26). A NON-native national sequence exists via
   `ALPHABET … FOR NATIONAL` literal phrases (§12.3.7) + `PROGRAM COLLATING SEQUENCE FOR NATIONAL` (§12.3.6) — the
   sparse `NationalCollatingTable`/`__COLLATE_NAT` channel; the coded-set names collapse to the D-N3 identity:
   UCS-4's ISO 10646 order over one-code-unit-per-position characters IS code-unit order (§8.5.1.4 — COBOL

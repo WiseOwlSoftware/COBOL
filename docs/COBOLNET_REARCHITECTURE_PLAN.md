@@ -125,9 +125,9 @@ checkpoint.
   **CobolCallException family** (EC-PROGRAM-NOT-FOUND/-RECURSIVE-CALL/-CANCEL-ACTIVE/EC-FUNCTION-NOT-FOUND) also now
   reaches the abnormal surface (was a raw CLR crash). Gate ALL GREEN: greenfield Conformance **3860/3860 0-reg** ·
   characterization 33/33 · GnuCOBOL differential 0-reg · `RunUnitTerminationTests`/`StopGobackExitCodeTests`/InterProgram
-  all green. **⏭ NEXT §24 majors (spec-first, one at a time): V5 EXIT-SECTION → V46 N"…" VALUE → V24 OPTIONS-INITIALIZE,
-  then V51 (§13.4.5.4 GR2(c) in-group LINAGE), the minors, the doc-slice sweep, and the owner-decision items
-  (F1/V19/V24).**
+  all green. *(The forward-pointer that stood here — V5 → V46 → V24 → the minors — is SUPERSEDED: V5 EXIT-SECTION
+  landed and the INDEPENDENT-MINORS batch is COMPLETE; the live NEXT is the §0 RESUME-AT band above — the EC-infra + OO
+  super-batch, then CA14/V59.)*
   ─── ⚠ *the EC-SEAM/V45 narrative below is HISTORICAL (now-DONE cycles), superseded by the live state above.* ───
   ⭐ THE §24 EC-SEAM BATCH
   (F10 · V3 · V4) IS COMPLETE AND MERGE-READY — the comprehensive pre-merge gate is ALL GREEN: greenfield
