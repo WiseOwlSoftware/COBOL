@@ -99,4 +99,75 @@ public sealed class SequentialFileIoSpecTests
             """;
         Assert.Equal("OPEN FS=05\nATEND FS=10", Run(prog));
     }
+
+    /// <summary>CA18 — §14.9.35.4 GR17 (line-sequential REWRITE in place): (equal) a same-length record replaces the
+    /// line, '00'; (b) a record LONGER than the one being replaced ⇒ '44', the line unchanged; (c) a SHORTER record
+    /// is space-padded to the replaced length and written, '00'. The buggy path returned '30' for every
+    /// line-sequential REWRITE (the seekable in-place branch was guarded by !_lineSequential).</summary>
+    [Fact]
+    public void LineSequential_Rewrite_Gr17_Equal00_Longer44_Shorter00()
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LSREW.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "lsrew.txt" ORGANIZATION LINE SEQUENTIAL FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN I-O F.
+                READ F. MOVE "WORLD" TO REC. REWRITE REC. DISPLAY "R1=" FS.
+                READ F. MOVE "XYZ" TO REC. REWRITE REC. DISPLAY "R2=" FS.
+                READ F. MOVE "HI" TO REC. REWRITE REC. DISPLAY "R3=" FS.
+                CLOSE F.
+                OPEN INPUT F.
+                READ F. DISPLAY "L1=[" REC "]".
+                READ F. DISPLAY "L2=[" REC "]".
+                READ F. DISPLAY "L3=[" REC "]".
+                CLOSE F.
+                STOP RUN.
+            """;
+        // Input lines HELLO(5), AB(2), CDEFG(5). WORLD==HELLO ⇒ '00', line becomes WORLD; XYZ(3) > AB(2) ⇒ '44'
+        // GR17b, AB unchanged; HI(2) < CDEFG(5) ⇒ '00' GR17c, space-padded to "HI   " within the byte span.
+        Assert.Equal("R1=00\nR2=44\nR3=00\nL1=[WORLD]\nL2=[AB   ]\nL3=[HI   ]",
+            Run(prog, ("lsrew.txt", "HELLO\nAB\nCDEFG\n")));
+    }
+
+    /// <summary>CA18 — §14.9.35.4 GR17a / §9.1.13.7 item 4d: a REWRITE of a record whose preceding READ transferred
+    /// only PART of it (an over-length line-sequential read that returned '06') is '44'.</summary>
+    [Fact]
+    public void LineSequential_RewriteAfterOverLengthRead_IsPartial44()
+    {
+        const string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LSPART.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN "lspart.txt" ORGANIZATION LINE SEQUENTIAL FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN I-O F.
+                READ F. DISPLAY "RD=" FS.
+                MOVE "WORLD" TO REC. REWRITE REC. DISPLAY "RW=" FS.
+                CLOSE F.
+                STOP RUN.
+            """;
+        // 'ABCDEFGH' (8) into an X(5) record ⇒ READ truncates to 'ABCDE' with '06' (a PARTIAL transfer); a REWRITE
+        // of that partially-read record is GR17a ⇒ '44'.
+        Assert.Equal("RD=06\nRW=44", Run(prog, ("lspart.txt", "ABCDEFGH\n")));
+    }
 }

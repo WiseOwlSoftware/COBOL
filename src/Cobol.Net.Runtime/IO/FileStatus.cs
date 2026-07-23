@@ -50,6 +50,11 @@ public static class FileStatusCode
     /// the record being replaced (§14.9.35 GR16).</summary>
     public const string RecordSizeViolation = "44";
 
+    /// <summary>71 — a line-sequential REWRITE whose new record contains a character outside the implementor-defined
+    /// line character set (ISO §14.9.35.4 GR17d); here a record carrying a line delimiter (CR/LF) that would corrupt
+    /// the line structure.</summary>
+    public const string LineRecordInvalidChar = "71";
+
     /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §9.1.13.2 item 2).</summary>
     public const string DuplicateAlternateKey = "02";
     /// <summary>14 — relative sequential READ: the RRN's significant digits exceed the RELATIVE KEY item (§9.1.13.4 item 2).</summary>
