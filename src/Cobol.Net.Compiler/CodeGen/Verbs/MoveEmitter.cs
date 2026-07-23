@@ -172,15 +172,19 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             }
         }
         int width = target.Item.ImageWidth;
-        // §8.8.4.1: an alphanumeric group receiver is treated as an elementary alphanumeric item, so a signed-numeric
-        // source drops its operational sign here too (§14.9.25.4 GR6a) — deSign:true (a no-op for a non-numeric source).
+        // §14.9.25.4 GR4: a GROUP receiver makes the move NON-elementary — "treated as an alphanumeric to alphanumeric
+        // elementary move, EXCEPT that there is no conversion of data from one form of internal representation to
+        // another". GR6a's operational-sign drop applies only to valid ELEMENTARY moves, so a signed-numeric elementary
+        // source keeps its DISPLAY overpunch image here (deSign:false — the sign-aware CobolNum.FormatDisplay), copied
+        // verbatim into the group's leaves; this matches the already-correct GROUP-sender path (OperandText.AsImage
+        // keeps the sign). A no-op for non-numeric / unsigned-numeric senders. (CA28.)
         // ALL "literal" repeats to the RECEIVER width (ISO §8.3.3.6.4 GR2) — space-padding it would fill the group's
         // tail leaves with blanks instead of the repeated pattern (NC243A's 7-dim table seed).
         string image = source is BoundFigurative f
             ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
-            : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), $"{width}");
+            : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: false), $"{width}");
         // ISO §13.18.38 GR8: an occurs-depending group RECEIVER with data-name-1 OUTSIDE the group uses only the
         // CURRENT-count part (positions past the count are not modified, GR8a); with data-name-1 INSIDE, the MAXIMUM
         // length is used (GR8b — the normal full-width FromImage). A Tier-B REDEFINES group view's image IS its
@@ -254,14 +258,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             : new NumX(RuntimeApi.NumFromAlphanumeric(CsLiteral(digits)), pic.Scale);
     }
 
-    /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
-    /// numeric data item) — the §14.9.25.4 GR5 editing path into a numeric-edited receiver applies only to these;
-    /// an alphanumeric source moves as plain characters.</summary>
+    /// <summary>True when a MOVE source carries a NUMERIC VALUE for the §14.9.25.4 GR5 editing path into a
+    /// numeric-edited receiver: a numeric literal/expression, figurative ZERO, a numeric data item, OR a
+    /// numeric-EDITED data item (GR5 + GR6d1 — a numeric-edited sender is DE-EDITED to its numeric value, which may be
+    /// signed, before being re-edited into the receiver mask). A plain alphanumeric source is NOT numeric — it moves
+    /// as characters (the §14.9.25.3 Table-16 unsigned-integer edit at the fall-through arm).</summary>
     private static bool IsNumericOperand(BoundOperand source) => source switch
     {
         BoundNumericLiteral or BoundComputedOperand => true,
         BoundFigurative { Kind: 'Z' } => true,
-        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric,
+        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
         _ => false,
     };
 

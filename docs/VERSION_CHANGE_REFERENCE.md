@@ -57,12 +57,13 @@ construct's (construct × edition) cells actually pass). Regenerate: `pwsh scrip
 CI if the index drifts from the anchors+catalogue, if an anchor names a construct that doesn't exist, or if a cited
 `§` doesn't resolve in the spec — so the ledger can no longer go stale.
 
-> **The three pin-to-spec determinations** (version-INVARIANT legacy bugs; the legacy oracle was non-conformant in
-> every edition, so they are pinned to the spec for **all** dialects rather than gated — implemented DEVLOG 509/516;
-> version-invariance recorded DEVLOG 517). They carry the `<!-- pin-to-spec -->` anchor in Table 6 (rows 130a/b/c):
-> **DISPLAY trailing-trim** (§14.9.11.4) · **signed-vs-alphanumeric comparison de-sign** (§8.8.4.2.5) ·
-> **signed → group de-sign** (§14.9.25.4 GR6a). They are not edition-change rows; they record "where we deliberately
-> did NOT gate, and why."
+> **The two pin-to-spec determinations** (version-INVARIANT legacy bugs; the legacy oracle was non-conformant in
+> every edition, so they are pinned to the spec for **all** dialects rather than gated). They carry the
+> `<!-- pin-to-spec -->` anchor in Table 6 (rows 130a/b): **DISPLAY trailing-trim** (§14.9.11.4) ·
+> **signed-vs-alphanumeric comparison de-sign** (§8.8.4.2.5). They are not edition-change rows; they record "where we
+> deliberately did NOT gate, and why." (A former row 130c "signed → group de-sign" was RETRACTED — see the CA28 note
+> in Table 6: a MOVE to a GROUP receiver is non-elementary, so §14.9.25.4 GR4 PRESERVES the overpunch sign; the legacy
+> was correct and there is no divergence to pin.)
 
 ---
 
@@ -276,7 +277,7 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | 130 | Implicit INTERMEDIATE ROUNDING (TRUNCATION) — unchanged across editions | §D.17.2 Intermediate rounding | unchanged across editions (explicit no-change edition reference) | **Old:** earlier editions implied INTERMEDIATE ROUNDING IS TRUNCATION when omitted. **New:** same — explicitly stated as unchanged; a deliberate no-gate edition reference. | No | none <!-- ref-only --> |
 | 130a | **DISPLAY trailing-trim** — version-INVARIANT legacy bug, pinned to spec | §14.9.11.4 (DISPLAY statement) | version-invariant (legacy oracle non-conformant in every edition) | Legacy oracle behaved non-conformantly across all editions; spec behavior is correct for all dialects → **pinned to spec, not gated** (DEVLOG 509/516). | n/a (all dialects) | pin-to-spec (no gating) <!-- pin-to-spec --> |
 | 130b | **signed-vs-alphanumeric comparison de-sign** — version-INVARIANT legacy bug, pinned to spec | §8.8.4.2.5 | version-invariant (legacy oracle non-conformant in every edition) | A signed numeric operand compared as alphanumeric drops its sign per §8.8.4.2.5 in every edition; legacy was wrong → **pinned to spec, not gated** (DEVLOG 509/516). | n/a (all dialects) | pin-to-spec (no gating) <!-- pin-to-spec --> |
-| 130c | **signed → group de-sign** — version-INVARIANT legacy bug, pinned to spec | §14.9.25.4 GR6a (MOVE) | version-invariant (legacy oracle non-conformant in every edition) | A signed numeric moved to a group item drops its sign per §14.9.25.4 GR6a in every edition; legacy was wrong → **pinned to spec, not gated** (DEVLOG 509/516). | n/a (all dialects) | pin-to-spec (no gating) <!-- pin-to-spec --> |
+| 130c | **signed → group move: sign PRESERVED** — RETRACTED pin (was "group de-sign") | §14.9.25.4 GR4 (MOVE, non-elementary) | version-invariant | A MOVE to a GROUP receiver is NON-elementary (GR4 ¶1), so GR4 bars internal-representation conversion and the overpunch sign is PRESERVED (S9(3) −45 → "04N"). GR6a's sign-drop applies only to a valid ELEMENTARY move (GR6). The former "de-sign" claim mis-cited GR6a and mis-applied §8.8.4.1 (a relation-condition rule) to MOVE; the legacy oracle's sign-preserving "04N" was in fact correct — no divergence, nothing to pin. Corrected CA28. | n/a (all dialects) | no divergence (spec == legacy) <!-- ref-only --> |
 | 130d | **Report Writer edition availability** — follow-up research row | §13.14–§13.18 / §14.9.16/.21/.46; A.4.11 (optional language element) | 85: optional MODULE; 2023: optional language ELEMENT (A.4.11); **2002/2014 status NOT derivable from the 2023 spec text** | RW implemented at all targeted editions (COBOLNET_REPORT_WRITER_DESIGN); whether ISO 1989:2002 dropped/kept the module needs the 2002 text — until verified the grammar/binder is NOT edition-gated (claiming support everywhere is the safe non-rejecting posture). | No (accept-everywhere) | flag-only — research the 2002 edition text before any gate <!-- todo --> |
 | 130e | **WORKING-STORAGE in a METHOD definition banned** (2023 §13.5.3 SR 1: within a class definition WS only in a factory/instance definition, "but not in a method definition"; corroborated by INVOKE SR 10 @28443 — the OO deep-dive Spec correction #1) | §13.5.3 SR 1 (@16461) | **PINNED 2002/2014-legal → 2023-banned (provisional):** Annex E.2 does NOT itemize the removal, and the 2002/2014 texts are not in-repo — the pre-2023 legality follows the deep-dive D3 semantics (method WS persists across activations, SHARED across instances — the 2002-era method-WS description the legacy port carried) per the correction's own "pin the boundary" instruction; **if the 2014 text shows the ban arrived earlier, shift `removedIn` on the registry row — one drift-locked line** | **Old (≤2014):** method WS legal, static semantics (one copy per class). **New (2023):** banned; LOCAL-STORAGE + LINKAGE are the method storage. | Yes | gate-behavior-by-dialect <!-- gate:method-working-storage-window --> |
 

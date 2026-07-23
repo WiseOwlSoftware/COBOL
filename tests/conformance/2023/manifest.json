@@ -37,6 +37,8 @@
     "perform_until_exit",
     "exit_perform_multilevel",
     "exit_perform_cycle",
+    "move_numeric_edited_source",
+    "move_group_overpunch",
     "ref_mod_zero_length",
     "set_size",
     "smallest_algebraic",
