@@ -46,14 +46,21 @@ checkpoint.
   999) · CA15+CA16 (files-io, 1000) + a CA39-fallout ControlFlow test fix · **the INTRINSICS batch COMPLETE:
   CA24+V54+CA23+CA25 (EXP/EXP10 ∞-saturate + LOG/LOG10 domain; MAX/MIN national result category; MAX/MIN/ORD PCS
   collation; UPPER/LOWER/REVERSE national result category; DEVLOG 1001–1004; full-conformance gate 3886/3886 for the
-  runtime-touching CA24/V54/CA23).** 14 landed / 32 fix-ready remain.** (Process lessons durable in
+  runtime-touching CA24/V54/CA23) · CA33 (picture-usage — the digit-position CAP now measures DIGIT POSITIONS not just
+  '9' count; DEVLOG 1005).** 15 landed / 31 fix-ready remain.** (Process lessons durable in
   `feedback_edition_gate_sweep_and_no_flake_handwave`: gating a construct breaks tests/goldens compiling it below the
   new edition — SWEEP; never call a failure a "flake" without naming it. Applied correctly on CA25 — swept for national
   UPPER/LOWER/REVERSE fallout BEFORE implementing, found zero.)
-  **▶ NEXT batch = picture-usage-value (CA33 numeric-edited digit-position cap, CA34 numeric VALUE range/sign SR2/SR3,
-  CA35) — mostly `PictureAnalyzer` + `DataBinder` + `ValueInitializer`; CA34 registers a new COBOLNET0803 (confirm the
-  next-free diag code first). CA33/CA34 are strictness diagnostics (reject illegal source); watch for corpus goldens
-  with over-capacity pictures / out-of-range VALUEs that would newly reject (sweep, per the CA39 lesson).** Then arithmetic
+  **▶ NEXT = CA34 (continue picture-usage-value): numeric VALUE range/sign — §13.18.63.3 SR2 (a VALUE literal must be
+  representable in the PICTURE range without truncation) + SR3 (a signed literal requires a signed subject). The code
+  (`ValueInitializer`/`EmitCore.UnscaledAtScale`) does NO high-order modulo / NO unsigned-magnitude, so `01 A PIC 99
+  VALUE 12345` silently seeds 12345 and `01 U PIC 99 VALUE -5` seeds −5. FIX: a new `DataBinder.ValidateNumericValue`
+  (called by `ValidateValueCategory` at ~DataBinder.cs:2070) that rejects leading-nonzero / trailing-nonzero truncation
+  + a negative literal into an unsigned subject, via a NEW diag `COBOLNET0803` (0803-0807 are the unallocated
+  value/picture band — confirm the next-free via `pwsh scripts/session-probe.ps1` / the diagnostics registry first).
+  ⚠ STRICTNESS change (rejects illegal source) — SWEEP the corpus for out-of-range/wrong-sign VALUE literals that would
+  newly reject (per the CA39 lesson) before landing; register COBOLNET0803 in the diagnostics registry + a negative
+  golden SAME commit. Then CA35, then arithmetic
   (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
