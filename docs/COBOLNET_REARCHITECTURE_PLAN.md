@@ -25,7 +25,22 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = the V52/V53 commit; tree clean, all pushed).
+- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = the design-doc-reconciliation commit `53ac8866`; tree has
+  UNCOMMITTED V5 work — see below).
+  🔴 **NEW TOP PRIORITY — a design-doc↔spec audit (owner concern) surfaced 54 doc conflicts + 6 candidate CONFORMANCE
+  BUGS.** SSOT `docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md`; audit `wf_480d50f5` + correction `wf_16d53d4e`.
+  The DOC side is CORRECTED + PUSHED (13 docs rewritten spec-faithful — owner directive: rewrite-to-correct, no
+  addenda). The 6 code-bugs are filed as §24 **V54–V59** (verify-then-fix, spec-first): V54 MAX/MIN result category ·
+  V55 EC-OO-UNIVERSAL unconditional raise · V56 float relation not SDIDI under STANDARD-DECIMAL · V57 F3-PERFORM
+  handler TurnState · V58 GOBACK/EXIT-PROGRAM-RAISING fatal into EC-free activator · V59 REDEFINES Tier-B BINARY/PACKED
+  zoned image. **These are shipped-wrong behavior — recommend prioritizing V54–V59 over the V5/V46/V24 batch.**
+  ⏳ **UNCOMMITTED in the working tree: V5 (EXIT SECTION) — code (BoundExitSection + ControlFlowBinder + StatementEmitter
+  exit-bound-aware emit + 2 sibling visitors) + `SectionDifferentialTests` (spec-pinned, 10/10) + `COBOLNET_CONTROL_FLOW_DESIGN.md`
+  (D8 rewritten + 8 more findings corrected). REMAINING for V5: the 2002 introduction edition gate (constructs.json
+  `exit-section-2002` + VersionConformancePass + `gen-constructs.ps1` regen) → comprehensive gate → commit (with the
+  CONTROL_FLOW doc).** V46 (N"…" VALUE) spec-validated (§13.18.63.3 SR7) not implemented; V24 (OPTIONS INITIALIZE)
+  decision-complete not implemented. The V5/V46/V24 shared edition gate stays serial (one constructs.json + one regen).
+  ─────
   ✅ **§24 V47 + V52 + V53 ALL LANDED — the run-unit-termination TRIO is now runtime-side and RUN-UNIT-scoped
   (DEVLOG 988–989).** All three were the same class: a run-unit-termination observable emitted in the generated
   `Main` gated on a compile-time scan of the MAIN compilation group, so each was blind to a separately-compiled
