@@ -58,7 +58,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         {
             // Register this program's SELECTed files at FIRST ACTIVATION of this instance (the IC114A lesson:
             // connectors belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL /
-            // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the entry wrapper.
+            // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the runtime RunMain boundary.
             if (ctx.Data.Files.Count > 0)
             {
                 using (w.Block("if (!__filesRegistered)"))

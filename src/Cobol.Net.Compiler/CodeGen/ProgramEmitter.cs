@@ -418,21 +418,15 @@ internal sealed class ProgramEmitter
             w.Line("__CobolModule.Register();");
             if (mainUnit is not null)
             {
-                // STOP RUN / a main-program GOBACK "passes the status to the operating system" (§14.9.42.4 GR5 /
-                // §14.9.18.4 GR10) — the RUNTIME flushes RunUnit.ExitStatus to Environment.ExitCode at the write
-                // site (the ExitStatus setter), so the status crosses assembly boundaries (a separately-compiled
-                // CALLed module's STOP RUN … WITH STATUS reaches the process exit code even though this main group
-                // carries no status phrase) and the entry wrapper needs NO exit-code scaffolding (§18.16). The
-                // fatal-EC catch below sets 1 for abnormal termination (§14.6.13.1.3 #7 → §14.6.12) and WINS.
+                // The run-unit TERMINATION surface is owned by the runtime's RunMain boundary
+                // (ProgramTable.RunMain): the STOP-status flush (§14.9.42.4 GR5, via the RunUnit.ExitStatus setter),
+                // the §14.6.12 abnormal-termination diagnostic + nonzero exit on a fatal EC, and the §14.6.11
+                // implicit CLOSE of ALL run-unit connectors. Runtime-side so each applies to the WHOLE run unit —
+                // incl. a separately-compiled CALLed module whose EC/file descriptors this compilation group never
+                // saw — not just this group (SSOT §18.16 keeps the wrapper scaffolding-free). The entry wrapper only
+                // catches StopRun, the normal STOP RUN / main-program-GOBACK unwind boundary.
                 w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(mainUnit.Path)}); }}");
                 w.Line("catch (StopRun) { }");
-                if (_ecState.Active)
-                    // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
-                    // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is
-                    // the §14.6.11 attempt-normal-termination step.
-                    w.Line("catch (CobolFatalException __fx) { Console.Error.WriteLine(\"abnormal run-unit termination: \" + __fx.Message); Environment.ExitCode = 1; }");
-                if (anyFiles)
-                    w.Line($"finally {{ {RuntimeApi.FileCloseAll()}; }}   // run-unit termination implicit CLOSE (ISO §14.6.11)");
             }
         }
     }

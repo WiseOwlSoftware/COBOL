@@ -607,11 +607,10 @@ internal static class RuntimeApi
 
     // ── Run-unit lifecycle (CobolFile) ──
 
-    /// <summary>Run-unit file-subsystem init (the entry wrapper's Main) — <c>CobolFile.Init</c>.</summary>
+    /// <summary>Run-unit file-subsystem init (the entry wrapper's Main) — <c>CobolFile.Init</c>. (The matching
+    /// §14.6.11 run-unit-termination implicit CLOSE is runtime-side — <see cref="Runtime.ProgramTable.RunMain"/>'s
+    /// finally — so a separately-compiled module's open files are closed even when this main group declares none.)</summary>
     public static string FileInit() => $"{nameof(CobolFile)}.{nameof(CobolFile.Init)}()";
-
-    /// <summary>The §14.6.11 run-unit-termination implicit CLOSE — <c>CobolFile.CloseAll</c>.</summary>
-    public static string FileCloseAll() => $"{nameof(CobolFile)}.{nameof(CobolFile.CloseAll)}()";
 
     /// <summary>Mint a per-object instance-file connector key (§9.1.4) — <c>CobolFile.MintInstanceKey</c>.</summary>
     public static string FileMintInstanceKey(string baseKeyLiteral) =>

@@ -76,18 +76,53 @@ public sealed class ProgramTable
         staticReset?.Invoke();   // run-unit start = initial state for the unit's static data (§14.6.2.3.2 case 1)
     }
 
-    /// <summary>Run the run unit's MAIN program (the first program of the compilation group).</summary>
+    /// <summary>Run the run unit's MAIN program (the first program of the compilation group), owning the run-unit
+    /// TERMINATION epilogue: the §14.6.12 abnormal-termination surface (a fatal EC escaping the run unit → the
+    /// documented diagnostic + a nonzero process exit) and the §14.6.11 implicit CLOSE of ALL open run-unit
+    /// connectors. Both are RUN-UNIT-scoped (not main-compilation-group-scoped), so each applies even when the fatal
+    /// EC or the open file originates in a SEPARATELY-COMPILED CALLed module whose descriptors the main group's
+    /// entry wrapper never saw — the entry wrapper only catches <see cref="StopRun"/> (the normal-termination unwind
+    /// boundary; the STOP status itself is flushed run-unit-side by the <see cref="RunUnit.ExitStatus"/> setter).</summary>
     public void RunMain(string path)
     {
         var n = _byPath[path];
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;
         _owner.Modules.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
-        try { inst.Activate(); }
-        finally { n.Active--; _owner.Modules.Pop(); }
-        // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
-        // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
-        ApplyPropagationDefault();
+        try
+        {
+            try { inst.Activate(); }
+            finally { n.Active--; _owner.Modules.Pop(); }
+            // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
+            // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
+            ApplyPropagationDefault();
+        }
+        // The §14.6.12 abnormal-termination surface for a FATAL condition that reached the run-unit boundary
+        // unhandled — BOTH families, so neither escapes as a raw CLR crash: exception-condition fatals
+        // (CobolFatalException — a checking-enabled unresumed EC, §14.6.13.1.3 #7, or a raw runtime raise-point like
+        // a NULL BASED deref / an OO __CobolInvoke EC-OO-UNIVERSAL) AND the CALL/CANCEL machinery fatals
+        // (CobolCallException — EC-PROGRAM-NOT-FOUND / -RECURSIVE-CALL / -CANCEL-ACTIVE / EC-FUNCTION-NOT-FOUND,
+        // §14.9.4.4 GR3h → §14.6.13.1.3 #8). Runtime-side so a fatal from ANY runtime element reaches the surface,
+        // incl. a separately-compiled CALLed module (the settled SSOT §18.16 implementor choice).
+        catch (CobolFatalException fx) { AbnormalTermination(fx.Message); }
+        catch (CobolCallException cx) { AbnormalTermination(cx.Message); }
+        finally
+        {
+            // §14.6.11(2): an implicit CLOSE without phrases for EVERY open file in the RUN UNIT, executed even when
+            // termination is abnormal (§14.6.12). Idempotent (FileRegistry.CloseAll), so the RunUnit.Run embedding
+            // path's own finally-CloseAll is a harmless double. StopRun unwinding from Activate passes THROUGH here
+            // (CloseAll runs) on its way to the entry wrapper's catch.
+            _owner.Files.CloseAll();
+        }
+    }
+
+    /// <summary>The §14.6.12 abnormal-run-unit-termination indication (§14.6.11 CLOSE is the caller's finally): the
+    /// OS "shall indicate an abnormal termination" — this implementation writes the diagnostic to stderr and sets a
+    /// nonzero exit code (Annex A ERROR ⇒ 1; the settled §18.16 implementor choice).</summary>
+    private static void AbnormalTermination(string message)
+    {
+        Console.Error.WriteLine("abnormal run-unit termination: " + message);
+        Environment.ExitCode = 1;
     }
 
     /// <summary>Apply the activation-boundary default to an exception condition staged by the returning

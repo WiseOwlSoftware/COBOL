@@ -82,6 +82,5 @@ internal static class Program
         __CobolModule.Register();
         try { ProgramRegistry.RunMain("CHAR-SEQ-FILE"); }
         catch (StopRun) { }
-        finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)
     }
 }

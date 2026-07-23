@@ -28,7 +28,8 @@ using Core = CobolParserCore;
 /// <see cref="OoConformance.ValidateImplements"/>; the interface emitter renders one explicit implementation per pair).</param>
 /// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
-/// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + Init/CloseAll).</param>
+/// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + the run-unit-start
+/// FileInit; the §14.6.11 termination CloseAll is runtime-side in ProgramTable.RunMain, run-unit-scoped).</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,

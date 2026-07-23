@@ -15,7 +15,8 @@ namespace CobolNet.Runtime;
 /// <see cref="CobolFile"/>, <see cref="CobolModule"/>, <see cref="ExternalStore"/>) remain the emitted surface
 /// as thin delegators over <see cref="Current"/>, so generated code is byte-stable pre-G8; <see cref="Current"/>
 /// lazily establishes an ambient run unit, which is what makes the emitted
-/// <c>ProgramRegistry.Reset(); CobolFile.Init(); … CobolFile.CloseAll()</c> run-unit driver work unchanged.
+/// <c>ProgramRegistry.Reset(); CobolFile.Init(); …</c> run-unit driver work unchanged (the §14.6.11 implicit
+/// CloseAll and the §14.6.12 abnormal-termination surface are runtime-side — <see cref="ProgramTable.RunMain"/>).
 /// </summary>
 public sealed class RunUnit
 {

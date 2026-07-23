@@ -1180,12 +1180,23 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   external connector must have a non-null ExternalItemIdentity); (c) add the compile-time LINAGE leg
   (§13.4.5.4 GR2c); (d) correct the :154 comment.
 
-### V52. Run-unit abnormal-termination surface (fatal-EC diagnostic + `Environment.ExitCode = 1`) emitted PER-MAIN, gated on the MAIN group's EC scan — NEW (surfaced by the V47 adversarial review)
+### V52. Run-unit abnormal-termination surface (fatal-EC diagnostic + `Environment.ExitCode = 1`) emitted PER-MAIN, gated on the MAIN group's EC scan — ✅ LANDED 2026-07-22 (DEVLOG 989)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47** (a run-unit-termination
   observable gated on a compile-time scan of the MAIN group, blind to a sibling assembly / an unconditional
   runtime raise-point).
-- **Disposition:** OPEN. `ProgramEmitter.cs:429` emits `catch (CobolFatalException __fx) { Console.Error.WriteLine(
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 989), with V53, as the coupled `RunMain`-epilogue move.** The
+  §14.6.12 abnormal-termination surface is now owned by `ProgramTable.RunMain` (runtime-side), catching BOTH
+  families — `CobolFatalException` (checking-enabled unresumed EC / raw runtime raise-points: NULL BASED deref,
+  OO `__CobolInvoke` EC-OO-UNIVERSAL) AND `CobolCallException` (EC-PROGRAM-NOT-FOUND / -RECURSIVE-CALL /
+  -CANCEL-ACTIVE / EC-FUNCTION-NOT-FOUND, §14.9.4.4 GR3h → §14.6.13.1.3 #8) — via a shared `AbnormalTermination`
+  helper, so neither escapes as a raw CLR crash. (The `CobolCallException` family was surfaced by the V52/V53
+  adversarial review `wf_b799fd6d-dd4` as the same pattern, build-verified; folded in same batch — no-deferral.)
+  The generated `Main` reduces to the unconditional `try { RunMain(path); } catch (StopRun) { }`. Tests
+  (`RunUnitTerminationTests`): EC-free-main null-deref, cross-assembly sub-fatal, CALL-not-found, and the
+  abnormal-path implicit CLOSE — all → the surface + exit 1. Gate: greenfield Conformance 3860/3860 0-reg ·
+  characterization 33/33 (one snapshot re-baseline) · GnuCOBOL differential 0-reg. Superseded detail follows.
+  Original code-lens: `ProgramEmitter.cs:429` emits `catch (CobolFatalException __fx) { Console.Error.WriteLine(
   "abnormal run-unit termination: " + …); Environment.ExitCode = 1; }` ONLY under `if (_ecState.Active)` (=
   `comp.EcActive`, the MAIN group's EC scan). But `CobolFatalException` arises from raise-points INDEPENDENT of the
   main group's EC model: EC-OO-UNIVERSAL / EC-OO-METHOD from any class's `__CobolInvoke` (the `using … Exceptions`
@@ -1221,10 +1232,19 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   EC/file `.g.cs` goldens + characterization re-baseline + full Conformance + NIST/legacy guard + **GnuCOBOL differential
   before/after** (the required confirmation that moving CloseAll into RunMain moves NO program's stdout). Effort: M.
 
-### V53. Run-unit implicit CLOSE at termination (§14.6.11 CloseAll) + FileInit emitted PER-MAIN, gated on the MAIN group's `anyFiles` — NEW (surfaced by the V47 adversarial review)
+### V53. Run-unit implicit CLOSE at termination (§14.6.11 CloseAll) + FileInit emitted PER-MAIN, gated on the MAIN group's `anyFiles` — ✅ LANDED 2026-07-22 (DEVLOG 989)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47.**
-- **Disposition:** OPEN. `ProgramEmitter.cs:417` (`if (anyFiles) FileInit()`) and `:434-435` (`if (anyFiles)
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 989), with V52.** The §14.6.11(2) implicit CLOSE of ALL open
+  run-unit connectors is now `ProgramTable.RunMain`'s `finally { _owner.Files.CloseAll(); }` — run-unit-scoped,
+  so a file-less main closes a separately-compiled sibling's open files (best-effort even on abnormal termination,
+  §14.6.12; `CloseAll` idempotent so the `RunUnit.Run` embedding double is harmless). `FileInit` (the run-unit-start
+  RESET) stays emitted gated on `anyFiles` — VERIFIED safe by the review: the `FileRegistry` is fresh per `RunUnit`,
+  so a sibling's OPEN into an un-reset fresh registry is correct (no start-side sibling. The adversarial review swept
+  the other §14.6.11 START/END steps CLEAR — external-describe per-activation, MODULE register unconditional, EC/
+  external/switch stores fresh-per-RunUnit, locale not-emitted, APPLY COMMIT vacuous, ALLOCATE/object GC). Test: a
+  file-less main CALLs a file-writing sub → the sub's output is flushed/closed at termination; plus the abnormal-path
+  CLOSE case (V52). Original code-lens: `ProgramEmitter.cs:417` (`if (anyFiles) FileInit()`) and `:434-435` (`if (anyFiles)
   finally { CobolFile.CloseAll(); }`) both key off `anyFiles = comp.AnyFiles`, computed over the MAIN group's
   units/classes only (`BinderDriver.cs:132-134`). The `FileRegistry` is run-unit-global and `CobolFile.CloseAll`
   closes EVERY connector — but there is NO runtime finalizer / `ProcessExit` / `IDisposable` auto-close in
