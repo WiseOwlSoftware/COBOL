@@ -93,7 +93,13 @@ checkpoint.
   test/CLI smoke. And CA5: a finding's golden can itself be mis-derived — re-derive from the spec, verify via `--run`.)
   **▶ NEXT (the 16 remaining, all bigger/coordinated): (1) the EC-infra + OO SUPER-BATCH — exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 + the FatalAmbientGates-entangled
-  tables-refmod CA37/CA38 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one coordinated design pass;
+  tables-refmod CA37/CA38 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one coordinated design pass.
+  ✅ **The DECISION-COMPLETE coordinated plan is `docs/rearchitecture/DESIGN-ec-oo-superbatch.md`** (anchor re-scout
+  `wf_d20dadb7-de9`: the shared fatal-EC-gate RECIPE + 5 tracks [E/C/D parallel-safe, then the serial EC chain
+  A: CA9→CA10→CA11→V55→CA37+CA38, B: CA12 last] + an 11-step commit plan). ⚠ Read its §Risks FIRST — it flags 3 OWNER
+  DECISIONS to surface before the serial EC work (CA37/CA38 checking-OFF lenient-vs-abort; CA12 co-land; V55 method-side
+  'enabled' literal) and a queue PASTE-ERROR: the CA21 prose describes an INITIALIZE fix ALREADY LANDED as CA2 — the
+  real CA21 is the CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
   (2) the owner-decided CA14/V59. (DA1 — the discovered hex-literal ALPHABET decode — is FIXED, DEVLOG 1019.)**
   V46 (N"…" VALUE, §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue. The INDEPENDENT-MINORS batch is
   COMPLETE.
