@@ -25,21 +25,25 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = the design-doc-reconciliation commit `53ac8866`; tree has
-  UNCOMMITTED V5 work — see below).
-  🔴 **NEW TOP PRIORITY — a design-doc↔spec audit (owner concern) surfaced 54 doc conflicts + 6 candidate CONFORMANCE
-  BUGS.** SSOT `docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md`; audit `wf_480d50f5` + correction `wf_16d53d4e`.
-  The DOC side is CORRECTED + PUSHED (13 docs rewritten spec-faithful — owner directive: rewrite-to-correct, no
-  addenda). The 6 code-bugs are filed as §24 **V54–V59** (verify-then-fix, spec-first): V54 MAX/MIN result category ·
-  V55 EC-OO-UNIVERSAL unconditional raise · V56 float relation not SDIDI under STANDARD-DECIMAL · V57 F3-PERFORM
-  handler TurnState · V58 GOBACK/EXIT-PROGRAM-RAISING fatal into EC-free activator · V59 REDEFINES Tier-B BINARY/PACKED
-  zoned image. **These are shipped-wrong behavior — recommend prioritizing V54–V59 over the V5/V46/V24 batch.**
-  ⏳ **UNCOMMITTED in the working tree: V5 (EXIT SECTION) — code (BoundExitSection + ControlFlowBinder + StatementEmitter
-  exit-bound-aware emit + 2 sibling visitors) + `SectionDifferentialTests` (spec-pinned, 10/10) + `COBOLNET_CONTROL_FLOW_DESIGN.md`
-  (D8 rewritten + 8 more findings corrected). REMAINING for V5: the 2002 introduction edition gate (constructs.json
-  `exit-section-2002` + VersionConformancePass + `gen-constructs.ps1` regen) → comprehensive gate → commit (with the
-  CONTROL_FLOW doc).** V46 (N"…" VALUE) spec-validated (§13.18.63.3 SR7) not implemented; V24 (OPTIONS INITIALIZE)
-  decision-complete not implemented. The V5/V46/V24 shared edition gate stays serial (one constructs.json + one regen).
+- **▶ RESUME AT (2026-07-22; on `phase-14`, HEAD = the V5 commit `de95b114` + a small audit-ledger commit; tree clean).
+  🔴 **STANDING TOP PRIORITY — ~44 candidate CONFORMANCE BUGS from two spec-first audits (owner concern: the design
+  docs — and the tests — never used the spec as the oracle).** The existing NIST/GnuCOBOL/corpus checks are all
+  DIFFERENTIAL (vs legacy / vs GnuCOBOL) or happy-path goldens — structurally BLIND to a spec-violation the
+  implementations share (esp. bugs ported from the legacy). Two audits fixed that:
+  · **Design-doc audit** (`wf_480d50f5` + correction `wf_16d53d4e`): 54 doc↔spec conflicts — DOC side CORRECTED + PUSHED
+    (13 docs rewritten spec-faithful); 6 spec-wrong-AND-implemented = §24 **V54–V59**. SSOT `DESIGN-SPEC-RECONCILIATION.md`.
+  · **Code audit** (`wf_4ce42db6`): **38 candidate bugs across all 14 behavioral areas (24 blocker/major)** — SSOT
+    `CODE-SPEC-AUDIT.md` (CA1–CA38). Examples: composite-of-operands counts the GIVING receiver → rejects conformant
+    ADD…GIVING (§14.9.2.3 SR1b); ROUNDED MODE PROHIBITED on an inexact INTERMEDIATE → spurious size error (§14.7.4.3 GR7);
+    MOVE numeric-edited→numeric-edited skips de-editing → wrong value (§14.9.25.4 GR5).
+  ⏭ **NEXT: VERIFY-THEN-FIX the ~44 (V54–V59 + CA1–CA38), spec-first, one at a time, batched by area under comprehensive
+  gates; some are false positives (candidate, agent-surfaced). DURABLE FIX: convert each verified finding into a
+  SPEC-DERIVED golden (expected value from the spec, not the legacy).** Then the original V46 (N"…" VALUE — spec-validated
+  §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE — decision-complete) batch. Also a sibling gap noted: EXIT PARAGRAPH / EXIT
+  PERFORM are 2002 introductions but ungated (like V5's EXIT SECTION was — should be in the CA edition-gating findings).
+  ✅ **§24 V5 (EXIT SECTION, ISO §14.9.14 Format 4) LANDED (DEVLOG 991):** the design doc's `pc=lastPara+1` was spec-wrong
+  (§14.9.14.4 GR7 — the exit-bound-aware `if (__exitPc==SectionEndPc) return` fires the section return); gate ALL GREEN
+  (version-matrix 1835 · characterization 33/33 · Conformance 3867/3867 0-reg · GnuCOBOL 0-reg).
   ─────
   ✅ **§24 V47 + V52 + V53 ALL LANDED — the run-unit-termination TRIO is now runtime-side and RUN-UNIT-scoped
   (DEVLOG 988–989).** All three were the same class: a run-unit-termination observable emitted in the generated
