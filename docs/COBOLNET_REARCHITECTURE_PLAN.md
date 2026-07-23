@@ -25,9 +25,11 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34+CA35 (picture-usage-value) + CA4+CA5
-  (arithmetic) landed — pick up at CA6 to COMPLETE the arithmetic batch, then run the FULL Conformance batch gate
-  before merging phase-14). CA5's full-gate run passed; CA6 is a small `CheckComposite` predicate change.**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; the picture-usage-value cluster (CA34/CA35) AND
+  the arithmetic batch (CA4/CA5/CA6) are DONE — 20 landed / 26 remain. Pick up at CA7 (conditions), then CA36
+  (tables-refmod). NB the arithmetic batch's FULL Conformance + GnuCOBOL/NIST differential batch gate is owed before the
+  eventual phase-14 → main merge — CA5 already passed full Conformance 3896/3896; the GnuCOBOL differential is the
+  outstanding pre-merge confirmation.)**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -59,18 +61,15 @@ checkpoint.
   sites; DEVLOG 1008) · CA5 (arithmetic — ROUNDED/PROHIBITED bind to the FINAL transfer only; an explicit `_outermost`
   flag in `NumericRenderer` replaces the wrong `ds==_rcv.Scale` proxy — fixes a spurious size error on a nested
   division AND a missed PROHIBITED on the multi-receiver path; 0 golden/snapshot shifts; NB the finding's Program B was
-  re-derived — §14.9.8 ROUNDED is per-resultant; DEVLOG 1009).** 19 landed / 27 fix-ready remain.** (Process lessons
+  re-derived — §14.9.8 ROUNDED is per-resultant; DEVLOG 1009) · **CA6 (arithmetic — the four fixed-width binary usages
+  BINARY-CHAR/-SHORT/-LONG/-DOUBLE EXCLUDED from the composite §14.7.7 rule 2b; a `CheckComposite.InComposite`
+  predicate, COMP-5 stays counted; pure-leniency; golden `2002/ca6_binary_operand_composite`; DEVLOG 1010 — the
+  ARITHMETIC BATCH is COMPLETE).** 20 landed / 26 fix-ready remain.** (Process lessons
   durable in `feedback_edition_gate_sweep_and_no_flake_handwave` + `feedback_fresh_build_before_no_build_test` — CA35
   re-learned the stale-DLL trap: build `CobolSharp.sln`, NOT just `src/Cobol.Net.Compiler`, before any `--no-build`
   test/CLI smoke. And CA5: a finding's golden can itself be mis-derived — re-derive from the spec, verify via `--run`.)
-  **▶ NEXT = CA6 (COMPLETES the arithmetic batch): §14.7.7 rule 2b — the four fixed-width binary usages
-  (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) are EXCLUDED from the composite (only the OTHER operands count, still ≤ 31); they
-  carry Category Numeric + IsFloat false so they wrongly pass `CheckComposite`'s Shape guard today. FIX: a predicate
-  `static bool InComposite(PicInfo p) => p is { Category: Numeric, IsFloat: false } && p.Usage is not (Usage.BinaryChar
-  or …BinaryDouble)` at both Shape sites (StatementValidation.cs:118 operand + :130 receiver); COMP-5 stays counted.
-  Leniency change (accepts a legal program); positive golden `ADD BINARY-DOUBLE TO 9(11)V9(13)`. Then run the FULL
-  Conformance batch gate + GnuCOBOL/NIST differential before merging phase-14. Then conditions (CA7) · tables-refmod
-  (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
+  **▶ NEXT = CA7 (conditions) — the next area after the completed picture-usage-value + arithmetic clusters. Then
+  CA36 (tables-refmod), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
   §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.

@@ -111,11 +111,19 @@ internal sealed class StatementValidation(DataBinder data)
             maxInt = Math.Max(maxInt, digits - scale);   // a negative (P-scaled) scale ADDS integer positions
             maxFrac = Math.Max(maxFrac, Math.Max(0, scale));
         }
+        // ISO §14.7.7 rule 2b: a data item of usage binary-char/-short/-long/-double is EXCLUDED from the composite
+        // (the composite is then over the OTHER operands, still capped at 31) — like a floating-point operand. Those
+        // four picture-less usages carry Category Numeric + IsFloat false, so without this guard they were wrongly
+        // superimposed (BINARY-DOUBLE contributes up to 20 integer digits) and pushed a conforming program past 31
+        // (COBOLNET0805). COMP-5 is NOT in rule 2b's list and stays counted; float usages are already IsFloat. (CA6.)
+        static bool InComposite(PicInfo p) =>
+            p is { Category: PicCategory.Numeric, IsFloat: false }
+            && p.Usage is not (Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble);
         void OfExpr(BoundExpr e)
         {
             switch (e)
             {
-                case BoundNumRef { Place.Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } p }:
+                case BoundNumRef { Place.Item.Pic: { } p } when InComposite(p):
                     Shape(p.Digits, p.Scale);
                     break;
                 case BoundNumLiteral lit:
@@ -127,7 +135,7 @@ internal sealed class StatementValidation(DataBinder data)
         }
         foreach (var e in operands) OfExpr(e);
         foreach (var r in receivers)
-            if (r.Place.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } rp)
+            if (r.Place.Item.Pic is { } rp && InComposite(rp))
                 Shape(rp.Digits, rp.Scale);
 
         // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
