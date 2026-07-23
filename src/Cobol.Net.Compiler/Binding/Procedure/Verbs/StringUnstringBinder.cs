@@ -81,8 +81,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         return new BoundStringStmt(sendings, into, pointer, onOvf, notOvf);
     }
 
-    /// <summary>Bind UNSTRING (ISO §14.9.48). The sender must be examinable as characters (SR2 — category
-    /// alphanumeric; a binary/packed/float numeric is rejected); each INTO target's data references arrive in
+    /// <summary>Bind UNSTRING (ISO §14.9.48). The sender must be category alphanumeric or national (SR2 — a
+    /// numeric [INCLUDING usage DISPLAY], numeric-edited, or boolean sender is rejected); each INTO target's data references arrive in
     /// order [receiver, DELIMITER IN?, COUNT IN?] keyed off the DELIMITER/COUNT tokens, both legal only under a
     /// DELIMITED phrase (SR7); COUNT IN / TALLYING are integer items (SR5) and the pointer per SR6. The grammar's
     /// ambiguous <c>DELIMITED ALL "0"</c> may parse as the figurative ALL-literal — SR1 forbids that figurative
@@ -91,9 +91,14 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     {
         if (ctx.Refs.Resolve(un.dataReference()) is not { } source)
             return new BoundUnsupported($"UNSTRING source '{un.dataReference().GetText()}'");
-        if (source.Item.Pic is { Category: PicCategory.Numeric, Usage: not Usage.Display })
+        // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
+        // reference-modified slice are alphanumeric-image senders and remain permitted). A numeric item — INCLUDING
+        // usage DISPLAY, whose zoned image would otherwise be examined as characters — a numeric-edited item, or a
+        // boolean item is not a permitted sender.
+        if (source.Item.Pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean })
             return new BoundUnsupported(
-                "UNSTRING of a non-DISPLAY numeric sender (category alphanumeric required, ISO §14.9.48.3 SR2)");
+                $"UNSTRING sender '{un.dataReference().GetText()}' is category {source.Item.Pic.Category} " +
+                "(category alphanumeric or national required, ISO §14.9.48.3 SR2)");
 
         var delims = new List<BoundUnstringDelimiter>();
         if (un.unstringDelimiterPhrase() is { } dp)
@@ -112,6 +117,15 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 var drefs = t.dataReference();
                 if (ctx.Refs.Resolve(drefs[0]) is not { } target)
                     return new BoundUnsupported($"UNSTRING INTO '{drefs[0].GetText()}'");
+                // SR4 — identifier-4 shall be (usage display + category alphabetic/alphanumeric/numeric) or (usage
+                // national + category national/numeric). A fixed-length group (SR10) and a reference-modified slice
+                // are alphanumeric-image receivers and are exempt; edited, COMP/packed/COMP-5, index, and float
+                // receivers are not permitted.
+                if (target is not RefModPlace && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
+                    return new BoundUnsupported(
+                        $"UNSTRING INTO '{drefs[0].GetText()}' — a usage-display alphabetic/alphanumeric/numeric or " +
+                        "usage-national national/numeric receiver is required; edited, COMP, packed, index, and float " +
+                        "receivers are not permitted (ISO §14.9.48.3 SR4)");
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
                     return new BoundUnsupported("UNSTRING DELIMITER IN / COUNT IN without DELIMITED BY (ISO §14.9.48.3 SR7)");
@@ -175,6 +189,17 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// scale; P is the signed-scale encoding, §13.18.40).</summary>
     private static bool StrUnstrIsInteger(Place p) =>
         p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: 0 };
+
+    /// <summary>ISO §14.9.48.3 SR4 — the permitted UNSTRING INTO (identifier-4) receiver categories: usage display
+    /// with category alphabetic/alphanumeric/numeric (alphabetic folds into <see cref="PicCategory.Alphanumeric"/>;
+    /// <c>EditMask: null</c> excludes alphanumeric-edited), OR usage national with category national/numeric. A
+    /// numeric receiver must be non-float and usage display or national — so a numeric-edited, COMP/packed/COMP-5,
+    /// index, boolean, or float receiver is rejected. National is SR4-LEGAL and stays allowed (the emitter defers it
+    /// separately). Callers exempt a group (SR10) and a reference-modified slice before consulting this.</summary>
+    private static bool UnstringReceiverAllowed(PicInfo? pic) => pic is
+        { Category: PicCategory.Alphanumeric, EditMask: null }
+        or { Category: PicCategory.National }
+        or { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.National };
 
     /// <summary>The UNSTRING no-DELIMITED reception size (ISO §14.9.48.4 GR11b): the receiving area's size in
     /// character positions — a group's image width, an alphanumeric/edited item's character length, and a numeric
