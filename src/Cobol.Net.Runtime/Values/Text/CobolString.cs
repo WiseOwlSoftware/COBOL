@@ -135,8 +135,9 @@ public static class CobolString
     /// Compare two alphanumeric values under the PROGRAM COLLATING SEQUENCE (ISO §8.8.4.2.7 — "with respect to
     /// the collating sequence of characters specified for the current alphanumeric program collating sequence"):
     /// the shorter operand space-extends on the right (the pad SPACE itself weighs through the sequence), and the
-    /// first position whose WEIGHTS differ decides. <paramref name="weights"/> is the compiled 256-entry
-    /// native-code → position table (the COBOLNET_DESIGN §14.9 seam).
+    /// first position whose WEIGHTS differ decides. <paramref name="weights"/> is the compiled native-code → position
+    /// table over the alphabet's Latin-1 domain; a code unit beyond it keeps its native Unicode position (see
+    /// <see cref="Weight"/>) — the COBOLNET_DESIGN §14.9 seam.
     /// </summary>
     public static int Compare(string? left, string? right, ushort[] weights)
     {
@@ -144,12 +145,19 @@ public static class CobolString
         int n = Math.Max(left.Length, right.Length);
         for (int i = 0; i < n; i++)
         {
-            ushort a = weights[(i < left.Length ? left[i] : ' ') & 0xFF];
-            ushort b = weights[(i < right.Length ? right[i] : ' ') & 0xFF];
+            int a = Weight(i < left.Length ? left[i] : ' ', weights);
+            int b = Weight(i < right.Length ? right[i] : ' ', weights);
             if (a != b) return a < b ? -1 : 1;
         }
         return 0;
     }
+
+    /// <summary>The collating weight of a code unit under a non-native alphanumeric PROGRAM COLLATING SEQUENCE: a code
+    /// unit within the alphabet's remapped domain (0..weights.Length-1) takes its assigned position; a code unit beyond
+    /// it (the Unicode alphanumeric repertoire extends past the Latin-1 domain the ALPHABET positions) keeps its NATIVE
+    /// position — code-unit order AFTER the whole positioned set (ISO §12.3.7 k)3), matching ORD's native-ordinal
+    /// branch. Byte-identical to the former <c>weights[c &amp; 0xFF]</c> for every code unit ≤ 0xFF.</summary>
+    private static int Weight(char c, ushort[] weights) => c < weights.Length ? weights[c] : c;
 
     /// <summary>
     /// Compare two NATIONAL values under a non-native NATIONAL program collating sequence (ISO §8.8.4.2.9 /

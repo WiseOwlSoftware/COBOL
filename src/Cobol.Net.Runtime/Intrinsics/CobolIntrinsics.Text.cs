@@ -34,6 +34,11 @@ public static partial class CobolIntrinsics
     public static string Char(long n, ushort[] weights)
     {
         long wanted = n - 1;
+        // A collating position beyond the alphabet's remapped domain (0..weights.Length-1) belongs to a code unit the
+        // ALPHABET never listed: it keeps its NATIVE position in the Unicode alphanumeric sequence (the inverse of
+        // ORD's native-ordinal branch), so CHAR spans up to 0xFFFF under a non-native PCS too.
+        if (wanted >= weights.Length && wanted <= 0xFFFF)
+            return ((char)wanted).ToString();
         for (int i = 0; i < weights.Length; i++)
             if (weights[i] == wanted)
                 return ((char)i).ToString();
@@ -163,10 +168,12 @@ public static partial class CobolIntrinsics
 
     // ── CONVERT (§15.19, 2023) — data-representation conversion ─────────────────────────────────────────────────
     // Source codes: 0 = ANY, 1 = ANUM, 2 = HEX, 3 = NAT.  Dest codes: 1 = ANUM, 3 = NAT, 4 = BYTE.
-    // Char-set model: the alphanumeric coded set is 8-bit Latin-1 (code point == byte); national is UTF-16BE, one
-    // char/position (D-N1 / §8.1.2 NOTE 2). Substitution char '?' for an untranslatable value (§15.19.4 r1/r3,
-    // implementor-defined). Source ANY = the item's canonical display image (typed-native model; §8.1.2 NOTE 2
-    // leaves the usage representation implementor-defined) — always paired with a HEX destination (SR8).
+    // Char-set model: a PIC X alphanumeric item holds UTF-16 code units — the typed-native alphanumeric REPERTOIRE is
+    // Unicode (the established design), and its native collating sequence is code-unit order (so CHAR/ORD span up to
+    // 0xFFFF). The BYTE-level serialization HERE (ANUM/ANY -> BYTE/HEX) is a DISTINCT, implementor-defined 8-bit
+    // Latin-1 mapping (§8.1.2 NOTE 2 leaves the usage representation implementor-defined): one byte per code unit, the
+    // substitution char '?' + EC-DATA-CONVERSION for a code unit > 0xFF (§15.19.4 r1/r3). National is UTF-16BE, one
+    // char/position (D-N1). Source ANY = the item's canonical display image, always paired with a HEX destination (SR8).
 
     /// <summary>CONVERT (§15.19.4): re-express <paramref name="arg"/> (in source format <paramref name="src"/>) in
     /// the destination format (<paramref name="dst"/> + <paramref name="dstHex"/>). An untranslatable character

@@ -6,6 +6,7 @@
     "ca17_indexed_rewrite_collating",
     "ca8_float_sign_format2",
     "ca3_figurative_display_pcs",
+    "ca26_char_unicode_pcs",
     "address_of_qualified",
     "initialize_program_pointer",
     "intrinsic_exp_overflow",

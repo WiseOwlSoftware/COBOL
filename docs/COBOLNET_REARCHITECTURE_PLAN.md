@@ -25,12 +25,19 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; DONE this campaign wave: picture-usage-value
-  (CA34/CA35), arithmetic (CA4/CA5/CA6), conditions (CA7), tables-refmod (CA36) — 22 landed / 24 remain. Pick up at the
-  EC-infra + OO SUPER-BATCH (exceptions-ec CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55) —
-  these share EcBinder/EcEmitter/ExceptionState, so they stay SERIAL under ONE coordinated design pass, NOT parallel.
-  NB the FULL Conformance + GnuCOBOL/NIST differential batch gate is owed before the eventual phase-14 → main merge —
-  CA5/CA7/CA36 each passed full Conformance; the GnuCOBOL differential is the outstanding pre-merge confirmation.)**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; DONE this wave: the INDEPENDENT-MINORS batch —
+  CA17 (files-io indexed-REWRITE collating), CA8+V56 (conditions float sign/relation), CA3 (accept-display figurative
+  PCS), CA19+CA20 (UNSTRING SR4/SR2 category screens), CA18 (line-seq REWRITE GR17), CA26 (intrinsics — the alphanumeric
+  repertoire is UNICODE, the established design: CHAR/ORD/collation span the full UTF-16 range under a non-native PCS,
+  no 8-bit `& 0xFF` alias) — 30 landed / 16 remain; the batch was separated from the EC/OO super-batch because these are
+  file-disjoint one-at-a-time fixes, gated by a parallel anchor re-scout `wf_a09670d5-cdc`. Discovered candidate DA1
+  (§12.3.7 k)5 alphabet THRU/hex not reversing) filed. The BATCH IS COMPLETE (8/8). What remains is the bigger/coordinated
+  work: the EC-infra + OO SUPER-BATCH (exceptions-ec CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo
+  CA29/CA30/V55 + the FatalAmbientGates-entangled tables-refmod CA37/CA38) — all share EcBinder/EcEmitter/ExceptionState,
+  so SERIAL under ONE coordinated design pass, NOT parallel — plus the owner-decided CA14/V59 and DA1. NB the
+  FULL Conformance + GnuCOBOL/NIST differential batch gate is owed before the eventual phase-14 → main merge; the
+  minors each passed their wave-local gate + NIST/characterization where relevant, GnuCOBOL differential is the
+  outstanding pre-merge confirmation.)**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -70,15 +77,24 @@ checkpoint.
   golden shifts; golden `2014/ca7_class_zero_length`; DEVLOG 1011) · **CA36 (tables-refmod — a SEARCH with EC-RANGE
   checking ON + NO AT END now DISPATCHES the raised range EC to its USE declarative / F3 WHEN §14.9.37.4 GR1b2;
   `EmitSearchScan` mirrors `EcEmitter.EmitOverflow`, new `ControlFlowEmitter.Ec` wired by `UnitEmitters`; purely
-  additive niche, characterization byte-identical; golden `2002/ca36_search_range_dispatch`; DEVLOG 1012).** 22 landed
-  / 24 fix-ready remain.** (Process lessons
+  additive niche, characterization byte-identical; golden `2002/ca36_search_range_dispatch`; DEVLOG 1012).** **+ the
+  INDEPENDENT-MINORS batch (DEVLOG 1013–1017): CA17 (indexed-REWRITE prime-key collating §14.9.35 GR22), CA8+V56
+  (float sign Format-2 §8.8.4.7.4 GR2 / float relation under STANDARD-DECIMAL §8.8.4.2.4), CA3 (bare figurative DISPLAY
+  threads the PROGRAM COLLATING SEQUENCE §8.3.3.6.4 GR6/GR7), CA19+CA20 (UNSTRING receiver SR4 + sender SR2 category
+  screens §14.9.48.3), CA18 (line-seq REWRITE in place §14.9.35.4 GR17 via a delimiter-aware byte-tracking reader),
+  CA26 (the alphanumeric repertoire is UNICODE — CHAR/ORD/collation span full UTF-16 under a non-native PCS §15.15.3 /
+  §12.3.7 k)3, no `& 0xFF` alias; the established design, not the finding's 256 recommendation) —
+  each wave-local green; NIST/characterization clean where relevant.** 30 landed / 16 fix-ready remain (+ DA1
+  discovered). The INDEPENDENT-MINORS batch is COMPLETE (8/8).** (Process lessons
   durable in `feedback_edition_gate_sweep_and_no_flake_handwave` + `feedback_fresh_build_before_no_build_test` — CA35
   re-learned the stale-DLL trap: build `CobolSharp.sln`, NOT just `src/Cobol.Net.Compiler`, before any `--no-build`
   test/CLI smoke. And CA5: a finding's golden can itself be mis-derived — re-derive from the spec, verify via `--run`.)
-  **▶ NEXT = the EC-infra + OO SUPER-BATCH (exceptions-ec
-  CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
-  stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
-  §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.
+  **▶ NEXT (the 16 remaining, all bigger/coordinated): (1) the EC-infra + OO SUPER-BATCH — exceptions-ec
+  CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 + the FatalAmbientGates-entangled
+  tables-refmod CA37/CA38 — all share EcBinder/EcEmitter/ExceptionState, stay SERIAL, one coordinated design pass;
+  (2) the owner-decided CA14/V59; (3) DA1 (discovered §12.3.7 k)5 alphabet THRU/hex bug).**
+  V46 (N"…" VALUE, §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue. The INDEPENDENT-MINORS batch is
+  COMPLETE.
   ✅ **The 2 owner-decisions are RESOLVED (approved 2026-07-22) — now fix-ready in `CONFORMANCE-FIX-QUEUE.md` §OWNER-DECIDED:**
   **CA14** → APPROVED the uniform introduction-error policy (route SYNC-on-group through `ConstructRegistry.Check` +
   activate the `sync-on-group-2023` row; hard error on both axes; effort S) · **V59** → APPROVED building the Tier-C
