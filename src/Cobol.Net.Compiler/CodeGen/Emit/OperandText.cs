@@ -40,6 +40,13 @@ internal static class OperandText
     public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false, bool floatCheck = true) =>
         op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } ic }
             ? num.Intrinsics.RenderString(ic)
+        // A bare figurative (HIGH-VALUE/LOW-VALUE/SPACE/…) in a DISPLAY/STRING/STOP value position is an
+        // alphanumeric value (§8.3.3.6.4 GR1) of one character (GR3b). Materialize it through the declared collating
+        // tables so HIGH-/LOW-VALUE is the runtime-collating extreme (§8.3.3.6.4 GR6/GR7), matching the MOVE and
+        // relation paths — not the native pin. Intercepted at the ENTRY (like the intrinsic channel) because the
+        // AsStringVisitor has no access to the renderer's collating context; cat=null ⇒ the alphanumeric PCS applies.
+        : op is BoundFigurative fig
+            ? $"new string({FigurativeConstants.Fill(fig.Kind, num.Collating, null, num.NationalCollating)}, 1)"
             : op.Accept(Visitor(deSign, floatCheck));
 
     /// <summary>A data item's character image directly from its <see cref="Place"/> — the num-free entry for
@@ -133,6 +140,8 @@ internal static class OperandText
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
         public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, floatCheck);
+        // A bare figurative is intercepted PCS-aware at AsString's ENTRY (the collating context lives on the
+        // renderer, not this visitor); this arm is the unreachable native-pin fallback the visitor interface requires.
         public string Visit(BoundFigurative n) => $"new string({FigurativeConstants.Fill(n.Kind, null)}, 1)";   // DISPLAY shows one occurrence (GR3)
         public string Visit(BoundAllLiteral n) => EmitText.CsLiteral(n.Literal);                          // length-unspecified: the literal once (GR3c)
         // An ALPHANUMERIC/NATIONAL-result intrinsic operand is intercepted at AsString's ENTRY (it renders
