@@ -1141,6 +1141,70 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
     }
 
+    /// <summary>ISO §13.18.63.3 SR2/SR3: a numeric VALUE literal on a fixed-point numeric subject shall be a
+    /// permissible value within the range the PICTURE indicates, representable EXACTLY in the subject "without
+    /// truncation of leading or trailing nonzero digits" (SR2), and a signed numeric literal requires a signed
+    /// subject (SR3). Both are syntax rules ('shall'), so the only conforming response to a violation is a
+    /// compile-time diagnostic (COBOLNET1625) — never the legacy lenient truncating/sign-dropping store, which the
+    /// typed-native initializer would otherwise perform (ValueInitializer emits the literal verbatim through
+    /// <c>EmitText.UnscaledAtScale</c>, which does NO high-order modulo and NO unsigned magnitude).</summary>
+    /// <remarks>
+    /// The subject's stored ('9') digit positions are modeled by their power-of-ten exponents. Uniformly across an
+    /// implied point (V), a leading-P, and a trailing-P scaled picture — given <see cref="PicInfo.Digits"/> stored
+    /// digits and the signed <see cref="PicInfo.Scale"/> (trailing P ⇒ negative, leading P ⇒ &gt; Digits; ISO
+    /// §13.18.40.4) — the lowest stored exponent is <c>-Scale</c> and the highest is <c>Digits - Scale - 1</c>. The
+    /// literal is representable exactly iff every NONZERO digit of the literal lands within <c>[low, high]</c>; a
+    /// nonzero digit above the high exponent is a leading-nonzero truncation, one below the low exponent a
+    /// trailing-nonzero truncation. Zero (and a literal whose only nonzero digits are outside the tested span) is
+    /// handled naturally: a literal of value zero is always representable and skipped. A picture-less numeric item
+    /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's negative-into-unsigned test is
+    /// independent of the digit range. A COMP-5 / fixed-width binary item's Digits equals the decimal width of its
+    /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value (its full
+    /// binary-capacity range is a separate discipline, not SR2's PICTURE range).
+    /// </remarks>
+    private void ValidateNumericValue(PicInfo pic, string raw, string where)
+    {
+        if (pic.Digits <= 0) return;                        // picture-less numeric (INDEX) — no digit positions
+        string t = raw.Trim();
+        if (t.Length == 0) return;
+        bool neg = t[0] == '-';
+        if (neg || t[0] == '+') t = t[1..];
+        // A plain numeric literal is a digit run with at most one decimal point; figurative words, quoted
+        // alphanumeric, and national/boolean literals are validated on their own paths and are out of scope here.
+        int dot = t.IndexOf('.');
+        if (dot != t.LastIndexOf('.')) return;
+        string digits = dot < 0 ? t : t.Remove(dot, 1);
+        if (digits.Length == 0 || !digits.All(char.IsAsciiDigit)) return;
+
+        // SR3 (ISO §13.18.63.3, ISO_COBOL.md:22914): a signed numeric literal requires a signed numeric (or
+        // sign-bearing numeric-edited) subject. Scoped to a NEGATIVE literal (the sign-losing case) — a leading '+'
+        // into an unsigned item is the common harmless idiom (+5 == 5, no data loss) and is not rejected.
+        if (neg && !pic.Signed)
+        {
+            Edition.Error("COBOLNET1625", $"{where}: a signed (negative) numeric literal in the VALUE clause "
+                + "requires a signed numeric or sign-bearing numeric-edited subject (ISO §13.18.63.3 SR3)");
+            return;
+        }
+
+        // SR2 (ISO §13.18.63.3, ISO_COBOL.md:22906): the literal shall be a permissible value in the PICTURE range,
+        // representable without truncation of a leading or trailing nonzero digit. Compare the literal's nonzero
+        // digit-exponent span against the subject's stored-digit exponent span [-Scale, Digits-Scale-1].
+        int litScale = dot < 0 ? 0 : t.Length - dot - 1;    // the literal's fractional-digit count
+        int firstNonZero = -1, lastNonZero = -1;
+        for (int i = 0; i < digits.Length; i++)
+            if (digits[i] != '0') { if (firstNonZero < 0) firstNonZero = i; lastNonZero = i; }
+        if (firstNonZero < 0) return;                       // the literal is zero — always representable (SR2)
+        int last = digits.Length - 1;
+        int highLitExp = -litScale + (last - firstNonZero); // exponent of the most-significant nonzero digit
+        int lowLitExp = -litScale + (last - lastNonZero);   // exponent of the least-significant nonzero digit
+        int lowStoredExp = -pic.Scale;
+        int highStoredExp = pic.Digits - pic.Scale - 1;
+        if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
+            Edition.Error("COBOLNET1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
+                + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
+                + "of leading or trailing nonzero digits (ISO §13.18.63.3 SR2)");
+    }
+
     // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,
     // the one ISO §8.3.1.2 literal codec, PHASE-05 Step 1.)
 
@@ -2071,6 +2135,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
+        // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
+        // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
+        // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
+        // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
+        // out-of-range native field (COBOLNET1625). Numeric-edited VALUEs ride the separate SR4/SR6 checks below.
+        if (rawValue is { } rvNum && pic is { Category: PicCategory.Numeric, IsFloat: false })
+            ValidateNumericValue(pic, rvNum, entryWhere);
         // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
         // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
         // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR

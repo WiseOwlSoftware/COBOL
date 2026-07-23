@@ -522,6 +522,16 @@ public static class DiagnosticCatalog
         + "naming a non-external item is rejected. Enforced per connector regardless of describer count. Below 2023 "
         + "the requirement did not exist.",
         "ISO §14.8.4.2 / Annex E.2 item 9");
+    // 1625 — the fixed-point-numeric VALUE range/sign syntax rules (§13.18.63.3 SR2/SR3; the 08xx value/picture band
+    // is fully allocated, so the next-free scan lands this in the 16xx band alongside the 1570 numeric-edited VALUE
+    // check). Edition-invariant (present 85/2002/2014/2023).
+    public static readonly DiagnosticDescriptor ValueNumericOutOfRange = new(
+        "COBOLNET1625", "value-numeric-out-of-range", EditionSeverity.Error,
+        "A fixed-point numeric VALUE literal is not a permissible value in the range the PICTURE indicates: it is "
+        + "not representable in the subject without truncation of a leading or trailing nonzero digit (SR2), or a "
+        + "negative literal seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
+        + "than silently mis-stored as an out-of-range native value.",
+        "ISO §13.18.63.3 SR2/SR3");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

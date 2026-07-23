@@ -5,6 +5,8 @@
     "reverse_national_result_to_an",
     "numedit_digits_over18_at85",
     "numedit_digits_over31",
+    "ca34_value_range_over",
+    "ca34_value_negative_unsigned",
     "allocate-chars-no-returning",
     "allocate-non-based",
     "alphabet-national-at-85",

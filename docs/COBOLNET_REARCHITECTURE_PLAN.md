@@ -25,8 +25,7 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, HEAD = `b76c0455`; the files-io batch (CA15/CA16 + a CA39-fallout
-  ControlFlow test fix) is IN THE WORKING TREE under its batch gate — commit it first thing).**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; CA34 just landed — pick up at CA35).**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -47,20 +46,19 @@ checkpoint.
   CA24+V54+CA23+CA25 (EXP/EXP10 ∞-saturate + LOG/LOG10 domain; MAX/MIN national result category; MAX/MIN/ORD PCS
   collation; UPPER/LOWER/REVERSE national result category; DEVLOG 1001–1004; full-conformance gate 3886/3886 for the
   runtime-touching CA24/V54/CA23) · CA33 (picture-usage — the digit-position CAP now measures DIGIT POSITIONS not just
-  '9' count; DEVLOG 1005).** 15 landed / 31 fix-ready remain.** (Process lessons durable in
-  `feedback_edition_gate_sweep_and_no_flake_handwave`: gating a construct breaks tests/goldens compiling it below the
-  new edition — SWEEP; never call a failure a "flake" without naming it. Applied correctly on CA25 — swept for national
-  UPPER/LOWER/REVERSE fallout BEFORE implementing, found zero.)
-  **▶ NEXT = CA34 (continue picture-usage-value): numeric VALUE range/sign — §13.18.63.3 SR2 (a VALUE literal must be
-  representable in the PICTURE range without truncation) + SR3 (a signed literal requires a signed subject). The code
-  (`ValueInitializer`/`EmitCore.UnscaledAtScale`) does NO high-order modulo / NO unsigned-magnitude, so `01 A PIC 99
-  VALUE 12345` silently seeds 12345 and `01 U PIC 99 VALUE -5` seeds −5. FIX: a new `DataBinder.ValidateNumericValue`
-  (called by `ValidateValueCategory` at ~DataBinder.cs:2070) that rejects leading-nonzero / trailing-nonzero truncation
-  + a negative literal into an unsigned subject, via a NEW diag `COBOLNET0803` (0803-0807 are the unallocated
-  value/picture band — confirm the next-free via `pwsh scripts/session-probe.ps1` / the diagnostics registry first).
-  ⚠ STRICTNESS change (rejects illegal source) — SWEEP the corpus for out-of-range/wrong-sign VALUE literals that would
-  newly reject (per the CA39 lesson) before landing; register COBOLNET0803 in the diagnostics registry + a negative
-  golden SAME commit. Then CA35, then arithmetic
+  '9' count; DEVLOG 1005) · **CA34 (picture-usage — a numeric VALUE literal must be in the PICTURE range / correctly
+  signed, §13.18.63.3 SR2/SR3, NOT silently mis-stored; new COBOLNET1625 — NB the scouted 0803 was WRONG, the whole
+  0801–0899 band is allocated; scale-aware exponent model `[-Scale, Digits-Scale-1]`; strictness sweep `wf_ebe10542-4e0`
+  806 files / 0 regressions; full Conformance 3891/3891; DEVLOG 1006).** 16 landed / 30 fix-ready remain.** (Process
+  lessons durable in `feedback_edition_gate_sweep_and_no_flake_handwave`: gating a construct breaks tests/goldens
+  compiling it below the new edition — SWEEP; never call a failure a "flake" without naming it. Applied correctly on
+  CA25 + CA34 — swept BEFORE landing, found zero genuine regressions.)
+  **▶ NEXT = CA35 (picture-usage-value): USAGE BINARY / COMPUTATIONAL / PACKED-DECIMAL with a NON-numeric picture —
+  §13.18.60.3 SR3 (such a usage 'shall be specified only with a picture character-string that describes a numeric
+  item'). `PictureAnalyzer.Analyze` guards the BIT (SR5) and NATIONAL (SR12) cases before the category dispatch but has
+  NO guard for Binary/Comp/Packed, so `01 A PIC XX COMP` silently binds as alphanumeric (usage dropped). FIX: add an
+  SR3 guard before the `if (anyAlpha)` return (PictureAnalyzer.cs ~:245) reusing COBOLNET0881, recover to Display.
+  Golden = negative `PIC XX COMP`. Effort S. Then arithmetic
   (CA4/CA5/CA6) · conditions (CA7) · tables-refmod (CA36), then the EC-infra + OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
