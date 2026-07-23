@@ -6,13 +6,13 @@
 > Source ledgers: `CODE-SPEC-AUDIT.md` (CA*), §24 (V54–V59). Part of the P14 full spec-conformance review
 > (`DESIGN-spec-conformance-review.md`).
 
-**46 total (44 CONFIRMED + 2 OWNER-DECIDED) · 0 refuted · 0 pending · 30 LANDED · 16 REMAIN (2026-07-23).** *(+ 1 DISCOVERED-during-implementation candidate DA1, tracked separately below — not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; all 24 remaining are major/minor/nit + the 2 owner-decided.
+**46 total (44 CONFIRMED + 2 OWNER-DECIDED) · 0 refuted · 0 pending · 30 LANDED · 16 REMAIN (2026-07-23).** *(+ the DISCOVERED-during-implementation candidate DA1 — §12.3.7 hex-literal ALPHABET decode — now ✅ LANDED (DEVLOG 1019); it was not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; all 24 remaining are major/minor/nit + the 2 owner-decided.
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38), CA14 + V59 (owner-decided), and DA1 (discovered). *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
 
-### DA1 · [MAJOR?/unverified] · special-names · discovered probing CA3 (2026-07-23)
+### DA1 · [MAJOR] · special-names · ✅ LANDED (DEVLOG 1019) — verified end-to-end (char-THRU worked, isolating the defect to hex decode) + root-caused + fixed
 - **Spec:** ISO §12.3.7 k)5 (ALPHABET literal-1 THRU literal-2 — "the native run from operand-1 to operand-2, either
   direction, ascending positions"); §8.3.3.6.4 GR6/GR7 (HIGH-/LOW-VALUE = the PCS position extremes).
 - **Observed:** `ALPHABET AL IS X"FF" THRU X"00"` used as the PROGRAM COLLATING SEQUENCE leaves the collating table at
@@ -20,10 +20,13 @@
   descending run X"FF"→X"00" must place X"FF" at position 1 and X"00" at position 256, so HIGH-VALUE = X"00" and
   LOW-VALUE = X"FF". A plain string-literal alphabet (`"ZYX…A"`) reorders correctly (CA3's golden relies on it), so the
   defect is isolated to the `THRU`/hex-operand arm of `DataBinder.AlphabetBind` (`DataBinder.Switches.cs` ~:376-388) —
-  most likely `AlphabetOperands` not decoding a hex literal (`X"FF"`) to a single-character operand, so the
-  `operands[0].Length == 1 && operands[1].Length == 1` guard fails and the range is skipped, or the operand pair is
-  mis-decoded. **NOT yet independently verified end-to-end** (needs the AlphabetOperands read + a spec-derived golden);
-  filed here so it is not lost. Do NOT work around it — fix the root `AlphabetBind`/`AlphabetOperands` path.
+  `operands[0].Length == 1 && operands[1].Length == 1` guard fails and the range is skipped.
+- **VERIFIED + FIXED (DEVLOG 1019):** a char-literal THRU (`"Z" THRU "A"`) reversed correctly, isolating the defect to
+  HEX decode. ROOT CAUSE was `DataBinder.LiteralChars` — it decoded quoted-string and integer literals but let a
+  HEX-format literal (`X"hh…"`, §8.3.3.2) fall through to raw text (length != 1), so the THRU/ALSO guard skipped the
+  range. FIX: route a hex-shaped literal through the existing `CobolLiteral.DecodeHex`. The same decoder serves the
+  CLASS clause (fixed too); the national-alphabet path correctly rejects hex (SR14c2). Golden
+  `2002/da1_alphabet_hex_thru`.
 
 ## ✅ OWNER-DECIDED (2026-07-22 — APPROVED, now fix-ready)
 
