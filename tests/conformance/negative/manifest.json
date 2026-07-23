@@ -3,6 +3,8 @@
   "enabled": [
     "max_national_result_to_an",
     "reverse_national_result_to_an",
+    "numedit_digits_over18_at85",
+    "numedit_digits_over31",
     "allocate-chars-no-returning",
     "allocate-non-based",
     "alphabet-national-at-85",

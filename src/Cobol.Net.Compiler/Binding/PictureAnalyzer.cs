@@ -233,6 +233,20 @@ public static class PictureAnalyzer
         int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions : afterV;
 
+        // §13.18.40.3 SR14 DIGIT-POSITION count for the 1–31 capacity cap: the 9/Z/* positions, every P (counted in the
+        // maximum digit positions though it stores no digit, §13.18.40.4), and the floating '+'/'-'/currency digit
+        // positions — a floating string of a symbol appearing k≥2 times contributes k−1 (the leftmost is the
+        // sign/currency, not a digit). Counting SYMBOL occurrences (not run length) naturally excludes embedded simple
+        // insertions ($$,$$9 → 4 '$' → 3 digit positions). For a pure-numeric picture (no Z/*, no floating) this equals
+        // Digits + P. (CA33 — the cap must NOT undercount to only the '9's, which let Z(35)/Z(11)9(8) slip past.)
+        int floatingExtra = 0;
+        foreach (char fsym in new[] { '+', '-', cs })
+        {
+            int fc = expanded.Count(ch => ch == fsym);
+            if (fc >= 2) { floatingExtra = fc - 1; break; }   // §13.18.40.5 — at most one floating string per picture
+        }
+        int digitPos = digitPositions + leadingP + trailingP + floatingExtra;
+
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
         // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
@@ -266,12 +280,12 @@ public static class PictureAnalyzer
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind, EditMask = expanded, EditingRules = editRules };
+            { SignKind = signKind, EditMask = expanded, EditingRules = editRules, DigitPositions = digitPos };
 
         // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
         // storage; the implied decimal position lives entirely in the signed Scale.
         return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed)
-        { SignKind = signKind };
+        { SignKind = signKind, DigitPositions = digitPos };
     }
 
     /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>

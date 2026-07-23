@@ -224,6 +224,15 @@ public sealed record PicInfo(
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 
+    private readonly int? _digitPositions;
+    /// <summary>The ISO §13.18.40.3 SR14 DIGIT-POSITION count that the 1–31 (18 pre-2002) capacity cap is measured
+    /// against: the '9'/Z/* positions, each 'P' (§13.18.40.4 — counted in the maximum digit positions though it stores
+    /// no digit), and the floating '+'/'-'/currency digit positions (a floating string of a symbol appearing k≥2 times
+    /// contributes k−1 — the leftmost is the sign/currency position). For a numeric-EDITED item this can EXCEED
+    /// <see cref="Digits"/> (which counts only '9'); for a pure-numeric or any non-analyzer PicInfo it defaults to
+    /// <see cref="Digits"/> (the two coincide). (CA33.)</summary>
+    public int DigitPositions { get => _digitPositions ?? Digits; init => _digitPositions = value; }
+
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
     /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
     /// (bare <c>OBJECT REFERENCE</c>; C# <c>object?</c>). The emitter renders the class's C# type.</summary>
