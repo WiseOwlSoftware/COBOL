@@ -256,6 +256,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // comparison by the same argument category. The legacy rule: all-non-numeric ⇒ the string family.
         var resolved = sig;
         var category = sig.ResultCategory;
+        // §15.97.1 (UPPER-CASE) / §15.57.1 (LOWER-CASE) / §15.78.1 (REVERSE) result-type tables: the result category
+        // FOLLOWS the argument — a National argument yields a National result (the transform is a code-unit op on the
+        // national UTF-16 string, so the same RuntimeMethod body applies). Hardcoding Alphanumeric in the catalog
+        // mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and feeding the wrong
+        // class to comparison collation. (CA25 — mirrors the V54 MAX/MIN category resolution.)
+        if (sig.RuntimeMethod is "UpperCase" or "LowerCase" or "Reverse"
+                && args.Count > 0 && OperandCategory(args[0]) is PicCategory.National)
+            category = PicCategory.National;
         if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
         {
             resolved = sig with
