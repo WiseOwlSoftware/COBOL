@@ -25,11 +25,11 @@ checkpoint.
 - **Branch:** `phase-14` (fresh; `main` = the merge commit `1f56f572` — the PHASE-13 grammar batch + Wave-D
   directives + Track ③ PERFORM Format-3 runtime were MERGED to main 2026-07-22 and the `phase-13-grammar-batch`
   branch DELETED). **PHASE-13 core landed on main; the P13 residue + P14 proceed on `phase-14`.**
-- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; the picture-usage-value cluster (CA34/CA35) AND
-  the arithmetic batch (CA4/CA5/CA6) are DONE — 20 landed / 26 remain. Pick up at CA7 (conditions), then CA36
-  (tables-refmod). NB the arithmetic batch's FULL Conformance + GnuCOBOL/NIST differential batch gate is owed before the
-  eventual phase-14 → main merge — CA5 already passed full Conformance 3896/3896; the GnuCOBOL differential is the
-  outstanding pre-merge confirmation.)**
+- **▶ RESUME AT (2026-07-23; on `phase-14`, tree CLEAN, all pushed; the picture-usage-value cluster (CA34/CA35), the
+  arithmetic batch (CA4/CA5/CA6), and CA7 (conditions) are DONE — 21 landed / 25 remain. Pick up at CA36
+  (tables-refmod — SEARCH EC-RANGE handler dispatch). NB the FULL Conformance + GnuCOBOL/NIST differential batch gate is
+  owed before the eventual phase-14 → main merge — CA5 & CA7 already passed full Conformance; the GnuCOBOL differential
+  is the outstanding pre-merge confirmation.)**
   🔴 **THE WORK = fix the VERIFIED conformance queue, spec-first. SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`**
   (its LANDED header is the live tally). Owner directive: spec-first is the ONLY going priority
   (`feedback_spec_first_only_priority`); the NIST/GnuCOBOL/corpus checks are differential/happy-path, blind to a
@@ -64,12 +64,15 @@ checkpoint.
   re-derived — §14.9.8 ROUNDED is per-resultant; DEVLOG 1009) · **CA6 (arithmetic — the four fixed-width binary usages
   BINARY-CHAR/-SHORT/-LONG/-DOUBLE EXCLUDED from the composite §14.7.7 rule 2b; a `CheckComposite.InComposite`
   predicate, COMP-5 stays counted; pure-leniency; golden `2002/ca6_binary_operand_composite`; DEVLOG 1010 — the
-  ARITHMETIC BATCH is COMPLETE).** 20 landed / 26 fix-ready remain.** (Process lessons
+  ARITHMETIC BATCH is COMPLETE) · **CA7 (conditions — a class condition on a ZERO-LENGTH operand is FALSE §8.8.4.4.4
+  GR1; `CobolClass` IsAlphabetic/-Upper/-Lower/IsInClass now guard `IsNullOrEmpty` like IsNumeric; runtime-only, 0
+  golden shifts; golden `2014/ca7_class_zero_length`; DEVLOG 1011).** 21 landed / 25 fix-ready remain.** (Process lessons
   durable in `feedback_edition_gate_sweep_and_no_flake_handwave` + `feedback_fresh_build_before_no_build_test` — CA35
   re-learned the stale-DLL trap: build `CobolSharp.sln`, NOT just `src/Cobol.Net.Compiler`, before any `--no-build`
   test/CLI smoke. And CA5: a finding's golden can itself be mis-derived — re-derive from the spec, verify via `--run`.)
-  **▶ NEXT = CA7 (conditions) — the next area after the completed picture-usage-value + arithmetic clusters. Then
-  CA36 (tables-refmod), then the EC-infra + OO SUPER-BATCH (exceptions-ec
+  **▶ NEXT = CA36 (tables-refmod — SEARCH with EC-RANGE checking ON + a matching USE declarative but NO AT END phrase
+  must DISPATCH the declarative; the SEARCH path sets the EC status but never calls EcDispatchExpr). Then the EC-infra +
+  OO SUPER-BATCH (exceptions-ec
   CA9/CA10/CA11/CA12/V57 · interprogram CA21/CA22/V58 · oo CA29/CA30/V55 — all share EcBinder/EcEmitter/ExceptionState,
   stay SERIAL, one coordinated design pass), then the minors + nits + owner-decided (CA14/V59).** V46 (N"…" VALUE,
   §13.18.63.3 SR7) + V24 (OPTIONS INITIALIZE) fold into this queue.

@@ -3,6 +3,7 @@
   "enabled": [
     "ca5a_prohibited_nested_no_size_error",
     "ca5b_prohibited_multi_receiver_size_error",
+    "ca7_class_zero_length",
     "arithmetic_standard_decimal",
     "corresponding_rounded_mode",
     "external_constant_record",
