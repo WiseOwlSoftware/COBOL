@@ -99,6 +99,9 @@ tests/external/gnucobol-differential-report.json
 .obsidian/*
 !.obsidian/app.json
 !.obsidian/community-plugins.json
+# Vault CSS snippets ARE tracked (they shape how generated notes render — e.g. widening the
+# grammar-diagram notes). The key/cert (data.json) under plugins/ stays ignored by .obsidian/* above.
+!.obsidian/snippets/
 .trash/
 
 # Generated code-reference notes (a build output — regenerated from src/ by the vault generator).

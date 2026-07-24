@@ -17,6 +17,13 @@
 [CmdletBinding()]
 param(
     [string[]]$Fragments = @('CobolControlFlow'),
+    # Wrap threshold (px) handed to rr's -width: rules wider than this break into multiple stacked rows. The
+    # generated notes carry `cssclasses: [wide-diagram]`, which the vault snippet .obsidian/snippets/grammar-
+    # diagrams.css widens to a ~1600px column — so on that surface diagrams render at native font (no downscale)
+    # and we keep the threshold high to avoid needlessly fragmenting rules. A few rules (e.g. performStatement,
+    # ~1397px) have a single unbreakable row that rr won't wrap below their natural width regardless; the wide
+    # column is what makes those readable. Lower this (e.g. -Width 680) if viewing without the snippet.
+    [int]$Width = 1400,
     [switch]$Check
 )
 $ErrorActionPreference = 'Stop'
@@ -57,7 +64,7 @@ foreach ($frag in $Fragments) {
     $ruleCount = ($ebnf -split "`n" | Where-Object { $_ -match '::=' }).Count
     $ebnfFile = Join-Path $tmp "$frag.ebnf"; [IO.File]::WriteAllText($ebnfFile, $ebnf)
     $mdFile   = Join-Path $tmp "$frag.md"
-    & java -jar "$rrWar" -md -suppressebnf "-out:$mdFile" "$ebnfFile"
+    & java -jar "$rrWar" -md -suppressebnf "-width:$Width" "-out:$mdFile" "$ebnfFile"
     if ($LASTEXITCODE -ne 0) { Write-Error "rr.war failed for $frag (exit $LASTEXITCODE)"; exit 1 }
     $diagrams = [IO.File]::ReadAllText($mdFile)
 
@@ -65,6 +72,8 @@ foreach ($frag in $Fragments) {
 ---
 title: $frag — syntax diagrams
 generated: true
+cssclasses:
+  - wide-diagram
 tags:
   - cobolsharp
   - grammar

@@ -1,0 +1,23 @@
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+ * grammar-diagrams.css — widen ONLY the generated grammar railroad-diagram notes.
+ *
+ * Those notes carry `cssclasses: [wide-diagram]` in their frontmatter (written by
+ * scripts/gen-grammar-diagrams.ps1). Wide rules such as performStatement have an intrinsic SVG
+ * width (~1397px) far larger than Obsidian's default ~700px reading column, so Obsidian downscales
+ * the whole diagram to fit — shrinking the text. Widening the column for just these notes lets the
+ * diagrams render at their native size (full-size, readable font). Prose notes are unaffected.
+ *
+ * Enable once: Settings → Appearance → CSS snippets → (refresh) → toggle "grammar-diagrams".
+ * ───────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* Give diagram notes a wide content column (reading view + live preview + source). */
+.wide-diagram {
+  --file-line-width: 1600px;
+}
+
+/* Belt-and-braces: if a future fragment produces a diagram wider than the column, let the image's
+ * paragraph scroll horizontally instead of shrinking the diagram. */
+.wide-diagram .markdown-preview-sizer p:has(> img),
+.wide-diagram .cm-content p:has(> img) {
+  overflow-x: auto;
+}
