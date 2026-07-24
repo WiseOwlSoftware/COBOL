@@ -55,6 +55,12 @@ generated version. Tracked in [[kb/Remaining Work Tracker]].
 build output, 3 documentation-debt items surfaced. The PowerShell generator now covers all six greenfield projects (Bound, Compiler, SourceGen, Editions, Runtime, Frontend), with an opt-in MSBuild build hook
 (`-p:GenerateVaultReference=true` in `Cobol.Net.Cli.csproj`) and a `VaultReferenceGeneratorDriftTests` "runs clean" CI check.
 
+## Grammar diagrams (railroad)
+A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad syntax diagrams** from the ANTLR
+`*.g4` parser fragments: clean (strip comments / predicates / actions) → W3C EBNF → the vendored bottlecaps
+`tools/rr/rr.war` → Markdown with one inline SVG railroad diagram per rule, into `kb/Grammar/` (gitignored
+build output). Pilot: [[kb/Grammar/CobolControlFlow]] (41 rules). Extend with `-Fragments Name1,Name2`.
+
 ## See also
 - [[docs/DOC_INDEX]] — the authoritative doc map (now in-graph).
 - [[kb/Index]] · [[kb/Context/MOC]]

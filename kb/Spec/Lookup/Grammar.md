@@ -99,6 +99,8 @@ per-construct edition metadata + citations live in `tests/version-matrix/constru
 - [[kb/Spec/Lookup/Keywords]] · [[kb/Spec/Lookup/IR Mapping]] · [[kb/Spec/Lookup/Semantic Rules]]
 - [[kb/Diagrams/Grammar Hierarchy]] — the division→section→statement tree.
 
+- [[kb/Grammar/CobolControlFlow]] — generated **railroad syntax diagrams** for the control-flow grammar rules (pilot; `scripts/gen-grammar-diagrams.ps1`).
+
 ## Backlinks
 - [[kb/Spec/Lookup/Index]] · [[kb/Compiler/Phases]] — link here.
 - Pipeline: [[kb/Compiler/Pipeline-to-ISO-Mapping]] — the Parse phase.

@@ -103,3 +103,5 @@ tests/external/gnucobol-differential-report.json
 
 # Generated code-reference notes (a build output — regenerated from src/ by the vault generator).
 kb/Reference/
+# Generated grammar railroad diagrams (regenerated from *.g4 by scripts/gen-grammar-diagrams.ps1).
+kb/Grammar/

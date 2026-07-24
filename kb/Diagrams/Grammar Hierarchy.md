@@ -60,5 +60,7 @@ CobolLexer.g4  ── modes ──▶  DEFAULT · PICMODE · SUBSCRIPT · COMMEN
 - [[kb/Spec/Lookup/Grammar]] · [[kb/Compiler/Phases]]
 - [[kb/Diagrams/Compiler Pipeline Diagram]] · [[kb/Diagrams/IR Node Hierarchy]]
 
+- [[kb/Grammar/CobolControlFlow]] — **generated railroad (syntax) diagrams** for the control-flow rules (PERFORM / IF / EVALUATE / GO TO / SEARCH / EXIT), rendered from the `.g4` by `scripts/gen-grammar-diagrams.ps1`.
+
 ## Backlinks
 - [[kb/Diagrams/MOC]] · [[kb/Spec/Lookup/Grammar]] — link here.
