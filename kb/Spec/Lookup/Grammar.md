@@ -99,7 +99,7 @@ per-construct edition metadata + citations live in `tests/version-matrix/constru
 - [[kb/Spec/Lookup/Keywords]] · [[kb/Spec/Lookup/IR Mapping]] · [[kb/Spec/Lookup/Semantic Rules]]
 - [[kb/Diagrams/Grammar Hierarchy]] — the division→section→statement tree.
 
-- [[kb/Grammar/CobolControlFlow]] — generated **railroad syntax diagrams** for the control-flow grammar rules (pilot; `scripts/gen-grammar-diagrams.ps1`).
+- [[kb/Grammar/_Index]] — generated **railroad syntax diagrams** for all nine ANTLR parser fragments (386 diagrams; `scripts/gen-grammar-diagrams.ps1`): control flow, data, expressions, I/O, OO, report writer, screen, special-names, and the context-sensitive word list.
 
 ## Backlinks
 - [[kb/Spec/Lookup/Index]] · [[kb/Compiler/Phases]] — link here.

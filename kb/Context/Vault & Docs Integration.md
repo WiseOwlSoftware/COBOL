@@ -59,7 +59,9 @@ build output, 3 documentation-debt items surfaced. The PowerShell generator now 
 A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad syntax diagrams** from the ANTLR
 `*.g4` parser fragments: clean (strip comments / predicates / actions) → W3C EBNF → the vendored bottlecaps
 `tools/rr/rr.war` → Markdown with one inline SVG railroad diagram per rule, into `kb/Grammar/` (gitignored
-build output). Pilot: [[kb/Grammar/CobolControlFlow]] (41 rules). Extend with `-Fragments Name1,Name2`.
+build output). Covers all **nine** ANTLR parser fragments (386 diagrams) — index at [[kb/Grammar/_Index]]. Wide
+rules render at native font via the `wide-diagram` cssclass + the `.obsidian/snippets/grammar-diagrams.css` snippet.
+Run a subset with `-Fragments Name1,Name2`; `-Width` tunes the wrap threshold.
 
 ## See also
 - [[docs/DOC_INDEX]] — the authoritative doc map (now in-graph).

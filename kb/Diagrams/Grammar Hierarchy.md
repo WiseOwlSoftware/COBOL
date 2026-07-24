@@ -60,7 +60,7 @@ CobolLexer.g4  ── modes ──▶  DEFAULT · PICMODE · SUBSCRIPT · COMMEN
 - [[kb/Spec/Lookup/Grammar]] · [[kb/Compiler/Phases]]
 - [[kb/Diagrams/Compiler Pipeline Diagram]] · [[kb/Diagrams/IR Node Hierarchy]]
 
-- [[kb/Grammar/CobolControlFlow]] — **generated railroad (syntax) diagrams** for the control-flow rules (PERFORM / IF / EVALUATE / GO TO / SEARCH / EXIT), rendered from the `.g4` by `scripts/gen-grammar-diagrams.ps1`.
+- [[kb/Grammar/_Index]] — **generated railroad (syntax) diagrams** for all nine ANTLR parser fragments (386 diagrams), rendered from the `.g4` by `scripts/gen-grammar-diagrams.ps1`. Per fragment: [[kb/Grammar/CobolControlFlow]], [[kb/Grammar/CobolData]], [[kb/Grammar/CobolExpressions]], [[kb/Grammar/CobolIO]], [[kb/Grammar/CobolOO]], [[kb/Grammar/CobolReportWriter]], [[kb/Grammar/CobolScreen]], [[kb/Grammar/CobolSpecialNames]], [[kb/Grammar/CobolWords]].
 
 ## Backlinks
 - [[kb/Diagrams/MOC]] · [[kb/Spec/Lookup/Grammar]] — link here.
