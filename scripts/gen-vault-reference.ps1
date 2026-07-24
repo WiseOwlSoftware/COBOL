@@ -27,7 +27,9 @@ $repo = Split-Path $PSScriptRoot -Parent
 # model / passes / validation / OO), excluding Binding/Bound so the two don't overlap.
 $sections = @(
     [pscustomobject]@{ Name = 'Bound';    Dir = 'src/Cobol.Net.Compiler/Binding/Bound'; Recurse = $false; Exclude = $null },
-    [pscustomobject]@{ Name = 'Compiler'; Dir = 'src/Cobol.Net.Compiler';               Recurse = $true;  Exclude = '[\\/]Binding[\\/]Bound[\\/]' },
+    [pscustomobject]@{ Name = 'Compiler';  Dir = 'src/Cobol.Net.Compiler';              Recurse = $true;  Exclude = '[\\/]Binding[\\/]Bound[\\/]' },
+    [pscustomobject]@{ Name = 'SourceGen'; Dir = 'src/Cobol.Net.Compiler.SourceGen';     Recurse = $true;  Exclude = $null },
+    [pscustomobject]@{ Name = 'Editions';  Dir = 'src/Cobol.Net.Editions';               Recurse = $true;  Exclude = $null },
     [pscustomobject]@{ Name = 'Runtime';  Dir = 'src/Cobol.Net.Runtime';                Recurse = $true;  Exclude = $null },
     [pscustomobject]@{ Name = 'Frontend'; Dir = 'src/Cobol.Net.Frontend';               Recurse = $true;  Exclude = $null }
 )
@@ -35,9 +37,11 @@ $sections = @(
 $outRoot = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) 'cobolnet-vault-ref-check' }
            else        { Join-Path $repo 'kb/Reference' }
 
-$declRx     = [regex]'^\s*(?:(?:public|internal|private|protected|abstract|sealed|partial|static|file)\s+)+(record|class)\s+([A-Z][A-Za-z0-9_]*)'
+# Modifiers are OPTIONAL (a top-level type may be modifier-less = internal; nested types are real too). The
+# PascalCase name + start-of-line anchor keep this from matching `where T : class` or a `record`-named local.
+$declRx     = [regex]'^\s*(?:(?:public|internal|private|protected|abstract|sealed|partial|static|file|readonly|ref|unsafe|new)\s+)*(record\s+struct|record\s+class|record|class|struct|interface|enum)\s+([A-Z][A-Za-z0-9_]*)'
 $baseCtorRx = [regex]'\)\s*:\s*([A-Za-z_][A-Za-z0-9_.]*)'
-$basePlainRx= [regex]'(?:record|class)\s+[A-Za-z0-9_]+(?:<[^>]*>)?\s*:\s*([A-Za-z_][A-Za-z0-9_.]*)'
+$basePlainRx= [regex]'(?:record\s+struct|record\s+class|record|class|struct|interface|enum)\s+[A-Za-z0-9_]+(?:<[^>]*>)?\s*:\s*([A-Za-z_][A-Za-z0-9_.]*)'
 $summaryRx  = [regex]'(?s)<summary>(.*?)</summary>'
 
 function Get-Summary([string]$doc) {
@@ -90,7 +94,7 @@ foreach ($sec in $sections) {
                 $doc.Insert(0, $lines[$j].TrimStart().Substring(3).Trim()); $j--
             }
             $types[$name] = [pscustomobject]@{
-                Name = $name; Kind = $m.Groups[1].Value; Base = $base
+                Name = $name; Kind = ($m.Groups[1].Value -replace '\s+', ' '); Base = $base
                 Summary = (Get-Summary(($doc -join "`n"))); Src = $rel; Line = ($i + 1); Section = $sec.Name
             }
         }
