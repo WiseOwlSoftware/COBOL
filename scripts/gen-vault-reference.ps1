@@ -23,10 +23,13 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 
 # (Section name, source dir relative to repo, recurse?)
+# Bound (the IR node defs) is its own section; Compiler covers the REST of Cobol.Net.Compiler (binder / codegen /
+# model / passes / validation / OO), excluding Binding/Bound so the two don't overlap.
 $sections = @(
-    [pscustomobject]@{ Name = 'Bound';    Dir = 'src/Cobol.Net.Compiler/Binding/Bound'; Recurse = $false },
-    [pscustomobject]@{ Name = 'Runtime';  Dir = 'src/Cobol.Net.Runtime';                Recurse = $true  },
-    [pscustomobject]@{ Name = 'Frontend'; Dir = 'src/Cobol.Net.Frontend';               Recurse = $true  }
+    [pscustomobject]@{ Name = 'Bound';    Dir = 'src/Cobol.Net.Compiler/Binding/Bound'; Recurse = $false; Exclude = $null },
+    [pscustomobject]@{ Name = 'Compiler'; Dir = 'src/Cobol.Net.Compiler';               Recurse = $true;  Exclude = '[\\/]Binding[\\/]Bound[\\/]' },
+    [pscustomobject]@{ Name = 'Runtime';  Dir = 'src/Cobol.Net.Runtime';                Recurse = $true;  Exclude = $null },
+    [pscustomobject]@{ Name = 'Frontend'; Dir = 'src/Cobol.Net.Frontend';               Recurse = $true;  Exclude = $null }
 )
 
 $outRoot = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) 'cobolnet-vault-ref-check' }
@@ -56,8 +59,10 @@ foreach ($sec in $sections) {
     if (-not (Test-Path $dir)) { continue }
     $gci = @{ Path = $dir; Filter = '*.cs'; File = $true }
     if ($sec.Recurse) { $gci.Recurse = $true }
+    $excl = $sec.Exclude
     $files = Get-ChildItem @gci |
-        Where-Object { $_.FullName -notmatch '[\\/](obj|bin|Generated)[\\/]' -and $_.Name -notlike '*.g.cs' } |
+        Where-Object { $_.FullName -notmatch '[\\/](obj|bin|Generated)[\\/]' -and $_.Name -notlike '*.g.cs' `
+                       -and (-not $excl -or $_.FullName -notmatch $excl) } |
         Sort-Object FullName
     foreach ($f in $files) {
         $rel   = ($f.FullName.Substring($repo.Length + 1)) -replace '\\', '/'
@@ -67,9 +72,16 @@ foreach ($sec in $sections) {
             if (-not $m.Success) { continue }
             $name = $m.Groups[2].Value
             if ($types.Contains($name)) { continue }
-            $end    = [Math]::Min($i + 9, $lines.Count - 1)
-            $window = ($lines[$i..$end]) -join "`n"
-            $bm = $baseCtorRx.Match($window); if (-not $bm.Success) { $bm = $basePlainRx.Match($window) }
+            # The base clause lives in the type HEADER only (declaration .. first '{' or ';'). Never scan into the
+            # body — a plain class's method code contains '`) : when`', '? :', etc. that false-match a base.
+            $hdr = ''
+            for ($k = $i; $k -lt [Math]::Min($i + 15, $lines.Count); $k++) {
+                $b = $lines[$k].IndexOf('{'); $s = $lines[$k].IndexOf(';')
+                $cut = if ($b -ge 0 -and ($s -lt 0 -or $b -lt $s)) { $b } elseif ($s -ge 0) { $s } else { -1 }
+                if ($cut -ge 0) { $hdr += ' ' + $lines[$k].Substring(0, $cut); break }
+                $hdr += ' ' + $lines[$k]
+            }
+            $bm = $baseCtorRx.Match($hdr); if (-not $bm.Success) { $bm = $basePlainRx.Match($hdr) }
             $base = if ($bm.Success) { $bm.Groups[1].Value } else { $null }
             $j = $i - 1
             while ($j -ge 0 -and $lines[$j].TrimStart().StartsWith('[')) { $j-- }
