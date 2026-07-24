@@ -31,4 +31,14 @@
     <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)../../scripts/gen-vault-reference.ps1&quot;" />
   </Target>
 
+  <!-- Opt-in build hook for the Obsidian grammar railroad diagrams (kb/Grammar/, a GITIGNORED build output).
+       Same posture as GenerateVaultReference above: NOT run by default (the build does not depend on these notes),
+       enable with -p:GenerateGrammarDiagrams=true (e.g. a docs/CI refresh). Normally run by hand
+       (pwsh scripts/gen-grammar-diagrams.ps1); GrammarDiagramGeneratorDriftTests guards it "runs clean" in CI.
+       Requires java + tools/rr/rr.war (java is already a prerequisite for the ANTLR parser generation). -->
+  <Target Name="GenerateGrammarDiagrams" AfterTargets="Build" Condition="'$(GenerateGrammarDiagrams)' == 'true'">
+    <Message Text="Generating Obsidian grammar railroad diagrams (kb/Grammar/)..." Importance="high" />
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)../../scripts/gen-grammar-diagrams.ps1&quot;" />
+  </Target>
+
 </Project>

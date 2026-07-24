@@ -61,7 +61,9 @@ A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad
 `tools/rr/rr.war` → Markdown with one inline SVG railroad diagram per rule, into `kb/Grammar/` (gitignored
 build output). Covers all **nine** ANTLR parser fragments (386 diagrams) — index at [[kb/Grammar/_Index]]. Wide
 rules render at native font via the `wide-diagram` cssclass + the `.obsidian/snippets/grammar-diagrams.css` snippet.
-Run a subset with `-Fragments Name1,Name2`; `-Width` tunes the wrap threshold.
+Run a subset with `-Fragments Name1,Name2`; `-Width` tunes the wrap threshold. Productionized the same way as the
+code-reference generator: an opt-in MSBuild build hook (`-p:GenerateGrammarDiagrams=true` in `Cobol.Net.Cli.csproj`)
+and a `GrammarDiagramGeneratorDriftTests` "runs clean" CI check (requires `java` + the vendored `tools/rr/rr.war`).
 
 ## See also
 - [[docs/DOC_INDEX]] — the authoritative doc map (now in-graph).
