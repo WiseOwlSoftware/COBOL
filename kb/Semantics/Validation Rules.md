@@ -76,6 +76,7 @@ reflected, feeding [[docs/DIAGNOSTICS]] and `DiagnosticRegistryDriftTests`. Nota
 
 ## See also
 - [[kb/Semantics/Passes]] — where these rules run in the pipeline.
+- [[kb/Semantics/Version Gating & Reserved Words]] — why reserved-ness is a data table + funnel, not lexer/grammar structure.
 - [[kb/Spec/Version Targeting]] — the edition model behind the gates.
 - [[kb/Diagrams/Semantic Validation Flow]] — the funnel & severity seam visualized.
 - [[kb/Runtime/Execution Model]] — FILE STATUS / EC at execution.

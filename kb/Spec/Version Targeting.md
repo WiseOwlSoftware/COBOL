@@ -79,6 +79,7 @@ cite the doc as authority that something is non-ISO until its row says CONFIRMED
 
 ## See also
 - [[kb/Semantics/Passes]] — the VersionConformancePass mechanism.
+- [[kb/Semantics/Version Gating & Reserved Words]] — the design record: superset+pass+table vs. predicates / four grammars / lexer toggling.
 - [[kb/Semantics/Validation Rules]] — the reserved-word funnel & severity policy.
 - [[kb/Spec/Language Features]] — the feature surface being gated.
 - [[kb/Modernization/Tasks]] — the P14 traceability inventory.

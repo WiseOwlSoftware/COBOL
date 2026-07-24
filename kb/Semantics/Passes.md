@@ -75,6 +75,7 @@ patterns (reverse-signature recognizer, per-rule grammar predicates, binder-embe
 
 ## See also
 - [[kb/Semantics/Validation Rules]] — the checks these passes run.
+- [[kb/Semantics/Version Gating & Reserved Words]] — *why* this design (superset + pass + table) over predicates / four grammars / lexer toggling.
 - [[kb/Compiler/Phases]] — the version-conformance mechanism in the frontend context.
 - [[kb/Spec/Version Targeting]] · [[kb/IR/Node Types]]
 
