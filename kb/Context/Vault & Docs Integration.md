@@ -51,10 +51,9 @@ A Roslyn build generator emits one note per type from the `///` doc-comments —
 generated version. Tracked in [[kb/Remaining Work Tracker]].
 
 
-**✅ Pilot LIVE (2026-07-23):** `scripts/gen-vault-reference.py` generates **184 `Bound*` notes** into
-`kb/Reference/Bound/` (index: [[kb/Reference/Bound/_Index]]) from the source `///` summaries — drift-proof, gitignored
-build output, 3 documentation-debt items surfaced. Runtime (`Cobol.Net.Runtime`) and frontend slices are the next
-extensions; a build hook + a "generator runs clean" CI check productionize it.
+**✅ Pilot LIVE (2026-07-23):** `scripts/gen-vault-reference.ps1` generates **302 type notes** across Bound + Runtime + Frontend into `kb/Reference/` (index: [[kb/Reference/Bound/_Index]]) from the source `///` summaries — drift-proof, gitignored
+build output, 3 documentation-debt items surfaced. The PowerShell generator now covers Bound + Runtime + Frontend, with an opt-in MSBuild build hook
+(`-p:GenerateVaultReference=true` in `Cobol.Net.Cli.csproj`) and a `VaultReferenceGeneratorDriftTests` "runs clean" CI check.
 
 ## See also
 - [[docs/DOC_INDEX]] — the authoritative doc map (now in-graph).

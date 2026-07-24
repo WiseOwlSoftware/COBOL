@@ -21,4 +21,14 @@
     <InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />
   </ItemGroup>
 
+  <!-- Opt-in build hook for the Obsidian vault code-reference notes (kb/Reference/, a GITIGNORED build output).
+       NOT run by default: the build does not depend on these notes (unlike the ANTLR parser, which IS a build
+       prerequisite). Enable on a build with -p:GenerateVaultReference=true (e.g. a docs/CI refresh). Normally the
+       generator is run by hand (pwsh scripts/gen-vault-reference.ps1), and a "runs clean" drift test
+       (VaultReferenceGeneratorDriftTests) guards it in CI — matching the scripts/gen-*.ps1 + drift-test convention. -->
+  <Target Name="GenerateVaultReference" AfterTargets="Build" Condition="'$(GenerateVaultReference)' == 'true'">
+    <Message Text="Generating Obsidian vault code-reference (kb/Reference/)..." Importance="high" />
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)../../scripts/gen-vault-reference.ps1&quot;" />
+  </Target>
+
 </Project>
