@@ -92,3 +92,13 @@
 | Doc | Type | Subject |
 |---|---|---|
 | `specs/ISO_COBOL.md` | SPEC | The ISO/IEC 1989:2023 COBOL standard (private submodule). The authority for all syntax/semantics/behavior — cite the §. `git submodule update --init --recursive`. |
+
+## Derived knowledge base (Obsidian vault at `kb/`)
+
+> **Not authoritative.** A cross-linked Obsidian "second brain" derived (paraphrased) from `docs/*` + the source. The
+> docs above remain the SSOT — **the doc wins on any conflict**. Contains **no verbatim ISO text** (that stays in the
+> `specs/ISO_COBOL.md` submodule). The notes are tracked; Obsidian's volatile `.obsidian/` state is gitignored.
+
+| Path | Type | Subject |
+|---|---|---|
+| `kb/` | DERIVED | MOCs, lookup tables (keywords · grammar · semantic-rules · IR mapping · runtime mapping · diagnostics · construct catalogue), diagrams, reverse indexes (ISO-clause→phase, runtime-class→IR), data-flow traces, and the live top-level `Remaining Work Tracker.md`. Setup/role: `kb/Context/Vault & Docs Integration.md`. Refresh notes when the docs they cite change; each carries a `last_updated` stamp. |

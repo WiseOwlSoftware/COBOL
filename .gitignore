@@ -86,3 +86,20 @@ tests/external/gnucobol-differential-report.json
 
 # Session convenience files — untracked by convention (feedback_plans_in_repo)
 /scratchpad/
+
+# ── Obsidian vault (notes under kb/) ─────────────────────────────────────────────────────────────────────────
+# The NOTES under kb/ ARE tracked — a derived, cross-linked knowledge base (see docs/DOC_INDEX.md
+# "Derived knowledge base"). Only Obsidian's per-user / volatile state is ignored so pane moves, caches, and
+# vendored plugin code don't churn the repo. community-plugins.json (the plugin LIST) stays tracked for reinstall.
+# (VAULT/ retired 2026-07-23 — notes relocated to kb/; only the repo-root .obsidian/ rules below apply)
+
+# Obsidian config at the REPO ROOT (vault root became the repo on 2026-07-23 — one vault over the whole project).
+# ⛔ NEVER commit the Local REST API key/cert (data.json) or volatile state. community-plugins.json (the plugin LIST,
+# at .obsidian/ top level) MAY be committed for reinstall. The generated code-reference notes are a build output.
+.obsidian/*
+!.obsidian/app.json
+!.obsidian/community-plugins.json
+.trash/
+
+# Generated code-reference notes (a build output — regenerated from src/ by the vault generator).
+kb/Reference/

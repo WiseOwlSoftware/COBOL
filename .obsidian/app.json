@@ -1,0 +1,13 @@
+{
+  "userIgnoreFilters": [
+    "src/",
+    "tests/",
+    "tools/",
+    "scripts/",
+    "samples/",
+    "agents/",
+    "claude/",
+    "scratchpad/",
+    "specs/scripts/"
+  ]
+}
