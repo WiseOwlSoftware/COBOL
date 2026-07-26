@@ -97,7 +97,7 @@ def main() -> int:
 
     by_clause = Counter(r["section"].split(".")[0] for r in out)
     print("\n  GAP by top-level clause (the P14 work map):")
-    for sec, n in sorted(by_clause.items(), key=lambda kv: int(kv[0])):
+    for sec, n in sorted(by_clause.items(), key=lambda kv: (0, int(kv[0]), "") if kv[0].isdigit() else (1, 0, kv[0])):
         g = sum(1 for r in out if r["section"].split(".")[0] == sec and r["state"] == "GAP")
         print(f"      §{sec:<3s} {g:5d} / {n}")
 

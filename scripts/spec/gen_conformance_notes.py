@@ -168,7 +168,7 @@ Kinds: {" · ".join(f"{n} {k}" for k, n in sorted(kinds.items()))}
 |---|---:|---:|
 """ + "\n".join(
         f"| [[kb/Conformance/clause-{c}/_Index|§{c}]] | {len(i)} | {sum(1 for r in i if r['state'] == 'GAP')} |"
-        for c, i in sorted(by_clause.items(), key=lambda kv: int(kv[0]))
+        for c, i in sorted(by_clause.items(), key=lambda kv: (0, int(kv[0]), "") if kv[0].isdigit() else (1, 0, kv[0]))
     ) + f"""
 
 ## Live queries

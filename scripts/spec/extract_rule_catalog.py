@@ -204,6 +204,63 @@ def main() -> int:
     EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
     gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
 
+    # ---- Annex A.1 — the implementor-defined language element list -------------------------------------------
+    # D13 defines "100% conforming" as the mandatory core complete PLUS every required implementor-documentation
+    # item, so these ARE inventory rows and were missing from the denominator entirely. The heading is
+    # "### **A.1 ...**" — bold inside the heading, so it carries no leading digit and the numbered-heading scan
+    # never saw it. Items are "N) <header> (<paraphrase>). This item is <required|optional|conditionally
+    # required>. This item [, if provided ...,] shall be documented ... (<cross-reference>)".
+    a1_start = next((i for i, l in enumerate(lines) if re.match(r"^#{2,6}\s+\*{0,2}A\.1\b", l)), None)
+    a1_items = 0
+    if a1_start is not None:
+        page = 0
+        for line in lines[:a1_start]:
+            if m := PAGE.match(line):
+                page = int(m.group(1))
+        buf, ordinal, rule_page = [], 0, page
+
+        def flush_a1() -> None:
+            nonlocal buf, ordinal, a1_items
+            if ordinal and (text := re.sub(r"\s+", " ", " ".join(x.strip() for x in buf)).strip()):
+                # Classify from the item's OWN words. Three items (28, 176, 200) do not use the standard
+                # "This item is X" clause, and defaulting them to "required" silently inflated that bucket by
+                # exactly 3 — the discrepancy against DEVLOG 932's independent count. An item that states no
+                # requirement is marked UNCLASSIFIED and surfaced, never bucketed by assumption.
+                low = text.lower()
+                if "conditionally required" in low or "this item is conditional" in low:
+                    req = "conditionally required"
+                elif "this item is optional" in low or "feature is optional" in low:
+                    req = "optional"
+                elif "this item is required" in low:
+                    req = "required"
+                else:
+                    req = "unclassified"
+                rules.append({
+                    "id": f"DOC-A.1-{ordinal}", "section": "A.1", "kind": "DOC", "ordinal": ordinal,
+                    "sublist": 1, "subject": text.split(".")[0][:120], "page": rule_page,
+                    "requirement": req, "documented": "shall be documented" in low, "text": text,
+                })
+                a1_items += 1
+            buf, ordinal = [], 0
+
+        for line in lines[a1_start + 1:]:
+            if m := PAGE.match(line):
+                page = int(m.group(1))
+                continue
+            if RUNNING_HEADER.match(line) or FURNITURE.match(line):
+                continue
+            if ANY_HEADING.match(line):          # A.2 (or any later annex heading) ends the list
+                flush_a1()
+                break
+            if m := ORDINAL.match(line):
+                flush_a1()
+                ordinal, rule_page = int(m.group("n")), page
+                buf = [m.group("text")]
+            elif ordinal:
+                buf.append(line)
+        else:
+            flush_a1()
+
     # ---- completeness critic: the spec's own TOC ------------------------------------------------------------
     # The empty-block check has a BLIND SPOT — it can only verify blocks it RECOGNISED. A block whose heading was
     # never matched (an unhandled title form, or a heading a page break demoted to bold text and stripped of its
@@ -239,12 +296,14 @@ def main() -> int:
     print(f"RULES EXTRACTED: {len(rules)}")
     print()
     for k, label in (("SR", "syntax rules"), ("GR", "general rules"),
-                     ("AR", "argument rules"), ("RV", "returned value rules")):
+                     ("AR", "argument rules"), ("RV", "returned value rules"),
+                     ("DOC", "Annex A.1 implementor-defined items")):
         if by_kind.get(k):
             print(f"   {by_kind[k]:5d}  {k}  {label}")
     print()
     print("   by top-level clause:")
-    for sec, n in sorted(top.items(), key=lambda kv: int(kv[0])):
+    # Annex clauses sort after numbered ones ("A.1" is not an int).
+    for sec, n in sorted(top.items(), key=lambda kv: (0, int(kv[0])) if kv[0].isdigit() else (1, 0)):
         print(f"      §{sec:<3s} {n:5d}")
 
     if gaps:
