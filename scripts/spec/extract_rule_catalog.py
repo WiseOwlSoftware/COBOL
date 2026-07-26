@@ -43,6 +43,25 @@ OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 # A numbered section heading, e.g. "## 8.4.3.13.3 Syntax rules" or "### 14.9.28.4 General rules".
 HEADING = re.compile(r"^#{2,6}\s+(?P<num>\d+(?:\.\d+)*)\s+(?P<title>.+?)\s*$")
 PAGE = re.compile(r"^##\s+Page\s+(\d+)\s*$")
+# Any markdown heading — used to CLOSE a rule block (see the loop). Annex headings carry no section number.
+ANY_HEADING = re.compile(r"^#{1,6}\s+\S")
+# PAGE-BREAK FURNITURE. At every printed page boundary the transcription injects a running header, and it is
+# emitted AS A HEADING — inside rule blocks. Treating it as a block terminator truncates every rule block that
+# spans a page break (it cost 896 rules when first tried). Skip it instead. Three transcribed shapes, the same
+# three scripts/fix_spec_pagebreaks.py had to learn the hard way; missing the bare form is the dangerous one.
+RUNNING_HEADER = re.compile(r"^#{1,6}\s*(?:\*\*)?ISO/IEC\s+1989:2023\s*\(E\)(?:\*\*)?\s*$")
+# ALL page-break furniture, in every transcribed shape. These lines land INSIDE rule prose at a page boundary and
+# were being absorbed as rule TEXT: 592 of 3,247 rules (18%) carried an anchor, a rule, a running header or a
+# licence footer spliced into the normative sentence. A rule whose text is contaminated is worse than a missing
+# one — it reads as authoritative and would be cited that way. Skipped at the line level, before buffering.
+FURNITURE = re.compile(
+    r"^\s*(?:"
+    r"-{3,}"                                              # the --- separators around a page block
+    r'|<a\s+id="[^"]*"></a>'                              # ANY anchor — page-N and section-N-N both leak in
+    r"|(?:\*\*)?ISO/IEC\s+1989:2023\s*\(E\)(?:\*\*)?"    # running header: bold or bare (no leading #)
+    r"|(?:\d+\s+)?(?:©|\(c\))?\s*ISO/IEC\s+2023"        # copyright footer
+    r"|Licensed to .*"                                    # licence footer
+    r")\s*$", re.I)
 # A top-level rule ordinal at the start of a line. The transcription uses BOTH "1)" and "1." — an earlier version
 # matched only "1)" and silently dropped every rule in §8.8.3.2, §11.9.11.2, §13.18.24.3 and §14.9.30.3. The
 # completeness self-check is what surfaced it; without it the denominator would have been quietly short.
@@ -50,13 +69,14 @@ PAGE = re.compile(r"^##\s+Page\s+(\d+)\s*$")
 ORDINAL = re.compile(r"^(?P<n>\d+)[.)]\s+(?P<text>.*)$")
 
 # The rule-block kinds the standard uses. Intrinsic functions use argument/returned-value rules instead of SR/GR.
+# SINGULAR forms are load-bearing, not a nicety: the standard writes "Syntax rule" when a block holds exactly one
+# (§10.6.3, §11.9.4, §13.4.3, …). A plural-only map skipped 15 whole blocks — invisible to the empty-block check,
+# because a block that is never RECOGNISED is never counted as seen. The TOC cross-check below is what caught it.
 KINDS = {
-    "syntax rules": "SR",
-    "general rules": "GR",
-    "argument rules": "AR",
-    "returned value rules": "RV",
-    "arguments": "AR",
-    "returned value": "RV",
+    "syntax rules": "SR", "syntax rule": "SR",
+    "general rules": "GR", "general rule": "GR",
+    "argument rules": "AR", "argument rule": "AR", "arguments": "AR",
+    "returned value rules": "RV", "returned value rule": "RV", "returned value": "RV",
 }
 
 
@@ -112,6 +132,11 @@ def main() -> int:
     # carried the WRONG verdict forward on every inventory refresh. Track the sub-list and qualify the id.
     sublist = 1
     last_ordinal = 0
+    # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
+    # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
+    # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
+    # is printed on page 95 and was recorded as 96).
+    rule_page = 0
 
     def flush() -> None:
         nonlocal buf, ordinal
@@ -125,7 +150,7 @@ def main() -> int:
                 "ordinal": ordinal,
                 "sublist": sublist,
                 "subject": subject_for(sec, titles),
-                "page": page,
+                "page": rule_page,
                 "text": re.sub(r"\s+", " ", text),
             })
             blocks_with_rules.add(cur)
@@ -134,6 +159,17 @@ def main() -> int:
     for line in lines:
         if m := PAGE.match(line):
             page = int(m.group(1))
+            continue
+        # ANY heading closes the current rule block. Terminating only on a NUMBERED heading let §16.2.2.2 — the
+        # last rule block in the standard's body — run straight through the un-numbered annex headings ("## Annex
+        # A (normative)"), turning every "N." line in Annexes A-F into a fake rule: 601 phantoms in one block.
+        # A block that never ends is as wrong as a block never seen, and inflates the denominator instead of
+        # shortening it, which is the more dangerous direction because it looks like thoroughness.
+        if RUNNING_HEADER.match(line) or FURNITURE.match(line):
+            continue
+        if ANY_HEADING.match(line) and not HEADING.match(line):
+            flush()
+            cur = None
             continue
         if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
             flush()
@@ -156,6 +192,7 @@ def main() -> int:
             else:
                 flush()
             ordinal, last_ordinal = n, n
+            rule_page = page
             buf = [m.group("text")]
         elif ordinal:
             buf.append(line)
@@ -166,6 +203,24 @@ def main() -> int:
     # is. They are rule-block headings that correctly contain no rules. Every other empty block is a parse gap.
     EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
     gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
+
+    # ---- completeness critic: the spec's own TOC ------------------------------------------------------------
+    # The empty-block check has a BLIND SPOT — it can only verify blocks it RECOGNISED. A block whose heading was
+    # never matched (an unhandled title form, or a heading a page break demoted to bold text and stripped of its
+    # anchor, which has happened in this transcription) is invisible to it. The TOC is an independent witness of
+    # what the printed standard contains, so cross-check against it.
+    toc = {(n, k.strip().lower()) for n, k in
+           re.findall(r"\[(\d+(?:\.\d+)*)\s+((?:Syntax|General|Argument|Returned value)\s+rules?)\]\(#section-",
+                      "\n".join(lines))}
+    seen = {(n, (titles.get(n) or "").strip().lower().rstrip(".")) for n, _ in blocks_seen}
+    unseen = sorted(toc - seen, key=lambda x: [int(p) for p in x[0].split(".")])
+    if unseen:
+        print(f"\n✗ FATAL: {len(unseen)} rule block(s) listed in the spec TOC were never parsed as headings.")
+        print("  A block that is never recognised is never counted — the denominator would be short and the")
+        print("  empty-block check could not see it. Investigate the heading form before trusting this catalog:")
+        for n, k in unseen[:20]:
+            print(f"      §{n}  {k}")
+        sys.exit(1)
 
     # Rule ids are the inventory's PRIMARY KEY — a duplicate silently carries the wrong verdict forward on every
     # refresh, and drops rules from any per-rule view. This is not a warning; it invalidates the catalog.
