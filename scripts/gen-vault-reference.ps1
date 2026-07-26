@@ -56,6 +56,19 @@ function Get-Summary([string]$doc) {
     return [System.Net.WebUtility]::HtmlDecode($s)
 }
 
+# The frontmatter `description:` is the PROGRESSIVE-DISCLOSURE hook: it lets a reader (human or agent) judge a
+# note's relevance from the index alone, without opening it. Without it, deciding whether `MoveClassifier` matters
+# to the task at hand costs a full file read — 634 times over. First sentence, one line, YAML-safe.
+function Get-Description([string]$summary) {
+    if (-not $summary) { return 'No ``///`` summary in the source — documentation debt.' }
+    # First sentence, but do not break on the period inside an ISO citation (§14.9.24.4) or a decimal.
+    $m = [regex]::Match($summary, '^(.*?[.!?])(?:\s|$)')
+    $d = if ($m.Success -and $m.Groups[1].Value.Length -ge 25) { $m.Groups[1].Value } else { $summary }
+    if ($d.Length -gt 200) { $d = $d.Substring(0, 197).TrimEnd() + '...' }
+    # YAML double-quoted scalar: escape backslash and quote; strip newlines (already collapsed by Get-Summary).
+    return $d.Replace('\', '\\').Replace('"', '\"')
+}
+
 # ── pass 1: collect every type across all sections ──────────────────────────────────────────────────────
 $types = [ordered]@{}
 foreach ($sec in $sections) {
@@ -108,6 +121,7 @@ New-Item -ItemType Directory -Path $outRoot | Out-Null
 $note = @'
 ---
 title: {0}
+description: "{8}"
 kind: {1}
 base: {2}
 source: {3}
@@ -143,7 +157,7 @@ foreach ($t in $types.Values) {
     } elseif ($t.Base) { $baselink = '`' + $t.Base + '`' } else { $baselink = '—' }
     $summary = if ($t.Summary) { $t.Summary } else { '> ⚠ No `///` summary in the source — documentation debt.' }
     if (-not $t.Summary) { $debt.Add($t) }
-    $content = $note -f $t.Name, $t.Kind, ($t.Base ?? '—'), $t.Src, $t.Line, $t.Section, $baselink, $summary
+    $content = $note -f $t.Name, $t.Kind, ($t.Base ?? '—'), $t.Src, $t.Line, $t.Section, $baselink, $summary, (Get-Description $t.Summary)
     [System.IO.File]::WriteAllText((Join-Path $outRoot (Join-Path $t.Section ($t.Name + '.md'))), $content)
 }
 

@@ -106,16 +106,24 @@ def main() -> int:
     cur: tuple[str, str] | None = None           # (section-number, kind) of the block being read
     buf: list[str] = []
     ordinal = 0
+    # A rule block can contain MORE THAN ONE numbered list — the standard restarts numbering under an unheaded
+    # sub-list (e.g. §7.2.3.4 General rules runs 1..n for COPY, then restarts 1..n for text-word matching). Keyed
+    # on (kind, section, ordinal) alone, 173 rules collided and silently overwrote each other — which would have
+    # carried the WRONG verdict forward on every inventory refresh. Track the sub-list and qualify the id.
+    sublist = 1
+    last_ordinal = 0
 
     def flush() -> None:
         nonlocal buf, ordinal
         if cur and ordinal and (text := " ".join(x.strip() for x in buf).strip()):
             sec, kind = cur
+            rid = f"{kind}-{sec}-{ordinal}" if sublist == 1 else f"{kind}-{sec}-L{sublist}.{ordinal}"
             rules.append({
-                "id": f"{kind}-{sec}-{ordinal}",
+                "id": rid,
                 "section": sec,
                 "kind": kind,
                 "ordinal": ordinal,
+                "sublist": sublist,
                 "subject": subject_for(sec, titles),
                 "page": page,
                 "text": re.sub(r"\s+", " ", text),
@@ -131,6 +139,7 @@ def main() -> int:
             flush()
             num, title = m.group("num"), m.group("title")
             k = kind_of(title)
+            sublist, last_ordinal = 1, 0
             if k:
                 cur = (num, k)
                 blocks_seen.append(cur)
@@ -140,8 +149,13 @@ def main() -> int:
         if cur is None:
             continue
         if m := ORDINAL.match(line):
-            flush()
-            ordinal = int(m.group("n"))
+            n = int(m.group("n"))
+            if n <= last_ordinal:          # numbering went backwards or repeated -> a new sub-list
+                flush()
+                sublist += 1
+            else:
+                flush()
+            ordinal, last_ordinal = n, n
             buf = [m.group("text")]
         elif ordinal:
             buf.append(line)
@@ -152,6 +166,15 @@ def main() -> int:
     # is. They are rule-block headings that correctly contain no rules. Every other empty block is a parse gap.
     EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
     gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
+
+    # Rule ids are the inventory's PRIMARY KEY — a duplicate silently carries the wrong verdict forward on every
+    # refresh, and drops rules from any per-rule view. This is not a warning; it invalidates the catalog.
+    dupes = [rid for rid, n in Counter(r["id"] for r in rules).items() if n > 1]
+    if dupes:
+        print(f"\n✗ FATAL: {len(dupes)} DUPLICATE rule id(s) — the inventory key is not unique:")
+        for rid in dupes[:10]:
+            print(f"      {rid}")
+        sys.exit(1)
 
     by_kind = Counter(r["kind"] for r in rules)
     top = Counter(r["section"].split(".")[0] for r in rules)
