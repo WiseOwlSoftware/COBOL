@@ -1,0 +1,126 @@
+# COBOL.NET architectural invariants, mechanized.
+#
+# These rules encode doctrine that was previously prose in PROMPT.md and COBOLNET_DESIGN.md §1.2 — rules only a
+# reviewer would catch, and only if they remembered. Anything checkable by a pattern should not be an instruction.
+#
+#   semgrep scan --config scripts/semgrep/invariants.yml \
+#       src/Cobol.Net.Cli src/Cobol.Net.Compiler src/Cobol.Net.Editions src/Cobol.Net.Frontend src/Cobol.Net.Runtime
+#
+# The frozen legacy tree (src/CobolSharp.*) is deliberately NOT scanned — it predates every invariant here and is
+# deleted at P15. Scope the scan to the greenfield projects rather than excluding paths, so a new legacy-shaped
+# directory cannot silently opt itself out.
+#
+# SUPPRESSION: use semgrep's built-in `// nosemgrep: <rule-id>` on the line (or the line above), WITH a reason:
+#     byte[] _scratch = ...;  // nosemgrep: cobolnet-no-persistent-byte-storage - CODE-SET file boundary, §9.1
+# Do NOT invent a project-local suppression convention. An earlier draft used a `pattern-not-inside` on a
+# `// semgrep-ok(...)` comment; comments are not matchable context, and the construct SILENTLY DISABLED the whole
+# rule — it reported zero findings and looked green. Every rule below is verified against a deliberate violation
+# (scripts/semgrep/testdata/) precisely because a rule that never fires is worse than no rule.
+
+rules:
+  # ── Locked invariant 2: numerics are native ────────────────────────────────────────────────────────────────
+  # Scope: the RUNTIME value/storage model. Invariant 2 governs how COBOL data is REPRESENTED at run time, not how
+  # the compiler folds a constant at bind time — a compile-time evaluator (§7.3.6.3 expressions, HIGHEST/LOWEST-
+  # ALGEBRAIC folding over a 16-byte container, where (1 << 128) - 1 genuinely exceeds Int128) legitimately needs
+  # wider arithmetic to compute a literal it then renders as text.
+  - id: cobolnet-no-decimal
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      COBOLNET_DESIGN §1.2 invariant 2 — numerics are native: fixed-point is a native integer holding the UNSCALED
+      value (long, or Int128 for 19-38 digits), COMP-1/COMP-2 are float/double. `decimal` is banned in the runtime
+      value model. If you reached for it to hold a scaled value, the scale belongs in compile-time metadata, not the
+      runtime type.
+    paths:
+      include:
+        - "src/Cobol.Net.Runtime/**"
+        - "src/Cobol.Net.Compiler/Binding/Model/**"
+    pattern-either:
+      - pattern: decimal $X;
+      - pattern: decimal $X = ...;
+      - pattern: System.Decimal
+
+  - id: cobolnet-no-biginteger
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      COBOLNET_DESIGN §1.2 invariant 2 — `BigInteger` is banned in the runtime value model. 19-38 digit fixed-point
+      uses Int128. If a value genuinely exceeds Int128, that is a spec question (§8.8.1 arithmetic bounds) to answer
+      with a citation, not a wider type.
+    paths:
+      include:
+        - "src/Cobol.Net.Runtime/**"
+        - "src/Cobol.Net.Compiler/Binding/Model/**"
+    # A bare `pattern: BigInteger` does not match a TYPE position in semgrep's C# grammar (verified: it matched
+    # nothing). Regex is the reliable form for a banned type name.
+    pattern-regex: '(?<![A-Za-z0-9_])BigInteger\b'
+
+  # ── Locked invariant 1: no persistent byte-array storage substrate ─────────────────────────────────────────
+  - id: cobolnet-no-persistent-byte-storage
+    languages: [csharp]
+    severity: WARNING
+    message: >-
+      COBOLNET_DESIGN §1.2 invariant 1 — a `byte[]` FIELD is a persisted byte substrate. A byte image may exist only
+      TRANSIENTLY at a sanctioned boundary (file I/O / CODE-SET, a runtime API needing bytes, a genuine mixed-USAGE
+      REDEFINES pun), built into a fresh LOCAL scratch buffer. If this is such a boundary, make it a local — or
+      suppress with `// nosemgrep: cobolnet-no-persistent-byte-storage - <which boundary, and why it must persist>`.
+    paths:
+      include:
+        - "src/Cobol.Net.Compiler/Binding/**"
+        - "src/Cobol.Net.Runtime/Values/**"
+    patterns:
+      - pattern-either:
+          - pattern: byte[] $NAME;
+          - pattern: byte[] $NAME = ...;
+      - pattern-inside: "class $C { ... }"
+
+  # ── Loud-failure invariant §1.4 ────────────────────────────────────────────────────────────────────────────
+  - id: cobolnet-no-silent-todo
+    languages: [csharp]
+    severity: WARNING
+    message: >-
+      COBOLNET_DESIGN §1.4 — an unbound or unsupported construct emits a TRACKED deferral diagnostic plus a runtime
+      guard, never a silent TODO no-op. Either implement it, or emit the staged-not-implemented diagnostic
+      (COBOLNET0899) with a `throw new NotImplementedCobolFeature(...)`. Deferral is debt and only an owner decision.
+    # `///` is an XML doc comment — prose that may legitimately *describe* this invariant (NotImplemented.cs's own
+    # summary says "never a silent // TODO no-op"). Skip any line whose first non-space is a doc comment.
+    pattern-regex: '(?m)^(?!\s*///).*//[ \t]*(TODO|FIXME|HACK|XXX)\b'
+
+  # ── Diagnostics: every emitted code is a catalog descriptor (ledger V11) ───────────────────────────────────
+  - id: cobolnet-raw-diagnostic-code-literal
+    languages: [csharp]
+    severity: WARNING
+    message: >-
+      A raw "COBOLNET####" string literal bypasses DiagnosticCatalog. Every emitted code must be a catalog
+      descriptor (one code = one rule, ISO §, severity, suppress-key) so the drift test can prove the two channels
+      agree, and so session-probe's next-free calculation stays sound. Add the descriptor and reference it.
+    # Match the BYPASS shape only: a bare code literal passed to an emit API. A plain regex over "COBOLNET####"
+    # is far too broad (633 hits) — it swept up the generated ConstructRegistry, legitimate registry lookups, and
+    # comments that merely DISCUSS a past code collision.
+    paths:
+      exclude:
+        - "**/DiagnosticCatalog.cs"   # the definition site — the literal is the point there
+        - "**/*.g.cs"                 # generated; regenerate the generator, not the output
+    patterns:
+      - pattern-either:
+          - pattern: Emit($SEV, $CODE, ...)
+          - pattern: $X.Error($CODE, ...)
+          - pattern: $X.Warning($CODE, ...)
+          - pattern: $X.Report($CODE, ...)
+      - metavariable-regex:
+          metavariable: $CODE
+          regex: '^"COBOLNET\d{4}"$'
+
+  # ── Backend neutrality (G4 / DESIGN §1.3) ──────────────────────────────────────────────────────────────────
+  - id: cobolnet-bound-node-carries-rendered-text
+    languages: [csharp]
+    severity: WARNING
+    message: >-
+      COBOLNET_DESIGN §1.3 / G4 — the bound tree is BACKEND-NEUTRAL: no C# text, Roslyn syntax, mangled identifier
+      or format literal enters a bound node or Place. A string member holding rendered output on a Bound* type is a
+      seam violation; the CIL backend must be able to lower the same structure. Carry the STRUCTURE and let the
+      backend's renderer produce the text.
+    # Semgrep's C# grammar does not expose positional-record parameters to a `record $R(..., string $F, ...)`
+    # pattern (verified: matched nothing, including on a deliberate violation). Regex over the declaration header
+    # is the form that actually fires.
+    pattern-regex: '(?m)^[^\n]*\brecord\s+(?:struct\s+)?Bound[A-Za-z0-9_]*\s*\([^)]*\bstring\s+[A-Za-z0-9_]*(?:Text|Csharp|CSharp|Rendered|Fragment)\b'
