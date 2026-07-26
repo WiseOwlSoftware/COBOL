@@ -437,7 +437,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Recognize-and-name an unsupported facility: emit its NAMED §4.2.6/§4.2.13 warning once per
     /// site on the non-failing channel and bind to <see cref="BoundNop"/>. The program still compiles and
     /// runs; the facility is inert. This is the ONE mechanism for the band — do not add a parallel
-    /// Lenient()/Unsupported() helper (feedback_singular_pattern); it routes through the same
+    /// Lenient()/Unsupported() helper (feedback_one_mechanism_per_job); it routes through the same
     /// <c>EditionContext.Warning</c> channel the SCREEN non-support warning already uses.</summary>
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {

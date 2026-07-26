@@ -31,7 +31,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 ### D3. Counters (TALLYING), COUNT IN, and WITH POINTER route through the numeric subsystem (CobolNum + NumProfile), never a parallel int path.
 
-**Rationale.** They are numeric data items; the singular-pattern rule (feedback_singular_pattern) requires one canonical numeric store. Tally accumulates (INSPECT GR11: counter NOT initialized), so read current via CobolNum then store sum.
+**Rationale.** They are numeric data items; the singular-pattern rule (feedback_one_mechanism_per_job) requires one canonical numeric store. Tally accumulates (INSPECT GR11: counter NOT initialized), so read current via CobolNum then store sum.
 
 **Rejected alternatives.** Treat counters as raw C# long and bypass NumProfile — would skip PIC truncation/scale/sign and diverge from every other numeric store; rejected.
 
@@ -59,7 +59,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 > **`StringLvalue` IS a `Place`**). There is ONE lvalue model (`Place`, built by `ReferenceResolver`) consumed
 > identically by MOVE / arithmetic / INSPECT / STRING / UNSTRING / file READ-INTO / CALL-by-reference.
 > INSPECT/STRING/UNSTRING emit `field.Write(CobolStrings.…(field.Read(), …))` over a `Place`. Introducing a second
-> per-verb lvalue would violate `feedback_singular_pattern`.
+> per-verb lvalue would violate `feedback_one_mechanism_per_job`.
 
 **Rationale.** String-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)) — all resolved by `ReferenceResolver` into the universal `Place` (`MemberPlace`/`RefModPlace`, implemented in `src/Cobol.Net.Compiler/Binding/Model/Place.cs`). The single `Place` (a `MemberPlace`/`RefModPlace`) gives each a read C# expression and a write-back form. Centralizing this in the one resolver is required before any string-op write emits correctly.
 

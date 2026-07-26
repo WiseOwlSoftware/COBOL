@@ -16,7 +16,7 @@ public enum AccessDir { Sending, Receiving }
 /// <see cref="MemberPlace"/>/<see cref="RedefViewPlace"/>/<see cref="CapacityRegisterPlace"/> carries STRUCTURE, not
 /// C# text. A table segment's subscript INDEX is the D10 TRANSITIONAL string carrier (a rendered index expression) —
 /// it becomes a <c>BoundExpr</c> when PHASE 15 removes the SUBSCRIPT lexer mode (see the PHASE-07 Step 11 plan +
-/// <c>project_phase04_d10_deferral</c>). The rendering lives in <c>CodeGen.PlaceRenderer.RenderPath</c>.
+/// <c>project_d10_subscript_removal</c>). The rendering lives in <c>CodeGen.PlaceRenderer.RenderPath</c>.
 /// </summary>
 public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 {

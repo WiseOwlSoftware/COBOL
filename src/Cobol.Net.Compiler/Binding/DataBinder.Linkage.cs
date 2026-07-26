@@ -391,7 +391,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
-    /// feedback_singular_pattern): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
+    /// feedback_one_mechanism_per_job): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
     /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingCsName"/>
     /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
     /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). A COMP/float/index leaf fails

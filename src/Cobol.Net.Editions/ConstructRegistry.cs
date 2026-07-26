@@ -6,7 +6,7 @@ namespace CobolNet.Editions;
 /// The construct registry + the ONE gating entry point (P2.5): every edition gate — validator override or
 /// binder-side — routes through <see cref="Check"/>, which evaluates availability at the targeted
 /// <see cref="EditionInfo"/> and reports the verdict to an <see cref="IDiagnosticSink"/> at the severity the
-/// ONE <see cref="EditionSeverityPolicy"/> dictates (one policy, several emit sites; feedback_singular_pattern).
+/// ONE <see cref="EditionSeverityPolicy"/> dictates (one policy, several emit sites; feedback_one_mechanism_per_job).
 /// As of rearch PHASE 02 the registry lives BELOW the frontend, so both Frontend and Compiler consume it.
 /// </summary>
 public static partial class ConstructRegistry

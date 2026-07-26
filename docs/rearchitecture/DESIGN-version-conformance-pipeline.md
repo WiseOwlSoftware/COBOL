@@ -43,7 +43,7 @@ this design rules out, each a way version gating decays if it is *not* a single 
 
 The single mechanism defined below — **superset parse + construct identity recovered by the pass +
 edition-agnostic bind + one two-arm `VersionConformancePass` (post-bind) + emit-if-clean** — is the direct answer to
-all four (`feedback_singular_pattern`: one canonical mechanism per job, with error-gated phase boundaries).
+all four (`feedback_one_mechanism_per_job`: one canonical mechanism per job, with error-gated phase boundaries).
 
 ## 1. Target architecture
 

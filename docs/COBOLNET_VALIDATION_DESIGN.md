@@ -111,7 +111,7 @@ COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014
 The conformance pass is one visitor pass over the already-built parse tree plus a light bound-tree walk:
 full-pipeline CLI compiles of a large NIST program (SQ207M) measure ~1.3–1.4 s wall
 (parse+validate+bind+emit+Roslyn, Debug), and the full-corpus guard wall time is ~3.3 min — the pass is
-noise (feedback_guard_speed satisfied).
+noise (feedback_gate_on_the_verdict_line satisfied).
 
 ## 6. Wave 2–3 remainders (P2.8; roadmap Phase 2)
 

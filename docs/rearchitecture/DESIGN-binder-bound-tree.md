@@ -363,7 +363,7 @@ The core `StatementBinder` shrinks to the dispatch table + shared helpers. `Data
 **Inline SR/edition validation moves out.** The `data.Edition.Error(...)` calls smeared through the binder
 (MOVE figurative gates, composite-of-operands, boolean/class/pointer relation rules) route through a
 `StatementValidation` component beside `Validation/EditionValidator`, keeping the binder about *producing bound
-nodes* (`feedback_binder_no_ir` spirit). The binder calls `validation.CheckMove(...)`; the validation component
+nodes* (`project_dual_backend_goal` spirit). The binder calls `validation.CheckMove(...)`; the validation component
 owns "what is legal at which edition" and reports to the `IDiagnosticSink`.
 
 **Shared helpers deduplicated (one canonical mechanism per job):** `PhraseBlocks.BuildPair(blocks, notFirst)`
@@ -447,7 +447,7 @@ cross-check against the old across the corpus, delete the old). Never delete a m
   whole-group, compiler temps). A single `StorageFormPass` must reproduce ALL of them. Mitigation: the
   prove-then-delete cross-check in step 4 across the full corpus before removing `MarkStoreAsImage`.
 - **R3 — Source-generator build complexity (MEDIUM).** Adds a Roslyn source generator to the build; regen must be
-  portable across both OSes (matches the existing ANTLR-regen constraint, `feedback_commit_generated_parser`).
+  portable across both OSes (matches the existing ANTLR-regen constraint, `feedback_generated_parser_is_a_build_output`).
   Mitigation: the hand-written `abstract` visitor fallback (§3.3) removes the generator dependency if it proves
   costly.
 - **R4 — Pass granularity churn (MEDIUM).** Over-fine passes multiply forest re-walks (the efficiency critique

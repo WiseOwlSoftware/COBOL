@@ -237,7 +237,7 @@ public abstract record BoundOperand;
 
 /// <summary>A non-numeric literal, already decoded to its character value. <paramref name="Category"/> carries
 /// the literal's data category — Alphanumeric for a plain <c>"…"</c>, National for <c>N"…"</c> (§8.3.3.5),
-/// Boolean for <c>B"…"</c> (§8.3.3.4) — the ONE literal node for all three (feedback_singular_pattern); the
+/// Boolean for <c>B"…"</c> (§8.3.3.4) — the ONE literal node for all three (feedback_one_mechanism_per_job); the
 /// category drives MOVE legality (§14.9.25.3 Table 16), relation-class checks, and store fills.</summary>
 public sealed record BoundStringLiteral(string Value) : BoundOperand
 {
@@ -267,7 +267,7 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// <summary>True when the literal is one or more digit characters — the shape of ISO §14.9.25.3 SR5's sole
     /// surviving figurative→numeric MOVE ("an ALL "literal" figurative constant (containing only digits) … to an
     /// integer numeric item"). The ONE definition both the binder's edition gates and the emitter's value/image
-    /// split consult (feedback_singular_pattern).</summary>
+    /// split consult (feedback_one_mechanism_per_job).</summary>
     public bool IsDigitOnly => Literal.Length > 0 && Literal.All(c => c is >= '0' and <= '9');
 
     /// <summary>The literal's data category — always Alphanumeric today: <c>ALL N"…"</c>/<c>ALL B"…"</c>
@@ -322,7 +322,7 @@ public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
 
 /// <summary>A boolean expression used as a RELATION operand (ISO §8.8.4.2.2) — the ONE carrier that lets a
 /// boolean expression sit in a <see cref="BoundRelational"/> beside another boolean operand (item↔item compares
-/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_singular_pattern).</summary>
+/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_one_mechanism_per_job).</summary>
 public sealed record BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand;
 
 // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────────────

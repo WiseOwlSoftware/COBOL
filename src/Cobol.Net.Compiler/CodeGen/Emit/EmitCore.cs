@@ -79,7 +79,7 @@ internal static class EmitText
     public static string CsLiteral(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
     /// <summary>The C# expression evaluating to file <paramref name="f"/>'s runtime connector key — the ONE way a
-    /// connector is addressed at OPEN/READ/WRITE/CLOSE/registration/STATUS/USE-selection (feedback_singular_pattern).
+    /// connector is addressed at OPEN/READ/WRITE/CLOSE/registration/STATUS/USE-selection (feedback_one_mechanism_per_job).
     /// For a program, factory, or EXTERNAL file it is the qualified-name literal; for a per-object instance file
     /// (M2-OO-1i) it is the object's minted-key field <c>this.__fkey_X</c> (ISO §9.1.4 — one connector per object
     /// instance). Until an instance file sets <see cref="FileModel.InstanceKeyField"/> this is byte-identical to

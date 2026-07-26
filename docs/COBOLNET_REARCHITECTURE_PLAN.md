@@ -30,7 +30,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   LANDED header is the live tally.** Work top-down by severity, batched by area; land each fix WITH its
   spec-derived golden (expected value computed from the spec, never copied from the legacy). Source ledgers:
   `CODE-SPEC-AUDIT.md` (CA*) and the review ledger `PHASE-13-plan-vs-spec-review.md` §24 (V*).
-  Owner directive: spec-first is the ONLY going priority (`feedback_spec_first_only_priority`) — the
+  Owner directive: spec-first is the ONLY going priority (`feedback_spec_is_the_oracle`) — the
   NIST/GnuCOBOL/corpus checks are differential and structurally blind to a spec violation shared with the oracle.
 
 ### NEXT, in order
@@ -61,7 +61,7 @@ outstanding pre-merge confirmation.
   characterization + the relevant unit filter. Example: `dotnet test tests/Cobol.Net.Tests.Conformance --filter
   "FullyQualifiedName~<Area>"`; for an edition gate ALSO `--filter "FullyQualifiedName~VersionMatrix"`.
   ⛔ Do NOT run the full ~11–20 min Conformance suite per fix (owner-corrected; §3 and
-  `feedback_execution_model_tiered_parallel`).
+  `feedback_tiered_gates`).
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
   — never the ~20 min serial `guard.sh`.
@@ -317,7 +317,7 @@ phase boundary.
 
 ## §4.1 — Execution resequencing (2026-07-11, owner-directed: TOOLING-FIRST foundation)
 
-**Owner directive (2026-07-11, `[[project_path_a_leverage_tooling]]`; evaluation
+**Owner directive (2026-07-11, `[[project_leverage_antlr_roslyn_tooling]]`; evaluation
 `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`):** the §4 order is dependency-correct but **buries the two
 highest-leverage TOOLING foundations too late**, so every phase until then pays the ad-hoc-walker / no-symbol-table
 tax — the direct cause of the PHASE-05 `UsageCollectionPass` completeness bugs (6 missed statement types +
@@ -338,7 +338,7 @@ it does NOT renumber the phases.
 | **E ✅ DONE** | (P2/P3 audit remediation, task #13) | **The ~19 inline edition gates FOLDED into the two-arm `VersionConformancePass`** (20 new registry rows, each in the version matrix); orphaned `GateId` scaffolding DELETED; the "edition-agnostic" over-claims corrected (the canonical §1.1 gating-exception ledger, DESIGN-version-conformance-pipeline). | Done ON the visitor + the now-clean pipeline. |
 | **◐ F (NOW)** | P08–P16 | Runtime reorg, feature waves (M2/M3/M4), matrix closure, G8 legacy cut, CIL backend. | On the fully tooling-leveraged foundation. |
 
-**Guiding rule going forward (`[[feedback_singular_pattern]]` + tooling):** any NEW tree traversal uses the ONE
+**Guiding rule going forward (`[[feedback_one_mechanism_per_job]]` + tooling):** any NEW tree traversal uses the ONE
 generated/shared visitor (bound tree) or the ANTLR generated visitor/listener (CST) — never a fresh bespoke `switch`.
 The PHASE-05/06/07 records (Part III) close A–D; §0 carries the live resume point; this section's banner
 points at the current exec step. Keep this table + those STATUS lines + the §4 ticks in sync as each exec step lands.
@@ -751,7 +751,7 @@ shared-`.g4` guardrail (ONE full legacy guard for the wave). Sized 4–8 session
 - **Gate it** (the row names a real, in-scope gating obligation whose feature is implemented by P13): add/confirm the `constructs.json` row + its `VersionConformancePass` check + a negative witness, run the row's matrix cell, then flip the status cell to `GATED (…, DEVLOG NNN)` with the code and site — mirroring the existing `GATED (W2: move-alphanumeric-figurative-removed-2023, 0902 …)` shape already in the file.
 - **Disposition it** (the row is intentionally not gated — e.g. an Annex A.4 documented-non-support module per ratified decision #3, a behavior with no observable edition delta, or a spec-undefined choice): replace `TODO` with `DISPOSITION: <one line + ISO § + reason>`. Non-support dispositions must trace to a `COMPLETION_ROADMAP_COUNCIL.md` §5 decision (screen/MCS/commit-rollback/locale/extended-letters/A.4.8/A.4.13/VALIDATE) or the §4.2 conformance document plan.
 
-Work in row-family batches (do NOT try all 117 at once). Natural batches: Table 1 (2014→2023 E.2 substantive), Table 2/3 (new directives / reserved words), Table 5 (behavior rows), the archaic/obsolete flags (VCR 89/90/126/127), the 85→2002 interim rows. For each batch, cite the ISO § and the edition. This is a spec-first burn-down: derive the expected outcome from `specs/ISO_COBOL.md` and cite the § in the row and (for a gate) in the code (`feedback_use_the_spec`, `project_spec_to_code_traceability`).
+Work in row-family batches (do NOT try all 117 at once). Natural batches: Table 1 (2014→2023 E.2 substantive), Table 2/3 (new directives / reserved words), Table 5 (behavior rows), the archaic/obsolete flags (VCR 89/90/126/127), the 85→2002 interim rows. For each batch, cite the ISO § and the edition. This is a spec-first burn-down: derive the expected outcome from `specs/ISO_COBOL.md` and cite the § in the row and (for a gate) in the code (`feedback_spec_is_the_oracle`, `project_spec_to_code_traceability`).
 
 **Why:** a `TODO` row is an unproven version-correctness claim; the exit criterion is zero. Making status *derived* (Step 2) is what stops it drifting back.
 
@@ -786,7 +786,7 @@ Expected: no drift; test green.
 
 #### Step 3 — Promote the INV-1-strong golden re-match at `--std 2023` to an always-on test
 
-**Files:** `tests/Cobol.Net.Tests.Conformance/Inv1StrongGoldenTests.cs` (NEW); reuses `NistDifferentialTests.RunNist` / `Normalize` / `Chains` (make them `internal static` shared helpers or lift into a `NistRunner` helper class so both test classes call one implementation — `feedback_singular_pattern`).
+**Files:** `tests/Cobol.Net.Tests.Conformance/Inv1StrongGoldenTests.cs` (NEW); reuses `NistDifferentialTests.RunNist` / `Normalize` / `Chains` (make them `internal static` shared helpers or lift into a `NistRunner` helper class so both test classes call one implementation — `feedback_one_mechanism_per_job`).
 
 **Change:** author a `[Theory]` that, for every golden-bearing program in `corpus.tsv` (status `green`), compiles AND runs it at `DialectLevel: 2023, Permissive: true` and asserts byte-identical normalized output vs `tests/nist/valid/<name>.txt`. This is the `COBOLNET_NIST_STD=2023 COBOLNET_NIST_PERMISSIVE=1` env path (`NistDifferentialTests.cs`) promoted from an env-gated manual leg to a first-class always-run test. Keep the env override too (for ad-hoc runs at 2002/2014), but 2023-permissive now runs unconditionally in `dotnet test`.
 
@@ -833,7 +833,7 @@ Expected: coverage test green (no uncovered descriptor); corpus manifest drift g
 
 **Files:** none new necessarily — this is a *run + fix* step over `VersionMatrixTests` (INV-1 weak + INV-2), `Inv1StrongGoldenTests` (INV-1 strong, Step 3), `VersionBehaviorMatrixTests` (INV-3), and `scripts/version-continuity-sweep.sh` (INV-1 permissive, check-batch).
 
-**Change:** run all four; every failure is a version-gating bug to fix (`feedback_diff_is_a_bug`). Confirm the continuity-sweep exit condition of the G7 criteria: every *strict* later-edition failure traces to a recognized edition-band code (0801/0802/0810/0811/0873/0875–0879/0882/0893/0900-band) — add a sweep post-check that, for each strict `BREAKS`, greps the compile diagnostics for one of those codes and fails otherwise (this makes "traces to a removal/reserved row" machine-checked, not asserted).
+**Change:** run all four; every failure is a version-gating bug to fix (`feedback_spec_is_the_oracle`). Confirm the continuity-sweep exit condition of the G7 criteria: every *strict* later-edition failure traces to a recognized edition-band code (0801/0802/0810/0811/0873/0875–0879/0882/0893/0900-band) — add a sweep post-check that, for each strict `BREAKS`, greps the compile diagnostics for one of those codes and fails otherwise (this makes "traces to a removal/reserved row" machine-checked, not asserted).
 
 **Why:** exit criterion #3 + #2. INV-3 (behavior-variant) is "the currently-weakest leg of four-compilers-in-one" (`DESIGN-edition-framework.md` §2.10) — running every `variant` row under all four `--std` and diffing stdout is the discovery tool that catches un-gated semantic deltas.
 
@@ -1081,8 +1081,8 @@ pwsh scripts/gen-vcr.ps1 -Check
 - **Step 9 is the hard gate and is idempotent** — re-runnable any number of times while legacy exists; it writes/overwrites `EQUIVALENCE-PROOF.md`. If it fails, DO NOT proceed to P15; the failure is a real census divergence or a guard discovery/normalization bug (most likely: print-file-vs-stdout discovery, chain ordering, or a normalization mismatch — diff a single failing program's two verdict paths by hand).
 
 **Risks + mitigations:**
-1. **A VCR row is genuinely ambiguous (2002/2014 edge with no in-repo authority).** Mitigation: per ratified decision #1 (no standards acquisition), disposition it with a provisional-confidence marker and an Annex-E/legacy-inventory citation; a provisional edge is a written disposition, not a `TODO`. Never gate on a guess (`feedback_use_the_spec`; a wrong gate can reject a valid program).
-2. **The equivalence proof reveals a census program the greenfield gets wrong that legacy got right** (a real regression the 318-golden subset never covered). Mitigation: this is the entire point of running the proof *before* deletion — fix the greenfield compiler (`feedback_no_workarounds_root_cause`), never weaken the guard to pass. This may pull in a small feature fix; that is in-scope for P14 (it is a correctness gap the net had been blind to).
+1. **A VCR row is genuinely ambiguous (2002/2014 edge with no in-repo authority).** Mitigation: per ratified decision #1 (no standards acquisition), disposition it with a provisional-confidence marker and an Annex-E/legacy-inventory citation; a provisional edge is a written disposition, not a `TODO`. Never gate on a guess (`feedback_spec_is_the_oracle`; a wrong gate can reject a valid program).
+2. **The equivalence proof reveals a census program the greenfield gets wrong that legacy got right** (a real regression the 318-golden subset never covered). Mitigation: this is the entire point of running the proof *before* deletion — fix the greenfield compiler (`feedback_root_cause_no_workarounds`), never weaken the guard to pass. This may pull in a small feature fix; that is in-scope for P14 (it is a correctness gap the net had been blind to).
 3. **`corpus.tsv` chain semantics don't reproduce `chains.tsv` + `guard.sh` ordering** (`DESIGN-test-build-ci.md` §6 risk 4). Mitigation: Step 8 reconciles the three sources before Step 9; the equivalence proof is itself the guard-verify-style diff that confirms fidelity.
 4. **Snapshot / warnings-as-errors churn from the new test/CLI code.** Mitigation: the new code is test/tooling, not emitter; keep it warning-clean (Release build gate) and it cannot move a characterization snapshot.
 
@@ -2005,7 +2005,7 @@ Exit checks (all must pass):
 - **Risks & mitigations** (from `DESIGN-backend-abstraction.md §7`):
   - **R — CIL control-flow parity (HIGH, Milestone 4).** The private dispatcher branch lowering must match the
     Roslyn `while(true)switch` byte-for-byte in behavior. Mitigation: the equivalence harness on branch-heavy
-    programs; land Milestone 4 in small sub-commits, one construct at a time (`feedback_iterate_one_at_a_time`).
+    programs; land Milestone 4 in small sub-commits, one construct at a time (`feedback_tiered_gates`).
   - **R — `RuntimeAbi` overload identity (MEDIUM).** A Cecil `MethodReference` import must pick the exact overload.
     Mitigation: `RuntimeMember` carries a parameter-shape key; `CilRuntimeApi` throws loudly on an ambiguous import.
   - **R — PDB / debug-info scope (LOW for correctness).** Portable-PDB sequence points are a quality goal, not a

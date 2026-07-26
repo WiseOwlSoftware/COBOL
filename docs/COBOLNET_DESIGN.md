@@ -1087,7 +1087,7 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 
 7. **Managed-pointer naming.** Confirm the carrier may be the typed-native `ManagedRef<T>` (NOT the legacy
    `(byte[],offset,length)` `ManagedPointer`). Keep the PUBLIC name `ManagedPointer` over the typed carrier (the
-   owner's prior choice), or rename to `ManagedRef`? The `feedback_managed_pointers` memory text still describes the
+   owner's prior choice), or rename to `ManagedRef`? The `feedback_one_mechanism_per_job` memory text still describes the
    byte form (the abandoned byte-substrate era).
 
 8. **Multiple class inheritance (OO).** v1 restricts to single inheritance (sufficient for the whole corpus) and
@@ -1402,8 +1402,8 @@ The legacy `CilEmitter` reached 2600 lines before being split into 11 `Cil*Emitt
 
 1. **Shared state lives in a context object, never a mega-class.** An `EmissionContext` (the `CodeWriter`, the `DataBinder`, the paragraph table, the division working-scale `_targetScale`, the dialect level) is passed to every emitter. Emitters are stateless-but-for-the-context cooperating units — exactly the legacy `EmissionContext`/`LoweringContext` pattern that already works here.
 2. **One file per statement-family emitter.** A verb family = a file. Adding a verb = a method in its family's emitter (or a new file for a new family), never a new branch threaded into a shared switch in a 2000-line file.
-3. **Respect the bind → lower → emit boundary** (and `feedback_binder_no_ir`): the **binder** produces the typed model (`DataItem`/`PicInfo`) and resolves references; **lowering** (G3/G4) normalizes hard COBOL shapes (CORR expansion, control-flow flattening) into a C#-friendly form; **emit** turns that into C# text. An emitter must not re-discover semantics the binder owns (e.g. category compatibility), and the binder must not emit text.
-4. **Dispatch generically, refactor-first** (`feedback_refactor_first_always`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
+3. **Respect the bind → lower → emit boundary** (and `project_dual_backend_goal`): the **binder** produces the typed model (`DataItem`/`PicInfo`) and resolves references; **lowering** (G3/G4) normalizes hard COBOL shapes (CORR expansion, control-flow flattening) into a C#-friendly form; **emit** turns that into C# text. An emitter must not re-discover semantics the binder owns (e.g. category compatibility), and the binder must not emit text.
+4. **Dispatch generically, refactor-first** (`feedback_change_the_dispatch_not_the_callers`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
 5. **Size is a *smell*, not the law — SRP is the law.** Heuristic thresholds: a class > ~400 lines or a method > ~60 lines triggers a "does this have one responsibility?" review. *But note `CilDataEmitter.cs` is 44 KB even after the split* — data is intrinsically broad; the test is cohesion, not line count. A 500-line class with one job is fine; a 200-line class doing two jobs is not.
 6. **Runtime split by concern** (already followed): `Numeric/`, `Text/`, `Control/`, `Pointers/`, `Files/` — never a `CobolRuntime` god class.
 
@@ -1457,7 +1457,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `DataRefs`
 // GOOD — the existing pattern-switch dispatch, one arm per family, easy to extend:
 case var _ when s.moveStatement()    is { } m: _move.Emit(m);   break;
 case var _ when s.addStatement()     is { } a: _arith.EmitAdd(a); break;
-// BAD — a growing if/else ladder in every caller (forbidden by feedback_refactor_first_always)
+// BAD — a growing if/else ladder in every caller (forbidden by feedback_change_the_dispatch_not_the_callers)
 ```
 
 *Result bundle — `record struct` vs. out-params:*
@@ -1475,7 +1475,7 @@ internal sealed class ArithmeticEmitter(EmissionContext ctx)   // GOOD: collabor
 // BAD: a 790-line CSharpEmitter holding _data, _paras, _targetScale, and every Emit* method.
 ```
 
-**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_bare_end`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
+**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_spec_is_the_oracle`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
 
 ---
 
@@ -1529,7 +1529,7 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 11. **CALL BY REFERENCE of an irregular receiver.** Array element → C# `ref`; a reference-modified splice →
     promote to BY CONTENT (lenient default), diagnosable under a strict dialect.
 12. **Pointer carrier.** A typed `ManagedRef<T>` (managed reference; NOT the abandoned `byte[]`+offset+length form);
-    keep the public name **`ManagedPointer`** (owner preference). The `feedback_managed_pointers` memory note
+    keep the public name **`ManagedPointer`** (owner preference). The `feedback_one_mechanism_per_job` memory note
     describes the abandoned byte form (pre-rewrite) and is updated.
 13. **Boundary codec.** `System.Text.Encoding.Latin1` (lossless 8-bit) is the ONE shared boundary codepage constant
     — used by file serialization, REDEFINES Tier C, and the whole-group image. Settled once in `CobolNet.Runtime`.

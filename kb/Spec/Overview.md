@@ -60,7 +60,7 @@ zero GAP. See [[kb/Spec/Version Targeting]] and [[kb/Modernization/Tasks]].
 
 ## Key concepts
 
-- Spec = authority; cite `§`/GR before implementing (`feedback_use_the_spec`).
+- Spec = authority; cite `§`/GR before implementing (`feedback_spec_is_the_oracle`).
 - 16 clauses; Annexes A / E / F drive conformance and edition gating.
 - §4.2.16 user-documentation obligation → [[docs/CONFORMANCE]].
 - Annex A.1 lists ~222 implementor-defined elements (199 requiring documentation) — the definition of "done."

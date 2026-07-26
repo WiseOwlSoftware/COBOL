@@ -6,7 +6,7 @@
 > catalogues every edition-to-edition change of standard COBOL documented in the ISO/IEC 1989:2023 spec
 > (`specs/ISO_COBOL.md`) so that the compiler can drive **correct version-gating**:
 > - every **behavior** that changed across editions must be gated by the targeted standard via
->   `DialectLevel` / `--std` (cite [[feedback_version_targeted_semantics]]);
+>   `DialectLevel` / `--std` (cite [[feedback_four_editions_one_compiler]]);
 > - **new features** are enabled only at `>=` their introducing edition;
 > - **obsolete / archaic** elements are flagged (and, where the spec schedules removal, gated off in newer dialects).
 >
@@ -27,7 +27,7 @@ When implementing or auditing a feature:
 
 1. **Find its row(s) here** by feature name / § / category.
 2. **If `Old → New behavior` shows a behavior change**, gate it by `DialectLevel` (cite
-   [[feedback_version_targeted_semantics]]): emit the older behavior when `--std` targets the older edition and
+   [[feedback_four_editions_one_compiler]]): emit the older behavior when `--std` targets the older edition and
    the newer behavior at `>=` the introducing edition. Do **not** hard-code a single behavior across all dialects.
 3. **New features** (`category: new-feature` / `new-reserved-word` / most `syntax-change`): enable / reserve only at
    `>=` the introducing edition. A word newly reserved in 2023 must still be usable as a user-defined word when the

@@ -481,7 +481,7 @@ and add the helper next to StrUnstrIsInteger (StringUnstringBinder.cs:176):
         or { Category: PicCategory.National }                                        // usage national, category national (SR4-legal; emitter defers)
         or { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.National };  // display/national numeric only
 
-The existing StringEmitter.cs:226 default arm stays as defense-in-depth. Ship a Conformance test in the same commit (per feedback_conformance_tests_per_feature). NOTE for owner: this uses the STRING side's runtime-loud convention; if true compile-time diagnostics for SR violations are wanted per §4.2.2, migrate BOTH the STRING and UNSTRING SR rejections together (a broader decision, out of scope here).
+The existing StringEmitter.cs:226 default arm stays as defense-in-depth. Ship a Conformance test in the same commit (per feedback_goldens_ship_with_the_feature). NOTE for owner: this uses the STRING side's runtime-loud convention; if true compile-time diagnostics for SR violations are wanted per §4.2.2, migrate BOTH the STRING and UNSTRING SR rejections together (a broader decision, out of scope here).
 - **Golden (spec-derived):** Two SR4-illegal receivers, spec-DERIVED expectation = the compiler must FLAG/REJECT (§4.2.2 duty; project convention = loud rejection), NOT compile-and-run.
 
        IDENTIFICATION DIVISION.

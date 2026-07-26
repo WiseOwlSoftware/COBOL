@@ -563,7 +563,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         ComparisonOperandOf(operand.valueOperand());
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand (the shared body of <see cref="ComparisonOperand"/>
-    /// and the boolean-alt unwrap path — feedback_singular_pattern).</summary>
+    /// and the boolean-alt unwrap path — feedback_one_mechanism_per_job).</summary>
     private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
         // §8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.

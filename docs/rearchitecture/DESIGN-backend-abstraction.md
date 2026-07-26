@@ -181,7 +181,7 @@ The **exhaustiveness guarantee is inherited for free**: a new `BoundStatement` l
 ### 2.3 One runtime, one ABI catalogue — how both backends call `Cobol.Net.Runtime`
 
 `DESIGN-codegen-backend.md §3`'s `RuntimeApi` returns **C# fragment strings** — correct for Roslyn, useless for Cecil
-(which needs `MethodReference`s). To keep the singular-pattern rule (`feedback_singular_pattern`) across two backends,
+(which needs `MethodReference`s). To keep the singular-pattern rule (`feedback_one_mechanism_per_job`) across two backends,
 split it into a **neutral catalogue** + two thin renderers:
 
 ```csharp

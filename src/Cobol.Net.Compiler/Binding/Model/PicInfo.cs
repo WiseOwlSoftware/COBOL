@@ -35,7 +35,7 @@ public enum PicCategory
     ObjectReference,
     /// <summary>Data pointer (USAGE POINTER, ISO §8.5.2.6 / §13.18.60) — LIVE as of Phase-4b increment 1: a
     /// PICTURE-less elementary item holding a data address, carried by the runtime <c>ManagedPointer</c>
-    /// (feedback_managed_pointers — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
+    /// (feedback_one_mechanism_per_job — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
     /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
     Pointer,
     /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.15 / §13.18.60 GR24) — LIVE (P10 Step 7): a

@@ -4,7 +4,7 @@
 > that is the PHASE-14 definition of DONE (owner decision D13: commercial-quality, 100% CONFORMING to ISO/IEC
 > 1989:2023 per §4.2.16 with correct support for 1985/2002/2014). It re-grounds the P14 Step-0 "traceability
 > inventory" as **spec-first and exhaustive** — the spec text is the ORACLE, not a differential. Spec-first is the
-> only going priority (memory `feedback_spec_first_only_priority`).
+> only going priority (memory `feedback_spec_is_the_oracle`).
 
 ## 0. Why this exists — the lesson that forced it
 
@@ -84,7 +84,7 @@ the **burn-down metric** for P14.
 Workflow-orchestrated (owner: max parallelism for disjoint work). **Fan out by §-clause** (disjoint units).
 **Incremental accumulation** into the inventory — resumable across sessions; the GAP count is the burn-down. **Loop-
 until-dry + completeness critics** so nothing is silently uncovered. Every Phase-C fix lands with its **spec-derived
-golden** and a comprehensive gate (tiered testing, `feedback_execution_model_tiered_parallel`). This is many sessions
+golden** and a comprehensive gate (tiered testing, `feedback_tiered_gates`). This is many sessions
 of work; it is paced by the inventory GAP, not big-banged.
 
 ## 6. Governance / relationship to existing artifacts
@@ -96,7 +96,7 @@ of work; it is paced by the inventory GAP, not big-banged.
   (construct × edition) dimension; introduction/continuity/behavior invariants.
 - **Seed / first installment:** `DESIGN-SPEC-RECONCILIATION.md` (design-doc audit, 54 conflicts) + `CODE-SPEC-AUDIT.md`
   (code audit, CA1–CA38). The full review is their exhaustive completion.
-- **Spec-first discipline:** `feedback_spec_first_only_priority`, `feedback_use_the_spec`, `feedback_spec_scopes_not_tests`
+- **Spec-first discipline:** `feedback_spec_is_the_oracle`, `feedback_spec_is_the_oracle`, `feedback_spec_scopes_not_tests`
   (implement/verify COMPLETELY to the spec — tests verify, never scope).
 
 ## 7. Risks + discipline

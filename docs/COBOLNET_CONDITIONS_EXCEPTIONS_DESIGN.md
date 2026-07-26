@@ -9,7 +9,7 @@
 
 The OO exception-object model (ISO §14.6.13.1.5; the OO deep-dive slice 6, brief D-EO1–D-EO10 in
 `docs/COBOLNET_OO_SLICE_BRIEFS.md`) rides this engine with ONE signal architecture — no parallel
-OO mechanism (feedback_singular_pattern):
+OO mechanism (feedback_one_mechanism_per_job):
 
 - **ExceptionState** carries: `CobolObject? ExceptionObject` (the §8.4.3.6 register — ONE per run unit,
   GR2; typed per the OO D-U1 universal model), the `"EXCEPTION-OBJECT"` **LastName sentinel** (§15.33.3

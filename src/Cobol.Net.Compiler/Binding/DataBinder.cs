@@ -1464,7 +1464,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// data description onto <paramref name="item"/> — the subject "as though the data description identified
     /// by data-name-1 had been coded in place of the SAME AS clause" (GR1), via the ONE
     /// <see cref="CopyEntryDescription"/>/<see cref="CloneItem"/> machinery TYPE expansion uses
-    /// (feedback_singular_pattern; SAME AS is structurally the TYPE expansion with a DATA-NAME source).
+    /// (feedback_one_mechanism_per_job; SAME AS is structurally the TYPE expansion with a DATA-NAME source).
     /// Excluded from the copy per GR1: data-name-1's level-number, name, CONSTANT RECORD, EXTERNAL, GLOBAL,
     /// REDEFINES, and SELECT WHEN (not modeled). Subordinate levels renumber relative to the subject (GR2b/c —
     /// the <see cref="CloneItem"/> levelDelta). <paramref name="expanding"/> is the SAME-AS expansion chain —

@@ -1,7 +1,8 @@
-# CobolSharp — Claude Code Instructions
+# COBOL.NET — Claude Code Instructions
 
 ## ⛔ Non-negotiable process rules
-Owner-emphasized, each earned by a correction. Full text at the top of `PROMPT.md`.
+Owner-emphasized, each earned by a correction. These six are the SSOT; `PROMPT.md` holds the standing doctrine
+(mission, architectural commitments, the four required reviews) and does not restate them.
 
 1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case.** Read it and cite
    the exact §/GR for any semantics, syntax, or output question. The legacy oracle, the NIST goldens and the
@@ -38,6 +39,10 @@ differential oracle until the P15 cut-over, and that differential is opt-in
 ISO/IEC 1989:2023 per §4.2.16, with correct support for 1985/2002/2014** — validated as four per-edition compilers
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` + `docs/VERSION_CHANGE_REFERENCE.md`; the default
 `--std` is COBOL-2023). Done = the PHASE-14 Step-0 traceability inventory at zero GAP.
+
+**The product bar is broader than conformance.** The owner requires four review dimensions — **architecture · full
+code review · performance · duplication and efficiency** — as continuous criteria on every change, and as a
+comprehensive pass once the design settles (`PROMPT.md` §4).
 
 ## Where things live
 - **Plan / live state:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8

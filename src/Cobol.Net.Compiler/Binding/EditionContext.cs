@@ -28,7 +28,7 @@ namespace CobolNet.Binding;
 /// permissive); <see cref="Warning"/> is its only writer. The driver surfaces it on every
 /// <see cref="CompilerDriver.Result"/>, success or not.</item>
 /// <item><see cref="Removed"/> is the ONE severity decision for removed-construct gating: error when strict,
-/// warning when permissive — one policy, several emit sites (feedback_singular_pattern). The layer-neutral twin
+/// warning when permissive — one policy, several emit sites (feedback_one_mechanism_per_job). The layer-neutral twin
 /// is <see cref="Editions.EditionSeverityPolicy"/>, which <see cref="Report"/> bridges back onto these channels.</item>
 /// </list>
 /// </remarks>
@@ -91,7 +91,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     // NOTE (the OVERRIDE/FINAL wave, DEVLOG 605): this seam now also carries DOCUMENTED-DIALECT-LENIENCY
     // gating (e.g. §11.7 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
     // name-match inference under --permissive), not only removed-construct gating: ONE policy seam, never a
-    // parallel Lenient() method or a local Permissive test (feedback_singular_pattern).
+    // parallel Lenient() method or a local Permissive test (feedback_one_mechanism_per_job).
     public void Removed(string code, string message)
     {
         if (Permissive) Warning(code, message);
