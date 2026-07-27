@@ -1,0 +1,52 @@
+{
+  "batch": [1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101],
+  "pages_checked": [1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101],
+  "note": "PDF pages 1090-1101 are printed pages 1060-1071, Annex D (informative) 'Concepts' - D.7 intrinsic functions tail, D.8 Types, D.9 Addresses and pointers, D.10 Boolean support and bit manipulation. NO general-format syntax diagrams (brackets/braces/choice indicators/ellipses/underlined required words) occur anywhere in this batch; the 'figures' here are monospace COBOL source examples, one bordered table (Table A.2), and three ASCII bit-alignment layout figures. The priority defect class (lost choice-indicator bars per 5.2.6.4) is therefore not applicable to these pages. Table A.2 on p1099 reproduces ISO's own defects faithfully (row 8 operator printed 'B-SHIFT-RS' where the text says B-SHIFT-RC; 'Multiple-bit-bit-item' typo on the same page) - correctly transcribed, NOT reported as discrepancies.",
+  "findings": [
+    {
+      "page": 1101,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "02  item-4  pic 1 usage BIT.        1              5",
+      "markdown_says": "   02  item-4  usage BIT.          1                  5",
+      "why_it_matters": "In the second bit-alignment figure (the GROUP-USAGE BIT variant of group-1), the PICTURE clause 'pic 1' has been dropped from item-4. Without it the entry no longer describes a boolean item at all, yet the figure still charts one occupied bit position for item-4 at bit 1 of byte 5. The same entry is written 'pic 1 usage BIT.' in the first figure on the same page, so the transcription is internally inconsistent and the example as transcribed would not compile.",
+      "suggested_repair": "Restore 'pic 1': '   02  item-4  pic 1 usage BIT.    1                  5' (matching the corresponding row of the first figure on this page)."
+    },
+    {
+      "page": 1101,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "*> implicit filler ...1               1 1 1 1 1  1     02 PIC 1(5)   (five bit marks charted under bit positions 4-8, then the byte number 1)",
+      "markdown_says": "     *> implicit filler ...1           1 1 1 1  1     02 PIC 1(5)   (only four bit marks)",
+      "why_it_matters": "One bit mark was lost from the first implicit-filler row of the first bit-alignment figure, so the chart now shows four filler bit positions while its own annotation says '02 PIC 1(5)'. The equivalent row in the second figure on the same page ('*> implicit filler ...           1 1 1 1 1  1     02 PIC 1(5)') still carries all five, confirming the drop. The figure exists precisely to show how many bits the implicit filler occupies, so a miscount defeats its purpose.",
+      "suggested_repair": "Restore the fifth mark: '     *> implicit filler ...1           1 1 1 1 1  1     02 PIC 1(5)'. (Retain the '...1' exactly as printed - the stray '1' immediately after the ellipsis is ISO's own artefact and is present in the PDF.)"
+    },
+    {
+      "page": 1093,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "p1093 ends at 'g)  a REWRITE statement with the FROM phrase'. p1094 opens with three further list items, each set as its own labelled item: 'h)  the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement' / 'i)  the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement' / 'j)  a WRITE statement with the FROM phrase.'",
+      "markdown_says": "   g) a REWRITE statement with the FROM phrase h) the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement i) the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement j) a WRITE statement with the FROM phrase.",
+      "why_it_matters": "Items h), i) and j) of the list in D.8.3 (permitted receiving-operand contexts for a strongly-typed group item) have lost their list structure entirely: all three are run into the body of item g) as inline text, on the wrong side of the page-1094 anchor. The text is preserved verbatim but the enumeration is destroyed, so a reader (or a tool) parsing 'the seven contexts a) through g)' silently gets the wrong list, and none of h), i), j) can be cited by label. This is the only list in the batch broken this way, but it is exactly the failure mode of a paragraph that straddles a page boundary.",
+      "suggested_repair": "Split into four items and move h), i), j) after the '<a id=\"page-1094\"></a>' anchor, matching the sibling formatting used for a) through g): '   g) a REWRITE statement with the FROM phrase' then blank line, '   h) the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement', '   i) the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement', '   j) a WRITE statement with the FROM phrase.'"
+    },
+    {
+      "page": 1092,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.8.2   Weakly-typed items  /  D.8.3   Strongly-typed group items  (both set at the same typographic rank as D.8.1 General on p1091, i.e. third-level subclauses of D.8 Types)",
+      "markdown_says": "## D.8.2 Weakly-typed items  /  ## D.8.3 Strongly-typed group items   (level 2, while their sibling '### D.8.1 General' and their parent '## D.8 Types' are levels 3 and 2)",
+      "why_it_matters": "D.8.2 and D.8.3 are promoted to the same heading level as their own parent D.8, and outrank their sibling D.8.1. The generated outline therefore shows D.8.2/D.8.3 as peers of D.8 rather than as its subclauses, and D.8.1's content appears to run to the end of the annex. The break falls exactly where the page boundary falls, which is the signature of the slicing artefact - the first heading on a fresh page is emitted at level 2 regardless of its numbering depth.",
+      "suggested_repair": "Demote both to level 3: '### D.8.2 Weakly-typed items' and '### D.8.3 Strongly-typed group items'."
+    },
+    {
+      "page": 1096,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.9.2.3   Examples   (fourth-level subclause, same rank as D.9.2.1 General and D.9.2.2 Restricted data-pointers on p1095)",
+      "markdown_says": "## D.9.2.3 Examples   (level 2, while its siblings are '#### D.9.2.1 General' and '#### D.9.2.2 Restricted data-pointers' and its parent is '### D.9.2 Data-addresses and data-pointers')",
+      "why_it_matters": "D.9.2.3 is promoted two levels, out from under D.9.2 and up to the rank of D.9 itself, so the outline detaches the Examples subclause from the data-pointer discussion it belongs to. Same page-boundary signature as the D.8.2/D.8.3 case: D.9.2.3 is the first heading on page 1096.",
+      "suggested_repair": "Demote to level 4: '#### D.9.2.3 Examples'."
+    }
+  ]
+}

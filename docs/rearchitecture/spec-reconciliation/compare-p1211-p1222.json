@@ -1,0 +1,97 @@
+{
+  "batch": [1211, 1212, 1213, 1214, 1215, 1216, 1217, 1218, 1219, 1220, 1221, 1222],
+  "pages_checked": [1211, 1212, 1213, 1214, 1215, 1216, 1217, 1218, 1219, 1220, 1221, 1222],
+  "note": "This batch was routed as a FIGURE batch, but pages 1211-1222 are Annex E (E.2 tail, E.3 Substantive changes probably not affecting existing programs). They carry NO general formats, syntax skeletons, railroad diagrams, or bracket/brace notation of any kind. The priority defect class for this run (lost choice indicators - the vertical bars just inside a bracket or brace per 5.2.6.4) therefore has zero exposure on these pages: there is no bracket, brace, ellipsis, or underlined required word anywhere in the batch. The pages are prose plus fixed-width Unicode code-point range listings. All code-point ranges were verified character-by-character against the rendered PDF (including the dense Arabic block on p1213, the Common block on p1214, the Inherited block on p1216, and the whole case-mapping table on p1222) and are transcribed correctly.",
+  "findings": [
+    {
+      "page": 1213,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Bopomofo:\\n312D-312F, 31B8-31BF\\n\\n[page break to p1184]\\n\\nBrahmi:\\n11000-11046, 11066-1106F, 1107F",
+      "markdown_says": "Bopomofo:\\n312D-312F, 31B8-31BF Brahmi:   (specs/ISO_COBOL.md line 49030)  ... then page-1214 opens with the bare line '11000-11046, 11066-1106F, 1107F' with no label",
+      "why_it_matters": "The 'Brahmi:' script label from the top of PDF page 1184 (md page 1214) has been concatenated onto the end of the Bopomofo range line on the previous page. Two entries are corrupted at once: Bopomofo's range line now reads '31B8-31BF Brahmi:', and Brahmi's code-point ranges are left orphaned at the head of the next page with no label at all. This is the E.3.3 item 5 list of characters newly permitted in user-defined words - the script-to-range mapping is exactly the data an implementer reads here, and the mapping is broken at this boundary.",
+      "suggested_repair": "Split line 49030 of specs/ISO_COBOL.md: leave '312D-312F, 31B8-31BF' as the Bopomofo range line at the end of page 1213, and move 'Brahmi:' to become the first content line of the page-1214 slice, immediately above '11000-11046, 11066-1106F, 1107F'."
+    },
+    {
+      "page": 1214,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Cyrillic:\\n0483-0484, 0487, 048A-048B, 04C5-04C6, 04C9-04CA, 04CD-04CF, 04F6-04F7,\\n04FA-052F, 1C80-1C88, 1D2B, 1D78, 2DE0-2DFF, A640-A66F, A674-A67D, A67F-A69F,\\n\\n[page break to p1185]\\n\\nFE2E-FE2F\\n\\nDeseret:\\n10400-1044F",
+      "markdown_says": "04FA-052F, 1C80-1C88, 1D2B, 1D78, 2DE0-2DFF, A640-A66F, A674-A67D, A67F-A69F, FE2E-FE2F Deseret:   (specs/ISO_COBOL.md line 49087)  ... then page-1215 opens with the bare line '10400-1044F' with no label",
+      "why_it_matters": "Both the Cyrillic continuation range 'FE2E-FE2F' and the following script label 'Deseret:' were pulled back from PDF page 1185 onto the last line of page 1184. The 'Deseret:' label is thereby glued to a Cyrillic range list, and Deseret's own range '10400-1044F' opens the next page unlabelled. Content that belongs to page 1215 is attributed to page 1214, so a citation by page anchor lands on the wrong page.",
+      "suggested_repair": "Split line 49087 of specs/ISO_COBOL.md so it ends at 'A67F-A69F,'. Move 'FE2E-FE2F' and, after a blank line, 'Deseret:' into the page-1215 slice, above '10400-1044F'."
+    },
+    {
+      "page": 1216,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Kaithi:\\n11080-110BA\\n\\n[page break to p1187]\\n\\nKannada:\\n0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2",
+      "markdown_says": "Kaithi:\\n11080-110BA Kannada:   (specs/ISO_COBOL.md line 49207)  ... then page-1217 opens with the bare line '0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2' with no label",
+      "why_it_matters": "The 'Kannada:' label from the top of PDF page 1187 is concatenated onto Kaithi's range line, so Kaithi reads '11080-110BA Kannada:' and Kannada's ranges are orphaned at the head of the next page. Same script-to-range mapping corruption as the other page boundaries in this listing.",
+      "suggested_repair": "Split line 49207 of specs/ISO_COBOL.md: keep '11080-110BA' on page 1216, move 'Kannada:' into the page-1217 slice above its range line."
+    },
+    {
+      "page": 1217,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Lycian:\\n10280-1029C\\n\\n[page break to p1188]\\n\\nLydian:\\n10920-10939",
+      "markdown_says": "Lycian:\\n10280-1029C Lydian:   (specs/ISO_COBOL.md line 49263)  ... then page-1218 opens with the bare line '10920-10939' with no label",
+      "why_it_matters": "The 'Lydian:' label from the top of PDF page 1188 is concatenated onto Lycian's range line; Lydian's range '10920-10939' opens the next page with no label.",
+      "suggested_repair": "Split line 49263 of specs/ISO_COBOL.md: keep '10280-1029C' on page 1217, move 'Lydian:' into the page-1218 slice above '10920-10939'."
+    },
+    {
+      "page": 1218,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Mro:\\n16A40-16A5E, 16A60-16A69\\n\\n[page break to p1189]\\n\\nMultani:\\n11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8",
+      "markdown_says": "Mro:\\n16A40-16A5E, 16A60-16A69 Multani:   (specs/ISO_COBOL.md line 49319)  ... then page-1219 opens with the bare line '11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8' with no label",
+      "why_it_matters": "The 'Multani:' label from the top of PDF page 1189 is concatenated onto Mro's range line; Multani's ranges are orphaned at the head of the next page.",
+      "suggested_repair": "Split line 49319 of specs/ISO_COBOL.md: keep '16A40-16A5E, 16A60-16A69' on page 1218, move 'Multani:' into the page-1219 slice above its range line."
+    },
+    {
+      "page": 1219,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Old_South_Arabian:\\n10A60-10A7C\\n\\n[page break to p1190]\\n\\nOld_Turkic:\\n10C00-10C48",
+      "markdown_says": "Old_South_Arabian:\\n10A60-10A7C Old_Turkic:   (specs/ISO_COBOL.md line 49374)  ... then page-1220 opens with the bare line '10C00-10C48' with no label",
+      "why_it_matters": "The 'Old_Turkic:' label from the top of PDF page 1190 is concatenated onto Old_South_Arabian's range line; Old_Turkic's range '10C00-10C48' opens the next page with no label.",
+      "suggested_repair": "Split line 49374 of specs/ISO_COBOL.md: keep '10A60-10A7C' on page 1219, move 'Old_Turkic:' into the page-1220 slice above '10C00-10C48'."
+    },
+    {
+      "page": 1220,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "SignWriting:\\n1DA00-1DA36, 1DA3B-1DA6C, 1DA75, 1DA84, 1DA9B-1DA9F, 1DAA1-1DAAF\\n\\n[page break to p1191]\\n\\nSinhala:\\n0D81, 0DE6-0DEF",
+      "markdown_says": "SignWriting:\\n1DA00-1DA36, 1DA3B-1DA6C, 1DA75, 1DA84, 1DA9B-1DA9F, 1DAA1-1DAAF Sinhala:   (specs/ISO_COBOL.md line 49431)  ... then page-1221 opens with the bare line '0D81, 0DE6-0DEF' with no label",
+      "why_it_matters": "The 'Sinhala:' label from the top of PDF page 1191 is concatenated onto SignWriting's range line; Sinhala's ranges are orphaned at the head of the next page.",
+      "suggested_repair": "Split line 49431 of specs/ISO_COBOL.md: keep the SignWriting ranges on page 1220, move 'Sinhala:' into the page-1221 slice above '0D81, 0DE6-0DEF'."
+    },
+    {
+      "page": 1213,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "5)  **Characters permitted in user-defined words.** The following characters have been added.   [printed as ordinary numbered list item 5) of clause E.3.3, in the same run-in bold-lead style as items 1) through 4) and 6)]",
+      "markdown_says": "## 5) **Characters permitted in user-defined words.** The following characters have been added.   (specs/ISO_COBOL.md line 48984)",
+      "why_it_matters": "A numbered list item inside E.3.3 has been promoted to a level-2 markdown heading, so it appears in the document outline / table of contents as a sibling of real clauses such as 'E.3 Substantive changes probably not affecting existing programs'. Its siblings (items 1) through 4)) are plain list text, so the list is rendered inconsistently and any outline-driven navigation or section-extraction tooling sees a section that does not exist in the standard.",
+      "suggested_repair": "Demote line 48984 to an ordinary list item: '5) **Characters permitted in user-defined words.** The following characters have been added.' (strip the leading '## ')."
+    },
+    {
+      "page": 1222,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6)  **General case mappings.** The following case mappings have been added.   [printed as ordinary numbered list item 6) of clause E.3.3]",
+      "markdown_says": "## 6) **General case mappings.** The following case mappings have been added.   (specs/ISO_COBOL.md line 49521)",
+      "why_it_matters": "Same defect as item 5) on page 1213: a numbered list item inside E.3.3 promoted to a level-2 markdown heading, creating a phantom top-level section in the outline that has no counterpart in the standard.",
+      "suggested_repair": "Demote line 49521 to an ordinary list item: '6) **General case mappings.** The following case mappings have been added.' (strip the leading '## ')."
+    },
+    {
+      "page": 1212,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "E.3.3   Not affecting   [a third-level clause, printed in exactly the same style and at the same level as E.3.1 General and E.3.2 Possibly affecting because of the addition of new words or names]",
+      "markdown_says": "## E.3.3 Not affecting   (specs/ISO_COBOL.md line 48946)  -- while its siblings are '### E.3.1 General' (line 48907) and '### E.3.2 Possibly affecting because of the addition of new words or names' (line 48912)",
+      "why_it_matters": "E.3.3 is transcribed one heading level too shallow, so in the outline it is a sibling of its own parent E.3 ('## E.3 Substantive changes probably not affecting existing programs', line 48904) instead of a child alongside E.3.1 and E.3.2. Everything under E.3.3 - which is the bulk of Annex E's 'not affecting' catalogue, including the whole user-defined-word character list on pages 1213-1222 - is detached from E.3 in any structural traversal of the document.",
+      "suggested_repair": "Change line 48946 of specs/ISO_COBOL.md from '## E.3.3 Not affecting' to '### E.3.3 Not affecting' to match E.3.1 and E.3.2."
+    }
+  ]
+}

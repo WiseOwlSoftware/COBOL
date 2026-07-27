@@ -1,0 +1,42 @@
+{
+  "batch": [1174, 1175, 1176, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1185, 1186],
+  "pages_checked": [1174, 1175, 1176, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1185, 1186],
+  "findings": [
+    {
+      "page": 1178,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "A flowchart occupies the page (it is the diagram for Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3; in this annex the caption is printed ABOVE its diagram, so the 'Figure D.9' caption sits at the foot of p.1177 and the 'Figure D.10' caption at the foot of p.1178 belongs to the NEXT diagram). Boxes and edges: [Evaluate condition-1] -> (Condition-1 true) --yes--> right channel; --no--> [Evaluate condition-2] -> (Condition-2 false) --yes--> LEFT channel; --no--> [Evaluate condition-3] -> (Condition-3 false) --yes--> LEFT channel; --no--> RIGHT channel. Left channel terminates at 'Truth value is false'; right channel terminates at 'Truth value is true' ('false' and 'true' underlined).",
+      "markdown_says": "Evaluate\\ncondition-1\\n\\nCondition-1\\ntrue\\n\\nno\\n\\nEvaluate\\ncondition-2\\n\\nCondition-2\\nfalse\\n\\nno\\n\\nEvaluate\\ncondition-3\\n\\nCondition-3\\nfalse\\n\\nyes\\n\\nTruth value\\nis false\\n\\nyes\\n\\nyes\\n\\nno\\n\\nTruth value\\nis true",
+      "why_it_matters": "The whole figure is reduced to a bare, out-of-order list of node labels: no boxes, no decision shapes, no arrows, no branch targets. Every label token survives (3 'yes', 3 'no') but the connectivity — which is the entire content of the figure — is gone, and the residual reading order is scrambled (the three 'yes' labels are collected together after the last decision). The figure is unusable as a description of how 'condition-1 OR condition-2 AND condition-3' is evaluated. Adjacent pages 1176, 1177, 1185 and 1186 all received a proper ASCII-art rendering, so this is a pipeline drop, not a stylistic choice.",
+      "suggested_repair": "Render the flowchart as ASCII art in a fenced block, in the same style already used for p.1176/p.1177, preserving the two exit channels ('Condition-2 false'/'Condition-3 false' yes-exits go LEFT to 'Truth value is false'; 'Condition-1 true' yes-exit and 'Condition-3 false' no-exit go RIGHT to 'Truth value is true'). While doing so, correct the Figure-notes block at specs/ISO_COBOL.md:47538, which attributes the page-1177 diagram to 'Figure D.9': captions in D.23 precede their diagrams, so the p.1177 diagram is Figure D.8 (generic OR chain over condition-1..condition-n) and Figure D.9's diagram is this one, on p.1178."
+    },
+    {
+      "page": 1179,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "A flowchart occupies the page (the diagram for Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4, captioned at the foot of p.1178). Boxes and edges: [Evaluate condition-1] -> (Condition-1 true) --yes--> right channel down to [Evaluate condition-3]; --no--> [Evaluate condition-2] -> (Condition-2 false) --yes--> right channel down to [Evaluate condition-3]; --no--> LEFT channel down to 'Truth value is false'. [Evaluate condition-3] -> (Condition-3 false) --yes--> LEFT channel; --no--> [Evaluate condition-4] -> (Condition-4 false) --yes--> LEFT channel; --no--> 'Truth value is true'. Left channel terminates at 'Truth value is false'; 'false' and 'true' are underlined.",
+      "markdown_says": "Evaluate\\ncondition-1\\n\\nCondition-1\\ntrue\\n\\nno\\n\\nEvaluate\\ncondition-2\\n\\nCondition-2\\nfalse\\n\\nno\\n\\nEvaluate\\ncondition-3\\n\\nCondition-3\\nfalse\\n\\nno\\n\\nEvaluate\\ncondition-4\\n\\nCondition-4\\nfalse\\n\\nno\\n\\nyes\\n\\nyes\\n\\nyes\\n\\nyes\\n\\nTruth value\\nis **false**\\n\\nTruth value\\nis **true**",
+      "why_it_matters": "Same defect as p.1178: the flowchart is flattened to a bag of labels with all four 'yes' edges heaped at the end and no boxes, arrows or branch targets. The distinctive structure of this figure — that the yes-exits of Condition-1 and Condition-2 BOTH re-enter at [Evaluate condition-3], which is what encodes '(condition-1 OR NOT condition-2) AND ...' — is completely unrecoverable from the transcription.",
+      "suggested_repair": "Render the flowchart as ASCII art in a fenced block in the same style as p.1176/p.1177, preserving the join of the Condition-1 yes-exit and the Condition-2 yes-exit into [Evaluate condition-3], the left channel to 'Truth value is false' fed by Condition-2 no, Condition-3 yes and Condition-4 yes, and the Condition-4 no fall-through to 'Truth value is true'."
+    },
+    {
+      "page": 1182,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "First data row of the EXAMPLE 3 table. Initial Value of ITEM cell reads 'BBEABDABABBCABE' with a wrapped continuation 'E' on the next line — one 16-character value, BBEABDABABBCABEE. Final Value of ITEM cell reads 'BBEXYZXYXYZCABV' with a wrapped continuation 'E' — one 16-character value, BBEXYZXYXYZCABVE.",
+      "markdown_says": "| BBEABDABABBCABE E | 3 | 0 | 2 | BBEXYZXYXYZCABV E |",
+      "why_it_matters": "The cell wrap was re-joined with a space instead of being closed up, so both COBOL data values now carry a spurious embedded space and read as 17 characters. Anyone lifting this INSPECT example as a test vector gets the wrong operand and the wrong expected result. That the true length is 16 is confirmed by the replacement: FIRST \"E\" BY \"V\" AFTER \"D\" turns character 15 into V and leaves character 16 as E, exactly as printed.",
+      "suggested_repair": "Close up the wrap: '| BBEABDABABBCABEE | 3 | 0 | 2 | BBEXYZXYXYZCABVE |'."
+    },
+    {
+      "page": 1186,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "Diagram for Figure D.12 (TEST BEFORE, two conditions). Two return edges are drawn: [Augment identifier-5 with current BY value] loops back LEFT and UP with an arrowhead entering (Condition-2); [Set identifier-5 to current FROM value] loops DOWN, then LEFT along the bottom, then UP with an arrowhead entering (Condition-1).",
+      "markdown_says": "◄──────────╱  Condition-1  ╲── True ──► Exit  ...  ◄─────────╱  Condition-2  ╲── True ──────────────►  ...  (last two lines of the block)                    |◄──────────────────────────────\\n                   └──────────────────────────────►",
+      "why_it_matters": "In the ASCII rendering the two loop-back edges are dangling: the stubs drawn at Condition-1 and Condition-2 carry '◄' (arrowhead pointing away from the decision) rather than an arrowhead entering it, and the two trailing lines connect the 'Augment identifier-5' and 'Set identifier-5' columns to each other instead of routing back to Condition-2 and Condition-1 respectively. A reader cannot tell which augment/reset step returns control to which test — which is the substance of the PERFORM VARYING figure.",
+      "suggested_repair": "Redraw the two return edges so that 'Augment identifier-5 with current BY value' clearly re-enters Condition-2 and 'Set identifier-5 to current FROM value' clearly re-enters Condition-1, with arrowheads pointing INTO the decision nodes."
+    }
+  ]
+}

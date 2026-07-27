@@ -1,0 +1,87 @@
+{
+  "batch": [1138, 1139, 1140, 1141, 1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149],
+  "pages_checked": [1138, 1139, 1140, 1141, 1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149],
+  "findings": [
+    {
+      "page": 1143,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Figure  D.5 — Banking hierarchy : a three-compartment box 'Account' (name / 'account-number, balance, date-opened' / 'deposit, withdraw, balance'), with the side labels 'Data items ——>' and 'Methods ——>' aimed at the second and third compartments, and TWO solid lines rising from the top edges of the 'CheckingAccount' and 'SavingAccount' boxes to arrowheads on the bottom edge of the 'Account' box.",
+      "markdown_says": "| | Account | |\n|---|---|---|\n| Data items → | account-number<br>balance<br>date-opened | |\n| Methods → | deposit<br>withdraw<br>balance | |\n\n| CheckingAccount | | SavingAccount |\n|---|---|---|\n| charges | | interest-rate |\n| displayCharges<br>calculateCharges | | calculateInterest |",
+      "why_it_matters": "The figure is titled 'Banking hierarchy' and its entire content is the inheritance relation; the two upward arrows are the only thing in the figure that says CheckingAccount and SavingAccount are subclasses of Account. Rendered as two unconnected tables, the markdown shows three peer classes and the hierarchy is gone, which is exactly what the surrounding text ('each instance of CheckingAccount ... methods deposit, withdraw, and balance inherited from Account') depends on the figure to illustrate. Note that Figure D.4 one page earlier DID keep its arrows (▲), so this is an isolated loss, not a house style.",
+      "suggested_repair": "Re-render Figure D.5 so the subclass→superclass edges survive — e.g. an ASCII/box drawing in the style already used for Figure D.4 on page 1142, with 'CheckingAccount' and 'SavingAccount' below 'Account' and an upward arrow from each to Account, keeping the three compartments (class name / data items / methods) per box and the two side labels."
+    },
+    {
+      "page": 1138,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.4   Methods  /  D.19.4.1   General  — printed at the same typographic rank as D.19.1 General, D.19.2 Classes and D.19.3 Objects, i.e. as children of D.19 Object oriented concepts.",
+      "markdown_says": "## D.19.4 Methods  (specs/ISO_COBOL.md:45795)  and  ### D.19.4.1 General  (:45798), while the sibling clauses read '### D.19.1 General' (:45612) and '### D.19.2 Classes' (:45623) under '## D.19 Object oriented concepts' (:45609).",
+      "why_it_matters": "D.19.4 is emitted at markdown level 2, the same level as its own parent D.19, so in the heading tree it stops being a child of D.19 and becomes its sibling; D.19.4.1 then lands at level 3 alongside D.19.1/D.19.2 rather than under D.19.4. Any tool or reader that navigates by heading depth (ToC, section extraction for spec citations) mis-nests the whole Methods subtree. Annex D elsewhere does track clause depth correctly (e.g. '## D.14' / '### D.14.1' / '#### D.14.2.1'), so this is a defect, not the file's convention.",
+      "suggested_repair": "Demote to '### D.19.4 Methods' and '#### D.19.4.1 General'."
+    },
+    {
+      "page": 1139,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.4.2   Method invocation  — printed at exactly the same typographic rank as D.19.4.1 General on the preceding page.",
+      "markdown_says": "## D.19.4.2 Method invocation  (specs/ISO_COBOL.md:45813)  — markdown level 2, while its sibling is '### D.19.4.1 General' (:45798).",
+      "why_it_matters": "Two subclauses that the PDF prints at the same rank are emitted at different markdown levels, so D.19.4.2 is not nested under D.19.4 at all and D.19.4.1 appears to be its only child-level peer. The heading tree no longer reflects the standard's clause numbering.",
+      "suggested_repair": "Change to '#### D.19.4.2 Method invocation' (matching the corrected '#### D.19.4.1 General')."
+    },
+    {
+      "page": 1140,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.4.3   Method prototypes  — printed at the same typographic rank as D.19.4.1 General and D.19.4.2 Method invocation.",
+      "markdown_says": "## D.19.4.3 Method prototypes  (specs/ISO_COBOL.md:45897)  — markdown level 2, while sibling D.19.4.1 is at level 3 ('### D.19.4.1 General', :45798).",
+      "why_it_matters": "Same nesting break as D.19.4.2: a fourth-level clause is emitted at markdown level 2, detaching it from D.19.4 Methods in the heading tree.",
+      "suggested_repair": "Change to '#### D.19.4.3 Method prototypes'."
+    },
+    {
+      "page": 1142,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.5   Other object oriented programming features  /  D.19.5.1   Inheritance  — D.19.5 printed at the same rank as D.19.1, D.19.2, D.19.3, D.19.4; D.19.5.1 one rank below it.",
+      "markdown_says": "## D.19.5 Other object oriented programming features  (specs/ISO_COBOL.md:45931)  and  ### D.19.5.1 Inheritance  (:45936), while sibling clauses of D.19.5 read '### D.19.1 General' (:45612) and '### D.19.2 Classes' (:45623).",
+      "why_it_matters": "D.19.5 is emitted at the same markdown level as its parent D.19, so it is promoted out of the Object-oriented-concepts subtree; every clause under it inherits the one-level shift. Sibling clauses of equal printed rank end up at two different markdown depths within the same annex clause.",
+      "suggested_repair": "Demote to '### D.19.5 Other object oriented programming features' and '#### D.19.5.1 Inheritance'."
+    },
+    {
+      "page": 1145,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.5.2   Restricting inheritance and modification with the FINAL clause  — printed at the same typographic rank as D.19.5.1 Inheritance.",
+      "markdown_says": "## D.19.5.2 Restricting inheritance and modification with the FINAL clause  (specs/ISO_COBOL.md:46074)  — markdown level 2, while sibling D.19.5.1 is '### D.19.5.1 Inheritance' (:45936).",
+      "why_it_matters": "A fourth-level clause emitted at markdown level 2 is detached from D.19.5 in the heading tree and sits as a peer of the annex clause D.19 itself.",
+      "suggested_repair": "Change to '#### D.19.5.2 Restricting inheritance and modification with the FINAL clause'."
+    },
+    {
+      "page": 1145,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "CheckingAccount Class   (underlined, exactly as 'Account Class' is underlined on page 1144)",
+      "markdown_says": "CheckingAccount Class   (plain text, specs/ISO_COBOL.md — page-1145 slice line 6), whereas page 1144 renders the matching label as '<u>Account Class</u>'.",
+      "why_it_matters": "Purely presentational, but the two labels are a matched pair in the same example and the transcription treats them differently; a reader diffing the two code samples sees an asymmetry that is not in the standard.",
+      "suggested_repair": "Wrap as '<u>CheckingAccount Class</u>' to match the page-1144 treatment of '<u>Account Class</u>'."
+    },
+    {
+      "page": 1146,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.5.3   Conformance  — printed at the same typographic rank as D.19.5.1 Inheritance and D.19.5.2 Restricting inheritance...",
+      "markdown_says": "## D.19.5.3 Conformance  (specs/ISO_COBOL.md:46090)  — markdown level 2, while sibling D.19.5.1 is at level 3 ('### D.19.5.1 Inheritance', :45936).",
+      "why_it_matters": "Same nesting break: the Conformance subclause is lifted out of D.19.5 in the heading tree, so section extraction by heading depth cannot recover the clause numbering.",
+      "suggested_repair": "Change to '#### D.19.5.3 Conformance'."
+    },
+    {
+      "page": 1149,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.5.4   Polymorphism  /  D.19.5.4.1   General  — D.19.5.4 printed at the same rank as D.19.5.1/.2/.3; D.19.5.4.1 one rank below it.",
+      "markdown_says": "## D.19.5.4 Polymorphism  (specs/ISO_COBOL.md:46274)  and  ### D.19.5.4.1 General  (:46277)  — D.19.5.4 at markdown level 2 while its sibling D.19.5.1 is at level 3, and the fifth-level D.19.5.4.1 lands at level 3 alongside it.",
+      "why_it_matters": "The fourth- and fifth-level clauses are both one to two levels too shallow, so D.19.5.4.1 General ends up at the same markdown depth as D.19.5.1 Inheritance even though the PDF prints them two ranks apart. The heading tree contradicts the printed numbering.",
+      "suggested_repair": "Change to '#### D.19.5.4 Polymorphism' and '##### D.19.5.4.1 General'."
+    }
+  ]
+}

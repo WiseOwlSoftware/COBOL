@@ -1,0 +1,34 @@
+{
+  "batch": [1042, 1043, 1044, 1045, 1046, 1047, 1048, 1049, 1050, 1051, 1052, 1053],
+  "pages_checked": [1042, 1043, 1044, 1045, 1046, 1047, 1048, 1049, 1050, 1051, 1052, 1053],
+  "note": "This batch (Annex D.2.3.4.4 through D.2.5, printed pages 1012-1023) contains NO general-format / syntax-skeleton figures. The page_workunit extractor also reported '0 with figure content'. The priority defect class for this run (lost choice-indicator bars inside brackets/braces, unclosed brackets, misplaced ellipses, lost underlining) therefore has no instances here: every page is prose, two tables (Table A.1 continued over pages 1047-1048), and one COBOL code example (pages 1051-1053). All prose was compared sentence by sentence and matches, including ISO's own defects which the transcription correctly preserves: 'described in D.2.4 Commit and rollback' on p1043 (should be D.2.5), the missing sentence-final period after 'applicable WHEN phrase' on p1042 and after 'terminates the task' on p1048, the lowercase 'OCCURS xxx DEPENDING on clause' on p1049, and the stray leading period in '. USER-FATAL-ERROR SECTION.' on p1053.",
+  "findings": [
+    {
+      "page": 1048,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "[Table A.1 continued from p1047 - the table on this page begins directly with a DATA row, with no repeated column-header row:] | START | any | no | no |   then   | WRITE | Automatic - single | no | - on any previously locked record | ...",
+      "markdown_says": "| START | any | no | no |\n|-------|-----|----|----|\n| WRITE | Automatic - single | no | - on any previously locked record |\n| | - multiple | no | no |\n...",
+      "why_it_matters": "The markdown places the GFM header separator (|---|---|---|---|) immediately after the START row, which makes 'START / any / no / no' render as the table's column-heading row. The continuation table then has no column names at all, and the START row - a normative-looking data row of Table A.1 stating that the START statement sets no lock and releases none - is presented as a label. A reader of the rendered markdown cannot tell which column is 'Lock is set' and which is 'Lock for same logical file is released', so the WRITE and UNLOCK rows below it lose their column semantics.",
+      "suggested_repair": "Give the continuation table the same four column headers as p1047 ('I-O statement | Lock mode | Lock is set | Lock for same logical file is released'), marked as a continuation, and demote START to an ordinary data row beneath the separator."
+    },
+    {
+      "page": 1053,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "        03  WORK-QTY                PIC S9(7    PACKED-DECIMAL.",
+      "markdown_says": "    03  WORK-QTY                PIC S9(7)    PACKED-DECIMAL.",
+      "why_it_matters": "The PDF prints 'PIC S9(7' with NO closing right parenthesis - verified by cropping and zooming the line (E:/Temp/specrecon/f9/crop1053_workqty.png); the adjacent COMMIT-FREQUENCY line on the same page correctly prints 'PIC S9(5)'. This is a typographical defect in ISO's own informative example. The transcription silently repairs it. Silent repair is the same class of error as silent loss: the transcription is supposed to reproduce the page, and a project that keeps a ledger of ISO's own defects cannot find this one because the markdown no longer shows it. It also hides the fact that the Annex D sample program as printed is not compilable source.",
+      "suggested_repair": "Transcribe the line verbatim as 'PIC S9(7    PACKED-DECIMAL.' and add a transcriber's note (outside the code fence) recording that ISO omits the closing right parenthesis - i.e. log it as an ISO defect rather than fixing it in place."
+    },
+    {
+      "page": 1052,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "[measured left ink columns at 300 dpi] 'I-O-CONTROL.' / 'DATA DIVISION.' / 'FD  STCK-FILE.' all begin at x=455; 'SELECT CHNG-FILE', the two preceding comment lines '*> will be locked by this program until a commit or' / '*> rollback.', and 'APPLY COMMIT ON STCK-FILE CHNG-FILE UPDATE-COUNT.' all begin at x=563 - exactly four character cells (1 cell = 26.7 px) further right.",
+      "markdown_says": "        *> will be locked by this program until a commit or\n        *> rollback.\n\n        SELECT CHNG-FILE\n            ASSIGN TO \"CHANGE\"\n...\n        I-O-CONTROL.\n            APPLY COMMIT ON STCK-FILE CHNG-FILE UPDATE-COUNT.",
+      "why_it_matters": "In the markdown, 'SELECT CHNG-FILE' and its two preceding comment lines sit at 8 spaces - the SAME column as 'I-O-CONTROL.', 'DATA DIVISION.' and 'FD  STCK-FILE.' - whereas the PDF indents them four columns further in. The example is illustrating COBOL reference format, where paragraph headers (FILE-CONTROL., I-O-CONTROL.) stand in Area A and their clauses (SELECT ...) in Area B; flattening the two to one column destroys that distinction. It is also internally inconsistent with the same program's first page: page 1051 correctly renders 'FILE-CONTROL.' at 8 spaces and 'SELECT STCK-FILE' at 12, so the identical construct is indented two different ways across the page break, and the comment block that starts on p1051 at 12 spaces resumes on p1052 at 8.",
+      "suggested_repair": "Re-indent the p1052 slice so the two continuation comment lines, 'SELECT CHNG-FILE' and its subordinate clauses each gain four spaces (comments and SELECT to 12, ASSIGN/ORGANIZATION/ACCESS MODE/FILE STATUS/SHARING to 16), matching both the PDF columns and the p1051 slice."
+    }
+  ]
+}

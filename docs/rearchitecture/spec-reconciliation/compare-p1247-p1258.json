@@ -1,0 +1,88 @@
+{
+  "batch": [1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258],
+  "pages_checked": [1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258],
+  "note": "This batch contains NO general formats / syntax skeletons. PDF pages 1247-1258 are printed pages 1217-1228, the back-of-book alphabetical Index (entries I through V). The figure-selection heuristic that routed these pages to a diagram-fidelity sweep misfired. Every page was still compared line by line against the render. Body text, entry wording and every page-number reference were verified correct on all twelve pages, including ISO's own typos which the transcription faithfully preserves (p1252 'PERFORM statemen' / 'Exception-checkingt 706'; p1250 'NEAREST EVEN phrase' unhyphenated alongside 'NEAREST-EVEN phrase'; p1256 'STOP statement, 633'). The only defect class found is loss of index sub-entry indentation, recorded below.",
+  "findings": [
+    {
+      "page": 1249,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "LOCK ON MULTIPLE clause\n        LOCK MODE clause  325\nLOCK phrase\n        READ statement  692\n        REWRITE statement  710\n        WRITE statement  786\n... Method resolution signature\n        Definition  241\nMethod-definition  259\nMETHOD-ID paragraph  269\nMethod-name  98, 102\n        METHOD-ID paragraph  269\n        Scope of  149",
+      "markdown_says": "LOCK ON MULTIPLE clause\nLOCK MODE clause [325](#page-325)\nLOCK phrase\nREAD statement [692](#page-692)\nREWRITE statement [710](#page-710)\nWRITE statement [786](#page-786)\n... Method resolution signature\n\nDefinition [241](#page-241)\nMethod-definition [259](#page-259)\nMETHOD-ID paragraph [269](#page-269)\nMethod-name [98](#page-98), [102](#page-102)\nMETHOD-ID paragraph [269](#page-269)\nScope of [149](#page-149)",
+      "why_it_matters": "Every sub-entry indent on this page is dropped: the markdown emits all lines flush left, whereas the PDF indents sub-entries under their parent heading. The parent/child relation is the whole information content of an index entry - 'METHOD-ID paragraph 269' as a top-level entry means something different from 'METHOD-ID paragraph 269' as a sub-entry of 'Method-name'. Pages 1247, 1248, 1253, 1255 and 1256 of the same index DO carry the indents (as '&nbsp;&nbsp;&nbsp;&nbsp;'), so the loss is an inconsistency within the transcription itself, not a deliberate style choice.",
+      "suggested_repair": "Re-emit page 1249 with the same '&nbsp;&nbsp;&nbsp;&nbsp;' one-level indent prefix used on pages 1247/1248/1253/1255/1256 for every line the PDF indents."
+    },
+    {
+      "page": 1250,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "NEAREST-AWAY-FROM-ZERO phrase\n        DEFAULT ROUNDED clause  273\n        INTERMEDIATE ROUNDING clause  278\n        ROUNDED phrase  560\n...\nNOT ON SIZE ERROR phrase\n        ADD statement  583\n        COMPUTE statement  602\n        DIVIDE statement  614\n        MULTIPLY statement  673\n        SUBTRACT statement  762",
+      "markdown_says": "NEAREST-AWAY-FROM-ZERO phrase\nDEFAULT ROUNDED clause [273](#page-273)\nINTERMEDIATE ROUNDING clause [278](#page-278)\nROUNDED phrase [560](#page-560)\n...\nNOT ON SIZE ERROR phrase\nADD statement [583](#page-583)\nCOMPUTE statement [602](#page-602)\nDIVIDE statement [614](#page-614)\nMULTIPLY statement [673](#page-673)\nSUBTRACT statement [762](#page-762)",
+      "why_it_matters": "All sub-entry indentation on this page is lost, so every sub-entry reads as an independent top-level index entry. Same systematic defect as page 1249; pages 1247/1248/1253/1255/1256 of the same index preserve the indents, so the transcription is internally inconsistent.",
+      "suggested_repair": "Re-emit page 1250 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
+    },
+    {
+      "page": 1251,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Numeric-edited category  165, 379, 446\n        Category of data\n                Numeric-edited  162\nNumeric-edited data item  165",
+      "markdown_says": "Numeric-edited category [165](#page-165), [379](#page-379), [446](#page-446)\nCategory of data\nNumeric-edited [162](#page-162)\nNumeric-edited data item [165](#page-165)",
+      "why_it_matters": "This page carries a TWO-level index nesting ('Numeric-edited category' > 'Category of data' > 'Numeric-edited 162') and the markdown flattens both levels to flush left, along with every other sub-entry on the page (Object, Object orientation, Operators, OPTIONAL phrase, ON SIZE ERROR phrase, etc.). Three distinct index levels collapse into one, which changes what the index asserts.",
+      "suggested_repair": "Re-emit page 1251 with one '&nbsp;&nbsp;&nbsp;&nbsp;' unit per indent level the PDF shows - two units for 'Numeric-edited 162'."
+    },
+    {
+      "page": 1252,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "PERFORM statement  682\n        Exception checking  777\n        Exception-checking  605, 613, 623, 638, 657, 675, 682,\n                691\n        infinite loop  686\nPERFORM statement examples  1155",
+      "markdown_says": "PERFORM statement [682](#page-682)\nException checking [777](#page-777)\nException-checking [605](#page-605), [613](#page-613), [623](#page-623), [638](#page-638), [657](#page-657), [675](#page-675), [682](#page-682), [691](#page-691)\ninfinite loop [686](#page-686)\nPERFORM statement examples [1155](#page-1155)",
+      "why_it_matters": "All sub-entry indentation on this page is lost, so sub-entries such as 'Exception checking 777' and 'infinite loop 686' read as free-standing top-level entries rather than as qualifiers of 'PERFORM statement'. Same systematic defect as pages 1249-1251.",
+      "suggested_repair": "Re-emit page 1252 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
+    },
+    {
+      "page": 1254,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Relation condition\n        Alphanumeric operands  189\n        Arithmetic expression in  187\n        Boolean operands  190\n        Data-pointer operands  192\n...\nReserved words  97, 105\n        Compiler directives  213\n        Implementation  23\n        Source text  205",
+      "markdown_says": "Relation condition\nAlphanumeric operands [189](#page-189)\nArithmetic expression in [187](#page-187)\nBoolean operands [190](#page-190)\nData-pointer operands [192](#page-192)\n...\nReserved words [97](#page-97), [105](#page-105)\nCompiler directives [213](#page-213)\nImplementation [23](#page-23)\nSource text [205](#page-205)",
+      "why_it_matters": "Every sub-entry indent on this page is dropped. The thirteen sub-entries under 'Relation condition' and the three under 'Reserved words' are each promoted to look like top-level index entries. Same systematic defect as pages 1249-1252.",
+      "suggested_repair": "Re-emit page 1254 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
+    },
+    {
+      "page": 1257,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "        Data-name  123\nSubscripted identifier  124\nSubscripting  1030\n        Condition-name  123\nSubscripts  122, 123\n        Dynamic-capacity tables  157\n...\nTO phrase\n        ADD statement  583\n        INITIALIZE statement  637",
+      "markdown_says": "Data-name [123](#page-123)\nSubscripted identifier [124](#page-124)\nSubscripting [1030](#page-1030)\nCondition-name [123](#page-123)\nSubscripts [122](#page-122), [123](#page-123)\nDynamic-capacity tables [157](#page-157)\n...\nTO phrase\nADD statement [583](#page-583)\nINITIALIZE statement [637](#page-637)",
+      "why_it_matters": "Every sub-entry indent on this page is dropped, including the first line 'Data-name 123', which the PDF indents because it continues the 'Subscripted' entry begun at the foot of page 1256. Flattened, it reads as a new top-level entry 'Data-name 123' rather than 'Subscripted > Data-name'. Same systematic defect as pages 1249-1254.",
+      "suggested_repair": "Re-emit page 1257 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the column-top continuation line."
+    },
+    {
+      "page": 1258,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "        GOBACK statement  540, 631\n        MERGE statement  539\n        PERFORM statement  540\n        SORT statement  539\n        STOP statement  540\nTRIM function  932\n...\nType-name  98, 103\n        Scope of  148\n        TYPE clause  494",
+      "markdown_says": "GOBACK statement [540](#page-540), [631](#page-631)\nMERGE statement [539](#page-539)\nPERFORM statement [540](#page-540)\nSORT statement [539](#page-539)\nSTOP statement [540](#page-540)\nTRIM function [932](#page-932)\n...\nType-name [98](#page-98), [103](#page-103)\nScope of [148](#page-148)\nTYPE clause [494](#page-494)",
+      "why_it_matters": "Every sub-entry indent on this page is dropped. The five opening lines are indented in the PDF because they continue the 'Transfer of control 539' entry begun at the foot of page 1257; flattened, 'GOBACK statement 540, 631' reads as a top-level index entry with no connection to transfer of control. Same systematic defect as pages 1249-1257.",
+      "suggested_repair": "Re-emit page 1258 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the five column-top continuation lines."
+    },
+    {
+      "page": 1247,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "INTO phrase\n        DIVIDE statement  614\n[column break]\n        READ statement  692\n        RETURN statement  708\n        STRING statement  759\n        UNSTRING statement  769\nIntrinsic function summary  806",
+      "markdown_says": "INTO phrase\n&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)\n\nREAD statement [692](#page-692)\nRETURN statement [708](#page-708)\nSTRING statement [759](#page-759)\nUNSTRING statement [769](#page-769)\nIntrinsic function summary [806](#page-806)",
+      "why_it_matters": "This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the four sub-entries that open the second print column lose it, so READ/RETURN/STRING/UNSTRING read as top-level entries instead of continuing the 'INTO phrase' list broken by the column break.",
+      "suggested_repair": "Prefix the four column-top continuation lines with '&nbsp;&nbsp;&nbsp;&nbsp;' to match the rest of the page."
+    },
+    {
+      "page": 1256,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "        Implicit  639\nShared files  230, 681\n...\nSpecial character words  105\n[column break]\n        In formats  30\nSpecial insertion editing  453",
+      "markdown_says": "Implicit [639](#page-639)\nShared files [230](#page-230), [681](#page-681)\n...\nSpecial character words [105](#page-105)\n\nIn formats [30](#page-30)\nSpecial insertion editing [453](#page-453)",
+      "why_it_matters": "This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the two continuation lines at the top of each print column lose it. 'Implicit 639' continues 'SET statement' from the foot of page 1255 and 'In formats 30' is a sub-entry of 'Special character words 105'; both are promoted to top-level entries.",
+      "suggested_repair": "Prefix the two column-top continuation lines with '&nbsp;&nbsp;&nbsp;&nbsp;' to match the rest of the page."
+    }
+  ]
+}

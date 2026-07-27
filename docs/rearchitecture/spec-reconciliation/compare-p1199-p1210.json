@@ -1,0 +1,16 @@
+{
+  "batch": [1199, 1200, 1201, 1202, 1203, 1204, 1205, 1206, 1207, 1208, 1209, 1210],
+  "pages_checked": [1199, 1200, 1201, 1202, 1203, 1204, 1205, 1206, 1207, 1208, 1209, 1210],
+  "notes": "This batch was routed to a figure-fidelity run, but pages 1169-1180 of the printed standard (PDF pages 1199-1210) carry NO general formats / syntax skeletons. They are the tail of Annex D (D.31.5 date-and-time intrinsic function narratives, D.32 HIGHEST/LOWEST/SMALLEST-ALGEBRAIC alternatives) and the head of Annex E (informative substantive-changes list, items 1)-29)). page_workunit.py independently reported '0 with figure content' for the batch. Every word, list item, code point, reserved word and numeric literal on the twelve pages was compared glyph-by-glyph against the markdown; the only defect found is a markdown heading-level flattening on 1199.",
+  "findings": [
+    {
+      "page": 1199,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "D.31.5.8   INTEGER-OF-FORMATTED-DATE function  /  D.31.5.9   SECONDS-FROM-FORMATTED-TIME function  /  D.31.5.10   TEST-FORMATTED-DATETIME function  /  D.31.5.11   COMBINED-DATETIME function  (four fourth-level clauses nested under D.31.5 International date and time format handling, itself nested under D.31 Date and time handling)",
+      "markdown_says": "## D.31.5.8 INTEGER-OF-FORMATTED-DATE function ... ## D.31.5.9 ... ## D.31.5.10 ... ## D.31.5.11 ... (all four emitted at H2, the same level as their own grandparent `## D.31 Date and time handling` at specs/ISO_COBOL.md:48152 and as `## Annex D` at :41493, while the sibling clause `### D.31.5.1 General` at :48329 is correctly emitted at H3)",
+      "why_it_matters": "The clause hierarchy of Annex D is flattened: D.31.5.8-.11 render as peers of Annex D and of D.32 instead of as children of D.31.5. Any TOC, outline navigation or heading-level-driven section extraction over specs/ISO_COBOL.md mis-nests these clauses, and the inconsistency with D.31.5.1 (H3) shows it is a transcription artifact rather than a deliberate scheme. No normative text is lost; this is navigational only. It is part of a document-wide pattern in Annex D (e.g. D.31.2.6, D.31.2.7, D.31.3.3-.9, D.31.5.2-.7 have the same flattening) so any repair should be a sweep of Annex D, not a one-page edit.",
+      "suggested_repair": "Demote D.31.5.2 through D.31.5.11 (and the sibling D.31.2.6-.7, D.31.3.3-.9 runs) from `##` to `####` so they nest under `### D.31.5` / `## D.31`, matching the level already used for D.31.5.1, D.31.4.1-.5 and D.31.3.1-.2."
+    }
+  ]
+}

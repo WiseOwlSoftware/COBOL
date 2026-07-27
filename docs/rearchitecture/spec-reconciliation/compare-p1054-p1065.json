@@ -1,0 +1,33 @@
+{
+  "batch": [1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065],
+  "pages_checked": [1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065],
+  "findings": [
+    {
+      "page": 1063,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Figure D.1 draws one tall brace \"}\" on the right-hand side of the flowchart. That single brace spans ALL THREE exit arrows -- the arrow leaving imperative-statement-1, the arrow leaving imperative-statement-2 and the arrow leaving imperative-statement-3 -- and the footnote reference \"**\" is printed to the right of the brace, vertically centred beside it. The footnote itself (page 1064) reads: \"**   Each of these control transfers is to the end of the SEARCH statement unless the flow of control of the imperative-statement contains an EXIT, GO TO, GOBACK, or RETURN statement.\"",
+      "markdown_says": "Condition-1 → True → imperative-statement-2 → **\\*\\***\n\n(the brace is not rendered at all; the \"**\" marker appears only at the end of the imperative-statement-2 row, and the imperative-statement-1 row reads \"→ True (AT END) * → imperative-statement-1 →\" and the imperative-statement-3 row reads \"\\* Condition-2 → True → imperative-statement-3 * →\", neither carrying \"**\")",
+      "why_it_matters": "The brace is the only thing that makes footnote ** apply to all three control transfers. With the brace dropped and \"**\" attached to a single row, the plural antecedent of \"Each of these control transfers\" disappears: a reader of the markdown concludes that only the imperative-statement-2 exit transfers to the end of the SEARCH statement, and that the AT END exit and the second WHEN exit are governed by something else. That is exactly the falsely-restrictive reading this sweep is looking for, applied to a figure grouping delimiter rather than a bracket.",
+      "suggested_repair": "Re-render the figure so the three exit arrows are shown as one group carrying the \"**\" marker, e.g. put \"**\" on its own line covering the three imperative-statement rows (or repeat \"**\" on each of the three exit arrows) instead of appending it to the imperative-statement-2 row only."
+    },
+    {
+      "page": 1058,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.3.2   Table definition   (a clause subordinate to \"D.3   Tables and dynamic-length elementary items\", printed in the same style and at the same numbering depth as \"D.3.1   General\")",
+      "markdown_says": "## D.3.2 Table definition",
+      "why_it_matters": "D.3.1 is transcribed as \"### D.3.1 General\" (page 1057) but its sibling D.3.2 is transcribed at \"##\", the same level as its own parent \"## D.3 Tables and dynamic-length elementary items\". The markdown outline therefore shows D.3.2 as a peer of D.3 rather than a child of it, and D.3.1 as the only child. Any navigation, TOC generation or section-scoped citation built off the heading tree gets the wrong containment for the whole D.3 clause.",
+      "suggested_repair": "Demote to \"### D.3.2 Table definition\". The same one-level-too-shallow defect repeats for the remaining siblings of D.3.1: \"## D.3.3 Values of tables\" and \"## D.3.4 References to table items\" (page 1059), \"## D.3.5 Subscripting\" (page 1060) and \"## D.3.6 Sorting tables\" (page 1064) -- all should be \"###\" to match \"### D.3.1 General\"."
+    },
+    {
+      "page": 1061,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.3.5.3   Subscripting example   (printed at the same numbering depth as \"D.3.5.1   General\" and \"D.3.5.2   Subscripting using index-names\")",
+      "markdown_says": "## D.3.5.3 Subscripting example",
+      "why_it_matters": "Its two siblings are transcribed one level deeper -- \"### D.3.5.1 General\" and \"### D.3.5.2 Subscripting using index-names\" (page 1060) -- while D.3.5.3 sits at \"##\", the same level as their shared parent \"## D.3.5 Subscripting\". The markdown outline therefore detaches D.3.5.3 (and the SEARCH example that follows it) from the Subscripting clause that contains it.",
+      "suggested_repair": "Demote to \"### D.3.5.3 Subscripting example\", and likewise demote \"## D.3.5.4 SEARCH example\" (page 1063) to \"###\", so all four D.3.5.x subclauses sit at one consistent level under D.3.5."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "batch": [1259, 1260, 1261],
+  "pages_checked": [1259, 1260, 1261],
+  "notes": "Batch was routed here as 'figure-bearing', but PDF pages 1259-1261 are back matter: the tail of the alphabetical index (W/X/Y/Z), a genuinely blank verso, and the back cover. No general formats or syntax skeletons appear on any of the three pages, so the choice-indicator / bracket-closure / ellipsis-placement checks had nothing to apply to. Page 1259 transcribes cleanly (all 40 index entries and every page reference verified glyph-by-glyph against the render).",
+  "findings": [
+    {
+      "page": 1261,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "ISO/IEC 1989:2023(E)  [top-left running head]  ...  ICS  35.060 / Price based on 1229 pages / © ISO/IEC 2023 – All rights reserved   [the back cover carries NOTHING else]",
+      "markdown_says": "**ICS 35.060**\nPrice based on 1229 pages\n\n\n (EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FAILED)\n\n   — For the Commit and Rollback facility (EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT and EC-FLOW-ROLLBACK)",
+      "why_it_matters": "Two lines of Annex E.3.2 normative-looking text (the new-exception-condition lists for Asynchronous messaging and for Commit and Rollback) are appended to the back cover, where the PDF prints nothing at all. The block is also truncated: its parent lead-in '— For the Asynchronous messaging facility' was dropped, so the first line begins with a bare ' (EC-MCS, ...' with no antecedent. The legitimate copy of both lines already exists at its true home, specs/ISO_COBOL.md lines 48920 and 48922, under '3) Exception conditions. New exception conditions have been added:' on page 1211. So this is a duplicated orphan, not lost text — but a reader or a tool that greps for EC-MCS-* / EC-FLOW-* gets a second hit anchored to page 1261, attributing annex content to the back cover and inviting a bogus '§ on page 1261' citation.",
+      "suggested_repair": "Delete specs/ISO_COBOL.md lines 53198-53203 (the stray block between 'Price based on 1229 pages' and the end of the page-1261 slice). Leave the page-1261 slice as: the '**ISO/IEC 1989:2023(E)**' head, the rule, '**ICS 35.060**', 'Price based on 1229 pages'. Verify the surviving copy at lines 48918-48922 still reads '3) Exception conditions...' / '— For the Asynchronous messaging facility (EC-MCS, ...)' / '— For the Commit and Rollback facility (...)' intact."
+    },
+    {
+      "page": 1260,
+      "kind": "summarised-not-transcribed",
+      "severity": "structural",
+      "pdf_says": "[page 1260 is genuinely blank — the render shows only the '[per-copy licence stamp]' footer line]",
+      "markdown_says": "The page appears to be blank except for the watermark/footer text at the bottom. Since you've instructed me to ignore watermark text, and there is no other visible content on this page, there is no text to extract.",
+      "why_it_matters": "Transcription-tool meta-text left in the spec file. The substance of the observation is correct — page 1260 really is blank — so no normative content is lost here and this is not a content defect. But it is first-person conversational residue ('you've instructed me...') sitting inside what is supposed to be the standard's text, and it is exactly the marker of the summarised-not-transcribed failure mode. It should be swept out on sight, both because it pollutes full-text search of the spec and because leaving one instance in place makes the class harder to grep for on pages where the same tool DID replace real content with a description.",
+      "suggested_repair": "Replace specs/ISO_COBOL.md line 53186 with an explicit blank-page marker — e.g. '*(This page is intentionally blank.)*' — or leave the slice empty under the page anchor. Then grep the whole file for the same residue pattern (e.g. /you've instructed|there is no text to extract|The page appears to be|I (cannot|was unable)/i) and sweep every hit, since any occurrence on a non-blank page is a normative-severity content hole."
+    }
+  ]
+}

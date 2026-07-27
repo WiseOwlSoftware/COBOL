@@ -1,0 +1,21 @@
+{
+  "batch": [1162, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173],
+  "pages_checked": [1162, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173],
+  "findings": [
+    {
+      "page": 1171,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "NOTE    The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [both paragraphs are set in the smaller NOTE type face, visibly smaller than the surrounding body text - i.e. the second paragraph is a continuation of the NOTE, not body text]",
+      "markdown_says": "NOTE The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.",
+      "why_it_matters": "The second paragraph is rendered as ordinary body prose, so its binding to the NOTE is lost. In ISO drafting the note type face marks the text as a note; here it detaches a sub-item from its parent. Impact is cosmetic only: Annex D is informative in its entirety (D.22 Validate facility), so nothing normative turns on it.",
+      "suggested_repair": "Fold the second paragraph into the NOTE (e.g. keep it inside the same NOTE block, or prefix the continuation so it reads as part of the NOTE rather than as new body text)."
+    }
+  ],
+  "notes": [
+    "Pages 1162-1173 are Annex D (informative) - D.20 Report writer, D.21 Structured constant, D.22 Validate facility. Despite the batch being selected as figure-bearing, there are NO general-format / syntax-skeleton diagrams on these pages: the only figure element is the continuation of Figure D.6 'Example of page layout' on p.1162 (its caption and column headings sit on p.1161, outside this batch), which is a labelled page-layout table with no brackets, braces, choice-indicator bars, ellipses or underlined required words. The priority defect class (lost choice-indicator bars per 5.2.6.4) therefore does not arise anywhere in this batch.",
+    "Figure D.6 continuation on p.1162 was checked row by row against the render and is faithful, including reproduction of the PDF's own typo '<page footing lines.' (unterminated angle bracket, stray period) in the Footing row. No row, label or content line is missing or reordered.",
+    "All COBOL example code blocks (pp.1163, 1164, 1165, 1166, 1167, 1168, 1170, 1173) were compared token by token against the renders: level numbers, PICTURE strings, clause keywords, literals, '*>' comment lines and operators all match. No ocr-error found.",
+    "OUT OF SCOPE / DOCUMENT-WIDE, deliberately NOT filed as per-page findings: heading depth does not track clause-number depth. On these pages D.20.3.3, D.20.3.4, D.20.3.5, D.20.4.4, D.20.4.5, D.20.5.1, D.20.5.2, D.22.4-D.22.8 and D.22.8.2 are all emitted at '##' although their siblings (D.20.3.1/D.20.3.2 at '####', D.20.4.1-3 and D.22.1-3 at '###') are correctly nested, so those subsections detach from their parent in the outline. This is systemic, not local: a scan of the whole transcription finds 1388 of 2082 numbered headings whose '#' count differs from their numbering depth. It should be fixed once, document-wide, by a mechanical pass - not page by page out of this sweep."
+  ]
+}

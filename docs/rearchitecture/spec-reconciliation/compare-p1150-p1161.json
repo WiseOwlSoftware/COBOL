@@ -1,0 +1,42 @@
+{
+  "batch": [1150, 1151, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161],
+  "pages_checked": [1150, 1151, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161],
+  "findings": [
+    {
+      "page": 1151,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "01  Out-p pic $$$,$$$.99.",
+      "markdown_says": "01  Out-p pic $$$,$$$. 99.",
+      "why_it_matters": "A space was inserted into the PICTURE character-string. In COBOL a space terminates the PICTURE character-string, so the transcribed line is not the same source: it reads as PICTURE '$$$,$$$.' followed by a stray '99.' rather than the six-digit floating-dollar edited item with two decimal places that the example (a packed-decimal print method) is illustrating. Verified by cropping and zooming the 300dpi render of the line; the printed glyphs are contiguous with no space between '.' and '99'.",
+      "suggested_repair": "Restore the line to '01  Out-p pic $$$,$$$.99.' (no space before the 99)."
+    },
+    {
+      "page": 1150,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.5.4.2  Class polymorphism  /  D.19.5.4.3  Parametric polymorphism (both are fourth-level subclauses of D.19.5.4 Polymorphism, whose first subclause D.19.5.4.1 General is transcribed as '### D.19.5.4.1 General')",
+      "markdown_says": "## D.19.5.4.2 Class polymorphism  ...  ## D.19.5.4.3 Parametric polymorphism",
+      "why_it_matters": "Both subclauses are emitted at the same markdown level (##) as their own parent '## D.19.5.4 Polymorphism' and one level above their sibling '### D.19.5.4.1 General', so the outline makes them peers of D.19.5.4 instead of its children. Any TOC, anchor-nav or section-scoped tooling built over the markdown reports the wrong containment for these clauses. The transcription's own convention (first sibling nested, later siblings flattened) is visible throughout Annex D - e.g. D.18.2.1 is ###, D.18.2.2/D.18.2.3 are ##; D.20.3.1/D.20.3.2 are ####, D.20.3.3/D.20.3.4/D.20.3.5 are ## - which proves the flattening is a tool artifact, not an editorial choice.",
+      "suggested_repair": "Demote both to '### D.19.5.4.2 Class polymorphism' and '### D.19.5.4.3 Parametric polymorphism' to match the sibling D.19.5.4.1."
+    },
+    {
+      "page": 1154,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.9.3  Files in factory objects (fourth-level subclause of D.19.9 Files in object orientation, whose siblings D.19.9.1 General and D.19.9.2 Files in instance objects are transcribed as '### ')",
+      "markdown_says": "## D.19.9.3 Files in factory objects",
+      "why_it_matters": "D.19.9.3 is emitted one level shallower than its own siblings D.19.9.1 and D.19.9.2 (both '###') and at the same level as its parent '## D.19.9 Files in object orientation', so the markdown outline detaches it from D.19.9 and makes it a peer clause. Same systemic flattening artifact described for page 1150.",
+      "suggested_repair": "Demote to '### D.19.9.3 Files in factory objects'."
+    },
+    {
+      "page": 1156,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.19.11.1  General  /  D.19.11.2  Main program  /  D.19.11.3  Account class (all fourth-level subclauses of D.19.11 Sample application)",
+      "markdown_says": "## D.19.11.1 General  ...  ## D.19.11.2 Main program  ...  ## D.19.11.3 Account class",
+      "why_it_matters": "All three are emitted at '##', the same level as their parent '## D.19.11 Sample application' on page 1155, so D.19.11 appears to have no subclauses at all and the three sample-application subclauses float as peers of D.19.11 and D.19.10. Same systemic flattening artifact described for page 1150; note that here even the FIRST subclause was flattened, so the outline of the whole sample-application group is lost.",
+      "suggested_repair": "Demote all three to '### D.19.11.1 General', '### D.19.11.2 Main program', '### D.19.11.3 Account class'."
+    }
+  ]
+}
