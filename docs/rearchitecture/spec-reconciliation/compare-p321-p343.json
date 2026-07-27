@@ -1,0 +1,33 @@
+{
+  "batch": [321, 323, 325, 327, 329, 331, 333, 335, 337, 339, 341, 343],
+  "pages_checked": [321, 323, 325, 327, 329, 331, 333, 335, 337, 339, 341, 343],
+  "findings": [
+    {
+      "page": 339,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "c)\tthe details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.  [printed at the TOP of page 339 as a separate, indented list item c) of 12.3.8.4 general rule 11); item b) ends at the foot of page 338 with \"... the same externalized name as the externalized name of the function prototype; otherwise,\"]",
+      "markdown_says": "specs/ISO_COBOL.md line 14648 (inside the page-338 slice): \"    b) if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group, the details are taken from that function prototype definition and the details in the external repository are ignored. The function that will be activated is the one with the same externalized name as the externalized name of the function prototype; otherwise, c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.\"  -- and the page-339 slice contains NO item c) at all (it opens directly at \"12) Within the scope of the containing environment division ...\").",
+      "why_it_matters": "General rule 11 (how the details for activating a function through a function prototype are obtained) is an ordered a)/b)/c) fallback chain. Item c) has been glued into the body of item b) with a literal \"c)\" left mid-sentence, so the terminal fallback rule is no longer a list item and cannot be cited as 12.3.8.4 GR 11 c). The immediately preceding general rule 10 (the program-prototype twin, lines 14638 and 14640) keeps its b) and c) as separate items, which proves the intended structure and that this is a transcription break, not an ISO layout choice.",
+      "suggested_repair": "Split line 14648 at \"; otherwise, \": end item b) after \"otherwise,\" and start a new list item on its own line, indented like line 14640 -- \"    c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.\" Place it before the <a id=\"page-339\"></a> anchor if it should stay with the page-338 slice, or move it under the page-339 heading to match where ISO prints it."
+    },
+    {
+      "page": 337,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "12.3.8.4   General rules   [printed as a fourth-level clause heading, in the same bold style and at the same depth as \"12.3.8.3   Syntax rules\" on page 335, both children of \"12.3.8 REPOSITORY paragraph\"]",
+      "markdown_says": "## 12.3.8.4 General rules",
+      "why_it_matters": "Level-2 (##) makes 12.3.8.4 a SIBLING of \"## 12.3.8 REPOSITORY paragraph\" rather than its child, while its own sibling 12.3.8.3 on page 335 is correctly \"### 12.3.8.3 Syntax rules\". The heading tree therefore claims the REPOSITORY paragraph clause has no general rules and that a new top-level clause begins here, which corrupts any navigation or section-walk that resolves a spec citation by heading depth.",
+      "suggested_repair": "Change to \"### 12.3.8.4 General rules\". Sweep the siblings with the identical defect in this same region: line 13790 \"## 12.3.6.4 General rules\", 13903 \"## 12.3.7.2 General format\", 14025 \"## 12.3.7.3 Syntax rules\", 14217 \"## 12.3.7.4 General rules\" -- all four are four-part clause numbers wrongly at ##."
+    },
+    {
+      "page": 335,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "where property-specifier is:  /  PROPERTY property-name-1 [ AS literal-4 ]   and   where user-defined-function-specifier is:  /  FUNCTION function-prototype-name-1 [ AS literal-5 ]   -- printed as general-format skeletons, with PROPERTY, AS, FUNCTION and the second AS UNDERLINED (required words); property-name-1, literal-4, function-prototype-name-1 and literal-5 are not underlined.",
+      "markdown_says": "&nbsp;&nbsp;&nbsp;&nbsp;PROPERTY property-name-1 [ AS literal-4 ]\n\n&nbsp;&nbsp;&nbsp;&nbsp;FUNCTION function-prototype-name-1 [ AS literal-5 ]\n\n(plain indented prose lines -- no code fence, no <u>...</u>, and no \"Figure notes\" paragraph naming the underlined words.)",
+      "why_it_matters": "The underline is the only marker that distinguishes a REQUIRED word from an optional/comment word that may be omitted. Because AS sits inside brackets, losing its underline turns \"[ AS literal-4 ]\" into a phrase whose AS could legally be dropped while literal-4 is written -- falsely permissive here, and in the general case the same loss reads as falsely restrictive. These are the last two of the six REPOSITORY specifier formats: the four printed on page 334 (class-, interface-, intrinsic-function- and program-specifier, lines 14462-14493) are each code-fenced WITH a Figure notes paragraph listing the underlined words, and pages 341 and 343 in this same batch mark inline formats with <u>FILE-CONTROL</u> and <u>SELECT</u> [ <u>OPTIONAL</u> ]. So the convention exists and only these two figures lost it.",
+      "suggested_repair": "Render both as fenced general-format figures (or use <u>PROPERTY</u> / <u>AS</u> / <u>FUNCTION</u> inline as pages 341 and 343 do) and add the sibling-style note, e.g. \"> **Figure notes (property-specifier syntax diagram).** `PROPERTY` and `AS` are underlined in the printed standard (required words). The `AS` phrase is optional.\" -- mirroring the program-specifier note at line 14493."
+    }
+  ]
+}

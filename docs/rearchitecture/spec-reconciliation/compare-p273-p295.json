@@ -1,0 +1,51 @@
+{
+  "batch": [273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295],
+  "pages_checked": [273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295],
+  "findings": [
+    {
+      "page": 289,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "The page prints the method-definition general format exactly ONCE, immediately under 'where method-definition is:':  [ IDENTIFICATION DIVISION. ]  /  METHOD-ID. { method-name-1 [ AS literal-1 ]  |  { GET / SET } PROPERTY property-name-1 } [ OVERRIDE ] [ IS FINAL ] .  /  [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] / END METHOD [ method-name-1 ] .   It is followed directly by 'NOTE   Method-definition is included here for completeness ...'.",
+      "markdown_says": "specs/ISO_COBOL.md lines 12596-12609 render the figure, then the figure-notes blockquote at line 12611, then lines 12613-12627 render THE SAME FIGURE A SECOND TIME with a different brace layout:  '              ⎧ method-name-1 [ AS literal-1 ]               ⎫' / '              ⎪                                              ⎪' / 'METHOD-ID.  ⎨   ⎧ GET ⎫                                       ⎬  [ OVERRIDE ] [ IS FINAL ] .' / '              ⎪   ⎩ SET ⎭  PROPERTY property-name-1           ⎪' / '              ⎩                                              ⎭'  ... 'END METHOD [ method-name-1 ] .'",
+      "why_it_matters": "A general format printed once now appears twice in the transcription. A reader (or a generator that walks the markdown for general formats) sees two syntax skeletons for one construct and cannot tell which is canonical; the second copy also sits between the figure-notes blockquote and the NOTE that belongs to the figure, breaking the note/figure adjacency the PDF establishes.",
+      "suggested_repair": "Delete the duplicate fenced block at lines 12613-12627 (the second, 5-line brace variant), keeping the first block plus its figure-notes blockquote, so the NOTE at line 12629 follows the notes directly as on the printed page."
+    },
+    {
+      "page": 285,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "The NOTE example is printed with strictly increasing indentation per nesting level (measured left edges at 300 dpi): 'PROGRAM-ID.  A.' at x≈559, 'PROGRAM-ID.  B.' at x≈630, 'PROGRAM-ID.  C.' at x≈705, 'END PROGRAM C.' at x≈702, 'END PROGRAM B.' at x≈627, 'END PROGRAM A.' at x≈554 — i.e. B is indented one level inside A, C one level inside B, and each END marker aligns with its own PROGRAM-ID.",
+      "markdown_says": "```\nNOTE   In the example:\n          PROGRAM-ID.  A.\n             ...\n          PROGRAM-ID.  B.\n          ...\n             PROGRAM-ID.  C.\n\n             ...\n             END PROGRAM C.\n          END PROGRAM B.\n       END PROGRAM A.\n```",
+      "why_it_matters": "This example exists solely to illustrate containment nesting (the very next paragraph reads 'Program B is directly contained in Program A; Program C is directly contained in Program B'). In the markdown 'PROGRAM-ID.  B.' sits at the SAME column as 'PROGRAM-ID.  A.' (col 10), so B reads as a sibling of A rather than nested inside it, and 'END PROGRAM A.' is outdented to col 7, left of its own PROGRAM-ID. The indentation is the information content of this figure and it is scrambled.",
+      "suggested_repair": "Re-indent the example to match the printed nesting: A at one level, B one level deeper, C one level deeper still, each END PROGRAM aligned with its matching PROGRAM-ID; and drop the spurious blank line the markdown inserts between 'PROGRAM-ID.  C.' and the following '...' (the PDF has no blank line there)."
+    },
+    {
+      "page": 275,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Under '5) For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that:' the subitems are printed as separate list items — 'a) is specified with the BY VALUE phrase' (bottom of page 254/PDF p274) and, at the top of this page, 'b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.'",
+      "markdown_says": "specs/ISO_COBOL.md line 12016 merges the two into one line: '   a) is specified with the BY VALUE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.'",
+      "why_it_matters": "Item b) of the by-value matching rules is no longer a list item; its label is swallowed into the text of item a). Any tooling or reader enumerating the conditions of rule 5) sees three subitems (a, c, d) instead of four, and rule 5a now appears to require both the BY VALUE phrase and the OMITTED/OPTIONAL treatment in a single condition. The sibling lists 3) and 4) (lines 11967-11972 and 12006-12012) keep a) and b) separate, confirming the merge is an artifact.",
+      "suggested_repair": "Split line 12016 into '   a) is specified with the BY VALUE phrase' and a separate '   b) if the passed parameter is specified with the OMITTED phrase, ...' item, matching the shape of lists 3) and 4)."
+    },
+    {
+      "page": 289,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "In the interface-definition general format, INTERFACE-ID, AS, INHERITS, USING, END and INTERFACE are underlined (required words) while FROM is NOT underlined: '[ INHERITS FROM { interface-name-2 } … ]' shows an underline under INHERITS only (verified on a 300 dpi crop of the printed line).",
+      "markdown_says": "The interface-definition figure (lines 12581-12592) is a plain fenced code block with no underline marking and — unlike the adjacent method-definition figure, which carries a '> **Figure notes (method-definition general format).** ... are underlined in the printed standard (required words); `IS` is not underlined.' blockquote — no compensating figure note: '[ INHERITS FROM { interface-name-2 } … ]'",
+      "why_it_matters": "Underlining is how the standard's meta-language distinguishes required words from optional words. With it dropped and no figure note, the markdown gives no way to tell that FROM in 'INHERITS FROM' is an optional word (so 'INHERITS interface-name-2' is legal) while INHERITS itself is required. The immediately following figure on the same page does carry that note, so the omission is an oversight, not a transcription policy.",
+      "suggested_repair": "Add a figure-notes blockquote after the interface-definition block, on the model of the method-definition one: INTERFACE-ID, AS, INHERITS, USING, END, INTERFACE and IDENTIFICATION/DIVISION are underlined (required); FROM is not underlined (optional word)."
+    },
+    {
+      "page": 285,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "Clause 10 is 'Structured compilation group' with same-level subclauses 10.1 General, 10.2 Compilation units, 10.3 Source units, 10.4 Contained source units, 10.5 Source elements and runtime elements, 10.6 COBOL compilation group, 10.7 End markers — all printed at the identical heading weight/indent, with 10.6.1/10.6.2/10.6.3 and 10.7.1-10.7.4 one level below.",
+      "markdown_says": "The transcription splits the level: '## 10 Structured compilation group' (line 12330), '### 10.1 General' (12333), '### 10.2 Compilation units' (12338), '### 10.3 Source units' (12356), then '## 10.4 Contained source units' (12395), '## 10.5 Source elements and runtime elements' (12408), '## 10.6 COBOL compilation group' (12439), '### 10.6.1 General format' (12442), '## 10.6.2  Syntax rules' (12641), '## 10.6.3 General rule' (12675), '## 10.7 End markers' (12689) with '### 10.7.1 General' (12692).",
+      "why_it_matters": "10.4, 10.5, 10.6 and 10.7 are rendered at the same markdown level as clause 10 itself, so in any generated outline they become siblings of the clause rather than its subclauses; 10.6.2 and 10.6.3 are rendered ABOVE their own sibling 10.6.1 in the hierarchy (## vs ###), which detaches them from 10.6. Section navigation and any TOC built from the markdown misrepresent the standard's clause tree.",
+      "suggested_repair": "Normalize clause 10 to the scheme already used by 10.1-10.3 and 10.7.1: two-component numbers (10.4, 10.5, 10.6, 10.7) at '###', three-component numbers (10.6.1, 10.6.2, 10.6.3, 10.7.1-10.7.4) at '####'. Sweep the same fix through clause 9.3, which has the identical split (9.3.7, 9.3.8, 9.3.13, 9.3.14 at '##' beside 9.3.1-9.3.6 at '###'; 9.3.5.2, 9.3.5.3, 9.3.8.2 at '##' beside 9.3.5.1, 9.3.8.1 at '###')."
+    }
+  ]
+}

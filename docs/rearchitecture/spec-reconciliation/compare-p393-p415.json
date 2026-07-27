@@ -1,0 +1,43 @@
+{
+  "batch": [393, 395, 397, 399, 401, 403, 405, 407, 409, 411, 413, 415],
+  "pages_checked": [393, 395, 397, 399, 401, 403, 405, 407, 409, 411, 413, 415],
+  "figure_audit_note": "Every general-format figure on these pages was cropped and zoomed from the 300dpi render and checked glyph-by-glyph for (a) choice-indicator bars just inside a bracket/brace, (b) unbalanced delimiters, (c) ellipsis placement, (d) underlining. Figures audited: p393 data-description Format 1 (23 clause lines, 6 tall-bracket groups: IS EXTERNAL, GROUP-USAGE, JUSTIFIED/JUST, PROPERTY, SIGN, SYNCHRONIZED/SYNC); p399 screen-description Format 2 (LINE NUMBER, COLUMN/COL NUMBER, BLANK, ERASE 4-way, JUST/JUSTIFIED, SIGN, USAGE); p403 ANY LENGTH; p405 BACKGROUND-COLOR; p407 BELL; p409 BLANK WHEN ZERO; p411 BLOCK CONTAINS; p413 CODE. NO choice indicators are printed in any of these figures, all delimiters are balanced, no ellipses appear, and the markdown's own 'Figure notes' paragraphs (p399, p405, p411, p413) were verified against the printed glyphs and are accurate, including the underline inventories (e.g. p411: BLOCK/TO/RECORDS underlined, CONTAINS/CHARACTERS not). The markdown does not render underlining inside its figure code fences (it is preserved only in the inline <u>...</u> single-word formats on p407/p409); that is a document-wide transcription convention, compensated for by the Figure notes paragraphs, and is not reported per-page.",
+  "findings": [
+    {
+      "page": 399,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "[last line of page 399] \"where entry-name-clause is described in 13.18.20, Entry-name clause\"   [first line of page 400, above the screen-attribute-clauses figure] \"where screen-attribute-clauses is:\"",
+      "markdown_says": "specs/ISO_COBOL.md line 17157, inside the Page 399 slice: \"where entry-name-clause is described in 13.18.20, Entry-name clause where screen-attribute-clauses is:\"",
+      "why_it_matters": "Two independent lead-in sentences from two different printed pages are concatenated into one run-on line, and the page-400 sentence is filed under the '## Page 399' heading. The result reads as a single cross-reference ('...Entry-name clause where screen-attribute-clauses is:'), which mis-states what 13.18.20 covers, orphans the screen-attribute-clauses figure on page 400 from its introducing sentence, and breaks page attribution for anyone following a page cross-reference.",
+      "suggested_repair": "Split line 17157 into two paragraphs: leave \"where entry-name-clause is described in 13.18.20, Entry-name clause\" as the last line of the Page 399 slice, and move \"where screen-attribute-clauses is:\" below the '<a id=\"page-400\"></a>' / '## Page 400' scaffolding, immediately before the screen-attribute-clauses code fence (currently at lines 17164-17181)."
+    },
+    {
+      "page": 415,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "The paragraph \"Alphabet-name-1 is used for code-set conversion of each data item described with usage display in the selected record description entry. ...\" and the following \"NOTE    There is no conversion of data items described with other usages unless a FORMAT clause applies.\" are printed indented to the body margin of numbered General rule 4) (which begins on page 414), i.e. they are continuation paragraphs of rule 4); numbered rule \"5) If a FORMAT clause is also specified for the file, ...\" resumes at the outer margin.",
+      "markdown_says": "specs/ISO_COBOL.md Page 415 slice, lines 6 and 8: \"Alphabet-name-1 is used for code-set conversion of each data item described with usage display in the selected record description entry. ...\" and \"NOTE    There is no conversion of data items described with other usages unless a FORMAT clause applies.\" are both flush at column 0, the same level as the numbered rules themselves. Likewise the two em-dash bullets belonging to rule 5) (\"— formatting first, then code-set conversion during output operations;\" / \"— code-set conversion first, then formatting during input operations.\") are at column 0, while a)/b) under rule 6) on the same page ARE indented three spaces.",
+      "why_it_matters": "Losing the indentation detaches two normative continuation paragraphs and a NOTE from CODE-SET General rule 4), so a reader cannot tell whether 'Alphabet-name-1 is used for code-set conversion...' is part of rule 4 or a free-standing rule; the same flattening makes rule 5)'s two-item bullet list render as sibling paragraphs of the numbered rules. The inconsistency is internal to the page (rule 6)'s sub-items are indented, rule 5)'s are not).",
+      "suggested_repair": "Indent the 'Alphabet-name-1 ...' paragraph, the NOTE, and the two em-dash bullets by three spaces so they nest under rules 4) and 5) respectively, matching the a)/b) treatment already used for rule 6) on the same page."
+    },
+    {
+      "page": 397,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Syntax rule \"24) Format 3 or 4 is used for each condition-name. ... A condition-name may be associated with any data description entry that contains a level-number except the following:\" is followed by eight sub-items printed indented under it: \"a)   Another level 88 entry.\" ... \"h)   A variable-length group.\"",
+      "markdown_says": "specs/ISO_COBOL.md Page 397 slice, lines 16-30: \"a) Another level 88 entry.\" through \"h) A variable-length group.\" are all flush at column 0, the same indentation level as \"24) Format 3 or 4 is used for each condition-name. ...\"",
+      "why_it_matters": "The eight-item exception list renders as eight sibling paragraphs rather than as sub-items of syntax rule 24), so the list is detached from the rule that scopes it. The same document indents equivalent sub-lists three spaces (e.g. page 395 rule 9) a)-c), page 411 rule 1) a)-c), page 415 rule 6) a)-b)), so this is a local transcription lapse, not the document convention.",
+      "suggested_repair": "Indent items a) through h) by three spaces so they nest under syntax rule 24)."
+    },
+    {
+      "page": 401,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Syntax rule \"7) For an elementary screen item, the associated screen description entry shall include at least one of the following:\" is followed by six indented em-dash items (\"— a PICTURE clause and a FROM, TO, or USING clause;\" ... \"— a BELL clause.\"); syntax rule \"10) The PICTURE clause may be omitted ... A PICTURE clause is implied as follows:\" is followed by indented \"a)   if the literal is alphanumeric, 'PICTURE X(length)',\", \"b) ...\", \"c) ...\" and the indented closing line \"where length is the length of the literal as specified in 8.3.3, Literals.\"",
+      "markdown_says": "specs/ISO_COBOL.md Page 401 slice, lines 20-25 (the six em-dash items) and lines 33-39 (a), b), c) and \"where length is the length of the literal as specified in 8.3.3, Literals.\") are all flush at column 0, level with the numbered rules.",
+      "why_it_matters": "Both sub-lists and the trailing 'where length is ...' qualifier become siblings of the numbered syntax rules instead of children of rules 7) and 10). The identical PICTURE-implication list on page 395 (rule 9) a)-c) plus the same 'where length ...' line) IS indented three spaces in this same markdown, so page 401 contradicts the convention used two pages earlier for the same content.",
+      "suggested_repair": "Indent the six em-dash items under rule 7), and a)/b)/c) plus the 'where length is the length of the literal as specified in 8.3.3, Literals.' line under rule 10), by three spaces - matching the page 395 treatment."
+    }
+  ]
+}

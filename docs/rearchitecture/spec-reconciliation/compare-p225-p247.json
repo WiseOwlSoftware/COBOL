@@ -1,0 +1,68 @@
+{
+  "batch": [225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247],
+  "pages_checked": [225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247],
+  "findings": [
+    {
+      "page": 231,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "8.8.4.10.2 General format --- the figure prints 'NOT condition-1' with NOT UNDERLINED (verified by cropping the 300 dpi render at x=320..720, y=620..700: a clear rule sits under N-O-T and stops before 'condition-1').",
+      "markdown_says": "specs/ISO_COBOL.md:10048 --- 'NOT condition-1' (plain text; no <u> markup, no other required-word marker).",
+      "why_it_matters": "Underlining is the standard's marker for a REQUIRED word (5.2.6). The transcription already has a convention for it and uses it correctly two figures earlier on page 229 ('data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>'), so the marker was silently dropped here rather than deliberately omitted. A reader or generator that treats unmarked figure words as optional/user-supplied would mis-classify the negated-condition keyword.",
+      "suggested_repair": "Change specs/ISO_COBOL.md:10048 to '<u>NOT</u> condition-1' to match the p229 convention."
+    },
+    {
+      "page": 233,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'8.8.4.12.2 General format', '8.8.4.12.3 Syntax rules' and '8.8.4.12.4 General rule' are printed as fifth-level subclauses of '8.8.4.12 Abbreviated combined relation conditions'.",
+      "markdown_says": "specs/ISO_COBOL.md:10128 '## 8.8.4.12.2 General format', :10142 '## 8.8.4.12.3 Syntax rules', :10149 '## 8.8.4.12.4 General rule' --- while their parent is :10106 '### 8.8.4.12 Abbreviated combined relation conditions' and their own sibling is :10109 '#### 8.8.4.12.1 General'.",
+      "why_it_matters": "The children are rendered at a SHALLOWER markdown level than their parent, so in any outline/TOC view 8.8.4.12.2-.4 detach from 8.8.4.12 and sit as peers of the top-level clause heading '## 8 Language fundamentals' (:4970). Section-anchor navigation and any tooling that walks heading depth to attribute a rule to its clause will mis-parent these rules. The same inversion appears elsewhere in this batch: p225 '## 8.8.4.4.4 General rules' (:9773) and p229 '## 8.8.4.8 Simple omitted argument condition' (:9974) with '### 8.8.4.8.1/.2/.3' beneath it, while the parallel sections 8.8.4.5/8.8.4.6 use '###'/'####'. It is a document-wide transcription artifact, not a one-off.",
+      "suggested_repair": "Normalize heading depth to the numbering depth: clause N = '##', N.n = '###', N.n.n and deeper = '####'. Demote 8.8.4.12.2/.3/.4 (and 8.8.4.4.4, 8.8.4.8, 8.8.4.8.1-.3) accordingly; a mechanical sweep over the whole file is warranted since the defect is systemic."
+    },
+    {
+      "page": 235,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "8.9 Reserved words --- page 235 column 3 ends with 'END-PERFORM' as its last entry. 'END-RECEIVE', 'END-READ', 'END-RETURN', 'END-REWRITE', 'END-SEARCH' are the first five entries of column 1 on the NEXT page (PDF p236, printed page 206), each on its own line (verified by rendering p236).",
+      "markdown_says": "specs/ISO_COBOL.md:10325 --- 'END-PERFORM END-RECEIVE END-READ END-RETURN END-REWRITE END-SEARCH' (six reserved words on a single line, immediately before the <a id=\"page-236\"></a> anchor). Every other entry in 8.9 is one word per line.",
+      "why_it_matters": "Clause 8.9 is a machine-readable list and this project consumes it directly to build the reserved-word table. Five of the six words on this line are no longer separate list entries, so any line-oriented extraction of 8.9 drops END-RECEIVE, END-READ, END-RETURN, END-REWRITE and END-SEARCH, and additionally mis-attributes them to page 235 instead of page 236.",
+      "suggested_repair": "Split specs/ISO_COBOL.md:10325 into six lines; leave 'END-PERFORM' on the page-235 side and move END-RECEIVE / END-READ / END-RETURN / END-REWRITE / END-SEARCH below the <a id=\"page-236\"></a> anchor, one per line, ahead of the existing 'END-SEND'."
+    },
+    {
+      "page": 237,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "8.9 Reserved words --- page 237 column 1 begins 'OBJECT / OBJECT-COMPUTER / OBJECT-REFERENCE / OCCURS / OF / OFF / OMITTED / ...' and column 3 ends with 'SYSTEM-DEFAULT'. 'TABLE', 'TALLYING', 'TERMINATE', 'TEST', 'THAN' are printed on the following page.",
+      "markdown_says": "The page-237 slice starts at 'OFF' (specs/ISO_COBOL.md:10469). The five words actually printed above it on page 237 are jammed onto the last line of the page-236 block: :10466 'NUMERIC-EDITED OBJECT OBJECT-COMPUTER OBJECT-REFERENCE OCCURS OF'. Symmetrically the slice ends at :10584 'SYSTEM-DEFAULT TABLE TALLYING TERMINATE TEST THAN'.",
+      "why_it_matters": "Same collapsed-line defect as page 235, occurring at both boundaries of this page. OBJECT, OBJECT-COMPUTER, OBJECT-REFERENCE, OCCURS, OF and TABLE, TALLYING, TERMINATE, TEST, THAN stop being individually addressable entries of the reserved-word list, and page attribution is off by one page in both directions.",
+      "suggested_repair": "Split specs/ISO_COBOL.md:10466 and :10584 into one word per line, and move the words that belong to the following page below the corresponding <a id=\"page-NNN\"></a> anchor."
+    },
+    {
+      "page": 243,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "8.11 Intrinsic function names --- page 243 column 2 ends with 'SUM' as its last entry. 'TAN', 'TEST-DATE-YYYYMMDD', 'TEST-DAY-YYYYDDD', 'TEST-FORMATTED-DATETIME', 'TEST-NUMVAL' are printed on the following page.",
+      "markdown_says": "specs/ISO_COBOL.md:10886 --- 'SUM TAN TEST-DATE-YYYYMMDD TEST-DAY-YYYYDDD TEST-FORMATTED-DATETIME TEST-NUMVAL' (six function names on a single line). Every other entry in 8.11 is one name per line.",
+      "why_it_matters": "Clause 8.11 is the authoritative list of intrinsic function names. Collapsing six names onto one line removes five of them from any line-oriented extraction of the list and mis-attributes them to page 243.",
+      "suggested_repair": "Split specs/ISO_COBOL.md:10886 into six lines; keep 'SUM' on the page-243 side and move TAN / TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD / TEST-FORMATTED-DATETIME / TEST-NUMVAL below the <a id=\"page-244\"></a> anchor."
+    }
+  ],
+  "notes": {
+    "figures_verified_clean": [
+      "p227 8.8.4.5.2 and 8.8.4.6.2 general formats ('condition-name-1') --- no delimiters in the printed figure, nothing to lose.",
+      "p229 8.8.4.8.2 general format --- PDF prints 'data-name-1 IS [ NOT ] OMITTED' with NOT and OMITTED underlined and IS not underlined; markdown reproduces this exactly. Plain brackets, no choice-indicator bars in the print (confirmed at 300 dpi crop).",
+      "p231 8.8.4.11.2 general format --- outer and inner delimiters are BRACES in the print, all four operators underlined, ellipsis outside the outer closing brace. No choice-indicator bars present (confirmed at 300 dpi crop). Markdown ASCII art and its Figure-notes paragraph both agree with the print.",
+      "p233 8.8.4.12.2 general format --- confirmed at 600 dpi that the NOT / simple-relational-operator / extended-relational-operator group is a plain BRACE with NO vertical choice-indicator bars just inside it, and that both inner groups and the outer group open and close. Markdown ASCII art is balanced and its Figure-notes paragraph does not overclaim."
+    ],
+    "list_pages_verified_entry_by_entry": [
+      "p235 8.9 reserved words: all three printed columns match the flattened markdown list entry for entry, including the standard's own out-of-order 'BY' between B-SHIFT-RC and B-XOR, and the column-break blank lines. Only the page-boundary merged line (finding above) is defective.",
+      "p237 8.9 reserved words: all three columns match, including the standard's own out-of-order 'SELECT / SEND / SELF'.",
+      "p239 and p241 8.10 context-sensitive words: every row of the two-column table matches, headings included.",
+      "p243 8.11 intrinsic function names: both columns match. Only the page-boundary merged line (finding above) is defective.",
+      "p245 8.12 compiler-directive words: all 41 rows of the three-column layout match cell for cell, including the blank spacer cells, the hyphenated continuations 'COMPILE-TIME- / ARITHMETIC-EXPRESSIONS' and 'EXTERNAL-FILE-FILE- / STATUS', and the trailing operator/punctuation entries + - * / <= >= < > <> = ( ).",
+      "p247 clause 9 opening prose: matches in full."
+    ],
+    "no_choice_indicator_loss_found": "No dropped choice-indicator bars (5.2.6.4) were found on any figure in this batch: every bracket/brace printed on these pages is a plain delimiter in the PDF itself, verified by high-magnification crops rather than by the OCR text layer."
+  }
+}

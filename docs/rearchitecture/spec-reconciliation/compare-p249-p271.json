@@ -1,0 +1,25 @@
+{
+  "batch": [249, 251, 253, 255, 257, 259, 261, 263, 265, 267, 269, 271],
+  "pages_checked": [249, 251, 253, 255, 257, 259, 261, 263, 265, 267, 269, 271],
+  "batch_note": "This batch was selected as containing FIGURES (general formats / syntax skeletons). It does not. All twelve PDF pages (printed pages 219-241, sections 9.1.5-9.3.5.3) are running prose, enumerated lists and one plain two-column color/number list. scripts/spec/page_workunit.py independently reported '0 with figure content' for all twelve. Cross-checks of the neighbouring pages 256, 266 and 279 (to test a printed-vs-PDF page offset of 30) also show no figures. There were therefore no choice-indicator bars, brackets, ellipses or underlined required words to verify on this batch; the sweep was run as a prose/structure reconciliation instead. The figure pages for this run must be re-derived before the diagram-fidelity objective can be met.",
+  "findings": [
+    {
+      "page": 255,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "1) I-O status = 10. A sequential READ statement is attempted and no next or prior logical record exists in the physical file because:  [p255] a)  NEXT was specified or implied and the end of the physical file has been reached, or  [p256] b)  PREVIOUS was specified and the beginning of the physical file has been reached, or  [p256] c)  a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.",
+      "markdown_says": "a) NEXT was specified or implied and the end of the physical file has been reached, or b) PREVIOUS was specified and the beginning of the physical file has been reached, or c) a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.",
+      "why_it_matters": "Section 9.1.13.4 rule 1) has three parallel alternative sub-items a), b) and c) in the PDF, each its own list item (a) at the foot of printed page 225, b) and c) at the head of printed page 226). The markdown (specs/ISO_COBOL.md line 11336) collapses all three into a single run-on paragraph placed entirely before the <a id=\"page-256\"></a> anchor. The list structure that marks them as three independent 'or' alternatives is destroyed, b) and c) are attributed to the wrong page, and any tooling that enumerates sub-items of a rule (traceability inventory, per-rule citations) sees one item where the standard has three. Content is present, so nothing normative is lost - only the structure and the page attribution.",
+      "suggested_repair": "Split line 11336 of specs/ISO_COBOL.md into three list items matching the PDF: keep 'a) NEXT was specified or implied and the end of the physical file has been reached, or' before the page-256 anchor, and move 'b) PREVIOUS was specified and the beginning of the physical file has been reached, or' and 'c) a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.' to after the <a id=\"page-256\"></a> / '## Page 256' scaffolding, each as its own item indented three spaces to match the sibling convention used on pages 257 and 259."
+    },
+    {
+      "page": 251,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "9.1.9   Reel and unit   (printed page 221, set in the same bold heading style and at the same left margin as the three-component headings 9.1.5, 9.1.6, 9.1.7 on printed page 219, i.e. a sibling of 9.1.8 Access modes - not a child of it)",
+      "markdown_says": "<a id=\"section-9-1-9\"></a>\n### 9.1.9 Reel and unit",
+      "why_it_matters": "The transcription's convention in this chapter renders three-component 9.1.x sections at '##' (9.1.3, 9.1.4, 9.1.5, 9.1.6, 9.1.7, 9.1.8, 9.1.10, 9.1.11, 9.1.12, 9.1.13 are all '##') and four-component 9.1.x.y sections at '###'. 9.1.9 Reel and unit is transcribed at '###', the same depth as its immediate predecessors 9.1.8.2/9.1.8.3/9.1.8.4, so every outline/TOC consumer nests 9.1.9 inside 9.1.8 Access modes. Reel and unit is not part of access modes. Note this heading-level scheme is inconsistent elsewhere in the same chapter too (9.1 is '###' with 9.1.1/9.1.2 at '####', and 9.1.13.8 is '##' among '###' siblings), so the repair should be a level sweep of chapter 9.1 rather than a one-line edit.",
+      "suggested_repair": "Change '### 9.1.9 Reel and unit' to '## 9.1.9 Reel and unit' (specs/ISO_COBOL.md line 11180), and while there sweep chapter 9.1 for the other level inversions: 9.1.13.8 (line 11457) is '##' among '###' four-component siblings, and 9.1.18.5/9.1.18.6/9.1.18.7 (lines 11633/11638/11643) are '##' among '###' siblings 9.1.18.1-9.1.18.4."
+    }
+  ]
+}

@@ -11,6 +11,12 @@ export const meta = {
 // args may arrive as a real array OR as a JSON-encoded string depending on how the caller passed it. A string
 // silently "works" for .length and .slice — slicing the TEXT into substrings — so the failure surfaces late as
 // "batch.join is not a function" after the page count reads as the string length. Normalise up front.
+// ALWAYS pass a COMPUTED page list, never a typed one. A hand-transcribed list cost a whole 4.3M-token sweep:
+// the args were typed as a plausible-looking regular sequence (155, 157, ... 441) instead of the computed figure
+// pages, so only 64 of 173 target pages were covered while 105 non-target pages were swept — and the run still
+// reported "169 pages swept" as though it were the intended set. Scripts have no filesystem access, so the list
+// cannot be read here; the guard is instead `merge_reconciliation.py --expect N`, which compares the pages
+// actually swept against the intended file and FAILS LOUD on a gap. That check is what caught this.
 function toPages(a) {
   if (Array.isArray(a)) return a.map(Number).filter(n => Number.isInteger(n) && n > 0)
   if (typeof a === 'string') {
@@ -26,6 +32,8 @@ const batches = []
 for (let i = 0; i < PAGES.length; i += BATCH) batches.push(PAGES.slice(i, i + BATCH))
 
 log(`Reconciling ${PAGES.length} pages in ${batches.length} batches of up to ${BATCH}`)
+// Echo the actual boundaries so a mis-transcribed list is visible AT LAUNCH, not after the tokens are spent.
+log(`first=${PAGES[0]} last=${PAGES[PAGES.length - 1]} distinct=${new Set(PAGES).size}`)
 
 const FINDINGS = {
   type: 'object',
