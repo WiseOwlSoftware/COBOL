@@ -294,6 +294,39 @@ def main() -> int:
         else:
             flush_a1()
 
+    # ---- integrity critic: the transcription must contain the STANDARD, not a description of it -------------
+    # Page 28 was found to hold an AI-generated SUMMARY of the Introduction plus a refusal message ("I can quote
+    # specific short passages ... but I'm not able to reproduce the full page verbatim"), presented as spec
+    # content. That is categorically worse than OCR loss: the text is not the standard at all, so any rule or
+    # citation derived from it is unfounded, and it destroyed the sentence naming which annexes are NORMATIVE.
+    # A whole-file sweep found this on exactly one page — this check exists so it stays that way.
+    META = [
+        (re.compile(r"\bI'?m not able to\b|\bI can quote\b|\bI'?m happy to help\b", re.I), "assistant refusal/offer"),
+        (re.compile(r"here is a summary|summary and key excerpts|here are the key", re.I), "summary preamble"),
+        (re.compile(r"\bcopyrighted standards document\b|\breproduce the full page\b", re.I), "copyright refusal"),
+    ]
+    meta_hits = []
+    pg = 0
+    for i, line in enumerate(lines):
+        if m := re.match(r'^<a id="page-(\d+)"></a>', line):
+            pg = int(m.group(1))
+            continue
+        for pat, label in META:
+            if pat.search(line):
+                meta_hits.append((pg, i + 1, label, line.strip()[:100]))
+                break
+    if meta_hits:
+        # LOUD in a normal run, FATAL under --check. Deliberate split: the catalog must stay regenerable while
+        # the reconciliation ledger is still being collected (repairs come after the sweep), but the GATE must
+        # refuse to call the transcription sound while any page of it is not the standard.
+        print(f"\n⚠ {len(meta_hits)} line(s) of TRANSCRIPTION-TOOL META-TEXT inside the standard, "
+              f"page(s) {sorted({h[0] for h in meta_hits})}.")
+        print("  These are NOT the spec — a rule or citation derived from such a page is unfounded:")
+        for pg_, ln, label, txt in meta_hits[:15]:
+            print(f"      p{pg_} line {ln} [{label}] {txt}")
+        if args.check:
+            sys.exit(1)
+
     # ---- completeness critic: the spec's own TOC ------------------------------------------------------------
     # The empty-block check has a BLIND SPOT — it can only verify blocks it RECOGNISED. A block whose heading was
     # never matched (an unhandled title form, or a heading a page break demoted to bold text and stripped of its

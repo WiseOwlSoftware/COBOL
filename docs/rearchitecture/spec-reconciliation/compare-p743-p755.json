@@ -1,0 +1,24 @@
+{
+  "batch": [743, 744, 745, 746, 747, 748, 749, 751, 752, 753, 754, 755],
+  "pages_checked": [743, 744, 745, 746, 747, 748, 749, 751, 752, 753, 754, 755],
+  "findings": [
+    {
+      "page": 751,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.37.3   Syntax rules  — printed in exactly the same bold heading style/size as its siblings 14.9.37.1 General and 14.9.37.2 General formats (p.720), i.e. a fourth-level subsection of 14.9.37 SEARCH statement.",
+      "markdown_says": "specs/ISO_COBOL.md line 30473: \"## 14.9.37.3 Syntax rules\" — H2, whereas line 30407 \"### 14.9.37.1 General\" and line 30412 \"### 14.9.37.2 General formats\" are H3 and line 30404 \"## 14.9.37 SEARCH statement\" is itself H2.",
+      "why_it_matters": "The Syntax rules subsection is promoted out of 14.9.37 and becomes a sibling of the SEARCH statement itself. Any outline/TOC/anchor-walking tool (and any human reading the nesting) sees the SEARCH syntax rules as a top-level clause rather than part of SEARCH, and the 14.9.37 section appears to end after its General formats. The same pages' sibling statement 14.9.36 (ROLLBACK, p.748) is transcribed correctly with all four subsections at H3, so this is an inconsistency internal to the transcription, not a rendering of the PDF.",
+      "suggested_repair": "Change line 30473 from \"## 14.9.37.3 Syntax rules\" to \"### 14.9.37.3 Syntax rules\". NOTE: this is a pattern, not a one-off — the same promotion occurs at line 30519 (14.9.37.4), 30682 (14.9.38.4), 30946 (14.9.39.3) and 31157 (14.9.39.4). Sweep every `^## \\d+\\.\\d+\\.\\d+\\.\\d+` heading in the file."
+    },
+    {
+      "page": 752,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.37.4   General rules  — printed in the same bold heading style as 14.9.37.1/.2/.3, i.e. a fourth-level subsection of 14.9.37 SEARCH statement.",
+      "markdown_says": "specs/ISO_COBOL.md line 30519: \"## 14.9.37.4 General rules\" — H2, the same level as \"## 14.9.37 SEARCH statement\" (line 30404), while sibling subsections 14.9.37.1 and 14.9.37.2 are H3.",
+      "why_it_matters": "Same defect as 14.9.37.3: the General rules for SEARCH — the longest and most heavily cited part of the clause (GR 1 through GR 9, pp.722-725) — are detached from 14.9.37 in the document outline and read as an independent top-level section. Cross-references of the form \"14.9.37.4, General rules\" resolve to a node that is not nested under SEARCH.",
+      "suggested_repair": "Change line 30519 from \"## 14.9.37.4 General rules\" to \"### 14.9.37.4 General rules\", as part of the same sweep of all `^## \\d+\\.\\d+\\.\\d+\\.\\d+` headings noted for page 751."
+    }
+  ]
+}

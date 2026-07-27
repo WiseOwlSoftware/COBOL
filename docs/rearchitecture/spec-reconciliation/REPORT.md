@@ -3,9 +3,90 @@
 > Merged from the per-agent files in this directory by `scripts/spec/merge_reconciliation.py`.
 > Each agent writes its own file before returning, so an interrupted run loses nothing.
 
-**278 pages swept · 61 confirmed · 27 refuted · 0 unverified**
+**606 pages swept · 101 confirmed · 57 refuted · 0 unverified**
 
 ## Confirmed — repair these
+
+### p28 · missing-text · **normative**
+
+- **PDF:** Introduction
+
+COBOL began as a business programming language, but its present use has spread well beyond that to a general purpose programming language.
+
+Any organization interested in reproducing the COBOL standard and specifications in whole or in part, using ideas from this document as the basis for an instruction manual or for any other purpose, is free to do so. However, all such organizations are requested to reproduce the following acknowledgment paragraphs in their entirety as part of the preface to any such publication (any organization using a short passage from this document, such as in a book review, is requested to mention "COBOL" in acknowledgment of the source, but need not quote the acknowledgment):
+
+COBOL is an industry language and is not the property of any company or group of companies, or of any organization or group of organizations.
+
+No warranty, expressed or implied, is made by any contributor or by the CODASYL COBOL Committee as to the accuracy and functioning of the programming system and language. Moreover, no responsibility is assumed by any contributor, or by the committee, in connection therewith.
+
+The authors and copyright holders of the copyrighted materials used herein:
+
+— FLOW-MATIC(TM)1;
+
+— IBM(R)2 Commercial Translator Form No F 28-8013, copyrighted 1959 by IBM;
+
+— FACT(C), DSI 27A5260-2760, copyrighted 1960 by Minneapolis-Honeywell
+
+have specifically authorized the use of this material in whole or in part, in the COBOL specifications. Such authorization extends to the reproduction and use of COBOL specifications in programming manuals or similar publications.
+
+For more details and additional changes, see E.2, Substantive changes potentially affecting existing programs and E.3, Substantive changes probably not affecting existing programs.
+
+Further development of the COBOL language is a continuing process to provide facilities to satisfy user demand for the improved usability of the language and the adoption of relevant advances in techniques developed in the computer industry as a whole, including the desirability of interoperability with a wide variety of operating systems and other programming languages to enable developers to take advantage of their facilities, including pre-existing task solutions that then don't need to be repeated.
+
+Annexes A, Language element lists B, Characters permitted in user-defined words, and C, Mapping of uppercase letters to lowercase letters in the COBOL character repertoire form a normative part of this document. Annexes D through G are for information only.
+
+[footnote] 1. FLOW-MATIC(TM) is the trademark of a product supplied by Sperry Rand Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.
+[footnote] 2. IBM is the trademark of International Business Machines Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.
+- **Markdown:** **Introduction**
+
+The introduction explains that COBOL began as a business programming language but has grown into a general purpose programming language.
+
+It includes reproduction permissions, acknowledgment requirements, and notes that:
+
+- COBOL is an industry language, not the property of any company or organization.
+- No warranty is made by any contributor or the CODASYL COBOL Committee.
+
+Three copyrighted materials are acknowledged:
+- FLOW-MATIC™
+- IBM® Commercial Translator Form No F 28-8013 (1959)
+- FACT©, DSI 27A5260-2760 (1960, Minneapolis-Honeywell)
+
+The page notes that further COBOL development aims to improve usability and interoperability with operating systems and other languages.
+
+It also notes which Annexes are normative (A, B, C) versus informational (D through G).
+- **Why:** The ENTIRE Introduction page is replaced by a third-person paraphrase; not one sentence of the standard's own text survives. Two conformance-relevant statements are destroyed: the sentence naming which annexes are normative ("Annexes A, Language element lists B, Characters permitted in user-defined words, and C, Mapping of uppercase letters to lowercase letters in the COBOL character repertoire form a normative part of this document. Annexes D through G are for information only.") — which is exactly what a compiler author must consult to know whether Annex A/B/C bind implementations — and the cross-reference "see E.2 ... and E.3 ..." that routes readers to the substantive-changes lists used for version-matrix work. The trademark footnotes, the reproduction-permission paragraph and the authorization paragraph are also gone. Additionally the page heading is demoted: the PDF prints "Introduction" as a top-level heading in the same style as "Foreword" (which page 26 correctly transcribes as `## Foreword`), but page 28 emits it only as bold `**Introduction**`, so Clause-0 front matter is unnavigable and absent from any generated TOC. This is not an OCR slip — it is a wholesale substitution and the only such page found in this batch.
+- **Repair:** Re-transcribe page 28 verbatim from the render at E:/Temp/specrecon/f2/spec_p28.png, restoring every paragraph, the three em-dash acknowledgment bullets with their superscript footnote markers, both numbered footnotes, and promoting `**Introduction**` to `## Introduction` to match the `## Foreword` treatment on page 26.
+- **Verifier:** Real, with two corrections that make the finding more severe than filed, plus one clarification.
+
+MORE SEVERE (a) — the loss is document-wide, not page-local. "form a normative part", "for information only", "Sperry Rand" and "International Business Machines" each return zero matches across all 53,201 lines of specs/ISO_COBOL.md. The sentence establishing that Annexes A, B and C are normative and D through G informative is recoverable from no other page of the transcription. The line-1277 paraphrase carries the fact but not the text, so it cannot serve as a citable source under the project's spec-citation rule.
+
+MORE SEVERE (b) — the root cause is a transcription-pipeline REFUSAL that leaked assistant-voice text into the canonical spec file, and the artifact still contains it. Line 1255 opens the page with a meta-preamble, "Here is a summary and key excerpts from this page of ISO/IEC 1989:2023(E):", and line 1281 closes it with a first-person refusal: "I can quote specific short passages if needed, but I'm not able to reproduce the full page verbatim as a complete copyrighted standards document. I'm happy to help you find specific information from this page." This is a second, distinct defect class layered on top of the missing text — non-spec first-person prose embedded inside the canonical spec markdown, which any retrieval or citation tooling will surface as if it were standard text. A sweep for other refusal/preamble markers across the whole file is warranted independently of this page.
+
+CLARIFICATION — "not one sentence of the standard's own text survives" holds for prose sentences; the three acknowledgment list items do survive as partially verbatim but reworded fragments (dates parenthesized, "copyrighted ... by IBM" dropped). Everything else in the claim, including the exact PDF quotations, the E.2/E.3 loss, the footnote loss, and the `## Foreword` versus `**Introduction**` heading demotion, is confirmed as filed. Remediation is a full verbatim re-transcription of page 28 from the render, with the heading restored to `## Introduction`, both footnotes reinstated, and lines 1255 and 1281 deleted.
+
+### p88 · incorrect-figure · **normative**
+
+- **PDF:** 7.3.8.4.2 General format
+
+compilation-variable-name-1 IS [ NOT ] DEFINED
+
+(printed with NOT and DEFINED UNDERLINED; IS is printed WITHOUT an underline; compilation-variable-name-1 is lowercase generic term)
+- **Markdown:** #### 7.3.8.4.2 General format
+
+compilation-variable-name-1 IS [ NOT ] DEFINED
+
+(plain text; no underline markup, and no "Figure notes" blockquote recording which words are underlined -- unlike every other general format in the same clause range, e.g. 7.3.4 CALL-CONVENTION, 7.3.24 SOURCE FORMAT, 7.3.10 DEFINE, which all carry a Figure notes block naming the underlined words)
+- **Why:** Per 8.3.1.1.2 / 5.2.6 notation, uppercase words that are UNDERLINED are keywords (required) and uppercase words that are NOT underlined are optional words that may be written or omitted with no effect on semantics (ISO_COBOL.md line 5805: 'Within each format, uppercase words that are not underlined are called optional words and may be specified at the user's option with no effect on the semantics of the format.'). In this figure IS is NOT underlined, so 'compilation-variable-name-1 DEFINED' and 'compilation-variable-name-1 NOT DEFINED' are legal defined conditions with IS omitted. The flattened markdown makes IS look mandatory -- the exact falsely-restrictive-syntax failure mode this sweep targets. It also loses that NOT and DEFINED are required. This is the only general format on pages 75-88 that carries underlining, and it is the only one with no Figure notes block.
+- **Repair:** Add a Figure notes blockquote after the format line, in the same style used at ISO_COBOL.md lines 3920 / 4871: '> **Figure notes (defined condition general format).** `NOT` and `DEFINED` are underlined in the printed standard (required words). `IS` is **not** underlined -- it is an optional word and may be omitted. `compilation-variable-name-1` is a generic term. The brackets around `NOT` make it optional; there are no choice indicators in this figure.'
+- **Verifier:** REAL, normative -- but two supporting assertions in the claim are false and should not be repeated in the ledger.
+
+The genuine defect: specs/ISO_COBOL.md line 3878 transcribes the 7.3.8.4.2 (Defined condition) general format as undifferentiated plain text, 'compilation-variable-name-1 IS [ NOT ] DEFINED', discarding the printed underlining. In the PDF, NOT and DEFINED are underlined (required words) and IS is printed without an underline, making IS an optional word under 8.3.2.4.3 (ISO_COBOL.md line 5805). The markdown therefore loses the fact that 'compilation-variable-name-1 DEFINED' and 'compilation-variable-name-1 NOT DEFINED' are legal, and loses that NOT and DEFINED are the required keywords. Clause 7.3.8.4 carries no 'Figure notes' blockquote, so the distinction is recoverable nowhere in the markdown. The fix is a Figure notes block in the house style, e.g.: '> **Figure notes (defined condition general format).** `NOT` and `DEFINED` are underlined in the printed standard (required words). `IS` is **not** underlined -- it is an optional word and may be omitted. The brackets around `NOT` are not underlined and make the negation optional.' This exactly parallels the existing SOURCE FORMAT note at line 4871.
+
+Correction 1 -- 'the only general format on pages 75-88 that carries any underlining' is FALSE. Pages 75-88 contain the COPY statement general format (page 76, line 3394) and the REPLACE Format 1 syntax diagram (page 80, line 3535), both of which carry extensive underlining in the printed standard.
+
+Correction 2 -- 'the only one in this range with no Figure notes block' is FALSE. 7.3.2 General format on page 84 (line 3692) also has no Figure notes block, correctly so: it is the one-token format '>>compiler-instruction', with no underlining and no meta-language to record. Within pages 75-88 the accurate statement is that COPY (Figure notes at line 3407) and REPLACE (line 3545) both carry their notes, and 7.3.8.4.2 is the sole format in the range with printed underlining that has none.
+
+Neither correction weakens the finding; the surrounding-clause precedents the claim cites -- CALL-CONVENTION (line 3920), DEFINE (line 4028), SOURCE FORMAT (line 4871) -- all exist and all carry Figure notes as described.
 
 ### p102 · incorrect-figure · **normative**
 
@@ -83,6 +164,132 @@ Three corrections to the claim:
 
 Secondary, same figure: the printed outer delimiter in both formats is a single large pair of CURLY BRACES - a required choice, exactly one alternative selected (5.2.6) - with no '|' choice-indicator bars inside either figure. The markdown renders Format 1 as corner glyphs ('⌐ ¬' over 'L ┘') and Format 2 as a box-drawing rectangle ('┌─┐' over '└─┘'); neither conveys brace-versus-bracket, so the required-choice semantics is also not derivable. No choice indicator was lost, because none is printed.
 
+### p204 · incorrect-figure · **normative**
+
+- **PDF:** The 8.7.5.1 Format 2 (extended-relational-operator) figure is a BRACE enclosing 11 stacked alternatives, with required words underlined and optional words not underlined:
+IS GREATER THAN OR EQUAL TO   (GREATER, OR, EQUAL underlined; IS, THAN, TO not)
+IS >=
+IS NOT LESS THAN              (NOT, LESS underlined; IS, THAN not)
+IS NOT <                      (NOT underlined)
+IS LESS THAN OR EQUAL TO      (LESS, OR, EQUAL underlined; IS, THAN, TO not)
+IS <=
+IS NOT GREATER THAN           (NOT, GREATER underlined; IS, THAN not)
+IS NOT >                      (NOT underlined)
+IS NOT EQUAL TO               (NOT, EQUAL underlined; IS, TO not)
+IS NOT =                      (NOT underlined)
+IS <>
+- **Markdown:** ```
+┌────────────────────────────────┐
+│ IS GREATER THAN OR EQUAL TO     │
+│ IS >=                           │
+│ IS NOT LESS THAN                │
+│ IS NOT <                        │
+│ IS LESS THAN OR EQUAL TO        │
+│ IS <=                           │
+│ IS NOT GREATER THAN             │
+│ IS NOT >                        │
+│ IS NOT EQUAL TO                 │
+│ IS NOT =                        │
+│ IS <>                           │
+└────────────────────────────────┘
+```
+(no underlining preserved on any word; the brace is rendered as a plain box)
+- **Why:** Per 5.2.5 underlined words in a general format are REQUIRED words and non-underlined uppercase words are OPTIONAL. Dropping the underlining makes IS, THAN and TO look mandatory, so the falsely-restrictive reading rejects legal source such as 'IF A NOT GREATER B', 'IF A GREATER OR EQUAL B' and 'IF A NOT EQUAL B' - exactly the lossy-toward-restrictive failure mode this sweep targets. The transcription already has a convention for this (<u>...</u>, used in ~97 places, e.g. line 9691 '[ <u>NOT</u> ] boolean-expression-1'), so this figure is simply missing it. Secondarily, the PDF delimiter is a brace (choose exactly one, mandatory) and the box-drawing rectangle does not distinguish brace from bracket.
+- **Repair:** Re-render the figure preserving the required-word underlining, e.g.
+{ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS >= | IS <u>NOT</u> <u>LESS</u> THAN | IS <u>NOT</u> < | IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS <= | IS <u>NOT</u> <u>GREATER</u> THAN | IS <u>NOT</u> > | IS <u>NOT</u> <u>EQUAL</u> TO | IS <u>NOT</u> = | IS <> }
+and use an explicit brace delimiter rather than a box-drawing rectangle so the mandatory-choice semantics survive. The same treatment is needed for the Format 1 figure on page 203, which has the identical defect.
+- **Verifier:** CONFIRMED, with one citation correction. specs/ISO_COBOL.md lines 8850-8866 transcribe the 8.7.5.1 Format 2 (extended-relational-operator) general format as a plain box-drawing rectangle containing eleven unstyled uppercase lines. The printed page (PDF p.204 = printed p.174) shows the same eleven alternatives enclosed in a BRACE pair ('{' … '}', mid-height cusps visible on both sides), with per-word underlining on ten of the eleven rows: GREATER/OR/EQUAL; (none); NOT/LESS; NOT; LESS/OR/EQUAL; (none); NOT/GREATER; NOT; NOT/EQUAL; NOT; (none). IS, THAN and TO are never underlined. Per 5.2.2 (Keywords — underlined = required) and 5.2.3 (Optional words — not underlined = optional at the user's option), the transcription loses the required/optional distinction and reads as though IS, THAN and TO were mandatory, which would falsely reject legal source such as 'IF A NOT GREATER B', 'IF A GREATER OR EQUAL B', 'IF A LESS OR EQUAL B' and 'IF A NOT EQUAL B'. Per 5.2.6.3, the brace also encodes a mandatory choose-exactly-one, which the neutral rectangle does not convey. The claim's rationale miscited the convention as 5.2.5; 5.2.5 is 'Level numbers'. Fix: re-render the figure with the brace delimiter and <u>…</u> on the ten underlined-word rows, or add the standard '> **Figure notes (…)**' blockquote used by ~25 other figures in this file; the same defect affects the Format 1 figure transcribed at the end of page 203, which is additionally rendered with bracket-like characters instead of a brace.
+
+### p232 · incorrect-text · **normative**
+
+- **PDF:** Table 5 — Combinations of conditions, logical operators, and parentheses; row 'simple-condition', column 'In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only:' reads "EXCLUSIVE-OR or XOR, OR, NOT, AND, ("
+- **Markdown:** | simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |   (ISO_COBOL.md line 10097)
+- **Why:** The transcription drops NOT from the set of elements that may immediately precede a simple-condition. As transcribed, Table 5 says a simple-condition may never follow NOT, which makes every negated simple condition ('IF NOT A = B', 'IF X AND NOT Y') illegal, contradicts the same table's own NOT row (NOT may be immediately followed by 'simple-condition, (' ) and the Table 5 NOTE ('the pair NOT (' is permissible while the pair NOT NOT is not permissible'), and contradicts 8.8.4.10, Complex negated conditions. The loss is toward falsely-restrictive syntax: legal COBOL made to look illegal. A conformance-checker or grammar built from this row would reject NOT applied to a simple condition.
+- **Repair:** In specs/ISO_COBOL.md line 10097 restore NOT to the fourth column: change 'EXCLUSIVE-OR or XOR, OR, AND, (' to 'EXCLUSIVE-OR or XOR, OR, NOT, AND, (' so the row reads: | simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, NOT, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |
+- **Verifier:** Accurate as filed. Precise form: ISO_COBOL.md line 10097 (Table 5, section 8.8.4.11.3, PDF page 232 / printed folio 202), row 'simple-condition', column 'In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only:' should read 'EXCLUSIVE-OR or XOR, OR, NOT, AND, (' but transcribes 'EXCLUSIVE-OR or XOR, OR, AND, (' -- the token NOT is dropped. All four other cells in that row, and the NOT / '(' / ')' / connective rows, transcribe correctly (the '(' row on line 10100 retains NOT in the same column), so the fix is a single-token insertion of 'NOT, ' before 'AND, (' on line 10097. Impact: as transcribed the exhaustive ('only') predecessor set forbids NOT before a simple-condition, making every negated simple condition illegal, contradicting the same table's NOT row (line 10099) and NOTE (line 10103).
+
+### p288 · incorrect-figure · **normative**
+
+- **PDF:** CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]
+    [ INHERITS FROM { object-class-name-2 } ... ]
+    [ USING { parameter-name-1 }  ...  ] .
+
+-- with underlining on IDENTIFICATION, DIVISION, CLASS-ID, AS, FINAL, INHERITS, USING, END, CLASS, FACTORY, IMPLEMENTS, OBJECT. IS and FROM are printed WITHOUT underlining (verified by cropping/zooming the rendered page at 300 dpi).
+- **Markdown:** CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]
+　[ INHERITS FROM { object-class-name-2 } ... ]
+　[ USING { parameter-name-1 } ... ] .
+
+-- all words plain text; no <u> markers and no 'Figure notes' paragraph recording which words are underlined.
+- **Why:** Per the general-format conventions, an underlined reserved word is REQUIRED and a non-underlined reserved word is OPTIONAL and may be omitted. The PDF prints IS and FROM without underlining, so 'CLASS-ID. C-1 FINAL.' and 'INHERITS { object-class-name-2 } ...' are legal. With the underlining dropped, the markdown reads as though IS and FROM were mandatory -- the falsely-restrictive direction. The same loss applies to the factory-definition and instance-definition skeletons on this page.
+- **Repair:** Record the underlining for all three page-288 skeletons the way the transcription already does elsewhere: either <u>...</u> markers (as used at 11.4.2 on page 296, e.g. '<u>FACTORY</u>. [ <u>IMPLEMENTS</u> ...') or a '> **Figure notes ...** Underlined (required) words in the printed figure: ...' paragraph (as used for program-definition on page 287).
+- **Verifier:** CONFIRMED, with narrowed scope and an added sibling sweep.
+
+CONFIRMED CORE: On page 288 the printed class-definition skeleton underlines CLASS-ID, AS, FINAL, INHERITS, USING (and IDENTIFICATION, DIVISION, END, CLASS) but prints IS and FROM WITHOUT underlining. specs/ISO_COBOL.md lines 12537-12540 render the skeleton as plain text with no <u> markup and no 'Figure notes' paragraph, so the required/optional distinction carried by the underline is destroyed. Under 5.2.5/5.2.6 (md 2628, 2641, 5770, 5805) a non-underlined uppercase word is an OPTIONAL word that may be omitted with no semantic effect; the markdown therefore reads as though IS and FROM were mandatory. This is falsely restrictive and is contradicted by the standard's own sample code, which writes INHERITS with no FROM in six places (md 45770, 46001, 46047, 46420, 46487, 46609). Legal forms a markdown-derived parser would wrongly reject: 'CLASS-ID. C-1 FINAL.' and 'CLASS-ID. C-1 INHERITS Base.'
+
+SCOPE CORRECTION: the claim's assertion that 'the same loss applies to the factory-definition and instance-definition skeletons on this page' overstates the impact. Those two skeletons also lose their underline record, but every reserved word in them (IDENTIFICATION, DIVISION, FACTORY, IMPLEMENTS, END, OBJECT) is underlined/required in the print, so no optional word is misrepresented and no falsely-restrictive reading follows. The normative loss on page 288 is confined to IS and FROM in the class-definition skeleton.
+
+SIBLING DEFECTS FOUND (sweep targets, same root cause):
+  - md line 12816-12818, section 11.3.2 CLASS-ID paragraph General format (page 294): repeats the identical figure ('[ IS  FINAL ]', '[ INHERITS FROM ... ]') with no underline record and no Figure notes. Same normative loss, in the paragraph that is the actual syntax authority for CLASS-ID.
+  - md line 12583-12586, interface-definition skeleton (page 289): '[ INHERITS FROM { interface-name-2 } ... ]' with no Figure notes; same FROM loss.
+
+SECONDARY FORMATTING DEFECTS on page 288 (non-normative, but they mark this block as unprocessed relative to its neighbours): the three skeletons are NOT wrapped in ``` code fences, unlike the equivalent skeletons on pages 287 and 289; and md lines 12539-12540 are indented with U+3000 IDEOGRAPHIC SPACE rather than ordinary spaces.
+
+REMEDY: fence the three page-288 skeletons and add a 'Figure notes (class-definition general format)' paragraph in the established house style, e.g. "`IDENTIFICATION`, `DIVISION`, `CLASS-ID`, `AS`, `FINAL`, `INHERITS`, `USING`, `END`, and `CLASS` are underlined in the printed standard (required words); `IS` and `FROM` are **not** underlined -- they are optional words." Add the equivalent note to 11.3.2 and to the page-289 interface-definition skeleton, and replace the U+3000 indents.
+
+### p294 · incorrect-figure · **normative**
+
+- **PDF:** 11.3.2  General format
+
+  CLASS-ID.  object-class-name-1 [ AS literal-1 ]  [ IS  FINAL ]
+      [ INHERITS FROM { object-class-name-2 }  ... ]
+      [ USING { parameter-name-1 }  ... ] .
+
+-- underlining on CLASS-ID, AS, FINAL, INHERITS, USING; IS and FROM printed WITHOUT underlining.
+- **Markdown:** ```
+CLASS-ID.  object-class-name-1 [ AS literal-1 ] [ IS  FINAL ]
+    [ INHERITS FROM { object-class-name-2 }  … ]
+    [ USING { parameter-name-1 }  … ] .
+```
+
+-- fenced, textually exact, but with no record of which words are underlined and therefore required.
+- **Why:** This is the normative general format for the CLASS-ID paragraph. Losing the underlining erases the required/optional distinction: the standard permits 'CLASS-ID. C-1 FINAL.' (IS is an optional word) and 'INHERITS { C-2 }' (FROM is an optional word). A reader of the markdown alone would implement both as mandatory and reject legal source.
+- **Repair:** Add a 'Figure notes' line under the 11.3.2 fence recording the underlined (required) words -- CLASS-ID, AS, FINAL, INHERITS, USING -- and explicitly noting that IS and FROM are optional words. Apply the same to the other unannotated general-format fences in clause 11.
+- **Verifier:** The finding is real and the claim's characterization of both sources is accurate; two refinements for the ledger.
+
+(a) Scope -- this is NOT a systemic 'the transcription never records underlining' issue. specs/ISO_COBOL.md preserves underlining routinely, via inline <u> tags (§11.4.2 FACTORY line 12885, §11.5.2 FUNCTION-ID lines 12929/12933) and via '> **Figure notes**' blocks (§11.7.2 METHOD-ID line 13034, which even spells out that IS in '[ IS FINAL ]' is not underlined). §11.3.2 CLASS-ID at lines 12813-12819 is a localized regression against that established convention, so the fix is to restore markup on this figure, not to invent a new policy.
+
+(b) Sibling defect -- the identical loss occurs at §11.6.2 INTERFACE-ID (page 298, master lines ~12971-12975), also a bare fence: 'INTERFACE-ID.  interface-name-1  [ AS literal-1 ] / [ INHERITS FROM { interface-name-2 } … ] / [ USING { parameter-name-1 } … ] .' It carries the same INHERITS FROM / USING shape and therefore the same lost required/optional distinction. Per the project's sweep rule, both should be repaired in one change set.
+
+(c) Minor imprecision in the claim, not affecting the verdict: the illustrative 'INHERITS { C-2 }' writes the metalanguage braces as if they were source characters; the braces are grouping symbols for the ellipsis, so the legal source is 'INHERITS class-2'. The claim's PDF quotation also normalizes some inter-token spacing.
+
+Corrected markdown for §11.3.2 should read, in the file's own <u> style: '<u>CLASS-ID</u>.  object-class-name-1 [ <u>AS</u> literal-1 ] [ IS  <u>FINAL</u> ] / [ <u>INHERITS</u> FROM { object-class-name-2 } … ] / [ <u>USING</u> { parameter-name-1 } … ] .'
+
+### p298 · incorrect-figure · **normative**
+
+- **PDF:** INTERFACE-ID.  interface-name-1  [ AS literal-1 ]
+    [ INHERITS FROM { interface-name-2 }  ... ]
+    [ USING { parameter-name-1 }  ... ] .
+
+(printed underlining, verified on the rendered page at 300 dpi: INTERFACE-ID, AS, INHERITS and USING each carry an underline; FROM carries NO underline)
+- **Markdown:** ```
+INTERFACE-ID.  interface-name-1  [ AS literal-1 ]
+    [ INHERITS FROM { interface-name-2 }  … ]
+    [ USING { parameter-name-1 }  … ] .
+```
+
+(no <u> markup, and no '> **Figure notes (...)**' paragraph follows the fence)
+- **Why:** Per 5.2.1/5.2.2 (lines 2628 and 2641 of the transcription's own text) underlined uppercase words are KEYWORDS — required — while non-underlined uppercase words are OPTIONAL words that may be omitted. In the printed 11.6.2 format FROM is not underlined, so 'INHERITS interface-name-2' with FROM omitted is legal COBOL. The fenced transcription records no underlining at all and carries no Figure notes paragraph, so a reader/implementer treats FROM as required — the exact falsely-restrictive-syntax loss this sweep is hunting. The transcription already has an established mechanism for this: 218 other figures carry a '> **Figure notes (...)**' blockquote naming the underlined words (e.g. 11.7.2 METHOD-ID at line 13034, 12.3.6.2 OBJECT-COMPUTER at line 13746). Section 11.6.2 is missing its instance.
+- **Repair:** Append after the 11.6.2 fence: '> **Figure notes (INTERFACE-ID paragraph general format).** `INTERFACE-ID`, `AS`, `INHERITS`, and `USING` are underlined in the printed standard (required words). `FROM` is **not** underlined — it is an optional word and may be omitted. The paragraph is terminated by a separator period printed after the USING bracket.'
+- **Verifier:** REAL, normative. specs/ISO_COBOL.md line 12972-12977 (§11.6.2 INTERFACE-ID paragraph, General format; PDF page 298 / printed folio 268) transcribes the general format into a plain code fence that records no underlining and carries no '> **Figure notes (...)**' blockquote, so every uppercase word in the figure reads as equally required. On the printed page, verified by pixel measurement of a 300 dpi render, INTERFACE-ID, AS, INHERITS and USING are underlined but FROM is NOT (zero ink in the underline band beneath FROM even at a near-white threshold of 245, against 549 pixels beneath INHERITS). Per 5.2.2, underlined uppercase words are keywords and are required; per 5.2.3, non-underlined uppercase words are optional words that may be omitted. The flattened fence therefore loses the fact that 'INHERITS interface-name-2' without FROM is legal COBOL — a falsely-restrictive-syntax loss. The standard's own Annex examples confirm the omission is legal, writing e.g. 'CLASS-ID. CheckingAccount INHERITS Base.' (line 45770) and 'CLASS-ID.  AccountCollection INHERITS Base USING X.' (line 46420).
+
+FIX: add the established Figure notes blockquote after the line-12977 fence, e.g. '> **Figure notes (INTERFACE-ID paragraph general format).** `INTERFACE-ID`, `AS`, `INHERITS`, and `USING` are underlined in the printed standard (required words). `FROM` is **not** underlined — it is an optional word and may be omitted, so `INHERITS interface-name-2` is legal. The terminating period follows the closing bracket of the USING phrase.'
+
+SWEEP — THIS IS A PATTERN, NOT A ONE-OFF. The same INHERITS-FROM underline loss appears in at least three sibling figures that also lack Figure notes and must be fixed in the same change set:
+  * line 12817 — §11.3.2 CLASS-ID paragraph general format ('[ INHERITS FROM { object-class-name-2 } … ]'), fenced, no Figure notes; the fence also flattens the non-underlined `IS` in '[ IS  FINAL ]'.
+  * line 12585 — the interface-definition skeleton ('where interface-definition is:'), fenced, no Figure notes.
+  * line 12539 — the class-definition skeleton, which is not even fenced (plain text using ideographic-space indentation), no Figure notes.
+Recommend a targeted re-check of every general format containing INHERITS, and more broadly an audit for figures whose fence contains an uppercase word that is an optional word in print.
+
 ### p320 · incorrect-figure · **normative**
 
 - **PDF:** [ CURRENCY SIGN IS  literal-7   [ WITH PICTURE  SYMBOL literal-8 ] ]  ...   (the printed page draws a TALL outer bracket that opens immediately before CURRENCY and closes immediately after the inner ']' of the WITH phrase; the trailing ellipsis sits outside that outer bracket)
@@ -153,6 +360,26 @@ One detail of the claim's rationale is slightly overstated but immaterial: 13.15
 RECOMMENDED FIX: delete duplicate block A (lines 19950-19962) in its entirety and keep block B. That simultaneously removes the spurious second diagram the PDF does not print and eliminates the contradictory, FOR-omitting figure note — a single deletion resolving both defects. Do not 'fix' block A by adding FOR to its list, which would leave the spurious duplicate diagram in place.
 
 NORMATIVE IMPACT AS FILED IS UPHELD: FOR is a keyword and shall be written whenever the NEGATIVE/POSITIVE choice-indicator group is specified. 'EDITING character-1 NEGATIVE IS literal-2' without FOR is not legal COBOL, and the PICTURE EDITING parser must require the FOR keyword before the NEGATIVE/POSITIVE group.
+
+### p490 · incorrect-figure · **normative**
+
+- **PDF:** Table 10 - Format 1 picture symbol order of precedence, row 'P' (the FIRST of the two P rows in the 'Other symbols' block on p.490). The printed row carries TEN x marks, in First-Symbol columns 1 (B 0 /), 2 (,), 5 (+ -), 8 (cs), 10 (Z *), 12 (+ -), 14 (cs), 16 (9), 18 (S) and 20 (P). It is mark-for-mark identical to the 'V' row printed directly above it.
+- **Markdown:** | | P | x | x | | | x | | | x | | x | | x | | x | | x | | x | | | | | | |   -- only NINE x cells (columns 1, 2, 5, 8, 10, 12, 14, 16, 18). The mark in the 20th data column, the first 'P' column, is absent. The 'V' row immediately above it, '| | V | x | x | | | x | | | x | | x | | x | | x | | x | | x | | x | | | | | |', still carries all ten.
+- **Why:** Table 10 is the normative precedence table a compiler consults to decide whether a PICTURE character-string is legal. The dropped mark states that a 'P' may not precede a 'P', so a PICTURE such as PPP9 / 9PPP (repeated scaling P) reads as illegal from the transcription while the standard permits it. This is the same falsely-restrictive direction as the lost choice-indicator defects.
+- **Repair:** Restore the missing 'x' in the first 'P' row at the 20th First-Symbol data column (the first of the two 'P' columns), making the row identical to the 'V' row above it.
+- **Verifier:** CONFIRMED, and the claim is accurate as written; two refinements worth recording.
+
+(1) Mechanism: the markdown P row is not a row whose 'x' was blanked - it is a row that is one CELL short. It has 26 pipe-cells against the V row's 27, and the missing cell is the trailing 'x' cell itself. The nine surviving marks are still in their correct columns (no offset), so the defect is a clean loss of the column-20 'P' mark and nothing else.
+
+(2) Collateral damage in the same block, which the claim does not mention and which should be fixed in the same repair: the SECOND P row (specs/ISO_COBOL.md line 20721) is likewise 26 cells and has also lost a cell, but an EMPTY one, somewhere between columns 8 and 17. Its five marks all survive yet three of them land one column too far left: the print has that row marked at columns 5 (+ -), 8 (cs), 18 (S), 19 (V) and 21 (P, the trailing-P column), while the markdown places them at 5, 8, 17, 18 and 20. Read literally the transcription therefore also asserts that the trailing P may follow 'A X', 'S' and the LEADING P rather than 'S', 'V' and the trailing P - a second normative corruption of the same table, non-restrictive in one direction and falsely restrictive in another. Additionally the header/first row (line 20715) carries one EXTRA leading blank cell (27 cells with data starting at index 3 rather than index 2), so the Table 10 continuation block on p.490 is column-misaligned in three separate rows. The p.490 markdown also reproduces no column headers at all - the 'First Symbol' header band is transcribed only under p.489 - so the surviving marks cannot be resolved to symbols without cross-page context. Any repair should re-derive all nine rows of the p.490 block against the 24-column header on p.489 rather than patching the single missing 'x'.
+
+### p508 · incorrect-figure · **normative**
+
+- **PDF:** SAME AS data-name-1   (13.18.49.2 General format - BOTH 'SAME' and 'AS' carry their own underline; verified by cropping and 3x-enlarging the printed line at 300 dpi: two distinct underline rules, one under SAME, one under AS)
+- **Markdown:** <u>SAME</u> AS data-name-1   (specs/ISO_COBOL.md line 21474)
+- **Why:** In the general-format notation an underlined word is a REQUIRED word (5.2.6.2) while a word that appears without underlining is an OPTIONAL word that may be written or omitted at the user's choice (5.2.6.3). Dropping the underline from AS makes the transcription say that 'SAME data-name-1' is legal COBOL and that AS is noise. It is not: AS is a required word of the SAME AS clause. This is the only clause in 13.18.49 and the whole format is two words, so the lost marker is the entire syntactic content of the second word.
+- **Repair:** Change the general format line to '<u>SAME</u> <u>AS</u> data-name-1' so both required words carry the underline that the printed standard gives them.
+- **Verifier:** Confirmed, with one correction to the claim's citations. The substance is exactly right: the printed 13.18.49.2 General format underlines BOTH keywords - 'SAME' and 'AS' each carry their own separate rule (measured at 300 dpi: rules at x=273 len 103 and x=401 len 40 on scan row y=915, with a 25 px gap between them), while 'data-name-1' is unmarked. specs/ISO_COBOL.md:21474 transcribes only '<u>SAME</u> AS data-name-1', losing the required-word marker on AS and thereby making the transcription assert that AS is an optional word and that 'SAME data-name-1' is legal COBOL. The fix is '<u>SAME</u> <u>AS</u> data-name-1'. CITATION CORRECTION: the claim attributes the required/optional-word notation to 5.2.6.2 and 5.2.6.3, but those subclauses are 'Brackets' and 'Braces'. The governing subclauses are 8.3.2.4.2 (Required words - keywords are uppercase and underlined) and 8.3.2.4.3 (Optional words - uppercase and not underlined, specifiable at the user's option), with the corresponding definitions at 5.2.2 (Keywords) and 5.2.3 (Optional words). The mis-citation does not affect the finding.
 
 ### p533 · incorrect-figure · **normative**
 
@@ -230,6 +457,157 @@ Compiler impact: the ACCEPT screen Format 3 AT phrase must accept LINE alone, CO
 - **Repair:** In both figure notes on page 756 remove `TO` from the 'Underlined (required) words' list, and state explicitly that `TO` is NOT underlined (an optional word), matching the pattern already used on pp. 736/750/760/762 (e.g. "`AT` is not underlined", "`OF` is not underlined").
 - **Verifier:** REAL, and the claim is accurate as written apart from one citation slip. Printed page 756 (ISO printed folio 726), 14.9.38.2 SEND general formats: in BOTH Format 1 (to-message-server) and Format 2 (message-server-response) the underline rule is present only beneath SEND and beneath FROM -- pixel-verified at 300 dpi, rules at y=1114/1115 spanning x=(306,404) and (1088,1195) in Format 1 and at y=1794/1795 spanning x=(320,417) and (791,898) in Format 2, versus TO occupying x=(424,474) and (438,487) respectively with no ink on the underline row. TO is therefore an OPTIONAL word in the SEND statement. The transcription's two figure notes at specs/ISO_COBOL.md lines 30641 and 30658 both list TO in 'Underlined (required) words:', promoting an optional word to a keyword. Because the fenced ASCII figure cannot render underlining, the note is the only place the required/optional distinction survives, so the error is fully load-bearing: a compiler built from the transcription would reject legal source such as SEND "SRV" FROM WS-MSG RETURNING WS-TAG END-SEND. FIX: delete 'TO, ' from both lists, and preferably add an explicit sentence to each note, e.g. 'TO and ON are printed WITHOUT an underline -- they are optional words.' CORRECTION TO THE CLAIM'S RATIONALE ONLY (does not affect the verdict): the underlining convention is not 5.2.6.2 (5.2.6 is 'Options'); it is 5.2.2 Keywords ('shown in uppercase and underlined ... They are required') together with 5.2.3 Optional words ('shown in uppercase and not underlined ... may be written to add clarity'). The claim's control observation is also confirmed: PDF page 759 (SET Formats 1 and 3) prints TO underlined, so p.756 is deliberate typesetting rather than a printing defect. Everything else asserted by the two notes matches the printed glyphs (ON not underlined; NOT, EXCEPTION, RETURNING, RAISING, LAST underlined; choice-indicator bars present inside the ON/NOT ON EXCEPTION bracket and absent from the RAISING brace). A sweep of the whole transcription finds this TO error only on these two lines.
 
+### p18 · ocr-error · **structural**
+
+- **PDF:** 14.9.48  UNSTRING statement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 769
+- **Markdown:** [14.9.48 UNSTRING statement](#section-14-9-48) …………………………………………………………………  [766](#page-766)
+- **Why:** The TOC folio for the UNSTRING statement is transcribed as 766 instead of 769, and the markdown's cross-reference anchor was generated from the wrong number (#page-766). 766 is the folio of 14.9.46 TERMINATE, so following the link lands the reader three pages early, in the middle of the TERMINATE statement, rather than at the start of UNSTRING. The neighbouring entries confirm the digit is a transcription slip and not an ISO defect: 14.9.47 UNLOCK is 768 and 14.9.49 USE is 774, so 766 is out of the monotonically increasing sequence.
+- **Repair:** In specs/ISO_COBOL.md, on the page-18 TOC line for 14.9.48, change both the displayed folio and the anchor from 766 to 769: '[14.9.48 UNSTRING statement](#section-14-9-48) … [769](#page-769)'.
+- **Verifier:** REAL, with the impact clause corrected. The transcription error itself is exactly as claimed: the printed TOC folio for 14.9.48 UNSTRING is 769, and page-18.md line 44 renders it as 766 in both the visible link text and the generated anchor (#page-766). The monotonicity argument holds (UNLOCK 768 < UNSTRING 769 < USE 774; 766 breaks the sequence), and the spec body independently confirms 769 via the <a id="page-799"> marker preceding the '## 14.9.48 UNSTRING statement' heading at specs/ISO_COBOL.md:32362. So this is a transcription slip, not an ISO defect. However, the claim's assertion that the bad link 'lands the reader three pages early, inside the TERMINATE statement' is incorrect. Body anchors in ISO_COBOL.md are numbered by PDF page, while TOC link targets are numbered by printed folio, so every TOC #page-NNN link is systematically off by the +30 front-matter offset. <a id="page-766"> is at line 31088 and heads content in the middle of the 14.9.39 SET statement (FORMAT 8, restricted data-pointer rules), i.e. printed folio ~736 -- not TERMINATE. The correct target for UNSTRING would be #page-799. Two consequences worth recording separately: (a) the folio digit error 769->766 is a real, page-local, correctable defect; (b) it produces a duplicate anchor reference, since line 42 (TERMINATE) and line 44 (UNSTRING) now both point at #page-766, which makes the error mechanically detectable. The broader TOC-anchor offset bug is pre-existing and systemic across the whole contents listing and should be tracked as its own item rather than folded into this one.
+
+### p28 · other · **structural**
+
+- **PDF:** (nothing — the PDF page contains only the running header, the Introduction body text, the two footnotes, and the page/copyright footer; there is no meta-commentary anywhere on the page)
+- **Markdown:** Here is a summary and key excerpts from this page of ISO/IEC 1989:2023(E):
+
+... (line 1281 of specs/ISO_COBOL.md) ...
+
+I can quote specific short passages if needed, but I'm not able to reproduce the full page verbatim as a complete copyrighted standards document. I'm happy to help you find specific information from this page.
+- **Why:** Transcription-tool meta-text and a refusal message are embedded in the document body as if they were spec content. Anything that greps specs/ISO_COBOL.md for normative language — the spec-lookup skill, a citation check, a human reading the file — will hit first-person assistant prose sitting inside ISO/IEC 1989:2023. It also marks the page as knowingly incomplete, so any future "the spec does not say X" conclusion drawn from page 28 is unsound. Verified with grep over the whole file: these two lines occur exactly once, at specs/ISO_COBOL.md lines 1255 and 1281, both inside the page-28 slice — the contamination is confined to this page.
+- **Repair:** Delete specs/ISO_COBOL.md lines 1255 and 1281 (and the surrounding `---` fences that frame the summary) as part of the page-28 re-transcription. Then re-run the grep for `not able to reproduce|Here is a summary` across the file to confirm zero remaining hits.
+- **Verifier:** REAL, but the described scope is too narrow. The claim is factually correct as far as it goes — lines 1255 and 1281 of specs/ISO_COBOL.md are transcription-tool meta-text and an assistant refusal message embedded inside the page-28 slice, they occur exactly once each in the file, and nothing resembling them appears on the rendered PDF page. Severity 'structural' is right. The correction is to the extent: those two lines are not stray insertions around an otherwise-good transcription — they bracket a paraphrase that replaces the page entirely. Every one of the 26 lines between the page-28 and page-29 anchors is summary prose; not a single sentence of the printed Introduction body survives verbatim. Confirmed absent from the entire file: the reproduction-permission paragraph ('Any organization interested in reproducing the COBOL standard and specifications in whole or in part... requested to mention "COBOL" in acknowledgment of the source'), the industry-language paragraph ('COBOL is an industry language and is not the property of any company or group of companies, or of any organization or group of organizations.'), the no-warranty paragraph, the cross-reference sentence 'For more details and additional changes, see E.2, Substantive changes potentially affecting existing programs and E.3, Substantive changes probably not affecting existing programs.', the exact Annex-normativity sentence naming Annexes A/B/C by title, and both trademark footnotes (Sperry Rand, IBM). The remediation is therefore a full re-transcription of page 28 from the render, not a two-line deletion — deleting lines 1255 and 1281 alone would leave a paraphrase masquerading as a transcription and would remove the only marker that the page is incomplete.
+
+### p34 · missing-heading · **structural**
+
+- **PDF:** 3.10
+alphanumeric character set
+alphanumeric coded character set
+coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals
+
+(printed identically in style to 3.1 on page 33: the entry number in bold on its own line, the term in bold beneath it — both are numbered sub-clauses of Clause 3)
+- **Markdown:** **3.10**
+**alphanumeric character set**
+**alphanumeric coded character set**
+coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals
+
+(cf. page 33, which renders the identical PDF construct as `### 3.1`, `### 3.2` ... `### 3.9`)
+- **Why:** Term entries 3.10 through 3.38 are demoted from headings to plain bold text, while 3.1-3.9 on the immediately preceding page are `###` headings. The PDF prints all of them identically, so the markdown is treating one construct two ways across a page boundary. The demoted run spans pages 34, 35 and 36 (3.10-3.38, 29 definitions) and is unreachable by heading anchor or TOC, so a citation of the form "see 3.22, boolean data item" cannot be resolved by navigation — exactly the lookup pattern the spec-lookup skill depends on. Confirmed mechanically over specs/ISO_COBOL.md: lines 1412-1444 use `###`, lines 1456-1627 use `**n.nn**`.
+- **Repair:** Promote `**3.10**` through `**3.38**` (specs/ISO_COBOL.md lines 1456-1627) to `### 3.10` ... `### 3.38`, matching the `### 3.1`-`### 3.9` treatment on page 33, and drop the now-redundant bold markers on the number lines.
+- **Verifier:** REAL, with two refinements to how it was described.
+
+(1) The mismatch is an internal INCONSISTENCY in the transcription, not text lost from the PDF. In the PDF neither 3.1 nor 3.10 is typographically a heading: both entry numbers are body-size bold, visibly smaller than the true clause heading '3 Terms and definitions' on page 33. The transcription's `###` on 3.1-3.9 is therefore an interpretation (a defensible one - ISO terminological entries are numbered subclauses), and the page-34 bold form is the more literal one. What is indefensible is applying both to an identically-printed construct with the switch landing exactly on a page boundary the PDF does not mark. Whichever form is adopted, it must be adopted for all of Clause 3.
+
+(2) The inconsistency is three-way and spans the whole clause, so a fix scoped to pages 34-36 would leave the defect in place. Measured over specs/ISO_COBOL.md, the 178 entries of Clause 3 use three different markers:
+  - 3.1-3.9   -> `### n.nn`  (lines 1412-1444, page 33) - 9 entries
+  - 3.10-3.38 -> `**n.nn**`  (lines 1456-1627, pages 34-36) - 29 entries, the run claimed
+  - 3.39-3.57 -> `## n.nn`   (lines 1642-1728, page 37+) - h2, i.e. promoted to the SAME level as the parent clause '## 3 Terms and definitions'
+  - 3.58-3.142  -> `**n.nn**` (lines 1739-2163)
+  - 3.143-3.153 -> `## n.nn`  (lines 2174-2214) - h2 again
+  - 3.154-3.178 -> `**n.nn**` (lines 2226-2364)
+So 139 of 178 entries carry no heading at all and are unreachable by anchor, and a further 30 carry the wrong level (h2 nests them as siblings of Clause 3 rather than children, which corrupts any generated outline). The remediation is to normalize all 178 terminological entries to a single marker - `### n.nn` matching the existing 3.1-3.9 - not merely to promote 3.10-3.38.
+
+Severity 'structural' is right. The consequence stated in the claim is understated rather than overstated: 'see 3.22, boolean data item' is unresolvable by navigation, and so are ~139 of the clause's 178 defined terms.
+
+### p37 · missing-heading · **structural**
+
+- **PDF:** 3.39
+common program
+program that, despite being directly contained within another program, can be called from any program directly or indirectly contained in that other program
+
+(a numbered sub-clause of "3 Terms and definitions", printed in the same style as 3.1 and 3.10 — one level BELOW the clause-3 heading)
+- **Markdown:** ## 3.39
+**common program**
+program that, despite being directly contained within another program, can be called from any program directly or indirectly contained in that other program
+
+(cf. page 33: `## 3 Terms and definitions` — the parent clause — is also at `##`)
+- **Why:** Term entries 3.39 through 3.47 are emitted at `##`, the SAME heading level as their parent clause heading `## 3 Terms and definitions` (page 33). In the document outline each definition becomes a sibling of Clause 3 rather than a child of it, so the terms-and-definitions subtree is flattened and clause 3 appears to end at 3.38. Together with the previous finding this means one PDF construct is transcribed three different ways within five pages: `###` for 3.1-3.9, bold for 3.10-3.38, `##` for 3.39-3.47. Confirmed mechanically over specs/ISO_COBOL.md: lines 1642-1678 use `## 3.39` ... `## 3.47`.
+- **Repair:** Demote `## 3.39` through `## 3.47` (specs/ISO_COBOL.md lines 1642-1678) to `### 3.39` ... `### 3.47` so all of 3.1-3.47 sit one level under `## 3 Terms and definitions`.
+- **Verifier:** REAL, but the label and the scope both need correcting.
+
+(a) 'missing-heading' is a mislabel. No heading is missing — '3.39' is present and its text is verbatim correct. The defect is a WRONG HEADING LEVEL: '## 3.39' collides with its parent '## 3 Terms and definitions'. The accurate kind is 'heading-level' (or 'heading-level-collision'). The claim's own prose describes the defect correctly; only the kind slug is wrong.
+
+(b) The fix is determined by the file's own convention, which the claim does not state: top-level clauses are '##' and their one-dot subclauses are '###' (cf. '### 4.1', '### 5.1'). Entries 3.1-3.9 are already correctly at '### 3.N'. So '## 3.39'..'## 3.47' should each be '### 3.39'..'### 3.47' — matching the nine entries that were transcribed correctly at the top of the same clause.
+
+(c) The scope is understated. '3.39 through 3.47' is exactly right FOR PAGE 37, but the '##' mis-level is not confined to that page: 30 term entries in clause 3 carry it, running from '## 3.39' (line 1642) to '## 3.153' (line 2214), interleaved with the bold form rather than forming one contiguous block. The clause-3 tally is 9 at '###' + 139 at bold '**3.N**' + 30 at '##' = 178 entries, so the three-way inconsistency the claim identifies is real but is a repeating interleaved pattern, not three clean contiguous runs.
+
+(d) Corroborating context, in the finding's favour: the same heading-level instability recurs outside clause 3 — e.g. '## 4.2.5', '## 4.2.6', '## 4.2.7', '## 4.2.11'-'## 4.2.15' sit among siblings correctly emitted at '#### 4.2.4' / '#### 4.2.8', and '## 5.2.3'-'## 5.2.6' among '#### 5.2.2'. This is a systematic transcription defect in which heading depth was assigned per-run rather than from the clause number, which strengthens the finding: it should be remediated by deriving the level from the dotted clause number document-wide, not by patching page 37 alone.
+
+### p52 · missing-heading · **structural**
+
+- **PDF:** Third-level clause headings in Clause 4 and Clause 5 are printed at a uniform rank throughout: '4.2.1  General', '4.2.2  Acceptance of standard language elements', '4.2.5  Implementor-defined language elements', '4.2.8  Reserved words', '4.2.11  Substitute or additional language elements', '5.2.1  General', '5.2.3  Optional words', '5.2.6  Options' are all set in the same size/weight, and second-level headings '4.3', '4.5', '5.2', '5.3', '5.4', '5.5' are likewise uniform with one another.
+- **Markdown:** The transcription assigns those same-rank headings different markdown levels. In this batch: p52 '## 4.2.5 Implementor-defined language elements', '## 4.2.6 Processor-dependent language elements', '## 4.2.7 Optional language elements'; p54 '## 4.2.11', '## 4.2.12', '## 4.2.13', '## 4.2.14', '## 4.2.15'; p56 '## 4.5 Relationship of a conforming compilation group to a conforming implementation', '## 4.6 Relationship of a conforming run unit to a conforming implementation'; p58 '## 5.2.3 Optional words', '## 5.2.4 Operands', '## 5.2.5 Level numbers'; p59 '## 5.2.6 Options', '### 5.2.6.1 General', '### 5.2.6.2 Brackets', '### 5.2.6.3 Braces', '### 5.2.6.4 Choice indicators', '## 5.2.7 Ellipses', '## 5.2.8 Punctuation'; p60 '### 5.2.9 Special characters', '### 5.2.10 Meta-terms', '## 5.3 Rules', '### 5.3.1'..'### 5.3.5'; p61 '## 5.4 Arithmetic expressions', '### 5.4.1'..'### 5.4.3', '## 5.5 Integer operands'. Contrast their siblings, which the same file sets correctly: '#### 4.2.1 General', '#### 4.2.2 ...', '#### 4.2.3 ...', '#### 4.2.4 ...', '#### 4.2.8 Reserved words', '#### 4.2.9', '#### 4.2.10', '#### 4.2.16', '#### 4.2.17', '### 4.3 A conforming compilation group', '### 4.4 A conforming run unit', '### 5.1 General', '### 5.2 General formats', '#### 5.2.1 General', '#### 5.2.2 Keywords'.
+- **Why:** Clause depth is the spec's addressing scheme and this file is the citation source of record ('cite the exact §'). Headings one or two levels too shallow break TOC nesting and any ancestry-based navigation: 4.2.5 through 4.2.7 and 4.2.11 through 4.2.15 detach from 4.2, 5.2.3 through 5.2.8 detach from 5.2, and 5.2.6.1-5.2.6.4 (the definitions of brackets, braces and choice indicators) end up at the same rank as 5.2 itself. At '##' these clause headings also collide with the '## Page N' scaffolding rank, so a section can be mistaken for a page marker. Verified against the live file: E:/CobolSharp/specs/ISO_COBOL.md lines 2418, 2427, 2436 (4.2.5-4.2.7), 2481, 2486, 2495, 2504, 2513 (4.2.11-4.2.15), 2639, 2644, 2664, 2680, 2683-2698, 2703, 2710, 2726, 2731, 2736-2765, 2783-2803.
+- **Repair:** Normalize to the convention the file already uses elsewhere — clause N = '##', N.M = '###', N.M.P = '####', N.M.P.Q = '#####'. Within this batch: demote 4.2.5-4.2.7, 4.2.11-4.2.15, 5.2.3-5.2.8 from '##' to '####'; 5.2.9, 5.2.10, 5.3.1-5.3.5, 5.4.1-5.4.3 from '###' to '####'; 5.2.6.1-5.2.6.4 from '###' to '#####'; and 4.5, 4.6, 5.3, 5.4, 5.5 from '##' to '###'. The defect is document-wide (the same shift recurs in Clause 6 and Clause 7 — e.g. '## 6.2.2 Fixed indicators' beside '#### 6.2.1 General'), so fix it with one sweep rather than page by page.
+- **Verifier:** Kind should be 'heading-depth-inconsistency' (or 'wrong-heading-level'), NOT 'missing-heading' -- no heading and no body text is absent from the transcription; every heading on page 52 is present with correct wording. Severity 'structural' is correct. Accurate statement: the ISO PDF sets every numbered heading beneath a clause title in one identical bold face and size (verified on pp. 51, 52, 53, 56, 59 -- '4.1', '4.2', '4.2.1', '4.2.5', '4.2.8', '4.5', '5.2.6.1' are typographically identical), carrying clause depth exclusively in the dotted number. specs/ISO_COBOL.md instead assigns markdown levels arbitrarily, splitting a single printed peer run across two or three ranks: 4.2.1-4.2.4 '####', 4.2.5-4.2.7 '##', 4.2.8-4.2.10 '####', 4.2.11-4.2.15 '##', 4.2.16-4.2.17 '####'; 4.3-4.4 '###' but 4.5-4.6 '##'; 5.2.1-5.2.2 '####' but 5.2.3-5.2.8 '##'. Consequences confirmed: 4.2.5-4.2.7 and 4.2.11-4.2.15 detach from 4.2, 5.2.3-5.2.8 detach from 5.2, 5.2.6.1-5.2.6.4 land at the rank of 5.2 itself, and '##' clause headings tie with the '## Page N' scaffolding and with clause-level '## 4'. The scope is far wider than the claimed p52-p61 batch: across all 2098 numbered headings only 59 satisfy level == depth+1; depth-3 clauses are variously '##' (276), '###' (508) and '####' (17), depth-4 '##' (162), '###' (620), '####' (24), depth-5 '##' (118), '###' (128), '####' (41). Record this as ONE file-wide remediation -- mechanically renormalize every numbered heading to level = (count of dots in the clause number) + 2, so clause '4' -> '##', '4.2' -> '###', '4.2.5' -> '####', '5.2.6.1' -> '#####' -- rather than as a per-page fix, and move the '## Page N' scaffolding off the '##' rank (e.g. to an HTML comment or the existing '<a id="page-N">' anchor alone) so page furniture can never be confused with a clause.
+
+### p57 · misplaced-content · **structural**
+
+- **PDF:** Elements used in depicting general formats are:
+    — Keywords
+    — Optional words
+    — Operands
+    — Level numbers
+    — Options
+        — Brackets
+        — Braces
+        — Choice indicators
+    — Ellipses
+    — Punctuation
+    — Special characters
+    — Meta-terms that refer to other formats   (Brackets / Braces / Choice indicators are printed INDENTED one level beneath 'Options'; crop-verified in E:/Temp/specrecon/f4/p57_options.png — the 'Options' dash starts at the outer margin, the three sub-item dashes start ~one indent to the right, and 'Ellipses' returns to the outer margin.)
+- **Markdown:** — Keywords
+— Optional words
+— Operands
+— Level numbers
+— Options
+— Brackets
+— Braces
+— Choice indicators
+— Ellipses
+— Punctuation
+— Special characters
+— Meta-terms that refer to other formats   (all twelve dashes flush left — the nesting under 'Options' is gone)
+- **Why:** The flattened list makes Brackets, Braces and Choice indicators read as peers of Options rather than as the three kinds OF option. That is precisely the taxonomy 5.2.6 then formalizes (5.2.6.2 Brackets, 5.2.6.3 Braces, 5.2.6.4 Choice indicators are all subclauses of 5.2.6 Options). A reader or tool taking this enumeration as the inventory of general-format notation loses the fact that a choice indicator is an OPTION construct — the same relationship whose loss elsewhere produces the falsely-restrictive readings this reconciliation is hunting.
+- **Repair:** Restore the one level of nesting, e.g. indent the three sub-items by two or four spaces (or convert the block to a real markdown nested list) so Brackets / Braces / Choice indicators hang off Options and Ellipses returns to the outer level.
+- **Verifier:** Real, and the quoted evidence is exact — but two refinements to how it is characterized.
+
+(1) The kind label 'misplaced-content' is a mislabel. Nothing is relocated, reordered, duplicated or dropped: all twelve items appear in the markdown in the exact order the PDF prints them. The defect is LOST LIST NESTING — a two-level list flattened to one level in place. A more accurate kind is 'lost-structure' / 'flattened-hierarchy'. The severity 'structural' is apt.
+
+(2) The 'why it matters' overstates the blast radius slightly. The Options -> {Brackets, Braces, Choice indicators} taxonomy is NOT lost from the document as a whole: it survives intact about sixty lines later in the heading hierarchy, where '## 5.2.6 Options' properly contains '### 5.2.6.2 Brackets', '### 5.2.6.3 Braces' and '### 5.2.6.4 Choice indicators' (specs/ISO_COBOL.md lines 2680-2698). So a reader who continues into 5.2.6 recovers the relationship, and a tool that keys on section numbering never loses it. What IS genuinely lost is confined to this summary enumeration, and it is still worth fixing: the enumeration is the document's own inventory of general-format notation, and in the markdown it asserts twelve co-equal element kinds where the PDF asserts nine, one of which has three sub-kinds. Any consumer treating 5.2.1's list as the authoritative element inventory — rather than cross-reading 5.2.6 — gets the wrong arity and the wrong is-a relation.
+
+Recommended repair: restore the nesting under 'Options' in specs/ISO_COBOL.md lines 2616-2619, e.g. indent the three sub-items by four spaces (or convert the block to a real nested markdown list), so that Brackets, Braces and Choice indicators render as children of Options and Ellipses returns to the outer level.
+
+Supporting evidence is reproducible: `python scripts/spec/page_workunit.py 57 --out E:/Temp/specrecon/v57 --dpi 300`, then the per-line leftmost-ink measurement recorded in the reasoning field (outer items x=409, the three sub-items x=482, a 73 px / 0.243 in one-level indent at 300 dpi).
+
+### p64 · missing-heading · **structural**
+
+- **PDF:** 6.2.2   Fixed indicators ... 6.2.3   Floating indicators ... 6.2.3.1   General  (third- and fourth-level sub-clauses of Clause 6, printed at the same typographic rank as 6.2.1 General on the preceding page)
+- **Markdown:** ## 6.2.2 Fixed indicators ... ## 6.2.3 Floating indicators ... ### 6.2.3.1 General  -- while the immediately preceding sibling on page 63 is '#### 6.2.1 General' under '### 6.2 Indicators' under '## 6 Reference format'
+- **Why:** Heading depth is the only machine-readable expression of clause nesting in the transcription. Promoting 6.2.2 and 6.2.3 to '##' makes them siblings of Clause 6 itself (and of the '## Page N' scaffolding), so any TOC, outline, or section-scoped lookup built from the markdown mis-attributes those rules to the wrong parent clause. The defect is systematic, not isolated: within this batch it also hits '## 6.2.3.2 Syntax rules' (p65), '## 6.3.4 Program-text area' and '## 6.3.5 Continuation of lines' (p67), '## 6.3.6 Blank lines' and '## 6.3.7 Comments' (p68), '## 6.4.2 Continuation of lines', '## 6.4.3 Blank lines' and '## 6.4.4 Comments' (p69), '## 6.4.4.3 Inline comments' and '## 6.5 Logical conversion' (p70), '## 7.2 Text manipulation' (p73), and '## 7.2.2 Text manipulation elements' (p74); outside the batch the same pattern continues (e.g. '## 7.2.2.5 Text-words', '## 7.2.4.4 General rules'). Sibling sub-clauses are split across two different depths, so depth cannot be trusted anywhere in clauses 6 and 7.
+- **Repair:** Normalize heading depth to clause depth throughout clauses 6 and 7: n.n -> '###', n.n.n -> '####', n.n.n.n -> '#####'. In this batch that means p64 '## 6.2.2' -> '#### 6.2.2', '## 6.2.3' -> '#### 6.2.3', '### 6.2.3.1' -> '##### 6.2.3.1'; p65 '## 6.2.3.2' -> '##### 6.2.3.2'; p67 '## 6.3.4', '## 6.3.5' -> '#### '; p68 '## 6.3.6', '## 6.3.7' -> '#### ', '### 6.3.7.1/.2/.3' -> '##### '; p69 '## 6.4.2', '## 6.4.3', '## 6.4.4' -> '#### ', '### 6.4.4.1/.2' -> '##### '; p70 '## 6.4.4.3' -> '##### ', '## 6.5' -> '### '; p73 '## 7.2' -> '### ', '### 7.2.1' -> '#### '; p74 '## 7.2.2' -> '#### ', '### 7.2.2.1..4' -> '##### '. Apply the same rule to the rest of the file rather than patching page by page.
+- **Verifier:** Real, but mis-kinded and slightly mis-scoped. Nothing is MISSING -- all three headings on p64 are present with correct text and correct clause numbers ('6.2.2 Fixed indicators', '6.2.3 Floating indicators', '6.2.3.1 General'), and the page's body text, both tables, and NOTE 1 / NOTE 2 all transcribe faithfully. The defect is heading-LEVEL inflation, not a missing heading: kind should be 'heading-level' / 'wrong-depth'. Correct statement: the ISO PDF prints 6.2.2 and 6.2.3 as fourth-rank sub-clauses (6 > 6.2 > 6.2.2), in the same bold heading face as their printed sibling 6.2.1 on p63, but ISO_COBOL.md emits them as '## 6.2.2' and '## 6.2.3' (depth 2) while their sibling is '#### 6.2.1' (depth 4) -- a two-level promotion that makes them peers of '## 6 Reference format' and of the '## Page 64' scaffolding heading. The root cause is mechanical and reproducible, and is worth recording as such: the first clause heading emitted after each '## Page N' page-break marker is forced to depth 2, and subsequent headings on that page are nested relative to that bad anchor, which is why '6.2.3.1' correctly sits one level under '6.2.3' yet both are two levels too shallow. The claim's list of further instances is accurate and should additionally include '## 6.3 Fixed-form reference format' (p66, first heading on its page, one level shallower than siblings '### 6.1' and '### 6.2', which in turn drags '### 6.3.1'..'### 6.3.3' one level too shallow). Severity is genuinely structural for any outline/TOC/section-scoped extraction built from '#' depth, but is recoverable without re-OCR: the dotted clause number survives intact in every heading's text, so the fix is a purely mechanical re-derivation of heading depth from the clause number (depth = number-of-dots + 2, with the page markers moved off the heading axis) rather than a content repair.
+
+### p140 · incorrect-figure · **structural**
+
+- **PDF:** Format 1 (boolean) is printed as ONE brace pair spanning both rows:  ⎧  B"[boolean-character-1]  ... "   ⎫ / ⎩  B'[boolean-character-1]  ... '   ⎭ ; Format 2 (hexadecimal-boolean) likewise as ONE brace pair spanning  BX"[hexadecimal-digit-1]  ... "  and  BX'[hexadecimal-digit-1]  ... ' .
+- **Markdown:** ```
+{ B"[boolean-character-1] ... " }
+{ B'[boolean-character-1] ... ' }
+```
+... 
+```
+{ BX"[hexadecimal-digit-1] ... " }
+{ BX'[hexadecimal-digit-1] ... ' }
+```
+- **Why:** The printed figure is a single brace enclosing two stacked alternatives, i.e. exactly one of the two rows is chosen (5.2.6.4). The markdown gives each row its OWN brace pair, so the figure reads as two independent required groups rather than one two-way choice. It also breaks the transcription's own established convention: the structurally identical alphanumeric-literal figures in 8.3.3.2.2 on page 137 are correctly rendered with the spanning-brace glyphs ⎧ ⎫ / ⎩ ⎭. Verified by zooming the rendered page: the braces carry no vertical choice-indicator bars, so the only defect is the split of the spanning brace.
+- **Repair:** Render both 8.3.3.4.2 figures with the same spanning-brace convention used at 8.3.3.2.2, e.g.
+⎧  B"[boolean-character-1]  … "  ⎫
+⎩  B'[boolean-character-1]  … '  ⎭
+and
+⎧  BX"[hexadecimal-digit-1]  … "  ⎫
+⎩  BX'[hexadecimal-digit-1]  … '  ⎭
+- **Verifier:** CONFIRMED as described, with one citation correction. The printed §8.3.3.4.2 boolean-literal general formats each use a single brace pair spanning both stacked rows (Format 1: B"..." over B'...'; Format 2: BX"..." over BX'...'), with no choice-indicator bars. The transcription splits each spanning brace into a per-row '{ ... }' pair, converting one two-way alternative into two independently mandatory groups. The governing clause for brace semantics is §5.2.6.3 (Braces), not §5.2.6.4 — §5.2.6.4 is Choice indicators (the '|' bars), which is the correct citation only for the secondary observation that no bars are present. Fix: render both figures with the transcription's own established spanning-brace glyphs, i.e. '⎧  B"[boolean-character-1]  … "  ⎫' / '⎩  B'[boolean-character-1]  … '  ⎭' and likewise for the BX forms, matching §8.3.3.2.2 on page 137.
+
 ### p144 · incorrect-figure · **structural**
 
 - **PDF:** Format 6 (all-literal): "ALL literal-1" with ALL underlined. Format 7 (symbolic-character): "ALL symbolic-character-1" with ALL NOT underlined (verified at 300 dpi including the descender band).
@@ -237,6 +615,53 @@ Compiler impact: the ACCEPT screen Format 3 AT phrase must accept LINE alone, CO
 - **Why:** Underlining is what separates a required keyword from an optional word (8.3.1.1). Formats 1–5 on this page each get a Figure-notes paragraph recording that `ALL` is NOT underlined there; Formats 6 and 7 get none, so a reader of the markdown cannot tell that `ALL` is required in Format 6 and — more importantly — cannot see that the printed standard leaves `ALL` un-underlined in Format 7 even though `ALL symbolic-character-1` is meaningless without it. That un-underlined `ALL` in Format 7 looks like an ISO typesetting defect of exactly the kind the Figure notes exist to record, and it is currently invisible.
 - **Repair:** Give Formats 6 and 7 their own Figure-notes paragraphs in the same style as Formats 1–5: for Format 6, `ALL` is underlined (required word), `literal-1` is not; for Format 7, flag with ⚠ that `ALL` is printed WITHOUT an underline although omitting it would leave a plain symbolic-character rather than a figurative constant — an apparent typesetting omission, reproduced as printed. Then delete the misplaced 'ⓘ For contrast' aside from the Format 5 notes.
 - **Verifier:** Confirmed, but re-scope and re-motivate it. GENUINE DEFECT: Formats 6 and 7 of 8.3.3.6.2 (specs/ISO_COBOL.md lines 6218-6224) are the only formats on page 144 transcribed as bare paragraph text with no Figure-notes paragraph, and the required/optional status of `ALL` in FORMAT 7 is recorded nowhere in the document. NOT A DEFECT, and to be dropped from the finding: (a) Format 6's underline IS already recorded, at line 6216, merely misfiled as an aside on the Format 5 notes block - it should be moved to a proper Format 6 Figure-notes paragraph, not treated as missing; (b) the un-underlined `ALL` in Format 7 is NOT an ISO typesetting defect. It is correct and deliberate: 8.3.2.2.29 defines a symbolic-character as itself a user-defined figurative constant, 8.3.2.4.3 makes un-underlined uppercase words optional 'with no effect on the semantics of the format', and GR 10 (8.3.3.6.4) uses the Formats 1-5 'one or more of the character' phrasing while GR 3(b) singles out `ALL literal-1` as the sole length-from-literal form. So `ALL` is optional in Format 7 exactly as in Formats 1-5, and `symbolic-character-1` alone is a legal figurative constant. Correct remediation: give Formats 6 and 7 their own Figure-notes paragraphs matching the page's convention - Format 6: '`ALL` IS underlined in the printed standard (required word); `literal-1` is not. Without `ALL`, literal-1 is an ordinary literal, not a figurative constant.'; Format 7: '`ALL` is NOT underlined - it is an optional word (8.3.2.4.3), so `symbolic-character-1` alone is already a figurative constant (8.3.2.2.29) and `ALL symbolic-character-1` is semantically identical.' Then relocate the line-6216 aside out of the Format 5 block. Also fix the claim's dead citation: the underlining convention is 8.3.2.4.2 / 8.3.2.4.3, not '8.3.1.1', which does not exist in this document. Severity is better read as 'annotation-omission' than 'incorrect-figure' - the transcribed glyph text of both formats is exactly right; only the underline metadata note is absent.
+
+### p146 · missing-heading · **structural**
+
+- **PDF:** FORMAT 1  [plain body-face paragraph label at the left margin, same roman body font and weight as the numbered rules; NOT bold, NOT a numbered clause heading -- contrast '8.3.3.6.4  General rules' which is set bold]. Likewise FORMAT 2, FORMAT 3, FORMAT 4 on this page.
+- **Markdown:** ## FORMAT 1
+...
+## FORMAT 2
+...
+## FORMAT 3
+...
+## FORMAT 4   (ISO_COBOL.md lines 6280, 6284, 6288, 6298)
+- **Why:** These four labels are invented level-2 headings that do not exist as headings in the PDF. They become peers of the real clause headings (## 8.4 References, ## 8.3.3.6.3 Syntax rules), so 'FORMAT 1' appears in the document outline as a top-level section and the general rules 4)-7) get detached from their owning clause 8.3.3.6.4. Everywhere else in the transcription the same label is plain text: 209 occurrences match '^FORMAT [0-9]' while only 8 are '^## FORMAT [0-9]' -- these 4 plus 4 more at lines 19800, 25360, 28029, 28033.
+- **Repair:** Demote all four to plain paragraphs ('FORMAT 1', 'FORMAT 2', 'FORMAT 3', 'FORMAT 4') to match the 209 other FORMAT labels in the file. Sweep the remaining 4 occurrences at lines 19800, 25360, 28029 and 28033 in the same change set.
+- **Verifier:** Real, but mislabeled and slightly understated.
+
+KIND IS INVERTED. 'missing-heading' is the wrong tag: nothing is missing from the transcription. The literal text 'FORMAT 1'..'FORMAT 4' is present in both sources. The defect is an INVENTED (spurious / over-promoted) heading -- plain body-face labels in the PDF were emitted as level-2 markdown headings. The correct kind is 'spurious-heading' or 'invented-heading'.
+
+SEVERITY OF THE STRUCTURAL HARM IS UNDERSTATED. The claim says the labels 'become peers of the real clause headings'. They are worse than peers of their owner: the owning clause is '### 8.3.3.6.4 General rules' at level 3 (line 6253), while '## FORMAT n' is level 2, so each injected label CLOSES clause 8.3.3.6.4 and re-parents general rules 4)-7) under a phantom top-level section. (The claim's 'peers' wording is accurate only against '## 8.3.3.6.3 Syntax rules' at line 6227 and '## 8.4 References' at line 6392, which are indeed level 2 -- the transcription's own clause-heading levels are themselves inconsistent across 8.3.3.6.1 through 8.3.3.6.4: '####', '##', '##', '###' respectively. That level inconsistency is a separate pre-existing defect, not part of this finding.)
+
+SCOPE NOTE FOR THE FIX. The corroborating evidence is stronger than the claim states: within clause 8.3.3.6.4 the transcription already renders the sibling label 'ALL FORMATS' as plain text (line 6258; plain in 42/42 occurrences document-wide), and renders 'FORMAT 6'/'FORMAT 7' plain at lines 6242/6248 -- six identically-typeset PDF labels, two different renderings, inside forty lines. The remedy is to demote all 8 spurious occurrences ('## FORMAT n' at lines 6280, 6284, 6288, 6298, 19800, 25360, 28029, 28033) to plain body text, matching the 209 correct occurrences and the 42 'ALL FORMATS' occurrences.
+
+NO SEMANTIC CHANGE. No spec prose is added, dropped, or altered on this page, and no COBOL behavior is affected. The impact is confined to document outline and heading-based section extraction / citation lookup.
+
+### p154 · misplaced-content · **structural**
+
+- **PDF:** Format 2 (qualified-data-name-with-subscripts):
+
+qualified-data-name-with-subscripts-1
+
+[end of PDF page 154 / printed page 124; PDF page 155 then opens with]
+
+Format 3 (reference-modification):
+
+identifier-1 reference-modifier-1
+- **Markdown:** Format 2 (qualified-data-name-with-subscripts):
+
+qualified-data-name-with-subscripts-1 Format 3 (reference-modification):
+
+<a id="page-155"></a>
+## Page 155
+**ISO/IEC 1989:2023 (E)**
+
+
+identifier-1 reference-modifier-1
+- **Why:** 8.4.3.1.2 General format is the identifier general-format figure. The Format 3 label is glued onto the end of the Format 2 general-format skeleton line, so the transcription reads as though the Format 2 skeleton were 'qualified-data-name-with-subscripts-1 Format 3 (reference-modification):' and Format 3 has no label of its own -- the skeleton 'identifier-1 reference-modifier-1' at the top of page 155 is left orphaned with no format heading. Anyone deriving the identifier formats from the markdown loses the Format 2 / Format 3 boundary. The label is also on the wrong side of the page-155 anchor (it is printed at the top of page 155, not the bottom of 154).
+- **Repair:** At E:/CobolSharp/specs/ISO_COBOL.md line 6678, split the run-together line: leave 'qualified-data-name-with-subscripts-1' alone on line 6678, and move 'Format 3 (reference-modification):' to its own paragraph immediately AFTER the <a id="page-155"></a> / ## Page 155 / **ISO/IEC 1989:2023 (E)** block, directly above 'identifier-1 reference-modifier-1'.
+- **Verifier:** CONFIRMED, with a precision note. No text is missing or misspelled -- every word of both formats survives. The defect is twofold: (1) block merge -- the paragraph break between the Format 2 skeleton and the Format 3 label is lost, producing the single markdown line 'qualified-data-name-with-subscripts-1 Format 3 (reference-modification):' (specs/ISO_COBOL.md:6678), which destroys the label-to-skeleton pairing for both Format 2 and Format 3 in the 8.4.3.1.2 identifier general format; and (2) page misattribution -- that Format 3 label is placed before the <a id="page-155"></a> anchor (line 6680), i.e. transcribed as page-154 content, whereas the PDF prints it as the first line of body text on page 155 (printed page 125), immediately above 'identifier-1  reference-modifier-1'. PDF page 154 (printed 124) genuinely ends at 'qualified-data-name-with-subscripts-1'. Fix: split line 6678 into 'qualified-data-name-with-subscripts-1' on its own line, and move 'Format 3 (reference-modification):' to after the page-155 anchor and running head, immediately preceding 'identifier-1 reference-modifier-1' at line 6685.
 
 ### p155 · misplaced-content · **structural**
 
@@ -270,6 +695,19 @@ The page-164 slice then begins directly at "a) arguments are the operands specif
 - **Repair:** Re-attach the whole NOTE block to item 2) of 8.5.1.4 and keep it visibly informative: indent the dashed sub-items and both trailing paragraphs under the NOTE paragraph (or repeat a 'NOTE (continued)'/blockquote marker) so the non-normative boundary ends where the PDF's reduced typeface ends.
 - **Verifier:** Real, with three corrections to how it was described. (1) The claim understates the extent: the NOTE's OWN labelled paragraph is also flush at column 0 in the markdown, so the loss is the entire block's item-level indent (label paragraph + both em-dash sub-items + both trailing paragraphs), not merely the two trailing paragraphs falling out of a correctly-placed NOTE. (2) 'markedly smaller' overstates the type-size delta: measured from the PDF text layer it is Cambria 9.73 pt against 10.7 pt body, about 9% -- a consistent and real reduction (ISO's standard NOTE face, corroborated by the x0=97.5 vs 80.0 indent shift) but not a dramatic one. The indent, not the point size, is the load-bearing signal. (3) 'the entire NOTE hangs off numbered item 2)' over-specifies the scope: the geometry places the NOTE at the numbered-list body level (x0=97.5), immediately after item 2), and its content addresses BOTH items -- the first dashed sub-item explains composite sequences, which is item 1), and the second explains surrogate pairs, which is item 2). It is a note on the list, positioned after its last item, not exclusively a note on item 2). Accurate statement of the defect: in ISO/IEC 1989:2023 page 183 (printed 153), 8.5.1.4, PDF lines y=241.5 through y=463.3 form one NOTE block set in Cambria 9.73 pt at x0=97.5 -- the numbered-item body margin -- comprising the 'NOTE The UTF-16 format ...' paragraph, two em-dash sub-items, the 'These techniques facilitate efficient processing ...' paragraph and the 'COBOL does not provide any special handling or recognition of surrogate pairs ...' paragraph, with the 8.5.1.5 heading (11.67 pt Bold, x0=80.0) next. specs/ISO_COBOL.md lines 7985, 7987, 7989, 7991 and 7993 emit all five flush at column 0, at the same level as the clause's normative 'The following processing limitations shall apply ...' prose, so the last two paragraphs read as clause-level requirements. Repair: indent lines 7985-7993 by 3 spaces, matching the file's existing NOTE-under-a-numbered-item convention at lines 15440 and 23205, which keeps continuation paragraphs at the NOTE's indent. No text needs to be added, removed or reworded.
 
+### p206 · misplaced-content · **structural**
+
+- **PDF:** Table 3 - Combinations of symbols in arithmetic expressions. Its header (on page 205) is: column 1 'First symbol'; a 'Second symbol' spanning group over columns 'Identifier or literal', '+ - * / **', 'Unary + or -', '(', ')'. Page 206 carries only the five BODY rows, whose leading cell is a First-symbol value: 'Identifier or literal | - | P | - | - | P', '+ - * / ** | P | - | P | P | -', 'Unary + or - | P | - | - | P | -', '( | P | - | P | P | -', ') | - | P | - | - | P'.
+- **Markdown:** | Identifier or literal | — | P | — | — | P |
+|---|---|---|---|---|---|
+| + − * / ** | P | — | P | P | — |
+| Unary **+** or **−** | P | — | — | P | — |
+| ( | P | — | P | P | — |
+| ) | — | P | — | — | P |
+- **Why:** The markdown separator line '|---|...' is placed AFTER the 'Identifier or literal' row, which promotes a First-symbol body row into a column-header row of a standalone table. Rendered, Table 3 becomes two disconnected tables and the reader cannot recover which of the five value columns is 'Identifier or literal' vs '+ - * / **' vs 'Unary + or -' vs '(' vs ')'. Table 3 is the normative statement of which operator/operand adjacencies are legal in an arithmetic expression, so an unreadable column mapping makes it unusable for deciding whether e.g. 'A + ( B' is well formed. The P/— cell values themselves are all transcribed correctly.
+- **Repair:** Reunify Table 3 into a single markdown table at its page-205 anchor (header row '| First symbol | Identifier or literal | + − * / ** | Unary + or − | ( | ) |' followed by one separator line and the five body rows), and leave a page-206 cross-reference in place of the orphaned fragment rather than restarting the table with a promoted header.
+- **Verifier:** CONFIRMED, with the impact restated and the scope widened to both fragments of the same table. Table 3 spans the p.205/p.206 anchor boundary: p.205 holds the caption and the two-tier header, p.206 holds the five body rows and the P/— legend. All thirty P/— cells on p.206 are transcribed correctly and no text is missing. The genuine defect is structural markup: (1) on p.206 the '|---|---|---|---|---|---|' delimiter is emitted after the first data row, so GFM renders 'Identifier or literal | — | P | — | — | P' as the table head — the First-symbol = 'Identifier or literal' row vanishes from the body and its five verdicts read as column captions, leaving only four of Table 3's five rows as data; (2) on p.205 the header row '| First symbol | Second symbol | | | |' declares five columns while the caption row beneath it carries six cells, so GFM truncates the trailing '**)**' caption out of existence. Net rendered result: six data columns labelled by at most four surviving captions, plus one normative row displayed as a header. The claim's assertion that the column mapping is unrecoverable is overstated for raw-text readers — the p.205 caption row does list the five Second-symbol labels in the correct order with a leading empty cell that aligns them to the six-cell body rows — but it is accurate for any rendered view. Fix: repeat the full six-cell column-caption row (or an equivalent flattened header such as 'First symbol | Identifier or literal | + – * / ** | Unary + or – | ( | )') above the delimiter on the p.206 fragment, and widen the p.205 delimiter row to six columns so the ')' caption is not dropped.
+
 ### p213 · missing-text · **structural**
 
 - **PDF:** Table 4 — Combination of symbols in boolean expressions has a two-level header: the corner cell 'First Symbol' plus a spanning header cell 'Second symbol' printed above the five column headers 'Identifier or literal', 'B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC', 'B-NOT', '(' and ')'.
@@ -293,6 +731,24 @@ The page-164 slice then begins directly at "a) arguments are the operands specif
   • line 10466 (p236→p237): 'NUMERIC-EDITED OBJECT OBJECT-COMPUTER OBJECT-REFERENCE OCCURS OF' — the p236 render confirms NUMERIC-EDITED is that page's last col-3 entry, so OBJECT, OBJECT-COMPUTER, OBJECT-REFERENCE, OCCURS and OF belong to p237.
   • line 10584 (p237→p238): 'SYSTEM-DEFAULT TABLE TALLYING TERMINATE TEST THAN' — same shape; TABLE, TALLYING, TERMINATE, TEST and THAN belong to p238 (worth re-rendering p237/p238 to confirm the split point before editing).
 Across the three boundaries 15 reserved words are mis-attributed and 18 entries are unextractable. Unrelated but adjacent: 'EMD-START' at p236 col 1 is ISO's OWN printed typo for END-START and the markdown reproduces it correctly — do not 'fix' it in the transcription; record it as an ISO defect and normalize it in the reserved-word table build instead.
+
+### p274 · misplaced-content · **structural**
+
+- **PDF:** 5)  For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that:
+
+    a)  is specified with the BY VALUE phrase
+
+[page break]
+
+    b)  if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.
+
+-- two separate lettered list items, a) ending the printed page and b) opening the next.
+- **Markdown:**    a) is specified with the BY VALUE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.
+
+(ISO_COBOL.md line 12016; the following line is the <a id="page-275"></a> anchor, and page 275 begins directly at item 'c)')
+- **Why:** Rule 5)b) has lost its status as an independent lettered rule: its label 'b)' is now mid-sentence inside rule 5)a), so a search for 'b)' under 14.8.2-style conformance rule 5 finds nothing and an automated rule extractor sees rule 5) as having items a), c), d) with a) carrying two unrelated requirements. The text itself is intact but the list structure is corrupted at the page seam.
+- **Repair:** Split ISO_COBOL.md line 12016 into two list items: '   a) is specified with the BY VALUE phrase' and, after a blank line, '   b) if the passed parameter is specified with the OMITTED phrase, ...'. Move item b) after the page-275 anchor if the transcription's convention is to place text on the page where it is printed.
+- **Verifier:** Confirmed real, with two refinements to the claim's rationale. (1) The claim overstates the search impact: the literal characters 'b)' survive mid-line, so a raw substring search for 'b) if the passed parameter is specified with the OMITTED phrase' does still hit line 12016. What is lost is the structural boundary -- the line/paragraph break and hanging-indent that make it a discrete list item -- so it is line-anchored, list-aware, and rule-extraction tooling that fails, not plain grep. (2) The claim describes only the merge; the defect is also a page-attribution error, since the b) text is printed on PDF page 275 but appears inside the ISO_COBOL.md page-274 block, ahead of the page-275 anchor. Also corroborating, and worth fixing in the same edit: the sibling items on the following markdown page (lines 12023 and 12025, 'c)' and 'd)') sit at zero indent instead of the three-space sub-item indent used for 4)a)-d) and 5)a), so the whole 5)a)-d) sub-list is de-nested from rule 5) across the seam. Correct fix: split line 12016 before 'b)', move the b) item below the <a id="page-275"></a> anchor to match the printed page, and re-indent 5)b), 5)c), 5)d) to three spaces to match rule 4).
 
 ### p275 · misplaced-content · **structural**
 
@@ -356,6 +812,46 @@ PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
 - **Repair:** Render both skeletons in one fenced block preserving their line structure and add the standard 'Figure notes' paragraph: IDENTIFICATION, DIVISION., PROGRAM-ID./FUNCTION-ID., AS, PROTOTYPE., END, PROGRAM/FUNCTION are underlined (required words); IS is not underlined (optional word).
 - **Verifier:** Page 286, §10.6.1: in the 'where program-prototype is:' and 'where function-prototype is:' skeletons the PDF prints underlines that per 5.2.6.2 mark required words — IDENTIFICATION, DIVISION., PROGRAM-ID. / FUNCTION-ID., AS, PROTOTYPE., END, PROGRAM / FUNCTION — and pointedly leaves IS un-underlined (forensically 0% ink coverage on the underline row vs 68-96% for its neighbours), making 'PROGRAM-ID. name PROTOTYPE.' legal. The markdown transcribes both skeletons as plain text with no <u> markup and no Figure-notes paragraph, so the required/optional distinction is absent from the page. Two corrections to the original claim: (a) it is NOT the case that every other figure on these pages carries a Figure-notes paragraph — the page-287 function-definition and the page-288 class-, factory- and instance-definition skeletons are equally unannotated, so these two are not anomalous on this run of pages; (b) severity is overstated as 'structural' — the transcription already records the distinction correctly in the normative general formats at §11.5.2 Format 2 and §11.10.2 Format 2, both of which leave IS unmarked, so the document never asserts IS is mandatory and an implementer working from the authoritative clause gets the right answer. Suggested fix: add a Figure-notes paragraph to the two page-286 skeletons naming the underlined words and stating that IS is an optional word, matching the treatment already given to the page-287 program-definition figure.
 
+### p288 · incorrect-figure · **structural**
+
+- **PDF:** where class-definition is:
+
+  [ IDENTIFICATION DIVISION. ]
+  CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]
+      [ INHERITS FROM { object-class-name-2 } ... ]
+      [ USING { parameter-name-1 }  ...  ] .
+
+  [ options-paragraph ]
+  [ environment-division ]
+  [ factory-definition ]
+  [ instance-definition ]
+  END CLASS object-class-name-1.
+
+(and likewise the 'where factory-definition is:' and 'where instance-definition is:' skeletons) -- three multi-line general-format skeletons whose line structure and indentation are load-bearing.
+- **Markdown:** where class-definition is:
+
+[ IDENTIFICATION DIVISION. ]
+CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]
+　[ INHERITS FROM { object-class-name-2 } ... ]
+　[ USING { parameter-name-1 } ... ] .
+
+[ options-paragraph ]
+[ environment-division ]
+[ factory-definition ]
+[ instance-definition ]
+END CLASS object-class-name-1.
+
+-- emitted as bare paragraph text with NO ``` code fence (ISO_COBOL.md lines ~12537-12566); indentation is a U+3000 IDEOGRAPHIC SPACE.
+- **Why:** Every other general-format skeleton in this neighbourhood is fenced (page 287 program-definition, page 289 interface-definition/method-definition, page 294 CLASS-ID 11.3.2). Unfenced, CommonMark joins these consecutive lines into a single run-on paragraph and collapses the U+3000 indentation, so the class-definition/factory-definition/instance-definition skeletons render as one unreadable line and the nesting of INHERITS/USING under CLASS-ID is destroyed. Any tool or reader consuming the rendered markdown loses the figure.
+- **Repair:** Wrap all three skeletons on page 288 in ``` fences, matching the treatment already used on pages 287, 289 and 294, and replace the U+3000 indent with ordinary spaces.
+- **Verifier:** CONFIRMED, with two corrections to the claim's framing.
+
+(1) The claim's premise that 'every other general-format skeleton in this neighbourhood is fenced' is overstated. The three named siblings (page 287 program-definition/function-definition, page 289 interface-definition/method-definition, page 294 CLASS-ID 11.3.2) are indeed fenced, but the immediately PRECEDING page 286 also carries two unfenced skeletons -- 'where program-prototype is:' (ISO_COBOL.md line 12455) and 'where function-prototype is:' (line 12471). Spec-wide the split is 32 fenced / 12 unfenced (also pages 315, 322, 335, 558, 649). The page-288 blocks are therefore an instance of a broader transcription pattern, not a lone outlier, and the fix should sweep all 12.
+
+(2) The claim's stated harm mechanism is right in outcome but imprecise in mechanism. The damage on page 288 comes from the skeleton lines being CONSECUTIVE (no blank lines), so CommonMark folds them into one paragraph and the soft line breaks collapse to spaces on render -- verified by rendering the block through markdown-it. By contrast the page-286 unfenced prototypes are blank-line separated, so each line becomes its own <p> and the line structure survives; that is why page 288 is the worse case. Separately, the U+3000 indent is NOT 'collapsed': U+3000 is not ASCII whitespace, so both CommonMark and HTML preserve it -- it simply ends up stranded mid-line after the join, and it diverges from the 4-ASCII-space indent the fenced twin of this very figure uses on page 294 (line 12817).
+
+Everything else in the claim holds. Exact extent: specs/ISO_COBOL.md lines 12535-12566 (class-definition 12537-12546, factory-definition 12550-12556, instance-definition 12560-12566). Word-level content matches the PDF exactly; no text is missing, no choice indicator is involved. Remedy: wrap each of the three skeletons in a ``` fence and normalize the two U+3000 indents on lines 12539-12540 to four ASCII spaces, matching page 294.
+
 ### p289 · incorrect-figure · **structural**
 
 - **PDF:** The page prints the method-definition general format exactly ONCE, immediately under 'where method-definition is:':  [ IDENTIFICATION DIVISION. ]  /  METHOD-ID. { method-name-1 [ AS literal-1 ]  |  { GET / SET } PROPERTY property-name-1 } [ OVERRIDE ] [ IS FINAL ] .  /  [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] / END METHOD [ method-name-1 ] .   It is followed directly by 'NOTE   Method-definition is included here for completeness ...'.
@@ -363,6 +859,26 @@ PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
 - **Why:** A general format printed once now appears twice in the transcription. A reader (or a generator that walks the markdown for general formats) sees two syntax skeletons for one construct and cannot tell which is canonical; the second copy also sits between the figure-notes blockquote and the NOTE that belongs to the figure, breaking the note/figure adjacency the PDF establishes.
 - **Repair:** Delete the duplicate fenced block at lines 12613-12627 (the second, 5-line brace variant), keeping the first block plus its figure-notes blockquote, so the NOTE at line 12629 follows the notes directly as on the printed page.
 - **Verifier:** The claim is accurate as written, including both quoted sources and the line numbers; two refinements for whoever applies the fix. (1) The two copies carry IDENTICAL token content -- every terminal, non-terminal, bracket and brace matches -- so the duplication introduces no conflicting syntax, only an ambiguity about which fence is canonical. The sole difference is the brace art: fence #1 (12596-12609) draws the outer brace with four rows (⎧ / ⎨ / ⎪ / ⎩) placing METHOD-ID. on row 2, while fence #2 (12613-12627) draws five rows (⎧ / ⎪ / ⎨ / ⎪ / ⎩) placing METHOD-ID. on the centre ⎨ piece. Measured against the render, the printed METHOD-ID. sits vertically centred on the tall brace (brace spans roughly the method-name-1 row through the SET row, with METHOD-ID.'s baseline between the GET and method-name-1 rows), so fence #2 is the marginally more faithful rendition of the printed geometry. (2) The fix is therefore to delete ONE fence and keep exactly one, positioned immediately BEFORE the figure-notes blockquote so the file's established figure -> figure-notes -> prose ordering holds and the NOTE at 12629 again abuts the annotated figure; the cleanest edit is to keep fence #2's five-row layout in fence #1's slot and delete the trailing duplicate at 12613-12627.
+
+### p290 · missing-heading · **structural**
+
+- **PDF:** 10.6.3   General rule
+
+-- a third-level subsection of 10.6 COBOL compilation group, printed identically to 10.6.1 General format which precedes it.
+- **Markdown:** ## 10.6.3 General rule
+
+-- level 2, the same level as its parent '## 10.6 COBOL compilation group' and above its sibling '### 10.6.1 General format'. ('## 10.6.2  Syntax rules', on page 289, has the same defect.)
+- **Why:** 10.6.3 detaches from 10.6 in the outline, so the general rule for compiling program/function prototype definitions no longer appears under the COBOL compilation group section that scopes it. Consistent with the same defect at 9.3.7/9.3.8 and 9.3.13/9.3.14.
+- **Repair:** Demote '## 10.6.3 General rule' (and '## 10.6.2  Syntax rules') to '###' so they sit under '## 10.6 COBOL compilation group' alongside '### 10.6.1 General format'.
+- **Verifier:** kind should be wrong-heading-level (not missing-heading); severity structural, non-normative. The heading text is present and verbatim: PDF p.290 prints '10.6.3   General rule' in the identical bold subclause style used for '10.6.1   General format' (p.286) and '10.6.2   Syntax rules' (p.289), and the markdown carries the same words plus a correct '<a id="section-10-6-3"></a>' anchor. The defect is the markdown heading DEPTH: line 12675 emits '## 10.6.3 General rule' at level 2, equal to its own parent '## 10.6 COBOL compilation group' (line 12439) and shallower than its sibling '### 10.6.1 General format' (line 12442), so heading-depth-derived outlines lift 10.6.3 (and 10.6.2, line 12641) out of the clause that scopes them. No spec text, numbering, or anchor is lost, so no citation of 10.6.3 is impaired. This is NOT a page-local finding: 276 of 784 x.y.z headings across specs/ISO_COBOL.md (~35%, earliest at 4.2.5, line 2418) carry the same level-2/level-3 error, while the immediately following clause 10.7 is transcribed correctly (### for 10.7.1-10.7.4), confirming level 3 is the intended convention. Fix as a single global normalization pass that re-levels every x.y.z heading to '###' (and audits deeper x.y.z.w headings likewise), not as 276 individual page repairs.
+
+### p300 · missing-heading · **structural**
+
+- **PDF:** 11.7.4   General rules   (a fourth-level clause heading, printed at the same typographic rank as 11.7.1 General, 11.7.2 General format and 11.7.3 Syntax rules)
+- **Markdown:** ## 11.7.4 General rules   (line 13070 of specs/ISO_COBOL.md — an h2, while its siblings are '### 11.7.1 General' at 13019, '### 11.7.2 General format' at 13024 and '### 11.7.3 Syntax rules' at 13037, and their parent is '## 11.7 METHOD-ID paragraph' at 13016)
+- **Why:** 11.7.4 is promoted to the same heading rank as its own parent 11.7, so the general rules of the METHOD-ID paragraph detach from that paragraph in any generated TOC or outline-driven navigation and appear as a peer clause. Anchor-based lookups that walk the heading tree to find 'the rules belonging to 11.7' will not find them.
+- **Repair:** Change '## 11.7.4 General rules' to '### 11.7.4 General rules'.
+- **Verifier:** Confirmed, but re-scope and re-label it. kind should be 'heading-level-inversion', not 'missing-heading': no text is missing - page 300 renders '11.7.4   General rules' and specs/ISO_COBOL.md carries that heading verbatim at line 13070 with a correct '<a id="section-11-7-4"></a>' anchor, and all seven general rules transcribe faithfully. The real defect is that the fourth-level clause 11.7.4 is emitted as '## ' (h2) while its own parent '## 11.7 METHOD-ID paragraph' (13016) is also h2 and its three siblings 11.7.1/.2/.3 (13019/13024/13037) are '### ' (h3); the analogous 11.8.4 at 13118 is correctly h3. Two corrections to the impact statement: id-based anchor lookup still works, and demoting the heading to h3 alone would NOT reattach it to 11.7, because the '## Page 300' marker at line 13061 is itself an h2 that already severs 11.7's subtree at the page break - any real fix must derive heading level from the clause number AND stop emitting page markers as h2 headings. Finally, this is not a page-300 one-off: 586 of 2082 numbered headings sit at or above their parent's level, 322 of them within 12 lines of a page marker (e.g. the identical '## 11.10.4 General rules' at 13583 after '## Page 311'), so it should be ledgered as one instance of a systemic page-boundary heading-rank class rather than as an individual page finding.
 
 ### p305 · missing-heading · **structural**
 
@@ -381,6 +897,14 @@ PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
 - **Why:** The duplicate copies sit at the same indentation level as the genuine top-level SPECIAL-NAMES clauses ([ symbolic-characters-clause ] ... on line 13947, [ ORDER TABLE ... ] . on line 13949). A reader - or a grammar generator - walking the SPECIAL-NAMES clause list will read them as two additional mandatory, unbracketed top-level clauses, when in fact they are alternatives inside an optional repeatable group.
 - **Repair:** Delete ISO_COBOL.md lines 13944-13945; the alternatives are already correctly rendered inside the code block at lines 13937-13938 and described in the figure note at line 13941.
 - **Verifier:** REAL, and the claim is accurate as written; two refinements for the record. (1) Occurrence count in the markdown is five, not four: besides the correct fenced copies at 13937-13938 and the spurious copies at 13944-13945, both phrases are also named inline inside the figure-notes blockquote at line 13941 ('it offers three alternatives - the `switch-name-1` form, `feature-name-1 IS mnemonic-name-2`, or `device-name-1 IS mnemonic-name-3`'). That prose mention is legitimate and must be kept; only 13944-13945 are spurious. (2) The two spurious lines are adjacent with no blank line between them, so Markdown renders them as a single paragraph with a soft break rather than two separate blocks - immaterial to the defect, but relevant if a downstream extractor splits on blank lines. FIX: delete lines 13944-13945 (and the now-redundant blank line), leaving the fenced diagram at 13930-13939 and its figure notes at 13941-13942 as the sole representation of the clause, so that '[ symbolic-characters-clause ] ...' follows the notes directly, exactly as printed on folio 290.
+
+### p326 · missing-heading · **structural**
+
+- **PDF:** 12.3.7.4   General rules   (a fourth-level clause heading under 12.3.7 SPECIAL-NAMES paragraph, printed at the same rank as 12.3.7.1 General, 12.3.7.2 General format and 12.3.7.3 Syntax rules)
+- **Markdown:** ## 12.3.7.4 General rules   (line 14217 of specs/ISO_COBOL.md — an h2, the same rank as its parent '## 12.3.7 SPECIAL-NAMES paragraph' at 13875. Note the sibling '### 12.3.7.1 General' at 13878 is correctly an h3, while '## 12.3.7.2 General format' at 13903 and '## 12.3.7.3 Syntax rules' at 14025 share the same defect)
+- **Why:** The SPECIAL-NAMES general rules sit at the rank of their own parent clause, so the whole 12.3.7 subtree is flattened in any generated outline. Because 12.3.7.2 and 12.3.7.3 (on pages 320–325, outside this batch) carry the identical defect, the repair should be swept across all three, not applied to 12.3.7.4 alone.
+- **Repair:** Change '## 12.3.7.4 General rules' to '### 12.3.7.4 General rules', and sweep 12.3.7.2 (line 13903) and 12.3.7.3 (line 14025) to '###' in the same change set.
+- **Verifier:** REAL, but mis-scoped and partly mis-argued. Confirmed: specs/ISO_COBOL.md line 14217 renders '12.3.7.4 General rules' as '## ' (h2), the same rank as its own parent '## 12.3.7 SPECIAL-NAMES paragraph' at line 13875, flattening the 12.3.7 subtree in any generated outline. No text is missing or altered - the heading string is verbatim correct against the rendered PDF page 326 - so this is a heading-rank/hierarchy defect, not a lost-content defect. Two corrections to the claim: (a) the PDF does not typographically distinguish depth-3 from depth-4 clause headings (rendering pages 319, 320 and 326 shows 12.3.7, 12.3.7.1, 12.3.7.2 and 12.3.7.4 all set in the same bold face and size), so the correct rank is established by the clause NUMBERING and by the transcription's own dominant convention (620 four-component headings at '###' vs 162 at '##'), not by any visible difference in the printed glyphs; (b) the sweep is far larger than the three headings named - '## 12.3.6.4 General rules' (line 13790) and '## 12.3.8.4 General rules' (line 14599) share the defect, and 162 four-component headings sit at h2 file-wide. The repair should be a single mechanical pass promoting every N.N.N.N heading to h3 (and re-checking the 24 at '####'), not a hand edit of 12.3.7.2/.3/.4.
 
 ### p335 · incorrect-figure · **structural**
 
@@ -424,6 +948,32 @@ LOSS 2 — NORMATIVE, not merely typographic: Format 3's CODE-SET clause loses i
 
 The missing code fence is real but incidental — many clause-13 general formats are unfenced prose and still carry their markup; the fix is to fence Formats 2 and 3 as page 372 does and attach a Figure-notes paragraph listing the twelve underlined words and the CODE-SET choice indicators.
 
+### p388 · incorrect-figure · **structural**
+
+- **PDF:** RD report-name-1
+  [ IS GLOBAL ]
+  [code-clause]
+  [control-clause]
+  [page-clause]  .
+
+(printed page 358 / PDF page 388. In the printed figure the word 'RD' carries an underline and, inside the first bracket, 'GLOBAL' carries an underline while 'IS' does not.)
+- **Markdown:** RD report-name-1
+
+&nbsp;&nbsp;&nbsp;&nbsp;[IS GLOBAL]
+
+&nbsp;&nbsp;&nbsp;&nbsp;[code-clause]
+
+&nbsp;&nbsp;&nbsp;&nbsp;[control-clause]
+
+&nbsp;&nbsp;&nbsp;&nbsp;[page-clause] .
+- **Why:** Per 5.2.5 (keywords are shown underlined; optional words are shown not underlined), the underline is the ONLY thing distinguishing the required keyword GLOBAL from the optional word IS, and RD from a non-keyword. With both underlines dropped, the figure no longer records which words are required, so a reader cannot tell from the transcription that 'RD report-name-1 GLOBAL.' is legal without IS. The transcription does preserve this markup elsewhere in the same batch (page 376 has '<u>SD</u>', page 402 '<u>ALIGNED</u>', page 404 '<u>AUTO</u>', page 406 '<u>BASED</u>', page 410 '<u>BLINK</u>'), so this page is an outlier, not a document-wide convention.
+- **Repair:** Restore the required-word underlines in the 13.14.2 general format: '<u>RD</u> report-name-1' and '[ IS <u>GLOBAL</u> ]'. Optionally add a 'Figure notes' blockquote in the style used elsewhere in the transcription recording that RD and GLOBAL are underlined, IS is not, the four brackets are independent options with no choice indicators, and the terminating period is printed outside the last bracket.
+- **Verifier:** Real, and the quoting of both sources is accurate; one refinement to the characterization. The kind label 'incorrect-figure' slightly overstates the defect: the figure's STRUCTURE is transcribed correctly -- the five lines, the four bracket pairs, the clause order, the indentation and the separator period outside the final bracket all match the printed page. The defect is confined to lost underline (keyword vs optional-word) markup on exactly two words: RD and GLOBAL. A more precise label is 'lost general-format underline markup' at structural severity, since 5.2.5 makes underlining part of the general-format meta-language alongside brackets and braces.
+
+One addition strengthens the claim beyond what it states: the transcription preserves this data by TWO conventions, not one. Besides the inline '<u>' spans the claim cites (376, 402, 404, 406, 410), it also uses a prose 'Figure notes' block that enumerates the underlined words -- see line 15986 for the page-372 FD entry, whose printed figure underlines FD and GLOBAL just as page 388 does. Page 388 uses neither convention. Most pointedly, line 18726 (page 438, the standalone GLOBAL clause, 13.18.27.2) transcribes the identical construct as 'IS <u>GLOBAL</u>', so the transcription contradicts itself between page 388 and page 438 on the same clause.
+
+Suggested fix, matching the page-376 inline house style: '<u>RD</u> report-name-1' and '[IS <u>GLOBAL</u>]'. Alternatively add a Figure notes block in the page-372 style recording that RD and GLOBAL are underlined in the printed standard and IS is not.
+
 ### p389 · missing-text · **structural**
 
 - **PDF:** 13.15.2 General format is a typeset diagram with required words UNDERLINED: USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN (in PRESENT WHEN), GROUP, OCCURS, TO, DEPENDING, STEP. Deliberately NOT underlined: IS, WHEN (in BLANK WHEN ZERO), INDICATE, TIMES, ON. (Confirmed at 300 dpi: in '[ BLANK WHEN ZERO ]' only BLANK and ZERO carry rules; in '[ GROUP INDICATE ]' only GROUP does; in '[ PRESENT WHEN condition-1 ]' both PRESENT and WHEN do.)
@@ -439,6 +989,24 @@ level-number [ entry-name-clause ]
 - **Why:** Underlining is the standard's sole marker of required words, so its loss erases the required/optional distinction for this format — notably that WHEN is REQUIRED in 'PRESENT WHEN' but OPTIONAL in 'BLANK WHEN ZERO', and that INDICATE and TIMES are optional words. Sibling general formats in the same clause (pages 369, 371, 377, 379, 381, 385) all carry a Figure-notes paragraph recording exactly this, so page 389 is the outlier.
 - **Repair:** Add a 'Figure notes (Report group description entry general format)' paragraph listing the underlined words (USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN, GROUP, OCCURS, TO, DEPENDING, STEP) and the non-underlined ones (IS, WHEN in BLANK WHEN ZERO, INDICATE, TIMES, ON), and note that the source/sum/value group is a plain bracket with no choice indicators.
 - **Verifier:** Real, but re-scope the rationale. GENUINE: page 389's 13.15.2 fence preserves every word, bracket and brace of the printed format yet records none of its underlining, and unlike every sibling general format in clause 13 it carries neither a 'Figure notes' blockquote nor <u> markup. So the required/optional word distinction is unrecoverable FROM 13.15.2 ITSELF - including the pointed asymmetry that WHEN is a required word in PRESENT WHEN but an optional word in BLANK WHEN ZERO, and that IS, INDICATE, TIMES and ON are optional. Verified underline inventory: ruled = USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN (PRESENT WHEN only), GROUP, OCCURS, TO, DEPENDING, STEP; unruled = IS, WHEN (BLANK WHEN ZERO), INDICATE, TIMES, ON. OVERSTATED IN THE CLAIM, two corrections: (a) 'page 389 is the outlier' is too strong - 13.14.2 on page 388 (report description entry, lines 16636-16644) likewise carries no underline record and is not even fenced, and OCCURS Format 3, the report-writer STEP format at line 19557, is also transcribed bare; the omission is a small cluster in this stretch, not a unique singleton; (b) the specific facts are partly recoverable elsewhere in the transcription, since 13.18.8.2, 13.18.28.2 and 13.18.41.2 do preserve BLANK/ZERO, GROUP and PRESENT/WHEN via <u> markup - so the WHEN asymmetry is reconstructible from those subclauses, which lowers the practical severity from 'normative information destroyed' to 'normative marking absent where the composite format is read'. The one item recorded nowhere is STEP's status as a required word. FIX: add a Figure-notes blockquote after the 13.15.2 fence listing the ruled and unruled words above, and note that the source/sum/value-clause stack is bracketed (at most one) with no choice indicators. ADJACENT, NOT PART OF THIS CLAIM but worth a separate finding: the PDF wraps '[ USAGE IS ] { DISPLAY | NATIONAL }' in an OUTER square bracket making the whole USAGE clause optional, and the markdown (lines 16694-16695) drops that outer bracket, so the transcription reads as if a DISPLAY-or-NATIONAL choice were mandatory in every report group description entry.
+
+### p390 · misplaced-content · **structural**
+
+- **PDF:** PDF page 390 (printed 360) ends syntax rule 14 with:
+"c)  If the literal is national, 'PICTURE N(length)'"
+and nothing further. PDF page 391 (printed 361) then opens with a SEPARATE paragraph, set at the subrule indent and NOT lettered:
+"where length is the length of the literal as specified in 8.3.3, Literals."
+followed by "15) If BLANK WHEN ZERO or JUSTIFIED is specified, ...".
+- **Markdown:**    c) If the literal is national, 'PICTURE N(length)' where length is the length of the literal as specified in 8.3.3, Literals.
+- **Why:** The 'where length is ...' sentence is the closing definition for ALL THREE implied PICTURE strings of syntax rule 14 (X(length), 1(length), N(length)). Splicing it onto the tail of subrule c) makes it read as if 'length' were defined only for the national case, leaving 'length' undefined for the alphanumeric and boolean subrules. The transcription itself renders the identical construct correctly at 13.16.3 syntax rule 9 (specs/ISO_COBOL.md line 16953), where the same sentence stands as its own indented paragraph after subrule c), which confirms the p390 rendering is the defect and not the convention.
+- **Repair:** Split the sentence out of subrule c). Leave 'c) If the literal is national, 'PICTURE N(length)'' as the last subrule of rule 14 in the page-390 slice, and place 'where length is the length of the literal as specified in 8.3.3, Literals.' as its own indented paragraph at the head of the page-391 slice, immediately before syntax rule 15 - matching both the printed page break and the existing correct pattern at 13.16.3 rule 9.
+- **Verifier:** Confirmed, with one refinement to the claim's typographic description. On PDF p391 the paragraph 'where length is the length of the literal as specified in 8.3.3, Literals.' is set at x=407, which is the SUBRULE-LETTER / rule-14 hanging-body indent -- it is outdented from the subrule TEXT indent (x=483 on that page's margins) where a continuation of subrule c) would sit, and it carries no letter marker. So it is not merely 'at the subrule indent'; it is a hanging closing paragraph of syntax rule 14 as a whole, which strengthens rather than weakens the claim that it governs all three implied PICTURE strings. Fix: in specs/ISO_COBOL.md, split line 16769 so that 13.15.3 syntax rule 14 reads
+
+   c) If the literal is national, 'PICTURE N(length)'
+
+   where length is the length of the literal as specified in 8.3.3, Literals.
+
+matching the already-correct rendering at 13.16.3 SR 9 (line 16953) and 13.17.3 SR 10 (line 17251). The standalone sentence belongs to the p390 rule-14 block even though the PDF prints it at the top of p391, so it should be placed before the <a id="page-391"></a> anchor.
 
 ### p391 · misplaced-content · **structural**
 
@@ -509,6 +1077,36 @@ Correct resolution: collapse to a SINGLE Format 1 (basic) diagram using copy 1's
 The choice indicators must be preserved: I independently confirmed on the printed page that a tall vertical bar stands just inside each inner brace of the FOR group, bracketing the stacked NEGATIVE/POSITIVE alternatives. Per 5.2.6.4 that means one or more of NEGATIVE/POSITIVE, each at most once, in any order — not an exclusive either/or — so a single FOR phrase may carry NEGATIVE alone, POSITIVE alone, or both. Both existing notes state this correctly; keep that wording (dropping the inconsistent '900 dpi' / '600 dpi' verification asides, which differ between the copies and carry no normative content).
 
 Severity 'structural' is appropriate: a duplicated general format is directly consumable by a grammar generator and there is no way to tell from the markdown which of the two conflicting renderings is authoritative.
+
+### p489 · misplaced-content · **structural**
+
+- **PDF:** Table 10 — Format 1 picture symbol order of precedence: the 'First Symbol' column-group band spans the 24 symbol columns as Simple, special, and fixed insertion symbols = columns 1-9 (B 0 / , . + +- +- CRDB cs cs); Zero-suppression and floating insertion symbols = columns 10-15 (Z* Z* +- +- cs cs); Other symbols = columns 16-24 (9 A X S V P P 1 N E). The rule between the 'Zero-suppression and floating insertion symbols' band and the 'Other symbols' band falls immediately to the LEFT of the '9' column (verified: vertical rule at x=1696px, and the '9' cell spans x=1698-1759px).
+- **Markdown:** | | | **Simple, special, and fixed insertion symbols** | | | | | | | | | **Zero-suppression and floating insertion symbols** | | | | | | | **Other symbols** | | | | | | | |  — in this row cell 19 holds '**Other symbols**', but in the symbol-header row directly beneath it cell 19 is 'A X' and cell 18 is '9'. The group label therefore starts one column late, placing the '9' column under 'Zero-suppression and floating insertion symbols'.
+- **Why:** The three band labels are the standard's own classification of the picture symbols. As transcribed, '9' — an ordinary digit-position symbol — is presented as a zero-suppression / floating-insertion symbol, contradicting 13.18.40.5 rule 7 (only 'Z' and '*' are zero-suppression symbols) and rule 6 (only cs, the extended editing sign control symbols, '+' and '-' are floating insertion symbols). Anyone reading the precedence table to derive PICTURE validation would mis-classify the '9' column. The x-mark data itself is correct and unaffected.
+- **Repair:** In specs/ISO_COBOL.md line 20686, move '**Other symbols**' one cell to the left so it sits in cell 18 (aligned with the '9' column of the symbol-header row), i.e. delete one empty cell between '**Zero-suppression and floating insertion symbols**' and '**Other symbols**' and add one empty cell after '**Other symbols**', keeping the row at 26 cells.
+- **Verifier:** Confirmed as described; no correction needed. Precise form: in E:/CobolSharp/specs/ISO_COBOL.md page-489 Table 10, the band-label row places '**Other symbols**' in pipe cell 19, which aligns with symbol column 17 ('A X'). The PDF's band rule falls at x=1696 px (300 dpi), immediately left of symbol column 16 ('9', x 1696-1759), so the label belongs in pipe cell 18. Fix: move '**Other symbols**' one cell left (cell 19 -> cell 18), leaving the trailing empty cell at the end of the row, so that the bands read 9 / 6 / 9 columns as printed instead of 9 / 7 / 8. Only the band-label row needs to change; the symbol-header row and all sixteen x-mark data rows on this page are faithful to the PDF.
+
+### p490 · misplaced-content · **structural**
+
+- **PDF:** Table 10 (continued) has exactly 24 'First Symbol' data columns, headed (from p.489): 1 B 0 / | 2 , | 3 . | 4 + | 5 + - | 6 + - | 7 CR DB | 8 cs | 9 cs | 10 Z * | 11 Z * | 12 + - | 13 + - | 14 cs | 15 cs | 16 9 | 17 A X | 18 S | 19 V | 20 P | 21 P | 22 1 | 23 N | 24 E. On p.490 the printed marks are: row 9 -> 1,2,3,4,5,8,10,12,14,16,17,18,19,21,24; row A X -> 1,16,17; row S -> none; row V -> 1,2,5,8,10,12,14,16,18,20; row P(1st) -> 1,2,5,8,10,12,14,16,18,20; row P(2nd) -> 5,8,18,19,21; row 1 -> 22; row N -> 1,23; row E -> 1,2,3,5,16.
+- **Markdown:** The nine transcribed rows carry inconsistent cell counts (27, 27, 27, 27, 26, 26, 27, 27, 26) against a 28-column separator row, and the first row '| Other symbols | | 9 | x | ...' carries THREE leading cells while every other row ('| | A X | ...', '| | S | ...', ...) carries only TWO. Consequently marks land under the wrong First-Symbol column: row 'N' = '| | N | x | ... | x | |' puts its second mark in data column 24 (E) instead of 23 (N); row 'E' = '| | E | x | x | x | | x | ... | x | ...' puts its right-hand mark in column 15 (cs) instead of 16 (9); row 'A X' puts its two marks in columns 17 and 18 (A X, S) instead of 16 and 17 (9, A X); row 'P' (2nd) puts its right-hand marks in columns 17, 18, 20 (A X, S, P-1st) instead of 18, 19, 21 (S, V, P-2nd).
+- **Why:** Every cell of Table 10 is a normative 'symbol X may precede symbol Y' assertion. A one-column shift silently re-attributes each assertion to a different picture symbol, so a reader (or a generated conformance test) derives permissions and prohibitions for the wrong symbols - e.g. reading 'E may precede N' where the standard says 'N may precede N'.
+- **Repair:** Re-emit the Table 10 continuation as a fixed 26-column markdown table: column 1 = the 'Other symbols' row-group label, column 2 = the Second-Symbol row label, columns 3-26 = the 24 First-Symbol columns in the p.489 header order, with every row padded to the same width. Then re-place each x at the column indices listed in pdf_says.
+- **Verifier:** REAL, and one notch worse than claimed. page-490.md's Table 10 (continued) is structurally desynchronized from the 2-leading-cell + 24-data-cell convention that page-489.md uses for the same table (whose line 11 is the authoritative column-header row: B 0 / , . + +- +- CR DB cs cs Z* Z* +- +- cs cs 9 A X S V P P 1 N E). Every element of the claim is verified: the row cell counts are 27/27/27/27/26/26/27/27/26 against a 28-cell separator; the '9' row uniquely carries three leading cells ('| Other symbols | | 9 | ...') instead of two; and rows A X, P(2nd), N and E place marks in exactly the wrong columns the claim names (A X at 17,18 instead of 16,17; P(2nd) at 17,18,20 instead of 18,19,21; N at 24 instead of 23; E at 15 instead of 16). Two facts the claim omits: (1) the P (first) row does not merely shift - it LOSES a mark outright, transcribing 9 marks (1,2,5,8,10,12,14,16,18) where the PDF prints 10 (1,2,5,8,10,12,14,16,18,20), deleting the normative assertion 'P may precede P'; and (2) rows S, V and 1 do transcribe correctly under the 2-leading reading, and the '9' row transcribes correctly only under a 3-leading reading - it is precisely this per-row inconsistency, not a uniform offset, that makes the table unreadable. The fix is to normalize all nine rows to 26 cells (rotated label / row symbol / 24 data) matching page-489.md, re-seat every mark from the measured PDF positions listed in the reasoning, and restore the dropped P-row mark at data column 20.
+
+### p528 · misplaced-content · **structural**
+
+- **PDF:** Sub-items are printed indented under their parents: the continuation paragraph 'If a report footing is defined and is not on a page by itself, the page footing on the last page is immediately followed by the report footing.' sits at the body indent of General rule 6) f) (it is the tail of f)); 'g) The report footing, if defined, is printed, ...' sits at the a)-g) marker indent under 6); '7) The upper limit is defined to be the uppermost permitted line ...' sits at the top-level rule indent; 'a) The upper limit for a report heading or a page heading ...' through 'g) The upper limit for a report footing that does not appear on a page by itself ...' are indented one level under 7); and '1. If the body group is a control heading at the same or a higher control level ...' through '4. If the body group is a control footing, ...' are indented a further level under 7) d).
+- **Markdown:** Every one of those lines is flush left at column 0 with no indentation, e.g.:
+"If a report footing is defined and is not on a page by itself, the page footing on the last page is immediately followed by the report footing."
+"g) The report footing, if defined, is printed, as the very last report group in the report, ..."
+"7) The upper limit is defined to be the uppermost permitted line on the page that may be occupied by the report group's first line. It is calculated as follows:"
+"a) The upper limit for a report heading or a page heading where no report heading appears on the same page is the line given by the HEADING integer."
+"1. If the body group is a control heading at the same or a higher control level than the highest-level control heading that has an OR PAGE phrase, the upper limit is the line given by the FIRST DETAIL integer."
+"g) The upper limit for a report footing that does not appear on a page by itself is the line following the last line of the page footing, ..."
+- **Why:** Indentation is the only thing that binds a sub-item to its parent rule in 13.18.57.4, and here it is the only thing lost. Flattened, page 528 shows two different 'g)' items at the same level as '7)' - one belonging to General rule 6) (carried over from page 527) and one belonging to 7) - so a reader or a tool walking the list cannot tell which rule either 'g)' qualifies, and the '1.' through '4.' cases read as top-level enumerations instead of the four sub-cases of 7) d) (upper limit for a body group when some control heading carries OR PAGE). The transcription preserves this nesting correctly on pages 527, 529 and 535 of the same clause, which confirms page 528 is drift rather than a house style.
+- **Repair:** Re-indent the page-528 slice to match the convention already used on pages 527/529/535: three spaces before 'a)'..'g)' of rule 7) and before the 'g)' that belongs to rule 6), six spaces before '1.'..'4.' under 7) d), and three spaces before the 'If a report footing is defined ...' continuation paragraph so it stays attached to 6) f).
+- **Verifier:** Real and essentially as described; one supporting citation in the claim is wrong. Page 528 flattens all of 13.18.57.4's nesting to column 0: the tail continuation of General rule 6) f), item 6) g), rule 7), the seven lettered sub-items a)-g) under 7), and the four numbered sub-cases 1.-4. under 7) d) are all at indent 0, where the transcription's own convention (and the PDF's typography) is 0 / 3 / 6 spaces for the rule / letter / numeral levels. The claim cites pages 527, 529 and 535 as same-clause counterexamples; only 527 and 529 are in clause 13.18.57.4 - page 535 is clause 13.18.60 (USAGE) and merely corroborates the house style. The strongest evidence, which the claim understates, is that General rule 6)'s own lettered enumeration is transcribed at indent 3 on page 527 (a through f) and indent 0 on page 528 (g), so a single list is split across the page break at two different levels - unambiguous per-page drift. Fix is indentation only: no text is missing, misquoted, or reworded on this page.
 
 ### p606 · misplaced-content · **structural**
 
@@ -606,6 +1204,36 @@ SHARING WITH    ⎨ NO OTHER   ⎬
 - **Repair:** Change ISO_COBOL.md line 34553 to '<u>FUNCTION</u> <u>CONVERT</u> ( argument-1 source-format destination-format )'. Sweep the sibling defect at line 38293 (<u>FUNCTION</u> TEST-NUMVAL) in the same change set.
 - **Verifier:** CONFIRMED, with one citation correction. On printed page 859, clause 15.19.2 General format, the standard prints two underline rules — one spanning FUNCTION (x 342-541) and one spanning CONVERT (x 567-749) — pixel-aligned to those two word boxes, with no rule under the operands. specs/ISO_COBOL.md line 34553 renders this as '<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )', dropping the underline on CONVERT only. Because the line does mark FUNCTION, the omission is not a neutral loss of formatting but an affirmative miscategorization: under 5.2.2/5.2.3 (NOT 5.2.6.2, which is 'Brackets' — the claim's citation is wrong) an unmarked uppercase word in a general format is an optional word, so the transcription implies 'FUNCTION ( argument-1 … )' is a legal CONVERT reference. Within the file's inline underline-marked family of function general formats (18 lines), 16 correctly use '<u>FUNCTION</u> <u>NAME</u>' and only CONVERT (34553) and TEST-NUMVAL (38293) are defective; the second instance was independently verified against printed page 956, where both FUNCTION and TEST-NUMVAL are underlined. Fix: wrap both function names in <u>…</u>. Note that a larger set of clause-15 general formats is transcribed inside code fences with no underline markup at all (e.g. 'FUNCTION ACOS ( argument-1 )' at line 34065); that is a separate, uniform transcription-style gap, not part of this defect.
 
+### p27 · misplaced-content · **cosmetic**
+
+- **PDF:** (second-level indent, continuing the "— The following were general enhancements:" list opened on page 26)
+      — Inline exception handling using the exception-checking format of the PERFORM statement
+      ...
+      — Type declarations may now be external items
+
+(first-level indent, a new top-level bullet)
+  — The following intrinsic functions were added or enhanced:
+      — BASECONVERT function
+- **Markdown:** — Inline exception handling using the exception-checking format of the PERFORM statement
+...
+— Type declarations may now be external items
+
+— The following intrinsic functions were added or enhanced:
+    — BASECONVERT function
+- **Why:** The ten items at the top of page 27 are indented one level deeper in the PDF than "The following intrinsic functions were added or enhanced:" — they are the continuation of the "The following were general enhancements:" sub-list opened on page 26, which page 26's markdown does nest correctly. Page 27 flattens them to column zero, making them siblings of the two group headings instead of members of the general-enhancements group. The items themselves are all present, in the right order, with the right wording, so nothing normative is lost; this is a list-nesting break across a page boundary in the non-normative Foreword. Reported for completeness only — lowest priority in this batch.
+- **Repair:** Indent the ten items on page 27 ("Inline exception handling" through "Type declarations may now be external items") one level, so they continue the page-26 `- — The following were general enhancements:` sub-list, leaving "The following intrinsic functions..." and "Additional compiler directives..." at the outer level.
+- **Verifier:** Confirmed as described, with two additions for the fixer. (1) The mis-nesting is verifiable within page 27 alone — it does not require the page-26 context to detect — because the ten items measure left=482, identical to the BASECONVERT..TRIM sub-items further down the same page, while the two group headings measure left=409. (2) The two pages also disagree on transcription STYLE, which is the likely root cause: page 26 encodes the list with real markdown bullets ('- — heading' / '  - — child'), whereas page 27 encodes it as literal em-dash text lines with four-space indentation for children and none for parents. A fix should indent the ten items to the child level and, ideally, normalize page 27 to page 26's markdown-list style so the sub-list rejoins its parent across the page break.
+
+### p136 · incorrect-text · **cosmetic**
+
+- **PDF:** The special-character-word table's column headings, printed once at the head of the table on page 135, are: "Word" and "Meaning". Page 136 is a continuation of that table and prints no heading row.
+- **Markdown:** | Symbol | Description |
+|--------|-------------|
+| – | Arithmetic operator - unary minus or subtraction |
+- **Why:** The continuation half of the table is given an invented heading row whose labels differ from the standard's own terms. 8.3.2.4.2 defines these entries as special character *words*; labelling the column "Symbol" instead of "Word" drifts from the spec's terminology, and "Description" replaces "Meaning". The page-135 half of the same table correctly uses `| **Word** | **Meaning** |`.
+- **Repair:** Change the page-136 continuation header to `| **Word** | **Meaning** |` to match the printed headings carried over from page 135 (or merge the two halves into a single table).
+- **Verifier:** CONFIRMED, with the scope narrowed. Page 136 of the PDF is a mid-table continuation and prints no heading row; the transcription's page-136.md opens the continuation with a synthesized header `| Symbol | Description |`. The existence of a header row is NOT the defect — a GFM table cannot omit one, so a page-per-page transcription must synthesize a header for any table split across a page boundary; that is legitimate page-break furniture. The defect is the label text: "Symbol" and "Description" are words that appear nowhere in the standard for this table, and they contradict the standard's own bold column headings for the same two columns, printed on page 135 and transcribed correctly there as `| **Word** | **Meaning** |`. "Symbol" is additionally the wrong term of art — 8.3.2.4.2 classes these entries as special character *words*, a kind of reserved word. Correct fix: change page-136.md's synthesized header to `| **Word** | **Meaning** |` so the continuation matches the standard's own labels. The table body is otherwise faithful — all 15 entries are present, in order, with the "=" entry's wrapped second line correctly joined. Severity cosmetic; no normative content is affected.
+
 ### p205 · other · **cosmetic**
 
 - **PDF:** Table 3 — Combinations of symbols in arithmetic expressions: header 'First symbol' in the corner, 'Second symbol' spanning, then the five column headers 'Identifier or literal', '+ – * / **', 'Unary + or –', '(' and ')'.
@@ -643,6 +1271,30 @@ RELATED BUT SEPARATE, NOT A CONTENT LOSS: the PDF's first physical line on page 
 - **Why:** Underlining is the standard's marker for a REQUIRED word (5.2.6). The transcription already has a convention for it and uses it correctly two figures earlier on page 229 ('data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>'), so the marker was silently dropped here rather than deliberately omitted. A reader or generator that treats unmarked figure words as optional/user-supplied would mis-classify the negated-condition keyword.
 - **Repair:** Change specs/ISO_COBOL.md:10048 to '<u>NOT</u> condition-1' to match the p229 convention.
 - **Verifier:** CONFIRMED with two corrections to the framing. (a) Clause citation: the marker's meaning is fixed by 5.2.2 Keywords ('uppercase and underlined ... required') and 5.2.3 Optional words ('uppercase and NOT underlined ... may be written'), not by 5.2.6 (Options / brackets and braces). (b) Scope: this is NOT a page-231-local slip. A sweep of all 281 'General format' sections shows 154 with non-fenced bodies, of which 92 carry no underline markup at all — including siblings that print underlines in the PDF, e.g. 7.3.8.4.2 L3878 'compilation-variable-name-1 IS [ NOT ] DEFINED' and most of the 15.x FUNCTION formats. So p231 L10048 is one instance of a document-wide systemic loss of the keyword underline, and any fix should be swept across that population rather than patched at this line. What IS locally damning, and what makes the finding worth keeping at page 231, is the intra-page inconsistency: the second figure on the same page (8.8.4.11.2, L10063-L10071) preserves its underlines via a prose 'Figure notes' block, while the first figure gets neither that note nor the inline <u> markup that the same transcription applies to the identical word NOT at L9691 and L9984. Severity 'cosmetic' is right for a human reader — 8.8.4.10.1 states in prose that a condition is negated 'by use of the logical operator NOT' — but it is meaning-bearing for any mechanical consumer that derives required-vs-optional word status from the figure.
+
+### p254 · missing-heading · **cosmetic**
+
+- **PDF:** 9.1.13.2   Successful completion  (a fourth-level subclause of 9.1.13 I-O status, peer of 9.1.13.1 General and 9.1.13.3 through 9.1.13.11)
+- **Markdown:** ## 9.1.13.2 Successful completion  (whereas ISO_COBOL.md has '## 9.1.13 I-O status', '### 9.1.13.1 General', '### 9.1.13.3 ...', '### 9.1.13.4 ...', '### 9.1.13.5 ...' etc.)
+- **Why:** 9.1.13.2 is emitted at the same markdown level as its own parent 9.1.13 and one level shallower than all its siblings, so a generated outline detaches it from the I-O status clause and shows the nine remaining status subclauses as children of 9.1.13.2. Heading text and number are correct; nothing normative is lost.
+- **Repair:** Change '## 9.1.13.2 Successful completion' to '### 9.1.13.2 Successful completion' as part of the document-wide heading-depth normalization.
+- **Verifier:** kind is mislabeled: nothing is missing. The heading '9.1.13.2 Successful completion' IS present in ISO_COBOL.md (line 11290) with correct number, correct text, and a correct '#section-9-1-13-2' anchor. The real defect is a WRONG HEADING LEVEL (kind should be 'heading-level' / wrong nesting depth): it is emitted as '##', the same depth as its own parent '## 9.1.13 I-O status', instead of '###' like its peers. Two further corrections to the claim: (a) the defect is NOT unique to 9.1.13.2 - '## 9.1.13.8 Record operation conflict condition with unsuccessful completion' (ISO_COBOL.md line 11457) has the identical wrong level, so any fix must sweep both; (b) the stated outline consequence is overstated - because 9.1.13.8 is also '##', only the FIVE subclauses 9.1.13.3 through 9.1.13.7 get misparented under 9.1.13.2, while 9.1.13.9 through 9.1.13.11 get misparented under 9.1.13.8, and 9.1.13.1 alone remains correctly under 9.1.13. Fix: change lines 11290 and 11457 from '##' to '###'. No normative content is affected.
+
+### p258 · missing-heading · **cosmetic**
+
+- **PDF:** 9.1.13.8   Record operation conflict condition with unsuccessful completion  (a fourth-level subclause of 9.1.13, peer of 9.1.13.7 and 9.1.13.9)
+- **Markdown:** ## 9.1.13.8 Record operation conflict condition with unsuccessful completion  (whereas its immediate neighbours read '### 9.1.13.7 Logic error condition with unsuccessful completion' and '### 9.1.13.9 File sharing conflict condition with unsuccessful completion')
+- **Why:** Same outline break as 9.1.13.2: the heading is one level shallower than its siblings, so 9.1.13.9, 9.1.13.10 and 9.1.13.11 become children of 9.1.13.8 in any generated TOC. No normative content is affected.
+- **Repair:** Change '## 9.1.13.8 ...' to '### 9.1.13.8 ...' as part of the document-wide heading-depth normalization.
+- **Verifier:** Confirmed, with two refinements to the description. First, the defect is a heading-LEVEL error only, not missing text: the heading's wording is present and verbatim-correct in the markdown ('## 9.1.13.8 Record operation conflict condition with unsuccessful completion', specs/ISO_COBOL.md line 11457), so the kind is better characterized as 'heading-level' than 'missing-heading'. Second, the structural damage is slightly worse than stated: because the parent clause 9.1.13 is itself transcribed as '## 9.1.13 I-O status', giving 9.1.13.8 a '##' does not merely make it shallower than its siblings - it detaches it from its own parent and emits it as a SIBLING of 9.1.13, on par with 9.1.12 and 9.1.14. The three following subclauses 9.1.13.9, 9.1.13.10 and 9.1.13.11 (all correctly '###') then nest under 9.1.13.8 instead of under 9.1.13, exactly as claimed. Independently verified against the printed page: PDF page 258 (folio 228) sets '9.1.13.8   Record operation conflict condition with unsuccessful completion' in the same bold serif, same point size and same left margin as '9.1.13.7   Logic error condition with unsuccessful completion' on page 257 (folio 227) and '9.1.13.9   File sharing conflict condition with unsuccessful completion' on page 259 (folio 229) - there is no typographic basis in the source for the promotion. The fix is a one-character change of '##' to '###' on line 11457; the identical fix is needed on line 11290 for 9.1.13.2, which is the only other member of the 9.1.13.1-9.1.13.11 run with the same defect. No normative content is affected.
+
+### p264 · missing-heading · **cosmetic**
+
+- **PDF:** 9.1.18.5   Run unit termination ... 9.1.18.6   Object orientation ... 9.1.18.7   Exception conditions  (fourth-level subclauses of 9.1.18 Commit and Rollback, peers of 9.1.18.1 through 9.1.18.4)
+- **Markdown:** ## 9.1.18.5 Run unit termination ... ## 9.1.18.6 Object orientation ... ## 9.1.18.7 Exception conditions  (whereas ISO_COBOL.md has '## 9.1.18 Commit and Rollback', '### 9.1.18.1 General', '### 9.1.18.2 Files and data items to be included', '### 9.1.18.3 Committing changes to files', '### 9.1.18.4 Rolling back changes to files and data items')
+- **Why:** The last three subclauses of the Commit and Rollback clause are emitted at the same level as the clause itself, so an outline shows 9.1.18 as containing only .1 to .4 and lists .5, .6, .7 as sibling clauses. Heading text, numbers and anchors are correct; nothing normative is lost.
+- **Repair:** Change the three '## 9.1.18.x' headings to '### 9.1.18.x' as part of the document-wide heading-depth normalization.
+- **Verifier:** Real, but the 'missing-heading' label is wrong -- no heading is missing. All three headings (9.1.18.5 Run unit termination, 9.1.18.6 Object orientation, 9.1.18.7 Exception conditions) are present in specs/ISO_COBOL.md with correct text, correct clause numbers and correct anchors; their following paragraphs are complete and verbatim. The actual defect is a heading-LEVEL error (kind should be 'heading-level' / wrong nesting depth): lines 11633, 11638 and 11643 use '##' where their four sibling subclauses at lines 11605-11620 use '###' under the '## 9.1.18 Commit and Rollback' parent at line 11602, so the three tail subclauses become peers of their own parent and of '## 9.1.19 Sort file'. The trigger is the page 263->264 break immediately preceding 9.1.18.5. Not a one-off: the file contains 162 four-part clause numbers emitted at level 2 against 620 at level 3, of which 58 sit within eight lines of a 'Page N' marker -- so the transcription has a recurring heading-depth reset that is only partly page-break-driven and warrants a file-wide sweep rather than a single-line patch. Severity cosmetic is correct for prose fidelity; the only functional risk is heading-scoped section extraction of 9.1.18 truncating after .4.
 
 ### p289 · incorrect-figure · **cosmetic**
 
@@ -697,6 +1349,62 @@ This matches byte-for-byte how ISO_COBOL.md already renders the same two constru
 
 Severity is understated as 'cosmetic'. Underlining is semantic in this document - it is the only marker of required vs optional words - so this is a content-fidelity defect that inverts the required/optional status of MODE, IS and FILE for any consumer of the markdown. Recommend re-classifying to minor/substantive. The fix is mechanical: add the `<u>` markup to the five lines, matching the convention already used on the neighbouring pages; no figure note is needed since these are single plain lines rather than fenced diagrams.
 
+### p451 · ocr-error · **cosmetic**
+
+- **PDF:** 10) If more than one integer-1 or integer-2 operand is specified ... c) The occurrences of integer-1, if present, shall be in ascending numerical order. ... 12) Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item.  (all hyphens printed as the ordinary hyphen U+002D, as everywhere else in the document)
+- **Markdown:** integer‑1 / integer‑2 / Identifier‑1 / working‑storage / local‑storage  (specs/ISO_COBOL.md lines 19250, 19256, 19264 encode the hyphen as U+2011 NON-BREAKING HYPHEN instead of U+002D)
+- **Why:** These are COBOL metavariable and section names. Encoded with U+2011 they are no longer byte-identical to 'integer-1', 'Identifier-1', 'working-storage', 'local-storage' as spelled in the surrounding text and everywhere else in the standard, so grep/citation tooling that searches for the operand names silently misses these three general rules of 13.18.35.3. The artifact is sporadic (107 occurrences on 38 lines file-wide), not a deliberate typographic convention.
+- **Repair:** Replace U+2011 with U+002D on lines 19250, 19256 and 19264; the same substitution should be swept across the remaining 35 lines that carry U+2011.
+- **Verifier:** Real, correctly located and correctly counted, but the evidence is stated one step too strongly and the scope is stated one step too narrowly. (a) EVIDENCE: 'the PDF prints U+002D' cannot be established by looking -- U+002D and U+2011 render as the same glyph, and the ISO text layer is obfuscated. What is establishable, and what I established, is that the PDF encodes ONE hyphen character throughout (subset glyph U+01E6: 157/157 after 'integer', 17/17 before 'storage', over a 190-page sample), and the markdown renders that one character as U+002D 47171 times and as U+2011 107 times. The defect is the transcription's inconsistency against a uniform source, not a provable 2011-for-002D substitution. (b) The strongest proof is internal, and the claim omits it: adjacent pages 450/452/453 spell the same 13.18.35 operands 'integer-1'/'integer-2' with U+002D while page 451 uses U+2011, and 8 lines carry both encodings within one line -- e.g. line 31381 'FARTHEST-FROM-ZERO' (U+002D) beside 'identifier\u201114' (U+2011), where the page-773 text layer shows the identical glyph for both. (c) SCOPE: this is not a page-451 finding. Page 451 is 3 of 38 affected lines; the repair is a single global normalization of U+2011 -> U+002D across all 107 occurrences (leaving U+2013 and U+2014 alone, which are genuine en/em dashes such as the '-' printed in GR 11 on this page), and the reconciliation ledger should carry it once at file scope rather than 13 times per page. (d) Severity cosmetic is correct: no rule's meaning changes; the impact is confined to byte-exact grep and citation tooling.
+
+### p470 · ocr-error · **cosmetic**
+
+- **PDF:** e) If FOOTING is omitted, integer-7 will be equal to integer-6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer-1.  ...  4) A report heading or report footing on a page by itself may occupy any region of the page from HEADING integer-3 through the page limit integer-1 ...  5) If integer-2 is omitted, a value of 999 is assumed for the page width.  [all hyphens printed as ordinary U+002D HYPHEN-MINUS]
+- **Markdown:** e) If FOOTING is omitted, integer‑7 will be equal to integer‑6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer‑1.  ...  4) A report heading or report footing on a page by itself may occupy any region of the page from HEADING integer‑3 through the page limit integer‑1 ...  5) If integer‑2 is omitted, a value of 999 is assumed for the page width.  [all six hyphens are U+2011 NON-BREAKING HYPHEN, decimal 8209]
+- **Why:** All six 'integer-N' references on this page use U+2011 instead of the ASCII hyphen the PDF prints. The immediately preceding page (469), part of the same clause 13.18.39.4 General rules, uses ASCII hyphens for the identical terms. A grep or citation lookup for 'integer-7' therefore finds general rules 3)c) and 3)d) on page 469 but silently misses general rule 3)e) on page 470 - a retrieval hole in the one document this project treats as the authority for correct behavior. Verified by codepoint dump: the character at that position is decimal 8209.
+- **Repair:** Normalize U+2011 to U+002D throughout the page-470 slice. There are 107 U+2011 characters in specs/ISO_COBOL.md overall against thousands of ASCII hyphens; sweep them all in one pass so no normative term is unreachable by exact-match search.
+- **Verifier:** CONFIRMED, with two corrections to the framing.
+
+(a) EVIDENTIARY BASIS. The claim states as fact that the PDF prints U+002D. That cannot be read off the PDF: its text layer is obfuscated, and the hyphen surfaces as the internal subset code U+01E6 on both pages. What IS directly verifiable, and what I verified, is that page 469 and page 470 use the identical glyph - same font (Cambria), same size (10.7 pt), same advance width (3.552 pt), same internal code - so the PDF sets one and the same character in both places, while the markdown spells it two different ways. That the correct spelling is ASCII follows from the document's own convention (47,171 ASCII hyphens vs 107 U+2011 document-wide; 226 ASCII 'integer-N' vs 12; pages 468/469/471 all ASCII for this same metavariable) and from the printed glyph being an ordinary short hyphen at 600 dpi. Conclusion unchanged; the reasoning should cite glyph identity plus convention rather than a codepoint read of the PDF.
+
+(b) SCOPE - THIS IS A PATTERN, NOT A PAGE. Page 470 is 6 of 107 U+2011 instances spread over 9 pages: 417 (9), 451 (6), 470 (6), 695 (4), 723 (36), 742 (8), 743 (10), 773 (14), 868 (14). The corrupted tokens include metavariables (identifier‑14 x12, identifier‑1 x9, integer‑1 x6, literal‑1, argument‑1/2/3) and - materially worse than page 470 - actual COBOL reserved words and hyphenated terms whose spelling is load-bearing: I‑O, DATE‑TO‑YYYYMMDD, YEAR‑TO‑YYYY, file‑name, record‑key, Data‑name. On those pages a grep for a reserved word fails outright, so the sweep is worth more than the single-page repair. The fix is one global normalization of U+2011 to U+002D across specs/ISO_COBOL.md; there is no context in the document where a non-breaking hyphen is intended.
+
+Severity: cosmetic as to meaning (no general rule changes), but functional as to retrieval - and on the sibling pages, where reserved-word spellings are corrupted, it should be graded above cosmetic.
+
+### p507 · incorrect-figure · **cosmetic**
+
+- **PDF:** REVERSE-VIDEO   (13.18.48.2 General format - printed underlined, i.e. a required word, exactly as REQUIRED on p506 and SECURE on p510 are printed)
+- **Markdown:** `REVERSE-VIDEO`   (specs/ISO_COBOL.md line 21445 - wrapped in code backticks, no underline)
+- **Why:** The required-word underline is the load-bearing notation in every general format, and this file's own convention for it is <u>...</u> - the immediately neighbouring one-word formats use '<u>REQUIRED</u>' (line 21402) and '<u>SECURE</u>' (line 21545). Rendering this one as code span silently drops the required-word marker and breaks any mechanical scan that harvests required words from <u> tags. Meaning is recoverable here only because the format is a single word.
+- **Repair:** Replace `REVERSE-VIDEO` with <u>REVERSE-VIDEO</u> to match the printed underline and the file's own convention for one-word general formats.
+- **Verifier:** CONFIRMED as claimed, with two additions the claim did not mention.
+
+FIRST - the file has a documented fallback for cases where <u> cannot be used: fenced format blocks are followed by a '> **Figure notes ...**' blockquote that states which words are underlined in the printed standard (see 13.18.4.2 at line 17408 and 13.18.29.2 at line 18827). Line 21445 has neither the <u> tag nor a figure note, so the omission is not covered by any existing convention in the file.
+
+SECOND - this is a PATTERN, not a one-off. The complete set of standalone single-word general-format lines rendered as bare inline code spans instead of <u>...</u> is exactly three, and the fix should sweep all of them in one change set:
+  - specs/ISO_COBOL.md line 7155  - `EXCEPTION-OBJECT` (8.4.3.6.2 General format)
+  - specs/ISO_COBOL.md line 21445 - `REVERSE-VIDEO`   (13.18.48.2 General format)  <- the claimed instance
+  - specs/ISO_COBOL.md line 26154 - `COMMIT`          (14.9.7.2 General forms)
+Each should become <u>WORD</u> to match the 16 sibling lines already using that form.
+
+Separately observed while surveying (NOT part of this finding, logged only so it is not lost): line 17321 'ANY LENGTH' (13.18.2.2 General format) carries no underline markup at all on either word.
+
+### p545 · ocr-error · **cosmetic**
+
+- **PDF:** and each corresponding occurrence of the data item referenced by identifier-2.
+- **Markdown:** and each corresponding occurrence of the data item referenced by identifier-**2**.
+- **Why:** Stray markdown emphasis delimiters were injected around the operand ordinal. The PDF prints plain 'identifier-2' with no emphasis. Read as plain text (which is how the spec is grepped for operand names) the token becomes 'identifier-**2**', so a literal search for 'identifier-2' misses this sentence. It is a known recurring artifact in this transcription (the same pattern appears at specs/ISO_COBOL.md line 32469: 'literal-**1**', 'identifier-**2**', 'character positions**.**'), so it should be swept, not fixed in isolation.
+- **Repair:** In specs/ISO_COBOL.md line 22821 replace 'identifier-**2**.' with 'identifier-2.', and sweep the file for the sibling pattern /(?:identifier|literal|subscript|index|data-name)-\*\*\d+\*\*/ plus stray '**.**'.
+- **Verifier:** Claim is REAL and accurately quoted; only its scope was understated. Page 545 / specs/ISO_COBOL.md line 22821: the transcription emits 'identifier-**2**' where the PDF prints plain, unstyled 'identifier-2' (verified glyph-by-glyph on a 300dpi render - no bold, no italic, no emphasis anywhere in General rule 8). The stray-emphasis artifact is systematic, not a one-off pair: a sweep of the whole transcription finds 50 occurrences of the operand-ordinal form <operand>-**<digit>** across 29 lines, clustering in four contiguous runs at md pages 346 (lines 14956-14978: file-name, data-name, literal, integer), 418 (lines 17949-17967: integer-1 / integer-2, ~15 occurrences), 545 (this instance, isolated), and 801 (lines 32465-32475: identifier-1/2/4/5/7, literal-1). A related punctuation variant - emphasis wrapped around a trailing period, e.g. 'character positions**.**' - occurs 3 times, one of them on line 32469. Recommended remediation is a single mechanical sweep removing the injected '**' pairs across all 29 lines plus the 3 punctuation cases, rather than an isolated edit to line 22821. Note that only the page-545 instance was visually verified against the PDF here; the other three clusters are pattern matches on the markdown and should be spot-checked against their own renders before the sweep lands.
+
+### p551 · ocr-error · **cosmetic**
+
+- **PDF:** the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable-occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause.  [the PDF breaks the compound term across the p.551/p.552 boundary: 'variable-' ends the last line of p.551 and 'occurrence data item' opens p.552]
+- **Markdown:** in the OCCURS clause specified for the variable- occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause.
+- **Why:** 'variable-occurrence data item' is a defined ISO term (see 8.5.1.6 / 13.18.38 OCCURS clause). The page-boundary rejoin left a space after the intrinsic hyphen, splitting the defined term into two tokens, so a search of the spec for 'variable-occurrence data item' does not find this General rule 6 of the VALUE clause.
+- **Repair:** In specs/ISO_COBOL.md line 23080 replace 'variable- occurrence data item' with 'variable-occurrence data item'; sweep for other '<word>- <word>' page-boundary rejoins of hyphenated defined terms.
+- **Verifier:** REAL (cosmetic). specs/ISO_COBOL.md, page-551 block, VALUE clause General rule 6 under 13.18.63.4 FORMAT 1 (file line 23080): the cross-page rejoin of the compound term inserted a spurious space at its intrinsic hyphen, producing 'specified for the variable- occurrence data item' where the PDF prints 'variable-' as the last token of p.551 (folio 521) and 'occurrence data item' as the first tokens of p.552 (folio 522), i.e. the single term 'variable-occurrence data item'. The paragraph join across the page boundary was otherwise performed correctly. This is an isolated defect: the transcription's 6 other occurrences of the term (lines 21149, 21151, 23428, 23453, 25123, 27700) are correctly hyphenated, and no other COBOL compound term in the file exhibits the hyphen-space pattern. Impact is limited to exact-string search and token consistency — a search for 'variable-occurrence data item' misses VALUE clause GR 6; no semantic content is lost or altered. Fix: delete the space, yielding 'variable-occurrence data item'. Note that the claim's supporting citation of 8.5.1.6 is incorrect (8.5.1.6 is 'Alignment of data items in storage'); the term's normative home is the OCCURS clause, 13.18.38.
+
 ### p640 · other · **cosmetic**
 
 - **PDF:** DISPLAY Format 2 prints the AT phrase with choice-indicator bars inside its brace and the exception phrase with choice-indicator bars inside its bracket (both verified on the enlarged crop).
@@ -725,6 +1433,15 @@ USE [ GLOBAL ] BEFORE REPORTING identifier-1   (ISO_COBOL.md line 32562 — bare
 
 ## Refuted — deliberately NOT repaired
 
+- p121 · ocr-error — No discrepancy. The canonical PDF's Table 1 Character cell contains U+2013 EN DASH (advance 5.350 pt at a 10.70 pt Cambria em = 0.5000 em, matching Cambria's en dash exactly; hyphen-minus would be 0.3320 em / 3.552 pt and minus sign 0.5540 
+- p537 · ocr-error — Not a reconciliation finding. The PDF and specs/ISO_COBOL.md agree character-for-character: both print '£' as the left-hand operator on the four UNSIGNED rows of the 13.18.60.4 GR-12 minimum-range table, and both print '<' on the four SIGNE
+- p78 · misplaced-content — Not a content discrepancy. The claim's observations about both sources are factually correct -- the PDF prints b)-e) one indent level under general rule 9) and 1.-6. one level deeper under c), while the markdown places b), c), d), e) and 1.
+- p79 · misplaced-content — Not a content discrepancy. Confirmed physically: in the PDF the f)/g) labels sit at x=408 and the 10)-13) labels at x=338 (300 dpi), one hanging-indent step apart, while the markdown places all of them at column 0. But no text is missing, a
+- p82 · misplaced-content — Not a content discrepancy. Every element printed on PDF page 82 -- rule 7 items b), c), d); rule 8) and its items a), b), c); sub-items 1. through 4.; and the deeper item 'a. The two representations ...' -- is present verbatim, correctly la
+- p83 · misplaced-content — Not a content discrepancy. All text, all list labels, and the reading order on page 83 are transcribed faithfully; only leading indentation differs. The flattening is a systemic artifact of the transcription resetting indentation to column 
+- p120 · missing-heading — Not a discrepancy. PDF page 120 prints '8.1.3   COBOL character repertoire' and '8.1.3.1   General' in identical bold serif at identical size and identical flush-left margin - the PDF carries subclause depth ONLY in the dotted number, which
+- p131 · missing-heading — Not a page-131 PDF-vs-markdown content discrepancy. All 11 clause headings and all body text on page 131 are transcribed completely and accurately. The only difference is the markdown heading level (`##` vs `###`), which in this transcripti
+- p138 · missing-heading — Not a discrepancy. The heading 8.3.3.2.4 General rules is present, correctly numbered, correctly anchored and correctly positioned; no text is missing. The finding is really about the markdown heading LEVEL, which (a) transcribes nothing fr
 - p157 · missing-heading — Not a content discrepancy — reject as a spec-reconciliation finding. All five page-157 clause headings are transcribed with correct numbers and titles; the differences are markup only (bold wrapping, '##' instead of '###'/'####'), and the c
 - p163 · misplaced-content — Not a content discrepancy. The transcription does merge PDF page 164's two object-class-name-1 INVOKE forms and its standalone 'where:' paragraph onto the tail of specs/ISO_COBOL.md line 7078, ahead of the page-164 anchor — a raw-source lin
 - p183 · missing-heading — Not a PDF-vs-markdown content discrepancy. Page 183 transcribes completely and faithfully: both clause headings and all body text, notes and bullets are present verbatim, and the TOC entries (lines 289-290) and anchors (lines 7976, 7995) po
@@ -735,23 +1452,46 @@ USE [ GLOBAL ] BEFORE REPORTING identifier-1   (ISO_COBOL.md line 32562 — bare
 - p243 · misplaced-content — Not a content discrepancy. The markdown transcription of clause 8.11 is complete and faithful: all 94 printed intrinsic function names appear exactly once, in printed order, with no omissions, additions, or spelling changes (verified by tok
 - p251 · missing-heading — Not a PDF-vs-markdown discrepancy. Section 9.1.9 'Reel and unit' is transcribed completely and accurately on page 251 - number, title, anchor, and body text all match the printed page 221 exactly. The ISO PDF conveys heading depth only thro
 - p255 · misplaced-content — Independently rendered both PDF pages at 300 dpi and read the printed glyphs. The claim's factual description of both sources is ACCURATE: PDF page 255 (printed 225) ends 9.1.13.4 rule 1) with exactly one sub-item, 'a)  NEXT was specified o
+- p276 · missing-heading — Not a PDF-vs-markdown content discrepancy. All three headings (9.3.7, 9.3.8, 9.3.8.1) are present on page 276 with numbers and titles transcribed exactly; nothing is missing or misquoted. The PDF prints 9.3.6, 9.3.7, 9.3.8 and 9.3.8.1 in id
+- p282 · missing-heading — Not a content discrepancy. All six headings and all body text on page 282 are transcribed completely and correctly; the PDF renders 9.3.13, 9.3.14, 9.3.14.1-.3 and 9.4 in one identical style (Cambria,Bold 11.67 pt, x=63.5), so it encodes no
 - p303 · misplaced-content — Not a content discrepancy. The paragraph is present verbatim and in the correct document position (immediately after NOTE 2, before general rule 3). The claim's premise about a lost 'NOTE indent' is wrong: measured left edges show notes at 
 - p303 · missing-heading — Not a content discrepancy. The 11.9.6 DEFAULT ROUNDED clause heading, its three subsections, and all of its normative text are present and faithful on page 303. The only real difference is markdown '#' nesting depth, which is document-wide 
 - p304 · misplaced-content — REFUTED as a content discrepancy; accurate only as a cosmetic style inconsistency. The claim's factual observations about both sources check out -- the PDF prints the two NOTEs and sub-items a)/b) one hanging-indent level in (NOTEs in the s
 - p307 · missing-heading — Not a content discrepancy. All three headings (11.9.10.2 General format, 11.9.10.3 Syntax rule, 11.9.10.4 General rules) and all their rules are present and correct in the transcription; nothing is missing. The observation reduces to a cosm
 - p311 · missing-heading — Not a page-311 PDF-vs-markdown discrepancy. The heading '11.10.4 General rules' and all six of its FORMAT 1 / FORMAT 2 rules are transcribed verbatim with the correct clause number and a correct 'section-11-10-4' anchor. The sole difference
+- p312 · incorrect-figure — Not a page-312 figure error. The 12.2.1 general format is transcribed character-for-character correctly (3 lines, exact text, exact brackets and period). The printed page does underline ENVIRONMENT and DIVISION as two separate rules with th
+- p314 · missing-heading — Not a content discrepancy. The heading '12.3.5 SOURCE-COMPUTER paragraph' is present, complete and correctly numbered at line 13688, and all of page 314's content matches the PDF exactly. The observation reduces to a markdown '##'-vs-'###' 
+- p316 · missing-heading — Not a content discrepancy. The heading '12.3.6.4 General rules' is present, verbatim, with a correct '<a id="section-12-3-6-4"></a>' anchor, and the entire page-316 body matches the render. The only difference is the markdown heading level 
 - p337 · missing-heading — Not a content discrepancy. The heading '12.3.8.4 General rules' is transcribed verbatim with the correct clause number and a correct '<a id="section-12-3-8-4">' anchor; only the ATX level differs from its siblings ('##' at specs/ISO_COBOL.m
+- p338 · misplaced-content — Not a content discrepancy. The whole of 12.3.8.4 GR 11 item c) is present in the markdown, verbatim, with its 'c)' choice indicator intact; the PDF's page-339 opening glyphs are 'c)' and the markdown preserves them. The only difference is c
 - p408 · missing-heading — Not a spec-vs-transcription discrepancy. Page 408's content is transcribed faithfully and completely (heading text, section number, anchor, brace figure with the LINE/SCREEN choice and all underlines, GR 1-5). The real observation is a docu
 - p415 · misplaced-content — REJECTED as filed. The claim's observations are factually accurate -- in the PDF (printed p. 385) the "Alphabet-name-1 is used..." paragraph, the following NOTE, and both em-dash bullets under rule 5) all sit at x0=97.5, the rule-body margi
+- p462 · misplaced-content — Not a content discrepancy. Item d) of 13.18.38.3 GR 25 is present in specs/ISO_COBOL.md (line 19671) complete with its literal 'd)' choice indicator and its full verbatim text; the claim's assertion that d) is 'unlabelled' and that 'the enu
+- p552 · misplaced-content — Not a content discrepancy. The a)/b)/c) items and the closing DEPENDING-phrase paragraph are transcribed verbatim and in the correct position between GR 6) and GR 7); only the three-space leading indent used elsewhere for sub-items is absen
 - p607 · missing-heading — Not a content discrepancy. Both headings are present, correctly numbered, correctly titled and correctly anchored on page 607; no text differs from the PDF. The only difference is markdown heading depth ('##' rather than a depth nested unde
 - p674 · missing-heading — Not a PDF-vs-markdown discrepancy. The heading '14.9.22.3 Syntax rules' is present, correctly numbered and correctly titled at specs/ISO_COBOL.md line 27853, with a correct `<a id="section-14-9-22-3"></a>` anchor above it. The only differen
 - p713 · missing-heading — Not a PDF-vs-markdown content discrepancy. The heading '14.9.28.3 Syntax rules' is present verbatim at specs/ISO_COBOL.md line 29150 with the correct `section-14-9-28-3` anchor, and every word of page 713 is faithfully transcribed. The only
 - p860 · missing-heading — Not a PDF-vs-markdown content discrepancy. Both headings are present with the correct clause number, correct title, correct anchors, and verbatim rule text; nothing is missing. The only difference is the markdown heading depth (H2 rather th
+- p44 · other — Not a PDF-vs-markdown discrepancy. The eleven `---` lines on page 44 are real and the PDF page has no printed rules, but `---` is not a reserved page-break marker in ISO_COBOL.md: the file has 808 `---` against 1261 page anchors, and 294 of
+- p49 · other — Not a content discrepancy. All ten definitions 3.164-3.173 on page 49, including both 'Note 1 to entry' paragraphs, are transcribed completely and verbatim. The markdown does insert 11 decorative `---` thematic breaks that the unruled PDF p
+- p58 · misplaced-content — REFUTED. Rendered page 58 at 300 dpi and cropped both rows to inspect the printed glyphs directly.
+
+(1) NOTHING IS MISSING AND NOTHING IS MISPLACED. Every token the PDF prints in those two cells is present in the markdown, in the same order
+- p145 · missing-heading — Not a discrepancy. The heading '8.3.3.6.4 General rules' is present and verbatim-correct at ISO_COBOL.md:6253, in the correct position. The PDF renders every clause heading -- depth 4 and depth 5 alike -- in identical bold type at identical
+- p149 · missing-heading — No correction to issue -- the finding is rejected outright rather than restated. The heading '8.4.2.2 Qualification' and its child '8.4.2.2.1 General' are both present, correctly numbered, correctly titled, correctly positioned, and correct
+- p154 · missing-heading — No discrepancy. All five headings (8.4.2.3.4 General rules, 8.4.3 Identifiers, 8.4.3.1 Identifier, 8.4.3.1.1 General, 8.4.3.1.2 General format) are present in the markdown with correct numbers and titles, and the PDF prints all five in iden
+- p156 · missing-heading — Not a discrepancy. The heading '8.4.3.1.3 Syntax rules' is present in ISO_COBOL.md at line 6735, transcribed verbatim from PDF page 156, differing only by collapse of the number/title tab to a single space. The claim's premise that '##' is 
+- p162 · missing-heading — Not a discrepancy. The heading '8.4.3.3.4 General rules' is present in ISO_COBOL.md (line 7001) with the correct clause number, correct title, correct position and a correct '<a id="section-8-4-3-3-4"></a>' anchor, and the PDF prints it in 
 - p172 · missing-heading — Not a PDF-vs-markdown discrepancy. Every heading on page 172 is present with its clause number and title verbatim; only the markdown '#' depth differs, and the PDF encodes no heading depth to differ from - measured at 300 dpi, all five head
 - p211 · misplaced-content — Not a content discrepancy. The indentation difference is real but purely presentational: all of items a)-d) and their sub-expressions are transcribed verbatim and in order, the a)/b)/c)/d) vs 1)/2) enumerator series still scopes the nesting
+- p250 · missing-heading — Not a PDF-to-markdown discrepancy. All four page-250 headings (9.1.7.3 Relative, 9.1.7.4 Indexed, 9.1.8 Access modes, 9.1.8.1 General) are present in specs/ISO_COBOL.md with correct text, clause numbers, anchors and body prose; nothing is m
 - p285 · missing-heading — Not a PDF-vs-markdown content discrepancy. Page 285's two headings (10.4 Contained source units, 10.5 Source elements and runtime elements) are present verbatim with correct numbers, order and section anchors. The claim's premise about the 
 - p315 · incorrect-figure — No correction warranted -- the claim is rejected rather than restated. The only glyph-level divergence found on the page is unclaimed and benign: the PDF misprints 'locae-name-1' (dropped l) in the locale-phrase-1 brace stack and the markdo
+- p364 · misplaced-content — Not a discrepancy. The PDF does indent NOTE 1/2/3 to General rule 6)'s body indent and the markdown does render them flush left, but all three NOTEs plus rule 6) are transcribed verbatim, in order, in the correct subclause, with no text los
+- p390 · misplaced-content — Not a PDF-vs-markdown content discrepancy. The row 'varying-clause 13.18.64, VARYING clause' is present in the page-390 markdown slice, complete and verbatim apart from collapsed tab whitespace, and the printed PDF page likewise carries it 
 - p397 · misplaced-content — REFUTED as a content discrepancy: the difference is leading whitespace only, and it is not local. (1) Text fidelity is exact. I rendered p397 at 300 dpi and compared every item against the markdown slice. All eight sub-items are present, ve
 - p401 · misplaced-content — Not a page-401 content discrepancy. The text of rule 7)'s six em-dash items and rule 10)'s a)/b)/c) items plus the 'where length is the length of the literal as specified in 8.3.3, Literals.' qualifier is transcribed completely and in corre
 - p422 · other — Not a PDF-vs-markdown discrepancy. The 13.18.16.2 CONTROL clause figure is transcribed correctly and completely (brace pairs, ellipses, and the CONTROL/CONTROLS/FINAL underlining vs un-underlined IS/ARE all verified against the rendered pag
+- p466 · missing-heading — Not a content discrepancy. The PDF's 'FORMAT 4' on printed page 436 is confirmed plain body-weight text (verified against the bold running header as a control), and specs/ISO_COBOL.md line 19800 does render it as '## FORMAT 4'. However the 
+- p514 · misplaced-content — No content discrepancy. Page 514 is transcribed completely and faithfully; the sole difference is that general rule 5's two lettered sub-items lack the 3-space indent that rule 6's sub-items carry. That is leading whitespace only, it is a d
 
