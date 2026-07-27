@@ -1,0 +1,79 @@
+{
+  "batch": [1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017],
+  "pages_checked": [1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017],
+  "notes": "No general-format / syntax-skeleton figures occur on any page of this batch (page_workunit reported '0 with figure content'). Pages 1006-1009 are Annex A.4 optional-language-element lists; pages 1010-1017 are Annex B (normative), the user-defined-word character repertoire. The choice-indicator / bracket / ellipsis / underlining defect classes are therefore not applicable here. Every prose sentence, NOTE, list item, cross-reference number and hexadecimal code range was compared glyph by glyph against the rendered page; all ranges on pages 1011-1017 transcribe exactly. Two defect classes were found: (a) a repeated page-boundary defect in which the Unicode script-name label printed at the TOP of a page is instead appended to the LAST data line of the preceding page, and (b) a heading-level defect in which A.4.4 through A.4.11 are promoted to the same markdown level as their parent A.4 and as 'Annex A'/'Annex B'.",
+  "findings": [
+    {
+      "page": 1010,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Adlam:\n1E900-1E943, 1E94B\n\n[end of page 980]  ...  [top of page 981]\n\nAhom:\n11700-1171A",
+      "markdown_says": "Adlam:\n1E900-1E943, 1E94B Ahom:\n\n<a id=\"page-1011\"></a>\n## Page 1011\n# ISO/IEC 1989:2023 (E)\n\n11700-1171A",
+      "why_it_matters": "The script-name label 'Ahom:' that heads page 981 has been appended to the last data line of page 980, so the Adlam range line now reads as though it ended with the token 'Ahom:' and the Ahom range 11700-1171A is left with no label at the top of the next page. Annex B is normative; any reader or tool that pairs a script name with the code ranges beneath it mis-associates two consecutive scripts at this boundary.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40182, split '1E900-1E943, 1E94B Ahom:' into '1E900-1E943, 1E94B' and move 'Ahom:' to a new line immediately above '11700-1171A' (i.e. after the page-1011 anchor/header block)."
+    },
+    {
+      "page": 1011,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Buginese:\n1A00-1A16\n\n[end of page 981]  ...  [top of page 982]\n\nBuhid:\n1740-1751",
+      "markdown_says": "Buginese:\n1A00-1A16 Buhid:\n\n<a id=\"page-1012\"></a>\n## Page 1012\n# ISO/IEC 1989:2023 (E)\n\n1740-1751",
+      "why_it_matters": "Same page-boundary defect: the label 'Buhid:' printed at the top of page 982 is attached to the Buginese range line ending page 981, orphaning the Buhid range 1740-1751 from its script name in normative Annex B.3.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40235, split '1A00-1A16 Buhid:' and move 'Buhid:' to its own line directly above '1740-1751' on page 1012."
+    },
+    {
+      "page": 1014,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Javanese:\nA984-A9B2\n\n[end of page 984]  ...  [top of page 985]\n\nKaithi:\n11083-110AF",
+      "markdown_says": "Javanese:\nA984-A9B2 Kaithi:\n\n<a id=\"page-1015\"></a>\n## Page 1015\n# ISO/IEC 1989:2023 (E)\n\n11083-110AF",
+      "why_it_matters": "Same page-boundary defect: 'Kaithi:' from the top of page 985 is merged onto the Javanese range line, leaving the Kaithi range 11083-110AF unlabelled.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40403, split 'A984-A9B2 Kaithi:' and move 'Kaithi:' to its own line directly above '11083-110AF' on page 1015."
+    },
+    {
+      "page": 1015,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Linear_A:\n10600-10736, 10740-10755, 10760-10767\n\n[end of page 985]  ...  [top of page 986]\n\nLinear_B:\n10000-1000B, 1000D-10026, ...",
+      "markdown_says": "Linear_A:\n10600-10736, 10740-10755, 10760-10767 Linear_B:\n\n<a id=\"page-1016\"></a>\n## Page 1016\n# ISO/IEC 1989:2023 (E)\n\n10000-1000B, 1000D-10026, 10028-1003A, 1003C-1003D, 1003F-1004D, 10050-1005D,",
+      "why_it_matters": "Same page-boundary defect, and here it is especially misleading because Linear_A and Linear_B are near-identical names: the Linear_B ranges at the top of page 986 appear with no label at all while 'Linear_B:' sits at the end of the Linear_A line.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40454, split '...10760-10767 Linear_B:' and move 'Linear_B:' to its own line directly above '10000-1000B, ...' on page 1016."
+    },
+    {
+      "page": 1016,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Meroitic_Hieroglyphs:\n10980-1099F\n\n[end of page 986]  ...  [top of page 987]\n\nMiao:\n16F00-16F4A, 16F50, 16F93-16F9F",
+      "markdown_says": "Meroitic_Hieroglyphs:\n10980-1099F Miao:\n\n<a id=\"page-1017\"></a>\n## Page 1017\n# ISO/IEC 1989:2023 (E)\n\n16F00-16F4A, 16F50, 16F93-16F9F",
+      "why_it_matters": "Same page-boundary defect: 'Miao:' from the top of page 987 is merged onto the Meroitic_Hieroglyphs range line, orphaning the Miao ranges.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40506, split '10980-1099F Miao:' and move 'Miao:' to its own line directly above '16F00-16F4A, 16F50, 16F93-16F9F' on page 1017."
+    },
+    {
+      "page": 1017,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Old_Hungarian:\n10C80-10CB2, 10CC0-10CF2\n\n[end of page 987]  ...  [top of page 988]\n\nOld_Italic:\n...",
+      "markdown_says": "Old_Hungarian:\n10C80-10CB2, 10CC0-10CF2 Old_Italic:\n\n<a id=\"page-1018\"></a>",
+      "why_it_matters": "Same page-boundary defect at the 1017/1018 boundary: 'Old_Italic:' is merged onto the Old_Hungarian range line, so the Old_Italic ranges opening page 988 carry no script name. The edit site is the last content line of page 1017.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 40558, split '10C80-10CB2, 10CC0-10CF2 Old_Italic:' and move 'Old_Italic:' to its own line at the head of the page-1018 content."
+    },
+    {
+      "page": 1006,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "A.4.4  Dynamic capacity tables  /  A.4.5  DYNAMIC LENGTH elementary items  /  A.4.6  Extended letters  /  A.4.7  File sharing and record locking  — all printed in the same subsection style as A.4.1, A.4.2 and A.4.12, i.e. subordinate to 'A.4 Optional language element list'.",
+      "markdown_says": "## A.4.4 Dynamic capacity tables\n## A.4.5 DYNAMIC LENGTH elementary items\n## A.4.6 Extended letters\n## A.4.7 File sharing and record locking   (vs. '### A.4.1 General', '### A.4.2 ACCEPT and DISPLAY screen handling', '### A.4.12 RESUME statement' and the parent '## A.4 Optional language element list')",
+      "why_it_matters": "These subsections are emitted at the same markdown level as their own parent A.4 and as '## Annex A' / '## Annex B', so any generated table of contents or section-tree walk makes A.4.4-A.4.7 peers of the annexes rather than children of A.4, while their siblings A.4.1/A.4.2/A.4.12-A.4.14 are correctly at level 3. The run of wrongly-levelled headings is A.4.3 through A.4.11 (lines 39929-40035); A.4.4-A.4.7 are the part of that run printed on this page.",
+      "suggested_repair": "Demote '## A.4.4' … '## A.4.7' (and the whole A.4.3-A.4.11 run, specs/ISO_COBOL.md lines 39929, 39948, 39957, 39962, 39967, 39990, 39997, 40026, 40035) from '##' to '###' to match A.4.1, A.4.2 and A.4.12-A.4.14."
+    },
+    {
+      "page": 1007,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "A.4.8  FORMAT and SELECT WHEN file handling  /  A.4.9  Locale support and related functions  /  A.4.10  Object orientation  /  A.4.11  Report Writer — all printed in the same subsection style as A.4.1/A.4.2/A.4.12, subordinate to 'A.4 Optional language element list'.",
+      "markdown_says": "## A.4.8 FORMAT and SELECT WHEN file handling\n## A.4.9 Locale support and related functions\n## A.4.10 Object orientation\n## A.4.11 Report Writer   (vs. '### A.4.12 RESUME statement' on the following page)",
+      "why_it_matters": "Continuation of the same wrongly-levelled heading run: these four subsections of A.4 are emitted at level 2, the level of their parent A.4 and of the annex headings, while the immediately following A.4.12-A.4.14 are at level 3. Heading level is the only structure a markdown consumer has, so the annex outline is broken across this boundary.",
+      "suggested_repair": "Demote '## A.4.8' … '## A.4.11' (specs/ISO_COBOL.md lines 39990, 39997, 40026, 40035) from '##' to '###'."
+    }
+  ]
+}

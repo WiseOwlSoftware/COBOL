@@ -1,0 +1,16 @@
+{
+  "batch": [994, 995, 996, 997, 998, 999, 1000, 1001, 1002, 1003, 1004, 1005],
+  "pages_checked": [994, 995, 996, 997, 998, 999, 1000, 1001, 1002, 1003, 1004, 1005],
+  "note": "This batch was routed as a FIGURES batch, but pages 994-1005 carry no general formats / syntax skeletons. They are Annex A running lists: A.2 undefined-language-element list items 12)-66) (pp. 994-999), A.3 processor-dependent language element list items 1)-46) (pp. 999-1004), and the start of A.4 optional language element list (pp. 1004-1005). page_workunit.py independently reported '0 with figure content' for all twelve pages. No choice-indicator bars, brackets, braces, ellipses or underlined required words appear on any of these pages, so the priority defect class is not exercised here. Prose was compared line by line against the rendered pages.",
+  "findings": [
+    {
+      "page": 1005,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "A.4.3   Commit and Rollback  (printed as a third-level sub-clause of A.4, in the same bold heading style as 'A.4.1   General' and 'A.4.2   ACCEPT and DISPLAY screen handling' on page 974)",
+      "markdown_says": "## A.4.3 Commit and Rollback",
+      "why_it_matters": "A.4.1 and A.4.2 are transcribed as '### A.4.1 General' / '### A.4.2 ACCEPT and DISPLAY screen handling' (specs/ISO_COBOL.md lines 39849 and 39864), but A.4.3 is emitted at '##', the same level as its own parent '## A.4 Optional language element list' (line 39846). That makes the Commit-and-Rollback optional-element list a sibling of A.4 instead of a child, so any tool or reader that navigates by heading depth loses the containment relation and A.4's item list appears to end at A.4.2. The same demotion error affects A.4.4 through A.4.11 (lines 39948-40035) while A.4.12-A.4.14 (lines 40103-40115) are correctly at '###', so the file is internally inconsistent about the depth of one and the same clause level.",
+      "suggested_repair": "Change '## A.4.3 Commit and Rollback' to '### A.4.3 Commit and Rollback', and sweep the sibling headings A.4.4 through A.4.11 to '###' so all A.4.x clauses sit one level below '## A.4'."
+    }
+  ]
+}

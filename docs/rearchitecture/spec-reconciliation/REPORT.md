@@ -3,7 +3,7 @@
 > Merged from the per-agent files in this directory by `scripts/spec/merge_reconciliation.py`.
 > Each agent writes its own file before returning, so an interrupted run loses nothing.
 
-**934 pages swept · 152 confirmed · 94 refuted · 0 unverified**
+**1042 pages swept · 152 confirmed · 94 refuted · 20 unverified**
 
 ## Confirmed — repair these
 
@@ -2150,6 +2150,29 @@ USE [ GLOBAL ] BEFORE REPORTING identifier-1   (ISO_COBOL.md line 32562 — bare
 (2) MISCHARACTERISED CONVENTION, AND THE SCOPE IS WIDER THAN CLAIMED. The claim frames inline <u>...</u> as the transcription's established convention that p903 fails to follow. It is not the dominant device. The transcription's principal mechanism for preserving underline information is a prose 'Figure notes' block: 225 such blocks exist, 213 of which explicitly enumerate which words are underlined and which are not -- and they are careful enough to flag ISO's own typesetting defects (e.g. the LISTING directive note records that 'ON' is printed without an underline although the general rules treat it as specifiable). Inline <u> is the secondary device at 97 lines / 156 tags. Measured against 360 'General format' headings in the file, the majority of general formats carry NEITHER device, and only 6 Figure-notes blocks fall in the clause-15 intrinsic-function range at all. So there are five renderings in circulation, not four (fenced code / inline code / bare paragraph / <u> / figure-note prose), and the non-uniformity is a document-wide property of the transcription rather than an anomaly local to pages 903-914. The p903 entry should be treated as one instance of a systemic class, and any remediation should pick ONE canonical representation for general formats and apply it globally.
 
 (3) SEVERITY CONFIRMED, WITH A CAVEAT ON THE CLASS. 'Cosmetic' is right for p903 and for this batch: I verified on p903 (FUNCTION, LENGTH, PHYSICAL) and p911 (FUNCTION, LOWER-CASE, LOCALE) that every uppercase word in these formats is underlined, so no required/optional distinction is destroyed here. But the defect class is NORMATIVE, not cosmetic, wherever a printed format mixes underlined and non-underlined uppercase words -- the transcription's own figure notes document exactly such cases (SOURCE FORMAT IS FIXED, where FORMAT and IS are not underlined; the FLAG-02, LISTING, PROPAGATE, TURN and figurative-constant formats). In a plain-text rendering of those, an omissible noise word is indistinguishable from a required keyword, which would directly mislead a compiler implementation. p903 simply happens not to be such a case.
+
+## Unverified claims — NOT yet actionable
+
+- p949 · incorrect-figure · structural — The one tall stacked-alternatives bracket has been transcribed as TWO independent square brackets, one under the other. Read literally that permits both FIRST and LAST to be specified in the same argu
+- p968 · misplaced-content · structural — The 20-21 row of the WHEN-COMPILED returned-value table is no longer a table row, so any tool or reader consuming the 15.99.3 table sees only positions 1 through 19 and the last two character position
+- p972 · missing-heading · structural — The heading levels invert the clause hierarchy. 16.2.1.2 is a fourth-level clause but is emitted at h2 - shallower than its own parent 16.2.1, which is at h3, and shallower than its sibling 16.2.1.1, 
+- p1005 · missing-heading · structural — A.4.1 and A.4.2 are transcribed as '### A.4.1 General' / '### A.4.2 ACCEPT and DISPLAY screen handling' (specs/ISO_COBOL.md lines 39849 and 39864), but A.4.3 is emitted at '##', the same level as its 
+- p1018 · misplaced-content · structural — Annex B (normative) "Characters permitted in user-defined words" is a label-to-code-point-range table. The union of code points is unchanged, but the binding of the range 10300-1031F, 1032D-1032F to t
+- p1018 · misplaced-content · structural — Same normative-annex structural corruption as the Old_Italic case: the script name Rejang is detached from its code-point range A930-A946 and appended to a different script's entry on the previous pag
+- p1021 · misplaced-content · structural — Annex B list 2) "characters permitted in a user-defined word except as the start character" is normative. The label Buhid is separated from its range 1752-1753 across the page break, so the entry cann
+- p1022 · misplaced-content · structural — Gunjala_Gondi's code-point ranges are left unattributed in the normative Annex B table, and Gujarati's final range line carries a stray script label.
+- p1023 · misplaced-content · structural — The script name Khojki is detached from its range 1122C-11237, 1123E in the normative Annex B table and appended to the Khmer entry.
+- p1024 · misplaced-content · structural — Mongolian's code-point ranges are left unattributed in the normative Annex B table and the Modi entry carries a stray label.
+- p1025 · misplaced-content · structural — Sharada's code-point ranges are left unattributed in the normative Annex B table and the Saurashtra entry carries a stray label.
+- p1036 · missing-heading · structural — The markdown heading depth resets at every PDF page break instead of tracking the clause number, so D.2.2.2 is emitted at '##' - the same level as the '## Page 1036' scaffolding heading and two levels
+- p1078 · missing-heading · structural — The markdown heading level does not track the printed numbering depth, so the document outline nests wrongly: D.6.3.3 and D.6.3.4 are emitted at '##', which makes them siblings of their own parent D.6
+- p1116 · missing-heading · structural — Sibling clauses at the same numeric depth are transcribed at different markdown heading levels, so the outline/TOC nesting is wrong: D.14.3.2.3 renders as a peer of D.14.3.2 instead of a child of it, 
+- p956 · incorrect-figure · cosmetic — The transcription marks FUNCTION as a required word but silently drops the underline on TEST-NUMVAL on the same line, so the file is internally inconsistent about which tokens the standard prints as r
+- p961 · misplaced-content · cosmetic — Items 5 and 6 are continuations of the numbered list nested under 15.95.4 rule 1) b), and c) is a sibling of a)/b) under rule 1); on page 960 the transcription indents the same list levels by 6 and 3 
+- p961 · other · cosmetic — A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.*
+- p973 · missing-heading · cosmetic — A.1 is emitted at h3 with an extra bold wrapper while its siblings A.2, A.3 and A.4 are emitted at h2 unadorned. The outline therefore shows A.1 nested one level below A.2-A.4 instead of alongside the
+- p1089 · other · cosmetic — The sentence is ordinary body text in the PDF, set in the same roman face as the paragraphs immediately before and after it (compare 'The server gets the message with a RECEIVE...' on the following li
+- p1124 · incorrect-text · cosmetic — The bold markers are emitted as literal '**' characters inside a fenced code block, where markdown emphasis is not interpreted, so the rendered code sample reads '>* **next statement**' - four charact
 
 ## Refuted — deliberately NOT repaired
 

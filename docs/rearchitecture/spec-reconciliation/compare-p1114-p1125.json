@@ -1,0 +1,25 @@
+{
+  "batch": [1114, 1115, 1116, 1117, 1118, 1119, 1120, 1121, 1122, 1123, 1124, 1125],
+  "pages_checked": [1114, 1115, 1116, 1117, 1118, 1119, 1120, 1121, 1122, 1123, 1124, 1125],
+  "notes": "All twelve pages are Annex D (informative) - D.14 cultural adaptability, D.15 external switches, D.16 common exception processing, D.17 rounding. NO general-format / syntax-skeleton figures appear on any page in this batch (scripts/spec/page_workunit.py also reported '0 with figure content'), so the priority defect class (lost choice-indicator bars, unclosed brackets, misplaced ellipses, lost underlining) has no instances here. Prose, code examples, bulleted lists and cross-references were compared line by line against the rendered PDF at 300 dpi; the EC-* level-2 name list on p1121 and the code samples on p1115/p1117/p1118 were re-cropped and zoomed to rule out OCR damage - all clean.",
+  "findings": [
+    {
+      "page": 1116,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.14.3.2.3   Switching locales outside of COBOL  ...  D.14.3.3   Locale-based monetary and numeric formatting  (both printed at the same clause depth as their siblings D.14.3.2.1 / D.14.3.2.2 and D.14.3.1 respectively)",
+      "markdown_says": "## D.14.3.2.3 Switching locales outside of COBOL  ...  ## D.14.3.3 Locale-based monetary and numeric formatting   -- whereas the earlier siblings are '### D.14.3.2.1 General', '### D.14.3.2.2 Switching locales in a COBOL runtime module' and '### D.14.3.1 General'",
+      "why_it_matters": "Sibling clauses at the same numeric depth are transcribed at different markdown heading levels, so the outline/TOC nesting is wrong: D.14.3.2.3 renders as a peer of D.14.3.2 instead of a child of it, and D.14.3.3 as a peer of D.14.3 instead of a child. Any tool that derives clause structure (TOC, anchor generation, citation depth) from heading level mis-parents these clauses. Same defect recurs in this batch at '## D.14.3.4' (p1117), '## D.14.3.5' and '## D.14.3.6' (p1118), '## D.14.4' (p1119) and '## D.16.5' (p1124); the pattern across the whole file is that only the FIRST subclause under a parent keeps its correct level and every later sibling is promoted to '##' (specs/ISO_COBOL.md lines 44889, 44898, 44949, 44999, 45024, 45047, 45179).",
+      "suggested_repair": "Set heading level from clause-number depth, not from position: 'D.14.3.2.3' -> '####' (matching D.14.3.2.1/.2 which are '###' ... i.e. one deeper than its parent D.14.3.2), 'D.14.3.3' / 'D.14.3.4' / 'D.14.3.5' / 'D.14.3.6' -> '###' (matching D.14.3.1), 'D.14.4' -> '###' (matching D.14.1/D.14.2), 'D.16.5' -> '###' (matching D.16.1-D.16.4). Sweep the whole file for the same promoted-sibling pattern rather than patching these pages alone."
+    },
+    {
+      "page": 1124,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "       >* next statement            ...            >*   to next statement      (the words 'next statement' are printed in bold monospace inside the PERFORM code example)",
+      "markdown_says": "       >* **next statement**            ...            >*   to **next statement**      (inside a ``` fenced code block)",
+      "why_it_matters": "The bold markers are emitted as literal '**' characters inside a fenced code block, where markdown emphasis is not interpreted, so the rendered code sample reads '>* **next statement**' - four characters that do not exist in the standard. The very same code example continues onto p1125, where the identical bold words ARE transcribed plainly ('>* next statement', '>*   to next statement'), so one COBOL example is transcribed two different ways across the page break.",
+      "suggested_repair": "Drop the '**' inside the fenced block on p1124 so it matches the p1125 continuation: '       >* next statement' and '       >*   to next statement'."
+    }
+  ]
+}

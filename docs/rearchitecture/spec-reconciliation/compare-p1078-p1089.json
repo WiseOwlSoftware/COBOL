@@ -1,0 +1,25 @@
+{
+  "batch": [1078, 1079, 1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089],
+  "pages_checked": [1078, 1079, 1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089],
+  "notes": "PDF pages 1078-1089 = printed pages 1048-1059, Annex D (D.6.3.3 through D.7). Every page was rendered at 300 dpi and read visually against its markdown slice. NO general formats / syntax skeletons appear anywhere in this range - it is Annex D narrative prose plus verbatim COBOL code examples (p1085, p1088, p1089) and one two-column argument-correspondence display (p1085). The priority defect class for this run (lost choice-indicator bars, unbalanced brackets, misplaced ellipses, lost underlining) therefore has no instances here because there are no diagrams to lose them from. Prose transcription is verbatim on all twelve pages - no summarisation, no omitted paragraphs, no altered wording, no altered cross-references. Sentences that straddle a page break (p1081/p1082 'cases, only those parts of the parameter passing mechanism...' and p1086/p1087 'specified in the compilation group in the external repository...') are carried whole on the earlier page's slice; text is preserved, not lost, so they are not reported. The known ISO typo on p1089 ('by adding this adding this CONTINUE phrase') is faithfully reproduced by the markdown and is correct transcription, not a defect.",
+  "findings": [
+    {
+      "page": 1078,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "D.6.3   Accessing data and files / D.6.3.1   General / D.6.3.2   Names / D.6.3.3   Items overview / D.6.3.4   Item types / D.6.3.4.1   Working-storage records",
+      "markdown_says": "## D.6.3 Accessing data and files / ### D.6.3.1 General / ### D.6.3.2 Names / ## D.6.3.3 Items overview / ## D.6.3.4 Item types / ### D.6.3.4.1 Working-storage records",
+      "why_it_matters": "The markdown heading level does not track the printed numbering depth, so the document outline nests wrongly: D.6.3.3 and D.6.3.4 are emitted at '##', which makes them siblings of their own parent D.6.3 and siblings of the peer subsections D.6.3.1/D.6.3.2 that are emitted at '###'. The same inversion recurs on every page of this batch (1079: D.6.3.5, D.6.3.6; 1081: D.6.4.4, D.6.5.1-D.6.5.3; 1082: D.6.5.3.1-D.6.5.3.3; 1083: D.6.5.4; 1084: D.6.5.5, D.6.5.6; 1085: D.6.5.6.3; 1086: D.6.5.6.4-D.6.5.6.6; 1087: D.6.5.6.7, D.6.5.6.8, D.6.5.7; 1088: D.6.5.8, D.6.6; 1089: D.7). NO TEXT IS LOST - the section number in the heading text still encodes the true level - so this is an outline/navigation defect, not a normative one. It is also NOT specific to these pages: across the whole of Annex D a depth-4 number such as D.6.5.6 is rendered variously as '##' (26 occurrences), '###' (23) and '####' (2). Fix it with one document-wide pass that derives the '#' count from the numbering depth; do not hand-edit only these twelve pages, or the inconsistency simply moves.",
+      "suggested_repair": "Run a single mechanical pass over the whole document setting heading level = 1 + number-of-components in the clause number (e.g. 'D.6' -> '##', 'D.6.3' -> '###', 'D.6.3.4' -> '####', 'D.6.5.6.3' -> '#####'), leaving anchors and heading text untouched. Verify with: grep -oP '^#{1,6} D(\\.[0-9]+)+' specs/ISO_COBOL.md | awk '{print length($1), gsub(/\\./,\".\",$2)}' | sort -u  -- every distinct depth must map to exactly one level."
+    },
+    {
+      "page": 1089,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "If bpo-length is zero, no message was received, and you had a time out.",
+      "markdown_says": "**If bpo-length is zero, no message was received, and you had a time out.**",
+      "why_it_matters": "The sentence is ordinary body text in the PDF, set in the same roman face as the paragraphs immediately before and after it (compare 'The server gets the message with a RECEIVE...' on the following line, which the markdown leaves unemphasised). The markdown wraps it in bold, which in this transcription is the style reserved for the running header and for headings demoted from their proper level, so a reader or a downstream tool can mistake this sentence for a heading or for emphasised normative text that the standard does not emphasise. Wording is verbatim; only the emphasis is invented. Line 43679 of specs/ISO_COBOL.md.",
+      "suggested_repair": "Remove the surrounding '**' at specs/ISO_COBOL.md line 43679 so the sentence is plain body text."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "batch": [982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993],
+  "pages_checked": [982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993],
+  "findings": [],
+  "notes": [
+    "This batch contains NO figures / general formats. It is Annex A.1 (Implementor-defined language element list, items 98 through 222) on pages 982-992 and the opening of A.2 (Undefined language element list, items 1-11) on page 993. scripts/spec/page_workunit.py confirmed '0 with figure content' for all twelve pages, so the choice-indicator / brace-closure / ellipsis-placement checks had no diagram to apply to.",
+    "Item numbering is continuous and complete across the batch with no gaps or duplicates: 98-109 (p982), 110-119 (p983), 120-131 (p984), 132-142 (p985), 143-153 (p986), 154-166 (p987), 167-178 (p988), 179-188 (p989), 189-199 (p990), 200-211 (p991), 212-222 (p992), then A.2 items 1-11 (p993).",
+    "Every cross-reference in every item was verified character-by-character against the rendered page (clause numbers, General/Syntax rule numbers, I-O Status values, the '255'/'15' record-lock minima, ISO/IEC 60559, 86,400, 999). No incorrect-text found.",
+    "Two page-boundary sentence continuations were checked and are intact, not lost: item 142's tail ('shall be documented ... 8.4.3.13, Program-address-identifier, General rule 2') is printed at the top of PDF p986 and is correctly joined onto the end of the p985 markdown slice; A.2 item 11's tail is likewise joined onto the end of the p993 slice. Neither is duplicated.",
+    "The A.2 heading on p993 is present as a real heading ('## A.2 Undefined language element list'), not demoted to bold, and its lead-in sentence ('The following is a list of the COBOL language elements within this Working Draft International Standard that are explicitly undefined.') is transcribed verbatim, not summarised.",
+    "No summarised-not-transcribed content anywhere in the batch: every page reproduces the standard's own text in the first person of the standard, with no third-person digest and no transcription-tool meta-text.",
+    "DELIBERATELY NOT REPORTED (seen, judged non-actionable): on p991 item 207 the PDF prints a full stop where a comma belongs - 'USAGE BINARY-SHORT, BINARY-LONG. BINARY-DOUBLE, FLOAT-SHORT, ...' (verified by 300dpi crop). The markdown normalises it to 'BINARY-LONG, BINARY-DOUBLE'. This is a typographical defect in ISO itself that the transcription silently corrected; nothing normative turns on it and 'repairing' the markdown would reintroduce the typo. Recorded here only so a later sweep does not re-litigate it."
+  ]
+}

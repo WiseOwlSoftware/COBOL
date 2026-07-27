@@ -1,0 +1,33 @@
+{
+  "batch": [957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 968, 969],
+  "pages_checked": [957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 968, 969],
+  "findings": [
+    {
+      "page": 968,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "20-21     Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.   [printed as the final row of the two-column Character Positions / Contents table of 15.99.3 rule 1, whose rows 1-4 through 18-19 are on page 937]",
+      "markdown_says": "20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.   [emitted as a bare paragraph; the markdown table ended with the '| 18-19 | ... |' row at the end of page-967]",
+      "why_it_matters": "The 20-21 row of the WHEN-COMPILED returned-value table is no longer a table row, so any tool or reader consuming the 15.99.3 table sees only positions 1 through 19 and the last two character positions of the 21-character returned value fall out of the structure. The transcription already has the correct convention for this exact situation — the identical CURRENT-DATE table split across pages 864/865 restarts with a '| **Character Positions** | **Contents** |' header row and continues the table — so page 968 is an inconsistent degradation, not a house style.",
+      "suggested_repair": "On the page-968 slice, restart the table the way page-865 does: emit '| **Character Positions** | **Contents** |' + separator, then '| 20-21 | Two numeric digits are returned ... the value 00 is returned. |'."
+    },
+    {
+      "page": 961,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "[items '5.' and '6.' are printed indented under 15.95.4 rule 1) sub-item b); 'c) Otherwise,' is printed at the sub-item level under rule 1)] — '5.  If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, ...'  /  'c)  Otherwise,'",
+      "markdown_says": "5. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, ...\n\n6. If standard-decimal arithmetic, ...\n\nc) Otherwise,   [all three flush against the left margin, at column 0]",
+      "why_it_matters": "Items 5 and 6 are continuations of the numbered list nested under 15.95.4 rule 1) b), and c) is a sibling of a)/b) under rule 1); on page 960 the transcription indents the same list levels by 6 and 3 spaces respectively. Because the page break reset the indentation to column 0, the assembled markdown shows item 4 indented six spaces and items 5 and 6 flush left, detaching them from their parent b) and making 'c)' look like a top-level item.",
+      "suggested_repair": "Re-indent the page-961 continuation to match page 960: six spaces before '5.' and '6.', three spaces before 'c) Otherwise,' and its '(FUNCTION LENGTH ...)' body, and indent the NOTE and its three dashes to the same sub-item level."
+    },
+    {
+      "page": 961,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "(FUNCTION LENGTH (argument-1) + 1).",
+      "markdown_says": "(FUNCTION LENGTH (argument-1) + 1)**.**",
+      "why_it_matters": "A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.**' inside an arithmetic expression, and '**' is COBOL's exponentiation operator, so a reader or extraction tool taking the expression verbatim can misparse it. The sibling occurrence in 15.94.4 c) on page 958 is transcribed correctly as '(FUNCTION LENGTH (argument-1) + 1).'.",
+      "suggested_repair": "Replace '(FUNCTION LENGTH (argument-1) + 1)**.**' with '(FUNCTION LENGTH (argument-1) + 1).'"
+    }
+  ]
+}
