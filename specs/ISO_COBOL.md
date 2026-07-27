@@ -6,7 +6,7 @@
 
 This document is a transcription of **ISO/IEC 1989:2023(E), *Information technology — Programming languages,
 their environments and system software interfaces — Programming language COBOL*** (third edition, 2023-01).
-© ISO/IEC 2023. It is reproduced under the permission granted in the standard's own Introduction (page 28):
+© ISO/IEC 2023. It is reproduced under the permission granted in the standard's own Introduction (page xxviii):
 
 > Any organization interested in reproducing the COBOL standard and specifications in whole or in part, using
 > ideas from this document as the basis for an instruction manual or for any other purpose, is free to do so.
@@ -14,7 +14,7 @@ their environments and system software interfaces — Programming language COBOL
 > entirety as part of the preface to any such publication […]
 
 The acknowledgment paragraphs are accordingly reproduced here **in their entirety**, exactly as printed. They also
-appear in position in the transcription of page 28.
+appear in position in the transcription of page xxviii.
 
 ---
 
@@ -10396,7 +10396,7 @@ END-SUBTRACT
 END-UNSTRING
 END-WRITE
 
-> ⚠ **CORRECTED — see the Addendum (C1).** The standard prints **`EMD-START`** here (page 236); it is a TYPO in ISO/IEC 1989:2023 for `END-START`. The real reserved word is `END-START`, which the standard uses in three independent places — the scope-terminator summary table (page 564), the START statement's own general format (14.9.41.2, page 784) and the index (page 1242) — against this single occurrence of `EMD-START`. Corrected in this transcription because a reserved-word list is consumed as data — a compiler generated from it would reserve `EMD-START` and fail to reserve `END-START`. The printed form is recorded in the Addendum so the change is reversible.
+> ⚠ **CORRECTED — see the Addendum (C1).** The standard prints **`EMD-START`** here (page 206); it is a TYPO in ISO/IEC 1989:2023 for `END-START`. The real reserved word is `END-START`, which the standard uses in three independent places — the scope-terminator summary table (page 534), the START statement's own general format (14.9.41.2, page 754) and the index (page 1212) — against this single occurrence of `EMD-START`. Corrected in this transcription because a reserved-word list is consumed as data — a compiler generated from it would reserve `EMD-START` and fail to reserve `END-START`. The printed form is recorded in the Addendum so the change is reversible.
 
 ENVIRONMENT
 EO
@@ -13815,7 +13815,7 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 where locale-phrase-1 is:
 
 > A brace group containing:
-> - `locale-name-1` — ⚠ **CORRECTED — see the Addendum (C3).** Printed as `locae-name-1` in the standard (page 315); a TYPO, corrected here because every other occurrence in 8.3.2.3 and the SPECIAL-NAMES paragraph spells it `locale-name-1`. Recorded so the correction is visible rather than silent.
+> - `locale-name-1` — ⚠ **CORRECTED — see the Addendum (C3).** Printed as `locae-name-1` in the standard (page 285); a TYPO, corrected here because every other occurrence in 8.3.2.3 and the SPECIAL-NAMES paragraph spells it `locale-name-1`. Recorded so the correction is visible rather than silent.
 > - `LOCALE`
 > - `SYSTEM-DEFAULT`
 > - `USER-DEFAULT`
@@ -20042,7 +20042,7 @@ Format 1 (basic):
 ```
 
 > **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `FOR`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `character-1`, and the literals are not.
-> ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces, verified by re-rendering page 471 at 600 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated.
+> ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces, verified by re-rendering page 441 at 600 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated.
 
 Format 2 (locale):
 
@@ -26351,14 +26351,14 @@ The CONTINUE statement is a no-operation statement. It indicates that no executa
 
 > **Figure notes (CONTINUE, 14.9.9.2).** Underlining measured from the printed page: `AFTER` and `SECONDS`
 > carry underline rules (required words, 5.2.2); the bracket makes the whole phrase optional.
-> ⚠ **CORRECTED — see the Addendum (C2).** `CONTINUE` is printed WITHOUT an underline on page 634; that is
+> ⚠ **CORRECTED — see the Addendum (C2).** `CONTINUE` is printed WITHOUT an underline on page 604; that is
 > a TYPO in ISO/IEC 1989:2023. It is shown underlined here. Three independent reasons:
 > - **49 of the 50 statement general formats underline their own statement name.** `CONTINUE` is the sole
 >   exception, measured across every `14.9.N.2` format in the standard.
 > - **A statement name cannot be an optional word.** Per 5.2.3 an optional word may be written or omitted
 >   with no change of meaning; if `CONTINUE` were one, `AFTER 5 SECONDS` alone would be a legal CONTINUE
 >   statement. Syntax rule 1 requires it to be identifiable wherever an imperative-statement may appear.
-> - **It is NOT explained by the "implicit CONTINUE" concept.** That term appears 13 times (pages 634, 655,
+> - **It is NOT explained by the "implicit CONTINUE" concept.** That term appears 13 times (pages 604, 625,
 >   656, 666, 719, 720, 737, 808, 809, 1123) and always denotes a CONTROL-FLOW device — a conceptual no-op
 >   that control is transferred TO, after `END-PERFORM`, before the next separator period, or following a
 >   statement that raised a nonfatal exception. It is never written in source. General rule 2 on this page
@@ -27152,7 +27152,7 @@ EXIT PROGRAM           ⎢ RAISING ⎨ identifier-1               ⎬ ⎥
 ```
 
 > **Figure notes (EXIT Format 2, program).** Underlining measured from the printed page: `EXIT`, `PROGRAM`, `RAISING`, `LAST`, and the **first** `EXCEPTION` are underlined (required words, 5.2.2).
-> ⚠ **In the `LAST EXCEPTION` alternative, `EXCEPTION` is NOT underlined** (measured: `LAST` underlined at x=235.5, `EXCEPTION` plain at x=263.3), unlike the `EXCEPTION exception-name-1` alternative above it. An earlier transcription of this figure underlined both, which disagreed with the identical raising-phrase printed on page 661. It is recorded here AS PRINTED and flagged rather than silently harmonised: an un-underlined `EXCEPTION` is hard to read as a true optional word, and may be a defect in the standard's own typesetting — but a reader must be able to check this note against the page.
+> ⚠ **In the `LAST EXCEPTION` alternative, `EXCEPTION` is NOT underlined** (measured: `LAST` underlined at x=235.5, `EXCEPTION` plain at x=263.3), unlike the `EXCEPTION exception-name-1` alternative above it. An earlier transcription of this figure underlined both, which disagreed with the identical raising-phrase printed on page 631. It is recorded here AS PRINTED and flagged rather than silently harmonised: an un-underlined `EXCEPTION` is hard to read as a true optional word, and may be a defect in the standard's own typesetting — but a reader must be able to check this note against the page.
 > The brace is a plain select-exactly-one (5.2.6.3); the bracket makes the whole RAISING phrase optional.
 
 NOTE The Program format of the EXIT statement is an archaic feature. For details see F.1, Archaic language elements.
@@ -27458,7 +27458,7 @@ The GOBACK statement marks the logical end of a function, a method, or a program
 > **Figure notes (GOBACK statement general format).** `GOBACK` is underlined in the printed standard (a required
 > word).
 > ⚠ **The outer bracket encloses CHOICE INDICATORS** — the pair of `|` bars just inside `⎡ … ⎤`, verified against
-> the printed figure on page 661. Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the
+> the printed figure on page 631. Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the
 > enclosed alternatives shall be specified, each at most once, **in any order** — so `GOBACK` may specify neither
 > phrase, the raising-phrase alone, the status-phrase alone, or **both**, in either order. A plain bracket around
 > the stacked alternatives would mean "at most ONE of them", which is FALSELY RESTRICTIVE and would reject legal
@@ -27472,7 +27472,7 @@ RAISING ⎨ identifier-1               ⎬
         ⎩ LAST EXCEPTION             ⎭
 ```
 
-> **Figure notes (raising-phrase).** Underlining measured from the printed page: `RAISING`, `LAST` and the **first** `EXCEPTION` are underlined (required words, 5.2.2); the `EXCEPTION` in `LAST EXCEPTION` is **not** (measured: `LAST` underlined at x=142.8, `EXCEPTION` plain at x=170.0). This matches the printed page and the same phrase in EXIT Format 2 on page 653 — see the flag on that figure. The brace is a plain select-exactly-one (5.2.6.3).
+> **Figure notes (raising-phrase).** Underlining measured from the printed page: `RAISING`, `LAST` and the **first** `EXCEPTION` are underlined (required words, 5.2.2); the `EXCEPTION` in `LAST EXCEPTION` is **not** (measured: `LAST` underlined at x=142.8, `EXCEPTION` plain at x=170.0). This matches the printed page and the same phrase in EXIT Format 2 on page 623 — see the flag on that figure. The brace is a plain select-exactly-one (5.2.6.3).
 
 Where status-phrase is:
 
@@ -31896,7 +31896,7 @@ START file-name-1
 ```
 
 > **Figure notes (START statement general format syntax diagram).** `START`, `FIRST`, `KEY` (the phrase-leading one), `LAST`, `LENGTH`, `INVALID`, `NOT`, and `END-START` are underlined in the printed standard (required words); `file-name-1`, `relational-operator`, `WITH`, and the `KEY` of `INVALID KEY` / `NOT INVALID KEY` are **not** underlined. The `FIRST` / `KEY` / `LAST` bracket is plain (verified at 600 dpi): it is optional, and at most one of the three alternatives is selected.
-> ⚠ **The `INVALID KEY` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets, verified by re-rendering page 784 at 600 dpi). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a START statement may specify the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both**, or neither.
+> ⚠ **The `INVALID KEY` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets, verified by re-rendering page 754 at 600 dpi). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a START statement may specify the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both**, or neither.
 
 <a id="section-14-9-41-3"></a>
 ##### 14.9.41.3 Syntax rules
@@ -41986,7 +41986,7 @@ Single record automatic locking is selected by the following lock mode clause:
 LOCK MODE IS AUTOMATIC
 ```
 
-The automatic acquisition and release of record locks is summarized in A.1, Summary of record lock acquisition and release. The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement as summarized in Table A.1, "Summary of record lock acquisition and release," on page 1017.
+The automatic acquisition and release of record locks is summarized in A.1, Summary of record lock acquisition and release. The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement as summarized in Table A.1, "Summary of record lock acquisition and release," on page 987.
 
 <a id="section-d-2-4-3-2"></a>
 ### D.2.4.3.2 Manual locking
@@ -53352,9 +53352,15 @@ mistaken. The printed standard remains authoritative: where this transcription a
 
 Each correction is cross-referenced from a ⚠ note at the point of change.
 
+> **Page numbers here are the standard's own PRINTED folios** — what is printed at the foot of the page in
+> ISO/IEC 1989:2023 — so a citation can be checked directly against a copy of the standard. The
+> transcription's internal anchors (`#page-N`) instead use the PDF's sequential page, which runs 30 ahead of
+> the folio because the front matter occupies 30 unnumbered and roman-numbered pages. Printed page 206 is PDF
+> page 236. Clause references such as 14.9.41.2 are unambiguous either way and are the better citation.
+
 ## Corrections applied
 
-### C1 · page 236 · reserved-word list · `EMD-START` → `END-START`
+### C1 · page 206 · reserved-word list · `EMD-START` → `END-START`
 
 | | |
 |---|---|
@@ -53367,8 +53373,8 @@ The reserved-word list prints `EMD-START`, which is not a COBOL word. `EMD` has 
 
 | spelling | occurrences | where |
 |---|---:|---|
-| `EMD-START` | **1** | page 236 — this reserved-word list, and nowhere else |
-| `END-START` | **3** | page 564, the scope-terminator summary table (`START [NOT] INVALID KEY END-START`); page 784, the START statement's own general format, printed `[ END-START ]`; page 1242, the index — "END-START phrase 754" |
+| `EMD-START` | **1** | page 206 — this reserved-word list, and nowhere else |
+| `END-START` | **3** | page 534, the scope-terminator summary table (`START [NOT] INVALID KEY END-START`); page 754, the START statement's own general format, printed `[ END-START ]`; page 1212, the index — "END-START phrase 754" |
 
 Those three are independent of one another: a summary table, the defining general format, and the index. Each
 was typeset from a different part of the document, and all three agree. A single deviating occurrence against
@@ -53379,7 +53385,7 @@ alternative spelling.
 generated from the printed list would reserve `EMD-START` and fail to reserve `END-START` — accepting
 `END-START` as an ordinary user-defined word and rejecting the real scope terminator.
 
-### C2 · page 634 · 14.9.9.2 CONTINUE statement · `CONTINUE` shown underlined
+### C2 · page 604 · 14.9.9.2 CONTINUE statement · `CONTINUE` shown underlined
 
 | | |
 |---|---|
@@ -53394,14 +53400,14 @@ omitted. As printed, the statement's own name would be omissible. Three independ
 2. **A statement name cannot be an optional word.** If `CONTINUE` were one, `AFTER 5 SECONDS` alone would be a
    legal CONTINUE statement; syntax rule 1 requires the statement to be identifiable wherever an
    imperative-statement may appear.
-3. **It is not explained by the "implicit CONTINUE" concept.** That term appears 13 times (pages 634, 655, 656,
-   666, 719, 720, 737, 808, 809, 1123) and always denotes a control-flow device — a conceptual no-operation
-   statement that control is transferred *to*, never something written in source. General rule 2 on page 634
+3. **It is not explained by the "implicit CONTINUE" concept.** That term appears 13 times (pages 604, 625, 626,
+   636, 689, 690, 707, 778, 779, 1093) and always denotes a control-flow device — a conceptual no-operation
+   statement that control is transferred *to*, never something written in source. General rule 2 on page 604
    ("Implicit CONTINUE statements shall be processed as if AFTER ZERO SECONDS were specified") governs the
    behaviour of those conceptual statements, not the notation of this format. If `CONTINUE` were omissible, an
    *implicit* CONTINUE would be writable — a contradiction in terms.
 
-### C3 · page 315 · 12.3.7 SPECIAL-NAMES · `locae-name-1` → `locale-name-1`
+### C3 · page 285 · 12.3.7 SPECIAL-NAMES · `locae-name-1` → `locale-name-1`
 
 | | |
 |---|---|
@@ -53416,13 +53422,13 @@ A dropped `l`. Every other occurrence of the term in 12.3.7 and in the SPECIAL-N
 Places where the printed standard is doubtful or self-contradictory, but where the correct reading is not certain
 enough to change the text. These are transcribed **as printed** and flagged in place.
 
-### D1 · page 102 · 7.3.15 FLAG-14 directive · `ALL` printed without an underline
+### D1 · page 72 · 7.3.15 FLAG-14 directive · `ALL` printed without an underline
 
 `ALL` is un-underlined, which per 5.2.3 makes it an optional word — one whose presence or absence does not change
 meaning. That is hard to reconcile with 7.3.15.4 general rule 4a, which gives `ALL` distinct semantics. The
 notation and the general rule disagree and it is not clear which is in error.
 
-### D2 · pages 634 and 732 · `CONTINUE AFTER … SECONDS` · the standard contradicts itself
+### D2 · pages 604 and 702 · `CONTINUE AFTER … SECONDS` · the standard contradicts itself
 
 | page | `CONTINUE` | `AFTER` | `SECONDS` |
 |---|---|---|---|
@@ -53448,14 +53454,14 @@ slip. It is not.
 | 661 | 14.9.18.2 GOBACK, raising-phrase | underlined | not underlined |
 | 756 | 14.9.38.2 SEND | underlined | not underlined |
 
-(A fourth site, page 761, prints `EXCEPTION` underlined — but it is the **SET statement**,
+(A fourth site, page 731, prints `EXCEPTION` underlined — but it is the **SET statement**,
 `SET LAST EXCEPTION TO OFF`, a different construct in which `EXCEPTION` is part of SET's own required syntax. It
 is not a counter-example.)
 
 **The standard's own prose confirms it.** Page 111 describes propagation "as though a **`GOBACK RAISING LAST`**
 statement were executed in a declarative for that exception condition" — writing the phrase *without*
 `EXCEPTION`. That is the standard itself using the short spelling, which is only possible if `EXCEPTION` is an
-optional word there per 5.2.3. Three other passages (pages 579, 581 and 1123) write the full
+optional word there per 5.2.3. Three other passages (pages 549, 551 and 1093) write the full
 `RAISING LAST EXCEPTION` form, exactly as an optional word predicts: both spellings occur, and they mean the same
 thing.
 

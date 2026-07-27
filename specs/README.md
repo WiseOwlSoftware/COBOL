@@ -25,7 +25,8 @@ say so if it is absent. Everything that works on the transcription alone runs wi
 
 The transcription is faithful to the printed standard except at three points where the standard itself is
 defective and the defect would mislead a reader, or a tool built from the text — for example the reserved-word
-list on page 236 prints `EMD-START`, which is not a COBOL word, where the rest of the standard says `END-START`.
+list on printed page 206 prints `EMD-START`, which is not a COBOL word, where the rest of the standard says
+`END-START`.
 
 **Every departure is listed in the Addendum at the end of the document, together with the printed form, so that
 any correction can be reversed** if it later proves mistaken. Each is also flagged in place. Defects that are
@@ -33,6 +34,13 @@ doubtful rather than clear are transcribed AS PRINTED and listed in the Addendum
 
 `scripts/spec/verify_publishable.py` enforces this: it fails if a correction is flagged in the text but missing
 from the Addendum, or listed in the Addendum but referenced nowhere.
+
+## A note on page numbers
+
+Citations in the transcription and its Addendum use the standard's own **printed folios**, so they can be
+checked against a copy of ISO/IEC 1989:2023. The internal anchors (`#page-N`) use the PDF's sequential page,
+which runs 30 ahead — printed page 206 is PDF page 236 — because the front matter occupies 30 pages. Clause
+references (14.9.41.2) are unambiguous either way.
 
 ## Provenance
 
