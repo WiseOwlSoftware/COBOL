@@ -3,7 +3,7 @@
 > Merged from the per-agent files in this directory by `scripts/spec/merge_reconciliation.py`.
 > Each agent writes its own file before returning, so an interrupted run loses nothing.
 
-**1261 pages swept · 159 confirmed · 104 refuted · 83 unverified**
+**1261 pages swept · 210 confirmed · 136 refuted · 0 unverified**
 
 ## Confirmed — repair these
 
@@ -1861,7 +1861,160 @@ FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] ⎢       ⎥ argument-2 argument
                                              ⎣ LAST  ⎦
 ```
 and add a Figure notes line: the bracket is a single notation bracket with NO choice indicators, so at most one of FIRST or LAST may be specified; FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined (required words) in the printed standard.
-- **Verifier:** REAL, structural, as described, with two refinements. (1) The core finding stands exactly: PDF page 949 section 15.87.2 prints ONE tall square bracket spanning both rows and enclosing FIRST stacked above LAST (5x crop of the 300 dpi render: single left bracket with top and bottom serifs crossing both rows, matching single right bracket, both words underlined, and NO choice-indicator vertical bars anywhere in the figure -- neither in the `{ }` brace nor in the bracket), i.e. an optional at-most-one choice; specs/ISO_COBOL.md lines 38006-38009 transcribe it as two independent ASCII bracket pairs `[ FIRST ]` / `[ LAST  ]` on consecutive lines. (2) The strongest proof that this changes meaning is internal to the transcription, not just ISO 5.2.6.4: this file uses stacked one-per-line `[ X ]` / `[ Y ]` brackets precisely for independent CO-OCCURRING optional clauses (`[ FULL ]` / `[ AUTO ]` / `[ SECURE ]` / `[ REQUIRED ]` in the screen description entry, lines 17085-17091 and 17148-17151), and reserves the tall U+23A1..U+23A6 delimiters for optional stacked ALTERNATIVES -- including the structurally identical FUNCTION TRIM format nine sections later at 15.96.2 (lines 38499-38505: `⎡ LEADING ⎤` / `⎣ TRAILING ⎦` plus a Figure notes paragraph). (3) Two further losses: the second line `[ LAST  ]` sits outside every enclosing delimiter, since the `}`, the `...` and the closing `)` appear only on line 1, so the lower alternative is not shown as being within the repeating brace group; and there is neither `<u>` markup nor a Figure notes paragraph, so the required-word underlining on FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST is dropped with nothing recording it. Fix: render 15.87.2 in the file's tall-delimiter convention, e.g. `FUNCTION SUBSTITUTE ( argument-1 ⎧ [ ANYCASE ] ⎡ FIRST ⎤ argument-2 argument-3 ⎫ ... )` with `⎣ LAST  ⎦` on the continuation row inside the brace, and add a Figure notes paragraph stating that no choice indicators appear, that the FIRST/LAST bracket is a plain bracket (zero or one), and that FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined required words. The same defect class should be swept for elsewhere in clause 15 -- the NUMVAL-family figures at lines 36965-36977 stack `[ + ]` / `[ - ]` / `[ CR ]` / `[ DB ]` the same ad-hoc way.
+- **Verifier:** REAL, structural, essentially as described, with one sub-claim corrected and a sweep obligation added.
+
+CORE FINDING (stands, independently re-verified). PDF page 949 section 15.87.2 prints ONE tall square bracket whose serifs span both text rows, enclosing FIRST stacked above LAST, both underlined, with NO choice-indicator vertical bars anywhere in the figure -- neither in the '{ }' brace nor in the bracket -- i.e. a plain optional bracket around stacked alternatives, at most one selectable (ISO 5.2.6.4). The tall '{' '}' and '(' ')' also span both rows, so LAST is inside the repeating brace group. specs/ISO_COBOL.md lines 38006-38009 transcribe this as two flat ASCII bracket pairs '[ FIRST ]' / '[ LAST  ]' on consecutive lines, with the continuation line ending after the bracket so that LAST falls outside the '}', the '...' and the ')'.
+
+WHY IT IS A MEANING CHANGE (strengthened -- the proof is internal to the transcription, not merely an appeal to ISO 5.2.6.4). This file uses flat stacked '[ X ]' / '[ Y ]' brackets for INDEPENDENT CO-OCCURRING optional clauses -- '[ FULL ]' / '[ AUTO ]' / '[ SECURE ]' / '[ REQUIRED ]' / '[ OCCURS integer-5 TIMES ]' in the screen description entry Format 1 clause list, lines 17148-17151 -- and reserves the tall U+23A1..U+23A6 delimiters for optional at-most-one alternatives ('⎡ HIGHLIGHT ⎤' / '⎣ LOWLIGHT ⎦', line ~17170). The decisive control is 15.96.2 FUNCTION TRIM at lines 38498-38505, the structurally identical construct nine sections later, transcribed '⎡ LEADING ⎤' / '⎣ TRAILING ⎦' with a Figure notes paragraph stating 'No choice indicators in this format. The [ LEADING | TRAILING ] group is a plain bracket -- zero or one may be specified. Underlined required words: FUNCTION, TRIM, LEADING, TRAILING.' So the flat form at 15.87.2 does not under-render the bracket, it renders a constraint the file elsewhere spells as its opposite, and nothing in 15.87.2 records the mutual exclusivity. 15.87.3/15.87.4 do not repair it (returned-value rule 3 presumes but never states it).
+
+SUB-CLAIM CORRECTED. 'The only general format in clause 15 on these pages that uses ad-hoc two-line ASCII brackets' is false. The same ad-hoc flat rendering of an at-most-one stack occurs at 15.68.2 NUMVAL-C (lines 37031-37032, '[ LOCALE [ locale-name-1 ] ]' over '[ argument-2 ]'; 15.68.3 rule 3 confirms these are alternatives) and 15.94.2 TEST-NUMVAL-C (lines 38363-38364), and in the NUMVAL/NUMVAL-C argument figures at lines 36965-36977 and 37054-37057. Also, a missing Figure notes paragraph is not by itself a PDF/markdown content difference -- Figure notes are this project's annotation mechanism (225 of 306 general formats), not printed text; it matters here only as the designated place to record what the flat delimiters cannot carry.
+
+FIX. Restyle 15.87.2 in the file's tall-delimiter convention so the FIRST/LAST bracket is unambiguously one optional at-most-one group and LAST sits inside the brace group, e.g.
+                     ⎧              ⎡ FIRST ⎤                        ⎫
+  FUNCTION SUBSTITUTE ( argument-1 ⎨ [ ANYCASE ] ⎢       ⎥ argument-2 argument-3 ⎬ ... )
+                     ⎩              ⎣ LAST  ⎦                        ⎭
+and add a Figure notes paragraph recording: no choice indicators appear in this format; the FIRST/LAST group is a plain bracket (zero or one may be specified); the braces enclose the repeating group and the ellipsis denotes its repetition; FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined required words in the printed standard. SWEEP the same defect class at 15.68.2 (lines 37031-37032), 15.94.2 (lines 38363-38364), and the NUMVAL argument figures at lines 36965-36977 and 37054-37057.
+
+### p1007 · missing-heading · **structural**
+
+- **PDF:** A.4.8  FORMAT and SELECT WHEN file handling  /  A.4.9  Locale support and related functions  /  A.4.10  Object orientation  /  A.4.11  Report Writer — all printed in the same subsection style as A.4.1/A.4.2/A.4.12, subordinate to 'A.4 Optional language element list'.
+- **Markdown:** ## A.4.8 FORMAT and SELECT WHEN file handling
+## A.4.9 Locale support and related functions
+## A.4.10 Object orientation
+## A.4.11 Report Writer   (vs. '### A.4.12 RESUME statement' on the following page)
+- **Why:** Continuation of the same wrongly-levelled heading run: these four subsections of A.4 are emitted at level 2, the level of their parent A.4 and of the annex headings, while the immediately following A.4.12-A.4.14 are at level 3. Heading level is the only structure a markdown consumer has, so the annex outline is broken across this boundary.
+- **Repair:** Demote '## A.4.8' … '## A.4.11' (specs/ISO_COBOL.md lines 39990, 39997, 40026, 40035) from '##' to '###'.
+- **Verifier:** REAL, with two refinements to scope and labelling.
+
+Scope: the mis-levelled run is not four headings but nine — A.4.3 Commit and Rollback (line 39929), A.4.4 Dynamic capacity tables (39948), A.4.5 DYNAMIC LENGTH elementary items (39957), A.4.6 Extended letters (39962), A.4.7 File sharing and record locking (39967), A.4.8 FORMAT and SELECT WHEN file handling (39990), A.4.9 Locale support and related functions (39997), A.4.10 Object orientation (40026), A.4.11 Report Writer (40035) — all emitted as '## ' in specs/ISO_COBOL.md. Page 1007 carries the last four of that run; the run begins on page 1006 and ends on page 1007. It is bracketed on both sides by correctly-levelled siblings: '### A.4.1'/'### A.4.2' before it and '### A.4.12'/'### A.4.13'/'### A.4.14' after it. Fix the whole A.4.3-A.4.11 span in one edit rather than page by page, or the outline stays broken on page 1006.
+
+Labelling: kind should be 'wrong-heading-level', not 'missing-heading'. No heading text is missing — all four titles on page 1007 are present and spelled correctly, and every numbered item under them transcribes faithfully. The defect is purely that '##' should be '###'.
+
+Corrected statement of the PDF side: ISO/IEC 1989:2023 page 1007 (folio 977) prints A.4.8, A.4.9, A.4.10 and A.4.11 in the identical bold serif face and size used for A.4 itself and for every other heading in Annex A — the PDF encodes no typographic level distinction anywhere in this annex. Subordination of A.4.8-A.4.11 to 'A.4 Optional language element list' is established solely by ISO decimal clause numbering, which the transcription honours for A.4.1/A.4.2 and A.4.12-A.4.14 but violates here.
+
+Impact stands as claimed: because 'Annex A', 'A.2', 'A.3' and 'A.4' are themselves '##', a '## A.4.8' terminates the A.4 subtree and any outline-, TOC-, or section-slicing consumer reads these four subclauses as peers of Annex A instead of children of A.4.
+
+### p1010 · misplaced-content · **structural**
+
+- **PDF:** Adlam:
+1E900-1E943, 1E94B
+
+[end of page 980]  ...  [top of page 981]
+
+Ahom:
+11700-1171A
+- **Markdown:** Adlam:
+1E900-1E943, 1E94B Ahom:
+
+<a id="page-1011"></a>
+## Page 1011
+# ISO/IEC 1989:2023 (E)
+
+11700-1171A
+- **Why:** The script-name label 'Ahom:' that heads page 981 has been appended to the last data line of page 980, so the Adlam range line now reads as though it ended with the token 'Ahom:' and the Ahom range 11700-1171A is left with no label at the top of the next page. Annex B is normative; any reader or tool that pairs a script name with the code ranges beneath it mis-associates two consecutive scripts at this boundary.
+- **Repair:** In specs/ISO_COBOL.md line 40182, split '1E900-1E943, 1E94B Ahom:' into '1E900-1E943, 1E94B' and move 'Ahom:' to a new line immediately above '11700-1171A' (i.e. after the page-1011 anchor/header block).
+- **Verifier:** Confirmed as described for page 1010, with the scope broadened. The normative Annex B script label 'Ahom:', which is the first body line of PDF page 1011 (printed folio 981), has been appended to the final data line of page 1010 (printed folio 980), producing '1E900-1E943, 1E94B Ahom:' at specs/ISO_COBOL.md line 40182 and leaving the Ahom range '11700-1171A' label-less at line 40188. No code range is lost; the damage is to the label/ranges pairing that carries the annex's meaning, so a tool ingesting B.3 to build the user-defined-word character table would choke on 'Ahom:' as a range token or mis-attribute the orphaned range. This is a systematic page-boundary transcription defect rather than a one-off: 19 Annex B page boundaries exhibit the identical backwards-pull of the next page's script label onto the previous page's last range line, at markdown lines 40182, 40235, 40403, 40454, 40506, 40558, 40610, 40772, 40824, 40876, 40928, 40981, 49030, 49087, 49207, 49263, 49319, 49374 and 49431. A fix should repair all 19 uniformly rather than patching this boundary alone.
+
+### p1011 · misplaced-content · **structural**
+
+- **PDF:** Buginese:
+1A00-1A16
+
+[end of page 981]  ...  [top of page 982]
+
+Buhid:
+1740-1751
+- **Markdown:** Buginese:
+1A00-1A16 Buhid:
+
+<a id="page-1012"></a>
+## Page 1012
+# ISO/IEC 1989:2023 (E)
+
+1740-1751
+- **Why:** Same page-boundary defect: the label 'Buhid:' printed at the top of page 982 is attached to the Buginese range line ending page 981, orphaning the Buhid range 1740-1751 from its script name in normative Annex B.3.
+- **Repair:** In specs/ISO_COBOL.md line 40235, split '1A00-1A16 Buhid:' and move 'Buhid:' to its own line directly above '1740-1751' on page 1012.
+- **Verifier:** Real, but the impact statement overstates the harm. The script name 'Buhid:' is not lost and the reading order is not scrambled: reading the markdown linearly (ignoring the interposed page anchor and running header) still yields Buginese -> 1A00-1A16 -> Buhid -> 1740-1751, so a human reader recovers the correct pairing and no characters are dropped. The genuine defect is placement, not loss: a label printed at the top of page 982 was transcribed onto the final line of page 981, fusing it to the preceding entry's range list and splitting the Buhid name/range block across the page boundary. The concrete risk is to automated extraction -- any parser that derives the XID_Start repertoire by splitting Annex B.3 on blank lines gets a malformed record '1A00-1A16 Buhid:' and an unnamed range '1740-1751'. Severity is fairly rated structural (block structure is wrong) but the content is recoverable, so it is low-consequence for prose reading. It should be ledgered as one instance of a systematic page-boundary artifact affecting all 6 Annex B.3 page breaks, and fixed as a class rather than per page; note that page 1011's own first entry is missing its 'Ahom:' label for the identical reason.
+
+### p1014 · misplaced-content · **structural**
+
+- **PDF:** Javanese:
+A984-A9B2
+
+[end of page 984]  ...  [top of page 985]
+
+Kaithi:
+11083-110AF
+- **Markdown:** Javanese:
+A984-A9B2 Kaithi:
+
+<a id="page-1015"></a>
+## Page 1015
+# ISO/IEC 1989:2023 (E)
+
+11083-110AF
+- **Why:** Same page-boundary defect: 'Kaithi:' from the top of page 985 is merged onto the Javanese range line, leaving the Kaithi range 11083-110AF unlabelled.
+- **Repair:** In specs/ISO_COBOL.md line 40403, split 'A984-A9B2 Kaithi:' and move 'Kaithi:' to its own line directly above '11083-110AF' on page 1015.
+- **Verifier:** Confirmed, with one wording refinement. At the boundary between printed pages 984 and 985, the PDF has 'Javanese:' / 'A984-A9B2' as the final entry of page 984, and 'Kaithi:' / '11083-110AF' as the first entry of page 985. The markdown pulls the 'Kaithi:' label backward across the page break and merges it onto the end of the Javanese range line, producing 'A984-A9B2 Kaithi:' as a single line, and leaves '11083-110AF' at the top of page 1015 with no preceding script name on its own line. The label is not deleted - it is detached from its range and fused to the previous entry's data line - so two records are corrupted rather than one: the Javanese range list gains a spurious trailing token, and the Kaithi range loses its line-adjacent label. This breaks the section's uniform two-line 'ScriptName:' / 'ranges' record structure, which every other entry on pages 984-985 follows, and would mis-bind both entries under any line-oriented extraction of the Unicode script-to-code-point-range table.
+
+### p1015 · misplaced-content · **structural**
+
+- **PDF:** Linear_A:
+10600-10736, 10740-10755, 10760-10767
+
+[end of page 985]  ...  [top of page 986]
+
+Linear_B:
+10000-1000B, 1000D-10026, ...
+- **Markdown:** Linear_A:
+10600-10736, 10740-10755, 10760-10767 Linear_B:
+
+<a id="page-1016"></a>
+## Page 1016
+# ISO/IEC 1989:2023 (E)
+
+10000-1000B, 1000D-10026, 10028-1003A, 1003C-1003D, 1003F-1004D, 10050-1005D,
+- **Why:** Same page-boundary defect, and here it is especially misleading because Linear_A and Linear_B are near-identical names: the Linear_B ranges at the top of page 986 appear with no label at all while 'Linear_B:' sits at the end of the Linear_A line.
+- **Repair:** In specs/ISO_COBOL.md line 40454, split '...10760-10767 Linear_B:' and move 'Linear_B:' to its own line directly above '10000-1000B, ...' on page 1016.
+- **Verifier:** CONFIRMED as described, with one wording correction. The script label 'Linear_B:' printed at the top of PDF page 986 was transcribed at the end of page 1015 instead, appended to Linear_A's range line (specs/ISO_COBOL.md:40454 -- '10600-10736, 10740-10755, 10760-10767 Linear_B:'), leaving the Linear_B code-point ranges at specs/ISO_COBOL.md:40460 with no script label. The text is displaced, not deleted -- no code-point ranges are lost or altered -- but the label/data association is broken for two adjacent entries. This is one instance of a systematic page-boundary join defect in the UCS script tables; sibling instances confirmed at specs/ISO_COBOL.md:40444 ('A984-A9B2 Kaithi:', boundary 1014/1015) and :49263 ('10280-1029C Lydian:'). The claim's markdown quotation renders the page-1016 heading with a forward slash; the file actually contains a backslash ('# ISO\IEC 1989:2023 (E)'), which is immaterial to this finding but is itself a separate transcription artifact.
+
+### p1016 · misplaced-content · **structural**
+
+- **PDF:** Meroitic_Hieroglyphs:
+10980-1099F
+
+[end of page 986]  ...  [top of page 987]
+
+Miao:
+16F00-16F4A, 16F50, 16F93-16F9F
+- **Markdown:** Meroitic_Hieroglyphs:
+10980-1099F Miao:
+
+<a id="page-1017"></a>
+## Page 1017
+# ISO/IEC 1989:2023 (E)
+
+16F00-16F4A, 16F50, 16F93-16F9F
+- **Why:** Same page-boundary defect: 'Miao:' from the top of page 987 is merged onto the Meroitic_Hieroglyphs range line, orphaning the Miao ranges.
+- **Repair:** In specs/ISO_COBOL.md line 40506, split '10980-1099F Miao:' and move 'Miao:' to its own line directly above '16F00-16F4A, 16F50, 16F93-16F9F' on page 1017.
+- **Verifier:** CONFIRMED, with two refinements. (1) Nothing is deleted - 'Miao:' survives and still precedes its ranges in linear reading order; the defect is placement, not omission. The concrete damage is structural: the Meroitic_Hieroglyphs entry ends '10980-1099F Miao:' with a spurious trailing token, and the first content line of page 1017 is an unlabelled range list, so any line-structured read of the script-name-to-code-point-ranges table mis-binds both entries. (2) The claim understates the blast radius on this page. The same page-split off-by-one also pulled 'Linear_B:' off the top of page 986 onto the tail of page 1015 (line 40454: '10600-10736, 10740-10755, 10760-10767 Linear_B:'), so the markdown for page 1016 additionally OPENS with an orphaned range list '10000-1000B, 1000D-10026, ...' whose 'Linear_B:' label is absent, though the PDF prints it as page 986's first line. Page 1016 is thus mis-split at both boundaries: one label lost to the previous page, one label stolen from the next.
+
+### p1017 · misplaced-content · **structural**
+
+- **PDF:** Old_Hungarian:
+10C80-10CB2, 10CC0-10CF2
+
+[end of page 987]  ...  [top of page 988]
+
+Old_Italic:
+...
+- **Markdown:** Old_Hungarian:
+10C80-10CB2, 10CC0-10CF2 Old_Italic:
+
+<a id="page-1018"></a>
+- **Why:** Same page-boundary defect at the 1017/1018 boundary: 'Old_Italic:' is merged onto the Old_Hungarian range line, so the Old_Italic ranges opening page 988 carry no script name. The edit site is the last content line of page 1017.
+- **Repair:** In specs/ISO_COBOL.md line 40558, split '10C80-10CB2, 10CC0-10CF2 Old_Italic:' and move 'Old_Italic:' to its own line at the head of the page-1018 content.
+- **Verifier:** The claim is accurate as written; two refinements. (a) Precise edit: at specs/ISO_COBOL.md line 40558, split the trailing label off, leaving '10C80-10CB2, 10CC0-10CF2', and reinsert 'Old_Italic:' as a standalone line inside the page-1018 block immediately before line 40564 ('10300-1031F, 1032D-1032F'), matching the correct sibling transcription at lines 49355-49359. (b) The defect is systematic across this annex's page boundaries, not isolated: the immediately preceding boundary shows the identical corruption -- line 40506 reads '10980-1099F Miao:' with page 1017 then opening on the orphaned range line '16F00-16F4A, 16F50, 16F93-16F9F'. Any fix should sweep every page boundary in this script-range list rather than patching 1017/1018 alone.
 
 ### p1018 · misplaced-content · **structural**
 
@@ -1871,13 +2024,476 @@ and add a Figure notes line: the bracket is a single notation bracket with NO ch
 10B80-10B91 Rejang:" — with "Rejang:" glued to the end of Psalter_Pahlavi's range line. The page-1019 block then opens with a headless "A930-A946".
 - **Why:** Same normative-annex structural corruption as the Old_Italic case: the script name Rejang is detached from its code-point range A930-A946 and appended to a different script's entry on the previous page. A reader or extractor working page by page sees Psalter_Pahlavi's line polluted and Rejang's range unattributed.
 - **Repair:** Split the line into "10B80-10B91" (end of page-1018 block) and move "Rejang:" to be the first content line of the page-1019 block, above "A930-A946".
-- **Verifier:** Confirmed as described; two refinements for the ledger.
+- **Verifier:** CONFIRMED as described. Three refinements for the ledger. (1) Calibrate the impact: no characters are lost. This is a misplacement plus a line merge, not a deletion - the token sequence '...10B80-10B91 Rejang: ... A930-A946' is all present in file order, and a human reading linearly still recovers both bindings. What is corrupted is line structure, blank-line entry grouping, and page attribution, and therefore the machine-readable name-to-range association. 'Structural' is the right severity; it must not be read as 'text missing'. (2) The defect is systematic at page boundaries throughout this annex, not specific to Rejang, and it has an exactly identifiable trigger: whenever a page ends with a complete entry and the next page opens with a script-name line, that name line is pulled back and joined to the previous page's last range line, leaving the next page's block opening with an unattributed range. Confirmed sites: 'A984-A9B2 Kaithi:' (1014/1015), '...10760-10767 Linear_B:' (1015/1016), '10980-1099F Miao:' (1016/1017), line 40558 '...10CC0-10CF2 Old_Italic:' (1017/1018), line 40610 '10B80-10B91 Rejang:' (1018/1019), line 40981 '...A8D0-A8D9 Sharada:', and line 49374 '10A60-10A7C Old_Turkic:' (1219/1220). It correctly does not fire at 1019/1020 or 1020/1021, where the PDF itself orphans the label at the page foot ('Tai_Le:', 'Yezidi:') and the markdown matches. Fix by sweeping the pattern /^[0-9A-Fa-f][0-9A-Fa-f,\- ]*\s+[A-Za-z][A-Za-z_]*:\s*$/ on the last content line before a page anchor - split the trailing label onto its own line and move it into the FOLLOWING page block - rather than patching the two or three known sites. (3) Cross-check warning: the file contains three distinct script tables with DIFFERENT ranges for the same script names - Rejang is A930-A946 here (the affected site), A947-A953 at lines 40974-40975, and A930-A953 at lines 49409-49410, with Psalter_Pahlavi and Old_Italic likewise repeated. The later, correctly-transcribed occurrences are NOT evidence that this site is fine, and the orphaned 'A930-A946' must not be reconciled against the A930-A953 entry when repairing.
 
-(1) Scope/impact calibration. No characters are lost - this is a misplacement plus a line merge, not a deletion. The full token sequence "...10B80-10B91 Rejang: ... A930-A946" is present in file order; what is corrupted is the line structure, the page attribution, and therefore the name-to-range association. Severity "structural" is right; it should not be read as "text missing".
+### p1021 · misplaced-content · **structural**
 
-(2) The defect is systematic at page boundaries in this annex, not specific to Rejang. Confirmed instances in the same list: specs/ISO_COBOL.md line 40558 "10C80-10CB2, 10CC0-10CF2 Old_Italic:" at the 1017/1018 boundary (page-1018 block then opens headless at line 40564 with "10300-1031F, 1032D-1032F"), and line 40610 "10B80-10B91 Rejang:" at the 1018/1019 boundary (page-1019 block opens headless at line 40616 with "A930-A946"). The pattern is: the first script-name line printed on page N+1 is appended to the last range line of page N's block, leaving page N+1's block starting with an unattributed range. Any fix should sweep the whole annex for the pattern /^[0-9A-F][0-9A-F,\- ]*\s[A-Za-z][A-Za-z_]*:$/ immediately preceding a page marker rather than patching the two known sites.
+- **PDF:** Page 1021 (printed 991) ends with "Buginese:
+1A17-1A1B". "Buhid:" is the FIRST line printed on page 1022 (printed 992), directly above "1752-1753".
+- **Markdown:** End of the page-1021 block: "Buginese:
+1A17-1A1B Buhid:". The page-1022 block then opens with a headless "1752-1753".
+- **Why:** Annex B list 2) "characters permitted in a user-defined word except as the start character" is normative. The label Buhid is separated from its range 1752-1753 across the page break, so the entry cannot be read or extracted correctly from the markdown.
+- **Repair:** Split into "1A17-1A1B" and move "Buhid:" to the head of the page-1022 block, above "1752-1753".
+- **Verifier:** CONFIRMED, with one correction of scope and one of emphasis. Correction of emphasis: no text is lost - the token 'Buhid:' IS present in the markdown, but it is attached to the wrong page block and glued onto the end of the preceding script's range line, which orphans both the label (now reading as trailing noise after Buginese's range) and the range 1752-1753 (now headless at the top of the page-1022 block). Correction of scope: this is not a page-1021 incident but a systematic transcription defect affecting 19 script entries across both Annex B repertoire lists - list 1) start characters (page blocks 1010, 1011, 1014-1018) and list 2) non-start characters (page blocks 1021-1025), plus the corresponding lists at page blocks 1213-1220. In every case the first script label printed at the top of page N+1 was pulled back and appended to the last range line of page N. Exact page-1021 facts: PDF p1021 (printed 991) ends 'Buginese:' / '1A17-1A1B' followed only by white space and the footer; PDF p1022 (printed 992) opens with the running head then 'Buhid:' / '1752-1753'. Fix: for each of the 19 listed lines, split the trailing '<Script>:' label off the range line and move it to the head of the following page block, immediately above its range line.
 
-(3) Note for anyone cross-checking: an unrelated, correctly-transcribed copy of a similar script/range list exists later in the same file (around lines 49358-49409, where "Old_Italic:", "Psalter_Pahlavi:" and "Rejang:" each sit correctly on their own lines with their own ranges). That later block is a different table with different range values and must not be mistaken for evidence that the page-1018 site is fine.
+### p1023 · misplaced-content · **structural**
+
+- **PDF:** Page 1023 (printed 993) ends with "Khmer:
+17B4-17D3, 17DD, 17E0-17E9". "Khojki:" is the FIRST line printed on page 1024 (printed 994), directly above "1122C-11237, 1123E".
+- **Markdown:** End of the page-1023 block: "Khmer:
+17B4-17D3, 17DD, 17E0-17E9 Khojki:". The page-1024 block then opens with a headless "1122C-11237, 1123E".
+- **Why:** The script name Khojki is detached from its range 1122C-11237, 1123E in the normative Annex B table and appended to the Khmer entry.
+- **Repair:** Split into "17B4-17D3, 17DD, 17E0-17E9" and move "Khojki:" to the head of the page-1024 block.
+- **Verifier:** The claim is accurate as written; no correction needed. Precise anchors for the fix: specs/ISO_COBOL.md line 40876 must become '17B4-17D3, 17DD, 17E0-17E9' and 'Khojki:' must be reinserted as the first content line of the page-1024 block, immediately above line 40882 '1122C-11237, 1123E'. Scope note: this is one instance of a systematic page-boundary defect in the Annex B script/range table - the same trailing-label migration occurs at the 1022->1023 boundary (line 40824 '0AFA-0AFF Gunjala_Gondi:' leaving page 1023 headless), so the repair should be a sweep of every page break in this table rather than a single-line edit.
+
+### p1063 · incorrect-figure · **structural**
+
+- **PDF:** Figure D.1 draws one tall brace "}" on the right-hand side of the flowchart. That single brace spans ALL THREE exit arrows -- the arrow leaving imperative-statement-1, the arrow leaving imperative-statement-2 and the arrow leaving imperative-statement-3 -- and the footnote reference "**" is printed to the right of the brace, vertically centred beside it. The footnote itself (page 1064) reads: "**   Each of these control transfers is to the end of the SEARCH statement unless the flow of control of the imperative-statement contains an EXIT, GO TO, GOBACK, or RETURN statement."
+- **Markdown:** Condition-1 → True → imperative-statement-2 → **\*\***
+
+(the brace is not rendered at all; the "**" marker appears only at the end of the imperative-statement-2 row, and the imperative-statement-1 row reads "→ True (AT END) * → imperative-statement-1 →" and the imperative-statement-3 row reads "\* Condition-2 → True → imperative-statement-3 * →", neither carrying "**")
+- **Why:** The brace is the only thing that makes footnote ** apply to all three control transfers. With the brace dropped and "**" attached to a single row, the plural antecedent of "Each of these control transfers" disappears: a reader of the markdown concludes that only the imperative-statement-2 exit transfers to the end of the SEARCH statement, and that the AT END exit and the second WHEN exit are governed by something else. That is exactly the falsely-restrictive reading this sweep is looking for, applied to a figure grouping delimiter rather than a bracket.
+- **Repair:** Re-render the figure so the three exit arrows are shown as one group carrying the "**" marker, e.g. put "**" on its own line covering the three imperative-statement rows (or repeat "**" on each of the three exit arrows) instead of appending it to the imperative-statement-2 row only.
+- **Verifier:** Confirmed as stated, with two refinements. (1) Placement: the brace's centre cusp -- not merely the brace as a whole -- is level with the imperative-statement-2 row, and '**' is printed to the right of that cusp; this is why the transcription bound '**' to the statement-2 text run and dropped the brace. (2) Scope of harm: the figure is in informative Annex D and the identical rule survives correctly in the transcribed normative general rules of 14.9.37 SEARCH (specs/ISO_COBOL.md lines 30530 and 30534), so no implementable semantics is lost from the document as a whole. The defect is a genuine, meaning-changing loss of a figure grouping delimiter -- the brace binding all three imperative-statement exit arrows into one group labelled '**' is absent, leaving the plural 'Each of these control transfers' with a single visible referent -- but it is a transcription-fidelity defect, not a conformance hazard. Fix: render the group in the markdown, e.g. emit the three exit rows followed by a line such as 'All three of the above control transfers are grouped by a brace labelled ** ' (or attach '**' to each of the three rows), so the footnote's plural antecedent is recoverable.
+
+### p1074 · incorrect-figure · **structural**
+
+- **PDF:** Figure D.3 legend, lower group: the box captioned "Runtime Module" is drawn with a SOLID single-line border (visually identical to the "Compilation Unit" and "Source Unit" boxes in the upper legend group). Only the box below it, "Runtime Element", is drawn with a dashed border. The "Run Unit" box above it has the heavy double-weight border.
+- **Markdown:** | Symbol | Meaning |
+|--------|---------|
+| (solid double border box) | Run Unit |
+| (dashed border box) | Runtime Module |
+| (small dashed border box) | Runtime Element |
+- **Why:** The markdown legend makes Runtime Module and Runtime Element share the same symbol (both 'dashed'), so the legend can no longer distinguish them and the reader cannot decode the lower half of Figure D.3. The figure's whole purpose is the three-way symbol distinction (run unit / runtime module / runtime element) mirroring the upper legend's four-way distinction; collapsing two of the three destroys it.
+- **Repair:** Change the second legend row to '| (solid single border box) | Runtime Module |' so the lower legend reads: solid double border = Run Unit, solid single border = Runtime Module, dashed border = Runtime Element.
+- **Verifier:** REAL, with two wording corrections to the claim. (1) The claim says the Runtime Module box is 'visually identical to the Compilation Unit AND Source Unit boxes'. Measured, it matches the Compilation Unit box exactly (both 3-4 px solid rules at 300 dpi, ~1 pt); the Source Unit box is drawn with a distinctly THINNER solid rule (2 px, ~0.5 pt). The upper legend's four-way distinction is therefore heavy-double / medium-solid / thin-solid / dashed, and the lower legend's three-way distinction is heavy-double / medium-solid / dashed - Runtime Module reuses the Compilation Unit weight, not the Source Unit weight. (2) The markdown's third row, '(small dashed border box) | Runtime Element', is inaccurate for a second, independent reason: the Runtime Element box is not 'small'. It is drawn at the same 390 px width and with the identical 33 px dash pattern as the upper legend's Source Element box, and is the same height class as its siblings. Correct transcription of the lower legend is: heavy double-border box = Run Unit; solid single-border box (medium weight, same as Compilation Unit) = Runtime Module; dashed-border box (same dash pattern as Source Element) = Runtime Element.
+
+### p1074 · missing-figure · **structural**
+
+- **PDF:** Figure D.3 — Compilation group and run unit structures is a nested-box schematic: a heavy-bordered COMPILATION GROUP box at the top containing three sub-boxes (a left compilation-unit column with an arrow labelled "To other run unit", a centre compilation-unit box, and a right compilation-unit column with an arrow labelled "To other run unit"); inside the centre box a source-unit box holds the dashed source element "P-1", beneath which sit the source units "P-1-1" and "P-1-2", and inside "P-1-2" the two dashed source elements "P-1-2-1" and "P-1-2-2". Arrows lead down to a second heavy-bordered RUN UNIT box at the bottom, whose interior repeats the same nesting in runtime-module / runtime-element form, with inbound arrows labelled "From other comp. group".
+- **Markdown:** **Figure D.3 — Compilation group and run unit structures**
+
+P-1
+
+P-1-1 &nbsp;&nbsp;&nbsp; P-1-2
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; P-1-2-1 &nbsp;&nbsp; P-1-2-2
+
+To other run unit &nbsp;... To other run unit
+
+From other comp. group &nbsp;... From other comp. group
+- **Why:** Every piece of information the figure carries lives in its box nesting and arrows, not in its labels. The markdown keeps only the floating labels, so the reader cannot recover which entities are compilation units versus source units versus source elements, that P-1-2-1 and P-1-2-2 are nested inside P-1-2, that P-1 is a source element of the centre compilation unit, or that the compilation group maps onto the run unit at all. The entire lower (run unit) half of the figure has no representation whatsoever. Read literally, the transcription looks like a stray list of program names.
+- **Repair:** Replace the loose labels with an ASCII-art or indented-tree rendition that preserves the containment (compilation group > compilation unit > source unit > source element) for both halves of the figure and marks the compilation-group-to-run-unit arrows and the 'To other run unit' / 'From other comp. group' edges.
+- **Verifier:** Figure D.3 (page 1074 = printed 1044) is a two-tier nested-box schematic whose entire information content is containment and arrow topology. The markdown transcription reduces it to five floating labels (P-1, P-1-1, P-1-2, P-1-2-1, P-1-2-2), four orphan arrow captions, and a transcriber-written Legend table — with no boxes, no nesting, and no arrows. Consequently the reader cannot recover: (a) that the outer heavy box is the Compilation Group and it holds THREE Compilation Units, of which the left and right are drawn empty; (b) that P-1 is a Source Element inside a Source Unit inside the centre Compilation Unit; (c) that P-1-1 and P-1-2 are Source Units beneath it and that P-1-2-1 and P-1-2-2 are Source Units nested INSIDE P-1-2, each holding a dashed Source Element; (d) that a heavy-bordered Run Unit box below repeats the identical nesting in Runtime Module / Runtime Element form (all of whose boxes are unlabelled in the PDF, so no text was available to carry across); or (e) the arrow topology — 'To other run unit' leaving the outer compilation units, the compilation group feeding down into the run unit, and 'From other comp. group' entering the outer runtime modules. Beyond this structural loss, the markdown Legend contains an affirmative error introduced by the transcriber: 'Runtime Module' is described as '(dashed border box)' when the PDF draws a solid thin-bordered box, which makes Runtime Module and Runtime Element indistinguishable in the transcription; 'Runtime Element' is called '(small dashed border box)' when it is a plain dashed box identical to Source Element; and the heavy single rules on 'Compilation Group' and 'Run Unit' are called '(solid double border box)'. The claim's own quotation of the markdown was truncated — it omitted the Legend block — so its assertion that the run-unit half has 'no representation whatsoever' is too strong: the lower legend and the two 'From other comp. group' captions are present. The correct statement is that the figure's box nesting and arrow topology are absent in both halves, and that the surviving legend is unanchored to any label and partly wrong.
+
+### p1096 · missing-heading · **structural**
+
+- **PDF:** D.9.2.3   Examples   (fourth-level subclause, same rank as D.9.2.1 General and D.9.2.2 Restricted data-pointers on p1095)
+- **Markdown:** ## D.9.2.3 Examples   (level 2, while its siblings are '#### D.9.2.1 General' and '#### D.9.2.2 Restricted data-pointers' and its parent is '### D.9.2 Data-addresses and data-pointers')
+- **Why:** D.9.2.3 is promoted two levels, out from under D.9.2 and up to the rank of D.9 itself, so the outline detaches the Examples subclause from the data-pointer discussion it belongs to. Same page-boundary signature as the D.8.2/D.8.3 case: D.9.2.3 is the first heading on page 1096.
+- **Repair:** Demote to level 4: '#### D.9.2.3 Examples'.
+- **Verifier:** CONFIRMED, with two corrections/extensions to the original write-up.
+
+(1) Scope is wider than one heading. The flattening is not self-limiting at D.9.2.3 — the outline never re-nests afterward. Downstream of the break the whole D.9.3 subtree is promoted one level as well: line 44050 '## D.9.3 ...' (should be '###', to match its true siblings '### D.9.1' and '### D.9.2'), 44053 '### D.9.3.1 General' and 44062 '### D.9.3.2 Restricted program-pointers and function-pointers' (both should be '####', to match '#### D.9.2.1' / '#### D.9.2.2'). So the correct repair is not a single-line edit: D.9.2.3 must go '##' -> '####', and then D.9.3 '##' -> '###' with D.9.3.1 and D.9.3.2 '###' -> '####'. Note D.9.3 and its children are on page 1097, so a page-1096-only fix leaves the subtree still misnested.
+
+(2) Severity is navigational, not semantic. No prose is lost, altered or reordered — page 1096's body text (the strongly-typed-group-item paragraph, the Get-next-record prototype, the REPOSITORY/my-wreck example, the CALL ... RETURNING p and SET ADDRESS OF sequence, and the p2/data-record API example) transcribes faithfully against the render, and critically the subclause NUMBER 'D.9.2.3' survives verbatim inside the heading text. A human or tool citing '§D.9.2.3' therefore still resolves correctly, and no citation is destroyed. What breaks is the derived structure: any TOC build, outline walk, parent-scoped search, or 'give me all of D.9.2' extraction will drop the Examples subclause out of D.9.2 and hoist it to the rank of D.9, and will likewise mis-parent all of D.9.3. Structural severity is the right classification; it should not be escalated to content-loss.
+
+(3) The pattern is mechanical and worth sweeping globally rather than fixing case by case: every instance found so far (D.8.2, D.8.3, D.9.2.3, D.9.3) is a heading that falls first on a fresh PDF page, which the transcription pipeline appears to emit at a fixed '##' depth instead of the depth implied by its dotted number. A repo-wide pass that re-derives heading level from the dot-count of the clause number would fix the whole class in one change; the ledger should carry this as one systemic defect with per-page instances, not as N independent findings.
+
+### p1101 · incorrect-figure · **structural**
+
+- **PDF:** 02  item-4  pic 1 usage BIT.        1              5
+- **Markdown:**    02  item-4  usage BIT.          1                  5
+- **Why:** In the second bit-alignment figure (the GROUP-USAGE BIT variant of group-1), the PICTURE clause 'pic 1' has been dropped from item-4. Without it the entry no longer describes a boolean item at all, yet the figure still charts one occupied bit position for item-4 at bit 1 of byte 5. The same entry is written 'pic 1 usage BIT.' in the first figure on the same page, so the transcription is internally inconsistent and the example as transcribed would not compile.
+- **Repair:** Restore 'pic 1': '   02  item-4  pic 1 usage BIT.    1                  5' (matching the corresponding row of the first figure on this page).
+- **Verifier:** Confirmed as described. specs/ISO_COBOL.md:44257 drops the 'pic 1' PICTURE clause from the item-4 entry in the second bit-alignment figure on page 1101 (printed folio 1071). PDF: '   02  item-4  pic 1 usage BIT.    1                  5'. Markdown: '   02  item-4  usage BIT.          1                  5'. The fix is to restore 'pic 1' so the line matches the corresponding, correctly transcribed entry in the first figure at specs/ISO_COBOL.md:44236.
+
+### p1143 · incorrect-figure · **structural**
+
+- **PDF:** Figure  D.5 — Banking hierarchy : a three-compartment box 'Account' (name / 'account-number, balance, date-opened' / 'deposit, withdraw, balance'), with the side labels 'Data items ——>' and 'Methods ——>' aimed at the second and third compartments, and TWO solid lines rising from the top edges of the 'CheckingAccount' and 'SavingAccount' boxes to arrowheads on the bottom edge of the 'Account' box.
+- **Markdown:** | | Account | |
+|---|---|---|
+| Data items → | account-number<br>balance<br>date-opened | |
+| Methods → | deposit<br>withdraw<br>balance | |
+
+| CheckingAccount | | SavingAccount |
+|---|---|---|
+| charges | | interest-rate |
+| displayCharges<br>calculateCharges | | calculateInterest |
+- **Why:** The figure is titled 'Banking hierarchy' and its entire content is the inheritance relation; the two upward arrows are the only thing in the figure that says CheckingAccount and SavingAccount are subclasses of Account. Rendered as two unconnected tables, the markdown shows three peer classes and the hierarchy is gone, which is exactly what the surrounding text ('each instance of CheckingAccount ... methods deposit, withdraw, and balance inherited from Account') depends on the figure to illustrate. Note that Figure D.4 one page earlier DID keep its arrows (▲), so this is an isolated loss, not a house style.
+- **Repair:** Re-render Figure D.5 so the subclass→superclass edges survive — e.g. an ASCII/box drawing in the style already used for Figure D.4 on page 1142, with 'CheckingAccount' and 'SavingAccount' below 'Account' and an upward arrow from each to Account, keeping the three compartments (class name / data items / methods) per box and the two side labels.
+- **Verifier:** The finding is real as described, with one correction to its framing and severity. WHAT IS ACTUALLY LOST, precisely: only the two inheritance connectors. Everything else in Figure D.5 survives the transcription - all three boxes, all three compartments of each box, every data item and method name, and both side labels (the drawn arrows on 'Data items' and 'Methods' are rendered as '→', which is faithful). So the defect is not 'the figure was mangled into tables'; it is that the two solid lines with filled arrowheads running from the top edge of CheckingAccount and from the top edge of SavingAccount up to the bottom edge of Account are absent, leaving the markdown showing three peer classes with no stated relation. CORRECTION TO THE CLAIM'S FRAMING: the claim overstates the consequence when it says 'the hierarchy is gone'. It is gone FROM THE FIGURE, but not from the page - the markdown prose on both sides of the figure states the relation explicitly and survives intact ('use inheritance to define the checking account and the savings account subclasses' before it; 'the methods deposit, withdraw, and balance inherited from Account' after it). CORRECTION TO SEVERITY: Annex D is headed '(informative)' at specs/ISO_COBOL.md line 41494, and Figure D.5 is a worked illustration inside D.19.5.1 Inheritance. No normative rule, general format, or compiler behaviour depends on this figure, so 'structural' overstates the impact for implementation purposes - this is a figure-fidelity defect in informative material, best classified cosmetic-to-minor. RECOMMENDED FIX (matching the house style already used for D.4 twelve lines earlier): replace the two pipe tables with a single fenced ASCII-art block drawing the Account box above the two subclass boxes with '▲'-headed risers from each subclass to Account, or, if the tables are retained, add a '> **Figure notes (Figure D.5 — Banking hierarchy).**' line stating that solid lines with arrowheads run from the top of CheckingAccount and SavingAccount to the bottom of Account, denoting that both are subclasses of Account.
+
+### p1178 · incorrect-figure · **structural**
+
+- **PDF:** A flowchart occupies the page (it is the diagram for Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3; in this annex the caption is printed ABOVE its diagram, so the 'Figure D.9' caption sits at the foot of p.1177 and the 'Figure D.10' caption at the foot of p.1178 belongs to the NEXT diagram). Boxes and edges: [Evaluate condition-1] -> (Condition-1 true) --yes--> right channel; --no--> [Evaluate condition-2] -> (Condition-2 false) --yes--> LEFT channel; --no--> [Evaluate condition-3] -> (Condition-3 false) --yes--> LEFT channel; --no--> RIGHT channel. Left channel terminates at 'Truth value is false'; right channel terminates at 'Truth value is true' ('false' and 'true' underlined).
+- **Markdown:** Evaluate\ncondition-1\n\nCondition-1\ntrue\n\nno\n\nEvaluate\ncondition-2\n\nCondition-2\nfalse\n\nno\n\nEvaluate\ncondition-3\n\nCondition-3\nfalse\n\nyes\n\nTruth value\nis false\n\nyes\n\nyes\n\nno\n\nTruth value\nis true
+- **Why:** The whole figure is reduced to a bare, out-of-order list of node labels: no boxes, no decision shapes, no arrows, no branch targets. Every label token survives (3 'yes', 3 'no') but the connectivity — which is the entire content of the figure — is gone, and the residual reading order is scrambled (the three 'yes' labels are collected together after the last decision). The figure is unusable as a description of how 'condition-1 OR condition-2 AND condition-3' is evaluated. Adjacent pages 1176, 1177, 1185 and 1186 all received a proper ASCII-art rendering, so this is a pipeline drop, not a stylistic choice.
+- **Repair:** Render the flowchart as ASCII art in a fenced block, in the same style already used for p.1176/p.1177, preserving the two exit channels ('Condition-2 false'/'Condition-3 false' yes-exits go LEFT to 'Truth value is false'; 'Condition-1 true' yes-exit and 'Condition-3 false' no-exit go RIGHT to 'Truth value is true'). While doing so, correct the Figure-notes block at specs/ISO_COBOL.md:47538, which attributes the page-1177 diagram to 'Figure D.9': captions in D.23 precede their diagrams, so the p.1177 diagram is Figure D.8 (generic OR chain over condition-1..condition-n) and Figure D.9's diagram is this one, on p.1178.
+- **Verifier:** CONFIRMED as a structural figure loss, with four refinements to the reported description.
+
+(a) The claim's figure identification and caption-placement analysis are correct and independently verified against renders of pp.1176/1177/1179: in the D.7-D.10 run the caption is printed ABOVE its diagram, so the p.1178 flowchart is Figure D.9 (Evaluation of condition-1 OR condition-2 AND condition-3) and the 'Figure D.10' caption at the foot of p.1178 heads the p.1179 diagram. The markdown reproduces the captions in the same above-the-diagram position, so the caption itself is not misplaced by the transcription — only the diagram is lost.
+
+(b) The residual ordering is mis-described in one detail. The three 'yes' labels are NOT collected together after the last decision. The markdown order is: ... Condition-3 / false / yes / 'Truth value is false' / yes / yes / no / 'Truth value is true'. One 'yes' immediately follows the last decision, then the left-hand terminal intervenes, then the remaining two 'yes' and the third 'no' follow. The order is scrambled, just not in the shape stated. Token counts (3 'yes', 3 'no') are correct.
+
+(c) An additional loss the claim did not mention: the underlining of 'false' and 'true' in the two terminals is dropped — the markdown renders bare 'is false' / 'is true'. In the printed standard the underline is the emphasis that marks the resulting truth value.
+
+(d) The supporting comparison overstates p.1185 slightly and understates the defect's scope. pp.1176, 1177 and 1186 carry genuine fenced box-drawing ASCII art; p.1185's Figure D.11 got only an unfenced plain-text arrow sketch (still connectivity-preserving, but not box art). More importantly this is not an isolated page: p.1179 has the IDENTICAL defect — Figure D.10's four-condition flowchart is likewise reduced to a bare label list (specs/ISO_COBOL.md from line 47590). Any fix must cover pp.1178 and 1179 together. Separately, and outside this claim's scope, the p.1177 markdown's 'Figure notes' block (line 47538) annotates the p.1177 ASCII art as 'Figure D.9' when — by the caption-above-diagram convention just established — that diagram is Figure D.8's; that mislabel should be corrected in the same sweep.
+
+### p1179 · incorrect-figure · **structural**
+
+- **PDF:** A flowchart occupies the page (the diagram for Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4, captioned at the foot of p.1178). Boxes and edges: [Evaluate condition-1] -> (Condition-1 true) --yes--> right channel down to [Evaluate condition-3]; --no--> [Evaluate condition-2] -> (Condition-2 false) --yes--> right channel down to [Evaluate condition-3]; --no--> LEFT channel down to 'Truth value is false'. [Evaluate condition-3] -> (Condition-3 false) --yes--> LEFT channel; --no--> [Evaluate condition-4] -> (Condition-4 false) --yes--> LEFT channel; --no--> 'Truth value is true'. Left channel terminates at 'Truth value is false'; 'false' and 'true' are underlined.
+- **Markdown:** Evaluate\ncondition-1\n\nCondition-1\ntrue\n\nno\n\nEvaluate\ncondition-2\n\nCondition-2\nfalse\n\nno\n\nEvaluate\ncondition-3\n\nCondition-3\nfalse\n\nno\n\nEvaluate\ncondition-4\n\nCondition-4\nfalse\n\nno\n\nyes\n\nyes\n\nyes\n\nyes\n\nTruth value\nis **false**\n\nTruth value\nis **true**
+- **Why:** Same defect as p.1178: the flowchart is flattened to a bag of labels with all four 'yes' edges heaped at the end and no boxes, arrows or branch targets. The distinctive structure of this figure — that the yes-exits of Condition-1 and Condition-2 BOTH re-enter at [Evaluate condition-3], which is what encodes '(condition-1 OR NOT condition-2) AND ...' — is completely unrecoverable from the transcription.
+- **Repair:** Render the flowchart as ASCII art in a fenced block in the same style as p.1176/p.1177, preserving the join of the Condition-1 yes-exit and the Condition-2 yes-exit into [Evaluate condition-3], the left channel to 'Truth value is false' fed by Condition-2 no, Condition-3 yes and Condition-4 yes, and the Condition-4 no fall-through to 'Truth value is true'.
+- **Verifier:** REAL, with two refinements. (1) Figure identity is correct but worth stating precisely: the diagram on p.1179 IS Figure D.10 — 'Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4' — confirmed by evaluating the charted logic; its bold caption is printed at the foot of p.1178, one page ahead of the diagram (p.1178 itself carries the three-condition Figure D.9 chart, whose logic is condition-1 OR (condition-2 AND condition-3)). (2) The loss is worse than 'unrecoverable': the flattened label order in specs/ISO_COBOL.md lines 47590-47641 actively implies a FALSE linear cascade 'Condition-2 false -> no -> Evaluate condition-3', when the printed 'no' exit of (Condition-2 false) goes to the left channel and terminates at 'Truth value is false'. It is the YES exits of Condition-1 and Condition-2 that merge into the right-hand channel feeding [Evaluate condition-3]. Everything else in the claim holds: all boxes, arrows, channel merges and branch targets are absent, and the four 'yes' labels are heaped after all four 'no' labels. The underlining of 'false'/'true' is the one thing not lost — it survives as bold. Remedy: transcribe the chart as a Unicode box-drawing block plus a '> **Figure notes (Figure D.10 ...)**' paragraph, exactly as the same file already does for Figure D.9 at lines ~47498-47538; neither exists for D.10 today.
+
+### p1188 · incorrect-figure · **structural**
+
+- **PDF:** The uncaptioned flowchart on page 1188 (printed page 1158) carries three control-flow edges that are drawn, not implied: (a) a line leaves the LEFT edge of the box "Augment identifier-5 with current BY value", runs left and upward, and ends in an arrowhead entering the flow immediately ABOVE the box "Execute specified set of statements"; (b) a line leaves the LEFT edge of the box "Augment identifier-2 with current BY value", runs left and upward the full height of the figure, and ends in an arrowhead entering the flow immediately ABOVE the box "Set identifier-5 to cur-rent FROM value"; (c) the "True" exit of "Condition-2" runs to the right, turns down, and rejoins the main flow BELOW "Augment identifier-5 with current BY value" and above "Condition-1". Only the "True" exit of "Condition-1" reaches "Exit".
+- **Markdown:** Entrance
+
+Set identifier-2 to current FROM value
+
+Set identifier-5 to current FROM value
+
+Execute specified set of statements
+
+Condition-2 → True
+
+False ↓
+
+Augment identifier-5 with current BY value
+
+Condition-1 → True → Exit
+
+False ↓
+
+Augment identifier-2 with current BY value
+- **Why:** The entire purpose of this figure is to show the NESTED loop structure of the VARYING/AFTER phrases of PERFORM with TEST AFTER: the inner loop returns to "Execute specified set of statements" and the outer loop returns to "Set identifier-5 to current FROM value" (re-initialising the inner variable on every outer iteration). With all three edges dropped the markdown reads as a straight-line, single-pass sequence, which is the opposite of what the figure states, and it silently removes the re-initialisation of identifier-5 that distinguishes PERFORM VARYING ... AFTER from two independent loops. The transcription of the neighbouring figures does preserve loop-backs (page 1186 uses fenced box-drawing art, page 1187 draws "↑_________________________________|"), so this page is an outlier, not a house style.
+- **Repair:** Re-render the page-1188 figure inside a fenced code block with the three edges restored, in the same box-drawing style already used for Figure D.13 on page 1186; at minimum add explicit return markers, e.g. "Augment identifier-5 with current BY value → (back to: Execute specified set of statements)" and "Augment identifier-2 with current BY value → (back to: Set identifier-5 to current FROM value)", plus "Condition-2 → True → (join before Condition-1)".
+- **Verifier:** Real, and the claim understates the damage in one respect. All three edges are confirmed drawn in the PDF and all three are absent from the markdown, exactly as described. Two corrections/additions:
+
+(1) The loss of edge (c) is not a mere omission -- it is a corruption. The markdown emits "Condition-2 → True" as a DANGLING arrow with no destination, two lines above the visually parallel "Condition-1 → True → Exit". A reader completes the pattern by analogy and concludes Condition-2's True branch also terminates the PERFORM. The PDF states the opposite: Condition-2 True falls through to the Condition-1 test (the outer-loop test), and ONLY Condition-1 True reaches Exit. So the markdown does not just drop the inner loop; it inverts the meaning of the inner loop's exit.
+
+(2) The precise re-entry targets are worth recording verbatim for anyone repairing the transcription, because they are the whole semantic content of the AFTER phrase: the inner back-edge (from "Augment identifier-5") re-enters ABOVE "Execute specified set of statements" and therefore BELOW "Set identifier-5 to cur-rent FROM value", so identifier-5 is NOT re-initialised per inner iteration; the outer back-edge (from "Augment identifier-2") re-enters ABOVE "Set identifier-5 to cur-rent FROM value" and therefore BELOW "Set identifier-2 to cur-rent FROM value", so identifier-5 IS re-initialised on every outer iteration while identifier-2 is initialised once. That asymmetry is the sole difference between PERFORM VARYING ... AFTER and two independent loops, and it is precisely what the flattened transcription destroys.
+
+One incidental observation outside the claim, noted so it is not mistaken for part of this finding: the page-1188 figure is uncaptioned in the PDF itself (verified), while page 1187's one-condition figure carries the caption "Figure D.14 -- ... having two conditions". That caption/figure mismatch is an ISO-side anomaly on pages 1187/1188 and is a separate item from this transcription defect.
+
+### p1195 · missing-heading · **structural**
+
+- **PDF:** "D.31.3.3   WHEN-COMPILED function", "D.31.3.4   INTEGER-OF-DATE function", "D.31.3.5   INTEGER-OF-DAY function", "D.31.3.6   DATE-OF-INTEGER function", "D.31.3.7   DAY-OF-INTEGER function", "D.31.3.8   TEST-DATE-YYYYMMDD function", "D.31.3.9   TEST-DAY-YYYYDDD function" are all printed at the same rank as D.31.3.1 and D.31.3.2 on page 1194.
+- **Markdown:** ## D.31.3.3 WHEN-COMPILED function … ## D.31.3.9 TEST-DAY-YYYYDDD function   (whereas page 1194 has "### D.31.3.1 General" and "### D.31.3.2 CURRENT-DATE function")
+- **Why:** Seven of the nine subclauses of D.31.3 are promoted out of their parent at the page boundary, so the outline claims the basic date/time intrinsic-function clause contains only General and CURRENT-DATE.
+- **Repair:** Change all seven to "### D.31.3.n …" to match D.31.3.1 and D.31.3.2.
+- **Verifier:** REAL, but mis-titled and under-scoped. Correct kind is wrong-heading-level (or heading-rank), NOT missing-heading: none of the seven headings is missing — all of D.31.3.3 through D.31.3.9 are present on page 1195 with correct numbers, correct titles, and correct anchors. The defect is that they are emitted at '##' while their same-depth peers D.31.3.1/D.31.3.2 are '###' and their own parent D.31.3 is also '##', collapsing seven children into siblings of their container. Scope is wider than page 1195: the identical artifact hits D.31.2.6 and D.31.2.7 ('##' at depth 4, across the 1193→1194 boundary) and D.31.5.2 through D.31.5.11 ('##' at depth 4, from the 1196→1197 boundary onward), and the depth-3 clauses D.31.2/D.31.3/D.31.4/D.31.5 are all '##' while their peer D.31.1 is '###'. The fix is therefore a level sweep over the whole of clause D.31 driven by the section number's dot-depth, not a seven-line patch to page 1195. PDF evidence for the equal-rank premise: every heading on pages 1193–1196, including D.31.3 itself, is Cambria,Bold 11.67 at the page's body indent, so the PDF encodes hierarchy solely in the section number.
+
+### p1213 · misplaced-content · **structural**
+
+- **PDF:** Bopomofo:\n312D-312F, 31B8-31BF\n\n[page break to p1184]\n\nBrahmi:\n11000-11046, 11066-1106F, 1107F
+- **Markdown:** Bopomofo:\n312D-312F, 31B8-31BF Brahmi:   (specs/ISO_COBOL.md line 49030)  ... then page-1214 opens with the bare line '11000-11046, 11066-1106F, 1107F' with no label
+- **Why:** The 'Brahmi:' script label from the top of PDF page 1184 (md page 1214) has been concatenated onto the end of the Bopomofo range line on the previous page. Two entries are corrupted at once: Bopomofo's range line now reads '31B8-31BF Brahmi:', and Brahmi's code-point ranges are left orphaned at the head of the next page with no label at all. This is the E.3.3 item 5 list of characters newly permitted in user-defined words - the script-to-range mapping is exactly the data an implementer reads here, and the mapping is broken at this boundary.
+- **Repair:** Split line 49030 of specs/ISO_COBOL.md: leave '312D-312F, 31B8-31BF' as the Bopomofo range line at the end of page 1213, and move 'Brahmi:' to become the first content line of the page-1214 slice, immediately above '11000-11046, 11066-1106F, 1107F'.
+- **Verifier:** Claim confirmed as described; no correction needed. Precise coordinates for the fix: PDF page 1213 = printed folio 1183, PDF page 1214 = printed folio 1184. specs/ISO_COBOL.md line 49030 must be '312D-312F, 31B8-31BF' (drop the trailing ' Brahmi:'), and a 'Brahmi:' label line must be inserted immediately before line 49036 ('11000-11046, 11066-1106F, 1107F') at the head of the page-1214 body, matching the PDF's two-line label/ranges pattern used by every other entry in E.3.3 item 5. Note for the fixer: the same page-boundary join defect recurs at the 1214/1215 boundary (markdown line 49094, 'FE2E-FE2F Deseret:'), so this boundary should be repaired as part of a sweep of the whole Annex E script table rather than as a one-off edit.
+
+### p1213 · missing-heading · **structural**
+
+- **PDF:** 5)  **Characters permitted in user-defined words.** The following characters have been added.   [printed as ordinary numbered list item 5) of clause E.3.3, in the same run-in bold-lead style as items 1) through 4) and 6)]
+- **Markdown:** ## 5) **Characters permitted in user-defined words.** The following characters have been added.   (specs/ISO_COBOL.md line 48984)
+- **Why:** A numbered list item inside E.3.3 has been promoted to a level-2 markdown heading, so it appears in the document outline / table of contents as a sibling of real clauses such as 'E.3 Substantive changes probably not affecting existing programs'. Its siblings (items 1) through 4)) are plain list text, so the list is rendered inconsistently and any outline-driven navigation or section-extraction tooling sees a section that does not exist in the standard.
+- **Repair:** Demote line 48984 to an ordinary list item: '5) **Characters permitted in user-defined words.** The following characters have been added.' (strip the leading '## ').
+- **Verifier:** REAL, with three corrections to the write-up. (1) The kind label 'missing-heading' is a misnomer: no heading is missing. A heading is SPURIOUS - the transcription ADDED '## ' to what the standard prints as an ordinary numbered list item. The fix is to delete the '## ' prefix, not to restore anything. (2) The defect is a PAIR, not a singleton. Item 6) of the same list is promoted identically at specs/ISO_COBOL.md line 49521 ('## 6) **General case mappings.** The following case mappings have been added.'). I rendered its PDF page (1222, folio 1192) and it too is printed as a plain hanging-marker list item at the same left margin as items 1) through 4) on p.1212. Any fix must strip '## ' from both line 48984 and line 49521; grep '^#{1,6} *[0-9]\) ' over specs/ISO_COBOL.md returns exactly these two hits and no others, so the pattern sweep is complete at two. (3) The harm is understated. Beyond inconsistent rendering and a phantom outline entry, the '##' acts as a section terminator: extracting clause E.3.3 by heading boundaries yields only items 1) through 4) and loses roughly 530 lines of item 5)'s Unicode script/code-point table and the entirety of item 6)'s case-mapping table. For COBOL.NET this is material, since E.3.3 items 4) through 6) are the normative record of which Unicode ranges were added to user-defined words and to the general case mappings - directly relevant to the CA26 UTF-16 alphanumeric-repertoire decision.
+
+### p1214 · misplaced-content · **structural**
+
+- **PDF:** Cyrillic:\n0483-0484, 0487, 048A-048B, 04C5-04C6, 04C9-04CA, 04CD-04CF, 04F6-04F7,\n04FA-052F, 1C80-1C88, 1D2B, 1D78, 2DE0-2DFF, A640-A66F, A674-A67D, A67F-A69F,\n\n[page break to p1185]\n\nFE2E-FE2F\n\nDeseret:\n10400-1044F
+- **Markdown:** 04FA-052F, 1C80-1C88, 1D2B, 1D78, 2DE0-2DFF, A640-A66F, A674-A67D, A67F-A69F, FE2E-FE2F Deseret:   (specs/ISO_COBOL.md line 49087)  ... then page-1215 opens with the bare line '10400-1044F' with no label
+- **Why:** Both the Cyrillic continuation range 'FE2E-FE2F' and the following script label 'Deseret:' were pulled back from PDF page 1185 onto the last line of page 1184. The 'Deseret:' label is thereby glued to a Cyrillic range list, and Deseret's own range '10400-1044F' opens the next page unlabelled. Content that belongs to page 1215 is attributed to page 1214, so a citation by page anchor lands on the wrong page.
+- **Repair:** Split line 49087 of specs/ISO_COBOL.md so it ends at 'A67F-A69F,'. Move 'FE2E-FE2F' and, after a blank line, 'Deseret:' into the page-1215 slice, above '10400-1044F'.
+- **Verifier:** REAL, but the claim overstates one of its two halves and understates the other. (1) The 'FE2E-FE2F' half is essentially benign reflow: it is the tail of a comma-continued range list that wraps across the page break, and the markdown joins it correctly as '... A67F-A69F, FE2E-FE2F' with the continuation comma preserved. The only cost is page attribution -- a citation anchored to page-1215 will not find that token, which now lives in the page-1214 slice. (2) The 'Deseret:' half is the actual structural defect and is worse than a pagination issue: the script label is concatenated onto the END of a data line, space-separated, with no line break and no blank line ('... A67F-A69F, FE2E-FE2F Deseret:'). This severs the label-to-range binding in a table whose entire meaning is that binding -- 'Deseret:' reads as part of the Cyrillic range enumeration, and Deseret's range '10400-1044F' opens page 1215 (specs/ISO_COBOL.md line 49093) as an unlabelled orphan. Correct transcription requires a paragraph break before 'Deseret:' and moving that label plus its range into the page-1215 slice, matching the layout the same document already uses for the identical Deseret page break at lines 40287/40297. Note the printed-folio vs PDF-page offset of 30: PDF page 1214 = printed 1184, PDF page 1215 = printed 1185.
+
+### p1216 · misplaced-content · **structural**
+
+- **PDF:** Kaithi:\n11080-110BA\n\n[page break to p1187]\n\nKannada:\n0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2
+- **Markdown:** Kaithi:\n11080-110BA Kannada:   (specs/ISO_COBOL.md line 49207)  ... then page-1217 opens with the bare line '0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2' with no label
+- **Why:** The 'Kannada:' label from the top of PDF page 1187 is concatenated onto Kaithi's range line, so Kaithi reads '11080-110BA Kannada:' and Kannada's ranges are orphaned at the head of the next page. Same script-to-range mapping corruption as the other page boundaries in this listing.
+- **Repair:** Split line 49207 of specs/ISO_COBOL.md: keep '11080-110BA' on page 1216, move 'Kannada:' into the page-1217 slice above its range line.
+- **Verifier:** Claim confirmed; only a cosmetic labeling nit. The claim writes 'page break to p1187' and 'the top of PDF page 1187' — 1187 is the printed folio; the PDF page index is 1217 (the markdown block is '## Page 1217'). Substance is exact: markdown line 49207 must be split into '11080-110BA' (end of the page-1216 block) and a 'Kannada:' label line placed at the head of the page-1217 body immediately above line 49213's range list.
+
+### p1217 · misplaced-content · **structural**
+
+- **PDF:** Lycian:\n10280-1029C\n\n[page break to p1188]\n\nLydian:\n10920-10939
+- **Markdown:** Lycian:\n10280-1029C Lydian:   (specs/ISO_COBOL.md line 49263)  ... then page-1218 opens with the bare line '10920-10939' with no label
+- **Why:** The 'Lydian:' label from the top of PDF page 1188 is concatenated onto Lycian's range line; Lydian's range '10920-10939' opens the next page with no label.
+- **Repair:** Split line 49263 of specs/ISO_COBOL.md: keep '10280-1029C' on page 1217, move 'Lydian:' into the page-1218 slice above '10920-10939'.
+- **Verifier:** Confirmed, with one refinement to the framing. No text is missing or invented -- all four tokens survive in source order. The precise defect is twofold: (a) the newline separating page 1187's last range line from page 1188's first label was dropped, gluing 'Lydian:' onto '10280-1029C'; and (b) the page-1218 boundary furniture (anchor, '## Page 1218', running head) was inserted one token late, i.e. after 'Lydian:' instead of before it. The consequence is exactly as claimed: Lycian's range line is polluted with a foreign label and Lydian's range '10920-10939' opens page 1218 unlabelled. This is not an isolated page-1217 defect -- it is a recurring page-boundary transcription fault affecting 18 sites in the Unicode script-range tables (markdown lines 40182, 40235, 40403, 40454, 40506, 40558, 40610, 40772, 40824, 40876, 40928, 40981, 49030, 49087, 49207, 49263, 49319, 49374, 49431), and should be fixed as a pattern rather than per page.
+
+### p1218 · misplaced-content · **structural**
+
+- **PDF:** Mro:\n16A40-16A5E, 16A60-16A69\n\n[page break to p1189]\n\nMultani:\n11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8
+- **Markdown:** Mro:\n16A40-16A5E, 16A60-16A69 Multani:   (specs/ISO_COBOL.md line 49319)  ... then page-1219 opens with the bare line '11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8' with no label
+- **Why:** The 'Multani:' label from the top of PDF page 1189 is concatenated onto Mro's range line; Multani's ranges are orphaned at the head of the next page.
+- **Repair:** Split line 49319 of specs/ISO_COBOL.md: keep '16A40-16A5E, 16A60-16A69' on page 1218, move 'Multani:' into the page-1219 slice above its range line.
+- **Verifier:** CONFIRMED, with one cosmetic correction to the page numbering. At the 1218->1219 PDF page boundary the newline separating the last range line of page 1218 from the first label of page 1219 is collapsed to a space, gluing the next entry's label onto the previous entry's range: specs/ISO_COBOL.md:49319 reads '16A40-16A5E, 16A60-16A69 Multani:' where the PDF has '16A40-16A5E, 16A60-16A69' as the terminal body line of PDF page 1218 (printed folio 1188) and 'Multani:' as the first body line of PDF page 1219 (printed folio 1189). Consequently the page-1219 markdown block opens at :49325 with an unlabelled '11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8'. No text is lost and reading order is preserved; the defect is the broken label-to-range pairing, which corrupts the Mro and Multani entries of the Annex E.3.3 UCS script-range table. NOTE - this is not a one-off. The identical newline-to-space collapse occurs at 19 page boundaries across this transcription; a scan for a range line ending in a glued 'Name:' token matches specs/ISO_COBOL.md lines 40182, 40235, 40403, 40454, 40506, 40558, 40610, 40772, 40824, 40876, 40928, 40981, 49030, 49087, 49207, 49263, 49319, 49374 and 49431 (Ahom, Buhid x2, Kaithi, Linear_B, Miao, Old_Italic, Rejang, Gunjala_Gondi, Khojki, Mongolian, Sharada, Brahmi, Deseret, Kannada, Lydian, Multani, Old_Turkic, Sinhala). Sibling verdicts already logged for pages 1213, 1214, 1216, 1217 and 1219 record the same defect. The remedy is a single sweep re-splitting every one of those 19 lines at the label boundary and moving the label into the following page block, not 19 separate single-line patches.
+
+### p1219 · misplaced-content · **structural**
+
+- **PDF:** Old_South_Arabian:\n10A60-10A7C\n\n[page break to p1190]\n\nOld_Turkic:\n10C00-10C48
+- **Markdown:** Old_South_Arabian:\n10A60-10A7C Old_Turkic:   (specs/ISO_COBOL.md line 49374)  ... then page-1220 opens with the bare line '10C00-10C48' with no label
+- **Why:** The 'Old_Turkic:' label from the top of PDF page 1190 is concatenated onto Old_South_Arabian's range line; Old_Turkic's range '10C00-10C48' opens the next page with no label.
+- **Repair:** Split line 49374 of specs/ISO_COBOL.md: keep '10A60-10A7C' on page 1219, move 'Old_Turkic:' into the page-1220 slice above '10C00-10C48'.
+- **Verifier:** CONFIRMED. At the 1219->1220 page boundary the newline separating the last range line of page 1219 from the first label of page 1220 is collapsed to a space, gluing the next entry's label onto the previous entry's range: specs/ISO_COBOL.md:49374 reads '10A60-10A7C Old_Turkic:' where the PDF has '10A60-10A7C' as the terminal line of page 1219 (printed 1189) and 'Old_Turkic:' as the first line of page 1220 (printed 1190). Consequently the page-1220 block opens with an unlabelled '10C00-10C48'. No text is lost and reading order is preserved; the defect is the broken label-to-range pairing, which corrupts two adjacent entries of the UCS script-range table. NOTE - this is not a one-off: it is a systematic transcription artifact at page boundaries inside this table. The immediately preceding boundary carries the identical defect - specs/ISO_COBOL.md:49319 reads '16A40-16A5E, 16A60-16A69 Multani:' (Mro's range with page 1219's opening 'Multani:' label glued on), leaving page 1219's markdown to open with a bare '11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8'. The remedy should be a sweep over every page boundary in this script-range list, not a single-line patch.
+
+### p1220 · misplaced-content · **structural**
+
+- **PDF:** SignWriting:\n1DA00-1DA36, 1DA3B-1DA6C, 1DA75, 1DA84, 1DA9B-1DA9F, 1DAA1-1DAAF\n\n[page break to p1191]\n\nSinhala:\n0D81, 0DE6-0DEF
+- **Markdown:** SignWriting:\n1DA00-1DA36, 1DA3B-1DA6C, 1DA75, 1DA84, 1DA9B-1DA9F, 1DAA1-1DAAF Sinhala:   (specs/ISO_COBOL.md line 49431)  ... then page-1221 opens with the bare line '0D81, 0DE6-0DEF' with no label
+- **Why:** The 'Sinhala:' label from the top of PDF page 1191 is concatenated onto SignWriting's range line; Sinhala's ranges are orphaned at the head of the next page.
+- **Repair:** Split line 49431 of specs/ISO_COBOL.md: keep the SignWriting ranges on page 1220, move 'Sinhala:' into the page-1221 slice above '0D81, 0DE6-0DEF'.
+- **Verifier:** CONFIRMED as described, with one addition the claim omits: this is not a one-off but a systematic page-boundary artifact affecting the whole script-ranges list, and page 1220 is damaged at BOTH ends by it.
+
+At the page-1219/1220 boundary the identical defect occurs: PDF page 1220 opens with 'Old_Turkic:' on its own line above '10C00-10C48', but markdown line 49374 reads 'Old_Turkic:' welded onto page 1219's last data line ('10A60-10A7C Old_Turkic:'), and markdown page 1220 therefore opens at line 49380 with the bare, unlabeled '10C00-10C48'. So markdown page 1220 both loses the label that belongs at its head and steals the label that belongs at the head of page 1221.
+
+The general rule of the defect: wherever a script label falls at the top of a PDF page in this list, the transcription pulls it back one page and appends it, space-separated, to the final range line of the preceding page, destroying the newline that separates the two entries. Remediation should move 'Sinhala:' from the end of line 49431 onto its own line at the head of the page-1221 body (immediately before line 49437 '0D81, 0DE6-0DEF'), and should sweep the surrounding pages of this list for the same pattern rather than patching page 1220 alone.
+
+### p1222 · missing-heading · **structural**
+
+- **PDF:** 6)  **General case mappings.** The following case mappings have been added.   [printed as ordinary numbered list item 6) of clause E.3.3]
+- **Markdown:** ## 6) **General case mappings.** The following case mappings have been added.   (specs/ISO_COBOL.md line 49521)
+- **Why:** Same defect as item 5) on page 1213: a numbered list item inside E.3.3 promoted to a level-2 markdown heading, creating a phantom top-level section in the outline that has no counterpart in the standard.
+- **Repair:** Demote line 49521 to an ordinary list item: '6) **General case mappings.** The following case mappings have been added.' (strip the leading '## ').
+- **Verifier:** Accurate as filed; no correction to the substance. Refinements for the ledger: (1) PDF page 1222 is printed page 1192 of the standard, and item 6) sits under clause E.3.3 'Not affecting' inside Annex E. (2) No text is lost or altered — the prose is byte-identical on both sides and the entire defect is the injected '## ' prefix, so this is a markup/outline corruption rather than a content discrepancy; 'structural' is the right severity but the finding should not be read as missing text. (3) The phantom heading is a structural peer of the real '## E.3.3 Not affecting' heading (line 48946) and of '## Annex E' (line 48516), and it prematurely terminates the E.3.3 numbered list even though items 7) through 36)+ continue after it. (4) Within that same list, items 1)-4) (lines 48948-48956) and 7) onward are correctly rendered as plain 'N) **Lead-in.** text' paragraphs, so items 5) (line 48984) and 6) (line 49521) are the only two promoted — and they are precisely the two items whose bodies are followed by long block listings of code-point data, which is the probable conversion trigger. Fix for both: strip the leading '## ' so line 49521 reads '6) **General case mappings.** The following case mappings have been added.'
+
+### p1231 · missing-heading · **structural**
+
+- **PDF:** Annex G
+(informative)
+
+Known errors
+
+G.1  Rationale ... G.2  List of errors  [typeset identically to 'Annex F / (informative) / Archaic and obsolete language element lists / F.1 ... / F.2 ...' on p.1229 - same centered bold annex title style, same numbered-subclause style]
+- **Markdown:** specs/ISO_COBOL.md:49888  '# Annex G'  (H1, and with no <a id="section-annex-g"></a> anchor preceding it), followed by '## G.1 Rationale' and '## G.2 List of errors' -- versus specs/ISO_COBOL.md:49823-49832 '<a id="section-annex-f"></a>' + '## Annex F' (H2) + '### F.1 Archaic language elements'
+- **Why:** Every other annex title in the transcription is an H2 with an anchor: '<a id="section-annex-a">' .. '<a id="section-annex-f">' at lines 38874, 40145, 41088, 41492, 48515, 49823, each followed by '## Annex X'. Annex G alone is promoted to H1 - the level the transcription reserves for the per-page running header '# ISO/IEC 1989:2023 (E)' - and alone has no section anchor. Any TOC builder, doc-map generator or cross-reference tool that walks heading levels will place Annex G at a different depth from Annexes A-F, and no '#section-annex-g' link target exists for it. Annex G is where the standard records its own known defects (the errata list this project must consult when adjudicating spec contradictions), so it must be reachable the same way as every other annex.
+- **Repair:** At specs/ISO_COBOL.md:49888 replace '# Annex G' with '<a id="section-annex-g"></a>' on its own line followed by '## Annex G', matching the Annex A-F pattern. Optionally also demote '## G.1 Rationale' / '## G.2 List of errors' to '### ...' to match '### F.1' / '### F.2' (note that D.3+ and E.3 already show the same H2 drift, so that part is a pre-existing document-wide inconsistency, not specific to this page).
+- **Verifier:** REAL but mislabelled -- the correct kind is 'wrong-heading-level + missing-section-anchor', NOT 'missing-heading'. No heading text is missing: 'Annex G', '(informative)', 'Known errors', 'G.1 Rationale' and 'G.2 List of errors' are all present in the transcription in the correct order with correct text, and a full sentence-by-sentence comparison of the p.1231 render against page-1231.md shows the entire page body (the G.1 lead paragraph, all three em-dash bullets, the G.2 lead-in, item 1) Accessibility with sub-items a) through g), and item 2) Mapping of uppercase letters to lowercase letters including 'Changes_When_Lowercased' and 'UAX #44, Unicode 13.0.0') is transcribed completely and accurately. The genuine defect is confined to markup structure, and has exactly two parts: (a) line 49888 is '# Annex G' at H1 where Annexes A-F are all '## Annex X' at H2 -- H1 is otherwise used only for the 941 per-page running headers and 5 cover-page lines, so Annex G is the sole body heading colliding with the running-header level; and (b) Annex G alone lacks the '<a id="section-annex-g"></a>' anchor that precedes every other annex title, so no '#section-annex-g' link target exists. Repair: replace line 49888 '# Annex G' with '<a id="section-annex-g"></a>' on its own line followed by '## Annex G'. DROP the G.1/G.2 subclause-level element of the claim: '## G.1' / '## G.2' being H2 rather than H3 is NOT unique to Annex G -- '## A.2' (39466), '## A.3' (39672), '## D.3' (42371) and '## E.3' (48904) are H2 as well, so subclause-depth drift is a pre-existing document-wide inconsistency and citing it here is misleading. Severity is correctly 'structural' but strictly navigational: no normative or informative spec text is lost or altered, and Annex G is an informative annex, so no COBOL semantics are affected -- the impact is limited to TOC/doc-map walkers placing Annex G at the wrong depth and cross-references to '#section-annex-g' having no target.
+
+### p1234 · misplaced-content · **structural**
+
+- **PDF:** Index / Symbols
+::
+        operator  133, 173
+...
+ACCEPT statement  292, 480, 512, 576
+        FROM phrase  576
+        Screen format  740
+ACCESS MODE clause  319
+        FILE-CONTROL paragraph  312
+...
+ALL option
+        FLAG-02 directive  70
+   [every sub-entry is indented one level under its parent entry; parent entries are flush left]
+- **Markdown:** ACCEPT statement [292](#page-292), [480](#page-480), [512](#page-512), [576](#page-576)
+FROM phrase [576](#page-576)
+Screen format [740](#page-740)
+ACCESS MODE clause [319](#page-319)
+FILE-CONTROL paragraph [312](#page-312)
+...
+ALL option
+FLAG-02 directive [70](#page-70)
+   [all sub-entries flush left, no indentation, no list markers, no hard line breaks]
+- **Why:** The index's only structure is its indentation: it is what says 'FROM phrase 576' is a sub-entry of ACCEPT statement and not a top-level entry, and it is the sole thing distinguishing the parentless heads ('ADDRESS OF PROGRAM phrase', 'ADVANCING ON LOCK phrase', 'ALL option', 'Alignment of data') from their children. Flattened to consecutive unindented lines with no trailing double-space or list markers, markdown renders the whole block as one run-on paragraph, so both the parent/child relation and the line structure are lost. This is the first index page; the same flattening applies to the whole index that follows.
+- **Repair:** Re-emit index sub-entries with indentation preserved - e.g. wrap each alphabetic section in a fenced block, or indent sub-entries by four spaces and make each entry a list item - so 'FROM phrase 576' remains visibly subordinate to 'ACCEPT statement'. Apply the same treatment to the remaining index pages.
+- **Verifier:** Kind is mislabeled: nothing is misplaced, duplicated, or missing. Every index entry and page number on page 1234 is present in correct source order. The actual defect is DROPPED SUB-ENTRY INDENTATION — the transcription omits the '&nbsp;&nbsp;&nbsp;&nbsp;' prefix that marks an index sub-entry, so children collapse to the same level as their parents and parentless heads ('ADDRESS OF PROGRAM phrase', 'ADVANCING ON LOCK phrase', 'ALL option', 'Alignment of data') become indistinguishable from their children. Two statements in the claim's rationale need correcting. First, 'the same flattening runs through the whole index' is false: the index spans pages 1234-1259, and 10 of those 26 pages (1237-1239, 1243, 1247-1248, 1253, 1255-1256, 1259) DO correctly encode the indent as four &nbsp; entities. The defect affects 16 pages (1234-1236, 1240-1242, 1244-1246, 1249-1252, 1254, 1257-1258). That inconsistency is the strongest evidence the flush-left form is a defect rather than a deliberate convention, and it supplies the exact repair format. Second, the 'renders as one run-on paragraph / line structure is lost' rationale is real but is NOT the page-1234 discrepancy: no index page uses hard line breaks (page 1237 and page 1234 both have 0 lines ending in two or more spaces), so every index page collapses into a single rendered paragraph, including the correctly indented ones. Line-break loss is a separate, index-wide issue to file once; the page-1234 finding is solely the missing indent prefix. Severity 'structural' is apt for the hierarchy loss, but note the index is non-normative back matter — no normative text, syntax diagram, or general rule is affected, so this is a low-priority navigational defect.
+
+### p1249 · misplaced-content · **structural**
+
+- **PDF:** LOCK ON MULTIPLE clause
+        LOCK MODE clause  325
+LOCK phrase
+        READ statement  692
+        REWRITE statement  710
+        WRITE statement  786
+... Method resolution signature
+        Definition  241
+Method-definition  259
+METHOD-ID paragraph  269
+Method-name  98, 102
+        METHOD-ID paragraph  269
+        Scope of  149
+- **Markdown:** LOCK ON MULTIPLE clause
+LOCK MODE clause [325](#page-325)
+LOCK phrase
+READ statement [692](#page-692)
+REWRITE statement [710](#page-710)
+WRITE statement [786](#page-786)
+... Method resolution signature
+
+Definition [241](#page-241)
+Method-definition [259](#page-259)
+METHOD-ID paragraph [269](#page-269)
+Method-name [98](#page-98), [102](#page-102)
+METHOD-ID paragraph [269](#page-269)
+Scope of [149](#page-149)
+- **Why:** Every sub-entry indent on this page is dropped: the markdown emits all lines flush left, whereas the PDF indents sub-entries under their parent heading. The parent/child relation is the whole information content of an index entry - 'METHOD-ID paragraph 269' as a top-level entry means something different from 'METHOD-ID paragraph 269' as a sub-entry of 'Method-name'. Pages 1247, 1248, 1253, 1255 and 1256 of the same index DO carry the indents (as '&nbsp;&nbsp;&nbsp;&nbsp;'), so the loss is an inconsistency within the transcription itself, not a deliberate style choice.
+- **Repair:** Re-emit page 1249 with the same '&nbsp;&nbsp;&nbsp;&nbsp;' one-level indent prefix used on pages 1247/1248/1253/1255/1256 for every line the PDF indents.
+- **Verifier:** REAL, with two corrections to the framing. (a) The 'kind' label is imprecise: nothing is misplaced or relocated. The defect is LOST STRUCTURE - the four-space (rendered '&nbsp;&nbsp;&nbsp;&nbsp;') sub-entry indent that encodes index subordination is stripped from every line on the page, flattening a two-level index into a one-level list. Severity 'structural' is correct. (b) The blast radius is larger than one page. Page 1249 is not an isolated lapse: the same zero-'&nbsp;' signature covers the contiguous run 1249, 1250, 1251 and 1252 (nbsp counts 0/0/0/0, segment lengths 3889/3949/4128/3902), bracketed by indent-carrying pages 1247-1248 before it and 1253 after it. Any fix should re-extract the whole 1249-1252 run, not page 1249 alone. The sharpest single instance of the harm on 1249 is the doubled 'METHOD-ID paragraph 269': the PDF prints it once as a top-level entry and once, indented, as a sub-entry of 'Method-name', and the markdown collapses the two into identical adjacent lines that read as an accidental duplicate. A comparable collapse hits 'Definition 241', which the PDF indents as a sub-entry of 'Method resolution signature' (the parent is the last line of the left column, the child the first line of the right); in the markdown the two are separated only by a blank line and the child now reads as a top-level entry.
+
+### p1250 · misplaced-content · **structural**
+
+- **PDF:** NEAREST-AWAY-FROM-ZERO phrase
+        DEFAULT ROUNDED clause  273
+        INTERMEDIATE ROUNDING clause  278
+        ROUNDED phrase  560
+...
+NOT ON SIZE ERROR phrase
+        ADD statement  583
+        COMPUTE statement  602
+        DIVIDE statement  614
+        MULTIPLY statement  673
+        SUBTRACT statement  762
+- **Markdown:** NEAREST-AWAY-FROM-ZERO phrase
+DEFAULT ROUNDED clause [273](#page-273)
+INTERMEDIATE ROUNDING clause [278](#page-278)
+ROUNDED phrase [560](#page-560)
+...
+NOT ON SIZE ERROR phrase
+ADD statement [583](#page-583)
+COMPUTE statement [602](#page-602)
+DIVIDE statement [614](#page-614)
+MULTIPLY statement [673](#page-673)
+SUBTRACT statement [762](#page-762)
+- **Why:** All sub-entry indentation on this page is lost, so every sub-entry reads as an independent top-level index entry. Same systematic defect as page 1249; pages 1247/1248/1253/1255/1256 of the same index preserve the indents, so the transcription is internally inconsistent.
+- **Repair:** Re-emit page 1250 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents.
+- **Verifier:** Lost index hierarchy (correct kind: lost-indentation / lost-structure, NOT misplaced-content). No text is missing, misplaced, or reordered on page 1250 -- I counted the PDF entries column by column and got 58 left (National-edited data item 164 ... Noncontiguous data items 152) and 58 right (Noncontiguous elementary items 357 ... Fixed-point 109), matching markdown lines 6-63 and 65-122 exactly, entry for entry and page number for page number. The sole defect is that every sub-entry indentation level is dropped, so all 116 entries render as siblings at top level and the parent/child relation that an index encodes solely through indentation is destroyed.
+
+Scope is broader than claimed. The claim implies only 1249 and 1250 are defective while 1247/1248/1253/1255/1256 are clean. In fact the transcription's '&nbsp;&nbsp;&nbsp;&nbsp;' indent marker is absent from ten of the sixteen index pages: 1244, 1245, 1246, 1249, 1250, 1251, 1252, 1254, 1257, 1258. It is present only on 1247, 1248, 1253, 1255, 1256, 1259. I rendered page 1251 to confirm the absence is a defect rather than a page that genuinely has no sub-entries: its PDF is densely indented and even carries a THIRD indent level ('Numeric-edited category 165, 379, 446' > 'Category of data' > 'Numeric-edited 162'), which the flat transcription cannot represent at all. Page 1250 should therefore be ledgered as one instance of a systemic ten-page index-flattening defect, and any repair must handle multi-level nesting, not just one level.
+
+Impact is confined to the back-matter index (non-normative navigation aid); no normative clause text, general format, or general rule is affected.
+
+### p1252 · misplaced-content · **structural**
+
+- **PDF:** PERFORM statement  682
+        Exception checking  777
+        Exception-checking  605, 613, 623, 638, 657, 675, 682,
+                691
+        infinite loop  686
+PERFORM statement examples  1155
+- **Markdown:** PERFORM statement [682](#page-682)
+Exception checking [777](#page-777)
+Exception-checking [605](#page-605), [613](#page-613), [623](#page-623), [638](#page-638), [657](#page-657), [675](#page-675), [682](#page-682), [691](#page-691)
+infinite loop [686](#page-686)
+PERFORM statement examples [1155](#page-1155)
+- **Why:** All sub-entry indentation on this page is lost, so sub-entries such as 'Exception checking 777' and 'infinite loop 686' read as free-standing top-level entries rather than as qualifiers of 'PERFORM statement'. Same systematic defect as pages 1249-1251.
+- **Repair:** Re-emit page 1252 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents.
+- **Verifier:** Real, but mis-kinded and over-scoped. Not misplaced content: no line, page number, or ordering differs from the print. The actual defect is loss of index sub-entry INDENTATION - the PDF prints a two-level hierarchy ('PERFORM statement 682' flush, with 'Exception checking 777', 'Exception-checking 605, ..., 691' and 'infinite loop 686' indented beneath it), while the markdown renders all five lines flush-left, so the sub-entries read as free-standing top-level terms. This is systemic, not page-local: the canonical specs/ISO_COBOL.md has zero indented lines across the entire index (lines 50722-53187, pages 1240-1260), so it should be ledgered once as a single index-wide transcription convention rather than per page. Severity should be downgraded from structural to cosmetic/navigational - no normative rule text is affected and every page reference is intact. Unrelated to this finding, the neighbouring 'PERFORM statemen' / 'Exception-checkingt 706' oddity is a defect in the ISO print itself (verified by reading the printed glyphs at 2x) and is correctly reproduced by the markdown.
+
+### p1254 · misplaced-content · **structural**
+
+- **PDF:** Relation condition
+        Alphanumeric operands  189
+        Arithmetic expression in  187
+        Boolean operands  190
+        Data-pointer operands  192
+...
+Reserved words  97, 105
+        Compiler directives  213
+        Implementation  23
+        Source text  205
+- **Markdown:** Relation condition
+Alphanumeric operands [189](#page-189)
+Arithmetic expression in [187](#page-187)
+Boolean operands [190](#page-190)
+Data-pointer operands [192](#page-192)
+...
+Reserved words [97](#page-97), [105](#page-105)
+Compiler directives [213](#page-213)
+Implementation [23](#page-23)
+Source text [205](#page-205)
+- **Why:** Every sub-entry indent on this page is dropped. The thirteen sub-entries under 'Relation condition' and the three under 'Reserved words' are each promoted to look like top-level index entries. Same systematic defect as pages 1249-1252.
+- **Repair:** Re-emit page 1254 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents.
+- **Verifier:** Real, and the mechanism is correctly identified, but the label and the scope should be tightened. This is not 'misplaced' content - no text is moved, dropped, or reordered, and the two-column reading order is correct. It is LOST HIERARCHY: the transcription strips leading whitespace from every line, so the PDF's two-level index (flush-left head + indented sub-entry) is flattened to a single level. Verified mechanically: `grep -c '^[ \t]'` over specs/ISO_COBOL.md lines 52471-52593 returns 0 - not one line retains an indent, and no substitute encoding (list marker, &nbsp;, tab) is used. The claim's two named examples check out exactly (13 sub-entries under 'Relation condition', 3 under 'Reserved words 97, 105'), but they understate the reach: approximately 55 sub-entries across both columns are promoted to apparent top-level terms. The sharpest proof of genuine information loss is a pair the claim does not cite - markdown lines 40 and 42 are byte-identical ('REF-MOD-ZERO-LENGTH directive [83](#page-83)'), whereas the PDF prints line 40 indented under 'Reference-modification 131' and line 42 flush-left as its own entry; the parent-child relation is unrecoverable from the markdown. Consistent with the same systematic transcription defect reported on pages 1249-1252, so it should be fixed as one whole-index sweep rather than page by page. Impact is confined to index navigation and index-parsing tooling: this is non-normative apparatus, so no COBOL semantics are affected.
+
+### p1257 · misplaced-content · **structural**
+
+- **PDF:**         Data-name  123
+Subscripted identifier  124
+Subscripting  1030
+        Condition-name  123
+Subscripts  122, 123
+        Dynamic-capacity tables  157
+...
+TO phrase
+        ADD statement  583
+        INITIALIZE statement  637
+- **Markdown:** Data-name [123](#page-123)
+Subscripted identifier [124](#page-124)
+Subscripting [1030](#page-1030)
+Condition-name [123](#page-123)
+Subscripts [122](#page-122), [123](#page-123)
+Dynamic-capacity tables [157](#page-157)
+...
+TO phrase
+ADD statement [583](#page-583)
+INITIALIZE statement [637](#page-637)
+- **Why:** Every sub-entry indent on this page is dropped, including the first line 'Data-name 123', which the PDF indents because it continues the 'Subscripted' entry begun at the foot of page 1256. Flattened, it reads as a new top-level entry 'Data-name 123' rather than 'Subscripted > Data-name'. Same systematic defect as pages 1249-1254.
+- **Repair:** Re-emit page 1257 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the column-top continuation line.
+- **Verifier:** Page 1257 (printed 1227), an index page, loses ALL sub-entry indentation in the markdown transcription: the page-1257 section of specs/ISO_COBOL.md contains zero '&nbsp;' indent markers and zero leading-space lines across 116 non-blank lines, while the PDF prints roughly 57 of them as indented sub-entries in a clear two-level layout spanning both columns. The transcription's own convention for index sub-entries is a leading '&nbsp;&nbsp;&nbsp;&nbsp;' (present on pages 1243, 1247, 1248, 1253, 1255, 1256 and 1259), so this is a dropped marker, not a formatting choice. Concrete meaning changes: the page's first line 'Data-name 123' is a child of 'Subscripted', the parent heading that is the final content line of page 1256 and carries no page number of its own -- flattening orphans that parent and creates a bogus top-level 'Data-name 123'. Likewise 'Condition-name 123' belongs under 'Subscripting', 'Dynamic-capacity tables 157' under 'Subscripts', and the nine lines from 'ADD statement 583' through 'SET statement, switch setting 729' belong under 'TO phrase'. The claim's PDF and markdown quotations are both verbatim-correct; its only error is the aside that pages 1249-1254 share the defect uniformly -- page 1253 retains its indentation.
+
+### p1258 · misplaced-content · **structural**
+
+- **PDF:**         GOBACK statement  540, 631
+        MERGE statement  539
+        PERFORM statement  540
+        SORT statement  539
+        STOP statement  540
+TRIM function  932
+...
+Type-name  98, 103
+        Scope of  148
+        TYPE clause  494
+- **Markdown:** GOBACK statement [540](#page-540), [631](#page-631)
+MERGE statement [539](#page-539)
+PERFORM statement [540](#page-540)
+SORT statement [539](#page-539)
+STOP statement [540](#page-540)
+TRIM function [932](#page-932)
+...
+Type-name [98](#page-98), [103](#page-103)
+Scope of [148](#page-148)
+TYPE clause [494](#page-494)
+- **Why:** Every sub-entry indent on this page is dropped. The five opening lines are indented in the PDF because they continue the 'Transfer of control 539' entry begun at the foot of page 1257; flattened, 'GOBACK statement 540, 631' reads as a top-level index entry with no connection to transfer of control. Same systematic defect as pages 1249-1257.
+- **Repair:** Re-emit page 1258 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the five column-top continuation lines.
+- **Verifier:** Real, but the 'kind' label is wrong and the practical impact should be scoped. Nothing is MISPLACED - no text is missing, moved, or reordered, and the two-column linearization (left column through 'UPPER-CASE function 934', then right column from 'Uppercase letters 90') is correct. The actual defect is LOST STRUCTURE / FLATTENED HIERARCHY: the transcription discards the one-level sub-entry indentation that the PDF prints, on all 113 non-blank lines of page 1258 and on all of pages 1249-1259 (0 indented lines out of ~1189). Everything the claim asserts about the mechanism is verified, including that the five opening lines continue the 'Transfer of control 539' entry begun at the foot of page 1257. Beyond the cited examples, the flattening also detaches 'Definition of 165' from 'Types', 'SET statement 731' from 'USER-DEFAULT phrase', 'Definition 97'/'Notation 980' from 'User-defined words', and the two 'SPECIAL-NAMES paragraph 291' lines from 'UTF-16' and 'UTF-8'; and it creates a false duplicate, since flattened 'TYPE clause 494' (line 26) now contradicts the genuine top-level 'TYPE clause 478, 494' (line 21). Scope caveat for triage: this is the alphabetical back-matter index, not normative language text - no syntax diagram, general rule, or semantic definition is affected, so the damage is to index navigability and to any tooling that consumes the index as a structured entry/sub-entry map, not to derived COBOL behavior. 'structural' is a fair severity on that basis; it should not be read as a normative-text defect.
+
+### p1260 · summarised-not-transcribed · **structural**
+
+- **PDF:** [page 1260 is genuinely blank — the render shows only the '[per-copy licence stamp]' footer line]
+- **Markdown:** The page appears to be blank except for the watermark/footer text at the bottom. Since you've instructed me to ignore watermark text, and there is no other visible content on this page, there is no text to extract.
+- **Why:** Transcription-tool meta-text left in the spec file. The substance of the observation is correct — page 1260 really is blank — so no normative content is lost here and this is not a content defect. But it is first-person conversational residue ('you've instructed me...') sitting inside what is supposed to be the standard's text, and it is exactly the marker of the summarised-not-transcribed failure mode. It should be swept out on sight, both because it pollutes full-text search of the spec and because leaving one instance in place makes the class harder to grep for on pages where the same tool DID replace real content with a description.
+- **Repair:** Replace specs/ISO_COBOL.md line 53186 with an explicit blank-page marker — e.g. '*(This page is intentionally blank.)*' — or leave the slice empty under the page anchor. Then grep the whole file for the same residue pattern (e.g. /you've instructed|there is no text to extract|The page appears to be|I (cannot|was unable)/i) and sweep every hit, since any occurrence on a non-blank page is a normative-severity content hole.
+- **Verifier:** Real, but the label and severity overstate it, and one supporting rationale does not survive checking.
+
+(1) Severity should be cosmetic / transcription-hygiene, not structural. Page 1260 of the PDF carries zero normative content (verified: 0 non-white pixels above the footer). Nothing was lost, displaced, or garbled; no rule, syntax diagram, general format, or index entry is affected. The transcription's factual assertion is correct. The defect is purely that non-source prose was inserted into the spec body.
+
+(2) The kind 'summarised-not-transcribed' is a misnomer for this instance. Nothing was summarised in place of content, because there was no content to summarise. The accurate characterization is 'transcription-tool meta-text emitted for a genuinely blank page' — a first-person artifact of the extraction session ('Since you've instructed me to ignore watermark text...') rather than a substitution of description for substance. It resembles the summarised-not-transcribed failure mode without being an instance of it.
+
+(3) The claim's argument that leaving this in place 'makes the class harder to grep for on pages where the same tool DID replace real content with a description' is not supported by the file. I swept the entire 2.9 MB specs/ISO_COBOL.md for the full family of conversational-residue markers — "you've/you have instructed|asked|told me", "as an/your AI", "I cannot/can't/am unable to extract|transcribe|read", "there is no text/content to extract|transcribe", "appears to be blank", "no other visible content", "I'll transcribe|extract", "Since you" — and line 53186 is the sole hit in the whole document. There is no broader class hiding behind it; this is an isolated instance, not the visible tip of a pattern.
+
+Correct remediation: delete line 53186 outright, leaving the page-1260 anchor and heading with an empty body (matching how other blank pages are represented), or replace it with a neutral marker such as '*(page intentionally blank)*'. No spec content needs to be recovered from the PDF.
+
+### p1261 · misplaced-content · **structural**
+
+- **PDF:** ISO/IEC 1989:2023(E)  [top-left running head]  ...  ICS  35.060 / Price based on 1229 pages / © ISO/IEC 2023 – All rights reserved   [the back cover carries NOTHING else]
+- **Markdown:** **ICS 35.060**
+Price based on 1229 pages
+
+
+ (EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FAILED)
+
+   — For the Commit and Rollback facility (EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT and EC-FLOW-ROLLBACK)
+- **Why:** Two lines of Annex E.3.2 normative-looking text (the new-exception-condition lists for Asynchronous messaging and for Commit and Rollback) are appended to the back cover, where the PDF prints nothing at all. The block is also truncated: its parent lead-in '— For the Asynchronous messaging facility' was dropped, so the first line begins with a bare ' (EC-MCS, ...' with no antecedent. The legitimate copy of both lines already exists at its true home, specs/ISO_COBOL.md lines 48920 and 48922, under '3) Exception conditions. New exception conditions have been added:' on page 1211. So this is a duplicated orphan, not lost text — but a reader or a tool that greps for EC-MCS-* / EC-FLOW-* gets a second hit anchored to page 1261, attributing annex content to the back cover and inviting a bogus '§ on page 1261' citation.
+- **Repair:** Delete specs/ISO_COBOL.md lines 53198-53203 (the stray block between 'Price based on 1229 pages' and the end of the page-1261 slice). Leave the page-1261 slice as: the '**ISO/IEC 1989:2023(E)**' head, the rule, '**ICS 35.060**', 'Price based on 1229 pages'. Verify the surviving copy at lines 48918-48922 still reads '3) Exception conditions...' / '— For the Asynchronous messaging facility (EC-MCS, ...)' / '— For the Commit and Rollback facility (...)' intact.
+- **Verifier:** Accurate as filed; no correction needed. Adding only precise locations for the fix: delete specs/ISO_COBOL.md lines 53197-53204 down to the trailing blank lines - specifically the orphan content at line 53199 (' (EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FAILED)') and line 53201 ('   — For the Commit and Rollback facility (EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT and EC-FLOW-ROLLBACK)'), leaving the page-1261 section as just the running head, the rule, '**ICS 35.060**' and 'Price based on 1229 pages'. Do NOT touch lines 48920/48922, which are the correct §E.3.2 originals on page 1211. Two incidental notes, neither a defect: the page-1261 section also omits the '© ISO/IEC 2023 - All rights reserved' footer, consistent with the transcription's convention of dropping footer/watermark furniture throughout; and the orphan block is the physical end of the file, which is consistent with an extraction-pipeline flush of a dangling buffer rather than a mis-assigned page.
 
 ### p27 · misplaced-content · **cosmetic**
 
@@ -2190,19 +2806,19 @@ USE [ GLOBAL ] BEFORE REPORTING identifier-1   (ISO_COBOL.md line 32562 — bare
 - **Markdown:** (3 + 0.14159265358979323846264338327 95)
 - **Why:** 15.73.3 rule 1 gives the normative arithmetic expression that native-arithmetic FUNCTION PI approximates. The PDF prints the fractional part as one unbroken 31-digit run; the markdown injects a space before the final two digits ('...327 95'). No digit is lost or altered, but any reader or tool copying the constant can truncate at the space and silently obtain 0.14159265358979323846264338327 - wrong from the 30th decimal onward.
 - **Repair:** Delete the spurious space: '(3 + 0.1415926535897932384626433832795)'.
-- **Verifier:** REAL, but under-scoped and under-rated. Two spurious U+0020 characters are injected inside numeric literals on page 933 (15.73 PI function, 15.73.3 Returned value rules), not one:
+- **Verifier:** REAL, but the claim is under-scoped: the same defect occurs TWICE on this page, at the identical offset, and the claim reports only the first. Two spurious U+0020 characters are injected inside the normative numeric literals of 15.73.3 Returned value rules, each immediately after the 29th fractional digit:
 
-  1. specs/ISO_COBOL.md:37348 (rule 1, native arithmetic - implementor-defined approximation)
+  1. specs/ISO_COBOL.md:37348 - rule 1, native arithmetic (implementor-defined approximation)
      markdown: (3 + 0.14159265358979323846264338327 95)
      PDF:      (3 + 0.1415926535897932384626433832795)
 
-  2. specs/ISO_COBOL.md:37356 (rule 3, standard-decimal arithmetic - the value the rule calls 'exactly')
+  2. specs/ISO_COBOL.md:37356 - rule 3, standard-decimal arithmetic (the value the rule calls 'exactly')
      markdown: 3.14159265358979323846264338327 9503.
      PDF:      3.141592653589793238462643383279503.
 
-In both cases the space falls after the 29th fractional digit. Verified by 300 dpi column-ink profiling: no interior gap on either line exceeds 8 px within the digit run (real spaces on this page measure 15-17 px), and ink-run counts confirm 31 and 33 fractional digits respectively, matching the markdown's digit content exactly. No digit is lost or altered in either literal, so this is a transcription/tokenization defect rather than a value error.
+Verified at 300 dpi by column-ink profiling: no gap inside either printed digit run exceeds 8 px, against 15-17 px for a real word-space on the same page, and connected-ink-run counts of 37 and 36 confirm 31 and 33 fractional digits respectively - matching the markdown's digit content exactly. No digit is lost or altered in either literal, so this is a transcription/tokenization defect, not a value error.
 
-Fix: delete both U+0020 characters. Severity should be raised from 'cosmetic' to 'minor' on account of instance 2 - a reader or extraction tool that splits on whitespace silently obtains 3.14159265358979323846264338327 for a constant the standard declares exact, an error at the 30th decimal in a normative exact value.
+Fix: delete both U+0020 characters. Two refinements to the claim's framing. First, instance 2 is the more consequential and should carry the severity: rule 3 states the standard-decimal returned value is 'exactly' this constant, so it is a normative exact value admitting no tolerance, whereas rule 1 is explicitly an implementor-defined approximation - on that basis severity is better recorded as minor than cosmetic. Second, the repeated break at an identical digit offset in two independent literals is the signature of a fixed-width column split in the extraction pass, so the fix should sweep other long numeric literals in the transcription for the same artifact rather than patching these two lines in isolation.
 
 ### p933 · ocr-error · **cosmetic**
 
@@ -2210,7 +2826,7 @@ Fix: delete both U+0020 characters. Severity should be raised from 'cosmetic' to
 - **Markdown:** 3.14159265358979323846264338327 9503.
 - **Why:** 15.73.3 rule 3 states the EXACT value FUNCTION PI returns under standard-decimal arithmetic - it is a hard requirement on the implementation, not an approximation. The PDF prints an unbroken 33-decimal-digit run; the markdown injects a space before the final four digits ('...327 9503'), so a copy that stops at the space yields a value wrong from the 30th decimal onward.
 - **Repair:** Delete the spurious space: '3.141592653589793238462643383279503.'.
-- **Verifier:** Real, but the claim is understated in scope and imprecise in its statement of harm. SCOPE: the identical artifact occurs twice on this page, not once. Rule 1's expression has the same defect - specs/ISO_COBOL.md line 37348 reads '(3 + 0.14159265358979323846264338327 95)' where the PDF prints the unbroken '(3 + 0.1415926535897932384626433832795)', a 31-digit run whose inter-glyph gaps measure 3-7 px against 15-17 px for the real word spaces on the same line. Both breaks land in the same place, after the 29th fractional digit, indicating one systematic extraction artifact rather than two independent typos. A fix must repair both lines. HARM: 'yields a value wrong from the 30th decimal onward' overstates the markdown's state and should not be read as the transcription carrying wrong digits. All 33 fractional digits are present, in the correct order, and equal to the PDF; delete the space and the strings match exactly. The exposure is purely to a mechanical consumer that tokenizes on whitespace: truncating rule 3 at the space yields 3.14159265358979323846264338327, i.e. 29 fractional digits, silently dropping digits 30-33 ('9503'); truncating rule 1 likewise drops the trailing '95'. A human reader loses nothing. Severity cosmetic is correct.
+- **Verifier:** Real, but the claim is under-scoped and its statement of harm is loose. SCOPE: the identical artifact occurs TWICE on this page. Rule 1 has the same defect - specs/ISO_COBOL.md line 37348 reads '(3 + 0.14159265358979323846264338327 95)' where the PDF prints the unbroken '(3 + 0.1415926535897932384626433832795)' (31-digit run, inter-glyph gaps 3-7 px against the 15-17 px real spaces on the same line). Both breaks land after the 29th fractional digit, so this is one systematic extraction artifact, not two typos, and the fix must repair both lines. HARM: 'yields a value wrong from the 30th decimal onward' must not be read as the transcription carrying wrong digits. All 33 fractional digits are present, correctly ordered, and identical to the PDF; delete the one space and the strings match character for character. The exposure is confined to a mechanical consumer that tokenizes on whitespace - truncating rule 3 at the space yields 3.14159265358979323846264338327 (29 fractional digits, silently dropping '9503'), and truncating rule 1 likewise drops the trailing '95'. A human reader loses nothing, so 'cosmetic' is defensible; the only argument for grading it minor rather than cosmetic is that the affected text is a value-bearing exact-conformance constant (15.73.3 rule 3 fixes an EXACT required return value) rendered as an unparseable two-token string. FIX: delete the single space at specs/ISO_COBOL.md:37348 and :37356.
 
 ### p956 · incorrect-figure · **cosmetic**
 
@@ -2218,7 +2834,15 @@ Fix: delete both U+0020 characters. Severity should be raised from 'cosmetic' to
 - **Markdown:** <u>FUNCTION</u> TEST-NUMVAL ( argument-1 )
 - **Why:** The transcription marks FUNCTION as a required word but silently drops the underline on TEST-NUMVAL on the same line, so the file is internally inconsistent about which tokens the standard prints as required words. Compare 15.92.2 on page 955, which correctly renders '<u>FUNCTION</u> <u>TEST-FORMATTED-DATETIME</u> ( argument-1 argument-2)'. No syntax is made illegal here (the function name is required regardless), but the marking loss defeats any tooling that reads <u> to recover required words.
 - **Repair:** Change the 15.93.2 general format line to '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'.
-- **Verifier:** Claim is accurate as written; no correction needed to its substance. Two refinements for the ledger: (a) the defect is precisely a lost <u> wrapper on the function-name token, which under 5.2.4/5.2.5 reclassifies TEST-NUMVAL from keyword to optional word in the transcription's metalanguage -- so 'no syntax is made illegal' is right, but the file does make a false permissive assertion (that the name may be omitted), which is why it is worth fixing rather than waiving; (b) sibling sweep: this is one of exactly two exceptions among 20 '<u>FUNCTION</u> ...' general-format lines in specs/ISO_COBOL.md. The other is line 34556 on page 859, '<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )', which is an unverified suspect for the identical defect class and should be rendered and checked in the same pass. Fix for this page: line 38296 becomes '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'.
+- **Verifier:** Real, and the claim is accurate as written -- both quoted strings are verbatim and the cited comparator checks out. Three refinements for the ledger.
+
+(a) CITATION CORRECTION (supersedes an earlier verdict file for this page, which cited 5.2.4 and 5.2.5 -- both wrong). The governing subclauses are ISO/IEC 1989:2023 5.2.2 'Keywords' (uppercase + underlined = required) and 5.2.3 'Optional words' (uppercase, not underlined = may be written). 5.2.4 is 'Operands' and is unrelated.
+
+(b) NUANCE ON 'why_it_matters'. The claim says 'no syntax is made illegal here', which is true, but the error runs the other way: per 5.2.2/5.2.3 the lost rule reclassifies TEST-NUMVAL from keyword to optional word, so the transcription makes a false PERMISSIVE assertion -- that the function-name may be omitted. Nothing legal is rejected; something illegal is implicitly licensed. Practical risk to a human reader is nil, so cosmetic severity stands, but this is why it is worth fixing rather than waiving.
+
+(c) EVIDENCE AND FIX. The two PDF rules are mechanically confirmed at 300 dpi: the only ruled scanline on that line is y=1021, carrying runs x in [273,471] (FUNCTION) and x in [498,777] (TEST-NUMVAL), with '( argument-1 )' correctly unruled. Fix: specs/ISO_COBOL.md line 38296 becomes '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'.
+
+(d) PATTERN SWEEP (every bug is a pattern). TEST-NUMVAL is one of exactly 2 exceptions among the 20 '<u>FUNCTION</u>'-initial general formats. The other is specs/ISO_COBOL.md line 34556, '<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )', under anchor page-859. That sibling was NOT verified here -- its page was never rendered -- and is an unconfirmed suspect for the identical defect class; it should be checked with 'python scripts/spec/page_workunit.py 859' in the same pass before being fixed or dismissed.
 
 ### p961 · other · **cosmetic**
 
@@ -2226,7 +2850,46 @@ Fix: delete both U+0020 characters. Severity should be raised from 'cosmetic' to
 - **Markdown:** (FUNCTION LENGTH (argument-1) + 1)**.**
 - **Why:** A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.**' inside an arithmetic expression, and '**' is COBOL's exponentiation operator, so a reader or extraction tool taking the expression verbatim can misparse it. The sibling occurrence in 15.94.4 c) on page 958 is transcribed correctly as '(FUNCTION LENGTH (argument-1) + 1).'.
 - **Repair:** Replace '(FUNCTION LENGTH (argument-1) + 1)**.**' with '(FUNCTION LENGTH (argument-1) + 1).'
-- **Verifier:** Accurate as filed, with one rationale caveat. Confirmed: specs/ISO_COBOL.md line 38466 has '(FUNCTION LENGTH (argument-1) + 1)**.**' where PDF page 961 (printed 931, 15.95.4 c) has plain '(FUNCTION LENGTH (argument-1) + 1).'; font-run inspection shows the line is one non-bold Cambria span and the page's only bold run is its running header, so the emphasis is pure OCR noise -- consistent with the two identical sentences at lines 38324 (15.93.4, page 957) and 38393 (15.94.4, page 958), both transcribed plain. Caveat on the stated impact: the practical risk is narrower than 'a reader can misparse it' suggests -- rendered markdown shows the same sentence and no normative content changes, so the exposure is limited to tooling that greps the RAW markdown for the returned-value expression and would capture '+ 1)**.**', where '**' collides with COBOL's exponentiation operator. Cosmetic severity is correct.
+- **Verifier:** Confirmed, with one factual refinement to the claim's supporting detail. Location: specs/ISO_COBOL.md line 38466, section 15.95.4 'Returned value rule' item c), TEST-NUMVAL-F function. The transcription inserts a markdown strong-emphasis pair around the terminating period -- '(FUNCTION LENGTH (argument-1) + 1)**.**' -- where PDF page 961 (printed page 931) prints plain regular-weight roman with an ordinary period and no emphasis; font-run inspection shows the line is one non-bold Cambria span and the page's only bold run is its running header. REFINEMENT: the claim cites a single clean sibling (15.94.4 c), page 958); there are in fact TWO, namely 15.93.4 c) TEST-NUMVAL at line 38324 on page 956 -- not page 957 -- and 15.94.4 c) TEST-NUMVAL-C at line 38393 on page 958, both transcribed plainly as '(FUNCTION LENGTH (argument-1) + 1).'. Both siblings strengthen the case that page 961 is the one-off outlier. IMPACT, stated more precisely than the claim: it is cosmetic and confined to the raw text -- rendered markdown shows the same sentence, no normative content is added, lost, or altered, and no reader of the rendered document is misled. The residual hazard is narrower than 'a reader can misparse it' implies: it is limited to tooling or an agent grepping the RAW markdown for the returned-value expression, which would capture '+ 1)**.**' where '**' collides with COBOL's exponentiation operator. Fix is a one-character-class deletion: remove the two '**' pairs on line 38466, leaving '(FUNCTION LENGTH (argument-1) + 1).'.
+
+### p1052 · misplaced-content · **cosmetic**
+
+- **PDF:** [measured left ink columns at 300 dpi] 'I-O-CONTROL.' / 'DATA DIVISION.' / 'FD  STCK-FILE.' all begin at x=455; 'SELECT CHNG-FILE', the two preceding comment lines '*> will be locked by this program until a commit or' / '*> rollback.', and 'APPLY COMMIT ON STCK-FILE CHNG-FILE UPDATE-COUNT.' all begin at x=563 - exactly four character cells (1 cell = 26.7 px) further right.
+- **Markdown:**         *> will be locked by this program until a commit or
+        *> rollback.
+
+        SELECT CHNG-FILE
+            ASSIGN TO "CHANGE"
+...
+        I-O-CONTROL.
+            APPLY COMMIT ON STCK-FILE CHNG-FILE UPDATE-COUNT.
+- **Why:** In the markdown, 'SELECT CHNG-FILE' and its two preceding comment lines sit at 8 spaces - the SAME column as 'I-O-CONTROL.', 'DATA DIVISION.' and 'FD  STCK-FILE.' - whereas the PDF indents them four columns further in. The example is illustrating COBOL reference format, where paragraph headers (FILE-CONTROL., I-O-CONTROL.) stand in Area A and their clauses (SELECT ...) in Area B; flattening the two to one column destroys that distinction. It is also internally inconsistent with the same program's first page: page 1051 correctly renders 'FILE-CONTROL.' at 8 spaces and 'SELECT STCK-FILE' at 12, so the identical construct is indented two different ways across the page break, and the comment block that starts on p1051 at 12 spaces resumes on p1052 at 8.
+- **Repair:** Re-indent the p1052 slice so the two continuation comment lines, 'SELECT CHNG-FILE' and its subordinate clauses each gain four spaces (comments and SELECT to 12, ASSIGN/ORGANIZATION/ACCESS MODE/FILE STATUS/SHARING to 16), matching both the PDF columns and the p1051 slice.
+- **Verifier:** REAL, with one refinement and one addition. Refinement: the shift is not confined to 'SELECT CHNG-FILE' and the two comment lines - the whole SELECT CHNG-FILE block moved left. In the PDF the subordinate clauses ('ASSIGN TO "CHANGE"', 'ORGANIZATION IS SEQUENTIAL', 'ACCESS MODE IS SEQUENTIAL', 'FILE STATUS IS CHNG-FILE-STATUS', 'SHARING WITH ALL OTHER.') sit at x=640-643 = base+7 cells (3 cells right of SELECT; measured S-to-S, 'SHARING' @643 minus 'SELECT' @562 = 81 px = 3.03 cells, and identically on p1051: 711-631 = 80 px). The markdown renders them at 12 spaces = base+4. So relative to the base column the markdown moves the comment lines and SELECT by -4 and the clauses by -3. Addition: the -3 on the clauses is itself harmless - the markdown normalizes the PDF's 3-space sub-indent to 4 on BOTH pages (p1051 md has SELECT at 12 and clauses at 16, i.e. base+4/base+8 vs the PDF's base+4/base+7), so it is a consistent, meaning-preserving normalization. The only meaning-bearing defect is the one the claim names: on page 1052 alone, the two continuation comment lines and 'SELECT CHNG-FILE' lost their 4-column Area B indent and now start in Area A, in the same column as 'I-O-CONTROL.', 'DATA DIVISION.', 'FILE SECTION.' and 'FD  STCK-FILE.'. Fix: indent markdown lines 7, 8 and 10 of the page-1052 fence from 8 to 12 spaces, and lines 11-15 from 12 to 16, matching the page-1051 rendering of the identical construct.
+
+### p1053 · incorrect-text · **cosmetic**
+
+- **PDF:**         03  WORK-QTY                PIC S9(7    PACKED-DECIMAL.
+- **Markdown:**     03  WORK-QTY                PIC S9(7)    PACKED-DECIMAL.
+- **Why:** The PDF prints 'PIC S9(7' with NO closing right parenthesis - verified by cropping and zooming the line (E:/Temp/specrecon/f9/crop1053_workqty.png); the adjacent COMMIT-FREQUENCY line on the same page correctly prints 'PIC S9(5)'. This is a typographical defect in ISO's own informative example. The transcription silently repairs it. Silent repair is the same class of error as silent loss: the transcription is supposed to reproduce the page, and a project that keeps a ledger of ISO's own defects cannot find this one because the markdown no longer shows it. It also hides the fact that the Annex D sample program as printed is not compilable source.
+- **Repair:** Transcribe the line verbatim as 'PIC S9(7    PACKED-DECIMAL.' and add a transcriber's note (outside the code fence) recording that ISO omits the closing right parenthesis - i.e. log it as an ISO defect rather than fixing it in place.
+- **Verifier:** Accurate as filed; two refinements. (a) Scope — this is a one-character divergence confined to an informative Annex D example, and the author's intent is unambiguously 'S9(7)' (the sibling COMMIT-COUNT item on the same page is declared PIC S9(7) and WORK-QTY is used interchangeably with it), so no normative rule and no compiler behavior depends on it; 'cosmetic' severity is right, and the value is purely ledger fidelity — recording an ISO typo, not a semantic loss. (b) The strongest form of the argument is one the claim did not make: the transcription is INCONSISTENT rather than uniformly normalizing. Eleven lines further down the same page the PDF misprints the DECLARATIVES header, placing the terminating period at the start of the following line as '. USER-FATAL-ERROR SECTION.', and the markdown reproduces that printing defect verbatim at line 43. So the same page shows the transcription faithfully preserving one ISO typo while silently repairing another. That inconsistency — not the missing parenthesis alone — is what makes the page unreliable as a defect ledger, since a reader cannot tell from the markdown which oddities are ISO's and which are the transcriber's. The claim's remark that the repair 'hides the fact that the Annex D sample program as printed is not compilable source' is true but should not be read as unique to this line: the sample as printed already fails to compile at the DECLARATIVES header, and that failure IS visible in the markdown.
+
+### p1073 · incorrect-text · **cosmetic**
+
+- **PDF:** FUNCTION-ID F-1.          *> Source element start
+- **Markdown:** FUNCTION-ID. F-1.        *> Source element start
+- **Why:** The PDF prints the identification entry without the separator period after FUNCTION-ID (an ISO typesetting defect in this informative example); the markdown silently repairs it. The transcription is meant to reproduce the PDF, and silently normalising the printed text hides an ISO defect that a later reader may need to see — and, conversely, a reader diffing markdown against the PDF finds an unexplained mismatch.
+- **Repair:** Restore 'FUNCTION-ID F-1.' verbatim and, if desired, flag it in the ISO-defect ledger rather than correcting it in place.
+- **Verifier:** Accurate as filed; no correction needed. For the record, the precise delta is the insertion of one separator-period token: PDF page 1073 (printed 1043), Annex D Figure D.2, prints 'FUNCTION-ID F-1.' followed by 10 spaces with the comment at column 27, while specs/ISO_COBOL.md line 43024 transcribes 'FUNCTION-ID. F-1.' followed by 8 spaces with the comment at column 26. The comment-column shift is incidental whitespace; only the added '.' is substantive. Every other identification entry in the same figure (PROGRAM-ID., CLASS-ID., METHOD-ID.) prints its separator period in the PDF, so the FUNCTION-ID line is an isolated ISO editorial slip that contradicts the normative format in 11.5, FUNCTION-ID paragraph. The fix is to restore the PDF's printed text and annotate the line as a known ISO defect rather than silently normalising it.
+
+### p1101 · incorrect-figure · **cosmetic**
+
+- **PDF:** *> implicit filler ...1               1 1 1 1 1  1     02 PIC 1(5)   (five bit marks charted under bit positions 4-8, then the byte number 1)
+- **Markdown:**      *> implicit filler ...1           1 1 1 1  1     02 PIC 1(5)   (only four bit marks)
+- **Why:** One bit mark was lost from the first implicit-filler row of the first bit-alignment figure, so the chart now shows four filler bit positions while its own annotation says '02 PIC 1(5)'. The equivalent row in the second figure on the same page ('*> implicit filler ...           1 1 1 1 1  1     02 PIC 1(5)') still carries all five, confirming the drop. The figure exists precisely to show how many bits the implicit filler occupies, so a miscount defeats its purpose.
+- **Repair:** Restore the fifth mark: '     *> implicit filler ...1           1 1 1 1 1  1     02 PIC 1(5)'. (Retain the '...1' exactly as printed - the stray '1' immediately after the ellipsis is ISO's own artefact and is present in the PDF.)
+- **Verifier:** Confirmed as described, with two clarifications. The PDF's first implicit-filler row of the first bit-alignment figure prints five bit marks under bit positions 4-8 followed by the byte-number 1; the markdown (specs/ISO_COBOL.md line 44234) prints only four, while retaining the '02 PIC 1(5)' annotation. Clarification 1: the stray '1' fused to the ellipsis ('...1') is present in the PDF too - it is an ISO typesetting oddity at x=1008, well left of bit column 1 at x=1286, faithfully carried into the transcription - so it is not the displaced fifth mark and does not restore the count. Clarification 2: the transcription does not preserve absolute column alignment in any of these figures, so the defect is strictly the lost glyph (four marks where the PDF has five), not a shifted column. Fix: restore the fifth mark on line 44234 so the row reads '*> implicit filler ...1           1 1 1 1 1  1     02 PIC 1(5)'.
 
 ### p1124 · incorrect-text · **cosmetic**
 
@@ -2240,91 +2903,115 @@ Correction: the p1125 block is NOT a continuation of the block containing the '*
 
 Recommended repair: strip the two '**' pairs at lines 45186 and 45200 so the code samples carry only the characters the standard prints, matching the convention already used everywhere else in this pair of examples.
 
-## Unverified claims — NOT yet actionable
+### p1136 · missing-heading · **cosmetic**
 
-- p1006 · missing-heading · structural — These subsections are emitted at the same markdown level as their own parent A.4 and as '## Annex A' / '## Annex B', so any generated table of contents or section-tree walk makes A.4.4-A.4.7 peers of 
-- p1007 · missing-heading · structural — Continuation of the same wrongly-levelled heading run: these four subsections of A.4 are emitted at level 2, the level of their parent A.4 and of the annex headings, while the immediately following A.
-- p1010 · misplaced-content · structural — The script-name label 'Ahom:' that heads page 981 has been appended to the last data line of page 980, so the Adlam range line now reads as though it ended with the token 'Ahom:' and the Ahom range 11
-- p1011 · misplaced-content · structural — Same page-boundary defect: the label 'Buhid:' printed at the top of page 982 is attached to the Buginese range line ending page 981, orphaning the Buhid range 1740-1751 from its script name in normati
-- p1014 · misplaced-content · structural — Same page-boundary defect: 'Kaithi:' from the top of page 985 is merged onto the Javanese range line, leaving the Kaithi range 11083-110AF unlabelled.
-- p1015 · misplaced-content · structural — Same page-boundary defect, and here it is especially misleading because Linear_A and Linear_B are near-identical names: the Linear_B ranges at the top of page 986 appear with no label at all while 'Li
-- p1016 · misplaced-content · structural — Same page-boundary defect: 'Miao:' from the top of page 987 is merged onto the Meroitic_Hieroglyphs range line, orphaning the Miao ranges.
-- p1017 · misplaced-content · structural — Same page-boundary defect at the 1017/1018 boundary: 'Old_Italic:' is merged onto the Old_Hungarian range line, so the Old_Italic ranges opening page 988 carry no script name. The edit site is the las
-- p1021 · misplaced-content · structural — Annex B list 2) "characters permitted in a user-defined word except as the start character" is normative. The label Buhid is separated from its range 1752-1753 across the page break, so the entry cann
-- p1022 · misplaced-content · structural — Gunjala_Gondi's code-point ranges are left unattributed in the normative Annex B table, and Gujarati's final range line carries a stray script label.
-- p1023 · misplaced-content · structural — The script name Khojki is detached from its range 1122C-11237, 1123E in the normative Annex B table and appended to the Khmer entry.
-- p1024 · misplaced-content · structural — Mongolian's code-point ranges are left unattributed in the normative Annex B table and the Modi entry carries a stray label.
-- p1025 · misplaced-content · structural — Sharada's code-point ranges are left unattributed in the normative Annex B table and the Saurashtra entry carries a stray label.
-- p1048 · misplaced-content · structural — The markdown places the GFM header separator (|---|---|---|---|) immediately after the START row, which makes 'START / any / no / no' render as the table's column-heading row. The continuation table t
-- p1058 · missing-heading · structural — D.3.1 is transcribed as "### D.3.1 General" (page 1057) but its sibling D.3.2 is transcribed at "##", the same level as its own parent "## D.3 Tables and dynamic-length elementary items". The markdown
-- p1061 · missing-heading · structural — Its two siblings are transcribed one level deeper -- "### D.3.5.1 General" and "### D.3.5.2 Subscripting using index-names" (page 1060) -- while D.3.5.3 sits at "##", the same level as their shared pa
-- p1063 · incorrect-figure · structural — The brace is the only thing that makes footnote ** apply to all three control transfers. With the brace dropped and "**" attached to a single row, the plural antecedent of "Each of these control trans
-- p1074 · incorrect-figure · structural — The markdown legend makes Runtime Module and Runtime Element share the same symbol (both 'dashed'), so the legend can no longer distinguish them and the reader cannot decode the lower half of Figure D
-- p1074 · missing-figure · structural — Every piece of information the figure carries lives in its box nesting and arrows, not in its labels. The markdown keeps only the floating labels, so the reader cannot recover which entities are compi
-- p1092 · missing-heading · structural — D.8.2 and D.8.3 are promoted to the same heading level as their own parent D.8, and outrank their sibling D.8.1. The generated outline therefore shows D.8.2/D.8.3 as peers of D.8 rather than as its su
-- p1093 · misplaced-content · structural — Items h), i) and j) of the list in D.8.3 (permitted receiving-operand contexts for a strongly-typed group item) have lost their list structure entirely: all three are run into the body of item g) as i
-- p1096 · missing-heading · structural — D.9.2.3 is promoted two levels, out from under D.9.2 and up to the rank of D.9 itself, so the outline detaches the Examples subclause from the data-pointer discussion it belongs to. Same page-boundary
-- p1101 · incorrect-figure · structural — In the second bit-alignment figure (the GROUP-USAGE BIT variant of group-1), the PICTURE clause 'pic 1' has been dropped from item-4. Without it the entry no longer describes a boolean item at all, ye
-- p1103 · missing-heading · structural — Sibling clauses at the same numeric depth are transcribed at different markdown heading levels, so the derived outline mis-parents them: D.11.2/.3/.4 render as peers of D.11 rather than children of it
-- p1113 · missing-heading · structural — This is the sharpest instance of the promotion pattern in the batch: D.14.2.3 is a third-level subclause whose own two immediate siblings are correctly at '####', yet it is emitted at '##' - the same 
-- p1138 · missing-heading · structural — D.19.4 is emitted at markdown level 2, the same level as its own parent D.19, so in the heading tree it stops being a child of D.19 and becomes its sibling; D.19.4.1 then lands at level 3 alongside D.
-- p1139 · missing-heading · structural — Two subclauses that the PDF prints at the same rank are emitted at different markdown levels, so D.19.4.2 is not nested under D.19.4 at all and D.19.4.1 appears to be its only child-level peer. The he
-- p1140 · missing-heading · structural — Same nesting break as D.19.4.2: a fourth-level clause is emitted at markdown level 2, detaching it from D.19.4 Methods in the heading tree.
-- p1142 · missing-heading · structural — D.19.5 is emitted at the same markdown level as its parent D.19, so it is promoted out of the Object-oriented-concepts subtree; every clause under it inherits the one-level shift. Sibling clauses of e
-- p1143 · incorrect-figure · structural — The figure is titled 'Banking hierarchy' and its entire content is the inheritance relation; the two upward arrows are the only thing in the figure that says CheckingAccount and SavingAccount are subc
-- p1145 · missing-heading · structural — A fourth-level clause emitted at markdown level 2 is detached from D.19.5 in the heading tree and sits as a peer of the annex clause D.19 itself.
-- p1146 · missing-heading · structural — Same nesting break: the Conformance subclause is lifted out of D.19.5 in the heading tree, so section extraction by heading depth cannot recover the clause numbering.
-- p1149 · missing-heading · structural — The fourth- and fifth-level clauses are both one to two levels too shallow, so D.19.5.4.1 General ends up at the same markdown depth as D.19.5.1 Inheritance even though the PDF prints them two ranks a
-- p1150 · missing-heading · structural — Both subclauses are emitted at the same markdown level (##) as their own parent '## D.19.5.4 Polymorphism' and one level above their sibling '### D.19.5.4.1 General', so the outline makes them peers o
-- p1154 · missing-heading · structural — D.19.9.3 is emitted one level shallower than its own siblings D.19.9.1 and D.19.9.2 (both '###') and at the same level as its parent '## D.19.9 Files in object orientation', so the markdown outline de
-- p1156 · missing-heading · structural — All three are emitted at '##', the same level as their parent '## D.19.11 Sample application' on page 1155, so D.19.11 appears to have no subclauses at all and the three sample-application subclauses 
-- p1178 · incorrect-figure · structural — The whole figure is reduced to a bare, out-of-order list of node labels: no boxes, no decision shapes, no arrows, no branch targets. Every label token survives (3 'yes', 3 'no') but the connectivity —
-- p1179 · incorrect-figure · structural — Same defect as p.1178: the flowchart is flattened to a bag of labels with all four 'yes' edges heaped at the end and no boxes, arrows or branch targets. The distinctive structure of this figure — that
-- p1188 · incorrect-figure · structural — The entire purpose of this figure is to show the NESTED loop structure of the VARYING/AFTER phrases of PERFORM with TEST AFTER: the inner loop returns to "Execute specified set of statements" and the 
-- p1193 · missing-heading · structural — D.31.2 is rendered as a sibling of its own parent D.31 rather than as a child, and as a peer of neither. Sibling headings at different levels break the document outline, so any TOC generated from this
-- p1194 · missing-heading · structural — Two members of one numbered series sit two heading levels above their five siblings purely because a page break fell between them. The outline then shows ACCEPT FROM DAY-OF-WEEK and ACCEPT FROM TIME a
-- p1195 · missing-heading · structural — Seven of the nine subclauses of D.31.3 are promoted out of their parent at the page boundary, so the outline claims the basic date/time intrinsic-function clause contains only General and CURRENT-DATE
-- p1197 · missing-heading · structural — The cross-reference on page 1196 — "illustrated in D.31.5.2, Examples of time and date formats" — points at a clause the outline no longer places inside D.31.5, so the reference and the structure disa
-- p1198 · missing-heading · structural — Page 1197 states "The intrinsic functions that support international date and time formats are described in D.31.5.3 through D.31.5.11"; with those clauses promoted to "##" the outline no longer shows
-- p1212 · missing-heading · structural — E.3.3 is transcribed one heading level too shallow, so in the outline it is a sibling of its own parent E.3 ('## E.3 Substantive changes probably not affecting existing programs', line 48904) instead 
-- p1213 · misplaced-content · structural — The 'Brahmi:' script label from the top of PDF page 1184 (md page 1214) has been concatenated onto the end of the Bopomofo range line on the previous page. Two entries are corrupted at once: Bopomofo'
-- p1213 · missing-heading · structural — A numbered list item inside E.3.3 has been promoted to a level-2 markdown heading, so it appears in the document outline / table of contents as a sibling of real clauses such as 'E.3 Substantive chang
-- p1214 · misplaced-content · structural — Both the Cyrillic continuation range 'FE2E-FE2F' and the following script label 'Deseret:' were pulled back from PDF page 1185 onto the last line of page 1184. The 'Deseret:' label is thereby glued to
-- p1216 · misplaced-content · structural — The 'Kannada:' label from the top of PDF page 1187 is concatenated onto Kaithi's range line, so Kaithi reads '11080-110BA Kannada:' and Kannada's ranges are orphaned at the head of the next page. Same
-- p1217 · misplaced-content · structural — The 'Lydian:' label from the top of PDF page 1188 is concatenated onto Lycian's range line; Lydian's range '10920-10939' opens the next page with no label.
-- p1218 · misplaced-content · structural — The 'Multani:' label from the top of PDF page 1189 is concatenated onto Mro's range line; Multani's ranges are orphaned at the head of the next page.
-- p1219 · misplaced-content · structural — The 'Old_Turkic:' label from the top of PDF page 1190 is concatenated onto Old_South_Arabian's range line; Old_Turkic's range '10C00-10C48' opens the next page with no label.
-- p1220 · misplaced-content · structural — The 'Sinhala:' label from the top of PDF page 1191 is concatenated onto SignWriting's range line; Sinhala's ranges are orphaned at the head of the next page.
-- p1222 · missing-heading · structural — Same defect as item 5) on page 1213: a numbered list item inside E.3.3 promoted to a level-2 markdown heading, creating a phantom top-level section in the outline that has no counterpart in the standa
-- p1231 · missing-heading · structural — Every other annex title in the transcription is an H2 with an anchor: '<a id="section-annex-a">' .. '<a id="section-annex-f">' at lines 38874, 40145, 41088, 41492, 48515, 49823, each followed by '## A
-- p1234 · misplaced-content · structural — The index's only structure is its indentation: it is what says 'FROM phrase 576' is a sub-entry of ACCEPT statement and not a top-level entry, and it is the sole thing distinguishing the parentless he
-- p1249 · misplaced-content · structural — Every sub-entry indent on this page is dropped: the markdown emits all lines flush left, whereas the PDF indents sub-entries under their parent heading. The parent/child relation is the whole informat
-- p1250 · misplaced-content · structural — All sub-entry indentation on this page is lost, so every sub-entry reads as an independent top-level index entry. Same systematic defect as page 1249; pages 1247/1248/1253/1255/1256 of the same index 
-- p1251 · misplaced-content · structural — This page carries a TWO-level index nesting ('Numeric-edited category' > 'Category of data' > 'Numeric-edited 162') and the markdown flattens both levels to flush left, along with every other sub-entr
-- p1252 · misplaced-content · structural — All sub-entry indentation on this page is lost, so sub-entries such as 'Exception checking 777' and 'infinite loop 686' read as free-standing top-level entries rather than as qualifiers of 'PERFORM st
-- p1254 · misplaced-content · structural — Every sub-entry indent on this page is dropped. The thirteen sub-entries under 'Relation condition' and the three under 'Reserved words' are each promoted to look like top-level index entries. Same sy
-- p1257 · misplaced-content · structural — Every sub-entry indent on this page is dropped, including the first line 'Data-name 123', which the PDF indents because it continues the 'Subscripted' entry begun at the foot of page 1256. Flattened, 
-- p1258 · misplaced-content · structural — Every sub-entry indent on this page is dropped. The five opening lines are indented in the PDF because they continue the 'Transfer of control 539' entry begun at the foot of page 1257; flattened, 'GOB
-- p1260 · summarised-not-transcribed · structural — Transcription-tool meta-text left in the spec file. The substance of the observation is correct — page 1260 really is blank — so no normative content is lost here and this is not a content defect. But
-- p1261 · misplaced-content · structural — Two lines of Annex E.3.2 normative-looking text (the new-exception-condition lists for Asynchronous messaging and for Commit and Rollback) are appended to the back cover, where the PDF prints nothing 
-- p1052 · misplaced-content · cosmetic — In the markdown, 'SELECT CHNG-FILE' and its two preceding comment lines sit at 8 spaces - the SAME column as 'I-O-CONTROL.', 'DATA DIVISION.' and 'FD  STCK-FILE.' - whereas the PDF indents them four c
-- p1053 · incorrect-text · cosmetic — The PDF prints 'PIC S9(7' with NO closing right parenthesis - verified by cropping and zooming the line (E:/Temp/specrecon/f9/crop1053_workqty.png); the adjacent COMMIT-FREQUENCY line on the same page
-- p1073 · incorrect-text · cosmetic — The PDF prints the identification entry without the separator period after FUNCTION-ID (an ISO typesetting defect in this informative example); the markdown silently repairs it. The transcription is m
-- p1075 · missing-heading · cosmetic — Siblings D.6.1.1, D.6.1.2 and D.6.1.3 land at three-different-to-two-different markdown levels, so D.6.1.2 and D.6.1.3 are hoisted out of D.6.1 and appear as peers of D.6 itself. Any TOC, outline fold
-- p1076 · missing-heading · cosmetic — D.6.2 is promoted to the same markdown level as its parent D.6, so it reads as a sibling of D.6 rather than a subclause of it. Outline-driven navigation and any tooling that reconstructs clause number
-- p1101 · incorrect-figure · cosmetic — One bit mark was lost from the first implicit-filler row of the first bit-alignment figure, so the chart now shows four filler bit positions while its own annotation says '02 PIC 1(5)'. The equivalent
-- p1136 · missing-heading · cosmetic — The heading is promoted one level, so D.19.3.3 renders as a peer of D.19.3 Objects instead of a child of it, breaking the document outline and any TOC/anchor tooling that walks heading depth. The same
-- p1145 · other · cosmetic — Purely presentational, but the two labels are a matched pair in the same example and the transcription treats them differently; a reader diffing the two code samples sees an asymmetry that is not in t
-- p1151 · ocr-error · cosmetic — A space was inserted into the PICTURE character-string. In COBOL a space terminates the PICTURE character-string, so the transcribed line is not the same source: it reads as PICTURE '$$$,$$$.' followe
-- p1171 · misplaced-content · cosmetic — The second paragraph is rendered as ordinary body prose, so its binding to the NOTE is lost. In ISO drafting the note type face marks the text as a note; here it detaches a sub-item from its parent. I
-- p1182 · ocr-error · cosmetic — The cell wrap was re-joined with a space instead of being closed up, so both COBOL data values now carry a spurious embedded space and read as 17 characters. Anyone lifting this INSPECT example as a t
-- p1186 · incorrect-figure · cosmetic — In the ASCII rendering the two loop-back edges are dangling: the stubs drawn at Condition-1 and Condition-2 carry '◄' (arrowhead pointing away from the decision) rather than an arrowhead entering it, 
-- p1195 · misplaced-content · cosmetic — The paragraph is glued onto the end of the last em-dash bullet with no sentence or paragraph break, so it reads as though the example describes only the final two-digit minutes subfield rather than th
-- p1197 · ocr-error · cosmetic — The transcription silently normalises the printed token from five "s" to four. It is almost certainly an ISO typographical defect (page 1198 states "four \"s\" characters after the period are used for
-- p1199 · missing-heading · cosmetic — The clause hierarchy of Annex D is flattened: D.31.5.8-.11 render as peers of Annex D and of D.32 instead of as children of D.31.5. Any TOC, outline navigation or heading-level-driven section extracti
-- p1240 · misplaced-content · cosmetic — In an index the leading indent is the ONLY thing that marks a sub-entry as belonging to its parent. Flattening it detaches sub-items from their parents and promotes them to look like top-level index t
-- p1247 · misplaced-content · cosmetic — This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the four sub-entries that open the second print column lose it, so READ/RETURN/STRING/UNSTRING read as top-level entries 
-- p1256 · misplaced-content · cosmetic — This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the two continuation lines at the top of each print column lose it. 'Implicit 639' continues 'SET statement' from the foo
+- **PDF:** D.19.3.3   Object data definitions   [printed at the same typographic level as its siblings D.19.3.1 General, D.19.3.2 Object instantiations, D.19.3.4 Object references, D.19.3.5 Factory objects]
+- **Markdown:** ## D.19.3.3 Object data definitions   [while the immediately adjacent siblings are '### D.19.3.1 General', '### D.19.3.2 Object instantiations', '### D.19.3.4 Object references', '### D.19.3.5 Factory objects']
+- **Why:** The heading is promoted one level, so D.19.3.3 renders as a peer of D.19.3 Objects instead of a child of it, breaking the document outline and any TOC/anchor tooling that walks heading depth. The same promotion recurs elsewhere in this batch: '## D.17.2 Intermediate rounding' (p1126) and '## D.17.3 Final rounding (the ROUNDED clause)' (p1127) against '### D.17.1 General'; '## D.18.2.2 Specification' and '## D.18.2.3 Examples' (p1131) against '### D.18.2.1 General'; '## D.18.3.2 Specification' and '## D.18.3.3 Examples' (p1133) against '### D.18.3.1 General'. In each group only the first '...N.1 General' child kept the correct depth and every later sibling was flattened up one level. No normative text is lost -- this is structural navigation only.
+- **Repair:** Demote to the depth of its siblings: in specs/ISO_COBOL.md change line 45695 '## D.19.3.3 Object data definitions' -> '### D.19.3.3 ...'. Sweep the same batch-local instances: line 45298 '## D.17.2', 45326 '## D.17.3' -> '###'; 45431 '## D.18.2.2', 45436 '## D.18.2.3' -> '###'; 45531 '## D.18.3.2', 45536 '## D.18.3.3' -> '###'. The pattern (first '.1 General' child correct, later siblings flattened) appears to run the length of Annex D and is worth a document-wide pass rather than a per-page patch.
+- **Verifier:** REAL, but the described consequence is understated and the stated pattern is wrong for this group.
+
+Understated consequence: promoting D.19.3.3 to '##' does not merely make it a peer of '## D.19.3 Objects'. Because the two headings that follow it are '### D.19.3.4' and '### D.19.3.5', those two are re-parented under D.19.3.3 in the rendered outline. The markdown outline therefore reads: '## D.19.3 Objects' with children .1 and .2; then '## D.19.3.3' with children .4 and .5. Three clauses are misplaced, not one, and any TOC walker sees D.19.3.4/.5 as grandchildren of D.19.3 via the wrong parent. The PDF outline puts all five at the same level under D.19.3.
+
+Wrong generalization: the claim asserts 'In each group only the first ...N.1 General child kept the correct depth and every later sibling was flattened up one level.' That holds for the three cited comparison groups -- D.17 ('### D.17.1 General' vs '## D.17.2', '## D.17.3'), D.18.2 ('### D.18.2.1' vs '## D.18.2.2', '## D.18.2.3') and D.18.3 ('### D.18.3.1' vs '## D.18.3.2', '## D.18.3.3'), all confirmed in the file -- but it is false for the D.19.3 group that is actually on p1136. There, D.19.3.2, D.19.3.4 and D.19.3.5 all correctly kept '###'; D.19.3.3 is the lone outlier. The p1136 defect is an isolated one-heading promotion, not an instance of the 'everything after .1 got flattened' pattern.
+
+Fix: change line 45695 of specs/ISO_COBOL.md from '## D.19.3.3 Object data definitions' to '### D.19.3.3 Object data definitions'.
+
+Separate pre-existing defect noticed while verifying, NOT part of this claim and needing its own ledger entry: '## D.19.3 Objects' (line 45637) is itself promoted. The PDF outline puts D.19.3 at level 3, the same level as D.19.1 and D.19.2, which the markdown renders as '### D.19.1 General' and '### D.19.2 Classes'. So D.19.3 should be '###' and its children '####'. Repairing only line 45695 to '###' fixes the local sibling inconsistency and stops the re-parenting of .4/.5, but leaves the D.19.3-vs-D.19.1/.2 level mismatch in place.
+
+### p1151 · ocr-error · **cosmetic**
+
+- **PDF:** 01  Out-p pic $$$,$$$.99.
+- **Markdown:** 01  Out-p pic $$$,$$$. 99.
+- **Why:** A space was inserted into the PICTURE character-string. In COBOL a space terminates the PICTURE character-string, so the transcribed line is not the same source: it reads as PICTURE '$$$,$$$.' followed by a stray '99.' rather than the six-digit floating-dollar edited item with two decimal places that the example (a packed-decimal print method) is illustrating. Verified by cropping and zooming the 300dpi render of the line; the printed glyphs are contiguous with no space between '.' and '99'.
+- **Repair:** Restore the line to '01  Out-p pic $$$,$$$.99.' (no space before the 99).
+- **Verifier:** Confirmed real, with one correction to the claim's COBOL analysis. The PDF prints '01  Out-p pic $$$,$$$.99.'; specs/ISO_COBOL.md line 46353 transcribes it as '01  Out-p pic $$$,$$$. 99.' with a spurious space between the decimal point and '99'. The claim's consequence is directionally right but states the resulting PICTURE slightly wrong: it says the line would read as PICTURE '$$$,$$$.' (period included) plus a stray '99.'. In fact a period followed by a space is a separator period, so the corrupted line parses as PICTURE '$$$,$$$' -- WITHOUT the decimal point -- terminating the data description entry there, leaving '99.' as an orphan clause. The corruption is therefore slightly worse than described: it drops the decimal point as well as the two decimal digit positions, turning the floating-dollar item with two decimal places (the whole point of an example whose linkage item is 'pic s9(5)v99 packed-decimal') into an integer-only floating-dollar item, and leaves invalid residue behind. Correct fix: delete the space, restoring 'pic $$$,$$$.99.'.
+
+### p1182 · ocr-error · **cosmetic**
+
+- **PDF:** First data row of the EXAMPLE 3 table. Initial Value of ITEM cell reads 'BBEABDABABBCABE' with a wrapped continuation 'E' on the next line — one 16-character value, BBEABDABABBCABEE. Final Value of ITEM cell reads 'BBEXYZXYXYZCABV' with a wrapped continuation 'E' — one 16-character value, BBEXYZXYXYZCABVE.
+- **Markdown:** | BBEABDABABBCABE E | 3 | 0 | 2 | BBEXYZXYXYZCABV E |
+- **Why:** The cell wrap was re-joined with a space instead of being closed up, so both COBOL data values now carry a spurious embedded space and read as 17 characters. Anyone lifting this INSPECT example as a test vector gets the wrong operand and the wrong expected result. That the true length is 16 is confirmed by the replacement: FIRST "E" BY "V" AFTER "D" turns character 15 into V and leaves character 16 as E, exactly as printed.
+- **Repair:** Close up the wrap: '| BBEABDABABBCABEE | 3 | 0 | 2 | BBEXYZXYXYZCABVE |'.
+- **Verifier:** Confirmed as described; only the severity label is arguably understated. Page 1182 (printed folio 1152), EXAMPLE 3 table, first data row. The PDF sets each of the two 16-character ITEM values across two lines purely because of cell width - 'BBEABDABABBCABE' + 'E' and 'BBEXYZXYXYZCABV' + 'E', with no space or hyphen glyph at the break. The markdown (page-1182.md line 23) re-joins each wrap with a space, yielding 'BBEABDABABBCABE E' and 'BBEXYZXYXYZCABV E'. Correct transcription closes the wrap up: '| BBEABDABABBCABEE | 3 | 0 | 2 | BBEXYZXYXYZCABVE |'. Because a space is a valid alphanumeric character, this is a corrupted 17-character data value rather than a formatting artifact, and it silently breaks the example as an INSPECT test vector (both the operand and the expected result); I would classify it minor/content rather than cosmetic. The remaining four rows of the table and the EXAMPLE 4 table are transcribed correctly.
+
+### p1186 · incorrect-figure · **cosmetic**
+
+- **PDF:** Diagram for Figure D.12 (TEST BEFORE, two conditions). Two return edges are drawn: [Augment identifier-5 with current BY value] loops back LEFT and UP with an arrowhead entering (Condition-2); [Set identifier-5 to current FROM value] loops DOWN, then LEFT along the bottom, then UP with an arrowhead entering (Condition-1).
+- **Markdown:** ◄──────────╱  Condition-1  ╲── True ──► Exit  ...  ◄─────────╱  Condition-2  ╲── True ──────────────►  ...  (last two lines of the block)                    |◄──────────────────────────────\n                   └──────────────────────────────►
+- **Why:** In the ASCII rendering the two loop-back edges are dangling: the stubs drawn at Condition-1 and Condition-2 carry '◄' (arrowhead pointing away from the decision) rather than an arrowhead entering it, and the two trailing lines connect the 'Augment identifier-5' and 'Set identifier-5' columns to each other instead of routing back to Condition-2 and Condition-1 respectively. A reader cannot tell which augment/reset step returns control to which test — which is the substance of the PERFORM VARYING figure.
+- **Repair:** Redraw the two return edges so that 'Augment identifier-5 with current BY value' clearly re-enters Condition-2 and 'Set identifier-5 to current FROM value' clearly re-enters Condition-1, with arrowheads pointing INTO the decision nodes.
+- **Verifier:** Page 1186 (printed 1156) carries Figure D.13 — 'The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition' (the caption is ISO's; the diagram shows Condition-1 and Condition-2) — not Figure D.12 / TEST BEFORE. In the printed flowchart, both decisions are entered from the left by a line ending in a solid right-pointing arrowhead: 'Augment identifier-5 with current BY value' exits left, runs left to the inner rail and up into Condition-2; 'Set identifier-5 to current FROM value' exits its bottom, runs down, left along the bottom of the chart to the outer rail, and up into Condition-1. The markdown ASCII transcription loses both back edges. The stubs at lines 22 and 27 carry '◄' at column 0 — a left-pointing arrowhead on a segment that dangles at the left margin — the reverse of the printed arrowheads, which point into the decision. The two trailing lines of the block (lines 42-43) instead wire the 'Augment identifier-5' column (col 19) and the 'Set identifier-5' column (col 50) to each other in both directions, so neither back edge reaches a decision. The rendered control-flow graph therefore differs from the printed one, and a reader cannot determine which augment/reset step returns control to which test.
+
+### p1195 · misplaced-content · **cosmetic**
+
+- **PDF:** Page 1195 (printed 1165) opens with a full-width, non-bulleted paragraph: "For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be \"1995021505142781-0500\"; in operating environments that do not have that capability, the returned result would be \"199502150514278100000\"." It is a paragraph of D.31.3.2 (CURRENT-DATE function), sibling to the em-dash list, not a continuation of the list's final item.
+- **Markdown:** — Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be "1995021505142781-0500"; in operating environments that do not have that capability, the returned result would be "199502150514278100000".
+- **Why:** The paragraph is glued onto the end of the last em-dash bullet with no sentence or paragraph break, so it reads as though the example describes only the final two-digit minutes subfield rather than the whole 21-character CURRENT-DATE result. No text is lost, but the attachment point is wrong and the run-on "...Greenwich Mean Time For example..." is not a sentence.
+- **Repair:** Split at "Mean Time" / "For example," so the example becomes its own paragraph following the em-dash list, still under D.31.3.2.
+- **Verifier:** Confirmed real, with one refinement to the claim's framing. The claim is accurate as far as it goes: specs/ISO_COBOL.md line 48247 concatenates the final em-dash bullet of D.31.3.2 ("— Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time") and the example paragraph that opens PDF page 1195 into one unbroken line, producing the non-sentence "...Greenwich Mean Time For example, in operating environments..." and mis-attaching the two 21-character example values to the two-digit minutes subfield rather than to the whole CURRENT-DATE result. Evidence from the 300 dpi renders: on page 1194 the em-dash list uses a hanging indent (em-dash at x~205, text and wrapped continuations at x~248 in displayed coords), while on page 1195 the "For example" paragraph starts at the body-text left margin -- the same column as the following "D.31.3.3 WHEN-COMPILED function" heading and its body -- and runs the full measure with no hanging indent, so it is unambiguously a sibling paragraph of the list, exactly as claimed. The refinement: the claim describes this only as a lost paragraph break, but there is a second consequence worth recording -- because the paragraph was merged into the tail of the page-1194 block, it is also filed under the wrong page anchor. The paragraph prints wholly on page 1195 (printed 1165), yet the markdown's page-1195 block (line 48249 onward) opens directly at "## D.31.3.3 WHEN-COMPILED function" with no trace of it. So a page-1195 citation of this example resolves to the wrong page. The correct repair is to split line 48247 after "...ahead of or behind Greenwich Mean Time", and to move the "For example, ..." sentence to just after the `<a id="page-1195"></a>` / `## Page 1195` / `# ISO/IEC 1989:2023 (E)` header lines, as its own paragraph preceding the D.31.3.3 heading. Severity cosmetic is correct: Annex D is informative, and both literal values ("1995021505142781-0500" and "199502150514278100000", each verified to be 21 characters) are transcribed correctly.
+
+### p1197 · ocr-error · **cosmetic**
+
+- **PDF:** Under "Fractional-seconds time formats": "Basic local time      hhmmss.sssss      051427.8124" (five "s" characters after the period; verified by cropping and enlarging the printed row — every other row on the page has four).
+- **Markdown:** | Basic local time | hhmmss.ssss | 051427.8124 |
+- **Why:** The transcription silently normalises the printed token from five "s" to four. It is almost certainly an ISO typographical defect (page 1198 states "four \"s\" characters after the period are used for illustrative purposes", and the paired value 051427.8124 has four fractional digits), but the reconciled markdown is supposed to BE the printed page; quietly repairing a printed defect makes the defect invisible to anyone using this file as the citable source, and makes any future PDF-vs-markdown diff report a phantom mismatch here.
+- **Repair:** Restore the printed token "hhmmss.sssss" and, if desired, record the ISO defect in a bracketed editor's note (e.g. "hhmmss.sssss [sic; four \"s\" elsewhere and per D.31.5.2 note on p.1168]") rather than by altering the text.
+- **Verifier:** REAL, with two refinements to the wording. (1) The printed page (folio 1167 / PDF page 1197) sets the Fractional-seconds 'Basic local time' Formats cell as 'hhmmss.sssss' — five 's' after the period — confirmed both by 300 dpi glyph-cluster measurement AND by decoding the PDF's own obfuscated text layer, which carries a 12-character token h,h,m,m,s,s,.,s,s,s,s,s. It is not an artifact of rendering or of the OCR pass. specs/ISO_COBOL.md line 48368 transcribes it as 'hhmmss.ssss' (four). (2) The claim's aside that 'every other row on the page has four' should read 'every other fractional row prints four fractional-second placeholder characters' — the Extended offset time row prints 'hh:mm:ss.ssdd+hh:mm' (two 's' then two 'd'), itself an ISO typographical defect, and the markdown DOES reproduce that one verbatim at line 48373. That contrast is the strongest evidence for the finding: within a single six-row table the transcription preserves one printed defect and silently repairs another, so no consistent editorial normalisation policy explains it. Severity 'cosmetic' is correct: Annex D.31.5.2 is informative, the formats are explicitly illustrative, and page 1198 (line 48385) notes the number of 's' after the decimal separator may range from 1 to 9, so 'hhmmss.sssss' denotes a legal format either way — no normative behavior is affected. The fix is to restore the printed five 's' at line 48368 and annotate it as an ISO defect (cross-referencing line 48341 on this same page and line 48385 on page 1198, both of which use four), rather than to leave the page silently repaired.
+
+### p1240 · misplaced-content · **cosmetic**
+
+- **PDF:** DYNAMIC LENGTH clause  397
+        Data description entry  363
+DYNAMIC LENGTH STRUCTURE clause  291   [the second line is printed indented one level, as a sub-entry of DYNAMIC LENGTH clause]
+- **Markdown:** DYNAMIC LENGTH clause [397](#page-397)
+Data description entry [363](#page-363)
+DYNAMIC LENGTH STRUCTURE clause [291](#page-291)   [all three flush left, at the same level]
+- **Why:** In an index the leading indent is the ONLY thing that marks a sub-entry as belonging to its parent. Flattening it detaches sub-items from their parents and promotes them to look like top-level index terms. The transcription is also self-inconsistent about this: pages 1237, 1238, 1239 and 1243 DO preserve the level with &nbsp; runs, while pages 1235, 1236, 1240, 1241, 1242, 1244, 1245, 1246 (and the right-hand 'Category of data' block on 1237, md lines 64-79) drop it entirely. The worst reading arises on page 1244, where the sub-entry 'FILE-CONTROL paragraph 312' (under FILE STATUS clause) is flattened and lands immediately above the genuine top-level entry 'FILE-CONTROL paragraph 311', so the two read as a contradictory duplicate. Index only - no normative text is affected.
+- **Repair:** Apply the same &nbsp;-per-level indentation scheme already used on pages 1237/1238/1239/1243 to the flattened index pages 1235, 1236, 1240, 1241, 1242, 1244, 1245, 1246, and to the 'Category of data' block on 1237. One level = 4 &nbsp;, matching the existing convention.
+- **Verifier:** Lost index nesting level (structural indentation), page-wide - not misplaced content. On page 1240 the transcription drops the leading indent from every sub-entry, roughly 47 lines across both columns, promoting each to look like a top-level index term. The cited instance is real: the PDF prints 'Data description entry  363' indented one level beneath 'DYNAMIC LENGTH clause  397' (verified by 2x crop of the 300 dpi render - the sub-entry's glyph origin sits about one and a half ems right of the surrounding top-level entries), while specs/ISO_COBOL.md lines 50830-50832 set all three flush left. Text, ordering and page assignment are fully correct; only the level markup is missing. This is a defect against the transcription's own convention, which encodes index level with '&nbsp;&nbsp;&nbsp;&nbsp;' runs on pages 1237-1239 and 1243 and elsewhere in the index. The claim's page-1244 corroboration is accurate (md lines 51287-51288 place a flattened 'FILE-CONTROL paragraph [312]' directly above the genuine top-level 'FILE-CONTROL paragraph [311]'). Index only; no normative text affected; cosmetic. Fix is mechanical: re-apply the four-fold &nbsp; prefix to sub-entries on the affected index pages.
+
+### p1247 · misplaced-content · **cosmetic**
+
+- **PDF:** INTO phrase
+        DIVIDE statement  614
+[column break]
+        READ statement  692
+        RETURN statement  708
+        STRING statement  759
+        UNSTRING statement  769
+Intrinsic function summary  806
+- **Markdown:** INTO phrase
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)
+
+READ statement [692](#page-692)
+RETURN statement [708](#page-708)
+STRING statement [759](#page-759)
+UNSTRING statement [769](#page-769)
+Intrinsic function summary [806](#page-806)
+- **Why:** This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the four sub-entries that open the second print column lose it, so READ/RETURN/STRING/UNSTRING read as top-level entries instead of continuing the 'INTO phrase' list broken by the column break.
+- **Repair:** Prefix the four column-top continuation lines with '&nbsp;&nbsp;&nbsp;&nbsp;' to match the rest of the page.
+- **Verifier:** Claim is accurate as filed; only sharpening the evidence and scope. On markdown lines 65-68 (specs/ISO_COBOL.md lines 51653-51656) the four index sub-entries READ statement 692, RETURN statement 708, STRING statement 759 and UNSTRING statement 769 lose their '&nbsp;'x4 sub-entry prefix. The PDF prints all four at the level-1 indent (measured xstart=1413/1414 vs the right column's level-0 origin x=1342, a constant 72px/0.24in delta matching the left column's 337 -> 409), continuing the 'INTO phrase' list that the print column break splits after 'DIVIDE statement 614'. Without the prefix they are typeset identically to the genuine level-0 entry 'Intrinsic function summary [806]' on the next line, so the transcription flattens four children of 'INTO phrase' into four false top-level entries. Fix: prepend '&nbsp;&nbsp;&nbsp;&nbsp;' to those four lines. The intervening blank line (md line 64) is correct column-break furniture and should be left alone. Severity 'cosmetic' is right -- this is index navigation only and touches no normative text. Sibling lead, unverified and out of scope for this page: several other flush-left 'READ statement [692]' index lines earlier in the file (e.g. lines 50056, 50058, 50231, sitting under 'ADVANCING ON LOCK phrase', 'ADVANCING phrase' and 'AT END phrase') look like the same indent loss on other index pages and may warrant a sweep against their own PDF renders.
+
+### p1256 · misplaced-content · **cosmetic**
+
+- **PDF:**         Implicit  639
+Shared files  230, 681
+...
+Special character words  105
+[column break]
+        In formats  30
+Special insertion editing  453
+- **Markdown:** Implicit [639](#page-639)
+Shared files [230](#page-230), [681](#page-681)
+...
+Special character words [105](#page-105)
+
+In formats [30](#page-30)
+Special insertion editing [453](#page-453)
+- **Why:** This page otherwise preserves indentation with '&nbsp;&nbsp;&nbsp;&nbsp;', but the two continuation lines at the top of each print column lose it. 'Implicit 639' continues 'SET statement' from the foot of page 1255 and 'In formats 30' is a sub-entry of 'Special character words 105'; both are promoted to top-level entries.
+- **Repair:** Prefix the two column-top continuation lines with '&nbsp;&nbsp;&nbsp;&nbsp;' to match the rest of the page.
+- **Verifier:** Real, but the kind label is imprecise: nothing is misplaced or lost as text -- both lines are present and in the correct reading order, including the blank line that legitimately marks the print-column break. The defect is LOST INDENTATION (lost index hierarchy) on exactly two lines: specs/ISO_COBOL.md line 52729 'Implicit [639](#page-639)' and line 52788 'In formats [30](#page-30)' should each carry the page's standard sub-entry prefix '&nbsp;&nbsp;&nbsp;&nbsp;'. Measured evidence at 300 dpi: left column top-level x=266 vs sub-entry x=339-341, and 'Implicit' sits at x=341; right column top-level x=1272 vs sub-entry x=1343-1346, and 'In formats' sits at x=1346. Cause is the well-known one for this transcription -- the first line of each print column, being a continuation of a sub-entry list broken across a column or page boundary, loses its indent. Fix is a two-line prefix insertion; no text content changes.
 
 ## Refuted — deliberately NOT repaired
 
@@ -2396,13 +3083,40 @@ Recommended repair: strip the two '**' pairs at lines 45186 and 45200 so the cod
 - p929 · missing-heading — REFUTED on four independent grounds; the two source quotes are accurate but the finding is a formatting artifact, not a content discrepancy.
 
 (1) NOTHING IS MISSING. The kind 'missing-heading' is a misnomer. specs/ISO_COBOL.md:37189 carries
-- p968 · misplaced-content — Not a PDF-vs-markdown content discrepancy. The full 20-21 row text of the 15.99.3 WHEN-COMPILED returned-value table is transcribed verbatim, in the right section and the right order, with its '20-21' label intact; it is merely emitted as a
-- p972 · missing-heading — Not a PDF-vs-markdown discrepancy. All four headings are present with correct numbers and titles, and the page body matches the PDF word-for-word. The PDF sets every heading on this page in identical bold type and conveys hierarchy solely t
+- p968 · misplaced-content — Not a PDF-vs-markdown content discrepancy — reject from the ledger as filed. The full 20-21 entry of the 15.99.3 WHEN-COMPILED returned-value table is transcribed verbatim, in the correct section and order, with its '20-21' label and its '+
+- p972 · missing-heading — Not a PDF-vs-markdown discrepancy; no heading is missing. All four headings (16.2.1.2, 16.2.2, 16.2.2.1, 16.2.2.2) are present with correct numbers and titles, and the page body matches the PDF word-for-word. The PDF sets every heading on t
 - p1005 · missing-heading — Not a PDF-vs-markdown discrepancy. The heading 'A.4.3 Commit and Rollback' is transcribed verbatim and completely (specs/ISO_COBOL.md line 39929), together with its full five-item optional-element list. The only difference is the markdown h
-- p1018 · misplaced-content — Not a content discrepancy. The claim's two quotations are accurate, but nothing is missing, added, or reordered: 'Old_Italic:' is present on the adjacent line, still immediately preceding its own range '10300-1031F, 1032D-1032F' in reading 
-- p1036 · missing-heading — Not a PDF-vs-markdown discrepancy. Heading 'D.2.2.2 Relative organization' is transcribed completely and verbatim from printed page 1006, with its clause number intact and a '<a id="section-d-2-2-2"></a>' anchor; all body text matches. The 
-- p1078 · missing-heading — Not a PDF/markdown discrepancy. Every heading printed on page 1078 (D.6.3.3, D.6.3.4, D.6.3.4.1 through D.6.3.4.5) is present in the markdown with verbatim text and correct clause numbers; no text is lost. The claim additionally misattribut
-- p1116 · missing-heading — Not a page-1116 PDF-vs-markdown content discrepancy. Both headings are transcribed verbatim with correct numbers, titles and body text; the PDF prints all Annex D clause headings identically (Cambria,Bold 11.67pt, x0=63.5) with no depth cue
+- p1006 · missing-heading — Not a content discrepancy. All four headings (A.4.4, A.4.5, A.4.6, A.4.7) are present on page 1006 with the correct clause number and correct title, and every list item beneath them matches the PDF verbatim; nothing is missing, so kind='mis
+- p1018 · misplaced-content — Not a content discrepancy; reject. The claim's two quotations are accurate, but nothing on page 1018 is missing, added, or reordered -- all 16 script entries match the PDF character for character, and 'Old_Italic:' is present on the adjacen
+- p1022 · misplaced-content — Not a content discrepancy. The correct characterization is a cosmetic, systematic pagination artifact of the extraction pipeline: when a PDF page's first content line is a short script label, that label is hoisted above the page break and c
+- p1024 · misplaced-content — Not a content discrepancy. The transcription splits pages one line late throughout the Annex Unicode script tables, so each page block ends with the next page's first label appended to its own last data line and the next block opens headles
+- p1025 · misplaced-content — Not a content discrepancy. The transcription systematically appends the FIRST script label of the next PDF page to the LAST text line of the current page's block, immediately before the injected page anchor / '## Page N' heading / running h
+- p1036 · missing-heading — Not a PDF-vs-markdown discrepancy. Heading 'D.2.2.2 Relative organization' is transcribed completely and verbatim from printed page 1006, clause number intact, with a '<a id="section-d-2-2-2"></a>' anchor, and all three body paragraphs matc
+- p1048 · misplaced-content — Not a content discrepancy. The claim accurately describes both sources but misattributes the effect. All of Table A.1's p1048 content is transcribed correctly and completely; the only difference is that the GFM header separator sits after t
+- p1058 · missing-heading — Not a discrepancy. The heading 'D.3.2 Table definition' is present verbatim in the markdown with a correct 'section-d-3-2' anchor; the PDF prints D.3, D.3.1 and D.3.2 in one identical bold style with hierarchy carried only by the clause num
+- p1061 · missing-heading — Not a discrepancy. The heading 'D.3.5.3 Subscripting example' is present verbatim in the markdown with a correct 'section-d-3-5-3' anchor, and no page-1061 prose is missing. The PDF prints D.3.5, D.3.5.1, D.3.5.2 and D.3.5.3 in identical bo
+- p1078 · missing-heading — Not a PDF/markdown content discrepancy; reject as filed. Every heading printed on page 1078 - D.6.3.3, D.6.3.4, and D.6.3.4.1 through D.6.3.4.5 - is present in specs/ISO_COBOL.md with verbatim text and correct clause numbers, so nothing is 
+- p1092 · missing-heading — Not a content discrepancy. Both headings are present verbatim with correct clause numbers and titles, and the entire body of D.8.2 and D.8.3 on this page transcribes faithfully. The PDF sets D.8, D.8.1, D.8.2 and D.8.3 in one identical bold
+- p1093 · misplaced-content — Not a content discrepancy. The complete difference is three missing line breaks at the p1093/p1094 boundary: items g), h), i) and j) of the D.8.3 receiving-operand list are concatenated onto markdown line 43887 instead of occupying four lin
+- p1103 · missing-heading — Not a PDF-vs-markdown discrepancy. Page 1103's two headings (D.11.2 'Character set representations', D.11.3 'Programming to use alphanumeric and national character data') and all of its body text are transcribed completely and verbatim at s
+- p1113 · missing-heading — No content discrepancy. Both headings are transcribed verbatim and correctly numbered; only the markdown '#' depth differs, and the PDF encodes no heading depth at all (every heading on pages 1112-1113, from top-level D.14 to fourth-level D
+- p1116 · missing-heading — Not a page-1116 PDF-vs-markdown content discrepancy. Both headings are transcribed verbatim with correct clause numbers, titles and body text, and both already carry explicit section anchors. The PDF prints every Annex D clause heading iden
+- p1138 · missing-heading — Not a page-1138 discrepancy. Both headings are present with exact text, exact clause numbers and correct anchors; no content is missing or altered. The PDF prints D.19.4 and D.19.4.1 in the identical face at the identical size (Cambria,Bold
+- p1139 · missing-heading — Not a PDF-vs-markdown content discrepancy. The heading 'D.19.4.2 Method invocation' is present in the markdown verbatim with a correct anchor; nothing is missing, so 'missing-heading' misdescribes it. The PDF prints D.19.4, D.19.4.1 and D.1
+- p1140 · missing-heading — Not a discrepancy. The heading 'D.19.4.3 Method prototypes' is present in the markdown at :45897 with its clause number, title, anchor and full body text transcribed verbatim from PDF page 1140 — nothing is missing. The level-2 ATX marker i
+- p1142 · missing-heading — Not a discrepancy. Both page-1142 headings are transcribed completely and correctly ('D.19.5 Other object oriented programming features', 'D.19.5.1 Inheritance'), with correct clause numbers and anchors; nothing is missing, so the 'missing-
+- p1145 · missing-heading — Not a content discrepancy. The heading D.19.5.2 'Restricting inheritance and modification with the FINAL clause' is present in full and matches the printed page exactly; only the markdown '#' depth differs, and the PDF prints D.19.5, D.19.5
+- p1146 · missing-heading — Not a discrepancy. The heading 'D.19.5.3 Conformance' is present in the markdown verbatim at specs/ISO_COBOL.md:46090 with its anchor '<a id="section-d-19-5-3">', and the entire page-1146 body matches the render word for word. The report's 
+- p1149 · missing-heading — No discrepancy. Both headings the PDF prints on page 1149 — 'D.19.5.4   Polymorphism' and 'D.19.5.4.1   General' — are present in specs/ISO_COBOL.md at lines 46274 and 46277 with their text, dotted numbering, order, anchors and following bo
+- p1150 · missing-heading — Not a PDF/markdown content discrepancy. Both headings are present and verbatim on p.1150 with correct clause numbers and anchors. The finding is really an internal inconsistency in the markdown generator's heading-depth assignment (D.19.5.4
+- p1154 · missing-heading — Not a PDF-vs-markdown content discrepancy. The heading is present and verbatim correct ('D.19.9.3 Files in factory objects', with its section anchor). What is true, and all that is true: the markdown emits it as '##' while its siblings D.19
+- p1156 · missing-heading — No discrepancy. All three headings (D.19.11.1 General, D.19.11.2 Main program, D.19.11.3 Account class) are present in the markdown with verbatim-correct text, correct order and correct body content, as is the rest of page 1156. The only di
+- p1193 · missing-heading — No discrepancy. The heading '## D.31.2 Temporal format ACCEPT statement' is present verbatim and correctly positioned; nothing is missing, so 'missing-heading' misdescribes it. The PDF prints every Annex D heading - D.29, D.30, D.31, D.31.1
+- p1194 · missing-heading — Cosmetic markup-depth inconsistency only -- NOT a content discrepancy, and not 'missing'. Both headings are present and verbatim correct ('D.31.2.6 ACCEPT FROM DAY-OF-WEEK', 'D.31.2.7 ACCEPT FROM TIME'), both bodies transcribe faithfully, a
+- p1197 · missing-heading — Not a page-1197 finding and not a missing heading. The heading text, number and anchor are all present and correct. What exists is a document-wide transcription convention artifact: the page-by-page pipeline emits a third-level clause as '#
+- p1198 · missing-heading — Not a discrepancy. The five headings D.31.5.3 through D.31.5.7 are present in the markdown with their clause numbers and titles intact and individually anchored; nothing is missing. The PDF encodes no heading rank at all in this region -- D
+- p1212 · missing-heading — Not a page-1212 content discrepancy. The E.3.3 heading is present with correct clause number, correct title, and correct position; only the markdown '#' depth differs, and that depth is assigned relative to the page by the OCR/conversion pi
+- p1251 · misplaced-content — Not a content discrepancy. The claim's factual observation is correct - the PDF prints three indent levels on this page ('Numeric-edited category' flush left, 'Category of data' one stop in, 'Numeric-edited 162' two stops in) and the markdo
 - p44 · other — Not a PDF-vs-markdown discrepancy. The eleven `---` lines on page 44 are real and the PDF page has no printed rules, but `---` is not a reserved page-break marker in ISO_COBOL.md: the file has 808 `---` against 1261 page anchors, and 294 of
 - p49 · other — Not a content discrepancy. All ten definitions 3.164-3.173 on page 49, including both 'Note 1 to entry' paragraphs, are transcribed completely and verbatim. The markdown does insert 11 decorative `---` thematic breaks that the unruled PDF p
 - p58 · misplaced-content — REFUTED. Rendered page 58 at 300 dpi and cropped both rows to inspect the printed glyphs directly.
@@ -2439,7 +3153,12 @@ Recommended repair: strip the two '**' pairs at lines 45186 and 45200 so the cod
 - p722 · incorrect-figure — Not a content discrepancy. The PDF's tall optional bracket around the whole KEY IS phrase is rendered in ASCII with the bracket on the first row only ('[ KEY IS { data-name-1 } ]') while the continuation row carries just the repeated choice
 - p735 · misplaced-content — Not a content discrepancy. The claim quotes both sources accurately, but every word of printed page 735's opening display line ("MOVE literal-1 TO record-name-1") and its following qualifier paragraph ("according to the rules specified for 
 - p892 · incorrect-figure — Not a page-892 defect. Accurate as a raw observation (the PDF underlines both `FUNCTION` and `FORMATTED-TIME`; markdown line 35704 has no <u> markup) but not ledgerable: the token content is transcribed exactly and completely, the underline
-- p961 · misplaced-content — Not a discrepancy. All of page 961's text — items 5. and 6., 'c) Otherwise,', '(FUNCTION LENGTH (argument-1) + 1).', the NOTE and its three dashed bullets — is transcribed completely and verbatim in the correct order at specs/ISO_COBOL.md:3
+- p961 · misplaced-content — Not a discrepancy. All of page 961's text — items 5. and 6., 'c) Otherwise,', '(FUNCTION LENGTH (argument-1) + 1).', the NOTE and its three dashed bullets — is transcribed completely and verbatim, in the correct order, at specs/ISO_COBOL.md
 - p973 · missing-heading — Not a PDF-vs-markdown discrepancy. The heading 'A.1 Implementor-defined language element list' is present verbatim at line 38880 and matches the PDF word for word; only markdown heading-level and bold markup differ, and the PDF encodes no l
+- p1075 · missing-heading — Not a content discrepancy; reject as a page-1075 ledger entry. The accurate underlying observation is a repository-wide markup-hygiene issue, not a transcription-fidelity one: specs/ISO_COBOL.md does not normalize markdown heading depth to 
+- p1076 · missing-heading — No discrepancy. The heading 'D.6.2 Recursive and initial programs' is present in the markdown verbatim as printed on p1076, with its anchor. The only difference is the markdown '#' count, which is not a property of the PDF at all: ISO print
 - p1089 · other — Not a content discrepancy -- reject as formatting-only. The underlying typographic fact is real and correctly reported: the PDF sets 'If bpo-length is zero, no message was received, and you had a time out.' in plain roman Cambria 10.7pt (sp
+- p1145 · other — Not a content discrepancy. The claim is factually accurate as far as it goes - PDF p1145 does underline the caption 'CheckingAccount Class', and specs/ISO_COBOL.md line 46047 transcribes it as plain text while line 46001 preserves the under
+- p1171 · misplaced-content — Not a content discrepancy. The claim's reading of the PDF is accurate - measured cap-heights confirm the 'Unlike other obsolete features...' paragraph is set at ~87% of body size, matching the NOTE line and therefore belonging to the NOTE -
+- p1199 · missing-heading — Not a PDF-vs-markdown discrepancy. All four clause headings (D.31.5.8, D.31.5.9, D.31.5.10, D.31.5.11) and all of their body text are transcribed on page 1199 completely and verbatim; nothing is missing despite the 'missing-heading' label. 
 
