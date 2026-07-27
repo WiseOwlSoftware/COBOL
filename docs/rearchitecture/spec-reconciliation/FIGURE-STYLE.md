@@ -66,16 +66,66 @@ two-alternative group gets a blank middle row.
 `NUMBER` 222.3 · `COL`/`integer-2` 231.5. The standard puts each operand on its own row with the phrase label
 centred between, which is exactly what supplies every delimiter with a middle piece.
 
-### 6. `line-height: 1` — a hard constraint, not a preference
+### 6. Parentheses — curved like a brace, but **pointless**
+
+COBOL's own `(` and `)` separators are set full height in some figures, and they are a third family, not a
+variant of the other two. The function-identifier format (folio 127) nests all three at once — a bracket, then
+parentheses, then a bracket — so they have to stay tellable apart:
+
+```
+bracket   ┌ │ └   ┐ │ ┘        square corners
+brace     ╭ ┤ ╰   ╮ ├ ╯        curved corners, and a POINT
+paren     ╭ │ ╰   ╮ │ ╯        curved corners, no point
+```
+
+The point is what carries §5.2.6.3 "exactly one of these"; a parenthesis groups without choosing, so it must
+not have one. Curved-and-pointless is what is left once the bracket has the square corners.
+
+### 7. A group one row tall is drawn with the plain separator
+
+`┌ ACCESS MODE IS SEQUENTIAL ┐` is not a group — a corner glyph strokes from its cell centre, so on a single
+row the two corners never join anything and the group reads as unclosed. A one-row group is therefore written
+`[ ACCESS MODE IS SEQUENTIAL ]`, which is what the transcription already does for `[ END-START ]` and
+`[ OPTIONAL ]`, and what the printed page draws: a single-height bracket.
+
+This is rule 5 seen from the other end. Rule 5 grows a two-row group to three because two rows cannot express
+a group; a one-row group is not made of rows at all, and takes the separator instead.
+
+### 8. `line-height: 1` — a hard constraint, not a preference
 
 Box-drawing glyphs TILE: the vertical stroke spans the full em box, so consecutive `│` join into one continuous
 rule only when rows are exactly one em apart. Any leading leaves a gap at every row boundary. **A future
 stylesheet change to `line-height` would silently break every choice indicator in the document with no other
 symptom.**
 
+## Where a figure IS, for the generator
+
+Located from the **clause structure**, never from spacing. A bold numbered heading opens and closes every
+region; only a region headed `General format(s)` holds figures, which is also what keeps the reserved-word
+tables out — they are all-uppercase like a figure and their grid rules measure identically to choice-indicator
+bars. Inside that region a `Format N (label):` line separates one format from the next.
+
+Geometry cannot do this job, and the reason is worth keeping: **row spacing WITHIN one general format varies
+more than the spacing BETWEEN two of them.** ACCEPT Format 3 steps its operand rows 4.9 pt apart and its phrase
+groups 24 pt apart, while COMPUTE's two formats sit 31 pt apart — no threshold separates those. A gap-based
+splitter fragmented single figures and merged neighbouring ones.
+
+Over the whole standard this locates **475 figures on 339 pages**, all laying out without a collision.
+
 ## Construction rules, for the generator
 
 - **Auto-size each group** to its widest row; never hand-place the closing delimiter.
+- **A delimiter must never land on a character.** Text is placed first and delimiters over it, so a clash means
+  the layout is wrong — and it corrupts the figure *silently*: `[ END-START ]` came out as `|N]-START` and
+  still looked like a figure. The generator now fails loudly on any collision. Same shape as the
+  `line-height` trap: the failure that leaves plausible-looking output is the one that gets shipped.
+- **Take every decision from measurement, including the ones that look like defaults.** Each of these was a
+  bug caused by inferring something the page already states: a bracket's *hand* comes from which way its feet
+  turn, not from which side of a midpoint it sits (a lone stem is never left of its own midpoint, so it always
+  drew as a closing bracket); a brace's *point* goes on the row where its middle piece was measured, not at
+  the arithmetic centre of the span (ASSIGN's inner brace is four rows with its point on the second); and two
+  delimiters in one column are cut apart at their top hooks, not merged by proximity (the file-control entry
+  stacks clauses, and the LOCK MODE brace was drawing up through ACCESS MODE and FILE STATUS).
 - **Build bars into the row**, so their columns are structural rather than eyeballed.
 - **Insert `<u>` tags AFTER layout**, right-to-left, so the block aligns on RENDERED width. Assert that stripping
   the tags reproduces the plain text exactly — that assertion is what proves the tags occupy no layout, and it

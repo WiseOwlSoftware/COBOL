@@ -99,16 +99,25 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    one space clear · **minimum three rows per group** · **`line-height: 1`**, without which the strokes do not
    tile. Every rule was settled by RENDERING candidates; four of six were found by the owner spotting a defect
    invisible in the markup.
-   - `render_figure.py` generates a figure correctly **from an explicit `--band`** — ACCEPT Format 3 comes out at
-     its true SEVEN rows, which every hand-built version got wrong. It asserts that stripping the `<u>` tags
-     reproduces the laid-out text, which is what makes a 254-figure sweep safe.
-   - **⚠ `--auto` band detection is EXPERIMENTAL and broken**: it splits one figure across bands and merges a
-     trailing `[ END-xxx ]` into an adjacent group. Row spacing WITHIN a format varies more than between formats,
-     so no gap threshold works; the fix is to key off the clause structure (`14.9.N.2 General format` and the
-     `Format N (…)` labels), not geometry.
-   - **NEXT:** rewrite `find_bands` against clause structure → emit a TEST SHEET of ~12 real figures of differing
-     shapes (statement, data-description clause list, report-writer) → only then sweep the 254, as
-     regenerate-and-diff so every change is reviewable.
+   - `render_figure.py` generates a figure entirely from measurement — ACCEPT Format 3 comes out at its true
+     SEVEN rows, which every hand-built version got wrong. It asserts that stripping the `<u>` tags reproduces
+     the laid-out text, which is what makes a whole-standard sweep safe.
+   - **BAND DETECTION IS FIXED and no longer needs `--band`.** `find_bands` reads the CLAUSE STRUCTURE — the
+     bold `14.9.N.2 General format` heading opens the region, the next heading closes it, `Format N (…)` labels
+     split it. Geometry cannot do this (row spacing *within* one format varies more than *between* formats).
+     Whole standard: **475 figures on 339 pages, zero layout collisions.**
+   - **A collision invariant now makes a bad layout LOUD.** A delimiter that would land on a character aborts
+     the run: the corrupt form (`|N]-START` for `[ END-START ]`) still looks like a figure, so silence was the
+     real risk. It immediately found six further defects, every one caused by INFERRING what the page states —
+     bracket hand from a midpoint rather than the feet · a brace's point at the span's centre rather than its
+     measured middle piece · delimiters merged by column rather than cut at their top hooks · a paren family
+     (`æçè`/`ö÷ø`, COBOL's own full-height `(` `)`) drawn as literal letters.
+   - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 21 figures over 12 pages spanning statement ·
+     file-control clause list · data-description · conditions) — two known defects to rule on: the nested
+     FLOAT-DECIMAL brackets of §13.18.60 (folio 503) and a stray space in `[ END-ACCEPT  ]`, from a
+     *coincidental* x-alignment no tolerance can separate (`]` at 160.8 vs `NUMBER` at 161.4, closer than
+     genuine alignments like FIRST/KEY/LAST at 0.9 apart). ⓑ then sweep, as regenerate-and-diff.
+   - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the

@@ -68,16 +68,25 @@ def _load(page):
     return verts, horzs
 
 
-def _has_foot(v, horzs) -> bool:
-    """True if a short horizontal rule touches either end of this stem — i.e. it is a bracket, not a bar."""
+def _foot_side(v, horzs):
+    """Which way this stem's feet turn: 'L' for an opening '[', 'R' for a closing ']', None for a bare bar.
+
+    A bracket's feet turn INWARD, so their direction states the bracket's hand outright. This used to return
+    only yes/no and callers recovered the hand from which side of the enclosure's midpoint the stem sat on —
+    which is wrong whenever an enclosure is measured on its own, because a single stem is never left of its
+    own midpoint and so always drew as a CLOSING bracket. Measuring the feet removes the inference.
+    """
+    votes = []
+    vmid = (v.x0 + v.x1) / 2
     for h in horzs:
         if not (FOOT_MIN <= h.width <= FOOT_MAX):
             continue                                  # too long: that is an underline under a required word
         if min(abs(h.y0 - v.y0), abs(h.y0 - v.y1), abs(h.y1 - v.y0), abs(h.y1 - v.y1)) > TOL:
             continue                                  # not at either end of the stem
-        if min(abs(h.x0 - v.x0), abs(h.x1 - v.x1), abs(h.x0 - v.x1), abs(h.x1 - v.x0)) <= TOL:
-            return True                               # ... and anchored at the stem's own x
-    return False
+        if min(abs(h.x0 - v.x0), abs(h.x1 - v.x1), abs(h.x0 - v.x1), abs(h.x1 - v.x0)) > TOL:
+            continue                                  # ... and anchored at the stem's own x
+        votes.append("L" if (h.x0 + h.x1) / 2 > vmid else "R")
+    return max(set(votes), key=votes.count) if votes else None
 
 
 def classify_page(page):
@@ -85,9 +94,10 @@ def classify_page(page):
     verts, horzs = _load(page)
     out = []
     for v in sorted(verts, key=lambda r: (round(r.y0, 1), r.x0)):
+        side = _foot_side(v, horzs)
         out.append({
             "x": round(v.x0, 2), "y0": round(v.y0, 2), "y1": round(v.y1, 2), "h": round(v.height, 2),
-            "kind": "bracket" if _has_foot(v, horzs) else "bar",
+            "kind": "bracket" if side else "bar", "side": side,
         })
     return out
 
