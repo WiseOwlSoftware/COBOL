@@ -31302,7 +31302,7 @@
    "sublist": 1,
    "subject": "PI function",
    "page": 933,
-   "text": "If native arithmetic is in effect, the returned value is an implementor-defined approximation of the arithmetic expression (3 + 0.14159265358979323846264338327 95)"
+   "text": "If native arithmetic is in effect, the returned value is an implementor-defined approximation of the arithmetic expression (3 + 0.1415926535897932384626433832795)"
   },
   {
    "id": "RV-15.73.3-2",
@@ -31322,7 +31322,7 @@
    "sublist": 1,
    "subject": "PI function",
    "page": 933,
-   "text": "If standard-decimal arithmetic is in effect, the returned value is exactly 3.14159265358979323846264338327 9503."
+   "text": "If standard-decimal arithmetic is in effect, the returned value is exactly 3.141592653589793238462643383279503."
   },
   {
    "id": "AR-15.74.3-1",

@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/session_start.py",
+            "command": "python E:/CobolSharp/scripts/hooks/session_start.py",
             "timeout": 120,
             "statusMessage": "Probing live state..."
           }
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/devlog_staged.py",
+            "command": "python E:/CobolSharp/scripts/hooks/devlog_staged.py",
             "if": "Bash(git commit*)",
             "timeout": 30
           }
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/golden_registered.py",
+            "command": "python E:/CobolSharp/scripts/hooks/golden_registered.py",
             "timeout": 30
           }
         ]
@@ -63,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python scripts/hooks/unpushed.py",
+            "command": "python E:/CobolSharp/scripts/hooks/unpushed.py",
             "timeout": 30
           }
         ]

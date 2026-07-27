@@ -9,11 +9,6 @@
     "claude/",
     "scratchpad/",
     "specs/scripts/",
-    "kb/Conformance/",
-    "kb/Reference/",
-    "kb/Grammar/",
-    "docs/rearchitecture/spec-reconciliation/",
-    "specs/",
-    "DEVLOG.md"
+    "docs/rearchitecture/spec-reconciliation/agents/"
   ]
 }
