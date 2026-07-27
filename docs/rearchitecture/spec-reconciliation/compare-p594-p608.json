@@ -1,0 +1,30 @@
+{
+  "batch": [594, 595, 596, 598, 599, 600, 601, 602, 603, 604, 605, 608],
+  "pages_checked": [594, 595, 596, 598, 599, 600, 601, 602, 603, 604, 605, 608],
+  "notes": [
+    "Batch was routed to this agent as 'figure-bearing', but NONE of the 12 rendered PDF pages contains a general format / syntax skeleton. They are continuous prose: 14.7.6 CORRESPONDING (end), 14.7.7 Arithmetic statements, 14.7.8 THROUGH phrase, all of 14.8 Conformance for parameters/returning items/external items, and ACCEPT general rules 3)-8) on p608. page_workunit.py agreed: it reported '0 with figure content' for every page. No choice-indicator (5.2.6.4 double-bar), unclosed-brace, ellipsis-placement, or underlining check was applicable on any page in this batch.",
+    "Page-image to markdown-slice alignment was verified page by page from content; there is no off-by-one. PDF page N renders printed page N-30 (e.g. PDF 594 = printed 564), and the markdown '## Page N' slice matches PDF page N.",
+    "Normative prose on all 12 pages reconciles verbatim, including every cross-reference checked: 9.1.13, 8.5.1.12, 8.5.3, 12.4.5, 13.18.22 GR 6, 13.18.57, 14.6.8, 14.7.5; every exception-name (EC-SIZE, EC-DATA-INCOMPATIBLE, EC-RANGE-INVALID, EC-OO-UNIVERSAL, EC-OO-CONFORMANCE, EC-EXTERNAL); the '31 digits' composite-of-operands limits on p595; the clause list 'ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE' on p600 and p604; and both DATE character-position tables on p608.",
+    "Two cross-page joins were checked and are correct, not content loss: p602 ends mid-sentence in the PDF ('...shall be an alphanumeric') and the markdown completes the sentence in the p602 slice, with p603's slice correctly starting at the following NOTE - no text is duplicated or dropped."
+  ],
+  "findings": [
+    {
+      "page": 599,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "14.8.2.2   Group items  /  14.8.2.3   Elementary items  /  14.8.2.3.1   General  /  14.8.2.3.2   Elementary items passed by reference   (all printed as subclause headings whose depth is 4, 4, 5, 5 under clause 14)",
+      "markdown_says": "## 14.8.2.2 Group items / ## 14.8.2.3 Elementary items / ### 14.8.2.3.1 General / ### 14.8.2.3.2 Elementary items passed by reference   -- while the immediately preceding sibling on page 598 is '#### 14.8.2.1 General'",
+      "why_it_matters": "Markdown heading depth is flattened erratically inside the 14.8 subtree, so 14.8.2.2 renders as a peer of 14.8 rather than a child of 14.8.2, and 14.8.2.3.3 (page 601, '## 14.8.2.3.3') renders as a peer of its own grandparent. Anything that builds a TOC or an outline from heading level - not from the clause number - nests these subclauses wrongly. No normative text is lost and the true depth is still recoverable from the printed clause number, which is why this is cosmetic rather than structural.",
+      "suggested_repair": "Normalize heading level to clause depth across the 14.8 subtree. Instances in this batch (specs/ISO_COBOL.md line numbers at time of check): 24963 '## 14.8.2.2', 24980 '## 14.8.2.3', 24983 '### 14.8.2.3.1', 24988 '### 14.8.2.3.2', 25055 '## 14.8.2.3.3', 25094 '## 14.8.3', 25180 '## 14.8.4', 25201 '## 14.8.4.3', 25210 '## 14.8.4.4', plus 23514-area precedents '## 14.7.7' (p594) and '## 14.7.8' (p596). NOTE: this is a global property of the transcription, not local to this batch - clause 14 itself is '## 14 Procedure division' while 14.8 is also '## 14.8', so a fix should be a document-wide normalization pass, not a per-page edit."
+    },
+    {
+      "page": 595,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or",
+      "markdown_says": "— a data item described with usage binary**-**char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or",
+      "why_it_matters": "Stray emphasis delimiters around the hyphen of 'binary-char' - an OCR/formatting artifact, not a transcription choice; the other six hyphenated usage names on the same line are plain. It renders as a bold hyphen and, more importantly, breaks literal grep for the reserved word 'binary-char' in this file. No meaning is altered. Both occurrences are on page 595 (specs/ISO_COBOL.md lines 24808 and 24816) and are the only two in the whole file.",
+      "suggested_repair": "Replace 'binary**-**char' with 'binary-char' at specs/ISO_COBOL.md lines 24808 and 24816."
+    }
+  ]
+}

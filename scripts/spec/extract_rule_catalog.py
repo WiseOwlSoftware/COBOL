@@ -300,10 +300,17 @@ def main() -> int:
     # content. That is categorically worse than OCR loss: the text is not the standard at all, so any rule or
     # citation derived from it is unfounded, and it destroyed the sentence naming which annexes are NORMATIVE.
     # A whole-file sweep found this on exactly one page — this check exists so it stays that way.
+    #
+    # LOUD FAILURE IS THE RULE. A page that cannot be transcribed verbatim is never summarised — it carries the
+    # sanctioned marker `<!-- TRANSCRIPTION-FAILED: page N — reason -->` and nothing else. That marker is
+    # greppable, counted, and impossible to mistake for the standard, whereas a summary READS like content, which
+    # is exactly why page 28's hole survived for months. A known missing page is recoverable; a page quietly
+    # replaced by prose ABOUT the page is not. (COBOLNET_DESIGN §1.4 applied to the spec itself.)
     META = [
         (re.compile(r"\bI'?m not able to\b|\bI can quote\b|\bI'?m happy to help\b", re.I), "assistant refusal/offer"),
         (re.compile(r"here is a summary|summary and key excerpts|here are the key", re.I), "summary preamble"),
         (re.compile(r"\bcopyrighted standards document\b|\breproduce the full page\b", re.I), "copyright refusal"),
+        (re.compile(r"<!--\s*TRANSCRIPTION-FAILED", re.I), "declared transcription gap (tracked, not hidden)"),
     ]
     meta_hits = []
     pg = 0
@@ -319,8 +326,11 @@ def main() -> int:
         # LOUD in a normal run, FATAL under --check. Deliberate split: the catalog must stay regenerable while
         # the reconciliation ledger is still being collected (repairs come after the sweep), but the GATE must
         # refuse to call the transcription sound while any page of it is not the standard.
-        print(f"\n⚠ {len(meta_hits)} line(s) of TRANSCRIPTION-TOOL META-TEXT inside the standard, "
-              f"page(s) {sorted({h[0] for h in meta_hits})}.")
+        declared = [h for h in meta_hits if h[2].startswith("declared")]
+        hidden = [h for h in meta_hits if not h[2].startswith("declared")]
+        print(f"\n⚠ {len(meta_hits)} line(s) of NON-SPEC TEXT inside the standard, "
+              f"page(s) {sorted({h[0] for h in meta_hits})} "
+              f"({len(hidden)} hidden as content, {len(declared)} declared gap(s)).")
         print("  These are NOT the spec — a rule or citation derived from such a page is unfounded:")
         for pg_, ln, label, txt in meta_hits[:15]:
             print(f"      p{pg_} line {ln} [{label}] {txt}")

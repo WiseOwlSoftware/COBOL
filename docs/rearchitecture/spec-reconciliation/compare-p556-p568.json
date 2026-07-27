@@ -1,0 +1,69 @@
+{
+  "batch": [556, 557, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568],
+  "pages_checked": [556, 557, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568],
+  "findings": [
+    {
+      "page": 563,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "Table 12 — Procedural statements, DELETE row. The 'Conditional phrase' cell prints TWO stacked lines: '[NOT] INVALID KEY' on the first line and '[NOT] ON EXCEPTION' on the second line. Explicit scope terminator: 'END-DELETE'.",
+      "markdown_says": "| DELETE | [NOT] INVALID KEY [NOT] ON EXCEPTION | END-DELETE |",
+      "why_it_matters": "The two stacked entries are independent alternative conditional phrases of the DELETE statement; run together on one line they read as a single compound phrase '[NOT] INVALID KEY [NOT] ON EXCEPTION'. The very same table uses '<br>' to preserve the stacking for every other multi-valued cell (IF -> 'THEN<br>ELSE', READ -> '[NOT] AT END<br>[NOT] INVALID KEY', SEARCH -> 'WHEN<br>AT END'), so this row is inconsistent with its own table. Table 12 is the normative source for which statements have conditional phrases and explicit scope terminators.",
+      "suggested_repair": "specs/ISO_COBOL.md line 23558: change to '| DELETE | [NOT] INVALID KEY<br>[NOT] ON EXCEPTION | END-DELETE |'"
+    },
+    {
+      "page": 565,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "Table 12 — Procedural statements (Continued), WRITE row. The 'Conditional phrase' cell prints TWO stacked lines: '[NOT] INVALID KEY' on the first line and '[NOT] END-OF-PAGE' on the second line. Explicit scope terminator: 'END-WRITE'.",
+      "markdown_says": "| WRITE | [NOT] INVALID KEY [NOT] END-OF-PAGE | END-WRITE |",
+      "why_it_matters": "Same defect class as the DELETE row on page 563. '[NOT] INVALID KEY' and '[NOT] END-OF-PAGE' are mutually exclusive alternative conditional phrases of WRITE (INVALID KEY applies to relative/indexed files, END-OF-PAGE to LINAGE files); joined on one line they read as a single compound phrase. Sibling rows in the same table (IF, READ, SEARCH) correctly use '<br>'.",
+      "suggested_repair": "specs/ISO_COBOL.md line 23622: change to '| WRITE | [NOT] INVALID KEY<br>[NOT] END-OF-PAGE | END-WRITE |'"
+    },
+    {
+      "page": 566,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 566 (printed 536) OPENS with the continuation of 14.5.3.3 item 1): 'b)   the next-encountered statement-name, or' then 'c)   a separator period.' — each printed as its own indented sub-item, before item '2) for a single imperative statement contained within another statement, by'.",
+      "markdown_says": "Those two sub-items appear BEFORE the '<a id=\"page-566\"></a>' anchor, appended to sub-item a) as one run-on line at the end of the page-565 slice: \"   a) any element that follows the exhaustion of the statement's syntax, or b) the next-encountered statement-name, or c) a separator period.\"  The page-566 slice then starts at '2) for a single imperative statement contained within another statement, by'.",
+      "why_it_matters": "Two effects. (1) Page attribution: text printed on page 536/566 is filed under the page-565 anchor, so a citation of the form 'p.536 item 1) c)' resolves to the wrong page anchor. (2) List structure: the three-way choice a)/b)/c) of 14.5.3.3 rule 1) is flattened into a single paragraph, whereas the parallel rules 2) and 4) on the same page keep a)/b)/c) as separate items. 14.5.3.3 is the normative rule for implicit scope termination, which the parser's statement-scope resolution is built from.",
+      "suggested_repair": "Move 'b) the next-encountered statement-name, or' and 'c) a separator period.' below the page-566 anchor and restore them as separate sub-items, matching the a)/b)/c) formatting used for rules 2) and 4)."
+    },
+    {
+      "page": 559,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.2.3   General rules' is printed as a fourth-level clause heading, a sibling of '14.2.1   General formats' (page 557) and '14.2.2   Syntax rules' (page 558), all children of '14.2   Procedure division structure'.",
+      "markdown_says": "## 14.2.3 General rules   (while its sibling on page 557 is '#### 14.2.1 General formats' and its parent is '### 14.2 Procedure division structure')",
+      "why_it_matters": "The heading is emitted two levels ABOVE its parent, so in the rendered outline 14.2.3 becomes a peer of clause 14 rather than a child of 14.2. Any TOC generator or anchor-driven lookup over the transcription mis-nests every general rule in 14.2.3 (the rules governing USING/RETURNING parameter passing) out of the procedure-division-structure subtree.",
+      "suggested_repair": "specs/ISO_COBOL.md line 23387: '## 14.2.3 General rules' -> '#### 14.2.3 General rules' (and line 23338 '## 14.2.2 Syntax rules' -> '#### 14.2.2 Syntax rules', on page 558, for the same reason)."
+    },
+    {
+      "page": 565,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.5.2   Conditional phrase' and '14.5.3   Scope of statements' are printed as third-level clause headings, siblings of '14.5.1   General' (page 562); '14.5.3.1   General', '14.5.3.2   Explicit scope termination' and '14.5.3.3   Implicit scope termination' are their fourth-level children.",
+      "markdown_says": "## 14.5.2 Conditional phrase / ## 14.5.3 Scope of statements / ### 14.5.3.1 General / ### 14.5.3.2 Explicit scope termination / ### 14.5.3.3 Implicit scope termination   (while the sibling '### 14.5.1 General' on page 562 sits one level deeper)",
+      "why_it_matters": "14.5.2 and 14.5.3 are emitted at the same level as their own parent '## 14.5 Procedural statements and sentences', so the outline shows them as peers of 14.5 instead of children, and 14.5.1 ends up nested one level deeper than its own siblings. The whole scope-of-statements subtree — the normative basis for explicit and implicit scope termination — is mis-parented.",
+      "suggested_repair": "specs/ISO_COBOL.md lines 23625 and 23632: '##' -> '###'; lines 23635, 23640, 23651: '###' -> '####'."
+    },
+    {
+      "page": 567,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.6.2   State of a function, method, object, or program' is printed as a third-level clause heading, a sibling of '14.6.1   Run unit organization' (page 566); '14.6.2.1   General', '14.6.2.2   Active state' and '14.6.2.3   Initial and last-used states of data' are its fourth-level children and '14.6.2.3.1   General' is a fifth-level child.",
+      "markdown_says": "## 14.6.2 State of a function, method, object, or program / ### 14.6.2.1 General / ### 14.6.2.2 Active state / ### 14.6.2.3 Initial and last-used states of data / #### 14.6.2.3.1 General   (while the sibling '### 14.6.1 Run unit organization' on page 566 sits one level deeper)",
+      "why_it_matters": "14.6.2 is emitted at the same level as its own parent '## 14.6 Execution' and one level above its sibling 14.6.1, so the rendered outline makes 14.6.2 a peer of 14.6 and orphans 14.6.1. This is the subtree that defines active/initial/last-used state — heavily cited when reasoning about INITIAL programs and static data.",
+      "suggested_repair": "specs/ISO_COBOL.md line 23712: '##' -> '###'; lines 23715, 23720, 23739: '###' -> '####'; line 23742: '####' -> '#####'."
+    },
+    {
+      "page": 568,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.6.2.3.2   Initial state' and '14.6.2.3.3   Last-used state' are printed as fifth-level clause headings, siblings of '14.6.2.3.1   General' (page 567) and children of '14.6.2.3   Initial and last-used states of data'.",
+      "markdown_says": "## 14.6.2.3.2 Initial state  and  ## 14.6.2.3.3 Last-used state   (while their immediate sibling on page 567 is '#### 14.6.2.3.1 General')",
+      "why_it_matters": "Three sibling headings are transcribed at two different levels — 14.6.2.3.1 at '####' but 14.6.2.3.2 and 14.6.2.3.3 at '##'. In the rendered outline 'Initial state' and 'Last-used state' detach from their parent 14.6.2.3 entirely and become peers of clause 14.6. These are the normative definitions of when static/automatic/initial data is reset, so an outline-driven lookup landing in the wrong subtree is a real navigation hazard.",
+      "suggested_repair": "specs/ISO_COBOL.md lines 23756 and 23787: '##' -> '#####' (and line 23799 '## 14.6.2.4 Initial state of object data' -> '####' for the same reason)."
+    }
+  ]
+}

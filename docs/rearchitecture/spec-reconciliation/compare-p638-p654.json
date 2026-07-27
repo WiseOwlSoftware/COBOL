@@ -1,0 +1,60 @@
+{
+  "batch": [638, 639, 641, 642, 643, 645, 646, 647, 650, 651, 652, 654],
+  "pages_checked": [638, 639, 641, 642, 643, 645, 646, 647, 650, 651, 652, 654],
+  "findings": [
+    {
+      "page": 645,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "DIVIDE { identifier-1 / literal-1 } INTO { identifier-2 / literal-2 }   -- both operand groups are printed with true BRACES (curly '{' ... '}'), stacked over two lines. Same in Format 5: DIVIDE { identifier-2 / literal-2 } BY { identifier-1 / literal-1 }.",
+      "markdown_says": "```\n           ⌐ identifier-1 ¬        ⌐ identifier-2 ¬\nDIVIDE     |              | INTO   |               |\n           └ literal-1   ┘        └ literal-2    ┘\n```  (identical corner-glyph delimiter used again in Format 5)",
+      "why_it_matters": "Per 5.2.6.2/5.2.6.3 a BRACE means exactly one of the stacked alternatives SHALL be chosen, while a BRACKET means at most one (the whole group may be omitted). The markdown renders the PDF's braces with the corner glyphs ⌐ ¬ └ ┘, which in this very document's own convention are the BRACKET shape — Formats 1, 2 and 3 of the same DIVIDE statement (page 644) render braces as ⎧⎨⎩ / ⎫⎬⎭ and brackets as ⎡⎣ / ⎤⎦. Read as brackets, Formats 4 and 5 would falsely permit 'DIVIDE INTO ...' with the dividend/divisor operand omitted. Formats 4 and 5 are the only DIVIDE formats in the file left in the un-normalized OCR glyph set.",
+      "suggested_repair": "Re-render Format 4 and Format 5 with the file's brace convention, e.g.\n```\n           ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫\nDIVIDE     ⎨              ⎬ INTO ⎨              ⎬\n           ⎩ literal-1    ⎭      ⎩ literal-2    ⎭\n```\nand the mirror form for Format 5 (identifier-2/literal-2 BY identifier-1/literal-1)."
+    },
+    {
+      "page": 645,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "[|  ON SIZE ERROR imperative-statement-1  |]  /  [|  NOT ON SIZE ERROR imperative-statement-2  |]  — a bracket with a vertical CHOICE-INDICATOR bar just inside each side; DIVIDE, INTO, BY, GIVING, REMAINDER, ON, SIZE, ERROR, NOT and END-DIVIDE are all underlined (required words).",
+      "markdown_says": "```\n⌐⌐ ON SIZE ERROR imperative-statement-1       ¬¬\n⌊⌊ NOT ON SIZE ERROR imperative-statement-2   ┘┘\n[ END-DIVIDE ]\n```\n(no '> **Figure notes ...**' paragraph follows either Format 4 or Format 5)",
+      "why_it_matters": "The choice indicators survive only as doubled corner glyphs, which read as two nested brackets rather than as 5.2.6.4 choice indicators, and — unlike DIVIDE Formats 1, 2 and 3 on page 644, each of which carries a 'Figure notes' paragraph stating '⚠ The ON SIZE ERROR group is enclosed in CHOICE INDICATORS' and listing the underlined required words — Formats 4 and 5 carry no Figure notes at all. So for Formats 4 and 5 the file records neither the 5.2.6.4 semantics (ON SIZE ERROR, NOT ON SIZE ERROR, BOTH, or neither, in any order) nor which words are required.",
+      "suggested_repair": "Normalize the SIZE ERROR group to the file's '⎡|  ... |⎤' / '⎣|  ... |⎦' form and append a Figure notes paragraph to Format 4 and Format 5 matching the Format 1–3 notes, naming DIVIDE, INTO/BY, GIVING, REMAINDER, ON, SIZE, ERROR, NOT, END-DIVIDE as the underlined required words."
+    },
+    {
+      "page": 641,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.11.4   General rules  (bold run-in heading, one level below '14.9.11 DISPLAY statement', at the same level as 14.9.11.1 General, 14.9.11.2 General formats and 14.9.11.3 Syntax rules)",
+      "markdown_says": "## 14.9.11.4 General rules   (H2 — while its siblings on the preceding pages are '### 14.9.11.1 General', '### 14.9.11.2 General formats', '### 14.9.11.3 Syntax rules', and its parent is '## 14.9.11 DISPLAY statement')",
+      "why_it_matters": "At H2 the General rules subsection becomes a SIBLING of the statement it belongs to instead of a child, so the document outline/TOC detaches every DISPLAY general rule from the DISPLAY statement. The file's own convention elsewhere (e.g. 14.9.9.1-.4, 14.9.15.1-.4) is '## 14.9.N <statement>' with '### 14.9.N.M <subsection>'.",
+      "suggested_repair": "Change '## 14.9.11.4 General rules' to '### 14.9.11.4 General rules'."
+    },
+    {
+      "page": 646,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.12.4   General rules  (bold run-in heading, one level below '14.9.12 DIVIDE statement', same level as 14.9.12.3 Syntax rules)",
+      "markdown_says": "## 14.9.12.4 General rules   (H2 — while the immediately preceding sibling on page 645 is '### 14.9.12.3 Syntax rules' and the parent is '## 14.9.12 DIVIDE statement')",
+      "why_it_matters": "Same defect as 14.9.11.4: the General rules block is promoted to sibling-of-the-statement level, breaking the outline and detaching the DIVIDE general rules from the DIVIDE statement. It is also internally inconsistent with 14.9.12.3 two pages earlier, which is correctly H3.",
+      "suggested_repair": "Change '## 14.9.12.4 General rules' to '### 14.9.12.4 General rules'."
+    },
+    {
+      "page": 651,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.13.4   General rules  (bold run-in heading, one level below '14.9.13 EVALUATE statement', same level as 14.9.13.1 General and 14.9.13.2 General format)",
+      "markdown_says": "## 14.9.13.4 General rules   (H2 — while '### 14.9.13.1 General' and '### 14.9.13.2 General format' are H3 and the parent is '## 14.9.13 EVALUATE statement')",
+      "why_it_matters": "Same defect: the EVALUATE general rules become a sibling of the EVALUATE statement rather than a child, breaking the outline. (14.9.13.3 Syntax rules, on page 650, is H2 for the same reason.)",
+      "suggested_repair": "Change '## 14.9.13.4 General rules' to '### 14.9.13.4 General rules' (and likewise '## 14.9.13.3 Syntax rules' → '### ...')."
+    },
+    {
+      "page": 654,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.14.3   Syntax rules  (bold run-in heading, one level below '14.9.14 EXIT statement', same level as 14.9.14.1 General and 14.9.14.2 General formats)",
+      "markdown_says": "## 14.9.14.3 Syntax rules   (H2 — while '### 14.9.14.1 General' and '### 14.9.14.2 General formats' are H3 and the parent is '## 14.9.14 EXIT statement')",
+      "why_it_matters": "Same defect: the EXIT syntax rules become a sibling of the EXIT statement rather than a child. Compare 14.9.15.1-.4 (FREE statement), which is correctly '## 14.9.15' + '### 14.9.15.N'.",
+      "suggested_repair": "Change '## 14.9.14.3 Syntax rules' to '### 14.9.14.3 Syntax rules'."
+    }
+  ]
+}

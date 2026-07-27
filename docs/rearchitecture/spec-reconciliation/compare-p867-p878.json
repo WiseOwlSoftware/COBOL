@@ -1,0 +1,33 @@
+{
+  "batch": [867, 868, 869, 870, 871, 872, 873, 874, 875, 876, 877, 878],
+  "pages_checked": [867, 868, 869, 870, 871, 872, 873, 874, 875, 876, 877, 878],
+  "findings": [
+    {
+      "page": 873,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "(2 + 0.7182818284590452353602874713526).   ...   (2.718281828459045235360287471352662).",
+      "markdown_says": "(2 + 0.71828182845904523536028747135\\u200b26).   ...   (2.7182818284590452353602874713\\u200b52662).",
+      "why_it_matters": "Both normative constants in 15.27.3 (E function returned value rules 1 and 3) carry an embedded ZERO WIDTH SPACE (U+200B) inside the digit string, at the point where the PDF line was re-flowed. The character is invisible when rendered, so a human reading the markdown sees the correct value, but any mechanical use of the transcription -- grep for the constant, copy/paste into a test golden, or a script that parses the literal -- gets a string that is not a number and will not match. These are the only two U+200B characters in the entire 8000+ page transcription, so this is a localized artifact and not a transcription convention. Digit counts were verified against the rendered page: rule 1 = 31 digits after the point, rule 3 = 33 digits after the point; both match the PDF exactly once the U+200B is removed.",
+      "suggested_repair": "Delete the two U+200B characters (byte offsets ~2030029 and ~2030380 in specs/ISO_COBOL.md) so the lines read exactly '(2 + 0.7182818284590452353602874713526).' and '(2.718281828459045235360287471352662).'"
+    }
+  ],
+  "notes": {
+    "figures_examined": [
+      "867 15.23.2 FUNCTION DATE-TO-YYYYMMDD ( argument-1 [ argument-2 [ argument-3 ] ] ) -- nested optional brackets both open and close; no choice bars in the printed figure; faithful",
+      "869 15.24.2 FUNCTION DAY-OF-INTEGER ( argument-1 ) -- faithful",
+      "870 15.25.2 FUNCTION DAY-TO-YYYYDDD ( argument-1 [ argument-2 [ argument-3 ] ] ) -- faithful",
+      "872 15.26.2 FUNCTION DISPLAY-OF ( argument-1 [ argument-2 ] ) -- faithful",
+      "873 15.27.2 FUNCTION E -- faithful (E is underlined in the PDF; no arguments)",
+      "874 15.28.2 FUNCTION EXCEPTION-FILE [(argument-1)] -- bracket opens and closes; markdown preserves underlining via <u> tags; faithful",
+      "876 15.29.2 FUNCTION EXCEPTION-FILE-N [(argument-1)] -- faithful",
+      "878 15.30.2 FUNCTION EXCEPTION-LOCATION -- faithful"
+    ],
+    "choice_indicator_check": "No figure on pages 867-878 prints a vertical-bar pair inside a bracket or brace in the PDF, so there was no choice indicator available to drop. Every bracket that opens also closes. No ellipses appear in any figure on these pages. No braces appear on these pages.",
+    "not_reported": [
+      "Style inconsistency in how the general formats are wrapped (fenced code block on 867/869/870/878, single backticks on 872/876, inline <u> markup on 874) -- no information is lost: the only underlined words in each figure are FUNCTION and the function-name, and there are no non-underlined uppercase (optional/noise) words anywhere in these figures.",
+      "Page 873 displays the three arithmetic-expression constants flush-left rather than indented under their numbered rules; order and attachment are unambiguous, so this is presentation only.",
+      "Markdown escapes the multiplication operator as '\\*' on page 867 and leaves it bare as '*' on page 870 -- both render as the same operator."
+    ]
+  }
+}

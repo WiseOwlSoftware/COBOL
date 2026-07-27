@@ -1,0 +1,26 @@
+{
+  "page": 778,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {
+    "pdf_says": "14.9.40.4   General rules   (printed bold, the same heading style/level as 14.9.41.4 General rules on page 785)",
+    "markdown_says": "<a id=\"section-14-9-40-4\"></a>\n## 14.9.40.4 General rules",
+    "why_it_matters": "Same defect as 14.9.40.3: the clause is transcribed at markdown level 2, level with its parent '## 14.9.40 SORT statement', while the identically-ranked '### 14.9.41.4 General rules' (page 785) is level 3. The SORT clause's general rules therefore fall outside the SORT section in any outline built from heading depth."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "CONFIRMED, though the 'missing-heading' kind label is wrong: nothing is missing. Independent checks: (1) PDF p.778 (printed folio 748) renders '14.9.40.4   General rules' in bold at the left text margin, with the wide number/title gap; PDF p.785 (printed folio 755) renders '14.9.41.4   General rules' in identical weight, size, indent and gap. I compared the two rendered pages directly - they are typographically indistinguishable, and the 4-component clause numbers make their rank definitional. So the two headings are the same rank in print. (2) The heading text is transcribed verbatim and in the right place - this is purely a heading-DEPTH defect, not lost content. (3) specs/ISO_COBOL.md line 31573 is '## 14.9.40.4 General rules' (level 2) while line 31803 is '### 14.9.41.4 General rules' (level 3); the claim quotes both sources accurately. (4) The inconsistency is sharper than the claim states - it is internal to section 14.9.40 itself: line 31441 '### 14.9.40.1 General' and line 31446 '### 14.9.40.2 General formats' are level 3, while 31497 '## 14.9.40.3 Syntax rules' and 31573 '## 14.9.40.4 General rules' drop to level 2, i.e. the same clause's four subsections are split across two depths. (5) The consequence is real and not cosmetic: at level 2 the heading is a sibling of '## 14.9.40 SORT statement' (line 31438), so any outline, TOC, or section-slicer that derives structure from heading depth detaches the SORT statement's general rules from the SORT clause - which matters directly for spec-citation tooling that extracts a clause by heading depth. Rejection criteria checked and none apply: the text is present but mis-leveled (not reflow, not page-break furniture, not wrapping or hyphenation), and heading depth is the transcription's structural encoding of the printed numbering, not a formatting nicety.",
+    "corrected_description": "Real, but mis-kinded and under-scoped. Correct kind is 'heading-level' (or 'heading-depth'), not 'missing-heading' - the heading text '14.9.40.4 General rules' is transcribed verbatim at the correct position. The actual defect: it is emitted at markdown level 2 ('##') where the transcription's own convention for a 4-component clause number under 14.9 is level 3 ('###'). Best evidence is internal to the same section rather than the cross-section comparison the claim makes: 14.9.40.1 and 14.9.40.2 are '###' while 14.9.40.3 and 14.9.40.4 are '##', so one clause's subsections straddle two depths. Scope correction - this is NOT a page-778 one-off but one instance of a systemic pattern: within 14.9.NN.N alone, 162 such headings are level 3, 40 are level-2 outliers (and 2 are level 4). The outliers are overwhelmingly the '.3 Syntax rules' and '.4 General rules' subsections, including 14.9.1.3/.4, 14.9.13.3/.4, 14.9.39.3/.4, 14.9.40.3/.4, 14.9.51.3/.4. It should therefore be tracked and fixed as a single normalization sweep over the transcription's heading levels (assert markdown level == a fixed offset from clause-number depth, region by region), not patched line by line. Severity 'structural' is appropriate.",
+    "evidence": {
+      "pdf_p778_heading": "14.9.40.4   General rules (bold, left text margin)",
+      "pdf_p785_heading": "14.9.41.4   General rules (bold, left text margin - visually identical rank)",
+      "md_line_31438": "## 14.9.40 SORT statement",
+      "md_line_31441": "### 14.9.40.1 General",
+      "md_line_31446": "### 14.9.40.2 General formats",
+      "md_line_31497": "## 14.9.40.3 Syntax rules",
+      "md_line_31573": "## 14.9.40.4 General rules",
+      "md_line_31803": "### 14.9.41.4 General rules",
+      "pattern_scope": "14.9.NN.N headings by markdown level: level 3 = 162, level 2 = 40, level 4 = 2"
+    }
+  }
+}

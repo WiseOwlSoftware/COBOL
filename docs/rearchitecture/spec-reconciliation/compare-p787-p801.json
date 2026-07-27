@@ -1,0 +1,69 @@
+{
+  "batch": [787, 790, 791, 793, 794, 795, 796, 797, 798, 799, 800, 801],
+  "pages_checked": [787, 790, 791, 793, 794, 795, 796, 797, 798, 799, 800, 801],
+  "findings": [
+    {
+      "page": 799,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "In the 14.9.48.2 UNSTRING general format the ON OVERFLOW group is drawn as a tall BRACKET with a plain full-height VERTICAL BAR immediately inside each side (verified on a 300 dpi crop of the region: the outer glyph has square bracket serifs top and bottom, the inner glyph is a bare vertical rule with no serifs): \"[| ON OVERFLOW imperative-statement-1 |]\" over \"[| NOT ON OVERFLOW imperative-statement-2 |]\" as one two-row enclosure.",
+      "markdown_says": "```\n⌐ ⌐                                        ¬ ¬\n| |  ON OVERFLOW imperative-statement-1     | |\n| | NOT ON OVERFLOW imperative-statement-2  | |\nL L                                        ⌐ ⌐\n```  (specs/ISO_COBOL.md lines 32385-32390)",
+      "why_it_matters": "The inner enclosure is drawn with corner glyphs (⌐ top, L bottom) on both the outer AND the inner element, so the figure reads as two NESTED BRACKETS rather than a bracket carrying choice indicators. Per 5.2.6.4 a bracket pair enclosing stacked alternatives means AT MOST ONE of them, whereas a bracket with choice-indicator bars means zero or more, each at most once, in any order. As transcribed the figure says a UNSTRING statement may carry ON OVERFLOW or NOT ON OVERFLOW but never both - falsely restrictive, and the exact defect class already confirmed on GOBACK, CALL Format 2, STRING, START, SEND and RECEIVE. The sibling STRING statement (14.9.43.2, line 31964) renders the identical construct correctly as ⌈ | ... | ⌉ plus an explanatory figure note, so this is transcription drift, not a convention.",
+      "suggested_repair": "Re-render the ON OVERFLOW group in the house style used at line 31964 (⌈ | ON OVERFLOW imperative-statement-1 | ⌉ / ⌊ | NOT ON OVERFLOW imperative-statement-2 | ⌋) and add the matching '> **Figure notes (5.2.6.4 choice indicators).**' paragraph stating that both phrases may be specified, each at most once, in any order."
+    },
+    {
+      "page": 799,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "In 14.9.48.2 the following words are printed with underlines (required words): UNSTRING, DELIMITED, ALL (both occurrences), OR, INTO, DELIMITER, COUNT, POINTER, TALLYING, OVERFLOW (both occurrences), NOT, END-UNSTRING. BY, WITH, IN and ON are printed WITHOUT underlines (optional words).",
+      "markdown_says": "\"UNSTRING identifier-1\" ... \"| DELIMITED BY [ ALL ] { identifier-2 } [ OR [ ALL ] { identifier-3 } ] … |\" ... \"INTO { identifier-4 [ DELIMITER IN identifier-5 ] [ COUNT IN identifier-6 ] } …\" ... \"[ WITH POINTER identifier-7 ]\" ... \"[ TALLYING IN identifier-8 ]\" ... \"[ END-UNSTRING ]\" - no underline markup anywhere and no '> **Figure notes ...**' paragraph after the figure (specs/ISO_COBOL.md lines 32372-32392).",
+      "why_it_matters": "Underlining is the standard's only marker separating required words from optional words (5.2.6.2). With it gone and no figure-notes paragraph to carry the information, the transcription cannot tell an implementer that e.g. BY, WITH and IN are omissible while DELIMITED, POINTER and TALLYING are not. Every other statement figure in this file that uses a code fence records the underlines in a figure note (START 31759, STRING 31970, CALL 25700, SEND 30641, SET 30770-30838 ...), so UNSTRING is an unswept gap rather than a different convention.",
+      "suggested_repair": "Add a '> **Figure notes (UNSTRING statement general format syntax diagram).**' paragraph after the figure listing the underlined required words (UNSTRING, DELIMITED, ALL, OR, INTO, DELIMITER, COUNT, POINTER, TALLYING, OVERFLOW, NOT, END-UNSTRING) and the non-underlined optional words (BY, WITH, IN, ON)."
+    },
+    {
+      "page": 796,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "14.9.46.2 General format:  TERMINATE { report-name-1 } …   - with TERMINATE underlined (confirmed on a 300 dpi crop: a continuous rule runs under the whole word); report-name-1 is not underlined.",
+      "markdown_says": "TERMINATE { report-name-1 } …   (specs/ISO_COBOL.md line 32275) - no <u> markup, no figure note.",
+      "why_it_matters": "The underline marks TERMINATE as a required word (5.2.6.2). The immediately preceding statement in the same file preserves exactly this marking - 14.9.45.2 is transcribed as '<u>SUPPRESS</u> PRINTING' (line 32228) - so the TERMINATE figure has silently lost information its neighbour kept, and a reader or generator consuming the markdown has no way to know TERMINATE is required rather than optional.",
+      "suggested_repair": "Transcribe as '<u>TERMINATE</u> { report-name-1 } …' to match the SUPPRESS convention two sections earlier."
+    },
+    {
+      "page": 798,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "14.9.47.2 General format:  UNLOCK  file-name-1  [ RECORD / RECORDS ]  - with UNLOCK underlined (confirmed on a 300 dpi crop); file-name-1, RECORD and RECORDS are not underlined, and the RECORD/RECORDS bracket is plain (no choice-indicator bars).",
+      "markdown_says": "```\nUNLOCK   file-name-1  [RECORD ]\n                      [RECORDS]\n```  (specs/ISO_COBOL.md lines 32332-32336) - no underline markup and no '> **Figure notes ...**' paragraph.",
+      "why_it_matters": "UNLOCK is a required word and its underline is the only thing in the printed figure that says so (5.2.6.2). Because the figure is inside a code fence the underline cannot be shown inline, and this file's established remedy - a figure-notes paragraph recording the underlined words - is missing here, so the information is simply gone. (The bracket itself is correctly plain; only the underline is lost.)",
+      "suggested_repair": "Add '> **Figure notes (UNLOCK statement general format).** `UNLOCK` is underlined in the printed standard (required word); `file-name-1`, `RECORD` and `RECORDS` are not. The bracket is plain - no choice indicators - so at most one of RECORD / RECORDS is written.' after the fence."
+    },
+    {
+      "page": 793,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.9.44.3   Syntax rules' and '14.9.44.4   General rules' are printed in the same bold sub-subsection style as every other four-level heading on these pages (e.g. 14.9.43.4 on page 760, 14.9.45.3 on page 765), one level BELOW '14.9.44 SUBTRACT statement'.",
+      "markdown_says": "## 14.9.44.3 Syntax rules   (specs/ISO_COBOL.md line 32138)\n## 14.9.44.4 General rules  (specs/ISO_COBOL.md line 32167)",
+      "why_it_matters": "Both are emitted at h2, the same level as '## 14.9.44 SUBTRACT statement' (line 32067), so in the markdown outline they become SIBLINGS of the statement rather than its children - and the sibling subsections 14.9.44.1 / 14.9.44.2 are correctly at h3 (lines 32070, 32075). Any TOC, anchor-walk or section-extraction over the file mis-parents the SUBTRACT syntax and general rules. The dominant convention across 14.9.4x is h3 (14.9.41.3, 14.9.42.3, 14.9.43.3, 14.9.45.3, 14.9.46.3, 14.9.47.3 are all ###).",
+      "suggested_repair": "Demote both to '### 14.9.44.3 Syntax rules' and '### 14.9.44.4 General rules'. The same defect exists at lines 31494, 31570 (14.9.40.3/.4), 32429 (14.9.48.4), 32594 and 32651 (14.9.49.3/.4) - sweep the pattern."
+    },
+    {
+      "page": 800,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "'14.9.48.4   General rules' is printed in the four-level sub-subsection style, one level below '14.9.48 UNSTRING statement'.",
+      "markdown_says": "## 14.9.48.4 General rules   (specs/ISO_COBOL.md line 32429)",
+      "why_it_matters": "Emitted at h2, level-equal with '## 14.9.48 UNSTRING statement' (line 32362), while its siblings 14.9.48.1 / .2 / .3 are correctly at h3 (lines 32365, 32370, 32395). The UNSTRING general rules therefore detach from the UNSTRING statement in the document outline.",
+      "suggested_repair": "Demote to '### 14.9.48.4 General rules'."
+    },
+    {
+      "page": 801,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "'When the UNSTRING statement is initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred from the data item referenced by identifier-1 to the data item referenced by identifier-4 according to the following rules:' ... 'Size is defined as number of character positions.' - all in plain roman type; no bold anywhere on the page.",
+      "markdown_says": "'... the current receiving area is the data item referenced by identifier-**4**. Data is transferred from the data item referenced by identifier-**1** to the data item referenced by identifier-**4** according to the following rules:' ... 'Size is defined as number of character positions**.**' - and likewise identifier-**7**, literal-**1**, identifier-**2**, identifier-**5**, identifier-**6** throughout general rule 11 a)-g).",
+      "why_it_matters": "Spurious markdown emphasis markers were injected around the trailing digit of every operand name (and around one full stop) on this page only. Nothing in the PDF is bold. The literal file text now reads 'identifier-**4**', so a grep, anchor scan or spec-citation tool searching for 'identifier-4' misses every occurrence in UNSTRING general rule 11 - the rule that defines the whole transfer algorithm.",
+      "suggested_repair": "Strip the ** pairs on this page: 'identifier-**N**' -> 'identifier-N', 'literal-**N**' -> 'literal-N', 'character positions**.**' -> 'character positions.'. Sweep neighbouring pages for the same injection pattern."
+    }
+  ]
+}

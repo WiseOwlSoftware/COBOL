@@ -1,0 +1,24 @@
+{
+  "batch": [929, 930, 931, 932],
+  "pages_checked": [929, 930, 931, 932],
+  "findings": [
+    {
+      "page": 929,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "15.69.4   Returned values rules  (printed in the same bold subclause style and at the same outline depth as 15.69.1 General, 15.69.2 General format, 15.69.3 Argument rules on the preceding page)",
+      "markdown_says": "<a id=\"section-15-69-4\"></a>\n## 15.69.4 Returned values rules",
+      "why_it_matters": "The heading is emitted at level 2 while every sibling subclause of 15.69 is level 3 (`### 15.69.1 General`, `### 15.69.2 General format`, `### 15.69.3 Argument rules`) and every analogous subclause elsewhere on this run is level 3 (`### 15.70.4`, `### 15.71.4`, `### 15.72.4`). At `##` it becomes a sibling of `## 15.69 NUMVAL-F function` rather than its child, so the returned-value rules detach from the NUMVAL-F function clause in any TOC or outline walk of the markdown. The break coincides exactly with the page-928/929 boundary, which is where the level was lost.",
+      "suggested_repair": "Change line 37189 of specs/ISO_COBOL.md from `## 15.69.4 Returned values rules` to `### 15.69.4 Returned values rules`. Keep the heading text verbatim as \"Returned values rules\" (plural \"values\") - that is ISO's own wording for this one clause and it correctly differs from \"Returned value rules\" used at 15.70.4/15.71.4/15.72.4."
+    }
+  ],
+  "notes": [
+    "Page 929: prose (15.69.4 rules 1-3) matches the PDF verbatim; only the heading level is wrong.",
+    "Page 930 figure 15.70.2 `FUNCTION ORD ( argument-1 )` - verified against a 3x crop: no braces, no brackets, no choice-indicator bars, no ellipsis. Markdown matches.",
+    "Page 931 figure 15.71.2 `FUNCTION ORD-MAX ( { argument-1 } ... )` - verified against a 3x crop: single brace pair, both halves present and balanced, NO vertical choice-indicator bars just inside the braces, ellipsis printed AFTER the closing brace (binds to `}`, so the braced argument-1 group is what repeats). Markdown reproduces all of this exactly, including the U+2026 ellipsis on the correct side.",
+    "Page 932 figure 15.72.2 `FUNCTION ORD-MIN ( { argument-1 } ... )` - same verification, same result. Markdown matches.",
+    "Underlining: the PDF underlines FUNCTION and the function-name (ORD / ORD-MAX / ORD-MIN) in all three formats; the markdown drops the underline. NOT reported as a finding - these formats contain no optional elements, so no required/optional distinction is lost, and the omission is a document-wide transcription convention rather than a page-local defect.",
+    "Page 931 has no `---` separator before the page-932 anchor while the other pages do. NOT reported - page-break furniture is excluded scaffolding.",
+    "15.70.2 is transcribed as an inline code span while 15.71.2 and 15.72.2 use fenced code blocks. NOT reported - formatting choice, no information lost."
+  ]
+}

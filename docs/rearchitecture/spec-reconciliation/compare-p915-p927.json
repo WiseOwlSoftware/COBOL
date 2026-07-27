@@ -1,0 +1,42 @@
+{
+  "batch": [915, 916, 917, 918, 919, 921, 922, 923, 924, 925, 926, 927],
+  "pages_checked": [915, 916, 917, 918, 919, 921, 922, 923, 924, 925, 926, 927],
+  "findings": [
+    {
+      "page": 924,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "15.67.4   Returned value rules  — printed in the same subclause style as 15.67.1 General / 15.67.2 General format / 15.67.3 Argument rules (all fourth-level subclauses of 15.67 NUMVAL function)",
+      "markdown_says": "## 15.67.4 Returned value rules   (line 37005 of specs/ISO_COBOL.md — H2), whereas the siblings are '### 15.67.1 General' (36946), '### 15.67.2 General format' (36955) and '### 15.67.3 Argument rules' (36960) — H3",
+      "why_it_matters": "The heading level makes 15.67.4 a peer of the '## 15.67 NUMVAL function' clause instead of one of its subclauses, so the returned-value rules detach from the NUMVAL function in every TOC/outline/anchor-walk built from the markdown. The same defect recurs for 15.68.4 and 15.69.4, so it is a pattern, not a one-off.",
+      "suggested_repair": "Change '## 15.67.4 Returned value rules' to '### 15.67.4 Returned value rules' (and sweep the sibling occurrences at lines 37121 for 15.68.4 and 37189 for 15.69.4)."
+    },
+    {
+      "page": 927,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "15.68.4   Returned value rules  — printed in the same subclause style as 15.68.1 General / 15.68.2 General format / 15.68.3 Argument rules (all fourth-level subclauses of 15.68 NUMVAL-C function)",
+      "markdown_says": "## 15.68.4 Returned value rules   (line 37121 of specs/ISO_COBOL.md — H2), whereas '### 15.68.1 General' (37021), '### 15.68.2 General format' (37028) and '### 15.68.3 Argument rules' (37036) are H3",
+      "why_it_matters": "Same as 15.67.4: the H2 promotes a subclause to clause level, breaking the 15.68 outline and making the NUMVAL-C returned-value rules look like a separate top-level clause.",
+      "suggested_repair": "Change '## 15.68.4 Returned value rules' to '### 15.68.4 Returned value rules'."
+    },
+    {
+      "page": 926,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Items b) through f) are printed indented under '4)  If the LOCALE keyword is not specified, the following rules apply:' (whose item a) is on p. 895), e.g. 'b)  If argument-1 is alphanumeric, CR or DB, if specified, shall be the letters 'CR' or 'DB' in uppercase ...'; likewise 'a)  Locale-name-1, if specified, ...' and 'b)  The content of argument-1 shall be ...' are printed indented under '5)  If the LOCALE keyword is specified, the following rules apply:'",
+      "markdown_says": "Lines 37076-37090 place every one of these at column 0: 'b) If argument-1 is alphanumeric, ...', 'c) ...', 'd) ...', 'e) ...', 'f) ...', '5) If the LOCALE keyword is specified, the following rules apply:', 'a) Locale-name-1, ...', 'b) The content of argument-1 ...' — while the matching item on the previous page is indented ('   a) Argument-1 shall have one of the following two formats:', line 37054)",
+      "why_it_matters": "The lettered sub-rules are detached from their parent numbered rule at the page boundary, so in the markdown b)-f) read as peers of 5) rather than as continuations of 4). A reader (or a tool citing 15.68.3 rule 4) b)) cannot tell which numbered rule a lettered sub-rule qualifies, and the transcription is internally inconsistent with the same list's item a) on p. 925.",
+      "suggested_repair": "Indent the continuation sub-items to match the convention already used on p. 925: three spaces before 'b)' through 'f)' (children of rule 4) and before 'a)'/'b)' that follow rule 5)."
+    },
+    {
+      "page": 927,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Items 1. through 7. are printed at a third indent level, under '5) ... b)  The content of argument-1 shall be a string of digits and characters in a format consistent with the specifications of locale category LC_MONETARY in the locale in use.  The following rules apply:' (p. 896), and are followed by the outer-level rules '6)  If native arithmetic is in effect, ...' and '7)  If standard-binary arithmetic is in effect, ...' printed back at the outermost indent",
+      "markdown_says": "Lines 37100-37118 place '1. If the ANYCASE keyword is specified, ...' through '7. Argument-1 shall contain at least one digit and may contain leading or trailing spaces.' at column 0, immediately followed by '6) If native arithmetic is in effect, ...' and '7) If standard-binary arithmetic is in effect, ...' also at column 0",
+      "why_it_matters": "The three-level nesting (5) -> b) -> 1.-7.) is flattened to one level, so the markdown reads '... 7.' then '6)' — apparently broken numbering — and the seven LOCALE-format rules lose their binding to rule 5) b). Whether rules 6) and 7) apply to the LOCALE case only or to 15.68.3 as a whole is no longer recoverable from the markdown.",
+      "suggested_repair": "Indent items 1.-7. (and the continuation paragraph already indented at line 37106) to the third level, e.g. six spaces, keeping '6)' and '7)' at column 0 as siblings of '5)'."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "batch": [624, 626, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637],
+  "pages_checked": [624, 626, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637],
+  "findings": [
+    {
+      "page": 632,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "COMPUTE Format 1 (arithmetic-compute), 14.9.8.2. The SIZE ERROR block is printed as ONE tall square bracket spanning BOTH alternative lines, with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  ON SIZE ERROR imperative-statement-1 / NOT ON SIZE ERROR imperative-statement-2  | ]  followed on the next line by  [ END-COMPUTE ] .",
+      "markdown_says": "```\n⌈⌊ ON SIZE ERROR imperative-statement-1        ⌉⌋\n⌈⌊ NOT ON SIZE ERROR imperative-statement-2    ⌉⌋\n[ END-COMPUTE ]\n```",
+      "why_it_matters": "Per 5.2.6.4 a pair of vertical bars just inside a bracket means zero or more of the enclosed alternatives may be specified, each at most once, in any order. The transcription drops both bars and additionally repeats the SAME corner glyph pair (⌈⌊ / ⌉⌋) on BOTH rows, so instead of one bracket-with-choice-bars spanning two alternatives the markdown depicts two independent malformed brackets. The choice-indicator semantics are unrecoverable, and a reader following the bracket-without-bars convention would conclude at most ONE of ON SIZE ERROR / NOT ON SIZE ERROR may be written — falsely restrictive; COBOL permits both on one COMPUTE. Every sibling arithmetic statement in this same markdown file (ADD lines 25474-25475, DIVIDE 26635-26636, MULTIPLY 28741-28742, SUBTRACT 32084-32085) transcribes the identical PDF construct correctly as ⎡| ... |⎤ / ⎣| ... |⎦, which proves the convention exists and that COMPUTE is the outlier.",
+      "suggested_repair": "Replace the two lines with the file's established choice-indicator rendering and pull the whole Format 1 into a single fenced block:\n```\nCOMPUTE { identifier-1 [ rounded-phrase ] } ... = arithmetic-expression-1\n  ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n  ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n  [ END-COMPUTE ]\n```"
+    },
+    {
+      "page": 635,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "DELETE Format 1 (record), 14.9.10.2. The INVALID KEY block is printed as ONE tall square bracket spanning both alternatives with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  INVALID KEY imperative-statement-1 / NOT INVALID KEY imperative-statement-2  | ] .",
+      "markdown_says": "```\nDELETE file-name-1  RECORD\n  [ retry-phrase ]\n  ⌐ INVALID KEY imperative-statement-1     ¬\n  | NOT INVALID KEY imperative-statement-2 |\n  [ END-DELETE ]\n```",
+      "why_it_matters": "The two inner choice-indicator bars (5.2.6.4) are gone: the markdown has exactly one glyph per side per row, so the four printed vertical strokes per row collapse to one. Without the bars the bracket reads as 'at most one of the enclosed alternatives', which would forbid writing INVALID KEY and NOT INVALID KEY on the same DELETE statement. The standard permits both (14.9.10.4 GR 11 explicitly discusses 'the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases'), so the loss is toward falsely-restrictive syntax.",
+      "suggested_repair": "Render as the file does elsewhere:\n```\nDELETE file-name-1 RECORD\n  [ retry-phrase ]\n  ⎡|  INVALID KEY imperative-statement-1      |⎤\n  ⎣|  NOT INVALID KEY imperative-statement-2  |⎦\n  [ END-DELETE ]\n```"
+    },
+    {
+      "page": 635,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "DELETE Format 2 (file), 14.9.10.2. The EXCEPTION block is printed as ONE tall square bracket spanning both alternatives with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  ON EXCEPTION imperative-statement-3 / NOT ON EXCEPTION imperative-statement-4  | ] .",
+      "markdown_says": "```\nDELETE FILE [ OVERRIDE ] { file-name-1 } ...\n  [ retry-phrase ]\n  ⌐ ON EXCEPTION imperative-statement-3     ¬\n  | NOT ON EXCEPTION imperative-statement-4 |\n  [ END-DELETE ]\n```",
+      "why_it_matters": "Same lost choice indicator as Format 1. Without the bars the bracket reads as 'at most one of ON EXCEPTION / NOT ON EXCEPTION', but 14.9.10.4 GR 20 c)/d) and GR 21 b) describe behaviour in which both phrases may be present on the same DELETE FILE statement. Legal source is made to look illegal.",
+      "suggested_repair": "Render as:\n```\nDELETE FILE [ OVERRIDE ] { file-name-1 } ...\n  [ retry-phrase ]\n  ⎡|  ON EXCEPTION imperative-statement-3      |⎤\n  ⎣|  NOT ON EXCEPTION imperative-statement-4  |⎦\n  [ END-DELETE ]\n```"
+    },
+    {
+      "page": 636,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.10.4   General rules  — printed in the same bold subsection style and at the same depth as 14.9.10.1 General, 14.9.10.2 General formats and 14.9.10.3 Syntax rules on page 635.",
+      "markdown_says": "<a id=\"section-14-9-10-4\"></a>\n## 14.9.10.4 General rules   (ISO_COBOL.md line 26362)",
+      "why_it_matters": "A fourth-level subsection is emitted at heading level 2, the same level as its own parent '## 14.9.10 DELETE statement' and as '## 14.9.11 DISPLAY statement'. Its three siblings on page 635 are correctly at level 3 (### 14.9.10.1/.2/.3). Any tool that navigates by heading level — the doc index, a TOC generator, or a section-slicing spec lookup — will treat the DELETE General rules as a peer of the statement itself and detach them from 14.9.10, silently truncating what a '14.9.10 DELETE statement' section fetch returns.",
+      "suggested_repair": "Change '## 14.9.10.4 General rules' to '### 14.9.10.4 General rules'. Sweep the siblings: '## 14.9.11.4 General rules' at line 26538 has the identical defect."
+    },
+    {
+      "page": 637,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Under General rule 15) the continuation sentence 'When the file sharing conflict condition exists as a result of the DELETE FILE statement:' and the sub-items 'a) The file is not deleted, and may be accessed.', 'b) The valu62’ is placed into the I-O status ...', 'c) The DELETE FILE statement is unsuccessful.' are all indented one level in from the '15)' rule number, i.e. printed as children of rule 15).",
+      "markdown_says": "15) If file locking is in effect for file-name-1 ...\n\nWhen the file sharing conflict condition exists as a result of the DELETE FILE statement:\n\na) The file is not deleted, and may be accessed.\n\nb) The valu62' is placed into the I-O status associated with file-name-1 to indicate the file operation conflict condition.\n\nc) The DELETE FILE statement is unsuccessful.\n\n(all flush left, zero indentation — ISO_COBOL.md lines 26418-26426)",
+      "why_it_matters": "The four child blocks are detached from their parent rule and sit at the same indentation as the top-level numbered rules, so a) b) c) read as free-standing items rather than as the consequences of the file sharing conflict condition described in rule 15). The transcription indents this exact structure correctly elsewhere in the same statement — the a)/b)/c) under GR 6 on page 636 and under GR 20/21 on page 638 all carry the three-space indent — so page 637 is the outlier, not the convention.",
+      "suggested_repair": "Indent the continuation sentence and items a), b), c) by three spaces to match the treatment of GR 6 on page 636 and GR 20/21 on page 638. Note the 'valu62’' garble is present in the printed PDF itself (verified by rendering page 637 at 300 dpi) and is an ISO defect, not a transcription error — do not 'correct' it silently."
+    }
+  ]
+}

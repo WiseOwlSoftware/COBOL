@@ -1,0 +1,60 @@
+{
+  "batch": [714, 715, 716, 717, 718, 719, 720, 722, 723, 724, 725, 726],
+  "pages_checked": [714, 715, 716, 717, 718, 719, 720, 722, 723, 724, 725, 726],
+  "findings": [
+    {
+      "page": 722,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "READ statement, Format 1 (sequential): the AT END / NOT AT END group is printed as a tall BRACKET with a pair of vertical CHOICE-INDICATOR BARS just inside it, spanning both stacked alternatives:  [|  AT END imperative-statement-1  |]  /  [|  NOT AT END imperative-statement-2  |]",
+      "markdown_says": "```\n  [ [ AT END imperative-statement-1         ] ]\n  [ [ NOT AT END imperative-statement-2     ] ]\n[ END-READ ]\n```",
+      "why_it_matters": "Per 5.2.6.4 a pair of vertical bars just inside a BRACKET means zero or more of the enclosed alternatives may be specified, each at most once, in any order - so AT END and NOT AT END may BOTH appear on the same READ. The markdown replaced the bars with a nested bracket; under the transcription's own convention (a tall delimiter is written by repeating it on every row - cf. the { NEXT } / { PREVIOUS } and [ WITH LOCK ] / [ WITH NO LOCK ] groups in the same figure) that reads as bracket-inside-bracket, i.e. AT MOST ONE of AT END / NOT AT END. That is falsely restrictive and would make legal COBOL look illegal. It also contradicts GR 13 c on page 726, which describes the NOT AT END phrase being taken after a successful read of a statement that also carries an AT END phrase. The rest of the document uses bars for this construct (e.g. specs/ISO_COBOL.md:26324 '| NOT INVALID KEY imperative-statement-2 |', :25475 '⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦').",
+      "suggested_repair": "In specs/ISO_COBOL.md lines 29461-29462 replace the nested brackets with the choice-indicator form already used elsewhere:\n⎡|  AT END imperative-statement-1      |⎤\n⎣|  NOT AT END imperative-statement-2  |⎦\nand add the standard '> **Figure notes (ISO 5.2.6.4)**' callout stating that both AT END and NOT AT END may be specified, in any order."
+    },
+    {
+      "page": 722,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "READ statement, Format 2 (random): the INVALID KEY / NOT INVALID KEY group is printed as a tall BRACKET with a pair of vertical CHOICE-INDICATOR BARS just inside it, spanning both stacked alternatives:  [|  INVALID KEY imperative-statement-3  |]  /  [|  NOT INVALID KEY imperative-statement-4  |]",
+      "markdown_says": "```\n  [ [ INVALID KEY imperative-statement-3     ] ]\n  [ [ NOT INVALID KEY imperative-statement-4 ] ]\n[ END-READ ]\n```",
+      "why_it_matters": "Same defect class as the Format 1 AT END group: the 5.2.6.4 choice indicators were replaced by a nested bracket, which reads as 'at most one of INVALID KEY / NOT INVALID KEY'. The standard permits BOTH on one READ, and GR 13 c (page 726) relies on that. The transcription renders this identical construct correctly for DELETE (specs/ISO_COBOL.md:26323-26324) and for the START/REWRITE/WRITE family (:30094, :31754, :32999).",
+      "suggested_repair": "In specs/ISO_COBOL.md lines 29480-29481 replace the nested brackets with:\n⎡|  INVALID KEY imperative-statement-3      |⎤\n⎣|  NOT INVALID KEY imperative-statement-4  |⎦\nand add the standard '> **Figure notes (ISO 5.2.6.4)**' callout."
+    },
+    {
+      "page": 722,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "READ statement, Format 2 (random): a single tall optional BRACKET encloses the whole KEY IS phrase, spanning BOTH rows of the inner brace - [ KEY IS { data-name-1 / record-key-name-1 } ] - with the bracket's lower arm printed below the 'record-key-name-1' row.",
+      "markdown_says": "```\n    [ KEY IS { data-name-1      } ]\n             { record-key-name-1 }\n```",
+      "why_it_matters": "Everywhere else in this same figure a tall delimiter is transcribed by repeating it on each row ('{ NEXT }' / '{ PREVIOUS }', '[ WITH LOCK ]' / '[ WITH NO LOCK ]'). Here the outer bracket appears only on the first row, so under that convention the optional bracket looks as though it closes before 'record-key-name-1', leaving that alternative dangling outside any delimiter. No normative content is lost, but the notation is internally inconsistent and is easy to mis-transcribe on the next pass.",
+      "suggested_repair": "In specs/ISO_COBOL.md lines 29477-29478 repeat the outer bracket on the second row and align the braces:\n    [ KEY IS { data-name-1       } ]\n    [        { record-key-name-1 } ]"
+    },
+    {
+      "page": 714,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.28.4   General rules   (a fourth-level clause, printed in the same style and at the same level as 14.9.28.1 General, 14.9.28.2 General formats and 14.9.28.3 Syntax rules, all subordinate to 14.9.28 PERFORM statement)",
+      "markdown_says": "## 14.9.28.4 General rules   (H2 - the same level the markdown gives the parent clause '## 14.9.28 PERFORM statement', while its siblings are '### 14.9.28.1 General' and '### 14.9.28.2 General formats')",
+      "why_it_matters": "The clause is promoted out of its parent: in any generated TOC or outline view 14.9.28.4 no longer nests under 14.9.28 PERFORM statement, and the sibling clauses of the same statement sit at two different depths. The dominant convention in this document is '###' for x.y.z.w clauses (162 occurrences versus 40 at '##').",
+      "suggested_repair": "In specs/ISO_COBOL.md change line 29212 from '## 14.9.28.4 General rules' to '### 14.9.28.4 General rules' (and, in the same sweep, line 29150 '## 14.9.28.3 Syntax rules' -> '###')."
+    },
+    {
+      "page": 723,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.30.3   Syntax rules   (a fourth-level clause subordinate to 14.9.30 READ statement, printed in the same style as 14.9.30.1 General and 14.9.30.2 General formats on page 722)",
+      "markdown_says": "## 14.9.30.3 Syntax rules   (H2 - while the immediately preceding siblings on page 722 are '### 14.9.30.1 General' and '### 14.9.30.2 General formats', and the parent is '## 14.9.30 READ statement')",
+      "why_it_matters": "The Syntax rules clause is hoisted to the same outline depth as the READ statement clause that contains it, so it detaches from READ in any TOC/outline and splits the statement's four sub-clauses across two levels. Neighbouring statements are transcribed correctly ('### 14.9.29.3 Syntax rules', '### 14.9.31.3 Syntax rules').",
+      "suggested_repair": "In specs/ISO_COBOL.md change line 29496 from '## 14.9.30.3 Syntax rules' to '### 14.9.30.3 Syntax rules'."
+    },
+    {
+      "page": 724,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.30.4   General rules   (a fourth-level clause subordinate to 14.9.30 READ statement, printed in the same style as 14.9.30.1 General and 14.9.30.2 General formats)",
+      "markdown_says": "## 14.9.30.4 General rules   (H2 - the same level as the parent '## 14.9.30 READ statement', while siblings .1 and .2 are '###')",
+      "why_it_matters": "Same structural defect as 14.9.30.3: the General rules clause is promoted out of READ, so the outline no longer shows it as part of the READ statement. Neighbouring statements are transcribed correctly ('### 14.9.29.4 General rules', '### 14.9.31.4 General rules').",
+      "suggested_repair": "In specs/ISO_COBOL.md change line 29542 from '## 14.9.30.4 General rules' to '### 14.9.30.4 General rules'."
+    }
+  ]
+}

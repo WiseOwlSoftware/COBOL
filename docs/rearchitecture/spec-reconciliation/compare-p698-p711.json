@@ -1,0 +1,15 @@
+{
+  "batch": [698, 699, 700, 701, 702, 704, 706, 707, 708, 709, 710, 711],
+  "pages_checked": [698, 699, 700, 701, 702, 704, 706, 707, 708, 709, 710, 711],
+  "findings": [
+    {
+      "page": 702,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "[all indented one level under General rule 9) b) \"If the groups are of unequal length:\", which begins on page 701] \"If the sending group is longer than the receiving group, ...\" / \"If the sending group is shorter than the receiving group, each location that occupies the excess part is space filled, according to the following recursive procedure:\" / \"1. If the data item to be space-filled is a dynamic-length elementary item, ...\" / \"2. If the data item to be space filled is a dynamic-capacity table, ...\" / \"3. All other character positions are filled with space characters.\" / \"The common part of the variable-length groups is now moved according to the rules for variable-length groups of equal length, as defined in General rule 9a above.\" / \"NOTE 4  If the receiving table is an occurs-depending table, ...\" — then, back at the outer level, \"10) Additional rules and explanations relative to this statement are given in 14.6.10, Overlapping operands.\"",
+      "markdown_says": "Every one of those blocks is written flush left with no indentation (specs/ISO_COBOL.md lines 28695-28707): \"If the sending group is longer than the receiving group, ...\", \"1. If the data item to be space-filled is a dynamic-length elementary item, ...\", \"2. ...\", \"3. All other character positions are filled with space characters.\", \"The common part of the variable-length groups is now moved ...\", \"NOTE 4 ...\", immediately followed by the flush-left \"10) Additional rules and explanations ...\". The same transcription indents correctly on the facing page (page 701 uses \"   a) If the groups are of equal length:\" and \"      The content of each character position ...\").",
+      "why_it_matters": "The recursive space-filling procedure (items 1-3), the 'common part' paragraph and NOTE 4 are sub-items of General rule 9)b); the page break detaches them from their parent. Flush left they read as peers of the outer general rules 1)-10), so the 1./2./3. procedure appears to be a free-standing rule that always applies rather than one that applies only to unequal-length variable-length group moves, and 'as defined in General rule 9a above' loses its anchor. Rule 9 is the variable-length group MOVE rule the compiler implements, so mis-scoping it changes which moves space-fill.",
+      "suggested_repair": "Indent the seven blocks between 'If the sending group is longer...' and 'NOTE 4 ...' to the 9)b) sub-level (matching the 3-space / 6-space convention used on page 701), leaving '10) Additional rules and explanations...' flush left."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "batch": [879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890],
+  "pages_checked": [879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890],
+  "findings": [],
+  "notes": [
+    "Batch swept clean. Rendered every page at 300 dpi and compared against the slice of specs/ISO_COBOL.md between the corresponding page anchors; slices were additionally re-extracted straight from the master file to confirm the work-unit extractor dropped nothing.",
+    "Figures on these pages are the 15.31-15.40 intrinsic-function general formats. Every one was checked glyph-by-glyph for choice indicators (5.2.6.4 vertical bars just inside a bracket/brace), unbalanced delimiters, and ellipsis placement (5.2.7). None of these formats contains a brace, a stacked alternative, a choice-indicator bar, or an ellipsis in the PDF, so there is nothing of that class to lose. All brackets that open do close.",
+    "15.37.2 FIND-STRING was zoomed to 3000px width to settle the ambiguous run: the PDF prints 'FUNCTION FIND-STRING argument-1 argument-2 [ LAST] [ [ START AFTER ] argument-3 ]  [ ANYCASE ]'. START and AFTER are printed side by side on one line inside a single bracket - they are NOT stacked alternatives and there is no choice-indicator bar. The markdown reproduces this exactly (differing only by one space inside '[ LAST ]').",
+    "OBSERVED ISO DEFECT, not a transcription defect, so not filed as a finding: the printed 15.37.2 FIND-STRING general format has no parentheses around its argument list, unlike every neighbouring function format (15.34 EXP, 15.36 FACTORIAL, 15.38-15.40). The markdown faithfully reproduces the PDF as printed.",
+    "Underlining convention varies across the batch in the markdown (code fence on pp. 880/882/883/887, <u> tags on pp. 884/885/889, plain text on pp. 886/888/890). No information is lost on these pages: in every one of these formats the only underlined words are FUNCTION plus the function-name (plus LAST/START/AFTER/ANYCASE on p. 887), all of which are required words - there are no optional/noise words on these pages for the underlining to distinguish. Recorded as a consistency observation only.",
+    "Pages 879 and 881 carry byte-identical prose (the tail of 15.30 EXCEPTION-LOCATION and of 15.31 EXCEPTION-LOCATION-N respectively). The -N variant printing 'a space character' rather than 'a national space character' in sub-item c is how the PDF prints it; the markdown matches the PDF."
+  ]
+}

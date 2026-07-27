@@ -1,0 +1,21 @@
+{
+  "batch": [903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914],
+  "pages_checked": [903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914],
+  "findings": [
+    {
+      "page": 903,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "FUNCTION  LENGTH  ( argument-1 [ PHYSICAL ] )   -- with FUNCTION, LENGTH and PHYSICAL each UNDERLINED in the printed general format (5.2.6.2: an underlined word is a required word).",
+      "markdown_says": "```\\nFUNCTION LENGTH ( argument-1 [ PHYSICAL ] )\\n```   -- plain fenced code, no underline markup. The same loss occurs in every general format on this batch except 15.58.2 and 15.59.2: 15.51.2 (p905, bare paragraph text), 15.52.2 (p906, inline backticks), 15.53.2 (p907, bare paragraph text), 15.54.2 (p908, fenced code), 15.55.2 (p909, inline backticks), 15.56.2 (p910, inline backticks), 15.57.2 (p911, bare paragraph text).",
+      "why_it_matters": "The transcription elsewhere DOES carry the standard's underlining as <u>…</u> (97 occurrences, including 15.58.2 `<u>FUNCTION</u> <u>LOWEST-ALGEBRAIC</u> ( argument-1 )` on p912 and 15.59.2 `<u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )` on p914 in this very batch). Dropping it on the neighbouring formats loses the required-word marking that 5.2.6.2 makes normative, and the four different renderings used within ten pages (fenced code / inline code / bare paragraph / <u>) make the general-format blocks non-uniform and unreliable to machine-extract. No alternative-selection information is lost on these particular pages, because every uppercase word in each of these formats is underlined in the PDF; hence cosmetic rather than normative.",
+      "suggested_repair": "Normalize all eight formats to the document's existing convention, e.g. p903: `<u>FUNCTION</u> <u>LENGTH</u> ( argument-1 [ <u>PHYSICAL</u> ] )`; p911: `<u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 [ <u>LOCALE</u> locale-name-1 ] )` (the latter already exists verbatim for UPPER-CASE at 15.79.2)."
+    }
+  ],
+  "notes": {
+    "choice_indicators": "No page in this batch prints a choice indicator (a vertical bar just inside a bracket or brace). Every bracket on these pages encloses a single alternative: [ PHYSICAL ] (p903), [ locale-name-1 ] (p905, p906, p907, p908), [ LOCALE locale-name-1 ] (p911). Verified by cropping and 2x-upscaling the printed format lines on p903 and p911. No bars were lost.",
+    "delimiters": "All braces/brackets open and close: p914 `( { argument-1 } … )` is balanced and the ellipsis correctly follows the closing brace (per 5.2.7 the repetition binds to `{ argument-1 }`), matching the PDF exactly.",
+    "verified_clean": "p904 (rules 7-9 of 15.50.4, incl. the 8.5.1.12.3 cross-reference), p906, p907 (incl. the LEAP-SECOND NOTE under 3)b)), p908, p909, p910, p911, p912 (incl. the LOWEST-ALGEBRAIC type table and the three post-NOTE paragraphs), p913 (value table transcribed verbatim including ISO's own inconsistency 'twos-complement' on the SIGNED row vs 'twos-compliment' on the UNSIGNED row), p914.",
+    "not_reported": "p904 renders sub-items a)/b)/c) flush-left where p903/p907 indent theirs by three spaces; markdown strips <4-space leading indentation, so the rendered output is identical and no information is lost. p913 uses a bold running header instead of an H1; that is page-break furniture."
+  }
+}
