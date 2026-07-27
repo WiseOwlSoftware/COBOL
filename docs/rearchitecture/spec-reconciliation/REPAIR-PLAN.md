@@ -46,10 +46,25 @@ independent verifiers **contradicted each other** (p607), and found **three norm
 reported** (p606 `YYYYMMDD`/`YYYYDDD`, p653 `LAST EXCEPTION`, and the p645 DIVIDE pair). Prefer measurement over
 agent verdicts for every remaining figure question.
 
-**Two limits, both real:** curly braces are font glyphs, not rects, so the tool infers a brace only from a bar
-with no bracket around it — render when the enclosing delimiter is load-bearing. And a bare tall rect is not
-always a choice indicator: table grid rules and the Figure-1 ruler on p66 look identical to the geometry. p66 was
-a false positive that a trusting sweep would have "repaired" into a correct page.
+**Three limits, all found by looking rather than reasoned about:** curly braces are font glyphs, not rects, so the
+tool infers a brace only from a bar with no bracket around it — render when the enclosing delimiter is
+load-bearing. A bare tall rect is not always a choice indicator: table grid rules and the Figure-1 ruler on p66
+look identical to the geometry, and p66 was a false positive a trusting sweep would have "repaired" into a
+correct page. And a table's horizontal ROW BORDER is indistinguishable from an underline, so every cell in a
+bordered row reads as underlined.
+
+⛔ **The checker can be the thing that is wrong.** `audit_underlining.py`'s first run reported two OVERMARKED
+defects (`IN` p322, `TO` p673) — both false. `figure_extract.py` was excluding horizontal rules under 9 pt as
+bracket feet, and a two-letter word's underline is 8.4–8.9 pt, so it mis-read every two-letter required word in
+the standard. It was accusing a CORRECT transcription, and acting on it would have stripped real underlining out
+of the reference document. **Confirm any measured "defect" against the raw rectangles before changing anything.**
+
+### Underlining: audited whole-standard, and it is CLEAN
+
+694 pages carry general-format underlining; 2,215 underlined tokens measured against the transcription.
+**UNMARKED 0 · OVERMARKED 0 · MIXED 60 on 44 pages** (MIXED compares sets, so it is a queue for inspection, never
+a finding; most hits on table-heavy pages are the row-border artifact). This was expected to be the largest open
+class and it is not — a negative result that redirects effort away from a sweep that would have found nothing.
 
 ## Cross-cutting rules — apply to EVERY batch
 
