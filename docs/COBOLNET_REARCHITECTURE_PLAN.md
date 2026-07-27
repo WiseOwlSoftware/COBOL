@@ -44,29 +44,40 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
-3. **⛔ SPEC RECONCILIATION — repair the transcription BEFORE deriving anything else from it.** `specs/ISO_COBOL.md`
-   is an OCR transcription and it is provably lossy: a page-by-page comparison against the canonical PDF has
-   confirmed defects at roughly one per six pages, and **every normative one is FALSELY RESTRICTIVE** (lost
-   choice-indicator bars, lost outer brackets, misstated underlining) — it makes legal COBOL look illegal. One page
-   (28) was not a transcription at all but an AI summary plus a refusal message, which destroyed the sentence
-   naming which annexes are normative; repaired, and a meta-text critic now fails `extract_rule_catalog.py --check`
-   on any recurrence. **The spec is the oracle for everything else in P14, so this comes first.**
-   - Ledger + SSOT: `docs/rearchitecture/spec-reconciliation/` (`LEDGER.json`, `REPORT.md`; agents persist one
-     file each BEFORE returning, so an interrupted run loses nothing). Merge/report:
-     `python scripts/spec/merge_reconciliation.py --expect 1261`, safe to run mid-sweep.
-   - Sweep: `.claude/workflows/spec-reconcile.js`, page list as args (accepts ranges).
-   - Repairs are DEFERRED until the sweep is complete (owner instruction), then applied by DEFECT FAMILY —
-     the seven ON/OFF directive notes must agree or the inconsistency merely moves.
-   - **A diagram defect is TWO items.** The markdown is wrong (a transcription repair) AND the grammar may have
-     been written FROM the wrong diagram. PROVEN on GOBACK: the grammar encodes `(raisingPhrase | statusPhrase)?`
-     and `GOBACK RAISING … WITH NORMAL STATUS` is rejected, though the printed figure's bars permit both. Anything
-     inherited is a fix-queue COMPILER bug, not a doc fix.
-4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic).** Every general format and syntax rule verified one-by-one
-   against the grammar, with the PRINTED PAGE as the authority — not only the pages where a transcription defect
-   was found. **1,659 items: 321 general formats (432 numbered Formats) + 1,338 syntax rules.** Each divergence
-   must carry the EXACT ISO syntax the fix implements, and becomes a fix-queue bug against the `.g4`.
-   Workflow `.claude/workflows/spec-grammar-conformance.js` (section numbers as args). Suggested order: §14 (489
-   items) first — GOBACK and ON SIZE ERROR both live there and a too-restrictive statement rule bites hardest.
+3. **SPEC RECONCILIATION — the transcription is repaired far enough to derive from; the PDF now DECODES.**
+   - **⛔ THE PDF WAS NEVER OBFUSCATED.** 16 of 26 fonts were Identity-H subsets carrying **no `/ToUnicode` CMap**,
+     so extractors emitted raw glyph indices (which print as Greek). Recovered by matching glyph OUTLINES against
+     the stock Windows fonts and injected; the PDF in `specs/` now extracts, copies and greps, with the
+     publisher's bytes preserved verbatim (incremental save, 34 KB delta, zero pixel change across 53 hashed
+     pages). Regenerate: `scripts/spec/pdf_deobfuscate.py --write out.pdf --verify`. Write-up:
+     `docs/rearchitecture/spec-reconciliation/PDF-TEXT-LAYER.md`.
+   - **MEASURE the page; do not squint at it.** `figure_geometry.py` reads bracket / choice-indicator-bar
+     rectangles; `figure_extract.py` reads which WORDS are underlined; `audit_underlining.py`,
+     `audit_figure_text.py` and `audit_grammar_optional_words.py` run those whole-standard.
+   - **Three classes swept whole-standard, all essentially clean** — choice indicators **30/30**; underlining
+     **0 defects in 2,215 tokens over 694 pages**; figure words **1 finding in 15,625 tokens over 820 pages**, and
+     that one is ISO's own typo. ⚠ **My CHECKERS were buggier than the transcription** — the figure-text audit
+     went 76 findings → 1 as three separate tool bugs were removed, and the underlining audit accused two CORRECT
+     pages. **Confirm every measured "defect" against the raw rectangles before changing anything.**
+   - Ledger/SSOT `docs/rearchitecture/spec-reconciliation/`; order + mechanism in `REPAIR-PLAN.md`.
+     **Batch 1 (normative) sub-batches 1-2 DONE**; outer brackets + the remaining underlining findings OUTSTANDING.
+     Batches 2-5 (anchors/TOC, misplaced content, cosmetic, page-break furniture) OUTSTANDING.
+   - **A diagram defect is TWO items** — the markdown AND, possibly, a grammar written from it. **Batch 1's exit
+     criterion is now PROVEN and yielding: SR1 and SR2 in the fix queue.**
+4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic) — STARTED, and the first vein is OPTIONAL WORDS.**
+   **1,659 items: 321 general formats (432 numbered Formats) + 1,338 syntax rules.** Each divergence carries the
+   EXACT ISO syntax its fix implements and becomes a fix-queue bug against the `.g4`.
+   - **⛔ ROOT CAUSE FOUND (SR2): "unbracketed" was being used as the test for "required word".** §5.2.2/§5.2.3
+     make **UNDERLINING** the test; bracketing marks whether a PHRASE may be omitted, not whether a WORD must be
+     written. One wrong criterion, five sites. Landed so far: `ON` in SIZE ERROR / ON EXCEPTION, `FROM` on
+     RECEIVE, `TO` on SEND, `AT` in SEARCH's AT END, `PRINTING` after SUPPRESS — all legal COBOL the parser
+     rejected. `scripts/spec/audit_grammar_optional_words.py` automates the search (11 grammar files, 529 rules).
+   - **Three standing cautions, each earned:** a word measured un-underlined on ONE page is not enough — p634 and
+     p732 CONTRADICT each other about `AFTER`/`SECONDS`, and the DEFINING clause wins (that check reverted a wrong
+     change before it landed). `KEY`, `ON`, `RECORD` and `WITH` measure SPLIT and need per-site judgement. And the
+     cheapest signal of all is **the grammar disagreeing with itself** about the same word.
+   - Suggested order: §14 (489 items) first — GOBACK lives there and a too-restrictive statement rule bites
+     hardest.
 5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
    denominator — **3,790 items** (1338 SR · 1470 GR · 216 AR · 223 RV · 222 Annex-A.1 doc obligations · 321 general
