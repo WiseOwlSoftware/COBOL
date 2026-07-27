@@ -34,12 +34,25 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 
-# Symbol-face brace pieces, as they decode, mapped to their Unicode extension equivalents.
-BRACE = {"ì": "⎧", "í": "⎨", "î": "⎩", "ü": "⎫", "ý": "⎬", "þ": "⎭"}
+# THE HOUSE STYLE — settled 2026-07-27 by rendering candidates in a browser, not by reasoning about markup.
+# Full rationale and the measurements behind each choice: docs/rearchitecture/spec-reconciliation/FIGURE-STYLE.md
+#
+# BOX DRAWING ONLY (U+2500–U+257F). The Miscellaneous Technical extension glyphs (⎡⎧⎪, U+23A1–U+23AD) look
+# right and are unusable: measured on Windows, NOT ONE monospace font contains them, so the browser substitutes
+# a proportional face per glyph and the columns drift — even within a single figure, because the substituted
+# glyphs are not mutually consistent in width. Box drawing is in every monospace font by design.
+BRACKET_L = ("┌", "│", "└")          # square corners: a bracket
+BRACKET_R = ("┐", "│", "┘")
+BRACE_L   = ("╭", "┤", "╰")          # curved corners + the point: a brace, distinct at any height
+BRACE_R   = ("╮", "├", "╯")
+BAR       = "│"                      # choice indicator, kept ONE SPACE clear of any adjacent delimiter
+MIN_ROWS  = 3                        # a corner glyph strokes from its cell CENTRE, so a two-row group renders
+                                     # one row tall; a blank middle row restores full height — and matches the
+                                     # printed layout, which gives each operand its own row.
+# Symbol-face brace pieces in the PDF's text layer, mapped to the house glyphs above.
+BRACE = {"ì": BRACE_L[0], "í": BRACE_L[1], "î": BRACE_L[2],
+         "ü": BRACE_R[0], "ý": BRACE_R[1], "þ": BRACE_R[2]}
 EXTENDER = "ê"
-BRACKET_L = ("⎡", "⎢", "⎣")
-BRACKET_R = ("⎤", "⎥", "⎦")
-BAR = "│"
 
 
 def column_grid(items, bucket=3.0):
@@ -150,6 +163,9 @@ def main() -> int:
             else:
                 top, ext, bot = BRACKET_L if s["x"] < mid else BRACKET_R
                 grid[r][c] = top if n == 0 else (bot if n == len(spans) - 1 else ext)
+    # NOTE: consumers must render these blocks inside <pre> at line-height 1. Box-drawing glyphs TILE — the
+    # stroke spans the full em box — so the verticals join into one rule only when rows are exactly one em
+    # apart. Any leading silently breaks every choice indicator in the document.
 
     # Tags LAST, right to left, so the columns above are untouched by their width.
     out = []
