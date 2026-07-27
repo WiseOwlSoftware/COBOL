@@ -33,7 +33,17 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs").glob("*COBOL*.pdf"))), None)
 
-MIN_RULE_W = 9.0      # shorter horizontal rules are bracket feet, not underlines
+# A bracket FOOT and an underline are both short horizontal rules, and they CANNOT be told apart by width.
+# An earlier version of this file used MIN_RULE_W = 9.0 to exclude feet, and silently mis-read every two-letter
+# required word in the standard: the underline under `TO` is 8.87 pt and under `IN` is 8.40 pt, both just under
+# that cut. The audit then reported the transcription as wrong where it was right — the worst possible direction,
+# since acting on it would have stripped correct underlining out of the reference document.
+#
+# Width is the wrong discriminator. What actually separates them is POSITION: an underline sits just below a
+# word and spans most of it, whereas a bracket foot sits at the top or bottom of a bracket stem and is far too
+# short to cover a word. The coverage and gap tests below do that work, so the width floor only has to exclude
+# rules too short to underline anything at all.
+MIN_RULE_W = 3.0
 MAX_RULE_H = 3.0
 MAX_GAP = 4.0         # how far below a word's bottom edge its underline may sit
 MIN_COVER = 0.55      # fraction of the word's width the rule must span
