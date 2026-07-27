@@ -33,3 +33,47 @@ Workflow({ scriptPath: ".claude/workflows/spec-reconcile.js", args: [<the unswep
 ```
 
 Nothing already on disk is recomputed.
+
+---
+
+## RESUME POINT (paused 2026-07-26 19:56 PDT)
+
+**Sweep coverage is COMPLETE — all 1,261 pages compared against the canonical PDF.** Nothing needs re-sweeping.
+
+State at pause: **346 claims · 159 confirmed** (41 normative · 85 structural · 33 cosmetic) · **104 refuted** ·
+**83 unverified**.
+
+The 83 unverified are chunk-3 claims whose adversarial verify agents were stopped mid-flight. They are
+**NOT actionable** — a claim without a verdict is a hypothesis, and acting on one risks "fixing" correct text.
+Their pages are listed in `UNVERIFIED-PAGES.txt`.
+
+### To resume, in order
+
+1. **Finish the verification.** Replays completed compare agents from cache and re-runs only the missing verifiers:
+
+   ```
+   Workflow({ scriptPath: ".claude/workflows/spec-reconcile.js",
+              resumeFromRunId: "wf_437b4170-d19",
+              args: "933-961,963-1176,1178-1261" })
+   ```
+
+2. **Re-merge and confirm zero unverified:**
+
+   ```
+   python scripts/spec/merge_reconciliation.py --expect 1261
+   ```
+
+3. **Publish the tracker section** (only once `unverified` reads 0 — the generator refuses to look final while
+   pages remain unswept, but it cannot tell that a verdict is missing):
+
+   ```
+   python scripts/spec/tracker_section.py
+   ```
+
+4. **Then repairs**, by DEFECT FAMILY — never per finding. The seven ON/OFF directive notes must agree with each
+   other or the inconsistency merely moves. After each family: re-run `python scripts/spec/extract_rule_catalog.py`
+   and confirm the page-anchor count is still 1261.
+
+5. **Then the grammar audit** — `.claude/workflows/spec-grammar-conformance.js`, §14 first (489 items). Remember a
+   diagram defect is TWO items: the transcription repair here, and a fix-queue COMPILER bug wherever the grammar
+   inherited it (proven on GOBACK).

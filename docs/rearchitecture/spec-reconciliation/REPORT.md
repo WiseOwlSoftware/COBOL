@@ -3,7 +3,7 @@
 > Merged from the per-agent files in this directory by `scripts/spec/merge_reconciliation.py`.
 > Each agent writes its own file before returning, so an interrupted run loses nothing.
 
-**1261 pages swept · 157 confirmed · 104 refuted · 85 unverified**
+**1261 pages swept · 159 confirmed · 104 refuted · 83 unverified**
 
 ## Confirmed — repair these
 
@@ -1846,6 +1846,23 @@ Secondary observation, worth noting for the sweep: 15.12.2 is additionally the b
 - **Repair:** Change '## 15.68.4 Returned value rules' to '### 15.68.4 Returned value rules'.
 - **Verifier:** Real, but the kind label 'missing-heading' is wrong and should be 'heading-level' (or 'wrong-heading-depth'). Nothing is missing: the heading '15.68.4 Returned value rules' is present at line 37121 with its number and title transcribed verbatim. The defect is its depth — it is emitted as H2 ('## 15.68.4 Returned value rules') while its three siblings in the same clause are H3 (15.68.1 at 37021, 15.68.2 at 37028, 15.68.3 at 37036) and its parent 15.68 is itself H2 at 37018. The fix is a one-character change, '##' -> '###', at line 37121. Note the PDF prints clause and subclause headings in effectively the same bold body-size style, so the level is established by the three-component section number rather than by typography — the claim's 'printed in the same subclause style as 15.68.1' overstates what the glyphs alone prove, though the conclusion it draws is correct. This is one instance of a small pattern: 15.67.4 (line 37005) and 15.69.4 (line 37189) carry the identical H2 defect, and all three should be swept in one change set; 15.69.4 additionally reads 'Returned values rules', which needs separate checking against its own page. Impact is confined to the derived outline/TOC and section-range extraction; no normative NUMVAL-C text is altered.
 
+### p949 · incorrect-figure · **structural**
+
+- **PDF:** FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST / LAST ] argument-2 argument-3 } ... )  -- printed as ONE tall square bracket enclosing FIRST stacked above LAST (verified at 300 dpi crop), i.e. a single optional choice of at most one of FIRST or LAST; no choice-indicator vertical bars are present inside either the brace or the bracket. FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are all underlined (required words).
+- **Markdown:** ```
+FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST ] argument-2 argument-3 } ... )
+                                               [ LAST  ]
+```
+- **Why:** The one tall stacked-alternatives bracket has been transcribed as TWO independent square brackets, one under the other. Read literally that permits both FIRST and LAST to be specified in the same argument group, which the printed diagram forbids (a bracket around stacked alternatives without choice-indicator bars means AT MOST ONE, 5.2.6.4). The transcription is also the only general format in clause 15 on these pages that uses ad-hoc two-line ASCII brackets instead of the tall-delimiter convention the rest of the file uses (e.g. 15.65.2 MODULE-NAME uses the U+23A7..U+23AD stacked delimiters plus a 'Figure notes' paragraph), and it carries no Figure notes. The required-word underlining on FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST is also dropped, although 15.92.2 on page 955 preserves it.
+- **Repair:** Re-render the format with the tall stacked-bracket convention used elsewhere in the file, e.g.
+```
+                                             ⎡ FIRST ⎤
+FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] ⎢       ⎥ argument-2 argument-3 } ... )
+                                             ⎣ LAST  ⎦
+```
+and add a Figure notes line: the bracket is a single notation bracket with NO choice indicators, so at most one of FIRST or LAST may be specified; FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined (required words) in the printed standard.
+- **Verifier:** REAL, structural, as described, with two refinements. (1) The core finding stands exactly: PDF page 949 section 15.87.2 prints ONE tall square bracket spanning both rows and enclosing FIRST stacked above LAST (5x crop of the 300 dpi render: single left bracket with top and bottom serifs crossing both rows, matching single right bracket, both words underlined, and NO choice-indicator vertical bars anywhere in the figure -- neither in the `{ }` brace nor in the bracket), i.e. an optional at-most-one choice; specs/ISO_COBOL.md lines 38006-38009 transcribe it as two independent ASCII bracket pairs `[ FIRST ]` / `[ LAST  ]` on consecutive lines. (2) The strongest proof that this changes meaning is internal to the transcription, not just ISO 5.2.6.4: this file uses stacked one-per-line `[ X ]` / `[ Y ]` brackets precisely for independent CO-OCCURRING optional clauses (`[ FULL ]` / `[ AUTO ]` / `[ SECURE ]` / `[ REQUIRED ]` in the screen description entry, lines 17085-17091 and 17148-17151), and reserves the tall U+23A1..U+23A6 delimiters for optional stacked ALTERNATIVES -- including the structurally identical FUNCTION TRIM format nine sections later at 15.96.2 (lines 38499-38505: `⎡ LEADING ⎤` / `⎣ TRAILING ⎦` plus a Figure notes paragraph). (3) Two further losses: the second line `[ LAST  ]` sits outside every enclosing delimiter, since the `}`, the `...` and the closing `)` appear only on line 1, so the lower alternative is not shown as being within the repeating brace group; and there is neither `<u>` markup nor a Figure notes paragraph, so the required-word underlining on FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST is dropped with nothing recording it. Fix: render 15.87.2 in the file's tall-delimiter convention, e.g. `FUNCTION SUBSTITUTE ( argument-1 ⎧ [ ANYCASE ] ⎡ FIRST ⎤ argument-2 argument-3 ⎫ ... )` with `⎣ LAST  ⎦` on the continuation row inside the brace, and add a Figure notes paragraph stating that no choice indicators appear, that the FIRST/LAST bracket is a plain bracket (zero or one), and that FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined required words. The same defect class should be swept for elsewhere in clause 15 -- the NUMVAL-family figures at lines 36965-36977 stack `[ + ]` / `[ - ]` / `[ CR ]` / `[ DB ]` the same ad-hoc way.
+
 ### p1018 · misplaced-content · **structural**
 
 - **PDF:** Page 1018 (printed 988) ends with "Psalter_Pahlavi:
@@ -2203,6 +2220,14 @@ Fix: delete both U+0020 characters. Severity should be raised from 'cosmetic' to
 - **Repair:** Change the 15.93.2 general format line to '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'.
 - **Verifier:** Claim is accurate as written; no correction needed to its substance. Two refinements for the ledger: (a) the defect is precisely a lost <u> wrapper on the function-name token, which under 5.2.4/5.2.5 reclassifies TEST-NUMVAL from keyword to optional word in the transcription's metalanguage -- so 'no syntax is made illegal' is right, but the file does make a false permissive assertion (that the name may be omitted), which is why it is worth fixing rather than waiving; (b) sibling sweep: this is one of exactly two exceptions among 20 '<u>FUNCTION</u> ...' general-format lines in specs/ISO_COBOL.md. The other is line 34556 on page 859, '<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )', which is an unverified suspect for the identical defect class and should be rendered and checked in the same pass. Fix for this page: line 38296 becomes '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'.
 
+### p961 · other · **cosmetic**
+
+- **PDF:** (FUNCTION LENGTH (argument-1) + 1).
+- **Markdown:** (FUNCTION LENGTH (argument-1) + 1)**.**
+- **Why:** A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.**' inside an arithmetic expression, and '**' is COBOL's exponentiation operator, so a reader or extraction tool taking the expression verbatim can misparse it. The sibling occurrence in 15.94.4 c) on page 958 is transcribed correctly as '(FUNCTION LENGTH (argument-1) + 1).'.
+- **Repair:** Replace '(FUNCTION LENGTH (argument-1) + 1)**.**' with '(FUNCTION LENGTH (argument-1) + 1).'
+- **Verifier:** Accurate as filed, with one rationale caveat. Confirmed: specs/ISO_COBOL.md line 38466 has '(FUNCTION LENGTH (argument-1) + 1)**.**' where PDF page 961 (printed 931, 15.95.4 c) has plain '(FUNCTION LENGTH (argument-1) + 1).'; font-run inspection shows the line is one non-bold Cambria span and the page's only bold run is its running header, so the emphasis is pure OCR noise -- consistent with the two identical sentences at lines 38324 (15.93.4, page 957) and 38393 (15.94.4, page 958), both transcribed plain. Caveat on the stated impact: the practical risk is narrower than 'a reader can misparse it' suggests -- rendered markdown shows the same sentence and no normative content changes, so the exposure is limited to tooling that greps the RAW markdown for the returned-value expression and would capture '+ 1)**.**', where '**' collides with COBOL's exponentiation operator. Cosmetic severity is correct.
+
 ### p1124 · incorrect-text · **cosmetic**
 
 - **PDF:**        >* next statement            ...            >*   to next statement      (the words 'next statement' are printed in bold monospace inside the PERFORM code example)
@@ -2217,7 +2242,6 @@ Recommended repair: strip the two '**' pairs at lines 45186 and 45200 so the cod
 
 ## Unverified claims — NOT yet actionable
 
-- p949 · incorrect-figure · structural — The one tall stacked-alternatives bracket has been transcribed as TWO independent square brackets, one under the other. Read literally that permits both FIRST and LAST to be specified in the same argu
 - p1006 · missing-heading · structural — These subsections are emitted at the same markdown level as their own parent A.4 and as '## Annex A' / '## Annex B', so any generated table of contents or section-tree walk makes A.4.4-A.4.7 peers of 
 - p1007 · missing-heading · structural — Continuation of the same wrongly-levelled heading run: these four subsections of A.4 are emitted at level 2, the level of their parent A.4 and of the annex headings, while the immediately following A.
 - p1010 · misplaced-content · structural — The script-name label 'Ahom:' that heads page 981 has been appended to the last data line of page 980, so the Adlam range line now reads as though it ended with the token 'Ahom:' and the Ahom range 11
@@ -2283,7 +2307,6 @@ Recommended repair: strip the two '**' pairs at lines 45186 and 45200 so the cod
 - p1258 · misplaced-content · structural — Every sub-entry indent on this page is dropped. The five opening lines are indented in the PDF because they continue the 'Transfer of control 539' entry begun at the foot of page 1257; flattened, 'GOB
 - p1260 · summarised-not-transcribed · structural — Transcription-tool meta-text left in the spec file. The substance of the observation is correct — page 1260 really is blank — so no normative content is lost here and this is not a content defect. But
 - p1261 · misplaced-content · structural — Two lines of Annex E.3.2 normative-looking text (the new-exception-condition lists for Asynchronous messaging and for Commit and Rollback) are appended to the back cover, where the PDF prints nothing 
-- p961 · other · cosmetic — A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.*
 - p1052 · misplaced-content · cosmetic — In the markdown, 'SELECT CHNG-FILE' and its two preceding comment lines sit at 8 spaces - the SAME column as 'I-O-CONTROL.', 'DATA DIVISION.' and 'FD  STCK-FILE.' - whereas the PDF indents them four c
 - p1053 · incorrect-text · cosmetic — The PDF prints 'PIC S9(7' with NO closing right parenthesis - verified by cropping and zooming the line (E:/Temp/specrecon/f9/crop1053_workqty.png); the adjacent COMMIT-FREQUENCY line on the same page
 - p1073 · incorrect-text · cosmetic — The PDF prints the identification entry without the separator period after FUNCTION-ID (an ISO typesetting defect in this informative example); the markdown silently repairs it. The transcription is m
