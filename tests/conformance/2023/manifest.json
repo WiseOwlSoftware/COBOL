@@ -51,7 +51,8 @@
     "ec_external_file_mismatch",
     "ec_external_data_mismatch",
     "altkey_suppress_when",
-    "wave_h_facilities_inert"
+    "wave_h_facilities_inert",
+    "optional_words_mcs"
   ],
   "pending": []
 }

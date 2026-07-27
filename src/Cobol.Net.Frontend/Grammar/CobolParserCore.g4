@@ -686,8 +686,17 @@ statement
 //   [| ON EXCEPTION … |] [| NOT ON EXCEPTION … |] [ END-RECEIVE ]
 // RECEIVED is not in §8.9's reserved list and is not a §8.10 context-sensitive word either — the standard
 // simply never classifies it (recorded as a P14 Step-0 GAP row); matched as cobolWord, which is safe here.
+// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 732: RECEIVE, GIVING,
+// CONTINUE, MESSAGE and RECEIVED carry underline rules; FROM carries NONE, so FROM may be omitted.
+//
+// ⚠ AFTER and SECONDS are NOT made optional here even though page 732 prints them without underlines, because
+// THE STANDARD CONTRADICTS ITSELF about them. On page 634 — 14.9.9.2, the CONTINUE statement's OWN defining
+// general format — AFTER and SECONDS ARE underlined while CONTINUE is not; page 732 is exactly inverted. One of
+// the two pages is a typesetting defect, and page 634 is the defining occurrence, so it wins. It is also the
+// only reading that makes sense: with AFTER and SECONDS optional, `CONTINUE 5` would be legal and meaningless.
+// Recorded in specs/ISO_COBOL.md at both pages rather than silently resolved.
 mcsReceiveStatement
-    : RECEIVE FROM dataReference GIVING dataReference dataReference
+    : RECEIVE FROM? dataReference GIVING dataReference dataReference
       (CONTINUE AFTER (arithmeticExpression SECONDS | MESSAGE cobolWord))?
       mcsExceptionPhrases?
       END_RECEIVE?
@@ -695,8 +704,10 @@ mcsReceiveStatement
 
 // ISO §14.9.38.2 — Format 1 (to-message-server) and Format 2 (message-server-response), merged: they differ
 // only in the RETURNING vs RAISING tail, both optional here, which keeps one rule for one statement.
+// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 756, in BOTH send formats:
+// SEND, FROM, RETURNING and RAISING carry underline rules; TO carries none, so it may be omitted.
 mcsSendStatement
-    : SEND TO (literal | dataReference) FROM dataReference
+    : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION))?
       mcsExceptionPhrases?
