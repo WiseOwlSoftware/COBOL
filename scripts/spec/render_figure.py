@@ -183,10 +183,75 @@ def build(page, lo, hi, extract, classify_page):
     return grid, marks
 
 
+def find_bands(page, extract, gap=20.0):
+    """⚠ EXPERIMENTAL AND NOT YET RELIABLE — use an explicit --band for anything that matters.
+
+    Locate the general-format figures on a page without being told where they are.
+
+    Known failures, all seen on pages 632 and 784: it splits ONE figure into several (a statement's first line
+    lands in a different band from its bracket group), and it merges a trailing `[ END-xxx ]` line into an
+    adjacent exception group, where the bracket then draws straight through it. Row spacing inside a general
+    format varies more than the spacing BETWEEN formats, so a gap threshold cannot separate them; the fix is
+    probably to key off the clause structure (each `14.9.N.2 General format` heading and the labelled
+    `Format N (...)` lines that follow) rather than off geometry. Left in place because the geometry half is
+    sound and worth keeping, but the output must be eyeballed.
+
+    A figure ROW is one whose lower-case terms are all hyphenated (identifier-1, rounded-phrase); prose rows are
+    full of plain words. Contiguous runs of figure rows, separated by more than `gap` points, are the figures.
+    Running headers are dropped explicitly — they contain no plain lower-case word either.
+    """
+    rows = collections.defaultdict(list)
+    for w in extract(page):
+        rows[round(w["y0"] / 3)].append(w)
+    ys = []
+    for r in rows.values():
+        text = " ".join(x["text"] for x in sorted(r, key=lambda x: x["x0"]))
+        if re.search(r"ISO/IEC\s*1989", text):
+            continue                                   # running header
+        if re.match(r"^\d+(\.\d+)+", text) or re.match(r"^Formats?\s+\d", text):
+            continue                                   # a clause heading or a "Format N (...)" label, not a figure
+        if any(re.fullmatch(r"[a-z]{2,}", x["text"].strip(" []{}.,;:()")) for x in r):
+            continue                                   # a plain lower-case word: prose
+        if not re.search(r"[a-z]+-[a-z0-9]|[A-Z]{2,}", text):
+            continue                                   # neither an operand nor a reserved word
+        ys.append(min(x["y0"] for x in r))
+    if not ys:
+        return []
+    ys.sort()
+    bands, start, prev = [], ys[0], ys[0]
+    for y in ys[1:]:
+        if y - prev > gap:
+            bands.append((start - 6, prev + 14))
+            start = y
+        prev = y
+    bands.append((start - 6, prev + 14))
+    return [b for b in bands if b[1] - b[0] > 8]
+
+
+def emit(grid, marks, plain_only):
+    plain = ["".join(r).rstrip() for r in grid]
+    out = list(plain)
+    if not plain_only:
+        for r in range(len(out)):
+            for c, ln in sorted(marks[r], reverse=True):
+                if c < len(out[r]):
+                    out[r] = out[r][:c] + "<u>" + out[r][c:c + ln] + "</u>" + out[r][c + ln:]
+        # The tags must occupy NO layout, or every column after them shifts. Proving that is what makes it safe
+        # to run this over 254 figures rather than eyeballing each one.
+        if [re.sub(r"</?u>", "", l) for l in out] != plain:
+            sys.exit("FATAL: inserting <u> changed the laid-out text — alignment would be wrong")
+    print("<pre>")
+    for l in out:
+        print(l)
+    print("</pre>")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("page", type=int, help="PDF page number (printed folio + 30)")
-    ap.add_argument("--band", nargs=2, type=float, required=True, metavar=("Y0", "Y1"))
+    ap.add_argument("--band", nargs=2, type=float, metavar=("Y0", "Y1"))
+    ap.add_argument("--auto", action="store_true",
+                    help="EXPERIMENTAL: guess the figure bands (fragments figures; see find_bands)")
     ap.add_argument("--plain", action="store_true", help="omit the <u> tags")
     args = ap.parse_args()
     try:
@@ -203,26 +268,27 @@ def main() -> int:
     from figure_geometry import classify_page
 
     doc = fitz.open(PDF)
-    grid, marks = build(doc[args.page - 1], args.band[0], args.band[1], extract, classify_page)
+    page = doc[args.page - 1]
+
+    if args.auto:
+        bands = find_bands(page, extract)
+        if not bands:
+            sys.exit("no general-format figure found on this page")
+        for n, (lo, hi) in enumerate(bands, 1):
+            g, m = build(page, lo, hi, extract, classify_page)
+            if g is None:
+                continue
+            print(f"<!-- figure {n} of {len(bands)}, y {lo:.0f}–{hi:.0f} -->")
+            emit(g, m, args.plain)
+        return 0
+
+    if not args.band:
+        ap.error("give --band Y0 Y1, or --auto")
+    grid, marks = build(page, args.band[0], args.band[1], extract, classify_page)
     if grid is None:
         sys.exit("no figure content in that band")
 
-    plain = ["".join(r).rstrip() for r in grid]
-    out = list(plain)
-    if not args.plain:
-        for r in range(len(out)):
-            for c, ln in sorted(marks[r], reverse=True):
-                if c < len(out[r]):
-                    out[r] = out[r][:c] + "<u>" + out[r][c:c + ln] + "</u>" + out[r][c + ln:]
-        # The tags must occupy NO layout, or every column after them shifts. Proving that is what makes it safe
-        # to run this over 254 figures rather than eyeballing each one.
-        if [re.sub(r"</?u>", "", l) for l in out] != plain:
-            sys.exit("FATAL: inserting <u> changed the laid-out text — alignment would be wrong")
-
-    print("<pre>")
-    for l in out:
-        print(l)
-    print("</pre>")
+    emit(grid, marks, args.plain)
     return 0
 
 
