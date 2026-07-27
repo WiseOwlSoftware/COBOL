@@ -91,7 +91,11 @@
 
 | Doc | Type | Subject |
 |---|---|---|
-| `specs/ISO_COBOL.md` | SPEC | The ISO/IEC 1989:2023 COBOL standard (private submodule). The authority for all syntax/semantics/behavior — cite the §. `git submodule update --init --recursive`. |
+| `specs/ISO_COBOL.md` | SPEC | The ISO/IEC 1989:2023 COBOL standard, transcribed. The authority for all syntax/semantics/behavior — cite the §. **PUBLIC** (in this repo). Opens with a Preface carrying ISO's acknowledgment, and closes with an **Addendum listing every correction with the printed form**, so each is reversible. Page citations are PRINTED FOLIOS; the `#page-N` anchors are PDF sequence = folio + 30. |
+| `specs-private/…​.pdf` | SPEC | The licensed PDF, **private submodule** — per-copy licence, not redistributable. `git submodule update --init specs-private`. Needed only by the tools that MEASURE the printed page. |
+| `docs/rearchitecture/spec-reconciliation/PDF-TEXT-LAYER.md` | REFERENCE | Why the PDF's text was unreadable (missing `/ToUnicode`, NOT obfuscation) and how it was recovered. Read before touching `pdf_deobfuscate.py`. |
+| `docs/rearchitecture/spec-reconciliation/FIGURE-STYLE.md` | DESIGN | How a general format is DRAWN — glyph family, brackets vs braces, bar spacing, minimum row count, and the `line-height: 1` requirement. Settled by rendering, not reasoning; several rules are counter-intuitive. Read before changing `render_figure.py`. |
+| `docs/rearchitecture/spec-reconciliation/REPAIR-PLAN.md` | PLAN | The transcription repair batches, their order and mechanism, and the measure-don't-squint rules. |
 
 ## Derived knowledge base (Obsidian vault at `kb/`)
 

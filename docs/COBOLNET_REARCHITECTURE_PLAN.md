@@ -24,6 +24,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
+- **⛔ THE REPO LAYOUT CHANGED 2026-07-27.** `specs/` is now an ORDINARY PUBLIC DIRECTORY holding
+  `specs/ISO_COBOL.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
+  The Markdown path is unchanged, so all 1,663 spec citations still resolve. Tools that MEASURE the printed page
+  resolve `specs-private/` and say so if it is absent: `git submodule update --init specs-private`.
+- **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
+  sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
+  either way and are the better citation.
 - **Branch `phase-14`** (clean, pushed). `main` = `1f56f572` — the PHASE-13 grammar batch + Wave-D directives +
   Track ③ PERFORM Format-3 runtime, merged 2026-07-22. P13 core is on `main`; the P13 residue + P14 proceed here.
 - **THE WORK = the spec-first CONFORMANCE FIX-QUEUE.** SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` — **its
@@ -44,26 +51,33 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
-3. **SPEC RECONCILIATION — the transcription is repaired far enough to derive from; the PDF now DECODES.**
-   - **⛔ THE PDF WAS NEVER OBFUSCATED.** 16 of 26 fonts were Identity-H subsets carrying **no `/ToUnicode` CMap**,
-     so extractors emitted raw glyph indices (which print as Greek). Recovered by matching glyph OUTLINES against
-     the stock Windows fonts and injected; the PDF in `specs/` now extracts, copies and greps, with the
-     publisher's bytes preserved verbatim (incremental save, 34 KB delta, zero pixel change across 53 hashed
+3. **SPEC RECONCILIATION — the transcription is repaired far enough to derive from, and is PUBLISHED.**
+   - **⛔ THE PDF WAS NEVER OBFUSCATED.** 16 of 26 fonts were Identity-H subsets carrying **no `/ToUnicode`
+     CMap**, so extractors emitted raw glyph indices (which print as Greek). Recovered by matching glyph OUTLINES
+     against the stock Windows fonts and injected. The standard now extracts, copies and **greps**, with the
+     publisher's bytes preserved verbatim (incremental save, 34 KB delta, zero pixel change over 53 hashed
      pages). Regenerate: `scripts/spec/pdf_deobfuscate.py --write out.pdf --verify`. Write-up:
-     `docs/rearchitecture/spec-reconciliation/PDF-TEXT-LAYER.md`.
-   - **MEASURE the page; do not squint at it.** `figure_geometry.py` reads bracket / choice-indicator-bar
-     rectangles; `figure_extract.py` reads which WORDS are underlined; `audit_underlining.py`,
-     `audit_figure_text.py` and `audit_grammar_optional_words.py` run those whole-standard.
-   - **Three classes swept whole-standard, all essentially clean** — choice indicators **30/30**; underlining
-     **0 defects in 2,215 tokens over 694 pages**; figure words **1 finding in 15,625 tokens over 820 pages**, and
-     that one is ISO's own typo. ⚠ **My CHECKERS were buggier than the transcription** — the figure-text audit
-     went 76 findings → 1 as three separate tool bugs were removed, and the underlining audit accused two CORRECT
-     pages. **Confirm every measured "defect" against the raw rectangles before changing anything.**
-   - Ledger/SSOT `docs/rearchitecture/spec-reconciliation/`; order + mechanism in `REPAIR-PLAN.md`.
-     **Batch 1 (normative) sub-batches 1-2 DONE**; outer brackets + the remaining underlining findings OUTSTANDING.
-     Batches 2-5 (anchors/TOC, misplaced content, cosmetic, page-break furniture) OUTSTANDING.
-   - **A diagram defect is TWO items** — the markdown AND, possibly, a grammar written from it. **Batch 1's exit
-     criterion is now PROVEN and yielding: SR1 and SR2 in the fix queue.**
+     `spec-reconciliation/PDF-TEXT-LAYER.md`.
+   - **MEASURE the page; never squint at it.** `figure_geometry.py` reads bracket / choice-indicator-bar
+     rectangles · `figure_extract.py` reads which WORDS are underlined · `audit_underlining.py`,
+     `audit_figure_text.py`, `audit_figure_structure.py`, `audit_grammar_optional_words.py` run those
+     whole-standard · `render_figure.py` regenerates a figure from measurement.
+   - **Four classes swept whole-standard, all essentially clean:** choice indicators **30/30** · underlining
+     **0 defects in 2,215 tokens over 694 pages** · figure words **1 finding in 15,625 tokens over 820 pages**
+     (and that one is ISO's own typo) · figure STRUCTURE 46 of 161 pages flagged, an **upper bound** dominated by
+     layout conventions, not a defect count.
+   - **⚠ MY CHECKERS WERE BUGGIER THAN THE TRANSCRIPTION.** The figure-text audit went 76 findings → 1 as three
+     separate tool bugs came out; the underlining audit accused two CORRECT pages. **Confirm every measured
+     "defect" against the raw rectangles before changing anything.**
+   - **PUBLISHED.** `specs/ISO_COBOL.md` is in the public repo under the page-28 grant, opening with a Preface
+     carrying ISO's acknowledgment verbatim and closing with an **Addendum** listing every correction beside the
+     printed form so each is reversible. Gates: `verify_acknowledgment.py` (needs the PDF) and
+     `verify_publishable.py` (deliberately does NOT, so it runs in the public repo).
+   - Batch 1 sub-batches 1–2 DONE; outer brackets + remaining underlining findings OUTSTANDING. Batches 2–5
+     (anchors/TOC, misplaced content, cosmetic, page-break furniture) OUTSTANDING. Order and mechanism:
+     `spec-reconciliation/REPAIR-PLAN.md`.
+   - **Batch 1's exit criterion is PROVEN and yielding — SR1 and SR2 in the fix queue.**
+
 4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic) — STARTED, and the first vein is OPTIONAL WORDS.**
    **1,659 items: 321 general formats (432 numbered Formats) + 1,338 syntax rules.** Each divergence carries the
    EXACT ISO syntax its fix implements and becomes a fix-queue bug against the `.g4`.
@@ -78,7 +92,25 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      cheapest signal of all is **the grammar disagreeing with itself** about the same word.
    - Suggested order: §14 (489 items) first — GOBACK lives there and a too-restrictive statement rule bites
      hardest.
-5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
+5. **FIGURE RENDERING — style SETTLED, generator WORKS, band detection DOES NOT.**
+   `spec-reconciliation/FIGURE-STYLE.md` fixes how a general format is drawn: `<pre>` not a fence (a fence cannot
+   carry underlining) · BOX DRAWING only (no Windows monospace font contains U+23A1–U+23AD, so those glyphs
+   force per-glyph fallback and columns drift) · square brackets, curved braces with their point · `│` bars kept
+   one space clear · **minimum three rows per group** · **`line-height: 1`**, without which the strokes do not
+   tile. Every rule was settled by RENDERING candidates; four of six were found by the owner spotting a defect
+   invisible in the markup.
+   - `render_figure.py` generates a figure correctly **from an explicit `--band`** — ACCEPT Format 3 comes out at
+     its true SEVEN rows, which every hand-built version got wrong. It asserts that stripping the `<u>` tags
+     reproduces the laid-out text, which is what makes a 254-figure sweep safe.
+   - **⚠ `--auto` band detection is EXPERIMENTAL and broken**: it splits one figure across bands and merges a
+     trailing `[ END-xxx ]` into an adjacent group. Row spacing WITHIN a format varies more than between formats,
+     so no gap threshold works; the fix is to key off the clause structure (`14.9.N.2 General format` and the
+     `Format N (…)` labels), not geometry.
+   - **NEXT:** rewrite `find_bands` against clause structure → emit a TEST SHEET of ~12 real figures of differing
+     shapes (statement, data-description clause list, report-writer) → only then sweep the 254, as
+     regenerate-and-diff so every change is reviewable.
+
+6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
    denominator — **3,790 items** (1338 SR · 1470 GR · 216 AR · 223 RV · 222 Annex-A.1 doc obligations · 321 general
    formats), validated against the canonical PDF and cross-checked against the spec's own TOC. The traceability
