@@ -52,7 +52,12 @@ FAMILIES = [
 def build(ledger: dict) -> str:
     confirmed = ledger.get("confirmed", [])
     swept = ledger.get("pages_swept", [])
-    complete = len(swept) >= TOTAL_PAGES
+    # TWO independent conditions for "final", because they fail differently. Sweeping every page says the SEARCH
+    # is complete; zero unverified says every claim has been ADJUDICATED. An earlier version checked only the
+    # first, so a fully-swept run with outstanding verdicts would have rendered as final — publishing hypotheses
+    # as work items, and acting on one risks "fixing" correct text.
+    unverified = ledger.get("unverified", [])
+    complete = len(swept) >= TOTAL_PAGES and not unverified
 
     assigned: set[int] = set()
     buckets: list[tuple[str, list[dict]]] = []
@@ -67,9 +72,16 @@ def build(ledger: dict) -> str:
     for f in confirmed:
         by_sev[f["severity"]] += 1
 
-    status = ("**Sweep COMPLETE** — all %d pages reconciled." % TOTAL_PAGES if complete
-              else "⚠ **Sweep IN PROGRESS — %d of %d pages reconciled. This list is NOT final; do not start "
-                   "repairs until it is.**" % (len(swept), TOTAL_PAGES))
+    if complete:
+        status = "**COMPLETE** — all %d pages reconciled, every claim adjudicated." % TOTAL_PAGES
+    elif len(swept) < TOTAL_PAGES:
+        status = ("⚠ **Sweep IN PROGRESS — %d of %d pages reconciled. This list is NOT final; do not start "
+                  "repairs until it is.**" % (len(swept), TOTAL_PAGES))
+    else:
+        status = ("⚠ **All %d pages swept, but %d claim(s) still have NO adversarial verdict. This list is NOT "
+                  "final.** An unverified claim is a hypothesis — repairing one risks \"fixing\" correct text. "
+                  "Finish verification first (see the RESUME POINT in "
+                  "`docs/rearchitecture/spec-reconciliation/README.md`)." % (TOTAL_PAGES, len(unverified)))
 
     out = [BEGIN, "",
            "## C. Spec transcription corrections (%d confirmed — repair the markdown, not the compiler)" % len(confirmed),
