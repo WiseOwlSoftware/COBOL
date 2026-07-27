@@ -1,0 +1,25 @@
+{
+  "batch": [464, 465, 466, 467, 469, 470, 472, 473, 474, 475, 476, 477],
+  "pages_checked": [464, 465, 466, 467, 469, 470, 472, 473, 474, 475, 476, 477],
+  "note": "No general-format / syntax-skeleton figure appears on any page of this batch. PDF printed pages 434-447 (OCCURS general rules, PAGE general rules, PICTURE syntax+general rules) are continuous prose and numbered rule lists only; the OCCURS and PICTURE general-format diagrams fall on the adjacent pages 463, 468 and 471, which are not in this batch. The choice-indicator (5.2.6.4 vertical-bar) defect class therefore had no surface to appear on here. Both findings below are cosmetic transcription-convention outliers, not normative losses.",
+  "findings": [
+    {
+      "page": 466,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "FORMAT 4",
+      "markdown_says": "## FORMAT 4",
+      "why_it_matters": "In the PDF, 'FORMAT 4' at the foot of printed page 436 is an ordinary body-weight paragraph label, typographically identical to 'FORMAT 1' / 'FORMAT 2' / 'FORMAT 3' (which the transcription correctly renders as plain text on pages 464, 465, 472, 474 and 475). Promoting it to an H2 injects a spurious document-structure heading at exactly the same level as the '## Page N' navigational scaffolding, so any heading-driven TOC, outline or section-extraction over ISO_COBOL.md gains a bogus 'FORMAT 4' section and the true clause boundary is mis-anchored. It is also internally inconsistent: only 8 of the ~200 'FORMAT n' labels in the file are promoted this way.",
+      "suggested_repair": "Replace the line '## FORMAT 4' with the plain line 'FORMAT 4', matching how FORMAT 1/2/3 are transcribed on the surrounding pages. Sweep the other 7 '^#+\\s*FORMAT \\d' occurrences in specs/ISO_COBOL.md for the same defect."
+    },
+    {
+      "page": 470,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "e) If FOOTING is omitted, integer-7 will be equal to integer-6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer-1.  ...  4) A report heading or report footing on a page by itself may occupy any region of the page from HEADING integer-3 through the page limit integer-1 ...  5) If integer-2 is omitted, a value of 999 is assumed for the page width.  [all hyphens printed as ordinary U+002D HYPHEN-MINUS]",
+      "markdown_says": "e) If FOOTING is omitted, integer‑7 will be equal to integer‑6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer‑1.  ...  4) A report heading or report footing on a page by itself may occupy any region of the page from HEADING integer‑3 through the page limit integer‑1 ...  5) If integer‑2 is omitted, a value of 999 is assumed for the page width.  [all six hyphens are U+2011 NON-BREAKING HYPHEN, decimal 8209]",
+      "why_it_matters": "All six 'integer-N' references on this page use U+2011 instead of the ASCII hyphen the PDF prints. The immediately preceding page (469), part of the same clause 13.18.39.4 General rules, uses ASCII hyphens for the identical terms. A grep or citation lookup for 'integer-7' therefore finds general rules 3)c) and 3)d) on page 469 but silently misses general rule 3)e) on page 470 - a retrieval hole in the one document this project treats as the authority for correct behavior. Verified by codepoint dump: the character at that position is decimal 8209.",
+      "suggested_repair": "Normalize U+2011 to U+002D throughout the page-470 slice. There are 107 U+2011 characters in specs/ISO_COBOL.md overall against thousands of ASCII hyphens; sweep them all in one pass so no normative term is unreachable by exact-match search."
+    }
+  ]
+}

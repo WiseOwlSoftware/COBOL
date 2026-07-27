@@ -1,0 +1,25 @@
+{
+  "batch": [116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127],
+  "pages_checked": [116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127],
+  "notes": "Pages 116-127 cover 7.x TURN tail, 8.1 Character sets, 8.1.3 COBOL character repertoire (Table 1), 8.1.4/8.1.5, 8.2 Locales, 8.3 Lexical elements start. Despite the batch being selected as figure-bearing, NO general-format / syntax-skeleton diagrams appear on any of these pages - the only display objects are Table 1 (COBOL character repertoire, pp.120-121) and the two untitled locale-category / locale-field-name layout tables (pp.124-126). The priority defect class for this run (lost choice-indicator bars per 5.2.6.4, unbalanced brackets, misplaced ellipses, lost underlining) therefore has no instances to check on this batch. Prose, list numbering, cross-references (8.1.3, 14.6.6, 8.3.2.2, 8.3.2.3, Annex B, Annex C, ISO/IEC 646, ISO/IEC 10646, ISO/IEC 9945:2009 Clause 7), NOTE numbering (NOTE 1-6) and all table cells were compared verbatim and match.",
+  "findings": [
+    {
+      "page": 121,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "Table 1 - COBOL character repertoire (Continued) | Basic special characters | - | minus sign (hyphen) |  -- the glyph printed in the Character column is the hyphen-minus (U+002D), the same width as the crossbar of the '+' glyph printed directly above it, and the Meaning column names it '(hyphen)'.",
+      "markdown_says": "| | – | minus sign (hyphen) |   (specs/ISO_COBOL.md line 5111; the Character cell holds U+2013 EN DASH, confirmed by codepoint dump)",
+      "why_it_matters": "Table 1 is the normative enumeration of the COBOL character repertoire - it is the definitive list of which characters a conforming implementation must accept in source. Transcribing the basic special character as U+2013 EN DASH puts a character that is NOT in the repertoire into the normative list and drops the one that is. Anything derived mechanically from this table (a lexer character class, a reserved-symbol table, a repertoire conformance test) would accept EN DASH as the minus/hyphen and reject the actual hyphen-minus, which is also the hyphen permitted inside COBOL words per 8.3.2.1. The Meaning column's own words '(hyphen)' contradict the transcribed character, so the markdown is internally inconsistent as well.",
+      "suggested_repair": "Replace the U+2013 EN DASH in the Character cell of the 'minus sign (hyphen)' row of Table 1 (specs/ISO_COBOL.md line 5111) with an ASCII hyphen-minus '-' (U+002D). Sweep the rest of the file for U+2013/U+2014 appearing in Character/glyph positions of syntax tables and general formats, where the standard prints hyphen-minus."
+    },
+    {
+      "page": 120,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "8.1.3   COBOL character repertoire   (a level-3 subclause nested under 8.1 Character sets, which is nested under Clause 8 Language fundamentals)",
+      "markdown_says": "## 8.1.3 COBOL character repertoire   -- emitted at markdown level 2, i.e. SHALLOWER than its own parent '### 8.1 Character sets' (line 4973) and at the same level as the clause heading '## 8 Language fundamentals' (line 4967).",
+      "why_it_matters": "The heading depth is inverted relative to the standard's own numbering, so any tool that builds a table of contents, a section index, or a spec-citation resolver from the markdown headings will place 8.1.3 as a peer of Clause 8 rather than as a child of 8.1. The same inversion repeats on the neighbouring pages of this batch: '## 8.1.3.2 General rules' (p.121, line 5131) sits at level 2 while its sibling '### 8.1.3.1 General' (p.120, line 5082) sits at level 3; '## 8.1.4 Alphabets' and '## 8.1.5 Collating sequences' (p.123, lines 5178/5183) sit at level 2 while their siblings 8.1.1/8.1.2 sit at level 3; and '## 8.2.2 Locale field names' (p.125, line 5256) sits at level 2 while its sibling '### 8.2.1 General' (p.124, line 5210) sits at level 3. The heading TEXT and numbering are all correct - only the markdown level is wrong - so this is navigational, not normative. It appears to be a document-wide transcription pattern rather than a defect unique to these pages; fixing it should be done as one mechanical sweep, not page by page.",
+      "suggested_repair": "Derive the markdown heading level mechanically from the dotted section number (depth = number of dot-separated components, offset by the clause base level) and re-emit every numbered heading in specs/ISO_COBOL.md from that rule, so 8 -> level 2, 8.1 -> level 3, 8.1.3 -> level 4, 8.1.3.2 -> level 5. Do NOT hand-edit only the instances listed here."
+    }
+  ]
+}

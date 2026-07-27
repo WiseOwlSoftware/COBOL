@@ -14,10 +14,20 @@ Four registers describe remaining work. They drift independently unless moved to
 | `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 | live state: where we are, NEXT, gates, open GAPs | **the only live-state SSOT** |
 | `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` | the spec-derived defect queue | its LANDED header is the tally |
 | `tests/version-matrix/constructs.json` | per-construct edition metadata + status | authoritative for CI and drift tests |
-| `kb/Remaining Work Tracker.md` (Obsidian) | the human-facing checklist | **mirrors** the three above |
+| `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT |
+| `kb/Remaining Work Tracker.md` (Obsidian) | the human-facing checklist | **mirrors** the four above |
 
-The tracker covers **two distinct workstreams** — §A unimplemented ISO constructs (the `pending` rows of
-`constructs.json`) and §B the open remainder of the fix queue. Do not conflate them; they are different sets.
+The tracker covers **three distinct workstreams** — §A unimplemented ISO constructs (the `pending` rows of
+`constructs.json`), §B the open remainder of the fix queue, and §C spec-transcription corrections. Do not conflate
+them; they are different sets and they get fixed in different places. §A and §B change the COMPILER; **§C changes
+`specs/ISO_COBOL.md`** — the transcription, not the code. Where a transcription defect also reached the compiler,
+that is a separate §B item.
+
+§C is **generated** — `python scripts/spec/tracker_section.py` replaces the section between its HTML markers, so
+regenerating after another sweep never duplicates or drops content. Never hand-edit it; record findings in the
+ledger and regenerate. It is checkboxed by DEFECT FAMILY rather than per finding, for the same reason §B does not
+enumerate item IDs: individual findings drift, and they are not independently actionable anyway — the seven ON/OFF
+directive notes must be corrected together or the inconsistency between them merely moves.
 
 ## When a construct lands
 

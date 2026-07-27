@@ -1,0 +1,69 @@
+{
+  "batch": [272, 274, 276, 278, 280, 282, 284, 288, 290, 292, 294, 296],
+  "pages_checked": [272, 274, 276, 278, 280, 282, 284, 288, 290, 292, 294, 296],
+  "findings": [
+    {
+      "page": 288,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "where class-definition is:\n\n  [ IDENTIFICATION DIVISION. ]\n  CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n      [ INHERITS FROM { object-class-name-2 } ... ]\n      [ USING { parameter-name-1 }  ...  ] .\n\n  [ options-paragraph ]\n  [ environment-division ]\n  [ factory-definition ]\n  [ instance-definition ]\n  END CLASS object-class-name-1.\n\n(and likewise the 'where factory-definition is:' and 'where instance-definition is:' skeletons) -- three multi-line general-format skeletons whose line structure and indentation are load-bearing.",
+      "markdown_says": "where class-definition is:\n\n[ IDENTIFICATION DIVISION. ]\nCLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n　[ INHERITS FROM { object-class-name-2 } ... ]\n　[ USING { parameter-name-1 } ... ] .\n\n[ options-paragraph ]\n[ environment-division ]\n[ factory-definition ]\n[ instance-definition ]\nEND CLASS object-class-name-1.\n\n-- emitted as bare paragraph text with NO ``` code fence (ISO_COBOL.md lines ~12537-12566); indentation is a U+3000 IDEOGRAPHIC SPACE.",
+      "why_it_matters": "Every other general-format skeleton in this neighbourhood is fenced (page 287 program-definition, page 289 interface-definition/method-definition, page 294 CLASS-ID 11.3.2). Unfenced, CommonMark joins these consecutive lines into a single run-on paragraph and collapses the U+3000 indentation, so the class-definition/factory-definition/instance-definition skeletons render as one unreadable line and the nesting of INHERITS/USING under CLASS-ID is destroyed. Any tool or reader consuming the rendered markdown loses the figure.",
+      "suggested_repair": "Wrap all three skeletons on page 288 in ``` fences, matching the treatment already used on pages 287, 289 and 294, and replace the U+3000 indent with ordinary spaces."
+    },
+    {
+      "page": 288,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n    [ INHERITS FROM { object-class-name-2 } ... ]\n    [ USING { parameter-name-1 }  ...  ] .\n\n-- with underlining on IDENTIFICATION, DIVISION, CLASS-ID, AS, FINAL, INHERITS, USING, END, CLASS, FACTORY, IMPLEMENTS, OBJECT. IS and FROM are printed WITHOUT underlining (verified by cropping/zooming the rendered page at 300 dpi).",
+      "markdown_says": "CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n　[ INHERITS FROM { object-class-name-2 } ... ]\n　[ USING { parameter-name-1 } ... ] .\n\n-- all words plain text; no <u> markers and no 'Figure notes' paragraph recording which words are underlined.",
+      "why_it_matters": "Per the general-format conventions, an underlined reserved word is REQUIRED and a non-underlined reserved word is OPTIONAL and may be omitted. The PDF prints IS and FROM without underlining, so 'CLASS-ID. C-1 FINAL.' and 'INHERITS { object-class-name-2 } ...' are legal. With the underlining dropped, the markdown reads as though IS and FROM were mandatory -- the falsely-restrictive direction. The same loss applies to the factory-definition and instance-definition skeletons on this page.",
+      "suggested_repair": "Record the underlining for all three page-288 skeletons the way the transcription already does elsewhere: either <u>...</u> markers (as used at 11.4.2 on page 296, e.g. '<u>FACTORY</u>. [ <u>IMPLEMENTS</u> ...') or a '> **Figure notes ...** Underlined (required) words in the printed figure: ...' paragraph (as used for program-definition on page 287)."
+    },
+    {
+      "page": 294,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "11.3.2  General format\n\n  CLASS-ID.  object-class-name-1 [ AS literal-1 ]  [ IS  FINAL ]\n      [ INHERITS FROM { object-class-name-2 }  ... ]\n      [ USING { parameter-name-1 }  ... ] .\n\n-- underlining on CLASS-ID, AS, FINAL, INHERITS, USING; IS and FROM printed WITHOUT underlining.",
+      "markdown_says": "```\nCLASS-ID.  object-class-name-1 [ AS literal-1 ] [ IS  FINAL ]\n    [ INHERITS FROM { object-class-name-2 }  … ]\n    [ USING { parameter-name-1 }  … ] .\n```\n\n-- fenced, textually exact, but with no record of which words are underlined and therefore required.",
+      "why_it_matters": "This is the normative general format for the CLASS-ID paragraph. Losing the underlining erases the required/optional distinction: the standard permits 'CLASS-ID. C-1 FINAL.' (IS is an optional word) and 'INHERITS { C-2 }' (FROM is an optional word). A reader of the markdown alone would implement both as mandatory and reject legal source.",
+      "suggested_repair": "Add a 'Figure notes' line under the 11.3.2 fence recording the underlined (required) words -- CLASS-ID, AS, FINAL, INHERITS, USING -- and explicitly noting that IS and FROM are optional words. Apply the same to the other unannotated general-format fences in clause 11."
+    },
+    {
+      "page": 274,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "5)  For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that:\n\n    a)  is specified with the BY VALUE phrase\n\n[page break]\n\n    b)  if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.\n\n-- two separate lettered list items, a) ending the printed page and b) opening the next.",
+      "markdown_says": "   a) is specified with the BY VALUE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.\n\n(ISO_COBOL.md line 12016; the following line is the <a id=\"page-275\"></a> anchor, and page 275 begins directly at item 'c)')",
+      "why_it_matters": "Rule 5)b) has lost its status as an independent lettered rule: its label 'b)' is now mid-sentence inside rule 5)a), so a search for 'b)' under 14.8.2-style conformance rule 5 finds nothing and an automated rule extractor sees rule 5) as having items a), c), d) with a) carrying two unrelated requirements. The text itself is intact but the list structure is corrupted at the page seam.",
+      "suggested_repair": "Split ISO_COBOL.md line 12016 into two list items: '   a) is specified with the BY VALUE phrase' and, after a blank line, '   b) if the passed parameter is specified with the OMITTED phrase, ...'. Move item b) after the page-275 anchor if the transcription's convention is to place text on the page where it is printed."
+    },
+    {
+      "page": 276,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "9.3.7   Method prototypes\n...\n9.3.8   Conformance and interfaces\n9.3.8.1   General\n\n-- third-level subsections of 9.3 Objects, printed identically to 9.3.6 Method invocation which immediately precedes them.",
+      "markdown_says": "## 9.3.7 Method prototypes\n...\n## 9.3.8 Conformance and interfaces\n...\n### 9.3.8.1 General\n\n-- level 2, i.e. the SAME level as their parent '## 9.3 Objects' and one level above their own sibling '### 9.3.6 Method invocation'.",
+      "why_it_matters": "In the generated outline/TOC, 9.3.7 and 9.3.8 detach from 9.3 Objects and appear as peers of it, while 9.3.8.1 (level 3) then appears as a peer of 9.3.6. The section hierarchy the markdown advertises contradicts the numbering, so heading-level-driven navigation and any doc tooling that derives structure from '#' depth mis-nests this whole run of object-orientation rules.",
+      "suggested_repair": "Demote to '### 9.3.7 Method prototypes' and '### 9.3.8 Conformance and interfaces' (and correspondingly deepen 9.3.8.1 / 9.3.8.2.x). This is systematic -- sweep the whole file for headings whose '#' depth disagrees with their dotted number depth relative to their parent."
+    },
+    {
+      "page": 282,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "9.3.13   Parameterized interfaces\n...\n9.3.14   Object life cycle\n9.3.14.1   General\n...\n9.4   User-defined functions\n\n-- 9.3.13 and 9.3.14 are third-level subsections of 9.3, printed identically to 9.3.12 Parameterized classes; 9.4 is a second-level subclause of clause 9, printed identically to 9.1 Files.",
+      "markdown_says": "## 9.3.13 Parameterized interfaces\n...\n## 9.3.14 Object life cycle\n...\n### 9.3.14.1 General\n...\n## 9.4 User-defined functions\n\n-- 9.3.13/9.3.14 at level 2, the same level as their parent '## 9.3 Objects' and above their sibling '### 9.3.12 Parameterized classes'; 9.4 at level 2 while its sibling '### 9.1 Files' is level 3.",
+      "why_it_matters": "Same class of outline corruption as on page 276: 9.3.13 and 9.3.14 stop being children of 9.3, and 9.3.14.1 (level 3) becomes a peer of 9.3.12. The document's own numbering and its markdown nesting disagree, which breaks TOC generation and any structural navigation over the spec.",
+      "suggested_repair": "Demote '## 9.3.13' and '## 9.3.14' to '###' (deepening 9.3.14.1-9.3.14.3 accordingly), and make 9.2/9.3/9.4 agree in level with 9.1 Files. Part of the same document-wide heading-depth sweep."
+    },
+    {
+      "page": 290,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "10.6.3   General rule\n\n-- a third-level subsection of 10.6 COBOL compilation group, printed identically to 10.6.1 General format which precedes it.",
+      "markdown_says": "## 10.6.3 General rule\n\n-- level 2, the same level as its parent '## 10.6 COBOL compilation group' and above its sibling '### 10.6.1 General format'. ('## 10.6.2  Syntax rules', on page 289, has the same defect.)",
+      "why_it_matters": "10.6.3 detaches from 10.6 in the outline, so the general rule for compiling program/function prototype definitions no longer appears under the COBOL compilation group section that scopes it. Consistent with the same defect at 9.3.7/9.3.8 and 9.3.13/9.3.14.",
+      "suggested_repair": "Demote '## 10.6.3 General rule' (and '## 10.6.2  Syntax rules') to '###' so they sit under '## 10.6 COBOL compilation group' alongside '### 10.6.1 General format'."
+    }
+  ]
+}

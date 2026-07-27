@@ -1,0 +1,69 @@
+{
+  "batch": [143, 145, 146, 147, 148, 149, 153, 154, 156, 158, 160, 162],
+  "pages_checked": [143, 145, 146, 147, 148, 149, 153, 154, 156, 158, 160, 162],
+  "findings": [
+    {
+      "page": 154,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Format 2 (qualified-data-name-with-subscripts):\n\nqualified-data-name-with-subscripts-1\n\n[end of PDF page 154 / printed page 124; PDF page 155 then opens with]\n\nFormat 3 (reference-modification):\n\nidentifier-1 reference-modifier-1",
+      "markdown_says": "Format 2 (qualified-data-name-with-subscripts):\n\nqualified-data-name-with-subscripts-1 Format 3 (reference-modification):\n\n<a id=\"page-155\"></a>\n## Page 155\n**ISO/IEC 1989:2023 (E)**\n\n\nidentifier-1 reference-modifier-1",
+      "why_it_matters": "8.4.3.1.2 General format is the identifier general-format figure. The Format 3 label is glued onto the end of the Format 2 general-format skeleton line, so the transcription reads as though the Format 2 skeleton were 'qualified-data-name-with-subscripts-1 Format 3 (reference-modification):' and Format 3 has no label of its own -- the skeleton 'identifier-1 reference-modifier-1' at the top of page 155 is left orphaned with no format heading. Anyone deriving the identifier formats from the markdown loses the Format 2 / Format 3 boundary. The label is also on the wrong side of the page-155 anchor (it is printed at the top of page 155, not the bottom of 154).",
+      "suggested_repair": "At E:/CobolSharp/specs/ISO_COBOL.md line 6678, split the run-together line: leave 'qualified-data-name-with-subscripts-1' alone on line 6678, and move 'Format 3 (reference-modification):' to its own paragraph immediately AFTER the <a id=\"page-155\"></a> / ## Page 155 / **ISO/IEC 1989:2023 (E)** block, directly above 'identifier-1 reference-modifier-1'."
+    },
+    {
+      "page": 146,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "FORMAT 1  [plain body-face paragraph label at the left margin, same roman body font and weight as the numbered rules; NOT bold, NOT a numbered clause heading -- contrast '8.3.3.6.4  General rules' which is set bold]. Likewise FORMAT 2, FORMAT 3, FORMAT 4 on this page.",
+      "markdown_says": "## FORMAT 1\n...\n## FORMAT 2\n...\n## FORMAT 3\n...\n## FORMAT 4   (ISO_COBOL.md lines 6280, 6284, 6288, 6298)",
+      "why_it_matters": "These four labels are invented level-2 headings that do not exist as headings in the PDF. They become peers of the real clause headings (## 8.4 References, ## 8.3.3.6.3 Syntax rules), so 'FORMAT 1' appears in the document outline as a top-level section and the general rules 4)-7) get detached from their owning clause 8.3.3.6.4. Everywhere else in the transcription the same label is plain text: 209 occurrences match '^FORMAT [0-9]' while only 8 are '^## FORMAT [0-9]' -- these 4 plus 4 more at lines 19800, 25360, 28029, 28033.",
+      "suggested_repair": "Demote all four to plain paragraphs ('FORMAT 1', 'FORMAT 2', 'FORMAT 3', 'FORMAT 4') to match the 209 other FORMAT labels in the file. Sweep the remaining 4 occurrences at lines 19800, 25360, 28029 and 28033 in the same change set."
+    },
+    {
+      "page": 154,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.4.2.3.4  General rules / 8.4.3  Identifiers / 8.4.3.1  Identifier / 8.4.3.1.1  General / 8.4.3.1.2  General format  [a five-level nesting: 8.4.3 is subordinate to 8.4, 8.4.3.1 to 8.4.3, 8.4.3.1.1 and 8.4.3.1.2 to 8.4.3.1]",
+      "markdown_says": "## 8.4.2.3.4 General rules\n## 8.4.3 Identifiers\n## 8.4.3.1 Identifier\n## 8.4.3.1.1 General\n## 8.4.3.1.2 General format   (ISO_COBOL.md lines 6646, 6659, 6662, 6665, 6670 -- all five at H2)",
+      "why_it_matters": "All five headings are flattened to H2, the same level the file uses for '## 8.4 References'. The clause hierarchy is destroyed on this page: 8.4.3.1.2 General format reads as a sibling of 8.4 rather than a great-grandchild, so any outline/TOC generated from the markdown mis-nests the identifier clauses. Sibling headings in the same run are levelled correctly elsewhere (e.g. '### 8.4.1 General', '#### 8.4.2.1 General'), so this is drift, not a house style.",
+      "suggested_repair": "Re-level by numeric depth, matching the '## 8.4' / '### 8.4.1' / '#### 8.4.2.1' convention already used: 8.4.2.3.4 -> '#####', 8.4.3 -> '###', 8.4.3.1 -> '####', 8.4.3.1.1 -> '#####', 8.4.3.1.2 -> '#####'."
+    },
+    {
+      "page": 149,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.4.2.2  Qualification  [subordinate to 8.4.2 Uniqueness of reference, i.e. a peer of 8.4.2.1 General] ... 8.4.2.2.1  General  [subordinate to 8.4.2.2]",
+      "markdown_says": "### 8.4.2.2 Qualification   (line 6412)\n#### 8.4.2.2.1 General   (line 6415)   -- while its peer '#### 8.4.2.1 General' (line 6403) sits under '### 8.4.2 Uniqueness of reference' (line 6400)",
+      "why_it_matters": "8.4.2.2 is transcribed at H3, the same level as its own parent 8.4.2, so Qualification reads as a sibling of Uniqueness of reference instead of a child, and it is one level shallower than its immediate peer 8.4.2.1 (H4). The outline of clause 8.4.2 is wrong for every reader or tool that walks heading depth.",
+      "suggested_repair": "Set '#### 8.4.2.2 Qualification' and '##### 8.4.2.2.1 General', matching the depth convention of '#### 8.4.2.1 General'."
+    },
+    {
+      "page": 156,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.4.3.1.3  Syntax rules  [subordinate to 8.4.3.1 Identifier; a peer of 8.4.3.1.1 General and 8.4.3.1.2 General format]",
+      "markdown_says": "## 8.4.3.1.3 Syntax rules   (ISO_COBOL.md line 6735)",
+      "why_it_matters": "A five-component clause number is transcribed at H2, the level the file reserves for two-component clauses such as '## 8.4 References'. The Syntax rules of the identifier clause detach from 8.4.3.1 Identifier in any generated outline.",
+      "suggested_repair": "Change to '##### 8.4.3.1.3 Syntax rules' so it nests under 8.4.3.1 alongside 8.4.3.1.1 and 8.4.3.1.2."
+    },
+    {
+      "page": 162,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.4.3.3.4  General rules  [subordinate to 8.4.3.3 Reference-modification; a peer of 8.4.3.3.1 General, 8.4.3.3.2 General format and 8.4.3.3.3 Syntax rules]",
+      "markdown_says": "## 8.4.3.3.4 General rules   (ISO_COBOL.md line 7001)   -- while its three peers are '#### 8.4.3.3.1 General' (6956), '#### 8.4.3.3.2 General format' (6961) and '#### 8.4.3.3.3 Syntax rules' (6966)",
+      "why_it_matters": "The general rules of reference-modification -- the clause that defines leftmost-position, length and EC-BOUND-REF-MOD -- sit at H2 while their three sibling subclauses sit at H4, so the general rules detach from 8.4.3.3 Reference-modification and read as a top-level section.",
+      "suggested_repair": "Change to '#### 8.4.3.3.4 General rules' to match its three siblings at lines 6956, 6961 and 6966."
+    },
+    {
+      "page": 145,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.3.3.6.4  General rules  [subordinate to 8.3.3.6 Figurative constant values; a peer of 8.3.3.6.1 General, 8.3.3.6.2 General format and 8.3.3.6.3 Syntax rules]",
+      "markdown_says": "### 8.3.3.6.4 General rules   (ISO_COBOL.md line 6253)   -- same level as its parent '### 8.3.3.6 Figurative constant values' (line 6152), while its peer is '#### 8.3.3.6.1 General' (line 6155)",
+      "why_it_matters": "8.3.3.6.4 is transcribed at the same heading level as its own parent 8.3.3.6, so the general rules for figurative constants read as a sibling of Figurative constant values rather than a subclause of it. Its peers 8.3.3.6.2 and 8.3.3.6.3 are worse still (H2 at lines 6168 and 6227), so all four subclauses of 8.3.3.6 sit at three different levels.",
+      "suggested_repair": "Set '#### 8.3.3.6.4 General rules', and while in the file re-level its siblings '## 8.3.3.6.2 General format' (line 6168) and '## 8.3.3.6.3 Syntax rules' (line 6227) to '####' so all four subclauses match '#### 8.3.3.6.1 General'."
+    }
+  ]
+}

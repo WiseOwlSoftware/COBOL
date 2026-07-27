@@ -1,0 +1,16 @@
+{
+  "batch": [62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74],
+  "pages_checked": [62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74],
+  "notes": "No general-format / syntax-skeleton diagram appears on any page of this batch (clause 6 Reference format and the opening of clause 7 Compiler directing facility). The only figure-like content is the two column-aligned indicator lists on p64 and the two directing-statement/directive stage lists on p72; both are transcribed as markdown tables with no loss. The choice-indicator (double vertical bar), unbalanced-bracket, ellipsis-placement and underlining checks therefore had nothing to apply to on these pages. Prose was compared line by line and is faithful. The single defect found is systematic heading-depth corruption.",
+  "findings": [
+    {
+      "page": 64,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "6.2.2   Fixed indicators ... 6.2.3   Floating indicators ... 6.2.3.1   General  (third- and fourth-level sub-clauses of Clause 6, printed at the same typographic rank as 6.2.1 General on the preceding page)",
+      "markdown_says": "## 6.2.2 Fixed indicators ... ## 6.2.3 Floating indicators ... ### 6.2.3.1 General  -- while the immediately preceding sibling on page 63 is '#### 6.2.1 General' under '### 6.2 Indicators' under '## 6 Reference format'",
+      "why_it_matters": "Heading depth is the only machine-readable expression of clause nesting in the transcription. Promoting 6.2.2 and 6.2.3 to '##' makes them siblings of Clause 6 itself (and of the '## Page N' scaffolding), so any TOC, outline, or section-scoped lookup built from the markdown mis-attributes those rules to the wrong parent clause. The defect is systematic, not isolated: within this batch it also hits '## 6.2.3.2 Syntax rules' (p65), '## 6.3.4 Program-text area' and '## 6.3.5 Continuation of lines' (p67), '## 6.3.6 Blank lines' and '## 6.3.7 Comments' (p68), '## 6.4.2 Continuation of lines', '## 6.4.3 Blank lines' and '## 6.4.4 Comments' (p69), '## 6.4.4.3 Inline comments' and '## 6.5 Logical conversion' (p70), '## 7.2 Text manipulation' (p73), and '## 7.2.2 Text manipulation elements' (p74); outside the batch the same pattern continues (e.g. '## 7.2.2.5 Text-words', '## 7.2.4.4 General rules'). Sibling sub-clauses are split across two different depths, so depth cannot be trusted anywhere in clauses 6 and 7.",
+      "suggested_repair": "Normalize heading depth to clause depth throughout clauses 6 and 7: n.n -> '###', n.n.n -> '####', n.n.n.n -> '#####'. In this batch that means p64 '## 6.2.2' -> '#### 6.2.2', '## 6.2.3' -> '#### 6.2.3', '### 6.2.3.1' -> '##### 6.2.3.1'; p65 '## 6.2.3.2' -> '##### 6.2.3.2'; p67 '## 6.3.4', '## 6.3.5' -> '#### '; p68 '## 6.3.6', '## 6.3.7' -> '#### ', '### 6.3.7.1/.2/.3' -> '##### '; p69 '## 6.4.2', '## 6.4.3', '## 6.4.4' -> '#### ', '### 6.4.4.1/.2' -> '##### '; p70 '## 6.4.4.3' -> '##### ', '## 6.5' -> '### '; p73 '## 7.2' -> '### ', '### 7.2.1' -> '#### '; p74 '## 7.2.2' -> '#### ', '### 7.2.2.1..4' -> '##### '. Apply the same rule to the rest of the file rather than patching page by page."
+    }
+  ]
+}

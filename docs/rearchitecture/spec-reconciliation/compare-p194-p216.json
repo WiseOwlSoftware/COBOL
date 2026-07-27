@@ -1,0 +1,24 @@
+{
+  "batch": [194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216],
+  "pages_checked": [194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216],
+  "findings": [
+    {
+      "page": 204,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "The 8.7.5.1 Format 2 (extended-relational-operator) figure is a BRACE enclosing 11 stacked alternatives, with required words underlined and optional words not underlined:\nIS GREATER THAN OR EQUAL TO   (GREATER, OR, EQUAL underlined; IS, THAN, TO not)\nIS >=\nIS NOT LESS THAN              (NOT, LESS underlined; IS, THAN not)\nIS NOT <                      (NOT underlined)\nIS LESS THAN OR EQUAL TO      (LESS, OR, EQUAL underlined; IS, THAN, TO not)\nIS <=\nIS NOT GREATER THAN           (NOT, GREATER underlined; IS, THAN not)\nIS NOT >                      (NOT underlined)\nIS NOT EQUAL TO               (NOT, EQUAL underlined; IS, TO not)\nIS NOT =                      (NOT underlined)\nIS <>",
+      "markdown_says": "```\n┌────────────────────────────────┐\n│ IS GREATER THAN OR EQUAL TO     │\n│ IS >=                           │\n│ IS NOT LESS THAN                │\n│ IS NOT <                        │\n│ IS LESS THAN OR EQUAL TO        │\n│ IS <=                           │\n│ IS NOT GREATER THAN             │\n│ IS NOT >                        │\n│ IS NOT EQUAL TO                 │\n│ IS NOT =                        │\n│ IS <>                           │\n└────────────────────────────────┘\n```\n(no underlining preserved on any word; the brace is rendered as a plain box)",
+      "why_it_matters": "Per 5.2.5 underlined words in a general format are REQUIRED words and non-underlined uppercase words are OPTIONAL. Dropping the underlining makes IS, THAN and TO look mandatory, so the falsely-restrictive reading rejects legal source such as 'IF A NOT GREATER B', 'IF A GREATER OR EQUAL B' and 'IF A NOT EQUAL B' - exactly the lossy-toward-restrictive failure mode this sweep targets. The transcription already has a convention for this (<u>...</u>, used in ~97 places, e.g. line 9691 '[ <u>NOT</u> ] boolean-expression-1'), so this figure is simply missing it. Secondarily, the PDF delimiter is a brace (choose exactly one, mandatory) and the box-drawing rectangle does not distinguish brace from bracket.",
+      "suggested_repair": "Re-render the figure preserving the required-word underlining, e.g.\n{ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS >= | IS <u>NOT</u> <u>LESS</u> THAN | IS <u>NOT</u> < | IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS <= | IS <u>NOT</u> <u>GREATER</u> THAN | IS <u>NOT</u> > | IS <u>NOT</u> <u>EQUAL</u> TO | IS <u>NOT</u> = | IS <> }\nand use an explicit brace delimiter rather than a box-drawing rectangle so the mandatory-choice semantics survive. The same treatment is needed for the Format 1 figure on page 203, which has the identical defect."
+    },
+    {
+      "page": 206,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Table 3 - Combinations of symbols in arithmetic expressions. Its header (on page 205) is: column 1 'First symbol'; a 'Second symbol' spanning group over columns 'Identifier or literal', '+ - * / **', 'Unary + or -', '(', ')'. Page 206 carries only the five BODY rows, whose leading cell is a First-symbol value: 'Identifier or literal | - | P | - | - | P', '+ - * / ** | P | - | P | P | -', 'Unary + or - | P | - | - | P | -', '( | P | - | P | P | -', ') | - | P | - | - | P'.",
+      "markdown_says": "| Identifier or literal | — | P | — | — | P |\n|---|---|---|---|---|---|\n| + − * / ** | P | — | P | P | — |\n| Unary **+** or **−** | P | — | — | P | — |\n| ( | P | — | P | P | — |\n| ) | — | P | — | — | P |",
+      "why_it_matters": "The markdown separator line '|---|...' is placed AFTER the 'Identifier or literal' row, which promotes a First-symbol body row into a column-header row of a standalone table. Rendered, Table 3 becomes two disconnected tables and the reader cannot recover which of the five value columns is 'Identifier or literal' vs '+ - * / **' vs 'Unary + or -' vs '(' vs ')'. Table 3 is the normative statement of which operator/operand adjacencies are legal in an arithmetic expression, so an unreadable column mapping makes it unusable for deciding whether e.g. 'A + ( B' is well formed. The P/— cell values themselves are all transcribed correctly.",
+      "suggested_repair": "Reunify Table 3 into a single markdown table at its page-205 anchor (header row '| First symbol | Identifier or literal | + − * / ** | Unary + or − | ( | ) |' followed by one separator line and the five body rows), and leave a page-206 cross-reference in place of the orphaned fragment rather than restarting the table with a promoted header."
+    }
+  ]
+}

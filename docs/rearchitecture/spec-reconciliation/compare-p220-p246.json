@@ -1,0 +1,15 @@
+{
+  "batch": [220, 222, 226, 230, 232, 234, 236, 238, 240, 242, 244, 246],
+  "pages_checked": [220, 222, 226, 230, 232, 234, 236, 238, 240, 242, 244, 246],
+  "findings": [
+    {
+      "page": 232,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": "Table 5 — Combinations of conditions, logical operators, and parentheses; row 'simple-condition', column 'In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only:' reads \"EXCLUSIVE-OR or XOR, OR, NOT, AND, (\"",
+      "markdown_says": "| simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |   (ISO_COBOL.md line 10097)",
+      "why_it_matters": "The transcription drops NOT from the set of elements that may immediately precede a simple-condition. As transcribed, Table 5 says a simple-condition may never follow NOT, which makes every negated simple condition ('IF NOT A = B', 'IF X AND NOT Y') illegal, contradicts the same table's own NOT row (NOT may be immediately followed by 'simple-condition, (' ) and the Table 5 NOTE ('the pair NOT (' is permissible while the pair NOT NOT is not permissible'), and contradicts 8.8.4.10, Complex negated conditions. The loss is toward falsely-restrictive syntax: legal COBOL made to look illegal. A conformance-checker or grammar built from this row would reject NOT applied to a simple condition.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 10097 restore NOT to the fourth column: change 'EXCLUSIVE-OR or XOR, OR, AND, (' to 'EXCLUSIVE-OR or XOR, OR, NOT, AND, (' so the row reads: | simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, NOT, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |"
+    }
+  ]
+}

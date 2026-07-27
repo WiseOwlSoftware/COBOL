@@ -1,0 +1,33 @@
+{
+  "batch": [506, 507, 508, 509, 510, 512, 514, 516, 518, 519, 520, 522],
+  "pages_checked": [506, 507, 508, 509, 510, 512, 514, 516, 518, 519, 520, 522],
+  "findings": [
+    {
+      "page": 508,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "SAME AS data-name-1   (13.18.49.2 General format - BOTH 'SAME' and 'AS' carry their own underline; verified by cropping and 3x-enlarging the printed line at 300 dpi: two distinct underline rules, one under SAME, one under AS)",
+      "markdown_says": "<u>SAME</u> AS data-name-1   (specs/ISO_COBOL.md line 21474)",
+      "why_it_matters": "In the general-format notation an underlined word is a REQUIRED word (5.2.6.2) while a word that appears without underlining is an OPTIONAL word that may be written or omitted at the user's choice (5.2.6.3). Dropping the underline from AS makes the transcription say that 'SAME data-name-1' is legal COBOL and that AS is noise. It is not: AS is a required word of the SAME AS clause. This is the only clause in 13.18.49 and the whole format is two words, so the lost marker is the entire syntactic content of the second word.",
+      "suggested_repair": "Change the general format line to '<u>SAME</u> <u>AS</u> data-name-1' so both required words carry the underline that the printed standard gives them."
+    },
+    {
+      "page": 507,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "REVERSE-VIDEO   (13.18.48.2 General format - printed underlined, i.e. a required word, exactly as REQUIRED on p506 and SECURE on p510 are printed)",
+      "markdown_says": "`REVERSE-VIDEO`   (specs/ISO_COBOL.md line 21445 - wrapped in code backticks, no underline)",
+      "why_it_matters": "The required-word underline is the load-bearing notation in every general format, and this file's own convention for it is <u>...</u> - the immediately neighbouring one-word formats use '<u>REQUIRED</u>' (line 21402) and '<u>SECURE</u>' (line 21545). Rendering this one as code span silently drops the required-word marker and breaks any mechanical scan that harvests required words from <u> tags. Meaning is recoverable here only because the format is a single word.",
+      "suggested_repair": "Replace `REVERSE-VIDEO` with <u>REVERSE-VIDEO</u> to match the printed underline and the file's own convention for one-word general formats."
+    },
+    {
+      "page": 514,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Sub-items 'a) The operational sign is presumed to be associated with the leading (or, respectively, trailing) digit position...' and 'b) The implementor defines what constitutes valid signs for data items.' are printed indented under general rule '5) If the SEPARATE CHARACTER phrase is not specified, then:' (rule 5 sits at the foot of p513), at the same indent as the a)/b) that follow rule 6.",
+      "markdown_says": "a) The operational sign is presumed to be associated with the leading (or, respectively, trailing) digit position of the data item to which it applies.\n\nb) The implementor defines what constitutes valid signs for data items.\n\n6) If the SEPARATE CHARACTER phrase is specified, then:\n\n   a) The operational sign is presumed to be the leading (or, respectively, trailing) character position...   (specs/ISO_COBOL.md lines 21682-21688: the two sub-items of rule 5 are flush left, while rule 6's sub-items keep their 3-space indent)",
+      "why_it_matters": "The sub-items of general rule 5 are detached from their parent and sit flush left immediately above the top-level '6)', so they read as peers of the numbered general rules rather than as the two conditions that apply when SEPARATE CHARACTER is NOT specified - the exact opposite condition to rule 6 that follows them. The inconsistency is visible within the same page slice, since rule 6's identical a)/b) pair IS indented.",
+      "suggested_repair": "Indent the two orphaned sub-items to 3 spaces to match rule 6's a)/b). This is a page-break-boundary artifact: the same detachment recurs where a list is split across a page anchor - p512 (the NOTE that belongs under general rule 5 of SELECT WHEN is flush left), p518 (syntax-rule 4's sub-items d) through g), and the four unlabelled 'The current report group may be...' paragraphs that belong under f), are all flush left), and p520 (item '2. If an UPON phrase is specified...', which belongs under general rule 7)c), is flush left). Sweep all four."
+    }
+  ]
+}
