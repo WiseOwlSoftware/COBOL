@@ -27,10 +27,39 @@ printed page open.
 | missing-figure | — | 1 | — | 1 |
 | summarised-not-transcribed | — | 1 | — | 1 |
 
+## ⛔ The method changed on 2026-07-26 — MEASURE the page, do not squint at it
+
+The PDF's text layer was never obfuscated: 16 of 26 fonts were Identity-H subsets carrying **no `/ToUnicode`
+CMap**, so extractors emitted raw glyph indices. That is fixed (`scripts/spec/pdf_deobfuscate.py`), and the
+consequences for this plan are large — see `PDF-TEXT-LAYER.md`.
+
+A printed general format can now be **reconstructed mechanically** instead of judged by eye:
+
+| question | tool | what it reads |
+|---|---|---|
+| what words does the figure contain? | text layer | decoded text **with coordinates** |
+| bracket, brace, or choice-indicator bar? | `figure_geometry.py` | vector rectangles — stems with feet vs bare rules |
+| which words are underlined (§5.2.2 vs §5.2.3)? | `figure_extract.py` | underline rects matched to individual words |
+
+This is not an incremental convenience. It closed the exception-phrase class at 30/30, settled a case where two
+independent verifiers **contradicted each other** (p607), and found **three normative defects no sweep agent
+reported** (p606 `YYYYMMDD`/`YYYYDDD`, p653 `LAST EXCEPTION`, and the p645 DIVIDE pair). Prefer measurement over
+agent verdicts for every remaining figure question.
+
+**Two limits, both real:** curly braces are font glyphs, not rects, so the tool infers a brace only from a bar
+with no bracket around it — render when the enclosing delimiter is load-bearing. And a bare tall rect is not
+always a choice indicator: table grid rules and the Figure-1 ruler on p66 look identical to the geometry. p66 was
+a false positive that a trusting sweep would have "repaired" into a correct page.
+
 ## Cross-cutting rules — apply to EVERY batch
 
-1. **The printed page is the authority.** Render it (`scripts/spec/page_workunit.py <page> --dpi 300`) and look.
-   The markdown is the artifact under repair; it cannot be its own reference.
+1. **The printed page is the authority — measure it first, render it when measurement is ambiguous.** The
+   markdown is the artifact under repair; it cannot be its own reference. (`page_workunit.py <page> --dpi 300`
+   still renders.)
+1a. **The gates verify STRUCTURE, and structure is not content.** Converting the p606 figure silently deleted the
+   next format's label, which was appended to the same source line — with `--check` at 0, anchors at 1261 and the
+   catalog at 3,790 throughout, because a format label is not a rule, an anchor or a heading. Read the result of
+   every line-level replacement; do not merely count.
 2. **Repair the FAMILY, never the instance.** The seven ON/OFF directive notes must agree with each other or the
    inconsistency merely relocates. Where a finding names a sibling, fix the sibling in the same change.
 3. **After each batch, verify — three checks, all of which can fail:**
@@ -53,14 +82,25 @@ printed page open.
 The only batch that changes what the language permits. Every one is falsely restrictive: it makes legal COBOL look
 illegal. Sub-order, most-load-bearing first:
 
-1. **Misstated underlining — 21 findings, 20 pages.** Required-vs-optional words. Includes the seven ON/OFF
-   directive notes (FLAG-02, FLAG-14, LEAP-SECOND, LISTING, PROPAGATE, REF-MOD-ZERO-LENGTH, TURN) which go as ONE
-   commit. Also PROPAGATE's invented rule ("the underlined alternative marks the default") — no such rule exists
-   in the standard; it is falsified by LISTING and contradicted by the transcription's own POP note. Delete it.
-2. **Lost choice-indicator bars — 11 findings, 8 pages.** Re-render with the bars in the established house style
-   (ASCII art + a `Figure notes` block stating the §5.2.6.4 consequence), as already done for GOBACK.
-3. **Lost outer brackets — 6 findings, 5 pages.** CURRENCY SIGN, LOCALE, report-group USAGE and siblings.
+1. **Misstated underlining — ✅ the ON/OFF family DONE.** The seven compiler-directive notes (FLAG-02, FLAG-14,
+   LEAP-SECOND, LISTING, PROPAGATE, REF-MOD-ZERO-LENGTH, TURN) landed as one commit, and they now agree with each
+   other and with the printed glyphs. PROPAGATE's **invented rule** ("the underlined alternative marks the
+   default") is deleted — no such rule exists, LISTING falsifies it, and its absence is asserted file-wide.
+   **OUTSTANDING:** the remaining underlining findings beyond that family. Re-do these with `figure_extract.py`
+   rather than by eye — it already found three defects the sweep missed.
+2. **Lost choice-indicator bars — ✅ DONE, and the class is CLOSED at 30/30.** The estimate of 11 findings on 8
+   pages was low and the page list was wrong: a mechanical sweep of the whole file found **30 exception-phrase
+   figure sites, 21 already correct and 9 defective**, including p645 (DIVIDE Formats 4/5), which no finding
+   named. The bars had degraded into three different wrong shapes — doubled corner glyphs, a bracket with its
+   bars deleted, and nested plain brackets — so no single find-and-replace could have found them all. Repaired:
+   COMPUTE, DELETE ×2, DIVIDE ×2, READ ×2, UNSTRING, ACCEPT Format 3.
+   `repairs/exception_phrase_choice_bars.py`, `repairs/accept_format3_diagram.py`.
+3. **Lost outer brackets — 6 findings, 5 pages, OUTSTANDING.** CURRENCY SIGN, LOCALE, report-group USAGE and
+   siblings. ⚠ Brackets ARE measurable (`figure_geometry.py` reports every stem); braces are not.
 4. **Remaining normative — 3 findings.** Includes p28 (already repaired) and the incorrect-text items.
+5. **✅ ALL 8 LaTeX diagrams converted to house style** (p322 ×2, p606, p649, p653 ×2, p661 ×2). Every general
+   format in the file is now a fenced ASCII figure carrying a `Figure notes` block — the form that records
+   underlining and delimiter semantics where something can check them.
 
 **Exit criterion:** run `.claude/workflows/spec-grammar-impact.js` over the normative pages. Every INHERITED
 verdict becomes a `CONFORMANCE-FIX-QUEUE` entry — a compiler bug, not a doc fix — carrying the exact ISO syntax
