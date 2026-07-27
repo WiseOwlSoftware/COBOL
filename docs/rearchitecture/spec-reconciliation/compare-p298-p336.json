@@ -1,0 +1,60 @@
+{
+  "batch": [298, 300, 312, 314, 316, 318, 324, 326, 328, 330, 332, 336],
+  "pages_checked": [298, 300, 312, 314, 316, 318, 324, 326, 328, 330, 332, 336],
+  "findings": [
+    {
+      "page": 298,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "INTERFACE-ID.  interface-name-1  [ AS literal-1 ]\n    [ INHERITS FROM { interface-name-2 }  ... ]\n    [ USING { parameter-name-1 }  ... ] .\n\n(printed underlining, verified on the rendered page at 300 dpi: INTERFACE-ID, AS, INHERITS and USING each carry an underline; FROM carries NO underline)",
+      "markdown_says": "```\nINTERFACE-ID.  interface-name-1  [ AS literal-1 ]\n    [ INHERITS FROM { interface-name-2 }  … ]\n    [ USING { parameter-name-1 }  … ] .\n```\n\n(no <u> markup, and no '> **Figure notes (...)**' paragraph follows the fence)",
+      "why_it_matters": "Per 5.2.1/5.2.2 (lines 2628 and 2641 of the transcription's own text) underlined uppercase words are KEYWORDS — required — while non-underlined uppercase words are OPTIONAL words that may be omitted. In the printed 11.6.2 format FROM is not underlined, so 'INHERITS interface-name-2' with FROM omitted is legal COBOL. The fenced transcription records no underlining at all and carries no Figure notes paragraph, so a reader/implementer treats FROM as required — the exact falsely-restrictive-syntax loss this sweep is hunting. The transcription already has an established mechanism for this: 218 other figures carry a '> **Figure notes (...)**' blockquote naming the underlined words (e.g. 11.7.2 METHOD-ID at line 13034, 12.3.6.2 OBJECT-COMPUTER at line 13746). Section 11.6.2 is missing its instance.",
+      "suggested_repair": "Append after the 11.6.2 fence: '> **Figure notes (INTERFACE-ID paragraph general format).** `INTERFACE-ID`, `AS`, `INHERITS`, and `USING` are underlined in the printed standard (required words). `FROM` is **not** underlined — it is an optional word and may be omitted. The paragraph is terminated by a separator period printed after the USING bracket.'"
+    },
+    {
+      "page": 312,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "ENVIRONMENT  DIVISION.\n[ configuration-section ]\n[ input-output-section ]\n\n(ENVIRONMENT and DIVISION are each separately underlined in the printed page)",
+      "markdown_says": "```\nENVIRONMENT DIVISION.\n[ configuration-section ]\n[ input-output-section ]\n```\n\n(no <u> markup, and no '> **Figure notes (...)**' paragraph follows the fence)",
+      "why_it_matters": "Same convention gap as 11.6.2: the fenced figure drops the printed underlining and carries no Figure notes blockquote, so the required/optional status of the reserved words is unrecorded. Here every reserved word in the figure IS underlined, so no legal syntax is made to look illegal — but the transcription's own convention (218 Figure notes elsewhere) is not honoured, and a downstream reader cannot distinguish 'all words required' from 'underlining simply not transcribed'.",
+      "suggested_repair": "Append after the 12.2.1 fence: '> **Figure notes (Environment division general format).** `ENVIRONMENT` and `DIVISION` are both underlined in the printed standard (required words). The division header is terminated by a separator period; the two section entries are optional and, when present, appear in the order shown.'"
+    },
+    {
+      "page": 300,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "11.7.4   General rules   (a fourth-level clause heading, printed at the same typographic rank as 11.7.1 General, 11.7.2 General format and 11.7.3 Syntax rules)",
+      "markdown_says": "## 11.7.4 General rules   (line 13070 of specs/ISO_COBOL.md — an h2, while its siblings are '### 11.7.1 General' at 13019, '### 11.7.2 General format' at 13024 and '### 11.7.3 Syntax rules' at 13037, and their parent is '## 11.7 METHOD-ID paragraph' at 13016)",
+      "why_it_matters": "11.7.4 is promoted to the same heading rank as its own parent 11.7, so the general rules of the METHOD-ID paragraph detach from that paragraph in any generated TOC or outline-driven navigation and appear as a peer clause. Anchor-based lookups that walk the heading tree to find 'the rules belonging to 11.7' will not find them.",
+      "suggested_repair": "Change '## 11.7.4 General rules' to '### 11.7.4 General rules'."
+    },
+    {
+      "page": 314,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "12.3.5   SOURCE-COMPUTER paragraph   (a third-level clause heading under 12.3 Configuration section, printed at the same rank as 12.3.1 General, 12.3.2 General format, 12.3.3 Syntax rules and 12.3.4 General rule)",
+      "markdown_says": "## 12.3.5 SOURCE-COMPUTER paragraph   (line 13688 of specs/ISO_COBOL.md — an h2, while its siblings are '### 12.3.1 General' at 13642 … '### 12.3.4 General rule' at 13673, and their parent is '## 12.3 Configuration section' at 13639)",
+      "why_it_matters": "12.3.5 is promoted to the rank of its own parent 12.3, so the SOURCE-COMPUTER paragraph and everything nested under it (12.3.5.1–12.3.5.4) leaves the Configuration section subtree in any outline built from heading levels.",
+      "suggested_repair": "Change '## 12.3.5 SOURCE-COMPUTER paragraph' to '### 12.3.5 SOURCE-COMPUTER paragraph'."
+    },
+    {
+      "page": 316,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "12.3.6.4   General rules   (a fourth-level clause heading, printed at the same rank as 12.3.6.1 General, 12.3.6.2 General format and 12.3.6.3 Syntax rules)",
+      "markdown_says": "## 12.3.6.4 General rules   (line 13790 of specs/ISO_COBOL.md — an h2, while its siblings are '### 12.3.6.1 General' at 13727, '### 12.3.6.2 General format' at 13732 and '### 12.3.6.3 Syntax rules' at 13768)",
+      "why_it_matters": "The OBJECT-COMPUTER general rules — which carry the normative CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE semantics — detach from the 12.3.6 OBJECT-COMPUTER paragraph in any heading-level outline, so a tool resolving 'general rules of OBJECT-COMPUTER' by heading nesting misses them.",
+      "suggested_repair": "Change '## 12.3.6.4 General rules' to '### 12.3.6.4 General rules'."
+    },
+    {
+      "page": 326,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "12.3.7.4   General rules   (a fourth-level clause heading under 12.3.7 SPECIAL-NAMES paragraph, printed at the same rank as 12.3.7.1 General, 12.3.7.2 General format and 12.3.7.3 Syntax rules)",
+      "markdown_says": "## 12.3.7.4 General rules   (line 14217 of specs/ISO_COBOL.md — an h2, the same rank as its parent '## 12.3.7 SPECIAL-NAMES paragraph' at 13875. Note the sibling '### 12.3.7.1 General' at 13878 is correctly an h3, while '## 12.3.7.2 General format' at 13903 and '## 12.3.7.3 Syntax rules' at 14025 share the same defect)",
+      "why_it_matters": "The SPECIAL-NAMES general rules sit at the rank of their own parent clause, so the whole 12.3.7 subtree is flattened in any generated outline. Because 12.3.7.2 and 12.3.7.3 (on pages 320–325, outside this batch) carry the identical defect, the repair should be swept across all three, not applied to 12.3.7.4 alone.",
+      "suggested_repair": "Change '## 12.3.7.4 General rules' to '### 12.3.7.4 General rules', and sweep 12.3.7.2 (line 13903) and 12.3.7.3 (line 14025) to '###' in the same change set."
+    }
+  ]
+}

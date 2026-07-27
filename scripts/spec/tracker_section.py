@@ -86,9 +86,16 @@ def build(ledger: dict) -> str:
            (len(confirmed), by_sev["normative"], by_sev["structural"], by_sev["cosmetic"]),
            "",
            "Why this matters more than its size suggests: **every normative finding so far is falsely "
-           "restrictive** — it makes legal COBOL look illegal. A compiler built from the affected figure notes "
-           "rejects valid programs. These are corrections to the SPEC TRANSCRIPTION; where a defect also reached "
-           "the compiler, that is a separate fix-queue item.",
+           "restrictive** — it makes legal COBOL look illegal.",
+           "",
+           "⛔ **A diagram defect is TWO items, not one.** The markdown is wrong (repair it here), and the grammar "
+           "may have been written FROM the wrong diagram — in which case the compiler rejects legal COBOL and that "
+           "is a **§B fix-queue bug**. Proven on GOBACK: the figure lost its choice-indicator bars, "
+           "`CobolParserCore.g4` encodes `(raisingPhrase | statusPhrase)?` calling them \"mutually-exclusive\", and "
+           "`GOBACK RAISING … WITH NORMAL STATUS` is rejected with *no viable alternative at input 'WITH'*. The "
+           "same inheritance hit ON SIZE ERROR once already (fixed 2026-07-19). Run "
+           "`.claude/workflows/spec-grammar-impact.js` over the normative pages to classify each as INHERITED "
+           "(compiler bug) or NOT-INHERITED (doc-only) — with a repro, never a reading.",
            ""]
 
     for title, items in buckets:
