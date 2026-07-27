@@ -113,12 +113,20 @@ const results = await pipeline(
       'Quote both sources VERBATIM in pdf_says / markdown_says so a verifier can check you without re-reading the',
       'page. If a page is clean, report nothing for it but still list it in pages_checked. Reporting a non-issue',
       'is worse than missing one - a false finding sends the next session to "fix" correct text.',
+      '',
+      'STEP 3 - PERSIST BEFORE YOU RETURN. This is MANDATORY, not a nicety. Use the Write tool to save your',
+      'complete findings as JSON to:',
+      '  E:/CobolSharp/docs/rearchitecture/spec-reconciliation/compare-p' + batch[0] + '-p' + batch[batch.length - 1] + '.json',
+      'Shape: {"batch": ' + JSON.stringify(batch) + ', "pages_checked": [...], "findings": [ ...same objects you return... ]}',
+      'Write it EVEN IF you found nothing (findings: []) - a file proving a batch was swept clean is evidence;',
+      'its absence is indistinguishable from work that never ran. The run may be interrupted by a rate or session',
+      'limit at any moment, and your file is then the ONLY durable record of this work. Write it, then return.',
     ].join('\n'),
     { label: 'compare:p' + batch[0] + '-' + batch[batch.length - 1], phase: 'Compare', schema: FINDINGS }
   ),
   (res, batch, i) => {
     if (!res || !res.findings || res.findings.length === 0) return []
-    return parallel(res.findings.map(f => () =>
+    return parallel(res.findings.map((f, vi) => () =>
       agent(
         [
           'Adversarially VERIFY a claimed discrepancy between the ISO PDF and its markdown transcription.',
@@ -140,6 +148,14 @@ const results = await pipeline(
           'For a claimed lost choice indicator, look at the printed glyphs yourself and say what you see.',
           'Set real=true ONLY if you independently confirm a genuine content discrepancy. If the finding is real',
           'but was described inaccurately, set real=true and give the corrected description.',
+          '',
+          'PERSIST BEFORE YOU RETURN - MANDATORY. Use the Write tool to save your verdict as JSON to:',
+          '  E:/CobolSharp/docs/rearchitecture/spec-reconciliation/verify-p' + f.page + '-' + f.kind + '-' + vi + '.json',
+          'Shape: {"page": ' + f.page + ', "kind": "' + f.kind + '", "severity": "' + f.severity + '",',
+          '        "claim": {"pdf_says": ..., "markdown_says": ..., "why_it_matters": ...},',
+          '        "verdict": {"real": true|false, "reasoning": ..., "corrected_description": ...}}',
+          'Include the claim so the file stands alone. A verdict that exists only in a return value is lost the',
+          'moment the run is interrupted, and re-verifying costs another full page render and read.',
         ].join('\n'),
         { label: 'verify:p' + f.page, phase: 'Verify', schema: VERDICT }
       ).then(v => Object.assign({}, f, { verdict: v }))

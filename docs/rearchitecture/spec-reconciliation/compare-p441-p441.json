@@ -1,0 +1,6 @@
+{
+  "batch": [441],
+  "pages_checked": [441],
+  "findings": [],
+  "notes": "PDF page 441 (printed page number 411) contains no figure / general format — it is the tail of the GROUP-USAGE clause general rules (items 2)a), 2)b) with its NOTE, and 3)). All prose transcribed verbatim: item 2 lead-in, 2a national group class/category, 2b PICTURE N(m) treatment, the GROUP-USAGE NATIONAL NOTE (truncation/padding/INSPECT/category-alphanumeric corruption), and item 3 alphanumeric-group-item default. No headings on the page. Anchor alignment verified against neighbours: markdown page-440 ends with bit-group rule c) referencing 8.5.1.6.3 (PDF p440 = printed 410) and markdown page-442 starts at 13.18.30 HIGHLIGHT clause (PDF p442 = printed 412), so the duplicated '---' separator between the page-441 and page-442 anchors is blank-remainder scaffolding, not a dropped page. Page is clean."
+}
