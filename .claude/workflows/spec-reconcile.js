@@ -17,11 +17,24 @@ export const meta = {
 // reported "169 pages swept" as though it were the intended set. Scripts have no filesystem access, so the list
 // cannot be read here; the guard is instead `merge_reconciliation.py --expect N`, which compares the pages
 // actually swept against the intended file and FAILS LOUD on a gap. That check is what caught this.
+// Accepts an array, or a string of pages and RANGES: "3-65,67,70-72". Ranges exist so a long page set can be
+// passed compactly and derived mechanically instead of transcribed by hand — hand-transcription is what caused
+// the mis-targeted sweep. Fewer characters typed, fewer chances to invent one.
 function toPages(a) {
   if (Array.isArray(a)) return a.map(Number).filter(n => Number.isInteger(n) && n > 0)
   if (typeof a === 'string') {
-    const nums = a.match(/\d+/g)
-    return nums ? nums.map(Number) : []
+    const out = []
+    for (const tok of a.split(/[,\s]+/)) {
+      if (!tok) continue
+      const r = tok.match(/^(\d+)-(\d+)$/)
+      if (r) {
+        const lo = Number(r[1]), hi = Number(r[2])
+        if (hi >= lo && hi - lo < 5000) for (let n = lo; n <= hi; n++) out.push(n)
+      } else if (/^\d+$/.test(tok)) {
+        out.push(Number(tok))
+      }
+    }
+    return out.filter(n => Number.isInteger(n) && n > 0)
   }
   return []
 }
