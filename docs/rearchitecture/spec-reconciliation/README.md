@@ -36,7 +36,14 @@ Nothing already on disk is recomputed.
 
 ---
 
-## RESUME POINT (paused 2026-07-26 19:56 PDT)
+## STATUS: sweep COMPLETE — repairs pending
+
+All 1,261 pages reconciled, every claim adjudicated: **346 claims · 210 confirmed · 136 refuted · 0 unverified**
+(41 normative · 123 structural · 46 cosmetic).
+
+**The repair order is `REPAIR-PLAN.md` in this directory. All 210 are in scope — cosmetic included.**
+
+## Superseded resume point (paused 2026-07-26 19:56 PDT, resolved 20:24)
 
 **Sweep coverage is COMPLETE — all 1,261 pages compared against the canonical PDF.** Nothing needs re-sweeping.
 
