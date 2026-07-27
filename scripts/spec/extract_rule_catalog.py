@@ -204,6 +204,39 @@ def main() -> int:
     EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
     gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
 
+    # ---- General formats — the SYNTAX DIAGRAMS ---------------------------------------------------------------
+    # These are the artifacts the ANTLR grammar was written FROM, and the ones transcription loss damages most
+    # (a dropped choice-indicator bar makes legal source look illegal). They carry no numbered ordinals, so the
+    # rule scan never saw them and the denominator omitted all 320. Each becomes one FMT row: the unit of
+    # "verify this diagram against the grammar rule that implements it".
+    fmt_sections: list[tuple[str, int, int]] = []   # (section, heading-line, page)
+    page = 0
+    for i, line in enumerate(lines):
+        if m := PAGE.match(line):
+            page = int(m.group(1))
+            continue
+        if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+            if re.fullmatch(r"general formats?\.?", m.group("title").strip(), re.I):
+                fmt_sections.append((m.group("num"), i, page))
+
+    for sec, at, pg in fmt_sections:
+        body: list[str] = []
+        for line in lines[at + 1:]:
+            if ANY_HEADING.match(line) and not RUNNING_HEADER.match(line) and not PAGE.match(line):
+                break
+            body.append(line)
+        text = "\n".join(body).strip()
+        rules.append({
+            "id": f"FMT-{sec}", "section": sec, "kind": "FMT", "ordinal": 0, "sublist": 1,
+            "subject": subject_for(sec, titles), "page": pg,
+            # How many numbered Formats the section declares — Format 1 / Format 2 usually map to DIFFERENT
+            # grammar alternatives, so this is a size signal for the verification work, not decoration.
+            "formats": len(re.findall(r"^\s*Format\s+\d+", text, re.M)) or 1,
+            "has_diagram": bool(re.search(r"^\s*```|\$\$", text, re.M)),
+            "has_figure_notes": "Figure notes" in text,
+            "text": re.sub(r"\s+", " ", text)[:4000],
+        })
+
     # ---- Annex A.1 — the implementor-defined language element list -------------------------------------------
     # D13 defines "100% conforming" as the mandatory core complete PLUS every required implementor-documentation
     # item, so these ARE inventory rows and were missing from the denominator entirely. The heading is
@@ -297,7 +330,8 @@ def main() -> int:
     print()
     for k, label in (("SR", "syntax rules"), ("GR", "general rules"),
                      ("AR", "argument rules"), ("RV", "returned value rules"),
-                     ("DOC", "Annex A.1 implementor-defined items")):
+                     ("DOC", "Annex A.1 implementor-defined items"),
+                     ("FMT", "general formats (syntax diagrams)")):
         if by_kind.get(k):
             print(f"   {by_kind[k]:5d}  {k}  {label}")
     print()
