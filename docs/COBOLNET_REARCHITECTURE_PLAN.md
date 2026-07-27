@@ -44,12 +44,36 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
-3. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
-   `docs/rearchitecture/DESIGN-spec-conformance-review.md`. Phase A = build the spec-rule catalog
-   (`spec-rule-catalog.json` — the DENOMINATOR, every SR/GR extracted from the spec) · Phase B = map + verify each
-   rule → code → verdict into the traceability inventory (session-probe reports its GAP band; that count is the
-   burn-down metric) · Phase C = close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. The two audits were
-   bounded SAMPLING and the fix-queue is only their FIRST INSTALLMENT. **The inventory at zero GAP = P14 DONE = D13.**
+3. **⛔ SPEC RECONCILIATION — repair the transcription BEFORE deriving anything else from it.** `specs/ISO_COBOL.md`
+   is an OCR transcription and it is provably lossy: a page-by-page comparison against the canonical PDF has
+   confirmed defects at roughly one per six pages, and **every normative one is FALSELY RESTRICTIVE** (lost
+   choice-indicator bars, lost outer brackets, misstated underlining) — it makes legal COBOL look illegal. One page
+   (28) was not a transcription at all but an AI summary plus a refusal message, which destroyed the sentence
+   naming which annexes are normative; repaired, and a meta-text critic now fails `extract_rule_catalog.py --check`
+   on any recurrence. **The spec is the oracle for everything else in P14, so this comes first.**
+   - Ledger + SSOT: `docs/rearchitecture/spec-reconciliation/` (`LEDGER.json`, `REPORT.md`; agents persist one
+     file each BEFORE returning, so an interrupted run loses nothing). Merge/report:
+     `python scripts/spec/merge_reconciliation.py --expect 1261`, safe to run mid-sweep.
+   - Sweep: `.claude/workflows/spec-reconcile.js`, page list as args (accepts ranges).
+   - Repairs are DEFERRED until the sweep is complete (owner instruction), then applied by DEFECT FAMILY —
+     the seven ON/OFF directive notes must agree or the inconsistency merely moves.
+   - **A diagram defect is TWO items.** The markdown is wrong (a transcription repair) AND the grammar may have
+     been written FROM the wrong diagram. PROVEN on GOBACK: the grammar encodes `(raisingPhrase | statusPhrase)?`
+     and `GOBACK RAISING … WITH NORMAL STATUS` is rejected, though the printed figure's bars permit both. Anything
+     inherited is a fix-queue COMPILER bug, not a doc fix.
+4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic).** Every general format and syntax rule verified one-by-one
+   against the grammar, with the PRINTED PAGE as the authority — not only the pages where a transcription defect
+   was found. **1,659 items: 321 general formats (432 numbered Formats) + 1,338 syntax rules.** Each divergence
+   must carry the EXACT ISO syntax the fix implements, and becomes a fix-queue bug against the `.g4`.
+   Workflow `.claude/workflows/spec-grammar-conformance.js` (section numbers as args). Suggested order: §14 (489
+   items) first — GOBACK and ON SIZE ERROR both live there and a too-restrictive statement rule bites hardest.
+5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
+   `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
+   denominator — **3,790 items** (1338 SR · 1470 GR · 216 AR · 223 RV · 222 Annex-A.1 doc obligations · 321 general
+   formats), validated against the canonical PDF and cross-checked against the spec's own TOC. The traceability
+   inventory exists at `tests/version-matrix/traceability-inventory.json` and session-probe now reports the live
+   GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
+   close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
 **Owed before `phase-14` → `main`:** the comprehensive batch gate — FULL greenfield Conformance + the GnuCOBOL
 differential + NIST/characterization. Each landed wave passed its wave-local gate; the differential is the
@@ -105,6 +129,12 @@ outstanding pre-merge confirmation.
   grammar lands). Fixed anchors: introduction gate 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   recognize-and-name warning band 1560 · staged-not-implemented 0899. **A wave that does not need its whole
   reservation releases the remainder in its own §0 edit rather than leaving a hole.**
+- **⛔ The transcription is under active repair — see NEXT item 3.** `specs/ISO_COBOL.md` is lossy in a *directed*
+  way: every normative defect found so far is FALSELY RESTRICTIVE. Treat any grammar rule or diagnostic derived
+  from a FIGURE as suspect until that figure has been checked against the printed page. The reproduction question
+  is settled: the standard's own Introduction permits reproducing it in whole or in part provided the
+  acknowledgment paragraphs are carried (they are, at page 28), and the copy is licensed — so a page that cannot
+  be transcribed FAILS LOUDLY with a `TRANSCRIPTION-FAILED` marker and is never summarised.
 - **⛔ Spec DIAGRAMS: render the PDF page whenever a general format is load-bearing** — `pwsh`/`python3
   scripts/render-spec-page.py <page>` (anchor `page-N` == PDF page N). `specs/ISO_COBOL.md` is OCR'd from the
   printed standard: rule TEXT survived faithfully, DIAGRAMS did not. All 244 general-format diagrams were audited

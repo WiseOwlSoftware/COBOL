@@ -1,0 +1,36 @@
+{
+  "page": 668,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {
+    "pdf_says": "14.9.20.4  General rules  \u2014 a fourth-level clause heading under 14.9.20 INITIALIZE statement.",
+    "markdown_says": "## 14.9.20.4 General rules   (specs/ISO_COBOL.md line 27600 \u2014 level 2, while the sibling sub-clauses 14.9.20.1/.2/.3 are level 3)",
+    "why_it_matters": "Same promotion defect: General rules for the INITIALIZE statement renders as a sibling of the INITIALIZE statement clause instead of a child, corrupting the heading tree."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Independently confirmed against both sources, and it survives every refutation route I tried.\n\nPDF evidence (rendered at 300 dpi, both pages of the clause):\n  - Page 667 (printed folio 637) prints, in one identical bold sub-clause face/size, the run: '14.9.20 INITIALIZE statement', then '14.9.20.1  General', '14.9.20.2  General format', '14.9.20.3  Syntax rules'.\n  - Page 668 (printed folio 638) prints '14.9.20.4  General rules' in that SAME bold face and size, at the same left margin and same number/title tab as .1/.2/.3.\n  Typographically the PDF makes .1/.2/.3/.4 indistinguishable peers, all children of 14.9.20. There is no visual cue that .4 is anything other than the fourth sibling.\n\nMarkdown evidence (specs/ISO_COBOL.md, verified by grep of '^#+ 14\\.9\\.20'):\n    27531: ## 14.9.20 INITIALIZE statement\n    27534: ### 14.9.20.1 General\n    27539: ### 14.9.20.2 General format\n    27576: ### 14.9.20.3 Syntax rules\n    27603: ## 14.9.20.4 General rules      <-- level 2\n  So .4 is emitted at the same depth as its own PARENT 14.9.20, making 'General rules' a sibling of 'INITIALIZE statement' rather than its child. That is an internal contradiction within a single clause, not a judgement call about house style.\n\nRefutation routes checked and rejected:\n  - 'Text is actually present / reflowed': not applicable in the exculpatory direction. The heading TEXT is present and verbatim correct; the defect is the heading DEPTH, which is what the ledger flagged (severity=structural).\n  - 'Only page-break furniture': no. The page-marker furniture ('<a id=\"page-668\"></a>', '## Page 668', '# ISO/IEC 1989:2023 (E)') is separate and untouched at lines 27582/27584. The mis-leveled line 27603 is a real numbered ISO clause heading. The page break is plausibly the CAUSE (14.9.20.4 is the first heading after the 667/668 boundary; 57 of the 162 promoted 4-part headings sit within 8 lines of a page marker), but a cause is not an exoneration \u2014 the emitted tree is still wrong.\n  - 'Only formatting, meaning unchanged': no. In Markdown the '#' count IS the document tree. Any consumer that derives clause parentage from heading depth \u2014 section extractor, spec-lookup navigation, \u00a7-citation tooling, TOC generation \u2014 reads 14.9.20.4 as a top-level peer of 14.9.20 and loses the parent link to the INITIALIZE statement clause.\n  - 'House convention is actually level 2 for 4-part numbers': no. Document-wide, '### N.N.N.N' occurs 620 times vs '## N.N.N.N' 162 times, and decisively, this clause's OWN three siblings are '###'.\n  - 'Claim misquotes a source': the substance is quoted accurately; only the line number is off (see corrected_description).\n\nConclusion: a genuine structural transcription defect. Fix is a one-character change, '##' -> '###' at line 27603.",
+    "corrected_description": "REAL, with two corrections to how it was described.\n\n(1) Line number: the heading is at specs/ISO_COBOL.md line 27603, not 27600. Line 27600 is the body text of Syntax rule 8 ('If the REPLACING phrase is specified, ...'); line 27602 is the anchor '<a id=\"section-14-9-20-4\"></a>'; line 27603 is '## 14.9.20.4 General rules'.\n\n(2) The kind label 'missing-heading' is a misnomer. Nothing is missing: the heading is present with its clause number and title transcribed verbatim and correctly ('14.9.20.4 General rules'), and all four of its numbered general rules follow intact. The defect is purely heading DEPTH \u2014 it is emitted as level 2 ('##') when its three siblings 14.9.20.1 General, 14.9.20.2 General format and 14.9.20.3 Syntax rules (lines 27534/27539/27576) are level 3 ('###'), and its parent 14.9.20 INITIALIZE statement (line 27531) is itself level 2. A more accurate kind would be 'heading-level-promotion' or 'wrong-heading-depth'.\n\nThe PDF corroborates the intended depth: on page 667 the parent and .1/.2/.3 all print in one bold sub-clause face, and on page 668 '14.9.20.4  General rules' prints in that identical face at the identical margin and number/title tab \u2014 a fourth peer, not a new top-level clause.\n\nLikely root cause, worth sweeping rather than patching in isolation: 14.9.20.4 is the first heading after the 667/668 page boundary, and 57 of the 162 document-wide '## N.N.N.N' promotions fall within 8 lines of a page marker, so the transcription appears to lose heading depth across page breaks. Remediation: '##' -> '###' at line 27603, plus a document-wide pass normalizing 4-part clause numbers to level 3 (162 candidates, dominant convention 620x '###').",
+    "evidence": {
+      "pdf_pages_rendered": [
+        "E:/Temp/specrecon/v667/spec_p667.png (printed folio 637)",
+        "E:/Temp/specrecon/v668/spec_p668.png (printed folio 638)"
+      ],
+      "markdown_heading_run": [
+        "27531: ## 14.9.20 INITIALIZE statement",
+        "27534: ### 14.9.20.1 General",
+        "27539: ### 14.9.20.2 General format",
+        "27576: ### 14.9.20.3 Syntax rules",
+        "27582: ## Page 668  (page furniture)",
+        "27584: # ISO/IEC 1989:2023 (E)  (page furniture)",
+        "27603: ## 14.9.20.4 General rules  <-- DEFECT, should be ###"
+      ],
+      "convention_counts": {
+        "level3_four_part_headings": 620,
+        "level2_four_part_headings": 162,
+        "level2_promotions_within_8_lines_of_a_page_marker": 57
+      },
+      "fix": "specs/ISO_COBOL.md line 27603: '## 14.9.20.4 General rules' -> '### 14.9.20.4 General rules'"
+    }
+  }
+}
