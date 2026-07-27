@@ -1,0 +1,51 @@
+{
+  "batch": [310, 320, 322, 334, 342, 344, 350, 352, 358, 362, 372, 378],
+  "pages_checked": [310, 320, 322, 334, 342, 344, 350, 352, 358, 362, 372, 378],
+  "findings": [
+    {
+      "page": 320,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "[ CURRENCY SIGN IS  literal-7   [ WITH PICTURE  SYMBOL literal-8 ] ]  ...   (the printed page draws a TALL outer bracket that opens immediately before CURRENCY and closes immediately after the inner ']' of the WITH phrase; the trailing ellipsis sits outside that outer bracket)",
+      "markdown_says": "`CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ]` ...   (ISO_COBOL.md line 13920 - no outer bracket at all)",
+      "why_it_matters": "The lost outer bracket is the one that makes the whole CURRENCY SIGN clause OPTIONAL inside SPECIAL-NAMES. As transcribed, the clause reads as a REQUIRED member of the SPECIAL-NAMES paragraph, and the trailing '...' now appears to repeat only the inner WITH PICTURE SYMBOL phrase rather than the whole clause. Every sibling clause on the same page (CRT STATUS line 13918, CURSOR line 13922, DECIMAL-POINT line 13924) DOES keep its bracket, so this is an omission, not a transcription convention.",
+      "suggested_repair": "Rewrite line 13920 as `[ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] ...` (outer bracket restored, ellipsis outside it)."
+    },
+    {
+      "page": 320,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "[ LOCALE locale-name-1 IS { external-locale-name-1 / literal-4 } ]  ...   (a TALL outer bracket opens before LOCALE and closes after the brace pair; the ellipsis is outside it)",
+      "markdown_says": "`LOCALE locale-name-1 IS { external-locale-name-1 / literal-4 }` ...   (ISO_COBOL.md line 13928 - no outer bracket)",
+      "why_it_matters": "Same class of loss as the CURRENCY line: the bracket that makes the LOCALE clause optional inside SPECIAL-NAMES is gone, so the transcription reads as though every SPECIAL-NAMES paragraph must carry a LOCALE clause, and the '...' now binds to the brace pair instead of to the whole clause.",
+      "suggested_repair": "Rewrite line 13928 as `[ LOCALE locale-name-1 IS { external-locale-name-1 / literal-4 } ] ...`."
+    },
+    {
+      "page": 320,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "feature-name-1 IS mnemonic-name-2 / device-name-1 IS mnemonic-name-3 appear EXACTLY ONCE on the page, as the second and third alternatives INSIDE the switch-name-1 outer bracket of the SPECIAL-NAMES diagram. They are not printed anywhere else.",
+      "markdown_says": "ISO_COBOL.md lines 13937-13938 correctly place them inside the diagram, and then lines 13944-13945 print them AGAIN as two free-standing code spans after the figure notes:\n`feature-name-1 IS mnemonic-name-2`\n`device-name-1 IS mnemonic-name-3`",
+      "why_it_matters": "The duplicate copies sit at the same indentation level as the genuine top-level SPECIAL-NAMES clauses ([ symbolic-characters-clause ] ... on line 13947, [ ORDER TABLE ... ] . on line 13949). A reader - or a grammar generator - walking the SPECIAL-NAMES clause list will read them as two additional mandatory, unbracketed top-level clauses, when in fact they are alternatives inside an optional repeatable group.",
+      "suggested_repair": "Delete ISO_COBOL.md lines 13944-13945; the alternatives are already correctly rendered inside the code block at lines 13937-13938 and described in the figure note at line 13941."
+    },
+    {
+      "page": 342,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "In both `ALTERNATE RECORD KEY IS` and `RECORD KEY IS`, only ALTERNATE and RECORD carry an underline; KEY and IS are NOT underlined (verified at 300 dpi on the printed glyphs).",
+      "markdown_says": "The figure note (ISO_COBOL.md line 14770) lists `RECORD KEY` among the underlined words - \"...`ORGANIZATION`, `INDEXED`, `RECORD KEY`, `RESERVE`, `SHARING`...\" - and then in the very next sentence lists `KEY` among the words that are NOT underlined: \"`IS`, `TO`, `MODE`, `KEY`, `WITH`, `WHEN`, `FILE`, `AREA`, `AREAS`, and `OTHER` are not underlined.\"",
+      "why_it_matters": "The figure note contradicts itself about a word whose underlining decides whether it is a required word or an optional word. A reader taking the first list at face value would treat KEY as required and reject the legal `RECORD IS data-name-5` / `ALTERNATE RECORD IS data-name-2` spellings - the falsely-restrictive direction.",
+      "suggested_repair": "In the underlined list on line 14770 replace `RECORD KEY` with `RECORD`; the second sentence (KEY not underlined) is already correct and should stand."
+    },
+    {
+      "page": 344,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "The three clause lines printed as plain (non-boxed) format lines carry selective underlining: `ACCESS` and `SEQUENTIAL` are underlined while MODE and IS are not; `STATUS` is underlined while FILE and IS are not; `ORGANIZATION` and `SEQUENTIAL` are underlined while IS is not; `SELECT` and `OPTIONAL` are underlined.",
+      "markdown_says": "ISO_COBOL.md renders these with no underline markup and no compensating figure note - e.g. line 14835 `[ ACCESS MODE IS SEQUENTIAL ]`, and likewise `[ FILE STATUS IS data-name-4 ]`, `SELECT [ OPTIONAL ] file-name-1`, `[ [ ORGANIZATION IS ] SEQUENTIAL ] .` in the same page-344 slice.",
+      "why_it_matters": "Underlining is the standard's only marker separating required words from optional words (5.2.6.2). With it gone and no figure note to carry it, MODE, IS and FILE read as required, so legal source such as `ACCESS SEQUENTIAL` or `STATUS IS data-name-4` looks illegal. Elsewhere the transcription does preserve this - page 310 uses `<u>PROGRAM-ID</u>`, page 322 uses `<u>SYMBOLIC</u> CHARACTERS`, and every code-block figure on page 344 itself carries a figure note listing the underlined words - so these plain lines are an omission rather than a convention.",
+      "suggested_repair": "Add `<u>` markup (or a one-line figure note) to the four plain-text clause lines on page 344 the same way page 310 line 32 and page 322 line 8 already do."
+    }
+  ]
+}

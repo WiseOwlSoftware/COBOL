@@ -59,15 +59,25 @@ def main() -> int:
         for f in doc.get("findings") or []:
             claims.append(f)
 
-    # Index verdicts by (page, kind) — the verify files carry the claim, so a missing verdict is visible.
-    verdicts: dict[tuple, dict] = {}
+    # Match each claim to its verdict. Keying on (page, kind) ALONE is wrong: a page can carry two findings of the
+    # same kind (p286 has two incorrect-figure claims), and a single-slot index silently attaches one verdict to
+    # the wrong claim while leaving the other unverified. Verify files carry the CLAIM, so match on its text
+    # first, then fall back to consuming same-(page, kind) verdicts in filename order.
+    by_claim: dict[tuple, dict] = {}
+    pool: dict[tuple, list[dict]] = {}
     for _, doc in verifies:
         key = (doc.get("page"), doc.get("kind"))
-        verdicts.setdefault(key, doc.get("verdict") or {})
+        claim = doc.get("claim") or {}
+        if pdf := (claim.get("pdf_says") or "").strip()[:120]:
+            by_claim[(doc.get("page"), pdf)] = doc.get("verdict") or {}
+        pool.setdefault(key, []).append(doc.get("verdict") or {})
 
     rows = []
     for c in claims:
-        v = verdicts.get((c.get("page"), c.get("kind")))
+        v = by_claim.get((c.get("page"), (c.get("pdf_says") or "").strip()[:120]))
+        if v is None:
+            bucket = pool.get((c.get("page"), c.get("kind")))
+            v = bucket.pop(0) if bucket else None
         rows.append({
             **c,
             "verified": v is not None,

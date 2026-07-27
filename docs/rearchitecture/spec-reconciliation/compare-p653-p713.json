@@ -1,0 +1,69 @@
+{
+  "batch": [653, 658, 661, 667, 673, 674, 681, 694, 703, 705, 712, 713],
+  "pages_checked": [653, 658, 661, 667, 673, 674, 681, 694, 703, 705, 712, 713],
+  "findings": [
+    {
+      "page": 703,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "In BOTH MULTIPLY general formats the ON SIZE ERROR block is printed as:  [| ON SIZE ERROR imperative-statement-1 |] / [| NOT ON SIZE ERROR imperative-statement-2 |], where SIZE, ERROR, NOT and END-MULTIPLY carry underlines but the word ON does NOT (verified by a 900-dpi render of the clip; the underline strokes sit under SIZE and under ERROR, and under NOT on the second line, with clear white space under both occurrences of ON).",
+      "markdown_says": "Figure note for Format 1: \"`MULTIPLY`, `BY`, `ON`, `SIZE`, `ERROR`, `NOT`, and `END-MULTIPLY` are underlined in the printed standard (required words).\"  Figure note for Format 2: \"`MULTIPLY`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`, `NOT`, and `END-MULTIPLY` are underlined in the printed standard (required words).\"",
+      "why_it_matters": "The code-block figures carry no underlining, so these notes are the ONLY carrier of the required/optional word distinction on this page. Listing `ON` as underlined makes it a required word, which would reject the legal statements `MULTIPLY A BY B SIZE ERROR ...` and `MULTIPLY A BY B NOT SIZE ERROR ...`. This is exactly the falsely-restrictive direction the reconciliation is hunting: legal COBOL made to look illegal. The same defect is duplicated in both notes on the page.",
+      "suggested_repair": "In both figure notes on page 703, delete `ON` from the list of underlined words and add an explicit statement that `ON` is printed WITHOUT an underline and is therefore an optional word in both `[ON] SIZE ERROR` and `NOT [ON] SIZE ERROR`. Sweep the whole transcription for the same wording: any other statement's SIZE ERROR figure note that lists `ON` as underlined has the identical defect (ADD, SUBTRACT, DIVIDE, COMPUTE, arithmetic statements generally)."
+    },
+    {
+      "page": 673,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Format 4 (converting):  INSPECT [ BACKWARD ] identifier-1 CONVERTING { identifier-6 / literal-4 } TO { identifier-7 / literal-5 } [ after-before-phrase ]  — the printed figure has exactly TWO braces, each a balanced open/close pair spanning two stacked rows: the first encloses identifier-6 over literal-4, the second encloses identifier-7 over literal-5.",
+      "markdown_says": "Line 1: \"<u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u> { identifier-6 } <u>TO</u> { identifier-7 } [ after-before-phrase ]\"  Line 2 (an inline continuation built from a long run of `&nbsp;` padding): \"…{ literal-4 …{ literal-5 }\"",
+      "why_it_matters": "The two-line inline rendering produces FOUR brace tokens with mismatched pairing: `{ identifier-6 }` and `{ identifier-7 }` are each closed on line 1, `{ literal-4` on line 2 opens a brace that is never closed at all, and `{ literal-5 }` reads as a third, separate brace group. A reader (or a generator driven off this text) sees identifier-6 and literal-4 as belonging to different enclosures rather than as the two stacked alternatives of one brace, and the unclosed `{ literal-4` is the same class of defect already confirmed in the CALL Format 2 figure. The `&nbsp;`-padded alignment also collapses in any renderer that is not fixed-width, so the visual pairing is not recoverable.",
+      "suggested_repair": "Replace the two `&nbsp;`-padded lines with a fenced code block using the same box-drawing convention as the rest of page 673, e.g. `<u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u>` followed by a code block showing `⎧ identifier-6 ⎫ / ⎨ … ⎬ / ⎩ literal-4 ⎭` then `TO` then `⎧ identifier-7 ⎫ / ⎨ … ⎬ / ⎩ literal-5 ⎭` then `[ after-before-phrase ]`, with a figure note recording that INSPECT, BACKWARD, CONVERTING and TO are the underlined (required) words."
+    },
+    {
+      "page": 674,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.22.3   Syntax rules — a fourth-level clause heading, set in the same style and at the same level as 14.9.22.1 General and 14.9.22.2 General formats on page 673.",
+      "markdown_says": "## 14.9.22.3 Syntax rules",
+      "why_it_matters": "Its siblings are transcribed as `### 14.9.22.1 General` and `### 14.9.22.2 General formats`, and every neighbouring statement uses `###` for its `.3 Syntax rules` clause (`### 14.9.25.3`, `### 14.9.26.3`, `### 14.9.27.3`, `### 14.9.29.3`). Emitting 14.9.22.3 at `##` promotes it to sibling-of-the-statement rank, so any tool that builds a section tree from heading depth (the doc's own TOC links, an outline extractor, a citation resolver) files the INSPECT syntax rules outside the INSPECT statement. `## 14.9.22.4 General rules` at line 27892 of specs/ISO_COBOL.md has the identical defect and should be swept with it.",
+      "suggested_repair": "Change `## 14.9.22.3 Syntax rules` to `### 14.9.22.3 Syntax rules`, and sweep the file for every `^## <n>.<n>.<n>.<n> ` heading — each is a fourth-level clause wrongly emitted at depth 2."
+    },
+    {
+      "page": 713,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.28.3   Syntax rules — a fourth-level clause heading, set in the same style and at the same level as 14.9.28.1 General and 14.9.28.2 General formats on page 712.",
+      "markdown_says": "## 14.9.28.3 Syntax rules",
+      "why_it_matters": "Same defect class as page 674: the siblings on page 712 are `### 14.9.28.1 General` and `### 14.9.28.2 General formats`, so `##` here breaks the section tree and detaches the PERFORM syntax rules from the PERFORM statement. `## 14.9.28.4 General rules` at line 29212 of specs/ISO_COBOL.md carries the same error.",
+      "suggested_repair": "Change `## 14.9.28.3 Syntax rules` to `### 14.9.28.3 Syntax rules` and include it in the file-wide sweep of fourth-level clause headings emitted at depth 2."
+    },
+    {
+      "page": 667,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "In the 14.9.20.2 general format the underlines mark exactly these words as required: INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT. The words WITH, TO, THEN and DATA are printed WITHOUT underlines and are therefore optional words — so `INITIALIZE X FILLER`, `INITIALIZE X ALL VALUE`, `INITIALIZE X REPLACING NUMERIC BY 0` and `INITIALIZE X DEFAULT` are all legal.",
+      "markdown_says": "```\nINITIALIZE { identifier-1 } ... [ WITH FILLER ]\n\n⎡ ⎧ ALL        ⎫              ⎤\n⎢ ⎨            ⎬ TO VALUE     ⎥\n⎣ ⎩ category-name ⎭           ⎦\n\n⎡                    ⎧                    ⎧ identifier-2 ⎫ ⎫    ⎤\n⎢ THEN REPLACING     ⎨ category-name DATA BY ⎨             ⎬ ⎬ ...⎥\n⎣                    ⎩                    ⎩ literal-1    ⎭ ⎭    ⎦\n\n[ THEN TO DEFAULT ]\n```  — with no figure note attached.",
+      "why_it_matters": "The code block carries no underlining and, unlike the `where category-name is:` figure immediately below it on the same page (which DOES get a note ending \"Every one of the thirteen words is underlined (required word) in the printed figure\"), this figure gets no compensating note. The required/optional split is therefore unrecoverable from the transcription for five separate word pairs — WITH/FILLER, TO/VALUE, THEN/REPLACING, DATA/BY and THEN TO/DEFAULT — so a reader cannot tell that the noise words may be omitted. The failure mode is the falsely-restrictive one: an implementation built from this text requires WITH, TO, THEN and DATA and rejects legal source.",
+      "suggested_repair": "Add a figure note under the 14.9.20.2 code block in the same form already used elsewhere on the page: \"INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY and DEFAULT are underlined in the printed standard (required words); WITH, TO, THEN and DATA are printed without underlines (optional words).\""
+    },
+    {
+      "page": 705,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "where sharing-phrase is:  SHARING WITH { ALL OTHER / NO OTHER / READ ONLY } — verified at 800 dpi: SHARING, ALL, NO, READ and ONLY carry underlines; WITH and BOTH occurrences of OTHER are printed without an underline and are therefore optional words.",
+      "markdown_says": "```\n                ⎧ ALL OTHER  ⎫\nSHARING WITH    ⎨ NO OTHER   ⎬\n                ⎩ READ ONLY  ⎭\n```  — with no figure note attached.",
+      "why_it_matters": "The OPEN general format directly above this on the same page DOES carry a figure note that records its underlining (\"OPEN, INPUT, OUTPUT, I-O, EXTEND, NO and REWIND are underlined in the printed figure (required words); WITH is not underlined (optional word)\"), but that note scopes only to the OPEN figure and says nothing about the sharing-phrase. Without it the transcription makes OTHER look like a required word, so `OPEN INPUT F SHARING WITH ALL` and `SHARING WITH NO` — both legal — read as illegal, and `WITH` likewise reads as mandatory.",
+      "suggested_repair": "Add a figure note under the sharing-phrase code block: \"SHARING, ALL, NO, READ and ONLY are underlined in the printed standard (required words); WITH and OTHER are printed without underlines (optional words), so SHARING ALL, SHARING WITH ALL, SHARING WITH ALL OTHER, SHARING NO and SHARING WITH NO OTHER are all the same phrase.\""
+    },
+    {
+      "page": 712,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "The two trailing bracketed lines of PERFORM Format 3 are printed as `[ WHEN OTHER EXCEPTION  imperative-statement-3 ]` and `[ WHEN COMMON EXCEPTION imperative-statement-4 ]`. Verified at 900 dpi: on the OTHER line an underline runs under WHEN and under OTHER; on the COMMON line the underline runs under COMMON only — the word WHEN on the `WHEN COMMON EXCEPTION` line has NO underline beneath it. This is an inconsistency in the printed standard itself, since WHEN is required in both alternatives.",
+      "markdown_says": "Figure note: \"`PERFORM`, `LOCATION`, `WHEN`, `EXCEPTION`, `INPUT`, `OUTPUT`, `IO`, `EXTEND`, `FILE`, `OTHER`, `COMMON`, `FINALLY`, and `END-PERFORM` are underlined in the printed standard (required words); `WITH` is printed without an underline, as is the second `EXCEPTION` in each of the `WHEN OTHER EXCEPTION` / `WHEN COMMON EXCEPTION` lines.\"",
+      "why_it_matters": "The note is otherwise a careful, verified record of this figure's typography — it even captures the un-underlined second EXCEPTION — but it flattens `WHEN` to \"underlined\" and so silently loses an ISO printing defect that a later reader re-checking the page will trip over and may mistake for a transcription error. The project's practice is to record ISO's own defects rather than normalize them away. No COBOL semantics change: WHEN is required in the COMMON alternative regardless.",
+      "suggested_repair": "Extend the figure note with a sentence such as: \"NOTE (defect in the printed standard): on the `[ WHEN COMMON EXCEPTION imperative-statement-4 ]` line the word WHEN is printed WITHOUT its underline, inconsistently with the `WHEN OTHER EXCEPTION` line above it and with the WHEN inside the main brace group. WHEN is a required word in all three places.\""
+    }
+  ]
+}

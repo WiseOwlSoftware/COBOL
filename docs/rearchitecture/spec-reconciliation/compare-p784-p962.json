@@ -1,0 +1,42 @@
+{
+  "batch": [784, 788, 789, 792, 804, 815, 816, 859, 860, 920, 928, 962],
+  "pages_checked": [784, 788, 789, 792, 804, 815, 816, 859, 860, 920, 928, 962],
+  "findings": [
+    {
+      "page": 816,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.51.3   Syntax rules  (printed in the same bold sub-clause style as 14.9.51.1 General and 14.9.51.2 General formats on page 815)",
+      "markdown_says": "## 14.9.51.3 Syntax rules   (H2, while its siblings on page 815 are '### 14.9.51.1 General' and '### 14.9.51.2 General formats')",
+      "why_it_matters": "A four-level clause number (14.9.51.3) is promoted to the same heading level as the statement clause itself (## 14.9.51 WRITE statement). The syntax rules stop being nested inside the WRITE statement clause, which breaks the document outline, any TOC generated from it, and any tooling that resolves a citation like '14.9.51.3' by walking the heading tree. ISO_COBOL.md line 33010 (and 33074 for 14.9.51.4, on a later page) carry the same defect.",
+      "suggested_repair": "Demote to '### 14.9.51.3 Syntax rules' (ISO_COBOL.md line 33010) to match 14.9.51.1/.2. Sweep 14.9.51.4 at line 33074 in the same change."
+    },
+    {
+      "page": 860,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "15.19.3   Argument rules  /  15.19.4   Returned value rules  (printed in the same bold sub-clause style as 15.19.1 General and 15.19.2 General format on page 859)",
+      "markdown_says": "## 15.19.3 Argument rules  and  ## 15.19.4 Returned value rules   (both H2, while '### 15.19.1 General' and '### 15.19.2 General format' on page 859 are H3)",
+      "why_it_matters": "The two rule sub-clauses are lifted out of the CONVERT function clause and become siblings of '## 15.19 CONVERT function'. The neighbouring function 15.20 COS is transcribed correctly ('### 15.20.3 Argument rule', '### 15.20.4 Returned value rule'), so CONVERT is the outlier and any outline- or citation-resolving tool will mis-parent CONVERT's argument and returned-value rules.",
+      "suggested_repair": "Demote both to H3 in ISO_COBOL.md (lines 34597 and 34620) so they read '### 15.19.3 Argument rules' and '### 15.19.4 Returned value rules', matching 15.20.3/15.20.4."
+    },
+    {
+      "page": 859,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "FUNCTION CONVERT ( argument-1 source-format destination-format )  — BOTH 'FUNCTION' and 'CONVERT' carry an underline in the printed general format (verified by rendering page 859 at 300 dpi and cropping the line: two separate underline rules sit beneath FUNCTION and beneath CONVERT).",
+      "markdown_says": "<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )   (ISO_COBOL.md line 34553 — only FUNCTION is wrapped in <u>…</u>; CONVERT is left plain)",
+      "why_it_matters": "Per 5.2.6.2 an underlined word is a REQUIRED word and a non-underlined word is an OPTIONAL word that may be omitted without changing the meaning. Marking FUNCTION underlined but CONVERT not asserts a positive (and false) distinction: it reads as though 'FUNCTION ( argument-1 … )' were legal. Every sibling function in clause 15 uses the '<u>FUNCTION</u> <u>NAME</u>' form (ABS, ANNUITY, ATAN, COMBINED-DATETIME, CONCAT, CURRENT-DATE, …), so CONVERT is the outlier. The identical defect exists at line 38293 for TEST-NUMVAL.",
+      "suggested_repair": "Change ISO_COBOL.md line 34553 to '<u>FUNCTION</u> <u>CONVERT</u> ( argument-1 source-format destination-format )'. Sweep the sibling defect at line 38293 (<u>FUNCTION</u> TEST-NUMVAL) in the same change set."
+    },
+    {
+      "page": 804,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "Format 2 (reporting):  USE [ GLOBAL ] BEFORE REPORTING identifier-1  — USE, GLOBAL, BEFORE and REPORTING are all underlined (required words); only identifier-1 is not.",
+      "markdown_says": "Format 2 (reporting):\n\nUSE [ GLOBAL ] BEFORE REPORTING identifier-1   (ISO_COBOL.md line 32562 — bare prose, no code fence, and no 'Figure notes' paragraph, unlike Formats 1, 3 and 4 on the same page which each carry one)",
+      "why_it_matters": "Formats 1, 3 and 4 on this page each record which words are underlined in a Figure-notes paragraph; Format 2 records nothing, so the required-word marking on BEFORE and REPORTING is simply absent. A reader or generator applying the page's own convention would infer that no word in Format 2 is required, i.e. that 'USE REPORTING identifier-1' or 'USE BEFORE identifier-1' is legal.",
+      "suggested_repair": "Put Format 2 in a fenced block like its siblings and add a Figure-notes line: 'USE, GLOBAL, BEFORE and REPORTING are underlined in the printed standard (required words); identifier-1 is not. [ GLOBAL ] is optional.'"
+    }
+  ]
+}
