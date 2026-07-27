@@ -53434,12 +53434,32 @@ taken to govern:** `AFTER` and `SECONDS` are required words. That is also the on
 meaning, since `CONTINUE 5` — both words omitted — would otherwise be legal and undefined. (`CONTINUE` itself is
 corrected under C2, on grounds independent of this contradiction.)
 
-### D3 · pages 653 and 661 · `LAST EXCEPTION` · `EXCEPTION` printed without an underline
+### D3 · `LAST EXCEPTION` · `EXCEPTION` printed without an underline — **verified correct as printed**
 
-In the `LAST EXCEPTION` alternative of both the EXIT PROGRAM format (14.9.14.2) and the raising-phrase
-(14.9.18.2), `LAST` is underlined and `EXCEPTION` is not — although `EXCEPTION` *is* underlined in the sibling
-`EXCEPTION exception-name-1` alternative directly above it. Unlike D2, the two pages **agree with each other**,
-so this is consistently printed rather than a single-page slip, and it is left as printed.
+In the `LAST EXCEPTION` alternative, `LAST` is underlined and `EXCEPTION` is not, although `EXCEPTION` *is*
+underlined in the sibling `EXCEPTION exception-name-1` alternative directly above it. That asymmetry looks like a
+slip. It is not.
+
+**All three general-format sites agree**, and they are in different statements typeset in different clauses:
+
+| page | clause | `LAST` | `EXCEPTION` |
+|---|---|---|---|
+| 653 | 14.9.14.2 EXIT PROGRAM | underlined | not underlined |
+| 661 | 14.9.18.2 GOBACK, raising-phrase | underlined | not underlined |
+| 756 | 14.9.38.2 SEND | underlined | not underlined |
+
+(A fourth site, page 761, prints `EXCEPTION` underlined — but it is the **SET statement**,
+`SET LAST EXCEPTION TO OFF`, a different construct in which `EXCEPTION` is part of SET's own required syntax. It
+is not a counter-example.)
+
+**The standard's own prose confirms it.** Page 111 describes propagation "as though a **`GOBACK RAISING LAST`**
+statement were executed in a declarative for that exception condition" — writing the phrase *without*
+`EXCEPTION`. That is the standard itself using the short spelling, which is only possible if `EXCEPTION` is an
+optional word there per 5.2.3. Three other passages (pages 579, 581 and 1123) write the full
+`RAISING LAST EXCEPTION` form, exactly as an optional word predicts: both spellings occur, and they mean the same
+thing.
+
+Transcribed as printed, and no correction is needed.
 
 ## Method
 
