@@ -31,7 +31,7 @@ import pathlib
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-PDF = next(iter(sorted((REPO / "specs").glob("*COBOL*.pdf"))), None)
+PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 
 # A bracket FOOT and an underline are both short horizontal rules, and they CANNOT be told apart by width.
 # An earlier version of this file used MIN_RULE_W = 9.0 to exclude feet, and silently mis-read every two-letter
@@ -88,7 +88,8 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         pass
     if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs/")
+        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
+             "git submodule update --init specs-private")
     import fitz
 
     doc = fitz.open(PDF)

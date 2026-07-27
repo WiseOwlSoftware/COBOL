@@ -29,7 +29,7 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs").glob("*COBOL*.pdf"))), None)
+PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 
 # The acknowledgment runs from the first paragraph to the end of the authorization sentence. The trademark
 # footnotes are attached to it and are carried too.
@@ -64,7 +64,8 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         pass
     if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs/")
+        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
+             "git submodule update --init specs-private")
     import fitz
 
     md = SPEC_MD.read_text(encoding="utf-8")

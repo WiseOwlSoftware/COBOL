@@ -36,7 +36,7 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
 SPEC = REPO / "specs" / "ISO_COBOL.md"
-PDF = REPO / "specs" / "ISO_COBOL_2023.pdf"
+PDF = REPO / "specs-private" / "ISO_COBOL_2023.pdf"
 
 # A numbered section heading. Deliberately NOT matching "## Page 27" (no dot-number form beyond a bare integer is
 # fine, but page markers are excluded by requiring the title to follow the number) or the running header.
