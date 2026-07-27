@@ -28,6 +28,30 @@
   CLASS clause (fixed too); the national-alphabet path correctly rejects hex (SR14c2). Golden
   `2002/da1_alphabet_hex_thru`.
 
+### SR1 · [MAJOR] · grammar/optional-words · ✅ LANDED (DEVLOG 1041) — the first bug the SPEC RECONCILIATION proved
+
+**Source:** not the code audit. This came out of the PDF-vs-markdown reconciliation, and it is the first case of the
+GRAMMAR having inherited a transcription defect rather than the transcription alone being wrong. It is the exit
+criterion of REPAIR-PLAN Batch 1.
+
+- **Spec:** ISO §5.2.2 (an underlined uppercase word is REQUIRED) and §5.2.3 (a non-underlined one is an OPTIONAL
+  WORD that may be written or omitted, with no change of meaning). In every arithmetic statement's printed general
+  format `SIZE`, `ERROR` and `NOT` are underlined and **`ON` is not**.
+- **Measured, not assumed:** `scripts/spec/figure_extract.py` reads the underline rectangles per word. `ON` comes
+  back plain on p632 (COMPUTE), p644 (DIVIDE), p703 (MULTIPLY), p607 and p756 (ON EXCEPTION); `SIZE`/`ERROR`/`NOT`
+  come back underlined on those same pages, so it is not a detection artifact.
+- **Observed:** `ADD A TO B SIZE ERROR DISPLAY "OVERFLOW" END-ADD` → `COBOL0001: no viable alternative at input
+  'SIZE'`. Legal COBOL rejected.
+- **The grammar contradicted itself,** which is what makes this decision-complete rather than a reading of the spec:
+  `callOnExceptionPhrase` already had `ON? (EXCEPTION | OVERFLOW)`, while `arithmeticOnSizeError`,
+  `computeOnSizeError` and `mcsExceptionPhrases` required the bare token. One file, two answers.
+- **FIX (landed):** all three rules take `ON?`. Swept rather than patched at the site — no non-comment rule now
+  requires a bare `ON` before `SIZE` or `EXCEPTION`. No edition gate: §5.2.3 is not version-gated.
+- **Golden:** `tests/conformance/85/optional_on_size_error` — pins `ON` as omittable across ADD/SUBTRACT/MULTIPLY/
+  DIVIDE/COMPUTE, proves each phrase still binds to its own role, and includes a MIXED case (`ON` omitted on one
+  phrase, written on the other, in the reversed order `phrase_order_arithmetic` established) so the optional-word
+  rule and the §5.2.6.4 choice-indicator rule are shown to COMPOSE.
+
 ## ✅ OWNER-DECIDED (2026-07-22 — APPROVED, now fix-ready)
 
 - **CA14 → APPROVED option (a): enforce the uniform introduction-error policy.** Replace `DataBinder.cs:2526`

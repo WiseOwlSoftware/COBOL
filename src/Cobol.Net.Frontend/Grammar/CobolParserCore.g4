@@ -705,9 +705,10 @@ mcsSendStatement
 
 // ISO 5.2.6.4: the printed RECEIVE/SEND figures enclose the ON EXCEPTION / NOT ON EXCEPTION pair in CHOICE
 // INDICATORS (verified against the PDF at 700 dpi), so BOTH may be written, each once, IN EITHER ORDER.
+// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
 mcsExceptionPhrases
-    : ON EXCEPTION statementBlock (NOT ON EXCEPTION statementBlock)?
-    | NOT ON EXCEPTION statementBlock (ON EXCEPTION statementBlock)?
+    : ON? EXCEPTION statementBlock (NOT ON? EXCEPTION statementBlock)?
+    | NOT ON? EXCEPTION statementBlock (ON? EXCEPTION statementBlock)?
     ;
 
 // ISO §14.9.50.2 — VALIDATE { identifier-1 } …
@@ -774,11 +775,16 @@ roundingModeName
 // brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER. The
 // reversed order was rejected until 2026-07-19 (our spec transcription had dropped the bars); the shape below
 // matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
+// ISO 5.2.3: ON is printed WITHOUT an underline in every one of these figures, so it is an OPTIONAL WORD
+// that may be written or omitted. Measured, not assumed: scripts/spec/figure_extract.py reads the
+// underline rectangles per word, and ON comes back plain on pages 632 (COMPUTE), 644 (DIVIDE), 703
+// (MULTIPLY), 607 and 756 (ON EXCEPTION). callOnExceptionPhrase already had `ON?`; these did not, so the
+// grammar contradicted itself and rejected `ADD A TO B SIZE ERROR ...` - legal COBOL.
 arithmeticOnSizeError
-    : ON SIZE ERROR statementBlock
-      (NOT ON SIZE ERROR statementBlock)?
-    | NOT ON SIZE ERROR statementBlock
-      (ON SIZE ERROR statementBlock)?
+    : ON? SIZE ERROR statementBlock
+      (NOT ON? SIZE ERROR statementBlock)?
+    | NOT ON? SIZE ERROR statementBlock
+      (ON? SIZE ERROR statementBlock)?
     ;
 
 // ==========================================
@@ -908,11 +914,12 @@ computeStore
     ;
 
 // ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note: both phrases, each once, any order.
+// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
 computeOnSizeError
-    : ON SIZE ERROR statementBlock
-      (NOT ON SIZE ERROR statementBlock)?
-    | NOT ON SIZE ERROR statementBlock
-      (ON SIZE ERROR statementBlock)?
+    : ON? SIZE ERROR statementBlock
+      (NOT ON? SIZE ERROR statementBlock)?
+    | NOT ON? SIZE ERROR statementBlock
+      (ON? SIZE ERROR statementBlock)?
     ;
 
 // ==========================================

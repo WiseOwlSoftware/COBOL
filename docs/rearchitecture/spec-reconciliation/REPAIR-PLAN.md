@@ -117,9 +117,18 @@ illegal. Sub-order, most-load-bearing first:
    format in the file is now a fenced ASCII figure carrying a `Figure notes` block — the form that records
    underlining and delimiter semantics where something can check them.
 
-**Exit criterion:** run `.claude/workflows/spec-grammar-impact.js` over the normative pages. Every INHERITED
-verdict becomes a `CONFORMANCE-FIX-QUEUE` entry — a compiler bug, not a doc fix — carrying the exact ISO syntax
-its fix must implement. GOBACK is already proven inherited; `ON SIZE ERROR` is the standing second candidate.
+**Exit criterion — ✅ FIRST INHERITED BUG PROVEN AND FIXED.** `ON SIZE ERROR` was the standing candidate and it
+was real: §5.2.3 makes an un-underlined word OPTIONAL, `ON` measures un-underlined on p632/p644/p703/p607/p756,
+and the parser required it — `ADD A TO B SIZE ERROR …` was rejected with `COBOL0001`. Filed and landed as
+**SR1** in `CONFORMANCE-FIX-QUEUE.md` (DEVLOG 1041), with golden `85/optional_on_size_error`.
+
+What made it decision-complete was not the spec reading but an **internal contradiction**: `callOnExceptionPhrase`
+already had `ON?` while three sibling rules required the bare token. That is the cheapest possible signal, and it
+suggests the highest-yield sweep for the rest of this criterion — **look for rules that disagree with each other
+about the same word** before re-reading the standard.
+
+Still to run: `spec-grammar-impact.js` over the remaining normative pages, so every other INHERITED verdict
+becomes a fix-queue entry. GOBACK is already proven inherited.
 
 ## Batch 2 — Mechanical, scripted (~78 findings across the structural and cosmetic tiers).
 
