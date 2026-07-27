@@ -39,7 +39,11 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-GRAMMAR = REPO / "src" / "Cobol.Net.Frontend" / "Grammar" / "CobolParserCore.g4"
+# The grammar is SPLIT ACROSS 11 FILES — CobolParserCore.g4 plus Grammar/Core/*.g4. An earlier version of this
+# script read only the root file and therefore scanned a fraction of the rules, reporting a reassuring "3
+# candidates" that was an artifact of not looking. obj/antlr-lib holds build-time COPIES of the same grammars and
+# must be excluded, or every rule is counted twice.
+GRAMMAR_DIR = REPO / "src" / "Cobol.Net.Frontend" / "Grammar"
 PDF = next(iter(sorted((REPO / "specs").glob("*COBOL*.pdf"))), None)
 
 RESERVED = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$")
@@ -101,8 +105,12 @@ def main() -> int:
 
     doc = fitz.open(PDF)
     md = SPEC_MD.read_text(encoding="utf-8").splitlines()
-    gtext = GRAMMAR.read_text(encoding="utf-8")
-    rules = grammar_rules(gtext)
+    files = sorted(f for f in GRAMMAR_DIR.rglob("*.g4") if "obj" not in f.parts)
+    rules = {}
+    for f in files:
+        for n, b in grammar_rules(f.read_text(encoding="utf-8")).items():
+            rules[f"{f.name}:{n}"] = b
+    print(f"grammar files scanned: {len(files)}   parser rules: {len(rules)}")
     pages = statement_pages(md)
     if args.statement:
         pages = {k: v for k, v in pages.items() if k == args.statement.upper()}

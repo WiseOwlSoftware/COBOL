@@ -124,7 +124,8 @@
     "udf_recursion",
     "udf_returning_categories",
     "udf_value_args",
-    "goback_raising_main"
+    "goback_raising_main",
+    "rw_suppress_bare"
   ],
   "pending": []
 }

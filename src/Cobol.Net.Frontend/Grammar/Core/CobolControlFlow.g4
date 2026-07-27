@@ -198,10 +198,15 @@ searchWhenClause
     : WHEN condition statementBlock*
     ;
 
+// ISO 5.2.3: AT is printed WITHOUT an underline in every AT END phrase in the standard — measured across all
+// 11 occurrences on pages 600-829, none underlined. It is an OPTIONAL WORD, so `SEARCH … END …` is CONFORMING
+// ISO, not a vendor extension. This rule was the lone hold-out: readAtEnd, returnAtEndPhrase and
+// writeAtEndOfPage already carried `AT?`, and this one instead admitted the AT-less form through a separate
+// alternative labelled a NIST/IBM extension — which both mis-stated the standard and silently denied the
+// AT-less spelling to the NOT branch. `AT?` subsumes that alternative.
 searchAtEndClause
-    : AT END statementBlock
-      (NOT AT END statementBlock)?
-    | END statementBlock        // NIST / IBM extension: AT-less END
+    : AT? END statementBlock
+      (NOT AT? END statementBlock)?
     ;
 
 // ==========================================

@@ -52,6 +52,42 @@ criterion of REPAIR-PLAN Batch 1.
   phrase, written on the other, in the reversed order `phrase_order_arithmetic` established) so the optional-word
   rule and the §5.2.6.4 choice-indicator rule are shown to COMPOSE.
 
+### SR2 · [MAJOR] · optional-words · ⚠ ROOT CAUSE — "unbracketed" was used as the test for "required word"
+
+**One wrong criterion, five sites.** The codebase repeatedly justifies a "leniency" with the reasoning that a
+word is *unbracketed in the ISO format, therefore required*. **That criterion is wrong.** ISO §5.2.2/§5.2.3 make
+**underlining** the test for a required word; bracketing marks whether a whole PHRASE may be omitted, not whether
+a WORD inside it must be written. The two are independent, and conflating them turns conforming source into a
+diagnosed "extension".
+
+**Measured, per word, off the printed pages:**
+
+| word | context | printed | pages |
+|---|---|---|---|
+| `KEY` | `INVALID KEY` | `INVALID` underlined, `KEY` **not** | 635, 722, 740, 784, 816 — all five |
+| `KEY` | `RECORD KEY` clause | `RECORD`/`SOURCE` underlined, `KEY`/`IS` **not** | 359 |
+| `COLLATING` | SORT/MERGE | **not** underlined | 687, 776 |
+| `AT` | `AT END` | **not** underlined, 0 of 11 occurrences | 600–829 sweep |
+| `PRINTING` | `SUPPRESS` | **not** underlined | 795 |
+
+So `INVALID <imperative>`, `RECORD data-name`, `SEQUENCE alphabet-name`, `SEARCH … END …` and bare `SUPPRESS`
+are **conforming ISO**, not vendor extensions.
+
+**LANDED (grammar, DEVLOG 1043):** `searchAtEndClause` → `AT?` (it was the lone hold-out — `readAtEnd`,
+`returnAtEndPhrase` and `writeAtEndOfPage` already had it, and this rule instead admitted the AT-less form via a
+separate alternative *labelled a NIST/IBM extension*, which also silently denied the AT-less spelling to the NOT
+branch). `suppressStatement` → `PRINTING?`. The two misclassified-leniency comments in `CobolIO.g4` corrected.
+Goldens: `2002/rw_suppress_bare` (byte-identical output to `rw_suppress`, proving omission is a SPELLING).
+
+**REMAINING — legacy only, and it reports CONFORMING SOURCE.** `DialectStrictnessChecks.CheckInvalidKeyNoiseWord`
+raises `CBL3611` (error, strict) / `CBL3612` (warning) when `KEY` is omitted, and leniency **L5** does the same
+for `COLLATING`. Both fire on legal COBOL. They live in `src/CobolSharp.Compiler` — the differential oracle,
+deleted at P15 — and `src/Cobol.Net.*` has no equivalent, so the LIVE compiler is unaffected. Fix or delete with
+the P15 cut-over; do not port. `docs/dialect-strictness.md` L1/L5 need the same correction.
+
+**Sweep still owed:** `KEY`, `ON`, `RECORD` and `WITH` are genuinely construct-dependent (measured split across
+pages 600–829), so each site needs its own page checked. That is the remaining half of Batch 1's exit criterion.
+
 ## ✅ OWNER-DECIDED (2026-07-22 — APPROVED, now fix-ready)
 
 - **CA14 → APPROVED option (a): enforce the uniform introduction-error policy.** Replace `DataBinder.cs:2526`

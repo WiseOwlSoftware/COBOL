@@ -213,6 +213,8 @@ terminateStatement
 // carries no operand (the single fixed form); §14.9.45.3 SR1 restricts it to a USE BEFORE REPORTING procedure,
 // and §14.9.45.4 GR1 fixes the affected group as the one that USE procedure names — both enforced at BIND time
 // (the superset grammar admits the verb anywhere; BindSuppress resolves the lexically-enclosing declarative).
+// ISO 5.2.3: measured on page 795, SUPPRESS carries an underline rule (45.3 pt) and PRINTING carries NONE, so
+// PRINTING is an OPTIONAL WORD and a bare `SUPPRESS` conforms.
 suppressStatement
-    : SUPPRESS PRINTING
+    : SUPPRESS PRINTING?
     ;
