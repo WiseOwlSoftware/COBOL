@@ -125,6 +125,19 @@ Where they go cannot be measured as a *gap*: 19.0 pt separates the exception gro
 detection one level up.) The enclosures already state it: **two adjacent rows belong together when some
 delimiter spans both**, and are separate groups otherwise.
 
+### A blank row between siblings
+
+Two rows carrying content at the **same nesting depth** — alternatives of one delimiter — get a blank row
+between them. `BIT` / `COMPUTATIONAL` / `COMP` / `DISPLAY` run down the USAGE clause and read as a wall
+otherwise.
+
+Siblings only. `identifier-3` and the centred label `LINE NUMBER` beside it are *not* siblings — the label sits
+one level further out — which is why ACCEPT Format 3 keeps its printed seven rows instead of doubling.
+
+Depth is counted against the delimiters spanning **both** rows of the pair, never against whatever crosses each
+row separately: in the relation condition the operand braces cover only part of the figure's height, so
+measuring per row made `IS <>` depth 3 and the row below it depth 1, and two plain siblings failed to pair.
+
 ### Columns align within a group; words flow within a cell
 
 Two rows share a column only when the same delimiter spans them. Packing one column space across a whole figure

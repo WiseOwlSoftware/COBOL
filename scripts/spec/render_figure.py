@@ -284,6 +284,34 @@ def build(page, lo, hi, extract, classify_page):
     boundaries = {i for i in range(len(rows) - 1) if i not in joined and {i, i + 1} & inside}
     spacers |= boundaries
 
+    # AND A BLANK ROW BETWEEN SIBLINGS — two rows carrying content at the SAME NESTING DEPTH, which is to say
+    # alternatives of one delimiter. `BIT` / `COMPUTATIONAL` / `COMP` / `DISPLAY` run down the USAGE clause
+    # with nothing between them and read as a wall. `identifier-3` and the centred label `LINE NUMBER` beside
+    # it are NOT siblings — the label sits one level further out — which is why ACCEPT Format 3 keeps its
+    # printed seven rows instead of doubling.
+    #
+    # Depth is the number of delimiters to a word's left on its own row, the same measure the cell split uses.
+    # An earlier attempt exempted a brace's POINT row instead, and the relation condition shows why that
+    # cannot work: the MIDDLE brace's point falls on the row holding `literal-1`, so the LEFT brace's four
+    # operands came out tight while its neighbour's twelve were spaced — which the printed page never does.
+    # Depth is counted against the delimiters spanning BOTH rows of the pair, not against whatever happens to
+    # cross each row. A sibling enclosure that starts or stops between them would otherwise shift the count and
+    # break the match: in the relation condition the operand braces cover rows 4-8 only, so `IS <>` measured
+    # depth 3 and the row below it depth 1, and the two failed to pair despite being plain siblings.
+    spans = [(min(b["x0"] for b in grp), dr0, dr1) for _, dr0, dr1, grp in glyph_raw]
+    spans += [(st["x"], c[0], c[-1]) for st in stems for c in [covers(st)] if c]
+    words_in = collections.defaultdict(list)
+    for w in text_w:
+        words_in[rindex[rowof[w["y0"]]]].append(w["x0"])
+
+    def siblings(i):
+        across = [dx for dx, a, b in spans if a <= i and b >= i + 1]
+        d = lambda r: {sum(1 for dx in across if dx < x) for x in words_in[r]}
+        return bool(d(i) & d(i + 1))
+
+    spacers |= {i for i in range(len(rows) - 1)
+                if i in joined and i not in spacers and siblings(i)}
+
     # COLUMNS ALIGN ONLY WITHIN A GROUP. Packing one column space across the whole figure lets every clause
     # shove every other clause about: the file-control entry stacks two dozen independent clauses, and sharing
     # a column with a wider one three clauses away is what spread `[ ORGANIZATION  IS  ]` and put a stray gap
