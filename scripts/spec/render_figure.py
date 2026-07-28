@@ -629,8 +629,15 @@ def continues_from_previous(page) -> bool:
     doc, n = page.parent, page.number
     if doc is None or n <= 0:
         return False
-    prev = headings(doc[n - 1])
-    return bool(prev and GENERAL_FORMAT.search(prev[-1][1]))
+    # Walk back to the last page that HAS a heading. Stopping at the immediately preceding page loses any
+    # region that spans a heading-less page: the screen description entry's `where screen-attribute-clauses
+    # is:` figures sit two pages on from `13.17.2 General formats`, with a page carrying no heading between,
+    # so the region read as closed and those figures were never found.
+    for k in range(n, max(n - 6, 0), -1):
+        prev = headings(doc[k - 1])
+        if prev:
+            return bool(GENERAL_FORMAT.search(prev[-1][1]))
+    return False
 
 
 def find_figures(page, extract):

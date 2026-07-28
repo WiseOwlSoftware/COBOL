@@ -13973,17 +13973,21 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 <a id="section-12-3-6-2"></a>
 ##### 12.3.6.2 General format
 
-```
- OBJECT-COMPUTER.
+<pre>
+<u>OBJECT-COMPUTER.</u>
 
-                      ⎡ |                                ⎧ IS locale-phrase-1 [ locale-phrase-2 ]        ⎫ | ⎤
-                      ⎢ |  CHARACTER CLASSIFICATION      ⎨ ⎧ | FOR ALPHANUMERIC IS locale-phrase-1 | ⎫ ⎬ | ⎥
-                      ⎢ |                                ⎩ ⎩ | FOR NATIONAL IS locale-phrase-2     | ⎭ ⎭ | ⎥
- [ computer-name-1 ]  ⎢ |                                                                                 | ⎥ .
-                      ⎢ |                                ⎧ IS alphabet-name-1 [ alphabet-name-2 ]       ⎫ | ⎥
-                      ⎢ |  PROGRAM COLLATING SEQUENCE    ⎨ ⎧ | FOR ALPHANUMERIC IS alphabet-name-1 | ⎫ ⎬ | ⎥
-                      ⎣ |                                ⎩ ⎩ | FOR NATIONAL IS alphabet-name-2     | ⎭ ⎭ | ⎦
-```
+                    ┌ │                            ╭ IS locale-phrase-1 [ locale-phrase-2 ]      ╮   │ ┐
+                    │ │                            │                                             │   │ │
+                    │ │ CHARACTER <u>CLASSIFICATION</u>   ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS locale-phrase-1 │ ╮ ├   │ │
+                    │ │                            │ ┤ │                                     │ ├ │   │ │
+                    │ │                            │ ╰ │ FOR <u>NATIONAL</u> IS locale-phrase-2     │ ╯ │   │ │
+[ computer-name-1 ] │ │                            ╰                                             ╯   │ │ .
+                    │ │                            ╭ IS alphabet-name-1 [ alphabet-name-2 ]        ╮ │ │
+                    │ │                            │                                               │ │ │
+                    │ │ PROGRAM COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │   ╮ ├ │ │
+                    │ │                            │ ┤ │                                     │   ├ │ │ │
+                    └ │                            ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │   ╯ ╯ │ ┘
+</pre>
 
 > **Figure notes (OBJECT-COMPUTER paragraph general format).** `OBJECT-COMPUTER`, `CLASSIFICATION`, `SEQUENCE`, `ALPHANUMERIC`, and `NATIONAL` are underlined in the printed standard (required words); `CHARACTER`, `PROGRAM`, `COLLATING`, `FOR`, and `IS` are **not** underlined. The paragraph is terminated by a separator period.
 > ⚠ **This figure carries choice indicators at two levels.**
@@ -13992,19 +13996,29 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 where locale-phrase-1 is:
 
-> A brace group containing:
-> - `locale-name-1` — ⚠ **CORRECTED — see the Addendum (C3).** Printed as `locae-name-1` in the standard (page 285); a TYPO, corrected here because every other occurrence in 8.3.2.3 and the SPECIAL-NAMES paragraph spells it `locale-name-1`. Recorded so the correction is visible rather than silent.
-> - `LOCALE`
-> - `SYSTEM-DEFAULT`
-> - `USER-DEFAULT`
+<pre>
+╭ locale-name-1  ╮
+│                │
+│ <u>LOCALE</u>         │
+│                │
+┤ <u>SYSTEM-DEFAULT</u> ├
+│                │
+╰ <u>USER-DEFAULT</u>   ╯
+</pre>
+
+> ⚠ **CORRECTED — see the Addendum (C3).** The first alternative is printed as `locae-name-1` in the standard (12.3.6.2); a TYPO, corrected here to `locale-name-1` because every other occurrence in 8.3.2.3 and the SPECIAL-NAMES paragraph spells it that way. Recorded so the correction is visible rather than silent.
 
 where locale-phrase-2 is:
 
-> A brace group containing:
-> - `locale-name-2`
-> - `LOCALE`
-> - `SYSTEM-DEFAULT`
-> - `USER-DEFAULT`
+<pre>
+╭ locale-name-2  ╮
+│                │
+│ <u>LOCALE</u>         │
+│                │
+┤ <u>SYSTEM-DEFAULT</u> ├
+│                │
+╰ <u>USER-DEFAULT</u>   ╯
+</pre>
 
 <a id="section-12-3-6-3"></a>
 ##### 12.3.6.3 Syntax rules
@@ -17406,41 +17420,49 @@ A screen description entry specifies attributes, behavior, size, and location of
 
 Format 1 (group):
 
-```
+<pre>
 level-number [ entry-name-clause ]
 
-[ IS GLOBAL ]
+[ IS <u>GLOBAL</u> ]
 
-⎡                    ⎡ PLUS  ⎤                    ⎤
-⎢ LINE NUMBER IS     ⎢ +     ⎥  ⎧ identifier-1 ⎫  ⎥
-⎢                    ⎢ MINUS ⎥  ⎩ integer-1    ⎭  ⎥
-⎣                    ⎣ –     ⎦                    ⎦
+┌                ┌ <u>PLUS</u>  ┐                  ┐
+│                │       │                  │
+│                │ +     │ ╭ identifier-1 ╮ │
+│ <u>LINE</u> NUMBER IS │       │ ┤              ├ │
+│                │ <u>MINUS</u> │ ╰ integer-1    ╯ │
+│                │       │                  │
+└                └ –     ┘                  ┘
 
-⎡                                ⎡ PLUS  ⎤                    ⎤
-⎢ ⎧ COLUMN ⎫                     ⎢ +     ⎥  ⎧ identifier-2 ⎫  ⎥
-⎢ ⎩ COL    ⎭  NUMBER IS          ⎢ MINUS ⎥  ⎩ integer-2    ⎭  ⎥
-⎣                                ⎣ –     ⎦                    ⎦
+┌                      ┌ <u>PLUS</u>  ┐                  ┐
+│                      │       │                  │
+│ ╭ <u>COLUMN</u> ╮           │ +     │ ╭ identifier-2 ╮ │
+│ ┤        ├ NUMBER IS │       │ ┤              ├ │
+│ ╰ <u>COL</u>    ╯           │ <u>MINUS</u> │ ╰ integer-2    ╯ │
+│                      │       │                  │
+└                      └ –     ┘                  ┘
 
-[ BLANK SCREEN ]
+[ <u>BLANK</u> <u>SCREEN</u> ]
 
 [ screen-attribute-clauses ]
 
-⎡                ⎧ LEADING  ⎫                          ⎤
-⎣ [ SIGN IS ]    ⎩ TRAILING ⎭  [ SEPARATE CHARACTER ]  ⎦
+┌             ╭ <u>LEADING</u>  ╮                        ┐
+│ [ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ] │
+└             ╰ <u>TRAILING</u> ╯                        ┘
 
-[ FULL ]
+[ <u>FULL</u> ]
 
-[ AUTO ]
+[ <u>AUTO</u> ]
 
-[ SECURE ]
+[ <u>SECURE</u> ]
 
-[ REQUIRED ]
+[ <u>REQUIRED</u> ]
 
-[ OCCURS integer-5 TIMES ]
+[ <u>OCCURS</u> integer-5 TIMES ]
 
-⎡                 ⎧ DISPLAY  ⎫ ⎤
-⎣ [ USAGE IS ]    ⎩ NATIONAL ⎭ ⎦ .
-```
+┌              ╭ <u>DISPLAY</u>  ╮ ┐
+│ [ <u>USAGE</u> IS ] ┤          ├ │ .
+└              ╰ <u>NATIONAL</u> ╯ ┘
+</pre>
 
 > **Figure notes (screen description entry Format 1 (group) syntax diagram).** `GLOBAL`, `LINE`, `PLUS`, `MINUS`, `COLUMN`, `COL`, `BLANK`, `SCREEN`, `SIGN`, `LEADING`, `TRAILING`, `SEPARATE`, `FULL`, `AUTO`, `SECURE`, `REQUIRED`, `OCCURS`, `USAGE`, `DISPLAY`, and `NATIONAL` are underlined in the printed standard (required words / required minimum abbreviation — `COL` is the required minimum abbreviation of `COLUMN`). `IS`, `NUMBER`, `CHARACTER`, and `TIMES` are not underlined. The sign alternatives are the words `PLUS` and `MINUS` and the symbols `+` and `–`, and that four-way group is a **bracket** (optional), not braces. The SIGN clause and the USAGE clause are each wrapped in an outer optional bracket, so the whole clause may be omitted even though `{ LEADING | TRAILING }` and `{ DISPLAY | NATIONAL }` are required once the clause is written. The entry is terminated by a period. No choice indicators appear in this figure.
 
@@ -17457,49 +17479,67 @@ level-number [ entry-name-clause ]
 
 Format 2 (elementary):
 
+<pre>
 level-number [ entry-name-clause ]
 
-```
-[ IS GLOBAL ]
+[ IS <u>GLOBAL</u> ]
 
-⎡                 ⎡ PLUS  ⎤                 ⎤
-⎢                 ⎢ +     ⎥ ⎧ identifier-1 ⎫ ⎥
-⎢ LINE NUMBER IS  ⎢ MINUS ⎥ ⎩ integer-1    ⎭ ⎥
-⎣                 ⎣ -     ⎦                 ⎦
+┌                ┌ <u>PLUS</u>  ┐                  ┐
+│                │       │                  │
+│ <u>LINE</u> NUMBER IS │ +     │ ╭ identifier-1 ╮ │
+│                │       │ ┤              ├ │
+│                │ <u>MINUS</u> │ ╰ integer-1    ╯ │
+│                │       │                  │
+└                └ -     ┘                  ┘
 
-⎡ ⎧ COLUMN ⎫              ⎡ PLUS  ⎤                 ⎤
-⎢ ⎨        ⎬ NUMBER IS    ⎢ +     ⎥ ⎧ identifier-2 ⎫ ⎥
-⎢ ⎩ COL    ⎭              ⎢ MINUS ⎥ ⎩ integer-2    ⎭ ⎥
-⎣                         ⎣ -     ⎦                 ⎦
+┌                      ┌ <u>PLUS</u>  ┐                  ┐
+│                      │       │                  │
+│ ╭ <u>COLUMN</u> ╮           │ +     │ ╭ identifier-2 ╮ │
+│ ┤        ├ NUMBER IS │       │ ┤              ├ │
+│ ╰ <u>COL</u>    ╯           │ <u>MINUS</u> │ ╰ integer-2    ╯ │
+│                      │       │                  │
+└                      └ -     ┘                  ┘
 
-⎡ BLANK ⎧ LINE   ⎫ ⎤
-⎣       ⎩ SCREEN ⎭ ⎦
+┌       ╭ <u>LINE</u>   ╮ ┐
+│ <u>BLANK</u> ┤        ├ │
+└       ╰ <u>SCREEN</u> ╯ ┘
 
-⎡        ⎧ END OF LINE   ⎫ ⎤
-⎢ ERASE  ⎨ END OF SCREEN ⎬ ⎥
-⎢        ⎨ EOL           ⎬ ⎥
-⎣        ⎩ EOS           ⎭ ⎦
+┌       ╭ END OF <u>LINE</u>   ╮ ┐
+│       │               │ │
+│       │ END OF <u>SCREEN</u> │ │
+│ <u>ERASE</u> ┤               ├ │
+│       │ <u>EOL</u>           │ │
+│       │               │ │
+└       ╰ <u>EOS</u>           ╯ ┘
 
 [ screen-attribute-clauses ]
 [ picture-clause ]
 [ source-destination-clauses ]
-[ BLANK WHEN ZERO ]
 
-⎡ ⎧ JUST      ⎫       ⎤
-⎣ ⎩ JUSTIFIED ⎭ RIGHT ⎦
+[ <u>BLANK</u> WHEN <u>ZERO</u> ]
 
-⎡              ⎧ LEADING  ⎫                        ⎤
-⎣ [ SIGN IS ]  ⎩ TRAILING ⎭ [ SEPARATE CHARACTER ] ⎦
+┌ ╭ <u>JUST</u>      ╮       ┐
+│ ┤           ├ RIGHT │
+└ ╰ <u>JUSTIFIED</u> ╯       ┘
 
-[ FULL ]
-[ AUTO ]
-[ SECURE ]
-[ REQUIRED ]
-[ OCCURS integer-5 TIMES ]
+┌             ╭ <u>LEADING</u>  ╮                        ┐
+│ [ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ] │
+└             ╰ <u>TRAILING</u> ╯                        ┘
 
-⎡ [ USAGE IS ] ⎧ DISPLAY  ⎫ ⎤ .
-⎣              ⎩ NATIONAL ⎭ ⎦
-```
+[ <u>FULL</u> ]
+
+[ <u>AUTO</u> ]
+
+[ <u>SECURE</u> ]
+
+[ <u>REQUIRED</u> ]
+
+[ <u>OCCURS</u> integer-5 TIMES ]
+
+┌              ╭ <u>DISPLAY</u>  ╮ ┐
+│ [ <u>USAGE</u> IS ] ┤          ├ │ .
+└              ╰ <u>NATIONAL</u> ╯ ┘
+</pre>
 
 > **Figure notes (ISO 5.2.6 notation).** This format contains NO choice indicators; every stacked group is a plain brace (exactly one alternative) or a plain bracket (zero or one). Underlined required words in the printed figure: GLOBAL, LINE, PLUS, MINUS, COLUMN, COL, BLANK, LINE, SCREEN, ERASE, LINE, SCREEN, EOL, EOS, BLANK/ZERO, JUST, JUSTIFIED, SIGN, LEADING, TRAILING, SEPARATE, FULL, AUTO, SECURE, REQUIRED, OCCURS, USAGE, DISPLAY, NATIONAL. Note that `[ SIGN IS ]` is an optional phrase nested INSIDE the outer optional bracket that encloses the whole sign clause.
 
@@ -17510,24 +17550,27 @@ where entry-name-clause is described in 13.18.20, Entry-name clause where screen
 # ISO/IEC 1989:2023 (E)
 
 
-```
- [ BELL ]
+<pre>
+[ <u>BELL</u> ]
 
- [ BLINK ]
+[ <u>BLINK</u> ]
 
- ⎡ HIGHLIGHT ⎤
- ⎣ LOWLIGHT  ⎦
+┌ <u>HIGHLIGHT</u> ┐
+│           │
+└ <u>LOWLIGHT</u>  ┘
 
- [ REVERSE-VIDEO ]
+[ <u>REVERSE-VIDEO</u> ]
 
- [ UNDERLINE ]
+[ <u>UNDERLINE</u> ]
 
- ⎡ FOREGROUND-COLOR IS ⎧ identifier-3 ⎫ ⎤
- ⎣                     ⎩ integer-3    ⎭ ⎦
+┌                     ╭ identifier-3 ╮ ┐
+│ <u>FOREGROUND-COLOR</u> IS ┤              ├ │
+└                     ╰ integer-3    ╯ ┘
 
- ⎡ BACKGROUND-COLOR IS ⎧ identifier-4 ⎫ ⎤
- ⎣                     ⎩ integer-4    ⎭ ⎦
-```
+┌                     ╭ identifier-4 ╮ ┐
+│ <u>BACKGROUND-COLOR</u> IS ┤              ├ │
+└                     ╰ integer-4    ╯ ┘
+</pre>
 
 > **Figure notes (screen-attribute-clauses syntax diagram).** `BELL`, `BLINK`, `HIGHLIGHT`, `LOWLIGHT`, `REVERSE-VIDEO`, `UNDERLINE`, `FOREGROUND-COLOR`, and `BACKGROUND-COLOR` are underlined in the printed standard (required words); `IS` is not underlined. Each clause is independently bracketed and the clauses are stacked one per line — they are separate optional clauses, not alternatives of one group. No choice indicators appear in this figure.
 
@@ -17535,13 +17578,17 @@ where picture-clause is described in 13.18.40, PICTURE clause.
 
 where source-destination-clauses is:
 
-```
- ⎡ ⎧ |  FROM ⎧ identifier-5 ⎫  | ⎫ ⎤
- ⎢ ⎨ |       ⎩ literal-1    ⎭  | ⎬ ⎥
- ⎢ ⎩ |  TO identifier-6        | ⎭ ⎥
- ⎢ USING identifier-7             ⎥
- ⎣ VALUE IS literal-2             ⎦
-```
+<pre>
+┌ ╭ │      ╭ identifier-5 ╮ │ ╮ ┐
+│ │ │ <u>FROM</u> ┤              ├ │ │ │
+│ ┤ │      ╰ literal-1    ╯ │ ├ │
+│ │ │                       │ │ │
+│ ╰ │ <u>TO</u> identifier-6       │ ╯ │
+│                               │
+│ <u>USING</u> identifier-7            │
+│                               │
+└ <u>VALUE</u> IS literal-2            ┘
+</pre>
 
 > **Figure notes (source-destination-clauses syntax diagram).** `FROM`, `TO`, `USING`, and `VALUE` are underlined in the printed standard (required words); `IS` is not underlined. The outer brackets enclose three stacked alternatives — the FROM/TO group, `USING identifier-7`, and `VALUE IS literal-2` — of which at most one may be specified.
 > ⚠ **The FROM/TO group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so this alternative may be the `FROM` phrase alone, the `TO` phrase alone, or **both**, in either order.

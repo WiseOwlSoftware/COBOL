@@ -41,6 +41,7 @@ PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
 MD_GENERAL_FORMAT = re.compile(r"general\s+formats?\s*$", re.I)
+ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
 FENCE = re.compile(r"^\s*(?:>\s?)?(?:```|</?pre>)\s*$")
 FORMAT_LABEL = re.compile(r"^\s*(?:>\s?)?\*{0,2}Formats?\s+\d+\b")
 HEADING = re.compile(r"^\s*#{1,6}\s")
@@ -377,6 +378,13 @@ def main() -> int:
         for (a, b, _kind), (pno, fmt, body) in zip(spans, figures):
             have = words_of(chr(10).join(lines[a:b]), drop_notes=True)
             want = words_of(chr(10).join(body))
+            # A DOCUMENTED CORRECTION outranks the printed page. Where the transcription deliberately departs
+            # from the standard it says so in place and lists the change in the Addendum, so regenerating from
+            # the page would silently revert it — 12.3.6.2 corrects the standard's `locae-name-1` under C3.
+            near = chr(10).join(lines[max(a - 3, 0):min(b + 8, len(lines))])
+            if have != want and ADDENDUM_REF.search(near):
+                stats["documented_correction"] += 1
+                continue
             if have != want:
                 problems.append((clause, pno, fmt, f"words differ — generated-only "
                                  f"{list((want - have).elements())[:4]}, markdown-only "
@@ -401,6 +409,7 @@ def main() -> int:
     print(f"  no clause resolved             : {stats['no_clause']}")
     print(f"  no such clause region          : {stats['no_target']}")
     print(f"  figure-count mismatch          : {stats['count_mismatch']}")
+    print(f"  documented correction (kept)   : {stats['documented_correction']}")
     print(f"  words differ                   : {stats['word_mismatch']}")
     print(f"  generator failed               : {len(failed)}")
 
