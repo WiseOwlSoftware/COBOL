@@ -41746,49 +41746,44 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 **Figure D.7 — Evaluation of the condition-1 AND condition-2 AND … condition-n**
 
 <pre style="line-height:1">
-┌─────────────┐
-│  Evaluate   │
-│ condition-1 │
-└──────┬──────┘
-       │
-  ┌────┴────┐
-  │Condition-1│ ──yes──→
-  │  false  │          │
-  └────┬────┘          │
-      no               │
-       │               │
-┌──────┴──────┐        │
-│  Evaluate   │        │
-│ condition-2 │        │
-└──────┬──────┘        │
-       │               │
-  ┌────┴────┐          │
-  │Condition-2│ ──yes──→
-  │  false  │          │
-  └────┬────┘          │
-      no               │
-       │               │
-┌──────┴──────┐        │
-│  Evaluate   │        │
-│ condition-n │        │
-└──────┬──────┘        │
-       │               │
-  ┌────┴────┐          │
-  │Condition-n│ ──yes──→
-  │  false  │          │
-  └────┬────┘          │
-      no               ↓
-       ↓         Truth value
-  Truth value      is false
-   is true
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-2     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-n     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-n     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+                       ▼                                 ▼
+                  Truth value                       Truth value
+                    is true                          is false
 </pre>
+
 
 <a id="figure-d-8"></a>
 **Figure D.8 — Evaluation of the condition-1 OR condition-2 OR … condition-n**
-
-
-
-
 
 <pre style="line-height:1">
             ┌─────────────────────┐
@@ -41823,50 +41818,51 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
                        │ no                              │
                        ▼                                 ▼
                   Truth value                       Truth value
-                   is false                          is true
+                   is false                           is true
 </pre>
+
 
 > **Figure notes (Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3).** This is a flowchart illustration, not a general format, so the brace/bracket notation of 5.2.6 does not apply. Rectangles are process boxes (`Evaluate condition-n`); rounded boxes are decisions (`Condition-n true`). Every `yes` exit joins a single line down the right-hand side terminating in **Truth value is true**; the `no` exit of the last decision falls through to **Truth value is false**. The words `false` and `true` in the two terminals are underlined in the printed standard. The chart is drawn generically over condition-1, condition-2, … condition-n even though the caption names three conditions.
 
 <a id="figure-d-9"></a>
 **Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3**
 
-
-Evaluate
-condition-1
-
-Condition-1
-true
-
-no
-
-Evaluate
-condition-2
-
-Condition-2
-false
-
-no
-
-Evaluate
-condition-3
-
-Condition-3
-false
-
-yes
-
-Truth value
-is false
-
-yes
-
-yes
-
-no
-
-Truth value
-is true
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+        yes ╭──────────┴──────────╮                      │
+      ┌─────┤     Condition-2     │                      │
+      │     │        false        │                      │
+      │     ╰──────────┬──────────╯                      │
+      │                │ no                              │
+      │     ┌──────────┴──────────┐                      │
+      │     │      Evaluate       │                      │
+      │     │     condition-3     │                      │
+      │     └──────────┬──────────┘                      │
+      │                │                                 │
+      │ yes ╭──────────┴──────────╮                      │
+      ├─────┤     Condition-3     │                      │
+      │     │        false        │                      │
+      │     ╰──────────┬──────────╯                      │
+      │                │ no                              │
+      │                └─────────────────────────────────┤
+      ▼                                                  ▼
+ Truth value                                        Truth value
+  is false                                            is true
+</pre>
 
 <a id="figure-d-10"></a>
 **Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4**
