@@ -9,6 +9,11 @@ Owner-emphasized, each earned by a correction. These seven are the SSOT; `PROMPT
    GnuCOBOL differential are regression NETS with known holes — never authority. When a general-format DIAGRAM is
    load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically
    lossy toward falsely-restrictive syntax.
+   **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.** The
+   failure mode is not inventing a citation, it is INHERITING one: a queue entry or design doc carries a §, its
+   quoted text is genuinely in the standard, and the clause NUMBER is never re-derived before it propagates into
+   code comments, goldens and the DEVLOG. Two CA10 citations were wrong exactly this way. A citation you did not
+   run `--check` on is not a citation.
 2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists them)
    plus the spec. Follow the doc; do not improvise. A design correction updates the doc in the same change set.
 3. **Implement the COMPLETE feature to spec + design — never scope to what a test references.** Tests verify, they
