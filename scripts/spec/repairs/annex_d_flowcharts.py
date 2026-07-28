@@ -261,14 +261,109 @@ def figure_d12():
     return cv.render()
 
 
-FIGURES = {"D.11": figure_d11, "D.12": figure_d12, "D.13": figure_d13, "D.14": figure_d14}
+def figure_d1():
+    """Format 1 SEARCH statement having two WHEN phrases (printed folio 1033).
+
+    Three decisions down the main column, each True exit running to its own `imperative-statement-N` box in a
+    second column; those three boxes exit right to a common brace carrying footnote `**`. The last box loops
+    back to the entrance. The `*` markers are the standard's own footnote references and are reproduced where
+    it puts them — both footnotes are transcribed beneath the figure."""
+    cv = Canvas()
+    # The gap between the columns has to hold the longest branch label,  — 15 columns.
+    axis, right, brace = 30, 80, 106
+    loop = 2
+    cv.put(0, axis - 4, "Entrance")
+    join = 2
+    d1 = cv.box(4, ["Index Setting: exceeds highest",
+                    "permissible occurrence, or is",
+                    "zero or negative"], rounded=True, axis=axis)
+    cv.vert(0, d1.top, axis)
+
+    exits = []
+    i1 = cv.box(d1.mid - 1, ["imperative-statement-1"], axis=right, enter=False, leave=False)
+    cv.junction(d1.mid, d1.right, "├", "│")
+    cv.put(d1.mid, d1.right + 1, "─" * (i1.left - d1.right - 1))
+    cv.junction(d1.mid, i1.left, "┤", "│")
+    cv.put(d1.mid - 1, d1.right + 2, "True (AT END) *")
+    exits.append(i1)
+
+    cv.put(d1.bottom + 1, axis + 2, "False")
+    d2 = cv.box(d1.bottom + 3, ["Condition-1"], rounded=True, axis=axis)
+    cv.vert(d1.bottom, d2.top, axis)
+    i2 = cv.box(d2.mid - 1, ["imperative-statement-2"], axis=right, enter=False, leave=False)
+    cv.junction(d2.mid, d2.right, "├", "│")
+    cv.put(d2.mid, d2.right + 1, "─" * (i2.left - d2.right - 1))
+    cv.junction(d2.mid, i2.left, "┤", "│")
+    cv.put(d2.mid - 1, d2.right + 2, "True")
+    exits.append(i2)
+
+    cv.put(d2.bottom + 1, axis + 2, "False")
+    d3 = cv.box(d2.bottom + 3, ["Condition-2"], rounded=True, axis=axis)
+    cv.vert(d2.bottom, d3.top, axis)
+    cv.put(d3.top - 1, d3.right + 2, "*")
+    i3 = cv.box(d3.mid - 1, ["imperative-statement-3"], axis=right, enter=False, leave=False)
+    cv.junction(d3.mid, d3.right, "├", "│")
+    cv.put(d3.mid, d3.right + 1, "─" * (i3.left - d3.right - 1))
+    cv.junction(d3.mid, i3.left, "┤", "│")
+    cv.put(d3.mid - 1, d3.right + 2, "True")
+    exits.append(i3)
+
+    # The three control transfers gather into one brace, which carries footnote `**`.
+    # The rail is drawn FIRST, so each arrival can upgrade it to a junction. Drawing it afterwards means
+    # running a vertical through the `┤` the middle branch already placed, which `put` refuses.
+    cv.vert(exits[0].mid, exits[-1].mid, brace)
+    for n, b in enumerate(exits):
+        cv.junction(b.mid, b.right, "├", "│")
+        cv.put(b.mid, b.right + 1, "─" * (brace - b.right - 1))
+        if n == 0:
+            cv.put(b.mid, brace, "┐")
+        elif n == len(exits) - 1:
+            cv.put(b.mid, brace, "┘")
+        else:
+            cv.junction(b.mid, brace, "┤", "│")
+    cv.put(exits[1].mid, brace + 2, "**")
+
+    cv.put(d3.bottom + 1, axis + 2, "False")
+    a = cv.box(d3.bottom + 3, ["Increment index-name", "for identifier-1"], axis=axis)
+    cv.vert(d3.bottom, a.top, axis)
+    b = cv.box(a.bottom + 3, ["Increment index-name-1 (for a", "different table) or identifier-2"],
+               axis=axis)
+    cv.vert(a.bottom, b.top, axis)
+    cv.put(b.top - 1, b.right + 2, "*")
+    # …and back to the entrance.
+    tail = b.bottom + 2
+    cv.vert(b.bottom, tail, axis)
+    cv.put(tail, loop, "└" + "─" * (axis - loop - 1) + "┘")
+    cv.vert(join, tail, loop)
+    cv.put(join, loop, "┌" + "─" * (axis - loop - 1))
+    cv.junction(join, axis, "┤", "│")
+    return cv.render()
+
+
+FIGURES = {"D.1": figure_d1, "D.11": figure_d11, "D.12": figure_d12,
+           "D.13": figure_d13, "D.14": figure_d14}
 
 
 def splice(lines, num, body):
-    """Replace whatever stands in for figure `num` with the drawn form."""
+    """Replace whatever stands in for figure `num` with the drawn form.
+
+    ⚠ WHAT THIS REPLACES IS EVERYTHING BETWEEN THE CAPTION AND THE NEXT ANCHOR, which for an undrawn figure is
+    the loose text standing in for it — but not only that. Figure D.1 is followed by its two FOOTNOTES, prose
+    the standard prints beneath the chart, and the first run of this function deleted them silently: the gates
+    all stayed green because a figure's replacement is expected to change words.
+
+    So a removed line that reads as a SENTENCE stops the run. The figure's own labels are fragments; a line
+    ending in a full stop is the standard's prose and does not belong to the figure."""
     cap = next(i for i, l in enumerate(lines) if l.startswith(f"**Figure {num} — "))
     end = next(i for i in range(cap + 1, len(lines))
                if lines[i].startswith("<a id=") or lines[i].startswith("**Figure "))
+    def is_prose(l):
+        s = l.strip()
+        return s.endswith(".") and len(s.split()) > 6 and not s.startswith(("│", "<"))
+
+    first_prose = next((i for i in range(cap + 1, end) if is_prose(lines[i])), None)
+    if first_prose is not None:
+        end = first_prose                       # keep the footnotes; replace only what precedes them
     repl = ["", '<pre style="line-height:1">'] + body + ["</pre>", ""]
     lines[cap + 1:end] = repl
     return len(repl), end - cap - 1

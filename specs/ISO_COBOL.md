@@ -37432,34 +37432,41 @@ END-SEARCH
 <a id="figure-d-1"></a>
 **Figure D.1 — Format 1 SEARCH statement having two WHEN phrases**
 
-Entrance
-
-↓
-
-Index Setting: exceeds highest permissible occurrence or is zero or negative
-
-→ True (AT END) \* → imperative-statement-1 →
-
-↓ False
-
-Condition-1 → True → imperative-statement-2 → **\*\***
-
-↓ False
-
-\* Condition-2 → True → imperative-statement-3 \* →
-
-↓ False
-
-Increment index-name for identifier-1
-
-↓
-
-Increment index-name-1 (for a different table) or identifier-2 \*
-
-[loops back to top]
-
-
-
+<pre style="line-height:1">
+                          Entrance
+                              │
+  ┌───────────────────────────┤
+  │                           │
+  │          ╭────────────────┴───────────────╮
+  │          │ Index Setting: exceeds highest │ True (AT END) *    ┌────────────────────────┐
+  │          │ permissible occurrence, or is  ├────────────────────┤ imperative-statement-1 ├─────────────┐
+  │          │        zero or negative        │                    └────────────────────────┘             │
+  │          ╰────────────────┬───────────────╯                                                           │
+  │                           │ False                                                                     │
+  │                           │                                                                           │
+  │                    ╭──────┴──────╮ True                        ┌────────────────────────┐             │
+  │                    │ Condition-1 ├─────────────────────────────┤ imperative-statement-2 ├─────────────┤ **
+  │                    ╰──────┬──────╯                             └────────────────────────┘             │
+  │                           │ False                                                                     │
+  │                           │        *                                                                  │
+  │                    ╭──────┴──────╮ True                        ┌────────────────────────┐             │
+  │                    │ Condition-2 ├─────────────────────────────┤ imperative-statement-3 ├─────────────┘
+  │                    ╰──────┬──────╯                             └────────────────────────┘
+  │                           │ False
+  │                           │
+  │               ┌───────────┴──────────┐
+  │               │ Increment index-name │
+  │               │   for identifier-1   │
+  │               └───────────┬──────────┘
+  │                           │
+  │                           │                  *
+  │         ┌─────────────────┴────────────────┐
+  │         │  Increment index-name-1 (for a   │
+  │         │ different table) or identifier-2 │
+  │         └─────────────────┬────────────────┘
+  │                           │
+  └───────────────────────────┘
+</pre>
 
 \* These operations are options included only when specified in the VARYING phrase of the SEARCH statement.
 
