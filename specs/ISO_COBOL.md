@@ -3429,7 +3429,7 @@ The CALL-CONVENTION directive instructs the compiler how to treat references to 
 
 <pre style="line-height:1">
                   ╭ <u>COBOL</u>                  ╮
-<u>>>CALL-CONVENTION</u> ┤                        ├
+>><u>CALL-CONVENTION</u> ┤                        ├
                   ╰ call-convention-name-1 ╯
 </pre>
 
@@ -3467,7 +3467,7 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
               ╭ <u>EQUATE</u> literal-1 <u>WITH</u> literal-2   ╮
               │                                   │
               │ <u>UNDEFINE</u> literal-3                │
-<u>>>COBOL-WORDS</u> ┤                                   ├
+>><u>COBOL-WORDS</u> ┤                                   ├
               │ <u>SUBSTITUTE</u> literal-4 <u>BY</u> literal-5 │
               │                                   │
               ╰ <u>RESERVE</u> literal-6                 ╯
@@ -3585,7 +3585,7 @@ The DISPLAY directive transfers data to the source listing or an implementor def
           ╭ arithmetic-expression-1               ╮
           │                                       │
           │ boolean-expression-1                  │
-<u>>>DISPLAY</u> ┤                                       ├ …
+>><u>DISPLAY</u> ┤                                       ├ …
           │ literal-1                             │
           │                                       │
           ╰ <u>PARAMETER</u> compilation-variable-name-1 ╯
@@ -3667,7 +3667,7 @@ Format 2 (evaluate-truth)
 
 <pre style="line-height:1">
 >> <u>EVALUATE</u> <u>TRUE</u>
-{ <u>>>WHEN</u> constant-conditional-expression-1 [ text-1 ] } …
+{ >><u>WHEN</u> constant-conditional-expression-1 [ text-1 ] } …
 [ >> <u>WHEN</u> <u>OTHER</u> [ text-2 ] ]
 >> <u>END-EVALUATE</u>
 </pre>
@@ -3982,7 +3982,7 @@ The LEAP-SECOND directive specifies whether a value greater than or equal to 60 
 
 <pre style="line-height:1">
               ╭ ON  ╮
-<u>>>LEAP-SECOND</u> ┤     ├
+>><u>LEAP-SECOND</u> ┤     ├
               ╰ <u>OFF</u> ╯
 </pre>
 
@@ -8777,7 +8777,7 @@ arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├
 <pre style="line-height:1">
                       ╭ <u>POSITIVE</u> ╮
                       │          │
-data-name-1 IS <u>[NOT</u> ] ┤ <u>NEGATIVE</u> ├
+data-name-1 IS [<u>NOT</u> ] ┤ <u>NEGATIVE</u> ├
                       │          │
                       ╰ <u>ZERO</u>     ╯
 </pre>
@@ -11078,7 +11078,7 @@ where program-definition is:
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
                                             ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
-<u>PROGRAM-ID.</u> program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
+<u>PROGRAM-ID</u>. program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
                                             │    │ │ ╭ <u>INITIAL</u>   ╮ │ │         │
                                             │    │ │ ┤           ├ │ │         │
                                             └    ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯         ┘
@@ -11118,8 +11118,8 @@ where function-definition is:
 where class-definition is:
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
-<u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
+<u>CLASS-ID</u>. object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
 [ <u>INHERITS</u> FROM { object-class-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
 [ options-paragraph ]
@@ -11131,24 +11131,24 @@ where class-definition is:
 where factory-definition is:
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
-<u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
+<u>FACTORY</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 [ options-paragraph ]
 [ environment-division ]
 [ data-division ]
 [ procedure-division ]
-<u>END</u> <u>FACTORY.</u>
+<u>END</u> <u>FACTORY</u>.
 </pre>
 where instance-definition is:
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
-<u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-2 } … . ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
+<u>OBJECT</u>. [ <u>IMPLEMENTS</u> { interface-name-2 } … . ]
 [ options-paragraph ]
 [ environment-division ]
 [ data-division ]
 [ procedure-division ]
-<u>END</u> <u>OBJECT.</u>
+<u>END</u> <u>OBJECT</u>.
 </pre>
 
 
@@ -11157,8 +11157,8 @@ where instance-definition is:
 where interface-definition is:
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
-<u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
+<u>INTERFACE-ID</u>. interface-name-1 [ <u>AS</u> literal-1 ]
 [ <u>INHERITS</u> FROM { interface-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
 [ options-paragraph ]
@@ -11170,10 +11170,10 @@ where interface-definition is:
 where method-definition is:
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
 
            ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
-<u>METHOD-ID.</u> ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
+<u>METHOD-ID</u>. ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
            │ ╭ <u>GET</u> ╮                          │
            │ ┤     ├ <u>PROPERTY</u> property-name-1 │
            ╰ ╰ <u>SET</u> ╯                          ╯
@@ -11312,7 +11312,7 @@ The paragraph header identifies the type of information contained in the paragra
 #### 11.2.1 General format
 
 <pre style="line-height:1">
-[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+[ <u>IDENTIFICATION</u> <u>DIVISION</u>. ]
 
 ╭ program-id-paragraph   ╮
 │                        │
@@ -11359,7 +11359,7 @@ The CLASS-ID paragraph indicates that this identification division is introducin
 #### 11.3.2 General format
 
 <pre style="line-height:1">
-<u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
+<u>CLASS-ID</u>. object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
 [ <u>INHERITS</u> FROM { object-class-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
 </pre>
@@ -11417,7 +11417,7 @@ The FACTORY paragraph indicates that this identification division is introducing
 #### 11.4.2 General format
 
 <pre style="line-height:1">
-<u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
+<u>FACTORY</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 </pre>
 <a id="section-11-4-3"></a>
 #### 11.4.3 Syntax rules
@@ -11455,12 +11455,12 @@ The FUNCTION-ID paragraph specifies the name by which a function is identified a
 Format 1 (definition):
 
 <pre style="line-height:1">
-<u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ] .
+<u>FUNCTION-ID</u>. user-function-name-1 [ <u>AS</u> literal-1 ] .
 </pre>
 Format 2 (prototype):
 
 <pre style="line-height:1">
-<u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
+<u>FUNCTION-ID</u>. function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u>.
 </pre>
 <a id="section-11-5-3"></a>
 #### 11.5.3 Syntax rule
@@ -11494,7 +11494,7 @@ The INTERFACE-ID paragraph indicates that this identification division is introd
 #### 11.6.2 General format
 
 <pre style="line-height:1">
-<u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
+<u>INTERFACE-ID</u>. interface-name-1 [ <u>AS</u> literal-1 ]
 [ <u>INHERITS</u> FROM { interface-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
 </pre>
@@ -11542,7 +11542,7 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 
 <pre style="line-height:1">
            ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
-<u>METHOD-ID.</u> ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
+<u>METHOD-ID</u>. ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
            │ ╭ <u>GET</u> ╮                          │
            │ ┤     ├ <u>PROPERTY</u> property-name-1 │
            ╰ ╰ <u>SET</u> ╯                          ╯
@@ -11612,7 +11612,7 @@ The OBJECT paragraph indicates that this identification division is introducing 
 #### 11.8.2 General format
 
 <pre style="line-height:1">
-<u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
+<u>OBJECT</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 </pre>
 <a id="section-11-8-3"></a>
 #### 11.8.3 Syntax rules
@@ -11650,7 +11650,7 @@ The OPTIONS paragraph specifies information for use by the compiler in generatin
 #### 11.9.2 General format
 
 <pre style="line-height:1">
-<u>OPTIONS.</u>
+<u>OPTIONS</u>.
 [ arithmetic-clause ]
 [ default-rounded-clause ]
 [ entry-convention-clause ]
@@ -12012,7 +12012,7 @@ Format 1 (definition):
 
 <pre style="line-height:1">
                                             ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
-<u>PROGRAM-ID.</u> program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
+<u>PROGRAM-ID</u>. program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
                                             │    │ │ ╭ <u>INITIAL</u>   ╮ │ │         │
                                             │    │ │ ┤           ├ │ │         │
                                             └    ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯         ┘
@@ -12024,7 +12024,7 @@ Format 1 (definition):
 Format 2 (prototype):
 
 <pre style="line-height:1">
-<u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u> .
+<u>PROGRAM-ID</u>. program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u> .
 </pre>
 <a id="section-11-10-3"></a>
 #### 11.10.3 Syntax rules
@@ -12084,7 +12084,7 @@ The environment division specifies those aspects of a data processing problem th
 #### 12.2.1 General format
 
 <pre style="line-height:1">
-<u>ENVIRONMENT</u> <u>DIVISION.</u>
+<u>ENVIRONMENT</u> <u>DIVISION</u>.
 [ configuration-section ]
 [ input-output-section ]
 </pre>
@@ -12111,7 +12111,7 @@ The configuration section specifies aspects of the data processing system that a
 #### 12.3.2 General format
 
 <pre style="line-height:1">
-<u>CONFIGURATION</u> <u>SECTION.</u>
+<u>CONFIGURATION</u> <u>SECTION</u>.
 [ source-computer-paragraph ]
 [ object-computer-paragraph ]
 [ special-names-paragraph ]
@@ -12148,7 +12148,7 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 ##### 12.3.5.2 General format
 
 <pre style="line-height:1">
-<u>SOURCE-COMPUTER.</u> [ computer-name-1 ] .
+<u>SOURCE-COMPUTER</u>. [ computer-name-1 ] .
 </pre>
 <a id="section-12-3-5-3"></a>
 ##### 12.3.5.3 Syntax rule
@@ -12178,7 +12178,7 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 ##### 12.3.6.2 General format
 
 <pre style="line-height:1">
-<u>OBJECT-COMPUTER.</u>
+<u>OBJECT-COMPUTER</u>.
 
                     ┌ │                            ╭ IS locale-phrase-1 [ locale-phrase-2 ]      ╮   │ ┐
                     │ │                            │                                             │   │ │
@@ -12334,7 +12334,7 @@ The SPECIAL-NAMES paragraph provides a means for:
 ##### 12.3.7.2 General format
 
 <pre style="line-height:1">
-<u>SPECIAL-NAMES.</u>
+<u>SPECIAL-NAMES</u>.
 [ alphabet-name-clause ] …
 
 ┌                    ┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐                             ┐
@@ -12812,7 +12812,7 @@ The REPOSITORY paragraph allows specification of program prototype names, functi
 ##### 12.3.8.2 General format
 
 <pre style="line-height:1">
-<u>REPOSITORY.</u>
+<u>REPOSITORY</u>.
 
 ┌ ╭ class-specifier                 ╮     ┐
 │ │                                 │     │
@@ -13023,7 +13023,7 @@ The input-output section deals with the information needed to control transmissi
 #### 12.4.2 General format
 
 <pre style="line-height:1">
-<u>INPUT-OUTPUT</u> <u>SECTION.</u>
+<u>INPUT-OUTPUT</u> <u>SECTION</u>.
 [ file-control-paragraph ]
 [ i-o-control-paragraph ]
 </pre>
@@ -13049,7 +13049,7 @@ The FILE-CONTROL paragraph specifies file-related information.
 ##### 12.4.4.2 General format
 
 <pre style="line-height:1">
-<u>FILE-CONTROL.</u> [ file-control-entry ] …
+<u>FILE-CONTROL</u>. [ file-control-entry ] …
 </pre>
 <a id="section-12-4-5"></a>
 #### 12.4.5 File control entry
@@ -14040,14 +14040,14 @@ The following is the general format of the sections in the data division and def
 #### 13.2.1 General format
 
 <pre style="line-height:1">
-<u>DATA</u> <u>DIVISION.</u>
+<u>DATA</u> <u>DIVISION</u>.
 
 ┌               ┌                        ┌ constant-entry           ┐              ┐   ┐
 │               │                        │                          │              │   │
 │               │ file-description-entry │ record-description-entry │ …            │   │
 │               │                        │                          │              │   │
 │               │                        └ type-declaration-entry   ┘              │   │
-│ <u>FILE</u> <u>SECTION.</u> │                                                                  │ … │
+│ <u>FILE</u> <u>SECTION</u>. │                                                                  │ … │
 │               │                                   ╭ constant-entry           ╮   │   │
 │               │                                   │                          │   │   │
 │               │ sort-merge-file-description-entry ┤ record-description-entry ├ … │   │
@@ -14056,7 +14056,7 @@ The following is the general format of the sections in the data division and def
 
 ┌                          ┌ 77-level-description-entry ┐   ┐
 │                          │                            │   │
-│ <u>WORKING-STORAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│ <u>WORKING-STORAGE</u> <u>SECTION</u>. │ constant-entry             │ … │
 │                          │                            │   │
 │                          │ record-description-entry   │   │
 │                          │                            │   │
@@ -14064,7 +14064,7 @@ The following is the general format of the sections in the data division and def
 
 ┌                        ┌ 77-level-description-entry ┐   ┐
 │                        │                            │   │
-│ <u>LOCAL-STORAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│ <u>LOCAL-STORAGE</u> <u>SECTION</u>. │ constant-entry             │ … │
 │                        │                            │   │
 │                        │ record-description-entry   │   │
 │                        │                            │   │
@@ -14072,18 +14072,18 @@ The following is the general format of the sections in the data division and def
 
 ┌                  ┌ 77-level-description-entry ┐   ┐
 │                  │                            │   │
-│ <u>LINKAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│ <u>LINKAGE</u> <u>SECTION</u>. │ constant-entry             │ … │
 │                  │                            │   │
 │                  │ record-description-entry   │   │
 │                  │                            │   │
 └                  └ type-declaration-entry     ┘   ┘
 
 ┌                 ┌                          ╭ constant-entry                 ╮   ┐   ┐
-│ <u>REPORT</u> <u>SECTION.</u> │ report-description-entry ┤                                ├ … │ … │
+│ <u>REPORT</u> <u>SECTION</u>. │ report-description-entry ┤                                ├ … │ … │
 └                 └                          ╰ report-group-description-entry ╯   ┘   ┘
 
 ┌                 ┌ constant-entry           ┐   ┐
-│ <u>SCREEN</u> <u>SECTION.</u> │                          │ … │
+│ <u>SCREEN</u> <u>SECTION</u>. │                          │ … │
 └                 └ screen-description-entry ┘   ┘
 </pre>
 
@@ -14113,7 +14113,7 @@ The purpose of the file section is to describe the structure of data, sort, and 
               │ file-description-entry │ record-description-entry │ …            │
               │                        │                          │              │
               │                        └ type-declaration-entry   ┘              │
-<u>FILE</u> <u>SECTION.</u> │                                                                  │ …
+<u>FILE</u> <u>SECTION</u>. │                                                                  │ …
               │                                   ╭ constant-entry           ╮   │
               │                                   │                          │   │
               │ sort-merge-file-description-entry ┤ record-description-entry ├ … │
@@ -14370,7 +14370,7 @@ The working-storage section describes records and subordinate data items that ar
                          ┌ 77-level-description-entry ┐
                          │                            │
                          │ constant-entry             │
-<u>WORKING-STORAGE</u> <u>SECTION.</u> │                            │ …
+<u>WORKING-STORAGE</u> <u>SECTION</u>. │                            │ …
                          │ record-description-entry   │
                          │                            │
                          └ type-declaration-entry     ┘
@@ -14419,7 +14419,7 @@ The local-storage section describes automatic data.
                        ┌ 77-level-description-entry ┐
                        │                            │
                        │ constant-entry             │
-<u>LOCAL-STORAGE</u> <u>SECTION.</u> │                            │ …
+<u>LOCAL-STORAGE</u> <u>SECTION</u>. │                            │ …
                        │ record-description-entry   │
                        │                            │
                        └ type-declaration-entry     ┘
@@ -14467,7 +14467,7 @@ Formal parameters and returning items described in the linkage section of a sour
                  ┌ 77-level-description-entry ┐
                  │                            │
                  │ constant-entry             │
-<u>LINKAGE</u> <u>SECTION.</u> │                            │ …
+<u>LINKAGE</u> <u>SECTION</u>. │                            │ …
                  │ record-description-entry   │
                  │                            │
                  └ type-declaration-entry     ┘
@@ -14538,7 +14538,7 @@ The report section describes the reports to be written to report files. The desc
 #### 13.8.2 General format
 
 <pre style="line-height:1">
-<u>REPORT</u> <u>SECTION.</u> ┌                          ╭ constant-entry                 ╮ … ┐ …
+<u>REPORT</u> <u>SECTION</u>. ┌                          ╭ constant-entry                 ╮ … ┐ …
                 │ report-description-entry ┤                                ├   │
                 └                          ╰ report-group-description-entry ╯   ┘
 </pre>
@@ -14631,7 +14631,7 @@ The screen section describes the screens to be displayed during terminal I-O. Th
 
 <pre style="line-height:1">
                 ┌ constant-entry           ┐
-<u>SCREEN</u> <u>SECTION.</u> │                          │ …
+<u>SCREEN</u> <u>SECTION</u>. │                          │ …
                 └ screen-description-entry ┘
 </pre>
 
@@ -14674,7 +14674,7 @@ A constant entry defines a constant. A constant may be used in place of a litera
                                              │    │                            │ │
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
 ╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
-┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL]</u> ┤    │ literal-1                  │ ├ .
+┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤    │ literal-1                  │ ├ .
 │    │                                       │    │                            │ │
 ╰ <u>01</u> ╯                                       │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
                                              │                                   │
@@ -17394,7 +17394,7 @@ Format 3 (report-writer):
 Format 4 (dynamic-capacity-table):
 
 <pre style="line-height:1">
-<u>OCCURS</u> <u>DYNAMIC</u> [ <u>CAPACITY</u> IN data-name-3 ] <u>[FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
+<u>OCCURS</u> <u>DYNAMIC</u> [ <u>CAPACITY</u> IN data-name-3 ] [<u>FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
 
 ┌ ╭ <u>ASCENDING</u>  ╮                          ┐
 │ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
@@ -20615,12 +20615,12 @@ Format 1 (with-sections):
 
 <pre style="line-height:1">
 procedure-division-header
-[ <u>DECLARATIVES.</u>
-{ section-name-1 <u>SECTION.</u>
+[ <u>DECLARATIVES</u>.
+{ section-name-1 <u>SECTION</u>.
 use-statement.
 [ sentence ] … [ paragraph-name-1. [ sentence ] … ] … } …
-<u>END</u> <u>DECLARATIVES.</u> ]
-[ { section-name-1 <u>SECTION.</u>
+<u>END</u> <u>DECLARATIVES</u>. ]
+[ { section-name-1 <u>SECTION</u>.
 [ sentence ] … [ paragraph-name-1. ] [ sentence ] … ] … } … ]
 </pre>
 
@@ -20634,7 +20634,7 @@ procedure-division-header
 Format 3 (object-oriented):
 
 <pre style="line-height:1">
-<u>PROCEDURE</u> <u>DIVISION.</u>
+<u>PROCEDURE</u> <u>DIVISION</u>.
 [ { method-definition } … ]
 </pre>
 
@@ -31250,7 +31250,7 @@ The type of this function is integer.
 #### 15.37.2 General format
 
 <pre style="line-height:1">
-<u>FUNCTION</u> <u>FIND-STRING</u> argument-1 argument-2 [ <u>LAST]</u> [ [ <u>START</u> <u>AFTER</u> ] argument-3 ] [ <u>ANYCASE</u> ]
+<u>FUNCTION</u> <u>FIND-STRING</u> argument-1 argument-2 [ <u>LAST</u>] [ [ <u>START</u> <u>AFTER</u> ] argument-3 ] [ <u>ANYCASE</u> ]
 </pre>
 
 <a id="section-15-37-3"></a>

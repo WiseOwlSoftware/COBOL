@@ -62,6 +62,11 @@ MAX_GAP = 4.0         # how far below a word's bottom edge its underline may sit
 # under-reported it; −2.5 takes it while staying far from the border population.
 MIN_ABOVE = -2.5
 MIN_COVER = 0.55      # fraction of the word's width the rule must span
+# How much of a CHARACTER's box a rule must overlap for that character to count as underlined when the rule
+# does not reach its centre. Separates two measured populations cleanly: a first glyph's side bearing (2.2 pt
+# of overlap under `I-O-CONTROL`, folio 333 — underlined) from a glyph the rule stops at (0.0 pt for the `>>`
+# of `>>CALL-CONVENTION`, folio 59 — not underlined).
+MIN_CHAR_OVERLAP = 1.0
 
 
 def underlines(page):
@@ -81,15 +86,94 @@ def is_underlined(word_rect, rules) -> bool:
     return False
 
 
+def underline_runs(chars, rules):
+    """Which CHARACTERS of one word the rule covers — as [(offset, length), …] over the word's text.
+
+    ⛔ WHY THIS IS NOT `is_underlined` PER WORD. `get_text("words")` splits on whitespace, but the standard
+    prints the compiler-directive indicator hard against its keyword — `>>CALL-CONVENTION` is ONE whitespace
+    token and the underline covers only `CALL-CONVENTION` (measured on printed folio 59: the token spans
+    x 81.0–185.5, the rule 95.0–184.4). Coverage there is 86% of the token, so a per-word test says "wholly
+    underlined" and the transcription then marks `>>` as a required WORD. It is not a word at all.
+
+    The split is not a geometry hack — §7.3 syntax rule 5 makes it normative: "A compiler directive is composed
+    of the compiler directive indicator, optionally followed by the COBOL character space, followed by
+    compiler-instruction. The compiler directive indicator shall be treated as though it were followed by a
+    space if no space is specified after the indicator." So `>>CALL-CONVENTION` IS two tokens; whitespace
+    tokenization simply cannot see the boundary the standard declares. Measuring per character finds it, and
+    finds any other partially-underlined token for free.
+
+    ⛔ ONLY EVER CALLED TO **TRIM** A WORD THE PER-WORD TEST ALREADY ACCEPTED, and only the rules that passed
+    it are passed in. Per-character measurement on its own is dangerous in exactly the way this file's header
+    warns about: a bracket FOOT is a short horizontal rule indistinguishable from an underline by width, and
+    while it can never cover 55% of a word it easily covers ONE GLYPH. Unguarded, the two 3.7 pt feet flanking
+    `AREAS` on folio 312 marked its `S` alone, and three feet under §13.14.2 turned `code-clause`,
+    `control-clause` and `page-clause` into `code-claus`, `e`, `e`, `e`. So promotion is impossible here by
+    construction; the only thing this can do is remove characters from a span.
+
+    Returns True/False for the whole-word cases so callers that only need a flag keep working."""
+    runs, cur = [], None
+    for i, (cx0, cy0, cx1, cy1) in enumerate(chars):
+        mid = (cx0 + cx1) / 2
+        # A rule is drawn under the visible STROKE, so it starts a little inside the first glyph's box — its
+        # side bearing. On folio 333 the rule under `I-O-CONTROL` begins 2.2 pt right of the word box, which a
+        # bare centre test reads as an unlined `I`. Overlap of at least MIN_CHAR_OVERLAP absorbs the bearing
+        # while still rejecting a glyph the rule never reaches: on folio 59 the rule starts exactly at the end
+        # of `>>`, giving zero overlap, so the indicator stays plain.
+        on = any(MIN_ABOVE <= r.y0 - cy1 <= MAX_GAP
+                 and (r.x0 <= mid <= r.x1 or min(cx1, r.x1) - max(cx0, r.x0) >= MIN_CHAR_OVERLAP)
+                 for r in rules)
+        if on and cur is None:
+            cur = i
+        elif not on and cur is not None:
+            runs.append((cur, i - cur))
+            cur = None
+    if cur is not None:
+        runs.append((cur, len(chars) - cur))
+    if not runs:
+        return False
+    return True if runs == [(0, len(chars))] else runs
+
+
+def char_index(page):
+    """Every non-space character on the page with its box — built ONCE, so the per-character underline test
+    costs one rawdict pass rather than one per word."""
+    out = []
+    for blk in page.get_text("rawdict")["blocks"]:
+        if blk["type"] != 0:
+            continue
+        for line in blk["lines"]:
+            for span in line["spans"]:
+                for c in span["chars"]:
+                    if not c["c"].isspace():
+                        out.append((c["c"], c["bbox"]))
+    return out
+
+
 def extract(page, band=None):
-    """Words on the page (optionally within a y-band), each tagged with its underline state."""
+    """Words on the page (optionally within a y-band), each tagged with its underline state.
+
+    `underlined` is True, False, or [(offset, length), …] when the rule covers only PART of the word — which
+    is how `>>CALL-CONVENTION` keeps its keyword underlined and its indicator plain. See `underline_runs`."""
     rules = underlines(page)
+    chars = char_index(page)
     out = []
     for x0, y0, x1, y1, text, blk, ln, wn in page.get_text("words"):
         if band and not (band[0] <= y0 <= band[1]):
             continue
+        state = is_underlined((x0, y0, x1, y1), rules)
+        # Re-measure per character ONLY to trim a word already accepted, and only against the rules that
+        # accepted it — see `underline_runs`. Promotion must stay impossible: bracket feet are short rules
+        # that cannot cover 55% of a word but can easily cover one glyph.
+        if state is True and len(text) > 1:
+            own = [r for r in rules
+                   if MIN_ABOVE <= r.y0 - y1 <= MAX_GAP
+                   and (min(x1, r.x1) - max(x0, r.x0)) / max(x1 - x0, 0.1) >= MIN_COVER]
+            boxes = [b for ch, b in chars
+                     if x0 - 0.5 <= (b[0] + b[2]) / 2 <= x1 + 0.5 and y0 - 0.5 <= (b[1] + b[3]) / 2 <= y1 + 0.5]
+            if len(boxes) == len(text):
+                state = underline_runs(boxes, own)
         out.append({"text": text, "x0": round(x0, 1), "y0": round(y0, 1), "x1": round(x1, 1),
-                    "underlined": is_underlined((x0, y0, x1, y1), rules)})
+                    "underlined": state})
     return sorted(out, key=lambda w: (round(w["y0"], 0), w["x0"]))
 
 

@@ -169,7 +169,7 @@ def split_fused(page, words):
             out.append({"text": "".join(c["c"] for c in piece),
                         "x0": round(piece[0]["bbox"][0], 1), "x1": round(piece[-1]["bbox"][2], 1),
                         "y0": round(min(c["bbox"][1] for c in piece), 1),
-                        "underlined": w["underlined"] and not is_glyph})
+                        "underlined": False if is_glyph else w["underlined"]})
     return out
 
 
@@ -455,8 +455,16 @@ def build(page, lo, hi, extract, classify_page):
         for w in ws:
             for j, ch in enumerate(w["text"]):
                 grid[r][c + j] = ch
-            if w["underlined"]:
+            # `underlined` is True/False, or [(offset, length), …] when the rule covers only PART of the word.
+            # The partial case is the compiler-directive indicator printed hard against its keyword —
+            # `>>CALL-CONVENTION` underlines only the keyword, because `>>` is not a word (§7.3 SR5 treats the
+            # indicator as though a space followed it). Marking the whole token would state that `>>` is a
+            # required WORD, which is a normative claim the printed page does not make.
+            u = w["underlined"]
+            if u is True:
                 marks[r].append((c, len(w["text"])))
+            elif u:
+                marks[r] += [(c + off, n) for off, n in u]
             c += len(w["text"]) + 1                # single space between the words of one phrase
 
     # A delimiter must never land on a character. Text is placed first and the delimiters over it, so a clash

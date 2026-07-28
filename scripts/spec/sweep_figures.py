@@ -111,7 +111,12 @@ def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
     # a figure that straddles a page break was measured as containing "## Page 156".
     kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in src
             if not FENCE.match(l) and not PAGE_FURNITURE.match(l) and not HRULE.match(l)]
-    body = re.sub(r"</?[A-Za-z][^>]*>", " ", unescape("\n".join(kept))).replace("`", " ")
+    # `<u>` is ZERO-WIDTH — underlining never introduces a word boundary. Replacing it with a space split
+    # `>><u>CALL-CONVENTION</u>` into two words and reported a difference against a markdown form whose
+    # rendered text is identical, which is the wrong direction for a gate: it hides a real change behind a
+    # spurious one. Every other tag still becomes a space, since those do separate content.
+    body = re.sub(r"</?u>", "", unescape("\n".join(kept)))
+    body = re.sub(r"</?[A-Za-z][^>]*>", " ", body).replace("`", " ")
     body = re.sub(r"&[a-zA-Z]+;?", " ", body)          # HTML entities used for indentation
     # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
     # transcription picked one per site. Which glyph is used is typography, not a difference in the language.
