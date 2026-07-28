@@ -1514,44 +1514,44 @@ coded character in an alphanumeric coded character set, whether or not there is 
 
 # ISO/IEC 1989:2023 (E)
 
-**3.10**
+### 3.10
 **alphanumeric character set**
 **alphanumeric coded character set**
 coded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals
 
-**3.11**
+### 3.11
 **alphanumeric group item**
 group item except for a bit group item, a national group item, a strongly-typed group item, or a variable-length group item
 
-**3.12**
+### 3.12
 **argument**
 operand specified in an activating statement that specifies the data to be passed
 
-**3.13**
+### 3.13
 **assumed decimal point**
 decimal point position that does not involve the existence of an actual character in a data item and has logical meaning with no physical representation
 
-**3.14**
+### 3.14
 **based data item**
 data item established by association of a based entry with an actual data item or allocated storage
 
-**3.15**
+### 3.15
 **based entry**
 data description entry that serves as a template that is dynamically associated with data items or allocated storage
 
-**3.16**
+### 3.16
 **basic letter**
 uppercase letter 'A' through 'Z' or lowercase letter 'a' through 'z' in the COBOL character repertoire
 
-**3.17**
+### 3.17
 **big-endian**
 characterized by the arrangement of data within a data item such that its most significant component occupies the lowest (leftmost) component memory address within the item
 
-**3.18**
+### 3.18
 **bit**
 smallest unit in a computer's storage structure capable of representing two distinct alternatives
 
-**3.19**
+### 3.19
 **bit data item**
 elementary data item of category boolean and usage bit or a bit group item
 
@@ -1564,62 +1564,62 @@ elementary data item of category boolean and usage bit or a bit group item
 
 ---
 
-**3.20**
+### 3.20
 **block**
 **physical record**
 physical unit of data that is normally composed of one or more logical records
 
 ---
 
-**3.21**
+### 3.21
 **boolean character**
 unit of information that consists of the value zero or one
 
 ---
 
-**3.22**
+### 3.22
 **boolean data item**
 data item capable of containing a boolean value
 
 ---
 
-**3.23**
+### 3.23
 **boolean expression**
 expression consisting of one or more boolean operands separated by boolean operator
 
 ---
 
-**3.24**
+### 3.24
 **boolean position**
 \<storage required> amount of physical storage required to store, or presentation space required to print or display, a single boolean character
 
 ---
 
-**3.25**
+### 3.25
 **boolean position**
 \<location within an item> the location within a boolean data item of a boolean character
 
 ---
 
-**3.26**
+### 3.26
 **boolean value**
 value consisting of a sequence of one or more boolean characters
 
 ---
 
-**3.27**
+### 3.27
 **byte**
 sequence of bits representing the smallest addressable character unit in the memory of a given computer
 
 ---
 
-**3.28**
+### 3.28
 **character boundary**
 leftmost bit of an addressing boundary in the storage of the computer
 
 ---
 
-**3.29**
+### 3.29
 **character position**
 \<storage required> amount of physical storage required to store, or presentation space required to print or display, a single character – either an alphanumeric character or a national character
 
@@ -1635,25 +1635,25 @@ Note 1 to entry: As an example, each element of a combining sequence in the UCS 
 
 ---
 
-**3.30**
+### 3.30
 **character position**
 \<location within an item\> location within an alphanumeric or national data item of a corresponding alphanumeric or national character
 
 ---
 
-**3.31**
+### 3.31
 **character-string**
 sequence of contiguous characters that form a COBOL word, a literal, or a picture character-string
 
 ---
 
-**3.32**
+### 3.32
 **class**
 \<in object orientation\> entity that defines common behavior and implementation for zero, one, or more objects
 
 ---
 
-**3.33**
+### 3.33
 **class**
 \<of a data item\> set of data items having common attributes or a common range of values, defined by the specific clauses in a data description entry; by the definition of a predefined identifier; or by the definition of an intrinsic function
 
@@ -1661,31 +1661,31 @@ Note 1 to entry: These common attributes or a common range of values are defined
 
 ---
 
-**3.34**
+### 3.34
 **class**
 \<of data values\> set of data values that are permissible in the content of a data item
 
 ---
 
-**3.35**
+### 3.35
 **class definition**
 compilation unit that defines a class of objects
 
 ---
 
-**3.36**
+### 3.36
 **clause**
 ordered set of consecutive COBOL character-strings whose purpose is to specify an attribute of an entry
 
 ---
 
-**3.37**
+### 3.37
 **COBOL character repertoire**
 repertoire of characters used in writing the syntax of a COBOL compilation group, except for comments and the content of non-hexadecimal alphanumeric and national literals
 
 ---
 
-**3.38**
+### 3.38
 **combining character**
 member of the Universal Coded Character Set that is intended for combination with the preceding non-combining graphic character or with a sequence of combining characters preceded by a non-combining character
 
@@ -1797,47 +1797,47 @@ FILE format of the DELETE statement
 
 # ISO/IEC 1989:2023 (E)
 
-**3.58**
+### 3.58
 **delete record statement**
 RECORD format of the DELETE statement
 
-**3.59**
+### 3.59
 **delimited scope statement**
 statement that is terminated by its explicit scope terminator
 
-**3.60**
+### 3.60
 **digit position**
 <storage required> amount of physical storage required to store, or presentation space required to print or display, a single digit
 
-**3.61**
+### 3.61
 **digit position**
 <location within an item> location within a numeric data item of a digit
 
-**3.62**
+### 3.62
 **dynamic access**
 access mode in which specific logical records can be obtained from or placed into a mass storage file in a nonsequential manner and obtained from a file in a sequential manner
 
-**3.63**
+### 3.63
 **dynamic storage**
 storage that is allocated and released on request during runtime
 
-**3.64**
+### 3.64
 **end marker**
 marker for the end of a source unit
 
-**3.65**
+### 3.65
 **endianness**
 ordering of individually addressable components of a given size within a data item of a larger size
 
-**3.66**
+### 3.66
 **entry**
 descriptive set of consecutive clauses terminated by a separator period
 
-**3.67**
+### 3.67
 **entry convention**
 information required to interact successfully with a function, method, or program
 
-**3.68**
+### 3.68
 **exception condition**
 condition detected at runtime that indicates that an error or exception to normal processing has occurred
 
@@ -1848,49 +1848,49 @@ condition detected at runtime that indicates that an error or exception to norma
 
 # ISO/IEC 1989:2023 (E)
 
-**3.69**
+### 3.69
 **exception object**
 object that acts as an exception condition
 
-**3.70**
+### 3.70
 **exception processing procedures**
 procedures within WHEN phrases within an exception-checking PERFORM statement or within a USE declarative
 
-**3.71**
+### 3.71
 **exception status indicator**
 conceptual entity that exists for each exception-name
 
-**3.72**
+### 3.72
 **EXIT PARAGRAPH statement**
 EXIT statement with the PARAGRAPH phrase
 
-**3.73**
+### 3.73
 **EXIT PERFORM statement**
 EXIT statement with the PERFORM phrase
 
-**3.74**
+### 3.74
 **EXIT PROGRAM statement**
 EXIT statement with the PROGRAM phrase
 
 Note 1 to entry: The EXIT PROGRAM statement is an archaic feature. For details see F.1, Archaic language elements.
 
-**3.75**
+### 3.75
 **EXIT SECTION statement**
 EXIT statement with the SECTION phrase
 
-**3.76**
+### 3.76
 **explicit scope terminator**
 statement-dependent word that, by its presence, terminates the scope of that statement
 
-**3.77**
+### 3.77
 **extend mode**
 mode of file processing in which records can be added at the end of a sequential file, but no records can be deleted, read, or updated
 
-**3.78**
+### 3.78
 **extended letter**
 letter, other than the basic letters, in the set of characters defined for the COBOL character repertoire
 
-**3.79**
+### 3.79
 **external data**
 data that belongs to the run unit and can be accessed by any runtime element in which it is described
 
@@ -1901,43 +1901,43 @@ data that belongs to the run unit and can be accessed by any runtime element in 
 
 # ISO/IEC 1989:2023 (E)
 
-**3.80**
+### 3.80
 **external media format**
 form of data suitable for presentation or printing, including any control functions necessary for representation as readable text
 
-**3.81**
+### 3.81
 **external switch**
 hardware or software device, defined and named by the implementor, that is used to indicate that one of two alternate states exists
 
-**3.82**
+### 3.82
 **factory object**
 single object associated with a class, defined by the factory definition of that class, typically used to create the instance objects of the class
 
-**3.83**
+### 3.83
 **file**
 logical entity that represents a collection of logical records
 
-**3.84**
+### 3.84
 **file connector**
 storage area that contains information about a file and is used as the linkage between a file-name and a physical file and between a file-name and its associated record area
 
-**3.85**
+### 3.85
 **file organization**
 permanent logical file structure established at the time that a file is created
 
-**3.86**
+### 3.86
 **file position indicator**
 conceptual entity that either is used to facilitate exact specification of the next record to be accessed, or indicates why such a reference cannot be established
 
-**3.87**
+### 3.87
 **file sharing**
 cooperative environment that controls concurrent access to the same physical file
 
-**3.88**
+### 3.88
 **fixed file attribute**
 attribute of a physical file that is established when the physical file is created and is never changed during the existence of the physical file
 
-**3.89**
+### 3.89
 **formal parameter**
 data-name specified in the USING phrase of the procedure division header that gives the name used in the function, method, or program for a parameter
 
@@ -1947,49 +1947,49 @@ data-name specified in the USING phrase of the procedure division header that gi
 
 # ISO/IEC 1989:2023 (E)
 
-**3.90**
+### 3.90
 **format character**
 character whose primary function is to affect the layout or processing of characters around it
 
 Note 1 to entry: A format character generally does not have a visible representation of its own.
 
-**3.91**
+### 3.91
 **function**
 intrinsic or user-defined procedural entity that returns a value based upon the arguments
 
-**3.92**
+### 3.92
 **function prototype definition**
 definition that specifies the rules governing the arguments needed for the evaluation of a particular function, the data item resulting from the evaluation of the function, and all other requirements needed for the evaluation of that function
 
-**3.93**
+### 3.93
 **graphic character**
 character, other than a control function or a format character, that has a visual representation normally handwritten, printed, or displayed
 
 [SOURCE: ISO/IEC 10646:2020, 3.28]
 
-**3.94**
+### 3.94
 **graphic symbol**
 visual representation of a graphic character or of a composite sequence
 
 [SOURCE: ISO/IEC 10646:2020, 3.29]
 
-**3.95**
+### 3.95
 **grouping**
 separation of digits into groups in number and currency formatting
 
-**3.96**
+### 3.96
 **grouping separator**
 character used to separate digits in numbers for ease of reading
 
-**3.97**
+### 3.97
 **high-order end**
 leftmost position of a string of characters or a string of bits
 
-**3.98**
+### 3.98
 **hexadecimal digit**
 character from the set 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, and F used in the representation of hexadecimal values, where the letters A-F are equivalent to the letters a-f
 
-**3.99**
+### 3.99
 **i-o mode**
 mode of file processing in which records can be read, updated, added, and deleted
 
@@ -2000,47 +2000,47 @@ mode of file processing in which records can be read, updated, added, and delete
 
 # ISO/IEC 1989:2023 (E)
 
-**3.100**
+### 3.100
 **i-o status**
 conceptual entity that exists for a file, that contains a value indicating the result of the execution of an input-output operation for that file
 
-**3.101**
+### 3.101
 **imperative statement**
 statement that specifies an unconditional action or that is a delimited scope statement
 
-**3.102**
+### 3.102
 **index**
 conceptual data item, the content of which refers to a particular element in a table
 
-**3.103**
+### 3.103
 **inheritance**
 <for classes> mechanism for using the interface and implementation of one or more classes as the basis for another class
 
-**3.104**
+### 3.104
 **inheritance**
 <for interfaces> mechanism for using the specification of one or more interfaces as the basis for another interface
 
-**3.105**
+### 3.105
 **initial state**
 state of a function, method, or program when it is first activated in a run unit
 
-**3.106**
+### 3.106
 **inline exception handling**
 facility to use PERFORM statements with the ability to trap and handle exception conditions within those statements using a WHEN phrase instead of declaratives
 
-**3.107**
+### 3.107
 **input mode**
 mode of file processing in which records can only be read
 
-**3.108**
+### 3.108
 **instance object**
 single instance of an object defined by a class and created by a factory object
 
-**3.109**
+### 3.109
 **interface**
 <of an object> names of all the methods defined for the object, including inherited methods; for each of the methods the ordered list of its formal parameters and the description and passing technique associated with each, any returned value and its description, and exceptions that can be raised
 
-**3.110**
+### 3.110
 **interface**
 <the language construct> grouping of method prototypes
 
@@ -2054,19 +2054,19 @@ single instance of an object defined by a class and created by a factory object
 
 ---
 
-**3.111**
+### 3.111
 **internal data**
 all data described in a source unit except external data and external file connectors
 
 ---
 
-**3.112**
+### 3.112
 **key of reference**
 key, either prime or alternate, currently being used to access records within an indexed file
 
 ---
 
-**3.113**
+### 3.113
 **line delimiter**
 sequence of one or more bytes which terminates a record in a line sequential file
 
@@ -2074,44 +2074,44 @@ Note 1 to entry: The line delimiter is implementor-defined.
 
 ---
 
-**3.114**
+### 3.114
 **little-endian**
 characterized by the arrangement of data within a data item such that its most significant component occupies the highest (rightmost) component memory address within the item
 
 ---
 
-**3.115**
+### 3.115
 **locale**
 facility in the user's information technology environment that specifies language and cultural conventions
 
 ---
 
-**3.116**
+### 3.116
 **lock mode**
 state of a file for which record locking is in effect that indicates whether record locking is manual or automatic
 
 ---
 
-**3.117**
+### 3.117
 **low-order end**
 rightmost position of a string of characters or a string of bits
 
 ---
 
-**3.118**
+### 3.118
 **message control system**
 **MCS**
 implementor-defined system that sends and receives messages exchanged between run units
 
 ---
 
-**3.119**
+### 3.119
 **message-server**
 run unit that receives a request via a RECEIVE statement from a requestor and returns information to that requestor
 
 ---
 
-**3.120**
+### 3.120
 **message-tag**
 implementor-defined unit of data that specifies the requestor or sender of a message and any additional information about the message
 
@@ -2126,45 +2126,45 @@ implementor-defined unit of data that specifies the requestor or sender of a mes
 
 # ISO/IEC 1989:2023 (E)
 
-**3.121**
+### 3.121
 **method invocation**
 **invocation**
 request to execute a named method on a given object
 
-**3.122**
+### 3.122
 **method prototype**
 source element that specifies the information needed for invocation of a method and for conformance checking
 
-**3.123**
+### 3.123
 **national character position**
 <storage required> amount of physical storage required to store, or presentation space required to print or display, a single national character
 
-**3.124**
+### 3.124
 **national character position**
 <location within an item> location within a national data item of a national character
 
-**3.125**
+### 3.125
 **national character set**
 **national coded character set**
 coded character set that the implementor has designated for representation of data items described as usage national and for national literals
 
-**3.126**
+### 3.126
 **national data item**
 elementary data item of class national or a national group item
 
-**3.127**
+### 3.127
 **native arithmetic**
 mode of arithmetic in which the techniques used in handling arithmetic are specified by the implementor
 
-**3.128**
+### 3.128
 **native character set**
 implementor-defined character set, either alphanumeric or national or both, that is used for internal processing of a COBOL runtime module
 
-**3.129**
+### 3.129
 **native collating sequence**
 implementor-defined collating sequence, either an alphanumeric collating sequence or a national collating sequence, that is associated with the computer on which a runtime module is executed
 
-**3.130**
+### 3.130
 **next record**
 record that logically follows the current record of a file
 
@@ -2176,52 +2176,52 @@ record that logically follows the current record of a file
 
 # ISO/IEC 1989:2023 (E)
 
-**3.131**
+### 3.131
 **null**
 <message tag> state of a message-tag that it contains no valid message tag
 
-**3.132**
+### 3.132
 **null**
 <object reference> state of an object reference indicating that it contains no valid reference
 
-**3.133**
+### 3.133
 **null**
 <address pointer> state of an address pointer that it contains no valid address
 
-**3.134**
+### 3.134
 **numeric character**
 <in the rules of COBOL> character that belongs to the following set of digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-**3.135**
+### 3.135
 **object**
 unit consisting of data and the methods that act upon that data
 
-**3.136**
+### 3.136
 **object data**
 data defined in the factory definition, except for the data defined in its methods, or in the instance definition, except for the data defined in its methods
 
-**3.137**
+### 3.137
 **object property**
 **property**
 name that can be used to qualify an object reference to get a value from or pass a value to an object
 
-**3.138**
+### 3.138
 **open mode**
 state of a file connector indicating input-output operations that are permitted for the associated file
 
-**3.139**
+### 3.139
 **optional file**
 file declared as being not necessarily present each time the runtime module is executed
 
-**3.140**
+### 3.140
 **outermost program**
 program, together with its contained programs, that is not contained in any other program
 
-**3.141**
+### 3.141
 **output file**
 file that is opened such that it can only be written or extended
 
-**3.142**
+### 3.142
 **output mode**
 mode of file processing in which a file is created and records can only be added to the file
 
@@ -2284,43 +2284,43 @@ item in a report whose position is specified relative to the previous item
 
 # ISO/IEC 1989:2023 (E)
 
-**3.154**
+### 3.154
 **relative key**
 data item that contains a relative record number
 
-**3.155**
+### 3.155
 **relative record number**
 ordinal number of a record in a file whose organization is relative
 
-**3.156**
+### 3.156
 **report writer**
 comprehensive set of data clauses and statements that enable a print layout to be described according to its general appearance rather than through of a series of procedural steps
 
-**3.157**
+### 3.157
 **requestor**
 run unit that makes a request to a message server via a SEND statement to receive information back from that message server
 
-**3.158**
+### 3.158
 **run unit**
 runtime entity consisting of one or more runtime modules that interact and that function at execution time as an independent entity
 
-**3.159**
+### 3.159
 **runtime element**
 element consisting of code and data produced by the compilation of a source element
 
-**3.160**
+### 3.160
 **runtime module**
 runtime element consisting of one or more runtime elements that result from the compilation of a compilation unit
 
-**3.161**
+### 3.161
 **sequential access**
 access method in which logical records are either placed into a file in the order of execution of the statements writing the records or obtained from a file in the sequence in which the records were written to the file
 
-**3.162**
+### 3.162
 **sequential file**
 file that is opened such that it can only be written or read sequentially
 
-**3.163**
+### 3.163
 **sequential organization**
 permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file
 
@@ -2333,13 +2333,13 @@ permanent logical file structure in which a record is identified by a predecesso
 
 ---
 
-**3.164**
+### 3.164
 **source element**
 source unit excluding any contained source units
 
 ---
 
-**3.165**
+### 3.165
 **source unit**
 sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation
 
@@ -2347,49 +2347,49 @@ Note 1 to entry: Any source units contained within a source unit are part of the
 
 ---
 
-**3.166**
+### 3.166
 **standard binary floating-point usages**
 usages float-binary-32, float-binary-64, and float-binary-128
 
 ---
 
-**3.167**
+### 3.167
 **standard decimal floating-point usages**
 usages float-decimal-16 and float-decimal-34
 
 ---
 
-**3.168**
+### 3.168
 **static data**
 data that has its last-used state when a runtime element is re-entered
 
 ---
 
-**3.169**
+### 3.169
 **subject of the entry**
 data item that is being defined by a data description entry
 
 ---
 
-**3.170**
+### 3.170
 **subscript**
 number used to refer to a specific element of a table, or in the case of the value 'ALL', to all elements of a table
 
 ---
 
-**3.171**
+### 3.171
 **superclass**
 class that is inherited by another class
 
 ---
 
-**3.172**
+### 3.172
 **surrogate pair**
 coded character representation for a single abstract character of the UTF-16 format of the UCS where the representation consists of a sequence of two two-octet values where the first value of the pair is a high-surrogate and the second is a low-surrogate
 
 ---
 
-**3.173**
+### 3.173
 **tape drive**
 real or virtual device that records data sequentially and once the data is written it cannot be changed
 
@@ -2406,23 +2406,23 @@ Note 1 to entry: This includes magnetic tape drives, ribbon drives, write only d
 
 # ISO/IEC 1989:2023 (E)
 
-**3.174**
+### 3.174
 **type**
 template that contains all the characteristics of a data item and its subordinates
 
-**3.175**
+### 3.175
 **universal object reference**
 object reference that is not restricted to a specific class or interface
 
-**3.176**
+### 3.176
 **unsuccessful execution**
 attempted execution of a statement that does not result in the execution of all the operations specified by that statement
 
-**3.177**
+### 3.177
 **zero-length item**
 element of data whose minimum permitted length is zero and whose length at runtime is zero
 
-**3.178**
+### 3.178
 **zero-length literal**
 alphanumeric, boolean, or national literal that contains zero characters
 
