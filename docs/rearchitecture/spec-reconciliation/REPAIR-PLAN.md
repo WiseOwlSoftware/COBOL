@@ -1,5 +1,25 @@
 # Spec transcription repair plan — all 210 confirmed defects
 
+> ## ✅ COMPLETE — 210/210, and the last three batches were SUPERSEDED rather than worked
+>
+> Every finding is repaired or superseded; nothing is outstanding. Read the per-batch notes below for what was
+> actually done, but read this first, because three batches were closed by a CHANGE OF MECHANISM rather than by
+> the item-by-item repair they describe:
+>
+> - **Every figure is now GENERATED from the printed page** (`render_figure.py`, swept by
+>   `sweep_figures.py --check`, clean on 483 of 484 with one documented exception). Brackets, braces, choice
+>   indicators and underlining are all MEASURED off the page rather than transcribed, so the figure classes —
+>   including *"Lost outer brackets — 6 findings, OUTSTANDING"* and the residual underlining findings — cannot
+>   survive by construction. Repairing them individually would have been repairing an input that is no longer
+>   read.
+> - **PAGES WERE REMOVED from the transcription** (owner directive: a page has no meaning in Markdown). That
+>   retires *"Anchors / TOC folios — ~24 findings, OUTSTANDING"* entirely — those were `#page-NNN` links with a
+>   +30 folio/PDF offset, and there are no page anchors any more. The batch note below anticipated exactly this
+>   and said to sequence it after Batch 5; Batch 5 is what happened.
+>
+> **This document is now a record of the ORDER and MECHANISM the repair took, not a worklist.** Live state is
+> plan §0.
+
 > **Scope decision (owner, 2026-07-26): fix ALL of them, cosmetic included.** No tier is deferred. An earlier
 > draft of this work offered to defer the structural batch as "low-risk"; that is the deferral-as-debt pattern
 > `feedback_no_deferral_default` exists to prevent, and the offer was withdrawn.
@@ -101,8 +121,8 @@ illegal. Sub-order, most-load-bearing first:
    LEAP-SECOND, LISTING, PROPAGATE, REF-MOD-ZERO-LENGTH, TURN) landed as one commit, and they now agree with each
    other and with the printed glyphs. PROPAGATE's **invented rule** ("the underlined alternative marks the
    default") is deleted — no such rule exists, LISTING falsifies it, and its absence is asserted file-wide.
-   **OUTSTANDING:** the remaining underlining findings beyond that family. Re-do these with `figure_extract.py`
-   rather than by eye — it already found three defects the sweep missed.
+   **✅ SUPERSEDED:** the remaining underlining findings beyond that family. Figures are GENERATED now, with
+   underlining measured by `figure_extract.py` rather than transcribed, so this class closed by construction.
 2. **Lost choice-indicator bars — ✅ DONE, and the class is CLOSED at 30/30.** The estimate of 11 findings on 8
    pages was low and the page list was wrong: a mechanical sweep of the whole file found **30 exception-phrase
    figure sites, 21 already correct and 9 defective**, including p645 (DIVIDE Formats 4/5), which no finding
@@ -110,8 +130,11 @@ illegal. Sub-order, most-load-bearing first:
    bars deleted, and nested plain brackets — so no single find-and-replace could have found them all. Repaired:
    COMPUTE, DELETE ×2, DIVIDE ×2, READ ×2, UNSTRING, ACCEPT Format 3.
    `repairs/exception_phrase_choice_bars.py`, `repairs/accept_format3_diagram.py`.
-3. **Lost outer brackets — 6 findings, 5 pages, OUTSTANDING.** CURRENCY SIGN, LOCALE, report-group USAGE and
-   siblings. ⚠ Brackets ARE measurable (`figure_geometry.py` reports every stem); braces are not.
+3. **Lost outer brackets — ✅ SUPERSEDED, 6 findings, 5 pages.** CURRENCY SIGN, LOCALE, report-group USAGE and
+   siblings. Brackets ARE measurable (`figure_geometry.py` reports every stem), and the generator now draws
+   every figure from those measurements — CURRENCY SIGN reads `[ CURRENCY SIGN IS literal-7 [ WITH PICTURE
+   SYMBOL literal-8 ] ] …` with both brackets. Braces are still not measurable, which is why the generator
+   derives them from the clause structure instead.
 4. **Remaining normative — 3 findings.** Includes p28 (already repaired) and the incorrect-text items.
 5. **✅ ALL 8 LaTeX diagrams converted to house style** (p322 ×2, p606, p649, p653 ×2, p661 ×2). Every general
    format in the file is now a fenced ASCII figure carrying a `Figure notes` block — the form that records
@@ -142,11 +165,12 @@ so the change is reviewable and re-runnable.
    verifiers had normalised each to LOCAL siblings rather than true depth. Mapping is outline level + 1; coverage
    extends to the outline's 374 omitted leaves because level == dotted depth for all 1,728 numbered entries
    (verified, asserted in the script). `scripts/spec/repairs/heading_depth.py`, 0 residual.
-2. **Anchors / TOC folios — ~24 findings, OUTSTANDING.** Includes the **systemic** offset: TOC links are numbered
-   by printed folio while body anchors use PDF page, so every TOC `#page-NNN` is off by the +30 front-matter
-   offset. Fix the systemic mapping FIRST or the individual digit errors get re-broken. ⚠ **Sequence with Batch 5**
-   — that batch removes page anchors entirely, so decide whether these TOC links survive at all before repairing
-   them one by one.
+2. **Anchors / TOC folios — ✅ SUPERSEDED, ~24 findings.** The systemic offset was real: TOC links were numbered
+   by printed folio while body anchors used PDF page, so every TOC `#page-NNN` was off by the +30 front-matter
+   offset. This note said to sequence the repair after Batch 5 and decide whether the links survive at all —
+   they did not. Pages were removed, and the TOC, the lists of tables and figures and the index are all CLAUSE
+   links now, verified at zero dangling. Repairing the folios one by one would have been repairing links that
+   no longer exist.
 3. **Duplicated blocks — ✅ DONE, and the estimate was wrong in the other direction.** Estimated ~8; exactly **one**
    was real (printed page 546 emitted twice, duplicating four section anchors). Four look-alikes were inspected and
    REJECTED as legitimate repetition — the standard restates identical conditions under different rules, and

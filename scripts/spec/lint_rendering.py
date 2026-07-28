@@ -34,7 +34,7 @@ WHAT IT CATCHES, each earned by a real defect:
 
   RUN-ON LIST A table of contents, a list of figures or an index written as bare consecutive lines. Markdown
               joins consecutive lines into one paragraph, so every entry flows into the next — which is how
-              the TOC, the Figures list and the whole 3,000-line index rendered.
+              the TOC, the Figures list and the whole 3,000-line index rendered. 231 such regions existed.
 
   LINKS       Pages were removed from the transcription and replaced by clause links, so a dangling link is a
               cross-reference the reader cannot follow.

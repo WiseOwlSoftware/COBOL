@@ -55,6 +55,18 @@ named.
 > in the [Addendum](#addendum) at the end of this document**, together with the printed form, so that any
 > correction can be reversed if it later proves mistaken. Each is also flagged in place with a ⚠ note.
 > Defects that are doubtful rather than clear are transcribed AS PRINTED and are listed in the Addendum too.
+>
+> **There are no pages here.** A page is an artifact of one typesetting of the standard, and it has no meaning
+> in a document that reflows to the reader's window — so the printed folios, the running headers and the page
+> breaks are gone, and every reference that pointed at a page now points at the CLAUSE instead. That includes
+> the table of contents, the lists of tables and figures, the index, and the standard's own cross-references.
+> A clause number is the better citation in any case: it is stable across editions and printings, whereas a
+> folio is not. The printed folios remain recoverable from the PDF, which is the canonical source, and the
+> Addendum still cites them when it needs to point at a specific printed page.
+>
+> One consequence is worth stating plainly: the standard's long tables are printed broken across pages, with
+> the caption and column header repeated on each. They are rejoined here into the single tables they always
+> were.
 
 
 # INTERNATIONAL STANDARD
@@ -37485,7 +37497,7 @@ Single record automatic locking is selected by the following lock mode clause:
 LOCK MODE IS AUTOMATIC
 ```
 
-The automatic acquisition and release of record locks is summarized in A.1, Summary of record lock acquisition and release. The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement as summarized in Table A.1, "Summary of record lock acquisition and release," on page 987.
+The automatic acquisition and release of record locks is summarized in A.1, Summary of record lock acquisition and release. The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement as summarized in [Table A.1, "Summary of record lock acquisition and release"](#table-a-1).
 
 <a id="section-d-2-4-3-2"></a>
 ###### D.2.4.3.2 Manual locking
@@ -44724,12 +44736,15 @@ The following documents are useful references for implementors and users of this
 ## Index
 
 > **About these references.** The printed index points at PAGE numbers, which mean nothing in this
-> transcription. Each has been converted to a link to the CLAUSE it falls in. Slightly over half resolve
-> exactly — the index term is itself a clause title, or the term was located on the referenced page. The
-> remainder are page-level approximations: a printed page can span several clauses, so such a link lands on
-> the clause the page opens with rather than precisely on the term. A reference that could not be resolved
-> at all keeps its printed page number as plain text. The printed page numbers themselves are recoverable
-> from the PDF, which remains the canonical source.
+> transcription. **Every one has been converted to a link to the CLAUSE it falls in**; none is left as a bare
+> number. Slightly over half resolve exactly — the index term is itself a clause title, or the term was
+> located on the referenced page. The remainder are page-level approximations: a printed page can span several
+> clauses, so such a link lands on the clause that page begins, or on the clause running onto it where the page
+> carries no heading of its own. An approximate link can therefore be one sub-clause early. The printed page
+> numbers themselves are recoverable from the PDF, which remains the canonical source.
+>
+> Entry ORDER and NESTING are the printed ones: a sub-entry's indentation was measured from the page rather
+> than inferred, so a term's sub-entries are the ones the standard groups under it.
 
 ### Symbols
 
@@ -44803,7 +44818,7 @@ The following documents are useful references for implementors and users of this
 - ACTIVE-CLASS phrase [9.1.3](#section-9-1-3), [14.6.4](#section-14-6-4), [14.9.32.4](#section-14-9-32-4)
   - USAGE clause [13.18.60](#section-13-18-60)
 - ADD statement [14.9.2](#section-14-9-2)
-- Additional language elements 24
+- Additional language elements [24](#section-4-2-11)
 - ADDRESS OF phrase [8.4.3.11.2](#section-8-4-3-11-2)
   - Data-address-identifier [8.4.3.11](#section-8-4-3-11)
   - SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
@@ -44849,7 +44864,7 @@ The following documents are useful references for implementors and users of this
 - ALPHABET clause
   - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 - Alphabetic category [8.5.2.2](#section-8-5-2-2)
-- Alphabetic character 3
+- Alphabetic character [3](#section-3)
 - Alphabetic class
   - Class of data
   - Alphabetic [8.4.3.3.4](#section-8-4-3-3-4)
@@ -44871,7 +44886,7 @@ The following documents are useful references for implementors and users of this
   - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 - Alphabets [8.1.4](#section-8-1-4)
 - Alphanumeric category [8.5.2.3](#section-8-5-2-3)
-- Alphanumeric character 3
+- Alphanumeric character [3](#section-3)
 - Alphanumeric character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
 - Alphanumeric class [8.4.3.3.4](#section-8-4-3-3-4)
 - Alphanumeric coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
@@ -44911,7 +44926,7 @@ The following documents are useful references for implementors and users of this
   - EC-FLOW-APPLY-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
   - ROLLBACK statement [14.9.36](#section-14-9-36)
 - APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
-- Archaic language element flagging 24
+- Archaic language element flagging [24](#section-4-2-11)
 - Archaic language elements [4.2.12](#section-4-2-12)
   - Continuation of COBOL words [D.31.5.8](#section-d-31-5-8)
   - Identifier-n (text-n) in a COPY statement [D.31.5.8](#section-d-31-5-8)
@@ -45059,7 +45074,7 @@ The following documents are useful references for implementors and users of this
   - File description entry [13.4.5](#section-13-4-5)
 - B-NOT operator [8.4.3.13.2](#section-8-4-3-13-2)
 - Boolean category [8.5.2.5](#section-8-5-2-5)
-- Boolean character 5
+- Boolean character [5](#section-3)
 - Boolean class [8.4.3.3.4](#section-8-4-3-3-4)
 - BOOLEAN clause [8.5.2.9](#section-8-5-2-9)
 - Boolean compute [14.8.3](#section-14-8-3)
@@ -45147,10 +45162,10 @@ The following documents are useful references for implementors and users of this
   - TYPE clause [13.18.57](#section-13-18-57)
 - CHAR function [15.15](#section-15-15)
 - Character
-  - Alphabetic 3
-  - Alphanumeric 3
-  - Boolean 5
-  - Numeric 16
+  - Alphabetic [3](#section-3)
+  - Alphanumeric [3](#section-3)
+  - Boolean [5](#section-3)
+  - Numeric [16](#section-3)
 - CHARACTER CLASSIFICATION clause [10.6.1](#section-10-6-1)
   - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
 - Character sets [8.1](#section-8-1)
@@ -45160,7 +45175,7 @@ The following documents are useful references for implementors and users of this
   - BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
   - INSPECT statement [14.9.22](#section-14-9-22)
   - RECORD clause [13.18.43](#section-13-18-43)
-- Character-string 6
+- Character-string [6](#section-3)
 - character-strings
   - Definition [7.3.13.4](#section-7-3-13-4)
 - CHAR-NATIONAL function [15.16](#section-15-16)
@@ -45194,7 +45209,7 @@ The following documents are useful references for implementors and users of this
   - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
   - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
   - Truth value [7.3.13.4](#section-7-3-13-4), [7.3.14.4](#section-7-3-14-4)
-- Clause 6
+- Clause [6](#section-3)
 - CLOSE statement [14.9.6](#section-14-9-6)
   - Implied [14.9.18](#section-14-9-18), [14.9.18.4](#section-14-9-18-4), [14.9.37.3](#section-14-9-37-3), [14.9.37.4](#section-14-9-37-4)
 - Closing delimiter [8.1.2](#section-8-1-2)
@@ -45231,7 +45246,7 @@ The following documents are useful references for implementors and users of this
 - Combined conditions [8.6.7](#section-8-6-7)
 - Combined date and time format [14.9.48.4](#section-14-9-48-4)
 - COMBINED-DATETIME [15.3](#section-15-3)
-- Comma 29
+- Comma [29](#section-5-2-6)
   - Interchangeable with semicolon [8](#section-8)
   - Separator [8](#section-8)
 - Comment [3](#section-3)
@@ -45271,7 +45286,7 @@ The following documents are useful references for implementors and users of this
   - Definition [8.4.3.2.4](#section-8-4-3-2-4)
 - Compilation group [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
 - Compilation stage [3](#section-3)
-- Compilation unit 25, [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
+- Compilation unit [25](#section-4-2-16), [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
 - Compilation variable name [5.6](#section-5-6)
 - Compilation-variable-name [8.3.2.2.3](#section-8-3-2-2-3)
 - Compiler directing statement [3](#section-3)
@@ -45327,8 +45342,8 @@ The following documents are useful references for implementors and users of this
 - Configuration section [12.3](#section-12-3)
 - Conformance [D.19.5.3](#section-d-19-5-3)
 - Conformance for object orientation [9.3.8.2](#section-9-3-8-2)
-- Conforming implementation 25, 26
-- Conforming run unit 25
+- Conforming implementation [25](#section-4-2-16), 26
+- Conforming run unit [25](#section-4-2-16)
 - Constant conditional expression [7.3.8](#section-7-3-8)
 - Constant entry [13.10](#section-13-10)
 - CONSTANT RECORD [13.18.40.4](#section-13-18-40-4)
@@ -45469,7 +45484,7 @@ The following documents are useful references for implementors and users of this
 - DEFAULT ROUNDED MODE IS PROHIBITED clause [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
 - DEFINE directive [7.3.11](#section-7-3-11)
 - Defined condition [7.3.8.4](#section-7-3-8-4)
-- Definitions 3
+- Definitions [3](#section-3)
 - DELETE FILE statement [14.8.4.3](#section-14-8-4-3)
 - DELETE statement [14.9.10](#section-14-9-10)
 - DELIMITED BY phrase
@@ -45521,7 +45536,7 @@ The following documents are useful references for implementors and users of this
   - ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
 - Dynamic storage [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
 - Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
-  - Definition 156
+  - Definition [156](#section-8-5-1-7)
 - Dynamic-capacity-table
   - Format [13.18.22.2](#section-13-18-22-2)
 - Dynamic-length elementary item
@@ -45807,12 +45822,12 @@ The following documents are useful references for implementors and users of this
 - EXCEPTION-STATUS function [15.33](#section-15-33)
 - EXCLUSIVE-OR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
 - Execution [14.6](#section-14-6)
-- EXIT FUNCTION statement 10, [14.9.23.4](#section-14-9-23-4)
-- EXIT PARAGRAPH statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
-- EXIT PERFORM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
-- EXIT PROGRAM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+- EXIT FUNCTION statement [10](#section-3), [14.9.23.4](#section-14-9-23-4)
+- EXIT PARAGRAPH statement [10](#section-3), [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+- EXIT PERFORM statement [10](#section-3), [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+- EXIT PROGRAM statement [10](#section-3), [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
 - EXIT PROGRAM Statement. [D.31.5.8](#section-d-31-5-8)
-- EXIT SECTION statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+- EXIT SECTION statement [10](#section-3), [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
 - EXIT statement [14.9.14](#section-14-9-14)
 - EXP function [15.34](#section-15-34)
 - EXP10 function [15.35](#section-15-35)
@@ -45822,7 +45837,7 @@ The following documents are useful references for implementors and users of this
 - Expected capacity
   - Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
 - Expected capacity of a dynamic table
-  - Definition 156
+  - Definition [156](#section-8-5-1-7)
 - Explicit attributes [12.3.8.4](#section-12-3-8-4)
 - Explicit reference
   - Definition [8.3.3.6.4](#section-8-3-3-6-4)
@@ -45861,10 +45876,10 @@ The following documents are useful references for implementors and users of this
 - Extended UTC time format [14.9.48.4](#section-14-9-48-4)
 - Extended week date format
   - Definition [14.9.48.4](#section-14-9-48-4)
-- Extension language elements 23
+- Extension language elements [23](#section-4-2-8)
 - Extensions
-  - Nonstandard 23
-  - Standard 23
+  - Nonstandard [23](#section-4-2-8)
+  - Standard [23](#section-4-2-8)
 - External [8.4.3.9.3](#section-8-4-3-9-3)
 - EXTERNAL clause [13.18.22](#section-13-18-22)
   - Data description entry [13.16](#section-13-16)
@@ -45876,7 +45891,7 @@ The following documents are useful references for implementors and users of this
 - External repository [8.13](#section-8-13)
 - Externalized names [7.3.13.4](#section-7-3-13-4)
 - External-locale-name [8.3.2.3.7](#section-8-3-2-3-7)
-- Externally provided functionality 24
+- Externally provided functionality [24](#section-4-2-11)
 ### F
 
 - FACTORIAL function [15.36](#section-15-36)
@@ -45956,7 +45971,7 @@ The following documents are useful references for implementors and users of this
 - Fixed-capacity table
   - Comparing to dynamic-capacity table [13.18.62.4](#section-13-18-62-4)
 - Fixed-capacity tables
-  - Definition 156
+  - Definition [156](#section-8-5-1-7)
 - Fixed-length data item
   - Definition [8.4.3.2.4](#section-8-4-3-2-4)
 - Fixed-length group
@@ -45975,9 +45990,9 @@ The following documents are useful references for implementors and users of this
 - FLAG-02 directive [7.3.14](#section-7-3-14)
   - Nonstandard extensions [4.2.10](#section-4-2-10)
   - Obsolete language elements [4.2.13](#section-4-2-13)
-  - Processor-dependent elements 22
+  - Processor-dependent elements [22](#section-4-2-5)
   - Prototype versus repository [8.8.4](#section-8-8-4)
-  - Syntax violations 21
+  - Syntax violations [21](#section-4)
 - FLAG-NATIVE-ARITHMETIC directive [7.2.2](#section-7-2-2)
 - FLOAT-BINARY clause [11.9.8](#section-11-9-8)
 - FLOAT-BINARY-128
@@ -46151,7 +46166,7 @@ The following documents are useful references for implementors and users of this
   - Standard extensions [4.2.9](#section-4-2-9)
 - Implementor-defined
   - Language element list [15.83](#section-15-83)
-  - Language elements 22
+  - Language elements [22](#section-4-2-5)
   - Native arithmetic [8.8.1.3](#section-8-8-1-3)
   - Record types [A.4.11](#section-a-4-11)
 - IMPLEMENTS clause [9.2](#section-9-2), [9.3.5.2](#section-9-3-5-2)
@@ -46243,7 +46258,7 @@ The following documents are useful references for implementors and users of this
 - INTEGER function [15.44](#section-15-44)
 - Integer functions [14.9.46](#section-14-9-46)
 - Integer literal [7.3.19](#section-7-3-19)
-- Integer-n 28
+- Integer-n [28](#section-5-2-3)
 - INTEGER-OF-BOOLEAN function [15.45](#section-15-45)
 - INTEGER-OF-DATE function [15.46](#section-15-46)
 - INTEGER-OF-DAY function [15.47](#section-15-47)
@@ -46465,7 +46480,7 @@ The following documents are useful references for implementors and users of this
 - Maximum capacity
   - Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
 - Maximum capacity of a dynamic table
-  - Definition 156
+  - Definition [156](#section-8-5-1-7)
 - MEAN function [15.60](#section-15-60)
 - MEDIAN function [15.61](#section-15-61)
 - Merge file [9.1.20](#section-9-1-20)
@@ -46603,7 +46618,7 @@ The following documents are useful references for implementors and users of this
 - Noncontiguous data items [8.4.2.3](#section-8-4-2-3)
 - Noncontiguous elementary items [12.4.5.10](#section-12-4-5-10)
 - Nonfatal exception conditions [14.6.13.1.4](#section-14-6-13-1-4)
-- Nonstandard extension flagging 23
+- Nonstandard extension flagging [23](#section-4-2-8)
 - NORMAL phrase
   - STOP statement [14.9.42](#section-14-9-42)
 - Normal run unit termination [14.6.11](#section-14-6-11)
@@ -46652,7 +46667,7 @@ The following documents are useful references for implementors and users of this
 - NULL predefined object reference
   - INITIALIZE statement [14.9.20](#section-14-9-20)
 - Numeric category [8.5.2.12](#section-8-5-2-12)
-- Numeric character 16
+- Numeric character [16](#section-3)
 - Numeric class [8.4.3.3.4](#section-8-4-3-3-4)
 - Numeric comparison [8.5.1.10](#section-8-5-1-10)
 - Numeric data item [8.4.3.5](#section-8-4-3-5)
@@ -46700,7 +46715,7 @@ The following documents are useful references for implementors and users of this
   - INITIALIZE statement [14.9.20](#section-14-9-20)
 - Objects and classes [9.3.1](#section-9-3-1)
 - Object-view [8.4.3.5](#section-8-4-3-5)
-- Obsolete language element flagging 24
+- Obsolete language element flagging [24](#section-4-2-11)
   - Obsolete language elements [4.2.13](#section-4-2-13)
   - ARITHMETIC IS STANDARD [D.32](#section-d-32)
 - OCCURS ... DEPENDING clause [6.5](#section-6-5)
@@ -46709,7 +46724,7 @@ The following documents are useful references for implementors and users of this
 - Occurs-depending group item
   - Definition [13.18.24.4](#section-13-18-24-4)
 - Occurs-depending tables
-  - Definition 156
+  - Definition [156](#section-8-5-1-7)
   - OF phrase
   - COPY statement [7.2.3](#section-7-2-3)
   - With identifiers [8.2](#section-8-2)
@@ -46856,7 +46871,7 @@ The following documents are useful references for implementors and users of this
   - infinite loop [14.9.23.4](#section-14-9-23-4)
 - PERFORM statement examples [D.19.10](#section-d-19-10)
 - Period
-  - Separator 30, [8](#section-8)
+  - Separator [30](#section-5-2-9), [8](#section-8)
 - PF phrase
   - TYPE clause [13.18.57](#section-13-18-57)
 - PH phrase
@@ -46900,7 +46915,7 @@ The following documents are useful references for implementors and users of this
 - PROCEDURE DIVISION header [13.18.57.4](#section-13-18-57-4)
 - Procedure-name [13.18.60](#section-13-18-60)
 - Procedures [14.4](#section-14-4)
-- Processor-dependent element flagging 22
+- Processor-dependent element flagging [22](#section-4-2-5)
 - Processor-dependent language elements [4.2.6](#section-4-2-6)
   - List of [15.100](#section-15-100)
 - PROGRAM COLLATING SEQUENCE clause
@@ -47098,7 +47113,7 @@ The following documents are useful references for implementors and users of this
   - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
 - Reserved words [4.2.8](#section-4-2-8)
   - Compiler directives [7.3](#section-7-3)
-  - Implementation 23
+  - Implementation [23](#section-4-2-8)
   - Source text [8.8](#section-8-8)
 - RESET phrase
   - NEXT GROUP clause [13.18.37](#section-13-18-37)
@@ -47150,7 +47165,7 @@ The following documents are useful references for implementors and users of this
   - Concepts [D.9](#section-d-9)
 - Rounding rules [8.4.6](#section-8-4-6)
 - Rules [5.3](#section-5-3)
-- Run unit 18, [13.18.60.4](#section-13-18-60-4)
+- Run unit [18](#section-3), [13.18.60.4](#section-13-18-60-4)
 - Run unit termination [9.1.18.5](#section-9-1-18-5)
 - Runtime element [9.1.13.3](#section-9-1-13-3)
 ### S
@@ -47198,8 +47213,8 @@ The following documents are useful references for implementors and users of this
 - SELECT WHEN clause [13.18.51](#section-13-18-51)
   - SORT statement [14.9.40](#section-14-9-40)
 - SELF predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
-- Semicolon 29
-  - Interchangeable with comma 29, [8](#section-8)
+- Semicolon [29](#section-5-2-6)
+  - Interchangeable with comma [29](#section-5-2-6), [8](#section-8)
   - Separator [8](#section-8)
 - SEND statement [14.9.38](#section-14-9-38)
 - Sending operand [8.4.3.1.4](#section-8-4-3-1-4), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
@@ -47212,7 +47227,7 @@ The following documents are useful references for implementors and users of this
   - Comma [8](#section-8)
   - Literal delimiter [8.1.2](#section-8-1-2)
   - Parentheses [8](#section-8)
-  - Period 30, [8](#section-8)
+  - Period [30](#section-5-2-9), [8](#section-8)
   - Pseudo-text delimiter [8.1.2](#section-8-1-2)
   - Semicolon [8](#section-8)
   - Space [8](#section-8)
@@ -47286,7 +47301,7 @@ The following documents are useful references for implementors and users of this
   - Separator [8](#section-8)
 - SPACE/SPACES figurative constant [7.3.25.4](#section-7-3-25-4)
 - Special character words [7.3.16](#section-7-3-16)
-  - In formats 30
+  - In formats [30](#section-5-2-9)
 - Special insertion editing [13.18.35.4](#section-13-18-35-4)
 - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
   - ACCEPT statement [14.9.1](#section-14-9-1)
@@ -47295,7 +47310,7 @@ The following documents are useful references for implementors and users of this
   - Concepts [D.10](#section-d-10)
 - Standard classes [16](#section-16)
 - Standard date form [15.5.3](#section-15-5-3)
-- Standard language element acceptance 21
+- Standard language element acceptance [21](#section-4)
 - Standard numeric time form [15.5.5](#section-15-5-5)
 - STANDARD phrase
   - ARITHMETIC clause [11.9.5](#section-11-9-5)
@@ -47363,7 +47378,7 @@ The following documents are useful references for implementors and users of this
 - SUPPRESS statement [14.9.45](#section-14-9-45)
 - SUPPRESS WHEN phrase [14.9.25.4](#section-14-9-25-4), [14.9.28.4](#section-14-9-28-4), [14.9.38.4](#section-14-9-38-4), [A.4.8](#section-a-4-8)
 - Surrogate pair [8.3.2.2.13](#section-8-3-2-2-13)
-  - Definition 19
+  - Definition [19](#section-3)
 - Switch status
   - Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
 - Switch-name [8.3.2.3.11](#section-8-3-2-3-11)
@@ -47376,7 +47391,7 @@ The following documents are useful references for implementors and users of this
 - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 - SYNCHRONIZED clause [13.18.55](#section-13-18-55)
 - Syntax rules [5.3.2](#section-5-3-2)
-- Syntax violation flagging 21
+- Syntax violation flagging [21](#section-4)
 - SYSTEM-DEFAULT phrase
 - SET statement [14.9.39](#section-14-9-39)
 - System-name [7.3.15.4](#section-7-3-15-4)

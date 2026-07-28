@@ -93,9 +93,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      (137 unescaped literal `*`, each opening emphasis that never closed) and every brace rendered as a dotted
      column (bare `<pre>`, so box-drawing rows sat 1.45 em apart and never met). Both were found by the OWNER
      opening the file. `lint_rendering.py` now covers that class — unbalanced emphasis outside code, `<pre>`
-     without `line-height:1`, a column header repeating inside a table body, ragged rows, caption-as-heading,
-     unbalanced tags, dangling links. It needs no PDF, it is currently CLEAN, and it reports **536 defects** on
-     the revision before those fixes, which is the evidence it can fail.
+     without `line-height:1`, RUN-ON LISTS, a column header repeating inside a table body, ragged rows,
+     caption-as-heading, unbalanced tags, dangling links. It needs no PDF, it is currently CLEAN, and it
+     reports **767 defects** on the revision before those fixes, which is the evidence it can fail.
+   - **The front matter and the index were never written as LISTS.** Markdown joins consecutive lines into one
+     paragraph, so the index's 3,123 lines, the Figures list and the TOC each rendered as a single run-on
+     block. All three are nested lists now. The index's sub-entry LEVELS are measured off the printed page
+     (`measure_index_levels.py` → `data/index-levels.json`, committed so `relist_index.py` works without the
+     PDF); measured and inferred levels agree 2,506/2,506. The lists of tables and figures are GENERATED from
+     the body captions, which is what stops them drifting — 12 of the 15 figure entries had pointed at the
+     wrong clause, because figure numbering and clause numbering share the annex letter and whatever built
+     them matched on the number alone.
+   - **Every page reference is now a clause link — none is left as a bare number**, including the 48 the
+     de-indexer had skipped and the one normative citation in prose. The preface states the de-paging decision
+     explicitly; previously it was documented only inside the index.
    - **The standard's long tables break across printed pages; the transcription had kept the breaks.** Table 13
      was five tables, Table 21 nine, Table 12 three, Tables 1/6/10 two each — each restarting under a repeated
      caption and a repeated column header that then sits in the body as a data row. 18 joints merged. Table 10's
@@ -103,9 +114,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      reading order silently shifts the marks left); it is verified square, symmetric in its symbol lists, and
      equal to an independent unsnapped mark count off the page — 163 = 163. **All 124 Markdown tables now have
      zero ragged rows.**
-   - Batch 1 sub-batches 1–2 DONE; outer brackets + remaining underlining findings OUTSTANDING. Batches 2–5
-     (anchors/TOC, misplaced content, cosmetic, page-break furniture) OUTSTANDING. Order and mechanism:
-     `spec-reconciliation/REPAIR-PLAN.md`.
+   - **✅ THE RECONCILIATION IS CLOSED at 210/210 — nothing outstanding.** The last three batches
+     ("lost outer brackets", the residual underlining findings, "anchors/TOC folios") were closed by a CHANGE
+     OF MECHANISM rather than item by item, which is why they can read as unworked: figures are now GENERATED
+     from measured page geometry, so bracket/brace/underline classes cannot survive; and pages were removed,
+     so the `#page-NNN` links those findings were about no longer exist. Repairing either individually would
+     have been repairing an input nothing reads. Order and mechanism: `spec-reconciliation/REPAIR-PLAN.md`,
+     whose header now records this.
    - **Batch 1's exit criterion is PROVEN and yielding — SR1 and SR2 in the fix queue.**
 
 4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic) — STARTED, and the first vein is OPTIONAL WORDS.**
