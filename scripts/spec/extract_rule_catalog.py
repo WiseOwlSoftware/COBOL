@@ -66,7 +66,12 @@ FURNITURE = re.compile(
 # matched only "1)" and silently dropped every rule in §8.8.3.2, §11.9.11.2, §13.18.24.3 and §14.9.30.3. The
 # completeness self-check is what surfaced it; without it the denominator would have been quietly short.
 # Sub-items ("a)") are indented and stay with their parent rule.
-ORDINAL = re.compile(r"^(?P<n>\d+)[.)]\s+(?P<text>.*)$")
+# The label's delimiter is ESCAPED in the transcription (`1\)`, `1\.`) because an unescaped `1)` at column 0
+# is a Markdown ordered-list marker — it renders as `1.`, which collides with the standard's own third level,
+# and it re-parses the rule's text as block syntax, which ate the leading `>` of eight rules. The backslash is
+# optional here so the catalog reads both forms: this regex is the DENOMINATOR of the P14 traceability
+# inventory, and a silent zero-rule extraction would read as "no rules in this clause" rather than as a break.
+ORDINAL = re.compile(r"^(?P<n>\d+)\\?[.)]\s+(?P<text>.*)$")
 
 # The rule-block kinds the standard uses. Intrinsic functions use argument/returned-value rules instead of SR/GR.
 # SINGULAR forms are load-bearing, not a nicety: the standard writes "Syntax rule" when a block holds exactly one

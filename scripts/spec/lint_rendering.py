@@ -32,6 +32,15 @@ WHAT IT CATCHES, each earned by a real defect:
 
   TAGS        `<pre>` and `<u>` must balance. An unclosed `<pre>` swallows the rest of the document.
 
+  RULE LABEL  The standard numbers its rules `1)` → `a)` → `1.`, and those markers are LABELS the standard
+              cites (SR3, GR2), not list positions. Written bare, `1)` at column 0 is an ordered-list marker:
+              the printed `1)` then renders as `1.` — colliding with the third level, which really is printed
+              `1.` — while `a)`, not being a marker, stayed literal, so one structure rendered two ways. Worse,
+              a list item's content is re-parsed as BLOCK syntax, so a rule opening with `>` became a
+              blockquote and lost it: `9) >= is an abbreviation for GREATER THAN OR EQUAL TO.` rendered as a
+              claim about `=`. Labels must be escaped (`1\\)`, `1\\.`), and a sub-rule may not be indented 4+
+              (that is a code block once it is not inside a list item).
+
   SWALLOWED   A `<pre>` block is RAW HTML, so `<blank>` in it is a tag, not text — and every sanitizing
               renderer DROPS an unknown tag, taking the words with it while leaving the surrounding line
               intact. Figure D.6 is the first figure whose own notation is angle-bracketed (`<blank>`,
@@ -137,6 +146,48 @@ def check_runon_lists(lines, mask):
             out.append((run[0] + 1, f"{len(run)} consecutive link lines with no list marker — "
                                     f"these render as one paragraph"))
         run = []
+    return out
+
+
+# The three rule-label shapes, each in the form that a Markdown parser STEALS. `a)` is not a marker at all, so
+# it only appears here in the one shape that breaks: indented far enough to become a code block.
+RULE_LABELS = (
+    (re.compile(r"^\d+\)\s"),        "a top-level rule label `N)` at column 0 is an ordered-list marker — "
+                                     "it renders as `N.`, colliding with the third level, and any `>` "
+                                     "starting the rule is eaten as a blockquote; write `N\\)`"),
+    (re.compile(r"^ {3,}\d+\.\s"),   "an indented `N.` sub-item is a list marker, and at 4+ spaces outside a "
+                                     "list item it is a CODE BLOCK; write `   N\\.`"),
+    (re.compile(r"^ {4,}[a-z]\)\s"), "a sub-rule indented 4+ spaces is a CODE BLOCK once it is not inside a "
+                                     "list item; indent it 3"),
+)
+
+
+def check_rule_labels(lines):
+    """A rule label a Markdown parser would take for its own syntax.
+
+    Earned by the whole class at once: 4,161 top-level labels rendering as `N.`, 99 sub-items and 17
+    sub-rules that only escaped being code blocks because they sat inside a list item, and eight rules whose
+    leading `>` was consumed outright — two of them relational-operator definitions, one of which then made a
+    FALSE statement about `=`. Zero false positives by construction: every legitimate list in this document
+    is written with `-`."""
+    out, inpre, infence = [], False, False
+    for i, l in enumerate(lines):
+        s = l.strip()
+        if s.startswith("<pre"):
+            inpre = True
+            continue
+        if s == "</pre>":
+            inpre = False
+            continue
+        if s.startswith("```"):
+            infence = not infence
+            continue
+        if inpre or infence:
+            continue
+        for pat, why in RULE_LABELS:
+            if pat.match(l):
+                out.append((i + 1, f"{why} — {s[:52]!r}"))
+                break
     return out
 
 
@@ -281,6 +332,8 @@ def main() -> int:
         if opens != closes:
             tags.append((0, f"<{tag}> opened {opens} times, closed {closes}"))
     findings["TAGS"] = tags
+
+    findings["RULE LABEL"] = check_rule_labels(lines)
 
     findings["SWALLOWED"] = check_swallowed_tags(lines)
 
