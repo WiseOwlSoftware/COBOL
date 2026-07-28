@@ -42142,17 +42142,34 @@ Representations of the actions of several types of PERFORM statements with varyi
 <a id="figure-d-11"></a>
 **Figure D.11 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition**
 
-Entrance
-↓
-Set identifier-2 equal to current FROM value
-↓
-→ Condition-1 → True → Exit
-↓ False
-↓
-Execute specified set of statements
-↓
-Augment identifier-2 with current BY value
-↑___________________________________|
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              │
+                ┌─────────────┴─────────────┐
+                │ Set identifier-2 equal to │
+                │     current FROM value    │
+                └─────────────┬─────────────┘
+                              │
+                              │
+                ╭─────────────┴─────────────╮
+    ┌───────────┤        Condition-1        ├──── True ────►   Exit
+    │           ╰─────────────┬─────────────╯
+    │                         │ False
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │     Execute specified     │
+    │           │     set of statements     │
+    │           └─────────────┬─────────────┘
+    │                         │
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │    Augment identifier-2   │
+    │           │   with current BY value   │
+    │           └─────────────┬─────────────┘
+    │                         │
+    └─────────────────────────┘
+</pre>
 
 <a id="figure-d-12"></a>
 **Figure D.12 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions**
@@ -42201,17 +42218,35 @@ Augment identifier-2 with current BY value
 <a id="figure-d-13"></a>
 **Figure D.13 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition**
 
-
-Entrance
-↓
-Set identifier-2 equal to current FROM value
-↓
-Execute specified set of statements
-↓
-Condition-1 → True → Exit
-↓ False
-Augment identifier-2 with current BY value
-↑_________________________________|
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              │
+                ┌─────────────┴─────────────┐
+                │ Set identifier-2 equal to │
+                │     current FROM value    │
+                └─────────────┬─────────────┘
+                              │
+    ┌─────────────────────────┤
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │     Execute specified     │
+    │           │     set of statements     │
+    │           └─────────────┬─────────────┘
+    │                         │
+    │                         │
+    │           ╭─────────────┴─────────────╮
+    │           │        Condition-1        ├──── True ────►   Exit
+    │           ╰─────────────┬─────────────╯
+    │                         │ False
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │    Augment identifier-2   │
+    │           │   with current BY value   │
+    │           └─────────────┬─────────────┘
+    │                         │
+    └─────────────────────────┘
+</pre>
 
 <a id="figure-d-14"></a>
 **Figure D.14 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions**

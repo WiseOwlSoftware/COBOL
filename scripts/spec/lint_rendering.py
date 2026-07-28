@@ -134,6 +134,41 @@ def check_runon_lists(lines, mask):
     return out
 
 
+FIG_CAPTION = re.compile(r"^\*\*(Figure [^ ]+) — ")
+
+
+def check_figures(lines):
+    """A figure caption with no drawn body beneath it.
+
+    The 484 general formats are GENERATED from the printed page and are exact. The Annex D illustrations were
+    drawn by hand, and seven of the fifteen were never drawn at all — what stands under the caption is the
+    chart's labels in reading order, or a loose sketch of arrows. It renders as a run-on jumble of words, and
+    nothing else in the document flagged it: the words are all present, so a word-conservation check passes.
+
+    A figure's body must START right after its caption. Searching further afield finds the NEXT figure's block
+    and calls the empty one clean, which is exactly what an earlier version of this check did for D.10 and
+    D.14."""
+    caps = [(i, FIG_CAPTION.match(l).group(1)) for i, l in enumerate(lines) if FIG_CAPTION.match(l)]
+    out = []
+    for n, (i, name) in enumerate(caps):
+        end = caps[n + 1][0] if n + 1 < len(caps) else len(lines)
+        for k in range(i + 1, min(end, len(lines))):
+            if lines[k].startswith("<a id="):
+                end = min(end, k)
+                break
+        drawn = False
+        for k in range(i + 1, end):
+            s = lines[k].strip()
+            if s.startswith("<pre") or s.startswith("```") or s.startswith("|"):
+                drawn = True
+                break
+            if s:
+                break
+        if not drawn:
+            out.append((i + 1, f"{name} has no drawn body — its caption is followed by loose text"))
+    return out
+
+
 def check_tables(lines):
     """Ragged rows, and a repeated header row sitting in the body."""
     ragged, repeated, i = [], [], 0
@@ -196,6 +231,8 @@ def main() -> int:
     findings["LINE-HEIGHT"] = bare
 
     findings["RUN-ON LIST"] = check_runon_lists(lines, mask)
+
+    findings["UNDRAWN FIGURE"] = check_figures(lines)
 
     ragged, repeated = check_tables(lines)
     findings["RAGGED"] = ragged
