@@ -37890,31 +37890,61 @@ Figure D.3, Compilation group and run unit structures, shows schematically, in a
 <a id="figure-d-3"></a>
 **Figure D.3 — Compilation group and run unit structures**
 
-P-1
-
-P-1-1 &nbsp;&nbsp;&nbsp; P-1-2
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; P-1-2-1 &nbsp;&nbsp; P-1-2-2
-
-To other run unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To other run unit
-
-From other comp. group &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; From other comp. group
-
-**Legend**
-
-| Symbol | Meaning |
-|--------|---------|
-| (solid double border box) | Compilation Group |
-| (solid single border box) | Compilation Unit |
-| (solid thin border box) | Source Unit |
-| (dashed border box) | Source Element |
-
-| Symbol | Meaning |
-|--------|---------|
-| (solid double border box) | Run Unit |
-| (dashed border box) | Runtime Module |
-| (small dashed border box) | Runtime Element |
-
+<pre style="line-height:1">
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓         Legend
+┃ ┌─────────┐ ┌─────────────────────────────────────────┐ ┌─────────┐ ┃
+┃ │         │ │ ┌─ P-1 ───────────────────────────────┐ │ │         │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │         │ ┃   ┃ Compilation Group  ┃
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃
+┃ │         │ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ ┌─ P-1-1 ─────┐ ┌─ P-1-2 ─────────┐ │ │ │         │ ┃   │ Compilation Unit   │
+┃ │         │ │ │ │ ┌╌╌╌╌╌╌╌╌╌┐ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ ╎             ╎ │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ ╎             ╎ │ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ │ ╎         ╎ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │ │         │ ┃   │ Source Unit        │
+┃ │         │ │ │ │ ╎         ╎ │ │ P-1-2-1 P-1-2-2 │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ ┌─────┐ ┌─────┐ │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ┌╌┐ │ │ ┌╌┐ │ │ │ │ │         │ ┃   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ╎ Source Element     ╎
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │ │ │ ╎         ╎ │ │ │ └╌┘ │ │ └╌┘ │ │ │ │ │         │ ┃   ┃ Run Unit           ┃
+┃ │         │ │ │ │ └╌╌╌╌╌╌╌╌╌┘ │ │ └─────┘ └─────┘ │ │ │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │ │ └─────────────┘ └─────────────────┘ │ │ │         │ ┃
+┃ │         │ │ └─────────────────────────────────────┘ │ │         │ ┃   ┌────────────────────┐
+┃ └─────────┘ └─────────────────────────────────────────┘ └─────────┘ ┃   │ Runtime Module     │
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛   └────────────────────┘
+       │                           │                           │
+       ▼                           ▼                           ▼          ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+To other run unit                  │                   To other run unit  ╎ Runtime Element    ╎
+                                                                          └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+From other comp. group                              From other comp. group
+       │                           │                           │
+       ▼                           ▼                           ▼
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ┌─────────┐ ┌─────────────────────────────────────────┐ ┌─────────┐ ┃
+┃ │         │ │                                         │ │         │ ┃
+┃ │         │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │         │ ┃
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃
+┃ │         │ │                                         │ │         │ ┃
+┃ │         │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │         │ ┃
+┃ │         │ │   ╎             ╎ ╎                 ╎   │ │         │ ┃
+┃ │         │ │   ╎             ╎ ╎                 ╎   │ │         │ ┃
+┃ │         │ │   ╎             ╎ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃
+┃ │         │ │   ╎             ╎                       │ │         │ ┃
+┃ │         │ │   ╎             ╎   ┌╌╌╌╌╌┐ ┌╌╌╌╌╌┐     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌┘   └╌╌╌╌╌┘ └╌╌╌╌╌┘     │ │         │ ┃
+┃ └─────────┘ └─────────────────────────────────────────┘ └─────────┘ ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+</pre>
 
 <a id="section-d-6-1-2"></a>
 ##### D.6.1.2 Runtime level organization
