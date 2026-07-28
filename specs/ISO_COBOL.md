@@ -41782,6 +41782,8 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 </pre>
 
 
+
+
 <a id="figure-d-8"></a>
 **Figure D.8 — Evaluation of the condition-1 OR condition-2 OR … condition-n**
 
@@ -41820,6 +41822,8 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
                   Truth value                       Truth value
                    is false                           is true
 </pre>
+
+
 
 
 > **Figure notes (Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3).** This is a flowchart illustration, not a general format, so the brace/bracket notation of 5.2.6 does not apply. Rectangles are process boxes (`Evaluate condition-n`); rounded boxes are decisions (`Condition-n true`). Every `yes` exit joins a single line down the right-hand side terminating in **Truth value is true**; the `no` exit of the last decision falls through to **Truth value is false**. The words `false` and `true` in the two terminals are underlined in the printed standard. The chart is drawn generically over condition-1, condition-2, … condition-n even though the caption names three conditions.
@@ -41864,58 +41868,56 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
   is false                                            is true
 </pre>
 
+
+
 <a id="figure-d-10"></a>
 **Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4**
 
-
-
-
-Evaluate
-condition-1
-
-Condition-1
-true
-
-no
-
-Evaluate
-condition-2
-
-Condition-2
-false
-
-no
-
-Evaluate
-condition-3
-
-Condition-3
-false
-
-no
-
-Evaluate
-condition-4
-
-Condition-4
-false
-
-no
-
-yes
-
-yes
-
-yes
-
-yes
-
-Truth value
-is **false**
-
-Truth value
-is **true**
-
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────────┐
+            │        true         │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+            ┌──────────┴──────────┐                          │
+            │      Evaluate       │                          │
+            │     condition-2     │                          │
+            └──────────┬──────────┘                          │
+                       │                                     │
+            ╭──────────┴──────────╮    yes                   │
+            │     Condition-2     ├──────────────────────────┤
+            │        false        │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-3     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-3     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-4     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-4     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       ▼                                     ▼
+                  Truth value                           Truth value
+                   is false                               is true
+</pre>
 
 <a id="section-d-24"></a>
 ### D.24 Examples of the use of the EDITING phrase
@@ -42170,45 +42172,47 @@ Representations of the actions of several types of PERFORM statements with varyi
 <a id="figure-d-12"></a>
 **Figure D.12 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions**
 
-
 <pre style="line-height:1">
-                    Entrance
-                       |
-                       ▼
-            ┌─────────────────────┐
-            │  Set identifier-2 to cur- │
-            │  rent FROM value    │
-            └─────────────────────┘
-                       |
-                       ▼
-            ┌─────────────────────┐
-            │  Set identifier-5 to cur- │
-            │  rent FROM value    │
-            └─────────────────────┘
-                       |
-                       ▼
-◄──────────╱  Condition-1  ╲── True ──► Exit
-           ╲              ╱
-                  False
-                    |
-                    ▼
-◄─────────╱  Condition-2  ╲── True ──────────────►
-          ╲              ╱                         |
-                 False                             ▼
-                   |                 ┌─────────────────────┐
-                   ▼                 │  Augment identifier-2│
-        ┌─────────────────────┐      │  with current BY value│
-        │  Execute specified set│     └─────────────────────┘
-        │  of statements      │                   |
-        └─────────────────────┘                   ▼
-                   |                 ┌─────────────────────┐
-                   ▼                 │  Set identifier-5 to cur-│
-        ┌─────────────────────┐      │  rent FROM value    │
-        │  Augment identifier-5│     └─────────────────────┘
-        │  with current BY value│                 |
-        └─────────────────────┘                   |
-                   |◄──────────────────────────────
-                   └──────────────────────────────►
+                          Entrance
+                              │
+                              │
+                ┌─────────────┴─────────────┐
+                │    Set identifier-2 to    │
+                │     current FROM value    │
+                └─────────────┬─────────────┘
+                              │
+                              │
+                ┌─────────────┴─────────────┐
+                │    Set identifier-5 to    │
+                │     current FROM value    │
+                └─────────────┬─────────────┘
+                              │
+    ┌─────────────────────────┤
+    │                         │
+    │           ╭─────────────┴─────────────╮
+    │           │        Condition-1        ├──── True ────►   Exit
+    │           ╰─────────────┬─────────────╯
+    │                         │ False
+    │     ┌───────────────────┤
+    │     │                   │
+    │     │     ╭─────────────┴─────────────╮  True
+    │     │     │        Condition-2        ├──────────────────┐
+    │     │     ╰─────────────┬─────────────╯                  │
+    │     │                   │ False                          │
+    │     │                   │                                │
+    │     │     ┌─────────────┴─────────────┐    ┌─────────────┴─────────────┐
+    │     │     │   Execute specified set   │    │    Augment identifier-2   │
+    │     │     │       of statements       │    │   with current BY value   │
+    │     │     └─────────────┬─────────────┘    └─────────────┬─────────────┘
+    │     │                   │                                │
+    │     │                   │                                │
+    │     │     ┌─────────────┴─────────────┐    ┌─────────────┴─────────────┐
+    │     │     │    Augment identifier-5   │    │    Set identifier-5 to    │
+    │     │     │   with current BY value   │    │     current FROM value    │
+    │     │     └─────────────┬─────────────┘    └─────────────┬─────────────┘
+    │     │                   │                                │
+    │     └───────────────────┘                                │
+    └──────────────────────────────────────────────────────────┘
 </pre>
 
 <a id="figure-d-13"></a>

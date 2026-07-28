@@ -50,12 +50,16 @@ class Canvas:
                          f"A connector is being drawn through something already there.")
             self.cells[(r, c + k)] = ch
 
-    def box(self, top, lines, rounded=False, enter=True, leave=True, width=None):
-        """A box centred on AXIS, sized to its content. `enter`/`leave` cut the ┬/┴ the connectors meet."""
+    def box(self, top, lines, rounded=False, enter=True, leave=True, width=None, axis=None):
+        """A box centred on `axis` (AXIS by default), sized to its content.
+
+        `enter`/`leave` cut the ┬/┴ that connectors meet. `axis` exists for the two-column charts, D.10 and
+        D.12, where a branch runs a second stack of boxes down its own column."""
+        axis = AXIS if axis is None else axis
         inner = (width if width is not None else max(len(x) for x in lines)) + 2 * PAD
-        left = AXIS - (inner + 2) // 2
+        left = axis - (inner + 2) // 2
         tl, tr, bl, br = ("╭", "╮", "╰", "╯") if rounded else ("┌", "┐", "└", "┘")
-        mid = AXIS - left
+        mid = axis - left
         top_rule = ["─"] * inner
         bot_rule = ["─"] * inner
         if enter:
@@ -205,7 +209,59 @@ def figure_d14():
     return cv.render()
 
 
-FIGURES = {"D.11": figure_d11, "D.13": figure_d13, "D.14": figure_d14}
+def figure_d12():
+    """TEST BEFORE, two conditions — the only VARYING chart with a second COLUMN.
+
+    Printed original, folio 1156. Condition-2's True branch does not rejoin the main column: it runs a stack of
+    two boxes down its own column, which then loops back to condition-1. Condition-2's False path runs the body
+    and loops back to condition-2 itself. So there are two independent loops at different depths, plus a
+    column of its own — none of which the single-axis charts need."""
+    cv = Canvas()
+    right = AXIS + 33          # clear of the main column: a box is 29 wide, so this leaves a 4-column gutter
+    outer, inner = 4, 10
+    cv.put(0, AXIS - 4, "Entrance")
+    a = cv.box(3, ["Set identifier-2 to", "current FROM value"], width=W)
+    cv.vert(0, a.top, AXIS)
+    b = cv.box(a.bottom + 3, ["Set identifier-5 to", "current FROM value"], width=W)
+    cv.vert(a.bottom, b.top, AXIS)
+
+    d1 = cv.box(b.bottom + 4, ["Condition-1"], rounded=True, width=W)
+    cv.vert(b.bottom, d1.top, AXIS)
+    d1_join = b.bottom + 2
+    decision_exit(cv, d1)
+    cv.put(d1.bottom + 1, AXIS + 2, "False")
+
+    d2 = cv.box(d1.bottom + 4, ["Condition-2"], rounded=True, width=W)
+    cv.vert(d1.bottom, d2.top, AXIS)
+    d2_join = d1.bottom + 2
+    # True leaves for the right-hand column rather than a terminal.
+    cv.junction(d2.mid, d2.right, "├", "│")
+    cv.put(d2.mid, d2.right + 1, "─" * (right - d2.right - 1) + "┐")
+    cv.put(d2.mid - 1, d2.right + 3, "True")
+    cv.put(d2.bottom + 1, AXIS + 2, "False")
+
+    body = cv.box(d2.bottom + 3, ["Execute specified set", "of statements"], width=W)
+    cv.vert(d2.bottom, body.top, AXIS)
+    aug5 = cv.box(body.bottom + 3, ["Augment identifier-5", "with current BY value"], width=W)
+    cv.vert(body.bottom, aug5.top, AXIS)
+    loop_back(cv, aug5, d2_join, AXIS, "│", loop_col=inner)
+
+    # The right-hand column, fed by condition-2's True exit.
+    r1 = cv.box(d2.bottom + 3, ["Augment identifier-2", "with current BY value"], width=W, axis=right)
+    cv.vert(d2.mid, r1.top, right)
+    r2 = cv.box(r1.bottom + 3, ["Set identifier-5 to", "current FROM value"], width=W, axis=right)
+    cv.vert(r1.bottom, r2.top, right)
+    # …and back to condition-1, down the outer margin.
+    tail = max(aug5.bottom, r2.bottom) + 3
+    cv.vert(r2.bottom, tail, right)
+    cv.put(tail, outer, "└" + "─" * (right - outer - 1) + "┘")
+    cv.vert(d1_join, tail, outer)
+    cv.put(d1_join, outer, "┌" + "─" * (AXIS - outer - 1))
+    cv.junction(d1_join, AXIS, "┤", "│")
+    return cv.render()
+
+
+FIGURES = {"D.11": figure_d11, "D.12": figure_d12, "D.13": figure_d13, "D.14": figure_d14}
 
 
 def splice(lines, num, body):
