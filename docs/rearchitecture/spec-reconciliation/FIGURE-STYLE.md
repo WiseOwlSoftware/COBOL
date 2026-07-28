@@ -98,6 +98,17 @@ rule only when rows are exactly one em apart. Any leading leaves a gap at every 
 stylesheet change to `line-height` would silently break every choice indicator in the document with no other
 symptom.**
 
+The transcription therefore **carries the constraint itself**, rather than depending on the renderer: every
+figure opens with `<pre style="line-height:1">`. A Markdown file has no stylesheet of its own and is read
+through whatever previewer the reader happens to use, so leaving this to the environment guarantees it is wrong
+somewhere — the defect that prompted the rule was a reader seeing every brace as a dotted column, at a
+previewer's ordinary 1.45 default.
+
+The tag is emitted from ONE place, `render_figure.PRE_OPEN`, which `sweep_figures.py` reuses for both the
+`--apply` replacement and the `--check` comparison, so the document and the generator cannot drift apart. Note
+that this makes the opening tag *not* a bare `<pre>`: anything matching figure boundaries must allow the
+attributes (`</?pre(?:\s[^>]*)?>`).
+
 ## Where a figure IS, for the generator
 
 Located from the **clause structure**, never from spacing. A bold numbered heading opens and closes every

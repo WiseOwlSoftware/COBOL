@@ -759,8 +759,15 @@ def render(grid, marks, plain_only):
     return out
 
 
+# ⚠ `line-height:1` IS LOAD-BEARING, not styling. A box-drawing glyph TILES: `│` is drawn spanning the full
+# em box precisely so that the strokes on consecutive rows meet and read as one continuous rule. At a browser's
+# default line-height (~1.45) the rows sit 1.45 em apart and every single row boundary opens a visible gap, so
+# the brace of a two-line group renders as a dotted column instead of a bracket. See FIGURE-STYLE.md rule 8.
+PRE_OPEN = '<pre style="line-height:1">'
+
+
 def emit(grid, marks, plain_only):
-    print("<pre>")
+    print(PRE_OPEN)
     for line in render(grid, marks, plain_only):
         print(line)
     print("</pre>")
@@ -833,7 +840,7 @@ def sheet(doc, pages, out_path, extract, classify_page):
             parts.append('<div class="pair">')
             parts.append(f'<div><p class="lbl">printed</p>'
                          f'<img src="{printed_crop(page, lo, hi)}" alt="printed figure"></div>')
-            parts.append(f'<div><p class="lbl">generated</p><pre>{body}</pre></div>')
+            parts.append(f'<div><p class="lbl">generated</p>{PRE_OPEN}{body}</pre></div>')
             parts.append("</div>")
     out_path.write_text("\n".join(parts), encoding="utf-8")
     return len(parts)

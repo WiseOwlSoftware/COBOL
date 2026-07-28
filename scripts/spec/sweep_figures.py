@@ -44,7 +44,9 @@ MD_GENERAL_FORMAT = re.compile(r"general\s+formats?\s*$", re.I)
 ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
 # A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
 # example's lines loose, where the bare-run scanner could mistake a COBOL example for a figure.
-FENCE = re.compile(r"^\s*(?:>\s?)?(?:```[a-zA-Z]*|</?pre>)\s*$")
+# `<pre>` carries a `line-height:1` style attribute (see render_figure.PRE_OPEN — it is what makes the
+# box-drawing strokes meet), so the opening tag must be matched with its attributes, not as a bare tag.
+FENCE = re.compile(r"^\s*(?:>\s?)?(?:```[a-zA-Z]*|</?pre(?:\s[^>]*)?>)\s*$")
 FORMAT_LABEL = re.compile(r"^\s*(?:>\s?)?\*{0,2}Formats?\s+\d+\b")
 HEADING = re.compile(r"^\s*#{1,6}\s")
 # A row of a figure that carries only DELIMITERS — the blank row inside a group, drawn with the group's own
@@ -406,7 +408,7 @@ def main() -> int:
             # Any figure NOTES that sat between the fragments are carried through, after the figure they
             # describe. They are the transcription's own analysis of the printed page and must not be lost.
             notes = note_lines(lines, a, b)
-            repl = ["<pre>"] + body + ["</pre>"]
+            repl = [R.PRE_OPEN] + body + ["</pre>"]
             if notes:
                 repl += [""] + notes
             if lines[a:b] == repl:

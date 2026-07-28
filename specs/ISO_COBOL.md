@@ -104,967 +104,905 @@ Published in Switzerland
 
 **Contents**
 
-Contents ………………………………………………………………………………………… iii
-
-Tables………………………………………………………………………………………………xxiv
-
-Figures ………………………………………………………………………………………………xxv
-
-Foreword ……………………………………………………………………………………………xxvi
-
-Introduction ………………………………………………………………………………………xxviii
-
-[1 Scope](#section-1)
-[2 Normative references](#section-2)
-[3 Terms and definitions](#section-3)
-[4 Conformance to this Working Draft International Standard](#section-4)
-[4.1 General](#section-4-1)
-[4.2 A conforming implementation](#section-4-2)
-[4.2.1 General](#section-4-2-1)
-[4.2.2 Acceptance of standard language elements](#section-4-2-2)
-[4.2.3 Interaction with non-COBOL runtime modules](#section-4-2-3)
-[4.2.4 Interaction between COBOL implementations](#section-4-2-4)
-[4.2.5 Implementor-defined language elements](#section-4-2-5)
-[4.2.6 Processor-dependent language elements](#section-4-2-6)
-[4.2.7 Optional language elements](#section-4-2-7)
-[4.2.8 Reserved words](#section-4-2-8)
-[4.2.9 Standard extensions](#section-4-2-9)
-[4.2.10 Nonstandard extensions](#section-4-2-10)
-[4.2.11 Substitute or additional language elements](#section-4-2-11)
-[4.2.12 Archaic language elements](#section-4-2-12)
-[4.2.13 Obsolete language elements](#section-4-2-13)
-[4.2.14 Externally-provided functionality](#section-4-2-14)
-[4.2.15 Limits](#section-4-2-15)
-[4.2.16 User documentation](#section-4-2-16)
-[4.2.17 Character substitution](#section-4-2-17)
-[4.3 A conforming compilation group](#section-4-3)
-[4.4 A conforming run unit](#section-4-4)
-[4.5 Relationship of a conforming compilation group to a conforming implementation](#section-4-5)
-[4.6 Relationship of a conforming run unit to a conforming implementation](#section-4-6)
-[5 Description techniques](#section-5)
-[5.1 General](#section-5-1)
-[5.2 General formats](#section-5-2)
-
----
-
-
-[5.2.1 General](#section-5-2-1)
-[5.2.2 Keywords](#section-5-2-2)
-[5.2.3 Optional words](#section-5-2-3)
-[5.2.4 Operands](#section-5-2-4)
-[5.2.5 Level numbers](#section-5-2-5)
-[5.2.6 Options](#section-5-2-6)
-[5.2.7 Ellipses](#section-5-2-7)
-[5.2.8 Punctuation](#section-5-2-8)
-[5.2.9 Special characters](#section-5-2-9)
-[5.2.10 Meta-terms](#section-5-2-10)
-[5.3 Rules](#section-5-3)
-[5.3.1 General](#section-5-3-1)
-[5.3.2 Syntax rules](#section-5-3-2)
-[5.3.3 General rules](#section-5-3-3)
-[5.3.4 Argument rules](#section-5-3-4)
-[5.3.5 Returned value rules](#section-5-3-5)
-[5.4 Arithmetic expressions](#section-5-4)
-[5.4.1 General](#section-5-4-1)
-[5.4.2 Textually subscripted operands](#section-5-4-2)
-[5.4.3 Ellipses](#section-5-4-3)
-[5.5 Integer operands](#section-5-5)
-[5.6 Informal description](#section-5-6)
-[5.7 Hyphens in text](#section-5-7)
-[6 Reference format](#section-6)
-[6.1 General](#section-6-1)
-[6.2 Indicators](#section-6-2)
-[6.2.1 General](#section-6-2-1)
-[6.2.2 Fixed indicators](#section-6-2-2)
-[6.2.3 Floating indicators](#section-6-2-3)
-[6.3 Fixed-form reference format](#section-6-3)
-[6.3.1 General](#section-6-3-1)
-[6.3.2 Sequence number area](#section-6-3-2)
-[6.3.3 Indicator area](#section-6-3-3)
-[6.3.4 Program-text area](#section-6-3-4)
-[6.3.5 Continuation of lines](#section-6-3-5)
-[6.3.6 Blank lines](#section-6-3-6)
-[6.3.7 Comments](#section-6-3-7)
-[6.4 Free-form reference format](#section-6-4)
-[6.4.1 General](#section-6-4-1)
-[6.4.2 Continuation of lines](#section-6-4-2)
-[6.4.3 Blank lines](#section-6-4-3)
-[6.4.4 Comments](#section-6-4-4)
-[6.5 Logical conversion](#section-6-5)
-[7 Compiler directing facility](#section-7)
-
----
-
-
-[7.1 General](#section-7-1)
-[7.2 Text manipulation](#section-7-2)
-[7.2.1 General](#section-7-2-1)
-[7.2.2 Text manipulation elements](#section-7-2-2)
-[7.2.3 COPY statement](#section-7-2-3)
-[7.2.4 REPLACE statement](#section-7-2-4)
-[7.3 Compiler directives](#section-7-3)
-[7.3.1 General](#section-7-3-1)
-[7.3.2 General format](#section-7-3-2)
-[7.3.3 Syntax rules](#section-7-3-3)
-[7.3.4 General rules](#section-7-3-4)
-[7.3.5 Conditional compilation](#section-7-3-5)
-[7.3.6 Compile-time arithmetic expressions](#section-7-3-6)
-[7.3.7 Compile-time boolean expressions](#section-7-3-7)
-[7.3.8 Constant conditional expression](#section-7-3-8)
-[7.3.9 CALL-CONVENTION directive](#section-7-3-9)
-[7.3.10 COBOL-WORDS directive](#section-7-3-10)
-[7.3.11 DEFINE directive](#section-7-3-11)
-[7.3.12 DISPLAY directive](#section-7-3-12)
-[7.3.13 EVALUATE directive](#section-7-3-13)
-[7.3.14 FLAG-02 directive](#section-7-3-14)
-[7.3.15 FLAG-14 directive](#section-7-3-15)
-[7.3.16 IF directive](#section-7-3-16)
-[7.3.17 LEAP-SECOND directive](#section-7-3-17)
-[7.3.18 LISTING directive](#section-7-3-18)
-[7.3.19 PAGE directive](#section-7-3-19)
-[7.3.20 POP directive](#section-7-3-20)
-[7.3.21 PROPAGATE directive](#section-7-3-21)
-[7.3.22 PUSH directive](#section-7-3-22)
-[7.3.23 REF-MOD-ZERO-LENGTH directive](#section-7-3-23)
-[7.3.24 SOURCE FORMAT directive](#section-7-3-24)
-[7.3.25 TURN directive](#section-7-3-25)
-[8 Language fundamentals](#section-8)
-[8.1 Character sets](#section-8-1)
-[8.1.1 General](#section-8-1-1)
-[8.1.2 Computer's coded character set](#section-8-1-2)
-[8.1.3 COBOL character repertoire](#section-8-1-3)
-[8.1.4 Alphabets](#section-8-1-4)
-[8.1.5 Collating sequences](#section-8-1-5)
-[8.2 Locales](#section-8-2)
-[8.2.1 General](#section-8-2-1)
-[8.2.2 Locale field names](#section-8-2-2)
-[8.3 Lexical elements](#section-8-3)
-[8.3.1 General](#section-8-3-1)
-[8.3.2 COBOL words](#section-8-3-2)
-
----
-
-
-[8.3.2.1 General](#section-8-3-2-1)
-[8.3.2.2 User-defined words](#section-8-3-2-2)
-[8.3.2.3 System-names](#section-8-3-2-3)
-[8.3.2.3.1 General](#section-8-3-2-3-1)
-[8.3.2.4 Reserved words](#section-8-3-2-4)
-[8.3.2.4.1 General](#section-8-3-2-4-1)
-[8.3.2.5 Context-sensitive words](#section-8-3-2-5)
-[8.3.2.6 Intrinsic-function-names](#section-8-3-2-6)
-[8.3.2.7 Exception-names](#section-8-3-2-7)
-[8.3.3 Literals](#section-8-3-3)
-[8.3.3.1 General](#section-8-3-3-1)
-[8.3.3.2 Alphanumeric literals](#section-8-3-3-2)
-[8.3.3.2.1 General](#section-8-3-3-2-1)
-[8.3.3.2.2 General format](#section-8-3-3-2-2)
-[8.3.3.2.3 Syntax rules](#section-8-3-3-2-3)
-[8.3.3.2.4 General rules](#section-8-3-3-2-4)
-[8.3.3.3 Numeric literals](#section-8-3-3-3)
-[8.3.3.4 Boolean literals](#section-8-3-3-4)
-[8.3.3.5 National literals](#section-8-3-3-5)
-[8.3.3.6 Figurative constant values](#section-8-3-3-6)
-[8.3.4 Picture character-strings](#section-8-3-4)
-[8.3.5 Separators](#section-8-3-5)
-[8.4 References](#section-8-4)
-[8.4.1 General](#section-8-4-1)
-[8.4.2 Uniqueness of reference](#section-8-4-2)
-[8.4.2.1 General](#section-8-4-2-1)
-[8.4.2.2 Qualification](#section-8-4-2-2)
-[8.4.2.3 Subscripts](#section-8-4-2-3)
-[8.4.2.3.1 General](#section-8-4-2-3-1)
-[8.4.2.3.2 General format](#section-8-4-2-3-2)
-[8.4.2.3.3 Syntax rules](#section-8-4-2-3-3)
-[8.4.2.3.4 General rules](#section-8-4-2-3-4)
-[8.4.3 Identifiers](#section-8-4-3)
-[8.4.3.1 Identifier](#section-8-4-3-1)
-[8.4.3.2 Function-identifier](#section-8-4-3-2)
-[8.4.3.3 Reference-modification](#section-8-4-3-3)
-[8.4.3.4 Inline method invocation](#section-8-4-3-4)
-[8.4.3.5 Object-view](#section-8-4-3-5)
-[8.4.3.6 EXCEPTION-OBJECT](#section-8-4-3-6)
-[8.4.3.7 NULL object reference](#section-8-4-3-7)
-[8.4.3.8 SELF and SUPER](#section-8-4-3-8)
-[8.4.3.9 Object property](#section-8-4-3-9)
-[8.4.3.10 NULL address pointer and message tag content](#section-8-4-3-10)
-[8.4.3.11 Data-address-identifier](#section-8-4-3-11)
-[8.4.3.12 Function-address-identifier](#section-8-4-3-12)
-[8.4.3.13 Program-address-identifier](#section-8-4-3-13)
-
----
-
-
-[8.4.3.14 LINAGE-COUNTER](#section-8-4-3-14)
-[8.4.3.15 Report counters](#section-8-4-3-15)
-[8.4.4 Condition-name](#section-8-4-4)
-[8.4.5 Explicit and implicit data item references](#section-8-4-5)
-[8.4.6 Scope of names](#section-8-4-6)
-[8.4.6.1 General](#section-8-4-6-1)
-[8.4.6.2 Local and global names](#section-8-4-6-2)
-[8.4.6.3 Scope of program-names](#section-8-4-6-3)
-[8.4.6.4 Scope of object-class-names and interface-names](#section-8-4-6-4)
-[8.4.6.5 Scope of method-names](#section-8-4-6-5)
-[8.4.6.6 Scope of function-prototype-names](#section-8-4-6-6)
-[8.4.6.7 Scope of user-function-names](#section-8-4-6-7)
-[8.4.6.8 Scope of program-prototype-names](#section-8-4-6-8)
-[8.4.6.9 Scope of compilation-variable-names](#section-8-4-6-9)
-[8.4.6.10 Scope of parameter-names](#section-8-4-6-10)
-[8.4.6.11 Scope of property-names](#section-8-4-6-11)
-[8.5 Data description and representation](#section-8-5)
-[8.5.1 Computer independent data description](#section-8-5-1)
-[8.5.1.1 General](#section-8-5-1-1)
-[8.5.1.2 Files and records](#section-8-5-1-2)
-[8.5.1.3 Levels](#section-8-5-1-3)
-[8.5.1.3.1 General](#section-8-5-1-3-1)
-[8.5.1.3.2 Level-numbers](#section-8-5-1-3-2)
-[8.5.1.3.3 Tables](#section-8-5-1-3-3)
-[8.5.1.4 Limitations of character handling](#section-8-5-1-4)
-[8.5.1.5 Algebraic signs](#section-8-5-1-5)
-[8.5.1.6 Alignment of data items in storage](#section-8-5-1-6)
-[8.5.1.6.3 Alignment of data items of usage bit](#section-8-5-1-6-3)
-[8.5.1.6.4 Item alignment for increased object-code efficiency](#section-8-5-1-6-4)
-[8.5.1.6.5 Alignment of strongly-typed group items](#section-8-5-1-6-5)
-[8.5.1.7 Fixed-capacity tables](#section-8-5-1-7)
-[8.5.1.9 Dynamic-capacity tables](#section-8-5-1-9)
-[8.5.1.10 Dynamic-length elementary items](#section-8-5-1-10)
-[8.5.1.10.1 General](#section-8-5-1-10-1)
-[8.5.1.10.2 Structure of a dynamic-length elementary item](#section-8-5-1-10-2)
-[8.5.1.10.3 Location of dynamic-length elementary items](#section-8-5-1-10-3)
-[8.5.1.10.4 Operations on dynamic-length elementary items](#section-8-5-1-10-4)
-[8.5.1.11 Variable-length data items](#section-8-5-1-11)
-[8.5.1.11.2 Contiguity of data items](#section-8-5-1-11-2)
-[8.5.1.11.3 Availability and persistence of variable-length data items](#section-8-5-1-11-3)
-[8.5.1.12 Variable-length groups](#section-8-5-1-12)
-[8.5.1.12.1 General](#section-8-5-1-12-1)
-[8.5.1.12.2 Positional correspondence](#section-8-5-1-12-2)
-[8.5.1.12.3 Matching](#section-8-5-1-12-3)
-[8.5.2 Class and category of data items and literals](#section-8-5-2)
-[8.5.2.1 General](#section-8-5-2-1)
-
-
-[8.5.2.2 Alphabetic category](#section-8-5-2-2)
-[8.5.2.3 Alphanumeric category](#section-8-5-2-3)
-[8.5.2.4 Alphanumeric-edited category](#section-8-5-2-4)
-[8.5.2.5 Boolean category](#section-8-5-2-5)
-[8.5.2.6 Data-pointer category](#section-8-5-2-6)
-[8.5.2.7 Function-pointer category](#section-8-5-2-7)
-[8.5.2.8 Index category](#section-8-5-2-8)
-[8.5.2.9 Message-tag category](#section-8-5-2-9)
-[8.5.2.10 National category](#section-8-5-2-10)
-[8.5.2.11 National-edited category](#section-8-5-2-11)
-[8.5.2.12 Numeric category](#section-8-5-2-12)
-[8.5.2.13 Numeric-edited category](#section-8-5-2-13)
-[8.5.2.14 Object-reference category](#section-8-5-2-14)
-[8.5.2.15 Program-pointer category](#section-8-5-2-15)
-[8.5.3 Types](#section-8-5-3)
-[8.5.3.1 General](#section-8-5-3-1)
-[8.5.3.2 Weakly-typed items](#section-8-5-3-2)
-[8.5.3.3 Strongly-typed group items](#section-8-5-3-3)
-[8.5.4 Zero-length items](#section-8-5-4)
-[8.6 Scope and life cycle of data](#section-8-6)
-[8.6.1 General](#section-8-6-1)
-[8.6.2 Global names and local names](#section-8-6-2)
-[8.6.3 External and internal items](#section-8-6-3)
-[8.6.4 Automatic, initial, and static internal items](#section-8-6-4)
-[8.6.5 Based entries and based data items](#section-8-6-5)
-[8.6.6 Common, initial, and recursive attributes](#section-8-6-6)
-[8.6.7 Sharing data items](#section-8-6-7)
-[8.7 Operators](#section-8-7)
-[8.7.1 Arithmetic operators](#section-8-7-1)
-[8.7.2 Boolean operators](#section-8-7-2)
-[8.7.3 Concatenation operator](#section-8-7-3)
-[8.7.4 Invocation operator](#section-8-7-4)
-[8.7.5 Relational operators](#section-8-7-5)
-[8.7.6 Logical operators](#section-8-7-6)
-[8.8 Expressions](#section-8-8)
-[8.8.1 Arithmetic expressions](#section-8-8-1)
-[8.8.2 Boolean expressions](#section-8-8-2)
-[8.8.3 Concatenation expressions](#section-8-8-3)
-[8.8.4 Conditional expressions](#section-8-8-4)
-[8.8.4.1 General](#section-8-8-4-1)
-[8.8.4.2 Simple relation conditions](#section-8-8-4-2)
-[8.8.4.5 Simple condition-name condition (conditional variable)](#section-8-8-4-5)
-[8.8.4.6 Simple switch-status condition](#section-8-8-4-6)
-[8.8.4.7 Simple sign condition](#section-8-8-4-7)
-[8.8.4.8 Simple omitted argument condition](#section-8-8-4-8)
-[8.8.4.9 Complex conditions](#section-8-8-4-9)
-
-
-[8.8.4.10 Complex negated conditions](#section-8-8-4-10)
-[8.8.4.11 Complex Combined conditions](#section-8-8-4-11)
-[8.8.4.12 Abbreviated combined relation conditions](#section-8-8-4-12)
-[8.8.4.13 Order of evaluation of conditions](#section-8-8-4-13)
-[8.9 Reserved words](#section-8-9)
-[8.10 Context-sensitive words](#section-8-10)
-[8.11 Intrinsic function names](#section-8-11)
-[8.12 Compiler-directive words](#section-8-12)
-[8.13 External repository](#section-8-13)
-[9 I-O, objects, and user-defined functions](#section-9)
-[9.1 Files](#section-9-1)
-[9.1.1 Physical and logical files](#section-9-1-1)
-[9.1.2 Record area](#section-9-1-2)
-[9.1.3 File connector](#section-9-1-3)
-[9.1.4 Open mode](#section-9-1-4)
-[9.1.5 Sharing file connectors](#section-9-1-5)
-[9.1.6 Fixed file attributes](#section-9-1-6)
-[9.1.7 Organization](#section-9-1-7)
-[9.1.7.1 General](#section-9-1-7-1)
-[9.1.7.2 Sequential](#section-9-1-7-2)
-[9.1.7.3 Relative](#section-9-1-7-3)
-[9.1.7.4 Indexed](#section-9-1-7-4)
-[9.1.8 Access modes](#section-9-1-8)
-[9.1.8.1 General](#section-9-1-8-1)
-[9.1.8.2 Sequential access mode](#section-9-1-8-2)
-[9.1.8.3 Random access mode](#section-9-1-8-3)
-[9.1.8.4 Dynamic access mode](#section-9-1-8-4)
-[9.1.9 Reel and unit](#section-9-1-9)
-[9.1.10 Current volume pointer](#section-9-1-10)
-[9.1.11 File position indicator](#section-9-1-11)
-[9.1.12 Input-output exception processing](#section-9-1-12)
-[9.1.13 I-O status](#section-9-1-13)
-[9.1.13.1 General](#section-9-1-13-1)
-[9.1.13.2 Successful completion](#section-9-1-13-2)
-[9.1.13.3 Implementor-defined successful completion](#section-9-1-13-3)
-[9.1.13.4 At end condition with unsuccessful completion](#section-9-1-13-4)
-[9.1.13.5 Invalid key condition with unsuccessful completion](#section-9-1-13-5)
-[9.1.13.6 Permanent error condition with unsuccessful completion](#section-9-1-13-6)
-[9.1.13.7 Logic error condition with unsuccessful completion](#section-9-1-13-7)
-[9.1.13.8 Record operation conflict condition with unsuccessful completion](#section-9-1-13-8)
-[9.1.13.9 File sharing conflict condition with unsuccessful completion](#section-9-1-13-9)
-[9.1.13.10 Record with invalid content with unsuccessful completion](#section-9-1-13-10)
-[9.1.13.11 Implementor-defined condition with unsuccessful completion](#section-9-1-13-11)
-[9.1.14 Invalid key condition](#section-9-1-14)
-[9.1.15 Sharing mode](#section-9-1-15)
-
-
-[9.1.16 Record locking](#section-9-1-16)
-[9.1.17 Logical unit of work](#section-9-1-17)
-[9.1.18 Commit and Rollback](#section-9-1-18)
-[9.1.19 Sort file](#section-9-1-19)
-[9.1.20 Merge file](#section-9-1-20)
-[9.1.21 Dynamic file assignment](#section-9-1-21)
-[9.1.22 Report file](#section-9-1-22)
-[9.2 Screens](#section-9-2)
-[9.2.1 Terminal screen](#section-9-2-1)
-[9.2.2 Function keys](#section-9-2-2)
-[9.2.3 CRT status](#section-9-2-3)
-[9.2.4 Cursor](#section-9-2-4)
-[9.2.5 Cursor locator](#section-9-2-5)
-[9.2.6 Current screen item](#section-9-2-6)
-[9.2.7 Color number](#section-9-2-7)
-[9.3 Objects](#section-9-3)
-[9.3.1 Objects and classes](#section-9-3-1)
-[9.3.2 Object references](#section-9-3-2)
-[9.3.3 Predefined object references](#section-9-3-3)
-[9.3.4 Methods](#section-9-3-4)
-[9.3.5 Polymorphism](#section-9-3-5)
-[9.3.5.1 General](#section-9-3-5-1)
-[9.3.5.2 Class polymorphism](#section-9-3-5-2)
-[9.3.5.3 Parametric polymorphism](#section-9-3-5-3)
-[9.3.6 Method invocation](#section-9-3-6)
-[9.3.7 Method prototypes](#section-9-3-7)
-[9.3.8 Conformance and interfaces](#section-9-3-8)
-[9.3.8.1 General](#section-9-3-8-1)
-[9.3.8.2 Conformance for object orientation](#section-9-3-8-2)
-[9.3.8.2.1 General](#section-9-3-8-2-1)
-[9.3.8.2.2 Interfaces](#section-9-3-8-2-2)
-[9.3.8.2.3 Conformance between interfaces](#section-9-3-8-2-3)
-[9.3.8.2.4 Conformance for parameterized classes and parameterized interfaces](#section-9-3-8-2-4)
-[9.3.9 Class inheritance](#section-9-3-9)
-[9.3.10 Interface inheritance](#section-9-3-10)
-[9.3.11 Interface implementation](#section-9-3-11)
-[9.3.12 Parameterized classes](#section-9-3-12)
-[9.3.13 Parameterized interfaces](#section-9-3-13)
-[9.3.14 Object life cycle](#section-9-3-14)
-[9.3.14.1 General](#section-9-3-14-1)
-[9.3.14.2 Life cycle for factory objects](#section-9-3-14-2)
-[9.3.14.3 Life cycle for instance objects](#section-9-3-14-3)
-[9.4 User-defined functions](#section-9-4)
-[10 Structured compilation group](#section-10)
-[10.1 General](#section-10-1)
-
-
-[10.2 Compilation units](#section-10-2)
-[10.3 Source units](#section-10-3)
-[10.4 Contained source units](#section-10-4)
-[10.5 Source elements and runtime elements](#section-10-5)
-[10.6 COBOL compilation group](#section-10-6)
-[10.6.1 General format](#section-10-6-1)
-[10.6.2 Syntax rules](#section-10-6-2)
-[10.6.3 General rule](#section-10-6-3)
-[10.7 End markers](#section-10-7)
-[10.7.1 General](#section-10-7-1)
-[10.7.2 General format](#section-10-7-2)
-[10.7.3 Syntax rules](#section-10-7-3)
-[10.7.4 General rule](#section-10-7-4)
-[11 Identification division](#section-11)
-[11.1 General](#section-11-1)
-[11.2 Identification division structure](#section-11-2)
-[11.3 CLASS-ID paragraph](#section-11-3)
-[11.3.1 General](#section-11-3-1)
-[11.3.2 General format](#section-11-3-2)
-[11.3.3 Syntax rules](#section-11-3-3)
-[11.3.4 General rules](#section-11-3-4)
-[11.4 FACTORY paragraph](#section-11-4)
-[11.4.1 General](#section-11-4-1)
-[11.4.2 General format](#section-11-4-2)
-[11.4.3 Syntax rules](#section-11-4-3)
-[11.4.4 General rules](#section-11-4-4)
-[11.5 FUNCTION-ID paragraph](#section-11-5)
-[11.5.1 General](#section-11-5-1)
-[11.5.2 General format](#section-11-5-2)
-[11.5.3 Syntax rule](#section-11-5-3)
-[11.5.4 General rules](#section-11-5-4)
-[11.6 INTERFACE-ID paragraph](#section-11-6)
-[11.6.1 General](#section-11-6-1)
-[11.6.2 General format](#section-11-6-2)
-[11.6.3 Syntax rules](#section-11-6-3)
-[11.6.4 General rules](#section-11-6-4)
-[11.7 METHOD-ID paragraph](#section-11-7)
-[11.7.1 General](#section-11-7-1)
-[11.7.2 General format](#section-11-7-2)
-[11.7.3 Syntax rules](#section-11-7-3)
-[11.7.4 General rules](#section-11-7-4)
-[11.8 OBJECT paragraph](#section-11-8)
-[11.8.1 General](#section-11-8-1)
-[11.8.2 General format](#section-11-8-2)
-[11.8.3 Syntax rules](#section-11-8-3)
-
-
-[11.8.4 General rules](#section-11-8-4)
-[11.9 OPTIONS paragraph](#section-11-9)
-[11.9.1 General](#section-11-9-1)
-[11.9.2 General format](#section-11-9-2)
-[11.9.3 Syntax rule](#section-11-9-3)
-[11.9.4 General rule](#section-11-9-4)
-[11.9.5 ARITHMETIC clause](#section-11-9-5)
-[11.9.6 DEFAULT ROUNDED clause](#section-11-9-6)
-[11.9.7 ENTRY-CONVENTION clause](#section-11-9-7)
-[11.9.8 FLOAT-BINARY clause](#section-11-9-8)
-[11.9.9 FLOAT-DECIMAL clause](#section-11-9-9)
-[11.9.10 INITIALIZE clause](#section-11-9-10)
-[11.9.11 INTERMEDIATE ROUNDING clause](#section-11-9-11)
-[11.10 PROGRAM-ID paragraph](#section-11-10)
-[11.10.1 General](#section-11-10-1)
-[11.10.2 General format](#section-11-10-2)
-[11.10.3 Syntax rules](#section-11-10-3)
-[11.10.4 General rules](#section-11-10-4)
-[12 Environment division](#section-12)
-[12.1 General](#section-12-1)
-[12.2 Environment division structure](#section-12-2)
-[12.3 Configuration section](#section-12-3)
-[12.3.1 General](#section-12-3-1)
-[12.3.2 General format](#section-12-3-2)
-[12.3.3 Syntax rules](#section-12-3-3)
-[12.3.4 General rule](#section-12-3-4)
-[12.3.5 SOURCE-COMPUTER paragraph](#section-12-3-5)
-[12.3.6 OBJECT-COMPUTER paragraph](#section-12-3-6)
-[12.3.7 SPECIAL-NAMES paragraph](#section-12-3-7)
-[12.3.8 REPOSITORY paragraph](#section-12-3-8)
-[12.4 Input-output section](#section-12-4)
-[12.4.1 General](#section-12-4-1)
-[12.4.2 General format](#section-12-4-2)
-[12.4.3 Syntax rule](#section-12-4-3)
-[12.4.4 FILE-CONTROL paragraph](#section-12-4-4)
-[12.4.5 File control entry](#section-12-4-5)
-[12.4.5.4 ACCESS MODE clause](#section-12-4-5-4)
-[12.4.5.6 ALTERNATE RECORD KEY clause](#section-12-4-5-6)
-[12.4.5.7 COLLATING SEQUENCE clause](#section-12-4-5-7)
-[12.4.5.8 FILE STATUS clause](#section-12-4-5-8)
-[12.4.5.9 LOCK MODE clause](#section-12-4-5-9)
-[12.4.5.10 ORGANIZATION clause](#section-12-4-5-10)
-[12.4.5.11 RECORD DELIMITER clause](#section-12-4-5-11)
-[12.4.5.12 RECORD KEY clause](#section-12-4-5-12)
-[12.4.5.13 RELATIVE KEY clause](#section-12-4-5-13)
-
-
-[12.4.5.14 RESERVE clause](#section-12-4-5-14)
-[12.4.5.15 SHARING clause](#section-12-4-5-15)
-[12.4.6 I-O-CONTROL paragraph](#section-12-4-6)
-[13 Data division](#section-13)
-[13.1 General](#section-13-1)
-[13.2 Data division structure](#section-13-2)
-[13.2.1 General format](#section-13-2-1)
-[13.3 Explicit and implicit attributes](#section-13-3)
-[13.4 File section](#section-13-4)
-[13.4.1 General](#section-13-4-1)
-[13.4.2 General format](#section-13-4-2)
-[13.4.3 Syntax rule](#section-13-4-3)
-[13.4.4 General rule](#section-13-4-4)
-[13.4.5 File description entry](#section-13-4-5)
-[13.4.6 Sort-merge file description entry](#section-13-4-6)
-[13.5 Working-storage section](#section-13-5)
-[13.5.1 General](#section-13-5-1)
-[13.5.2 General format](#section-13-5-2)
-[13.5.3 Syntax rule](#section-13-5-3)
-[13.5.4 General rules](#section-13-5-4)
-[13.6 Local-storage section](#section-13-6)
-[13.6.1 General](#section-13-6-1)
-[13.6.2 General format](#section-13-6-2)
-[13.6.3 Syntax rule](#section-13-6-3)
-[13.6.4 General rules](#section-13-6-4)
-[13.7 Linkage section](#section-13-7)
-[13.7.1 General](#section-13-7-1)
-[13.7.2 General format](#section-13-7-2)
-[13.7.3 Syntax rules](#section-13-7-3)
-[13.7.4 General rules](#section-13-7-4)
-[13.8 Report section](#section-13-8)
-[13.8.1 General](#section-13-8-1)
-[13.8.2 General format](#section-13-8-2)
-[13.8.3 Syntax rule](#section-13-8-3)
-[13.8.4 Report description entry](#section-13-8-4)
-[13.8.5 Report group description entry](#section-13-8-5)
-[13.8.6 Report subdivisions](#section-13-8-6)
-[13.8.6.2 Physical subdivisions of a report](#section-13-8-6-2)
-[13.8.6.2.1 Pages](#section-13-8-6-2-1)
-[13.8.6.2.2 Lines](#section-13-8-6-2-2)
-[13.8.6.2.3 Report Items](#section-13-8-6-2-3)
-[13.8.6.3 Logical Subdivisions of a Report](#section-13-8-6-3)
-[13.9 Screen section](#section-13-9)
-[13.9.1 General](#section-13-9-1)
-[13.9.2 General format](#section-13-9-2)
-
-
-[13.9.3 Syntax rule](#section-13-9-3)
-[13.9.4 General rule](#section-13-9-4)
-[13.10 Constant entry](#section-13-10)
-[13.10.1 General](#section-13-10-1)
-[13.10.2 General format](#section-13-10-2)
-[13.10.3 Syntax rules](#section-13-10-3)
-[13.10.4 General rules](#section-13-10-4)
-[13.11 Record description entry](#section-13-11)
-[13.11.1 General](#section-13-11-1)
-[13.12 Type declaration entry](#section-13-12)
-[13.13 77-level data description entry](#section-13-13)
-[13.14 Report description entry](#section-13-14)
-[13.14.1 General](#section-13-14-1)
-[13.14.2 General format](#section-13-14-2)
-[13.14.3 Syntax rules](#section-13-14-3)
-[13.14.4 General rule](#section-13-14-4)
-[13.15 Report group description entry](#section-13-15)
-[13.15.1 General](#section-13-15-1)
-[13.15.2 General format](#section-13-15-2)
-[13.15.3 Syntax rules](#section-13-15-3)
-[13.15.4 General rules](#section-13-15-4)
-[13.16 Data description entry](#section-13-16)
-[13.16.1 General](#section-13-16-1)
-[13.16.2 General formats](#section-13-16-2)
-[13.16.3 Syntax rules](#section-13-16-3)
-[13.16.4 General rules](#section-13-16-4)
-[13.17 Screen description entry](#section-13-17)
-[13.17.1 General](#section-13-17-1)
-[13.17.2 General formats](#section-13-17-2)
-[13.17.3 Syntax rules](#section-13-17-3)
-[13.17.4 General rules](#section-13-17-4)
-[13.18 Data division clauses](#section-13-18)
-[13.18.1 ALIGNED clause](#section-13-18-1)
-[13.18.2 ANY LENGTH clause](#section-13-18-2)
-[13.18.3 AUTO clause](#section-13-18-3)
-[13.18.4 BACKGROUND-COLOR clause](#section-13-18-4)
-[13.18.5 BASED clause](#section-13-18-5)
-[13.18.6 BELL clause](#section-13-18-6)
-[13.18.7 BLANK clause](#section-13-18-7)
-[13.18.8 BLANK WHEN ZERO clause](#section-13-18-8)
-[13.18.9 BLINK clause](#section-13-18-9)
-[13.18.10 BLOCK CONTAINS clause](#section-13-18-10)
-[13.18.11 CLASS clause](#section-13-18-11)
-[13.18.12 CODE clause](#section-13-18-12)
-[13.18.13 CODE-SET clause](#section-13-18-13)
-[13.18.14 COLUMN clause](#section-13-18-14)
-
-
-[13.18.15 CONSTANT RECORD clause](#section-13-18-15)
-[13.18.16 CONTROL clause](#section-13-18-16)
-[13.18.17 DEFAULT clause](#section-13-18-17)
-[13.18.18 DESTINATION clause](#section-13-18-18)
-[13.18.19 DYNAMIC LENGTH clause](#section-13-18-19)
-[13.18.20 Entry-name clause](#section-13-18-20)
-[13.18.21 ERASE clause](#section-13-18-21)
-[13.18.22 EXTERNAL clause](#section-13-18-22)
-[13.18.23 FOREGROUND-COLOR clause](#section-13-18-23)
-[13.18.24 FORMAT clause](#section-13-18-24)
-[13.18.25 FROM clause](#section-13-18-25)
-[13.18.26 FULL clause](#section-13-18-26)
-[13.18.27 GLOBAL clause](#section-13-18-27)
-[13.18.28 GROUP INDICATE clause](#section-13-18-28)
-[13.18.29 GROUP-USAGE clause](#section-13-18-29)
-[13.18.30 HIGHLIGHT clause](#section-13-18-30)
-[13.18.31 INVALID clause](#section-13-18-31)
-[13.18.32 JUSTIFIED clause](#section-13-18-32)
-[13.18.33 Level-number](#section-13-18-33)
-[13.18.34 LINAGE clause](#section-13-18-34)
-[13.18.35 LINE clause](#section-13-18-35)
-[13.18.36 LOWLIGHT clause](#section-13-18-36)
-[13.18.37 NEXT GROUP clause](#section-13-18-37)
-[13.18.38 OCCURS clause](#section-13-18-38)
-[13.18.39 PAGE clause](#section-13-18-39)
-[13.18.40 PICTURE clause](#section-13-18-40)
-[13.18.41 PRESENT WHEN clause](#section-13-18-41)
-[13.18.42 PROPERTY clause](#section-13-18-42)
-[13.18.43 RECORD clause](#section-13-18-43)
-[13.18.44 REDEFINES clause](#section-13-18-44)
-[13.18.45 RENAMES clause](#section-13-18-45)
-[13.18.46 REPORT clause](#section-13-18-46)
-[13.18.47 REQUIRED clause](#section-13-18-47)
-[13.18.48 REVERSE-VIDEO clause](#section-13-18-48)
-[13.18.49 SAME AS clause](#section-13-18-49)
-[13.18.50 SECURE clause](#section-13-18-50)
-[13.18.51 SELECT WHEN clause](#section-13-18-51)
-[13.18.52 SIGN clause](#section-13-18-52)
-[13.18.54 SUM clause](#section-13-18-54)
-[13.18.55 SYNCHRONIZED clause](#section-13-18-55)
-[13.18.56 TO clause](#section-13-18-56)
-[13.18.57 TYPE clause](#section-13-18-57)
-[13.18.58 TYPEDEF clause](#section-13-18-58)
-[13.18.59 UNDERLINE clause](#section-13-18-59)
-[13.18.60 USAGE clause](#section-13-18-60)
-[13.18.61 USING clause](#section-13-18-61)
-
-
-[13.18.62 VALIDATE-STATUS clause](#section-13-18-62)
-[13.18.63 VALUE clause](#section-13-18-63)
-[13.18.64 VARYING clause](#section-13-18-64)
-[14 Procedure division](#section-14)
-[14.1 General](#section-14-1)
-[14.2 Procedure division structure](#section-14-2)
-[14.2.1 General formats](#section-14-2-1)
-[14.2.2 Syntax rules](#section-14-2-2)
-[14.2.3 General rules](#section-14-2-3)
-[14.3 Declaratives](#section-14-3)
-[14.4 Procedures](#section-14-4)
-[14.4.1 General](#section-14-4-1)
-[14.4.2 Sections](#section-14-4-2)
-[14.4.3 Paragraphs](#section-14-4-3)
-[14.5 Procedural statements and sentences](#section-14-5)
-[14.5.1 General](#section-14-5-1)
-[14.5.2 Conditional phrase](#section-14-5-2)
-[14.5.3 Scope of statements](#section-14-5-3)
-[14.5.3.1 General](#section-14-5-3-1)
-[14.5.3.2 Explicit scope termination](#section-14-5-3-2)
-[14.5.3.3 Implicit scope termination](#section-14-5-3-3)
-[14.6 Execution](#section-14-6)
-[14.6.1 Run unit organization](#section-14-6-1)
-[14.6.2 State of a function, method, object, or program](#section-14-6-2)
-[14.6.2.1 General](#section-14-6-2-1)
-[14.6.2.2 Active state](#section-14-6-2-2)
-[14.6.2.3 Initial and last-used states of data](#section-14-6-2-3)
-[14.6.2.3.1 General](#section-14-6-2-3-1)
-[14.6.2.3.2 Initial state](#section-14-6-2-3-2)
-[14.6.2.3.3 Last-used state](#section-14-6-2-3-3)
-[14.6.2.4 Initial state of object data](#section-14-6-2-4)
-[14.6.3 Explicit and implicit transfers of control](#section-14-6-3)
-[14.6.4 Item identification](#section-14-6-4)
-[14.6.5 Results of runtime element execution](#section-14-6-5)
-[14.6.6 Locale identification](#section-14-6-6)
-[14.6.7 Sending and receiving operands](#section-14-6-7)
-[14.6.8 Alignment and transfer of data into data items](#section-14-6-8)
-[14.6.8.1 General](#section-14-6-8-1)
-[14.6.8.2 Fixed-point numeric and fixed-point numeric-edited receiving data items](#section-14-6-8-2)
-[14.6.8.3 Floating-point numeric receiving data items](#section-14-6-8-3)
-[14.6.8.4 Floating-point numeric-edited receiving data items](#section-14-6-8-4)
-[14.6.8.5 Receiving data items of categories alphabetic, alphanumeric, alphanumeric-edited, national, and national edited](#section-14-6-8-5)
-[14.6.8.6 Receiving data items of category boolean](#section-14-6-8-6)
-[14.6.9 Operations on dynamic-capacity tables](#section-14-6-9)
-
-
-[14.6.10 Overlapping operands](#section-14-6-10)
-[14.6.11 Normal run unit termination](#section-14-6-11)
-[14.6.12 Abnormal run unit termination](#section-14-6-12)
-[14.6.13 Exception condition handling](#section-14-6-13)
-[14.6.13.1 Exception conditions](#section-14-6-13-1)
-[14.6.13.1.1 General](#section-14-6-13-1-1)
-[14.6.13.1.2 Normal completion of a declarative procedure](#section-14-6-13-1-2)
-[14.6.13.1.3 Fatal exception conditions](#section-14-6-13-1-3)
-[14.6.13.1.4 Nonfatal exception conditions](#section-14-6-13-1-4)
-[14.6.13.1.5 Exception objects](#section-14-6-13-1-5)
-[14.6.13.1.6 Exception-names and exception conditions](#section-14-6-13-1-6)
-[14.6.13.2 Incompatible data](#section-14-6-13-2)
-[14.7 Common phrases and features for statements](#section-14-7)
-[14.7.1 General](#section-14-7-1)
-[14.7.2 At end condition](#section-14-7-2)
-[14.7.3 Invalid key condition](#section-14-7-3)
-[14.7.4 ROUNDED phrase](#section-14-7-4)
-[14.7.5 SIZE ERROR phrase and size error condition](#section-14-7-5)
-[14.7.6 CORRESPONDING phrase](#section-14-7-6)
-[14.7.7 Arithmetic statements](#section-14-7-7)
-[14.7.8 THROUGH phrase](#section-14-7-8)
-[14.7.9 RETRY phrase](#section-14-7-9)
-[14.8 Conformance for parameters, returning items and external items](#section-14-8)
-[14.8.1 General](#section-14-8-1)
-[14.8.2 Parameters](#section-14-8-2)
-[14.8.2.1 General](#section-14-8-2-1)
-[14.8.2.2 Group items](#section-14-8-2-2)
-[14.8.2.3 Elementary items](#section-14-8-2-3)
-[14.8.2.3.1 General](#section-14-8-2-3-1)
-[14.8.2.3.2 Elementary items passed by reference](#section-14-8-2-3-2)
-[14.8.2.3.3 Elementary items passed by content or by value](#section-14-8-2-3-3)
-[14.8.3 Returning items](#section-14-8-3)
-[14.8.3.1 General](#section-14-8-3-1)
-[14.8.3.2 Group items](#section-14-8-3-2)
-[14.8.3.3 Elementary items](#section-14-8-3-3)
-[14.8.4 External items](#section-14-8-4)
-[14.9 Statements](#section-14-9)
-[14.9.1 ACCEPT statement](#section-14-9-1)
-[14.9.2 ADD statement](#section-14-9-2)
-[14.9.3 ALLOCATE statement](#section-14-9-3)
-[14.9.4 CALL statement](#section-14-9-4)
-[14.9.5 CANCEL statement](#section-14-9-5)
-[14.9.6 CLOSE statement](#section-14-9-6)
-[14.9.7 COMMIT statement](#section-14-9-7)
-[14.9.8 COMPUTE statement](#section-14-9-8)
-[14.9.9 CONTINUE statement](#section-14-9-9)
-
-
-[14.9.10 DELETE statement](#section-14-9-10)
-[14.9.11 DISPLAY statement](#section-14-9-11)
-[14.9.12 DIVIDE statement](#section-14-9-12)
-[14.9.13 EVALUATE statement](#section-14-9-13)
-[14.9.14 EXIT statement](#section-14-9-14)
-[14.9.15 FREE statement](#section-14-9-15)
-[14.9.16 GENERATE statement](#section-14-9-16)
-[14.9.17 GO TO statement](#section-14-9-17)
-[14.9.18 GOBACK statement](#section-14-9-18)
-[14.9.19 IF statement](#section-14-9-19)
-[14.9.20 INITIALIZE statement](#section-14-9-20)
-[14.9.21 INITIATE statement](#section-14-9-21)
-[14.9.22 INSPECT statement](#section-14-9-22)
-[14.9.23 INVOKE statement](#section-14-9-23)
-[14.9.24 MERGE statement](#section-14-9-24)
-[14.9.25 MOVE statement](#section-14-9-25)
-[14.9.26 MULTIPLY statement](#section-14-9-26)
-[14.9.27 OPEN statement](#section-14-9-27)
-[14.9.28 PERFORM statement](#section-14-9-28)
-[14.9.29 RAISE statement](#section-14-9-29)
-[14.9.30 READ statement](#section-14-9-30)
-[14.9.31 RECEIVE statement](#section-14-9-31)
-[14.9.32 RELEASE statement](#section-14-9-32)
-[14.9.33 RESUME statement](#section-14-9-33)
-[14.9.34 RETURN statement](#section-14-9-34)
-[14.9.35 REWRITE statement](#section-14-9-35)
-[14.9.36 ROLLBACK statement](#section-14-9-36)
-[14.9.37 SEARCH statement](#section-14-9-37)
-[14.9.38 SEND statement](#section-14-9-38)
-[14.9.39 SET statement](#section-14-9-39)
-[14.9.40 SORT statement](#section-14-9-40)
-[14.9.41 START statement](#section-14-9-41)
-[14.9.42 STOP statement](#section-14-9-42)
-[14.9.43 STRING statement](#section-14-9-43)
-[14.9.44 SUBTRACT statement](#section-14-9-44)
-[14.9.45 SUPPRESS statement](#section-14-9-45)
-[14.9.46 TERMINATE statement](#section-14-9-46)
-[14.9.47 UNLOCK statement](#section-14-9-47)
-[14.9.48 UNSTRING statement](#section-14-9-48)
-[14.9.49 USE statement](#section-14-9-49)
-[14.9.50 VALIDATE statement](#section-14-9-50)
-[14.9.51 WRITE statement](#section-14-9-51)
-[15 Intrinsic functions](#section-15)
-[15.1 General](#section-15-1)
-[15.2 Types of functions](#section-15-2)
-
-
-[15.3 Arguments](#section-15-3)
-[15.3.1 Format arguments to international date and time functions](#section-15-3-1)
-[15.3.1.1 General](#section-15-3-1-1)
-[15.3.1.2 Calendar date formats](#section-15-3-1-2)
-[15.3.1.3 Permissible values for data associated with calendar date formats](#section-15-3-1-3)
-[15.3.1.4 Ordinal date formats](#section-15-3-1-4)
-[15.3.1.5 Permissible values for data associated with ordinal date formats](#section-15-3-1-5)
-[15.3.1.6 Week date formats](#section-15-3-1-6)
-[15.3.1.7 Permissible values for data associated with week date formats](#section-15-3-1-7)
-[15.3.2 Time formats](#section-15-3-2)
-[15.3.3 Common time formats](#section-15-3-3)
-[15.3.3.1 Common time formats with integer seconds representation](#section-15-3-3-1)
-[15.3.3.2 Common time formats with fractional seconds representation](#section-15-3-3-2)
-[15.3.3.3 Permissible values for data associated with common time formats](#section-15-3-3-3)
-[15.3.3.4 Local time formats](#section-15-3-3-4)
-[15.3.3.5 UTC time formats](#section-15-3-3-5)
-[15.3.3.6 Offset time formats](#section-15-3-3-6)
-[15.3.3.7 Combined date and time formats](#section-15-3-3-7)
-[15.4 Returned values](#section-15-4)
-[15.4.1 Numeric and integer functions](#section-15-4-1)
-[15.5 Date and time conversion functions](#section-15-5)
-[15.5.1 General](#section-15-5-1)
-[15.5.2 Integer date form](#section-15-5-2)
-[15.5.3 Standard date form](#section-15-5-3)
-[15.5.4 Julian date form](#section-15-5-4)
-[15.5.5 Standard numeric time form](#section-15-5-5)
-[15.6 Summary of functions](#section-15-6)
-[15.7 ABS function](#section-15-7)
-[15.8 ACOS function](#section-15-8)
-[15.9 ANNUITY function](#section-15-9)
-[15.10 ASIN function](#section-15-10)
-[15.11 ATAN function](#section-15-11)
-[15.12 BASECONVERT function](#section-15-12)
-[15.12.2 General format](#section-15-12-2)
-[15.13 BOOLEAN-OF-INTEGER function](#section-15-13)
-[15.14 BYTE-LENGTH function](#section-15-14)
-[15.15 CHAR function](#section-15-15)
-[15.16 CHAR-NATIONAL function](#section-15-16)
-[15.17 COMBINED-DATETIME function](#section-15-17)
-[15.18 CONCAT function](#section-15-18)
-[15.19 CONVERT function](#section-15-19)
-[15.20 COS function](#section-15-20)
-[15.21 CURRENT-DATE function](#section-15-21)
-[15.22 DATE-OF-INTEGER function](#section-15-22)
-[15.23 DATE-TO-YYYYMMDD function](#section-15-23)
-[15.24 DAY-OF-INTEGER function](#section-15-24)
-
-
-[15.25 DAY-TO-YYYYDDD function](#section-15-25)
-[15.26 DISPLAY-OF function](#section-15-26)
-[15.27 E function](#section-15-27)
-[15.28 EXCEPTION-FILE function](#section-15-28)
-[15.29 EXCEPTION-FILE-N function](#section-15-29)
-[15.30 EXCEPTION-LOCATION function](#section-15-30)
-[15.31 EXCEPTION-LOCATION-N function](#section-15-31)
-[15.32 EXCEPTION-STATEMENT function](#section-15-32)
-[15.33 EXCEPTION-STATUS function](#section-15-33)
-[15.34 EXP function](#section-15-34)
-[15.35 EXP10 function](#section-15-35)
-[15.36 FACTORIAL function](#section-15-36)
-[15.37 FIND-STRING function](#section-15-37)
-[15.38 FORMATTED-CURRENT-DATE function](#section-15-38)
-[15.39 FORMATTED-DATE function](#section-15-39)
-[15.40 FORMATTED-DATETIME function](#section-15-40)
-[15.41 FORMATTED-TIME function](#section-15-41)
-[15.42 FRACTION-PART function](#section-15-42)
-[15.43 HIGHEST-ALGEBRAIC function](#section-15-43)
-[15.44 INTEGER function](#section-15-44)
-[15.45 INTEGER-OF-BOOLEAN function](#section-15-45)
-[15.46 INTEGER-OF-DATE function](#section-15-46)
-[15.47 INTEGER-OF-DAY function](#section-15-47)
-[15.48 INTEGER-OF-FORMATTED-DATE function](#section-15-48)
-[15.49 INTEGER-PART function](#section-15-49)
-[15.50 LENGTH function](#section-15-50)
-[15.51 LOCALE-COMPARE function](#section-15-51)
-[15.52 LOCALE-DATE function](#section-15-52)
-[15.53 LOCALE-TIME function](#section-15-53)
-[15.54 LOCALE-TIME-FROM-SECONDS function](#section-15-54)
-[15.55 LOG function](#section-15-55)
-[15.56 LOG10 function](#section-15-56)
-[15.57 LOWER-CASE function](#section-15-57)
-[15.58 LOWEST-ALGEBRAIC function](#section-15-58)
-[15.59 MAX function](#section-15-59)
-[15.60 MEAN function](#section-15-60)
-[15.61 MEDIAN function](#section-15-61)
-[15.62 MIDRANGE function](#section-15-62)
-[15.63 MIN function](#section-15-63)
-[15.64 MOD function](#section-15-64)
-[15.65 MODULE-NAME function](#section-15-65)
-[15.66 NATIONAL-OF function](#section-15-66)
-[15.67 NUMVAL function](#section-15-67)
-[15.68 NUMVAL-C function](#section-15-68)
-[15.69 NUMVAL-F function](#section-15-69)
-[15.70 ORD function](#section-15-70)
-
-
-[15.71 ORD-MAX function](#section-15-71)
-[15.72 ORD-MIN function](#section-15-72)
-[15.73 PI function](#section-15-73)
-[15.74 PRESENT-VALUE function](#section-15-74)
-[15.75 RANDOM function](#section-15-75)
-[15.75.2 General format](#section-15-75-2)
-[15.76 RANGE function](#section-15-76)
-[15.77 REM function](#section-15-77)
-[15.78 REVERSE function](#section-15-78)
-[15.79 SECONDS-FROM-FORMATTED-TIME function](#section-15-79)
-[15.80 SECONDS-PAST-MIDNIGHT function](#section-15-80)
-[15.81 SIGN function](#section-15-81)
-[15.82 SIN function](#section-15-82)
-[15.83 SMALLEST-ALGEBRAIC function](#section-15-83)
-[15.84 SQRT function](#section-15-84)
-[15.85 STANDARD-COMPARE function](#section-15-85)
-[15.86 STANDARD-DEVIATION function](#section-15-86)
-[15.87 SUBSTITUTE function](#section-15-87)
-[15.88 SUM function](#section-15-88)
-[15.89 TAN function](#section-15-89)
-[15.90 TEST-DATE-YYYYMMDD function](#section-15-90)
-[15.91 TEST-DAY-YYYYDDD function](#section-15-91)
-[15.92 TEST-FORMATTED-DATETIME function](#section-15-92)
-[15.93 TEST-NUMVAL function](#section-15-93)
-[15.94 TEST-NUMVAL-C function](#section-15-94)
-[15.95 TEST-NUMVAL-F function](#section-15-95)
-[15.96 TRIM function](#section-15-96)
-[15.97 UPPER-CASE function](#section-15-97)
-[15.98 VARIANCE function](#section-15-98)
-[15.99 WHEN-COMPILED function](#section-15-99)
-[15.100 YEAR-TO-YYYY function](#section-15-100)
-[16 Standard classes](#section-16)
-[16.1 General](#section-16-1)
-[16.2 BASE class](#section-16-2)
-[16.2.1 New method](#section-16-2-1)
-[16.2.2 FactoryObject method](#section-16-2-2)
-A Language element lists …………………………………………………………………………….. 943
-[A.1 Implementor-defined language element list](#section-a-1)
-[A.2 Undefined language element list](#section-a-2)
-[A.3 Processor-dependent language element list](#section-a-3)
-[A.4 Optional language element list](#section-a-4)
-B Characters permitted in user-defined words …………………………………………………. 980
-[B.1 General](#section-b-1)
-
----
-
-
-[B.2 Notation](#section-b-2)
-[B.3 Repertoire of characters permitted in user-defined words](#section-b-3)
-C Mapping of uppercase letters to lowercase letters in the COBOL
-character repertoire ………………………………………………………………………………… 998
-[C.1 Notations](#section-c-1)
-[C.2 General case mappings](#section-c-2)
-D Concepts ………………………………………………………………………………………… 1005
-[D.1 General](#section-d-1)
-[D.2 Files](#section-d-2)
-[D.3 Tables and dynamic-length elementary items](#section-d-3)
-[D.4 Shared memory area](#section-d-4)
-[D.5 Sharing of storage among data items](#section-d-5)
-[D.6 Compilation group and run unit organization and communication](#section-d-6)
-[D.7 Intrinsic function facility](#section-d-7)
-[D.8 Types](#section-d-8)
-[D.9 Addresses and pointers](#section-d-9)
-[D.10 Boolean support and bit manipulation](#section-d-10)
-[D.11 Character sets](#section-d-11)
-[D.12 COBOL-WORDS directive](#section-d-12)
-[D.13 Collating sequences](#section-d-13)
-[D.14 Culturally-specific, culturally-adaptable, and multilingual applications](#section-d-14)
-[D.15 External switches](#section-d-15)
-[D.16 Common exception processing](#section-d-16)
-[D.17 Rounding](#section-d-17)
-[D.18 Forms of arithmetic](#section-d-18)
-[D.19 Object oriented concepts](#section-d-19)
-[D.20 Report writer](#section-d-20)
-[D.21 Structured constant](#section-d-21)
-[D.22 Validate facility](#section-d-22)
-[D.23 Conditional expressions](#section-d-23)
-[D.24 Examples of the use of the EDITING phrase](#section-d-24)
-[D.25 Examples of the execution of the INSPECT statement](#section-d-25)
-[D.26 Examples of the execution of the PERFORM statement with the VARYING phrase specified](#section-d-26)
-[D.27 Example of free-form reference format](#section-d-27)
-[D.28 Conditional compilation](#section-d-28)
-[D.29 CALL-CONVENTION directive](#section-d-29)
-[D.30 ENTRY-CONVENTION clause](#section-d-30)
-[D.31 Date and time handling](#section-d-31)
-D.32 Alternatives to HIGHEST-ALGEBRAIC, LOWEST-ALGEBRAIC and SMALLEST-ALGEBRAIC FUNC-
-TIONS …………………………………………………………………………………………… 1169
-
-E Substantive changes list ………………………………………………………………………… 1172
-[E.1 General](#section-e-1)
-[E.2 Substantive changes potentially affecting existing programs](#section-e-2)
-
-
-[E.3 Substantive changes probably not affecting existing programs](#section-e-3)
-F Archaic and obsolete language element lists ................................................1199
-[F.1 Archaic language elements](#section-f-1)
-[F.2 Obsolete language elements](#section-f-2)
-G Known errors .............................................................................1201
-[G.1 Rationale](#section-g-1)
-[G.2 List of errors](#section-g-2)
-BIBLIOGRAPHY ..............................................................................1203
-
-Index......................................................................................1204
-
-
-# ISO/IEC 2023
+- Contents
+- [Tables](#tables)
+- [Figures](#figures)
+- [Foreword](#foreword)
+- [Introduction](#introduction)
+- [1 Scope](#section-1)
+- [2 Normative references](#section-2)
+- [3 Terms and definitions](#section-3)
+- [4 Conformance to this Working Draft International Standard](#section-4)
+  - [4.1 General](#section-4-1)
+  - [4.2 A conforming implementation](#section-4-2)
+    - [4.2.1 General](#section-4-2-1)
+    - [4.2.2 Acceptance of standard language elements](#section-4-2-2)
+    - [4.2.3 Interaction with non-COBOL runtime modules](#section-4-2-3)
+    - [4.2.4 Interaction between COBOL implementations](#section-4-2-4)
+    - [4.2.5 Implementor-defined language elements](#section-4-2-5)
+    - [4.2.6 Processor-dependent language elements](#section-4-2-6)
+    - [4.2.7 Optional language elements](#section-4-2-7)
+    - [4.2.8 Reserved words](#section-4-2-8)
+    - [4.2.9 Standard extensions](#section-4-2-9)
+    - [4.2.10 Nonstandard extensions](#section-4-2-10)
+    - [4.2.11 Substitute or additional language elements](#section-4-2-11)
+    - [4.2.12 Archaic language elements](#section-4-2-12)
+    - [4.2.13 Obsolete language elements](#section-4-2-13)
+    - [4.2.14 Externally-provided functionality](#section-4-2-14)
+    - [4.2.15 Limits](#section-4-2-15)
+    - [4.2.16 User documentation](#section-4-2-16)
+    - [4.2.17 Character substitution](#section-4-2-17)
+  - [4.3 A conforming compilation group](#section-4-3)
+  - [4.4 A conforming run unit](#section-4-4)
+  - [4.5 Relationship of a conforming compilation group to a conforming implementation](#section-4-5)
+  - [4.6 Relationship of a conforming run unit to a conforming implementation](#section-4-6)
+- [5 Description techniques](#section-5)
+  - [5.1 General](#section-5-1)
+  - [5.2 General formats](#section-5-2)
+    - [5.2.1 General](#section-5-2-1)
+    - [5.2.2 Keywords](#section-5-2-2)
+    - [5.2.3 Optional words](#section-5-2-3)
+    - [5.2.4 Operands](#section-5-2-4)
+    - [5.2.5 Level numbers](#section-5-2-5)
+    - [5.2.6 Options](#section-5-2-6)
+    - [5.2.7 Ellipses](#section-5-2-7)
+    - [5.2.8 Punctuation](#section-5-2-8)
+    - [5.2.9 Special characters](#section-5-2-9)
+    - [5.2.10 Meta-terms](#section-5-2-10)
+  - [5.3 Rules](#section-5-3)
+    - [5.3.1 General](#section-5-3-1)
+    - [5.3.2 Syntax rules](#section-5-3-2)
+    - [5.3.3 General rules](#section-5-3-3)
+    - [5.3.4 Argument rules](#section-5-3-4)
+    - [5.3.5 Returned value rules](#section-5-3-5)
+  - [5.4 Arithmetic expressions](#section-5-4)
+    - [5.4.1 General](#section-5-4-1)
+    - [5.4.2 Textually subscripted operands](#section-5-4-2)
+    - [5.4.3 Ellipses](#section-5-4-3)
+  - [5.5 Integer operands](#section-5-5)
+  - [5.6 Informal description](#section-5-6)
+  - [5.7 Hyphens in text](#section-5-7)
+- [6 Reference format](#section-6)
+  - [6.1 General](#section-6-1)
+  - [6.2 Indicators](#section-6-2)
+    - [6.2.1 General](#section-6-2-1)
+    - [6.2.2 Fixed indicators](#section-6-2-2)
+    - [6.2.3 Floating indicators](#section-6-2-3)
+  - [6.3 Fixed-form reference format](#section-6-3)
+    - [6.3.1 General](#section-6-3-1)
+    - [6.3.2 Sequence number area](#section-6-3-2)
+    - [6.3.3 Indicator area](#section-6-3-3)
+    - [6.3.4 Program-text area](#section-6-3-4)
+    - [6.3.5 Continuation of lines](#section-6-3-5)
+    - [6.3.6 Blank lines](#section-6-3-6)
+    - [6.3.7 Comments](#section-6-3-7)
+  - [6.4 Free-form reference format](#section-6-4)
+    - [6.4.1 General](#section-6-4-1)
+    - [6.4.2 Continuation of lines](#section-6-4-2)
+    - [6.4.3 Blank lines](#section-6-4-3)
+    - [6.4.4 Comments](#section-6-4-4)
+  - [6.5 Logical conversion](#section-6-5)
+- [7 Compiler directing facility](#section-7)
+  - [7.1 General](#section-7-1)
+  - [7.2 Text manipulation](#section-7-2)
+    - [7.2.1 General](#section-7-2-1)
+    - [7.2.2 Text manipulation elements](#section-7-2-2)
+    - [7.2.3 COPY statement](#section-7-2-3)
+    - [7.2.4 REPLACE statement](#section-7-2-4)
+  - [7.3 Compiler directives](#section-7-3)
+    - [7.3.1 General](#section-7-3-1)
+    - [7.3.2 General format](#section-7-3-2)
+    - [7.3.3 Syntax rules](#section-7-3-3)
+    - [7.3.4 General rules](#section-7-3-4)
+    - [7.3.5 Conditional compilation](#section-7-3-5)
+    - [7.3.6 Compile-time arithmetic expressions](#section-7-3-6)
+    - [7.3.7 Compile-time boolean expressions](#section-7-3-7)
+    - [7.3.8 Constant conditional expression](#section-7-3-8)
+    - [7.3.9 CALL-CONVENTION directive](#section-7-3-9)
+    - [7.3.10 COBOL-WORDS directive](#section-7-3-10)
+    - [7.3.11 DEFINE directive](#section-7-3-11)
+    - [7.3.12 DISPLAY directive](#section-7-3-12)
+    - [7.3.13 EVALUATE directive](#section-7-3-13)
+    - [7.3.14 FLAG-02 directive](#section-7-3-14)
+    - [7.3.15 FLAG-14 directive](#section-7-3-15)
+    - [7.3.16 IF directive](#section-7-3-16)
+    - [7.3.17 LEAP-SECOND directive](#section-7-3-17)
+    - [7.3.18 LISTING directive](#section-7-3-18)
+    - [7.3.19 PAGE directive](#section-7-3-19)
+    - [7.3.20 POP directive](#section-7-3-20)
+    - [7.3.21 PROPAGATE directive](#section-7-3-21)
+    - [7.3.22 PUSH directive](#section-7-3-22)
+    - [7.3.23 REF-MOD-ZERO-LENGTH directive](#section-7-3-23)
+    - [7.3.24 SOURCE FORMAT directive](#section-7-3-24)
+    - [7.3.25 TURN directive](#section-7-3-25)
+- [8 Language fundamentals](#section-8)
+  - [8.1 Character sets](#section-8-1)
+    - [8.1.1 General](#section-8-1-1)
+    - [8.1.2 Computer's coded character set](#section-8-1-2)
+    - [8.1.3 COBOL character repertoire](#section-8-1-3)
+    - [8.1.4 Alphabets](#section-8-1-4)
+    - [8.1.5 Collating sequences](#section-8-1-5)
+  - [8.2 Locales](#section-8-2)
+    - [8.2.1 General](#section-8-2-1)
+    - [8.2.2 Locale field names](#section-8-2-2)
+  - [8.3 Lexical elements](#section-8-3)
+    - [8.3.1 General](#section-8-3-1)
+    - [8.3.2 COBOL words](#section-8-3-2)
+      - [8.3.2.1 General](#section-8-3-2-1)
+      - [8.3.2.2 User-defined words](#section-8-3-2-2)
+      - [8.3.2.3 System-names](#section-8-3-2-3)
+        - [8.3.2.3.1 General](#section-8-3-2-3-1)
+      - [8.3.2.4 Reserved words](#section-8-3-2-4)
+        - [8.3.2.4.1 General](#section-8-3-2-4-1)
+      - [8.3.2.5 Context-sensitive words](#section-8-3-2-5)
+      - [8.3.2.6 Intrinsic-function-names](#section-8-3-2-6)
+      - [8.3.2.7 Exception-names](#section-8-3-2-7)
+    - [8.3.3 Literals](#section-8-3-3)
+      - [8.3.3.1 General](#section-8-3-3-1)
+      - [8.3.3.2 Alphanumeric literals](#section-8-3-3-2)
+        - [8.3.3.2.1 General](#section-8-3-3-2-1)
+        - [8.3.3.2.2 General format](#section-8-3-3-2-2)
+        - [8.3.3.2.3 Syntax rules](#section-8-3-3-2-3)
+        - [8.3.3.2.4 General rules](#section-8-3-3-2-4)
+      - [8.3.3.3 Numeric literals](#section-8-3-3-3)
+      - [8.3.3.4 Boolean literals](#section-8-3-3-4)
+      - [8.3.3.5 National literals](#section-8-3-3-5)
+      - [8.3.3.6 Figurative constant values](#section-8-3-3-6)
+    - [8.3.4 Picture character-strings](#section-8-3-4)
+    - [8.3.5 Separators](#section-8-3-5)
+  - [8.4 References](#section-8-4)
+    - [8.4.1 General](#section-8-4-1)
+    - [8.4.2 Uniqueness of reference](#section-8-4-2)
+      - [8.4.2.1 General](#section-8-4-2-1)
+      - [8.4.2.2 Qualification](#section-8-4-2-2)
+      - [8.4.2.3 Subscripts](#section-8-4-2-3)
+        - [8.4.2.3.1 General](#section-8-4-2-3-1)
+        - [8.4.2.3.2 General format](#section-8-4-2-3-2)
+        - [8.4.2.3.3 Syntax rules](#section-8-4-2-3-3)
+        - [8.4.2.3.4 General rules](#section-8-4-2-3-4)
+    - [8.4.3 Identifiers](#section-8-4-3)
+      - [8.4.3.1 Identifier](#section-8-4-3-1)
+      - [8.4.3.2 Function-identifier](#section-8-4-3-2)
+      - [8.4.3.3 Reference-modification](#section-8-4-3-3)
+      - [8.4.3.4 Inline method invocation](#section-8-4-3-4)
+      - [8.4.3.5 Object-view](#section-8-4-3-5)
+      - [8.4.3.6 EXCEPTION-OBJECT](#section-8-4-3-6)
+      - [8.4.3.7 NULL object reference](#section-8-4-3-7)
+      - [8.4.3.8 SELF and SUPER](#section-8-4-3-8)
+      - [8.4.3.9 Object property](#section-8-4-3-9)
+      - [8.4.3.10 NULL address pointer and message tag content](#section-8-4-3-10)
+      - [8.4.3.11 Data-address-identifier](#section-8-4-3-11)
+      - [8.4.3.12 Function-address-identifier](#section-8-4-3-12)
+      - [8.4.3.13 Program-address-identifier](#section-8-4-3-13)
+      - [8.4.3.14 LINAGE-COUNTER](#section-8-4-3-14)
+      - [8.4.3.15 Report counters](#section-8-4-3-15)
+    - [8.4.4 Condition-name](#section-8-4-4)
+    - [8.4.5 Explicit and implicit data item references](#section-8-4-5)
+    - [8.4.6 Scope of names](#section-8-4-6)
+      - [8.4.6.1 General](#section-8-4-6-1)
+      - [8.4.6.2 Local and global names](#section-8-4-6-2)
+      - [8.4.6.3 Scope of program-names](#section-8-4-6-3)
+      - [8.4.6.4 Scope of object-class-names and interface-names](#section-8-4-6-4)
+      - [8.4.6.5 Scope of method-names](#section-8-4-6-5)
+      - [8.4.6.6 Scope of function-prototype-names](#section-8-4-6-6)
+      - [8.4.6.7 Scope of user-function-names](#section-8-4-6-7)
+      - [8.4.6.8 Scope of program-prototype-names](#section-8-4-6-8)
+      - [8.4.6.9 Scope of compilation-variable-names](#section-8-4-6-9)
+      - [8.4.6.10 Scope of parameter-names](#section-8-4-6-10)
+      - [8.4.6.11 Scope of property-names](#section-8-4-6-11)
+  - [8.5 Data description and representation](#section-8-5)
+    - [8.5.1 Computer independent data description](#section-8-5-1)
+      - [8.5.1.1 General](#section-8-5-1-1)
+      - [8.5.1.2 Files and records](#section-8-5-1-2)
+      - [8.5.1.3 Levels](#section-8-5-1-3)
+        - [8.5.1.3.1 General](#section-8-5-1-3-1)
+        - [8.5.1.3.2 Level-numbers](#section-8-5-1-3-2)
+        - [8.5.1.3.3 Tables](#section-8-5-1-3-3)
+      - [8.5.1.4 Limitations of character handling](#section-8-5-1-4)
+      - [8.5.1.5 Algebraic signs](#section-8-5-1-5)
+      - [8.5.1.6 Alignment of data items in storage](#section-8-5-1-6)
+        - [8.5.1.6.3 Alignment of data items of usage bit](#section-8-5-1-6-3)
+        - [8.5.1.6.4 Item alignment for increased object-code efficiency](#section-8-5-1-6-4)
+        - [8.5.1.6.5 Alignment of strongly-typed group items](#section-8-5-1-6-5)
+      - [8.5.1.7 Fixed-capacity tables](#section-8-5-1-7)
+      - [8.5.1.9 Dynamic-capacity tables](#section-8-5-1-9)
+      - [8.5.1.10 Dynamic-length elementary items](#section-8-5-1-10)
+        - [8.5.1.10.1 General](#section-8-5-1-10-1)
+        - [8.5.1.10.2 Structure of a dynamic-length elementary item](#section-8-5-1-10-2)
+        - [8.5.1.10.3 Location of dynamic-length elementary items](#section-8-5-1-10-3)
+        - [8.5.1.10.4 Operations on dynamic-length elementary items](#section-8-5-1-10-4)
+      - [8.5.1.11 Variable-length data items](#section-8-5-1-11)
+        - [8.5.1.11.2 Contiguity of data items](#section-8-5-1-11-2)
+        - [8.5.1.11.3 Availability and persistence of variable-length data items](#section-8-5-1-11-3)
+      - [8.5.1.12 Variable-length groups](#section-8-5-1-12)
+        - [8.5.1.12.1 General](#section-8-5-1-12-1)
+        - [8.5.1.12.2 Positional correspondence](#section-8-5-1-12-2)
+        - [8.5.1.12.3 Matching](#section-8-5-1-12-3)
+    - [8.5.2 Class and category of data items and literals](#section-8-5-2)
+      - [8.5.2.1 General](#section-8-5-2-1)
+      - [8.5.2.2 Alphabetic category](#section-8-5-2-2)
+      - [8.5.2.3 Alphanumeric category](#section-8-5-2-3)
+      - [8.5.2.4 Alphanumeric-edited category](#section-8-5-2-4)
+      - [8.5.2.5 Boolean category](#section-8-5-2-5)
+      - [8.5.2.6 Data-pointer category](#section-8-5-2-6)
+      - [8.5.2.7 Function-pointer category](#section-8-5-2-7)
+      - [8.5.2.8 Index category](#section-8-5-2-8)
+      - [8.5.2.9 Message-tag category](#section-8-5-2-9)
+      - [8.5.2.10 National category](#section-8-5-2-10)
+      - [8.5.2.11 National-edited category](#section-8-5-2-11)
+      - [8.5.2.12 Numeric category](#section-8-5-2-12)
+      - [8.5.2.13 Numeric-edited category](#section-8-5-2-13)
+      - [8.5.2.14 Object-reference category](#section-8-5-2-14)
+      - [8.5.2.15 Program-pointer category](#section-8-5-2-15)
+    - [8.5.3 Types](#section-8-5-3)
+      - [8.5.3.1 General](#section-8-5-3-1)
+      - [8.5.3.2 Weakly-typed items](#section-8-5-3-2)
+      - [8.5.3.3 Strongly-typed group items](#section-8-5-3-3)
+    - [8.5.4 Zero-length items](#section-8-5-4)
+  - [8.6 Scope and life cycle of data](#section-8-6)
+    - [8.6.1 General](#section-8-6-1)
+    - [8.6.2 Global names and local names](#section-8-6-2)
+    - [8.6.3 External and internal items](#section-8-6-3)
+    - [8.6.4 Automatic, initial, and static internal items](#section-8-6-4)
+    - [8.6.5 Based entries and based data items](#section-8-6-5)
+    - [8.6.6 Common, initial, and recursive attributes](#section-8-6-6)
+    - [8.6.7 Sharing data items](#section-8-6-7)
+  - [8.7 Operators](#section-8-7)
+    - [8.7.1 Arithmetic operators](#section-8-7-1)
+    - [8.7.2 Boolean operators](#section-8-7-2)
+    - [8.7.3 Concatenation operator](#section-8-7-3)
+    - [8.7.4 Invocation operator](#section-8-7-4)
+    - [8.7.5 Relational operators](#section-8-7-5)
+    - [8.7.6 Logical operators](#section-8-7-6)
+  - [8.8 Expressions](#section-8-8)
+    - [8.8.1 Arithmetic expressions](#section-8-8-1)
+    - [8.8.2 Boolean expressions](#section-8-8-2)
+    - [8.8.3 Concatenation expressions](#section-8-8-3)
+    - [8.8.4 Conditional expressions](#section-8-8-4)
+      - [8.8.4.1 General](#section-8-8-4-1)
+      - [8.8.4.2 Simple relation conditions](#section-8-8-4-2)
+      - [8.8.4.5 Simple condition-name condition (conditional variable)](#section-8-8-4-5)
+      - [8.8.4.6 Simple switch-status condition](#section-8-8-4-6)
+      - [8.8.4.7 Simple sign condition](#section-8-8-4-7)
+      - [8.8.4.8 Simple omitted argument condition](#section-8-8-4-8)
+      - [8.8.4.9 Complex conditions](#section-8-8-4-9)
+      - [8.8.4.10 Complex negated conditions](#section-8-8-4-10)
+      - [8.8.4.11 Complex Combined conditions](#section-8-8-4-11)
+      - [8.8.4.12 Abbreviated combined relation conditions](#section-8-8-4-12)
+      - [8.8.4.13 Order of evaluation of conditions](#section-8-8-4-13)
+  - [8.9 Reserved words](#section-8-9)
+  - [8.10 Context-sensitive words](#section-8-10)
+  - [8.11 Intrinsic function names](#section-8-11)
+  - [8.12 Compiler-directive words](#section-8-12)
+  - [8.13 External repository](#section-8-13)
+- [9 I-O, objects, and user-defined functions](#section-9)
+  - [9.1 Files](#section-9-1)
+    - [9.1.1 Physical and logical files](#section-9-1-1)
+    - [9.1.2 Record area](#section-9-1-2)
+    - [9.1.3 File connector](#section-9-1-3)
+    - [9.1.4 Open mode](#section-9-1-4)
+    - [9.1.5 Sharing file connectors](#section-9-1-5)
+    - [9.1.6 Fixed file attributes](#section-9-1-6)
+    - [9.1.7 Organization](#section-9-1-7)
+      - [9.1.7.1 General](#section-9-1-7-1)
+      - [9.1.7.2 Sequential](#section-9-1-7-2)
+      - [9.1.7.3 Relative](#section-9-1-7-3)
+      - [9.1.7.4 Indexed](#section-9-1-7-4)
+    - [9.1.8 Access modes](#section-9-1-8)
+      - [9.1.8.1 General](#section-9-1-8-1)
+      - [9.1.8.2 Sequential access mode](#section-9-1-8-2)
+      - [9.1.8.3 Random access mode](#section-9-1-8-3)
+      - [9.1.8.4 Dynamic access mode](#section-9-1-8-4)
+    - [9.1.9 Reel and unit](#section-9-1-9)
+    - [9.1.10 Current volume pointer](#section-9-1-10)
+    - [9.1.11 File position indicator](#section-9-1-11)
+    - [9.1.12 Input-output exception processing](#section-9-1-12)
+    - [9.1.13 I-O status](#section-9-1-13)
+      - [9.1.13.1 General](#section-9-1-13-1)
+      - [9.1.13.2 Successful completion](#section-9-1-13-2)
+      - [9.1.13.3 Implementor-defined successful completion](#section-9-1-13-3)
+      - [9.1.13.4 At end condition with unsuccessful completion](#section-9-1-13-4)
+      - [9.1.13.5 Invalid key condition with unsuccessful completion](#section-9-1-13-5)
+      - [9.1.13.6 Permanent error condition with unsuccessful completion](#section-9-1-13-6)
+      - [9.1.13.7 Logic error condition with unsuccessful completion](#section-9-1-13-7)
+      - [9.1.13.8 Record operation conflict condition with unsuccessful completion](#section-9-1-13-8)
+      - [9.1.13.9 File sharing conflict condition with unsuccessful completion](#section-9-1-13-9)
+      - [9.1.13.10 Record with invalid content with unsuccessful completion](#section-9-1-13-10)
+      - [9.1.13.11 Implementor-defined condition with unsuccessful completion](#section-9-1-13-11)
+    - [9.1.14 Invalid key condition](#section-9-1-14)
+    - [9.1.15 Sharing mode](#section-9-1-15)
+    - [9.1.16 Record locking](#section-9-1-16)
+    - [9.1.17 Logical unit of work](#section-9-1-17)
+    - [9.1.18 Commit and Rollback](#section-9-1-18)
+    - [9.1.19 Sort file](#section-9-1-19)
+    - [9.1.20 Merge file](#section-9-1-20)
+    - [9.1.21 Dynamic file assignment](#section-9-1-21)
+    - [9.1.22 Report file](#section-9-1-22)
+  - [9.2 Screens](#section-9-2)
+    - [9.2.1 Terminal screen](#section-9-2-1)
+    - [9.2.2 Function keys](#section-9-2-2)
+    - [9.2.3 CRT status](#section-9-2-3)
+    - [9.2.4 Cursor](#section-9-2-4)
+    - [9.2.5 Cursor locator](#section-9-2-5)
+    - [9.2.6 Current screen item](#section-9-2-6)
+    - [9.2.7 Color number](#section-9-2-7)
+  - [9.3 Objects](#section-9-3)
+    - [9.3.1 Objects and classes](#section-9-3-1)
+    - [9.3.2 Object references](#section-9-3-2)
+    - [9.3.3 Predefined object references](#section-9-3-3)
+    - [9.3.4 Methods](#section-9-3-4)
+    - [9.3.5 Polymorphism](#section-9-3-5)
+      - [9.3.5.1 General](#section-9-3-5-1)
+      - [9.3.5.2 Class polymorphism](#section-9-3-5-2)
+      - [9.3.5.3 Parametric polymorphism](#section-9-3-5-3)
+    - [9.3.6 Method invocation](#section-9-3-6)
+    - [9.3.7 Method prototypes](#section-9-3-7)
+    - [9.3.8 Conformance and interfaces](#section-9-3-8)
+      - [9.3.8.1 General](#section-9-3-8-1)
+      - [9.3.8.2 Conformance for object orientation](#section-9-3-8-2)
+        - [9.3.8.2.1 General](#section-9-3-8-2-1)
+        - [9.3.8.2.2 Interfaces](#section-9-3-8-2-2)
+        - [9.3.8.2.3 Conformance between interfaces](#section-9-3-8-2-3)
+        - [9.3.8.2.4 Conformance for parameterized classes and parameterized interfaces](#section-9-3-8-2-4)
+    - [9.3.9 Class inheritance](#section-9-3-9)
+    - [9.3.10 Interface inheritance](#section-9-3-10)
+    - [9.3.11 Interface implementation](#section-9-3-11)
+    - [9.3.12 Parameterized classes](#section-9-3-12)
+    - [9.3.13 Parameterized interfaces](#section-9-3-13)
+    - [9.3.14 Object life cycle](#section-9-3-14)
+      - [9.3.14.1 General](#section-9-3-14-1)
+      - [9.3.14.2 Life cycle for factory objects](#section-9-3-14-2)
+      - [9.3.14.3 Life cycle for instance objects](#section-9-3-14-3)
+  - [9.4 User-defined functions](#section-9-4)
+- [10 Structured compilation group](#section-10)
+  - [10.1 General](#section-10-1)
+  - [10.2 Compilation units](#section-10-2)
+  - [10.3 Source units](#section-10-3)
+  - [10.4 Contained source units](#section-10-4)
+  - [10.5 Source elements and runtime elements](#section-10-5)
+  - [10.6 COBOL compilation group](#section-10-6)
+    - [10.6.1 General format](#section-10-6-1)
+    - [10.6.2 Syntax rules](#section-10-6-2)
+    - [10.6.3 General rule](#section-10-6-3)
+  - [10.7 End markers](#section-10-7)
+    - [10.7.1 General](#section-10-7-1)
+    - [10.7.2 General format](#section-10-7-2)
+    - [10.7.3 Syntax rules](#section-10-7-3)
+    - [10.7.4 General rule](#section-10-7-4)
+- [11 Identification division](#section-11)
+  - [11.1 General](#section-11-1)
+  - [11.2 Identification division structure](#section-11-2)
+  - [11.3 CLASS-ID paragraph](#section-11-3)
+    - [11.3.1 General](#section-11-3-1)
+    - [11.3.2 General format](#section-11-3-2)
+    - [11.3.3 Syntax rules](#section-11-3-3)
+    - [11.3.4 General rules](#section-11-3-4)
+  - [11.4 FACTORY paragraph](#section-11-4)
+    - [11.4.1 General](#section-11-4-1)
+    - [11.4.2 General format](#section-11-4-2)
+    - [11.4.3 Syntax rules](#section-11-4-3)
+    - [11.4.4 General rules](#section-11-4-4)
+  - [11.5 FUNCTION-ID paragraph](#section-11-5)
+    - [11.5.1 General](#section-11-5-1)
+    - [11.5.2 General format](#section-11-5-2)
+    - [11.5.3 Syntax rule](#section-11-5-3)
+    - [11.5.4 General rules](#section-11-5-4)
+  - [11.6 INTERFACE-ID paragraph](#section-11-6)
+    - [11.6.1 General](#section-11-6-1)
+    - [11.6.2 General format](#section-11-6-2)
+    - [11.6.3 Syntax rules](#section-11-6-3)
+    - [11.6.4 General rules](#section-11-6-4)
+  - [11.7 METHOD-ID paragraph](#section-11-7)
+    - [11.7.1 General](#section-11-7-1)
+    - [11.7.2 General format](#section-11-7-2)
+    - [11.7.3 Syntax rules](#section-11-7-3)
+    - [11.7.4 General rules](#section-11-7-4)
+  - [11.8 OBJECT paragraph](#section-11-8)
+    - [11.8.1 General](#section-11-8-1)
+    - [11.8.2 General format](#section-11-8-2)
+    - [11.8.3 Syntax rules](#section-11-8-3)
+    - [11.8.4 General rules](#section-11-8-4)
+  - [11.9 OPTIONS paragraph](#section-11-9)
+    - [11.9.1 General](#section-11-9-1)
+    - [11.9.2 General format](#section-11-9-2)
+    - [11.9.3 Syntax rule](#section-11-9-3)
+    - [11.9.4 General rule](#section-11-9-4)
+    - [11.9.5 ARITHMETIC clause](#section-11-9-5)
+    - [11.9.6 DEFAULT ROUNDED clause](#section-11-9-6)
+    - [11.9.7 ENTRY-CONVENTION clause](#section-11-9-7)
+    - [11.9.8 FLOAT-BINARY clause](#section-11-9-8)
+    - [11.9.9 FLOAT-DECIMAL clause](#section-11-9-9)
+    - [11.9.10 INITIALIZE clause](#section-11-9-10)
+    - [11.9.11 INTERMEDIATE ROUNDING clause](#section-11-9-11)
+  - [11.10 PROGRAM-ID paragraph](#section-11-10)
+    - [11.10.1 General](#section-11-10-1)
+    - [11.10.2 General format](#section-11-10-2)
+    - [11.10.3 Syntax rules](#section-11-10-3)
+    - [11.10.4 General rules](#section-11-10-4)
+- [12 Environment division](#section-12)
+  - [12.1 General](#section-12-1)
+  - [12.2 Environment division structure](#section-12-2)
+  - [12.3 Configuration section](#section-12-3)
+    - [12.3.1 General](#section-12-3-1)
+    - [12.3.2 General format](#section-12-3-2)
+    - [12.3.3 Syntax rules](#section-12-3-3)
+    - [12.3.4 General rule](#section-12-3-4)
+    - [12.3.5 SOURCE-COMPUTER paragraph](#section-12-3-5)
+    - [12.3.6 OBJECT-COMPUTER paragraph](#section-12-3-6)
+    - [12.3.7 SPECIAL-NAMES paragraph](#section-12-3-7)
+    - [12.3.8 REPOSITORY paragraph](#section-12-3-8)
+  - [12.4 Input-output section](#section-12-4)
+    - [12.4.1 General](#section-12-4-1)
+    - [12.4.2 General format](#section-12-4-2)
+    - [12.4.3 Syntax rule](#section-12-4-3)
+    - [12.4.4 FILE-CONTROL paragraph](#section-12-4-4)
+    - [12.4.5 File control entry](#section-12-4-5)
+      - [12.4.5.4 ACCESS MODE clause](#section-12-4-5-4)
+      - [12.4.5.6 ALTERNATE RECORD KEY clause](#section-12-4-5-6)
+      - [12.4.5.7 COLLATING SEQUENCE clause](#section-12-4-5-7)
+      - [12.4.5.8 FILE STATUS clause](#section-12-4-5-8)
+      - [12.4.5.9 LOCK MODE clause](#section-12-4-5-9)
+      - [12.4.5.10 ORGANIZATION clause](#section-12-4-5-10)
+      - [12.4.5.11 RECORD DELIMITER clause](#section-12-4-5-11)
+      - [12.4.5.12 RECORD KEY clause](#section-12-4-5-12)
+      - [12.4.5.13 RELATIVE KEY clause](#section-12-4-5-13)
+      - [12.4.5.14 RESERVE clause](#section-12-4-5-14)
+      - [12.4.5.15 SHARING clause](#section-12-4-5-15)
+    - [12.4.6 I-O-CONTROL paragraph](#section-12-4-6)
+- [13 Data division](#section-13)
+  - [13.1 General](#section-13-1)
+  - [13.2 Data division structure](#section-13-2)
+    - [13.2.1 General format](#section-13-2-1)
+  - [13.3 Explicit and implicit attributes](#section-13-3)
+  - [13.4 File section](#section-13-4)
+    - [13.4.1 General](#section-13-4-1)
+    - [13.4.2 General format](#section-13-4-2)
+    - [13.4.3 Syntax rule](#section-13-4-3)
+    - [13.4.4 General rule](#section-13-4-4)
+    - [13.4.5 File description entry](#section-13-4-5)
+    - [13.4.6 Sort-merge file description entry](#section-13-4-6)
+  - [13.5 Working-storage section](#section-13-5)
+    - [13.5.1 General](#section-13-5-1)
+    - [13.5.2 General format](#section-13-5-2)
+    - [13.5.3 Syntax rule](#section-13-5-3)
+    - [13.5.4 General rules](#section-13-5-4)
+  - [13.6 Local-storage section](#section-13-6)
+    - [13.6.1 General](#section-13-6-1)
+    - [13.6.2 General format](#section-13-6-2)
+    - [13.6.3 Syntax rule](#section-13-6-3)
+    - [13.6.4 General rules](#section-13-6-4)
+  - [13.7 Linkage section](#section-13-7)
+    - [13.7.1 General](#section-13-7-1)
+    - [13.7.2 General format](#section-13-7-2)
+    - [13.7.3 Syntax rules](#section-13-7-3)
+    - [13.7.4 General rules](#section-13-7-4)
+  - [13.8 Report section](#section-13-8)
+    - [13.8.1 General](#section-13-8-1)
+    - [13.8.2 General format](#section-13-8-2)
+    - [13.8.3 Syntax rule](#section-13-8-3)
+    - [13.8.4 Report description entry](#section-13-8-4)
+    - [13.8.5 Report group description entry](#section-13-8-5)
+    - [13.8.6 Report subdivisions](#section-13-8-6)
+      - [13.8.6.2 Physical subdivisions of a report](#section-13-8-6-2)
+        - [13.8.6.2.1 Pages](#section-13-8-6-2-1)
+        - [13.8.6.2.2 Lines](#section-13-8-6-2-2)
+        - [13.8.6.2.3 Report Items](#section-13-8-6-2-3)
+      - [13.8.6.3 Logical Subdivisions of a Report](#section-13-8-6-3)
+  - [13.9 Screen section](#section-13-9)
+    - [13.9.1 General](#section-13-9-1)
+    - [13.9.2 General format](#section-13-9-2)
+    - [13.9.3 Syntax rule](#section-13-9-3)
+    - [13.9.4 General rule](#section-13-9-4)
+  - [13.10 Constant entry](#section-13-10)
+    - [13.10.1 General](#section-13-10-1)
+    - [13.10.2 General format](#section-13-10-2)
+    - [13.10.3 Syntax rules](#section-13-10-3)
+    - [13.10.4 General rules](#section-13-10-4)
+  - [13.11 Record description entry](#section-13-11)
+    - [13.11.1 General](#section-13-11-1)
+  - [13.12 Type declaration entry](#section-13-12)
+  - [13.13 77-level data description entry](#section-13-13)
+  - [13.14 Report description entry](#section-13-14)
+    - [13.14.1 General](#section-13-14-1)
+    - [13.14.2 General format](#section-13-14-2)
+    - [13.14.3 Syntax rules](#section-13-14-3)
+    - [13.14.4 General rule](#section-13-14-4)
+  - [13.15 Report group description entry](#section-13-15)
+    - [13.15.1 General](#section-13-15-1)
+    - [13.15.2 General format](#section-13-15-2)
+    - [13.15.3 Syntax rules](#section-13-15-3)
+    - [13.15.4 General rules](#section-13-15-4)
+  - [13.16 Data description entry](#section-13-16)
+    - [13.16.1 General](#section-13-16-1)
+    - [13.16.2 General formats](#section-13-16-2)
+    - [13.16.3 Syntax rules](#section-13-16-3)
+    - [13.16.4 General rules](#section-13-16-4)
+  - [13.17 Screen description entry](#section-13-17)
+    - [13.17.1 General](#section-13-17-1)
+    - [13.17.2 General formats](#section-13-17-2)
+    - [13.17.3 Syntax rules](#section-13-17-3)
+    - [13.17.4 General rules](#section-13-17-4)
+  - [13.18 Data division clauses](#section-13-18)
+    - [13.18.1 ALIGNED clause](#section-13-18-1)
+    - [13.18.2 ANY LENGTH clause](#section-13-18-2)
+    - [13.18.3 AUTO clause](#section-13-18-3)
+    - [13.18.4 BACKGROUND-COLOR clause](#section-13-18-4)
+    - [13.18.5 BASED clause](#section-13-18-5)
+    - [13.18.6 BELL clause](#section-13-18-6)
+    - [13.18.7 BLANK clause](#section-13-18-7)
+    - [13.18.8 BLANK WHEN ZERO clause](#section-13-18-8)
+    - [13.18.9 BLINK clause](#section-13-18-9)
+    - [13.18.10 BLOCK CONTAINS clause](#section-13-18-10)
+    - [13.18.11 CLASS clause](#section-13-18-11)
+    - [13.18.12 CODE clause](#section-13-18-12)
+    - [13.18.13 CODE-SET clause](#section-13-18-13)
+    - [13.18.14 COLUMN clause](#section-13-18-14)
+    - [13.18.15 CONSTANT RECORD clause](#section-13-18-15)
+    - [13.18.16 CONTROL clause](#section-13-18-16)
+    - [13.18.17 DEFAULT clause](#section-13-18-17)
+    - [13.18.18 DESTINATION clause](#section-13-18-18)
+    - [13.18.19 DYNAMIC LENGTH clause](#section-13-18-19)
+    - [13.18.20 Entry-name clause](#section-13-18-20)
+    - [13.18.21 ERASE clause](#section-13-18-21)
+    - [13.18.22 EXTERNAL clause](#section-13-18-22)
+    - [13.18.23 FOREGROUND-COLOR clause](#section-13-18-23)
+    - [13.18.24 FORMAT clause](#section-13-18-24)
+    - [13.18.25 FROM clause](#section-13-18-25)
+    - [13.18.26 FULL clause](#section-13-18-26)
+    - [13.18.27 GLOBAL clause](#section-13-18-27)
+    - [13.18.28 GROUP INDICATE clause](#section-13-18-28)
+    - [13.18.29 GROUP-USAGE clause](#section-13-18-29)
+    - [13.18.30 HIGHLIGHT clause](#section-13-18-30)
+    - [13.18.31 INVALID clause](#section-13-18-31)
+    - [13.18.32 JUSTIFIED clause](#section-13-18-32)
+    - [13.18.33 Level-number](#section-13-18-33)
+    - [13.18.34 LINAGE clause](#section-13-18-34)
+    - [13.18.35 LINE clause](#section-13-18-35)
+    - [13.18.36 LOWLIGHT clause](#section-13-18-36)
+    - [13.18.37 NEXT GROUP clause](#section-13-18-37)
+    - [13.18.38 OCCURS clause](#section-13-18-38)
+    - [13.18.39 PAGE clause](#section-13-18-39)
+    - [13.18.40 PICTURE clause](#section-13-18-40)
+    - [13.18.41 PRESENT WHEN clause](#section-13-18-41)
+    - [13.18.42 PROPERTY clause](#section-13-18-42)
+    - [13.18.43 RECORD clause](#section-13-18-43)
+    - [13.18.44 REDEFINES clause](#section-13-18-44)
+    - [13.18.45 RENAMES clause](#section-13-18-45)
+    - [13.18.46 REPORT clause](#section-13-18-46)
+    - [13.18.47 REQUIRED clause](#section-13-18-47)
+    - [13.18.48 REVERSE-VIDEO clause](#section-13-18-48)
+    - [13.18.49 SAME AS clause](#section-13-18-49)
+    - [13.18.50 SECURE clause](#section-13-18-50)
+    - [13.18.51 SELECT WHEN clause](#section-13-18-51)
+    - [13.18.52 SIGN clause](#section-13-18-52)
+    - [13.18.54 SUM clause](#section-13-18-54)
+    - [13.18.55 SYNCHRONIZED clause](#section-13-18-55)
+    - [13.18.56 TO clause](#section-13-18-56)
+    - [13.18.57 TYPE clause](#section-13-18-57)
+    - [13.18.58 TYPEDEF clause](#section-13-18-58)
+    - [13.18.59 UNDERLINE clause](#section-13-18-59)
+    - [13.18.60 USAGE clause](#section-13-18-60)
+    - [13.18.61 USING clause](#section-13-18-61)
+    - [13.18.62 VALIDATE-STATUS clause](#section-13-18-62)
+    - [13.18.63 VALUE clause](#section-13-18-63)
+    - [13.18.64 VARYING clause](#section-13-18-64)
+- [14 Procedure division](#section-14)
+  - [14.1 General](#section-14-1)
+  - [14.2 Procedure division structure](#section-14-2)
+    - [14.2.1 General formats](#section-14-2-1)
+    - [14.2.2 Syntax rules](#section-14-2-2)
+    - [14.2.3 General rules](#section-14-2-3)
+  - [14.3 Declaratives](#section-14-3)
+  - [14.4 Procedures](#section-14-4)
+    - [14.4.1 General](#section-14-4-1)
+    - [14.4.2 Sections](#section-14-4-2)
+    - [14.4.3 Paragraphs](#section-14-4-3)
+  - [14.5 Procedural statements and sentences](#section-14-5)
+    - [14.5.1 General](#section-14-5-1)
+    - [14.5.2 Conditional phrase](#section-14-5-2)
+    - [14.5.3 Scope of statements](#section-14-5-3)
+      - [14.5.3.1 General](#section-14-5-3-1)
+      - [14.5.3.2 Explicit scope termination](#section-14-5-3-2)
+      - [14.5.3.3 Implicit scope termination](#section-14-5-3-3)
+  - [14.6 Execution](#section-14-6)
+    - [14.6.1 Run unit organization](#section-14-6-1)
+    - [14.6.2 State of a function, method, object, or program](#section-14-6-2)
+      - [14.6.2.1 General](#section-14-6-2-1)
+      - [14.6.2.2 Active state](#section-14-6-2-2)
+      - [14.6.2.3 Initial and last-used states of data](#section-14-6-2-3)
+        - [14.6.2.3.1 General](#section-14-6-2-3-1)
+        - [14.6.2.3.2 Initial state](#section-14-6-2-3-2)
+        - [14.6.2.3.3 Last-used state](#section-14-6-2-3-3)
+      - [14.6.2.4 Initial state of object data](#section-14-6-2-4)
+    - [14.6.3 Explicit and implicit transfers of control](#section-14-6-3)
+    - [14.6.4 Item identification](#section-14-6-4)
+    - [14.6.5 Results of runtime element execution](#section-14-6-5)
+    - [14.6.6 Locale identification](#section-14-6-6)
+    - [14.6.7 Sending and receiving operands](#section-14-6-7)
+    - [14.6.8 Alignment and transfer of data into data items](#section-14-6-8)
+      - [14.6.8.1 General](#section-14-6-8-1)
+      - [14.6.8.2 Fixed-point numeric and fixed-point numeric-edited receiving data items](#section-14-6-8-2)
+      - [14.6.8.3 Floating-point numeric receiving data items](#section-14-6-8-3)
+      - [14.6.8.4 Floating-point numeric-edited receiving data items](#section-14-6-8-4)
+      - [14.6.8.5 Receiving data items of categories alphabetic, alphanumeric, alphanumeric-edited, national, and national edited](#section-14-6-8-5)
+      - [14.6.8.6 Receiving data items of category boolean](#section-14-6-8-6)
+    - [14.6.9 Operations on dynamic-capacity tables](#section-14-6-9)
+    - [14.6.10 Overlapping operands](#section-14-6-10)
+    - [14.6.11 Normal run unit termination](#section-14-6-11)
+    - [14.6.12 Abnormal run unit termination](#section-14-6-12)
+    - [14.6.13 Exception condition handling](#section-14-6-13)
+      - [14.6.13.1 Exception conditions](#section-14-6-13-1)
+        - [14.6.13.1.1 General](#section-14-6-13-1-1)
+        - [14.6.13.1.2 Normal completion of a declarative procedure](#section-14-6-13-1-2)
+        - [14.6.13.1.3 Fatal exception conditions](#section-14-6-13-1-3)
+        - [14.6.13.1.4 Nonfatal exception conditions](#section-14-6-13-1-4)
+        - [14.6.13.1.5 Exception objects](#section-14-6-13-1-5)
+        - [14.6.13.1.6 Exception-names and exception conditions](#section-14-6-13-1-6)
+      - [14.6.13.2 Incompatible data](#section-14-6-13-2)
+  - [14.7 Common phrases and features for statements](#section-14-7)
+    - [14.7.1 General](#section-14-7-1)
+    - [14.7.2 At end condition](#section-14-7-2)
+    - [14.7.3 Invalid key condition](#section-14-7-3)
+    - [14.7.4 ROUNDED phrase](#section-14-7-4)
+    - [14.7.5 SIZE ERROR phrase and size error condition](#section-14-7-5)
+    - [14.7.6 CORRESPONDING phrase](#section-14-7-6)
+    - [14.7.7 Arithmetic statements](#section-14-7-7)
+    - [14.7.8 THROUGH phrase](#section-14-7-8)
+    - [14.7.9 RETRY phrase](#section-14-7-9)
+  - [14.8 Conformance for parameters, returning items and external items](#section-14-8)
+    - [14.8.1 General](#section-14-8-1)
+    - [14.8.2 Parameters](#section-14-8-2)
+      - [14.8.2.1 General](#section-14-8-2-1)
+      - [14.8.2.2 Group items](#section-14-8-2-2)
+      - [14.8.2.3 Elementary items](#section-14-8-2-3)
+        - [14.8.2.3.1 General](#section-14-8-2-3-1)
+        - [14.8.2.3.2 Elementary items passed by reference](#section-14-8-2-3-2)
+        - [14.8.2.3.3 Elementary items passed by content or by value](#section-14-8-2-3-3)
+    - [14.8.3 Returning items](#section-14-8-3)
+      - [14.8.3.1 General](#section-14-8-3-1)
+      - [14.8.3.2 Group items](#section-14-8-3-2)
+      - [14.8.3.3 Elementary items](#section-14-8-3-3)
+    - [14.8.4 External items](#section-14-8-4)
+  - [14.9 Statements](#section-14-9)
+    - [14.9.1 ACCEPT statement](#section-14-9-1)
+    - [14.9.2 ADD statement](#section-14-9-2)
+    - [14.9.3 ALLOCATE statement](#section-14-9-3)
+    - [14.9.4 CALL statement](#section-14-9-4)
+    - [14.9.5 CANCEL statement](#section-14-9-5)
+    - [14.9.6 CLOSE statement](#section-14-9-6)
+    - [14.9.7 COMMIT statement](#section-14-9-7)
+    - [14.9.8 COMPUTE statement](#section-14-9-8)
+    - [14.9.9 CONTINUE statement](#section-14-9-9)
+    - [14.9.10 DELETE statement](#section-14-9-10)
+    - [14.9.11 DISPLAY statement](#section-14-9-11)
+    - [14.9.12 DIVIDE statement](#section-14-9-12)
+    - [14.9.13 EVALUATE statement](#section-14-9-13)
+    - [14.9.14 EXIT statement](#section-14-9-14)
+    - [14.9.15 FREE statement](#section-14-9-15)
+    - [14.9.16 GENERATE statement](#section-14-9-16)
+    - [14.9.17 GO TO statement](#section-14-9-17)
+    - [14.9.18 GOBACK statement](#section-14-9-18)
+    - [14.9.19 IF statement](#section-14-9-19)
+    - [14.9.20 INITIALIZE statement](#section-14-9-20)
+    - [14.9.21 INITIATE statement](#section-14-9-21)
+    - [14.9.22 INSPECT statement](#section-14-9-22)
+    - [14.9.23 INVOKE statement](#section-14-9-23)
+    - [14.9.24 MERGE statement](#section-14-9-24)
+    - [14.9.25 MOVE statement](#section-14-9-25)
+    - [14.9.26 MULTIPLY statement](#section-14-9-26)
+    - [14.9.27 OPEN statement](#section-14-9-27)
+    - [14.9.28 PERFORM statement](#section-14-9-28)
+    - [14.9.29 RAISE statement](#section-14-9-29)
+    - [14.9.30 READ statement](#section-14-9-30)
+    - [14.9.31 RECEIVE statement](#section-14-9-31)
+    - [14.9.32 RELEASE statement](#section-14-9-32)
+    - [14.9.33 RESUME statement](#section-14-9-33)
+    - [14.9.34 RETURN statement](#section-14-9-34)
+    - [14.9.35 REWRITE statement](#section-14-9-35)
+    - [14.9.36 ROLLBACK statement](#section-14-9-36)
+    - [14.9.37 SEARCH statement](#section-14-9-37)
+    - [14.9.38 SEND statement](#section-14-9-38)
+    - [14.9.39 SET statement](#section-14-9-39)
+    - [14.9.40 SORT statement](#section-14-9-40)
+    - [14.9.41 START statement](#section-14-9-41)
+    - [14.9.42 STOP statement](#section-14-9-42)
+    - [14.9.43 STRING statement](#section-14-9-43)
+    - [14.9.44 SUBTRACT statement](#section-14-9-44)
+    - [14.9.45 SUPPRESS statement](#section-14-9-45)
+    - [14.9.46 TERMINATE statement](#section-14-9-46)
+    - [14.9.47 UNLOCK statement](#section-14-9-47)
+    - [14.9.48 UNSTRING statement](#section-14-9-48)
+    - [14.9.49 USE statement](#section-14-9-49)
+    - [14.9.50 VALIDATE statement](#section-14-9-50)
+    - [14.9.51 WRITE statement](#section-14-9-51)
+- [15 Intrinsic functions](#section-15)
+  - [15.1 General](#section-15-1)
+  - [15.2 Types of functions](#section-15-2)
+  - [15.3 Arguments](#section-15-3)
+    - [15.3.1 Format arguments to international date and time functions](#section-15-3-1)
+      - [15.3.1.1 General](#section-15-3-1-1)
+      - [15.3.1.2 Calendar date formats](#section-15-3-1-2)
+      - [15.3.1.3 Permissible values for data associated with calendar date formats](#section-15-3-1-3)
+      - [15.3.1.4 Ordinal date formats](#section-15-3-1-4)
+      - [15.3.1.5 Permissible values for data associated with ordinal date formats](#section-15-3-1-5)
+      - [15.3.1.6 Week date formats](#section-15-3-1-6)
+      - [15.3.1.7 Permissible values for data associated with week date formats](#section-15-3-1-7)
+    - [15.3.2 Time formats](#section-15-3-2)
+    - [15.3.3 Common time formats](#section-15-3-3)
+      - [15.3.3.1 Common time formats with integer seconds representation](#section-15-3-3-1)
+      - [15.3.3.2 Common time formats with fractional seconds representation](#section-15-3-3-2)
+      - [15.3.3.3 Permissible values for data associated with common time formats](#section-15-3-3-3)
+      - [15.3.3.4 Local time formats](#section-15-3-3-4)
+      - [15.3.3.5 UTC time formats](#section-15-3-3-5)
+      - [15.3.3.6 Offset time formats](#section-15-3-3-6)
+      - [15.3.3.7 Combined date and time formats](#section-15-3-3-7)
+  - [15.4 Returned values](#section-15-4)
+    - [15.4.1 Numeric and integer functions](#section-15-4-1)
+  - [15.5 Date and time conversion functions](#section-15-5)
+    - [15.5.1 General](#section-15-5-1)
+    - [15.5.2 Integer date form](#section-15-5-2)
+    - [15.5.3 Standard date form](#section-15-5-3)
+    - [15.5.4 Julian date form](#section-15-5-4)
+    - [15.5.5 Standard numeric time form](#section-15-5-5)
+  - [15.6 Summary of functions](#section-15-6)
+  - [15.7 ABS function](#section-15-7)
+  - [15.8 ACOS function](#section-15-8)
+  - [15.9 ANNUITY function](#section-15-9)
+  - [15.10 ASIN function](#section-15-10)
+  - [15.11 ATAN function](#section-15-11)
+  - [15.12 BASECONVERT function](#section-15-12)
+    - [15.12.2 General format](#section-15-12-2)
+  - [15.13 BOOLEAN-OF-INTEGER function](#section-15-13)
+  - [15.14 BYTE-LENGTH function](#section-15-14)
+  - [15.15 CHAR function](#section-15-15)
+  - [15.16 CHAR-NATIONAL function](#section-15-16)
+  - [15.17 COMBINED-DATETIME function](#section-15-17)
+  - [15.18 CONCAT function](#section-15-18)
+  - [15.19 CONVERT function](#section-15-19)
+  - [15.20 COS function](#section-15-20)
+  - [15.21 CURRENT-DATE function](#section-15-21)
+  - [15.22 DATE-OF-INTEGER function](#section-15-22)
+  - [15.23 DATE-TO-YYYYMMDD function](#section-15-23)
+  - [15.24 DAY-OF-INTEGER function](#section-15-24)
+  - [15.25 DAY-TO-YYYYDDD function](#section-15-25)
+  - [15.26 DISPLAY-OF function](#section-15-26)
+  - [15.27 E function](#section-15-27)
+  - [15.28 EXCEPTION-FILE function](#section-15-28)
+  - [15.29 EXCEPTION-FILE-N function](#section-15-29)
+  - [15.30 EXCEPTION-LOCATION function](#section-15-30)
+  - [15.31 EXCEPTION-LOCATION-N function](#section-15-31)
+  - [15.32 EXCEPTION-STATEMENT function](#section-15-32)
+  - [15.33 EXCEPTION-STATUS function](#section-15-33)
+  - [15.34 EXP function](#section-15-34)
+  - [15.35 EXP10 function](#section-15-35)
+  - [15.36 FACTORIAL function](#section-15-36)
+  - [15.37 FIND-STRING function](#section-15-37)
+  - [15.38 FORMATTED-CURRENT-DATE function](#section-15-38)
+  - [15.39 FORMATTED-DATE function](#section-15-39)
+  - [15.40 FORMATTED-DATETIME function](#section-15-40)
+  - [15.41 FORMATTED-TIME function](#section-15-41)
+  - [15.42 FRACTION-PART function](#section-15-42)
+  - [15.43 HIGHEST-ALGEBRAIC function](#section-15-43)
+  - [15.44 INTEGER function](#section-15-44)
+  - [15.45 INTEGER-OF-BOOLEAN function](#section-15-45)
+  - [15.46 INTEGER-OF-DATE function](#section-15-46)
+  - [15.47 INTEGER-OF-DAY function](#section-15-47)
+  - [15.48 INTEGER-OF-FORMATTED-DATE function](#section-15-48)
+  - [15.49 INTEGER-PART function](#section-15-49)
+  - [15.50 LENGTH function](#section-15-50)
+  - [15.51 LOCALE-COMPARE function](#section-15-51)
+  - [15.52 LOCALE-DATE function](#section-15-52)
+  - [15.53 LOCALE-TIME function](#section-15-53)
+  - [15.54 LOCALE-TIME-FROM-SECONDS function](#section-15-54)
+  - [15.55 LOG function](#section-15-55)
+  - [15.56 LOG10 function](#section-15-56)
+  - [15.57 LOWER-CASE function](#section-15-57)
+  - [15.58 LOWEST-ALGEBRAIC function](#section-15-58)
+  - [15.59 MAX function](#section-15-59)
+  - [15.60 MEAN function](#section-15-60)
+  - [15.61 MEDIAN function](#section-15-61)
+  - [15.62 MIDRANGE function](#section-15-62)
+  - [15.63 MIN function](#section-15-63)
+  - [15.64 MOD function](#section-15-64)
+  - [15.65 MODULE-NAME function](#section-15-65)
+  - [15.66 NATIONAL-OF function](#section-15-66)
+  - [15.67 NUMVAL function](#section-15-67)
+  - [15.68 NUMVAL-C function](#section-15-68)
+  - [15.69 NUMVAL-F function](#section-15-69)
+  - [15.70 ORD function](#section-15-70)
+  - [15.71 ORD-MAX function](#section-15-71)
+  - [15.72 ORD-MIN function](#section-15-72)
+  - [15.73 PI function](#section-15-73)
+  - [15.74 PRESENT-VALUE function](#section-15-74)
+  - [15.75 RANDOM function](#section-15-75)
+    - [15.75.2 General format](#section-15-75-2)
+  - [15.76 RANGE function](#section-15-76)
+  - [15.77 REM function](#section-15-77)
+  - [15.78 REVERSE function](#section-15-78)
+  - [15.79 SECONDS-FROM-FORMATTED-TIME function](#section-15-79)
+  - [15.80 SECONDS-PAST-MIDNIGHT function](#section-15-80)
+  - [15.81 SIGN function](#section-15-81)
+  - [15.82 SIN function](#section-15-82)
+  - [15.83 SMALLEST-ALGEBRAIC function](#section-15-83)
+  - [15.84 SQRT function](#section-15-84)
+  - [15.85 STANDARD-COMPARE function](#section-15-85)
+  - [15.86 STANDARD-DEVIATION function](#section-15-86)
+  - [15.87 SUBSTITUTE function](#section-15-87)
+  - [15.88 SUM function](#section-15-88)
+  - [15.89 TAN function](#section-15-89)
+  - [15.90 TEST-DATE-YYYYMMDD function](#section-15-90)
+  - [15.91 TEST-DAY-YYYYDDD function](#section-15-91)
+  - [15.92 TEST-FORMATTED-DATETIME function](#section-15-92)
+  - [15.93 TEST-NUMVAL function](#section-15-93)
+  - [15.94 TEST-NUMVAL-C function](#section-15-94)
+  - [15.95 TEST-NUMVAL-F function](#section-15-95)
+  - [15.96 TRIM function](#section-15-96)
+  - [15.97 UPPER-CASE function](#section-15-97)
+  - [15.98 VARIANCE function](#section-15-98)
+  - [15.99 WHEN-COMPILED function](#section-15-99)
+  - [15.100 YEAR-TO-YYYY function](#section-15-100)
+- [16 Standard classes](#section-16)
+  - [16.1 General](#section-16-1)
+  - [16.2 BASE class](#section-16-2)
+    - [16.2.1 New method](#section-16-2-1)
+    - [16.2.2 FactoryObject method](#section-16-2-2)
+- [A Language element lists](#section-annex-a)
+  - [A.1 Implementor-defined language element list](#section-a-1)
+  - [A.2 Undefined language element list](#section-a-2)
+  - [A.3 Processor-dependent language element list](#section-a-3)
+  - [A.4 Optional language element list](#section-a-4)
+- [B Characters permitted in user-defined words](#section-annex-b)
+  - [B.1 General](#section-b-1)
+  - [B.2 Notation](#section-b-2)
+  - [B.3 Repertoire of characters permitted in user-defined words](#section-b-3)
+- [C Mapping of uppercase letters to lowercase letters in the COBOL character repertoire](#section-annex-c)
+  - [C.1 Notations](#section-c-1)
+  - [C.2 General case mappings](#section-c-2)
+- [D Concepts](#section-annex-d)
+  - [D.1 General](#section-d-1)
+  - [D.2 Files](#section-d-2)
+  - [D.3 Tables and dynamic-length elementary items](#section-d-3)
+  - [D.4 Shared memory area](#section-d-4)
+  - [D.5 Sharing of storage among data items](#section-d-5)
+  - [D.6 Compilation group and run unit organization and communication](#section-d-6)
+  - [D.7 Intrinsic function facility](#section-d-7)
+  - [D.8 Types](#section-d-8)
+  - [D.9 Addresses and pointers](#section-d-9)
+  - [D.10 Boolean support and bit manipulation](#section-d-10)
+  - [D.11 Character sets](#section-d-11)
+  - [D.12 COBOL-WORDS directive](#section-d-12)
+  - [D.13 Collating sequences](#section-d-13)
+  - [D.14 Culturally-specific, culturally-adaptable, and multilingual applications](#section-d-14)
+  - [D.15 External switches](#section-d-15)
+  - [D.16 Common exception processing](#section-d-16)
+  - [D.17 Rounding](#section-d-17)
+  - [D.18 Forms of arithmetic](#section-d-18)
+  - [D.19 Object oriented concepts](#section-d-19)
+  - [D.20 Report writer](#section-d-20)
+  - [D.21 Structured constant](#section-d-21)
+  - [D.22 Validate facility](#section-d-22)
+  - [D.23 Conditional expressions](#section-d-23)
+  - [D.24 Examples of the use of the EDITING phrase](#section-d-24)
+  - [D.25 Examples of the execution of the INSPECT statement](#section-d-25)
+  - [D.26 Examples of the execution of the PERFORM statement with the VARYING phrase specified](#section-d-26)
+  - [D.27 Example of free-form reference format](#section-d-27)
+  - [D.28 Conditional compilation](#section-d-28)
+  - [D.29 CALL-CONVENTION directive](#section-d-29)
+  - [D.30 ENTRY-CONVENTION clause](#section-d-30)
+  - [D.31 Date and time handling](#section-d-31)
+  - [D.32 Alternatives to HIGHEST-ALGEBRAIC, LOWEST-ALGEBRAIC and SMALLEST-ALGEBRAIC FUNC- TIONS](#section-d-32)
+- [E Substantive changes list](#section-annex-e)
+  - [E.1 General](#section-e-1)
+  - [E.2 Substantive changes potentially affecting existing programs](#section-e-2)
+  - [E.3 Substantive changes probably not affecting existing programs](#section-e-3)
+- [F Archaic and obsolete language element lists](#section-annex-f)
+  - [F.1 Archaic language elements](#section-f-1)
+  - [F.2 Obsolete language elements](#section-f-2)
+- [G Known errors](#section-annex-g)
+  - [G.1 Rationale](#section-g-1)
+  - [G.2 List of errors](#section-g-2)
+- [BIBLIOGRAPHY](#bibliography)
+- [Index](#index)
 
 ## Tables
 
@@ -1096,6 +1034,7 @@ Index...........................................................................
 | A.3 | ROUNDED MODE examples | 1096 |
 
 
+<a id="figures"></a>
 ## Figures
 
 [1 Fixed-form reference format](#section-1)
@@ -1117,6 +1056,7 @@ D.14 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having
 1157
 
 
+<a id="foreword"></a>
 ## Foreword
 
 ISO (the International Organization for Standardization) and IEC (the International Electrotechnical Commission) form the specialized system for worldwide standardization. National bodies that are members of ISO or IEC participate in the development of International Standards through technical committees established by the respective organization to deal with particular fields of technical activity. ISO and IEC technical committees collaborate in fields of mutual interest. Other international organizations, governmental and non-governmental, in liaison with ISO and IEC, also take part in the work.
@@ -1185,6 +1125,7 @@ The main changes are as follows:
 Any feedback or questions on this document should be directed to the user's national standards body. A complete listing of these bodies can be found at www.iso.org/members.html and www.iec.ch/national-committees.
 
 
+<a id="introduction"></a>
 ## Introduction
 
 COBOL began as a business programming language, but its present use has spread well beyond that to a general purpose programming language.
@@ -2665,7 +2606,7 @@ Fixed indicators may be specified in the indicator area of fixed-form reference 
 
 | Character | Indicator name | Indicates |
 |-----------|---------------|-----------|
-| * | comment indicator | a comment line |
+| \* | comment indicator | a comment line |
 | / | comment indicator | a comment line with page ejection |
 | - (hyphen) | continuation indicator | a continuation line |
 | space | source indicator | any line that is not a comment line or a continuation line |
@@ -2686,7 +2627,7 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 | Character-string | Indicator name | Indicates |
 |-----------------|---------------|-----------|
-| *> | comment indicator | 1) a comment line when specified as the first character-string in the program-text area; <br><br> 2) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.2.3.2, Syntax rules. |
+| \*> | comment indicator | 1) a comment line when specified as the first character-string in the program-text area; <br><br> 2) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.2.3.2, Syntax rules. |
 | >> | compiler directive indicator | a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.3, Compiler directives. |
 | "- '- | literal continuation indicator | continuation of a literal when specified in an unterminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.2.3.2, Syntax rules. |
 
@@ -2830,7 +2771,7 @@ A comment may be a comment line or an inline comment.
 
 A comment line is identified by either a fixed comment indicator or a floating comment indicator. All characters following the comment indicator up to margin R are comment-text. A comment line may be written as any line of a compilation group.
 
-If a source listing is being produced, a comment line identified by the fixed comment indicator slant (/) causes page ejection followed by printing of the comment line; comments identified by the fixed comment indicator asterisk (*) are printed at the next available line position of the listing.
+If a source listing is being produced, a comment line identified by the fixed comment indicator slant (/) causes page ejection followed by printing of the comment line; comments identified by the fixed comment indicator asterisk (\*) are printed at the next available line position of the listing.
 
 <a id="section-6-3-7-3"></a>
 ##### 6.3.7.3 Inline comments
@@ -3094,7 +3035,7 @@ The COPY statement incorporates library text into a COBOL compilation group.
 <a id="section-7-2-3-2"></a>
 ##### 7.2.3.2 General format
 
-<pre>
+<pre style="line-height:1">
      ╭ literal-1   ╮ ┌ ╭ <u>OF</u> ╮ ╭ literal-2      ╮ ┐ [ <u>SUPPRESS</u> PRINTING ]
 <u>COPY</u> ┤             ├ │ ┤    ├ ┤                ├ │
      ╰ text-name-1 ╯ └ ╰ <u>IN</u> ╯ ╰ library-name-1 ╯ ┘
@@ -3219,7 +3160,7 @@ The REPLACE statement modifies text in a compilation group.
 
 Format 1 (replacing):
 
-<pre>
+<pre style="line-height:1">
                  ╭ == pseudo-text-1 == <u>BY</u> == pseudo-text-2 ==                ╮
 <u>REPLACE</u> [ <u>ALSO</u> ] ┤                                                           ├ … .
                  │ ╭ <u>LEADING</u>  ╮                                              │
@@ -3231,7 +3172,7 @@ Format 1 (replacing):
 
 Format 2 (off):
 
-<pre>
+<pre style="line-height:1">
 <u>REPLACE</u> [ <u>LAST</u> ] <u>OFF</u> .
 </pre>
 <a id="section-7-2-4-3"></a>
@@ -3355,7 +3296,7 @@ Compiler directives specify options for use by the compiler, define compilation-
 <a id="section-7-3-2"></a>
 #### 7.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 >>compiler-instruction
 </pre>
 <a id="section-7-3-3"></a>
@@ -3522,7 +3463,7 @@ A defined condition tests whether a given compilation-variable is defined.
 <a id="section-7-3-8-4-2"></a>
 ###### 7.3.8.4.2 General format
 
-<pre>
+<pre style="line-height:1">
 compilation-variable-name-1 IS [ <u>NOT</u> ] <u>DEFINED</u>
 </pre>
 <a id="section-7-3-8-4-3"></a>
@@ -3554,7 +3495,7 @@ The CALL-CONVENTION directive instructs the compiler how to treat references to 
 <a id="section-7-3-9-2"></a>
 ##### 7.3.9.2 General format
 
-<pre>
+<pre style="line-height:1">
                   ╭ <u>COBOL</u>                  ╮
 <u>>>CALL-CONVENTION</u> ┤                        ├
                   ╰ call-convention-name-1 ╯
@@ -3592,7 +3533,7 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
 <a id="section-7-3-10-2"></a>
 ##### 7.3.10.2 General format
 
-<pre>
+<pre style="line-height:1">
               ╭ <u>EQUATE</u> literal-1 <u>WITH</u> literal-2   ╮
               │                                   │
               │ <u>UNDEFINE</u> literal-3                │
@@ -3647,7 +3588,7 @@ The DEFINE directive specifies a symbolic name, called a compilation variable, f
 <a id="section-7-3-11-2"></a>
 ##### 7.3.11.2 General format
 
-<pre>
+<pre style="line-height:1">
                                          ╭ ╭ arithmetic-expression-1 ╮              ╮
                                          │ │                         │              │
                                          │ │ boolean-expression-1    │              │
@@ -3712,7 +3653,7 @@ The DISPLAY directive transfers data to the source listing or an implementor def
 <a id="section-7-3-12-2"></a>
 ##### 7.3.12.2 General format
 
-<pre>
+<pre style="line-height:1">
           ╭ arithmetic-expression-1               ╮
           │                                       │
           │ boolean-expression-1                  │
@@ -3777,7 +3718,7 @@ The EVALUATE directive provides for multi-branch conditional compilation. This d
 
 Format 1 (evaluate-value)
 
-<pre>
+<pre style="line-height:1">
             ╭ literal-1               ╮
             │                         │
 >> <u>EVALUATE</u> ┤ arithmetic-expression-1 ├
@@ -3798,7 +3739,7 @@ Format 1 (evaluate-value)
 
 Format 2 (evaluate-truth)
 
-<pre>
+<pre style="line-height:1">
 >> <u>EVALUATE</u> <u>TRUE</u>
 { <u>>>WHEN</u> constant-conditional-expression-1 [ text-1 ] } …
 [ >> <u>WHEN</u> <u>OTHER</u> [ text-2 ] ]
@@ -3901,7 +3842,7 @@ NOTE The FLAG-02 directive is an obsolete element in this Working Draft Internat
 <a id="section-7-3-14-2"></a>
 ##### 7.3.14.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ ALL                               ╮
            │                                   │
            │ ╭ │ <u>EC-PROGRAM-EXCEPTIONS</u>     │ ╮ │
@@ -3974,7 +3915,7 @@ The FLAG-14 directive specifies options to flag certain syntax for which the beh
 <a id="section-7-3-15-2"></a>
 ##### 7.3.15.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ ALL                                         ╮
            │                                             │
            │ ╭ │ <u>COMPILE-TIME-ARITHMETIC-EXPRESSIONS</u> │ ╮ │
@@ -4071,7 +4012,7 @@ The IF directive provides for 1- or 2-way conditional compilation. This directiv
 <a id="section-7-3-16-2"></a>
 ##### 7.3.16.2 General format
 
-<pre>
+<pre style="line-height:1">
 >> <u>IF</u> constant-conditional-expression-1 [ text-1 ]
 [ >> <u>ELSE</u> [ text-2 ] ]
 >> <u>END-IF</u>
@@ -4120,7 +4061,7 @@ The LEAP-SECOND directive specifies whether a value greater than or equal to 60 
 <a id="section-7-3-17-2"></a>
 ##### 7.3.17.2 General format
 
-<pre>
+<pre style="line-height:1">
               ╭ ON  ╮
 <u>>>LEAP-SECOND</u> ┤     ├
               ╰ <u>OFF</u> ╯
@@ -4177,7 +4118,7 @@ NOTE This Working Draft International Standard does not define the content or la
 <a id="section-7-3-18-2"></a>
 ##### 7.3.18.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ ON  ╮
 >> <u>LISTING</u> ┤     ├
            ╰ <u>OFF</u> ╯
@@ -4215,7 +4156,7 @@ The PAGE directive specifies page ejection and provides documentation for the so
 <a id="section-7-3-19-2"></a>
 ##### 7.3.19.2 General format
 
-<pre>
+<pre style="line-height:1">
 >> <u>PAGE</u> [ comment-text-1 ]
 </pre>
 <a id="section-7-3-19-3"></a>
@@ -4251,7 +4192,7 @@ The POP directive is used to restore the state of a directive that was previousl
 <a id="section-7-3-20-2"></a>
 ##### 7.3.20.2 General format
 
-<pre>
+<pre style="line-height:1">
        ╭ directive-name ╮
 >> <u>POP</u> ┤                ├
        ╰ <u>ALL</u>            ╯
@@ -4293,7 +4234,7 @@ The PROPAGATE directive is used to cause propagation of exception conditions to 
 <a id="section-7-3-21-2"></a>
 ##### 7.3.21.2 General format
 
-<pre>
+<pre style="line-height:1">
              ╭ ON  ╮
 >> <u>PROPAGATE</u> ┤     ├
              ╰ <u>OFF</u> ╯
@@ -4334,7 +4275,7 @@ The PUSH directive is used to save the state of a directive so that its status m
 <a id="section-7-3-22-2"></a>
 ##### 7.3.22.2 General format
 
-<pre>
+<pre style="line-height:1">
 >> <u>PUSH</u> ╭ directive-name ╮
         ┤                ├
         ╰ <u>ALL</u>            ╯
@@ -4407,7 +4348,7 @@ The SOURCE FORMAT directive specifies whether the reference format of the source
 <a id="section-7-3-24-2"></a>
 ##### 7.3.24.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ <u>FIXED</u> ╮
 >> <u>SOURCE</u> FORMAT IS ┤       ├
                     ╰ <u>FREE</u>  ╯
@@ -4442,7 +4383,7 @@ The TURN directive is used to turn checking for specified exception conditions o
 <a id="section-7-3-25-2"></a>
 ##### 7.3.25.2 General format
 
-<pre>
+<pre style="line-height:1">
                                                           ╭ ON [ WITH <u>LOCATION</u> ] ╮
 >> <u>TURN</u> { exception-name-1 [ file-name-1 ] … } … <u>CHECKING</u> ┤                      ├
                                                           ╰ <u>OFF</u>                  ╯
@@ -4608,19 +4549,10 @@ The COBOL character repertoire consists of the basic letters, basic digits, basi
 | Basic letters | A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z | Latin capital letters (uppercase letters) |
 | | a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z | Latin small letters (lowercase letters) |
 | Basic digits | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 | digits |
-
-
----
-
-
-**Table 1 — COBOL character repertoire (Continued)**
-
-| Description | Character | Meaning |
-|---|---|---|
 | Basic special characters | | space |
 | | + | plus sign |
 | | – | minus sign (hyphen) |
-| | * | asterisk |
+| | \* | asterisk |
 | | / | slant (slash, solidus) |
 | | = | equal sign |
 | | $ | currency sign |
@@ -5219,7 +5151,7 @@ Required words are of two types:
 | Word | Meaning |
 |--------|-------------|
 | – | Arithmetic operator - unary minus or subtraction |
-| * | Arithmetic operator - multiplication |
+| \* | Arithmetic operator - multiplication |
 | / | Arithmetic operator - division |
 | ** | Arithmetic operator - exponentiation |
 | & | Concatenation operator |
@@ -5230,7 +5162,7 @@ Required words are of two types:
 | >= | Relational operator - greater than or equal |
 | <= | Relational operator - less than or equal |
 | <> | Relational operator - not equal |
-| *> | Comment indicator |
+| \*> | Comment indicator |
 | >> | Compiler directive indicator |
 | :: | Method invocation operator |
 
@@ -5280,7 +5212,7 @@ Alphanumeric literals are of the class and category alphanumeric.
 
 Format 1 (alphanumeric):
 
-<pre>
+<pre style="line-height:1">
 ╭ " [character-1] … " ╮
 ┤                     ├
 ╰ ' [character-1] … ' ╯
@@ -5288,7 +5220,7 @@ Format 1 (alphanumeric):
 
 Format 2 (hexadecimal-alphanumeric):
 
-<pre>
+<pre style="line-height:1">
 ╭ X"[hex-character-sequence-1] …" ╮
 ┤                                 ├
 ╰ X'[hex-character-sequence-1] …' ╯
@@ -5410,7 +5342,7 @@ Boolean literals are of the class and category boolean.
 
 Format 1 (boolean)
 
-<pre>
+<pre style="line-height:1">
 ╭ B"[boolean-character-1] … " ╮
 ┤                             ├
 ╰ B'[boolean-character-1] … ' ╯
@@ -5418,7 +5350,7 @@ Format 1 (boolean)
 
 Format 2 (hexadecimal-boolean)
 
-<pre>
+<pre style="line-height:1">
 ╭ BX"[hexadecimal-digit-1] … " ╮
 ┤                              ├
 ╰ BX'[hexadecimal-digit-1] … ' ╯
@@ -5483,7 +5415,7 @@ National literals are of the class and category national.
 
 Format 1 (national)
 
-<pre>
+<pre style="line-height:1">
 ╭ N"[character-1] … " ╮
 ┤                     ├
 ╰ N'[character-1] … ' ╯
@@ -5495,7 +5427,7 @@ Format 1 (national)
 
 Format 2 (hexadecimal-national)
 
-<pre>
+<pre style="line-height:1">
 ╭ NX"[hex-character-sequence-1] … " ╮
 ┤                                   ├
 ╰ NX'[hex-character-sequence-1] … ' ╯
@@ -5573,7 +5505,7 @@ Figurative constant values are generated by the compiler and referenced through 
 
 Format 1 (zero):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>ZERO</u>   ╮
     │        │
 ALL ┤ <u>ZEROES</u> ├
@@ -5585,7 +5517,7 @@ ALL ┤ <u>ZEROES</u> ├
 
 Format 2 (space):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>SPACE</u>  ╮
 ALL ┤        ├
     ╰ <u>SPACES</u> ╯
@@ -5595,7 +5527,7 @@ ALL ┤        ├
 
 Format 3 (high-value):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>HIGH-VALUE</u>  ╮
 ALL ┤             ├
     ╰ <u>HIGH-VALUES</u> ╯
@@ -5605,7 +5537,7 @@ ALL ┤             ├
 
 Format 4 (low-value):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>LOW-VALUE</u>  ╮
 ALL ┤            ├
     ╰ <u>LOW-VALUES</u> ╯
@@ -5615,7 +5547,7 @@ ALL ┤            ├
 
 Format 5 (quote):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>QUOTE</u>  ╮
 ALL ┤        ├
     ╰ <u>QUOTES</u> ╯
@@ -5627,12 +5559,12 @@ ALL ┤        ├
 
 Format 6 (all-literal):
 
-<pre>
+<pre style="line-height:1">
 <u>ALL</u> literal-1
 </pre>
 Format 7 (symbolic-character):
 
-<pre>
+<pre style="line-height:1">
 ALL symbolic-character-1
 </pre>
 <a id="section-8-3-3-6-3"></a>
@@ -5828,22 +5760,22 @@ Qualification of a user-defined name is required unless one of the following is 
 
 Format 1 (qualified-data-name):
 
-<pre>
+<pre style="line-height:1">
 data-name-1 [ data-qualifier ] … [ file-report-qualifier ]
 </pre>
 Format 2 (qualified-condition-name):
 
-<pre>
+<pre style="line-height:1">
 condition-name-1 [ data-qualifier ] …[ file-name-1 ]
 </pre>
 Format 3 (qualified-index-name):
 
-<pre>
+<pre style="line-height:1">
 index-name-1 [ data-qualifier ] …[ file-report-qualifier ]
 </pre>
 Format 4 (qualified-procedure-name):
 
-<pre>
+<pre style="line-height:1">
                  ┌ ╭ <u>IN</u> ╮                ┐
 paragraph-name-1 │ ┤    ├ section-name-1 │
                  └ ╰ <u>OF</u> ╯                ┘
@@ -5853,7 +5785,7 @@ paragraph-name-1 │ ┤    ├ section-name-1 │
 
 Format 5 (qualified-screen-name):
 
-<pre>
+<pre style="line-height:1">
               ┌ ╭ <u>IN</u> ╮               ┐
 screen-name-1 │ ┤    ├ screen-name-2 │ …
               └ ╰ <u>OF</u> ╯               ┘
@@ -5863,7 +5795,7 @@ screen-name-1 │ ┤    ├ screen-name-2 │ …
 
 Format 6 (qualified-record-key-name):
 
-<pre>
+<pre style="line-height:1">
                   ┌ ╭ <u>IN</u> ╮             ┐
 record-key-name-1 │ ┤    ├ file-name-2 │
                   └ ╰ <u>OF</u> ╯             ┘
@@ -5876,7 +5808,7 @@ record-key-name-1 │ ┤    ├ file-name-2 │
 
 Format 7 (qualified-linage-counter):
 
-<pre>
+<pre style="line-height:1">
                ┌ ╭ <u>IN</u> ╮             ┐
 <u>LINAGE-COUNTER</u> │ ┤    ├ file-name-3 │
                └ ╰ <u>OF</u> ╯             ┘
@@ -5886,7 +5818,7 @@ Format 7 (qualified-linage-counter):
 
 Format 8 (qualified-report-counter):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>PAGE-COUNTER</u> ╮ ┌ ╭ <u>IN</u> ╮               ┐
 ┤              ├ │ ┤    ├ report-name-2 │
 ╰ <u>LINE-COUNTER</u> ╯ └ ╰ <u>OF</u> ╯               ┘
@@ -5896,7 +5828,7 @@ Format 8 (qualified-report-counter):
 
 where data-qualifier is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>IN</u> ╮
 ┤    ├ data-name-2
 ╰ <u>OF</u> ╯
@@ -5906,7 +5838,7 @@ where data-qualifier is:
 
 where file-report-qualifier is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>IN</u> ╮ ╭ file-name-1   ╮
 ┤    ├ ┤               ├
 ╰ <u>OF</u> ╯ ╰ report-name-1 ╯
@@ -5954,17 +5886,17 @@ Subscripts are used when reference is made to an individual element within a tab
 
 Format 1 (qualified-data-name-with-subscripts):
 
-<pre>
+<pre style="line-height:1">
 qualified-data-name-1 [ ( subscript … ) ]
 </pre>
 Format 2 (qualified-condition-name-with-subscripts):
 
-<pre>
+<pre style="line-height:1">
 qualified-condition-name-1 [ ( subscript … ) ]
 </pre>
 where subscript is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>ALL</u>                              ╮
 │                                  │
 ┤ arithmetic-expression-1          ├
@@ -6048,33 +5980,33 @@ An identifier is a sequence of character-strings and separators used to referenc
 
 Format 1 (function-identifier):
 
-<pre>
+<pre style="line-height:1">
 function-identifier-1
 </pre>
 Format 2 (qualified-data-name-with-subscripts):
 
-<pre>
+<pre style="line-height:1">
 qualified-data-name-with-subscripts-1
 </pre>
 Format 3 (reference-modification):
 
 
-<pre>
+<pre style="line-height:1">
 identifier-1 reference-modifier-1
 </pre>
 Format 4 (inline-method-invocation):
 
-<pre>
+<pre style="line-height:1">
 inline-invocation-1
 </pre>
 Format 5 (object-view):
 
-<pre>
+<pre style="line-height:1">
 identifier-2 object-view-1
 </pre>
 Format 6 (predefined-object):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>EXCEPTION-OBJECT</u>                 ╮
 │                                  │
 ┤ <u>NULL</u>                             ├
@@ -6086,17 +6018,17 @@ Format 6 (predefined-object):
 
 Format 7 (object-property):
 
-<pre>
+<pre style="line-height:1">
 property-name-1 <u>OF</u> identifier-3
 </pre>
 Format 8 (predefined-address)
 
-<pre>
+<pre style="line-height:1">
 <u>NULL</u>
 </pre>
 Format 9 (address-identifier)
 
-<pre>
+<pre style="line-height:1">
 ╭ data-address-identifier-1    ╮
 ┤                              ├
 ╰ program-address-identifier-1 ╯
@@ -6104,12 +6036,12 @@ Format 9 (address-identifier)
 
 Format 10 (qualified-linage-counter):
 
-<pre>
+<pre style="line-height:1">
 qualified-linage-counter-1
 </pre>
 Format 11 (qualified-report-counter):
 
-<pre>
+<pre style="line-height:1">
 qualified-report-counter-1
 </pre>
 <a id="section-8-4-3-1-3"></a>
@@ -6196,7 +6128,7 @@ A function-identifier references the unique data item that results from the eval
 <a id="section-8-4-3-2-2"></a>
 ###### 8.4.3.2.2 General format
 
-<pre>
+<pre style="line-height:1">
              ╭ function-pointer-name-1   ╮
              │                           │ ┌ ╭ ┌ argument-1 ┐   ╮ ┐
 [ <u>FUNCTION</u> ] ┤ function-prototype-name-1 ├ │ │ │            │ … │ │
@@ -6324,7 +6256,7 @@ Reference modification defines a unique data item by specifying an identifier, a
 <a id="section-8-4-3-3-2"></a>
 ###### 8.4.3.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 identifier-1( leftmost-position : [ length ] )
 </pre>
 <a id="section-8-4-3-3-3"></a>
@@ -6404,7 +6336,7 @@ Inline method invocation references a temporary data item returned from invocati
 <a id="section-8-4-3-4-2"></a>
 ###### 8.4.3.4.2 General format
 
-<pre>
+<pre style="line-height:1">
                                      ┌   ╭ arithmetic-expression-1 ╮   ┐
                                      │   │                         │   │
                                      │   │ boolean-expression-1    │   │
@@ -6458,7 +6390,7 @@ An object-view causes an object reference to be treated as though it had the spe
 <a id="section-8-4-3-5-2"></a>
 ###### 8.4.3.5.2 General format
 
-<pre>
+<pre style="line-height:1">
                 ╭ [ <u>FACTORY</u> OF ] object-class-name-1 [ <u>ONLY</u> ] ╮
                 │                                             │
 identifier-1 <u>AS</u> ┤ interface-name-1                            ├
@@ -6506,7 +6438,7 @@ EXCEPTION-OBJECT is a predefined object reference that is used in a declarative 
 <a id="section-8-4-3-6-2"></a>
 ###### 8.4.3.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>EXCEPTION-OBJECT</u>
 </pre>
 <a id="section-8-4-3-6-3"></a>
@@ -6535,7 +6467,7 @@ NULL is a predefined object reference that contains the null object reference va
 <a id="section-8-4-3-7-2"></a>
 ###### 8.4.3.7.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>NULL</u>
 </pre>
 <a id="section-8-4-3-7-3"></a>
@@ -6561,7 +6493,7 @@ SELF and SUPER are predefined object references that reference the object on whi
 <a id="section-8-4-3-8-2"></a>
 ###### 8.4.3.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>SELF</u>                             ╮
 ┤                                  ├
 ╰ [ object-class-name-1 <u>OF</u> ] <u>SUPER</u> ╯
@@ -6615,7 +6547,7 @@ Object properties provide a special syntax to get information out of and pass in
 <a id="section-8-4-3-9-2"></a>
 ###### 8.4.3.9.2 General format
 
-<pre>
+<pre style="line-height:1">
                    ╭ object-class-name-1 ╮
 property-name-1 <u>OF</u> ┤                     ├
                    ╰ identifier-1        ╯
@@ -6667,7 +6599,7 @@ NULL is a predefined address of class pointer or a predefined content of class m
 <a id="section-8-4-3-10-2"></a>
 ###### 8.4.3.10.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>NULL</u>
 </pre>
 <a id="section-8-4-3-10-3"></a>
@@ -6709,7 +6641,7 @@ A data-address-identifier references the unique data item that contains the addr
 <a id="section-8-4-3-11-2"></a>
 ###### 8.4.3.11.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>ADDRESS</u> OF identifier-1
 </pre>
 <a id="section-8-4-3-11-3"></a>
@@ -6754,7 +6686,7 @@ A function-address-identifier identifies the unique data item that contains the 
 <a id="section-8-4-3-12-2"></a>
 ###### 8.4.3.12.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ function-prototype-name-1 ╮
 <u>ADDRESS</u> OF <u>FUNCTION</u> ┤                           ├
                     ╰ identifier-1              ╯
@@ -6804,7 +6736,7 @@ A program-address-identifier references the unique data item that contains the a
 <a id="section-8-4-3-13-2"></a>
 ###### 8.4.3.13.2 General format
 
-<pre>
+<pre style="line-height:1">
                    ╭ identifier-1             ╮
                    │                          │
 <u>ADDRESS</u> OF <u>PROGRAM</u> ┤ literal-1                ├
@@ -6858,7 +6790,7 @@ The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in
 <a id="section-8-4-3-14-2"></a>
 ###### 8.4.3.14.2 General format
 
-<pre>
+<pre style="line-height:1">
                ┌ ╭ <u>IN</u> ╮             ┐
 <u>LINAGE-COUNTER</u> │ ┤    ├ file-name-1 │
                └ ╰ <u>OF</u> ╯             ┘
@@ -6893,7 +6825,7 @@ The PAGE-COUNTER and LINE-COUNTER identifiers are generated automatically and ex
 <a id="section-8-4-3-15-2"></a>
 ###### 8.4.3.15.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>PAGE-COUNTER</u> ╮ ┌ ╭ <u>IN</u> ╮               ┐
 ┤              ├ │ ┤    ├ report-name-1 │
 ╰ <u>LINE-COUNTER</u> ╯ └ ╰ <u>OF</u> ╯               ┘
@@ -6947,12 +6879,12 @@ Within the SPECIAL-NAMES paragraph, a condition-name identifies the on status or
 
 Format 1 (switch-status-condition-name):
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 Format 2 (qualified-condition-name-with-subscripts):
 
-<pre>
+<pre style="line-height:1">
 qualified-condition-name-with-subscripts-1
 </pre>
 <a id="section-8-4-4-3"></a>
@@ -7950,7 +7882,7 @@ There are five binary arithmetic operators and two unary arithmetic operators th
 |---|---|
 | + | Addition |
 | – | Subtraction |
-| * | Multiplication |
+| \* | Multiplication |
 | / | Division |
 | ** | Exponentiation |
 
@@ -8002,7 +7934,7 @@ The relational operators specify the type of comparison to be made in a relation
 
 **Format 1 (simple-relational-operator):**
 
-<pre>
+<pre style="line-height:1">
 ╭ IS <u>GREATER</u> THAN ╮
 │                 │
 │ IS >            │
@@ -8024,7 +7956,7 @@ The relational operators specify the type of comparison to be made in a relation
 ---
 
 
-<pre>
+<pre style="line-height:1">
 ╭ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO ╮
 │                             │
 │ IS >=                       │
@@ -8117,10 +8049,10 @@ The following rules apply regardless of the mode of arithmetic that is in effect
 
 **Table 3 — Combinations of symbols in arithmetic expressions**
 
-| First symbol ↓ &nbsp; Second symbol → | **Identifier or literal** | **+ − * / \*\*** | **Unary + or −** | **(** | **)** |
+| First symbol ↓ &nbsp; Second symbol → | **Identifier or literal** | **+ − \* / \*\*** | **Unary + or −** | **(** | **)** |
 |---|---|---|---|---|---|
 | Identifier or literal | — | P | — | — | P |
-| + − * / ** | P | — | P | P | — |
+| + − \* / ** | P | — | P | P | — |
 | Unary **+** or **−** | P | — | — | P | — |
 | ( | P | — | P | P | — |
 | ) | — | P | — | — | P |
@@ -8231,7 +8163,7 @@ For exponentiation, the operands and operator are: operand-1 ** operand-2.
 
       (operand-2 = 2)
 
-      the equivalent expression shall be (operand-1 * operand-1)
+      the equivalent expression shall be (operand-1 \* operand-1)
 
 
 c) When operand-2 is an integer and the following condition is true
@@ -8240,7 +8172,7 @@ c) When operand-2 is an integer and the following condition is true
 
 the equivalent expression shall be
 
-((operand-1 * operand-1) * operand-1)
+((operand-1 \* operand-1) \* operand-1)
 
 d) When operand-2 is an integer and the following condition is true
 
@@ -8248,7 +8180,7 @@ d) When operand-2 is an integer and the following condition is true
 
 the equivalent expression shall be
 
-((operand-1 * operand-1) * (operand-1 * operand-1))
+((operand-1 \* operand-1) \* (operand-1 \* operand-1))
 
 e) Otherwise, the equivalent arithmetic expression is defined by the implementor. Operands used in the development of that value shall be in SBIDI form. All additions, subtractions, multiplications and divisions performed in the development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020.
 
@@ -8335,7 +8267,7 @@ b) When operand-2 is an integer and the following condition is true
 
 the equivalent expression shall be
 
-(operand-1 * operand-1)
+(operand-1 \* operand-1)
 
 c) When operand-2 is an integer and the following condition is true
 
@@ -8343,7 +8275,7 @@ c) When operand-2 is an integer and the following condition is true
 
 the equivalent expression shall be
 
-((operand-1 * operand-1) * operand-1)
+((operand-1 \* operand-1) \* operand-1)
 
 d) When operand-2 is an integer and the following condition is true
 
@@ -8351,7 +8283,7 @@ d) When operand-2 is an integer and the following condition is true
 
 the equivalent expression shall be
 
-((operand-1 * operand-1) * (operand-1 * operand-1))
+((operand-1 \* operand-1) \* (operand-1 \* operand-1))
 
 
 e) Otherwise, the equivalent arithmetic expression is defined by the implementor. Operands used in the development of that value shall be in SDIDI form. All additions, subtractions, multiplications and divisions performed in the development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020.
@@ -8462,7 +8394,7 @@ A concatenation expression consists of two operands separated by the concatenati
 <a id="section-8-8-3-1"></a>
 ##### 8.8.3.1 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ literal-1                  ╮
 ┤                            ├ & literal-2
 ╰ concatenation-expression-1 ╯
@@ -8555,7 +8487,7 @@ The first operand is called the subject of the condition; the second operand is 
 
 Format 1 (General-relation):
 
-<pre>
+<pre style="line-height:1">
                             ╭ IS [ <u>NOT</u> ] <u>GREATER</u> THAN     ╮
                             │                             │
                             │ IS [ <u>NOT</u> ] >                │
@@ -8586,7 +8518,7 @@ Format 1 (General-relation):
 
 Format 2 (boolean):
 
-<pre>
+<pre style="line-height:1">
                      ╭ IS [ <u>NOT</u> ] <u>EQUAL</u> TO ╮
                      │                     │
 boolean-expression-1 ┤ IS [ <u>NOT</u> ] =        ├ boolean-expression-2
@@ -8602,7 +8534,7 @@ boolean-expression-1 ┤ IS [ <u>NOT</u> ] =        ├ boolean-expression-2
 
 Format 3 (message-tag-object-or-pointer-reference):
 
-<pre>
+<pre style="line-height:1">
              ╭ IS [ <u>NOT</u> ] <u>EQUAL</u> TO ╮
              │                     │
 identifier-3 ┤ IS [ <u>NOT</u> ] =        ├ identifier-4
@@ -8790,7 +8722,7 @@ A boolean condition determines whether a boolean expression is true or false.
 <a id="section-8-8-4-3-2"></a>
 ###### 8.8.4.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 [ <u>NOT</u> ] boolean-expression-1
 </pre>
 <a id="section-8-8-4-3-3"></a>
@@ -8822,7 +8754,7 @@ NOTE    Strongly typed group items have their own unique classes and categories 
 <a id="section-8-8-4-4-2"></a>
 ###### 8.8.4.4.2 General format
 
-<pre>
+<pre style="line-height:1">
                         ╭ alphabet-name-1              ╮
                         │                              │
                         │ <u>ALPHABETIC</u>                   │
@@ -8950,7 +8882,7 @@ In a condition-name condition, a conditional variable is tested to determine whe
 <a id="section-8-8-4-5-2"></a>
 ###### 8.8.4.5.2 General format
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 <a id="section-8-8-4-5-3"></a>
@@ -8973,7 +8905,7 @@ A switch-status condition determines the on or off status of an implementor-defi
 <a id="section-8-8-4-6-2"></a>
 ###### 8.8.4.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 condition-name-1
 </pre>
 <a id="section-8-8-4-6-3"></a>
@@ -8995,7 +8927,7 @@ The sign condition determines whether or not the algebraic value of an arithmeti
 
 **Format 1 (expression)**
 
-<pre>
+<pre style="line-height:1">
                                    ╭ <u>POSITIVE</u> ╮
                                    │          │
 arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├
@@ -9007,7 +8939,7 @@ arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├
 
 **Format 2 (standard-float)**
 
-<pre>
+<pre style="line-height:1">
                       ╭ <u>POSITIVE</u> ╮
                       │          │
 data-name-1 IS <u>[NOT</u> ] ┤ <u>NEGATIVE</u> ├
@@ -9072,7 +9004,7 @@ The omitted-argument condition determines whether an argument was provided to a 
 <a id="section-8-8-4-8-2"></a>
 ###### 8.8.4.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>
 </pre>
 <a id="section-8-8-4-8-3"></a>
@@ -9127,7 +9059,7 @@ NOTE The truth value of a negated condition is true if the truth value of the co
 <a id="section-8-8-4-10-2"></a>
 ###### 8.8.4.10.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>NOT</u> condition-1
 </pre>
 <a id="section-8-8-4-11"></a>
@@ -9143,7 +9075,7 @@ NOTE The words XOR and EXCLUSIVE-OR are equivalent, either can be used to indica
 <a id="section-8-8-4-11-2"></a>
 ###### 8.8.4.11.2 General format
 
-<pre>
+<pre style="line-height:1">
             ╭ ╭ <u>AND</u>          ╮             ╮
             │ │              │             │
             │ │ <u>OR</u>           │             │
@@ -9203,7 +9135,7 @@ Within a sequence of relation conditions, both forms of omission may be used.
 <a id="section-8-8-4-12-2"></a>
 ###### 8.8.4.12.2 General format
 
-<pre>
+<pre style="line-height:1">
                      ╭ ╭ <u>AND</u>          ╮                                           ╮
                      │ │              │                                           │
                      │ │ <u>OR</u>           │ ╭ <u>NOT</u>                          ╮          │
@@ -9697,7 +9629,7 @@ ZEROS
 
 +
 –
-*
+\*
 /
 **
 >
@@ -9707,7 +9639,7 @@ ZEROS
 >=
 <=
 &
-*>
+\*>
 ::
 >>
 
@@ -9972,7 +9904,7 @@ The following words are reserved in compiler directives:
 | END-EVALUATE | OVERRIDE | |
 | END-IF | | + |
 | EQUAL | PAGE | - |
-| EQUATE | PARAMETER | * |
+| EQUATE | PARAMETER | \* |
 | EVALUATE | POP | / |
 | EXCLUSIVE-OR | PROPAGATE | <= |
 | EXTERNAL-FILE-FILE- | PUSH | >= |
@@ -11274,7 +11206,7 @@ A runtime element is the result of successful compilation of a function, a metho
 <a id="section-10-6-1"></a>
 #### 10.6.1 General format
 
-<pre>
+<pre style="line-height:1">
 ┌ ╭ program-prototype    ╮   ┐
 │ │                      │   │
 │ │ function-prototype   │   │
@@ -11292,7 +11224,7 @@ A runtime element is the result of successful compilation of a function, a metho
 
 where program-prototype is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
 <u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
@@ -11308,7 +11240,7 @@ where program-prototype is:
 </pre>
 where function-prototype is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
 <u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
@@ -11327,7 +11259,7 @@ where function-prototype is:
 
 where program-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
                                             ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
@@ -11351,7 +11283,7 @@ where program-definition is:
 
 where function-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
 <u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ].
@@ -11371,7 +11303,7 @@ where function-definition is:
 
 where class-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 <u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
 [ <u>INHERITS</u> FROM { object-class-name-2 } … ]
@@ -11384,7 +11316,7 @@ where class-definition is:
 </pre>
 where factory-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 <u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 [ options-paragraph ]
@@ -11395,7 +11327,7 @@ where factory-definition is:
 </pre>
 where instance-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 <u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-2 } … . ]
 [ options-paragraph ]
@@ -11412,7 +11344,7 @@ where instance-definition is:
 
 where interface-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 <u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
 [ <u>INHERITS</u> FROM { interface-name-2 } … ]
@@ -11425,7 +11357,7 @@ where interface-definition is:
 
 where method-definition is:
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
            ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
@@ -11501,7 +11433,7 @@ End markers indicate the end of a definition.
 <a id="section-10-7-2"></a>
 #### 10.7.2 General format
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>PROGRAM</u> program-prototype-name-1   ╮
     │                                    │
     │ <u>PROGRAM</u> program-name-1             │
@@ -11570,7 +11502,7 @@ The paragraph header identifies the type of information contained in the paragra
 <a id="section-11-2-1"></a>
 #### 11.2.1 General format
 
-<pre>
+<pre style="line-height:1">
 [ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
 ╭ program-id-paragraph   ╮
@@ -11618,7 +11550,7 @@ The CLASS-ID paragraph indicates that this identification division is introducin
 <a id="section-11-3-2"></a>
 #### 11.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
 [ <u>INHERITS</u> FROM { object-class-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
@@ -11677,7 +11609,7 @@ The FACTORY paragraph indicates that this identification division is introducing
 <a id="section-11-4-2"></a>
 #### 11.4.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 </pre>
 <a id="section-11-4-3"></a>
@@ -11716,12 +11648,12 @@ The FUNCTION-ID paragraph specifies the name by which a function is identified a
 
 Format 1 (definition):
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ] .
 </pre>
 Format 2 (prototype):
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
 </pre>
 <a id="section-11-5-3"></a>
@@ -11757,7 +11689,7 @@ The INTERFACE-ID paragraph indicates that this identification division is introd
 <a id="section-11-6-2"></a>
 #### 11.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
 [ <u>INHERITS</u> FROM { interface-name-2 } … ]
 [ <u>USING</u> { parameter-name-1 } … ] .
@@ -11805,7 +11737,7 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 <a id="section-11-7-2"></a>
 #### 11.7.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
 <u>METHOD-ID.</u> ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
            │ ╭ <u>GET</u> ╮                          │
@@ -11877,7 +11809,7 @@ The OBJECT paragraph indicates that this identification division is introducing 
 <a id="section-11-8-2"></a>
 #### 11.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 </pre>
 <a id="section-11-8-3"></a>
@@ -11917,7 +11849,7 @@ The OPTIONS paragraph specifies information for use by the compiler in generatin
 <a id="section-11-9-2"></a>
 #### 11.9.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>OPTIONS.</u>
 [ arithmetic-clause ]
 [ default-rounded-clause ]
@@ -11947,7 +11879,7 @@ The ARITHMETIC clause specifies the method used in developing the intermediate r
 <a id="section-11-9-5-1"></a>
 ##### 11.9.5.1 General format
 
-<pre>
+<pre style="line-height:1">
               ╭ <u>NATIVE</u>           ╮
               │                  │
 <u>ARITHMETIC</u> IS ┤ <u>STANDARD-BINARY</u>  ├
@@ -11988,7 +11920,7 @@ The DEFAULT ROUNDED clause specifies the type of rounding that applies when ROUN
 <a id="section-11-9-6-2"></a>
 ##### 11.9.6.2 General format
 
-<pre>
+<pre style="line-height:1">
                         ╭ <u>AWAY-FROM-ZERO</u>         ╮
                         │                        │
                         │ <u>NEAREST-AWAY-FROM-ZERO</u> │
@@ -12032,7 +11964,7 @@ The ENTRY-CONVENTION clause specifies the information to be used when activating
 <a id="section-11-9-7-2"></a>
 ##### 11.9.7.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ <u>COBOL</u>                   ╮
 <u>ENTRY-CONVENTION</u> IS ┤                         ├
                     ╰ entry-convention-name-1 ╯
@@ -12078,7 +12010,7 @@ The FLOAT-BINARY clause specifies the endianness that is implied for data items 
 <a id="section-11-9-8-2"></a>
 ##### 11.9.8.2 General format
 
-<pre>
+<pre style="line-height:1">
                         ╭ <u>HIGH-ORDER-LEFT</u>  ╮
 <u>FLOAT-BINARY</u> DEFAULT IS ┤                  ├
                         ╰ <u>HIGH-ORDER-RIGHT</u> ╯
@@ -12106,7 +12038,7 @@ The FLOAT-DECIMAL clause specifies the encoding and the endianness that is impli
 <a id="section-11-9-9-2"></a>
 ##### 11.9.9.2 General format
 
-<pre>
+<pre style="line-height:1">
                          ╭ │ encoding-phrase   │ ╮
 <u>FLOAT-DECIMAL</u> DEFAULT IS ┤ │                   │ ├
                          ╰ │ endianness-phrase │ ╯
@@ -12121,7 +12053,7 @@ The FLOAT-DECIMAL clause specifies the encoding and the endianness that is impli
 
 where encoding-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>BINARY-ENCODING</u>  ╮
 ┤                  ├
 ╰ <u>DECIMAL-ENCODING</u> ╯
@@ -12129,7 +12061,7 @@ where encoding-phrase is:
 
 where endianness-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>HIGH-ORDER-LEFT</u>  ╮
 ┤                  ├
 ╰ <u>HIGH-ORDER-RIGHT</u> ╯
@@ -12164,7 +12096,7 @@ The INITIALIZE clause specifies that during program initialization of allocation
 <a id="section-11-9-10-2"></a>
 ##### 11.9.10.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ <u>ALL</u>                     ╮            ╭ <u>BINARY</u> <u>ZEROES</u> ╮
            │                         │            │               │
            │                         │            │ <u>HIGH-VALUES</u>   │
@@ -12222,7 +12154,7 @@ The INTERMEDIATE ROUNDING clause specifies the rounding rules that are to be app
 <a id="section-11-9-11-1"></a>
 ##### 11.9.11.1 General format
 
-<pre>
+<pre style="line-height:1">
                          ╭ <u>NEAREST-AWAY-FROM-ZERO</u> ╮
                          │                        │
                          │ <u>NEAREST-EVEN</u>           │
@@ -12284,7 +12216,7 @@ The PROGRAM-ID paragraph specifies the name by which a program prototype is iden
 
 Format 1 (definition):
 
-<pre>
+<pre style="line-height:1">
                                             ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
 <u>PROGRAM-ID.</u> program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
                                             │    │ │ ╭ <u>INITIAL</u>   ╮ │ │         │
@@ -12297,7 +12229,7 @@ Format 1 (definition):
 
 Format 2 (prototype):
 
-<pre>
+<pre style="line-height:1">
 <u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u> .
 </pre>
 <a id="section-11-10-3"></a>
@@ -12359,7 +12291,7 @@ The environment division specifies those aspects of a data processing problem th
 <a id="section-12-2-1"></a>
 #### 12.2.1 General format
 
-<pre>
+<pre style="line-height:1">
 <u>ENVIRONMENT</u> <u>DIVISION.</u>
 [ configuration-section ]
 [ input-output-section ]
@@ -12387,7 +12319,7 @@ The configuration section specifies aspects of the data processing system that a
 <a id="section-12-3-2"></a>
 #### 12.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>CONFIGURATION</u> <u>SECTION.</u>
 [ source-computer-paragraph ]
 [ object-computer-paragraph ]
@@ -12425,7 +12357,7 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 <a id="section-12-3-5-2"></a>
 ##### 12.3.5.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SOURCE-COMPUTER.</u> [ computer-name-1 ] .
 </pre>
 <a id="section-12-3-5-3"></a>
@@ -12456,7 +12388,7 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 <a id="section-12-3-6-2"></a>
 ##### 12.3.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>OBJECT-COMPUTER.</u>
 
                     ┌ │                            ╭ IS locale-phrase-1 [ locale-phrase-2 ]      ╮   │ ┐
@@ -12479,7 +12411,7 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 where locale-phrase-1 is:
 
-<pre>
+<pre style="line-height:1">
 ╭ locale-name-1  ╮
 │                │
 │ <u>LOCALE</u>         │
@@ -12493,7 +12425,7 @@ where locale-phrase-1 is:
 
 where locale-phrase-2 is:
 
-<pre>
+<pre style="line-height:1">
 ╭ locale-name-2  ╮
 │                │
 │ <u>LOCALE</u>         │
@@ -12617,7 +12549,7 @@ The SPECIAL-NAMES paragraph provides a means for:
 <a id="section-12-3-7-2"></a>
 ##### 12.3.7.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SPECIAL-NAMES.</u>
 [ alphabet-name-clause ] …
 
@@ -12670,7 +12602,7 @@ The SPECIAL-NAMES paragraph provides a means for:
 
 where alphabet-name-clause is:
 
-<pre>
+<pre style="line-height:1">
          ╭                                         ╭ <u>LOCALE</u> [ locale-name-2 ] ╮ ╮
          │                                         │                          │ │
          │                                         │ <u>NATIVE</u>                   │ │
@@ -12702,7 +12634,7 @@ where alphabet-name-clause is:
 
 where literal-phrase is:
 
-<pre>
+<pre style="line-height:1">
           ┌ ╭ <u>THROUGH</u> ╮           ┐
           │ ┤         ├ literal-2 │
 literal-1 │ ╰ <u>THRU</u>    ╯           │
@@ -12714,7 +12646,7 @@ literal-1 │ ╰ <u>THRU</u>    ╯           │
 
 where dynamic-length-structure-clause is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>DYNAMIC</u> <u>LENGTH</u> STRUCTURE dynamic-length-structure-name-1 IS ╮
 │                                                             │
 ┤ ╭ ╭ │ [ <u>SIGNED</u> ] [ <u>SHORT</u> ] <u>PREFIXED</u> │ ╮ ╮                   ├
@@ -12730,7 +12662,7 @@ where dynamic-length-structure-clause is:
 
 where symbolic-characters-clause is:
 
-<pre>
+<pre style="line-height:1">
 <u>SYMBOLIC</u> CHARACTERS
 
 ┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐
@@ -12881,7 +12813,7 @@ a) digits 0 through 9;
 
 b) alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space;
 
-c) characters '+' '−' ',' '.' '*' '/' ';' '(' ')' '"' '='
+c) characters '+' '−' ',' '.' '\*' '/' ';' '(' ')' '"' '='
 
 
 ---
@@ -12891,7 +12823,7 @@ c) characters '+' '−' ',' '.' '*' '/' ';' '(' ')' '"' '='
 
 a) shall contain at least one non-space character and
 
-b) may consist of any characters from the computer's coded character set except for the digits 0 through 9 and the characters '+' '–' ',' '.' '*'.
+b) may consist of any characters from the computer's coded character set except for the digits 0 through 9 and the characters '+' '–' ',' '.' '\*'.
 
 24) Locale-name-2 shall be a locale-name defined by the LOCALE clause.
 
@@ -12905,7 +12837,7 @@ a) digits 0 through 9;
 
 b) alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space;
 
-c) characters '+' '–' ',' '.' '*' '/' ';' '(' ')' '"' '='
+c) characters '+' '–' ',' '.' '\*' '/' ';' '(' ')' '"' '='
 
 28) If literal-7 is of class alphanumeric, the associated currency symbol may be used only to define a numeric-edited item with usage display. If literal-7 is of class national, the associated currency symbol may be used only to define a numeric-edited item with usage national.
 
@@ -12944,16 +12876,10 @@ Table 6, Relationship of alphabet-name to coded character set and collating sequ
 **Table 6 — Relationship of alphabet-name to coded character set and collating sequence**
 
 | ALPHABET clause operand | Coded character set | Collating sequence |
-|-------------------------|--------------------|--------------------|
-| LOCALE                  |                    | Y                  |
-| NATIVE                  | Y                  | Y                  |
-| STANDARD-1              | Y                  | Y                  |
-
-
-**Table 6 — Relationship of alphabet-name to coded character set and collating sequence**
-
-| ALPHABET clause operand | Coded character set | Collating sequence |
-|------------------------|--------------------|--------------------|
+|---|---|---|
+| LOCALE |  | Y |
+| NATIVE | Y | Y |
+| STANDARD-1 | Y | Y |
 | STANDARD-2 | Y | Y |
 | UCS-4 | Y | Y |
 | UTF-8 | Y | |
@@ -13108,7 +13034,7 @@ The REPOSITORY paragraph allows specification of program prototype names, functi
 <a id="section-12-3-8-2"></a>
 ##### 12.3.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>REPOSITORY.</u>
 
 ┌ ╭ class-specifier                 ╮     ┐
@@ -13128,7 +13054,7 @@ The REPOSITORY paragraph allows specification of program prototype names, functi
 
 where class-specifier is:
 
-<pre>
+<pre style="line-height:1">
 <u>CLASS</u> object-class-name-1 [ <u>AS</u> literal-1 ] ┌ <u>EXPANDS</u> object-class-name-2 <u>USING</u> ╭ object-class-name-3 ╮ … ┐
                                            │                                   ┤                     ├   │
                                            └                                   ╰ interface-name-1    ╯   ┘
@@ -13138,7 +13064,7 @@ where class-specifier is:
 
 where interface-specifier is:
 
-<pre>
+<pre style="line-height:1">
 <u>INTERFACE</u> interface-name-2 [ <u>AS</u> literal-2 ] ┌ <u>EXPANDS</u> interface-name-3 <u>USING</u> ╭ object-class-name-4 ╮ … ┐
                                             │                                ┤                     ├   │
                                             └                                ╰ interface-name-4    ╯   ┘
@@ -13148,7 +13074,7 @@ where interface-specifier is:
 
 where intrinsic-function-specifier is:
 
-<pre>
+<pre style="line-height:1">
          ╭ { intrinsic-function-name-1 } … ╮
 <u>FUNCTION</u> ┤                                 ├ <u>INTRINSIC</u>
          ╰ <u>ALL</u>                             ╯
@@ -13158,7 +13084,7 @@ where intrinsic-function-specifier is:
 
 where program-specifier is:
 
-<pre>
+<pre style="line-height:1">
 <u>PROGRAM</u> program-prototype-name-1 [ <u>AS</u> literal-3 ]
 </pre>
 
@@ -13169,12 +13095,12 @@ where program-specifier is:
 
 where property-specifier is:
 
-<pre>
+<pre style="line-height:1">
 <u>PROPERTY</u> property-name-1 [ <u>AS</u> literal-4 ]
 </pre>
 where user-defined-function-specifier is:
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> function-prototype-name-1 [ <u>AS</u> literal-5 ]
 </pre>
 <a id="section-12-3-8-3"></a>
@@ -13323,7 +13249,7 @@ The input-output section deals with the information needed to control transmissi
 <a id="section-12-4-2"></a>
 #### 12.4.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>INPUT-OUTPUT</u> <u>SECTION.</u>
 [ file-control-paragraph ]
 [ i-o-control-paragraph ]
@@ -13351,7 +13277,7 @@ The FILE-CONTROL paragraph specifies file-related information.
 <a id="section-12-4-4-2"></a>
 ##### 12.4.4.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FILE-CONTROL.</u> [ file-control-entry ] …
 </pre>
 <a id="section-12-4-5"></a>
@@ -13367,7 +13293,7 @@ The file control entry declares the relevant physical attributes of a file.
 
 Format 1 (indexed):
 
-<pre>
+<pre style="line-height:1">
 <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1                                                 ┐
                                                                                 │
          ╭    ╭ device-name-1 ╮                         ╮                       │
@@ -13421,7 +13347,7 @@ Format 1 (indexed):
 
 Format 2 (relative):
 
-<pre>
+<pre style="line-height:1">
 <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
        ╭    ╭ device-name-1 ╮                         ╮
@@ -13462,7 +13388,7 @@ Format 2 (relative):
 
 Format 3 (sequential):
 
-<pre>
+<pre style="line-height:1">
 <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
        ╭    ╭ device-name-1 ╮                         ╮
@@ -13508,7 +13434,7 @@ Format 3 (sequential):
 
 Format 4 (sort-merge):
 
-<pre>
+<pre style="line-height:1">
 <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
        ╭    ╭ device-name-1 ╮                         ╮
@@ -13654,7 +13580,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 <a id="section-12-4-5-5-1"></a>
 ###### 12.4.5.5.1 General format
 
-<pre>
+<pre style="line-height:1">
                ╭ <u>SEQUENTIAL</u> ╮
                │            │
 <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u>     ├
@@ -13707,7 +13633,7 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 <a id="section-12-4-5-6-2"></a>
 ###### 12.4.5.6.2 General format
 
-<pre>
+<pre style="line-height:1">
                         ╭ data-name-1                                   ╮
 <u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤                                               ├
                         ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-2 } … ╯
@@ -13771,7 +13697,7 @@ The COLLATING SEQUENCE clause specifies the collating sequence to be used for th
 
 Format 1 (file-level)
 
-<pre>
+<pre style="line-height:1">
                    ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮
                    │                                             │
 COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├
@@ -13784,7 +13710,7 @@ COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1
 
 Format 2 (key-level)
 
-<pre>
+<pre style="line-height:1">
                       ╭ data-name-1       ╮
 COLLATING <u>SEQUENCE</u> <u>OF</u> ┤                   ├ … IS alphabet-name-3
                       ╰ record-key-name-1 ╯
@@ -13851,7 +13777,7 @@ The FILE STATUS clause specifies a data item that contains the status of an inpu
 <a id="section-12-4-5-8-2"></a>
 ###### 12.4.5.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 FILE <u>STATUS</u> IS data-name-1
 </pre>
 <a id="section-12-4-5-8-3"></a>
@@ -13891,7 +13817,7 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 <a id="section-12-4-5-9-2"></a>
 ###### 12.4.5.9.2 General format
 
-<pre>
+<pre style="line-height:1">
              ╭ <u>MANUAL</u>    ╮ ┌                           ╭ <u>RECORD</u>  ╮ ┐
 <u>LOCK</u> MODE IS ┤           ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤         ├ │
              ╰ <u>AUTOMATIC</u> ╯ └                           ╰ <u>RECORDS</u> ╯ ┘
@@ -13954,7 +13880,7 @@ The ORGANIZATION clause specifies the logical structure of a file.
 <a id="section-12-4-5-10-2"></a>
 ###### 12.4.5.10.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ ╭ <u>LINE</u>   ╮            ╮
                     │ ┤        ├ <u>SEQUENTIAL</u> │
                     │ ╰ RECORD ╯            │
@@ -13996,7 +13922,7 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
 <a id="section-12-4-5-11-2"></a>
 ###### 12.4.5.11.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ <u>STANDARD-1</u>     ╮
 <u>RECORD</u> <u>DELIMITER</u> IS ┤                ├
                     ╰ feature-name-1 ╯
@@ -14048,7 +13974,7 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 <a id="section-12-4-5-12-2"></a>
 ###### 12.4.5.12.2 General format
 
-<pre>
+<pre style="line-height:1">
               ╭ data-name-1                                   ╮
 <u>RECORD</u> KEY IS ┤                                               ├
               ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-2 } … ╯
@@ -14095,7 +14021,7 @@ The RELATIVE KEY clause identifies the data item that will contain the relative 
 <a id="section-12-4-5-13-2"></a>
 ###### 12.4.5.13.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>RELATIVE</u> KEY IS data-name-1
 </pre>
 <a id="section-12-4-5-13-3"></a>
@@ -14131,7 +14057,7 @@ The RESERVE clause allows the user to specify the number of input-output areas a
 <a id="section-12-4-5-14-2"></a>
 ###### 12.4.5.14.2 General format
 
-<pre>
+<pre style="line-height:1">
                   ┌ AREA  ┐
 <u>RESERVE</u> integer-1 │       │
                   └ AREAS ┘
@@ -14158,7 +14084,7 @@ The SHARING clause indicates that a file is to participate in file sharing and r
 <a id="section-12-4-5-15-2"></a>
 ###### 12.4.5.15.2 General format
 
-<pre>
+<pre style="line-height:1">
              ╭ <u>ALL</u> OTHER ╮
              │           │
 <u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├
@@ -14190,7 +14116,7 @@ The I-O-CONTROL paragraph specifies which files and data-items are to be subject
 <a id="section-12-4-6-2"></a>
 ##### 12.4.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>I-O-CONTROL</u> . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]
 </pre>
 
@@ -14207,7 +14133,7 @@ The APPLY COMMIT clause specifies which files and data-items are to be subject t
 <a id="section-12-4-6-3-2"></a>
 ###### 12.4.6.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>APPLY</u> <u>COMMIT</u> ON [ [ file-name-1 ] [ identifier-1 ] ]…
 </pre>
 
@@ -14277,17 +14203,17 @@ The SAME clause specifies files for which memory areas are to be shared during f
 
 Format 1 (file-area):
 
-<pre>
+<pre style="line-height:1">
 <u>SAME</u> AREA FOR file-name-1 { file-name-2 } …
 </pre>
 Format 2 (record-area):
 
-<pre>
+<pre style="line-height:1">
 <u>SAME</u> <u>RECORD</u> AREA FOR file-name-1 { file-name-2 } …
 </pre>
 Format 3 (sort-merge-area):
 
-<pre>
+<pre style="line-height:1">
      ╭ <u>SORT</u>       ╮
 <u>SAME</u> ┤            ├ AREA FOR file-name-1 { file-name-2 } …
      ╰ <u>SORT-MERGE</u> ╯
@@ -14371,7 +14297,7 @@ The following is the general format of the sections in the data division and def
 <a id="section-13-2-1"></a>
 #### 13.2.1 General format
 
-<pre>
+<pre style="line-height:1">
 <u>DATA</u> <u>DIVISION.</u>
 
 ┌               ┌                        ┌ constant-entry           ┐              ┐   ┐
@@ -14439,7 +14365,7 @@ The purpose of the file section is to describe the structure of data, sort, and 
 <a id="section-13-4-2"></a>
 #### 13.4.2 General format
 
-<pre>
+<pre style="line-height:1">
               ┌                        ┌ constant-entry           ┐              ┐
               │                        │                          │              │
               │ file-description-entry │ record-description-entry │ …            │
@@ -14492,7 +14418,7 @@ The file description entry furnishes information concerning the physical structu
 
 Format 1 (sequential):
 
-<pre>
+<pre style="line-height:1">
 <u>FD</u> file-name-1
 
 [ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
@@ -14530,7 +14456,7 @@ Format 1 (sequential):
 
 Format 2 (relative-or-indexed):
 
-<pre>
+<pre style="line-height:1">
 <u>FD</u> file-name-1
 
 [ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
@@ -14545,7 +14471,7 @@ Format 2 (relative-or-indexed):
 </pre>
 Format 3 (report):
 
-<pre>
+<pre style="line-height:1">
 <u>FD</u> file-name-1
 
 [ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
@@ -14666,7 +14592,7 @@ The sort-merge file description entry (SD entry) represents the highest level of
 <a id="section-13-4-6-2"></a>
 ##### 13.4.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SD</u> file-name-1
 [ record-clause ] .
 </pre>
@@ -14705,7 +14631,7 @@ The working-storage section describes records and subordinate data items that ar
 <a id="section-13-5-2"></a>
 #### 13.5.2 General format
 
-<pre>
+<pre style="line-height:1">
                          ┌ 77-level-description-entry ┐
                          │                            │
                          │ constant-entry             │
@@ -14755,7 +14681,7 @@ The local-storage section describes automatic data.
 <a id="section-13-6-2"></a>
 #### 13.6.2 General format
 
-<pre>
+<pre style="line-height:1">
                        ┌ 77-level-description-entry ┐
                        │                            │
                        │ constant-entry             │
@@ -14804,7 +14730,7 @@ Formal parameters and returning items described in the linkage section of a sour
 <a id="section-13-7-2"></a>
 #### 13.7.2 General format
 
-<pre>
+<pre style="line-height:1">
                  ┌ 77-level-description-entry ┐
                  │                            │
                  │ constant-entry             │
@@ -14880,7 +14806,7 @@ The report section describes the reports to be written to report files. The desc
 <a id="section-13-8-2"></a>
 #### 13.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>REPORT</u> <u>SECTION.</u> ┌                          ╭ constant-entry                 ╮ … ┐ …
                 │ report-description-entry ┤                                ├   │
                 └                          ╰ report-group-description-entry ╯   ┘
@@ -14974,7 +14900,7 @@ The screen section describes the screens to be displayed during terminal I-O. Th
 <a id="section-13-9-2"></a>
 #### 13.9.2 General format
 
-<pre>
+<pre style="line-height:1">
                 ┌ constant-entry           ┐
 <u>SCREEN</u> <u>SECTION.</u> │                          │ …
                 └ screen-description-entry ┘
@@ -15016,7 +14942,7 @@ A constant entry defines a constant. A constant may be used in place of a litera
 <a id="section-13-10-2"></a>
 #### 13.10.2 General format
 
-<pre>
+<pre style="line-height:1">
                                              ╭    ╭ arithmetic-expression-1    ╮ ╮
                                              │    │                            │ │
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
@@ -15118,7 +15044,7 @@ The report description entry names a report and describes its general physical a
 <a id="section-13-14-2"></a>
 #### 13.14.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>RD</u> report-name-1
 
 [ IS <u>GLOBAL</u> ]
@@ -15166,7 +15092,7 @@ The report group description entry specifies the characteristics of a report gro
 <a id="section-13-15-2"></a>
 #### 13.15.2 General format
 
-<pre>
+<pre style="line-height:1">
 level-number [ entry-name-clause ]
 [ type-clause ]
 [ next-group-clause ]
@@ -15291,7 +15217,7 @@ A level 1 data description entry in the working-storage section determines the i
 
 Format 1 (data-description):
 
-<pre>
+<pre style="line-height:1">
 level-number [ entry-name-clause ]
 [ <u>REDEFINES</u> data-name-1 ]
 [ IS <u>TYPEDEF</u> [ <u>STRONG</u> ] ]
@@ -15346,7 +15272,7 @@ level-number [ entry-name-clause ]
 
 where validation-clauses is:
 
-<pre>
+<pre style="line-height:1">
 [ class-clause ]
 [ default-clause ]
 [ <u>DESTINATION</u> IS { identifier-1 } … ]
@@ -15372,7 +15298,7 @@ where the following meta-language terms are described in the indicated subclause
 
 Format 2 (renames):
 
-<pre>
+<pre style="line-height:1">
                                    ┌ ╭ <u>THROUGH</u> ╮             ┐
 66 data-name-1 <u>RENAMES</u> data-name-4 │ ┤         ├ data-name-5 │ .
                                    └ ╰ <u>THRU</u>    ╯             ┘
@@ -15382,14 +15308,14 @@ Format 2 (renames):
 
 Format 3 (condition-name):
 
-<pre>
+<pre style="line-height:1">
 88 condition-name-1 value-clause .
 </pre>
 where value-clause is described in 13.18.63, VALUE clause (condition-name format).
 
 Format 4 (validation):
 
-<pre>
+<pre style="line-height:1">
 88 [ condition-name-2 ] value-clause .
 </pre>
 where value-clause is described in 13.18.63, VALUE clause (content-validation-entry format).
@@ -15520,7 +15446,7 @@ A screen description entry specifies attributes, behavior, size, and location of
 
 Format 1 (group):
 
-<pre>
+<pre style="line-height:1">
 level-number [ entry-name-clause ]
 
 [ IS <u>GLOBAL</u> ]
@@ -15574,7 +15500,7 @@ level-number [ entry-name-clause ]
 
 Format 2 (elementary):
 
-<pre>
+<pre style="line-height:1">
 level-number [ entry-name-clause ]
 
 [ IS <u>GLOBAL</u> ]
@@ -15641,7 +15567,7 @@ level-number [ entry-name-clause ]
 where entry-name-clause is described in 13.18.20, Entry-name clause where screen-attribute-clauses is:
 
 
-<pre>
+<pre style="line-height:1">
 [ <u>BELL</u> ]
 
 [ <u>BLINK</u> ]
@@ -15669,7 +15595,7 @@ where picture-clause is described in 13.18.40, PICTURE clause.
 
 where source-destination-clauses is:
 
-<pre>
+<pre style="line-height:1">
 ┌ ╭ │      ╭ identifier-5 ╮ │ ╮ ┐
 │ │ │ <u>FROM</u> ┤              ├ │ │ │
 │ ┤ │      ╰ literal-1    ╯ │ ├ │
@@ -15755,7 +15681,7 @@ The ALIGNED clause specifies that a bit group item or an elementary bit data ite
 <a id="section-13-18-1-2"></a>
 ##### 13.18.1.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>ALIGNED</u>
 </pre>
 <a id="section-13-18-1-3"></a>
@@ -15789,7 +15715,7 @@ The ANY LENGTH clause specifies that the length of a linkage section item may va
 <a id="section-13-18-2-2"></a>
 ##### 13.18.2.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>ANY</u> <u>LENGTH</u>
 </pre>
 <a id="section-13-18-2-3"></a>
@@ -15833,7 +15759,7 @@ The AUTO clause causes the cursor to be automatically moved to the next field de
 <a id="section-13-18-3-2"></a>
 ##### 13.18.3.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>AUTO</u>
 </pre>
 <a id="section-13-18-3-3"></a>
@@ -15863,7 +15789,7 @@ The BACKGROUND-COLOR clause specifies the background color for the screen item.
 <a id="section-13-18-4-2"></a>
 ##### 13.18.4.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ identifier-1 ╮
 <u>BACKGROUND-COLOR</u> IS ┤              ├
                     ╰ integer-1    ╯
@@ -15904,7 +15830,7 @@ The BASED clause defines a based entry. A based entry is a template that, when a
 <a id="section-13-18-5-2"></a>
 ##### 13.18.5.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>BASED</u>
 </pre>
 <a id="section-13-18-5-3"></a>
@@ -15942,7 +15868,7 @@ The BELL clause causes the terminal audio tone to sound.
 <a id="section-13-18-6-2"></a>
 ##### 13.18.6.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>BELL</u>
 </pre>
 <a id="section-13-18-6-3"></a>
@@ -15967,7 +15893,7 @@ The BLANK clause clears a screen line or clears the whole screen during the exec
 <a id="section-13-18-7-2"></a>
 ##### 13.18.7.2 General format
 
-<pre>
+<pre style="line-height:1">
       ╭ <u>LINE</u>   ╮
 <u>BLANK</u> ┤        ├
       ╰ <u>SCREEN</u> ╯
@@ -16002,7 +15928,7 @@ The BLANK WHEN ZERO clause causes the blanking of an item when a value of zero i
 <a id="section-13-18-8-2"></a>
 ##### 13.18.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>BLANK</u> WHEN <u>ZERO</u>
 </pre>
 <a id="section-13-18-8-3"></a>
@@ -16038,7 +15964,7 @@ The BLINK clause specifies that each character of the field blinks when it is di
 <a id="section-13-18-9-2"></a>
 ##### 13.18.9.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>BLINK</u>
 </pre>
 <a id="section-13-18-9-3"></a>
@@ -16062,7 +15988,7 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 <a id="section-13-18-10-2"></a>
 ##### 13.18.10.2 General format
 
-<pre>
+<pre style="line-height:1">
                                           ╭ CHARACTERS ╮
 <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├
                                           ╰ <u>RECORDS</u>    ╯
@@ -16113,7 +16039,7 @@ The CLASS clause specifies a range of values for each character of a data item, 
 <a id="section-13-18-11-2"></a>
 ##### 13.18.11.2 General format
 
-<pre>
+<pre style="line-height:1">
          ╭ <u>NUMERIC</u>          ╮
          │                  │
          │ <u>ALPHABETIC</u>       │
@@ -16164,7 +16090,7 @@ The CODE clause specifies one or more characters used to separate multiple repor
 <a id="section-13-18-12-2"></a>
 ##### 13.18.12.2 General format
 
-<pre>
+<pre style="line-height:1">
         ╭ literal-1    ╮
 <u>CODE</u> IS ┤              ├
         ╰ identifier-1 ╯
@@ -16205,7 +16131,7 @@ The CODE-SET clause specifies the character code convention used to represent da
 <a id="section-13-18-13-2"></a>
 ##### 13.18.13.2 General format
 
-<pre>
+<pre style="line-height:1">
          ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮
          │                                             │
 <u>CODE-SET</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├
@@ -16273,7 +16199,7 @@ The COLUMN clause identifies a printable item, or a set of printable items, and 
 
 Format 1 (report-writer):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>COLUMN</u> NUMBER  ╮
 │                │
 │ <u>COLUMN</u> NUMBERS │ ╭ LEFT   ╮         ╭ integer-1          ╮
@@ -16291,7 +16217,7 @@ Format 1 (report-writer):
 
 Format 2 (screen-item):
 
-<pre>
+<pre style="line-height:1">
                      ┌ <u>PLUS</u>  ┐
                      │       │
 ╭ <u>COLUMN</u> ╮           │ +     │ ╭ identifier-1 ╮
@@ -16441,7 +16367,7 @@ The CONSTANT RECORD clause identifies a structured constant. The content of a st
 <a id="section-13-18-15-2"></a>
 ##### 13.18.15.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>CONSTANT</u> <u>RECORD</u>
 </pre>
 <a id="section-13-18-15-3"></a>
@@ -16477,7 +16403,7 @@ The CONTROL clause establishes a hierarchy of control breaks for the report.
 <a id="section-13-18-16-2"></a>
 ##### 13.18.16.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>CONTROL</u> IS   ╮ ╭ { data-name-1 } …       ╮
 ┤              ├ ┤                         ├
 ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯
@@ -16541,7 +16467,7 @@ NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete feature.
 <a id="section-13-18-17-2"></a>
 ##### 13.18.17.2 General format
 
-<pre>
+<pre style="line-height:1">
            ╭ literal-1    ╮
            │              │
 <u>DEFAULT</u> IS ┤ identifier-1 ├
@@ -16599,7 +16525,7 @@ NOTE The DESTINATION clause feature of the VALIDATE facility is an obsolete feat
 <a id="section-13-18-18-2"></a>
 ##### 13.18.18.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>DESTINATION</u> IS { identifier-1 } …
 </pre>
 <a id="section-13-18-18-3"></a>
@@ -16638,7 +16564,7 @@ The DYNAMIC LENGTH clause specifies that the length of a data item can vary at r
 <a id="section-13-18-19-2"></a>
 ##### 13.18.19.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>DYNAMIC</u> LENGTH [ dynamic-length-structure-name-1 ] [ <u>LIMIT</u> IS integer-1 ]
 </pre>
 <a id="section-13-18-19-3"></a>
@@ -16676,17 +16602,17 @@ The entry-name clause specifies the name of the item that is being described. A 
 
 Format 1 (data-name)
 
-<pre>
+<pre style="line-height:1">
 data-name-1
 </pre>
 Format 2 (screen-name)
 
-<pre>
+<pre style="line-height:1">
 screen-name-1
 </pre>
 Format 3 (filler)
 
-<pre>
+<pre style="line-height:1">
 <u>FILLER</u>
 </pre>
 <a id="section-13-18-20-3"></a>
@@ -16720,7 +16646,7 @@ The ERASE clause clears part of the line or the screen starting at the cursor po
 <a id="section-13-18-21-2"></a>
 ##### 13.18.21.2 General format
 
-<pre>
+<pre style="line-height:1">
       ╭ END OF <u>LINE</u>   ╮
       │               │
       │ END OF <u>SCREEN</u> │
@@ -16765,7 +16691,7 @@ The EXTERNAL clause specifies that a type declaration, data item, or a file conn
 <a id="section-13-18-22-2"></a>
 ##### 13.18.22.2 General format
 
-<pre>
+<pre style="line-height:1">
 IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ]
 </pre>
 <a id="section-13-18-22-3"></a>
@@ -16824,7 +16750,7 @@ The FOREGROUND clause specifies the foreground color for the screen item.
 <a id="section-13-18-23-2"></a>
 ##### 13.18.23.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ identifier-1 ╮
 <u>FOREGROUND-COLOR</u> IS ┤              ├
                     ╰ integer-1    ╯
@@ -16867,7 +16793,7 @@ The FORMAT clause specifies that records written to the file are to be formatted
 <a id="section-13-18-24-2"></a>
 ##### 13.18.24.2 General format
 
-<pre>
+<pre style="line-height:1">
        ╭ │ <u>BIT</u>       │ ╮
        │ │           │ │
 <u>FORMAT</u> ┤ │ <u>CHARACTER</u> │ ├ DATA
@@ -16981,7 +16907,7 @@ The FROM clause specifies the source of data for an ACCEPT screen statement and 
 <a id="section-13-18-25-2"></a>
 ##### 13.18.25.2 General format
 
-<pre>
+<pre style="line-height:1">
      ╭ identifier-1 ╮
 <u>FROM</u> ┤              ├
      ╰ literal-1    ╯
@@ -17024,7 +16950,7 @@ The FULL clause specifies that the operator shall either leave the screen item c
 <a id="section-13-18-26-2"></a>
 ##### 13.18.26.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FULL</u>
 </pre>
 <a id="section-13-18-26-3"></a>
@@ -17067,7 +16993,7 @@ The GLOBAL clause specifies that a constant-name, a data-name, a file-name, a re
 <a id="section-13-18-27-2"></a>
 ##### 13.18.27.2 General format
 
-<pre>
+<pre style="line-height:1">
 IS <u>GLOBAL</u>
 </pre>
 <a id="section-13-18-27-3"></a>
@@ -17117,7 +17043,7 @@ The GROUP INDICATE clause specifies that the associated printable item is printe
 <a id="section-13-18-28-2"></a>
 ##### 13.18.28.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>GROUP</u> INDICATE
 </pre>
 <a id="section-13-18-28-3"></a>
@@ -17155,7 +17081,7 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 <a id="section-13-18-29-2"></a>
 ##### 13.18.29.2 General format
 
-<pre>
+<pre style="line-height:1">
                ╭ <u>BIT</u>      ╮
 <u>GROUP-USAGE</u> IS ┤          ├
                ╰ <u>NATIONAL</u> ╯
@@ -17213,7 +17139,7 @@ The HIGHLIGHT clause specifies that the field is to appear on the screen with th
 <a id="section-13-18-30-2"></a>
 ##### 13.18.30.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>HIGHLIGHT</u>
 </pre>
 <a id="section-13-18-30-3"></a>
@@ -17242,7 +17168,7 @@ NOTE    The INVALID clause feature of the VALIDATE facility is an obsolete featu
 <a id="section-13-18-31-2"></a>
 ##### 13.18.31.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>INVALID</u> <u>WHEN</u> condition-1
 </pre>
 <a id="section-13-18-31-3"></a>
@@ -17278,7 +17204,7 @@ The JUSTIFIED clause specifies right justification of data within a receiving da
 <a id="section-13-18-32-2"></a>
 ##### 13.18.32.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>JUSTIFIED</u> ╮
 ┤           ├ RIGHT
 ╰ <u>JUST</u>      ╯
@@ -17320,7 +17246,7 @@ Level numbers 1 through 49 indicate the position of a data item or screen item w
 <a id="section-13-18-33-2"></a>
 ##### 13.18.33.2 General format
 
-<pre>
+<pre style="line-height:1">
 level-number
 </pre>
 <a id="section-13-18-33-3"></a>
@@ -17369,7 +17295,7 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 <a id="section-13-18-34-2"></a>
 ##### 13.18.34.2 General format
 
-<pre>
+<pre style="line-height:1">
           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐
 <u>LINAGE</u> IS ┤             ├ LINES │ WITH <u>FOOTING</u> AT ┤             ├ │
           ╰ integer-1   ╯       └                 ╰ integer-2   ╯ ┘
@@ -17474,7 +17400,7 @@ The LINE clause also specifies vertical positioning for its screen item.
 
 Format 1 (report-writer):
 
-<pre>
+<pre style="line-height:1">
   <u>LINE</u> NUMBER IS     ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
                      │                            │
 ╭                  ╮ │ ╭ <u>PLUS</u> ╮                   │ …
@@ -17489,7 +17415,7 @@ Format 1 (report-writer):
 
 Format 2 (screen):
 
-<pre>
+<pre style="line-height:1">
                ┌ <u>PLUS</u>  ┐
                │       │
                │ +     │ ╭ identifier-1 ╮
@@ -17664,7 +17590,7 @@ The LOWLIGHT clause specifies that the field is to appear on the screen with the
 <a id="section-13-18-36-2"></a>
 ##### 13.18.36.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>LOWLIGHT</u>
 </pre>
 <a id="section-13-18-36-3"></a>
@@ -17686,7 +17612,7 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
 <a id="section-13-18-37-2"></a>
 ##### 13.18.37.2 General format
 
-<pre>
+<pre style="line-height:1">
               ╭ integer-1                ╮
               │                          │
               │ ╭ <u>PLUS</u> ╮                 │
@@ -17786,7 +17712,7 @@ The OCCURS clause describes repeated data items, report items, and screen items 
 
 Format 1 (fixed-table):
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> integer-2 TIMES
 
 ┌ ╭ <u>ASCENDING</u>  ╮                          ┐
@@ -17798,7 +17724,7 @@ Format 1 (fixed-table):
 
 Format 2 (occurs-depending-table):
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1
 
 ┌ ╭ <u>ASCENDING</u>  ╮                          ┐
@@ -17810,12 +17736,12 @@ Format 2 (occurs-depending-table):
 
 Format 3 (report-writer):
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> [ integer-1 <u>TO</u> ] integer-2 TIMES [ <u>DEPENDING</u> ON data-name-1 ] [ <u>STEP</u> integer-3 ]
 </pre>
 Format 4 (dynamic-capacity-table):
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> <u>DYNAMIC</u> [ <u>CAPACITY</u> IN data-name-3 ] <u>[FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
 
 ┌ ╭ <u>ASCENDING</u>  ╮                          ┐
@@ -17948,7 +17874,7 @@ FORMATS 1, 2 AND 4
 
 1) Except for the OCCURS clause itself, all data description clauses associated with an item whose description includes an OCCURS clause apply to each occurrence of the item described.
 
-2) The allocation and format of the index defined by index-name-1 are dependent on the implementor and the hardware. The implementor shall specify the rules for the range of values allowed in the index defined by index-name-1. This range shall include at least the value corresponding to the occurrence number (1 - integer-2) through and including the value corresponding to the occurrence number (2 * integer-2). An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement. If the execution of one of these statements creates a value for the index that is outside the range of the values allowed by the implementor:
+2) The allocation and format of the index defined by index-name-1 are dependent on the implementor and the hardware. The implementor shall specify the rules for the range of values allowed in the index defined by index-name-1. This range shall include at least the value corresponding to the occurrence number (1 - integer-2) through and including the value corresponding to the occurrence number (2 \* integer-2). An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement. If the execution of one of these statements creates a value for the index that is outside the range of the values allowed by the implementor:
 
 
 ---
@@ -18054,7 +17980,7 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 <a id="section-13-18-39-2"></a>
 ##### 13.18.39.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭ integer-1                                         ╮
 <u>PAGE</u> ┌ LIMIT IS   ┐ ┤ ┌                     ┐ ┌                       ┐ ├
      │            │ │ │           ╭ <u>LINE</u>  ╮ │ │           ╭ <u>COLS</u>    ╮ │ │
@@ -18150,7 +18076,7 @@ The PICTURE clause describes the General characteristics, editing requirements, 
 
 Format 1 (basic):
 
-<pre>
+<pre style="line-height:1">
   <u>PICTURE</u>                     ┌                     ╭ IS literal-1                      ╮ ┐
                               │                     │                                   │ │
 ╭     ╮ IS character-string-1 │ <u>EDITING</u> character-1 ┤       │ <u>NEGATIVE</u> IS literal-2 │   ├ │ …
@@ -18165,7 +18091,7 @@ Format 1 (basic):
 
 Format 2 (locale):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>PICTURE</u> ╮
 ┤         ├ IS character-string-1 <u>LOCALE</u> [ IS locale-name-1 ] <u>SIZE</u> IS integer-1
 ╰ <u>PIC</u>     ╯
@@ -18254,9 +18180,9 @@ NOTE 2 The symbols 'CR' and 'DB' although consisting of two characters, are each
 
 20) The symbol 'V' and the symbol '.' are mutually exclusive in character-string-1.
 
-21) The symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1.
+21) The symbol 'Z' and the symbol '\*' are mutually exclusive in character-string-1.
 
-22) Neither the symbol 'S' nor the symbol '*' shall be specified in character-string-1 when the BLANK WHEN ZERO clause is specified for the subject of the entry.
+22) Neither the symbol 'S' nor the symbol '\*' shall be specified in character-string-1 when the BLANK WHEN ZERO clause is specified for the subject of the entry.
 
 23) The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in character-string-1 with the exception of a numeric-edited data item for a floating-point edited result as described in General rule 13b.
 
@@ -18284,7 +18210,7 @@ NOTE 4 This means that the following are valid picture character-strings:
 — a string of two or more symbols '+';
 — a string of two or more symbols '-';
 — a string of two or more currency symbols;
-— a string of one or more symbols '*';
+— a string of one or more symbols '\*';
 — a string of one or more symbols 'Z'.
 
 NOTE 5 This means, for example, that the picture character-string +$$$ is valid, but that the picture character-string +++$$$ is invalid.
@@ -18375,7 +18301,7 @@ a) To define a fixed-point numeric-edited item, character-string-1 shall include
 
 — at least one symbol 'Z'; or
 
-— at least one symbol '*'; or
+— at least one symbol '\*'; or
 
 — at least two identical symbols from the set '+', '-', currency symbol; or
 
@@ -18774,51 +18700,43 @@ The symbols '+' and '-' when used as a non-floating insertion symbol appear in t
 ---
 
 
-The symbol 'P', the currency symbol when used as a floating insertion symbol, the pair of zero-suppression symbols 'Z' and '*', and the pair of floating insertion symbols '+' and '-' appear in two columns and in two rows in Table 10. The leftmost column and the uppermost row for these symbols represent their use to the left of the decimal point position. The rightmost column and the lowermost row for these symbols represent their use to the right of the decimal point position.
+The symbol 'P', the currency symbol when used as a floating insertion symbol, the pair of zero-suppression symbols 'Z' and '\*', and the pair of floating insertion symbols '+' and '-' appear in two columns and in two rows in Table 10. The leftmost column and the uppermost row for these symbols represent their use to the left of the decimal point position. The rightmost column and the lowermost row for these symbols represent their use to the right of the decimal point position.
 
 For the purposes of Table 10, character-string-1 for a numeric-edited item for a floating-point edited result is considered as two separate strings, the first of which begins with the first symbol and ends with the symbol 'E', and the second of which begins with the symbol 'E' and ends with the last symbol. The presence of symbols preceding the symbol 'E' has no effect on the validity of symbols following the symbol 'E'.
 
 When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged.
 
 
-## Table 10 — Format 1 picture symbol order of precedence
+**Table 10 — Format 1 picture symbol order of precedence**
 
 | Second Symbol | | **First Symbol** | | | | | | | | | | | | | | | | | | | | | | | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| | | **Simple, special, and fixed insertion symbols** | | | | | | | | | **Zero-suppression and floating insertion symbols** | | | | | | | **Other symbols** | | | | | | | |
-| | | B 0 / | , | . | + | + − | + − | C R D B | c s | c s | Z * | Z * | + − | + − | c s | c s | 9 | A X | S | V | P | P | 1 | N | E |
-| **Simple, special, and fixed insertion symbols** | B 0 / | x | x | x | | x | | | x | | x | x | x | x | x | x | x | x | | x | | x | | x | |
-| | , | x | x | x | | x | | | x | | x | x | x | x | x | x | x | | | x | | x | | | |
-| | . | x | x | | | x | | | x | | x | | x | | x | | x | | | | | | | | |
-| | + | | | | | | | | | | | | | | | | | | | | | | | | x |
-| | + − | | | | | | | | | | | | | | | | | | | | | | | | |
-| | + − | x | x | x | | | | | x | x | x | x | | | x | x | x | | | x | x | x | | | |
-| | CR DB | x | x | x | | | | | x | x | x | x | | | x | x | x | | | x | x | x | | | |
-| | cs | | | | | x | | | | | | | | | | | | | | | | | | | |
-| | cs | x | x | x | | x | | | | | x | x | | | | | x | | | x | x | x | | | |
-| **Zero-suppression and floating insertion symbols** | Z * | x | x | | | x | | | x | | x | | | | | | | | | | | | | | |
-| | Z * | x | x | x | | x | | | x | | x | x | | | | | | | | x | | x | | | |
-| | + − | x | x | | | | | | x | | | | x | | | | | | | | | | | | |
-| | + − | x | x | x | | | | | x | | | | x | x | | | | | | x | | | | | |
-| | cs | x | x | | | x | | | | | | | | | x | | | | | | | | | | |
-| | cs | x | x | x | | x | | | | | | | | | x | x | | | | x | | | | | |
-
-
----
-
-
-**Table 10 — Format 1 picture symbol order of precedence**
-
-| Other symbols | | 9 | x | x | x | x | x | | | x | | x | | x | | x | | x | x | x | x | | x | | | x |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| | A X | x | | | | | | | | | | | | | | | | x | x | | | | | | | |
-| | S | | | | | | | | | | | | | | | | | | | | | | | | | |
-| | V | x | x | | | x | | | x | | x | | x | | x | | x | | x | | x | | | | | |
-| | P | x | x | | | x | | | x | | x | | x | | x | | x | | x | | | | | | |
-| | P | | | | | x | | | x | | | | | | | | | x | x | | x | | | | |
-| | 1 | | | | | | | | | | | | | | | | | | | | | | x | | | |
-| | N | x | | | | | | | | | | | | | | | | | | | | | | | x | |
-| | E | x | x | x | | x | | | | | | | | | | x | | | | | | | | | |
+|  |  | **Simple, special, and fixed insertion symbols** |  |  |  |  |  |  |  |  | **Zero-suppression and floating insertion symbols** |  |  |  |  |  | **Other symbols** |  |  |  |  |  |  |  |  |
+|  |  | B 0 / | , | . | + | + − | + − | CR DB | cs | cs | Z \* | Z \* | + − | + − | cs | cs | 9 | A X | S | V | P | P | 1 | N | E |
+| **Simple, special, and fixed insertion symbols** | B 0 / | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x | x |  | x |  | x |  | x |  |
+|  | , | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x |  |  | x |  | x |  |  |  |
+|  | . | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  |  |  |  |  |  |  |  |
+|  | + |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x |
+|  | + − |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | + − | x | x | x |  |  |  |  | x | x | x | x |  |  | x | x | x |  |  | x | x | x |  |  |  |
+|  | CR DB | x | x | x |  |  |  |  | x | x | x | x |  |  | x | x | x |  |  | x | x | x |  |  |  |
+|  | cs |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | cs | x | x | x |  | x |  |  |  |  | x | x |  |  |  |  | x |  |  | x | x | x |  |  |  |
+| **Zero-suppression and floating insertion symbols** | Z \* | x | x |  |  | x |  |  | x |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | Z \* | x | x | x |  | x |  |  | x |  | x | x |  |  |  |  |  |  |  | x |  | x |  |  |  |
+|  | + − | x | x |  |  |  |  |  | x |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | + − | x | x | x |  |  |  |  | x |  |  |  | x | x |  |  |  |  |  | x |  |  |  |  |  |
+|  | cs | x | x |  |  | x |  |  |  |  |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |
+|  | cs | x | x | x |  | x |  |  |  |  |  |  |  |  | x | x |  |  |  | x |  |  |  |  |  |
+| **Other symbols** | 9 | x | x | x | x | x |  |  | x |  | x |  | x |  | x |  | x | x | x | x |  | x |  |  | x |
+|  | A X | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x | x |  |  |  |  |  |  |  |
+|  | S |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | V | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  | x |  | x |  |  |  |  |
+|  | P | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  | x |  | x |  |  |  |  |
+|  | P |  |  |  |  | x |  |  | x |  |  |  |  |  |  |  |  |  | x | x |  | x |  |  |  |
+|  | 1 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x |  |  |
+|  | N | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x |  |
+|  | E | x | x | x |  | x |  |  |  |  |  |  |  |  |  |  | x |  |  |  |  |  |  |  |  |
 
 If the EDITING phrase is specified, the precedence of 'es' as related to Table 10, Format 1 picture symbol order of precedence, has the same precedence as the 'cs' symbol in the column and row of non-floating insertion symbols.
 
@@ -18855,12 +18773,12 @@ NOTE The PRESENT WHEN clause feature of the VALIDATE facility is an obsolete fea
 
 Format 1 (report-writer):
 
-<pre>
+<pre style="line-height:1">
 <u>PRESENT</u> <u>WHEN</u> condition-1
 </pre>
 Format 2 (validation):
 
-<pre>
+<pre style="line-height:1">
 <u>PRESENT</u> <u>WHEN</u> condition-2
 </pre>
 <a id="section-13-18-41-3"></a>
@@ -18934,7 +18852,7 @@ The PROPERTY clause indicates that this data item is a property of the object an
 <a id="section-13-18-42-2"></a>
 ##### 13.18.42.2 General format
 
-<pre>
+<pre style="line-height:1">
          ┌         ╭ <u>GET</u> ╮ ┐
 <u>PROPERTY</u> │ WITH <u>NO</u> ┤     ├ │ [ IS <u>FINAL</u> ]
          └         ╰ <u>SET</u> ╯ ┘
@@ -19092,7 +19010,7 @@ The RECORD clause specifies the number of bytes in a fixed length record, or spe
 
 Format 1 (fixed-length):
 
-<pre>
+<pre style="line-height:1">
                           ╭ BYTES      ╮
 <u>RECORD</u> CONTAINS integer-1 ┤            ├
                           ╰ CHARACTERS ╯
@@ -19102,7 +19020,7 @@ Format 1 (fixed-length):
 
 Format 2 (variable-length):
 
-<pre>
+<pre style="line-height:1">
 <u>RECORD</u> IS <u>VARYING</u> IN SIZE ┌                                     ╭ BYTES      ╮ ┐
                           │ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] ┤            ├ │
                           └                                     ╰ CHARACTERS ╯ ┘
@@ -19114,7 +19032,7 @@ Format 2 (variable-length):
 
 Format 3 (fixed-or-variable-length):
 
-<pre>
+<pre style="line-height:1">
                                        ╭ BYTES      ╮
 <u>RECORD</u> CONTAINS integer-4 <u>TO</u> integer-5 ┤            ├
                                        ╰ CHARACTERS ╯
@@ -19250,7 +19168,7 @@ The REDEFINES clause allows the same computer storage area to be described by di
 <a id="section-13-18-44-2"></a>
 ##### 13.18.44.2 General format
 
-<pre>
+<pre style="line-height:1">
 level-number [ entry-name-clause ] <u>REDEFINES</u> data-name-2
 </pre>
 where entry-name-clause is described in 13.18.20, Entry-name clause
@@ -19325,7 +19243,7 @@ The RENAMES clause permits alternative, possibly overlapping, groupings of eleme
 <a id="section-13-18-45-2"></a>
 ##### 13.18.45.2 General format
 
-<pre>
+<pre style="line-height:1">
                                    ┌ ╭ <u>THROUGH</u> ╮             ┐
 66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .
                                    └ ╰ <u>THRU</u>    ╯             ┘
@@ -19385,7 +19303,7 @@ The REPORT clause identifies the reports that may be written to a report file.
 <a id="section-13-18-46-2"></a>
 ##### 13.18.46.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>REPORT</u> IS   ╮
 ┤             ├ { report-name-1 } …
 ╰ <u>REPORTS</u> ARE ╯
@@ -19421,7 +19339,7 @@ The REQUIRED clause specifies that in the context of an ACCEPT screen statement,
 <a id="section-13-18-47-2"></a>
 ##### 13.18.47.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>REQUIRED</u>
 </pre>
 <a id="section-13-18-47-3"></a>
@@ -19460,7 +19378,7 @@ The REVERSE-VIDEO clause specifies that the screen item is to be displayed by ex
 <a id="section-13-18-48-2"></a>
 ##### 13.18.48.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>REVERSE-VIDEO</u>
 </pre>
 <a id="section-13-18-48-3"></a>
@@ -19485,7 +19403,7 @@ The SAME AS clause specifies that a data-name has the same description as that s
 <a id="section-13-18-49-2"></a>
 ##### 13.18.49.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SAME</u> <u>AS</u> data-name-1
 </pre>
 <a id="section-13-18-49-3"></a>
@@ -19548,7 +19466,7 @@ The SECURE clause prevents data entered from the keyboard or contained in the sc
 <a id="section-13-18-50-2"></a>
 ##### 13.18.50.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SECURE</u>
 </pre>
 <a id="section-13-18-50-3"></a>
@@ -19576,7 +19494,7 @@ The SELECT WHEN clause specifies a condition-name condition under which a record
 <a id="section-13-18-51-2"></a>
 ##### 13.18.51.2 General format
 
-<pre>
+<pre style="line-height:1">
             ╭ condition-name-1 ╮
 <u>SELECT</u> <u>WHEN</u> ┤                  ├
             ╰ <u>OTHER</u>            ╯
@@ -19633,7 +19551,7 @@ The SIGN clause specifies the position and the mode of representation of the ope
 <a id="section-13-18-52-2"></a>
 ##### 13.18.52.2 General format
 
-<pre>
+<pre style="line-height:1">
             ╭ <u>LEADING</u>  ╮
 [ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ]
             ╰ <u>TRAILING</u> ╯
@@ -19695,7 +19613,7 @@ The SOURCE clause identifies a data item or expression to be moved automatically
 <a id="section-13-18-53-2"></a>
 ##### 13.18.53.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>SOURCE</u> IS   ╮ ╭ identifier-1            ╮
 ┤             ├ ┤                         ├ … [ rounded-phrase ]
 ╰ <u>SOURCES</u> ARE ╯ ╰ arithmetic-expression-1 ╯
@@ -19754,7 +19672,7 @@ The SUM clause specifies one or more data items that are to be totaled to provid
 <a id="section-13-18-54-2"></a>
 ##### 13.18.54.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭        ╭ data-name-1             ╮                              ╮
 ┤ <u>SUM</u> OF │                         │ … [ <u>UPON</u> { data-name-2 } … ] ├ …
 │        ┤ identifier-1            ├                              │
@@ -19880,7 +19798,7 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 <a id="section-13-18-55-2"></a>
 ##### 13.18.55.2 General format
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>SYNCHRONIZED</u> ╮ ┌ <u>LEFT</u>  ┐
 ┤              ├ │       │
 ╰ <u>SYNC</u>         ╯ └ <u>RIGHT</u> ┘
@@ -19954,7 +19872,7 @@ The TO clause identifies the destination of the data in an ACCEPT screen stateme
 <a id="section-13-18-56-2"></a>
 ##### 13.18.56.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>TO</u> identifier-1
 </pre>
 <a id="section-13-18-56-3"></a>
@@ -19994,12 +19912,12 @@ The TYPE clause in a report group description entry identifies the circumstances
 
 Format 1 (type-name):
 
-<pre>
+<pre style="line-height:1">
 <u>TYPE</u> TO type-name-1
 </pre>
 Format 2 (report-group):
 
-<pre>
+<pre style="line-height:1">
         ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                                          ╮
         │ ┤                ├                                          │
         │ ╰ <u>RH</u>             ╯                                          │
@@ -20213,7 +20131,7 @@ NOTE A data description entry declared at level-number 1 that includes a TYPEDEF
 <a id="section-13-18-58-2"></a>
 ##### 13.18.58.2 General format
 
-<pre>
+<pre style="line-height:1">
 IS <u>TYPEDEF</u> [ <u>STRONG</u> ]
 </pre>
 <a id="section-13-18-58-3"></a>
@@ -20255,7 +20173,7 @@ The UNDERLINE clause specifies that each character of the field is underlined wh
 <a id="section-13-18-59-2"></a>
 ##### 13.18.59.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>UNDERLINE</u>
 </pre>
 <a id="section-13-18-59-3"></a>
@@ -20285,7 +20203,7 @@ The USAGE clause specifies the representation of a data item in the computer sto
 <a id="section-13-18-60-2"></a>
 ##### 13.18.60.2 General format
 
-<pre>
+<pre style="line-height:1">
              ╭ <u>BINARY</u>                                                           ╮
              │                                                                  │
              │             ╭ SIGNED    ╮                                        │
@@ -20361,7 +20279,7 @@ The USAGE clause specifies the representation of a data item in the computer sto
 
 where encoding-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>BINARY-ENCODING</u>  ╮
 ┤                  ├
 ╰ <u>DECIMAL-ENCODING</u> ╯
@@ -20369,7 +20287,7 @@ where encoding-phrase is:
 
 where endianness-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>HIGH-ORDER-LEFT</u>  ╮
 ┤                  ├
 ╰ <u>HIGH-ORDER-RIGHT</u> ╯
@@ -20603,7 +20521,7 @@ The USING clause identifies data to be used both as the destination in an ACCEPT
 <a id="section-13-18-61-2"></a>
 ##### 13.18.61.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>USING</u> identifier-1
 </pre>
 <a id="section-13-18-61-3"></a>
@@ -20643,7 +20561,7 @@ NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsole
 <a id="section-13-18-62-2"></a>
 ##### 13.18.62.2 General format
 
-<pre>
+<pre style="line-height:1">
                                                           ┌    ╭ │ <u>FORMAT</u>   │ ╮ ┐
                                                           │    │ │          │ │ │
 ╭ <u>VALIDATE-STATUS</u> ╮ IS ╭ identifier-1 ╮ WHEN ╭ <u>ERROR</u>    ╮ │ <u>ON</u> ┤ │ <u>CONTENT</u>  │ ├ │
@@ -20732,12 +20650,12 @@ The VALUE clause specifies the initial value of local-storage section and workin
 
 Format 1 (data-item):
 
-<pre>
+<pre style="line-height:1">
 <u>VALUE</u> IS literal-1
 </pre>
 Format 2 (table):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>VALUE</u> IS   ╮
 ┤            ├ { { literal-1 } … <u>FROM</u> ( { subscript-1 } … ) [ <u>TO</u> ( { subscript-2 } … ) ] } …
 ╰ <u>VALUES</u> ARE ╯
@@ -20747,7 +20665,7 @@ Format 2 (table):
 
 Format 3 (condition-name):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>VALUE</u> IS   ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮
 ┤            ├ ┤ literal-2 │ ┤         ├ literal-3 │ ├ … [ IN alphabet-name-1 ]
 ╰ <u>VALUES</u> ARE ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
@@ -20759,7 +20677,7 @@ Format 3 (condition-name):
 
 Format 4 (report-section):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>VALUE</u> IS   ╮
 ┤            ├ { literal-1 } …
 ╰ <u>VALUES</u> ARE ╯
@@ -20769,7 +20687,7 @@ Format 4 (report-section):
 
 Format 5 (content-validation-entry):
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>VALUE</u>  ╮ ╭           ┌   <u>THROUGH</u>          ┐ ╮
 │        │ │           │                    │ │
 ┤        ├ ┤ literal-5 │ ╭      ╮ literal-6 │ ├
@@ -21045,7 +20963,7 @@ NOTE    The VARYING clause feature of the VALIDATE facility is an obsolete featu
 <a id="section-13-18-64-2"></a>
 ##### 13.18.64.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>VARYING</u> { data-name-1 [ <u>FROM</u> arithmetic-expression-1 ] [ <u>BY</u> arithmetic-expression-2 ] } …
 </pre>
 <a id="section-13-18-64-3"></a>
@@ -21112,7 +21030,7 @@ The procedure division in a function prototype, method prototype, or program pro
 
 Format 1 (with-sections):
 
-<pre>
+<pre style="line-height:1">
 procedure-division-header
 [ <u>DECLARATIVES.</u>
 { section-name-1 <u>SECTION.</u>
@@ -21125,14 +21043,14 @@ use-statement.
 
 Format 2 (without-sections):
 
-<pre>
+<pre style="line-height:1">
 procedure-division-header
 [ sentence ] … [ { paragraph-name-1. [ sentence ] … } … ]
 </pre>
 
 Format 3 (object-oriented):
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION.</u>
 [ { method-definition } … ]
 </pre>
@@ -21145,7 +21063,7 @@ Format 3 (object-oriented):
 
 where procedure-division-header is:
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u> [ using-phrase ] [ <u>RETURNING</u> data-name-2 ]
 
 ┌         ╭ exception-name-1                   ╮     ┐
@@ -21159,7 +21077,7 @@ where procedure-division-header is:
 
 where using-phrase is:
 
-<pre>
+<pre style="line-height:1">
       ╭ [ BY <u>REFERENCE</u> ] { [ <u>OPTIONAL</u> ] data-name-1 } … ╮
 <u>USING</u> ┤                                                 ├ …
       ╰ BY <u>VALUE</u> { data-name-1 } …                      ╯
@@ -21379,12 +21297,6 @@ Wherever 'imperative-statement' appears in the general format of a statement, 'i
 | FREE | | |
 | GENERATE | | |
 | GOBACK | | |
-
-
-**Table 12 — Procedural statements (Continued)**
-
-| Statement name | Conditional phrase | Explicit scope terminator |
-|---|---|---|
 | GO TO | | |
 | IF | THEN<br>ELSE | END-IF |
 | INITIALIZE | | |
@@ -21413,12 +21325,6 @@ Wherever 'imperative-statement' appears in the general format of a statement, 'i
 | STRING | [NOT] ON OVERFLOW | END-STRING |
 | SUBTRACT | [NOT] ON SIZE ERROR | END-SUBTRACT |
 | SUPPRESS | | |
-
-
-**Table 12 — Procedural statements (Continued)**
-
-| **Statement name** | **Conditional phrase** | **Explicit scope terminator** |
-|---|---|---|
 | TERMINATE | | |
 | UNLOCK | | |
 | UNSTRING | [NOT] ON OVERFLOW | END-UNSTRING |
@@ -21979,7 +21885,7 @@ Description **-** A brief description of what the exception condition means.
 ---
 
 
-## Table 13 — Exception-names and exception conditions
+**Table 13 — Exception-names and exception conditions**
 
 | Exception-name | Cat | Description |
 |---|---|---|
@@ -22005,12 +21911,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-DATA-IMP | Imp | Implementor-defined data exception |
 | EC-DATA-INCOMPATIBLE | Fatal | Incompatible data exception |
 | EC-DATA-NOT-FINITE | Fatal | Attempt to use a data item described with a standard floating-point usage when its contents are either a NaN or a representation of infinity |
-
-
-## Table 13 — Exception-names and exception conditions (Continued)
-
-| Exception-name | Cat | Description |
-|---|---|---|
 | EC-DATA-OVERFLOW | Fatal | Exponent overflow during MOVE to a receiving data item described with a standard floating-point usage |
 | EC-DATA-PTR-NULL | Fatal | Based item data-pointer is set to NULL when referenced |
 | EC-EXTERNAL | | External item mismatch |
@@ -22031,12 +21931,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-FLOW-SEARCH | Fatal | Invalid use of SET to change capacity of dynamic-capacity table during SEARCH of same table |
 | EC-FLOW-USE | Fatal | A USE statement caused another to be executed |
 | EC-FUNCTION | | Function exception |
-
-
-**Table 13 — Exception-names and exception conditions (Continued)**
-
-| Exception-name | Cat | Description |
-|---|---|---|
 | EC-FUNCTION-ARG-OMITTED | Fatal | Function argument is omitted |
 | EC-FUNCTION-IMP | Imp | Implementor-defined function evaluation |
 | EC-FUNCTION-NOT-FOUND | Fatal | Function not found or function pointer does not point to a function |
@@ -22065,12 +21959,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-LOCALE-MISSING | Fatal | The specified locale is not available |
 | EC-LOCALE-SIZE | Fatal | Digits were truncated in locale editing |
 | EC-MCS | | Message control system exception |
-
-
-## Table 13 — Exception-names and exception conditions (Continued)
-
-| Exception-name | Cat | Description |
-|---|---|---|
 | EC-MCS-ABNORMAL-TERMINATION | NF | Server failed before replying to message |
 | EC-MCS-IMP | Imp | Implementor-defined message control exception |
 | EC-MCS-INVALID-TAG | NF | RECEIVE or SEND statement |
@@ -22099,12 +21987,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-PROGRAM-ARG-MISMATCH | Fatal | Parameter mismatch |
 | EC-PROGRAM-ARG-OMITTED | Fatal | A reference to an omitted argument |
 | EC-PROGRAM-CANCEL-ACTIVE | Fatal | Canceled program active |
-
-
-## Table 13 — Exception-names and exception conditions (Continued)
-
-| Exception-name | Cat | Description |
-|---|---|---|
 | EC-PROGRAM-IMP | Imp | Implementor-defined inter-program communication exception |
 | EC-PROGRAM-NOT-FOUND | Fatal | Called program not found |
 | EC-PROGRAM-PTR-NULL | Fatal | Program-pointer used in CALL is set to NULL |
@@ -22129,12 +22011,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-REPORT-IMP | Imp | Implementor-defined report writer exception |
 | EC-REPORT-INACTIVE | Fatal | GENERATE or TERMINATE on an inactive report |
 | EC-REPORT-LINE-OVERLAP | NF | Overlapping report lines |
-
-
-**Table 13 — Exception-names and exception conditions (Continued)**
-
-| **Exception-name** | **Cat** | **Description** |
-|---|---|---|
 | EC-REPORT-NOT-TERMINATED | NF | Report file closed with active report |
 | EC-REPORT-PAGE-LIMIT | NF | Vertical page limit exceeded |
 | EC-REPORT-PAGE-WIDTH | NF | Page width exceeded |
@@ -22163,12 +22039,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-SORT-MERGE-SEQUENCE | Fatal | Sequence error on MERGE USING file |
 | EC-STORAGE | | Storage allocation exception |
 | EC-STORAGE-IMP | Imp | Implementor-defined storage allocation exception |
-
-
-**Table 13 — Exception-names and exception conditions (Continued)**
-
-| Exception-name | Cat | Description |
-|---|---|---|
 | EC-STORAGE-NOT-ALLOC | NF | The data-pointer specified in a FREE statement does not identify currently allocated storage |
 | EC-STORAGE-NOT-AVAIL | NF | The amount of storage requested by an ALLOCATE statement or a dynamic-length elementary data item format of a SET statement is not available |
 | EC-USER | | User-defined exception condition |
@@ -22259,7 +22129,7 @@ When the low-order integer positions in a resultant identifier are represented b
 <a id="section-14-7-4-2"></a>
 ##### 14.7.4.2 General format
 
-<pre>
+<pre style="line-height:1">
         ┌         ╭ <u>AWAY-FROM-ZERO</u>         ╮ ┐
         │         │                        │ │
         │         │ <u>NEAREST-AWAY-FROM-ZERO</u> │ │
@@ -22482,7 +22352,7 @@ The RETRY phrase is specified in an input-output statement to indicate whether t
 <a id="section-14-7-9-2"></a>
 ##### 14.7.9.2 General format
 
-<pre>
+<pre style="line-height:1">
       ╭ arithmetic-expression-1 <u>TIMES</u>       ╮
       │                                     │
 <u>RETRY</u> ┤ FOR arithmetic-expression-2 <u>SECONDS</u> ├
@@ -22803,12 +22673,12 @@ The execution of a screen format ACCEPT statement causes the following sequence 
 
 Format 1 (device):
 
-<pre>
+<pre style="line-height:1">
 <u>ACCEPT</u> identifier-1 [ <u>FROM</u> mnemonic-name-1 ] [ <u>END-ACCEPT</u> ]
 </pre>
 Format 2 (temporal):
 
-<pre>
+<pre style="line-height:1">
                          ╭ <u>DATE</u> [ <u>YYYYMMDD</u> ] ╮
                          │                   │
                          │ <u>DAY</u> [ <u>YYYYDDD</u> ]   │
@@ -22825,7 +22695,7 @@ Format 2 (temporal):
 Format 3 (screen):
 
 
-<pre>
+<pre style="line-height:1">
 <u>ACCEPT</u> screen-name-1
 
 ┌    ╭ │             ╭ identifier-3 ╮       │ ╮ ┐
@@ -23034,7 +22904,7 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 Format 1 (simple):
 
-<pre>
+<pre style="line-height:1">
     ╭ identifier-1 ╮ … <u>TO</u> { identifier-2 [ rounded-phrase ] } …
 <u>ADD</u> ┤              ├
     ╰ literal-1    ╯
@@ -23050,7 +22920,7 @@ Format 1 (simple):
 
 Format 2 (giving):
 
-<pre>
+<pre style="line-height:1">
     ╭ identifier-1 ╮      ╭ identifier-2 ╮
 <u>ADD</u> ┤              ├ … TO ┤              ├
     ╰ literal-1    ╯      ╰ literal-2    ╯
@@ -23068,7 +22938,7 @@ Format 2 (giving):
 
 Format 3 (corresponding):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>CORRESPONDING</u> ╮
 <u>ADD</u> ┤               ├ identifier-4 <u>TO</u> identifier-5 [ rounded-phrase ]
     ╰ <u>CORR</u>          ╯
@@ -23165,7 +23035,7 @@ If a specified number of characters of memory is being requested, a data-pointer
 <a id="section-14-9-3-2"></a>
 ##### 14.9.3.2 General format
 
-<pre>
+<pre style="line-height:1">
          ╭ arithmetic-expression-1 <u>CHARACTERS</u> ╮
 <u>ALLOCATE</u> ┤                                    ├ [ <u>INITIALIZED</u> ] [ <u>RETURNING</u> data-name-2 ]
          ╰ data-name-1                        ╯
@@ -23234,7 +23104,7 @@ The CALL statement causes control to be transferred to a specific program within
 
 Format 1 (Program):
 
-<pre>
+<pre style="line-height:1">
      ╭ identifier-1 ╮ ┌       ╭ [ BY <u>REFERENCE</u> ] { identifier-2 } … ╮   ┐
 <u>CALL</u> ┤              ├ │ <u>USING</u> ┤                                     ├ … │
      ╰ literal-1    ╯ └       ╰ BY <u>CONTENT</u> { identifier-2 } …       ╯   ┘
@@ -23253,7 +23123,7 @@ Format 1 (Program):
 
 Format 2 (program-prototype):
 
-<pre>
+<pre style="line-height:1">
      ┌ ╭ identifier-1 ╮    ┐ ╭ <u>NESTED</u>                   ╮
 <u>CALL</u> │ ┤              ├ <u>AS</u> │ ┤                          ├
      └ ╰ literal-1    ╯    ┘ ╰ program-prototype-name-1 ╯
@@ -23450,7 +23320,7 @@ The CANCEL statement ensures that the next time the referenced program is called
 <a id="section-14-9-5-2"></a>
 ##### 14.9.5.2 General format
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-1             ╮
        │                          │
 <u>CANCEL</u> ┤ literal-1                ├ …
@@ -23517,7 +23387,7 @@ The CLOSE statement terminates the processing of reels/units and files with rewi
 <a id="section-14-9-6-2"></a>
 ##### 14.9.6.2 General format
 
-<pre>
+<pre style="line-height:1">
       ╭             ┌ ╭ <u>REEL</u> ╮                 ┐ ╮
       │             │ ┤      ├ [ FOR <u>REMOVAL</u> ] │ │
 <u>CLOSE</u> ┤ file-name-1 │ ╰ <u>UNIT</u> ╯                 │ ├ …
@@ -23691,7 +23561,7 @@ The COMPUTE statement assigns to one or more data items the value of an arithmet
 
 Format 1 (arithmetic-compute):
 
-<pre>
+<pre style="line-height:1">
 <u>COMPUTE</u> { identifier-1 [ rounded-phrase ] } … = arithmetic-expression-1
 
 ┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
@@ -23705,7 +23575,7 @@ Format 1 (arithmetic-compute):
 
 Format 2 (boolean-compute):
 
-<pre>
+<pre style="line-height:1">
 <u>COMPUTE</u> { identifier-2 } … = boolean-expression-1 [ <u>END-COMPUTE</u> ]
 </pre>
 where rounded-phrase is described in 14.7.4, ROUNDED phrase.
@@ -23757,7 +23627,7 @@ The CONTINUE statement is a no-operation statement. It indicates that no executa
 <a id="section-14-9-9-2"></a>
 ##### 14.9.9.2 General format
 
-<pre>
+<pre style="line-height:1">
 CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
 </pre>
 > **Figure notes (CONTINUE, 14.9.9.2).** Underlining measured from the printed page: `AFTER` and `SECONDS`
@@ -23820,7 +23690,7 @@ The DELETE RECORD statement logically removes a record from a mass storage file.
 
 Format 1 (record):
 
-<pre>
+<pre style="line-height:1">
 <u>DELETE</u> file-name-1 RECORD
 [ retry-phrase ]
 
@@ -23835,7 +23705,7 @@ Format 1 (record):
 
 Format 2 (file):
 
-<pre>
+<pre style="line-height:1">
 <u>DELETE</u> <u>FILE</u> [ <u>OVERRIDE</u> ] { file-name-1 } …
 [ retry-phrase ]
 
@@ -23974,7 +23844,7 @@ The screen format of the DISPLAY statement causes data associated with a literal
 
 Format 1 (device):
 
-<pre>
+<pre style="line-height:1">
         ╭ identifier-1 ╮
 <u>DISPLAY</u> ┤              ├ … [ <u>UPON</u> mnemonic-name-1 ] [ WITH <u>NO</u> <u>ADVANCING</u> ] [ <u>END-DISPLAY</u> ]
         ╰ literal-1    ╯
@@ -23982,7 +23852,7 @@ Format 1 (device):
 
 Format 2 (screen):
 
-<pre>
+<pre style="line-height:1">
 <u>DISPLAY</u> screen-name-1
 
 ┌    ╭ │             ╭ identifier-2 ╮       │ ╮ ┐
@@ -24100,7 +23970,7 @@ The DIVIDE statement divides one numeric data item into others and sets the valu
 
 Format 1 (into):
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-1 ╮
 <u>DIVIDE</u> ┤              ├ <u>INTO</u> { identifier-2 [ rounded-phrase ] } …
        ╰ literal-1    ╯
@@ -24122,7 +23992,7 @@ Format 1 (into):
 
 Format 2 (into-giving):
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-1 ╮      ╭ identifier-2 ╮
 <u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
        ╰ literal-1    ╯      ╰ literal-2    ╯
@@ -24145,7 +24015,7 @@ Format 2 (into-giving):
 
 Format 3 (by-giving):
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-2 ╮    ╭ identifier-1 ╮
 <u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
        ╰ literal-2    ╯    ╰ literal-1    ╯
@@ -24169,7 +24039,7 @@ Format 3 (by-giving):
 
 Format 4 (into-remainder):
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-1 ╮      ╭ identifier-2 ╮
 <u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
        ╰ literal-1    ╯      ╰ literal-2    ╯
@@ -24188,7 +24058,7 @@ Format 4 (into-remainder):
 
 Format 5 (by-remainder):
 
-<pre>
+<pre style="line-height:1">
        ╭ identifier-2 ╮    ╭ identifier-1 ╮
 <u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
        ╰ literal-2    ╯    ╰ literal-1    ╯
@@ -24269,7 +24139,7 @@ c) If the size error condition is not raised, a subsidiary quotient is developed
 
 7) When native arithmetic is in effect, the remainder is the result of multiplying the subsidiary quotient and the divisor and subtracting the product from the dividend. When standard-decimal arithmetic, or standard-binary arithmetic is in effect, the remainder is the result of the arithmetic expression
 
-(dividend - (subsidiary-quotient * divisor))
+(dividend - (subsidiary-quotient \* divisor))
 
 where the values of dividend and divisor are defined in General rule 2 and where subsidiary-quotient represents the subsidiary quotient as defined in General rule 6.
 
@@ -24288,7 +24158,7 @@ The EVALUATE statement describes a multi-branch, multi-join structure. It may ca
 <a id="section-14-9-13-2"></a>
 ##### 14.9.13.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>EVALUATE</u> selection-subject [ <u>ALSO</u> selection-subject ] …
 { { <u>WHEN</u> selection-object [ <u>ALSO</u> selection-object ] … } … imperative-statement-1 } …
 [ <u>WHEN</u> <u>OTHER</u> imperative-statement-2 ]
@@ -24296,7 +24166,7 @@ The EVALUATE statement describes a multi-branch, multi-join structure. It may ca
 </pre>
 where selection-subject is:
 
-<pre>
+<pre style="line-height:1">
 ╭ identifier-1            ╮
 │                         │
 │ literal-1               │
@@ -24314,7 +24184,7 @@ where selection-subject is:
 
 where selection-object is:
 
-<pre>
+<pre style="line-height:1">
 ╭ [ <u>NOT</u> ] identifier-2            ╮
 │                                 │
 │ [ <u>NOT</u> ] literal-2               │
@@ -24343,7 +24213,7 @@ where selection-object is:
 
 where range-expression is:
 
-<pre>
+<pre style="line-height:1">
 ╭ identifier-3            ╮   <u>THROUGH</u> ╭ identifier-4            ╮
 │                         │           │                         │
 ┤ literal-3               ├ ╭      ╮  ┤ literal-4               ├ [ IN alphabet-name-1 ]
@@ -24502,12 +24372,12 @@ The EXIT PARAGRAPH and EXIT SECTION statements provide a means of exiting a stru
 
 Format 1 (simple):
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u>
 </pre>
 Format 2 (program):
 
-<pre>
+<pre style="line-height:1">
              ┌         ╭ <u>EXCEPTION</u> exception-name-1 ╮ ┐
              │         │                            │ │
 <u>EXIT</u> <u>PROGRAM</u> │ <u>RAISING</u> ┤ identifier-1               ├ │
@@ -24523,12 +24393,12 @@ NOTE The Program format of the EXIT statement is an archaic feature. For details
 
 Format 3 (inline-perform):
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u> <u>PERFORM</u> [ <u>CYCLE</u> ]
 </pre>
 Format 4 (procedure):
 
-<pre>
+<pre style="line-height:1">
      ╭ <u>PARAGRAPH</u> ╮
 <u>EXIT</u> ┤           ├
      ╰ <u>SECTION</u>   ╯
@@ -24631,7 +24501,7 @@ The FREE statement releases dynamic storage previously obtained with an ALLOCATE
 <a id="section-14-9-15-2"></a>
 ##### 14.9.15.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FREE</u> { data-name-1 } …
 </pre>
 <a id="section-14-9-15-3"></a>
@@ -24664,7 +24534,7 @@ The GENERATE statement performs control break processing and, unless a report-na
 <a id="section-14-9-16-2"></a>
 ##### 14.9.16.2 General format
 
-<pre>
+<pre style="line-height:1">
          ╭ data-name-1   ╮
 <u>GENERATE</u> ┤               ├
          ╰ report-name-1 ╯
@@ -24743,12 +24613,12 @@ NOTE The use of a GO TO statement to exit a PERFORM statement range can leave a 
 
 Format 1 (unconditional):
 
-<pre>
+<pre style="line-height:1">
 <u>GO</u> TO procedure-name-1
 </pre>
 Format 2 (depending):
 
-<pre>
+<pre style="line-height:1">
 <u>GO</u> TO { procedure-name-1 } … <u>DEPENDING</u> ON identifier-1
 </pre>
 <a id="section-14-9-17-3"></a>
@@ -24781,7 +24651,7 @@ The GOBACK statement marks the logical end of a function, a method, or a program
 <a id="section-14-9-18-2"></a>
 ##### 14.9.18.2 General format
 
-<pre>
+<pre style="line-height:1">
        ┌ │ raising-phrase │ ┐
 <u>GOBACK</u> │ │                │ │
        └ │ status-phrase  │ ┘
@@ -24798,7 +24668,7 @@ The GOBACK statement marks the logical end of a function, a method, or a program
 
 Where raising-phrase is:
 
-<pre>
+<pre style="line-height:1">
         ╭ <u>EXCEPTION</u> exception-name-1 ╮
         │                            │
 <u>RAISING</u> ┤ identifier-1               ├
@@ -24810,7 +24680,7 @@ Where raising-phrase is:
 
 Where status-phrase is:
 
-<pre>
+<pre style="line-height:1">
      ╭ <u>ERROR</u>  ╮        ┌ identifier-2 ┐
 WITH ┤        ├ STATUS │              │
      ╰ <u>NORMAL</u> ╯        └ literal-1    ┘
@@ -24913,12 +24783,12 @@ The IF statement causes a condition to be evaluated. The subsequent action of th
 
 Format 1 (delimited):
 
-<pre>
+<pre style="line-height:1">
 <u>IF</u> condition-1 THEN statement-1 [ <u>ELSE</u> statement-2 ] <u>END-IF</u>
 </pre>
 Format 2 (historic):
 
-<pre>
+<pre style="line-height:1">
                     ╭ statement-1   ╮ ┌      ╭ statement-2   ╮ ┐
 <u>IF</u> condition-1 THEN ┤               ├ │ <u>ELSE</u> ┤               ├ │
                     ╰ <u>NEXT</u> <u>SENTENCE</u> ╯ └      ╰ <u>NEXT</u> <u>SENTENCE</u> ╯ ┘
@@ -24980,7 +24850,7 @@ The INITIALIZE statement provides the ability to set selected data items to spec
 <a id="section-14-9-20-2"></a>
 ##### 14.9.20.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>INITIALIZE</u> { identifier-1 } … [ WITH <u>FILLER</u> ]
 
 ┌ ╭ <u>ALL</u>           ╮          ┐
@@ -24996,7 +24866,7 @@ The INITIALIZE statement provides the ability to set selected data items to spec
 
 where category-name is:
 
-<pre>
+<pre style="line-height:1">
 ╭ │ <u>ALPHABETIC</u>          │ ╮
 │ │                     │ │
 │ │ <u>ALPHANUMERIC</u>        │ │
@@ -25152,7 +25022,7 @@ The INITIATE statement initializes any internal storage locations used by the sp
 <a id="section-14-9-21-2"></a>
 ##### 14.9.21.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>INITIATE</u> { report-name-1 } …
 </pre>
 <a id="section-14-9-21-3"></a>
@@ -25199,29 +25069,29 @@ The INSPECT statement provides the ability to tally or replace occurrences of si
 
 Format 1 (tallying):
 
-<pre>
+<pre style="line-height:1">
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>TALLYING</u> tallying-phrase
 </pre>
 Format 2 (replacing):
 
-<pre>
+<pre style="line-height:1">
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>REPLACING</u> replacing-phrase
 </pre>
 Format 3 (tallying-and-replacing):
 
-<pre>
+<pre style="line-height:1">
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>TALLYING</u> tallying-phrase <u>REPLACING</u> replacing-phrase
 </pre>
 Format 4 (converting):
 
-<pre>
+<pre style="line-height:1">
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮ <u>TO</u> ╭ identifier-7 ╮ [ after-before-phrase ]
                                              ┤              ├    ┤              ├
                                              ╰ literal-4    ╯    ╰ literal-5    ╯
 </pre>
 where tallying-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭                  ╭ <u>CHARACTERS</u> [ after-before-phrase ]                     ╮   ╮
 │                  │                                                        │   │
 │                  │ <u>ALL</u> ╭ ╭ identifier-3 ╮                         ╮ …     │   │
@@ -25238,7 +25108,7 @@ where tallying-phrase is:
 
 where after-before-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ │               ╭ identifier-4 ╮  │ ╮
 │ │ <u>AFTER</u> INITIAL ┤              ├  │ │
 ┤ │               ╰ literal-2    ╯  │ ├
@@ -25252,7 +25122,7 @@ where after-before-phrase is:
 
 where replacing-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>CHARACTERS</u> <u>BY</u> replacement-item [ after-before-phrase ]                     ╮
 │                                                                            │
 │ <u>ALL</u> ╭ ╭ identifier-3 ╮                                             ╮ …     │
@@ -25272,7 +25142,7 @@ where replacing-phrase is:
 
 where replacement-item is:
 
-<pre>
+<pre style="line-height:1">
 ╭ identifier-5 ╮
 ┤              ├
 ╰ literal-3    ╯
@@ -25452,7 +25322,7 @@ The INVOKE statement causes a method to be invoked.
 <a id="section-14-9-23-2"></a>
 ##### 14.9.23.2 General format
 
-<pre>
+<pre style="line-height:1">
                                                                        ┌       ╭                  ╭ identifier-3 ╮          ╮   ┐
                                                                        │       │ [ BY <u>REFERENCE</u> ] ┤              ├          │   │
                                                                        │       │                  ╰ <u>OMITTED</u>      ╯          │   │
@@ -25631,7 +25501,7 @@ The MERGE statement combines two or more identically sequenced files on a set of
 <a id="section-14-9-24-2"></a>
 ##### 14.9.24.2 General format
 
-<pre>
+<pre style="line-height:1">
                   ╭    ╭ <u>ASCENDING</u>  ╮                       ╮
 <u>MERGE</u> file-name-1 ┤ ON ┤            ├ KEY { data-name-1 } … ├ …
                   ╰    ╰ <u>DESCENDING</u> ╯                       ╯
@@ -25802,7 +25672,7 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 Format 1 (simple):
 
-<pre>
+<pre style="line-height:1">
      ╭ identifier-1 ╮
 <u>MOVE</u> ┤              ├ <u>TO</u> { identifier-2 } …
      ╰ literal-1    ╯
@@ -25810,7 +25680,7 @@ Format 1 (simple):
 
 Format 2 (corresponding):
 
-<pre>
+<pre style="line-height:1">
      ╭ <u>CORRESPONDING</u> ╮
 <u>MOVE</u> ┤               ├ identifier-3 <u>TO</u> identifier-4
      ╰ <u>CORR</u>          ╯
@@ -25980,7 +25850,8 @@ Alignment of the numeric value by decimal point, any necessary zero filling, any
 | ALL symbolic character, where symbolic character is:<br>  Alphanumeric<br>  National | —<br>— | Alphanumeric<br>National |
 | HIGH-VALUE, HIGH-VALUES;<br>LOW-VALUE, LOW-VALUES;<br>QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display<br>— if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br><br>Alphanumeric<br>National |
 | SPACE, SPACES, ZERO, ZEROS,<br>ZEROES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>Boolean<br>National<br>National-edited | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>Boolean<br>National<br>National |
-| — indicates the figurative constant category does not depend on the category of the receiving operand ||
+
+— indicates the figurative constant category does not depend on the category of the receiving operand
 
 8) If the sending or receiving item is a dynamic-length elementary item, the current content of the dynamic-length elementary item is moved or changed as specified in 8.5.1.10.4, Operations on dynamic-length elementary items.
 
@@ -26031,7 +25902,7 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 
 Format 1 (by):
 
-<pre>
+<pre style="line-height:1">
          ╭ identifier-1 ╮ …
          │              │
 <u>MULTIPLY</u> ┤              ├ <u>BY</u> { identifier-2 [ rounded-phrase ] }
@@ -26052,7 +25923,7 @@ Format 1 (by):
 
 Format 2 (giving):
 
-<pre>
+<pre style="line-height:1">
          ╭ identifier-1 ╮    ╭ identifier-2 ╮
 <u>MULTIPLY</u> ┤              ├ <u>BY</u> ┤              ├
          ╰ literal-1    ╯    ╰ literal-2    ╯
@@ -26097,7 +25968,7 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 3) When format 1 or 2 is used and standard-decimal, or standard-binary arithmetic is in effect, the product equals the result of the arithmetic expression
 
-(multiplier * multiplicand)
+(multiplier \* multiplicand)
 
 where the values for multiplier and multiplicand are as defined in General rules 1 and 2 for the respective formats.
 
@@ -26115,7 +25986,7 @@ The OPEN statement initiates the processing of files.
 <a id="section-14-9-27-2"></a>
 ##### 14.9.27.2 General format
 
-<pre>
+<pre style="line-height:1">
      ╭ ╭ <u>INPUT</u>  ╮                                                                          ╮
      │ │        │                                                                          │
      │ │ <u>OUTPUT</u> │                                                                          │
@@ -26129,7 +26000,7 @@ The OPEN statement initiates the processing of files.
 
 where sharing-phrase is:
 
-<pre>
+<pre style="line-height:1">
              ╭ <u>ALL</u> OTHER ╮
              │           │
 <u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├
@@ -26176,7 +26047,7 @@ NOTE Files subject to an APPLY COMMIT clause already have an implicit LOCK mode 
 
 A file is available if it is physically present and is recognized by the operating environment. Table 18, Opening available and unavailable files (file not currently open), shows the results of opening available and unavailable files that are not currently open by another file connector. Table 19, Opening available shared files that are currently open by another file connector, shows the results of opening available files that are currently open by another file connector, including those implicitly opened by the SORT and MERGE statements.
 
-## Table 18 — Opening available and unavailable files (file not currently open)
+**Table 18 — Opening available and unavailable files (file not currently open)**
 
 | Open mode | File is available | File is unavailable |
 |---|---|---|
@@ -26317,7 +26188,7 @@ The PERFORM statement is used to transfer control explicitly to one or more proc
 
 Format 1 (out-of-line):
 
-<pre>
+<pre style="line-height:1">
                          ┌                              ┐ ┌ times-phrase   ┐
                          │ ╭ <u>THROUGH</u> ╮                  │ │                │
 <u>PERFORM</u> procedure-name-1 │ ┤         ├ procedure-name-2 │ │ until-phrase   │
@@ -26329,7 +26200,7 @@ Format 1 (out-of-line):
 
 Format 2 (inline):
 
-<pre>
+<pre style="line-height:1">
         ┌ times-phrase   ┐
         │                │
 <u>PERFORM</u> │ until-phrase   │ imperative-statement-1 <u>END-PERFORM</u>
@@ -26341,7 +26212,7 @@ Format 2 (inline):
 
 Format 3 (exception-checking):
 
-<pre>
+<pre style="line-height:1">
 <u>PERFORM</u> [ WITH <u>LOCATION</u> ]
 
 ╭ imperative-statement-1                                                  ╮
@@ -26377,7 +26248,7 @@ Format 3 (exception-checking):
 
 where times-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ╭ identifier-1 ╮
 ┤              ├ <u>TIMES</u>
 ╰ integer-1    ╯
@@ -26387,7 +26258,7 @@ where times-phrase is:
 
 where until-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ┌           ╭ <u>BEFORE</u> ╮ ┐       ╭ condition-1 ╮
 │ WITH <u>TEST</u> ┤        ├ │ <u>UNTIL</u> ┤             ├
 │           │        │ │       │ <u>EXIT</u>        │
@@ -26398,7 +26269,7 @@ where until-phrase is:
 
 where varying-phrase is:
 
-<pre>
+<pre style="line-height:1">
 ┌           ╭ <u>BEFORE</u> ╮ ┐
 │ WITH <u>TEST</u> ┤        ├ │
 └           ╰ <u>AFTER</u>  ╯ ┘
@@ -26632,7 +26503,7 @@ The RAISE statement causes a specified exception condition to be raised.
 <a id="section-14-9-29-2"></a>
 ##### 14.9.29.2 General format
 
-<pre>
+<pre style="line-height:1">
       ╭ <u>EXCEPTION</u> exception-name-1 ╮
 <u>RAISE</u> ┤                            ├
       ╰ identifier-1               ╯
@@ -26679,7 +26550,7 @@ For sequential access, the READ statement makes available the next logical recor
 
 Format 1 (sequential):
 
-<pre>
+<pre style="line-height:1">
                  ╭ NEXT     ╮
 <u>READ</u> file-name-1 ┤          ├ RECORD [ <u>INTO</u> identifier-1 ]
                  ╰ <u>PREVIOUS</u> ╯
@@ -26705,7 +26576,7 @@ Format 1 (sequential):
 
 Format 2 (random):
 
-<pre>
+<pre style="line-height:1">
 <u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
 
 ┌ <u>IGNORING</u> <u>LOCK</u> ┐
@@ -27003,7 +26874,7 @@ The RECEIVE statement receives a message from a requestor or a message server ru
 <a id="section-14-9-31-2"></a>
 ##### 14.9.31.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>RECEIVE</u> FROM data-name-1 <u>GIVING</u> identifier-1 data-name-2
 
 ┌                ╭ arithmetic-expression-1 SECONDS ╮ ┐
@@ -27075,7 +26946,7 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 <a id="section-14-9-32-2"></a>
 ##### 14.9.32.2 General format
 
-<pre>
+<pre style="line-height:1">
                       ┌      ╭ identifier-1 ╮ ┐
 <u>RELEASE</u> record-name-1 │ <u>FROM</u> ┤              ├ │
                       └      ╰ literal-1    ╯ ┘
@@ -27132,7 +27003,7 @@ The RESUME statement transfers control to a procedure-name or to the statement f
 <a id="section-14-9-33-2"></a>
 ##### 14.9.33.2 General format
 
-<pre>
+<pre style="line-height:1">
           ╭ <u>NEXT</u> <u>STATEMENT</u>   ╮
 <u>RESUME</u> AT ┤                  ├
           ╰ procedure-name-1 ╯
@@ -27192,7 +27063,7 @@ The RETURN statement obtains either sorted records from the final phase of a sor
 <a id="section-14-9-34-2"></a>
 ##### 14.9.34.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>RETURN</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
 AT <u>END</u> imperative-statement-1
 [ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
@@ -27245,7 +27116,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 <a id="section-14-9-35-2"></a>
 ##### 14.9.35.2 General format
 
-<pre>
+<pre style="line-height:1">
         ╭ record-name-1    ╮        ┌      ╭ identifier-1 ╮ ┐
 <u>REWRITE</u> ┤                  ├ RECORD │ <u>FROM</u> ┤              ├ │
         ╰ <u>FILE</u> file-name-1 ╯        └      ╰ literal-1    ╯ ┘
@@ -27482,7 +27353,7 @@ The ROLLBACK statement reverses all changes made to the files and data-items exp
 <a id="section-14-9-36-2"></a>
 ##### 14.9.36.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>ROLLBACK</u>
 </pre>
 <a id="section-14-9-36-3"></a>
@@ -27531,7 +27402,7 @@ The SEARCH statement is used to search a table for a table element that satisfie
 
 Format 1 (serial):
 
-<pre>
+<pre style="line-height:1">
 <u>SEARCH</u> identifier-1 ┌         ╭ identifier-2 ╮ ┐
                     │ <u>VARYING</u> ┤              ├ │
                     └         ╰ index-name-1 ╯ ┘
@@ -27551,7 +27422,7 @@ NOTE 1 NEXT SENTENCE is an archaic feature. For details see F.1, Archaic languag
 
 Format 2 (all):
 
-<pre>
+<pre style="line-height:1">
 <u>SEARCH</u> <u>ALL</u> identifier-1 [ AT <u>END</u> imperative-statement-1 ]
 
      ╭               IS <u>EQUAL</u> TO ╭ identifier-3            ╮ ╮
@@ -27718,7 +27589,7 @@ The SEND statement sends a message to a message server run unit and optionally r
 
 Format 1 (to-message-server)
 
-<pre>
+<pre style="line-height:1">
         ╭ literal-1             ╮
 <u>SEND</u> TO ┤                       ├ <u>FROM</u> identifier-1
         ╰ message-server-name-1 ╯
@@ -27736,7 +27607,7 @@ Format 1 (to-message-server)
 
 Format 2 (message-server-response)
 
-<pre>
+<pre style="line-height:1">
 <u>SEND</u> TO data-name-2 <u>FROM</u> identifier-1
 
 ┌         ╭ <u>EXCEPTION</u> exception-name-1 ╮ ┐
@@ -27840,7 +27711,7 @@ The SET statement provides a means for:
 
 Format 1 (index-assignment):
 
-<pre>
+<pre style="line-height:1">
                           ╭ arithmetic-expression-1 ╮
                           │                         │
 <u>SET</u> ╭ index-name-1 ╮ … <u>TO</u> ┤ index-name-2            ├
@@ -27852,7 +27723,7 @@ Format 1 (index-assignment):
 
 Format 2 (index-arithmetic):
 
-<pre>
+<pre style="line-height:1">
                        ╭ <u>UP</u> <u>BY</u>   ╮
 <u>SET</u> { index-name-3 } … ┤         ├ arithmetic-expression-2
                        ╰ <u>DOWN</u> <u>BY</u> ╯
@@ -27862,7 +27733,7 @@ Format 2 (index-arithmetic):
 
 Format 3 (switch-setting):
 
-<pre>
+<pre style="line-height:1">
     ╭                          ╭ <u>ON</u>  ╮ ╮
 <u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ├ …
     ╰                          ╰ <u>OFF</u> ╯ ╯
@@ -27876,7 +27747,7 @@ Format 3 (switch-setting):
 
 Format 4 (condition-setting):
 
-<pre>
+<pre style="line-height:1">
     ╭                           ╭ <u>TRUE</u>  ╮ ╮
 <u>SET</u> ┤ { condition-name-1 } … <u>TO</u> ┤       ├ ├ …
     ╰                           ╰ <u>FALSE</u> ╯ ╯
@@ -27886,7 +27757,7 @@ Format 4 (condition-setting):
 
 Format 5 (object-reference-assignment):
 
-<pre>
+<pre style="line-height:1">
                           ╭ object-class-name-1 ╮
 <u>SET</u> { identifier-3 } … <u>TO</u> ┤                     ├
                           ╰ identifier-4        ╯
@@ -27896,7 +27767,7 @@ Format 5 (object-reference-assignment):
 
 Format 6 (attribute):
 
-<pre>
+<pre style="line-height:1">
                             ╭ ╭ │ <u>BELL</u>          │ ╮         ╮
                             │ │ │               │ │         │
                             │ │ │ <u>BLINK</u>         │ │         │
@@ -27915,7 +27786,7 @@ Format 6 (attribute):
 
 Format 7 (data-pointer-assignment):
 
-<pre>
+<pre style="line-height:1">
     ╭ <u>ADDRESS</u> OF data-name-1 ╮
 <u>SET</u> ┤                        ├ … <u>TO</u> identifier-6
     ╰ identifier-5           ╯
@@ -27925,18 +27796,18 @@ Format 7 (data-pointer-assignment):
 
 Format 8 (function-pointer-assignment):
 
-<pre>
+<pre style="line-height:1">
 <u>SET</u> { identifier-12 } … <u>TO</u> identifier-13
 </pre>
 Format 9 (program-pointer-assignment):
 
-<pre>
+<pre style="line-height:1">
 <u>SET</u> { identifier-7 } … <u>TO</u> identifier-8
 </pre>
 Format 10 (data-pointer-arithmetic):
 
 
-<pre>
+<pre style="line-height:1">
                        ╭ <u>UP</u>   ╮
 <u>SET</u> { identifier-9 } … ┤      ├ <u>BY</u> arithmetic-expression-3
                        ╰ <u>DOWN</u> ╯
@@ -27946,7 +27817,7 @@ Format 10 (data-pointer-arithmetic):
 
 Format 11 (set-locale):
 
-<pre>
+<pre style="line-height:1">
            ╭ ╭ │ <u>LC_ALL</u>      │ ╮ ╮
            │ │ │             │ │ │
            │ │ │ <u>LC_COLLATE</u>  │ │ │
@@ -27969,7 +27840,7 @@ Format 11 (set-locale):
 
 Format 12 (save-locale):
 
-<pre>
+<pre style="line-height:1">
                             ╭ <u>LC_ALL</u>       ╮
 <u>SET</u> identifier-11 <u>TO</u> <u>LOCALE</u> ┤              ├
                             ╰ <u>USER-DEFAULT</u> ╯
@@ -27979,12 +27850,12 @@ Format 12 (save-locale):
 
 Format 13 (saved-exception):
 
-<pre>
+<pre style="line-height:1">
 <u>SET</u> <u>LAST</u> <u>EXCEPTION</u> <u>TO</u> <u>OFF</u>
 </pre>
 Format 14 (dynamic-capacity-table):
 
-<pre>
+<pre style="line-height:1">
                 ╭ <u>UP</u> <u>BY</u>   ╮
                 │         │ ╭ integer-1               ╮
 <u>SET</u> data-name-2 ┤ <u>DOWN</u> <u>BY</u> ├ ┤                         ├
@@ -27997,7 +27868,7 @@ Format 14 (dynamic-capacity-table):
 
 Format 15 (numeric-content):
 
-<pre>
+<pre style="line-height:1">
 <u>SET</u> <u>CONTENT</u> OF { identifier-14 } … <u>TO</u>
 
 ╭                                            ┌      ╭ <u>NEGATIVE</u> ╮ ┐ ╮
@@ -28025,7 +27896,7 @@ Format 15 (numeric-content):
 
 Format 16 (dynamic-length-elementary-data-item):
 
-<pre>
+<pre style="line-height:1">
                                ╭ integer-2               ╮
 <u>SET</u> [ <u>SIZE</u> OF ] data-name-3 <u>TO</u> ┤                         ├
                                ╰ arithmetic-expression-5 ╯
@@ -28035,7 +27906,7 @@ Format 16 (dynamic-length-elementary-data-item):
 
 Format 17 (message-tag):
 
-<pre>
+<pre style="line-height:1">
                    ╭ data-name-5 ╮
 <u>SET</u> data-name-4 <u>TO</u> ┤             ├
                    ╰ <u>NULL</u>        ╯
@@ -28475,7 +28346,7 @@ The SORT statement causes a set of records or table elements to be arranged in a
 
 Format 1 (file):
 
-<pre>
+<pre style="line-height:1">
                  ╭    ╭ <u>ASCENDING</u>  ╮                       ╮
 <u>SORT</u> file-name-1 ┤ ON ┤            ├ KEY { data-name-1 } … ├ …
                  ╰    ╰ <u>DESCENDING</u> ╯                       ╯
@@ -28506,7 +28377,7 @@ Format 1 (file):
 
 Format 2 (table):
 
-<pre>
+<pre style="line-height:1">
                  ┌    ╭ <u>ASCENDING</u>  ╮                       ┐
 <u>SORT</u> data-name-2 │ ON ┤            ├ KEY [ data-name-1 ] … │ …
                  └    ╰ <u>DESCENDING</u> ╯                       ┘
@@ -28731,7 +28602,7 @@ The START statement provides a basis for logical positioning within a file, for 
 <a id="section-14-9-41-2"></a>
 ##### 14.9.41.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>START</u> file-name-1
 
 ┌ <u>FIRST</u>                                                                                 ┐
@@ -28874,7 +28745,7 @@ The STOP statement causes termination of the execution of the run unit.
 <a id="section-14-9-42-2"></a>
 ##### 14.9.42.2 General format
 
-<pre>
+<pre style="line-height:1">
          ┌      ╭ <u>ERROR</u>  ╮        ┌ identifier-1 ┐ ┐
 <u>STOP</u> <u>RUN</u> │ WITH ┤        ├ STATUS │              │ │
          └      ╰ <u>NORMAL</u> ╯        └ literal-1    ┘ ┘
@@ -28920,7 +28791,7 @@ The STRING statement provides concatenation of the partial or complete contents 
 <a id="section-14-9-43-2"></a>
 ##### 14.9.43.2 General format
 
-<pre>
+<pre style="line-height:1">
        ╭                    ┌              ╭ identifier-2 ╮ ┐ ╮
 <u>STRING</u> │ ╭ identifier-1 ╮   │              │              │ │ │ …
        ┤ ┤              ├ … │ <u>DELIMITED</u> BY ┤ literal-2    ├ │ ├
@@ -29032,7 +28903,7 @@ The SUBTRACT statement is used to subtract one, or the sum of two or more, numer
 
 Format 1 (simple):
 
-<pre>
+<pre style="line-height:1">
          ╭ identifier-1 ╮
 <u>SUBTRACT</u> ┤              ├ … <u>FROM</u> { identifier-2 [ rounded-phrase ] } …
          ╰ literal-1    ╯
@@ -29049,7 +28920,7 @@ Format 1 (simple):
 
 Format 2 (giving):
 
-<pre>
+<pre style="line-height:1">
          ╭ identifier-1 ╮        ╭ identifier-2 ╮
 <u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
          ╰ literal-1    ╯        ╰ literal-2    ╯
@@ -29068,7 +28939,7 @@ Format 2 (giving):
 
 Format 3 (corresponding):
 
-<pre>
+<pre style="line-height:1">
          ╭ <u>CORRESPONDING</u> ╮
 <u>SUBTRACT</u> ┤               ├ identifier-4 <u>FROM</u> identifier-5 [ rounded-phrase ]
          ╰ <u>CORR</u>          ╯
@@ -29172,7 +29043,7 @@ The SUPPRESS statement inhibits the printing of a report group.
 <a id="section-14-9-45-2"></a>
 ##### 14.9.45.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>SUPPRESS</u> PRINTING
 </pre>
 <a id="section-14-9-45-3"></a>
@@ -29216,7 +29087,7 @@ The TERMINATE statement completes the processing of the specified reports.
 <a id="section-14-9-46-2"></a>
 ##### 14.9.46.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>TERMINATE</u> { report-name-1 } …
 </pre>
 <a id="section-14-9-46-3"></a>
@@ -29264,7 +29135,7 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 <a id="section-14-9-47-2"></a>
 ##### 14.9.47.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>UNLOCK</u>      ┌ RECORD  ┐
             │         │
 file-name-1 │         │
@@ -29301,7 +29172,7 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 <a id="section-14-9-48-2"></a>
 ##### 14.9.48.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>UNSTRING</u> identifier-1
 
 ┌                      ╭ identifier-2 ╮ ┌            ╭ identifier-3 ╮ ┐   ┐
@@ -29451,7 +29322,7 @@ NOTE These facilities can include the input-output control system and the operat
 
 Format 1 (file-exception):
 
-<pre>
+<pre style="line-height:1">
                                                          ╭ { file-name-1 } … ╮
                                                          │                   │
                                                          │ <u>INPUT</u>             │
@@ -29467,12 +29338,12 @@ Format 1 (file-exception):
 
 Format 2 (reporting):
 
-<pre>
+<pre style="line-height:1">
 <u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1
 </pre>
 Format 3 (exception-name):
 
-<pre>
+<pre style="line-height:1">
           ╭ <u>EXCEPTION</u> <u>CONDITION</u> ╮ ╭ exception-name-1                        ╮
 <u>USE</u> AFTER ┤                     ├ ┤                                         ├ …
           ╰ <u>EC</u>                  ╯ ╰ exception-name-2 { <u>FILE</u> file-name-2 } … ╯
@@ -29482,7 +29353,7 @@ Format 3 (exception-name):
 
 Format 4 (exception-object):
 
-<pre>
+<pre style="line-height:1">
           ╭ <u>EXCEPTION</u> <u>OBJECT</u> ╮ ╭ object-class-name-1 ╮
 <u>USE</u> AFTER ┤                  ├ ┤                     ├
           ╰ <u>EO</u>               ╯ ╰ interface-name-1    ╯
@@ -29674,7 +29545,7 @@ Unlike other obsolete features, it is intended that interest in this facility wi
 <a id="section-14-9-50-2"></a>
 ##### 14.9.50.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>VALIDATE</u> { identifier-1 } …
 </pre>
 <a id="section-14-9-50-3"></a>
@@ -29804,7 +29675,7 @@ The WRITE statement releases a logical record for an output or input-output file
 
 Format 1 (sequential):
 
-<pre>
+<pre style="line-height:1">
       ╭ record-name-1    ╮ ┌      ╭ identifier-1 ╮ ┐
 <u>WRITE</u> ┤                  ├ │ <u>FROM</u> ┤              ├ │
       ╰ <u>FILE</u> file-name-1 ╯ └      ╰ literal-1    ╯ ┘
@@ -29844,7 +29715,7 @@ Format 1 (sequential):
 
 Format 2 (random):
 
-<pre>
+<pre style="line-height:1">
       ╭ record-name-1    ╮ ┌      ╭ identifier-1 ╮ ┐
 <u>WRITE</u> ┤                  ├ │ <u>FROM</u> ┤              ├ │
       ╰ <u>FILE</u> file-name-1 ╯ └      ╰ literal-1    ╯ ┘
@@ -30562,15 +30433,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | ATAN | Num1 | Num | Arctangent of argument-1 |
 | BASECONVERT | Anum1 or Nat1, Int2, Int3 | Anum or Nat | Alphanumeric or national item containing the same numeric value as argument-1, but in the new base |
 | BOOLEAN-OF-INTEGER | Int1, Int2 | Bool | A boolean item representing the binary value equivalent of the numeric value in argument-1 |
-
-
----
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|------------------------|-----------|------|----------------|
 | BYTE-LENGTH | Alph1 or Anum1 or Bool1 or Ind1 or Nat1 or Num1 or Obj 1 or Ptr1 or Type1, Key2 | Int | Length of argument-1 in number of bytes |
 | CHAR | Int1 | Anum | Character in position argument-1 of the alphanumeric program collating sequence |
 | CHAR-NATIONAL | Int1 | Nat | Character in position argument-1 of the national program collating sequence |
@@ -30581,12 +30443,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | CURRENT-DATE | | Anum | Current date and time and local time differential |
 | DATE-OF-INTEGER | Int1 | Int | Standard date equivalent (YYYYMMDD) of integer date in argument-1 |
 | DATE-TO-YYYYMMDD | Int1, Int2, Int3 | Int | Argument-1 converted from YYMMDD to YYYYMMDD based on the values of argument-2 and argument-3 |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|---|---|---|---|
 | DAY-OF-INTEGER | Int1 | Int | Julian date equivalent (YYYYDDD) of integer date in argument-1 |
 | DAY-TO-YYYYDDD | Int1, Int2, Int3 | Int | Argument-1 converted from YYDDD to YYYYDDD based on the values of argument-2 and argument-3 |
 | DISPLAY-OF | Nat1, Alph2 or Anum2 | Anum | Usage display representation of argument argument-1. Argument-2, if specified, is an alphanumeric character to be used when no alphanumeric character corresponds to a national character in argument-1 |
@@ -30601,12 +30457,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | EXP10 | Num1 | Num | 10 raised to the power argument-1 |
 | FACTORIAL | Int1 | Int | Factorial of argument-1 |
 | FIND-STRING | Alph1 or Anum1 or Nat1, Alph2 or Anum2 or Nat2, Key3, Key4 and Int4, Key5 | Int | An integer that is the character position of argument-2 within argument-1 |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|---|---|---|---|
 | FORMATTED-CURRENT-DATE | Anum1 or Nat1 | Anum or Nat | Formatted date equivalent of current date and time in the format specified in argument-1 |
 | FORMATTED-DATE | Anum1 or Nat1, Int2 | Anum or Nat | Formatted date equivalent of integer date contained in argument-2 in the format specified in argument-1 |
 | FORMATTED-DATETIME | Anum1 or Nat1, Int2, Num3, Int4 | Anum or Nat | Formatted date (from integer date in argument-2) and time (from standard numeric time in argument-3) in the format specified by argument-1. Offset from UTC, if the format requires it, is supplied by argument-4 |
@@ -30619,12 +30469,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | INTEGER-OF-DAY | Int1 | Int | Integer date equivalent of Julian date (YYYYDDD) in argument-1 |
 | INTEGER-OF-FORMATTED-DATE | Anum1 or Nat1, Anum2 or Nat2 | Int | Integer date equivalent of date contained in argument-2 whose format is described by argument-1 |
 | INTEGER-PART | Num1 | Int | Integer part of argument-1 |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|---|---|---|---|
 | LENGTH | Alph1 or Anum1 or Bool1 or Ind1 or Nat1 or Num1 or Obj1 or Ptr1 or Type1, Key2 | Int | Length of argument-1 in number of character positions or number of boolean positions |
 | LOCALE-COMPARE | Alph1 or Anum1 or Nat1, Alph2 or Anum2, or Nat2, Loc3 | Anum | A character indicating the result of comparing argument-1 to argument-2 using an ordering defined by a locale specified in argument-3 |
 | LOCALE-DATE | Anum1 or Nat1, Loc2 | Anum | A character string containing a date specified by argument-1 in a format specified by argument-2 and a locale identified by argument-2 |
@@ -30634,12 +30478,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | LOG10 | Num1 | Num | Logarithm to base 10 of argument-1 |
 | LOWER-CASE | Alph1 or Anum1 or Nat1 | Anum or Nat | A character string with any uppercase letters in argument-1 set to lowercase |
 | LOWEST-ALGEBRAIC | Anum1 or Int1 or Nat1 or Num1 | Int or Num | Lowest algebraic value that may be represented in argument-1. |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|------------------------|-----------|------|----------------|
 | MAX | Alph1 … or Anum1 … or Ind1 … or Int1 …. or Nat1 … or Num1 … | Anum or Ind or Int or Num or Nat | Value of maximum argument |
 | MEAN | Num1 … | Num | Arithmetic mean of arguments |
 | MEDIAN | Num1 … | Num | Median of arguments |
@@ -30652,12 +30490,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | NUMVAL-C | Anum1 or Nat1, Anum2 or Nat2 or Key2 and Loc2, Key3 | Num | Numeric value of numeric string with optional currency sign and commas contained in argument-1. If specified, argument-2 is either a specified currency sign or a locale specification, and argument-3 specifies case insensitivity |
 | NUMVAL-F | Anum1 or Nat1 | Num | Numeric value of numeric string representing a floating-point number contained in argument-1 |
 | ORD | Alph1 or Anum1 or Nat1 | Int | Ordinal position of argument-1 in collating sequence |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| **Intrinsic-function-name** | **Arguments** | **Type** | **Value returned** |
-|---|---|---|---|
 | ORD-MAX | Alph1 … or Anum1 … or Ind1 …. or Nat1 … or Num1 … | Int | Ordinal position of maximum argument |
 | ORD-MIN | Alph1 … or Anum1 … or Ind1 … or Nat1 … or Num1 … | Int | Ordinal position of minimum argument |
 | PI | | Num | The value of p |
@@ -30672,12 +30504,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | SIN | Num1 | Num | Sine of argument-1 |
 | SMALLEST-ALGEBRAIC | Anum1 or Nat1 or Num1 | Int or Num | An integer or number that is the smallest positive number that can be represented in argument-1 |
 | SQRT | Num1 | Num | Square root of argument-1 |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| **Intrinsic-function-name** | **Arguments** | **Type** | **Value returned** |
-|---|---|---|---|
 | STANDARD-COMPARE | Alph1 or Anum1 or Nat1, Alph2 or Anum2 or Nat2, Ord3, Int4 | Anum | A character indicating the result of comparing argument-1 to argument-2 using the ordering specified by argument-3 at the comparison level specified by argument-4 |
 | STANDARD-DEVIATION | Num1 … | Num | Standard deviation of arguments |
 | SUBSTITUTE | Alph1 or Anum1 or Nat1, (Alph2 or Anum2 or Nat2 or Key2 Alph2 or Key2 Anum2 or Key2 Nat2, Alph3 or Anum3 or Nat3) … | Anum or Nat | A string that consists of the characters in the first argument with all characters that match the second argument replaced by the string in the third argument |
@@ -30688,12 +30514,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | TEST-FORMATTED-DATETIME | Anum1 or Nat1, Anum2 or Nat2 | Int | 0 if argument-2 conforms in form to the format specified in argument-1 and represents a valid date, time or combined representation according to that description; otherwise, identifies the character in error |
 | TEST-NUMVAL | Anum1 or Nat1 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL function; otherwise identifies the character in error |
 | TEST-NUMVAL-C | Anum1 or Nat1, Alph2 or Anum2 or Nat2 or Key2 or Key2 and Loc2, Key3 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL-C function; otherwise, identifies the character position in error. Argument-2 specifies either a currency sign or a locale specification, and argument-3 specifies case insensitivity |
-
-
-**Table 21 — Table of functions (Continued)**
-
-| Intrinsic-function-name | Arguments | Type | Value returned |
-|---|---|---|---|
 | TEST-NUMVAL-F | Anum1 or Nat1 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL-F function; otherwise identifies the character in error |
 | TRIM | Alph1 or Anum1 or Nat1, Alph2 … or Anum2 … or Nat2 … or Key2 or Key2 and Alph2 … or Key2 and Anum2 … or Key2 and Nat2 … | Anum or Nat | The value of argument-1 with leading spaces or characters, trailing spaces or characters, or both, deleted. |
 | UPPER-CASE | Alph1 or Anum1 or Nat1 | Anum or Nat | A character string with any lowercase letters in argument-1 set to uppercase |
@@ -30720,7 +30540,7 @@ The type of this function depends on the argument type as follows:
 <a id="section-15-7-2"></a>
 #### 15.7.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ABS</u> ( argument-1 )
 </pre>
 <a id="section-15-7-3"></a>
@@ -30757,7 +30577,7 @@ The type of this function is numeric.
 <a id="section-15-8-2"></a>
 #### 15.8.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ACOS</u> ( argument-1 )
 </pre>
 
@@ -30787,7 +30607,7 @@ The type of this function is numeric.
 <a id="section-15-9-2"></a>
 #### 15.9.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ANNUITY</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-9-3"></a>
@@ -30833,7 +30653,7 @@ The type of this function is numeric.
 <a id="section-15-10-2"></a>
 #### 15.10.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ASIN</u> ( argument-1 )
 </pre>
 <a id="section-15-10-3"></a>
@@ -30867,7 +30687,7 @@ The type of this function is numeric.
 <a id="section-15-11-2"></a>
 #### 15.11.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ATAN</u> ( argument-1 )
 </pre>
 <a id="section-15-11-3"></a>
@@ -30901,7 +30721,7 @@ The type of this function depends upon the type of argument-1 as follows:
 <a id="section-15-12-2"></a>
 #### 15.12.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>BASECONVERT</u> ( argument-1 argument-2 argument-3 )
 </pre>
 <a id="section-15-12-3"></a>
@@ -30935,7 +30755,7 @@ The function type is boolean.
 <a id="section-15-13-2"></a>
 #### 15.13.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>BOOLEAN-OF-INTEGER</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-13-3"></a>
@@ -30971,7 +30791,7 @@ The type of the function is integer.
 <a id="section-15-14-2"></a>
 #### 15.14.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>BYTE-LENGTH</u> ( argument-1 [ <u>PHYSICAL</u> ] )
 </pre>
 <a id="section-15-14-3"></a>
@@ -31030,7 +30850,7 @@ The type of this function is alphanumeric.
 <a id="section-15-15-2"></a>
 #### 15.15.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CHAR</u> ( argument-1 )
 </pre>
 
@@ -31065,7 +30885,7 @@ The type of the function is national.
 <a id="section-15-16-2"></a>
 #### 15.16.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CHAR-NATIONAL</u> ( argument-1 )
 </pre>
 <a id="section-15-16-3"></a>
@@ -31101,7 +30921,7 @@ The type of this function is numeric.
 <a id="section-15-17-2"></a>
 #### 15.17.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>COMBINED-DATETIME</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-17-3"></a>
@@ -31144,7 +30964,7 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-18-2"></a>
 #### 15.18.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CONCAT</u> ( argument-1, argument-2 … )
 </pre>
 <a id="section-15-18-3"></a>
@@ -31196,12 +31016,12 @@ The type of this function depends upon the keywords in the destination format li
 <a id="section-15-19-2"></a>
 #### 15.19.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CONVERT</u> ( argument-1 source-format destination-format )
 </pre>
 where source-format is
 
-<pre>
+<pre style="line-height:1">
 ╭ <u>ANY</u>              ╮
 │                  │
 │ ╭ <u>ALPHANUMERIC</u> ╮ │
@@ -31225,7 +31045,7 @@ where source-format is
 
 Where destination-format is
 
-<pre>
+<pre style="line-height:1">
 ╭ ╭ ╭ ╭ ╭ <u>ALPHANUMERIC</u> ╮ ╮ ╮     ╮ ╮
 │ │ │ │ ┤              ├ │ │     │ │
 │ │ │ │ ╰ <u>ANUM</u>         ╯ │ │     │ │
@@ -31322,7 +31142,7 @@ The type of this function is numeric.
 <a id="section-15-20-2"></a>
 #### 15.20.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>COS</u> ( argument-1 )
 </pre>
 <a id="section-15-20-3"></a>
@@ -31354,7 +31174,7 @@ The type of this function is alphanumeric.
 <a id="section-15-21-2"></a>
 #### 15.21.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CURRENT-DATE</u>
 </pre>
 <a id="section-15-21-3"></a>
@@ -31396,7 +31216,7 @@ The type of this function is integer.
 <a id="section-15-22-2"></a>
 #### 15.22.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>DATE-OF-INTEGER</u> ( argument-1 )
 </pre>
 <a id="section-15-22-3"></a>
@@ -31427,7 +31247,7 @@ The type of the function is integer.
 <a id="section-15-23-2"></a>
 #### 15.23.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>DATE-TO-YYYYMMDD</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
 </pre>
 
@@ -31490,7 +31310,7 @@ The type of this function is integer.
 <a id="section-15-24-2"></a>
 #### 15.24.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>DAY-OF-INTEGER</u> ( argument-1 )
 </pre>
 
@@ -31525,7 +31345,7 @@ The type of the function is integer.
 <a id="section-15-25-2"></a>
 #### 15.25.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>DAY-TO-YYYYDDD</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
 </pre>
 
@@ -31553,7 +31373,7 @@ NOTE    This function does not check argument -1 to ensure that it is a valid da
 
 1) The equivalent arithmetic expression is as follows:
 
-    (FUNCTION YEAR-TO-YYYY (YY, argument-2, argument-3) * 1000 + nnn)
+    (FUNCTION YEAR-TO-YYYY (YY, argument-2, argument-3) \* 1000 + nnn)
 
     where
 
@@ -31583,7 +31403,7 @@ The type of the function is alphanumeric.
 <a id="section-15-26-2"></a>
 #### 15.26.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>DISPLAY-OF</u> ( argument-1 [ argument-2 ] )
 </pre>
 <a id="section-15-26-3"></a>
@@ -31620,7 +31440,7 @@ The type of the function is numeric.
 <a id="section-15-27-2"></a>
 #### 15.27.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>E</u>
 </pre>
 <a id="section-15-27-3"></a>
@@ -31656,7 +31476,7 @@ The type of the function is alphanumeric.
 <a id="section-15-28-2"></a>
 #### 15.28.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-FILE</u> [ ( argument-1 ) ]
 </pre>
 <a id="section-15-28-3"></a>
@@ -31706,7 +31526,7 @@ The type of the function is national.
 <a id="section-15-29-2"></a>
 #### 15.29.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-FILE-N</u> [ ( argument-1 ) ]
 </pre>
 <a id="section-15-29-3"></a>
@@ -31757,7 +31577,7 @@ The type of the function is alphanumeric.
 <a id="section-15-30-2"></a>
 #### 15.30.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-LOCATION</u>
 </pre>
 
@@ -31803,7 +31623,7 @@ The type of the function is national.
 <a id="section-15-31-2"></a>
 #### 15.31.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-LOCATION-N</u>
 </pre>
 
@@ -31847,7 +31667,7 @@ The type of the function is alphanumeric.
 <a id="section-15-32-2"></a>
 #### 15.32.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-STATEMENT</u>
 </pre>
 
@@ -31874,7 +31694,7 @@ The type of the function is alphanumeric.
 <a id="section-15-33-2"></a>
 #### 15.33.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXCEPTION-STATUS</u>
 </pre>
 
@@ -31902,7 +31722,7 @@ The type of the function is numeric.
 <a id="section-15-34-2"></a>
 #### 15.34.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXP</u> ( argument-1 )
 </pre>
 <a id="section-15-34-3"></a>
@@ -31933,7 +31753,7 @@ The type of the function is numeric.
 <a id="section-15-35-2"></a>
 #### 15.35.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>EXP10</u> ( argument-1 )
 </pre>
 <a id="section-15-35-3"></a>
@@ -31967,7 +31787,7 @@ The type of this function is integer.
 <a id="section-15-36-2"></a>
 #### 15.36.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FACTORIAL</u> ( argument-1 )
 </pre>
 <a id="section-15-36-3"></a>
@@ -31990,7 +31810,7 @@ The type of this function is integer.
 
    c) When the value of argument-1 is n,
 
-      (n * (n − 1) * (n − 2) * ... * 1)
+      (n \* (n − 1) \* (n − 2) \* ... \* 1)
 
 
 <a id="section-15-37"></a>
@@ -32006,7 +31826,7 @@ The type of this function is integer.
 <a id="section-15-37-2"></a>
 #### 15.37.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FIND-STRING</u> argument-1 argument-2 [ <u>LAST]</u> [ [ <u>START</u> <u>AFTER</u> ] argument-3 ] [ <u>ANYCASE</u> ]
 </pre>
 
@@ -32054,7 +31874,7 @@ The type of this function depends on the argument type as follows:
 <a id="section-15-38-2"></a>
 #### 15.38.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FORMATTED-CURRENT-DATE</u> ( argument-1 )
 </pre>
 <a id="section-15-38-3"></a>
@@ -32095,7 +31915,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-39-2"></a>
 #### 15.39.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FORMATTED-DATE</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-39-3"></a>
@@ -32136,7 +31956,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-40-2"></a>
 #### 15.40.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FORMATTED-DATETIME</u> ( argument-1 argument-2 argument-3 [ argument-4 ] )
 </pre>
 <a id="section-15-40-3"></a>
@@ -32187,7 +32007,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-41-2"></a>
 #### 15.41.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FORMATTED-TIME</u> ( argument-1 argument-2 [ argument-3 ] )
 </pre>
 <a id="section-15-41-3"></a>
@@ -32231,7 +32051,7 @@ The type of the function is numeric.
 <a id="section-15-42-2"></a>
 #### 15.42.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>FRACTION-PART</u> ( argument-1 )
 </pre>
 <a id="section-15-42-3"></a>
@@ -32275,7 +32095,7 @@ The content of any numeric data item can be set exactly to the highest algebraic
 <a id="section-15-43-2"></a>
 #### 15.43.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>HIGHEST-ALGEBRAIC</u> ( argument-1 )
 </pre>
 <a id="section-15-43-3"></a>
@@ -32321,7 +32141,7 @@ The type of this function is integer.
 <a id="section-15-44-2"></a>
 #### 15.44.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER</u> ( argument-1 )
 </pre>
 <a id="section-15-44-3"></a>
@@ -32368,7 +32188,7 @@ The function type is integer.
 <a id="section-15-45-2"></a>
 #### 15.45.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-BOOLEAN</u> ( argument-1 )
 </pre>
 <a id="section-15-45-3"></a>
@@ -32403,13 +32223,13 @@ The type of this function is integer.
 <a id="section-15-46-2"></a>
 #### 15.46.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-DATE</u> ( argument-1 )
 </pre>
 <a id="section-15-46-3"></a>
 #### 15.46.3 Argument rule
 
-1) Argument-1 shall be an integer of the form YYYYMMDD, whose value is obtained from the calculation (YYYY * 10,000) + (MM * 100) + DD.
+1) Argument-1 shall be an integer of the form YYYYMMDD, whose value is obtained from the calculation (YYYY \* 10,000) + (MM \* 100) + DD.
 
    a) YYYY represents the year in the Gregorian calendar. It shall be an integer greater than 1600 and less than 10000.
 
@@ -32438,13 +32258,13 @@ The type of this function is integer.
 <a id="section-15-47-2"></a>
 #### 15.47.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-DAY</u> ( argument-1 )
 </pre>
 <a id="section-15-47-3"></a>
 #### 15.47.3 Argument rule
 
-1) Argument-1 shall be an integer of the form YYYYDDD, whose value is obtained from the calculation (YYYY * 1000) + DDD.
+1) Argument-1 shall be an integer of the form YYYYDDD, whose value is obtained from the calculation (YYYY \* 1000) + DDD.
 
    a) YYYY represents the year in the Gregorian calendar. It shall be an integer greater than 1600 and less than 10000.
 
@@ -32469,7 +32289,7 @@ The type of this function is integer.
 <a id="section-15-48-2"></a>
 #### 15.48.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-OF-FORMATTED-DATE</u> ( argument-1 argument-2 )
 </pre>
 
@@ -32507,7 +32327,7 @@ The type of this function is integer.
 <a id="section-15-49-2"></a>
 #### 15.49.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>INTEGER-PART</u> ( argument-1 )
 </pre>
 <a id="section-15-49-3"></a>
@@ -32554,7 +32374,7 @@ The type of this function is integer.
 <a id="section-15-50-2"></a>
 #### 15.50.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LENGTH</u> ( argument-1 [ <u>PHYSICAL</u> ] )
 </pre>
 
@@ -32618,7 +32438,7 @@ The function type is alphanumeric.
 <a id="section-15-51-2"></a>
 #### 15.51.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOCALE-COMPARE</u> ( argument-1 argument-2 [ locale-name-1 ] )
 </pre>
 <a id="section-15-51-3"></a>
@@ -32672,7 +32492,7 @@ The function type is alphanumeric.
 <a id="section-15-52-2"></a>
 #### 15.52.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOCALE-DATE</u> ( argument-1 [ locale-name-1 ] )
 </pre>
 <a id="section-15-52-3"></a>
@@ -32709,7 +32529,7 @@ The function type is alphanumeric.
 <a id="section-15-53-2"></a>
 #### 15.53.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOCALE-TIME</u> ( argument-1 [ locale-name-1 ] )
 </pre>
 <a id="section-15-53-3"></a>
@@ -32755,7 +32575,7 @@ The function type is alphanumeric.
 <a id="section-15-54-2"></a>
 #### 15.54.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOCALE-TIME-FROM-SECONDS</u> ( argument-1 [ locale-name-1 ] )
 </pre>
 
@@ -32791,7 +32611,7 @@ The type of this function is numeric.
 <a id="section-15-55-2"></a>
 #### 15.55.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOG</u> ( argument-1 )
 </pre>
 <a id="section-15-55-3"></a>
@@ -32822,7 +32642,7 @@ The type of this function is numeric.
 <a id="section-15-56-2"></a>
 #### 15.56.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOG10</u> ( argument-1 )
 </pre>
 <a id="section-15-56-3"></a>
@@ -32859,7 +32679,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-57-2"></a>
 #### 15.57.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 [ <u>LOCALE</u> locale-name-1 ] )
 </pre>
 <a id="section-15-57-3"></a>
@@ -32909,7 +32729,7 @@ The content of any unsigned numeric data item can be set by any number of constr
 <a id="section-15-58-2"></a>
 #### 15.58.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>LOWEST-ALGEBRAIC</u> ( argument-1 )
 </pre>
 <a id="section-15-58-3"></a>
@@ -32964,7 +32784,7 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-59-2"></a>
 #### 15.59.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-59-3"></a>
@@ -33004,7 +32824,7 @@ The type of this function is numeric.
 <a id="section-15-60-2"></a>
 #### 15.60.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MEAN</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-60-3"></a>
@@ -33043,7 +32863,7 @@ The type of this function is numeric.
 <a id="section-15-61-2"></a>
 #### 15.61.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MEDIAN</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-61-3"></a>
@@ -33083,7 +32903,7 @@ The type of this function is numeric.
 <a id="section-15-62-2"></a>
 #### 15.62.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MIDRANGE</u> ( { argument-1 } … )
 </pre>
 
@@ -33124,7 +32944,7 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-63-2"></a>
 #### 15.63.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MIN</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-63-3"></a>
@@ -33161,7 +32981,7 @@ The type of this function is integer.
 <a id="section-15-64-2"></a>
 #### 15.64.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>MOD</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-64-3"></a>
@@ -33203,7 +33023,7 @@ The type of this function is alphanumeric.
 <a id="section-15-65-2"></a>
 #### 15.65.2 General format
 
-<pre>
+<pre style="line-height:1">
                      ╭ ╭ <u>ACTIVATING</u> ╮ ╮
                      │ │            │ │
                      │ │ <u>CURRENT</u>    │ │
@@ -33262,7 +33082,7 @@ The type of the function is national.
 <a id="section-15-66-2"></a>
 #### 15.66.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>NATIONAL-OF</u> ( argument-1 [ argument-2 ] )
 </pre>
 <a id="section-15-66-3"></a>
@@ -33303,7 +33123,7 @@ NOTE Locale-based functionality equivalent to NUMVAL can be obtained by using th
 <a id="section-15-67-2"></a>
 #### 15.67.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>NUMVAL</u> ( argument-1 )
 </pre>
 <a id="section-15-67-3"></a>
@@ -33367,7 +33187,7 @@ The type of this function is numeric.
 <a id="section-15-68-2"></a>
 #### 15.68.2 General format
 
-<pre>
+<pre style="line-height:1">
                                ┌ <u>LOCALE</u> [ locale-name-1 ] ┐
 <u>FUNCTION</u> <u>NUMVAL-C</u> ( argument-1 │                          │ [ <u>ANYCASE</u> ] )
                                └ argument-2               ┘
@@ -33470,7 +33290,7 @@ The type of this function is numeric.
 <a id="section-15-69-2"></a>
 #### 15.69.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>NUMVAL-F</u> ( argument-1 )
 </pre>
 <a id="section-15-69-3"></a>
@@ -33532,7 +33352,7 @@ The type of this function is integer.
 <a id="section-15-70-2"></a>
 #### 15.70.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD</u> ( argument-1 )
 </pre>
 <a id="section-15-70-3"></a>
@@ -33563,7 +33383,7 @@ The type of this function is integer.
 <a id="section-15-71-2"></a>
 #### 15.71.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD-MAX</u> ( { argument-1 } … )
 </pre>
 
@@ -33599,7 +33419,7 @@ The type of this function is integer.
 <a id="section-15-72-2"></a>
 #### 15.72.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>ORD-MIN</u> ( { argument-1 } … )
 </pre>
 
@@ -33637,7 +33457,7 @@ The type of this function is numeric.
 <a id="section-15-73-2"></a>
 #### 15.73.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>PI</u>
 </pre>
 
@@ -33675,7 +33495,7 @@ The type of this function is numeric.
 <a id="section-15-74-2"></a>
 #### 15.74.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>PRESENT-VALUE</u> ( argument-1 { argument-2 } … )
 </pre>
 
@@ -33727,7 +33547,7 @@ The type of this function is numeric.
 <a id="section-15-75-2"></a>
 #### 15.75.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>RANDOM</u> [ ( [ argument-1 ] ) ]
 </pre>
 
@@ -33775,7 +33595,7 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-76-2"></a>
 #### 15.76.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>RANGE</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-76-3"></a>
@@ -33811,7 +33631,7 @@ The type of this function is numeric.
 <a id="section-15-77-2"></a>
 #### 15.77.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>REM</u> ( argument-1 argument-2 )
 </pre>
 <a id="section-15-77-3"></a>
@@ -33887,7 +33707,7 @@ The type of the function is numeric.
 <a id="section-15-79-2"></a>
 #### 15.79.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SECONDS-FROM-FORMATTED-TIME</u> ( argument-1 argument-2 )
 </pre>
 
@@ -33932,7 +33752,7 @@ The type of this function is numeric.
 <a id="section-15-80-2"></a>
 #### 15.80.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SECONDS-PAST-MIDNIGHT</u>
 </pre>
 
@@ -33961,7 +33781,7 @@ The type of the function is integer.
 <a id="section-15-81-2"></a>
 #### 15.81.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SIGN</u> ( argument-1 )
 </pre>
 <a id="section-15-81-3"></a>
@@ -34005,7 +33825,7 @@ The type of this function is numeric.
 <a id="section-15-82-2"></a>
 #### 15.82.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SIN</u> ( argument-1 )
 </pre>
 <a id="section-15-82-3"></a>
@@ -34041,7 +33861,7 @@ NOTE The types of arguments that are permitted for this function are limited bec
 <a id="section-15-83-2"></a>
 #### 15.83.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SMALLEST-ALGEBRAIC</u> ( argument-1 )
 </pre>
 <a id="section-15-83-3"></a>
@@ -34089,7 +33909,7 @@ The type of this function is numeric.
 <a id="section-15-84-2"></a>
 #### 15.84.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SQRT</u> ( argument-1 )
 </pre>
 <a id="section-15-84-3"></a>
@@ -34127,7 +33947,7 @@ The function type is alphanumeric.
 <a id="section-15-85-2"></a>
 #### 15.85.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>STANDARD-COMPARE</u> ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )
 </pre>
 <a id="section-15-85-3"></a>
@@ -34187,7 +34007,7 @@ The type of this function is numeric.
 <a id="section-15-86-2"></a>
 #### 15.86.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ( { argument-1 } … )
 </pre>
 
@@ -34230,7 +34050,7 @@ The type of the function depends on the argument type of argument-1 as follows:
 <a id="section-15-87-2"></a>
 #### 15.87.2 General format
 
-<pre>
+<pre style="line-height:1">
                     ╭            ╭             ┌ <u>FIRST</u> ┐                       ╮   ╮
 <u>FUNCTION</u> <u>SUBSTITUTE</u> │ argument-1 ┤ [ <u>ANYCASE</u> ] │       │ argument-2 argument-3 ├ … │
                     ╰            ╰             └ <u>LAST</u>  ┘                       ╯   ╯
@@ -34285,7 +34105,7 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-88-2"></a>
 #### 15.88.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>SUM</u> ( { argument-1 } … )
 </pre>
 
@@ -34328,7 +34148,7 @@ The type of this function is numeric.
 <a id="section-15-89-2"></a>
 #### 15.89.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TAN</u> ( argument-1 )
 </pre>
 <a id="section-15-89-3"></a>
@@ -34355,7 +34175,7 @@ The type of this function is integer.
 <a id="section-15-90-2"></a>
 #### 15.90.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TEST-DATE-YYYYMMDD</u> ( argument-1 )
 </pre>
 <a id="section-15-90-3"></a>
@@ -34411,7 +34231,7 @@ The type of this function is integer.
 <a id="section-15-91-2"></a>
 #### 15.91.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TEST-DAY-YYYYDDD</u> ( argument-1 )
 </pre>
 <a id="section-15-91-3"></a>
@@ -34458,7 +34278,7 @@ The type of this function is integer.
 <a id="section-15-92-2"></a>
 #### 15.92.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TEST-FORMATTED-DATETIME</u> ( argument-1 argument-2)
 </pre>
 <a id="section-15-92-3"></a>
@@ -34494,7 +34314,7 @@ The type of this function is integer.
 <a id="section-15-93-2"></a>
 #### 15.93.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )
 </pre>
 <a id="section-15-93-3"></a>
@@ -34550,7 +34370,7 @@ The type of this function is integer.
 <a id="section-15-94-2"></a>
 #### 15.94.2 General format
 
-<pre>
+<pre style="line-height:1">
                                     ┌ <u>LOCALE</u> [ locale-name-1 ] ┐
 <u>FUNCTION</u> <u>TEST-NUMVAL-C</u> ( argument-1 │                          │ [ <u>ANYCASE</u> ] )
                                     └ argument-2               ┘
@@ -34607,7 +34427,7 @@ The type of this function is integer.
 <a id="section-15-95-2"></a>
 #### 15.95.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>TEST-NUMVAL-F</u> ( argument-1 )
 </pre>
 <a id="section-15-95-3"></a>
@@ -34669,7 +34489,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-96-2"></a>
 #### 15.96.2 General format
 
-<pre>
+<pre style="line-height:1">
               ╭            ┌ <u>LEADING</u>  ┐                  ╮
 <u>FUNCTION</u> <u>TRIM</u> │ argument-1 │          │ [ argument-2 ] … │
               ╰            └ <u>TRAILING</u> ┘                  ╯
@@ -34733,7 +34553,7 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-97-2"></a>
 #### 15.97.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>UPPER-CASE</u> ( argument-1 [ <u>LOCALE</u> locale-name-1 ] )
 </pre>
 <a id="section-15-97-3"></a>
@@ -34770,7 +34590,7 @@ The type of this function is numeric.
 <a id="section-15-98-2"></a>
 #### 15.98.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>VARIANCE</u> ( { argument-1 } … )
 </pre>
 <a id="section-15-98-3"></a>
@@ -34818,7 +34638,7 @@ The type of this function is alphanumeric.
 <a id="section-15-99-2"></a>
 #### 15.99.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>WHEN-COMPILED</u>
 </pre>
 <a id="section-15-99-3"></a>
@@ -34862,7 +34682,7 @@ The type of the function is integer.
 <a id="section-15-100-2"></a>
 #### 15.100.2 General format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>YEAR-TO-YYYY</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
 </pre>
 <a id="section-15-100-3"></a>
@@ -34897,7 +34717,7 @@ The type of the function is integer.
 
       The equivalent arithmetic expression is
 
-      (argument-1 + 100 * (FUNCTION INTEGER (maximum-year/100)))
+      (argument-1 + 100 \* (FUNCTION INTEGER (maximum-year/100)))
 
 
 ---
@@ -34905,7 +34725,7 @@ The type of the function is integer.
 
 b) Otherwise, the equivalent arithmetic expression is
 
-(argument-1 + 100 * (FUNCTION INTEGER (maximum-year/100) – 1))
+(argument-1 + 100 \* (FUNCTION INTEGER (maximum-year/100) – 1))
 
 NOTE 1 In the year 1995, the returned value for FUNCTION YEAR-TO-YYYY (4, 23) is 2004. In the year 2008 the returned value for FUNCTION YEAR-TO-YYYY (98, (–15)) is 1898.
 
@@ -38309,7 +38129,7 @@ Entrance
 
 Index Setting: exceeds highest permissible occurrence or is zero or negative
 
-→ True (AT END) * → imperative-statement-1 →
+→ True (AT END) \* → imperative-statement-1 →
 
 ↓ False
 
@@ -38317,7 +38137,7 @@ Condition-1 → True → imperative-statement-2 → **\*\***
 
 ↓ False
 
-\* Condition-2 → True → imperative-statement-3 * →
+\* Condition-2 → True → imperative-statement-3 \* →
 
 ↓ False
 
@@ -38325,7 +38145,7 @@ Increment index-name for identifier-1
 
 ↓
 
-Increment index-name-1 (for a different table) or identifier-2 *
+Increment index-name-1 (for a different table) or identifier-2 \*
 
 [loops back to top]
 
@@ -44805,6 +44625,7 @@ The following are obsolete language elements:
 # Annex G
 (informative)
 
+<a id="section-annex-g"></a>
 ## Known errors
 
 <a id="section-g-1"></a>
@@ -44847,6 +44668,7 @@ The following are known errors in this Working Draft International Standard:
 
 ---
 
+<a id="bibliography"></a>
 ## BIBLIOGRAPHY
 
 The following documents are useful references for implementors and users of this Working Draft International Standard, in addition to the normative references:
@@ -44861,7 +44683,7 @@ The following documents are useful references for implementors and users of this
 
 [5] *Unicode Standard Annex, UAX #44, Unicode Character Database http:www.unicode.org/reports/tr44/tr44--26.html*
 
-[6] *ISO 1989:1985 Programming Language - COBOL*, including I*SO 1989:1985/Amd 1:1992 intrinsic function module*, and *ISO 1989:1985/Amd 2:1994 Correction and clarification amendment for COBOL*
+[6] *ISO 1989:1985 Programming Language - COBOL*, including *ISO 1989:1985/Amd 1:1992 intrinsic function module*, and *ISO 1989:1985/Amd 2:1994 Correction and clarification amendment for COBOL*
 
 [7] *ISO/IEC 1989:2002, Information technology — Programming Languages — COBOL*
 
@@ -44870,6 +44692,7 @@ The following documents are useful references for implementors and users of this
 ---
 
 
+<a id="index"></a>
 ## Index
 
 > **About these references.** The printed index points at PAGE numbers, which mean nothing in this
@@ -44888,12 +44711,12 @@ operator [8.3.2.2.23](#section-8-3-2-2-23), [8.4.3.14.2](#section-8-4-3-14-2)
 Literal continuation indicator [3](#section-3)
 "-
 Literal continuation indicator [3](#section-3)
-*
+\*
 Comment line [3](#section-3)
 operator [8.4.3.13.2](#section-8-4-3-13-2)
 **
 operator [8.4.3.13.2](#section-8-4-3-13-2)
-*>
+\*>
 Comment indicator [3](#section-3)
 Comment line [3](#section-3)
 Inline comment [3](#section-3)
@@ -45123,7 +44946,7 @@ SORT statement [14.9.40](#section-14-9-40)
 ASIN function [15.10](#section-15-10)
 ASSIGN clause
 FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Asterisk (*) comment line [3](#section-3)
+Asterisk (\*) comment line [3](#section-3)
 AT END [8.8.4.2.13](#section-8-8-4-2-13)
 At end condition [14.7.2](#section-14-7-2)
 Definition [14.2.3](#section-14-2-3)
