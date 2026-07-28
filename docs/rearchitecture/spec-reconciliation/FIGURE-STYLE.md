@@ -138,6 +138,20 @@ Depth is counted against the delimiters spanning **both** rows of the pair, neve
 row separately: in the relation condition the operand braces cover only part of the figure's height, so
 measuring per row made `IS <>` depth 3 and the row below it depth 1, and two plain siblings failed to pair.
 
+### An outer enclosure's label may not subdivide an inner one
+
+A clause label sits on the point row of the brace it annotates. When that row falls *between* the alternatives
+of a brace nested inside, it must not claim a row of its own — it snaps onto the nearer neighbouring row.
+
+The file-control entry is the case. `{ device-name-1 / literal-1 }` and `{ MANUAL / AUTOMATIC }` are the same
+shape, yet the first drew **four** rows and the second three, because `ASSIGN` — the label of the *enclosing*
+brace, at print y 175.1 — lands between `device-name-1` (165.6) and `literal-1` (179.8). Nothing encloses
+`LOCK MODE IS`, so nothing intrudes on it.
+
+A brace's **own** label is exempt, and that exemption is what keeps ACCEPT Format 3 at its printed seven rows:
+`LINE NUMBER` also sits outside its brace and inside its span, but on that brace's own point row, where it
+belongs.
+
 ### Columns align within a group; words flow within a cell
 
 Two rows share a column only when the same delimiter spans them. Packing one column space across a whole figure

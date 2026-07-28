@@ -188,6 +188,64 @@ def build(page, lo, hi, extract, classify_page):
     rowof = cluster([w["y0"] for w in text_w], tol=4.0)   # 4.9 pt separates rows, 3.2 pt does not
     rows = sorted(set(rowof.values()))
     rindex = {y: i for i, y in enumerate(rows)}
+
+    # A ROW CREATED BY AN OUTER ENCLOSURE'S LABEL MUST NOT SUBDIVIDE AN INNER ONE. The file-control entry is
+    # the case: `ASSIGN` is the OUTER brace's label and sits on that brace's point row, which happens to fall
+    # between the INNER brace's two alternatives — so `{ device-name-1 / literal-1 }` drew FOUR rows where
+    # `LOCK MODE IS { MANUAL / AUTOMATIC }`, identical in shape but with nothing enclosing it, drew three.
+    # Such a label is snapped onto the nearer neighbouring row instead of claiming one of its own.
+    #
+    # A brace's OWN label is exempt, and that exemption is what keeps ACCEPT Format 3 right: `LINE NUMBER`
+    # also sits outside its brace and inside its span, but on that brace's own point row, where it belongs.
+    def outer_label_rows():
+        if not glyphs:
+            return set()
+        gxc = cluster([b["x0"] for b in glyphs], X_TOL)
+        cols = collections.defaultdict(list)
+        for b in glyphs:
+            cols[gxc[b["x0"]]].append(b)
+        out = set()
+        for ps in cols.values():
+            groups, cur = [], []
+            for b in sorted(ps, key=lambda b: b["y0"]):
+                role = GLYPH_PIECES[b["text"]][2]
+                if role == "top" and cur:
+                    groups.append(cur)
+                    cur = []
+                cur.append(b)
+                if role == "bot":
+                    groups.append(cur)
+                    cur = []
+            for g in groups + ([cur] if cur else []):
+                kinds = [GLYPH_PIECES[b["text"]] for b in g]
+                if next((f for f, _, _ in kinds if f), "brace") != "brace":
+                    continue
+                if next((sd for _, sd, _ in kinds if sd), "L") != "L":
+                    continue
+                y0, y1 = min(b["y0"] for b in g), max(b["y0"] for b in g)
+                edge = min(b["x0"] for b in g)
+                mids = [b["y0"] for b in g if GLYPH_PIECES[b["text"]][2] == "mid"]
+                own = min(rows, key=lambda r: abs(r - mids[0])) if mids else None
+                for r in rows:
+                    if not (y0 < r < y1) or r == own:
+                        continue
+                    ws = [w for w in text_w if rowof[w["y0"]] == r]
+                    if ws and all(w["x0"] < edge for w in ws):
+                        out.add(r)
+        return out
+
+    intruders = outer_label_rows()
+    if intruders:
+        keep = [q for q in rows if q not in intruders]
+        for r in sorted(intruders):
+            if not keep:
+                break
+            target = min(keep, key=lambda q: abs(q - r))
+            for k, v in list(rowof.items()):
+                if v == r:
+                    rowof[k] = target
+        rows = sorted(set(rowof.values()))
+        rindex = {y: i for i, y in enumerate(rows)}
     stems = [s for s in classify_page(page) if not (s["y1"] < lo or s["y0"] > hi)]
 
     # WHICH ROWS A STEM ENCLOSES. The bottom test takes an INSET, not slack: a stem stops just above the next

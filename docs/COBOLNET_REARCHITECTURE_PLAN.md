@@ -124,11 +124,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      align only where one delimiter spans both rows, and a cell (a run of words between delimiters) flows with
      single spaces. That removed every stray-gap artifact at its root, including `[ END-ACCEPT  ]`, which had
      been recorded as un-fixable by tolerance and was really a symptom of packing one column space figure-wide.
-   - **KNOWN, and a row-model question rather than a bug:** where a clause label is vertically CENTRED beside a
-     group, its centring offset becomes a row of its own, stretching a neighbouring group by one row. ASSIGN in
-     the file-control entry is the case — its inner brace draws four rows where print has two. The same
-     treatment is what gives ACCEPT's `AT` its own (correct, owner-approved) row, so the two cannot be told
-     apart without a two-dimensional row model. Left as printed-faithful-enough pending an owner call.
+   - **The ASSIGN stretch is FIXED, and it was never the row-model question I reported it as.** An outer
+     enclosure's label may not subdivide an inner one: `ASSIGN` sits on the OUTER brace's point row, which
+     falls between the INNER brace's two alternatives, so `{ device-name-1 / literal-1 }` drew four rows where
+     the identically-shaped `LOCK MODE IS { MANUAL / AUTOMATIC }` — with nothing enclosing it — drew three.
+     Such a label now snaps to the nearer neighbouring row. A brace's OWN label is exempt, which is what keeps
+     ACCEPT's `LINE NUMBER` (and its printed seven rows) correct.
    - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 24 figures over 13 pages spanning statement ·
      file-control clause list · data-description · conditions · the FLOAT-DECIMAL clause). ⓑ then sweep, as
      regenerate-and-diff.
