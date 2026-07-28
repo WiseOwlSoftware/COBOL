@@ -279,6 +279,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// mask order (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
+    /// <summary>The OO fatal conditions an INVOKE raises (§14.9.23.4 GR5 EC-OO-NULL, GR7b EC-OO-METHOD).
+    /// A PRECISE per-node gate, not an ambient tail one: an INVOKE is a distinguishable bound node, so the guard
+    /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
+    private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD"];
+
     /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
     private static readonly string[] ProgramNames =
     [
@@ -356,6 +361,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundKeyedRewrite k: Query(IoNames, k.File); break;
                 case BoundKeyedDelete k: Query(IoNames, k.File); break;
                 case BoundKeyedStart k: Query(IoNames, k.File); break;
+                case BoundInvoke or BoundInvokeUniversal:
+                    Query(OoInvokeNames);   // §14.9.23.4 GR5 / GR7b
+                    break;
                 case BoundCallProgram:
                     Query(ProgramNames);
                     Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
