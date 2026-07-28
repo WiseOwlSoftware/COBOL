@@ -88,6 +88,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      carrying ISO's acknowledgment verbatim and closing with an **Addendum** listing every correction beside the
      printed form so each is reversible. Gates: `verify_acknowledgment.py` (needs the PDF) and
      `verify_publishable.py` (deliberately does NOT, so it runs in the public repo).
+   - **⛔ FIDELITY OF TEXT IS NOT LEGIBILITY, and only one gate measures the second.** Every audit here compares
+     the file's TEXT to the printed page; all of them passed while the document rendered as a wall of italics
+     (137 unescaped literal `*`, each opening emphasis that never closed) and every brace rendered as a dotted
+     column (bare `<pre>`, so box-drawing rows sat 1.45 em apart and never met). Both were found by the OWNER
+     opening the file. `lint_rendering.py` now covers that class — unbalanced emphasis outside code, `<pre>`
+     without `line-height:1`, a column header repeating inside a table body, ragged rows, caption-as-heading,
+     unbalanced tags, dangling links. It needs no PDF, it is currently CLEAN, and it reports **536 defects** on
+     the revision before those fixes, which is the evidence it can fail.
+   - **The standard's long tables break across printed pages; the transcription had kept the breaks.** Table 13
+     was five tables, Table 21 nine, Table 12 three, Tables 1/6/10 two each — each restarting under a repeated
+     caption and a repeated column header that then sits in the body as a data row. 18 joints merged. Table 10's
+     24x24 picture-symbol precedence matrix was rebuilt from the printed GEOMETRY (every cell is positional, so
+     reading order silently shifts the marks left); it is verified square, symmetric in its symbol lists, and
+     equal to an independent unsnapped mark count off the page — 163 = 163. **All 124 Markdown tables now have
+     zero ragged rows.**
    - Batch 1 sub-batches 1–2 DONE; outer brackets + remaining underlining findings OUTSTANDING. Batches 2–5
      (anchors/TOC, misplaced content, cosmetic, page-break furniture) OUTSTANDING. Order and mechanism:
      `spec-reconciliation/REPAIR-PLAN.md`.

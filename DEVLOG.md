@@ -83,8 +83,13 @@ Gates: `sweep_figures --check` clean (484), `verify_publishable` PUBLISHABLE (47
 **What this says about the verification set.** Every gate here passed before these defects were fixed and after,
 which means none of them measures what the owner actually looked at. The audits check text against the PDF; they
 do not check that the Markdown, rendered, is legible. The two defects were found by a human opening the file.
-That gap is worth closing, and the cheap version is a lint pass — unbalanced emphasis outside code, `<pre>`
-without the line-height, a header row appearing in a table body — none of which needs the PDF.
+That gap is now closed by `scripts/spec/lint_rendering.py`: unbalanced emphasis outside code, `<pre>` without
+the line-height, a column header repeating inside a table body, ragged rows, caption-as-heading, unbalanced tags,
+dangling links. No PDF needed. It is clean on the current file and reports **536 defects** on the revision before
+this commit — 37 emphasis, 484 line-height, 9 ragged, 6 caption — which is the evidence that it can fail. It also
+found one more repeat the caption-keyed merger could not see, and one false positive worth recording: the
+multi-column reserved-word lists are LAYOUT tables with an empty header row, so their blank spacer rows matched
+it trivially. Only a header with content can be repeated.
 
 ## Entry 1062 — 2026-07-27 21:16 PDT — The reconciliation ledger is CLOSED; a transcription agent was still talking to its operator
 
