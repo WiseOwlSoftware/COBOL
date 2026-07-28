@@ -1232,10 +1232,8 @@ This document does not specify:
 
 — The sharing of objects and resources other than files among run units.
 
----
 
 
----
 
 
 <a id="section-2"></a>
@@ -1305,7 +1303,6 @@ coded character in an alphanumeric coded character set, whether or not there is 
 \<location within an item> location within an alphanumeric data item of an alphanumeric character
 
 
----
 
 
 ### 3.10
@@ -1350,62 +1347,52 @@ smallest unit in a computer's storage structure capable of representing two dist
 elementary data item of category boolean and usage bit or a bit group item
 
 
----
 
 ### 3.20
 **block**
 **physical record**
 physical unit of data that is normally composed of one or more logical records
 
----
 
 ### 3.21
 **boolean character**
 unit of information that consists of the value zero or one
 
----
 
 ### 3.22
 **boolean data item**
 data item capable of containing a boolean value
 
----
 
 ### 3.23
 **boolean expression**
 expression consisting of one or more boolean operands separated by boolean operator
 
----
 
 ### 3.24
 **boolean position**
 \<storage required> amount of physical storage required to store, or presentation space required to print or display, a single boolean character
 
----
 
 ### 3.25
 **boolean position**
 \<location within an item> the location within a boolean data item of a boolean character
 
----
 
 ### 3.26
 **boolean value**
 value consisting of a sequence of one or more boolean characters
 
----
 
 ### 3.27
 **byte**
 sequence of bits representing the smallest addressable character unit in the memory of a given computer
 
----
 
 ### 3.28
 **character boundary**
 leftmost bit of an addressing boundary in the storage of the computer
 
----
 
 ### 3.29
 **character position**
@@ -1413,28 +1400,23 @@ leftmost bit of an addressing boundary in the storage of the computer
 
 Note 1 to entry: As an example, each element of a combining sequence in the UCS occupies one character position. A UTF-16 surrogate pair occupies two character positions.
 
----
 
 
----
 
 ### 3.30
 **character position**
 \<location within an item\> location within an alphanumeric or national data item of a corresponding alphanumeric or national character
 
----
 
 ### 3.31
 **character-string**
 sequence of contiguous characters that form a COBOL word, a literal, or a picture character-string
 
----
 
 ### 3.32
 **class**
 \<in object orientation\> entity that defines common behavior and implementation for zero, one, or more objects
 
----
 
 ### 3.33
 **class**
@@ -1442,31 +1424,26 @@ sequence of contiguous characters that form a COBOL word, a literal, or a pictur
 
 Note 1 to entry: These common attributes or a common range of values are defined by the PICTURE clause (see 13.18.40, PICTURE clause), the USAGE clause, (see 13.18.60, USAGE clause) or the PICTURE and USAGE clauses.
 
----
 
 ### 3.34
 **class**
 \<of data values\> set of data values that are permissible in the content of a data item
 
----
 
 ### 3.35
 **class definition**
 compilation unit that defines a class of objects
 
----
 
 ### 3.36
 **clause**
 ordered set of consecutive COBOL character-strings whose purpose is to specify an attribute of an entry
 
----
 
 ### 3.37
 **COBOL character repertoire**
 repertoire of characters used in writing the syntax of a COBOL compilation group, except for comments and the content of non-hexadecimal alphanumeric and national literals
 
----
 
 ### 3.38
 **combining character**
@@ -1474,7 +1451,6 @@ member of the Universal Coded Character Set that is intended for combination wit
 
 [SOURCE: ISO/IEC 10646:2020, 3.44, modified — wording changes to COBOL usage]
 
----
 
 
 ## 3.39
@@ -1787,22 +1763,18 @@ single instance of an object defined by a class and created by a factory object
 <the language construct> grouping of method prototypes
 
 
----
 
 
----
 
 ### 3.111
 **internal data**
 all data described in a source unit except external data and external file connectors
 
----
 
 ### 3.112
 **key of reference**
 key, either prime or alternate, currently being used to access records within an indexed file
 
----
 
 ### 3.113
 **line delimiter**
@@ -1810,53 +1782,44 @@ sequence of one or more bytes which terminates a record in a line sequential fil
 
 Note 1 to entry: The line delimiter is implementor-defined.
 
----
 
 ### 3.114
 **little-endian**
 characterized by the arrangement of data within a data item such that its most significant component occupies the highest (rightmost) component memory address within the item
 
----
 
 ### 3.115
 **locale**
 facility in the user's information technology environment that specifies language and cultural conventions
 
----
 
 ### 3.116
 **lock mode**
 state of a file for which record locking is in effect that indicates whether record locking is manual or automatic
 
----
 
 ### 3.117
 **low-order end**
 rightmost position of a string of characters or a string of bits
 
----
 
 ### 3.118
 **message control system**
 **MCS**
 implementor-defined system that sends and receives messages exchanged between run units
 
----
 
 ### 3.119
 **message-server**
 run unit that receives a request via a RECEIVE statement from a requestor and returns information to that requestor
 
----
 
 ### 3.120
 **message-tag**
 implementor-defined unit of data that specifies the requestor or sender of a message and any additional information about the message
 
----
 
 
----
 
 
 ### 3.121
@@ -1902,7 +1865,6 @@ implementor-defined collating sequence, either an alphanumeric collating sequenc
 record that logically follows the current record of a file
 
 
----
 
 
 ### 3.131
@@ -2000,7 +1962,6 @@ facility for controlling concurrent access to records in a shared physical file
 item in a report whose position is specified relative to the previous item
 
 
----
 
 
 ### 3.154
@@ -2044,13 +2005,11 @@ file that is opened such that it can only be written or read sequentially
 permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file
 
 
----
 
 ### 3.164
 **source element**
 source unit excluding any contained source units
 
----
 
 ### 3.165
 **source unit**
@@ -2058,49 +2017,41 @@ sequence of statements beginning with an identification division and finishing w
 
 Note 1 to entry: Any source units contained within a source unit are part of the containing source unit.
 
----
 
 ### 3.166
 **standard binary floating-point usages**
 usages float-binary-32, float-binary-64, and float-binary-128
 
----
 
 ### 3.167
 **standard decimal floating-point usages**
 usages float-decimal-16 and float-decimal-34
 
----
 
 ### 3.168
 **static data**
 data that has its last-used state when a runtime element is re-entered
 
----
 
 ### 3.169
 **subject of the entry**
 data item that is being defined by a data description entry
 
----
 
 ### 3.170
 **subscript**
 number used to refer to a specific element of a table, or in the case of the value 'ALL', to all elements of a table
 
----
 
 ### 3.171
 **superclass**
 class that is inherited by another class
 
----
 
 ### 3.172
 **surrogate pair**
 coded character representation for a single abstract character of the UTF-16 format of the UCS where the representation consists of a sequence of two two-octet values where the first value of the pair is a high-surrogate and the second is a low-surrogate
 
----
 
 ### 3.173
 **tape drive**
@@ -2108,10 +2059,8 @@ real or virtual device that records data sequentially and once the data is writt
 
 Note 1 to entry: This includes magnetic tape drives, ribbon drives, write only devices, virtual files that behave like magnetic tape drives, and similar devices.
 
----
 
 
----
 
 
 ### 3.174
@@ -2225,7 +2174,6 @@ Documentation associated with an implementation shall identify nonstandard exten
 An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time to indicate use of a nonstandard extension in a compilation group. This warning mechanism shall flag only extensions that are syntactically distinguishable.
 
 
----
 
 
 <a id="section-4-2-11"></a>
@@ -2299,7 +2247,6 @@ NOTE    The inclusion of non-COBOL components in the run unit does not affect th
 The processing of a conforming run unit is predictable only to the extent defined in standard COBOL. The results of violating the formats or rules of standard COBOL are undefined unless otherwise specified in this Working Draft International Standard.
 
 
----
 
 
 Situations in which the results of executing a statement are explicitly undefined or unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these situations to happen is a conforming run unit, although the resultant execution is not defined by standard COBOL.
@@ -2319,7 +2266,6 @@ The execution of a run unit composed of runtime modules resulting from translati
 NOTE These factors can include the logical incorrectness of the compilation units, errors in the data upon which the run unit operates, and the limits of an implementation.
 
 
----
 
 
 <a id="section-5"></a>
@@ -2368,7 +2314,6 @@ Elements used in depicting general formats are:
 Keywords are reserved words or context-sensitive words. They are shown in uppercase and underlined in general formats. They are required in order to select the functionality associated with that keyword, subject to the conventions specified in 5.2.6, Options, and syntax rules specified for the general format.
 
 
----
 
 
 <a id="section-5-2-3"></a>
@@ -2401,10 +2346,8 @@ NOTE    When the term data-name-n is used in a general format or syntax rule, th
 
 Specific level numbers appearing in general formats are required to be specified when the formats in which they appear are written in the source unit. Level number forms 1, 2, ..., and 9, may be written as 01, 02, ..., 09, respectively.
 
----
 
 
----
 
 
 <a id="section-5-2-6"></a>
@@ -2443,7 +2386,6 @@ NOTE   In text other than general formats, the ellipsis ( … ) shows omission o
 The separators comma and semicolon may be used anywhere the separator space is used in general formats and other syntactic specifications. In the compilation group, these separators are interchangeable.
 
 
----
 
 
 The separator period, when specified in a general format, is required when that format is used.
@@ -2492,13 +2434,10 @@ Argument rules specify requirements, constraints, or defaults associated with ar
 
 Returned value rules define how the arguments are used to derive the result of an intrinsic function.
 
----
 
 
----
 
 
----
 
 <a id="section-5-4"></a>
 ### 5.4 Arithmetic expressions
@@ -2541,10 +2480,8 @@ Ellipses show that the number of terms and operators is variable.
 
    b) If any mode of standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item whose form corresponds to the form of arithmetic that is in effect and whose content has the unique value zero or whose decimal fixed-point representation contains only zeros to the right of the decimal point.
 
----
 
 
----
 
 
 <a id="section-5-6"></a>
@@ -2557,10 +2494,8 @@ Substantial parts of the COBOL specification are described informally in text, t
 
 A hyphen appearing at the end of a line of text is part of the character-string or word it divides. Hyphens are not added to divide character-strings or words across lines.
 
----
 
 
----
 
 
 <a id="section-6"></a>
@@ -2604,7 +2539,6 @@ The following rules apply to the indicated reference formats:
 Indicators are instructions to the compiler for interpreting reference format. Each indicator is classified as either a fixed indicator or a floating indicator.
 
 
----
 
 
 <a id="section-6-2-2"></a>
@@ -2640,7 +2574,6 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 | "- '- | literal continuation indicator | continuation of a literal when specified in an unterminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.2.3.2, Syntax rules. |
 
 
----
 
 
 <a id="section-6-2-3-2"></a>
@@ -2663,7 +2596,6 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 6) For a continued alphanumeric, boolean, or national literal, the first nonblank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal.
 
 
----
 
 
 <a id="section-6-3"></a>
@@ -2753,7 +2685,6 @@ All characters composing any multiple-character separator or multiple-character 
 Comment lines and blank lines may be interspersed among lines containing the parts of a literal.
 
 
----
 
 
 If there is no fixed continuation indicator in a line, a space is implied before the first nonblank character in the line for purposes of analyzing the text of the compilation group.
@@ -2797,7 +2728,6 @@ In free-form reference format, the source or library text may be written anywher
 
 The indicators specified in 6.2.3, Floating indicators, identify specific elements of a compilation group. The entire free-form line constitutes the program-text area of the line.
 
----
 
 
 <a id="section-6-4-2"></a>
@@ -2836,7 +2766,6 @@ A comment may be a comment line or an inline comment.
 A comment line is identified by a floating comment indicator as the first character-string on a line. A comment line may be written as any line in a compilation group.
 
 
----
 
 
 <a id="section-6-4-4-3"></a>
@@ -2867,10 +2796,8 @@ The rules of logical conversion are applied to each line of a compilation group 
 
    a) if the continued string is an alphanumeric or boolean literal, the content of the program-text area, beginning with the first character after the initial quotation symbol, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group.
 
----
 
 
----
 
 
 b) otherwise, the content of the program-text area, beginning with the first non-space character, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group.
@@ -2929,7 +2856,6 @@ The following are the compiler directing statements and compiler directives and 
 
 The implementor defines the stage during which actions associated with listings, if any, take place.
 
----
 
 
 The substitution of compilation-variable values into constant entries occurs in the text manipulation stage. The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor, except that it occurs after the text manipulation stage of processing.
@@ -2965,7 +2891,6 @@ Step 1: An expanded compilation group is created in logical free-form reference 
 &nbsp;&nbsp;&nbsp;&nbsp;The resulting lines constitute an expanded compilation group.
 
 
----
 
 
 Step 2: A conditionally-processed compilation group is created — the expanded compilation group is read and the following compiler directives and substitutions are processed in the order encountered in the expanded compilation group:
@@ -3030,7 +2955,6 @@ A text-word is a character-string, other than a comment or the COBOL word 'COPY'
 NOTE    The contexts in which characters from outside the COBOL character repertoire can be used in elements of COBOL syntax are very limited. Because the syntactic validity of elements or constructs is determined after the completion of all text manipulation, the introduction of non-COBOL characters into such elements or constructs through the action of COPY and REPLACE can have unexpected or undesirable results.
 
 
----
 
 
 <a id="section-7-2-3"></a>
@@ -3079,7 +3003,6 @@ The COPY statement incorporates library text into a COBOL compilation group.
 
    NOTE   If a text word within Pseudo-text is a literal, then it can be continued using the rules for literal continuation.
 
----
 
 
 9) The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions.
@@ -3205,7 +3128,6 @@ Format 2 (off):
 
 9) The length of a text-word within pseudo-text shall be from 1 through 65,535 characters.
 
----
 
 
 10) Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2.
@@ -3268,7 +3190,6 @@ c) The following rules apply for the purpose of matching:
 
     a. The two representations of the quotation symbol match when specified in the opening and closing delimiters of the literal and those delimiters shall be in the same representation.
 
----
 
 
 b. In the content of the literal, two contiguous occurrences of the character used as the quotation symbol in the opening delimiter are treated as a single occurrence of that character.
@@ -3335,7 +3256,6 @@ Compiler directives specify options for use by the compiler, define compilation-
 
 9) The compiler-directive word 'IMP' is reserved for use by the implementor. If the implementor defines the IMP directive, the syntax rules for that directive shall be implementor-defined.
 
----
 
 
 NOTE >>IMP provides an optional place holder for all current and future implementor-defined directives. In this way the implementor can optionally support the use of >>IMP to indicate the start of one or more implementor-defined directives.
@@ -3371,7 +3291,6 @@ The use of certain compiler directives provides a means of including or omitting
 A compile-time arithmetic expression may be specified in the DEFINE and EVALUATE directives, in a constant conditional expression, and in a constant entry.
 
 
----
 
 
 <a id="section-7-3-6-2"></a>
@@ -3411,10 +3330,8 @@ A compile-time boolean expression may be specified where allowed by the general 
 
 1) Compile-time boolean expressions shall be formed in accordance with 8.8.2, Boolean expressions, except that all operands shall be boolean literals or boolean expressions in which all operands are boolean literals.
 
----
 
 
----
 
 
 <a id="section-7-3-7-3"></a>
@@ -3487,10 +3404,8 @@ compilation-variable-name-1 IS [ <u>NOT</u> ] <u>DEFINED</u>
 
 2) A defined condition using the IS NOT DEFINED syntax evaluates TRUE if compilation-variable-name-1 is not currently defined.
 
----
 
 
----
 
 
 <a id="section-7-3-9"></a>
@@ -3525,10 +3440,8 @@ The CALL-CONVENTION directive instructs the compiler how to treat references to 
 
 3) The CALL-CONVENTION directive may also be used by the implementor to determine other details needed to interact with a function, method, or program.
 
----
 
 
----
 
 
 <a id="section-7-3-10"></a>
@@ -3574,7 +3487,6 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
 
 2) When the EQUATE option is specified, the COBOL word that is the content of literal-2 shall be treated as a synonym for the COBOL word that is the content of literal-1, and may be used in any syntax requiring the use of the reserved word, context-sensitive word, or intrinsic function name that is the content of literal-1.
 
----
 
 
 3) When the UNDEFINE option is specified, the COBOL word that is the content of literal-3 shall no longer be reserved or restricted in any way, and may be used as a user-defined intrinsic name, data-name or any other user-defined word, and any syntax requiring the use of the COBOL word that is the content of literal-3 shall not be available for use in this compilation group.
@@ -3633,7 +3545,6 @@ The DEFINE directive specifies a symbolic name, called a compilation variable, f
 
 1) In text that follows a DEFINE directive specifying compilation-variable-name-1 without the OFF phrase, compilation-variable-name-1 may be used in the compilation group in any compiler directive where a literal of the category associated with the name is permitted, in a defined condition, or in a constant entry where the FROM phrase is specified.
 
----
 
 
 2) Following a DEFINE directive in which the OFF phrase is specified, compilation-variable-name-1 shall not be used except in a defined condition unless it is redefined in a subsequent DEFINE directive.
@@ -3701,10 +3612,8 @@ The DISPLAY directive transfers data to the source listing or an implementor def
 
 5) If the UPON phrase is specified:
 
----
 
 
----
 
 
 a) if LISTING is specified, data is transferred to the same device as that used for source listings.
@@ -3763,7 +3672,6 @@ ALL FORMATS
 
 2) EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line.
 
----
 
 
 3) >>WHEN operand-2 [THROUGH operand-3] shall begin on a new line and shall be specified entirely on that line.
@@ -3832,7 +3740,6 @@ FORMAT 2
 
 9) If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text. All lines of text-1 associated with other WHEN phrases are omitted from the resultant text.
 
----
 
 
 10) If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text.
@@ -3888,10 +3795,8 @@ NOTE The FLAG-02 directive is an obsolete element in this Working Draft Internat
 
    b) EC-PROGRAM-EXCEPTIONS: A TURN directive for EC-ALL, EC-PROGRAM, EC-PROGRAM-ARG-OMITTED. or EC-PROGRAM-NOT-FOUND shall be flagged if
 
----
 
 
----
 
 
 1. the source element calls any function, or
@@ -4007,7 +3912,6 @@ m) WRITE-END-OF-PAGE. A WRITE statement that allows an END-OF-PAGE phrase when t
 
 5) If the FLAG-14 directive is not specified, the default for all options is off.
 
----
 
 
 <a id="section-7-3-16"></a>
@@ -4053,10 +3957,8 @@ The IF directive provides for 1- or 2-way conditional compilation. This directiv
 
 3) If constant-conditional-expression-1 evaluates to FALSE, all lines of text-2 are included in the resultant text and all lines of text-1 are omitted from the resultant text.
 
----
 
 
----
 
 
 <a id="section-7-3-17"></a>
@@ -4104,7 +4006,6 @@ The LEAP-SECOND directive specifies whether a value greater than or equal to 60 
 
 4) When ON is specified or implied, a standard numeric time form value shall be greater than or equal to zero and less than 86,401. The implementor defines whether a value greater than or equal to 86,400 may be returned from the SECONDS-PAST-MIDNIGHT intrinsic function.
 
----
 
 
 5) When OFF is specified or implied, a standard numeric time form value shall be greater than or equal to zero and less than 86,400.
@@ -4148,10 +4049,8 @@ NOTE This Working Draft International Standard does not define the content or la
 
 5) If ON is specified or implied, source lines shall be listed until either a LISTING OFF directive is encountered or the end of the compilation group is reached.
 
----
 
 
----
 
 
 <a id="section-7-3-19"></a>
@@ -4184,10 +4083,8 @@ The PAGE directive specifies page ejection and provides documentation for the so
 
 3) If a source listing is not being produced, a PAGE directive shall have no effect.
 
----
 
 
----
 
 
 <a id="section-7-3-20"></a>
@@ -4229,7 +4126,6 @@ The POP directive is used to restore the state of a directive that was previousl
 
 3) If ALL is specified, the state of all of the directives that were previously stored by a PUSH directive and were not removed by a POP directive shall be restored. In the case where there may be multiple occurrences of a directive, such as a DEFINE directive, all instances of that directive that were pushed and not popped are restored.
 
----
 
 
 <a id="section-7-3-21"></a>
@@ -4267,10 +4163,8 @@ The PROPAGATE directive is used to cause propagation of exception conditions to 
 
 4) The default for a compilation group is PROPAGATE OFF.
 
----
 
 
----
 
 
 <a id="section-7-3-22"></a>
@@ -4312,10 +4206,8 @@ The PUSH directive is used to save the state of a directive so that its status m
 
 3) The effects of the directive being pushed remain active. In the case where there may be multiple occurrences of the directive, such as a DEFINE directive, all instances of that directive are pushed.
 
----
 
 
----
 
 
 <a id="section-7-3-23"></a>
@@ -4341,10 +4233,8 @@ The REF-MOD-ZERO-LENGTH directive specifies whether resultant data items may hav
 
 1) When this directive is omitted or is specified as off, then when reference-modification results in a zero-length data item, the exception condition EC-BOUND-REF-MOD is raised
 
----
 
 
----
 
 <a id="section-7-3-24"></a>
 #### 7.3.24 SOURCE FORMAT directive
@@ -4378,7 +4268,6 @@ The SOURCE FORMAT directive specifies whether the reference format of the source
 
 5) If a SOURCE FORMAT directive is specified in library text, the specified format shall be in effect until another SOURCE FORMAT directive is encountered or the end of the library text is reached. When the processing of that library text is completed, the reference format shall revert to the reference format that was in effect for the COPY statement that resulted in processing of that library text.
 
----
 
 
 <a id="section-7-3-25"></a>
@@ -4427,7 +4316,6 @@ The TURN directive is used to turn checking for specified exception conditions o
 4) The exception-name EC-I-O-WARNING may be turned on only by specifying it explicitly within a TURN directive or by its presence in a WHEN phrase in an exception-checking PERFORM statement. Similarly, it may be turned off only by an explicit TURN directive or the end of an exception-checking PERFORM statement.
 
 
----
 
 
 5) If specified within a statement, the TURN directive does not apply to any phrase of that statement. That TURN directive applies to any succeeding statement in the sequence of source lines, whether or not that succeeding statement is within the scope of the statement in which the TURN directive is specified.
@@ -4440,10 +4328,8 @@ The TURN directive is used to turn checking for specified exception conditions o
 
 8) If the OFF phrase is specified, checking for the exception condition associated with exception-name-1 is disabled for all procedure division statements and procedure division headers that follow in the compilation group and remains disabled until another TURN directive for exception-name-1 with the ON phrase is encountered; if file-name-1 is specified, checking is disabled only for exception conditions associated with that file-name.
 
----
 
 
----
 
 
 <a id="section-8"></a>
@@ -4477,7 +4363,6 @@ In source code, comments may contain any characters in the coded character set t
 The runtime computer's coded character set consists of a coded character set used to represent data described as usage display and a coded character set used to represent data described as usage national, called the computer's alphanumeric coded character set and the computer's national coded character set, respectively. The alphanumeric coded character set and the national coded character set may be two distinct coded character sets, or they may be one coded character set where a subset is designated as alphanumeric and the set or a subset is designated as national. In either case, unless specifically qualified as alphanumeric or national, the term computer's coded character set references both the alphanumeric and the national coded character sets. The characters of the alphanumeric coded character set and the characters of the national coded character set may, but need not be, disjoint sets.
 
 
----
 
 
 NOTE 1 In general, the specification assumes that the national character set includes the characters of the alphanumeric character set; for example, intrinsic functions are defined for conversion between the two. An alphanumeric character set is typically a Latin alphabet coded character set, such as ISO/IEC 646, but can be any coded character set. A national character set is intended for larger coded character sets, such as the Universal Coded Character Set (UCS) defined by ISO/IEC 10646, but can be any coded character set.
@@ -4506,7 +4391,6 @@ The implementor shall specify one and only one alphanumeric coded character valu
 
 — the figurative constants: SPACE, QUOTE, and ZERO when associated with an alphanumeric data item
 
----
 
 
 — the character used for space filling of alphanumeric data items
@@ -4718,7 +4602,6 @@ LC_TIME
 | d_fmt | date representation |
 | t_fmt | time representation |
 
----
 
 
 <a id="section-8-3"></a>
@@ -4764,7 +4647,6 @@ A user-defined word is a COBOL word that is supplied by the user to satisfy the 
 The types of user-defined words are:
 
 
----
 
 
 — alphabet-name
@@ -4851,7 +4733,6 @@ Externalized names shall be referenced in a source element only:
 All other references to names for which externalization is permitted shall be specified using the user-defined words, as opposed to the externalized names.
 
 
----
 
 
 In the AS phrases, only the externalized names shall be referenced. In the CALL, CANCEL, and INVOKE statements, the inline method invocation, and in the program-address-identifier, either the externalized names or the user-defined words may be referenced, depending on the conditions described below.
@@ -4879,7 +4760,6 @@ When a CALL statement, a CANCEL statement, or a program-address-identifier refer
 
 An alphabet-name identifies a specific character set or collating sequence, or both. This relationship is established in the SPECIAL-NAMES paragraph.
 
----
 
 
 <a id="section-8-3-2-2-2"></a>
@@ -4938,7 +4818,6 @@ An index-name identifies an index associated with a specific table.
 An interface-name identifies an interface, a grouping of method prototypes.
 
 
----
 
 
 <a id="section-8-3-2-2-13"></a>
@@ -4993,7 +4872,6 @@ A program-name identifies a program. For a COBOL program, program-name is the na
 
 A program-prototype-name identifies a program prototype.
 
----
 
 
 <a id="section-8-3-2-2-23"></a>
@@ -5052,7 +4930,6 @@ A system-name is used to communicate with the operating environment. The impleme
 The types of system-names are:
 
 
----
 
 
 — call-convention-name
@@ -5104,7 +4981,6 @@ An external-locale-name identifies a locale that specifies a set of cultural ele
 
 A feature-name identifies a feature of an input-output device.
 
----
 
 
 <a id="section-8-3-2-3-9"></a>
@@ -5285,10 +5161,8 @@ FORMAT 1
 
    c) When the implementor provides the option of UTF-8 or mixed alphanumeric and national characters in the content of format 1 alphanumeric literals, the implementor shall specify the applicable general rules.
 
----
 
 
----
 
 
 FORMAT 2
@@ -5330,7 +5204,6 @@ The rules for the formation and value of floating-point numeric literals are:
 2) The literal to the left of the 'E' represents the significand. It may be signed and shall include a decimal point. The significand shall be from 1 to 36 digits in length. If the significand is signed, the floating-point numeric literal is considered to be signed. If the significand is unsigned, the floating-point numeric literal is considered to be positive.
 
 
----
 
 
 3) The literal to the right of the 'E' represents the exponent. It may be signed and shall have a maximum of four digits and no decimal point. The maximum permitted value and minimum permitted value of the exponent is implementor-defined.
@@ -5383,10 +5256,8 @@ FORMAT 2
 
 NOTE Hexadecimal-boolean literals can be of zero length.
 
----
 
 
----
 
 
 <a id="section-8-3-3-4-4"></a>
@@ -5432,7 +5303,6 @@ Format 1 (national)
 </pre>
 
 
----
 
 
 Format 2 (hexadecimal-national)
@@ -5479,7 +5349,6 @@ ALL FORMATS
 
 1) The separators that delimit the national literal are not included in the value of the national literal.
 
----
 
 
 2) National literals are of the class and category national.
@@ -5507,7 +5376,6 @@ FORMAT 2
 Figurative constant values are generated by the compiler and referenced through the use of the reserved words given below.
 
 
----
 
 
 <a id="section-8-3-3-6-2"></a>
@@ -5646,7 +5514,6 @@ If the context of the figurative constant requires national characters, the nati
 At runtime, when referenced outside the SPECIAL-NAMES paragraph, the low-value format represents the character, or multiple-character combination, that has the lowest ordinal position in the runtime collating sequence.
 
 
----
 
 
 When locale category LC_COLLATE is in effect for the program collating sequence, LOW-VALUES is the character, or multiple-character combination, that has the lowest ordinal position in the collating sequence specified by the locale in effect.
@@ -5684,7 +5551,6 @@ A separator is one of the following, except when appearing in a literal:
 4) Except when appearing in a picture character-string, the COBOL characters right parenthesis and left parenthesis are separators. Except in pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function or method arguments, a reference modifier, arithmetic or boolean expressions, or conditions.
 
 
----
 
 
 5) The opening delimiters and closing delimiters of literals are separators. Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing delimiters.
@@ -5756,7 +5622,6 @@ Qualification of a user-defined name is required unless one of the following is 
 3) It is unique within the context of a VARYING clause.
 
 
----
 
 
 4) Any other definition of the name is subordinate to a type declaration entry for which the type-name is not referenced in any TYPE clause in the source unit.
@@ -5813,7 +5678,6 @@ record-key-name-1 │ ┤    ├ file-name-2 │
 
 > **Figure notes (qualified-record-key-name Format 6 syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
----
 
 
 Format 7 (qualified-linage-counter):
@@ -5872,7 +5736,6 @@ where file-report-qualifier is:
 6) The qualification of an index-name may include the name of the table with which the index-name is associated, as well as any name by which that table may be qualified.
 
 
----
 
 
 7) If explicitly referenced, a paragraph-name shall not be duplicated within a section. A paragraph-name need not be qualified when referred to from within the same section.
@@ -5918,7 +5781,6 @@ where subscript is:
 
 > **Figure notes (subscript syntax diagram).** `ALL` is underlined in the printed standard (required word); it is the only underlined element in this figure. The outer braces select exactly one of the three alternatives. In the third alternative the `+`/`-` selection is required (braces) but the whole `{ + | - } integer-1` phrase is optional (brackets). No choice indicators appear in this figure.
 
----
 
 
 NOTE Qualified-data-name-1 and qualified-condition-name-1 are shown for context and are not part of the subscript general format.
@@ -6101,7 +5963,6 @@ FORMAT 10
 
 11) Qualified-linage-counter-1 is defined in 8.4.2.2, Qualification.
 
----
 
 
 FORMAT 11
@@ -6156,7 +6017,6 @@ A function-identifier references the unique data item that results from the eval
 2) If intrinsic-function-name-1 or the ALL phrase is specified in the REPOSITORY paragraph or if function-prototype-name-1 or function-pointer-name-1 is specified, the word FUNCTION may be omitted from the function-identifier; otherwise the word FUNCTION is required.
 
 
----
 
 
 3) Function-prototype-name-1 shall be the user-function-name of the containing function definition or a function prototype specified in the REPOSITORY paragraph.
@@ -6197,7 +6057,6 @@ A function-identifier references the unique data item that results from the eval
 
 13) If function-prototype-name-1 or function-pointer-name-1 is specified, the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items, apply.
 
----
 
 
 14) If function-prototype-name-1 or function-pointer-name-1 is specified and the formal parameter corresponding to argument-1 is specified with the BY REFERENCE phrase in the USING phrase of the procedure division header and argument-1 is a bit data item, argument-1 shall be described such that it is aligned on a byte boundary and that subscripting and the leftmost position in a reference modification of argument-1 consist of only numeric literals or arithmetic expressions whose result is a positive integer, in which all operands are numeric literals, and in which the exponentiation operator is not specified.
@@ -6224,7 +6083,6 @@ A function-identifier references the unique data item that results from the eval
    a) BY REFERENCE is assumed when the BY REFERENCE phrase is specified or implied for the corresponding formal parameter and argument-1 is an identifier that is permitted as a receiving operand, other than an object property or object data item.
 
 
----
 
 
 b) BY CONTENT is assumed when the BY REFERENCE phrase is specified or implied for the corresponding formal parameter and argument-1 is a literal, an arithmetic expression, a boolean expression, an object property, object data item, or any identifier that is not permitted as a receiving operand.
@@ -6245,10 +6103,8 @@ e) After control is returned from the activated function, if an exception condit
 
 f) If an exception condition exists, any declarative or WHEN phrase of a PERFORM statement that is associated with that exception condition is executed. Execution then proceeds as defined for the exception condition and execution of the declarative or WHEN phrase of the PERFORM statement.
 
----
 
 
----
 
 
 7) If the word OMITTED is specified or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to TRUE in the activated function. (See 8.8.4.8, Simple omitted argument condition.)
@@ -6295,7 +6151,6 @@ For reference modification, bit group items and national group items are treated
 5) Unless otherwise specified, reference modification is allowed anywhere an identifier referencing a data item of class alphanumeric, boolean, or national is permitted.
 
 
----
 
 
 NOTE Because the references to data items are restricted to identifiers, where data-name-n is used in a general format or syntax rule, then reference-modification is not permitted.
@@ -6324,7 +6179,6 @@ If the evaluation of leftmost-position or length results in a non-integer value,
 NOTE When the runtime coded character set is the UTF-16 format of the UCS, the COBOL system treats the two halves of a surrogate pair as separate character position as specified in 8.5.1.4, Limitations of character handling.
 
 
----
 
 
 6) The unique data item is considered to be an elementary data item without the JUSTIFIED clause. The unique data item has the same class, category, and usage as that defined for identifier-1, except that:
@@ -6424,7 +6278,6 @@ identifier-1 <u>AS</u> ┤ interface-name-1                            ├
 
 2) If object-class-name-1 is specified without either of the optional phrases, identifier-1 is treated as though it were described as USAGE IS OBJECT REFERENCE object-class-name-1. If the object referenced by identifier-1 is not an object of object-class-name-1 or an object of a subclass of object-class-name-1, the EC-OO-CONFORMANCE exception condition is set to exist.
 
----
 
 
 3) If the FACTORY phrase is specified and the ONLY phrase is not specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE FACTORY OF object-class-name-1. If the object referenced by identifier-1 is not the factory object of object-class-name-1 or the factory object of a subclass of object-class-name-1, the EC-OO-CONFORMANCE exception condition is set to exist.
@@ -6522,7 +6375,6 @@ SELF and SUPER are predefined object references that reference the object on whi
 
 4) Object-class-name-1 shall be the name of a class specified in the INHERITS clause of the containing class definition.
 
----
 
 
 5) If the INHERITS clause of the containing class definition specifies more than one object-class-name, object-class-name-1 shall be specified.
@@ -6566,7 +6418,6 @@ property-name-1 <u>OF</u> ┤                     ├
 > **Figure notes (object property general format).** `OF` is underlined in the printed standard (required word). The braces are a plain required choice — exactly one of `object-class-name-1` / `identifier-1` shall be selected.
 
 
----
 
 
 <a id="section-8-4-3-9-3"></a>
@@ -6596,7 +6447,6 @@ property-name-1 <u>OF</u> ┤                     ├
 3) When an object property is used as both a sending item and a receiving item, conceptual temporary data items temp-1 and temp-2 are used in its place; temp-1 and temp-2 are the same temporary data item, where temp-2 redefines temp-1. For sending operations, the value of the property is determined in the same manner as for sending items in General rule 1; for receiving operations, the value of the property is assigned in the same manner as for receiving items in General rule 2. The data descriptions of temp-1 and temp-2 are the same as the data description of the item specified in the RETURNING phrase of the get property method.
 
 
----
 
 <a id="section-8-4-3-10"></a>
 ##### 8.4.3.10 NULL address pointer and message tag content
@@ -6632,7 +6482,6 @@ NULL is a predefined address of class pointer or a predefined content of class m
 
 4) When associated with a message-tag, the predefined content NULL references a data item of category message-tag that contains the null content. The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor.
 
----
 
 <a id="section-8-4-3-11"></a>
 ##### 8.4.3.11 Data-address-identifier
@@ -6642,10 +6491,8 @@ NULL is a predefined address of class pointer or a predefined content of class m
 
 A data-address-identifier references the unique data item that contains the address of a data item.
 
----
 
 
----
 
 
 <a id="section-8-4-3-11-2"></a>
@@ -6688,10 +6535,8 @@ A data-address-identifier references the unique data item that contains the addr
 
 A function-address-identifier identifies the unique data item that contains the address of a function.
 
----
 
 
----
 
 <a id="section-8-4-3-12-2"></a>
 ###### 8.4.3.12.2 General format
@@ -6704,7 +6549,6 @@ A function-address-identifier identifies the unique data item that contains the 
 
 > **Figure notes (ADDRESS OF FUNCTION syntax diagram).** `ADDRESS` and `FUNCTION` are underlined in the printed standard (required words); `OF` is **not** underlined. The braces are plain — exactly one of `function-prototype-name-1` or `identifier-1` shall be selected.
 
----
 
 <a id="section-8-4-3-12-3"></a>
 ###### 8.4.3.12.3 Syntax rules
@@ -6740,7 +6584,6 @@ A function-address-identifier identifies the unique data item that contains the 
 
 A program-address-identifier references the unique data item that contains the address of a program.
 
----
 
 
 <a id="section-8-4-3-13-2"></a>
@@ -6794,7 +6637,6 @@ A program-address-identifier references the unique data item that contains the a
 
 The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in a file description entry.
 
----
 
 
 <a id="section-8-4-3-14-2"></a>
@@ -6853,7 +6695,6 @@ The PAGE-COUNTER and LINE-COUNTER identifiers are generated automatically and ex
 NOTE Because each report maintains an independent PAGE-COUNTER and LINE-COUNTER, it is the programmer's responsibility to assign the correct values to any page numbers and to ensure that report groups are printed correctly within the limits of the page.
 
 
----
 
 
 3) LINE-COUNTER shall not be referenced as a receiving operand.
@@ -6926,7 +6767,6 @@ Name resolution for any implicitly referenced data item in a procedure division 
 NOTE 1 When a source element contains a procedure division statement with an implicit reference, and the specification establishing that implicit reference is in a containing source element, it might not be possible to reference explicitly that same data item in the contained program that has an implicit reference to it.
 
 
----
 
 
 NOTE 2 When an implicit reference is to a subscripted data-name, an identifier, or an arithmetic expression, the explicit specification for the data item that is being implicitly referenced can include not only the data-name of that data item, but also additional data-names, such as those used as subscripts, portions of reference modifiers, parameters to inline method invocations, and operands in arithmetic expressions. Name resolution for each of these data-names occurs in the ENVIRONMENT DIVISION or the DATA DIVISION where the explicit reference is written. When item identification requires knowing the current content of such items, their content is evaluated at runtime.
@@ -7043,7 +6883,6 @@ PAGE-COUNTER and LINE-COUNTER are global if the GLOBAL clause is specified in re
 
 LINAGE-COUNTER is global if the GLOBAL clause is specified in the file description entry for the associated file; otherwise, it is local.
 
----
 
 
 <a id="section-8-4-6-3"></a>
@@ -7113,7 +6952,6 @@ Parameter-names may be referenced only within the class definition or interface 
 The property-name of a property referenced within a source element shall be declared in the REPOSITORY paragraph of that or a containing source element.
 
 
----
 
 
 <a id="section-8-5"></a>
@@ -7182,7 +7020,6 @@ Repetitive data may be described in COBOL as a table. Tables may have multiple d
 The capacity of a table is the number of occurrences of the elements of that table. The logical capacity of a table is the number of occurrences whose content is defined at any given time in accordance with General rule 7 of 13.18.38, OCCURS clause. The physical capacity of that table is the number of occurrences for which physical resources have been allocated
 
 
----
 
 
 <a id="section-8-5-1-4"></a>
@@ -7214,7 +7051,6 @@ The SIGN clause permits the programmer to state explicitly the location of the o
 Editing signs are inserted into a data item through the use of the sign control symbols of the PICTURE clause.
 
 
----
 
 
 <a id="section-8-5-1-6"></a>
@@ -7253,7 +7089,6 @@ Implicit filler bit positions are generated:
 
 — Following a bit data item within an alphanumeric group item, within a strongly-typed group item, or within a bit group item, as needed to advance alignment to a required natural boundary for the next item within that group. The filler bit positions are implicitly described as a filler elementary bit data item of the necessary number of bits and of the same level number as the next item within that group.
 
----
 
 
 — Following a bit data item that is the last data item in a record that is an alphanumeric group or strongly-typed group item, as needed to increase the number of bits to fill an integral number of characters. The filler bit positions are implicitly described as a filler elementary bit data item of the necessary number of bits with a level number the same as the highest hierarchical level of any bit data item superordinate to the last item, or, if there is no such superordinate item, the same as the level number of the last data item in the record.
@@ -7287,7 +7122,6 @@ Alignment of strongly-typed group items is at a natural alphanumeric character b
 The alignment of the start of a strongly-typed group item relative to the first item within that group is defined by the implementor, with the following exceptions:
 
 
----
 
 
 — The alignment of the group shall be coincident with the first item when that item is a national group item or a data item of class boolean, message-tag, object, or pointer.
@@ -7361,7 +7195,6 @@ NOTE   The implementor need not physically allocate and, if specified, initializ
 The creation of a new element in a dynamic-capacity table may result in one of the following exceptions:
 
 
----
 
 
 1) EC-BOUND-OVERFLOW. The nonfatal EC-BOUND-OVERFLOW exception condition shall exist when a dynamic-capacity table has an expected capacity and an operation causes this expected capacity to be exceeded. If the change in capacity was implicit and the expected capacity had already been exceeded before the operation, no exception shall exist.
@@ -7469,10 +7302,8 @@ Two fixed-length groups are always compatible, unless they are strongly typed an
 
 2) For each pair of corresponding tables, these tables match, as specified in 8.5.1.12.3, Matching.
 
----
 
 
----
 
 
 3) For each dynamic-length elementary item in either group there is a corresponding dynamic-length elementary item in the other group as specified in 8.5.1.12.2, Positional correspondence.
@@ -7652,7 +7483,6 @@ Each of the following is a data item of category numeric:
 
 7) An integer function.
 
----
 
 
 Such an item is referred to as a numeric data item.
@@ -7774,7 +7604,6 @@ A source unit may contain other source units, and these contained source units m
 The scope of global and local names is described in 8.4.6, Scope of names.
 
 
----
 
 
 <a id="section-8-6-3"></a>
@@ -7878,7 +7707,6 @@ Two runtime elements in a run unit may reference common data in the following ci
 3) The mechanism whereby an argument value is passed by reference from an activating runtime element to an activated runtime element establishes a common data item. The activated unit and the activating unit may use a different name to refer to the common data item.
 
 
----
 
 
 <a id="section-8-7"></a>
@@ -7961,10 +7789,8 @@ The relational operators specify the type of comparison to be made in a relation
 
 **Format 2 (extended-relational-operator):**
 
----
 
 
----
 
 
 <pre style="line-height:1">
@@ -8022,7 +7848,6 @@ The relational operators specify the type of comparison to be made in a relation
 The logical operators are the words AND, NOT, OR, EXCLUSIVE-OR, and XOR. The words EXCLUSIVE-OR and XOR are equivalent. The use of the logical operators is given in 8.8.4.9, Complex conditions.
 
 
----
 
 <a id="section-8-8"></a>
 ### 8.8 Expressions
@@ -8134,7 +7959,6 @@ to
 inclusive, with a maximum precision of 113 bits; the smallest positive nonzero value is 2\*\*-16494; and the smallest normalized positive nonzero value is 2\*\*-16382. All values representable in a standard-binary intermediate data item are the product of an integer and 2\*\*-16494.
 
 
----
 
 
 When standard-binary arithmetic is in effect, the following rules apply:
@@ -8246,7 +8070,6 @@ When standard-decimal arithmetic is in effect, the following rules apply:
 
 3) The rounding rules that apply to standard-decimal intermediate data items are described in 11.9.11, INTERMEDIATE ROUNDING clause.
 
----
 
 
 <a id="section-8-8-1-5-3"></a>
@@ -8442,7 +8265,6 @@ A concatenation expression consists of two operands separated by the concatenati
 3. A concatenation expression shall be equivalent to a literal of the same class and value, and may be used anywhere a literal of that class may be used.
 
 
----
 
 
 <a id="section-8-8-4"></a>
@@ -8483,10 +8305,8 @@ Comparisons are defined for the following:
 
 For comparison, an alphanumeric group item shall be treated as an elementary alphanumeric data item. A class alphabetic operand shall be treated as though it were an operand of class alphanumeric. A national group item or a bit group item shall be treated as an elementary national data item or an elementary bit data item, respectively.
 
----
 
 
----
 
 
 NOTE All comparisons involving numeric-edited data items are alphanumeric or national comparisons, including when the associated VALUE clause is a numeric literal. Users should be aware this means that algebraic signs in numeric-edited data items usually have counter-intuitive collating sequence ordering, also that two numerically equivalent values in numeric-edited data items will not compare as equal when their picture clauses are different.
@@ -8542,7 +8362,6 @@ boolean-expression-1 ┤ IS [ <u>NOT</u> ] =        ├ boolean-expression-2
 > **Figure notes (relation condition Format 2 (boolean) syntax diagram).** `NOT` and `EQUAL` are underlined in the printed standard (required words). `IS` and `TO` are not underlined, nor are the character operators `=` and `<>`. The braces require exactly one of the three alternatives; the brackets around `NOT` make it optional.
 
 
----
 
 
 Format 3 (message-tag-object-or-pointer-reference):
@@ -8585,7 +8404,6 @@ When standard-binary arithmetic is in effect, the form of rounding used in the o
 
 When standard-decimal arithmetic is in effect, the form of rounding used in the operation shall be as specified in 11.9.11, INTERMEDIATE ROUNDING clause. The comparison is performed as if each operand not already in the format of a standard-decimal intermediate data item had been converted to that form, and the comparison made between the two corresponding standard-decimal intermediate data items.
 
----
 
 
 <a id="section-8-8-4-2-5"></a>
@@ -8614,7 +8432,6 @@ When a standard comparison is specified, there are two cases to consider: operan
    The first pair of unequal characters encountered are compared to determine their relative position in the alphanumeric collating sequence. The operand that contains the character that is positioned higher in the alphanumeric collating sequence is the greater operand.
 
 
----
 
 
 2) Operands of unequal length. If the operands are of unequal length, comparison proceeds as though the shorter operand were extended on the right by sufficient alphanumeric spaces to make the operands of equal length. The preceding rule for operands of equal length then apply.
@@ -8761,7 +8578,6 @@ The class condition determines whether an operand is numeric, alphabetic, alphab
 NOTE    Strongly typed group items have their own unique classes and categories and cannot be referenced in class conditions.
 
 
----
 
 
 <a id="section-8-8-4-4-2"></a>
@@ -8816,7 +8632,6 @@ identifier-1 IS [ <u>NOT</u> ] ┤                              ├
 
 7) If the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or FLOAT-NOT-A-NUMBER-SIGNALING phrase is specified, identifier-1 shall reference a data item described with a standard floating-point usage.
 
----
 
 
 8) If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric.
@@ -8877,7 +8692,6 @@ n) If NUMERIC is specified,
 
    b. If the usage of the data item referenced by identifier-1 is any standard floating-point usage, the condition is true only if the content of the data item referenced by identifier-1 represents a finite numeric value according to the specifications for that usage.
 
----
 
 
 c. Otherwise, the condition is true if the content of the data item referenced by identifier-1 consists entirely of a valid representation for the usage and, if a PICTURE clause is specified, the numeric value is within the range of values implied by the PICTURE clause.
@@ -8984,10 +8798,8 @@ FORMAT 1
 
    a) If the POSITIVE phrase is specified, the result is true if the value is greater than zero, and false if the value is zero or less than zero.
 
----
 
 
----
 
 
 b) If the NEGATIVE phrase is specified, the result is true if the value is less than zero, and false if it is zero or greater than zero.
@@ -9026,7 +8838,6 @@ data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>
 1) Data-name-1 shall be a formal parameter defined in the source element in which this condition is specified.
 
 
----
 
 
 <a id="section-8-8-4-8-4"></a>
@@ -9064,7 +8875,6 @@ The logical operators and their meanings are:
 
 A condition is negated by use of the logical operator 'NOT', which reverses the truth value of the condition to which it is applied. Including a negated condition in parentheses does not change its truth value.
 
----
 
 
 NOTE The truth value of a negated condition is true if the truth value of the condition being negated is false; the truth value of a negated condition is false if the truth value of the condition being negated is true.
@@ -9143,7 +8953,6 @@ When simple or negated simple relation conditions are combined with logical conn
 
 Within a sequence of relation conditions, both forms of omission may be used.
 
----
 
 
 <a id="section-8-8-4-12-2"></a>
@@ -9188,7 +8997,6 @@ where simple-relational-operator and extended-relational-operator are described 
 | NOT (a NOT > b XOR c AND NOT d) | NOT ((a NOT > b) XOR ((a NOT > c) AND NOT (a NOT > d))) |
 
 
----
 
 
 <a id="section-8-8-4-13"></a>
@@ -9201,7 +9009,6 @@ Parentheses, both explicit and implicit, denote a level of inclusiveness within 
 2) Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See 8.8.1, Arithmetic expressions.)
 
 
----
 
 
 <a id="section-8-9"></a>
@@ -9696,7 +9503,6 @@ The following are context-sensitive words and are reserved in the specified lang
 | EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph |
 
 
----
 
 
 | **Context-sensitive word** | **Language construct or context** |
@@ -9932,7 +9738,6 @@ The following words are reserved in compiler directives:
 In addition to the above list, all of the exception-names specified in 14.6.13.1, Exception conditions, are reserved in the context of compiler directives.
 
 
----
 
 
 <a id="section-8-13"></a>
@@ -9962,10 +9767,8 @@ The implementor shall provide a mechanism that allows the user to specify whethe
 
 The details on the association of the name of a source unit with information in the external repository are specified in 12.3.8, REPOSITORY paragraph.
 
----
 
 
----
 
 
 <a id="section-9"></a>
@@ -9999,7 +9802,6 @@ When a logical record is transferred to or from a physical unit, any translation
 The record area is a storage area associated with a file in which logical records from that file are made accessible to a runtime element. The record area is made accessible to the runtime element at the completion of a successfully executed OPEN statement. For files open in the input mode, the logical record is available in the record area after execution of a successful read. For files open in the extend or output mode, the logical record is available until execution of a successful write or rewrite. For files open in the I-O mode, the logical record is available after execution of a successful read until the execution of either a read or successful rewrite.
 
 
----
 
 
 NOTE All record description entries subordinate to a file description entry (FD or SD) implicitly redefine the same storage area, as specified in 13.18.33, Level-number, General rule 3.
@@ -10063,7 +9865,6 @@ A sequential physical file that is on randomly accessible mass storage has the s
 Two types of sequential files are recognized. In record sequential files the length of each record is determined by any information the implementor may add to the record on the physical storage medium (such as record length headers). The length of the record used by the COBOL programmer does not reflect these additions. In line sequential files the length of each record is determined by the number of characters between the preceding line delimiter and the following line delimiter or the end of file if no line delimiter is present, or in the case of the first logical record the start of the file and the first line delimiter.
 
 
----
 
 
 <a id="section-9-1-7-3"></a>
@@ -10096,10 +9897,8 @@ Both the prime record and any alternate record keys are made up from one or more
 
 The ACCESS MODE clause of the file description entry specifies the manner in which the runtime element operates upon records within a file. The access mode may be sequential, random, or dynamic.
 
----
 
 
----
 
 
 For files that are organized as relative or indexed, any of the three access modes may be used to access the file regardless of the access mode used to create the physical file. A file with sequential organization may be accessed only in sequential mode.
@@ -10162,10 +9961,8 @@ When execution of an input-output statement raises an exception condition, the t
 
 The first one in the list that matches is the one selected. Any others that match are ignored.
 
----
 
 
----
 
 
 <a id="section-9-1-13"></a>
@@ -10227,7 +10024,6 @@ I-O status expresses one of the following conditions upon completion of the inpu
 
 2) I-O status = 02. The input-output statement is successfully executed but a duplicate key is detected.
 
----
 
 
 a) For a READ statement with the NEXT phrase specified or implied, the key value for the current key of reference is equal to the value of the same key in the next record in the physical file.
@@ -10297,7 +10093,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 
 1) I-O status = 30. A permanent error exists and no further information is available concerning the input-output operation.
 
----
 
 
 2) I-O Status = 31. A permanent error exists during execution of an OPEN statement because the content of the data item referenced by the data-name specified in the USING phrase of the file control entry is not consistent with the specification for the device-name or literal in the ASSIGN clause of that file control entry.
@@ -10371,7 +10166,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 
 1) I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector.
 
----
 
 
 2) I-O status = 52. The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected.
@@ -10408,7 +10202,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 1) I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other condition specified by another I-O status value. The value of x is defined by the implementor.
 
 
----
 
 
 <a id="section-9-1-14"></a>
@@ -10514,7 +10307,6 @@ The COMMIT statement is used to permanently commit any changes made to the files
 The ROLLBACK statement is used to restore files and data items subject to APPLY COMMIT clauses to the state at which they were in at the point of the previous COMMIT statement or, if none had been executed, the beginning of the run unit. Any related file status settings are also restored, as are any data-items referenced by the linage and record clauses of the file descriptions. If any of the runtime elements had been canceled since the previous COMMIT statement, then any data items in those runtime elements and any contained runtime elements subject to any APPLY COMMIT clauses are not restored, unless they are external items for which another defining entry subject to an active APPLY COMMIT clause still exists in a runtime element for which the initial attribute has not been specified or that runtime element has not yet been exited. The rollback also releases all record locks for the files to which it applies.
 
 
----
 
 
 <a id="section-9-1-18-5"></a>
@@ -10548,10 +10340,8 @@ A merge file is a collection of records to be merged by a MERGE statement. The r
 
 A merge file is named by a file control entry and is described by a sort-merge file description entry. The only statements that may reference a merge file are the RETURN and MERGE statements.
 
----
 
 
----
 
 
 <a id="section-9-1-21"></a>
@@ -10599,10 +10389,8 @@ The following is a list of the values placed in the CRT status for the condition
 
 1) Successful completion with normal termination:
 
----
 
 
----
 
 
 CRT status = 0000. The input statement was successfully executed. Termination was achieved by the operator pressing the enter key or entering data into the last character of a screen item for which the AUTO clause is specified and for which no logical next field exists.
@@ -10637,7 +10425,6 @@ During execution of an ACCEPT screen statement, the position and visibility of t
 During execution of an ACCEPT screen statement, the cursor is initially positioned at the first elementary screen item in the screen description entry whose specification includes a TO or USING phrase, unless the CURSOR clause is specified in the SPECIAL-NAMES paragraph, in which case the cursor is positioned as specified in that clause.
 
 
----
 
 
 Once the keyboard is enabled for operator input, the operator may move the cursor to elementary screen items whose specification includes a TO or USING clause. Depending on the screen description entry for the item, the operator may move the cursor to characters within the displayed item.
@@ -10666,7 +10453,6 @@ Color is one of the attributes that may be specified for screen items. For a mon
 A color is selected by specifying an integer that represents the color. The colors and their associated color numbers are:
 
 
----
 
 
 | Color | Value |
@@ -10718,10 +10504,8 @@ The procedural code in an object is placed in methods. Each method has its own m
 
 Polymorphism is a feature of object orientation that provides a mechanism for selecting and invoking a method from multiple methods with the same externalized name. COBOL supports two types of polymorphism: class polymorphism and parametric polymorphism.
 
----
 
 
----
 
 
 <a id="section-9-3-5-2"></a>
@@ -10945,7 +10729,6 @@ If interface-1 and interface-2 are different interfaces, interface-1 conforms to
    c) If the parameter in interface-2 is described with an object-class-name, the corresponding parameter in interface-1 is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both interfaces.
 
 
----
 
 
 d) If the parameter in interface-2 is described with the ACTIVE-CLASS phrase, the corresponding parameter in interface-1 is described with the ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same in both interfaces.
@@ -10980,7 +10763,6 @@ d) If the parameter in interface-2 is described with the ACTIVE-CLASS phrase, th
 
    c) If the returning item in interface-2 is described with an object-class-name, the corresponding returning item in interface-1 is an object reference, subject to the following rules:
 
----
 
 
 1. If the returning item in interface-2 is described with the ONLY phrase, the returning item in interface-1 shall be described with the ONLY phrase and the same object-class-name.
@@ -11160,10 +10942,8 @@ A source unit may contain one or more divisions, specified in the following orde
 
 1) identification division
 
----
 
 
----
 
 
 2. environment division
@@ -11209,7 +10989,6 @@ NOTE   In the example:
 Program B is directly contained in Program A; Program C is directly contained in Program B; and Program C is indirectly contained in Program A. Program C is a source element; Program B, devoid of Program C, is a source element; and Program A, devoid of programs B and C, is a source element.
 
 
----
 
 
 A runtime element is the result of successful compilation of a function, a method, or a program containing a procedure division and consists of executable code included in a run unit.
@@ -11268,7 +11047,6 @@ where function-prototype is:
 [ procedure-division ]
 <u>END</u> <u>FUNCTION</u> function-prototype-name-1.
 </pre>
----
 
 
 where program-definition is:
@@ -11312,7 +11090,6 @@ where function-definition is:
 <u>END</u> <u>FUNCTION</u> user-function-name-1.
 </pre>
 
----
 
 
 where class-definition is:
@@ -11350,10 +11127,8 @@ where instance-definition is:
 [ procedure-division ]
 <u>END</u> <u>OBJECT.</u>
 </pre>
----
 
 
----
 
 
 where interface-definition is:
@@ -11405,7 +11180,6 @@ procedure-division &emsp;&emsp; 14, Procedure division
 
 1) Within a compilation group, function-prototypes and program-prototypes shall precede all other types of source units.
 
----
 
 
 2) If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same.
@@ -11433,7 +11207,6 @@ procedure-division &emsp;&emsp; 14, Procedure division
 
 1) Compilation of a program prototype definition or a function prototype definition generates information required for the external repository, as specified in 8.13, External repository.
 
----
 
 
 <a id="section-10-7"></a>
@@ -11489,7 +11262,6 @@ End markers indicate the end of a definition.
 8. Program-prototype-name-1 shall be identical to the program-prototype-name declared in the corresponding PROGRAM-ID paragraph.
 
 
----
 
 
 9) Function-prototype-name-1 shall be identical to the function-prototype-name declared in the corresponding FUNCTION-ID paragraph.
@@ -11550,7 +11322,6 @@ where the following meta-language terms are described in the indicated subclause
 | program-id-paragraph | 11.10, PROGRAM-ID paragraph |
 
 
----
 
 
 <a id="section-11-3"></a>
@@ -11600,7 +11371,6 @@ The CLASS-ID paragraph indicates that this identification division is introducin
 
 3) If the FINAL clause is specified, the class shall not be the superclass for any other class.
 
----
 
 
 4) If the same class is inherited more than once, then only one copy of the data for that class is added to object-class-name-1.
@@ -11646,7 +11416,6 @@ The FACTORY paragraph indicates that this identification division is introducing
 
    c) the class containing the factory object inherits a class whose factory object implements int-1.
 
----
 
 
 <a id="section-11-5"></a>
@@ -11686,10 +11455,8 @@ FORMAT 2
 
 2) Function-prototype-name-1 names the function prototype declared by this definition. However, literal-1, if specified, is the name of the function prototype that is externalized to the operating environment.
 
----
 
 
----
 
 
 <a id="section-11-6"></a>
@@ -11737,7 +11504,6 @@ The INTERFACE-ID paragraph indicates that this identification division is introd
 
 4) Parameter-name-1 shall be specified within this interface definition only where an object-class-name or an interface-name is permitted.
 
----
 
 
 <a id="section-11-7"></a>
@@ -11783,7 +11549,6 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 7) If the SET phrase is specified, then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase. The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase."
 
 
----
 
 
 8) The FINAL clause shall not be specified in a method prototype.
@@ -11846,10 +11611,8 @@ The OBJECT paragraph indicates that this identification division is introducing 
 
    c) the class containing the instance object inherits a class whose instance object implements intf-1.
 
----
 
 
----
 
 
 <a id="section-11-9"></a>
@@ -11908,7 +11671,6 @@ The ARITHMETIC clause specifies the method used in developing the intermediate r
 
 1) If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor, and the techniques used in handling arithmetic statements and the SUM clause shall be those specified for native arithmetic in 8.8.1.3, Native arithmetic.
 
----
 
 
 2) If the STANDARD-BINARY phrase is specified, the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and integer and numeric functions shall be as described for standard-binary arithmetic in 8.8.1.4, Standard-binary arithmetic.
@@ -11960,7 +11722,6 @@ The DEFAULT ROUNDED clause specifies the type of rounding that applies when ROUN
 1) The DEFAULT ROUNDED clause specifies the type of rounding that applies to any explicit ROUNDED phrase that does not include an explicit MODE phrase. The meaning of the rounding types associated with the DEFAULT ROUNDED clause is described in 14.7.4, ROUNDED phrase.
 
 
----
 
 
 2) If the DEFAULT ROUNDED clause is not specified, DEFAULT ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied.
@@ -12008,7 +11769,6 @@ a) If a class definition includes the INHERITS clause, the entry convention is i
 
 b) If an interface definition includes the INHERITS clause, the entry convention is inherited from the first interface specified in the INHERITS clause.
 
----
 
 
 c) In all other cases, the entry convention is COBOL.
@@ -12062,7 +11822,6 @@ The FLOAT-DECIMAL clause specifies the encoding and the endianness that is impli
 > ⚠ **The two alternatives are enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside the braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the clause may carry `encoding-phrase` alone, `endianness-phrase` alone, or **both**, in either order.
 
 
----
 
 
 where encoding-phrase is:
@@ -12104,7 +11863,6 @@ where endianness-phrase is:
 
 The INITIALIZE clause specifies that during program initialization of allocation of space the background is set to a specified character.
 
----
 
 
 <a id="section-11-9-10-2"></a>
@@ -12205,7 +11963,6 @@ The INTERMEDIATE ROUNDING clause specifies the rounding rules that are to be app
 
    b) If the NEAREST-AWAY-FROM-ZERO phrase is specified, and an intermediate data item cannot be represented exactly in SDIDI form, the value is rounded to the nearest value that can be represented in that format. If two such values are equally near, the value farther from zero is chosen.
 
----
 
 
 c) If the NEAREST-EVEN phrase is specified or implied, the intermediate data item shall be rounded to the nearest value that can be represented exactly in SDIDI form. If two such values are equally near, the value in which the rightmost digit of the significand is even shall be delivered.
@@ -12265,7 +12022,6 @@ FORMAT 1
 
 6) The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program.
 
----
 
 
 <a id="section-11-10-4"></a>
@@ -12288,7 +12044,6 @@ FORMAT 2
 6) Program-prototype-name-1 identifies the program prototype. However, literal-1, if specified, is the name of the program prototype that is externalized to the operating environment.
 
 
----
 
 
 <a id="section-12"></a>
@@ -12311,7 +12066,6 @@ The environment division specifies those aspects of a data processing problem th
 [ input-output-section ]
 </pre>
 
----
 
 
 <a id="section-12-3"></a>
@@ -12355,7 +12109,6 @@ The configuration section specifies aspects of the data processing system that a
 1) The entries explicitly or implicitly specified in the configuration section of a source unit that contains other source units apply to each directly or indirectly contained source unit.
 
 
----
 
 
 NOTE The functionality established in the CONFIGURATION SECTION applies to this source unit and all contained source units. The ability to reference explicitly any data item referenced in the CONFIGURATION SECTION is dependent upon the scope of that data item.
@@ -12388,7 +12141,6 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 
 3) When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer.
 
----
 
 
 <a id="section-12-3-6"></a>
@@ -12458,10 +12210,8 @@ where locale-phrase-2 is:
 
 3) Locale-name-1 and locale-name-2 shall be locale names defined in the SPECIAL-NAMES paragraph.
 
----
 
 
----
 
 
 4) If neither computer-name-1 nor any of the optional clauses is specified, the second period in the General format may be omitted.
@@ -12525,7 +12275,6 @@ j) If locale-phrase-2 is not specified, the initial national character classific
     When alphabet-name-1 or alphabet-name-2, or both, is associated with a locale, locale category LC_COLLATE is used to carry out these comparisons.
 
 
----
 
 
 12) The alphanumeric program collating sequence and national program collating sequence explicitly or implicitly established by the OBJECT-COMPUTER paragraph are effective with the initial state of the runtime modules to which they apply. If alphabet-name-1 or alphabet-name-2 references a locale, the associated collating sequence is defined by category LC_COLLATE in the specific locale associated with that alphabet-name or, if none, in the locale current at the time the collating sequence is used at runtime
@@ -12533,7 +12282,6 @@ j) If locale-phrase-2 is not specified, the initial national character classific
 13) The alphanumeric program collating sequence and national program collating sequence are applied to alphanumeric and national sort or merge keys, respectively, unless the sort or merge collating sequence has been modified by execution of a SET statement or a COLLATING SEQUENCE phrase is specified in the respective SORT or MERGE statement.
 
 
----
 
 
 <a id="section-12-3-7"></a>
@@ -12557,7 +12305,6 @@ The SPECIAL-NAMES paragraph provides a means for:
 — relating a data item to the status of a terminal input-output operation.
 
 
----
 
 
 <a id="section-12-3-7-2"></a>
@@ -12608,10 +12355,8 @@ The SPECIAL-NAMES paragraph provides a means for:
 > **Figure notes (SPECIAL-NAMES CLASS clause syntax diagram).** `CLASS`, `ALPHANUMERIC`, `NATIONAL`, `THROUGH`, `THRU`, and `IN` are underlined in the printed standard (required words / required minimum abbreviation); `IS` and `FOR` are not underlined. This is **one** clause printed across two lines, not two constructs: the whole `CLASS … IS … [ IN alphabet-name-4 ]` clause is enclosed in the outer brackets and may be repeated (trailing ellipsis). The `{ literal-5 [ { THROUGH | THRU } literal-6 ] }` group carries its own ellipsis and so may be repeated within a single CLASS clause. No choice indicators appear in this figure.
 > **Figure notes (SPECIAL-NAMES switch-name / feature-name / device-name syntax diagram).** `ON` and `OFF` are underlined in the printed standard (required words); `STATUS`, `IS`, `switch-name-1`, `feature-name-1`, and `device-name-1` are not underlined. The outer brackets make this whole clause optional and repeatable (trailing ellipsis); it offers three alternatives — the `switch-name-1` form, `feature-name-1 IS mnemonic-name-2`, or `device-name-1 IS mnemonic-name-3`.
 > ⚠ **Both status groups are enclosed in CHOICE INDICATORS** (the pairs of `|` bars just inside their delimiters). Per 5.2.6.4: in the first alternative the bars sit inside **brackets**, so **zero or more** of the `ON STATUS` / `OFF STATUS` phrases may be specified, each at most once, **in any order**; in the second alternative the bars sit inside **braces**, so **one or more** shall be specified, each at most once, in any order. A switch entry may therefore carry both `ON STATUS IS condition-name-1` and `OFF STATUS IS condition-name-2` in either order.
----
 
 
----
 
 
 where alphabet-name-clause is:
@@ -12719,10 +12464,8 @@ where symbolic-characters-clause is:
 
 12) The words THROUGH and THRU are equivalent.
 
----
 
 
----
 
 
 13) When the ALPHABET clause is specified with neither the ALPHANUMERIC phrase nor the NATIONAL phrase, the ALPHANUMERIC phrase is implied.
@@ -12830,7 +12573,6 @@ b) alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase 
 c) characters '+' '−' ',' '.' '\*' '/' ';' '(' ')' '"' '='
 
 
----
 
 
 23) If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the associated currency symbol. Literal-7 may have any length and:
@@ -12943,7 +12685,6 @@ k) When literal-phrase is specified, the coded character set and collating seque
    1. The value of each literal specifies:
 
 
----
 
 
 a. The ordinal number of a character within the native character set, if the literal is numeric. This value shall not exceed the value that represents the number of characters in the native character set.
@@ -13027,7 +12768,6 @@ DYNAMIC LENGTH STRUCTURE phrase &nbsp;&nbsp;&nbsp;&nbsp; value
 
 If the implementor allows larger values, the maximum value that can be expressed in a length field associated with the SHORT PREFIXED phrase shall be expressible in a length field associated with the PREFIXED phrase.
 
----
 
 
 The maximum size of records described with a DYNAMIC LENGTH phrase is defined by the implementor.
@@ -13035,7 +12775,6 @@ The maximum size of records described with a DYNAMIC LENGTH phrase is defined by
 19) If the DELIMITED phrase is specified in the DYNAMIC LENGTH STRUCTURE clause, a delimiter shall directly follow the data described with dynamic-length-structure-name-1. The delimiter for alphanumeric dynamic-length elementary items is data of the length of an alphanumeric character in which all bit positions contain binary zeroes. The delimiter for national dynamic-length elementary items is data of the length as a national character in which all bit positions contain binary zeroes.
 
 
----
 
 
 <a id="section-12-3-8"></a>
@@ -13105,7 +12844,6 @@ where program-specifier is:
 
 > **Figure notes (program-specifier syntax diagram).** `PROGRAM` and `AS` are underlined in the printed standard (required words). The `AS` phrase is optional.
 
----
 
 
 where property-specifier is:
@@ -13148,7 +12886,6 @@ INTERFACE SPECIFIER
 8) If the specified interface-name-2 is the name of the interface definition in which this REPOSITORY paragraph is specified, references to interface-name-2 are to that interface definition and this interface-specifier is ignored.
 
 
----
 
 
 9) If the INTERFACE phrase is specified without the EXPANDS phrase:
@@ -13187,10 +12924,8 @@ PROPERTY SPECIFIER
 
    a) If literal-4 is specified, there shall be information in the external repository for the property literal-5 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph.
 
----
 
 
----
 
 
 b) If literal-4 is not specified, there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph.
@@ -13275,10 +13010,8 @@ The input-output section deals with the information needed to control transmissi
 
 1) The input-output section may be specified in a program definition or a function definition. Within a class definition, the input-output section may be specified only in a factory definition or instance definition, but not in a method definition. The input-output section shall not be specified within an interface definition.
 
----
 
 
----
 
 
 <a id="section-12-4-4"></a>
@@ -13300,7 +13033,6 @@ The FILE-CONTROL paragraph specifies file-related information.
 
 The file control entry declares the relevant physical attributes of a file.
 
----
 
 
 <a id="section-12-4-5-1"></a>
@@ -13357,7 +13089,6 @@ Format 1 (indexed):
 > **Figure notes (SELECT clause Format 1 (indexed) syntax diagram).** Underlined in the printed standard (required words / required minimum abbreviation): `SELECT`, `OPTIONAL`, `ASSIGN`, `USING`, `ACCESS`, `DYNAMIC`, `RANDOM`, `SEQUENTIAL`, `ALTERNATE`, `RECORD`, `SOURCE`, `DUPLICATES`, `SUPPRESS`, `STATUS`, `LOCK`, `ON`, `MULTIPLE`, `RECORD`, `RECORDS`, `MANUAL`, `AUTOMATIC`, `ORGANIZATION`, `INDEXED`, `RECORD KEY`, `RESERVE`, `SHARING`, `ALL`, `NO`, `READ`, `ONLY`. `IS`, `TO`, `MODE`, `KEY`, `WITH`, `WHEN`, `FILE`, `AREA`, `AREAS`, and `OTHER` are not underlined. `FILE` in `FILE STATUS` is not underlined; `STATUS` is.
 > No choice indicators appear anywhere in this figure — every stacked group is a plain brace (exactly one) or a plain bracket (zero or one). The printed page draws a large outer bracket around the entire format; only its closing member is visible on the page (it runs from the `SELECT` line down past the terminating period), the opening member having been lost in typesetting. It is reproduced above as a full bracket pair. The `…` after the `ALTERNATE RECORD KEY` bracket repeats that whole clause; the `…` inside the braces repeats only `{ data-name-3 }`.
 
----
 
 
 Format 2 (relative):
@@ -13462,7 +13193,6 @@ Format 4 (sort-merge):
 </pre>
 
 > **Figure notes (ASSIGN clause, SELECT Format 4 (sort-merge)).** Identical in shape to the Format 3 ASSIGN clause. `ASSIGN` and `USING` are underlined in the printed standard (required words); `TO` is **not** underlined. The outer braces are a plain required choice — either the `TO` line or the `USING data-name-1` line. The ellipsis applies to the inner `{ device-name-1 / literal-1 }` brace pair.
----
 
 
 where collating-sequence-clause is described in 12.4.5.7, COLLATING SEQUENCE clause.
@@ -13574,14 +13304,12 @@ FORMAT 3
 8) The sequential format defines a file connector for a sequential file.
 
 
----
 
 
 FORMAT 4
 
 9) The sort-merge format defines a file connector for a sort-merge file.
 
----
 
 
 <a id="section-12-4-5-4"></a>
@@ -13634,7 +13362,6 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 4) If the access mode is dynamic, records in the file may be accessed sequentially, randomly, or both.
 
 
----
 
 
 <a id="section-12-4-5-6"></a>
@@ -13682,7 +13409,6 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 
 2) Record-key-name-1 defines a record key consisting of the concatenation of all occurrences of data-name-2 in the order specified.
 
----
 
 
 3) The data description of data-name-1 or data-name-2 as well as their relative location within a record shall be the same as that used when the physical file was created. The number of alternate record keys for the file shall also be the same as that used when the physical file was created.
@@ -13696,7 +13422,6 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 NOTE    The suppression does not impact READ and START although the suppressed records will not be processed by these statements. It is as if they did not exist.
 
 
----
 
 
 <a id="section-12-4-5-7"></a>
@@ -13754,7 +13479,6 @@ FORMAT 2
 
 7) When the class of data-name-1 or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national collating sequence; otherwise, alphabet-name-3 shall reference an alphabet that defines an alphanumeric collating sequence.
 
----
 
 
 8) Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause.
@@ -13815,10 +13539,8 @@ FILE <u>STATUS</u> IS data-name-1
 
    NOTE 2 While a programmer can alter the value of the FILE STATUS data item, this does not alter the state of the file. Consequently for example, if a sequential read produced the file status '10' and the value '00' was then moved to the file status data item, a second read would not be successful.
 
----
 
 
----
 
 
 <a id="section-12-4-5-9"></a>
@@ -13867,7 +13589,6 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 4) If the AUTOMATIC phrase is specified, the lock mode is automatic. Records are locked when any READ statement is executed.
 
 
----
 
 
 5) If the MANUAL phrase is specified, the lock mode is manual. Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement.
@@ -13878,10 +13599,8 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 
 8) The setting of a record lock is part of the operation of an I-O statement.
 
----
 
 
----
 
 
 <a id="section-12-4-5-10"></a>
@@ -13923,7 +13642,6 @@ The ORGANIZATION clause specifies the logical structure of a file.
 6) When the ORGANIZATION clause is not specified, sequential organization with the RECORD SEQUENTIAL phrase is implied.
 
 
----
 
 
 <a id="section-12-4-5-11"></a>
@@ -13975,7 +13693,6 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
 
 6) At the time of a successful execution of an OPEN statement, the record delimiter is the one specified in the RECORD DELIMITER clause in the file control entry associated with the file-name specified in the OPEN statement.
 
----
 
 
 <a id="section-12-4-5-12"></a>
@@ -14022,7 +13739,6 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 4) If the file has more than one record description entry, data-name-1 or data-name-2 need only be described in one of these record description entries. The identical byte positions referenced by data-name-1 or data-name-2 in any one record description entry are implicitly referenced as keys for all other record description entries of that file.
 
 
----
 
 
 <a id="section-12-4-5-13"></a>
@@ -14055,10 +13771,8 @@ The RELATIVE KEY clause identifies the data item that will contain the relative 
 
 2) The relative key data item associated with the execution of an input-output statement is the data item referenced by data-name-1; data-name-1 is used to communicate a relative record number between the user and the mass storage control system.
 
----
 
 
----
 
 
 <a id="section-12-4-5-14"></a>
@@ -14085,7 +13799,6 @@ The RESERVE clause allows the user to specify the number of input-output areas a
 
 1) If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of integer-1. If the RESERVE clause is not specified, the number of input-output areas allocated is specified by the implementor.
 
----
 
 
 <a id="section-12-4-5-15"></a>
@@ -14114,10 +13827,8 @@ The SHARING clause indicates that a file is to participate in file sharing and r
 
 1) The SHARING clause specifies the sharing mode to be used for the file unless it is overridden by the SHARING phrase of the OPEN statement. This clause also specifies whether record locks have an effect. Additional details are specified in 9.1.15, Sharing mode.
 
----
 
 
----
 
 
 <a id="section-12-4-6"></a>
@@ -14170,7 +13881,6 @@ The APPLY COMMIT clause specifies which files and data-items are to be subject t
 7) APPLY COMMIT clauses shall not include data items containing object-reference data items.
 
 
----
 
 
 8) Where there is a dependency of one data item upon another, the 01 or 77 level data items that contain or refer to them shall each either or neither be specified in the list of identifiers, or have been specified in identifiers already subject to the same or another APPLY COMMIT clause.
@@ -14202,7 +13912,6 @@ NOTE 2 In the event that it is not possible to detect this situation, it is the 
 
 NOTE 3 Rather than pass data items subject to APPLY COMMIT statements in linkage, such data items can be defined as external, which would protect them from inadvertent addressing changes.
 
----
 
 
 <a id="section-12-4-6-4"></a>
@@ -14256,7 +13965,6 @@ Format 3 (sort-merge-area):
 8) At least one file-name specified in a sort-merge-area format SAME clause shall represent a sort or merge file.
 
 
----
 
 
 9) If one or more file-names specified in a file-area format SAME clause are also specified in a record-area format SAME clause, all of the file-names specified in the file-area format SAME clause shall also be specified in the record-area format SAME clause. Additional file-names not specified in the file-area format SAME clause may be specified in the record-area format SAME clause.
@@ -14282,16 +13990,13 @@ Format 3 (sort-merge-area):
 
    c) Storage areas assigned to files specified in a sort-merge-area format SAME clause other than sort or merge files do not share the same storage area with each other.
 
----
 
 
 5) During the processing of a SORT or MERGE statement that refers to a sort or merge file named in a sort-merge-area format SAME clause, any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode.
 
 
----
 
 
----
 
 <a id="section-13"></a>
 ## 13 Data division
@@ -14303,7 +14008,6 @@ The data division describes the data that the runtime module is to accept as inp
 
 The following is the general format of the sections in the data division and defines the order of their presentation in the source element.
 
----
 
 
 <a id="section-13-2"></a>
@@ -14415,7 +14119,6 @@ where the following meta-language terms are described in the indicated subclause
 1) A data-item format or table format VALUE clause specified in the file section is ignored except in the execution of the INITIALIZE statement. The initial value of a data item in the file section is undefined. The initial length of a dynamic-length elementary item is zero.
 
 
----
 
 
 <a id="section-13-4-5"></a>
@@ -14463,10 +14166,8 @@ Format 1 (sequential):
 > **Figure notes (File description entry Format 1 (sequential) syntax diagram).** Underlined in the printed standard (required words / required minimum abbreviations): `FD`, `EXTERNAL`, `AS`, `GLOBAL`, `FORMAT`, `BIT`, `CHARACTER`, `NUMERIC`, `BLOCK`, `TO`, `RECORDS`, `CODE-SET`, `ALPHANUMERIC`, `NATIONAL`. `IS`, `DATA`, `CONTAINS`, `CHARACTERS`, and `FOR` are not underlined.
 > ⚠ **Two groups in this figure are enclosed in CHOICE INDICATORS** (the `|` bars just inside their braces): the `FORMAT` clause alternatives `BIT` / `CHARACTER` / `NUMERIC`, and the inner brace of the `CODE-SET` second alternative holding `FOR ALPHANUMERIC …` / `FOR NATIONAL …`. Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `FORMAT BIT CHARACTER DATA` is legal, and a `CODE-SET` may carry the `FOR ALPHANUMERIC` phrase alone, the `FOR NATIONAL` phrase alone, or **both**, in either order. `record-clause` and `linage-clause` are the non-terminals defined elsewhere in this clause. The separator period terminates the entry.
 
----
 
 
----
 
 
 Format 2 (relative-or-indexed):
@@ -14556,7 +14257,6 @@ FORMAT 3
 
 9) The subject of a file description entry that specifies a REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase.
 
----
 
 
 <a id="section-13-4-5-4"></a>
@@ -14593,7 +14293,6 @@ FORMAT 3
 4) The report writer logical record structure of the file associated with file-name-1 is defined by the implementor.
 
 
----
 
 
 <a id="section-13-4-6"></a>
@@ -14629,10 +14328,8 @@ where record-clause is described in 13.18.43, RECORD clause.
 
 1) The number of characters is specified in terms of bytes.
 
----
 
 
----
 
 
 <a id="section-13-5"></a>
@@ -14682,7 +14379,6 @@ where the following meta-language terms are described in the indicated subclause
 3) Data items in the working-storage section are initialized as indicated in 11.9.10, INITIALIZE clause, 13.18.63, VALUE clause, and 14.6.2.3.2, Initial state.
 
 
----
 
 
 <a id="section-13-6"></a>
@@ -14729,7 +14425,6 @@ where the following meta-language terms are described in the indicated subclause
 
 2) Data items in the local-storage section are initialized as indicated in 11.9.10, INITIALIZE clause, 13.18.63, VALUE clause, and 14.6.2.3.2, Initial state.
 
----
 
 
 <a id="section-13-7"></a>
@@ -14782,7 +14477,6 @@ where the following meta-language terms are described in the indicated subclause
     b) It is subordinate to an operand of the USING phrase or the RETURNING phrase of the procedure division header.
 
 
----
 
 
 c) It is defined with a REDEFINES or RENAMES clause, the object of which satisfies one of the above conditions.
@@ -14807,7 +14501,6 @@ e) It is a condition-name or index-name associated with a data item that satisfi
 5) A data-item format or table format VALUE clause specified in the linkage section is ignored except in the execution of an explicit or implicit INITIALIZE statement. If the runtime element containing the linkage section is activated by a COBOL runtime element, the initial value of a data item in the linkage section is determined by the value of the corresponding formal parameter in the activating runtime element, as described in 14.2.3, General rules of the procedure division. If the runtime element containing the linkage section is activated by the operating system, the initial value of a linkage section data item is undefined. If the runtime element containing the linkage section is activated by a non-COBOL runtime element, the initial value of a linkage section data item is defined by the implementor.
 
 
----
 
 
 <a id="section-13-8"></a>
@@ -14895,10 +14588,8 @@ A report item referenced in a function identifier or inline method invocation sh
 
 Report groups of type DETAIL may be structured into a nested set of control groups. Each control group may begin with a control heading and end with a control footing.
 
----
 
 
----
 
 
 A control break occurs when a change of value is detected in a control data item during the execution of a GENERATE statement. The hierarchy of control data items is used to check automatically for any such change in value. The detection of a control break causes the same GENERATE statement to print each defined control footing, in reverse hierarchical order, and each defined control heading, in hierarchical order.
@@ -14940,10 +14631,8 @@ screen-description-entry | 13.17, Screen description entry
 
 1) Data items in the screen section are initialized as indicated in 11.9.10, INITIALIZE clause, 13.18.63, VALUE clause, and 14.6.2.3.2, Initial state.
 
----
 
 
----
 
 
 <a id="section-13-10"></a>
@@ -14995,7 +14684,6 @@ A constant entry defines a constant. A constant may be used in place of a litera
 10) Data-name-1 and data-name-2 shall not be described with the ANY LENGTH clause.
 
 
----
 
 
 11) Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items.
@@ -15018,7 +14706,6 @@ A constant entry defines a constant. A constant may be used in place of a litera
 6) If the LENGTH phrase is specified, the class and category of constant-name-1 is numeric. Constant-name-1 is an integer. The value of constant-name-1 is determined as specified in the LENGTH intrinsic function with the exception that when data-name-2 is an occurs-depending group item, the maximum size of the data item is used.
 
 
----
 
 
 <a id="section-13-11"></a>
@@ -15090,10 +14777,8 @@ where the following meta-language terms are described in the indicated subclause
 
 1) If GLOBAL is specified, report-name-1 and all its constituent report groups, its PAGE-COUNTER and LINE-COUNTER, and any sum counters defined in report-name-1 are global.
 
----
 
 
----
 
 
 <a id="section-13-15"></a>
@@ -15221,10 +14906,8 @@ A data description entry specifies the characteristics of a particular item of d
 
 A level 1 data description entry in the working-storage section determines the internal or external attribute of the record and its subordinate data items.
 
----
 
 
----
 
 
 <a id="section-13-16-2"></a>
@@ -15279,10 +14962,8 @@ level-number [ entry-name-clause ]
 [ value-clause ] .
 </pre>
 
----
 
 
----
 
 
 where validation-clauses is:
@@ -15337,7 +15018,6 @@ where value-clause is described in 13.18.63, VALUE clause (content-validation-en
 
 NOTE    The validation format of the data description is an obsolete feature.
 
----
 
 
 <a id="section-13-16-3"></a>
@@ -15374,7 +15054,6 @@ FORMAT 1
 10) The VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer.
 
 
----
 
 
 11) The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.
@@ -15407,7 +15086,6 @@ FORMAT 1
 
    b) a TYPEDEF clause.
 
----
 
 
 FORMAT 2
@@ -15507,10 +15185,8 @@ level-number [ entry-name-clause ]
 
 > **Figure notes (screen description entry Format 1 (group) syntax diagram).** `GLOBAL`, `LINE`, `PLUS`, `MINUS`, `COLUMN`, `COL`, `BLANK`, `SCREEN`, `SIGN`, `LEADING`, `TRAILING`, `SEPARATE`, `FULL`, `AUTO`, `SECURE`, `REQUIRED`, `OCCURS`, `USAGE`, `DISPLAY`, and `NATIONAL` are underlined in the printed standard (required words / required minimum abbreviation — `COL` is the required minimum abbreviation of `COLUMN`). `IS`, `NUMBER`, `CHARACTER`, and `TIMES` are not underlined. The sign alternatives are the words `PLUS` and `MINUS` and the symbols `+` and `–`, and that four-way group is a **bracket** (optional), not braces. The SIGN clause and the USAGE clause are each wrapped in an outer optional bracket, so the whole clause may be omitted even though `{ LEADING | TRAILING }` and `{ DISPLAY | NATIONAL }` are required once the clause is written. The entry is terminated by a period. No choice indicators appear in this figure.
 
----
 
 
----
 
 
 Format 2 (elementary):
@@ -15634,7 +15310,6 @@ ALL FORMATS
 
 2) If the GLOBAL clause is specified, the screen-name format of the entry-name clause shall be specified and level-number shall be 1.
 
----
 
 
 FORMAT 1
@@ -15713,10 +15388,8 @@ The ALIGNED clause specifies that a bit group item or an elementary bit data ite
 
 3) When an ALIGNED clause is not specified, bit data items are aligned in accordance with 8.5.1.6.3, Alignment of data items of usage bit.
 
----
 
 
----
 
 
 <a id="section-13-18-2"></a>
@@ -15760,7 +15433,6 @@ The ANY LENGTH clause specifies that the length of a linkage section item may va
    b) treated as though there were n repetitions of the picture symbol in the character-string in its PICTURE clause, where n is the length of the corresponding argument or returning item of the activating runtime element.
 
 
----
 
 
 <a id="section-13-18-3"></a>
@@ -15790,7 +15462,6 @@ The AUTO clause causes the cursor to be automatically moved to the next field de
 
 5) When the AUTO clause is specified for an input field that has no logical next field during input, then when that field is available for input during an ACCEPT screen statement and data is entered into the last character of the screen item, successful completion with normal termination of the ACCEPT statement results.
 
----
 
 
 <a id="section-13-18-4"></a>
@@ -15831,7 +15502,6 @@ The BACKGROUND-COLOR clause specifies the background color for the screen item.
 4) When a BACKGROUND-COLOR clause is not specified or the value is not in the range 0 to 7, the background color is implementor-defined.
 
 
----
 
 
 <a id="section-13-18-5"></a>
@@ -15866,10 +15536,8 @@ The BASED clause defines a based entry. A based entry is a template that, when a
 
 4) If the subject of the entry is referenced while its address is not NULL and not a valid address of storage, the EC-BOUND-PTR exception condition is set to exist.
 
----
 
 
----
 
 
 <a id="section-13-18-6"></a>
@@ -15894,7 +15562,6 @@ The BELL clause causes the terminal audio tone to sound.
 2) A BELL clause specified at the group level applies to each elementary screen item in that group.
 
 
----
 
 
 <a id="section-13-18-7"></a>
@@ -15929,7 +15596,6 @@ The BLANK clause clears a screen line or clears the whole screen during the exec
 
 5) The BLANK clause is ignored during all phases of the execution of an ACCEPT screen statement.
 
----
 
 
 <a id="section-13-18-8"></a>
@@ -15962,10 +15628,8 @@ The BLANK WHEN ZERO clause causes the blanking of an item when a value of zero i
 
 3) If the subject of the entry is a sending data item, the object of an operation is a numeric or numeric-edited data item, and the content of the sending data item is all spaces, the value of the sending data item is considered to be zero.
 
----
 
 
----
 
 
 <a id="section-13-18-9"></a>
@@ -15989,7 +15653,6 @@ The BLINK clause specifies that each character of the field blinks when it is di
 
 2) When the BLINK clause is specified, the characters that constitute the screen item will blink when the screen item is referenced in an ACCEPT screen statement or a DISPLAY screen statement.
 
----
 
 
 <a id="section-13-18-10"></a>
@@ -16040,7 +15703,6 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 4) If integer-1 is not specified, integer-2 represents the exact size of the physical record. If integer-1 and integer-2 are both specified, they refer to the minimum and maximum size of the physical record, respectively.
 
 
----
 
 
 <a id="section-13-18-11"></a>
@@ -16088,10 +15750,8 @@ The CLASS clause specifies a range of values for each character of a data item, 
 
 4) If the subject of the entry is an alphanumeric group item or national group item, General rules 2 and 3 are applied to each of its subordinate elementary items, except for any data items that are not processed as a result of a PRESENT WHEN clause or an OCCURS clause with a DEPENDING phrase.
 
----
 
 
----
 
 
 <a id="section-13-18-12"></a>
@@ -16132,7 +15792,6 @@ The CODE clause specifies one or more characters used to separate multiple repor
 3) If identifier-1 is specified, it is evaluated at the start of the processing for each body group, either during page advance processing, as detailed in the GENERATE statement, or whenever page advance processing is not performed. The resultant value is used until the next evaluation.
 
 
----
 
 
 <a id="section-13-18-13"></a>
@@ -16263,7 +15922,6 @@ FORMAT 1
 
 6. Neither integer-1 nor integer-2 shall exceed the page width. (See 13.18.39, PAGE clause)
 
----
 
 
 7) Within a given report line, any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause.
@@ -16304,7 +15962,6 @@ FORMAT 1
 3) The printable‑size of a printable item is the number of columns required for printing the characters described by the item's PICTURE clause or, in the absence of a PICTURE clause, the literal specified in the VALUE clause. There is a one‑to‑one correspondence between a column and a character in an alphanumeric character set.
 
 
----
 
 
 NOTE 1 Columns might not line up in a report if the printable characters are not of fixed size encoding, such as UTF-8.
@@ -16338,7 +15995,6 @@ NOTE 1 Columns might not line up in a report if the printable characters are not
 10) Any unoccupied columns in each print line are filled with space characters.
 
 
----
 
 
 11) If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank.
@@ -16401,10 +16057,8 @@ The CONSTANT RECORD clause identifies a structured constant. The content of a st
    — the VALUE phrase with the category-name of ALL;
    — and the DEFAULT phrase.
 
----
 
 
----
 
 
 <a id="section-13-18-16"></a>
@@ -16466,7 +16120,6 @@ The CONTROL clause establishes a hierarchy of control breaks for the report.
 6) Data-name-1 shall not reference a zero-length group item.
 
 
----
 
 
 <a id="section-13-18-17"></a>
@@ -16514,17 +16167,14 @@ NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete feature.
 
 2) Except in the case of DEFAULT NONE, the DEFAULT clause specifies the default value explicitly. If literal-1 is specified, the default value used is the value of literal-1. If identifier-1 is specified, the default value used is the value of the data item referenced by identifier-1.
 
----
 
 
 3) If the DEFAULT clause is not specified in the data item's data description entry, or if DEFAULT NONE is specified, the default value is that which would be supplied for the data item by the execution of an implicit INITIALIZE statement without a REPLACING or VALUE phrase.
 
 4) If NONE is specified, the effect of the clause is the same as if no DEFAULT clause were specified, except that, if the data item contains all spaces or the data item is elementary and is found to be invalid on format, any DESTINATION clause specified for the data item is ignored.
 
----
 
 
----
 
 
 <a id="section-13-18-18"></a>
@@ -16601,7 +16251,6 @@ The DYNAMIC LENGTH clause specifies that the length of a data item can vary at r
 2) Integer-1 specifies the maximum number of characters that can be contained by the subject of the entry. If the LIMIT phrase is not specified, the maximum number of characters that can be contained by the subject of the entry is implementor-defined.
 
 
----
 
 
 <a id="section-13-18-20"></a>
@@ -16644,10 +16293,8 @@ Format 3 (filler)
 
 1) The word FILLER may be used to name a data, report, or screen item. Under no circumstances shall a FILLER item be referred to explicitly.
 
----
 
 
----
 
 
 <a id="section-13-18-21"></a>
@@ -16692,7 +16339,6 @@ The ERASE clause clears part of the line or the screen starting at the cursor po
 2) The ERASE clause is ignored during all phases of the execution of an ACCEPT screen statement.
 
 
----
 
 
 <a id="section-13-18-22"></a>
@@ -16737,10 +16383,8 @@ NOTE 1    Use of the EXTERNAL clause does not imply that the associated file-nam
 
 4) If the EXTERNAL clause is specified in a file description entry:
 
----
 
 
----
 
 
 a) the file connector associated with this file description entry is an external file connector; and
@@ -16791,10 +16435,8 @@ The FOREGROUND clause specifies the foreground color for the screen item.
 
 4) When a FOREGROUND-COLOR clause is not specified or the value is not in the range 0 to 7, the foreground color is implementor-defined.
 
----
 
 
----
 
 
 <a id="section-13-18-24"></a>
@@ -16842,7 +16484,6 @@ The FORMAT clause specifies that records written to the file are to be formatted
    b) If more than one record description entry is associated with the file description entry, the record description entry identified by the SELECT WHEN clause is selected.
 
 
----
 
 
 c) If there are no record description entries associated with the file description entry, the record description entry or data description entry that is selected depends on the input-output operation as follows:
@@ -16892,7 +16533,6 @@ c) If there are no record description entries associated with the file descripti
 
 6) If NUMERIC is specified, data items described with class numeric and a usage other than national or display are selected for formatting.
 
----
 
 
 7) If a data item is not selected for formatting, it is transferred as is with no conversion or formatting taking place.
@@ -16908,7 +16548,6 @@ c) If there are no record description entries associated with the file descripti
 12) If the associated file connector is an external file connector, all file description entries in the run unit that are associated with that file connector shall specify the same FORMAT clause.
 
 
----
 
 
 <a id="section-13-18-25"></a>
@@ -16948,10 +16587,8 @@ The FROM clause specifies the source of data for an ACCEPT screen statement and 
 
 1) The subject of the entry is an output screen item.
 
----
 
 
----
 
 
 <a id="section-13-18-26"></a>
@@ -16994,7 +16631,6 @@ The FULL clause specifies that the operator shall either leave the screen item c
 7) The FULL clause is ignored for a field that is not an input field.
 
 
----
 
 
 <a id="section-13-18-27"></a>
@@ -17041,10 +16677,8 @@ IS <u>GLOBAL</u>
 
 3) If the GLOBAL clause is used in a data description entry that contains the REDEFINES clause, it is only the subject of that REDEFINES clause that possesses the global attribute.
 
----
 
 
----
 
 
 <a id="section-13-18-28"></a>
@@ -17077,10 +16711,8 @@ The GROUP INDICATE clause specifies that the associated printable item is printe
 
    c) Any control break, if the report description contains a CONTROL clause.
 
----
 
 
----
 
 
 <a id="section-13-18-29"></a>
@@ -17124,7 +16756,6 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 
    c) Data items contained within a bit group are allocated in storage in accordance with the rules specified in 8.5.1.6.3, Alignment of data items of usage bit.
 
----
 
 
 2) When the NATIONAL phrase is specified:
@@ -17137,10 +16768,8 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 
 3) If a GROUP-USAGE clause is not specified or implied for a group item that is not strongly typed and is not a variable-length group, that group item is an alphanumeric group item.
 
----
 
 
----
 
 
 <a id="section-13-18-30"></a>
@@ -17164,10 +16793,8 @@ The HIGHLIGHT clause specifies that the field is to appear on the screen with th
 
 2) When the HIGHLIGHT clause is specified, the characters that constitute the screen item will be displayed in the foreground color at the highest intensity when the screen item is referenced in an ACCEPT screen or a DISPLAY screen statement.
 
----
 
 
----
 
 
 <a id="section-13-18-31"></a>
@@ -17205,7 +16832,6 @@ NOTE    The INVALID clause feature of the VALIDATE facility is an obsolete featu
    b) If condition-1 is false, the INVALID clause has no effect.
 
 
----
 
 
 <a id="section-13-18-32"></a>
@@ -17247,7 +16873,6 @@ The JUSTIFIED clause specifies right justification of data within a receiving da
 
 3) When the JUSTIFIED clause is omitted, the standard rules for aligning data within an elementary item apply (see 14.6.8, Alignment and transfer of data into data items).
 
----
 
 
 <a id="section-13-18-33"></a>
@@ -17293,7 +16918,6 @@ level-number
    c) Level-number 88 is assigned to entries that define condition-names associated with a conditional variable and to define criteria to be used to validate a data item. Level-number 88 may be used only as described by the condition-name format or the validation format of the data description entry.
 
 
----
 
 
 3) Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area. Multiple level 1 entries subordinate to a report description entry do not represent implicit redefinitions of the same area.
@@ -17342,10 +16966,8 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 
 2) Integer-1 or the value of the data item referenced by data-name-1 specifies the number of lines that may be written or spaced on the logical page. This number is called the page size. That part of the logical page in which these lines may be written or spaced is called the page body.
 
----
 
 
----
 
 
 3) Integer-2 or the value of the data item referenced by data-name-2 specifies the line number within the page body at which the footing area begins. The value shall be greater than zero and not greater than integer-1 or the value of the data item referenced by data-name-1.
@@ -17460,7 +17082,6 @@ FORMAT 1
 5) If the report is not divided into pages, all its LINE clauses shall be relative.
 
 
----
 
 
 6) Within any given report group, the set of report lines, if any, is subject to the following rules:
@@ -17500,7 +17121,6 @@ FORMAT 2
 13) Neither the PLUS phrase nor the MINUS phrase shall be specified for the first elementary item in a screen record.
 
 
----
 
 
 <a id="section-13-18-35-4"></a>
@@ -17526,7 +17146,6 @@ b) If the first LINE clause is absolute without the NEXT PAGE phrase, integer-1 
 
 c) If the first LINE clause is relative (so that all LINE clauses in the report group description are relative) without the NEXT PAGE phrase, the expected position of the last line of the report group is computed in a trial sum. First, the current value of LINE-COUNTER is placed in the trial sum. Next, the trial sum is incremented by integer-2 for each subsequent LINE clause. Wherever there is an OCCURS clause at the level of the LINE clause or above, the vertical interval between successive occurrences is added into the trial sum once for each occurrence beyond the first. (See 13.18.38, OCCURS clause.)
 
----
 
 
 If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause or to an OCCURS clause with the DEPENDING phrase, these clauses are taken into account in computing the trial sum. (See 13.18.41, PRESENT WHEN clause.)
@@ -17554,7 +17173,6 @@ If the page fit was declared successful, no page advance takes place and the rep
    c) If the first LINE NUMBER clause of the report group is relative and the report is not divided into pages, the report group's first line number is obtained by adding integer-2 to the current value of the report's LINE-COUNTER.
 
 
----
 
 
 6) When the first line number of the report group has been calculated, the report's LINE-COUNTER is set equal to that line number and the line is now printed on the page at that vertical location.
@@ -17588,7 +17206,6 @@ FORMAT 2
    b) if a previous screen item has been defined, the line of that previous item is assumed.
 
 
----
 
 
 14) If the explicit or implicit line number of a screen item is zero or exceeds the number of lines available for a terminal, the EC-SCREEN-LINE-NUMBER exception condition is set to exist and that screen item does not take part in the execution of the ACCEPT screen or DISPLAY screen statement.
@@ -17667,7 +17284,6 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
    b) If the current report group is a page footing, the minimum last line number of the report group plus integer-2 shall not exceed the page limit.
 
 
----
 
 
 <a id="section-13-18-37-4"></a>
@@ -17695,7 +17311,6 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
 
       3. If the next body group contains only relative LINE clauses, its first line will be printed on the next line following the line number in the save location, unless this will result in some line of this body group being printed beyond its lower permitted limit. In the latter case, a second page advance takes place, resulting in a page devoid of body groups, and the next body group is printed on the following page with no reference to the save location.
 
----
 
 
 b) If the NEXT GROUP clause is relative and if the sum of integer-2 and LINE-COUNTER is less than the FOOTING integer, integer-2 is added to LINE-COUNTER; otherwise the FOOTING integer is moved to LINE-COUNTER.
@@ -17711,7 +17326,6 @@ c) If NEXT GROUP NEXT PAGE is specified, the FOOTING integer is moved to LINE-CO
 6) If the WITH RESET phrase is present, the value of PAGE-COUNTER for the report is set to 1 (one) immediately after the page feed caused by the next page advance, chronologically between the printing of any page footing and the printing of any page heading. Whether the current group is a report heading or a body group, this phrase ensures that PAGE-COUNTER will be one, effective from the start of the next page (unless procedurally altered).
 
 
----
 
 
 <a id="section-13-18-38"></a>
@@ -17777,10 +17391,8 @@ ALL FORMATS
 
    b) Has an occurs-depending table subordinate to it.
 
----
 
 
----
 
 
 2) Data-name-1 and data-name-2 shall not be subscripted.
@@ -17820,7 +17432,6 @@ FORMAT 1
 13) If a screen description entry includes the OCCURS clause, then if it or any item subordinate to it has a description that includes the TO, FROM, or USING clause, that screen description entry shall be part of a table with the same number of dimensions and number of occurrences in each dimension as the identifier representing the receiving or sending operand. The identifier representing the receiving or sending operand shall not be subordinate to an OCCURS clause with the DEPENDING phrase.
 
 
----
 
 
 14) If a screen description entry that includes the OCCURS clause also contains the COLUMN clause, then the COLUMN clause shall include the PLUS or MINUS phrase, unless the screen description entry also includes a LINE clause with a PLUS or MINUS phrase.
@@ -17892,7 +17503,6 @@ FORMATS 1, 2 AND 4
 2) The allocation and format of the index defined by index-name-1 are dependent on the implementor and the hardware. The implementor shall specify the rules for the range of values allowed in the index defined by index-name-1. This range shall include at least the value corresponding to the occurrence number (1 - integer-2) through and including the value corresponding to the occurrence number (2 \* integer-2). An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement. If the execution of one of these statements creates a value for the index that is outside the range of the values allowed by the implementor:
 
 
----
 
 
 a) the EC-RANGE-INDEX exception condition is set to exist, and
@@ -17921,7 +17531,6 @@ FORMAT 2
 
 7) The value of the data item referenced by data-name-1 represents the current number of occurrences of the subject of the entry.
 
----
 
 
 The subject of this entry has a variable number of occurrences. The value of integer-2 represents the maximum number of occurrences and the value of integer-1 represents the minimum number of occurrences. This does not imply that the length of the subject of the entry is variable, but that the number of occurrences is variable.
@@ -17945,7 +17554,6 @@ FORMAT 3
    b) If the entry is a group entry having subordinate entries with relative COLUMN clauses, and being itself subordinate to an entry with a LINE clause, each repetition behaves as though it had the same subordinate entries with the same relative COLUMN clauses.
 
 
----
 
 
 c) If the entry also contains a relative LINE clause, each repetition behaves as though it had the same relative LINE clause.
@@ -17972,7 +17580,6 @@ If no STEP phrase is specified, the vertical or horizontal interval between succ
 
 14) Format 4 defines a dynamic-capacity table. Other rules and restrictions concerning dynamic-capacity tables are specified in 8.5.1.9, Dynamic-capacity tables.
 
----
 
 
 15) Data-name-3 defines a numeric data item that contains the current capacity of the associated table. Data-name-3 shall not be referenced as a receiving operand.
@@ -18033,7 +17640,6 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 
 6. Integer-3, integer-4, integer-5, integer-6, integer-7, and integer-1 shall be greater than zero. Wherever specified, they shall be in ascending order, with equality allowed.
 
----
 
 
 <a id="section-13-18-39-4"></a>
@@ -18068,7 +17674,6 @@ The PAGE clause defines the maximum length and width of a page of a report and t
    d) If LAST DETAIL is omitted, integer-6 will be equal to integer-7, if FOOTING is specified, or otherwise equal to the page limit given by integer-1.
 
 
----
 
 
 e) If FOOTING is omitted, integer‑7 will be equal to integer‑6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer‑1.
@@ -18134,7 +17739,6 @@ ALL FORMATS
 5. PIC is an abbreviation for PICTURE.
 
 
----
 
 
 6) An unsigned nonzero integer that is enclosed in parentheses indicates the number of consecutive occurrences of the symbol that immediately precedes the left parenthesis. The integer may be specified by a constant-name, in which case the length of the integer, not the length of the constant-name, is counted toward the maximum number of characters in character-string-1.
@@ -18167,10 +17771,8 @@ FORMAT 1
 
       — at least on one of the symbols from the set 'A', 'N', 'X', 'Z', '1', '9', \*, or
 
----
 
 
----
 
 
 — at least two occurrences of one of the symbols from the set character-1, 'x', '+', '-', and the currency symbol.
@@ -18244,7 +17846,6 @@ FORMAT 2
 
 33) Character-string-1 shall contain at least one of the symbols 'Z' or '9'.
 
----
 
 
 34) Each of the symbols from the set '+', '.', the currency symbol may appear only once in character-string-1.
@@ -18326,7 +17927,6 @@ b) To define a floating-point numeric-edited item, characters-string-1 shall con
 
 The significand shall be a valid character-string for either a numeric item or a numeric-edited item for a fixed-point result. Neither floating insertion editing nor zero suppression with replacement shall be specified for the significand.
 
----
 
 
 The exponent shall be '+9', '+99', '+999', '+9999', or '+9(n)' where n = 1, 2, 3, or 4.
@@ -18393,7 +17993,6 @@ Z Each symbol 'Z' represents a leading numeric position that during editing will
 
 . The symbol '.' (period) represents a character position into which the character period will be inserted during editing. The symbol '.' is counted in the size of the item.
 
----
 
 
 In addition, the symbol '.' indicates the decimal point position for alignment purposes.
@@ -18423,7 +18022,6 @@ NOTE 2 If reference modification is used to reference part of a data item descri
    B Each symbol 'B' represents a character position that will be checked to contain
 
 
----
 
 
 — the character space if the symbol 'B' is neither part of floating insertion editing nor of zero suppression with replacement editing;
@@ -18459,7 +18057,6 @@ NOTE 2 If reference modification is used to reference part of a data item descri
 — the character slant if the symbol '/' is neither part of floating insertion editing nor of zero suppression with replacement editing;
 — otherwise, the character slant or, if no significant numeric character appears to its left, the corresponding floating insertion character or replacement character respectively.
 
----
 
 
 , Each symbol ',' (comma) represents a character position that will be checked to contain
@@ -18533,10 +18130,8 @@ There are two types of suppression with replacement:
 — zero suppression with replacement with spaces
 — zero suppression with replacement with asterisks
 
----
 
 
----
 
 
 2) The type of editing that may be performed upon an item is dependent upon the category to which the item belongs. Table 7, Category and type of editing, specifies which type of editing may be performed upon a given category:
@@ -18577,7 +18172,6 @@ There are two types of suppression with replacement:
    When character-1 is used, and is not a simple insertion character, it represents literal-2, or literal-3 as the insertion characters.
 
 
----
 
 
 Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing sign control symbol, depending on the value of the data item.
@@ -18715,7 +18309,6 @@ The symbol '+' that appears in a column and in a row by itself, represents its u
 The symbols '+' and '-' when used as a non-floating insertion symbol appear in two columns and two rows. The leftmost column and the uppermost row for these symbols represent their use as the first symbol in character-string-1. The rightmost column and the lowermost row for these symbols represent their use as the last symbol in character-string-1.
 
 
----
 
 
 The symbol 'P', the currency symbol when used as a floating insertion symbol, the pair of zero-suppression symbols 'Z' and '\*', and the pair of floating insertion symbols '+' and '-' appear in two columns and in two rows in Table 10. The leftmost column and the uppermost row for these symbols represent their use to the left of the decimal point position. The rightmost column and the lowermost row for these symbols represent their use to the right of the decimal point position.
@@ -18852,13 +18445,11 @@ FORMAT 2
 
       NOTE If condition-2 is false, the contents of the data item will not be checked unless the data item is redefined.
 
----
 
 
 6) Condition-2 shall not reference any data item that is, or shares any storage with, an operand of a DESTINATION clause appearing later in the description of a data item referred to by the same VALIDATE statement.
 
 
----
 
 
 <a id="section-13-18-42"></a>
@@ -19014,7 +18605,6 @@ Where LS-data-name has the data description of the subject of the entry with the
 
 3) If the FINAL phrase is specified, the implicit method definitions generated by the PROPERTY clause shall include the FINAL phrase in their METHOD-ID paragraphs.
 
----
 
 
 <a id="section-13-18-43"></a>
@@ -19078,7 +18668,6 @@ FORMAT 2
 4) Record descriptions for the file shall describe neither records that contain a lesser number of bytes than that specified by integer-2 nor records that contain a greater number of bytes than that specified by integer-3.
 
 
----
 
 
 5) Integer-3 shall be greater than integer-2.
@@ -19112,7 +18701,6 @@ ALL FORMATS
 
    b) If format 2 is implied, integer-2 shall be the record size of the smallest record description entry in this file description entry, and integer-3 shall be the largest record description entry in this file description entry. The DEPENDING ON phrase is not specified.
 
----
 
 
 FORMAT 1
@@ -19174,7 +18762,6 @@ a) If a REWRITE or WRITE statement is being executed, the EC-I-O-LOGIC-ERROR exc
 
 b) If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE statement is unsuccessful.
 
----
 
 
 <a id="section-13-18-44"></a>
@@ -19219,7 +18806,6 @@ NOTE 1 If data-name-2 is not unique, no ambiguity of reference exists because of
 9) Neither this entry nor any entry subordinate to it shall contain a VALUE clause, unless that VALUE clause is specified in an entry with the level-number 88.
 
 
----
 
 
 10) The entries giving the new descriptions of the storage area shall follow the entries defining the area of data-name-2, without intervening entries that define new storage areas.
@@ -19299,7 +18885,6 @@ NOTE Level-number 66 and data-name-1 are shown in the above format to provide co
 11) The beginning of the storage area described by data-name-3 shall not precede the beginning of the storage area described by data-name-2. The end of the storage area described by data-name-3 shall follow the end of the storage area described by data-name-2.
 
 
----
 
 
 NOTE Data-name-3, therefore, cannot be subordinate to data-name-2.
@@ -19384,7 +18969,6 @@ The REQUIRED clause specifies that in the context of an ACCEPT screen statement,
 
 7) If a REQUIRED clause is specified in a group screen item, it applies to each elementary input screen item in that group.
 
----
 
 
 <a id="section-13-18-48"></a>
@@ -19409,7 +18993,6 @@ The REVERSE-VIDEO clause specifies that the screen item is to be displayed by ex
 2) When the REVERSE-VIDEO clause is specified, the screen item will be displayed so that the characters that constitute the screen item will be shown with the foreground and background colors being exchanged when the screen item is referenced in an ACCEPT screen or a DISPLAY screen statement. For monochrome displays, the reverse-video attribute is used.
 
 
----
 
 
 <a id="section-13-18-49"></a>
@@ -19472,7 +19055,6 @@ NOTE   If alignment according to 8.5.1.6.4, Item alignment for increased object-
 5) If an alphanumeric group item, national group item, or strongly-typed group item to which data-name-1 is subordinate contains a SIGN clause, the effect is as though that SIGN clause had been specified for the subject of the entry.
 
 
----
 
 
 <a id="section-13-18-50"></a>
@@ -19500,7 +19082,6 @@ The SECURE clause prevents data entered from the keyboard or contained in the sc
 
 4) It is implementor-defined whether the cursor moves as data is entered into a field for which the SECURE clause is specified.
 
----
 
 
 <a id="section-13-18-51"></a>
@@ -19545,7 +19126,6 @@ The SELECT WHEN clause specifies a condition-name condition under which a record
 2) SELECT WHEN clauses of record description entries specified in the working-storage section, local-storage section, or the linkage section have no effect. SELECT WHEN clauses of record description entries specified in the file section have no effect for statements other than READ statements, REWRITE statements with the FILE phrase, and WRITE statements with the FILE phrase, when those statements reference the associated file.
 
 
----
 
 
 3) The condition-name condition specified in a SELECT WHEN clause is evaluated for each record description entry, in the order the record description entries are written, until the evaluation is true. When the evaluation is true, the associated record description entry is selected for use with the CODE-SET and FORMAT clauses. The evaluation is always true when the OTHER phrase is specified.
@@ -19557,7 +19137,6 @@ The SELECT WHEN clause specifies a condition-name condition under which a record
 NOTE    This permits code-set conversion based on record layout in circumstances that the implementor defines; a CODE-SET clause need not be present in the source element in this case.
 
 
----
 
 
 <a id="section-13-18-52"></a>
@@ -19606,7 +19185,6 @@ The SIGN clause specifies the position and the mode of representation of the ope
 5) If the SEPARATE CHARACTER phrase is not specified, then:
 
 
----
 
 
 a) The operational sign is presumed to be associated with the leading (or, respectively, trailing) digit position of the data item to which it applies.
@@ -19668,7 +19246,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 1) If identifier-1 is specified without the ROUNDED phrase, it specifies the sending operand of an implicit MOVE statement in which the data item referenced by identifier-1 is moved to the printable item.
 
 
----
 
 
 2) Arithmetic-expression-1 specifies the operand of an implicit COMPUTE statement that is executed implicitly whenever the associated item is printed. If the ROUNDED phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase.
@@ -19678,7 +19255,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 4) If the SOURCE clause has more than one operand, successive operands are assigned to successive repeating printable items, horizontally and then vertically, as applicable, in that hierarchic order. If no further operands remain, assignment begins again from the first operand. If any of the printable items are suppressed as a result of a PRESENT WHEN clause or an OCCURS clause with a DEPENDING phrase, SOURCE operands are nevertheless assigned to them, even though they are not printed.
 
 
----
 
 
 <a id="section-13-18-54"></a>
@@ -19726,7 +19302,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
    c) If data-name-1 is specified in a different report group description than the subject of the entry, data-name-1 either shall not reference a repeating item or shall reference a repeating item that is subject to at least the same number of levels of repetition as the subject of the entry.
 
 
----
 
 
 d) The maximum number of repetitions of data-name-1 and the subject of the entry shall be equal at each corresponding level taken in order beginning with the lowest level of nesting. Levels superordinate to those corresponding levels may specify any number of repetitions.
@@ -19782,7 +19357,6 @@ g) If data-name-1 specifies an entry in a different report description, there ar
       1. if no UPON phrase is specified, whenever any GENERATE statement is executed for the current report or any detail defined for the current report, or
 
 
----
 
 
 2. If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase.
@@ -19804,7 +19378,6 @@ If two or more instances of data-name-1 or identifier-1 specify the same data it
 12) It is permissible for procedure division statements to alter the content of sum counters.
 
 
----
 
 
 <a id="section-13-18-55"></a>
@@ -19851,7 +19424,6 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 5) SYNCHRONIZED RIGHT specifies that the elementary item is to be positioned such that it will terminate on the right byte of the natural boundary in which the elementary item is placed.
 
 
----
 
 
 6) Any adjustment in storage position resulting from the SYNCHRONIZED clause does not affect the size of the synchronized data item.
@@ -19878,7 +19450,6 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 
 11) Any rules for synchronization of the records of a file, as this affects the synchronization of elementary items, shall be specified by the implementor.
 
----
 
 
 <a id="section-13-18-56"></a>
@@ -19911,10 +19482,8 @@ The TO clause identifies the destination of the data in an ACCEPT screen stateme
 
 2) The TO clause has an effect only during execution of an ACCEPT screen statement referencing the screen item.
 
----
 
 
----
 
 
 <a id="section-13-18-57"></a>
@@ -19976,10 +19545,8 @@ FORMAT 1
 
 1) The description of any data item subordinate to type-name-1 shall not contain a SAME AS clause that references the subject of this entry or any group item to which this entry is subordinate.
 
----
 
 
----
 
 
 2) A data description entry in which a TYPE clause is specified shall not be followed immediately by a subordinate data description entry or a level 88 entry.
@@ -20019,7 +19586,6 @@ FORMAT 2
 12) PAGE HEADING and PAGE FOOTING and the OR PAGE phrase are allowed only if a PAGE clause that defines the page limit is specified in the report description entry.
 
 
----
 
 
 13) REPORT HEADING, PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once in any given report description.
@@ -20087,7 +19653,6 @@ FORMAT 2
       2. on the last page, if it is occupied only by a report footing group;
 
 
----
 
 
 If a report footing is defined and is not on a page by itself, the page footing on the last page is immediately followed by the report footing.
@@ -20118,7 +19683,6 @@ f) The upper limit for a report footing that appears on a page by itself is the 
 
 g) The upper limit for a report footing that does not appear on a page by itself is the line following the last line of the page footing, if specified, or the line number obtained by adding 1 to the FOOTING integer, if no page footing is defined for the report.
 
----
 
 
 8) The lower limit is defined to be the lowermost permitted line on the page that may be occupied by the report group's last line. It is calculated as follows:
@@ -20174,13 +19738,10 @@ IS <u>TYPEDEF</u> [ <u>STRONG</u> ]
 
 NOTE If the EXTERNAL clause is used in a type declaration, the external attribute also applies to any record description in which the type declaration is referenced.
 
----
 
 
----
 
 
----
 
 <a id="section-13-18-59"></a>
 #### 13.18.59 UNDERLINE clause
@@ -20203,10 +19764,8 @@ The UNDERLINE clause specifies that each character of the field is underlined wh
 
 2) When the UNDERLINE clause is specified, the screen item will be displayed so that the characters that constitute the screen item are underlined when the screen item is referenced in an ACCEPT screen or a DISPLAY screen statement.
 
----
 
 
----
 
 
 <a id="section-13-18-60"></a>
@@ -20217,7 +19776,6 @@ The UNDERLINE clause specifies that each character of the field is underlined wh
 
 The USAGE clause specifies the representation of a data item in the computer storage.
 
----
 
 
 <a id="section-13-18-60-2"></a>
@@ -20294,7 +19852,6 @@ The USAGE clause specifies the representation of a data item in the computer sto
 > **Figure notes (USAGE clause general format).** Underlined in the printed standard (required words / required minimum abbreviation): `USAGE`, `BINARY`, `BINARY-CHAR`, `BINARY-SHORT`, `BINARY-LONG`, `BINARY-DOUBLE`, `SIGNED`, `UNSIGNED`, `BIT`, `COMPUTATIONAL`, `COMP`, `DISPLAY`, `FLOAT-BINARY-32`, `FLOAT-BINARY-64`, `FLOAT-BINARY-128`, `FLOAT-DECIMAL-16`, `FLOAT-DECIMAL-34`, `FLOAT-EXTENDED`, `FLOAT-LONG`, `FLOAT-SHORT`, `INDEX`, `MESSAGE-TAG`, `NATIONAL`, `OBJECT`, `REFERENCE`, `FACTORY`, `ACTIVE-CLASS`, `ONLY`, `PACKED-DECIMAL`, `NO`, `SIGN`, `POINTER`, `FUNCTION-POINTER`, `PROGRAM-POINTER`. `IS`, `OF`, `TO`, and `WITH` are not underlined.
 > ⚠ **The `FLOAT-DECIMAL-16` and `FLOAT-DECIMAL-34` phrase groups are enclosed in CHOICE INDICATORS** (the pair of `|` bars inside their brackets). Per 5.2.6.4, **brackets** enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `encoding-phrase` alone, `endianness-phrase` alone, **both in either order**, or neither may be written. No other group in this figure carries choice indicators.
 
----
 
 
 where encoding-phrase is:
@@ -20334,7 +19891,6 @@ where endianness-phrase is:
 
 9) A data-pointer data item may be referenced explicitly only in a CALL statement, an INITIALIZE statement, an INVOKE statement, a SET statement, a relation condition, a procedure division header, the argument list of an inline invocation of a method, as an argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a FREE statement.
 
----
 
 
 10) An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or INVOKE statement.
@@ -20373,7 +19929,6 @@ where endianness-phrase is:
 2) The USAGE clause specifies the manner in which a data item is represented in the storage of a computer. It does not affect the use of the data item, although the specifications for some statements in the procedure division may restrict the USAGE clause of the operands referred to. The USAGE clause may affect the radix or type of character representation of the item.
 
 
----
 
 
 3) The VALIDATE statement may be used to check that the content of a data item is compatible with any PICTURE, SIGN and USAGE clauses specified in the description of the item. Rules for compatibility are implementor-defined. Failure of this check results in the setting of the data item's internal indicator to invalid on format. A data item with usage index, message-tag, object reference, pointer, function-pointer, or program-pointer is ignored by the VALIDATE statement.
@@ -20392,7 +19947,6 @@ where endianness-phrase is:
 
 10) The USAGE INDEX clause specifies that a data item is an index data item and contains a value that shall correspond to an occurrence number of a table element. The class and category of an index data item are index. Each implementor specifies the precise effect of the USAGE INDEX clause upon the alignment and representation of the data item in the storage of the computer, including the actual value assigned for any given occurrence number.
 
----
 
 
 11) The USAGE PACKED-DECIMAL clause specifies that a radix of 10 is used to represent a numeric item in the storage of the computer. Furthermore, this clause specifies that each digit position shall occupy the minimum possible configuration in computer storage. Each implementor specifies the precise effect of the USAGE PACKED-DECIMAL clause upon the alignment and representation of the data item in the storage of the computer, including the representation of any algebraic sign. Sufficient computer storage shall be allocated by the implementor to contain the maximum range of values implied by the associated decimal picture character-string. If the WITH NO SIGN phrase is specified the representation of the data item in the storage of the computer reserves no storage for representing any sign value. The PICTURE character string of the data item shall not contain the symbol 'S'; the data item is always considered to have a zero, or positive value.
@@ -20515,7 +20069,6 @@ e) If ACTIVE-CLASS is specified, the object referenced by this data item shall b
 
 25) If program-prototype-name-1 is specified, this data item is a restricted program-pointer. A restricted program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as that identified by the specified program-prototype-name.
 
----
 
 
 26) A data description entry that specifies the USAGE FUNCTION-POINTER clause specifies a function-pointer data item, also called a function-pointer, that may contain the address of a function. Each implementor defines the precise effect of the USAGE FUNCTION-POINTER clause upon alignment, size, and representation of the data item in the storage of the computer.
@@ -20524,10 +20077,8 @@ e) If ACTIVE-CLASS is specified, the object referenced by this data item shall b
 
    A function-pointer shall contain only the predefined address NULL or the address of a function with the same signature as that identified by the specified function-prototype-name-1.
 
----
 
 
----
 
 
 <a id="section-13-18-61"></a>
@@ -20562,10 +20113,8 @@ The USING clause identifies data to be used both as the destination in an ACCEPT
 
 2) The subject of the entry is both an input screen item and an output screen item.
 
----
 
 
----
 
 
 <a id="section-13-18-62"></a>
@@ -20616,7 +20165,6 @@ NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsole
    a) If the VALIDATE-STATUS clause is specified in an entry that is not subject to any OCCURS clause, identifier-2 shall be subscripted. The number of subscripts shall be the same as the number of nested OCCURS clauses to which the data item referenced by identifier-2 is subject. Only literal subscripts may be specified.
 
 
----
 
 
 b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one or more OCCURS clauses, identifier-2 shall not be subscripted. The data item referenced by identifier-2 and the subject of the entry shall both be subject to the same number of OCCURS clauses and the number of occurrences specified in the corresponding OCCURS clauses shall be equal. If an OCCURS clause associated with identifier-2 has a DEPENDING phrase, the maximum integer of the TO phrase is used in determining the number of occurrences of identifier-2.
@@ -20654,7 +20202,6 @@ b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one
 8. If the entry containing the VALIDATE-STATUS clause is subject to one or more OCCURS clauses, the processing defined in the above General rules applies to each occurrence of the subject of the entry and each corresponding occurrence of the data item referenced by identifier-2.
 
 
----
 
 
 <a id="section-13-18-63"></a>
@@ -20750,7 +20297,6 @@ ALL FORMATS
 7) If the item is of category numeric-edited and the literal is of class alphanumeric or national, the class of the literal shall conform to that of the data item, if the class is otherwise undefined, then the class of the data item shall be that of the literal.
 
 
----
 
 
 8) When a numeric-edited data description includes the BLANK WHEN ZERO clause and the VALUE clause uses either an alphanumeric or national literal, the BLANK WHEN ZERO clause has no effect on initialization.
@@ -20783,7 +20329,6 @@ FORMAT 2
 
 17) The words VALUE and VALUES are equivalent.
 
----
 
 
 18) A data description entry that contains the VALUE clause shall contain an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.
@@ -20849,7 +20394,6 @@ FORMAT 5
 
 a) when literal-6 is of a class other than alphanumeric or national, the value of literal-5 shall be less than the value of literal-6.
 
----
 
 
 b) when literal-5 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-5 shall be less than the value of literal-6. The runtime collating sequence is unknown when the collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime.
@@ -20943,7 +20487,6 @@ FORMAT 4
 21) General rules 1, 7, 8, and 9 above apply.
 
 
----
 
 
 22) The value of literal-1 is used for the content of the printable item whenever it is printed, except that a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item, as described in 13.18.28, GROUP INDICATE clause; 13.18.41, PRESENT WHEN clause; and 13.18.38, OCCURS clause.
@@ -20965,7 +20508,6 @@ FORMAT 5
 29) Each entry with the INVALID phrase defines a set of forbidden values or ranges of values for the associated data item. If several entries with the INVALID phrase are associated with the same data item, the union of all their sets of values defines the forbidden set of values. If this check fails, the item's associated internal indicator is set to invalid on content.
 
 
----
 
 
 <a id="section-13-18-64"></a>
@@ -21011,7 +20553,6 @@ NOTE    The VARYING clause feature of the VALIDATE facility is an obsolete featu
    a) For the first occurrence, the value of arithmetic-expression-1 is moved to data-name-1. If the FROM phrase is absent, 1 is moved to data-name-1.
 
 
----
 
 
 b) For the second and subsequent occurrences, the value of arithmetic-expression-2 is added to data-name-1. If the BY phrase is absent, 1 is added to data-name-1.
@@ -21025,7 +20566,6 @@ NOTE For example, this allows data-name-1 to be used as a source data item, as a
 6) If the evaluation of arithmetic-expression-1 or arithmetic-expression-2 produces a noninteger value and the VARYING clause was not specified in a report description entry, the EC-VALIDATE-VARYING exception condition is set to exist, the execution of the VALIDATE statement is unsuccessful, and the content of the receiving items is undefined
 
 
----
 
 
 <a id="section-14"></a>
@@ -21075,10 +20615,8 @@ Format 3 (object-oriented):
 [ { method-definition } … ]
 </pre>
 
----
 
 
----
 
 
 where procedure-division-header is:
@@ -21132,7 +20670,6 @@ FORMATS 1 AND 2
 
 5) Data-name-2 shall be defined as a level 01 entry or level 77 entry in the linkage section. The data description entry for data-name-2 shall not contain a BASED clause or a REDEFINES clause.
 
----
 
 
 NOTE 3 This restriction for based items does not prohibit specifying a based item as the returning item in the activating element.
@@ -21206,10 +20743,8 @@ then this allocated record is
 
 — a data item of the same category, usage, and length as the argument, if the formal parameter is described with the ANY LENGTH clause,
 
----
 
 
----
 
 
 — a dynamic-length elementary item of the same category and described with the same dynamic-length-structure-name as the formal parameter, if the formal parameter is described with the elementary format of the DYNAMIC LENGTH clause,
@@ -21241,7 +20776,6 @@ The allocated record is then treated as if it were the argument and it were pass
     NOTE 2    The details of these restrictions and mechanisms might include parameter matching, representation of a data type, return of a value, and omission of parameters.
 
 
----
 
 
 <a id="section-14-3"></a>
@@ -21283,7 +20817,6 @@ Within the procedure division, there are the following types of statements:
 — imperative statements, which specify unconditional actions
 — conditional statements, which specify, or contain one or more phrases that specify, actions that depend on the truth value of a condition.
 
----
 
 
 A declarative statement begins with the statement name USE and directs that actions be taken in response to specified conditions encountered during the processing of other statements.
@@ -21422,10 +20955,8 @@ A runtime element results from the compilation of a function, method, or program
 
 A run unit and each of its contained runtime modules may also contain resources and data storage areas needed for the execution and intercommunication of the runtime elements contained in the run unit.
 
----
 
 
----
 
 
 A run unit may additionally contain runtime modules and data storage areas derived from the compilation of compilation units written in languages other than COBOL; in this case the requirements for the relationship and interaction between the COBOL and the non-COBOL modules are defined by the implementor.
@@ -21534,7 +21065,6 @@ An explicit transfer of control may be caused only by the execution of a procedu
 If control is transferred either implicitly or explicitly to a procedure containing no statements, execution proceeds as if the procedure contained only a single sentence consisting of a CONTINUE statement.
 
 
----
 
 
 In this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element.
@@ -21566,7 +21096,6 @@ Item identification is the process of identifying a specific data item reference
 
 Unless otherwise specified, item identification is done for an identifier as the first step in the evaluation of that identifier and the identifiers within a statement are evaluated in left to right order as the first operation of the execution of that statement.
 
----
 
 
 <a id="section-14-6-5"></a>
@@ -21600,7 +21129,6 @@ Locale identification is the process of identifying a specific locale for use in
 7) For a LOCALE-COMPARE intrinsic function specifying a locale as an argument, category LC_COLLATE from the specified locale is used for evaluation of that function-identifier; if a locale is not specified as an argument, category LC_COLLATE from the current locale is used.
 
 
----
 
 
 8) For a LOCALE-DATE or LOCALE-TIME intrinsic function specifying a locale as an argument, category LC_TIME from the specified locale is used for evaluation of that function-identifier; if a locale is not specified as an argument, category LC_TIME from the current locale is used.
@@ -21635,10 +21163,8 @@ When the receiving data item is a fixed-point numeric data item or a fixed-point
 
 4) If the receiving operand is a fixed-point numeric item, the data is aligned by decimal point and is transferred to the receiving digits with zero fill or truncation on either end as required.
 
----
 
 
----
 
 
 5) If the receiving operand is a fixed-point numeric-edited item, further alignment, zero fill or truncation, and transfer of digits take place as described in the general rules and editing rules in 13.18.40, PICTURE clause.
@@ -21709,7 +21235,6 @@ During the evaluation of a relation condition, a dynamic-capacity table may be c
 When corresponding tables are to be compared, the first element of the first table, if any, is compared with the first element of the other table. If they are unequal, the comparison terminates. Otherwise, the next elements are compared, continuing until either inequality is detected or the last element of the table with the smallest current capacity has been compared. If the two tables do not have the same current capacity, comparison continues by comparing each successive remaining element of the larger table with spaces.
 
 
----
 
 
 <a id="section-14-6-9-4"></a>
@@ -21798,7 +21323,6 @@ NOTE 2    The fatality of an exception condition is either fatal or nonfatal. Ex
 NOTE 3    An exception condition is set to exist only if checking for that condition is enabled by default or by the TURN compiler directive. If the exception condition occurs and it is not enabled, the results of the operation are undefined.
 
 
----
 
 
 Exception-names are organized into a hierarchy of three levels for the purpose of enabling checking, selecting a declarative or a WHEN phrase of a PERFORM statement, and reporting the exception that occurred. The highest level, level-1, is the exception-name EC-ALL. Level-2 consists of the exception-names EC-ARGUMENT, EC-BOUND, EC-DATA, EC-EXTERNAL, EC-FLOW, EC-FUNCTION, EC-I-O, EC-IMP, EC-LOCALE, EC-MCS, EC-OO, EC-ORDER, EC-OVERFLOW, EC-PROGRAM, EC-RANGE, EC-RAISING, EC-REPORT, EC-SCREEN, EC-SIZE, EC-SORT-MERGE, EC-STORAGE, EC-USER, and EC-VALIDATE. The lowest level, level-3, consists of the level-2 names suffixed by a hyphen and additional characters. Only the lowest level exception-names are associated with exception status indicators. The implementor is not required to raise any exception conditions for level-3 exception-names that are associated with optional language elements or processor-dependent language elements that the implementor has not implemented unless the description of that language element in A.3, Processor-dependent language element list or A.4, Optional language element list, requires that an exception condition be raised.
@@ -21873,7 +21397,6 @@ When an exception object is raised, the following occurs:
 
 If an exception object is raised by a RAISE statement, the associated declarative is executed. If execution of the declarative completes normally, execution continues with the statement following the RAISE statement. If there is no associated declarative, execution continues as specified in the RAISE statement.
 
----
 
 
 If an exception object is raised by an EXIT or GOBACK statement, one of the following occurs:
@@ -21903,7 +21426,6 @@ Cat **-** The category of the exception condition: nonfatal (NF), fatal (Fatal),
 
 Description **-** A brief description of what the exception condition means.
 
----
 
 
 <a id="table-13"></a>
@@ -22092,7 +21614,6 @@ Incompatible data exists when the content of a sending operand is not valid only
 
     — a sending item is referenced in a class condition, or
 
----
 
 
 — a sending item is processed in a VALIDATE statement.
@@ -22178,10 +21699,8 @@ When the low-order integer positions in a resultant identifier are represented b
 
 2) If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified.
 
----
 
 
----
 
 
 3) If the AWAY-FROM-ZERO phrase is specified and the arithmetic value cannot be exactly represented in the resultant identifier, the arithmetic value is rounded to the nearest value farther from zero that can be represented in the resultant identifier.
@@ -22212,7 +21731,6 @@ The size error condition may occur as a result of the execution of an ADD, COMPU
 — using a TURN directive or a WHEN phrase of a PERFORM statement to turn on checking for the EC-SIZE exception condition.
 
 
----
 
 
 When the SIZE ERROR phrase is specified for an arithmetic statement, checking for the size error condition is enabled for the arithmetic operations that take place in developing and storing the result of that arithmetic statement. Any exception condition, including EC-SIZE, that is raised during item identification for the operands used during the execution of the arithmetic statement is processed as defined for that exception condition and execution of the arithmetic statement ceases. Execution resumes as indicated for that exception condition. If an EC-SIZE exception condition exists during the execution of the arithmetic statement other than during item identification and a SIZE ERROR phrase is specified for the statement, processing of the size error condition occurs as described below for the SIZE ERROR phrase, and no statements in an applicable WHEN phrase in a containing PERFORM statement are executed and no EC-SIZE exception declaratives are performed.
@@ -22242,7 +21760,6 @@ If the size error condition exists and the SIZE ERROR phrase is specified, the f
 1) If the size error condition occurred during the arithmetic operations specified by the arithmetic statement, the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement. Execution proceeds as indicated in rule 3, below;
 
 
----
 
 
 2) If the absolute value of the result of the arithmetic operation exceeds the maximum value allowed for any resultant identifier, the content of that resultant identifier is not changed from the content that existed at the start of the execution of the arithmetic statement. The values of resultant identifiers for which the size error condition did not occur are the same as they would have been if the size error condition had not existed for any of the resultant identifiers. Execution proceeds as indicated in rule 3, below;
@@ -22334,7 +21851,6 @@ The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT s
    a) The initial evaluation of the statement is done and the result of this operation is placed in an intermediate data item. If any form of standard arithmetic is in effect, a standard intermediate data item of the form appropriate to that mode of arithmetic is used. Otherwise, an implementor-defined intermediate data item is used. The rules indicating which data items or literals are part of this evaluation are given in the rules for the individual statements. All item identification for the data items involved in the initial evaluation is done at the start of the execution of the statement. If the size error condition is raised during the initial evaluation, none of the resultant data items are changed and execution proceeds as indicated in 14.7.5, SIZE ERROR phrase and size error condition.
 
 
----
 
 
 b) If the size error condition was not raised during the initial evaluation, the intermediate data item is stored in or combined with and then stored in each single resulting data item in the left-to-right order in which the receiving data items are specified in the statement. Item identification for the receiving data items is done as each data item is accessed unless it was already done in step a. If the size error condition is raised when attempting to store in a resulting data item, only that data item remains unchanged and processing proceeds to the next resulting data item to the right.
@@ -22400,7 +21916,6 @@ The RETRY phrase is specified in an input-output statement to indicate whether t
    b) The mass storage control system attempts to complete the input-output operation as specified in General rules 1, 2, or 3.
 
 
----
 
 
 If the mass storage control system permits the requested access on one of these attempts, the statement is successful and the results are as if the file sharing or record operation conflict had never occurred.
@@ -22648,7 +22163,6 @@ In order to be able to check the conformance of external items between runtime e
 
 For each external file connector, the file status, linage and relative key data items shall be external data items and shall refer to the same corresponding storage in each runtime element for which the file connector is used.
 
----
 
 
 <a id="section-14-8-4-3"></a>
@@ -22976,10 +22490,8 @@ Format 3 (corresponding):
 
 where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
----
 
 
----
 
 
 <a id="section-14-9-2-3"></a>
@@ -23087,7 +22599,6 @@ If a specified number of characters of memory is being requested, a data-pointer
 
 4) If the specified amount of storage is available for allocation, it shall be obtained and:
 
----
 
 
 a) if the RETURNING phrase is specified, the data item referenced by data-name-2 is set to the address of that storage,
@@ -23445,7 +22956,6 @@ The CLOSE statement terminates the processing of reels/units and files with rewi
 
 3) The results of executing each type of CLOSE for each category of physical file are summarized in Table 14, Relationship of categories of physical files and the format of the CLOSE statement.
 
----
 
 
 <a id="table-14"></a>
@@ -23565,10 +23075,8 @@ The COMMIT statement makes permanent all changes to all files subject to active 
 
 5) The contents of all data-items referenced in the remaining active APPLY COMMIT clauses are saved for potential use in a subsequent rollback. This includes the file status data items and data-items specified in the linage or record clauses of the file descriptions.
 
----
 
 
----
 
 
 <a id="section-14-9-8"></a>
@@ -23697,7 +23205,6 @@ CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
 
 2) Implicit CONTINUE statements shall be processed as if AFTER ZERO SECONDS were specified.
 
----
 
 
 <a id="section-14-9-10"></a>
@@ -23822,7 +23329,6 @@ b) The valu62' is placed into the I-O status associated with file-name-1 to indi
 c) The DELETE FILE statement is unsuccessful.
 
 
----
 
 
 NOTE For file connectors subject to APPLY COMMIT clauses, while those APPLY COMMIT clauses remain active, then file and record locking persists. Such files can still be deleted, however if they are, then in the event of a rollback they will be restored to the state they were in at the last commit or, if none, the start of the run unit.
@@ -23907,7 +23413,6 @@ FORMAT 1
 
 2) Mnemonic-name-1 shall be specified in the SPECIAL-NAMES paragraph of the environment division and shall be associated with an implementor-defined device-name that is identified in the operating environment as a hardware or software device capable of receiving data from the program.
 
----
 
 
 FORMAT 2
@@ -24167,7 +23672,6 @@ c) If the size error condition is not raised, a subsidiary quotient is developed
 where the values of dividend and divisor are defined in General rule 2 and where subsidiary-quotient represents the subsidiary quotient as defined in General rule 6.
 
 
----
 
 
 <a id="section-14-9-13"></a>
@@ -24231,7 +23735,6 @@ where selection-object is:
 
 > **Figure notes (14.9.13.2, selection-object):** a single pair of braces spanning ten stacked alternatives — exactly one shall be selected. Verified at 900 dpi: NO choice-indicator bars are present. The bracketed `NOT` applies only to the first five alternatives, exactly as stacked. NOT, TRUE, FALSE and ANY are underlined in the printed figure (required words).
 
----
 
 
 where range-expression is:
@@ -24431,7 +23934,6 @@ Format 4 (procedure):
 > **Figure notes (EXIT Format 4, procedure).** Underlining measured from the printed page: `EXIT`, `PARAGRAPH` and `SECTION` are all underlined (required words, 5.2.2). The brace is a plain select-exactly-one (5.2.6.3): exactly one of `PARAGRAPH` or `SECTION` shall be specified.
 
 
----
 
 
 <a id="section-14-9-14-3"></a>
@@ -24465,7 +23967,6 @@ FORMAT 2
 
 7) An EXIT PROGRAM statement may be specified only in a program procedure division.
 
----
 
 
 FORMAT 3
@@ -24502,7 +24003,6 @@ FORMAT 3
    b) The execution of an EXIT PERFORM statement with the CYCLE phrase causes control to be passed to an implicit CONTINUE statement immediately preceding the END-PERFORM phrase that matches the most closely preceding, and as yet unterminated, inline PERFORM statement.
 
 
----
 
 
 FORMAT 4
@@ -24588,7 +24088,6 @@ The GENERATE statement performs control break processing and, unless a report-na
 
    a) The report heading is printed if defined. If the report heading appears on a page by itself, an advance is made to the next physical page, and PAGE-COUNTER is either incremented by 1 or, if the report heading's NEXT GROUP clause has the WITH RESET phrase, set to 1. (See 13.18.57, TYPE clause; and 13.18.37, NEXT GROUP clause.)
 
----
 
 
 b) A page heading is printed if defined. (See 13.18.57, TYPE clause.)
@@ -24661,7 +24160,6 @@ Format 2 (depending):
 
 2) When a GO TO statement represented by format 2 is executed, control is transferred to procedure-name-1, etc., depending on the value of identifier-1 being 1, 2, … , n. If the content of identifier-1 is not numeric, the EC-DATA-INCOMPATIBLE exception condition is set to exist. If checking for EC-DATA-INCOMPATIBLE is enabled, processing occurs as specified for that exception condition. If checking for EC-DATA-INCOMPATIBLE is not enabled or the value of identifier-1 is anything other than the positive or unsigned integers 1, 2, … , n, then no transfer occurs and control passes to the next statement in the normal sequence for execution.
 
----
 
 
 <a id="section-14-9-18"></a>
@@ -24728,7 +24226,6 @@ WITH ┤        ├ STATUS │              │
    a) If the data description entry of identifier-1 specifies an object-class-name, the class identified by that object-class-name or one of the superclasses of that class shall be specified in the RAISING phrase of the procedure division header of the source element containing this GOBACK statement and the presence or absence of the FACTORY phrase is the same in the data description entry of identifier-1 as in the RAISING phrase of the procedure division header of the containing source element.
 
 
----
 
 
 b) If the data description entry of identifier-1 specifies an interface-name, the interface referenced by that interface-name shall conform to an interface specified in the RAISING phrase of the procedure division header of the source element containing this GOBACK statement, and the presence or absence of the FACTORY phrase shall be the same in the data description entry of identifier-1 as in the RAISING phrase of the procedure division header of the containing source element.
@@ -24762,10 +24259,8 @@ d) Identifier-1 shall not be a universal object reference.
 
          a. If an exception condition is currently raised, that exception condition is set to exist in the activating runtime element. If the exception condition is an exception object, additional rules are specified in 14.6.13.1.5, Exception objects. If the exception condition is a level-
 
----
 
 
----
 
 
 3 exception for EC-USER and that exception condition is not specified in the RAISING phrase of the procedure division header of the source element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED exception condition is set to exist in the activating runtime element instead of the EC-USER exception condition.
@@ -25077,7 +24572,6 @@ The INITIATE statement initializes any internal storage locations used by the sp
 
 5) The results of executing an INITIATE statement in which more than one report-name-1 is specified is the same as if a separate INITIATE statement had been executed for each report-name-1 in the same order as specified in the statement. If an implicit INITIATE statement results in the execution of a declarative procedure that executes a RESUME statement with the NEXT STATEMENT phrase, processing resumes at the next implicit INITIATE statement, if any.
 
----
 
 
 <a id="section-14-9-22"></a>
@@ -25181,7 +24675,6 @@ ALL FORMATS
 
 2) Identifier-3, … , identifier-n shall reference an elementary item described implicitly or explicitly as usage display or national.
 
----
 
 
 3) Each literal shall be an alphanumeric, boolean, or national literal. Literal-1, literal-2, literal-3, and literal-4 shall not be a figurative constant that begins with the word ALL. If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an implicit one character data item. When identifier-1 is of class national, the class of the figurative constant is national; when identifier-1 is of class boolean, the figurative constant is of class boolean and only the figurative constant ZERO may be specified; otherwise, the class of the figurative constant is alphanumeric. Literal-1, literal-2, literal-3, literal-4, or literal-5 shall not be a zero-length literal.
@@ -25418,7 +24911,6 @@ i) If identifier-1 references the predefined object reference SUPER and the meth
 
 10) Identifier-3 shall not reference a data item defined in the file or working-storage section of a factory or instance object.
 
----
 
 
 11) Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section.
@@ -25618,7 +25110,6 @@ g) If the file referenced by file-name-1 contains variable-length records, all t
    b) Is such that all records associated with one input file are returned prior to the return of records from another input file.
 
 
----
 
 
 5) The alphanumeric collating sequence that applies to the comparison of key data items of class alphabetic and class alphanumeric, and the national collating sequence that applies to the comparison of key data items of class national, are separately determined at the beginning of the execution of the MERGE statement in the following order of precedence:
@@ -25733,7 +25224,6 @@ FORMAT 1
 
 8) If identifier-1 references a data item described with usage binary-char, binary-short, binary-long, or binary-double, identifier-2 shall reference a numeric or numeric-edited item.
 
----
 
 
 9) If identifier‑1 or identifier‑2 references a variable‑length group then these groups shall be compatible groups as specified in 8.5.1.12, Variable‑length groups.
@@ -25834,7 +25324,6 @@ d) When a numeric or numeric-edited item is the receiving item, and General rule
 
    1. If the category of the sending operand is numeric-edited, the content of the sending operand shall be as specified in 14.6.13.2, Incompatible data, and de-editing establishes the operand's numeric value, which may be signed.
 
----
 
 
 Otherwise, if the content of the sending operand would result in a false value in a numeric class condition, the EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE statement are undefined.
@@ -25982,7 +25471,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 4) When native arithmetic is in effect, the composite of operands described in 14.7.7, Arithmetic statements, is determined by using all of the operands in the statement.
 
----
 
 
 <a id="section-14-9-26-4"></a>
@@ -26171,7 +25659,6 @@ These statements are followed by execution of the OPEN statement specified in th
 
 a) To point to the first or only reel/unit in the physical file if INPUT or I-O is specified.
 
----
 
 
 b) To point to the reel/unit containing the last record in the physical file if EXTEND is specified.
@@ -26201,7 +25688,6 @@ d) Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed
 26) Additional rules affecting the execution of the OPEN statement are given in 12.4.5, File control entry, General rules 3 and 4.
 
 
----
 
 
 <a id="section-14-9-28"></a>
@@ -26269,10 +25755,8 @@ Format 3 (exception-checking):
 > **Figure notes (PERFORM statement Format 3 (exception-checking)).** `PERFORM`, `LOCATION`, `WHEN`, `EXCEPTION`, `INPUT`, `OUTPUT`, `IO`, `EXTEND`, `FILE`, `OTHER`, `COMMON`, `FINALLY`, and `END-PERFORM` are underlined in the printed standard (required words); `WITH` is printed without an underline, as is the second `EXCEPTION` in each of the `WHEN OTHER EXCEPTION` / `WHEN COMMON EXCEPTION` lines. The outermost delimiter around the `WHEN` group is a pair of **braces** (a required group), with the `…` outside it permitting the whole `WHEN … imperative-statement-2` group to repeat. The `{ file-name-1 } … / INPUT / OUTPUT / IO / EXTEND` group is likewise a **brace** group — exactly one shall be selected — and it is the operand of the `EXCEPTION` alternative. The final three bracketed lines and `END-PERFORM` are printed as part of this same general format. No choice indicators are present.
 > The second `WHEN` alternative is printed as the two lines `{ exception-name-1 …` and `{ exception-name-2 FILE file-name-2 } …`, reproduced here exactly as set in the standard (the first line carries no closing brace on the printed page).
 
----
 
 
----
 
 
 where times-phrase is:
@@ -26318,7 +25802,6 @@ where varying-phrase is:
 
 > **Figure notes (varying-phrase syntax diagram).** `TEST`, `BEFORE`, `AFTER` (both the TEST AFTER word and the AFTER phrase word), `VARYING`, `FROM`, `BY`, and `UNTIL` are underlined in the printed standard (required words); `WITH` is not underlined. The `WITH TEST` phrase and each `BY` phrase are bracketed (optional). Every brace group requires exactly one of its enclosed alternatives. The ellipsis in the printed figure is placed **outside** the closing bracket of the whole `AFTER … UNTIL condition-2` group, so that entire optional group — not merely `condition-2` — may be repeated.
 
----
 
 <a id="section-14-9-28-3"></a>
 ##### 14.9.28.3 Syntax rules
@@ -26339,7 +25822,6 @@ FORMATS 1 AND 2
 
    c) The literal in the associated BY phrase shall be a nonzero integer.
 
----
 
 
 5) If an index-name is specified in the FROM phrase, then:
@@ -26515,10 +25997,8 @@ NOTE 8    The end of the PERFORM statement includes the statements in a FINALLY 
 
 NOTE 9    If control is transferred outside of the PERFORM during WHEN processing, exceptions can occur. These will be processed by whatever mechanism is normally used for this processing (such as a USE or TURN directive that can cause transfer of control to some place in the program that would never hit the exit of this PERFORM or a CALL to a program that raises an exception). The user is advised to avoid transfers outside of the PERFORM for WHEN processing.
 
----
 
 
----
 
 
 <a id="section-14-9-29"></a>
@@ -26560,10 +26040,8 @@ The RAISE statement causes a specified exception condition to be raised.
 
 2) If identifier-1 is specified, EXCEPTION-OBJECT is set to reference the object referenced by identifier-1. If there is no applicable declarative, processing continues with the statement following the RAISE statement.
 
----
 
 
----
 
 
 <a id="section-14-9-30"></a>
@@ -26631,7 +26109,6 @@ Format 2 (random):
 
 where retry-phrase is described in 14.7.9, RETRY phrase
 
----
 
 
 <a id="section-14-9-30-3"></a>
@@ -26672,7 +26149,6 @@ FORMAT 2
 12. Data‑name‑1 or record‑key‑name‑1 may be qualified.
 
 
----
 
 
 <a id="section-14-9-30-4"></a>
@@ -26754,10 +26230,8 @@ NOTE 3 One or more subsequent READ statements can be used to read the rest of th
 
 18) Unless otherwise specified, at the completion of any unsuccessful execution of a READ statement, the content of the associated record area is undefined, the key of reference is undefined for indexed files, and the file position indicator is set to indicate that no valid record position has been established.
 
----
 
 
----
 
 
 FORMAT 1
@@ -26869,10 +26343,8 @@ a) the NEXT phrase is specified or implied and the alternate record key in the r
 
 b) the PREVIOUS phrase is specified and the alternate record key in the record that immediately precedes the record that was successfully read duplicates the same key in the record that was successfully read.
 
----
 
 
----
 
 
 NOTE 7 If the sharing mode of the file is sharing with all other, I-O status value '02' on a sequential read cannot be relied on for a subsequent sequential read. The record with a duplicate key might have been deleted through another file connector between the return of I-O status value '02' and the execution of the subsequent READ statement.
@@ -26961,7 +26433,6 @@ NOTE    The failed exception condition can happen if the requestor run unit abor
       3. Otherwise, control is transferred to the end of the RECEIVE statement.
 
 
----
 
 
 <a id="section-14-9-32"></a>
@@ -27062,7 +26533,6 @@ The RESUME statement transfers control to a procedure-name or to the statement f
 
       2. If the exception condition was propagated from an activated runtime entity, the applicable statement is the CALL or INVOKE statement that activated the entity, or, for an inline invocation or a function invocation, it is the statement in which the inline invocation or function invocation was specified.
 
----
 
 
 3. If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement.
@@ -27075,10 +26545,8 @@ NOTE 1 Use of NEXT STATEMENT may cause a transfer of control to a statement that
 
 NOTE 2 Use of this method of recovery can cause the flow of control for PERFORM statements to be undefined as described in 14.9.28, PERFORM statement General rule 2.
 
----
 
 
----
 
 
 <a id="section-14-9-34"></a>
@@ -27185,7 +26653,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 
 7) If identifier-1 references a bit data item other than a function and the FILE phrase is specified, identifier-1 shall be described such that:
 
----
 
 
 a) subscripting and reference modification in identifier-1 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is not specified; and
@@ -27222,7 +26689,6 @@ b) literal-1 shall be an alphanumeric, boolean, or national literal and shall no
 NOTE 1 Logical records in relative and sequential files can have a length of zero. Logical records in an indexed file will always be long enough to contain the record keys.
 
 
----
 
 
 6) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available as a record of other file-names referenced in the same SAME RECORD AREA clause as file-name-1 or the file-name associated with record-name-1, as well as the file associated with record-name-1.
@@ -27310,7 +26776,6 @@ b) If the number of bytes in the data item referenced by identifier-1, the runti
 c) If the number of bytes in the data item referenced by identifier-1, the runtime representation of literal-1, or the record referenced by record-name-1 is less than the number of bytes in the record being replaced, then a sufficient number of the space character is appended to the data item referenced by identifier-1, the runtime representation of literal-1, or the record referenced by record-name-1 to increase the length of the record being transferred to the length of the record being replaced. If the data item referenced by identifier-1, the runtime representation of literal1, or the record referenced by record-name-1 is specified implicitly or explicitly as alphanumeric, a space is defined to be the alphanumeric space character. If the data item referenced by identifier-1, the runtime representation of literal-1, or the record referenced by record-name-1 is specified implicitly or explicitly as national, a space is defined to be the national space character.
 
 
----
 
 
 d) If the record area contains one or more characters that are not in the implementor-defined character set defined for a line sequential file the execution of the REWRITE statement is unsuccessful and the I-O status in the rewrite file connector is set to '71'. (9.1.13, I-O status)
@@ -27368,7 +26833,6 @@ c) When an alternate record key of the record to be replaced does not allow dupl
 When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, and the content of the record area is unaffected.
 
 
----
 
 
 <a id="section-14-9-36"></a>
@@ -27409,10 +26873,8 @@ The ROLLBACK statement reverses all changes made to the files and data-items exp
 
 6) Any APPLY COMMIT clauses in exited initial programs or canceled runtime elements are deactivated.
 
----
 
 
----
 
 
 7) After a rollback, execution continues with the next logical statement (see 14.6.3, Explicit and implicit transfers of control).
@@ -27481,10 +26943,8 @@ Format 2 (all):
 
 NOTE 2 NEXT SENTENCE is an archaic feature. For details see F.1, Archaic language elements.
 
----
 
 
----
 
 <a id="section-14-9-37-3"></a>
 ##### 14.9.37.3 Syntax rules
@@ -27519,10 +26979,8 @@ FORMAT 2
 
 12) Data-name-1, data-name-2, identifier-3, or identifier-4 shall not specify a variable-length group.
 
----
 
 
----
 
 
 13) Neither literal-1 nor literal-2 shall be zero-length literals.
@@ -27596,10 +27054,8 @@ FORMAT 2
 
 8) The search index is the index referenced by the first (or only) index-name specified in the INDEXED phrase in the OCCURS clause associated with identifier-1. Any other indexes associated with identifier-1 remain unchanged by the search operation.
 
----
 
 
----
 
 
 9) A non serial type of search operation may take place. The initial setting of the search index is ignored. Its setting is varied during the search operation in a manner specified by the implementor. At no time is it set to a value that exceeds the value that corresponds to the last element of the table or is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. If any of the conditions specified in the WHEN phrase is not satisfied for any setting of the search index within the permitted range, the final setting of the search index is undefined, the search operation is unsuccessful, the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist, and execution proceeds as indicated in General rule 1b. If all the conditions are satisfied, the search operation is successful and execution proceeds as indicated in General rule 1a.
@@ -27661,7 +27117,6 @@ Format 2 (message-server-response)
 
 3) The data description entries of identifier-1 or any data items subordinate to it shall not contain the ANY LENGTH clause, the BASED clause, the DYNAMIC-LENGTH clause, the OBJECT-REFERENCE clause, the OCCURS clause with the DEPENDING ON phrase where the depending on data item is not within identifier-1, the POINTER clause, the FUNCTION-POINTER clause or the PROGRAM-POINTER clause.
 
----
 
 
 NOTE The normal case would be to define identifier-1 as an 01 level item whose data description is exactly that in the message server.
@@ -27707,7 +27162,6 @@ FORMAT 2
 8) If the RAISING phrase is specified, exception-name-1 or the name of the last exception raised in the current run unit is sent to the requestor program.
 
 
----
 
 
 <a id="section-14-9-39"></a>
@@ -27771,7 +27225,6 @@ Format 3 (switch-setting):
 > **Figure notes (SET statement Format 3 (switch-setting) syntax diagram).** `SET`, `TO`, `ON`, and `OFF` are underlined in the printed standard (required words). `{ mnemonic-name-1 } …` is a single-line brace group with an ellipsis — one or more mnemonic-names. The whole `{ mnemonic-name-1 } … TO { ON | OFF }` phrase is itself wrapped in an outer brace pair whose trailing `…` repeats it, so several switch-setting phrases may follow one `SET`.
 
 
----
 
 
 Format 4 (condition-setting):
@@ -27956,10 +27409,8 @@ FORMAT 1
 
 4) If identifier-1 references a numeric data item, index-name-2 shall be specified.
 
----
 
 
----
 
 
 FORMAT 3
@@ -28309,7 +27760,6 @@ c) If DOWN is specified, the new capacity is obtained by subtracting integer-1 o
 If the new capacity of the table exceeds the implementor's maximum capacity for this dynamic-capacity table, the EC-BOUND-TABLE-LIMIT exception condition is set to exist and the capacity of the table is unchanged; otherwise, if an expected maximum capacity is specified for the table and the new capacity of the table exceeds that expected maximum capacity, the EC-BOUND-SET exception condition is set to exist.
 
 
----
 
 
 If the new capacity of the table is less than the minimum capacity defined in the corresponding OCCURS clause, the new capacity of the table shall be the minimum capacity. In all other cases, the new capacity of the table shall become the current capacity.
@@ -28568,7 +28018,6 @@ NOTE This return mechanism transfers control from the end of the output procedur
 a) The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed. This initiation is performed after the execution of any input procedure.
 
 
----
 
 
 b) The sorted logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-3 is described with variable-length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.
@@ -28589,10 +28038,8 @@ The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS 
 
    c) Otherwise, the record is space filled with alphanumeric space characters.
 
----
 
 
----
 
 
 17) If a USE procedure invoked while a format 1 SORT statement is active does not complete normally, the SORT statement is terminated.
@@ -28673,7 +28120,6 @@ The START statement provides a basis for logical positioning within a file, for 
 
       1. Its leftmost character position within a record of the file corresponds to the leftmost character position of a prime or alternate record key that is associated with file-name-1 and that is defined without the SOURCE phrase in the RECORD KEY clause or ALTERNATE RECORD KEY clause.
 
----
 
 
 2. It has the same class, category, and usage as that record key.
@@ -28736,10 +28182,8 @@ a) The specified key is set up by moving the relevant parts of the record area i
 
 b) The length of this temporary area is considered to be the length specified in the LENGTH clause, if specified, or else the length of record-key-name-1, if specified, or else the length of data-name-1.
 
----
 
 
----
 
 
 c) If the relational operator is EQUAL, GREATER, NOT LESS, or GREATER OR EQUAL, the file is searched sequentially with the key of reference being extracted from each record in turn into another temporary area. This second temporary area is truncated to the same length as the first.
@@ -28859,10 +28303,8 @@ The STRING statement provides concatenation of the partial or complete contents 
 
 8) Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be described as an integer without the symbol 'P' in its picture character-string.
 
----
 
 
----
 
 
 9) The DELIMITED phrase may be omitted only immediately preceding the INTO phrase. If it is omitted, DELIMITED BY SIZE is implied.
@@ -28890,7 +28332,6 @@ The STRING statement provides concatenation of the partial or complete contents 
 
 4) If the POINTER phrase is specified, the data item referenced by identifier-4 shall have a value greater than zero at the start of execution of the STRING statement.
 
----
 
 
 5) If the POINTER phrase is not specified, the following general rules apply as if the user had specified identifier-4 referencing a data item with an initial value of 1.
@@ -28916,7 +28357,6 @@ The STRING statement provides concatenation of the partial or complete contents 
 10) If identifier-1, or identifier-2, occupies the same storage area as identifier-3, or identifier-4, or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See 14.6.10, Overlapping operands.)
 
 
----
 
 
 <a id="section-14-9-44"></a>
@@ -28985,10 +28425,8 @@ Format 3 (corresponding):
 
 where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
----
 
 
----
 
 <a id="section-14-9-44-3"></a>
 ##### 14.9.44.3 Syntax rules
@@ -29055,10 +28493,8 @@ where initial-evaluation represents the result of the initial evaluation.
 
 6) Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase; 14.7.5, SIZE ERROR phrase and size error condition; 14.7.6, CORRESPONDING phrase; and 14.7.7, Arithmetic statements.
 
----
 
 
----
 
 
 <a id="section-14-9-45"></a>
@@ -29102,7 +28538,6 @@ NOTE    To ensure correct results, a SUPPRESS statement can be executed again on
    e) If the associated report group is a detail, the SUPPRESS statement does not affect the sensing for control breaks or the subsequent control break processing.
 
 
----
 
 
 <a id="section-14-9-46"></a>
@@ -29237,10 +28672,8 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 
 7) The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified.
 
----
 
 
----
 
 
 8) The data item referenced by identifier-1 is the sending operand.
@@ -29274,7 +28707,6 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 
 10) When two or more delimiters are specified in the DELIMITED BY phrase, an OR condition exists between them. Each delimiter is compared to the sending field. If a match occurs, the character(s)
 
----
 
 
 in the sending field is considered to be a single delimiter. No character(s) in the sending field shall be considered a part of more than one delimiter.
@@ -29390,7 +28822,6 @@ Format 4 (exception-object):
 
 > **Figure notes (USE statement Format 4 (exception-object) syntax diagram).** `USE`, `EXCEPTION`, `OBJECT`, and `EO` are underlined in the printed standard (required words); `AFTER` is not underlined. Both brace groups require exactly one of their enclosed alternatives.
 
----
 
 
 <a id="section-14-9-49-3"></a>
@@ -29435,7 +28866,6 @@ FORMAT 3
 14) The same pair of exception-name-2 and file-name-2 shall not be specified in more than one USE statement within the same procedure division.
 
 
----
 
 
 FORMAT 4
@@ -29495,7 +28925,6 @@ FORMAT 1
    c) If OUTPUT is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the output mode or in the process of being opened in the output mode, except those files referenced by file-name-**1** in another USE statement specifying the same condition.
 
 
----
 
 
 d) If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the I-O mode or in the process of being opened in the I-O mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
@@ -29556,7 +28985,6 @@ FORMAT 4
 15) Upon entry to the associated declarative, the predefined object reference EXCEPTION-OBJECT references the exception object.
 
 
----
 
 
 <a id="section-14-9-50"></a>
@@ -29657,7 +29085,6 @@ d) Stage Four (relation validation)
 
    Each of the operand's data items whose description contains an INVALID clause is now checked according to the rules for relation validation specified under this clause. If any data item fails a relation validation check, its internal indicator is set to invalid on relation.
 
----
 
 
 Any number of INVALID clauses may be present in the same data description entry. If several conditions have been specified, the effect is as though a single INVALID clause had been specified using a condition made by writing each of the original conditions in parentheses joined by the logical connector OR.
@@ -29688,7 +29115,6 @@ c) If any OCCURS clause subordinate to identifier-1 has a DEPENDING phrase, the 
 10) The data item referenced by identifier-1 shall not contain or overlap any data item specified in a DEFAULT clause contained in or subordinate to the description of identifier-1 unless that DEFAULT clause follows, within the subordinate items of identifier-1, the description of the data item that the DEFAULT clause references.
 
 
----
 
 
 <a id="section-14-9-51"></a>
@@ -29739,7 +29165,6 @@ Format 1 (sequential):
 > The `WITH LOCK` / `WITH NO LOCK` alternatives are enclosed by a **single** bracket, so at most one of the two may be specified.
 
 
----
 
 
 Format 2 (random):
@@ -29792,7 +29217,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 
 9) If identifier-1 references a bit data item other than a function and the FILE phrase is specified, identifier-1 shall be described such that:
 
----
 
 
 a) subscripting and reference modification in identifier-1 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is not specified; and
@@ -29865,7 +29289,6 @@ ALL FILES
 
       `MOVE identifier-1 TO implicit-record-1`
 
----
 
 
 or
@@ -29943,7 +29366,6 @@ NOTE 3 Logical records in relative and sequential files can have a length of zer
    h) If PAGE is specified and the LINAGE clause is not specified in the associated file description entry, the record is presented on the physical page before or after (depending on the phrase used) the device is repositioned to the next physical page. If physical page has no meaning in conjunction with a specific device, advancing will be provided as if the user had specified BEFORE or AFTER (depending on the phrase used) ADVANCING 1 LINE.
 
 
----
 
 
 26) If the LINAGE clause is specified in the file description entry of the associated file, an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body. This occurs when:
@@ -29986,7 +29408,6 @@ b) If the access mode of the write file connector is random or dynamic, prior to
 a) When the value of the relative key data item specifies a record that already exists in the file, the I-O status associated with the write file connector is set to '22'.
 
 
----
 
 
 b) When an attempt is made to write outside the externally defined boundaries of the file, the I-O status associated with the write file connector is set to '24'.
@@ -30029,7 +29450,6 @@ c) When an alternate record key of the record to be written does not allow dupli
 d) When the record that is to be released to the operating environment would reside outside the externally defined boundaries of the physical file, the I-O status associated with the write file connector is set to '24'.
 
 
----
 
 
 <a id="section-15"></a>
@@ -30073,7 +29493,6 @@ Types of intrinsic functions are:
 Arguments specify values used in the evaluation of a function. Arguments are specified in the function-identifier. The definition of a function specifies the number of arguments required, which may be zero, one, or more. For some functions, the number of arguments may be variable. The order in which arguments are specified in a function-identifier determines the interpretation given to each value in arriving at the function value.
 
 
----
 
 
 Arguments may be required to have a certain class or a subset of a certain class, to be a keyword, a type declaration, or a mnemonic-name. The types of argument are:
@@ -30121,7 +29540,6 @@ If the subscript ALL is specified for a dynamic-capacity table, the range of val
 
 When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified. The order of the implicit specification of each occurrence is from left to right, with the first (or leftmost) specification being the identifier with each subscript specified by the word ALL replaced by one, the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one. This process continues with the rightmost ALL subscript being incremented by one for each implicit specification until the rightmost ALL subscript has been incremented through its range of values. If there are any additional ALL subscripts, the ALL subscript immediately to the left of the rightmost ALL subscript is incremented by one, the rightmost ALL subscript is reset to one and the process of varying the rightmost ALL subscript is repeated. The ALL subscript to the left of the rightmost ALL subscript is incremented by one through its range of values. For each additional ALL subscript, this process is repeated in turn until the leftmost ALL subscript has been incremented by one through its range of values. If the ALL subscript is associated with a data item described with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the function-identifier is undefined.
 
----
 
 
 <a id="section-15-3-1"></a>
@@ -30164,7 +29582,6 @@ The day-of-month subfield of the data (corresponding to 'DD' in the format) shal
 The basic ordinal date format contains seven characters: four uppercase 'Y' characters representing the year subfield and three uppercase 'D' characters representing the day-of-year subfield.
 
 
----
 
 
 The extended ordinal date format contains eight characters: four uppercase 'Y' characters representing the year subfield; a hyphen; and three uppercase 'D' characters representing the day-of-year subfield. The hyphen appears in the data associated with the extended ordinal date format.
@@ -30201,7 +29618,6 @@ The day-of-week subfield of the data (corresponding to 'D' in the format) shall 
 
 COBOL supports four formats for local time of day (local time), four formats for UTC (Coordinated Universal Time) (UTC time), and four formats for local time with offset from UTC (offset time).
 
----
 
 
 A portion of the specifications for these formats is common to all of them; the specifications that are shared by all of them are referred to as 'common time format'.
@@ -30234,7 +29650,6 @@ A period is used as a decimal separator in a time format if the DECIMAL-POINT IS
 NOTE 2    ISO 8601-1 specifies that the preferred decimal separator is the comma, which is contrary to normal COBOL practice; the latter is followed here.
 
 
----
 
 
 <a id="section-15-3-3-3"></a>
@@ -30276,7 +29691,6 @@ In the data associated with an offset subformat, the character position that cor
 
 1) A plus sign to indicate that the common time portion of the data is adjusted downward by the offset values to represent UTC;
 
----
 
 
 2) A minus sign to indicate that the common time portion of the data is adjusted upward by the offset values to represent UTC; or
@@ -30340,7 +29754,6 @@ NOTE 1 The result of an equivalent arithmetic expression is implementor-defined 
 
 1) Native arithmetic is in effect.
 
----
 
 
 2) One or more of the arguments are implementor-defined.
@@ -30591,7 +30004,6 @@ The type of this function depends on the argument type as follows:
 
       (– (argument-1))
 
----
 
 
 <a id="section-15-8"></a>
@@ -30662,13 +30074,10 @@ The type of this function is numeric.
 
       (argument-1 / (1 − (1 + argument-1)\*\* (− (argument-2))))
 
----
 
 
----
 
 
----
 
 <a id="section-15-10"></a>
 ### 15.10 ASIN function
@@ -30698,10 +30107,8 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the arcsine of argument-1 and is greater than or equal to –p/2 and less than or equal to +p/2.
 
----
 
 
----
 
 
 <a id="section-15-11"></a>
@@ -30730,7 +30137,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the arctangent of argument-1 and is greater than **−**π/2 and less than +π/2.
 
----
 
 
 <a id="section-15-12"></a>
@@ -30769,7 +30175,6 @@ The type of this function depends upon the type of argument-1 as follows:
 1) The value returned is an integer value expressed in the base specified by argument-3 that is equal to the value of the integer represented by the digits in argument-1 that are expressed in the base specified by argument-2. It is expressed as a string of characters containing digits in the range 0-9 and the upper-case letters A-F used in ascending sequence to represent the digits 10 to 15 as appropriate for the base specified in argument-3.
 
 
----
 
 
 <a id="section-15-13"></a>
@@ -30802,10 +30207,8 @@ The function type is boolean.
 
    NOTE Binary representation is a mathematical concept. It is not required that this representation be the same as a COBOL representation.
 
----
 
 
----
 
 
 <a id="section-15-14"></a>
@@ -30854,10 +30257,8 @@ The type of the function is integer.
 
    b) the current lengths of all subordinate dynamic-length elementary items;
 
----
 
 
----
 
 
 c) the lengths of all subordinate dynamic-capacity tables based on their current capacity. The length of a dynamic-capacity table is the same as the length of a matching fixed-capacity table defined with the same number of occurrences as the current capacity of the dynamic-capacity table, as specified in 8.5.1.12, Variable-length groups.
@@ -30899,7 +30300,6 @@ The type of this function is alphanumeric.
 2) If more than one character has the same position in the alphanumeric program collating sequence, the character returned is the first character defined for that character position. If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned; for a given implementation, collating sequence, and ordinal position, every invocation of the CHAR function shall return the same character.
 
 
----
 
 
 <a id="section-15-16"></a>
@@ -30932,10 +30332,8 @@ The type of the function is national.
 
 2) If more than one character has the same position in the national program collating sequence, the character returned is the first character defined for that character position. If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned; for a given implementation, collating sequence, and ordinal position, every invocation of the CHAR-NATIONAL function shall return the same character.
 
----
 
 
----
 
 
 <a id="section-15-17"></a>
@@ -30968,7 +30366,6 @@ The type of this function is numeric.
 
    argument-1 + (argument-2 / 100000)
 
----
 
 
 <a id="section-15-18"></a>
@@ -31017,13 +30414,10 @@ The type of this function depends upon the argument types as follows:
 
 4) If more than one argument-2 is specified, execution proceeds as if the CONCAT function was performed on each argument 2 where the result of the concatenation as specified in Returned value rule 1 becomes argument-1 in the next iteration of the function.
 
----
 
 
----
 
 
----
 
 <a id="section-15-19"></a>
 ### 15.19 CONVERT function
@@ -31067,10 +30461,8 @@ where source-format is
 
 > **Figure notes (CONVERT function source-format syntax diagram).** `ANY`, `ALPHANUMERIC`, `ANUM`, `HEX`, `NAT`, and `NATIONAL` are all underlined in the printed standard (required words / required minimum abbreviations — `ANUM` for `ALPHANUMERIC`, `NAT` for `NATIONAL`). The outer braces enclose four alternatives, exactly one of which shall be selected. No choice indicators appear in this figure — the outer delimiter is a plain brace with no `|` bars.
 
----
 
 
----
 
 
 Where destination-format is
@@ -31116,7 +30508,6 @@ Where destination-format is
 
 1) When the destination-format is ANUM, the returned value is a string of alphanumeric characters that represent the value expressed in argument-1.
 
----
 
 
 If the translated value does not correspond to a valid set of characters from the alphanumeric coded character set, an implementor-defined substitution character is used as a replacement for the invalid characters in the returned value and the EC-DATA-CONVERSION exception condition is set to exist.
@@ -31185,10 +30576,8 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the cosine of argument-1 and is greater than or equal to **−**1 and less than or equal to +1.
 
----
 
 
----
 
 
 <a id="section-15-21"></a>
@@ -31225,7 +30614,6 @@ The type of this function is alphanumeric.
 | 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. |
 
 
----
 
 
 | **Character Positions** | **Contents** |
@@ -31261,7 +30649,6 @@ The type of this function is integer.
 
 2) The returned value is in the form (YYYYMMDD) where YYYY represents a year in the Gregorian calendar; MM represents the month of that year; and DD represents the day of that month.
 
----
 
 
 <a id="section-15-23"></a>
@@ -31312,7 +30699,6 @@ The type of the function is integer.
    YY = FUNCTION INTEGER (argument-1/10000)
    mmdd = FUNCTION MOD (argument-1, 10000)
 
----
 
 
 and where argument‑1, argument‑2 and argument‑3 are the same as argument‑1, argument‑2, and argument‑3 of the DATE‑TO‑YYYYMMDD function reference itself.
@@ -31322,10 +30708,8 @@ NOTE 1 In the year 2002 the returned value for FUNCTION DATE‑TO‑YYYYMMDD (85
 NOTE 2 See the notes for the YEAR‑TO‑YYYY function for a discussion of how to specify a fixed window or a sliding window algorithm.
 
 
----
 
 
----
 
 <a id="section-15-24"></a>
 ### 15.24 DAY-OF-INTEGER function
@@ -31356,10 +30740,8 @@ The type of this function is integer.
 
 2) The returned value is an integer of the form (YYYYDDD) where YYYY represents a year in the Gregorian calendar and DDD represents the day of that year.
 
----
 
 
----
 
 
 <a id="section-15-25"></a>
@@ -31412,7 +30794,6 @@ NOTE    This function does not check argument -1 to ensure that it is a valid da
 
     and where argument-1, argument-2 and argument-3 are the same as argument-1, argument-2, and argument-3 of the DAY-TO-YYYYDDD function reference itself.
 
----
 
 
 NOTE 1 In the year 2002 the returned value for FUNCTION DAY-TO-YYYYDDD (10004, 20) is 2010004. In the year 2013 the returned value for FUNCTION DAY-TO-YYYYDDD (95005, (−10)) is 1995005.
@@ -31454,7 +30835,6 @@ The type of the function is alphanumeric.
 
 4) The length of the returned value is the number of character positions of usage display required to hold the converted argument and depends on the number of characters contained in argument-1.
 
----
 
 
 <a id="section-15-27"></a>
@@ -31488,7 +30868,6 @@ The type of the function is numeric.
 
 (2.7182818284590452353602874713​52662).
 
----
 
 
 <a id="section-15-28"></a>
@@ -31533,7 +30912,6 @@ The type of the function is alphanumeric.
 
 2) When argument-1 is specified, the returned value is an alphanumeric character string that has a length that is based on its contents and the contents are as follows:
 
----
 
 
 a) If the file connector has never been opened, attempted to be opened, or otherwise attempted to be accessed, the returned value is two alphanumeric spaces
@@ -31583,10 +30961,8 @@ The type of the function is national.
 
 2) When argument-1 is specified, the returned value is a national character string that has a length that is based on its contents and the contents are as follows:
 
----
 
 
----
 
 
 a) If the file connector has never been opened, attempted to be opened, or otherwise attempted to be accessed, the returned value is two national spaces
@@ -31630,7 +31006,6 @@ The type of the function is alphanumeric.
 
          b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the alphanumeric characters ' OF '. This is followed by a semicolon and a space character.
 
----
 
 
 c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character.
@@ -31733,10 +31108,8 @@ The type of the function is alphanumeric.
 
 1) A 31-character, left-justified, alphanumeric character string that is the exception-name or the value 'EXCEPTION-OBJECT', as applicable, associated with the last exception status. All letters in the exception-name are returned as uppercase letters and all unused characters are alphanumeric spaces. If the last exception status indicates no exception, alphanumeric spaces are returned.
 
----
 
 
----
 
 
 <a id="section-15-34"></a>
@@ -31767,7 +31140,6 @@ The type of the function is numeric.
 
 (FUNCTION E ** (argument-1))
 
----
 
 
 <a id="section-15-35"></a>
@@ -31798,10 +31170,8 @@ The type of the function is numeric.
 
 (10 \*\* (argument-1))
 
----
 
 
----
 
 
 <a id="section-15-36"></a>
@@ -31883,7 +31253,6 @@ The type of this function is integer.
 5) If argument-1 or argument-2 is of zero length, the function shall return zero.
 
 
----
 
 
 <a id="section-15-38"></a>
@@ -31921,10 +31290,8 @@ The type of this function depends on the argument type as follows:
 
 2) The implementor shall define the accuracy of the portion of the returned value that corresponds to the time format portion of the argument.
 
----
 
 
----
 
 
 <a id="section-15-39"></a>
@@ -31962,10 +31329,8 @@ The type of this function depends on the type of argument-1 as follows:
 
 1) The returned value is a representation of the date contained in argument-2 according to the format in argument-1.
 
----
 
 
----
 
 
 <a id="section-15-40"></a>
@@ -32272,7 +31637,6 @@ The type of this function is integer.
 
 1) The returned value is in integer date form.
 
----
 
 
 <a id="section-15-47"></a>
@@ -32388,7 +31752,6 @@ NOTE For example:
 
 The INTEGER function is similar but returns different values for negative numbers.
 
----
 
 
 <a id="section-15-50"></a>
@@ -32435,7 +31798,6 @@ The type of this function is integer.
    NOTE    Any prefixed fields or delimiter characters are not included in the current length.
 
 
----
 
 
 7) If argument-1 is a variable-length group and the PHYSICAL argument is not specified, the value returned is the sum of the following:
@@ -32452,7 +31814,6 @@ c) the lengths of all subordinate dynamic-capacity tables based on their current
 
 9) When the returned value is expressed as a number of alphanumeric character positions and argument-1 does not occupy an integral number of positions, the returned value is rounded to the next larger integer value.
 
----
 
 
 <a id="section-15-51"></a>
@@ -32503,10 +31864,8 @@ NOTE Locale-based ordering is not necessarily a character-by-character compariso
 
 6) The length of the returned value is 1.
 
----
 
 
----
 
 
 <a id="section-15-52"></a>
@@ -32543,7 +31902,6 @@ The function type is alphanumeric.
 
 3) The length of the returned value depends on the format indicated in the locale.
 
----
 
 
 <a id="section-15-53"></a>
@@ -32589,7 +31947,6 @@ The function type is alphanumeric.
 3) The length of the returned value depends on the format indicated in the locale.
 
 
----
 
 
 <a id="section-15-54"></a>
@@ -32625,7 +31982,6 @@ The function type is alphanumeric.
 
 3) The length of the returned value depends on the format indicated in the locale.
 
----
 
 
 <a id="section-15-55"></a>
@@ -32656,7 +32012,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the logarithm to the base *e* of argument-1.
 
----
 
 
 <a id="section-15-56"></a>
@@ -32687,7 +32042,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the logarithm to the base 10 of argument-1.
 
----
 
 
 <a id="section-15-57"></a>
@@ -32835,10 +32189,8 @@ The type of this function depends upon the argument types as follows:
 
 3) If the type of the function is alphanumeric or national, the size of the returned value is the same as the size of the selected argument-1.
 
----
 
 
----
 
 
 <a id="section-15-60"></a>
@@ -32914,10 +32266,8 @@ The type of this function is numeric.
 
 3) The comparisons used to arrange the argument-1 values in sorted order are made according to the rules for simple conditions. (See 8.8.4.2, Simple relation conditions.)
 
----
 
 
----
 
 
 <a id="section-15-62"></a>
@@ -32995,7 +32345,6 @@ The type of this function depends upon the argument types as follows:
 
 3) If the type of the function is alphanumeric or national, the size of the returned value is the same as the size of the selected argument-1.
 
----
 
 
 <a id="section-15-64"></a>
@@ -33135,7 +32484,6 @@ The type of the function is national.
 
 4) The length of the returned value is the number of character positions of usage national required to hold the converted argument and depends on the number of characters contained in argument-1.
 
----
 
 
 <a id="section-15-67"></a>
@@ -33184,10 +32532,8 @@ where
 
 2) Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are ignored only if they appear before the first digit.
 
----
 
 
----
 
 
 3) If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31.
@@ -33246,7 +32592,6 @@ The type of this function is numeric.
 
    or
 
----
 
 
 [ space-string ] [ currency ] [ space-string ] { digit [ , digit ] ... [ . [ digit ] ] / . digit } [ space-string ] [ + / − / CR / DB ]
@@ -33274,7 +32619,6 @@ a) Locale-name-1, if specified, shall be associated with a locale in the SPECIAL
 
 b) The content of argument-1 shall be a string of digits and characters in a format consistent with the specifications of locale category LC_MONETARY in the locale in use. The following rules apply:
 
----
 
 
 1. If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are case-insensitive. If the ANYCASE keyword is not specified, the matching rules for detecting a currency string are case-sensitive.
@@ -33353,7 +32697,6 @@ where
 
 5) Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are ignored except between the first numeric digit and the last digit that precedes a letter 'E'.
 
----
 
 
 <a id="section-15-69-4"></a>
@@ -33366,7 +32709,6 @@ where
 3) If standard-decimal arithmetic is in effect, the returned value is the numeric value represented by argument-1.
 
 
----
 
 
 <a id="section-15-70"></a>
@@ -33397,7 +32739,6 @@ The type of this function is integer.
 
 2) If the class of argument-1 is national, the returned value is the ordinal position of argument-1 in the current national program collating sequence.
 
----
 
 
 <a id="section-15-71"></a>
@@ -33471,7 +32812,6 @@ The type of this function is integer.
 
 3) If the value of more than one argument-1 is equal to the least value, the number returned corresponds to the position of the leftmost argument-1 having that value.
 
----
 
 
 <a id="section-15-73"></a>
@@ -33506,10 +32846,8 @@ The type of this function is numeric.
 
 3.141592653589793238462643383279503.
 
----
 
 
----
 
 
 <a id="section-15-74"></a>
@@ -33561,7 +32899,6 @@ The type of this function is numeric.
 
       where argument-1 and argument-2i in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.
 
----
 
 
 <a id="section-15-75"></a>
@@ -33604,7 +32941,6 @@ The type of this function is numeric.
 3) The implementor shall specify the subset of the domain of argument-1 values that will yield distinct sequences of pseudo-random numbers. This subset shall include the values from 0 through at least 32767.
 
 
----
 
 
 <a id="section-15-76"></a>
@@ -33642,10 +32978,8 @@ The type of this function depends upon the argument types as follows:
 
 where argument-list is the argument-1 list for the RANGE function itself.
 
----
 
 
----
 
 
 <a id="section-15-77"></a>
@@ -33681,10 +33015,8 @@ The type of this function is numeric.
 
 where argument-1 and argument-2 of the INTEGER-PART function are the same as the arguments for the REM function itself.
 
----
 
 
----
 
 
 <a id="section-15-78"></a>
@@ -33718,10 +33050,8 @@ FUNCTION REVERSE ( argument-1 )
 
 1) If argument-1 is a character string of length n, the returned value is a character string of length n such that for 1 <= j <= n, the character in position j of the returned value is the character from position n – j + 1 of argument-1.
 
----
 
 
----
 
 
 <a id="section-15-79"></a>
@@ -33763,10 +33093,8 @@ The type of the function is numeric.
 
 where H is the portion of argument-2 corresponding to the hours subfield of the format in argument-1, M is the portion of argument-2 corresponding to the minutes subfield of argument-1, and S is the portion of argument-2 corresponding to the seconds subfield of argument-1.
 
----
 
 
----
 
 
 <a id="section-15-80"></a>
@@ -33836,10 +33164,8 @@ The type of the function is integer.
 
       (–1)
 
----
 
 
----
 
 
 <a id="section-15-82"></a>
@@ -33868,7 +33194,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the sine of argument-1 and is greater than or equal to **–** 1 and less than or equal to +1.
 
----
 
 
 <a id="section-15-83"></a>
@@ -33961,7 +33286,6 @@ The type of this function is numeric.
 4) When native arithmetic is in effect, the returned value is the absolute value of the approximation of the square root of argument-1.
 
 
----
 
 
 <a id="section-15-85"></a>
@@ -34008,7 +33332,6 @@ The function type is alphanumeric.
 
 5) Argument-1 and argument-2 are compared in accordance with the ordering table and ordering level being used.
 
----
 
 
 NOTE This comparison is culturally sensitive and the default ordering table is acceptable for most cultures. It is not necessarily a character-by-character comparison and not necessarily a case-sensitive comparison. In order to use this function, users can understand the types of comparisons specified by ISO/IEC 14651:2020 and the ordering tables in use for their installation.
@@ -34021,7 +33344,6 @@ NOTE This comparison is culturally sensitive and the default ordering table is a
 
 7) The length of the returned value is 1.
 
----
 
 
 <a id="section-15-86"></a>
@@ -34055,10 +33377,8 @@ The type of this function is numeric.
 
 where argument-list is the argument-1 list for the STANDARD-DEVIATION function itself.
 
----
 
 
----
 
 
 <a id="section-15-87"></a>
@@ -34114,7 +33434,6 @@ b) If LAST is specified, only the last occurrence of argument-2 shall be substit
 5) If the ANYCASE keyword is specified, the matching rules for detecting argument-2 in argument-1 are as if all uppercase letters in both argument-1 and argument-2 were replaced by their corresponding lowercase letters as specified in the rules for the LOWER-CASE function without the LOCALE argument.
 
 
----
 
 
 <a id="section-15-88"></a>
@@ -34162,7 +33481,6 @@ The type of this function depends upon the argument types as follows:
       (argument-11 + argument-12 + … + argument-1n)
 
 
----
 
 
 <a id="section-15-89"></a>
@@ -34242,10 +33560,8 @@ The type of this function is integer.
 
       NOTE 4   The date is valid.
 
----
 
 
----
 
 
 <a id="section-15-91"></a>
@@ -34292,7 +33608,6 @@ The type of this function is integer.
 
       NOTE 3 The date is valid.
 
----
 
 
 <a id="section-15-92"></a>
@@ -34328,7 +33643,6 @@ NOTE The permitted values associated with date and time formats are specified in
 NOTE Given FUNCTION TEST-FORMATTED-DATETIME ("yyyymmdd", A-DATE), where A-DATE is an 8-character data item, if A-DATE contained the value "20051314", the returned value would be 6, indicating that the "3" is in error, because the month portion of A-DATE (character positions 5 and 6) contains "13". The character "3" occupies the first position in which it can be determined that an error has occurred. If A-DATE instead contained the value "15990316", the returned value would be "2" indicating that the second character, "5", is in error. The character "5" occupies the first position in which it can be determined that the year is less than 1600.
 
 
----
 
 
 <a id="section-15-93"></a>
@@ -34379,7 +33693,6 @@ NOTE These errors include, but are not limited to:
 
 – argument-1 is zero-length,
 
----
 
 
 – argument-1 contains only spaces,
@@ -34547,7 +33860,6 @@ The type of this function depends on the type of argument-1 as follows:
 
 2) If TRAILING is specified, the returned value is a character string that consists of the characters in argument-1 beginning from the leftmost character position through the rightmost character position after which all characters contain argument-2.
 
----
 
 
 3) If neither LEADING nor TRAILING is specified, the returned value is a character string that consists of the characters in argument-1 beginning from the leftmost character position that does not contain argument-2 through the rightmost character position after which all characters contain argument-2.
@@ -34558,10 +33870,8 @@ The type of this function depends on the type of argument-1 as follows:
 
 NOTE The processing of TRIM (arg-1 arg-2-1 arg-2-2) is the same as TRIM (TRIM (arg-1 arg-2-1) arg-2-2). If the TRIM ("aabbcc" "c" "b") is specified, the result would be "aa", not "aab" or "aabb".
 
----
 
 
----
 
 
 <a id="section-15-97"></a>
@@ -34689,7 +33999,6 @@ The type of this function is alphanumeric.
 | 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. |
 
 
----
 
 
 20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.
@@ -34750,7 +34059,6 @@ The type of the function is integer.
       (argument-1 + 100 \* (FUNCTION INTEGER (maximum-year/100)))
 
 
----
 
 
 b) Otherwise, the equivalent arithmetic expression is
@@ -34837,13 +34145,10 @@ If the class of the object referenced by identifier anObject is unknown, then th
 Invoke anObject "FactoryObject" returning aFactoryObject
 Invoke aFactoryObject "someFactoryMethodName".
 
----
 
 
----
 
 
----
 
 <a id="section-annex-a"></a>
 ## Annex A
@@ -35047,7 +34352,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 86) Format validation (rules for checking items of usages other than display or national). This item is required. This item shall be documented in the implementor's user documentation. (13.18.40, PICTURE clause, General rule 15; 13.18.60, USAGE clause, General rule 3)
 
----
 
 
 87) FORMATTED-CURRENT-DATE (accuracy of returned time). This item is required. This item shall be documented in the implementor's user documentation. (15.38, FORMATTED-CURRENT-DATE function, Returned value rule 1).
@@ -35097,7 +34401,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 109) I-O status 52 (conditions under which deadlock is detected). This item is required. This item shall be documented in the implementor's user documentation. (9.1.13.8, Record operation conflict condition with unsuccessful completion)
 
----
 
 
 110) I-O status 9x (value of x). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (9.1.13.11, Implementor-defined condition with unsuccessful completion)
@@ -35121,7 +34424,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 119) Locale specification (manner of implementation). This item is required because at least one default locale is required. This item does not have to be documented in the implementor's user documentation. (8.2, Locales)
 
 
----
 
 
 120) Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL). This item is conditionally required because it is conditioned upon support for activation of non-COBOL runtime modules. This item, if provided, shall be documented in the implementor's user documentation. (8.2, Locales)
@@ -35391,10 +34693,8 @@ a) the CONVERTING phrase is specified and the size of the item preceding TO is n
 
 b) the CHARACTERS phrase is specified and the size of the replacement item is not one character;
 
----
 
 
----
 
 
 c) replacing-phrase is specified and CHARACTERS is not specified and the size of the replacing item is not equal to the size of the item being replaced;
@@ -35480,7 +34780,6 @@ f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identif
 (14.9.37, SEARCH statement, General rule 6)
 
 
----
 
 
 50) SEARCH ALL statement. If there is more than one setting of the search index that satisfies all conditions in the WHEN phrase, it is undefined which one will be used as the final setting of the search index. (14.9.37, SEARCH statement, General rule 7)
@@ -35697,7 +34996,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 
 4) BELL clause (13.18.6)
 
----
 
 
 5) BLANK clause (13.18.7)
@@ -35846,7 +35144,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 #### A.4.11 Report Writer
 
 
----
 
 
 1) Data division, REPORT SECTION header (13)
@@ -36076,7 +35373,6 @@ Cyrillic:
 
 Deseret:
 
----
 
 
 10400-1044F
@@ -36130,7 +35426,6 @@ Greek:
 1F5F-1F7D, 1F80-1FB4, 1FB6-1FBC, 1FBE, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3,
 
 
----
 
 
 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC, 2126, AB65, 10140-10174
@@ -36923,7 +36218,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (041D,043D);(041E,043E);(041F,043F);(0420,0440);
 
 
----
 
 
 (0421,0441);(0422,0442);(0423,0443);(0424,0444);
@@ -37034,7 +36328,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (1F89,1F81);(1F8A,1F82);(1F8B,1F83);(1F8C,1F84);
 
 
----
 
 
 (1F8D,1F85);(1F8E,1F86);(1F8F,1F87);(1F98,1F90);
@@ -37145,7 +36438,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (10C8C,10CCC);(10C8D,10CCD);(10C8E,10CCE);(10C8F,10CCF);
 
 
----
 
 
 (10C90,10CD0);(10C91,10CD1);(10C92,10CD2);(10C93,10CD3);
@@ -37184,7 +36476,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (1E921,1E943)
 
 
----
 
 <a id="section-annex-d"></a>
 ## Annex D
@@ -37219,7 +36510,6 @@ Two types of sequential file are specified. In record sequential files the lengt
 
 A sequentially organized mass storage file has the same logical structure as a file on any sequential medium; however, a sequential mass storage file may be updated in place. When this technique is used, new records cannot be added to the file and each replaced record shall be the same size as the original record.
 
----
 
 
 <a id="section-d-2-2-2"></a>
@@ -37298,7 +36588,6 @@ For indexed organization, the order of sequential access is ascending based on t
 
 If the physical device where the file resides is capable of accessing records backwards, records may be accessed in the reverse order from which they are organized in the file by specifying the PREVIOUS phrase on the READ statement.
 
----
 
 
 <a id="section-d-2-3-2-3"></a>
@@ -37608,7 +36897,6 @@ Once a file subject to an APPLY COMMIT clause has been opened, any record locks 
 If sharing with all other is in effect, then it is possible for another run unit to have locked a record, when a RETRY could be useful for the I-O statement affected. If there were to be an operating system issue with commit or rollback, then an attempt to retry them could be relevant, but that would be for the operating system to resolve.
 
 
----
 
 
 It is not essential for the optional facility for file sharing and record locking to be in effect, but if not, then unless the implementor provides equivalent facilities for the files involved, the user shall ensure that the run unit is not run simultaneously with other run units that need access to the files being used.
@@ -37698,7 +36986,6 @@ Program example:
 ```
 
 
----
 
 
 ```cobol
@@ -37754,7 +37041,6 @@ END DECLARATIVES
 ```
 
 
----
 
 
 ```cobol
@@ -37810,7 +37096,6 @@ END DECLARATIVES
 ```
 
 
----
 
 
 ```cobol
@@ -37866,7 +37151,6 @@ END DECLARATIVES
 ```
 
 
----
 
 
 ```cobol
@@ -38175,7 +37459,6 @@ Increment index-name-1 (for a different table) or identifier-2 \*
 [loops back to top]
 
 
----
 
 
 \* These operations are options included only when specified in the VARYING phrase of the SEARCH statement.
@@ -38280,7 +37563,6 @@ This example sorts only the third instance of tabl2, that is tabl2 (3). It uses 
 ```
 
 
----
 
 
 ```cobol
@@ -38594,7 +37876,6 @@ END-CLASS C-1.
 ```
 
 
----
 
 
 Figure D.3, Compilation group and run unit structures, shows schematically, in an example, the relationships between the components of a compilation group and their corresponding runtime entities. Note that runtime modules resulting from compilation units of the same compilation group need not be part of the same run unit, and runtime modules in the same run unit need not result from compilation units of the same compilation group.
@@ -38969,7 +38250,6 @@ A data item passed as an argument by a runtime element activating another runtim
 
 In a source element describing the activating runtime element, the values of the arguments to be passed are identified by listing them in form of identifiers, literals, or arithmetic or boolean expressions in the CALL statement, INVOKE statement, inline method invocation, or function identifier, as applicable. In a source element describing the activated runtime element, the expected formal parameters are identified by listing them in that source element's procedure division header. These lists establish, on a positional basis at runtime, the correspondence between the values as they are known to each source element; that is, the first argument on the list of the activating source element corresponds to the first formal parameter on the list of the activated source element, the second argument to the second formal parameter, etc. For example, a program to be called may include:
 
----
 
 
 ```cobol
@@ -39435,7 +38715,6 @@ Consider a second example based on the fact that many Application Program Interf
 
 If you want to pass a pointer to the program process-record, you could code:
 
----
 
 
 ```cobol
@@ -39605,7 +38884,6 @@ Within an alphanumeric group item, a national group item, a bit group item, or a
 — the end of the group is reached.
 
 
----
 
 
 The following example illustrates the generation of implicit filler to align on a byte boundary in an alphanumeric group item:
@@ -39663,7 +38941,6 @@ The ALIGNED clause can be used to override the default bit alignment; in the fol
 the use of the ALIGNED clause caused item-2 to be aligned on a byte boundary.
 
 
----
 
 
 It is necessary that the programmer ensure alignment on a byte boundary for bit strings being used as arguments for CALL, INVOKE, a function reference, or an inline method invocation, and when using the ADDRESS OF identifier for bit strings. These operations require that the bit item be aligned on a byte boundary so that it is directly addressable. The ALIGNED clause can be used to ensure byte boundary alignment.
@@ -40009,7 +39286,6 @@ STANDARD-1 and UCS-4 are predefined alphabet-names that can be used to specify a
 If you do not specify an alphabet-name, the range of values can be empty or can vary across processors because the default collating sequence chosen by the implementor is probably different across processors.
 
 
----
 
 
 <a id="section-d-13-5"></a>
@@ -40196,7 +39472,6 @@ PROCEDURE DIVISION.
 ```
 
 
----
 
 
 It is always a good idea to save the address of the current locale before switching to a new one, unless it is known that no further processing will need that locale.
@@ -40357,7 +39632,6 @@ Support for Unicode® is synonymous with support for the UCS.
 
 Use of UCS-4 or UTF-16 alone is not always sufficient for developing multilingual applications. If the application requires culturally-correct ordering, monetary or number formatting, date and time formatting, or case classification of letters, use of the locale-based features described in D.14.3, Culturally-adaptable applications, may be necessary.
 
----
 
 
 <a id="section-d-15"></a>
@@ -40414,7 +39688,6 @@ If an exception declarative or a WHEN phrase in an exception-checking PERFORM st
 
 4) In a declarative, either:
 
----
 
 
 a) execute a RESUME statement with the NEXT phrase to continue execution at an implicit CONTINUE statement following the statement that caused the exception processing statements to be executed, or
@@ -40442,7 +39715,6 @@ EXCEPTION-FILE-N returns a national character string that contains information a
 EXCEPTION-LOCATION returns an alphanumeric character string that indicates the location of the statement in which the exception condition associated with the last exception status was raised. Part of the string is implementor-defined.
 
 
----
 
 
 EXCEPTION-LOCATION-N returns a national character string that indicates the location of the statement in which the exception condition associated with the last exception status was raised. Part of the string is implementor-defined.
@@ -40491,7 +39763,6 @@ PERFORM
 ```
 
 
----
 
 
 ```cobol
@@ -40719,7 +39990,6 @@ COMPUTE D ROUNDED = D + E
 ```
 
 
----
 
 
 ```cobol
@@ -40815,7 +40085,6 @@ COMPUTE F = A + B + C
 ```
 
 
----
 
 
 ```cobol
@@ -41801,7 +41070,6 @@ accounts.
 ```
 
 
----
 
 
 ```cobol
@@ -41915,7 +41183,6 @@ Each RD entry assigns a name to one report and describes its general characteris
 
 The PAGE clause defines the layout of a physical report page. The COLUMNS phrase defines the width of the page. The first printable line on the page is considered to be line 1, and all other phrases are based in relationship to this. The LINES phrase defines the position of the last print line on the page.
 
----
 
 
 The HEADING phrase defines where the first line of the page or report heading will be printed. If the HEADING phrase is absent, printing begins on line 1. The first line of a control group will print on either the line specified in the FIRST DETAIL phrase or one line after the last line of the last report or page heading printed, whichever is greater.
@@ -42252,7 +41519,6 @@ The content of A-DATA-ITEM does not change during the lifetime of the program in
 
 In this example, FIELD-1 will contain zeroes; FIELD-2 will contain spaces; ARRAY-INIT will contain "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; the first FILLER data item will contain "QQQ"; and the second FILLER item will contain four space characters.
 
----
 
 
 <a id="section-d-22"></a>
@@ -42290,7 +41556,6 @@ The clauses relevant to this stage are: DEFAULT, DYNAMIC LENGTH, PICTURE, SIGN, 
 #### D.22.3 Input distribution
 
 
----
 
 
 This stage activates any DESTINATION clauses that are defined for the data item to store items in their target locations where indicated. By virtue of the default values, target locations always receive valid data, unless DEFAULT NONE is specified when they are unchanged.
@@ -42388,7 +41653,6 @@ The comments placed in these examples explain the use and effects of the various
 ```
 
 
----
 
 
 ```cobol
@@ -42522,10 +41786,8 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 <a id="figure-d-8"></a>
 **Figure D.8 — Evaluation of the condition-1 OR condition-2 OR … condition-n**
 
----
 
 
----
 
 
 <pre style="line-height:1">
@@ -42610,7 +41872,6 @@ is true
 **Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4**
 
 
----
 
 
 Evaluate
@@ -42709,7 +41970,6 @@ The statement 'MOVE 123.45 TO item' would result in
 
 Some care should be taken when using multiple character floating symbols. The size of the item may not be what is expected. For example, 'PIC LLLL9,88 EDITING "L" FOR NEGATIVE IS "DEBIT "' would result in an item size of 13 characters: 6 for the first 'L', 3 for the next three, and 4 for the numbers.
 
----
 
 
 <a id="section-d-25"></a>
@@ -42759,7 +42019,6 @@ EXAMPLE 2:
 | ABA | 3 | 0 | ZZZ |
 
 
----
 
 
 EXAMPLE 3:
@@ -42837,7 +42096,6 @@ MOVE FUNCTION REVERSE (ITEM) TO ITEM
 | BCABCABD | 0 | 0 | 0 | BCABCAZD |
 
 
----
 
 
 EXAMPLE 6:
@@ -42979,7 +42237,6 @@ False ↓
 
 Augment identifier-2 with current BY value
 
----
 
 
 <a id="section-d-27"></a>
@@ -43020,7 +42277,6 @@ area a
 ```
 
 
----
 
 
 <a id="section-d-28"></a>
@@ -43308,7 +42564,6 @@ The following examples summarize permissible date and time formats, and the form
 The combined basic date and time formats consist of any basic date format followed by the letter "T" followed by any basic local time format. The combined extended date and time formats consist of any extended date format followed by the letter "T" followed by any extended time format.
 
 
----
 
 
 In the above examples for fractional-seconds time representations, the period is used as the decimal separator, and four "s" characters after the period are used for illustrative purposes. The decimal separator used for such formats is dependent on the presence or absence of the DECIMAL-POINT IS COMMA clause. The number of "s" characters that may be specified after the decimal separator in these formats may range from 1 to a maximum of 9.
@@ -43365,7 +42620,6 @@ The COMBINED-DATETIME function accepts two arguments – a date in integer date 
 ### D.32 Alternatives to HIGHEST-ALGEBRAIC, LOWEST-ALGEBRAIC and SMALLEST-ALGEBRAIC FUNCTIONS
 
 
----
 
 
 These three functions apply to any type of numeric and numeric-edited item. Most of their functionality can also be achieved with the standard-float-content format of the SET statement and the MOVE ZERO TO statement.
@@ -43415,7 +42669,6 @@ Existing specifications (for example, 'MOVE ZERO TO unsigned-numeric-item' provi
 The IN-ARITHMETIC-RANGE class test independently provides the ability to determine whether the content of a given numeric or numeric-edited data item is within the algebraic range permitted for the mode of arithmetic that is in effect.
 
 
----
 
 
 The function LOWEST-ALGEBRAIC (numeric item) for an unsigned numeric item provides an equivalent to SMALLEST-ALGEBRAIC for fixed-point numeric items, it is unlikely that the same approach for floating-point items would work.
@@ -43826,7 +43079,6 @@ Han:
 Latin:
 
 
----
 
 
 02B0-02B8, 02E0-02E4, 212A-212B, 2160-2183
@@ -43988,10 +43240,8 @@ Greek:
 
 Gujarati:
 
----
 
 
----
 
 
 0A8C, 0ABC, 0AE1-0AE3, 0AF9-0AFF
@@ -44424,7 +43674,6 @@ Zanabazar_Square:
 (A77D,1D79);(A77E,A77F);(A780,A781);(A782,A783);
 
 
----
 
 
 (A784,A785);(A786,A787);(A78B,A78C);(A78D,0265);
@@ -44524,7 +43773,6 @@ Zanabazar_Square:
 — APPLY
 
 
----
 
 
 — BACKWARD
@@ -44593,7 +43841,6 @@ Zanabazar_Square:
 40) **Reserved Words.** There is no longer a restriction in this Standard or for future revisions of this Standard on the formation of new reserved words. Instead, consideration, but no requirement, is expected for the following of the previous restrictions on the formation of new reserved words. Those included prohibiting new reserved words starting with the digits 0 through 9, the letters X, Y, and Z. It also restricted new reserved words starting with one or two letters followed by a hyphen or the use of two consecutive hyphens. Finally, it required new reserved words, other than special character words to include at least two basic letters.
 
 
----
 
 
 41) **REWRITE statement.** Clarification that where identifier-1 is subordinate to the file description, then its contents are not available after execution of the REWRITE statement.
@@ -44613,7 +43860,6 @@ Zanabazar_Square:
 
 ## Archaic and obsolete language element lists
 
----
 
 <a id="section-f-1"></a>
 ### F.1 Archaic language elements
@@ -44639,10 +43885,8 @@ Obsolete language elements have not been enhanced or modified in this Working Dr
 
 A conforming implementation shall support obsolete language elements except for elements that are also optional or processor-dependent.
 
----
 
 
----
 
 
 The following are obsolete language elements:
@@ -44706,7 +43950,6 @@ The following are known errors in this Working Draft International Standard:
 3) **Physical file.** The terms "physical file" and "physically" are used in many places where it is not necessary for COBOL to distinguish between logical files or physical files, since COBOL will generally treat the use of the term file as meaning a file presented to COBOL by the environment in which it is running however it is actually stored or derived. It is planned to review and replace such instances by the term "file" where appropriate in the next revision of the standard.
 
 
----
 
 <a id="bibliography"></a>
 ## BIBLIOGRAPHY
@@ -44729,7 +43972,6 @@ The following documents are useful references for implementors and users of this
 
 [8] *ISO/IEC 1989:2014, Information technology — Programming Languages — COBOL*
 
----
 
 
 <a id="index"></a>
