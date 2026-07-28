@@ -46,12 +46,26 @@ FORMAT_LABEL = re.compile(r"^\s*(?:>\s?)?\*{0,2}Formats?\s+\d+\b")
 HEADING = re.compile(r"^\s*#{1,6}\s")
 BLOCKQUOTE = re.compile(r"^\s*>")
 HTML_LINE = re.compile(r"^\s*<")
+# PAGE FURNITURE inside the transcription: the anchors, `## Page N` headings, running headers and folios the
+# OCR carried across. It is not content, it is not a separator, and it is on its way OUT of the document
+# (pages are not a thing in Markdown). Until then it must be TRANSPARENT: `**ISO/IEC 1989:2023 (E)**` passes
+# the figure test — all upper case, no plain lower-case word — so it was being swept INTO figures, and a page
+# break falling inside a figure split that figure into two spans that matched nothing.
+PAGE_FURNITURE = re.compile(
+    r"""^\s*(?:<a\ id="page-\d+"></a>
+        |\#*\s*Page\ \d+
+        |\#*\s*\**ISO/IEC\s+1989:2023\s*\(E\)\**
+        |\**©\s*ISO/IEC\s+\d{4}\**
+        |Licensed\ to\ .*
+        |\d{1,4})\s*$""", re.X)
 
 # Notation is expected to change; WORDS are not. Everything here is stripped before the comparison: the house
 # box-drawing set, the Miscellaneous Technical extensions the transcription used until now, ASCII delimiters,
 # and the two ellipsis spellings.
 NOTATION = (set(chr(c) for c in range(0x2500, 0x2580)) | set(chr(c) for c in range(0x239B, 0x23AE))
-            | set("[]{}()|…"))
+            # `/` separates stacked alternatives when the transcription sets a group inline; `⌐ ¬ L` are
+            # corners in the older ASCII-art figures. All three are notation, none is a word.
+            | set("[]{}()|…/⌐¬"))
 
 
 def unescape(line: str) -> str:
@@ -69,9 +83,21 @@ def words_of(text: str) -> collections.Counter:
     # text, and eating one of its angle brackets turned every directive format into a word mismatch.
     kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in text.splitlines() if not FENCE.match(l)]
     body = re.sub(r"</?[A-Za-z][^>]*>", " ", unescape("\n".join(kept))).replace("`", " ")
-    plain = "".join(" " if ch in NOTATION else ch for ch in body)
+    body = re.sub(r"&[a-zA-Z]+;?", " ", body)          # HTML entities used for indentation
+    # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
+    # transcription picked one per site. Which glyph is used is typography, not a difference in the language.
+    body = body.translate(str.maketrans({"‒": "-", "–": "-", "−": "-", "—": "-"}))
+    plain = "".join(" " if ch in NOTATION else ch for ch in body.replace("*", " "))
     plain = plain.replace("...", " ")
-    return collections.Counter(w for w in plain.split() if w)
+    # The separator period is punctuation, not a word, and the two sides disagree about whether it is attached:
+    # the printed page gives `FACTORY.` as one token where the transcription writes `<u>FACTORY</u>.`. Trailing
+    # punctuation is split off and standalone punctuation dropped, so the comparison stays about WORDS.
+    out = collections.Counter()
+    for w in plain.split():
+        w = w.strip(".,;:")
+        if w:
+            out[w] += 1
+    return out
 
 
 def figure_ish(line: str) -> bool:
@@ -83,10 +109,13 @@ def figure_ish(line: str) -> bool:
     # The blockquote test runs on the RAW line. Unescaping first turns the transcription's `\>\>SOURCE FORMAT`
     # into `>>SOURCE FORMAT`, which reads as a blockquote — so every compiler-directive format was discarded
     # as prose and its clause reported as having no figure at all.
-    if not line.strip() or BLOCKQUOTE.match(line):
+    if not line.strip() or BLOCKQUOTE.match(line) or PAGE_FURNITURE.match(line):
         return False
-    t = unescape(line).strip()
-    if HEADING.match(t) or HTML_LINE.match(t) or FORMAT_LABEL.match(t):
+    # Strip tags BEFORE the html test: parts of the transcription already carry their underlining, and
+    # `<u>NULL</u>` or `<u>FACTORY</u>. [ … ]` starts with `<`, so those clauses were reported as having no
+    # figure at all when in fact they were the ones already closest to the target form.
+    t = re.sub(r"</?[A-Za-z][^>]*>", "", unescape(line)).strip()
+    if not t or HEADING.match(t) or HTML_LINE.match(t) or FORMAT_LABEL.match(t):
         return False
     if t.startswith("|") or t.startswith("---"):
         return False                                    # table row or rule
@@ -152,8 +181,8 @@ def targets(lines, lo, hi):
             if figure_ish(line):
                 if run is None:
                     run = i
-            elif run is not None and not line.strip():
-                pass                                     # a blank line inside a bare figure keeps the run open
+            elif run is not None and (not line.strip() or PAGE_FURNITURE.match(line)):
+                pass                                     # blanks and page furniture keep the run open
             elif run is not None:
                 out.append((run, i, "bare"))
                 run = None
@@ -162,26 +191,91 @@ def targets(lines, lo, hi):
         out.append((run, hi, "bare"))
     # A FENCED block is a figure by construction — its lines are code, and the transcription blockquotes some
     # of them, so the prose test would throw them away. Only a BARE run has to prove it is not prose.
-    return [(a, b, k) for a, b, k in out
+    keep = [(a, b, k) for a, b, k in out
             if k == "fence" or any(figure_ish(lines[j]) for j in range(a, b))]
+
+    # ONE PRINTED FIGURE IS SOMETIMES SET AS SEVERAL BLOCKS. UNSTRING is split into two fences and a bare
+    # `[ END-UNSTRING ]`; the options paragraph sets `OPTIONS.` above the fence holding its clauses. Adjacent
+    # spans are therefore merged — but only across blanks, page furniture and the figure-notes blockquotes.
+    #
+    # A `Format N (…)` LABEL between them is the thing that must NOT be crossed, and it is exactly what
+    # separates the qualification clause's ten figures from one another. Both cases are separated by a figure
+    # note; only one is separated by a label, and that is the whole difference.
+    def only_furniture(a, b):
+        return all(not lines[j].strip() or PAGE_FURNITURE.match(lines[j]) for j in range(a, b))
+
+    merged = []
+    for span in keep:
+        if merged and only_furniture(merged[-1][1], span[0]):
+            merged[-1] = (merged[-1][0], span[1], span[2])
+            continue
+        merged.append(span)
+    return merged
+
+
+def regroup(lines, spans, figures):
+    """Group CONTIGUOUS markdown spans so that each group matches one printed figure, word for word.
+
+    One printed figure is sometimes set as several blocks — UNSTRING is split into two fences and a bare
+    `[ END-UNSTRING ]` — and consecutive figures are sometimes separated by nothing but a figure note. No
+    fixed merge rule separates those two cases: crossing figure notes fixed UNSTRING and broke the
+    file-control entry, whose formats are also separated by notes alone.
+
+    So the grouping is not guessed, it is SOLVED, using the word gate as the decision procedure: find the
+    partition of the spans into as many contiguous groups as there are figures, each group's words equal to
+    its figure's. Returns None when no such partition exists, or when more than one does — an ambiguous
+    grouping is reported rather than picked.
+    """
+    n, m = len(figures), len(spans)
+    if not n or m < n:
+        return None
+    want = [words_of(chr(10).join(b)) for _, _, b in figures]
+    text = [words_of(chr(10).join(lines[a:b])) for a, b, _ in spans]
+
+    solutions = []
+
+    def walk(i, j, acc):
+        if len(solutions) > 1:
+            return
+        if i == n:
+            if j == m:
+                solutions.append(list(acc))
+            return
+        total = collections.Counter()
+        for k in range(j, m):
+            total += text[k]
+            if total == want[i]:
+                acc.append((spans[j][0], spans[k][1], "group"))
+                walk(i + 1, k + 1, acc)
+                acc.pop()
+            elif not (want[i] - total):
+                break                                   # already past the figure's words
+    walk(0, 0, [])
+    return solutions[0] if len(solutions) == 1 else None
 
 
 def generated(doc, extract, classify_page, R):
-    """Every figure in the standard, gathered under its (clause, format) key, in reading order."""
+    """Every figure in the standard, in reading order, grouped by CLAUSE.
+
+    Grouped by clause and not by (clause, Format): a Format label does not identify a figure uniquely. The
+    qualification clause ends with two unnumbered `where … is:` definitions that inherit the last label, so
+    keying on the label merged three distinct figures into one and the clause then looked short by two.
+    Within a clause both sides run top to bottom, so the nth figure is the nth figure.
+    """
     out, failed = collections.OrderedDict(), []
     for pno in range(1, doc.page_count + 1):
         page = doc[pno - 1]
         for band in R.find_figures(page, extract):
-            key = R.figure_key(doc, pno, band)
+            clause, fmt = R.figure_key(doc, pno, band)
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
                     grid, marks = R.build(page, band[0], band[1], extract, classify_page)
             except SystemExit as exc:
-                failed.append((key, pno, str(exc)))
+                failed.append((clause, pno, str(exc)))
                 continue
             if grid is None:
                 continue
-            out.setdefault(key, []).append((pno, R.render(grid, marks, False)))
+            out.setdefault(clause, []).append((pno, fmt, R.render(grid, marks, False)))
     return out, failed
 
 
@@ -215,68 +309,58 @@ def main() -> int:
 
     stats = collections.Counter()
     edits, problems = [], []
-    for key, parts in figs.items():
-        if args.clause and key[0] != args.clause:
+    for clause, figures in figs.items():
+        if args.clause and clause != args.clause:
             continue
-        stats["figures"] += 1
-        clause, fmt = key
+        stats["figures"] += len(figures)
         if clause is None:
-            problems.append((key, parts[0][0], "no clause could be resolved for the figure"))
-            stats["no_clause"] += 1
+            problems.append((clause, figures[0][0], None, "no clause could be resolved"))
+            stats["no_clause"] += len(figures)
             continue
-        span = index.get(key)
-        tg = targets(lines, *span) if span else []
-        if span is None or len(tg) != 1:
-            # The transcription does not always carry the `Format N` labels the printed page does. Fall back
-            # to the CLAUSE as a whole and pair its figures in reading order — the printed page and the
-            # transcription both run top to bottom, so the nth figure is the nth figure.
-            whole = index.get((clause, None)) or clause_span.get(clause)
-            tg_all = targets(lines, *whole) if whole else []
-            ordered = [k for k in figs if k[0] == clause]
-            if whole and len(tg_all) == len(ordered):
-                tg = [tg_all[ordered.index(key)]]
-            elif span is None:
-                problems.append((key, parts[0][0],
-                                 f"clause has {len(ordered)} printed figure(s) but {len(tg_all)} in the "
-                                 f"transcription, and no Format labels to pair them by"))
-                stats["no_target"] += 1
+        whole = clause_span.get(clause)
+        if whole is None:
+            problems.append((clause, figures[0][0], None, "no such clause region in the transcription"))
+            stats["no_target"] += len(figures)
+            continue
+        spans = targets(lines, *whole)
+        if len(spans) != len(figures):
+            spans = regroup(lines, spans, figures)
+        if spans is None or len(spans) != len(figures):
+            found = len(targets(lines, *whole))
+            problems.append((clause, figures[0][0], None,
+                             f"{len(figures)} printed figure(s) but {found} in the transcription, "
+                             f"and no grouping of them matches"))
+            stats["count_mismatch"] += len(figures)
+            continue
+        for (a, b, _kind), (pno, fmt, body) in zip(spans, figures):
+            have, want = words_of(chr(10).join(lines[a:b])), words_of(chr(10).join(body))
+            if have != want:
+                problems.append((clause, pno, fmt, f"words differ — generated-only "
+                                 f"{list((want - have).elements())[:4]}, markdown-only "
+                                 f"{list((have - want).elements())[:4]}"))
+                stats["word_mismatch"] += 1
                 continue
-        body = [l for _, blk in parts for l in blk]
-        if len(tg) != 1:
-            problems.append((key, parts[0][0],
-                             f"{len(tg)} candidate spans in the transcription, expected 1"))
-            stats["ambiguous"] += 1
-            continue
-        a, b, _kind = tg[0]
-        have = words_of("\n".join(lines[a:b]))
-        want = words_of("\n".join(body))
-        if have != want:
-            problems.append((key, parts[0][0], f"words differ — generated-only "
-                                               f"{list((want - have).elements())[:4]}, markdown-only "
-                                               f"{list((have - want).elements())[:4]}"))
-            stats["word_mismatch"] += 1
-            continue
-        repl = ["<pre>"] + body + ["</pre>"]
-        if lines[a:b] == repl:
-            stats["already_current"] += 1
-            continue
-        edits.append((a, b, repl))
-        stats["replaceable"] += 1
+            repl = ["<pre>"] + body + ["</pre>"]
+            if lines[a:b] == repl:
+                stats["already_current"] += 1
+                continue
+            edits.append((a, b, repl))
+            stats["replaceable"] += 1
 
     print(f"figures generated                : {stats['figures']}")
     print(f"  replaceable (words match)      : {stats['replaceable']}")
     print(f"  already in generated form      : {stats['already_current']}")
     print(f"  no clause resolved             : {stats['no_clause']}")
-    print(f"  no matching clause region      : {stats['no_target']}")
-    print(f"  ambiguous target span          : {stats['ambiguous']}")
+    print(f"  no such clause region          : {stats['no_target']}")
+    print(f"  figure-count mismatch          : {stats['count_mismatch']}")
     print(f"  words differ                   : {stats['word_mismatch']}")
     print(f"  generator failed               : {len(failed)}")
 
     if (args.report or args.check) and problems:
         print(f"\nneeding attention ({len(problems)}):")
-        for key, pno, why in problems[:args.limit]:
-            fmt = f" Format {key[1]}" if key[1] else ""
-            print(f"  §{key[0]}{fmt} (folio {pno - 30})  {why}")
+        for clause, pno, fmt, why in problems[:args.limit]:
+            lbl = f" Format {fmt}" if fmt else ""
+            print(f"  §{clause}{lbl} (folio {pno - 30})  {why}")
         if len(problems) > args.limit:
             print(f"  … and {len(problems) - args.limit} more")
 

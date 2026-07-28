@@ -138,13 +138,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
        the generated form carries the same words as the text it replaces; anything else is reported, never
        written. `--check` is the post-sweep regression gate and supersedes `audit_figure_structure.py`
        (which now reads `<pre>` as well as fences, so a swept document cannot report a false clean).
-     - Current: **437 figures keyed · 258 replaceable · 179 needing attention** — 88 clauses where the printed
-       count and the transcription's differ with no Format labels to pair by, 69 ambiguous spans, 22 word
-       differences. Several of those 22 are REAL transcription defects the sweep surfaced: a run-in format
-       label (§8.4.3.1.2 `qualified-data-name-with-subscripts-1 Format 3 (reference-modification):`) and
-       running headers sitting INSIDE figure regions — the page furniture the owner's directive retires.
-   - **NEXT:** ⓐ drive the 179 to zero (mostly by removing page furniture from the Markdown, which is the
-     owner's directive anyway), ⓑ then `--apply` in batches under `--check`.
+     - **THE GROUPING IS SOLVED, NOT GUESSED.** One printed figure is sometimes set as several markdown blocks
+       (UNSTRING = two fences + a bare `[ END-UNSTRING ]`), and consecutive figures are sometimes separated by
+       nothing but a figure note — no fixed merge rule separates those, and crossing notes fixed UNSTRING while
+       breaking the file-control entry. `regroup` instead finds the partition of spans whose words match, and
+       reports rather than picks when more than one partition does.
+     - Current: **475 figures keyed · 412 replaceable · 16 groups needing attention** (63 figures). The
+       residue splits into: clauses where the printed and transcribed figure COUNTS differ and no grouping
+       matches (§8.4.3.1.2 · §10.6.1 · §12.3.6.2 · §12.3.7.2 · §13.16.2 · §13.17.2 · §13.18.40.2 · §14.2.1 ·
+       §14.9.39.2 · §14.9.48.2), and 6 word differences — §7.3.15.2 `VALUE-EDITING` (print sets it with a
+       FIGURE DASH, the transcription joined it), §8.7.5.1's ASCII-art corner, and four where the
+       transcription carries a neighbouring figure's words.
+   - ⚠ **NOT APPLIED.** A half-converted document — some `<pre>`, some fenced — is a worse state than either
+     end. `--apply` is one command once the residue is judged.
+   - **NEXT:** ⓐ resolve the 16 (each is a per-clause read against the printed page), ⓑ `--apply`, ⓒ `--check`
+     becomes the standing regression gate.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
