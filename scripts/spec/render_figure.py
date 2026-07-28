@@ -69,8 +69,11 @@ GLYPH_PIECES = {
     "ö": ("paren", "R", "top"), "÷": ("paren", "R", "ext"), "ø": ("paren", "R", "bot"),
     "ê": (None, None, "ext"),
 }
-# Symbol-face glyphs that are TEXT, not notation: the repetition ellipsis of 5.2.5.
+# Symbol-face glyphs that are TEXT, not notation: the repetition ellipsis of 5.2.5. The standard sets that
+# ellipsis three ways — the Symbol glyph, a literal "...", and U+2026 — and the transcription has always
+# written U+2026, so all three are normalised to it BEFORE layout, where the width change still costs nothing.
 TEXT_GLYPHS = str.maketrans({"¼": "…"})
+ASCII_ELLIPSIS = "..."
 # Every other non-ASCII character measured inside a figure across the whole standard: the MINUS operator of
 # the report-writer LINE clause, and a figure dash inside a flag name. Anything else is unrecognised notation
 # and must stop the run rather than be drawn as a letter.
@@ -176,7 +179,8 @@ def build(page, lo, hi, extract, classify_page):
     if not words:
         return None, None
     glyphs = [w for w in words if w["text"] in GLYPH_PIECES]
-    text_w = [dict(w, text=w["text"].translate(TEXT_GLYPHS)) for w in words if w["text"] not in GLYPH_PIECES]
+    text_w = [dict(w, text=w["text"].translate(TEXT_GLYPHS).replace(ASCII_ELLIPSIS, "…"))
+              for w in words if w["text"] not in GLYPH_PIECES]
     if not text_w:
         return None, None
     stray = sorted({ch for w in text_w for ch in w["text"] if ord(ch) > 127 and ch not in TEXT_SAFE})
@@ -609,12 +613,11 @@ def continues_from_previous(page) -> bool:
     return bool(prev and GENERAL_FORMAT.search(prev[-1][1]))
 
 
-def find_bands(page, extract):
-    """The y-band of every general-format figure on the page, located from the clause structure.
+def find_figures(page, extract):
+    """Every general-format figure on the page, located from the clause structure.
 
-    Returns [(y0, y1), ...] top to bottom, each ready to hand to `build`. A page carrying no general-format
-    region returns [] — which is the correct answer for prose, tables and the reserved-word lists, not a
-    failure to find something.
+    Returns [[y0, y1, clause-heading, format-label], ...] top to bottom. A page carrying no general-format
+    region returns [] — the correct answer for prose, tables and the reserved-word lists, not a failure.
     """
     rows = page_rows(page, extract)
     if not rows:
@@ -640,14 +643,16 @@ def find_bands(page, extract):
         # a run rather than joining it. Glue joins a run at either end (a brace's top hook sits ~6 pt above
         # the first row of text, and clipping it off left the brace starting one row down, its point off
         # centre); a run of glue ALONE is not a figure, so a run must contain at least one figure row.
-        run, has_figure, above = [], False, top
-        for y, kind, _ in inside + [(bot, "prose", [])]:
+        run, has_figure, above, label = [], False, top, None
+        for y, kind, ws in inside + [(bot, "prose", [])]:
             if kind in ("figure", "glue"):
                 run.append(y)
                 has_figure = has_figure or kind == "figure"
             else:                                      # a label or a prose row closes whatever is open
                 if run and has_figure:
-                    runs.append((run[0], run[-1], above, y))
+                    runs.append((run[0], run[-1], above, y, title, label))
+                if kind == "label":
+                    label = " ".join(w["text"] for w in sorted(ws, key=lambda w: w["x0"]))
                 run, has_figure, above = [], False, y
     if not runs:
         return []
@@ -656,14 +661,43 @@ def find_bands(page, extract):
     # it — the label or prose above, the next label or the closing heading below. A midpoint is the bound that
     # cannot clip a delimiter off the figure while still refusing to reach into its neighbour.
     bands = []
-    for lo, hi, above, below in runs:
-        bands.append([max(lo - PAD_ABOVE, (above + lo) / 2), min(hi + PAD_BELOW, (hi + below) / 2)])
-    bands.sort()
+    for lo, hi, above, below, title, label in runs:
+        bands.append([max(lo - PAD_ABOVE, (above + lo) / 2), min(hi + PAD_BELOW, (hi + below) / 2),
+                      title, label])
+    bands.sort(key=lambda b: b[0])
     for a, b in zip(bands, bands[1:]):
         if a[1] >= b[0]:
             mid = (a[1] + b[0]) / 2
             a[1], b[0] = mid, mid
-    return [(lo, hi) for lo, hi in bands]
+    return bands
+
+
+def find_bands(page, extract):
+    """The y-bands only — `find_figures` additionally reports which clause and Format each belongs to."""
+    return [(b[0], b[1]) for b in find_figures(page, extract)]
+
+
+CLAUSE_NUMBER = re.compile(r"^(\d+(?:\.\d+)+)")
+FORMAT_NUMBER = re.compile(r"^Formats?\s+(\d+)")
+
+
+def figure_key(doc, pno, band):
+    """The IDENTITY of a figure: its clause number and Format number — never its page.
+
+    A page number is a layout artifact; the same figure moves when the standard is re-typeset, and one clause's
+    figures routinely straddle a page break. The clause hierarchy is what the transcription and the printed
+    page agree on, so it is what the sweep keys on.
+    """
+    _, _, title, label = band
+    if title is None:                                  # a continuation page inherits its clause
+        for n in range(pno - 1, max(pno - 7, 0), -1):
+            heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT.search(t)]
+            if heads:
+                title = heads[-1]
+                break
+    clause = CLAUSE_NUMBER.match(title or "")
+    fmt = FORMAT_NUMBER.match(label or "")
+    return (clause.group(1) if clause else None, int(fmt.group(1)) if fmt else None)
 
 
 def render(grid, marks, plain_only):

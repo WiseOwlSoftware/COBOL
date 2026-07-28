@@ -130,9 +130,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      the identically-shaped `LOCK MODE IS { MANUAL / AUTOMATIC }` — with nothing enclosing it — drew three.
      Such a label now snaps to the nearer neighbouring row. A brace's OWN label is exempt, which is what keeps
      ACCEPT's `LINE NUMBER` (and its printed seven rows) correct.
-   - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 24 figures over 13 pages spanning statement ·
-     file-control clause list · data-description · conditions · the FLOAT-DECIMAL clause). ⓑ then sweep, as
-     regenerate-and-diff.
+   - **THE SWEEP IS BUILT AND KEYED ON THE CLAUSE HIERARCHY** — `scripts/spec/sweep_figures.py`
+     (`--report` · `--apply` · `--check`). ⛔ **Never key on the page** (owner directive 2026-07-27: page
+     numbering is to be REMOVED from the Markdown; references become intra-document links). A figure's identity
+     is its clause + Format number, which is what `render_figure.figure_key` returns.
+     - **The gate that makes it safe: WORDS unchanged, notation replaced.** A figure is rewritten only where
+       the generated form carries the same words as the text it replaces; anything else is reported, never
+       written. `--check` is the post-sweep regression gate and supersedes `audit_figure_structure.py`
+       (which now reads `<pre>` as well as fences, so a swept document cannot report a false clean).
+     - Current: **437 figures keyed · 258 replaceable · 179 needing attention** — 88 clauses where the printed
+       count and the transcription's differ with no Format labels to pair by, 69 ambiguous spans, 22 word
+       differences. Several of those 22 are REAL transcription defects the sweep surfaced: a run-in format
+       label (§8.4.3.1.2 `qualified-data-name-with-subscripts-1 Format 3 (reference-modification):`) and
+       running headers sitting INSIDE figure regions — the page furniture the owner's directive retires.
+   - **NEXT:** ⓐ drive the 179 to zero (mostly by removing page furniture from the Markdown, which is the
+     owner's directive anyway), ⓑ then `--apply` in batches under `--check`.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan

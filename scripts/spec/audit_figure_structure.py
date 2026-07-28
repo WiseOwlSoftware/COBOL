@@ -69,21 +69,39 @@ BRACE_LEFT_TOP, BRACE_RIGHT_TOP = "ì", "ü"
 MD_BRACKET_TOP, MD_BRACE_TOP = "⎡", "⎧"
 MD_BRACKET_RIGHT_TOP, MD_BRACE_RIGHT_TOP = "⎤", "⎫"
 MD_TALL = set("⎡⎢⎣⎤⎥⎦⎧⎨⎩⎫⎬⎭")
+# The HOUSE style (FIGURE-STYLE.md) draws the same delimiters in box drawing: one `┌` per bracket, one `╭` per
+# brace or parenthesis, and a brace is the one that also carries a point `┤`.
+HOUSE_BRACKET_TOP, HOUSE_ROUND_TOP, HOUSE_POINT = "┌", "╭", "┤"
 
 
 def md_figures(md_lines):
-    """page number -> the fenced-block lines on that page."""
-    page, fence, out = None, False, collections.defaultdict(list)
+    """page number -> the figure lines on that page, from BOTH block forms.
+
+    Generated figures are `<pre>` blocks, because a fenced block renders `<u>` literally and so cannot carry
+    the underlining that 5.2.2 makes load-bearing. Reading only fences would report a swept document as having
+    no figures at all — a silent all-clear, which is the failure mode this whole directory exists to remove.
+
+    ⚠ Once a figure is GENERATED, `sweep_figures.py --check` supersedes this audit: it regenerates every figure
+    and diffs, which is exact, where this compares counts per page and is only ever a shortlist.
+    """
+    page, fence, pre, out = None, False, False, collections.defaultdict(list)
     for l in md_lines:
         m = re.match(r'^<a id="page-(\d+)"></a>', l.strip())
         if m:
             page = int(m.group(1))
             continue
-        if l.lstrip().startswith("```"):
+        s = l.strip()
+        if s.startswith("```"):
             fence = not fence
             continue
-        if fence and page:
-            out[page].append(l)
+        if s == "<pre>":
+            pre = True
+            continue
+        if s == "</pre>":
+            pre = False
+            continue
+        if (fence or pre) and page:
+            out[page].append(re.sub(r"</?u>", "", l))
     return out
 
 
@@ -118,10 +136,14 @@ def md_structure(lines):
             prev_cols = cols
         return runs
 
+    # A bar column is all `│`; a bracket column carries a corner. Counting `│` characters would score every
+    # bracket's own shaft as a choice indicator.
+    house_bars = sum(1 for i, n in cols.items()
+                     if all(l[i] in " │" for l in lines if i < len(l)) and n > 1)
     return {
-        "brackets": text.count(MD_BRACKET_TOP) + repeated_runs("["),
-        "braces": text.count(MD_BRACE_TOP) + repeated_runs("{"),
-        "bars": bars,
+        "brackets": text.count(MD_BRACKET_TOP) + repeated_runs("[") + text.count(HOUSE_BRACKET_TOP),
+        "braces": text.count(MD_BRACE_TOP) + repeated_runs("{") + text.count(HOUSE_POINT),
+        "bars": bars if HOUSE_ROUND_TOP not in text and HOUSE_BRACKET_TOP not in text else house_bars,
         "tall_glyphs": sum(1 for l in lines for ch in l if ch in MD_TALL),
     }
 
