@@ -10298,7 +10298,7 @@ Table 5, Combinations of conditions, logical operators, and parentheses, indicat
 
 | Given the following element: | In a conditional expression: May element be first? | In a conditional expression: May element be last? | In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only: | In a left-to-right sequence of elements: Element, when not last, may be immediately followed by only: |
 |---|---|---|---|---|
-| simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |
+| simple-condition | Yes | Yes | EXCLUSIVE-OR or XOR, OR, NOT, AND, ( | EXCLUSIVE-OR or XOR, OR, AND, ) |
 | EXCLUSIVE-OR or XOR, OR or AND | No | No | simple-condition, ) | simple-condition, NOT, ( |
 | NOT | Yes | No | EXCLUSIVE-OR or XOR, OR, AND, ( | simple-condition, ( |
 | ( | Yes | No | EXCLUSIVE-OR or XOR, OR, NOT, AND, ( | simple-condition, NOT, ( |
@@ -27264,8 +27264,9 @@ Format 1 (into):
 [ <u>END-DIVIDE</u> ]
 </pre>
 
-> **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `ON`, `SIZE`, `ERROR`, `NOT`, and
+> **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `SIZE`, `ERROR`, `NOT`, and
 > `END-DIVIDE` are underlined in the printed standard (required words).
+> `ON` is **not** underlined in either exception row (measured on the printed page), so per 5.2.3 it is an OPTIONAL word: `SIZE ERROR …` and `NOT SIZE ERROR …` are legal without it.
 > ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** — the `|` bars just inside the brackets. Per
 > 5.2.6.4, bars enclosed by BRACKETS mean **zero or more** of the alternatives may be specified, each at most once,
 > **in any order** — so a single DIVIDE may carry `ON SIZE ERROR`, `NOT ON SIZE ERROR`, **both**, or neither.
@@ -27287,8 +27288,9 @@ Format 2 (into-giving):
 [ <u>END-DIVIDE</u> ]
 </pre>
 
-> **Figure notes (DIVIDE Format 2 (into-giving) syntax diagram).** `DIVIDE`, `INTO`, `GIVING`, `ON`, `SIZE`,
+> **Figure notes (DIVIDE Format 2 (into-giving) syntax diagram).** `DIVIDE`, `INTO`, `GIVING`, `SIZE`,
 > `ERROR`, `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).
+> `ON` is **not** underlined in either exception row (measured on the printed page), so per 5.2.3 it is an OPTIONAL word: `SIZE ERROR …` and `NOT SIZE ERROR …` are legal without it.
 > ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,
 > bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both
 > `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement.
@@ -27309,8 +27311,9 @@ Format 3 (by-giving):
 [ <u>END-DIVIDE</u> ]
 </pre>
 
-> **Figure notes (DIVIDE Format 3 (by-giving) syntax diagram).** `DIVIDE`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,
+> **Figure notes (DIVIDE Format 3 (by-giving) syntax diagram).** `DIVIDE`, `BY`, `GIVING`, `SIZE`, `ERROR`,
 > `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).
+> `ON` is **not** underlined in either exception row (measured on the printed page), so per 5.2.3 it is an OPTIONAL word: `SIZE ERROR …` and `NOT SIZE ERROR …` are legal without it.
 > ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,
 > bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both
 > `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement.
