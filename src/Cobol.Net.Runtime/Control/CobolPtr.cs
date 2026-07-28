@@ -23,19 +23,41 @@ public static class CobolPtr
     /// bridge property aliases.</summary>
     public static StorageCell Deref(ManagedPointer? p, long classWidth)
     {
+        // ⛔ THESE FOUR THROW WHETHER OR NOT CHECKING IS ON, and that is the owner's decided rule rather than an
+        // oversight: checking-off is lenient only where the standard NAMES the outcome, and §13.18.5.4 GR3/GR4
+        // name none. This method must return a StorageCell, so "lenient" could only mean fabricating one and
+        // letting the program run on garbage — which no other COBOL does (GnuCOBOL and gcobol list both
+        // conditions fatal and otherwise SIGSEGV; Micro Focus traps to RTS 114; IBM abends S0C4; NetCOBOL
+        // JMP0071I-U). The helper is still called FIRST when checking is on, so the last-exception status is set
+        // and the statement guard's `catch … when (EcName == …)` can select a USE declarative.
         if (p is null || p.IsNull)
+        {
+            ExceptionState.DataPtrNullError(
+                "reference to a based item whose data-address pointer is NULL (ISO 13.18.5.4 GR3)");
             throw new CobolFatalException("EC-DATA-PTR-NULL",
-                "reference to a based item whose data-address pointer is NULL (ISO 13.18.5 GR3)");
+                "reference to a based item whose data-address pointer is NULL (ISO 13.18.5.4 GR3)");
+        }
         if (p is not CellPointer w)
+        {
+            ExceptionState.BoundPtrError(
+                "reference to a based item whose data-address pointer does not address data storage (ISO 13.18.5.4 GR4)");
             throw new CobolFatalException("EC-BOUND-PTR",
-                "reference to a based item whose data-address pointer does not address data storage (ISO 13.18.5 GR4)");
+                "reference to a based item whose data-address pointer does not address data storage (ISO 13.18.5.4 GR4)");
+        }
         if (w.Cell.Freed)
+        {
+            ExceptionState.BoundPtrError(
+                "reference to a based item addressing storage released by FREE (ISO 14.9.15 GR1a / 13.18.5.4 GR4)");
             throw new CobolFatalException("EC-BOUND-PTR",
-                "reference to a based item addressing storage released by FREE (ISO 14.9.15 GR1a / 13.18.5 GR4)");
+                "reference to a based item addressing storage released by FREE (ISO 14.9.15 GR1a / 13.18.5.4 GR4)");
+        }
         if (w.Offset < 0 || w.Offset + classWidth > w.Cell.Ref.Length)
-            throw new CobolFatalException("EC-BOUND-PTR",
-                $"reference to a based item outside its addressed storage (offset {w.Offset} + width {classWidth} "
-                + $"over {w.Cell.Ref.Length} positions — ISO 13.18.5 GR4)");
+        {
+            string oob = $"reference to a based item outside its addressed storage (offset {w.Offset} + width "
+                + $"{classWidth} over {w.Cell.Ref.Length} positions — ISO 13.18.5.4 GR4)";
+            ExceptionState.BoundPtrError(oob);
+            throw new CobolFatalException("EC-BOUND-PTR", oob);
+        }
         return w.Cell;
     }
 
@@ -50,12 +72,23 @@ public static class CobolPtr
     /// EC-BOUND-PTR.</summary>
     public static ManagedPointer UpBy(ManagedPointer? p, long by)
     {
+        // §14.9.39 Format 10 GR19 states the unsuccessful outcome for this statement — "the execution of the SET
+        // statement is unsuccessful, and the content of identifier-9 is unchanged" — so with checking OFF these
+        // return the operand UNCHANGED rather than terminating. Unlike Deref there IS a defined thing to return.
         if (p is null || p.IsNull)
-            throw new CobolFatalException("EC-DATA-PTR-NULL",
+        {
+            ExceptionState.DataPtrNullError(
                 "SET pointer UP/DOWN BY with a NULL pointer operand (ISO 14.9.39 Format 10 GR18)");
+            // `ManagedPointer.Null` IS the unchanged value here: the operand already held the predefined
+            // address NULL (that is the condition), and the C#-null carrier normalises to the same thing.
+            return ManagedPointer.Null;
+        }
         if (p is not CellPointer w)
-            throw new CobolFatalException("EC-BOUND-PTR",
+        {
+            ExceptionState.BoundPtrError(
                 "SET pointer UP/DOWN BY over a pointer that does not address data storage (ISO 14.9.39 Format 10)");
+            return p;   // unchanged — a non-null carrier that simply does not address storage
+        }
         return new CellPointer(w.Cell, w.Offset + by);
     }
 
@@ -68,8 +101,11 @@ public static class CobolPtr
         long pow = 1;
         for (int i = 0; i < scale; i++) pow *= 10;
         if (scaledBy % pow != 0)
-            throw new CobolFatalException("EC-SIZE-ADDRESS",
+        {
+            ExceptionState.SizeAddressError(
                 "SET pointer UP/DOWN BY a non-integer amount (ISO 14.9.39 Format 10 GR19)");
+            return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
+        }
         return UpBy(p, scaledBy / pow);
     }
 

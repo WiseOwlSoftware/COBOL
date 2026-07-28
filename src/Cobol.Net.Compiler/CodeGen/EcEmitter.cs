@@ -113,6 +113,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §14.6.13.2 item 3 — NaN/±Inf float sending operand
         ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §14.9.25.4 GR4 step 4a — MOVE overflows a float receiver
         ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §14.9.28.4 GR3 — index-name varied from a non-positive item
+        ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §13.18.5.4 GR3 / §14.9.39 F10 GR18 — NULL data-address
+        ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §13.18.5.4 GR4 — address neither NULL nor valid
+        ("EC-SIZE-ADDRESS", "SizeAddressChecking"),             // §14.9.39 F10 GR19 — non-integer SET UP/DOWN BY amount
     ];
 
     private bool EmitArgOrPlain(BoundEcChecked ec)

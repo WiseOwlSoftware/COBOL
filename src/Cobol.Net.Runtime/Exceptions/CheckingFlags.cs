@@ -41,4 +41,15 @@ public struct CheckingFlags
 
     /// <summary>EC-SIZE-OVERFLOW on a floating-point target — an IEEE overflow to ±Inf.</summary>
     public bool FloatOverflow;
+
+    /// <summary>EC-DATA-PTR-NULL — a reference through a NULL data-address pointer (§13.18.5.4 GR3), or a NULL
+    /// operand on SET pointer UP/DOWN BY (§14.9.39 Format 10 GR18).</summary>
+    public bool DataPtrNull;
+
+    /// <summary>EC-BOUND-PTR — a reference through an address that is not NULL and not a valid address of
+    /// storage (§13.18.5.4 GR4).</summary>
+    public bool BoundPtr;
+
+    /// <summary>EC-SIZE-ADDRESS — a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19).</summary>
+    public bool SizeAddress;
 }

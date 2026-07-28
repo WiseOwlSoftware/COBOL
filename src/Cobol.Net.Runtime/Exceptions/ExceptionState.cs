@@ -282,6 +282,75 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── The pointer fatal ECs (CA9): EC-DATA-PTR-NULL / EC-BOUND-PTR / EC-SIZE-ADDRESS ────────────────────────
+    //
+    // ⛔ CHECKING-OFF IS NOT UNIFORM ACROSS THESE THREE, and the split is the owner's decided rule (2026-07-28):
+    // LENIENT wherever the standard NAMES the outcome, LOUD ABORT wherever it names none.
+    //   · SET pointer UP/DOWN BY — §14.9.39 Format 10 GR19 names it: "the execution of the SET statement is
+    //     unsuccessful, and the content of identifier-9 is unchanged". So with checking off these RETURN and the
+    //     caller leaves the operand alone.
+    //   · A DEREFERENCE — §13.18.5.4 GR3/GR4 name NO outcome, and `CobolPtr.Deref` must return a StorageCell, so
+    //     "lenient" there would mean fabricating a cell and continuing on garbage. It keeps its unconditional
+    //     throw. A five-compiler survey (GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL, NetCOBOL) found
+    //     every one of them hard-stops a null dereference; "checking off" nowhere means lenient, it means
+    //     UNGUARDED, and only our managed StorageCell makes leniency reachable at all.
+
+    /// <summary>True while the currently-executing statement has EC-DATA-PTR-NULL checking enabled (fatal).</summary>
+    public bool DataPtrNullChecking
+    {
+        get => _checking.DataPtrNull;
+        set => _checking.DataPtrNull = value;
+    }
+
+    /// <summary>Raise EC-DATA-PTR-NULL (§13.18.5.4 GR3 / §14.9.39 Format 10 GR18; Table 13 Fatal) when checking
+    /// is enabled. When it is OFF this RETURNS and the caller applies GR19's unchanged-operand outcome — used by
+    /// the SET UP/DOWN BY sites only; a dereference never routes through here (see the note above).</summary>
+    public void DataPtrNullError(string detail)
+    {
+        if (DataPtrNullChecking)
+        {
+            Set("EC-DATA-PTR-NULL", fatal: true);
+            throw new CobolFatalException("EC-DATA-PTR-NULL", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-PTR checking enabled (fatal).</summary>
+    public bool BoundPtrChecking
+    {
+        get => _checking.BoundPtr;
+        set => _checking.BoundPtr = value;
+    }
+
+    /// <summary>Raise EC-BOUND-PTR (§13.18.5.4 GR4; Table 13 Fatal) when checking is enabled; otherwise return
+    /// and let the caller apply its unchanged-operand outcome.</summary>
+    public void BoundPtrError(string detail)
+    {
+        if (BoundPtrChecking)
+        {
+            Set("EC-BOUND-PTR", fatal: true);
+            throw new CobolFatalException("EC-BOUND-PTR", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-SIZE-ADDRESS checking enabled (fatal).</summary>
+    public bool SizeAddressChecking
+    {
+        get => _checking.SizeAddress;
+        set => _checking.SizeAddress = value;
+    }
+
+    /// <summary>Raise EC-SIZE-ADDRESS for a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19;
+    /// Table 13 Fatal) when checking is enabled; otherwise return, and GR19's "the execution of the SET statement
+    /// is unsuccessful, and the content of identifier-9 is unchanged" stands.</summary>
+    public void SizeAddressError(string detail)
+    {
+        if (SizeAddressChecking)
+        {
+            Set("EC-SIZE-ADDRESS", fatal: true);
+            throw new CobolFatalException("EC-SIZE-ADDRESS", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -507,6 +576,36 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.TakePropagated"/>
     public static bool TakePropagated(out string name, out bool fatal) => E.TakePropagated(out name, out fatal);
+
+    /// <inheritdoc cref="ExceptionEngine.DataPtrNullChecking"/>
+    public static bool DataPtrNullChecking
+    {
+        get => E.DataPtrNullChecking;
+        set => E.DataPtrNullChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.DataPtrNullError"/>
+    public static void DataPtrNullError(string detail) => E.DataPtrNullError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundPtrChecking"/>
+    public static bool BoundPtrChecking
+    {
+        get => E.BoundPtrChecking;
+        set => E.BoundPtrChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundPtrError"/>
+    public static void BoundPtrError(string detail) => E.BoundPtrError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SizeAddressChecking"/>
+    public static bool SizeAddressChecking
+    {
+        get => E.SizeAddressChecking;
+        set => E.SizeAddressChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
+    public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

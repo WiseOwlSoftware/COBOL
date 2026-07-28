@@ -399,6 +399,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // catch never fires). A precise ContainsRefMod filter is a documented follow-on.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line))
                 enabled.Add(("EC-BOUND-REF-MOD", null));
+            // EC-DATA-PTR-NULL / EC-BOUND-PTR (fatal, §13.18.5.4 GR3/GR4) and EC-SIZE-ADDRESS (fatal, §14.9.39
+            // Format 10 GR19) ride ambient per-statement gates for the same reason EC-BOUND-REF-MOD does: a BASED
+            // dereference renders INLINE through the generated bridge property that aliases CobolPtr.Deref, so it
+            // is not one node kind that a precise QueryFor case could match. Wrapped conservatively — any
+            // statement in a checking-on region — which is harmless, because each raise fires only at an actual
+            // pointer operation and the guard around a pointer-free statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-DATA-PTR-NULL", null, line))
+                enabled.Add(("EC-DATA-PTR-NULL", null));
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-PTR", null, line))
+                enabled.Add(("EC-BOUND-PTR", null));
+            if (ctx.EcState.Turn.Enabled("EC-SIZE-ADDRESS", null, line))
+                enabled.Add(("EC-SIZE-ADDRESS", null));
             // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
             // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
             // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float
