@@ -77,7 +77,7 @@ TEXT_GLYPHS = str.maketrans({"¼": "…"})
 TEXT_SAFE = set("…–‒")
 
 X_TOL = 2.0                           # how far apart two positions may be and still be one column
-TOP_SLACK, BOTTOM_INSET = 6.0, 8.0    # how a stem's span maps onto rows of text — see `covers`
+TOP_SLACK, BOTTOM_INSET = 2.0, 8.0    # how a stem's span maps onto rows of text — see `covers`
 
 
 def cluster(values, tol):
@@ -198,14 +198,7 @@ def build(page, lo, hi, extract, classify_page):
     def covers(s):
         return sorted(rindex[y] for y in rows if s["y0"] - TOP_SLACK <= y <= s["y1"] - BOTTOM_INSET)
 
-    # A group spanning only TWO rows renders one row tall, because a corner glyph strokes from its cell centre.
-    # Insert a spacer row between such a pair — which is also what the printed page does, giving each operand
-    # its own row with the phrase label centred between.
-    spacers = {c[0] for s in stems for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
-    shift = {i: i + sum(1 for sp in spacers if sp < i) for i in range(len(rows))}
-    nrows = len(rows) + len(spacers)
-    row_of = lambda y: shift[rindex[rowof[y]]]
-    near = lambda y: shift[rindex[min(rows, key=lambda r: abs(r - y))]]
+    raw_near = lambda y: rindex[min(rows, key=lambda r: abs(r - y))]
 
     # COLUMNS ARE CLUSTERED PER KIND. A stem sits 1-3 pt from the text beside it, so one clustering over text
     # and delimiters together cannot distinguish "the same column, one row down" from "two adjacent things" —
@@ -252,8 +245,39 @@ def build(page, lo, hi, extract, classify_page):
                 cur = []
         return groups + ([cur] if cur else [])
 
-    glyph_spans = [(x, min(near(b["y0"]) for b in grp), max(near(b["y0"]) for b in grp), grp)
-                   for x, ps in gx.items() for grp in delimiters(ps)]
+    # A HOOK BRACKETS ITS CONTENT, so it maps directionally: a top hook onto the first row at or below it, a
+    # bottom hook onto the last row at or above it. Snapping each to the merely NEAREST row put the top hook of
+    # the function-identifier's parentheses a row high, onto `function-pointer-name-1`, which belongs to the
+    # brace beside it and not inside the parentheses at all.
+    def hook_row(b):
+        role, y = GLYPH_PIECES[b["text"]][2], b["y0"]
+        if role == "top":
+            below = [r for r in rows if r >= y - 1.0]
+            return rindex[below[0]] if below else raw_near(y)
+        if role == "bot":
+            above = [r for r in rows if r <= y + 1.0]
+            return rindex[above[-1]] if above else raw_near(y)
+        return raw_near(y)
+
+    glyph_raw = [(x, min(hook_row(b) for b in grp), max(hook_row(b) for b in grp), grp)
+                 for x, ps in gx.items() for grp in delimiters(ps)]
+
+    # A group spanning only TWO rows renders one row tall, because a corner glyph strokes from its cell centre.
+    # Insert a spacer row between such a pair — which is also what the printed page does, giving each operand
+    # its own row with the phrase label centred between (FIGURE-STYLE rule 5).
+    #
+    # BOTH families count. This used to consider vector stems only, so a two-alternative BRACE — which is
+    # always glyph-drawn — came out two rows tall with no middle piece and therefore no POINT, losing the
+    # §5.2.6.3-vs-§5.2.6.2 distinction the point exists to carry. `where encoding-phrase is:` on folio 276 is
+    # the smallest case: two alternatives, one brace, and nowhere to put its point.
+    spacers = {c[0] for s in stems for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
+    spacers |= {r0 for _, r0, r1, _ in glyph_raw if r1 - r0 == 1}
+    shift = {i: i + sum(1 for sp in spacers if sp < i) for i in range(len(rows))}
+    nrows = len(rows) + len(spacers)
+    row_of = lambda y: shift[rindex[rowof[y]]]
+    near = lambda y: shift[raw_near(y)]
+
+    glyph_spans = [(x, shift[r0], shift[r1], grp) for x, r0, r1, grp in glyph_raw]
 
     items = [(row_of(w["y0"]), xtext[w["x0"]], w["text"]) for w in text_w]
     for x, r0, r1, _ in glyph_spans:
@@ -331,7 +355,10 @@ def build(page, lo, hi, extract, classify_page):
         # a glance; a paren's middle is plain extension throughout. The point goes where the `mid` piece was
         # MEASURED, not at the arithmetic centre of the span: the ASSIGN clause's inner brace runs four rows
         # with its point on the second, and centring it put the point a row low.
-        points = {near(b["y0"]) for b in pieces if GLYPH_PIECES[b["text"]][2] == "mid"}
+        # ... and it belongs to the INTERIOR of the span. A two-alternative brace has only two rows of text to
+        # map onto, so its measured middle piece lands on the top or bottom row, where the hook wins and the
+        # point disappears — which is exactly the case rule 5's spacer row exists to make room for.
+        points = {near(b["y0"]) for b in pieces if GLYPH_PIECES[b["text"]][2] == "mid"} & set(span[1:-1])
         if family == "brace" and not points:
             points = {span[len(span) // 2]}
         if len(span) == 1:

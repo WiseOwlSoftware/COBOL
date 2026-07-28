@@ -112,11 +112,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      bracket hand from a midpoint rather than the feet · a brace's point at the span's centre rather than its
      measured middle piece · delimiters merged by column rather than cut at their top hooks · a paren family
      (`æçè`/`ö÷ø`, COBOL's own full-height `(` `)`) drawn as literal letters.
-   - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 21 figures over 12 pages spanning statement ·
-     file-control clause list · data-description · conditions) — two known defects to rule on: the nested
-     FLOAT-DECIMAL brackets of §13.18.60 (folio 503) and a stray space in `[ END-ACCEPT  ]`, from a
-     *coincidental* x-alignment no tolerance can separate (`]` at 160.8 vs `NUMBER` at 161.4, closer than
-     genuine alignments like FIRST/KEY/LAST at 0.9 apart). ⓑ then sweep, as regenerate-and-diff.
+   - **Both defects the first sheet exposed are FIXED**, each by measuring what was being inferred: a
+     choice-indicator bar was adopting the foot of the bracket beside it (folio 503's FLOAT-DECIMAL rows — a
+     foot must be ANCHORED at its own stem and extend away; 4 stems standard-wide, and the only other figure
+     affected is the reference-format ruler, which carries no general format); and rule 5's spacer row ignored
+     glyph-drawn delimiters, so every two-alternative BRACE came out two rows tall with no point (folio 276).
+     Cross-checked against the printed page: folios 275/276 and 127 now render exactly as printed.
+   - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 24 figures over 13 pages spanning statement ·
+     file-control clause list · data-description · conditions · the FLOAT-DECIMAL clause). ⓑ then sweep, as
+     regenerate-and-diff. One cosmetic wart stands, deliberately un-tuned: `[ END-ACCEPT  ]` carries a stray
+     space because `]` at x 160.8 aligns with `NUMBER` at 161.4 — *tighter* than genuine alignments such as
+     FIRST/KEY/LAST at 0.9 apart, so no tolerance can separate a coincidence from a real column here.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan

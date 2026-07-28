@@ -126,6 +126,16 @@ Over the whole standard this locates **475 figures on 339 pages**, all laying ou
   the arithmetic centre of the span (ASSIGN's inner brace is four rows with its point on the second); and two
   delimiters in one column are cut apart at their top hooks, not merged by proximity (the file-control entry
   stacks clauses, and the LOCK MODE brace was drawing up through ACCESS MODE and FILE STATUS).
+- **A foot belongs to the stem it is anchored to, and extends away from it.** Accepting a rule that merely
+  *touches* either end of a stem let a choice-indicator bar adopt the foot of the bracket beside it — on folio
+  503 the bracket's foot ends at 243.43 and the bar begins at 244.60, 1.17 pt away, so the bar was called a
+  bracket and drew a closing corner in the middle of the group. Four stems in the whole standard were affected.
+- **A hook brackets its content**: a delimiter's top piece maps onto the first row at or below it, its bottom
+  piece onto the last row at or above it. Nearest-row snapping put the function-identifier's parentheses a row
+  high, around an operand belonging to the brace beside them.
+- **Rule 5 counts both delimiter families.** Braces are always glyph-drawn, so a spacer test that looked only at
+  vector stems left every two-alternative brace two rows tall — with nowhere to put its point, which is the one
+  mark distinguishing §5.2.6.3 from §5.2.6.2. The point is placed in the span's *interior* for the same reason.
 - **Build bars into the row**, so their columns are structural rather than eyeballed.
 - **Insert `<u>` tags AFTER layout**, right-to-left, so the block aligns on RENDERED width. Assert that stripping
   the tags reproduces the plain text exactly — that assertion is what proves the tags occupy no layout, and it

@@ -83,9 +83,15 @@ def _foot_side(v, horzs):
             continue                                  # too long: that is an underline under a required word
         if min(abs(h.y0 - v.y0), abs(h.y0 - v.y1), abs(h.y1 - v.y0), abs(h.y1 - v.y1)) > TOL:
             continue                                  # not at either end of the stem
-        if min(abs(h.x0 - v.x0), abs(h.x1 - v.x1), abs(h.x0 - v.x1), abs(h.x1 - v.x0)) > TOL:
-            continue                                  # ... and anchored at the stem's own x
-        votes.append("L" if (h.x0 + h.x1) / 2 > vmid else "R")
+        # A foot is ANCHORED at its own stem and extends AWAY from it. Accepting a rule that merely touches
+        # either end of the stem let a CHOICE-INDICATOR BAR adopt the foot of the bracket beside it: on folio
+        # 503 the bracket's foot ends at 243.43 and the bar starts at 244.60, 1.17 pt away, so the bar was
+        # called a bracket and drew as a closing one in the middle of the group. Requiring the anchored end to
+        # be the NEAR one, and the far end to lie outside the stem, tells the two apart at any spacing.
+        if abs(h.x0 - v.x0) <= TOL and h.x1 > v.x1:
+            votes.append("L")                         # foot turns right: an opening bracket
+        elif abs(h.x1 - v.x1) <= TOL and h.x0 < v.x0:
+            votes.append("R")                         # foot turns left: a closing bracket
     return max(set(votes), key=votes.count) if votes else None
 
 
