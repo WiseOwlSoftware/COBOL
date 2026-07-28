@@ -183,6 +183,26 @@ def build(page, lo, hi, extract, classify_page):
               for w in words if w["text"] not in GLYPH_PIECES]
     if not text_w:
         return None, None
+    # A COBOL WORD SET LETTERSPACED. The FLAG-14 option list prints `VALUE-EDITING` with its hyphen spaced out
+    # as a FIGURE DASH (U+2012) — the one occurrence in the standard — so the text layer yields three words
+    # where the language has one. The transcription already records this in its figure notes; the generator
+    # has to agree with it, or the sweep would write a split COBOL word back into the document.
+    joined, pending = [], False
+    for w in sorted(text_w, key=lambda w: (round(w["y0"] / 3), w["x0"])):
+        prev = joined[-1] if joined else None
+        same_row = prev is not None and abs(prev["y0"] - w["y0"]) <= 3.0
+        if pending and same_row:
+            joined[-1] = dict(prev, text=prev["text"] + w["text"], x1=w["x1"])
+            pending = False
+            continue
+        pending = False
+        if w["text"] == "‒" and same_row:
+            joined[-1] = dict(prev, text=prev["text"] + "-", x1=w["x1"])
+            pending = True                             # only the dash we just consumed may join a word
+            continue
+        joined.append(w)
+    text_w = joined
+
     stray = sorted({ch for w in text_w for ch in w["text"] if ord(ch) > 127 and ch not in TEXT_SAFE})
     if stray:
         sys.exit("FATAL: unrecognised glyph(s) in the figure text: "

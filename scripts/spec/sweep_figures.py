@@ -230,8 +230,6 @@ def regroup(lines, spans, figures):
     if not n or m < n:
         return None
     want = [words_of(chr(10).join(b)) for _, _, b in figures]
-    text = [words_of(chr(10).join(lines[a:b])) for a, b, _ in spans]
-
     solutions = []
 
     def walk(i, j, acc):
@@ -241,9 +239,11 @@ def regroup(lines, spans, figures):
             if j == m:
                 solutions.append(list(acc))
             return
-        total = collections.Counter()
         for k in range(j, m):
-            total += text[k]
+            # Measure the MERGED RANGE, not the sum of the spans in it. A group spans the gaps between its
+            # blocks too, and those gaps hold the figure notes — summing spans accepted groupings that would
+            # have swallowed a note into the figure, which is how the file-control entry slipped through.
+            total = words_of(chr(10).join(lines[spans[j][0]:spans[k][1]]))
             if total == want[i]:
                 acc.append((spans[j][0], spans[k][1], "group"))
                 walk(i + 1, k + 1, acc)
