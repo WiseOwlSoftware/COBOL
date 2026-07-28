@@ -54,6 +54,7 @@ ART_ONLY = re.compile(r"^[\sL⌐¬|┌┐└┘─│]*$")     # an ASCII-art co
 # them as quotes made the sweep re-emit a figure's own first line after the figure, as though it were a note.
 BLOCKQUOTE = re.compile(r"^\s*>(?!>)")
 HTML_LINE = re.compile(r"^\s*<")
+HRULE = re.compile(r"^\s*-{3,}\s*$")           # a Markdown horizontal rule: page furniture by another name
 # PAGE FURNITURE inside the transcription: the anchors, `## Page N` headings, running headers and folios the
 # OCR carried across. It is not content, it is not a separator, and it is on its way OUT of the document
 # (pages are not a thing in Markdown). Until then it must be TRANSPARENT: `**ISO/IEC 1989:2023 (E)**` passes
@@ -102,7 +103,10 @@ def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
             if inside or not BLOCKQUOTE.match(l):
                 filtered.append(l)
         src = filtered
-    kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in src if not FENCE.match(l)]
+    # PAGE FURNITURE carries no words either. `targets` already steps over it, but the comparison did not, so
+    # a figure that straddles a page break was measured as containing "## Page 156".
+    kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in src
+            if not FENCE.match(l) and not PAGE_FURNITURE.match(l) and not HRULE.match(l)]
     body = re.sub(r"</?[A-Za-z][^>]*>", " ", unescape("\n".join(kept))).replace("`", " ")
     body = re.sub(r"&[a-zA-Z]+;?", " ", body)          # HTML entities used for indentation
     # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
@@ -145,8 +149,13 @@ def figure_ish(line: str) -> bool:
     if t.startswith("|") or t.startswith("---"):
         return False                                    # table row or rule
     toks = [w.strip(" []{}.,;:()<>") for w in t.split()]
-    if any(re.fullmatch(r"[a-z]{2,}", w) for w in toks):
-        return False                                    # a plain lower-case word: prose
+    plain = [w for w in toks if re.fullmatch(r"[a-z]{2,}", w)]
+    # As on the printed side: a plain lower-case word usually means prose, but the standard writes a few
+    # metavariables unhyphenated — `identifier-1( leftmost-position : [ length ] )` and
+    # `qualified-data-name-1 [ ( subscript … ) ]` are figures. NOTATION with only a word or two of lower case
+    # settles it; prose in these regions carries no brackets, braces or ellipsis at all.
+    if plain and not (len(plain) <= 2 and re.search(r"[\[\]{}…]|\.\.\.", t)):
+        return False
     return bool(re.search(r"[a-z]+-[a-z0-9]|[A-Z]{2,}|^>>", t))
 
 
@@ -228,7 +237,8 @@ def targets(lines, lo, hi):
     # separates the qualification clause's ten figures from one another. Both cases are separated by a figure
     # note; only one is separated by a label, and that is the whole difference.
     def only_furniture(a, b):
-        return all(not lines[j].strip() or PAGE_FURNITURE.match(lines[j]) for j in range(a, b))
+        return all(not lines[j].strip() or PAGE_FURNITURE.match(lines[j]) or HRULE.match(lines[j])
+                   for j in range(a, b))
 
     merged = []
     for span in keep:

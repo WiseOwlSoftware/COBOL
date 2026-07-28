@@ -143,22 +143,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
        nothing but a figure note — no fixed merge rule separates those, and crossing notes fixed UNSTRING while
        breaking the file-control entry. `regroup` instead finds the partition of spans whose words match, and
        reports rather than picks when more than one partition does.
-     - **✅ APPLIED — 416 of 475 figures are generated into `specs/ISO_COBOL.md`**, in the house style with
-       their underlining. **Word conservation over the whole document: 0 lost, 0 gained.** `--check` is the
-       standing regression gate and currently reports every one of the 416 matching its generated form;
-       `verify_publishable.py` green.
-     - The sweep REASSEMBLES fragmented figures: the file-control entry had Format 3 transcribed as SEVEN
-       blocks, one per clause, each with its own note. Fragments are matched with notes excluded and every
-       note is carried through after the figure it describes.
-   - **421 generated · ZERO word differences · 8 clauses (54 figures) remaining**: §8.4.3.1.2 · §10.6.1 ·
-     §12.3.6.2 · §12.3.7.2 · §13.16.2 · §13.17.2 · §14.2.1 · §14.9.39.2. All one shape — the printed page and
-     the transcription disagree on how many figures the clause holds, and no grouping of its blocks matches
-     (§13.17.2 is representative: Format 2 fragmented into three blocks separated by notes).
-   - **Corrected on discovery so far** (⛔ never park a defect — `fix_transcription_errors_immediately`):
-     §13.18.40.2 carried the PICTURE Format 1 figure TWICE with **contradictory notes** — one said `FOR` is
-     underlined, the other omitted it. Measurement plus a 240-dpi render settled it (`FOR` IS underlined,
-     §5.2.2, so it may not be omitted); wrong copy and wrong note removed. §13.2.1 duplicated its own first
-     line. §8.7.5.1 Format 1 and §14.9.48.2 were ASCII art.
+     - **✅ COMPLETE — 483 of 484 figures are generated from the printed page.** The one exception is
+       deliberate and counted: §12.3.6.2 carries Addendum correction C3, and a figure whose region references
+       `see the Addendum (Cn)` is never regenerated. `--check` reports zero mismatches, zero word differences,
+       zero count disagreements; `verify_publishable.py` green.
+     - The sweep REASSEMBLES fragmented figures (the file-control entry had Format 3 set as SEVEN blocks) and
+       carries every figure note through after the figure it describes.
+     - **EIGHT transcription defects found and corrected**, all of one family — duplication and run-in: two
+       RUN-IN FORMAT LABELS destroying a Format boundary (§14.9.39.2 Format 10, §8.4.3.1.2 Format 3), the
+       PICTURE Format 1 figure duplicated with CONTRADICTORY notes (they disagreed on whether `FOR` is
+       underlined — grammar), a duplicated `DATA DIVISION.`, duplicated SPECIAL-NAMES feature/device lines, a
+       duplicated method-definition figure, two figures written as PROSE BULLET LISTS (§12.3.6.2), and two
+       ASCII-art figures.
+     - **Four GENERATOR defects** found in the same pass, all under-reporting: a region spanning a heading-less
+       page; a figure split because `[ sentence ] …` read as prose (notation is the signal); the same blind
+       spot in the sweep's own test; and a wrapped prose-table tail read as a one-line figure (its tell is the
+       unbalanced delimiter).
    - ⚠ **A whole-artifact invariant beats sampling.** Two apply-time duplication bugs were caught ONLY by the
      word-conservation check (151 then 97 words gained), both from `^\s*>` matching `>>` — a compiler
      directive is not a blockquote, and a blockquoted FIGURE is not a note.

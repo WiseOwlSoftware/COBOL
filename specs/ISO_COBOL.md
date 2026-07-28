@@ -6690,12 +6690,14 @@ Subscripts are used when reference is made to an individual element within a tab
 
 Format 1 (qualified-data-name-with-subscripts):
 
-`qualified-data-name-1 [ ( subscript … ) ]`
-
+<pre>
+qualified-data-name-1 [ ( subscript … ) ]
+</pre>
 Format 2 (qualified-condition-name-with-subscripts):
 
-`qualified-condition-name-1 [ ( subscript … ) ]`
-
+<pre>
+qualified-condition-name-1 [ ( subscript … ) ]
+</pre>
 where subscript is:
 
 <pre>
@@ -6794,66 +6796,74 @@ An identifier is a sequence of character-strings and separators used to referenc
 
 Format 1 (function-identifier):
 
+<pre>
 function-identifier-1
-
+</pre>
 Format 2 (qualified-data-name-with-subscripts):
 
-qualified-data-name-with-subscripts-1 Format 3 (reference-modification):
+<pre>
+qualified-data-name-with-subscripts-1
+</pre>
+Format 3 (reference-modification):
 
 <a id="page-155"></a>
 ## Page 155
 **ISO/IEC 1989:2023 (E)**
 
 
+<pre>
 identifier-1 reference-modifier-1
-
+</pre>
 Format 4 (inline-method-invocation):
 
+<pre>
 inline-invocation-1
-
+</pre>
 Format 5 (object-view):
 
+<pre>
 identifier-2 object-view-1
-
+</pre>
 Format 6 (predefined-object):
 
-```
-⎧ EXCEPTION-OBJECT                 ⎫
-⎪ NULL                             ⎪
-⎪ SELF                             ⎪
-⎩ [ object-class-name-1 OF ] SUPER ⎭
-```
+<pre>
+╭ <u>EXCEPTION-OBJECT</u>                 ╮
+│                                  │
+┤ <u>NULL</u>                             ├
+│                                  │
+│ <u>SELF</u>                             │
+│                                  │
+╰ [ object-class-name-1 <u>OF</u> ] <u>SUPER</u> ╯
+</pre>
 
 Format 7 (object-property):
 
-property-name-1 OF identifier-3
-
+<pre>
+property-name-1 <u>OF</u> identifier-3
+</pre>
 Format 8 (predefined-address)
 
-NULL
-
+<pre>
+<u>NULL</u>
+</pre>
 Format 9 (address-identifier)
 
-```
-⎧ data-address-identifier-1    ⎫
-⎩ program-address-identifier-1 ⎭
-```
+<pre>
+╭ data-address-identifier-1    ╮
+┤                              ├
+╰ program-address-identifier-1 ╯
+</pre>
 
 Format 10 (qualified-linage-counter):
 
+<pre>
 qualified-linage-counter-1
-
+</pre>
 Format 11 (qualified-report-counter):
 
+<pre>
 qualified-report-counter-1
-
-
-
-<a id="page-156"></a>
-## Page 156
-
-# ISO/IEC 1989:2023 (E)
-
+</pre>
 <a id="section-8-4-3-1-3"></a>
 ###### 8.4.3.1.3 Syntax rules
 
@@ -7085,8 +7095,9 @@ Reference modification defines a unique data item by specifying an identifier, a
 <a id="section-8-4-3-3-2"></a>
 ###### 8.4.3.3.2 General format
 
+<pre>
 identifier-1( leftmost-position : [ length ] )
-
+</pre>
 <a id="section-8-4-3-3-3"></a>
 ###### 8.4.3.3.3 Syntax rules
 
@@ -12641,22 +12652,28 @@ A runtime element is the result of successful compilation of a function, a metho
 <a id="section-10-6-1"></a>
 #### 10.6.1 General format
 
-```
-⎡ ⎧ program-prototype    ⎫ ⎤
-⎢ ⎪ function-prototype   ⎪ ⎥
-⎢ ⎨ program-definition   ⎬ ⎥ …
-⎢ ⎪ function-definition  ⎪ ⎥
-⎢ ⎪ class-definition     ⎪ ⎥
-⎣ ⎩ interface-definition ⎭ ⎦
-```
+<pre>
+┌ ╭ program-prototype    ╮   ┐
+│ │                      │   │
+│ │ function-prototype   │   │
+│ │                      │   │
+│ │ program-definition   │   │
+│ ┤                      ├ … │
+│ │ function-definition  │   │
+│ │                      │   │
+│ │ class-definition     │   │
+│ │                      │   │
+└ ╰ interface-definition ╯   ┘
+</pre>
 
 > **Figure notes (COBOL compilation group general format syntax diagram).** No words in this figure are underlined — every entry is a metalanguage term, not a COBOL reserved word. The braces select exactly one of the six source unit kinds; the enclosing brackets make that selection optional, and the `…` immediately to the right of the bracket pair repeats the whole bracketed portion, so a compilation group is zero or more source units in any mix.
 
 where program-prototype is:
 
-[ IDENTIFICATION DIVISION. ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
-PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
+<u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
 
 [ options-paragraph ]
 
@@ -12665,14 +12682,14 @@ PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
 [ data-division ]
 
 [ procedure-division ]
-
-END PROGRAM program-prototype-name-1.
-
+<u>END</u> <u>PROGRAM</u> program-prototype-name-1.
+</pre>
 where function-prototype is:
 
-[ IDENTIFICATION DIVISION. ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
-FUNCTION-ID. function-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
+<u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
 
 [ options-paragraph ]
 
@@ -12681,9 +12698,8 @@ FUNCTION-ID. function-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.
 [ data-division ]
 
 [ procedure-division ]
-
-END FUNCTION function-prototype-name-1.
-
+<u>END</u> <u>FUNCTION</u> function-prototype-name-1.
+</pre>
 ---
 
 
@@ -12695,33 +12711,44 @@ END FUNCTION function-prototype-name-1.
 
 where program-definition is:
 
-```
-[ IDENTIFICATION DIVISION. ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
-                                             ⎡    ⎧|  COMMON                |⎫           ⎤
-PROGRAM-ID. program-name-1 [ AS literal-1 ]  ⎢ IS ⎨|  ⎧ INITIAL   ⎫         |⎬  PROGRAM  ⎥ .
-                                             ⎣    ⎩|  ⎩ RECURSIVE ⎭         |⎭           ⎦
+                                            ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
+<u>PROGRAM-ID.</u> program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
+                                            │    │ │ ╭ <u>INITIAL</u>   ╮ │ │         │
+                                            │    │ │ ┤           ├ │ │         │
+                                            └    ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯         ┘
 
 [ options-paragraph ]
+
 [ environment-division ]
+
 [ data-division ]
-[ procedure-division  [ program-definition ] ... ]
-[ END PROGRAM program-name-1. ]
-```
+
+[ procedure-division [ program-definition ] … ]
+
+[ <u>END</u> <u>PROGRAM</u> program-name-1. ]
+</pre>
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the outer BRACE are choice indicators spanning the two stacked alternatives `COMMON` and `⎧ INITIAL | RECURSIVE ⎭`. Inside braces they mean: **one or more** of the enclosed alternatives shall be specified, each **at most once**, **in any order**. So `IS COMMON PROGRAM`, `IS INITIAL PROGRAM`, `IS RECURSIVE PROGRAM`, `IS COMMON INITIAL PROGRAM` and `IS INITIAL COMMON PROGRAM` are all legal; `IS INITIAL RECURSIVE PROGRAM` is not (the inner brace has no bars — exactly one of INITIAL/RECURSIVE). Underlined (required) words in the printed figure: IDENTIFICATION, DIVISION, PROGRAM-ID, AS, COMMON, INITIAL, RECURSIVE, END, PROGRAM.
 
 where function-definition is:
 
-```
-[ IDENTIFICATION DIVISION. ]
-FUNCTION-ID.  user-function-name-1 [ AS literal-1 ].
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+
+<u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ].
+
 [ options-paragraph ]
+
 [ environment-division ]
+
 [ data-division ]
+
 [ procedure-division ]
-END FUNCTION  user-function-name-1.
-```
+<u>END</u> <u>FUNCTION</u> user-function-name-1.
+</pre>
 
 ---
 
@@ -12734,37 +12761,39 @@ END FUNCTION  user-function-name-1.
 
 where class-definition is:
 
-[ IDENTIFICATION DIVISION. ]
-CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]
-　[ INHERITS FROM { object-class-name-2 } ... ]
-　[ USING { parameter-name-1 } ... ] .
-
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+<u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
+[ <u>INHERITS</u> FROM { object-class-name-2 } … ]
+[ <u>USING</u> { parameter-name-1 } … ] .
 [ options-paragraph ]
 [ environment-division ]
 [ factory-definition ]
 [ instance-definition ]
-END CLASS object-class-name-1.
-
+<u>END</u> <u>CLASS</u> object-class-name-1.
+</pre>
 where factory-definition is:
 
-[ IDENTIFICATION DIVISION. ]
-FACTORY. [ IMPLEMENTS { interface-name-1 } ... . ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+<u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
 [ options-paragraph ]
 [ environment-division ]
 [ data-division ]
 [ procedure-division ]
-END FACTORY.
-
+<u>END</u> <u>FACTORY.</u>
+</pre>
 where instance-definition is:
 
-[ IDENTIFICATION DIVISION. ]
-OBJECT. [ IMPLEMENTS { interface-name-2 } ... . ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+<u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-2 } … . ]
 [ options-paragraph ]
 [ environment-division ]
 [ data-division ]
 [ procedure-division ]
-END OBJECT.
-
+<u>END</u> <u>OBJECT.</u>
+</pre>
 ---
 
 
@@ -12778,53 +12807,36 @@ END OBJECT.
 
 where interface-definition is:
 
-```
-[ IDENTIFICATION DIVISION. ]
-INTERFACE-ID.  interface-name-1 [ AS literal-1 ]
-
-    [ INHERITS FROM { interface-name-2 } … ]
-    [ USING { parameter-name-1 } … ] .
-
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
+<u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
+[ <u>INHERITS</u> FROM { interface-name-2 } … ]
+[ <u>USING</u> { parameter-name-1 } … ] .
 [ options-paragraph ]
 [ environment-division ]
 [ procedure-division ]
-END INTERFACE interface-name-1.
-```
+<u>END</u> <u>INTERFACE</u> interface-name-1.
+</pre>
 
 where method-definition is:
 
-```
-[ IDENTIFICATION DIVISION. ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
-             ⎧ method-name-1 [ AS literal-1 ]           ⎫
-METHOD-ID.   ⎨                                          ⎬  [ OVERRIDE ] [ IS FINAL ] .
-             ⎪ ⎧ GET ⎫                                  ⎪
-             ⎩ ⎩ SET ⎭ PROPERTY property-name-1         ⎭
+           ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
+<u>METHOD-ID.</u> ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
+           │ ╭ <u>GET</u> ╮                          │
+           │ ┤     ├ <u>PROPERTY</u> property-name-1 │
+           ╰ ╰ <u>SET</u> ╯                          ╯
 
 [ options-paragraph ]
 [ environment-division ]
 [ data-division ]
 [ procedure-division ]
-END METHOD [ method-name-1 ] .
-```
+<u>END</u> <u>METHOD</u> [ method-name-1 ] .
+</pre>
 
 > **Figure notes (method-definition general format).** `IDENTIFICATION`, `DIVISION`, `METHOD-ID`, `AS`, `GET`, `SET`, `PROPERTY`, `OVERRIDE`, `FINAL`, `END`, and `METHOD` are underlined in the printed standard (required words); `IS` is not underlined. The outer delimiter after `METHOD-ID.` is a pair of **braces** — exactly one of the two alternatives (a named method, or a `GET`/`SET` property method) shall be selected; the inner `GET`/`SET` braces likewise select exactly one. No choice indicators are present.
-
-```
-[ IDENTIFICATION DIVISION. ]
-
-              ⎧ method-name-1 [ AS literal-1 ]               ⎫
-              ⎪                                              ⎪
-METHOD-ID.  ⎨   ⎧ GET ⎫                                       ⎬  [ OVERRIDE ] [ IS FINAL ] .
-              ⎪   ⎩ SET ⎭  PROPERTY property-name-1           ⎪
-              ⎩                                              ⎭
-
-[ options-paragraph ]
-[ environment-division ]
-[ data-division ]
-[ procedure-division ]
-END METHOD [ method-name-1 ] .
-```
 
 NOTE   Method-definition is included here for completeness, because it is a type of source element. Method-definition is referenced in the general format of Clause 14, Procedure division. A method-definition in a class-definition defines a method. A method-definition in an interface-definition defines a method prototype.
 
@@ -14158,52 +14170,51 @@ The SPECIAL-NAMES paragraph provides a means for:
 <a id="section-12-3-7-2"></a>
 ##### 12.3.7.2 General format
 
-SPECIAL-NAMES.
-[ alphabet-name-clause ] ...
+<pre>
+<u>SPECIAL-NAMES.</u>
+[ alphabet-name-clause ] …
 
-```
-⎡                        ⎡     ⎧ ALPHANUMERIC ⎫ ⎤                             ⎤
-⎢ CLASS class-name-1     ⎣ FOR ⎩ NATIONAL     ⎭ ⎦                             ⎥
-⎢                                                                            ⎥  …
-⎢      ⎧             ⎡ ⎧ THROUGH ⎫           ⎤ ⎫                              ⎥
-⎣   IS ⎩ literal-5   ⎣ ⎩ THRU    ⎭ literal-6 ⎦ ⎭ …  [ IN alphabet-name-4 ]    ⎦
-```
+┌                    ┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐                             ┐
+│ <u>CLASS</u> class-name-1 │ FOR ┤              ├ │                             │
+│                    └     ╰ <u>NATIONAL</u>     ╯ ┘                             │
+│                                                                         │ …
+│ IS ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮ … [ <u>IN</u> alphabet-name-4 ] │
+│    ┤ literal-5     │ ┤         ├ literal-6 │ ├                          │
+└    ╰               └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
+
+[ <u>CRT</u> <u>STATUS</u> IS data-name-2 ]
+
+[ <u>CURRENCY</u> SIGN IS literal-7 [ WITH <u>PICTURE</u> <u>SYMBOL</u> literal-8 ] ] …
+
+[ <u>CURSOR</u> IS data-name-1 ] ]
+[ <u>DECIMAL-POINT</u> IS <u>COMMA</u> ]
+[ dynamic-length-structure-clause ] …
+
+┌                         ╭ external-locale-name-1 ╮ ┐ …
+│ <u>LOCALE</u> locale-name-1 IS ┤                        ├ │
+└                         ╰ literal-4              ╯ ┘
+
+┌ switch-name-1                                                 ┐
+│                                                               │
+│ ╭                    ┌ │ <u>ON</u> STATUS IS condition-name-1  │ ┐ ╮ │
+│ │ IS mnemonic-name-1 │ │                                │ │ │ │
+│ │                    └ │ <u>OFF</u> STATUS IS condition-name-2 │ ┘ │ │
+│ ┤                                                           ├ │ …
+│ │ ╭ │ <u>ON</u> STATUS IS condition-name-1  │ ╮                    │ │
+│ │ ┤ │                                │ ├                    │ │
+│ ╰ ╰ │ <u>OFF</u> STATUS IS condition-name-2 │ ╯                    ╯ │
+│                                                               │
+│ feature-name-1 IS mnemonic-name-2                             │
+│                                                               │
+└ device-name-1 IS mnemonic-name-3                              ┘
+
+[ symbolic-characters-clause ] …
+[ <u>ORDER</u> <u>TABLE</u> ordering-name-1 IS literal-9 ] .
+</pre>
 
 > **Figure notes (SPECIAL-NAMES CLASS clause syntax diagram).** `CLASS`, `ALPHANUMERIC`, `NATIONAL`, `THROUGH`, `THRU`, and `IN` are underlined in the printed standard (required words / required minimum abbreviation); `IS` and `FOR` are not underlined. This is **one** clause printed across two lines, not two constructs: the whole `CLASS … IS … [ IN alphabet-name-4 ]` clause is enclosed in the outer brackets and may be repeated (trailing ellipsis). The `{ literal-5 [ { THROUGH | THRU } literal-6 ] }` group carries its own ellipsis and so may be repeated within a single CLASS clause. No choice indicators appear in this figure.
-
-[ CRT STATUS IS data-name-2 ]
-
-`CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ]` ...
-
-[ CURSOR IS data-name-1 ] ]
-
-[ DECIMAL-POINT IS COMMA ]
-
-[ dynamic-length-structure-clause ] ...
-
-`LOCALE locale-name-1 IS { external-locale-name-1 / literal-4 }` ...
-
-```
-⎡ switch-name-1                                                             ⎤
-⎢     ⎧                      ⎡ | ON  STATUS IS condition-name-1 | ⎤ ⎫       ⎥
-⎢     ⎪ IS mnemonic-name-1   ⎣ | OFF STATUS IS condition-name-2 | ⎦ ⎪       ⎥
-⎢     ⎨                                                            ⎬       ⎥  …
-⎢     ⎪ ⎧ | ON  STATUS IS condition-name-1 | ⎫                      ⎪       ⎥
-⎢     ⎩ ⎩ | OFF STATUS IS condition-name-2 | ⎭                      ⎭       ⎥
-⎢ feature-name-1 IS mnemonic-name-2                                         ⎥
-⎣ device-name-1 IS mnemonic-name-3                                          ⎦
-```
-
 > **Figure notes (SPECIAL-NAMES switch-name / feature-name / device-name syntax diagram).** `ON` and `OFF` are underlined in the printed standard (required words); `STATUS`, `IS`, `switch-name-1`, `feature-name-1`, and `device-name-1` are not underlined. The outer brackets make this whole clause optional and repeatable (trailing ellipsis); it offers three alternatives — the `switch-name-1` form, `feature-name-1 IS mnemonic-name-2`, or `device-name-1 IS mnemonic-name-3`.
 > ⚠ **Both status groups are enclosed in CHOICE INDICATORS** (the pairs of `|` bars just inside their delimiters). Per 5.2.6.4: in the first alternative the bars sit inside **brackets**, so **zero or more** of the `ON STATUS` / `OFF STATUS` phrases may be specified, each at most once, **in any order**; in the second alternative the bars sit inside **braces**, so **one or more** shall be specified, each at most once, in any order. A switch entry may therefore carry both `ON STATUS IS condition-name-1` and `OFF STATUS IS condition-name-2` in either order.
-
-`feature-name-1 IS mnemonic-name-2`
-`device-name-1 IS mnemonic-name-3`
-
-[ symbolic-characters-clause ] ...
-
-[ ORDER TABLE ordering-name-1 IS literal-9 ] .
-
 ---
 
 
@@ -14217,45 +14228,59 @@ SPECIAL-NAMES.
 
 where alphabet-name-clause is:
 
-```
-           ⎧                                          ⎧ LOCALE [ locale-name-2 ] ⎫ ⎫
-           ⎪                                          ⎪ NATIVE                   ⎪ ⎪
-           ⎪ alphabet-name-1 [ FOR ALPHANUMERIC ] IS  ⎨ STANDARD-1               ⎬ ⎪
-           ⎪                                          ⎪ STANDARD-2               ⎪ ⎪
-           ⎪                                          ⎪ code-name-1              ⎪ ⎪
-           ⎪                                          ⎩ { literal-phrase } …     ⎭ ⎪
-ALPHABET   ⎨                                                                       ⎬
-           ⎪                                          ⎧ LOCALE [ locale-name-2 ] ⎫ ⎪
-           ⎪                                          ⎪ NATIVE                   ⎪ ⎪
-           ⎪                                          ⎪ UCS-4                    ⎪ ⎪
-           ⎪ alphabet-name-2 FOR NATIONAL IS          ⎨ UTF-8                    ⎬ ⎪
-           ⎪                                          ⎪ UTF-16                   ⎪ ⎪
-           ⎪                                          ⎪ code-name-2              ⎪ ⎪
-           ⎩                                          ⎩ { literal-phrase } …     ⎭ ⎭
-```
+<pre>
+         ╭                                         ╭ <u>LOCALE</u> [ locale-name-2 ] ╮ ╮
+         │                                         │                          │ │
+         │                                         │ <u>NATIVE</u>                   │ │
+         │                                         │                          │ │
+         │                                         │ <u>STANDARD-1</u>               │ │
+         │ alphabet-name-1 [ FOR <u>ALPHANUMERIC</u> ] IS ┤                          ├ │
+         │                                         │ <u>STANDARD-2</u>               │ │
+         │                                         │                          │ │
+         │                                         │ code-name-1              │ │
+         │                                         │                          │ │
+         │                                         ╰ { literal-phrase } …     ╯ │
+<u>ALPHABET</u> ┤                                                                      ├
+         │                                 ╭ <u>LOCALE</u> [ locale-name-2 ] ╮         │
+         │                                 │                          │         │
+         │                                 │ <u>NATIVE</u>                   │         │
+         │                                 │                          │         │
+         │                                 │ <u>UCS-4</u>                    │         │
+         │ alphabet-name-2 FOR <u>NATIONAL</u> IS ┤                          ├         │
+         │                                 │ <u>UTF-8</u>                    │         │
+         │                                 │                          │         │
+         │                                 │ <u>UTF-16</u>                   │         │
+         │                                 │                          │         │
+         │                                 │ code-name-2              │         │
+         │                                 │                          │         │
+         ╰                                 ╰ { literal-phrase } …     ╯         ╯
+</pre>
 
 > **Figure notes (alphabet-name-clause syntax diagram).** `ALPHABET`, `ALPHANUMERIC`, `NATIONAL`, `LOCALE`, `NATIVE`, `STANDARD-1`, `STANDARD-2`, `UCS-4`, `UTF-8`, and `UTF-16` are underlined in the printed standard (required words). `IS` and `FOR` are not underlined. The outer brace makes the alphanumeric branch and the national branch mutually exclusive: exactly one shall be selected. `{ literal-phrase } …` is printed as a single-line brace followed by the ellipsis, so one or more literal-phrases may be given; `literal-phrase` is defined by the next figure.
 
 where literal-phrase is:
 
-```
-             ⎡ ⎧ THROUGH ⎫             ⎤
-literal-1    ⎢ ⎨         ⎬  literal-2  ⎥
-             ⎢ ⎩ THRU    ⎭             ⎥
-             ⎣ { ALSO literal-3 } …    ⎦
-```
+<pre>
+          ┌ ╭ <u>THROUGH</u> ╮           ┐
+          │ ┤         ├ literal-2 │
+literal-1 │ ╰ <u>THRU</u>    ╯           │
+          │                       │
+          └ { <u>ALSO</u> literal-3 } …  ┘
+</pre>
 
 > **Figure notes (literal-phrase syntax diagram).** `THROUGH`, `THRU`, and `ALSO` are underlined in the printed standard (required words; `THRU` is the required minimum abbreviation of `THROUGH`). The outer bracket is optional and holds two mutually exclusive alternatives: the `THROUGH`/`THRU literal-2` range phrase, or one or more `ALSO literal-3` phrases.
 
 where dynamic-length-structure-clause is:
 
-```
-⎧ DYNAMIC LENGTH STRUCTURE dynamic-length-structure-name-1 IS   ⎫
-⎪                                                               ⎪
-⎨   ⎧ ⎧ | [ SIGNED ] [ SHORT ] PREFIXED | ⎫ ⎫                    ⎬
-⎪   ⎨ ⎩ | DELIMITED                     | ⎭ ⎬                    ⎪
-⎩   ⎩ physical-structure-name-1             ⎭                    ⎭
-```
+<pre>
+╭ <u>DYNAMIC</u> <u>LENGTH</u> STRUCTURE dynamic-length-structure-name-1 IS ╮
+│                                                             │
+┤ ╭ ╭ │ [ <u>SIGNED</u> ] [ <u>SHORT</u> ] <u>PREFIXED</u> │ ╮ ╮                   ├
+│ │ ┤ │                               │ ├ │                   │
+│ ┤ ╰ │ <u>DELIMITED</u>                     │ ╯ ├                   │
+│ │                                       │                   │
+╰ ╰ physical-structure-name-1             ╯                   ╯
+</pre>
 
 > **Figure notes (dynamic-length-structure-clause syntax diagram).** `DYNAMIC`, `LENGTH`, `SIGNED`, `SHORT`, `PREFIXED`, and `DELIMITED` are underlined in the printed standard (required words). `STRUCTURE` and `IS` are not underlined.
 > ⚠ **The `PREFIXED` / `DELIMITED` pair is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the clause may specify the `PREFIXED` alternative alone, `DELIMITED` alone, or **both**. That whole choice-indicator group is in turn one alternative of the enclosing brace, whose other alternative is `physical-structure-name-1`.
@@ -14269,24 +14294,22 @@ where dynamic-length-structure-clause is:
 
 where symbolic-characters-clause is:
 
+<pre>
 <u>SYMBOLIC</u> CHARACTERS
 
-```
-⎡ FOR ⎧ ALPHANUMERIC ⎫ ⎤
-⎣     ⎩ NATIONAL     ⎭ ⎦
-```
+┌     ╭ <u>ALPHANUMERIC</u> ╮ ┐
+│ FOR ┤              ├ │
+└     ╰ <u>NATIONAL</u>     ╯ ┘
 
-> **Figure notes (ALPHABET clause, FOR phrase).** Underlining measured from the printed page: `ALPHANUMERIC` and `NATIONAL` are underlined (required words, 5.2.2); `FOR` is **not** underlined and is therefore an optional word per 5.2.3. The brace is a plain select-exactly-one (5.2.6.3) — no choice indicators are printed — and the enclosing bracket makes the whole phrase optional.
-
-```
-⎧ { symbolic-character-1 } …   ⎡ IS  ⎤   { integer-1 } … ⎫ …
-⎩                              ⎣ ARE ⎦                   ⎭
-```
-
-> **Figure notes (SYMBOLIC CHARACTERS clause).** Underlining measured from the printed page: neither `IS` nor `ARE` is underlined, so both are optional words per 5.2.3 and the bracket around them may be omitted entirely. `SYMBOLIC` and `CHARACTERS`, which introduce the clause, are underlined in the printed heading of the format. The trailing `…` repeats the whole braced group.
+╭                            ┌ IS  ┐                 ╮ …
+┤ { symbolic-character-1 } … │     │ { integer-1 } … ├
+╰                            └ ARE ┘                 ╯
 
 [ <u>IN</u> alphabet-name-3 ]
+</pre>
 
+> **Figure notes (ALPHABET clause, FOR phrase).** Underlining measured from the printed page: `ALPHANUMERIC` and `NATIONAL` are underlined (required words, 5.2.2); `FOR` is **not** underlined and is therefore an optional word per 5.2.3. The brace is a plain select-exactly-one (5.2.6.3) — no choice indicators are printed — and the enclosing bracket makes the whole phrase optional.
+> **Figure notes (SYMBOLIC CHARACTERS clause).** Underlining measured from the printed page: neither `IS` nor `ARE` is underlined, so both are optional words per 5.2.3 and the bracket around them may be omitted entirely. `SYMBOLIC` and `CHARACTERS`, which introduce the clause, are underlined in the printed heading of the format. The trailing `…` repeats the whole braced group.
 <a id="section-12-3-7-3"></a>
 ##### 12.3.7.3 Syntax rules
 
@@ -17184,37 +17207,52 @@ A level 1 data description entry in the working-storage section determines the i
 
 Format 1 (data-description):
 
-```
+<pre>
 level-number [ entry-name-clause ]
-  [ REDEFINES data-name-1 ]
-  [ IS TYPEDEF [ STRONG ] ]
-  [ ALIGNED ]
-  [ ANY LENGTH ]
-  [ BASED ]
-  [ BLANK WHEN ZERO ]
-  [ CONSTANT RECORD ]
-  [ DYNAMIC LENGTH [dynamic-length-structure-name-1 ] [ LIMIT IS integer-1 ] ]
-  [ IS EXTERNAL [ AS literal-1 ] ]
-  [ IS GLOBAL ]
-  [ GROUP-USAGE IS { BIT      } ]
-                  { NATIONAL }
-  [ { JUSTIFIED } RIGHT ]
-    { JUST      }
-  [ occurs-clause ]
-  [ picture-clause ]
-  [ PROPERTY [ WITH NO { GET } ] [ IS FINAL ] ]
-                       { SET }
-  [ SAME AS data-name-2 ]
-  [ select-when-clause ]
-  [ [ SIGN IS ] { LEADING  } [ SEPARATE CHARACTER ] ]
-               { TRAILING }
-  [ { SYNCHRONIZED } [ LEFT  ] ]
-    { SYNC          } [ RIGHT ]
-  [ TYPE type-name-1 ]
-  [ usage-clause ]
-  [ validation-clauses ]
-  [ value-clause ] .
-```
+[ <u>REDEFINES</u> data-name-1 ]
+[ IS <u>TYPEDEF</u> [ <u>STRONG</u> ] ]
+[ <u>ALIGNED</u> ]
+[ <u>ANY</u> <u>LENGTH</u> ]
+[ <u>BASED</u> ]
+[ <u>BLANK</u> WHEN <u>ZERO</u> ]
+[ <u>CONSTANT</u> <u>RECORD</u> ]
+[ <u>DYNAMIC</u> LENGTH [dynamic-length-structure-name-1 ] [ <u>LIMIT</u> IS integer-1 ] ]
+
+[ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
+
+[ IS <u>GLOBAL</u> ]
+
+┌                ╭ <u>BIT</u>      ╮ ┐
+│ <u>GROUP-USAGE</u> IS ┤          ├ │
+└                ╰ <u>NATIONAL</u> ╯ ┘
+
+┌ ╭ <u>JUSTIFIED</u> ╮       ┐
+│ ┤           ├ RIGHT │
+└ ╰ <u>JUST</u>      ╯       ┘
+
+[ occurs-clause ]
+[ picture-clause ]
+
+┌          ┌         ╭ <u>GET</u> ╮ ┐              ┐
+│ <u>PROPERTY</u> │ WITH <u>NO</u> ┤     ├ │ [ IS <u>FINAL</u> ] │
+└          └         ╰ <u>SET</u> ╯ ┘              ┘
+
+[ <u>SAME</u> <u>AS</u> data-name-2]
+[ select-when-clause ]
+
+┌             ╭ <u>LEADING</u>  ╮                        ┐
+│ [ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ] │
+└             ╰ <u>TRAILING</u> ╯                        ┘
+
+┌ ╭ <u>SYNCHRONIZED</u> ╮ ┌ <u>LEFT</u>  ┐ ┐
+│ ┤              ├ │       │ │
+└ ╰ <u>SYNC</u>         ╯ └ <u>RIGHT</u> ┘ ┘
+
+[ <u>TYPE</u> type-name-1 ]
+[ usage-clause ]
+[ validation-clauses ]
+[ value-clause ] .
+</pre>
 
 ---
 
@@ -17229,15 +17267,15 @@ level-number [ entry-name-clause ]
 
 where validation-clauses is:
 
-```
-  [ class-clause ]
-  [ default-clause ]
-  [ DESTINATION IS { identifier-1 } ... ]
-  [ { INVALID WHEN condition-2 } ... ]
-  [ PRESENT WHEN condition-3 ]
-  [ VARYING { data-name-3 [ FROM arithmetic-expression-1 ] [ BY arithmetic-expression-2 ] } ... ]
-  [ validate-status-clause ] ...
-```
+<pre>
+[ class-clause ]
+[ default-clause ]
+[ <u>DESTINATION</u> IS { identifier-1 } … ]
+[ { <u>INVALID</u> <u>WHEN</u> condition-2 } … ]
+[ <u>PRESENT</u> <u>WHEN</u> condition-3 ]
+[ <u>VARYING</u> { data-name-3 [ <u>FROM</u> arithmetic-expression-1 ] [ <u>BY</u> arithmetic-expression-2 ] } … ]
+[ validate-status-clause ] …
+</pre>
 
 where the following meta-language terms are described in the indicated subclauses:
 
@@ -17255,23 +17293,26 @@ where the following meta-language terms are described in the indicated subclause
 
 Format 2 (renames):
 
-```
-                                             ⎡ ⎧ THROUGH ⎫              ⎤
-66 data-name-1 RENAMES data-name-4           ⎣ ⎩ THRU    ⎭ data-name-5 ⎦   .
-```
+<pre>
+                                   ┌ ╭ <u>THROUGH</u> ╮             ┐
+66 data-name-1 <u>RENAMES</u> data-name-4 │ ┤         ├ data-name-5 │ .
+                                   └ ╰ <u>THRU</u>    ╯             ┘
+</pre>
 
 > **Figure notes (data description entry Format 2 (renames) syntax diagram).** `RENAMES`, `THROUGH`, and `THRU` are underlined in the printed standard (required words / required minimum abbreviation). The level number `66` and the terminating period separator `.` are literal text. The bracketed phrase is optional; when present, exactly one of `THROUGH` or `THRU` shall be selected from the enclosed braces. No choice indicators appear in this figure.
 
 Format 3 (condition-name):
 
-`88  condition-name-1  value-clause .`
-
+<pre>
+88 condition-name-1 value-clause .
+</pre>
 where value-clause is described in 13.18.63, VALUE clause (condition-name format).
 
 Format 4 (validation):
 
-`88  [ condition-name-2 ]  value-clause .`
-
+<pre>
+88 [ condition-name-2 ] value-clause .
+</pre>
 where value-clause is described in 13.18.63, VALUE clause (content-validation-entry format).
 
 NOTE    The validation format of the data description is an obsolete feature.
@@ -23783,31 +23824,30 @@ The procedure division in a function prototype, method prototype, or program pro
 
 Format 1 (with-sections):
 
-```
+<pre>
 procedure-division-header
-[ DECLARATIVES.
-{ section-name-1 SECTION.
-     use-statement.
-  [ sentence ] ... [ paragraph-name-1. [ sentence ] ... ] ... } ...
-END DECLARATIVES. ]
-  [ { section-name-1 SECTION.
-
-    [ sentence ] ... [ paragraph-name-1. ] [ sentence ] ... ] ... } ... ]
-```
+[ <u>DECLARATIVES.</u>
+{ section-name-1 <u>SECTION.</u>
+use-statement.
+[ sentence ] … [ paragraph-name-1. [ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES.</u> ]
+[ { section-name-1 <u>SECTION.</u>
+[ sentence ] … [ paragraph-name-1. ] [ sentence ] … ] … } … ]
+</pre>
 
 Format 2 (without-sections):
 
-```
+<pre>
 procedure-division-header
-[ sentence ] ... [ { paragraph-name-1. [ sentence ] ... } ... ]
-```
+[ sentence ] … [ { paragraph-name-1. [ sentence ] … } … ]
+</pre>
 
 Format 3 (object-oriented):
 
-```
-PROCEDURE DIVISION.
-[ { method-definition } ... ]
-```
+<pre>
+<u>PROCEDURE</u> <u>DIVISION.</u>
+[ { method-definition } … ]
+</pre>
 
 ---
 
@@ -23822,23 +23862,25 @@ PROCEDURE DIVISION.
 
 where procedure-division-header is:
 
-PROCEDURE DIVISION [ using-phrase ] [ RETURNING data-name-2 ]
+<pre>
+<u>PROCEDURE</u> <u>DIVISION</u> [ using-phrase ] [ <u>RETURNING</u> data-name-2 ]
 
-```
-     ⎡           ⎧ exception-name-1                   ⎫     ⎤
-     ⎢ RAISING   ⎨ [ FACTORY OF ] object-class-name-1 ⎬  …  ⎥
-     ⎣           ⎩ interface-name-1                   ⎭     ⎦
-```
+┌         ╭ exception-name-1                   ╮     ┐
+│         │                                    │     │
+│ <u>RAISING</u> ┤ [ <u>FACTORY</u> OF ] object-class-name-1 ├ . … │
+│         │                                    │     │
+└         ╰ interface-name-1                   ╯     ┘
+</pre>
 
 > **Figure notes (procedure division header RAISING phrase syntax diagram).** This diagram continues the `PROCEDURE DIVISION [ using-phrase ] [ RETURNING data-name-2 ]` line printed immediately above it; together they form the complete procedure-division-header. `PROCEDURE`, `DIVISION`, `RETURNING`, `RAISING`, and `FACTORY` are underlined in the printed standard (required words); `OF` is **not** underlined. The outer bracket makes the whole `RAISING` phrase optional; the inner braces are plain — re-rendered at 600 dpi and confirmed to carry **no** choice-indicator bars — so exactly one of the three alternatives is selected per repetition, and the ellipsis to the right of the closing brace permits that selection to be repeated.
 
 where using-phrase is:
 
-```
-        ⎧ [ BY REFERENCE ]  { [ OPTIONAL ] data-name-1 } …  ⎫
-USING   ⎨                                                   ⎬  …
-        ⎩ BY VALUE  { data-name-1 } …                       ⎭
-```
+<pre>
+      ╭ [ BY <u>REFERENCE</u> ] { [ <u>OPTIONAL</u> ] data-name-1 } … ╮
+<u>USING</u> ┤                                                 ├ …
+      ╰ BY <u>VALUE</u> { data-name-1 } …                      ╯
+</pre>
 
 > **Figure notes (using-phrase syntax diagram).** `USING`, `REFERENCE`, `OPTIONAL`, and `VALUE` are underlined in the printed standard (required words); `BY` is **not** underlined. The outer braces are plain — re-rendered at 600 dpi and confirmed to carry **no** choice-indicator bars — so exactly one of the two `BY` alternatives is selected per repetition, and the trailing ellipsis permits the whole outer group to be repeated. The inner ellipses apply to the `{ … data-name-1 }` brace pair immediately to their left, so each alternative may name several data items.
 
@@ -31508,29 +31550,33 @@ The SET statement provides a means for:
 
 Format 1 (index-assignment):
 
-```
-                                    ⎧ arithmetic-expression-1 ⎫
-    ⎧ index-name-1 ⎫                ⎪ index-name-2            ⎪
-SET ⎩ identifier-1 ⎭  …   TO        ⎩ identifier-2            ⎭
-```
+<pre>
+                          ╭ arithmetic-expression-1 ╮
+                          │                         │
+<u>SET</u> ╭ index-name-1 ╮ … <u>TO</u> ┤ index-name-2            ├
+    ┤              ├      │                         │
+    ╰ identifier-1 ╯      ╰ identifier-2            ╯
+</pre>
 
 > **Figure notes (SET statement Format 1 (index-assignment) syntax diagram).** `SET` and `TO` are underlined in the printed standard (required words). The first brace group requires exactly one of `index-name-1` / `identifier-1` and the `…` repeats that group, giving one or more receiving operands; the second brace group requires exactly one of the three sending operands.
 
 Format 2 (index-arithmetic):
 
-```
-                            ⎧ UP BY   ⎫
-SET { index-name-3 }  …     ⎩ DOWN BY ⎭  arithmetic-expression-2
-```
+<pre>
+                       ╭ <u>UP</u> <u>BY</u>   ╮
+<u>SET</u> { index-name-3 } … ┤         ├ arithmetic-expression-2
+                       ╰ <u>DOWN</u> <u>BY</u> ╯
+</pre>
 
 > **Figure notes (SET statement Format 2 (index-arithmetic) syntax diagram).** `SET`, `UP`, `BY` (in both alternatives), and `DOWN` are underlined in the printed standard (required words). `{ index-name-3 } …` is a single-line brace group with an ellipsis — one or more index-names. The `UP BY` / `DOWN BY` braces require exactly one alternative.
 
 Format 3 (switch-setting):
 
-```
-    ⎧                                ⎧ ON  ⎫ ⎫
-SET ⎩ { mnemonic-name-1 }  …   TO    ⎩ OFF ⎭ ⎭  …
-```
+<pre>
+    ╭                          ╭ <u>ON</u>  ╮ ╮
+<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ├ …
+    ╰                          ╰ <u>OFF</u> ╯ ╯
+</pre>
 
 > **Figure notes (SET statement Format 3 (switch-setting) syntax diagram).** `SET`, `TO`, `ON`, and `OFF` are underlined in the printed standard (required words). `{ mnemonic-name-1 } …` is a single-line brace group with an ellipsis — one or more mnemonic-names. The whole `{ mnemonic-name-1 } … TO { ON | OFF }` phrase is itself wrapped in an outer brace pair whose trailing `…` repeats it, so several switch-setting phrases may follow one `SET`.
 
@@ -31544,102 +31590,125 @@ SET ⎩ { mnemonic-name-1 }  …   TO    ⎩ OFF ⎭ ⎭  …
 
 Format 4 (condition-setting):
 
-```
-      ⎧                          ⎧ TRUE  ⎫ ⎫
-SET   ⎨ { condition-name-1 } … TO ⎩ FALSE ⎭ ⎬ …
-      ⎩                                    ⎭
-```
+<pre>
+    ╭                           ╭ <u>TRUE</u>  ╮ ╮
+<u>SET</u> ┤ { condition-name-1 } … <u>TO</u> ┤       ├ ├ …
+    ╰                           ╰ <u>FALSE</u> ╯ ╯
+</pre>
 
 > **Figure notes (SET statement Format 4 (condition-setting) syntax diagram).** `SET`, `TO`, `TRUE`, and `FALSE` are underlined in the printed standard (required words). The outer braces enclose the single repeated unit; the trailing `…` repeats the whole braced portion, so several `condition-name … TO TRUE|FALSE` groups may be written in one SET statement. The inner `…` after `{ condition-name-1 }` repeats the condition-name itself. No choice indicators are present.
 
 Format 5 (object-reference-assignment):
 
-```
-                            ⎧ object-class-name-1 ⎫
-SET { identifier-3 } … TO   ⎩ identifier-4        ⎭
-```
+<pre>
+                          ╭ object-class-name-1 ╮
+<u>SET</u> { identifier-3 } … <u>TO</u> ┤                     ├
+                          ╰ identifier-4        ╯
+</pre>
 
 > **Figure notes (SET statement Format 5 (object-reference-assignment) syntax diagram).** `SET` and `TO` are underlined in the printed standard (required words). The braces around `{ identifier-3 }` with the following `…` mean one or more identifiers; the braces on the right are a plain required choice — exactly one of `object-class-name-1` or `identifier-4`. No choice indicators are present.
 
 Format 6 (attribute):
 
-```
-                                 ⎧ ⎧ | BELL           | ⎫             ⎫
-                                 ⎪ ⎪ | BLINK          | ⎪             ⎪
-                                 ⎪ ⎪ | HIGHLIGHT      | ⎪ ⎧ OFF ⎫    ⎪
-SET screen-name-1 ATTRIBUTE      ⎨ ⎨ | LOWLIGHT       | ⎬ ⎩ ON  ⎭    ⎬ …
-                                 ⎪ ⎪ | REVERSE-VIDEO  | ⎪             ⎪
-                                 ⎩ ⎩ | UNDERLINE      | ⎭             ⎭
-```
+<pre>
+                            ╭ ╭ │ <u>BELL</u>          │ ╮         ╮
+                            │ │ │               │ │         │
+                            │ │ │ <u>BLINK</u>         │ │         │
+                            │ │ │               │ │         │
+                            │ │ │ <u>HIGHLIGHT</u>     │ │ ╭ <u>OFF</u> ╮ │
+<u>SET</u> screen-name-1 <u>ATTRIBUTE</u> ┤ ┤ │               │ ├ ┤     ├ ├ …
+                            │ │ │ <u>LOWLIGHT</u>      │ │ ╰ <u>ON</u>  ╯ │
+                            │ │ │               │ │         │
+                            │ │ │ <u>REVERSE-VIDEO</u> │ │         │
+                            │ │ │               │ │         │
+                            ╰ ╰ │ <u>UNDERLINE</u>     │ ╯         ╯
+</pre>
 
 > **Figure notes (SET statement Format 6 (attribute) syntax diagram).** `SET`, `ATTRIBUTE`, `BELL`, `BLINK`, `HIGHLIGHT`, `LOWLIGHT`, `REVERSE-VIDEO`, `UNDERLINE`, `OFF`, and `ON` are underlined in the printed standard (required words).
 > ⚠ **The six attribute keywords are enclosed in CHOICE INDICATORS** (the pair of `|` bars inside their braces). Per 5.2.6.4, **braces** enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `ON`/`OFF` group may carry any non-empty combination of the six keywords. The `{ OFF | ON }` braces are a plain required choice. The trailing `…` repeats the whole outer braced group, so several attribute groups may follow one `ATTRIBUTE`.
 
 Format 7 (data-pointer-assignment):
 
-```
-      ⎧ ADDRESS OF data-name-1 ⎫
-SET   ⎩ identifier-5           ⎭ … TO identifier-6
-```
+<pre>
+    ╭ <u>ADDRESS</u> OF data-name-1 ╮
+<u>SET</u> ┤                        ├ … <u>TO</u> identifier-6
+    ╰ identifier-5           ╯
+</pre>
 
 > **Figure notes (SET statement Format 7 (data-pointer-assignment) syntax diagram).** `SET`, `ADDRESS`, and `TO` are underlined in the printed standard (required words); `OF` is not underlined. The braces are a plain required choice — exactly one of the two alternatives — and the following `…` repeats the braced receiving operand. No choice indicators are present.
 
 Format 8 (function-pointer-assignment):
 
-SET { identifier-12 } ... TO identifier-13
-
+<pre>
+<u>SET</u> { identifier-12 } … <u>TO</u> identifier-13
+</pre>
 Format 9 (program-pointer-assignment):
 
-SET { identifier-7 } ... TO identifier-8 Format 10 (data-pointer-arithmetic):
+<pre>
+<u>SET</u> { identifier-7 } … <u>TO</u> identifier-8
+</pre>
+Format 10 (data-pointer-arithmetic):
 
 <a id="page-761"></a>
 ## Page 761
 **ISO/IEC 1989:2023 (E)**
 
 
-```
-SET  { identifier-9 } …  ⎧ UP   ⎫  BY arithmetic-expression-3
-                         ⎩ DOWN ⎭
-```
+<pre>
+                       ╭ <u>UP</u>   ╮
+<u>SET</u> { identifier-9 } … ┤      ├ <u>BY</u> arithmetic-expression-3
+                       ╰ <u>DOWN</u> ╯
+</pre>
 
 > **Figure notes (SET statement Format 10 (data-pointer-arithmetic) syntax diagram).** `SET`, `UP`, `DOWN`, and `BY` are underlined in the printed standard (required words). The `…` after `{ identifier-9 }` repeats that brace — one or more receiving operands. The `{ UP / DOWN }` braces are a plain alternation: exactly one shall be specified. No choice indicators appear in this figure.
 
 Format 11 (set-locale):
 
-```
-              ⎧ ⎧ | LC_ALL      | ⎫ ⎫
-              ⎪ ⎪ | LC_COLLATE  | ⎪ ⎪        ⎧ identifier-10  ⎫
-              ⎪ ⎪ | LC_CTYPE    | ⎪ ⎪        ⎪ locale-name-1  ⎪
-SET LOCALE    ⎨ ⎨ | LC_MESSAGES | ⎬ ⎬  TO    ⎨ USER-DEFAULT   ⎬
-              ⎪ ⎪ | LC_MONETARY | ⎪ ⎪        ⎩ SYSTEM-DEFAULT ⎭
-              ⎪ ⎪ | LC_NUMERIC  | ⎪ ⎪
-              ⎪ ⎩ | LC_TIME     | ⎭ ⎪
-              ⎩ USER-DEFAULT       ⎭
-```
+<pre>
+           ╭ ╭ │ <u>LC_ALL</u>      │ ╮ ╮
+           │ │ │             │ │ │
+           │ │ │ <u>LC_COLLATE</u>  │ │ │
+           │ │ │             │ │ │
+           │ │ │ <u>LC_CTYPE</u>    │ │ │    ╭ identifier-10  ╮
+           │ │ │             │ │ │    │                │
+           │ ┤ │ <u>LC_MESSAGES</u> │ ├ │    │ locale-name-1  │
+<u>SET</u> <u>LOCALE</u> ┤ │ │             │ │ ├ <u>TO</u> ┤                ├
+           │ │ │ <u>LC_MONETARY</u> │ │ │    │ <u>USER-DEFAULT</u>   │
+           │ │ │             │ │ │    │                │
+           │ │ │ <u>LC_NUMERIC</u>  │ │ │    ╰ <u>SYSTEM-DEFAULT</u> ╯
+           │ │ │             │ │ │
+           │ ╰ │ <u>LC_TIME</u>     │ ╯ │
+           │                     │
+           ╰ <u>USER-DEFAULT</u>        ╯
+</pre>
 
 > **Figure notes (SET statement Format 11 (set-locale) syntax diagram).** `SET`, `LOCALE`, `LC_ALL`, `LC_COLLATE`, `LC_CTYPE`, `LC_MESSAGES`, `LC_MONETARY`, `LC_NUMERIC`, `LC_TIME`, `USER-DEFAULT` (both occurrences), `TO`, and `SYSTEM-DEFAULT` are underlined in the printed standard (required words). `identifier-10` and `locale-name-1` are operands, not underlined. The outer brace is a plain alternation: either the inner LC_ group **or** `USER-DEFAULT`. The `TO` brace is likewise a plain alternation of exactly one of its four alternatives.
 > ⚠ **The inner LC_ brace is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside it). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single SET LOCALE may name, e.g., `LC_NUMERIC LC_TIME`, not just one category.
 
 Format 12 (save-locale):
 
-```
-SET identifier-11 TO LOCALE  ⎧ LC_ALL       ⎫
-                             ⎩ USER-DEFAULT ⎭
-```
+<pre>
+                            ╭ <u>LC_ALL</u>       ╮
+<u>SET</u> identifier-11 <u>TO</u> <u>LOCALE</u> ┤              ├
+                            ╰ <u>USER-DEFAULT</u> ╯
+</pre>
 
 > **Figure notes (SET statement Format 12 (save-locale) syntax diagram).** `SET`, `TO`, `LOCALE`, `LC_ALL`, and `USER-DEFAULT` are underlined in the printed standard (required words); `identifier-11` is an operand. The braces are a plain alternation: exactly one of `LC_ALL` or `USER-DEFAULT` shall be specified. No choice indicators appear in this figure.
 
 Format 13 (saved-exception):
 
-SET LAST EXCEPTION TO OFF
-
+<pre>
+<u>SET</u> <u>LAST</u> <u>EXCEPTION</u> <u>TO</u> <u>OFF</u>
+</pre>
 Format 14 (dynamic-capacity-table):
 
-```
-                ⎧ UP   BY ⎫
-SET data-name-2 ⎨ DOWN BY ⎬  ⎧ integer-1               ⎫
-                ⎩ TO      ⎭  ⎩ arithmetic-expression-4 ⎭
-```
+<pre>
+                ╭ <u>UP</u> <u>BY</u>   ╮
+                │         │ ╭ integer-1               ╮
+<u>SET</u> data-name-2 ┤ <u>DOWN</u> <u>BY</u> ├ ┤                         ├
+                │         │ ╰ arithmetic-expression-4 ╯
+                ╰ <u>TO</u>      ╯
+</pre>
 
 > **Figure notes (SET statement Format 14 (dynamic-capacity-table) syntax diagram).** `SET`, `UP`, `BY` (both occurrences), `DOWN`, and `TO` are underlined in the printed standard (required words); `data-name-2` is an operand. `BY` belongs to the `UP` and `DOWN` alternatives only — the `TO` alternative stands alone. Both brace groups are plain alternations: exactly one alternative from each shall be specified. No choice indicators appear in this figure.
 
@@ -31652,40 +31721,49 @@ SET data-name-2 ⎨ DOWN BY ⎬  ⎧ integer-1               ⎫
 
 Format 15 (numeric-content):
 
-```
-SET CONTENT OF { identifier-14 } … TO
+<pre>
+<u>SET</u> <u>CONTENT</u> OF { identifier-14 } … <u>TO</u>
 
-⎧ FARTHEST-FROM-ZERO [ IN-ARITHMETIC-RANGE ] ⎡ SIGN ⎧ NEGATIVE ⎫ ⎤ ⎫
-⎪                                            ⎣      ⎩ POSITIVE ⎭ ⎦ ⎪
-⎪ FLOAT-INFINITY ⎡ SIGN ⎧ NEGATIVE ⎫ ⎤                             ⎪
-⎪                ⎣      ⎩ POSITIVE ⎭ ⎦                             ⎪
-⎨ FLOAT-NOT-A-NUMBER ⎡ SIGN ⎧ NEGATIVE ⎫ ⎤                         ⎬
-⎪                    ⎣      ⎩ POSITIVE ⎭ ⎦                         ⎪
-⎪ FLOAT-NOT-A-NUMBER-SIGNALING ⎡ SIGN ⎧ NEGATIVE ⎫ ⎤               ⎪
-⎪                              ⎣      ⎩ POSITIVE ⎭ ⎦               ⎪
-⎪ NEAREST-TO-ZERO [ IN-ARITHMETIC-RANGE ] ⎡ SIGN ⎧ NEGATIVE ⎫ ⎤    ⎪
-⎩                                         ⎣      ⎩ POSITIVE ⎭ ⎦    ⎭
-```
+╭                                            ┌      ╭ <u>NEGATIVE</u> ╮ ┐ ╮
+│ <u>FARTHEST-FROM-ZERO</u> [ <u>IN-ARITHMETIC-RANGE</u> ] │ <u>SIGN</u> ┤          ├ │ │
+│                                            └      ╰ <u>POSITIVE</u> ╯ ┘ │
+│                                                                  │
+│                ┌      ╭ <u>NEGATIVE</u> ╮ ┐                             │
+│ <u>FLOAT-INFINITY</u> │ <u>SIGN</u> ┤          ├ │                             │
+│                └      ╰ <u>POSITIVE</u> ╯ ┘                             │
+│                                                                  │
+│                    ┌      ╭ <u>NEGATIVE</u> ╮ ┐                         │
+┤ <u>FLOAT-NOT-A-NUMBER</u> │ <u>SIGN</u> ┤          ├ │                         ├
+│                    └      ╰ <u>POSITIVE</u> ╯ ┘                         │
+│                                                                  │
+│                              ┌      ╭ <u>NEGATIVE</u> ╮ ┐               │
+│ <u>FLOAT-NOT-A-NUMBER-SIGNALING</u> │ <u>SIGN</u> ┤          ├ │               │
+│                              └      ╰ <u>POSITIVE</u> ╯ ┘               │
+│                                                                  │
+│                                         ┌      ╭ <u>NEGATIVE</u> ╮ ┐    │
+│ <u>NEAREST-TO-ZERO</u> [ <u>IN-ARITHMETIC-RANGE</u> ] │ <u>SIGN</u> ┤          ├ │    │
+╰                                         └      ╰ <u>POSITIVE</u> ╯ ┘    ╯
+</pre>
 
 > **Figure notes (SET statement Format 15 (numeric-content)).** `SET`, `CONTENT`, `TO`, `FARTHEST-FROM-ZERO`, `IN-ARITHMETIC-RANGE`, `SIGN`, `NEGATIVE`, `POSITIVE`, `FLOAT-INFINITY`, `FLOAT-NOT-A-NUMBER`, `FLOAT-NOT-A-NUMBER-SIGNALING`, and `NEAREST-TO-ZERO` are underlined in the printed standard (required words); `OF` is not underlined. The `{ identifier-14 }` pair is the delimiter to which the ellipsis on the header line applies — one or more receiving identifiers. The outer braces of the value list are a plain required choice with **no** choice indicators (verified at 600 dpi) — exactly one of the five alternatives. Each `SIGN` phrase is an optional bracket enclosing a required `NEGATIVE` / `POSITIVE` choice.
 
 Format 16 (dynamic-length-elementary-data-item):
 
-```
-                                 ⎧ integer-2                ⎫
-SET [ SIZE OF ] data-name-3 TO   ⎨                          ⎬
-                                 ⎩ arithmetic-expression-5  ⎭
-```
+<pre>
+                               ╭ integer-2               ╮
+<u>SET</u> [ <u>SIZE</u> OF ] data-name-3 <u>TO</u> ┤                         ├
+                               ╰ arithmetic-expression-5 ╯
+</pre>
 
 > **Figure notes (SET statement Format 16 (dynamic-length-elementary-data-item)).** `SET`, `SIZE`, and `TO` are underlined in the printed standard (required words); `OF` is not underlined. `[ SIZE OF ]` is an optional bracket. The braces are a plain required choice — exactly one of `integer-2` / `arithmetic-expression-5`.
 
 Format 17 (message-tag):
 
-```
-                       ⎧ data-name-5 ⎫
-SET data-name-4 TO     ⎨             ⎬
-                       ⎩ NULL        ⎭
-```
+<pre>
+                   ╭ data-name-5 ╮
+<u>SET</u> data-name-4 <u>TO</u> ┤             ├
+                   ╰ <u>NULL</u>        ╯
+</pre>
 
 > **Figure notes (SET statement Format 17 (message-tag)).** `SET`, `TO`, and `NULL` are underlined in the printed standard (required words). The braces are a plain required choice — exactly one of `data-name-5` / `NULL`.
 

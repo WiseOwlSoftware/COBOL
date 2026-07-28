@@ -600,8 +600,14 @@ def classify_row(words):
     text = " ".join(w["text"] for w in sorted(words, key=lambda w: w["x0"]))
     if FORMAT_LABEL.match(text):
         return "label"
-    if any(re.fullmatch(r"[a-z]{2,}", w["text"].strip(" []{}.,;:()")) for w in words):
-        return "prose"                                 # a plain lower-case word; a general format has none
+    plain = [w for w in words if re.fullmatch(r"[a-z]{2,}", w["text"].strip(" []{}.,;:()"))]
+    # A plain lower-case word USUALLY means prose — but not always: the standard writes a few metavariables
+    # unhyphenated, and `[ sentence ] … [ paragraph-name-1. [ sentence ] … ] … } …` is figure content in the
+    # procedure-division format. Reading it as prose closed the run and split that figure in two. NOTATION is
+    # the signal that settles it: a row carrying brackets, braces or an ellipsis, with only a word or two of
+    # lower case, is a figure row. Prose in these regions carries no notation at all.
+    if plain and not (len(plain) <= 2 and re.search(r"[\[\]{}…]|\.\.\.", text)):
+        return "prose"
     if not re.search(r"[a-z]+-[a-z0-9]|[A-Z]{2,}", text):
         return "glue"                                  # neither an operand nor a reserved word
     return "figure"
@@ -681,6 +687,16 @@ def find_figures(page, extract):
                 if kind == "label":
                     label = " ".join(w["text"] for w in sorted(ws, key=lambda w: w["x0"]))
                 run, has_figure, above = [], False, y
+    # A WRAPPED PROSE FRAGMENT is not a figure. The report description clause lists its meta-language terms in
+    # a table, and "…or dynamic-capacity-table-format)" wraps onto a line of its own — all lower case and
+    # hyphenated, so it reads as a figure row. Its tell is the UNBALANCED delimiter: a one-row figure is
+    # self-contained (`NULL`, `inline-invocation-1`, `identifier-1( leftmost-position : [ length ] )`),
+    # whereas a fragment carries a closing bracket whose opener stayed on the previous line.
+    def balanced(y0, y1):
+        text = " ".join(w["text"] for _, k, ws in rows if y0 <= _ <= y1 and k != "label" for w in ws)
+        return all(text.count(a) == text.count(b) for a, b in ("()", "[]", "{}"))
+
+    runs = [r for r in runs if r[0] != r[1] or balanced(r[0], r[1])]
     if not runs:
         return []
 
