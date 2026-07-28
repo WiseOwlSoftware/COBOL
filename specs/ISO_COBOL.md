@@ -20357,36 +20357,26 @@ The PICTURE clause describes the General characteristics, editing requirements, 
 
 Format 1 (basic):
 
-```
-⎧ PICTURE ⎫                        ⎡                     ⎧ IS literal-1                     ⎫ ⎤
-⎨         ⎬ IS character-string-1  ⎢ EDITING character-1 ⎨     ⎧| NEGATIVE IS literal-2 |⎫  ⎬ ⎥ …
-⎩ PIC     ⎭                        ⎣                     ⎩ FOR ⎩| POSITIVE IS literal-3 |⎭  ⎭ ⎦
-```
-
-> **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `NEGATIVE`, and
-> `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation).
-> ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its braces — verified
-> against the printed page at 900 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the
-> enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry
-> `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces
-> would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated.
-
-```
-⎧ PICTURE ⎫                         ⎡                      ⎧ IS literal-1                          ⎫ ⎤
-⎨         ⎬  IS character-string-1  ⎢ EDITING character-1  ⎨       ⎧ | NEGATIVE IS literal-2 | ⎫  ⎬ ⎥ …
-⎩ PIC     ⎭                         ⎣                      ⎩ FOR   ⎨ | POSITIVE IS literal-3 | ⎬  ⎭ ⎦
-```
+<pre>
+  <u>PICTURE</u>                     ┌                     ╭ IS literal-1                      ╮ ┐
+                              │                     │                                   │ │
+╭     ╮ IS character-string-1 │ <u>EDITING</u> character-1 ┤       │ <u>NEGATIVE</u> IS literal-2 │   ├ │ …
+┤     ├                       │                     │       │                       │   │ │
+╰ <u>PIC</u> ╯                       │                     │ <u>FOR</u> ╭ │                       │ ╮ │ │
+                              │                     │     ┤ │                       │ ├ │ │
+                              └                     ╰     ╰ │ <u>POSITIVE</u> IS literal-3 │ ╯ ╯ ┘
+</pre>
 
 > **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `FOR`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `character-1`, and the literals are not.
 > ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces, verified by re-rendering page 441 at 600 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated.
 
 Format 2 (locale):
 
-```
-⎧ PICTURE ⎫
-⎨         ⎬  IS character-string-1  LOCALE [ IS locale-name-1 ]  SIZE IS integer-1
-⎩ PIC     ⎭
-```
+<pre>
+╭ <u>PICTURE</u> ╮
+┤         ├ IS character-string-1 <u>LOCALE</u> [ IS locale-name-1 ] <u>SIZE</u> IS integer-1
+╰ <u>PIC</u>     ╯
+</pre>
 
 > **Figure notes (PICTURE clause Format 2 (locale) syntax diagram).** `PICTURE`, `PIC`, `LOCALE`, and `SIZE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `locale-name-1`, and `integer-1` are **not** underlined. Exactly one of `PICTURE`/`PIC` shall be selected; the `[ IS locale-name-1 ]` bracket is optional. No choice indicators appear in this figure.
 

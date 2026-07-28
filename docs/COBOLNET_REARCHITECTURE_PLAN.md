@@ -150,11 +150,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      - The sweep REASSEMBLES fragmented figures: the file-control entry had Format 3 transcribed as SEVEN
        blocks, one per clause, each with its own note. Fragments are matched with notes excluded and every
        note is carried through after the figure it describes.
-   - **REMAINING: 12 clauses (59 figures)** — a to-do list, not tool noise. Ten where the printed and
-     transcribed figure counts differ with no grouping that matches (§8.4.3.1.2 · §10.6.1 · §12.3.6.2 ·
-     §12.3.7.2 · §13.16.2 · §13.17.2 · §13.18.40.2 · §14.2.1 · §14.9.39.2 · §14.9.48.2) and two word
-     differences (§8.7.5.1 ASCII-art corner · §13.2.1 carries `DATA DIVISION` the printed figure does not).
-     Each needs a read against the printed page; ⛔ **correct the transcription on discovery**, never park it.
+   - **421 generated · ZERO word differences · 8 clauses (54 figures) remaining**: §8.4.3.1.2 · §10.6.1 ·
+     §12.3.6.2 · §12.3.7.2 · §13.16.2 · §13.17.2 · §14.2.1 · §14.9.39.2. All one shape — the printed page and
+     the transcription disagree on how many figures the clause holds, and no grouping of its blocks matches
+     (§13.17.2 is representative: Format 2 fragmented into three blocks separated by notes).
+   - **Corrected on discovery so far** (⛔ never park a defect — `fix_transcription_errors_immediately`):
+     §13.18.40.2 carried the PICTURE Format 1 figure TWICE with **contradictory notes** — one said `FOR` is
+     underlined, the other omitted it. Measurement plus a 240-dpi render settled it (`FOR` IS underlined,
+     §5.2.2, so it may not be omitted); wrong copy and wrong note removed. §13.2.1 duplicated its own first
+     line. §8.7.5.1 Format 1 and §14.9.48.2 were ASCII art.
    - ⚠ **A whole-artifact invariant beats sampling.** Two apply-time duplication bugs were caught ONLY by the
      word-conservation check (151 then 97 words gained), both from `^\s*>` matching `>>` — a compiler
      directive is not a blockquote, and a blockquoted FIGURE is not a note.
