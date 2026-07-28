@@ -42,7 +42,9 @@ MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
 MD_GENERAL_FORMAT = re.compile(r"general\s+formats?\s*$", re.I)
 ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
-FENCE = re.compile(r"^\s*(?:>\s?)?(?:```|</?pre>)\s*$")
+# A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
+# example's lines loose, where the bare-run scanner could mistake a COBOL example for a figure.
+FENCE = re.compile(r"^\s*(?:>\s?)?(?:```[a-zA-Z]*|</?pre>)\s*$")
 FORMAT_LABEL = re.compile(r"^\s*(?:>\s?)?\*{0,2}Formats?\s+\d+\b")
 HEADING = re.compile(r"^\s*#{1,6}\s")
 # A row of a figure that carries only DELIMITERS — the blank row inside a group, drawn with the group's own

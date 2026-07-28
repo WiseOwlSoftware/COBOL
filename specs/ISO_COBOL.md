@@ -11246,7 +11246,7 @@ The executable code resulting from compilation of a contained source unit is con
 
 A source element is a source unit excluding any contained source units.
 
-```
+```cobol
 NOTE   In the example:
           PROGRAM-ID.  A.
              ...
@@ -18974,7 +18974,7 @@ The PROPERTY clause indicates that this data item is a property of the object an
    ```
 
 
-```
+```cobol
 PROCEDURE DIVISION RETURNING LS-data-name.
 par-name.
       SET LS-data-name TO data-name
@@ -18984,7 +18984,7 @@ END METHOD.
 
 If the subject of this entry is of category alphanumeric-edited, national-edited, or numeric-edited, the implicit definition of this method is as follows:
 
-```
+```cobol
 METHOD-ID. GET PROPERTY data-name.
 DATA DIVISION.
 LINKAGE SECTION.
@@ -19000,7 +19000,7 @@ NOTE 1    If the subject of the entry is edited, reference modification of the r
 
 Otherwise, the implicit definition of this method is as follows:
 
-```
+```cobol
 METHOD-ID. GET PROPERTY data-name.
 DATA DIVISION.
 LINKAGE SECTION.
@@ -19022,13 +19022,13 @@ Where LS-data-name has the data description of the subject of the entry with the
 
 If the subject of this entry is of class index, message-tag, object, or pointer, the implicit definition of this method is as follows:
 
-```
+```cobol
 METHOD-ID. SET PROPERTY data-name.
 DATA DIVISION.
 ```
 
 
-```
+```cobol
         LINKAGE SECTION.
         01 LS-data-name data-description.
         PROCEDURE DIVISION USING LS-data-name.
@@ -19040,7 +19040,7 @@ DATA DIVISION.
 
 If the subject of this entry is of category alphanumeric-edited, national-edited, or numeric-edited, the implicit definition of this method is as follows:
 
-```
+```cobol
     METHOD-ID. SET PROPERTY data-name.
     DATA DIVISION.
     LINKAGE SECTION.
@@ -19056,7 +19056,7 @@ NOTE 2    If the subject of the entry is edited, reference modification of the r
 
 Otherwise, the implicit definition of this method is as follows:
 
-```
+```cobol
     METHOD-ID. SET PROPERTY data-name.
     DATA DIVISION.
     LINKAGE SECTION.
@@ -34927,7 +34927,7 @@ The following is the specification of the formal interfaces that are supported b
 
 NOTE The standard class BASE need not be implemented in COBOL.
 
-```
+```cobol
 Interface-id. BaseFactoryInterface.
 Procedure division.
    Method-id. New.
@@ -37634,7 +37634,7 @@ With multiple record automatic locking, all newly read records are automatically
 
 The following illustrates a file-control paragraph that defines a logical file (my-file), where the physical file (accounts) resides on a mass storage device. SHARING WITH READ ONLY indicates that the physical file can be shared with other logical files as long as those files are open for READ ONLY. The logical file my-file is not itself restricted to read only.
 
-```
+```cobol
 FILE-CONTROL.   SELECT my-file    ASSIGN TO accounts
 ...
 SHARING WITH READ ONLY
@@ -37643,7 +37643,7 @@ LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS.
 
 Single record automatic locking is selected by the following lock mode clause:
 
-```
+```cobol
 LOCK MODE IS AUTOMATIC
 ```
 
@@ -37662,13 +37662,13 @@ With multiple record manual locking, each record lock is established by specifyi
 
 Additional options on I/O statements allow for selective actions that are not normally needed, but may be useful in special circumstances:
 
-```
+```cobol
 READ ... ADVANCING ON LOCK:
 ```
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Locked records are skipped and the next unlocked record in sequential order is retrieved.
 
-```
+```cobol
 READ ... IGNORING LOCK:
 ```
 
@@ -37677,7 +37677,7 @@ A record is retrieved even if it is locked.
 
 The following illustrates a file-control paragraph that defines a logical file (my-file), where the physical file (accounts) resides on a mass storage device. SHARING WITH ALL OTHER indicates that the physical file can be shared with other logical files and any of them can update records.
 
-```
+```cobol
 FILE-CONTROL.  SELECT my-file   ASSIGN TO accounts
 ...
 SHARING WITH ALL OTHER
@@ -37779,7 +37779,7 @@ Except for those that may be undertaken by the description of a predefined view 
 
 Program example:
 
-```
+```cobol
         IDENTIFICATION DIVISION.
         PROGRAM-ID. SAMPLE.   *> Commit and rollback example
         ENVIRONMENT DIVISION.
@@ -37801,7 +37801,7 @@ Program example:
 ```
 
 
-```
+```cobol
         *> will be locked by this program until a commit or
         *> rollback.
 
@@ -37857,7 +37857,7 @@ Program example:
 ---
 
 
-```
+```cobol
         88  STCK-FILE-SHARING-CONFLICT    VALUE "61".
 
     03  CHNG-FILE-STATUS        PIC XX.
@@ -37913,7 +37913,7 @@ END DECLARATIVES
 ---
 
 
-```
+```cobol
        . MAIN SECTION.
 
            PERFORM INITIALISATION
@@ -37969,7 +37969,7 @@ END DECLARATIVES
 ---
 
 
-```
+```cobol
         MOVE CHNG-KEY              TO SAVE-KEY
       WHEN CHNG-FILE-LOCK-CONDITION
          *> rollback and try to read the next change record
@@ -38025,7 +38025,7 @@ END DECLARATIVES
 ---
 
 
-```
+```cobol
                 END-IF
                 EXIT SECTION
             WHEN STCK-FILE-KEY-NOT-FOUND AND CHNG-SUBTRACT
@@ -38078,7 +38078,7 @@ END DECLARATIVES
 ```
 
 
-```
+```cobol
         ADD 1                    TO UPDATE-COUNT
         REWRITE STCK-REC
         IF NOT STCK-FILE-OK
@@ -38130,7 +38130,7 @@ Example 1 shows the data description entry of the table element INDICATOR, and t
 
 EXAMPLE 1
 
-```
+```cobol
 01  FULL-RECORD.
     02  ANOTHER-ITEM  PIC X(10).
     02  INDICATOR  PICTURE XXX OCCURS 20 TIMES.
@@ -38142,7 +38142,7 @@ To reference the complete table, define the table as the only element of a group
 
 EXAMPLE 2
 
-```
+```cobol
 01  FULL-RECORD.
     02  ANOTHER-ITEM  PIC X(10).
     02  INDICATOR-TABLE.
@@ -38155,7 +38155,7 @@ Example 3 shows a table defined by the item MONTHLY-REVENUES. Each table-element
 
 EXAMPLE 3
 
-```
+```cobol
 01  REVENUES-TABLE.
     02  MONTHLY-REVENUES    OCCURS 12 TIMES.
         03 REV-SHOP-1 PIC S9(8)V99.
@@ -38167,7 +38167,7 @@ Example 4 shows two tables that are part of the same group item. A reference to 
 EXAMPLE 4
 
 
-```
+```cobol
 01  TABLES.
     02  MONTHLY-REVENUES    OCCURS 12 TIMES.
         03 REV-SHOP-1 PIC S9(8)V99.
@@ -38183,7 +38183,7 @@ Example 5 shows a two-dimensional table. Each of the 12 occurrences of MONTHLY-R
 
 EXAMPLE 5
 
-```
+```cobol
 01  A-TABLE.
     02  MONTHLY-REVENUES     OCCURS 12 TIMES.
         03 REV-SHOP PIC S9(8)V99   OCCURS 100 TIMES.
@@ -38248,7 +38248,7 @@ The value of an index may be made accessible to a runtime element by storing the
 ##### D.3.5.3 Subscripting example
 
 Assuming the following data definition:
-```
+```cobol
     02 XCOUNTER PIC S99.
     02 YCOUNTER PIC S99.
 
@@ -38347,7 +38347,7 @@ The SORT statement may be used to sort tables into a user-defined order. This is
 
 This example is a simple sort in which the table is sorted in order using the key definitions in the OCCURS clause of data item tabl to specify the sequence, that is elem-item2 is the major key (ascending) and elem-item1 is the secondary key (descending). It is then possible to use a SEARCH ALL statement knowing that all the elements are in the required order.
 
-```
+```cobol
 01 group-item.
         05 tabl occurs 10 times
              indexed by ind
@@ -38376,7 +38376,7 @@ This example is a simple sort in which the table is sorted in order using the ke
 
 This example is a simple sort in which the table is sorted in ascending order using each entire element of the table (data item tabl) to determine the sequence.
 
-```
+```cobol
         working-storage section.
         01 group-item.
           05 tabl occurs 10 times.
@@ -38385,7 +38385,7 @@ This example is a simple sort in which the table is sorted in ascending order us
 ```
 
 
-```
+```cobol
 ...
 procedure division.
 ...
@@ -38398,7 +38398,7 @@ procedure division.
 
 This example is a sort in which the table is sorted based on specified key data items. The major key is elem-item2 even though it is not specified as a KEY in the OCCURS clause. The secondary is elem-item3. It is treated as a descending key for this sort because the DESCENDING (which is transitive across KEY data items) specified in the SORT statement takes precedence over the ASCENDING specified in the OCCURS clause.
 
-```
+```cobol
         working-storage section.
         01 group-item.
            05 tabl occurs 10 times
@@ -38419,7 +38419,7 @@ This example is a sort in which the table is sorted based on specified key data 
 
 This example sorts only the third instance of tabl2, that is tabl2 (3). It uses the qualified data item, elem-item1 of group2 as its key. In normal procedure division references, elem-item1 of group2 requires two levels of subscripting/indexing while in this reference it has none. Similarly, tabl2 normally requires two levels of subscripting, but cannot be subscripted as data-name-2 in the SORT statement. Instead it uses the value of t1-ind for determining which instance is sorted.
 
-```
+```cobol
         working-storage section.
         01 group-item.
            05 tabl1 occurs 10 times
@@ -38438,7 +38438,7 @@ This example sorts only the third instance of tabl2, that is tabl2 (3). It uses 
 ---
 
 
-```
+```cobol
 set t1-ind to 3.
 sort tabl2 (t1-ind) descending elem-item1 of group2.
 if group1 (3 1) ...
@@ -38446,7 +38446,7 @@ if group1 (3 1) ...
 
 Note that the following is also acceptable syntax for this sort statement.
 
-```
+```cobol
 sort tabl2 (t1-ind, ALL) descending elem-item1 of group2.
 ```
 
@@ -38457,7 +38457,7 @@ A dynamic-capacity table (or "dynamic table") is a table whose physical size, kn
 
 You define a dynamic table by coding an OCCURS clause with the keyword DYNAMIC. In the following example, any number of families may be stored, each having up 10 children. (If some family has more than 10 children, this is still allowed, but you may choose to signal a warning.)
 
-```
+```cobol
 01  family-record.
   03  family-code       PIC X(10).
   03  family  OCCURS DYNAMIC
@@ -38473,7 +38473,7 @@ You define a dynamic table by coding an OCCURS clause with the keyword DYNAMIC. 
 
 If Emily is born to family number 300 which previously had 2 children, you only need to code 3 as a subscript and a new element is automatically created:
 
-```
+```cobol
 MOVE "Emily" TO childs-name (300, 3)
 ```
 
@@ -38481,7 +38481,7 @@ You can SORT and SEARCH a dynamic table (if it has a key) just like a fixed-capa
 
 To know the current capacity (number of elements) of the table at any time, include the CAPACITY phrase, as in the example. The capacity may be changed using the SET statement, as in:
 
-```
+```cobol
       SET family-count TO 300
 or    SET family-count UP BY 10
 ```
@@ -38495,7 +38495,7 @@ The storage needed for a dynamic table is allocated and released entirely automa
 
 The initial capacity of a dynamic-capacity table may be defined using the VALUE clause with a TO phrase and several operands:
 
-```
+```cobol
 01  town-record.
   03  town-name    PIC X(20) OCCURS DYNAMIC FROM 1 TO 20
         VALUES ARE "Leeds", "Bordeaux", "Pisa" FROM (1) TO (3).
@@ -38523,7 +38523,7 @@ Because a dynamic-length elementary item may grow very large, the LIMIT phrase m
 
 When a new value is stored in a dynamic-length elementary item, the item's length is automatically adjusted to be equal to the length of the source. The following:
 
-```
+```cobol
 MOVE "This product is no longer available" TO my-dlei.
 ```
 
@@ -38554,7 +38554,7 @@ The user is cautioned that the contents of the data items in such cases may be u
 
 As an example, consider the following program fragment:
 
-```
+```cobol
 SELECT AFile ASSIGN USING AssignField
 ORGANIZATION IS RELATIVE
 ACCESS MODE IS SEQUENTIAL
@@ -38562,7 +38562,7 @@ FILE STATUS IS FileStatField
 ```
 
 
-```
+```cobol
 RELATIVE KEY IS RelKeyField.
 …
 FD  AFILE RECORD CONTAINS 80 CHARACTERS.
@@ -38595,7 +38595,7 @@ Although these results are well-defined, it is unlikely that the content of File
 
 A second example where this principle applies to multiple receiving operands (without reference to any sending operands) can be found in the multiple-destination COMPUTE statement:
 
-```
+```cobol
 01  Receiving-rec.
     03  Map-1.
         05  Res-1 PIC V9(8).
@@ -38607,7 +38607,7 @@ A second example where this principle applies to multiple receiving operands (wi
 ```
 
 
-```
+```cobol
         05  FILLER PIC XX.
         05  Res-3 PIC V9(8).
 
@@ -38618,7 +38618,7 @@ In this instance, the result of execution is well-defined; however, it is unlike
 
 A third example of circumstances in which there are multiple receiving operands specified, with results that might not be expected, can be found in the CALL statement:
 
-```
+```cobol
 01  Parameter-rec.
     03  Params.
         05  FILLER PIC XXX.
@@ -38637,7 +38637,7 @@ In this case, the three by-reference parameters are treated as receiving operand
 
 The fourth example is a slight modification of the second:
 
-```
+```cobol
 CALL "Some-Prog" USING REFERENCE Param-1 Param-2 Param-3
 RETURNING Parameter rec.
 ```
@@ -38682,7 +38682,7 @@ NOTE All source elements are source units as well. This is only partially indica
 **Figure D.2 — Compilation group sample structure example**
 
 
-```
+```cobol
 *> Compilation group start
 *> Compilation unit F-1 start
 *> Source unit F-1 start
@@ -38795,7 +38795,7 @@ A runtime element results from the compilation of a function, method, or program
 
 The following compilation group is an example of some of these concepts
 
-```
+```cobol
 FUNCTION-ID.  factorial.
 DATA DIVISION.
 LINKAGE SECTION.
@@ -38834,7 +38834,7 @@ WORKING-STORAGE SECTION.
 ```
 
 
-```
+```cobol
 01  global-item PIC X(30) GLOBAL VALUE "The factorial is: "
 PROCEDURE DIVISION.
       COMPUTE i = factorial (11)
@@ -39125,14 +39125,14 @@ In a source element describing the activating runtime element, the values of the
 ---
 
 
-```
+```cobol
 PROGRAM-ID.  EXAMPLE.
 PROCEDURE DIVISION USING NUM, PCODE, COST.
 ```
 
 and may be called by executing:
 
-```
+```cobol
 CALL "EXAMPLE" USING NBR, PTYPE, PRICE.
 ```
 
@@ -39244,24 +39244,24 @@ The simplest method is for a process (called a requestor) to send a message to a
 
 The requestor sends the message.
 
-```
+```cobol
 SEND TO the-balance-provider FROM the-balance-provider-input RETURNING my-message-tag
 ```
 
 At this point, the requestor can go on processing and ask for the return right away or wait for the return later. My-message-tag will contain the information about the server and the message.
 
-```
+```cobol
 MOVE 0 TO bpo-length
 ```
 
 
-```
+```cobol
 RECEIVE FROM my-message-tag GIVING the-balance-provider-output bpo-length
 ```
 
 After requesting a return, one can wait forever or give a time limit by adding this adding this CONTINUE phrase to the end of the RECEIVE.
 
-```
+```cobol
 CONTINUE AFTER 23 SECONDS *> or MESSAGE RECEIVED
 
 *> ON EXCEPTION can be added to see if something went wrong
@@ -39271,14 +39271,14 @@ CONTINUE AFTER 23 SECONDS *> or MESSAGE RECEIVED
 
 The server gets the message with a RECEIVE. Receive-message-tag has to be NULL, so the system knows to accept messages from anywhere.
 
-```
+```cobol
 SET receive-message-tag TO NULL
 RECEIVE FROM receive-message-tag GIVING the-balance-provider-input
 ```
 
 This would wait until a message comes in. Or, use a CONTINUE phrase to do other processing until another run unit sends a message.
 
-```
+```cobol
 RECEIVE FROM receive-message-tag GIVING the-balance-provider-input
      CONTINUE AFTER 200 seconds
 END-RECEIVE
@@ -39291,7 +39291,7 @@ END-IF
 
 When it figures out the answer, it returns it.
 
-```
+```cobol
 SEND TO receive-message-tag FROM the-balance-provider-input
 ```
 
@@ -39305,20 +39305,20 @@ The intrinsic function facility provides a means of returning a value that is de
 The user invokes an intrinsic function by specifying the word FUNCTION followed by the name of the function optionally followed by arguments in parentheses. For example:
 
 
-```
+```cobol
 MOVE FUNCTION MAX (1, a) TO b
 ```
 
 Intrinsic-function-names are not reserved words and the word FUNCTION is used so they do not have to be reserved. However, the user can specify that one or more intrinsic-function-names are to be used without the word FUNCTION by using the intrinsic format of the function-specifier in the REPOSITORY paragraph. For example, if you do not want to use the word FUNCTION before any intrinsic-function-names in a source unit, you can specify the following repository paragraph:
 
-```
+```cobol
 REPOSITORY.
         FUNCTION ALL INTRINSIC.
 ```
 
 and all of the intrinsic function names can be referenced without being preceded by the word FUNCTION. However, in this example none of the intrinsic function names could then be specified as user-defined words for the scope of that REPOSITORY paragraph. If you want to omit the word FUNCTION before one or more particular intrinsic function names, individual intrinsic function names can be specified, for example:
 
-```
+```cobol
 REPOSITORY.
         FUNCTION CURRENT-DATE, DAY-OF-INTEGER INTRINSIC.
 ```
@@ -39327,13 +39327,13 @@ Intrinsic functions differ from user-defined functions in that they are intrinsi
 
 Some functions have no arguments because they provide a known quantity. An example is the CURRENT-DATE function, which provides information about the current date, time and difference from UTC. For example, you can specify
 
-```
+```cobol
 MOVE FUNCTION CURRENT-DATE TO the-date-info
 ```
 
 or, if you are interested only in YYYYMMDD you can specify
 
-```
+```cobol
 MOVE FUNCTION CURRENT-DATE (1: 8) TO the-date
 ```
 
@@ -39341,14 +39341,14 @@ and you will get a date of the form yyyymmdd. Notice that you can reference modi
 
 Some functions that allow a variable number of arguments can be specified with a table as an argument, which means that the entire table is the series of arguments. An example is the MAX function where one may specify
 
-```
+```cobol
 MOVE FUNCTION MAX (a-table (ALL)) TO a-variable
 ```
 
 If you are interested only in the first part of a return that is a string (assume a-table is a table of PIC X(10) items) you may specify
 
 
-```
+```cobol
 MOVE FUNCTION MAX (a-table (ALL)) (1: nbr-chars) TO a-variable
 ```
 
@@ -39395,7 +39395,7 @@ Other than preserving the data structure as described above, weakly-typed items 
 
 The following example illustrates the use of the TYPEDEF clause and the TYPE clause to define and use a type:
 
-```
+```cobol
 1    Feature TYPEDEF.                    *> defines a type-name Feature
      2    Feature-name PIC X(15) OCCURS 10.  *> with this description
 
@@ -39406,7 +39406,7 @@ The following example illustrates the use of the TYPEDEF clause and the TYPE cla
 
 This results in a record with the description:
 
-```
+```cobol
 1    Equipment.
      2    Equipment-id OCCURS 100 TIMES.
           3    Feature-list
@@ -39466,7 +39466,7 @@ The restrictions for strongly-typed group items are summarized as follows:
 
 The following example illustrates the use of the TYPEDEF clause with the STRONG phrase and the TYPE clause to define and use a strongly typed group item:
 
-```
+```cobol
 1 DateDB2 TYPEDEF STRONG. *> defines a strong type-name DateDB2
     2  YYY      PIC 9(04).
        88 Valid-year       VALUE 1600 THRU 9999.
@@ -39481,7 +39481,7 @@ The following example illustrates the use of the TYPEDEF clause with the STRONG 
 
 This results in a strongly typed record with the description:
 
-```
+```cobol
     1 Work-date TYPEDEF DateDB2.
         2  YYY     PIC 9(04).
            88 Valid-year    VALUE 1600 THRU 9999.
@@ -39541,7 +39541,7 @@ This is of special significance for strongly-typed group items. The address of a
 
 Consider the following program prototype for a program that returns a pointer to a record.
 
-```
+```cobol
 Program-id. Get-next-record is prototype. *> returns the address of a
 record
 Data division.
@@ -39553,7 +39553,7 @@ End program get-next-record.
 
 Suppose a client program has the following REPOSITORY paragraph and data declarations:
 
-```
+```cobol
 Repository.
       Program Get-next-record.
 ...
@@ -39566,20 +39566,20 @@ Repository.
 
 The following procedure division statement calls the program described by the prototype:
 
-```
+```cobol
 Call get-next-record returning p
 ```
 
 The data can be accessed via my-wreck because the pointer p contains the location of a record.
 
-```
+```cobol
 Set address of my-wreck to p
 Move "SAM JONES" to name in my-wreck
 ```
 
 Consider a second example based on the fact that many Application Program Interfaces (APIs) require a pointer as a parameter. The data division contains the following declarations:
 
-```
+```cobol
   01 p2 usage pointer.
 
   01 data-record.  *>  the full record layout is described
@@ -39591,14 +39591,14 @@ If you want to pass a pointer to the program process-record, you could code:
 ---
 
 
-```
+```cobol
 Set p2 to address of data-record
 Call "process-record" using p2
 ```
 
 Or, you could pass the address of data-record with the following single statement:
 
-```
+```cobol
 Call "process-record" using address of data-record
 ```
 
@@ -39635,7 +39635,7 @@ Boolean values can be specified in literals with an opening separator B", for ex
 
 Boolean operators B-AND, B-OR, B-XOR, and B-NOT can be used to perform "and", "or", "exclusive or", and "negate" operations, respectively, on boolean items. Boolean operators B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC may be used to move the boolean digits comprising a boolean item to the left (towards the high order boolean digits) or to the right (low order boolean digits). In circular shift operations B-SHIFT-LC and B-SHIFT-RC the boolean digits that are shifted out of the boolean item are placed in the order that they occur in it the low order or high order positions respectively. In shift operations B-SHIFT-L and B-SHIFT-R the low order or high order positions are filled with boolean ZEROES. Boolean operators are used in boolean expressions; for example:
 
-```
+```cobol
 01    My-flag    PIC  1111  USAGE BIT VALUE B"0000".
 01    My-flag-2  PIC  1111  USAGE BIT.
 ...
@@ -39661,7 +39661,7 @@ flag-2, keeping
 
 Alternatively, the last COMPUTE statement could be replaced by:
 
-```
+```cobol
 MOVE  B"1"  to   My-flag-2(1:1)   *>  set bit 1 ON using reference
                                    *>  modification
 ```
@@ -39686,7 +39686,7 @@ Boolean items can be tested in two ways:
 
 1) as a boolean condition, if the length of an item is 1 bit position or 1 character position; for example:
 
-```
+```cobol
 01  Single-bit-item pic 1 usage bit.
 01  Multiple-bit-item  pic 1(7) usage bit.
   ...
@@ -39696,7 +39696,7 @@ IF  Single-bit-item = b"1"
 
    or, using reference modification; for example:
 
-```
+```cobol
 IF  Multiple-bit-item (4:1) = b"1"
     THEN CALL  a-program *>  calls if rightmost bit in
                              *>Multiple-bit-bit-item is true(1)
@@ -39704,13 +39704,13 @@ IF  Multiple-bit-item (4:1) = b"1"
 
 2) as a relation condition, testing for equal or not equal; for example:
 
-```
+```cobol
           IF   My-flag-2   EQUAL   B"1000"  THEN CALL a-program
 ```
 
 Boolean items can be converted to integer with the INTEGER-OF-BOOLEAN intrinsic function, and integer items can be converted to boolean with the BOOLEAN-OF-INTEGER intrinsic function. For example:
 
-```
+```cobol
 01  bit-item  PIC 1(8) usage BIT.
 01  integer-item   PIC 9(5)  VALUE  544.
 01  integer-item-2   PIC 9(3).
@@ -39719,7 +39719,7 @@ MOVE  FUNCTION  BOOLEAN-OF-INTEGER ( integer-item , 6) TO bit-item.
 ```
 
 
-```
+```cobol
    *> the function returns the low order 6 bits of the binary
    *> representation of the integer value, and MOVE stores it in bit-item,
    *> padding on the right with 0's
@@ -39736,7 +39736,7 @@ The alignment of items of usage bit depends on how the data description entry is
 
 The simplest case is that of a single elementary data item. The first bit is aligned on a byte boundary and subsequent bits are mapped contiguously, continuing across byte boundaries if necessary. Filler bits are not used to fill up a partially-used byte. The following example illustrates this, where a '1' indicates an assigned bit position.
 
-```
+```cobol
                               Bit position      Byte # in data item
                               1 2 3 4 5 6 7 8
 
@@ -39762,7 +39762,7 @@ Within an alphanumeric group item, a national group item, a bit group item, or a
 
 The following example illustrates the generation of implicit filler to align on a byte boundary in an alphanumeric group item:
 
-```
+```cobol
                                     Bit position      Byte # in data item
                                     1 2 3 4 5 6 7 8
 
@@ -39783,7 +39783,7 @@ The generated filler is not part of the preceding data, but is part of any group
 
 If group-2 were described with the GROUP-USAGE BIT phrase, the alignment would be different, because there is no automatic alignment for a bit group following a bit item:
 
-```
+```cobol
                                     Bit position      Byte # in data item
                                     1 2 3 4 5 6 7 8
 
@@ -39801,7 +39801,7 @@ If group-2 were described with the GROUP-USAGE BIT phrase, the alignment would b
 
 The ALIGNED clause can be used to override the default bit alignment; in the following example:
 
-```
+```cobol
                                     Bit position      Byte # in data item
                                     1 2 3 4 5 6 7 8
 01 group-1.                                 1-2
@@ -39824,7 +39824,7 @@ When filler bits are needed at the end of a record, the level number of the fill
 
 \*> filler at the same level as the last data item in the record
 
-```
+```cobol
 1      G1.
        2 G1-a USAGE BIT PIC 1.
        2 G1-b USAGE BIT PIC 11.
@@ -39833,7 +39833,7 @@ When filler bits are needed at the end of a record, the level number of the fill
 
 \*> filler at the level of the highest level superordinate item
 
-```
+```cobol
 1      G2.
        2  Fld-1 PIC X.
        2  Fld-2 GROUP-USAGE BIT.
@@ -39904,7 +39904,7 @@ The following categories of data can be represented in usage national:
 
 The following illustrates data description entries for defining data items with usage national:
 
-```
+```cobol
 01  a-rec usage national.
     02  nat-item          picture   N(10).       *> category national
   02  nat-ed-item     picture   NN/NN/NNNN. *> category national edited
@@ -39924,7 +39924,7 @@ A data item with usage national can be moved, compared, inspected, written, read
 The default class and category of a group item containing data items of usage national is alphanumeric, just as it is for a group item containing other data items. A group can be explicitly given class and category national by coding the GROUP-USAGE NATIONAL phrase at the group level of a data description entry when all subordinate data items in the group, and in any contained groups, are of class and category national. For example:
 
 
-```
+```cobol
 01  Group-1  GROUP-USAGE NATIONAL.
     02    subgroup-1.
         03 elem-2  PIC NNN.
@@ -39961,7 +39961,7 @@ There are four options in the COBOL-WORDS directive, EQUATE, UNDEFINE, SUBSTITUT
 
 The EQUATE option allows a programmer to create a synonym for a particular reserved word, context-sensitive word, or function name, allowing that new word to be used elsewhere in the program as if it were the original word. For example:
 
-```
+```cobol
 COBOL-WORDS EQUATE MOVE-IT WITH MOVE
 
     .
@@ -39977,7 +39977,7 @@ MOVE-IT a TO b *> this is now the same as the prior
 
 The UNDEFINE option removes the specified word from the lists of reserved words, context-sensitive words, or function names, allowing that word to be used as a user-defined word within the program. This can be useful when a change of compiler that includes new reserved words that conflict with existing code. For example:
 
-```
+```cobol
 COBOL-WORDS UNDEFINE MOVE
 
     .
@@ -39997,7 +39997,7 @@ MOVE a TO b *> This is now a syntax error because
 
 The SUBSTITUTE option redefines a reserved word, context-sensitive word, or function name, allowing the redefined word to be used as a user-defined word within the program, and the substituted word to be used in its place. For example:
 
-```
+```cobol
 COBOL-WORDS SUBSTITUTE MOVE BY MOVE-IT
 
     .
@@ -40018,7 +40018,7 @@ MOVE-IT 1 TO move *> this will act like a COBOL move
 
 The RESERVE option creates a new reserved word. This is useful when planning to migrate to a different COBOL compiler that already has this word as either reserved, context-sensitive, or as an intrinsic function name. It can be also useful to reserve a data-name for future use.
 
-```
+```cobol
 COBOL-WORDS RESERVE MOVE-IT
     .
     .
@@ -40084,7 +40084,7 @@ If the application is to be ported to other processors or is designed for users 
 
 If you simply want to select a single alphanumeric collating sequence or a single national collating sequence, or one of each, for use throughout the entire compilation unit, code a PROGRAM COLLATING SEQUENCE clause in the OBJECT-COMPUTER paragraph. This is illustrated in the following code fragment, using standard collating sequences:
 
-```
+```cobol
 PROGRAM-ID.   OrderParts.
      ...
 ENVIRONMENT DIVISION.
@@ -40112,7 +40112,7 @@ The default collating sequence for primary and alternate record keys of indexed 
 
 The following code fragment illustrates a file control entry for specifying multiple alternate indexes, some having a unique collating sequence and others having the native collating sequence:
 
-```
+```cobol
 ...
 INPUT-OUTPUT SECTION.
 FILE CONTROL.
@@ -40142,7 +40142,7 @@ Selection of a collating sequence that equates two or more characters can be use
 
 The collating sequence known at compile-time is usually the native collating sequence of the processor for which the runtime module is being compiled. When THROUGH phrases are specified in a VALUE clause or in an EVALUATE statement, evaluation of the range of values might occur at compile time or at runtime, depending on the implementation. When the evaluation occurs at compile time, the actual range of values at runtime might not include the expected values because the runtime collating sequence might be different from the compile-time sequence. To deal with this, an alphabet-name can be specified in THROUGH phrases to ensure that the range of values at runtime is a specific set of values. For example:
 
-```
+```cobol
 ENVIRONMENT DIVISION.
 ...
 SPECIAL-NAMES.
@@ -40227,7 +40227,7 @@ In example 2, '$' is the currency string and 'q' is the currency symbol. The val
 
 To define a multiple-character currency string, the CURRENCY SIGN clause in the SPECIAL-NAMES paragraph needs to be coded; for example:
 
-```
+```cobol
 SPECIAL-NAMES.
 CURRENCY-SIGN IS "EUR " WITH PICTURE SYMBOL "u".   *> note the space after
 EUR
@@ -40237,7 +40237,7 @@ Then the letter "U" can be used in picture character strings; for example: PIC U
 
 The following code fragment illustrates a class test using the coded character set associated with the name CYRILLIC, assuming the implementor has defined the name CYRILLIC and the associated coded character set:
 
-```
+```cobol
 SPECIAL-NAMES.
 ALPHABET ok-data FOR ALPHANUMERIC IS CYRILLIC.
 ...
@@ -40284,7 +40284,7 @@ At startup, a user-default locale is available to the run unit and will be used 
 
 A SET statement can be used to switch locales for a single locale category or for all categories at once. For example, if the SYSTEM-DEFAULT locale is to be used just for numeric formatting, a SET statement can be coded as follows:
 
-```
+```cobol
 SET LOCALE LC_MONETARY TO SYSTEM-DEFAULT
 ```
 
@@ -40298,7 +40298,7 @@ If a specific locale or multiple specific locales are to be used in an applicati
 
 The following code fragment illustrates the code for identifying and switching locales, assuming the implementor has provided locales named French-1 and Swiss-2:
 
-```
+```cobol
 PROGRAM-ID.   IndexParts.
 ENVIRONMENT DIVISION.
 OBJECT-COMPUTER.
@@ -40358,7 +40358,7 @@ It is always a good idea to save the address of the current locale before switch
 
 The implementor may, but is not required to, support inter-operation of COBOL with other programming languages; one example is the C programming language. When support is provided, the implementor decides whether a locale switch for the user-default locale in an activated non-COBOL runtime module is capable of being recognized on return to COBOL. If supported, recognition in COBOL is not automatic; execution of a SET statement specifying the user-default locale is required in COBOL; for example, to access all categories of the new locale:
 
-```
+```cobol
 SET LOCALE LC_ALL TO USER-DEFAULT.
 ```
 
@@ -40371,7 +40371,7 @@ To have an item edited entirely in accordance with the locale specification, inc
 
 For example:
 
-```
+```cobol
 01 US-amount PICTURE +$9.9 LOCALE SIZE IS 10.
 ```
 
@@ -40379,7 +40379,7 @@ results in a signed numeric-edited field 10 characters long that will be edited 
 
 If a specific locale is to be used for editing, a locale-name needs to be assigned to it in the SPECIAL-NAMES paragraph, for example, my-locale in the following:
 
-```
+```cobol
 SPECIAL-NAMES.
      LOCALE my-locale is USA-1.
 *>  assuming the implementor has given you a way to define or reference a
@@ -40393,7 +40393,7 @@ DATA DIVISION.
 Multiple locales may be used; for example, if a report had US currency in one column and Italian currency in another, one could define:
 
 
-```
+```cobol
 LOCALE my-US-locale is USA-1.
 LOCALE my-Italian-locale is Italian-1. *> assuming locales named USA-1 and
                                         *> Italian-1
@@ -40413,7 +40413,7 @@ DATA DIVISION.
 
 To use a collating sequence specified by a locale throughout the entire compilation unit, include a PROGRAM COLLATING SEQUENCE clause that specifies an alphabet-name that is associated with the locale facility. The following code fragment illustrates the selection of a locale for a national collating sequence and the selection of a standard alphanumeric collating sequence:
 
-```
+```cobol
 OBJECT-COMPUTER.
      PROGRAM COLLATING SEQUENCE FOR ALPHANUMERIC IS ASCII-Sort
                                  FOR NATIONAL IS UCS-Sort.
@@ -40427,7 +40427,7 @@ This causes the runtime national collating sequence to be the collating sequence
 
 The following code fragment illustrates use of a single locale-based collating sequence in the SORT statement:
 
-```
+```cobol
 PROGRAM-ID. IndexParts.
 ...
 SPECIAL-NAMES.
@@ -40458,7 +40458,7 @@ The switching of locales used for collating sequences is illustrated in D.14.3.2
 
 It is possible to have the case classification of letters determined by locale category LC_CTYPE, which defines character classification, case conversion, and other character attributes. To do this, include a CHARACTER CLASSIFICATION clause in the OBJECT-COMPUTER paragraph. For example:
 
-```
+```cobol
 OBJECT-COMPUTER.
     CHARACTER CLASSIFICATION IS GERMAN, JAPANESE.
     *> GERMAN applies to USAGE DISPLAY, JAPANESE to USAGE NATIONAL
@@ -40485,14 +40485,14 @@ Locale-based date and time formatting are provided by the intrinsic functions LO
 
 To convert a given date field to a locale-based format in accordance with a specific locale, use the LOCALE-DATE function and specify the locale's locale-name as the second argument; for example:
 
-```
+```cobol
 MOVE FUNCTION LOCALE-DATE (some-date-field, my-italian-locale) TO  a-date-field
 ```
 
 To obtain the current date in a locale-based format in accordance with the current locale, use the LOCALE-DATE function without specifying a locale as the second argument; for example:
 
 
-```
+```cobol
 MOVE FUNCTION LOCALE-DATE (CURRENT-DATE (1:8)) TO a-date-field.
 ```
 
@@ -40610,7 +40610,7 @@ Some latitude is given to implementors to specify alternative treatment of fatal
 
 Inline processing takes precedence over declarative processing when there is no specific phrase exception processing phrase (like SIZE ERROR) in the statement that caused the exception. The inline process might look like this:
 
-```
+```cobol
 PERFORM
   COMPUTE something
        >* **next statement**
@@ -40637,7 +40637,7 @@ END-PERFORM
 
 You could avoid termination with something like this:
 
-```
+```cobol
 PERFORM
     COMPUTE something >* results in a size error
 ```
@@ -40646,7 +40646,7 @@ PERFORM
 ---
 
 
-```
+```cobol
 >* next statement
     >* more statements
     >* execution goes to FINALLY
@@ -40839,7 +40839,7 @@ In the following examples, "sbidi" stands for standard-binary intermediate data 
 
 'Rounding' in the examples below implies the application of the rules of the INTERMEDIATE ROUNDING clause. The application of the ROUNDED phrase is explicitly described in the examples.
 
-```
+```cobol
 1  A  pic s9(4) value +8000.
 1  B  pic s9(4) value +3000.
 1  C  pic s9(4) value -4001.
@@ -40873,7 +40873,7 @@ COMPUTE D ROUNDED = D + E
 ---
 
 
-```
+```cobol
       *> move adjusted ir-1 to D
       *> end
 
@@ -40930,7 +40930,7 @@ In the following examples, "sbidi" stands for standard-binary intermediate data 
 
 'Rounding' in the examples below implies the application of the rules of the INTERMEDIATE ROUNDING clause according to the rules of the floating-point standard. The application of the ROUNDED phrase is explicitly described in the examples.
 
-```
+```cobol
 1  A  pic s9(4) value +8000.
 1  B  pic s9(4) value +3000.
 1  C  pic s9(4) value -4001.
@@ -40969,7 +40969,7 @@ COMPUTE F = A + B + C
 ---
 
 
-```
+```cobol
     *> convert A to sbidi  as ir-1
     *> convert B to sbidi  as ir-2
     *> add ir-1, ir-2 with rounding, store in ir-1
@@ -41045,7 +41045,7 @@ Each checking account is represented by an account instance. Each instance has i
 
 Within the body of program code that defines a class, instances of the checking account class could be defined as follows:
 
-```
+```cobol
 . ...
 OBJECT.
 DATA DIVISION.
@@ -41074,7 +41074,7 @@ Since each instance object is unique, it has a unique reference value that is ge
 
 EXAMPLE:
 
-```
+```cobol
 . . .
 OBJECT.
 DATA DIVISION.
@@ -41092,7 +41092,7 @@ PROCEDURE DIVISION.
 
 The data item a-checking-account can be used to refer to a specific instance. A data item that has been defined as an object reference can be set equal to another data item defined as an object reference through the use of the SET statement as follows:
 
-```
+```cobol
         SET an-account TO a-checking-account.
 ```
 
@@ -41111,13 +41111,13 @@ EXAMPLE:
 
 The definition of a data item that can refer only to an object of the CheckingAccount class or one of its subclasses is:
 
-```
+```cobol
     1   an-account   USAGE IS OBJECT REFERENCE CheckingAccount.
 ```
 
 The definition of a data item that can hold a reference to any object is as follows:
 
-```
+```cobol
     1   an-object   USAGE IS OBJECT REFERENCE.
 ```
 
@@ -41136,7 +41136,7 @@ EXAMPLE:
 The checking account class shown below describes a factory object, which is called the checking account factory object. To create a new checking account instance, a method in the checking account factory object is used. To keep track of the number of checking account instances a data item in the factory object can be used. Whenever a new instance is created, 1 can be added to the value; whenever an instance is removed, 1 can be subtracted from the value.
 
 Sample code for the checking account factory object could be as follows:
-```
+```cobol
     CLASS-ID. CheckingAccount INHERITS Base.
     ENVIRONMENT DIVISION.
     CONFIGURATION SECTION.
@@ -41180,19 +41180,19 @@ EXAMPLE:
 
 Whenever an application needs to use an object, it invokes a method to act on the instance object. Let's assume the CheckingAccount class contains the methods deposit, withdraw and balance and that an-account references an instance of the Account class. The syntax to deposit an amount to an account is as follows:
 
-```
+```cobol
         INVOKE an-account "deposit" USING in-amount
 ```
 
 Similarly, the syntax to determine the current balance of an account is:
 
-```
+```cobol
         INVOKE an-account "balance" RETURNING current-balance
 ```
 
 An equivalent statement illustrating inline method invocation is:
 
-```
+```cobol
         MOVE an-account::"balance" TO current-balance
 ```
 
@@ -41202,7 +41202,7 @@ Assume a program wants to determine the balance of a checking account.
 
     Program Code
 
-```
+```cobol
     WORKING-STORAGE.
     ....
     01  a-checking-account-object USAGE IS OBJECT REFERENCE CheckingAccount
@@ -41213,7 +41213,7 @@ Assume a program wants to determine the balance of a checking account.
 ```
 
 
-```
+```cobol
 ....
 INVOKE a-checking-account-object "balance"  RETURNING the-balance
 *> assume the object
@@ -41224,7 +41224,7 @@ account-object
 ```
 
 Checking Account Class
-```
+```cobol
 ....
 OBJECT.
 DATA DIVISION.
@@ -41258,7 +41258,7 @@ Method prototypes are method skeletons that define the method name, parameters, 
 EXAMPLE:
 
 The method prototype for the calculateInterest method of the SavingsAccount class is as follows:
-```
+```cobol
 METHOD-ID.  calculateInterest.
 DATA DIVISION.
 LINKAGE SECTION.
@@ -41267,7 +41267,7 @@ LINKAGE SECTION.
 ```
 
 
-```
+```cobol
 PROCEDURE DIVISION USING interest-rate RETURNING interest-amount.
 END METHOD calculateInterest.
 ```
@@ -41337,7 +41337,7 @@ Some sample code for the account and checking account classes is shown below:
 
 <u>Account Class</u>
 
-```
+```cobol
 CLASS-ID.  Account INHERITS Base.
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
@@ -41378,7 +41378,7 @@ END CLASS Account.
 
 CheckingAccount Class
 
-```
+```cobol
 CLASS-ID. CheckingAccount INHERITS Account.
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
@@ -41423,7 +41423,7 @@ EXAMPLE:
 
 One part of a banking application can be written to deal with any kind of account. Data items that have been declared such as:
 
-```
+```cobol
       01  an-account      USAGE OBJECT REFERENCE Account.
 ```
 
@@ -41433,7 +41433,7 @@ A different part of the banking application can be written to deal only with a s
 
 NOTE    In this example, no classes inherit from the CheckingAccount class.
 
-```
+```cobol
       01  an-account   USAGE OBJECT REFERENCE CheckingAccount.
 ```
 
@@ -41446,14 +41446,14 @@ These are some examples of restrictions imposed by compile time conformance chec
 
 1) Let's assume there is a class A with a subclass A1, and a source element containing the following definitions:
 
-```
+```cobol
 1 or-1 object reference A.
 1 or-2 object reference A1.
 ```
 
 The statement
 
-```
+```cobol
 SET or-2 to or-1
 ```
 
@@ -41461,7 +41461,7 @@ is invalid, because or-1 may contain, for example, a reference to class A, which
 
 2) It is not permitted to pass or to return a strongly-typed group item having a subordinate item that is an object reference for ACTIVE-CLASS. At runtime, the class of the activating element may be different from the class of the activated element; that is, the two object references are restricted to different classes. These, again, are not known at compile time. (An object reference cannot be subordinate to a group item that is not strongly typed.)
 
-```
+```cobol
 Class A.
 ...
 Method-Id.  M-A.
@@ -41492,7 +41492,7 @@ Working-Storage Section.
 ```
 
 
-```
+```cobol
      2 or-b object reference active-class.
 ...
 Linkage Section.
@@ -41512,7 +41512,7 @@ In this invalid example, or-a is restricted to class A, or-b to class B, and nor
 
 Consider the following class:
 
-```
+```cobol
 Class-id. C inherits B.
 Factory.
  Method-id. M
@@ -41526,7 +41526,7 @@ End class C.
 
 Consider:
 
-```
+```cobol
 Invoke C "M" returning an-obj.
 ```
 
@@ -41542,12 +41542,12 @@ D
 
 Consider the following statements:
 
-```
+```cobol
 01 or-B object reference B.
 ```
 
 
-```
+```cobol
 01 or-C object reference C.
 01 or-D object reference D.
 
@@ -41562,7 +41562,7 @@ The compiler can statically determine that the first and second invokes are vali
 
 Let C-1 be a class with a subclass C-2, where C-1 contains a method M-1 and C-2 contains a method M-2. Assume further a client program or method contains:
 
-```
+```cobol
 1 or-1 object reference C-1.
    Invoke or-1 "M-1"
 ```
@@ -41571,7 +41571,7 @@ This is valid. Even when or-1 actually references an object of C-2, there is no 
 
 But:
 
-```
+```cobol
 Invoke or-1 "M-2"
 ```
 
@@ -41579,7 +41579,7 @@ is invalid, even when or-1 actually references an object of C-2, because the sig
 
 Note, however, that the object modifier can be used to get type-safe access to M2, with conformance checking at runtime:
 
-```
+```cobol
 Invoke or-1 as C2 "M-2".
 ```
 
@@ -41609,7 +41609,7 @@ A banking application may have defined a method in the Account class that prints
 
 Sample code for the Print Interface is shown below:
 
-```
+```cobol
 INTERFACE-ID. PrintReport.
    ENVIRONMENT DIVISION.
    CONFIGURATION SECTION.
@@ -41633,7 +41633,7 @@ EXAMPLE:
 
 Suppose we have three methods that print. The first method invokes the print method of whatever object pointer is passed to it. The second formats a packed decimal field and prints it, the third prints a variable length character string.
 
-```
+```cobol
 Method-id. PrintIt.
 Linkage section.
 01  In-o  usage object.
@@ -41672,13 +41672,13 @@ End Method PrintIt.
 
 If we invoke PrintIt with an object reference as in
 
-```
+```cobol
 Invoke aClass "PrintIt" using anObject.
 ```
 
 we would invoke the first method, which would invoke the "PrintMe" method of anObject. If we invoked PrintIt as follows:
 
-```
+```cobol
 Invoke aClass "PrintIt" using "FooBar", 3.
 ```
 
@@ -41687,7 +41687,7 @@ we would invoke the last method, and display "Foo".
 
 Invoking Printit with a numeric as follows:
 
-```
+```cobol
 Invoke aClass "PrintIt" using 32
 ```
 
@@ -41717,7 +41717,7 @@ Let's consider container classes which are typically used to hold references to 
 
 Suppose AccountCollection is a parameterized class whose definition is given elsewhere. Part of its class definition is as follows:
 
-```
+```cobol
 CLASS-ID.  AccountCollection INHERITS Base USING X.
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
@@ -41725,7 +41725,7 @@ REPOSITORY.
 ```
 
 
-```
+```cobol
     CLASS Base
     CLASS X.
 ...
@@ -41734,7 +41734,7 @@ END CLASS AccountCollection.
 
 In another source unit, the following would create a class which is a collection of checking accounts and an object reference for this new kind of class.
 
-```
+```cobol
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
 REPOSITORY.
@@ -41774,7 +41774,7 @@ Sample code for dynamic file assignment is illustrated below.
 
 NOTE The MOVE statements only have an effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed.
 
-```
+```cobol
 CLASS-ID. Employee INHERITS Base.
         ...
  OBJECT.
@@ -41852,7 +41852,7 @@ The following is an example of a very simple banking application, consisting of 
 
 Most object oriented applications have a conventional program to start the processing. BANKMAIN serves this function in this sample bank application.
 
-```
+```cobol
 PROGRAM-ID.    BANKMAIN.
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
@@ -41887,7 +41887,7 @@ The account class also has five instance methods:
 — withdraw subtracts an amount from the current balance of the account,
 — initializeAccount moves initial values into the instance data.
 
-```
+```cobol
 CLASS-ID.  Account  INHERITS Base.
 ENVIRONMENT DIVISION.
 CONFIGURATION SECTION.
@@ -41897,7 +41897,7 @@ FACTORY.
 ```
 
 
-```
+```cobol
     DATA DIVISION.
     WORKING-STORAGE SECTION.
     01  number-of-accounts     PIC 9(5) VALUE ZERO.
@@ -41953,7 +41953,7 @@ accounts.
 ---
 
 
-```
+```cobol
         WHEN "D"
             PERFORM get-amount
             INVOKE SELF "deposit" USING in-amount
@@ -42006,7 +42006,7 @@ METHOD-ID.    balance.
 ```
 
 
-```
+```cobol
         ELSE
            DISPLAY "Your Balance is Inadequate"
         END-IF
@@ -42046,7 +42046,7 @@ Each report is divided vertically into report groups. A report group is a block 
 
 Report files differ from other output files in that their FD entry has a REPORT clause but no level-01 record descriptions, and their entire content is written through the execution of one of the report writer procedural statements: INITIATE, GENERATE and TERMINATE. Records should not be written to report files in any other manner. The FILE-CONTROL and FD entries and the OPEN and CLOSE statements perform the same function for report files as for other output files. A source unit may contain more than one report file. In the following example, two reports are defined:
 
-```
+```cobol
 FD  SUMMARY-PRINT-FILE
         REPORTS ARE DETAILED-LISTING, SUMMARY-PRINT.
 ```
@@ -42111,7 +42111,7 @@ The CODE clause specifies information that is not to be printed that can be used
 
 The following example shows one instance of each of these optional clauses in the RD entry:
 
-```
+```cobol
 RD SUMMARY-PRINT
     PAGE LIMITS ARE 60 LINES
         HEADING 2
@@ -42159,7 +42159,7 @@ A PICTURE clause is used, in the same way as any other receiving operand, to ind
 
 The following example illustrates the basic report group description clauses:
 
-```
+```cobol
 01 TYPE PAGE HEADING.
    05  LINE 2.
        07  COL CENTER 40    VALUE "NAME OF MY COMPANY".
@@ -42232,7 +42232,7 @@ The GROUP INDICATE clause is designed to enable a data item (typically a control
 
 The OCCURS clause enables any part of a report group defined by an entry below level 01, whether it be a line, elementary item, or some item described at an intermediate level, to be repeated a given number or variable number of times. OCCURS clauses may be nested to print multi-dimensional tables. The STEP phrase gives the horizontal or vertical spacing between items and is necessary if the item has an absolute (horizontal or vertical) position.
 
-```
+```cobol
 03  LINE 4          OCCURS 4  STEP 1.
  *> The VALUE clause applies to each repetition
     05  COL 1    OCCURS 5  STEP 10    VALUE "PAY".
@@ -42294,7 +42294,7 @@ An entry with a SUM clause may be unprintable (without a COLUMN clause), so that
 
 In the following example, the SUM clause is used to produce subtotals at two levels.
 
-```
+```cobol
     RD  PAY-REPORT
         CONTROLS ARE WS-YEAR WS-MONTH.
 
@@ -42318,7 +42318,7 @@ In the following example, the SUM clause is used to produce subtotals at two lev
 ```
 
 
-```
+```cobol
         05  RS-MONTH-TOTAL-PAY      COL 51    PIC Z(6)9
 *> SUM OF RS-PAY would give the same result here:
             SUM OF RS-EMPLOYEE-TOTAL-PAY.
@@ -42354,7 +42354,7 @@ Although the description of the report groups and most of the physical and logic
 
 A typical sequence of execution might be as follows:
 
-```
+```cobol
         OPEN OUTPUT report-file
         INITIATE report-name
         obtain input data record(s)
@@ -42385,7 +42385,7 @@ A structured constant and its subordinate items are data items and can be used a
 
 The following example illustrates the format and content of a structured constant:
 
-```
+```cobol
 1  A-DATA-ITEM CONSTANT RECORD.
    2  FIELD-1 BINARY PICTURE S9(31).
    2  FIELD-2 DISPLAY PICTURE X(50).
@@ -42485,7 +42485,7 @@ The comments placed in these examples explain the use and effects of the various
 <a id="section-d-22-8-2"></a>
 ##### D.22.8.2 Example of validation of USAGE DISPLAY items
 
-```
+```cobol
   01  INPUT-RECORD.
 *>PIC 99 checks that IN-TYPE is 2 characters numeric;
       03  IN-TYPE          PIC 99
@@ -42539,7 +42539,7 @@ The comments placed in these examples explain the use and effects of the various
 ---
 
 
-```
+```cobol
         05  FILLER          PIC X(13).
 *>
 *>*********************************************************
@@ -42592,7 +42592,7 @@ The comments placed in these examples explain the use and effects of the various
 ```
 
 
-```
+```cobol
    *>After this statement has been executed:
    *>(1) the input record is unchanged;
    *>(2) input items are moved automatically to the target area;
@@ -42602,7 +42602,7 @@ The comments placed in these examples explain the use and effects of the various
 <a id="section-d-22-8-3"></a>
 ##### D.22.8.3 Example of validation of non-display items
 
-```
+```cobol
      01  MIXED-GROUP TYPEDEF STRONG.
          05  FLD-1               PIC S9(4)  USAGE COMP.
          05  FLD-2               PIC S9(7)  USAGE PACKED-DECIMAL.
@@ -42811,7 +42811,7 @@ The EDITING phrase of the PICTURE clause allows various characters or character 
 
 The following example could be used to put them around such an item:
 
-```
+```cobol
     01 item PIC IS L9999.99F
        EDITING "L" FOR NEGATIVE IS "("
        EDITING "F" FOR NEGATIVE IS ")"
@@ -42824,7 +42824,7 @@ The statement 'MOVE -123.45 TO item' would result in
 
 If you do not want spaces following the leading symbol, you would use floating symbols:
 
-```
+```cobol
     01 item PIC IS LLLL9.99F
        EDITING "L" FOR NEGATIVE IS "("
        EDITING "F" FOR NEGATIVE IS ")"
@@ -42837,7 +42837,7 @@ The statement 'MOVE -123.45 TO item' would result in
 
 Perhaps it is desired to put multiple characters in the result
 
-```
+```cobol
     01 item PIC IS L999.99
        EDITING "L" FOR NEGATIVE IS "DEBIT "
        BLANK WHEN ZERO.
@@ -42863,7 +42863,7 @@ In each of the following examples of the INSPECT statement, COUNT-n is assumed t
 
 EXAMPLE 1:
 
-```
+```cobol
 INSPECT ITEM TALLYING
       COUNT-0 FOR ALL "AB", ALL "D"
       COUNT-1 FOR ALL "BC"
@@ -42888,7 +42888,7 @@ INSPECT ITEM TALLYING
 
 EXAMPLE 2:
 
-```
+```cobol
    INSPECT ITEM TALLYING
       COUNT-0 FOR CHARACTERS
       COUNT-1 FOR ALL "A";
@@ -42908,7 +42908,7 @@ EXAMPLE 2:
 
 EXAMPLE 3:
 
-```
+```cobol
 INSPECT ITEM TALLYING
       COUNT-0 FOR ALL "AB" BEFORE "BC"
       COUNT-1 FOR LEADING "B" AFTER "D"
@@ -42931,7 +42931,7 @@ INSPECT ITEM TALLYING
 
 EXAMPLE 4:
 
-```
+```cobol
    INSPECT ITEM TALLYING
       COUNT-0 FOR ALL "AB" AFTER "BA" BEFORE "BC";
    INSPECT ITEM REPLACING
@@ -42945,7 +42945,7 @@ EXAMPLE 4:
 
 EXAMPLE 5:
 
-```
+```cobol
 INSPECT BACKWARD ITEM TALLYING
       COUNT-0 FOR ALL "AB" BEFORE "BC"
       COUNT-1 FOR LEADING "B"
@@ -42962,7 +42962,7 @@ INSPECT BACKWARD ITEM TALLYING
 | ABDBABC | 0 | 0 | 4 | AZDBABC |
 | BCABCABD | 1 | 0 | 4 | BCABCXYD |
 
-```
+```cobol
 INSPECT FUNCTION REVERSE (ITEM) TALLYING
       COUNT-0 FOR ALL "AB" BEFORE "BC"
       COUNT-1 FOR LEADING "B"
@@ -42986,14 +42986,14 @@ MOVE FUNCTION REVERSE (ITEM) TO ITEM
 
 EXAMPLE 6:
 
-```
+```cobol
 INSPECT ITEM CONVERTING
       "ABCD" TO "XYZX" AFTER QUOTE BEFORE "#".
 ```
 
 The above INSPECT is equivalent to the following INSPECT:
 
-```
+```cobol
 INSPECT ITEM REPLACING
     ALL "A" BY "X" AFTER QUOTE BEFORE "#"
     ALL "B" BY "Y" AFTER QUOTE BEFORE "#"
@@ -43007,7 +43007,7 @@ INSPECT ITEM REPLACING
 
 EXAMPLE 7:
 
-```
+```cobol
 INSPECT ITEM CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"-
     "abcdefghijklmnopqrstuvwxyz"
     TO ALL "?"
@@ -43127,7 +43127,7 @@ Augment identifier-2 with current BY value
 
 An example of free-form reference format follows. It is assumed that each line except the first one begins in column 1, but they can begin in any column. The first line begins in column 8.
 
-```
+```cobol
         >>SOURCE FORMAT IS FREE
 IDENTIFICATION DIVISION.
 PROGRAM-ID.  Free-form-example.
@@ -43172,7 +43172,7 @@ The compiler directives that are used for conditional compilation are the DEFINE
 
 The following examples illustrate how conditional compilation is used:
 
-```
+```cobol
 >>DEFINE compile-this AS 1
 >>DEFINE system-number AS 14
 >>DEFINE system-type AS "type A"
@@ -43211,7 +43211,7 @@ Startt.
 ```
 
 
-```
+```cobol
 >>END-IF
 
  ...
@@ -43225,7 +43225,7 @@ The CALL-CONVENTION directive indicates how a program-name or a method-name spec
 
 In the following example, if call-convention-name-1 indicates C names, all names without AS clauses are treated as C names and are case-sensitive:
 
-```
+```cobol
 >>CALL-CONVENTION IS COBOL          *> case-insensitive
      CALL "A-COBOL-PROGRAM" USING …
   …
@@ -43524,7 +43524,7 @@ may be used to set the minimum nonzero value permitted for any numeric or numeri
 
 The statement
 
-```
+```cobol
 SET CONTENT OF numeric-item TO FARTHEST-FROM-ZERO
 ```
 
@@ -43532,13 +43532,13 @@ may be used to set numeric-item to the positive value farthest from zero that ca
 
 That result is the same as that which might be obtained with the statement
 
-```
+```cobol
 MOVE HIGHEST-ALGEBRAIC (numeric-item) TO numeric-item.
 ```
 
 The statement
 
-```
+```cobol
 SET CONTENT OF signed-numeric item TO FARTHEST-FROM-ZERO SIGN NEGATIVE
 ```
 
@@ -43546,7 +43546,7 @@ may be used to set signed-numeric-item to the negative value farthest from zero 
 
 That result is the same as that which might be obtained with the statement
 
-```
+```cobol
 MOVE LOWEST-ALGEBRAIC (signed-numeric-item) TO signed-numeric-item.
 ```
 
