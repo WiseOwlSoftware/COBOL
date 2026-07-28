@@ -106,18 +106,19 @@ def decision_exit(cv, d, label_true="True", terminal="Exit"):
     cv.put(d.mid, d.right + 15 + len(label_true), terminal)
 
 
-def loop_back(cv, frm, to_row, join_col, join_from):
+def loop_back(cv, frm, to_row, join_col, join_from, loop_col=None):
     """Down out of `frm`, left along the bottom, up the margin, and right into (to_row, join_col).
 
     The arrival is a real JUNCTION, not an arrowhead floating near the target: whatever is already at the join
     — a box's left wall, or the vertical connector between two boxes — is upgraded to `┤`, so the line is
     visibly attached. The first draft of D.13 ran its arrow to a box edge that was not on that row at all and
     left it pointing into blank space."""
+    col = LOOP if loop_col is None else loop_col
     tail = frm.bottom + 2
     cv.vert(frm.bottom, tail, AXIS)
-    cv.put(tail, LOOP, "└" + "─" * (AXIS - LOOP - 1) + "┘")
-    cv.vert(to_row, tail, LOOP)
-    cv.put(to_row, LOOP, "┌" + "─" * (join_col - LOOP - 1))
+    cv.put(tail, col, "└" + "─" * (AXIS - col - 1) + "┘")
+    cv.vert(to_row, tail, col)
+    cv.put(to_row, col, "┌" + "─" * (join_col - col - 1))
     cv.junction(to_row, join_col, "┤", join_from)
 
 
@@ -158,7 +159,53 @@ def figure_d13():
     return cv.render()
 
 
-FIGURES = {"D.11": figure_d11, "D.13": figure_d13}
+def figure_d14():
+    """TEST AFTER, two conditions.
+
+    Printed original, folio 1158. A single main column with THREE returns: condition-2's True bypasses the
+    inner augment, condition-2's False path loops back above the body, and condition-1's False path loops all
+    the way back above `Set identifier-5`. The two loops run at different columns so they do not overlap."""
+    cv = Canvas()
+    outer, inner, bypass = 4, 10, AXIS + 20
+    cv.put(0, AXIS - 4, "Entrance")
+    a = cv.box(3, ["Set identifier-2 to", "current FROM value"], width=W)
+    cv.vert(0, a.top, AXIS)
+
+    b = cv.box(a.bottom + 4, ["Set identifier-5 to", "current FROM value"], width=W)
+    cv.vert(a.bottom, b.top, AXIS)
+    outer_join = a.bottom + 2
+
+    c = cv.box(b.bottom + 4, ["Execute specified set", "of statements"], width=W)
+    cv.vert(b.bottom, c.top, AXIS)
+    inner_join = b.bottom + 2
+
+    d2 = cv.box(c.bottom + 3, ["Condition-2"], rounded=True, width=W)
+    cv.vert(c.bottom, d2.top, AXIS)
+    cv.junction(d2.mid, d2.right, "├", "│")
+    cv.put(d2.mid, d2.right + 1, "─" * (bypass - d2.right - 1) + "┐")
+    cv.put(d2.mid - 1, d2.right + 3, "True")
+    cv.put(d2.bottom + 1, AXIS + 2, "False")
+
+    e = cv.box(d2.bottom + 3, ["Augment identifier-5", "with current BY value"], width=W)
+    cv.vert(d2.bottom, e.top, AXIS)
+    # condition-2 False loops back above the body; its True branch rejoins just below this box.
+    loop_back(cv, e, inner_join, AXIS, "│", loop_col=inner)
+    rejoin = e.bottom + 3
+    cv.vert(d2.mid, rejoin, bypass)
+    cv.put(rejoin, AXIS, "┌" + "─" * (bypass - AXIS - 1) + "┘")
+
+    d1 = cv.box(rejoin + 2, ["Condition-1"], rounded=True, width=W)
+    cv.vert(rejoin, d1.top, AXIS)
+    decision_exit(cv, d1)
+    cv.put(d1.bottom + 1, AXIS + 2, "False")
+
+    f = cv.box(d1.bottom + 3, ["Augment identifier-2", "with current BY value"], width=W)
+    cv.vert(d1.bottom, f.top, AXIS)
+    loop_back(cv, f, outer_join, AXIS, "│", loop_col=outer)
+    return cv.render()
+
+
+FIGURES = {"D.11": figure_d11, "D.13": figure_d13, "D.14": figure_d14}
 
 
 def splice(lines, num, body):

@@ -42247,28 +42247,55 @@ Representations of the actions of several types of PERFORM statements with varyi
 <a id="figure-d-14"></a>
 **Figure D.14 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions**
 
-
-Entrance
-
-Set identifier-2 to current FROM value
-
-Set identifier-5 to current FROM value
-
-Execute specified set of statements
-
-Condition-2 → True
-
-False ↓
-
-Augment identifier-5 with current BY value
-
-Condition-1 → True → Exit
-
-False ↓
-
-Augment identifier-2 with current BY value
-
-
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              │
+                ┌─────────────┴─────────────┐
+                │    Set identifier-2 to    │
+                │     current FROM value    │
+                └─────────────┬─────────────┘
+                              │
+    ┌─────────────────────────┤
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │    Set identifier-5 to    │
+    │           │     current FROM value    │
+    │           └─────────────┬─────────────┘
+    │                         │
+    │     ┌───────────────────┤
+    │     │                   │
+    │     │     ┌─────────────┴─────────────┐
+    │     │     │   Execute specified set   │
+    │     │     │       of statements       │
+    │     │     └─────────────┬─────────────┘
+    │     │                   │
+    │     │                   │
+    │     │     ╭─────────────┴─────────────╮  True
+    │     │     │        Condition-2        ├─────┐
+    │     │     ╰─────────────┬─────────────╯     │
+    │     │                   │ False             │
+    │     │                   │                   │
+    │     │     ┌─────────────┴─────────────┐     │
+    │     │     │    Augment identifier-5   │     │
+    │     │     │   with current BY value   │     │
+    │     │     └─────────────┬─────────────┘     │
+    │     │                   │                   │
+    │     └───────────────────┘                   │
+    │                         ┌───────────────────┘
+    │                         │
+    │           ╭─────────────┴─────────────╮
+    │           │        Condition-1        ├──── True ────►   Exit
+    │           ╰─────────────┬─────────────╯
+    │                         │ False
+    │                         │
+    │           ┌─────────────┴─────────────┐
+    │           │    Augment identifier-2   │
+    │           │   with current BY value   │
+    │           └─────────────┬─────────────┘
+    │                         │
+    └─────────────────────────┘
+</pre>
 
 <a id="section-d-27"></a>
 ### D.27 Example of free-form reference format
