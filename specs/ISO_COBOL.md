@@ -5216,7 +5216,7 @@ Required words are of two types:
 | + | Arithmetic operator - unary plus or addition |
 
 
-| Symbol | Description |
+| Word | Meaning |
 |--------|-------------|
 | – | Arithmetic operator - unary minus or subtraction |
 | * | Arithmetic operator - multiplication |
@@ -15249,7 +15249,9 @@ varying-clause 13.18.64, VARYING clause
 
    b) If the literal is boolean, 'PICTURE 1(length)'
 
-   c) If the literal is national, 'PICTURE N(length)' where length is the length of the literal as specified in 8.3.3, Literals.
+   c) If the literal is national, 'PICTURE N(length)'
+
+where length is the length of the literal as specified in 8.3.3, Literals.
 
 
 15) If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.
@@ -20711,7 +20713,7 @@ b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one
 
 7. Data items that are subordinate to the operand of a VALIDATE statement and are not processed during the statement's execution, as indicated by a value in their internal indicators signifying not processed, are considered to be neither valid nor invalid by the VALIDATE-STATUS clause but will cause the VALIDATE-STATUS clause's data item to be initialized, where applicable, as described in General rule 6. (See 13.18.38, OCCURS clause, and 13.18.41, PRESENT WHEN clause.)
 
-8. If the entry containing the VALIDATE-STATUS clause is subject to one or more OCCURS clauses, the processing defined in the above General rules applies to each occurrence of the subject of the entry and each corresponding occurrence of the data item referenced by identifier-**2**.
+8. If the entry containing the VALIDATE-STATUS clause is subject to one or more OCCURS clauses, the processing defined in the above General rules applies to each occurrence of the subject of the entry and each corresponding occurrence of the data item referenced by identifier-2.
 
 
 ---
@@ -20944,7 +20946,7 @@ FORMAT 1
 
 5) If a VALUE clause is specified in a data description entry of a group item, the group area is initialized without consideration for the individual elementary or group items contained within this group.
 
-6) If a VALUE clause is specified in a data description that also contains an OCCURS clause with the DEPENDING phrase, the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable- occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with an occurs-depending table when a data item is one of the following:
+6) If a VALUE clause is specified in a data description that also contains an OCCURS clause with the DEPENDING phrase, the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable-occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with an occurs-depending table when a data item is one of the following:
 
 
 a) a group data item that contains an occurs-depending table.
@@ -22414,7 +22416,7 @@ The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT s
    a) When none of the operands is
 
       — an intrinsic function;
-      — a data item described with usage binary**-**char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or
+      — a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or
       — a floating-point literal;
 
       the composite of operands shall not contain more than 31 digits.
@@ -22422,7 +22424,7 @@ The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT s
    b) When any of the operands is
 
       — an intrinsic function;
-      — a data item described with usage binary**-**char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or
+      — a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or
       — a floating-point literal;
 
       the composite of all other operands shall not contain more than 31 digits.
@@ -38684,7 +38686,9 @@ NOTE All source elements are source units as well. This is only partially indica
 *> Compilation group start
 *> Compilation unit F-1 start
 *> Source unit F-1 start
-FUNCTION-ID. F-1.        *> Source element start
+FUNCTION-ID.  F-1.        *> Source element start
+
+> ⚠ **CORRECTED — see the Addendum (C4).** The standard prints `FUNCTION-ID F-1.` here, without the separator period the paragraph header requires.
 ...
 END FUNCTION F-1.        *> Source element end
 *> Source unit F-1 end
@@ -42919,7 +42923,7 @@ INSPECT ITEM TALLYING
 
 | **Initial Value of ITEM** | **COUNT-0** | **COUNT-1** | **COUNT-2** | **Final Value of ITEM** |
 |---|---|---|---|---|
-| BBEABDABABBCABE E | 3 | 0 | 2 | BBEXYZXYXYZCABV E |
+| BBEABDABABBCABEE | 3 | 0 | 2 | BBEXYZXYXYZCABVE |
 | ADDDDC | 0 | 0 | 4 | AZZZZC |
 | ADDDDA | 0 | 0 | 5 | AZZZZZ |
 | CDDDDC | 0 | 0 | 0 | CDDDDC |
@@ -43325,7 +43329,9 @@ The CURRENT-DATE function returns a 21-character alphanumeric value representing
 — Two numeric digits of the hundredths of a second past the minute
 — The character "+" to indicate that local time is the same as, or ahead of, Greenwich Mean Time, "-" to indicate that local time is behind Greenwich Mean Time, or "0" to indicate that the operating environment does not have the facility to provide the local time differential
 — Two digits indicating the number of hours the reported time is ahead of or behind Greenwich Mean Time
-— Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be "1995021505142781-0500"; in operating environments that do not have that capability, the returned result would be "199502150514278100000".
+— Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time
+
+For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be "1995021505142781-0500"; in operating environments that do not have that capability, the returned result would be "199502150514278100000".
 
 
 <a id="section-d-31-3-3"></a>
@@ -43432,7 +43438,7 @@ The following examples summarize permissible date and time formats, and the form
 
 | Fractional-seconds time formats | Formats | Values |
 |---|---|---|
-| Basic local time | hhmmss.ssss | 051427.8124 |
+| Basic local time | hhmmss.sssss | 051427.8124 |
 | Extended local time | hh:mm:ss.ssss | 05:14:27.8124 |
 | Basic UTC time | hhmmss.ssssZ | 101427.8124Z |
 | Extended UTC time | hh:mm:ss.ssssZ | 10:14:27.8124Z |
@@ -47953,7 +47959,6 @@ Zero-length literal
 ---
 
 
-The page appears to be blank except for the watermark/footer text at the bottom. Since you've instructed me to ignore watermark text, and there is no other visible content on this page, there is no text to extract.
 
 
 **ISO/IEC 1989:2023(E)**
@@ -47964,9 +47969,7 @@ The page appears to be blank except for the watermark/footer text at the bottom.
 Price based on 1229 pages
 
 
- (EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FAILED)
 
-   — For the Commit and Rollback facility (EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT and EC-FLOW-ROLLBACK)
 
 ---
 
@@ -48048,6 +48051,18 @@ omitted. As printed, the statement's own name would be omissible. Three independ
 
 A dropped `l`. Every other occurrence of the term in 12.3.7 and in the SPECIAL-NAMES paragraph spells it
 `locale-name-1`, and there is no such term as `locae-name`.
+
+### C4 · F.1 example programs · `FUNCTION-ID F-1.` → `FUNCTION-ID.  F-1.`
+
+| | |
+|---|---|
+| **Printed** | `FUNCTION-ID F-1.` |
+| **This transcription** | `FUNCTION-ID.  F-1.` |
+
+The separator period after the paragraph name is missing in print, which makes the line invalid COBOL: the
+IDENTIFICATION DIVISION paragraph header is `FUNCTION-ID.` and 11.5 requires the period. The same annex
+writes `PROGRAM-ID.`, `CLASS-ID.` and `INTERFACE-ID.` with it. Corrected because these are EXAMPLE PROGRAMS,
+read and compiled as written — the same reason the reserved-word list is corrected at C1.
 
 ## Defects recorded but NOT corrected
 
