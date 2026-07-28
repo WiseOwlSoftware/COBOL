@@ -1006,55 +1006,51 @@ Published in Switzerland
 
 ## Tables
 
-| # | Title | Page |
-|---|-------|------|
-| 1 | COBOL character repertoire | 90 |
-| 2 | Class and category relationships for elementary data items | 162 |
-| 3 | Combinations of symbols in arithmetic expressions | 175 |
-| 4 | Combination of symbols in boolean expressions | 183 |
-| 5 | Combinations of conditions, logical operators, and parentheses | 202 |
-| 6 | Relationship of alphabet-name to coded character set and collating sequence | 297 |
-| 7 | Category and type of editing | 453 |
-| 8 | Results of fixed insertion editing | 454 |
-| 9 | Results of floating insertion editing | 455 |
-| 10 | Format 1 picture symbol order of precedence | 459 |
-| 11 | Format 2 picture symbol order of precedence | 460 |
-| 12 | Procedural statements | 533 |
-| 13 | Exception-names and exception conditions | 552 |
-| 14 | Relationship of categories of physical files and the format of the CLOSE statement | 598 |
-| 15 | Combination of operands in the EVALUATE statement | 620 |
-| 16 | Validity of types of MOVE statements | 666 |
-| 17 | Category of figurative constants used in the MOVE statement | 671 |
-| 18 | Opening available and unavailable files (file not currently open) | 676 |
-| 19 | Opening available shared files that are currently open by another file connector | 677 |
-| 20 | Permissible I-O statements by access mode and open mode | 679 |
-| 21 | Table of functions | 807 |
-| A.1 | Summary of record lock acquisition and release | 1017 |
-| A.2 | Examples of boolean operations | 1069 |
-| A.3 | ROUNDED MODE examples | 1096 |
-
+| # | Title |
+|---|---|
+| 1 | [COBOL character repertoire](#table-1) |
+| 2 | [Class and category relationships for elementary data items](#table-2) |
+| 3 | [Combinations of symbols in arithmetic expressions](#table-3) |
+| 4 | [Combination of symbols in boolean expressions](#table-4) |
+| 5 | [Combinations of conditions, logical operators, and parentheses](#table-5) |
+| 6 | [Relationship of alphabet-name to coded character set and collating sequence](#table-6) |
+| 7 | [Category and type of editing](#table-7) |
+| 8 | [Results of fixed insertion editing](#table-8) |
+| 9 | [Results of floating insertion editing](#table-9) |
+| 10 | [Format 1 picture symbol order of precedence](#table-10) |
+| 11 | [Format 2 picture symbol order of precedence](#table-11) |
+| 12 | [Procedural statements](#table-12) |
+| 13 | [Exception-names and exception conditions](#table-13) |
+| 14 | [Relationship of categories of physical files and the format of the CLOSE statement](#table-14) |
+| 15 | [Combination of operands in the EVALUATE statement](#table-15) |
+| 16 | [Validity of types of MOVE statements](#table-16) |
+| 17 | [Category of figurative constants used in the MOVE statement](#table-17) |
+| 18 | [Opening available and unavailable files (file not currently open)](#table-18) |
+| 19 | [Opening available shared files that are currently open by another file connector](#table-19) |
+| 20 | [Permissible I-O statements by access mode and open mode](#table-20) |
+| 21 | [Table of functions](#table-21) |
+| A.1 | [Summary of record lock acquisition and release](#table-a-1) |
+| A.2 | [Examples of boolean operations](#table-a-2) |
+| A.3 | [ROUNDED MODE examples](#table-a-3) |
 
 <a id="figures"></a>
 ## Figures
 
-[1 Fixed-form reference format](#section-1)
-[D.1 Format 1 SEARCH statement having two WHEN phrases](#section-d-1)
-[D.2 Compilation group sample structure example](#section-d-2)
-[D.3 Compilation group and run unit structures](#section-d-3)
-[D.4 Manager class](#section-d-4)
-[D.5 Banking hierarchy](#section-d-5)
-[D.6 Example of page layout](#section-d-6)
-[D.7 Evaluation of the condition-1 AND condition-2 AND … condition-n](#section-d-7)
-[D.8 Evaluation of the condition-1 OR condition-2 OR … condition-n](#section-d-8)
-[D.9 Evaluation of condition-1 OR condition-2 AND condition-3](#section-d-9)
-[D.10 Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4](#section-d-10)
-D.11 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition
-[D.12 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions](#section-d-12)
-D.13 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition
-1156
-D.14 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions
-1157
-
+- [1 Fixed-form reference format](#figure-1)
+- [D.1 Format 1 SEARCH statement having two WHEN phrases](#figure-d-1)
+- [D.2 Compilation group sample structure example](#figure-d-2)
+- [D.3 Compilation group and run unit structures](#figure-d-3)
+- [D.4 Manager class](#figure-d-4)
+- [D.5 Banking hierarchy](#figure-d-5)
+- [D.6 Example of page layout](#figure-d-6)
+- [D.7 Evaluation of the condition-1 AND condition-2 AND … condition-n](#figure-d-7)
+- [D.8 Evaluation of the condition-1 OR condition-2 OR … condition-n](#figure-d-8)
+- [D.9 Evaluation of condition-1 OR condition-2 AND condition-3](#figure-d-9)
+- [D.10 Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4](#figure-d-10)
+- [D.11 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition](#figure-d-11)
+- [D.12 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions](#figure-d-12)
+- [D.13 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition](#figure-d-13)
+- [D.14 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions](#figure-d-14)
 
 <a id="foreword"></a>
 ## Foreword
@@ -2666,6 +2662,7 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 The format of a fixed-form reference format line is depicted in Figure 1 — Fixed-form reference format.
 
+<a id="figure-1"></a>
 **Figure 1 — Fixed-form reference format**
 
 ```
@@ -4542,6 +4539,7 @@ The COBOL character repertoire is used to specify the syntax of the language. CO
 
 The COBOL character repertoire consists of the basic letters, basic digits, basic special characters, and extended letters as shown in Table 1, COBOL character repertoire. Extended letters permit writing user-defined words in many languages in addition to the English language.
 
+<a id="table-1"></a>
 **Table 1 — COBOL character repertoire**
 
 | Description | Character | Meaning |
@@ -7504,6 +7502,7 @@ An alphanumeric group item is treated as though it had a usage of display.
 
 The category of an elementary data item depends upon its description. The class of an elementary data item is related to its category, as shown in Table 2, Class and category relationships for elementary data items.
 
+<a id="table-2"></a>
 **Table 2 — Class and category relationships for elementary data items**
 
 | Class | Category |
@@ -8047,6 +8046,7 @@ The following rules apply regardless of the mode of arithmetic that is in effect
 4) The ways in which identifiers, literals, operators, and parentheses may be combined in arithmetic expressions are summarized in Table 3, Combinations of symbols in arithmetic expressions.
 
 
+<a id="table-3"></a>
 **Table 3 — Combinations of symbols in arithmetic expressions**
 
 | First symbol ↓ &nbsp; Second symbol → | **Identifier or literal** | **+ − \* / \*\*** | **Unary + or −** | **(** | **)** |
@@ -8337,6 +8337,7 @@ Otherwise the expression shall end with one of the following:
 
 6) The permissible combinations of operands, operators, and parentheses in a boolean expression are specified in Table 4, Combination of symbols in boolean expressions.
 
+<a id="table-4"></a>
 **Table 4 — Combination of symbols in boolean expressions**
 
 | **First Symbol ↓ &nbsp; Second Symbol →** | **Identifier or literal** | **B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC** | **B-NOT** | **(** | **)** |
@@ -9103,6 +9104,7 @@ Parentheses can be used to alter the meaning. For example, '(condition-1 OR (NOT
 Table 5, Combinations of conditions, logical operators, and parentheses, indicates the ways in which conditions and logical operators may be combined and parenthesized. There shall be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.
 
 
+<a id="table-5"></a>
 **Table 5 — Combinations of conditions, logical operators, and parentheses**
 
 | Given the following element: | In a conditional expression: May element be first? | In a conditional expression: May element be last? | In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only: | In a left-to-right sequence of elements: Element, when not last, may be immediately followed by only: |
@@ -12873,6 +12875,7 @@ NOTE 2 An alphabet-name referenced in the PROGRAM COLLATING SEQUENCE clause of t
 
 Table 6, Relationship of alphabet-name to coded character set and collating sequence, indicates for each operand of the ALPHABET clause whether the alphabet-name references a coded character set, a collating sequence, or both.
 
+<a id="table-6"></a>
 **Table 6 — Relationship of alphabet-name to coded character set and collating sequence**
 
 | ALPHABET clause operand | Coded character set | Collating sequence |
@@ -18526,6 +18529,7 @@ There are two types of suppression with replacement:
 
 2) The type of editing that may be performed upon an item is dependent upon the category to which the item belongs. Table 7, Category and type of editing, specifies which type of editing may be performed upon a given category:
 
+<a id="table-7"></a>
 **Table 7 — Category and type of editing**
 
 | Category | Type of editing |
@@ -18566,6 +18570,7 @@ There are two types of suppression with replacement:
 
 Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing sign control symbol, depending on the value of the data item.
 
+<a id="table-8"></a>
 **Table 8 — Results of fixed insertion editing**
 
 | **Editing symbol** | **Result** | |
@@ -18611,6 +18616,7 @@ b) The second way is to represent all of the numeric character positions by the 
 
 Table 9, Results of floating insertion editing, shows the character produced by the floating editing sign control symbols 'es', '+' and '-', depending on the value of the data item.
 
+<a id="table-9"></a>
 **Table 9 — Results of floating insertion editing**
 
 | **Editing symbol in picture character-string** | **Result** | |
@@ -18707,6 +18713,7 @@ For the purposes of Table 10, character-string-1 for a numeric-edited item for a
 When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged.
 
 
+<a id="table-10"></a>
 **Table 10 — Format 1 picture symbol order of precedence**
 
 | Second Symbol | | **First Symbol** | | | | | | | | | | | | | | | | | | | | | | | |
@@ -18744,6 +18751,7 @@ FORMAT 2
 
 Table 11, Format 2 picture symbol order of precedence, shows the order of precedence of symbols in a Format 2 picture character-string. An 'x' at an intersection indicates that the symbol at the top of the column may precede (but not necessarily immediately) in character-string-1 the symbol at the left of the row. The currency symbol is indicated by the symbol 'cs'.
 
+<a id="table-11"></a>
 **Table 11 — Format 2 picture symbol order of precedence**
 
 | **Second Symbol** | **First Symbol** | | | | |
@@ -21276,6 +21284,7 @@ A sentence is a sequence of one or more procedural statements, the last of which
 
 Wherever 'imperative-statement' appears in the general format of a statement, 'imperative-statement' refers to one or more imperative statements ended either by a separator period or by any phrase associated with that general format.
 
+<a id="table-12"></a>
 **Table 12 — Procedural statements**
 
 | **Statement name** | **Conditional phrase** | **Explicit scope terminator** |
@@ -21885,6 +21894,7 @@ Description **-** A brief description of what the exception condition means.
 ---
 
 
+<a id="table-13"></a>
 **Table 13 — Exception-names and exception conditions**
 
 | Exception-name | Cat | Description |
@@ -23426,6 +23436,7 @@ The CLOSE statement terminates the processing of reels/units and files with rewi
 ---
 
 
+<a id="table-14"></a>
 **Table 14 — Relationship of categories of physical files and the format of the CLOSE statement**
 
 | CLOSE statement format | File category | | | |
@@ -24265,6 +24276,7 @@ where range-expression is:
 
 10) The permissible combinations of selection subject and selection object operands are indicated in Table 15, Combination of operands in the EVALUATE statement.
 
+<a id="table-15"></a>
 **Table 15 — Combination of operands in the EVALUATE statement**
 
 | Selection object | Selection subject | | | | | |
@@ -25717,6 +25729,7 @@ FORMAT 1
 10) For all other cases not described in Syntax rules 8 and 9, table 16, Validity of types of MOVE statements, specifies the validity of the move.
 
 
+<a id="table-16"></a>
 **Table 16 — Validity of types of MOVE statements**
 
 | **Category of sending operand ↓ &nbsp; Category of receiving operand →** | | Alphabetic | Alphanumeric-edited, Alphanumeric | Boolean | National, National-edited | Numeric, Numeric-edited | Type-name |
@@ -25842,6 +25855,7 @@ Alignment of the numeric value by decimal point, any necessary zero filling, any
 7) Alphanumeric, boolean, national, and numeric literals belong to the categories alphanumeric, boolean, national, and numeric, respectively. The category of figurative constants when used in the MOVE statement depends on the category of the receiving operand as shown in Table 17, Category of figurative constants used in the MOVE statement.
 
 
+<a id="table-17"></a>
 **Table 17 — Category of figurative constants used in the MOVE statement**
 
 | **Figurative constant** | **Category of receiving operand** | **Category of figurative constant** |
@@ -26047,6 +26061,7 @@ NOTE Files subject to an APPLY COMMIT clause already have an implicit LOCK mode 
 
 A file is available if it is physically present and is recognized by the operating environment. Table 18, Opening available and unavailable files (file not currently open), shows the results of opening available and unavailable files that are not currently open by another file connector. Table 19, Opening available shared files that are currently open by another file connector, shows the results of opening available files that are currently open by another file connector, including those implicitly opened by the SORT and MERGE statements.
 
+<a id="table-18"></a>
 **Table 18 — Opening available and unavailable files (file not currently open)**
 
 | Open mode | File is available | File is unavailable |
@@ -26060,6 +26075,7 @@ A file is available if it is physically present and is recognized by the operati
 | EXTEND (optional file) | Normal open | Open causes the file to be created |
 
 
+<a id="table-19"></a>
 **Table 19 — Opening available shared files that are currently open by another file connector**
 
 | | | **Most restrictive existing sharing mode and open mode** | | | | |
@@ -26087,6 +26103,7 @@ A file is available if it is physically present and is recognized by the operati
 20, Permissible I-O statements by access mode and open mode, 'X' at an intersection indicates that the specified statement, used in the access mode given for that row, may be used with the open mode given at the top of the column.
 
 
+<a id="table-20"></a>
 **Table 20 — Permissible I-O statements by access mode and open mode**
 
 | Access mode | Statement | Open mode | | | |
@@ -30422,6 +30439,7 @@ c) The third argument is a keyword.
 
 The 'Value returned' column gives a synopsis of the value returned; additional details are specified in the definition of the function.
 
+<a id="table-21"></a>
 **Table 21 — Table of functions**
 
 | **Intrinsic-function-name** | **Arguments** | **Type** | **Value returned** |
@@ -37507,7 +37525,8 @@ LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS.
 The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement, as summarized in Table A.1, Summary of record lock acquisition and release.
 
 
-## Table A.1 Summary of record lock acquisition and release
+<a id="table-a-1"></a>
+**Table A.1 — Summary of record lock acquisition and release**
 
 For files subject to commit and rollback locks are only released by COMMIT and ROLLBACK statements, otherwise the following rules apply.
 
@@ -37527,14 +37546,7 @@ For files subject to commit and rollback locks are only released by COMMIT and R
 | | - multiple | no | no |
 | | Manual - single | - on the rewritten record if LOCK specified | - on successfully rewritten record if locked, unless LOCK is specified - and on any previously locked record |
 | | - multiple | - on the rewritten record if LOCK specified | - on the rewritten record if locked and NO LOCK is specified |
-
-
-**Table A.1 Summary of record lock acquisition and release**
-
-For files subject to commit and rollback locks are only released by COMMIT and ROLLBACK statements, otherwise the following rules apply.
-
 | START | any | no | no |
-|-------|-----|----|----|
 | WRITE | Automatic - single | no | - on any previously locked record |
 | | - multiple | no | no |
 | | Manual - single | - if LOCK is specified | - on any previously locked record |
@@ -38121,6 +38133,7 @@ SEARCH table AT END imperative-statement-1
 END-SEARCH
 ```
 
+<a id="figure-d-1"></a>
 **Figure D.1 — Format 1 SEARCH statement having two WHEN phrases**
 
 Entrance
@@ -38499,6 +38512,7 @@ Figure D.2, Compilation group sample structure example, illustrates the structur
 
 NOTE All source elements are source units as well. This is only partially indicated in the example.
 
+<a id="figure-d-2"></a>
 **Figure D.2 — Compilation group sample structure example**
 
 
@@ -38573,6 +38587,7 @@ END-CLASS C-1.
 
 Figure D.3, Compilation group and run unit structures, shows schematically, in an example, the relationships between the components of a compilation group and their corresponding runtime entities. Note that runtime modules resulting from compilation units of the same compilation group need not be part of the same run unit, and runtime modules in the same run unit need not result from compilation units of the same compilation group.
 
+<a id="figure-d-3"></a>
 **Figure D.3 — Compilation group and run unit structures**
 
 P-1
@@ -39489,7 +39504,8 @@ MOVE  B"1"  to   My-flag-2(1:1)   *>  set bit 1 ON using reference
 Table A.2, Examples of boolean operations, illustrates the result of boolean operations for each of the boolean operators.
 
 
-**Table A.2 Examples of boolean operations**
+<a id="table-a-2"></a>
+**Table A.2 — Examples of boolean operations**
 
 | Boolean operation | Value of operand | Operator | Value of operand | Result |
 |---|---|---|---|---|
@@ -40523,7 +40539,8 @@ The following forms of rounding are provided (examples presume an integer destin
 
 Table A.3, ROUNDED MODE examples, illustrates the effect of the various rounding modes with various values. The ellipses in the column heading values indicate repetitions of the last digit in the intermediate result. The column contents indicate the result expected when rounding that intermediate result value to an integer.
 
-### Table A.3 ROUNDED MODE examples
+<a id="table-a-3"></a>
+**Table A.3 — ROUNDED MODE examples**
 
 | | +2.49 | -2.49 | +2.50 | -2.50 | +3.49 | -3.49 | +3.50 | -3.50 | +3.510 | -3.510 |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -41103,6 +41120,7 @@ Some of the other capabilities are Inheritance, Interfaces and Polymorphism, and
 
 One of the language features that separates object oriented languages from conventional programming languages is the ability to develop a hierarchy of classes, as shown by the example in figure D.4, Manager class.
 
+<a id="figure-d-4"></a>
 **Figure D.4 — Manager class**
 
 ```
@@ -41138,6 +41156,7 @@ Example of single inheritance:
 
 A bank will have different kinds of accounts, and yet they are all accounts. If we consider checking accounts and savings accounts, they have a number of common features, they both have an owner and a balance. They also have some different features, the fact that checks are allowed for one and the other pays interest. It makes sense to have a basic account class that contains the common parts and then to use inheritance to define the checking account and the savings account subclasses. Thus the account class defines what is common to all accounts; the checking account class defines what is specific to checking accounts; and the savings account class defines only what is specific to savings accounts. Any changes to the account class will be picked up by the inheriting classes automatically. These relationships can be represented as shown in figure D.5, Banking hierarchy.
 
+<a id="figure-d-5"></a>
 **Figure D.5 — Banking hierarchy**
 
 | | Account | |
@@ -41897,6 +41916,7 @@ The FOOTING phrase has two different functions:
 
 2) When a page advance occurs, the line count is advanced to either the position specified in the FOOTING phrase or to the next line, whichever is greater, and the applicable page and report footings are printed.
 
+<a id="figure-d-6"></a>
 **Figure D.6 — Example of page layout**
 
 PAGE clause phrases &nbsp;&nbsp;&nbsp;&nbsp; Report content
@@ -42446,6 +42466,7 @@ The comments placed in these examples explain the use and effects of the various
 
 Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 
+<a id="figure-d-7"></a>
 **Figure D.7 — Evaluation of the condition-1 AND condition-2 AND … condition-n**
 
 ```
@@ -42486,6 +42507,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
    is true
 ```
 
+<a id="figure-d-8"></a>
 **Figure D.8 — Evaluation of the condition-1 OR condition-2 OR … condition-n**
 
 ---
@@ -42532,6 +42554,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 
 > **Figure notes (Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3).** This is a flowchart illustration, not a general format, so the brace/bracket notation of 5.2.6 does not apply. Rectangles are process boxes (`Evaluate condition-n`); rounded boxes are decisions (`Condition-n true`). Every `yes` exit joins a single line down the right-hand side terminating in **Truth value is true**; the `no` exit of the last decision falls through to **Truth value is false**. The words `false` and `true` in the two terminals are underlined in the printed standard. The chart is drawn generically over condition-1, condition-2, … condition-n even though the caption names three conditions.
 
+<a id="figure-d-9"></a>
 **Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3**
 
 
@@ -42571,6 +42594,7 @@ no
 Truth value
 is true
 
+<a id="figure-d-10"></a>
 **Figure D.10 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4**
 
 
@@ -42845,6 +42869,7 @@ INSPECT ITEM CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"-
 
 Representations of the actions of several types of PERFORM statements with varying-phrase specified are given in figures D.11, The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition, D.12, The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions, D.13, The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition, and D.14, The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions. These are not intended to dictate implementation.
 
+<a id="figure-d-11"></a>
 **Figure D.11 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition**
 
 Entrance
@@ -42859,6 +42884,7 @@ Execute specified set of statements
 Augment identifier-2 with current BY value
 ↑___________________________________|
 
+<a id="figure-d-12"></a>
 **Figure D.12 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions**
 
 
@@ -42902,6 +42928,7 @@ Augment identifier-2 with current BY value
                    └──────────────────────────────►
 ```
 
+<a id="figure-d-13"></a>
 **Figure D.13 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition**
 
 
@@ -42916,6 +42943,7 @@ Condition-1 → True → Exit
 Augment identifier-2 with current BY value
 ↑_________________________________|
 
+<a id="figure-d-14"></a>
 **Figure D.14 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions**
 
 
@@ -44705,3111 +44733,2923 @@ The following documents are useful references for implementors and users of this
 
 ### Symbols
 
-::
-operator [8.3.2.2.23](#section-8-3-2-2-23), [8.4.3.14.2](#section-8-4-3-14-2)
-'-
-Literal continuation indicator [3](#section-3)
-"-
-Literal continuation indicator [3](#section-3)
-\*
-Comment line [3](#section-3)
-operator [8.4.3.13.2](#section-8-4-3-13-2)
-**
-operator [8.4.3.13.2](#section-8-4-3-13-2)
-\*>
-Comment indicator [3](#section-3)
-Comment line [3](#section-3)
-Inline comment [3](#section-3)
-/
-Comment line [3](#section-3)
-operator [8.4.3.13.2](#section-8-4-3-13-2)
-&
-operator [8.4.3.14.2](#section-8-4-3-14-2)
-+
-operator [8.4.3.13.2](#section-8-4-3-13-2)
-–
-operator [8.4.3.13.2](#section-8-4-3-13-2)
-<
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
-<=
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
-<>
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
-=
-COMPUTE statement [14.9.8](#section-14-9-8)
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
-SEARCH statement [14.9.37](#section-14-9-37)
-==
-pseudo-text delimiter [3](#section-3)
->
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
->=
-Relation [8.4.3.14.2](#section-8-4-3-14-2)
->>
-Compiler directive [4.2.11](#section-4-2-11)
-Compiler directive indicator [3](#section-3)
-
+- ::
+  - operator [8.3.2.2.23](#section-8-3-2-2-23), [8.4.3.14.2](#section-8-4-3-14-2)
+- '-
+  - Literal continuation indicator [3](#section-3)
+- "-
+  - Literal continuation indicator [3](#section-3)
+- \*
+  - Comment line [3](#section-3)
+  - operator [8.4.3.13.2](#section-8-4-3-13-2)
+- \*\*
+  - operator [8.4.3.13.2](#section-8-4-3-13-2)
+- \*>
+  - Comment indicator [3](#section-3)
+  - Comment line [3](#section-3)
+  - Inline comment [3](#section-3)
+- /
+  - Comment line [3](#section-3)
+  - operator [8.4.3.13.2](#section-8-4-3-13-2)
+- &
+  - operator [8.4.3.14.2](#section-8-4-3-14-2)
+- +
+  - operator [8.4.3.13.2](#section-8-4-3-13-2)
+- –
+  - operator [8.4.3.13.2](#section-8-4-3-13-2)
+- <
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+- <=
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+- <>
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+- =
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- ==
+  - pseudo-text delimiter [3](#section-3)
+- \>
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+- \>=
+  - Relation [8.4.3.14.2](#section-8-4-3-14-2)
+- \>>
+  - Compiler directive [4.2.11](#section-4-2-11)
+  - Compiler directive indicator [3](#section-3)
 ### Numerics
 
-0 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
-01 entry [8.4.2.2.3](#section-8-4-2-2-3), [13.18.13.4](#section-13-18-13-4)
-1 PICTURE symbol [13.18.33.4](#section-13-18-33-4)
-66 RENAMES data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4), [13.18.40.3](#section-13-18-40-3)
-77 level data description entry [8.4.2.3](#section-8-4-2-3), [12.4.5.10](#section-12-4-5-10)
-88 condition-name data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4)
-9 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
-
+- 0 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
+- 01 entry [8.4.2.2.3](#section-8-4-2-2-3), [13.18.13.4](#section-13-18-13-4)
+- 1 PICTURE symbol [13.18.33.4](#section-13-18-33-4)
+- 66 RENAMES data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4), [13.18.40.3](#section-13-18-40-3)
+- 77 level data description entry [8.4.2.3](#section-8-4-2-3), [12.4.5.10](#section-12-4-5-10)
+- 88 condition-name data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4)
+- 9 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
 ### A
 
-A PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-Abbreviated combined relation conditions [8.8.4.12](#section-8-8-4-12)
-Abnormal run unit termination [14.6.12](#section-14-6-12)
-ABS function [15.7](#section-15-7)
-ACCEPT statement [14.9.1](#section-14-9-1)
-FROM phrase [14.6.12](#section-14-6-12)
-Screen format [14.9.35](#section-14-9-35)
-ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Access modes [9.1.8](#section-9-1-8)
-ACOS function [15.8](#section-15-8)
-ACTIVATING [15.40](#section-15-40)
-Active state [14.6.2.2](#section-14-6-2-2)
-ACTIVE-CLASS phrase [9.1.3](#section-9-1-3), [14.6.4](#section-14-6-4), [14.9.32.4](#section-14-9-32-4)
-USAGE clause [13.18.60](#section-13-18-60)
-ADD statement [14.9.2](#section-14-9-2)
-Additional language elements 24
-ADDRESS OF phrase [8.4.3.11.2](#section-8-4-3-11-2)
-Data-address-identifier [8.4.3.11](#section-8-4-3-11)
-SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
-ADDRESS OF PROGRAM phrase
-Program-address-identifier [8.4.3.13](#section-8-4-3-13)
-SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
-Address-identifier [8.2.2](#section-8-2-2)
-ADVANCING ON LOCK phrase
-READ statement [14.9.30](#section-14-9-30)
-ADVANCING phrase
-READ statement [14.9.30](#section-14-9-30)
-AFTER ADVANCING phrase
-WRITE statement [14.9.51](#section-14-9-51)
-AFTER EXCEPTION phrase
-USE statement [14.9.49](#section-14-9-49)
-AFTER phrase
-INSPECT statement [14.9.22](#section-14-9-22)
-PERFORM statement [14.9.28](#section-14-9-28)
-AFTER STANDARD ERROR phrase
-USE statement [14.9.49](#section-14-9-49)
-AFTER STANDARD EXCEPTION phrase
-USE statement [14.9.49](#section-14-9-49)
-Algebraic signs [8.5.1.5](#section-8-5-1-5)
-ALIGNED clause [13.18.1](#section-13-18-1)
-Alignment of data
-In storage [8.4.2.3.4](#section-8-4-2-3-4)
-Within data items [13.18.61](#section-13-18-61)
-ALL figurative constant [7.3.24](#section-7-3-24)
-ALL literal [8.1.2](#section-8-1-2)
-ALL option
-FLAG-02 directive [7.3.14](#section-7-3-14)
-ALL OTHER phrase
-OPEN statement [14.9.27](#section-14-9-27)
-SHARING clause [12.4.5.15](#section-12-4-5-15)
-ALL phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-
----
-
-
----
-
-
-INSPECT statement [14.9.22](#section-14-9-22)
-SEARCH statement [14.9.37](#section-14-9-37)
-UNSTRING statement [14.9.48](#section-14-9-48)
-ALL subscript [8.1.4](#section-8-1-4)
-Intrinsic function [14.9.47](#section-14-9-47)
-ALLOCATE statement [14.9.3](#section-14-9-3)
-ALPHABET clause
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Alphabetic category [8.5.2.2](#section-8-5-2-2)
-Alphabetic character 3
-Alphabetic class
-Class of data
-Alphabetic [8.4.3.3.4](#section-8-4-3-3-4)
-Alphabetic data item [8.4.3.3.4](#section-8-4-3-3-4)
-ALPHABETIC phrase
-CLASS clause [13.18.11](#section-13-18-11)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-ALPHABETIC-LOWER phrase
-CLASS clause [13.18.11](#section-13-18-11)
-ALPHABETIC-UPPER phrase [8.5.2.9](#section-8-5-2-9)
-CLASS clause [13.18.11](#section-13-18-11)
-Alphabet-name [8.3.2.2.1](#section-8-3-2-2-1)
-CODE-SET clause [13.18.13](#section-13-18-13)
-COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
-Definition [7.3.14](#section-7-3-14)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Alphabets [8.1.4](#section-8-1-4)
-Alphanumeric category [8.5.2.3](#section-8-5-2-3)
-Alphanumeric character 3
-Alphanumeric character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-Alphanumeric class [8.4.3.3.4](#section-8-4-3-3-4)
-Alphanumeric coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-Alphanumeric data item [8.4.3.3.4](#section-8-4-3-3-4)
-Alphanumeric functions [14.9.46](#section-14-9-46)
-Alphanumeric literals [8.3.3.2](#section-8-3-3-2)
-Continuation of [3](#section-3)
-ALPHANUMERIC phrase
-CODE-SET clause [13.18.13](#section-13-18-13)
-COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-MERGE statement [14.9.24](#section-14-9-24)
-SORT statement [14.9.40](#section-14-9-40)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Alphanumeric-edited category [8.5.2.4](#section-8-5-2-4)
-Alphanumeric-edited data item [8.4.3.4](#section-8-4-3-4)
-ALPHANUMERIC-EDITED phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-ALSO phrase
-EVALUATE statement [14.9.13](#section-14-9-13)
-ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-ALTERNATE RECORD KEY clause, [A.4.8](#section-a-4-8)
-AND operator
-In combined conditions [8.6.7](#section-8-6-7)
-In complex conditions [8.6.5](#section-8-6-5)
-
-AND phrase
-SEARCH statement [14.9.37](#section-14-9-37)
-ANNUITY function [15.9](#section-15-9)
-ANY LENGTH clause [13.18.2](#section-13-18-2)
-ANY phrase
-EVALUATE statement [14.9.13](#section-14-9-13)
-ANYCASE keyword [15.65](#section-15-65)
-Apostrophe [7.3.10.4](#section-7-3-10-4)
-APPLY COMMIT [12.3.7.4](#section-12-3-7-4), [B.3](#section-b-3)
-Commit and Rollback [9.1.18](#section-9-1-18)
-EC-FLOW-APPLY-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
-ROLLBACK statement [14.9.36](#section-14-9-36)
-APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
-Archaic language element flagging 24
-Archaic language elements [4.2.12](#section-4-2-12)
-Continuation of COBOL words [D.31.5.8](#section-d-31-5-8)
-Identifier-n (text-n) in a COPY statement [D.31.5.8](#section-d-31-5-8)
-MOVE of figurative constants that are not numeric to
-numeric items [D.31.5.8](#section-d-31-5-8)
-NEXT SENTENCE phrase [14.9.10](#section-14-9-10), [14.9.28.4](#section-14-9-28-4), [D.31.5.8](#section-d-31-5-8)
-ON OVERFLOW phrase of CALL [D.31.5.8](#section-d-31-5-8)
-Arguments [15.3](#section-15-3)
-Arguments, intrinsic functions [14.9.46](#section-14-9-46)
-Arithmetic [8.4.3.13.2](#section-8-4-3-13-2), [8.4.4.2](#section-8-4-4-2)
-Native [8.4.4.2](#section-8-4-4-2)
-Standard [8.4.4.2](#section-8-4-4-2)
-Standard-binary [8.4.6](#section-8-4-6)
-Standard-decimal [8.4.6.3](#section-8-4-6-3)
-ARITHMETIC clause [11.9.5](#section-11-9-5)
-Arithmetic compute [14.8.3](#section-14-8-3)
-Arithmetic expressions [5.4](#section-5-4)
-COMPUTE statement [14.9.8](#section-14-9-8)
-EVALUATE statement [14.9.13](#section-14-9-13)
-Parenthesis in [8.4.4.2](#section-8-4-4-2)
-Sign condition [8.6.3](#section-8-6-3)
-Arithmetic Operators [8.7.1](#section-8-7-1)
-Arithmetic statements [14.7.7](#section-14-7-7)
-ADD statement [14.9.2](#section-14-9-2)
-COMPUTE statement [14.9.8](#section-14-9-8)
-Data conversion [14.5.1](#section-14-5-1)
-decimal point alignment [14.5.1](#section-14-5-1)
-DIVIDE statement [14.9.12](#section-14-9-12)
-maximum operand size [14.5.2](#section-14-5-2)
-MULTIPLY statement [14.9.26](#section-14-9-26)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-AS phrase
-CALL statement [14.9.4](#section-14-9-4)
-CLASS-ID paragraph [11.3](#section-11-3)
-EXTERNAL clause [13.18.22](#section-13-18-22)
-FUNCTION-ID paragraph [11.5](#section-11-5)
-INTERFACE-ID paragraph [11.6](#section-11-6)
-PROGRAM-ID paragraph [11.10](#section-11-10)
-REPOSITORY paragraph [12.3.8](#section-12-3-8)
-ASCENDING KEY phrase
-MERGE statement [14.9.24](#section-14-9-24)
-OCCURS clause [13.18.38](#section-13-18-38)
-SEARCH statement [14.9.37](#section-14-9-37)
-SORT statement [14.9.40](#section-14-9-40)
-
-
----
-
-
-ASIN function [15.10](#section-15-10)
-ASSIGN clause
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Asterisk (\*) comment line [3](#section-3)
-AT END [8.8.4.2.13](#section-8-8-4-2-13)
-At end condition [14.7.2](#section-14-7-2)
-Definition [14.2.3](#section-14-2-3)
-AT END phrase
-READ statement [14.9.30](#section-14-9-30)
-RETURN statement [14.9.34](#section-14-9-34)
-SEARCH statement [14.9.37](#section-14-9-37)
-AT END-OF-PAGE [8.8.4.2.13](#section-8-8-4-2-13)
-AT END-OF-PAGE phrase
-WRITE statement [14.9.51](#section-14-9-51)
-AT EOP [8.8.4.2.13](#section-8-8-4-2-13)
-AT EOP phrase
-WRITE statement [14.9.51](#section-14-9-51)
-ATAN function [15.11](#section-15-11)
-ATTRIBUTE phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-AUTO clause [13.18.3](#section-13-18-3)
-Automatic data [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
-Automatic items [8.4.3.9.3](#section-8-4-3-9-3)
-AUTOMATIC phrase
-LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
-AWAY-FROM-ZERO phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-
-## B
-
-B PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-BACKGROUND-COLOR clause [13.18.4](#section-13-18-4)
-BACKWARD [14.9.12.4](#section-14-9-12-4)
-B-AND operator [8.4.3.13.2](#section-8-4-3-13-2)
-BASE class [16.2](#section-16-2)
-BASECONVERT function [15.12](#section-15-12)
-BASED clause [13.18.5](#section-13-18-5)
-Based data [8.4.3.11.2](#section-8-4-3-11-2)
-Based data item [13.18.55](#section-13-18-55)
-ALLOCATE statement [14.9.3](#section-14-9-3)
-SET statement [14.9.39](#section-14-9-39)
-Based entry [8.4.3.11.2](#section-8-4-3-11-2)
-Basic calendar date format
-Definition [14.9.48](#section-14-9-48)
-Basic combined date and time format [14.9.48.4](#section-14-9-48-4)
-Basic common time format
-Definition [14.9.48.4](#section-14-9-48-4)
-Basic common time format with integer seconds representation
-Definition
-Basic common time format
-Definition [14.9.48.4](#section-14-9-48-4)
-Basic common time3 format with fractional seconds
-Definition [14.9.48.4](#section-14-9-48-4)
-Basic letters [7.3.10](#section-7-3-10)
-Basic local time format [14.9.48.4](#section-14-9-48-4)
-
-Basic offset time format [14.9.48.4](#section-14-9-48-4)
-Basic ordinal date format
-Definition [14.9.48](#section-14-9-48)
-Basic UTC time format [14.9.48.4](#section-14-9-48-4)
-Basic week date format
-Definition [14.9.48.4](#section-14-9-48-4)
-BEFORE ADVANCING phrase
-WRITE statement [14.9.51](#section-14-9-51)
-BEFORE phrase
-INSPECT statement [14.9.22](#section-14-9-22)
-PERFORM statement [14.9.28](#section-14-9-28)
-BEFORE REPORTING phrase
-USE statement [14.9.49](#section-14-9-49)
-BELL clause [13.18.6](#section-13-18-6)
-BELL phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-big-endian [13.18.49.4](#section-13-18-49-4)
-Binary encoding
-ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
-BINARY phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BINARY-CHAR phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BINARY-DOUBLE phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BINARY-ENCODING phrase
-FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
-USAGE clause [13.18.60](#section-13-18-60)
-BINARY-LONG phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BINARY-SHORT phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BIT [13.18.9](#section-13-18-9)
-Bit data item [13.18.9](#section-13-18-9), [13.18.47](#section-13-18-47)
-Bit group [D.5](#section-d-5)
-Bit group item [13.18.9](#section-13-18-9)
-BIT phrase
-USAGE clause [13.18.60](#section-13-18-60)
-BLANK clause [13.18.7](#section-13-18-7)
-Blank line [3](#section-3)
-BLANK WHEN ZERO clause [13.18.8](#section-13-18-8)
-BLINK clause [13.18.9](#section-13-18-9)
-BLINK phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
-File description entry [13.4.5](#section-13-4-5)
-B-NOT operator [8.4.3.13.2](#section-8-4-3-13-2)
-Boolean category [8.5.2.5](#section-8-5-2-5)
-Boolean character 5
-Boolean class [8.4.3.3.4](#section-8-4-3-3-4)
-BOOLEAN clause [8.5.2.9](#section-8-5-2-9)
-Boolean compute [14.8.3](#section-14-8-3)
-Boolean data item [8.4.3.4](#section-8-4-3-4)
-Boolean expression [5.6](#section-5-6)
-Boolean expressions [8.8.2](#section-8-8-2)
-COMPUTE statement [14.9.8](#section-14-9-8)
-EVALUATE statement [14.9.13](#section-14-9-13)
-Parenthesis in [8.5.1.3.2](#section-8-5-1-3-2)
-
----
-
-
-Relation condition [8.5.1.9.2](#section-8-5-1-9-2)
-Boolean functions [14.9.46](#section-14-9-46)
-Boolean literals [8.3.3.4](#section-8-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Continuation of [3](#section-3)
-Boolean operators [8.7.2](#section-8-7-2)
-BOOLEAN phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [13.18.11](#section-13-18-11)
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
-Boolean zero-length literal
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.21](#section-7-3-21)
-BOOLEAN-OF-INTEGER function [15.13](#section-15-13)
-B-OR operator [8.4.3.13.2](#section-8-4-3-13-2)
-Braces [5.2.6.3](#section-5-2-6-3)
-Brackets [5.2.6.2](#section-5-2-6-2)
-B-SHIFT-L operator [8.4.3.13.2](#section-8-4-3-13-2)
-B-SHIFT-LC operator [8.4.3.13.2](#section-8-4-3-13-2)
-B-SHIFT-R operator [8.4.3.13.2](#section-8-4-3-13-2)
-B-SHIFT-RC operator [8.4.3.13.2](#section-8-4-3-13-2)
-B-XOR operator [8.4.3.13.2](#section-8-4-3-13-2)
-BY CONTENT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2.1](#section-8-3-2-2-1)
-BY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [7.2.3](#section-7-2-3)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
-&nbsp;&nbsp;&nbsp;&nbsp;VARYING clause [13.18.64](#section-13-18-64)
-BY REFERENCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
-BY VALUE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2.1](#section-8-3-2-2-1), [13.18.57.4](#section-13-18-57-4)
-BYTE-LENGTH function [15.14](#section-15-14)
-BYTE-LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [13.10](#section-13-10)
-
-## C
-
-Calendar date format [14.9.48](#section-14-9-48)
-CALL
-&nbsp;&nbsp;&nbsp;&nbsp;Failure [14.6.2.3.2](#section-14-6-2-3-2)
-CALL statement [14.9.4](#section-14-9-4)
-CALL-CONVENTION directive [7.3.9](#section-7-3-9)
-Call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
-call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
-CANCEL statement [14.9.5](#section-14-9-5)
-CAPACITY [13.18.22](#section-13-18-22)
-Case mapping [7.3.11](#section-7-3-11)
-Category of data
-
-Alphabetic [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33](#section-13-18-33)
-Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4), [13.18.10](#section-13-18-10), [13.18.33](#section-13-18-33)
-Alphanumeric-edited [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33.4](#section-13-18-33-4)
-Boolean [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4.2](#section-8-4-3-4-2), [13.18.9](#section-13-18-9), [13.18.33.4](#section-13-18-33-4)
-Boolean literal [7.3.20](#section-7-3-20)
-Data-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
-Function-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
-Index [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4), [13.18.47](#section-13-18-47)
-National [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.10](#section-13-18-10), [13.18.33.4](#section-13-18-33-4)
-National literal [7.3.21](#section-7-3-21)
-National-edited [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
-Numeric [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
-Numeric literal [7.3.19](#section-7-3-19)
-Numeric-edited [8.4.3.6](#section-8-4-3-6), [13.18.33.4](#section-13-18-33-4)
-Object-reference [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6), [13.18.49.4](#section-13-18-49-4)
-Program-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6)
-CF phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-CH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-CHAR function [15.15](#section-15-15)
-Character
-&nbsp;&nbsp;&nbsp;&nbsp;Alphabetic 3
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric 3
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean 5
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric 16
-CHARACTER CLASSIFICATION clause [10.6.1](#section-10-6-1)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-Character sets [8.1](#section-8-1)
-Character substitution [4.2.17](#section-4-2-17)
-CHARACTERS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
-&nbsp;&nbsp;&nbsp;&nbsp;BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD clause [13.18.43](#section-13-18-43)
-Character-string 6
-character-strings
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.13.4](#section-7-3-13-4)
-CHAR-NATIONAL function [15.16](#section-15-16)
-Choice indicators [5.2.6.4](#section-5-2-6-4)
-Class
-&nbsp;&nbsp;&nbsp;&nbsp;BASE [15.81](#section-15-81)
-&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [9.1.8.2](#section-9-1-8-2)
-Class and category of data [8.4.3.3](#section-8-4-3-3)
-CLASS clause [13.18.11](#section-13-18-11)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Class condition [8.5.2.4](#section-8-5-2-4)
-&nbsp;&nbsp;&nbsp;&nbsp;BOOLEAN phrase [8.5.2.9](#section-8-5-2-9)
-Class inheritance [9.3.9](#section-9-3-9)
-Class of data
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Index [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;National [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Object [8.4.3.3.4](#section-8-4-3-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Pointer [8.4.3.3.4](#section-8-4-3-3-4)
-CLASS phrase
-
-
----
-
-
-USAGE clause [13.18.60](#section-13-18-60)
-Class polymorphism [9.3.5.2](#section-9-3-5-2)
-Class-definition [9.1.13.8](#section-9-1-13-8)
-CLASS-ID paragraph [11.3](#section-11-3)
-Class-name [8.3.2.2.2](#section-8-3-2-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [13.18.11](#section-13-18-11)
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS-ID paragraph [11.3](#section-11-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Object orientation [9.1.18.6](#section-9-1-18-6)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-&nbsp;&nbsp;&nbsp;&nbsp;Truth value [7.3.13.4](#section-7-3-13-4), [7.3.14.4](#section-7-3-14-4)
-Clause 6
-CLOSE statement [14.9.6](#section-14-9-6)
-&nbsp;&nbsp;&nbsp;&nbsp;Implied [14.9.18](#section-14-9-18), [14.9.18.4](#section-14-9-18-4), [14.9.37.3](#section-14-9-37-3), [14.9.37.4](#section-14-9-37-4)
-Closing delimiter [8.1.2](#section-8-1-2)
-COBOL character repertoire [8.1.3](#section-8-1-3)
-COBOL compilation group [10.6](#section-10-6)
-COBOL library [3](#section-3)
-COBOL reserved words [7.3.16](#section-7-3-16)
-COBOL source program structure [9.1.13.2](#section-9-1-13-2)
-COBOL word [7.3.13.4](#section-7-3-13-4)
-COBOL-WORDS directive [7.3.10](#section-7-3-10)
-CODE clause [13.18.12](#section-13-18-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [13.8.4](#section-13-8-4)
-Coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.2.3.3](#section-8-4-2-3-3)
-Code-name [8.3.2.3.3](#section-8-3-2-3-3)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-CODE-SET clause [13.18.13](#section-13-18-13)
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
-Collating sequence [10.6.2](#section-10-6-2)
-COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-COLLATING SEQUENCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [14.9.24](#section-14-9-24)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
-Collating sequences [8.1.5](#section-8-1-5)
-Colon [7.3.10.4](#section-7-3-10-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
-Color number [9.2.7](#section-9-2-7)
-COLUMN (COL) phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
-COLUMN clause [13.18.14](#section-13-18-14)
-Combined conditions [8.6.7](#section-8-6-7)
-Combined date and time format [14.9.48.4](#section-14-9-48-4)
-COMBINED-DATETIME [15.3](#section-15-3)
-Comma 29
-&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with semicolon [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
-Comment [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Inline [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Line [3](#section-3)
-Comment indicator [3](#section-3)
-commit [B.3](#section-b-3)
-COMMIT statement [14.9.7](#section-14-9-7)
-&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
-
-EC-FLOW-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
-COMMON [14.9.23.3](#section-14-9-23-3)
-COMMON clause
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
-Common exception processing [D.16](#section-d-16)
-COMMON phrase [13.18.63.3](#section-13-18-63-3)
-Common phrases [14.2.3](#section-14-2-3)
-Common program [8.4.3.11.2](#section-8-4-3-11-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
-Common time format [14.9.48.4](#section-14-9-48-4)
-COMP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
-Comparison
-&nbsp;&nbsp;&nbsp;&nbsp;Between message tags [8.5.2.2](#section-8-5-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Between object reference identifiers [8.5.2.2](#section-8-5-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Locale-based [8.5.1.12.2](#section-8-5-1-12-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Of alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Of boolean operands [8.5.1.12](#section-8-5-1-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Of data-pointer operands [8.5.2.2](#section-8-5-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Of index data items [8.5.2.2](#section-8-5-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Of mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Of national operands [8.5.1.12](#section-8-5-1-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Of numeric operands [8.5.1.10](#section-8-5-1-10)
-&nbsp;&nbsp;&nbsp;&nbsp;Of strongly-typed group items [8.5.1.12.2](#section-8-5-1-12-2)
-Compatibility
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
-Compatibility of Variable-length groups
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.3.2.4](#section-8-4-3-2-4)
-Compilation group [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
-Compilation stage [3](#section-3)
-Compilation unit 25, [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
-Compilation variable name [5.6](#section-5-6)
-Compilation-variable-name [8.3.2.2.3](#section-8-3-2-2-3)
-Compiler directing statement [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [7.2.3](#section-7-2-3)
-&nbsp;&nbsp;&nbsp;&nbsp;REPLACE statement [7.2.4](#section-7-2-4)
-Compiler directive [4.2.11](#section-4-2-11)
-Compiler directive indicator [3](#section-3)
-Compiler-directive word [4.2.11](#section-4-2-11), [7.3.13.4](#section-7-3-13-4), [8.8.2](#section-8-8-2)
-Compile-time arithmetic expressions [7.3.6](#section-7-3-6)
-Compile-time boolean expressions [7.3.7](#section-7-3-7)
-Composite of operands [8.4.6](#section-8-4-6)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
-COMPUTATIONAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
-COMPUTE statement [14.9.8](#section-14-9-8)
-Computer's character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-Computer's coded character set [8.1.2](#section-8-1-2)
-Computer-name [8.3.2.3.4](#section-8-3-2-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-&nbsp;&nbsp;&nbsp;&nbsp;SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
-CONCAT function [15.18](#section-15-18)
-Concatenation expressions [8.8.3](#section-8-8-3)
-Concatenation operator [8.7.3](#section-8-7-3)
-Concepts [A.4.3](#section-a-4-3)
-
----
-
-
-CONDITION [14.9.39.4](#section-14-9-39-4)
-Condition [8.5.1.7](#section-8-5-1-7)
-&nbsp;&nbsp;&nbsp;&nbsp;Abbreviated combined relation condition [8.7](#section-8-7)
-&nbsp;&nbsp;&nbsp;&nbsp;Class condition [8.5.2.4](#section-8-5-2-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Condition-name condition [8.5.3.3](#section-8-5-3-3)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
-&nbsp;&nbsp;&nbsp;&nbsp;Evaluation order rules [8.6.7](#section-8-6-7)
-&nbsp;&nbsp;&nbsp;&nbsp;IF statement [14.9.19](#section-14-9-19)
-&nbsp;&nbsp;&nbsp;&nbsp;Omitted argument condition [8.6.4](#section-8-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Sign condition [8.6.3](#section-8-6-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Switch-status condition [8.5.3.3](#section-8-5-3-3)
-Conditional compilation [7.3.5](#section-7-3-5)
-Conditional expression [8.5.1.7](#section-8-5-1-7), [14.9.23.4](#section-14-9-23-4), [D.19.5.3](#section-d-19-5-3)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
-Conditional phrase [14.5.2](#section-14-5-2)
-Conditional statement [13.18.60.2](#section-13-18-60-2)
-Conditional variable [8.5.3.3](#section-8-5-3-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.3.3.6.2](#section-8-3-3-6-2)
-Conditionally-processed compilation group [3](#section-3)
-Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified with subscripts [8.3.3.6.4](#section-8-3-3-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4), [8.3.5](#section-8-3-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Subscripted [8.1.4](#section-8-1-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Switch status [8.3.3.6.4](#section-8-3-3-6-4)
-Condition-name condition [8.5.3.3](#section-8-5-3-3)
-Configuration section [12.3](#section-12-3)
-Conformance [D.19.5.3](#section-d-19-5-3)
-Conformance for object orientation [9.3.8.2](#section-9-3-8-2)
-Conforming implementation 25, 26
-Conforming run unit 25
-Constant conditional expression [7.3.8](#section-7-3-8)
-Constant entry [13.10](#section-13-10)
-CONSTANT RECORD [13.18.40.4](#section-13-18-40-4)
-CONSTANT RECORD clause [13.18.15](#section-13-18-15)
-Constant-name [8.3.2.2.5](#section-8-3-2-2-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.5](#section-8-3-5)
-Contained source unit [9.1.13.3](#section-9-1-13-3)
-Contained statement [13.18.60.4](#section-13-18-60-4)
-CONTENT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement [14.9.39](#section-14-9-39)
-&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-Content validation [D.22.4](#section-d-22-4)
-Context-sensitive word [7.3.17](#section-7-3-17)
-Context-sensitive word list [8.8.1.4.3](#section-8-8-1-4-3)
-Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
-Continuation indicator [3](#section-3)
-Continuation of lines [6.3.5](#section-6-3-5)
-CONTINUE phrase [14.9.26](#section-14-9-26)
-CONTINUE statement [14.9.9](#section-14-9-9)
-Continued line [3](#section-3)
-Control break [13.16](#section-13-16), [13.18.8](#section-13-18-8)
-Control break processing [14.9.6.4](#section-14-9-6-4)
-CONTROL clause [13.18.16](#section-13-18-16)
-&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [13.8.4](#section-13-8-4)
-CONTROL FOOTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-CONTROL HEADING phrase
-
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-CONVERT function [15.19](#section-15-19)
-CONVERTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
-COPY statement [7.2.3](#section-7-2-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Nesting [3](#section-3)
-Correspondence
-&nbsp;&nbsp;&nbsp;&nbsp;Variable-length groups [8.5.1.12](#section-8-5-1-12)
-CORRESPONDING (CORR) phrase [14.5.1](#section-14-5-1)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
-&nbsp;&nbsp;&nbsp;&nbsp;FILLER clause [14.5.1](#section-14-5-1)
-&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [14.9.25](#section-14-9-25)
-&nbsp;&nbsp;&nbsp;&nbsp;OCCURS clause [13.18.38](#section-13-18-38)
-&nbsp;&nbsp;&nbsp;&nbsp;REDEFINES clause [13.18.44](#section-13-18-44)
-&nbsp;&nbsp;&nbsp;&nbsp;RENAMES clause [13.18.45](#section-13-18-45)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
-COS function [15.20](#section-15-20)
-COUNT IN phrase
-&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [14.9.48](#section-14-9-48)
-CR PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-CRT status [9.2.3](#section-9-2-3)
-CRT STATUS clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Cultural adaptability [D.6.5.3.1](#section-d-6-5-3-1)
-Cultural elements [7.3.12](#section-7-3-12)
-Cultural ordering table [15.61](#section-15-61), [15.85.4](#section-15-85-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.15](#section-7-3-15)
-Currency sign [10.6.2](#section-10-6-2)
-CURRENCY SIGN clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Currency string [11.3.4](#section-11-3-4)
-Currency symbol [10.6.2](#section-10-6-2), [11.3.4](#section-11-3-4)
-currency_symbol [7.3.12.4](#section-7-3-12-4)
-Current screen item [9.2.6](#section-9-2-6)
-Current volume pointer [9.1.10](#section-9-1-10)
-CURRENT-DATE function [15.21](#section-15-21)
-Cursor [9.2.4](#section-9-2-4)
-CURSOR clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Cursor locator [9.2.5](#section-9-2-5)
-CYCLE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-
-## D
-
-d_fmt [7.3.13](#section-7-3-13)
-DATA BY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
-Data conversion [14.5.1](#section-14-5-1), [14.6.13.1.4](#section-14-6-13-1-4)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [14.9.25](#section-14-9-25)
-Data description entry [13.16](#section-13-16)
-Data division [13](#section-13)
-Data division entries [12.3.8.4](#section-12-3-8-4)
-Data item [8.2](#section-8-2)
-Data-address-identifier [8.4.3.11](#section-8-4-3-11)
-Data-name [8.3.2.2.6](#section-8-3-2-2-6)
-
----
-
-
----
-
-
-Data description entry [13.16](#section-13-16)
-Definition [7.3.14.4](#section-7-3-14-4)
-Identifier [8.4.3.1](#section-8-4-3-1)
-Qualified [8.2.2](#section-8-2-2)
-Scope of [8.3.5](#section-8-3-5)
-Subscripted [8.1.4](#section-8-1-4), [8.2.2](#section-8-2-2)
-data-name [8.3.2.2.6](#section-8-3-2-2-6)
-Data-pointer [7.3.12.4](#section-7-3-12-4), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
-Definition [13.18.50](#section-13-18-50)
-Data-pointer category [8.5.2.6](#section-8-5-2-6)
-Data-pointer data item [8.4.3.4](#section-8-4-3-4)
-DATA-POINTER phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-Date forms [14.9.49.3](#section-14-9-49-3)
-DATE phrase
-ACCEPT statement [14.9.1](#section-14-9-1)
-DATE-OF-INTEGER function [15.22](#section-15-22)
-DATE-TO-YYYYMMDD function [15.23](#section-15-23)
-DAY phrase
-ACCEPT statement [14.9.1](#section-14-9-1)
-Day subfield [14.9.48](#section-14-9-48)
-DAY-OF-INTEGER function [15.24](#section-15-24)
-DAY-OF-WEEK phrase
-ACCEPT statement [14.9.1](#section-14-9-1)
-Day-of-week subfield [14.9.48.4](#section-14-9-48-4)
-Day-of-year subfield [14.9.48](#section-14-9-48)
-DAY-TO-YYYYDDD function [15.25](#section-15-25)
-DB PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-DE phrase
-TYPE clause [13.18.57](#section-13-18-57)
-Decimal encoding
-ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
-Decimal point [10.6.2](#section-10-6-2)
-Decimal point alignment [14.5.1](#section-14-5-1)
-Decimal separator
-Definition [11.8.1](#section-11-8-1)
-DECIMAL-ENCODING phrase
-FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
-USAGE clause [13.18.60](#section-13-18-60)
-DECIMAL-POINT IS COMMA clause [15.42](#section-15-42), [15.43.4](#section-15-43-4), [15.45](#section-15-45)
-Definition [11.8.1](#section-11-8-1)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Declarative statement [13.18.60.2](#section-13-18-60-2)
-USE statement [14.9.49](#section-14-9-49)
-DECLARATIVES [14.3](#section-14-3)
-Declaratives [14.3](#section-14-3)
-Normal completion [13.18.63.3](#section-13-18-63-3)
-De-editing [14.9.20](#section-14-9-20), [14.9.20.4](#section-14-9-20-4)
-DEFAULT clause [13.18.17](#section-13-18-17)
-DEFAULT phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-SET statement, locale [14.9.30.4](#section-14-9-30-4)
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-DEFAULT ROUNDED MODE IS PROHIBITED clause [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
-DEFINE directive [7.3.11](#section-7-3-11)
-Defined condition [7.3.8.4](#section-7-3-8-4)
-Definitions 3
-
-DELETE FILE statement [14.8.4.3](#section-14-8-4-3)
-DELETE statement [14.9.10](#section-14-9-10)
-DELIMITED BY phrase
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-DELIMITED phrase
-DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
-Delimited scope statement [13.18.60.4](#section-13-18-60-4)
-DELIMITER IN phrase
-UNSTRING statement [14.9.48](#section-14-9-48)
-DEPENDING ON phrase
-GO TO statement [14.9.17](#section-14-9-17)
-OCCURS clause [13.18.38](#section-13-18-38)
-RECORD clause [13.18.43](#section-13-18-43)
-DESCENDING KEY phrase
-MERGE statement [14.9.24](#section-14-9-24)
-OCCURS clause [13.18.38](#section-13-18-38)
-SEARCH statement [14.9.37](#section-14-9-37)
-SORT statement [14.9.40](#section-14-9-40)
-DESTINATION clause [13.18.18](#section-13-18-18)
-DETAIL phrase
-TYPE clause [13.18.57](#section-13-18-57)
-Device-name [8.3.2.3.5](#section-8-3-2-3-5)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Directive-name
-Definition [7.3.14.4](#section-7-3-14-4)
-directive-name [8.3.2.2.7](#section-8-3-2-2-7)
-DISPLAY directive [7.3.12](#section-7-3-12)
-DISPLAY phrase
-USAGE clause [13.18.60](#section-13-18-60)
-DISPLAY screen statement [14.9.1.4](#section-14-9-1-4), [14.9.35](#section-14-9-35)
-DISPLAY statement [14.9.11](#section-14-9-11)
-DISPLAY-OF function [15.26](#section-15-26)
-DIVIDE statement [14.9.12](#section-14-9-12)
-Division header [9.1.13.3](#section-9-1-13-3)
-DOWN phrase
-SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
-SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
-DUPLICATES phrase
-ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
-SORT statement [14.9.40](#section-14-9-40)
-DYNAMIC [13.18.22](#section-13-18-22)
-Dynamic access mode [9.1.8.4](#section-9-1-8-4)
-DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
-Data description entry [13.16](#section-13-16)
-DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
-DYNAMIC phrase
-ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
-Dynamic storage [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
-Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
-Definition 156
-Dynamic-capacity-table
-Format [13.18.22.2](#section-13-18-22-2)
-Dynamic-length elementary item
-Definition [8.4.3.2.3](#section-8-4-3-2-3)
-Dynamic-length elementary items [8.5.1.10](#section-8-5-1-10)
-Dynamic-length-structure-name [8.3.2.2.8](#section-8-3-2-2-8)
-
-
-DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
-Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-
-## E
-
-E function [15.27](#section-15-27)
-E PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-EC [6.4.4.3](#section-6-4-4-3), [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
-EC-ALL [8.8.4.2.13](#section-8-8-4-2-13)
-EC-ALL exception [6.4.4.3](#section-6-4-4-3), [7.3.4](#section-7-3-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
-EC-ARGUMENT exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.7](#section-d-7)
-EC-ARGUMENT-FUNCTION exception [13.18.63.4](#section-13-18-63-4), [14.9.47](#section-14-9-47), [15.88](#section-15-88)
-EC-ARGUMENT-FUNCTION exception condition [15.64](#section-15-64)
-EC-ARGUMENT-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-BOUND exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
-EC-BOUND-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-BOUND-ODO exception [13.18.24.4](#section-13-18-24-4), [13.18.63.4](#section-13-18-63-4)
-EC-BOUND-OVERFLOW exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4)
-EC-BOUND-PTR exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4)
-EC-BOUND-REF-MOD exception [8.3.2.2.13](#section-8-3-2-2-13), [13.18.63.4](#section-13-18-63-4)
-EC-BOUND-SET exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-BOUND-SUBSCRIPT exception [8.2](#section-8-2), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-BOUND-SUBSCRIPT exception condition [14.9.33.4](#section-14-9-33-4), [14.9.34.4](#section-14-9-34-4)
-EC-BOUND-TABLE-LIMIT exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-CONTINUE exception [13.18.63.4](#section-13-18-63-4)
-EC-CONTINUE-IMP [13.18.63.4](#section-13-18-63-4)
-EC-CONTINUE-LESS-THAN-ZERO exception [13.18.63.4](#section-13-18-63-4), [14.8.4](#section-14-8-4)
-EC-DATA exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
-EC-DATA-CONVERSION exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4), [15.3.3](#section-15-3-3), [15.6](#section-15-6), [15.41](#section-15-41)
-EC-DATA-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-DATA-INCOMPATIBLE exception [8.4.6.2](#section-8-4-6-2), [8.4.6.3](#section-8-4-6-3), [13.18.63.4](#section-13-18-63-4), [14.2.2](#section-14-2-2), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6.4](#section-14-9-6-4), [14.9.20.4](#section-14-9-20-4), [14.9.40.4](#section-14-9-40-4), [15.97](#section-15-97)
-EC-DATA-NOT-FINITE exception [13.18.63.4](#section-13-18-63-4), [14.2.3](#section-14-2-3)
-EC-DATA-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4)
-EC-DATA-PTR-NULL exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-EXTERNAL [13.18.63.4](#section-13-18-63-4)
-EC-EXTERNAL exception [14.6.9](#section-14-6-9), [14.7.6](#section-14-7-6)
-EC-EXTERNAL-DATA-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
-EC-EXTERNAL-FILE-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
-EC-EXTERNAL-FORMAT-CONFLICT [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
-EC-EXTERNAL-IMP [13.18.63.4](#section-13-18-63-4)
-EC-FLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
-EC-FLOW-APPLY exception [12.3.8](#section-12-3-8)
-EC-FLOW-APPLY-COMMIT exception [12.3.8](#section-12-3-8), [13.18.63.4](#section-13-18-63-4)
-EC-FLOW-COMMIT exception [14.8.2.3.3](#section-14-8-2-3-3)
-EC-FLOW-GLOBAL-EXIT exception [13.18.63.4](#section-13-18-63-4)
-EC-FLOW-GLOBAL-GOBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.8.4](#section-14-9-8-4)
-EC-FLOW-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-FLOW-RELEASE exception [13.18.63.4](#section-13-18-63-4), [14.9.26.4](#section-14-9-26-4)
-EC-FLOW-REPORT exception [13.18.63.4](#section-13-18-63-4), [14.9.40.4](#section-14-9-40-4)
-EC-FLOW-RETURN exception [13.18.63.4](#section-13-18-63-4), [14.9.27.4](#section-14-9-27-4)
-EC-FLOW-ROLLBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.28.4](#section-14-9-28-4)
-EC-FLOW-SEARCH exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-FLOW-USE exception [13.18.63.4](#section-13-18-63-4), [14.9.40.3](#section-14-9-40-3)
-EC-FUNCTION exception [13.18.63.4](#section-13-18-63-4)
-EC-FUNCTION-ARG-OMITTED [13.18.63.4](#section-13-18-63-4)
-
-EC-FUNCTION-ARG-OMITTED exception [8.3.2.2.2](#section-8-3-2-2-2)
-EC-FUNCTION-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-FUNCTION-NOT-FOUND exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
-EC-FUNCTION-PTR-INVALID exception [13.18.63.4](#section-13-18-63-4), [14.9.35](#section-14-9-35)
-EC-FUNCTION-PTR-NULL exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
-EC-IMP exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.9.4.4](#section-14-9-4-4), [D.8](#section-d-8)
-EC-IMP-suffix [13.18.63.4](#section-13-18-63-4)
-EC-I-O [8.8.4.2.13](#section-8-8-4-2-13)
-EC-I-O exception [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.7.8](#section-14-7-8), [14.9.23](#section-14-9-23), [15.6](#section-15-6), [15.7](#section-15-7), [D.8](#section-d-8)
-EC-I-O-AT-END exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4), [14.9.25.4](#section-14-9-25-4), [B.3](#section-b-3)
-EC-I-O-EOP exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
-EC-I-O-EOP-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
-EC-I-O-FILE-SHARING exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-IMP exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-INVALID-KEY exception [8.8.4.3](#section-8-8-4-3), [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-LINAGE exception [13.18.14.4](#section-13-18-14-4), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-LOGIC-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.39.4](#section-13-18-39-4), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-PERMANENT-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-RECORD-CONTENT [13.18.63.4](#section-13-18-63-4)
-EC-I-O-RECORD-OPERATION exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
-EC-I-O-WARNING exception [7.3.4](#section-7-3-4), [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
-EC-LOCALE exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4)
-EC-LOCALE-IMP exception [13.18.63.4](#section-13-18-63-4)
-EC-LOCALE-INCOMPATIBLE exception [8.5.1.12](#section-8-5-1-12), [8.5.1.12.2](#section-8-5-1-12-2), [13.18.63.4](#section-13-18-63-4)
-EC-LOCALE-INVALID exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4)
-EC-LOCALE-INVALID-PTR exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
-EC-LOCALE-MISSING exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4), [15.28.4](#section-15-28-4), [15.29](#section-15-29), [15.29.4](#section-15-29-4), [15.30](#section-15-30), [15.43.4](#section-15-43-4)
-EC-LOCALE-SIZE exception [13.18.36](#section-13-18-36), [13.18.63.4](#section-13-18-63-4)
-EC-MCS [13.18.63.4](#section-13-18-63-4)
-EC-MCS-ABNORMAL-TERMINATION exception [13.18.64](#section-13-18-64)
-EC-MCS-IMP exception [13.18.64](#section-13-18-64)
-EC-MCS-INVALID-TAG [13.18.64](#section-13-18-64)
-EC-MCS-INVALID-TAG exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
-EC-MCS-MESSAGE-LENGTH exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
-EC-MCS-NO-RECEIVER exception [14.9.30.4](#section-14-9-30-4)
-EC-MCS-NO-REQUESTER exception [13.18.64](#section-13-18-64)
-EC-MCS-NORMAL-TERMINATION [13.18.64](#section-13-18-64)
-EC-MCS-NO-SERVER exception [13.18.64](#section-13-18-64), [14.9.30.4](#section-14-9-30-4)
-EC-MCS-REQUESTOR-FAILED exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
-EC-OO exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
-EC-OO-ARG-OMITTED exception [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
-EC-OO-CONFORMANCE exception [8.3.2.3.2](#section-8-3-2-3-2), [8.3.2.3.9](#section-8-3-2-3-9), [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2)
-EC-OO-EXCEPTION exception [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64)
-EC-OO-IMP exception [13.18.64](#section-13-18-64)
-EC-OO-METHOD exception [8.11](#section-8-11), [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
-EC-OO-NULL exception [13.18.64](#section-13-18-64), [14.9.14.3](#section-14-9-14-3)
-EC-OO-RESOURCE exception [13.18.64](#section-13-18-64), [15.82](#section-15-82)
-EC-OO-UNIVERSAL exception [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2), [14.9.14.4](#section-14-9-14-4)
-EC-ORDER exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64)
-EC-ORDER-IMP exception [13.18.64](#section-13-18-64)
-EC-ORDER-NOT-SUPPORTED exception [13.18.64](#section-13-18-64), [15.61](#section-15-61)
-EC-ORDER-NOT-SUPPORTED exception condition [16.2.1.2](#section-16-2-1-2)
-EC-OVERFLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
-EC-OVERFLOW-IMP exception [13.18.64](#section-13-18-64)
-EC-OVERFLOW-STRING exception [13.18.64](#section-13-18-64), [14.9.39.2](#section-14-9-39-2)
-EC-OVERFLOW-UNSTRING exception [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
-
-
----
-
-
-EC-PROGRAM exception [6.4.4.3](#section-6-4-4-3), [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [14.7.6](#section-14-7-6), [D.8](#section-d-8)
-EC-PROGRAM-ARG-MISMATCH exception [13.18.64](#section-13-18-64), [14.7.5](#section-14-7-5)
-EC-PROGRAM-ARG-OMITTED exception [6.4.4.3](#section-6-4-4-3), [8.3.2.2.2](#section-8-3-2-2-2), [13.18.64](#section-13-18-64), [14.7.7](#section-14-7-7)
-EC-PROGRAM-CANCEL-ACTIVE exception [13.18.64](#section-13-18-64), [14.7.8](#section-14-7-8)
-EC-PROGRAM-EXCEPTIONS option
-FLAG-02 directive [7.3.14](#section-7-3-14)
-EC-PROGRAM-IMP exception [13.18.64.4](#section-13-18-64-4)
-EC-PROGRAM-NOT-FOUND exception [6.4.4.3](#section-6-4-4-3), [8.3.3.5.3](#section-8-3-3-5-3), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
-EC-PROGRAM-PTR-NULL exception [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
-EC-PROGRAM-RECURSIVE-CALL exception [13.18.64.4](#section-13-18-64-4), [14.7.6](#section-14-7-6)
-EC-PROGRAM-RESOURCES exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
-EC-RAISING exception [13.18.64.4](#section-13-18-64-4)
-EC-RAISING-IMP exception [13.18.64.4](#section-13-18-64-4)
-EC-RAISING-NOT-SPECIFIED exception [13.18.64.4](#section-13-18-64-4), [14.9.8.4](#section-14-9-8-4)
-EC-RANGE exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
-EC-RANGE-IMP exception [13.18.64.4](#section-13-18-64-4)
-EC-RANGE-INDEX exception [6.5](#section-6-5), [13.18.24.4](#section-13-18-24-4), [13.18.64.4](#section-13-18-64-4)
-EC-RANGE-INDEX exception condition [14.9.34](#section-14-9-34), [14.9.34.4](#section-14-9-34-4)
-EC-RANGE-INSPECT-SIZE exception [13.18.64.4](#section-13-18-64-4), [14.9.13.3](#section-14-9-13-3)
-EC-RANGE-INVALID exception [13.18.64.4](#section-13-18-64-4), [14.6](#section-14-6)
-EC-RANGE-PERFORM-VARYING exception [13.18.64.4](#section-13-18-64-4), [14.9.23.4](#section-14-9-23-4)
-EC-RANGE-PTR exception [13.18.64.4](#section-13-18-64-4), [14.9.35.4](#section-14-9-35-4)
-EC-RANGE-SEARCH-INDEX exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.3](#section-14-9-30-3)
-EC-RANGE-SEARCH-NO-MATCH exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.4](#section-14-9-30-4)
-EC-REPORT exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
-EC-REPORT-ACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
-EC-REPORT-COLUMN-OVERLAP exception [13.14](#section-13-14), [13.18.64.4](#section-13-18-64-4)
-EC-REPORT-FILE-MODE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
-EC-REPORT-IMP exception [13.18.64.4](#section-13-18-64-4)
-EC-REPORT-INACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.6.4](#section-14-9-6-4), [14.9.39.3](#section-14-9-39-3)
-EC-REPORT-LINE-OVERLAP exception [13.18.16](#section-13-18-16), [13.18.64.4](#section-13-18-64-4)
-EC-REPORT-NOT-TERMINATED exception [14](#section-14), [14.8.2.2](#section-14-8-2-2)
-EC-REPORT-PAGE-LIMIT exception [13.18.16](#section-13-18-16), [14](#section-14)
-EC-REPORT-PAGE-WIDTH exception [13.14](#section-13-14), [14](#section-14)
-EC-REPORT-SUM-SIZE exception [13.18.40.6](#section-13-18-40-6), [14](#section-14)
-EC-REPORT-VARYING exception [13.18.57.4](#section-13-18-57-4), [14](#section-14)
-EC-SCREEN exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6)
-EC-SCREEN-FIELD-OVERLAP exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.1.4](#section-14-9-1-4), [14.9.2](#section-14-9-2)
-EC-SCREEN-IMP exception [14](#section-14)
-EC-SCREEN-ITEM-TRUNCATED exception [13.15.3](#section-13-15-3), [14](#section-14), [14.9.2](#section-14-9-2)
-EC-SCREEN-LINE-NUMBER exception [13.18.17.4](#section-13-18-17-4), [14](#section-14), [14.9.2](#section-14-9-2)
-EC-SCREEN-STARTING-COLUMN exception [13.15](#section-13-15), [14](#section-14), [14.9.2](#section-14-9-2)
-EC-SIZE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.3](#section-14-3), [14.5.1](#section-14-5-1), [D.8](#section-d-8)
-EC-SIZE-ADDRESS exception [14](#section-14), [14.9.35.4](#section-14-9-35-4)
-EC-SIZE-EXPONENTIATION exception [8.4.6](#section-8-4-6), [8.4.6.3](#section-8-4-6-3), [8.5.1.3.2](#section-8-5-1-3-2), [14](#section-14), [14.5.1](#section-14-5-1)
-EC-SIZE-IMP exception [14](#section-14)
-EC-SIZE-OVERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
-EC-SIZE-TRUNCATION exception [9.3.8.2.3](#section-9-3-8-2-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
-EC-SIZE-UNDERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
-EC-SIZE-ZERO-DIVIDE exception [14](#section-14), [14.5.1](#section-14-5-1)
-EC-SORT-MERGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [D.8](#section-d-8)
-EC-SORT-MERGE-ACTIVE exception [14](#section-14), [14.9.18](#section-14-9-18), [14.9.37](#section-14-9-37), [14.9.37.3](#section-14-9-37-3)
-
-EC-SORT-MERGE-FILE-ACTIVE exception [15.99.3](#section-15-99-3)
-EC-SORT-MERGE-FILE-OPEN exception [14](#section-14), [14.9.17](#section-14-9-17), [14.9.18.4](#section-14-9-18-4), [14.9.36.4](#section-14-9-36-4), [14.9.37](#section-14-9-37), [15.99.3](#section-15-99-3)
-EC-SORT-MERGE-IMP exception [14](#section-14)
-EC-SORT-MERGE-RELEASE exception [13.18.39.4](#section-13-18-39-4), [14](#section-14), [14.9.17](#section-14-9-17), [14.9.37.3](#section-14-9-37-3)
-EC-SORT-MERGE-RETURN exception [14](#section-14), [14.9.27.4](#section-14-9-27-4)
-EC-SORT-MERGE-SEQUENCE exception [14](#section-14), [14.9.17](#section-14-9-17)
-EC-STORAGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14)
-EC-STORAGE-IMP exception [14](#section-14)
-EC-STORAGE-NOT-ALLOC exception [14.2.2](#section-14-2-2), [14.9.6](#section-14-9-6)
-EC-STORAGE-NOT-AVAIL exception [14.2.2](#section-14-2-2), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.35.4](#section-14-9-35-4)
-EC-USER exception [13.18.57.4](#section-13-18-57-4), [13.18.63.3](#section-13-18-63-3), [14.2.2](#section-14-2-2), [14.9.4.4](#section-14-9-4-4), [14.9.8.4](#section-14-9-8-4), [D.8](#section-d-8)
-EC-VALIDATE exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
-EC-VALIDATE-CONTENT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
-EC-VALIDATE-FORMAT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
-EC-VALIDATE-IMP exception [14.2.2](#section-14-2-2)
-EC-VALIDATE-RELATION exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
-EC-VALIDATE-VARYING exception [13.18.57.4](#section-13-18-57-4), [14.2.2](#section-14-2-2)
-EDITING phrase [D.19.5.4.2](#section-d-19-5-4-2)
-Editing rules [13.18.40.5](#section-13-18-40-5)
-Elementary items [14.8.2.3](#section-14-8-2-3)
-Ellipses [5.2.7](#section-5-2-7)
-ELSE NEXT SENTENCE phrase
-IF statement [14.9.19](#section-14-9-19)
-ELSE phrase
-IF statement [14.9.19](#section-14-9-19)
-END CLASS marker [9.1.15](#section-9-1-15)
-END DECLARATIVES [13.18.57.4](#section-13-18-57-4), [13.18.60](#section-13-18-60)
-END FACTORY marker [9.1.15](#section-9-1-15)
-END FUNCTION marker [9.1.15](#section-9-1-15)
-END INTERFACE marker [9.1.15](#section-9-1-15)
-END MARKERS [10.7](#section-10-7)
-END METHOD marker [9.1.15](#section-9-1-15)
-END OBJECT marker [9.1.15](#section-9-1-15)
-End of COBOL source program [9.1.15](#section-9-1-15)
-END PROGRAM marker [9.1.15](#section-9-1-15)
-END-ACCEPT phrase [14.6.12](#section-14-6-12)
-END-ADD phrase [14.6.13.1.6](#section-14-6-13-1-6)
-END-CALL phrase [14.6.13.2](#section-14-6-13-2)
-END-COMPUTE phrase [14.8.3](#section-14-8-3)
-END-DELETE phrase [14.8.4.3](#section-14-8-4-3)
-END-DISPLAY phrase [14.9.1.4](#section-14-9-1-4)
-END-DIVIDE phrase [14.9.2.3](#section-14-9-2-3)
-END-EVALUATE phrase [14.9.4](#section-14-9-4)
-END-IF phrase
-IF statement [14.9.19](#section-14-9-19)
-END-MULTIPLY phrase [14.9.22](#section-14-9-22)
-END-OF-PAGE phrase [14.9.44](#section-14-9-44)
-WRITE statement [14.9.51](#section-14-9-51)
-END-READ phrase [14.9.24.4](#section-14-9-24-4)
-END-RETURN phrase [14.9.27.4](#section-14-9-27-4)
-END-REWRITE phrase [14.9.27.4](#section-14-9-27-4)
-END-SEARCH phrase [14.9.28.4](#section-14-9-28-4)
-END-START phrase [14.9.37.4](#section-14-9-37-4)
-END-STRING phrase [14.9.39](#section-14-9-39)
-END-SUBTRACT phrase [14.9.39.3](#section-14-9-39-3)
-END-UNSTRING phrase [14.9.39.4](#section-14-9-39-4)
-
-
-END-WRITE phrase [14.9.41.4](#section-14-9-41-4)
-ENTRY-CONVENTION clause [11.9.7](#section-11-9-7)
-Entry-convention-name [8.3.2.3.6](#section-8-3-2-3-6)
-Entry-name clause [13.18.20](#section-13-18-20)
-Environment division [12](#section-12)
-EO [14.9.39.4](#section-14-9-39-4)
-EOP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-EQUAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [14.9.37](#section-14-9-37)
-Equivalent arithmetic expression [14.9.49.3](#section-14-9-49-3)
-ERASE clause [13.18.21](#section-13-18-21)
-ERROR clause [13.18.52](#section-13-18-52)
-Error indication [D.22.6](#section-d-22-6)
-ERROR phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-ERROR PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-EVALUATE directive [7.3.13](#section-7-3-13)
-EVALUATE statement [14.9.13](#section-14-9-13)
-Evaluation of conditional expressions [8.6.7](#section-8-6-7)
-Evaluation of conditions [D.19.5.3](#section-d-19-5-3)
-Evaluation rules for conditions [8.7.5.2](#section-8-7-5-2)
-EXCEPTION [14.9.23.3](#section-14-9-23-3)
-EXCEPTION CONDITION [14.9.39.4](#section-14-9-39-4)
-Exception condition handling [14.6.13](#section-14-6-13)
-Exception conditions [9.1.18.7](#section-9-1-18-7)
-&nbsp;&nbsp;&nbsp;&nbsp;Fatal [13.18.63.3](#section-13-18-63-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Nonfatal [13.18.63.3](#section-13-18-63-3)
-Exception declaratives [D.2.3.4.4](#section-d-2-3-4-4)
-EXCEPTION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EC-MCS-NORMAL-TERMINATION
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exception [13.18.63](#section-13-18-63)
-Exception functions [D.2.3.4.5](#section-d-2-3-4-5)
-Exception handling [D.2.3.4](#section-d-2-3-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Input-output exceptions [8.8.4.2.13](#section-8-8-4-2-13)
-EXCEPTION OBJECT [14.9.39.4](#section-14-9-39-4)
-Exception object [13.18.63.3](#section-13-18-63-3), [14.9.39.4](#section-14-9-39-4)
-EXCEPTION phrase [14.9.7](#section-14-9-7)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-&nbsp;&nbsp;&nbsp;&nbsp;RAISE statement [14.9.29](#section-14-9-29)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-EXCEPTION PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-Exception status indicators [13.18.63.3](#section-13-18-63-3)
-Exception-checking PERFORM statement. [14.7.9](#section-14-7-9)
-EXCEPTION-FILE function [15.28](#section-15-28)
-EXCEPTION-FILE-N function [15.29](#section-15-29)
-EXCEPTION-LOCATION function [15.30](#section-15-30)
-EXCEPTION-LOCATION-N function [15.31](#section-15-31)
-Exception-names [8.3.2.7](#section-8-3-2-7)
-EXCEPTION-OBJECT [8.4.3.6](#section-8-4-3-6)
-EXCEPTION-STATEMENT function [15.32](#section-15-32)
-
-EXCEPTION-STATUS function [15.33](#section-15-33)
-EXCLUSIVE-OR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
-Execution [14.6](#section-14-6)
-EXIT FUNCTION statement 10, [14.9.23.4](#section-14-9-23-4)
-EXIT PARAGRAPH statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
-EXIT PERFORM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
-EXIT PROGRAM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
-EXIT PROGRAM Statement. [D.31.5.8](#section-d-31-5-8)
-EXIT SECTION statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
-EXIT statement [14.9.14](#section-14-9-14)
-EXP function [15.34](#section-15-34)
-EXP10 function [15.35](#section-15-35)
-Expanded compilation group [3](#section-3)
-EXPANDS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;REPOSITORY paragraph [12.3.8](#section-12-3-8)
-Expected capacity
-&nbsp;&nbsp;&nbsp;&nbsp;Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
-Expected capacity of a dynamic table
-&nbsp;&nbsp;&nbsp;&nbsp;Definition 156
-Explicit attributes [12.3.8.4](#section-12-3-8-4)
-Explicit reference
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.3.3.6.4](#section-8-3-3-6-4)
-Explicit scope terminators [13.18.60.4](#section-13-18-60-4)
-Explicit transfer of control [13.18.60.4](#section-13-18-60-4)
-Exponent [7.3.20](#section-7-3-20)
-Exponentiation [8.4.6](#section-8-4-6)
-Expression
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [1](#section-1), [8.4.4.2](#section-8-4-4-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [8.5.1.3.2](#section-8-5-1-3-2), [8.5.1.9.2](#section-8-5-1-9-2), [14.8.3](#section-14-8-3), [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Compile-time arithmetic [4.2.16](#section-4-2-16)
-&nbsp;&nbsp;&nbsp;&nbsp;Compile-time boolean [4.5](#section-4-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Concatenation [8.5.1.6.4](#section-8-5-1-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Conditional [8.5.1.7](#section-8-5-1-7), [D.19.5.3](#section-d-19-5-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Constant conditional [5](#section-5)
-EXTEND phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-Extended calendar date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48](#section-14-9-48)
-Extended combined date and time format [14.9.49](#section-14-9-49)
-Extended common time format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
-Extended common time format with fractional seconds
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
-Extended common time format with integer seconds
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;representation
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
-Extended letters [A.4.6](#section-a-4-6)
-Extended local time format [14.9.48.4](#section-14-9-48-4)
-Extended offset time format [14.9.48.4](#section-14-9-48-4)
-Extended ordinal date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
-Extended relational operator [8.4.3.15.4](#section-8-4-3-15-4)
-Extended UTC time format [14.9.48.4](#section-14-9-48-4)
-Extended week date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
-Extension language elements 23
-
-
----
-
-
-Extensions
-Nonstandard 23
-Standard 23
-External [8.4.3.9.3](#section-8-4-3-9-3)
-EXTERNAL clause [13.18.22](#section-13-18-22)
-Data description entry [13.16](#section-13-16)
-File description entry [13.4.5](#section-13-4-5)
-External data items [13.18.55](#section-13-18-55)
-External items [14.8.4](#section-14-8-4)
-EXTERNAL phrase
-File description entry [13.4.5](#section-13-4-5)
-External repository [8.13](#section-8-13)
-Externalized names [7.3.13.4](#section-7-3-13-4)
-External-locale-name [8.3.2.3.7](#section-8-3-2-3-7)
-Externally provided functionality 24
-
-## F
-
-FACTORIAL function [15.36](#section-15-36)
-FACTORY clause
-METHOD-ID paragraph [11.7](#section-11-7)
-Factory data [9.1.7.3](#section-9-1-7-3), [D.12.5](#section-d-12-5)
-Factory definition [9.2](#section-9-2)
-Factory method [8.10](#section-8-10), [D.12.5](#section-d-12-5)
-Factory object [8.10](#section-8-10), [9.2](#section-9-2), [D.12.5](#section-d-12-5)
-Life cycle for [9.1.10](#section-9-1-10)
-FACTORY paragraph [11.4](#section-11-4)
-FACTORY phrase [14.6.4](#section-14-6-4)
-USAGE clause [13.18.60](#section-13-18-60)
-Factory-definition [9.1.13.8](#section-9-1-13-8)
-FactoryObject method [16.2.2](#section-16-2-2)
-FALSE phrase
-EVALUATE statement [14.9.13](#section-14-9-13)
-SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
-FARTHEST-FROM-ZERO [14.9.35.4](#section-14-9-35-4)
-FARTHEST-FROM-ZERO phrase
-CLASS clause [13.18.11](#section-13-18-11)
-SET statement [14.9.39](#section-14-9-39)
-Fatal exception conditions [14.6.13.1.3](#section-14-6-13-1-3)
-FD entry [12.4.5.1](#section-12-4-5-1)
-Feature-name [8.3.2.3.8](#section-8-3-2-3-8)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Figurative constant [7.3.23](#section-7-3-23)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-Symbolic characters in [8](#section-8)
-File
-logical [8.8.4.2.2](#section-8-8-4-2-2)
-Physical [8.8.4.2.2](#section-8-8-4-2-2)
-Physical aspects [8.4.2.2.3](#section-8-4-2-2-3)
-File attribute conflict condition [14.9.22.4](#section-14-9-22-4)
-File attributes [8.8.4.2.5](#section-8-8-4-2-5)
-File connector [9.1.3](#section-9-1-3)
-OPEN statement [14.9.27](#section-14-9-27)
-File control entry [12.4.5](#section-12-4-5)
-File description entry [13.4.5](#section-13-4-5)
-
-File operations [D.2.3.3](#section-d-2-3-3)
-File organization [D.2.2](#section-d-2-2)
-FILE phrase
-REWRITE statement [14.9.35](#section-14-9-35)
-WRITE statement [14.9.51](#section-14-9-51)
-File position indicator [9.1.11](#section-9-1-11)
-File processing [D.2.3](#section-d-2-3)
-File section [13.4](#section-13-4)
-File sharing [D.2.4.2](#section-d-2-4-2)
-File sharing conflict condition [8.8.4.4.2](#section-8-8-4-4-2), [14.6.2](#section-14-6-2)
-FILE STATUS clause [12.4.5.8](#section-12-4-5-8)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-File-name [8.3.2.2.9](#section-8-3-2-2-9)
-Scope of [8.3.5](#section-8-3-5)
-Files [9.1](#section-9-1)
-Indexed [9.1.7.4](#section-9-1-7-4)
-Relative [9.1.7.3](#section-9-1-7-3)
-Sequential [9.1.7.2](#section-9-1-7-2)
-FILLER clause [13.17](#section-13-17), [13.18.41.4](#section-13-18-41-4)
-FILLER phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-FINAL phrase
-CLASS-ID paragraph [11.3](#section-11-3)
-SUM clause [13.18.54](#section-13-18-54)
-TYPE clause [13.18.57](#section-13-18-57)
-FINALLY [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
-FIRST DETAIL phrase
-PAGE clause [13.18.39](#section-13-18-39)
-FIRST phrase
-INSPECT statement [14.9.22](#section-14-9-22)
-START statement [14.9.41](#section-14-9-41)
-Fixed file attributes [9.1.6](#section-9-1-6)
-Fixed indicators [6.2.2](#section-6-2-2)
-Fixed insertion editing [13.18.35.4](#section-13-18-35-4)
-Fixed-capacity table
-Comparing to dynamic-capacity table [13.18.62.4](#section-13-18-62-4)
-Fixed-capacity tables
-Definition 156
-Fixed-length data item
-Definition [8.4.3.2.4](#section-8-4-3-2-4)
-Fixed-length group
-Definition [8.4.3.2.4](#section-8-4-3-2-4)
-Fixed-length records [D.2.2.5.1](#section-d-2-2-5-1)
-Fixed-point numeric data item
-Definition [13.18.33.4](#section-13-18-33-4)
-Fixed-point numeric literal [7.3.19](#section-7-3-19)
-Fixed-point numeric-edited data item
-Definition [13.18.33.4](#section-13-18-33-4)
-FLAG-02 directive [7.3.14](#section-7-3-14)
-FLAG-14 deirective [7](#section-7)
-FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
-Flagging and warning mechanisms
-Archaic language elements [4.2.12](#section-4-2-12)
-FLAG-02 directive [7.3.14](#section-7-3-14)
-Nonstandard extensions [4.2.10](#section-4-2-10)
-Obsolete language elements [4.2.13](#section-4-2-13)
-Processor-dependent elements 22
-
-
-Prototype versus repository [8.8.4](#section-8-8-4)
-Syntax violations 21
-FLAG-NATIVE-ARITHMETIC directive [7.2.2](#section-7-2-2)
-FLOAT-BINARY clause [11.9.8](#section-11-9-8)
-FLOAT-BINARY-128
-Definition [13.18.49](#section-13-18-49)
-FLOAT-BINARY-128 phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-BINARY-32
-Definition [13.18.48](#section-13-18-48)
-FLOAT-BINARY-32 phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-BINARY-64
-Definition [13.18.49](#section-13-18-49)
-FLOAT-BINARY-64 phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
-FLOAT-DECIMAL-16
-Definition [13.18.49](#section-13-18-49)
-FLOAT-DECIMAL-16 phrase
-USAGE clause
-FLOAT-DECIMAL-34 phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-DECIMAL-34
-Definition [13.18.49](#section-13-18-49)
-FLOAT-EXTENDED phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-INFINITY phrase
-CLASS clause [13.18.11](#section-13-18-11)
-SET statement [14.9.39](#section-14-9-39)
-Floating indicators [6.2.3](#section-6-2-3)
-Floating-point numeric data item
-Definition [13.18.62](#section-13-18-62)
-Floating-point numeric literal [7.3.19](#section-7-3-19)
-Floating-point numeric-edited data item
-Definition [13.18.33.4](#section-13-18-33-4)
-FLOAT-LONG phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FLOAT-NOT-A-NUMBER phrase
-SET statement [14.9.39](#section-14-9-39)
-FLOAT-NOT-A-NUMBER-QUIET phrase
-CLASS clause [13.18.11](#section-13-18-11)
-FLOAT-NOT-A-NUMBER-SIGNALING phrase
-CLASS clause [13.18.11](#section-13-18-11)
-SET statement [14.9.39](#section-14-9-39)
-FLOAT-SHORT phrase
-USAGE clause [13.18.60](#section-13-18-60)
-FOOTING phrase
-PAGE clause [13.18.39](#section-13-18-39)
-FOR phrase
-INSPECT statement [14.9.22](#section-14-9-22)
-VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-FOR REMOVAL phrase
-CLOSE statement [14.9.6](#section-14-9-6)
-FOREGROUND-COLOR clause [13.18.23](#section-13-18-23)
-FOREVER phrase
-DELETE statement [14.9.10](#section-14-9-10)
-OPEN statement [14.9.27](#section-14-9-27)
-
-READ statement [14.9.30](#section-14-9-30)
-RETRY phrase [14.7.9](#section-14-7-9)
-REWRITE statement [14.9.35](#section-14-9-35)
-WRITE statement [14.9.51](#section-14-9-51)
-Formal parameter [13.18.57.4](#section-13-18-57-4), [14.6.2.3.2](#section-14-6-2-3-2)
-FORMAT clause [13.18.24](#section-13-18-24)
-File description entry [13.4.5](#section-13-4-5)
-FORMAT phrase
-VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-Format validation [D.22.2](#section-d-22-2)
-PICTURE clause [13.18.40](#section-13-18-40)
-FORMATTED-CURRENT-DATE function [15.38](#section-15-38)
-FORMATTED-DATE function [15.39](#section-15-39)
-FORMATTED-DATETIME function [15.40](#section-15-40)
-FORMATTED-TIME function [15.41](#section-15-41)
-Forms of arithmetic
-Concepts [D.10](#section-d-10)
-frac_digits [7.3.13](#section-7-3-13)
-FRACTION-PART function [15.42](#section-15-42)
-FREE statement [14.9.15](#section-14-9-15)
-Free-form reference format [6.4](#section-6-4)
-FROM clause [13.18.25](#section-13-18-25)
-FROM phrase [14.6.12](#section-14-6-12)
-ACCEPT statement [14.9.1](#section-14-9-1)
-Constant entry [13.10](#section-13-10)
-PERFORM statement [14.9.28](#section-14-9-28)
-RELEASE statement [14.9.32](#section-14-9-32)
-REWRITE statement [14.9.35](#section-14-9-35)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-VARYING clause [13.18.64](#section-13-18-64)
-WRITE statement [14.9.51](#section-14-9-51)
-FULL clause [13.18.26](#section-13-18-26)
-Function activation
-Failure [14.6.2.3.2](#section-14-6-2-3-2)
-Function keys [9.2.2](#section-9-2-2)
-FUNCTION phrase
-EXIT statement [14.9.14](#section-14-9-14)
-Function summary [14.9.49.4](#section-14-9-49-4)
-Function-definition [9.1.13.7](#section-9-1-13-7)
-FUNCTION-ID paragraph [11.5](#section-11-5)
-Function-identifier [8.4.3.2](#section-8-4-3-2)
-Function-pointer
-Definition [13.18.51](#section-13-18-51)
-Function-pointer category [8.5.2.7](#section-8-5-2-7)
-Function-pointer data item [8.4.3.4](#section-8-4-3-4)
-FUNCTION-POINTER phrase
-USAGE clause [13.18.60](#section-13-18-60)
-Function-prototype [9.1.13.5](#section-9-1-13-5)
-Function-prototype-name [8.3.2.2.10](#section-8-3-2-2-10)
-Functions
-Intrinsic [8.8.2](#section-8-8-2), [14.9.46](#section-14-9-46)
-User-defined [9.1.10](#section-9-1-10), [11.9.7.4](#section-11-9-7-4)
-
-## G
-
-General formats [5.2](#section-5-2)
-General rules [5.3.3](#section-5-3-3)
-
-
----
-
-
-GENERATE statement [14.9.16](#section-14-9-16)
-GIVING phrase
-ADD statement [14.9.2](#section-14-9-2)
-DIVIDE statement [14.9.12](#section-14-9-12)
-MERGE statement [14.9.24](#section-14-9-24)
-MULTIPLY statement [14.9.26](#section-14-9-26)
-SORT statement [14.9.40](#section-14-9-40)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-GLOBAL clause [13.18.27](#section-13-18-27)
-Constant entry [13.10](#section-13-10)
-File description entry [13.4.5](#section-13-4-5)
-Report description entry [13.8.4](#section-13-8-4)
-Global names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
-GLOBAL phrase [14.9.8.4](#section-14-9-8-4)
-USE statement [14.9.49](#section-14-9-49)
-GO TO statement [14.9.17](#section-14-9-17)
-GOBACK statement [14.9.18](#section-14-9-18)
-Group
-Strongly-typed [8.4.3.6](#section-8-4-3-6)
-Group items [14.8.2.2](#section-14-8-2-2)
-Group move [14.9.20](#section-14-9-20)
-Grouping separator
-Definition [11.8.1](#section-11-8-1)
-GROUP-USAGE [13.18.9](#section-13-18-9)
-GROUP-USAGE clause [13.18.29](#section-13-18-29)
-
-## H
-
-HEADING phrase
-PAGE clause [13.18.39](#section-13-18-39)
-HIGHEST-ALGEBRAIC function [15.43](#section-15-43)
-HIGHLIGHT clause [13.18.30](#section-13-18-30)
-HIGHLIGHT phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-HIGH-ORDER-LEFT phrase
-FLOAT-BINARY clause [11.9.8](#section-11-9-8)
-FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
-USAGE clause [13.18.60](#section-13-18-60)
-HIGH-ORDER-RIGHT phrase
-FLOAT-BINARY clause [11.9.8](#section-11-9-8)
-FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
-USAGE clause [13.18.60](#section-13-18-60)
-HIGH-VALUE/HIGH-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
-Hours subfield [14.9.48.4](#section-14-9-48-4)
-
-## I
-
-Identification division [11](#section-11)
-Identifier
-Data-name [8.3.2.2.6](#section-8-3-2-2-6)
-Identifiers [8.4.3](#section-8-4-3)
-IF directive [7.3.16](#section-7-3-16)
-IF statement [14.9.19](#section-14-9-19)
-IGNORING LOCK phrase
-READ statement [14.9.30](#section-14-9-30)
-IMP directive [4.2.11](#section-4-2-11), [4.2.16](#section-4-2-16)
-Imperative statement [13.18.60.2](#section-13-18-60-2)
-
-Implementation
-Nonstandard extensions [4.2.10](#section-4-2-10)
-Reserved words [4.2.8](#section-4-2-8)
-Standard extensions [4.2.9](#section-4-2-9)
-Implementor-defined
-Language element list [15.83](#section-15-83)
-Language elements 22
-Native arithmetic [8.8.1.3](#section-8-8-1-3)
-Record types [A.4.11](#section-a-4-11)
-IMPLEMENTS clause [9.2](#section-9-2), [9.3.5.2](#section-9-3-5-2)
-Implicit attributes [12.3.8.4](#section-12-3-8-4)
-Implicit reference
-Definition [8.3.3.6.4](#section-8-3-3-6-4)
-Implicit scope terminators [13.18.60.4](#section-13-18-60-4)
-Implicit transfer of control [13.18.60.4](#section-13-18-60-4)
-IN phrase
-COPY statement [7.2.3](#section-7-2-3)
-With identifiers [8.2](#section-8-2)
-With qualification [8.1.3.2](#section-8-1-3-2)
-IN-ARITHMETIC-RANGE [14.9.35.4](#section-14-9-35-4)
-IN-ARITHMETIC-RANGE phrase
-CLASS clause [13.18.11](#section-13-18-11)
-Incompatibility flagging [7](#section-7)
-Incompatible data [14.6.13.2](#section-14-6-13-2)
-Index
-Definition [13.18.24](#section-13-18-24)
-Index-name [8.3.2.2.11](#section-8-3-2-2-11)
-Index category [8.5.2.8](#section-8-5-2-8)
-Index class [8.4.3.3.4](#section-8-4-3-3-4)
-Index data item [8.4.3.4](#section-8-4-3-4), [13.18.46](#section-13-18-46)
-Index functions [14.9.46](#section-14-9-46)
-INDEX phrase
-USAGE clause [13.18.60](#section-13-18-60)
-INDEXED BY phrase [8.1.4](#section-8-1-4), [14.9.33.4](#section-14-9-33-4)
-OCCURS clause [13.18.38](#section-13-18-38)
-Indexed files
-Definition [8.8.4.2.8](#section-8-8-4-2-8)
-Indexed organization [D.2.2.3](#section-d-2-2-3)
-INDEXED phrase [14.9.29](#section-14-9-29)
-ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
-Index-name [8.3.2.2.11](#section-8-3-2-2-11)
-Scope of [8.3.5](#section-8-3-5), [8.4.2.1](#section-8-4-2-1)
-Indicator area [6.3.3](#section-6-3-3)
-Indicators [6.2](#section-6-2)
-Comment [3](#section-3)
-Compiler directive [3](#section-3)
-Continuation [3](#section-3)
-Fixed [3](#section-3)
-Floating [3](#section-3)
-Literal continuation [3](#section-3)
-Source [3](#section-3)
-Inheritance
-Conforming [9.1.8.2](#section-9-1-8-2)
-INHERITS clause
-CLASS-ID paragraph [11.3](#section-11-3)
-INTERFACE-ID paragraph [11.6](#section-11-6)
-INITIAL clause
-PROGRAM-ID paragraph [11.10](#section-11-10)
-
-
----
-
-
-Initial data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3), [13.18.60.4](#section-13-18-60-4)
-Initial items [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
-Initial program [8.4.3.11.2](#section-8-4-3-11-2)
-initial program
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [9.3.9](#section-9-3-9)
-Initial state [14.6.2.3.2](#section-14-6-2-3-2)
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
-INITIALIZE [9.3.7](#section-9-3-7)
-INITIALIZE clause [11.9.10](#section-11-9-10)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-INITIALIZED [13.18.22](#section-13-18-22)
-INITIALIZED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
-INITIATE statement [14.9.21](#section-14-9-21)
-Inline comment [3](#section-3)
-Inline method invocation [8.4.3.4](#section-8-4-3-4)
-Input distribution [D.22.3](#section-d-22-3)
-INPUT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-INPUT PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
-Input-output section [12.4](#section-12-4)
-Insertion character [13.18.35.4](#section-13-18-35-4)
-INSPECT statement [14.9.22](#section-14-9-22)
-INSPECT statement examples [D.19.5.4.3](#section-d-19-5-4-3)
-Instance data [9.1.7.3](#section-9-1-7-3)
-Instance method [D.11.4](#section-d-11-4)
-Instance object [8.10](#section-8-10), [9.3.5.2](#section-9-3-5-2), [D.11.4](#section-d-11-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Life cycle for [9.1.10](#section-9-1-10)
-instance-definition [9.1.13.8](#section-9-1-13-8)
-int_curr_symbol [7.3.12.4](#section-7-3-12-4)
-int_frac_digits [7.3.13](#section-7-3-13)
-Integer
-&nbsp;&nbsp;&nbsp;&nbsp;In general formats and rules [1](#section-1)
-Integer date form [15.5.2](#section-15-5-2)
-INTEGER function [15.44](#section-15-44)
-Integer functions [14.9.46](#section-14-9-46)
-Integer literal [7.3.19](#section-7-3-19)
-Integer-n 28
-INTEGER-OF-BOOLEAN function [15.45](#section-15-45)
-INTEGER-OF-DATE function [15.46](#section-15-46)
-INTEGER-OF-DAY function [15.47](#section-15-47)
-INTEGER-OF-FORMATTED-DATE function [15.48](#section-15-48)
-INTEGER-PART function [15.49](#section-15-49)
-Interface
-&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [9.1.10](#section-9-1-10)
-Interface-definition [9.1.13.9](#section-9-1-13-9)
-INTERFACE-ID paragraph [11.6](#section-11-6)
-Interface-name [8.3.2.2.12](#section-8-3-2-2-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
-Interfaces [9.3.8.2.2](#section-9-3-8-2-2)
-INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
-Internal items [8.4.3.9.3](#section-8-4-3-9-3)
-International date and time [D.20.6](#section-d-20-6)
-INTO phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
-
-READ statement [14.9.30](#section-14-9-30)
-RETURN statement [14.9.34](#section-14-9-34)
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-Intrinsic function summary [14.9.49.4](#section-14-9-49-4)
-Intrinsic functions [15](#section-15)
-Intrinsic-function-name [7.3.17](#section-7-3-17)
-INVALID clause [13.18.31](#section-13-18-31)
-INVALID KEY [8.8.4.2.13](#section-8-8-4-2-13)
-Invalid key condition [9.1.14](#section-9-1-14)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.2.3](#section-14-2-3)
-INVALID KEY phrase [8.8.4.8.4](#section-8-8-4-8-4)
-&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [14.9.10](#section-14-9-10)
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-INVALID phrase
-&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [13.18.63](#section-13-18-63)
-Invocation operator [8.7.4](#section-8-7-4)
-INVOKE statement [14.9.23](#section-14-9-23)
-I-O phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
-I-O status [9.1.13](#section-9-1-13)
-I-O-CONTROL paragraph [12.4.6](#section-12-4-6)
-IO-STATUS-07 option
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [7.3.14](#section-7-3-14)
-ISO [8.5.3.1](#section-8-5-3-1)
-ISO 8601 [D.22.8.2](#section-d-22-8-2)
-ISO 8601-1 2, [14.9.47.4](#section-14-9-47-4), [14.9.48.4](#section-14-9-48-4), [14.9.49.2](#section-14-9-49-2), [D.20.5.2](#section-d-20-5-2)
-ISO/IEC 1001 2, [12.3.7.4](#section-12-3-7-4)
-ISO/IEC 10646 2, 12, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [8.4.2.3.2](#section-8-4-2-3-2), [11.6.4](#section-11-6-4), [A.2](#section-a-2), [D.6.1.1](#section-d-6-1-1), [D.22.8.3](#section-d-22-8-3)
-ISO/IEC 14651 2, [11.8.4](#section-11-8-4), [15.60.4](#section-15-60-4), [15.85.4](#section-15-85-4), [16.2.1.1](#section-16-2-1-1), [16.2.2.2](#section-16-2-2-2), [D.6.4.3](#section-d-6-4-3)
-ISO/IEC 1989 [E.2](#section-e-2)
-ISO/IEC 1989:2002 [6.5](#section-6-5)
-ISO/IEC 60559 2, [8.4.6.1](#section-8-4-6-1), [8.4.6.2.1](#section-8-4-6-2-1), [8.4.6.2.6](#section-8-4-6-2-6), [8.4.6.5](#section-8-4-6-5), [8.4.6.11](#section-8-4-6-11), [8.5.1.3.1](#section-8-5-1-3-1), [8.5.3.1](#section-8-5-3-1), [8.6.4](#section-8-6-4), [13.18.47.3](#section-13-18-47-3), [13.18.48.3](#section-13-18-48-3), [13.18.49.4](#section-13-18-49-4), [13.18.61.4](#section-13-18-61-4), [14.9.35.4](#section-14-9-35-4), [15.93.4](#section-15-93-4), [D.10](#section-d-10), [D.31.3.2](#section-d-31-3-2)
-ISO/IEC 646 2, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [7.3.17.4](#section-7-3-17-4), [11.5.4](#section-11-5-4), [D.6.1.1](#section-d-6-1-1), [D.6.3.2](#section-d-6-3-2), [D.6.3.6](#section-d-6-3-6)
-ISO/IEC 9945 2, [7.3.11.4](#section-7-3-11-4)
-Item identification [14.6.4](#section-14-6-4)
-
-## J
-
-Julian date form [15.5.4](#section-15-5-4)
-JUSTIFIED clause [13.18.32](#section-13-18-32)
-&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [13.16](#section-13-16)
-
-## K
-
-Key of reference [14.9.38.4](#section-14-9-38-4)
-KEY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
-Keywords [5.2.2](#section-5-2-2)
-Known errors in the standard [D.32](#section-d-32)
-
-
----
-
-
-## L
-
-LAST DETAIL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PAGE clause [13.18.39](#section-13-18-39)
-LAST EXCEPTION phrase [14.9.7](#section-14-9-7)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-Last exception status [D.8.2](#section-d-8-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.63.3](#section-13-18-63-3)
-LAST phrase
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
-Last-used state [14.6.2.3.3](#section-14-6-2-3-3)
-LC_ALL [7.3.12.2](#section-7-3-12-2)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_COLLATE [7.3.12](#section-7-3-12), [7.3.25.4](#section-7-3-25-4), [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_CTYPE [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4), [15.31.3](#section-15-31-3), [15.74](#section-15-74)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_MESSAGES [7.3.12](#section-7-3-12)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_MONETARY [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_NUMERIC [7.3.12](#section-7-3-12)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LC_TIME [7.3.12.1](#section-7-3-12-1), [13.18.61](#section-13-18-61)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-LEADING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
-&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [13.18.52](#section-13-18-52)
-LEAP-SECOND directive [7.3.17](#section-7-3-17)
-LEFT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [13.18.55](#section-13-18-55)
-LENGTH function [15.50](#section-15-50)
-LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [13.10](#section-13-10)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
-Letter mapping [A.2](#section-a-2)
-Level-number [8.3.2.2.13](#section-8-3-2-2-13)
-&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [13.16](#section-13-16)
-&nbsp;&nbsp;&nbsp;&nbsp;Screen description entry [13.17](#section-13-17)
-Levels [8.5.1.3](#section-8-5-1-3)
-Lexical elements [8.3](#section-8-3)
-Library text [3](#section-3)
-Library-name [8.3.2.3.9](#section-8-3-2-3-9)
-Life cycle
-&nbsp;&nbsp;&nbsp;&nbsp;Data [8.4.3.9.1](#section-8-4-3-9-1)
-&nbsp;&nbsp;&nbsp;&nbsp;Object [9.1.10](#section-9-1-10)
-LIMIT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
-LINAGE clause [13.18.34](#section-13-18-34)
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
-Linage concepts [D.2.3.2.8](#section-d-2-3-2-8)
-LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified [8.1.3.2](#section-8-1-3-2)
-Line
-&nbsp;&nbsp;&nbsp;&nbsp;Comment [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Continuation [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Floating indicator [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Slant (/) comment line [3](#section-3)
-
-&nbsp;&nbsp;&nbsp;&nbsp;Source text [3](#section-3)
-LINE (LINES) phrase
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-LINE clause [13.18.35](#section-13-18-35)
-LINE NUMBER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
-line sequential files
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.8.4.2.5](#section-8-8-4-2-5)
-LINE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11), [13.18.16](#section-13-18-16)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified [8.1.3.2](#section-8-1-3-2)
-LINES AT BOTTOM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
-LINES AT clause
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
-LINES AT TOP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
-Linkage section [13.7](#section-13-7)
-LISTING [6.2.3.2](#section-6-2-3-2)
-LISTING directive [7.3.18](#section-7-3-18)
-Literal continuation indicator [3](#section-3)
-Literal delimiter
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
-Literal-phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Literals
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [7.3.17.4](#section-7-3-17-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [7.3.20](#section-7-3-20)
-&nbsp;&nbsp;&nbsp;&nbsp;National [7.3.21](#section-7-3-21)
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric [7.3.19](#section-7-3-19)
-little-endian [13.18.49.4](#section-13-18-49-4)
-Local names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
-Local time format [14.9.48.4](#section-14-9-48-4)
-Locale [7.3.12](#section-7-3-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Category names [7.3.12](#section-7-3-12)
-&nbsp;&nbsp;&nbsp;&nbsp;Field names [7.3.12](#section-7-3-12), [7.3.12.4](#section-7-3-12-4)
-LOCALE argument [15.65](#section-15-65)
-LOCALE clause [8.4.3.7](#section-8-4-3-7)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Locale identification [14.6.6](#section-14-6-6)
-LOCALE phrase [8.4.3.7](#section-8-4-3-7), [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [13.18.40](#section-13-18-40)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-LOCALE-COMPARE function [15.51](#section-15-51)
-LOCALE-DATE function [15.52](#section-15-52)
-Locale-name [8.3.2.2.14](#section-8-3-2-2-14)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.15](#section-7-3-15)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Locale-names [10.6.2](#section-10-6-2)
-LOCALE-TIME function [15.53](#section-15-53)
-LOCALE-TIME-FROM-SECONDS function [15.54](#section-15-54)
-Local-storage section [13.6](#section-13-6)
-LOCATION [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
-LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
-
----
-
-
----
-
-
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-LOCK ON MULTIPLE clause
-LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
-LOCK phrase
-READ statement [14.9.30](#section-14-9-30)
-REWRITE statement [14.9.35](#section-14-9-35)
-WRITE statement [14.9.51](#section-14-9-51)
-LOG function [15.55](#section-15-55)
-LOG10 function [15.56](#section-15-56)
-Logical file [8.8.4.2.2](#section-8-8-4-2-2)
-Logical operators [8.7.6](#section-8-7-6)
-In complex conditions [8.6.5](#section-8-6-5)
-Logical record [13.8](#section-13-8), [A.4.8](#section-a-4-8)
-Logical unit of work
-Definition [8.8.4.12](#section-8-8-4-12)
-LOWER-CASE function [15.57](#section-15-57)
-Lowercase letters [7.3.10](#section-7-3-10)
-LOWEST-ALGEBRAIC function [15.58](#section-15-58)
-LOWLIGHT clause [13.18.36](#section-13-18-36)
-LOWLIGHT phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-LOW-VALUE/LOW-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
-
-## M
-
-MANUAL phrase
-LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
-Mapping letters [A.2](#section-a-2)
-Matching
-Definition [8.4.3.3](#section-8-4-3-3)
-Variable-length groups [8.5.1.12](#section-8-5-1-12)
-MAX function [15.59](#section-15-59)
-Maximum capacity
-Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
-Maximum capacity of a dynamic table
-Definition 156
-MEAN function [15.60](#section-15-60)
-MEDIAN function [15.61](#section-15-61)
-Merge file [9.1.20](#section-9-1-20)
-MERGE statement [14.9.24](#section-14-9-24)
-Merging [D.2.3.3.3](#section-d-2-3-3-3)
-message tag [14.9.25.4](#section-14-9-25-4)
-MESSAGE-TAG [13.18.46](#section-13-18-46)
-message-tag [14.9.30.4](#section-14-9-30-4)
-Message-tag category [8.5.2.9](#section-8-5-2-9)
-Message-tag class [8.4.3.3.4](#section-8-4-3-3-4)
-Meta-terms [5.2.10](#section-5-2-10)
-Method [15.81](#section-15-81)
-Invocation [8.10](#section-8-10)
-Method definition [8.10](#section-8-10)
-Method invocation
-Failure [14.6.2.3.2](#section-14-6-2-3-2)
-Method overloading [8.10](#section-8-10)
-METHOD phrase
-EXIT statement [14.9.14](#section-14-9-14)
-Method prototypes [9.3.7](#section-9-3-7)
-Method resolution signature
-
-Definition [8.10](#section-8-10)
-Method-definition [9.1.13.9](#section-9-1-13-9)
-METHOD-ID paragraph [11.7](#section-11-7)
-Method-name [8.3.2.2.15](#section-8-3-2-2-15)
-METHOD-ID paragraph [11.7](#section-11-7)
-Scope of [8.4.2.1](#section-8-4-2-1)
-Methods [9.3.4](#section-9-3-4)
-MIDRANGE function [15.62](#section-15-62)
-MIN function [15.63](#section-15-63)
-Minutes subfield [14.9.48.4](#section-14-9-48-4)
-Mnemonic-name [8.3.2.2.16](#section-8-3-2-2-16)
-ACCEPT statement [14.9.1](#section-14-9-1)
-DISPLAY statement [14.9.11](#section-14-9-11)
-Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-WRITE statement [14.9.51](#section-14-9-51)
-MOD function [15.64](#section-15-64)
-mon_decimal_point [7.3.12.4](#section-7-3-12-4)
-mon_grouping [7.3.12.4](#section-7-3-12-4)
-mon_thousands_sep [7.3.12.4](#section-7-3-12-4)
-Month subfield [14.9.48](#section-14-9-48)
-MOVE
-Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
-MOVE statement [14.9.25](#section-14-9-25)
-CORRESPONDING phrase [14.7.6](#section-14-7-6)
-Implicit [14.9.10.4](#section-14-9-10-4)
-MOVE-TO-SAME-NAME option
-FLAG-02 directive [7.3.14](#section-7-3-14)
-Multilingual support [D.6.5.3.1](#section-d-6-5-3-1)
-MULTIPLY statement [14.9.26](#section-14-9-26)
-
-## N
-
-N PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-n_cs_precedes [7.3.13](#section-7-3-13)
-Names [D.6.3.2](#section-d-6-3-2)
-NaN
-Definition [8.5.3.1](#section-8-5-3-1)
-NATIONAL [13.18.9](#section-13-18-9)
-National category [8.5.2.10](#section-8-5-2-10)
-National character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-National class [8.4.3.3.4](#section-8-4-3-3-4)
-National coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
-National data item [8.4.3.5](#section-8-4-3-5)
-National functions [14.9.46](#section-14-9-46)
-National group item [13.18.9](#section-13-18-9)
-National literal [7.3.21](#section-7-3-21)
-Continuation of [3](#section-3)
-NATIONAL phrase
-CODE-SET clause [13.18.13](#section-13-18-13)
-COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-MERGE statement [14.9.24](#section-14-9-24)
-SORT statement [14.9.40](#section-14-9-40)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-National-edited category [8.5.2.11](#section-8-5-2-11)
-
-
----
-
-
-National-edited data item [8.4.3.5](#section-8-4-3-5)
-NATIONAL-EDITED phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-NATIONAL-OF function [15.66](#section-15-66)
-Native arithmetic [8.8.1.3](#section-8-8-1-3)
-NATIVE phrase [9.3.6](#section-9-3-6)
-ARITHMETIC clause [11.9.5](#section-11-9-5)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Natural language text [2](#section-2)
-Natural logarithm [15.6](#section-15-6), [15.30.3](#section-15-30-3)
-NEAREST EVEN phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-NEAREST-AWAY-FROM-ZERO phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-NEAREST-EVEN phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-NEAREST-TOWARD-ZERO phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-NEAREST-TO-ZERO [14.9.35.4](#section-14-9-35-4)
-NEAREST-TO-ZERO phrase
-CLASS clause [13.18.11](#section-13-18-11)
-SET statement [14.9.39](#section-14-9-39)
-Negated conditions [8.6.5](#section-8-6-5)
-negative_sign [7.3.13](#section-7-3-13)
-NESTED phrase [14.6.13.3](#section-14-6-13-3)
-Nested statement [13.18.60.4](#section-13-18-60-4)
-New method [16.2.1](#section-16-2-1)
-Next executable statement [13.18.60.4](#section-13-18-60-4)
-NEXT GROUP clause [13.18.37](#section-13-18-37)
-NEXT PAGE phrase [13.18.15](#section-13-18-15)
-NEXT GROUP clause [13.18.37](#section-13-18-37)
-NEXT phrase
-READ statement [14.9.30](#section-14-9-30)
-NEXT RECORD phrase
-READ statement [14.9.30](#section-14-9-30)
-NEXT SENTENCE phrase
-IF statement [14.9.19](#section-14-9-19)
-SEARCH statement [14.9.37](#section-14-9-37)
-NEXT STATEMENT phrase
-RESUME statement [14.9.33](#section-14-9-33)
-NO ADVANCING phrase
-DISPLAY statement [14.9.11](#section-14-9-11)
-NO LOCK phrase
-READ statement [14.9.30](#section-14-9-30)
-REWRITE statement [14.9.35](#section-14-9-35)
-WRITE statement [14.9.51](#section-14-9-51)
-NO OTHER phrase
-OPEN statement [14.9.27](#section-14-9-27)
-SHARING clause [12.4.5.15](#section-12-4-5-15)
-NO REWIND phrase
-CLOSE statement [14.9.6](#section-14-9-6)
-OPEN statement [14.9.27](#section-14-9-27)
-Noncontiguous data items [8.4.2.3](#section-8-4-2-3)
-
-Noncontiguous elementary items [12.4.5.10](#section-12-4-5-10)
-Nonfatal exception conditions [14.6.13.1.4](#section-14-6-13-1-4)
-Nonstandard extension flagging 23
-NORMAL phrase
-STOP statement [14.9.42](#section-14-9-42)
-Normal run unit termination [14.6.11](#section-14-6-11)
-NOT AT END phrase
-READ statement [14.9.30](#section-14-9-30)
-RETURN statement [14.9.34](#section-14-9-34)
-NOT AT END-OF-PAGE phrase
-WRITE statement [14.9.51](#section-14-9-51)
-NOT AT EOP phrase
-WRITE statement [14.9.51](#section-14-9-51)
-NOT INVALID KEY phrase
-DELETE statement [14.9.10](#section-14-9-10)
-READ statement [14.9.30](#section-14-9-30)
-REWRITE statement [14.9.35](#section-14-9-35)
-START statement [14.9.41](#section-14-9-41)
-WRITE statement [14.9.51](#section-14-9-51)
-NOT ON EXCEPTION phrase
-ACCEPT statement [14.9.1](#section-14-9-1)
-CALL statement [14.9.4](#section-14-9-4)
-DISPLAY statement [14.9.11](#section-14-9-11)
-RECEIVE statement [14.9.31](#section-14-9-31)
-SEND statement [14.9.38](#section-14-9-38)
-NOT ON OVERFLOW phrase
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-NOT ON SIZE ERROR phrase
-ADD statement [14.9.2](#section-14-9-2)
-COMPUTE statement [14.9.8](#section-14-9-8)
-DIVIDE statement [14.9.12](#section-14-9-12)
-MULTIPLY statement [14.9.26](#section-14-9-26)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-NOT operator
-In complex conditions [8.6.5](#section-8-6-5)
-In negated conditions [8.6.5](#section-8-6-5)
-NOT phrase
-EVALUATE statement [14.9.13](#section-14-9-13)
-NOT SIZE ERROR phrase [14.5.1](#section-14-5-1)
-NULL
-Predefined object [8.3.2.4.3](#section-8-3-2-4-3)
-Predefined-address [8.3.3.3](#section-8-3-3-3)
-NULL phrase
-SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
-NULL predefined address [14.9.6](#section-14-9-6)
-ALLOCATE statement [14.9.3](#section-14-9-3)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-NULL predefined object reference
-INITIALIZE statement [14.9.20](#section-14-9-20)
-Numeric category [8.5.2.12](#section-8-5-2-12)
-Numeric character 16
-Numeric class [8.4.3.3.4](#section-8-4-3-3-4)
-Numeric comparison [8.5.1.10](#section-8-5-1-10)
-Numeric data item [8.4.3.5](#section-8-4-3-5)
-Numeric functions [14.9.46](#section-14-9-46)
-Numeric literal [7.3.19](#section-7-3-19)
-Fixed-point [7.3.19](#section-7-3-19)
-
----
-
-
----
-
-
-Floating-point [7.3.19](#section-7-3-19)
-NUMERIC phrase
-CLASS clause [13.18.11](#section-13-18-11)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-NUMERIC-EDITED
-INITIALIZE statement [14.9.20](#section-14-9-20)
-Numeric-edited category [8.5.2.13](#section-8-5-2-13)
-Category of data
-Numeric-edited [8.4.3.3.4](#section-8-4-3-3-4)
-Numeric-edited data item [8.4.3.6](#section-8-4-3-6)
-NUMVAL function [15.67](#section-15-67)
-NUMVAL-C function [15.68](#section-15-68)
-NUMVAL-F function [15.69](#section-15-69)
-
-## O
-
-OBJECT [14.9.39.4](#section-14-9-39-4)
-Object
-Instance [9.1.10](#section-9-1-10)
-Interface [8.13](#section-8-13)
-Life cycle of [9.1.10](#section-9-1-10)
-OBJECT paragraph [11.8](#section-11-8)
-Object class [8.4.3.3.4](#section-8-4-3-3-4)
-Object data item [D.12.3](#section-d-12-3)
-Object orientation [9.1.18.6](#section-9-1-18-6)
-Class [8.10](#section-8-10)
-Class-name [8.3.2.2.2](#section-8-3-2-2-2)
-object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
-Object oriented concepts [D.19](#section-d-19)
-OBJECT paragraph [11.8](#section-11-8)
-Object properties [8.3.3.2](#section-8-3-3-2), [9.2.7](#section-9-2-7)
-Object references [9.3.2](#section-9-3-2)
-Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
-Object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
-Scope of [8.4.2.1](#section-8-4-2-1)
-OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-Object-reference category [8.5.2.14](#section-8-5-2-14)
-Object-reference data item [8.4.3.6](#section-8-4-3-6)
-OBJECT-REFERENCE phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-Objects and classes [9.3.1](#section-9-3-1)
-Object-view [8.4.3.5](#section-8-4-3-5)
-Obsolete language element flagging 24
-Obsolete language elements [4.2.13](#section-4-2-13)
-ARITHMETIC IS STANDARD [D.32](#section-d-32)
-OCCURS ... DEPENDING clause [6.5](#section-6-5)
-OCCURS clause [13.18.38](#section-13-18-38),
-[14.9.29](#section-14-9-29), [14.9.35.4](#section-14-9-35-4), [14.9.40.4](#section-14-9-40-4)
-Occurs-depending group item
-Definition [13.18.24.4](#section-13-18-24-4)
-Occurs-depending tables
-Definition 156
-OF phrase
-COPY statement [7.2.3](#section-7-2-3)
-With identifiers [8.2](#section-8-2)
-With qualification [8.1.3.2](#section-8-1-3-2)
-OFF phrase
-
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Offset subformat [14.9.48.4](#section-14-9-48-4)
-Offset time format [14.9.48.4](#section-14-9-48-4)
-Offset-hours subfield [14.9.48.4](#section-14-9-48-4)
-Offset-minutes subfield [14.9.48.4](#section-14-9-48-4)
-OMITTED phrase [8.3.2.2](#section-8-3-2-2), [14.9.13.4](#section-14-9-13-4)
-CALL statement [14.9.4](#section-14-9-4)
-Omitted-argument condition [8.6.4](#section-8-6-4)
-ON EXCEPTION [8.8.4.2.13](#section-8-8-4-2-13)
-ON EXCEPTION phrase [14.7.5](#section-14-7-5), [14.9.26](#section-14-9-26)
-ACCEPT statement [14.9.1](#section-14-9-1)
-CALL statement [14.9.4](#section-14-9-4)
-DISPLAY statement [14.9.11](#section-14-9-11)
-SEND statement [14.9.38](#section-14-9-38)
-ON OVERFLOW phrase
-CALL statement [14.9.4](#section-14-9-4)
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-ON phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-ON SIZE ERROR phrase [14.2.3](#section-14-2-3)
-ADD statement [14.9.2](#section-14-9-2)
-COMPUTE statement [14.9.8](#section-14-9-8)
-DIVIDE statement [14.9.12](#section-14-9-12)
-MULTIPLY statement [14.9.26](#section-14-9-26)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-ONLY phrase [14.6.4](#section-14-6-4)
-USAGE clause [13.18.60](#section-13-18-60)
-Open mode [9.1.4](#section-9-1-4)
-OPEN statement [14.9.27](#section-14-9-27)
-Opening delimiter [8.1.2](#section-8-1-2)
-Operands [5.2.4](#section-5-2-4)
-Operational sign [8.4.2.3.3](#section-8-4-2-3-3)
-Operators
-Arithmetic [8.4.3.13.2](#section-8-4-3-13-2)
-Boolean [8.4.3.13.2](#section-8-4-3-13-2)
-Concatenation [8.4.3.14.2](#section-8-4-3-14-2)
-Invocation [8.4.3.14.2](#section-8-4-3-14-2)
-Logical [8.4.3.15.4](#section-8-4-3-15-4)
-Relational [8.4.3.14.2](#section-8-4-3-14-2)
-OPTIONAL phrase
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
-Optional words [5.2.3](#section-5-2-3)
-OPTIONS paragraph [11.9](#section-11-9)
-OR operator
-In combined conditions [8.6.7](#section-8-6-7)
-In complex conditions [8.6.5](#section-8-6-5)
-OR PAGE phrase
-TYPE clause [13.18.57](#section-13-18-57)
-OR phrase
-UNSTRING statement [14.9.48](#section-14-9-48)
-ORD function [15.70](#section-15-70)
-
-
----
-
-
-ORDER keyword
-SORT statement [14.9.40](#section-14-9-40)
-Order of evaluation of conditions [8.8.4.13](#section-8-8-4-13)
-ORDER TABLE [10.6.3](#section-10-6-3), [15.61](#section-15-61)
-Ordering table [15.61](#section-15-61)
-Ordering-name [8.3.2.2.18](#section-8-3-2-2-18)
-Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-Ordinal date format [14.9.48](#section-14-9-48)
-ORD-MAX function [15.71](#section-15-71)
-ORD-MIN function [15.72](#section-15-72)
-Organization [9.1.7](#section-9-1-7)
-Indexed [9.1.7.4](#section-9-1-7-4)
-Relative [9.1.7.3](#section-9-1-7-3)
-Sequential [9.1.7.2](#section-9-1-7-2)
-ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-OTHER phrase
-EVALUATE statement [14.9.13](#section-14-9-13)
-SELECT WHEN clause [13.18.51](#section-13-18-51)
-Out-of-line PERFORM statement [14.9.23.3](#section-14-9-23-3)
-OUTPUT phrase
-OPEN statement [14.9.27](#section-14-9-27)
-PERFORM statement [14.9.28](#section-14-9-28)
-USE statement [14.9.49](#section-14-9-49)
-OUTPUT PROCEDURE phrase
-MERGE statement [14.9.24](#section-14-9-24)
-SORT statement [14.9.40](#section-14-9-40)
-OVERFLOW phrase
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-Overlapping operands [14.6.10](#section-14-6-10)
-STRING statement [14.9.43](#section-14-9-43)
-OVERRIDE clause
-METHOD-ID paragraph [11.7](#section-11-7)
-
-## P
-
-P PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-p_cs_precedes [7.3.13](#section-7-3-13)
-PACKED-DECIMAL phrase
-USAGE clause [13.18.60](#section-13-18-60)
-Page advance [14.9.6.4](#section-14-9-6-4)
-PAGE clause [13.18.39](#section-13-18-39)
-PAGE directive [7.3.19](#section-7-3-19)
-Page fit processing [14.9.6.4](#section-14-9-6-4)
-PAGE FOOTING phrase
-TYPE clause [13.18.57](#section-13-18-57)
-PAGE HEADING phrase
-TYPE clause [13.18.57](#section-13-18-57)
-PAGE LIMIT clause
-Report description entry [13.8.4](#section-13-8-4)
-PAGE phrase
-WRITE statement [14.9.51](#section-14-9-51)
-PAGE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11)
-Qualified [8.1.3.2](#section-8-1-3-2)
-Paragraph header [9.1.18](#section-9-1-18)
-PARAGRAPH phrase
-
-EXIT statement [14.9.14](#section-14-9-14)
-Paragraph-name [8.3.2.2.19](#section-8-3-2-2-19)
-Qualified [8.1.3.2](#section-8-1-3-2)
-Paragraphs [14.4.3](#section-14-4-3)
-PARAMETER phrase [6.2.2](#section-6-2-2)
-Parameterized classes [9.3.12](#section-9-3-12)
-Parameterized interfaces [9.3.13](#section-9-3-13)
-Parameter-name [8.3.2.2.20](#section-8-3-2-2-20)
-CLASS-ID paragraph [11.3](#section-11-3)
-Parametric polymorphism [9.3.5.3](#section-9-3-5-3)
-Parentheses
-Function-identifier [8.4.3.2](#section-8-4-3-2)
-In arithmetic expressions [8.4.4.2](#section-8-4-4-2)
-Separator [8](#section-8)
-Parenthesis
-In Boolean expression [8.5.1.3.2](#section-8-5-1-3-2)
-In logical conditions [8.6.7](#section-8-6-7)
-PERFORM phrase
-EXIT statement [14.9.14](#section-14-9-14)
-PERFORM statemen
-Exception-checkingt [14.9.27.4](#section-14-9-27-4)
-PERFORM statement [14.9.28](#section-14-9-28)
-Exception checking [14.9.40.3](#section-14-9-40-3)
-Exception-checking [14.8.4.3](#section-14-8-4-3), [14.9.2](#section-14-9-2), [14.9.4.4](#section-14-9-4-4), [14.9.10.4](#section-14-9-10-4), [14.9.15](#section-14-9-15), [14.9.22.4](#section-14-9-22-4), [14.9.23.3](#section-14-9-23-3), [14.9.24.4](#section-14-9-24-4)
-infinite loop [14.9.23.4](#section-14-9-23-4)
-PERFORM statement examples [D.19.10](#section-d-19-10)
-Period
-Separator 30, [8](#section-8)
-PF phrase
-TYPE clause [13.18.57](#section-13-18-57)
-PH phrase
-TYPE clause [13.18.57](#section-13-18-57)
-PHYSICAL [14.9.51.4](#section-14-9-51-4), [15.28](#section-15-28)
-Physical file [8.8.4.2.2](#section-8-8-4-2-2)
-Physical record [13.8](#section-13-8)
-Physical-structure-name [8.3.2.3.10](#section-8-3-2-3-10)
-PI function [15.73](#section-15-73)
-Picture character-string [8](#section-8), [14.9.39](#section-14-9-39)
-PICTURE clause [13.18.40](#section-13-18-40)
-Data description entry [13.16](#section-13-16)
-Precedence rules [13.18.40.6](#section-13-18-40-6)
-PICTURE SYMBOL phrase
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Pointer [14.7.2](#section-14-7-2)
-Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
-Pointer class [8.4.3.3.4](#section-8-4-3-3-4)
-POINTER phrase
-STRING statement [14.9.43](#section-14-9-43)
-UNSTRING statement [14.9.48](#section-14-9-48)
-USAGE clause [13.18.60](#section-13-18-60)
-Polymorphism [9.3.5](#section-9-3-5)
-Class [8.10](#section-8-10)
-Parametric [8.10](#section-8-10)
-POP directive [7.3.20](#section-7-3-20)
-positive_sign [7.3.12.4](#section-7-3-12-4)
-Precedence of logical operators [8.6.7](#section-8-6-7)
-Predefined object reference [14.9.40.4](#section-14-9-40-4)
-
----
-
-
-Predefined-address [8.3.3.3](#section-8-3-3-3)
-PREFIXED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
-PRESENT WHEN clause [13.18.41](#section-13-18-41)
-PRESENT-VALUE function [15.74](#section-15-74)
-Prime record key [12.3.7.4](#section-12-3-7-4)
-PRINTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SUPPRESS statement [14.9.45](#section-14-9-45)
-Procedure division [14](#section-14)
-&nbsp;&nbsp;&nbsp;&nbsp;Declarative portion [13.18.60](#section-13-18-60)
-&nbsp;&nbsp;&nbsp;&nbsp;Nondeclarative portion [13.18.60](#section-13-18-60)
-PROCEDURE DIVISION header [13.18.57.4](#section-13-18-57-4)
-Procedure-name [13.18.60](#section-13-18-60)
-Procedures [14.4](#section-14-4)
-Processor-dependent element flagging 22
-Processor-dependent language elements [4.2.6](#section-4-2-6)
-&nbsp;&nbsp;&nbsp;&nbsp;List of [15.100](#section-15-100)
-PROGRAM COLLATING SEQUENCE clause
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
-PROGRAM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-Program prototype
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
-Program-address-identifier [8.4.3.13](#section-8-4-3-13)
-Program-definition [9.1.13.7](#section-9-1-13-7)
-PROGRAM-ID paragraph [11.10](#section-11-10)
-Program-name [8.3.2.2.21](#section-8-3-2-2-21)
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
-Program-pointer
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.50](#section-13-18-50)
-Program-pointer category [8.5.2.15](#section-8-5-2-15)
-Program-pointer data item [8.4.3.6](#section-8-4-3-6)
-PROGRAM-POINTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
-Program-prototype [9.1.13.5](#section-9-1-13-5)
-Program-prototype-name [8.3.2.2.22](#section-8-3-2-2-22)
-PROHIBITED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-&nbsp;&nbsp;&nbsp;&nbsp;INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
-&nbsp;&nbsp;&nbsp;&nbsp;ROUNDED phrase [14.7.4](#section-14-7-4)
-PROPAGATE directive [7.3.21](#section-7-3-21)
-PROPERTY clause [13.18.42](#section-13-18-42)
-&nbsp;&nbsp;&nbsp;&nbsp;METHOD-ID paragraph [11.7](#section-11-7)
-Property-name [8.3.2.2.23](#section-8-3-2-2-23)
-PROTOTYPE clause
-&nbsp;&nbsp;&nbsp;&nbsp;FUNCTION-ID paragraph [11.5](#section-11-5)
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
-Prototype versus repository flagging [8.8.4](#section-8-8-4)
-Pseudo-text [7.2.2.4](#section-7-2-2-4)
-Pseudo-text delimiter [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
-PUSH directive [7.3.22](#section-7-3-22)
-
-## Q
-
-Qualification [8.4.2.2](#section-8-4-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Implicit [8.1.3](#section-8-1-3)
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
-&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER [8.1.3.2](#section-8-1-3-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Of condition-names [8.3.3.6.4](#section-8-3-3-6-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Of data-names [8.2.2](#section-8-2-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Of paragraph-names [8.1.3.2](#section-8-1-3-2)
-&nbsp;&nbsp;&nbsp;&nbsp;OF phrase [8.1.3.2](#section-8-1-3-2)
-&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER [8.1.3.2](#section-8-1-3-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Subscripting [D.3.5](#section-d-3-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Uniqueness of reference [8.4.2](#section-8-4-2)
-Qualified [8.2.2](#section-8-2-2)
-Quiet NaN
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.5.3.1](#section-8-5-3-1)
-Quotation mark [7.3.10.4](#section-7-3-10-4)
-Quotation symbol [8.1.2](#section-8-1-2)
-QUOTE/QUOTES figurative constant [8](#section-8)
-
-## R
-
-RAISE statement [14.9.29](#section-14-9-29)
-RAISING phrase [14.9.7](#section-14-9-7), [14.9.30.4](#section-14-9-30-4)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [13.18.57.4](#section-13-18-57-4)
-Random access mode [9.1.8.3](#section-9-1-8-3)
-RANDOM function [15.75](#section-15-75)
-RANDOM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
-RANGE function [15.76](#section-15-76)
-Range of PERFORM statement [14.9.23.4](#section-14-9-23-4)
-RANGE-EXCEPTION-FOR-INDEX option
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [7.3.14](#section-7-3-14)
-RD entry [D.20.3](#section-d-20-3)
-READ ONLY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;SHARING clause [12.4.5.15](#section-12-4-5-15)
-READ statement [14.9.30](#section-14-9-30)
-RECEIVE statement [14.9.31](#section-14-9-31)
-Receiving operand [8.4.3.2.3](#section-8-4-3-2-3), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
-receiving run unit [14.9.30.4](#section-14-9-30-4)
-Record
-&nbsp;&nbsp;&nbsp;&nbsp;Logical [13.8.4](#section-13-8-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Physical [13.8.4](#section-13-8-4)
-RECORD clause [13.18.43](#section-13-18-43)
-RECORD CONTAINS clause
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
-RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Record description entry [13.11](#section-13-11)
-RECORD IS VARYING clause [14.9.43.4](#section-14-9-43-4)
-Record key [12.3.7.2](#section-12-3-7-2), [12.3.7.4](#section-12-3-7-4)
-RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
-RECORD keyword
-&nbsp;&nbsp;&nbsp;&nbsp;RETURN statement [14.9.34](#section-14-9-34)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
-
-
----
-
-
-UNLOCK statement [14.9.47](#section-14-9-47)
-Record locking [9.1.16](#section-9-1-16)
-Record locks [14.9.37.4](#section-14-9-37-4), [14.9.39.4](#section-14-9-39-4)
-Record operations [D.2.3.2](#section-d-2-3-2)
-RECORD phrase
-DELETE statement [14.9.10](#section-14-9-10)
-Record selection [13.18.40.4](#section-13-18-40-4)
-RECORD-KEY clause
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Record-key-name [8.3.2.2.24](#section-8-3-2-2-24)
-RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
-Record-name [8.3.2.2.25](#section-8-3-2-2-25)
-Scope of [8.3.5](#section-8-3-5)
-RECORDS keyword
-UNLOCK statement [14.9.47](#section-14-9-47)
-RECORDS phrase
-BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
-RECURSIVE clause
-PROGRAM-ID paragraph [11.10](#section-11-10)
-Recursive functions [9.1.10](#section-9-1-10)
-Recursive methods [8.10](#section-8-10)
-Recursive program [8.4.3.11.2](#section-8-4-3-11-2)
-REDEFINES clause [13.18.44](#section-13-18-44)
-Reel [8.8.4.2.10](#section-8-8-4-2-10)
-REEL phrase
-CLOSE statement [14.9.6](#section-14-9-6)
-Reference format [6](#section-6)
-Fixed-form [3](#section-3)
-Free-form [3](#section-3)
-Logical conversion [6.5](#section-6-5)
-Reference format example [D.19.11.3](#section-d-19-11-3)
-REFERENCE phrase
-INVOKE statement [14.9.23](#section-14-9-23)
-Reference-modification [8.4.3.3](#section-8-4-3-3)
-REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
-References [8.4](#section-8-4)
-REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
-Relation condition
-Alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
-Arithmetic expression in [8.5.1.9.2](#section-8-5-1-9-2)
-Boolean operands [8.5.1.12](#section-8-5-1-12)
-Data-pointer operands [8.5.2.2](#section-8-5-2-2)
-Index data item in [8.5.1.9.2](#section-8-5-1-9-2)
-Index data items [8.5.2.2](#section-8-5-2-2)
-Message tags [8.5.2.2](#section-8-5-2-2)
-Mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
-National operands [8.5.1.12](#section-8-5-1-12)
-Numeric operands [8.5.1.10](#section-8-5-1-10)
-Object reference identifiers [8.5.2.2](#section-8-5-2-2)
-Order of evaluation [8.7.5.2](#section-8-7-5-2)
-Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
-RELATION phrase
-VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-Relation validation [D.22.5](#section-d-22-5)
-Relational operator [8.4.3.14.2](#section-8-4-3-14-2)
-START statement [14.9.41](#section-14-9-41)
-Relative files
-Definition [8.8.4.2.8](#section-8-8-4-2-8)
-
-RELATIVE KEY clause [12.4.5.13](#section-12-4-5-13)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-START statement [14.9.41](#section-14-9-41)
-Relative organization [D.2.2.2](#section-d-2-2-2)
-RELATIVE phrase
-ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
-Relative record number [8.8.4.2.8](#section-8-8-4-2-8), [12.3.7.4](#section-12-3-7-4)
-RELEASE statement [14.9.32](#section-14-9-32)
-REM function [15.77](#section-15-77)
-REMAINDER phrase
-DIVIDE statement [14.9.12](#section-14-9-12)
-REMOVAL phrase
-CLOSE statement [14.9.6](#section-14-9-6)
-RENAMES clause [13.18.45](#section-13-18-45)
-REPEATED phrase
-VALUE clause [13.18.63](#section-13-18-63)
-REPLACE statement [7.2.4](#section-7-2-4)
-REPLACING phrase
-COPY statement [7.2.3](#section-7-2-3)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-INSPECT statement [14.9.22](#section-14-9-22)
-REPORT clause [13.18.46](#section-13-18-46)
-Report description entry [13.8.4](#section-13-8-4)
-REPORT FOOTING phrase
-TYPE clause [13.18.57](#section-13-18-57)
-Report group description entry [13.8.5](#section-13-8-5)
-REPORT HEADING phrase
-TYPE clause [13.18.57](#section-13-18-57)
-Report section [13.8](#section-13-8)
-Report writer [A.4.11](#section-a-4-11)
-Report-name [8.3.2.2.26](#section-8-3-2-2-26)
-Report description entry [13.8.4](#section-13-8-4)
-Scope of [8.3.5](#section-8-3-5)
-Repository [8.8.4](#section-8-8-4)
-REPOSITORY paragraph [12.3.8](#section-12-3-8)
-requestor [14.9.25.4](#section-14-9-25-4)
-REQUIRED clause [13.18.47](#section-13-18-47)
-Required word [7.3.16](#section-7-3-16)
-RESERVE clause [12.4.5.14](#section-12-4-5-14)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Reserved words [4.2.8](#section-4-2-8)
-Compiler directives [7.3](#section-7-3)
-Implementation 23
-Source text [8.8](#section-8-8)
-RESET phrase
-NEXT GROUP clause [13.18.37](#section-13-18-37)
-SUM clause [13.18.54](#section-13-18-54)
-Restricted data pointer [8.3.3.4](#section-8-3-3-4)
-Restricted data-pointer
-Definition [13.18.50](#section-13-18-50)
-Restricted pointer [13.18.50](#section-13-18-50)
-RESUME statement [14.9.33](#section-14-9-33)
-RETRY phrase [14.7.9](#section-14-7-9)
-DELETE statement [14.9.10](#section-14-9-10)
-OPEN statement [14.9.27](#section-14-9-27)
-READ statement [14.9.30](#section-14-9-30)
-REWRITE statement [14.9.35](#section-14-9-35)
-WRITE statement [14.9.51](#section-14-9-51)
-
-
-RETURN statement [14.9.34](#section-14-9-34)
-Returned values, intrinsic functions [14.9.49](#section-14-9-49)
-RETURNING phrase [14.9.8.4](#section-14-9-8-4)
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
-REVERSE function [15.78](#section-15-78)
-REVERSE-VIDEO clause [13.18.48](#section-13-18-48)
-REVERSE-VIDEO phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-REWRITE statement [14.9.35](#section-14-9-35)
-RF phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-RH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
-RIGHT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;JUSTIFIED clause [13.18.32](#section-13-18-32)
-&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [13.18.55](#section-13-18-55)
-rollback [B.3](#section-b-3)
-ROLLBACK statement [14.9.36](#section-14-9-36)
-&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
-&nbsp;&nbsp;&nbsp;&nbsp;EC-FLOW-ROLLBACK Exception-name [13.18.63.4](#section-13-18-63-4)
-ROUNDED MODE IS PROHIBITED phrase [D.31.3.3](#section-d-31-3-3)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
-&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [14.9.8](#section-14-9-8)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
-&nbsp;&nbsp;&nbsp;&nbsp;SOURCE clause [13.18.53](#section-13-18-53)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
-&nbsp;&nbsp;&nbsp;&nbsp;SUM clause [13.18.54](#section-13-18-54)
-Rounding
-&nbsp;&nbsp;&nbsp;&nbsp;Concepts [D.9](#section-d-9)
-Rounding rules [8.4.6](#section-8-4-6)
-Rules [5.3](#section-5-3)
-Run unit 18, [13.18.60.4](#section-13-18-60-4)
-Run unit termination [9.1.18.5](#section-9-1-18-5)
-Runtime element [9.1.13.3](#section-9-1-13-3)
-
-## S
-
-S PICTURE symbol [13.18.29.4](#section-13-18-29-4), [13.18.40.5](#section-13-18-40-5)
-SAME AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
-SAME AS clause [13.18.49](#section-13-18-49)
-SAME clause [12.4.6.4](#section-12-4-6-4)
-SAME RECORD AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.26.4](#section-14-9-26-4), [14.9.28](#section-14-9-28), [14.9.42](#section-14-9-42)
-SAME SORT AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
-SAME SORT-MERGE AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
-SBIDI
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.6.2](#section-8-4-6-2)
-Scope of names [8.4.6](#section-8-4-6)
-Scope of statements [14.5.3](#section-14-5-3)
-Scope terminators [13.18.60.4](#section-13-18-60-4)
-Screen description entry [13.17](#section-13-17)
-Screen section [13.9](#section-13-9)
-Screen-name [8.3.2.2.27](#section-8-3-2-2-27)
-
-Screen-names
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.5](#section-8-3-5)
-Screens [9.2](#section-9-2)
-SD entry [12.4.5.2](#section-12-4-5-2)
-SDIDI
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.6.5](#section-8-4-6-5)
-SEARCH statement [14.9.37](#section-14-9-37)
-SECONDS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [14.9.10](#section-14-9-10)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
-&nbsp;&nbsp;&nbsp;&nbsp;RETRY phrase [14.7.9](#section-14-7-9)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-Seconds subfield [14.9.48.4](#section-14-9-48-4)
-SECONDS-FROM-FORMATTED-TIME function [15.79](#section-15-79)
-SECONDS-PAST-MIDNIGHT function [15.80](#section-15-80)
-SECTION header [13.18.57.4](#section-13-18-57-4)
-SECTION phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
-Section-name [8.3.2.2.28](#section-8-3-2-2-28)
-Sections [14.4.2](#section-14-4-2)
-SECURE clause [13.18.50](#section-13-18-50)
-SELECT clause
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-SELECT WHEN clause [13.18.51](#section-13-18-51)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
-SELF predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
-Semicolon 29
-&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with comma 29, [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
-SEND statement [14.9.38](#section-14-9-38)
-Sending operand [8.4.3.1.4](#section-8-4-3-1-4), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
-Sentence [13.18.60](#section-13-18-60)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.60.2](#section-13-18-60-2)
-SEPARATE CHARACTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [13.18.52](#section-13-18-52)
-Separators [8.3.5](#section-8-3-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Colon [8.1.2](#section-8-1-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Comma [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Literal delimiter [8.1.2](#section-8-1-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Parentheses [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Period 30, [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text delimiter [8.1.2](#section-8-1-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Semicolon [8](#section-8)
-&nbsp;&nbsp;&nbsp;&nbsp;Space [8](#section-8)
-separators
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.13.4](#section-7-3-13-4)
-Sequential access mode [9.1.8.2](#section-9-1-8-2)
-Sequential files
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.8.4.2.5](#section-8-8-4-2-5)
-Sequential organization [D.2.2.1](#section-d-2-2-1)
-SEQUENTIAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
-&nbsp;&nbsp;&nbsp;&nbsp;ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
-server run unit [14.9.30.4](#section-14-9-30-4)
-SET statement [14.9.39](#section-14-9-39)
-&nbsp;&nbsp;&nbsp;&nbsp;Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
-
----
-
-
----
-
-
-Implicit [14.9.10.4](#section-14-9-10-4)
-Shared files [8.8.4.8.4](#section-8-8-4-8-4), [14.9.23](#section-14-9-23)
-Shared memory area [D.4](#section-d-4)
-SHARING clause [12.4.5.15](#section-12-4-5-15)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-Sharing data [D.6.5.7](#section-d-6-5-7)
-Sharing file connectors [9.1.5](#section-9-1-5)
-Sharing mode [9.1.15](#section-9-1-15)
-SHARING phrase [12.3.7.3](#section-12-3-7-3)
-&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [14.9.24](#section-14-9-24)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
-SHORT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
-SIGN clause [13.18.52](#section-13-18-52)
-Sign condition [8.6.3](#section-8-6-3)
-SIGN function [15.81](#section-15-81)
-Signaling NaN
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.5.3.1](#section-8-5-3-1)
-Signature [8.8.4](#section-8-8-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Method resolution [8.10](#section-8-10)
-SIGNED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
-Simple insertion editing [13.18.35.4](#section-13-18-35-4)
-Simple relational operator [8.4.3.15.4](#section-8-4-3-15-4)
-SIN function [15.82](#section-15-82)
-SIZE ERROR condition [14.3](#section-14-3)
-Size error condition [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14.2.3](#section-14-2-3)
-SIZE ERROR phrase [14.2.3](#section-14-2-3)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
-&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [14.9.8](#section-14-9-8)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
-SIZE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [13.18.40](#section-13-18-40)
-&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [14.9.43](#section-14-9-43)
-Slant (/) comment line [3](#section-3)
-SMALLEST-ALGEBRAIC function [15.83](#section-15-83)
-Sort file [9.1.19](#section-9-1-19)
-SORT statement [14.9.40](#section-14-9-40)
-Sorting [D.2.3.3.2](#section-d-2-3-3-2)
-Sorting tables [D.3.6](#section-d-3-6)
-Sort-merge file description entry [13.4.6](#section-13-4-6)
-SOURCE clause [13.18.53](#section-13-18-53)
-Source element [9.1.13.3](#section-9-1-13-3)
-SOURCE FORMAT directive [7.3.24](#section-7-3-24)
-Source indicator [3](#section-3)
-SOURCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
-Source unit [9.1.13.2](#section-9-1-13-2)
-SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
-Space
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
-SPACE/SPACES figurative constant [7.3.25.4](#section-7-3-25-4)
-Special character words [7.3.16](#section-7-3-16)
-
-In formats 30
-Special insertion editing [13.18.35.4](#section-13-18-35-4)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-SQRT function [15.84](#section-15-84)
-Standard arithmetic [8.4.4.2](#section-8-4-4-2), [8.4.6](#section-8-4-6), [14.5.2](#section-14-5-2), [14.9.22.3](#section-14-9-22-3), [14.9.49](#section-14-9-49)
-&nbsp;&nbsp;&nbsp;&nbsp;Concepts [D.10](#section-d-10)
-Standard classes [16](#section-16)
-Standard date form [15.5.3](#section-15-5-3)
-Standard language element acceptance 21
-Standard numeric time form [15.5.5](#section-15-5-5)
-STANDARD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
-STANDARD-1
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-STANDARD-1 phrase
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
-STANDARD-1,2 phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Standard-binary
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [8.4.5](#section-8-4-5)
-Standard-binary arithmetic [8.8.1.4](#section-8-8-1-4)
-Standard-binary intermediate data item [8.8.1.4.2](#section-8-8-1-4-2)
-STANDARD-BINARY phrase [9.3.6](#section-9-3-6)
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
-STANDARD-COMPARE function [15.85](#section-15-85)
-Standard-decimal
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [8.4.6.3](#section-8-4-6-3)
-Standard-decimal arithmetic [8.8.1.5](#section-8-8-1-5)
-Standard-decimal intermediate data item [8.8.1.5.2](#section-8-8-1-5-2)
-STANDARD-DECIMAL phrase [9.3.6](#section-9-3-6)
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
-STANDARD-DEVIATION function [15.86](#section-15-86)
-START statement [14.9.41](#section-14-9-41)
-State of
-&nbsp;&nbsp;&nbsp;&nbsp;Function [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Method [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Object data [13.18.60.4](#section-13-18-60-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Program [13.18.60.4](#section-13-18-60-4)
-Statement [13.18.60](#section-13-18-60)
-&nbsp;&nbsp;&nbsp;&nbsp;Compiler-directing [3](#section-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Declarative [13.18.60.2](#section-13-18-60-2)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedural [13.18.60](#section-13-18-60)
-Static data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3)
-Static items [8.4.3.9.3](#section-8-4-3-9-3)
-STOP [13.18.60.4](#section-13-18-60-4)
-STOP statement [14.9.42](#section-14-9-42)
-STOP statement, [14.9.8.4](#section-14-9-8-4)
-STRING statement [14.9.43](#section-14-9-43)
-STRONG phrase [8.4.3.7](#section-8-4-3-7)
-&nbsp;&nbsp;&nbsp;&nbsp;TYPEDEF clause [13.18.58](#section-13-18-58)
-Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
-Strongly-typed groups [8.4.3.6](#section-8-4-3-6)
-Strongly-typed items [D.3.5.3](#section-d-3-5-3)
-Structured compilation group [10](#section-10)
-Structured constant [D.21](#section-d-21)
-Subfield [14.9.48](#section-14-9-48)
-Subscripted
-
----
-
-
----
-
-
-Data-name [8.3.2.2.6](#section-8-3-2-2-6)
-Subscripted identifier [8.2](#section-8-2)
-Subscripting [D.3.5](#section-d-3-5)
-Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
-Subscripts [8.4.2.3](#section-8-4-2-3)
-Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
-Substantive changes list [D.22.4](#section-d-22-4)
-SUBSTITUTE function [15.87](#section-15-87)
-SUBTRACT statement [14.9.44](#section-14-9-44)
-CORRESPONDING phrase [14.7.6](#section-14-7-6)
-SUM clause [13.18.54](#section-13-18-54)
-Sum counter [13.18.40.6](#section-13-18-40-6)
-SUM function [15.88](#section-15-88)
-Summary of functions [15.6](#section-15-6)
-SUPER predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
-SUPPRESS [12](#section-12), [12.3.7.2](#section-12-3-7-2)
-SUPPRESS statement [14.9.45](#section-14-9-45)
-SUPPRESS WHEN phrase [14.9.25.4](#section-14-9-25-4), [14.9.28.4](#section-14-9-28-4), [14.9.38.4](#section-14-9-38-4), [A.4.8](#section-a-4-8)
-Surrogate pair [8.3.2.2.13](#section-8-3-2-2-13)
-Definition 19
-Switch status
-Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
-Switch-name [8.3.2.3.11](#section-8-3-2-3-11)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Switch-status condition [8.5.3.3](#section-8-5-3-3)
-Symbolic-character [8.3.2.2.29](#section-8-3-2-2-29)
-Figurative constant [8](#section-8)
-Scope of [8.3.3.6.4](#section-8-3-3-6-4)
-SYMBOLIC-CHARACTERS clause
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-SYNCHRONIZED clause [13.18.55](#section-13-18-55)
-Syntax rules [5.3.2](#section-5-3-2)
-Syntax violation flagging 21
-SYSTEM-DEFAULT phrase
-SET statement [14.9.39](#section-14-9-39)
-System-name [7.3.15.4](#section-7-3-15-4)
-System-names [8.3.2.3](#section-8-3-2-3)
-
-## T
-
-t_fmt [7.3.13](#section-7-3-13)
-Table handling [B.3](#section-b-3)
-Table sort [14.9.35.4](#section-14-9-35-4)
-Tables [8.5.1.3.3](#section-8-5-1-3-3)
-TALLYING phrase
-INSPECT statement [14.9.22](#section-14-9-22)
-UNSTRING statement [14.9.48](#section-14-9-48)
-Terminal screen [9.2.1](#section-9-2-1)
-TERMINATE statement [14.9.46](#section-14-9-46)
-TERMINATE-WITH-VARYING option
-FLAG-02 directive [7.3.14](#section-7-3-14)
-TEST AFTER phrase
-PERFORM statement [14.9.28](#section-14-9-28)
-TEST BEFORE phrase
-PERFORM statement [14.9.28](#section-14-9-28)
-TEST phrase
-PERFORM statement [14.9.28](#section-14-9-28)
-
-TEST-FORMATTED-DATETIME function [15.92](#section-15-92)
-TEST-NUMVAL function [15.93](#section-15-93)
-Text manipulation [7.2](#section-7-2)
-Text manipulation stage [3](#section-3)
-Text-name [8.3.2.3.12](#section-8-3-2-3-12)
-Text-word [3](#section-3)
-THEN phrase
-IF statement [14.9.19](#section-14-9-19)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-THEN REPLACING phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-THROUGH (THRU) phrase [14.6](#section-14-6)
-EVALUATE directive [7.3.13](#section-7-3-13)
-EVALUATE statement [14.9.13](#section-14-9-13)
-MERGE statement [14.9.24](#section-14-9-24)
-PERFORM statement [14.9.28](#section-14-9-28)
-RENAMES clause [13.18.45](#section-13-18-45)
-SORT statement [14.9.40](#section-14-9-40)
-VALUE clause [13.18.63](#section-13-18-63)
-Time format [14.9.48.4](#section-14-9-48-4)
-TIME phrase
-ACCEPT statement [14.9.1](#section-14-9-1)
-TIMES phrase
-DELETE statement [14.9.10](#section-14-9-10)
-OPEN statement [14.9.27](#section-14-9-27)
-PERFORM statement [14.9.28](#section-14-9-28)
-READ statement [14.9.30](#section-14-9-30)
-RETRY phrase [14.7.9](#section-14-7-9)
-REWRITE statement [14.9.35](#section-14-9-35)
-VALUE clause [13.18.63](#section-13-18-63)
-WRITE statement [14.9.51](#section-14-9-51)
-TO clause [13.18.56](#section-13-18-56)
-TO END phrase
-VALUE clause [13.18.63](#section-13-18-63)
-TO phrase
-ADD statement [14.9.2](#section-14-9-2)
-INITIALIZE statement [14.9.20](#section-14-9-20)
-INSPECT statement [14.9.22](#section-14-9-22)
-MOVE statement [14.9.25](#section-14-9-25)
-SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
-SET statement, index assignment [14.9.30.4](#section-14-9-30-4)
-SET statement, object identifier assignment [14.9.30.4](#section-14-9-30-4)
-SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
-SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
-TO VALUE clause
-INITIALIZE statement [14.9.20](#section-14-9-20)
-TOWARD-GREATER phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-TOWARD-LESSER phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-TRAILING phrase
-SIGN clause [13.18.52](#section-13-18-52)
-Transfer of control [D.6.5.2](#section-d-6-5-2)
-EXIT FUNCTION statement [13.18.60.4](#section-13-18-60-4)
-EXIT PROGRAM statement [13.18.60.4](#section-13-18-60-4)
-EXIT statement [14.9.14](#section-14-9-14)
-
-
-GOBACK statement [14.9.18](#section-14-9-18)
-MERGE statement [14.9.24](#section-14-9-24)
-PERFORM statement [14.9.28](#section-14-9-28)
-SORT statement [14.9.40](#section-14-9-40)
-STOP statement [14.9.42](#section-14-9-42)
-TRIM function [15.96](#section-15-96)
-TRUE phrase
-EVALUATE directive [7.3.13](#section-7-3-13)
-EVALUATE statement [14.9.13](#section-14-9-13)
-SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
-TRUNCATION phrase
-DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
-INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
-ROUNDED phrase [14.7.4](#section-14-7-4)
-TURN directive [7.3.25](#section-7-3-25)
-TYPE clause [13.18.57](#section-13-18-57)
-TYPEDEF clause [13.18.58](#section-13-18-58)
-Data description entry [13.16](#section-13-16)
-Type-name [8.3.2.2.30](#section-8-3-2-2-30)
-Scope of [8.3.5](#section-8-3-5)
-TYPE clause [13.18.57](#section-13-18-57)
-Types
-Definition of [8.4.3.6](#section-8-4-3-6)
-Types of functions [15.2](#section-15-2)
-
-## U
-
-UCS 6, 19, [7.3.8.4](#section-7-3-8-4), [7.3.18](#section-7-3-18), [14.9.20.4](#section-14-9-20-4), [D.6.1.1](#section-d-6-1-1), [D.7](#section-d-7)
-UCS-4 [11.7](#section-11-7)
-UCS-4 phrase
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-Undefined language element list [A.2](#section-a-2)
-UNDERLINE clause [13.18.59](#section-13-18-59)
-UNDERLINE phrase
-SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
-Underscore [7.3.13.4](#section-7-3-13-4)
-Unicode [D.7](#section-d-7)
-Unicode 13.0.0 [D.32](#section-d-32)
-Unicode version 13.0 [A.2](#section-a-2)
-Uniqueness of reference [8.4.2](#section-8-4-2)
-Unit [8.8.4.2.10](#section-8-8-4-2-10)
-UNIT phrase [6.5](#section-6-5)
-CLOSE statement [14.9.6](#section-14-9-6)
-Universal object reference [13.18.49.4](#section-13-18-49-4)
-UNLOCK statement [14.9.47](#section-14-9-47)
-UNSIGNED phrase
-USAGE clause [13.18.60](#section-13-18-60)
-UNSTRING statement [14.9.48](#section-14-9-48)
-UNTIL phrase
-PERFORM statement [14.9.28](#section-14-9-28)
-UP phrase
-SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
-SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
-UPON phrase [6.2.2](#section-6-2-2)
-DISPLAY statement [14.9.11](#section-14-9-11)
-SUM clause [13.18.54](#section-13-18-54)
-UPPER-CASE function [15.97](#section-15-97)
-
-Uppercase letters [7.3.10](#section-7-3-10)
-USAGE clause [13.18.60](#section-13-18-60)
-USE EXCEPTION [14.7.8](#section-14-7-8)
-USE EXCEPTION declarative [13.18.63.3](#section-13-18-63-3)
-USE statement [14.9.49](#section-14-9-49)
-User default locale [7.3.12](#section-7-3-12)
-USER-DEFAULT phrase
-SET statement [14.9.39](#section-14-9-39)
-User-defined functions [9.4](#section-9-4)
-User-defined words [8.3.2.2](#section-8-3-2-2)
-Definition [7.3.13.4](#section-7-3-13-4)
-Notation [B.2](#section-b-2)
-User-function-name [8.3.2.2.31](#section-8-3-2-2-31)
-USING clause [13.18.61](#section-13-18-61)
-CLASS-ID paragraph [11.3](#section-11-3)
-INTERFACE-ID paragraph [11.6](#section-11-6)
-USING phrase
-CALL statement [14.9.4](#section-14-9-4)
-FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
-INVOKE statement [14.9.23](#section-14-9-23)
-MERGE statement [14.9.24](#section-14-9-24)
-Procedure division header [13.18.57.4](#section-13-18-57-4)
-SORT statement [14.9.40](#section-14-9-40)
-UTC time format [14.9.48.4](#section-14-9-48-4)
-UTF-16 19, [8.4.2.3.3](#section-8-4-2-3-3)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-UTF-8 [7.3.18](#section-7-3-18)
-SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
-
-## V
-
-V PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-VALID phrase
-VALUE clause [13.18.63](#section-13-18-63)
-Validate facility [D.22](#section-d-22)
-VALIDATE statement [14.9.50](#section-14-9-50)
-VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
-VALUE clause [13.18.63](#section-13-18-63)
-VALUE phrase
-INITIALIZE statement [14.9.20](#section-14-9-20)
-INVOKE statement [14.9.23](#section-14-9-23)
-Variable-length data item
-Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
-Definition [8.4.3.2.4](#section-8-4-3-2-4)
-Variable-length group
-Comparison of [8.5.2.2](#section-8-5-2-2)
-Variable-length groups
-Compatibility [8.4.3.2.4](#section-8-4-3-2-4)
-Definition [8.4.3.2.4](#section-8-4-3-2-4)
-Variable-length records [D.2.2.5.2](#section-d-2-2-5-2)
-VARIANCE function [15.98](#section-15-98)
-VARYING clause [13.18.64](#section-13-18-64)
-VARYING phrase
-PERFORM statement [14.9.28](#section-14-9-28)
-RECORD clause [13.18.43](#section-13-18-43)
-SEARCH statement [14.9.37](#section-14-9-37)
-
----
-
-
-## W
-
-Weakly-typed items [8.5.3.2](#section-8-5-3-2)
-Week date format [14.9.48.4](#section-14-9-48-4)
-Week-of-year subfield [14.9.48.4](#section-14-9-48-4)
-WHEN [14.9.23.3](#section-14-9-23-3)
-WHEN phrase [8.8.4.2.13](#section-8-8-4-2-13), [13.18.63.3](#section-13-18-63-3), [14.2.3](#section-14-2-3), [14.6.13.1.6](#section-14-6-13-1-6)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE directive [7.3.13](#section-7-3-13)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
-&nbsp;&nbsp;&nbsp;&nbsp;INVALID clause [13.18.31](#section-13-18-31)
-&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [14.9.37](#section-14-9-37)
-WHEN SET TO FALSE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [13.18.63](#section-13-18-63)
-WHEN-COMPILED function [15.99](#section-15-99)
-WITH DUPLICATES phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
-WITH ERROR STATUS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
-WITH FILLER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
-WITH FOOTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
-WITH LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
-WITH LOCK phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-WITH NO ADVANCING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
-WITH NO LOCK phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
-WITH NO REWIND phrase [6.5](#section-6-5)
-&nbsp;&nbsp;&nbsp;&nbsp;CLOSE statement [14.9.6](#section-14-9-6)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
-WITH NORMAL STATUS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
-WITH POINTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [14.9.43](#section-14-9-43)
-&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [14.9.48](#section-14-9-48)
-WITH TEST phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
-Word [7.3.13.3](#section-7-3-13-3)
-Working-storage section [13.5](#section-13-5)
-WRITE statement [14.9.51](#section-14-9-51)
-
-## X
-
-X &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-XOR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
-
-## Y
-
-Year subfield [14.9.48](#section-14-9-48)
-
-YEAR-TO-YYYY function [15.100](#section-15-100)
-YYYYDDD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-YYYYMMDD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
-
-## Z
-
-Z &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
-ZERO/ZEROES/ZEROS figurative constant [7.3.25.4](#section-7-3-25-4)
-Zero-length item [13.18.24.4](#section-13-18-24-4), [13.18.39.4](#section-13-18-39-4)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.3.8.3](#section-8-4-3-8-3)
-Zero-length literal
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.17.4](#section-7-3-17-4)
-
----
-
-
----
-
-
-
-
-**ISO/IEC 1989:2023(E)**
-
----
-
-**ICS 35.060**
-Price based on 1229 pages
-
-
-
-
----
-
-<a id="addendum"></a>
-
+- A PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- Abbreviated combined relation conditions [8.8.4.12](#section-8-8-4-12)
+- Abnormal run unit termination [14.6.12](#section-14-6-12)
+- ABS function [15.7](#section-15-7)
+- ACCEPT statement [14.9.1](#section-14-9-1)
+  - FROM phrase [14.6.12](#section-14-6-12)
+  - Screen format [14.9.35](#section-14-9-35)
+- ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Access modes [9.1.8](#section-9-1-8)
+- ACOS function [15.8](#section-15-8)
+- ACTIVATING [15.40](#section-15-40)
+- Active state [14.6.2.2](#section-14-6-2-2)
+- ACTIVE-CLASS phrase [9.1.3](#section-9-1-3), [14.6.4](#section-14-6-4), [14.9.32.4](#section-14-9-32-4)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- ADD statement [14.9.2](#section-14-9-2)
+- Additional language elements 24
+- ADDRESS OF phrase [8.4.3.11.2](#section-8-4-3-11-2)
+  - Data-address-identifier [8.4.3.11](#section-8-4-3-11)
+  - SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+- ADDRESS OF PROGRAM phrase
+  - Program-address-identifier [8.4.3.13](#section-8-4-3-13)
+  - SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+- Address-identifier [8.2.2](#section-8-2-2)
+- ADVANCING ON LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+- ADVANCING phrase
+  - READ statement [14.9.30](#section-14-9-30)
+- AFTER ADVANCING phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- AFTER EXCEPTION phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- AFTER phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- AFTER STANDARD ERROR phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- AFTER STANDARD EXCEPTION phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- Algebraic signs [8.5.1.5](#section-8-5-1-5)
+- ALIGNED clause [13.18.1](#section-13-18-1)
+- Alignment of data
+  - In storage [8.4.2.3.4](#section-8-4-2-3-4)
+  - Within data items [13.18.61](#section-13-18-61)
+- ALL figurative constant [7.3.24](#section-7-3-24)
+- ALL literal [8.1.2](#section-8-1-2)
+- ALL option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- ALL OTHER phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - SHARING clause [12.4.5.15](#section-12-4-5-15)
+- ALL phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- ALL subscript [8.1.4](#section-8-1-4)
+  - Intrinsic function [14.9.47](#section-14-9-47)
+- ALLOCATE statement [14.9.3](#section-14-9-3)
+- ALPHABET clause
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Alphabetic category [8.5.2.2](#section-8-5-2-2)
+- Alphabetic character 3
+- Alphabetic class
+  - Class of data
+  - Alphabetic [8.4.3.3.4](#section-8-4-3-3-4)
+- Alphabetic data item [8.4.3.3.4](#section-8-4-3-3-4)
+- ALPHABETIC phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- ALPHABETIC-LOWER phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+- ALPHABETIC-UPPER phrase [8.5.2.9](#section-8-5-2-9)
+  - CLASS clause [13.18.11](#section-13-18-11)
+- Alphabet-name [8.3.2.2.1](#section-8-3-2-2-1)
+  - CODE-SET clause [13.18.13](#section-13-18-13)
+  - COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+  - Definition [7.3.14](#section-7-3-14)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Alphabets [8.1.4](#section-8-1-4)
+- Alphanumeric category [8.5.2.3](#section-8-5-2-3)
+- Alphanumeric character 3
+- Alphanumeric character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+- Alphanumeric class [8.4.3.3.4](#section-8-4-3-3-4)
+- Alphanumeric coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+- Alphanumeric data item [8.4.3.3.4](#section-8-4-3-3-4)
+- Alphanumeric functions [14.9.46](#section-14-9-46)
+- Alphanumeric literals [8.3.3.2](#section-8-3-3-2)
+  - Continuation of [3](#section-3)
+- ALPHANUMERIC phrase
+  - CODE-SET clause [13.18.13](#section-13-18-13)
+  - COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - SORT statement [14.9.40](#section-14-9-40)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Alphanumeric-edited category [8.5.2.4](#section-8-5-2-4)
+- Alphanumeric-edited data item [8.4.3.4](#section-8-4-3-4)
+- ALPHANUMERIC-EDITED phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- ALSO phrase
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+- ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- ALTERNATE RECORD KEY clause, [A.4.8](#section-a-4-8)
+- AND operator
+  - In combined conditions [8.6.7](#section-8-6-7)
+  - In complex conditions [8.6.5](#section-8-6-5)
+- AND phrase
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- ANNUITY function [15.9](#section-15-9)
+- ANY LENGTH clause [13.18.2](#section-13-18-2)
+- ANY phrase
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+- ANYCASE keyword [15.65](#section-15-65)
+- Apostrophe [7.3.10.4](#section-7-3-10-4)
+- APPLY COMMIT [12.3.7.4](#section-12-3-7-4), [B.3](#section-b-3)
+  - Commit and Rollback [9.1.18](#section-9-1-18)
+  - EC-FLOW-APPLY-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
+  - ROLLBACK statement [14.9.36](#section-14-9-36)
+- APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
+- Archaic language element flagging 24
+- Archaic language elements [4.2.12](#section-4-2-12)
+  - Continuation of COBOL words [D.31.5.8](#section-d-31-5-8)
+  - Identifier-n (text-n) in a COPY statement [D.31.5.8](#section-d-31-5-8)
+  - MOVE of figurative constants that are not numeric to
+  - numeric items [D.31.5.8](#section-d-31-5-8)
+  - NEXT SENTENCE phrase [14.9.10](#section-14-9-10), [14.9.28.4](#section-14-9-28-4), [D.31.5.8](#section-d-31-5-8)
+  - ON OVERFLOW phrase of CALL [D.31.5.8](#section-d-31-5-8)
+- Arguments [15.3](#section-15-3)
+- Arguments, intrinsic functions [14.9.46](#section-14-9-46)
+- Arithmetic [8.4.3.13.2](#section-8-4-3-13-2), [8.4.4.2](#section-8-4-4-2)
+  - Native [8.4.4.2](#section-8-4-4-2)
+  - Standard [8.4.4.2](#section-8-4-4-2)
+  - Standard-binary [8.4.6](#section-8-4-6)
+  - Standard-decimal [8.4.6.3](#section-8-4-6-3)
+- ARITHMETIC clause [11.9.5](#section-11-9-5)
+- Arithmetic compute [14.8.3](#section-14-8-3)
+- Arithmetic expressions [5.4](#section-5-4)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - Parenthesis in [8.4.4.2](#section-8-4-4-2)
+  - Sign condition [8.6.3](#section-8-6-3)
+- Arithmetic Operators [8.7.1](#section-8-7-1)
+- Arithmetic statements [14.7.7](#section-14-7-7)
+- ADD statement [14.9.2](#section-14-9-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - Data conversion [14.5.1](#section-14-5-1)
+  - decimal point alignment [14.5.1](#section-14-5-1)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - maximum operand size [14.5.2](#section-14-5-2)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- AS phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - CLASS-ID paragraph [11.3](#section-11-3)
+  - EXTERNAL clause [13.18.22](#section-13-18-22)
+  - FUNCTION-ID paragraph [11.5](#section-11-5)
+  - INTERFACE-ID paragraph [11.6](#section-11-6)
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+  - REPOSITORY paragraph [12.3.8](#section-12-3-8)
+- ASCENDING KEY phrase
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - OCCURS clause [13.18.38](#section-13-18-38)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+  - SORT statement [14.9.40](#section-14-9-40)
+- ASIN function [15.10](#section-15-10)
+- ASSIGN clause
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Asterisk (\*) comment line [3](#section-3)
+- AT END [8.8.4.2.13](#section-8-8-4-2-13)
+- At end condition [14.7.2](#section-14-7-2)
+  - Definition [14.2.3](#section-14-2-3)
+- AT END phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETURN statement [14.9.34](#section-14-9-34)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- AT END-OF-PAGE [8.8.4.2.13](#section-8-8-4-2-13)
+- AT END-OF-PAGE phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- AT EOP [8.8.4.2.13](#section-8-8-4-2-13)
+- AT EOP phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- ATAN function [15.11](#section-15-11)
+- ATTRIBUTE phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- AUTO clause [13.18.3](#section-13-18-3)
+- Automatic data [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
+- Automatic items [8.4.3.9.3](#section-8-4-3-9-3)
+- AUTOMATIC phrase
+  - LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
+- AWAY-FROM-ZERO phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+### B
+
+- B PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- BACKGROUND-COLOR clause [13.18.4](#section-13-18-4)
+- BACKWARD [14.9.12.4](#section-14-9-12-4)
+- B-AND operator [8.4.3.13.2](#section-8-4-3-13-2)
+- BASE class [16.2](#section-16-2)
+- BASECONVERT function [15.12](#section-15-12)
+- BASED clause [13.18.5](#section-13-18-5)
+- Based data [8.4.3.11.2](#section-8-4-3-11-2)
+- Based data item [13.18.55](#section-13-18-55)
+  - ALLOCATE statement [14.9.3](#section-14-9-3)
+  - SET statement [14.9.39](#section-14-9-39)
+- Based entry [8.4.3.11.2](#section-8-4-3-11-2)
+- Basic calendar date format
+  - Definition [14.9.48](#section-14-9-48)
+- Basic combined date and time format [14.9.48.4](#section-14-9-48-4)
+- Basic common time format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Basic common time format with integer seconds representation
+  - Definition
+- Basic common time format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Basic common time3 format with fractional seconds
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Basic letters [7.3.10](#section-7-3-10)
+- Basic local time format [14.9.48.4](#section-14-9-48-4)
+- Basic offset time format [14.9.48.4](#section-14-9-48-4)
+- Basic ordinal date format
+  - Definition [14.9.48](#section-14-9-48)
+- Basic UTC time format [14.9.48.4](#section-14-9-48-4)
+- Basic week date format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- BEFORE ADVANCING phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- BEFORE phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- BEFORE REPORTING phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- BELL clause [13.18.6](#section-13-18-6)
+- BELL phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- big-endian [13.18.49.4](#section-13-18-49-4)
+- Binary encoding
+  - ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
+- BINARY phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BINARY-CHAR phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BINARY-DOUBLE phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BINARY-ENCODING phrase
+  - FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BINARY-LONG phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BINARY-SHORT phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BIT [13.18.9](#section-13-18-9)
+- Bit data item [13.18.9](#section-13-18-9), [13.18.47](#section-13-18-47)
+- Bit group [D.5](#section-d-5)
+- Bit group item [13.18.9](#section-13-18-9)
+- BIT phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- BLANK clause [13.18.7](#section-13-18-7)
+- Blank line [3](#section-3)
+- BLANK WHEN ZERO clause [13.18.8](#section-13-18-8)
+- BLINK clause [13.18.9](#section-13-18-9)
+- BLINK phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
+  - File description entry [13.4.5](#section-13-4-5)
+- B-NOT operator [8.4.3.13.2](#section-8-4-3-13-2)
+- Boolean category [8.5.2.5](#section-8-5-2-5)
+- Boolean character 5
+- Boolean class [8.4.3.3.4](#section-8-4-3-3-4)
+- BOOLEAN clause [8.5.2.9](#section-8-5-2-9)
+- Boolean compute [14.8.3](#section-14-8-3)
+- Boolean data item [8.4.3.4](#section-8-4-3-4)
+- Boolean expression [5.6](#section-5-6)
+- Boolean expressions [8.8.2](#section-8-8-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - Parenthesis in [8.5.1.3.2](#section-8-5-1-3-2)
+  - Relation condition [8.5.1.9.2](#section-8-5-1-9-2)
+- Boolean functions [14.9.46](#section-14-9-46)
+- Boolean literals [8.3.3.4](#section-8-3-3-4)
+  - Continuation of [3](#section-3)
+- Boolean operators [8.7.2](#section-8-7-2)
+- BOOLEAN phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Boolean zero-length literal
+  - Definition [7.3.21](#section-7-3-21)
+- BOOLEAN-OF-INTEGER function [15.13](#section-15-13)
+- B-OR operator [8.4.3.13.2](#section-8-4-3-13-2)
+- Braces [5.2.6.3](#section-5-2-6-3)
+- Brackets [5.2.6.2](#section-5-2-6-2)
+- B-SHIFT-L operator [8.4.3.13.2](#section-8-4-3-13-2)
+- B-SHIFT-LC operator [8.4.3.13.2](#section-8-4-3-13-2)
+- B-SHIFT-R operator [8.4.3.13.2](#section-8-4-3-13-2)
+- B-SHIFT-RC operator [8.4.3.13.2](#section-8-4-3-13-2)
+- B-XOR operator [8.4.3.13.2](#section-8-4-3-13-2)
+- BY CONTENT phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - Procedure division header [8.3.2.2.1](#section-8-3-2-2-1)
+- BY phrase
+  - COPY statement [7.2.3](#section-7-2-3)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
+  - VARYING clause [13.18.64](#section-13-18-64)
+- BY REFERENCE phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
+- BY VALUE phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - Procedure division header [8.3.2.2.1](#section-8-3-2-2-1), [13.18.57.4](#section-13-18-57-4)
+- BYTE-LENGTH function [15.14](#section-15-14)
+- BYTE-LENGTH phrase
+  - Constant entry [13.10](#section-13-10)
+### C
+
+- Calendar date format [14.9.48](#section-14-9-48)
+- CALL
+  - Failure [14.6.2.3.2](#section-14-6-2-3-2)
+- CALL statement [14.9.4](#section-14-9-4)
+- CALL-CONVENTION directive [7.3.9](#section-7-3-9)
+- Call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
+- call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
+- CANCEL statement [14.9.5](#section-14-9-5)
+- CAPACITY [13.18.22](#section-13-18-22)
+- Case mapping [7.3.11](#section-7-3-11)
+- Category of data
+  - Alphabetic [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33](#section-13-18-33)
+  - Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4), [13.18.10](#section-13-18-10), [13.18.33](#section-13-18-33)
+  - Alphanumeric-edited [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33.4](#section-13-18-33-4)
+  - Boolean [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4.2](#section-8-4-3-4-2), [13.18.9](#section-13-18-9), [13.18.33.4](#section-13-18-33-4)
+  - Boolean literal [7.3.20](#section-7-3-20)
+  - Data-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
+  - Function-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
+  - Index [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4), [13.18.47](#section-13-18-47)
+  - National [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.10](#section-13-18-10), [13.18.33.4](#section-13-18-33-4)
+  - National literal [7.3.21](#section-7-3-21)
+  - National-edited [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
+  - Numeric [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
+  - Numeric literal [7.3.19](#section-7-3-19)
+  - Numeric-edited [8.4.3.6](#section-8-4-3-6), [13.18.33.4](#section-13-18-33-4)
+  - Object-reference [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6), [13.18.49.4](#section-13-18-49-4)
+  - Program-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6)
+- CF phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- CH phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- CHAR function [15.15](#section-15-15)
+- Character
+  - Alphabetic 3
+  - Alphanumeric 3
+  - Boolean 5
+  - Numeric 16
+- CHARACTER CLASSIFICATION clause [10.6.1](#section-10-6-1)
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+- Character sets [8.1](#section-8-1)
+- Character substitution [4.2.17](#section-4-2-17)
+- CHARACTERS phrase
+  - ALLOCATE statement [14.9.3](#section-14-9-3)
+  - BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - RECORD clause [13.18.43](#section-13-18-43)
+- Character-string 6
+- character-strings
+  - Definition [7.3.13.4](#section-7-3-13-4)
+- CHAR-NATIONAL function [15.16](#section-15-16)
+- Choice indicators [5.2.6.4](#section-5-2-6-4)
+- Class
+  - BASE [15.81](#section-15-81)
+  - Parameterized [9.1.8.2](#section-9-1-8-2)
+- Class and category of data [8.4.3.3](#section-8-4-3-3)
+- CLASS clause [13.18.11](#section-13-18-11)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Class condition [8.5.2.4](#section-8-5-2-4)
+  - BOOLEAN phrase [8.5.2.9](#section-8-5-2-9)
+- Class inheritance [9.3.9](#section-9-3-9)
+- Class of data
+  - Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4)
+  - Boolean [8.4.3.3.4](#section-8-4-3-3-4)
+  - Index [8.4.3.3.4](#section-8-4-3-3-4)
+  - National [8.4.3.3.4](#section-8-4-3-3-4)
+  - Numeric [8.4.3.3.4](#section-8-4-3-3-4)
+  - Object [8.4.3.3.4](#section-8-4-3-3-4)
+  - Pointer [8.4.3.3.4](#section-8-4-3-3-4)
+- CLASS phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Class polymorphism [9.3.5.2](#section-9-3-5-2)
+- Class-definition [9.1.13.8](#section-9-1-13-8)
+- CLASS-ID paragraph [11.3](#section-11-3)
+- Class-name [8.3.2.2.2](#section-8-3-2-2-2)
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - CLASS-ID paragraph [11.3](#section-11-3)
+  - Object orientation [9.1.18.6](#section-9-1-18-6)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+  - Truth value [7.3.13.4](#section-7-3-13-4), [7.3.14.4](#section-7-3-14-4)
+- Clause 6
+- CLOSE statement [14.9.6](#section-14-9-6)
+  - Implied [14.9.18](#section-14-9-18), [14.9.18.4](#section-14-9-18-4), [14.9.37.3](#section-14-9-37-3), [14.9.37.4](#section-14-9-37-4)
+- Closing delimiter [8.1.2](#section-8-1-2)
+- COBOL character repertoire [8.1.3](#section-8-1-3)
+- COBOL compilation group [10.6](#section-10-6)
+- COBOL library [3](#section-3)
+- COBOL reserved words [7.3.16](#section-7-3-16)
+- COBOL source program structure [9.1.13.2](#section-9-1-13-2)
+- COBOL word [7.3.13.4](#section-7-3-13-4)
+- COBOL-WORDS directive [7.3.10](#section-7-3-10)
+- CODE clause [13.18.12](#section-13-18-12)
+  - Report description entry [13.8.4](#section-13-8-4)
+- Coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+  - Definition [8.4.2.3.3](#section-8-4-2-3-3)
+- Code-name [8.3.2.3.3](#section-8-3-2-3-3)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- CODE-SET clause [13.18.13](#section-13-18-13)
+  - File description entry [13.4.5](#section-13-4-5)
+- Collating sequence [10.6.2](#section-10-6-2)
+- COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+- COLLATING SEQUENCE phrase
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - SORT statement [14.9.40](#section-14-9-40)
+- Collating sequences [8.1.5](#section-8-1-5)
+- Colon [7.3.10.4](#section-7-3-10-4)
+  - Separator [8.1.2](#section-8-1-2)
+- Color number [9.2.7](#section-9-2-7)
+- COLUMN (COL) phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+- COLUMN clause [13.18.14](#section-13-18-14)
+- Combined conditions [8.6.7](#section-8-6-7)
+- Combined date and time format [14.9.48.4](#section-14-9-48-4)
+- COMBINED-DATETIME [15.3](#section-15-3)
+- Comma 29
+  - Interchangeable with semicolon [8](#section-8)
+  - Separator [8](#section-8)
+- Comment [3](#section-3)
+  - Inline [3](#section-3)
+  - Line [3](#section-3)
+- Comment indicator [3](#section-3)
+- commit [B.3](#section-b-3)
+- COMMIT statement [14.9.7](#section-14-9-7)
+  - APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
+  - EC-FLOW-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
+- COMMON [14.9.23.3](#section-14-9-23-3)
+- COMMON clause
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+- Common exception processing [D.16](#section-d-16)
+- COMMON phrase [13.18.63.3](#section-13-18-63-3)
+- Common phrases [14.2.3](#section-14-2-3)
+- Common program [8.4.3.11.2](#section-8-4-3-11-2)
+  - Scope of [8.4.2.1](#section-8-4-2-1)
+- Common time format [14.9.48.4](#section-14-9-48-4)
+- COMP phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Comparison
+  - Between message tags [8.5.2.2](#section-8-5-2-2)
+  - Between object reference identifiers [8.5.2.2](#section-8-5-2-2)
+  - Locale-based [8.5.1.12.2](#section-8-5-1-12-2)
+  - Of alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
+  - Of boolean operands [8.5.1.12](#section-8-5-1-12)
+  - Of data-pointer operands [8.5.2.2](#section-8-5-2-2)
+  - Of index data items [8.5.2.2](#section-8-5-2-2)
+  - Of mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
+  - Of national operands [8.5.1.12](#section-8-5-1-12)
+  - Of numeric operands [8.5.1.10](#section-8-5-1-10)
+  - Of strongly-typed group items [8.5.1.12.2](#section-8-5-1-12-2)
+- Compatibility
+  - FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
+- Compatibility of Variable-length groups
+  - Definition [8.4.3.2.4](#section-8-4-3-2-4)
+- Compilation group [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
+- Compilation stage [3](#section-3)
+- Compilation unit 25, [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
+- Compilation variable name [5.6](#section-5-6)
+- Compilation-variable-name [8.3.2.2.3](#section-8-3-2-2-3)
+- Compiler directing statement [3](#section-3)
+  - COPY statement [7.2.3](#section-7-2-3)
+  - REPLACE statement [7.2.4](#section-7-2-4)
+- Compiler directive [4.2.11](#section-4-2-11)
+- Compiler directive indicator [3](#section-3)
+- Compiler-directive word [4.2.11](#section-4-2-11), [7.3.13.4](#section-7-3-13-4), [8.8.2](#section-8-8-2)
+- Compile-time arithmetic expressions [7.3.6](#section-7-3-6)
+- Compile-time boolean expressions [7.3.7](#section-7-3-7)
+- Composite of operands [8.4.6](#section-8-4-6)
+  - ADD statement [14.9.2](#section-14-9-2)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- COMPUTATIONAL phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- COMPUTE statement [14.9.8](#section-14-9-8)
+- Computer's character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+- Computer's coded character set [8.1.2](#section-8-1-2)
+- Computer-name [8.3.2.3.4](#section-8-3-2-3-4)
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+  - SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
+- CONCAT function [15.18](#section-15-18)
+- Concatenation expressions [8.8.3](#section-8-8-3)
+- Concatenation operator [8.7.3](#section-8-7-3)
+- Concepts [A.4.3](#section-a-4-3)
+- CONDITION [14.9.39.4](#section-14-9-39-4)
+- Condition [8.5.1.7](#section-8-5-1-7)
+  - Abbreviated combined relation condition [8.7](#section-8-7)
+  - Class condition [8.5.2.4](#section-8-5-2-4)
+  - Condition-name condition [8.5.3.3](#section-8-5-3-3)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - Evaluation order rules [8.6.7](#section-8-6-7)
+  - IF statement [14.9.19](#section-14-9-19)
+  - Omitted argument condition [8.6.4](#section-8-6-4)
+  - Sign condition [8.6.3](#section-8-6-3)
+  - Switch-status condition [8.5.3.3](#section-8-5-3-3)
+- Conditional compilation [7.3.5](#section-7-3-5)
+- Conditional expression [8.5.1.7](#section-8-5-1-7), [14.9.23.4](#section-14-9-23-4), [D.19.5.3](#section-d-19-5-3)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+- Conditional phrase [14.5.2](#section-14-5-2)
+- Conditional statement [13.18.60.2](#section-13-18-60-2)
+- Conditional variable [8.5.3.3](#section-8-5-3-3)
+  - Definition [8.3.3.6.2](#section-8-3-3-6-2)
+- Conditionally-processed compilation group [3](#section-3)
+- Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+  - Qualified with subscripts [8.3.3.6.4](#section-8-3-3-6-4)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4), [8.3.5](#section-8-3-5)
+  - Subscripted [8.1.4](#section-8-1-4)
+  - Switch status [8.3.3.6.4](#section-8-3-3-6-4)
+- Condition-name condition [8.5.3.3](#section-8-5-3-3)
+- Configuration section [12.3](#section-12-3)
+- Conformance [D.19.5.3](#section-d-19-5-3)
+- Conformance for object orientation [9.3.8.2](#section-9-3-8-2)
+- Conforming implementation 25, 26
+- Conforming run unit 25
+- Constant conditional expression [7.3.8](#section-7-3-8)
+- Constant entry [13.10](#section-13-10)
+- CONSTANT RECORD [13.18.40.4](#section-13-18-40-4)
+- CONSTANT RECORD clause [13.18.15](#section-13-18-15)
+- Constant-name [8.3.2.2.5](#section-8-3-2-2-5)
+  - Scope of [8.3.5](#section-8-3-5)
+- Contained source unit [9.1.13.3](#section-9-1-13-3)
+- Contained statement [13.18.60.4](#section-13-18-60-4)
+- CONTENT phrase
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - SET statement [14.9.39](#section-14-9-39)
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- Content validation [D.22.4](#section-d-22-4)
+- Context-sensitive word [7.3.17](#section-7-3-17)
+- Context-sensitive word list [8.8.1.4.3](#section-8-8-1-4-3)
+- Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
+- Continuation indicator [3](#section-3)
+- Continuation of lines [6.3.5](#section-6-3-5)
+- CONTINUE phrase [14.9.26](#section-14-9-26)
+- CONTINUE statement [14.9.9](#section-14-9-9)
+- Continued line [3](#section-3)
+- Control break [13.16](#section-13-16), [13.18.8](#section-13-18-8)
+- Control break processing [14.9.6.4](#section-14-9-6-4)
+- CONTROL clause [13.18.16](#section-13-18-16)
+  - Report description entry [13.8.4](#section-13-8-4)
+- CONTROL FOOTING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- CONTROL HEADING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- CONVERT function [15.19](#section-15-19)
+- CONVERTING phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+- COPY statement [7.2.3](#section-7-2-3)
+  - Nesting [3](#section-3)
+- Correspondence
+  - Variable-length groups [8.5.1.12](#section-8-5-1-12)
+- CORRESPONDING (CORR) phrase [14.5.1](#section-14-5-1)
+  - ADD statement [14.9.2](#section-14-9-2)
+  - FILLER clause [14.5.1](#section-14-5-1)
+  - MOVE statement [14.9.25](#section-14-9-25)
+  - OCCURS clause [13.18.38](#section-13-18-38)
+  - REDEFINES clause [13.18.44](#section-13-18-44)
+  - RENAMES clause [13.18.45](#section-13-18-45)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- COS function [15.20](#section-15-20)
+- COUNT IN phrase
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- CR PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- CRT status [9.2.3](#section-9-2-3)
+- CRT STATUS clause
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Cultural adaptability [D.6.5.3.1](#section-d-6-5-3-1)
+- Cultural elements [7.3.12](#section-7-3-12)
+- Cultural ordering table [15.61](#section-15-61), [15.85.4](#section-15-85-4)
+  - Definition [7.3.15](#section-7-3-15)
+- Currency sign [10.6.2](#section-10-6-2)
+- CURRENCY SIGN clause
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Currency string [11.3.4](#section-11-3-4)
+- Currency symbol [10.6.2](#section-10-6-2), [11.3.4](#section-11-3-4)
+- currency_symbol [7.3.12.4](#section-7-3-12-4)
+- Current screen item [9.2.6](#section-9-2-6)
+- Current volume pointer [9.1.10](#section-9-1-10)
+- CURRENT-DATE function [15.21](#section-15-21)
+- Cursor [9.2.4](#section-9-2-4)
+- CURSOR clause
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Cursor locator [9.2.5](#section-9-2-5)
+- CYCLE phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+### D
+
+- d_fmt [7.3.13](#section-7-3-13)
+- DATA BY phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Data conversion [14.5.1](#section-14-5-1), [14.6.13.1.4](#section-14-6-13-1-4)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - MOVE statement [14.9.25](#section-14-9-25)
+- Data description entry [13.16](#section-13-16)
+- Data division [13](#section-13)
+- Data division entries [12.3.8.4](#section-12-3-8-4)
+- Data item [8.2](#section-8-2)
+- Data-address-identifier [8.4.3.11](#section-8-4-3-11)
+- Data-name [8.3.2.2.6](#section-8-3-2-2-6)
+- Data description entry [13.16](#section-13-16)
+  - Definition [7.3.14.4](#section-7-3-14-4)
+  - Identifier [8.4.3.1](#section-8-4-3-1)
+  - Qualified [8.2.2](#section-8-2-2)
+  - Scope of [8.3.5](#section-8-3-5)
+  - Subscripted [8.1.4](#section-8-1-4), [8.2.2](#section-8-2-2)
+- data-name [8.3.2.2.6](#section-8-3-2-2-6)
+- Data-pointer [7.3.12.4](#section-7-3-12-4), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
+  - Definition [13.18.50](#section-13-18-50)
+- Data-pointer category [8.5.2.6](#section-8-5-2-6)
+- Data-pointer data item [8.4.3.4](#section-8-4-3-4)
+- DATA-POINTER phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Date forms [14.9.49.3](#section-14-9-49-3)
+- DATE phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- DATE-OF-INTEGER function [15.22](#section-15-22)
+- DATE-TO-YYYYMMDD function [15.23](#section-15-23)
+- DAY phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- Day subfield [14.9.48](#section-14-9-48)
+- DAY-OF-INTEGER function [15.24](#section-15-24)
+- DAY-OF-WEEK phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- Day-of-week subfield [14.9.48.4](#section-14-9-48-4)
+- Day-of-year subfield [14.9.48](#section-14-9-48)
+- DAY-TO-YYYYDDD function [15.25](#section-15-25)
+- DB PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- DE phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- Decimal encoding
+  - ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
+- Decimal point [10.6.2](#section-10-6-2)
+- Decimal point alignment [14.5.1](#section-14-5-1)
+- Decimal separator
+  - Definition [11.8.1](#section-11-8-1)
+- DECIMAL-ENCODING phrase
+  - FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- DECIMAL-POINT IS COMMA clause [15.42](#section-15-42), [15.43.4](#section-15-43-4), [15.45](#section-15-45)
+  - Definition [11.8.1](#section-11-8-1)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Declarative statement [13.18.60.2](#section-13-18-60-2)
+  - USE statement [14.9.49](#section-14-9-49)
+- DECLARATIVES [14.3](#section-14-3)
+- Declaratives [14.3](#section-14-3)
+  - Normal completion [13.18.63.3](#section-13-18-63-3)
+- De-editing [14.9.20](#section-14-9-20), [14.9.20.4](#section-14-9-20-4)
+- DEFAULT clause [13.18.17](#section-13-18-17)
+- DEFAULT phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+- DEFAULT ROUNDED MODE IS PROHIBITED clause [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
+- DEFINE directive [7.3.11](#section-7-3-11)
+- Defined condition [7.3.8.4](#section-7-3-8-4)
+- Definitions 3
+- DELETE FILE statement [14.8.4.3](#section-14-8-4-3)
+- DELETE statement [14.9.10](#section-14-9-10)
+- DELIMITED BY phrase
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- DELIMITED phrase
+- DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+- Delimited scope statement [13.18.60.4](#section-13-18-60-4)
+- DELIMITER IN phrase
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- DEPENDING ON phrase
+  - GO TO statement [14.9.17](#section-14-9-17)
+  - OCCURS clause [13.18.38](#section-13-18-38)
+  - RECORD clause [13.18.43](#section-13-18-43)
+- DESCENDING KEY phrase
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - OCCURS clause [13.18.38](#section-13-18-38)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+  - SORT statement [14.9.40](#section-14-9-40)
+- DESTINATION clause [13.18.18](#section-13-18-18)
+- DETAIL phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- Device-name [8.3.2.3.5](#section-8-3-2-3-5)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Directive-name
+  - Definition [7.3.14.4](#section-7-3-14-4)
+- directive-name [8.3.2.2.7](#section-8-3-2-2-7)
+- DISPLAY directive [7.3.12](#section-7-3-12)
+- DISPLAY phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- DISPLAY screen statement [14.9.1.4](#section-14-9-1-4), [14.9.35](#section-14-9-35)
+- DISPLAY statement [14.9.11](#section-14-9-11)
+- DISPLAY-OF function [15.26](#section-15-26)
+- DIVIDE statement [14.9.12](#section-14-9-12)
+- Division header [9.1.13.3](#section-9-1-13-3)
+- DOWN phrase
+  - SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
+  - SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
+- DUPLICATES phrase
+  - ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+  - SORT statement [14.9.40](#section-14-9-40)
+- DYNAMIC [13.18.22](#section-13-18-22)
+- Dynamic access mode [9.1.8.4](#section-9-1-8-4)
+- DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+- Data description entry [13.16](#section-13-16)
+- DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+- DYNAMIC phrase
+  - ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+- Dynamic storage [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
+- Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+  - Definition 156
+- Dynamic-capacity-table
+  - Format [13.18.22.2](#section-13-18-22-2)
+- Dynamic-length elementary item
+  - Definition [8.4.3.2.3](#section-8-4-3-2-3)
+- Dynamic-length elementary items [8.5.1.10](#section-8-5-1-10)
+- Dynamic-length-structure-name [8.3.2.2.8](#section-8-3-2-2-8)
+- DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+### E
+
+- E function [15.27](#section-15-27)
+- E PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- EC [6.4.4.3](#section-6-4-4-3), [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
+- EC-ALL [8.8.4.2.13](#section-8-8-4-2-13)
+- EC-ALL exception [6.4.4.3](#section-6-4-4-3), [7.3.4](#section-7-3-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+- EC-ARGUMENT exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.7](#section-d-7)
+- EC-ARGUMENT-FUNCTION exception [13.18.63.4](#section-13-18-63-4), [14.9.47](#section-14-9-47), [15.88](#section-15-88)
+- EC-ARGUMENT-FUNCTION exception condition [15.64](#section-15-64)
+- EC-ARGUMENT-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+- EC-BOUND-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND-ODO exception [13.18.24.4](#section-13-18-24-4), [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND-OVERFLOW exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND-PTR exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND-REF-MOD exception [8.3.2.2.13](#section-8-3-2-2-13), [13.18.63.4](#section-13-18-63-4)
+- EC-BOUND-SET exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-BOUND-SUBSCRIPT exception [8.2](#section-8-2), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-BOUND-SUBSCRIPT exception condition [14.9.33.4](#section-14-9-33-4), [14.9.34.4](#section-14-9-34-4)
+- EC-BOUND-TABLE-LIMIT exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-CONTINUE exception [13.18.63.4](#section-13-18-63-4)
+- EC-CONTINUE-IMP [13.18.63.4](#section-13-18-63-4)
+- EC-CONTINUE-LESS-THAN-ZERO exception [13.18.63.4](#section-13-18-63-4), [14.8.4](#section-14-8-4)
+- EC-DATA exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+- EC-DATA-CONVERSION exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4), [15.3.3](#section-15-3-3), [15.6](#section-15-6), [15.41](#section-15-41)
+- EC-DATA-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-DATA-INCOMPATIBLE exception [8.4.6.2](#section-8-4-6-2), [8.4.6.3](#section-8-4-6-3), [13.18.63.4](#section-13-18-63-4), [14.2.2](#section-14-2-2), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6.4](#section-14-9-6-4), [14.9.20.4](#section-14-9-20-4), [14.9.40.4](#section-14-9-40-4), [15.97](#section-15-97)
+- EC-DATA-NOT-FINITE exception [13.18.63.4](#section-13-18-63-4), [14.2.3](#section-14-2-3)
+- EC-DATA-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4)
+- EC-DATA-PTR-NULL exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-EXTERNAL [13.18.63.4](#section-13-18-63-4)
+- EC-EXTERNAL exception [14.6.9](#section-14-6-9), [14.7.6](#section-14-7-6)
+- EC-EXTERNAL-DATA-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+- EC-EXTERNAL-FILE-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+- EC-EXTERNAL-FORMAT-CONFLICT [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+- EC-EXTERNAL-IMP [13.18.63.4](#section-13-18-63-4)
+- EC-FLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+- EC-FLOW-APPLY exception [12.3.8](#section-12-3-8)
+- EC-FLOW-APPLY-COMMIT exception [12.3.8](#section-12-3-8), [13.18.63.4](#section-13-18-63-4)
+- EC-FLOW-COMMIT exception [14.8.2.3.3](#section-14-8-2-3-3)
+- EC-FLOW-GLOBAL-EXIT exception [13.18.63.4](#section-13-18-63-4)
+- EC-FLOW-GLOBAL-GOBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.8.4](#section-14-9-8-4)
+- EC-FLOW-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-FLOW-RELEASE exception [13.18.63.4](#section-13-18-63-4), [14.9.26.4](#section-14-9-26-4)
+- EC-FLOW-REPORT exception [13.18.63.4](#section-13-18-63-4), [14.9.40.4](#section-14-9-40-4)
+- EC-FLOW-RETURN exception [13.18.63.4](#section-13-18-63-4), [14.9.27.4](#section-14-9-27-4)
+- EC-FLOW-ROLLBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.28.4](#section-14-9-28-4)
+- EC-FLOW-SEARCH exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-FLOW-USE exception [13.18.63.4](#section-13-18-63-4), [14.9.40.3](#section-14-9-40-3)
+- EC-FUNCTION exception [13.18.63.4](#section-13-18-63-4)
+- EC-FUNCTION-ARG-OMITTED [13.18.63.4](#section-13-18-63-4)
+- EC-FUNCTION-ARG-OMITTED exception [8.3.2.2.2](#section-8-3-2-2-2)
+- EC-FUNCTION-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-FUNCTION-NOT-FOUND exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
+- EC-FUNCTION-PTR-INVALID exception [13.18.63.4](#section-13-18-63-4), [14.9.35](#section-14-9-35)
+- EC-FUNCTION-PTR-NULL exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
+- EC-IMP exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.9.4.4](#section-14-9-4-4), [D.8](#section-d-8)
+- EC-IMP-suffix [13.18.63.4](#section-13-18-63-4)
+- EC-I-O [8.8.4.2.13](#section-8-8-4-2-13)
+- EC-I-O exception [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.7.8](#section-14-7-8), [14.9.23](#section-14-9-23), [15.6](#section-15-6), [15.7](#section-15-7), [D.8](#section-d-8)
+- EC-I-O-AT-END exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4), [14.9.25.4](#section-14-9-25-4), [B.3](#section-b-3)
+- EC-I-O-EOP exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
+- EC-I-O-EOP-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
+- EC-I-O-FILE-SHARING exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-IMP exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-INVALID-KEY exception [8.8.4.3](#section-8-8-4-3), [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-LINAGE exception [13.18.14.4](#section-13-18-14-4), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-LOGIC-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.39.4](#section-13-18-39-4), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-PERMANENT-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-RECORD-CONTENT [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-RECORD-OPERATION exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+- EC-I-O-WARNING exception [7.3.4](#section-7-3-4), [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+- EC-LOCALE exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4)
+- EC-LOCALE-IMP exception [13.18.63.4](#section-13-18-63-4)
+- EC-LOCALE-INCOMPATIBLE exception [8.5.1.12](#section-8-5-1-12), [8.5.1.12.2](#section-8-5-1-12-2), [13.18.63.4](#section-13-18-63-4)
+- EC-LOCALE-INVALID exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4)
+- EC-LOCALE-INVALID-PTR exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+- EC-LOCALE-MISSING exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4), [15.28.4](#section-15-28-4), [15.29](#section-15-29), [15.29.4](#section-15-29-4), [15.30](#section-15-30), [15.43.4](#section-15-43-4)
+- EC-LOCALE-SIZE exception [13.18.36](#section-13-18-36), [13.18.63.4](#section-13-18-63-4)
+- EC-MCS [13.18.63.4](#section-13-18-63-4)
+- EC-MCS-ABNORMAL-TERMINATION exception [13.18.64](#section-13-18-64)
+- EC-MCS-IMP exception [13.18.64](#section-13-18-64)
+- EC-MCS-INVALID-TAG [13.18.64](#section-13-18-64)
+- EC-MCS-INVALID-TAG exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+- EC-MCS-MESSAGE-LENGTH exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+- EC-MCS-NO-RECEIVER exception [14.9.30.4](#section-14-9-30-4)
+- EC-MCS-NO-REQUESTER exception [13.18.64](#section-13-18-64)
+- EC-MCS-NORMAL-TERMINATION [13.18.64](#section-13-18-64)
+- EC-MCS-NO-SERVER exception [13.18.64](#section-13-18-64), [14.9.30.4](#section-14-9-30-4)
+- EC-MCS-REQUESTOR-FAILED exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+- EC-OO exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
+- EC-OO-ARG-OMITTED exception [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
+- EC-OO-CONFORMANCE exception [8.3.2.3.2](#section-8-3-2-3-2), [8.3.2.3.9](#section-8-3-2-3-9), [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2)
+- EC-OO-EXCEPTION exception [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64)
+- EC-OO-IMP exception [13.18.64](#section-13-18-64)
+- EC-OO-METHOD exception [8.11](#section-8-11), [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
+- EC-OO-NULL exception [13.18.64](#section-13-18-64), [14.9.14.3](#section-14-9-14-3)
+- EC-OO-RESOURCE exception [13.18.64](#section-13-18-64), [15.82](#section-15-82)
+- EC-OO-UNIVERSAL exception [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2), [14.9.14.4](#section-14-9-14-4)
+- EC-ORDER exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64)
+- EC-ORDER-IMP exception [13.18.64](#section-13-18-64)
+- EC-ORDER-NOT-SUPPORTED exception [13.18.64](#section-13-18-64), [15.61](#section-15-61)
+- EC-ORDER-NOT-SUPPORTED exception condition [16.2.1.2](#section-16-2-1-2)
+- EC-OVERFLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
+- EC-OVERFLOW-IMP exception [13.18.64](#section-13-18-64)
+- EC-OVERFLOW-STRING exception [13.18.64](#section-13-18-64), [14.9.39.2](#section-14-9-39-2)
+- EC-OVERFLOW-UNSTRING exception [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
+- EC-PROGRAM exception [6.4.4.3](#section-6-4-4-3), [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [14.7.6](#section-14-7-6), [D.8](#section-d-8)
+- EC-PROGRAM-ARG-MISMATCH exception [13.18.64](#section-13-18-64), [14.7.5](#section-14-7-5)
+- EC-PROGRAM-ARG-OMITTED exception [6.4.4.3](#section-6-4-4-3), [8.3.2.2.2](#section-8-3-2-2-2), [13.18.64](#section-13-18-64), [14.7.7](#section-14-7-7)
+- EC-PROGRAM-CANCEL-ACTIVE exception [13.18.64](#section-13-18-64), [14.7.8](#section-14-7-8)
+- EC-PROGRAM-EXCEPTIONS option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- EC-PROGRAM-IMP exception [13.18.64.4](#section-13-18-64-4)
+- EC-PROGRAM-NOT-FOUND exception [6.4.4.3](#section-6-4-4-3), [8.3.3.5.3](#section-8-3-3-5-3), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+- EC-PROGRAM-PTR-NULL exception [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+- EC-PROGRAM-RECURSIVE-CALL exception [13.18.64.4](#section-13-18-64-4), [14.7.6](#section-14-7-6)
+- EC-PROGRAM-RESOURCES exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+- EC-RAISING exception [13.18.64.4](#section-13-18-64-4)
+- EC-RAISING-IMP exception [13.18.64.4](#section-13-18-64-4)
+- EC-RAISING-NOT-SPECIFIED exception [13.18.64.4](#section-13-18-64-4), [14.9.8.4](#section-14-9-8-4)
+- EC-RANGE exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
+- EC-RANGE-IMP exception [13.18.64.4](#section-13-18-64-4)
+- EC-RANGE-INDEX exception [6.5](#section-6-5), [13.18.24.4](#section-13-18-24-4), [13.18.64.4](#section-13-18-64-4)
+- EC-RANGE-INDEX exception condition [14.9.34](#section-14-9-34), [14.9.34.4](#section-14-9-34-4)
+- EC-RANGE-INSPECT-SIZE exception [13.18.64.4](#section-13-18-64-4), [14.9.13.3](#section-14-9-13-3)
+- EC-RANGE-INVALID exception [13.18.64.4](#section-13-18-64-4), [14.6](#section-14-6)
+- EC-RANGE-PERFORM-VARYING exception [13.18.64.4](#section-13-18-64-4), [14.9.23.4](#section-14-9-23-4)
+- EC-RANGE-PTR exception [13.18.64.4](#section-13-18-64-4), [14.9.35.4](#section-14-9-35-4)
+- EC-RANGE-SEARCH-INDEX exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.3](#section-14-9-30-3)
+- EC-RANGE-SEARCH-NO-MATCH exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.4](#section-14-9-30-4)
+- EC-REPORT exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
+- EC-REPORT-ACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
+- EC-REPORT-COLUMN-OVERLAP exception [13.14](#section-13-14), [13.18.64.4](#section-13-18-64-4)
+- EC-REPORT-FILE-MODE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
+- EC-REPORT-IMP exception [13.18.64.4](#section-13-18-64-4)
+- EC-REPORT-INACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.6.4](#section-14-9-6-4), [14.9.39.3](#section-14-9-39-3)
+- EC-REPORT-LINE-OVERLAP exception [13.18.16](#section-13-18-16), [13.18.64.4](#section-13-18-64-4)
+- EC-REPORT-NOT-TERMINATED exception [14](#section-14), [14.8.2.2](#section-14-8-2-2)
+- EC-REPORT-PAGE-LIMIT exception [13.18.16](#section-13-18-16), [14](#section-14)
+- EC-REPORT-PAGE-WIDTH exception [13.14](#section-13-14), [14](#section-14)
+- EC-REPORT-SUM-SIZE exception [13.18.40.6](#section-13-18-40-6), [14](#section-14)
+- EC-REPORT-VARYING exception [13.18.57.4](#section-13-18-57-4), [14](#section-14)
+- EC-SCREEN exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6)
+- EC-SCREEN-FIELD-OVERLAP exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.1.4](#section-14-9-1-4), [14.9.2](#section-14-9-2)
+- EC-SCREEN-IMP exception [14](#section-14)
+- EC-SCREEN-ITEM-TRUNCATED exception [13.15.3](#section-13-15-3), [14](#section-14), [14.9.2](#section-14-9-2)
+- EC-SCREEN-LINE-NUMBER exception [13.18.17.4](#section-13-18-17-4), [14](#section-14), [14.9.2](#section-14-9-2)
+- EC-SCREEN-STARTING-COLUMN exception [13.15](#section-13-15), [14](#section-14), [14.9.2](#section-14-9-2)
+- EC-SIZE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.3](#section-14-3), [14.5.1](#section-14-5-1), [D.8](#section-d-8)
+- EC-SIZE-ADDRESS exception [14](#section-14), [14.9.35.4](#section-14-9-35-4)
+- EC-SIZE-EXPONENTIATION exception [8.4.6](#section-8-4-6), [8.4.6.3](#section-8-4-6-3), [8.5.1.3.2](#section-8-5-1-3-2), [14](#section-14), [14.5.1](#section-14-5-1)
+- EC-SIZE-IMP exception [14](#section-14)
+- EC-SIZE-OVERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
+- EC-SIZE-TRUNCATION exception [9.3.8.2.3](#section-9-3-8-2-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
+- EC-SIZE-UNDERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
+- EC-SIZE-ZERO-DIVIDE exception [14](#section-14), [14.5.1](#section-14-5-1)
+- EC-SORT-MERGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [D.8](#section-d-8)
+- EC-SORT-MERGE-ACTIVE exception [14](#section-14), [14.9.18](#section-14-9-18), [14.9.37](#section-14-9-37), [14.9.37.3](#section-14-9-37-3)
+- EC-SORT-MERGE-FILE-ACTIVE exception [15.99.3](#section-15-99-3)
+- EC-SORT-MERGE-FILE-OPEN exception [14](#section-14), [14.9.17](#section-14-9-17), [14.9.18.4](#section-14-9-18-4), [14.9.36.4](#section-14-9-36-4), [14.9.37](#section-14-9-37), [15.99.3](#section-15-99-3)
+- EC-SORT-MERGE-IMP exception [14](#section-14)
+- EC-SORT-MERGE-RELEASE exception [13.18.39.4](#section-13-18-39-4), [14](#section-14), [14.9.17](#section-14-9-17), [14.9.37.3](#section-14-9-37-3)
+- EC-SORT-MERGE-RETURN exception [14](#section-14), [14.9.27.4](#section-14-9-27-4)
+- EC-SORT-MERGE-SEQUENCE exception [14](#section-14), [14.9.17](#section-14-9-17)
+- EC-STORAGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14)
+- EC-STORAGE-IMP exception [14](#section-14)
+- EC-STORAGE-NOT-ALLOC exception [14.2.2](#section-14-2-2), [14.9.6](#section-14-9-6)
+- EC-STORAGE-NOT-AVAIL exception [14.2.2](#section-14-2-2), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.35.4](#section-14-9-35-4)
+- EC-USER exception [13.18.57.4](#section-13-18-57-4), [13.18.63.3](#section-13-18-63-3), [14.2.2](#section-14-2-2), [14.9.4.4](#section-14-9-4-4), [14.9.8.4](#section-14-9-8-4), [D.8](#section-d-8)
+- EC-VALIDATE exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+- EC-VALIDATE-CONTENT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+- EC-VALIDATE-FORMAT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+- EC-VALIDATE-IMP exception [14.2.2](#section-14-2-2)
+- EC-VALIDATE-RELATION exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+- EC-VALIDATE-VARYING exception [13.18.57.4](#section-13-18-57-4), [14.2.2](#section-14-2-2)
+- EDITING phrase [D.19.5.4.2](#section-d-19-5-4-2)
+- Editing rules [13.18.40.5](#section-13-18-40-5)
+- Elementary items [14.8.2.3](#section-14-8-2-3)
+- Ellipses [5.2.7](#section-5-2-7)
+- ELSE NEXT SENTENCE phrase
+  - IF statement [14.9.19](#section-14-9-19)
+- ELSE phrase
+  - IF statement [14.9.19](#section-14-9-19)
+- END CLASS marker [9.1.15](#section-9-1-15)
+- END DECLARATIVES [13.18.57.4](#section-13-18-57-4), [13.18.60](#section-13-18-60)
+- END FACTORY marker [9.1.15](#section-9-1-15)
+- END FUNCTION marker [9.1.15](#section-9-1-15)
+- END INTERFACE marker [9.1.15](#section-9-1-15)
+- END MARKERS [10.7](#section-10-7)
+- END METHOD marker [9.1.15](#section-9-1-15)
+- END OBJECT marker [9.1.15](#section-9-1-15)
+- End of COBOL source program [9.1.15](#section-9-1-15)
+- END PROGRAM marker [9.1.15](#section-9-1-15)
+- END-ACCEPT phrase [14.6.12](#section-14-6-12)
+- END-ADD phrase [14.6.13.1.6](#section-14-6-13-1-6)
+- END-CALL phrase [14.6.13.2](#section-14-6-13-2)
+- END-COMPUTE phrase [14.8.3](#section-14-8-3)
+- END-DELETE phrase [14.8.4.3](#section-14-8-4-3)
+- END-DISPLAY phrase [14.9.1.4](#section-14-9-1-4)
+- END-DIVIDE phrase [14.9.2.3](#section-14-9-2-3)
+- END-EVALUATE phrase [14.9.4](#section-14-9-4)
+- END-IF phrase
+  - IF statement [14.9.19](#section-14-9-19)
+- END-MULTIPLY phrase [14.9.22](#section-14-9-22)
+- END-OF-PAGE phrase [14.9.44](#section-14-9-44)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- END-READ phrase [14.9.24.4](#section-14-9-24-4)
+- END-RETURN phrase [14.9.27.4](#section-14-9-27-4)
+- END-REWRITE phrase [14.9.27.4](#section-14-9-27-4)
+- END-SEARCH phrase [14.9.28.4](#section-14-9-28-4)
+- END-START phrase [14.9.37.4](#section-14-9-37-4)
+- END-STRING phrase [14.9.39](#section-14-9-39)
+- END-SUBTRACT phrase [14.9.39.3](#section-14-9-39-3)
+- END-UNSTRING phrase [14.9.39.4](#section-14-9-39-4)
+- END-WRITE phrase [14.9.41.4](#section-14-9-41-4)
+- ENTRY-CONVENTION clause [11.9.7](#section-11-9-7)
+- Entry-convention-name [8.3.2.3.6](#section-8-3-2-3-6)
+- Entry-name clause [13.18.20](#section-13-18-20)
+- Environment division [12](#section-12)
+- EO [14.9.39.4](#section-14-9-39-4)
+- EOP phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- EQUAL phrase
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- Equivalent arithmetic expression [14.9.49.3](#section-14-9-49-3)
+- ERASE clause [13.18.21](#section-13-18-21)
+- ERROR clause [13.18.52](#section-13-18-52)
+- Error indication [D.22.6](#section-d-22-6)
+- ERROR phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - STOP statement [14.9.42](#section-14-9-42)
+  - USE statement [14.9.49](#section-14-9-49)
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- ERROR PROCEDURE phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- EVALUATE directive [7.3.13](#section-7-3-13)
+- EVALUATE statement [14.9.13](#section-14-9-13)
+- Evaluation of conditional expressions [8.6.7](#section-8-6-7)
+- Evaluation of conditions [D.19.5.3](#section-d-19-5-3)
+- Evaluation rules for conditions [8.7.5.2](#section-8-7-5-2)
+- EXCEPTION [14.9.23.3](#section-14-9-23-3)
+- EXCEPTION CONDITION [14.9.39.4](#section-14-9-39-4)
+- Exception condition handling [14.6.13](#section-14-6-13)
+- Exception conditions [9.1.18.7](#section-9-1-18-7)
+  - Fatal [13.18.63.3](#section-13-18-63-3)
+  - Nonfatal [13.18.63.3](#section-13-18-63-3)
+- Exception declaratives [D.2.3.4.4](#section-d-2-3-4-4)
+- EXCEPTION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EC-MCS-NORMAL-TERMINATION
+  - exception [13.18.63](#section-13-18-63)
+- Exception functions [D.2.3.4.5](#section-d-2-3-4-5)
+- Exception handling [D.2.3.4](#section-d-2-3-4)
+  - Input-output exceptions [8.8.4.2.13](#section-8-8-4-2-13)
+- EXCEPTION OBJECT [14.9.39.4](#section-14-9-39-4)
+- Exception object [13.18.63.3](#section-13-18-63-3), [14.9.39.4](#section-14-9-39-4)
+- EXCEPTION phrase [14.9.7](#section-14-9-7)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - CALL statement [14.9.4](#section-14-9-4)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+  - EXIT statement [14.9.14](#section-14-9-14)
+  - RAISE statement [14.9.29](#section-14-9-29)
+  - USE statement [14.9.49](#section-14-9-49)
+- EXCEPTION PROCEDURE phrase
+  - USE statement [14.9.49](#section-14-9-49)
+- Exception status indicators [13.18.63.3](#section-13-18-63-3)
+- Exception-checking PERFORM statement. [14.7.9](#section-14-7-9)
+- EXCEPTION-FILE function [15.28](#section-15-28)
+- EXCEPTION-FILE-N function [15.29](#section-15-29)
+- EXCEPTION-LOCATION function [15.30](#section-15-30)
+- EXCEPTION-LOCATION-N function [15.31](#section-15-31)
+- Exception-names [8.3.2.7](#section-8-3-2-7)
+- EXCEPTION-OBJECT [8.4.3.6](#section-8-4-3-6)
+- EXCEPTION-STATEMENT function [15.32](#section-15-32)
+- EXCEPTION-STATUS function [15.33](#section-15-33)
+- EXCLUSIVE-OR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
+- Execution [14.6](#section-14-6)
+- EXIT FUNCTION statement 10, [14.9.23.4](#section-14-9-23-4)
+- EXIT PARAGRAPH statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+- EXIT PERFORM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+- EXIT PROGRAM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+- EXIT PROGRAM Statement. [D.31.5.8](#section-d-31-5-8)
+- EXIT SECTION statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+- EXIT statement [14.9.14](#section-14-9-14)
+- EXP function [15.34](#section-15-34)
+- EXP10 function [15.35](#section-15-35)
+- Expanded compilation group [3](#section-3)
+- EXPANDS phrase
+  - REPOSITORY paragraph [12.3.8](#section-12-3-8)
+- Expected capacity
+  - Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
+- Expected capacity of a dynamic table
+  - Definition 156
+- Explicit attributes [12.3.8.4](#section-12-3-8-4)
+- Explicit reference
+  - Definition [8.3.3.6.4](#section-8-3-3-6-4)
+- Explicit scope terminators [13.18.60.4](#section-13-18-60-4)
+- Explicit transfer of control [13.18.60.4](#section-13-18-60-4)
+- Exponent [7.3.20](#section-7-3-20)
+- Exponentiation [8.4.6](#section-8-4-6)
+- Expression
+  - Arithmetic [1](#section-1), [8.4.4.2](#section-8-4-4-2)
+  - Boolean [8.5.1.3.2](#section-8-5-1-3-2), [8.5.1.9.2](#section-8-5-1-9-2), [14.8.3](#section-14-8-3), [14.9.4](#section-14-9-4)
+  - Compile-time arithmetic [4.2.16](#section-4-2-16)
+  - Compile-time boolean [4.5](#section-4-5)
+  - Concatenation [8.5.1.6.4](#section-8-5-1-6-4)
+  - Conditional [8.5.1.7](#section-8-5-1-7), [D.19.5.3](#section-d-19-5-3)
+  - Constant conditional [5](#section-5)
+- EXTEND phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - USE statement [14.9.49](#section-14-9-49)
+- Extended calendar date format
+  - Definition [14.9.48](#section-14-9-48)
+- Extended combined date and time format [14.9.49](#section-14-9-49)
+- Extended common time format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Extended common time format with fractional seconds
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Extended common time format with integer seconds
+  - representation
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Extended letters [A.4.6](#section-a-4-6)
+- Extended local time format [14.9.48.4](#section-14-9-48-4)
+- Extended offset time format [14.9.48.4](#section-14-9-48-4)
+- Extended ordinal date format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Extended relational operator [8.4.3.15.4](#section-8-4-3-15-4)
+- Extended UTC time format [14.9.48.4](#section-14-9-48-4)
+- Extended week date format
+  - Definition [14.9.48.4](#section-14-9-48-4)
+- Extension language elements 23
+- Extensions
+  - Nonstandard 23
+  - Standard 23
+- External [8.4.3.9.3](#section-8-4-3-9-3)
+- EXTERNAL clause [13.18.22](#section-13-18-22)
+  - Data description entry [13.16](#section-13-16)
+  - File description entry [13.4.5](#section-13-4-5)
+- External data items [13.18.55](#section-13-18-55)
+- External items [14.8.4](#section-14-8-4)
+- EXTERNAL phrase
+  - File description entry [13.4.5](#section-13-4-5)
+- External repository [8.13](#section-8-13)
+- Externalized names [7.3.13.4](#section-7-3-13-4)
+- External-locale-name [8.3.2.3.7](#section-8-3-2-3-7)
+- Externally provided functionality 24
+### F
+
+- FACTORIAL function [15.36](#section-15-36)
+- FACTORY clause
+  - METHOD-ID paragraph [11.7](#section-11-7)
+- Factory data [9.1.7.3](#section-9-1-7-3), [D.12.5](#section-d-12-5)
+- Factory definition [9.2](#section-9-2)
+- Factory method [8.10](#section-8-10), [D.12.5](#section-d-12-5)
+- Factory object [8.10](#section-8-10), [9.2](#section-9-2), [D.12.5](#section-d-12-5)
+  - Life cycle for [9.1.10](#section-9-1-10)
+- FACTORY paragraph [11.4](#section-11-4)
+- FACTORY phrase [14.6.4](#section-14-6-4)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Factory-definition [9.1.13.8](#section-9-1-13-8)
+- FactoryObject method [16.2.2](#section-16-2-2)
+- FALSE phrase
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
+- FARTHEST-FROM-ZERO [14.9.35.4](#section-14-9-35-4)
+- FARTHEST-FROM-ZERO phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - SET statement [14.9.39](#section-14-9-39)
+- Fatal exception conditions [14.6.13.1.3](#section-14-6-13-1-3)
+- FD entry [12.4.5.1](#section-12-4-5-1)
+- Feature-name [8.3.2.3.8](#section-8-3-2-3-8)
+- FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Figurative constant [7.3.23](#section-7-3-23)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - Symbolic characters in [8](#section-8)
+- File
+  - logical [8.8.4.2.2](#section-8-8-4-2-2)
+  - Physical [8.8.4.2.2](#section-8-8-4-2-2)
+  - Physical aspects [8.4.2.2.3](#section-8-4-2-2-3)
+- File attribute conflict condition [14.9.22.4](#section-14-9-22-4)
+- File attributes [8.8.4.2.5](#section-8-8-4-2-5)
+- File connector [9.1.3](#section-9-1-3)
+  - OPEN statement [14.9.27](#section-14-9-27)
+- File control entry [12.4.5](#section-12-4-5)
+- File description entry [13.4.5](#section-13-4-5)
+- File operations [D.2.3.3](#section-d-2-3-3)
+- File organization [D.2.2](#section-d-2-2)
+- FILE phrase
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- File position indicator [9.1.11](#section-9-1-11)
+- File processing [D.2.3](#section-d-2-3)
+- File section [13.4](#section-13-4)
+- File sharing [D.2.4.2](#section-d-2-4-2)
+- File sharing conflict condition [8.8.4.4.2](#section-8-8-4-4-2), [14.6.2](#section-14-6-2)
+- FILE STATUS clause [12.4.5.8](#section-12-4-5-8)
+- FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- File-name [8.3.2.2.9](#section-8-3-2-2-9)
+  - Scope of [8.3.5](#section-8-3-5)
+- Files [9.1](#section-9-1)
+  - Indexed [9.1.7.4](#section-9-1-7-4)
+  - Relative [9.1.7.3](#section-9-1-7-3)
+  - Sequential [9.1.7.2](#section-9-1-7-2)
+- FILLER clause [13.17](#section-13-17), [13.18.41.4](#section-13-18-41-4)
+- FILLER phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- FINAL phrase
+  - CLASS-ID paragraph [11.3](#section-11-3)
+  - SUM clause [13.18.54](#section-13-18-54)
+  - TYPE clause [13.18.57](#section-13-18-57)
+- FINALLY [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
+- FIRST DETAIL phrase
+  - PAGE clause [13.18.39](#section-13-18-39)
+- FIRST phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - START statement [14.9.41](#section-14-9-41)
+- Fixed file attributes [9.1.6](#section-9-1-6)
+- Fixed indicators [6.2.2](#section-6-2-2)
+- Fixed insertion editing [13.18.35.4](#section-13-18-35-4)
+- Fixed-capacity table
+  - Comparing to dynamic-capacity table [13.18.62.4](#section-13-18-62-4)
+- Fixed-capacity tables
+  - Definition 156
+- Fixed-length data item
+  - Definition [8.4.3.2.4](#section-8-4-3-2-4)
+- Fixed-length group
+  - Definition [8.4.3.2.4](#section-8-4-3-2-4)
+- Fixed-length records [D.2.2.5.1](#section-d-2-2-5-1)
+- Fixed-point numeric data item
+  - Definition [13.18.33.4](#section-13-18-33-4)
+- Fixed-point numeric literal [7.3.19](#section-7-3-19)
+- Fixed-point numeric-edited data item
+  - Definition [13.18.33.4](#section-13-18-33-4)
+- FLAG-02 directive [7.3.14](#section-7-3-14)
+- FLAG-14 deirective [7](#section-7)
+- FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
+- Flagging and warning mechanisms
+  - Archaic language elements [4.2.12](#section-4-2-12)
+- FLAG-02 directive [7.3.14](#section-7-3-14)
+  - Nonstandard extensions [4.2.10](#section-4-2-10)
+  - Obsolete language elements [4.2.13](#section-4-2-13)
+  - Processor-dependent elements 22
+  - Prototype versus repository [8.8.4](#section-8-8-4)
+  - Syntax violations 21
+- FLAG-NATIVE-ARITHMETIC directive [7.2.2](#section-7-2-2)
+- FLOAT-BINARY clause [11.9.8](#section-11-9-8)
+- FLOAT-BINARY-128
+  - Definition [13.18.49](#section-13-18-49)
+- FLOAT-BINARY-128 phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-BINARY-32
+  - Definition [13.18.48](#section-13-18-48)
+- FLOAT-BINARY-32 phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-BINARY-64
+  - Definition [13.18.49](#section-13-18-49)
+- FLOAT-BINARY-64 phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+- FLOAT-DECIMAL-16
+  - Definition [13.18.49](#section-13-18-49)
+- FLOAT-DECIMAL-16 phrase
+  - USAGE clause
+  - FLOAT-DECIMAL-34 phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-DECIMAL-34
+  - Definition [13.18.49](#section-13-18-49)
+- FLOAT-EXTENDED phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-INFINITY phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - SET statement [14.9.39](#section-14-9-39)
+- Floating indicators [6.2.3](#section-6-2-3)
+- Floating-point numeric data item
+  - Definition [13.18.62](#section-13-18-62)
+- Floating-point numeric literal [7.3.19](#section-7-3-19)
+- Floating-point numeric-edited data item
+  - Definition [13.18.33.4](#section-13-18-33-4)
+- FLOAT-LONG phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FLOAT-NOT-A-NUMBER phrase
+  - SET statement [14.9.39](#section-14-9-39)
+- FLOAT-NOT-A-NUMBER-QUIET phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+- FLOAT-NOT-A-NUMBER-SIGNALING phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - SET statement [14.9.39](#section-14-9-39)
+- FLOAT-SHORT phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- FOOTING phrase
+  - PAGE clause [13.18.39](#section-13-18-39)
+- FOR phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- FOR REMOVAL phrase
+  - CLOSE statement [14.9.6](#section-14-9-6)
+- FOREGROUND-COLOR clause [13.18.23](#section-13-18-23)
+- FOREVER phrase
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETRY phrase [14.7.9](#section-14-7-9)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- Formal parameter [13.18.57.4](#section-13-18-57-4), [14.6.2.3.2](#section-14-6-2-3-2)
+- FORMAT clause [13.18.24](#section-13-18-24)
+- File description entry [13.4.5](#section-13-4-5)
+- FORMAT phrase
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- Format validation [D.22.2](#section-d-22-2)
+  - PICTURE clause [13.18.40](#section-13-18-40)
+- FORMATTED-CURRENT-DATE function [15.38](#section-15-38)
+- FORMATTED-DATE function [15.39](#section-15-39)
+- FORMATTED-DATETIME function [15.40](#section-15-40)
+- FORMATTED-TIME function [15.41](#section-15-41)
+- Forms of arithmetic
+  - Concepts [D.10](#section-d-10)
+- frac_digits [7.3.13](#section-7-3-13)
+- FRACTION-PART function [15.42](#section-15-42)
+- FREE statement [14.9.15](#section-14-9-15)
+- Free-form reference format [6.4](#section-6-4)
+- FROM clause [13.18.25](#section-13-18-25)
+- FROM phrase [14.6.12](#section-14-6-12)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - Constant entry [13.10](#section-13-10)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - RELEASE statement [14.9.32](#section-14-9-32)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+  - VARYING clause [13.18.64](#section-13-18-64)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- FULL clause [13.18.26](#section-13-18-26)
+- Function activation
+  - Failure [14.6.2.3.2](#section-14-6-2-3-2)
+- Function keys [9.2.2](#section-9-2-2)
+- FUNCTION phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Function summary [14.9.49.4](#section-14-9-49-4)
+- Function-definition [9.1.13.7](#section-9-1-13-7)
+- FUNCTION-ID paragraph [11.5](#section-11-5)
+- Function-identifier [8.4.3.2](#section-8-4-3-2)
+- Function-pointer
+  - Definition [13.18.51](#section-13-18-51)
+- Function-pointer category [8.5.2.7](#section-8-5-2-7)
+- Function-pointer data item [8.4.3.4](#section-8-4-3-4)
+- FUNCTION-POINTER phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Function-prototype [9.1.13.5](#section-9-1-13-5)
+- Function-prototype-name [8.3.2.2.10](#section-8-3-2-2-10)
+- Functions
+  - Intrinsic [8.8.2](#section-8-8-2), [14.9.46](#section-14-9-46)
+  - User-defined [9.1.10](#section-9-1-10), [11.9.7.4](#section-11-9-7-4)
+### G
+
+- General formats [5.2](#section-5-2)
+- General rules [5.3.3](#section-5-3-3)
+- GENERATE statement [14.9.16](#section-14-9-16)
+- GIVING phrase
+  - ADD statement [14.9.2](#section-14-9-2)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SORT statement [14.9.40](#section-14-9-40)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- GLOBAL clause [13.18.27](#section-13-18-27)
+  - Constant entry [13.10](#section-13-10)
+  - File description entry [13.4.5](#section-13-4-5)
+  - Report description entry [13.8.4](#section-13-8-4)
+- Global names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
+- GLOBAL phrase [14.9.8.4](#section-14-9-8-4)
+  - USE statement [14.9.49](#section-14-9-49)
+- GO TO statement [14.9.17](#section-14-9-17)
+- GOBACK statement [14.9.18](#section-14-9-18)
+- Group
+  - Strongly-typed [8.4.3.6](#section-8-4-3-6)
+- Group items [14.8.2.2](#section-14-8-2-2)
+- Group move [14.9.20](#section-14-9-20)
+- Grouping separator
+  - Definition [11.8.1](#section-11-8-1)
+- GROUP-USAGE [13.18.9](#section-13-18-9)
+- GROUP-USAGE clause [13.18.29](#section-13-18-29)
+### H
+
+- HEADING phrase
+  - PAGE clause [13.18.39](#section-13-18-39)
+- HIGHEST-ALGEBRAIC function [15.43](#section-15-43)
+- HIGHLIGHT clause [13.18.30](#section-13-18-30)
+- HIGHLIGHT phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- HIGH-ORDER-LEFT phrase
+  - FLOAT-BINARY clause [11.9.8](#section-11-9-8)
+  - FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- HIGH-ORDER-RIGHT phrase
+  - FLOAT-BINARY clause [11.9.8](#section-11-9-8)
+  - FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- HIGH-VALUE/HIGH-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
+- Hours subfield [14.9.48.4](#section-14-9-48-4)
+### I
+
+- Identification division [11](#section-11)
+- Identifier
+  - Data-name [8.3.2.2.6](#section-8-3-2-2-6)
+- Identifiers [8.4.3](#section-8-4-3)
+- IF directive [7.3.16](#section-7-3-16)
+- IF statement [14.9.19](#section-14-9-19)
+- IGNORING LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+- IMP directive [4.2.11](#section-4-2-11), [4.2.16](#section-4-2-16)
+- Imperative statement [13.18.60.2](#section-13-18-60-2)
+- Implementation
+  - Nonstandard extensions [4.2.10](#section-4-2-10)
+  - Reserved words [4.2.8](#section-4-2-8)
+  - Standard extensions [4.2.9](#section-4-2-9)
+- Implementor-defined
+  - Language element list [15.83](#section-15-83)
+  - Language elements 22
+  - Native arithmetic [8.8.1.3](#section-8-8-1-3)
+  - Record types [A.4.11](#section-a-4-11)
+- IMPLEMENTS clause [9.2](#section-9-2), [9.3.5.2](#section-9-3-5-2)
+- Implicit attributes [12.3.8.4](#section-12-3-8-4)
+- Implicit reference
+  - Definition [8.3.3.6.4](#section-8-3-3-6-4)
+- Implicit scope terminators [13.18.60.4](#section-13-18-60-4)
+- Implicit transfer of control [13.18.60.4](#section-13-18-60-4)
+- IN phrase
+  - COPY statement [7.2.3](#section-7-2-3)
+  - With identifiers [8.2](#section-8-2)
+  - With qualification [8.1.3.2](#section-8-1-3-2)
+- IN-ARITHMETIC-RANGE [14.9.35.4](#section-14-9-35-4)
+- IN-ARITHMETIC-RANGE phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+- Incompatibility flagging [7](#section-7)
+- Incompatible data [14.6.13.2](#section-14-6-13-2)
+- Index
+  - Definition [13.18.24](#section-13-18-24)
+- Index-name [8.3.2.2.11](#section-8-3-2-2-11)
+- Index category [8.5.2.8](#section-8-5-2-8)
+- Index class [8.4.3.3.4](#section-8-4-3-3-4)
+- Index data item [8.4.3.4](#section-8-4-3-4), [13.18.46](#section-13-18-46)
+- Index functions [14.9.46](#section-14-9-46)
+- INDEX phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- INDEXED BY phrase [8.1.4](#section-8-1-4), [14.9.33.4](#section-14-9-33-4)
+  - OCCURS clause [13.18.38](#section-13-18-38)
+- Indexed files
+  - Definition [8.8.4.2.8](#section-8-8-4-2-8)
+- Indexed organization [D.2.2.3](#section-d-2-2-3)
+- INDEXED phrase [14.9.29](#section-14-9-29)
+  - ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+- Index-name [8.3.2.2.11](#section-8-3-2-2-11)
+  - Scope of [8.3.5](#section-8-3-5), [8.4.2.1](#section-8-4-2-1)
+- Indicator area [6.3.3](#section-6-3-3)
+- Indicators [6.2](#section-6-2)
+  - Comment [3](#section-3)
+  - Compiler directive [3](#section-3)
+  - Continuation [3](#section-3)
+  - Fixed [3](#section-3)
+  - Floating [3](#section-3)
+  - Literal continuation [3](#section-3)
+  - Source [3](#section-3)
+- Inheritance
+  - Conforming [9.1.8.2](#section-9-1-8-2)
+- INHERITS clause
+  - CLASS-ID paragraph [11.3](#section-11-3)
+- INTERFACE-ID paragraph [11.6](#section-11-6)
+- INITIAL clause
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+- Initial data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3), [13.18.60.4](#section-13-18-60-4)
+- Initial items [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
+- Initial program [8.4.3.11.2](#section-8-4-3-11-2)
+- initial program
+  - Definition [9.3.9](#section-9-3-9)
+- Initial state [14.6.2.3.2](#section-14-6-2-3-2)
+  - CANCEL statement [14.9.5](#section-14-9-5)
+- INITIALIZE [9.3.7](#section-9-3-7)
+- INITIALIZE clause [11.9.10](#section-11-9-10)
+- INITIALIZE statement [14.9.20](#section-14-9-20)
+- INITIALIZED [13.18.22](#section-13-18-22)
+- INITIALIZED phrase
+  - ALLOCATE statement [14.9.3](#section-14-9-3)
+- INITIATE statement [14.9.21](#section-14-9-21)
+- Inline comment [3](#section-3)
+- Inline method invocation [8.4.3.4](#section-8-4-3-4)
+- Input distribution [D.22.3](#section-d-22-3)
+- INPUT phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - USE statement [14.9.49](#section-14-9-49)
+- INPUT PROCEDURE phrase
+  - SORT statement [14.9.40](#section-14-9-40)
+- Input-output section [12.4](#section-12-4)
+- Insertion character [13.18.35.4](#section-13-18-35-4)
+- INSPECT statement [14.9.22](#section-14-9-22)
+- INSPECT statement examples [D.19.5.4.3](#section-d-19-5-4-3)
+- Instance data [9.1.7.3](#section-9-1-7-3)
+- Instance method [D.11.4](#section-d-11-4)
+- Instance object [8.10](#section-8-10), [9.3.5.2](#section-9-3-5-2), [D.11.4](#section-d-11-4)
+  - Life cycle for [9.1.10](#section-9-1-10)
+- instance-definition [9.1.13.8](#section-9-1-13-8)
+- int_curr_symbol [7.3.12.4](#section-7-3-12-4)
+- int_frac_digits [7.3.13](#section-7-3-13)
+- Integer
+  - In general formats and rules [1](#section-1)
+- Integer date form [15.5.2](#section-15-5-2)
+- INTEGER function [15.44](#section-15-44)
+- Integer functions [14.9.46](#section-14-9-46)
+- Integer literal [7.3.19](#section-7-3-19)
+- Integer-n 28
+- INTEGER-OF-BOOLEAN function [15.45](#section-15-45)
+- INTEGER-OF-DATE function [15.46](#section-15-46)
+- INTEGER-OF-DAY function [15.47](#section-15-47)
+- INTEGER-OF-FORMATTED-DATE function [15.48](#section-15-48)
+- INTEGER-PART function [15.49](#section-15-49)
+- Interface
+  - Parameterized [9.1.10](#section-9-1-10)
+- Interface-definition [9.1.13.9](#section-9-1-13-9)
+- INTERFACE-ID paragraph [11.6](#section-11-6)
+- Interface-name [8.3.2.2.12](#section-8-3-2-2-12)
+  - Scope of [8.4.2.1](#section-8-4-2-1)
+- Interfaces [9.3.8.2.2](#section-9-3-8-2-2)
+- INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+- Internal items [8.4.3.9.3](#section-8-4-3-9-3)
+- International date and time [D.20.6](#section-d-20-6)
+- INTO phrase
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETURN statement [14.9.34](#section-14-9-34)
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- Intrinsic function summary [14.9.49.4](#section-14-9-49-4)
+- Intrinsic functions [15](#section-15)
+- Intrinsic-function-name [7.3.17](#section-7-3-17)
+- INVALID clause [13.18.31](#section-13-18-31)
+- INVALID KEY [8.8.4.2.13](#section-8-8-4-2-13)
+- Invalid key condition [9.1.14](#section-9-1-14)
+  - Definition [14.2.3](#section-14-2-3)
+- INVALID KEY phrase [8.8.4.8.4](#section-8-8-4-8-4)
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - START statement [14.9.41](#section-14-9-41)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- INVALID phrase
+  - VALUE clause [13.18.63](#section-13-18-63)
+- Invocation operator [8.7.4](#section-8-7-4)
+- INVOKE statement [14.9.23](#section-14-9-23)
+- I-O phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - USE statement [14.9.49](#section-14-9-49)
+- I-O status [9.1.13](#section-9-1-13)
+- I-O-CONTROL paragraph [12.4.6](#section-12-4-6)
+- IO-STATUS-07 option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- ISO [8.5.3.1](#section-8-5-3-1)
+- ISO 8601 [D.22.8.2](#section-d-22-8-2)
+- ISO 8601-1 2, [14.9.47.4](#section-14-9-47-4), [14.9.48.4](#section-14-9-48-4), [14.9.49.2](#section-14-9-49-2), [D.20.5.2](#section-d-20-5-2)
+- ISO/IEC 1001 2, [12.3.7.4](#section-12-3-7-4)
+- ISO/IEC 10646 2, 12, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [8.4.2.3.2](#section-8-4-2-3-2), [11.6.4](#section-11-6-4), [A.2](#section-a-2), [D.6.1.1](#section-d-6-1-1), [D.22.8.3](#section-d-22-8-3)
+- ISO/IEC 14651 2, [11.8.4](#section-11-8-4), [15.60.4](#section-15-60-4), [15.85.4](#section-15-85-4), [16.2.1.1](#section-16-2-1-1), [16.2.2.2](#section-16-2-2-2), [D.6.4.3](#section-d-6-4-3)
+- ISO/IEC 1989 [E.2](#section-e-2)
+- ISO/IEC 1989:2002 [6.5](#section-6-5)
+- ISO/IEC 60559 2, [8.4.6.1](#section-8-4-6-1), [8.4.6.2.1](#section-8-4-6-2-1), [8.4.6.2.6](#section-8-4-6-2-6), [8.4.6.5](#section-8-4-6-5), [8.4.6.11](#section-8-4-6-11), [8.5.1.3.1](#section-8-5-1-3-1), [8.5.3.1](#section-8-5-3-1), [8.6.4](#section-8-6-4), [13.18.47.3](#section-13-18-47-3), [13.18.48.3](#section-13-18-48-3), [13.18.49.4](#section-13-18-49-4), [13.18.61.4](#section-13-18-61-4), [14.9.35.4](#section-14-9-35-4), [15.93.4](#section-15-93-4), [D.10](#section-d-10), [D.31.3.2](#section-d-31-3-2)
+- ISO/IEC 646 2, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [7.3.17.4](#section-7-3-17-4), [11.5.4](#section-11-5-4), [D.6.1.1](#section-d-6-1-1), [D.6.3.2](#section-d-6-3-2), [D.6.3.6](#section-d-6-3-6)
+- ISO/IEC 9945 2, [7.3.11.4](#section-7-3-11-4)
+- Item identification [14.6.4](#section-14-6-4)
+### J
+
+- Julian date form [15.5.4](#section-15-5-4)
+- JUSTIFIED clause [13.18.32](#section-13-18-32)
+  - Data description entry [13.16](#section-13-16)
+### K
+
+- Key of reference [14.9.38.4](#section-14-9-38-4)
+- KEY phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - START statement [14.9.41](#section-14-9-41)
+- Keywords [5.2.2](#section-5-2-2)
+- Known errors in the standard [D.32](#section-d-32)
+### L
+
+- LAST DETAIL phrase
+  - PAGE clause [13.18.39](#section-13-18-39)
+- LAST EXCEPTION phrase [14.9.7](#section-14-9-7)
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Last exception status [D.8.2](#section-d-8-2)
+  - Definition [13.18.63.3](#section-13-18-63-3)
+- LAST phrase
+  - START statement [14.9.41](#section-14-9-41)
+- Last-used state [14.6.2.3.3](#section-14-6-2-3-3)
+- LC_ALL [7.3.12.2](#section-7-3-12-2)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_COLLATE [7.3.12](#section-7-3-12), [7.3.25.4](#section-7-3-25-4), [13.18.60.4](#section-13-18-60-4)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_CTYPE [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4), [15.31.3](#section-15-31-3), [15.74](#section-15-74)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_MESSAGES [7.3.12](#section-7-3-12)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_MONETARY [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_NUMERIC [7.3.12](#section-7-3-12)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LC_TIME [7.3.12.1](#section-7-3-12-1), [13.18.61](#section-13-18-61)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+- LEADING phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - SIGN clause [13.18.52](#section-13-18-52)
+- LEAP-SECOND directive [7.3.17](#section-7-3-17)
+- LEFT phrase
+  - SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+- LENGTH function [15.50](#section-15-50)
+- LENGTH phrase
+  - Constant entry [13.10](#section-13-10)
+  - START statement [14.9.41](#section-14-9-41)
+- Letter mapping [A.2](#section-a-2)
+- Level-number [8.3.2.2.13](#section-8-3-2-2-13)
+  - Data description entry [13.16](#section-13-16)
+  - Screen description entry [13.17](#section-13-17)
+- Levels [8.5.1.3](#section-8-5-1-3)
+- Lexical elements [8.3](#section-8-3)
+- Library text [3](#section-3)
+- Library-name [8.3.2.3.9](#section-8-3-2-3-9)
+- Life cycle
+  - Data [8.4.3.9.1](#section-8-4-3-9-1)
+  - Object [9.1.10](#section-9-1-10)
+- LIMIT phrase
+  - DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+- LINAGE clause [13.18.34](#section-13-18-34)
+  - File description entry [13.4.5](#section-13-4-5)
+- Linage concepts [D.2.3.2.8](#section-d-2-3-2-8)
+- LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
+  - Qualified [8.1.3.2](#section-8-1-3-2)
+- Line
+  - Comment [3](#section-3)
+  - Continuation [3](#section-3)
+  - Floating indicator [3](#section-3)
+  - Slant (/) comment line [3](#section-3)
+  - Source text [3](#section-3)
+- LINE (LINES) phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- LINE clause [13.18.35](#section-13-18-35)
+- LINE NUMBER phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+- line sequential files
+  - Definition [8.8.4.2.5](#section-8-8-4-2-5)
+- LINE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11), [13.18.16](#section-13-18-16)
+  - Qualified [8.1.3.2](#section-8-1-3-2)
+- LINES AT BOTTOM phrase
+  - LINAGE clause [13.18.34](#section-13-18-34)
+- LINES AT clause
+  - File description entry [13.4.5](#section-13-4-5)
+- LINES AT TOP phrase
+  - LINAGE clause [13.18.34](#section-13-18-34)
+- Linkage section [13.7](#section-13-7)
+- LISTING [6.2.3.2](#section-6-2-3-2)
+- LISTING directive [7.3.18](#section-7-3-18)
+- Literal continuation indicator [3](#section-3)
+- Literal delimiter
+  - Separator [8.1.2](#section-8-1-2)
+- Literal-phrase
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Literals
+  - Alphanumeric [7.3.17.4](#section-7-3-17-4)
+  - Boolean [7.3.20](#section-7-3-20)
+  - National [7.3.21](#section-7-3-21)
+  - Numeric [7.3.19](#section-7-3-19)
+- little-endian [13.18.49.4](#section-13-18-49-4)
+- Local names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
+- Local time format [14.9.48.4](#section-14-9-48-4)
+- Locale [7.3.12](#section-7-3-12)
+  - Category names [7.3.12](#section-7-3-12)
+  - Field names [7.3.12](#section-7-3-12), [7.3.12.4](#section-7-3-12-4)
+- LOCALE argument [15.65](#section-15-65)
+- LOCALE clause [8.4.3.7](#section-8-4-3-7)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Locale identification [14.6.6](#section-14-6-6)
+- LOCALE phrase [8.4.3.7](#section-8-4-3-7), [13.18.60.4](#section-13-18-60-4)
+  - PICTURE clause [13.18.40](#section-13-18-40)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- LOCALE-COMPARE function [15.51](#section-15-51)
+- LOCALE-DATE function [15.52](#section-15-52)
+- Locale-name [8.3.2.2.14](#section-8-3-2-2-14)
+  - Definition [7.3.15](#section-7-3-15)
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+  - SET statement, locale [14.9.30.4](#section-14-9-30-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Locale-names [10.6.2](#section-10-6-2)
+- LOCALE-TIME function [15.53](#section-15-53)
+- LOCALE-TIME-FROM-SECONDS function [15.54](#section-15-54)
+- Local-storage section [13.6](#section-13-6)
+- LOCATION [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
+- LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- LOCK ON MULTIPLE clause
+- LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
+- LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- LOG function [15.55](#section-15-55)
+- LOG10 function [15.56](#section-15-56)
+- Logical file [8.8.4.2.2](#section-8-8-4-2-2)
+- Logical operators [8.7.6](#section-8-7-6)
+  - In complex conditions [8.6.5](#section-8-6-5)
+- Logical record [13.8](#section-13-8), [A.4.8](#section-a-4-8)
+- Logical unit of work
+  - Definition [8.8.4.12](#section-8-8-4-12)
+- LOWER-CASE function [15.57](#section-15-57)
+- Lowercase letters [7.3.10](#section-7-3-10)
+- LOWEST-ALGEBRAIC function [15.58](#section-15-58)
+- LOWLIGHT clause [13.18.36](#section-13-18-36)
+- LOWLIGHT phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- LOW-VALUE/LOW-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
+### M
+
+- MANUAL phrase
+  - LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
+- Mapping letters [A.2](#section-a-2)
+- Matching
+  - Definition [8.4.3.3](#section-8-4-3-3)
+  - Variable-length groups [8.5.1.12](#section-8-5-1-12)
+- MAX function [15.59](#section-15-59)
+- Maximum capacity
+  - Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
+- Maximum capacity of a dynamic table
+  - Definition 156
+- MEAN function [15.60](#section-15-60)
+- MEDIAN function [15.61](#section-15-61)
+- Merge file [9.1.20](#section-9-1-20)
+- MERGE statement [14.9.24](#section-14-9-24)
+- Merging [D.2.3.3.3](#section-d-2-3-3-3)
+- message tag [14.9.25.4](#section-14-9-25-4)
+- MESSAGE-TAG [13.18.46](#section-13-18-46)
+- message-tag [14.9.30.4](#section-14-9-30-4)
+- Message-tag category [8.5.2.9](#section-8-5-2-9)
+- Message-tag class [8.4.3.3.4](#section-8-4-3-3-4)
+- Meta-terms [5.2.10](#section-5-2-10)
+- Method [15.81](#section-15-81)
+  - Invocation [8.10](#section-8-10)
+- Method definition [8.10](#section-8-10)
+- Method invocation
+  - Failure [14.6.2.3.2](#section-14-6-2-3-2)
+- Method overloading [8.10](#section-8-10)
+- METHOD phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Method prototypes [9.3.7](#section-9-3-7)
+- Method resolution signature
+  - Definition [8.10](#section-8-10)
+- Method-definition [9.1.13.9](#section-9-1-13-9)
+- METHOD-ID paragraph [11.7](#section-11-7)
+- Method-name [8.3.2.2.15](#section-8-3-2-2-15)
+- METHOD-ID paragraph [11.7](#section-11-7)
+  - Scope of [8.4.2.1](#section-8-4-2-1)
+- Methods [9.3.4](#section-9-3-4)
+- MIDRANGE function [15.62](#section-15-62)
+- MIN function [15.63](#section-15-63)
+- Minutes subfield [14.9.48.4](#section-14-9-48-4)
+- Mnemonic-name [8.3.2.2.16](#section-8-3-2-2-16)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+  - SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- MOD function [15.64](#section-15-64)
+- mon_decimal_point [7.3.12.4](#section-7-3-12-4)
+- mon_grouping [7.3.12.4](#section-7-3-12-4)
+- mon_thousands_sep [7.3.12.4](#section-7-3-12-4)
+- Month subfield [14.9.48](#section-14-9-48)
+- MOVE
+  - Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+- MOVE statement [14.9.25](#section-14-9-25)
+  - CORRESPONDING phrase [14.7.6](#section-14-7-6)
+  - Implicit [14.9.10.4](#section-14-9-10-4)
+- MOVE-TO-SAME-NAME option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- Multilingual support [D.6.5.3.1](#section-d-6-5-3-1)
+- MULTIPLY statement [14.9.26](#section-14-9-26)
+### N
+
+- N PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- n_cs_precedes [7.3.13](#section-7-3-13)
+- Names [D.6.3.2](#section-d-6-3-2)
+- NaN
+  - Definition [8.5.3.1](#section-8-5-3-1)
+- NATIONAL [13.18.9](#section-13-18-9)
+- National category [8.5.2.10](#section-8-5-2-10)
+- National character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+- National class [8.4.3.3.4](#section-8-4-3-3-4)
+- National coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+- National data item [8.4.3.5](#section-8-4-3-5)
+- National functions [14.9.46](#section-14-9-46)
+- National group item [13.18.9](#section-13-18-9)
+- National literal [7.3.21](#section-7-3-21)
+  - Continuation of [3](#section-3)
+- NATIONAL phrase
+  - CODE-SET clause [13.18.13](#section-13-18-13)
+  - COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - SORT statement [14.9.40](#section-14-9-40)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- National-edited category [8.5.2.11](#section-8-5-2-11)
+- National-edited data item [8.4.3.5](#section-8-4-3-5)
+- NATIONAL-EDITED phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- NATIONAL-OF function [15.66](#section-15-66)
+- Native arithmetic [8.8.1.3](#section-8-8-1-3)
+- NATIVE phrase [9.3.6](#section-9-3-6)
+  - ARITHMETIC clause [11.9.5](#section-11-9-5)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Natural language text [2](#section-2)
+- Natural logarithm [15.6](#section-15-6), [15.30.3](#section-15-30-3)
+- NEAREST EVEN phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+- NEAREST-AWAY-FROM-ZERO phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- NEAREST-EVEN phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- NEAREST-TOWARD-ZERO phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- NEAREST-TO-ZERO [14.9.35.4](#section-14-9-35-4)
+- NEAREST-TO-ZERO phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - SET statement [14.9.39](#section-14-9-39)
+- Negated conditions [8.6.5](#section-8-6-5)
+- negative_sign [7.3.13](#section-7-3-13)
+- NESTED phrase [14.6.13.3](#section-14-6-13-3)
+- Nested statement [13.18.60.4](#section-13-18-60-4)
+- New method [16.2.1](#section-16-2-1)
+- Next executable statement [13.18.60.4](#section-13-18-60-4)
+- NEXT GROUP clause [13.18.37](#section-13-18-37)
+- NEXT PAGE phrase [13.18.15](#section-13-18-15)
+- NEXT GROUP clause [13.18.37](#section-13-18-37)
+- NEXT phrase
+  - READ statement [14.9.30](#section-14-9-30)
+- NEXT RECORD phrase
+  - READ statement [14.9.30](#section-14-9-30)
+- NEXT SENTENCE phrase
+  - IF statement [14.9.19](#section-14-9-19)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- NEXT STATEMENT phrase
+  - RESUME statement [14.9.33](#section-14-9-33)
+- NO ADVANCING phrase
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+- NO LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- NO OTHER phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - SHARING clause [12.4.5.15](#section-12-4-5-15)
+- NO REWIND phrase
+  - CLOSE statement [14.9.6](#section-14-9-6)
+  - OPEN statement [14.9.27](#section-14-9-27)
+- Noncontiguous data items [8.4.2.3](#section-8-4-2-3)
+- Noncontiguous elementary items [12.4.5.10](#section-12-4-5-10)
+- Nonfatal exception conditions [14.6.13.1.4](#section-14-6-13-1-4)
+- Nonstandard extension flagging 23
+- NORMAL phrase
+  - STOP statement [14.9.42](#section-14-9-42)
+- Normal run unit termination [14.6.11](#section-14-6-11)
+- NOT AT END phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETURN statement [14.9.34](#section-14-9-34)
+- NOT AT END-OF-PAGE phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- NOT AT EOP phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- NOT INVALID KEY phrase
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - START statement [14.9.41](#section-14-9-41)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- NOT ON EXCEPTION phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - CALL statement [14.9.4](#section-14-9-4)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+  - RECEIVE statement [14.9.31](#section-14-9-31)
+  - SEND statement [14.9.38](#section-14-9-38)
+- NOT ON OVERFLOW phrase
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- NOT ON SIZE ERROR phrase
+  - ADD statement [14.9.2](#section-14-9-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- NOT operator
+  - In complex conditions [8.6.5](#section-8-6-5)
+  - In negated conditions [8.6.5](#section-8-6-5)
+- NOT phrase
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+- NOT SIZE ERROR phrase [14.5.1](#section-14-5-1)
+- NULL
+  - Predefined object [8.3.2.4.3](#section-8-3-2-4-3)
+  - Predefined-address [8.3.3.3](#section-8-3-3-3)
+- NULL phrase
+  - SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+- NULL predefined address [14.9.6](#section-14-9-6)
+  - ALLOCATE statement [14.9.3](#section-14-9-3)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- NULL predefined object reference
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Numeric category [8.5.2.12](#section-8-5-2-12)
+- Numeric character 16
+- Numeric class [8.4.3.3.4](#section-8-4-3-3-4)
+- Numeric comparison [8.5.1.10](#section-8-5-1-10)
+- Numeric data item [8.4.3.5](#section-8-4-3-5)
+- Numeric functions [14.9.46](#section-14-9-46)
+- Numeric literal [7.3.19](#section-7-3-19)
+  - Fixed-point [7.3.19](#section-7-3-19)
+  - Floating-point [7.3.19](#section-7-3-19)
+- NUMERIC phrase
+  - CLASS clause [13.18.11](#section-13-18-11)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- NUMERIC-EDITED
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Numeric-edited category [8.5.2.13](#section-8-5-2-13)
+  - Category of data
+- Numeric-edited [8.4.3.3.4](#section-8-4-3-3-4)
+- Numeric-edited data item [8.4.3.6](#section-8-4-3-6)
+- NUMVAL function [15.67](#section-15-67)
+- NUMVAL-C function [15.68](#section-15-68)
+- NUMVAL-F function [15.69](#section-15-69)
+### O
+
+- OBJECT [14.9.39.4](#section-14-9-39-4)
+- Object
+  - Instance [9.1.10](#section-9-1-10)
+  - Interface [8.13](#section-8-13)
+  - Life cycle of [9.1.10](#section-9-1-10)
+- OBJECT paragraph [11.8](#section-11-8)
+- Object class [8.4.3.3.4](#section-8-4-3-3-4)
+- Object data item [D.12.3](#section-d-12-3)
+- Object orientation [9.1.18.6](#section-9-1-18-6)
+  - Class [8.10](#section-8-10)
+  - Class-name [8.3.2.2.2](#section-8-3-2-2-2)
+- object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
+- Object oriented concepts [D.19](#section-d-19)
+- OBJECT paragraph [11.8](#section-11-8)
+- Object properties [8.3.3.2](#section-8-3-3-2), [9.2.7](#section-9-2-7)
+- Object references [9.3.2](#section-9-3-2)
+  - Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
+- Object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
+  - Scope of [8.4.2.1](#section-8-4-2-1)
+- OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+- Object-reference category [8.5.2.14](#section-8-5-2-14)
+- Object-reference data item [8.4.3.6](#section-8-4-3-6)
+- OBJECT-REFERENCE phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- Objects and classes [9.3.1](#section-9-3-1)
+- Object-view [8.4.3.5](#section-8-4-3-5)
+- Obsolete language element flagging 24
+  - Obsolete language elements [4.2.13](#section-4-2-13)
+  - ARITHMETIC IS STANDARD [D.32](#section-d-32)
+- OCCURS ... DEPENDING clause [6.5](#section-6-5)
+- OCCURS clause [13.18.38](#section-13-18-38),
+  - [14.9.29](#section-14-9-29), [14.9.35.4](#section-14-9-35-4), [14.9.40.4](#section-14-9-40-4)
+- Occurs-depending group item
+  - Definition [13.18.24.4](#section-13-18-24-4)
+- Occurs-depending tables
+  - Definition 156
+  - OF phrase
+  - COPY statement [7.2.3](#section-7-2-3)
+  - With identifiers [8.2](#section-8-2)
+  - With qualification [8.1.3.2](#section-8-1-3-2)
+- OFF phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+  - SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Offset subformat [14.9.48.4](#section-14-9-48-4)
+- Offset time format [14.9.48.4](#section-14-9-48-4)
+- Offset-hours subfield [14.9.48.4](#section-14-9-48-4)
+- Offset-minutes subfield [14.9.48.4](#section-14-9-48-4)
+- OMITTED phrase [8.3.2.2](#section-8-3-2-2), [14.9.13.4](#section-14-9-13-4)
+  - CALL statement [14.9.4](#section-14-9-4)
+- Omitted-argument condition [8.6.4](#section-8-6-4)
+- ON EXCEPTION [8.8.4.2.13](#section-8-8-4-2-13)
+- ON EXCEPTION phrase [14.7.5](#section-14-7-5), [14.9.26](#section-14-9-26)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+  - CALL statement [14.9.4](#section-14-9-4)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+  - SEND statement [14.9.38](#section-14-9-38)
+- ON OVERFLOW phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- ON phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+  - SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- ON SIZE ERROR phrase [14.2.3](#section-14-2-3)
+  - ADD statement [14.9.2](#section-14-9-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- ONLY phrase [14.6.4](#section-14-6-4)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Open mode [9.1.4](#section-9-1-4)
+- OPEN statement [14.9.27](#section-14-9-27)
+- Opening delimiter [8.1.2](#section-8-1-2)
+- Operands [5.2.4](#section-5-2-4)
+- Operational sign [8.4.2.3.3](#section-8-4-2-3-3)
+- Operators
+  - Arithmetic [8.4.3.13.2](#section-8-4-3-13-2)
+  - Boolean [8.4.3.13.2](#section-8-4-3-13-2)
+  - Concatenation [8.4.3.14.2](#section-8-4-3-14-2)
+  - Invocation [8.4.3.14.2](#section-8-4-3-14-2)
+  - Logical [8.4.3.15.4](#section-8-4-3-15-4)
+  - Relational [8.4.3.14.2](#section-8-4-3-14-2)
+- OPTIONAL phrase
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
+- Optional words [5.2.3](#section-5-2-3)
+- OPTIONS paragraph [11.9](#section-11-9)
+- OR operator
+  - In combined conditions [8.6.7](#section-8-6-7)
+  - In complex conditions [8.6.5](#section-8-6-5)
+- OR PAGE phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- OR phrase
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- ORD function [15.70](#section-15-70)
+- ORDER keyword
+  - SORT statement [14.9.40](#section-14-9-40)
+- Order of evaluation of conditions [8.8.4.13](#section-8-8-4-13)
+- ORDER TABLE [10.6.3](#section-10-6-3), [15.61](#section-15-61)
+- Ordering table [15.61](#section-15-61)
+- Ordering-name [8.3.2.2.18](#section-8-3-2-2-18)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+- Ordinal date format [14.9.48](#section-14-9-48)
+- ORD-MAX function [15.71](#section-15-71)
+- ORD-MIN function [15.72](#section-15-72)
+- Organization [9.1.7](#section-9-1-7)
+  - Indexed [9.1.7.4](#section-9-1-7-4)
+  - Relative [9.1.7.3](#section-9-1-7-3)
+  - Sequential [9.1.7.2](#section-9-1-7-2)
+- ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- OTHER phrase
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - SELECT WHEN clause [13.18.51](#section-13-18-51)
+- Out-of-line PERFORM statement [14.9.23.3](#section-14-9-23-3)
+- OUTPUT phrase
+- OPEN statement [14.9.27](#section-14-9-27)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - USE statement [14.9.49](#section-14-9-49)
+- OUTPUT PROCEDURE phrase
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - SORT statement [14.9.40](#section-14-9-40)
+- OVERFLOW phrase
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- Overlapping operands [14.6.10](#section-14-6-10)
+  - STRING statement [14.9.43](#section-14-9-43)
+- OVERRIDE clause
+  - METHOD-ID paragraph [11.7](#section-11-7)
+### P
+
+- P PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- p_cs_precedes [7.3.13](#section-7-3-13)
+- PACKED-DECIMAL phrase
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Page advance [14.9.6.4](#section-14-9-6-4)
+- PAGE clause [13.18.39](#section-13-18-39)
+- PAGE directive [7.3.19](#section-7-3-19)
+- Page fit processing [14.9.6.4](#section-14-9-6-4)
+- PAGE FOOTING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- PAGE HEADING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- PAGE LIMIT clause
+  - Report description entry [13.8.4](#section-13-8-4)
+- PAGE phrase
+  - WRITE statement [14.9.51](#section-14-9-51)
+- PAGE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11)
+  - Qualified [8.1.3.2](#section-8-1-3-2)
+- Paragraph header [9.1.18](#section-9-1-18)
+- PARAGRAPH phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Paragraph-name [8.3.2.2.19](#section-8-3-2-2-19)
+  - Qualified [8.1.3.2](#section-8-1-3-2)
+- Paragraphs [14.4.3](#section-14-4-3)
+- PARAMETER phrase [6.2.2](#section-6-2-2)
+- Parameterized classes [9.3.12](#section-9-3-12)
+- Parameterized interfaces [9.3.13](#section-9-3-13)
+- Parameter-name [8.3.2.2.20](#section-8-3-2-2-20)
+  - CLASS-ID paragraph [11.3](#section-11-3)
+- Parametric polymorphism [9.3.5.3](#section-9-3-5-3)
+- Parentheses
+  - Function-identifier [8.4.3.2](#section-8-4-3-2)
+  - In arithmetic expressions [8.4.4.2](#section-8-4-4-2)
+  - Separator [8](#section-8)
+- Parenthesis
+  - In Boolean expression [8.5.1.3.2](#section-8-5-1-3-2)
+  - In logical conditions [8.6.7](#section-8-6-7)
+- PERFORM phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- PERFORM statemen
+  - Exception-checkingt [14.9.27.4](#section-14-9-27-4)
+- PERFORM statement [14.9.28](#section-14-9-28)
+  - Exception checking [14.9.40.3](#section-14-9-40-3)
+  - Exception-checking [14.8.4.3](#section-14-8-4-3), [14.9.2](#section-14-9-2), [14.9.4.4](#section-14-9-4-4), [14.9.10.4](#section-14-9-10-4), [14.9.15](#section-14-9-15), [14.9.22.4](#section-14-9-22-4), [14.9.23.3](#section-14-9-23-3), [14.9.24.4](#section-14-9-24-4)
+  - infinite loop [14.9.23.4](#section-14-9-23-4)
+- PERFORM statement examples [D.19.10](#section-d-19-10)
+- Period
+  - Separator 30, [8](#section-8)
+- PF phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- PH phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- PHYSICAL [14.9.51.4](#section-14-9-51-4), [15.28](#section-15-28)
+- Physical file [8.8.4.2.2](#section-8-8-4-2-2)
+- Physical record [13.8](#section-13-8)
+- Physical-structure-name [8.3.2.3.10](#section-8-3-2-3-10)
+- PI function [15.73](#section-15-73)
+- Picture character-string [8](#section-8), [14.9.39](#section-14-9-39)
+- PICTURE clause [13.18.40](#section-13-18-40)
+  - Data description entry [13.16](#section-13-16)
+  - Precedence rules [13.18.40.6](#section-13-18-40-6)
+- PICTURE SYMBOL phrase
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Pointer [14.7.2](#section-14-7-2)
+  - Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
+- Pointer class [8.4.3.3.4](#section-8-4-3-3-4)
+- POINTER phrase
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Polymorphism [9.3.5](#section-9-3-5)
+  - Class [8.10](#section-8-10)
+  - Parametric [8.10](#section-8-10)
+- POP directive [7.3.20](#section-7-3-20)
+- positive_sign [7.3.12.4](#section-7-3-12-4)
+- Precedence of logical operators [8.6.7](#section-8-6-7)
+- Predefined object reference [14.9.40.4](#section-14-9-40-4)
+- Predefined-address [8.3.3.3](#section-8-3-3-3)
+- PREFIXED phrase
+  - DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+- PRESENT WHEN clause [13.18.41](#section-13-18-41)
+- PRESENT-VALUE function [15.74](#section-15-74)
+- Prime record key [12.3.7.4](#section-12-3-7-4)
+- PRINTING phrase
+  - SUPPRESS statement [14.9.45](#section-14-9-45)
+- Procedure division [14](#section-14)
+  - Declarative portion [13.18.60](#section-13-18-60)
+  - Nondeclarative portion [13.18.60](#section-13-18-60)
+- PROCEDURE DIVISION header [13.18.57.4](#section-13-18-57-4)
+- Procedure-name [13.18.60](#section-13-18-60)
+- Procedures [14.4](#section-14-4)
+- Processor-dependent element flagging 22
+- Processor-dependent language elements [4.2.6](#section-4-2-6)
+  - List of [15.100](#section-15-100)
+- PROGRAM COLLATING SEQUENCE clause
+  - OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+- PROGRAM phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Program prototype
+  - CALL statement [14.9.4](#section-14-9-4)
+  - CANCEL statement [14.9.5](#section-14-9-5)
+- Program-address-identifier [8.4.3.13](#section-8-4-3-13)
+- Program-definition [9.1.13.7](#section-9-1-13-7)
+- PROGRAM-ID paragraph [11.10](#section-11-10)
+- Program-name [8.3.2.2.21](#section-8-3-2-2-21)
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+  - Scope of [8.4.2.1](#section-8-4-2-1)
+- Program-pointer
+  - CANCEL statement [14.9.5](#section-14-9-5)
+  - Definition [13.18.50](#section-13-18-50)
+- Program-pointer category [8.5.2.15](#section-8-5-2-15)
+- Program-pointer data item [8.4.3.6](#section-8-4-3-6)
+- PROGRAM-POINTER phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Program-prototype [9.1.13.5](#section-9-1-13-5)
+- Program-prototype-name [8.3.2.2.22](#section-8-3-2-2-22)
+- PROHIBITED phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- PROPAGATE directive [7.3.21](#section-7-3-21)
+- PROPERTY clause [13.18.42](#section-13-18-42)
+  - METHOD-ID paragraph [11.7](#section-11-7)
+- Property-name [8.3.2.2.23](#section-8-3-2-2-23)
+- PROTOTYPE clause
+  - FUNCTION-ID paragraph [11.5](#section-11-5)
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+- Prototype versus repository flagging [8.8.4](#section-8-8-4)
+- Pseudo-text [7.2.2.4](#section-7-2-2-4)
+- Pseudo-text delimiter [3](#section-3)
+  - Separator [8.1.2](#section-8-1-2)
+- PUSH directive [7.3.22](#section-7-3-22)
+### Q
+
+- Qualification [8.4.2.2](#section-8-4-2-2)
+  - Implicit [8.1.3](#section-8-1-3)
+  - LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
+  - LINE-COUNTER [8.1.3.2](#section-8-1-3-2)
+  - Of condition-names [8.3.3.6.4](#section-8-3-3-6-4)
+  - Of data-names [8.2.2](#section-8-2-2)
+  - Of paragraph-names [8.1.3.2](#section-8-1-3-2)
+  - OF phrase [8.1.3.2](#section-8-1-3-2)
+  - PAGE-COUNTER [8.1.3.2](#section-8-1-3-2)
+  - Subscripting [D.3.5](#section-d-3-5)
+  - Uniqueness of reference [8.4.2](#section-8-4-2)
+- Qualified [8.2.2](#section-8-2-2)
+- Quiet NaN
+  - Definition [8.5.3.1](#section-8-5-3-1)
+- Quotation mark [7.3.10.4](#section-7-3-10-4)
+- Quotation symbol [8.1.2](#section-8-1-2)
+- QUOTE/QUOTES figurative constant [8](#section-8)
+### R
+
+- RAISE statement [14.9.29](#section-14-9-29)
+- RAISING phrase [14.9.7](#section-14-9-7), [14.9.30.4](#section-14-9-30-4)
+  - EXIT statement [14.9.14](#section-14-9-14)
+  - Procedure division header [13.18.57.4](#section-13-18-57-4)
+- Random access mode [9.1.8.3](#section-9-1-8-3)
+- RANDOM function [15.75](#section-15-75)
+- RANDOM phrase
+  - ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+- RANGE function [15.76](#section-15-76)
+- Range of PERFORM statement [14.9.23.4](#section-14-9-23-4)
+- RANGE-EXCEPTION-FOR-INDEX option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- RD entry [D.20.3](#section-d-20-3)
+- READ ONLY phrase
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - SHARING clause [12.4.5.15](#section-12-4-5-15)
+- READ statement [14.9.30](#section-14-9-30)
+- RECEIVE statement [14.9.31](#section-14-9-31)
+- Receiving operand [8.4.3.2.3](#section-8-4-3-2-3), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
+- receiving run unit [14.9.30.4](#section-14-9-30-4)
+- Record
+  - Logical [13.8.4](#section-13-8-4)
+  - Physical [13.8.4](#section-13-8-4)
+- RECORD clause [13.18.43](#section-13-18-43)
+- RECORD CONTAINS clause
+  - File description entry [13.4.5](#section-13-4-5)
+- RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Record description entry [13.11](#section-13-11)
+- RECORD IS VARYING clause [14.9.43.4](#section-14-9-43-4)
+- Record key [12.3.7.2](#section-12-3-7-2), [12.3.7.4](#section-12-3-7-4)
+- RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
+- RECORD keyword
+  - RETURN statement [14.9.34](#section-14-9-34)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - UNLOCK statement [14.9.47](#section-14-9-47)
+- Record locking [9.1.16](#section-9-1-16)
+- Record locks [14.9.37.4](#section-14-9-37-4), [14.9.39.4](#section-14-9-39-4)
+- Record operations [D.2.3.2](#section-d-2-3-2)
+- RECORD phrase
+  - DELETE statement [14.9.10](#section-14-9-10)
+- Record selection [13.18.40.4](#section-13-18-40-4)
+- RECORD-KEY clause
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Record-key-name [8.3.2.2.24](#section-8-3-2-2-24)
+- RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
+- Record-name [8.3.2.2.25](#section-8-3-2-2-25)
+  - Scope of [8.3.5](#section-8-3-5)
+- RECORDS keyword
+  - UNLOCK statement [14.9.47](#section-14-9-47)
+- RECORDS phrase
+  - BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
+- RECURSIVE clause
+  - PROGRAM-ID paragraph [11.10](#section-11-10)
+- Recursive functions [9.1.10](#section-9-1-10)
+- Recursive methods [8.10](#section-8-10)
+- Recursive program [8.4.3.11.2](#section-8-4-3-11-2)
+- REDEFINES clause [13.18.44](#section-13-18-44)
+- Reel [8.8.4.2.10](#section-8-8-4-2-10)
+- REEL phrase
+  - CLOSE statement [14.9.6](#section-14-9-6)
+- Reference format [6](#section-6)
+  - Fixed-form [3](#section-3)
+  - Free-form [3](#section-3)
+  - Logical conversion [6.5](#section-6-5)
+- Reference format example [D.19.11.3](#section-d-19-11-3)
+- REFERENCE phrase
+  - INVOKE statement [14.9.23](#section-14-9-23)
+- Reference-modification [8.4.3.3](#section-8-4-3-3)
+- REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
+- References [8.4](#section-8-4)
+- REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
+- Relation condition
+  - Alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
+  - Arithmetic expression in [8.5.1.9.2](#section-8-5-1-9-2)
+  - Boolean operands [8.5.1.12](#section-8-5-1-12)
+  - Data-pointer operands [8.5.2.2](#section-8-5-2-2)
+  - Index data item in [8.5.1.9.2](#section-8-5-1-9-2)
+  - Index data items [8.5.2.2](#section-8-5-2-2)
+  - Message tags [8.5.2.2](#section-8-5-2-2)
+  - Mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
+  - National operands [8.5.1.12](#section-8-5-1-12)
+  - Numeric operands [8.5.1.10](#section-8-5-1-10)
+  - Object reference identifiers [8.5.2.2](#section-8-5-2-2)
+  - Order of evaluation [8.7.5.2](#section-8-7-5-2)
+  - Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
+- RELATION phrase
+  - VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- Relation validation [D.22.5](#section-d-22-5)
+- Relational operator [8.4.3.14.2](#section-8-4-3-14-2)
+  - START statement [14.9.41](#section-14-9-41)
+- Relative files
+  - Definition [8.8.4.2.8](#section-8-8-4-2-8)
+- RELATIVE KEY clause [12.4.5.13](#section-12-4-5-13)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - START statement [14.9.41](#section-14-9-41)
+- Relative organization [D.2.2.2](#section-d-2-2-2)
+- RELATIVE phrase
+  - ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+- Relative record number [8.8.4.2.8](#section-8-8-4-2-8), [12.3.7.4](#section-12-3-7-4)
+- RELEASE statement [14.9.32](#section-14-9-32)
+- REM function [15.77](#section-15-77)
+- REMAINDER phrase
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+- REMOVAL phrase
+  - CLOSE statement [14.9.6](#section-14-9-6)
+  - RENAMES clause [13.18.45](#section-13-18-45)
+- REPEATED phrase
+  - VALUE clause [13.18.63](#section-13-18-63)
+- REPLACE statement [7.2.4](#section-7-2-4)
+- REPLACING phrase
+  - COPY statement [7.2.3](#section-7-2-3)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - INSPECT statement [14.9.22](#section-14-9-22)
+- REPORT clause [13.18.46](#section-13-18-46)
+- Report description entry [13.8.4](#section-13-8-4)
+- REPORT FOOTING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- Report group description entry [13.8.5](#section-13-8-5)
+- REPORT HEADING phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- Report section [13.8](#section-13-8)
+- Report writer [A.4.11](#section-a-4-11)
+- Report-name [8.3.2.2.26](#section-8-3-2-2-26)
+- Report description entry [13.8.4](#section-13-8-4)
+  - Scope of [8.3.5](#section-8-3-5)
+- Repository [8.8.4](#section-8-8-4)
+- REPOSITORY paragraph [12.3.8](#section-12-3-8)
+- requestor [14.9.25.4](#section-14-9-25-4)
+- REQUIRED clause [13.18.47](#section-13-18-47)
+- Required word [7.3.16](#section-7-3-16)
+- RESERVE clause [12.4.5.14](#section-12-4-5-14)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Reserved words [4.2.8](#section-4-2-8)
+  - Compiler directives [7.3](#section-7-3)
+  - Implementation 23
+  - Source text [8.8](#section-8-8)
+- RESET phrase
+  - NEXT GROUP clause [13.18.37](#section-13-18-37)
+  - SUM clause [13.18.54](#section-13-18-54)
+- Restricted data pointer [8.3.3.4](#section-8-3-3-4)
+- Restricted data-pointer
+  - Definition [13.18.50](#section-13-18-50)
+- Restricted pointer [13.18.50](#section-13-18-50)
+- RESUME statement [14.9.33](#section-14-9-33)
+- RETRY phrase [14.7.9](#section-14-7-9)
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - OPEN statement [14.9.27](#section-14-9-27)
+- READ statement [14.9.30](#section-14-9-30)
+- REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- RETURN statement [14.9.34](#section-14-9-34)
+- Returned values, intrinsic functions [14.9.49](#section-14-9-49)
+- RETURNING phrase [14.9.8.4](#section-14-9-8-4)
+  - ALLOCATE statement [14.9.3](#section-14-9-3)
+  - CALL statement [14.9.4](#section-14-9-4)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
+- REVERSE function [15.78](#section-15-78)
+- REVERSE-VIDEO clause [13.18.48](#section-13-18-48)
+- REVERSE-VIDEO phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- REWRITE statement [14.9.35](#section-14-9-35)
+- RF phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- RH phrase
+  - TYPE clause [13.18.57](#section-13-18-57)
+- RIGHT phrase
+  - JUSTIFIED clause [13.18.32](#section-13-18-32)
+  - SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+- rollback [B.3](#section-b-3)
+- ROLLBACK statement [14.9.36](#section-14-9-36)
+  - APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
+  - EC-FLOW-ROLLBACK Exception-name [13.18.63.4](#section-13-18-63-4)
+- ROUNDED MODE IS PROHIBITED phrase [D.31.3.3](#section-d-31-3-3)
+- ROUNDED phrase [14.7.4](#section-14-7-4)
+  - ADD statement [14.9.2](#section-14-9-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SOURCE clause [13.18.53](#section-13-18-53)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+  - SUM clause [13.18.54](#section-13-18-54)
+- Rounding
+  - Concepts [D.9](#section-d-9)
+- Rounding rules [8.4.6](#section-8-4-6)
+- Rules [5.3](#section-5-3)
+- Run unit 18, [13.18.60.4](#section-13-18-60-4)
+- Run unit termination [9.1.18.5](#section-9-1-18-5)
+- Runtime element [9.1.13.3](#section-9-1-13-3)
+### S
+
+- S PICTURE symbol [13.18.29.4](#section-13-18-29-4), [13.18.40.5](#section-13-18-40-5)
+- SAME AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
+- SAME AS clause [13.18.49](#section-13-18-49)
+- SAME clause [12.4.6.4](#section-12-4-6-4)
+- SAME RECORD AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.26.4](#section-14-9-26-4), [14.9.28](#section-14-9-28), [14.9.42](#section-14-9-42)
+- SAME SORT AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
+- SAME SORT-MERGE AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
+- SBIDI
+  - Definition [8.4.6.2](#section-8-4-6-2)
+- Scope of names [8.4.6](#section-8-4-6)
+- Scope of statements [14.5.3](#section-14-5-3)
+- Scope terminators [13.18.60.4](#section-13-18-60-4)
+- Screen description entry [13.17](#section-13-17)
+- Screen section [13.9](#section-13-9)
+- Screen-name [8.3.2.2.27](#section-8-3-2-2-27)
+- Screen-names
+  - Scope of [8.3.5](#section-8-3-5)
+- Screens [9.2](#section-9-2)
+- SD entry [12.4.5.2](#section-12-4-5-2)
+- SDIDI
+  - Definition [8.4.6.5](#section-8-4-6-5)
+- SEARCH statement [14.9.37](#section-14-9-37)
+- SECONDS phrase
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETRY phrase [14.7.9](#section-14-7-9)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- Seconds subfield [14.9.48.4](#section-14-9-48-4)
+- SECONDS-FROM-FORMATTED-TIME function [15.79](#section-15-79)
+- SECONDS-PAST-MIDNIGHT function [15.80](#section-15-80)
+- SECTION header [13.18.57.4](#section-13-18-57-4)
+- SECTION phrase
+  - EXIT statement [14.9.14](#section-14-9-14)
+- Section-name [8.3.2.2.28](#section-8-3-2-2-28)
+- Sections [14.4.2](#section-14-4-2)
+- SECURE clause [13.18.50](#section-13-18-50)
+- SELECT clause
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- SELECT WHEN clause [13.18.51](#section-13-18-51)
+  - SORT statement [14.9.40](#section-14-9-40)
+- SELF predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
+- Semicolon 29
+  - Interchangeable with comma 29, [8](#section-8)
+  - Separator [8](#section-8)
+- SEND statement [14.9.38](#section-14-9-38)
+- Sending operand [8.4.3.1.4](#section-8-4-3-1-4), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
+- Sentence [13.18.60](#section-13-18-60)
+  - Definition [13.18.60.2](#section-13-18-60-2)
+- SEPARATE CHARACTER phrase
+  - SIGN clause [13.18.52](#section-13-18-52)
+- Separators [8.3.5](#section-8-3-5)
+  - Colon [8.1.2](#section-8-1-2)
+  - Comma [8](#section-8)
+  - Literal delimiter [8.1.2](#section-8-1-2)
+  - Parentheses [8](#section-8)
+  - Period 30, [8](#section-8)
+  - Pseudo-text delimiter [8.1.2](#section-8-1-2)
+  - Semicolon [8](#section-8)
+  - Space [8](#section-8)
+- separators
+  - Definition [7.3.13.4](#section-7-3-13-4)
+- Sequential access mode [9.1.8.2](#section-9-1-8-2)
+- Sequential files
+  - Definition [8.8.4.2.5](#section-8-8-4-2-5)
+- Sequential organization [D.2.2.1](#section-d-2-2-1)
+- SEQUENTIAL phrase
+  - ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+  - ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+- server run unit [14.9.30.4](#section-14-9-30-4)
+- SET statement [14.9.39](#section-14-9-39)
+  - Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+  - Implicit [14.9.10.4](#section-14-9-10-4)
+- Shared files [8.8.4.8.4](#section-8-8-4-8-4), [14.9.23](#section-14-9-23)
+- Shared memory area [D.4](#section-d-4)
+- SHARING clause [12.4.5.15](#section-12-4-5-15)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- Sharing data [D.6.5.7](#section-d-6-5-7)
+- Sharing file connectors [9.1.5](#section-9-1-5)
+- Sharing mode [9.1.15](#section-9-1-15)
+- SHARING phrase [12.3.7.3](#section-12-3-7-3)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - SORT statement [14.9.40](#section-14-9-40)
+- SHORT phrase
+  - DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+- SIGN clause [13.18.52](#section-13-18-52)
+- Sign condition [8.6.3](#section-8-6-3)
+- SIGN function [15.81](#section-15-81)
+- Signaling NaN
+  - Definition [8.5.3.1](#section-8-5-3-1)
+- Signature [8.8.4](#section-8-8-4)
+  - Method resolution [8.10](#section-8-10)
+- SIGNED phrase
+  - DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+  - USAGE clause [13.18.60](#section-13-18-60)
+- Simple insertion editing [13.18.35.4](#section-13-18-35-4)
+- Simple relational operator [8.4.3.15.4](#section-8-4-3-15-4)
+- SIN function [15.82](#section-15-82)
+- SIZE ERROR condition [14.3](#section-14-3)
+- Size error condition [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14.2.3](#section-14-2-3)
+- SIZE ERROR phrase [14.2.3](#section-14-2-3)
+  - ADD statement [14.9.2](#section-14-9-2)
+  - COMPUTE statement [14.9.8](#section-14-9-8)
+  - DIVIDE statement [14.9.12](#section-14-9-12)
+  - MULTIPLY statement [14.9.26](#section-14-9-26)
+  - SUBTRACT statement [14.9.44](#section-14-9-44)
+- SIZE phrase
+  - PICTURE clause [13.18.40](#section-13-18-40)
+  - STRING statement [14.9.43](#section-14-9-43)
+- Slant (/) comment line [3](#section-3)
+- SMALLEST-ALGEBRAIC function [15.83](#section-15-83)
+- Sort file [9.1.19](#section-9-1-19)
+- SORT statement [14.9.40](#section-14-9-40)
+- Sorting [D.2.3.3.2](#section-d-2-3-3-2)
+- Sorting tables [D.3.6](#section-d-3-6)
+- Sort-merge file description entry [13.4.6](#section-13-4-6)
+- SOURCE clause [13.18.53](#section-13-18-53)
+- Source element [9.1.13.3](#section-9-1-13-3)
+- SOURCE FORMAT directive [7.3.24](#section-7-3-24)
+- Source indicator [3](#section-3)
+- SOURCE phrase
+  - ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+  - RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
+- Source unit [9.1.13.2](#section-9-1-13-2)
+- SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
+- Space
+  - Separator [8](#section-8)
+- SPACE/SPACES figurative constant [7.3.25.4](#section-7-3-25-4)
+- Special character words [7.3.16](#section-7-3-16)
+  - In formats 30
+- Special insertion editing [13.18.35.4](#section-13-18-35-4)
+- SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- SQRT function [15.84](#section-15-84)
+- Standard arithmetic [8.4.4.2](#section-8-4-4-2), [8.4.6](#section-8-4-6), [14.5.2](#section-14-5-2), [14.9.22.3](#section-14-9-22-3), [14.9.49](#section-14-9-49)
+  - Concepts [D.10](#section-d-10)
+- Standard classes [16](#section-16)
+- Standard date form [15.5.3](#section-15-5-3)
+- Standard language element acceptance 21
+- Standard numeric time form [15.5.5](#section-15-5-5)
+- STANDARD phrase
+  - ARITHMETIC clause [11.9.5](#section-11-9-5)
+- STANDARD-1
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+- STANDARD-1 phrase
+  - RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
+- STANDARD-1,2 phrase
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Standard-binary
+  - Arithmetic [8.4.5](#section-8-4-5)
+- Standard-binary arithmetic [8.8.1.4](#section-8-8-1-4)
+- Standard-binary intermediate data item [8.8.1.4.2](#section-8-8-1-4-2)
+- STANDARD-BINARY phrase [9.3.6](#section-9-3-6)
+  - ARITHMETIC clause [11.9.5](#section-11-9-5)
+- STANDARD-COMPARE function [15.85](#section-15-85)
+- Standard-decimal
+  - Arithmetic [8.4.6.3](#section-8-4-6-3)
+- Standard-decimal arithmetic [8.8.1.5](#section-8-8-1-5)
+- Standard-decimal intermediate data item [8.8.1.5.2](#section-8-8-1-5-2)
+- STANDARD-DECIMAL phrase [9.3.6](#section-9-3-6)
+  - ARITHMETIC clause [11.9.5](#section-11-9-5)
+- STANDARD-DEVIATION function [15.86](#section-15-86)
+- START statement [14.9.41](#section-14-9-41)
+- State of
+  - Function [13.18.60.4](#section-13-18-60-4)
+  - Method [13.18.60.4](#section-13-18-60-4)
+  - Object data [13.18.60.4](#section-13-18-60-4)
+  - Program [13.18.60.4](#section-13-18-60-4)
+- Statement [13.18.60](#section-13-18-60)
+  - Compiler-directing [3](#section-3)
+  - Declarative [13.18.60.2](#section-13-18-60-2)
+  - Procedural [13.18.60](#section-13-18-60)
+- Static data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3)
+- Static items [8.4.3.9.3](#section-8-4-3-9-3)
+- STOP [13.18.60.4](#section-13-18-60-4)
+- STOP statement [14.9.42](#section-14-9-42)
+- STOP statement, [14.9.8.4](#section-14-9-8-4)
+- STRING statement [14.9.43](#section-14-9-43)
+- STRONG phrase [8.4.3.7](#section-8-4-3-7)
+  - TYPEDEF clause [13.18.58](#section-13-18-58)
+- Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
+- Strongly-typed groups [8.4.3.6](#section-8-4-3-6)
+- Strongly-typed items [D.3.5.3](#section-d-3-5-3)
+- Structured compilation group [10](#section-10)
+- Structured constant [D.21](#section-d-21)
+- Subfield [14.9.48](#section-14-9-48)
+- Subscripted
+  - Data-name [8.3.2.2.6](#section-8-3-2-2-6)
+- Subscripted identifier [8.2](#section-8-2)
+- Subscripting [D.3.5](#section-d-3-5)
+  - Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+- Subscripts [8.4.2.3](#section-8-4-2-3)
+  - Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+- Substantive changes list [D.22.4](#section-d-22-4)
+- SUBSTITUTE function [15.87](#section-15-87)
+- SUBTRACT statement [14.9.44](#section-14-9-44)
+  - CORRESPONDING phrase [14.7.6](#section-14-7-6)
+- SUM clause [13.18.54](#section-13-18-54)
+- Sum counter [13.18.40.6](#section-13-18-40-6)
+- SUM function [15.88](#section-15-88)
+- Summary of functions [15.6](#section-15-6)
+- SUPER predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
+- SUPPRESS [12](#section-12), [12.3.7.2](#section-12-3-7-2)
+- SUPPRESS statement [14.9.45](#section-14-9-45)
+- SUPPRESS WHEN phrase [14.9.25.4](#section-14-9-25-4), [14.9.28.4](#section-14-9-28-4), [14.9.38.4](#section-14-9-38-4), [A.4.8](#section-a-4-8)
+- Surrogate pair [8.3.2.2.13](#section-8-3-2-2-13)
+  - Definition 19
+- Switch status
+  - Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+- Switch-name [8.3.2.3.11](#section-8-3-2-3-11)
+- SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Switch-status condition [8.5.3.3](#section-8-5-3-3)
+- Symbolic-character [8.3.2.2.29](#section-8-3-2-2-29)
+  - Figurative constant [8](#section-8)
+  - Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+- SYMBOLIC-CHARACTERS clause
+- SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+- Syntax rules [5.3.2](#section-5-3-2)
+- Syntax violation flagging 21
+- SYSTEM-DEFAULT phrase
+- SET statement [14.9.39](#section-14-9-39)
+- System-name [7.3.15.4](#section-7-3-15-4)
+- System-names [8.3.2.3](#section-8-3-2-3)
+### T
+
+- t_fmt [7.3.13](#section-7-3-13)
+- Table handling [B.3](#section-b-3)
+- Table sort [14.9.35.4](#section-14-9-35-4)
+- Tables [8.5.1.3.3](#section-8-5-1-3-3)
+- TALLYING phrase
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- Terminal screen [9.2.1](#section-9-2-1)
+- TERMINATE statement [14.9.46](#section-14-9-46)
+- TERMINATE-WITH-VARYING option
+  - FLAG-02 directive [7.3.14](#section-7-3-14)
+- TEST AFTER phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- TEST BEFORE phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- TEST phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- TEST-FORMATTED-DATETIME function [15.92](#section-15-92)
+- TEST-NUMVAL function [15.93](#section-15-93)
+- Text manipulation [7.2](#section-7-2)
+- Text manipulation stage [3](#section-3)
+- Text-name [8.3.2.3.12](#section-8-3-2-3-12)
+- Text-word [3](#section-3)
+- THEN phrase
+  - IF statement [14.9.19](#section-14-9-19)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- THEN REPLACING phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- THROUGH (THRU) phrase [14.6](#section-14-6)
+  - EVALUATE directive [7.3.13](#section-7-3-13)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - RENAMES clause [13.18.45](#section-13-18-45)
+  - SORT statement [14.9.40](#section-14-9-40)
+  - VALUE clause [13.18.63](#section-13-18-63)
+- Time format [14.9.48.4](#section-14-9-48-4)
+- TIME phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- TIMES phrase
+  - DELETE statement [14.9.10](#section-14-9-10)
+  - OPEN statement [14.9.27](#section-14-9-27)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - READ statement [14.9.30](#section-14-9-30)
+  - RETRY phrase [14.7.9](#section-14-7-9)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - VALUE clause [13.18.63](#section-13-18-63)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- TO clause [13.18.56](#section-13-18-56)
+- TO END phrase
+  - VALUE clause [13.18.63](#section-13-18-63)
+- TO phrase
+  - ADD statement [14.9.2](#section-14-9-2)
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - INSPECT statement [14.9.22](#section-14-9-22)
+  - MOVE statement [14.9.25](#section-14-9-25)
+  - SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
+  - SET statement, index assignment [14.9.30.4](#section-14-9-30-4)
+  - SET statement, object identifier assignment [14.9.30.4](#section-14-9-30-4)
+  - SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+  - SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+- TO VALUE clause
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- TOWARD-GREATER phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- TOWARD-LESSER phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- TRAILING phrase
+  - SIGN clause [13.18.52](#section-13-18-52)
+- Transfer of control [D.6.5.2](#section-d-6-5-2)
+  - EXIT FUNCTION statement [13.18.60.4](#section-13-18-60-4)
+  - EXIT PROGRAM statement [13.18.60.4](#section-13-18-60-4)
+  - EXIT statement [14.9.14](#section-14-9-14)
+  - GOBACK statement [14.9.18](#section-14-9-18)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - SORT statement [14.9.40](#section-14-9-40)
+  - STOP statement [14.9.42](#section-14-9-42)
+- TRIM function [15.96](#section-15-96)
+- TRUE phrase
+  - EVALUATE directive [7.3.13](#section-7-3-13)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
+- TRUNCATION phrase
+  - DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+  - INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+  - ROUNDED phrase [14.7.4](#section-14-7-4)
+- TURN directive [7.3.25](#section-7-3-25)
+- TYPE clause [13.18.57](#section-13-18-57)
+- TYPEDEF clause [13.18.58](#section-13-18-58)
+  - Data description entry [13.16](#section-13-16)
+- Type-name [8.3.2.2.30](#section-8-3-2-2-30)
+  - Scope of [8.3.5](#section-8-3-5)
+- TYPE clause [13.18.57](#section-13-18-57)
+- Types
+  - Definition of [8.4.3.6](#section-8-4-3-6)
+- Types of functions [15.2](#section-15-2)
+### U
+
+- UCS 6, 19, [7.3.8.4](#section-7-3-8-4), [7.3.18](#section-7-3-18), [14.9.20.4](#section-14-9-20-4), [D.6.1.1](#section-d-6-1-1), [D.7](#section-d-7)
+- UCS-4 [11.7](#section-11-7)
+- UCS-4 phrase
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- Undefined language element list [A.2](#section-a-2)
+- UNDERLINE clause [13.18.59](#section-13-18-59)
+- UNDERLINE phrase
+  - SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+- Underscore [7.3.13.4](#section-7-3-13-4)
+- Unicode [D.7](#section-d-7)
+- Unicode 13.0.0 [D.32](#section-d-32)
+- Unicode version 13.0 [A.2](#section-a-2)
+- Uniqueness of reference [8.4.2](#section-8-4-2)
+- Unit [8.8.4.2.10](#section-8-8-4-2-10)
+- UNIT phrase [6.5](#section-6-5)
+  - CLOSE statement [14.9.6](#section-14-9-6)
+- Universal object reference [13.18.49.4](#section-13-18-49-4)
+- UNLOCK statement [14.9.47](#section-14-9-47)
+- UNSIGNED phrase
+- USAGE clause [13.18.60](#section-13-18-60)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- UNTIL phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- UP phrase
+  - SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
+  - SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
+- UPON phrase [6.2.2](#section-6-2-2)
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+  - SUM clause [13.18.54](#section-13-18-54)
+- UPPER-CASE function [15.97](#section-15-97)
+- Uppercase letters [7.3.10](#section-7-3-10)
+- USAGE clause [13.18.60](#section-13-18-60)
+- USE EXCEPTION [14.7.8](#section-14-7-8)
+- USE EXCEPTION declarative [13.18.63.3](#section-13-18-63-3)
+- USE statement [14.9.49](#section-14-9-49)
+- User default locale [7.3.12](#section-7-3-12)
+- USER-DEFAULT phrase
+  - SET statement [14.9.39](#section-14-9-39)
+- User-defined functions [9.4](#section-9-4)
+- User-defined words [8.3.2.2](#section-8-3-2-2)
+  - Definition [7.3.13.4](#section-7-3-13-4)
+  - Notation [B.2](#section-b-2)
+- User-function-name [8.3.2.2.31](#section-8-3-2-2-31)
+- USING clause [13.18.61](#section-13-18-61)
+  - CLASS-ID paragraph [11.3](#section-11-3)
+  - INTERFACE-ID paragraph [11.6](#section-11-6)
+- USING phrase
+  - CALL statement [14.9.4](#section-14-9-4)
+  - FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+  - MERGE statement [14.9.24](#section-14-9-24)
+  - Procedure division header [13.18.57.4](#section-13-18-57-4)
+  - SORT statement [14.9.40](#section-14-9-40)
+- UTC time format [14.9.48.4](#section-14-9-48-4)
+- UTF-16 19, [8.4.2.3.3](#section-8-4-2-3-3)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+- UTF-8 [7.3.18](#section-7-3-18)
+  - SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+### V
+
+- V PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- VALID phrase
+- VALUE clause [13.18.63](#section-13-18-63)
+- Validate facility [D.22](#section-d-22)
+- VALIDATE statement [14.9.50](#section-14-9-50)
+- VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+- VALUE clause [13.18.63](#section-13-18-63)
+- VALUE phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+  - INVOKE statement [14.9.23](#section-14-9-23)
+- Variable-length data item
+  - Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
+  - Definition [8.4.3.2.4](#section-8-4-3-2-4)
+- Variable-length group
+  - Comparison of [8.5.2.2](#section-8-5-2-2)
+- Variable-length groups
+  - Compatibility [8.4.3.2.4](#section-8-4-3-2-4)
+  - Definition [8.4.3.2.4](#section-8-4-3-2-4)
+- Variable-length records [D.2.2.5.2](#section-d-2-2-5-2)
+- VARIANCE function [15.98](#section-15-98)
+- VARYING clause [13.18.64](#section-13-18-64)
+- VARYING phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+  - RECORD clause [13.18.43](#section-13-18-43)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+### W
+
+- Weakly-typed items [8.5.3.2](#section-8-5-3-2)
+- Week date format [14.9.48.4](#section-14-9-48-4)
+- Week-of-year subfield [14.9.48.4](#section-14-9-48-4)
+- WHEN [14.9.23.3](#section-14-9-23-3)
+- WHEN phrase [8.8.4.2.13](#section-8-8-4-2-13), [13.18.63.3](#section-13-18-63-3), [14.2.3](#section-14-2-3), [14.6.13.1.6](#section-14-6-13-1-6)
+  - EVALUATE directive [7.3.13](#section-7-3-13)
+  - EVALUATE statement [14.9.13](#section-14-9-13)
+  - INVALID clause [13.18.31](#section-13-18-31)
+  - SEARCH statement [14.9.37](#section-14-9-37)
+- WHEN SET TO FALSE phrase
+  - VALUE clause [13.18.63](#section-13-18-63)
+- WHEN-COMPILED function [15.99](#section-15-99)
+- WITH DUPLICATES phrase
+  - SORT statement [14.9.40](#section-14-9-40)
+- WITH ERROR STATUS phrase
+  - STOP statement [14.9.42](#section-14-9-42)
+- WITH FILLER phrase
+  - INITIALIZE statement [14.9.20](#section-14-9-20)
+- WITH FOOTING phrase
+  - LINAGE clause [13.18.34](#section-13-18-34)
+- WITH LENGTH phrase
+  - START statement [14.9.41](#section-14-9-41)
+- WITH LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- WITH NO ADVANCING phrase
+  - DISPLAY statement [14.9.11](#section-14-9-11)
+- WITH NO LOCK phrase
+  - READ statement [14.9.30](#section-14-9-30)
+  - REWRITE statement [14.9.35](#section-14-9-35)
+  - WRITE statement [14.9.51](#section-14-9-51)
+- WITH NO REWIND phrase [6.5](#section-6-5)
+  - CLOSE statement [14.9.6](#section-14-9-6)
+  - OPEN statement [14.9.27](#section-14-9-27)
+- WITH NORMAL STATUS phrase
+  - STOP statement [14.9.42](#section-14-9-42)
+- WITH POINTER phrase
+  - STRING statement [14.9.43](#section-14-9-43)
+  - UNSTRING statement [14.9.48](#section-14-9-48)
+- WITH TEST phrase
+  - PERFORM statement [14.9.28](#section-14-9-28)
+- Word [7.3.13.3](#section-7-3-13-3)
+- Working-storage section [13.5](#section-13-5)
+- WRITE statement [14.9.51](#section-14-9-51)
+### X
+
+- X &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- XOR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
+### Y
+
+- Year subfield [14.9.48](#section-14-9-48)
+- YEAR-TO-YYYY function [15.100](#section-15-100)
+- YYYYDDD phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+- YYYYMMDD phrase
+  - ACCEPT statement [14.9.1](#section-14-9-1)
+### Z
+
+- Z &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+- ZERO/ZEROES/ZEROS figurative constant [7.3.25.4](#section-7-3-25-4)
+- Zero-length item [13.18.24.4](#section-13-18-24-4), [13.18.39.4](#section-13-18-39-4)
+  - Definition [8.4.3.8.3](#section-8-4-3-8-3)
+- Zero-length literal
+  - Definition [7.3.17.4](#section-7-3-17-4)
+  - **ISO/IEC 1989:2023(E)**
+  - **ICS 35.060**
+  - Price based on 1229 pages
+  - <a id="addendum"></a>
 # Addendum — corrections applied to this transcription
 
 > **This section is NOT part of ISO/IEC 1989:2023.** It is supplied by the publisher of this transcription.
 
-This transcription is faithful to the printed standard except at the points listed below, where the standard
-itself is defective and the defect would mislead a reader or a tool built from the text. **Every departure is
-recorded here together with the printed form, so that any correction can be reversed** if it later proves
-mistaken. The printed standard remains authoritative: where this transcription and ISO/IEC 1989:2023 differ,
-**the standard governs**.
-
-Each correction is cross-referenced from a ⚠ note at the point of change.
-
+- This transcription is faithful to the printed standard except at the points listed below, where the standard
+  - itself is defective and the defect would mislead a reader or a tool built from the text. **Every departure is
+  - recorded here together with the printed form, so that any correction can be reversed** if it later proves
+  - mistaken. The printed standard remains authoritative: where this transcription and ISO/IEC 1989:2023 differ,
+  - **the standard governs**.
+  - Each correction is cross-referenced from a ⚠ note at the point of change.
 > **Page numbers here are the standard's own PRINTED folios** — what is printed at the foot of the page in
 > ISO/IEC 1989:2023 — so a citation can be checked directly against a copy of the standard. The
 > transcription's internal anchors (`#page-N`) instead use the PDF's sequential page, which runs 30 ahead of

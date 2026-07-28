@@ -32,6 +32,10 @@ WHAT IT CATCHES, each earned by a real defect:
 
   TAGS        `<pre>` and `<u>` must balance. An unclosed `<pre>` swallows the rest of the document.
 
+  RUN-ON LIST A table of contents, a list of figures or an index written as bare consecutive lines. Markdown
+              joins consecutive lines into one paragraph, so every entry flows into the next — which is how
+              the TOC, the Figures list and the whole 3,000-line index rendered.
+
   LINKS       Pages were removed from the transcription and replaced by clause links, so a dangling link is a
               cross-reference the reader cannot follow.
 
@@ -104,6 +108,30 @@ def check_emphasis(lines, mask):
     return out
 
 
+def check_runon_lists(lines, mask):
+    """A run of link-per-line entries that was never written as a list.
+
+    Markdown joins consecutive lines into ONE PARAGRAPH. A table of contents, a list of figures or an index
+    written as bare consecutive lines therefore renders as a single run-on block with every entry flowing into
+    the next — which is exactly how the TOC, the Figures list and the whole 3,000-line index rendered. The
+    content and the links are fine; the list markers were simply never there. Nothing else in this document
+    looks like this: ordinary prose paragraphs do not carry a cross-reference link on every line."""
+    out, run = [], []
+    for i, l in enumerate(lines + [""]):
+        s = l.strip()
+        linky = (i < len(lines) and not mask[i] and s and len(s) <= 150
+                 and "](#" in s
+                 and not re.match(r"^[-*+]\s|^\d+\.\s|^\||^#|^>", s))
+        if linky:
+            run.append(i)
+            continue
+        if len(run) >= 4:
+            out.append((run[0] + 1, f"{len(run)} consecutive link lines with no list marker — "
+                                    f"these render as one paragraph"))
+        run = []
+    return out
+
+
 def check_tables(lines):
     """Ragged rows, and a repeated header row sitting in the body."""
     ragged, repeated, i = [], [], 0
@@ -150,6 +178,8 @@ def main() -> int:
     bare = [(i + 1, "figure opens with a bare <pre> — box-drawing rows will not meet")
             for i, l in enumerate(lines) if l.strip() == "<pre>"]
     findings["LINE-HEIGHT"] = bare
+
+    findings["RUN-ON LIST"] = check_runon_lists(lines, mask)
 
     ragged, repeated = check_tables(lines)
     findings["RAGGED"] = ragged
