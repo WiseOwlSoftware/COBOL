@@ -101,6 +101,24 @@ pages 600–829), so each site needs its own page checked. That is the remaining
   survey (all of GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL and NetCOBOL hard-stop; none continues):
   `DESIGN-ec-oo-superbatch.md` §Risks, first bullet.
 
+- **CA12 CO-LANDS, decided 2026-07-28 — ordered LAST in the EC chain (step 11).** Every fatal-EC finding in the
+  batch (CA9/CA10/CA11/V55/CA37/CA38) then inherits the outward-GLOBAL walk instead of each shipping the same
+  hole. Deferring it would have been a GAP against P14's zero-GAP definition of done, inherited by six findings.
+  The split it closes is visible in the emitted code: the I/O path already walks outward (`ProgramEmitter.cs:280`
+  → `return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)`) while the EC dispatch tail
+  emits a bare `return -3;` — one spec rule (§14.9.49.4 GR3g, "the search is repeated as specified in General
+  rule 4"), two behaviours.
+
+- **V55's method-side "enabled" literal, decided 2026-07-28 — and it CORRECTS the written delta.** The TURN-state
+  source exists (`BoundCompilation.Turn`, group-wide and LINE-KEYED; fold at the METHOD-ID header line, since the
+  raise is in the `__CobolInvoke` prologue before any method statement runs). ⛔ But it is folded at **BIND TIME,
+  not "at emit time" as the delta says** — codegen holds no `TurnState` anywhere; every TURN query lives in the
+  binder and codegen consumes only `BoundEcChecked` nodes and `EcState` flags, so an emitter-side read would be a
+  second mechanism for the binder's job. Fold in `DataBinder.OoBindMethodData`, record on `OoMethodSymbol`, read
+  the plain bool in `OoEmitter`. The not-enabled-in-both path throws a NEW non-attributing
+  `CobolImplementorFatalException`: `CobolFatalException`, `CobolCallException` and `CobolSizeError` all carry an
+  EC name, and GR7c requires this path to stop without attributing EC-OO-UNIVERSAL.
+
 - **CA14 → APPROVED option (a): enforce the uniform introduction-error policy.** Replace `DataBinder.cs:2526`
   `Edition.Removed(EditionCodes.Introduction,…)` with the canonical funnel
   `ConstructRegistry.Check(Edition.Edition, Sink, Constructs.SyncOnGroup2023, "data item 'G'")`, activating the

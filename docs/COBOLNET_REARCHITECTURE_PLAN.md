@@ -45,10 +45,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 1. **The EC-infra + OO SUPER-BATCH** — decision-complete plan `docs/rearchitecture/DESIGN-ec-oo-superbatch.md`
    (5 tracks: E/C/D parallel-safe, then the serial EC chain, then CA12 last; an 11-step commit plan). Every item
    shares `EcBinder`/`EcEmitter`/`ExceptionState`, so this batch stays **SERIAL under one coordinated design pass —
-   never parallelized.** ⚠ **Read its §Risks FIRST:** TWO owner decisions remain to surface before the serial EC
-   work (CA12 co-land · V55 method-side "enabled" literal), and there is a queue PASTE-ERROR — the CA21 prose
-   describes an INITIALIZE fix already landed as CA2; the real CA21 is the CALL-through-NULL-program-pointer
-   wrong-EC-name bug (§14.9.4.4 GR3b).
+   never parallelized.** ✅ **ALL THREE OWNER DECISIONS ARE RESOLVED (2026-07-28) — the batch is UNBLOCKED and
+   the 11-step commit plan stands as written.** ⚠ Still read its §Risks FIRST: two of the three resolutions
+   CORRECT recipes already written into the finding text (CA9's checking-OFF fall-through, V55's "at emit
+   time"), and there is a queue PASTE-ERROR — the CA21 prose describes an INITIALIZE fix already landed as CA2;
+   the real CA21 is the CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
    - **✅ CHECKING-OFF DOCTRINE — DECIDED 2026-07-28, batch-wide:** when checking is OFF a fatal-EC raise site is
      **LENIENT wherever the standard names the outcome, LOUD ABORT wherever it names none.** Lenient: CA37/CA38
      (§14.9.39 GR30/GR31), CA9's SET pointer UP/DOWN BY (GR19 "content … unchanged"), CA10's scratch-read,
@@ -59,6 +60,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      ALL hard-stop, none continues; "checking off" nowhere means lenient, it means UNGUARDED, and only our managed
      `StorageCell` makes leniency reachable at all. Recorded in `DESIGN-ec-oo-superbatch.md` §Risks + the queue's
      §OWNER-DECIDED.
+   - **✅ CA12 CO-LANDS, ordered LAST** (2026-07-28) — so all six fatal-EC findings inherit the outward-GLOBAL
+     walk rather than each shipping the same hole. The asymmetry is visible in the emitted code: the I/O path
+     already walks (`ProgramEmitter.cs:280` → `return __outer.__RunGlobalUse(__f);   // continue outward
+     (§14.9.49.4 GR4b)`) while the EC dispatch tail emits a bare `return -3;`, so ONE spec rule (GR3g directing
+     "repeated as specified in General rule 4") has two behaviours today.
+   - **✅ V55's method-side "enabled" literal — RESOLVED, and it corrects the design** (2026-07-28). The source
+     EXISTS: `BoundCompilation.Turn` is group-wide and LINE-KEYED, folded at the METHOD-ID header line (the
+     raise is in the `__CobolInvoke` prologue, before any method statement, so entry state is the only
+     defensible reading). ⛔ But **NOT "at emit time"** as the design said: **codegen holds no TurnState at all**
+     — every TURN query lives in the binder and codegen sees only `BoundEcChecked` + `EcState` flags, so an
+     `OoEmitter` read would be a second mechanism for the binder's job. Fold at BIND time, record on
+     `OoMethodSymbol`, read the bool in the emitter. The not-enabled-in-both path throws a NEW non-attributing
+     `CobolImplementorFatalException` — every existing runtime exception carries an EC name, and GR7c requires
+     this one to stop without attributing EC-OO-UNIVERSAL.
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
 3. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
