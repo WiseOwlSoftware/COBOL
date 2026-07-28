@@ -211,7 +211,6 @@ def build(page, lo, hi, extract, classify_page):
         rep = cluster(values, tol)
         return {v: (rep[v], rank) for v in rep}
 
-    xtext = keyed([w["x0"] for w in text_w], 3)
     xbrk = keyed([s["x"] for s in brackets], 0)
     xbar = keyed([s["x"] for s in bars], 1)
     xbrace = keyed([b["x0"] for b in glyphs], 2)
@@ -245,18 +244,17 @@ def build(page, lo, hi, extract, classify_page):
                 cur = []
         return groups + ([cur] if cur else [])
 
-    # A HOOK BRACKETS ITS CONTENT, so it maps directionally: a top hook onto the first row at or below it, a
-    # bottom hook onto the last row at or above it. Snapping each to the merely NEAREST row put the top hook of
-    # the function-identifier's parentheses a row high, onto `function-pointer-name-1`, which belongs to the
-    # brace beside it and not inside the parentheses at all.
+    # A TOP HOOK BRACKETS WHAT IS BELOW IT, so it maps onto the first row at or below itself rather than onto
+    # the merely NEAREST row — which put the top hook of the function-identifier's parentheses a row high, onto
+    # `function-pointer-name-1`, an operand of the brace beside them and not inside the parentheses at all.
+    # The BOTTOM hook keeps nearest-row: its glyph is ~13 pt tall and starts ABOVE its last enclosed row as
+    # often as below it (the ORGANIZATION clause's brace begins 1.4 pt above `RECORD`, ACCEPT's ends 9.4 pt
+    # below `COL`), so there is no direction to exploit and a bound tight enough to be safe excluded RECORD.
     def hook_row(b):
         role, y = GLYPH_PIECES[b["text"]][2], b["y0"]
         if role == "top":
             below = [r for r in rows if r >= y - 1.0]
             return rindex[below[0]] if below else raw_near(y)
-        if role == "bot":
-            above = [r for r in rows if r <= y + 1.0]
-            return rindex[above[-1]] if above else raw_near(y)
         return raw_near(y)
 
     glyph_raw = [(x, min(hook_row(b) for b in grp), max(hook_row(b) for b in grp), grp)
@@ -272,32 +270,84 @@ def build(page, lo, hi, extract, classify_page):
     # the smallest case: two alternatives, one brace, and nowhere to put its point.
     spacers = {c[0] for s in stems for c in [covers(s)] if len(c) == 2 and c[1] - c[0] == 1}
     spacers |= {r0 for _, r0, r1, _ in glyph_raw if r1 - r0 == 1}
+
+    # A BLANK ROW BETWEEN GROUPS, which the printed page has and the house worked example keeps: ACCEPT
+    # Format 3 separates its AT group, its exception group and `[ END-ACCEPT ]`. The gap cannot be measured as
+    # a gap — 19.0 pt separates the exception group from END-ACCEPT while 17.3 pt separates the two rows INSIDE
+    # that group — which is the same trap that defeated gap-based band detection one level up. The enclosures
+    # already state it: two adjacent rows belong together when some delimiter spans both, and otherwise they
+    # are separate groups. Rows outside every enclosure stay tight against each other.
+    spans = [(c[0], c[-1]) for st in stems for c in [covers(st)] if c]
+    spans += [(r0, r1) for _, r0, r1, _ in glyph_raw]
+    inside = {r for a, b in spans for r in range(a, b + 1)}
+    joined = {r for a, b in spans for r in range(a, b)}      # r and r+1 lie in one enclosure
+    boundaries = {i for i in range(len(rows) - 1) if i not in joined and {i, i + 1} & inside}
+    spacers |= boundaries
+
+    # COLUMNS ALIGN ONLY WITHIN A GROUP. Packing one column space across the whole figure lets every clause
+    # shove every other clause about: the file-control entry stacks two dozen independent clauses, and sharing
+    # a column with a wider one three clauses away is what spread `[ ORGANIZATION  IS  ]` and put a stray gap
+    # in `[ FILE STATUS IS data-name-4  ]`. Vertical alignment carries meaning between rows the same delimiter
+    # spans, and nowhere else, so the group id joins the column key and each group packs in its own space.
+    gid, g = {}, 0
+    for i in range(len(rows)):
+        gid[i] = g
+        if i in boundaries:
+            g += 1
     shift = {i: i + sum(1 for sp in spacers if sp < i) for i in range(len(rows))}
     nrows = len(rows) + len(spacers)
     row_of = lambda y: shift[rindex[rowof[y]]]
     near = lambda y: shift[raw_near(y)]
 
-    glyph_spans = [(x, shift[r0], shift[r1], grp) for x, r0, r1, grp in glyph_raw]
+    glyph_spans = [(x + (gid[r0],), shift[r0], shift[r1], grp) for x, r0, r1, grp in glyph_raw]
+    stem_key = {id(s): stemx(s) + (gid[c[0]],) for s in stems for c in [covers(s)] if c}
 
-    items = [(row_of(w["y0"]), xtext[w["x0"]], w["text"]) for w in text_w]
+    # A ROW IS A SEQUENCE OF CELLS, and only CELLS align. A cell is a run of words between two delimiters; its
+    # words flow with single spaces, the way the printed phrase reads. Aligning individual WORDS across rows
+    # aligns coincidences: `ERROR` on the ON SIZE ERROR row sits at x 130.6 and `SIZE` on the NOT ON SIZE ERROR
+    # row at 129.7 — 0.9 apart, which is exactly the spread of a GENUINE alignment (FIRST/KEY/LAST), so no
+    # tolerance can separate the two cases. Nothing needs to: the words are in one phrase and belong together.
+    delim_at = collections.defaultdict(list)
+    for x, r0, r1, grp in glyph_spans:
+        for r in range(r0, r1 + 1):
+            delim_at[r].append(min(b["x0"] for b in grp))
+    for st in stems:
+        cov = covers(st)
+        if cov:
+            for r in range(shift[cov[0]], shift[cov[-1]] + 1):
+                delim_at[r].append(st["x"])
+
+    cells = collections.defaultdict(list)
+    for w in text_w:
+        r = row_of(w["y0"])
+        cells[(r, sum(1 for dx in delim_at[r] if dx < w["x0"]))].append(w)
+    for ws in cells.values():
+        ws.sort(key=lambda w: w["x0"])
+    cell_text = {k: " ".join(w["text"] for w in ws) for k, ws in cells.items()}
+    xcell = keyed([ws[0]["x0"] for ws in cells.values()], 3)
+    cell_key = {k: xcell[ws[0]["x0"]] + (gid[rindex[rowof[ws[0]["y0"]]]],) for k, ws in cells.items()}
+
+    items = [((r), cell_key[(r, i)], cell_text[(r, i)]) for (r, i) in cells]
     for x, r0, r1, _ in glyph_spans:
         items += [(r, x, "X") for r in range(r0, r1 + 1)]
     for s in stems:
         cov = covers(s)
         if cov:
-            items += [(r, stemx(s), "X") for r in range(shift[cov[0]], shift[cov[-1]] + 1)]
+            items += [(r, stem_key[id(s)], "X") for r in range(shift[cov[0]], shift[cov[-1]] + 1)]
     col = pack_columns(items)
 
     width = max(col[x] + len(t) for _, x, t in items) + 2
     grid = [[" "] * width for _ in range(nrows)]
     marks = collections.defaultdict(list)
 
-    for w in text_w:
-        r, c = row_of(w["y0"]), col[xtext[w["x0"]]]
-        for i, ch in enumerate(w["text"]):
-            grid[r][c + i] = ch
-        if w["underlined"]:
-            marks[r].append((c, len(w["text"])))
+    for (r, i), ws in cells.items():
+        c = col[cell_key[(r, i)]]
+        for w in ws:
+            for j, ch in enumerate(w["text"]):
+                grid[r][c + j] = ch
+            if w["underlined"]:
+                marks[r].append((c, len(w["text"])))
+            c += len(w["text"]) + 1                # single space between the words of one phrase
 
     # A delimiter must never land on a character. Text is placed first and the delimiters over it, so a clash
     # means the layout is wrong — a stem given a row it does not enclose, or two delimiters clustered into one
@@ -326,7 +376,7 @@ def build(page, lo, hi, extract, classify_page):
             continue
         opening = s["side"] == "L" if s.get("side") else s["x"] < midof[round(s["y0"] / 8)]
         span = list(range(shift[cov[0]], shift[cov[-1]] + 1))
-        c = col[stemx(s)]
+        c = col[stem_key[id(s)]]
         for n, r in enumerate(span):
             if s["kind"] == "bar":
                 put(r, c, BAR)

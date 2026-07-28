@@ -118,11 +118,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      affected is the reference-format ruler, which carries no general format); and rule 5's spacer row ignored
      glyph-drawn delimiters, so every two-alternative BRACE came out two rows tall with no point (folio 276).
      Cross-checked against the printed page: folios 275/276 and 127 now render exactly as printed.
+   - **SPACING settled from the printed page** (owner review of the first sheet): a BLANK ROW separates groups
+     — located from the enclosures, since the gap cannot be measured as a gap (19.0 pt *between* the exception
+     group and `[ END-ACCEPT ]`, 17.3 pt *inside* it) — and layout is now **per group, per cell**: columns
+     align only where one delimiter spans both rows, and a cell (a run of words between delimiters) flows with
+     single spaces. That removed every stray-gap artifact at its root, including `[ END-ACCEPT  ]`, which had
+     been recorded as un-fixable by tolerance and was really a symptom of packing one column space figure-wide.
+   - **KNOWN, and a row-model question rather than a bug:** where a clause label is vertically CENTRED beside a
+     group, its centring offset becomes a row of its own, stretching a neighbouring group by one row. ASSIGN in
+     the file-control entry is the case — its inner brace draws four rows where print has two. The same
+     treatment is what gives ACCEPT's `AT` its own (correct, owner-approved) row, so the two cannot be told
+     apart without a two-dimensional row model. Left as printed-faithful-enough pending an owner call.
    - **NEXT:** ⓐ the owner judges the TEST SHEET (`--sheet`, 24 figures over 13 pages spanning statement ·
      file-control clause list · data-description · conditions · the FLOAT-DECIMAL clause). ⓑ then sweep, as
-     regenerate-and-diff. One cosmetic wart stands, deliberately un-tuned: `[ END-ACCEPT  ]` carries a stray
-     space because `]` at x 160.8 aligns with `NUMBER` at 161.4 — *tighter* than genuine alignments such as
-     FIRST/KEY/LAST at 0.9 apart, so no tolerance can separate a coincidence from a real column here.
+     regenerate-and-diff.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan

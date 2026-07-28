@@ -112,6 +112,31 @@ splitter fragmented single figures and merged neighbouring ones.
 
 Over the whole standard this locates **475 figures on 339 pages**, all laying out without a collision.
 
+## Layout rules, for the generator
+
+### A blank row between groups
+
+The printed figure separates ACCEPT Format 3's `AT` group, its exception group and `[ END-ACCEPT ]`, and the
+worked example below keeps those blank rows. They are not decoration — without them a statement's phrases run
+together into one block.
+
+Where they go cannot be measured as a *gap*: 19.0 pt separates the exception group from `[ END-ACCEPT ]` while
+17.3 pt separates the two rows **inside** that group. (That is the same trap that defeated gap-based band
+detection one level up.) The enclosures already state it: **two adjacent rows belong together when some
+delimiter spans both**, and are separate groups otherwise.
+
+### Columns align within a group; words flow within a cell
+
+Two rows share a column only when the same delimiter spans them. Packing one column space across a whole figure
+lets unrelated clauses shove each other about — the file-control entry stacks two dozen independent clauses, and
+that is what produced `[ ORGANIZATION  IS  ]` and `[ FILE STATUS IS data-name-4  ]`.
+
+Within a row, a **cell** is a run of words between two delimiters, and its words flow with single spaces. Only
+cells align. Aligning individual *words* across rows aligns coincidences: on the COMPUTE page `ERROR` sits at
+x 130.6 and `SIZE` on the row below at 129.7 — 0.9 apart, which is exactly the spread of a *genuine* alignment
+(`FIRST`/`KEY`/`LAST`), so no tolerance can separate the two cases. Nothing needs to: those words are one
+phrase and belong together.
+
 ## Construction rules, for the generator
 
 - **Auto-size each group** to its widest row; never hand-place the closing delimiter.
