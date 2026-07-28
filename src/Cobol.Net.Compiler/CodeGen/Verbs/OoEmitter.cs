@@ -690,7 +690,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
-                     && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale))
+                     && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale
+                         // …and the SIGN rule, which the digit/scale pair does not imply. §14.9.25.4 GR6d2b:
+                         // "When an unsigned numeric item is the receiving item, the ABSOLUTE VALUE of the
+                         // sending value is used, and no operational sign is generated for the receiving
+                         // item." A signed argument whose description otherwise matches an UNSIGNED formal
+                         // used to fall to the plain arm below, which copies the native value verbatim —
+                         // ClrType is `long` for every fixed-point usage, so −7 arrived as −7. The reverse
+                         // (unsigned → signed) needs no conversion: GR6d2a makes the sign positive and the
+                         // value is unchanged, so testing `!=` here would convert a provable identity.
+                         || (cp.Item.Pic is { Signed: true } && !a.Formal.Pic!.Signed)))
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(cx.Expr, $"{cx.Scale}", qualProfile)};");

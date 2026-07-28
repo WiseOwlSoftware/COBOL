@@ -66,6 +66,7 @@
     "oo_instance_data",
     "oo_interface",
     "oo_interface_conformance",
+    "oo_invoke_content_unsigned_formal",
     "oo_set_self_interface",
     "oo_interface_covariant",
     "oo_method_args",
