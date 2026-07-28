@@ -8969,16 +8969,19 @@ The relational operators specify the type of comparison to be made in a relation
 
 **Format 1 (simple-relational-operator):**
 
-```
-⌐                      ¬
-| IS GREATER THAN       |
-| IS >                  |
-| IS LESS THAN          |
-| IS <                  |
-| IS EQUAL TO           |
-| IS =                  |
-L                      ┘
-```
+<pre>
+╭ IS <u>GREATER</u> THAN ╮
+│                 │
+│ IS >            │
+│                 │
+┤ IS <u>LESS</u> THAN    ├
+│                 │
+│ IS <            │
+│                 │
+│ IS <u>EQUAL</u> TO     │
+│                 │
+╰ IS =            ╯
+</pre>
 
 **Format 2 (extended-relational-operator):**
 
@@ -16132,40 +16135,53 @@ The following is the general format of the sections in the data division and def
 <a id="section-13-2-1"></a>
 #### 13.2.1 General format
 
-`DATA DIVISION.`
+<pre>
+<u>DATA</u> <u>DIVISION.</u>
 
-```
-DATA DIVISION.
+┌               ┌                        ┌ constant-entry           ┐              ┐   ┐
+│               │                        │                          │              │   │
+│               │ file-description-entry │ record-description-entry │ …            │   │
+│               │                        │                          │              │   │
+│               │                        └ type-declaration-entry   ┘              │   │
+│ <u>FILE</u> <u>SECTION.</u> │                                                                  │ … │
+│               │                                   ╭ constant-entry           ╮   │   │
+│               │                                   │                          │   │   │
+│               │ sort-merge-file-description-entry ┤ record-description-entry ├ … │   │
+│               │                                   │                          │   │   │
+└               └                                   ╰ type-declaration-entry   ╯   ┘   ┘
 
-⎡                ⎡                                    ⎡ constant-entry           ⎤      ⎤     ⎤
-⎢                ⎢ file-description-entry             ⎢ record-description-entry ⎥  …   ⎥     ⎥
-⎢                ⎢                                    ⎣ type-declaration-entry   ⎦      ⎥     ⎥
-⎢ FILE SECTION.  ⎢                                                                      ⎥  …  ⎥
-⎢                ⎢                                    ⎧ constant-entry           ⎫      ⎥     ⎥
-⎢                ⎢ sort-merge-file-description-entry  ⎨ record-description-entry ⎬  …   ⎥     ⎥
-⎣                ⎣                                    ⎩ type-declaration-entry   ⎭      ⎦     ⎦
+┌                          ┌ 77-level-description-entry ┐   ┐
+│                          │                            │   │
+│ <u>WORKING-STORAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│                          │                            │   │
+│                          │ record-description-entry   │   │
+│                          │                            │   │
+└                          └ type-declaration-entry     ┘   ┘
 
-⎡                           ⎡ 77-level-description-entry ⎤      ⎤
-⎢ WORKING-STORAGE SECTION.  ⎢ constant-entry             ⎥  …   ⎥
-⎢                           ⎢ record-description-entry   ⎥      ⎥
-⎣                           ⎣ type-declaration-entry     ⎦      ⎦
+┌                        ┌ 77-level-description-entry ┐   ┐
+│                        │                            │   │
+│ <u>LOCAL-STORAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│                        │                            │   │
+│                        │ record-description-entry   │   │
+│                        │                            │   │
+└                        └ type-declaration-entry     ┘   ┘
 
-⎡                         ⎡ 77-level-description-entry ⎤      ⎤
-⎢ LOCAL-STORAGE SECTION.  ⎢ constant-entry             ⎥  …   ⎥
-⎢                         ⎢ record-description-entry   ⎥      ⎥
-⎣                         ⎣ type-declaration-entry     ⎦      ⎦
+┌                  ┌ 77-level-description-entry ┐   ┐
+│                  │                            │   │
+│ <u>LINKAGE</u> <u>SECTION.</u> │ constant-entry             │ … │
+│                  │                            │   │
+│                  │ record-description-entry   │   │
+│                  │                            │   │
+└                  └ type-declaration-entry     ┘   ┘
 
-⎡                   ⎡ 77-level-description-entry ⎤      ⎤
-⎢ LINKAGE SECTION.  ⎢ constant-entry             ⎥  …   ⎥
-⎢                   ⎢ record-description-entry   ⎥      ⎥
-⎣                   ⎣ type-declaration-entry     ⎦      ⎦
+┌                 ┌                          ╭ constant-entry                 ╮   ┐   ┐
+│ <u>REPORT</u> <u>SECTION.</u> │ report-description-entry ┤                                ├ … │ … │
+└                 └                          ╰ report-group-description-entry ╯   ┘   ┘
 
-⎡                  ⎡                           ⎧ constant-entry                 ⎫      ⎤     ⎤
-⎣ REPORT SECTION.  ⎣ report-description-entry  ⎩ report-group-description-entry ⎭  …   ⎦  …  ⎦
-
-⎡                  ⎡ constant-entry           ⎤      ⎤
-⎣ SCREEN SECTION.  ⎣ screen-description-entry ⎦  …   ⎦
-```
+┌                 ┌ constant-entry           ┐   ┐
+│ <u>SCREEN</u> <u>SECTION.</u> │                          │ … │
+└                 └ screen-description-entry ┘   ┘
+</pre>
 
 > **Figure notes (Data division structure syntax diagram).** `DATA`, `DIVISION`, `FILE`, `SECTION`, `WORKING-STORAGE`, `LOCAL-STORAGE`, `LINKAGE`, `REPORT`, and `SCREEN` are underlined in the printed standard (required words); every `SECTION` and its following period are printed as part of the section header. Each section as a whole is enclosed in its own outer bracket, so every section is optional.
 > ⚠ Note the deliberate **mixed delimiters in the FILE SECTION**: the entry list following `file-description-entry` is a BRACKET group (`[ … ] …`, zero or one alternative per repetition) while the list following `sort-merge-file-description-entry` is a BRACE group (`{ … } …`, exactly one alternative per repetition); this is exactly as printed. The two file-entry alternatives are themselves enclosed in a bracket, and the `…` outside it repeats the whole bracketed pair. The WORKING-STORAGE, LOCAL-STORAGE, LINKAGE and SCREEN entry lists are all BRACKET groups followed by `…`.
@@ -33083,28 +33099,25 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 <a id="section-14-9-48-2"></a>
 ##### 14.9.48.2 General format
 
-UNSTRING identifier-1
+<pre>
+<u>UNSTRING</u> identifier-1
 
-```
-⌐                                                                          ¬
-| DELIMITED BY [ ALL ] { identifier-2 } [ OR [ ALL ] { identifier-3 } ] … |
-|                       { literal-1   }                { literal-2   }     |
-L                                                                          ⌐
-```
+┌                      ╭ identifier-2 ╮ ┌            ╭ identifier-3 ╮ ┐   ┐
+│ <u>DELIMITED</u> BY [ <u>ALL</u> ] ┤              ├ │ <u>OR</u> [ <u>ALL</u> ] ┤              ├ │ … │
+└                      ╰ literal-1    ╯ └            ╰ literal-2    ╯ ┘   ┘
 
-INTO { identifier-4 [ DELIMITER IN identifier-5 ] [ COUNT IN identifier-6 ] } …
-[ WITH POINTER identifier-7 ]
-[ TALLYING IN identifier-8 ]
+<u>INTO</u> { identifier-4 [ <u>DELIMITER</u> IN identifier-5 ] [ <u>COUNT</u> IN identifier-6 ] } …
+[ WITH <u>POINTER</u> identifier-7 ]
+[ <u>TALLYING</u> IN identifier-8 ]
 
-```
-⎡|  ON OVERFLOW imperative-statement-1      |⎤
-⎣|  NOT ON OVERFLOW imperative-statement-2  |⎦
-```
+┌ │ ON <u>OVERFLOW</u> imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> ON <u>OVERFLOW</u> imperative-statement-2 │ ┘
+
+[ <u>END-UNSTRING</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `ON OVERFLOW imperative-statement-1` / `NOT ON OVERFLOW imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one UNSTRING statement may specify neither phrase, `ON OVERFLOW imperative-statement-1` alone, `NOT ON OVERFLOW imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
-
-[ END-UNSTRING ]
-
 <a id="section-14-9-48-3"></a>
 ##### 14.9.48.3 Syntax rules
 

@@ -48,6 +48,7 @@ HEADING = re.compile(r"^\s*#{1,6}\s")
 # stems. It is figure content, but it can neither open nor close a run: treating it as prose chopped every
 # generated figure into as many spans as it had such rows.
 NOTATION_ONLY = re.compile(r"^[\s│┤├╭╮╰╯┌┐└┘─|]*$")
+ART_ONLY = re.compile(r"^[\sL⌐¬|┌┐└┘─│]*$")     # an ASCII-art corner row: `⌐   ¬` above, `L   ┘` below
 # A blockquote, but NEVER a compiler directive: `>>POP` and `>> SOURCE FORMAT` are figure CONTENT. Matching
 # them as quotes made the sweep re-emit a figure's own first line after the figure, as though it were a note.
 BLOCKQUOTE = re.compile(r"^\s*>(?!>)")
@@ -106,6 +107,10 @@ def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
     # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
     # transcription picked one per site. Which glyph is used is typography, not a difference in the language.
     body = body.translate(str.maketrans({"‒": "-", "–": "-", "−": "-", "—": "-"}))
+    # An ASCII-ART CORNER ROW carries no words. The older figures draw a bracket with `⌐ ¬` on top and
+    # `L ┘` beneath, so the foot `L` reads as a capital letter — the only place a bare `L` appears in a
+    # figure. Dropping whole art-only lines removes it without making `L` un-wordable everywhere.
+    body = "\n".join("" if ART_ONLY.match(l) else l for l in body.splitlines())
     plain = "".join(" " if ch in NOTATION else ch for ch in body.replace("*", " "))
     plain = plain.replace("...", " ")
     # The separator period is punctuation, not a word, and the two sides disagree about whether it is attached:
