@@ -9102,27 +9102,21 @@ The following rules apply regardless of the mode of arithmetic that is in effect
 
 4) The ways in which identifiers, literals, operators, and parentheses may be combined in arithmetic expressions are summarized in Table 3, Combinations of symbols in arithmetic expressions.
 
-**Table 3 — Combinations of symbols in arithmetic expressions**
-
-| First symbol | Second symbol | | | |
-|---|---|---|---|---|
-| | **Identifier or literal** | **+ – * / \*\*** | **Unary + or –** | **(** | **)** |
-
----
-
-
-
 <a id="page-206"></a>
 ## Page 206
-
 # ISO/IEC 1989:2023 (E)
 
-| Identifier or literal | — | P | — | — | P |
+**Table 3 — Combinations of symbols in arithmetic expressions**
+
+| First symbol ↓ &nbsp; Second symbol → | **Identifier or literal** | **+ − * / \*\*** | **Unary + or −** | **(** | **)** |
 |---|---|---|---|---|---|
+| Identifier or literal | — | P | — | — | P |
 | + − * / ** | P | — | P | P | — |
 | Unary **+** or **−** | P | — | — | P | — |
 | ( | P | — | P | P | — |
 | ) | — | P | — | — | P |
+
+> **Table note.** The printed table has a TWO-LEVEL header: the corner cell `First symbol` beside a single `Second symbol` cell spanning all five data columns. Markdown cannot span a header cell, so the two axes are named in the corner instead — the ROWS are the first symbol, the COLUMNS the second.
 
 The letter 'P' indicates a permissible pair of symbols.
 The character '—' indicates an invalid pair.
@@ -9437,7 +9431,7 @@ Otherwise the expression shall end with one of the following:
 
 **Table 4 — Combination of symbols in boolean expressions**
 
-| **First Symbol** | **Identifier or literal** | **B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC** | **B-NOT** | **(** | **)** |
+| **First Symbol ↓ &nbsp; Second Symbol →** | **Identifier or literal** | **B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC** | **B-NOT** | **(** | **)** |
 |---|---|---|---|---|---|
 | Identifier or literal | — | P | — | — | P |
 | B-AND, B-OR, B-XOR | P | — | P | P | — |
@@ -9445,6 +9439,8 @@ Otherwise the expression shall end with one of the following:
 | B-NOT | P | — | — | P | — |
 | ( | P | — | P | P | — |
 | ) | — | P | — | — | P |
+
+> **Table note.** The printed table has a TWO-LEVEL header: the corner cell beside a single spanning cell over all data columns. Markdown cannot span a header cell, so both axes are named in the corner instead.
 
 Legend: &nbsp;&nbsp; P &nbsp; indicates a permissible pair  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; — &nbsp; indicates an invalid pair
@@ -29253,7 +29249,7 @@ FORMAT 1
 
 **Table 16 — Validity of types of MOVE statements**
 
-| Category of sending operand | | Alphabetic | Alphanumeric-edited, Alphanumeric | Boolean | National, National-edited | Numeric, Numeric-edited | Type-name |
+| **Category of sending operand ↓ &nbsp; Category of receiving operand →** | | Alphabetic | Alphanumeric-edited, Alphanumeric | Boolean | National, National-edited | Numeric, Numeric-edited | Type-name |
 |---|---|---|---|---|---|---|---|
 | Alphabetic | | Yes | Yes | No | Yes | No | No |
 | Alphanumeric | | Yes | Yes | Yes | Yes | Yes | No |
@@ -29265,6 +29261,8 @@ FORMAT 1
 | Numeric | Noninteger | No | No | No | No | Yes | No |
 | Numeric-edited | | No | Yes | No | Yes | Yes | No |
 | Type-name | | Yes | Yes | Yes | Yes | Yes | Yes |
+
+> **Table note.** The printed table has a TWO-LEVEL header: the corner cell beside a single spanning cell over all data columns. Markdown cannot span a header cell, so both axes are named in the corner instead.
 
 FORMAT 2
 
@@ -41592,14 +41590,11 @@ Tagalog:
 Tagbanwa:
 1760-176C, 176E-1770
 
-Tai_Le:
-
-
 <a id="page-1020"></a>
 ## Page 1020
-
 # ISO/IEC 1989:2023 (E)
 
+Tai_Le:
 1950-196D, 1970-1974
 
 Tai_Tham:
@@ -41648,14 +41643,11 @@ Wancho:
 Warang_Citi:
 118A0-118DF, 118FF
 
-Yezidi:
-
-
 <a id="page-1021"></a>
 ## Page 1021
-
 **ISO/IEC 1989:2023 (E)**
 
+Yezidi:
 10E80-10EA9, 10EB0-10EB1
 
 Yi:
@@ -50416,14 +50408,11 @@ Telugu:
 Thaana:
 07B1
 
-Tibetan:
-
-
 <a id="page-1222"></a>
 ## Page 1222
-
 # ISO/IEC 1989:2023 (E)
 
+Tibetan:
 0F3E-0F3F, 0F6B-0F6C, 0F8C-0F8F, 0FC6
 
 Tifinagh:
