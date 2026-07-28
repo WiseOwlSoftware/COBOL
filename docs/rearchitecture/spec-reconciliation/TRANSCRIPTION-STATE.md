@@ -124,6 +124,20 @@ compiler-directive word — *with or without an intervening space*". Standard-wi
 spaced and 42 glued, faithfully. A conforming compiler must accept BOTH; ours does — all seven recognizers in
 `Frontend/Preprocessor/` slice `>>` then `TrimStart()` (or match `>>\s*`).
 
+✅ **OWNER DECISION 2026-07-28 — FOLLOW THE PDF; do not normalise either way.** Normalising to one spelling was
+considered and declined. It would make the figure GENERATOR deviate from the page it measures — either baked
+in, which blunts `sweep_figures --check` exactly where we deviate, or as a post-pass every sweep re-undoes —
+and it would need one mechanism for the generated figures and a second for the hand-written syntax rules. It
+would also be a deliberate 42-instance departure requiring an Addendum entry, for a spelling that is not a
+defect. The ambiguity is removed instead by the marked editorial note at §7.3, which names the rule, quotes
+both citations, and states that neither spelling is preferred. **A reader who finds `>>IF` on one line and
+`>> IF` on another is seeing the standard, not an error — leave it.**
+
+⚠ The underline defect this question grew out of is a separate matter and IS fixed: five figures underlined the
+`>>` itself, making it look like a required WORD. `figure_extract` now measures the underline per CHARACTER, and
+that measurement may only ever TRIM a word the per-word test accepted — never promote one, because a bracket
+foot is a short rule that cannot cover 55% of a word but trivially covers one glyph.
+
 ## Already closed, do not redo
 
 Pages removed entirely (anchors, running headers, and the 758 leftover `---` rules) · every page reference
