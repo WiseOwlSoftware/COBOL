@@ -107,6 +107,24 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    - **Every page reference is now a clause link — none is left as a bare number**, including the 48 the
      de-indexer had skipped and the one normative citation in prose. The preface states the de-paging decision
      explicitly; previously it was documented only inside the index.
+   - **758 horizontal rules removed.** A page boundary was transcribed as anchor + running header + a pair of
+     `---` separators; de-paging took the first two and left 769 of the third, 287 of them in pairs with
+     nothing between. Residue, not a convention: of 2,691 headings, 2,380 have no rule before them. The front
+     matter keeps its 11 (they divide title-page blocks printed on ONE page). `strip_page_rules.py`.
+   - **⛔ NEXT ON THE TRANSCRIPTION: Figure D.6, the last undrawn Annex D illustration.** `lint_rendering.py`
+     is RED at 1 for exactly this and will go green when it lands. Eight of the nine are done — D.1, D.3, D.7,
+     D.9, D.10, D.11, D.12, D.13, D.14 drawn; D.8 was already correct; D.5 is Markdown tables, which is a fair
+     representation of a class hierarchy and is deliberately left. THREE GENERATORS, each with the printed
+     folio in its docstring:
+     · `repairs/annex_d_flowcharts.py` — the VARYING charts and D.1 (boxes down an axis, loops, second column)
+     · `repairs/annex_d_truth_charts.py` — the condition-evaluation charts D.7–D.10
+     · `repairs/annex_d_structure.py` — D.3, the nested schematic; **the right home for D.6**, which is a
+       rectangle-and-label page layout rather than a flowchart
+   - **⛔ EVERY ONE OF THESE GENERATORS NEEDS THE COLLISION GUARD** — `put` refusing to overwrite a non-blank
+     cell, with a separate `junction()` for the one legitimate overwrite. It caught SEVEN defects that would
+     each have rendered as a plausible picture (a branch drawn through a box wall, a loop through a border, an
+     arrow terminating in blank space, two labels merging into `Fromtotherucomp.tgroup`). I omitted it when
+     writing the third generator and it produced garbage immediately. Do not write one without it.
    - **The standard's long tables break across printed pages; the transcription had kept the breaks.** Table 13
      was five tables, Table 21 nine, Table 12 three, Tables 1/6/10 two each — each restarting under a repeated
      caption and a repeated column header that then sits in the body as a data row. 18 joints merged. Table 10's
