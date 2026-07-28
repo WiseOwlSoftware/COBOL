@@ -45,10 +45,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 1. **The EC-infra + OO SUPER-BATCH** — decision-complete plan `docs/rearchitecture/DESIGN-ec-oo-superbatch.md`
    (5 tracks: E/C/D parallel-safe, then the serial EC chain, then CA12 last; an 11-step commit plan). Every item
    shares `EcBinder`/`EcEmitter`/`ExceptionState`, so this batch stays **SERIAL under one coordinated design pass —
-   never parallelized.** ⚠ **Read its §Risks FIRST:** it flags three OWNER DECISIONS to surface before the serial
-   EC work (CA37/CA38 checking-OFF lenient-vs-abort · CA12 co-land · V55 method-side "enabled" literal), and a
-   queue PASTE-ERROR — the CA21 prose describes an INITIALIZE fix already landed as CA2; the real CA21 is the
-   CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
+   never parallelized.** ⚠ **Read its §Risks FIRST:** TWO owner decisions remain to surface before the serial EC
+   work (CA12 co-land · V55 method-side "enabled" literal), and there is a queue PASTE-ERROR — the CA21 prose
+   describes an INITIALIZE fix already landed as CA2; the real CA21 is the CALL-through-NULL-program-pointer
+   wrong-EC-name bug (§14.9.4.4 GR3b).
+   - **✅ CHECKING-OFF DOCTRINE — DECIDED 2026-07-28, batch-wide:** when checking is OFF a fatal-EC raise site is
+     **LENIENT wherever the standard names the outcome, LOUD ABORT wherever it names none.** Lenient: CA37/CA38
+     (§14.9.39 GR30/GR31), CA9's SET pointer UP/DOWN BY (GR19 "content … unchanged"), CA10's scratch-read,
+     CA11/V55. Abort: the four `CobolPtr.Deref` sites — `Deref` returns a `StorageCell`, so leniency there means
+     continuing on a fabricated cell, and §13.18.5.4 GR3/GR4 name no outcome. ⚠ **This CORRECTS the CA9 recipe as
+     drafted** (which keeps the loud throw at all six raise sites): `UpBy`/`UpByScaled` become lenient. Behind it,
+     an owner-requested five-compiler survey — GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL and NetCOBOL
+     ALL hard-stop, none continues; "checking off" nowhere means lenient, it means UNGUARDED, and only our managed
+     `StorageCell` makes leniency reachable at all. Recorded in `DESIGN-ec-oo-superbatch.md` §Risks + the queue's
+     §OWNER-DECIDED.
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
 3. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**

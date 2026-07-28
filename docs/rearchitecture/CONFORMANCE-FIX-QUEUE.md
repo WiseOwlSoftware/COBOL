@@ -90,6 +90,17 @@ pages 600–829), so each site needs its own page checked. That is the remaining
 
 ## ✅ OWNER-DECIDED (2026-07-22 — APPROVED, now fix-ready)
 
+- **CHECKING-OFF DOCTRINE, decided 2026-07-28 — applies to the WHOLE EC super-batch (CA9/CA10/CA11/V55/CA37/CA38),
+  not to one finding.** When exception checking is OFF, a fatal-EC raise site is **LENIENT wherever the standard
+  names the outcome, and a LOUD ABORT wherever it names none.** Lenient: CA37/CA38 (§14.9.39 GR30 'capacity
+  unchanged' / GR31 'SET not executed'), CA9's SET pointer UP/DOWN BY (Format 10 GR19 'unsuccessful … content of
+  identifier-9 is unchanged'), CA10's scratch-read, CA11/V55's skip. Loud abort: the four `CobolPtr.Deref` sites —
+  `Deref` returns a `StorageCell`, so there is no unchanged state to return and leniency would mean continuing on a
+  fabricated cell. §13.18.5.4 GR3/GR4 name no outcome. ⚠ This CORRECTS the CA9 delta as drafted, which keeps the
+  loud throw at all six raise sites: `UpBy`/`UpByScaled` become lenient. Justification incl. the five-compiler
+  survey (all of GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL and NetCOBOL hard-stop; none continues):
+  `DESIGN-ec-oo-superbatch.md` §Risks, first bullet.
+
 - **CA14 → APPROVED option (a): enforce the uniform introduction-error policy.** Replace `DataBinder.cs:2526`
   `Edition.Removed(EditionCodes.Introduction,…)` with the canonical funnel
   `ConstructRegistry.Check(Edition.Edition, Sink, Constructs.SyncOnGroup2023, "data item 'G'")`, activating the
