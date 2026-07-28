@@ -41135,7 +41135,7 @@ One of the language features that separates object oriented languages from conve
 <a id="figure-d-4"></a>
 **Figure D.4 — Manager class**
 
-```
+<pre style="line-height:1">
 ┌─────────────┐
 │    Person   │
 └─────────────┘
@@ -41147,7 +41147,7 @@ One of the language features that separates object oriented languages from conve
 ┌─────────────┐
 │   Manager   │
 └─────────────┘
-```
+</pre>
 
 The manager class is a subclass of the employee class which in turn is a subclass of the person class. Or said another way, the employee class is the superclass of the manager class and the person class is the superclass of the employee class. At any point in the hierarchy, the classes above a given class are its superclasses or its ancestors and the classes below are its subclasses or its children. A subclass includes all of the capabilities of all of its ancestors and additionally may add to or override these capabilities. For example, the methods of the person and employee classes are available to an instance of the manager class as well as the methods defined for the manager class.
 
@@ -41227,7 +41227,7 @@ END CLASS Account.
 ```
 
 
-CheckingAccount Class
+<u>CheckingAccount Class</u>
 
 ```cobol
 CLASS-ID. CheckingAccount INHERITS Account.
@@ -42481,7 +42481,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 <a id="figure-d-7"></a>
 **Figure D.7 — Evaluation of the condition-1 AND condition-2 AND … condition-n**
 
-```
+<pre style="line-height:1">
 ┌─────────────┐
 │  Evaluate   │
 │ condition-1 │
@@ -42517,7 +42517,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
        ↓         Truth value
   Truth value      is false
    is true
-```
+</pre>
 
 <a id="figure-d-8"></a>
 **Figure D.8 — Evaluation of the condition-1 OR condition-2 OR … condition-n**
@@ -42528,7 +42528,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 ---
 
 
-```
+<pre style="line-height:1">
             ┌─────────────────────┐
             │      Evaluate       │
             │     condition-1     │
@@ -42562,7 +42562,7 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
                        ▼                                 ▼
                   Truth value                       Truth value
                    is false                          is true
-```
+</pre>
 
 > **Figure notes (Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3).** This is a flowchart illustration, not a general format, so the brace/bracket notation of 5.2.6 does not apply. Rectangles are process boxes (`Evaluate condition-n`); rounded boxes are decisions (`Condition-n true`). Every `yes` exit joins a single line down the right-hand side terminating in **Truth value is true**; the `no` exit of the last decision falls through to **Truth value is false**. The words `false` and `true` in the two terminals are underlined in the printed standard. The chart is drawn generically over condition-1, condition-2, … condition-n even though the caption names three conditions.
 
@@ -42900,7 +42900,7 @@ Augment identifier-2 with current BY value
 **Figure D.12 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions**
 
 
-```
+<pre style="line-height:1">
                     Entrance
                        |
                        ▼
@@ -42938,7 +42938,7 @@ Augment identifier-2 with current BY value
         └─────────────────────┘                   |
                    |◄──────────────────────────────
                    └──────────────────────────────►
-```
+</pre>
 
 <a id="figure-d-13"></a>
 **Figure D.13 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition**

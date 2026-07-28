@@ -16,10 +16,17 @@ grammar, and it is exactly the detail a transcription loses silently — the rep
 words called "underlined in the printed standard" that are not, each one turning a legal omission into an
 apparent syntax error. Reading it off the page instead of asserting it removes that whole class of defect.
 
-HOW A WORD IS JUDGED UNDERLINED. An underline is a long, thin horizontal rectangle sitting just below the text
-baseline. A word counts as underlined when such a rule lies within `MAX_GAP` points below the word's bottom edge
-and covers most of the word's horizontal extent. Short horizontal rules are excluded: those are bracket FEET, not
-underlines, and telling the two apart is the same distinction `figure_geometry.py` relies on.
+HOW A WORD IS JUDGED UNDERLINED. An underline is a long, thin horizontal rectangle sitting near the text
+baseline. A word counts as underlined when such a rule lies between `MIN_ABOVE` and `MAX_GAP` of the word's
+bottom edge and covers most of the word's horizontal extent. Short horizontal rules are excluded: those are
+bracket FEET, not underlines, and telling the two apart is the same distinction `figure_geometry.py` relies on.
+
+⚠ NOTE THAT THE BAND EXTENDS ABOVE THE WORD BOX, and this cannot be checked by `sweep_figures.py --check`. The
+generator marks required words from this function, so a word this function misses is missing from the generated
+figure AND from the transcription — they agree with each other and both differ from the page. `--check` proves
+consistency, not correctness, and the only thing that can catch a blind spot here is measuring against the raw
+rectangles. That is how the `MIN_ABOVE` population was found: a prose sub-heading on printed page 598 is plainly
+underlined on the rendered page and this function said it was not.
 
     python scripts/spec/figure_extract.py 632
     python scripts/spec/figure_extract.py 607 --band 130 320
@@ -46,6 +53,14 @@ PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 MIN_RULE_W = 3.0
 MAX_RULE_H = 3.0
 MAX_GAP = 4.0         # how far below a word's bottom edge its underline may sit
+# …and how far ABOVE it. A word's bounding box includes DESCENDER space, so a rule drawn tight to the baseline
+# of a word with no descender sits INSIDE the box rather than under it. Measured over the whole standard, the
+# offsets form three clean populations: +1.0 pt (340 samples — every general format), −2.0 pt (14 — table
+# column headers, the CLOSE statement's prose sub-headings, Annex D example labels and the `true`/`false`
+# terminals of the D.7–D.10 flowcharts), and +5.0 pt (25 — a table's TOP BORDER sitting under its caption,
+# which is not an underline and must stay rejected). The old −1.0 bound split the middle population off and
+# under-reported it; −2.5 takes it while staying far from the border population.
+MIN_ABOVE = -2.5
 MIN_COVER = 0.55      # fraction of the word's width the rule must span
 
 
@@ -58,7 +73,7 @@ def is_underlined(word_rect, rules) -> bool:
     x0, y0, x1, y1 = word_rect
     w = max(x1 - x0, 0.1)
     for r in rules:
-        if not (-1.0 <= r.y0 - y1 <= MAX_GAP):
+        if not (MIN_ABOVE <= r.y0 - y1 <= MAX_GAP):
             continue
         cover = min(x1, r.x1) - max(x0, r.x0)
         if cover / w >= MIN_COVER:

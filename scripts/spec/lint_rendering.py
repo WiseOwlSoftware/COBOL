@@ -57,6 +57,8 @@ SEPARATOR = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
 ROW = re.compile(r"^\s*\|.*\|\s*$")
 PRE_OPEN = re.compile(r"<pre(?:\s[^>]*)?>")
 INLINE_CODE = re.compile(r"`[^`]*`")
+# The glyphs that only TILE at line-height 1 — the whole reason that rule exists.
+BOX_DRAWING = set("─│┌┐└┘├┤┬┴┼╭╮╰╯━┃▲▼")
 
 
 def code_mask(lines):
@@ -177,6 +179,20 @@ def main() -> int:
 
     bare = [(i + 1, "figure opens with a bare <pre> — box-drawing rows will not meet")
             for i, l in enumerate(lines) if l.strip() == "<pre>"]
+    # A ``` fence gets no line-height either, and the Annex D illustrations are drawn from the same glyphs as
+    # the general formats. They were missed the first time because that fix keyed on `<pre>` and these had
+    # never been `<pre>`. Key on the GLYPHS instead — that is what actually needs the line-height.
+    infence, start = False, 0
+    for i, l in enumerate(lines):
+        if not l.strip().startswith("```"):
+            continue
+        if infence:
+            if any(BOX_DRAWING & set(x) for x in lines[start + 1:i]):
+                bare.append((start + 1, "box-drawing inside a ``` fence — a fence has no line-height, so "
+                                        "the rows will not meet; use <pre style=\"line-height:1\">"))
+            infence = False
+        else:
+            infence, start = True, i
     findings["LINE-HEIGHT"] = bare
 
     findings["RUN-ON LIST"] = check_runon_lists(lines, mask)
