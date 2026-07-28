@@ -330,8 +330,8 @@ internal static class RuntimeApi
 
     /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>.</summary>
-    public static string TableOdoExtent(string occ, int maxOccurs, int fixedChars, int elemChars) =>
-        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {maxOccurs}, {fixedChars}, {elemChars})";
+    public static string TableOdoExtent(string occ, int minOccurs, int maxOccurs, int fixedChars, int elemChars) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {minOccurs}, {maxOccurs}, {fixedChars}, {elemChars})";
 
     // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
 

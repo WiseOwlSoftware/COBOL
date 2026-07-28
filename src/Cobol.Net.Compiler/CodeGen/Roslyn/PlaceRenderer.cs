@@ -176,5 +176,5 @@ internal static class PlaceRenderer
     /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current character extent (GR8):
     /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site.</summary>
     public static string LengthExpr(OdoGroupPlace p) =>
-        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MaxOccurs, p.FixedChars, p.ElemChars);
+        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs, p.FixedChars, p.ElemChars);
 }

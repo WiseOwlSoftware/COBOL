@@ -52,4 +52,12 @@ public struct CheckingFlags
 
     /// <summary>EC-SIZE-ADDRESS — a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19).</summary>
     public bool SizeAddress;
+
+    /// <summary>EC-BOUND-SUBSCRIPT — a subscript below 1 or above the highest permissible occurrence number
+    /// (§8.4.2.3.4 GR2).</summary>
+    public bool BoundSubscript;
+
+    /// <summary>EC-BOUND-ODO — an OCCURS DEPENDING control value outside integer-1 through integer-2
+    /// (§13.18.38.4 GR7).</summary>
+    public bool BoundOdo;
 }

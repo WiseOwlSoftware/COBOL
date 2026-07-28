@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -25,6 +26,12 @@ public static class CobolTable
         // out of range continues through the zeroed scratch struct, whose nested OCCURS arrays are null
         // (NC401M's 5-deep FAIL-path read) — every further level resolves benignly too.
         if (table is not null && occurrence >= 1 && occurrence <= table.Length) return ref table[(int)(occurrence - 1)];
+        // §8.4.2.3.4 GR2 — "If the value of the subscript is not a positive integer or is less than one or is
+        // greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition is
+        // set to exist." Raised BEFORE the scratch fallback so a CHECKING-ON reference reports the condition;
+        // with checking off the helper returns and the scratch read below stands unchanged.
+        ExceptionState.SubscriptError(
+            $"subscript {occurrence} is outside 1..{(table?.Length ?? 0)} (ISO 8.4.2.3.4 GR2)");
         Scratch<T>.Slot = typeof(T) == typeof(string) ? (T)(object)string.Empty : default!;
         return ref Scratch<T>.Slot;
     }
@@ -47,8 +54,18 @@ public static class CobolTable
     /// GR8): the fixed prefix plus data-name-1's value clamped to [0, max] occurrences, times the per-occurrence
     /// width. A count outside integer-1..integer-2 makes the excess content undefined (GR7); the benign clamp is
     /// the COBOL-85 policy (no exception conditions) and the 2002+ default until EC-BOUND-ODO checking lands.</summary>
-    public static int OdoExtent(long count, int max, int fixedChars, int elemChars)
+    /// <param name="min">integer-1 of the OCCURS DEPENDING clause — the LOWER bound §13.18.38.4 GR7 requires the
+    /// control value to fall within. It was previously absent and the floor hardcoded to 0, so a below-minimum
+    /// DEPENDING value silently clamped instead of raising.</param>
+    public static int OdoExtent(long count, int min, int max, int fixedChars, int elemChars)
     {
+        // §13.18.38.4 GR7 — the value "shall fall within the bounds from integer-1 through integer-2. If the
+        // value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition
+        // is set to exist." Both ends matter; checking off keeps the clamp, whose result GR7's closing sentence
+        // makes undefined content and therefore a conforming implementor choice.
+        if (count < min || count > max)
+            ExceptionState.OdoError(
+                $"OCCURS DEPENDING value {count} is outside {min}..{max} (ISO 13.18.38.4 GR7)");
         long c = count < 0 ? 0 : count > max ? max : count;
         return fixedChars + (int)c * elemChars;
     }

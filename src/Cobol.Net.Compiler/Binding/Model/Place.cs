@@ -132,7 +132,8 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 /// view over it). The legacy's LINKAGE max-length shortcut is deliberately NOT ported: GR8 applies in any section.
 /// </summary>
 public sealed record OdoGroupPlace(
-    Place Inner, Place Depending, int FixedChars, int ElemChars, int MaxOccurs, bool DependingInside)
+    Place Inner, Place Depending, int FixedChars, int ElemChars, int MinOccurs, int MaxOccurs,
+    bool DependingInside)
     : PlaceDecorator(Inner);
 
 /// <summary>

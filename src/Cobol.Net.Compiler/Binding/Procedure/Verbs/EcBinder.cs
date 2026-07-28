@@ -411,6 +411,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 enabled.Add(("EC-BOUND-PTR", null));
             if (ctx.EcState.Turn.Enabled("EC-SIZE-ADDRESS", null, line))
                 enabled.Add(("EC-SIZE-ADDRESS", null));
+            // EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2) and EC-BOUND-ODO (§13.18.38.4 GR7) are ambient for the same
+            // reason: a subscripted reference renders inline through CobolTable.At and an ODO group extent
+            // through CobolTable.OdoExtent, neither of which is a distinguishable node kind at the statement
+            // level. The guard around a table-free statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-SUBSCRIPT", null, line))
+                enabled.Add(("EC-BOUND-SUBSCRIPT", null));
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-ODO", null, line))
+                enabled.Add(("EC-BOUND-ODO", null));
             // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
             // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
             // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float

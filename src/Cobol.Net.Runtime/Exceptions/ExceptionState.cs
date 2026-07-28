@@ -351,6 +351,51 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── The table-bound fatal ECs (CA10): EC-BOUND-SUBSCRIPT / EC-BOUND-ODO ───────────────────────────────────
+    // Checking-OFF stays LENIENT for both, per the owner's rule, and here the standard supplies the outcome to
+    // be lenient WITH: §13.18.38.4 GR7 ends "The content of a data item whose occurrence number exceeds the
+    // value of the data item referenced by data-name-1 is undefined", so the existing scratch-slot read and the
+    // [0,max] clamp are conforming implementor choices. Only the NAMED condition is new.
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-SUBSCRIPT checking enabled (fatal).</summary>
+    public bool BoundSubscriptChecking
+    {
+        get => _checking.BoundSubscript;
+        set => _checking.BoundSubscript = value;
+    }
+
+    /// <summary>Raise EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2: "If the value of the subscript is not a positive
+    /// integer or is less than one or is greater than the highest permissible occurrence number, the
+    /// EC-BOUND-SUBSCRIPT exception condition is set to exist"; Table 13 Fatal) when checking is enabled;
+    /// otherwise return and the caller's scratch-slot read stands, byte-identical to a pre-EC build.</summary>
+    public void SubscriptError(string detail)
+    {
+        if (BoundSubscriptChecking)
+        {
+            Set("EC-BOUND-SUBSCRIPT", fatal: true);
+            throw new CobolFatalException("EC-BOUND-SUBSCRIPT", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-ODO checking enabled (fatal).</summary>
+    public bool BoundOdoChecking
+    {
+        get => _checking.BoundOdo;
+        set => _checking.BoundOdo = value;
+    }
+
+    /// <summary>Raise EC-BOUND-ODO (§13.18.38.4 GR7: the value of the data item referenced by data-name-1
+    /// "shall fall within the bounds from integer-1 through integer-2"; Table 13 Fatal) when checking is
+    /// enabled; otherwise return and the caller's clamp stands.</summary>
+    public void OdoError(string detail)
+    {
+        if (BoundOdoChecking)
+        {
+            Set("EC-BOUND-ODO", fatal: true);
+            throw new CobolFatalException("EC-BOUND-ODO", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -606,6 +651,26 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
     public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundSubscriptChecking"/>
+    public static bool BoundSubscriptChecking
+    {
+        get => E.BoundSubscriptChecking;
+        set => E.BoundSubscriptChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SubscriptError"/>
+    public static void SubscriptError(string detail) => E.SubscriptError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOdoChecking"/>
+    public static bool BoundOdoChecking
+    {
+        get => E.BoundOdoChecking;
+        set => E.BoundOdoChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.OdoError"/>
+    public static void OdoError(string detail) => E.OdoError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();
