@@ -645,9 +645,35 @@ pre { font-family:Consolas,'Cascadia Mono','Lucida Console',ui-monospace,monospa
       line-height:1; font-size:13px; background:#fff; border:1px solid #e4e4df; border-radius:4px;
       padding:1rem; overflow-x:auto; margin:0; }
 pre u { text-decoration-thickness:1px; text-underline-offset:2px; }
+.pair { display:grid; grid-template-columns:1fr; gap:.9rem; }
+@media (min-width:62rem){ .pair { grid-template-columns:1fr 1fr; align-items:start; } }
+.pair img { max-width:100%; border:1px solid #e4e4df; border-radius:4px; background:#fff; }
+p.lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:#8a8a82; margin:0 0 .3rem; }
 @media (prefers-color-scheme:dark){ body{background:#16161a;color:#e8e8e3;} p.note{color:#9a9a94;}
   .meta{color:#87877e;} pre{background:#1e1e23;border-color:#33333a;} }
 """
+
+
+def clause_title(doc, pno, back=6):
+    """The clause this page's figures belong to, walking back through continuation pages.
+
+    A figure region that runs over a page break leaves the continuation page with no heading of its own, and
+    labelling those "(continued)" made them unfindable — the ASSIGN clause of the file-control entry could not
+    be located in a sheet that contained it twice.
+    """
+    for n in range(pno, max(pno - back, 0), -1):
+        heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT.search(t)]
+        if heads:
+            return heads[0] + (f" — continued on folio {pno - 30}" if n < pno else "")
+    return "(continued from the previous page)"
+
+
+def printed_crop(page, lo, hi, dpi=170):
+    """The printed figure as a data: URI, so the sheet can be compared against the page it came from."""
+    import base64
+    clip = fitz.Rect(50, max(lo - 10, 0), 565, hi + 12)
+    png = page.get_pixmap(dpi=dpi, clip=clip).tobytes("png")
+    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
 def sheet(doc, pages, out_path, extract, classify_page):
@@ -659,8 +685,7 @@ def sheet(doc, pages, out_path, extract, classify_page):
              'hand. Bands are located from the clause structure, not from spacing.</p>']
     for pno in pages:
         page = doc[pno - 1]
-        heads = [t for _, t in headings(page) if GENERAL_FORMAT.search(t)]
-        title = heads[0] if heads else "(continued from the previous page)"
+        title = clause_title(doc, pno)
         bands = find_bands(page, extract)
         for n, (lo, hi) in enumerate(bands, 1):
             grid, marks = build(page, lo, hi, extract, classify_page)
@@ -669,8 +694,12 @@ def sheet(doc, pages, out_path, extract, classify_page):
             body = "\n".join(render(grid, marks, False))
             parts.append(f"<h2>{title}</h2>")
             parts.append(f'<p class="meta">printed folio {pno - 30} &middot; PDF page {pno} &middot; '
-                         f"figure {n} of {len(bands)} &middot; y {lo:.0f}–{hi:.0f}</p>")
-            parts.append(f"<pre>{body}</pre>")
+                         f'figure {n} of {len(bands)}</p>')
+            parts.append('<div class="pair">')
+            parts.append(f'<div><p class="lbl">printed</p>'
+                         f'<img src="{printed_crop(page, lo, hi)}" alt="printed figure"></div>')
+            parts.append(f'<div><p class="lbl">generated</p><pre>{body}</pre></div>')
+            parts.append("</div>")
     out_path.write_text("\n".join(parts), encoding="utf-8")
     return len(parts)
 
@@ -693,6 +722,7 @@ def main() -> int:
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a "
                  "PRIVATE submodule: git submodule update --init specs-private")
     import fitz
+    globals()["fitz"] = fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
