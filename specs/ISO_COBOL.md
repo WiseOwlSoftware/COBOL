@@ -3454,16 +3454,17 @@ The COPY statement incorporates library text into a COBOL compilation group.
 <a id="section-7-2-3-2"></a>
 ##### 7.2.3.2 General format
 
-> ```
-> COPY ⎧ literal-1   ⎫ ⎡ ⎧ OF ⎫ ⎧ literal-2      ⎫ ⎤ [ SUPPRESS PRINTING ]
->      ⎩ text-name-1 ⎭ ⎣ ⎩ IN ⎭ ⎩ library-name-1 ⎭ ⎦
->
-> ⎡           ⎧ == pseudo-text-1 == BY == pseudo-text-2 ==                 ⎫   ⎤
-> ⎢           ⎪                                                           ⎪   ⎥
-> ⎢ REPLACING ⎨ ⎧ LEADING  ⎫                                              ⎬ … ⎥ .
-> ⎢           ⎪ ⎨          ⎬ == partial-word-1 == BY == partial-word-2 == ⎪   ⎥
-> ⎣           ⎩ ⎩ TRAILING ⎭                                              ⎭   ⎦
-> ```
+<pre>
+     ╭ literal-1   ╮ ┌ ╭ <u>OF</u> ╮ ╭ literal-2      ╮ ┐ [ <u>SUPPRESS</u> PRINTING ]
+<u>COPY</u> ┤             ├ │ ┤    ├ ┤                ├ │
+     ╰ text-name-1 ╯ └ ╰ <u>IN</u> ╯ ╰ library-name-1 ╯ ┘
+
+┌           ╭ == pseudo-text-1 == <u>BY</u> == pseudo-text-2 ==                    ╮   ┐
+│ <u>REPLACING</u> ┤ ╭                                                           ╮ ├ … │ .
+│           │ │ ╭ <u>LEADING</u>  ╮                                              │ │   │
+│           │ ┤ ┤          ├ == partial-word-1 == <u>BY</u> == partial-word-2 == ├ │   │
+└           ╰ ╰ ╰ <u>TRAILING</u> ╯                                              ╯ ╯   ┘
+</pre>
 >
 > > **Figure notes (COPY statement general format).** `COPY`, `OF`, `IN`, `SUPPRESS`, `REPLACING`, `BY`, `LEADING`, and `TRAILING` are underlined in the printed standard (required words). `PRINTING` is **not** underlined. The `OF`/`IN` qualification phrase and the whole `REPLACING` phrase are each enclosed in brackets (optional). Within the `REPLACING` bracket, the two replacement forms are enclosed in **braces** — exactly one form per operand pair — and the `…` immediately to the right of that brace pair means the brace-delimited replacement operand may be repeated. The terminating period is printed **outside** the closing bracket.
 
@@ -3597,18 +3598,21 @@ The REPLACE statement modifies text in a compilation group.
 
 Format 1 (replacing):
 
-```
-                    ⎧  == pseudo-text-1 ==  BY  == pseudo-text-2 ==                     ⎫
-REPLACE [ ALSO ]    ⎨  ⎧ LEADING  ⎫                                                     ⎬ …  .
-                    ⎩  ⎩ TRAILING ⎭  == partial-word-1 ==  BY  == partial-word-2 ==     ⎭
-```
+<pre>
+                 ╭ == pseudo-text-1 == <u>BY</u> == pseudo-text-2 ==                ╮
+<u>REPLACE</u> [ <u>ALSO</u> ] ┤                                                           ├ … .
+                 │ ╭ <u>LEADING</u>  ╮                                              │
+                 │ ┤          ├ == partial-word-1 == <u>BY</u> == partial-word-2 == │
+                 ╰ ╰ <u>TRAILING</u> ╯                                              ╯
+</pre>
 
 > **Figure notes (REPLACE statement Format 1 (replacing) syntax diagram).** `REPLACE`, `ALSO`, `BY` (both occurrences), `LEADING`, and `TRAILING` are underlined in the printed standard (required words). The outer delimiter is a pair of **braces**: exactly one of the two alternatives is selected on each repetition. The ellipsis and the terminating period follow the closing brace, so the whole brace group repeats one or more times and the statement ends with a separator period. No choice indicators appear in this figure.
 
 Format 2 (off):
 
-`REPLACE [ LAST ] OFF .`
-
+<pre>
+<u>REPLACE</u> [ <u>LAST</u> ] <u>OFF</u> .
+</pre>
 <a id="section-7-2-4-3"></a>
 ##### 7.2.4.3 Syntax rules
 
@@ -3752,8 +3756,9 @@ Compiler directives specify options for use by the compiler, define compilation-
 <a id="section-7-3-2"></a>
 #### 7.3.2 General format
 
-\>\>compiler-instruction
-
+<pre>
+>>compiler-instruction
+</pre>
 <a id="section-7-3-3"></a>
 #### 7.3.3 Syntax rules
 
@@ -3936,8 +3941,9 @@ A defined condition tests whether a given compilation-variable is defined.
 <a id="section-7-3-8-4-2"></a>
 ###### 7.3.8.4.2 General format
 
-compilation-variable-name-1 IS [ NOT ] DEFINED
-
+<pre>
+compilation-variable-name-1 IS [ <u>NOT</u> ] <u>DEFINED</u>
+</pre>
 <a id="section-7-3-8-4-3"></a>
 ###### 7.3.8.4.3 Syntax rule
 
@@ -3972,11 +3978,11 @@ The CALL-CONVENTION directive instructs the compiler how to treat references to 
 <a id="section-7-3-9-2"></a>
 ##### 7.3.9.2 General format
 
-```
-                    ⎧ COBOL                  ⎫
->>CALL-CONVENTION   ⎨                        ⎬
-                    ⎩ call-convention-name-1 ⎭
-```
+<pre>
+                  ╭ <u>COBOL</u>                  ╮
+<u>>>CALL-CONVENTION</u> ┤                        ├
+                  ╰ call-convention-name-1 ╯
+</pre>
 
 > **Figure notes (CALL-CONVENTION directive general format).** `CALL-CONVENTION` and `COBOL` are underlined in the printed standard (required words). The `>>` directive indicator is printed immediately adjacent to `CALL-CONVENTION` with no intervening space. The braces are plain — exactly one of `COBOL` or `call-convention-name-1` shall be selected.
 
@@ -4015,12 +4021,15 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
 <a id="section-7-3-10-2"></a>
 ##### 7.3.10.2 General format
 
-```
-                 ⎧ EQUATE literal-1 WITH literal-2   ⎫
-                 ⎪ UNDEFINE literal-3                ⎪
->>COBOL-WORDS    ⎪ SUBSTITUTE literal-4 BY literal-5 ⎪
-                 ⎩ RESERVE literal-6                 ⎭
-```
+<pre>
+              ╭ <u>EQUATE</u> literal-1 <u>WITH</u> literal-2   ╮
+              │                                   │
+              │ <u>UNDEFINE</u> literal-3                │
+<u>>>COBOL-WORDS</u> ┤                                   ├
+              │ <u>SUBSTITUTE</u> literal-4 <u>BY</u> literal-5 │
+              │                                   │
+              ╰ <u>RESERVE</u> literal-6                 ╯
+</pre>
 
 > **Figure notes (COBOL-WORDS directive general format syntax diagram).** `COBOL-WORDS`, `EQUATE`, `WITH`, `UNDEFINE`, `SUBSTITUTE`, `BY`, and `RESERVE` are underlined in the printed standard (required words). The `>>` directive indicator is not underlined. The braces enclose four alternatives, exactly one of which shall be selected.
 
@@ -4077,14 +4086,17 @@ The DEFINE directive specifies a symbolic name, called a compilation variable, f
 <a id="section-7-3-11-2"></a>
 ##### 7.3.11.2 General format
 
-```
-                                             ⎧ ⎧ arithmetic-expression-1 ⎫              ⎫
-                                             ⎪ ⎪ boolean-expression-1    ⎪              ⎪
->> DEFINE compilation-variable-name-1 AS     ⎨ ⎨ literal-1               ⎬ [ OVERRIDE ] ⎬
-                                             ⎪ ⎩ PARAMETER               ⎭              ⎪
-                                             ⎪                                          ⎪
-                                             ⎩ OFF                                      ⎭
-```
+<pre>
+                                         ╭ ╭ arithmetic-expression-1 ╮              ╮
+                                         │ │                         │              │
+                                         │ │ boolean-expression-1    │              │
+                                         │ ┤                         ├ [ <u>OVERRIDE</u> ] │
+>> <u>DEFINE</u> compilation-variable-name-1 AS ┤ │ literal-1               │              ├
+                                         │ │                         │              │
+                                         │ ╰ <u>PARAMETER</u>               ╯              │
+                                         │                                          │
+                                         ╰ <u>OFF</u>                                      ╯
+</pre>
 
 > **Figure notes (DEFINE directive general format).** `DEFINE`, `PARAMETER`, `OVERRIDE`, and `OFF` are underlined in the printed standard (required words). `AS` is **not** underlined. `>>` is the compiler-directive indicator. The outer braces enclose two alternatives, exactly one of which shall be selected: either the value group (an inner brace choosing one of `arithmetic-expression-1`, `boolean-expression-1`, `literal-1`, or `PARAMETER`, followed by the optional `OVERRIDE` phrase) or `OFF`. No choice indicators appear in this figure.
 
@@ -4149,15 +4161,19 @@ The DISPLAY directive transfers data to the source listing or an implementor def
 <a id="section-7-3-12-2"></a>
 ##### 7.3.12.2 General format
 
-```
-          ⎧ arithmetic-expression-1               ⎫
-          ⎪ boolean-expression-1                   ⎪
->>DISPLAY ⎨ literal-1                              ⎬ …
-          ⎩ PARAMETER compilation-variable-name-1  ⎭
+<pre>
+          ╭ arithmetic-expression-1               ╮
+          │                                       │
+          │ boolean-expression-1                  │
+<u>>>DISPLAY</u> ┤                                       ├ …
+          │ literal-1                             │
+          │                                       │
+          ╰ <u>PARAMETER</u> compilation-variable-name-1 ╯
 
-          ⎡      ⎧ | compile-time-device-1 … | ⎫ ⎤
-          ⎣ UPON ⎩ | LISTING                 | ⎭ ⎦
-```
+┌      ╭ │ compile-time-device-1 … │ ╮ ┐
+│ <u>UPON</u> ┤ │                         │ ├ │
+└      ╰ │ <u>LISTING</u>                 │ ╯ ┘
+</pre>
 
 > **Figure notes (DISPLAY directive general format).** `DISPLAY`, `PARAMETER`, `UPON`, and `LISTING` are underlined in the printed standard (required words).
 > ⚠ **The UPON group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `UPON` phrase may name `compile-time-device-1` alone, `LISTING` alone, or **both**. The outer `>>DISPLAY` operand braces carry no choice indicators: exactly one alternative per operand, with the `…` permitting repeated operands.
@@ -4220,32 +4236,33 @@ The EVALUATE directive provides for multi-branch conditional compilation. This d
 
 Format 1 (evaluate-value)
 
-```
-                ⎧ literal-1                ⎫
- >> EVALUATE    ⎨ arithmetic-expression-1  ⎬
-                ⎩ boolean-expression-1     ⎭
+<pre>
+            ╭ literal-1               ╮
+            │                         │
+>> <u>EVALUATE</u> ┤ arithmetic-expression-1 ├
+            │                         │
+            ╰ boolean-expression-1    ╯
 
-⎧               ⎧ literal-2                ⎫  ⎡                                             ⎤              ⎫
-⎨  >> WHEN      ⎨ arithmetic-expression-2  ⎬  ⎢ ⎧ THROUGH ⎫  ⎧ literal-3               ⎫  ⎥  [ text-1 ]  ⎬ …
-⎩               ⎩ boolean-expression-2     ⎭  ⎣ ⎩ THRU    ⎭  ⎩ arithmetic-expression-3 ⎭  ⎦              ⎭
+╭         ╭ literal-2               ╮ ┌                                         ┐            ╮
+│         │                         │ │ ╭ <u>THROUGH</u> ╮ ╭ literal-3               ╮ │            │ …
+┤ >> <u>WHEN</u> ┤ arithmetic-expression-2 ├ │ ┤         ├ ┤                         ├ │ [ text-1 ] ├
+│         │                         │ │ ╰ <u>THRU</u>    ╯ ╰ arithmetic-expression-3 ╯ │            │
+╰         ╰ boolean-expression-2    ╯ └                                         ┘            ╯
 
- [ >> WHEN OTHER [ text-2 ] ]
-
- >> END-EVALUATE
-```
+[ >> <u>WHEN</u> <u>OTHER</u> [ text-2 ] ]
+>> <u>END-EVALUATE</u>
+</pre>
 
 > **Figure notes (EVALUATE directive Format 1 (evaluate-value) syntax diagram).** `EVALUATE`, `WHEN`, `THROUGH`, `THRU`, `OTHER`, and `END-EVALUATE` are underlined in the printed standard (required words / required minimum abbreviation). The `>>` directive indicators are printed literally and are not underlined. The whole `>> WHEN …` construct is enclosed in braces followed by an ellipsis, so it shall be specified one or more times. No choice indicators appear in this figure.
 
 Format 2 (evaluate-truth)
 
-`>> EVALUATE TRUE`
-
-`{ >>WHEN  constant-conditional-expression-1  [ text-1 ] }` ...
-
-`[  >> WHEN  OTHER  [ text-2 ]  ]`
-
-`>> END-EVALUATE`
-
+<pre>
+>> <u>EVALUATE</u> <u>TRUE</u>
+{ <u>>>WHEN</u> constant-conditional-expression-1 [ text-1 ] } …
+[ >> <u>WHEN</u> <u>OTHER</u> [ text-2 ] ]
+>> <u>END-EVALUATE</u>
+</pre>
 <a id="section-7-3-13-3"></a>
 ##### 7.3.13.3 Syntax rules
 
@@ -4364,14 +4381,19 @@ NOTE The FLAG-02 directive is an obsolete element in this Working Draft Internat
 <a id="section-7-3-14-2"></a>
 ##### 7.3.14.2 General format
 
-```
-                ⎧ ALL                                  ⎫
-                ⎪   ⎧ | EC-PROGRAM-EXCEPTIONS     | ⎫  ⎪
-                ⎪   ⎪ | I-O-STATUS-07             | ⎪  ⎪   ⎧ ON  ⎫
->> FLAG-02      ⎨   ⎨ | MOVE-TO-SAME-NAME         | ⎬  ⎬   ⎩ OFF ⎭
-                ⎪   ⎪ | RANGE-EXCEPTION-FOR-INDEX | ⎪  ⎪
-                ⎩   ⎩ | TERMINATE-WITH-VARYING    | ⎭  ⎭
-```
+<pre>
+           ╭ ALL                               ╮
+           │                                   │
+           │ ╭ │ <u>EC-PROGRAM-EXCEPTIONS</u>     │ ╮ │
+           │ │ │                           │ │ │
+>> <u>FLAG-02</u> ┤ │ │ <u>I-O-STATUS-07</u>             │ │ ├ ╭ ON  ╮
+           │ │ │                           │ │ │ ┤     ├
+           │ ┤ │ <u>MOVE-TO-SAME-NAME</u>         │ ├ │ ╰ <u>OFF</u> ╯
+           │ │ │                           │ │ │
+           │ │ │ <u>RANGE-EXCEPTION-FOR-INDEX</u> │ │ │
+           │ │ │                           │ │ │
+           ╰ ╰ │ <u>TERMINATE-WITH-VARYING</u>    │ ╯ ╯
+</pre>
 
 > **Figure notes (FLAG-02 directive general format syntax diagram).** `FLAG-02`, `EC-PROGRAM-EXCEPTIONS`, `I-O-STATUS-07`, `MOVE-TO-SAME-NAME`, `RANGE-EXCEPTION-FOR-INDEX`, `TERMINATE-WITH-VARYING`, and `OFF` are underlined in the printed standard (required words). `ALL` and `ON` are **not** underlined.
 > ⚠ **The five option words are enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside their braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `>> FLAG-02` directive may name several options at once (e.g. `>> FLAG-02 I-O-STATUS-07 MOVE-TO-SAME-NAME OFF`). The outer braces select either `ALL` or that choice-indicator group; the trailing braces select `ON` or `OFF`.
@@ -4442,22 +4464,33 @@ The FLAG-14 directive specifies options to flag certain syntax for which the beh
 <a id="section-7-3-15-2"></a>
 ##### 7.3.15.2 General format
 
-```
-              ⎧ ALL                                          ⎫
-              ⎪                                              ⎪
-              ⎪ ⎧ | COMPILE-TIME-ARITHMETIC-EXPRESSIONS | ⎫  ⎪
-              ⎪ ⎪ | EVALUATE                            | ⎪  ⎪
-              ⎪ ⎪ | I-O-DECLARATIVE                     | ⎪  ⎪
-              ⎪ ⎪ | I-O-STATUS-04                       | ⎪  ⎪   ⎧ ON  ⎫
->> FLAG-14    ⎨ ⎪ | I-O-STATUS-07                       | ⎪  ⎬   ⎨     ⎬
-              ⎪ ⎨ | NUM-ED-ZERO-FIGCONST                | ⎬  ⎪   ⎩ OFF ⎭
-              ⎪ ⎪ | READ-PREVIOUS                       | ⎪  ⎪
-              ⎪ ⎪ | REF-MOD-ZERO-LENGTH                 | ⎪  ⎪
-              ⎪ ⎪ | VALUE-EDITING                       | ⎪  ⎪
-              ⎪ ⎪ | VALUE-FIG-CON-LENGTH                | ⎪  ⎪
-              ⎪ ⎪ | VALUE-ZERO                          | ⎪  ⎪
-              ⎩ ⎩ | WRITE-END-OF-PAGE                   | ⎭  ⎭
-```
+<pre>
+           ╭ ALL                                         ╮
+           │                                             │
+           │ ╭ │ <u>COMPILE-TIME-ARITHMETIC-EXPRESSIONS</u> │ ╮ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>EVALUATE</u>                            │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>I-O-DECLARATIVE</u>                     │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>I-O-STATUS-04</u>                       │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>I-O-STATUS-07</u>                       │ │ │
+           │ │ │                                     │ │ │ ╭ ON  ╮
+>> <u>FLAG-14</u> ┤ │ │ <u>NUM-ED-ZERO-FIGCONST</u>                │ │ ├ ┤     ├
+           │ ┤ │                                     │ ├ │ ╰ <u>OFF</u> ╯
+           │ │ │ <u>READ-PREVIOUS</u>                       │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>REF-MOD-ZERO-LENGTH</u>                 │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>VALUE-EDITING</u>                       │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>VALUE-FIG-CON-LENGTH</u>                │ │ │
+           │ │ │                                     │ │ │
+           │ │ │ <u>VALUE-ZERO</u>                          │ │ │
+           │ │ │                                     │ │ │
+           ╰ ╰ │ <u>WRITE-END-OF-PAGE</u>                   │ ╯ ╯
+</pre>
 
 > **Figure notes (FLAG-14 directive general format syntax diagram).** `FLAG-14`, all twelve option names (`COMPILE-TIME-ARITHMETIC-EXPRESSIONS`, `EVALUATE`, `I-O-DECLARATIVE`, `I-O-STATUS-04`, `I-O-STATUS-07`, `NUM-ED-ZERO-FIGCONST`, `READ-PREVIOUS`, `REF-MOD-ZERO-LENGTH`, `VALUE-EDITING`, `VALUE-FIG-CON-LENGTH`, `VALUE-ZERO`, `WRITE-END-OF-PAGE`), and `OFF` are underlined in the printed standard (required words). `ALL` and `ON` are **not** underlined — matching the sibling FLAG-02 note, whose figure prints the identical glyphs. `ON` is printed **without** an underline, so per 5.2.3 it is an OPTIONAL word: the ON alternative may be selected with the word omitted. The braces therefore do not force a written choice — writing `OFF`, writing `ON`, or writing neither all satisfy them, omission being equivalent to ON. That is the implied-ON case 7.3.15.4 general rule 2 presupposes when it says "explicitly or implicitly specified". ⚠ `ALL` being un-underlined is harder to read as a true optional word, since 7.3.15.4 general rule 4a gives it distinct semantics; it is recorded here AS PRINTED and flagged rather than silently "corrected", because the standard's own typesetting is what a reader must be able to check against. `VALUE-EDITING` is set letterspaced in the printed page, which can make its hyphen read as a dash; it is one COBOL word.
 > ⚠ **The inner option list is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `>> FLAG-14` directive may name several options at once (e.g. `>> FLAG-14 EVALUATE READ-PREVIOUS ON`). The outer braces make that whole list an alternative to the single word `ALL`. The trailing `ON`/`OFF` braces are a separate, required one-of-two selection.
@@ -4544,13 +4577,11 @@ The IF directive provides for 1- or 2-way conditional compilation. This directiv
 <a id="section-7-3-16-2"></a>
 ##### 7.3.16.2 General format
 
-```
->> IF constant-conditional-expression-1  [ text-1 ]
-
-  [  >> ELSE  [ text-2 ]  ]
-
-    >> END-IF
-```
+<pre>
+>> <u>IF</u> constant-conditional-expression-1 [ text-1 ]
+[ >> <u>ELSE</u> [ text-2 ] ]
+>> <u>END-IF</u>
+</pre>
 
 <a id="section-7-3-16-3"></a>
 ##### 7.3.16.3 Syntax rules
@@ -4600,10 +4631,11 @@ The LEAP-SECOND directive specifies whether a value greater than or equal to 60 
 <a id="section-7-3-17-2"></a>
 ##### 7.3.17.2 General format
 
-```
-              ⎧ ON  ⎫
->>LEAP-SECOND ⎩ OFF ⎭
-```
+<pre>
+              ╭ ON  ╮
+<u>>>LEAP-SECOND</u> ┤     ├
+              ╰ <u>OFF</u> ╯
+</pre>
 
 > **Figure notes (LEAP-SECOND directive syntax diagram).** `LEAP-SECOND` and `OFF` are underlined in the printed standard (required words); `ON` is printed **without** an underline, so per 5.2.3 it is an OPTIONAL word: the ON alternative may be selected with the word omitted. The braces therefore do not force a written choice — writing `OFF`, writing `ON`, or writing neither all satisfy them, omission being equivalent to ON. That is the implied-ON case 7.3.17.4 general rules 2 and 4 presuppose when they say "specified or implied". The `>>` compiler-directive indicator precedes the directive word with no intervening space and is itself not underlined.
 
@@ -4666,10 +4698,11 @@ NOTE This Working Draft International Standard does not define the content or la
 <a id="section-7-3-18-2"></a>
 ##### 7.3.18.2 General format
 
-```
->> LISTING ⎧ ON  ⎫
-           ⎩ OFF ⎭
-```
+<pre>
+           ╭ ON  ╮
+>> <u>LISTING</u> ┤     ├
+           ╰ <u>OFF</u> ╯
+</pre>
 
 > **Figure notes (LISTING directive general format).** `LISTING` and `OFF` are underlined in the printed standard (required words). ⚠ `ON` is **not** underlined in the printed figure, although 7.3.18.3 general rule 2 makes `>>LISTING ON` the default and general rules 4 and 5 treat `ON` as a specifiable phrase; the missing underline appears to be a typesetting omission in the standard and is reproduced here as printed. The braces are a plain required choice — exactly one of `ON` or `OFF` shall be selected. No choice indicators are present.
 
@@ -4708,8 +4741,9 @@ The PAGE directive specifies page ejection and provides documentation for the so
 <a id="section-7-3-19-2"></a>
 ##### 7.3.19.2 General format
 
-`>> PAGE [ comment-text-1 ]`
-
+<pre>
+>> <u>PAGE</u> [ comment-text-1 ]
+</pre>
 <a id="section-7-3-19-3"></a>
 ##### 7.3.19.3 Syntax rules
 
@@ -4748,10 +4782,11 @@ The POP directive is used to restore the state of a directive that was previousl
 <a id="section-7-3-20-2"></a>
 ##### 7.3.20.2 General format
 
-```
->> POP   ⎧ directive-name ⎫
-         ⎩ ALL            ⎭
-```
+<pre>
+       ╭ directive-name ╮
+>> <u>POP</u> ┤                ├
+       ╰ <u>ALL</u>            ╯
+</pre>
 
 > **Figure notes (POP directive general format syntax diagram).** `POP` and `ALL` are underlined in the printed standard (required words). `>>` is the compiler-directive indicator. The braces are a plain alternation: exactly one of `directive-name` or `ALL` shall be specified. There are no choice indicators in this figure, and `ALL` is not a default — underlining marks it as a required word when that alternative is chosen.
 
@@ -4794,11 +4829,11 @@ The PROPAGATE directive is used to cause propagation of exception conditions to 
 <a id="section-7-3-21-2"></a>
 ##### 7.3.21.2 General format
 
-```
-              ⎧ ON  ⎫
->> PROPAGATE  ⎨     ⎬
-              ⎩ OFF ⎭
-```
+<pre>
+             ╭ ON  ╮
+>> <u>PROPAGATE</u> ┤     ├
+             ╰ <u>OFF</u> ╯
+</pre>
 
 > **Figure notes (PROPAGATE directive general format).** `PROPAGATE` and `OFF` are underlined in the printed standard; `ON` is printed **without** an underline, so per 5.2.3 it is an OPTIONAL word: the ON alternative may be selected with the word omitted. The braces therefore do not force a written choice — writing `OFF`, writing `ON`, or writing neither all satisfy them, omission being equivalent to ON. ⚠ Underlining does NOT mark a default — no such convention exists in the standard, and LISTING disproves it (there `OFF` is the underlined alternative while 7.3.18.3 general rule 2 makes `>>LISTING ON` the default). PROPAGATE's compilation-group default of OFF comes from 7.3.21.4 general rule 4, which is a statement about omitting the DIRECTIVE, not about which alternative the format implies.
 
@@ -4840,11 +4875,11 @@ The PUSH directive is used to save the state of a directive so that its status m
 <a id="section-7-3-22-2"></a>
 ##### 7.3.22.2 General format
 
-```
-          ⎧ directive-name ⎫
->> PUSH   ⎨                ⎬
-          ⎩ ALL            ⎭
-```
+<pre>
+>> <u>PUSH</u> ╭ directive-name ╮
+        ┤                ├
+        ╰ <u>ALL</u>            ╯
+</pre>
 
 > **Figure notes (PUSH directive general format syntax diagram).** `PUSH` and `ALL` are underlined in the printed standard (required words). The `>>` directive indicator and `directive-name` are not underlined. The braces are plain — exactly one of `directive-name` or `ALL` shall be selected.
 
@@ -4924,10 +4959,11 @@ The SOURCE FORMAT directive specifies whether the reference format of the source
 <a id="section-7-3-24-2"></a>
 ##### 7.3.24.2 General format
 
-```
->> SOURCE FORMAT IS  ⎧ FIXED ⎫
-                     ⎩ FREE  ⎭
-```
+<pre>
+                    ╭ <u>FIXED</u> ╮
+>> <u>SOURCE</u> FORMAT IS ┤       ├
+                    ╰ <u>FREE</u>  ╯
+</pre>
 
 > **Figure notes (SOURCE FORMAT directive syntax diagram).** `SOURCE`, `FIXED`, and `FREE` are underlined in the printed standard (required words). `FORMAT` and `IS` are **not** underlined — they are optional words. The braces require exactly one of `FIXED` or `FREE`. No choice indicators appear in this figure.
 
@@ -4964,11 +5000,11 @@ The TURN directive is used to turn checking for specified exception conditions o
 <a id="section-7-3-25-2"></a>
 ##### 7.3.25.2 General format
 
-```
-                                                             ⎧ ON [ WITH LOCATION ] ⎫
->> TURN  { exception-name-1 [ file-name-1 ] … }  …  CHECKING  ⎨                      ⎬
-                                                             ⎩ OFF                  ⎭
-```
+<pre>
+                                                          ╭ ON [ WITH <u>LOCATION</u> ] ╮
+>> <u>TURN</u> { exception-name-1 [ file-name-1 ] … } … <u>CHECKING</u> ┤                      ├
+                                                          ╰ <u>OFF</u>                  ╯
+</pre>
 
 > **Figure notes (TURN directive general format).** `TURN`, `CHECKING`, `LOCATION`, and `OFF` are underlined in the printed standard (required words). Note that `ON` is printed **without** an underline, although `OFF` — its alternative in the same braces — is underlined. Two distinct ellipses appear: the inner `…` inside the braces applies to `[ file-name-1 ]`, and the outer `…` after the closing brace applies to the whole `{ exception-name-1 [ file-name-1 ] … }` group. No choice indicators are present.
 
@@ -5910,17 +5946,19 @@ Alphanumeric literals are of the class and category alphanumeric.
 
 Format 1 (alphanumeric):
 
-```
-⎧  " [character-1]  … "  ⎫
-⎩  ' [character-1]  … '  ⎭
-```
+<pre>
+╭ " [character-1] … " ╮
+┤                     ├
+╰ ' [character-1] … ' ╯
+</pre>
 
 Format 2 (hexadecimal-alphanumeric):
 
-```
-⎧  X"[hex-character-sequence-1]  …"  ⎫
-⎩  X'[hex-character-sequence-1]  …'  ⎭
-```
+<pre>
+╭ X"[hex-character-sequence-1] …" ╮
+┤                                 ├
+╰ X'[hex-character-sequence-1] …' ╯
+</pre>
 
 <a id="section-8-3-3-2-3"></a>
 ###### 8.3.3.2.3 Syntax rules
@@ -6051,17 +6089,19 @@ Boolean literals are of the class and category boolean.
 
 Format 1 (boolean)
 
-```
-{ B"[boolean-character-1] ... " }
-{ B'[boolean-character-1] ... ' }
-```
+<pre>
+╭ B"[boolean-character-1] … " ╮
+┤                             ├
+╰ B'[boolean-character-1] … ' ╯
+</pre>
 
 Format 2 (hexadecimal-boolean)
 
-```
-{ BX"[hexadecimal-digit-1] ... " }
-{ BX'[hexadecimal-digit-1] ... ' }
-```
+<pre>
+╭ BX"[hexadecimal-digit-1] … " ╮
+┤                              ├
+╰ BX'[hexadecimal-digit-1] … ' ╯
+</pre>
 
 <a id="section-8-3-3-4-3"></a>
 ###### 8.3.3.4.3 Syntax rules
@@ -6127,10 +6167,11 @@ National literals are of the class and category national.
 
 Format 1 (national)
 
-```
-⎧  N"[character-1] … "  ⎫
-⎩  N'[character-1] … '  ⎭
-```
+<pre>
+╭ N"[character-1] … " ╮
+┤                     ├
+╰ N'[character-1] … ' ╯
+</pre>
 
 
 ---
@@ -6143,10 +6184,11 @@ Format 1 (national)
 
 Format 2 (hexadecimal-national)
 
-```
-⎧ NX"[hex-character-sequence-1] … " ⎫
-⎩ NX'[hex-character-sequence-1] … ' ⎭
-```
+<pre>
+╭ NX"[hex-character-sequence-1] … " ╮
+┤                                   ├
+╰ NX'[hex-character-sequence-1] … ' ╯
+</pre>
 
 > **Figure notes (national literal Format 2 (hexadecimal-national) syntax diagram).** No words are underlined in this figure; `NX"` / `NX'` and the closing quotation symbols are literal source characters. The braces enclose two alternatives, exactly one of which shall be selected. Within each alternative the brackets around `hex-character-sequence-1` make it optional and the ellipsis permits repetition of the bracketed portion, so a hexadecimal-national literal may be of zero length.
 
@@ -6230,47 +6272,53 @@ Figurative constant values are generated by the compiler and referenced through 
 
 Format 1 (zero):
 
-```
-      ⎧ ZERO   ⎫
-ALL   ⎨ ZEROES ⎬
-      ⎩ ZEROS  ⎭
-```
+<pre>
+    ╭ <u>ZERO</u>   ╮
+    │        │
+ALL ┤ <u>ZEROES</u> ├
+    │        │
+    ╰ <u>ZEROS</u>  ╯
+</pre>
 
 > **Figure notes (figurative constant Format 1 (zero) syntax diagram).** `ZERO`, `ZEROES`, and `ZEROS` are underlined in the printed standard (required words). `ALL` is **not** underlined — it is an optional word. The braces enclose three alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
 Format 2 (space):
 
-```
-      ⎧ SPACE  ⎫
-ALL   ⎩ SPACES ⎭
-```
+<pre>
+    ╭ <u>SPACE</u>  ╮
+ALL ┤        ├
+    ╰ <u>SPACES</u> ╯
+</pre>
 
 > **Figure notes (figurative constant Format 2 (space) syntax diagram).** `SPACE` and `SPACES` are underlined in the printed standard (required words). `ALL` is **not** underlined — it is an optional word. The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
 Format 3 (high-value):
 
-```
-      ⎧ HIGH-VALUE  ⎫
-ALL   ⎩ HIGH-VALUES ⎭
-```
+<pre>
+    ╭ <u>HIGH-VALUE</u>  ╮
+ALL ┤             ├
+    ╰ <u>HIGH-VALUES</u> ╯
+</pre>
 
 > **Figure notes (figurative constant Format 3 (high-value) syntax diagram).** `HIGH-VALUE` and `HIGH-VALUES` are underlined in the printed standard (required words). `ALL` is **not** underlined — it is an optional word. The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
 Format 4 (low-value):
 
-```
-      ⎧ LOW-VALUE  ⎫
-ALL   ⎩ LOW-VALUES ⎭
-```
+<pre>
+    ╭ <u>LOW-VALUE</u>  ╮
+ALL ┤            ├
+    ╰ <u>LOW-VALUES</u> ╯
+</pre>
 
 > **Figure notes (figurative constant Format 4 (low-value) syntax diagram).** `LOW-VALUE` and `LOW-VALUES` are underlined in the printed standard (required words). `ALL` is **not** underlined — it is an optional word. The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
 Format 5 (quote):
 
-```
-      ⎧ QUOTE  ⎫
-ALL   ⎩ QUOTES ⎭
-```
+<pre>
+    ╭ <u>QUOTE</u>  ╮
+ALL ┤        ├
+    ╰ <u>QUOTES</u> ╯
+</pre>
 
 > **Figure notes (figurative constant Format 5 (quote) syntax diagram).** `QUOTE` and `QUOTES` are underlined in the printed standard (required words). `ALL` is **not** underlined — it is an optional word. The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 >
@@ -6278,12 +6326,14 @@ ALL   ⎩ QUOTES ⎭
 
 Format 6 (all-literal):
 
-ALL literal-1
-
+<pre>
+<u>ALL</u> literal-1
+</pre>
 Format 7 (symbolic-character):
 
+<pre>
 ALL symbolic-character-1
-
+</pre>
 <a id="section-8-3-3-6-3"></a>
 ###### 8.3.3.6.3 Syntax rules
 
@@ -6504,40 +6554,46 @@ Qualification of a user-defined name is required unless one of the following is 
 
 Format 1 (qualified-data-name):
 
-data-name-1 [ data-qualifier ] ... [ file-report-qualifier ]
-
+<pre>
+data-name-1 [ data-qualifier ] … [ file-report-qualifier ]
+</pre>
 Format 2 (qualified-condition-name):
 
-condition-name-1 [ data-qualifier ] ...[ file-name-1 ]
-
+<pre>
+condition-name-1 [ data-qualifier ] …[ file-name-1 ]
+</pre>
 Format 3 (qualified-index-name):
 
-index-name-1 [ data-qualifier ] ...[ file-report-qualifier ]
-
+<pre>
+index-name-1 [ data-qualifier ] …[ file-report-qualifier ]
+</pre>
 Format 4 (qualified-procedure-name):
 
-```
-paragraph-name-1 ⎡ ⎧ IN ⎫ section-name-1 ⎤
-                 ⎣ ⎩ OF ⎭                ⎦
-```
+<pre>
+                 ┌ ╭ <u>IN</u> ╮                ┐
+paragraph-name-1 │ ┤    ├ section-name-1 │
+                 └ ╰ <u>OF</u> ╯                ┘
+</pre>
 
 > **Figure notes (qualified-procedure-name Format 4 syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
 Format 5 (qualified-screen-name):
 
-```
-screen-name-1 ⎡ ⎧ IN ⎫ screen-name-2 ⎤ …
-              ⎣ ⎩ OF ⎭               ⎦
-```
+<pre>
+              ┌ ╭ <u>IN</u> ╮               ┐
+screen-name-1 │ ┤    ├ screen-name-2 │ …
+              └ ╰ <u>OF</u> ╯               ┘
+</pre>
 
 > **Figure notes (qualified-screen-name Format 5 syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words). The `…` follows the closing bracket, so the whole optional qualifier group may be repeated. No choice indicators appear in this figure.
 
 Format 6 (qualified-record-key-name):
 
-```
-record-key-name-1 ⎡ ⎧ IN ⎫ file-name-2 ⎤
-                  ⎣ ⎩ OF ⎭             ⎦
-```
+<pre>
+                  ┌ ╭ <u>IN</u> ╮             ┐
+record-key-name-1 │ ┤    ├ file-name-2 │
+                  └ ╰ <u>OF</u> ╯             ┘
+</pre>
 
 > **Figure notes (qualified-record-key-name Format 6 syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
@@ -6552,37 +6608,41 @@ record-key-name-1 ⎡ ⎧ IN ⎫ file-name-2 ⎤
 
 Format 7 (qualified-linage-counter):
 
-```
-                 ⎡ ⎧ IN ⎫              ⎤
- LINAGE-COUNTER  ⎣ ⎩ OF ⎭ file-name-3  ⎦
-```
+<pre>
+               ┌ ╭ <u>IN</u> ╮             ┐
+<u>LINAGE-COUNTER</u> │ ┤    ├ file-name-3 │
+               └ ╰ <u>OF</u> ╯             ┘
+</pre>
 
 > **Figure notes (Format 7 qualified-linage-counter syntax diagram).** `LINAGE-COUNTER`, `IN`, and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
 Format 8 (qualified-report-counter):
 
-```
- ⎧ PAGE-COUNTER ⎫  ⎡ ⎧ IN ⎫                ⎤
- ⎩ LINE-COUNTER ⎭  ⎣ ⎩ OF ⎭ report-name-2  ⎦
-```
+<pre>
+╭ <u>PAGE-COUNTER</u> ╮ ┌ ╭ <u>IN</u> ╮               ┐
+┤              ├ │ ┤    ├ report-name-2 │
+╰ <u>LINE-COUNTER</u> ╯ └ ╰ <u>OF</u> ╯               ┘
+</pre>
 
 > **Figure notes (Format 8 qualified-report-counter syntax diagram).** `PAGE-COUNTER`, `LINE-COUNTER`, `IN`, and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
 where data-qualifier is:
 
-```
- ⎧ IN ⎫
- ⎩ OF ⎭ data-name-2
-```
+<pre>
+╭ <u>IN</u> ╮
+┤    ├ data-name-2
+╰ <u>OF</u> ╯
+</pre>
 
 > **Figure notes (data-qualifier syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words). No choice indicators appear in this figure.
 
 where file-report-qualifier is:
 
-```
- ⎧ IN ⎫  ⎧ file-name-1   ⎫
- ⎩ OF ⎭  ⎩ report-name-1 ⎭
-```
+<pre>
+╭ <u>IN</u> ╮ ╭ file-name-1   ╮
+┤    ├ ┤               ├
+╰ <u>OF</u> ╯ ╰ report-name-1 ╯
+</pre>
 
 > **Figure notes (file-report-qualifier syntax diagram).** `IN` and `OF` are underlined in the printed standard (required words); `file-name-1` and `report-name-1` are not. No choice indicators appear in this figure.
 
@@ -6638,13 +6698,15 @@ Format 2 (qualified-condition-name-with-subscripts):
 
 where subscript is:
 
-```
-⎧ ALL                                    ⎫
-⎪ arithmetic-expression-1                ⎪
-⎨                                        ⎬
-⎪                  ⎡ ⎧ + ⎫           ⎤   ⎪
-⎩ index-name-1     ⎣ ⎩ - ⎭ integer-1 ⎦   ⎭
-```
+<pre>
+╭ <u>ALL</u>                              ╮
+│                                  │
+┤ arithmetic-expression-1          ├
+│                                  │
+│ index-name-1 ┌ ╭ + ╮           ┐ │
+│              │ ┤   ├ integer-1 │ │
+╰              └ ╰ - ╯           ┘ ╯
+</pre>
 
 > **Figure notes (subscript syntax diagram).** `ALL` is underlined in the printed standard (required word); it is the only underlined element in this figure. The outer braces select exactly one of the three alternatives. In the third alternative the `+`/`-` selection is required (braces) but the whole `{ + | - } integer-1` phrase is optional (brackets). No choice indicators appear in this figure.
 
@@ -6878,11 +6940,13 @@ A function-identifier references the unique data item that results from the eval
 
 ### **8.4.3.2.2 General format**
 
-```
-                ⎧ function-pointer-name-1   ⎫  ⎡ ⎛ ⎡ argument-1 ⎤     ⎞ ⎤
-[ FUNCTION ]    ⎨ function-prototype-name-1 ⎬  ⎢ ⎜ ⎢            ⎥  …  ⎟ ⎥
-                ⎩ intrinsic-function-name-1 ⎭  ⎣ ⎝ ⎣ OMITTED    ⎦     ⎠ ⎦
-```
+<pre>
+             ╭ function-pointer-name-1   ╮
+             │                           │ ┌ ╭ ┌ argument-1 ┐   ╮ ┐
+[ <u>FUNCTION</u> ] ┤ function-prototype-name-1 ├ │ │ │            │ … │ │
+             │                           │ └ ╰ └ <u>OMITTED</u>    ┘   ╯ ┘
+             ╰ intrinsic-function-name-1 ╯
+</pre>
 
 > **Figure notes (Function-identifier general format syntax diagram).** `FUNCTION` and `OMITTED` are underlined in the printed standard (required words). The `(` and `)` are literal separators of the COBOL source, drawn full height in the printed figure; the ellipsis sits **inside** the parentheses, so it repeats the bracketed `argument-1` / `OMITTED` item, and the whole parenthesized argument list is optional.
 
@@ -7109,13 +7173,18 @@ Inline method invocation references a temporary data item returned from invocati
 <a id="section-8-4-3-4-2"></a>
 ###### 8.4.3.4.2 General format
 
-```
-⎧ object-class-name-1 ⎫                 ⎡     ⎧ arithmetic-expression-1 ⎫       ⎤
-⎩ identifier-1        ⎭  :: literal-1   ⎢     ⎪ boolean-expression-1    ⎪       ⎥
-                                        ⎢  (  ⎨ identifier-2            ⎬  … )  ⎥
-                                        ⎢     ⎪ literal-2               ⎪       ⎥
-                                        ⎣     ⎩ OMITTED                 ⎭       ⎦
-```
+<pre>
+                                     ┌   ╭ arithmetic-expression-1 ╮   ┐
+                                     │   │                         │   │
+                                     │   │ boolean-expression-1    │   │
+╭ object-class-name-1 ╮              │   │                         │ … │
+│                     │              │   │                         │   │
+┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ ) │
+│                     │              │   │                         │   │
+╰ identifier-1        ╯              │   │ literal-2               │   │
+                                     │   │                         │   │
+                                     └   ╰ <u>OMITTED</u>                 ╯   ┘
+</pre>
 
 > **Figure notes (inline method invocation syntax diagram).** `OMITTED` is the only underlined word in the printed figure (required word); `::` and the parentheses are required punctuation as printed. The outer brackets make the whole parenthesized argument list optional; the inner braces select exactly one argument form, and the `…` repeats that brace group to give a list of arguments inside the single parenthesis pair.
 
@@ -7162,11 +7231,13 @@ An object-view causes an object reference to be treated as though it had the spe
 <a id="section-8-4-3-5-2"></a>
 ###### 8.4.3.5.2 General format
 
-```
-                  ⎧ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎫
-identifier-1  AS  ⎨ interface-name-1                            ⎬
-                  ⎩ UNIVERSAL                                   ⎭
-```
+<pre>
+                ╭ [ <u>FACTORY</u> OF ] object-class-name-1 [ <u>ONLY</u> ] ╮
+                │                                             │
+identifier-1 <u>AS</u> ┤ interface-name-1                            ├
+                │                                             │
+                ╰ <u>UNIVERSAL</u>                                   ╯
+</pre>
 
 > **Figure notes (object-view general format syntax diagram).** `AS`, `FACTORY`, `ONLY`, and `UNIVERSAL` are underlined in the printed standard (required words); `OF` is not underlined. The outer delimiter is a pair of **braces**, so exactly one of the three alternatives shall be selected. No choice indicators are present.
 
@@ -7213,8 +7284,9 @@ EXCEPTION-OBJECT is a predefined object reference that is used in a declarative 
 <a id="section-8-4-3-6-2"></a>
 ###### 8.4.3.6.2 General format
 
-`EXCEPTION-OBJECT`
-
+<pre>
+<u>EXCEPTION-OBJECT</u>
+</pre>
 <a id="section-8-4-3-6-3"></a>
 ###### 8.4.3.6.3 Syntax rules
 
@@ -7247,8 +7319,9 @@ NULL is a predefined object reference that contains the null object reference va
 <a id="section-8-4-3-7-2"></a>
 ###### 8.4.3.7.2 General format
 
+<pre>
 <u>NULL</u>
-
+</pre>
 <a id="section-8-4-3-7-3"></a>
 ###### 8.4.3.7.3 Syntax rules
 
@@ -7272,10 +7345,11 @@ SELF and SUPER are predefined object references that reference the object on whi
 <a id="section-8-4-3-8-2"></a>
 ###### 8.4.3.8.2 General format
 
-```
-⎧ SELF                               ⎫
-⎩ [ object-class-name-1 OF ] SUPER   ⎭
-```
+<pre>
+╭ <u>SELF</u>                             ╮
+┤                                  ├
+╰ [ object-class-name-1 <u>OF</u> ] <u>SUPER</u> ╯
+</pre>
 
 > **Figure notes (SELF and SUPER general format syntax diagram).** `SELF`, `OF`, and `SUPER` are underlined in the printed standard (required words). The braces are a plain alternation: exactly one of the two alternatives shall be specified. `object-class-name-1 OF` is an optional prefix on the `SUPER` alternative only. No choice indicators appear in this figure.
 
@@ -7330,11 +7404,11 @@ Object properties provide a special syntax to get information out of and pass in
 <a id="section-8-4-3-9-2"></a>
 ###### 8.4.3.9.2 General format
 
-```
-                      ⎧ object-class-name-1 ⎫
-property-name-1  OF   ⎨                     ⎬
-                      ⎩ identifier-1        ⎭
-```
+<pre>
+                   ╭ object-class-name-1 ╮
+property-name-1 <u>OF</u> ┤                     ├
+                   ╰ identifier-1        ╯
+</pre>
 
 > **Figure notes (object property general format).** `OF` is underlined in the printed standard (required word). The braces are a plain required choice — exactly one of `object-class-name-1` / `identifier-1` shall be selected.
 
@@ -7391,8 +7465,9 @@ NULL is a predefined address of class pointer or a predefined content of class m
 <a id="section-8-4-3-10-2"></a>
 ###### 8.4.3.10.2 General format
 
+<pre>
 <u>NULL</u>
-
+</pre>
 <a id="section-8-4-3-10-3"></a>
 ###### 8.4.3.10.3 Syntax rules
 
@@ -7437,8 +7512,9 @@ A data-address-identifier references the unique data item that contains the addr
 <a id="section-8-4-3-11-2"></a>
 ###### 8.4.3.11.2 General format
 
+<pre>
 <u>ADDRESS</u> OF identifier-1
-
+</pre>
 <a id="section-8-4-3-11-3"></a>
 ###### 8.4.3.11.3 Syntax rules
 
@@ -7487,11 +7563,11 @@ A function-address-identifier identifies the unique data item that contains the 
 <a id="section-8-4-3-12-2"></a>
 ###### 8.4.3.12.2 General format
 
-```
-                      ⎧ function-prototype-name-1 ⎫
-ADDRESS OF FUNCTION   ⎨                           ⎬
-                      ⎩ identifier-1              ⎭
-```
+<pre>
+                    ╭ function-prototype-name-1 ╮
+<u>ADDRESS</u> OF <u>FUNCTION</u> ┤                           ├
+                    ╰ identifier-1              ╯
+</pre>
 
 > **Figure notes (ADDRESS OF FUNCTION syntax diagram).** `ADDRESS` and `FUNCTION` are underlined in the printed standard (required words); `OF` is **not** underlined. The braces are plain — exactly one of `function-prototype-name-1` or `identifier-1` shall be selected.
 
@@ -7543,11 +7619,13 @@ A program-address-identifier references the unique data item that contains the a
 <a id="section-8-4-3-13-2"></a>
 ###### 8.4.3.13.2 General format
 
-> ```
->                    ⎧ identifier-1             ⎫
-> ADDRESS OF PROGRAM ⎨ literal-1                ⎬
->                    ⎩ program-prototype-name-1 ⎭
-> ```
+<pre>
+                   ╭ identifier-1             ╮
+                   │                          │
+<u>ADDRESS</u> OF <u>PROGRAM</u> ┤ literal-1                ├
+                   │                          │
+                   ╰ program-prototype-name-1 ╯
+</pre>
 >
 > > **Figure notes (ADDRESS OF PROGRAM identifier general format).** `ADDRESS` and `PROGRAM` are underlined in the printed standard (required words); `OF` is **not** underlined. The three operands are enclosed in braces, so exactly one of `identifier-1`, `literal-1`, or `program-prototype-name-1` shall be selected.
 
@@ -7601,11 +7679,11 @@ The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in
 <a id="section-8-4-3-14-2"></a>
 ###### 8.4.3.14.2 General format
 
-```
-                  ⎡ ⎧ IN ⎫             ⎤
-LINAGE-COUNTER    ⎢ ⎨    ⎬ file-name-1 ⎥
-                  ⎣ ⎩ OF ⎭             ⎦
-```
+<pre>
+               ┌ ╭ <u>IN</u> ╮             ┐
+<u>LINAGE-COUNTER</u> │ ┤    ├ file-name-1 │
+               └ ╰ <u>OF</u> ╯             ┘
+</pre>
 
 > **Figure notes (LINAGE-COUNTER general format syntax diagram).** `LINAGE-COUNTER`, `IN`, and `OF` are underlined in the printed standard (required words). The outer brackets make the whole qualification phrase optional; when it is specified, the inner braces require exactly one of `IN` or `OF`. No choice indicators appear in this figure.
 
@@ -7636,11 +7714,11 @@ The PAGE-COUNTER and LINE-COUNTER identifiers are generated automatically and ex
 <a id="section-8-4-3-15-2"></a>
 ###### 8.4.3.15.2 General format
 
-```
-⎧ PAGE-COUNTER ⎫   ⎡ ⎧ IN ⎫               ⎤
-⎨              ⎬   ⎢ ⎨    ⎬ report-name-1 ⎥
-⎩ LINE-COUNTER ⎭   ⎣ ⎩ OF ⎭               ⎦
-```
+<pre>
+╭ <u>PAGE-COUNTER</u> ╮ ┌ ╭ <u>IN</u> ╮               ┐
+┤              ├ │ ┤    ├ report-name-1 │
+╰ <u>LINE-COUNTER</u> ╯ └ ╰ <u>OF</u> ╯               ┘
+</pre>
 
 > **Figure notes (report counters general format syntax diagram).** `PAGE-COUNTER`, `LINE-COUNTER`, `IN`, and `OF` are underlined in the printed standard (required words). The leading braces require exactly one of `PAGE-COUNTER` or `LINE-COUNTER`; the outer brackets make the qualification phrase optional, and within it the inner braces require exactly one of `IN` or `OF`. No choice indicators appear in this figure.
 
@@ -7698,12 +7776,14 @@ Within the SPECIAL-NAMES paragraph, a condition-name identifies the on status or
 
 Format 1 (switch-status-condition-name):
 
+<pre>
 condition-name-1
-
+</pre>
 Format 2 (qualified-condition-name-with-subscripts):
 
+<pre>
 qualified-condition-name-with-subscripts-1
-
+</pre>
 <a id="section-8-4-4-3"></a>
 ##### 8.4.4.3 Syntax rules
 
@@ -8913,21 +8993,29 @@ L                      ┘
 
 # ISO/IEC 1989:2023 (E)
 
-```
-┌─────────────────────────────────┐
-│ IS GREATER THAN OR EQUAL TO     │
-│ IS >=                           │
-│ IS NOT LESS THAN                │
-│ IS NOT <                        │
-│ IS LESS THAN OR EQUAL TO        │
-│ IS <=                           │
-│ IS NOT GREATER THAN             │
-│ IS NOT >                        │
-│ IS NOT EQUAL TO                 │
-│ IS NOT =                        │
-│ IS <>                           │
-└─────────────────────────────────┘
-```
+<pre>
+╭ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO ╮
+│                             │
+│ IS >=                       │
+│                             │
+│ IS <u>NOT</u> <u>LESS</u> THAN            │
+│                             │
+│ IS <u>NOT</u> <                    │
+│                             │
+│ IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO    │
+│                             │
+┤ IS <=                       ├
+│                             │
+│ IS <u>NOT</u> <u>GREATER</u> THAN         │
+│                             │
+│ IS <u>NOT</u> >                    │
+│                             │
+│ IS <u>NOT</u> <u>EQUAL</u> TO             │
+│                             │
+│ IS <u>NOT</u> =                    │
+│                             │
+╰ IS <>                       ╯
+</pre>
 
 <a id="section-8-7-5-2"></a>
 ##### 8.7.5.2 Syntax rules
@@ -9399,11 +9487,11 @@ A concatenation expression consists of two operands separated by the concatenati
 <a id="section-8-8-3-1"></a>
 ##### 8.8.3.1 General format
 
-```
-⎧ literal-1                  ⎫
-⎨                            ⎬  &  literal-2
-⎩ concatenation-expression-1 ⎭
-```
+<pre>
+╭ literal-1                  ╮
+┤                            ├ & literal-2
+╰ concatenation-expression-1 ╯
+</pre>
 
 > **Figure notes (Concatenation expression general format).** No words are underlined in this figure — it contains no COBOL reserved words; `&` is the concatenation operator character. The braces are plain: exactly one of `literal-1` or `concatenation-expression-1` shall be selected as the left operand. No choice indicators are present.
 
@@ -9501,29 +9589,44 @@ The first operand is called the subject of the condition; the second operand is 
 
 Format 1 (General-relation):
 
-```
-                              ⎧ IS [NOT] GREATER THAN         ⎫
-                              ⎪ IS [NOT] >                    ⎪
-                              ⎪ IS [NOT] LESS THAN            ⎪
-                              ⎪ IS [NOT] <                    ⎪
-⎧ identifier-1            ⎫   ⎪ IS [NOT] EQUAL TO             ⎪   ⎧ identifier-2            ⎫
-⎪ literal-1               ⎪   ⎨ IS [NOT] =                    ⎬   ⎪ literal-2               ⎪
-⎪ arithmetic-expression-1 ⎪   ⎪ IS <>                         ⎪   ⎪ arithmetic-expression-2 ⎪
-⎩ index-name-1            ⎭   ⎪ IS GREATER THAN OR EQUAL TO   ⎪   ⎩ index-name-2            ⎭
-                              ⎪ IS >=                         ⎪
-                              ⎪ IS LESS THAN OR EQUAL TO      ⎪
-                              ⎩ IS <=                         ⎭
-```
+<pre>
+                            ╭ IS [ <u>NOT</u> ] <u>GREATER</u> THAN     ╮
+                            │                             │
+                            │ IS [ <u>NOT</u> ] >                │
+                            │                             │
+                            │ IS [ <u>NOT</u> ] <u>LESS</u> THAN        │
+                            │                             │
+                            │ IS [ <u>NOT</u> ] <                │
+                            │                             │
+╭ identifier-1            ╮ │ IS [ <u>NOT</u> ] <u>EQUAL</u> TO         │ ╭ identifier-2            ╮
+│                         │ │                             │ │                         │
+┤ literal-1               ├ ┤                             ├ ┤ literal-2               ├
+│                         │ │                             │ │                         │
+│ arithmetic-expression-1 │ │ IS [ <u>NOT</u> ] =                │ │ arithmetic-expression-2 │
+│                         │ │                             │ │                         │
+│ index-name-1            │ │                             │ │ index-name-2            │
+╰                         ╯ │ IS <>                       │ ╰                         ╯
+                            │                             │
+                            │ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO │
+                            │                             │
+                            │ IS >=                       │
+                            │                             │
+                            │ IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO    │
+                            │                             │
+                            ╰ IS <=                       ╯
+</pre>
 
 > **Figure notes (relation condition Format 1 (General-relation) syntax diagram).** `NOT`, `GREATER`, `LESS`, `EQUAL`, and `OR` are underlined in the printed standard (required words). `IS`, `THAN`, and `TO` are not underlined, and the relational character operators `>`, `<`, `=`, `<>`, `>=`, `<=` are not underlined. Each of the three brace groups requires exactly one of its enclosed alternatives; the brackets around `NOT` make it optional.
 
 Format 2 (boolean):
 
-```
-                       ⎧ IS [ NOT ] EQUAL TO ⎫
-boolean-expression-1   ⎨ IS [ NOT ] =        ⎬   boolean-expression-2
-                       ⎩ IS <>               ⎭
-```
+<pre>
+                     ╭ IS [ <u>NOT</u> ] <u>EQUAL</u> TO ╮
+                     │                     │
+boolean-expression-1 ┤ IS [ <u>NOT</u> ] =        ├ boolean-expression-2
+                     │                     │
+                     ╰ IS <>               ╯
+</pre>
 
 > **Figure notes (relation condition Format 2 (boolean) syntax diagram).** `NOT` and `EQUAL` are underlined in the printed standard (required words). `IS` and `TO` are not underlined, nor are the character operators `=` and `<>`. The braces require exactly one of the three alternatives; the brackets around `NOT` make it optional.
 
@@ -9537,11 +9640,13 @@ boolean-expression-1   ⎨ IS [ NOT ] =        ⎬   boolean-expression-2
 
 Format 3 (message-tag-object-or-pointer-reference):
 
-```
-               ⎧ IS [ NOT ] EQUAL TO ⎫
-identifier-3   ⎨ IS [ NOT ] =        ⎬   identifier-4
-               ⎩ IS <>               ⎭
-```
+<pre>
+             ╭ IS [ <u>NOT</u> ] <u>EQUAL</u> TO ╮
+             │                     │
+identifier-3 ┤ IS [ <u>NOT</u> ] =        ├ identifier-4
+             │                     │
+             ╰ IS <>               ╯
+</pre>
 
 > **Figure notes (relation condition Format 3 (message-tag-object-or-pointer-reference) syntax diagram).** `NOT` and `EQUAL` are underlined in the printed standard (required words). `IS` and `TO` are **not** underlined — they are optional words. The braces enclose three alternatives, exactly one of which shall be selected; within the first two, `NOT` is optional. No choice indicators appear in this figure.
 
@@ -9749,8 +9854,9 @@ A boolean condition determines whether a boolean expression is true or false.
 <a id="section-8-8-4-3-2"></a>
 ###### 8.8.4.3.2 General format
 
+<pre>
 [ <u>NOT</u> ] boolean-expression-1
-
+</pre>
 <a id="section-8-8-4-3-3"></a>
 ###### 8.8.4.3.3 Syntax rule
 
@@ -9784,22 +9890,35 @@ NOTE    Strongly typed group items have their own unique classes and categories 
 <a id="section-8-8-4-4-2"></a>
 ###### 8.8.4.4.2 General format
 
-```
-                       ⎧ alphabet-name-1                ⎫
-                       ⎪ ALPHABETIC                     ⎪
-                       ⎪ ALPHABETIC-LOWER               ⎪
-                       ⎪ ALPHABETIC-UPPER               ⎪
-                       ⎪ BOOLEAN                        ⎪
-                       ⎪ class-name-1                   ⎪
-identifier-1 IS [ NOT ]⎨ FARTHEST-FROM-ZERO             ⎬
-                       ⎪ FLOAT-INFINITY                 ⎪
-                       ⎪ FLOAT-NOT-A-NUMBER             ⎪
-                       ⎪ FLOAT-NOT-A-NUMBER-QUIET       ⎪
-                       ⎪ FLOAT-NOT-A-NUMBER-SIGNALING   ⎪
-                       ⎪ IN-ARITHMETIC-RANGE            ⎪
-                       ⎪ NEAREST-TO-ZERO                ⎪
-                       ⎩ NUMERIC                        ⎭
-```
+<pre>
+                        ╭ alphabet-name-1              ╮
+                        │                              │
+                        │ <u>ALPHABETIC</u>                   │
+                        │                              │
+                        │ <u>ALPHABETIC-LOWER</u>             │
+                        │                              │
+                        │ <u>ALPHABETIC-UPPER</u>             │
+                        │                              │
+                        │ <u>BOOLEAN</u>                      │
+                        │                              │
+                        │ class-name-1                 │
+                        │                              │
+                        │ <u>FARTHEST-FROM-ZERO</u>           │
+identifier-1 IS [ <u>NOT</u> ] ┤                              ├
+                        │ <u>FLOAT-INFINITY</u>               │
+                        │                              │
+                        │ <u>FLOAT-NOT-A-NUMBER</u>           │
+                        │                              │
+                        │ <u>FLOAT-NOT-A-NUMBER-QUIET</u>     │
+                        │                              │
+                        │ <u>FLOAT-NOT-A-NUMBER-SIGNALING</u> │
+                        │                              │
+                        │ <u>IN-ARITHMETIC-RANGE</u>          │
+                        │                              │
+                        │ <u>NEAREST-TO-ZERO</u>              │
+                        │                              │
+                        ╰ <u>NUMERIC</u>                      ╯
+</pre>
 
 > **Figure notes (class condition general format).** `NOT`, `ALPHABETIC`, `ALPHABETIC-LOWER`, `ALPHABETIC-UPPER`, `BOOLEAN`, `FARTHEST-FROM-ZERO`, `FLOAT-INFINITY`, `FLOAT-NOT-A-NUMBER`, `FLOAT-NOT-A-NUMBER-QUIET`, `FLOAT-NOT-A-NUMBER-SIGNALING`, `IN-ARITHMETIC-RANGE`, `NEAREST-TO-ZERO`, and `NUMERIC` are underlined in the printed standard (required words). `alphabet-name-1` and `class-name-1` are not underlined. No choice indicators appear in this figure — exactly one of the fourteen alternatives shall be selected.
 
@@ -9915,8 +10034,9 @@ In a condition-name condition, a conditional variable is tested to determine whe
 <a id="section-8-8-4-5-2"></a>
 ###### 8.8.4.5.2 General format
 
-`condition-name-1`
-
+<pre>
+condition-name-1
+</pre>
 <a id="section-8-8-4-5-3"></a>
 ###### 8.8.4.5.3 General rules
 
@@ -9937,8 +10057,9 @@ A switch-status condition determines the on or off status of an implementor-defi
 <a id="section-8-8-4-6-2"></a>
 ###### 8.8.4.6.2 General format
 
-`condition-name-1`
-
+<pre>
+condition-name-1
+</pre>
 <a id="section-8-8-4-6-3"></a>
 ###### 8.8.4.6.3 General rule
 
@@ -9964,21 +10085,25 @@ The sign condition determines whether or not the algebraic value of an arithmeti
 
 **Format 1 (expression)**
 
-```
-                              ⎧ POSITIVE ⎫
- arithmetic-expression-1 IS [ NOT ] ⎨ NEGATIVE ⎬
-                              ⎩ ZERO     ⎭
-```
+<pre>
+                                   ╭ <u>POSITIVE</u> ╮
+                                   │          │
+arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├
+                                   │          │
+                                   ╰ <u>ZERO</u>     ╯
+</pre>
 
 > **Figure notes (simple sign condition Format 1 (expression) syntax diagram).** `NOT`, `POSITIVE`, `NEGATIVE`, and `ZERO` are underlined in the printed standard (required words); `IS` is not underlined. No choice indicators appear in this figure.
 
 **Format 2 (standard-float)**
 
-```
-                     ⎧ POSITIVE ⎫
- data-name-1 IS [ NOT ] ⎨ NEGATIVE ⎬
-                     ⎩ ZERO     ⎭
-```
+<pre>
+                      ╭ <u>POSITIVE</u> ╮
+                      │          │
+data-name-1 IS <u>[NOT</u> ] ┤ <u>NEGATIVE</u> ├
+                      │          │
+                      ╰ <u>ZERO</u>     ╯
+</pre>
 
 > **Figure notes (simple sign condition Format 2 (standard-float) syntax diagram).** `NOT`, `POSITIVE`, `NEGATIVE`, and `ZERO` are underlined in the printed standard (required words); `IS` is not underlined. No choice indicators appear in this figure.
 
@@ -10042,8 +10167,9 @@ The omitted-argument condition determines whether an argument was provided to a 
 <a id="section-8-8-4-8-2"></a>
 ###### 8.8.4.8.2 General format
 
+<pre>
 data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>
-
+</pre>
 <a id="section-8-8-4-8-3"></a>
 ###### 8.8.4.8.3 Syntax rule
 
@@ -10106,8 +10232,9 @@ NOTE The truth value of a negated condition is true if the truth value of the co
 <a id="section-8-8-4-10-2"></a>
 ###### 8.8.4.10.2 General format
 
-NOT condition-1
-
+<pre>
+<u>NOT</u> condition-1
+</pre>
 <a id="section-8-8-4-11"></a>
 ##### 8.8.4.11 Complex Combined conditions
 
@@ -10121,13 +10248,15 @@ NOTE The words XOR and EXCLUSIVE-OR are equivalent, either can be used to indica
 <a id="section-8-8-4-11-2"></a>
 ###### 8.8.4.11.2 General format
 
-```
-              ⎧ ⎧ AND          ⎫             ⎫
-              ⎪ ⎪ OR           ⎪             ⎪
-condition-1   ⎨ ⎨ EXCLUSIVE-OR ⎬ condition-2 ⎬  …
-              ⎪ ⎪ XOR          ⎪             ⎪
-              ⎩ ⎩              ⎭             ⎭
-```
+<pre>
+            ╭ ╭ <u>AND</u>          ╮             ╮
+            │ │              │             │
+            │ │ <u>OR</u>           │             │
+condition-1 ┤ ┤              ├ condition-2 ├ …
+            │ │ <u>EXCLUSIVE-OR</u> │             │
+            │ │              │             │
+            ╰ ╰ <u>XOR</u>          ╯             ╯
+</pre>
 
 > **Figure notes (complex combined conditions general format syntax diagram).** `AND`, `OR`, `EXCLUSIVE-OR`, and `XOR` are underlined in the printed standard (required words). Both the inner four-way group and the outer group are **braces**, not brackets: exactly one logical operator shall be selected, and the `{ operator } condition-2` group shall be present at least once, the ellipsis permitting repetition. No choice indicators appear in this figure.
 
@@ -10188,12 +10317,16 @@ Within a sequence of relation conditions, both forms of omission may be used.
 <a id="section-8-8-4-12-2"></a>
 ###### 8.8.4.12.2 General format
 
-```
-                      ⎧ ⎧ AND          ⎫  ⎧ NOT                          ⎫             ⎫
-relation-condition-1  ⎪ ⎪ OR           ⎪  ⎨ simple-relational-operator   ⎬             ⎪
-                      ⎨ ⎨ EXCLUSIVE-OR ⎬  ⎩ extended-relational-operator ⎭   object-1  ⎬ …
-                      ⎩ ⎩ XOR          ⎭                                               ⎭
-```
+<pre>
+                     ╭ ╭ <u>AND</u>          ╮                                           ╮
+                     │ │              │                                           │
+                     │ │ <u>OR</u>           │ ╭ <u>NOT</u>                          ╮          │
+relation-condition-1 ┤ ┤              ├ ┤                              ├ object-1 ├ …
+                     │ │ <u>EXCLUSIVE-OR</u> │ │ simple-relational-operator   │          │
+                     │ │              │ │                              │          │
+                     │ │              │ ╰ extended-relational-operator ╯          │
+                     ╰ ╰ <u>XOR</u>          ╯                                           ╯
+</pre>
 
 > **Figure notes (abbreviated combined relation condition general format syntax diagram).** `AND`, `OR`, `EXCLUSIVE-OR`, `XOR`, and `NOT` are underlined in the printed standard (required words). The ellipsis stands outside the **outer** brace, so the entire group — logical operator, then operator-or-NOT, then `object-1` — is what repeats. `simple-relational-operator` and `extended-relational-operator` are described in 8.7.5, Relational operators.
 
@@ -12760,17 +12893,25 @@ End markers indicate the end of a definition.
 <a id="section-10-7-2"></a>
 #### 10.7.2 General format
 
-```
-      ⎧ PROGRAM program-prototype-name-1   ⎫
-      ⎪ PROGRAM program-name-1             ⎪
-      ⎪ CLASS object-class-name-1          ⎪
-      ⎪ FACTORY                            ⎪
-END   ⎨ FUNCTION function-prototype-name-1 ⎬   .
-      ⎪ FUNCTION user-function-name-1      ⎪
-      ⎪ OBJECT                             ⎪
-      ⎪ METHOD [ method-name-1 ]           ⎪
-      ⎩ INTERFACE interface-name-1         ⎭
-```
+<pre>
+    ╭ <u>PROGRAM</u> program-prototype-name-1   ╮
+    │                                    │
+    │ <u>PROGRAM</u> program-name-1             │
+    │                                    │
+    │ <u>CLASS</u> object-class-name-1          │
+    │                                    │
+    │ <u>FACTORY</u>                            │
+    │                                    │
+<u>END</u> ┤ <u>FUNCTION</u> function-prototype-name-1 ├ .
+    │                                    │
+    │ <u>FUNCTION</u> user-function-name-1      │
+    │                                    │
+    │ <u>OBJECT</u>                             │
+    │                                    │
+    │ <u>METHOD</u> [ method-name-1 ]           │
+    │                                    │
+    ╰ <u>INTERFACE</u> interface-name-1         ╯
+</pre>
 
 > **Figure notes (End markers general format syntax diagram).** `END`, `PROGRAM`, `CLASS`, `FACTORY`, `FUNCTION`, `OBJECT`, `METHOD`, and `INTERFACE` are underlined in the printed standard (required words). The braces are a plain alternation: exactly one of the nine alternatives shall be specified. The separator period follows the closing brace. No choice indicators appear in this figure.
 
@@ -12830,19 +12971,25 @@ The paragraph header identifies the type of information contained in the paragra
 <a id="section-11-2-1"></a>
 #### 11.2.1 General format
 
-```
-[ IDENTIFICATION DIVISION. ]
+<pre>
+[ <u>IDENTIFICATION</u> <u>DIVISION.</u> ]
 
-⎧ program-id-paragraph  ⎫
-⎪ function-id-paragraph ⎪
-⎪ class-id-paragraph    ⎪
-⎨ factory-paragraph      ⎬
-⎪ object-paragraph      ⎪
-⎪ method-id-paragraph   ⎪
-⎩ interface-id-paragraph ⎭
+╭ program-id-paragraph   ╮
+│                        │
+│ function-id-paragraph  │
+│                        │
+│ class-id-paragraph     │
+│                        │
+┤ factory-paragraph      ├
+│                        │
+│ object-paragraph       │
+│                        │
+│ method-id-paragraph    │
+│                        │
+╰ interface-id-paragraph ╯
 
 [ options-paragraph ]
-```
+</pre>
 
 where the following meta-language terms are described in the indicated subclauses:
 
@@ -12876,11 +13023,11 @@ The CLASS-ID paragraph indicates that this identification division is introducin
 <a id="section-11-3-2"></a>
 #### 11.3.2 General format
 
-```
-CLASS-ID.  object-class-name-1 [ AS literal-1 ] [ IS  FINAL ]
-    [ INHERITS FROM { object-class-name-2 }  … ]
-    [ USING { parameter-name-1 }  … ] .
-```
+<pre>
+<u>CLASS-ID.</u> object-class-name-1 [ <u>AS</u> literal-1 ] [ IS <u>FINAL</u> ]
+[ <u>INHERITS</u> FROM { object-class-name-2 } … ]
+[ <u>USING</u> { parameter-name-1 } … ] .
+</pre>
 
 <a id="section-11-3-3"></a>
 #### 11.3.3 Syntax rules
@@ -12946,8 +13093,9 @@ The FACTORY paragraph indicates that this identification division is introducing
 <a id="section-11-4-2"></a>
 #### 11.4.2 General format
 
-<u>FACTORY</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } ... . ]
-
+<pre>
+<u>FACTORY.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
+</pre>
 <a id="section-11-4-3"></a>
 #### 11.4.3 Syntax rules
 
@@ -12990,12 +13138,14 @@ The FUNCTION-ID paragraph specifies the name by which a function is identified a
 
 Format 1 (definition):
 
-<u>FUNCTION-ID</u>. user-function-name-1 [ <u>AS</u> literal-1 ] **.**
-
+<pre>
+<u>FUNCTION-ID.</u> user-function-name-1 [ <u>AS</u> literal-1 ] .
+</pre>
 Format 2 (prototype):
 
-<u>FUNCTION-ID</u>. function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u>.
-
+<pre>
+<u>FUNCTION-ID.</u> function-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE.</u>
+</pre>
 <a id="section-11-5-3"></a>
 #### 11.5.3 Syntax rule
 
@@ -13034,11 +13184,11 @@ The INTERFACE-ID paragraph indicates that this identification division is introd
 <a id="section-11-6-2"></a>
 #### 11.6.2 General format
 
-```
-INTERFACE-ID.  interface-name-1  [ AS literal-1 ]
-    [ INHERITS FROM { interface-name-2 }  … ]
-    [ USING { parameter-name-1 }  … ] .
-```
+<pre>
+<u>INTERFACE-ID.</u> interface-name-1 [ <u>AS</u> literal-1 ]
+[ <u>INHERITS</u> FROM { interface-name-2 } … ]
+[ <u>USING</u> { parameter-name-1 } … ] .
+</pre>
 
 <a id="section-11-6-3"></a>
 #### 11.6.3 Syntax rules
@@ -13087,13 +13237,13 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 <a id="section-11-7-2"></a>
 #### 11.7.2 General format
 
-```
-             ⎧ method-name-1 [ AS literal-1 ]         ⎫
-             ⎪                                        ⎪
-METHOD-ID.   ⎨    ⎧ GET ⎫                             ⎬   [ OVERRIDE ] [ IS FINAL ] .
-             ⎪    ⎨     ⎬  PROPERTY property-name-1   ⎪
-             ⎩    ⎩ SET ⎭                             ⎭
-```
+<pre>
+           ╭ method-name-1 [ <u>AS</u> literal-1 ]   ╮
+<u>METHOD-ID.</u> ┤                                  ├ [ <u>OVERRIDE</u> ] [ IS <u>FINAL</u> ] .
+           │ ╭ <u>GET</u> ╮                          │
+           │ ┤     ├ <u>PROPERTY</u> property-name-1 │
+           ╰ ╰ <u>SET</u> ╯                          ╯
+</pre>
 
 > **Figure notes (METHOD-ID paragraph general format).** `METHOD-ID`, `AS`, `GET`, `SET`, `PROPERTY`, `OVERRIDE`, and `FINAL` are underlined in the printed standard (required words). `IS` in the `[ IS FINAL ]` bracket is *not* underlined. The outer braces are a plain required choice — either the `method-name-1` line or the `GET`/`SET` `PROPERTY` line, not both. The terminating period is printed after the two optional brackets.
 
@@ -13169,8 +13319,9 @@ The OBJECT paragraph indicates that this identification division is introducing 
 <a id="section-11-8-2"></a>
 #### 11.8.2 General format
 
-<u>OBJECT</u>. [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
-
+<pre>
+<u>OBJECT.</u> [ <u>IMPLEMENTS</u> { interface-name-1 } … . ]
+</pre>
 <a id="section-11-8-3"></a>
 #### 11.8.3 Syntax rules
 
@@ -13213,8 +13364,8 @@ The OPTIONS paragraph specifies information for use by the compiler in generatin
 <a id="section-11-9-2"></a>
 #### 11.9.2 General format
 
-OPTIONS.
-```
+<pre>
+<u>OPTIONS.</u>
 [ arithmetic-clause ]
 [ default-rounded-clause ]
 [ entry-convention-clause ]
@@ -13223,7 +13374,7 @@ OPTIONS.
 [ initialize-clause ]
 [ intermediate-rounding-clause ]
 [.]
-```
+</pre>
 
 <a id="section-11-9-3"></a>
 #### 11.9.3 Syntax rule
@@ -13243,11 +13394,13 @@ The ARITHMETIC clause specifies the method used in developing the intermediate r
 <a id="section-11-9-5-1"></a>
 ##### 11.9.5.1 General format
 
-```
-                 ⎧ NATIVE           ⎫
-ARITHMETIC IS    ⎨ STANDARD-BINARY  ⎬
-                 ⎩ STANDARD-DECIMAL ⎭
-```
+<pre>
+              ╭ <u>NATIVE</u>           ╮
+              │                  │
+<u>ARITHMETIC</u> IS ┤ <u>STANDARD-BINARY</u>  ├
+              │                  │
+              ╰ <u>STANDARD-DECIMAL</u> ╯
+</pre>
 
 > **Figure notes (ARITHMETIC clause syntax diagram).** `ARITHMETIC`, `NATIVE`, `STANDARD-BINARY`, and `STANDARD-DECIMAL` are underlined in the printed standard (required words); `IS` is **not** underlined. The braces are plain — exactly one of the three alternatives shall be selected.
 
@@ -13288,16 +13441,23 @@ The DEFAULT ROUNDED clause specifies the type of rounding that applies when ROUN
 <a id="section-11-9-6-2"></a>
 ##### 11.9.6.2 General format
 
-> ```
->                         ⎧ AWAY-FROM-ZERO         ⎫
->                         ⎪ NEAREST-AWAY-FROM-ZERO ⎪
->                         ⎪ NEAREST-EVEN           ⎪
->                         ⎪ NEAREST-TOWARD-ZERO    ⎪
-> DEFAULT ROUNDED MODE IS ⎨ PROHIBITED             ⎬
->                         ⎪ TOWARD-GREATER         ⎪
->                         ⎪ TOWARD-LESSER          ⎪
->                         ⎩ TRUNCATION             ⎭
-> ```
+<pre>
+                        ╭ <u>AWAY-FROM-ZERO</u>         ╮
+                        │                        │
+                        │ <u>NEAREST-AWAY-FROM-ZERO</u> │
+                        │                        │
+                        │ <u>NEAREST-EVEN</u>           │
+                        │                        │
+                        │ <u>NEAREST-TOWARD-ZERO</u>    │
+<u>DEFAULT</u> <u>ROUNDED</u> MODE IS ┤                        ├
+                        │ <u>PROHIBITED</u>             │
+                        │                        │
+                        │ <u>TOWARD-GREATER</u>         │
+                        │                        │
+                        │ <u>TOWARD-LESSER</u>          │
+                        │                        │
+                        ╰ <u>TRUNCATION</u>             ╯
+</pre>
 >
 > > **Figure notes (DEFAULT ROUNDED clause general format).** `DEFAULT`, `ROUNDED`, and all eight rounding-mode words (`AWAY-FROM-ZERO`, `NEAREST-AWAY-FROM-ZERO`, `NEAREST-EVEN`, `NEAREST-TOWARD-ZERO`, `PROHIBITED`, `TOWARD-GREATER`, `TOWARD-LESSER`, `TRUNCATION`) are underlined in the printed standard (required words); `MODE` and `IS` are **not** underlined. The eight modes are enclosed in braces, so exactly one shall be selected — the clause is not optional once written and there is no bracket around the `MODE IS` phrase here (contrast the ROUNDED phrase at 14.7.4.2, where `MODE IS …` is bracketed).
 
@@ -13329,10 +13489,11 @@ The ENTRY-CONVENTION clause specifies the information to be used when activating
 <a id="section-11-9-7-2"></a>
 ##### 11.9.7.2 General format
 
-```
-ENTRY-CONVENTION IS ⎧ COBOL                   ⎫
-                    ⎩ entry-convention-name-1 ⎭
-```
+<pre>
+                    ╭ <u>COBOL</u>                   ╮
+<u>ENTRY-CONVENTION</u> IS ┤                         ├
+                    ╰ entry-convention-name-1 ╯
+</pre>
 
 > **Figure notes (ENTRY-CONVENTION clause general format syntax diagram).** `ENTRY-CONVENTION` and `COBOL` are underlined in the printed standard (required words); `IS` is not underlined (optional word). The braces require exactly one of `COBOL` or `entry-convention-name-1`. No choice indicators appear in this figure.
 
@@ -13379,11 +13540,11 @@ The FLOAT-BINARY clause specifies the endianness that is implied for data items 
 <a id="section-11-9-8-2"></a>
 ##### 11.9.8.2 General format
 
-```
-                          ⎧ HIGH-ORDER-LEFT  ⎫
-FLOAT-BINARY DEFAULT IS   ⎨                  ⎬
-                          ⎩ HIGH-ORDER-RIGHT ⎭
-```
+<pre>
+                        ╭ <u>HIGH-ORDER-LEFT</u>  ╮
+<u>FLOAT-BINARY</u> DEFAULT IS ┤                  ├
+                        ╰ <u>HIGH-ORDER-RIGHT</u> ╯
+</pre>
 
 > **Figure notes (FLOAT-BINARY clause general format).** `FLOAT-BINARY`, `HIGH-ORDER-LEFT`, and `HIGH-ORDER-RIGHT` are underlined in the printed standard (required words); `DEFAULT` and `IS` are printed without underlines. The braces are plain — exactly one endianness alternative shall be selected. No choice indicators are present.
 
@@ -13407,11 +13568,11 @@ The FLOAT-DECIMAL clause specifies the encoding and the endianness that is impli
 <a id="section-11-9-9-2"></a>
 ##### 11.9.9.2 General format
 
-```
-                           ⎧ | encoding-phrase   | ⎫
-FLOAT-DECIMAL DEFAULT IS   ⎨ |                   | ⎬
-                           ⎩ | endianness-phrase | ⎭
-```
+<pre>
+                         ╭ │ encoding-phrase   │ ╮
+<u>FLOAT-DECIMAL</u> DEFAULT IS ┤ │                   │ ├
+                         ╰ │ endianness-phrase │ ╯
+</pre>
 
 > **Figure notes (FLOAT-DECIMAL clause general format).** `FLOAT-DECIMAL` is underlined in the printed standard (required word); `DEFAULT` and `IS` are printed without underlines.
 > ⚠ **The two alternatives are enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside the braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the clause may carry `encoding-phrase` alone, `endianness-phrase` alone, or **both**, in either order.
@@ -13426,17 +13587,19 @@ FLOAT-DECIMAL DEFAULT IS   ⎨ |                   | ⎬
 
 where encoding-phrase is:
 
-```
-⎧ BINARY-ENCODING  ⎫
-⎩ DECIMAL-ENCODING ⎭
-```
+<pre>
+╭ <u>BINARY-ENCODING</u>  ╮
+┤                  ├
+╰ <u>DECIMAL-ENCODING</u> ╯
+</pre>
 
 where endianness-phrase is:
 
-```
-⎧ HIGH-ORDER-LEFT  ⎫
-⎩ HIGH-ORDER-RIGHT ⎭
-```
+<pre>
+╭ <u>HIGH-ORDER-LEFT</u>  ╮
+┤                  ├
+╰ <u>HIGH-ORDER-RIGHT</u> ╯
+</pre>
 
 <a id="section-11-9-9-3"></a>
 ##### 11.9.9.3 Syntax rules
@@ -13472,13 +13635,17 @@ The INITIALIZE clause specifies that during program initialization of allocation
 <a id="section-11-9-10-2"></a>
 ##### 11.9.10.2 General format
 
-```
-             ⎧ ALL                        ⎫                ⎧ BINARY ZEROES ⎫
-             ⎪   ⎧ | LOCAL-STORAGE   | ⎫  ⎪                ⎪ HIGH-VALUES   ⎪
-INITIALIZE   ⎨   ⎨ | SCREEN          | ⎬  ⎬   SECTION TO   ⎨ literal-1     ⎬
-             ⎪   ⎩ | WORKING-STORAGE | ⎭  ⎪                ⎪ LOW-VALUES    ⎪
-             ⎩                            ⎭                ⎩ SPACES        ⎭
-```
+<pre>
+           ╭ <u>ALL</u>                     ╮            ╭ <u>BINARY</u> <u>ZEROES</u> ╮
+           │                         │            │               │
+           │                         │            │ <u>HIGH-VALUES</u>   │
+           │                         │            │               │
+<u>INITIALIZE</u> ┤ ╭ │ <u>LOCAL-STORAGE</u>   │ ╮ ├ SECTION TO ┤ literal-1     ├
+           │ │ │                 │ │ │            │               │
+           │ ┤ │ <u>SCREEN</u>          │ ├ │            │ <u>LOW-VALUES</u>    │
+           │ │ │                 │ │ │            │               │
+           ╰ ╰ │ <u>WORKING-STORAGE</u> │ ╯ ╯            ╰ <u>SPACES</u>        ╯
+</pre>
 
 > **Figure notes (INITIALIZE clause general format syntax diagram).** `INITIALIZE`, `ALL`, `LOCAL-STORAGE`, `SCREEN`, `WORKING-STORAGE`, `BINARY`, `ZEROES`, `HIGH-VALUES`, `LOW-VALUES`, and `SPACES` are underlined in the printed standard (required words). `SECTION` and `TO` are not underlined. The outer braces require exactly one of the two alternatives (`ALL`, or the storage-section group), and the final braces require exactly one fill specification.
 > ⚠ **The storage-section group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of `LOCAL-STORAGE`, `SCREEN`, and `WORKING-STORAGE` shall be specified, each at most once, **in any order**.
@@ -13532,12 +13699,15 @@ The INTERMEDIATE ROUNDING clause specifies the rounding rules that are to be app
 <a id="section-11-9-11-1"></a>
 ##### 11.9.11.1 General format
 
-```
-                                ⎧ NEAREST-AWAY-FROM-ZERO ⎫
-                                ⎪ NEAREST-EVEN           ⎪
-INTERMEDIATE ROUNDING IS        ⎨ PROHIBITED             ⎬
-                                ⎩ TRUNCATION             ⎭
-```
+<pre>
+                         ╭ <u>NEAREST-AWAY-FROM-ZERO</u> ╮
+                         │                        │
+                         │ <u>NEAREST-EVEN</u>           │
+<u>INTERMEDIATE</u> <u>ROUNDING</u> IS ┤                        ├
+                         │ <u>PROHIBITED</u>             │
+                         │                        │
+                         ╰ <u>TRUNCATION</u>             ╯
+</pre>
 
 > **Figure notes (INTERMEDIATE ROUNDING clause syntax diagram).** `INTERMEDIATE`, `ROUNDING`, `NEAREST-AWAY-FROM-ZERO`, `NEAREST-EVEN`, `PROHIBITED`, and `TRUNCATION` are underlined in the printed standard (required words). `IS` is **not** underlined — it is an optional word. The braces enclose four alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
@@ -13602,19 +13772,22 @@ The PROGRAM-ID paragraph specifies the name by which a program prototype is iden
 
 Format 1 (definition):
 
-```
-                                            ⎡    ⎧ | COMMON          | ⎫         ⎤
-PROGRAM-ID. program-name-1 [ AS literal-1 ] ⎢ IS ⎨ | ⎧ INITIAL   ⎫   | ⎬ PROGRAM ⎥ .
-                                            ⎣    ⎩ | ⎩ RECURSIVE ⎭   | ⎭         ⎦
-```
+<pre>
+                                            ┌    ╭ │ <u>COMMON</u>        │ ╮         ┐
+<u>PROGRAM-ID.</u> program-name-1 [ <u>AS</u> literal-1 ] │ IS ┤ │               │ ├ PROGRAM │ .
+                                            │    │ │ ╭ <u>INITIAL</u>   ╮ │ │         │
+                                            │    │ │ ┤           ├ │ │         │
+                                            └    ╰ │ ╰ <u>RECURSIVE</u> ╯ │ ╯         ┘
+</pre>
 
 > **Figure notes (PROGRAM-ID paragraph Format 1 (definition) syntax diagram).** `PROGRAM-ID`, `AS`, `COMMON`, `INITIAL`, and `RECURSIVE` are underlined in the printed standard (required words). `IS` and `PROGRAM` are not underlined. The terminating period is printed **outside** the optional bracket.
 > ⚠ **The outer attribute braces are enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside them). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order**. The two enclosed alternatives are `COMMON` and the inner brace `{ INITIAL | RECURSIVE }` — so `IS COMMON PROGRAM`, `IS INITIAL PROGRAM`, `IS COMMON INITIAL PROGRAM`, and `IS RECURSIVE COMMON PROGRAM` are all legal, while `INITIAL RECURSIVE` is not (the inner braces carry no bars).
 
 Format 2 (prototype):
 
-<u>PROGRAM-ID</u>. program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u> .
-
+<pre>
+<u>PROGRAM-ID.</u> program-prototype-name-1 [ <u>AS</u> literal-1 ] IS <u>PROTOTYPE</u> .
+</pre>
 <a id="section-11-10-3"></a>
 #### 11.10.3 Syntax rules
 
@@ -13684,11 +13857,11 @@ The environment division specifies those aspects of a data processing problem th
 <a id="section-12-2-1"></a>
 #### 12.2.1 General format
 
-```
-ENVIRONMENT DIVISION.
+<pre>
+<u>ENVIRONMENT</u> <u>DIVISION.</u>
 [ configuration-section ]
 [ input-output-section ]
-```
+</pre>
 
 ---
 
@@ -13718,12 +13891,13 @@ The configuration section specifies aspects of the data processing system that a
 <a id="section-12-3-2"></a>
 #### 12.3.2 General format
 
-<u>CONFIGURATION</u> <u>SECTION</u>.
+<pre>
+<u>CONFIGURATION</u> <u>SECTION.</u>
 [ source-computer-paragraph ]
 [ object-computer-paragraph ]
 [ special-names-paragraph ]
 [ repository-paragraph ]
-
+</pre>
 <a id="section-12-3-3"></a>
 #### 12.3.3 Syntax rules
 
@@ -13759,8 +13933,9 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 <a id="section-12-3-5-2"></a>
 ##### 12.3.5.2 General format
 
-<u>SOURCE-COMPUTER</u>. [ computer-name-1 ] .
-
+<pre>
+<u>SOURCE-COMPUTER.</u> [ computer-name-1 ] .
+</pre>
 <a id="section-12-3-5-3"></a>
 ##### 12.3.5.3 Syntax rule
 
@@ -14516,53 +14691,59 @@ The REPOSITORY paragraph allows specification of program prototype names, functi
 <a id="section-12-3-8-2"></a>
 ##### 12.3.8.2 General format
 
-```
-REPOSITORY.
-```
+<pre>
+<u>REPOSITORY.</u>
 
-```
-⎡ ⎧ class-specifier                 ⎫       ⎤
-⎢ ⎪ interface-specifier             ⎪       ⎥
-⎢ ⎪ intrinsic-function-specifier    ⎪       ⎥
-⎢ ⎨ program-specifier               ⎬  … .  ⎥
-⎢ ⎪ property-specifier              ⎪       ⎥
-⎣ ⎩ user-defined-function-specifier ⎭       ⎦
-```
+┌ ╭ class-specifier                 ╮     ┐
+│ │                                 │     │
+│ │ interface-specifier             │     │
+│ │                                 │     │
+│ │ intrinsic-function-specifier    │     │
+│ ┤                                 ├ … . │
+│ │ program-specifier               │     │
+│ │                                 │     │
+│ │ property-specifier              │     │
+│ │                                 │     │
+└ ╰ user-defined-function-specifier ╯     ┘
+</pre>
 
 > **Figure notes (REPOSITORY paragraph syntax diagram).** This bracketed group follows the `REPOSITORY.` paragraph header shown immediately above; `REPOSITORY` is underlined in the printed standard (required word). No word inside the group is underlined — all six entries are metalanguage terms. The inner braces select exactly one specifier; the `…` repeats that brace group; and the **separator period is printed INSIDE the outer bracket**, so both the specifier list and its terminating period are omitted together when no specifiers are written.
 
 where class-specifier is:
 
-```
-                                            ⎡                                    ⎧ object-class-name-3 ⎫     ⎤
-CLASS object-class-name-1 [ AS literal-1 ]  ⎣ EXPANDS object-class-name-2 USING  ⎩ interface-name-1    ⎭  …  ⎦
-```
+<pre>
+<u>CLASS</u> object-class-name-1 [ <u>AS</u> literal-1 ] ┌ <u>EXPANDS</u> object-class-name-2 <u>USING</u> ╭ object-class-name-3 ╮ … ┐
+                                           │                                   ┤                     ├   │
+                                           └                                   ╰ interface-name-1    ╯   ┘
+</pre>
 
 > **Figure notes (class-specifier syntax diagram).** `CLASS`, `AS`, `EXPANDS`, and `USING` are underlined in the printed standard (required words). The braces after `USING` select exactly one name per repetition; the `…` repeats that brace group. The whole `EXPANDS` phrase is optional.
 
 where interface-specifier is:
 
-```
-                                           ⎡                                ⎧ object-class-name-4 ⎫     ⎤
-INTERFACE interface-name-2 [ AS literal-2 ] ⎣ EXPANDS interface-name-3 USING ⎩ interface-name-4    ⎭  …  ⎦
-```
+<pre>
+<u>INTERFACE</u> interface-name-2 [ <u>AS</u> literal-2 ] ┌ <u>EXPANDS</u> interface-name-3 <u>USING</u> ╭ object-class-name-4 ╮ … ┐
+                                            │                                ┤                     ├   │
+                                            └                                ╰ interface-name-4    ╯   ┘
+</pre>
 
 > **Figure notes (interface-specifier syntax diagram).** `INTERFACE`, `AS`, `EXPANDS`, and `USING` are underlined in the printed standard (required words). The braces after `USING` select exactly one name per repetition; the `…` repeats that brace group. The whole `EXPANDS` phrase is optional.
 
 where intrinsic-function-specifier is:
 
-```
-         ⎧ { intrinsic-function-name-1 } …  ⎫
-FUNCTION ⎩ ALL                              ⎭ INTRINSIC
-```
+<pre>
+         ╭ { intrinsic-function-name-1 } … ╮
+<u>FUNCTION</u> ┤                                 ├ <u>INTRINSIC</u>
+         ╰ <u>ALL</u>                             ╯
+</pre>
 
 > **Figure notes (intrinsic-function-specifier syntax diagram).** `FUNCTION`, `ALL`, and `INTRINSIC` are underlined in the printed standard (required words). The outer braces select exactly one of the two alternatives; in the first alternative the inner single-line braces plus `…` denote one or more intrinsic-function-names.
 
 where program-specifier is:
 
-```
-PROGRAM program-prototype-name-1 [ AS literal-3 ]
-```
+<pre>
+<u>PROGRAM</u> program-prototype-name-1 [ <u>AS</u> literal-3 ]
+</pre>
 
 > **Figure notes (program-specifier syntax diagram).** `PROGRAM` and `AS` are underlined in the printed standard (required words). The `AS` phrase is optional.
 
@@ -14577,12 +14758,14 @@ PROGRAM program-prototype-name-1 [ AS literal-3 ]
 
 where property-specifier is:
 
-&nbsp;&nbsp;&nbsp;&nbsp;PROPERTY property-name-1 [ AS literal-4 ]
-
+<pre>
+<u>PROPERTY</u> property-name-1 [ <u>AS</u> literal-4 ]
+</pre>
 where user-defined-function-specifier is:
 
-&nbsp;&nbsp;&nbsp;&nbsp;FUNCTION function-prototype-name-1 [ AS literal-5 ]
-
+<pre>
+<u>FUNCTION</u> function-prototype-name-1 [ <u>AS</u> literal-5 ]
+</pre>
 <a id="section-12-3-8-3"></a>
 ##### 12.3.8.3 Syntax rules
 
@@ -14752,11 +14935,11 @@ The input-output section deals with the information needed to control transmissi
 <a id="section-12-4-2"></a>
 #### 12.4.2 General format
 
-```
-INPUT-OUTPUT SECTION.
+<pre>
+<u>INPUT-OUTPUT</u> <u>SECTION.</u>
 [ file-control-paragraph ]
 [ i-o-control-paragraph ]
-```
+</pre>
 
 <a id="section-12-4-3"></a>
 #### 12.4.3 Syntax rule
@@ -14785,8 +14968,9 @@ The FILE-CONTROL paragraph specifies file-related information.
 <a id="section-12-4-4-2"></a>
 ##### 12.4.4.2 General format
 
-<u>FILE-CONTROL</u>. [ file-control-entry ] …
-
+<pre>
+<u>FILE-CONTROL.</u> [ file-control-entry ] …
+</pre>
 <a id="section-12-4-5"></a>
 #### 12.4.5 File control entry
 
@@ -14806,40 +14990,51 @@ The file control entry declares the relevant physical attributes of a file.
 
 Format 1 (indexed):
 
-```
-⎡ SELECT [ OPTIONAL ] file-name-1                                                                   ⎤
-⎢                                                                                                   ⎥
-⎢          ⎧ TO ⎧ device-name-1 ⎫ … [ USING data-name-1 ] ⎫                                          ⎥
-⎢   ASSIGN ⎨    ⎩ literal-1     ⎭                         ⎬                                          ⎥
-⎢          ⎩ USING data-name-1                            ⎭                                          ⎥
-⎢                                                                                                   ⎥
-⎢   ⎡                ⎧ DYNAMIC    ⎫ ⎤                                                                ⎥
-⎢   ⎢ ACCESS MODE IS ⎨ RANDOM     ⎬ ⎥                                                                ⎥
-⎢   ⎣                ⎩ SEQUENTIAL ⎭ ⎦                                                                ⎥
-⎢                                                                                                   ⎥
-⎢   ⎡                          ⎧ data-name-2                                   ⎫ ⎤                   ⎥
-⎢   ⎢ ALTERNATE RECORD KEY IS  ⎩ record-key-name-1 SOURCE IS { data-name-3 } …  ⎭ ⎥ …                 ⎥
-⎢   ⎣      [ WITH DUPLICATES ]       [ SUPPRESS WHEN literal-2 ]                  ⎦                   ⎥
-⎢                                                                                                   ⎥
-⎢   [ collating-sequence-clause ] …                                                                  ⎥
-⎢                                                                                                   ⎥
-⎢   [ FILE STATUS IS data-name-4 ]                                                                   ⎥
-⎢                                                                                                   ⎥
-⎢   ⎡              ⎧ MANUAL    ⎫ ⎡                             ⎧ RECORD  ⎫ ⎤ ⎤                       ⎥
-⎢   ⎣ LOCK MODE IS ⎩ AUTOMATIC ⎭ ⎣ WITH LOCK ON [ MULTIPLE ]   ⎩ RECORDS ⎭ ⎦ ⎦                       ⎥
-⎢                                                                                                   ⎥
-⎢   [ ORGANIZATION IS ] INDEXED                                                                      ⎥
-⎢                                                                                                   ⎥
-⎢                  ⎧ data-name-5                                   ⎫                                 ⎥
-⎢   RECORD KEY IS  ⎩ record-key-name-2 SOURCE IS { data-name-6 } …  ⎭                                 ⎥
-⎢                                                                                                   ⎥
-⎢   ⎡                   ⎡ AREA  ⎤ ⎤                                                                  ⎥
-⎢   ⎣ RESERVE integer-1 ⎣ AREAS ⎦ ⎦                                                                  ⎥
-⎢                                                                                                   ⎥
-⎢   ⎡              ⎧ ALL OTHER ⎫ ⎤                                                                   ⎥
-⎢   ⎢ SHARING WITH ⎨ NO OTHER  ⎬ ⎥ .                                                                 ⎥
-⎣   ⎣              ⎩ READ ONLY ⎭ ⎦                                                                   ⎦
-```
+<pre>
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1                                                 ┐
+                                                                                │
+         ╭    ╭ device-name-1 ╮                         ╮                       │
+         │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │                       │
+  <u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├                       │
+         │                                              │                       │
+         ╰ <u>USING</u> data-name-1                            ╯                       │
+                                                                                │
+┌                ╭ <u>DYNAMIC</u>    ╮ ┐                                               │
+│                │            │ │                                               │
+│ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u>     ├ │                                               │
+│                │            │ │                                               │
+└                ╰ <u>SEQUENTIAL</u> ╯ ┘                                               │
+                                                                                │
+┌                         ╭ data-name-2                                   ╮ ┐   │
+│ <u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤                                               ├ │   │
+│                         ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-3 } … ╯ │ … │
+│                                                                           │   │
+└ [ WITH <u>DUPLICATES</u> ] [ <u>SUPPRESS</u> WHEN literal-2 ]                           ┘   │
+                                                                                │
+[ collating-sequence-clause ] …                                                 │
+                                                                                │
+[ FILE <u>STATUS</u> IS data-name-4  ]                                                 │
+                                                                                │
+┌              ╭ <u>MANUAL</u>    ╮ ┌                           ╭ <u>RECORD</u>  ╮ ┐ ┐        │
+│ <u>LOCK</u> MODE IS ┤           ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤         ├ │ │        │
+└              ╰ <u>AUTOMATIC</u> ╯ └                           ╰ <u>RECORDS</u> ╯ ┘ ┘        │
+                                                                                │
+[ <u>ORGANIZATION</u> IS ]   <u>INDEXED</u>                                                   │
+                                                                                │
+                ╭ data-name-5                                   ╮               │
+  <u>RECORD</u> KEY IS ┤                                               ├               │
+                ╰ record-key-name-2 <u>SOURCE</u> IS { data-name-6 } … ╯               │
+                                                                                │
+┌                   ┌ AREA  ┐ ┐                                                 │
+│ <u>RESERVE</u> integer-1 │       │ │                                                 │
+└                   └ AREAS ┘ ┘                                                 │
+                                                                                │
+┌               ╭ <u>ALL</u> OTHER ╮ ┐                                                 │
+│               │           │ │                                                 │
+│ <u>SHARING</u> WITH  ┤ <u>NO</u> OTHER  ├ │ .                                               │
+│               │           │ │                                                 │
+└               ╰ <u>READ</u> <u>ONLY</u> ╯ ┘                                                 ┘
+</pre>
 
 > **Figure notes (SELECT clause Format 1 (indexed) syntax diagram).** Underlined in the printed standard (required words / required minimum abbreviation): `SELECT`, `OPTIONAL`, `ASSIGN`, `USING`, `ACCESS`, `DYNAMIC`, `RANDOM`, `SEQUENTIAL`, `ALTERNATE`, `RECORD`, `SOURCE`, `DUPLICATES`, `SUPPRESS`, `STATUS`, `LOCK`, `ON`, `MULTIPLE`, `RECORD`, `RECORDS`, `MANUAL`, `AUTOMATIC`, `ORGANIZATION`, `INDEXED`, `RECORD KEY`, `RESERVE`, `SHARING`, `ALL`, `NO`, `READ`, `ONLY`. `IS`, `TO`, `MODE`, `KEY`, `WITH`, `WHEN`, `FILE`, `AREA`, `AREAS`, and `OTHER` are not underlined. `FILE` in `FILE STATUS` is not underlined; `STATUS` is.
 > No choice indicators appear anywhere in this figure — every stacked group is a plain brace (exactly one) or a plain bracket (zero or one). The printed page draws a large outer bracket around the entire format; only its closing member is visible on the page (it runs from the `SELECT` line down past the terminating period), the opening member having been lost in typesetting. It is reproduced above as a full bracket pair. The `…` after the `ALTERNATE RECORD KEY` bracket repeats that whole clause; the `…` inside the braces repeats only `{ data-name-3 }`.
@@ -14855,33 +15050,41 @@ Format 1 (indexed):
 
 Format 2 (relative):
 
+<pre>
 <u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-```
-       ⎧ TO ⎧ device-name-1 ⎫ … [ USING data-name-1 ]   ⎫
-ASSIGN ⎨    ⎩ literal-1     ⎭                           ⎬
-       ⎩ USING data-name-1                              ⎭
+       ╭    ╭ device-name-1 ╮                         ╮
+       │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │
+<u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├
+       │                                              │
+       ╰ <u>USING</u> data-name-1                            ╯
 
-⎡                 ⎧ DYNAMIC    ⎫ ⎤
-⎢ ACCESS MODE IS  ⎨ RANDOM     ⎬ ⎥
-⎣                 ⎩ SEQUENTIAL ⎭ ⎦
+┌                ╭ <u>DYNAMIC</u>    ╮ ┐
+│                │            │ │
+│ <u>ACCESS</u> MODE IS ┤ <u>RANDOM</u>     ├ │
+│                │            │ │
+└                ╰ <u>SEQUENTIAL</u> ╯ ┘
 
-[ FILE STATUS IS data-name-4 ]
+[ FILE <u>STATUS</u> IS data-name-4 ]
 
-⎡                 ⎧ MANUAL    ⎫  ⎡                             ⎧ RECORD  ⎫ ⎤ ⎤
-⎣ LOCK MODE IS    ⎩ AUTOMATIC ⎭  ⎣ WITH LOCK ON [ MULTIPLE ]   ⎩ RECORDS ⎭ ⎦ ⎦
+┌              ╭ <u>MANUAL</u>    ╮ ┌                           ╭ <u>RECORD</u>  ╮ ┐ ┐
+│ <u>LOCK</u> MODE IS ┤           ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤         ├ │ │
+└              ╰ <u>AUTOMATIC</u> ╯ └                           ╰ <u>RECORDS</u> ╯ ┘ ┘
 
-[ ORGANIZATION IS ] RELATIVE
+[ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u>
 
-[ RELATIVE KEY IS data-name-7 ]
+[ <u>RELATIVE</u> KEY IS data-name-7 ]
 
-⎡                    ⎡ AREA  ⎤ ⎤
-⎣ RESERVE integer-1  ⎣ AREAS ⎦ ⎦
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-⎡               ⎧ ALL OTHER ⎫ ⎤
-⎢ SHARING WITH  ⎨ NO OTHER  ⎬ ⎥  .
-⎣               ⎩ READ ONLY ⎭ ⎦
-```
+┌              ╭ <u>ALL</u> OTHER ╮ ┐
+│              │           │ │
+│ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├ │ .
+│              │           │ │
+└              ╰ <u>READ</u> <u>ONLY</u> ╯ ┘
+</pre>
 
 > **Figure notes (SELECT statement Format 2 (relative) syntax diagram).** This figure continues the `SELECT [ OPTIONAL ] file-name-1` line printed above it. Underlined in the printed standard (required words / required minimum abbreviations): `ASSIGN`, `USING` (both occurrences), `ACCESS`, `DYNAMIC`, `RANDOM`, `SEQUENTIAL`, `STATUS`, `LOCK` (in `LOCK MODE` and in `WITH LOCK ON`), `MANUAL`, `AUTOMATIC`, `ON`, `MULTIPLE`, `RECORD`, `RECORDS`, `ORGANIZATION`, `RELATIVE` (both the ORGANIZATION alternative and `RELATIVE KEY`), `RESERVE`, `SHARING`, `ALL`, `NO`, `READ`, `ONLY`. `TO`, `IS`, `MODE`, `FILE`, `WITH`, `KEY`, `AREA`, `AREAS`, `OTHER`, and `integer-1`/`data-name-n` are not underlined. The `…` after the inner `{ device-name-1 / literal-1 }` brace repeats that brace. The optional clauses following the ASSIGN clause are independent brackets and may be written in any order permitted by the syntax rules. The separator period terminates the entry. **No choice indicators appear in this figure.**
 
@@ -14894,77 +15097,65 @@ ASSIGN ⎨    ⎩ literal-1     ⎭                           ⎬
 
 Format 3 (sequential):
 
-SELECT [ OPTIONAL ] file-name-1
+<pre>
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-```
-          ⎧        ⎧ device-name-1 ⎫                         ⎫
-          ⎪ TO     ⎨               ⎬ … [ USING data-name-1 ] ⎪
-ASSIGN    ⎨        ⎩ literal-1     ⎭                         ⎬
-          ⎪                                                 ⎪
-          ⎩ USING data-name-1                               ⎭
-```
+       ╭    ╭ device-name-1 ╮                         ╮
+       │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │
+<u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├
+       │                                              │
+       ╰ <u>USING</u> data-name-1                            ╯
+
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+
+[ FILE <u>STATUS</u> IS data-name-4 ]
+
+┌              ╭ <u>MANUAL</u>    ╮ ┌              ╭ <u>RECORD</u>  ╮ ┐ ┐
+│ <u>LOCK</u> MODE IS ┤           ├ │ WITH <u>LOCK</u> <u>ON</u> ┤         ├ │ │
+└              ╰ <u>AUTOMATIC</u> ╯ └              ╰ <u>RECORDS</u> ╯ ┘ ┘
+
+┌                     ╭ <u>LINE</u>   ╮            ┐
+│ [ <u>ORGANIZATION</u> IS ] ┤        ├ <u>SEQUENTIAL</u> │
+└                     ╰ RECORD ╯            ┘
+
+┌                     ╭ <u>STANDARD-1</u>     ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                ├ │
+└                     ╰ feature-name-1 ╯ ┘
+
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
+
+┌              ╭ <u>ALL</u> OTHER ╮ ┐
+│              │           │ │
+│ <u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├ │ .
+│              │           │ │
+└              ╰ <u>READ</u> <u>ONLY</u> ╯ ┘
+</pre>
 
 > **Figure notes (ASSIGN clause, SELECT Format 3 (sequential)).** `ASSIGN` and `USING` are underlined in the printed standard (required words); `TO` is **not** underlined. The outer braces are a plain required choice — either the `TO` line or the `USING data-name-1` line. The ellipsis applies to the inner `{ device-name-1 / literal-1 }` brace pair, so one or more device-names/literals may be written.
-
-[ ACCESS MODE IS SEQUENTIAL ]
-
-[ FILE STATUS IS data-name-4 ]
-
-```
-⎡                ⎧ MANUAL    ⎫  ⎡                  ⎧ RECORD  ⎫ ⎤ ⎤
-⎢ LOCK MODE IS   ⎨           ⎬  ⎢ WITH LOCK ON     ⎨         ⎬ ⎥ ⎥
-⎣                ⎩ AUTOMATIC ⎭  ⎣                  ⎩ RECORDS ⎭ ⎦ ⎦
-```
-
 > **Figure notes (LOCK MODE clause, SELECT Format 3 (sequential)).** `LOCK`, `MANUAL`, `AUTOMATIC`, `LOCK` (in `WITH LOCK ON`), `ON`, `RECORD`, and `RECORDS` are underlined in the printed standard (required words); `MODE`, `IS`, and `WITH` are not underlined. The whole clause sits in one outer optional bracket; the `WITH LOCK ON` phrase is a nested optional bracket.
-
-```
-⎡                        ⎧ LINE   ⎫            ⎤
-⎢ [ ORGANIZATION IS ]    ⎨        ⎬ SEQUENTIAL ⎥
-⎣                        ⎩ RECORD ⎭            ⎦
-```
-
 > **Figure notes (ORGANIZATION clause, SELECT Format 3 (sequential)).** `ORGANIZATION`, `LINE`, and `SEQUENTIAL` are underlined in the printed standard (required words); `RECORD` in this brace is **not** underlined, and `IS` is not underlined. The whole clause is enclosed in an outer optional bracket, with `[ ORGANIZATION IS ]` a nested optional bracket inside it.
-
-```
-⎡                          ⎧ STANDARD-1     ⎫ ⎤
-⎢ RECORD DELIMITER IS      ⎨                ⎬ ⎥
-⎣                          ⎩ feature-name-1 ⎭ ⎦
-```
-
 > **Figure notes (RECORD DELIMITER clause, SELECT Format 3 (sequential)).** `RECORD`, `DELIMITER`, and `STANDARD-1` are underlined in the printed standard (required words); `IS` is not underlined. The braces are a plain required choice — exactly one of `STANDARD-1` / `feature-name-1`.
-
-```
-⎡                     ⎡ AREA  ⎤ ⎤
-⎣ RESERVE integer-1   ⎣ AREAS ⎦ ⎦
-```
-
 > **Figure notes (RESERVE clause, SELECT Format 3 (sequential)).** `RESERVE` is underlined in the printed standard (required word); `AREA` and `AREAS` are **not** underlined. The whole clause is in an outer optional bracket, and `AREA` / `AREAS` form a nested optional bracket — zero or one of the two may be written.
-
-```
-⎡                    ⎧ ALL OTHER ⎫ ⎤
-⎢ SHARING WITH       ⎨ NO OTHER  ⎬ ⎥ .
-⎣                    ⎩ READ ONLY ⎭ ⎦
-```
 
 > **Figure notes (SHARING clause, SELECT Format 3 (sequential)).** `SHARING`, `ALL`, `NO`, `READ`, and `ONLY` are underlined in the printed standard (required words / required minimum abbreviation); `WITH` and `OTHER` are not underlined. The braces are a plain required choice — exactly one of the three alternatives. The separator period that terminates the whole Format 3 file-control entry is printed immediately after this bracket.
 
 Format 4 (sort-merge):
 
-SELECT [ OPTIONAL ] file-name-1
+<pre>
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-```
-          ⎧        ⎧ device-name-1 ⎫                         ⎫
-          ⎪ TO     ⎨               ⎬ … [ USING data-name-1 ] ⎪
-ASSIGN    ⎨        ⎩ literal-1     ⎭                         ⎬
-          ⎪                                                 ⎪
-          ⎩ USING data-name-1                               ⎭
-```
+       ╭    ╭ device-name-1 ╮                         ╮
+       │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │
+<u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├
+       │                                              │
+       ╰ <u>USING</u> data-name-1                            ╯
+
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] .
+</pre>
 
 > **Figure notes (ASSIGN clause, SELECT Format 4 (sort-merge)).** Identical in shape to the Format 3 ASSIGN clause. `ASSIGN` and `USING` are underlined in the printed standard (required words); `TO` is **not** underlined. The outer braces are a plain required choice — either the `TO` line or the `USING data-name-1` line. The ellipsis applies to the inner `{ device-name-1 / literal-1 }` brace pair.
-
-[ [ ORGANIZATION IS ] SEQUENTIAL ] .
-
 ---
 
 
@@ -15125,11 +15316,13 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 <a id="section-12-4-5-5-1"></a>
 ###### 12.4.5.5.1 General format
 
-```
-                   ⎧ SEQUENTIAL ⎫
-ACCESS MODE IS     ⎨ RANDOM     ⎬
-                   ⎩ DYNAMIC    ⎭
-```
+<pre>
+               ╭ <u>SEQUENTIAL</u> ╮
+               │            │
+<u>ACCESS</u> MODE IS ┤ <u>RANDOM</u>     ├
+               │            │
+               ╰ <u>DYNAMIC</u>    ╯
+</pre>
 
 > **Figure notes (ACCESS MODE clause syntax diagram).** `ACCESS`, `SEQUENTIAL`, `RANDOM`, and `DYNAMIC` are underlined in the printed standard (required words); `MODE` and `IS` are **not** underlined. The braces are plain — exactly one of the three access modes shall be selected.
 
@@ -15180,12 +15373,13 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 <a id="section-12-4-5-6-2"></a>
 ###### 12.4.5.6.2 General format
 
-> ```
->                         ⎧ data-name-1                                   ⎫
-> ALTERNATE RECORD KEY IS ⎩ record-key-name-1 SOURCE IS { data-name-2 } … ⎭
->
->          [ WITH DUPLICATES ]     [ SUPPRESS WHEN literal-1 ]
-> ```
+<pre>
+                        ╭ data-name-1                                   ╮
+<u>ALTERNATE</u> <u>RECORD</u> KEY IS ┤                                               ├
+                        ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-2 } … ╯
+
+[ WITH <u>DUPLICATES</u> ] [ <u>SUPPRESS</u> WHEN literal-1 ]
+</pre>
 >
 > > **Figure notes (ALTERNATE RECORD KEY clause general format).** `ALTERNATE`, `RECORD`, `SOURCE`, `DUPLICATES`, and `SUPPRESS` are underlined in the printed standard (required words); `KEY`, `IS`, `WITH`, and `WHEN` are **not** underlined. The two key-specification forms are enclosed in braces — exactly one shall be selected. Within the second form, the inner `{ data-name-2 }` brace pair carries the `…`, so one or more occurrences of `data-name-2` may be specified. The `WITH DUPLICATES` and `SUPPRESS WHEN literal-1` phrases are each bracketed (optional) and are printed on the continuation line.
 
@@ -15252,21 +15446,24 @@ The COLLATING SEQUENCE clause specifies the collating sequence to be used for th
 
 Format 1 (file-level)
 
-```
-                       ⎧  IS alphabet-name-1 [ alphabet-name-2 ]        ⎫
-COLLATING SEQUENCE     ⎨  ⎧ | FOR ALPHANUMERIC IS alphabet-name-1 | ⎫   ⎬
-                       ⎩  ⎩ | FOR NATIONAL     IS alphabet-name-2 | ⎭   ⎭
-```
+<pre>
+                   ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮
+                   │                                             │
+COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├
+                   │ ┤ │                                     │ ├ │
+                   ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯
+</pre>
 
 > **Figure notes (COLLATING SEQUENCE clause Format 1 (file-level) syntax diagram).** `SEQUENCE`, `ALPHANUMERIC`, and `NATIONAL` are underlined in the printed standard (required words); `COLLATING` and `IS` are not underlined (optional words).
 > ⚠ **The two `FOR` alternatives are enclosed in CHOICE INDICATORS** (the pair of `|` bars inside their braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the second outer alternative may be `FOR ALPHANUMERIC` alone, `FOR NATIONAL` alone, or **both**. The outer braces still require exactly one of the two outer alternatives: either the `IS alphabet-name-1 [ alphabet-name-2 ]` form or the `FOR` form.
 
 Format 2 (key-level)
 
-```
-COLLATING SEQUENCE OF ⎧ data-name-1       ⎫ …  IS alphabet-name-3
-                      ⎩ record-key-name-1 ⎭
-```
+<pre>
+                      ╭ data-name-1       ╮
+COLLATING <u>SEQUENCE</u> <u>OF</u> ┤                   ├ … IS alphabet-name-3
+                      ╰ record-key-name-1 ╯
+</pre>
 
 > **Figure notes (COLLATING SEQUENCE clause Format 2 (key-level) syntax diagram).** `SEQUENCE` and `OF` are underlined in the printed standard (required words); `COLLATING` and `IS` are not underlined (optional words). The braces require exactly one of `data-name-1` or `record-key-name-1` per occurrence, and the ellipsis applies to that brace group, so one or more such names may be listed before `IS alphabet-name-3`. No choice indicators appear in this figure.
 
@@ -15340,8 +15537,9 @@ The FILE STATUS clause specifies a data item that contains the status of an inpu
 <a id="section-12-4-5-8-2"></a>
 ###### 12.4.5.8.2 General format
 
+<pre>
 FILE <u>STATUS</u> IS data-name-1
-
+</pre>
 <a id="section-12-4-5-8-3"></a>
 ###### 12.4.5.8.3 Syntax rules
 
@@ -15384,11 +15582,11 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 <a id="section-12-4-5-9-2"></a>
 ###### 12.4.5.9.2 General format
 
-```
-                ⎧ MANUAL    ⎫  ⎡                             ⎧ RECORD  ⎫ ⎤
-LOCK MODE IS    ⎨           ⎬  ⎢ WITH LOCK ON [ MULTIPLE ]   ⎨         ⎬ ⎥
-                ⎩ AUTOMATIC ⎭  ⎣                             ⎩ RECORDS ⎭ ⎦
-```
+<pre>
+             ╭ <u>MANUAL</u>    ╮ ┌                           ╭ <u>RECORD</u>  ╮ ┐
+<u>LOCK</u> MODE IS ┤           ├ │ WITH <u>LOCK</u> <u>ON</u> [ <u>MULTIPLE</u> ] ┤         ├ │
+             ╰ <u>AUTOMATIC</u> ╯ └                           ╰ <u>RECORDS</u> ╯ ┘
+</pre>
 
 > **Figure notes (LOCK MODE clause general format).** `LOCK` (both occurrences), `MANUAL`, `AUTOMATIC`, `ON`, `MULTIPLE`, `RECORD`, and `RECORDS` are underlined in the printed standard (required words); `MODE`, `IS`, and `WITH` are printed without underlines. Both brace groups are plain — exactly one alternative shall be selected from each. The whole `WITH LOCK ON …` phrase is optional (outer brackets), and `MULTIPLE` is independently optional within it. No choice indicators are present.
 
@@ -15456,12 +15654,15 @@ The ORGANIZATION clause specifies the logical structure of a file.
 <a id="section-12-4-5-10-2"></a>
 ###### 12.4.5.10.2 General format
 
-```
-                       ⎧ ⎧ LINE   ⎫              ⎫
-[ ORGANIZATION IS ]    ⎪ ⎩ RECORD ⎭ SEQUENTIAL  ⎪
-                       ⎪ RELATIVE               ⎪
-                       ⎩ INDEXED                ⎭
-```
+<pre>
+                    ╭ ╭ <u>LINE</u>   ╮            ╮
+                    │ ┤        ├ <u>SEQUENTIAL</u> │
+                    │ ╰ RECORD ╯            │
+[ <u>ORGANIZATION</u> IS ] ┤                       ├
+                    │ <u>RELATIVE</u>              │
+                    │                       │
+                    ╰ <u>INDEXED</u>               ╯
+</pre>
 
 > **Figure notes (ORGANIZATION clause general format syntax diagram).** `ORGANIZATION`, `LINE`, `RECORD`, `SEQUENTIAL`, `RELATIVE`, and `INDEXED` are underlined in the printed standard (required words); `IS` is not. Only the `ORGANIZATION IS` phrase is bracketed (optional); the alternatives are enclosed in **braces**, so exactly one of `LINE SEQUENTIAL`, `RECORD SEQUENTIAL`, `RELATIVE`, or `INDEXED` shall be selected. In the printed figure the word `SEQUENTIAL` sits to the right of the inner `{ LINE / RECORD }` brace and spans both of its rows, qualifying either choice.
 
@@ -15499,10 +15700,11 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
 <a id="section-12-4-5-11-2"></a>
 ###### 12.4.5.11.2 General format
 
-```
-                          ⎧ STANDARD-1    ⎫
-RECORD DELIMITER IS       ⎩ feature-name-1 ⎭
-```
+<pre>
+                    ╭ <u>STANDARD-1</u>     ╮
+<u>RECORD</u> <u>DELIMITER</u> IS ┤                ├
+                    ╰ feature-name-1 ╯
+</pre>
 
 > **Figure notes (RECORD DELIMITER clause syntax diagram).** `RECORD`, `DELIMITER`, and `STANDARD-1` are underlined in the printed standard (required words). `IS` is **not** underlined — it is an optional word; `feature-name-1` is a user-defined word. The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
@@ -15556,10 +15758,11 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 <a id="section-12-4-5-12-2"></a>
 ###### 12.4.5.12.2 General format
 
-```
-RECORD KEY IS ⎧ data-name-1                                    ⎫
-              ⎩ record-key-name-1 SOURCE IS { data-name-2 } …  ⎭
-```
+<pre>
+              ╭ data-name-1                                   ╮
+<u>RECORD</u> KEY IS ┤                                               ├
+              ╰ record-key-name-1 <u>SOURCE</u> IS { data-name-2 } … ╯
+</pre>
 
 > **Figure notes (RECORD KEY clause general format).** `RECORD` and `SOURCE` are underlined in the printed standard (required words); `KEY`, `IS`, and the second `IS` are not underlined. The `…` applies to the inner `{ data-name-2 }` brace pair immediately to its left, so one or more `data-name-2` operands may be given. No choice indicators appear in this figure — exactly one of the two alternatives shall be selected.
 
@@ -15606,8 +15809,9 @@ The RELATIVE KEY clause identifies the data item that will contain the relative 
 <a id="section-12-4-5-13-2"></a>
 ###### 12.4.5.13.2 General format
 
-`RELATIVE` KEY IS data-name-1
-
+<pre>
+<u>RELATIVE</u> KEY IS data-name-1
+</pre>
 <a id="section-12-4-5-13-3"></a>
 ###### 12.4.5.13.3 Syntax rules
 
@@ -15646,10 +15850,11 @@ The RESERVE clause allows the user to specify the number of input-output areas a
 <a id="section-12-4-5-14-2"></a>
 ###### 12.4.5.14.2 General format
 
-```
-                     ⎡ AREA  ⎤
- RESERVE integer-1   ⎣ AREAS ⎦
-```
+<pre>
+                  ┌ AREA  ┐
+<u>RESERVE</u> integer-1 │       │
+                  └ AREAS ┘
+</pre>
 
 > **Figure notes (RESERVE clause syntax diagram).** `RESERVE` is underlined in the printed standard (required word); `AREA` and `AREAS` are **not** underlined. The two stacked words are enclosed in brackets, so the phrase is optional and at most one of `AREA` / `AREAS` may be written. No choice indicators appear in this figure.
 
@@ -15678,11 +15883,13 @@ The SHARING clause indicates that a file is to participate in file sharing and r
 <a id="section-12-4-5-15-2"></a>
 ###### 12.4.5.15.2 General format
 
-```
-                  ⎧ ALL OTHER ⎫
-SHARING WITH      ⎨ NO OTHER  ⎬
-                  ⎩ READ ONLY ⎭
-```
+<pre>
+             ╭ <u>ALL</u> OTHER ╮
+             │           │
+<u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├
+             │           │
+             ╰ <u>READ</u> <u>ONLY</u> ╯
+</pre>
 
 > **Figure notes (SHARING clause general format syntax diagram).** `SHARING`, `ALL`, `NO`, `READ`, and `ONLY` are underlined in the printed standard (required words). `WITH` and `OTHER` are **not** underlined — they are optional words. The braces require exactly one of the three alternatives. No choice indicators appear in this figure.
 
@@ -15713,9 +15920,9 @@ The I-O-CONTROL paragraph specifies which files and data-items are to be subject
 <a id="section-12-4-6-2"></a>
 ##### 12.4.6.2 General format
 
-```
-I-O-CONTROL . [ [ apply-commit-clause] . ]  [[ { same-clause } …].]
-```
+<pre>
+<u>I-O-CONTROL</u> . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]
+</pre>
 
 where apply-commit-clause and same-clause are shown below. The apply-commit and same clauses may be specified in any order.
 
@@ -15730,9 +15937,9 @@ The APPLY COMMIT clause specifies which files and data-items are to be subject t
 <a id="section-12-4-6-3-2"></a>
 ###### 12.4.6.3.2 General format
 
-```
-APPLY COMMIT ON  [[ file-name-1][identifier-1]]…
-```
+<pre>
+<u>APPLY</u> <u>COMMIT</u> ON [ [ file-name-1 ] [ identifier-1 ] ]…
+</pre>
 
 <a id="section-12-4-6-3-3"></a>
 ###### 12.4.6.3.3 Syntax rules
@@ -15810,19 +16017,21 @@ The SAME clause specifies files for which memory areas are to be shared during f
 
 Format 1 (file-area):
 
+<pre>
 <u>SAME</u> AREA FOR file-name-1 { file-name-2 } …
-
+</pre>
 Format 2 (record-area):
 
+<pre>
 <u>SAME</u> <u>RECORD</u> AREA FOR file-name-1 { file-name-2 } …
-
+</pre>
 Format 3 (sort-merge-area):
 
-```
-        ⎧ SORT       ⎫
-SAME    ⎨            ⎬  AREA FOR file-name-1 { file-name-2 } …
-        ⎩ SORT-MERGE ⎭
-```
+<pre>
+     ╭ <u>SORT</u>       ╮
+<u>SAME</u> ┤            ├ AREA FOR file-name-1 { file-name-2 } …
+     ╰ <u>SORT-MERGE</u> ╯
+</pre>
 
 > **Figure notes (SAME clause Format 3 (sort-merge-area) syntax diagram).** `SAME`, `SORT`, and `SORT-MERGE` are underlined in the printed standard (required words); `AREA` and `FOR` are not underlined. Exactly one of `SORT` and `SORT-MERGE` shall be selected (they are equivalent — 12.4.6.4.3 SR 1). `{ file-name-2 } …` is a single-line brace followed by the ellipsis: one or more additional file-names.
 
@@ -15988,15 +16197,19 @@ The purpose of the file section is to describe the structure of data, sort, and 
 <a id="section-13-4-2"></a>
 #### 13.4.2 General format
 
-```
-                ⎡                              ⎡ constant-entry           ⎤              ⎤
-                ⎢ file-description-entry       ⎢ record-description-entry ⎥ …            ⎥
-                ⎢                              ⎣ type-declaration-entry   ⎦              ⎥
-FILE SECTION.   ⎢                                                                        ⎥ …
-                ⎢                                        ⎧ constant-entry           ⎫   ⎥
-                ⎢ sort-merge-file-description-entry      ⎨ record-description-entry ⎬ … ⎥
-                ⎣                                        ⎩ type-declaration-entry   ⎭   ⎦
-```
+<pre>
+              ┌                        ┌ constant-entry           ┐              ┐
+              │                        │                          │              │
+              │ file-description-entry │ record-description-entry │ …            │
+              │                        │                          │              │
+              │                        └ type-declaration-entry   ┘              │
+<u>FILE</u> <u>SECTION.</u> │                                                                  │ …
+              │                                   ╭ constant-entry           ╮   │
+              │                                   │                          │   │
+              │ sort-merge-file-description-entry ┤ record-description-entry ├ … │
+              │                                   │                          │   │
+              └                                   ╰ type-declaration-entry   ╯   ┘
+</pre>
 
 > **Figure notes (File section general format).** `FILE` and `SECTION` are underlined in the printed standard (required words). No choice indicators are present. Note the asymmetry, faithfully reproduced from the printed page: the entry group after `file-description-entry` is enclosed in **brackets** (zero or one of the three, repeatable via the following `…`), while the entry group after `sort-merge-file-description-entry` is enclosed in **braces** (exactly one of the three, repeatable). The outer delimiter is a **bracket** followed by `…`, so the whole two-alternative group is optional and may be repeated.
 
@@ -16041,21 +16254,32 @@ The file description entry furnishes information concerning the physical structu
 
 Format 1 (sequential):
 
-```
-FD file-name-1
-    [ IS EXTERNAL [ AS literal-1 ] ]
-    [ IS GLOBAL ]
-    ⎡          ⎧ | BIT       | ⎫       ⎤
-    ⎢ FORMAT   ⎨ | CHARACTER | ⎬ DATA  ⎥
-    ⎣          ⎩ | NUMERIC   | ⎭       ⎦
-    ⎡                                             ⎧ CHARACTERS ⎫ ⎤
-    ⎣ BLOCK CONTAINS [ integer-1 TO ] integer-2   ⎩ RECORDS    ⎭ ⎦
-    [ record-clause ]
-    [ linage-clause ]
-    ⎡            ⎧ IS alphabet-name-1 [ alphabet-name-2 ]         ⎫ ⎤
-    ⎢ CODE-SET   ⎨ ⎧ | FOR ALPHANUMERIC IS alphabet-name-1 | ⎫    ⎬ ⎥  .
-    ⎣            ⎩ ⎩ | FOR NATIONAL     IS alphabet-name-2 | ⎭    ⎭ ⎦
-```
+<pre>
+<u>FD</u> file-name-1
+
+[ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
+
+[ IS <u>GLOBAL</u> ]
+
+┌        ╭ │ <u>BIT</u>       │ ╮      ┐
+│        │ │           │ │      │
+│ <u>FORMAT</u> ┤ │ <u>CHARACTER</u> │ ├ DATA │
+│        │ │           │ │      │
+└        ╰ │ <u>NUMERIC</u>   │ ╯      ┘
+
+┌                                           ╭ CHARACTERS ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ <u>RECORDS</u>    ╯ ┘
+
+[ record-clause ]
+[ linage-clause ]
+
+┌          ╭ IS alphabet-name-1 [ alphabet-name-2]       ╮ ┐
+│          │                                             │ │
+│ <u>CODE-SET</u> ┤   │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │   ├ │ .
+│          │   │                                     │   │ │
+└          ╰ { │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ } ╯ ┘
+</pre>
 
 > **Figure notes (File description entry Format 1 (sequential) syntax diagram).** Underlined in the printed standard (required words / required minimum abbreviations): `FD`, `EXTERNAL`, `AS`, `GLOBAL`, `FORMAT`, `BIT`, `CHARACTER`, `NUMERIC`, `BLOCK`, `TO`, `RECORDS`, `CODE-SET`, `ALPHANUMERIC`, `NATIONAL`. `IS`, `DATA`, `CONTAINS`, `CHARACTERS`, and `FOR` are not underlined.
 > ⚠ **Two groups in this figure are enclosed in CHOICE INDICATORS** (the `|` bars just inside their braces): the `FORMAT` clause alternatives `BIT` / `CHARACTER` / `NUMERIC`, and the inner brace of the `CODE-SET` second alternative holding `FOR ALPHANUMERIC …` / `FOR NATIONAL …`. Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `FORMAT BIT CHARACTER DATA` is legal, and a `CODE-SET` may carry the `FOR ALPHANUMERIC` phrase alone, the `FOR NATIONAL` phrase alone, or **both**, in either order. `record-clause` and `linage-clause` are the non-terminals defined elsewhere in this clause. The separator period terminates the entry.
@@ -16072,32 +16296,44 @@ FD file-name-1
 
 Format 2 (relative-or-indexed):
 
-FD file-name-1
+<pre>
+<u>FD</u> file-name-1
 
-[ IS EXTERNAL [ AS literal-1 ] ]
+[ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
 
-[ IS GLOBAL ]
+[ IS <u>GLOBAL</u> ]
 
-[ BLOCK CONTAINS [ integer-1 TO ] integer-2 { CHARACTERS / RECORDS } ]
+┌                                           ╭ CHARACTERS ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ <u>RECORDS</u>    ╯ ┘
 
 [ record-clause ] .
-
+</pre>
 Format 3 (report):
 
-FD file-name-1
+<pre>
+<u>FD</u> file-name-1
 
-[ IS EXTERNAL [ AS literal-1 ] ]
+[ IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ] ]
 
-[ IS GLOBAL ]
+[ IS <u>GLOBAL</u> ]
 
-[ BLOCK CONTAINS [ integer-1 TO ] integer-2 { CHARACTERS / RECORDS } ]
+┌                                           ╭ CHARACTERS ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ <u>RECORDS</u>    ╯ ┘
 
 [ record-clause ]
 
-[ CODE-SET { IS alphabet-name-1 [ alphabet-name-2] / { FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2 } } ]
+┌          ╭ IS alphabet-name-1 [ alphabet-name-2]       ╮ ┐
+│          │                                             │ │
+│ <u>CODE-SET</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │
+│          │ ┤ │                                     │ ├ │ │
+└          ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
 
-{ REPORT IS / REPORTS ARE } { report-name-1 } ... .
-
+╭ <u>REPORT</u> IS   ╮
+┤             ├ { report-name-1 } … .
+╰ <u>REPORTS</u> ARE ╯
+</pre>
 where the following meta-language terms are described in the indicated subclauses:
 
 Term | Subclause
@@ -16212,9 +16448,10 @@ The sort-merge file description entry (SD entry) represents the highest level of
 <a id="section-13-4-6-2"></a>
 ##### 13.4.6.2 General format
 
+<pre>
 <u>SD</u> file-name-1
-&nbsp;&nbsp;&nbsp;[ record-clause ] .
-
+[ record-clause ] .
+</pre>
 where record-clause is described in 13.18.43, RECORD clause.
 
 <a id="section-13-4-6-3"></a>
@@ -16255,12 +16492,15 @@ The working-storage section describes records and subordinate data items that ar
 <a id="section-13-5-2"></a>
 #### 13.5.2 General format
 
-```
-                           ⎡ 77-level-description-entry ⎤
-                           ⎢ constant-entry             ⎥
-WORKING-STORAGE SECTION.   ⎢ record-description-entry   ⎥ …
-                           ⎣ type-declaration-entry     ⎦
-```
+<pre>
+                         ┌ 77-level-description-entry ┐
+                         │                            │
+                         │ constant-entry             │
+<u>WORKING-STORAGE</u> <u>SECTION.</u> │                            │ …
+                         │ record-description-entry   │
+                         │                            │
+                         └ type-declaration-entry     ┘
+</pre>
 
 > **Figure notes (working-storage section general format).** `WORKING-STORAGE` and `SECTION` are underlined in the printed standard (required words). The bracket carries **no** choice indicators — verified at 600 dpi. It is a plain optional bracket with four stacked alternatives, and the ellipsis to its right means the bracketed portion may be repeated, each occurrence selecting one of the four entry kinds.
 
@@ -16306,12 +16546,15 @@ The local-storage section describes automatic data.
 <a id="section-13-6-2"></a>
 #### 13.6.2 General format
 
-```
-                         ⎡ 77-level-description-entry ⎤
-                         ⎢ constant-entry             ⎥
-LOCAL-STORAGE SECTION.   ⎢ record-description-entry   ⎥ …
-                         ⎣ type-declaration-entry     ⎦
-```
+<pre>
+                       ┌ 77-level-description-entry ┐
+                       │                            │
+                       │ constant-entry             │
+<u>LOCAL-STORAGE</u> <u>SECTION.</u> │                            │ …
+                       │ record-description-entry   │
+                       │                            │
+                       └ type-declaration-entry     ┘
+</pre>
 
 > **Figure notes (LOCAL-STORAGE SECTION syntax diagram).** `LOCAL-STORAGE` and `SECTION` are underlined in the printed standard (required words); the separator period follows `SECTION` outside the bracket. The bracket is plain — re-rendered at 600 dpi and confirmed to carry **no** choice-indicator bars — so it denotes an optional single alternative, and the trailing ellipsis permits the bracketed group to be repeated.
 
@@ -16358,12 +16601,15 @@ Formal parameters and returning items described in the linkage section of a sour
 <a id="section-13-7-2"></a>
 #### 13.7.2 General format
 
-> ```
->                  ⎡ 77-level-description-entry ⎤
->                  ⎢ constant-entry             ⎥
-> LINKAGE SECTION. ⎢ record-description-entry   ⎥ …
->                  ⎣ type-declaration-entry     ⎦
-> ```
+<pre>
+                 ┌ 77-level-description-entry ┐
+                 │                            │
+                 │ constant-entry             │
+<u>LINKAGE</u> <u>SECTION.</u> │                            │ …
+                 │ record-description-entry   │
+                 │                            │
+                 └ type-declaration-entry     ┘
+</pre>
 >
 > > **Figure notes (Linkage section general format).** `LINKAGE` and `SECTION` are underlined in the printed standard (required words); the period after `SECTION` is part of the header. The four entry kinds are enclosed in **brackets** with the `…` immediately to the right, so zero, one, or more entries — each being any one of the four alternatives — may be specified. Note the diagram prints `77-level-description-entry` while the meta-language term table immediately below the figure lists the term as `77-level-entry`; both spellings are as printed in the standard.
 
@@ -16440,11 +16686,11 @@ The report section describes the reports to be written to report files. The desc
 <a id="section-13-8-2"></a>
 #### 13.8.2 General format
 
-```
-                   ⎡                            ⎧ constant-entry                 ⎫     ⎤
-REPORT SECTION.    ⎢ report-description-entry   ⎨                                ⎬  …  ⎥ …
-                   ⎣                            ⎩ report-group-description-entry ⎭     ⎦
-```
+<pre>
+<u>REPORT</u> <u>SECTION.</u> ┌                          ╭ constant-entry                 ╮ … ┐ …
+                │ report-description-entry ┤                                ├   │
+                └                          ╰ report-group-description-entry ╯   ┘
+</pre>
 
 > **Figure notes (report section general format syntax diagram).** `REPORT` and `SECTION` are underlined in the printed standard (required words); the separator period after `SECTION` is part of the format. There is exactly one bracket pair: it makes the whole report-description group optional, and the ellipsis **outside** the closing bracket allows that group to repeat. The inner ellipsis applies only to the brace group, so one or more `constant-entry` / `report-group-description-entry` items follow each `report-description-entry`. No choice indicators appear in this figure.
 
@@ -16548,11 +16794,11 @@ The screen section describes the screens to be displayed during terminal I-O. Th
 <a id="section-13-9-2"></a>
 #### 13.9.2 General format
 
-```
-                  ⎡ constant-entry           ⎤
-SCREEN SECTION.   ⎢                          ⎥ …
-                  ⎣ screen-description-entry ⎦
-```
+<pre>
+                ┌ constant-entry           ┐
+<u>SCREEN</u> <u>SECTION.</u> │                          │ …
+                └ screen-description-entry ┘
+</pre>
 
 > **Figure notes (Screen section general format).** `SCREEN` and `SECTION` are underlined in the printed standard (required words); the separator period following `SECTION` is part of the format. The brackets are plain — zero or one of `constant-entry` / `screen-description-entry` per repetition, and the `…` permits the bracketed group to repeat. No choice indicators are present.
 
@@ -16595,13 +16841,17 @@ A constant entry defines a constant. A constant may be used in place of a litera
 <a id="section-13-10-2"></a>
 #### 13.10.2 General format
 
-```
-                                                    ⎧    ⎧ arithmetic-expression-1     ⎫ ⎫
-⎧ 1  ⎫                                              ⎪    ⎪ BYTE-LENGTH OF data-name-1  ⎪ ⎪
-⎨    ⎬ constant-name-1 CONSTANT [ IS GLOBAL ]       ⎨ AS ⎨ literal-1                   ⎬ ⎬ .
-⎩ 01 ⎭                                              ⎪    ⎩ LENGTH OF data-name-2       ⎭ ⎪
-                                                    ⎩ FROM compilation-variable-name-1   ⎭
-```
+<pre>
+                                             ╭    ╭ arithmetic-expression-1    ╮ ╮
+                                             │    │                            │ │
+                                             │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
+╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
+┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL]</u> ┤    │ literal-1                  │ ├ .
+│    │                                       │    │                            │ │
+╰ <u>01</u> ╯                                       │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
+                                             │                                   │
+                                             ╰ <u>FROM</u> compilation-variable-name-1  ╯
+</pre>
 
 > **Figure notes (constant entry general format syntax diagram).** The level numbers `1` and `01`, and the words `CONSTANT`, `GLOBAL`, `BYTE-LENGTH`, `LENGTH`, and `FROM` are underlined in the printed standard (required words / required level numbers). `IS`, `AS`, and `OF` are not underlined. Each brace requires exactly one of its alternatives; `[ IS GLOBAL ]` is optional. The entry ends with the separator period shown after the closing brace.
 
@@ -16707,16 +16957,17 @@ The report description entry names a report and describes its general physical a
 <a id="section-13-14-2"></a>
 #### 13.14.2 General format
 
-RD report-name-1
+<pre>
+<u>RD</u> report-name-1
 
-&nbsp;&nbsp;&nbsp;&nbsp;[IS GLOBAL]
+[ IS <u>GLOBAL</u> ]
 
-&nbsp;&nbsp;&nbsp;&nbsp;[code-clause]
+[ code-clause ]
 
-&nbsp;&nbsp;&nbsp;&nbsp;[control-clause]
+[ control-clause ]
 
-&nbsp;&nbsp;&nbsp;&nbsp;[page-clause] .
-
+[ page-clause ] .
+</pre>
 where the following meta-language terms are described in the indicated subclauses
 
 | Term | Subclause |
@@ -16759,26 +17010,34 @@ The report group description entry specifies the characteristics of a report gro
 <a id="section-13-15-2"></a>
 #### 13.15.2 General format
 
-```
+<pre>
 level-number [ entry-name-clause ]
-  [ type-clause ]
-  [ next-group-clause ]
-  [ line-clause ]
-  [ picture-clause ]
-  [ USAGE IS ] { DISPLAY  }
-               { NATIONAL }
-  [ sign-clause ]
-  [ justified-clause ]
-  [ column-clause ]
-  [ BLANK WHEN ZERO ]
-  ⌐ source-clause ¬
-  | sum-clause   |
-  └ value-clause ┘
-  [ PRESENT WHEN condition-1 ]
-  [ GROUP INDICATE ]
-  [ OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ] ]
-  [ varying-clause ] .
-```
+[ type-clause ]
+[ next-group-clause ]
+[ line-clause ]
+[ picture-clause ]
+
+┌              ╭ <u>DISPLAY</u>  ╮ ┐
+│ [ <u>USAGE</u> IS ] ┤          ├ │
+└              ╰ <u>NATIONAL</u> ╯ ┘
+
+[ sign-clause ]
+[ justified-clause ]
+[ column-clause ]
+[ <u>BLANK</u> WHEN <u>ZERO</u> ]
+
+┌ source-clause ┐
+│               │
+│ sum-clause    │
+│               │
+└ value-clause  ┘
+
+[ <u>PRESENT</u> <u>WHEN</u> condition-1 ]
+
+[ <u>GROUP</u> INDICATE ]
+[ <u>OCCURS</u> [ integer-1 <u>TO</u> ] integer-2 TIMES [ <u>DEPENDING</u> ON data-name-1 ] [ <u>STEP</u> integer-3 ] ]
+[ varying-clause ] .
+</pre>
 
 where the following meta-language terms are described in the indicated subclauses:
 
@@ -17354,8 +17613,9 @@ The ALIGNED clause specifies that a bit group item or an elementary bit data ite
 <a id="section-13-18-1-2"></a>
 ##### 13.18.1.2 General format
 
+<pre>
 <u>ALIGNED</u>
-
+</pre>
 <a id="section-13-18-1-3"></a>
 ##### 13.18.1.3 Syntax rule
 
@@ -17392,8 +17652,9 @@ The ANY LENGTH clause specifies that the length of a linkage section item may va
 <a id="section-13-18-2-2"></a>
 ##### 13.18.2.2 General format
 
-ANY LENGTH
-
+<pre>
+<u>ANY</u> <u>LENGTH</u>
+</pre>
 <a id="section-13-18-2-3"></a>
 ##### 13.18.2.3 Syntax rules
 
@@ -17439,8 +17700,9 @@ The AUTO clause causes the cursor to be automatically moved to the next field de
 <a id="section-13-18-3-2"></a>
 ##### 13.18.3.2 General format
 
+<pre>
 <u>AUTO</u>
-
+</pre>
 <a id="section-13-18-3-3"></a>
 ##### 13.18.3.3 General rules
 
@@ -17474,10 +17736,11 @@ The BACKGROUND-COLOR clause specifies the background color for the screen item.
 <a id="section-13-18-4-2"></a>
 ##### 13.18.4.2 General format
 
-```
-                          ⎧ identifier-1 ⎫
-BACKGROUND-COLOR IS       ⎩ integer-1    ⎭
-```
+<pre>
+                    ╭ identifier-1 ╮
+<u>BACKGROUND-COLOR</u> IS ┤              ├
+                    ╰ integer-1    ╯
+</pre>
 
 > **Figure notes (BACKGROUND-COLOR clause general format syntax diagram).** `BACKGROUND-COLOR` is underlined in the printed standard (required word); `IS` is not underlined. The braces require exactly one of `identifier-1` or `integer-1`. No choice indicators appear in this figure.
 
@@ -17518,8 +17781,9 @@ The BASED clause defines a based entry. A based entry is a template that, when a
 <a id="section-13-18-5-2"></a>
 ##### 13.18.5.2 General format
 
+<pre>
 <u>BASED</u>
-
+</pre>
 <a id="section-13-18-5-3"></a>
 ##### 13.18.5.3 Syntax rules
 
@@ -17560,8 +17824,9 @@ The BELL clause causes the terminal audio tone to sound.
 <a id="section-13-18-6-2"></a>
 ##### 13.18.6.2 General format
 
+<pre>
 <u>BELL</u>
-
+</pre>
 <a id="section-13-18-6-3"></a>
 ##### 13.18.6.3 General rules
 
@@ -17588,11 +17853,11 @@ The BLANK clause clears a screen line or clears the whole screen during the exec
 <a id="section-13-18-7-2"></a>
 ##### 13.18.7.2 General format
 
-```
-         ⎧ LINE   ⎫
-BLANK    ⎨        ⎬
-         ⎩ SCREEN ⎭
-```
+<pre>
+      ╭ <u>LINE</u>   ╮
+<u>BLANK</u> ┤        ├
+      ╰ <u>SCREEN</u> ╯
+</pre>
 
 > **Figure notes (BLANK clause general format syntax diagram).** `BLANK`, `LINE`, and `SCREEN` are underlined in the printed standard (required words). The braces are required: exactly one of `LINE` and `SCREEN` shall be selected.
 
@@ -17628,8 +17893,9 @@ The BLANK WHEN ZERO clause causes the blanking of an item when a value of zero i
 <a id="section-13-18-8-2"></a>
 ##### 13.18.8.2 General format
 
+<pre>
 <u>BLANK</u> WHEN <u>ZERO</u>
-
+</pre>
 <a id="section-13-18-8-3"></a>
 ##### 13.18.8.3 Syntax rules
 
@@ -17668,8 +17934,9 @@ The BLINK clause specifies that each character of the field blinks when it is di
 <a id="section-13-18-9-2"></a>
 ##### 13.18.9.2 General format
 
+<pre>
 <u>BLINK</u>
-
+</pre>
 <a id="section-13-18-9-3"></a>
 ##### 13.18.9.3 General rules
 
@@ -17697,10 +17964,11 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 <a id="section-13-18-10-2"></a>
 ##### 13.18.10.2 General format
 
-```
-                                            ⎧ CHARACTERS ⎫
-BLOCK CONTAINS [ integer-1 TO ] integer-2   ⎩ RECORDS    ⎭
-```
+<pre>
+                                          ╭ CHARACTERS ╮
+<u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├
+                                          ╰ <u>RECORDS</u>    ╯
+</pre>
 
 > **Figure notes (BLOCK CONTAINS clause syntax diagram).** `BLOCK`, `TO`, and `RECORDS` are underlined in the printed standard (required words). `CONTAINS` and `CHARACTERS` are **not** underlined — they are optional words. The braces select exactly one of `CHARACTERS` / `RECORDS`; the `integer-1 TO` phrase is optional.
 
@@ -17751,15 +18019,21 @@ The CLASS clause specifies a range of values for each character of a data item, 
 <a id="section-13-18-11-2"></a>
 ##### 13.18.11.2 General format
 
-```
-           ⎧ NUMERIC           ⎫
-           ⎪ ALPHABETIC        ⎪
-           ⎪ ALPHABETIC-LOWER  ⎪
-CLASS IS   ⎨ ALPHABETIC-UPPER  ⎬
-           ⎪ BOOLEAN           ⎪
-           ⎪ alphabet-name-1   ⎪
-           ⎩ class-name-1      ⎭
-```
+<pre>
+         ╭ <u>NUMERIC</u>          ╮
+         │                  │
+         │ <u>ALPHABETIC</u>       │
+         │                  │
+         │ <u>ALPHABETIC-LOWER</u> │
+         │                  │
+<u>CLASS</u> IS ┤ <u>ALPHABETIC-UPPER</u> ├
+         │                  │
+         │ <u>BOOLEAN</u>          │
+         │                  │
+         │ alphabet-name-1  │
+         │                  │
+         ╰ class-name-1     ╯
+</pre>
 
 > **Figure notes (CLASS clause general format syntax diagram).** `CLASS`, `NUMERIC`, `ALPHABETIC`, `ALPHABETIC-LOWER`, `ALPHABETIC-UPPER`, and `BOOLEAN` are underlined in the printed standard (required words); `IS` is not underlined. The braces are a plain required choice — exactly one of the seven alternatives shall be selected. No choice indicators are present.
 
@@ -17800,10 +18074,11 @@ The CODE clause specifies one or more characters used to separate multiple repor
 <a id="section-13-18-12-2"></a>
 ##### 13.18.12.2 General format
 
-```
-CODE IS ⎧ literal-1    ⎫
-        ⎩ identifier-1 ⎭
-```
+<pre>
+        ╭ literal-1    ╮
+<u>CODE</u> IS ┤              ├
+        ╰ identifier-1 ╯
+</pre>
 
 > **Figure notes (CODE clause general format syntax diagram).** `CODE` is underlined in the printed standard (required word); `IS` is not underlined. The braces are a plain alternation: exactly one of `literal-1` or `identifier-1` shall be specified. Note the printed order — `literal-1` is the upper alternative. No choice indicators appear in this figure.
 
@@ -17844,11 +18119,13 @@ The CODE-SET clause specifies the character code convention used to represent da
 <a id="section-13-18-13-2"></a>
 ##### 13.18.13.2 General format
 
-```
-           ⎧  IS alphabet-name-1 [ alphabet-name-2 ]        ⎫
-CODE-SET   ⎨  ⎧ | FOR ALPHANUMERIC IS alphabet-name-1 | ⎫   ⎬
-           ⎩  ⎩ | FOR NATIONAL     IS alphabet-name-2 | ⎭   ⎭
-```
+<pre>
+         ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮
+         │                                             │
+<u>CODE-SET</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├
+         │ ┤ │                                     │ ├ │
+         ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯
+</pre>
 
 > **Figure notes (CODE-SET clause general format).** `CODE-SET`, `ALPHANUMERIC`, and `NATIONAL` are underlined in the printed standard (required words); `IS` and `FOR` are not underlined. The outer braces are a plain required choice — either the `IS alphabet-name-1 …` line or the `FOR …` group.
 > ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its braces, confirmed at 600 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the clause may carry `FOR ALPHANUMERIC` alone, `FOR NATIONAL` alone, or **both**, written in either order.
@@ -17919,25 +18196,33 @@ The COLUMN clause identifies a printable item, or a set of printable items, and 
 
 Format 1 (report-writer):
 
-```
-⎧ COLUMN NUMBER  ⎫
-⎪ COLUMN NUMBERS ⎪  ⎧ LEFT   ⎫  ⎡ IS  ⎤  ⎧ integer-1              ⎫
-⎪ COLUMNS        ⎪  ⎨ CENTER ⎬  ⎣ ARE ⎦  ⎪                        ⎪
-⎪ COL NUMBER     ⎪  ⎩ RIGHT  ⎭           ⎪ ⎧ PLUS ⎫               ⎪  …
-⎪ COL NUMBERS    ⎪                       ⎩ ⎩ +    ⎭ integer-2     ⎭
-⎩ COLS           ⎭
-```
+<pre>
+╭ <u>COLUMN</u> NUMBER  ╮
+│                │
+│ <u>COLUMN</u> NUMBERS │ ╭ LEFT   ╮         ╭ integer-1          ╮
+│                │ │        │         │                    │
+┤ <u>COLUMNS</u>        ├ ┤ <u>CENTER</u> ├ ┌ IS  ┐ ┤ ╭ <u>PLUS</u> ╮           ├ …
+│                │ │        │ │     │ │ │      │           │
+│ <u>COL</u> NUMBER     │ │        │ └ ARE ┘ │ ┤      ├ integer-2 │
+│                │ │        │         │ │      │           │
+│ <u>COL</u> NUMBERS    │ ╰ <u>RIGHT</u>  ╯         ╰ ╰ +    ╯           ╯
+│                │
+╰ <u>COLS</u>           ╯
+</pre>
 
 > **Figure notes (COLUMN clause Format 1 (report-writer) syntax diagram).** `COLUMN`, `COLUMNS`, `COL`, `COLS`, `CENTER`, `RIGHT`, and `PLUS` are underlined in the printed standard (required words / required minimum abbreviation); `NUMBER`, `NUMBERS`, `LEFT`, `IS`, `ARE`, and `+` are **not** underlined. All four groups are plain braces or a plain bracket — re-rendered at 600 dpi and confirmed to carry **no** choice-indicator bars. Exactly one of the six `COLUMN`/`COL` spellings shall be selected; exactly one of `LEFT`, `CENTER`, `RIGHT`; `IS`/`ARE` is optional (zero or one); and exactly one of `integer-1` or `{ PLUS | + } integer-2` shall be selected. The trailing ellipsis applies to the last brace pair, so the column specification may be repeated.
 
 Format 2 (screen-item):
 
-```
-⎧ COLUMN ⎫               ⎡ PLUS  ⎤
-⎪        ⎪  NUMBER IS    ⎢ +     ⎥  ⎧ identifier-1 ⎫
-⎪        ⎪               ⎢ MINUS ⎥  ⎨              ⎬
-⎩ COL    ⎭               ⎣ −     ⎦  ⎩ integer-3    ⎭
-```
+<pre>
+                     ┌ <u>PLUS</u>  ┐
+                     │       │
+╭ <u>COLUMN</u> ╮           │ +     │ ╭ identifier-1 ╮
+┤        ├ NUMBER IS │       │ ┤              ├
+╰ <u>COL</u>    ╯           │ <u>MINUS</u> │ ╰ integer-3    ╯
+                     │       │
+                     └ –     ┘
+</pre>
 
 > **Figure notes (COLUMN clause Format 2 (screen-item) syntax diagram).** `COLUMN`, `COL`, `PLUS`, and `MINUS` are underlined in the printed standard (required words / required minimum abbreviation); `NUMBER`, `IS`, `+`, and `−` are **not** underlined. All groups are plain — re-rendered at 600 dpi and confirmed to carry **no** choice-indicator bars. Exactly one of `COLUMN`/`COL` shall be selected; the `PLUS`/`+`/`MINUS`/`−` bracket is optional (zero or one of the four); and exactly one of `identifier-1` or `integer-3` shall be selected.
 
@@ -18106,8 +18391,9 @@ The CONSTANT RECORD clause identifies a structured constant. The content of a st
 <a id="section-13-18-15-2"></a>
 ##### 13.18.15.2 General format
 
+<pre>
 <u>CONSTANT</u> <u>RECORD</u>
-
+</pre>
 <a id="section-13-18-15-3"></a>
 ##### 13.18.15.3 Syntax rules
 
@@ -18146,10 +18432,11 @@ The CONTROL clause establishes a hierarchy of control breaks for the report.
 <a id="section-13-18-16-2"></a>
 ##### 13.18.16.2 General format
 
-> ```
-> ⎧ CONTROL IS   ⎫ ⎧ { data-name-1 } …        ⎫
-> ⎩ CONTROLS ARE ⎭ ⎩ FINAL [ data-name-1 ] …  ⎭
-> ```
+<pre>
+╭ <u>CONTROL</u> IS   ╮ ╭ { data-name-1 } …       ╮
+┤              ├ ┤                         ├
+╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯
+</pre>
 >
 > > **Figure notes (CONTROL clause general format).** `CONTROL`, `CONTROLS`, and `FINAL` are underlined in the printed standard (required words); `IS` and `ARE` are **not** underlined. Two independent brace pairs are printed side by side: the first requires exactly one of `CONTROL IS` / `CONTROLS ARE`; the second requires exactly one of the two operand forms. In the first operand form the inner `{ data-name-1 }` brace pair carries the `…` (one or more `data-name-1`); in the second, `FINAL` is followed by a bracketed `[ data-name-1 ]` carrying the `…` (`FINAL` alone, or `FINAL` followed by one or more `data-name-1`).
 
@@ -18217,11 +18504,13 @@ NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete feature.
 <a id="section-13-18-17-2"></a>
 ##### 13.18.17.2 General format
 
-```
-DEFAULT IS ⎧ literal-1    ⎫
-           ⎨ identifier-1 ⎬
-           ⎩ NONE         ⎭
-```
+<pre>
+           ╭ literal-1    ╮
+           │              │
+<u>DEFAULT</u> IS ┤ identifier-1 ├
+           │              │
+           ╰ <u>NONE</u>         ╯
+</pre>
 
 > **Figure notes (DEFAULT clause general format syntax diagram).** `DEFAULT` and `NONE` are underlined in the printed standard (required words); `IS` is not underlined (optional word). The braces require exactly one of `literal-1`, `identifier-1`, or `NONE`. No choice indicators appear in this figure.
 
@@ -18283,8 +18572,9 @@ NOTE The DESTINATION clause feature of the VALIDATE facility is an obsolete feat
 <a id="section-13-18-18-2"></a>
 ##### 13.18.18.2 General format
 
+<pre>
 <u>DESTINATION</u> IS { identifier-1 } …
-
+</pre>
 <a id="section-13-18-18-3"></a>
 ##### 13.18.18.3 Syntax rules
 
@@ -18327,8 +18617,9 @@ The DYNAMIC LENGTH clause specifies that the length of a data item can vary at r
 <a id="section-13-18-19-2"></a>
 ##### 13.18.19.2 General format
 
+<pre>
 <u>DYNAMIC</u> LENGTH [ dynamic-length-structure-name-1 ] [ <u>LIMIT</u> IS integer-1 ]
-
+</pre>
 <a id="section-13-18-19-3"></a>
 ##### 13.18.19.3 Syntax rules
 
@@ -18368,16 +18659,19 @@ The entry-name clause specifies the name of the item that is being described. A 
 
 Format 1 (data-name)
 
+<pre>
 data-name-1
-
+</pre>
 Format 2 (screen-name)
 
+<pre>
 screen-name-1
-
+</pre>
 Format 3 (filler)
 
+<pre>
 <u>FILLER</u>
-
+</pre>
 <a id="section-13-18-20-3"></a>
 ##### 13.18.20.3 Syntax rules
 
@@ -18414,13 +18708,15 @@ The ERASE clause clears part of the line or the screen starting at the cursor po
 <a id="section-13-18-21-2"></a>
 ##### 13.18.21.2 General format
 
-```
-      ⎧ END OF LINE   ⎫
-      ⎪ END OF SCREEN ⎪
-ERASE ⎨               ⎬
-      ⎪ EOL           ⎪
-      ⎩ EOS           ⎭
-```
+<pre>
+      ╭ END OF <u>LINE</u>   ╮
+      │               │
+      │ END OF <u>SCREEN</u> │
+<u>ERASE</u> ┤               ├
+      │ <u>EOL</u>           │
+      │               │
+      ╰ <u>EOS</u>           ╯
+</pre>
 
 > **Figure notes (ERASE clause general format).** `ERASE`, `LINE`, `SCREEN`, `EOL`, and `EOS` are underlined in the printed standard (required words / required minimum abbreviation); `END` and `OF` are printed without underlines. The braces are plain — exactly one of the four alternatives shall be selected. No choice indicators are present.
 
@@ -18461,8 +18757,9 @@ The EXTERNAL clause specifies that a type declaration, data item, or a file conn
 <a id="section-13-18-22-2"></a>
 ##### 13.18.22.2 General format
 
+<pre>
 IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ]
-
+</pre>
 <a id="section-13-18-22-3"></a>
 ##### 13.18.22.3 Syntax rules
 
@@ -18530,11 +18827,11 @@ The FOREGROUND clause specifies the foreground color for the screen item.
 <a id="section-13-18-23-2"></a>
 ##### 13.18.23.2 General format
 
-```
-                       ⎧ identifier-1 ⎫
-FOREGROUND-COLOR IS    ⎨              ⎬
-                       ⎩ integer-1    ⎭
-```
+<pre>
+                    ╭ identifier-1 ╮
+<u>FOREGROUND-COLOR</u> IS ┤              ├
+                    ╰ integer-1    ╯
+</pre>
 
 > **Figure notes (FOREGROUND-COLOR clause general format syntax diagram).** `FOREGROUND-COLOR` is underlined in the printed standard (required word); `IS` is printed without underlining and without brackets. The braces require exactly one of `identifier-1` or `integer-1`.
 
@@ -18578,11 +18875,13 @@ The FORMAT clause specifies that records written to the file are to be formatted
 <a id="section-13-18-24-2"></a>
 ##### 13.18.24.2 General format
 
-```
-           ⎧ | BIT       | ⎫
-FORMAT     ⎨ | CHARACTER | ⎬   DATA
-           ⎩ | NUMERIC   | ⎭
-```
+<pre>
+       ╭ │ <u>BIT</u>       │ ╮
+       │ │           │ │
+<u>FORMAT</u> ┤ │ <u>CHARACTER</u> │ ├ DATA
+       │ │           │ │
+       ╰ │ <u>NUMERIC</u>   │ ╯
+</pre>
 
 > **Figure notes (FORMAT clause syntax diagram).** `FORMAT`, `BIT`, `CHARACTER`, and `NUMERIC` are underlined in the printed standard (required words). `DATA` is **not** underlined — it is an optional word.
 > ⚠ **The three alternatives are enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside the braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `BIT`, `CHARACTER`, and `NUMERIC` may be combined, not merely chosen among.
@@ -18704,10 +19003,11 @@ The FROM clause specifies the source of data for an ACCEPT screen statement and 
 <a id="section-13-18-25-2"></a>
 ##### 13.18.25.2 General format
 
-```
-FROM ⎧ identifier-1 ⎫
-     ⎩ literal-1    ⎭
-```
+<pre>
+     ╭ identifier-1 ╮
+<u>FROM</u> ┤              ├
+     ╰ literal-1    ╯
+</pre>
 
 > **Figure notes (FROM clause general format).** `FROM` is underlined in the printed standard (required word). The operand delimiter is a **brace** pair, so exactly one of `identifier-1` or `literal-1` shall be selected. No choice indicators appear in this figure.
 
@@ -18751,8 +19051,9 @@ The FULL clause specifies that the operator shall either leave the screen item c
 <a id="section-13-18-26-2"></a>
 ##### 13.18.26.2 General format
 
+<pre>
 <u>FULL</u>
-
+</pre>
 <a id="section-13-18-26-3"></a>
 ##### 13.18.26.3 General rules
 
@@ -18797,8 +19098,9 @@ The GLOBAL clause specifies that a constant-name, a data-name, a file-name, a re
 <a id="section-13-18-27-2"></a>
 ##### 13.18.27.2 General format
 
+<pre>
 IS <u>GLOBAL</u>
-
+</pre>
 <a id="section-13-18-27-3"></a>
 ##### 13.18.27.3 Syntax rules
 
@@ -18851,8 +19153,9 @@ The GROUP INDICATE clause specifies that the associated printable item is printe
 <a id="section-13-18-28-2"></a>
 ##### 13.18.28.2 General format
 
+<pre>
 <u>GROUP</u> INDICATE
-
+</pre>
 <a id="section-13-18-28-3"></a>
 ##### 13.18.28.3 Syntax rule
 
@@ -18893,10 +19196,11 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 <a id="section-13-18-29-2"></a>
 ##### 13.18.29.2 General format
 
-```
-                  ⎧ BIT      ⎫
- GROUP-USAGE IS   ⎩ NATIONAL ⎭
-```
+<pre>
+               ╭ <u>BIT</u>      ╮
+<u>GROUP-USAGE</u> IS ┤          ├
+               ╰ <u>NATIONAL</u> ╯
+</pre>
 
 > **Figure notes (GROUP-USAGE clause general format).** `GROUP-USAGE`, `BIT`, and `NATIONAL` are underlined in the printed standard (required words); `IS` is not underlined. No choice indicators appear in this figure.
 
@@ -18960,8 +19264,9 @@ The HIGHLIGHT clause specifies that the field is to appear on the screen with th
 <a id="section-13-18-30-2"></a>
 ##### 13.18.30.2 General format
 
+<pre>
 <u>HIGHLIGHT</u>
-
+</pre>
 <a id="section-13-18-30-3"></a>
 ##### 13.18.30.3 General rules
 
@@ -18993,8 +19298,9 @@ NOTE    The INVALID clause feature of the VALIDATE facility is an obsolete featu
 <a id="section-13-18-31-2"></a>
 ##### 13.18.31.2 General format
 
+<pre>
 <u>INVALID</u> <u>WHEN</u> condition-1
-
+</pre>
 <a id="section-13-18-31-3"></a>
 ##### 13.18.31.3 Syntax rule
 
@@ -19032,10 +19338,11 @@ The JUSTIFIED clause specifies right justification of data within a receiving da
 <a id="section-13-18-32-2"></a>
 ##### 13.18.32.2 General format
 
-```
-⎧ JUSTIFIED ⎫
-⎩ JUST      ⎭  RIGHT
-```
+<pre>
+╭ <u>JUSTIFIED</u> ╮
+┤           ├ RIGHT
+╰ <u>JUST</u>      ╯
+</pre>
 
 > **Figure notes (JUSTIFIED clause general format syntax diagram).** `JUSTIFIED` and `JUST` are underlined in the printed standard (`JUST` is the required minimum abbreviation of `JUSTIFIED`). `RIGHT` is **not** underlined — it is an optional word. The braces require exactly one of the two spellings. No choice indicators appear in this figure.
 
@@ -19079,8 +19386,9 @@ Level numbers 1 through 49 indicate the position of a data item or screen item w
 <a id="section-13-18-33-2"></a>
 ##### 13.18.33.2 General format
 
+<pre>
 level-number
-
+</pre>
 <a id="section-13-18-33-3"></a>
 ##### 13.18.33.3 Syntax rules
 
@@ -19137,15 +19445,15 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 <a id="section-13-18-34-2"></a>
 ##### 13.18.34.2 General format
 
-```
-              ⎧ data-name-1 ⎫          ⎡                    ⎧ data-name-2 ⎫ ⎤
-LINAGE IS     ⎨             ⎬  LINES   ⎢ WITH FOOTING AT    ⎨             ⎬ ⎥
-              ⎩ integer-1   ⎭          ⎣                    ⎩ integer-2   ⎭ ⎦
+<pre>
+          ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐
+<u>LINAGE</u> IS ┤             ├ LINES │ WITH <u>FOOTING</u> AT ┤             ├ │
+          ╰ integer-1   ╯       └                 ╰ integer-2   ╯ ┘
 
-     ⎡                    ⎧ data-name-3 ⎫ ⎤  ⎡                       ⎧ data-name-4 ⎫ ⎤
-     ⎢ LINES AT TOP       ⎨             ⎬ ⎥  ⎢ LINES AT BOTTOM      ⎨             ⎬ ⎥
-     ⎣                    ⎩ integer-3   ⎭ ⎦  ⎣                       ⎩ integer-4   ⎭ ⎦
-```
+┌              ╭ data-name-3 ╮ ┐ ┌                 ╭ data-name-4 ╮ ┐
+│ LINES AT <u>TOP</u> ┤             ├ │ │ LINES AT <u>BOTTOM</u> ┤             ├ │
+└              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘
+</pre>
 
 > **Figure notes (LINAGE clause general format syntax diagram).** `LINAGE`, `FOOTING`, `TOP`, and `BOTTOM` are underlined in the printed standard (required words). `IS`, `LINES`, `WITH`, `AT`, and the second/third `LINES AT` are not underlined. The clause is printed across two lines of the page; the `WITH FOOTING AT`, `LINES AT TOP`, and `LINES AT BOTTOM` brackets are three independent optional phrases, each carrying a required one-of-two data-name/integer selection.
 
@@ -19258,23 +19566,30 @@ The LINE clause also specifies vertical positioning for its screen item.
 
 Format 1 (report-writer):
 
-```
-⎧ LINE NUMBER IS    ⎫   ⎧ integer-1 [ ON NEXT PAGE ]  ⎫
-⎪ LINE NUMBERS ARE  ⎪   ⎪ ⎧ PLUS ⎫                    ⎪
-⎨ LINES ARE         ⎬   ⎨ ⎩ +    ⎭ integer-2          ⎬  …
-⎩                   ⎭   ⎩ ON NEXT PAGE                ⎭
-```
+<pre>
+  <u>LINE</u> NUMBER IS     ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
+                     │                            │
+╭                  ╮ │ ╭ <u>PLUS</u> ╮                   │ …
+┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
+│                  │ │ │      │                   │
+╰ <u>LINES</u> ARE        ╯ │ ╰ +    ╯                   │
+                     │                            │
+                     ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
+</pre>
 
 > **Figure notes (LINE clause Format 1 (report-writer) syntax diagram).** `LINE` (in the first two alternatives), `LINES`, `NEXT`, `PAGE`, and `PLUS` are underlined in the printed standard (required words); `NUMBER`, `NUMBERS`, `IS`, `ARE`, and `ON` are not underlined (optional words). ⚠ **The second group is enclosed in BRACES, not brackets** — exactly one of its three alternatives shall be specified; the `…` to its right repeats that brace group. Within the second alternative, `PLUS` and `+` are a nested brace pair (synonyms, one required).
 
 Format 2 (screen):
 
-```
-                  ⎡ PLUS  ⎤
-                  ⎢ +     ⎥   ⎧ identifier-1 ⎫
-LINE NUMBER IS    ⎢ MINUS ⎥   ⎩ integer-3    ⎭
-                  ⎣ –     ⎦
-```
+<pre>
+               ┌ <u>PLUS</u>  ┐
+               │       │
+               │ +     │ ╭ identifier-1 ╮
+<u>LINE</u> NUMBER IS │       │ ┤              ├
+               │ <u>MINUS</u> │ ╰ integer-3    ╯
+               │       │
+               └ –     ┘
+</pre>
 
 > **Figure notes (LINE clause Format 2 (screen) syntax diagram).** `LINE`, `PLUS`, and `MINUS` are underlined in the printed standard (required words); `NUMBER` and `IS` are not underlined (optional words). The four-way bracket group is optional — zero or one of `PLUS` / `+` / `MINUS` / `–` may be specified; the following braces require exactly one of `identifier-1` / `integer-3`.
 
@@ -19467,8 +19782,9 @@ The LOWLIGHT clause specifies that the field is to appear on the screen with the
 <a id="section-13-18-36-2"></a>
 ##### 13.18.36.2 General format
 
+<pre>
 <u>LOWLIGHT</u>
-
+</pre>
 <a id="section-13-18-36-3"></a>
 ##### 13.18.36.3 General rules
 
@@ -19494,14 +19810,15 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
 <a id="section-13-18-37-2"></a>
 ##### 13.18.37.2 General format
 
-```
-                  ⎧ integer-1                    ⎫
-                  ⎪                              ⎪
-                  ⎪ ⎧ PLUS ⎫                     ⎪
-NEXT GROUP IS     ⎨ ⎩ +    ⎭ integer-2           ⎬
-                  ⎪                              ⎪
-                  ⎩ NEXT PAGE [ WITH RESET ]     ⎭
-```
+<pre>
+              ╭ integer-1                ╮
+              │                          │
+              │ ╭ <u>PLUS</u> ╮                 │
+<u>NEXT</u> <u>GROUP</u> IS ┤ ┤      ├ integer-2       ├
+              │ ╰ +    ╯                 │
+              │                          │
+              ╰ <u>NEXT</u> <u>PAGE</u> [ WITH <u>RESET</u> ] ╯
+</pre>
 
 > **Figure notes (NEXT GROUP clause general format).** `NEXT`, `GROUP`, `PLUS`, `NEXT`, `PAGE`, and `RESET` are underlined in the printed standard (required words); `IS`, `WITH`, and the `+` symbol are not underlined. Both the outer and the inner delimiters are **braces** — exactly one alternative shall be selected in each. No choice indicators are present.
 
@@ -19606,39 +19923,42 @@ The OCCURS clause describes repeated data items, report items, and screen items 
 
 Format 1 (fixed-table):
 
-```
-OCCURS integer-2 TIMES
-    ⎡ ⎧ ASCENDING  ⎫                          ⎤
-    ⎢ ⎨            ⎬ KEY IS { data-name-2 } … ⎥ …  [ INDEXED BY { index-name-1 } … ]
-    ⎣ ⎩ DESCENDING ⎭                          ⎦
-```
+<pre>
+<u>OCCURS</u> integer-2 TIMES
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
+</pre>
 
 > **Figure notes (OCCURS clause Format 1 (fixed-table) syntax diagram).** `OCCURS`, `ASCENDING`, `DESCENDING`, and `INDEXED` are underlined in the printed standard (required words). `TIMES`, `KEY`, `IS`, and `BY` are not underlined. The `…` immediately after `{ data-name-2 }` repeats that brace; the `…` following the outer bracket repeats the whole bracketed KEY phrase; the `…` after `{ index-name-1 }` repeats that brace. The `INDEXED BY` bracket is outside the repeated KEY bracket. No choice indicators appear in this figure.
 
 Format 2 (occurs-depending-table):
 
-```
-OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1
-    ⎡ ⎧ ASCENDING  ⎫                          ⎤
-    ⎢ ⎨            ⎬ KEY IS { data-name-2 } … ⎥ …  [ INDEXED BY { index-name-1 } … ]
-    ⎣ ⎩ DESCENDING ⎭                          ⎦
-```
+<pre>
+<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
+</pre>
 
 > **Figure notes (OCCURS clause Format 2 (occurs-depending-table) syntax diagram).** `OCCURS`, `TO`, `DEPENDING`, `ASCENDING`, `DESCENDING`, and `INDEXED` are underlined in the printed standard (required words). `TIMES`, `ON`, `KEY`, `IS`, and `BY` are not underlined. In this format `integer-1 TO integer-2 TIMES DEPENDING ON data-name-1` is required — none of it is bracketed. The `…` immediately after `{ data-name-2 }` repeats that brace; the `…` following the outer bracket repeats the whole bracketed KEY phrase; the `…` after `{ index-name-1 }` repeats that brace. No choice indicators appear in this figure.
 
 Format 3 (report-writer):
 
-OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]
-
+<pre>
+<u>OCCURS</u> [ integer-1 <u>TO</u> ] integer-2 TIMES [ <u>DEPENDING</u> ON data-name-1 ] [ <u>STEP</u> integer-3 ]
+</pre>
 Format 4 (dynamic-capacity-table):
 
-OCCURS DYNAMIC [ CAPACITY IN data-name-3 ] [FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ]
+<pre>
+<u>OCCURS</u> <u>DYNAMIC</u> [ <u>CAPACITY</u> IN data-name-3 ] <u>[FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
 
-```
-    ⎡ ⎧ ASCENDING  ⎫                          ⎤
-    ⎢ ⎨            ⎬ KEY IS { data-name-2 } … ⎥ …  [ INDEXED BY { index-name-1 } … ]
-    ⎣ ⎩ DESCENDING ⎭                          ⎦
-```
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
+</pre>
 
 > **Figure notes (OCCURS clause Format 4 (dynamic-capacity-table) syntax diagram).** This figure is the second line of Format 4; it continues the `OCCURS DYNAMIC [ CAPACITY IN data-name-3 ] [ FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ]` line printed immediately above it (in that line `OCCURS`, `DYNAMIC`, `CAPACITY`, `FROM`, `TO`, and `INITIALIZED` are underlined; `IN` is not). In this figure `ASCENDING`, `DESCENDING`, and `INDEXED` are underlined in the printed standard (required words); `KEY`, `IS`, and `BY` are not. The `…` immediately after `{ data-name-2 }` repeats that brace; the `…` following the outer bracket repeats the whole bracketed KEY phrase; the `…` after `{ index-name-1 }` repeats that brace. No choice indicators appear in this figure.
 
@@ -19910,25 +20230,25 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 <a id="section-13-18-39-2"></a>
 ##### 13.18.39.2 General format
 
-```
-        ⎡ LIMIT  IS  ⎤   ⎧ integer-1                                                ⎫
-PAGE    ⎣ LIMITS ARE ⎦   ⎪                                                          ⎪
-                         ⎨      ⎡           ⎧ LINE  ⎫ ⎤ ⎡           ⎧ COLS    ⎫ ⎤   ⎬
-                         ⎪      ⎢ integer-1 ⎨       ⎬ ⎥ ⎢ integer-2 ⎨         ⎬ ⎥   ⎪
-                         ⎩      ⎣           ⎩ LINES ⎭ ⎦ ⎣           ⎩ COLUMNS ⎭ ⎦   ⎭
+<pre>
+                    ╭ integer-1                                         ╮
+<u>PAGE</u> ┌ LIMIT IS   ┐ ┤ ┌                     ┐ ┌                       ┐ ├
+     │            │ │ │           ╭ <u>LINE</u>  ╮ │ │           ╭ <u>COLS</u>    ╮ │ │
+     └ LIMITS ARE ┘ │ │ integer-1 ┤       ├ │ │ integer-2 ┤         ├ │ │
+                    ╰ └           ╰ <u>LINES</u> ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯
 
-                             ⎡        ⎧ DETAIL ⎫              ⎤
-   [ HEADING IS integer-3 ]  ⎢ FIRST  ⎨        ⎬ IS integer-4 ⎥
-                             ⎣        ⎩ DE     ⎭              ⎦
+                         ┌       ╭ <u>DETAIL</u> ╮              ┐
+[ <u>HEADING</u> IS integer-3 ] │ <u>FIRST</u> ┤        ├ IS integer-4 │
+                         └       ╰ <u>DE</u>     ╯              ┘
 
-   ⎡        ⎧ CONTROL HEADING ⎫              ⎤
-   ⎢ LAST   ⎨                 ⎬ IS integer-5 ⎥
-   ⎣        ⎩ CH              ⎭              ⎦
+┌      ╭ <u>CONTROL</u> <u>HEADING</u> ╮              ┐
+│ <u>LAST</u> ┤                 ├ IS integer-5 │
+└      ╰ <u>CH</u>              ╯              ┘
 
-   ⎡        ⎧ DETAIL ⎫              ⎤
-   ⎢ LAST   ⎨        ⎬ IS integer-6 ⎥  [ FOOTING IS integer-7 ]
-   ⎣        ⎩ DE     ⎭              ⎦
-```
+┌      ╭ <u>DETAIL</u> ╮              ┐
+│ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]
+└      ╰ <u>DE</u>     ╯              ┘
+</pre>
 
 > **Figure notes (PAGE clause general format).** `PAGE`, `LIMIT`, `LIMITS`, `LINE`, `LINES`, `COLS`, `COLUMNS`, `HEADING`, `FIRST`, `DETAIL`, `DE`, `LAST`, `CONTROL`, `HEADING` (in `CONTROL HEADING`), `CH`, and `FOOTING` are underlined in the printed standard (required words / required minimum abbreviations); `IS`, `ARE`, and the plain `IS integer-n` connectives are not underlined. `PAGE` is printed level with the `LIMIT` / `LIMITS` bracket.
 > The five trailing phrases are five **separate optional brackets** with **no choice indicators** — verified at 600 dpi. Their free ordering is granted by syntax rule 4 ("The HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, and FOOTING phrases may be written in any order") rather than by choice-indicator bars.
@@ -20838,12 +21158,14 @@ NOTE The PRESENT WHEN clause feature of the VALIDATE facility is an obsolete fea
 
 Format 1 (report-writer):
 
+<pre>
 <u>PRESENT</u> <u>WHEN</u> condition-1
-
+</pre>
 Format 2 (validation):
 
+<pre>
 <u>PRESENT</u> <u>WHEN</u> condition-2
-
+</pre>
 <a id="section-13-18-41-3"></a>
 ##### 13.18.41.3 Syntax rule
 
@@ -20928,11 +21250,11 @@ The PROPERTY clause indicates that this data item is a property of the object an
 <a id="section-13-18-42-2"></a>
 ##### 13.18.42.2 General format
 
-> ```
->          ⎡         ⎧ GET ⎫ ⎤
-> PROPERTY ⎢ WITH NO ⎨     ⎬ ⎥ [ IS FINAL ]
->          ⎣         ⎩ SET ⎭ ⎦
-> ```
+<pre>
+         ┌         ╭ <u>GET</u> ╮ ┐
+<u>PROPERTY</u> │ WITH <u>NO</u> ┤     ├ │ [ IS <u>FINAL</u> ]
+         └         ╰ <u>SET</u> ╯ ┘
+</pre>
 >
 > > **Figure notes (PROPERTY clause general format).** `PROPERTY`, `NO`, `GET`, `SET`, and `FINAL` are underlined in the printed standard (required words); `WITH` and `IS` are **not** underlined. The `WITH NO …` phrase is bracketed (optional); when it is specified, the `{ GET / SET }` braces require exactly one of `GET` or `SET` — there are **no** choice indicators here, so `WITH NO GET SET` is not a legal single phrase. The `[ IS FINAL ]` bracket sits outside that group.
 
@@ -21103,30 +21425,33 @@ The RECORD clause specifies the number of bytes in a fixed length record, or spe
 
 Format 1 (fixed-length):
 
-```
-RECORD CONTAINS integer-1 ⎧ BYTES      ⎫
-                          ⎩ CHARACTERS ⎭
-```
+<pre>
+                          ╭ BYTES      ╮
+<u>RECORD</u> CONTAINS integer-1 ┤            ├
+                          ╰ CHARACTERS ╯
+</pre>
 
 > **Figure notes (RECORD clause Format 1 (fixed-length) syntax diagram).** `RECORD` is underlined in the printed standard (required word); `CONTAINS`, `BYTES`, and `CHARACTERS` are not underlined (optional words). The braces require exactly one of `BYTES` or `CHARACTERS`. No choice indicators appear in this figure.
 
 Format 2 (variable-length):
 
-```
-RECORD IS VARYING IN SIZE ⎡ [ FROM integer-2 ] [ TO integer-3 ] ⎧ BYTES      ⎫ ⎤
-                          ⎣                                     ⎩ CHARACTERS ⎭ ⎦
+<pre>
+<u>RECORD</u> IS <u>VARYING</u> IN SIZE ┌                                     ╭ BYTES      ╮ ┐
+                          │ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] ┤            ├ │
+                          └                                     ╰ CHARACTERS ╯ ┘
 
-    [ DEPENDING ON data-name-1 ]
-```
+[ <u>DEPENDING</u> ON data-name-1 ]
+</pre>
 
 > **Figure notes (RECORD clause Format 2 (variable-length) syntax diagram).** `RECORD`, `VARYING`, `TO`, and `DEPENDING` are underlined in the printed standard (required words); `IS`, `IN`, `SIZE`, `FROM`, `ON`, `BYTES`, and `CHARACTERS` are not underlined (optional words). The large outer brackets enclose only the `FROM`/`TO`/`BYTES` group; the `DEPENDING ON data-name-1` phrase is a separate, independently optional bracket on the following line. The innermost braces require exactly one of `BYTES` or `CHARACTERS`. No choice indicators appear in this figure.
 
 Format 3 (fixed-or-variable-length):
 
-```
-RECORD CONTAINS integer-4 TO integer-5 ⎧ BYTES      ⎫
-                                       ⎩ CHARACTERS ⎭
-```
+<pre>
+                                       ╭ BYTES      ╮
+<u>RECORD</u> CONTAINS integer-4 <u>TO</u> integer-5 ┤            ├
+                                       ╰ CHARACTERS ╯
+</pre>
 
 > **Figure notes (RECORD clause Format 3 (fixed-or-variable-length) syntax diagram).** `RECORD` and `TO` are underlined in the printed standard (required words); `CONTAINS`, `BYTES`, and `CHARACTERS` are not underlined (optional words). The braces require exactly one of `BYTES` or `CHARACTERS`. No choice indicators appear in this figure.
 
@@ -21279,8 +21604,9 @@ The REDEFINES clause allows the same computer storage area to be described by di
 <a id="section-13-18-44-2"></a>
 ##### 13.18.44.2 General format
 
+<pre>
 level-number [ entry-name-clause ] <u>REDEFINES</u> data-name-2
-
+</pre>
 where entry-name-clause is described in 13.18.20, Entry-name clause
 
 NOTE Level-number and entry-name-clause are shown in the above format to provide context. Level-number and entry-name-clause are not part of the REDEFINES clause.
@@ -21362,11 +21688,11 @@ The RENAMES clause permits alternative, possibly overlapping, groupings of eleme
 <a id="section-13-18-45-2"></a>
 ##### 13.18.45.2 General format
 
-```
-                                     ⎡ ⎧ THROUGH ⎫             ⎤
-66 data-name-1 RENAMES data-name-2   ⎢ ⎨         ⎬ data-name-3 ⎥ .
-                                     ⎣ ⎩ THRU    ⎭             ⎦
-```
+<pre>
+                                   ┌ ╭ <u>THROUGH</u> ╮             ┐
+66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .
+                                   └ ╰ <u>THRU</u>    ╯             ┘
+</pre>
 
 > **Figure notes (RENAMES clause general format).** `RENAMES`, `THROUGH`, and `THRU` are underlined in the printed standard (required words). The separator period after the closing bracket is part of the format. The optional bracket encloses a plain brace group — if the phrase is written, exactly one of `THROUGH` / `THRU` shall be selected. Level-number `66` and `data-name-1` are shown for context only and are not part of the clause. No choice indicators are present.
 
@@ -21431,11 +21757,11 @@ The REPORT clause identifies the reports that may be written to a report file.
 <a id="section-13-18-46-2"></a>
 ##### 13.18.46.2 General format
 
-```
-⎧ REPORT IS   ⎫
-⎨             ⎬  { report-name-1 } …
-⎩ REPORTS ARE ⎭
-```
+<pre>
+╭ <u>REPORT</u> IS   ╮
+┤             ├ { report-name-1 } …
+╰ <u>REPORTS</u> ARE ╯
+</pre>
 
 > **Figure notes (REPORT clause general format syntax diagram).** `REPORT` and `REPORTS` are underlined in the printed standard (required words); `IS` and `ARE` are not underlined. The braces require exactly one of `REPORT IS` or `REPORTS ARE`. The inner `{ report-name-1 }` braces carry the ellipsis, so one or more report-names may be specified.
 
@@ -21473,8 +21799,9 @@ The REQUIRED clause specifies that in the context of an ACCEPT screen statement,
 <a id="section-13-18-47-2"></a>
 ##### 13.18.47.2 General format
 
+<pre>
 <u>REQUIRED</u>
-
+</pre>
 <a id="section-13-18-47-3"></a>
 ##### 13.18.47.3 General rules
 
@@ -21516,8 +21843,9 @@ The REVERSE-VIDEO clause specifies that the screen item is to be displayed by ex
 <a id="section-13-18-48-2"></a>
 ##### 13.18.48.2 General format
 
-`REVERSE-VIDEO`
-
+<pre>
+<u>REVERSE-VIDEO</u>
+</pre>
 <a id="section-13-18-48-3"></a>
 ##### 13.18.48.3 General rules
 
@@ -21545,8 +21873,9 @@ The SAME AS clause specifies that a data-name has the same description as that s
 <a id="section-13-18-49-2"></a>
 ##### 13.18.49.2 General format
 
-<u>SAME</u> AS data-name-1
-
+<pre>
+<u>SAME</u> <u>AS</u> data-name-1
+</pre>
 <a id="section-13-18-49-3"></a>
 ##### 13.18.49.3 Syntax rules
 
@@ -21616,8 +21945,9 @@ The SECURE clause prevents data entered from the keyboard or contained in the sc
 <a id="section-13-18-50-2"></a>
 ##### 13.18.50.2 General format
 
+<pre>
 <u>SECURE</u>
-
+</pre>
 <a id="section-13-18-50-3"></a>
 ##### 13.18.50.3 General rules
 
@@ -21648,10 +21978,11 @@ The SELECT WHEN clause specifies a condition-name condition under which a record
 <a id="section-13-18-51-2"></a>
 ##### 13.18.51.2 General format
 
-```
-                    ⎧ condition-name-1 ⎫
-SELECT WHEN         ⎩ OTHER            ⎭
-```
+<pre>
+            ╭ condition-name-1 ╮
+<u>SELECT</u> <u>WHEN</u> ┤                  ├
+            ╰ <u>OTHER</u>            ╯
+</pre>
 
 > **Figure notes (SELECT WHEN clause syntax diagram).** `SELECT`, `WHEN`, and `OTHER` are underlined in the printed standard (required words). The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
@@ -21712,10 +22043,11 @@ The SIGN clause specifies the position and the mode of representation of the ope
 <a id="section-13-18-52-2"></a>
 ##### 13.18.52.2 General format
 
-```
-[ SIGN IS ]  ⎧ LEADING  ⎫  [ SEPARATE CHARACTER ]
-             ⎩ TRAILING ⎭
-```
+<pre>
+            ╭ <u>LEADING</u>  ╮
+[ <u>SIGN</u> IS ] ┤          ├ [ <u>SEPARATE</u> CHARACTER ]
+            ╰ <u>TRAILING</u> ╯
+</pre>
 
 > **Figure notes (SIGN clause general format).** `SIGN`, `LEADING`, `TRAILING`, and `SEPARATE` are underlined in the printed standard (required words); `IS` and `CHARACTER` are not underlined. No choice indicators appear in this figure — exactly one of `LEADING` or `TRAILING` shall be selected.
 
@@ -21782,10 +22114,11 @@ The SOURCE clause identifies a data item or expression to be moved automatically
 <a id="section-13-18-53-2"></a>
 ##### 13.18.53.2 General format
 
-```
- ⎧ SOURCE IS    ⎫  ⎧ identifier-1            ⎫
- ⎩ SOURCES ARE  ⎭  ⎩ arithmetic-expression-1 ⎭  …  [ rounded-phrase ]
-```
+<pre>
+╭ <u>SOURCE</u> IS   ╮ ╭ identifier-1            ╮
+┤             ├ ┤                         ├ … [ rounded-phrase ]
+╰ <u>SOURCES</u> ARE ╯ ╰ arithmetic-expression-1 ╯
+</pre>
 
 > **Figure notes (SOURCE clause general format).** `SOURCE` and `SOURCES` are underlined in the printed standard (required words); `IS` and `ARE` are not underlined. The ellipsis follows the `{ identifier-1 / arithmetic-expression-1 }` brace pair, so that operand may be repeated. No choice indicators appear in this figure.
 
@@ -21849,14 +22182,17 @@ The SUM clause specifies one or more data items that are to be totaled to provid
 <a id="section-13-18-54-2"></a>
 ##### 13.18.54.2 General format
 
-```
-⎧            ⎧ data-name-1             ⎫                                ⎫
-⎨ SUM OF     ⎨ identifier-1            ⎬ … [ UPON { data-name-2 } … ]   ⎬  …
-⎩            ⎩ arithmetic-expression-1 ⎭                                ⎭
+<pre>
+╭        ╭ data-name-1             ╮                              ╮
+┤ <u>SUM</u> OF │                         │ … [ <u>UPON</u> { data-name-2 } … ] ├ …
+│        ┤ identifier-1            ├                              │
+│        │                         │                              │
+╰        ╰ arithmetic-expression-1 ╯                              ╯
 
-            ⎡              ⎧ data-name-3 ⎫ ⎤
-            ⎣ RESET ON     ⎩ FINAL       ⎭ ⎦  [ rounded-phrase ]
-```
+┌          ╭ data-name-3 ╮ ┐
+│ <u>RESET</u> ON ┤             ├ │ [ rounded-phrase ]
+└          ╰ <u>FINAL</u>       ╯ ┘
+</pre>
 
 > **Figure notes (SUM clause general format syntax diagram).** `SUM`, `UPON`, `RESET`, and `FINAL` are underlined in the printed standard (required words); `OF` and `ON` are **not** underlined. The large outer brace closes immediately after the `UPON` phrase — the trailing ellipsis repeats only the `SUM OF … [ UPON … ]` group. The `RESET ON` group is a separate optional bracket outside that repetition, followed by the optional `rounded-phrase`. `rounded-phrase` is described in 14.7.4, ROUNDED phrase. No choice indicators appear in this figure.
 
@@ -21989,10 +22325,11 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 <a id="section-13-18-55-2"></a>
 ##### 13.18.55.2 General format
 
-```
-⎧ SYNCHRONIZED ⎫  ⎡ LEFT  ⎤
-⎩ SYNC         ⎭  ⎣ RIGHT ⎦
-```
+<pre>
+╭ <u>SYNCHRONIZED</u> ╮ ┌ <u>LEFT</u>  ┐
+┤              ├ │       │
+╰ <u>SYNC</u>         ╯ └ <u>RIGHT</u> ┘
+</pre>
 
 > **Figure notes (SYNCHRONIZED clause general format syntax diagram).** `SYNCHRONIZED`, `SYNC`, `LEFT`, and `RIGHT` are underlined in the printed standard (required words; `SYNC` is the required minimum abbreviation of `SYNCHRONIZED` — 13.18.55.3 SR 2). Exactly one of `SYNCHRONIZED` / `SYNC` shall be written; the `LEFT` / `RIGHT` bracket is optional and selects at most one.
 
@@ -22071,8 +22408,9 @@ The TO clause identifies the destination of the data in an ACCEPT screen stateme
 <a id="section-13-18-56-2"></a>
 ##### 13.18.56.2 General format
 
+<pre>
 <u>TO</u> identifier-1
-
+</pre>
 <a id="section-13-18-56-3"></a>
 ##### 13.18.56.3 Syntax rules
 
@@ -22115,32 +22453,40 @@ The TYPE clause in a report group description entry identifies the circumstances
 
 Format 1 (type-name):
 
+<pre>
 <u>TYPE</u> TO type-name-1
-
+</pre>
 Format 2 (report-group):
 
-```
-        ⎧ ⎧ REPORT HEADING  ⎫                                                        ⎫
-        ⎪ ⎩ RH              ⎭                                                        ⎪
-        ⎪                                                                           ⎪
-        ⎪ ⎧ PAGE HEADING ⎫                                                           ⎪
-        ⎪ ⎩ PH           ⎭                                                           ⎪
-        ⎪                                                                           ⎪
-        ⎪ ⎧ CONTROL HEADING ⎫ ⎡ ⎡ ON  ⎤ ⎧ data-name-1 ⎫               ⎤              ⎪
-        ⎪ ⎩ CH              ⎭ ⎣ ⎣ FOR ⎦ ⎩ FINAL       ⎭ [ OR PAGE ]   ⎦              ⎪
-TYPE IS ⎨                                                                           ⎬
-        ⎪ ⎧ DETAIL ⎫                                                                 ⎪
-        ⎪ ⎩ DE     ⎭                                                                 ⎪
-        ⎪                                                                           ⎪
-        ⎪ ⎧ CONTROL FOOTING ⎫ ⎡ ⎡ ON  ⎤ ⎧ data-name-2 ⎫ ⎤                            ⎪
-        ⎪ ⎩ CF              ⎭ ⎣ ⎣ FOR ⎦ ⎩ FINAL       ⎭ ⎦                            ⎪
-        ⎪                                                                           ⎪
-        ⎪ ⎧ PAGE FOOTING ⎫                                                           ⎪
-        ⎪ ⎩ PF           ⎭                                                           ⎪
-        ⎪                                                                           ⎪
-        ⎪ ⎧ REPORT FOOTING ⎫                                                         ⎪
-        ⎩ ⎩ RF             ⎭                                                         ⎭
-```
+<pre>
+        ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                                          ╮
+        │ ┤                ├                                          │
+        │ ╰ <u>RH</u>             ╯                                          │
+        │                                                             │
+        │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                                            │
+        │ ┤              ├                                            │
+        │ ╰ <u>PH</u>           ╯                                            │
+        │                                                             │
+        │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ┌ ┌ ON  ┐ ╭ data-name-1 ╮             ┐ │
+        │ ┤                 ├ │ │     │ ┤             ├ [ <u>OR</u> <u>PAGE</u> ] │ │
+        │ ╰ <u>CH</u>              ╯ └ └ FOR ┘ ╰ <u>FINAL</u>       ╯             ┘ │
+        │                                                             │
+        │ ╭ <u>DETAIL</u> ╮                                                  │
+<u>TYPE</u> IS ┤ ┤        ├                                                  ├
+        │ ╰ <u>DE</u>     ╯                                                  │
+        │                                                             │
+        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ┌ ┌ ON  ┐ ╭ data-name-2 ╮ ┐             │
+        │ ┤                 ├ │ │     │ ┤             ├ │             │
+        │ ╰ <u>CF</u>              ╯ └ └ FOR ┘ ╰ <u>FINAL</u>       ╯ ┘             │
+        │                                                             │
+        │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                                            │
+        │ ┤              ├                                            │
+        │ ╰ <u>PF</u>           ╯                                            │
+        │                                                             │
+        │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                                          │
+        │ ┤                ├                                          │
+        ╰ ╰ <u>RF</u>             ╯                                          ╯
+</pre>
 
 > **Figure notes (TYPE clause Format 2 (report-group) syntax diagram).** `TYPE`, `REPORT`, `HEADING`, `RH`, `PAGE`, `PH`, `CONTROL`, `CH`, `DETAIL`, `DE`, `FOOTING`, `CF`, `PF`, `RF`, `FINAL`, `OR`, and the `PAGE` of `OR PAGE` are underlined in the printed standard (required words / required minimum abbreviations); `IS`, `ON`, and `FOR` are **not** underlined (optional words). The outer braces require exactly one of the seven report-group types. In the CONTROL HEADING row the entire `[ [ ON | FOR ] { data-name-1 | FINAL } [ OR PAGE ] ]` phrase is optional, with `ON`/`FOR` an optional inner bracket pair and `[ OR PAGE ]` nested inside the outer optional bracket. The CONTROL FOOTING row has the same shape but no `OR PAGE` phrase and uses `data-name-2`.
 
@@ -22354,8 +22700,9 @@ NOTE A data description entry declared at level-number 1 that includes a TYPEDEF
 <a id="section-13-18-58-2"></a>
 ##### 13.18.58.2 General format
 
+<pre>
 IS <u>TYPEDEF</u> [ <u>STRONG</u> ]
-
+</pre>
 <a id="section-13-18-58-3"></a>
 ##### 13.18.58.3 Syntax rules
 
@@ -22400,8 +22747,9 @@ The UNDERLINE clause specifies that each character of the field is underlined wh
 <a id="section-13-18-59-2"></a>
 ##### 13.18.59.2 General format
 
+<pre>
 <u>UNDERLINE</u>
-
+</pre>
 <a id="section-13-18-59-3"></a>
 ##### 13.18.59.3 General rules
 
@@ -22440,42 +22788,73 @@ The USAGE clause specifies the representation of a data item in the computer sto
 <a id="section-13-18-60-2"></a>
 ##### 13.18.60.2 General format
 
-```
-               ⎧ BINARY                                                       ⎫
-               ⎪                                                              ⎪
-               ⎪ BINARY-CHAR   ⎧ SIGNED   ⎫                                   ⎪
-               ⎪               ⎩ UNSIGNED ⎭                                   ⎪
-               ⎪ BINARY-SHORT  ⎧ SIGNED   ⎫                                   ⎪
-               ⎪               ⎩ UNSIGNED ⎭                                   ⎪
-               ⎪ BINARY-LONG   ⎧ SIGNED   ⎫                                   ⎪
-               ⎪               ⎩ UNSIGNED ⎭                                   ⎪
-               ⎪ BINARY-DOUBLE ⎧ SIGNED   ⎫                                   ⎪
-               ⎪               ⎩ UNSIGNED ⎭                                   ⎪
-               ⎪ BIT                                                          ⎪
-               ⎪ COMPUTATIONAL                                                ⎪
-               ⎪ COMP                                                         ⎪
-               ⎪ DISPLAY                                                      ⎪
-               ⎪ FLOAT-BINARY-32  [ endianness-phrase ]                       ⎪
-               ⎪ FLOAT-BINARY-64  [ endianness-phrase ]                       ⎪
-               ⎪ FLOAT-BINARY-128 [ endianness-phrase ]                       ⎪
-[ USAGE IS ]   ⎨ FLOAT-DECIMAL-16 ⎡ | encoding-phrase   | ⎤                    ⎬
-               ⎪                  ⎣ | endianness-phrase | ⎦                    ⎪
-               ⎪ FLOAT-DECIMAL-34 ⎡ | encoding-phrase   | ⎤                    ⎪
-               ⎪                  ⎣ | endianness-phrase | ⎦                    ⎪
-               ⎪ FLOAT-EXTENDED                                               ⎪
-               ⎪ FLOAT-LONG                                                   ⎪
-               ⎪ FLOAT-SHORT                                                  ⎪
-               ⎪ INDEX                                                        ⎪
-               ⎪ MESSAGE-TAG                                                  ⎪
-               ⎪ NATIONAL                                                     ⎪
-               ⎪                  ⎡ interface-name-1                        ⎤ ⎪
-               ⎪ OBJECT REFERENCE ⎢ [ FACTORY OF ] ACTIVE-CLASS             ⎥ ⎪
-               ⎪                  ⎣ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎦ ⎪
-               ⎪ PACKED-DECIMAL   [ WITH NO SIGN ]                            ⎪
-               ⎪ POINTER [ TO type-name-1 ]                                   ⎪
-               ⎪ FUNCTION-POINTER TO function-prototype-name-1                ⎪
-               ⎩ PROGRAM-POINTER [ TO program-prototype-name-1 ]              ⎭
-```
+<pre>
+             ╭ <u>BINARY</u>                                                           ╮
+             │                                                                  │
+             │             ╭ SIGNED    ╮                                        │
+             │ <u>BINARY-CHAR</u> ┤           ├                                        │
+             │             ╰ <u>UNSIGNED</u>  ╯                                        │
+             │                                                                  │
+             │              ╭ SIGNED   ╮                                        │
+             │ <u>BINARY-SHORT</u> ┤          ├                                        │
+             │              ╰ <u>UNSIGNED</u> ╯                                        │
+             │                                                                  │
+             │             ╭ SIGNED   ╮                                         │
+             │ <u>BINARY-LONG</u> ┤          ├                                         │
+             │             ╰ <u>UNSIGNED</u> ╯                                         │
+             │                                                                  │
+             │               ╭ SIGNED   ╮                                       │
+             │ <u>BINARY-DOUBLE</u> ┤          ├                                       │
+             │               ╰ <u>UNSIGNED</u> ╯                                       │
+             │                                                                  │
+             │ <u>BIT</u>                                                              │
+             │                                                                  │
+             │ <u>COMPUTATIONAL</u>                                                    │
+             │                                                                  │
+             │ <u>COMP</u>                                                             │
+             │                                                                  │
+             │ <u>DISPLAY</u>                                                          │
+             │                                                                  │
+             │ <u>FLOAT-BINARY-32</u> [ endianness-phrase ]                            │
+             │                                                                  │
+             │ <u>FLOAT-BINARY-64</u> [ endianness-phrase ]                            │
+             │                                                                  │
+             │ <u>FLOAT-BINARY-128</u> [ endianness-phrase ]                           │
+[ <u>USAGE</u> IS ] ┤                                                                  ├
+             │                  ┌ │ encoding-phrase   │ ┐                       │
+             │ <u>FLOAT-DECIMAL-16</u> │ │                   │ │                       │
+             │                  └ │ endianness-phrase │ ┘                       │
+             │                                                                  │
+             │                  ┌ │ encoding-phrase   │ ┐                       │
+             │ <u>FLOAT-DECIMAL-34</u> │ │                   │ │                       │
+             │                  └ │ endianness-phrase │ ┘                       │
+             │                                                                  │
+             │ <u>FLOAT-EXTENDED</u>                                                   │
+             │                                                                  │
+             │ <u>FLOAT-LONG</u>                                                       │
+             │                                                                  │
+             │ <u>FLOAT-SHORT</u>                                                      │
+             │                                                                  │
+             │ <u>INDEX</u>                                                            │
+             │                                                                  │
+             │ <u>MESSAGE-TAG</u>                                                      │
+             │                                                                  │
+             │ <u>NATIONAL</u>                                                         │
+             │                                                                  │
+             │                  ┌ interface-name-1                            ┐ │
+             │                  │                                             │ │
+             │ <u>OBJECT</u> <u>REFERENCE</u> │ [ <u>FACTORY</u> OF ] <u>ACTIVE-CLASS</u>                 │ │
+             │                  │                                             │ │
+             │                  └ [ <u>FACTORY</u> OF ] object-class-name-1 [ <u>ONLY</u> ] ┘ │
+             │                                                                  │
+             │ <u>PACKED-DECIMAL</u> [ WITH <u>NO</u> <u>SIGN</u> ]                                  │
+             │                                                                  │
+             │ <u>POINTER</u> [ TO type-name-1 ]                                       │
+             │                                                                  │
+             │ <u>FUNCTION-POINTER</u> TO function-prototype-name-1                    │
+             │                                                                  │
+             ╰ <u>PROGRAM-POINTER</u> [ TO program-prototype-name-1 ]                  ╯
+</pre>
 
 > **Figure notes (USAGE clause general format).** Underlined in the printed standard (required words / required minimum abbreviation): `USAGE`, `BINARY`, `BINARY-CHAR`, `BINARY-SHORT`, `BINARY-LONG`, `BINARY-DOUBLE`, `SIGNED`, `UNSIGNED`, `BIT`, `COMPUTATIONAL`, `COMP`, `DISPLAY`, `FLOAT-BINARY-32`, `FLOAT-BINARY-64`, `FLOAT-BINARY-128`, `FLOAT-DECIMAL-16`, `FLOAT-DECIMAL-34`, `FLOAT-EXTENDED`, `FLOAT-LONG`, `FLOAT-SHORT`, `INDEX`, `MESSAGE-TAG`, `NATIONAL`, `OBJECT`, `REFERENCE`, `FACTORY`, `ACTIVE-CLASS`, `ONLY`, `PACKED-DECIMAL`, `NO`, `SIGN`, `POINTER`, `FUNCTION-POINTER`, `PROGRAM-POINTER`. `IS`, `OF`, `TO`, and `WITH` are not underlined.
 > ⚠ **The `FLOAT-DECIMAL-16` and `FLOAT-DECIMAL-34` phrase groups are enclosed in CHOICE INDICATORS** (the pair of `|` bars inside their brackets). Per 5.2.6.4, **brackets** enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `encoding-phrase` alone, `endianness-phrase` alone, **both in either order**, or neither may be written. No other group in this figure carries choice indicators.
@@ -22491,17 +22870,19 @@ The USAGE clause specifies the representation of a data item in the computer sto
 
 where encoding-phrase is:
 
-```
-⎧ BINARY-ENCODING  ⎫
-⎩ DECIMAL-ENCODING ⎭
-```
+<pre>
+╭ <u>BINARY-ENCODING</u>  ╮
+┤                  ├
+╰ <u>DECIMAL-ENCODING</u> ╯
+</pre>
 
 where endianness-phrase is:
 
-```
-⎧ HIGH-ORDER-LEFT  ⎫
-⎩ HIGH-ORDER-RIGHT ⎭
-```
+<pre>
+╭ <u>HIGH-ORDER-LEFT</u>  ╮
+┤                  ├
+╰ <u>HIGH-ORDER-RIGHT</u> ╯
+</pre>
 
 <a id="section-13-18-60-3"></a>
 ##### 13.18.60.3 Syntax rules
@@ -22772,8 +23153,9 @@ The USING clause identifies data to be used both as the destination in an ACCEPT
 <a id="section-13-18-61-2"></a>
 ##### 13.18.61.2 General format
 
+<pre>
 <u>USING</u> identifier-1
-
+</pre>
 <a id="section-13-18-61-3"></a>
 ##### 13.18.61.3 Syntax rules
 
@@ -22816,13 +23198,15 @@ NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsole
 <a id="section-13-18-62-2"></a>
 ##### 13.18.62.2 General format
 
-```
-⎧ VALIDATE-STATUS ⎫       ⎧ identifier-1 ⎫        ⎧ ERROR    ⎫    ⎡      ⎧ | FORMAT   | ⎫ ⎤
-⎨                 ⎬  IS   ⎨              ⎬  WHEN  ⎨          ⎬    ⎢ ON   ⎨ | CONTENT  | ⎬ ⎥
-⎩ VAL-STATUS      ⎭       ⎩ literal-1    ⎭        ⎩ NO ERROR ⎭    ⎣      ⎩ | RELATION | ⎭ ⎦
+<pre>
+                                                          ┌    ╭ │ <u>FORMAT</u>   │ ╮ ┐
+                                                          │    │ │          │ │ │
+╭ <u>VALIDATE-STATUS</u> ╮ IS ╭ identifier-1 ╮ WHEN ╭ <u>ERROR</u>    ╮ │ <u>ON</u> ┤ │ <u>CONTENT</u>  │ ├ │
+┤                 ├    ┤              ├      ┤          ├ │    │ │          │ │ │
+╰ <u>VAL-STATUS</u>      ╯    ╰ literal-1    ╯      ╰ <u>NO</u> <u>ERROR</u> ╯ └    ╰ │ <u>RELATION</u> │ ╯ ┘
 
-                     FOR { identifier-2 } …
-```
+<u>FOR</u> { identifier-2 } …
+</pre>
 
 > **Figure notes (VALIDATE-STATUS clause general format syntax diagram).** `VALIDATE-STATUS`, `VAL-STATUS`, `ERROR` (both occurrences), `NO`, `ON`, `FORMAT`, `CONTENT`, `RELATION`, and `FOR` are underlined in the printed standard (required words / required minimum abbreviation — `VAL-STATUS` is the abbreviation of `VALIDATE-STATUS`). `IS` and `WHEN` are not underlined. The first three brace groups are plain alternations of two alternatives each (the blank middle row is an artefact of aligning them against the taller `ON` group).
 > ⚠ **The `ON` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a single `ON` phrase may name `FORMAT`, `CONTENT`, or `RELATION` alone, any two of them, or **all three**. The whole `ON` phrase is itself optional (outer brackets). The `…` after `{ identifier-2 }` repeats that brace.
@@ -22915,50 +23299,54 @@ The VALUE clause specifies the initial value of local-storage section and workin
 
 Format 1 (data-item):
 
+<pre>
 <u>VALUE</u> IS literal-1
-
+</pre>
 Format 2 (table):
 
-```
-⎧ VALUE  IS  ⎫
-⎨            ⎬  { { literal-1 } … FROM ( { subscript-1 } … ) [ TO ( { subscript-2 } … ) ] } …
-⎩ VALUES ARE ⎭
-```
+<pre>
+╭ <u>VALUE</u> IS   ╮
+┤            ├ { { literal-1 } … <u>FROM</u> ( { subscript-1 } … ) [ <u>TO</u> ( { subscript-2 } … ) ] } …
+╰ <u>VALUES</u> ARE ╯
+</pre>
 
 > **Figure notes (VALUE clause Format 2 (table)).** `VALUE`, `VALUES`, `FROM`, and `TO` are underlined in the printed standard (required words); `IS` and `ARE` are not underlined. The leading braces are a plain required choice — exactly one of `VALUE IS` / `VALUES ARE`. Each single-line `{ … }` pair is the delimiter to which the ellipsis immediately to its right applies; the parentheses around the subscript lists are literal COBOL parentheses, not metalanguage.
 
 Format 3 (condition-name):
 
-```
-⎧ VALUE  IS  ⎫    ⎧             ⎡ ⎧ THROUGH ⎫           ⎤ ⎫
-⎨            ⎬    ⎨  literal-2  ⎢ ⎨         ⎬ literal-3 ⎥ ⎬ …  [ IN alphabet-name-1 ]
-⎩ VALUES ARE ⎭    ⎩             ⎣ ⎩ THRU    ⎭           ⎦ ⎭
+<pre>
+╭ <u>VALUE</u> IS   ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮
+┤            ├ ┤ literal-2 │ ┤         ├ literal-3 │ ├ … [ IN alphabet-name-1 ]
+╰ <u>VALUES</u> ARE ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
 
-                     [ WHEN SET TO FALSE IS literal-4 ]
-```
+[ WHEN SET TO <u>FALSE</u> IS literal-4 ]
+</pre>
 
 > **Figure notes (VALUE clause Format 3 (condition-name)).** `VALUE`, `VALUES`, `THROUGH`, `THRU`, and `FALSE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `ARE`, `IN`, `WHEN`, `SET`, and `TO` are not underlined. Both brace pairs are plain required choices. The ellipsis applies to the second brace pair, so one or more literal(-range) items may be written. The `[ WHEN SET TO FALSE IS literal-4 ]` bracket is printed on the following line, outside the repeated group.
 
 Format 4 (report-section):
 
-```
-⎧ VALUE  IS  ⎫
-⎨            ⎬  { literal-1 } …
-⎩ VALUES ARE ⎭
-```
+<pre>
+╭ <u>VALUE</u> IS   ╮
+┤            ├ { literal-1 } …
+╰ <u>VALUES</u> ARE ╯
+</pre>
 
 > **Figure notes (VALUE clause Format 4 (report-section)).** `VALUE` and `VALUES` are underlined in the printed standard (required words); `IS` and `ARE` are not underlined. The leading braces are a plain required choice. The single-line `{ literal-1 }` pair is the delimiter to which the ellipsis applies — one or more literals.
 
 Format 5 (content-validation-entry):
 
-```
-⎧ VALUE  ⎫    ⎧             ⎡ ⎧ THROUGH ⎫           ⎤ ⎫
-⎨        ⎬    ⎨  literal-5  ⎢ ⎨         ⎬ literal-6 ⎥ ⎬ …  [ IN alphabet-name-1 ]
-⎩ VALUES ⎭    ⎩             ⎣ ⎩ THRU    ⎭           ⎦ ⎭
+<pre>
+╭ <u>VALUE</u>  ╮ ╭           ┌   <u>THROUGH</u>          ┐ ╮
+│        │ │           │                    │ │
+┤        ├ ┤ literal-5 │ ╭      ╮ literal-6 │ ├
+│ <u>VALUES</u> │ │           │ ┤      ├           │ │ … [ IN alphabet-name-1 ]
+╰        ╯ ╰           └ ╰ <u>THRU</u> ╯           ┘ ╯
 
-       ⎡ IS  ⎤   ⎧ INVALID ⎫
-       ⎣ ARE ⎦   ⎩ VALID   ⎭   [ WHEN condition-1 ]
-```
+┌ IS  ┐ ╭ <u>INVALID</u> ╮
+│     │ ┤         ├ [ <u>WHEN</u> condition-1 ]
+└ ARE ┘ ╰ <u>VALID</u>   ╯
+</pre>
 
 > **Figure notes (VALUE clause Format 5 (content-validation-entry)).** `VALUE`, `VALUES`, `THROUGH`, `THRU`, `INVALID`, `VALID`, and `WHEN` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `ARE`, and `IN` are not underlined. Note that in this format the first brace pair is `VALUE` / `VALUES` **without** the `IS` / `ARE` connectives (unlike Formats 2–4). `[ IS / ARE ]` is an optional bracket; `{ INVALID / VALID }` is a required choice.
 
@@ -23267,8 +23655,9 @@ NOTE    The VARYING clause feature of the VALIDATE facility is an obsolete featu
 <a id="section-13-18-64-2"></a>
 ##### 13.18.64.2 General format
 
+<pre>
 <u>VARYING</u> { data-name-1 [ <u>FROM</u> arithmetic-expression-1 ] [ <u>BY</u> arithmetic-expression-2 ] } …
-
+</pre>
 <a id="section-13-18-64-3"></a>
 ##### 13.18.64.3 Syntax rules
 
@@ -24662,16 +25051,23 @@ When the low-order integer positions in a resultant identifier are represented b
 <a id="section-14-7-4-2"></a>
 ##### 14.7.4.2 General format
 
-> ```
->         ⎡         ⎧ AWAY-FROM-ZERO         ⎫ ⎤
->         ⎢         ⎪ NEAREST-AWAY-FROM-ZERO ⎪ ⎥
->         ⎢         ⎪ NEAREST-EVEN           ⎪ ⎥
->         ⎢         ⎪ NEAREST-TOWARD-ZERO    ⎪ ⎥
-> ROUNDED ⎢ MODE IS ⎨ PROHIBITED             ⎬ ⎥
->         ⎢         ⎪ TOWARD-GREATER         ⎪ ⎥
->         ⎢         ⎪ TOWARD-LESSER          ⎪ ⎥
->         ⎣         ⎩ TRUNCATION             ⎭ ⎦
-> ```
+<pre>
+        ┌         ╭ <u>AWAY-FROM-ZERO</u>         ╮ ┐
+        │         │                        │ │
+        │         │ <u>NEAREST-AWAY-FROM-ZERO</u> │ │
+        │         │                        │ │
+        │         │ <u>NEAREST-EVEN</u>           │ │
+        │         │                        │ │
+        │         │ <u>NEAREST-TOWARD-ZERO</u>    │ │
+<u>ROUNDED</u> │ <u>MODE</u> IS ┤                        ├ │
+        │         │ <u>PROHIBITED</u>             │ │
+        │         │                        │ │
+        │         │ <u>TOWARD-GREATER</u>         │ │
+        │         │                        │ │
+        │         │ <u>TOWARD-LESSER</u>          │ │
+        │         │                        │ │
+        └         ╰ <u>TRUNCATION</u>             ╯ ┘
+</pre>
 >
 > > **Figure notes (ROUNDED phrase general format).** `ROUNDED`, `MODE`, and all eight rounding-mode words (`AWAY-FROM-ZERO`, `NEAREST-AWAY-FROM-ZERO`, `NEAREST-EVEN`, `NEAREST-TOWARD-ZERO`, `PROHIBITED`, `TOWARD-GREATER`, `TOWARD-LESSER`, `TRUNCATION`) are underlined in the printed standard (required words); `IS` is **not** underlined. The entire `MODE IS { … }` group is bracketed (optional); when it is specified, the braces require exactly one of the eight modes. When the `MODE` phrase is omitted, 14.7.4.3 General rule 1 defers to the DEFAULT ROUNDED clause (11.9.6).
 
@@ -24914,11 +25310,13 @@ The RETRY phrase is specified in an input-output statement to indicate whether t
 <a id="section-14-7-9-2"></a>
 ##### 14.7.9.2 General format
 
-```
-      ⎧ arithmetic-expression-1 TIMES        ⎫
-RETRY ⎨ FOR arithmetic-expression-2 SECONDS  ⎬
-      ⎩ FOREVER                              ⎭
-```
+<pre>
+      ╭ arithmetic-expression-1 <u>TIMES</u>       ╮
+      │                                     │
+<u>RETRY</u> ┤ FOR arithmetic-expression-2 <u>SECONDS</u> ├
+      │                                     │
+      ╰ <u>FOREVER</u>                             ╯
+</pre>
 
 > **Figure notes (RETRY phrase general format syntax diagram).** `RETRY`, `TIMES`, `SECONDS`, and `FOREVER` are underlined in the printed standard (required words); `FOR` is not underlined (optional word). The braces require exactly one of the three alternatives. No choice indicators appear in this figure.
 
@@ -25280,16 +25678,20 @@ The execution of a screen format ACCEPT statement causes the following sequence 
 
 Format 1 (device):
 
+<pre>
 <u>ACCEPT</u> identifier-1 [ <u>FROM</u> mnemonic-name-1 ] [ <u>END-ACCEPT</u> ]
-
+</pre>
 Format 2 (temporal):
 
-```
-                              ⎧ DATE [ YYYYMMDD ] ⎫
-                              ⎪ DAY [ YYYYDDD ]   ⎪
-ACCEPT identifier-2 FROM      ⎨ DAY-OF-WEEK       ⎬   [ END-ACCEPT ]
-                              ⎩ TIME              ⎭
-```
+<pre>
+                         ╭ <u>DATE</u> [ <u>YYYYMMDD</u> ] ╮
+                         │                   │
+                         │ <u>DAY</u> [ <u>YYYYDDD</u> ]   │
+<u>ACCEPT</u> identifier-2 <u>FROM</u> ┤                   ├ [ <u>END-ACCEPT</u> ]
+                         │ <u>DAY-OF-WEEK</u>       │
+                         │                   │
+                         ╰ <u>TIME</u>              ╯
+</pre>
 
 > **Figure notes (ACCEPT Format 2, temporal).** Underlining measured from the printed page: `ACCEPT`, `FROM`, `DATE`, `YYYYMMDD`, `DAY`, `YYYYDDD`, `DAY-OF-WEEK`, `TIME` and `END-ACCEPT` are all underlined (required words, 5.2.2).
 > ⚠ **`YYYYMMDD` and `YYYYDDD` are underlined**, which an earlier transcription of this figure missed. They sit inside optional brackets, so each phrase may be omitted — but if it is written, the word itself is required. Leaving them un-underlined would instead have implied, per 5.2.3, that the word may be dropped while the bracket is still written.
@@ -25302,15 +25704,23 @@ Format 3 (screen):
 **ISO/IEC 1989:2023 (E)**
 
 
+<pre>
 <u>ACCEPT</u> screen-name-1
 
-```
-⎡      ⎧|                                ⎧ identifier-3 ⎫      |⎫ ⎤
-⎢      ⎪|   LINE NUMBER                  ⎩ integer-1    ⎭      |⎪ ⎥
-⎢  AT  ⎨|                                                      |⎬ ⎥
-⎢      ⎪|   ⎧ COLUMN ⎫                   ⎧ identifier-4 ⎫      |⎪ ⎥
-⎣      ⎩|   ⎩ COL    ⎭  NUMBER           ⎩ integer-2    ⎭      |⎭ ⎦
-```
+┌    ╭ │             ╭ identifier-3 ╮       │ ╮ ┐
+│    │ │ <u>LINE</u> NUMBER ┤              ├       │ │ │
+│    │ │             ╰ integer-1    ╯       │ │ │
+│ AT ┤ │                                    │ ├ │
+│    │ │ ╭ <u>COLUMN</u> ╮        ╭ identifier-4 ╮ │ │ │
+│    │ │ ┤        ├ NUMBER ┤              ├ │ │ │
+└    ╰ │ ╰ <u>COL</u>    ╯        ╰ integer-2    ╯ │ ╯ ┘
+
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
+
+[ <u>END-ACCEPT</u> ]
+</pre>
 
 > **Figure notes (ACCEPT Format 3, AT phrase).** Transcribed from measurements of the printed page, not by eye:
 > the delimiters are vector rectangles in the PDF and were read directly (`scripts/spec/figure_geometry.py`), as
@@ -25324,21 +25734,12 @@ Format 3 (screen):
 > forbidden `AT LINE NUMBER 5 COLUMN NUMBER 10` while permitting an empty `AT`.
 > Underlined in the printed figure (required words, 5.2.2): `LINE`, `COLUMN`, `COL`. Not underlined (optional
 > words, 5.2.3): `AT`, `NUMBER` — so `ACCEPT screen-name-1 LINE NUMBER 5` is legal without the word `AT`.
-
-```
-⎡|  ON EXCEPTION imperative-statement-1      |⎤
-⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
-```
-
 > **Figure notes (ISO 5.2.6.4).** The `ON EXCEPTION` / `NOT ON EXCEPTION` group is enclosed in BRACKETS WITH
 > CHOICE INDICATORS (measured: bracket stems at x=90.76 / x=322.10 with feet, bare bars at x=95.90 / x=316.73).
 > Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any
 > order — so one ACCEPT statement may specify neither phrase, either alone, or **both, in either order**.
 > Underlined in the printed figure: `EXCEPTION` (both occurrences) and `NOT`; `ON` is **not** underlined and is
 > therefore an optional word per 5.2.3.
-
-[ <u>END-ACCEPT</u> ]
-
 <a id="section-14-9-1-3"></a>
 ##### 14.9.1.3 Syntax rules
 
@@ -25539,45 +25940,51 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 Format 1 (simple):
 
-```
-         ⎧ identifier-1 ⎫
-ADD      ⎨              ⎬ ... TO { identifier-2 [ rounded-phrase ] } ...
-         ⎩ literal-1    ⎭
+<pre>
+    ╭ identifier-1 ╮ … <u>TO</u> { identifier-2 [ rounded-phrase ] } …
+<u>ADD</u> ┤              ├
+    ╰ literal-1    ╯
 
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-ADD ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-ADD</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives). Bars enclosed by BRACKETS mean: zero or more of the enclosed alternatives may be specified, each at most once, in any order. Therefore **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may appear in the same ADD statement. Plain brackets without bars would wrongly read as zero-or-one.
 
 Format 2 (giving):
 
-```
-         ⎧ identifier-1 ⎫             ⎧ identifier-2 ⎫
-ADD      ⎨              ⎬ ... TO      ⎨              ⎬
-         ⎩ literal-1    ⎭             ⎩ literal-2    ⎭
+<pre>
+    ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>ADD</u> ┤              ├ … TO ┤              ├
+    ╰ literal-1    ╯      ╰ literal-2    ╯
 
-GIVING  { identifier-3 [ rounded-phrase ] } ...
+<u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-ADD ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-ADD</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets). Bars within BRACKETS mean zero or more of the alternatives, each at most once, in any order — so **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be specified in the same ADD statement.
 
 Format 3 (corresponding):
 
-```
-         ⎧ CORRESPONDING ⎫
-ADD      ⎨               ⎬ identifier-4 TO identifier-5  [ rounded-phrase ]
-         ⎩ CORR          ⎭
+<pre>
+    ╭ <u>CORRESPONDING</u> ╮
+<u>ADD</u> ┤               ├ identifier-4 <u>TO</u> identifier-5 [ rounded-phrase ]
+    ╰ <u>CORR</u>          ╯
 
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-ADD ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-ADD</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets): zero or more of the enclosed alternatives, each at most once, in any order. **Both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written in the same ADD statement.
 
@@ -25679,11 +26086,11 @@ If a specified number of characters of memory is being requested, a data-pointer
 <a id="section-14-9-3-2"></a>
 ##### 14.9.3.2 General format
 
-```
-           { arithmetic-expression-1 CHARACTERS }
-ALLOCATE   {                                     }  [ INITIALIZED ]  [ RETURNING  data-name-2 ]
-           { data-name-1                         }
-```
+<pre>
+         ╭ arithmetic-expression-1 <u>CHARACTERS</u> ╮
+<u>ALLOCATE</u> ┤                                    ├ [ <u>INITIALIZED</u> ] [ <u>RETURNING</u> data-name-2 ]
+         ╰ data-name-1                        ╯
+</pre>
 
 <a id="section-14-9-3-3"></a>
 ##### 14.9.3.3 Syntax rules
@@ -25758,17 +26165,19 @@ The CALL statement causes control to be transferred to a specific program within
 
 Format 1 (Program):
 
-```
-          ⎧ identifier-1 ⎫   ⎡        ⎧ [ BY REFERENCE ] { identifier-2 } ... ⎫     ⎤
-CALL      ⎨              ⎬   ⎢ USING  ⎨                                       ⎬ ... ⎥
-          ⎩ literal-1    ⎭   ⎣        ⎩ BY CONTENT { identifier-2 } ...       ⎭     ⎦
+<pre>
+     ╭ identifier-1 ╮ ┌       ╭ [ BY <u>REFERENCE</u> ] { identifier-2 } … ╮   ┐
+<u>CALL</u> ┤              ├ │ <u>USING</u> ┤                                     ├ … │
+     ╰ literal-1    ╯ └       ╰ BY <u>CONTENT</u> { identifier-2 } …       ╯   ┘
 
-    [ RETURNING identifier-3 ]
+[ <u>RETURNING</u> identifier-3 ]
 
-    ⎡|  ON EXCEPTION imperative-statement-1      |⎤
-    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
-    [ END-CALL ]
-```
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
+
+[ <u>END-CALL</u> ]
+</pre>
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` are choice indicators: **zero or more** of the enclosed alternatives may be specified, each **at most once**, **in any order**. Both branches may therefore appear in one CALL statement, in either order. Underlined (required) words: CALL, REFERENCE, CONTENT, USING, RETURNING, EXCEPTION, NOT, END-CALL.
 
@@ -25780,33 +26189,37 @@ CALL      ⎨              ⎬   ⎢ USING  ⎨                                 
 
 Format 2 (program-prototype):
 
-```
-        ⎡ ⎧ identifier-1 ⎫      ⎤   ⎧ NESTED                   ⎫
-CALL    ⎢ ⎨              ⎬  AS  ⎥   ⎨                          ⎬
-        ⎣ ⎩ literal-1    ⎭      ⎦   ⎩ program-prototype-name-1 ⎭
+<pre>
+     ┌ ╭ identifier-1 ╮    ┐ ╭ <u>NESTED</u>                   ╮
+<u>CALL</u> │ ┤              ├ <u>AS</u> │ ┤                          ├
+     └ ╰ literal-1    ╯    ┘ ╰ program-prototype-name-1 ╯
 
-⎡                                                                            ⎤
-⎢                ⎧                     ⎧ identifier-2 ⎫              ⎫       ⎥
-⎢                ⎪  [ BY REFERENCE ]   ⎨              ⎬              ⎪       ⎥
-⎢                ⎪                     ⎩ OMITTED      ⎭              ⎪       ⎥
-⎢                ⎪                                                   ⎪       ⎥
-⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫   ⎪       ⎥
-⎢                ⎪                     ⎪ boolean-expression-1    ⎪   ⎪       ⎥
-⎢  USING         ⎨  [ BY CONTENT ]     ⎨ identifier-4            ⎬   ⎬  ...  ⎥
-⎢                ⎪                     ⎩ literal-2               ⎭   ⎪       ⎥
-⎢                ⎪                                                   ⎪       ⎥
-⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫   ⎪       ⎥
-⎢                ⎪  [ BY VALUE ]       ⎨ identifier-4            ⎬   ⎪       ⎥
-⎢                ⎩                     ⎩ literal-2               ⎭   ⎭       ⎥
-⎣                                                                            ⎦
+┌       ╭                  ╭ identifier-2 ╮          ╮   ┐
+│       │ [ BY <u>REFERENCE</u> ] ┤              ├          │   │
+│       │                  ╰ <u>OMITTED</u>      ╯          │   │
+│       │                                            │   │
+│       │                ╭ arithmetic-expression-1 ╮ │   │
+│       │                │                         │ │   │
+│       │                │ boolean-expression-1    │ │   │
+│       │ [ BY <u>CONTENT</u> ] ┤                         ├ │   │
+│ <u>USING</u> ┤                │ identifier-4            │ ├ … │
+│       │                │                         │ │   │
+│       │                ╰ literal-2               ╯ │   │
+│       │                                            │   │
+│       │              ╭ arithmetic-expression-1 ╮   │   │
+│       │              │                         │   │   │
+│       │ [ BY <u>VALUE</u> ] ┤ identifier-4            ├   │   │
+│       │              │                         │   │   │
+└       ╰              ╰ literal-2               ╯   ╯   ┘
 
-[ RETURNING identifier-3 ]
+[ <u>RETURNING</u> identifier-3 ]
 
-⎡|  ON EXCEPTION imperative-statement-1      |⎤
-⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
 
-[ END-CALL ]
-```
+[ <u>END-CALL</u> ]
+</pre>
 
 > **Figure notes (CALL Format 2).** The ON EXCEPTION group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`). Per 5.2.6.4, that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so a single CALL statement may specify BOTH `ON EXCEPTION imperative-statement-1` AND `NOT ON EXCEPTION imperative-statement-2`, in either order. It is NOT a plain zero-or-one bracket. The USING clause as a whole is enclosed in a plain bracket (optional); within it the three BY-phrase alternatives are enclosed in a BRACE (exactly one selected per repetition), and the `...` following that brace repeats the selected BY phrase. Required words (underlined in the printed figure): CALL, AS, NESTED, REFERENCE, CONTENT, VALUE, OMITTED, USING, RETURNING, EXCEPTION, NOT, END-CALL.
 
@@ -26002,11 +26415,13 @@ The CANCEL statement ensures that the next time the referenced program is called
 <a id="section-14-9-5-2"></a>
 ##### 14.9.5.2 General format
 
-```
-          ⎧ identifier-1             ⎫
-CANCEL  ⎨ literal-1                ⎬ ...
-          ⎩ program-prototype-name-1 ⎭
-```
+<pre>
+       ╭ identifier-1             ╮
+       │                          │
+<u>CANCEL</u> ┤ literal-1                ├ …
+       │                          │
+       ╰ program-prototype-name-1 ╯
+</pre>
 
 <a id="section-14-9-5-3"></a>
 ##### 14.9.5.3 Syntax rules
@@ -26076,13 +26491,13 @@ The CLOSE statement terminates the processing of reels/units and files with rewi
 <a id="section-14-9-6-2"></a>
 ##### 14.9.6.2 General format
 
-```
-      ⎧                                          ⎫
-      ⎪             ⎡ ⎧ REEL ⎫                  ⎤ ⎪
-CLOSE ⎨ file-name-1 ⎢ ⎨      ⎬ [ FOR REMOVAL ]  ⎥ ⎬ ...
-      ⎪             ⎢ ⎩ UNIT ⎭                  ⎥ ⎪
-      ⎩             ⎣ WITH NO REWIND            ⎦ ⎭
-```
+<pre>
+      ╭             ┌ ╭ <u>REEL</u> ╮                 ┐ ╮
+      │             │ ┤      ├ [ FOR <u>REMOVAL</u> ] │ │
+<u>CLOSE</u> ┤ file-name-1 │ ╰ <u>UNIT</u> ╯                 │ ├ …
+      │             │                          │ │
+      ╰             └ WITH <u>NO</u> <u>REWIND</u>           ┘ ╯
+</pre>
 
 > **Figure notes** — no choice indicators appear in the printed figure (verified at 800 dpi): the outer braces with the trailing ellipsis mean the whole `file-name-1 …` group is required and repeatable; the inner brackets are plain, so at most ONE of the `{REEL|UNIT} [FOR REMOVAL]` row or the `WITH NO REWIND` row may be written per file-name. CLOSE, REEL, UNIT, REMOVAL, NO and REWIND are underlined in the printed standard (required words).
 
@@ -26274,20 +26689,23 @@ The COMPUTE statement assigns to one or more data items the value of an arithmet
 
 Format 1 (arithmetic-compute):
 
+<pre>
 <u>COMPUTE</u> { identifier-1 [ rounded-phrase ] } … = arithmetic-expression-1
 
-```
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-COMPUTE ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-COMPUTE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `ON SIZE ERROR imperative-statement-1` / `NOT ON SIZE ERROR imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one COMPUTE statement may specify neither phrase, `ON SIZE ERROR imperative-statement-1` alone, `NOT ON SIZE ERROR imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
 Format 2 (boolean-compute):
 
+<pre>
 <u>COMPUTE</u> { identifier-2 } … = boolean-expression-1 [ <u>END-COMPUTE</u> ]
-
+</pre>
 where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 <a id="section-14-9-8-3"></a>
@@ -26347,8 +26765,9 @@ The CONTINUE statement is a no-operation statement. It indicates that no executa
 <a id="section-14-9-9-2"></a>
 ##### 14.9.9.2 General format
 
-<u>CONTINUE</u> [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
-
+<pre>
+CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
+</pre>
 > **Figure notes (CONTINUE, 14.9.9.2).** Underlining measured from the printed page: `AFTER` and `SECONDS`
 > carry underline rules (required words, 5.2.2); the bracket makes the whole phrase optional.
 > ⚠ **CORRECTED — see the Addendum (C2).** `CONTINUE` is printed WITHOUT an underline on page 604; that is
@@ -26414,25 +26833,31 @@ The DELETE RECORD statement logically removes a record from a mass storage file.
 
 Format 1 (record):
 
-```
-DELETE file-name-1  RECORD
-  [ retry-phrase ]
-  ⎡|  INVALID KEY imperative-statement-1      |⎤
-  ⎣|  NOT INVALID KEY imperative-statement-2  |⎦
-  [ END-DELETE ]
-```
+<pre>
+<u>DELETE</u> file-name-1 RECORD
+[ retry-phrase ]
+
+┌ │ <u>INVALID</u> KEY imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 │ ┘
+
+[ <u>END-DELETE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `INVALID KEY imperative-statement-1` / `NOT INVALID KEY imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one DELETE statement may specify neither phrase, `INVALID KEY imperative-statement-1` alone, `NOT INVALID KEY imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
 Format 2 (file):
 
-```
-DELETE FILE [ OVERRIDE ] { file-name-1 } ...
-  [ retry-phrase ]
-  ⎡|  ON EXCEPTION imperative-statement-3      |⎤
-  ⎣|  NOT ON EXCEPTION imperative-statement-4  |⎦
-  [ END-DELETE ]
-```
+<pre>
+<u>DELETE</u> <u>FILE</u> [ <u>OVERRIDE</u> ] { file-name-1 } …
+[ retry-phrase ]
+
+┌ │ ON <u>EXCEPTION</u> imperative-statement-3     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-4 │ ┘
+
+[ <u>END-DELETE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `ON EXCEPTION imperative-statement-3` / `NOT ON EXCEPTION imperative-statement-4` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one DELETE FILE statement may specify neither phrase, `ON EXCEPTION imperative-statement-3` alone, `NOT ON EXCEPTION imperative-statement-4` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
@@ -26587,27 +27012,31 @@ The screen format of the DISPLAY statement causes data associated with a literal
 
 Format 1 (device):
 
-```
-           ⎧ identifier-1 ⎫
-DISPLAY    ⎨              ⎬  ...  [ UPON mnemonic-name-1 ]  [ WITH NO ADVANCING ]  [ END-DISPLAY ]
-           ⎩ literal-1    ⎭
-```
+<pre>
+        ╭ identifier-1 ╮
+<u>DISPLAY</u> ┤              ├ … [ <u>UPON</u> mnemonic-name-1 ] [ WITH <u>NO</u> <u>ADVANCING</u> ] [ <u>END-DISPLAY</u> ]
+        ╰ literal-1    ╯
+</pre>
 
 Format 2 (screen):
 
-DISPLAY screen-name-1
+<pre>
+<u>DISPLAY</u> screen-name-1
 
-```
-⎡    ⎧|                ⎧ identifier-2 ⎫             |⎫ ⎤
-⎢    ⎪| LINE NUMBER    ⎨              ⎬             |⎪ ⎥
-⎢ AT ⎨|                ⎩ integer-1    ⎭             |⎬ ⎥
-⎢    ⎪| ⎧ COLUMN ⎫              ⎧ identifier-3 ⎫    |⎪ ⎥
-⎣    ⎩| ⎩ COL    ⎭  NUMBER      ⎩ integer-2    ⎭    |⎭ ⎦
+┌    ╭ │             ╭ identifier-2 ╮       │ ╮ ┐
+│    │ │ <u>LINE</u> NUMBER ┤              ├       │ │ │
+│    │ │             ╰ integer-1    ╯       │ │ │
+│ AT ┤ │                                    │ ├ │
+│    │ │ ╭ <u>COLUMN</u> ╮        ╭ identifier-3 ╮ │ │ │
+│    │ │ ┤        ├ NUMBER ┤              ├ │ │ │
+└    ╰ │ ╰ <u>COL</u>    ╯        ╰ integer-2    ╯ │ ╯ ┘
 
-⎡|  ON EXCEPTION imperative-statement-1      |⎤
-⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
-[ END-DISPLAY ]
-```
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
+
+[ <u>END-DISPLAY</u> ]
+</pre>
 
 > **Figure notes — choice indicators (ISO 5.2.6.4).** Two groups in this format carry choice-indicator bars, both lost in transcription.
 > **(1) The AT phrase** — bars enclosed by BRACES: one or more of the enclosed alternatives shall be specified, each may be specified only once, and they may appear in any order. So `AT LINE NUMBER n`, `AT COLUMN NUMBER m`, and `AT LINE NUMBER n COLUMN NUMBER m` are all valid; the whole AT phrase is itself optional via the surrounding bracket.
@@ -26728,15 +27157,17 @@ The DIVIDE statement divides one numeric data item into others and sets the valu
 
 Format 1 (into):
 
-```
-           ⎧ identifier-1 ⎫
-DIVIDE     ⎨              ⎬ INTO { identifier-2 [ rounded-phrase ] } ...
-           ⎩ literal-1    ⎭
+<pre>
+       ╭ identifier-1 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> { identifier-2 [ rounded-phrase ] } …
+       ╰ literal-1    ╯
 
-    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-    [ END-DIVIDE ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-DIVIDE</u> ]
+</pre>
 
 > **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `ON`, `SIZE`, `ERROR`, `NOT`, and
 > `END-DIVIDE` are underlined in the printed standard (required words).
@@ -26747,17 +27178,19 @@ DIVIDE     ⎨              ⎬ INTO { identifier-2 [ rounded-phrase ] } ...
 
 Format 2 (into-giving):
 
-```
-           ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫
-DIVIDE     ⎨              ⎬ INTO ⎨              ⎬
-           ⎩ literal-1    ⎭      ⎩ literal-2    ⎭
+<pre>
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
-    GIVING { identifier-3 [ rounded-phrase ] } ...
+<u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
-    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-    [ END-DIVIDE ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-DIVIDE</u> ]
+</pre>
 
 > **Figure notes (DIVIDE Format 2 (into-giving) syntax diagram).** `DIVIDE`, `INTO`, `GIVING`, `ON`, `SIZE`,
 > `ERROR`, `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).
@@ -26767,17 +27200,19 @@ DIVIDE     ⎨              ⎬ INTO ⎨              ⎬
 
 Format 3 (by-giving):
 
-```
-           ⎧ identifier-2 ⎫    ⎧ identifier-1 ⎫
-DIVIDE     ⎨              ⎬ BY ⎨              ⎬
-           ⎩ literal-2    ⎭    ⎩ literal-1    ⎭
+<pre>
+       ╭ identifier-2 ╮    ╭ identifier-1 ╮
+<u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
+       ╰ literal-2    ╯    ╰ literal-1    ╯
 
-    GIVING { identifier-3 [ rounded-phrase ] } ...
+<u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
-    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-    [ END-DIVIDE ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-DIVIDE</u> ]
+</pre>
 
 > **Figure notes (DIVIDE Format 3 (by-giving) syntax diagram).** `DIVIDE`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,
 > `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).
@@ -26793,33 +27228,39 @@ DIVIDE     ⎨              ⎬ BY ⎨              ⎬
 
 Format 4 (into-remainder):
 
-```
-           ⌐ identifier-1 ¬        ⌐ identifier-2 ¬
-DIVIDE     |              | INTO   |               |
-           └ literal-1   ┘        └ literal-2    ┘
+<pre>
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
-GIVING identifier-3 [ rounded-phrase ]
-REMAINDER identifier-4
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-DIVIDE ]
-```
+<u>GIVING</u> identifier-3 [ rounded-phrase ]
+<u>REMAINDER</u> identifier-4
+
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-DIVIDE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `ON SIZE ERROR imperative-statement-1` / `NOT ON SIZE ERROR imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one DIVIDE statement may specify neither phrase, `ON SIZE ERROR imperative-statement-1` alone, `NOT ON SIZE ERROR imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
 Format 5 (by-remainder):
 
-```
-           ⌐ identifier-2 ¬       ⌐ identifier-1 ¬
-DIVIDE     |              | BY    |               |
-           └ literal-2   ┘       └ literal-1    ┘
+<pre>
+       ╭ identifier-2 ╮    ╭ identifier-1 ╮
+<u>DIVIDE</u> ┤              ├ <u>BY</u> ┤              ├
+       ╰ literal-2    ╯    ╰ literal-1    ╯
 
-GIVING identifier-3 [ rounded-phrase ]
-REMAINDER identifier-4
-⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-[ END-DIVIDE ]
-```
+<u>GIVING</u> identifier-3 [ rounded-phrase ]
+<u>REMAINDER</u> identifier-4
+
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-DIVIDE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `ON SIZE ERROR imperative-statement-1` / `NOT ON SIZE ERROR imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one DIVIDE statement may specify neither phrase, `ON SIZE ERROR imperative-statement-1` alone, `NOT ON SIZE ERROR imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
@@ -26920,37 +27361,53 @@ The EVALUATE statement describes a multi-branch, multi-join structure. It may ca
 <a id="section-14-9-13-2"></a>
 ##### 14.9.13.2 General format
 
-<u>EVALUATE</u> selection-subject [ <u>ALSO</u> selection-subject ] …  
-&nbsp;&nbsp;&nbsp;&nbsp;{ { <u>WHEN</u> selection-object [ <u>ALSO</u> selection-object ] … } … imperative-statement-1 } …  
-&nbsp;&nbsp;&nbsp;&nbsp;[ <u>WHEN</u> <u>OTHER</u> imperative-statement-2 ]  
-&nbsp;&nbsp;&nbsp;&nbsp;[ <u>END-EVALUATE</u> ]
-
+<pre>
+<u>EVALUATE</u> selection-subject [ <u>ALSO</u> selection-subject ] …
+{ { <u>WHEN</u> selection-object [ <u>ALSO</u> selection-object ] … } … imperative-statement-1 } …
+[ <u>WHEN</u> <u>OTHER</u> imperative-statement-2 ]
+[ <u>END-EVALUATE</u> ]
+</pre>
 where selection-subject is:
 
-```
-⎧ identifier-1              ⎫
-⎪ literal-1                 ⎪
-⎪ arithmetic-expression-1   ⎪
-⎨ boolean-expression-1      ⎬
-⎪ condition-1               ⎪
-⎪ TRUE                      ⎪
-⎩ FALSE                     ⎭
-```
+<pre>
+╭ identifier-1            ╮
+│                         │
+│ literal-1               │
+│                         │
+│ arithmetic-expression-1 │
+│                         │
+┤ boolean-expression-1    ├
+│                         │
+│ condition-1             │
+│                         │
+│ <u>TRUE</u>                    │
+│                         │
+╰ <u>FALSE</u>                   ╯
+</pre>
 
 where selection-object is:
 
-```
-⎧ [ NOT ] identifier-2            ⎫
-⎪ [ NOT ] literal-2               ⎪
-⎪ [ NOT ] arithmetic-expression-2 ⎪
-⎪ [ NOT ] boolean-expression-2    ⎪
-⎨ [ NOT ] range-expression        ⎬
-⎪ condition-2                     ⎪
-⎪ partial-expression-1            ⎪
-⎪ TRUE                            ⎪
-⎪ FALSE                           ⎪
-⎩ ANY                             ⎭
-```
+<pre>
+╭ [ <u>NOT</u> ] identifier-2            ╮
+│                                 │
+│ [ <u>NOT</u> ] literal-2               │
+│                                 │
+│ [ <u>NOT</u> ] arithmetic-expression-2 │
+│                                 │
+│ [ <u>NOT</u> ] boolean-expression-2    │
+│                                 │
+┤ [ <u>NOT</u> ] range-expression        ├
+│                                 │
+│ condition-2                     │
+│                                 │
+│ partial-expression-1            │
+│                                 │
+│ <u>TRUE</u>                            │
+│                                 │
+│ <u>FALSE</u>                           │
+│                                 │
+╰ <u>ANY</u>                             ╯
+</pre>
 
 > **Figure notes (14.9.13.2, selection-object):** a single pair of braces spanning ten stacked alternatives — exactly one shall be selected. Verified at 900 dpi: NO choice-indicator bars are present. The bracketed `NOT` applies only to the first five alternatives, exactly as stacked. NOT, TRUE, FALSE and ANY are underlined in the printed figure (required words).
 
@@ -26964,11 +27421,13 @@ where selection-object is:
 
 where range-expression is:
 
-```
-⎧ identifier-3            ⎫ ⎧ THROUGH ⎫ ⎧ identifier-4            ⎫
-⎨ literal-3               ⎬ ⎨ THRU    ⎬ ⎨ literal-4               ⎬ [ IN alphabet-name-1 ]
-⎩ arithmetic-expression-3 ⎭ ⎩         ⎭ ⎩ arithmetic-expression-4 ⎭
-```
+<pre>
+╭ identifier-3            ╮   <u>THROUGH</u> ╭ identifier-4            ╮
+│                         │           │                         │
+┤ literal-3               ├ ╭      ╮  ┤ literal-4               ├ [ IN alphabet-name-1 ]
+│                         │ ┤      ├  │                         │
+╰ arithmetic-expression-3 ╯ ╰ <u>THRU</u> ╯  ╰ arithmetic-expression-4 ╯
+</pre>
 
 > **Figure notes (range-expression).** Underlining measured from the printed page: `THROUGH` and `THRU` are underlined (required words, 5.2.2) and are equivalent — 12.3.7.3 syntax rule 12 says so explicitly. `IN` is **not** underlined, so it is an optional word per 5.2.3. All three braces are plain select-exactly-one (5.2.6.3); no choice indicators are printed.
 
@@ -27141,15 +27600,18 @@ The EXIT PARAGRAPH and EXIT SECTION statements provide a means of exiting a stru
 
 Format 1 (simple):
 
+<pre>
 <u>EXIT</u>
-
+</pre>
 Format 2 (program):
 
-```
-                       ⎡         ⎧ EXCEPTION exception-name-1 ⎫ ⎤
-EXIT PROGRAM           ⎢ RAISING ⎨ identifier-1               ⎬ ⎥
-                       ⎣         ⎩ LAST EXCEPTION             ⎭ ⎦
-```
+<pre>
+             ┌         ╭ <u>EXCEPTION</u> exception-name-1 ╮ ┐
+             │         │                            │ │
+<u>EXIT</u> <u>PROGRAM</u> │ <u>RAISING</u> ┤ identifier-1               ├ │
+             │         │                            │ │
+             └         ╰ <u>LAST</u> EXCEPTION             ╯ ┘
+</pre>
 
 > **Figure notes (EXIT Format 2, program).** Underlining measured from the printed page: `EXIT`, `PROGRAM`, `RAISING`, `LAST`, and the **first** `EXCEPTION` are underlined (required words, 5.2.2).
 > ⚠ **In the `LAST EXCEPTION` alternative, `EXCEPTION` is NOT underlined** (measured: `LAST` underlined at x=235.5, `EXCEPTION` plain at x=263.3), unlike the `EXCEPTION exception-name-1` alternative above it. An earlier transcription of this figure underlined both, which disagreed with the identical raising-phrase printed on page 631. It is recorded here AS PRINTED and flagged rather than silently harmonised: an un-underlined `EXCEPTION` is hard to read as a true optional word, and may be a defect in the standard's own typesetting — but a reader must be able to check this note against the page.
@@ -27159,14 +27621,16 @@ NOTE The Program format of the EXIT statement is an archaic feature. For details
 
 Format 3 (inline-perform):
 
+<pre>
 <u>EXIT</u> <u>PERFORM</u> [ <u>CYCLE</u> ]
-
+</pre>
 Format 4 (procedure):
 
-```
-     ⎧ PARAGRAPH ⎫
-EXIT ⎩ SECTION   ⎭
-```
+<pre>
+     ╭ <u>PARAGRAPH</u> ╮
+<u>EXIT</u> ┤           ├
+     ╰ <u>SECTION</u>   ╯
+</pre>
 
 > **Figure notes (EXIT Format 4, procedure).** Underlining measured from the printed page: `EXIT`, `PARAGRAPH` and `SECTION` are all underlined (required words, 5.2.2). The brace is a plain select-exactly-one (5.2.6.3): exactly one of `PARAGRAPH` or `SECTION` shall be specified.
 
@@ -27283,8 +27747,9 @@ The FREE statement releases dynamic storage previously obtained with an ALLOCATE
 <a id="section-14-9-15-2"></a>
 ##### 14.9.15.2 General format
 
-FREE { data-name-1 } ...
-
+<pre>
+<u>FREE</u> { data-name-1 } …
+</pre>
 <a id="section-14-9-15-3"></a>
 ##### 14.9.15.3 Syntax rule
 
@@ -27320,11 +27785,11 @@ The GENERATE statement performs control break processing and, unless a report-na
 <a id="section-14-9-16-2"></a>
 ##### 14.9.16.2 General format
 
-```
-             ⎧ data-name-1   ⎫
-GENERATE     ⎨               ⎬
-             ⎩ report-name-1 ⎭
-```
+<pre>
+         ╭ data-name-1   ╮
+<u>GENERATE</u> ┤               ├
+         ╰ report-name-1 ╯
+</pre>
 
 <a id="section-14-9-16-3"></a>
 ##### 14.9.16.3 Syntax rules
@@ -27409,12 +27874,14 @@ NOTE The use of a GO TO statement to exit a PERFORM statement range can leave a 
 
 Format 1 (unconditional):
 
+<pre>
 <u>GO</u> TO procedure-name-1
-
+</pre>
 Format 2 (depending):
 
+<pre>
 <u>GO</u> TO { procedure-name-1 } … <u>DEPENDING</u> ON identifier-1
-
+</pre>
 <a id="section-14-9-17-3"></a>
 ##### 14.9.17.3 Syntax rules
 
@@ -27450,10 +27917,11 @@ The GOBACK statement marks the logical end of a function, a method, or a program
 <a id="section-14-9-18-2"></a>
 ##### 14.9.18.2 General format
 
-```
-                  ⎡ |  raising-phrase  | ⎤
-  GOBACK          ⎣ |  status-phrase   | ⎦
-```
+<pre>
+       ┌ │ raising-phrase │ ┐
+<u>GOBACK</u> │ │                │ │
+       └ │ status-phrase  │ ┘
+</pre>
 
 > **Figure notes (GOBACK statement general format).** `GOBACK` is underlined in the printed standard (a required
 > word).
@@ -27466,20 +27934,23 @@ The GOBACK statement marks the logical end of a function, a method, or a program
 
 Where raising-phrase is:
 
-```
-        ⎧ EXCEPTION exception-name-1 ⎫
-RAISING ⎨ identifier-1               ⎬
-        ⎩ LAST EXCEPTION             ⎭
-```
+<pre>
+        ╭ <u>EXCEPTION</u> exception-name-1 ╮
+        │                            │
+<u>RAISING</u> ┤ identifier-1               ├
+        │                            │
+        ╰ <u>LAST</u> EXCEPTION             ╯
+</pre>
 
 > **Figure notes (raising-phrase).** Underlining measured from the printed page: `RAISING`, `LAST` and the **first** `EXCEPTION` are underlined (required words, 5.2.2); the `EXCEPTION` in `LAST EXCEPTION` is **not** (measured: `LAST` underlined at x=142.8, `EXCEPTION` plain at x=170.0). This matches the printed page and the same phrase in EXIT Format 2 on page 623 — see the flag on that figure. The brace is a plain select-exactly-one (5.2.6.3).
 
 Where status-phrase is:
 
-```
-     ⎧ ERROR  ⎫        ⎡ identifier-2 ⎤
-WITH ⎩ NORMAL ⎭ STATUS ⎣ literal-1    ⎦
-```
+<pre>
+     ╭ <u>ERROR</u>  ╮        ┌ identifier-2 ┐
+WITH ┤        ├ STATUS │              │
+     ╰ <u>NORMAL</u> ╯        └ literal-1    ┘
+</pre>
 
 > **Figure notes (status-phrase).** Underlining measured from the printed page: `ERROR` and `NORMAL` are underlined (required words, 5.2.2); `WITH` and `STATUS` are **not**, so both are optional words per 5.2.3. The brace is a plain select-exactly-one (5.2.6.3) and the bracket makes the operand optional.
 
@@ -27597,12 +28068,16 @@ The IF statement causes a condition to be evaluated. The subsequent action of th
 
 Format 1 (delimited):
 
-IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF
-
+<pre>
+<u>IF</u> condition-1 THEN statement-1 [ <u>ELSE</u> statement-2 ] <u>END-IF</u>
+</pre>
 Format 2 (historic):
 
-IF condition-1 THEN { statement-1 / NEXT SENTENCE } [ ELSE { statement-2 / NEXT SENTENCE } ]
-
+<pre>
+                    ╭ statement-1   ╮ ┌      ╭ statement-2   ╮ ┐
+<u>IF</u> condition-1 THEN ┤               ├ │ <u>ELSE</u> ┤               ├ │
+                    ╰ <u>NEXT</u> <u>SENTENCE</u> ╯ └      ╰ <u>NEXT</u> <u>SENTENCE</u> ╯ ┘
+</pre>
 NOTE NEXT SENTENCE is an archaic feature. For details see F.1, Archaic language elements.
 
 <a id="section-14-9-19-3"></a>
@@ -27670,37 +28145,49 @@ The INITIALIZE statement provides the ability to set selected data items to spec
 <a id="section-14-9-20-2"></a>
 ##### 14.9.20.2 General format
 
-```
-INITIALIZE { identifier-1 } ... [ WITH FILLER ]
+<pre>
+<u>INITIALIZE</u> { identifier-1 } … [ WITH <u>FILLER</u> ]
 
-⎡ ⎧ ALL        ⎫              ⎤
-⎢ ⎨            ⎬ TO VALUE     ⎥
-⎣ ⎩ category-name ⎭           ⎦
+┌ ╭ <u>ALL</u>           ╮          ┐
+│ ┤               ├ TO <u>VALUE</u> │
+└ ╰ category-name ╯          ┘
 
-⎡                    ⎧                    ⎧ identifier-2 ⎫ ⎫    ⎤
-⎢ THEN REPLACING     ⎨ category-name DATA BY ⎨             ⎬ ⎬ ...⎥
-⎣                    ⎩                    ⎩ literal-1    ⎭ ⎭    ⎦
+┌ THEN <u>REPLACING</u> ╭                       ╭ identifier-2 ╮ ╮ … ┐
+│                ┤ category-name DATA <u>BY</u> ┤              ├ ├   │
+└                ╰                       ╰ literal-1    ╯ ╯   ┘
 
-[ THEN TO DEFAULT ]
-```
+[ THEN TO <u>DEFAULT</u> ]
+</pre>
 
 where category-name is:
 
-```
-⎧|  ALPHABETIC           |⎫
-⎪|  ALPHANUMERIC         |⎪
-⎪|  ALPHANUMERIC-EDITED  |⎪
-⎪|  BOOLEAN              |⎪
-⎪|  DATA-POINTER         |⎪
-⎪|  FUNCTION-POINTER     |⎪
-⎨|  MESSAGE-TAG          |⎬
-⎪|  NATIONAL             |⎪
-⎪|  NATIONAL-EDITED      |⎪
-⎪|  NUMERIC              |⎪
-⎪|  NUMERIC-EDITED       |⎪
-⎪|  OBJECT-REFERENCE     |⎪
-⎩|  PROGRAM-POINTER      |⎭
-```
+<pre>
+╭ │ <u>ALPHABETIC</u>          │ ╮
+│ │                     │ │
+│ │ <u>ALPHANUMERIC</u>        │ │
+│ │                     │ │
+│ │ <u>ALPHANUMERIC-EDITED</u> │ │
+│ │                     │ │
+│ │ <u>BOOLEAN</u>             │ │
+│ │                     │ │
+│ │ <u>DATA-POINTER</u>        │ │
+│ │                     │ │
+│ │ <u>FUNCTION-POINTER</u>    │ │
+│ │                     │ │
+┤ │ <u>MESSAGE-TAG</u>         │ ├
+│ │                     │ │
+│ │ <u>NATIONAL</u>            │ │
+│ │                     │ │
+│ │ <u>NATIONAL-EDITED</u>     │ │
+│ │                     │ │
+│ │ <u>NUMERIC</u>             │ │
+│ │                     │ │
+│ │ <u>NUMERIC-EDITED</u>      │ │
+│ │                     │ │
+│ │ <u>OBJECT-REFERENCE</u>    │ │
+│ │                     │ │
+╰ │ <u>PROGRAM-POINTER</u>     │ ╯
+</pre>
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACE are choice indicators: **one or more** of the thirteen category names shall be specified, each **at most once**, **in any order**. Every one of the thirteen words is underlined (required word) in the printed figure.
 
@@ -27855,8 +28342,9 @@ The INITIATE statement initializes any internal storage locations used by the sp
 <a id="section-14-9-21-2"></a>
 ##### 14.9.21.2 General format
 
+<pre>
 <u>INITIATE</u> { report-name-1 } …
-
+</pre>
 <a id="section-14-9-21-3"></a>
 ##### 14.9.21.3 Syntax rules
 
@@ -27906,35 +28394,39 @@ The INSPECT statement provides the ability to tally or replace occurrences of si
 
 Format 1 (tallying):
 
+<pre>
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>TALLYING</u> tallying-phrase
-
+</pre>
 Format 2 (replacing):
 
+<pre>
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>REPLACING</u> replacing-phrase
-
+</pre>
 Format 3 (tallying-and-replacing):
 
+<pre>
 <u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>TALLYING</u> tallying-phrase <u>REPLACING</u> replacing-phrase
-
+</pre>
 Format 4 (converting):
 
-<u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u> { identifier-6 } <u>TO</u> { identifier-7 } [ after-before-phrase ]
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ literal-4 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ literal-5 }
-
+<pre>
+<u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮ <u>TO</u> ╭ identifier-7 ╮ [ after-before-phrase ]
+                                             ┤              ├    ┤              ├
+                                             ╰ literal-4    ╯    ╰ literal-5    ╯
+</pre>
 where tallying-phrase is:
 
-```
-⎧                                                                                    ⎫
-⎪                   ⎧ CHARACTERS [ after-before-phrase ]                     ⎫       ⎪
-⎪                   ⎪                                                        ⎪       ⎪
-⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪
-⎪                   ⎪  ALL     ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪
-⎨ identifier-2 FOR  ⎨          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎬  ...  ⎬  ...
-⎪                   ⎪                                                        ⎪       ⎪
-⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪
-⎪                   ⎪ LEADING  ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪
-⎩                   ⎩          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎭       ⎭
-```
+<pre>
+╭                  ╭ <u>CHARACTERS</u> [ after-before-phrase ]                     ╮   ╮
+│                  │                                                        │   │
+│                  │ <u>ALL</u> ╭ ╭ identifier-3 ╮                         ╮ …     │   │
+│                  │     ┤ ┤              ├ [ after-before-phrase ] ├       │   │
+│                  │     │ ╰ literal-1    ╯                         │       │   │
+┤ identifier-2 <u>FOR</u> ┤     ╰                                          ╯       ├ … ├ …
+│                  │ <u>LEADING</u> ╭ ╭ identifier-3 ╮                         ╮ … │   │
+│                  │         ┤ ┤              ├ [ after-before-phrase ] ├   │   │
+╰                  ╰         ╰ ╰ literal-1    ╯                         ╯   ╯   ╯
+</pre>
 
 > **Figure notes (INSPECT tallying-phrase).** All enclosures here are plain braces — there are NO choice indicators in the printed figure, so exactly one alternative is selected at each level. Nesting, outermost first: `{ identifier-2 FOR { CHARACTERS [ after-before-phrase ] | ALL { { identifier-3 / literal-1 } [ after-before-phrase ] } … | LEADING { { identifier-3 / literal-1 } [ after-before-phrase ] } … } … } …` — where the vertical bars in this note are prose separators for the stacked alternatives, not choice indicators. Three distinct ellipses apply: the innermost repeats the { identifier-3 / literal-1 } [ after-before-phrase ] pairing within one ALL or LEADING phrase; the middle repeats the selected CHARACTERS/ALL/LEADING phrase for one identifier-2; the outermost repeats the whole `identifier-2 FOR …` group. Required words (underlined in the printed figure): CHARACTERS, ALL, LEADING, FOR.
 
@@ -27946,43 +28438,45 @@ where tallying-phrase is:
 
 where after-before-phrase is:
 
-```
-⎧|                     ⎧ identifier-4 ⎫ |⎫
-⎪|  AFTER  INITIAL     ⎨              ⎬ |⎪
-⎨|                     ⎩ literal-2    ⎭ |⎬
-⎪|                     ⎧ identifier-4 ⎫ |⎪
-⎪|  BEFORE INITIAL     ⎨              ⎬ |⎪
-⎩|                     ⎩ literal-2    ⎭ |⎭
-```
+<pre>
+╭ │               ╭ identifier-4 ╮  │ ╮
+│ │ <u>AFTER</u> INITIAL ┤              ├  │ │
+┤ │               ╰ literal-2    ╯  │ ├
+│ │                                 │ │
+│ │                ╭ identifier-4 ╮ │ │
+│ │ <u>BEFORE</u> INITIAL ┤              ├ │ │
+╰ │                ╰ literal-2    ╯ │ ╯
+</pre>
 
 > **Figure notes (ISO 5.2.6.4):** the outer braces carry CHOICE INDICATORS (the `|` bars just inside them, spanning both stacked alternatives). Bars enclosed by BRACES mean: one or more of the alternatives shall be specified, each may be specified at most once, and they may appear in any order. Therefore `AFTER INITIAL` and `BEFORE INITIAL` may BOTH be written in the same phrase, in either order. AFTER and BEFORE are underlined (required) in the printed figure; INITIAL is not underlined (optional word).
 
 where replacing-phrase is:
 
-```
-⎧ CHARACTERS BY replacement-item [ after-before-phrase ]                            ⎫
-⎪                                                                                   ⎪
-⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪
-⎪ ALL     ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪
-⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪
-⎪                                                                                   ⎪
-⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪
-⎨ LEADING ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎬ ...
-⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪
-⎪                                                                                   ⎪
-⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪
-⎪ FIRST   ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪
-⎩         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎭
-```
+<pre>
+╭ <u>CHARACTERS</u> <u>BY</u> replacement-item [ after-before-phrase ]                     ╮
+│                                                                            │
+│ <u>ALL</u> ╭ ╭ identifier-3 ╮                                             ╮ …     │
+│     ┤ ┤              ├ <u>BY</u> replacement-item [ after-before-phrase ] ├       │
+│     ╰ ╰ literal-1    ╯                                             ╯       │
+┤         ╭                                                              ╮   ├ …
+│ <u>LEADING</u> │ ╭ identifier-3 ╮                                             │ … │
+│         ┤ ┤              ├ <u>BY</u> replacement-item [ after-before-phrase ] ├   │
+│         ╰ ╰ literal-1    ╯                                             ╯   │
+│                                                                            │
+│ <u>FIRST</u> ╭ ╭ identifier-3 ╮                                             ╮ …   │
+│       ┤ ┤              ├ <u>BY</u> replacement-item [ after-before-phrase ] ├     │
+╰       ╰ ╰ literal-1    ╯                                             ╯     ╯
+</pre>
 
 > **Figure notes:** no choice indicators here — the outer braces are plain (verified at 700 dpi), so exactly one of CHARACTERS / ALL / LEADING / FIRST is selected per repetition, and the trailing `...` after the outer brace permits the whole replacing-phrase to be repeated. Each of ALL / LEADING / FIRST has its own inner `...` applying to the group brace immediately to its left (the `{identifier-3|literal-1} BY replacement-item [after-before-phrase]` unit). CHARACTERS, BY, ALL, LEADING and FIRST are underlined (required words) in the printed figure.
 
 where replacement-item is:
 
-```
-⎧ identifier-5 ⎫
-⎩ literal-3    ⎭
-```
+<pre>
+╭ identifier-5 ╮
+┤              ├
+╰ literal-3    ╯
+</pre>
 
 <a id="section-14-9-22-3"></a>
 ##### 14.9.22.3 Syntax rules
@@ -28192,25 +28686,27 @@ The INVOKE statement causes a method to be invoked.
 <a id="section-14-9-23-2"></a>
 ##### 14.9.23.2 General format
 
-```
-       ⎧ object-class-name-1 ⎫ ⎧ identifier-2 ⎫
-INVOKE ⎩ identifier-1        ⎭ ⎩ literal-1    ⎭
+<pre>
+                                                                       ┌       ╭                  ╭ identifier-3 ╮          ╮   ┐
+                                                                       │       │ [ BY <u>REFERENCE</u> ] ┤              ├          │   │
+                                                                       │       │                  ╰ <u>OMITTED</u>      ╯          │   │
+                                                                       │       │                                            │   │
+                                                                       │       │                ╭ arithmetic-expression-1 ╮ │   │
+                                                                       │       │                │                         │ │   │
+       ╭                                  ╮ ╭                        ╮ │       │ [ BY <u>CONTENT</u> ] ┤ boolean-expression-1    ├ │   │
+       │                                  │ │                        │ │       │                │                         │ │   │
+<u>INVOKE</u> ┤ object-class-name-1 identifier-1 ├ ┤ identifier-2 literal-1 ├ │ <u>USING</u> ┤                │ identifier-5            │ ├ … │
+       │                                  │ │                        │ │       │                │                         │ │   │
+       ╰                                  ╯ ╰                        ╯ │       │                ╰ literal-2               ╯ │   │
+                                                                       │       │                                            │   │
+                                                                       │       │              ╭ arithmetic-expression-1 ╮   │   │
+                                                                       │       │              │                         │   │   │
+                                                                       │       │ [ BY <u>VALUE</u> ] ┤ identifier-5            ├   │   │
+                                                                       │       │              │                         │   │   │
+                                                                       └       ╰              ╰ literal-2               ╯   ╯   ┘
 
-  ⎡       ⎧                                                     ⎫    ⎤
-  ⎢       ⎪ [ BY REFERENCE ] ⎧ identifier-3 ⎫                   ⎪    ⎥
-  ⎢       ⎪                  ⎩ OMITTED      ⎭                   ⎪    ⎥
-  ⎢       ⎪                                                     ⎪    ⎥
-  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥
-  ⎢ USING ⎨ [ BY CONTENT ]   ⎪ boolean-expression-1    ⎪        ⎬ ...⎥
-  ⎢       ⎪                  ⎨ identifier-5            ⎬        ⎪    ⎥
-  ⎢       ⎪                  ⎩ literal-2               ⎭        ⎪    ⎥
-  ⎢       ⎪                                                     ⎪    ⎥
-  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥
-  ⎢       ⎪ [ BY VALUE ]     ⎨ identifier-5            ⎬        ⎪    ⎥
-  ⎣       ⎩                  ⎩ literal-2               ⎭        ⎭    ⎦
-
-  [ RETURNING identifier-4 ]
-```
+[ <u>RETURNING</u> identifier-4 ]
+</pre>
 
 > **Figure notes** — no choice indicators appear anywhere in the printed figure (verified at 750 dpi). The outer brackets make the whole USING phrase optional; the ellipsis is INSIDE those brackets, so the `[BY …] operand` group repeats. The BY REFERENCE / BY CONTENT / BY VALUE group is a brace group: exactly one of the three is selected on each repetition. INVOKE, REFERENCE, OMITTED, CONTENT, VALUE, USING and RETURNING are underlined in the printed standard (required words).
 
@@ -28399,20 +28895,25 @@ The MERGE statement combines two or more identically sequenced files on a set of
 <a id="section-14-9-24-2"></a>
 ##### 14.9.24.2 General format
 
-```
-MERGE file-name-1 { ON { ASCENDING  } KEY { data-name-1 } ... } ...
-                        { DESCENDING }
+<pre>
+                  ╭    ╭ <u>ASCENDING</u>  ╮                       ╮
+<u>MERGE</u> file-name-1 ┤ ON ┤            ├ KEY { data-name-1 } … ├ …
+                  ╰    ╰ <u>DESCENDING</u> ╯                       ╯
 
-[ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]          } ]
-                     { { FOR ALPHANUMERIC IS alphabet-name-1 }          }
-                     { { FOR NATIONAL IS alphabet-name-2     }          }
+┌                    ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮ ┐
+│                    │                                             │ │
+│ COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │
+│                    │ ┤ │                                     │ ├ │ │
+└                    ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
 
-USING file-name-2 { file-name-3 } ...
+<u>USING</u> file-name-2 { file-name-3 } …
 
-[ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ] ]
-[                                         { THRU    }                    ]
-[ GIVING { file-name-4 } ...                                             ]
-```
+╭                                      ┌ ╭ <u>THROUGH</u> ╮                  ┐ ╮
+│ <u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+┤                                      └ ╰ <u>THRU</u>    ╯                  ┘ ├
+│                                                                       │
+╰ <u>GIVING</u> { file-name-4 } …                                              ╯
+</pre>
 
 <a id="section-14-9-24-3"></a>
 ##### 14.9.24.3 Syntax rules
@@ -28597,19 +29098,19 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 Format 1 (simple):
 
-```
-        ⎧ identifier-1 ⎫
-MOVE    ⎨              ⎬  TO { identifier-2 } ...
-        ⎩ literal-1    ⎭
-```
+<pre>
+     ╭ identifier-1 ╮
+<u>MOVE</u> ┤              ├ <u>TO</u> { identifier-2 } …
+     ╰ literal-1    ╯
+</pre>
 
 Format 2 (corresponding):
 
-```
-        ⎧ CORRESPONDING ⎫
-MOVE    ⎨               ⎬  identifier-3  TO  identifier-4
-        ⎩ CORR          ⎭
-```
+<pre>
+     ╭ <u>CORRESPONDING</u> ╮
+<u>MOVE</u> ┤               ├ identifier-3 <u>TO</u> identifier-4
+     ╰ <u>CORR</u>          ╯
+</pre>
 
 <a id="section-14-9-25-3"></a>
 ##### 14.9.25.3 Syntax rules
@@ -28868,15 +29369,18 @@ The MULTIPLY statement causes numeric data items to be multiplied and sets the v
 
 Format 1 (by):
 
-```
-                 ⎧ identifier-1 ⎫
-MULTIPLY         ⎨              ⎬  BY { identifier-2 [ rounded-phrase ] }  ...
-                 ⎩ literal-1    ⎭
+<pre>
+         ╭ identifier-1 ╮ …
+         │              │
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> { identifier-2 [ rounded-phrase ] }
+         ╰ literal-1    ╯
 
-    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-    [ END-MULTIPLY ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-MULTIPLY</u> ]
+</pre>
 
 > **Figure notes (MULTIPLY Format 1 (by) syntax diagram).** `MULTIPLY`, `BY`, `ON`, `SIZE`, `ERROR`, `NOT`, and
 > `END-MULTIPLY` are underlined in the printed standard (required words).
@@ -28886,17 +29390,19 @@ MULTIPLY         ⎨              ⎬  BY { identifier-2 [ rounded-phrase ] }  .
 
 Format 2 (giving):
 
-```
-                 ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫
-MULTIPLY         ⎨              ⎬  BY  ⎨              ⎬
-                 ⎩ literal-1    ⎭      ⎩ literal-2    ⎭
+<pre>
+         ╭ identifier-1 ╮    ╭ identifier-2 ╮
+<u>MULTIPLY</u> ┤              ├ <u>BY</u> ┤              ├
+         ╰ literal-1    ╯    ╰ literal-2    ╯
 
-    GIVING { identifier-3 [ rounded-phrase ] } ...
+<u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
-    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
-    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
-    [ END-MULTIPLY ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-MULTIPLY</u> ]
+</pre>
 
 > **Figure notes (MULTIPLY Format 2 (giving) syntax diagram).** `MULTIPLY`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,
 > `NOT`, and `END-MULTIPLY` are underlined in the printed standard (required words).
@@ -28957,23 +29463,27 @@ The OPEN statement initiates the processing of files.
 <a id="section-14-9-27-2"></a>
 ##### 14.9.27.2 General format
 
-```
-        ⎧ ⎧ INPUT  ⎫                                                                          ⎫
-        ⎪ ⎪ OUTPUT ⎪                                                                          ⎪
-OPEN    ⎨ ⎨ I-O    ⎬ [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } … ⎬ …
-        ⎪ ⎩ EXTEND ⎭                                                                          ⎪
-        ⎩                                                                                     ⎭
-```
+<pre>
+     ╭ ╭ <u>INPUT</u>  ╮                                                                          ╮
+     │ │        │                                                                          │
+     │ │ <u>OUTPUT</u> │                                                                          │
+<u>OPEN</u> ┤ ┤        ├ [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH <u>NO</u> <u>REWIND</u> ] } … ├ …
+     │ │ <u>I-O</u>    │                                                                          │
+     │ │        │                                                                          │
+     ╰ ╰ <u>EXTEND</u> ╯                                                                          ╯
+</pre>
 
 > **Figure notes (14.9.27.2, OPEN):** the printed figure has TWO nested brace pairs. The INNER braces enclose the four open modes (INPUT / OUTPUT / I-O / EXTEND) — exactly one shall be selected. The OUTER braces enclose the entire group `{ open-mode } [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …` and carry their own trailing ellipsis, so that whole group — mode, phrases and file list together — may be repeated, which is how one OPEN statement opens files in differing modes. Verified at 900 dpi: NO choice-indicator bars are present anywhere in this figure. OPEN, INPUT, OUTPUT, I-O, EXTEND, NO and REWIND are underlined in the printed figure (required words); WITH is not underlined (optional word).
 
 where sharing-phrase is:
 
-```
-                ⎧ ALL OTHER  ⎫
-SHARING WITH    ⎨ NO OTHER   ⎬
-                ⎩ READ ONLY  ⎭
-```
+<pre>
+             ╭ <u>ALL</u> OTHER ╮
+             │           │
+<u>SHARING</u> WITH ┤ <u>NO</u> OTHER  ├
+             │           │
+             ╰ <u>READ</u> <u>ONLY</u> ╯
+</pre>
 
 where retry-phrase is described in 14.7.9, RETRY phrase
 
@@ -29190,42 +29700,54 @@ The PERFORM statement is used to transfer control explicitly to one or more proc
 
 Format 1 (out-of-line):
 
-```
-                            ⎡ ⎧ THROUGH ⎫                  ⎤ ⎡ times-phrase   ⎤
-PERFORM procedure-name-1    ⎢ ⎨         ⎬ procedure-name-2 ⎥ ⎢ until-phrase   ⎥
-                            ⎣ ⎩ THRU    ⎭                  ⎦ ⎣ varying-phrase ⎦
-```
+<pre>
+                         ┌                              ┐ ┌ times-phrase   ┐
+                         │ ╭ <u>THROUGH</u> ╮                  │ │                │
+<u>PERFORM</u> procedure-name-1 │ ┤         ├ procedure-name-2 │ │ until-phrase   │
+                         │ ╰ <u>THRU</u>    ╯                  │ │                │
+                         └                              ┘ └ varying-phrase ┘
+</pre>
 
 > **Figure notes (PERFORM statement Format 1 (out-of-line)).** `PERFORM`, `THROUGH`, and `THRU` are underlined in the printed standard (required words). The two bracket groups are independent and adjacent, not nested: the first optionally supplies the `THROUGH`/`THRU procedure-name-2` range (exactly one of `THROUGH` / `THRU` if written), the second optionally supplies one of `times-phrase`, `until-phrase`, or `varying-phrase`. No choice indicators are present.
 
 Format 2 (inline):
 
-```
-          ⎡ times-phrase   ⎤
-PERFORM   ⎢ until-phrase   ⎥ imperative-statement-1  END-PERFORM
-          ⎣ varying-phrase ⎦
-```
+<pre>
+        ┌ times-phrase   ┐
+        │                │
+<u>PERFORM</u> │ until-phrase   │ imperative-statement-1 <u>END-PERFORM</u>
+        │                │
+        └ varying-phrase ┘
+</pre>
 
 > **Figure notes (PERFORM statement Format 2 (inline)).** `PERFORM` and `END-PERFORM` are underlined in the printed standard (required words). The brackets are plain — zero or one of `times-phrase`, `until-phrase`, or `varying-phrase`. No choice indicators are present.
 
 Format 3 (exception-checking):
 
-```
-PERFORM [ WITH LOCATION ]
-   imperative-statement-1
-⎧                                                                           ⎫
-⎪      ⎧            ⎧ { file-name-1 } …      ⎫    ⎪                         ⎪
-⎪      ⎪ EXCEPTION  ⎪ INPUT                  ⎪    ⎪                         ⎪
-⎨ WHEN ⎨            ⎨ OUTPUT                 ⎬    ⎬ imperative-statement-2  ⎬  …
-⎪      ⎪            ⎪ IO                     ⎪    ⎪                         ⎪
-⎪      ⎪            ⎩ EXTEND                 ⎭    ⎪                         ⎪
-⎪      ⎪ { exception-name-1 …                     ⎪                         ⎪
-⎩      ⎩ { exception-name-2 FILE file-name-2 } …  ⎭                         ⎭
-[ WHEN OTHER EXCEPTION imperative-statement-3 ]
-[ WHEN COMMON EXCEPTION imperative-statement-4 ]
-[ FINALLY imperative-statement-5 ]
-END-PERFORM
-```
+<pre>
+<u>PERFORM</u> [ WITH <u>LOCATION</u> ]
+
+╭ imperative-statement-1                                                  ╮
+│                                                                         │
+│      ╭           ╭ { file-name-1} … ╮          ╮                        │
+│      │           │                  │          │                        │
+│      │           │ <u>INPUT</u>            │          │                        │
+│      │           │                  │          │                        │
+│      │ <u>EXCEPTION</u> ┤ <u>OUTPUT</u>           ├          │                        │
+┤ <u>WHEN</u> ┤           │                  │          ├ imperative-statement-2 ├ …
+│      │           │ <u>IO</u>               │          │                        │
+│      │           │                  │          │                        │
+│      │           ╰ <u>EXTEND</u>           ╯          │                        │
+│      │                                         │                        │
+│      │ { exception-name-1 …                    │                        │
+│      │                                         │                        │
+╰      ╰ { exception-name-2 <u>FILE</u> file-name-2 } … ╯                        ╯
+
+[ <u>WHEN</u> <u>OTHER</u> EXCEPTION imperative-statement-3 ]
+[ WHEN <u>COMMON</u> EXCEPTION imperative-statement-4 ]
+[ <u>FINALLY</u> imperative-statement-5 ]
+<u>END-PERFORM</u>
+</pre>
 
 > **Figure notes (PERFORM statement Format 3 (exception-checking)).** `PERFORM`, `LOCATION`, `WHEN`, `EXCEPTION`, `INPUT`, `OUTPUT`, `IO`, `EXTEND`, `FILE`, `OTHER`, `COMMON`, `FINALLY`, and `END-PERFORM` are underlined in the printed standard (required words); `WITH` is printed without an underline, as is the second `EXCEPTION` in each of the `WHEN OTHER EXCEPTION` / `WHEN COMMON EXCEPTION` lines. The outermost delimiter around the `WHEN` group is a pair of **braces** (a required group), with the `…` outside it permitting the whole `WHEN … imperative-statement-2` group to repeat. The `{ file-name-1 } … / INPUT / OUTPUT / IO / EXTEND` group is likewise a **brace** group — exactly one shall be selected — and it is the operand of the `EXCEPTION` alternative. The final three bracketed lines and `END-PERFORM` are printed as part of this same general format. No choice indicators are present.
 > The second `WHEN` alternative is printed as the two lines `{ exception-name-1 …` and `{ exception-name-2 FILE file-name-2 } …`, reproduced here exactly as set in the standard (the first line carries no closing brace on the printed page).
@@ -29243,39 +29765,44 @@ END-PERFORM
 
 where times-phrase is:
 
-```
-⎧ identifier-1 ⎫
-⎨              ⎬ TIMES
-⎩ integer-1    ⎭
-```
+<pre>
+╭ identifier-1 ╮
+┤              ├ <u>TIMES</u>
+╰ integer-1    ╯
+</pre>
 
 > **Figure notes (times-phrase syntax diagram).** `TIMES` is underlined in the printed standard (required word). The braces require exactly one of `identifier-1` or `integer-1`.
 
 where until-phrase is:
 
-```
-⎡              ⎧ BEFORE ⎫ ⎤          ⎧ condition-1 ⎫
-⎢ WITH TEST    ⎨        ⎬ ⎥  UNTIL   ⎨             ⎬
-⎣              ⎩ AFTER  ⎭ ⎦          ⎩ EXIT        ⎭
-```
+<pre>
+┌           ╭ <u>BEFORE</u> ╮ ┐       ╭ condition-1 ╮
+│ WITH <u>TEST</u> ┤        ├ │ <u>UNTIL</u> ┤             ├
+│           │        │ │       │ <u>EXIT</u>        │
+└           ╰ <u>AFTER</u>  ╯ ┘       ╰             ╯
+</pre>
 
 > **Figure notes (until-phrase syntax diagram).** `TEST`, `BEFORE`, `AFTER`, `UNTIL`, and `EXIT` are underlined in the printed standard (required words); `WITH` is not underlined. The `WITH TEST` phrase is bracketed (optional); both brace groups require exactly one of their enclosed alternatives.
 
 where varying-phrase is:
 
-```
-⎡              ⎧ BEFORE ⎫ ⎤
-⎢ WITH TEST    ⎨        ⎬ ⎥
-⎣              ⎩ AFTER  ⎭ ⎦
+<pre>
+┌           ╭ <u>BEFORE</u> ╮ ┐
+│ WITH <u>TEST</u> ┤        ├ │
+└           ╰ <u>AFTER</u>  ╯ ┘
 
-            ⎧ identifier-2 ⎫         ⎧ identifier-3 ⎫    ⎡      ⎧ identifier-4 ⎫ ⎤
-  VARYING   ⎨              ⎬   FROM  ⎨ index-name-2 ⎬    ⎢ BY   ⎨              ⎬ ⎥  UNTIL condition-1
-            ⎩ index-name-1 ⎭         ⎩ literal-1    ⎭    ⎣      ⎩ literal-2    ⎭ ⎦
+                              ╭ identifier-3 ╮ ┌                     ┐
+        ╭ identifier-2 ╮      │              │ │    ╭ identifier-4 ╮ │
+<u>VARYING</u> ┤              ├ <u>FROM</u> ┤ index-name-2 ├ │ <u>BY</u> ┤              ├ │ <u>UNTIL</u> condition-1
+        ╰ index-name-1 ╯      │              │ │    ╰ literal-2    ╯ │
+                              ╰ literal-1    ╯ └                     ┘
 
-⎡           ⎧ identifier-5 ⎫         ⎧ identifier-6 ⎫    ⎡      ⎧ identifier-7 ⎫ ⎤                     ⎤
-⎢  AFTER    ⎨              ⎬   FROM  ⎨ index-name-4 ⎬    ⎢ BY   ⎨              ⎬ ⎥  UNTIL condition-2  ⎥ …
-⎣           ⎩ index-name-3 ⎭         ⎩ literal-3    ⎭    ⎣      ⎩ literal-4    ⎭ ⎦                     ⎦
-```
+┌                             ╭ identifier-6 ╮ ┌                     ┐                   ┐
+│       ╭ identifier-5 ╮      │              │ │    ╭ identifier-7 ╮ │                   │ …
+│ <u>AFTER</u> ┤              ├ <u>FROM</u> ┤ index-name-4 ├ │ <u>BY</u> ┤              ├ │ <u>UNTIL</u> condition-2 │
+│       ╰ index-name-3 ╯      │              │ │    ╰ literal-4    ╯ │                   │
+└                             ╰ literal-3    ╯ └                     ┘                   ┘
+</pre>
 
 > **Figure notes (varying-phrase syntax diagram).** `TEST`, `BEFORE`, `AFTER` (both the TEST AFTER word and the AFTER phrase word), `VARYING`, `FROM`, `BY`, and `UNTIL` are underlined in the printed standard (required words); `WITH` is not underlined. The `WITH TEST` phrase and each `BY` phrase are bracketed (optional). Every brace group requires exactly one of its enclosed alternatives. The ellipsis in the printed figure is placed **outside** the closing bracket of the whole `AFTER … UNTIL condition-2` group, so that entire optional group — not merely `condition-2` — may be repeated.
 
@@ -29531,10 +30058,11 @@ The RAISE statement causes a specified exception condition to be raised.
 <a id="section-14-9-29-2"></a>
 ##### 14.9.29.2 General format
 
-```
-            ⎧ EXCEPTION exception-name-1 ⎫
-RAISE       ⎩ identifier-1               ⎭
-```
+<pre>
+      ╭ <u>EXCEPTION</u> exception-name-1 ╮
+<u>RAISE</u> ┤                            ├
+      ╰ identifier-1               ╯
+</pre>
 
 > **Figure notes (RAISE statement general format).** `RAISE` and `EXCEPTION` are underlined in the printed standard (required words). The braces enclose two alternatives, exactly one of which shall be selected. No choice indicators appear in this figure.
 
@@ -29582,42 +30110,53 @@ For sequential access, the READ statement makes available the next logical recor
 
 Format 1 (sequential):
 
-```
-READ file-name-1 { NEXT     } RECORD [ INTO identifier-1 ]
-                 { PREVIOUS }
+<pre>
+                 ╭ NEXT     ╮
+<u>READ</u> file-name-1 ┤          ├ RECORD [ <u>INTO</u> identifier-1 ]
+                 ╰ <u>PREVIOUS</u> ╯
 
-    [ ADVANCING ON LOCK ]
-    [ IGNORING LOCK     ]
-    [ retry-phrase      ]
+┌ <u>ADVANCING</u> ON <u>LOCK</u> ┐
+│                   │
+│ <u>IGNORING</u> <u>LOCK</u>     │
+│                   │
+└ retry-phrase      ┘
 
-    [ WITH LOCK    ]
-    [ WITH NO LOCK ]
+┌ WITH <u>LOCK</u>    ┐
+│              │
+└ WITH <u>NO</u> <u>LOCK</u> ┘
 
-  ⎡|  AT END imperative-statement-1      |⎤
-  ⎣|  NOT AT END imperative-statement-2  |⎦
-[ END-READ ]
-```
+┌ │ AT <u>END</u> imperative-statement-1     │ ┐
+│ │                                   │ │
+└ │ <u>NOT</u> AT <u>END</u> imperative-statement-2 │ ┘
+
+[ <u>END-READ</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `AT END imperative-statement-1` / `NOT AT END imperative-statement-2` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one READ statement may specify neither phrase, `AT END imperative-statement-1` alone, `NOT AT END imperative-statement-2` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
 Format 2 (random):
 
-```
-READ file-name-1 RECORD [ INTO identifier-1 ]
+<pre>
+<u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
 
-    [ IGNORING LOCK ]
-    [ retry-phrase  ]
+┌ <u>IGNORING</u> <u>LOCK</u> ┐
+│               │
+└ retry-phrase  ┘
 
-    [ WITH LOCK    ]
-    [ WITH NO LOCK ]
+┌ WITH <u>LOCK</u>    ┐
+│              │
+└ WITH <u>NO</u> <u>LOCK</u> ┘
 
-    [ KEY IS { data-name-1      } ]
-             { record-key-name-1 }
+┌        ╭ data-name-1       ╮ ┐
+│ <u>KEY</u> IS ┤                   ├ │
+└        ╰ record-key-name-1 ╯ ┘
 
-  ⎡|  INVALID KEY imperative-statement-3      |⎤
-  ⎣|  NOT INVALID KEY imperative-statement-4  |⎦
-[ END-READ ]
-```
+┌ │ <u>INVALID</u> KEY imperative-statement-3     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-4 │ ┘
+
+[ <u>END-READ</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4).** The `INVALID KEY imperative-statement-3` / `NOT INVALID KEY imperative-statement-4` group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`) in the printed standard. Per 5.2.6.4 that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so one READ statement may specify neither phrase, `INVALID KEY imperative-statement-3` alone, `NOT INVALID KEY imperative-statement-4` alone, or **both, in either order**. A plain bracket without the bars would wrongly read as at-most-one.
 
@@ -29945,17 +30484,19 @@ The RECEIVE statement receives a message from a requestor or a message server ru
 <a id="section-14-9-31-2"></a>
 ##### 14.9.31.2 General format
 
-RECEIVE FROM data-name-1 GIVING identifier-1 data-name-2
+<pre>
+<u>RECEIVE</u> FROM data-name-1 <u>GIVING</u> identifier-1 data-name-2
 
-```
-⎡                   ⎧ arithmetic-expression-1 SECONDS ⎫ ⎤
-⎢ CONTINUE AFTER    ⎨                                 ⎬ ⎥
-⎣                   ⎩ MESSAGE RECEIVED                ⎭ ⎦
+┌                ╭ arithmetic-expression-1 SECONDS ╮ ┐
+│ <u>CONTINUE</u> AFTER ┤                                 ├ │
+└                ╰ <u>MESSAGE</u> <u>RECEIVED</u>                ╯ ┘
 
-⎡|  ON EXCEPTION imperative-statement-1      |⎤
-⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
-[ END-RECEIVE ]
-```
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
+│ │                                         │ │
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
+
+[ <u>END-RECEIVE</u> ]
+</pre>
 
 > **Figure notes (ISO 5.2.6.4)** — the ON EXCEPTION group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives): zero or more of the enclosed alternatives, each at most once, in any order. Therefore **both** `ON EXCEPTION` and `NOT ON EXCEPTION` may be specified in one RECEIVE statement. The `CONTINUE AFTER` group by contrast has **plain brackets with no bars** — it is optional and, if present, exactly one of `arithmetic-expression-1 SECONDS` / `MESSAGE RECEIVED` is selected by the inner braces.
 
@@ -30023,10 +30564,11 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 <a id="section-14-9-32-2"></a>
 ##### 14.9.32.2 General format
 
-```
-RELEASE record-name-1 ⎡ FROM ⎧ identifier-1 ⎫ ⎤
-                      ⎣      ⎩ literal-1    ⎭ ⎦
-```
+<pre>
+                      ┌      ╭ identifier-1 ╮ ┐
+<u>RELEASE</u> record-name-1 │ <u>FROM</u> ┤              ├ │
+                      └      ╰ literal-1    ╯ ┘
+</pre>
 
 > **Figure notes (RELEASE statement general format).** `RELEASE` and `FROM` are underlined in the printed standard (required words). No choice indicators appear in this figure — the `FROM` phrase as a whole is optional, and when present exactly one of `identifier-1` or `literal-1` shall be selected.
 
@@ -30089,10 +30631,11 @@ The RESUME statement transfers control to a procedure-name or to the statement f
 <a id="section-14-9-33-2"></a>
 ##### 14.9.33.2 General format
 
-```
-              ⎧ NEXT STATEMENT   ⎫
- RESUME AT    ⎩ procedure-name-1 ⎭
-```
+<pre>
+          ╭ <u>NEXT</u> <u>STATEMENT</u>   ╮
+<u>RESUME</u> AT ┤                  ├
+          ╰ procedure-name-1 ╯
+</pre>
 
 > **Figure notes (RESUME statement general format).** `RESUME`, `NEXT`, and `STATEMENT` are underlined in the printed standard (required words); `AT` is not underlined. No choice indicators appear in this figure.
 
@@ -30158,11 +30701,12 @@ The RETURN statement obtains either sorted records from the final phase of a sor
 <a id="section-14-9-34-2"></a>
 ##### 14.9.34.2 General format
 
-`RETURN` file-name-1 `RECORD` [ `INTO` identifier-1 ]
-&nbsp;&nbsp;&nbsp;`AT` `END` imperative-statement-1
-&nbsp;&nbsp;&nbsp;[ `NOT` `AT` `END` imperative-statement-2 ]
-&nbsp;&nbsp;&nbsp;[ `END-RETURN` ]
-
+<pre>
+<u>RETURN</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+AT <u>END</u> imperative-statement-1
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-RETURN</u> ]
+</pre>
 <a id="section-14-9-34-3"></a>
 ##### 14.9.34.3 Syntax rules
 
@@ -30220,20 +30764,23 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 <a id="section-14-9-35-2"></a>
 ##### 14.9.35.2 General format
 
-```
-              ⎧ record-name-1     ⎫            ⎡        ⎧ identifier-1 ⎫ ⎤
-REWRITE       ⎩ FILE file-name-1  ⎭  RECORD    ⎣ FROM   ⎩ literal-1    ⎭ ⎦
+<pre>
+        ╭ record-name-1    ╮        ┌      ╭ identifier-1 ╮ ┐
+<u>REWRITE</u> ┤                  ├ RECORD │ <u>FROM</u> ┤              ├ │
+        ╰ <u>FILE</u> file-name-1 ╯        └      ╰ literal-1    ╯ ┘
 
-     [ retry-phrase ]
+[ retry-phrase ]
 
-     ⎡ WITH LOCK    ⎤
-     ⎣ WITH NO LOCK ⎦
+┌ WITH <u>LOCK</u>    ┐
+│              │
+└ WITH <u>NO</u> <u>LOCK</u> ┘
 
-     ⎡ | INVALID KEY imperative-statement-1     | ⎤
-     ⎣ | NOT INVALID KEY imperative-statement-2 | ⎦
+┌ │ <u>INVALID</u> KEY imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 │ ┘
 
-     [ END-REWRITE ]
-```
+[ <u>END-REWRITE</u> ]
+</pre>
 
 > **Figure notes (REWRITE statement general format syntax diagram).** `REWRITE`, `FILE`, `FROM`, `LOCK`, `NO`, `INVALID`, `NOT`, and `END-REWRITE` are underlined in the printed standard (required words). `RECORD`, `WITH`, and `KEY` are **not** underlined — they are optional words. `retry-phrase` is described in 14.7.9, RETRY phrase.
 > ⚠ **The INVALID KEY group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives may be specified, each at most once, **in any order** — so a REWRITE statement may carry the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both** (in either order), or neither. The `WITH LOCK` / `WITH NO LOCK` bracket has **no** choice indicators: at most one of those two phrases may be specified.
@@ -30494,8 +31041,9 @@ The ROLLBACK statement reverses all changes made to the files and data-items exp
 <a id="section-14-9-36-2"></a>
 ##### 14.9.36.2 General format
 
+<pre>
 <u>ROLLBACK</u>
-
+</pre>
 <a id="section-14-9-36-3"></a>
 ##### 14.9.36.3 Syntax rules
 
@@ -30552,19 +31100,19 @@ The SEARCH statement is used to search a table for a table element that satisfie
 
 Format 1 (serial):
 
-```
-                        ⎡            ⎧ identifier-2 ⎫ ⎤
-SEARCH identifier-1     ⎢ VARYING    ⎨              ⎬ ⎥
-                        ⎣            ⎩ index-name-1 ⎭ ⎦
+<pre>
+<u>SEARCH</u> identifier-1 ┌         ╭ identifier-2 ╮ ┐
+                    │ <u>VARYING</u> ┤              ├ │
+                    └         ╰ index-name-1 ╯ ┘
 
-     [ AT END imperative-statement-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
 
-     ⎧                      ⎧ imperative-statement-2 ⎫ ⎫
-     ⎨ WHEN condition-1     ⎨                        ⎬ ⎬ …
-     ⎩                      ⎩ NEXT SENTENCE          ⎭ ⎭
+╭                  ╭ imperative-statement-2 ╮ ╮
+┤ <u>WHEN</u> condition-1 ┤                        ├ ├ …
+╰                  ╰ <u>NEXT</u> <u>SENTENCE</u>          ╯ ╯
 
-     [ END-SEARCH ]
-```
+[ <u>END-SEARCH</u> ]
+</pre>
 
 > **Figure notes (SEARCH statement Format 1 (serial) syntax diagram).** `SEARCH`, `VARYING`, `END`, `WHEN`, `NEXT`, `SENTENCE`, and `END-SEARCH` are underlined in the printed standard (required words); `AT` is not underlined. The ellipsis stands outside the outer brace of the `WHEN` group, so the whole `WHEN condition-1 { … }` phrase may be repeated. Per NOTE 1, `NEXT SENTENCE` is an archaic feature (see F.1).
 
@@ -30572,26 +31120,31 @@ NOTE 1 NEXT SENTENCE is an archaic feature. For details see F.1, Archaic languag
 
 Format 2 (all):
 
-```
-SEARCH ALL identifier-1 [ AT END imperative-statement-1 ]
+<pre>
+<u>SEARCH</u> <u>ALL</u> identifier-1 [ AT <u>END</u> imperative-statement-1 ]
 
-         ⎧ ⎧                 ⎧ IS EQUAL TO ⎫  ⎧ identifier-3            ⎫ ⎫ ⎫
-         ⎪ ⎪ data-name-1     ⎨             ⎬  ⎨ literal-1               ⎬ ⎪ ⎪
-  WHEN   ⎨ ⎨                 ⎩ IS =        ⎭  ⎩ arithmetic-expression-1 ⎭ ⎬ ⎬
-         ⎪ ⎪                                                             ⎪ ⎪
-         ⎩ ⎩ condition-name-1                                            ⎭ ⎭
+     ╭               IS <u>EQUAL</u> TO ╭ identifier-3            ╮ ╮
+     │                           │                         │ │
+<u>WHEN</u> ┤ data-name-1 ╭      ╮      ┤ literal-1               ├ ├
+     │             ┤      ├      │                         │ │
+     │             ╰ IS = ╯      ╰ arithmetic-expression-1 ╯ │
+     │                                                       │
+     ╰ condition-name-1                                      ╯
 
-     ⎡        ⎧ ⎧                 ⎧ IS EQUAL TO ⎫  ⎧ identifier-4            ⎫ ⎫ ⎤
-     ⎢        ⎪ ⎪ data-name-2     ⎨             ⎬  ⎨ literal-2               ⎬ ⎪ ⎥
-     ⎢ AND    ⎨ ⎨                 ⎩ IS =        ⎭  ⎩ arithmetic-expression-2 ⎭ ⎬ ⎥ …
-     ⎢        ⎪ ⎪                                                             ⎪ ⎥
-     ⎣        ⎩ ⎩ condition-name-2                                            ⎭ ⎦
+┌     ╭               IS <u>EQUAL</u> TO ╭ identifier-4            ╮ ╮ ┐
+│     │                           │                         │ │ │
+│ <u>AND</u> ┤ data-name-2 ╭      ╮      ┤ literal-2               ├ ├ │ …
+│     │             ┤      ├      │                         │ │ │
+│     │             ╰ IS = ╯      ╰ arithmetic-expression-2 ╯ │ │
+│     │                                                       │ │
+└     ╰ condition-name-2                                      ╯ ┘
 
-     ⎧ imperative-statement-2 ⎫
-     ⎩ NEXT SENTENCE          ⎭
+╭ imperative-statement-2 ╮
+┤                        ├
+╰ <u>NEXT</u> <u>SENTENCE</u>          ╯
 
-     [ END-SEARCH ]
-```
+[ <u>END-SEARCH</u> ]
+</pre>
 
 > **Figure notes (SEARCH statement Format 2 (all) syntax diagram).** `SEARCH`, `ALL`, `END`, `WHEN`, `EQUAL`, `AND`, `NEXT`, `SENTENCE`, and `END-SEARCH` are underlined in the printed standard (required words); `AT`, `IS`, `TO`, and `=` are not underlined. Each of the `WHEN` and `AND` groups is a single required brace with two alternatives — the `data-name-n` comparison, or the bare `condition-name-n`. The ellipsis stands outside the closing bracket of the `AND` phrase, so the entire optional `AND` phrase may be repeated. Per NOTE 2, `NEXT SENTENCE` is an archaic feature (see F.1).
 
@@ -30764,35 +31317,37 @@ The SEND statement sends a message to a message server run unit and optionally r
 
 Format 1 (to-message-server)
 
-```
-              ⎧ literal-1             ⎫
-SEND TO       ⎨                       ⎬ FROM identifier-1
-              ⎩ message-server-name-1 ⎭
+<pre>
+        ╭ literal-1             ╮
+<u>SEND</u> TO ┤                       ├ <u>FROM</u> identifier-1
+        ╰ message-server-name-1 ╯
 
-    RETURNING data-name-1
+<u>RETURNING</u> data-name-1
 
-    ⎡|  ON EXCEPTION imperative-statement-1      |⎤
-    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
+┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+│ │                                         │ │
+└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
 
-END-SEND
-```
+<u>END-SEND</u>
+</pre>
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. Note also that `RETURNING data-name-1` and `END-SEND` are NOT bracketed in the printed figure: they are required in Format 1. Underlined (required) words: SEND, TO, FROM, RETURNING, EXCEPTION, NOT, END-SEND.
 
 Format 2 (message-server-response)
 
-```
-SEND TO  data-name-2  FROM identifier-1
+<pre>
+<u>SEND</u> TO data-name-2 <u>FROM</u> identifier-1
 
-    ⎡           ⎧ EXCEPTION exception-name-1 ⎫ ⎤
-    ⎢ RAISING   ⎨                            ⎬ ⎥
-    ⎣           ⎩ LAST EXCEPTION             ⎭ ⎦
+┌         ╭ <u>EXCEPTION</u> exception-name-1 ╮ ┐
+│ <u>RAISING</u> ┤                            ├ │
+└         ╰ <u>LAST</u> EXCEPTION             ╯ ┘
 
-    ⎡|  ON EXCEPTION imperative-statement-1      |⎤
-    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦
+┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+│ │                                         │ │
+└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
 
-END-SEND
-```
+<u>END-SEND</u>
+</pre>
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. The RAISING brace has NO bars: exactly one of `EXCEPTION exception-name-1` / `LAST EXCEPTION` when the optional RAISING phrase is written. `END-SEND` is not bracketed — it is required in Format 2. Underlined (required) words: SEND, TO, FROM, RAISING, EXCEPTION, LAST, NOT, END-SEND.
 
@@ -31583,29 +32138,31 @@ The SORT statement causes a set of records or table elements to be arranged in a
 
 Format 1 (file):
 
-```
-                 ⎧       ⎧ ASCENDING  ⎫                         ⎫
-SORT file-name-1 ⎨  ON   ⎨            ⎬ KEY { data-name-1 } ... ⎬  ...
-                 ⎩       ⎩ DESCENDING ⎭                         ⎭
+<pre>
+                 ╭    ╭ <u>ASCENDING</u>  ╮                       ╮
+<u>SORT</u> file-name-1 ┤ ON ┤            ├ KEY { data-name-1 } … ├ …
+                 ╰    ╰ <u>DESCENDING</u> ╯                       ╯
 
-[ WITH DUPLICATES IN ORDER ]
+[ WITH <u>DUPLICATES</u> IN ORDER ]
 
-⎡                      ⎧  IS alphabet-name-1 [ alphabet-name-2 ]     ⎫ ⎤
-⎢ COLLATING SEQUENCE   ⎨ ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫   ⎬ ⎥
-⎣                      ⎩ ⎩| FOR NATIONAL IS alphabet-name-2     |⎭   ⎭ ⎦
+┌                    ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮ ┐
+│                    │                                             │ │
+│ COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │
+│                    │ ┤ │                                     │ ├ │ │
+└                    ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
 
-⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫
-⎪  INPUT PROCEDURE IS procedure-name-1     ⎢ ⎨         ⎬ procedure-name-2 ⎥ ⎪
-⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬
-⎪  USING { file-name-2 } ...                                                ⎪
-⎩                                                                          ⎭
+╭                                     ┌ ╭ <u>THROUGH</u> ╮                  ┐ ╮
+│ <u>INPUT</u> <u>PROCEDURE</u> IS procedure-name-1 │ ┤         ├ procedure-name-2 │ │
+┤                                     └ ╰ <u>THRU</u>    ╯                  ┘ ├
+│                                                                      │
+╰ <u>USING</u> { file-name-2 } …                                              ╯
 
-⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫
-⎪  OUTPUT PROCEDURE IS procedure-name-3    ⎢ ⎨         ⎬ procedure-name-4 ⎥ ⎪
-⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬
-⎪  GIVING { file-name-3 } ...                                               ⎪
-⎩                                                                          ⎭
-```
+╭                                      ┌ ╭ <u>THROUGH</u> ╮                  ┐ ╮
+│ <u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-3 │ ┤         ├ procedure-name-4 │ │
+┤                                      └ ╰ <u>THRU</u>    ╯                  ┘ ├
+│                                                                       │
+╰ <u>GIVING</u> { file-name-3 } …                                              ╯
+</pre>
 
 > **Figure notes (SORT Format 1).** Inside the COLLATING SEQUENCE bracket, the second alternative is a BRACE WITH CHOICE INDICATORS (`⎧|` … `|⎫`). Per 5.2.6.4, that means one or more of the enclosed alternatives shall be specified, each at most once, in any order — so `FOR ALPHANUMERIC IS alphabet-name-1` and `FOR NATIONAL IS alphabet-name-2` may BOTH appear, in either order. It is NOT a select-exactly-one brace. The enclosing brace offers a choice between that bar-group and the single-line form `IS alphabet-name-1 [ alphabet-name-2 ]`, and the whole COLLATING SEQUENCE clause is optional (outer brackets). The THROUGH/THRU bracket applies only to the `INPUT PROCEDURE IS procedure-name-1` (resp. `OUTPUT PROCEDURE IS procedure-name-3`) alternative, never to the USING/GIVING alternative. Required words (underlined in the printed figure): SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL, INPUT, PROCEDURE, USING, THROUGH, THRU, OUTPUT, GIVING.
 
@@ -31618,16 +32175,19 @@ SORT file-name-1 ⎨  ON   ⎨            ⎬ KEY { data-name-1 } ... ⎬  ...
 
 Format 2 (table):
 
-```
-SORT data-name-2 [ ON { ASCENDING  } KEY [ data-name-1 ] … ] …
-                       { DESCENDING }
+<pre>
+                 ┌    ╭ <u>ASCENDING</u>  ╮                       ┐
+<u>SORT</u> data-name-2 │ ON ┤            ├ KEY [ data-name-1 ] … │ …
+                 └    ╰ <u>DESCENDING</u> ╯                       ┘
 
-    [ WITH DUPLICATES IN ORDER ]
+[ WITH <u>DUPLICATES</u> IN ORDER ]
 
-  [ COLLATING SEQUENCE { { IS alphabet-name-1 [ alphabet-name-2 ]          } } ]
-                       { { FOR ALPHANUMERIC IS alphabet-name-1             } }
-                       { { FOR NATIONAL IS alphabet-name-2                 } }
-```
+┌                    ╭ IS alphabet-name-1 [ alphabet-name-2 ]      ╮ ┐
+│                    │                                             │ │
+│ COLLATING <u>SEQUENCE</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │
+│                    │ ┤ │                                     │ ├ │ │
+└                    ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
+</pre>
 
 <a id="section-14-9-40-3"></a>
 ##### 14.9.40.3 Syntax rules
@@ -31880,20 +32440,23 @@ The START statement provides a basis for logical positioning within a file, for 
 <a id="section-14-9-41-2"></a>
 ##### 14.9.41.2 General format
 
-```
-START file-name-1
+<pre>
+<u>START</u> file-name-1
 
-   ⎡ FIRST                                                                                  ⎤
-   ⎢                         ⎧ data-name-1       ⎫                                          ⎥
-   ⎢ KEY relational-operator ⎨                   ⎬ [ WITH LENGTH arithmetic-expression-1 ]  ⎥
-   ⎢                         ⎩ record-key-name-1 ⎭                                          ⎥
-   ⎣ LAST                                                                                   ⎦
+┌ <u>FIRST</u>                                                                                 ┐
+│                                                                                       │
+│                         ╭ data-name-1       ╮                                         │
+│ <u>KEY</u> relational-operator ┤                   ├ [ WITH <u>LENGTH</u> arithmetic-expression-1 ] │
+│                         ╰ record-key-name-1 ╯                                         │
+│                                                                                       │
+└ <u>LAST</u>                                                                                  ┘
 
-   ⎡ | INVALID KEY imperative-statement-1     | ⎤
-   ⎣ | NOT INVALID KEY imperative-statement-2 | ⎦
+┌ │ <u>INVALID</u> KEY imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 │ ┘
 
-   [ END-START ]
-```
+[ <u>END-START</u> ]
+</pre>
 
 > **Figure notes (START statement general format syntax diagram).** `START`, `FIRST`, `KEY` (the phrase-leading one), `LAST`, `LENGTH`, `INVALID`, `NOT`, and `END-START` are underlined in the printed standard (required words); `file-name-1`, `relational-operator`, `WITH`, and the `KEY` of `INVALID KEY` / `NOT INVALID KEY` are **not** underlined. The `FIRST` / `KEY` / `LAST` bracket is plain (verified at 600 dpi): it is optional, and at most one of the three alternatives is selected.
 > ⚠ **The `INVALID KEY` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets, verified by re-rendering page 754 at 600 dpi). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a START statement may specify the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both**, or neither.
@@ -32040,11 +32603,11 @@ The STOP statement causes termination of the execution of the run unit.
 <a id="section-14-9-42-2"></a>
 ##### 14.9.42.2 General format
 
-> ```
->          ⎡      ⎧ ERROR  ⎫        ⎡ identifier-1 ⎤ ⎤
-> STOP RUN ⎢ WITH ⎨        ⎬ STATUS ⎢              ⎥ ⎥
->          ⎣      ⎩ NORMAL ⎭        ⎣ literal-1    ⎦ ⎦
-> ```
+<pre>
+         ┌      ╭ <u>ERROR</u>  ╮        ┌ identifier-1 ┐ ┐
+<u>STOP</u> <u>RUN</u> │ WITH ┤        ├ STATUS │              │ │
+         └      ╰ <u>NORMAL</u> ╯        └ literal-1    ┘ ┘
+</pre>
 >
 > > **Figure notes (STOP statement general format).** `STOP`, `RUN`, `ERROR`, and `NORMAL` are underlined in the printed standard (required words); `WITH` and `STATUS` are **not** underlined. The whole `WITH … STATUS …` phrase is enclosed in an outer bracket (optional). Inside it, the `{ ERROR / NORMAL }` braces require exactly one of the two words, while the trailing `[ identifier-1 / literal-1 ]` is an inner **bracket** — the status operand may be omitted, and when present it is exactly one of `identifier-1` or `literal-1`.
 
@@ -32091,20 +32654,22 @@ The STRING statement provides concatenation of the partial or complete contents 
 <a id="section-14-9-43-2"></a>
 ##### 14.9.43.2 General format
 
-```
-        ⎧  ⎧ identifier-1 ⎫      ⎡                  ⎧ identifier-2 ⎫ ⎤  ⎫
-STRING  ⎨  ⎨              ⎬  …   ⎢ DELIMITED BY     ⎨ literal-2    ⎬ ⎥  ⎬ …
-        ⎩  ⎩ literal-1    ⎭      ⎣                  ⎩ SIZE         ⎭ ⎦  ⎭
+<pre>
+       ╭                    ┌              ╭ identifier-2 ╮ ┐ ╮
+<u>STRING</u> │ ╭ identifier-1 ╮   │              │              │ │ │ …
+       ┤ ┤              ├ … │ <u>DELIMITED</u> BY ┤ literal-2    ├ │ ├
+       │ │              │   │              │              │ │ │
+       ╰ ╰ literal-1    ╯   └              ╰ <u>SIZE</u>         ╯ ┘ ╯
 
-    INTO identifier-3
+<u>INTO</u> identifier-3
+[ WITH <u>POINTER</u> identifier-4 ]
 
-    [ WITH POINTER identifier-4 ]
+┌ │ ON <u>OVERFLOW</u> imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> ON <u>OVERFLOW</u> imperative-statement-2 │ ┘
 
-    ⎡ | ON OVERFLOW imperative-statement-1     | ⎤
-    ⎣ | NOT ON OVERFLOW imperative-statement-2 | ⎦
-
-    [ END-STRING ]
-```
+[ <u>END-STRING</u> ]
+</pre>
 
 > **Figure notes (STRING statement general format syntax diagram).** `STRING`, `DELIMITED`, `SIZE`, `INTO`, `POINTER`, `NOT`, `OVERFLOW` (both occurrences), and `END-STRING` are underlined in the printed standard (required words); `BY`, `WITH`, and `ON` are not underlined (optional words).
 > ⚠ **The `ON OVERFLOW` / `NOT ON OVERFLOW` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so a STRING statement may carry neither phrase, `ON OVERFLOW` alone, `NOT ON OVERFLOW` alone, or **both, in either order**.
@@ -32215,47 +32780,53 @@ The SUBTRACT statement is used to subtract one, or the sum of two or more, numer
 
 Format 1 (simple):
 
-```
-           ⎧ identifier-1 ⎫
-SUBTRACT   ⎨              ⎬ …  FROM  { identifier-2 [ rounded-phrase ] } …
-           ⎩ literal-1    ⎭
+<pre>
+         ╭ identifier-1 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> { identifier-2 [ rounded-phrase ] } …
+         ╰ literal-1    ╯
 
-    ⎡ | ON SIZE ERROR imperative-statement-1     | ⎤
-    ⎣ | NOT ON SIZE ERROR imperative-statement-2 | ⎦
-    [ END-SUBTRACT ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-SUBTRACT</u> ]
+</pre>
 
 > **Figure notes (SUBTRACT statement Format 1 (simple)).** `SUBTRACT`, `FROM`, `SIZE`, `ERROR`, `NOT`, and `END-SUBTRACT` are underlined in the printed standard (required words); `ON` is printed without an underline in both size-error lines.
 > ⚠ **The size-error group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `ON SIZE ERROR` alone, `NOT ON SIZE ERROR` alone, both in either order, or neither, are all legal. `rounded-phrase` is described in 14.7.4, ROUNDED phrase.
 
 Format 2 (giving):
 
-```
-           ⎧ identifier-1 ⎫             ⎧ identifier-2 ⎫
-SUBTRACT   ⎨              ⎬ …  FROM     ⎨              ⎬
-           ⎩ literal-1    ⎭             ⎩ literal-2    ⎭
+<pre>
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
-    GIVING { identifier-3 [ rounded-phrase ] } …
+<u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
-    ⎡ | ON SIZE ERROR imperative-statement-1     | ⎤
-    ⎣ | NOT ON SIZE ERROR imperative-statement-2 | ⎦
-    [ END-SUBTRACT ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-SUBTRACT</u> ]
+</pre>
 
 > **Figure notes (SUBTRACT statement Format 2 (giving)).** `SUBTRACT`, `FROM`, `GIVING`, `SIZE`, `ERROR`, `NOT`, and `END-SUBTRACT` are underlined in the printed standard (required words); `ON` is printed without an underline in both size-error lines.
 > ⚠ **The size-error group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so `ON SIZE ERROR` alone, `NOT ON SIZE ERROR` alone, both in either order, or neither, are all legal. `rounded-phrase` is described in 14.7.4, ROUNDED phrase.
 
 Format 3 (corresponding):
 
-```
-           ⎧ CORRESPONDING ⎫
-SUBTRACT   ⎨               ⎬ identifier-4  FROM  identifier-5 [ rounded-phrase ]
-           ⎩ CORR          ⎭
+<pre>
+         ╭ <u>CORRESPONDING</u> ╮
+<u>SUBTRACT</u> ┤               ├ identifier-4 <u>FROM</u> identifier-5 [ rounded-phrase ]
+         ╰ <u>CORR</u>          ╯
 
-    ⎡ | ON SIZE ERROR imperative-statement-1     | ⎤
-    ⎣ | NOT ON SIZE ERROR imperative-statement-2 | ⎦
-    [ END-SUBTRACT ]
-```
+┌ │ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1     │ ┐
+│ │                                          │ │
+└ │ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 │ ┘
+
+[ <u>END-SUBTRACT</u> ]
+</pre>
 
 > **Figure notes (SUBTRACT statement Format 3 (corresponding)).** `SUBTRACT`, `CORRESPONDING`, `CORR`, `FROM`, `SIZE`, `ERROR`, `NOT`, and `END-SUBTRACT` are underlined in the printed standard (required words / required minimum abbreviation); `ON` is printed without an underline in both size-error lines. The `CORRESPONDING` / `CORR` braces are plain — exactly one shall be selected.
 > ⚠ **The size-error group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives shall be specified, each at most once, **in any order**. `rounded-phrase` is described in 14.7.4, ROUNDED phrase.
@@ -32364,8 +32935,9 @@ The SUPPRESS statement inhibits the printing of a report group.
 <a id="section-14-9-45-2"></a>
 ##### 14.9.45.2 General format
 
+<pre>
 <u>SUPPRESS</u> PRINTING
-
+</pre>
 <a id="section-14-9-45-3"></a>
 ##### 14.9.45.3 Syntax rule
 
@@ -32411,8 +32983,9 @@ The TERMINATE statement completes the processing of the specified reports.
 <a id="section-14-9-46-2"></a>
 ##### 14.9.46.2 General format
 
-TERMINATE { report-name-1 } …
-
+<pre>
+<u>TERMINATE</u> { report-name-1 } …
+</pre>
 <a id="section-14-9-46-3"></a>
 ##### 14.9.46.3 Syntax rules
 
@@ -32468,10 +33041,12 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 <a id="section-14-9-47-2"></a>
 ##### 14.9.47.2 General format
 
-```
-UNLOCK   file-name-1  [RECORD ]
-                      [RECORDS]
-```
+<pre>
+<u>UNLOCK</u>      ┌ RECORD  ┐
+            │         │
+file-name-1 │         │
+            └ RECORDS ┘
+</pre>
 
 <a id="section-14-9-47-3"></a>
 ##### 14.9.47.3 Syntax rules
@@ -32686,37 +33261,42 @@ NOTE These facilities can include the input-output control system and the operat
 
 Format 1 (file-exception):
 
-```
-                                                            ⎧ { file-name-1 } … ⎫
-                                ⎧ EXCEPTION ⎫               ⎪ INPUT             ⎪
-USE [ GLOBAL ] AFTER STANDARD   ⎨           ⎬ PROCEDURE ON  ⎨ OUTPUT            ⎬
-                                ⎩ ERROR     ⎭               ⎪ I-O               ⎪
-                                                            ⎩ EXTEND            ⎭
-```
+<pre>
+                                                         ╭ { file-name-1 } … ╮
+                                                         │                   │
+                                                         │ <u>INPUT</u>             │
+                                                         │                   │
+<u>USE</u> [ <u>GLOBAL</u> ] AFTER STANDARD ╭ <u>EXCEPTION</u> ╮ PROCEDURE ON ┤ <u>OUTPUT</u>            ├
+                              ┤           ├              │                   │
+                              ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>               │
+                                                         │                   │
+                                                         ╰ <u>EXTEND</u>            ╯
+</pre>
 
 > **Figure notes (USE statement Format 1 (file-exception) syntax diagram).** `USE`, `GLOBAL`, `EXCEPTION`, `ERROR`, `INPUT`, `OUTPUT`, `I-O`, and `EXTEND` are underlined in the printed standard (required words); `AFTER`, `STANDARD`, `PROCEDURE`, and `ON` are printed without underlining. `[ GLOBAL ]` is optional. Both brace groups require exactly one of their enclosed alternatives; the ellipsis on the `{ file-name-1 }` alternative permits one or more file-names.
 
 Format 2 (reporting):
 
-USE [ GLOBAL ] BEFORE REPORTING identifier-1
-
+<pre>
+<u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1
+</pre>
 Format 3 (exception-name):
 
-```
-            ⎧ EXCEPTION CONDITION ⎫   ⎧ exception-name-1                       ⎫
-USE AFTER   ⎨                     ⎬   ⎨                                        ⎬ …
-            ⎩ EC                  ⎭   ⎩ exception-name-2 { FILE file-name-2 } … ⎭
-```
+<pre>
+          ╭ <u>EXCEPTION</u> <u>CONDITION</u> ╮ ╭ exception-name-1                        ╮
+<u>USE</u> AFTER ┤                     ├ ┤                                         ├ …
+          ╰ <u>EC</u>                  ╯ ╰ exception-name-2 { <u>FILE</u> file-name-2 } … ╯
+</pre>
 
 > **Figure notes (USE statement Format 3 (exception-name) syntax diagram).** `USE`, `EXCEPTION`, `CONDITION`, `EC`, and `FILE` are underlined in the printed standard (required words); `AFTER` is not underlined. Both brace groups require exactly one of their enclosed alternatives. The inner `{ FILE file-name-2 }` braces carry their own ellipsis (one or more file-names), and the ellipsis outside the second outer brace repeats the whole exception-name specification.
 
 Format 4 (exception-object):
 
-```
-            ⎧ EXCEPTION OBJECT ⎫   ⎧ object-class-name-1 ⎫
-USE AFTER   ⎨                  ⎬   ⎨                     ⎬
-            ⎩ EO               ⎭   ⎩ interface-name-1    ⎭
-```
+<pre>
+          ╭ <u>EXCEPTION</u> <u>OBJECT</u> ╮ ╭ object-class-name-1 ╮
+<u>USE</u> AFTER ┤                  ├ ┤                     ├
+          ╰ <u>EO</u>               ╯ ╰ interface-name-1    ╯
+</pre>
 
 > **Figure notes (USE statement Format 4 (exception-object) syntax diagram).** `USE`, `EXCEPTION`, `OBJECT`, and `EO` are underlined in the printed standard (required words); `AFTER` is not underlined. Both brace groups require exactly one of their enclosed alternatives.
 
@@ -32932,8 +33512,9 @@ Unlike other obsolete features, it is intended that interest in this facility wi
 <a id="section-14-9-50-2"></a>
 ##### 14.9.50.2 General format
 
-<u>VALIDATE</u>  { identifier-1 }  …
-
+<pre>
+<u>VALIDATE</u> { identifier-1 } …
+</pre>
 <a id="section-14-9-50-3"></a>
 ##### 14.9.50.3 Syntax rules
 
@@ -33086,29 +33667,35 @@ The WRITE statement releases a logical record for an output or input-output file
 
 Format 1 (sequential):
 
-```
-          ⎧ record-name-1    ⎫   ⎡        ⎧ identifier-1 ⎫ ⎤
-WRITE     ⎩ FILE file-name-1 ⎭   ⎣ FROM   ⎩ literal-1    ⎭ ⎦
+<pre>
+      ╭ record-name-1    ╮ ┌      ╭ identifier-1 ╮ ┐
+<u>WRITE</u> ┤                  ├ │ <u>FROM</u> ┤              ├ │
+      ╰ <u>FILE</u> file-name-1 ╯ └      ╰ literal-1    ╯ ┘
 
-⎡                              ⎧ ⎧ identifier-2 ⎫ ⎡ LINE  ⎤ ⎫ ⎤
-⎢ ⎧ | BEFORE | ⎫               ⎪ ⎩ integer-1    ⎭ ⎣ LINES ⎦ ⎪ ⎥
-⎢ ⎩ | AFTER  | ⎭  ADVANCING    ⎨                            ⎬ ⎥
-⎢                              ⎪ ⎧ mnemonic-name-1 ⎫        ⎪ ⎥
-⎣                              ⎩ ⎩ PAGE            ⎭        ⎭ ⎦
+┌                          ╭ ╭ identifier-2 ╮ ┌ LINE  ┐ ╮ ┐
+│                          │ ┤              ├ │       │ │ │
+│ ╭ │ <u>BEFORE</u> │ ╮           │ ╰ integer-1    ╯ └ LINES ┘ │ │
+│ ┤ │        │ ├ ADVANCING ┤                            ├ │
+│ ╰ │ <u>AFTER</u>  │ ╯           │ ╭ mnemonic-name-1 ╮        │ │
+│                          │ ┤                 ├        │ │
+└                          ╰ ╰ <u>PAGE</u>            ╯        ╯ ┘
 
 [ retry-phrase ]
 
-⎡ WITH LOCK    ⎤
-⎣ WITH NO LOCK ⎦
+┌ WITH <u>LOCK</u>    ┐
+│              │
+└ WITH <u>NO</u> <u>LOCK</u> ┘
 
-⎡ | AT     ⎧ END-OF-PAGE ⎫ imperative-statement-1 | ⎤
-⎢ |        ⎩ EOP         ⎭                        | ⎥
-⎢ |                                               | ⎥
-⎢ | NOT AT ⎧ END-OF-PAGE ⎫ imperative-statement-2 | ⎥
-⎣ |        ⎩ EOP         ⎭                        | ⎦
+┌ │    ╭ <u>END-OF-PAGE</u> ╮                            │ ┐
+│ │ AT ┤             ├ imperative-statement-1     │ │
+│ │    ╰ <u>EOP</u>         ╯                            │ │
+│ │                                               │ │
+│ │        ╭ <u>END-OF-PAGE</u> ╮                        │ │
+│ │ <u>NOT</u> AT ┤             ├ imperative-statement-2 │ │
+└ │        ╰ <u>EOP</u>         ╯                        │ ┘
 
-[ END-WRITE ]
-```
+[ <u>END-WRITE</u> ]
+</pre>
 
 > **Figure notes (WRITE statement Format 1 (sequential) syntax diagram).** `WRITE`, `FILE`, `FROM`, `BEFORE`, `AFTER`, `PAGE`, `LOCK`, `NO`, `END-OF-PAGE`, `EOP`, `NOT`, and `END-WRITE` are underlined in the printed standard (required words). `ADVANCING`, `LINE`, `LINES`, `WITH`, and `AT` are **not** underlined — they are optional words.
 > ⚠ **Two groups in this figure carry CHOICE INDICATORS** (the `|` bars). (1) `BEFORE`/`AFTER` sit inside choice indicators enclosed by **braces**: per 5.2.6.4 that means one or more of the enclosed alternatives, each specified at most once, in any order. (2) The `AT … END-OF-PAGE` and `NOT AT … END-OF-PAGE` phrases sit inside choice indicators enclosed by **brackets**: zero or more of them may be specified, each at most once, in any order — so either phrase alone, both together (in either order), or neither.
@@ -33125,20 +33712,23 @@ WRITE     ⎩ FILE file-name-1 ⎭   ⎣ FROM   ⎩ literal-1    ⎭ ⎦
 
 Format 2 (random):
 
-```
-WRITE ⎧ record-name-1    ⎫  ⎡ FROM ⎧ identifier-1 ⎫ ⎤
-      ⎩ FILE file-name-1 ⎭  ⎣      ⎩ literal-1    ⎭ ⎦
+<pre>
+      ╭ record-name-1    ╮ ┌      ╭ identifier-1 ╮ ┐
+<u>WRITE</u> ┤                  ├ │ <u>FROM</u> ┤              ├ │
+      ╰ <u>FILE</u> file-name-1 ╯ └      ╰ literal-1    ╯ ┘
 
-      [ retry-phrase ]
+[ retry-phrase ]
 
-      ⎡ WITH LOCK    ⎤
-      ⎣ WITH NO LOCK ⎦
+┌ WITH <u>LOCK</u>    ┐
+│              │
+└ WITH <u>NO</u> <u>LOCK</u> ┘
 
-      ⎡ | INVALID KEY imperative-statement-1     | ⎤
-      ⎣ | NOT INVALID KEY imperative-statement-2 | ⎦
+┌ │ <u>INVALID</u> KEY imperative-statement-1     │ ┐
+│ │                                        │ │
+└ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 │ ┘
 
-      [ END-WRITE ]
-```
+[ <u>END-WRITE</u> ]
+</pre>
 
 > **Figure notes (WRITE statement Format 2 (random) syntax diagram).** `WRITE`, `FILE`, `FROM`, `LOCK`, `NO`, `INVALID`, `NOT`, and `END-WRITE` are underlined in the printed standard (required words); `KEY` and `WITH` are not underlined. `retry-phrase` is described in 14.7.9, RETRY phrase.
 > ⚠ **The INVALID KEY group is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives may be specified, each at most once, **in any order** — so a WRITE may carry the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both** (in either order), or neither. By contrast the `WITH LOCK` / `WITH NO LOCK` bracket carries **no** bars: at most one of those two alternatives may be specified.
@@ -34159,8 +34749,9 @@ The type of this function depends on the argument type as follows:
 <a id="section-15-7-2"></a>
 #### 15.7.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>ABS</u> ( argument-1 )
-
+</pre>
 <a id="section-15-7-3"></a>
 #### 15.7.3 Argument rule
 
@@ -34200,9 +34791,9 @@ The type of this function is numeric.
 <a id="section-15-8-2"></a>
 #### 15.8.2 General format
 
-```
-FUNCTION ACOS ( argument-1 )
-```
+<pre>
+<u>FUNCTION</u> <u>ACOS</u> ( argument-1 )
+</pre>
 
 <a id="section-15-8-3"></a>
 #### 15.8.3 Argument rules
@@ -34235,8 +34826,9 @@ The type of this function is numeric.
 <a id="section-15-9-2"></a>
 #### 15.9.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>ANNUITY</u> ( argument-1 argument-2 )
-
+</pre>
 <a id="section-15-9-3"></a>
 #### 15.9.3 Argument rules
 
@@ -34285,8 +34877,9 @@ The type of this function is numeric.
 <a id="section-15-10-2"></a>
 #### 15.10.2 General format
 
-`FUNCTION ASIN ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>ASIN</u> ( argument-1 )
+</pre>
 <a id="section-15-10-3"></a>
 #### 15.10.3 Arguments rules
 
@@ -34323,8 +34916,9 @@ The type of this function is numeric.
 <a id="section-15-11-2"></a>
 #### 15.11.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>ATAN</u> ( argument-1 )
-
+</pre>
 <a id="section-15-11-3"></a>
 #### 15.11.3 Argument rule
 
@@ -34361,8 +34955,9 @@ The type of this function depends upon the type of argument-1 as follows:
 <a id="section-15-12-2"></a>
 #### 15.12.2 General format
 
-FUNCTION BASECONVERT ( argument-1 argument-2 argument-3 )
-
+<pre>
+<u>FUNCTION</u> <u>BASECONVERT</u> ( argument-1 argument-2 argument-3 )
+</pre>
 <a id="section-15-12-3"></a>
 #### 15.12.3 Argument rules
 
@@ -34398,8 +34993,9 @@ The function type is boolean.
 <a id="section-15-13-2"></a>
 #### 15.13.2 General format
 
-`FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 )`
-
+<pre>
+<u>FUNCTION</u> <u>BOOLEAN-OF-INTEGER</u> ( argument-1 argument-2 )
+</pre>
 <a id="section-15-13-3"></a>
 #### 15.13.3 Arguments rules
 
@@ -34438,8 +35034,9 @@ The type of the function is integer.
 <a id="section-15-14-2"></a>
 #### 15.14.2 General format
 
-FUNCTION BYTE-LENGTH ( argument-1 [ PHYSICAL ] )
-
+<pre>
+<u>FUNCTION</u> <u>BYTE-LENGTH</u> ( argument-1 [ <u>PHYSICAL</u> ] )
+</pre>
 <a id="section-15-14-3"></a>
 #### 15.14.3 Argument rule
 
@@ -34506,9 +35103,9 @@ The type of this function is alphanumeric.
 <a id="section-15-15-2"></a>
 #### 15.15.2 General format
 
-```
-FUNCTION CHAR ( argument-1 )
-```
+<pre>
+<u>FUNCTION</u> <u>CHAR</u> ( argument-1 )
+</pre>
 
 <a id="section-15-15-3"></a>
 #### 15.15.3 Argument rules
@@ -34545,8 +35142,9 @@ The type of the function is national.
 <a id="section-15-16-2"></a>
 #### 15.16.2 General format
 
-`FUNCTION CHAR-NATIONAL ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>CHAR-NATIONAL</u> ( argument-1 )
+</pre>
 <a id="section-15-16-3"></a>
 #### 15.16.3 Argument rules
 
@@ -34585,8 +35183,9 @@ The type of this function is numeric.
 <a id="section-15-17-2"></a>
 #### 15.17.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>COMBINED-DATETIME</u> ( argument-1 argument-2 )
-
+</pre>
 <a id="section-15-17-3"></a>
 #### 15.17.3 Argument rules
 
@@ -34633,8 +35232,9 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-18-2"></a>
 #### 15.18.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>CONCAT</u> ( argument-1, argument-2 … )
-
+</pre>
 <a id="section-15-18-3"></a>
 #### 15.18.3 Argument rules
 
@@ -34689,21 +35289,24 @@ The type of this function depends upon the keywords in the destination format li
 <a id="section-15-19-2"></a>
 #### 15.19.2 General format
 
-<u>FUNCTION</u> CONVERT ( argument-1 source-format destination-format )
-
+<pre>
+<u>FUNCTION</u> <u>CONVERT</u> ( argument-1 source-format destination-format )
+</pre>
 where source-format is
 
-```
- ⎧ ANY                    ⎫
- ⎪                        ⎪
- ⎪ ⎧ ALPHANUMERIC ⎫       ⎪
- ⎪ ⎩ ANUM         ⎭       ⎪
- ⎨                        ⎬
- ⎪ HEX                    ⎪
- ⎪                        ⎪
- ⎪ ⎧ NAT      ⎫           ⎪
- ⎩ ⎩ NATIONAL ⎭           ⎭
-```
+<pre>
+╭ <u>ANY</u>              ╮
+│                  │
+│ ╭ <u>ALPHANUMERIC</u> ╮ │
+│ ┤              ├ │
+│ ╰ <u>ANUM</u>         ╯ │
+│                  │
+┤ <u>HEX</u>              ├
+│                  │
+│ ╭ <u>NAT</u>      ╮     │
+│ ┤          ├     │
+╰ ╰ <u>NATIONAL</u> ╯     ╯
+</pre>
 
 > **Figure notes (CONVERT function source-format syntax diagram).** `ANY`, `ALPHANUMERIC`, `ANUM`, `HEX`, `NAT`, and `NATIONAL` are all underlined in the printed standard (required words / required minimum abbreviations — `ANUM` for `ALPHANUMERIC`, `NAT` for `NATIONAL`). The outer braces enclose four alternatives, exactly one of which shall be selected. No choice indicators appear in this figure — the outer delimiter is a plain brace with no `|` bars.
 
@@ -34720,15 +35323,16 @@ where source-format is
 
 Where destination-format is
 
-```
-⎧ ⎧ ⎧ ⎧ ⎧ ALPHANUMERIC ⎫ ⎫ ⎫     ⎫ ⎫
-⎪ ⎪ ⎪ ⎪ ⎩ ANUM         ⎭ ⎪ ⎪     ⎪ ⎪
-⎪ ⎨ ⎨ ⎨                  ⎬ ⎬ HEX ⎬ ⎪
-⎪ ⎪ ⎪ ⎪ ⎧ NAT          ⎫ ⎪ ⎪     ⎪ ⎪
-⎨ ⎩ ⎩ ⎩ ⎩ NATIONAL     ⎭ ⎭ ⎭     ⎭ ⎬
-⎪                                   ⎪
-⎩ BYTE                              ⎭
-```
+<pre>
+╭ ╭ ╭ ╭ ╭ <u>ALPHANUMERIC</u> ╮ ╮ ╮     ╮ ╮
+│ │ │ │ ┤              ├ │ │     │ │
+│ │ │ │ ╰ <u>ANUM</u>         ╯ │ │     │ │
+┤ ┤ ┤ ┤                  ├ ├ <u>HEX</u> ├ ├
+│ │ │ │ ╭ <u>NAT</u>      ╮     │ │     │ │
+│ │ │ │ ┤          ├     │ │     │ │
+│ │ ╰ ╰ ╰ <u>NATIONAL</u> ╯     ╯ ╯     │ │
+╰ ╰ <u>BYTE</u>                         ╯ ╯
+</pre>
 
 > **Figure notes:** all delimiters in this figure are BRACES — there are no choice indicators (verified at 700 dpi). The outermost brace selects exactly one of the HEX group or BYTE; within the HEX group, exactly one of `{ALPHANUMERIC | ANUM}` or `{NAT | NATIONAL}` is selected and is followed by the required word HEX. ALPHANUMERIC, ANUM, NAT, NATIONAL, HEX and BYTE are all underlined (required words) in the printed figure; the underscore rows in the previous transcription were OCR artefacts of that underlining, not operands.
 
@@ -34832,8 +35436,9 @@ The type of this function is numeric.
 <a id="section-15-20-2"></a>
 #### 15.20.2 General format
 
-`FUNCTION COS ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>COS</u> ( argument-1 )
+</pre>
 <a id="section-15-20-3"></a>
 #### 15.20.3 Argument rule
 
@@ -34868,8 +35473,9 @@ The type of this function is alphanumeric.
 <a id="section-15-21-2"></a>
 #### 15.21.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>CURRENT-DATE</u>
-
+</pre>
 <a id="section-15-21-3"></a>
 #### 15.21.3 Returned value rule
 
@@ -34919,8 +35525,9 @@ The type of this function is integer.
 <a id="section-15-22-2"></a>
 #### 15.22.2 General format
 
-`FUNCTION DATE-OF-INTEGER ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> ( argument-1 )
+</pre>
 <a id="section-15-22-3"></a>
 #### 15.22.3 Argument rule
 
@@ -34955,9 +35562,9 @@ The type of the function is integer.
 <a id="section-15-23-2"></a>
 #### 15.23.2 General format
 
-```
-FUNCTION  DATE-TO-YYYYMMDD  ( argument-1 [ argument-2 [ argument-3 ] ] )
-```
+<pre>
+<u>FUNCTION</u> <u>DATE-TO-YYYYMMDD</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
+</pre>
 
 <a id="section-15-23-3"></a>
 #### 15.23.3 Argument rules
@@ -35028,9 +35635,9 @@ The type of this function is integer.
 <a id="section-15-24-2"></a>
 #### 15.24.2 General format
 
-```
-FUNCTION DAY-OF-INTEGER ( argument-1 )
-```
+<pre>
+<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> ( argument-1 )
+</pre>
 
 <a id="section-15-24-3"></a>
 #### 15.24.3 Argument rule
@@ -35068,9 +35675,9 @@ The type of the function is integer.
 <a id="section-15-25-2"></a>
 #### 15.25.2 General format
 
-```
-FUNCTION  DAY-TO-YYYYDDD  ( argument-1 [ argument-2 [ argument-3 ] ] )
-```
+<pre>
+<u>FUNCTION</u> <u>DAY-TO-YYYYDDD</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
+</pre>
 
 <a id="section-15-25-3"></a>
 #### 15.25.3 Argument rules
@@ -35138,8 +35745,9 @@ The type of the function is alphanumeric.
 <a id="section-15-26-2"></a>
 #### 15.26.2 General format
 
-`FUNCTION DISPLAY-OF ( argument-1 [ argument-2 ] )`
-
+<pre>
+<u>FUNCTION</u> <u>DISPLAY-OF</u> ( argument-1 [ argument-2 ] )
+</pre>
 <a id="section-15-26-3"></a>
 #### 15.26.3 Argument rules
 
@@ -35180,8 +35788,9 @@ The type of the function is numeric.
 <a id="section-15-27-2"></a>
 #### 15.27.2 General format
 
-`FUNCTION E`
-
+<pre>
+<u>FUNCTION</u> <u>E</u>
+</pre>
 <a id="section-15-27-3"></a>
 #### 15.27.3 Returned value rules
 
@@ -35221,8 +35830,9 @@ The type of the function is alphanumeric.
 <a id="section-15-28-2"></a>
 #### 15.28.2 General format
 
-<u>FUNCTION</u> <u>EXCEPTION-FILE</u> [(argument-1)]
-
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-FILE</u> [ ( argument-1 ) ]
+</pre>
 <a id="section-15-28-3"></a>
 #### 15.28.3 Argument rule
 
@@ -35281,8 +35891,9 @@ The type of the function is national.
 <a id="section-15-29-2"></a>
 #### 15.29.2 General format
 
-`FUNCTION EXCEPTION-FILE-N [(argument-1)]`
-
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-FILE-N</u> [ ( argument-1 ) ]
+</pre>
 <a id="section-15-29-3"></a>
 #### 15.29.3 Argument rule
 
@@ -35342,9 +35953,9 @@ The type of the function is alphanumeric.
 <a id="section-15-30-2"></a>
 #### 15.30.2 General format
 
-```
-FUNCTION  EXCEPTION-LOCATION
-```
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-LOCATION</u>
+</pre>
 
 <a id="section-15-30-3"></a>
 #### 15.30.3 Returned value rules
@@ -35398,9 +36009,9 @@ The type of the function is national.
 <a id="section-15-31-2"></a>
 #### 15.31.2 General format
 
-```
-FUNCTION  EXCEPTION-LOCATION-N
-```
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-LOCATION-N</u>
+</pre>
 
 <a id="section-15-31-3"></a>
 #### 15.31.3 Returned value rules
@@ -35453,9 +36064,9 @@ The type of the function is alphanumeric.
 <a id="section-15-32-2"></a>
 #### 15.32.2 General format
 
-```
-FUNCTION EXCEPTION-STATEMENT
-```
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-STATEMENT</u>
+</pre>
 
 <a id="section-15-32-3"></a>
 #### 15.32.3 Returned value rules
@@ -35485,9 +36096,9 @@ The type of the function is alphanumeric.
 <a id="section-15-33-2"></a>
 #### 15.33.2 General format
 
-```
-FUNCTION EXCEPTION-STATUS
-```
+<pre>
+<u>FUNCTION</u> <u>EXCEPTION-STATUS</u>
+</pre>
 
 <a id="section-15-33-3"></a>
 #### 15.33.3 Returned value rule
@@ -35518,8 +36129,9 @@ The type of the function is numeric.
 <a id="section-15-34-2"></a>
 #### 15.34.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>EXP</u> ( argument-1 )
-
+</pre>
 <a id="section-15-34-3"></a>
 #### 15.34.3 Argument rules
 
@@ -35553,8 +36165,9 @@ The type of the function is numeric.
 <a id="section-15-35-2"></a>
 #### 15.35.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>EXP10</u> ( argument-1 )
-
+</pre>
 <a id="section-15-35-3"></a>
 #### 15.35.3 Argument rule
 
@@ -35591,8 +36204,9 @@ The type of this function is integer.
 <a id="section-15-36-2"></a>
 #### 15.36.2 General format
 
-FUNCTION FACTORIAL ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>FACTORIAL</u> ( argument-1 )
+</pre>
 <a id="section-15-36-3"></a>
 #### 15.36.3 Argument rule
 
@@ -35634,9 +36248,9 @@ The type of this function is integer.
 <a id="section-15-37-2"></a>
 #### 15.37.2 General format
 
-```
-FUNCTION FIND-STRING argument-1 argument-2 [ LAST ] [ [ START AFTER ] argument-3 ]  [ ANYCASE ]
-```
+<pre>
+<u>FUNCTION</u> <u>FIND-STRING</u> argument-1 argument-2 [ <u>LAST]</u> [ [ <u>START</u> <u>AFTER</u> ] argument-3 ] [ <u>ANYCASE</u> ]
+</pre>
 
 <a id="section-15-37-3"></a>
 #### 15.37.3 Argument rules
@@ -35686,8 +36300,9 @@ The type of this function depends on the argument type as follows:
 <a id="section-15-38-2"></a>
 #### 15.38.2 General format
 
-FUNCTION FORMATTED-CURRENT-DATE ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>FORMATTED-CURRENT-DATE</u> ( argument-1 )
+</pre>
 <a id="section-15-38-3"></a>
 #### 15.38.3 Argument rules
 
@@ -35731,8 +36346,9 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-39-2"></a>
 #### 15.39.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>FORMATTED-DATE</u> ( argument-1 argument-2 )
-
+</pre>
 <a id="section-15-39-3"></a>
 #### 15.39.3 Argument rules
 
@@ -35776,8 +36392,9 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-40-2"></a>
 #### 15.40.2 General format
 
-FUNCTION FORMATTED-DATETIME ( argument-1 argument-2 argument-3 [ argument-4 ] )
-
+<pre>
+<u>FUNCTION</u> <u>FORMATTED-DATETIME</u> ( argument-1 argument-2 argument-3 [ argument-4 ] )
+</pre>
 <a id="section-15-40-3"></a>
 #### 15.40.3 Argument rules
 
@@ -35837,8 +36454,9 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-41-2"></a>
 #### 15.41.2 General format
 
-FUNCTION FORMATTED-TIME ( argument-1 argument-2 [ argument-3 ] )
-
+<pre>
+<u>FUNCTION</u> <u>FORMATTED-TIME</u> ( argument-1 argument-2 [ argument-3 ] )
+</pre>
 <a id="section-15-41-3"></a>
 #### 15.41.3 Argument rules
 
@@ -35892,8 +36510,9 @@ The type of the function is numeric.
 <a id="section-15-42-2"></a>
 #### 15.42.2 General format
 
-FUNCTION FRACTION-PART ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>FRACTION-PART</u> ( argument-1 )
+</pre>
 <a id="section-15-42-3"></a>
 #### 15.42.3 Argument rule
 
@@ -35940,8 +36559,9 @@ The content of any numeric data item can be set exactly to the highest algebraic
 <a id="section-15-43-2"></a>
 #### 15.43.2 General format
 
-<u>FUNCTION</u> &nbsp;<u>HIGHEST-ALGEBRAIC</u> &nbsp;( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>HIGHEST-ALGEBRAIC</u> ( argument-1 )
+</pre>
 <a id="section-15-43-3"></a>
 #### 15.43.3 Argument rules
 
@@ -35996,8 +36616,9 @@ The type of this function is integer.
 <a id="section-15-44-2"></a>
 #### 15.44.2 General format
 
-FUNCTION INTEGER ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>INTEGER</u> ( argument-1 )
+</pre>
 <a id="section-15-44-3"></a>
 #### 15.44.3 Argument rule
 
@@ -36048,8 +36669,9 @@ The function type is integer.
 <a id="section-15-45-2"></a>
 #### 15.45.2 General format
 
-FUNCTION INTEGER-OF-BOOLEAN ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>INTEGER-OF-BOOLEAN</u> ( argument-1 )
+</pre>
 <a id="section-15-45-3"></a>
 #### 15.45.3 Argument rule
 
@@ -36087,8 +36709,9 @@ The type of this function is integer.
 <a id="section-15-46-2"></a>
 #### 15.46.2 General format
 
-`FUNCTION INTEGER-OF-DATE ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> ( argument-1 )
+</pre>
 <a id="section-15-46-3"></a>
 #### 15.46.3 Argument rule
 
@@ -36127,8 +36750,9 @@ The type of this function is integer.
 <a id="section-15-47-2"></a>
 #### 15.47.2 General format
 
-`FUNCTION INTEGER-OF-DAY ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> ( argument-1 )
+</pre>
 <a id="section-15-47-3"></a>
 #### 15.47.3 Argument rule
 
@@ -36162,9 +36786,9 @@ The type of this function is integer.
 <a id="section-15-48-2"></a>
 #### 15.48.2 General format
 
-```
-FUNCTION INTEGER-OF-FORMATTED-DATE ( argument-1 argument-2 )
-```
+<pre>
+<u>FUNCTION</u> <u>INTEGER-OF-FORMATTED-DATE</u> ( argument-1 argument-2 )
+</pre>
 
 <a id="section-15-48-3"></a>
 #### 15.48.3 Argument rules
@@ -36206,8 +36830,9 @@ The type of this function is integer.
 <a id="section-15-49-2"></a>
 #### 15.49.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>INTEGER-PART</u> ( argument-1 )
-
+</pre>
 <a id="section-15-49-3"></a>
 #### 15.49.3 Argument rule
 
@@ -36257,9 +36882,9 @@ The type of this function is integer.
 <a id="section-15-50-2"></a>
 #### 15.50.2 General format
 
-```
-FUNCTION LENGTH ( argument-1 [ PHYSICAL ] )
-```
+<pre>
+<u>FUNCTION</u> <u>LENGTH</u> ( argument-1 [ <u>PHYSICAL</u> ] )
+</pre>
 
 <a id="section-15-50-3"></a>
 #### 15.50.3 Argument rule
@@ -36330,8 +36955,9 @@ The function type is alphanumeric.
 <a id="section-15-51-2"></a>
 #### 15.51.2 General format
 
-FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )
-
+<pre>
+<u>FUNCTION</u> <u>LOCALE-COMPARE</u> ( argument-1 argument-2 [ locale-name-1 ] )
+</pre>
 <a id="section-15-51-3"></a>
 #### 15.51.3 Argument rules
 
@@ -36388,8 +37014,9 @@ The function type is alphanumeric.
 <a id="section-15-52-2"></a>
 #### 15.52.2 General format
 
-`FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] )`
-
+<pre>
+<u>FUNCTION</u> <u>LOCALE-DATE</u> ( argument-1 [ locale-name-1 ] )
+</pre>
 <a id="section-15-52-3"></a>
 #### 15.52.3 Argument rules
 
@@ -36429,8 +37056,9 @@ The function type is alphanumeric.
 <a id="section-15-53-2"></a>
 #### 15.53.2 General format
 
-FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] )
-
+<pre>
+<u>FUNCTION</u> <u>LOCALE-TIME</u> ( argument-1 [ locale-name-1 ] )
+</pre>
 <a id="section-15-53-3"></a>
 #### 15.53.3 Argument rules
 
@@ -36478,9 +37106,9 @@ The function type is alphanumeric.
 <a id="section-15-54-2"></a>
 #### 15.54.2 General format
 
-```
-FUNCTION LOCALE-TIME-FROM-SECONDS ( argument-1 [ locale-name-1 ] )
-```
+<pre>
+<u>FUNCTION</u> <u>LOCALE-TIME-FROM-SECONDS</u> ( argument-1 [ locale-name-1 ] )
+</pre>
 
 <a id="section-15-54-3"></a>
 #### 15.54.3 Argument rules
@@ -36519,8 +37147,9 @@ The type of this function is numeric.
 <a id="section-15-55-2"></a>
 #### 15.55.2 General format
 
-`FUNCTION LOG ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>LOG</u> ( argument-1 )
+</pre>
 <a id="section-15-55-3"></a>
 #### 15.55.3 Argument rules
 
@@ -36554,8 +37183,9 @@ The type of this function is numeric.
 <a id="section-15-56-2"></a>
 #### 15.56.2 General format
 
-`FUNCTION LOG10 ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>LOG10</u> ( argument-1 )
+</pre>
 <a id="section-15-56-3"></a>
 #### 15.56.3 Argument rules
 
@@ -36595,8 +37225,9 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-57-2"></a>
 #### 15.57.2 General format
 
-FUNCTION LOWER-CASE ( argument-1 [ LOCALE locale-name-1 ] )
-
+<pre>
+<u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 [ <u>LOCALE</u> locale-name-1 ] )
+</pre>
 <a id="section-15-57-3"></a>
 #### 15.57.3 Argument rule
 
@@ -36649,8 +37280,9 @@ The content of any unsigned numeric data item can be set by any number of constr
 <a id="section-15-58-2"></a>
 #### 15.58.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>LOWEST-ALGEBRAIC</u> ( argument-1 )
-
+</pre>
 <a id="section-15-58-3"></a>
 #### 15.58.3 Argument rules
 
@@ -36715,8 +37347,9 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-59-2"></a>
 #### 15.59.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )
-
+</pre>
 <a id="section-15-59-3"></a>
 #### 15.59.3 Argument rules
 
@@ -36759,8 +37392,9 @@ The type of this function is numeric.
 <a id="section-15-60-2"></a>
 #### 15.60.2 General format
 
-FUNCTION MEAN ( { argument-1 } … )
-
+<pre>
+<u>FUNCTION</u> <u>MEAN</u> ( { argument-1 } … )
+</pre>
 <a id="section-15-60-3"></a>
 #### 15.60.3 Argument rule
 
@@ -36803,8 +37437,9 @@ The type of this function is numeric.
 <a id="section-15-61-2"></a>
 #### 15.61.2 General format
 
-`FUNCTION MEDIAN ( { argument-1 } … )`
-
+<pre>
+<u>FUNCTION</u> <u>MEDIAN</u> ( { argument-1 } … )
+</pre>
 <a id="section-15-61-3"></a>
 #### 15.61.3 Argument rule
 
@@ -36847,9 +37482,9 @@ The type of this function is numeric.
 <a id="section-15-62-2"></a>
 #### 15.62.2 General format
 
-```
-FUNCTION MIDRANGE ( { argument-1 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>MIDRANGE</u> ( { argument-1 } … )
+</pre>
 
 <a id="section-15-62-3"></a>
 #### 15.62.3 Argument rule
@@ -36894,8 +37529,9 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-63-2"></a>
 #### 15.63.2 General format
 
-`FUNCTION MIN ( { argument-1 } … )`
-
+<pre>
+<u>FUNCTION</u> <u>MIN</u> ( { argument-1 } … )
+</pre>
 <a id="section-15-63-3"></a>
 #### 15.63.3 Argument rules
 
@@ -36935,8 +37571,9 @@ The type of this function is integer.
 <a id="section-15-64-2"></a>
 #### 15.64.2 General format
 
-FUNCTION MOD ( argument-1 argument-2 )
-
+<pre>
+<u>FUNCTION</u> <u>MOD</u> ( argument-1 argument-2 )
+</pre>
 <a id="section-15-64-3"></a>
 #### 15.64.3 Argument rules
 
@@ -36981,13 +37618,17 @@ The type of this function is alphanumeric.
 <a id="section-15-65-2"></a>
 #### 15.65.2 General format
 
-```
-                       ⎧ ACTIVATING ⎫
-                       ⎪  CURRENT   ⎪
-FUNCTION MODULE-NAME ( ⎨   NESTED   ⎬ )
-                       ⎪   STACK    ⎪
-                       ⎩ TOP-LEVEL  ⎭
-```
+<pre>
+                     ╭ ╭ <u>ACTIVATING</u> ╮ ╮
+                     │ │            │ │
+                     │ │ <u>CURRENT</u>    │ │
+                     │ │            │ │
+<u>FUNCTION</u> <u>MODULE-NAME</u> │ ┤ <u>NESTED</u>     ├ │
+                     │ │            │ │
+                     │ │ <u>STACK</u>      │ │
+                     │ │            │ │
+                     ╰ ╰ <u>TOP-LEVEL</u>  ╯ ╯
+</pre>
 
 > **Figure notes** — the outer `(` `)` are literal COBOL argument parentheses, not notation; the inner braces are a notation brace with no choice indicators (verified at 900 dpi), so exactly ONE keyword argument shall be specified. FUNCTION, MODULE-NAME, ACTIVATING, CURRENT, NESTED, STACK and TOP-LEVEL are underlined in the printed standard (required words).
 
@@ -37045,8 +37686,9 @@ The type of the function is national.
 <a id="section-15-66-2"></a>
 #### 15.66.2 General format
 
-`FUNCTION NATIONAL-OF ( argument-1 [ argument-2 ] )`
-
+<pre>
+<u>FUNCTION</u> <u>NATIONAL-OF</u> ( argument-1 [ argument-2 ] )
+</pre>
 <a id="section-15-66-3"></a>
 #### 15.66.3 Argument rules
 
@@ -37090,8 +37732,9 @@ NOTE Locale-based functionality equivalent to NUMVAL can be obtained by using th
 <a id="section-15-67-2"></a>
 #### 15.67.2 General format
 
-FUNCTION NUMVAL ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>NUMVAL</u> ( argument-1 )
+</pre>
 <a id="section-15-67-3"></a>
 #### 15.67.3 Argument rules
 
@@ -37163,10 +37806,11 @@ The type of this function is numeric.
 <a id="section-15-68-2"></a>
 #### 15.68.2 General format
 
-```
-FUNCTION NUMVAL-C ( argument-1 [ LOCALE [ locale-name-1 ] ] [ ANYCASE ] )
-                               [ argument-2              ]
-```
+<pre>
+                               ┌ <u>LOCALE</u> [ locale-name-1 ] ┐
+<u>FUNCTION</u> <u>NUMVAL-C</u> ( argument-1 │                          │ [ <u>ANYCASE</u> ] )
+                               └ argument-2               ┘
+</pre>
 
 <a id="section-15-68-3"></a>
 #### 15.68.3 Argument rules
@@ -37281,8 +37925,9 @@ The type of this function is numeric.
 <a id="section-15-69-2"></a>
 #### 15.69.2 General format
 
-`FUNCTION NUMVAL-F ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>NUMVAL-F</u> ( argument-1 )
+</pre>
 <a id="section-15-69-3"></a>
 #### 15.69.3 Argument rules
 
@@ -37352,8 +37997,9 @@ The type of this function is integer.
 <a id="section-15-70-2"></a>
 #### 15.70.2 General format
 
-`FUNCTION ORD ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>ORD</u> ( argument-1 )
+</pre>
 <a id="section-15-70-3"></a>
 #### 15.70.3 Argument rule
 
@@ -37388,9 +38034,9 @@ The type of this function is integer.
 <a id="section-15-71-2"></a>
 #### 15.71.2 General format
 
-```
-FUNCTION ORD-MAX ( { argument-1 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>ORD-MAX</u> ( { argument-1 } … )
+</pre>
 
 <a id="section-15-71-3"></a>
 #### 15.71.3 Argument rules
@@ -37429,9 +38075,9 @@ The type of this function is integer.
 <a id="section-15-72-2"></a>
 #### 15.72.2 General format
 
-```
-FUNCTION ORD-MIN ( { argument-1 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>ORD-MIN</u> ( { argument-1 } … )
+</pre>
 
 <a id="section-15-72-3"></a>
 #### 15.72.3 Argument rules
@@ -37472,9 +38118,9 @@ The type of this function is numeric.
 <a id="section-15-73-2"></a>
 #### 15.73.2 General format
 
-```
-FUNCTION PI
-```
+<pre>
+<u>FUNCTION</u> <u>PI</u>
+</pre>
 
 <a id="section-15-73-3"></a>
 #### 15.73.3 Returned value rules
@@ -37515,9 +38161,9 @@ The type of this function is numeric.
 <a id="section-15-74-2"></a>
 #### 15.74.2 General format
 
-```
-FUNCTION PRESENT-VALUE ( argument-1 { argument-2 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>PRESENT-VALUE</u> ( argument-1 { argument-2 } … )
+</pre>
 
 <a id="section-15-74-3"></a>
 #### 15.74.3 Argument rules
@@ -37573,9 +38219,9 @@ The type of this function is numeric.
 <a id="section-15-75-2"></a>
 #### 15.75.2 General format
 
-```
-FUNCTION RANDOM [ ( [ argument-1 ] ) ]
-```
+<pre>
+<u>FUNCTION</u> <u>RANDOM</u> [ ( [ argument-1 ] ) ]
+</pre>
 
 <a id="section-15-75-3"></a>
 #### 15.75.3 Argument rules
@@ -37625,8 +38271,9 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-76-2"></a>
 #### 15.76.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>RANGE</u> ( { argument-1 } … )
-
+</pre>
 <a id="section-15-76-3"></a>
 #### 15.76.3 Argument rule
 
@@ -37665,8 +38312,9 @@ The type of this function is numeric.
 <a id="section-15-77-2"></a>
 #### 15.77.2 General format
 
-FUNCTION REM ( argument-1 argument-2 )
-
+<pre>
+<u>FUNCTION</u> <u>REM</u> ( argument-1 argument-2 )
+</pre>
 <a id="section-15-77-3"></a>
 #### 15.77.3 Argument rules
 
@@ -37750,9 +38398,9 @@ The type of the function is numeric.
 <a id="section-15-79-2"></a>
 #### 15.79.2 General format
 
-```
-FUNCTION SECONDS-FROM-FORMATTED-TIME ( argument-1 argument-2 )
-```
+<pre>
+<u>FUNCTION</u> <u>SECONDS-FROM-FORMATTED-TIME</u> ( argument-1 argument-2 )
+</pre>
 
 <a id="section-15-79-3"></a>
 #### 15.79.3 Argument rules
@@ -37800,9 +38448,9 @@ The type of this function is numeric.
 <a id="section-15-80-2"></a>
 #### 15.80.2 General format
 
-```
-FUNCTION SECONDS-PAST-MIDNIGHT
-```
+<pre>
+<u>FUNCTION</u> <u>SECONDS-PAST-MIDNIGHT</u>
+</pre>
 
 <a id="section-15-80-3"></a>
 #### 15.80.3 Returned value rules
@@ -37834,8 +38482,9 @@ The type of the function is integer.
 <a id="section-15-81-2"></a>
 #### 15.81.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>SIGN</u> ( argument-1 )
-
+</pre>
 <a id="section-15-81-3"></a>
 #### 15.81.3 Argument rule
 
@@ -37882,8 +38531,9 @@ The type of this function is numeric.
 <a id="section-15-82-2"></a>
 #### 15.82.2 General format
 
-`FUNCTION SIN ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>SIN</u> ( argument-1 )
+</pre>
 <a id="section-15-82-3"></a>
 #### 15.82.3 Argument rule
 
@@ -37922,8 +38572,9 @@ NOTE The types of arguments that are permitted for this function are limited bec
 <a id="section-15-83-2"></a>
 #### 15.83.2 General format
 
-FUNCTION SMALLEST-ALGEBRAIC ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>SMALLEST-ALGEBRAIC</u> ( argument-1 )
+</pre>
 <a id="section-15-83-3"></a>
 #### 15.83.3 Argument rules
 
@@ -37980,8 +38631,9 @@ The type of this function is numeric.
 <a id="section-15-84-2"></a>
 #### 15.84.2 General format
 
-FUNCTION SQRT ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>SQRT</u> ( argument-1 )
+</pre>
 <a id="section-15-84-3"></a>
 #### 15.84.3 Argument rules
 
@@ -38021,8 +38673,9 @@ The function type is alphanumeric.
 <a id="section-15-85-2"></a>
 #### 15.85.2 General format
 
-FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )
-
+<pre>
+<u>FUNCTION</u> <u>STANDARD-COMPARE</u> ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )
+</pre>
 <a id="section-15-85-3"></a>
 #### 15.85.3 Argument rules
 
@@ -38091,9 +38744,9 @@ The type of this function is numeric.
 <a id="section-15-86-2"></a>
 #### 15.86.2 General format
 
-```
-FUNCTION STANDARD-DEVIATION ( { argument-1 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ( { argument-1 } … )
+</pre>
 
 <a id="section-15-86-3"></a>
 #### 15.86.3 Argument rule
@@ -38139,10 +38792,11 @@ The type of the function depends on the argument type of argument-1 as follows:
 <a id="section-15-87-2"></a>
 #### 15.87.2 General format
 
-```
-FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST ] argument-2 argument-3 } ... )
-                                               [ LAST  ]
-```
+<pre>
+                    ╭            ╭             ┌ <u>FIRST</u> ┐                       ╮   ╮
+<u>FUNCTION</u> <u>SUBSTITUTE</u> │ argument-1 ┤ [ <u>ANYCASE</u> ] │       │ argument-2 argument-3 ├ … │
+                    ╰            ╰             └ <u>LAST</u>  ┘                       ╯   ╯
+</pre>
 
 <a id="section-15-87-3"></a>
 #### 15.87.3 Argument rules
@@ -38201,9 +38855,9 @@ The type of this function depends upon the argument types as follows:
 <a id="section-15-88-2"></a>
 #### 15.88.2 General format
 
-```
-FUNCTION SUM ( { argument-1 } … )
-```
+<pre>
+<u>FUNCTION</u> <u>SUM</u> ( { argument-1 } … )
+</pre>
 
 <a id="section-15-88-3"></a>
 #### 15.88.3 Argument rule
@@ -38248,8 +38902,9 @@ The type of this function is numeric.
 <a id="section-15-89-2"></a>
 #### 15.89.2 General format
 
-`FUNCTION TAN ( argument-1 )`
-
+<pre>
+<u>FUNCTION</u> <u>TAN</u> ( argument-1 )
+</pre>
 <a id="section-15-89-3"></a>
 #### 15.89.3 Argument rule
 
@@ -38279,8 +38934,9 @@ The type of this function is integer.
 <a id="section-15-90-2"></a>
 #### 15.90.2 General format
 
-FUNCTION TEST-DATE-YYYYMMDD ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>TEST-DATE-YYYYMMDD</u> ( argument-1 )
+</pre>
 <a id="section-15-90-3"></a>
 #### 15.90.3 Argument rule
 
@@ -38339,8 +38995,9 @@ The type of this function is integer.
 <a id="section-15-91-2"></a>
 #### 15.91.2 General format
 
-FUNCTION TEST-DAY-YYYYDDD ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>TEST-DAY-YYYYDDD</u> ( argument-1 )
+</pre>
 <a id="section-15-91-3"></a>
 #### 15.91.3 Argument rule
 
@@ -38390,8 +39047,9 @@ The type of this function is integer.
 <a id="section-15-92-2"></a>
 #### 15.92.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>TEST-FORMATTED-DATETIME</u> ( argument-1 argument-2)
-
+</pre>
 <a id="section-15-92-3"></a>
 #### 15.92.3 Argument rules
 
@@ -38429,8 +39087,9 @@ The type of this function is integer.
 <a id="section-15-93-2"></a>
 #### 15.93.2 General format
 
-<u>FUNCTION</u> TEST-NUMVAL ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )
+</pre>
 <a id="section-15-93-3"></a>
 #### 15.93.3 Argument rule
 
@@ -38495,10 +39154,11 @@ The type of this function is integer.
 <a id="section-15-94-2"></a>
 #### 15.94.2 General format
 
-```
-FUNCTION TEST-NUMVAL-C ( argument-1 [LOCALE [ locale-name-1 ]] [ ANYCASE ] )
-                                     [argument-2             ]
-```
+<pre>
+                                    ┌ <u>LOCALE</u> [ locale-name-1 ] ┐
+<u>FUNCTION</u> <u>TEST-NUMVAL-C</u> ( argument-1 │                          │ [ <u>ANYCASE</u> ] )
+                                    └ argument-2               ┘
+</pre>
 
 <a id="section-15-94-3"></a>
 #### 15.94.3 Argument rule
@@ -38561,8 +39221,9 @@ The type of this function is integer.
 <a id="section-15-95-2"></a>
 #### 15.95.2 General format
 
-FUNCTION TEST-NUMVAL-F ( argument-1 )
-
+<pre>
+<u>FUNCTION</u> <u>TEST-NUMVAL-F</u> ( argument-1 )
+</pre>
 <a id="section-15-95-3"></a>
 #### 15.95.3 Argument rule
 
@@ -38632,11 +39293,11 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-96-2"></a>
 #### 15.96.2 General format
 
-```
-                ⎛                ⎡ LEADING  ⎤                      ⎞
-FUNCTION TRIM   ⎜   argument-1   ⎢          ⎥  [ argument-2 ] ...  ⎟
-                ⎝                ⎣ TRAILING ⎦                      ⎠
-```
+<pre>
+              ╭            ┌ <u>LEADING</u>  ┐                  ╮
+<u>FUNCTION</u> <u>TRIM</u> │ argument-1 │          │ [ argument-2 ] … │
+              ╰            └ <u>TRAILING</u> ┘                  ╯
+</pre>
 
 > **Figure notes.** No choice indicators in this format. The `[ LEADING | TRAILING ]` group is a plain bracket — zero or one may be specified. The ellipsis follows `[ argument-2 ]` and denotes repetition of that bracketed portion. Underlined required words: FUNCTION, TRIM, LEADING, TRAILING.
 
@@ -38706,8 +39367,9 @@ The type of this function depends on the type of argument-1 as follows:
 <a id="section-15-97-2"></a>
 #### 15.97.2 General format
 
+<pre>
 <u>FUNCTION</u> <u>UPPER-CASE</u> ( argument-1 [ <u>LOCALE</u> locale-name-1 ] )
-
+</pre>
 <a id="section-15-97-3"></a>
 #### 15.97.3 Argument rule
 
@@ -38752,8 +39414,9 @@ The type of this function is numeric.
 <a id="section-15-98-2"></a>
 #### 15.98.2 General format
 
-FUNCTION VARIANCE ( { argument-1 } … )
-
+<pre>
+<u>FUNCTION</u> <u>VARIANCE</u> ( { argument-1 } … )
+</pre>
 <a id="section-15-98-3"></a>
 #### 15.98.3 Argument rule
 
@@ -38804,8 +39467,9 @@ The type of this function is alphanumeric.
 <a id="section-15-99-2"></a>
 #### 15.99.2 General format
 
-FUNCTION WHEN-COMPILED
-
+<pre>
+<u>FUNCTION</u> <u>WHEN-COMPILED</u>
+</pre>
 <a id="section-15-99-3"></a>
 #### 15.99.3 Returned value rules
 
@@ -38856,8 +39520,9 @@ The type of the function is integer.
 <a id="section-15-100-2"></a>
 #### 15.100.2 General format
 
-`FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] )`
-
+<pre>
+<u>FUNCTION</u> <u>YEAR-TO-YYYY</u> ( argument-1 [ argument-2 [ argument-3 ] ] )
+</pre>
 <a id="section-15-100-3"></a>
 #### 15.100.3 Arguments rule
 

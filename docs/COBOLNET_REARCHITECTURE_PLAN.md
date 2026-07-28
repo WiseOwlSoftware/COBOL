@@ -143,16 +143,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
        nothing but a figure note — no fixed merge rule separates those, and crossing notes fixed UNSTRING while
        breaking the file-control entry. `regroup` instead finds the partition of spans whose words match, and
        reports rather than picks when more than one partition does.
-     - Current: **475 figures keyed · 412 replaceable · 16 groups needing attention** (63 figures). The
-       residue splits into: clauses where the printed and transcribed figure COUNTS differ and no grouping
-       matches (§8.4.3.1.2 · §10.6.1 · §12.3.6.2 · §12.3.7.2 · §13.16.2 · §13.17.2 · §13.18.40.2 · §14.2.1 ·
-       §14.9.39.2 · §14.9.48.2), and 6 word differences — §7.3.15.2 `VALUE-EDITING` (print sets it with a
-       FIGURE DASH, the transcription joined it), §8.7.5.1's ASCII-art corner, and four where the
-       transcription carries a neighbouring figure's words.
-   - ⚠ **NOT APPLIED.** A half-converted document — some `<pre>`, some fenced — is a worse state than either
-     end. `--apply` is one command once the residue is judged.
-   - **NEXT:** ⓐ resolve the 16 (each is a per-clause read against the printed page), ⓑ `--apply`, ⓒ `--check`
-     becomes the standing regression gate.
+     - **✅ APPLIED — 416 of 475 figures are generated into `specs/ISO_COBOL.md`**, in the house style with
+       their underlining. **Word conservation over the whole document: 0 lost, 0 gained.** `--check` is the
+       standing regression gate and currently reports every one of the 416 matching its generated form;
+       `verify_publishable.py` green.
+     - The sweep REASSEMBLES fragmented figures: the file-control entry had Format 3 transcribed as SEVEN
+       blocks, one per clause, each with its own note. Fragments are matched with notes excluded and every
+       note is carried through after the figure it describes.
+   - **REMAINING: 12 clauses (59 figures)** — a to-do list, not tool noise. Ten where the printed and
+     transcribed figure counts differ with no grouping that matches (§8.4.3.1.2 · §10.6.1 · §12.3.6.2 ·
+     §12.3.7.2 · §13.16.2 · §13.17.2 · §13.18.40.2 · §14.2.1 · §14.9.39.2 · §14.9.48.2) and two word
+     differences (§8.7.5.1 ASCII-art corner · §13.2.1 carries `DATA DIVISION` the printed figure does not).
+     Each needs a read against the printed page; ⛔ **correct the transcription on discovery**, never park it.
+   - ⚠ **A whole-artifact invariant beats sampling.** Two apply-time duplication bugs were caught ONLY by the
+     word-conservation check (151 then 97 words gained), both from `^\s*>` matching `>>` — a compiler
+     directive is not a blockquote, and a blockquoted FIGURE is not a note.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
 6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan

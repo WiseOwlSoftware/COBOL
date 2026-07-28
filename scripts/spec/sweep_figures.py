@@ -41,10 +41,16 @@ PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
 MD_GENERAL_FORMAT = re.compile(r"general\s+formats?\s*$", re.I)
-FENCE = re.compile(r"^\s*(?:>\s?)?```")
+FENCE = re.compile(r"^\s*(?:>\s?)?(?:```|</?pre>)\s*$")
 FORMAT_LABEL = re.compile(r"^\s*(?:>\s?)?\*{0,2}Formats?\s+\d+\b")
 HEADING = re.compile(r"^\s*#{1,6}\s")
-BLOCKQUOTE = re.compile(r"^\s*>")
+# A row of a figure that carries only DELIMITERS — the blank row inside a group, drawn with the group's own
+# stems. It is figure content, but it can neither open nor close a run: treating it as prose chopped every
+# generated figure into as many spans as it had such rows.
+NOTATION_ONLY = re.compile(r"^[\s│┤├╭╮╰╯┌┐└┘─|]*$")
+# A blockquote, but NEVER a compiler directive: `>>POP` and `>> SOURCE FORMAT` are figure CONTENT. Matching
+# them as quotes made the sweep re-emit a figure's own first line after the figure, as though it were a note.
+BLOCKQUOTE = re.compile(r"^\s*>(?!>)")
 HTML_LINE = re.compile(r"^\s*<")
 # PAGE FURNITURE inside the transcription: the anchors, `## Page N` headings, running headers and folios the
 # OCR carried across. It is not content, it is not a separator, and it is on its way OUT of the document
@@ -73,7 +79,7 @@ def unescape(line: str) -> str:
     return re.sub(r"\\([>*_`\[\]])", r"\1", line)
 
 
-def words_of(text: str) -> collections.Counter:
+def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
     """The WORDS of a figure, with everything that is not a word removed.
 
     Tags, fence markers and back-ticks are markup, not content, and counting them made every comparison fail:
@@ -81,7 +87,20 @@ def words_of(text: str) -> collections.Counter:
     """
     # Strip a blockquote prefix, but never the first `>` of a COMPILER DIRECTIVE: `>>SOURCE FORMAT` is figure
     # text, and eating one of its angle brackets turned every directive format into a word mismatch.
-    kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in text.splitlines() if not FENCE.match(l)]
+    src = text.splitlines()
+    if drop_notes:
+        # ... but only OUTSIDE a fence. A good deal of the transcription sets its figures INSIDE a blockquote,
+        # so every content line begins with `>` too; dropping those discarded the figures themselves.
+        inside, filtered = False, []
+        for l in src:
+            if FENCE.match(l):
+                inside = not inside
+                filtered.append(l)
+                continue
+            if inside or not BLOCKQUOTE.match(l):
+                filtered.append(l)
+        src = filtered
+    kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in src if not FENCE.match(l)]
     body = re.sub(r"</?[A-Za-z][^>]*>", " ", unescape("\n".join(kept))).replace("`", " ")
     body = re.sub(r"&[a-zA-Z]+;?", " ", body)          # HTML entities used for indentation
     # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
@@ -181,8 +200,9 @@ def targets(lines, lo, hi):
             if figure_ish(line):
                 if run is None:
                     run = i
-            elif run is not None and (not line.strip() or PAGE_FURNITURE.match(line)):
-                pass                                     # blanks and page furniture keep the run open
+            elif run is not None and (not line.strip() or PAGE_FURNITURE.match(line)
+                                      or NOTATION_ONLY.match(line)):
+                pass                                     # blanks, furniture and delimiter-only rows keep it open
             elif run is not None:
                 out.append((run, i, "bare"))
                 run = None
@@ -211,6 +231,23 @@ def targets(lines, lo, hi):
             continue
         merged.append(span)
     return merged
+
+
+def note_lines(lines, a, b):
+    """The figure NOTES inside a span — blockquote paragraphs only, never a blockquoted figure.
+
+    A good deal of the transcription sets its figures INSIDE a blockquote, so their content lines carry the
+    same `>` prefix a note does. Collecting by prefix alone re-emitted an entire old figure after its
+    replacement; the fence state is what separates the two.
+    """
+    out, inside = [], False
+    for j in range(a, b):
+        if FENCE.match(lines[j]):
+            inside = not inside
+            continue
+        if not inside and BLOCKQUOTE.match(lines[j]):
+            out.append(lines[j])
+    return out
 
 
 def regroup(lines, spans, figures):
@@ -243,7 +280,7 @@ def regroup(lines, spans, figures):
             # Measure the MERGED RANGE, not the sum of the spans in it. A group spans the gaps between its
             # blocks too, and those gaps hold the figure notes — summing spans accepted groupings that would
             # have swallowed a note into the figure, which is how the file-control entry slipped through.
-            total = words_of(chr(10).join(lines[spans[j][0]:spans[k][1]]))
+            total = words_of(chr(10).join(lines[spans[j][0]:spans[k][1]]), drop_notes=True)
             if total == want[i]:
                 acc.append((spans[j][0], spans[k][1], "group"))
                 walk(i + 1, k + 1, acc)
@@ -333,14 +370,20 @@ def main() -> int:
             stats["count_mismatch"] += len(figures)
             continue
         for (a, b, _kind), (pno, fmt, body) in zip(spans, figures):
-            have, want = words_of(chr(10).join(lines[a:b])), words_of(chr(10).join(body))
+            have = words_of(chr(10).join(lines[a:b]), drop_notes=True)
+            want = words_of(chr(10).join(body))
             if have != want:
                 problems.append((clause, pno, fmt, f"words differ — generated-only "
                                  f"{list((want - have).elements())[:4]}, markdown-only "
                                  f"{list((have - want).elements())[:4]}"))
                 stats["word_mismatch"] += 1
                 continue
+            # Any figure NOTES that sat between the fragments are carried through, after the figure they
+            # describe. They are the transcription's own analysis of the printed page and must not be lost.
+            notes = note_lines(lines, a, b)
             repl = ["<pre>"] + body + ["</pre>"]
+            if notes:
+                repl += [""] + notes
             if lines[a:b] == repl:
                 stats["already_current"] += 1
                 continue
