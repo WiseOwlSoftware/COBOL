@@ -111,15 +111,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      `---` separators; de-paging took the first two and left 769 of the third, 287 of them in pairs with
      nothing between. Residue, not a convention: of 2,691 headings, 2,380 have no rule before them. The front
      matter keeps its 11 (they divide title-page blocks printed on ONE page). `strip_page_rules.py`.
-   - **⛔ NEXT ON THE TRANSCRIPTION: Figure D.6, the last undrawn Annex D illustration.** `lint_rendering.py`
-     is RED at 1 for exactly this and will go green when it lands. Eight of the nine are done — D.1, D.3, D.7,
-     D.9, D.10, D.11, D.12, D.13, D.14 drawn; D.8 was already correct; D.5 is Markdown tables, which is a fair
-     representation of a class hierarchy and is deliberately left. THREE GENERATORS, each with the printed
-     folio in its docstring:
+   - **✅ THE TRANSCRIPTION HAS NOTHING OUTSTANDING — `lint_rendering.py` is CLEAN.** Every Annex D
+     illustration is drawn (D.1, D.3, D.6, D.7, D.9–D.14) or deliberately left (D.2, D.4 were already
+     correct; D.5 is Markdown tables, a fair representation of a class hierarchy). THREE GENERATORS, each
+     with the printed folio in its docstring:
      · `repairs/annex_d_flowcharts.py` — the VARYING charts and D.1 (boxes down an axis, loops, second column)
      · `repairs/annex_d_truth_charts.py` — the condition-evaluation charts D.7–D.10
-     · `repairs/annex_d_structure.py` — D.3, the nested schematic; **the right home for D.6**, which is a
-       rectangle-and-label page layout rather than a flowchart
+     · `repairs/annex_d_structure.py` — the two that are STRUCTURE, not flow: D.3's nested schematic and
+       D.6's page layout
+   - **D.6 added two rules that generalise** (both in `spec-reconciliation/TRANSCRIPTION-STATE.md`): a `<pre>`
+     is raw HTML, so a figure's own `<blank>`/`<Detail lines>` notation is a TAG that a sanitizing renderer
+     DROPS — escape at write time, never on the canvas, and `lint_rendering.py`'s new SWALLOWED check gates
+     it (14 findings on the unescaped form). And **vertical distance can be the content**: D.6 stood as a
+     Markdown table, which gives every row equal height and so erased both of the standard's meaningful voids
+     (mid-body "and further body groups"; logical→physical bottom of form). Rows are placed from the measured
+     printed y at the page's own 8.7 pt pitch; words conserve exactly, 150/150 against the printed page.
    - **⛔ EVERY ONE OF THESE GENERATORS NEEDS THE COLLISION GUARD** — `put` refusing to overwrite a non-blank
      cell, with a separate `junction()` for the one legitimate overwrite. It caught SEVEN defects that would
      each have rendered as a plausible picture (a branch drawn through a box wall, a loop through a border, an

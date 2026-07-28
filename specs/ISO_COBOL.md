@@ -41235,21 +41235,51 @@ The FOOTING phrase has two different functions:
 <a id="figure-d-6"></a>
 **Figure D.6 — Example of page layout**
 
-PAGE clause phrases &nbsp;&nbsp;&nbsp;&nbsp; Report content
+<pre style="line-height:1">
+                          PAGE clause phrases   Report content
 
-
-| | | |
-|---|---|---|
-| ***Physical Top of Form*** | | the first line that can be printed |
-| | | \<blank\> |
-| ***Logical Top of Form*** | **Heading** | the first line of the report or page heading \<(first page only) report header lines\> \<page heading lines\> |
-| | **First Detail** | the first line of a body group \<Control Heading lines\> \<Detail lines\> \<Control Footing lines\> \<Control Heading lines\> \<Detail lines\> \<Control Footing lines\> |
-| | | \<Control Heading lines\> \<Detail lines\> \<Control Footing lines\> |
-| | **Last Control Heading** | the last line on which a control heading may print \<Detail lines\> |
-| | **Last Detail** | the last line on which Detail lines will print \<Control Footing lines\> |
-| | **Footing** | last line of Control footing or first line of a report or page footing \<page footing lines. \<(last page only) report footing lines\> |
-| ***Logical Bottom of Form*** | **Page Limit** | the last line on a logical page |
-| ***Physical Bottom of Form*** | | the last line that can be printed |
+Physical Top of Form    │                       the first line that can be printed
+                        │
+                        │                                             &lt;blank&gt;
+                        │
+Logical Top of Form     │ Heading               the first line of the report or page heading
+                        │                             &lt;(first page only) report header lines&gt;
+                        │                                      &lt;page heading lines&gt;
+                        │ First Detail          the first line of a body group
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │
+                        │
+                        │
+                        │
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │ Last Control Heading  the last line on which a control heading may print
+                        │                                         &lt;Detail lines&gt;
+                        │
+                        │ Last Detail           the last line on which Detail lines will print
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │ Footing               last line of Control footing or first line of a report or page footing
+                        │                                      &lt;page footing lines.
+                        │                             &lt;(last page only) report footing lines&gt;
+                        │
+Logical Bottom of Form  │ Page Limit            the last line on a logical page
+                        │
+                        │
+                        │
+                        │
+                        │
+Physical Bottom of Form │                       the last line that can be printed
+                        │
+                        │
+</pre>
 
 <a id="section-d-20-3-3"></a>
 ##### D.20.3.3 CONTROL

@@ -6,21 +6,26 @@
 ## Run these first
 
 ```
-python scripts/spec/lint_rendering.py          # legibility — currently RED at 1, deliberately
+python scripts/spec/lint_rendering.py          # legibility — currently CLEAN
 python scripts/spec/sweep_figures.py --check   # the 484 general formats, regenerated and diffed
 python scripts/spec/verify_publishable.py      # no licence data, acknowledgment in the preface
 python scripts/spec/verify_acknowledgment.py   # verbatim against the PDF (needs specs-private/)
 ```
 
-Last known: lint 1 · sweep clean 484/484 · publishable at 47,142 lines · acknowledgment verbatim · 3,811
-internal links, zero dangling.
+Last known: **lint CLEAN** · sweep clean 484/484 · publishable at 47,172 lines · acknowledgment verbatim ·
+3,811 internal links, zero dangling.
 
-## ⛔ NEXT: Figure D.6, the last undrawn Annex D illustration
+## ✅ NOTHING OUTSTANDING on the transcription
 
-`lint_rendering.py` is red at exactly this and goes green when it lands. D.6 is an example PAGE LAYOUT —
-rectangles and labels, not a flowchart — so it belongs in `repairs/annex_d_structure.py` beside D.3, not in
-either flowchart generator. Its printed original is in Annex D; find it with the caption search below, and
-note the standard prints `Figure  D.6` with TWO spaces, which defeats a naive `Figure D\.\d+` regex.
+Figure D.6 landed 2026-07-28 and `lint_rendering.py` is green. Every Annex D illustration is now drawn or
+deliberately left (see the table), every general format is generated from the printed page, and the
+reconciliation itself closed at 210/210. The next spec-side work is not here — it is the **grammar ↔ spec
+audit**, plan §0 NEXT item 4.
+
+Should a further figure ever need drawing: captions sit ABOVE their figure, and a figure may flow onto the
+NEXT page — p1185 carries D.11's caption and chart plus D.12's caption, with D.12's chart on p1186; D.6's
+caption is on p1161 and its body on p1162. The standard prints `Figure  D.6` with TWO spaces, which defeats a
+naive `Figure D\.\d+` regex.
 
 ```python
 # locating a printed figure
@@ -28,11 +33,10 @@ import fitz, re
 for pno in range(doc.page_count):
     if re.search(r"Figure\s+D\.6\s*—", doc[pno].get_text()): print(pno + 1)
 ```
-Captions sit ABOVE their figure, and a figure may flow onto the NEXT page — p1185 carries D.11's caption and
-chart plus D.12's caption, with D.12's chart on p1186. Render with `python scripts/render-spec-page.py <page>`
-and look at it; do not infer the shape from the text layer.
+Render with `python scripts/render-spec-page.py <page>` and look at it; do not infer the shape from the text
+layer.
 
-## The Annex D figures — 8 of 9 drawn
+## The Annex D figures — all 9 accounted for
 
 | figure | state | generator |
 |---|---|---|
@@ -41,7 +45,7 @@ and look at it; do not infer the shape from the text layer.
 | D.3 compilation group / run unit structure | drawn | `annex_d_structure.py` |
 | D.4 manager class | already fine | — |
 | D.5 banking hierarchy | Markdown TABLES — a fair representation of a class hierarchy, deliberately left | — |
-| **D.6 example page layout** | **NOT DRAWN — the remaining work** | → `annex_d_structure.py` |
+| D.6 example page layout | drawn | `annex_d_structure.py` |
 | D.7 AND chain | drawn | `annex_d_truth_charts.py` |
 | D.8 OR chain | was correct; regenerated | `annex_d_truth_charts.py` |
 | D.9, D.10 mixed / two-column | drawn | `annex_d_truth_charts.py` |
@@ -64,6 +68,16 @@ and look at it; do not infer the shape from the text layer.
    now stop at the first line that reads as a sentence.
 6. **Labels decide the width**, not the other way round: `P-1-2-1`/`P-1-2-2` are seven characters each and did
    not fit the column they were meant to label.
+7. **Escape `<` and `>` at WRITE time, never on the canvas.** A `<pre>` block is raw HTML, so D.6's own
+   notation — `<blank>`, `<Detail lines>` — is a TAG, and a sanitizing renderer drops an unknown tag and the
+   words with it, leaving a blank line under a green audit. The canvas holds the real characters so the
+   geometry and the collision guard measure what the standard prints; `escape()` converts on the way out.
+   `lint_rendering.py`'s SWALLOWED check is the gate (14 findings on the unescaped form).
+8. **Vertical distance can BE the content.** D.6 stood as a three-column Markdown table, which gives every row
+   the same height — and the figure is about where lines fall on a page. Place rows from the measured printed
+   y at the page's own pitch (8.7 pt for D.6): that is what keeps the void mid-body ("and further body
+   groups") and the void between the logical and the physical bottom of form. Column positions cannot come
+   from the page the same way when a wrapped printed label is drawn on one line; size those from content.
 
 ## Already closed, do not redo
 

@@ -32,6 +32,12 @@ WHAT IT CATCHES, each earned by a real defect:
 
   TAGS        `<pre>` and `<u>` must balance. An unclosed `<pre>` swallows the rest of the document.
 
+  SWALLOWED   A `<pre>` block is RAW HTML, so `<blank>` in it is a tag, not text — and every sanitizing
+              renderer DROPS an unknown tag, taking the words with it while leaving the surrounding line
+              intact. Figure D.6 is the first figure whose own notation is angle-bracketed (`<blank>`,
+              `<Detail lines>`); written literally, ten of its lines would have gone blank on the page with
+              every text-level audit still green. Such characters must be written `&lt;` / `&gt;`.
+
   RUN-ON LIST A table of contents, a list of figures or an index written as bare consecutive lines. Markdown
               joins consecutive lines into one paragraph, so every entry flows into the next — which is how
               the TOC, the Figures list and the whole 3,000-line index rendered. 231 such regions existed.
@@ -131,6 +137,34 @@ def check_runon_lists(lines, mask):
             out.append((run[0] + 1, f"{len(run)} consecutive link lines with no list marker — "
                                     f"these render as one paragraph"))
         run = []
+    return out
+
+
+# `<` opening something a parser will read as a tag. `<u>`/`</u>` are the transcription's own underlining and
+# are stripped before the test; nothing else in a figure is markup.
+TAGGISH = re.compile(r"<[A-Za-z/!]")
+
+
+def check_swallowed_tags(lines):
+    """A `<word>` inside a `<pre>` block, which renders as NOTHING.
+
+    A `<pre>` block is raw HTML: its contents are not escaped, so `<blank>` is parsed as a tag. An unknown
+    tag is silently dropped by every sanitizing renderer — the line stays, the word disappears, and no
+    text-level audit notices because the file still contains the characters. Figure D.6's own notation is
+    angle-bracketed (`<blank>`, `<Detail lines>`, `<Control Heading lines>`), so ten of its lines are one
+    unescaped character away from rendering empty. The generators escape at write time; this is the gate
+    that keeps a hand edit from undoing it."""
+    out, inpre = [], False
+    for i, l in enumerate(lines):
+        s = l.strip()
+        if s.startswith("<pre"):
+            inpre = True
+            continue
+        if s == "</pre>":
+            inpre = False
+            continue
+        if inpre and TAGGISH.search(re.sub(r"</?u>", "", l)):
+            out.append((i + 1, f"unescaped `<` inside a <pre> — renders as a dropped tag: {s[:60]!r}"))
     return out
 
 
@@ -248,6 +282,8 @@ def main() -> int:
             tags.append((0, f"<{tag}> opened {opens} times, closed {closes}"))
     findings["TAGS"] = tags
 
+    findings["SWALLOWED"] = check_swallowed_tags(lines)
+
     anchors = set(re.findall(r'<a id="([^"]+)"></a>', text))
     for h in re.findall(r"^\s*#{1,6}\s+(.+?)\s*$", text, re.M):
         anchors.add(re.sub(r"[^\w\- ]", "", h.replace("*", "")).strip().lower().replace(" ", "-"))
@@ -264,7 +300,13 @@ def main() -> int:
         if not args.verbose and len(rows) > 6:
             print(f"      … and {len(rows) - 6} more (use --verbose)")
 
-    print(f"\n{SPEC_MD.relative_to(REPO)} — {len(lines):,} lines")
+    # The file that was ACTUALLY read — the point of the positional argument is to lint an older revision,
+    # and reporting the default path there names the wrong file under a verdict line.
+    try:
+        where = spec.resolve().relative_to(REPO)
+    except ValueError:
+        where = spec
+    print(f"\n{where} — {len(lines):,} lines")
     if total:
         print(f"LINT FAILED — {total} rendering defects")
         return 1
