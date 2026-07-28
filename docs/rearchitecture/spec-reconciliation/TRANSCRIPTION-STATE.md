@@ -6,14 +6,38 @@
 ## Run these first
 
 ```
-python scripts/spec/lint_rendering.py          # legibility — currently CLEAN
-python scripts/spec/sweep_figures.py --check   # the 484 general formats, regenerated and diffed
-python scripts/spec/verify_publishable.py      # no licence data, acknowledgment in the preface
-python scripts/spec/verify_acknowledgment.py   # verbatim against the PDF (needs specs-private/)
+python scripts/spec/lint_rendering.py                      # legibility — currently CLEAN
+python scripts/spec/sweep_figures.py --check               # the 484 general formats, regenerated and diffed
+python scripts/spec/verify_publishable.py                  # no licence data, acknowledgment in the preface
+python scripts/spec/verify_acknowledgment.py               # verbatim against the PDF (needs specs-private/)
+python scripts/spec/repairs/reserved_word_gaps.py --check  # §8.9 == the printed reserved words (needs the PDF)
 ```
 
-Last known: **lint CLEAN** · sweep clean 484/484 · publishable at 47,172 lines · acknowledgment verbatim ·
-3,811 internal links, zero dangling.
+Last known: **lint CLEAN** · sweep clean 484/484 · publishable at 47,187 lines · acknowledgment verbatim ·
+§8.9 == the printed page (409 words) · 3,811 internal links, zero dangling.
+
+## ⛔ Markdown re-parses plain text — the class that produced the most damage
+
+Everything below was found in one sweep after the owner noticed `>>IF` rendering as a blue bar. The words were
+all present and every text-level audit was green; what was broken was that **Markdown treated the standard's
+own notation as its syntax.** When touching prose, assume this class first.
+
+- **A rule label is not a list marker.** `1)` at column 0 is an ordered-list item, so the printed `1)` rendered
+  `1.` — colliding with the standard's THIRD level, which really is printed `1.` — while `a)`, not being a
+  marker, stayed literal. Worse, a list item's content is re-parsed as BLOCK syntax, so eight rules opening
+  with `>` LOST it: `9) >= is an abbreviation for GREATER THAN OR EQUAL TO.` rendered as a claim about `=`.
+  Labels are escaped now (`1\)`, `1\.`) and `lint_rendering.py`'s RULE LABEL check gates it.
+- **A sub-rule indented 4+ spaces is a CODE BLOCK** once its parent list is gone. This only surfaced by
+  rendering the candidate fix, which came out in monospace.
+- **A bare-line list is one run-on paragraph.** §8.9's 409 reserved words had no markers. The existing RUN-ON
+  LIST check missed it because that check keys on a cross-reference link per line, and a word list has none.
+- **Character-sequence words must be inline code.** §8.9's fifteen special-character words were destroyed —
+  `+` became an empty bullet, `>`/`>>` VANISHED, `>=` rendered as `=`, and `<`/`<>` became an `<h1>` because
+  the `=` beneath them read as a setext underline. As `` `>>` `` they are immune and need no escape soup.
+- **Escape `<`/`>` at write time inside `<pre>`** — see rule 7 below.
+
+**Render, do not reason.** Pandoc is on PATH; `pandoc -f commonmark -t html` on a slice is the cheapest way to
+settle any of these, and it is what proved every one above rather than a reading of the CommonMark spec.
 
 ## ✅ NOTHING OUTSTANDING on the transcription
 
@@ -78,6 +102,27 @@ layer.
    y at the page's own pitch (8.7 pt for D.6): that is what keeps the void mid-body ("and further body
    groups") and the void between the logical and the physical bottom of form. Column positions cannot come
    from the page the same way when a wrapped printed label is drawn on one line; size those from content.
+
+## ISO's own defects — transcribed AS PRINTED, deliberately
+
+Confirmed by rendering the page at 600 dpi, not by reading the text layer. Do not "fix" them silently; each is
+an Addendum candidate, an owner call.
+
+| printed | should be | where |
+|---|---|---|
+| `i-O` (lower-case i) | `I-O` | §8.9 reserved words |
+| `I-OICONTROL` | `I-O-CONTROL` | §8.9 reserved words |
+| `EMD-START` | `END-START` | §8.9 — **already corrected**, Addendum C1 |
+| `END-PERFORM, END-RECEIVE, END-READ` | alphabetical order | §8.9 — the printed list is out of order here |
+
+**`>>IF` vs `>> IF` is NOT a defect and belongs in no such table** — the standard prints both because **BOTH ARE
+LEGAL, and it says so twice.** §7.3 SR5: "A compiler directive is composed of the compiler directive indicator,
+*optionally followed by the COBOL character space*, followed by compiler-instruction. The compiler directive
+indicator shall be treated as though it were followed by a space if no space is specified after the
+indicator." And the character-set table: "`>>` … a compiler-directive line when followed by a
+compiler-directive word — *with or without an intervening space*". Standard-wide the transcription carries 29
+spaced and 42 glued, faithfully. A conforming compiler must accept BOTH; ours does — all seven recognizers in
+`Frontend/Preprocessor/` slice `>>` then `TrimStart()` (or match `>>\s*`).
 
 ## Already closed, do not redo
 
