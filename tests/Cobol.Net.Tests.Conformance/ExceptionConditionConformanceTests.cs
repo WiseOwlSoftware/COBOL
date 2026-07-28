@@ -498,6 +498,28 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
+    [Fact]   // §14.9.4.4 GR3b names a condition DISTINCT from EC-PROGRAM-NOT-FOUND for the NULL case: "If the data
+             // item referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL
+             // exception condition is set to exist." (GR3g's "invalid program address … undefined" is the NON-null
+             // bad-address case.) Fatal per Table 13, so with no handler the run unit terminates — the arm the
+             // corpus golden ec_program_ptr_null cannot express, since it must run clean and RESUMEs instead.
+    public void CallPointerNull_Enabled_NoHandler_FatalTerminates()
+        => AssertFatal("""
+            >>TURN EC-PROGRAM-PTR-NULL CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT022P.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 PPTR USAGE PROGRAM-POINTER.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "BEFORE".
+                SET PPTR TO NULL.
+                CALL PPTR.
+                DISPLAY "NEVER".
+                STOP RUN.
+            """, "EC-PROGRAM-PTR-NULL", "BEFORE");
+
     [Fact]   // §14.9.4.4 GR3h + §14.6.13.1.4 #1: the CALL's ON EXCEPTION phrase handles the condition — no
              // termination; the last exception status IS set (checking enabled).
     public void CallNotFound_OnExceptionPhrase_WinsAndStatusSet()

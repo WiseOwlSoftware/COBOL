@@ -244,11 +244,17 @@ public sealed class ProgramTable
     public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, ManagedPointer? returning,
         bool siteHandlesPropagation = false)
     {
+        // §14.9.4.4 GR3b names TWO DISTINCT conditions and the NULL case is the FIRST of them: "If the data item
+        // referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL exception
+        // condition is set to exist. If the program cannot be located or identifier-1 references a zero-length
+        // item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist." This site used to raise
+        // EC-PROGRAM-NOT-FOUND for NULL, so a `USE AFTER EXCEPTION CONDITION EC-PROGRAM-PTR-NULL` declarative
+        // could never select. (GR3g's "invalid program address … undefined" governs a NON-null bad address, not
+        // NULL — which is why the old message's appeal to it was misplaced.) Table 13: Fatal.
         if (target.IsNull)
             throw new CobolCallException(
-                "CALL through a NULL program-pointer: the pointer contains no program address "
-                + "(ISO §14.9.4.4 GR — an invalid program address; this implementation raises "
-                + "EC-PROGRAM-NOT-FOUND)", "EC-PROGRAM-NOT-FOUND");
+                "CALL through a NULL program-pointer: the pointer contains the predefined address NULL "
+                + "(ISO §14.9.4.4 GR3b — EC-PROGRAM-PTR-NULL)", "EC-PROGRAM-PTR-NULL");
         CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation);
     }
 

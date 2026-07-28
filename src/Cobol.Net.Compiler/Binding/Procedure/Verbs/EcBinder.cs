@@ -283,6 +283,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     private static readonly string[] ProgramNames =
     [
         "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
+        // §14.9.4.4 GR3b — CALL through a program-pointer holding the predefined address NULL. Membership here is
+        // what makes QueryFor(BoundCallProgram) report the CALL as checkable, so EcWrap wraps it in
+        // BoundEcChecked and CallEmitter emits the name-filtered catch. Without it the runtime raise (ProgramTable
+        // .CallPointer) has no guard to be caught by; without that raise using this name, the guard never matches.
+        "EC-PROGRAM-PTR-NULL",
     ];
 
     /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
