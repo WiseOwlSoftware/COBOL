@@ -125,19 +125,23 @@ public sealed class ProgramTable
         Environment.ExitCode = 1;
     }
 
-    /// <summary>Apply the activation-boundary default to an exception condition staged by the returning
-    /// element's <c>GOBACK / EXIT PROGRAM … RAISING</c> (ISO §14.9.18 GR) when the activating CALL site emitted
-    /// no pickup of its own (an EC-free caller — checking is off there, so the condition is not raised in the
-    /// activating element; the §14.6.13.1.3 #8 implementor choice, recorded in the conditions-exceptions
-    /// deep-dive): a FATAL staged condition terminates the run unit loudly; a nonfatal one stands in the
-    /// last-exception status (§14.6.13.1.4) and execution continues.</summary>
-    private void ApplyPropagationDefault()
-    {
-        if (_owner.Exceptions.TakePropagated(out string pn, out bool pf) && pf)
-            throw new CobolFatalException(pn, "exception condition propagated by GOBACK/EXIT PROGRAM RAISING "
-                + "into an activator without exception checking (ISO 14.9.18; 14.6.13.1.3 #8 - this "
-                + "implementation terminates)");
-    }
+    /// <summary>Discard an exception condition staged by the returning element's
+    /// <c>GOBACK / EXIT PROGRAM … RAISING</c> when the activating CALL site emitted no pickup of its own — i.e.
+    /// the activator has NOT enabled checking for it.
+    ///
+    /// <para>§14.9.18.4 GR1b is explicit and conditional: "If the RAISING phrase is specified, an exception
+    /// condition is raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED
+    /// in the activating runtime element, and execution continues in that runtime element as specified in the
+    /// rules for the activating statement". An unchecked activator therefore never has the condition raised in
+    /// it at all — fatal or not — and execution simply continues after the CALL. GR3 says the same for the
+    /// main-program half: a GOBACK with no activator "operates as if executing a STOP statement … A RAISING
+    /// phrase, if specified, is ignored."</para>
+    ///
+    /// <para>⚠ This used to throw for a FATAL staged condition, citing §14.6.13.1.3 #8. That was a
+    /// misapplication: #8's implementor latitude governs what may happen once a fatal condition EXISTS, and
+    /// GR1b stops it from ever coming into existence in an unchecked activator. The returning element's own
+    /// last-exception status, set by SetPropagating, still stands (§14.6.13.1.4).</para></summary>
+    private void ApplyPropagationDefault() => _owner.Exceptions.TakePropagated(out _, out _);
 
     /// <summary>
     /// Execute one CALL (ISO §14.9.4.4): resolve <paramref name="name"/> from <paramref name="callerPath"/> per

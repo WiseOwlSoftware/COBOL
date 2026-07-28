@@ -520,6 +520,44 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-PTR-NULL", "BEFORE");
 
+    [Fact]   // §14.9.18.4 GR1b is CONDITIONAL: "If the RAISING phrase is specified, an exception condition is
+             // raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED in
+             // the activating runtime element". V58MAIN enables none, so the callee's GOBACK RAISING raises
+             // NOTHING in it and execution continues after the CALL. GR3 agrees for the main-program half: a
+             // GOBACK with no activator "operates as if executing a STOP statement … A RAISING phrase, if
+             // specified, is ignored."
+             //
+             // ⚠ SEPARATELY COMPILED on purpose, and it is the only way this rule is reachable: within ONE
+             // compilation group a >>TURN anywhere makes the whole group EC-active, so the CALL site emits its
+             // own propagation pickup and the unchecked-activator path is never taken. Two assemblies put the
+             // activator genuinely outside the callee's checking state.
+             //
+             // Before the fix ProgramTable.ApplyPropagationDefault threw for a staged FATAL condition, citing
+             // §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what may happen once a fatal
+             // condition EXISTS and GR1b stops it existing in an unchecked activator at all.
+    public void GobackRaising_IntoUncheckedActivator_IsNotRaisedThere()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V58MAIN.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "V58SUB".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            """, """
+            >>TURN EC-BOUND-SUBSCRIPT CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V58SUB.
+            PROCEDURE DIVISION.
+            SUB-P.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-BOUND-SUBSCRIPT.
+            """);
+        Assert.True(ok, $"the unchecked activator should continue past the CALL: {detail}" + stdout);
+        Assert.Equal("IN-SUB\nAFTER-CALL", stdout);
+    }
+
     [Fact]   // §14.9.4.4 GR3h + §14.6.13.1.4 #1: the CALL's ON EXCEPTION phrase handles the condition — no
              // termination; the last exception status IS set (checking enabled).
     public void CallNotFound_OnExceptionPhrase_WinsAndStatusSet()
