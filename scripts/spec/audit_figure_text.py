@@ -51,8 +51,8 @@ def page_slices(md_lines):
         m = re.match(r'^<a id="page-(\d+)"></a>', l.strip())
         if m:
             marks.append((int(m.group(1)), i))
-    return {p: (i, marks[k + 1][1] if k + 1 < len(marks) else len(md_lines))
-            for k, (p, i) in enumerate(marks)}
+    return _require_page_anchors({p: (i, marks[k + 1][1] if k + 1 < len(marks) else len(md_lines))
+                                  for k, (p, i) in enumerate(marks)})
 
 
 def figure_tokens(page, extract):
@@ -87,6 +87,21 @@ def hyphen_artifact(token: str, present: set[str]) -> bool:
         if len(token) >= 4 and (p.endswith(token) or p.startswith(token)):
             return True
     return False
+
+
+# ⛔ PAGES WERE REMOVED FROM THE TRANSCRIPTION (2026-07-27). This audit buckets the Markdown by page anchor to
+# compare it against the corresponding PDF page, and with the anchors gone it finds nothing — which it would
+# otherwise report as a clean run. A silent all-clear is the one failure this directory exists to prevent, so
+# it stops instead. Figures are now GENERATED from the printed page and `sweep_figures.py --check` proves it
+# exactly, which supersedes this audit for anything figure-shaped; re-keying it onto the clause structure is
+# what it needs to live on for the rest.
+def _require_page_anchors(figs):
+    if not figs:
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+                 "so this page-keyed audit can no longer bucket it. For figures use "
+                 "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
+                 "This audit needs re-keying onto the clause hierarchy.")
+    return figs
 
 
 def main() -> int:

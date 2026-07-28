@@ -164,6 +164,21 @@ def repeated_bracket_rows(lines) -> int:
     return n
 
 
+# ⛔ PAGES WERE REMOVED FROM THE TRANSCRIPTION (2026-07-27). This audit buckets the Markdown by page anchor to
+# compare it against the corresponding PDF page, and with the anchors gone it finds nothing — which it would
+# otherwise report as a clean run. A silent all-clear is the one failure this directory exists to prevent, so
+# it stops instead. Figures are now GENERATED from the printed page and `sweep_figures.py --check` proves it
+# exactly, which supersedes this audit for anything figure-shaped; re-keying it onto the clause structure is
+# what it needs to live on for the rest.
+def _require_page_anchors(figs):
+    if not figs:
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+                 "so this page-keyed audit can no longer bucket it. For figures use "
+                 "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
+                 "This audit needs re-keying onto the clause hierarchy.")
+    return figs
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"))
@@ -212,7 +227,7 @@ def main() -> int:
         return any(not (y1 < b0 or y0 > b1) for b0, b1 in bands)
 
     doc = fitz.open(PDF)
-    figs = md_figures(SPEC_MD.read_text(encoding="utf-8").splitlines())
+    figs = _require_page_anchors(md_figures(SPEC_MD.read_text(encoding="utf-8").splitlines()))
     lo, hi = args.pages if args.pages else (1, doc.page_count)
 
     rows, stats = [], collections.Counter()

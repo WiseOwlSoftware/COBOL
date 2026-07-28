@@ -105,13 +105,16 @@ def main() -> int:
             failures.append(f"{cid} is referenced from the text but missing from the Addendum")
             print(f"  ✗ {cid}: referenced from the text, but MISSING from the Addendum")
 
-    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at page 28.
-    cut = text.find('<a id="page-1"></a>')
+    # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at 0.2.
+    # The body is delimited by the FIRST CLAUSE, not by a page anchor: pages were removed from the document
+    # (they are a layout artifact of one typesetting and mean nothing in Markdown), so clause 1 Scope is the
+    # stable marker for where the front matter ends.
+    cut = text.find('<a id="section-1"></a>')
     if cut < 0:
-        failures.append("the page-1 anchor is missing; cannot locate the preface")
+        failures.append("the clause-1 anchor is missing; cannot locate where the front matter ends")
     elif "COBOL is an industry language" not in text[:cut]:
         failures.append("the acknowledgment appears in the body but NOT in the preface")
-        print("  ✗ the acknowledgment is not in the preface (it must precede the page-1 anchor)")
+        print("  ✗ the acknowledgment is not in the preface (it must precede clause 1)")
     else:
         print("  ✓ the acknowledgment precedes the body, as the preface")
 

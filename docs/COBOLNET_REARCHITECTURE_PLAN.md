@@ -51,7 +51,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
-3. **SPEC RECONCILIATION — the transcription is repaired far enough to derive from, and is PUBLISHED.**
+3. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
+   - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
+     directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers
+     removed; **zero content words lost.** Every cross-reference is now an intra-document link: the TOC is 896
+     pure section links, and the index's 3,243 page references became CLAUSE links (52% exact — the term is a
+     clause title or was located on the page; 46% page-level approximations, stated in a note at the head of
+     the index; 2% keep their printed number as plain text). **3,720 section links, zero dangling.**
+   - ⛔ **Anything page-keyed must be re-keyed onto the clause hierarchy.** `verify_publishable.py` and
+     `verify_acknowledgment.py` are done (they delimit on clause 1 / the Introduction).
+     `audit_figure_text.py`, `audit_underlining.py` and `audit_figure_structure.py` now **HALT LOUDLY** rather
+     than report a false clean — for figures they are superseded by `sweep_figures.py --check`, which is exact.
+     `extract_rule_catalog.py` halts too: it stamps a page on every rule and would record 0 for all of them;
+     the existing catalog stays valid until it is re-keyed.
+   - The reconciliation itself: 1,261 pages compared, 210 confirmed defects, 0 unverified. Figure classes
+     closed by construction; **all 5 normative non-figure defects closed**; the structural classes are down to
+     a residue dominated by TOC/index items that de-paging retired.
    - **⛔ THE PDF WAS NEVER OBFUSCATED.** 16 of 26 fonts were Identity-H subsets carrying **no `/ToUnicode`
      CMap**, so extractors emitted raw glyph indices (which print as Greek). Recovered by matching glyph OUTLINES
      against the stock Windows fonts and injected. The standard now extracts, copies and **greps**, with the

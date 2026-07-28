@@ -73,18 +73,20 @@ def main() -> int:
         sys.exit("FATAL: the file does not open with the Preface — page 28 asks for the acknowledgment "
                  "'as part of the preface', so it has to come first")
 
-    # 1 — the preface copy: everything before the page-1 anchor.
-    cut = md.find('<a id="page-1"></a>')
+    # Both copies are delimited by the DOCUMENT STRUCTURE, not by page anchors: pages have been removed from
+    # the transcription (a layout artifact of one typesetting, meaningless in Markdown), so the front matter
+    # ends at clause 1 and the in-position copy lives in the Introduction.
+    # 1 — the preface copy: everything before the first clause.
+    cut = md.find('<a id="section-1"></a>')
     if cut < 0:
-        sys.exit("FATAL: the page-1 anchor is missing; cannot delimit the preface")
+        sys.exit("FATAL: the clause-1 anchor is missing; cannot delimit the front matter")
     preface = slice_between(md[:cut], FIRST, LAST, "preface")
 
-    # 2 — the in-position copy, inside the page-28 slice.
-    p28 = md.find('<a id="page-28"></a>')
-    p29 = md.find('<a id="page-29"></a>')
-    if p28 < 0 or p29 < 0:
-        sys.exit("FATAL: the page-28/29 anchors are missing")
-    inplace = slice_between(md[p28:p29], FIRST, LAST, "page 28")
+    # 2 — the in-position copy, inside the Introduction.
+    intro = md.find("\n## Introduction")
+    if intro < 0:
+        sys.exit("FATAL: the Introduction heading is missing; cannot locate the in-position acknowledgment")
+    inplace = slice_between(md[intro:cut], FIRST, LAST, "the Introduction")
 
     # 3 — the printed text.
     doc = fitz.open(PDF)
@@ -92,7 +94,7 @@ def main() -> int:
     printed = slice_between(printed_raw, FIRST, LAST, "the PDF")
 
     ok = True
-    for label, got in (("preface vs printed", preface), ("page 28 vs printed", inplace)):
+    for label, got in (("preface vs printed", preface), ("Introduction vs printed", inplace)):
         if got == printed:
             print(f"  ✓ {label}: verbatim ({len(got)} chars)")
         else:

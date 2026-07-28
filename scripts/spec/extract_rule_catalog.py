@@ -313,6 +313,14 @@ def main() -> int:
         (re.compile(r"<!--\s*TRANSCRIPTION-FAILED", re.I), "declared transcription gap (tracked, not hidden)"),
     ]
     meta_hits = []
+    # ⛔ PAGES WERE REMOVED from the transcription (2026-07-27); this loop records a page per rule and would
+    # now silently stamp every one with 0. The catalog is the P14 traceability DENOMINATOR, so a column of
+    # zeroes would be worse than no column. It stops instead — re-key onto the clause hierarchy (the clause
+    # is what a rule is cited by anyway: 14.9.41.2 GR3, never "page 754").
+    if not any(re.match(r'^<a id="page-\d+"></a>', l) for l in lines):
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — this catalog builder stamps a PAGE on every "
+                 "rule and would record 0 for all of them. Re-key it onto the clause hierarchy before "
+                 "regenerating; the existing catalog remains valid.")
     pg = 0
     for i, line in enumerate(lines):
         if m := re.match(r'^<a id="page-(\d+)"></a>', line):

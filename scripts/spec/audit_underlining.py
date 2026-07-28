@@ -78,7 +78,22 @@ def page_slices(md_lines):
     out = {}
     for k, (pno, i) in enumerate(marks):
         out[pno] = (i, marks[k + 1][1] if k + 1 < len(marks) else len(md_lines))
-    return out
+    return _require_page_anchors(out)
+
+
+# ⛔ PAGES WERE REMOVED FROM THE TRANSCRIPTION (2026-07-27). This audit buckets the Markdown by page anchor to
+# compare it against the corresponding PDF page, and with the anchors gone it finds nothing — which it would
+# otherwise report as a clean run. A silent all-clear is the one failure this directory exists to prevent, so
+# it stops instead. Figures are now GENERATED from the printed page and `sweep_figures.py --check` proves it
+# exactly, which supersedes this audit for anything figure-shaped; re-keying it onto the clause structure is
+# what it needs to live on for the rest.
+def _require_page_anchors(figs):
+    if not figs:
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+                 "so this page-keyed audit can no longer bucket it. For figures use "
+                 "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
+                 "This audit needs re-keying onto the clause hierarchy.")
+    return figs
 
 
 def main() -> int:

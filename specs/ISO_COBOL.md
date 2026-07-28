@@ -56,8 +56,6 @@ named.
 > correction can be reversed if it later proves mistaken. Each is also flagged in place with a ⚠ note.
 > Defects that are doubtful rather than clear are transcribed AS PRINTED and are listed in the Addendum too.
 
-<a id="page-1"></a>
-## Page 1
 
 # INTERNATIONAL STANDARD
 
@@ -81,8 +79,6 @@ ISO/IEC 1989:2023(E)
 
 © ISO/IEC 2023
 
-<a id="page-2"></a>
-## Page 2
 
 **ISO/IEC 1989:2023(E)**
 
@@ -105,11 +101,6 @@ Website: www.iso.org
 
 Published in Switzerland
 
-
-<a id="page-3"></a>
-## Page 3
-
-# ISO/IEC 1989:2023 (E)
 
 **Contents**
 
@@ -156,10 +147,6 @@ Introduction …………………………………………………………�
 
 ---
 
-<a id="page-4"></a>
-## Page 4
-
-# ISO/IEC 1989:2023 (E)
 
 [5.2.1 General](#section-5-2-1)
 [5.2.2 Keywords](#section-5-2-2)
@@ -208,10 +195,6 @@ Introduction …………………………………………………………�
 
 ---
 
-<a id="page-5"></a>
-## Page 5
-
-# ISO/IEC 1989:2023 (E)
 
 [7.1 General](#section-7-1)
 [7.2 Text manipulation](#section-7-2)
@@ -261,10 +244,6 @@ Introduction …………………………………………………………�
 
 ---
 
-<a id="page-6"></a>
-## Page 6
-
-# ISO/IEC 1989:2023 (E)
 
 [8.3.2.1 General](#section-8-3-2-1)
 [8.3.2.2 User-defined words](#section-8-3-2-2)
@@ -300,7 +279,7 @@ Introduction …………………………………………………………�
 [8.4.2.3.4 General rules](#section-8-4-2-3-4)
 [8.4.3 Identifiers](#section-8-4-3)
 [8.4.3.1 Identifier](#section-8-4-3-1)
-8.4.3.2 Function-identifier ……………………………………………………………………………  [127](#page-127)
+[8.4.3.2 Function-identifier](#section-8-4-3-2)
 [8.4.3.3 Reference-modification](#section-8-4-3-3)
 [8.4.3.4 Inline method invocation](#section-8-4-3-4)
 [8.4.3.5 Object-view](#section-8-4-3-5)
@@ -315,14 +294,10 @@ Introduction …………………………………………………………�
 
 ---
 
-<a id="page-7"></a>
-## Page 7
-
-**ISO/IEC 1989:2023 (E)**
 
 [8.4.3.14 LINAGE-COUNTER](#section-8-4-3-14)
 [8.4.3.15 Report counters](#section-8-4-3-15)
-8.4.4 Condition-name …………………………………………………………………………………………  [144](#page-144)
+[8.4.4 Condition-name](#section-8-4-4)
 [8.4.5 Explicit and implicit data item references](#section-8-4-5)
 [8.4.6 Scope of names](#section-8-4-6)
 [8.4.6.1 General](#section-8-4-6-1)
@@ -367,11 +342,6 @@ Introduction …………………………………………………………�
 [8.5.2 Class and category of data items and literals](#section-8-5-2)
 [8.5.2.1 General](#section-8-5-2-1)
 
-
-<a id="page-8"></a>
-## Page 8
-
-# ISO/IEC 1989:2023 (E)
 
 [8.5.2.2 Alphabetic category](#section-8-5-2-2)
 [8.5.2.3 Alphanumeric category](#section-8-5-2-3)
@@ -421,11 +391,6 @@ Introduction …………………………………………………………�
 [8.8.4.9 Complex conditions](#section-8-8-4-9)
 
 
-<a id="page-9"></a>
-## Page 9
-
-**ISO/IEC 1989:2023 (E)**
-
 [8.8.4.10 Complex negated conditions](#section-8-8-4-10)
 [8.8.4.11 Complex Combined conditions](#section-8-8-4-11)
 [8.8.4.12 Abbreviated combined relation conditions](#section-8-8-4-12)
@@ -473,11 +438,6 @@ Introduction …………………………………………………………�
 [9.1.15 Sharing mode](#section-9-1-15)
 
 
-<a id="page-10"></a>
-## Page 10
-
-# ISO/IEC 1989:2023 (E)
-
 [9.1.16 Record locking](#section-9-1-16)
 [9.1.17 Logical unit of work](#section-9-1-17)
 [9.1.18 Commit and Rollback](#section-9-1-18)
@@ -524,10 +484,6 @@ Introduction …………………………………………………………�
 [10 Structured compilation group](#section-10)
 [10.1 General](#section-10-1)
 
-<a id="page-11"></a>
-## Page 11
-
-**ISO/IEC 1989:2023 (E)**
 
 [10.2 Compilation units](#section-10-2)
 [10.3 Source units](#section-10-3)
@@ -575,10 +531,6 @@ Introduction …………………………………………………………�
 [11.8.2 General format](#section-11-8-2)
 [11.8.3 Syntax rules](#section-11-8-3)
 
-<a id="page-12"></a>
-## Page 12
-
-# ISO/IEC 1989:2023 (E)
 
 [11.8.4 General rules](#section-11-8-4)
 [11.9 OPTIONS paragraph](#section-11-9)
@@ -627,11 +579,6 @@ Introduction …………………………………………………………�
 [12.4.5.13 RELATIVE KEY clause](#section-12-4-5-13)
 
 
-<a id="page-13"></a>
-## Page 13
-
-**ISO/IEC 1989:2023 (E)**
-
 [12.4.5.14 RESERVE clause](#section-12-4-5-14)
 [12.4.5.15 SHARING clause](#section-12-4-5-15)
 [12.4.6 I-O-CONTROL paragraph](#section-12-4-6)
@@ -678,10 +625,6 @@ Introduction …………………………………………………………�
 [13.9.1 General](#section-13-9-1)
 [13.9.2 General format](#section-13-9-2)
 
-<a id="page-14"></a>
-## Page 14
-
-# ISO/IEC 1989:2023 (E)
 
 [13.9.3 Syntax rule](#section-13-9-3)
 [13.9.4 General rule](#section-13-9-4)
@@ -731,11 +674,6 @@ Introduction …………………………………………………………�
 [13.18.14 COLUMN clause](#section-13-18-14)
 
 
-<a id="page-15"></a>
-## Page 15
-
-**ISO/IEC 1989:2023 (E)**
-
 [13.18.15 CONSTANT RECORD clause](#section-13-18-15)
 [13.18.16 CONTROL clause](#section-13-18-16)
 [13.18.17 DEFAULT clause](#section-13-18-17)
@@ -783,10 +721,6 @@ Introduction …………………………………………………………�
 [13.18.60 USAGE clause](#section-13-18-60)
 [13.18.61 USING clause](#section-13-18-61)
 
-<a id="page-16"></a>
-## Page 16
-
-# ISO/IEC 1989:2023 (E)
 
 [13.18.62 VALIDATE-STATUS clause](#section-13-18-62)
 [13.18.63 VALUE clause](#section-13-18-63)
@@ -833,11 +767,6 @@ Introduction …………………………………………………………�
 [14.6.8.6 Receiving data items of category boolean](#section-14-6-8-6)
 [14.6.9 Operations on dynamic-capacity tables](#section-14-6-9)
 
-
-<a id="page-17"></a>
-## Page 17
-
-**ISO/IEC 1989:2023 (E)**
 
 [14.6.10 Overlapping operands](#section-14-6-10)
 [14.6.11 Normal run unit termination](#section-14-6-11)
@@ -887,11 +816,6 @@ Introduction …………………………………………………………�
 [14.9.9 CONTINUE statement](#section-14-9-9)
 
 
-<a id="page-18"></a>
-## Page 18
-
-# ISO/IEC 1989:2023 (E)
-
 [14.9.10 DELETE statement](#section-14-9-10)
 [14.9.11 DISPLAY statement](#section-14-9-11)
 [14.9.12 DIVIDE statement](#section-14-9-12)
@@ -938,11 +862,6 @@ Introduction …………………………………………………………�
 [15.1 General](#section-15-1)
 [15.2 Types of functions](#section-15-2)
 
-
-<a id="page-19"></a>
-## Page 19
-
-# ISO/IEC 1989:2023 (E)
 
 [15.3 Arguments](#section-15-3)
 [15.3.1 Format arguments to international date and time functions](#section-15-3-1)
@@ -992,11 +911,6 @@ Introduction …………………………………………………………�
 [15.24 DAY-OF-INTEGER function](#section-15-24)
 
 
-<a id="page-20"></a>
-## Page 20
-
-# ISO/IEC 1989:2023 (E)
-
 [15.25 DAY-TO-YYYYDDD function](#section-15-25)
 [15.26 DISPLAY-OF function](#section-15-26)
 [15.27 E function](#section-15-27)
@@ -1045,11 +959,6 @@ Introduction …………………………………………………………�
 [15.70 ORD function](#section-15-70)
 
 
-<a id="page-21"></a>
-## Page 21
-
-# ISO/IEC 1989:2023 (E)
-
 [15.71 ORD-MAX function](#section-15-71)
 [15.72 ORD-MIN function](#section-15-72)
 [15.73 PI function](#section-15-73)
@@ -1087,7 +996,7 @@ Introduction …………………………………………………………�
 [16.2.1 New method](#section-16-2-1)
 [16.2.2 FactoryObject method](#section-16-2-2)
 A Language element lists …………………………………………………………………………….. 943
-A.1 Implementor-defined language element list ……………………………………………….  [943](#page-943)
+[A.1 Implementor-defined language element list](#section-a-1)
 [A.2 Undefined language element list](#section-a-2)
 [A.3 Processor-dependent language element list](#section-a-3)
 [A.4 Optional language element list](#section-a-4)
@@ -1096,11 +1005,6 @@ B Characters permitted in user-defined words ……………………………�
 
 ---
 
-
-<a id="page-22"></a>
-## Page 22
-
-# ISO/IEC 1989:2023 (E)
 
 [B.2 Notation](#section-b-2)
 [B.3 Repertoire of characters permitted in user-defined words](#section-b-3)
@@ -1148,11 +1052,6 @@ E Substantive changes list ……………………………………………�
 [E.2 Substantive changes potentially affecting existing programs](#section-e-2)
 
 
-<a id="page-23"></a>
-## Page 23
-
-**ISO/IEC 1989:2023 (E)**
-
 [E.3 Substantive changes probably not affecting existing programs](#section-e-3)
 F Archaic and obsolete language element lists ................................................1199
 [F.1 Archaic language elements](#section-f-1)
@@ -1164,9 +1063,6 @@ BIBLIOGRAPHY ...................................................................
 
 Index......................................................................................1204
 
-
-<a id="page-24"></a>
-## Page 24
 
 # ISO/IEC 2023
 
@@ -1200,12 +1096,6 @@ Index...........................................................................
 | A.3 | ROUNDED MODE examples | 1096 |
 
 
-
-<a id="page-25"></a>
-## Page 25
-
-**ISO/IEC 1989:2023 (E)**
-
 ## Figures
 
 [1 Fixed-form reference format](#section-1)
@@ -1220,18 +1110,12 @@ Index...........................................................................
 [D.9 Evaluation of condition-1 OR condition-2 AND condition-3](#section-d-9)
 [D.10 Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4](#section-d-10)
 D.11 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having one condition
-1155 D.12 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions ............................................................................................... [1155](#page-1155)
+[D.12 The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions](#section-d-12)
 D.13 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition
 1156
 D.14 The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions
 1157
 
-
-
-<a id="page-26"></a>
-## Page 26
-
-# ISO/IEC 1989:2023 (E)
 
 ## Foreword
 
@@ -1268,11 +1152,6 @@ The main changes are as follows:
 ---
 
 
-<a id="page-27"></a>
-## Page 27
-
-**ISO/IEC 1989:2023 (E)**
-
 — Inline exception handling using the exception-checking format of the PERFORM statement
 — An Enhanced INSPECT statement to inspect backwards
 — Line Sequential file organization
@@ -1306,12 +1185,6 @@ The main changes are as follows:
 Any feedback or questions on this document should be directed to the user's national standards body. A complete listing of these bodies can be found at www.iso.org/members.html and www.iec.ch/national-committees.
 
 
-
-<a id="page-28"></a>
-## Page 28
-
-**ISO/IEC 1989:2023 (E)**
-
 ## Introduction
 
 COBOL began as a business programming language, but its present use has spread well beyond that to a general purpose programming language.
@@ -1341,10 +1214,6 @@ Annexes A, Language element lists B, Characters permitted in user-defined words,
 > <sup>1</sup> FLOW-MATIC™ is the trademark of a product supplied by Sperry Rand Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.
 > <sup>2</sup> IBM is the trademark of International Business Machines Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.
 
-<a id="page-29"></a>
-## Page 29
-
-**ISO/IEC 1989:2023 (E)**
 
 Annex D, Concepts, includes an explanation of major features as well as the more complicated prior features and is the suggested starting point for the reading of this document.
 
@@ -1368,15 +1237,6 @@ Information marked as 'NOTE' is intended to assist the understanding or use of t
 
 ---
 
-
-<a id="page-30"></a>
-## Page 30
-
-**ISO/IEC 1989:2023 (E)**
-
-
-<a id="page-31"></a>
-## Page 31
 
 # INTERNATIONAL STANDARD **ISO/IEC 1989:2023 (E)**
 
@@ -1429,11 +1289,6 @@ This document does not specify:
 ---
 
 
-<a id="page-32"></a>
-## Page 32
-
-**ISO/IEC 1989:2023 (E)**
-
 <a id="section-2"></a>
 ## 2 Normative references
 
@@ -1453,12 +1308,6 @@ ISO/IEC 10646, *Information technology — Universal Coded Character Set (UCS)*
 
 ISO/IEC 14651:2020, *Information technology — International string ordering and comparison — Method for comparing character strings and description of the common template tailorable ordering*
 
-
-
-<a id="page-33"></a>
-## Page 33
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-3"></a>
 ## 3 Terms and definitions
@@ -1509,10 +1358,6 @@ coded character in an alphanumeric coded character set, whether or not there is 
 
 ---
 
-<a id="page-34"></a>
-## Page 34
-
-# ISO/IEC 1989:2023 (E)
 
 ### 3.10
 **alphanumeric character set**
@@ -1555,12 +1400,6 @@ smallest unit in a computer's storage structure capable of representing two dist
 **bit data item**
 elementary data item of category boolean and usage bit or a bit group item
 
-
-
-<a id="page-35"></a>
-## Page 35
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -1628,11 +1467,6 @@ Note 1 to entry: As an example, each element of a combining sequence in the UCS 
 ---
 
 
-<a id="page-36"></a>
-## Page 36
-
-# ISO/IEC 1989:2023 (E)
-
 ---
 
 ### 3.30
@@ -1694,12 +1528,6 @@ member of the Universal Coded Character Set that is intended for combination wit
 ---
 
 
-
-<a id="page-37"></a>
-## Page 37
-
-# ISO/IEC 1989:2023 (E)
-
 ## 3.39
 **common program**
 program that, despite being directly contained within another program, can be called from any program directly or indirectly contained in that other program
@@ -1740,12 +1568,6 @@ action that affects the recording, processing, transmission, or interpretation o
 **cultural element**
 element of data for computer use that can vary dependent on language, geographical territory, or other cultural circumstances
 
-
-
-<a id="page-38"></a>
-## Page 38
-
-# ISO/IEC 1989:2023 (E)
 
 ## 3.48
 **currency sign**
@@ -1791,12 +1613,6 @@ logical removal of all editing characters from a numeric-edited data item in ord
 FILE format of the DELETE statement
 
 
-
-<a id="page-39"></a>
-## Page 39
-
-# ISO/IEC 1989:2023 (E)
-
 ### 3.58
 **delete record statement**
 RECORD format of the DELETE statement
@@ -1841,12 +1657,6 @@ information required to interact successfully with a function, method, or progra
 **exception condition**
 condition detected at runtime that indicates that an error or exception to normal processing has occurred
 
-
-
-<a id="page-40"></a>
-## Page 40
-
-# ISO/IEC 1989:2023 (E)
 
 ### 3.69
 **exception object**
@@ -1895,12 +1705,6 @@ letter, other than the basic letters, in the set of characters defined for the C
 data that belongs to the run unit and can be accessed by any runtime element in which it is described
 
 
-
-<a id="page-41"></a>
-## Page 41
-
-# ISO/IEC 1989:2023 (E)
-
 ### 3.80
 **external media format**
 form of data suitable for presentation or printing, including any control functions necessary for representation as readable text
@@ -1941,11 +1745,6 @@ attribute of a physical file that is established when the physical file is creat
 **formal parameter**
 data-name specified in the USING phrase of the procedure division header that gives the name used in the function, method, or program for a parameter
 
-
-<a id="page-42"></a>
-## Page 42
-
-# ISO/IEC 1989:2023 (E)
 
 ### 3.90
 **format character**
@@ -1994,12 +1793,6 @@ character from the set 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, and F used i
 mode of file processing in which records can be read, updated, added, and deleted
 
 
-
-<a id="page-43"></a>
-## Page 43
-
-# ISO/IEC 1989:2023 (E)
-
 ### 3.100
 **i-o status**
 conceptual entity that exists for a file, that contains a value indicating the result of the execution of an input-output operation for that file
@@ -2047,10 +1840,6 @@ single instance of an object defined by a class and created by a factory object
 
 ---
 
-<a id="page-44"></a>
-## Page 44
-
-# ISO/IEC 1989:2023 (E)
 
 ---
 
@@ -2121,11 +1910,6 @@ implementor-defined unit of data that specifies the requestor or sender of a mes
 ---
 
 
-<a id="page-45"></a>
-## Page 45
-
-# ISO/IEC 1989:2023 (E)
-
 ### 3.121
 **method invocation**
 **invocation**
@@ -2171,10 +1955,6 @@ record that logically follows the current record of a file
 
 ---
 
-<a id="page-46"></a>
-## Page 46
-
-# ISO/IEC 1989:2023 (E)
 
 ### 3.131
 **null**
@@ -2226,12 +2006,6 @@ file that is opened such that it can only be written or extended
 mode of file processing in which a file is created and records can only be added to the file
 
 
-
-<a id="page-47"></a>
-## Page 47
-
-# ISO/IEC 1989:2023 (E)
-
 ## 3.143
 **physical file**
 physical collection of physical records
@@ -2279,10 +2053,6 @@ item in a report whose position is specified relative to the previous item
 
 ---
 
-<a id="page-48"></a>
-## Page 48
-
-# ISO/IEC 1989:2023 (E)
 
 ### 3.154
 **relative key**
@@ -2324,12 +2094,6 @@ file that is opened such that it can only be written or read sequentially
 **sequential organization**
 permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file
 
-
-
-<a id="page-49"></a>
-## Page 49
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -2401,11 +2165,6 @@ Note 1 to entry: This includes magnetic tape drives, ribbon drives, write only d
 ---
 
 
-<a id="page-50"></a>
-## Page 50
-
-# ISO/IEC 1989:2023 (E)
-
 ### 3.174
 **type**
 template that contains all the characteristics of a data item and its subordinates
@@ -2426,12 +2185,6 @@ element of data whose minimum permitted length is zero and whose length at runti
 **zero-length literal**
 alphanumeric, boolean, or national literal that contains zero characters
 
-
-
-<a id="page-51"></a>
-## Page 51
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-4"></a>
 ## 4 Conformance to this Working Draft International Standard
@@ -2470,10 +2223,6 @@ Facilities are provided in this specification that enable transfer of control an
 
 Facilities are provided in this specification that enhance the capability of transferring control and sharing external items between COBOL runtime elements translated on COBOL implementations produced by different implementors. No requirement is placed on an implementation to support this interaction. When supported, an implementor shall document the implementations supported.
 
-<a id="page-52"></a>
-## Page 52
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-4-2-5"></a>
 #### 4.2.5 Implementor-defined language elements
@@ -2497,10 +2246,6 @@ An implementation shall provide a warning mechanism at compile time to indicate 
 #### 4.2.7 Optional language elements
 
 Language elements that an implementor may, but need not, implement are listed in A.4, Optional language element list. An implementor shall identify in user documentation the optional language elements for which that implementor claims support. If an implementor provides support for parts of an optional feature, user documentation shall identify the elements that are supported and those that are not supported. The provisions of 4.2.5, Implementor-defined language elements, apply for each optional language element for which support is claimed.
-
-<a id="page-53"></a>
-## Page 53
-ISO/IEC 1989:2023 (E)
 
 
 <a id="section-4-2-8"></a>
@@ -2533,10 +2278,6 @@ An implementation shall provide a warning mechanism that optionally may be invok
 
 ---
 
-<a id="page-54"></a>
-## Page 54
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-4-2-11"></a>
 #### 4.2.11 Substitute or additional language elements
@@ -2575,9 +2316,6 @@ NOTE This permits an implementation to require components outside the COBOL impl
 
 In general, standard COBOL specifies no upper limit on such things as the number of statements in a compilation group or the number of operands permitted in certain statements. A conforming implementation may place such limits. It is recognized that these limits will vary from one implementation of standard COBOL to another and may prevent the successful translation by a conforming implementation of some compilation groups that meet the requirements of standard COBOL.
 
-<a id="page-55"></a>
-## Page 55
-
 
 <a id="section-4-2-16"></a>
 #### 4.2.16 User documentation
@@ -2614,10 +2352,6 @@ The processing of a conforming run unit is predictable only to the extent define
 
 ---
 
-<a id="page-56"></a>
-## Page 56
-
-**ISO/IEC 1989:2023 (E)**
 
 Situations in which the results of executing a statement are explicitly undefined or unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these situations to happen is a conforming run unit, although the resultant execution is not defined by standard COBOL.
 
@@ -2638,10 +2372,6 @@ NOTE These factors can include the logical incorrectness of the compilation unit
 
 ---
 
-<a id="page-57"></a>
-## Page 57
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-5"></a>
 ## 5 Description techniques
@@ -2691,10 +2421,6 @@ Keywords are reserved words or context-sensitive words. They are shown in upperc
 
 ---
 
-<a id="page-58"></a>
-## Page 58
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-5-2-3"></a>
 #### 5.2.3 Optional words
@@ -2731,11 +2457,6 @@ Specific level numbers appearing in general formats are required to be specified
 
 ---
 
-
-<a id="page-59"></a>
-## Page 59
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-5-2-6"></a>
 #### 5.2.6 Options
@@ -2775,11 +2496,6 @@ The separators comma and semicolon may be used anywhere the separator space is u
 
 ---
 
-
-<a id="page-60"></a>
-## Page 60
-
-# ISO/IEC 1989:2023 (E)
 
 The separator period, when specified in a general format, is required when that format is used.
 
@@ -2833,11 +2549,6 @@ Returned value rules define how the arguments are used to derive the result of a
 ---
 
 
-<a id="page-61"></a>
-## Page 61
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-5-4"></a>
@@ -2887,11 +2598,6 @@ Ellipses show that the number of terms and operators is variable.
 ---
 
 
-<a id="page-62"></a>
-## Page 62
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-5-6"></a>
 ### 5.6 Informal description
 
@@ -2907,11 +2613,6 @@ A hyphen appearing at the end of a line of text is part of the character-string 
 
 ---
 
-
-<a id="page-63"></a>
-## Page 63
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-6"></a>
 ## 6 Reference format
@@ -2956,10 +2657,6 @@ Indicators are instructions to the compiler for interpreting reference format. E
 
 ---
 
-<a id="page-64"></a>
-## Page 64
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-6-2-2"></a>
 #### 6.2.2 Fixed indicators
@@ -2996,10 +2693,6 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 ---
 
-<a id="page-65"></a>
-## Page 65
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-6-2-3-2"></a>
 ##### 6.2.3.2 Syntax rules
@@ -3023,11 +2716,6 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 ---
 
-
-<a id="page-66"></a>
-## Page 66
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-6-3"></a>
 ### 6.3 Fixed-form reference format
@@ -3075,12 +2763,6 @@ The sequence number area may be used to label a line of source text or library t
 The indicator area identifies the type of a source line in accordance with the indicators specified in 6.2.2, Fixed indicators.
 
 
-
-<a id="page-67"></a>
-## Page 67
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-6-3-4"></a>
 #### 6.3.4 Program-text area
 
@@ -3123,10 +2805,6 @@ Comment lines and blank lines may be interspersed among lines containing the par
 
 ---
 
-<a id="page-68"></a>
-## Page 68
-
-# ISO/IEC 1989:2023 (E)
 
 If there is no fixed continuation indicator in a line, a space is implied before the first nonblank character in the line for purposes of analyzing the text of the compilation group.
 
@@ -3172,11 +2850,6 @@ The indicators specified in 6.2.3, Floating indicators, identify specific elemen
 ---
 
 
-<a id="page-69"></a>
-## Page 69
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-6-4-2"></a>
 #### 6.4.2 Continuation of lines
 
@@ -3215,10 +2888,6 @@ A comment line is identified by a floating comment indicator as the first charac
 
 ---
 
-<a id="page-70"></a>
-## Page 70
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-6-4-4-3"></a>
 ##### 6.4.4.3 Inline comments
@@ -3254,11 +2923,6 @@ The rules of logical conversion are applied to each line of a compilation group 
 ---
 
 
-<a id="page-71"></a>
-## Page 71
-
-**ISO/IEC 1989:2023 (E)**
-
 b) otherwise, the content of the program-text area, beginning with the first non-space character, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group.
 
 7) If the line is a free-form line and is not a continuation line, that line is copied to the resultant compilation group.
@@ -3269,11 +2933,6 @@ b) otherwise, the content of the program-text area, beginning with the first non
 
 At the end of the compilation group, processing continues with the resultant logically-converted compilation group. The implementor shall define the effect on the source listing, if any, of logical conversion.
 
-
-<a id="page-72"></a>
-## Page 72
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7"></a>
 ## 7 Compiler directing facility
@@ -3323,11 +2982,6 @@ The implementor defines the stage during which actions associated with listings,
 ---
 
 
-<a id="page-73"></a>
-## Page 73
-
-**ISO/IEC 1989:2023 (E)**
-
 The substitution of compilation-variable values into constant entries occurs in the text manipulation stage. The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor, except that it occurs after the text manipulation stage of processing.
 
 <a id="section-7-2"></a>
@@ -3363,10 +3017,6 @@ Step 1: An expanded compilation group is created in logical free-form reference 
 
 ---
 
-<a id="page-74"></a>
-## Page 74
-
-# ISO/IEC 1989:2023 (E)
 
 Step 2: A conditionally-processed compilation group is created — the expanded compilation group is read and the following compiler directives and substitutions are processed in the order encountered in the expanded compilation group:
 
@@ -3414,12 +3064,6 @@ The source text and library text processed by text manipulation consists of indi
 Pseudo-text is an operand in the REPLACE statement and in the REPLACING phrase of the COPY statement. Pseudo-text may be any sequence of zero or more text-words, comments, and the separator space bounded by, but not including, pseudo-text delimiters.
 
 
-
-<a id="page-75"></a>
-## Page 75
-
-**ISO/IEC 1989:2023 (E)**
-
 The opening pseudo-text delimiter and the closing pseudo-text delimiter consist of the two contiguous COBOL characters '=='.
 
 <a id="section-7-2-2-5"></a>
@@ -3438,10 +3082,6 @@ NOTE    The contexts in which characters from outside the COBOL character repert
 
 ---
 
-<a id="page-76"></a>
-## Page 76
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-2-3"></a>
 #### 7.2.3 COPY statement
@@ -3492,11 +3132,6 @@ The COPY statement incorporates library text into a COBOL compilation group.
 ---
 
 
-<a id="page-77"></a>
-## Page 77
-
-**ISO/IEC 1989:2023 (E)**
-
 9) The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions.
 
 10) Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2.
@@ -3530,10 +3165,6 @@ The COPY statement incorporates library text into a COBOL compilation group.
 
    a) The leftmost library text-word that is not a separator comma or a separator semicolon is the first text-word used for comparison. Any text-word or space preceding this text-word is copied into the resultant text. Starting with the first text-word for comparison and first pseudo-text-1 or partial-word-1 that was specified in the REPLACING phrase, the entire REPLACING phrase operand that precedes the reserved word BY is compared to an equivalent number of contiguous library text-words.
 
-<a id="page-78"></a>
-## Page 78
-# ISO/IEC 1989:2023 (E)
-
 
 b) Pseudo-text-1 matches the library text only if the ordered sequence of text-words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of library text-words. When the LEADING phrase is specified, partial-word-1 matches the library text only if the contiguous sequence of characters that forms partial-word-1 is equal, character for character, to an equal number of contiguous characters starting with the leftmost character position of a library text-word. When the TRAILING phrase is specified, partial-word-1 matches the library text only if the contiguous sequence of characters that forms partial-word-1 is equal, character for character, to an equal number of contiguous characters ending with the rightmost character position of a library text-word.
 
@@ -3561,10 +3192,6 @@ d) If no match occurs, the comparison is repeated with each next successive pseu
 
 e) When all the REPLACING phrase operands have been compared and no match has occurred, the leftmost library text-word is copied into the resultant text. The next successive library text-word is then considered as the leftmost library text-word, and the comparison cycle starts again with the first pseudo-text-1 or partial-word-1 specified in the REPLACING phrase.
 
-<a id="page-79"></a>
-## Page 79
-**ISO/IEC 1989:2023 (E)**
-
 
 f) When a match occurs between pseudo-text-1 and the library text, the corresponding pseudo-text-2, text-2, word-2, or literal-4 is placed into the resultant text. When a match occurs between partial-word-1 and the library text-word, the library text-word is placed into the resultant text with the matched characters either replaced by partial-word-2 or deleted when partial-word-2 consists of zero text-words. The library text-word immediately following the rightmost text-word that participated in the match is then considered as the leftmost text-word. The comparison cycle starts again with the first pseudo-text-1 or partial-word-1 specified in the REPLACING phrase.
 
@@ -3578,12 +3205,6 @@ g) The comparison operation continues until the rightmost text-word in the libra
 
 13) The replacing action of a COPY statement shall not introduce a COPY statement, a SOURCE FORMAT directive, a comment, or a blank line.
 
-
-
-<a id="page-80"></a>
-## Page 80
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-2-4"></a>
 #### 7.2.4 REPLACE statement
@@ -3637,12 +3258,6 @@ Format 2 (off):
 ---
 
 
-
-<a id="page-81"></a>
-## Page 81
-
-**ISO/IEC 1989:2023 (E)**
-
 10) Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2.
 
 <a id="section-7-2-4-4"></a>
@@ -3679,12 +3294,6 @@ Format 2 (off):
       2. The current REPLACE statement is expanded into a single REPLACE statement, without the ALSO phrase, having as its operands all the operands of the current statement followed by the operands of the most recent statement pushed into the queue of inactive REPLACE statements. The expanded REPLACE statement is placed in the active state.
 
 
-
-<a id="page-82"></a>
-## Page 82
-
-# ISO/IEC 1989:2023 (E)
-
 b) A format 1 REPLACE statement without the ALSO phrase cancels the active REPLACE statement and cancels any REPLACE statements in the queue of inactive REPLACE statements. Then the current REPLACE statement is placed in the active state.
 
 c) A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement that was pushed into the queue of inactive REPLACE statements, if any. The popped statement, if any, is placed in the active state.
@@ -3712,11 +3321,6 @@ c) The following rules apply for the purpose of matching:
 ---
 
 
-<a id="page-83"></a>
-## Page 83
-
-**ISO/IEC 1989:2023 (E)**
-
 b. In the content of the literal, two contiguous occurrences of the character used as the quotation symbol in the opening delimiter are treated as a single occurrence of that character.
 
 5. Each occurrence of a compiler directive line is treated as a single space.
@@ -3739,11 +3343,6 @@ g) The comparison operation continues until the rightmost text-word in the sourc
 
 NOTE 2 A space is assumed at the end of a source line.
 
-
-<a id="page-84"></a>
-## Page 84
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3"></a>
 ### 7.3 Compiler directives
@@ -3789,11 +3388,6 @@ Compiler directives specify options for use by the compiler, define compilation-
 ---
 
 
-<a id="page-85"></a>
-## Page 85
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE >>IMP provides an optional place holder for all current and future implementor-defined directives. In this way the implementor can optionally support the use of >>IMP to indicate the start of one or more implementor-defined directives.
 
 10) A literal in a compiler directive shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal.
@@ -3829,10 +3423,6 @@ A compile-time arithmetic expression may be specified in the DEFINE and EVALUATE
 
 ---
 
-<a id="page-86"></a>
-## Page 86
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-6-2"></a>
 ##### 7.3.6.2 Syntax rules
@@ -3877,11 +3467,6 @@ A compile-time boolean expression may be specified where allowed by the general 
 ---
 
 
-<a id="page-87"></a>
-## Page 87
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-7-3-7-3"></a>
 ##### 7.3.7.3 General rule
 
@@ -3923,10 +3508,6 @@ A constant conditional expression is a conditional expression in which the opera
 
 2) For a simple relation condition where the operands are not numeric or boolean, no collating sequence is used for the comparison. A character by character comparison for equality based on the binary value of each character's encoding is used. If the literals are of unequal length they are not equal.
 
-<a id="page-88"></a>
-## Page 88
-**ISO/IEC 1989:2023 (E)**
-
 
 NOTE This means that uppercase and lowercase letters are not equivalent.
 
@@ -3961,11 +3542,6 @@ compilation-variable-name-1 IS [ <u>NOT</u> ] <u>DEFINED</u>
 
 ---
 
-
-<a id="page-89"></a>
-## Page 89
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-9"></a>
 #### 7.3.9 CALL-CONVENTION directive
@@ -4004,11 +3580,6 @@ The CALL-CONVENTION directive instructs the compiler how to treat references to 
 
 ---
 
-
-<a id="page-90"></a>
-## Page 90
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-10"></a>
 #### 7.3.10 COBOL-WORDS directive
@@ -4056,11 +3627,6 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
 ---
 
 
-<a id="page-91"></a>
-## Page 91
-
-**ISO/IEC 1989:2023 (E)**
-
 3) When the UNDEFINE option is specified, the COBOL word that is the content of literal-3 shall no longer be reserved or restricted in any way, and may be used as a user-defined intrinsic name, data-name or any other user-defined word, and any syntax requiring the use of the COBOL word that is the content of literal-3 shall not be available for use in this compilation group.
 
 4) When the SUBSTITUTE option is specified, the COBOL word that is the content of literal-5 shall be used in any syntax where the COBOL word that is the content of literal-4 is documented as required or optional. The COBOL word that is the content of literal-4 may then be used as a user-defined word within this compilation group but the content of literal-4 shall no longer be a reserved word, a context-sensitive word, nor an intrinsic function name within this compilation group.
@@ -4069,11 +3635,6 @@ The COBOL-WORDS directive provides the facility to modify which words may and ma
 
 6) A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives.
 
-
-<a id="page-92"></a>
-## Page 92
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-11"></a>
 #### 7.3.11 DEFINE directive
@@ -4125,11 +3686,6 @@ The DEFINE directive specifies a symbolic name, called a compilation variable, f
 ---
 
 
-<a id="page-93"></a>
-## Page 93
-
-**ISO/IEC 1989:2023 (E)**
-
 2) Following a DEFINE directive in which the OFF phrase is specified, compilation-variable-name-1 shall not be used except in a defined condition unless it is redefined in a subsequent DEFINE directive.
 
 3) If the OVERRIDE phrase is specified, compilation-variable-name-1 is unconditionally set to reference the value of the specified operand.
@@ -4144,11 +3700,6 @@ The DEFINE directive specifies a symbolic name, called a compilation variable, f
 
 8) If literal-1 is specified, compilation-variable-name-1 references literal-1.
 
-
-<a id="page-94"></a>
-## Page 94
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-12"></a>
 #### 7.3.12 DISPLAY directive
@@ -4206,22 +3757,12 @@ The DISPLAY directive transfers data to the source listing or an implementor def
 ---
 
 
-<a id="page-95"></a>
-## Page 95
-
-**ISO/IEC 1989:2023 (E)**
-
 a) if LISTING is specified, data is transferred to the same device as that used for source listings.
 
 b) if compile-time-device-1 is specified, data is transferred to the device defined by the implementor for receiving that data.
 
 6) If the UPON phrase is not specified, the default is as if UPON LISTING were specified.
 
-
-<a id="page-96"></a>
-## Page 96
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-13"></a>
 #### 7.3.13 EVALUATE directive
@@ -4275,11 +3816,6 @@ ALL FORMATS
 ---
 
 
-<a id="page-97"></a>
-## Page 97
-
-**ISO/IEC 1989:2023 (E)**
-
 3) >>WHEN operand-2 [THROUGH operand-3] shall begin on a new line and shall be specified entirely on that line.
 
 4) Text-1 shall begin on a new line.
@@ -4318,12 +3854,6 @@ ALL FORMATS
 1) Text-1 and text-2 are not part of the EVALUATE compiler directive line. Any text words in text-1 or text-2 that do not form a compiler directive line are subject to the matching and replacing rules of the COPY statement and the REPLACE statement.
 
 
-
-<a id="page-98"></a>
-## Page 98
-
-# ISO/IEC 1989:2023 (E)
-
 FORMAT 1
 
 2) If an operand of the EVALUATE directive consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression.
@@ -4355,18 +3885,8 @@ FORMAT 2
 ---
 
 
-<a id="page-99"></a>
-## Page 99
-
-**ISO/IEC 1989:2023 (E)**
-
 10) If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text.
 
-
-<a id="page-100"></a>
-## Page 100
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-14"></a>
 #### 7.3.14 FLAG-02 directive
@@ -4424,11 +3944,6 @@ NOTE The FLAG-02 directive is an obsolete element in this Working Draft Internat
 ---
 
 
-<a id="page-101"></a>
-## Page 101
-
-**ISO/IEC 1989:2023 (E)**
-
 1. the source element calls any function, or
 
 2. the source element invokes any method.
@@ -4447,11 +3962,6 @@ f) TERMINATE-WITH-VARYING: A TERMINATE statement shall be flagged if the report 
 
 5) If the FLAG-02 directive is not specified, the default for all options is off.
 
-
-<a id="page-102"></a>
-## Page 102
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-15"></a>
 #### 7.3.15 FLAG-14 directive
@@ -4509,10 +4019,6 @@ The FLAG-14 directive specifies options to flag certain syntax for which the beh
 
 2) If ON is explicitly or implicitly specified for an option, the warning mechanism is enabled for that option for all text that follows until the end of the compilation group is reached, a FLAG-14 directive is encountered that turns off all flagging options, or a FLAG-14 directive is encountered that turns off that option.
 
-<a id="page-103"></a>
-## Page 103
-**ISO/IEC 1989:2023 (E)**
-
 
 3) If OFF is specified, flagging for the selected option or options is disabled.
 
@@ -4547,24 +4053,12 @@ k) VALUE-FIG-CON-NO-LENTH. A figurative constant specified in the VALUE clause o
 l) VALUE-ZERO. A numeric-edited data item that has a VALUE clause that specifies the figurative constant ZERO shall be flagged.
 
 
-
-<a id="page-104"></a>
-## Page 104
-
-**ISO/IEC 1989:2023 (E)**
-
 m) WRITE-END-OF-PAGE. A WRITE statement that allows an END-OF-PAGE phrase when the END-OF-PAGE phrase is not specified shall be flagged.
 
 5) If the FLAG-14 directive is not specified, the default for all options is off.
 
 ---
 
-
-
-<a id="page-105"></a>
-## Page 105
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-16"></a>
 #### 7.3.16 IF directive
@@ -4615,11 +4109,6 @@ The IF directive provides for 1- or 2-way conditional compilation. This directiv
 ---
 
 
-<a id="page-106"></a>
-## Page 106
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-7-3-17"></a>
 #### 7.3.17 LEAP-SECOND directive
 
@@ -4668,22 +4157,12 @@ The LEAP-SECOND directive specifies whether a value greater than or equal to 60 
 ---
 
 
-<a id="page-107"></a>
-## Page 107
-
-**ISO/IEC 1989:2023 (E)**
-
 5) When OFF is specified or implied, a standard numeric time form value shall be greater than or equal to zero and less than 86,400.
 
 6) When ON is specified or implied, the value contained in the seconds subfield of a formatted time value shall be greater than or equal to zero and less than 61.
 
 7) When OFF is specified or implied, the value contained in the seconds subfield of a formatted time value shall be greater than or equal to zero and less than 60.
 
-
-<a id="page-108"></a>
-## Page 108
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-18"></a>
 #### 7.3.18 LISTING directive
@@ -4725,11 +4204,6 @@ NOTE This Working Draft International Standard does not define the content or la
 ---
 
 
-<a id="page-109"></a>
-## Page 109
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-7-3-19"></a>
 #### 7.3.19 PAGE directive
 
@@ -4765,11 +4239,6 @@ The PAGE directive specifies page ejection and provides documentation for the so
 
 ---
 
-
-<a id="page-110"></a>
-## Page 110
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-20"></a>
 #### 7.3.20 POP directive
@@ -4813,11 +4282,6 @@ The POP directive is used to restore the state of a directive that was previousl
 ---
 
 
-<a id="page-111"></a>
-## Page 111
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-7-3-21"></a>
 #### 7.3.21 PROPAGATE directive
 
@@ -4858,11 +4322,6 @@ The PROPAGATE directive is used to cause propagation of exception conditions to 
 
 ---
 
-
-<a id="page-112"></a>
-## Page 112
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-22"></a>
 #### 7.3.22 PUSH directive
@@ -4909,11 +4368,6 @@ The PUSH directive is used to save the state of a directive so that its status m
 ---
 
 
-<a id="page-113"></a>
-## Page 113
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-7-3-23"></a>
 #### 7.3.23 REF-MOD-ZERO-LENGTH directive
 
@@ -4939,12 +4393,6 @@ The REF-MOD-ZERO-LENGTH directive specifies whether resultant data items may hav
 
 ---
 
-
-
-<a id="page-114"></a>
-## Page 114
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -4982,12 +4430,6 @@ The SOURCE FORMAT directive specifies whether the reference format of the source
 
 ---
 
-
-
-<a id="page-115"></a>
-## Page 115
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-7-3-25"></a>
 #### 7.3.25 TURN directive
@@ -5037,10 +4479,6 @@ The TURN directive is used to turn checking for specified exception conditions o
 
 ---
 
-<a id="page-116"></a>
-## Page 116
-
-# ISO/IEC 1989:2023 (E)
 
 5) If specified within a statement, the TURN directive does not apply to any phrase of that statement. That TURN directive applies to any succeeding statement in the sequence of source lines, whether or not that succeeding statement is within the scope of the statement in which the TURN directive is specified.
 
@@ -5057,11 +4495,6 @@ The TURN directive is used to turn checking for specified exception conditions o
 
 ---
 
-
-<a id="page-117"></a>
-## Page 117
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8"></a>
 ## 8 Language fundamentals
@@ -5096,10 +4529,6 @@ The runtime computer's coded character set consists of a coded character set use
 
 ---
 
-<a id="page-118"></a>
-## Page 118
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE 1 In general, the specification assumes that the national character set includes the characters of the alphanumeric character set; for example, intrinsic functions are defined for conversion between the two. An alphanumeric character set is typically a Latin alphabet coded character set, such as ISO/IEC 646, but can be any coded character set. A national character set is intended for larger coded character sets, such as the Universal Coded Character Set (UCS) defined by ISO/IEC 10646, but can be any coded character set.
 
@@ -5130,12 +4559,6 @@ The implementor shall specify one and only one alphanumeric coded character valu
 ---
 
 
-
-<a id="page-119"></a>
-## Page 119
-
-**ISO/IEC 1989:2023 (E)**
-
 — the character used for space filling of alphanumeric data items
 — the editing characters: 'B', 'C', 'D', 'E', 'R', '0', '-', '+', '\*', '/', ',', '.', and space characters used for numeric digits in alphanumeric data items and literals
 
@@ -5165,10 +4588,6 @@ The coded character values required for the alphanumeric character set and the c
 
 When the computer's coded character set at runtime differs from the coded character set known at compile time, the content of alphanumeric and national literals shall be converted, prior to use at runtime, to the computer's runtime alphanumeric or national coded character set as appropriate for the class of the literal, except that the hexadecimal-alphanumeric format and the hexadecimal-national format literals shall not be converted. The implementor shall define the correspondence of each character of the compile-time coded character set with an associated character in the runtime coded character set. If the runtime coded character set is known at compile time, the conversion may occur either at compile time or at runtime. If the runtime coded character set is not known at compile time, conversion occurs at runtime. The implementor determines the point at which runtime conversion occurs.
 
-<a id="page-120"></a>
-## Page 120
-# ISO/IEC 1989:2023 (E)
-
 
 When the computer's compile-time coded character set includes characters that are not also included in the COBOL character repertoire, the implementor shall specify any such additional characters that are prohibited from use as a currency symbol.
 
@@ -5193,11 +4612,6 @@ The COBOL character repertoire consists of the basic letters, basic digits, basi
 
 ---
 
-
-<a id="page-121"></a>
-## Page 121
-
-**ISO/IEC 1989:2023 (E)**
 
 **Table 1 — COBOL character repertoire (Continued)**
 
@@ -5233,10 +4647,6 @@ NOTE 1 The concepts 'alphanumeric character' and 'national character' apply to t
 
 NOTE 2 Examples of coded character sets that can be used to represent the COBOL character repertoire are ISO/IEC 10646 UCS-4, UTF-8, or UTF-16; and implementor-defined coded character sets consisting of two distinct coded character sets mixed together, one a national coded character set and one an alphanumeric coded character set. There are other possible implementor-defined encodings of the COBOL character repertoire.
 
-<a id="page-122"></a>
-## Page 122
-# ISO/IEC 1989:2023 (E)
-
 
 2) If the COBOL character repertoire is mapped to mixed alphanumeric and national coded character sets, the implementor shall specify the control functions or other mechanism for distinguishing alphanumeric characters from national characters. If more than one encoding is permitted in a single compilation group, the implementor shall specify the control functions or other methods used for distinguishing between encodings. Any control functions used to switch between coded character sets are utilized in the compilation process and are not part of the syntax of the compilation group unless otherwise specified by the implementor.
 
@@ -5261,10 +4671,6 @@ NOTE 2 Examples of coded character sets that can be used to represent the COBOL 
    NOTE 4   For portable source code, programmers can form user-defined words from the basic letters, the basic digits, the underscore, and the hyphen in the COBOL character repertoire.
 
    NOTE 5   Annex B identifies characters recommended for use in programming language identifiers. The list of characters in Annex B excludes punctuation and symbols that are not generally used in words or that are considered inappropriate for programming language identifiers. Some characters in Annex B can have an appearance similar to basic special characters specified in COBOL or can appear strange to speakers of some languages, but are necessary for representing certain languages. They are permitted in COBOL on the assumption that no confusion will result for user-defined words written by programmers fluent in the languages for which those characters are essential.
-
-<a id="page-123"></a>
-## Page 123
-**ISO/IEC 1989:2023 (E)**
 
 
 NOTE 6 Extended letters are case folded to lowercase for determining equivalence of uppercase and lowercase.
@@ -5293,12 +4699,6 @@ The default ordering associated with these collating sequences is defined by the
 
 When a locale is specified, the associated ordering is determined at runtime.
 
-
-
-<a id="page-124"></a>
-## Page 124
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-2"></a>
 ### 8.2 Locales
@@ -5332,10 +4732,6 @@ Execution of a SET statement specifying SYSTEM-DEFAULT as the sending operand se
 
 Execution of a SET statement specifying a locale-name as the sending operand sets the current runtime locale for the specified locale categories to the locale associated with that locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph. The SET statement may be used to save information about the current locale so that the particular locale may later be made current by using another SET statement.
 
-<a id="page-125"></a>
-## Page 125
-**ISO/IEC 1989:2023 (E)**
-
 
 If the user default locale or the system default locale is switched by a non-COBOL runtime module, the new user default or system default locale is not utilized by COBOL unless a SET statement is executed to make it the current runtime locale. A locale switch for any locale categories by an activated COBOL runtime module is utilized on return by the activating runtime module. It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL. The capability of setting the system default locale from COBOL is not provided.
 
@@ -5365,12 +4761,6 @@ The following locale field names are referenced in the COBOL specification in or
 | | positive_sign | string used to indicate nonnegative valued quantities |
 
 
-
-<a id="page-126"></a>
-## Page 126
-
-# ISO/IEC 1989:2023 (E)
-
 | | |
 |---|---|
 | negative_sign | string used to indicate negative-valued quantities |
@@ -5388,12 +4778,6 @@ LC_TIME
 
 ---
 
-
-
-<a id="page-127"></a>
-## Page 127
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-3"></a>
 ### 8.3 Lexical elements
@@ -5440,11 +4824,6 @@ The types of user-defined words are:
 
 ---
 
-
-<a id="page-128"></a>
-## Page 128
-
-# ISO/IEC 1989:2023 (E)
 
 — alphabet-name
 — class-name
@@ -5495,12 +4874,6 @@ Within a source element, a given user-defined word may be used as only one type 
 Further rules for uniqueness are specified in 8.4.2, Uniqueness of reference.
 
 
-
-<a id="page-129"></a>
-## Page 129
-
-# ISO/IEC 1989:2023 (E)
-
 With the exception of section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic letter or extended letter. Level-numbers need not be unique; a given specification of a level-number may be identical to any other level-number.
 
 The following user-defined words shall be externalized to the operating environment:
@@ -5538,10 +4911,6 @@ All other references to names for which externalization is permitted shall be sp
 
 ---
 
-<a id="page-130"></a>
-## Page 130
-
-**ISO/IEC 1989:2023 (E)**
 
 In the AS phrases, only the externalized names shall be referenced. In the CALL, CANCEL, and INVOKE statements, the inline method invocation, and in the program-address-identifier, either the externalized names or the user-defined words may be referenced, depending on the conditions described below.
 
@@ -5570,11 +4939,6 @@ An alphabet-name identifies a specific character set or collating sequence, or b
 
 ---
 
-
-<a id="page-131"></a>
-## Page 131
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-3-2-2-2"></a>
 ###### 8.3.2.2.2 Class-name
@@ -5634,10 +4998,6 @@ An interface-name identifies an interface, a grouping of method prototypes.
 
 ---
 
-<a id="page-132"></a>
-## Page 132
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-3-2-2-13"></a>
 ###### 8.3.2.2.13 Level-number
@@ -5693,12 +5053,6 @@ A program-prototype-name identifies a program prototype.
 
 ---
 
-
-
-<a id="page-133"></a>
-## Page 133
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-3-2-2-23"></a>
 ###### 8.3.2.2.23 Property-name
@@ -5759,11 +5113,6 @@ The types of system-names are:
 ---
 
 
-<a id="page-134"></a>
-## Page 134
-
-# ISO/IEC 1989:2023 (E)
-
 — call-convention-name
 — code-name
 — computer-name
@@ -5816,12 +5165,6 @@ A feature-name identifies a feature of an input-output device.
 ---
 
 
-
-<a id="page-135"></a>
-## Page 135
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-3-2-3-9"></a>
 ###### 8.3.2.3.9 Library-name
 
@@ -5873,11 +5216,6 @@ Required words are of two types:
 | + | Arithmetic operator - unary plus or addition |
 
 
-<a id="page-136"></a>
-## Page 136
-
-# ISO/IEC 1989:2023 (E)
-
 | Symbol | Description |
 |--------|-------------|
 | – | Arithmetic operator - unary minus or subtraction |
@@ -5926,10 +5264,6 @@ A literal is defined by a reserved word that references a figurative constant or
 
 The paired quotation symbols specified in the opening and closing delimiters of alphanumeric, boolean, and national literals may be either apostrophes or quotation marks. Both forms may be used within a single source unit. If the opening and closing delimiters are contiguous, the length of the literal is zero, and it is known as a zero-length literal.
 
-<a id="page-137"></a>
-## Page 137
-**ISO/IEC 1989:2023 (E)**
-
 
 Hexadecimal digits are used to specify the value of the literal in the hexadecimal-alphanumeric, hexadecimal-boolean, and hexadecimal-national formats of literals. The hexadecimal digits are the basic digits '0' through '9' and the basic letters 'A' through 'F'.
 
@@ -5975,10 +5309,6 @@ NOTE 1　This allows, but does not require, characters in an alphanumeric litera
 
 An implementation is neither required to recognize nor prohibited from recognizing UTF-8 or mixed alphanumeric and national characters in format 1 alphanumeric literals. When permitted, the capability shall be optionally available to the user in a manner that does not restrict the characters normally recognized by that implementation; the implementor shall specify any applicable syntax rules.
 
-<a id="page-138"></a>
-## Page 138
-# ISO/IEC 1989:2023 (E)
-
 
 3) Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence of that quotation symbol character in the content of the literal.
 
@@ -6018,11 +5348,6 @@ FORMAT 1
 
 ---
 
-
-<a id="page-139"></a>
-## Page 139
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 2
 
@@ -6065,10 +5390,6 @@ The rules for the formation and value of floating-point numeric literals are:
 
 ---
 
-<a id="page-140"></a>
-## Page 140
-
-# ISO/IEC 1989:2023 (E)
 
 3) The literal to the right of the 'E' represents the exponent. It may be signed and shall have a maximum of four digits and no decimal point. The maximum permitted value and minimum permitted value of the exponent is implementor-defined.
 
@@ -6126,11 +5447,6 @@ NOTE Hexadecimal-boolean literals can be of zero length.
 ---
 
 
-<a id="page-141"></a>
-## Page 141
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-3-3-4-4"></a>
 ###### 8.3.3.4.4 General rules
 
@@ -6176,11 +5492,6 @@ Format 1 (national)
 
 ---
 
-
-<a id="page-142"></a>
-## Page 142
-
-# ISO/IEC 1989:2023 (E)
 
 Format 2 (hexadecimal-national)
 
@@ -6229,12 +5540,6 @@ ALL FORMATS
 ---
 
 
-
-<a id="page-143"></a>
-## Page 143
-
-**ISO/IEC 1989:2023 (E)**
-
 2) National literals are of the class and category national.
 
 FORMAT 1
@@ -6262,10 +5567,6 @@ Figurative constant values are generated by the compiler and referenced through 
 
 ---
 
-<a id="page-144"></a>
-## Page 144
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-3-3-6-2"></a>
 ###### 8.3.3.6.2 General format
@@ -6341,10 +5642,6 @@ ALL FORMATS
 
 1) A figurative constant may be used whenever 'literal' appears in a format or when a rule allows it, with the following restrictions:
 
-<a id="page-145"></a>
-## Page 145
-**ISO/IEC 1989:2023 (E)**
-
 
 a) If the literal is restricted to a numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase.
 
@@ -6373,12 +5670,6 @@ NOTE 1 A figurative constant is associated with a data item or literal when, for
 
 3) When a figurative constant represents a string of one or more characters and the length of the string is not specified in the rules for the context in which the figurative constant is used, the length of the string is determined from context by applying the following rules in order:
 
-
-
-<a id="page-146"></a>
-## Page 146
-
-# ISO/IEC 1989:2023 (E)
 
 a) When a figurative constant is specified in a concatenation expression, the length of the string is one character.
 
@@ -6415,10 +5706,6 @@ At runtime, when referenced outside the SPECIAL-NAMES paragraph, the low-value f
 
 ---
 
-<a id="page-147"></a>
-## Page 147
-
-**ISO/IEC 1989:2023 (E)**
 
 When locale category LC_COLLATE is in effect for the program collating sequence, LOW-VALUES is the character, or multiple-character combination, that has the lowest ordinal position in the collating sequence specified by the locale in effect.
 
@@ -6457,10 +5744,6 @@ A separator is one of the following, except when appearing in a literal:
 
 ---
 
-<a id="page-148"></a>
-## Page 148
-
-# ISO/IEC 1989:2023 (E)
 
 5) The opening delimiters and closing delimiters of literals are separators. Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing delimiters.
 
@@ -6493,11 +5776,6 @@ A separator is one of the following, except when appearing in a literal:
 
 9) The separator space may optionally immediately follow any separator except the opening delimiter of a literal. A space following the opening delimiter of a literal is part of the literal and not a separator.
 
-
-<a id="page-149"></a>
-## Page 149
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-4"></a>
 ### 8.4 References
@@ -6538,10 +5816,6 @@ Qualification of a user-defined name is required unless one of the following is 
 
 ---
 
-<a id="page-150"></a>
-## Page 150
-
-# ISO/IEC 1989:2023 (E)
 
 4) Any other definition of the name is subordinate to a type declaration entry for which the type-name is not referenced in any TYPE clause in the source unit.
 
@@ -6599,12 +5873,6 @@ record-key-name-1 │ ┤    ├ file-name-2 │
 
 ---
 
-
-
-<a id="page-151"></a>
-## Page 151
-
-**ISO/IEC 1989:2023 (E)**
 
 Format 7 (qualified-linage-counter):
 
@@ -6664,10 +5932,6 @@ where file-report-qualifier is:
 
 ---
 
-<a id="page-152"></a>
-## Page 152
-
-# ISO/IEC 1989:2023 (E)
 
 7) If explicitly referenced, a paragraph-name shall not be duplicated within a section. A paragraph-name need not be qualified when referred to from within the same section.
 
@@ -6715,12 +5979,6 @@ where subscript is:
 ---
 
 
-
-<a id="page-153"></a>
-## Page 153
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE Qualified-data-name-1 and qualified-condition-name-1 are shown for context and are not part of the subscript general format.
 
 <a id="section-8-4-2-3-3"></a>
@@ -6758,12 +6016,6 @@ NOTE Qualified-data-name-1 and qualified-condition-name-1 are shown for context 
 
 7) ALL shall not be specified if qualified-condition-name-1 is specified.
 
-
-
-<a id="page-154"></a>
-## Page 154
-
-# ISO/IEC 1989:2023 (E)
 
 8) In the report section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript.
 
@@ -6805,10 +6057,6 @@ Format 2 (qualified-data-name-with-subscripts):
 qualified-data-name-with-subscripts-1
 </pre>
 Format 3 (reference-modification):
-
-<a id="page-155"></a>
-## Page 155
-**ISO/IEC 1989:2023 (E)**
 
 
 <pre>
@@ -6914,12 +6162,6 @@ FORMAT 10
 ---
 
 
-
-<a id="page-157"></a>
-## Page 157
-
-**ISO/IEC 1989:2023 (E)**
-
 FORMAT 11
 
 12) Qualified-report-counter-1 is defined in 8.4.2.2, Qualification.
@@ -6974,10 +6216,6 @@ A function-identifier references the unique data item that results from the eval
 
 ---
 
-<a id="page-158"></a>
-## Page 158
-
-# ISO/IEC 1989:2023 (E)
 
 3) Function-prototype-name-1 shall be the user-function-name of the containing function definition or a function prototype specified in the REPOSITORY paragraph.
 
@@ -7020,11 +6258,6 @@ A function-identifier references the unique data item that results from the eval
 ---
 
 
-<a id="page-159"></a>
-## Page 159
-
-**ISO/IEC 1989:2023 (E)**
-
 14) If function-prototype-name-1 or function-pointer-name-1 is specified and the formal parameter corresponding to argument-1 is specified with the BY REFERENCE phrase in the USING phrase of the procedure division header and argument-1 is a bit data item, argument-1 shall be described such that it is aligned on a byte boundary and that subscripting and the leftmost position in a reference modification of argument-1 consist of only numeric literals or arithmetic expressions whose result is a positive integer, in which all operands are numeric literals, and in which the exponentiation operator is not specified.
 
 <a id="section-8-4-3-2-4"></a>
@@ -7051,10 +6284,6 @@ A function-identifier references the unique data item that results from the eval
 
 ---
 
-<a id="page-160"></a>
-## Page 160
-
-# ISO/IEC 1989:2023 (E)
 
 b) BY CONTENT is assumed when the BY REFERENCE phrase is specified or implied for the corresponding formal parameter and argument-1 is a literal, an arithmetic expression, a boolean expression, an object property, object data item, or any identifier that is not permitted as a receiving operand.
 
@@ -7079,11 +6308,6 @@ f) If an exception condition exists, any declarative or WHEN phrase of a PERFORM
 
 ---
 
-
-<a id="page-161"></a>
-## Page 161
-
-**ISO/IEC 1989:2023 (E)**
 
 7) If the word OMITTED is specified or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to TRUE in the activated function. (See 8.8.4.8, Simple omitted argument condition.)
 
@@ -7131,10 +6355,6 @@ For reference modification, bit group items and national group items are treated
 
 ---
 
-<a id="page-162"></a>
-## Page 162
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE Because the references to data items are restricted to identifiers, where data-name-n is used in a general format or syntax rule, then reference-modification is not permitted.
 
@@ -7164,11 +6384,6 @@ NOTE When the runtime coded character set is the UTF-16 format of the UCS, the C
 
 ---
 
-
-<a id="page-163"></a>
-## Page 163
-
-**ISO/IEC 1989:2023 (E)**
 
 6) The unique data item is considered to be an elementary data item without the JUSTIFIED clause. The unique data item has the same class, category, and usage as that defined for identifier-1, except that:
 
@@ -7223,10 +6438,6 @@ Inline method invocation references a temporary data item returned from invocati
    INVOKE identifier-1 literal-1 USING arguments RETURNING temp-identifier
    INVOKE identifier-1 literal-1 RETURNING temp-identifier INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier INVOKE object-class-name-1 literal-1 RETURNING temp-identifier where:
 
-<a id="page-164"></a>
-## Page 164
-**ISO/IEC 1989:2023 (E)**
-
 
 a) arguments are the operands specified within parentheses in the inline method invocation, if any;
 
@@ -7274,11 +6485,6 @@ identifier-1 <u>AS</u> ┤ interface-name-1                            ├
 ---
 
 
-<a id="page-165"></a>
-## Page 165
-
-**ISO/IEC 1989:2023 (E)**
-
 3) If the FACTORY phrase is specified and the ONLY phrase is not specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE FACTORY OF object-class-name-1. If the object referenced by identifier-1 is not the factory object of object-class-name-1 or the factory object of a subclass of object-class-name-1, the EC-OO-CONFORMANCE exception condition is set to exist.
 
 4) If the ONLY phrase is specified and the FACTORY phrase is not specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE object-class-name-1 ONLY. If the object referenced by identifier-1 is not an object of object-class-name-1, the EC-OO-CONFORMANCE exception condition is set to exist.
@@ -7317,12 +6523,6 @@ EXCEPTION-OBJECT is a predefined object reference that is used in a declarative 
 
 2) There is one instance of EXCEPTION-OBJECT in a run unit.
 
-
-
-<a id="page-166"></a>
-## Page 166
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-4-3-7"></a>
 ##### 8.4.3.7 NULL object reference
@@ -7383,11 +6583,6 @@ SELF and SUPER are predefined object references that reference the object on whi
 ---
 
 
-<a id="page-167"></a>
-## Page 167
-
-**ISO/IEC 1989:2023 (E)**
-
 5) If the INHERITS clause of the containing class definition specifies more than one object-class-name, object-class-name-1 shall be specified.
 
 6) If the INHERITS clause of the containing class definition specifies only one object-class-name, object-class-name-1 may be specified.
@@ -7431,10 +6626,6 @@ property-name-1 <u>OF</u> ┤                     ├
 
 ---
 
-<a id="page-168"></a>
-## Page 168
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-4-3-9-3"></a>
 ###### 8.4.3.9.3 Syntax rules
@@ -7462,11 +6653,6 @@ property-name-1 <u>OF</u> ┤                     ├
 
 3) When an object property is used as both a sending item and a receiving item, conceptual temporary data items temp-1 and temp-2 are used in its place; temp-1 and temp-2 are the same temporary data item, where temp-2 redefines temp-1. For sending operations, the value of the property is determined in the same manner as for sending items in General rule 1; for receiving operations, the value of the property is assigned in the same manner as for receiving items in General rule 2. The data descriptions of temp-1 and temp-2 are the same as the data description of the item specified in the RETURNING phrase of the get property method.
 
-
-<a id="page-169"></a>
-## Page 169
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -7520,11 +6706,6 @@ A data-address-identifier references the unique data item that contains the addr
 ---
 
 
-<a id="page-170"></a>
-## Page 170
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-4-3-11-2"></a>
 ###### 8.4.3.11.2 General format
 
@@ -7567,12 +6748,6 @@ A function-address-identifier identifies the unique data item that contains the 
 
 ---
 
-
-
-<a id="page-171"></a>
-## Page 171
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -7625,12 +6800,6 @@ A program-address-identifier references the unique data item that contains the a
 
 ---
 
-
-
-<a id="page-172"></a>
-## Page 172
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-4-3-13-2"></a>
 ###### 8.4.3.13.2 General format
@@ -7685,12 +6854,6 @@ The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in
 
 ---
 
-
-
-<a id="page-173"></a>
-## Page 173
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-4-3-14-2"></a>
 ###### 8.4.3.14.2 General format
@@ -7751,11 +6914,6 @@ NOTE Because each report maintains an independent PAGE-COUNTER and LINE-COUNTER,
 ---
 
 
-<a id="page-174"></a>
-## Page 174
-
-**ISO/IEC 1989:2023 (E)**
-
 3) LINE-COUNTER shall not be referenced as a receiving operand.
 
 <a id="section-8-4-3-15-4"></a>
@@ -7783,12 +6941,6 @@ Within the data division, the level-number 88 identifies a condition-name and a 
 
 Within the SPECIAL-NAMES paragraph, a condition-name identifies the on status or off status of an implementor-defined switch. Referencing this condition-name, as described in 8.8.4.6, Simple switch-status condition, in a condition posits that the associated switch has the 'on' or 'off' status that is associated with the condition-name. This condition-name may also be used in a SET statement to set the associated switch to the 'on' or 'off' status.
 
-
-
-<a id="page-175"></a>
-## Page 175
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-8-4-4-2"></a>
 ##### 8.4.4.2 General format
@@ -7834,10 +6986,6 @@ NOTE 1 When a source element contains a procedure division statement with an imp
 
 ---
 
-<a id="page-176"></a>
-## Page 176
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE 2 When an implicit reference is to a subscripted data-name, an identifier, or an arithmetic expression, the explicit specification for the data item that is being implicitly referenced can include not only the data-name of that data item, but also additional data-names, such as those used as subscripts, portions of reference modifiers, parameters to inline method invocations, and operands in arithmetic expressions. Name resolution for each of these data-names occurs in the ENVIRONMENT DIVISION or the DATA DIVISION where the explicit reference is written. When item identification requires knowing the current content of such items, their content is evaluated at runtime.
 
@@ -7877,12 +7025,6 @@ Specific conventions for declarations and references to the following types of u
 — constant-name
 — data-name
 
-
-
-<a id="page-177"></a>
-## Page 177
-
-**ISO/IEC 1989:2023 (E)**
 
 — file-name
 — function-prototype-name
@@ -7926,11 +7068,6 @@ When a source element, source element B, is directly contained within another so
       1. The item in source element A if the name is declared in source element A.
 
 
-<a id="page-178"></a>
-## Page 178
-
-**ISO/IEC 1989:2023 (E)**
-
 2. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found.
 
 <a id="section-8-4-6-2-2"></a>
@@ -7967,12 +7104,6 @@ LINAGE-COUNTER is global if the GLOBAL clause is specified in the file descripti
 ---
 
 
-
-<a id="page-179"></a>
-## Page 179
-
-**ISO/IEC 1989:2023 (E)**
-
 <a id="section-8-4-6-3"></a>
 ##### 8.4.6.3 Scope of program-names
 
@@ -8004,12 +7135,6 @@ An object-class-name or interface-name declared in the REPOSITORY paragraph of a
 
 The method-name of a method is declared in the METHOD-ID paragraph. A method-name may be referenced only by the INVOKE statement, an inline invocation, and the end method marker.
 
-
-
-<a id="page-180"></a>
-## Page 180
-
-# ISO/IEC 1989:2023 (E)
 
 The methods declared in an object class definition shall have unique method resolution signatures within that object class definition. The methods declared in a subclass may have the same method resolution signature as a method in the superclass, subject to the conditions in 11.7, METHOD-ID paragraph.
 
@@ -8049,11 +7174,6 @@ The property-name of a property referenced within a source element shall be decl
 ---
 
 
-<a id="page-181"></a>
-## Page 181
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-5"></a>
 ### 8.5 Data description and representation
 
@@ -8089,11 +7209,6 @@ A level concept is inherent in the structure of a record. This concept arises fr
 The most basic subdivisions of a record, that is, those not further subdivided, are called elementary items; consequently, a record is said to consist of a sequence of elementary items, or the record itself may be an elementary item.
 
 
-<a id="page-182"></a>
-## Page 182
-
-# ISO/IEC 1989:2023 (E)
-
 In order to refer to a set of elementary items, the elementary items are combined into groups. Each such group may be combined with other groups and/or other elementary items into a containing group. An elementary item belongs to each containing group within a hierarchy of containing groups.
 
 <a id="section-8-5-1-3-2"></a>
@@ -8128,11 +7243,6 @@ The capacity of a table is the number of occurrences of the elements of that tab
 ---
 
 
-<a id="page-183"></a>
-## Page 183
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-5-1-4"></a>
 ##### 8.5.1.4 Limitations of character handling
 
@@ -8164,10 +7274,6 @@ Editing signs are inserted into a data item through the use of the sign control 
 
 ---
 
-<a id="page-184"></a>
-## Page 184
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-5-1-6"></a>
 ##### 8.5.1.6 Alignment of data items in storage
@@ -8208,11 +7314,6 @@ Implicit filler bit positions are generated:
 ---
 
 
-<a id="page-185"></a>
-## Page 185
-
-# ISO/IEC 1989:2023 (E)
-
 — Following a bit data item that is the last data item in a record that is an alphanumeric group or strongly-typed group item, as needed to increase the number of bits to fill an integral number of characters. The filler bit positions are implicitly described as a filler elementary bit data item of the necessary number of bits with a level number the same as the highest hierarchical level of any bit data item superordinate to the last item, or, if there is no such superordinate item, the same as the level number of the last data item in the record.
 
 NOTE    No filler is generated at the end of a record that is entirely a bit group, at the end of a level 77 item, or at the end of a level 1 elementary item.
@@ -8246,11 +7347,6 @@ The alignment of the start of a strongly-typed group item relative to the first 
 
 ---
 
-
-<a id="page-186"></a>
-## Page 186
-
-# ISO/IEC 1989:2023 (E)
 
 — The alignment of the group shall be coincident with the first item when that item is a national group item or a data item of class boolean, message-tag, object, or pointer.
 
@@ -8286,11 +7382,6 @@ The current capacity of a dynamic-capacity table may be initialized explicitly i
 
 The TO phrase of the OCCURS clause may be used to specify an upper value for the current capacity of a dynamic table, which may be exceeded with a nonfatal exception. This value is referred to as the expected capacity. The actual limit for the current capacity imposed by the implementor and by current resource availability is referred to as the maximum capacity.
 
-
-<a id="page-187"></a>
-## Page 187
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-5-1-9-2"></a>
 ###### 8.5.1.9.2 Operations on a single element
@@ -8331,11 +7422,6 @@ The creation of a new element in a dynamic-capacity table may result in one of t
 ---
 
 
-<a id="page-188"></a>
-## Page 188
-
-**ISO/IEC 1989:2023 (E)**
-
 1) EC-BOUND-OVERFLOW. The nonfatal EC-BOUND-OVERFLOW exception condition shall exist when a dynamic-capacity table has an expected capacity and an operation causes this expected capacity to be exceeded. If the change in capacity was implicit and the expected capacity had already been exceeded before the operation, no exception shall exist.
 
    If checking for the EC-BOUND-OVERFLOW exception condition is not turned on, or results in the execution of a declarative procedure or a procedure in a WHEN phrase of a PERFORM statement that executes a RESUME statement with the NEXT STATEMENT phrase, the operation shall be allowed to continue, thus exceeding the receiving table's specified expected capacity.
@@ -8368,11 +7454,6 @@ The internal structure of a dynamic-length elementary item is defined by referen
 
 Dynamic-length elementary items may be physically located in memory within the record they are subordinate to, or they may be located elsewhere in the computer's memory. The actual physical location is defined by the implementor, and may change at any time during execution.
 
-
-<a id="page-189"></a>
-## Page 189
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-5-1-10-4"></a>
 ###### 8.5.1.10.4 Operations on dynamic-length elementary items
@@ -8408,10 +7489,6 @@ The physical address of a variable-length data item may change during execution 
 The availability of a variable-length data item to procedural operations is the same as for any other data item. A variable-length data item may be used in any procedural operation where a non-variable-length data item may be used.
 
 The persistence of a variable-length data item is the same as that of a non-variable-length data item. Although the memory resources assigned to the data item may be physically remote from those used by neighboring non-variable-length data items, this has no effect on the results of the execution of the program.
-
-<a id="page-190"></a>
-## Page 190
-# ISO/IEC 1989:2023 (E)
 
 
 The resources used by a variable-length data item may be freed automatically when:
@@ -8456,11 +7533,6 @@ Two fixed-length groups are always compatible, unless they are strongly typed an
 ---
 
 
-<a id="page-191"></a>
-## Page 191
-
-**ISO/IEC 1989:2023 (E)**
-
 3) For each dynamic-length elementary item in either group there is a corresponding dynamic-length elementary item in the other group as specified in 8.5.1.12.2, Positional correspondence.
 
 <a id="section-8-5-1-12-2"></a>
@@ -8497,11 +7569,6 @@ Both the class and the category of a strongly-typed group item are the type-name
 
 An alphanumeric group item is treated as though it had a usage of display.
 
-
-<a id="page-192"></a>
-## Page 192
-
-# ISO/IEC 1989:2023 (E)
 
 The category of an elementary data item depends upon its description. The class of an elementary data item is related to its category, as shown in Table 2, Class and category relationships for elementary data items.
 
@@ -8541,12 +7608,6 @@ Each of the following is a data item of category alphanumeric:
 
 3) An alphanumeric group item.
 
-
-
-<a id="page-193"></a>
-## Page 193
-
-ISO/IEC 1989:2023 (E)
 
 4) An alphanumeric function.
 
@@ -8600,11 +7661,6 @@ Each of the following is a data item of category index:
 Such an item is referred to as an index data item.
 
 
-<a id="page-194"></a>
-## Page 194
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-5-2-9"></a>
 ##### 8.5.2.9 Message-tag category
 
@@ -8656,9 +7712,6 @@ Each of the following is a data item of category numeric:
 ---
 
 
-<a id="page-195"></a>
-## Page 195
-
 Such an item is referred to as a numeric data item.
 
 <a id="section-8-5-2-13"></a>
@@ -8701,11 +7754,6 @@ Group items may be strongly or weakly typed. A typed group item is strongly type
 — The item is described with a TYPE clause that references a type declaration specifying the STRONG phrase.
 
 
-<a id="page-196"></a>
-## Page 196
-
-**ISO/IEC 1989:2023 (E)**
-
 — The item is subordinate to a group item described with the TYPE clause that references a type declaration specifying the STRONG phrase.
 
 Elementary type definitions shall not be specified with the STRONG phrase.
@@ -8738,11 +7786,6 @@ Weakly-typed items are used in the same manner as untyped items.
 
 NOTE    The type declaration can be regarded as a 'shorthand' for one or more data description entries.
 
-
-<a id="page-197"></a>
-## Page 197
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-5-3-3"></a>
 ##### 8.5.3.3 Strongly-typed group items
@@ -8790,10 +7833,6 @@ The scope of global and local names is described in 8.4.6, Scope of names.
 
 ---
 
-<a id="page-198"></a>
-## Page 198
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-6-3"></a>
 #### 8.6.3 External and internal items
@@ -8821,11 +7860,6 @@ Each internal item has one of the three persistence attributes: automatic, initi
 
 Data items, file connectors, and screen item attributes have two states: initial and last-used. The initial state of a data item depends on the presence or absence of a VALUE clause in its data description entry, the section in which the data item is described, and the description of the data item. The initial state of a file connector is that it is not in an open mode. The initial state of a screen item attribute depends on the description of the screen item.
 
-
-<a id="page-199"></a>
-## Page 199
-
-**ISO/IEC 1989:2023 (E)**
 
 Last-used state means that the content of the data item, file connector, or screen item attribute is that of the last time it was modified.
 
@@ -8855,10 +7889,6 @@ A table index is treated as a static item if the associated table is static and 
 
 The persistence of a variable-length data item is the same as for any other data item defined in the same data division section. A variable-length data item is in its initial state at the start of processing and reverts to its initial state under the same circumstances as defined for other data items. A dynamic-capacity table in its initial state has its initial capacity set as specified in 8.5.1.9, Dynamic-capacity tables. When the data description entry of a dynamic-length elementary item contains a VALUE clause, the rules of the VALUE clause define the length of that item in its initial state. If no VALUE clause is specified, the length of that item in its initial state is zero.
 
-<a id="page-200"></a>
-## Page 200
-# ISO/IEC 1989:2023 (E)
-
 
 A structured constant is a static item that is always in initial state.
 
@@ -8887,12 +7917,6 @@ A common program is one that is directly contained within another program and th
 An initial program is one whose program state is initialized when the program is called. During the process of initializing an initial program, that program's internal data and that of any contained programs is initialized as described in 14.6.2, State of a function, method, object, or program. The initial attribute is attained by specifying the INITIAL clause in the program's identification division.
 
 
-
-<a id="page-201"></a>
-## Page 201
-
-**ISO/IEC 1989:2023 (E)**
-
 A recursive program may call itself directly or indirectly. The program's internal data and that of any contained programs is initialized as described in 14.6.2, State of a function, method, object, or program. The recursive attribute is attained by specifying the RECURSIVE clause in the program's identification division.
 
 Functions and methods are always recursive. Their data is initialized in the same way as recursive programs.
@@ -8913,10 +7937,6 @@ Two runtime elements in a run unit may reference common data in the following ci
 
 ---
 
-<a id="page-202"></a>
-## Page 202
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-7"></a>
 ### 8.7 Operators
@@ -8962,12 +7982,6 @@ A boolean operator specifies the type of boolean operation to be performed on on
 | B-SHIFT-RC | Circular SHIFT RIGHT operation |
 
 
-
-<a id="page-203"></a>
-## Page 203
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-7-3"></a>
 #### 8.7.3 Concatenation operator
 
@@ -9009,11 +8023,6 @@ The relational operators specify the type of comparison to be made in a relation
 
 ---
 
-
-<a id="page-204"></a>
-## Page 204
-
-# ISO/IEC 1989:2023 (E)
 
 <pre>
 ╭ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO ╮
@@ -9070,11 +8079,6 @@ The relational operators specify the type of comparison to be made in a relation
 The logical operators are the words AND, NOT, OR, EXCLUSIVE-OR, and XOR. The words EXCLUSIVE-OR and XOR are equivalent. The use of the logical operators is given in 8.8.4.9, Complex conditions.
 
 
-<a id="page-205"></a>
-## Page 205
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-8-8"></a>
@@ -9110,9 +8114,6 @@ The following rules apply regardless of the mode of arithmetic that is in effect
 
 4) The ways in which identifiers, literals, operators, and parentheses may be combined in arithmetic expressions are summarized in Table 3, Combinations of symbols in arithmetic expressions.
 
-<a id="page-206"></a>
-## Page 206
-# ISO/IEC 1989:2023 (E)
 
 **Table 3 — Combinations of symbols in arithmetic expressions**
 
@@ -9156,10 +8157,6 @@ Native arithmetic is an implementor-defined method of evaluating an arithmetic e
 
 Standard-binary arithmetic is a method of evaluating an arithmetic expression, an arithmetic statement, the SUM clause, and certain integer and numeric functions as specified in 15.4.1, Numeric and integer functions, in a manner consistent with the rules associated with floating-point arithmetic using the basic 128-bit binary interchange format as specified in ISO/IEC 60559:2020, Clauses 3, 4, 5, 6, 7, and 8. Standard-binary arithmetic is in effect when the STANDARD-BINARY phrase of the ARITHMETIC clause is specified in the OPTIONS paragraph.
 
-<a id="page-207"></a>
-## Page 207
-**ISO/IEC 1989:2023 (E)**
-
 
 NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.
 
@@ -9195,10 +8192,6 @@ inclusive, with a maximum precision of 113 bits; the smallest positive nonzero v
 
 ---
 
-<a id="page-208"></a>
-## Page 208
-
-# ISO/IEC 1989:2023 (E)
 
 When standard-binary arithmetic is in effect, the following rules apply:
 
@@ -9240,10 +8233,6 @@ For exponentiation, the operands and operator are: operand-1 ** operand-2.
 
       the equivalent expression shall be (operand-1 * operand-1)
 
-<a id="page-209"></a>
-## Page 209
-**ISO/IEC 1989:2023 (E)**
-
 
 c) When operand-2 is an integer and the following condition is true
 
@@ -9282,11 +8271,6 @@ The mechanisms for conversion of data items described with a usage of float-shor
 Unless specified otherwise in the rules, the EC-DATA-INCOMPATIBLE exception condition is set to exist when an operand, or a combination of operands, results in the signaling of an 'invalid operation' state as described in ISO/IEC 60559:2020, 7.2.
 
 
-<a id="page-210"></a>
-## Page 210
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-8-1-5-2"></a>
 ###### 8.8.1.5.2 Standard-decimal intermediate data item
 
@@ -9320,11 +8304,6 @@ When standard-decimal arithmetic is in effect, the following rules apply:
 
 ---
 
-
-<a id="page-211"></a>
-## Page 211
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-1-5-3"></a>
 ###### 8.8.1.5.3 Basic arithmetic operations in standard-decimal arithmetic
@@ -9375,12 +8354,6 @@ the equivalent expression shall be
 ((operand-1 * operand-1) * (operand-1 * operand-1))
 
 
-
-<a id="page-212"></a>
-## Page 212
-
-# ISO/IEC 1989:2023 (E)
-
 e) Otherwise, the equivalent arithmetic expression is defined by the implementor. Operands used in the development of that value shall be in SDIDI form. All additions, subtractions, multiplications and divisions performed in the development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020.
 
 3) When operand-2 is less than zero, the result shall be equivalent to the evaluation of the arithmetic expression
@@ -9426,11 +8399,6 @@ Otherwise the expression shall end with one of the following:
 3) There shall be a one-to-one correspondence between left and right parentheses such that each left parenthesis shall be to the left of its corresponding right parenthesis.
 
 
-<a id="page-213"></a>
-## Page 213
-
-**ISO/IEC 1989:2023 (E)**
-
 4) The two operands in a binary boolean operation shall not both be the figurative constant ALL literal.
 
 5) The first operand in a boolean shift operation shall not be the figurative constant ALL literal. The second operand shall be an integer operand.
@@ -9467,12 +8435,6 @@ Legend: &nbsp;&nbsp; P &nbsp; indicates a permissible pair
    The precedence of boolean shift operations (B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC and B-SHIFT-RC) is the same as that of the preceding operation, if any. If the boolean shift operation is not preceded by another operation, the precedence of that operation is the same as B-AND.
 
 
-
-<a id="page-214"></a>
-## Page 214
-
-# ISO/IEC 1989:2023 (E)
-
 c) When the sequence of evaluation is not specified by parentheses, the evaluation of operations with the same precedence shall proceed from left to right.
 
 NOTE 1 Parentheses can be used to clarify the logic where consecutive operations of the same precedence are specified or to modify the precedence when it is necessary to deviate from the normal precedence.
@@ -9491,11 +8453,6 @@ NOTE 2 Lengths are established for each boolean operation, including unary opera
 
 10) The result of the evaluation of each boolean operation shall be a boolean value whose length shall be the number of boolean positions of the larger item referenced in that operation.
 
-
-<a id="page-215"></a>
-## Page 215
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-3"></a>
 #### 8.8.3 Concatenation expressions
@@ -9542,10 +8499,6 @@ A concatenation expression consists of two operands separated by the concatenati
 
 ---
 
-<a id="page-216"></a>
-## Page 216
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-4"></a>
 #### 8.8.4 Conditional expressions
@@ -9590,11 +8543,6 @@ For comparison, an alphanumeric group item shall be treated as an elementary alp
 
 ---
 
-
-<a id="page-217"></a>
-## Page 217
-
-**ISO/IEC 1989:2023 (E)**
 
 NOTE All comparisons involving numeric-edited data items are alphanumeric or national comparisons, including when the associated VALUE clause is a numeric literal. Users should be aware this means that algebraic signs in numeric-edited data items usually have counter-intuitive collating sequence ordering, also that two numerically equivalent values in numeric-edited data items will not compare as equal when their picture clauses are different.
 
@@ -9651,10 +8599,6 @@ boolean-expression-1 ┤ IS [ <u>NOT</u> ] =        ├ boolean-expression-2
 
 ---
 
-<a id="page-218"></a>
-## Page 218
-
-# ISO/IEC 1989:2023 (E)
 
 Format 3 (message-tag-object-or-pointer-reference):
 
@@ -9699,11 +8643,6 @@ When standard-decimal arithmetic is in effect, the form of rounding used in the 
 ---
 
 
-<a id="page-219"></a>
-## Page 219
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-8-4-2-5"></a>
 ###### 8.8.4.2.5 Comparison of a numeric integer operand with an operand of class alphanumeric or national
 
@@ -9732,10 +8671,6 @@ When a standard comparison is specified, there are two cases to consider: operan
 
 ---
 
-<a id="page-220"></a>
-## Page 220
-
-# ISO/IEC 1989:2023 (E)
 
 2) Operands of unequal length. If the operands are of unequal length, comparison proceeds as though the shorter operand were extended on the right by sufficient alphanumeric spaces to make the operands of equal length. The preceding rule for operands of equal length then apply.
 
@@ -9763,11 +8698,6 @@ An operand of class boolean may be compared with another operand of class boolea
 
 An operand of class national may be compared with another operand of class national. Comparison is made with respect to the collating sequence of characters specified for the current national program collating sequence. The length of an operand is the number of national character positions in the operand.
 
-
-<a id="page-221"></a>
-## Page 221
-
-**ISO/IEC 1989:2023 (E)**
 
 Two kinds of comparison are defined: standard comparison and locale-based comparison. Locale-based comparison is used when the national program collating sequence in effect is locale based; otherwise, standard comparison is used.
 
@@ -9800,12 +8730,6 @@ If the locale does not define a collating sequence for all characters of the ope
 
 Two strongly typed group items are of the same type when their type definitions are equivalent according to 8.5.3.3, Strongly-typed group items. When this is not true, they are not considered to be equivalent, and any comparison is unequal.
 
-
-
-<a id="page-222"></a>
-## Page 222
-
-# ISO/IEC 1989:2023 (E)
 
 When two strongly-typed group items are compared, each elementary item of the first operand is compared with the corresponding elementary item of the second operand, in accordance with the rules for comparison of elementary items and in the order in which the elementary items are specified in the strongly-typed group items.
 
@@ -9848,12 +8772,6 @@ The operands are equal if they reference the same address.
 
 A comparison of two compatible groups, one or both of which is a variable-length group, proceeds from left to right as described under 8.8.4.2.7, Comparison of alphanumeric operands except that:
 
-
-
-<a id="page-223"></a>
-## Page 223
-
-**ISO/IEC 1989:2023 (E)**
 
 — when corresponding tables are encountered, they are compared as described in 14.6.9.3, Comparing two tables
 
@@ -9900,10 +8818,6 @@ NOTE    Strongly typed group items have their own unique classes and categories 
 
 ---
 
-<a id="page-224"></a>
-## Page 224
-
-## ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-4-4-2"></a>
 ###### 8.8.4.4.2 General format
@@ -9960,11 +8874,6 @@ identifier-1 IS [ <u>NOT</u> ] ┤                              ├
 ---
 
 
-<a id="page-225"></a>
-## Page 225
-
-**ISO/IEC 1989:2023 (E)**
-
 8) If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric.
 
 <a id="section-8-8-4-4-4"></a>
@@ -9997,12 +8906,6 @@ identifier-1 IS [ <u>NOT</u> ] ┤                              ├
       2. If a locale is not in effect for character classification, the condition is true if the content of the data item referenced by identifier-1 consists only of a combination of the uppercase letters A, B, C, …, Z, and space.
 
 
-
-<a id="page-226"></a>
-## Page 226
-
-# ISO/IEC 1989:2023 (E)
-
 e) If BOOLEAN is specified, the condition is true if the content of the data item referenced by identifier-1 consists entirely of the boolean values '0' and '1'.
 
 f) If class-name-1 is specified, the condition is true if the content of the data item referenced by identifier-1 consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph.
@@ -10031,11 +8934,6 @@ n) If NUMERIC is specified,
 
 ---
 
-
-<a id="page-227"></a>
-## Page 227
-
-**ISO/IEC 1989:2023 (E)**
 
 c. Otherwise, the condition is true if the content of the data item referenced by identifier-1 consists entirely of a valid representation for the usage and, if a PICTURE clause is specified, the numeric value is within the range of values implied by the PICTURE clause.
 
@@ -10083,12 +8981,6 @@ condition-name-1
 
 1) The result of the test is true if the switch is set to the specified position corresponding to condition-name-1.
 
-
-
-<a id="page-228"></a>
-## Page 228
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-4-7"></a>
 ##### 8.8.4.7 Simple sign condition
@@ -10153,11 +9045,6 @@ FORMAT 1
 ---
 
 
-<a id="page-229"></a>
-## Page 229
-
-**ISO/IEC 1989:2023 (E)**
-
 b) If the NEGATIVE phrase is specified, the result is true if the value is less than zero, and false if it is zero or greater than zero.
 
 c) If the ZERO phrase is specified, the result is true if the value is zero, and false otherwise.
@@ -10196,10 +9083,6 @@ data-name-1 IS [ <u>NOT</u> ] <u>OMITTED</u>
 
 ---
 
-<a id="page-230"></a>
-## Page 230
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-4-8-4"></a>
 ###### 8.8.4.8.4 General rules
@@ -10238,12 +9121,6 @@ A condition is negated by use of the logical operator 'NOT', which reverses the 
 
 ---
 
-
-
-<a id="page-231"></a>
-## Page 231
-
-ISO/IEC 1989:2023 (E)
 
 NOTE The truth value of a negated condition is true if the truth value of the condition being negated is false; the truth value of a negated condition is false if the truth value of the condition being negated is true.
 
@@ -10293,10 +9170,6 @@ Parentheses can be used to alter the meaning. For example, '(condition-1 OR (NOT
 
 Table 5, Combinations of conditions, logical operators, and parentheses, indicates the ways in which conditions and logical operators may be combined and parenthesized. There shall be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.
 
-<a id="page-232"></a>
-## Page 232
-## ISO/IEC 1989:2023 (E)
-
 
 **Table 5 — Combinations of conditions, logical operators, and parentheses**
 
@@ -10326,11 +9199,6 @@ Within a sequence of relation conditions, both forms of omission may be used.
 
 ---
 
-
-<a id="page-233"></a>
-## Page 233
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-8-8-4-12-2"></a>
 ###### 8.8.4.12.2 General format
@@ -10376,10 +9244,6 @@ where simple-relational-operator and extended-relational-operator are described 
 
 ---
 
-<a id="page-234"></a>
-## Page 234
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-8-4-13"></a>
 ##### 8.8.4.13 Order of evaluation of conditions
@@ -10393,11 +9257,6 @@ Parentheses, both explicit and implicit, denote a level of inclusiveness within 
 
 ---
 
-
-<a id="page-235"></a>
-## Page 235
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-8-9"></a>
 ### 8.9 Reserved words
@@ -10536,9 +9395,6 @@ END-MULTIPLY
 END-OF-PAGE
 END-PERFORM END-RECEIVE END-READ END-RETURN END-REWRITE END-SEARCH
 
-<a id="page-236"></a>
-## Page 236
-# ISO/IEC 1989:2023 (E)
 
 END-SEND
 END-START
@@ -10680,9 +9536,6 @@ NUMBER
 NUMERIC
 NUMERIC-EDITED OBJECT OBJECT-COMPUTER OBJECT-REFERENCE OCCURS OF
 
-<a id="page-237"></a>
-## Page 237
-**ISO/IEC 1989:2023 (E)**
 
 OFF
 OMITTED
@@ -10798,9 +9651,6 @@ SYNC
 SYNCHRONIZED
 SYSTEM-DEFAULT TABLE TALLYING TERMINATE TEST THAN
 
-<a id="page-238"></a>
-## Page 238
-# ISO/IEC 1989:2023 (E)
 
 THEN
 THROUGH
@@ -10864,12 +9714,6 @@ ZEROS
 NOTE Words can be added or deleted from this list for a specific compilation group by use of the COBOL-WORDS directive.
 
 
-
-<a id="page-239"></a>
-## Page 239
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-8-10"></a>
 ### 8.10 Context-sensitive words
 
@@ -10909,11 +9753,6 @@ The following are context-sensitive words and are reserved in the specified lang
 ---
 
 
-<a id="page-240"></a>
-## Page 240
-
-# ISO/IEC 1989:2023 (E)
-
 | **Context-sensitive word** | **Language construct or context** |
 |---|---|
 | FLOAT-BINARY | OPTIONS paragraph |
@@ -10947,12 +9786,6 @@ The following are context-sensitive words and are reserved in the specified lang
 | NONE | DEFAULT clause |
 | NORMAL | STOP statement |
 
-
-
-<a id="page-241"></a>
-## Page 241
-
-**ISO/IEC 1989:2023 (E)**
 
 | **Context-sensitive word** | **Language construct or context** |
 |---|---|
@@ -10989,12 +9822,6 @@ The following are context-sensitive words and are reserved in the specified lang
 | UTF-8 | ALPHABET clause |
 
 
-
-<a id="page-242"></a>
-## Page 242
-
-# ISO/IEC 1989:2023 (E)
-
 | **Context-sensitive word** | **Language construct or context** |
 |---|---|
 | UTF-16 | ALPHABET clause |
@@ -11005,11 +9832,6 @@ All exception-names are context-sensitive because they may appear only following
 
 NOTE    Words can be added or deleted from this list for a specific compilation group by use of the COBOL-WORDS directive.
 
-
-<a id="page-243"></a>
-## Page 243
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-11"></a>
 ### 8.11 Intrinsic function names
@@ -11100,9 +9922,6 @@ STANDARD-DEVIATION
 SUBSTITUTE
 SUM TAN TEST-DATE-YYYYMMDD TEST-DAY-YYYYDDD TEST-FORMATTED-DATETIME TEST-NUMVAL
 
-<a id="page-244"></a>
-## Page 244
-# ISO/IEC 1989:2023 (E)
 
 TEST-NUMVAL-C
 TEST-NUMVAL-F
@@ -11114,12 +9933,6 @@ YEAR-TO-YYYY
 
 NOTE Intrinsic function names can be added or deleted from this list for a specific compilation group by use of the COBOL-WORDS directive.
 
-
-
-<a id="page-245"></a>
-## Page 245
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-8-12"></a>
 ### 8.12 Compiler-directive words
@@ -11175,10 +9988,6 @@ In addition to the above list, all of the exception-names specified in 14.6.13.1
 
 ---
 
-<a id="page-246"></a>
-## Page 246
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-8-13"></a>
 ### 8.13 External repository
@@ -11213,11 +10022,6 @@ The details on the association of the name of a source unit with information in 
 ---
 
 
-<a id="page-247"></a>
-## Page 247
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-9"></a>
 ## 9 I-O, objects, and user-defined functions
 
@@ -11251,10 +10055,6 @@ The record area is a storage area associated with a file in which logical record
 
 ---
 
-<a id="page-248"></a>
-## Page 248
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE All record description entries subordinate to a file description entry (FD or SD) implicitly redefine the same storage area, as specified in 13.18.33, Level-number, General rule 3.
 
@@ -11284,11 +10084,6 @@ A file connector is placed in an open mode by the execution of a successful OPEN
 
 NOTE Since the actual close of a file connector in an object that is destroyed can occur during garbage collection, it is possible that the file connector can remain open for a significant period after the last reference to the object in a run unit no longer exists.
 
-
-<a id="page-249"></a>
-## Page 249
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-1-5"></a>
 #### 9.1.5 Sharing file connectors
@@ -11324,10 +10119,6 @@ Two types of sequential files are recognized. In record sequential files the len
 
 ---
 
-<a id="page-250"></a>
-## Page 250
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-1-7-3"></a>
 ##### 9.1.7.3 Relative
@@ -11365,11 +10156,6 @@ The ACCESS MODE clause of the file description entry specifies the manner in whi
 ---
 
 
-<a id="page-251"></a>
-## Page 251
-
-**ISO/IEC 1989:2023 (E)**
-
 For files that are organized as relative or indexed, any of the three access modes may be used to access the file regardless of the access mode used to create the physical file. A file with sequential organization may be accessed only in sequential mode.
 
 <a id="section-9-1-8-2"></a>
@@ -11395,10 +10181,6 @@ With dynamic access mode, the programmer may change at any time between sequenti
 #### 9.1.9 Reel and unit
 
 The terms 'reel' and 'unit' are synonymous. They are applicable only to files with sequential organization that are associated with a physical file that may be contained on multiple physical devices. Treatment of such files is logically equivalent to the treatment of a sequential file that is associated with a physical file that is wholly contained on one physical device.
-
-<a id="page-252"></a>
-## Page 252
-# ISO/IEC 1989:2023 (E)
 
 
 NOTE An example of a physical file stored on multiple physical devices is a physical file that is contained on multiple tapes. Another is one that is stored on multiple removable disk packs.
@@ -11440,11 +10222,6 @@ The first one in the list that matches is the one selected. Any others that matc
 ---
 
 
-<a id="page-253"></a>
-## Page 253
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-9-1-13"></a>
 #### 9.1.13 I-O status
 
@@ -11471,10 +10248,6 @@ EC-I-O-IMP                 '9'
 ```
 
 If the first character of the resulting I-O status value is one of the above values or the I-O status value starts with a '0' and the second character is not '0', the associated exception condition is set to exist. If the exception condition EC-I-O-AT-END or EC-I-O-INVALID-KEY exists and the input-output statement that caused the exception condition to exist is specified with an AT END or INVALID KEY phrase respectively, no other applicable exception processing statements shall be executed. If the statement is a DELETE FILE statement with the ON EXCEPTION phrase specified, then the only exception processing statements to be executed are those specified within the ON EXCEPTION phrase. Otherwise, the exception condition that exists determines whether any applicable exception processing statements shall be executed according to the rules in 9.1.12, Input-output exception processing, 14.9.28, PERFORM statement, or 14.9.49, USE statement.
-
-<a id="page-254"></a>
-## Page 254
-# ISO/IEC 1989:2023 (E)
 
 
 I-O status expresses one of the following conditions upon completion of the input-output operation:
@@ -11511,11 +10284,6 @@ I-O status expresses one of the following conditions upon completion of the inpu
 ---
 
 
-<a id="page-255"></a>
-## Page 255
-
-**ISO/IEC 1989:2023 (E)**
-
 a) For a READ statement with the NEXT phrase specified or implied, the key value for the current key of reference is equal to the value of the same key in the next record in the physical file.
 
 b) For a READ statement with the PREVIOUS phrase specified, the key value for the current key of reference is equal to the value of the same key in the prior record in the physical file.
@@ -11549,10 +10317,6 @@ NOTE It is implementor dependent whether or not upper and lower case versions of
 1) I-O status = 10. A sequential READ statement is attempted and no next or prior logical record exists in the physical file because:
 
 a) NEXT was specified or implied and the end of the physical file has been reached, or b) PREVIOUS was specified and the beginning of the physical file has been reached, or c) a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.
-
-<a id="page-256"></a>
-## Page 256
-**ISO/IEC 1989:2023 (E)**
 
 
 2) I-O status = 14. A sequential READ statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file.
@@ -11590,12 +10354,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 ---
 
 
-
-<a id="page-257"></a>
-## Page 257
-
-**ISO/IEC 1989:2023 (E)**
-
 2) I-O Status = 31. A permanent error exists during execution of an OPEN statement because the content of the data item referenced by the data-name specified in the USING phrase of the file control entry is not consistent with the specification for the device-name or literal in the ASSIGN clause of that file control entry.
 
 3) I-O status = 34. A permanent error exists because of a boundary violation; an attempt is made to write outside the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined.
@@ -11631,12 +10389,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 
 2) I-O status = 42. A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode.
 
-
-
-<a id="page-258"></a>
-## Page 258
-
-# ISO/IEC 1989:2023 (E)
 
 3) I-O status = 43. For a mass storage file in the sequential access mode, the last input-output statement executed for the associated file through a file connector prior to the execution of a DELETE RECORD or REWRITE statement through the same file connector was not a successfully executed READ statement.
 
@@ -11676,11 +10428,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 ---
 
 
-<a id="page-259"></a>
-## Page 259
-
-**ISO/IEC 1989:2023 (E)**
-
 2) I-O status = 52. The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected.
 
 3) I-O status = 53. The input-output statement is unsuccessful because the statement requested a record lock, but this run unit holds the maximum number of locks allowed by this implementation.
@@ -11717,10 +10464,6 @@ a) NEXT was specified or implied and the end of the physical file has been reach
 
 ---
 
-<a id="page-260"></a>
-## Page 260
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-1-14"></a>
 #### 9.1.14 Invalid key condition
@@ -11750,10 +10493,6 @@ The sharing mode indicates whether a file is to participate in the sharing and r
 
 The SHARING phrase on an OPEN statement overrides the SHARING clause in the file control entry for establishing the sharing mode. If there is no SHARING phrase on the OPEN statement, the sharing mode is determined by the SHARING clause in the file control entry. If no specification is made in either location, the implementor defines the sharing mode in which the file is opened; the implementor-defined sharing mode may be one of the modes specified in this Working Draft International Standard or may be a mode completely specified by the implementor. The rules are the same for a given standard sharing mode regardless of whether the sharing mode is specified on the OPEN statement, specified in the file control paragraph, or specified as the default by the implementor.
 
-<a id="page-261"></a>
-## Page 261
-# ISO/IEC 1989:2023 (E)
-
 
 Other facilities may specify some degree of file sharing, however, their interaction with COBOL file sharing is defined by the implementor.
 
@@ -11774,10 +10513,6 @@ The sharing mode controls access to a physical file as follows:
 Multiple paths of access may exist in the same runtime element, contained elements, separate runtime elements within the same run unit, or runtime elements in different run units.
 
 The successful opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run units from opening that file with incompatible sharing rules. The file lock is removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file is subject to an active APPLY COMMIT clause. In the case of a file subject to commit and rollback, where a file has been closed and not reopened prior to a commit, the file lock is removed by the COMMIT statement. In the case of a file subject to commit and rollback, where a file was not open prior to the previous commit or if none the start of the run unit and was subsequently opened, the file lock is released by the ROLLBACK statement.
-
-<a id="page-262"></a>
-## Page 262
-# ISO/IEC 1989:2023 (E)
 
 
 <a id="section-9-1-16"></a>
@@ -11808,10 +10543,6 @@ NOTE Examples of such circumstances are the locking of records while an index is
 
 A logical unit of work is a set of program instructions used to perform a self-contained task within a run unit, organized so that the files and data involved are in a consistent state both before and after their execution. The files and data are protected from the activity of other run units that wish to access any of the same records and data during the execution of that set of program instructions.
 
-<a id="page-263"></a>
-## Page 263
-**ISO/IEC 1989:2023 (E)**
-
 
 <a id="section-9-1-18"></a>
 #### 9.1.18 Commit and Rollback
@@ -11839,10 +10570,6 @@ The ROLLBACK statement is used to restore files and data items subject to APPLY 
 
 ---
 
-<a id="page-264"></a>
-## Page 264
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-1-18-5"></a>
 ##### 9.1.18.5 Run unit termination
@@ -11881,11 +10608,6 @@ A merge file is named by a file control entry and is described by a sort-merge f
 ---
 
 
-<a id="page-265"></a>
-## Page 265
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-9-1-21"></a>
 #### 9.1.21 Dynamic file assignment
 
@@ -11896,12 +10618,6 @@ Dynamic file assignment allows the user to defer until runtime the association b
 
 A report file is an output file having sequential organization whose file description entry contains a REPORT clause.
 
-
-
-<a id="page-266"></a>
-## Page 266
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-2"></a>
 ### 9.2 Screens
@@ -11943,11 +10659,6 @@ The following is a list of the values placed in the CRT status for the condition
 ---
 
 
-<a id="page-267"></a>
-## Page 267
-
-**ISO/IEC 1989:2023 (E)**
-
 CRT status = 0000. The input statement was successfully executed. Termination was achieved by the operator pressing the enter key or entering data into the last character of a screen item for which the AUTO clause is specified and for which no logical next field exists.
 
 2) Successful completion with termination by a function key keystroke:
@@ -11982,10 +10693,6 @@ During execution of an ACCEPT screen statement, the cursor is initially position
 
 ---
 
-<a id="page-268"></a>
-## Page 268
-
-# ISO/IEC 1989:2023 (E)
 
 Once the keyboard is enabled for operator input, the operator may move the cursor to elementary screen items whose specification includes a TO or USING clause. Depending on the screen description entry for the item, the operator may move the cursor to characters within the displayed item.
 
@@ -12016,11 +10723,6 @@ A color is selected by specifying an integer that represents the color. The colo
 ---
 
 
-<a id="page-269"></a>
-## Page 269
-
-**ISO/IEC 1989:2023 (E)**
-
 | Color | Value |
 |------|-------|
 | black | 0 |
@@ -12034,11 +10736,6 @@ A color is selected by specifying an integer that represents the color. The colo
 
 NOTE    The colors above are a rough guide; the actual color depends on the terminal capabilities and can be affected by other considerations such as the HIGHLIGHT attribute. For example, the value 6 might appear as brown, but when HIGHLIGHT is also specified it might appear as yellow. The value 0 might appear as black, but when HIGHLIGHT is also specified it might appear as gray.
 
-
-<a id="page-270"></a>
-## Page 270
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-3"></a>
 ### 9.3 Objects
@@ -12081,11 +10778,6 @@ Polymorphism is a feature of object orientation that provides a mechanism for se
 ---
 
 
-<a id="page-271"></a>
-## Page 271
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-9-3-5-2"></a>
 ##### 9.3.5.2 Class polymorphism
 
@@ -12127,12 +10819,6 @@ Parametric polymorphism, sometimes called method overloading, allows methods wit
    h) USAGE clause
 
 
-
-<a id="page-272"></a>
-## Page 272
-
-**ISO/IEC 1989:2023 (E)**
-
 7) If the parameter is a variable-length group, sufficient information to determine if this group would match the group is specified in the invoke statement.
 
 Parametric polymorphism is an optional feature in this Working Draft International Standard. When parametric polymorphism is provided, the manner of method resolution may be as defined in 9.3.6, Method invocation, or may be based on a methodology used in the processor's object management system.
@@ -12162,10 +10848,6 @@ Method resolution proceeds as follows:
 
 4) otherwise, each inherited class upward in the hierarchy of inheritance is inspected in the order in which the hierarchy is specified in the INHERITS clause until either one or more methods with the method-name specified in the invocation is defined in the inspected class and one or more of those methods match between the method invocation and the method resolution signature, or all inherited classes have been inspected without finding such a method. If a method is found, that method is bound;
 
-<a id="page-273"></a>
-## Page 273
-**ISO/IEC 1989:2023 (E)**
-
 
 5) otherwise, if any invocation parameter is a literal, steps 3 and 4 are repeated, ignoring the requirements specified in 4c, 4d, 5c and 5d below that the SET and MOVE statements not cause truncation;
 
@@ -12193,12 +10875,6 @@ For a method invocation to match the method resolution signature of a method, th
 
       3. If the parameter in the invoked method is described with an object-class-name, the corresponding parameter in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions.
 
-
-
-<a id="page-274"></a>
-## Page 274
-
-# ISO/IEC 1989:2023 (E)
 
 4. If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation.
 
@@ -12230,10 +10906,6 @@ e) If the parameter in the invoked method is not an object reference, the corres
 
    a) is specified with the BY VALUE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.
 
-<a id="page-275"></a>
-## Page 275
-**ISO/IEC 1989:2023 (E)**
-
 
 c) if the parameter in the invoked method is class index, object, or pointer, may be a receiving data item in a SET statement with the parameter of the invocation as a sending data item. If the sending data item is a literal, the SET statement shall not cause truncation.
 
@@ -12259,12 +10931,6 @@ Additionally, for each parameter that is passed by value or by content, and for 
 
    e) If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation.
 
-
-
-<a id="page-276"></a>
-## Page 276
-
-# ISO/IEC 1989:2023 (E)
 
 3) if the parameter or returning item in the invoked method is not an object reference, the corresponding parameter or returning item has the same ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints:
 
@@ -12296,10 +10962,6 @@ Method definitions within an interface definition define method prototypes. Meth
 ##### 9.3.8.1 General
 
 The term 'conformance' is used in this document with several different meanings. In the context of object orientation, the term 'conformance' is used to describe a relationship between object interfaces, and it is the basis of such fundamental features as inheritance, interface definitions, and conformance checking.
-
-<a id="page-277"></a>
-## Page 277
-**ISO/IEC 1989:2023 (E)**
 
 
 NOTE Conformance checking is done at compile time only, except that conformance checking for object views and methods using universal object references is done at runtime.
@@ -12339,10 +11001,6 @@ If interface-1 and interface-2 are different interfaces, interface-1 conforms to
 
 ---
 
-<a id="page-278"></a>
-## Page 278
-
-# ISO/IEC 1989:2023 (E)
 
 d) If the parameter in interface-2 is described with the ACTIVE-CLASS phrase, the corresponding parameter in interface-1 is described with the ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same in both interfaces.
 
@@ -12379,11 +11037,6 @@ d) If the parameter in interface-2 is described with the ACTIVE-CLASS phrase, th
 ---
 
 
-<a id="page-279"></a>
-## Page 279
-
-**ISO/IEC 1989:2023 (E)**
-
 1. If the returning item in interface-2 is described with the ONLY phrase, the returning item in interface-1 shall be described with the ONLY phrase and the same object-class-name.
 
 2. If the returning item in interface-2 is described without the ONLY phrase, the returning item in interface-1 shall be described with the same object-class-name or a subclass of that object-class-name.
@@ -12417,12 +11070,6 @@ a) If an exception-name is specified in the RAISING phrase in interface-1, the c
 b) If an object-class-name is specified in the RAISING phrase in interface-1, the corresponding RAISING phrase in interface-2 specifies one of the following:
 
 
-
-<a id="page-280"></a>
-## Page 280
-
-**ISO/IEC 1989:2023 (E)**
-
 — the same object-class-name or the name of a superclass of the class identified by that object-class-name, including the FACTORY phrase if and only if the RAISING phrase in interface-1 specifies the FACTORY phrase,
 
 — the name of an interface implemented by the factory object of that class, if the RAISING phrase in interface-1 specifies the FACTORY phrase,
@@ -12448,10 +11095,6 @@ Class inheritance is a mechanism for using the interface and implementation of o
 NOTE This does not mean that the actual source code that describes the data is accessible or that the data items described in that source code can be directly referenced in the subclass. It means that the subclasses are treated as if their source code had a copy of the superclass definitions; in other words, the inherited data items are considered to be defined in the subclass.
 
 The inherited data definitions define data for every instance object of the subclass and for its factory object. Each instance object has its own copy of inherited data, distinct from the copy belonging to an instance object of an inherited class. Each factory object has its own copy of inherited data, distinct from the copy belonging to a factory object of an inherited class. Names and attributes of inherited data items are not visible in the inheriting class. The inherited object data is initialized when an object is created. The inherited factory data is allocated independently from the factory data of the inherited class or classes and is initialized when the factory of the subclass is created. The inherited factory data is accessible only via methods and properties specified in the factory definition of the class that describes the data. The inherited object data is accessible only via methods and properties specified in the object definition of the class that describes the data. The subclass inherits all the file definitions in the same way as the data definitions, subject to the same provisions as data definitions. The subclass may define methods in addition to or in place of the inherited methods and may specify data definitions and file definitions in addition to, but not in place of, the inherited data definitions and file definitions.
-
-<a id="page-281"></a>
-## Page 281
-**ISO/IEC 1989:2023 (E)**
 
 
 The interface of a subclass shall always conform to the interface of the inherited classes, although the subclass may override some of the methods of the inherited class to provide different implementations.
@@ -12481,12 +11124,6 @@ When a class is specified as the parameterized class in an EXPANDS phrase in the
 
 Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same parameterized class with the same actual parameters are the same class instance. If two classes expand a parameterized class with different actual parameters, they are not the same class instance and shall not have the same externalized object-class-name.
 
-
-
-<a id="page-282"></a>
-## Page 282
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-9-3-13"></a>
 #### 9.3.13 Parameterized interfaces
@@ -12530,16 +11167,6 @@ NOTE    The process of determining whether or not an instance object can take pa
 
 A user-defined function is an entity that is defined by the user by specifying a FUNCTION-ID paragraph rather than a PROGRAM-ID paragraph. The rules and behavior of a user-defined function are similar to those for a program except that a user-defined function returns a value as specified by the RETURNING phrase in the procedure division header. Also, arguments and returned values for user-defined functions may not use the word ALL as a subscript. In addition, a user defined function always possesses the recursive attribute and may call itself. A user-defined function is invoked by specifying a function identifier as described in 8.4.3.2, Function-identifier.
 
-<a id="page-283"></a>
-## Page 283
-**ISO/IEC 1989:2023 (E)**
-
-
-
-<a id="page-284"></a>
-## Page 284
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-10"></a>
 ## 10 Structured compilation group
@@ -12593,11 +11220,6 @@ A source unit may contain one or more divisions, specified in the following orde
 ---
 
 
-<a id="page-285"></a>
-## Page 285
-
-**ISO/IEC 1989:2023 (E)**
-
 2. environment division
 3. data division
 4. procedure division
@@ -12643,10 +11265,6 @@ Program B is directly contained in Program A; Program C is directly contained in
 
 ---
 
-<a id="page-286"></a>
-## Page 286
-
-# ISO/IEC 1989:2023 (E)
 
 A runtime element is the result of successful compilation of a function, a method, or a program containing a procedure division and consists of executable code included in a run unit.
 
@@ -12707,12 +11325,6 @@ where function-prototype is:
 ---
 
 
-
-<a id="page-287"></a>
-## Page 287
-
-**ISO/IEC 1989:2023 (E)**
-
 where program-definition is:
 
 <pre>
@@ -12757,12 +11369,6 @@ where function-definition is:
 ---
 
 
-
-<a id="page-288"></a>
-## Page 288
-
-# ISO/IEC 1989:2023 (E)
-
 where class-definition is:
 
 <pre>
@@ -12803,11 +11409,6 @@ where instance-definition is:
 
 ---
 
-
-<a id="page-289"></a>
-## Page 289
-
-**ISO/IEC 1989:2023 (E)**
 
 where interface-definition is:
 
@@ -12861,12 +11462,6 @@ procedure-division &emsp;&emsp; 14, Procedure division
 ---
 
 
-
-<a id="page-290"></a>
-## Page 290
-
-# ISO/IEC 1989:2023 (E)
-
 2) If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same.
 
 3) If a compilation group contains both a function definition and a function prototype definition with the same externalized name, the signatures of these two compilation units shall be the same.
@@ -12894,12 +11489,6 @@ procedure-division &emsp;&emsp; 14, Procedure division
 
 ---
 
-
-
-<a id="page-291"></a>
-## Page 291
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-10-7"></a>
 ### 10.7 End markers
@@ -12956,10 +11545,6 @@ End markers indicate the end of a definition.
 
 ---
 
-<a id="page-292"></a>
-## Page 292
-
-**ISO/IEC 1989:2023 (E)**
 
 9) Function-prototype-name-1 shall be identical to the function-prototype-name declared in the corresponding FUNCTION-ID paragraph.
 
@@ -12968,11 +11553,6 @@ End markers indicate the end of a definition.
 
 1) An end marker indicates the end of the specified source unit.
 
-
-<a id="page-293"></a>
-## Page 293
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11"></a>
 ## 11 Identification division
@@ -13026,10 +11606,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-<a id="page-294"></a>
-## Page 294
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-3"></a>
 ### 11.3 CLASS-ID paragraph
@@ -13081,11 +11657,6 @@ The CLASS-ID paragraph indicates that this identification division is introducin
 ---
 
 
-<a id="page-295"></a>
-## Page 295
-
-**ISO/IEC 1989:2023 (E)**
-
 4) If the same class is inherited more than once, then only one copy of the data for that class is added to object-class-name-1.
 
 NOTE While the same class cannot be directly inherited more than once, a class can be indirectly inherited multiple times. For example, suppose class D inherits from classes B and C, and classes B and C both inherit from class A. In this example, class D indirectly inherits class A twice, since class A is both a superclass of B, as well as a superclass of C.
@@ -13094,12 +11665,6 @@ NOTE While the same class cannot be directly inherited more than once, a class c
 
 6) Parameter-name-1 may be specified within this class definition only where an object-class-name or an interface-name is permitted.
 
-
-
-<a id="page-296"></a>
-## Page 296
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-4"></a>
 ### 11.4 FACTORY paragraph
@@ -13137,12 +11702,6 @@ The FACTORY paragraph indicates that this identification division is introducing
 
 ---
 
-
-
-<a id="page-297"></a>
-## Page 297
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-5"></a>
 ### 11.5 FUNCTION-ID paragraph
@@ -13186,11 +11745,6 @@ FORMAT 2
 
 ---
 
-
-<a id="page-298"></a>
-## Page 298
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-6"></a>
 ### 11.6 INTERFACE-ID paragraph
@@ -13240,11 +11794,6 @@ The INTERFACE-ID paragraph indicates that this identification division is introd
 ---
 
 
-<a id="page-299"></a>
-## Page 299
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-11-7"></a>
 ### 11.7 METHOD-ID paragraph
 
@@ -13290,10 +11839,6 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 
 ---
 
-<a id="page-300"></a>
-## Page 300
-
-**ISO/IEC 1989:2023 (E)**
 
 8) The FINAL clause shall not be specified in a method prototype.
 
@@ -13320,12 +11865,6 @@ The METHOD-ID paragraph indicates that this identification division is introduci
 
 7) If the SET phrase is specified, this method is a set property method for property-name-1.
 
-
-
-<a id="page-301"></a>
-## Page 301
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-8"></a>
 ### 11.8 OBJECT paragraph
@@ -13366,11 +11905,6 @@ The OBJECT paragraph indicates that this identification division is introducing 
 
 ---
 
-
-<a id="page-302"></a>
-## Page 302
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-9"></a>
 ### 11.9 OPTIONS paragraph
@@ -13431,12 +11965,6 @@ The ARITHMETIC clause specifies the method used in developing the intermediate r
 ---
 
 
-
-<a id="page-303"></a>
-## Page 303
-
-**ISO/IEC 1989:2023 (E)**
-
 2) If the STANDARD-BINARY phrase is specified, the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and integer and numeric functions shall be as described for standard-binary arithmetic in 8.8.1.4, Standard-binary arithmetic.
 
 NOTE 1 Implementors are strongly encouraged to provide support for the STANDARD-DECIMAL phrase of the ARITHMETIC clause.
@@ -13488,10 +12016,6 @@ The DEFAULT ROUNDED clause specifies the type of rounding that applies when ROUN
 
 ---
 
-<a id="page-304"></a>
-## Page 304
-
-# ISO/IEC 1989:2023 (E)
 
 2) If the DEFAULT ROUNDED clause is not specified, DEFAULT ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied.
 
@@ -13540,11 +12064,6 @@ b) If an interface definition includes the INHERITS clause, the entry convention
 
 ---
 
-
-<a id="page-305"></a>
-## Page 305
-
-**ISO/IEC 1989:2023 (E)**
 
 c) In all other cases, the entry convention is COBOL.
 
@@ -13599,10 +12118,6 @@ The FLOAT-DECIMAL clause specifies the encoding and the endianness that is impli
 
 ---
 
-<a id="page-306"></a>
-## Page 306
-
-# ISO/IEC 1989:2023 (E)
 
 where encoding-phrase is:
 
@@ -13645,11 +12160,6 @@ The INITIALIZE clause specifies that during program initialization of allocation
 
 ---
 
-
-<a id="page-307"></a>
-## Page 307
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-11-9-10-2"></a>
 ##### 11.9.10.2 General format
@@ -13704,12 +12214,6 @@ The INITIALIZE clause specifies that during program initialization of allocation
 7) External items in the Working-storage section are not initialized when runtime elements are put into the initial state, except for those with the CONSTANT RECORD clause.
 
 
-
-<a id="page-308"></a>
-## Page 308
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-11-9-11"></a>
 #### 11.9.11 INTERMEDIATE ROUNDING clause
 
@@ -13758,23 +12262,12 @@ The INTERMEDIATE ROUNDING clause specifies the rounding rules that are to be app
 ---
 
 
-
-<a id="page-309"></a>
-## Page 309
-
-**ISO/IEC 1989:2023 (E)**
-
 c) If the NEAREST-EVEN phrase is specified or implied, the intermediate data item shall be rounded to the nearest value that can be represented exactly in SDIDI form. If two such values are equally near, the value in which the rightmost digit of the significand is even shall be delivered.
 
 d) If the PROHIBITED phrase is specified and an intermediate value cannot be represented exactly in SDIDI form, the EC-SIZE-TRUNCATION exception condition is set to exist and the results of the operation are undefined.
 
 e) If the TRUNCATION phrase is specified and an intermediate data item cannot be represented exactly in SDIDI form, the value shall be the nearest value in that format that is nearer to zero than the intermediate value.
 
-
-<a id="page-310"></a>
-## Page 310
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-11-10"></a>
 ### 11.10 PROGRAM-ID paragraph
@@ -13829,12 +12322,6 @@ FORMAT 1
 ---
 
 
-
-<a id="page-311"></a>
-## Page 311
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-11-10-4"></a>
 #### 11.10.4 General rules
 
@@ -13857,10 +12344,6 @@ FORMAT 2
 
 ---
 
-<a id="page-312"></a>
-## Page 312
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12"></a>
 ## 12 Environment division
@@ -13884,12 +12367,6 @@ The environment division specifies those aspects of a data processing problem th
 
 ---
 
-
-
-<a id="page-313"></a>
-## Page 313
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-3"></a>
 ### 12.3 Configuration section
@@ -13934,10 +12411,6 @@ The configuration section specifies aspects of the data processing system that a
 
 ---
 
-<a id="page-314"></a>
-## Page 314
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE The functionality established in the CONFIGURATION SECTION applies to this source unit and all contained source units. The ability to reference explicitly any data item referenced in the CONFIGURATION SECTION is dependent upon the scope of that data item.
 
@@ -13971,12 +12444,6 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 
 ---
 
-
-
-<a id="page-315"></a>
-## Page 315
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-3-6"></a>
 #### 12.3.6 OBJECT-COMPUTER paragraph
@@ -14051,11 +12518,6 @@ where locale-phrase-2 is:
 ---
 
 
-<a id="page-316"></a>
-## Page 316
-
-# ISO/IEC 1989:2023 (E)
-
 4) If neither computer-name-1 nor any of the optional clauses is specified, the second period in the General format may be omitted.
 
 <a id="section-12-3-6-4"></a>
@@ -14090,12 +12552,6 @@ where locale-phrase-2 is:
    i) If USER-DEFAULT is specified as locale-phrase-2, the initial national character classification is the character classification associated with the user default locale.
 
 
-
-<a id="page-317"></a>
-## Page 317
-
-**ISO/IEC 1989:2023 (E)**
-
 j) If locale-phrase-2 is not specified, the initial national character classification is the character classification associated with the computer's coded character set in effect for national characters at runtime.
 
 6) When the CHARACTER CLASSIFICATION clause is not specified and the source unit is not contained within a source unit for which a CHARACTER CLASSIFICATION clause is specified, the initial character classifications are the character classifications associated with the computer's coded character set in effect for alphanumeric and national characters at runtime.
@@ -14125,10 +12581,6 @@ j) If locale-phrase-2 is not specified, the initial national character classific
 
 ---
 
-<a id="page-318"></a>
-## Page 318
-
-# ISO/IEC 1989:2023 (E)
 
 12) The alphanumeric program collating sequence and national program collating sequence explicitly or implicitly established by the OBJECT-COMPUTER paragraph are effective with the initial state of the runtime modules to which they apply. If alphabet-name-1 or alphabet-name-2 references a locale, the associated collating sequence is defined by category LC_COLLATE in the specific locale associated with that alphabet-name or, if none, in the locale current at the time the collating sequence is used at runtime
 
@@ -14137,11 +12589,6 @@ j) If locale-phrase-2 is not specified, the initial national character classific
 
 ---
 
-
-<a id="page-319"></a>
-## Page 319
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-3-7"></a>
 #### 12.3.7 SPECIAL-NAMES paragraph
@@ -14166,10 +12613,6 @@ The SPECIAL-NAMES paragraph provides a means for:
 
 ---
 
-<a id="page-320"></a>
-## Page 320
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-3-7-2"></a>
 ##### 12.3.7.2 General format
@@ -14224,11 +12667,6 @@ The SPECIAL-NAMES paragraph provides a means for:
 
 ---
 
-
-<a id="page-321"></a>
-## Page 321
-
-**ISO/IEC 1989:2023 (E)**
 
 where alphabet-name-clause is:
 
@@ -14290,12 +12728,6 @@ where dynamic-length-structure-clause is:
 > ⚠ **The `PREFIXED` / `DELIMITED` pair is enclosed in CHOICE INDICATORS** (the pair of `|` bars inside its braces). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the enclosed alternatives shall be specified, each at most once, **in any order** — so the clause may specify the `PREFIXED` alternative alone, `DELIMITED` alone, or **both**. That whole choice-indicator group is in turn one alternative of the enclosing brace, whose other alternative is `physical-structure-name-1`.
 
 
-
-<a id="page-322"></a>
-## Page 322
-
-# ISO/IEC 1989:2023 (E)
-
 where symbolic-characters-clause is:
 
 <pre>
@@ -14347,11 +12779,6 @@ where symbolic-characters-clause is:
 ---
 
 
-<a id="page-323"></a>
-## Page 323
-
-**ISO/IEC 1989:2023 (E)**
-
 13) When the ALPHABET clause is specified with neither the ALPHANUMERIC phrase nor the NATIONAL phrase, the ALPHANUMERIC phrase is implied.
 
 14) When the ALPHABET clause is specified with a literal-phrase:
@@ -14389,12 +12816,6 @@ b) The relationship between each symbolic-character-1 and the corresponding inte
 c) There shall be a one-to-one correspondence between occurrences of symbolic-character-1 and occurrences of integer-1.
 
 
-
-<a id="page-324"></a>
-## Page 324
-
-# ISO/IEC 1989:2023 (E)
-
 d) When neither the ALPHANUMERIC phrase nor the NATIONAL phrase is specified, the ALPHANUMERIC phrase is implied.
 
 e) When the ALPHANUMERIC phrase is specified or implied:
@@ -14429,11 +12850,6 @@ b) When the ALPHANUMERIC phrase is specified or implied:
 
 c) When the NATIONAL phrase is specified:
 
-
-<a id="page-325"></a>
-## Page 325
-
-**ISO/IEC 1989:2023 (E)**
 
 1. When the IN phrase is specified, alphabet-name-4 shall reference an alphabet that defines a national character set.
 
@@ -14471,11 +12887,6 @@ c) characters '+' '−' ',' '.' '*' '/' ';' '(' ')' '"' '='
 ---
 
 
-<a id="page-326"></a>
-## Page 326
-
-# ISO/IEC 1989:2023 (E)
-
 23) If the PICTURE SYMBOL phrase is specified, literal-7 is the currency string and literal-8 is the associated currency symbol. Literal-7 may have any length and:
 
 a) shall contain at least one non-space character and
@@ -14511,10 +12922,6 @@ c) characters '+' '–' ',' '.' '*' '/' ';' '(' ')' '"' '='
 
 1) All clauses specified in the SPECIAL-NAMES paragraph of a source unit that contains other source units apply to each directly or indirectly contained source unit. The condition-names, mnemonic-names, locale-names, class-names, currency signs and symbols, alphabet-names, and symbolic- characters specified in the SPECIAL-NAMES paragraph of the containing source unit may be referenced from any directly or indirectly contained source unit.
 
-<a id="page-327"></a>
-## Page 327
-**ISO/IEC 1989:2023 (E)**
-
 
 2) Switch-name-1 identifies an implementor-defined external switch. The on status and the off status of an external switch may each be associated with a condition-name. The status of that switch may be interrogated by referencing the condition-names as specified in 8.8.4.6, Simple switch-status condition.
 
@@ -14542,12 +12949,6 @@ Table 6, Relationship of alphabet-name to coded character set and collating sequ
 | NATIVE                  | Y                  | Y                  |
 | STANDARD-1              | Y                  | Y                  |
 
-
-
-<a id="page-328"></a>
-## Page 328
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 6 — Relationship of alphabet-name to coded character set and collating sequence**
 
@@ -14580,11 +12981,6 @@ d) When the NATIVE phrase is specified:
 2. If the NATIONAL phrase is specified, the native national coded character set and native national collating sequence are referenced.
 
 
-<a id="page-329"></a>
-## Page 329
-
-# ISO/IEC 1989:2023 (E)
-
 e) When the LOCALE phrase is specified, the collating sequence identified is defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current at the time the collating sequence is used at runtime. When LOCALE is specified in the ALPHANUMERIC phrase, an alphanumeric collating sequence is identified; when specified in the NATIONAL phrase, a national collating sequence is identified.
 
 f) When the UCS-4 phrase is specified, the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-32. Each character of UTF-32 is associated with a corresponding character of the native national character set. The implementor shall specify the correspondence between the characters of UTF-32 and the characters of the native national character set. The collating sequence referenced by the UCS-4 phrase shall be defined by the order in which characters appear in ISO/IEC 10646.
@@ -14608,10 +13004,6 @@ k) When literal-phrase is specified, the coded character set and collating seque
 
 ---
 
-<a id="page-330"></a>
-## Page 330
-
-# ISO/IEC 1989:2023 (E)
 
 a. The ordinal number of a character within the native character set, if the literal is numeric. This value shall not exceed the value that represents the number of characters in the native character set.
 
@@ -14632,10 +13024,6 @@ b. Otherwise, the actual character within the native character set. If the value
 9) The character that has the lowest ordinal position in the program collating sequence is associated with the figurative constant LOW-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the lowest position in the program collating sequence, the first character specified is associated with the figurative constant LOW-VALUE.
 
 10) When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and lowest positions, respectively, in the native national collating sequence, when the NATIONAL phrase is specified, or in the native alphanumeric collating sequence otherwise.
-
-<a id="page-331"></a>
-## Page 331
-**ISO/IEC 1989:2023 (E)**
 
 
 11) When the SYMBOLIC CHARACTERS clause is specified:
@@ -14664,11 +13052,6 @@ The runtime value of literal-7 is the currency string.
 
 a) The character written in numeric literals to represent the decimal separator shall be the comma.
 
-
-<a id="page-332"></a>
-## Page 332
-
-# ISO/IEC 1989:2023 (E)
 
 b) For the basic format of the PICTURE clause, the character written in character-strings, and inserted in numeric-edited items to represent the decimal separator shall be the comma.
 
@@ -14706,12 +13089,6 @@ If the implementor allows larger values, the maximum value that can be expressed
 ---
 
 
-
-<a id="page-333"></a>
-## Page 333
-
-**ISO/IEC 1989:2023 (E)**
-
 The maximum size of records described with a DYNAMIC LENGTH phrase is defined by the implementor.
 
 19) If the DELIMITED phrase is specified in the DYNAMIC LENGTH STRUCTURE clause, a delimiter shall directly follow the data described with dynamic-length-structure-name-1. The delimiter for alphanumeric dynamic-length elementary items is data of the length of an alphanumeric character in which all bit positions contain binary zeroes. The delimiter for national dynamic-length elementary items is data of the length as a national character in which all bit positions contain binary zeroes.
@@ -14719,10 +13096,6 @@ The maximum size of records described with a DYNAMIC LENGTH phrase is defined by
 
 ---
 
-<a id="page-334"></a>
-## Page 334
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-3-8"></a>
 #### 12.3.8 REPOSITORY paragraph
@@ -14794,12 +13167,6 @@ where program-specifier is:
 ---
 
 
-
-<a id="page-335"></a>
-## Page 335
-
-**ISO/IEC 1989:2023 (E)**
-
 where property-specifier is:
 
 <pre>
@@ -14842,10 +13209,6 @@ INTERFACE SPECIFIER
 
 ---
 
-<a id="page-336"></a>
-## Page 336
-
-# ISO/IEC 1989:2023 (E)
 
 9) If the INTERFACE phrase is specified without the EXPANDS phrase:
 
@@ -14889,11 +13252,6 @@ PROPERTY SPECIFIER
 ---
 
 
-<a id="page-337"></a>
-## Page 337
-
-**ISO/IEC 1989:2023 (E)**
-
 b) If literal-4 is not specified, there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph.
 
 <a id="section-12-3-8-4"></a>
@@ -14921,10 +13279,6 @@ b) If literal-4 is not specified, there shall be information in the external rep
 
 8) If the EXPANDS phrase is specified in an interface-specifier, an interface interface-name-2 is created from the parameterized interface interface-name-3. The number of parameters in the USING phrase of the EXPANDS phrase of the interface-specifier shall be the same as the number of parameters in the USING phrase of the INTERFACE-ID paragraph of interface-name-3. The interface for interface- name-2 is the interface specified for interface-name-3 with the parameters of interface-name-3 replaced by the parameters specified in the interface-specifier.
 
-<a id="page-338"></a>
-## Page 338
-# ISO/IEC 1989:2023 (E)
-
 
 The interface interface-name-2 is created from the parameterized interface interface-name-3 by replacing each specification of the formal parameter by the corresponding actual parameter.
 
@@ -14948,10 +13302,6 @@ The interface interface-name-2 is created from the parameterized interface inter
 
     b) if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group, the details are taken from that function prototype definition and the details in the external repository are ignored. The function that will be activated is the one with the same externalized name as the externalized name of the function prototype; otherwise, c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.
 
-<a id="page-339"></a>
-## Page 339
-**ISO/IEC 1989:2023 (E)**
-
 
 12) Within the scope of the containing environment division, a reference to function-prototype-name-1 is a reference to a user-defined function, and not to an intrinsic function of the same name.
 
@@ -14961,12 +13311,6 @@ The interface interface-name-2 is created from the parameterized interface inter
 
 15) Property-name-1 is the name of an object property that may be used throughout the scope of the containing environment division.
 
-
-
-<a id="page-340"></a>
-## Page 340
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4"></a>
 ### 12.4 Input-output section
@@ -14996,11 +13340,6 @@ The input-output section deals with the information needed to control transmissi
 ---
 
 
-<a id="page-341"></a>
-## Page 341
-
-**ISO/IEC 1989:2023 (E)**
-
 <a id="section-12-4-4"></a>
 #### 12.4.4 FILE-CONTROL paragraph
 
@@ -15022,12 +13361,6 @@ The file control entry declares the relevant physical attributes of a file.
 
 ---
 
-
-
-<a id="page-342"></a>
-## Page 342
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-1"></a>
 ##### 12.4.5.1 General formats
@@ -15086,12 +13419,6 @@ Format 1 (indexed):
 ---
 
 
-
-<a id="page-343"></a>
-## Page 343
-
-**ISO/IEC 1989:2023 (E)**
-
 Format 2 (relative):
 
 <pre>
@@ -15132,12 +13459,6 @@ Format 2 (relative):
 
 > **Figure notes (SELECT statement Format 2 (relative) syntax diagram).** This figure continues the `SELECT [ OPTIONAL ] file-name-1` line printed above it. Underlined in the printed standard (required words / required minimum abbreviations): `ASSIGN`, `USING` (both occurrences), `ACCESS`, `DYNAMIC`, `RANDOM`, `SEQUENTIAL`, `STATUS`, `LOCK` (in `LOCK MODE` and in `WITH LOCK ON`), `MANUAL`, `AUTOMATIC`, `ON`, `MULTIPLE`, `RECORD`, `RECORDS`, `ORGANIZATION`, `RELATIVE` (both the ORGANIZATION alternative and `RELATIVE KEY`), `RESERVE`, `SHARING`, `ALL`, `NO`, `READ`, `ONLY`. `TO`, `IS`, `MODE`, `FILE`, `WITH`, `KEY`, `AREA`, `AREAS`, `OTHER`, and `integer-1`/`data-name-n` are not underlined. The `…` after the inner `{ device-name-1 / literal-1 }` brace repeats that brace. The optional clauses following the ASSIGN clause are independent brackets and may be written in any order permitted by the syntax rules. The separator period terminates the entry. **No choice indicators appear in this figure.**
 
-
-
-<a id="page-344"></a>
-## Page 344
-
-# ISO/IEC 1989:2023 (E)
 
 Format 3 (sequential):
 
@@ -15203,12 +13524,6 @@ Format 4 (sort-merge):
 ---
 
 
-
-<a id="page-345"></a>
-## Page 345
-
-ISO/IEC 1989:2023 (E)
-
 where collating-sequence-clause is described in 12.4.5.7, COLLATING SEQUENCE clause.
 
 <a id="section-12-4-5-2"></a>
@@ -15246,12 +13561,6 @@ FORMAT 3
 
 12) If the LINE SEQUENTIAL phrase of the ORGANIZATION clause is specified, the RESERVE clause shall not be specified.
 
-
-
-<a id="page-346"></a>
-## Page 346
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 4
 
@@ -15293,11 +13602,6 @@ ALL FORMATS
    NOTE    As described in 13.4.5, File description entry, General rule 2, the separate data item referenced by the LINAGE clauses is required to be the same separate corresponding external data item.
 
 
-<a id="page-347"></a>
-## Page 347
-
-**ISO/IEC 1989:2023 (E)**
-
 2) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for physical files that are not necessarily present each time the runtime element is executed.
 
 3) The ASSIGN clause specifies the association of the file connector referenced by file-name-1 to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1. The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1, according to the following rules:
@@ -15331,10 +13635,6 @@ FORMAT 3
 
 ---
 
-<a id="page-348"></a>
-## Page 348
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 4
 
@@ -15342,12 +13642,6 @@ FORMAT 4
 
 ---
 
-
-
-<a id="page-349"></a>
-## Page 349
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-4"></a>
 ##### 12.4.5.4 ACCESS MODE clause
@@ -15401,10 +13695,6 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 ---
 
-<a id="page-350"></a>
-## Page 350
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-6"></a>
 ##### 12.4.5.6 ALTERNATE RECORD KEY clause
@@ -15454,11 +13744,6 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 ---
 
 
-<a id="page-351"></a>
-## Page 351
-
-**ISO/IEC 1989:2023 (E)**
-
 3) The data description of data-name-1 or data-name-2 as well as their relative location within a record shall be the same as that used when the physical file was created. The number of alternate record keys for the file shall also be the same as that used when the physical file was created.
 
 4) The DUPLICATES phrase specifies that the value of the associated alternate record key may be equal to the value of the same alternate record key in another record in the physical file. If the DUPLICATES phrase is not specified, the value of the associated alternate record key shall not be equal to the value of the same alternate record key in another record in the physical file. The equality or inequality is based on the collating sequence used for the file according to the rules for a relation condition.
@@ -15472,10 +13757,6 @@ NOTE    The suppression does not impact READ and START although the suppressed r
 
 ---
 
-<a id="page-352"></a>
-## Page 352
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-7"></a>
 ##### 12.4.5.7 COLLATING SEQUENCE clause
@@ -15535,11 +13816,6 @@ FORMAT 2
 ---
 
 
-<a id="page-353"></a>
-## Page 353
-
-**ISO/IEC 1989:2023 (E)**
-
 8) Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause.
 
 <a id="section-12-4-5-7-4"></a>
@@ -15563,12 +13839,6 @@ FORMAT 2
 
 6) Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1.
 
-
-
-<a id="page-354"></a>
-## Page 354
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-8"></a>
 ##### 12.4.5.8 FILE STATUS clause
@@ -15609,11 +13879,6 @@ FILE <u>STATUS</u> IS data-name-1
 
 ---
 
-
-<a id="page-355"></a>
-## Page 355
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-9"></a>
 ##### 12.4.5.9 LOCK MODE clause
@@ -15663,10 +13928,6 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 
 ---
 
-<a id="page-356"></a>
-## Page 356
-
-# ISO/IEC 1989:2023 (E)
 
 5) If the MANUAL phrase is specified, the lock mode is manual. Records locks are obtained only when the LOCK phrase is explicitly specified on an I-O statement.
 
@@ -15681,11 +13942,6 @@ The LOCK MODE clause indicates the type of record locking for a shared file.
 
 ---
 
-
-<a id="page-357"></a>
-## Page 357
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-10"></a>
 ##### 12.4.5.10 ORGANIZATION clause
@@ -15728,10 +13984,6 @@ The ORGANIZATION clause specifies the logical structure of a file.
 
 ---
 
-<a id="page-358"></a>
-## Page 358
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-11"></a>
 ##### 12.4.5.11 RECORD DELIMITER clause
@@ -15785,12 +14037,6 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
 ---
 
 
-
-<a id="page-359"></a>
-## Page 359
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-12-4-5-12"></a>
 ##### 12.4.5.12 RECORD KEY clause
 
@@ -15837,10 +14083,6 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 
 ---
 
-<a id="page-360"></a>
-## Page 360
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-13"></a>
 ##### 12.4.5.13 RELATIVE KEY clause
@@ -15878,11 +14120,6 @@ The RELATIVE KEY clause identifies the data item that will contain the relative 
 ---
 
 
-<a id="page-361"></a>
-## Page 361
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-12-4-5-14"></a>
 ##### 12.4.5.14 RESERVE clause
 
@@ -15909,12 +14146,6 @@ The RESERVE clause allows the user to specify the number of input-output areas a
 
 ---
 
-
-
-<a id="page-362"></a>
-## Page 362
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-5-15"></a>
 ##### 12.4.5.15 SHARING clause
@@ -15947,11 +14178,6 @@ The SHARING clause indicates that a file is to participate in file sharing and r
 
 ---
 
-
-<a id="page-363"></a>
-## Page 363
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-6"></a>
 #### 12.4.6 I-O-CONTROL paragraph
@@ -16005,10 +14231,6 @@ The APPLY COMMIT clause specifies which files and data-items are to be subject t
 
 ---
 
-<a id="page-364"></a>
-## Page 364
-
-**ISO/IEC 1989:2023 (E)**
 
 8) Where there is a dependency of one data item upon another, the 01 or 77 level data items that contain or refer to them shall each either or neither be specified in the list of identifiers, or have been specified in identifiers already subject to the same or another APPLY COMMIT clause.
 
@@ -16041,12 +14263,6 @@ NOTE 3 Rather than pass data items subject to APPLY COMMIT statements in linkage
 
 ---
 
-
-
-<a id="page-365"></a>
-## Page 365
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-12-4-6-4"></a>
 ##### 12.4.6.4 SAME clause
@@ -16101,10 +14317,6 @@ Format 3 (sort-merge-area):
 
 ---
 
-<a id="page-366"></a>
-## Page 366
-
-# ISO/IEC 1989:2023 (E)
 
 9) If one or more file-names specified in a file-area format SAME clause are also specified in a record-area format SAME clause, all of the file-names specified in the file-area format SAME clause shall also be specified in the record-area format SAME clause. Additional file-names not specified in the file-area format SAME clause may be specified in the record-area format SAME clause.
 
@@ -16132,22 +14344,11 @@ Format 3 (sort-merge-area):
 ---
 
 
-
-<a id="page-367"></a>
-## Page 367
-
-**ISO/IEC 1989:2023 (E)**
-
 5) During the processing of a SORT or MERGE statement that refers to a sort or merge file named in a sort-merge-area format SAME clause, any non-sort and non-merge files associated with file-names specified in that clause shall not be in the open mode.
 
 
 ---
 
-
-<a id="page-368"></a>
-## Page 368
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -16163,12 +14364,6 @@ The following is the general format of the sections in the data division and def
 
 ---
 
-
-
-<a id="page-369"></a>
-## Page 369
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-2"></a>
 ### 13.2 Data division structure
@@ -16232,16 +14427,6 @@ The following is the general format of the sections in the data division and def
 
 Attributes may be implicitly or explicitly specified. Any attribute that has been explicitly specified is called an explicit attribute. Some explicit attributes in the description of a group item apply to its subordinate items; these attributes are implicit attributes of the subordinate item. If an attribute has not been explicitly specified for an item or inherited from a group item, the attribute takes on the default specification, which is also known as an implicit attribute. An implicit attribute is treated as if the attribute had been explicitly specified.
 
-<a id="page-370"></a>
-## Page 370
-**ISO/IEC 1989:2023 (E)**
-
-
-
-<a id="page-371"></a>
-## Page 371
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-4"></a>
 ### 13.4 File section
@@ -16291,10 +14476,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-<a id="page-372"></a>
-## Page 372
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-4-5"></a>
 #### 13.4.5 File description entry
@@ -16346,10 +14527,6 @@ Format 1 (sequential):
 
 ---
 
-<a id="page-373"></a>
-## Page 373
-
-**ISO/IEC 1989:2023 (E)**
 
 Format 2 (relative-or-indexed):
 
@@ -16399,12 +14576,6 @@ linage-clause | 13.18.34, LINAGE clause
 record-clause | 13.18.43, RECORD clause
 
 
-
-<a id="page-374"></a>
-## Page 374
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-4-5-3"></a>
 ##### 13.4.5.3 Syntax rules
 
@@ -16447,12 +14618,6 @@ FORMAT 3
 ---
 
 
-
-<a id="page-375"></a>
-## Page 375
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-4-5-4"></a>
 ##### 13.4.5.4 General rules
 
@@ -16489,10 +14654,6 @@ FORMAT 3
 
 ---
 
-<a id="page-376"></a>
-## Page 376
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-4-6"></a>
 #### 13.4.6 Sort-merge file description entry
@@ -16532,11 +14693,6 @@ where record-clause is described in 13.18.43, RECORD clause.
 
 ---
 
-
-<a id="page-377"></a>
-## Page 377
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-5"></a>
 ### 13.5 Working-storage section
@@ -16587,10 +14743,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-<a id="page-378"></a>
-## Page 378
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-6"></a>
 ### 13.6 Local-storage section
@@ -16638,12 +14790,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-
-
-<a id="page-379"></a>
-## Page 379
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-7"></a>
 ### 13.7 Linkage section
@@ -16697,10 +14843,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-<a id="page-380"></a>
-## Page 380
-
-# ISO/IEC 1989:2023 (E)
 
 c) It is defined with a REDEFINES or RENAMES clause, the object of which satisfies one of the above conditions.
 
@@ -16726,11 +14868,6 @@ e) It is a condition-name or index-name associated with a data item that satisfi
 
 ---
 
-
-<a id="page-381"></a>
-## Page 381
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-8"></a>
 ### 13.8 Report section
@@ -16776,10 +14913,6 @@ An RD entry shall be followed by one or more report group description entries. T
 A report group is a block of zero, one, or more report lines that is treated, both logically and visually, as a single unit. Each report group description shall consist of a level 1 report description entry followed by zero, one, or more subordinate entries, describing the vertical and horizontal layout of the report group and the content or origin of each of its printed data items, known as printable items.
 
 The report groups associated with the report are specified immediately following the report description entry. If several report groups are specified, the order in which they are defined is not significant. The first entry of each report group description has level number 1 and a TYPE clause and, if a data-name is also specified, this may be used subsequently to identify the report group. Further subordinate group and elementary entries may be specified to describe additional elements of the report group.
-
-<a id="page-382"></a>
-## Page 382
-# ISO/IEC 1989:2023 (E)
 
 
 <a id="section-13-8-6"></a>
@@ -16827,18 +14960,8 @@ Report groups of type DETAIL may be structured into a nested set of control grou
 ---
 
 
-<a id="page-383"></a>
-## Page 383
-
-**ISO/IEC 1989:2023 (E)**
-
 A control break occurs when a change of value is detected in a control data item during the execution of a GENERATE statement. The hierarchy of control data items is used to check automatically for any such change in value. The detection of a control break causes the same GENERATE statement to print each defined control footing, in reverse hierarchical order, and each defined control heading, in hierarchical order.
 
-
-<a id="page-384"></a>
-## Page 384
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-9"></a>
 ### 13.9 Screen section
@@ -16881,11 +15004,6 @@ screen-description-entry | 13.17, Screen description entry
 
 ---
 
-
-<a id="page-385"></a>
-## Page 385
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-10"></a>
 ### 13.10 Constant entry
@@ -16938,10 +15056,6 @@ A constant entry defines a constant. A constant may be used in place of a litera
 
 ---
 
-<a id="page-386"></a>
-## Page 386
-
-# ISO/IEC 1989:2023 (E)
 
 11) Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items.
 
@@ -16965,10 +15079,6 @@ A constant entry defines a constant. A constant may be used in place of a litera
 
 ---
 
-<a id="page-387"></a>
-## Page 387
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-11"></a>
 ### 13.11 Record description entry
@@ -16996,12 +15106,6 @@ Further details regarding the specification of a type declaration entry are desc
 
 Items in the linkage section, local-storage, and the working-storage section that bear no hierarchical relationship to one another need not be grouped into records, provided they do not need to be further subdivided. Instead, they are classified and defined as noncontiguous elementary data items. Each of these items is defined in a separate data description entry that begins with the special level-number 77.
 
-
-
-<a id="page-388"></a>
-## Page 388
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-14"></a>
 ### 13.14 Report description entry
@@ -17050,11 +15154,6 @@ where the following meta-language terms are described in the indicated subclause
 
 ---
 
-
-<a id="page-389"></a>
-## Page 389
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-15"></a>
 ### 13.15 Report group description entry
@@ -17113,12 +15212,6 @@ where the following meta-language terms are described in the indicated subclause
 | value-clause | 13.18.63, VALUE clause (report-section format) |
 
 
-
-<a id="page-390"></a>
-## Page 390
-
-# ISO/IEC 1989:2023 (E)
-
 varying-clause 13.18.64, VARYING clause
 
 <a id="section-13-15-3"></a>
@@ -17158,10 +15251,6 @@ varying-clause 13.18.64, VARYING clause
 
    c) If the literal is national, 'PICTURE N(length)' where length is the length of the literal as specified in 8.3.3, Literals.
 
-<a id="page-391"></a>
-## Page 391
-**ISO/IEC 1989:2023 (E)**
-
 
 15) If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.
 
@@ -17179,12 +15268,6 @@ varying-clause 13.18.64, VARYING clause
 3) An entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of an entry that is not a repeating entry is defined to be 1. A report item is a repeating item if it is defined by a repeating entry or by an entry that is subordinate to a repeating entry.
 
 
-
-<a id="page-392"></a>
-## Page 392
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-16"></a>
 ### 13.16 Data description entry
 
@@ -17200,11 +15283,6 @@ A level 1 data description entry in the working-storage section determines the i
 
 ---
 
-
-<a id="page-393"></a>
-## Page 393
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-16-2"></a>
 #### 13.16.2 General formats
@@ -17264,11 +15342,6 @@ level-number [ entry-name-clause ]
 ---
 
 
-<a id="page-394"></a>
-## Page 394
-
-# ISO/IEC 1989:2023 (E)
-
 where validation-clauses is:
 
 <pre>
@@ -17324,11 +15397,6 @@ NOTE    The validation format of the data description is an obsolete feature.
 ---
 
 
-<a id="page-395"></a>
-## Page 395
-
-**ISO/IEC 1989:2023 (E)**
-
 <a id="section-13-16-3"></a>
 #### 13.16.3 Syntax rules
 
@@ -17365,10 +15433,6 @@ FORMAT 1
 
 ---
 
-<a id="page-396"></a>
-## Page 396
-
-# ISO/IEC 1989:2023 (E)
 
 11) The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.
 
@@ -17402,11 +15466,6 @@ FORMAT 1
 
 ---
 
-
-<a id="page-397"></a>
-## Page 397
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 2
 
@@ -17445,12 +15504,6 @@ h) A variable-length group.
 
 4) Format 4 may contain the name of a condition and the value, values, or range of values associated with the condition-name, in which case the condition-name has the same meaning as in Format 3 and may be used in the same way. During the content validation stage of a VALIDATE statement that references the subject of the entry or a superordinate data item, the value or values specified in this format define the value, values, or range of values that make the subject of the entry valid if VALID is specified or invalid if INVALID is specified.
 
-
-
-<a id="page-398"></a>
-## Page 398
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-17"></a>
 ### 13.17 Screen description entry
@@ -17516,11 +15569,6 @@ level-number [ entry-name-clause ]
 
 ---
 
-
-<a id="page-399"></a>
-## Page 399
-
-**ISO/IEC 1989:2023 (E)**
 
 Format 2 (elementary):
 
@@ -17590,10 +15638,6 @@ level-number [ entry-name-clause ]
 
 where entry-name-clause is described in 13.18.20, Entry-name clause where screen-attribute-clauses is:
 
-<a id="page-400"></a>
-## Page 400
-# ISO/IEC 1989:2023 (E)
-
 
 <pre>
 [ <u>BELL</u> ]
@@ -17650,12 +15694,6 @@ ALL FORMATS
 ---
 
 
-
-<a id="page-401"></a>
-## Page 401
-
-**ISO/IEC 1989:2023 (E)**
-
 FORMAT 1
 
 3) Level-number shall be a number from 1 through 48.
@@ -17701,12 +15739,6 @@ ALL FORMATS
 2) If the HIGHLIGHT and LOWLIGHT clauses are both specified in the hierarchy of a screen item, the clause that appears at the lowest level of the hierarchy is the one that takes effect.
 
 
-
-<a id="page-402"></a>
-## Page 402
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18"></a>
 ### 13.18 Data division clauses
 
@@ -17743,11 +15775,6 @@ The ALIGNED clause specifies that a bit group item or an elementary bit data ite
 
 ---
 
-
-<a id="page-403"></a>
-## Page 403
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-2"></a>
 #### 13.18.2 ANY LENGTH clause
@@ -17792,10 +15819,6 @@ The ANY LENGTH clause specifies that the length of a linkage section item may va
 
 ---
 
-<a id="page-404"></a>
-## Page 404
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-3"></a>
 #### 13.18.3 AUTO clause
@@ -17826,12 +15849,6 @@ The AUTO clause causes the cursor to be automatically moved to the next field de
 
 ---
 
-
-
-<a id="page-405"></a>
-## Page 405
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-4"></a>
 #### 13.18.4 BACKGROUND-COLOR clause
@@ -17873,10 +15890,6 @@ The BACKGROUND-COLOR clause specifies the background color for the screen item.
 
 ---
 
-<a id="page-406"></a>
-## Page 406
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-5"></a>
 #### 13.18.5 BASED clause
@@ -17916,11 +15929,6 @@ The BASED clause defines a based entry. A based entry is a template that, when a
 ---
 
 
-<a id="page-407"></a>
-## Page 407
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-6"></a>
 #### 13.18.6 BELL clause
 
@@ -17945,10 +15953,6 @@ The BELL clause causes the terminal audio tone to sound.
 
 ---
 
-<a id="page-408"></a>
-## Page 408
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-7"></a>
 #### 13.18.7 BLANK clause
@@ -17984,11 +15988,6 @@ The BLANK clause clears a screen line or clears the whole screen during the exec
 
 ---
 
-
-<a id="page-409"></a>
-## Page 409
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-8"></a>
 #### 13.18.8 BLANK WHEN ZERO clause
@@ -18026,11 +16025,6 @@ The BLANK WHEN ZERO clause causes the blanking of an item when a value of zero i
 ---
 
 
-<a id="page-410"></a>
-## Page 410
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-9"></a>
 #### 13.18.9 BLINK clause
 
@@ -18054,12 +16048,6 @@ The BLINK clause specifies that each character of the field blinks when it is di
 
 ---
 
-
-
-<a id="page-411"></a>
-## Page 411
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-10"></a>
 #### 13.18.10 BLOCK CONTAINS clause
@@ -18111,10 +16099,6 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 
 ---
 
-<a id="page-412"></a>
-## Page 412
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-11"></a>
 #### 13.18.11 CLASS clause
@@ -18166,10 +16150,6 @@ The CLASS clause specifies a range of values for each character of a data item, 
 
 ---
 
-<a id="page-413"></a>
-## Page 413
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-12"></a>
 #### 13.18.12 CODE clause
@@ -18211,10 +16191,6 @@ The CODE clause specifies one or more characters used to separate multiple repor
 
 ---
 
-<a id="page-414"></a>
-## Page 414
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-13"></a>
 #### 13.18.13 CODE-SET clause
@@ -18262,10 +16238,6 @@ The CODE-SET clause specifies the character code convention used to represent da
 
 4) If record description entries associated with the file contain a SELECT WHEN clause, a record description entry is selected by evaluation of those SELECT WHEN clauses. If there are no record description entries associated with the file, the record description used for conversion is the description of the identifier or literal specified in the FROM phrase of a WRITE or REWRITE statement specifying the FILE phrase.
 
-<a id="page-415"></a>
-## Page 415
-**ISO/IEC 1989:2023 (E)**
-
 
 Alphabet-name-1 is used for code-set conversion of each data item described with usage display in the selected record description entry. Alphabet-name-2 is used for code-set conversion of each data item described with usage national in the selected record description entry.
 
@@ -18285,11 +16257,6 @@ NOTE    There is no conversion of data items described with other usages unless 
 
 7) If the CODE-SET clause is not specified, the native character set is assumed for data on the external media.
 
-
-<a id="page-416"></a>
-## Page 416
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-14"></a>
 #### 13.18.14 COLUMN clause
@@ -18356,12 +16323,6 @@ FORMAT 1
 ---
 
 
-
-<a id="page-417"></a>
-## Page 417
-
-**ISO/IEC 1989:2023 (E)**
-
 7) Within a given report line, any two or more absolute items defined using column numbers that are not in increasing numerical order shall be subject to a different PRESENT WHEN clause.
 
 8) The set of printable items within a given report line is subject to the following rules:
@@ -18402,10 +16363,6 @@ FORMAT 1
 
 ---
 
-<a id="page-418"></a>
-## Page 418
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE 1 Columns might not line up in a report if the printable characters are not of fixed size encoding, such as UTF-8.
 
@@ -18441,11 +16398,6 @@ NOTE 1 Columns might not line up in a report if the printable characters are not
 ---
 
 
-<a id="page-419"></a>
-## Page 419
-
-**ISO/IEC 1989:2023 (E)**
-
 11) If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank.
 
 12) A multiple COLUMN clause is functionally equivalent to a COLUMN clause with a single operand, together with a simple OCCURS clause whose integer is equal to the number of operands of the COLUMN clause, except that the multiple COLUMN clause allows the printable items to be defined at unequal horizontal intervals.
@@ -18473,20 +16425,8 @@ NOTE 3 Columns might not line up on a screen if the characters on the screen are
 19) If the explicit or implicit column number of the first character of the screen item exceeds the number of columns available for a terminal, the EC-SCREEN-STARTING-COLUMN exception condition is set to exist and that screen item does not take part in the execution of the ACCEPT screen or DISPLAY screen statement.
 
 
-
-<a id="page-420"></a>
-## Page 420
-
-**ISO/IEC 1989:2023 (E)**
-
 Otherwise, if the starting column and length of a screen item are such that the field would extend outside the end of the terminal line, the EC-SCREEN-ITEM-TRUNCATED exception condition is set to exist and the field is truncated at the end of the line.
 
-
-
-<a id="page-421"></a>
-## Page 421
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-15"></a>
 #### 13.18.15 CONSTANT RECORD clause
@@ -18523,11 +16463,6 @@ The CONSTANT RECORD clause identifies a structured constant. The content of a st
 
 ---
 
-
-<a id="page-422"></a>
-## Page 422
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-16"></a>
 #### 13.18.16 CONTROL clause
@@ -18574,10 +16509,6 @@ The CONTROL clause establishes a hierarchy of control breaks for the report.
 
 3) For each data-name-1 an internal data item, known as a prior control, is implicitly defined, having the same data description as the corresponding data item and a mechanism is established to save each control data item in the corresponding prior control and subsequently to compare these values to sense for control breaks. Execution of the chronologically first GENERATE statement for a given report saves each current control data item in the corresponding prior control. Subsequent executions of any GENERATE statement for that report automatically test the current value of each control data item, in order major to minor, for equality with the corresponding prior control. If a change of value in a control data item is detected, no further control data items are tested for the current GENERATE statement, and control break processing for that level and any lower levels is performed automatically.
 
-<a id="page-423"></a>
-## Page 423
-**ISO/IEC 1989:2023 (E)**
-
 
 4) If a control break has been detected during the execution of a GENERATE statement, the control data items are processed as follows:
 
@@ -18594,10 +16525,6 @@ The CONTROL clause establishes a hierarchy of control breaks for the report.
 
 ---
 
-<a id="page-424"></a>
-## Page 424
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-17"></a>
 #### 13.18.17 DEFAULT clause
@@ -18647,11 +16574,6 @@ NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete feature.
 ---
 
 
-<a id="page-425"></a>
-## Page 425
-
-**ISO/IEC 1989:2023 (E)**
-
 3) If the DEFAULT clause is not specified in the data item's data description entry, or if DEFAULT NONE is specified, the default value is that which would be supplied for the data item by the execution of an implicit INITIALIZE statement without a REPLACING or VALUE phrase.
 
 4) If NONE is specified, the effect of the clause is the same as if no DEFAULT clause were specified, except that, if the data item contains all spaces or the data item is elementary and is found to be invalid on format, any DESTINATION clause specified for the data item is ignored.
@@ -18661,11 +16583,6 @@ NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete feature.
 
 ---
 
-
-<a id="page-426"></a>
-## Page 426
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-18"></a>
 #### 13.18.18 DESTINATION clause
@@ -18708,12 +16625,6 @@ NOTE The DESTINATION clause feature of the VALIDATE facility is an obsolete feat
 6) The sending data determined by the above general rules is moved to the data item referenced by each identifier-1 in the order specified, according to the rules for the MOVE statement.
 
 
-
-<a id="page-427"></a>
-## Page 427
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-19"></a>
 #### 13.18.19 DYNAMIC LENGTH clause
 
@@ -18749,10 +16660,6 @@ The DYNAMIC LENGTH clause specifies that the length of a data item can vary at r
 
 ---
 
-<a id="page-428"></a>
-## Page 428
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-20"></a>
 #### 13.18.20 Entry-name clause
@@ -18800,11 +16707,6 @@ Format 3 (filler)
 ---
 
 
-<a id="page-429"></a>
-## Page 429
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-21"></a>
 #### 13.18.21 ERASE clause
 
@@ -18849,10 +16751,6 @@ The ERASE clause clears part of the line or the screen starting at the cursor po
 
 ---
 
-<a id="page-430"></a>
-## Page 430
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-22"></a>
 #### 13.18.22 EXTERNAL clause
@@ -18902,11 +16800,6 @@ NOTE 1    Use of the EXTERNAL clause does not imply that the associated file-nam
 ---
 
 
-<a id="page-431"></a>
-## Page 431
-
-**ISO/IEC 1989:2023 (E)**
-
 a) the file connector associated with this file description entry is an external file connector; and
 
 b) the data contained in all record description entries subordinate to that file description entry is external and may be accessed by any runtime element in the run unit that describes the same file and records as external, subject to the following rules.
@@ -18917,12 +16810,6 @@ NOTE 2 13.18.57, TYPE clause, Syntax rule 4; and 13.18.33, Level-number, General
 
 6) Within a run unit, if two or more source elements describe the same external data record, each name that is externalized to the operating environment for the record description entries shall be the same; the VALUE clause specification, if any, for each record name of the associated record description entries shall be identical; and the records shall define the same number of bytes. A source element that describes an external record that is not strongly typed may contain a data description entry including the REDEFINES clause that redefines the complete external record, and this complete redefinition need not occur identically in other source elements in the run unit. Additionally, for strongly typed external items, the rules in 8.5.3, Types also apply.
 
-
-
-<a id="page-432"></a>
-## Page 432
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-23"></a>
 #### 13.18.23 FOREGROUND-COLOR clause
@@ -18966,11 +16853,6 @@ The FOREGROUND clause specifies the foreground color for the screen item.
 
 ---
 
-
-<a id="page-433"></a>
-## Page 433
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-24"></a>
 #### 13.18.24 FORMAT clause
@@ -19019,10 +16901,6 @@ The FORMAT clause specifies that records written to the file are to be formatted
 
 ---
 
-<a id="page-434"></a>
-## Page 434
-
-# ISO/IEC 1989:2023 (E)
 
 c) If there are no record description entries associated with the file description entry, the record description entry or data description entry that is selected depends on the input-output operation as follows:
 
@@ -19074,12 +16952,6 @@ c) If there are no record description entries associated with the file descripti
 ---
 
 
-
-<a id="page-435"></a>
-## Page 435
-
-# ISO/IEC 1989:2023 (E)
-
 7) If a data item is not selected for formatting, it is transferred as is with no conversion or formatting taking place.
 
 8) For a WRITE or REWRITE statement, each selected data item is formatted as necessary in a temporary area for output in external media format. Output formatting does not appear in the record area. Signs are presented as SIGN IS LEADING SEPARATE.
@@ -19095,10 +16967,6 @@ c) If there are no record description entries associated with the file descripti
 
 ---
 
-<a id="page-436"></a>
-## Page 436
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-25"></a>
 #### 13.18.25 FROM clause
@@ -19143,11 +17011,6 @@ The FROM clause specifies the source of data for an ACCEPT screen statement and 
 ---
 
 
-<a id="page-437"></a>
-## Page 437
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-26"></a>
 #### 13.18.26 FULL clause
 
@@ -19190,10 +17053,6 @@ The FULL clause specifies that the operator shall either leave the screen item c
 
 ---
 
-<a id="page-438"></a>
-## Page 438
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-27"></a>
 #### 13.18.27 GLOBAL clause
@@ -19245,11 +17104,6 @@ IS <u>GLOBAL</u>
 ---
 
 
-<a id="page-439"></a>
-## Page 439
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-28"></a>
 #### 13.18.28 GROUP INDICATE clause
 
@@ -19285,11 +17139,6 @@ The GROUP INDICATE clause specifies that the associated printable item is printe
 
 ---
 
-
-<a id="page-440"></a>
-## Page 440
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-29"></a>
 #### 13.18.29 GROUP-USAGE clause
@@ -19335,11 +17184,6 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 ---
 
 
-<a id="page-441"></a>
-## Page 441
-
-**ISO/IEC 1989:2023 (E)**
-
 2) When the NATIONAL phrase is specified:
 
    a) The subject of the entry is a national group; its class and category are national.
@@ -19355,11 +17199,6 @@ A GROUP-USAGE clause with a NATIONAL phrase specifies that the group item define
 
 ---
 
-
-<a id="page-442"></a>
-## Page 442
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-30"></a>
 #### 13.18.30 HIGHLIGHT clause
@@ -19387,11 +17226,6 @@ The HIGHLIGHT clause specifies that the field is to appear on the screen with th
 
 ---
 
-
-<a id="page-443"></a>
-## Page 443
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-31"></a>
 #### 13.18.31 INVALID clause
@@ -19430,10 +17264,6 @@ NOTE    The INVALID clause feature of the VALIDATE facility is an obsolete featu
 
 ---
 
-<a id="page-444"></a>
-## Page 444
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-32"></a>
 #### 13.18.32 JUSTIFIED clause
@@ -19476,12 +17306,6 @@ The JUSTIFIED clause specifies right justification of data within a receiving da
 
 ---
 
-
-
-<a id="page-445"></a>
-## Page 445
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-33"></a>
 #### 13.18.33 Level-number
@@ -19528,19 +17352,9 @@ level-number
 
 ---
 
-<a id="page-446"></a>
-## Page 446
-
-**ISO/IEC 1989:2023 (E)**
 
 3) Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area. Multiple level 1 entries subordinate to a report description entry do not represent implicit redefinitions of the same area.
 
-
-
-<a id="page-447"></a>
-## Page 447
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-34"></a>
 #### 13.18.34 LINAGE clause
@@ -19591,11 +17405,6 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 ---
 
 
-<a id="page-448"></a>
-## Page 448
-
-# ISO/IEC 1989:2023 (E)
-
 3) Integer-2 or the value of the data item referenced by data-name-2 specifies the line number within the page body at which the footing area begins. The value shall be greater than zero and not greater than integer-1 or the value of the data item referenced by data-name-1.
 
    The footing area is the area of the page body between the footing start and the page size, inclusive.
@@ -19631,12 +17440,6 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
    a) A separate LINAGE-COUNTER is supplied for each file described in the file section whose file description entry contains a LINAGE clause.
 
 
-
-<a id="page-449"></a>
-## Page 449
-
-**ISO/IEC 1989:2023 (E)**
-
 b) LINAGE-COUNTER may be referenced only in procedure division statements; however only the input-output control system may change the value of LINAGE-COUNTER. Since more than one LINAGE-COUNTER may exist in a source element, the user shall qualify LINAGE-COUNTER by file-name when necessary.
 
 c) LINAGE-COUNTER is automatically modified, according to the following rules, during the execution of a WRITE statement to an associated file:
@@ -19653,11 +17456,6 @@ d) The value of LINAGE-COUNTER is automatically set to one at the time an OPEN s
 
 8) Each logical page is contiguous to the next with no additional spacing provided.
 
-
-<a id="page-450"></a>
-## Page 450
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-35"></a>
 #### 13.18.35 LINE clause
@@ -19721,10 +17519,6 @@ FORMAT 1
 
 ---
 
-<a id="page-451"></a>
-## Page 451
-
-**ISO/IEC 1989:2023 (E)**
 
 6) Within any given report group, the set of report lines, if any, is subject to the following rules:
 
@@ -19765,10 +17559,6 @@ FORMAT 2
 
 ---
 
-<a id="page-452"></a>
-## Page 452
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-35-4"></a>
 ##### 13.18.35.4 General rules
@@ -19795,11 +17585,6 @@ c) If the first LINE clause is relative (so that all LINE clauses in the report 
 
 ---
 
-
-<a id="page-453"></a>
-## Page 453
-
-**ISO/IEC 1989:2023 (E)**
 
 If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause or to an OCCURS clause with the DEPENDING phrase, these clauses are taken into account in computing the trial sum. (See 13.18.41, PRESENT WHEN clause.)
 
@@ -19828,10 +17613,6 @@ If the page fit was declared successful, no page advance takes place and the rep
 
 ---
 
-<a id="page-454"></a>
-## Page 454
-
-# ISO/IEC 1989:2023 (E)
 
 6) When the first line number of the report group has been calculated, the report's LINE-COUNTER is set equal to that line number and the line is now printed on the page at that vertical location.
 
@@ -19866,18 +17647,9 @@ FORMAT 2
 
 ---
 
-<a id="page-455"></a>
-## Page 455
-
-**ISO/IEC 1989:2023 (E)**
 
 14) If the explicit or implicit line number of a screen item is zero or exceeds the number of lines available for a terminal, the EC-SCREEN-LINE-NUMBER exception condition is set to exist and that screen item does not take part in the execution of the ACCEPT screen or DISPLAY screen statement.
 
-
-<a id="page-456"></a>
-## Page 456
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-36"></a>
 #### 13.18.36 LOWLIGHT clause
@@ -19900,12 +17672,6 @@ The LOWLIGHT clause specifies that the field is to appear on the screen with the
 
 2) When the LOWLIGHT clause is specified, the characters that constitute the screen item will be displayed in the foreground color at the lowest intensity when the screen item is referenced in an ACCEPT screen or a DISPLAY screen statement.
 
-
-
-<a id="page-457"></a>
-## Page 457
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-37"></a>
 #### 13.18.37 NEXT GROUP clause
@@ -19960,10 +17726,6 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
 
 ---
 
-<a id="page-458"></a>
-## Page 458
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-37-4"></a>
 ##### 13.18.37.4 General rules
@@ -19993,11 +17755,6 @@ The NEXT GROUP clause specifies additional blank lines following the printing of
 ---
 
 
-<a id="page-459"></a>
-## Page 459
-
-**ISO/IEC 1989:2023 (E)**
-
 b) If the NEXT GROUP clause is relative and if the sum of integer-2 and LINE-COUNTER is less than the FOOTING integer, integer-2 is added to LINE-COUNTER; otherwise the FOOTING integer is moved to LINE-COUNTER.
 
 c) If NEXT GROUP NEXT PAGE is specified, the FOOTING integer is moved to LINE-COUNTER.
@@ -20013,10 +17770,6 @@ c) If NEXT GROUP NEXT PAGE is specified, the FOOTING integer is moved to LINE-CO
 
 ---
 
-<a id="page-460"></a>
-## Page 460
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-38"></a>
 #### 13.18.38 OCCURS clause
@@ -20087,11 +17840,6 @@ ALL FORMATS
 ---
 
 
-<a id="page-461"></a>
-## Page 461
-
-**ISO/IEC 1989:2023 (E)**
-
 2) Data-name-1 and data-name-2 shall not be subscripted.
 
 FORMATS 1, 2, AND 4
@@ -20131,10 +17879,6 @@ FORMAT 1
 
 ---
 
-<a id="page-462"></a>
-## Page 462
-
-## ISO/IEC 1989:2023 (E)
 
 14) If a screen description entry that includes the OCCURS clause also contains the COLUMN clause, then the COLUMN clause shall include the PLUS or MINUS phrase, unless the screen description entry also includes a LINE clause with a PLUS or MINUS phrase.
 
@@ -20172,10 +17916,6 @@ b) has an entry with an absolute LINE clause subordinate to it, or
 
 c) contains an absolute COLUMN clause, or d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.
 
-<a id="page-463"></a>
-## Page 463
-**ISO/IEC 1989:2023 (E)**
-
 
 In all other cases, the STEP phrase is optional.
 
@@ -20212,11 +17952,6 @@ FORMATS 1, 2 AND 4
 ---
 
 
-<a id="page-464"></a>
-## Page 464
-
-**ISO/IEC 1989:2023 (E)**
-
 a) the EC-RANGE-INDEX exception condition is set to exist, and
 
 b) the value of the index is undefined unless the value of the index is specified by the rules of that statement.
@@ -20246,11 +17981,6 @@ FORMAT 2
 ---
 
 
-<a id="page-465"></a>
-## Page 465
-
-**ISO/IEC 1989:2023 (E)**
-
 The subject of this entry has a variable number of occurrences. The value of integer-2 represents the maximum number of occurrences and the value of integer-1 represents the minimum number of occurrences. This does not imply that the length of the subject of the entry is variable, but that the number of occurrences is variable.
 
 At the time the subject of entry is referenced or any data item subordinate or superordinate to the subject of entry is referenced, the value of the data item referenced by data-name-1 shall fall within the bounds from integer-1 through integer-2. If the value of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is set to exist. The content of a data item whose occurrence number exceeds the value of the data item referenced by data-name-1 is undefined.
@@ -20274,10 +18004,6 @@ FORMAT 3
 
 ---
 
-<a id="page-466"></a>
-## Page 466
-
-# ISO/IEC 1989:2023 (E)
 
 c) If the entry also contains a relative LINE clause, each repetition behaves as though it had the same relative LINE clause.
 
@@ -20306,12 +18032,6 @@ If no STEP phrase is specified, the vertical or horizontal interval between succ
 ---
 
 
-
-<a id="page-467"></a>
-## Page 467
-
-**ISO/IEC 1989:2023 (E)**
-
 15) Data-name-3 defines a numeric data item that contains the current capacity of the associated table. Data-name-3 shall not be referenced as a receiving operand.
 
 16) Integer-4 is the minimum capacity of the table. If integer-4 is absent, a value of zero is assumed for it.
@@ -20320,12 +18040,6 @@ If no STEP phrase is specified, the vertical or horizontal interval between succ
 
 18) If INITIALIZED is specified, any unreferenced locations of each new element added to the table are implicitly initialized, as defined in 8.5.1.9.5, Implicit initialization.
 
-
-
-<a id="page-468"></a>
-## Page 468
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-39"></a>
 #### 13.18.39 PAGE clause
@@ -20379,11 +18093,6 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 ---
 
 
-<a id="page-469"></a>
-## Page 469
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-39-4"></a>
 ##### 13.18.39.4 General rules
 
@@ -20418,10 +18127,6 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 
 ---
 
-<a id="page-470"></a>
-## Page 470
-
-# ISO/IEC 1989:2023 (E)
 
 e) If FOOTING is omitted, integer‑7 will be equal to integer‑6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer‑1.
 
@@ -20429,12 +18134,6 @@ e) If FOOTING is omitted, integer‑7 will be equal to integer‑6, if LAST DETA
 
 5) If integer‑2 is omitted, a value of 999 is assumed for the page width.
 
-
-
-<a id="page-471"></a>
-## Page 471
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-40"></a>
 #### 13.18.40 PICTURE clause
@@ -20494,10 +18193,6 @@ ALL FORMATS
 
 ---
 
-<a id="page-472"></a>
-## Page 472
-
-# ISO/IEC 1989:2023 (E)
 
 6) An unsigned nonzero integer that is enclosed in parentheses indicates the number of consecutive occurrences of the symbol that immediately precedes the left parenthesis. The integer may be specified by a constant-name, in which case the length of the integer, not the length of the constant-name, is counted toward the maximum number of characters in character-string-1.
 
@@ -20535,11 +18230,6 @@ FORMAT 1
 ---
 
 
-<a id="page-473"></a>
-## Page 473
-
-**ISO/IEC 1989:2023 (E)**
-
 — at least two occurrences of one of the symbols from the set character-1, 'x', '+', '-', and the currency symbol.
 
 b) Each of the symbols from the set 'CR', 'DB', 'E', 'S', 'V' '.' may appear only once in character-string-1.
@@ -20573,10 +18263,6 @@ NOTE 3 For a floating-point edited result, the significand part of the character
 24) For fixed insertion with editing sign control symbols, only one currency symbol and only one editing sign control symbol may be used in character-string-1. For extended editing sign control symbols, either one or two extended editing sign control symbols may be used in character-string-1.
 
 25) The symbol '+' or the symbol '-', when used, shall be either the leftmost or the rightmost symbol in character-string-1. When extended editing sign control symbols are used and two are specified, the first occurrence of the EDITING phrase shall be for the leftmost symbol in character-string-1 and the second occurrence shall be for the rightmost symbol in character-string-1.
-
-<a id="page-474"></a>
-## Page 474
-# ISO/IEC 1989:2023 (E)
 
 
 26) For fixed editing sign control, the currency symbol, when used, shall be either the leftmost symbol in character-string-1, optionally preceded by one of the symbols '+' or '-', or the rightmost symbol in character-string-1, optionally followed by one of the symbols '+', '-', 'CR', or 'DB'. For extended editing sign control, the currency symbol when used shall be either the leftmost symbol in character-string-1, optionally preceded by character-1, or the rightmost symbol in character-string-1 optionally followed by character-1.
@@ -20618,12 +18304,6 @@ FORMAT 2
 ---
 
 
-
-<a id="page-475"></a>
-## Page 475
-
-**ISO/IEC 1989:2023 (E)**
-
 34) Each of the symbols from the set '+', '.', the currency symbol may appear only once in character-string-1.
 
 35) The number of digit positions described by character-string-1 shall range from 1 through 31.
@@ -20662,12 +18342,6 @@ FORMAT 1
 
 6) To define an item as alphanumeric, character-string-1 shall contain a combination of symbols from the set 'A', 'X', and '9', that includes
 
-
-
-<a id="page-476"></a>
-## Page 476
-
-# ISO/IEC 1989:2023 (E)
 
 — at least one symbol 'X', or
 — at least two different symbols from this set.
@@ -20712,11 +18386,6 @@ The significand shall be a valid character-string for either a numeric item or a
 ---
 
 
-<a id="page-477"></a>
-## Page 477
-
-**ISO/IEC 1989:2023 (E)**
-
 The exponent shall be '+9', '+99', '+999', '+9999', or '+9(n)' where n = 1, 2, 3, or 4.
 
 14) The meaning of the symbols used in character-string-1 are as follows:
@@ -20751,12 +18420,6 @@ a) Any operation requiring a numeric sending operand.
 b) An elementary move operation where the sending operand is numeric and its picture character-string contains one or more symbols 'P'.
 
 
-
-<a id="page-478"></a>
-## Page 478
-
-# ISO/IEC 1989:2023 (E)
-
 c) A move operation where the sending operand is numeric-edited, its picture character-string contains one or more symbols 'P', and the receiving operand is numeric or numeric-edited.
 
 d) A comparison operation where both operands are numeric.
@@ -20790,11 +18453,6 @@ Z Each symbol 'Z' represents a leading numeric position that during editing will
 ---
 
 
-<a id="page-479"></a>
-## Page 479
-
-# ISO/IEC 1989:2023 (E)
-
 In addition, the symbol '.' indicates the decimal point position for alignment purposes.
 
 \+ – CR DB These symbols represent the character position(s) into which the editing sign control character(s) is (are) placed during editing. Each character used in the symbol is counted in the size of the item.
@@ -20824,11 +18482,6 @@ NOTE 2 If reference modification is used to reference part of a data item descri
 
 ---
 
-
-<a id="page-480"></a>
-## Page 480
-
-# ISO/IEC 1989:2023 (E)
 
 — the character space if the symbol 'B' is neither part of floating insertion editing nor of zero suppression with replacement editing;
 — otherwise, the character space or, if no significant numeric character appears to its left, the corresponding floating insertion character or replacement character respectively.
@@ -20866,12 +18519,6 @@ NOTE 2 If reference modification is used to reference part of a data item descri
 ---
 
 
-
-<a id="page-481"></a>
-## Page 481
-
-**ISO/IEC 1989:2023 (E)**
-
 , Each symbol ',' (comma) represents a character position that will be checked to contain
 
 — the character comma if the symbol ',' is neither part of floating insertion editing nor of zero suppression with replacement editing;
@@ -20905,12 +18552,6 @@ FORMAT 2
 
 16) Format 2 of the PICTURE clause defines the item to be fixed-point numeric-edited.
 
-
-
-<a id="page-482"></a>
-## Page 482
-
-# ISO/IEC 1989:2023 (E)
 
 17) The number of character positions in the item is specified by integer-1.
 
@@ -20955,11 +18596,6 @@ There are two types of suppression with replacement:
 ---
 
 
-<a id="page-483"></a>
-## Page 483
-
-**ISO/IEC 1989:2023 (E)**
-
 2) The type of editing that may be performed upon an item is dependent upon the category to which the item belongs. Table 7, Category and type of editing, specifies which type of editing may be performed upon a given category:
 
 **Table 7 — Category and type of editing**
@@ -20999,10 +18635,6 @@ There are two types of suppression with replacement:
 
 ---
 
-<a id="page-484"></a>
-## Page 484
-
-# ISO/IEC 1989:2023 (E)
 
 Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing sign control symbol, depending on the value of the data item.
 
@@ -21040,10 +18672,6 @@ There are two ways of representing floating insertion editing:
 
 a) One way is to represent any or all of the leading numeric character positions to the left of the decimal point position by the same insertion symbol. The result is that a single occurrence of the replacement character(s) is (are) placed into the character position(s) immediately preceding whichever of the following is encountered first:
 
-<a id="page-485"></a>
-## Page 485
-**ISO/IEC 1989:2023 (E)**
-
 
 — the first nonzero numeric character in the item
 — the first character position for which no floating insertion editing is specified
@@ -21080,12 +18708,6 @@ a) One way is to represent any or all of the leading numeric character positions
 — the decimal point position.
 
 
-
-<a id="page-486"></a>
-## Page 486
-
-# ISO/IEC 1989:2023 (E)
-
 b) The second way is to represent all of the numeric character positions by the zero-suppression symbol. The result depends upon the value of the data to be stored. If the value is not zero, the result is the same as if the zero suppression with replacement were defined only to the left of the decimal point position. If the value is zero and the zero-suppression symbol is the symbol 'Z', all character positions of the item will contain the character space. If the value is zero and the zero-suppression symbol is the symbol '\*', all character positions of the item will contain the character asterisk, but the decimal separator, when specified, will appear in the item.
 
 8) Zero value of a floating-point edited item
@@ -21114,11 +18736,6 @@ a) If the size of the data item is larger than the size of the hypothetical data
 
 b) If the size of the data item is smaller than the size of the hypothetical data item, the leftmost character positions of the hypothetical data item are truncated. If any truncated character is neither a zero nor a space caused by a suppressed zero, the EC-LOCALE-SIZE exception condition is set to exist.
 
-
-<a id="page-487"></a>
-## Page 487
-
-**ISO/IEC 1989:2023 (E)**
 
 15) Zero suppression with replacement editing
 
@@ -21154,10 +18771,6 @@ The symbols '+' and '-' when used as a non-floating insertion symbol appear in t
 
 ---
 
-<a id="page-488"></a>
-## Page 488
-
-# ISO/IEC 1989:2023 (E)
 
 The symbol 'P', the currency symbol when used as a floating insertion symbol, the pair of zero-suppression symbols 'Z' and '*', and the pair of floating insertion symbols '+' and '-' appear in two columns and in two rows in Table 10. The leftmost column and the uppermost row for these symbols represent their use to the left of the decimal point position. The rightmost column and the lowermost row for these symbols represent their use to the right of the decimal point position.
 
@@ -21165,11 +18778,6 @@ For the purposes of Table 10, character-string-1 for a numeric-edited item for a
 
 When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for the symbols comma and period are interchanged.
 
-
-<a id="page-489"></a>
-## Page 489
-
-# ISO/IEC 1989:2023 (E)
 
 ## Table 10 — Format 1 picture symbol order of precedence
 
@@ -21196,11 +18804,6 @@ When the DECIMAL-POINT IS COMMA clause is specified, the precedence rules for th
 
 ---
 
-
-<a id="page-490"></a>
-## Page 490
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 10 — Format 1 picture symbol order of precedence**
 
@@ -21232,12 +18835,6 @@ Table 11, Format 2 picture symbol order of precedence, shows the order of preced
 | + | | | | | |
 | Z | | X | X | X | X |
 
-
-
-<a id="page-491"></a>
-## Page 491
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-41"></a>
 #### 13.18.41 PRESENT WHEN clause
@@ -21286,10 +18883,6 @@ FORMAT 1
 
    b) If condition-1 is false, the corresponding data item is declared to be absent and the effect on processing is as though the entry were omitted from the description of the report group. If the data description entry is not an elementary entry, all its subordinate data items are also declared to be absent, irrespective of any PRESENT WHEN clauses they may also contain. Furthermore, if the entry is a level-01 entry, the effect on processing is as though the entire report group description were omitted.
 
-<a id="page-492"></a>
-## Page 492
-**ISO/IEC 1989:2023 (E)**
-
 
 3) Within a report group description, any PRESENT WHEN clauses are taken into account when assessing the validity of the arrangement of LINE and COLUMN clauses, the manner in which the report group will be printed and the effect of sum counters, as follows:
 
@@ -21322,20 +18915,11 @@ FORMAT 2
 ---
 
 
-<a id="page-493"></a>
-## Page 493
-
-**ISO/IEC 1989:2023 (E)**
-
 6) Condition-2 shall not reference any data item that is, or shares any storage with, an operand of a DESTINATION clause appearing later in the description of a data item referred to by the same VALIDATE statement.
 
 
 ---
 
-<a id="page-494"></a>
-## Page 494
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-42"></a>
 #### 13.18.42 PROPERTY clause
@@ -21387,11 +18971,6 @@ The PROPERTY clause indicates that this data item is a property of the object an
    01 LS-data-name data-description.
    ```
 
-
-<a id="page-495"></a>
-## Page 495
-
-**ISO/IEC 1989:2023 (E)**
 
 ```
 PROCEDURE DIVISION RETURNING LS-data-name.
@@ -21447,12 +19026,6 @@ DATA DIVISION.
 ```
 
 
-
-<a id="page-496"></a>
-## Page 496
-
-# ISO/IEC 1989:2023 (E)
-
 ```
         LINKAGE SECTION.
         01 LS-data-name data-description.
@@ -21503,12 +19076,6 @@ Where LS-data-name has the data description of the subject of the entry with the
 
 ---
 
-
-
-<a id="page-497"></a>
-## Page 497
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-43"></a>
 #### 13.18.43 RECORD clause
@@ -21573,10 +19140,6 @@ FORMAT 2
 
 ---
 
-<a id="page-498"></a>
-## Page 498
-
-# ISO/IEC 1989:2023 (E)
 
 5) Integer-3 shall be greater than integer-2.
 
@@ -21612,11 +19175,6 @@ ALL FORMATS
 ---
 
 
-<a id="page-499"></a>
-## Page 499
-
-**ISO/IEC 1989:2023 (E)**
-
 FORMAT 1
 
 6) Format 1 is used to specify fixed-length records. Integer-1 specifies the number of bytes contained in each record in the file.
@@ -21650,12 +19208,6 @@ FORMAT 2
 14) If the number of bytes in the record to be written is less than integer-2 or greater than integer-3, the following occurs:
 
 
-
-<a id="page-500"></a>
-## Page 500
-
-# ISO/IEC 1989:2023 (E)
-
 a) If a REWRITE or WRITE statement is being executed, the EC-I-O-LOGIC-ERROR exception condition is set to exist, and the execution of the REWRITE or WRITE statement is unsuccessful.
 
 b) If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE statement is unsuccessful.
@@ -21684,12 +19236,6 @@ b) If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception
 
 ---
 
-
-
-<a id="page-501"></a>
-## Page 501
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-44"></a>
 #### 13.18.44 REDEFINES clause
@@ -21735,10 +19281,6 @@ NOTE 1 If data-name-2 is not unique, no ambiguity of reference exists because of
 
 ---
 
-<a id="page-502"></a>
-## Page 502
-
-# ISO/IEC 1989:2023 (E)
 
 10) The entries giving the new descriptions of the storage area shall follow the entries defining the area of data-name-2, without intervening entries that define new storage areas.
 
@@ -21769,11 +19311,6 @@ NOTE 3 REDEFINES can however be specified in an entry subordinate to a variable-
 
 3) If a REDEFINES clause is specified in the data description entry for a data item subordinate to the operand of a VALIDATE statement, each definition is used by the VALIDATE statement independently of the others, subjecting the same data locations to more than one set of checks. The PRESENT WHEN clause may be used to select one or more of a set of redefinitions, according to the specified conditions.
 
-
-<a id="page-503"></a>
-## Page 503
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-45"></a>
 #### 13.18.45 RENAMES clause
@@ -21824,10 +19361,6 @@ NOTE Level-number 66 and data-name-1 are shown in the above format to provide co
 
 ---
 
-<a id="page-504"></a>
-## Page 504
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE Data-name-3, therefore, cannot be subordinate to data-name-2.
 
@@ -21838,11 +19371,6 @@ NOTE Data-name-3, therefore, cannot be subordinate to data-name-2.
 
 2) When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that includes all elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item).
 
-
-<a id="page-505"></a>
-## Page 505
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-46"></a>
 #### 13.18.46 REPORT clause
@@ -21879,12 +19407,6 @@ The REPORT clause identifies the reports that may be written to a report file.
 
 2) After execution of an INITIATE statement and before the execution of a TERMINATE statement for the same report, no OPEN or CLOSE statements shall be executed that reference the report file.
 
-
-
-<a id="page-506"></a>
-## Page 506
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-47"></a>
 #### 13.18.47 REQUIRED clause
@@ -21925,11 +19447,6 @@ The REQUIRED clause specifies that in the context of an ACCEPT screen statement,
 ---
 
 
-<a id="page-507"></a>
-## Page 507
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-48"></a>
 #### 13.18.48 REVERSE-VIDEO clause
 
@@ -21954,11 +19471,6 @@ The REVERSE-VIDEO clause specifies that the screen item is to be displayed by ex
 
 ---
 
-
-<a id="page-508"></a>
-## Page 508
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-49"></a>
 #### 13.18.49 SAME AS clause
@@ -22003,11 +19515,6 @@ The SAME AS clause specifies that a data-name has the same description as that s
 1) The effect of the SAME AS clause is as though the data description identified by data-name-1 had been coded in place of the SAME AS clause, excluding the level-number, name, and the CONSTANT RECORD, EXTERNAL, GLOBAL, REDEFINES, and SELECT WHEN clauses specified for data-name-1; level numbers of subordinate items may be adjusted as described in General rule 2.
 
 
-<a id="page-509"></a>
-## Page 509
-
-**ISO/IEC 1989:2023 (E)**
-
 2) If data-name-1 describes a group item:
 
    a) the subject of the entry is a group whose subordinate elements have the same names, descriptions, and hierarchy as the subordinate elements of data-name-1,
@@ -22027,10 +19534,6 @@ NOTE   If alignment according to 8.5.1.6.4, Item alignment for increased object-
 
 ---
 
-<a id="page-510"></a>
-## Page 510
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-50"></a>
 #### 13.18.50 SECURE clause
@@ -22059,11 +19562,6 @@ The SECURE clause prevents data entered from the keyboard or contained in the sc
 
 ---
 
-
-<a id="page-511"></a>
-## Page 511
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-51"></a>
 #### 13.18.51 SELECT WHEN clause
@@ -22109,10 +19607,6 @@ The SELECT WHEN clause specifies a condition-name condition under which a record
 
 ---
 
-<a id="page-512"></a>
-## Page 512
-
-# ISO/IEC 1989:2023 (E)
 
 3) The condition-name condition specified in a SELECT WHEN clause is evaluated for each record description entry, in the order the record description entries are written, until the evaluation is true. When the evaluation is true, the associated record description entry is selected for use with the CODE-SET and FORMAT clauses. The evaluation is always true when the OTHER phrase is specified.
 
@@ -22125,10 +19619,6 @@ NOTE    This permits code-set conversion based on record layout in circumstances
 
 ---
 
-<a id="page-513"></a>
-## Page 513
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-52"></a>
 #### 13.18.52 SIGN clause
@@ -22178,10 +19668,6 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
 ---
 
-<a id="page-514"></a>
-## Page 514
-
-# ISO/IEC 1989:2023 (E)
 
 a) The operational sign is presumed to be associated with the leading (or, respectively, trailing) digit position of the data item to which it applies.
 
@@ -22195,11 +19681,6 @@ b) The implementor defines what constitutes valid signs for data items.
 
 7) Each numeric item whose picture character-string contains the symbol 'S' is a signed item. If a SIGN clause applies to such an item and conversion is necessary for purposes of computation or comparisons, conversion takes place automatically.
 
-
-<a id="page-515"></a>
-## Page 515
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-53"></a>
 #### 13.18.53 SOURCE clause
@@ -22249,10 +19730,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 ---
 
-<a id="page-516"></a>
-## Page 516
-
-# ISO/IEC 1989:2023 (E)
 
 2) Arithmetic-expression-1 specifies the operand of an implicit COMPUTE statement that is executed implicitly whenever the associated item is printed. If the ROUNDED phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase.
 
@@ -22263,11 +19740,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 ---
 
-
-<a id="page-517"></a>
-## Page 517
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-54"></a>
 #### 13.18.54 SUM clause
@@ -22316,10 +19788,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 
 ---
 
-<a id="page-518"></a>
-## Page 518
-
-# ISO/IEC 1989:2023 (E)
 
 d) The maximum number of repetitions of data-name-1 and the subject of the entry shall be equal at each corresponding level taken in order beginning with the lowest level of nesting. Levels superordinate to those corresponding levels may specify any number of repetitions.
 
@@ -22352,10 +19820,6 @@ g) If data-name-1 specifies an entry in a different report description, there ar
 
 1) Each entry containing a SUM clause establishes an independent sum counter and size error indicator. The sum counter is a conceptual data item that behaves as a data item of the category numeric. The number of decimal digits in the sum counter, both integral and fractional, is derived from the corresponding number of digits, excluding insertion editing characters, in the PICTURE clause of the entry containing the SUM clause. The sum counter is signed, whether or not the corresponding PICTURE clause has an operational sign.
 
-<a id="page-519"></a>
-## Page 519
-# ISO/IEC 1989:2023 (E)
-
 
 2) The sum counter is set to zero and its associated size error indicator is unset when the INITIATE statement for the current report is executed. Subsequently, the sum counter is reset to zero and the size error indicator is unset at the end of the processing of the report group in which it is printed or, if the RESET phrase is specified, at the end of the processing of the control footing for the specified level of control. If no such control footing is defined, it is assumed to be present and to consist of a 01-level entry alone.
 
@@ -22380,10 +19844,6 @@ g) If data-name-1 specifies an entry in a different report description, there ar
 
 ---
 
-<a id="page-520"></a>
-## Page 520
-
-# ISO/IEC 1989:2023 (E)
 
 2. If an UPON phrase is specified, whenever any GENERATE statement is executed for a detail referenced by the UPON phrase.
 
@@ -22406,11 +19866,6 @@ If two or more instances of data-name-1 or identifier-1 specify the same data it
 
 ---
 
-
-<a id="page-521"></a>
-## Page 521
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-55"></a>
 #### 13.18.55 SYNCHRONIZED clause
@@ -22458,10 +19913,6 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 
 ---
 
-<a id="page-522"></a>
-## Page 522
-
-# ISO/IEC 1989:2023 (E)
 
 6) Any adjustment in storage position resulting from the SYNCHRONIZED clause does not affect the size of the synchronized data item.
 
@@ -22489,11 +19940,6 @@ The SYNCHRONIZED clause specifies the alignment of an elementary item on the nat
 
 ---
 
-
-<a id="page-523"></a>
-## Page 523
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-56"></a>
 #### 13.18.56 TO clause
@@ -22530,11 +19976,6 @@ The TO clause identifies the destination of the data in an ACCEPT screen stateme
 
 ---
 
-
-<a id="page-524"></a>
-## Page 524
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-57"></a>
 #### 13.18.57 TYPE clause
@@ -22601,11 +20042,6 @@ FORMAT 1
 ---
 
 
-<a id="page-525"></a>
-## Page 525
-
-**ISO/IEC 1989:2023 (E)**
-
 2) A data description entry in which a TYPE clause is specified shall not be followed immediately by a subordinate data description entry or a level 88 entry.
 
 3) If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be renamed in whole or in part.
@@ -22645,10 +20081,6 @@ FORMAT 2
 
 ---
 
-<a id="page-526"></a>
-## Page 526
-
-# ISO/IEC 1989:2023 (E)
 
 13) REPORT HEADING, PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once in any given report description.
 
@@ -22681,11 +20113,6 @@ FORMAT 1
 
 4) If a BASED clause is specified in the data description of the subject of the entry, that BASED clause applies and any BASED clause specified in the description of type-name-1 is ignored for this entry.
 
-
-<a id="page-527"></a>
-## Page 527
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 2
 
@@ -22722,10 +20149,6 @@ FORMAT 2
 
 ---
 
-<a id="page-528"></a>
-## Page 528
-
-# ISO/IEC 1989:2023 (E)
 
 If a report footing is defined and is not on a page by itself, the page footing on the last page is immediately followed by the report footing.
 
@@ -22758,11 +20181,6 @@ g) The upper limit for a report footing that does not appear on a page by itself
 ---
 
 
-<a id="page-529"></a>
-## Page 529
-
-**ISO/IEC 1989:2023 (E)**
-
 8) The lower limit is defined to be the lowermost permitted line on the page that may be occupied by the report group's last line. It is calculated as follows:
 
    a) The lower limit for a report heading that appears on a page by itself is the page limit.
@@ -22779,11 +20197,6 @@ g) The upper limit for a report footing that does not appear on a page by itself
 
    g) The lower limit for a page footing or report footing is the page limit.
 
-
-<a id="page-530"></a>
-## Page 530
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-58"></a>
 #### 13.18.58 TYPEDEF clause
@@ -22827,11 +20240,6 @@ NOTE If the EXTERNAL clause is used in a type declaration, the external attribut
 ---
 
 
-<a id="page-531"></a>
-## Page 531
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-13-18-59"></a>
@@ -22861,11 +20269,6 @@ The UNDERLINE clause specifies that each character of the field is underlined wh
 ---
 
 
-<a id="page-532"></a>
-## Page 532
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-13-18-60"></a>
 #### 13.18.60 USAGE clause
 
@@ -22876,12 +20279,6 @@ The USAGE clause specifies the representation of a data item in the computer sto
 
 ---
 
-
-
-<a id="page-533"></a>
-## Page 533
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-60-2"></a>
 ##### 13.18.60.2 General format
@@ -22960,12 +20357,6 @@ The USAGE clause specifies the representation of a data item in the computer sto
 ---
 
 
-
-<a id="page-534"></a>
-## Page 534
-
-# ISO/IEC 1989:2023 (E)
-
 where encoding-phrase is:
 
 <pre>
@@ -23006,11 +20397,6 @@ where endianness-phrase is:
 ---
 
 
-<a id="page-535"></a>
-## Page 535
-
-**ISO/IEC 1989:2023 (E)**
-
 10) An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or INVOKE statement.
 
 11) An elementary data item of class index, message-tag, object, or pointer shall not be a conditional variable.
@@ -23049,10 +20435,6 @@ where endianness-phrase is:
 
 ---
 
-<a id="page-536"></a>
-## Page 536
-
-# ISO/IEC 1989:2023 (E)
 
 3) The VALIDATE statement may be used to check that the content of a data item is compatible with any PICTURE, SIGN and USAGE clauses specified in the description of the item. Rules for compatibility are implementor-defined. Failure of this check results in the setting of the data item's internal indicator to invalid on format. A data item with usage index, message-tag, object reference, pointer, function-pointer, or program-pointer is ignored by the VALIDATE statement.
 
@@ -23072,11 +20454,6 @@ where endianness-phrase is:
 
 ---
 
-
-<a id="page-537"></a>
-## Page 537
-
-# ISO/IEC 1989:2023 (E)
 
 11) The USAGE PACKED-DECIMAL clause specifies that a radix of 10 is used to represent a numeric item in the storage of the computer. Furthermore, this clause specifies that each digit position shall occupy the minimum possible configuration in computer storage. Each implementor specifies the precise effect of the USAGE PACKED-DECIMAL clause upon the alignment and representation of the data item in the storage of the computer, including the representation of any algebraic sign. Sufficient computer storage shall be allocated by the implementor to contain the maximum range of values implied by the associated decimal picture character-string. If the WITH NO SIGN phrase is specified the representation of the data item in the storage of the computer reserves no storage for representing any sign value. The PICTURE character string of the data item shall not contain the symbol 'S'; the data item is always considered to have a zero, or positive value.
 
@@ -23100,10 +20477,6 @@ The minimum ranges are:
 14) The FLOAT-BINARY-32 phrase specifies that the data item is a floating-point data item in 32-bit basic binary interchange format (binary32) as specified in ISO/IEC 60559:2020, 3.4.
 
 NOTE 1   The value in a data item described with the FLOAT-BINARY-32 usage can be no greater than +(2\*\*128 - 2\*\*104), nor can it be less than -(2\*\*128 - 2\*\*104). The nonzero values closest to zero that can be represented are -(2\*\*-149) and +(2\*\*-149). The largest positive integer value with a nonzero trailing digit that can be represented is +(2\*\*24 - 1), or 16,777,213. Every value is a representation of the product of an integer and the value +(2\*\*-149).
-
-<a id="page-538"></a>
-## Page 538
-# ISO/IEC 1989:2023 (E)
 
 
 15) The FLOAT-BINARY-64 phrase specifies that the data item is a floating-point data item in 64-bit basic binary interchange format ('binary64') as specified in ISO/IEC 60559:2020, 3.4.
@@ -23143,12 +20516,6 @@ nor can it be less than
 The nonzero values closest to zero that can be represented are 1.0E-6176 and +1.0E-6176. The largest positive integer value with a nonzero trailing digit that can be represented is +(1.0E+35 - 1), or
 
 
-
-<a id="page-539"></a>
-## Page 539
-
-**ISO/IEC 1989:2023 (E)**
-
 9 999 999 999 999 999 999 999 999 999 999 999. Every value is the product of an integer and the value 1.0E-6176.
 
 19) For the standard floating-point usages:
@@ -23179,12 +20546,6 @@ b) If none of the optional phrases is specified, this data item is called a univ
 
 c) If interface-name-1 is specified, the object referenced by this data item shall implement interface-1.
 
-
-
-<a id="page-540"></a>
-## Page 540
-
-# ISO/IEC 1989:2023 (E)
 
 d) If object-class-name-1 is specified, the object referenced by this data item shall be an object of object-class-name-1 or of a subclass of object-class-name-1, subject to the following rules:
 
@@ -23217,12 +20578,6 @@ e) If ACTIVE-CLASS is specified, the object referenced by this data item shall b
 ---
 
 
-
-<a id="page-541"></a>
-## Page 541
-
-**ISO/IEC 1989:2023 (E)**
-
 26) A data description entry that specifies the USAGE FUNCTION-POINTER clause specifies a function-pointer data item, also called a function-pointer, that may contain the address of a function. Each implementor defines the precise effect of the USAGE FUNCTION-POINTER clause upon alignment, size, and representation of the data item in the storage of the computer.
 
    The function addressed by a function-pointer data item may be written in COBOL or in another language for which the implementor has declared support for access by function pointers.
@@ -23234,11 +20589,6 @@ e) If ACTIVE-CLASS is specified, the object referenced by this data item shall b
 
 ---
 
-
-<a id="page-542"></a>
-## Page 542
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-61"></a>
 #### 13.18.61 USING clause
@@ -23277,11 +20627,6 @@ The USING clause identifies data to be used both as the destination in an ACCEPT
 
 ---
 
-
-<a id="page-543"></a>
-## Page 543
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-62"></a>
 #### 13.18.62 VALIDATE-STATUS clause
@@ -23333,10 +20678,6 @@ NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsole
 
 ---
 
-<a id="page-544"></a>
-## Page 544
-
-**ISO/IEC 1989:2023 (E)**
 
 b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one or more OCCURS clauses, identifier-2 shall not be subscripted. The data item referenced by identifier-2 and the subject of the entry shall both be subject to the same number of OCCURS clauses and the number of occurrences specified in the corresponding OCCURS clauses shall be equal. If an OCCURS clause associated with identifier-2 has a DEPENDING phrase, the maximum integer of the TO phrase is used in determining the number of occurrences of identifier-2.
 
@@ -23367,10 +20708,6 @@ b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one
 
 6) If neither an ERROR phrase nor a NO ERROR phrase for a given entry takes effect during the execution of a given VALIDATE statement, the effect on the data item that is the subject of the entry is as follows: if any VALIDATE-STATUS clause specified in the entry has an identifier-2 that is referenced directly or indirectly as the operand of the VALIDATE statement, the data item is initialized by the execution of an implicit INITIALIZE statement without the VALUE or REPLACING phrases; otherwise, the data item remains unchanged.
 
-<a id="page-545"></a>
-## Page 545
-**ISO/IEC 1989:2023 (E)**
-
 
 7. Data items that are subordinate to the operand of a VALIDATE statement and are not processed during the statement's execution, as indicated by a value in their internal indicators signifying not processed, are considered to be neither valid nor invalid by the VALIDATE-STATUS clause but will cause the VALIDATE-STATUS clause's data item to be initialized, where applicable, as described in General rule 6. (See 13.18.38, OCCURS clause, and 13.18.41, PRESENT WHEN clause.)
 
@@ -23379,10 +20716,6 @@ b) If the VALIDATE-STATUS clause is specified in an entry that is subject to one
 
 ---
 
-<a id="page-546"></a>
-## Page 546
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-63"></a>
 #### 13.18.63 VALUE clause
@@ -23449,12 +20782,6 @@ Format 5 (content-validation-entry):
 > **Figure notes (VALUE clause Format 5 (content-validation-entry)).** `VALUE`, `VALUES`, `THROUGH`, `THRU`, `INVALID`, `VALID`, and `WHEN` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `ARE`, and `IN` are not underlined. Note that in this format the first brace pair is `VALUE` / `VALUES` **without** the `IS` / `ARE` connectives (unlike Formats 2–4). `[ IS / ARE ]` is an optional bracket; `{ INVALID / VALID }` is a required choice.
 
 
-
-<a id="page-547"></a>
-## Page 547
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE The CONTENT-VALIDATION-ENTRY feature of the VALIDATE facility is an obsolete feature.
 
 <a id="section-13-18-63-3"></a>
@@ -23485,10 +20812,6 @@ ALL FORMATS
 
 ---
 
-<a id="page-548"></a>
-## Page 548
-
-# ISO/IEC 1989:2023 (E)
 
 8) When a numeric-edited data description includes the BLANK WHEN ZERO clause and the VALUE clause uses either an alphanumeric or national literal, the BLANK WHEN ZERO clause has no effect on initialization.
 
@@ -23523,11 +20846,6 @@ FORMAT 2
 ---
 
 
-<a id="page-549"></a>
-## Page 549
-
-**ISO/IEC 1989:2023 (E)**
-
 18) A data description entry that contains the VALUE clause shall contain an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.
 
 19) Subscript-1 and subscript-2 shall be integer numeric literals.
@@ -23556,12 +20874,6 @@ NOTE 5 The compiler can know the runtime collating sequence for a variety of rea
 
 27) The value of literal-4 shall not be equal to the value of any occurrence of literal-2. When the THROUGH phrase is specified:
 
-
-
-<a id="page-550"></a>
-## Page 550
-
-# ISO/IEC 1989:2023 (E)
 
 a) when literal-2 is of a class other than alphanumeric or national, the value of literal-4 shall not be equal to any value in the range of any occurrence of literal-2 through literal-3, inclusive.
 
@@ -23600,11 +20912,6 @@ a) when literal-6 is of a class other than alphanumeric or national, the value o
 ---
 
 
-<a id="page-551"></a>
-## Page 551
-
-**ISO/IEC 1989:2023 (E)**
-
 b) when literal-5 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-5 shall be less than the value of literal-6. The runtime collating sequence is unknown when the collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime.
 
 NOTE 7 The compiler can know the runtime collating sequence for a variety of reasons; perhaps only one is possible or one is specified by a compiler option. However, this is not a requirement of an implementor, and specifying an alphabet-name for a fixed collating sequence ensures that the range of values will always be the same.
@@ -23639,10 +20946,6 @@ FORMAT 1
 
 6) If a VALUE clause is specified in a data description that also contains an OCCURS clause with the DEPENDING phrase, the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable- occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with an occurs-depending table when a data item is one of the following:
 
-<a id="page-552"></a>
-## Page 552
-# ISO/IEC 1989:2023 (E)
-
 
 a) a group data item that contains an occurs-depending table.
 
@@ -23668,11 +20971,6 @@ FORMAT 2
 
 12) A format 2 VALUE clause initializes a table element to the value of literal-1. The table element initialized is identified by subscript-1. Consecutive table elements are initialized, in turn, to the value of successive occurrences of the literal-1. Consecutive table elements are referenced by incrementing by 1 the subscript that represents the least inclusive dimension of the table. When any reference to a subscript, prior to incrementing it, is equal to the maximum number of occurrences, or, in the case of a dynamic-capacity table, the expected number of occurrences, specified by its corresponding OCCURS clause, that subscript is set to 1 and the subscript for the next most inclusive dimension of the table is incremented by 1.
 
-
-<a id="page-553"></a>
-## Page 553
-
-**ISO/IEC 1989:2023 (E)**
 
 13) If the TO phrase is specified, all occurrences of literal-1 are reused, in the order specified, as a source during the initialization described in General rule 12. This repetition is done until the table element identified by subscript-2 is initialized.
 
@@ -23707,10 +21005,6 @@ FORMAT 4
 
 ---
 
-<a id="page-554"></a>
-## Page 554
-
-# ISO/IEC 1989:2023 (E)
 
 22) The value of literal-1 is used for the content of the printable item whenever it is printed, except that a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item, as described in 13.18.28, GROUP INDICATE clause; 13.18.41, PRESENT WHEN clause; and 13.18.38, OCCURS clause.
 
@@ -23733,10 +21027,6 @@ FORMAT 5
 
 ---
 
-<a id="page-555"></a>
-## Page 555
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-13-18-64"></a>
 #### 13.18.64 VARYING clause
@@ -23783,10 +21073,6 @@ NOTE    The VARYING clause feature of the VALIDATE facility is an obsolete featu
 
 ---
 
-<a id="page-556"></a>
-## Page 556
-
-# ISO/IEC 1989:2023 (E)
 
 b) For the second and subsequent occurrences, the value of arithmetic-expression-2 is added to data-name-1. If the BY phrase is absent, 1 is added to data-name-1.
 
@@ -23801,10 +21087,6 @@ NOTE For example, this allows data-name-1 to be used as a source data item, as a
 
 ---
 
-<a id="page-557"></a>
-## Page 557
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14"></a>
 ## 14 Procedure division
@@ -23858,11 +21140,6 @@ Format 3 (object-oriented):
 
 ---
 
-
-<a id="page-558"></a>
-## Page 558
-
-# ISO/IEC 1989:2023 (E)
 
 where procedure-division-header is:
 
@@ -23918,11 +21195,6 @@ FORMATS 1 AND 2
 ---
 
 
-<a id="page-559"></a>
-## Page 559
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE 3 This restriction for based items does not prohibit specifying a based item as the returning item in the activating element.
 
 NOTE 4 A data item defined subsequently in the linkage section can specify REDEFINES data-name-2.
@@ -23963,12 +21235,6 @@ FORMATS 1 AND 2
 The correspondence between the arguments and the formal parameters is established on a positional basis.
 
 
-
-<a id="page-560"></a>
-## Page 560
-
-# ISO/IEC 1989:2023 (E)
-
 The conformance requirements for formal parameters and returning items are specified in 14.8.2, Parameters and 14.8.3, Returning items.
 
 3) If the OPTIONAL phrase is specified for data-name-1, the OMITTED phrase may be specified as the corresponding argument; otherwise, the OMITTED phrase shall not be specified as the corresponding argument.
@@ -24006,11 +21272,6 @@ then this allocated record is
 ---
 
 
-<a id="page-561"></a>
-## Page 561
-
-**ISO/IEC 1989:2023 (E)**
-
 — a dynamic-length elementary item of the same category and described with the same dynamic-length-structure-name as the formal parameter, if the formal parameter is described with the elementary format of the DYNAMIC LENGTH clause,
 — otherwise, a data item with the same description and the same number of bytes as the formal parameter, where the maximum length is used if the formal parameter is described as a variable-occurrence data item.
 
@@ -24042,10 +21303,6 @@ The allocated record is then treated as if it were the argument and it were pass
 
 ---
 
-<a id="page-562"></a>
-## Page 562
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-3"></a>
 ### 14.3 Declaratives
@@ -24089,11 +21346,6 @@ Within the procedure division, there are the following types of statements:
 ---
 
 
-<a id="page-563"></a>
-## Page 563
-
-**ISO/IEC 1989:2023 (E)**
-
 A declarative statement begins with the statement name USE and directs that actions be taken in response to specified conditions encountered during the processing of other statements.
 
 An imperative statement specifies an unconditional action to be taken by the runtime element or is a conditional statement that is delimited by its explicit scope terminator, as specified in Table 12, Procedural statements.
@@ -24126,12 +21378,6 @@ Wherever 'imperative-statement' appears in the general format of a statement, 'i
 | GENERATE | | |
 | GOBACK | | |
 
-
-
-<a id="page-564"></a>
-## Page 564
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 12 — Procedural statements (Continued)**
 
@@ -24166,12 +21412,6 @@ Wherever 'imperative-statement' appears in the general format of a statement, 'i
 | SUBTRACT | [NOT] ON SIZE ERROR | END-SUBTRACT |
 | SUPPRESS | | |
 
-
-
-<a id="page-565"></a>
-## Page 565
-
-**ISO/IEC 1989:2023 (E)**
 
 **Table 12 — Procedural statements (Continued)**
 
@@ -24218,10 +21458,6 @@ The scope of a statement that is not explicitly terminated is implicitly termina
 
    a) any element that follows the exhaustion of the statement's syntax, or b) the next-encountered statement-name, or c) a separator period.
 
-<a id="page-566"></a>
-## Page 566
-# ISO/IEC 1989:2023 (E)
-
 
 2) for a single imperative statement contained within another statement, by
 
@@ -24263,11 +21499,6 @@ A run unit and each of its contained runtime modules may also contain resources 
 ---
 
 
-<a id="page-567"></a>
-## Page 567
-
-**ISO/IEC 1989:2023 (E)**
-
 A run unit may additionally contain runtime modules and data storage areas derived from the compilation of compilation units written in languages other than COBOL; in this case the requirements for the relationship and interaction between the COBOL and the non-COBOL modules are defined by the implementor.
 
 <a id="section-14-6-2"></a>
@@ -24308,12 +21539,6 @@ When a function, method, or program is activated, the data within is in either t
 NOTE The presence or absence of the INITIALIZE clause can affect the contents of data items in the initial state as indicated below.
 
 
-
-<a id="page-568"></a>
-## Page 568
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-6-2-3-2"></a>
 ###### 14.6.2.3.2 Initial state
 
@@ -24351,12 +21576,6 @@ Before data is placed in the initial state, the initial alphanumeric and nationa
 Static and external data are the only data that are in the last-used state. External data is always in the last-used state except when the run unit is activated. Static data is in the last-used state except when it is in the initial state as defined above.
 
 
-
-<a id="page-569"></a>
-## Page 569
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-6-2-4"></a>
 ##### 14.6.2.4 Initial state of object data
 
@@ -24388,10 +21607,6 @@ If control is transferred either implicitly or explicitly to a procedure contain
 
 ---
 
-<a id="page-570"></a>
-## Page 570
-
-# ISO/IEC 1989:2023 (E)
 
 In this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element.
 
@@ -24424,11 +21639,6 @@ Unless otherwise specified, item identification is done for an identifier as the
 
 ---
 
-
-<a id="page-571"></a>
-## Page 571
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-6-5"></a>
 #### 14.6.5 Results of runtime element execution
@@ -24463,10 +21673,6 @@ Locale identification is the process of identifying a specific locale for use in
 
 ---
 
-<a id="page-572"></a>
-## Page 572
-
-# ISO/IEC 1989:2023 (E)
 
 8) For a LOCALE-DATE or LOCALE-TIME intrinsic function specifying a locale as an argument, category LC_TIME from the specified locale is used for evaluation of that function-identifier; if a locale is not specified as an argument, category LC_TIME from the current locale is used.
 
@@ -24506,11 +21712,6 @@ When the receiving data item is a fixed-point numeric data item or a fixed-point
 ---
 
 
-<a id="page-573"></a>
-## Page 573
-
-**ISO/IEC 1989:2023 (E)**
-
 5) If the receiving operand is a fixed-point numeric-edited item, further alignment, zero fill or truncation, and transfer of digits take place as described in the general rules and editing rules in 13.18.40, PICTURE clause.
 
 <a id="section-14-6-8-3"></a>
@@ -24548,12 +21749,6 @@ The data in the sending operand is transferred, after any necessary conversion, 
 NOTE    When an item is of usage bit, the item is not necessarily aligned on a byte boundary and the item need not occupy an integral number of bytes.
 
 
-
-<a id="page-574"></a>
-## Page 574
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-6-9"></a>
 #### 14.6.9 Operations on dynamic-capacity tables
 
@@ -24587,11 +21782,6 @@ When corresponding tables are to be compared, the first element of the first tab
 
 ---
 
-
-<a id="page-575"></a>
-## Page 575
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-6-9-4"></a>
 ##### 14.6.9.4 Space filling a dynamic table
@@ -24628,10 +21818,6 @@ When normal run unit termination occurs, the runtime system performs the followi
 
 4) All instance objects are destroyed.
 
-<a id="page-576"></a>
-## Page 576
-
-**ISO/IEC 1989:2023 (E)**
 
 NOTE Any open files in an object are closed before the object is destroyed.
 
@@ -24669,10 +21855,6 @@ An exception condition is either a condition associated with a specific exceptio
 
 546 �ISO/IEC 2023 An exception status indicator is a conceptual entity that exists for each function, method, or program for each exception condition and has two states, set or cleared. The initial state of all exception status indicators is cleared. An exception status indicator is set when checking for the associated exception condition is enabled either by a TURN compiler directive or a WHEN phrase in a PERFORM statement and the associated exception occurs. Associated with each exception status indicator are one or more exception-names. These exception names, together with the interface-names and object-class-names of exception objects are used to enable checking for the exception condition, to specify the action to be taken when the exception is raised, and to determine which exception condition caused an exception declarative or statements in a WHEN phrase of a PERFORM statement to be executed.
 
-<a id="page-577"></a>
-## Page 577
-# ISO/IEC 1989:2023 (E)
-
 
 In addition to exception status indicators, a last exception status exists for the entire run unit. It is a conceptual entity that is set to indicate the last level-3 exception condition that was raised in the run unit, the fact that an exception object was raised, or that no exception condition exists. The SET statement may be used to set the indicator to no exception condition exists. The last exception status may be interrogated with the EXCEPTION-STATUS function. Associated with this last exception status is information that is accessed by the EXCEPTION-FILE, EXCEPTION-FILE-N, EXCEPTION-LOCATION, EXCEPTION-LOCATION-N, and EXCEPTION-STATEMENT functions.
 
@@ -24689,10 +21871,6 @@ NOTE 3    An exception condition is set to exist only if checking for that condi
 
 ---
 
-<a id="page-578"></a>
-## Page 578
-
-**ISO/IEC 1989:2023 (E)**
 
 Exception-names are organized into a hierarchy of three levels for the purpose of enabling checking, selecting a declarative or a WHEN phrase of a PERFORM statement, and reporting the exception that occurred. The highest level, level-1, is the exception-name EC-ALL. Level-2 consists of the exception-names EC-ARGUMENT, EC-BOUND, EC-DATA, EC-EXTERNAL, EC-FLOW, EC-FUNCTION, EC-I-O, EC-IMP, EC-LOCALE, EC-MCS, EC-OO, EC-ORDER, EC-OVERFLOW, EC-PROGRAM, EC-RANGE, EC-RAISING, EC-REPORT, EC-SCREEN, EC-SIZE, EC-SORT-MERGE, EC-STORAGE, EC-USER, and EC-VALIDATE. The lowest level, level-3, consists of the level-2 names suffixed by a hyphen and additional characters. Only the lowest level exception-names are associated with exception status indicators. The implementor is not required to raise any exception conditions for level-3 exception-names that are associated with optional language elements or processor-dependent language elements that the implementor has not implemented unless the description of that language element in A.3, Processor-dependent language element list or A.4, Optional language element list, requires that an exception condition be raised.
 
@@ -24711,12 +21889,6 @@ A declarative procedure is said to complete normally if, during execution of the
 
 1) An EXIT PROGRAM, GOBACK, RESUME, or STOP statement that is specified in this function, method, or program is executed, or a fatal exception occurs within the scope of the declarative.
 
-
-
-<a id="page-579"></a>
-## Page 579
-
-**ISO/IEC 1989:2023 (E)**
 
 2) Any directly or indirectly activated runtime element terminates the run unit.
 
@@ -24746,12 +21918,6 @@ If a fatal exception condition exists, processing of the statement is interrupte
 8) If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected. However, if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally.
 
 
-
-<a id="page-580"></a>
-## Page 580
-
-**ISO/IEC 1989:2023 (E)**
-
 If checking is not enabled for a fatal exception condition and the exception condition is detected by the compiler, the implementor is not required to produce executable code. It is implementor-defined which fatal exception conditions, if any, are detected at compile time, and the circumstances under which they are detected.
 
 <a id="section-14-6-13-1-4"></a>
@@ -24780,12 +21946,6 @@ If an exception object is raised by a RAISE statement, the associated declarativ
 
 ---
 
-
-
-<a id="page-581"></a>
-## Page 581
-
-**ISO/IEC 1989:2023 (E)**
 
 If an exception object is raised by an EXIT or GOBACK statement, one of the following occurs:
 
@@ -24817,12 +21977,6 @@ Description **-** A brief description of what the exception condition means.
 ---
 
 
-
-<a id="page-582"></a>
-## Page 582
-
-# ISO/IEC 1989:2023 (E)
-
 ## Table 13 — Exception-names and exception conditions
 
 | Exception-name | Cat | Description |
@@ -24851,12 +22005,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-DATA-NOT-FINITE | Fatal | Attempt to use a data item described with a standard floating-point usage when its contents are either a NaN or a representation of infinity |
 
 
-
-<a id="page-583"></a>
-## Page 583
-
-# ISO/IEC 1989:2023 (E)
-
 ## Table 13 — Exception-names and exception conditions (Continued)
 
 | Exception-name | Cat | Description |
@@ -24882,12 +22030,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-FLOW-USE | Fatal | A USE statement caused another to be executed |
 | EC-FUNCTION | | Function exception |
 
-
-
-<a id="page-584"></a>
-## Page 584
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 13 — Exception-names and exception conditions (Continued)**
 
@@ -24923,12 +22065,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-MCS | | Message control system exception |
 
 
-
-<a id="page-585"></a>
-## Page 585
-
-# ISO/IEC 1989:2023 (E)
-
 ## Table 13 — Exception-names and exception conditions (Continued)
 
 | Exception-name | Cat | Description |
@@ -24963,12 +22099,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-PROGRAM-CANCEL-ACTIVE | Fatal | Canceled program active |
 
 
-
-<a id="page-586"></a>
-## Page 586
-
-# ISO/IEC 1989:2023 (E)
-
 ## Table 13 — Exception-names and exception conditions (Continued)
 
 | Exception-name | Cat | Description |
@@ -24998,12 +22128,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-REPORT-INACTIVE | Fatal | GENERATE or TERMINATE on an inactive report |
 | EC-REPORT-LINE-OVERLAP | NF | Overlapping report lines |
 
-
-
-<a id="page-587"></a>
-## Page 587
-
-**ISO/IEC 1989:2023 (E)**
 
 **Table 13 — Exception-names and exception conditions (Continued)**
 
@@ -25038,12 +22162,6 @@ Description **-** A brief description of what the exception condition means.
 | EC-STORAGE | | Storage allocation exception |
 | EC-STORAGE-IMP | Imp | Implementor-defined storage allocation exception |
 
-
-
-<a id="page-588"></a>
-## Page 588
-
-**ISO/IEC 1989:2023 (E)**
 
 **Table 13 — Exception-names and exception conditions (Continued)**
 
@@ -25083,11 +22201,6 @@ Incompatible data exists when the content of a sending operand is not valid only
 ---
 
 
-<a id="page-589"></a>
-## Page 589
-
-**ISO/IEC 1989:2023 (E)**
-
 — a sending item is processed in a VALIDATE statement.
 
 3) When a sending operand is described with a standard floating-point usage, and the content of the sending operand would evaluate to true in an infinity class condition or to true in a FLOAT-NOT-A-NUMBER class condition, the EC-DATA-NOT-FINITE exception condition is set to exist, except in the following circumstances:
@@ -25120,12 +22233,6 @@ If the call of a program, the activation of a function, or the invocation of a m
 
 This clause provides a description of the common phrases and features that pertain to or appear in several different statements.
 
-
-
-<a id="page-590"></a>
-## Page 590
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-7-2"></a>
 #### 14.7.2 At end condition
@@ -25183,11 +22290,6 @@ When the low-order integer positions in a resultant identifier are represented b
 ---
 
 
-<a id="page-591"></a>
-## Page 591
-
-**ISO/IEC 1989:2023 (E)**
-
 3) If the AWAY-FROM-ZERO phrase is specified and the arithmetic value cannot be exactly represented in the resultant identifier, the arithmetic value is rounded to the nearest value farther from zero that can be represented in the resultant identifier.
 
 4) If the NEAREST-AWAY-FROM-ZERO phrase is specified or implied and the arithmetic value cannot be exactly represented in the resultant identifier, the arithmetic value is rounded to the nearest value that can be represented in the resultant identifier. If two such values are equally near, the value farther from zero is chosen.
@@ -25218,10 +22320,6 @@ The size error condition may occur as a result of the execution of an ADD, COMPU
 
 ---
 
-<a id="page-592"></a>
-## Page 592
-
-# ISO/IEC 1989:2023 (E)
 
 When the SIZE ERROR phrase is specified for an arithmetic statement, checking for the size error condition is enabled for the arithmetic operations that take place in developing and storing the result of that arithmetic statement. Any exception condition, including EC-SIZE, that is raised during item identification for the operands used during the execution of the arithmetic statement is processed as defined for that exception condition and execution of the arithmetic statement ceases. Execution resumes as indicated for that exception condition. If an EC-SIZE exception condition exists during the execution of the arithmetic statement other than during item identification and a SIZE ERROR phrase is specified for the statement, processing of the size error condition occurs as described below for the SIZE ERROR phrase, and no statements in an applicable WHEN phrase in a containing PERFORM statement are executed and no EC-SIZE exception declaratives are performed.
 
@@ -25253,11 +22351,6 @@ If the size error condition exists and the SIZE ERROR phrase is specified, the f
 ---
 
 
-<a id="page-593"></a>
-## Page 593
-
-**ISO/IEC 1989:2023 (E)**
-
 2) If the absolute value of the result of the arithmetic operation exceeds the maximum value allowed for any resultant identifier, the content of that resultant identifier is not changed from the content that existed at the start of the execution of the arithmetic statement. The values of resultant identifiers for which the size error condition did not occur are the same as they would have been if the size error condition had not existed for any of the resultant identifiers. Execution proceeds as indicated in rule 3, below;
 
 3) After completion of the arithmetic operations, and possibly the storing of values into resultant data items as specified in rule 2, control is transferred to the imperative-statement specified in the SIZE ERROR phrase. If control is returned from the SIZE ERROR phrase, control is then transferred to the end of the arithmetic statement.
@@ -25283,12 +22376,6 @@ If no size error condition occurs during the execution of the arithmetic operati
 
 For the purpose of this discussion, D1 and D2 are identifiers that refer to alphanumeric group items, bit group items, national group items, strongly-typed group items, or variable-length groups.
 
-
-
-<a id="page-594"></a>
-## Page 594
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE When D1 and D2 refer to national groups or bit groups, D1 and D2 are processed as group items and not as elementary items.
 
@@ -25321,12 +22408,6 @@ The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT s
 
 1) The data descriptions of the operands need not be the same; any necessary conversion and decimal point alignment is supplied throughout the calculation.
 
-
-
-<a id="page-595"></a>
-## Page 595
-
-**ISO/IEC 1989:2023 (E)**
 
 2) For ADD, DIVIDE, MULTIPLY, and SUBTRACT statements when native arithmetic is in effect:
 
@@ -25361,10 +22442,6 @@ The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT s
 
 ---
 
-<a id="page-596"></a>
-## Page 596
-
-**ISO/IEC 1989:2023 (E)**
 
 b) If the size error condition was not raised during the initial evaluation, the intermediate data item is stored in or combined with and then stored in each single resulting data item in the left-to-right order in which the receiving data items are specified in the statement. Item identification for the receiving data items is done as each data item is accessed unless it was already done in step a. If the size error condition is raised when attempting to store in a resulting data item, only that data item remains unchanged and processing proceeds to the next resulting data item to the right.
 
@@ -25391,12 +22468,6 @@ A THROUGH phrase specifies a range of values, literal-1 through literal-2. The s
 
    When the value of literal-1 is greater than the value of literal-2 in the collating sequence in effect at runtime, the EC-RANGE-INVALID exception condition is set to exist, and, upon completion of any exception processing, execution proceeds as if the range of values were empty.
 
-
-
-<a id="page-597"></a>
-## Page 597
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-7-9"></a>
 #### 14.7.9 RETRY phrase
@@ -25437,10 +22508,6 @@ The RETRY phrase is specified in an input-output statement to indicate whether t
 
 ---
 
-<a id="page-598"></a>
-## Page 598
-
-# ISO/IEC 1989:2023 (E)
 
 If the mass storage control system permits the requested access on one of these attempts, the statement is successful and the results are as if the file sharing or record operation conflict had never occurred.
 
@@ -25482,11 +22549,6 @@ The number of arguments in the activating element shall be equal to the number o
 If both an argument and its corresponding formal parameters are elementary items, the conformance rules for elementary items apply; otherwise, the conformance rules for group items apply.
 
 
-<a id="page-599"></a>
-## Page 599
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE A bit group or national group is treated as an elementary item.
 
 <a id="section-14-8-2-2"></a>
@@ -25524,12 +22586,6 @@ If either the formal parameter or the corresponding argument is an object refere
 2) If either the argument or the formal parameter is described with an interface-name, the corresponding formal parameter or argument shall be described with the same interface-name.
 
 
-
-<a id="page-600"></a>
-## Page 600
-
-# ISO/IEC 1989:2023 (E)
-
 3) If either the argument or the formal parameter is described with an object-class-name, the corresponding formal parameter or argument shall be described with the same object-class-name, and the FACTORY and ONLY phrases shall be the same.
 
 4) If the formal parameter is described with the ACTIVE-CLASS phrase, one of the following conditions shall be true:
@@ -25560,11 +22616,6 @@ a) Currency symbols match if and only if the corresponding currency strings are 
 b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them.
 
 
-<a id="page-601"></a>
-## Page 601
-
-**ISO/IEC 1989:2023 (E)**
-
 Additionally:
 
 a) Locale specifications in the PICTURE clauses match if and only if:
@@ -25594,12 +22645,6 @@ If the formal parameter is of class pointer or an object reference described wit
 
 If the formal parameter is not of class object or pointer, the conformance rules are the following:
 
-
-
-<a id="page-602"></a>
-## Page 602
-
-**ISO/IEC 1989:2023 (E)**
 
 1) If the activated element is a program for which there is no program-specifier in the REPOSITORY paragraph of the activating element and there is no NESTED phrase specified on the CALL statement, the formal parameter shall be of the same length as the corresponding argument.
 
@@ -25639,10 +22684,6 @@ NOTE A bit group or national group is treated as an elementary item.
 
 If either the sending or the receiving operand is an alphanumeric group item, and neither of them is strongly typed or a variable length group, the corresponding returning item shall be an alphanumeric group item or an elementary item of category alphanumeric, and the receiving operand shall be of the same length as the sending operand.
 
-<a id="page-603"></a>
-## Page 603
-**ISO/IEC 1989:2023 (E)**
-
 
 NOTE If a returning item in an activating element is a group with a level number other than 1 and its subordinate items are described such that the implementation inserts slack bits or bytes, the alignment of the subordinate elementary items might not correspond between the returning item in the activating runtime element and the returning item in the activated runtime element.
 
@@ -25675,12 +22716,6 @@ If either of the operands is an object reference, the corresponding item shall b
 
 If the sending operand defined above is described with an object-class-name or an ACTIVE-CLASS phrase, the presence or absence of the FACTORY phrase is the same as in the returning item of the activated element.
 
-
-
-<a id="page-604"></a>
-## Page 604
-
-# ISO/IEC 1989:2023 (E)
 
 If the sending operand is not an object reference, the receiving operand shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions:
 
@@ -25722,11 +22757,6 @@ For each external file connector, the file status, linage and relative key data 
 ---
 
 
-<a id="page-605"></a>
-## Page 605
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-8-4-3"></a>
 ##### 14.8.4.3 Correspondence of external data item formats
 
@@ -25741,12 +22771,6 @@ For external data items with strongly typed record descriptions, the record desc
 
 For each external file connector, the rules specified in 12.4.5, File control entry General rule 1 apply.
 
-
-
-<a id="page-606"></a>
-## Page 606
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9"></a>
 ### 14.9 Statements
@@ -25797,10 +22821,6 @@ Format 2 (temporal):
 > The brace is a plain select-exactly-one (5.2.6.3): no choice indicators are printed, so exactly one of the four temporal sources shall be specified.
 
 Format 3 (screen):
-
-<a id="page-607"></a>
-## Page 607
-**ISO/IEC 1989:2023 (E)**
 
 
 <pre>
@@ -25864,11 +22884,6 @@ FORMAT 1
 2) The implementor shall define, for each device, the size of a data transfer.
 
 
-<a id="page-608"></a>
-## Page 608
-
-# ISO/IEC 1989:2023 (E)
-
 3) If a device is capable of transferring data of the same size as the receiving data item, the transferred data is stored in the receiving data item.
 
 4) If a device is not capable of transferring data of the same size as the receiving data item, then:
@@ -25900,11 +22915,6 @@ FORMAT 2
    | 7-8 | Two numeric characters of the day of the month in the range 01 through 31. |
 
 
-<a id="page-609"></a>
-## Page 609
-
-# ISO/IEC 1989:2023 (E)
-
 9) DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length, the character positions of which, numbered from left to right, are:
 
 | Character Positions | Contents |
@@ -25933,10 +22943,6 @@ FORMAT 2
 ## FORMAT 3
 
 13) Identifiers specified in FROM or USING clauses or literals specified in FROM or VALUE clauses provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement. For elementary screen items that have no FROM, USING, or VALUE clause, the initial value is as if a MOVE statement were executed with the screen item as the receiving field. The sending item of the MOVE statement is a figurative constant that depends on the category of the screen item as follows.
-
-<a id="page-610"></a>
-## Page 610
-# ISO/IEC 1989:2023 (E)
 
 
 | Screen item | constant |
@@ -25968,10 +22974,6 @@ b) If the CURSOR clause is specified, the initial cursor position is that repres
 
 20) Data entered by the terminal operator in the current screen item shall be consistent with the PICTURE clause of that item. If the screen item is numeric, the entered data shall be acceptable as an argument to the NUMVAL function. If the screen item is numeric-edited, the entered data shall be acceptable as an argument to the NUMVAL-C function. It is implementor-defined when the entered data is verified. It is implementor-defined whether inconsistent data causes the EC-DATA-INCOMPATIBLE exception condition to exist or whether the system indicates an error until consistent data is entered or until execution of the ACCEPT statement is terminated.
 
-<a id="page-611"></a>
-## Page 611
-# ISO/IEC 1989:2023 (E)
-
 
 21) If inconsistent data is entered into a screen item and allowed by the implementor to remain there, the EC-DATA-INCOMPATIBLE exception condition is set to exist. If consistent data was entered into one or more screen fields, these fields are transferred as specified in General rule 22, but the fields with inconsistent data are not transferred. The ACCEPT statement results in an unsuccessful completion, and execution proceeds as specified in General rule 25.
 
@@ -25999,10 +23001,6 @@ receiving-field is the data item referenced in the TO or USING clause, and scree
 
 24) If the execution of the ACCEPT statement results in a successful completion with normal termination, the ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the ACCEPT statement or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is returned from imperative-statement-2, control is then transferred to the end of the ACCEPT statement.
 
-<a id="page-612"></a>
-## Page 612
-# ISO/IEC 1989:2023 (E)
-
 
 25) If the execution of the ACCEPT statement results in an unsuccessful completion, is terminated by a function key stroke, or causes an EC-SCREEN exception condition to exist, then:
 
@@ -26020,11 +23018,6 @@ c) If the ON EXCEPTION phrase is not specified in the ACCEPT statement and there
 
 2. If the EC-DATA-INCOMPATIBLE exception condition does not exist, control is transferred to the end of the ACCEPT statement and the NOT ON EXCEPTION phrase, if specified, is ignored.
 
-
-<a id="page-613"></a>
-## Page 613
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-2"></a>
 #### 14.9.2 ADD statement
@@ -26095,11 +23088,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 ---
 
 
-<a id="page-614"></a>
-## Page 614
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-2-3"></a>
 ##### 14.9.2.3 Syntax rules
 
@@ -26139,11 +23127,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 2) When format 2 is used, the initial evaluation consists of determining the sum of the operands preceding the word GIVING, that is literal-1 or the value of the data item referenced by identifier-1, and literal-2 or the value of the data item referenced by identifier-2. This value is stored as the new value of each data item referenced by identifier-3.
 
 
-<a id="page-615"></a>
-## Page 615
-
-# ISO/IEC 1989:2023 (E)
-
 When standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
 (operand-11 + operand-12 + ... + operand-1n + operand-2)
@@ -26164,11 +23147,6 @@ where the value of operand-1 is the value of the data item in identifier-4 and t
 
 6) Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase; 14.7.5, SIZE ERROR phrase and size error condition; 14.7.6, CORRESPONDING phrase; and 14.7.7, Arithmetic statements.
 
-
-<a id="page-616"></a>
-## Page 616
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-3"></a>
 #### 14.9.3 ALLOCATE statement
@@ -26218,11 +23196,6 @@ If a specified number of characters of memory is being requested, a data-pointer
 ---
 
 
-<a id="page-617"></a>
-## Page 617
-
-# ISO/IEC 1989:2023 (E)
-
 a) if the RETURNING phrase is specified, the data item referenced by data-name-2 is set to the address of that storage,
 
 b) if data-name-1 is specified, the address of the based data item referenced by data-name-1 is set to the address of that storage.
@@ -26245,11 +23218,6 @@ c) the EC-STORAGE-NOT-AVAIL exception condition is set to exist.
 
 10) The allocated storage persists until explicitly released with a FREE statement or the run unit is terminated, whichever occurs first.
 
-
-<a id="page-618"></a>
-## Page 618
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-4"></a>
 #### 14.9.4 CALL statement
@@ -26280,11 +23248,6 @@ Format 1 (Program):
 
 > **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` are choice indicators: **zero or more** of the enclosed alternatives may be specified, each **at most once**, **in any order**. Both branches may therefore appear in one CALL statement, in either order. Underlined (required) words: CALL, REFERENCE, CONTENT, USING, RETURNING, EXCEPTION, NOT, END-CALL.
 
-
-<a id="page-619"></a>
-## Page 619
-
-# ISO/IEC 1989:2023 (E)
 
 Format 2 (program-prototype):
 
@@ -26339,10 +23302,6 @@ FORMATS 1 AND 2
 
 6) If the BY REFERENCE phrase is specified or implied for an identifier-2 that is a bit data item, identifier-2 shall be described such that it is aligned on a byte boundary and that subscripting and the leftmost position in a reference modification of identifier-2 consist of only fixed-point numeric literals or arithmetic expressions whose result is a positive integer, in which all operands are numeric literals and in which the exponentiation operator is not specified.
 
-<a id="page-620"></a>
-## Page 620
-# ISO/IEC 1989:2023 (E)
-
 
 7) Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, or linkage section.
 
@@ -26377,11 +23336,6 @@ FORMAT 2
 20) BY CONTENT shall not be omitted when identifier-4 is an identifier that is permitted as a receiving operand, except that BY CONTENT may be omitted when identifier-4 is an object property.
 
 
-<a id="page-621"></a>
-## Page 621
-
-**ISO/IEC 1989:2023 (E)**
-
 21) If the BY VALUE phrase is specified for an argument, the BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header.
 
 22) If identifier-4 or its corresponding formal parameter is specified with a BY VALUE phrase, identifier-4 shall be of class numeric, object, or pointer.
@@ -26414,11 +23368,6 @@ b) The program being called is identified by its program-name or its location, w
 — If identifier-1 references an alphanumeric or national data item or literal-1 is specified, the value of literal-1 or the content of the data item referenced by identifier-1 is the program-name of the program being called, as described in 8.3.2.2, User-defined words.
 
 
-<a id="page-622"></a>
-## Page 622
-
-# ISO/IEC 1989:2023 (E)
-
 — If identifier-1 references a program-pointer data item, the data item referenced by identifier-1 contains the location of the program being called.
 
 — If neither identifier-1 nor literal-1 is specified, program-prototype-name-1 determines the externalized program-name of the program being called, according to the rules specified in 12.3.8, REPOSITORY paragraph.
@@ -26441,11 +23390,6 @@ e) External items are checked to ensure that they comply with the following rule
 
 If one of the rules listed above is violated and checking for it is enabled for the associated exception in both the activated program and activating runtime element, that exception is set to exist, the program call is not successful, and execution continues as specified in General rule 3h.
 
-
-<a id="page-623"></a>
-## Page 623
-
-# ISO/IEC 1989:2023 (E)
 
 f) If the program being called is in the active state and that program does not have the recursive attribute, the EC-PROGRAM-RECURSIVE-CALL exception condition is set to exist, the program call is not successful, and execution continues as specified in General rule 3h.
 
@@ -26472,11 +23416,6 @@ FORMAT 2
 6) If the NESTED phrase is specified, the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph is used to determine the characteristics of the called program.
 
 
-<a id="page-624"></a>
-## Page 624
-
-# ISO/IEC 1989:2023 (E)
-
 7) If the NESTED phrase is not specified, program-prototype-name-1 is used to determine the characteristics of the called program.
 
 8) An argument that consists merely of a single identifier or literal is regarded as an identifier or literal rather than an arithmetic or boolean expression.
@@ -26497,11 +23436,6 @@ FORMAT 2
 
 12) If a parameter for which the omitted-argument condition is true is referenced in a called program, except as an argument or in the omitted-argument condition, the EC-PROGRAM-ARG-OMITTED exception condition is set to exist.
 
-
-<a id="page-625"></a>
-## Page 625
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-5"></a>
 #### 14.9.5 CANCEL statement
@@ -26552,10 +23486,6 @@ The CANCEL statement ensures that the next time the referenced program is called
 
 4) When a CANCEL statement is executed, all programs contained within the program referenced by the CANCEL statement are also canceled. The result is the same as if an explicit CANCEL statement were executed for each contained program in the reverse order in which the programs appear in the outermost program.
 
-<a id="page-626"></a>
-## Page 626
-# ISO/IEC 1989:2023 (E)
-
 
 5) The program to be canceled shall not be in the active state or contain a program in the active state. If a program in the active state is explicitly or implicitly referenced in a CANCEL statement and checking for EC-PROGRAM-CANCEL-ACTIVE is enabled in both the program to be canceled and the runtime element containing the CANCEL statement, the EC-PROGRAM-CANCEL-ACTIVE exception condition is raised in the runtime element containing the CANCEL statement and the referenced program is not canceled. If checking for EC-PROGRAM-CANCEL-ACTIVE is not enabled, the results of such a reference are defined by the implementor.
 
@@ -26573,11 +23503,6 @@ The CANCEL statement ensures that the next time the referenced program is called
 
 12) If identifier-1 references a zero-length item, the CANCEL statement has no effect.
 
-
-<a id="page-627"></a>
-## Page 627
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-6"></a>
 #### 14.9.6 CLOSE statement
@@ -26629,11 +23554,6 @@ The CLOSE statement terminates the processing of reels/units and files with rewi
 ---
 
 
-<a id="page-628"></a>
-## Page 628
-
-# ISO/IEC 1989:2023 (E)
-
 **Table 14 — Relationship of categories of physical files and the format of the CLOSE statement**
 
 | CLOSE statement format | File category | | | |
@@ -26671,11 +23591,6 @@ d) Unit removal
 The current unit is rewound, when applicable, and the unit is logically removed from the run unit; however, the unit may be accessed again, in its proper order of units within the physical file, if a CLOSE statement without the UNIT phrase is subsequently executed for this file followed by the execution of an OPEN statement for the file.
 
 
-<a id="page-629"></a>
-## Page 629
-
-# ISO/IEC 1989:2023 (E)
-
 NOTE This Working Draft International Standard does not address when the unit is unloaded or left loaded.
 
 e) Close unit
@@ -26710,10 +23625,6 @@ The CLOSE statement is executed as if none of the optional phrases were present.
 
 7) The availability of the record area associated with file-name-1 to the runtime element depends on the successful or unsuccessful execution of the CLOSE statement without the UNIT phrase and whether file-name-1 is referenced in a SAME RECORD AREA clause. If file-name-1 is specified in a SAME RECORD AREA clause, the record area is available to the runtime element if any of the file connectors referenced by the other file-names in that SAME RECORD AREA clause are open. If none of these file connectors is open or if file-name-1 is not specified in a SAME RECORD AREA clause, the successful execution of a CLOSE statement makes the record area unavailable to the runtime element and the unsuccessful execution of the CLOSE statement makes the availability of the record area undefined.
 
-<a id="page-630"></a>
-## Page 630
-# ISO/IEC 1989:2023 (E)
-
 
 8) Following the successful execution of a CLOSE statement without the UNIT phrase, the physical file is no longer associated with the file connector referenced by file-name-1 and the open mode of that file connector is set such that it is no longer in an open mode.
 
@@ -26721,11 +23632,6 @@ The CLOSE statement is executed as if none of the optional phrases were present.
 
 10) If more than one file-name-1 is specified in a CLOSE statement, the result of executing this CLOSE statement is the same as if a separate CLOSE statement had been written for each file-name-1 in the same order as specified in the CLOSE statement. If an implicit CLOSE statement results in the execution of a declarative procedure that executes a RESUME statement with the NEXT STATEMENT phrase, processing resumes at the next implicit CLOSE statement, if any.
 
-
-<a id="page-631"></a>
-## Page 631
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-7"></a>
 #### 14.9.7 COMMIT statement
@@ -26769,11 +23675,6 @@ The COMMIT statement makes permanent all changes to all files subject to active 
 
 ---
 
-
-<a id="page-632"></a>
-## Page 632
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-8"></a>
 #### 14.9.8 COMPUTE statement
@@ -26829,10 +23730,6 @@ FORMAT 1
 
    a) When native arithmetic, or standard-decimal arithmetic is in effect, and arithmetic-expression-1 consists of a single fixed-point numeric literal or a single fixed-point numeric data item, arithmetic-expression-1 evaluates to the exact algebraic value of that literal or item, within the constraints specified in 14.6.13.2, Incompatible data. Rounding, truncation, and decimal point alignment specifications do not apply to the production of that exact algebraic value.
 
-<a id="page-633"></a>
-## Page 633
-**ISO/IEC 1989:2023 (E)**
-
 
 NOTE Noninteger decimal values are frequently inexact when expressed in binary floating-point formats, including that of an SBIDI. For that reason, arithmetic-expression-1 is unconditionally evaluated according to the rules for arithmetic expressions for standard-binary arithmetic, regardless of the specific contents of arithmetic-expression-1.
 
@@ -26846,12 +23743,6 @@ FORMAT 2
 
 Boolean-expression-1 evaluates to the value of that boolean expression, subject to the specifications in 8.8.2, Boolean expressions, and 14.6.13.2, Incompatible data. The number of boolean positions in the value resulting from the evaluation of boolean-expression-1 is the number of boolean positions in the largest boolean item referenced in the expression. The resulting value is then stored in each data item referenced by identifier-2.
 
-
-
-<a id="page-634"></a>
-## Page 634
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-9"></a>
 #### 14.9.9 CONTINUE statement
@@ -26914,11 +23805,6 @@ CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
 ---
 
 
-<a id="page-635"></a>
-## Page 635
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-10"></a>
 #### 14.9.10 DELETE statement
 
@@ -26978,11 +23864,6 @@ FORMAT 2
 4) A DELETE FILE statement that specifies more than one file-name shall not be specified in imperative-statement-1 in an exception-checking PERFORM statement.
 
 
-<a id="page-636"></a>
-## Page 636
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-10-4"></a>
 ##### 14.9.10.4 General rules
 
@@ -27014,11 +23895,6 @@ FORMAT 1
 
       1. A lock held by that file connector on the deleted record is released at the completion of the successful execution of the DELETE RECORD statement.
 
-
-<a id="page-637"></a>
-## Page 637
-
-# ISO/IEC 1989:2023 (E)
 
 2. A lock held by that file connector on another record is released at the beginning of the execution of the DELETE RECORD statement.
 
@@ -27053,10 +23929,6 @@ c) The DELETE FILE statement is unsuccessful.
 
 ---
 
-<a id="page-638"></a>
-## Page 638
-
-# ISO/IEC 1989:2023 (E)
 
 NOTE For file connectors subject to APPLY COMMIT clauses, while those APPLY COMMIT clauses remain active, then file and record locking persists. Such files can still be deleted, however if they are, then in the event of a rollback they will be restored to the state they were in at the last commit or, if none, the start of the run unit.
 
@@ -27084,17 +23956,6 @@ NOTE For file connectors subject to APPLY COMMIT clauses, while those APPLY COMM
 
    b) If the NOT ON EXCEPTION phrase is specified in the DELETE FILE statement, control is transferred to the imperative-statement-4 specified in the NOT ON EXCEPTION phrase. The ON EXCEPTION phrase is ignored, if it is specified. If control is returned from imperative-statement-4, control is then transferred to the end of the DELETE statement.
 
-<a id="page-639"></a>
-## Page 639
-# ISO/IEC 1989:2023 (E)
-
-
-
-
-<a id="page-640"></a>
-## Page 640
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-11"></a>
 #### 14.9.11 DISPLAY statement
@@ -27154,11 +24015,6 @@ FORMAT 1
 ---
 
 
-<a id="page-641"></a>
-## Page 641
-
-**ISO/IEC 1989:2023 (E)**
-
 FORMAT 2
 
 3) Identifier-2 and identifier-3 shall be unsigned integer data items.
@@ -27191,11 +24047,6 @@ FORMAT 1
 9) If the WITH NO ADVANCING phrase is specified, then the positioning of the device shall not be reset to the next line or changed in any other way following the display of the last operand. If the device is capable of positioning to a specific character position, it will remain positioned at the character position immediately following the last character of the last operand displayed. If the device is not capable of positioning to a specific character position, only the vertical position, if applicable, is affected. This may cause overprinting if the device supports overprinting.
 
 
-<a id="page-642"></a>
-## Page 642
-
-# ISO/IEC 1989:2023 (E)
-
 10) If the WITH NO ADVANCING phrase is not specified, then after the last operand has been transferred to the device, the positioning of the device shall be reset to the leftmost position of the next line of the device.
 
 11) If vertical positioning is not applicable on the device, the vertical positioning shall be ignored.
@@ -27222,10 +24073,6 @@ The transfer takes place and each elementary screen item is displayed on the ter
 
 a) If the ON EXCEPTION phrase is specified in the DISPLAY statement, control is transferred to imperative-statement-1. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the DISPLAY statement and the NOT ON EXCEPTION phrase, if specified, is ignored.
 
-<a id="page-643"></a>
-## Page 643
-# ISO/IEC 1989:2023 (E)
-
 
 b) If the ON EXCEPTION phrase is not specified in the DISPLAY statement, the following occurs.
 
@@ -27237,11 +24084,6 @@ c) If the ON EXCEPTION phrase is not specified in the DISPLAY statement and ther
 
 19) If one or more of the exception conditions EC-SCREEN-FIELD-OVERLAP, EC-SCREEN-ITEM-TRUNCATED, EC-SCREEN-LINE-NUMBER, or EC-SCREEN-STARTING-COLUMN exists during the execution of the DISPLAY statement, the execution of the DISPLAY statement continues as described for that exception condition and upon completion, the execution of the DISPLAY statement is considered unsuccessful.
 
-
-<a id="page-644"></a>
-## Page 644
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-12"></a>
 #### 14.9.12 DIVIDE statement
@@ -27323,11 +24165,6 @@ Format 3 (by-giving):
 > `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement.
 
 
-<a id="page-645"></a>
-## Page 645
-
-**ISO/IEC 1989:2023 (E)**
-
 Format 4 (into-remainder):
 
 <pre>
@@ -27380,11 +24217,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 4) When native arithmetic is in effect, the composite of operands described in 14.7.7, Arithmetic statements, is determined by using all of the operands in the statement excluding the data item that follows the word REMAINDER.
 
 
-<a id="page-646"></a>
-## Page 646
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-12-4"></a>
 ##### 14.9.12.4 General rules
 
@@ -27427,11 +24259,6 @@ FORMATS 4 AND 5
 6) The evaluation proceeds in the following order:
 
 
-<a id="page-647"></a>
-## Page 647
-
-# ISO/IEC 1989:2023 (E)
-
 a) The initial evaluation is determining the divisor and determining the dividend.
 
 b) The quotient is then formed as specified in General rule 1 and stored in identifier-3 as specified in 14.7.7, Arithmetic statements.
@@ -27447,10 +24274,6 @@ where the values of dividend and divisor are defined in General rule 2 and where
 
 ---
 
-<a id="page-648"></a>
-## Page 648
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-13"></a>
 #### 14.9.13 EVALUATE statement
@@ -27516,11 +24339,6 @@ where selection-object is:
 ---
 
 
-<a id="page-649"></a>
-## Page 649
-
-# ISO/IEC 1989:2023 (E)
-
 where range-expression is:
 
 <pre>
@@ -27559,11 +24377,6 @@ where range-expression is:
    e) If the selection object is a partial expression and the selection subject is a data item of the class boolean or numeric, the selection subject is treated as an identifier.
 
 
-<a id="page-650"></a>
-## Page 650
-
-# ISO/IEC 1989:2023 (E)
-
 7) Each selection object within a set of selection objects shall correspond to the selection subject having the same ordinal position within the set of selection subjects according to the following rules:
 
    a) Identifiers, literals, or expressions appearing within a selection object shall be valid operands for comparison to the corresponding operand in the set of selection subjects in accordance with 8.8.4.2, Simple relation conditions.
@@ -27599,11 +24412,6 @@ The letter 'Y' indicates a permissible combination.
 A space indicates an invalid combination.
 
 
-<a id="page-651"></a>
-## Page 651
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-13-4"></a>
 ##### 14.9.13.4 General rules
 
@@ -27635,11 +24443,6 @@ A space indicates an invalid combination.
 
       3. If the selection object is condition-2, the selection subject is either TRUE or FALSE. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false.
 
-
-<a id="page-652"></a>
-## Page 652
-
-# ISO/IEC 1989:2023 (E)
 
 4. If the selection object is either TRUE or FALSE, the selection subject is condition-1. If the truth value of the selection subject and selection object match, the result of the analysis is true. If they do not match, the result is false.
 
@@ -27675,11 +24478,6 @@ d) This procedure is repeated for subsequent WHEN phrases, in the order of their
 
    c) The execution of the EVALUATE statement is terminated when execution reaches the end of imperative-statement-1 of the selected WHEN phrase or the end of imperative-statement-2, or when no WHEN phrase is selected and no WHEN OTHER phrase is specified.
 
-
-<a id="page-653"></a>
-## Page 653
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-14"></a>
 #### 14.9.14 EXIT statement
@@ -27739,10 +24537,6 @@ Format 4 (procedure):
 
 ---
 
-<a id="page-654"></a>
-## Page 654
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-14-3"></a>
 ##### 14.9.14.3 Syntax rules
@@ -27777,11 +24571,6 @@ FORMAT 2
 
 ---
 
-
-<a id="page-655"></a>
-## Page 655
-
-# ISO/IEC 1989:2023 (E)
 
 FORMAT 3
 
@@ -27819,10 +24608,6 @@ FORMAT 3
 
 ---
 
-<a id="page-656"></a>
-## Page 656
-
-# ISO/IEC 1989:2023 (E)
 
 FORMAT 4
 
@@ -27832,11 +24617,6 @@ NOTE The return mechanisms mentioned in the rules for EXIT PARAGRAPH and EXIT SE
 
 7) The execution of an EXIT SECTION statement causes control to be passed to an unnamed empty paragraph immediately following the last paragraph of the current section, preceding any return mechanisms for that section.
 
-
-<a id="page-657"></a>
-## Page 657
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-15"></a>
 #### 14.9.15 FREE statement
@@ -27870,11 +24650,6 @@ The FREE statement releases dynamic storage previously obtained with an ALLOCATE
 
 2) If more than one data-name-1 is specified in a FREE statement, the result of executing this FREE statement is the same as if a separate FREE statement had been written for each data-name-1 in the same order as specified in the FREE statement. If an implicit FREE statement results in an exception condition being raised and the exception condition is nonfatal, after any applicable exception processing statements are executed, processing resumes at the next implicit FREE statement, if any. If the exception condition is fatal and the applicable exception processing statements do not result in abnormal run unit termination, processing resumes at the next implicit FREE statement, if applicable. If there is no next implicit FREE statement, processing resumes at the next executable statement as if no exception condition was raised during the execution of the FREE statement.
 
-
-<a id="page-658"></a>
-## Page 658
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-16"></a>
 #### 14.9.16 GENERATE statement
@@ -27920,11 +24695,6 @@ The GENERATE statement performs control break processing and, unless a report-na
 ---
 
 
-<a id="page-659"></a>
-## Page 659
-
-# ISO/IEC 1989:2023 (E)
-
 b) A page heading is printed if defined. (See 13.18.57, TYPE clause.)
 
 c) If a CONTROL clause is defined for the report, each control heading is printed, wherever defined, in order from major to minor. (See 13.18.16, CONTROL clause; and 13.18.57, TYPE clause.)
@@ -27955,11 +24725,6 @@ d) The specified detail is printed, unless summary reporting is specified.
 
 8) If a nonfatal exception condition is raised during the execution of a GENERATE statement, execution resumes at the next report item, line, or report group, whichever follows in logical order.
 
-
-<a id="page-660"></a>
-## Page 660
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-17"></a>
 #### 14.9.17 GO TO statement
@@ -28002,11 +24767,6 @@ Format 2 (depending):
 
 ---
 
-
-<a id="page-661"></a>
-## Page 661
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-18"></a>
 #### 14.9.18 GOBACK statement
@@ -28074,10 +24834,6 @@ WITH ┤        ├ STATUS │              │
 
 ---
 
-<a id="page-662"></a>
-## Page 662
-
-# ISO/IEC 1989:2023 (E)
 
 b) If the data description entry of identifier-1 specifies an interface-name, the interface referenced by that interface-name shall conform to an interface specified in the RAISING phrase of the procedure division header of the source element containing this GOBACK statement, and the presence or absence of the FACTORY phrase shall be the same in the data description entry of identifier-1 as in the RAISING phrase of the procedure division header of the containing source element.
 
@@ -28116,11 +24872,6 @@ d) Identifier-1 shall not be a universal object reference.
 ---
 
 
-<a id="page-663"></a>
-## Page 663
-
-# ISO/IEC 1989:2023 (E)
-
 3 exception for EC-USER and that exception condition is not specified in the RAISING phrase of the procedure division header of the source element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED exception condition is set to exist in the activating runtime element instead of the EC-USER exception condition.
 
 b. If no exception condition is raised, the RAISING phrase is ignored and no exception condition is set to exist in the activating runtime element.
@@ -28142,20 +24893,10 @@ b. If no exception condition is raised, the RAISING phrase is ignored and no exc
 8) If the GOBACK statement is executing in a main program and the NORMAL phrase is specified, the operating system will indicate a normal termination of the run unit if such a capability exists within the operating system.
 
 
-<a id="page-664"></a>
-## Page 664
-
-# ISO/IEC 1989:2023 (E)
-
 9) If the GOBACK statement is executing in a main program and neither the ERROR phrase nor the NORMAL phrase is specified, the operating system will indicate a normal termination of the run unit if such a capability exists within the operating system unless error termination has been indicated by an implementor-defined mechanism.
 
 10) During execution of the GOBACK statement in a main program with literal-1 or identifier-2 specified, literal-1 or the contents of the data item referenced by identifier-2 are passed to the operating system. Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-2 are defined by the implementor.
 
-
-<a id="page-665"></a>
-## Page 665
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-19"></a>
 #### 14.9.19 IF statement
@@ -28200,11 +24941,6 @@ ALL FORMATS
    NOTE A nested IF statement is terminated by terminal separator period of the containing IF statement.
 
 
-<a id="page-666"></a>
-## Page 666
-
-# ISO/IEC 1989:2023 (E)
-
 FORMAT 2
 
 3) The ELSE NEXT SENTENCE phrase may be omitted if it immediately precedes the terminal separator period of the sentence.
@@ -28230,11 +24966,6 @@ FORMAT 2
 
 7) If condition-1 is false and the ELSE phrase is not specified, the THEN phrase is ignored.
 
-
-<a id="page-667"></a>
-## Page 667
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-20"></a>
 #### 14.9.20 INITIALIZE statement
@@ -28299,11 +25030,6 @@ where category-name is:
 1) Identifier-1 shall be strongly typed or of class alphabetic, alphanumeric, boolean, message-tag, national, numeric, object, or pointer.
 
 
-<a id="page-668"></a>
-## Page 668
-
-# ISO/IEC 1989:2023 (E)
-
 2) Identifier-1 shall be specified only once if the INITIALIZE statement is specified in imperative-statement-1 of an exception-checking PERFORM statement.
 
 3) For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be specified.
@@ -28331,11 +25057,6 @@ where category-name is:
 
 4) Whether identifier-1 references an elementary item or a group item, the effect of the execution of the INITIALIZE statement is as though a series of implicit MOVE or SET statements, each of which has an elementary data item as its receiving operand, were executed. The sending-operands of these implicit statements are defined in General rule 6 and the receiving-operands are defined in General rule 5.
 
-
-<a id="page-669"></a>
-## Page 669
-
-# ISO/IEC 1989:2023 (E)
 
 If the category of a receiving-operand is data-pointer, function-pointer, message-tag, object-reference, or program-pointer, the implicit statement is:
 
@@ -28371,11 +25092,6 @@ Otherwise, the implicit statement is:
 
          c. A table format VALUE clause is specified in the data description entry of the elementary item and that VALUE clause specifies a value for the particular occurrence of the elementary data item.
 
-
-<a id="page-670"></a>
-## Page 670
-
-# ISO/IEC 1989:2023 (E)
 
 2. The REPLACING phrase is specified and the category of the elementary data item is one of the categories specified in the REPLACING phrase; or
 
@@ -28416,22 +25132,12 @@ c) If the data item does not qualify in accordance with General rules 6a and 6b,
 7) When a dynamic-length elementary item is initialized, its length is set to zero.
 
 
-<a id="page-671"></a>
-## Page 671
-
-**ISO/IEC 1989:2023 (E)**
-
 8) If identifier-1 references a group data item, affected elementary data items are initialized in the sequence of their definition within the group data item. For a variable-occurrence data item, the number of occurrences initialized is determined by the rules of the OCCURS clause for a receiving data item.
 
 9) If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See 14.6.10, Overlapping operands.)
 
 10) When a group containing a dynamic-capacity table is initialized, all the elements of the table up to current capacity, if any, are initialized, whether or not the INITIALIZED phrase is present in the OCCURS clause, and the current capacity of the table is left unchanged.
 
-
-<a id="page-672"></a>
-## Page 672
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-21"></a>
 #### 14.9.21 INITIATE statement
@@ -28477,11 +25183,6 @@ The INITIATE statement initializes any internal storage locations used by the sp
 
 ---
 
-
-<a id="page-673"></a>
-## Page 673
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-22"></a>
 #### 14.9.22 INSPECT statement
@@ -28532,11 +25233,6 @@ where tallying-phrase is:
 
 > **Figure notes (INSPECT tallying-phrase).** All enclosures here are plain braces — there are NO choice indicators in the printed figure, so exactly one alternative is selected at each level. Nesting, outermost first: `{ identifier-2 FOR { CHARACTERS [ after-before-phrase ] | ALL { { identifier-3 / literal-1 } [ after-before-phrase ] } … | LEADING { { identifier-3 / literal-1 } [ after-before-phrase ] } … } … } …` — where the vertical bars in this note are prose separators for the stacked alternatives, not choice indicators. Three distinct ellipses apply: the innermost repeats the { identifier-3 / literal-1 } [ after-before-phrase ] pairing within one ALL or LEADING phrase; the middle repeats the selected CHARACTERS/ALL/LEADING phrase for one identifier-2; the outermost repeats the whole `identifier-2 FOR …` group. Required words (underlined in the printed figure): CHARACTERS, ALL, LEADING, FOR.
 
-
-<a id="page-674"></a>
-## Page 674
-
-# ISO/IEC 1989:2023 (E)
 
 where after-before-phrase is:
 
@@ -28592,11 +25288,6 @@ ALL FORMATS
 ---
 
 
-<a id="page-675"></a>
-## Page 675
-
-# ISO/IEC 1989:2023 (E)
-
 3) Each literal shall be an alphanumeric, boolean, or national literal. Literal-1, literal-2, literal-3, and literal-4 shall not be a figurative constant that begins with the word ALL. If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an implicit one character data item. When identifier-1 is of class national, the class of the figurative constant is national; when identifier-1 is of class boolean, the figurative constant is of class boolean and only the figurative constant ZERO may be specified; otherwise, the class of the figurative constant is alphanumeric. Literal-1, literal-2, literal-3, literal-4, or literal-5 shall not be a zero-length literal.
 
 4) If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, identifier-7, literal-1, literal-2, literal-3, literal-4, or literal-5 references an elementary data item or literal of class boolean or national, then all shall reference a data item or literal of class boolean or national, respectively.
@@ -28636,10 +25327,6 @@ ALL FORMATS
 
 3) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in General rules 6 through 8, unless BACKWARD is specified, in which case, inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/ or replacing) begins at the rightmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from right to left to the leftmost character position as described in General rules 6 through 8.
 
-<a id="page-676"></a>
-## Page 676
-# ISO/IEC 1989:2023 (E)
-
 
 NOTE 1 When BACKWARD is specified the BEFORE and AFTER phrases are evaluated in the direction of the scan. INSPECT BACKWARD "A12C21D12EF" TALLYING data-name-1 CHARACTERS BEFORE "12" would return 2 in data-name-1, not 5.
 
@@ -28662,11 +25349,6 @@ FORMATS 1 AND 2
 7) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
 
 
-<a id="page-677"></a>
-## Page 677
-
-# ISO/IEC 1989:2023 (E)
-
 8) The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows:
 
 a) The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right. The first literal-1 is compared to an equal number of contiguous characters, starting with the leftmost character position, or, if BACKWARD is specified, the rightmost character position in the data item referenced by identifier-1. Literal-1 matches that portion of the content of the data item referenced by identifier-1 if they are equal, character for character and:
@@ -28688,11 +25370,6 @@ d) If BACKWARD was not specified the comparison operation continues until the ri
 e) If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in General rules 8a through 8d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
 
 
-<a id="page-678"></a>
-## Page 678
-
-# ISO/IEC 1989:2023 (E)
-
 9) The comparison operation defined in General rule 8 is restricted by the BEFORE and AFTER phrase as follows:
 
 a) If neither the BEFORE nor AFTER phrase is specified or identifier-4 references a zero-length item, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in General rule 8. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position, or, if BACKWARD is specified, at the rightmost character position of identifier-1.
@@ -28707,11 +25384,6 @@ c) If the AFTER phrase is specified:
 
 This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in General rule 8 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
 
-
-<a id="page-679"></a>
-## Page 679
-
-# ISO/IEC 1989:2023 (E)
 
 FORMAT 1
 
@@ -28744,11 +25416,6 @@ FORMAT 2
 a) When the CHARACTERS phrase is specified, each character matched, in the sense of General rule 8e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
 
 
-<a id="page-680"></a>
-## Page 680
-
-# ISO/IEC 1989:2023 (E)
-
 b) When the adjective ALL is specified, each occurrence of literal-1 matched in the content of the data item referenced by identifier-1 is replaced by literal-3.
 
 c) When the adjective LEADING is specified, the first and each successive contiguous occurrence of literal-1 matched in the content of the data item referenced by identifier-1 is replaced by literal-3, provided that the first such occurrence encountered is at the point where comparison began in the first comparison cycle in which literal-1, was eligible to participate.
@@ -28771,11 +25438,6 @@ d) When the adjective FIRST is specified, the leftmost occurrence of literal-1, 
 
 23) If the same character appears more than once in the data item referenced by identifier-6 or in literal-4, the first occurrence of the character is used for replacement.
 
-
-<a id="page-681"></a>
-## Page 681
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-23"></a>
 #### 14.9.23 INVOKE statement
@@ -28830,11 +25492,6 @@ The INVOKE statement causes a method to be invoked.
    c) If identifier-1 references an object reference described with the ACTIVE-CLASS and the FACTORY phrases, literal-1 shall be the name of a method contained in the factory interface of the class containing the INVOKE statement.
 
 
-<a id="page-682"></a>
-## Page 682
-
-# ISO/IEC 1989:2023 (E)
-
 d) If identifier-1 references an object reference described with the ACTIVE-CLASS phrase and without the FACTORY phrase, literal-1 shall be the name of a method contained in the instance interface of the class containing the INVOKE statement.
 
 e) If identifier-1 references an object reference described with an interface-name, literal-1 shall be the name of a method contained in the interface referenced by that interface-name.
@@ -28867,11 +25524,6 @@ i) If identifier-1 references the predefined object reference SUPER and the meth
 
 ---
 
-
-<a id="page-683"></a>
-## Page 683
-
-# ISO/IEC 1989:2023 (E)
 
 11) Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section.
 
@@ -28909,11 +25561,6 @@ i) If identifier-1 references the predefined object reference SUPER and the meth
 2) Identifier-1 identifies an instance object. If object-class-name-1 is specified, it identifies the factory object of the object-class referenced by that object-class-name. Literal-1 or the content of the data item referenced by identifier-2 identifies a method of that object that will act upon that instance object:
 
 
-<a id="page-684"></a>
-## Page 684
-
-# ISO/IEC 1989:2023 (E)
-
 a) If the method to be invoked is a COBOL method, literal-1 or the content of the data item referenced by identifier-2 is the name of the method to be invoked as described in 8.3.2.2, User-defined words.
 
 b) If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined.
@@ -28943,11 +25590,6 @@ b) When the BY VALUE phrase is specified or implied for the corresponding formal
 a) Arithmetic-expression-1, boolean-expression-1, identifier-1, identifier-2, identifier-3, and identifier-5 are evaluated and item identification is done for identifier-4 at the beginning of the execution of the INVOKE statement. If an exception condition exists, no method is invoked and execution proceeds as specified in General rule 7g. If an exception condition does not exist, the values of identifier-3, identifier-5, arithmetic-expression-1, boolean-expression-1, or literal-2 are made available to the invoked method at the time control is transferred to that method.
 
 
-<a id="page-685"></a>
-## Page 685
-
-# ISO/IEC 1989:2023 (E)
-
 b) The runtime system attempts to locate the method being invoked using the rules specified in 8.4.6, Scope of names; 8.4.6.5, Scope of method-names; 9.3.6, Method invocation; and 12.3.8, REPOSITORY paragraph. If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist, the method invocation is not successful, and execution continues as specified in General rule 7g.
 
 c) If identifier-1 is a universal object reference and the method being invoked is a COBOL method, neither a formal parameter nor the returning item in the invoked method shall be described with the ANY LENGTH clause, and the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply. If a violation of these rules is detected, the EC-OO-UNIVERSAL exception condition is set to exist if checking for it is enabled in both the activated method and the activating runtime element, the method invocation is not successful, and execution continues as specified in General rule 7g.
@@ -28973,18 +25615,8 @@ g) If an exception condition has been raised, any exception processing statement
 9) If an OMITTED phrase is specified or a trailing argument is omitted, the omitted-argument condition for that parameter shall be true in the invoked method.
 
 
-<a id="page-686"></a>
-## Page 686
-
-# ISO/IEC 1989:2023 (E)
-
 10) If a parameter for which the omitted-argument condition is true is referenced in an invoked method, except as an argument or in the omitted-argument condition, the EC-OO-ARG-OMITTED exception condition is set to exist.
 
-
-<a id="page-687"></a>
-## Page 687
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-24"></a>
 #### 14.9.24 MERGE statement
@@ -29031,11 +25663,6 @@ The MERGE statement combines two or more identically sequenced files on a set of
    a) The data items identified by key data-names shall be described in records associated with file-name-1.
 
 
-<a id="page-688"></a>
-## Page 688
-
-# ISO/IEC 1989:2023 (E)
-
 b) Key data names shall not be subject to any OCCURS clauses.
 
 c) Key data items shall not be of the class boolean, message-tag, object, or pointer.
@@ -29067,11 +25694,6 @@ g) If the file referenced by file-name-1 contains variable-length records, all t
 13) If file-name-2 or file-name-3 references a relative or an indexed file, its access mode shall be sequential or dynamic.
 
 
-<a id="page-689"></a>
-## Page 689
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-24-4"></a>
 ##### 14.9.24.4 General rules
 
@@ -29102,10 +25724,6 @@ g) If the file referenced by file-name-1 contains variable-length records, all t
 
 ---
 
-<a id="page-690"></a>
-## Page 690
-
-# ISO/IEC 1989:2023 (E)
 
 5) The alphanumeric collating sequence that applies to the comparison of key data items of class alphabetic and class alphanumeric, and the national collating sequence that applies to the comparison of key data items of class national, are separately determined at the beginning of the execution of the MERGE statement in the following order of precedence:
 
@@ -29121,11 +25739,6 @@ g) If the file referenced by file-name-1 contains variable-length records, all t
 
    b) The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed. When the at end condition exists for file-name-2 or file-name-3, the processing for that file connector is terminated. If the file referenced by file-name-1 is described with variable-length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1. If the size of the record read from the file referenced by file-name-2 or file-name-3 is larger than the largest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the MERGE statement is terminated. If file-name-1 is specified with variable-length records and the size of the record read from the file referenced by file-name-2 or file-name-3 is smaller than the smallest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the MERGE statement is terminated.
 
-
-<a id="page-691"></a>
-## Page 691
-
-# ISO/IEC 1989:2023 (E)
 
 c) The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.
 
@@ -29149,10 +25762,6 @@ NOTE This return mechanism transfers control from the end of the output procedur
 
 12) If the GIVING phrase is specified, all the merged records are written on each file referenced by file-name-4 as the implied output procedure for the MERGE statement. At the start of execution of the MERGE statement, the file referenced by file-name-4 shall not be in the open mode. If the file is in an open mode, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates. For each of the files referenced by file-name-4, the execution of the MERGE statement causes the following actions to be taken:
 
-<a id="page-692"></a>
-## Page 692
-# ISO/IEC 1989:2023 (E)
-
 
 a) The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed. If a fatal exception condition exists as a result of this implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the file connector that caused the exception condition is bypassed. If a nonfatal exception condition exists as a result of this implicit OPEN statement and there is an applicable USE procedure that completes normally, the file connector that caused the exception condition is processed as if the exception did not exist.
 
@@ -29170,10 +25779,6 @@ The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS 
 
    a) If there is only one record description entry associated with the file referenced by file-name-4 and that record is described as a national data item or as an elementary data item of usage national and of category numeric, numeric-edited, or boolean, the record is filled with national space characters.
 
-<a id="page-693"></a>
-## Page 693
-**ISO/IEC 1989:2023 (E)**
-
 
 b) If there are multiple record description entries associated with the file referenced by file-name-4 and the descriptions include a SELECT WHEN clause, the rules of the SELECT WHEN clause are applied to the record to select its description. When the record is described as a national data item or as an elementary data item of usage national and of category numeric, numeric-edited, or boolean, the record is filled with national space characters.
 
@@ -29181,11 +25786,6 @@ c) Otherwise, the record is filled with alphanumeric space characters.
 
 14) Additional rules affecting the execution of the MERGE statement are given in 12.4.5, File control entry, General rules 3 and 4.
 
-
-<a id="page-694"></a>
-## Page 694
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-25"></a>
 #### 14.9.25 MOVE statement
@@ -29240,20 +25840,10 @@ FORMAT 1
 ---
 
 
-<a id="page-695"></a>
-## Page 695
-
-**ISO/IEC 1989:2023 (E)**
-
 9) If identifier‑1 or identifier‑2 references a variable‑length group then these groups shall be compatible groups as specified in 8.5.1.12, Variable‑length groups.
 
 10) For all other cases not described in Syntax rules 8 and 9, table 16, Validity of types of MOVE statements, specifies the validity of the move.
 
-
-<a id="page-696"></a>
-## Page 696
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 16 — Validity of types of MOVE statements**
 
@@ -29292,11 +25882,6 @@ FORMAT 1
    If identifier-1 is reference-modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands.
 
 
-<a id="page-697"></a>
-## Page 697
-
-# ISO/IEC 1989:2023 (E)
-
 The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands. If identifier-1 is a zero-length item, it is as if literal-1 were specified as a zero-length literal.
 
 The evaluation of the length of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause.
@@ -29329,10 +25914,6 @@ where 'temp' is an intermediate result item provided by the implementor.
 
     Any necessary conversion from alphanumeric character to national character representation shall be performed, before any alignment, in accordance with a correspondence defined by the implementor. If no correspondence exists for any given alphanumeric character in the sending item, an implementor-defined substitution character is used as the corresponding national character in the receiving item and the EC-DATA-CONVERSION exception condition is set to exist.
 
-<a id="page-698"></a>
-## Page 698
-# ISO/IEC 1989:2023 (E)
-
 
 The following rules apply:
 
@@ -29359,11 +25940,6 @@ d) When a numeric or numeric-edited item is the receiving item, and General rule
 ---
 
 
-<a id="page-699"></a>
-## Page 699
-
-**ISO/IEC 1989:2023 (E)**
-
 Otherwise, if the content of the sending operand would result in a false value in a numeric class condition, the EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE statement are undefined.
 
 2. When the sending operand is numeric, or is the numeric value produced by de-editing:
@@ -29389,20 +25965,10 @@ Otherwise, if the content of the sending operand would result in a false value i
    b. If the algebraic value of the sending operand is nearer to zero than is permitted by the data description of the receiving operand, the numeric value is treated as zero.
 
 
-<a id="page-700"></a>
-## Page 700
-
-# ISO/IEC 1989:2023 (E)
-
 Alignment of the numeric value by decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data into the receiving data item, take place as defined in 14.6.8, Alignment and transfer of data into data items.
 
 7) Alphanumeric, boolean, national, and numeric literals belong to the categories alphanumeric, boolean, national, and numeric, respectively. The category of figurative constants when used in the MOVE statement depends on the category of the receiving operand as shown in Table 17, Category of figurative constants used in the MOVE statement.
 
-
-<a id="page-701"></a>
-## Page 701
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 17 — Category of figurative constants used in the MOVE statement**
 
@@ -29427,11 +25993,6 @@ Alignment of the numeric value by decimal point, any necessary zero filling, any
    b) If the groups are of unequal length:
 
 
-<a id="page-702"></a>
-## Page 702
-
-# ISO/IEC 1989:2023 (E)
-
 If the sending group is longer than the receiving group, the character positions that occupy the excess part are ignored by the operation.
 
 If the sending group is shorter than the receiving group, each location that occupies the excess part is space filled, according to the following recursive procedure:
@@ -29454,11 +26015,6 @@ FORMAT 2
 
 NOTE 5 For purposes of MOVE CORRESPONDING, bit group items and national group items are processed as group items, rather than as elementary items.
 
-
-<a id="page-703"></a>
-## Page 703
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-26"></a>
 #### 14.9.26 MULTIPLY statement
@@ -29530,11 +26086,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 ---
 
 
-<a id="page-704"></a>
-## Page 704
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-26-4"></a>
 ##### 14.9.26.4 General rules
 
@@ -29550,11 +26101,6 @@ where the values for multiplier and multiplicand are as defined in General rules
 
 4) Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase; 14.7.5, SIZE ERROR phrase and size error condition; and 14.7.7, Arithmetic statements.
 
-
-<a id="page-705"></a>
-## Page 705
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-27"></a>
 #### 14.9.27 OPEN statement
@@ -29611,11 +26157,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 8) When file-name-1 is not subject to an APPLY COMMIT clause, then if the sharing phrase is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause of the file control entry for file-name-1 or if the ALL phrase is specified on the OPEN statement, the LOCK MODE clause shall be specified in the file control entry for file-name-1.
 
 
-<a id="page-706"></a>
-## Page 706
-
-# ISO/IEC 1989:2023 (E)
-
 NOTE Files subject to an APPLY COMMIT clause already have an implicit LOCK mode clause.
 
 9) The I-O phrase shall not be specified if the FORMAT clause is specified in the file description entry for file-name-1.
@@ -29646,11 +26187,6 @@ A file is available if it is physically present and is recognized by the operati
 | EXTEND (optional file) | Normal open | Open causes the file to be created |
 
 
-<a id="page-707"></a>
-## Page 707
-
-# ISO/IEC 1989:2023 (E)
-
 **Table 19 — Opening available shared files that are currently open by another file connector**
 
 | | | **Most restrictive existing sharing mode and open mode** | | | | |
@@ -29675,18 +26211,8 @@ A file is available if it is physically present and is recognized by the operati
 8) For the file connector referenced by file-name-1, an OPEN statement shall previously be successfully executed for that file connector and the file connector shall be in an open mode at the time of the execution of any other permissible input-output statement referencing that file connector. In Table
 
 
-<a id="page-708"></a>
-## Page 708
-
-# ISO/IEC 1989:2023 (E)
-
 20, Permissible I-O statements by access mode and open mode, 'X' at an intersection indicates that the specified statement, used in the access mode given for that row, may be used with the open mode given at the top of the column.
 
-
-<a id="page-709"></a>
-## Page 709
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 20 — Permissible I-O statements by access mode and open mode**
 
@@ -29718,11 +26244,6 @@ A file is available if it is physically present and is recognized by the operati
 12) If the storage medium for the file permits rewinding, the following rules apply:
 
 
-<a id="page-710"></a>
-## Page 710
-
-# ISO/IEC 1989:2023 (E)
-
 a) When neither the EXTEND, nor the NO REWIND phrase is specified, execution of the OPEN statement causes the file to be positioned at its beginning.
 
 b) When the NO REWIND phrase is specified, execution of the OPEN statement does not cause the file to be repositioned; the file shall be already positioned at its beginning prior to execution of the OPEN statement.
@@ -29750,11 +26271,6 @@ a) To point to the first or only reel/unit in the physical file if INPUT or I-O 
 
 ---
 
-
-<a id="page-711"></a>
-## Page 711
-
-# ISO/IEC 1989:2023 (E)
 
 b) To point to the reel/unit containing the last record in the physical file if EXTEND is specified.
 
@@ -29785,11 +26301,6 @@ d) Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed
 
 ---
 
-
-<a id="page-712"></a>
-## Page 712
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-28"></a>
 #### 14.9.28 PERFORM statement
@@ -29862,11 +26373,6 @@ Format 3 (exception-checking):
 ---
 
 
-<a id="page-713"></a>
-## Page 713
-
-**ISO/IEC 1989:2023 (E)**
-
 where times-phrase is:
 
 <pre>
@@ -29934,12 +26440,6 @@ FORMATS 1 AND 2
 ---
 
 
-
-<a id="page-714"></a>
-## Page 714
-
-**ISO/IEC 1989:2023 (E)**
-
 5) If an index-name is specified in the FROM phrase, then:
 
    a) The identifier in the associated VARYING or AFTER phrase shall reference an integer data item.
@@ -29981,10 +26481,6 @@ ALL FORMATS
 
 1) The range of a PERFORM statement consists logically of all those statements that are executed as a result of executing the PERFORM statement through execution of the implicit transfer of control to the end of the PERFORM statement. The range includes all statements that are executed as the result of a transfer of control in the range of the PERFORM statement, except for statements executed as the result of a transfer of control by an EXIT PROGRAM or GOBACK statement specified in the same instance of the same source element as the PERFORM statement. Declarative procedures that are executed as a result of the execution of statements in the range of a PERFORM statement are included in the range of the PERFORM statement. The statements in the range of a PERFORM statement need not appear consecutively in the source element.
 
-<a id="page-715"></a>
-## Page 715
-# ISO/IEC 1989:2023 (E)
-
 
 2) The results of executing the following sequence of PERFORM statements are undefined and no exception condition is set to exist when the sequence is executed:
 
@@ -30011,11 +26507,6 @@ FORMATS 1 AND 2
 6) There is no necessary relationship between procedure-name-1 and procedure-name-2 except that a consecutive sequence of operations is to be executed beginning at the procedure named procedure-name-1 and ending with the execution of the procedure named procedure-name-2.
 
 
-<a id="page-716"></a>
-## Page 716
-
-# ISO/IEC 1989:2023 (E)
-
 NOTE 2 Statements such as the GO TO statement, the PERFORM statement, and the procedure format of the EXIT statement can occur in the flow of execution of the specified set of statements, however the flow of execution should eventually pass to the end of procedure-name-2.
 
 7) If control passes to the specified set of statements by means other than a PERFORM statement, control will pass through the last statement of the set to the next executable statement as if no PERFORM statement referenced the set.
@@ -30033,10 +26524,6 @@ NOTE 3 During execution of the PERFORM statement, a change to the contents of id
 NOTE 4 When UNTIL EXIT is specified, it is the programmer's responsibility to ensure that an "escape" from the PERFORM loop will be reached. For an inline PERFORM, this can be done by an EXIT PERFORM (but not EXIT PERFORM CYCLE) statement. For an out-of-line PERFORM this can be done by a GOBACK or STOP statement. It is also the programmers responsibility to take care that the escape statement that they use does actually escape the PERFORM loop. Several statements appear to do so, but don't actually escape the loop. For example, an EXIT PARAGRAPH (from a performed paragraph) or an EXIT SECTION (from a performed section) do not escape a PERFORM with the UNTIL EXIT phrase.
 
 12) If varying-phrase is specified, the execution of the PERFORM statement augments the data items referenced by one or more identifiers or the indexes referenced by one or more index-names in an orderly fashion. In the following rules, the data items referenced by identifier-2 and identifier-5 and the indexes referenced by index-name-1 and index-name-3 are referred to as the induction variables. The content of the data item referenced by the identifier, the occurrence number corresponding to the value of the index referenced by the index-name, or the value of the literal referenced in the FROM phrase is referred to as the initialization value. The content of the data item referenced by the identifier or the value of the literal in a BY phrase is referred to as the augment value. For any BY phrase that is omitted, the augment value is 1. Item identification for identifier-2, identifier-5, index-name-1, or index-name-3 is done each time the content of the data item referenced by the identifier or the value of the index referenced by the index-name is set or augmented. Item identification for identifier-3, identifier-4, identifier-6, identifier-7, index-name-2, and index-name-4 is done each time the content of the data item referenced by the identifier or the index referenced by the index-name is used in a setting or augmenting operation. Item identification associated with the operands specified in condition-1 or condition-2 is done each time the condition is tested.
-
-<a id="page-717"></a>
-## Page 717
-# ISO/IEC 1989:2023 (E)
 
 
 NOTE 5 If an augment value is less than 0, the induction variable is actually decremented by the absolute value of the augment value.
@@ -30060,10 +26547,6 @@ c) If the TEST AFTER phrase is specified, and there is one or more AFTER phrase,
    NOTE 6 After successful execution of the PERFORM statement, all induction variables contain the values they had at the completion of the last execution of the specified set of statements.
 
 d) If the TEST AFTER phrase is not specified and there is no AFTER phrase, condition-1 is evaluated, and if it is true, control is transferred to the end of the PERFORM statement. If it is false, the specified set of statements is executed. Then, the induction variable is incremented by the augment value, and condition-1 is evaluated again. When control is passed to the end of the PERFORM statement, the induction variable contains the value it contained when condition-1 was evaluated.
-
-<a id="page-718"></a>
-## Page 718
-# ISO/IEC 1989:2023 (E)
 
 
 e) If the TEST AFTER phrase is not specified, and there is one or more AFTER phrase, the following occurs:
@@ -30102,10 +26585,6 @@ e) If the TEST AFTER phrase is not specified, and there is one or more AFTER phr
 
 NOTE 7 After successful execution of the PERFORM statement, all induction variables contain the values they had at the completion of the last evaluation of condition-1. With the exception of the induction variable associated with condition-1, these values are the same as they were at the last execution of the specified set of statements, or are their associated initialization values if no statements were executed. If no statements were executed, the induction variable associated with condition-1 contains its associated initialization value; otherwise, the induction variable associated with condition-1 contains the value it contained after the last execution of the specified set of statements, incremented by the augment value.
 
-<a id="page-719"></a>
-## Page 719
-**ISO/IEC 1989:2023 (E)**
-
 
 During the execution of the specified set of statements associated with the PERFORM statement, all changes to the induction variable, the variables associated with the augment value, and the variables associated with the initialization value have immediate effect and all subsequent references to the associated data items use the updated contents.
 
@@ -30121,12 +26600,6 @@ FORMAT 3
 
 18) If during the execution of imperative-statement-1 any exception condition that is not associated with any exception condition specified in a WHEN phrase is raised and there is a WHEN OTHER phrase, imperative-statement-3 is executed. At the completion of the execution of imperative-statement-3, control is passed to the end of the PERFORM statement or, if WHEN COMMON is specified, to imperative-statement-4. At the completion of the execution of imperative-statement-3, control is passed as indicated in General rule 14.9.29 or, if WHEN COMMON is specified, to imperative-statement-4. Any USE declarative that would normally match the exception condition is ignored.
 
-
-
-<a id="page-720"></a>
-## Page 720
-
-# ISO/IEC 1989:2023 (E)
 
 19) If WHEN COMMON is specified, imperative-statement-4 is executed. At the completion of the execution of imperative-statement-4, control is passed as indicated in General rule 20.
 
@@ -30145,11 +26618,6 @@ NOTE 9    If control is transferred outside of the PERFORM during WHEN processin
 
 ---
 
-
-<a id="page-721"></a>
-## Page 721
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-29"></a>
 #### 14.9.29 RAISE statement
@@ -30195,11 +26663,6 @@ The RAISE statement causes a specified exception condition to be raised.
 
 ---
 
-
-<a id="page-722"></a>
-## Page 722
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-30"></a>
 #### 14.9.30 READ statement
@@ -30269,11 +26732,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 ---
 
 
-<a id="page-723"></a>
-## Page 723
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-30-3"></a>
 ##### 14.9.30.3 Syntax rules
 
@@ -30315,11 +26773,6 @@ FORMAT 2
 ---
 
 
-<a id="page-724"></a>
-## Page 724
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-30-4"></a>
 ##### 14.9.30.4 General rules
 
@@ -30347,11 +26800,6 @@ ALL FORMATS
 
 8) If record locking is enabled for the file connector referenced by file-name-1 and the record identified for access by the general rules for the READ statement is locked by that file connector, the record lock is ignored and the READ operation proceeds as if the record were not locked.
 
-
-<a id="page-725"></a>
-## Page 725
-
-# ISO/IEC 1989:2023 (E)
 
 9) If record locking is enabled for the file connector referenced by file-name-1 and the record identified for access is locked by another file connector, the result of the operation depends on the presence or absence of the RETRY phrase. If the RETRY phrase is specified, additional attempts may be made to read the record as specified in the rules in 14.7.9, RETRY phrase. If the RETRY phrase is not specified or the record is not successfully accessed as specified by the RETRY phrase, the record operation conflict condition exists. The I-O status is set in accordance with the rules for the RETRY phrase.
 
@@ -30385,10 +26833,6 @@ ALL FORMATS
 
    b) If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to the rules in 9.1.12, Input-output exception processing. If the exception condition is not a fatal exception condition, control is then transferred to the end of the READ statement.:
 
-<a id="page-726"></a>
-## Page 726
-# ISO/IEC 1989:2023 (E)
-
 
 c) If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement, or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2. If control is returned from imperative-statement-2, control is then transferred to the end of the READ statement.
 
@@ -30413,11 +26857,6 @@ NOTE 3 One or more subsequent READ statements can be used to read the rest of th
 
 ---
 
-
-<a id="page-727"></a>
-## Page 727
-
-# ISO/IEC 1989:2023 (E)
 
 FORMAT 1
 
@@ -30448,11 +26887,6 @@ d) If the previous operation on the file was a successful OPEN or START statemen
 e) If the previous operation on the file was a successful READ statement and the current key of reference is not an alternate key that allows duplicates, the first existing record to be made available is either:
 
 
-<a id="page-728"></a>
-## Page 728
-
-# ISO/IEC 1989:2023 (E)
-
 1. If NEXT is specified or implied, the record to be made available is the first existing record in the physical file whose key value is greater than or equal to the key value in the file position indicator.
 
 2. If PREVIOUS is specified, the first existing record in the physical file whose key value is less than or equal to the key value in the file position indicator.
@@ -30477,11 +26911,6 @@ b) If the file position indicator was established by a prior successful OPEN or 
 
 c) If the file position indicator was established by a prior successful READ statement, the first existing record in the physical file whose relative key number is greater than the file position indicator if NEXT is specified or implied or is less than the file position indicator if PREVIOUS is specified is selected.
 
-
-<a id="page-729"></a>
-## Page 729
-
-# ISO/IEC 1989:2023 (E)
 
 d) If a record is found according to the above rules, the record is made available in the record area associated with file-name-1 unless the RELATIVE KEY clause is specified for file-name-1 and the number of significant digits in the relative key number of the selected record is larger than the size of the relative key data item. In that case, the I-O status value associated with file-name-1 is set to '14', the at end condition exists, the file position indicator is set to indicate that no next or previous logical record exists, and execution proceeds as specified in General rule 24.
 
@@ -30509,11 +26938,6 @@ NOTE 5 The record made available can have a length of zero.
 
 22) If the ADVANCING ON LOCK phrase is specified on the READ statement of a file open for file sharing and the record to be made available is locked by another file connector, the result of this READ statement is as if the locked record were read and then the same READ statement were executed. If the record to be made available is locked by another file connector, this action is repeated until either an unlocked record is read or the end of the file is encountered if NEXT is specified or implied, or the beginning of file is encountered if PREVIOUS is specified. A record operation conflict condition does not exist. If the end of the file or beginning of the file is encountered, the file position indicator is set to indicate that no next or previous logical record exists and execution proceeds as indicated in General rule 24.
 
-
-<a id="page-730"></a>
-## Page 730
-
-# ISO/IEC 1989:2023 (E)
 
 If the file is not open for file sharing, the ADVANCING ON LOCK phrase is ignored.
 
@@ -30549,11 +26973,6 @@ b) the PREVIOUS phrase is specified and the alternate record key in the record t
 ---
 
 
-<a id="page-731"></a>
-## Page 731
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE 7 If the sharing mode of the file is sharing with all other, I-O status value '02' on a sequential read cannot be relied on for a subsequent sequential read. The record with a duplicate key might have been deleted through another file connector between the return of I-O status value '02' and the execution of the subsequent READ statement.
 
 NOTE 8 If the sharing mode of the file is sharing with all other, the lack of an I-O status value '02' on a sequential read cannot be relied on as an indication that no duplicate key will exist at the time of a subsequent sequential read. A record with a duplicate key might have been added through another file connector before the execution of that subsequent READ statement.
@@ -30570,12 +26989,6 @@ FORMAT 2
 
 32) For an indexed file accessed through a given file connector, execution of a READ statement sets the file position indicator to the value in the key of reference. This value is compared with the value contained in the corresponding data item of the stored records in the file until the first record having an equal value is found. In the case of an alternate key with duplicate values, the first record found is the first record in a sequence of duplicates that was released to the operating environment. The record so found is made available in the record area associated with file-name-1. If no record is so identified, the invalid key condition exists and execution of the READ statement is unsuccessful. (See 9.1.14, Invalid key condition.)
 
-
-
-<a id="page-732"></a>
-## Page 732
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-31"></a>
 #### 14.9.31 RECEIVE statement
@@ -30624,10 +27037,6 @@ The RECEIVE statement receives a message from a requestor or a message server ru
 
    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the message sent by that SEND statement. If the content of the message tag does not identify a requestor or is not a correct format for the MCS, the RECEIVE statement is unsuccessful and the EC-MCS-INVALID-TAG exception condition is set to exist. If the content of the message tag specifies a requestor that does not exist, the RECEIVE statement is unsuccessful and the EC-MCS-REQUESTOR-FAILED exception condition is set to exist.
 
-<a id="page-733"></a>
-## Page 733
-# ISO/IEC 1989:2023 (E)
-
 
 NOTE    The failed exception condition can happen if the requestor run unit aborted for some reason or if it didn't send any message or other reasons.
 
@@ -30652,10 +27061,6 @@ NOTE    The failed exception condition can happen if the requestor run unit abor
 
 ---
 
-<a id="page-734"></a>
-## Page 734
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-32"></a>
 #### 14.9.32 RELEASE statement
@@ -30704,10 +27109,6 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
       or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement.
 
-<a id="page-735"></a>
-## Page 735
-**ISO/IEC 1989:2023 (E)**
-
 
 b) The same RELEASE statement without the FROM phrase.
 
@@ -30717,12 +27118,6 @@ NOTE 14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, 
 
 6) If the number of bytes to be released to the sort operation is greater than the number of bytes in record-name-1, the content of the bytes that extend beyond the end of record-name-1 are undefined.
 
-
-
-<a id="page-736"></a>
-## Page 736
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-33"></a>
 #### 14.9.33 RESUME statement
@@ -30768,11 +27163,6 @@ The RESUME statement transfers control to a procedure-name or to the statement f
 ---
 
 
-<a id="page-737"></a>
-## Page 737
-
-# ISO/IEC 1989:2023 (E)
-
 3. If the statement is contained in other statements, the applicable statement is the lowest level statement, not the containing statement.
 
 b) If the declarative was not executed because of an exception condition but was executed instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating procedure referenced in that PERFORM statement.
@@ -30788,11 +27178,6 @@ NOTE 2 Use of this method of recovery can cause the flow of control for PERFORM 
 
 ---
 
-
-<a id="page-738"></a>
-## Page 738
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-34"></a>
 #### 14.9.34 RETURN statement
@@ -30835,10 +27220,6 @@ AT <u>END</u> imperative-statement-1
 
 3) The execution of the RETURN statement causes the next existing record in the file referenced by file-name-1, as determined by the keys listed in the SORT or MERGE statement, to be made available in the record area associated with file-name-1. If no next logical record exists in the file referenced by file-name-1, the at end condition is set to exist and control is transferred to imperative-statement-1 of the AT END phrase. If control is returned from imperative-statement-1, control is then transferred to the end of the RETURN statement. When the at end condition exists, execution of the RETURN statement is unsuccessful and the contents of the record area associated with file-name-1 are undefined. After the execution of imperative-statement-1 in the AT END phrase, no RETURN statement may be executed as part of the current output procedure. If such a RETURN statement is executed, the EC-SORT-MERGE-RETURN exception condition is set to exist and the results of the execution of the RETURN statement are undefined.
 
-<a id="page-739"></a>
-## Page 739
-**ISO/IEC 1989:2023 (E)**
-
 
 4) If an at end condition does not exist during the execution of a RETURN statement, then after the record is made available and after executing any implicit move resulting from the presence of an INTO phrase, control is transferred to imperative-statement-2, if specified; otherwise, control is transferred to the end of the RETURN statement.
 
@@ -30850,12 +27231,6 @@ AT <u>END</u> imperative-statement-1
 
    NOTE 14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which the storage area identified by identifier-1 and the record area associated with file-name-1 share any part of their storage areas. The result of execution of the RETURN statement is undefined if the result of execution of the implicit MOVE statement described in General rule 4b is undefined.
 
-
-
-<a id="page-740"></a>
-## Page 740
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-35"></a>
 #### 14.9.35 REWRITE statement
@@ -30911,12 +27286,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 ---
 
 
-
-<a id="page-741"></a>
-## Page 741
-
-**ISO/IEC 1989:2023 (E)**
-
 a) subscripting and reference modification in identifier-1 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is not specified; and
 
 b) it is aligned on a byte boundary.
@@ -30953,10 +27322,6 @@ NOTE 1 Logical records in relative and sequential files can have a length of zer
 
 ---
 
-<a id="page-742"></a>
-## Page 742
-
-# ISO/IEC 1989:2023 (E)
 
 6) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available as a record of other file-names referenced in the same SAME RECORD AREA clause as file-name-1 or the file-name associated with record-name-1, as well as the file associated with record-name-1.
 
@@ -30996,10 +27361,6 @@ NOTE 1 Logical records in relative and sequential files can have a length of zer
 
    a) when identifier-1 references an intrinsic function, as though implicit-record-1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as the returned value of the intrinsic function, or b) when identifier‑1 does not reference an intrinsic function, as though implicit‑record‑1 were a record description entry subordinate to the file description entry having the same description as identifier‑1, or c) when literal‑1 is specified, as though implicit‑record‑1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as literal‑1.
 
-<a id="page-743"></a>
-## Page 743
-**ISO/IEC 1989:2023 (E)**
-
 
 NOTE 3 14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which the storage area identified by identifier‑1 and the record area associated with implicit‑record‑1 share any part of their storage areas. The result of execution of the REWRITE statement is undefined if the result of execution of the implicit MOVE statement is undefined.
 
@@ -31023,12 +27384,6 @@ a) If single record locking is specified for the rewrite file connector:
 
 b) If multiple record locking is specified for the rewrite file connector, and a record lock is associated with the record to be logically replaced, that record lock is released at completion only when the WITH NO LOCK phrase is specified and the record to be logically replaced was already locked by that file connector.
 
-
-
-<a id="page-744"></a>
-## Page 744
-
-# ISO/IEC 1989:2023 (E)
 
 c) If the WITH LOCK phrase is specified, the record lock associated with the record to be replaced is set at completion.
 
@@ -31056,11 +27411,6 @@ c) If the number of bytes in the data item referenced by identifier-1, the runti
 ---
 
 
-<a id="page-745"></a>
-## Page 745
-
-**ISO/IEC 1989:2023 (E)**
-
 d) If the record area contains one or more characters that are not in the implementor-defined character set defined for a line sequential file the execution of the REWRITE statement is unsuccessful and the I-O status in the rewrite file connector is set to '71'. (9.1.13, I-O status)
 
 RELATIVE AND INDEXED FILES
@@ -31085,12 +27435,6 @@ INDEXED FILES
 
 a) When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged.
 
-
-
-<a id="page-746"></a>
-## Page 746
-
-# ISO/IEC 1989:2023 (E)
 
 b) When the value of a specific alternate record key is changed, the subsequent order of retrieval of that record may be changed when that specific alternate record key is the key of reference. When duplicate key values are permitted, the record is logically positioned last within the set of duplicate records where the alternate record key value is equal to the same alternate key value in one or more records in the file based on the collating sequence for the file.
 
@@ -31118,21 +27462,12 @@ b) When the rewrite file connector is open in the dynamic or random access mode 
 
 c) When an alternate record key of the record to be replaced does not allow duplicates and the value of that alternate record key is equal to the value of the corresponding alternate record key of a record in that physical file, the I-O status associated with the rewrite file connector is set to '22'.
 
-<a id="page-747"></a>
-## Page 747
-**ISO/IEC 1989:2023 (E)**
-
 
 When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, and the content of the record area is unaffected.
 
 
 ---
 
-
-<a id="page-748"></a>
-## Page 748
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-36"></a>
 #### 14.9.36 ROLLBACK statement
@@ -31178,18 +27513,8 @@ The ROLLBACK statement reverses all changes made to the files and data-items exp
 ---
 
 
-<a id="page-749"></a>
-## Page 749
-
-**ISO/IEC 1989:2023 (E)**
-
 7) After a rollback, execution continues with the next logical statement (see 14.6.3, Explicit and implicit transfers of control).
 
-
-<a id="page-750"></a>
-## Page 750
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-37"></a>
 #### 14.9.37 SEARCH statement
@@ -31257,12 +27582,6 @@ NOTE 2 NEXT SENTENCE is an archaic feature. For details see F.1, Archaic languag
 ---
 
 
-
-<a id="page-751"></a>
-## Page 751
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-14-9-37-3"></a>
@@ -31304,11 +27623,6 @@ FORMAT 2
 ---
 
 
-<a id="page-752"></a>
-## Page 752
-
-**ISO/IEC 1989:2023 (E)**
-
 13) Neither literal-1 nor literal-2 shall be zero-length literals.
 
 <a id="section-14-9-37-4"></a>
@@ -31328,11 +27642,6 @@ ALL FORMATS
 
       2. If the AT END phrase is not specified and either the EC-RANGE-SEARCH-INDEX or EC-RANGE-SEARCH-NO-MATCH exception condition was raised during the execution of the SEARCH statement and an applicable exception processing statement associated with that exception condition exists, control is transferred according to the rules for that statement, and if control is returned from that statement, control is transferred to the end of the SEARCH statement.
 
-
-<a id="page-753"></a>
-## Page 753
-
-**ISO/IEC 1989:2023 (E)**
 
 3. If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement.
 
@@ -31359,10 +27668,6 @@ c) If the VARYING index-name-1 phrase is specified, the search index depends on 
 Only the data item and indexes indicated are varied by the search operation. All other indexes associated with identifier-1 are unchanged by the search operation.
 
 4) The search operation is serial, starting from the occurrence number that corresponds to the value of the search index at the beginning of the execution of the SEARCH statement. If, at the start of the execution, the search index contains a value that corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number for identifier-1, the search operation is unsuccessful, the EC-RANGE-SEARCH-INDEX exception condition is set to exist, and execution proceeds as indicated in General rule 1b. The number of occurrences of identifier-1, the last of which is permissible, is specified in the OCCURS clause. If, at the start of the execution of the SEARCH statement, the search index contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1, the search operation proceeds by evaluating the conditions in the order they are written. If none of the conditions is satisfied, the search index is incremented by one occurrence number. The process is then repeated using the new index setting unless the new value for the search index corresponds to a table element outside the permissible range of occurrence values, in which case the search operation is unsuccessful, the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist, and execution proceeds as indicated in General rule 1b. If one of the conditions is satisfied upon its evaluation, the search operation is successful and the execution proceeds as indicated in General rule 1a.
-
-<a id="page-754"></a>
-## Page 754
-# ISO/IEC 1989:2023 (E)
 
 
 FORMAT 2
@@ -31395,18 +27700,8 @@ FORMAT 2
 ---
 
 
-<a id="page-755"></a>
-## Page 755
-
-**ISO/IEC 1989:2023 (E)**
-
 9) A non serial type of search operation may take place. The initial setting of the search index is ignored. Its setting is varied during the search operation in a manner specified by the implementor. At no time is it set to a value that exceeds the value that corresponds to the last element of the table or is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. If any of the conditions specified in the WHEN phrase is not satisfied for any setting of the search index within the permitted range, the final setting of the search index is undefined, the search operation is unsuccessful, the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist, and execution proceeds as indicated in General rule 1b. If all the conditions are satisfied, the search operation is successful and execution proceeds as indicated in General rule 1a.
 
-
-<a id="page-756"></a>
-## Page 756
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-38"></a>
 #### 14.9.38 SEND statement
@@ -31467,11 +27762,6 @@ Format 2 (message-server-response)
 ---
 
 
-<a id="page-757"></a>
-## Page 757
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE The normal case would be to define identifier-1 as an 01 level item whose data description is exactly that in the message server.
 
 4) Data-name-1 and data-name-2 shall be the name of a message-tag data item.
@@ -31504,12 +27794,6 @@ FORMAT 1
 4) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional data is not included in the message moved to the data item in the receiving run unit. The statement suspends execution until the message is received by the server run unit. The server run unit does not necessarily have to respond to the message.
 
 
-
-<a id="page-758"></a>
-## Page 758
-
-# ISO/IEC 1989:2023 (E)
-
 5) Message-server-name-1 or literal-1 identify a message server run unit. If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist, and the execution of the SEND statement is unsuccessful.
 
 6) If the execution of the SEND statement is successful, data-name-1 contains the implementor-defined information (the message tag) that identifies the server run unit and the message sent.
@@ -31523,11 +27807,6 @@ FORMAT 2
 
 ---
 
-
-<a id="page-759"></a>
-## Page 759
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-14-9-39"></a>
 #### 14.9.39 SET statement
@@ -31592,10 +27871,6 @@ Format 3 (switch-setting):
 
 ---
 
-<a id="page-760"></a>
-## Page 760
-
-# ISO/IEC 1989:2023 (E)
 
 Format 4 (condition-setting):
 
@@ -31658,10 +27933,6 @@ Format 9 (program-pointer-assignment):
 </pre>
 Format 10 (data-pointer-arithmetic):
 
-<a id="page-761"></a>
-## Page 761
-**ISO/IEC 1989:2023 (E)**
-
 
 <pre>
                        ╭ <u>UP</u>   ╮
@@ -31721,12 +27992,6 @@ Format 14 (dynamic-capacity-table):
 
 > **Figure notes (SET statement Format 14 (dynamic-capacity-table) syntax diagram).** `SET`, `UP`, `BY` (both occurrences), `DOWN`, and `TO` are underlined in the printed standard (required words); `data-name-2` is an operand. `BY` belongs to the `UP` and `DOWN` alternatives only — the `TO` alternative stands alone. Both brace groups are plain alternations: exactly one alternative from each shall be specified. No choice indicators appear in this figure.
 
-
-
-<a id="page-762"></a>
-## Page 762
-
-# ISO/IEC 1989:2023 (E)
 
 Format 15 (numeric-content):
 
@@ -31795,11 +28060,6 @@ FORMAT 1
 ---
 
 
-<a id="page-763"></a>
-## Page 763
-
-**ISO/IEC 1989:2023 (E)**
-
 FORMAT 3
 
 5) Mnemonic-name-1 shall be associated with an external switch, the status of which may be altered. The implementor defines which external switches may be referenced by the SET statement.
@@ -31839,12 +28099,6 @@ d) the predefined object reference SELF, subject to the following rules:
 2. if the SET statement is contained in a method within the instance definition of the class, that instance definition shall be described with an IMPLEMENTS clause that references int-1;
 
 
-
-<a id="page-764"></a>
-## Page 764
-
-# ISO/IEC 1989:2023 (E)
-
 e) the predefined object reference NULL.
 
 11) If object-class-name-1 is specified and the data item referenced by identifier-3 is described with an interface-name that identifies the interface int-1, the factory object of object-class-name-1 shall be described with an IMPLEMENTS clause that references int-1.
@@ -31877,11 +28131,6 @@ c) the predefined object reference SELF, subject to the following rules:
 
 4. if the data item referenced by identifier-3 is described with a FACTORY phrase, the method containing the SET statement shall be defined in the factory definition of its containing class;
 
-
-<a id="page-765"></a>
-## Page 765
-
-**ISO/IEC 1989:2023 (E)**
 
 d) the predefined object reference NULL.
 
@@ -31917,12 +28166,6 @@ FORMAT 7
 
 19) If identifier-5 references a restricted data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer restricted to the same type. If data-name-1 is a strongly-typed group item or a restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of data-name-1.
 
-
-
-<a id="page-766"></a>
-## Page 766
-
-**ISO/IEC 1989:2023 (E)**
 
 If identifier-6 references a restricted data-pointer, either identifier-5 shall reference a data-pointer restricted to the same type or data-name-1 shall be a typed item of the type to which identifier-6 is restricted.
 
@@ -31960,12 +28203,6 @@ FORMAT 14
 
 30) Integer-1 shall be nonnegative and, if TO is specified, integer-1 shall be not less than the minimum capacity defined in the corresponding OCCURS clause and not greater than the expected capacity, if specified.
 
-
-
-<a id="page-767"></a>
-## Page 767
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 15
 
@@ -32007,12 +28244,6 @@ a. If the value of arithmetic-expression-1 does not result in an integer, and
 —the EC-BOUND-SUBSCRIPT exception condition is set to exist, and
 
 
-
-<a id="page-768"></a>
-## Page 768
-
-# ISO/IEC 1989:2023 (E)
-
 —the execution of the SET statement is unsuccessful and
 
 —the content of the receiving operand is unchanged.
@@ -32052,11 +28283,6 @@ b. Otherwise, if the value that corresponds to the occurrence number of the tabl
 —the content of the receiving operand is unchanged.
 
 
-<a id="page-769"></a>
-## Page 769
-
-**ISO/IEC 1989:2023 (E)**
-
 c. Otherwise, index-name-1 is set to a value causing it to refer to the table element that would correspond in occurrence number to the occurrence number of the table associated with index-name-2, even if that occurrence is not a valid occurrence within this table.
 
 b) If identifier-1 references an index data item, the content of index-name-2 or of the data item referenced by identifier-2 is placed in the index referenced by index-name-1 unchanged.
@@ -32090,12 +28316,6 @@ FORMAT 3
 5) The status of each external switch associated with the specified mnemonic-name-1 is modified such that the truth value resultant from evaluation of a condition-name associated with that switch will reflect an on status if the ON phrase is specified, or an off status if the OFF phrase is specified. (See 8.8.4.6, Simple switch-status condition.)
 
 
-
-<a id="page-770"></a>
-## Page 770
-
-# ISO/IEC 1989:2023 (E)
-
 FORMAT 4
 
 6) If the TRUE phrase is specified, the literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules for the VALUE clause, except that when the conditional variable is an alphanumeric group item, bit group item, or national group item to which a table is subordinate, its length is determined as specified in 13.18.38, OCCURS clause. If the length of the conditional variable is zero, the SET statement leaves it unchanged. If more than one literal is specified in the VALUE clause, the conditional variable is set to the value of the first literal that appears in the VALUE clause.
@@ -32123,10 +28343,6 @@ FORMAT 7
 FORMAT 8
 
 14) The address identified by identifier-13 is stored in each data item referenced by identifier-12 in the order specified. Item identification of the data item referenced by identifier-12 is done immediately before the value of that data item is changed. If the address identified by identifier-13 is neither the predefined address NULL nor the address of a function defined with the same signature as the function referenced in the definition of identifier-13, the EC-FUNCTION-PTR-INVALID exception condition is set to exist, no data items are changed, and the execution of the SET statement is terminated.
-
-<a id="page-771"></a>
-## Page 771
-**ISO/IEC 1989:2023 (E)**
 
 
 15) The effect of the SET statement on the function whose address is being stored in the function-pointer is implementor-defined.
@@ -32157,12 +28373,6 @@ FORMAT 11
 
     a) If locale-name-1 or identifier-10 is specified in the TO phrase, the current runtime locale for the specified category is set to that category in the saved locale identified by locale-name-1 or by the content of the data item referenced by identifier-10, respectively.
 
-
-
-<a id="page-772"></a>
-## Page 772
-
-# ISO/IEC 1989:2023 (E)
 
 b) If USER-DEFAULT is specified in the TO phrase, the current runtime locale for the specified category is set to that category in the user default locale.
 
@@ -32199,10 +28409,6 @@ If the new capacity of the table exceeds the implementor's maximum capacity for 
 
 ---
 
-<a id="page-773"></a>
-## Page 773
-
-**ISO/IEC 1989:2023 (E)**
 
 If the new capacity of the table is less than the minimum capacity defined in the corresponding OCCURS clause, the new capacity of the table shall be the minimum capacity. In all other cases, the new capacity of the table shall become the current capacity.
 
@@ -32231,12 +28437,6 @@ c) If the SIGN phrase is specified, the sign of the content of identifier‑14 i
 36) If NEAREST-TO-ZERO Is specified, the content of identifier‑14 is set as follows:
 
 
-
-<a id="page-774"></a>
-## Page 774
-
-# ISO/IEC 1989:2023 (E)
-
 a) If the IN-ARITHMETIC-RANGE phrase is not specified, the content is set to the nonzero value nearest to zero permitted by the specifications of identifier-14.
 
 NOTE 2 The resulting content of identifier-14 might not be within the range of values permitted for the mode of arithmetic in effect.
@@ -32259,11 +28459,6 @@ FORMAT 17
 
 41) If NULL is specified, the content of data-name-5 shall be set to that of the null value.
 
-
-<a id="page-775"></a>
-## Page 775
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-40"></a>
 #### 14.9.40 SORT statement
@@ -32306,12 +28501,6 @@ Format 1 (file):
 
 > **Figure notes (SORT Format 1).** Inside the COLLATING SEQUENCE bracket, the second alternative is a BRACE WITH CHOICE INDICATORS (`⎧|` … `|⎫`). Per 5.2.6.4, that means one or more of the enclosed alternatives shall be specified, each at most once, in any order — so `FOR ALPHANUMERIC IS alphabet-name-1` and `FOR NATIONAL IS alphabet-name-2` may BOTH appear, in either order. It is NOT a select-exactly-one brace. The enclosing brace offers a choice between that bar-group and the single-line form `IS alphabet-name-1 [ alphabet-name-2 ]`, and the whole COLLATING SEQUENCE clause is optional (outer brackets). The THROUGH/THRU bracket applies only to the `INPUT PROCEDURE IS procedure-name-1` (resp. `OUTPUT PROCEDURE IS procedure-name-3`) alternative, never to the USING/GIVING alternative. Required words (underlined in the printed figure): SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL, INPUT, PROCEDURE, USING, THROUGH, THRU, OUTPUT, GIVING.
 
-
-
-<a id="page-776"></a>
-## Page 776
-
-# ISO/IEC 1989:2023 (E)
 
 Format 2 (table):
 
@@ -32357,11 +28546,6 @@ FORMAT 1
    d) A key data item shall not be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item or an item subordinate to a dynamic-capacity table.
 
 
-<a id="page-777"></a>
-## Page 777
-
-**ISO/IEC 1989:2023 (E)**
-
 e) If file-name-1 has more than one record description, then the data items identified by key data-names need be described in only one of the record descriptions. The same byte positions that are referenced by a key data-name in one record description entry are taken as the key in all records of the file.
 
 f) None of the data items identified by key data-names may be described by an entry that either contains an OCCURS clause or is subordinate to an entry that contains an OCCURS clause.
@@ -32395,12 +28579,6 @@ c) Key data items shall not be of class boolean, object, or pointer.
 d) A key data item shall not reference a variable-length group or an occurs-depending group item.
 
 
-
-<a id="page-778"></a>
-## Page 778
-
-# ISO/IEC 1989:2023 (E)
-
 e) If the data item identified by a key data-name is subordinate to data-name-2, it shall not be described with an OCCURS clause, and it shall not be subordinate to an entry that is also subordinate to data-name-2 and contains an OCCURS clause.
 
 15) The KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY phrase.
@@ -32431,11 +28609,6 @@ ALL FORMATS
    b) Second, the collating sequences established as the program collating sequences.
 
 
-<a id="page-779"></a>
-## Page 779
-
-**ISO/IEC 1989:2023 (E)**
-
 6) Additional rules affecting the execution of the SORT statement are given in 12.4.5, File control entry, General rules 3 and 4.
 
 FORMAT 1
@@ -32461,12 +28634,6 @@ FORMAT 1
    a) Records are made available to the file referenced by file-name-1. If INPUT PROCEDURE is specified, the execution of RELEASE statements in the input procedure makes the records available. If USING is specified, implicit READ and RELEASE statements make the records available. If the file referenced by file-name-2 is in an open mode when this phase commences, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the results of the execution of the SORT statement are undefined. When this phase terminates, the file referenced by file-name-2 is not in an open mode.
 
 
-
-<a id="page-780"></a>
-## Page 780
-
-# ISO/IEC 1989:2023 (E)
-
 b) The file referenced by file-name-1 is sequenced. No processing of the files referenced by file-name-2 and file-name-3 takes place during this phase.
 
 c) The records of the file referenced by file-name-1 are made available in sorted order. The sorted records are either written to the file referenced by file-name-3 or, by the execution of a RETURN statement, are made available for processing by the output procedure. If the file referenced by file-name-3 is in an open mode when this phase commences, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the results of the execution of the SORT statement are undefined. When this phase terminates, the file referenced by file-name-3 is not in the open mode.
@@ -32480,10 +28647,6 @@ c) The records of the file referenced by file-name-1 are made available in sorte
 a) The processing of the file is initiated. If the file-control entry for the file has a SHARING clause with the ALL phrase, the initiation is performed as if an OPEN statement with the INPUT phrase and the SHARING WITH READ ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN statement with the INPUT phrase and without a SHARING phrase is executed. The absence of the SHARING phrase means that the sharing mode is completely determined by the SHARING clause, if any, in the file control entry for the file connector referenced by file-name-2. If a nonfatal exception condition exists as a result of the execution of the implicit OPEN statement and there is an applicable USE procedure that completes normally or if there is no applicable USE procedure, the SORT statement continues as if the exception condition did not exist.
 
 b) The logical records are obtained and released to the sort operation. Each record is obtained as if a READ statement with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed. When the at end condition exists for file-name-1, the processing for that file connector is terminated. If the file referenced by file-name-1 is described with variable-length records, the size of any record released to file-name-1 is the size of that record when it was read from file-name-2, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1. If the size of the record read from the file referenced by file-name-2 is larger than the largest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is terminated. If file-name-1 is specified with variable-length records and the size of the record read from the file referenced by file-name-2 is smaller than the smallest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is terminated. If a fatal exception condition exists for file-name-1, the SORT is terminated.
-
-<a id="page-781"></a>
-## Page 781
-# ISO/IEC 1989:2023 (E)
 
 
 c) The processing of file-name-1 is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. This termination is performed before the file referenced by file-name-1 is sequenced by the SORT statement. For a relative file, the content of the relative key data item associated with file-name-2 is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase.
@@ -32505,10 +28668,6 @@ a) The processing of the file is initiated. The initiation is performed as if an
 
 ---
 
-<a id="page-782"></a>
-## Page 782
-
-# ISO/IEC 1989:2023 (E)
 
 b) The sorted logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-3 is described with variable-length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.
 
@@ -32534,11 +28693,6 @@ The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS 
 ---
 
 
-<a id="page-783"></a>
-## Page 783
-
-**ISO/IEC 1989:2023 (E)**
-
 17) If a USE procedure invoked while a format 1 SORT statement is active does not complete normally, the SORT statement is terminated.
 
 FORMAT 2
@@ -32563,11 +28717,6 @@ c) If the contents of the corresponding key data items are equal, the determinat
 
 24) The sorted table elements of the table referenced by data-name-2 are placed in the table referenced by data-name-2.
 
-
-<a id="page-784"></a>
-## Page 784
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-41"></a>
 #### 14.9.41 START statement
@@ -32625,11 +28774,6 @@ The START statement provides a basis for logical positioning within a file, for 
 ---
 
 
-<a id="page-785"></a>
-## Page 785
-
-**ISO/IEC 1989:2023 (E)**
-
 2. It has the same class, category, and usage as that record key.
 
 3. Its length is not greater than the length of that record key.
@@ -32664,11 +28808,6 @@ RELATIVE FILES
 a) If the relational operator is EQUAL, GREATER, NOT LESS, or GREATER OR EQUAL, the file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison searching the file sequentially.
 
 
-<a id="page-786"></a>
-## Page 786
-
-**ISO/IEC 1989:2023 (E)**
-
 b) If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, the file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison searching the file in reverse order.
 
 c) If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.
@@ -32701,11 +28840,6 @@ b) The length of this temporary area is considered to be the length specified in
 ---
 
 
-<a id="page-787"></a>
-## Page 787
-
-# ISO/IEC 1989:2023 (E)
-
 c) If the relational operator is EQUAL, GREATER, NOT LESS, or GREATER OR EQUAL, the file is searched sequentially with the key of reference being extracted from each record in turn into another temporary area. This second temporary area is truncated to the same length as the first.
 
 d) If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, the file is searched in reverse order with the key of reference being extracted from each record in turn into another temporary area. This second temporary area is truncated to the same length as the first.
@@ -32726,11 +28860,6 @@ SEQUENTIAL FILES
 
 21) If LAST is specified, the file position indicator is set to the record number of the last existing logical record in the physical file. If no records exist in the file, or the physical file does not support the ability to position at the last record, the I-O status value in the file connector referenced by file-name-1 is set to '23', the invalid key condition exists, and the execution of the START statement is unsuccessful.
 
-
-<a id="page-788"></a>
-## Page 788
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-42"></a>
 #### 14.9.42 STOP statement
@@ -32777,11 +28906,6 @@ The STOP statement causes termination of the execution of the run unit.
 
 6) Execution of the run unit terminates and control is transferred to the operating system.
 
-
-<a id="page-789"></a>
-## Page 789
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-43"></a>
 #### 14.9.43 STRING statement
@@ -32839,11 +28963,6 @@ The STRING statement provides concatenation of the partial or complete contents 
 ---
 
 
-<a id="page-790"></a>
-## Page 790
-
-**ISO/IEC 1989:2023 (E)**
-
 9) The DELIMITED phrase may be omitted only immediately preceding the INTO phrase. If it is omitted, DELIMITED BY SIZE is implied.
 
 10) Literal-1 or the data item referenced by identifier-1 is the sending operand. The data item referenced by identifier-3 is the receiving operand.
@@ -32872,11 +28991,6 @@ The STRING statement provides concatenation of the partial or complete contents 
 ---
 
 
-<a id="page-791"></a>
-## Page 791
-
-**ISO/IEC 1989:2023 (E)**
-
 5) If the POINTER phrase is not specified, the following general rules apply as if the user had specified identifier-4 referencing a data item with an initial value of 1.
 
 6) When characters are transferred to the data item referenced by identifier-3, the moves behave as though the characters were moved one at a time from the source into the character positions of the data item referenced by identifier-3 designated by the value of the data item referenced by identifier-4 (provided the value of the data item referenced by identifier-4 does not exceed the length of the data item referenced by identifier-3), and then the data item referenced by identifier-4 was increased by one prior to the move of the next character or prior to the end of execution of the STRING statement. The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above.
@@ -32902,10 +29016,6 @@ The STRING statement provides concatenation of the partial or complete contents 
 
 ---
 
-<a id="page-792"></a>
-## Page 792
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-44"></a>
 #### 14.9.44 SUBTRACT statement
@@ -32976,12 +29086,6 @@ where rounded-phrase is described in 14.7.4, ROUNDED phrase.
 ---
 
 
-
-<a id="page-793"></a>
-## Page 793
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-14-9-44-3"></a>
@@ -33024,10 +29128,6 @@ FORMAT 3
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement. The result of the subtraction from the value of each data item referenced by identifier-2 is equivalent to the result of the arithmetic expression (identifier-2 – initial-evaluation)
 
-<a id="page-794"></a>
-## Page 794
-# ISO/IEC 1989:2023 (E)
-
 
 where initial-evaluation represents the result of the initial evaluation.
 
@@ -33058,11 +29158,6 @@ where initial-evaluation represents the result of the initial evaluation.
 
 ---
 
-
-<a id="page-795"></a>
-## Page 795
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-45"></a>
 #### 14.9.45 SUPPRESS statement
@@ -33107,10 +29202,6 @@ NOTE    To ensure correct results, a SUPPRESS statement can be executed again on
 
 ---
 
-<a id="page-796"></a>
-## Page 796
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-46"></a>
 #### 14.9.46 TERMINATE statement
@@ -33154,21 +29245,11 @@ The TERMINATE statement completes the processing of the specified reports.
 
 4) The result of executing a TERMINATE statement in which more than one report-name-1 is specified is as though a separate TERMINATE statement had been executed for each report-name-1 in the same order as specified in the statement. If an implicit TERMINATE statement results in the execution of a declarative procedure that executes a RESUME statement with the NEXT STATEMENT phrase, processing resumes at the next implicit TERMINATE statement, if any.
 
-<a id="page-797"></a>
-## Page 797
-**ISO/IEC 1989:2023 (E)**
-
 
 5) If a nonfatal exception condition is raised during the execution of a TERMINATE statement, execution resumes at the next report item, line, or report group, whichever follows in logical order.
 
 6) The TERMINATE statement does not close the file associated with report-name-1.
 
-
-
-<a id="page-798"></a>
-## Page 798
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-47"></a>
 #### 14.9.47 UNLOCK statement
@@ -33206,11 +29287,6 @@ file-name-1 │         │
 
 3) The execution of the UNLOCK statement causes the value of the I-O status of the file connector referenced by file-name-1 to be updated.
 
-
-<a id="page-799"></a>
-## Page 799
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-48"></a>
 #### 14.9.48 UNSTRING statement
@@ -33265,11 +29341,6 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 ---
 
 
-<a id="page-800"></a>
-## Page 800
-
-# ISO/IEC 1989:2023 (E)
-
 8) The data item referenced by identifier-1 is the sending operand.
 
 9) The data item referenced by identifier-4 is the receiving operand for data. The data item referenced by identifier-5 is the receiving operand for delimiters.
@@ -33304,11 +29375,6 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 ---
 
 
-<a id="page-801"></a>
-## Page 801
-
-**ISO/IEC 1989:2023 (E)**
-
 in the sending field is considered to be a single delimiter. No character(s) in the sending field shall be considered a part of more than one delimiter.
 
 Each delimiter is applied to the sending field in the sequence specified in the UNSTRING statement.
@@ -33330,10 +29396,6 @@ e) If the COUNT IN phrase is specified, a value equal to the number of character
 f) If the DELIMITED BY phrase is specified the string of characters is further examined beginning with the first character position to the right of the delimiter. If the DELIMITED BY phrase is not specified the string of characters is further examined beginning with the character position to the right of the last character transferred.
 
 g) After data is transferred to the data item referenced by identifier-**4**, the current receiving area is the data item referenced by the next recurrence of identifier-**4**. The behavior described in General rules 12b through 12f is repeated until either all the characters are exhausted in the data item referenced by identifier-1, or until there are no more receiving areas.
-
-<a id="page-802"></a>
-## Page 802
-# ISO/IEC 1989:2023 (E)
 
 
 12) The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user.
@@ -33363,19 +29425,8 @@ g) After data is transferred to the data item referenced by identifier-**4**, th
 17) If, at the time of execution of an UNSTRING statement, the conditions described in General rule 15 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is returned from imperative-statement-2, control is then transferred to the end of the UNSTRING statement.
 
 
-<a id="page-803"></a>
-## Page 803
-
-**ISO/IEC 1989:2023 (E)**
-
 18) If identifier-1, identifier-2, or identifier-3, occupies the same storage area as identifier-4, identifier-5, identifier-6, identifier-7, or identifier-8, or if identifier-4, identifier-5, or identifier-6, occupies the same storage area as identifier-7 or identifier-8, or if identifier-7 and identifier-8 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See 14.6.10, Overlapping operands.)
 
-
-
-<a id="page-804"></a>
-## Page 804
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-49"></a>
 #### 14.9.49 USE statement
@@ -33440,12 +29491,6 @@ Format 4 (exception-object):
 ---
 
 
-
-<a id="page-805"></a>
-## Page 805
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-14-9-49-3"></a>
 ##### 14.9.49.3 Syntax rules
 
@@ -33490,10 +29535,6 @@ FORMAT 3
 
 ---
 
-<a id="page-806"></a>
-## Page 806
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 4
 
@@ -33527,11 +29568,6 @@ FORMATS 1, 3, AND 4
    e) All format 3 USE statements in which file-name-2 is not specified and exception-name-1 is a level-3 exception-name are examined. If the exception condition that was raised matches exception-name-1, that declarative is executed. If no qualifying USE statement is found, the USE statements in the source element are examined again.
 
 
-<a id="page-807"></a>
-## Page 807
-
-**ISO/IEC 1989:2023 (E)**
-
 f) All format 3 USE statements in which file-name-**2** is not specified and exception-name-**1** is a level-**2** exception-name are examined. If the exception condition that was raised matches exception-name-**1**, that declarative is executed. If no qualifying USE statement is found, the USE statements in the source element are examined again.
 
 g) Any format 3 USE statements in which file-name-**2** is not specified and exception-name-**1** is a level-**1** exception-name are examined. If the exception condition that was raised matches exception-name-**1**, that declarative is executed. If no qualifying USE statement is found, and a containing source element contains a USE statement with the GLOBAL clause, the search is repeated as specified in General rule 4. If no declarative is identified, no declarative is executed.
@@ -33559,10 +29595,6 @@ FORMAT 1
 
 ---
 
-<a id="page-808"></a>
-## Page 808
-
-# ISO/IEC 1989:2023 (E)
 
 d) If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the I-O mode or in the process of being opened in the I-O mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
 
@@ -33592,11 +29624,6 @@ FORMAT 2
 
 10) If a GENERATE, INITIATE, or TERMINATE statement is executed within the range of a declarative procedure whose USE statement contains the BEFORE REPORTING phrase, the EC-FLOW-REPORT exception condition is set to exist, the result of the execution of the GENERATE, INITIATE, or TERMINATE statement is unsuccessful, and the state of the report is unchanged.
 
-
-<a id="page-809"></a>
-## Page 809
-
-**ISO/IEC 1989:2023 (E)**
 
 FORMAT 3
 
@@ -33629,10 +29656,6 @@ FORMAT 4
 
 ---
 
-<a id="page-810"></a>
-## Page 810
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-50"></a>
 #### 14.9.50 VALIDATE statement
@@ -33676,10 +29699,6 @@ Unlike other obsolete features, it is intended that interest in this facility wi
 
 3) If more than one identifier-1 is specified in a VALIDATE statement, the result of executing this statement is the same as if a separate VALIDATE statement had been written for each identifier-1 in the same order as specified in the statement. If an implicit VALIDATE statement results in the execution of a declarative procedure that executes a RESUME statement with the NEXT STATEMENT phrase, processing resumes at the next implicit VALIDATE statement, if any.
 
-<a id="page-811"></a>
-## Page 811
-**ISO/IEC 1989:2023 (E)**
-
 
 4) The VALIDATE statement is executed in five stages. Each stage is executed for all the elements of the operand before each next stage. Any given stage may be omitted because of the absence of any clause applying to that stage, or because all the elements of the operand failed an earlier stage. The five stages are listed below, together with the clauses that apply to each stage:
 
@@ -33705,12 +29724,6 @@ Unlike other obsolete features, it is intended that interest in this facility wi
 
    The internal indicators for all of the elements of the operand are assigned the initial valid value at the start of the execution of the VALIDATE statement. For any data items that are subsequently not processed by the VALIDATE statement, the internal indicators are set to a unique value signifying not processed.
 
-
-
-<a id="page-812"></a>
-## Page 812
-
-# ISO/IEC 1989:2023 (E)
 
 6) The validation process consists of five stages that are listed in the following paragraphs. If, during the execution of these stages a fatal exception condition other than EC-DATA-INCOMPATIBLE is set to exist, the execution of the VALIDATE statement ceases and control proceeds as defined for fatal exception conditions. The conditions under which the EC-DATA-INCOMPATIBLE exception condition is set to exist during execution of a VALIDATE statement are specified in 14.6.13.2, Incompatible data. If a nonfatal exception condition is raised, it is processed as defined for nonfatal exception conditions, and, upon completion of exception processing, if any, execution continues as if the exception condition had not been set to exist. The stages of validation are as follows:
 
@@ -33745,11 +29758,6 @@ d) Stage Four (relation validation)
 ---
 
 
-<a id="page-813"></a>
-## Page 813
-
-# ISO/IEC 1989:2023 (E)
-
 Any number of INVALID clauses may be present in the same data description entry. If several conditions have been specified, the effect is as though a single INVALID clause had been specified using a condition made by writing each of the original conditions in parentheses joined by the logical connector OR.
 
 If both a group item and a subordinate data item within that group are subject to relation validation, relation validation on the subordinate data item is applied before relation validation on the group item.
@@ -33771,11 +29779,6 @@ b) If the data item referenced by identifier-1 is a group data item and there ar
 c) If any OCCURS clause subordinate to identifier-1 has a DEPENDING phrase, the value of the data item referenced by the DEPENDING phrase is evaluated as soon as the clause is encountered during the format validation stage of the VALIDATE statement. The value obtained establishes, for this and all subsequent stages of processing of the current VALIDATE statement, the number of occurrences of the data item to be processed.
 
 
-<a id="page-814"></a>
-## Page 814
-
-# ISO/IEC 1989:2023 (E)
-
 8) If identifier-1 references, in whole or in part, a record in the file section whose FD entry contains a RECORD clause with the VARYING phrase, identifier-1 shall be processed by the VALIDATE statement as though filled or extended on the right, as applicable, by spaces.
 
 9) The data item referenced by identifier-1 shall not contain or overlap any data item specified in a DESTINATION clause contained in or subordinate to the description of identifier-1.
@@ -33785,11 +29788,6 @@ c) If any OCCURS clause subordinate to identifier-1 has a DEPENDING phrase, the 
 
 ---
 
-
-<a id="page-815"></a>
-## Page 815
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-14-9-51"></a>
 #### 14.9.51 WRITE statement
@@ -33841,11 +29839,6 @@ Format 1 (sequential):
 
 ---
 
-
-<a id="page-816"></a>
-## Page 816
-
-# ISO/IEC 1989:2023 (E)
 
 Format 2 (random):
 
@@ -33900,12 +29893,6 @@ where retry-phrase is described in 14.7.9, RETRY phrase
 ---
 
 
-
-<a id="page-817"></a>
-## Page 817
-
-**ISO/IEC 1989:2023 (E)**
-
 a) subscripting and reference modification in identifier-1 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is not specified; and
 
 b) it is aligned on a byte boundary.
@@ -33944,12 +29931,6 @@ ALL FILES
 1) The execution of a WRITE statement causes the value of the I-O status of the write file connector to be updated to a value given in 9.1.13, I-O status.
 
 
-
-<a id="page-818"></a>
-## Page 818
-
-# ISO/IEC 1989:2023 (E)
-
 2) The file position indicator is not affected by the execution of a WRITE statement.
 
 3) The write file connector is the file connector associated with the write file. If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output. Otherwise, the open mode of the write file connector shall be I-O or output. If the open mode is not as described, the execution of the WRITE statement is unsuccessful and the I-O status for the write file connector is set to '48'.
@@ -33985,12 +29966,6 @@ ALL FILES
 ---
 
 
-
-<a id="page-819"></a>
-## Page 819
-
-**ISO/IEC 1989:2023 (E)**
-
 or
 
 MOVE literal-1 TO implicit-record-1
@@ -34022,12 +29997,6 @@ NOTE 3 Logical records in relative and sequential files can have a length of zer
 13) When record-name-1 is specified, if the number of bytes to be written to the file is greater than the number of bytes in record-name-1, the content of the bytes that extend outside the end of record-name-1 are undefined.
 
 
-
-<a id="page-820"></a>
-## Page 820
-
-# ISO/IEC 1989:2023 (E)
-
 14) The number of bytes in the runtime representation of literal-1, the data item referenced by identifier-1, or the record referenced by record-name-1 after any changes made to the record length by the FORMAT clause shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause associated with file-name-1 or the file-name associated with record-name-1. If this rule is violated, the execution of the WRITE statement is unsuccessful and the I-O status of the write file connector is set to '44'.
 
 15) If the execution of a WRITE statement is unsuccessful, the write operation does not take place, the content of the record area is unaffected, and the I-O status of the write file connector is set to a value indicating the cause of the condition as specified in the following General rules. The transfer of control depends on other clauses and the value of the I-O status as described in 9.1.12, Input-output exception processing, 9.1.13, I-O status and 9.1.14, Invalid key condition.
@@ -34048,11 +30017,6 @@ NOTE 3 Logical records in relative and sequential files can have a length of zer
 
 22) For a line sequential file with a file description entry containing a RECORD clause with the DEPENDING phrase, the record area is, if necessary, filled to the right of the rightmost non-space character with one or more space characters depending on the value of data-name-1. If record-name-1 is specified implicitly or explicitly as alphanumeric, a space is defined to be the alphanumeric space character. If record-name-1 is specified implicitly or explicitly as national, a space is defined to be the national space character.
 
-
-<a id="page-821"></a>
-## Page 821
-
-# ISO/IEC 1989:2023 (E)
 
 23) For a line sequential file, if the record area contains one or more characters that are not in the implementor-defined character set defined for a line sequential file, the execution of the WRITE statement is unsuccessful and the I-O status in the write file connector is set to '71'. (9.1.13, I-O status)
 
@@ -34079,10 +30043,6 @@ NOTE 3 Logical records in relative and sequential files can have a length of zer
 
 ---
 
-<a id="page-822"></a>
-## Page 822
-
-# ISO/IEC 1989:2023 (E)
 
 26) If the LINAGE clause is specified in the file description entry of the associated file, an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body. This occurs when:
 
@@ -34109,11 +30069,6 @@ RELATIVE FILES
 29) The WRITE statement proceeds as follows:
 
 
-<a id="page-823"></a>
-## Page 823
-
-# ISO/IEC 1989:2023 (E)
-
 a) If the access mode of the write file connector is sequential, the successful execution of the WRITE statement causes a record to be released to the operating environment. If the open mode of the write file connector is output, the first record released after the OPEN is 1. If the open mode is extend, the first record released after the OPEN is assigned a record number that is one greater than the highest relative record number existing in the physical file. Subsequent records released have relative record numbers that are ascending ordinal numbers. If the physical file is shared and the open mode is extend, the record numbers are not necessarily consecutive. Otherwise, they are consecutive. If the RELATIVE KEY clause is specified for file-name-1 or the file-name associated with record-name-1, the relative record number of the record being released is moved into the relative key data item by the operating environment during execution of the WRITE statement according to the rules for the MOVE statement. If the maximum numeric value allowed for the relative key data item is exceeded by the relative record number that would be generated by a successful WRITE operation, the WRITE statement is unsuccessful, the invalid key condition exists, and the I-O status for the write file connector is set to '24'.
 
 b) If the access mode of the write file connector is random or dynamic, prior to the execution of the WRITE statement the value of the relative key data item shall be initialized by the runtime element with the relative record number to be associated with the record that is to be written. If there is no record in the physical file with a relative record number that matches the relative key value, the record is released to the operating environment. If a record in the file matches, the execution of the WRITE statement is unsuccessful, the invalid key condition exists, and the I-O status for the write file connector is set to '22'. If the relative key data item contains a value that is less than 1 or greater than the highest relative record number permitted for the file, the execution of the WRITE statement is unsuccessful, and the I O status for the write file connector is set to '34'.
@@ -34131,11 +30086,6 @@ a) When the value of the relative key data item specifies a record that already 
 
 ---
 
-
-<a id="page-824"></a>
-## Page 824
-
-# ISO/IEC 1989:2023 (E)
 
 b) When an attempt is made to write outside the externally defined boundaries of the file, the I-O status associated with the write file connector is set to '24'.
 
@@ -34160,12 +30110,6 @@ INDEXED FILES
 41) For each alternate record key for which alternate record key suppression is specified and for which the value of the ALTERNATE RECORD KEY phrase is equal to the literal specified in that phrase:
 
 
-
-<a id="page-825"></a>
-## Page 825
-
-**ISO/IEC 1989:2023 (E)**
-
 a) the access path to the record using this alternate record key shall not be provided, and
 
 b) the record shall be logically positioned so that it will not be found when accessed using the alternate record key.
@@ -34185,10 +30129,6 @@ d) When the record that is to be released to the operating environment would res
 
 ---
 
-<a id="page-826"></a>
-## Page 826
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15"></a>
 ## 15 Intrinsic functions
@@ -34234,11 +30174,6 @@ Arguments specify values used in the evaluation of a function. Arguments are spe
 ---
 
 
-<a id="page-827"></a>
-## Page 827
-
-**ISO/IEC 1989:2023 (E)**
-
 Arguments may be required to have a certain class or a subset of a certain class, to be a keyword, a type declaration, or a mnemonic-name. The types of argument are:
 
 1) Alphabetic. An elementary data item of the class alphabetic or an alphanumeric literal containing only alphabetic characters shall be specified. The size associated with the argument may be used in determining the value of the function.
@@ -34268,12 +30203,6 @@ Arguments may be required to have a certain class or a subset of a certain class
 13) Pointer. A data item of class pointer shall be specified. The size associated with the argument may be used in determining the value of the function.
 
 
-
-<a id="page-828"></a>
-## Page 828
-
-# ISO/IEC 1989:2023 (E)
-
 14) Type declaration. A type-name shall be specified. The size associated with the type declaration may be used in determining the value of the function.
 
 A variable-length group shall be referenced as an argument to a function only when explicitly permitted in the function definition.
@@ -34292,12 +30221,6 @@ When ALL is specified as a subscript, the effect is as if each table element ass
 
 ---
 
-
-
-<a id="page-829"></a>
-## Page 829
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-3-1"></a>
 #### 15.3.1 Format arguments to international date and time functions
@@ -34341,10 +30264,6 @@ The basic ordinal date format contains seven characters: four uppercase 'Y' char
 
 ---
 
-<a id="page-830"></a>
-## Page 830
-
-# ISO/IEC 1989:2023 (E)
 
 The extended ordinal date format contains eight characters: four uppercase 'Y' characters representing the year subfield; a hyphen; and three uppercase 'D' characters representing the day-of-year subfield. The hyphen appears in the data associated with the extended ordinal date format.
 
@@ -34383,11 +30302,6 @@ COBOL supports four formats for local time of day (local time), four formats for
 ---
 
 
-<a id="page-831"></a>
-## Page 831
-
-**ISO/IEC 1989:2023 (E)**
-
 A portion of the specifications for these formats is common to all of them; the specifications that are shared by all of them are referred to as 'common time format'.
 
 <a id="section-15-3-3"></a>
@@ -34420,10 +30334,6 @@ NOTE 2    ISO 8601-1 specifies that the preferred decimal separator is the comma
 
 ---
 
-<a id="page-832"></a>
-## Page 832
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-3-3-3"></a>
 ##### 15.3.3.3 Permissible values for data associated with common time formats
@@ -34467,12 +30377,6 @@ In the data associated with an offset subformat, the character position that cor
 ---
 
 
-
-<a id="page-833"></a>
-## Page 833
-
-**ISO/IEC 1989:2023 (E)**
-
 2) A minus sign to indicate that the common time portion of the data is adjusted upward by the offset values to represent UTC; or
 
 3) A zero to indicate that offset from UTC was not available on the system on which the information was recorded.
@@ -34506,12 +30410,6 @@ The offset-minutes subfield of the data associated with a basic or extended offs
 A basic combined date and time format consists of a basic date format followed by an uppercase 'T' character followed by a basic time format (for example, YYYYMMDDThhmmss.sss+hhmm).
 
 
-
-<a id="page-834"></a>
-## Page 834
-
-# ISO/IEC 1989:2023 (E)
-
 An extended combined date and time format consists of an extended date format, followed by an uppercase 'T' character, followed by an extended time format (for example, YYYY-MM-DDThh:mm:ss.sssss+hh:mm).
 
 Combinations of basic date formats with extended time formats, or of extended date formats with basic time formats, are not allowed.
@@ -34542,11 +30440,6 @@ NOTE 1 The result of an equivalent arithmetic expression is implementor-defined 
 
 ---
 
-
-<a id="page-835"></a>
-## Page 835
-
-**ISO/IEC 1989:2023 (E)**
 
 2) One or more of the arguments are implementor-defined.
 
@@ -34589,11 +30482,6 @@ Note A leap year is a year whose year number is divisible by four an integral nu
 
 The integer date form used by the date conversion functions is based on a starting date of Monday, January 1, 1601, which was chosen to establish a simple relationship between the integer date and DAY-OF-WEEK: integer date 1 was a Monday, DAY-OF-WEEK 1. A value in integer date form is a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar. It shall be greater than zero and shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671.
 
-
-<a id="page-836"></a>
-## Page 836
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-5-3"></a>
 #### 15.5.3 Standard date form
@@ -34641,11 +30529,6 @@ Num in the arguments column includes Int. Both Int and Num are listed in the arg
 Anum in the arguments column includes strongly-typed group items. When the type of the argument determines the type of the function, the function is an alphanumeric function when any of the arguments is strongly-typed, even when all the arguments of the function are of the same type.
 
 
-<a id="page-837"></a>
-## Page 837
-
-**ISO/IEC 1989:2023 (E)**
-
 In the 'Arguments' column, the following conventions apply:
 
 1) A digit immediately following the argument type indicates the argument's position in the list of arguments.
@@ -34681,10 +30564,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 
 ---
 
-<a id="page-838"></a>
-## Page 838
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 21 — Table of functions (Continued)**
 
@@ -34701,12 +30580,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | DATE-OF-INTEGER | Int1 | Int | Standard date equivalent (YYYYMMDD) of integer date in argument-1 |
 | DATE-TO-YYYYMMDD | Int1, Int2, Int3 | Int | Argument-1 converted from YYMMDD to YYYYMMDD based on the values of argument-2 and argument-3 |
 
-
-
-<a id="page-839"></a>
-## Page 839
-
-**ISO/IEC 1989:2023 (E)**
 
 **Table 21 — Table of functions (Continued)**
 
@@ -34728,12 +30601,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | FIND-STRING | Alph1 or Anum1 or Nat1, Alph2 or Anum2 or Nat2, Key3, Key4 and Int4, Key5 | Int | An integer that is the character position of argument-2 within argument-1 |
 
 
-
-<a id="page-840"></a>
-## Page 840
-
-# ISO/IEC 1989:2023 (E)
-
 **Table 21 — Table of functions (Continued)**
 
 | Intrinsic-function-name | Arguments | Type | Value returned |
@@ -34752,12 +30619,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | INTEGER-PART | Num1 | Int | Integer part of argument-1 |
 
 
-
-<a id="page-841"></a>
-## Page 841
-
-# ISO/IEC 1989:2023 (E)
-
 **Table 21 — Table of functions (Continued)**
 
 | Intrinsic-function-name | Arguments | Type | Value returned |
@@ -34772,12 +30633,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | LOWER-CASE | Alph1 or Anum1 or Nat1 | Anum or Nat | A character string with any uppercase letters in argument-1 set to lowercase |
 | LOWEST-ALGEBRAIC | Anum1 or Int1 or Nat1 or Num1 | Int or Num | Lowest algebraic value that may be represented in argument-1. |
 
-
-
-<a id="page-842"></a>
-## Page 842
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 21 — Table of functions (Continued)**
 
@@ -34796,12 +30651,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | NUMVAL-F | Anum1 or Nat1 | Num | Numeric value of numeric string representing a floating-point number contained in argument-1 |
 | ORD | Alph1 or Anum1 or Nat1 | Int | Ordinal position of argument-1 in collating sequence |
 
-
-
-<a id="page-843"></a>
-## Page 843
-
-# ISO/IEC 1989:2023 (E)
 
 **Table 21 — Table of functions (Continued)**
 
@@ -34823,11 +30672,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | SQRT | Num1 | Num | Square root of argument-1 |
 
 
-<a id="page-844"></a>
-## Page 844
-
-# ISO/IEC 1989:2023 (E)
-
 **Table 21 — Table of functions (Continued)**
 
 | **Intrinsic-function-name** | **Arguments** | **Type** | **Value returned** |
@@ -34844,12 +30688,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | TEST-NUMVAL-C | Anum1 or Nat1, Alph2 or Anum2 or Nat2 or Key2 or Key2 and Loc2, Key3 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL-C function; otherwise, identifies the character position in error. Argument-2 specifies either a currency sign or a locale specification, and argument-3 specifies case insensitivity |
 
 
-
-<a id="page-845"></a>
-## Page 845
-
-**ISO/IEC 1989:2023 (E)**
-
 **Table 21 — Table of functions (Continued)**
 
 | Intrinsic-function-name | Arguments | Type | Value returned |
@@ -34861,12 +30699,6 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | WHEN-COMPILED | | Anum | Date and time compilation unit was compiled |
 | YEAR-TO-YYYY | Int1, Int2, Int3 | Int | Argument-1 converted from YY to YYYY based on the values of argument-2 and argument-3 |
 
-
-
-<a id="page-846"></a>
-## Page 846
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-7"></a>
 ### 15.7 ABS function
@@ -34910,11 +30742,6 @@ The type of this function depends on the argument type as follows:
 ---
 
 
-<a id="page-847"></a>
-## Page 847
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-8"></a>
 ### 15.8 ACOS function
 
@@ -34944,11 +30771,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the arccosine of argument-1 and is greater than or equal to zero and less than or equal to π.
 
-
-<a id="page-848"></a>
-## Page 848
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-9"></a>
 ### 15.9 ANNUITY function
@@ -34994,11 +30816,6 @@ The type of this function is numeric.
 ---
 
 
-<a id="page-849"></a>
-## Page 849
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-15-10"></a>
@@ -35035,11 +30852,6 @@ The type of this function is numeric.
 ---
 
 
-<a id="page-850"></a>
-## Page 850
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-11"></a>
 ### 15.11 ATAN function
 
@@ -35068,11 +30880,6 @@ The type of this function is numeric.
 
 ---
 
-
-<a id="page-851"></a>
-## Page 851
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-12"></a>
 ### 15.12 BASECONVERT function
@@ -35112,10 +30919,6 @@ The type of this function depends upon the type of argument-1 as follows:
 
 ---
 
-<a id="page-852"></a>
-## Page 852
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-13"></a>
 ### 15.13 BOOLEAN-OF-INTEGER function
@@ -35152,11 +30955,6 @@ The function type is boolean.
 
 ---
 
-
-<a id="page-853"></a>
-## Page 853
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-14"></a>
 ### 15.14 BYTE-LENGTH function
@@ -35210,22 +31008,12 @@ The type of the function is integer.
 ---
 
 
-<a id="page-854"></a>
-## Page 854
-
-# ISO/IEC 1989:2023 (E)
-
 c) the lengths of all subordinate dynamic-capacity tables based on their current capacity. The length of a dynamic-capacity table is the same as the length of a matching fixed-capacity table defined with the same number of occurrences as the current capacity of the dynamic-capacity table, as specified in 8.5.1.12, Variable-length groups.
 
 7) If argument-1 is a variable-length group and the PHYSICAL argument is specified, the returned value is the length of argument-1 in number of bytes.
 
 If argument-1 is not physically located where it is defined, the returned value includes only the length of the implementor-defined pointer. If argument-1 is physically located where it is defined, BYTE-LENGTH returns the same value same value that would be returned had the PHYSICAL argument not been specified.
 
-
-<a id="page-855"></a>
-## Page 855
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-15"></a>
 ### 15.15 CHAR function
@@ -35261,10 +31049,6 @@ The type of this function is alphanumeric.
 
 ---
 
-<a id="page-856"></a>
-## Page 856
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-16"></a>
 ### 15.16 CHAR-NATIONAL function
@@ -35302,11 +31086,6 @@ The type of the function is national.
 ---
 
 
-<a id="page-857"></a>
-## Page 857
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-17"></a>
 ### 15.17 COMBINED-DATETIME function
 
@@ -35339,12 +31118,6 @@ The type of this function is numeric.
 
 ---
 
-
-
-<a id="page-858"></a>
-## Page 858
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-18"></a>
 ### 15.18 CONCAT function
@@ -35398,11 +31171,6 @@ The type of this function depends upon the argument types as follows:
 ---
 
 
-<a id="page-859"></a>
-## Page 859
-
-**ISO/IEC 1989:2023 (E)**
-
 ---
 
 <a id="section-15-19"></a>
@@ -35453,11 +31221,6 @@ where source-format is
 ---
 
 
-<a id="page-860"></a>
-## Page 860
-
-# ISO/IEC 1989:2023 (E)
-
 Where destination-format is
 
 <pre>
@@ -35504,11 +31267,6 @@ Where destination-format is
 ---
 
 
-<a id="page-861"></a>
-## Page 861
-
-**ISO/IEC 1989:2023 (E)**
-
 If the translated value does not correspond to a valid set of characters from the alphanumeric coded character set, an implementor-defined substitution character is used as a replacement for the invalid characters in the returned value and the EC-DATA-CONVERSION exception condition is set to exist.
 
 NOTE 1 The DISPLAY-OF function provides the same facility when the source format is NATIONAL and the destination format is ALPHANUMERIC.
@@ -35546,19 +31304,8 @@ c. Item-b PIC 111 VALUE B"101"
    FUNCTION CONVERT (item-b ANY NAT HEX)
 
 
-
-<a id="page-862"></a>
-## Page 862
-
-**ISO/IEC 1989:2023 (E)**
-
 Result: "E0" expressed in national characters
 
-
-<a id="page-863"></a>
-## Page 863
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-20"></a>
 ### 15.20 COS function
@@ -35591,11 +31338,6 @@ The type of this function is numeric.
 
 ---
 
-
-<a id="page-864"></a>
-## Page 864
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-21"></a>
 ### 15.21 CURRENT-DATE function
@@ -35633,21 +31375,11 @@ The type of this function is alphanumeric.
 
 ---
 
-<a id="page-865"></a>
-## Page 865
-
-**ISO/IEC 1989:2023 (E)**
 
 | **Character Positions** | **Contents** |
 |---|---|
 | 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |
 
-
-
-<a id="page-866"></a>
-## Page 866
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-22"></a>
 ### 15.22 DATE-OF-INTEGER function
@@ -35679,12 +31411,6 @@ The type of this function is integer.
 
 ---
 
-
-
-<a id="page-867"></a>
-## Page 867
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-23"></a>
 ### 15.23 DATE-TO-YYYYMMDD function
@@ -35737,12 +31463,6 @@ The type of the function is integer.
 ---
 
 
-
-<a id="page-868"></a>
-## Page 868
-
-# ISO/IEC 1989:2023 (E)
-
 and where argument‑1, argument‑2 and argument‑3 are the same as argument‑1, argument‑2, and argument‑3 of the DATE‑TO‑YYYYMMDD function reference itself.
 
 NOTE 1 In the year 2002 the returned value for FUNCTION DATE‑TO‑YYYYMMDD (851003, 10) is 19851003. In the year 1994 the returned value for FUNCTION DATE‑TO‑YYYYMMDD (981002, (−10)) is 18981002.
@@ -35752,10 +31472,6 @@ NOTE 2 See the notes for the YEAR‑TO‑YYYY function for a discussion of how t
 
 ---
 
-<a id="page-869"></a>
-## Page 869
-
-**ISO/IEC 1989:2023 (E)**
 
 ---
 
@@ -35793,11 +31509,6 @@ The type of this function is integer.
 
 ---
 
-
-<a id="page-870"></a>
-## Page 870
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-25"></a>
 ### 15.25 DAY-TO-YYYYDDD function
@@ -35852,22 +31563,10 @@ NOTE    This function does not check argument -1 to ensure that it is a valid da
 ---
 
 
-
-<a id="page-871"></a>
-## Page 871
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE 1 In the year 2002 the returned value for FUNCTION DAY-TO-YYYYDDD (10004, 20) is 2010004. In the year 2013 the returned value for FUNCTION DAY-TO-YYYYDDD (95005, (−10)) is 1995005.
 
 NOTE 2 See the notes for the YEAR-TO-YYYY function for a discussion of how to specify a fixed window or a sliding window algorithm.
 
-
-
-<a id="page-872"></a>
-## Page 872
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-26"></a>
 ### 15.26 DISPLAY-OF function
@@ -35906,12 +31605,6 @@ The type of the function is alphanumeric.
 ---
 
 
-
-<a id="page-873"></a>
-## Page 873
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-27"></a>
 ### 15.27 E function
 
@@ -35945,12 +31638,6 @@ The type of the function is numeric.
 
 ---
 
-
-
-<a id="page-874"></a>
-## Page 874
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-28"></a>
 ### 15.28 EXCEPTION-FILE function
@@ -35997,21 +31684,10 @@ The type of the function is alphanumeric.
 ---
 
 
-<a id="page-875"></a>
-## Page 875
-
-**ISO/IEC 1989:2023 (E)**
-
 a) If the file connector has never been opened, attempted to be opened, or otherwise attempted to be accessed, the returned value is two alphanumeric spaces
 
 b) Otherwise, the returned value is a character string that is as long as is needed to contain the I-O status value and the file-name. The first two characters are the I-O status value in alphanumeric characters. The succeeding characters contain the file-name exactly as specified in the SELECT clause converted at runtime to the runtime alphanumeric character set.
 
-
-
-<a id="page-876"></a>
-## Page 876
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-29"></a>
 ### 15.29 EXCEPTION-FILE-N function
@@ -36061,21 +31737,10 @@ The type of the function is national.
 ---
 
 
-<a id="page-877"></a>
-## Page 877
-
-**ISO/IEC 1989:2023 (E)**
-
 a) If the file connector has never been opened, attempted to be opened, or otherwise attempted to be accessed, the returned value is two national spaces
 
 b) Otherwise, the returned value is a character string that is as long as is needed to contain the I-O status value and the file-name. The first two characters are the I-O status value in national characters. The succeeding characters contain the file-name exactly as specified in the SELECT clause converted at runtime to the runtime national character set.
 
-
-
-<a id="page-878"></a>
-## Page 878
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-30"></a>
 ### 15.30 EXCEPTION-LOCATION function
@@ -36116,22 +31781,12 @@ The type of the function is alphanumeric.
 ---
 
 
-<a id="page-879"></a>
-## Page 879
-
-**ISO/IEC 1989:2023 (E)**
-
 c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character.
 
 3. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
 
 NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next.
 
-
-<a id="page-880"></a>
-## Page 880
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-31"></a>
 ### 15.31 EXCEPTION-LOCATION-N function
@@ -36170,23 +31825,12 @@ The type of the function is national.
          b. If there is a paragraph-name, the paragraph-name is appended and, if the paragraph is within a section, the section-name of the section containing the paragraph is appended prefixed by the national characters ' OF '. This is followed by a semicolon and a space character.
 
 
-<a id="page-881"></a>
-## Page 881
-
-**ISO/IEC 1989:2023 (E)**
-
 c. If there is a section-name and no paragraph-name, the section-name is appended followed by a semicolon and a space character.
 
 3. An implementor-defined identifier of the source line that contains the beginning of the statement is then appended.
 
 NOTE The user cannot rely on the value returned being consistent from one compilation of the same compilation unit to the next.
 
-
-
-<a id="page-882"></a>
-## Page 882
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-32"></a>
 ### 15.32 EXCEPTION-STATEMENT function
@@ -36215,11 +31859,6 @@ The type of the function is alphanumeric.
 3) The names of the statements are given in Table 12, Procedural statements, in the column labeled 'Statement name'.
 
 
-<a id="page-883"></a>
-## Page 883
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-33"></a>
 ### 15.33 EXCEPTION-STATUS function
 
@@ -36247,11 +31886,6 @@ The type of the function is alphanumeric.
 
 ---
 
-
-<a id="page-884"></a>
-## Page 884
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-34"></a>
 ### 15.34 EXP function
@@ -36283,11 +31917,6 @@ The type of the function is numeric.
 
 ---
 
-
-<a id="page-885"></a>
-## Page 885
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-35"></a>
 ### 15.35 EXP10 function
@@ -36322,11 +31951,6 @@ The type of the function is numeric.
 
 ---
 
-
-<a id="page-886"></a>
-## Page 886
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-36"></a>
 ### 15.36 FACTORIAL function
@@ -36366,11 +31990,6 @@ The type of this function is integer.
 
       (n * (n − 1) * (n − 2) * ... * 1)
 
-
-<a id="page-887"></a>
-## Page 887
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-37"></a>
 ### 15.37 FIND-STRING function
@@ -36414,10 +32033,6 @@ The type of this function is integer.
 
 ---
 
-<a id="page-888"></a>
-## Page 888
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-38"></a>
 ### 15.38 FORMATTED-CURRENT-DATE function
@@ -36460,11 +32075,6 @@ The type of this function depends on the argument type as follows:
 ---
 
 
-<a id="page-889"></a>
-## Page 889
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-39"></a>
 ### 15.39 FORMATTED-DATE function
 
@@ -36505,11 +32115,6 @@ The type of this function depends on the type of argument-1 as follows:
 
 ---
 
-
-<a id="page-890"></a>
-## Page 890
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-40"></a>
 ### 15.40 FORMATTED-DATETIME function
@@ -36559,19 +32164,8 @@ The type of this function depends on the type of argument-1 as follows:
 2) If the format in argument-1 indicates that the returned value is to be expressed in UTC, the time portion of the returned value reflects the adjustment of the value in argument-3 by the offset in argument-4.
 
 
-<a id="page-891"></a>
-## Page 891
-
-**ISO/IEC 1989:2023 (E)**
-
 3) If the format in argument-1 indicates that the time is to be returned as an offset from UTC, the value in argument-3 is reflected directly in the time portion of the returned value, and the offset in argument-4 is reflected directly in the offset portion of the returned value.
 
-
-
-<a id="page-892"></a>
-## Page 892
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-41"></a>
 ### 15.41 FORMATTED-TIME function
@@ -36619,20 +32213,8 @@ The type of this function depends on the type of argument-1 as follows:
 2) If the format in argument-1 indicates that the returned value is to be expressed in UTC, the time portion of the returned value reflects the adjustment of the value in argument-2 by the offset in argument-3.
 
 
-
-<a id="page-893"></a>
-## Page 893
-
-**ISO/IEC 1989:2023 (E)**
-
 3) If the format in argument-1 indicates that the time is to be returned as an offset from UTC, the value in argument-2 is reflected directly in the time portion of the returned value, and the offset in argument-3 is reflected directly in the offset portion of the returned value.
 
-
-
-<a id="page-894"></a>
-## Page 894
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-42"></a>
 ### 15.42 FRACTION-PART function
@@ -36666,11 +32248,6 @@ where the argument for the INTEGER-PART function is the same as for the FRACTION
 
 NOTE If the value of argument-1 is +1.5, +0.5 is returned. If the value of argument-1 is –1.5, –0.5 is returned.
 
-
-<a id="page-895"></a>
-## Page 895
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-43"></a>
 ### 15.43 HIGHEST-ALGEBRAIC function
@@ -36718,11 +32295,6 @@ The content of any numeric data item can be set exactly to the highest algebraic
 NOTE &nbsp;&nbsp; The following illustrates the expected results for some values of argument-1.
 
 
-<a id="page-896"></a>
-## Page 896
-
-# ISO/IEC 1989:2023 (E)
-
 | Argument-1 characteristics | Value returned |
 |---|---|
 | S999 | +999 |
@@ -36733,12 +32305,6 @@ NOTE &nbsp;&nbsp; The following illustrates the expected results for some values
 | BINARY-CHAR SIGNED | +127 (assuming an 8-bit representation) |
 | BINARY-CHAR UNSIGNED | +255 (assuming an 8-bit representation) |
 
-
-
-<a id="page-897"></a>
-## Page 897
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-44"></a>
 ### 15.44 INTEGER function
@@ -36787,12 +32353,6 @@ presuming that X is an integer data item.
 The INTEGER-PART function is similar but returns different values for negative numbers.
 
 
-
-<a id="page-898"></a>
-## Page 898
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-45"></a>
 ### 15.45 INTEGER-OF-BOOLEAN function
 
@@ -36827,11 +32387,6 @@ The function type is integer.
 
    c) The numeric value determined in subrule 1b is the returned value.
 
-
-<a id="page-899"></a>
-## Page 899
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-46"></a>
 ### 15.46 INTEGER-OF-DATE function
@@ -36868,12 +32423,6 @@ The type of this function is integer.
 ---
 
 
-
-<a id="page-900"></a>
-## Page 900
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-47"></a>
 ### 15.47 INTEGER-OF-DAY function
 
@@ -36904,11 +32453,6 @@ The type of this function is integer.
 
 1) The returned value is in integer date form.
 
-
-<a id="page-901"></a>
-## Page 901
-
-**ISO/IEC 1989:2023 (E)**
 
 <a id="section-15-48"></a>
 ### 15.48 INTEGER-OF-FORMATTED-DATE function
@@ -36947,12 +32491,6 @@ The type of this function is integer.
 
    NOTE If argument-1 contains a combined date and time format, the time portion of argument-2 is validated against the format in argument-1, but if valid does not impact the returned value.
 
-
-
-<a id="page-902"></a>
-## Page 902
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-49"></a>
 ### 15.49 INTEGER-PART function
@@ -37001,11 +32539,6 @@ The INTEGER function is similar but returns different values for negative number
 ---
 
 
-<a id="page-903"></a>
-## Page 903
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-50"></a>
 ### 15.50 LENGTH function
 
@@ -37052,10 +32585,6 @@ The type of this function is integer.
 
 ---
 
-<a id="page-904"></a>
-## Page 904
-
-# ISO/IEC 1989:2023 (E)
 
 7) If argument-1 is a variable-length group and the PHYSICAL argument is not specified, the value returned is the sum of the following:
 
@@ -37073,11 +32602,6 @@ c) the lengths of all subordinate dynamic-capacity tables based on their current
 
 ---
 
-
-<a id="page-905"></a>
-## Page 905
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-51"></a>
 ### 15.51 LOCALE-COMPARE function
@@ -37133,11 +32657,6 @@ NOTE Locale-based ordering is not necessarily a character-by-character compariso
 ---
 
 
-<a id="page-906"></a>
-## Page 906
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-52"></a>
 ### 15.52 LOCALE-DATE function
 
@@ -37174,11 +32693,6 @@ The function type is alphanumeric.
 
 ---
 
-
-<a id="page-907"></a>
-## Page 907
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-53"></a>
 ### 15.53 LOCALE-TIME function
@@ -37225,10 +32739,6 @@ The function type is alphanumeric.
 
 ---
 
-<a id="page-908"></a>
-## Page 908
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-54"></a>
 ### 15.54 LOCALE-TIME-FROM-SECONDS function
@@ -37266,11 +32776,6 @@ The function type is alphanumeric.
 ---
 
 
-<a id="page-909"></a>
-## Page 909
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-55"></a>
 ### 15.55 LOG function
 
@@ -37302,11 +32807,6 @@ The type of this function is numeric.
 ---
 
 
-<a id="page-910"></a>
-## Page 910
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-56"></a>
 ### 15.56 LOG10 function
 
@@ -37337,11 +32837,6 @@ The type of this function is numeric.
 
 ---
 
-
-<a id="page-911"></a>
-## Page 911
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-57"></a>
 ### 15.57 LOWER-CASE function
@@ -37385,11 +32880,6 @@ The type of this function depends on the type of argument-1 as follows:
 
 6) If there is no corresponding lowercase letter for a given uppercase letter, that letter is unchanged in the returned value; when a locale is in effect for character classification and there is no lowercase correspondence specified in the locale, the letter or letters are unchanged in the returned value.
 
-
-<a id="page-912"></a>
-## Page 912
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-58"></a>
 ### 15.58 LOWEST-ALGEBRAIC function
@@ -37437,12 +32927,6 @@ The content of any unsigned numeric data item can be set by any number of constr
 2) The value returned is equal to the lowest finite algebraic value that may be represented in argument-1.
 
 
-
-<a id="page-913"></a>
-## Page 913
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE The following illustrates the expected results for some values of argument-1.
 
 | Argument-1 characteristics | Value returned |
@@ -37455,12 +32939,6 @@ NOTE The following illustrates the expected results for some values of argument-
 | BINARY-CHAR SIGNED | -128 (assuming an 8-bit twos-complement representation) |
 | BINARY-CHAR UNSIGNED | 0 (assuming an 8-bit twos-compliment representation) |
 
-
-
-<a id="page-914"></a>
-## Page 914
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-59"></a>
 ### 15.59 MAX function
@@ -37511,11 +32989,6 @@ The type of this function depends upon the argument types as follows:
 ---
 
 
-<a id="page-915"></a>
-## Page 915
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-60"></a>
 ### 15.60 MEAN function
 
@@ -37554,12 +33027,6 @@ The type of this function is numeric.
 
       ((argument-11 + argument-12 +… + argument-1n) / n)
 
-
-
-<a id="page-916"></a>
-## Page 916
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-61"></a>
 ### 15.61 MEDIAN function
@@ -37601,11 +33068,6 @@ The type of this function is numeric.
 ---
 
 
-<a id="page-917"></a>
-## Page 917
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-62"></a>
 ### 15.62 MIDRANGE function
 
@@ -37637,12 +33099,6 @@ The type of this function is numeric.
 
 where argument-list is the argument-1 list for the MIDRANGE function itself.
 
-
-
-<a id="page-918"></a>
-## Page 918
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-63"></a>
 ### 15.63 MIN function
@@ -37690,11 +33146,6 @@ The type of this function depends upon the argument types as follows:
 ---
 
 
-<a id="page-919"></a>
-## Page 919
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-64"></a>
 ### 15.64 MOD function
 
@@ -37736,11 +33187,6 @@ NOTE The following illustrates the expected results for some values of argument-
 | 11 | −5 | −4 |
 | −11 | −5 | −1 |
 
-
-<a id="page-920"></a>
-## Page 920
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-65"></a>
 ### 15.65 MODULE-NAME function
@@ -37787,10 +33233,6 @@ The type of this function is alphanumeric.
 
 4) Unless otherwise specified, it is implementor defined what form of the module name is returned. The implementor may return the name as specified in the program-id, function-id, or method-id paragraph. They may also return the name as specified in the AS clause of the Identification Division if used, or they may return the name as known to the operating environment or COBOL runtime.
 
-<a id="page-921"></a>
-## Page 921
-**ISO/IEC 1989:2023 (E)**
-
 
 5) If the ACTIVATING keyword is specified and the function is in a COBOL main program, then the returned value shall be a single space. The implementor shall document how a main program is identified. If the function is not specified in a main program, then the returned value is the name of the runtime element that activated the currently running runtime element. This may be by a CALL statement, an INVOKE statement, a function reference, or an inline invocation.
 
@@ -37804,11 +33246,6 @@ The type of this function is alphanumeric.
 
 10) If the TOP-LEVEL keyword is specified, then the returned value is the name of the runtime element that was activated by the operating environment to initiate the currently running run unit or application.
 
-
-<a id="page-922"></a>
-## Page 922
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-66"></a>
 ### 15.66 NATIONAL-OF function
@@ -37848,11 +33285,6 @@ The type of the function is national.
 
 ---
 
-
-<a id="page-923"></a>
-## Page 923
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-67"></a>
 ### 15.67 NUMVAL function
@@ -37906,11 +33338,6 @@ where
 ---
 
 
-<a id="page-924"></a>
-## Page 924
-
-# ISO/IEC 1989:2023 (E)
-
 3) If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31.
 
 4) If standard-binary arithmetic is in effect, the total number of digits in argument-1 shall not exceed 35. If standard-decimal arithmetic is in effect, the total number of digits in argument-1 shall not exceed 34.
@@ -37924,11 +33351,6 @@ where
 
 2) If argument-1 contains CR, DB, or the minus sign, the returned value is negative.
 
-
-<a id="page-925"></a>
-## Page 925
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-68"></a>
 ### 15.68 NUMVAL-C function
@@ -37975,12 +33397,6 @@ The type of this function is numeric.
 ---
 
 
-
-<a id="page-926"></a>
-## Page 926
-
-# ISO/IEC 1989:2023 (E)
-
 [ space-string ] [ currency ] [ space-string ] { digit [ , digit ] ... [ . [ digit ] ] / . digit } [ space-string ] [ + / − / CR / DB ]
 
 [ space-string ]
@@ -38008,11 +33424,6 @@ b) The content of argument-1 shall be a string of digits and characters in a for
 
 ---
 
-
-<a id="page-927"></a>
-## Page 927
-
-**ISO/IEC 1989:2023 (E)**
 
 1. If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are case-insensitive. If the ANYCASE keyword is not specified, the matching rules for detecting a currency string are case-sensitive.
 
@@ -38043,11 +33454,6 @@ b) The content of argument-1 shall be a string of digits and characters in a for
 
 3) When the LOCALE keyword is specified, the returned value is negative if argument-1 contains a negative sign convention as specified by locale fields negative_sign and n_sign_posn. When the LOCALE keyword is not specified, the returned value is negative if argument-1 contains CR, DB, or a minus sign.
 
-
-<a id="page-928"></a>
-## Page 928
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-69"></a>
 ### 15.69 NUMVAL-F function
@@ -38098,11 +33504,6 @@ where
 ---
 
 
-<a id="page-929"></a>
-## Page 929
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-69-4"></a>
 #### 15.69.4 Returned values rules
 
@@ -38115,11 +33516,6 @@ where
 
 ---
 
-
-<a id="page-930"></a>
-## Page 930
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-70"></a>
 ### 15.70 ORD function
@@ -38151,12 +33547,6 @@ The type of this function is integer.
 
 ---
 
-
-
-<a id="page-931"></a>
-## Page 931
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-71"></a>
 ### 15.71 ORD-MAX function
@@ -38193,11 +33583,6 @@ The type of this function is integer.
 
 3) If the value of more than one argument-1 is equal to the greatest value, the number returned corresponds to the position of the leftmost argument-1 having that value.
 
-
-<a id="page-932"></a>
-## Page 932
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-72"></a>
 ### 15.72 ORD-MIN function
@@ -38237,11 +33622,6 @@ The type of this function is integer.
 ---
 
 
-<a id="page-933"></a>
-## Page 933
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-73"></a>
 ### 15.73 PI function
 
@@ -38279,11 +33659,6 @@ The type of this function is numeric.
 
 ---
 
-
-<a id="page-934"></a>
-## Page 934
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-74"></a>
 ### 15.74 PRESENT-VALUE function
@@ -38337,12 +33712,6 @@ The type of this function is numeric.
 ---
 
 
-
-<a id="page-935"></a>
-## Page 935
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-75"></a>
 ### 15.75 RANDOM function
 
@@ -38385,10 +33754,6 @@ The type of this function is numeric.
 
 ---
 
-<a id="page-936"></a>
-## Page 936
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-76"></a>
 ### 15.76 RANGE function
@@ -38431,11 +33796,6 @@ where argument-list is the argument-1 list for the RANGE function itself.
 ---
 
 
-<a id="page-937"></a>
-## Page 937
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-77"></a>
 ### 15.77 REM function
 
@@ -38475,11 +33835,6 @@ where argument-1 and argument-2 of the INTEGER-PART function are the same as the
 ---
 
 
-<a id="page-938"></a>
-## Page 938
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-78"></a>
 ### 15.78 REVERSE function
 
@@ -38516,11 +33871,6 @@ FUNCTION REVERSE ( argument-1 )
 
 ---
 
-
-<a id="page-939"></a>
-## Page 939
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-79"></a>
 ### 15.79 SECONDS-FROM-FORMATTED-TIME function
@@ -38567,11 +33917,6 @@ where H is the portion of argument-2 corresponding to the hours subfield of the 
 ---
 
 
-<a id="page-940"></a>
-## Page 940
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-80"></a>
 ### 15.80 SECONDS-PAST-MIDNIGHT function
 
@@ -38600,11 +33945,6 @@ The type of this function is numeric.
 
 4) The implementor shall specify whether the returned value may be greater than or equal to 86,400 when the LEAP-SECOND directive with the ON phrase is in effect.
 
-
-<a id="page-941"></a>
-## Page 941
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-81"></a>
 ### 15.81 SIGN function
@@ -38650,11 +33990,6 @@ The type of the function is integer.
 ---
 
 
-<a id="page-942"></a>
-## Page 942
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-82"></a>
 ### 15.82 SIN function
 
@@ -38683,11 +34018,6 @@ The type of this function is numeric.
 
 ---
 
-
-<a id="page-943"></a>
-## Page 943
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-83"></a>
 ### 15.83 SMALLEST-ALGEBRAIC function
@@ -38738,22 +34068,11 @@ NOTE The following illustrates the expected results for some values of argument-
 | S9PP | +100 |
 
 
-<a id="page-944"></a>
-## Page 944
-
-**ISO/IEC 1989:2023 (E)**
-
 S9(4) BINARY +1
 99V9(3) +.001
 BINARY-CHAR SIGNED +1
 BINARY-CHAR UNSIGNED +1
 
-
-
-<a id="page-945"></a>
-## Page 945
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-84"></a>
 ### 15.84 SQRT function
@@ -38792,10 +34111,6 @@ The type of this function is numeric.
 
 ---
 
-<a id="page-946"></a>
-## Page 946
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-85"></a>
 ### 15.85 STANDARD-COMPARE function
@@ -38844,11 +34159,6 @@ The function type is alphanumeric.
 ---
 
 
-<a id="page-947"></a>
-## Page 947
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE This comparison is culturally sensitive and the default ordering table is acceptable for most cultures. It is not necessarily a character-by-character comparison and not necessarily a case-sensitive comparison. In order to use this function, users can understand the types of comparisons specified by ISO/IEC 14651:2020 and the ordering tables in use for their installation.
 
 6) The returned value is:
@@ -38861,12 +34171,6 @@ NOTE This comparison is culturally sensitive and the default ordering table is a
 
 ---
 
-
-
-<a id="page-948"></a>
-## Page 948
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-86"></a>
 ### 15.86 STANDARD-DEVIATION function
@@ -38904,11 +34208,6 @@ where argument-list is the argument-1 list for the STANDARD-DEVIATION function i
 
 ---
 
-
-<a id="page-949"></a>
-## Page 949
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-87"></a>
 ### 15.87 SUBSTITUTE function
@@ -38953,10 +34252,6 @@ The type of the function depends on the argument type of argument-1 as follows:
 
 3) The returned value is populated as follows: The characters in argument-1 are copied into the returned value from left to right until there is a match with the substring beginning at the current character position in argument-1 for the length of argument-2. The characters in argument-3 are then copied to the return value, and execution of the function proceeds from the character position that is equal to the current character position of argument-1 plus the length of argument-2. All occurrences of argument-2 within argument-1 shall be substituted in argument-1 when copied to the return value except:
 
-<a id="page-950"></a>
-## Page 950
-# ISO/IEC 1989:2023 (E)
-
 
 a) If FIRST is specified, only the first occurrence of argument-2 shall be substituted in argument-1 when copied to the return value, else
 
@@ -38969,10 +34264,6 @@ b) If LAST is specified, only the last occurrence of argument-2 shall be substit
 
 ---
 
-<a id="page-951"></a>
-## Page 951
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-88"></a>
 ### 15.88 SUM function
@@ -39021,10 +34312,6 @@ The type of this function depends upon the argument types as follows:
 
 ---
 
-<a id="page-952"></a>
-## Page 952
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-89"></a>
 ### 15.89 TAN function
@@ -39052,11 +34339,6 @@ The type of this function is numeric.
 
 1) The returned value is the approximation of the tangent of argument-1.
 
-
-<a id="page-953"></a>
-## Page 953
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-90"></a>
 ### 15.90 TEST-DATE-YYYYMMDD function
@@ -39114,11 +34396,6 @@ The type of this function is integer.
 ---
 
 
-<a id="page-954"></a>
-## Page 954
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-91"></a>
 ### 15.91 TEST-DAY-YYYYDDD function
 
@@ -39166,11 +34443,6 @@ The type of this function is integer.
 ---
 
 
-<a id="page-955"></a>
-## Page 955
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-92"></a>
 ### 15.92 TEST-FORMATTED-DATETIME function
 
@@ -39206,10 +34478,6 @@ NOTE Given FUNCTION TEST-FORMATTED-DATETIME ("yyyymmdd", A-DATE), where A-DATE i
 
 ---
 
-<a id="page-956"></a>
-## Page 956
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-93"></a>
 ### 15.93 TEST-NUMVAL function
@@ -39262,21 +34530,10 @@ NOTE These errors include, but are not limited to:
 ---
 
 
-<a id="page-957"></a>
-## Page 957
-
-**ISO/IEC 1989:2023 (E)**
-
 – argument-1 contains only spaces,
 
 – argument-1 contains valid characters but is incomplete, such as the string ' +.'.
 
-
-
-<a id="page-958"></a>
-## Page 958
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-94"></a>
 ### 15.94 TEST-NUMVAL-C function
@@ -39326,11 +34583,6 @@ The type of this function is integer.
       (FUNCTION LENGTH (argument-1) + 1).
 
 
-<a id="page-959"></a>
-## Page 959
-
-**ISO/IEC 1989:2023 (E)**
-
 NOTE These errors include, but are not limited to:
 
 – argument-1 is zero-length,
@@ -39339,11 +34591,6 @@ NOTE These errors include, but are not limited to:
 
 – argument-1 contains valid characters but is incomplete, such as the string ' +.'.
 
-
-<a id="page-960"></a>
-## Page 960
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-95"></a>
 ### 15.95 TEST-NUMVAL-F function
@@ -39386,11 +34633,6 @@ The type of this function is integer.
       4. If standard-decimal arithmetic is in effect, the argument contains a significand longer than 34 digits, and no prior error in the argument has been found, the returned value is the position of the 35th digit of the significand because the character in error for a significand longer than 34 digits is the 35th digit.
 
 
-<a id="page-961"></a>
-## Page 961
-
-**ISO/IEC 1989:2023 (E)**
-
 5. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, the returned value is the position of the fifth digit of the exponent.
 
 6. If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the magnitude of the numeric value in the argument exceeds the capacity of the standard intermediate data item used for that mode of arithmetic, the returned value is the position of the first digit of the exponent.
@@ -39405,11 +34647,6 @@ NOTE These errors include, but are not limited to:
 - argument-1 contains only spaces,
 - argument-1 contains valid characters but is incomplete, such as the string ' +.'.
 
-
-<a id="page-962"></a>
-## Page 962
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-96"></a>
 ### 15.96 TRIM function
@@ -39461,11 +34698,6 @@ The type of this function depends on the type of argument-1 as follows:
 ---
 
 
-<a id="page-963"></a>
-## Page 963
-
-# ISO/IEC 1989:2023 (E)
-
 3) If neither LEADING nor TRAILING is specified, the returned value is a character string that consists of the characters in argument-1 beginning from the leftmost character position that does not contain argument-2 through the rightmost character position after which all characters contain argument-2.
 
 4) If argument-1 contains only characters that are argument-2, spaces if argument-2 is not specified, or argument-1 is of length zero, the returned value is of length zero.
@@ -39479,11 +34711,6 @@ NOTE The processing of TRIM (arg-1 arg-2-1 arg-2-2) is the same as TRIM (TRIM (a
 
 ---
 
-
-<a id="page-964"></a>
-## Page 964
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-97"></a>
 ### 15.97 UPPER-CASE function
@@ -39527,16 +34754,6 @@ The type of this function depends on the type of argument-1 as follows:
 
 6) If there is no corresponding uppercase letter for a given lowercase letter, that letter is unchanged in the returned value; when a locale is in effect for character classification and there is no uppercase correspondence specified in the locale for a given letter or letters, the letter or letters are unchanged in the returned value.
 
-<a id="page-965"></a>
-## Page 965
-# ISO/IEC 1989:2023 (E)
-
-
-
-<a id="page-966"></a>
-## Page 966
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-98"></a>
 ### 15.98 VARIANCE function
@@ -39586,11 +34803,6 @@ The type of this function is numeric.
 where argument-list is the argument-1 list for the VARIANCE function itself and argument-1ᵢ is the ith argument of the argument-1 list for the VARIANCE function itself.
 
 
-<a id="page-967"></a>
-## Page 967
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-15-99"></a>
 ### 15.99 WHEN-COMPILED function
 
@@ -39627,10 +34839,6 @@ The type of this function is alphanumeric.
 
 ---
 
-<a id="page-968"></a>
-## Page 968
-
-# ISO/IEC 1989:2023 (E)
 
 20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.
 
@@ -39638,11 +34846,6 @@ The type of this function is alphanumeric.
 
 3) The returned value shall denote the same time as the compilation date and time if provided in the listing and in the generated object code, although their representations and precision may differ.
 
-
-<a id="page-969"></a>
-## Page 969
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-15-100"></a>
 ### 15.100 YEAR-TO-YYYY function
@@ -39697,10 +34900,6 @@ The type of the function is integer.
 
 ---
 
-<a id="page-970"></a>
-## Page 970
-
-# ISO/IEC 1989:2023 (E)
 
 b) Otherwise, the equivalent arithmetic expression is
 
@@ -39710,11 +34909,6 @@ NOTE 1 In the year 1995, the returned value for FUNCTION YEAR-TO-YYYY (4, 23) is
 
 NOTE 2 If argument-3 is omitted, the YEAR-TO-YYYY function implements a sliding window algorithm, based on the year at the time of execution, as returned by the CURRENT-DATE function. A fixed window algorithm can be achieved by specifying suitable values for argument-2 and argument-3, such that the sum of argument-2 and argument-3 defines the ending year of the desired 100-year interval.
 
-
-<a id="page-971"></a>
-## Page 971
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-16"></a>
 ## 16 Standard classes
@@ -39762,11 +34956,6 @@ End Interface BaseInterface.
 The New method is a factory method that provides a standard mechanism for creating instance objects of a class.
 
 
-<a id="page-972"></a>
-## Page 972
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-16-2-1-2"></a>
 ##### 16.2.1.2 General rules
 
@@ -39801,11 +34990,6 @@ Invoke aFactoryObject "someFactoryMethodName".
 
 ---
 
-
-<a id="page-973"></a>
-## Page 973
-
-# ISO/IEC 1989:2023 (E)
 
 ---
 
@@ -39842,10 +35026,6 @@ A short header and informative optional parenthetical text provide a paraphrase 
 
 6) Alignment of alphanumeric group items (relative to first elementary item). This item is required. This item shall be documented in the implementor's user documentation. (8.5.1.6.1, Alignment of alphanumeric groups and of data items of usage display and 8.5.1.6.5, Alignment of strongly-typed group items)
 
-<a id="page-974"></a>
-## Page 974
-# ISO/IEC 1989:2023 (E)
-
 
 7) Alignment of data for increased efficiency (special or automatic alignment: interpretation, implicit filler, semantics of statements). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.5.1.6.4, Item alignment for increased object-code efficiency; 13.18.55, SYNCHRONIZED clause, General rule 10)
 
@@ -39872,11 +35052,6 @@ A short header and informative optional parenthetical text provide a paraphrase 
 18) CANCEL statement (result of canceling an active program when EC-PROGRAM-CANCEL-ACTIVE is not enabled). This item is required. This item shall be documented in the implementor's user documentation. (14.9.5, CANCEL statement, General rule 5)
 
 
-<a id="page-975"></a>
-## Page 975
-
-# ISO/IEC 1989:2023 (E)
-
 19) CANCEL statement (result of canceling a non-COBOL program). This item is required. This item shall be documented in the implementor's user documentation. (14.9.5, CANCEL statement, General rule 10)
 
 20) Case mapping. This item is required. This item shall be documented in the implementor's user documentation. (8.1.3, COBOL character repertoire, General rule 1)
@@ -39900,11 +35075,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 28) Commit and rollback (interaction with other facilities and languages). The commit and rollback feature is optional. Its implementation is not dependent on the adoption of the file sharing and record locking features or implementor defined equivalent defaults, but these features are needed for the concurrent use of files with other run units and other file connectors within the same run unit. If provided by the implementor, it shall be documented in the implementor's user documentation. (9.1.18, Commit and Rollback)
 
 
-<a id="page-976"></a>
-## Page 976
-
-# ISO/IEC 1989:2023 (E)
-
 29) Compile-Time Arithmetic (Mode of arithmetic used and rules for intermediate data handling). This item is required. This item shall be documented in the implementor's user documentation. (7.3.6, Compile-time arithmetic expressions, Syntax rule 2, General rule 2)
 
 30) Compiler directives, compiler directive IMP (syntax rules and general rules). This item is conditionally required because it is conditioned upon support for an IMP directive. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (7.3, Compiler directives, Syntax rule 9 and General rule 4)
@@ -39923,11 +35093,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 37) Computer's coded character set (when more than one encoding, the mechanism for selecting encoding for runtime). This item is conditionally required because it is conditioned upon support for more than one encoding of a computer's coded character set. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.1.2, Computer's coded character set)
 
-
-<a id="page-977"></a>
-## Page 977
-
-# ISO/IEC 1989:2023 (E)
 
 38) Computer's coded character set (whether UTF-8 or mixed alphanumeric and national characters recognized in class alphanumeric; applicable syntax and general rules). This item is conditionally required because it is conditioned upon support for UTF-8 or mixing alphanumeric and national characters in literals and data items of class alphanumeric. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.1.2, Computer's coded character set; 8.3.3.2, Alphanumeric literals, Syntax rule 2 and General rule 3)
 
@@ -39949,11 +35114,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 47) Default encoding specifications (for standard decimal floating-point usages). This item is required. This item shall be documented in the implementor's user documentation. (11.9.9, FLOAT-DECIMAL clause, General rule 3)
 
-
-<a id="page-978"></a>
-## Page 978
-
-# ISO/IEC 1989:2023 (E)
 
 48) Default endianness specifications (for standard floating-point usages). This item is required. This item shall be documented in the implementor's user documentation. (11.9.8, FLOAT-BINARY clause, General rule 3, and 11.9.9, FLOAT-DECIMAL clause, General rule 6)
 
@@ -39984,11 +35144,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 61) Dynamic-capacity table (physical allocation). This item is required. This item does not have to be documented in the implementor's documentation. (8.5.1.9, Dynamic-capacity tables)
 
 
-<a id="page-979"></a>
-## Page 979
-
-# ISO/IEC 1989:2023 (E)
-
 62) Dynamic-length elementary items (maximum length).This item is required. This item shall be documented in the implementor's user documentation. (8.5.1.10, Dynamic-length elementary items)
 
 63) Dynamic-length elementary items (structure if dynamic-length-structure-name-1 is not specified). This item is required. This item need not be documented in the implementor's user documentation (8.5.1.10.2, Structure of a dynamic-length elementary item)
@@ -40013,11 +35168,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 73) FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5, File control entry, General rule 4)
 
-
-<a id="page-980"></a>
-## Page 980
-
-# ISO/IEC 1989:2023 (E)
 
 74) Figurative constant values (representation of zero, space, and quote). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.6, Figurative constant values)
 
@@ -40048,11 +35198,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 ---
 
 
-<a id="page-981"></a>
-## Page 981
-
-# ISO/IEC 1989:2023 (E)
-
 87) FORMATTED-CURRENT-DATE (accuracy of returned time). This item is required. This item shall be documented in the implementor's user documentation. (15.38, FORMATTED-CURRENT-DATE function, Returned value rule 1).
 
 88) Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified). This item is conditionally required because it is conditioned upon support for calling non-COBOL functions. This item shall be documented in the implementor's user documentation. (8.4.3.2, Function-identifier, General rule 6d)
@@ -40075,11 +35220,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 97) Hexadecimal national literals (mapping for non-existing corresponding character). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.5, National literals, General rule 4)
 
-
-<a id="page-982"></a>
-## Page 982
-
-# ISO/IEC 1989:2023 (E)
 
 98) Hexadecimal national literals (mapping when characters not multiples of four bits). This item is conditionally required because it is conditioned upon a computer's coded character set with characters that are not multiples of four bits. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.3.3.5, National literals, General rule 4)
 
@@ -40108,11 +35248,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 ---
 
 
-<a id="page-983"></a>
-## Page 983
-
-# ISO/IEC 1989:2023 (E)
-
 110) I-O status 9x (value of x). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (9.1.13.11, Implementor-defined condition with unsuccessful completion)
 
 111) LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds that may be reported). This item is required. This item shall be documented in the implementor's user documentation. (7.3.17, LEAP-SECOND directive, General rule 2; 14.9.1, ACCEPT statement, General rule 11; 15.21, CURRENT-DATE function, Returned value rule 1; 15.99, WHEN-COMPILED function, Returned value rule 1)
@@ -40136,11 +35271,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 ---
 
-
-<a id="page-984"></a>
-## Page 984
-
-# ISO/IEC 1989:2023 (E)
 
 120) Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL). This item is conditionally required because it is conditioned upon support for activation of non-COBOL runtime modules. This item, if provided, shall be documented in the implementor's user documentation. (8.2, Locales)
 
@@ -40167,11 +35297,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 131) OPEN statement without the SHARING phrase and no SHARING clause in the file control entry (definition of sharing mode established for each file connector). This item is required. This item shall be documented in the implementor's user documentation. (14.9.27, OPEN statement, General rule 23)
 
 
-<a id="page-985"></a>
-## Page 985
-
-# ISO/IEC 1989:2023 (E)
-
 132) MODULE-NAME Function, (Which type of dynamic length elementary item is used as the returned value). This item is conditionally required because it is conditioned upon the implementor supporting more than one type of dynamic length elementary item. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (15.65, MODULE-NAME function, Returned value, rule 1)
 
 133) MODULE-NAME Function, (The length of the returned value item and whether or not it may have trailing spaces). This item is conditionally required because it is conditioned upon the implementor not supporting any dynamic length elementary items. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (15.65, MODULE-NAME function, Returned value, rule 1)
@@ -40193,10 +35318,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 141) Procedure division header rules when either the activating or the activated runtime element is not a COBOL element (restrictions and mechanisms for all supported language products with details such as the matching of parameters, data type representation, returning of a value, and omission of parameters). This item is conditionally required because it is conditioned upon support for a language other than COBOL. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (Clause 14, Procedure division, General rule 13)
 
 142) Program-address identifier (relation between address and non-COBOL program). This item is conditionally required because it is conditioned upon support of non-COBOL programs. This item shall be documented in the implementor's user documentation. (8.4.3.13, Program-address-identifier, General rule 2)
-
-<a id="page-986"></a>
-## Page 986
-# ISO/IEC 1989:2023 (E)
 
 
 143) Program-name (formation rules for a non-COBOL program). This item is optional. This item if provided by the implementor, shall be documented in the implementor's user documentation. (8.3.2.2.21, Program-name)
@@ -40221,11 +35342,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 153) Record locking (default mode when unspecified by user). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5.9, LOCK MODE clause, General rule 1)
 
-
-<a id="page-987"></a>
-## Page 987
-
-# ISO/IEC 1989:2023 (E)
 
 154) Record locking (maximum number allowed for a run unit). This item is required and shall be at least 255. This item shall be documented in the implementor's user documentation. (12.4.5.9, LOCK MODE clause, General rule 7).
 
@@ -40254,11 +35370,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 166) RETRY phrase (maximum meaningful time-out value and internal representation; technique for determining frequency of retries). This item is required. This item shall be documented in the implementor's user documentation. (14.7.9, RETRY phrase, General rule 2)
 
 
-<a id="page-988"></a>
-## Page 988
-
-# ISO/IEC 1989:2023 (E)
-
 167) Run unit (relationship and interaction with non-COBOL components). This item is conditionally required because it is conditioned upon support for non-COBOL modules. This item shall be documented in the implementor's user documentation. (14.6.1, Run unit organization).
 
 168) Run unit termination (whether locale reset). This item is required. This item shall be documented in the implementor's user documentation. (14.6.11, Normal run unit termination)
@@ -40284,11 +35395,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 178) SIGN clause (valid sign when SEPARATE CHARACTER phrase not present). This item is required. This item shall be documented in the implementor's user documentation. (13.18.52, SIGN clause, General rule 5b)
 
 
-<a id="page-989"></a>
-## Page 989
-
-# ISO/IEC 1989:2023 (E)
-
 179) Size error condition (whether or not range of values allowed for the intermediate data item is to be checked). This item is required. This item shall be documented in the implementor's user documentation. (14.7.5, SIZE ERROR phrase and size error condition)
 
 180) SMALLEST-ALGEBRAIC function (usage of the argument when native arithmetic is in effect) This item is required. This item shall be documented in the implementor's user documentation. (15.83, SMALLEST-ALGEBRAIC function Argument rule 4)
@@ -40309,11 +35415,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 188) SPECIAL-NAMES paragraph, ALPHABET clause, UCS-4, UTF-8, and UTF-16 phrases (correspondence with native character set). This item is required. This item shall be documented in the implementor's user documentation. (12.3.7, SPECIAL-NAMES paragraph, General rules 7f and 7h)
 
-
-<a id="page-990"></a>
-## Page 990
-
-# ISO/IEC 1989:2023 (E)
 
 189) SPECIAL-NAMES paragraph, device-name (names available, restrictions on use). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (12.3.7, SPECIAL-NAMES paragraph, Syntax rules 7 and 8)
 
@@ -40337,11 +35438,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 199) Terminal screen (correspondence of a column and a character in the computer's national coded character set). This item is required. This item shall be documented in the implementor's user documentation. (9.2.1, Terminal screen)
 
-
-<a id="page-991"></a>
-## Page 991
-
-# ISO/IEC 1989:2023 (E)
 
 200) Text manipulation (stage of processing the LISTING and PAGE directives and the SUPPRESS phrase of COPY). This item is conditional. This item is conditioned on the implementor producing listings. This item, if provided, need not be documented in the implementor's user documentation. (7.2, Text manipulation)
 
@@ -40368,11 +35464,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 211) USAGE INDEX clause (alignment and representation of data). This item is required. This item shall be documented in the implementor's user documentation. (13.18.60, USAGE clause, General rule 10)
 
 
-<a id="page-992"></a>
-## Page 992
-
-# ISO/IEC 1989:2023 (E)
-
 212) USAGE MESSAGE-TAG (size and contents). This item is required. This item shall be documented in the implementor's user documentation. (13.18.60, USAGE clause, General rule 9)
 
 213) USAGE NATIONAL (size and representation of characters). This item is required; an implementor may provide an option to vary the size or representation for different compilation units. This item shall be documented in the implementor's user documentation. (13.18.60, USAGE clause, General rule 8)
@@ -40395,11 +35486,6 @@ NOTE Implementors are strongly encouraged to define the case mapping according t
 
 222) WRITE statement (page advance when mnemonic-name-1 specified). This item is conditionally required because it is conditioned upon the existence of a mnemonic-name-1 for the WRITE statement. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (14.9.51, WRITE statement, General rule 25d)
 
-
-<a id="page-993"></a>
-## Page 993
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-a-2"></a>
 ### A.2 Undefined language element list
@@ -40427,10 +35513,6 @@ The following is a list of the COBOL language elements within this Working Draft
 10) Exception conditions. The exception condition that is set to exist if multiple exceptions are detected during the execution of a statement is undefined unless otherwise specified. (14.6.13.1, Exception conditions)
 
 11) Explicit and implicit transfers of control. In the declarative section the flow of control is undefined when there is no next executable statement after either the last statement when the paragraph in which it appears is not being executed under the control of some other COBOL statement, or the last statement when the statement is in the range of an active PERFORM statement executed in a different section and this last statement of the declarative section is not also the last statement of the procedure that is the exit of the active PERFORM statement. (14.6.3, Explicit and implicit transfers of control)
-
-<a id="page-994"></a>
-## Page 994
-# ISO/IEC 1989:2023 (E)
 
 
 12) File section. The initial value of the data items in the file section is undefined. (13.4, File section, General rule 1 and 13.18.63, VALUE clause, General rule 2)
@@ -40463,11 +35545,6 @@ b) the CHARACTERS phrase is specified and the size of the replacement item is no
 ---
 
 
-<a id="page-995"></a>
-## Page 995
-
-# ISO/IEC 1989:2023 (E)
-
 c) replacing-phrase is specified and CHARACTERS is not specified and the size of the replacing item is not equal to the size of the item being replaced;
 
 d) the INSPECT identifier, ALL identifier, LEADING identifier, AFTER identifier, or BEFORE identifier occupies the same storage area as the TALLYING identifier;
@@ -40496,10 +35573,6 @@ f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identif
 
 30) MERGE statement. Unless the EC-SORT-MERGE-ACTIVE exception condition is enabled, the results of the execution of a MERGE statement are undefined if the range of the output procedure causes the execution of any MERGE, RELEASE, or file format SORT statement. (14.9.24, MERGE statement, General rule 8)
 
-<a id="page-996"></a>
-## Page 996
-# ISO/IEC 1989:2023 (E)
-
 
 31) MERGE statement. The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for the MERGE file is undefined upon completion of the MERGE statement for which the GIVING phrase is specified. (14.9.24, MERGE statement, General rule 12)
 
@@ -40527,11 +35600,6 @@ f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identif
 
 40) READ statement. The content of the associated record area is undefined at the completion of most unsuccessful executions of the READ statement. (14.9.30, READ statement, General rules 10c and 18)
 
-
-<a id="page-997"></a>
-## Page 997
-
-# ISO/IEC 1989:2023 (E)
 
 41) READ statement. The contents of any data items that lie outside the range of the current data record are undefined at the completion of the execution of the READ statement. (14.9.30, READ statement, General rule 3)
 
@@ -40562,10 +35630,6 @@ f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identif
 
 ---
 
-<a id="page-998"></a>
-## Page 998
-
-# ISO/IEC 1989:2023 (E)
 
 50) SEARCH ALL statement. If there is more than one setting of the search index that satisfies all conditions in the WHEN phrase, it is undefined which one will be used as the final setting of the search index. (14.9.37, SEARCH statement, General rule 7)
 
@@ -40588,11 +35652,6 @@ f) the CONVERTING identifier, TO identifier, AFTER identifier, or BEFORE identif
 59) START statement. Following the unsuccessful execution of the START statement for a given indexed file, the key of reference for that file is undefined. (14.9.41, START statement, General rule 7)
 
 
-<a id="page-999"></a>
-## Page 999
-
-# ISO/IEC 1989:2023 (E)
-
 60) STRING statement. If the STRING identifier, or DELIMITED BY identifier, occupies the same storage area as the INTO identifier, or WITH POINTER identifier, or if the INTO identifier and the WITH POINTER identifier occupy the same storage area, the result of the execution of the STRING statement is undefined, even if they are defined by the same data description entry. (14.9.43, STRING statement, General rule 10 and 14.6.10, Overlapping operands)
 
 61) UNSTRING statement. If the UNSTRING identifier, DELIMITED BY identifier, or OR identifier, occupies the same storage area as the INTO identifier, DELIMITER identifier, COUNT identifier, POINTER identifier, or TALLYING identifier, or if the INTO identifier, DELIMITER identifier, or COUNT identifier, occupies the same storage area as the POINTER identifier or TALLYING identifier, or if the POINTER identifier and the TALLYING identifier occupy the same storage area, the result of the execution of the UNSTRING statement is undefined, even if they are defined by the same data description entry. (14.9.48, UNSTRING statement, General rule 18 and 14.6.10, Overlapping operands)
@@ -40614,11 +35673,6 @@ A processor consists of the hardware and associated software used to translate a
 
 The following is a list of the COBOL language elements within this Working Draft International Standard that depend on specific devices or on a specific processor capability, functionality, or architecture. A processor-dependent element may relate to capability or functionality of hardware or of software, or both. An element described with a device-specific term may be implemented in hardware, software, or a combination of hardware and software.
 
-
-<a id="page-1000"></a>
-## Page 1000
-
-# ISO/IEC 1989:2023 (E)
 
 1) When no support for any of the features standard binary floating-point usages, standard decimal floating-point usages, standard-binary arithmetic, and standard-decimal arithmetic is provided, the following features are dependent on the capabilities of the processor:
 
@@ -40657,11 +35711,6 @@ The following is a list of the COBOL language elements within this Working Draft
    NOTE 2 Support for the functionality of nearest-away-from-zero rounding is required under all forms of arithmetic, whether or not the NEAREST-AWAY-FROM-ZERO phrase is provided, in support of the default behavior associated with the ROUNDED phrase.
 
 
-<a id="page-1001"></a>
-## Page 1001
-
-# ISO/IEC 1989:2023 (E)
-
 NOTE 3 Support for the functionality of truncation rounding is required under all forms of arithmetic, whether or not the TRUNCATION phrase is provided, in order to provide the default behavior when a ROUNDED phrase is permitted by syntax rules but not specified by the user.
 
 10) The INTERMEDIATE ROUNDING clause in the OPTIONS paragraph is dependent on the capabilities of the processor. When support for this clause is provided, support for at least one of the following shall be provided:
@@ -40693,11 +35742,6 @@ c) Support for either or both of the phrases BINARY-ENCODING and DECIMAL-ENCODIN
 — the NEAREST-EVEN phrase
 
 
-<a id="page-1002"></a>
-## Page 1002
-
-# ISO/IEC 1989:2023 (E)
-
 — the PROHIBITED phrase
 — the TRUNCATION phrase
 — the set of phrases NEAREST-TOWARD-ZERO, TOWARD-GREATER, and TOWARD-LESSER.
@@ -40727,10 +35771,6 @@ NOTE 7 Support for the functionality of truncation rounding is required under al
 24) If positioning is not applicable on the hardware device, the operating system will ignore the positioning specified or implied by the DISPLAY statement.
 
 25) The STANDARD-COMPARE intrinsic function, the EC-ORDER-NOT-SUPPORTED exception condition, and the ORDER TABLE clause in the SPECIAL-NAMES paragraph are dependent upon an implementation of ISO/IEC 14651:2020. The implementor need not accept the syntax or set the EC-ORDER-NOT-SUPPORTED exception condition to exist when support for ISO/IEC 14651:2020 is not provided.
-
-<a id="page-1003"></a>
-## Page 1003
-# ISO/IEC 1989:2023 (E)
 
 
 26) The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device.
@@ -40765,11 +35805,6 @@ NOTE 7 Support for the functionality of truncation rounding is required under al
 
 41) The capability of specifying a collating sequence for primary and alternate keys of an indexed file where the alphabet specified in the COLLATING SEQUENCE clause is defined in the SPECIAL-NAMES paragraph with the LOCALE phrase or with literals is dependent on the capabilities of the processor.
 
-
-<a id="page-1004"></a>
-## Page 1004
-
-# ISO/IEC 1989:2023 (E)
 
 42) The functionality of culturally-dependent collating sequences, multiple alternate record keys with different collating sequences, and collating sequences different from the primary record key is dependent on the capabilities of the processor.
 
@@ -40812,11 +35847,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 
 ---
 
-
-<a id="page-1005"></a>
-## Page 1005
-
-**ISO/IEC 1989:2023 (E)**
 
 5) BLANK clause (13.18.7)
 
@@ -40868,11 +35898,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 #### A.4.3 Commit and Rollback
 
 
-<a id="page-1006"></a>
-## Page 1006
-
-# ISO/IEC 1989:2023 (E)
-
 1. Commit and Rollback 9.1.18, Commit and Rollback
 
 2. IO-CONTROL paragraph, APPLY COMMIT clause 12.4.6.3, APPLY COMMIT clause
@@ -40919,11 +35944,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 
 7. EC-I-O-FILE-SHARING exception condition in the RAISING phrase of the EXIT and GOBACK statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of the PERFORM statement, the RAISE statement, and the TURN compiler directive
 
-
-<a id="page-1007"></a>
-## Page 1007
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-a-4-8"></a>
 #### A.4.8 FORMAT and SELECT WHEN file handling
@@ -40977,11 +35997,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 ---
 
 
-<a id="page-1008"></a>
-## Page 1008
-
-# ISO/IEC 1989:2023 (E)
-
 1) Data division, REPORT SECTION header (13)
 
 2) File description entry, format 3: report (13.4.5)
@@ -41031,11 +36046,6 @@ The requirements of A.1, Implementor-defined language element list, apply for al
 24) TERMINATE statement (14.9.46)
 
 
-<a id="page-1009"></a>
-## Page 1009
-
-**ISO/IEC 1989:2023 (E)**
-
 25) EC-REPORT and EC-FLOW-REPORT exception conditions in the RAISING phrase of the EXIT and GOBACK statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of the PERFORM statement, the RAISE statement, and the TURN compiler directive
 
 <a id="section-a-4-12"></a>
@@ -41076,11 +36086,6 @@ NOTE The VALIDATE facility is an obsolete feature.
 10) EC-VALIDATE exception conditions in the RAISING phrase of the EXIT and GOBACK statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of the PERFORM statement, the RAISE statement, and the TURN compiler directive
 
 
-<a id="page-1010"></a>
-## Page 1010
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-annex-b"></a>
 ## Annex B
 (normative)
@@ -41120,9 +36125,6 @@ Basic Digits:
 Adlam:
 1E900-1E943, 1E94B Ahom:
 
-<a id="page-1011"></a>
-## Page 1011
-# ISO/IEC 1989:2023 (E)
 
 11700-1171A
 
@@ -41173,9 +36175,6 @@ Brahmi:
 Buginese:
 1A00-1A16 Buhid:
 
-<a id="page-1012"></a>
-## Page 1012
-# ISO/IEC 1989:2023 (E)
 
 1740-1751
 
@@ -41227,11 +36226,6 @@ Deseret:
 
 ---
 
-
-<a id="page-1013"></a>
-## Page 1013
-
-# ISO/IEC 1989:2023 (E)
 
 10400-1044F
 
@@ -41286,10 +36280,6 @@ Greek:
 
 ---
 
-<a id="page-1014"></a>
-## Page 1014
-
-# ISO/IEC 1989:2023 (E)
 
 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC, 2126, AB65, 10140-10174
 
@@ -41341,9 +36331,6 @@ Inscriptional_Parthian:
 Javanese:
 A984-A9B2 Kaithi:
 
-<a id="page-1015"></a>
-## Page 1015
-# ISO/IEC 1989:2023 (E)
 
 11083-110AF
 
@@ -41392,9 +36379,6 @@ Limbu:
 Linear_A:
 10600-10736, 10740-10755, 10760-10767 Linear_B:
 
-<a id="page-1016"></a>
-## Page 1016
-# ISO/IEC 1989:2023 (E)
 
 10000-1000B, 1000D-10026, 10028-1003A, 1003C-1003D, 1003F-1004D, 10050-1005D,
 10080-100FA
@@ -41444,9 +36428,6 @@ Meroitic_Cursive:
 Meroitic_Hieroglyphs:
 10980-1099F Miao:
 
-<a id="page-1017"></a>
-## Page 1017
-# ISO/IEC 1989:2023 (E)
 
 16F00-16F4A, 16F50, 16F93-16F9F
 
@@ -41496,9 +36477,6 @@ Ol_Chiki:
 Old_Hungarian:
 10C80-10CB2, 10CC0-10CF2 Old_Italic:
 
-<a id="page-1018"></a>
-## Page 1018
-# ISO/IEC 1989:2023 (E)
 
 10300-1031F, 1032D-1032F
 
@@ -41548,9 +36526,6 @@ Phoenician:
 Psalter_Pahlavi:
 10B80-10B91 Rejang:
 
-<a id="page-1019"></a>
-## Page 1019
-# ISO/IEC 1989:2023 (E)
 
 A930-A946
 
@@ -41599,9 +36574,6 @@ Tagalog:
 Tagbanwa:
 1760-176C, 176E-1770
 
-<a id="page-1020"></a>
-## Page 1020
-# ISO/IEC 1989:2023 (E)
 
 Tai_Le:
 1950-196D, 1970-1974
@@ -41652,9 +36624,6 @@ Wancho:
 Warang_Citi:
 118A0-118DF, 118FF
 
-<a id="page-1021"></a>
-## Page 1021
-**ISO/IEC 1989:2023 (E)**
 
 Yezidi:
 10E80-10EA9, 10EB0-10EB1
@@ -41704,9 +36673,6 @@ Brahmi:
 Buginese:
 1A17-1A1B Buhid:
 
-<a id="page-1022"></a>
-## Page 1022
-# ISO/IEC 1989:2023 (E)
 
 1752-1753
 
@@ -41756,9 +36722,6 @@ Gujarati:
 0A81-0A83, 0ABC, 0ABE-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AE2-0AE3, 0AE6-0AEF,
 0AFA-0AFF Gunjala_Gondi:
 
-<a id="page-1023"></a>
-## Page 1023
-# ISO/IEC 1989:2023 (E)
 
 11D8A-11D8E, 11D90-11D91, 11D93-11D97, 11DA0-11DA9
 
@@ -41808,9 +36771,6 @@ Khitan_Small_Script:
 Khmer:
 17B4-17D3, 17DD, 17E0-17E9 Khojki:
 
-<a id="page-1024"></a>
-## Page 1024
-# ISO/IEC 1989:2023 (E)
 
 1122C-11237, 1123E
 
@@ -41860,9 +36820,6 @@ Miao:
 Modi:
 11630-11640, 11650-11659 Mongolian:
 
-<a id="page-1025"></a>
-## Page 1025
-# ISO/IEC 1989:2023 (E)
 
 180B-180D, 1810-1819, 18A9
 
@@ -41913,9 +36870,6 @@ Samaritan:
 Saurashtra:
 A880-A881, A8B4-A8C5, A8D0-A8D9 Sharada:
 
-<a id="page-1026"></a>
-## Page 1026
-# ISO/IEC 1989:2023 (E)
 
 11180-11182, 111B3-111C0, 111C9-111CC, 111CE-111D9
 
@@ -41964,9 +36918,6 @@ Takri:
 Tamil:
 0B82, 0BBE-0BC2, 0BC6-0BC8, 0BCA-0BCD, 0BD7, 0BE6-0BEF
 
-<a id="page-1027"></a>
-## Page 1027
-# ISO/IEC 1989:2023 (E)
 
 Telugu:
 0C00-0C04, 0C3E-0C44, 0C46-0C48, 0C4A-0C4D, 0C55-0C56, 0C62-0C63, 0C66-0C6F
@@ -42012,11 +36963,6 @@ Basic special characters:
 Additional medial character:
 30FB
 
-
-<a id="page-1028"></a>
-## Page 1028
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-annex-c"></a>
 ## Annex C
@@ -42070,11 +37016,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (0162,0163);(0164,0165);(0166,0167);(0168,0169);
 ```
 
-
-<a id="page-1029"></a>
-## Page 1029
-
-# ISO/IEC 1989:2023 (E)
 
 (016A,016B);(016C,016D);(016E,016F);(0170,0171);
 (0172,0173);(0174,0175);(0176,0177);(0178,00FF);
@@ -42133,11 +37074,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 ---
 
 
-<a id="page-1030"></a>
-## Page 1030
-
-# ISO/IEC 1989:2023 (E)
-
 (0421,0441);(0422,0442);(0423,0443);(0424,0444);
 (0425,0445);(0426,0446);(0427,0447);(0428,0448);
 (0429,0449);(042A,044A);(042B,044B);(042C,044C);
@@ -42191,11 +37127,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (1C97,10D7);(1C98,10D8);(1C99,10D9);(1C9A,10DA);
 (1C9B,10DB);(1C9C,10DC);(1C9D,10DD);(1C9E,10DE);
 
-
-<a id="page-1031"></a>
-## Page 1031
-
-# ISO/IEC 1989:2023 (E)
 
 (1C9F,10DF);(1CA0,10E0);(1CA1,10E1);(1CA2,10E2);
 (1CA3,10E3);(1CA4,10E4);(1CA5,10E5);(1CA6,10E6);
@@ -42253,10 +37184,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 
 ---
 
-<a id="page-1032"></a>
-## Page 1032
-
-# ISO/IEC 1989:2023 (E)
 
 (1F8D,1F85);(1F8E,1F86);(1F8F,1F87);(1F98,1F90);
 (1F99,1F91);(1F9A,1F92);(1F9B,1F93);(1F9C,1F94);
@@ -42311,12 +37238,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (A66A,A66B);(A66C,A66D);(A680,A681);(A682,A683);
 (A684,A685);(A686,A687);(A688,A689);(A68A,A68B);
 
-
-
-<a id="page-1033"></a>
-## Page 1033
-
-# ISO/IEC 1989:2023 (E)
 
 (A68C,A68D);(A68E,A68F);(A690,A691);(A692,A693);
 (A694,A695);(A696,A697);(A698,A699);(A69A,A69B);
@@ -42374,10 +37295,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 
 ---
 
-<a id="page-1034"></a>
-## Page 1034
-
-# ISO/IEC 1989:2023 (E)
 
 (10C90,10CD0);(10C91,10CD1);(10C92,10CD2);(10C93,10CD3);
 (10C94,10CD4);(10C95,10CD5);(10C96,10CD6);(10C97,10CD7);
@@ -42414,11 +37331,6 @@ NOTE    Any character listed in Annex B, Characters permitted in user-defined wo
 (1E91D,1E93F);(1E91E,1E940);(1E91F,1E941);(1E920,1E942);
 (1E921,1E943)
 
-
-<a id="page-1035"></a>
-## Page 1035
-
-# ISO/IEC 1989:2023 (E)
 
 ---
 
@@ -42458,11 +37370,6 @@ A sequentially organized mass storage file has the same logical structure as a f
 ---
 
 
-<a id="page-1036"></a>
-## Page 1036
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-2-2-2"></a>
 ##### D.2.2.2 Relative organization
 
@@ -42472,11 +37379,6 @@ Conceptually, a file with relative organization is a serial string of areas, eac
 
 In order to achieve more efficient access to records in a relative file, the number of bytes reserved on the medium to store a particular logical record may be different from the number of bytes in the description of that record in the data division.
 
-
-<a id="page-1037"></a>
-## Page 1037
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-2-2-3"></a>
 ##### D.2.2.3 Indexed organization
@@ -42505,11 +37407,6 @@ Fixed-length records shall contain the same number of bytes for all the records 
 
 Variable-length records may contain differing numbers of bytes among the records on the file. To define variable-length records explicitly, the VARYING phrase may be specified in the RECORD clause in the file description entry or the sort-merge file description entry for the file. In record sequential files, the length of a record is affected by the data item referenced in the DEPENDING phrase of the RECORD clause or the DEPENDING phrase of an OCCURS clause or by the length of the record description entry for the file. In line sequential files the length of each record is determined by the number of characters between the preceding line delimiter and the following line delimiter or the end of file if no line delimiter is present, or in the case of the first logical record the start of the file and the first line delimiter.
 
-
-<a id="page-1038"></a>
-## Page 1038
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-2-2-5-3"></a>
 ###### D.2.2.5.3 Implementor-defined record types
@@ -42552,11 +37449,6 @@ If the physical device where the file resides is capable of accessing records ba
 ---
 
 
-<a id="page-1039"></a>
-## Page 1039
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-2-3-2-3"></a>
 ###### D.2.3.2.3 Random access mode
 
@@ -42582,11 +37474,6 @@ When the open mode is extend, new records are added to the logical end of a file
 
 Only mass storage files may be referenced in the open I-O mode. The additional capabilities of mass storage devices permit updating in place, thus READ and REWRITE statements may always be used. A mass storage file may be updated in the same manner as a file on a sequential medium, by transcribing the entire file into another file (perhaps in a separate area of mass storage) using READ and WRITE statements. However, it is sometimes more efficient to update a mass storage file in place. This mass storage file maintenance technique uses the REWRITE statement to return to their previous locations on the storage medium only those records that have changed. READ and REWRITE statements are the only operations allowed while updating in place sequentially organized files. For files with relative or indexed organization, the following additional functions may be applied: the START statement may be used in sequential or dynamic access mode to alter the sequence of record retrieval; the DELETE RECORD statement may be used with any access mode to remove a record logically from a file; the WRITE statement may be used in random or dynamic access mode to insert a new record into the file.
 
-
-<a id="page-1040"></a>
-## Page 1040
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-2-3-2-6"></a>
 ###### D.2.3.2.6 Current volume pointer
@@ -42621,11 +37508,6 @@ In many sort applications it is necessary to apply some special processing to th
 Within an input procedure, the RELEASE statement writes records to the sort file. That is, at the completion of execution of the input procedure those records that have been processed by use of the RELEASE statement (rather than the WRITE statement) constitute the sort file, and this file is available only to the SORT statement. Execution of the SORT statement arranges the entire set of records in the sort file according to the keys specified in the SORT statement. The sorted records are made available from the sort file by use of the RETURN statement during execution of the output procedure or by automatically writing the records to one or more files by the use of the GIVING phrase.
 
 
-<a id="page-1041"></a>
-## Page 1041
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-2-3-3-3"></a>
 ###### D.2.3.3.3 Merging
 
@@ -42657,11 +37539,6 @@ An exception checking PERFORM statement allows checking for exceptions inline. T
 
 3) end-of-page and AT EOP phrase or AT END-OF-PAGE phrase is specified; or
 
-
-<a id="page-1042"></a>
-## Page 1042
-
-# ISO/IEC 1989:2023 (E)
 
 4) any exception and ON EXCEPTION phrase is specified.
 
@@ -42695,11 +37572,6 @@ File sharing provides the capability of sharing a physical file among different 
 Record locking provides the capability of managing concurrent access to records in a shared physical file. Record locking is selected by specifying the LOCK MODE clause in the file control entry.
 
 
-<a id="page-1043"></a>
-## Page 1043
-
-# ISO/IEC 1989:2023 (E)
-
 The rules for file sharing and record locking are the same whether the physical file is shared among different run units or different runtime elements in a COBOL run unit or different file definitions within a COBOL runtime element.
 
 Implementation of file sharing and record locking such that concurrent access is managed for both COBOL and non-COBOL runtime elements is recommended; however, the requirement and specification of this is beyond the scope of the COBOL specification. This Working Draft International Standard describes file sharing and record locking in a COBOL context.
@@ -42723,11 +37595,6 @@ The specification for the OPEN statement in Table 19, Opening available shared f
 
 — SHARING WITH ALL OTHER establishes that the physical file may be opened by other logical files in sharing mode READ ONLY or in sharing mode ALL OTHER and in any i-o mode. Concurrent access is possible both for update and retrieval, and for retrieval of records that are in process of being updated. Record locking capabilities should be used to control concurrent access so that updates are not overwritten or lost and that retrieved records reflect correct content.
 
-
-<a id="page-1044"></a>
-## Page 1044
-
-# ISO/IEC 1989:2023 (E)
 
 To allow compatible behavior with earlier COBOL standards, default sharing, if any, is defined by the implementor.
 
@@ -42762,11 +37629,6 @@ With single record automatic locking, a logical file has a lock on one record at
 
 With multiple record automatic locking, all newly read records are automatically locked and the lock for a record is retained until the record is deleted, or an UNLOCK statement is executed for the logical file, or the logical file is closed.
 
-
-<a id="page-1045"></a>
-## Page 1045
-
-**ISO/IEC 1989:2023 (E)**
 
 The following illustrates a file-control paragraph that defines a logical file (my-file), where the physical file (accounts) resides on a mass storage device. SHARING WITH READ ONLY indicates that the physical file can be shared with other logical files as long as those files are open for READ ONLY. The logical file my-file is not itself restricted to read only.
 
@@ -42809,11 +37671,6 @@ READ ... IGNORING LOCK:
 ```
 
 
-<a id="page-1046"></a>
-## Page 1046
-
-# ISO/IEC 1989:2023 (E)
-
 A record is retrieved even if it is locked.
 
 The following illustrates a file-control paragraph that defines a logical file (my-file), where the physical file (accounts) resides on a mass storage device. SHARING WITH ALL OTHER indicates that the physical file can be shared with other logical files and any of them can update records.
@@ -42827,11 +37684,6 @@ LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS.
 
 The manual locking and unlocking of records is controlled by options on I/O statements, by the UNLOCK statement, and by the CLOSE statement, as summarized in Table A.1, Summary of record lock acquisition and release.
 
-
-<a id="page-1047"></a>
-## Page 1047
-
-# ISO/IEC 1989:2023 (E)
 
 ## Table A.1 Summary of record lock acquisition and release
 
@@ -42854,11 +37706,6 @@ For files subject to commit and rollback locks are only released by COMMIT and R
 | | Manual - single | - on the rewritten record if LOCK specified | - on successfully rewritten record if locked, unless LOCK is specified - and on any previously locked record |
 | | - multiple | - on the rewritten record if LOCK specified | - on the rewritten record if locked and NO LOCK is specified |
 
-
-<a id="page-1048"></a>
-## Page 1048
-
-# ISO/IEC 1989:2023 (E)
 
 **Table A.1 Summary of record lock acquisition and release**
 
@@ -42885,11 +37732,6 @@ This optional facility is very similar to that used by other software, in partic
 To use this facility effectively, the run unit needs to be organized into logical units of work, often also called transactions or single units of recovery, as described in 9.1.18, Commit and Rollback.
 
 
-<a id="page-1049"></a>
-## Page 1049
-
-# ISO/IEC 1989:2023 (E)
-
 A logical unit of work is a set of program instructions used to perform a self-contained task within a run unit, organized so that the files and data involved are in a self-consistent state both before and after it, and while in progress are protected from the activity of other run units that wish to access any of the same records and data. A commit is issued after each logical unit of work, while a rollback within it returns the state of the protected files and data to that which they were in at the previous commit.
 
 The sample program below provides an example, in that each iteration of the "processing" section is a logical unit of work, whereby a commit is executed, then a change transaction is read and applied to the stock file and, provided no errors have been detected, the process is repeated for the next change transaction. If a fatal error occurs, a rollback is executed and the program terminated. If a nonfatal error occurs due to a record being locked by another run unit, a rollback is executed and an attempt is made to repeat the processing since the previous commit.
@@ -42905,10 +37747,6 @@ It is possible to vary the commit frequency according to another user-defined da
 Rollbacks restore the file and data states for files and data items subject to APPLY COMMIT clauses to the state they were in at the last successful commit or, if none, the beginning of the program.
 
 Rollbacks are to be used wherever needed. However, rollbacks should be placed according to whether processing is then to be resumed or terminated. Note that in the event of an error that is fatal according to the rules of COBOL or the operating system, a rollback will be invoked automatically as part of abnormal termination without needing to be specified explicitly, when a declarative may be used to provide additional useful information if needed. If processing is to be terminated for a condition that is fatal from the point of view of user specified logic, a rollback may be placed anywhere that is appropriate for the situation. However, for processing that is be resumed, consideration needs to be given to how the program is to return control to the point where such resumption is practical. In practice, this would usually be in the runtime element with overall control of the processing of logical units of work. An invoked runtime element that identifies the need for a rollback could return control to that controlling runtime element by means of raising a series of one or more user-defined exceptions or by setting signal flags specially designed for the purpose immediately after executing a rollback, or it may be more straightforward to just to raise the series of user-exceptions or use signal flags to return to and indicate to the controlling runtime element that a rollback is required.
-
-<a id="page-1050"></a>
-## Page 1050
-# ISO/IEC 1989:2023 (E)
 
 
 As locks on records are not released until there is a commit or a rollback, other run units may not prevent the current run unit from doing what it needs to do with them in the course of a rollback or commit. Once the locks are released, there is no reason why another run unit may not acquire record locks on the released records. It would be a case of first come, first served as to which run unit then acquires rights to records. There are often in-house conventions for competing run units to use a common sequence for opening files and reading records to minimize the likelihood of deadlocks where each run unit has a lock on records from different files and then needs access to the records in other files that the other run unit already has. Where deadlocks do occur, one or both of the programs would have to rollback what they already have done and try again, but neither of them would have been able to obtain sharing rights and record locks on files and records that the other one already has. This also applies to components of the same run unit where the files are also accessed by independent file connectors that are not specified in APPLY COMMIT clauses.
@@ -42926,11 +37764,6 @@ If sharing with all other is in effect, then it is possible for another run unit
 
 ---
 
-
-<a id="page-1051"></a>
-## Page 1051
-
-# ISO/IEC 1989:2023 (E)
 
 It is not essential for the optional facility for file sharing and record locking to be in effect, but if not, then unless the implementor provides equivalent facilities for the files involved, the user shall ensure that the run unit is not run simultaneously with other run units that need access to the files being used.
 
@@ -42965,11 +37798,6 @@ Program example:
             *> when reading the two files, since once read they
 ```
 
-
-<a id="page-1052"></a>
-## Page 1052
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         *> will be locked by this program until a commit or
@@ -43026,10 +37854,6 @@ Program example:
 
 ---
 
-<a id="page-1053"></a>
-## Page 1053
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         88  STCK-FILE-SHARING-CONFLICT    VALUE "61".
@@ -43087,11 +37911,6 @@ END DECLARATIVES
 ---
 
 
-<a id="page-1054"></a>
-## Page 1054
-
-# ISO/IEC 1989:2023 (E)
-
 ```
        . MAIN SECTION.
 
@@ -43147,10 +37966,6 @@ END DECLARATIVES
 
 ---
 
-<a id="page-1055"></a>
-## Page 1055
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         MOVE CHNG-KEY              TO SAVE-KEY
@@ -43207,10 +38022,6 @@ END DECLARATIVES
 
 ---
 
-<a id="page-1056"></a>
-## Page 1056
-
-# ISO/IEC 1989:2023 (E)
 
 ```
                 END-IF
@@ -43265,11 +38076,6 @@ END DECLARATIVES
 ```
 
 
-<a id="page-1057"></a>
-## Page 1057
-
-# ISO/IEC 1989:2023 (E)
-
 ```
         ADD 1                    TO UPDATE-COUNT
         REWRITE STCK-REC
@@ -43312,11 +38118,6 @@ A table of data items is defined by coding the OCCURS clause in its data descrip
 
 A reference to a specific occurrence of the table elements may be made only by specifying the data-name of the table element, including any necessary qualifiers, followed by the desired occurrence number. The occurrence number is known as a subscript.
 
-
-<a id="page-1058"></a>
-## Page 1058
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-3-2"></a>
 #### D.3.2 Table definition
@@ -43364,11 +38165,6 @@ Example 4 shows two tables that are part of the same group item. A reference to 
 EXAMPLE 4
 
 
-<a id="page-1059"></a>
-## Page 1059
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 01  TABLES.
     02  MONTHLY-REVENUES    OCCURS 12 TIMES.
@@ -43409,10 +38205,6 @@ In the working-storage and local-storage sections, initial values of elements wi
 
 Whenever the user references a table element or a condition-name associated with a table element, the reference shall indicate which occurrence of the element is intended, except in a SEARCH statement, in a SORT statement, and in arguments to certain intrinsic functions that reference a table. For access to a one-dimensional table the occurrence number of the desired element provides complete information. For tables of more than one dimension, an occurrence number shall be supplied for each dimension of the table. In example 5, then, a reference to MONTHLY-REVENUES (3) is complete, but a reference to REV-SHOP (2) is not since any reference to a REV-SHOP item requires two subscripts. A valid reference might be REV-SHOP (5, 2) which refers to the second occurrence of REV-SHOP in the fifth occurrence of MONTHLY-REVENUES.
 
-<a id="page-1060"></a>
-## Page 1060
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-3-5"></a>
 #### D.3.5 Subscripting
@@ -43438,10 +38230,6 @@ The lowest permissible occurrence number is 1. The highest permissible occurrenc
 In order to facilitate such operations as table searching and manipulating specific items, a technique called indexing is available. To use this technique, the programmer assigns one or more index-names to an item whose data description entry contains an OCCURS clause. An index associated with an index-name acts as a subscript, and its value corresponds to an occurrence number for the item to which the index-name is associated.
 
 The INDEXED BY phrase, by which the index-name is identified and associated with its table, is an optional part of the OCCURS clause. There is no separate entry to describe the index associated with index-name since its definition is completely hardware oriented. At runtime the contents of the index correspond to an occurrence number for that specific dimension of the table with which the index is associated; however, the manner of correspondence is determined by the implementor. The initial value of an index at runtime is undefined, and the index shall be initialized before use. The initial value of an index is assigned with the PERFORM statement with the VARYING phrase, the SEARCH statement with the ALL phrase, or the SET statement.
-
-<a id="page-1061"></a>
-## Page 1061
-# ISO/IEC 1989:2023 (E)
 
 
 The use of an arithmetic-expression or data-name as a subscript referencing a table element or an item within a table element does not cause the alteration of any index associated with that table.
@@ -43480,11 +38268,6 @@ To illustrate the requirement of order from major to minor, HARRY (18, 2, 7) mea
 Mixing arithmetic-expressions and index-names is illustrated by the following:
 
 
-<a id="page-1062"></a>
-## Page 1062
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 HARRY (BAKER-INDEX - 3, 4, (XCOUNTER * 2) - 3).
 ```
@@ -43503,12 +38286,6 @@ DOG (XCOUNTER - YCOUNTER)
 
 which will cause a syntax error, because only one subscript is coded where two subscripts are necessary.
 
-
-
-<a id="page-1063"></a>
-## Page 1063
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-3-5-4"></a>
 ##### D.3.5.4 SEARCH example
@@ -43553,11 +38330,6 @@ Increment index-name-1 (for a different table) or identifier-2 *
 
 ---
 
-
-<a id="page-1064"></a>
-## Page 1064
-
-# ISO/IEC 1989:2023 (E)
 
 \* These operations are options included only when specified in the VARYING phrase of the SEARCH statement.
 
@@ -43611,11 +38383,6 @@ This example is a simple sort in which the table is sorted in ascending order us
 ```
 
 
-<a id="page-1065"></a>
-## Page 1065
-
-**ISO/IEC 1989:2023 (E)**
-
 ```
 ...
 procedure division.
@@ -43668,10 +38435,6 @@ This example sorts only the third instance of tabl2, that is tabl2 (3). It uses 
 
 ---
 
-<a id="page-1066"></a>
-## Page 1066
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 set t1-ind to 3.
@@ -43722,11 +38485,6 @@ or    SET family-count UP BY 10
 ```
 
 
-<a id="page-1067"></a>
-## Page 1067
-
-# ISO/IEC 1989:2023 (E)
-
 Any new elements created, and any unreferenced data in them, may be initialized automatically by including the INITIALIZED keyword in the OCCURS clause, as in the example.
 
 An entire dynamic table may be moved to another table as part of a group MOVE when the tables defined in the two groups coincide and have the same entry length. You can create a dynamic table from a fixed or OCCURS DEPENDING table and vice versa, because this type of group MOVE allows one of the two tables to be non-dynamic.
@@ -43769,10 +38527,6 @@ MOVE "This product is no longer available" TO my-dlei.
 
 will set the length of my-dlei to 35. The LENGTH function may be used to return the actual size of my-dlei. Until its value changes, this data item will behave exactly like a fixed length item with a PICTURE of X(35), and all the statements normally available to an alphanumeric or national data item can be used with it.
 
-<a id="page-1068"></a>
-## Page 1068
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-4"></a>
 ### D.4 Shared memory area
@@ -43805,11 +38559,6 @@ ACCESS MODE IS SEQUENTIAL
 FILE STATUS IS FileStatField
 ```
 
-
-<a id="page-1069"></a>
-## Page 1069
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 RELATIVE KEY IS RelKeyField.
@@ -43856,11 +38605,6 @@ A second example where this principle applies to multiple receiving operands (wi
 ```
 
 
-<a id="page-1070"></a>
-## Page 1070
-
-# ISO/IEC 1989:2023 (E)
-
 ```
         05  FILLER PIC XX.
         05  Res-3 PIC V9(8).
@@ -43902,10 +38646,6 @@ In summary, for such cases as these, the content of these data items is not like
 
 The user is cautioned that unexpected results may occur when the user fails to ensure that operands either explicitly or implicitly associated with a given statement do not overwrite each other during the course of execution of that statement, and that such storage is not shared with other data items that may unexpectedly change the result of execution of other statements.
 
-<a id="page-1071"></a>
-## Page 1071
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-6"></a>
 ### D.6 Compilation group and run unit organization and communication
@@ -43933,22 +38673,12 @@ The procedure division of a function, method, or program is organized into a seq
 Further discussion of classes, factories, interfaces, methods, and objects can be found in D.19, Object oriented concepts.
 
 
-<a id="page-1072"></a>
-## Page 1072
-
-# ISO/IEC 1989:2023 (E)
-
 Figure D.2, Compilation group sample structure example, illustrates the structure of a compilation group.
 
 NOTE All source elements are source units as well. This is only partially indicated in the example.
 
 **Figure D.2 — Compilation group sample structure example**
 
-
-<a id="page-1073"></a>
-## Page 1073
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 *> Compilation group start
@@ -44016,10 +38746,6 @@ END-CLASS C-1.
 
 ---
 
-<a id="page-1074"></a>
-## Page 1074
-
-# ISO/IEC 1989:2023 (E)
 
 Figure D.3, Compilation group and run unit structures, shows schematically, in an example, the relationships between the components of a compilation group and their corresponding runtime entities. Note that runtime modules resulting from compilation units of the same compilation group need not be part of the same run unit, and runtime modules in the same run unit need not result from compilation units of the same compilation group.
 
@@ -44050,11 +38776,6 @@ From other comp. group &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 | (dashed border box) | Runtime Module |
 | (small dashed border box) | Runtime Element |
 
-
-<a id="page-1075"></a>
-## Page 1075
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-6-1-2"></a>
 ##### D.6.1.2 Runtime level organization
@@ -44109,11 +38830,6 @@ WORKING-STORAGE SECTION.
 ```
 
 
-<a id="page-1076"></a>
-## Page 1076
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 01  global-item PIC X(30) GLOBAL VALUE "The factorial is: "
 PROCEDURE DIVISION.
@@ -44147,12 +38863,6 @@ Early COBOL programs always had data in its last-used state and did not allow ca
 An initial program is one in which working-storage section internal data items and internal file connectors are set to their initial state whenever the program is called. Data items and file connectors declared as external are left in their last-used state. When the program exits (with EXIT PROGRAM or GOBACK), all programs that are contained in it are canceled (as if CANCEL were executed for each one) and any internal file connectors are closed. This type of program is most often used when it is not necessary to retain data from one invocation to the next. To retain specific data, external data items or file connectors can be used. In many implementations of initial programs, working-storage is allocated "on the stack", which can conserve space because it goes away when the program terminates.
 
 
-
-<a id="page-1077"></a>
-## Page 1077
-
-# ISO/IEC 1989:2023 (E)
-
 A recursive function, method, or program is one that can be called when it is already active. For example, program A can call B that can in turn call A again. Or, A can call A as illustrated in the example inD.6.1.3 where the function factorial calls itself. Typically, in a recursive program a local-storage section is specified for data that is initialized on each invocation of the program (this data is called automatic data). Working-storage data is static and is therefore in its last-used state on every invocation. The programmer should be aware of this because it can cause unexpected results. For example, if you had a counter "xyz" in the working-storage in one recursion of a program and you added to it, when you got back to another recursion it would be one more than it was before. You might or might not want this to happen.
 
 <a id="section-d-6-3"></a>
@@ -44178,11 +38888,6 @@ A file-name is global if the GLOBAL clause is specified in the file description 
 
 If a data-name, a file-name, or a condition-name declared in a data description entry is not global, the name is local.
 
-
-<a id="page-1078"></a>
-## Page 1078
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-6-3-3"></a>
 ##### D.6.3.3 Items overview
@@ -44220,11 +38925,6 @@ A screen record provides the two-dimensional framework within which screen items
 Examples of other items declared in COBOL functions and programs are: report description entries and control information associated with the linkage and report sections.
 
 
-<a id="page-1079"></a>
-## Page 1079
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-6-3-5"></a>
 ##### D.6.3.5 Item attributes
 
@@ -44257,11 +38957,6 @@ Records, subordinate data items, and various associated control information desc
 
 Certain conventions apply when programs contained within other programs assign the same names to data items, conditions, and file connectors. Consider the situation when program A contains program B which itself contains program C; further, programs A and B, but not program C, contain data division entries for a condition-name, data-name, or a file-name named DUPLICATE-NAME.
 
-
-<a id="page-1080"></a>
-## Page 1080
-
-# ISO/IEC 1989:2023 (E)
 
 1) If either DUPLICATE-NAME explicitly references an internal item, two different though identically named items exist. If both items identified as DUPLICATE-NAME explicitly reference an external item, only one item exists.
 
@@ -44296,11 +38991,6 @@ A common program is one that, despite being directly contained within another pr
 An initial program is one whose program state is initialized when the program is called. Thus, whenever an initial program is called, its program state is the same as when the program was first called in that run unit. The initial attribute is attained by specifying the INITIAL phrase in the program's identification division.
 
 
-<a id="page-1081"></a>
-## Page 1081
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-6-4-4"></a>
 ##### D.6.4.4 Recursive programs
 
@@ -44327,10 +39017,6 @@ The CALL statement provides the means whereby control may be transferred to a pr
 When control is transferred to a called program, execution proceeds from statement to statement beginning with the first nondeclarative statement of the called program. If control reaches a STOP statement, this signals the logical end of the run unit. If control reaches an EXIT PROGRAM statement, this signals the logical end of the called program only, and control then reverts to the next executable statement following the CALL statement in the calling runtime element. If control reaches a GOBACK statement and the program has been called, control continues as for the EXIT PROGRAM statement; otherwise, control continues as for the STOP statement. Thus the EXIT PROGRAM statement terminates only the execution of the program in which it occurs, the STOP statement terminates the execution of a run unit, and the GOBACK statement returns from whence it came, whether it was another program or the operating system.
 
 The CALL statement may be used to call a program that is not written in COBOL, but the return mechanism and inter-program data communication are not specified in this document. A COBOL program may also be called from a runtime element that is not written in COBOL, but the calling mechanism and inter-program data communication are not specified in this document. In both the above cases, only those parts of the parameter passing mechanism that apply to the COBOL program are specified in this document.
-
-<a id="page-1082"></a>
-## Page 1082
-# ISO/IEC 1989:2023 (E)
 
 
 <a id="section-d-6-5-3-1"></a>
@@ -44369,11 +39055,6 @@ The name DUPLICATE-NAME has also been specified for an outermost program.
 1) If program A, but not any of the programs it contains, calls program DUPLICATE-NAME, the program activated is the one contained within program A.
 
 
-<a id="page-1083"></a>
-## Page 1083
-
-**ISO/IEC 1989:2023 (E)**
-
 2) If either program B or program BB calls program DUPLICATE-NAME then:
 
    a) If the program DUPLICATE-NAME contained within program A possesses the common attribute, it is called.
@@ -44409,11 +39090,6 @@ The names assigned to each of the functions within a run unit shall be unique.
 Any runtime element may activate any function in a run unit. All functions are recursive. A function may activate itself and may be activated while it is active.
 
 
-<a id="page-1084"></a>
-## Page 1084
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-6-5-5"></a>
 ##### D.6.5.5 Transfer of control to a method
 
@@ -44444,11 +39120,6 @@ In a source element describing the activating runtime element, the values of the
 
 ---
 
-
-<a id="page-1085"></a>
-## Page 1085
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 PROGRAM-ID.  EXAMPLE.
@@ -44487,11 +39158,6 @@ Thus an argument passed by reference may be used by an activated runtime element
 In the source element describing the activated runtime element, the list of formal parameters specified in the procedure division header describes the mechanism for receiving the argument. A formal parameter for which BY REFERENCE is specified in this list may receive an argument that is passed either by reference or by content. A formal parameter for which BY VALUE is specified may receive only an argument that is passed by value.
 
 
-<a id="page-1086"></a>
-## Page 1086
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-6-5-6-4"></a>
 ###### D.6.5.6.4 Passing addresses
 
@@ -44516,10 +39182,6 @@ Use of the by content or by value mechanism along with a prototype allows the sy
 A prototype may specify that a parameter can be omitted when the function, method or program is referenced. The OMITTED test allows a runtime element to determine whether a parameter is present.
 
 Prototype information may be available in the same compilation group or in an external repository. Prototype information for nested programs, identified by the NESTED phrase of the CALL statement, is extracted from the actual program to be called. Specification of a function-prototype-name or a program-prototype-name in the REPOSITORY paragraph causes the system to find the information not specified in the compilation group in the external repository for prototypes. For methods, the prototype is provided through the class or interface in which the method is defined.
-
-<a id="page-1087"></a>
-## Page 1087
-**ISO/IEC 1989:2023 (E)**
 
 
 <a id="section-d-6-5-6-7"></a>
@@ -44556,11 +39218,6 @@ Runtime elements in a run unit may reference common data in the following circum
 3) The mechanism whereby a parameter value is passed by reference from an activating runtime element to an activated runtime element establishes a common data item; the activated element, which may use a different identifier, may refer to that data item in the activating element.
 
 
-<a id="page-1088"></a>
-## Page 1088
-
-# ISO/IEC 1989:2023 (E)
-
 4) The mechanism whereby a value is returned from a function, method, or program establishes a common data item, the returning data item. The activated runtime element, which may use a different identifier, may return a value in the returning data item in the activating runtime element.
 
 <a id="section-d-6-5-8"></a>
@@ -44593,9 +39250,6 @@ At this point, the requestor can go on processing and ask for the return right a
 MOVE 0 TO bpo-length
 ```
 
-
-<a id="page-1089"></a>
-## Page 1089
 
 ```
 RECEIVE FROM my-message-tag GIVING the-balance-provider-output bpo-length
@@ -44647,11 +39301,6 @@ The intrinsic function facility provides a means of returning a value that is de
 The user invokes an intrinsic function by specifying the word FUNCTION followed by the name of the function optionally followed by arguments in parentheses. For example:
 
 
-<a id="page-1090"></a>
-## Page 1090
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 MOVE FUNCTION MAX (1, a) TO b
 ```
@@ -44695,9 +39344,6 @@ MOVE FUNCTION MAX (a-table (ALL)) TO a-variable
 If you are interested only in the first part of a return that is a string (assume a-table is a table of PIC X(10) items) you may specify
 
 
-<a id="page-1091"></a>
-## Page 1091
-
 ```
 MOVE FUNCTION MAX (a-table (ALL)) (1: nbr-chars) TO a-variable
 ```
@@ -44734,10 +39380,6 @@ There are three different kinds of typed items:
 Note that elementary items cannot be strongly-typed.
 
 A type – whether weak or strong – defines a certain data structure, which has a specific name, and, when used, is used with exactly that defined structure. This ensures that this structure is not affected by things like different alignment, or by changing the data representation by means of an ALIGNED, GROUP-USAGE, SIGN, or USAGE specification on a higher group level.
-
-<a id="page-1092"></a>
-## Page 1092
-# ISO/IEC 1989:2023 (E)
 
 
 <a id="section-d-8-2"></a>
@@ -44778,10 +39420,6 @@ The main purpose of strong typing, beyond preserving the data structure defined 
 
 A group item can be thought of as a kind of redefinition, specifically a "redefinition" of its subordinate data items as one item - an alphanumeric group item, a bit group item, or a national group item. This has the implication that operations on strongly-typed groups, or groups containing strongly-typed group items, are restricted to those that don't affect the integrity of the data subordinate to the group. Thus, the only way to use strongly-typed group items as receiving operands is when the sending operand is of the same type, where "same type" is defined as a type declaration with the same name and the same essential characteristics, as described above.
 
-<a id="page-1093"></a>
-## Page 1093
-# ISO/IEC 1989:2023 (E)
-
 
 Note that there is no need to impose the same kind of restrictions on elementary items, because operations for elementary items in general do not corrupt the contents of the receiving operands.
 
@@ -44819,10 +39457,6 @@ The restrictions for strongly-typed group items are summarized as follows:
 
    g) a REWRITE statement with the FROM phrase h) the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement i) the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement j) a WRITE statement with the FROM phrase.
 
-<a id="page-1094"></a>
-## Page 1094
-# ISO/IEC 1989:2023 (E)
-
 
 4) A strongly-typed group item can be compared only with another strongly-typed group item of the same type.
 
@@ -44855,11 +39489,6 @@ This results in a strongly typed record with the description:
 
 5) In strong type definitions, VALUE clauses are permitted only for elementary items and elementary conditional variables.
 
-
-<a id="page-1095"></a>
-## Page 1095
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-9"></a>
 ### D.9 Addresses and pointers
@@ -44900,11 +39529,6 @@ A restricted data-pointer may contain only the predefined address NULL or the ad
 
 Use of restricted data-pointers provides type safety by precluding the treatment of data of one type as data of another type.
 
-
-<a id="page-1096"></a>
-## Page 1096
-
-# ISO/IEC 1989:2023 (E)
 
 This is of special significance for strongly-typed group items. The address of a strongly-typed group item is considered a restricted data-pointer. Therefore, it can only be assigned to a data-pointer restricted to the same type, and in turn it can only be used to address a based item of the same type. Conversely, the address of a strongly-typed based item can only be set to the address of a data item of the same type. This way, the existing restrictions for enforcing the integrity of strongly-typed group items cannot be circumvented by the use of addresses, pointers, and based items.
 
@@ -44963,11 +39587,6 @@ If you want to pass a pointer to the program process-record, you could code:
 ---
 
 
-<a id="page-1097"></a>
-## Page 1097
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 Set p2 to address of data-record
 Call "process-record" using p2
@@ -45007,10 +39626,6 @@ Data items of category boolean, referred to as boolean items, are defined by pic
 
 The usage specified in the data description of a boolean item can be BIT, DISPLAY, or NATIONAL. If picture symbol 1 is specified and a usage is not specified, the usage defaults to DISPLAY. Usages DISPLAY and NATIONAL are provided for ease of printing or displaying the value of boolean items. All three representations can be manipulated in the same manner. When storage is not an issue, usages DISPLAY and NATIONAL avoid the inconvenience of converting bits to characters for printing or displaying them.
 
-<a id="page-1098"></a>
-## Page 1098
-# ISO/IEC 1989:2023 (E)
-
 
 Boolean values can be specified in literals with an opening separator B", for example B"1110" where the value is expressed in bits, or opening separator BX", for example BX"E" where the value is expressed in hexadecimal notation.
 
@@ -45049,11 +39664,6 @@ MOVE  B"1"  to   My-flag-2(1:1)   *>  set bit 1 ON using reference
 
 Table A.2, Examples of boolean operations, illustrates the result of boolean operations for each of the boolean operators.
 
-
-<a id="page-1099"></a>
-## Page 1099
-
-# ISO/IEC 1989:2023 (E)
 
 **Table A.2 Examples of boolean operations**
 
@@ -45105,11 +39715,6 @@ MOVE  FUNCTION  BOOLEAN-OF-INTEGER ( integer-item , 6) TO bit-item.
 ```
 
 
-<a id="page-1100"></a>
-## Page 1100
-
-# ISO/IEC 1989:2023 (E)
-
 ```
    *> the function returns the low order 6 bits of the binary
    *> representation of the integer value, and MOVE stores it in bit-item,
@@ -45150,10 +39755,6 @@ Within an alphanumeric group item, a national group item, a bit group item, or a
 
 ---
 
-<a id="page-1101"></a>
-## Page 1101
-
-# ISO/IEC 1989:2023 (E)
 
 The following example illustrates the generation of implicit filler to align on a byte boundary in an alphanumeric group item:
 
@@ -45212,10 +39813,6 @@ the use of the ALIGNED clause caused item-2 to be aligned on a byte boundary.
 
 ---
 
-<a id="page-1102"></a>
-## Page 1102
-
-# ISO/IEC 1989:2023 (E)
 
 It is necessary that the programmer ensure alignment on a byte boundary for bit strings being used as arguments for CALL, INVOKE, a function reference, or an inline method invocation, and when using the ADDRESS OF identifier for bit strings. These operations require that the bit item be aligned on a byte boundary so that it is directly addressable. The ALIGNED clause can be used to ensure byte boundary alignment.
 
@@ -45260,10 +39857,6 @@ The COBOL character repertoire defines the characters that are used to write the
 
 At compile time, comments and the non-hexadecimal format of alphanumeric and national literals may contain any of the characters that the implementor has defined in the coded character set, except any used to end a free-form line. COBOL words and separators are limited to characters in the COBOL character repertoire. This is the significant difference between the COBOL character repertoire and the compile-time computer's coded character set used.
 
-<a id="page-1103"></a>
-## Page 1103
-# ISO/IEC 1989:2023 (E)
-
 
 At runtime, data is represented in the storage in the computer's runtime coded character set, which may be the same coded character set used at compile time or may be a different one. If the coded character sets used at compile time and runtime are different, the content of alphanumeric and national literals are translated from the compile-time coded character set to the runtime coded character set.
 
@@ -45288,11 +39881,6 @@ For purposes of the COBOL character repertoire used in the syntax of a compilati
 <a id="section-d-11-3"></a>
 #### D.11.3 Programming to use alphanumeric and national character data
 
-
-<a id="page-1104"></a>
-## Page 1104
-
-# ISO/IEC 1989:2023 (E)
 
 COBOL provides two classes of character data -- alphanumeric and national. Data of class alphanumeric is held in data items described with usage DISPLAY. Data of class national is held in data items described with usage NATIONAL.
 
@@ -45331,10 +39919,6 @@ A data item with usage national can be moved, compared, inspected, written, read
 
 The default class and category of a group item containing data items of usage national is alphanumeric, just as it is for a group item containing other data items. A group can be explicitly given class and category national by coding the GROUP-USAGE NATIONAL phrase at the group level of a data description entry when all subordinate data items in the group, and in any contained groups, are of class and category national. For example:
 
-<a id="page-1105"></a>
-## Page 1105
-# ISO/IEC 1989:2023 (E)
-
 
 ```
 01  Group-1  GROUP-USAGE NATIONAL.
@@ -45370,11 +39954,6 @@ There are four options in the COBOL-WORDS directive, EQUATE, UNDEFINE, SUBSTITUT
 <a id="section-d-12-2"></a>
 #### D.12.2 EQUATE
 
-
-<a id="page-1106"></a>
-## Page 1106
-
-# ISO/IEC 1989:2023 (E)
 
 The EQUATE option allows a programmer to create a synonym for a particular reserved word, context-sensitive word, or function name, allowing that new word to be used elsewhere in the program as if it were the original word. For example:
 
@@ -45430,11 +40009,6 @@ MOVE-IT 1 TO move *> this will act like a COBOL move
 ```
 
 
-<a id="page-1107"></a>
-## Page 1107
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-12-5"></a>
 #### D.12.5 RESERVE
 
@@ -45469,11 +40043,6 @@ A national collating sequence applies to data described with usage NATIONAL. Thi
 These two classifications of collating sequences do not require two physically-separate collating sequence tables or implementations. A single collating sequence, such as the one associated with UCS-4, can be referenced as both an alphanumeric and a national collating sequence, and used to support both collating sequences. Similarly, a single locale can provide the collating sequence for the character repertoires of usage DISPLAY and usage NATIONAL.
 
 
-<a id="page-1108"></a>
-## Page 1108
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-13-2"></a>
 #### D.13.2 Methods of defining collating sequences
 
@@ -45505,11 +40074,6 @@ In some environments, that collating sequence may be culturally acceptable — t
 
 If the application is to be ported to other processors or is designed for users of differing cultures, the default collating sequences are unlikely to be suitable and you will need to design the application to use COBOL features that allow for selection of specific collating sequences or runtime determination of collating sequences.
 
-
-<a id="page-1109"></a>
-## Page 1109
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-13-3-2"></a>
 ##### D.13.3.2 Using a specific collating sequence
@@ -45560,11 +40124,6 @@ COLLATING SEQUENCE OF altkey_1 altkey_2 FOR ALPHANUMERIC IS Universal-order
 ```
 
 
-<a id="page-1110"></a>
-## Page 1110
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 COLLATING SEQUENCE OF prim-key          FOR NATIONAL IS  Universal-order
 ...
@@ -45600,10 +40159,6 @@ If you do not specify an alphabet-name, the range of values can be empty or can 
 
 ---
 
-<a id="page-1111"></a>
-## Page 1111
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-13-5"></a>
 #### D.13.5 Intrinsic functions for comparisons
@@ -45612,12 +40167,6 @@ If there is no need for a culturally-appropriate collating sequence for all comp
 
 If a sophisticated comparison suitable for multiple cultures is needed, use the comparison intrinsic function STANDARD-COMPARE, which compares two arguments using a cultural ordering table that complies with ISO/IEC 14651. A default cultural ordering table is described in Annex A of ISO/IEC 14651. That ordering standard is not widely implemented at this writing, but support for it is expected to become more available over time.
 
-
-
-<a id="page-1112"></a>
-## Page 1112
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-14"></a>
 ### D.14 Culturally-specific, culturally-adaptable, and multilingual applications
@@ -45663,10 +40212,6 @@ EXAMPLE 1 CURRENCY SIGN 'm'. …
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PICTURE mMm,MmM,mM9.99-.
 
 EXAMPLE 2 CURRENCY SIGN '$' PICTURE SYMBOL 'q'. … PICTURE QqQ,qQq,Qq9.99-.
-
-<a id="page-1113"></a>
-## Page 1113
-# ISO/IEC 1989:2023 (E)
 
 
 In example 1, 'm' is both the currency string and the currency symbol. The value -123,456.78 would appear as '  m123,456.78-' in data associated with that picture clause.
@@ -45716,11 +40261,6 @@ The nature of a culturally-adaptable application is that it is written once and 
 — collating sequences of file indexes, sort/merge, and comparisons
 
 
-<a id="page-1114"></a>
-## Page 1114
-
-# ISO/IEC 1989:2023 (E)
-
 — case classification of letters
 — date and time formatting
 
@@ -45751,11 +40291,6 @@ Other examples of locale selection are given below.
 
 If a specific locale or multiple specific locales are to be used in an application, instead of the system default or user default locales, the locale needs to be identified in the SPECIAL-NAMES paragraph and a locale-name assigned for use in COBOL procedural code. The details of how to identify a locale are specified by the COBOL implementor. A library of named locales might be provided, or an implementor could accept a data set location in a literal -- these are examples; see the user documentation for your COBOL compiler to find out what your implementor has provided.
 
-
-<a id="page-1115"></a>
-## Page 1115
-
-# ISO/IEC 1989:2023 (E)
 
 The following code fragment illustrates the code for identifying and switching locales, assuming the implementor has provided locales named French-1 and Swiss-2:
 
@@ -45811,10 +40346,6 @@ PROCEDURE DIVISION.
 
 ---
 
-<a id="page-1116"></a>
-## Page 1116
-
-# ISO/IEC 1989:2023 (E)
 
 It is always a good idea to save the address of the current locale before switching to a new one, unless it is known that no further processing will need that locale.
 
@@ -45857,11 +40388,6 @@ DATA DIVISION.
 
 Multiple locales may be used; for example, if a report had US currency in one column and Italian currency in another, one could define:
 
-
-<a id="page-1117"></a>
-## Page 1117
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 LOCALE my-US-locale is USA-1.
@@ -45916,11 +40442,6 @@ PROCEDURE DIVISION.
 ```
 
 
-<a id="page-1118"></a>
-## Page 1118
-
-# ISO/IEC 1989:2023 (E)
-
 ```
         GIVING Another-file.
 ...
@@ -45967,9 +40488,6 @@ MOVE FUNCTION LOCALE-DATE (some-date-field, my-italian-locale) TO  a-date-field
 To obtain the current date in a locale-based format in accordance with the current locale, use the LOCALE-DATE function without specifying a locale as the second argument; for example:
 
 
-<a id="page-1119"></a>
-## Page 1119
-
 ```
 MOVE FUNCTION LOCALE-DATE (CURRENT-DATE (1:8)) TO a-date-field.
 ```
@@ -45990,12 +40508,6 @@ Use of UCS-4 or UTF-16 alone is not always sufficient for developing multilingua
 ---
 
 
-
-<a id="page-1120"></a>
-## Page 1120
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-15"></a>
 ### D.15 External switches
 
@@ -46005,11 +40517,6 @@ The status of an external switch may be interrogated by testing condition-names 
 
 The status of certain switches may be altered by the SET statement.
 
-
-<a id="page-1121"></a>
-## Page 1121
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-16"></a>
 ### D.16 Common exception processing
@@ -46039,11 +40546,6 @@ The user can define exceptions by suffixing EC-USER-. For example, EC-USER-OVERD
 In a similar fashion, the implementor can suffix EC-IMP- to define exceptions. In this case the implementor defines the fatality, what causes the exception and so on.
 
 
-<a id="page-1122"></a>
-## Page 1122
-
-# ISO/IEC 1989:2023 (E)
-
 Checking for exceptions is initially disabled for all exception conditions with the exception of some of the input-output exceptions and can be enabled at compile time with the use of the TURN compiler directive or the implicit TURN compiler directives created by the WHEN phrase of the PERFORM statement. If checking for an exception condition is enabled, it can also be disabled by the TURN compiler directive. The TURN compiler directive or the WHEN phrase may specify the level-3 exception-name, the associated level-2 exception-name, or EC-ALL. Enabling checking for exceptions normally causes a significant amount of code to be generated. This means slower execution and larger object program size. One of the primary uses of this type of exception checking is to "debug" a program. When EC-ALL is enabled, problems that could cause trouble during production can be found more easily. Once the program is OK, remove the TURN ON directive or use an IF directive to turn it on and off. The use of PUSH and POP compiler directives allows manipulation of the TURN directives, but they shall not be specified within an exception-processing PERFORM statement.
 
 Checking for an exception condition is locally disabled by the presence of an explicit phrase. For example, if the SIZE ERROR phrase is specified on an arithmetic statement, the raising of the EC-SIZE exception condition is disabled for that statement, except during item identification.
@@ -46062,11 +40564,6 @@ If an exception declarative or a WHEN phrase in an exception-checking PERFORM st
 
 ---
 
-
-<a id="page-1123"></a>
-## Page 1123
-
-# ISO/IEC 1989:2023 (E)
 
 a) execute a RESUME statement with the NEXT phrase to continue execution at an implicit CONTINUE statement following the statement that caused the exception processing statements to be executed, or
 
@@ -46095,10 +40592,6 @@ EXCEPTION-LOCATION returns an alphanumeric character string that indicates the l
 
 ---
 
-<a id="page-1124"></a>
-## Page 1124
-
-# ISO/IEC 1989:2023 (E)
 
 EXCEPTION-LOCATION-N returns a national character string that indicates the location of the statement in which the exception condition associated with the last exception status was raised. Part of the string is implementor-defined.
 
@@ -46148,8 +40641,6 @@ PERFORM
 
 ---
 
-<a id="page-1125"></a>
-## Page 1125
 
 ```
 >* next statement
@@ -46198,11 +40689,6 @@ The following forms of rounding are provided (examples presume an integer destin
 — NEAREST-TOWARD-ZERO: Rounding is to the nearest value. If two values are equally near, the value nearer to zero is selected.
 
 
-<a id="page-1126"></a>
-## Page 1126
-
-# ISO/IEC 1989:2023 (E)
-
 — PROHIBITED: No rounding is performed. If the value cannot be represented exactly in the desired format, the EC-SIZE-TRUNCATION condition is set to exist and the results of the operation are undefined.
 
 — TOWARD-GREATER: Rounding is toward the nearest value whose algebraic value is larger.
@@ -46234,11 +40720,6 @@ Intermediate rounding applies when data items are retrieved for inclusion in an 
 
 The default for standard-binary and standard-decimal arithmetic for multiplication and division is a default mode of rounding for inexact results to truncation to 32 significant digits.
 
-
-<a id="page-1127"></a>
-## Page 1127
-
-**ISO/IEC 1989:2023 (E)**
 
 When the intermediate value can be represented exactly in the appropriate intermediate format, the exact value is used.
 
@@ -46274,19 +40755,9 @@ The optional DEFAULT ROUNDED MODE clause in the OPTIONS paragraph of the IDENTIF
 
 If the DEFAULT ROUNDED MODE clause is not specified in the program, the effect of the ROUNDED phrase without the MODE phrase is as if ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO had been specified. This provides the same functionality for rounding as was provided in prior COBOL standards, and is also the same functionality provided by DEFAULT ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO.
 
-<a id="page-1128"></a>
-## Page 1128
-# ISO/IEC 1989:2023 (E)
-
 
 If the DEFAULT ROUNDED MODE clause appears, ROUNDED phrases without MODE phrases are treated as if they had been specified with the rounding mode specified in the DEFAULT ROUNDED MODE clause.
 
-
-
-<a id="page-1129"></a>
-## Page 1129
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-18"></a>
 ### D.18 Forms of arithmetic
@@ -46319,11 +40790,6 @@ The following characteristics are common to standard-binary arithmetic, and stan
 1) A single format appropriate to the specified arithmetic mode is used for each operand in an arithmetic expression and the result of every arithmetic operation, arithmetic expression, and integer and numeric intrinsic functions.
 
 
-<a id="page-1130"></a>
-## Page 1130
-
-# ISO/IEC 1989:2023 (E)
-
 2) The binary arithmetic operators +, -, \* and / and the SQRT function are defined to give results that are accurate to the precision of the format appropriate to the arithmetic mode. Exponentiation is defined to give results that are accurate to the precision of that format for exponents with the values –4, -3, -2, -1, 0, 1, 2, 3, and 4.
 
 3) The size error condition exists when the result of any single arithmetic operation cannot be contained in the format appropriate to the arithmetic mode.
@@ -46352,11 +40818,6 @@ The major motivation for this enhancement was to improve the potential portabili
 
 The use of ISO/IEC 60559 specifications in support of COBOL data types, arithmetic rules, and rounding and truncation algorithms, helps the user to control and minimize imprecision.
 
-
-<a id="page-1131"></a>
-## Page 1131
-
-# ISO/IEC 1989:2023 (E)
 
 The primary advantage of standard-decimal arithmetic over standard-binary arithmetic in environments in which both are available is that no radix conversion is needed for decimal sending and receiving operands, and thus no associated precision loss occurs.
 
@@ -46407,10 +40868,6 @@ COMPUTE D ROUNDED = D + E
 
 ---
 
-<a id="page-1132"></a>
-## Page 1132
-
-# ISO/IEC 1989:2023 (E)
 
 ```
       *> move adjusted ir-1 to D
@@ -46454,11 +40911,6 @@ Standard-binary arithmetic operations will produce results that are predictable,
 
 The format or formats for a standard-binary intermediate data item (SBIDI) are defined by the implementor. In all respects the numeric values, the results of numeric operations on those values, and the exception conditions raised are those that would be obtained if the form of an SBIDI had been that of a data item declared USAGE FLOAT-BINARY-128 in the particular implementation.
 
-
-<a id="page-1133"></a>
-## Page 1133
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-18-3-2"></a>
 ##### D.18.3.2 Specification
@@ -46513,11 +40965,6 @@ COMPUTE F = A + B + C
 ---
 
 
-<a id="page-1134"></a>
-## Page 1134
-
-# ISO/IEC 1989:2023 (E)
-
 ```
     *> convert A to sbidi  as ir-1
     *> convert B to sbidi  as ir-2
@@ -46557,10 +41004,6 @@ Therefore, we can say a software object is an entity that has a unique identity,
 
 To facilitate dealing with the hundreds or even thousands of different software objects that can exist in an application system, objects are organized into classes. A class is a group of objects that have a common data structure and that all use the same methods. This means that the data structure can be defined for the class. Each object within the class has a unique set of data values that correspond to the class structure. It also means that the methods are defined once at the class level and are used by each of the objects of the class.
 
-<a id="page-1135"></a>
-## Page 1135
-# ISO/IEC 1989:2023 (E)
-
 
 EXAMPLE:
 
@@ -46594,10 +41037,6 @@ The conventions used in all of the code fragments and the sample bank applicatio
 EXAMPLE:
 
 Each checking account is represented by an account instance. Each instance has its own copy of the data described by the class, the customer's name, the current balance, and the date opened. Each instance uses the methods defined for the class to carry out its functions, for example, the deposit method credits the account.
-
-<a id="page-1136"></a>
-## Page 1136
-# ISO/IEC 1989:2023 (E)
 
 
 Within the body of program code that defines a class, instances of the checking account class could be defined as follows:
@@ -46647,11 +41086,6 @@ PROCEDURE DIVISION.
 ```
 
 
-<a id="page-1137"></a>
-## Page 1137
-
-**ISO/IEC 1989:2023 (E)**
-
 The data item a-checking-account can be used to refer to a specific instance. A data item that has been defined as an object reference can be set equal to another data item defined as an object reference through the use of the SET statement as follows:
 
 ```
@@ -46687,10 +41121,6 @@ The definition of a data item that can hold a reference to any object is as foll
 ##### D.19.3.5 Factory objects
 
 As stated previously, a class describes the data for each instance of the class and defines the methods that can be used by each instance of the class. Each class has one object, called the factory object, that is responsible for functions, such as creating a new instance of the class and managing data associated with all instances of the class.
-
-<a id="page-1138"></a>
-## Page 1138
-# ISO/IEC 1989:2023 (E)
 
 
 A factory object can be thought of as an instance of a special kind of class and has data (factory data) and methods (factory methods). The data and methods for the factory object are defined as part of the class definition.
@@ -46732,11 +41162,6 @@ END FACTORY
 
 A method is procedural code that defines a specific function required by all of the instances of a class. A method may be thought of as a module or subroutine. A class may define as many methods as it needs to manage the data defined for the class. Methods are typically only a few lines of procedural code, but may be as many lines as required to accomplish a specific function.
 
-
-<a id="page-1139"></a>
-## Page 1139
-
-# ISO/IEC 1989:2023 (E)
 
 An instance object is used by invoking one of its methods. This facility is similar to the call facility. With conventional coding techniques, one program activates another program by issuing a call. With object oriented programming techniques, one object activates another object by issuing an invoke.
 
@@ -46783,11 +41208,6 @@ Assume a program wants to determine the balance of a checking account.
     PROCEDURE DIVISION.
 ```
 
-
-<a id="page-1140"></a>
-## Page 1140
-
-# ISO/IEC 1989:2023 (E)
 
 ```
 ....
@@ -46843,22 +41263,11 @@ LINKAGE SECTION.
 ```
 
 
-<a id="page-1141"></a>
-## Page 1141
-
-**ISO/IEC 1989:2023 (E)**
-
 ```
 PROCEDURE DIVISION USING interest-rate RETURNING interest-amount.
 END METHOD calculateInterest.
 ```
 
-
-
-<a id="page-1142"></a>
-## Page 1142
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-19-5"></a>
 #### D.19.5 Other object oriented programming features
@@ -46895,11 +41304,6 @@ Inheritance supports a hierarchy of classes, where every instance of a subclass 
 Inheritance represents an "is a" relationship between two classes and is a way of specializing a higher level class. In figure D.4, Manager class, a manager "is an" employee and an employee "is a" person. All the object data definitions described in the superclasses, person and employee, plus the object data definitions for the class itself, manager, are used to create an instance of the manager class. Also, the methods defined by the superclasses are inherited by the subclass and are used to directly operate on any instance of manager.
 
 
-<a id="page-1143"></a>
-## Page 1143
-
-# ISO/IEC 1989:2023 (E)
-
 Both factory and instance data and methods of all ancestor classes are inherited by a class that inherits from another class.
 
 When inheritance is used to define a subclass, data in the superclass is encapsulated because methods defined for the subclass are not allowed to directly access the data items defined for the superclasses. It requires all subclasses to use methods defined for the superclasses to access the data items defined for the superclasses. As an example, if the employee class defined the data item "employee-name", the employee class would have to include a method, say getName, to allow any subclass to retrieve the employee name.
@@ -46923,10 +41327,6 @@ A bank will have different kinds of accounts, and yet they are all accounts. If 
 | displayCharges<br>calculateCharges | | calculateInterest |
 
 In the example shown, each instance of CheckingAccount is automatically created with memory allocated for the attributes account-number, balance, date-opened and charges. Additionally, the methods deposit, withdraw, and balance inherited from Account and the methods displayCharges and calculateCharges defined in the CheckingAccount class can act on each instance. Each instance of SavingsAccount is automatically created with memory allocated for the attributes account-number, balance, date-opened and interest-rate. Each instance of SavingsAccount can access the methods deposit, withdraw and balance inherited from Account and the method calculateInterest defined for itself.
-
-<a id="page-1144"></a>
-## Page 1144
-# ISO/IEC 1989:2023 (E)
 
 
 Some sample code for the account and checking account classes is shown below:
@@ -46972,11 +41372,6 @@ END CLASS Account.
 ```
 
 
-<a id="page-1145"></a>
-## Page 1145
-
-# ISO/IEC 1989:2023 (E)
-
 CheckingAccount Class
 
 ```
@@ -47014,10 +41409,6 @@ Restricting methods from being overridden also helps in 'pairing' of methods of 
 
 The FINAL attribute has to be handled carefully while dealing with multiple inheritance. If two classes A and B define a method of the same name, and if a class C inherits from both of them, the method definitions are not allowed to have the FINAL clause specified. However, if the same method is inherited through two classes which had the same superclass defining that method, the method is allowed to have the FINAL clause specified in its definition. This would happen for a diamond shaped multiple inheritance, where classes B and C inherit from a class A, and then class D inherits from both B and C. Class A can have methods with the FINAL clause specified, and though D will appear to inherit two methods of the same name with the FINAL clause, it is acceptable as they are the same method implementations.
 
-<a id="page-1146"></a>
-## Page 1146
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-19-5-3"></a>
 ##### D.19.5.3 Conformance
@@ -47048,11 +41439,6 @@ The policy for conformance checking is conservative and errs on the side of caut
 
 These are some examples of restrictions imposed by compile time conformance checking, even though at runtime a conformance violation might not actually exist:
 
-
-<a id="page-1147"></a>
-## Page 1147
-
-# ISO/IEC 1989:2023 (E)
 
 1) Let's assume there is a class A with a subclass A1, and a source element containing the following definitions:
 
@@ -47101,11 +41487,6 @@ Working-Storage Section.
      2 ...
 ```
 
-
-<a id="page-1148"></a>
-## Page 1148
-
-# ISO/IEC 1989:2023 (E)
 
 ```
      2 or-b object reference active-class.
@@ -47162,11 +41543,6 @@ Consider the following statements:
 ```
 
 
-<a id="page-1149"></a>
-## Page 1149
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 01 or-C object reference C.
 01 or-D object reference D.
@@ -47212,11 +41588,6 @@ Invoke or-1 as C2 "M-2".
 Polymorphism is supported by COBOL in two different ways. Class polymorphism is supported through class inheritance and the use of interfaces. Parametric polymorphism is supported through method overloading.
 
 
-<a id="page-1150"></a>
-## Page 1150
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-19-5-4-2"></a>
 ###### D.19.5.4.2 Class polymorphism
 
@@ -47253,11 +41624,6 @@ Parametric polymorphism (also known as method overloading) provides the ability 
 
 No two methods within a class may have the same signature.
 
-
-<a id="page-1151"></a>
-## Page 1151
-
-# ISO/IEC 1989:2023 (E)
 
 EXAMPLE:
 
@@ -47313,11 +41679,6 @@ Invoke aClass "PrintIt" using "FooBar", 3.
 ```
 
 
-<a id="page-1152"></a>
-## Page 1152
-
-# ISO/IEC 1989:2023 (E)
-
 we would invoke the last method, and display "Foo".
 
 Invoking Printit with a numeric as follows:
@@ -47359,11 +41720,6 @@ CONFIGURATION SECTION.
 REPOSITORY.
 ```
 
-
-<a id="page-1153"></a>
-## Page 1153
-
-# ISO/IEC 1989:2023 (E)
 
 ```
     CLASS Base
@@ -47412,11 +41768,6 @@ Specifying dynamic file assignment in the file control entry permits a class to 
 Sample code for dynamic file assignment is illustrated below.
 
 
-<a id="page-1154"></a>
-## Page 1154
-
-# ISO/IEC 1989:2023 (E)
-
 NOTE The MOVE statements only have an effect on the dynamic assignment when a subsequent OPEN statement for the file connector is executed.
 
 ```
@@ -47463,10 +41814,6 @@ When a file is specified in a factory, this means that the factory definition co
 
 **Inherited Factory Object Definitions -** It is important to note that when a class that contains a file specified in the factory object definition is inherited, each direct or indirect descendent also inherits the file specification. As in the case of inherited object definition above, the factory objects of each of these subclasses have their own file connector unless the EXTERNAL clause is specified for the file. Dynamic file assignment or file sharing may be used to resolve conflicts in accessing the physical files associated with these file connectors.
 
-<a id="page-1155"></a>
-## Page 1155
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-19-10"></a>
 #### D.19.10 Exception objects
@@ -47490,11 +41837,6 @@ Similarly, an interface-name rather than an object-class-name may be specified i
 <a id="section-d-19-11"></a>
 #### D.19.11 Sample application
 
-
-<a id="page-1156"></a>
-## Page 1156
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-19-11-1"></a>
 ##### D.19.11.1 General
@@ -47551,11 +41893,6 @@ FACTORY.
 ```
 
 
-<a id="page-1157"></a>
-## Page 1157
-
-# ISO/IEC 1989:2023 (E)
-
 ```
     DATA DIVISION.
     WORKING-STORAGE SECTION.
@@ -47611,10 +41948,6 @@ accounts.
 
 ---
 
-<a id="page-1158"></a>
-## Page 1158
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         WHEN "D"
@@ -47669,12 +42002,6 @@ METHOD-ID.    balance.
 ```
 
 
-
-<a id="page-1159"></a>
-## Page 1159
-
-**ISO/IEC 1989:2023 (E)**
-
 ```
         ELSE
            DISPLAY "Your Balance is Inadequate"
@@ -47697,12 +42024,6 @@ END OBJECT
    END CLASS Account.
 ```
 
-
-
-<a id="page-1160"></a>
-## Page 1160
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-20"></a>
 ### D.20 Report writer
@@ -47742,11 +42063,6 @@ The PAGE clause defines the layout of a physical report page. The COLUMNS phrase
 ---
 
 
-<a id="page-1161"></a>
-## Page 1161
-
-**ISO/IEC 1989:2023 (E)**
-
 The HEADING phrase defines where the first line of the page or report heading will be printed. If the HEADING phrase is absent, printing begins on line 1. The first line of a control group will print on either the line specified in the FIRST DETAIL phrase or one line after the last line of the last report or page heading printed, whichever is greater.
 
 The LAST CONTROL HEADING and the LAST DETAIL phrases determine when a page advance takes place. If the next item to be printed is the control heading, and the number of lines necessary to print the control heading added to the current line count for the page is greater than specified in the LAST CONTROL HEADING phrase a page advance will occur. If the next item to be printed is a detail item and the number of lines necessary to print the detail added to the current line count is greater than specified in the LAST DETAIL phrase, a page advance will occur.
@@ -47761,11 +42077,6 @@ The FOOTING phrase has two different functions:
 
 PAGE clause phrases &nbsp;&nbsp;&nbsp;&nbsp; Report content
 
-
-<a id="page-1162"></a>
-## Page 1162
-
-# ISO/IEC 1989:2023 (E)
 
 | | | |
 |---|---|---|
@@ -47790,11 +42101,6 @@ The CONTROL clause defines a hierarchy of data-names whose values will be used t
 
 The CODE clause specifies information that is not to be printed that can be used to separate multiple reports that are written to the same file or may be needed for correct functioning of the printing device. For example, suppose you write two reports to a file and specify CODE "A" for one and CODE "B" for another. If your system allows reading of the report file you can separate both reports by reading the file, removing the first character, and sending A lines to one place and B lines to another.
 
-
-<a id="page-1163"></a>
-## Page 1163
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-20-3-5"></a>
 ##### D.20.3.5 EXAMPLE
@@ -47832,11 +42138,6 @@ The operands of the LINE clauses specify the vertical positioning of the lines o
 
 COLUMN clauses are used to specify the horizontal location of elementary items. COLUMN may be shortened to COL. Items whose description entries contain a COLUMN clause are referred to as printable items. Provided they are not absent as a result of a PRESENT WHEN clause, they are always printed when the report group containing them is printed. The COLUMN clause can be absolute, indicated by an integer, or relative, indicated by the word PLUS or +, before the integer. The absolute form gives the column number with respect to the left side of the printed page, whereas the relative form moves the item the specified horizontal distance from the last character of the previous printable item. Spaces are supplied in all unused columns. Elementary items whose description entries do not contain a COLUMN clause are referred to as unprintable items. They are not printed but may be referred to in SUM clauses for the purpose of totaling.
 
-
-<a id="page-1164"></a>
-## Page 1164
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-20-4-4"></a>
 ##### D.20.4.4 SOURCE, VALUE, and PICTURE
@@ -47881,11 +42182,6 @@ The PRESENT WHEN clause specifies a condition that, if false, suppresses, for th
 The concept of suppressing an item does not necessarily imply that spaces are printed. Rather, the effect of suppressing an item is that the report behaves at that instant as though the item's data description were omitted entirely from the report description. The following effects are a consequence of this principle:
 
 
-<a id="page-1165"></a>
-## Page 1165
-
-# ISO/IEC 1989:2023 (E)
-
 1) Absent lines are not printed, do not alter the LINE-COUNTER, and do not contribute to the vertical size of the corresponding report group when the page fit test is performed.
 
 2) Absent printable items do not alter the horizontal counter in the current line. Consequently, a printable item whose entry has a PRESENT WHEN clause affects the column position of any relative printable items that immediately follow it in the report line.
@@ -47923,11 +42219,6 @@ In the next example, the second line will be suppressed entirely if BANK-FLAG is
 
 The GROUP INDICATE clause is designed to enable a data item (typically a control data item) to be printed once only at the start of a series of details following a control break or page break. It behaves like a special case of PRESENT WHEN.
 
-
-<a id="page-1166"></a>
-## Page 1166
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-20-6"></a>
 #### D.20.6 Repetition
@@ -47985,11 +42276,6 @@ The VARYING clause may be used with an OCCURS clause or a multiple LINE or COLUM
 #### D.20.7 Totaling
 
 
-<a id="page-1167"></a>
-## Page 1167
-
-# ISO/IEC 1989:2023 (E)
-
 The SUM clause may be placed in a printable item's description instead of SOURCE or VALUE. It causes the indicated numeric data items to be accumulated in an internal sum counter. When the item is printed, the accumulated value is moved into the printable item and (except when a RESET phrase is specified) reset to zero once the processing of any remaining entries in the report group description is complete.
 
 A sum counter is an internal location, defined automatically. The number of its integral and fractional digits are implied by the PICTURE clause used with the SUM clause. A sum counter is always signed. A program may have any number of sum counters.
@@ -48027,11 +42313,6 @@ In the following example, the SUM clause is used to produce subtotals at two lev
                     SUM OF RS-PAY.
 ```
 
-
-<a id="page-1168"></a>
-## Page 1168
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         05  RS-MONTH-TOTAL-PAY      COL 51    PIC Z(6)9
@@ -48083,21 +42364,11 @@ A typical sequence of execution might be as follows:
 ```
 
 
-<a id="page-1169"></a>
-## Page 1169
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-20-9"></a>
 #### D.20.9 Report counters
 
 The PAGE-COUNTER and LINE-COUNTER identifiers refer to locations that are defined automatically for each report description entry. They contain, respectively, the number of the current page and the number of the current line within the page.
 
-
-<a id="page-1170"></a>
-## Page 1170
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-21"></a>
 ### D.21 Structured constant
@@ -48127,11 +42398,6 @@ In this example, FIELD-1 will contain zeroes; FIELD-2 will contain spaces; ARRAY
 
 ---
 
-
-<a id="page-1171"></a>
-## Page 1171
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-22"></a>
 ### D.22 Validate facility
@@ -48170,10 +42436,6 @@ The clauses relevant to this stage are: DEFAULT, DYNAMIC LENGTH, PICTURE, SIGN, 
 
 ---
 
-<a id="page-1172"></a>
-## Page 1172
-
-# ISO/IEC 1989:2023 (E)
 
 This stage activates any DESTINATION clauses that are defined for the data item to store items in their target locations where indicated. By virtue of the default values, target locations always receive valid data, unless DEFAULT NONE is specified when they are unchanged.
 
@@ -48215,11 +42477,6 @@ The clauses relevant to these formats are: PRESENT WHEN, REDEFINES, OCCURS, and 
 
 The comments placed in these examples explain the use and effects of the various clauses.
 
-
-<a id="page-1173"></a>
-## Page 1173
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-22-8-2"></a>
 ##### D.22.8.2 Example of validation of USAGE DISPLAY items
@@ -48277,10 +42534,6 @@ The comments placed in these examples explain the use and effects of the various
 
 ---
 
-<a id="page-1174"></a>
-## Page 1174
-
-# ISO/IEC 1989:2023 (E)
 
 ```
         05  FILLER          PIC X(13).
@@ -48335,11 +42588,6 @@ The comments placed in these examples explain the use and effects of the various
 ```
 
 
-<a id="page-1175"></a>
-## Page 1175
-
-# ISO/IEC 1989:2023 (E)
-
 ```
    *>After this statement has been executed:
    *>(1) the input record is unchanged;
@@ -48368,11 +42616,6 @@ The comments placed in these examples explain the use and effects of the various
           VALIDATE MY-MIXED-GROUP
 ```
 
-
-<a id="page-1176"></a>
-## Page 1176
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-23"></a>
 ### D.23 Conditional expressions
@@ -48427,11 +42670,6 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 ---
 
 
-<a id="page-1177"></a>
-## Page 1177
-
-**ISO/IEC 1989:2023 (E)**
-
 ```
             ┌─────────────────────┐
             │      Evaluate       │
@@ -48472,12 +42710,6 @@ Figures D.7 to D.10 illustrate how conditional expressions are evaluated.
 
 **Figure D.9 — Evaluation of condition-1 OR condition-2 AND condition-3**
 
-
-
-<a id="page-1178"></a>
-## Page 1178
-
-# ISO/IEC 1989:2023 (E)
 
 Evaluate
 condition-1
@@ -48520,10 +42752,6 @@ is true
 
 ---
 
-<a id="page-1179"></a>
-## Page 1179
-
-# ISO/IEC 1989:2023 (E)
 
 Evaluate
 condition-1
@@ -48571,12 +42799,6 @@ is **false**
 Truth value
 is **true**
 
-
-
-<a id="page-1180"></a>
-## Page 1180
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-24"></a>
 ### D.24 Examples of the use of the EDITING phrase
@@ -48630,12 +42852,6 @@ Some care should be taken when using multiple character floating symbols. The si
 ---
 
 
-
-<a id="page-1181"></a>
-## Page 1181
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-25"></a>
 ### D.25 Examples of the execution of the INSPECT statement
 
@@ -48685,10 +42901,6 @@ EXAMPLE 2:
 
 ---
 
-<a id="page-1182"></a>
-## Page 1182
-
-# ISO/IEC 1989:2023 (E)
 
 EXAMPLE 3:
 
@@ -48726,12 +42938,6 @@ EXAMPLE 4:
 |---|---|---|
 | ABABABABC | 1 | ABABXYABC |
 
-
-
-<a id="page-1183"></a>
-## Page 1183
-
-# ISO/IEC 1989:2023 (E)
 
 EXAMPLE 5:
 
@@ -48773,10 +42979,6 @@ MOVE FUNCTION REVERSE (ITEM) TO ITEM
 
 ---
 
-<a id="page-1184"></a>
-## Page 1184
-
-# ISO/IEC 1989:2023 (E)
 
 EXAMPLE 6:
 
@@ -48814,12 +43016,6 @@ INSPECT ITEM CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"-
 | 20%Numeric | 20%??????? |
 
 
-
-<a id="page-1185"></a>
-## Page 1185
-
-# ISO/IEC 1989:2023 (E)
-
 <a id="section-d-26"></a>
 ### D.26 Examples of the execution of the PERFORM statement with the VARYING phrase specified
 
@@ -48841,12 +43037,6 @@ Augment identifier-2 with current BY value
 
 **Figure D.12 — The VARYING phrase of a PERFORM statement with the TEST BEFORE phrase having two conditions**
 
-
-
-<a id="page-1186"></a>
-## Page 1186
-
-# ISO/IEC 1989:2023 (E)
 
 ```
                     Entrance
@@ -48891,12 +43081,6 @@ Augment identifier-2 with current BY value
 **Figure D.13 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having one condition**
 
 
-
-<a id="page-1187"></a>
-## Page 1187
-
-# ISO/IEC 1989:2023 (E)
-
 Entrance
 ↓
 Set identifier-2 equal to current FROM value
@@ -48910,12 +43094,6 @@ Augment identifier-2 with current BY value
 
 **Figure D.14 — The VARYING phrase of a PERFORM statement with the TEST AFTER phrase having two conditions**
 
-
-
-<a id="page-1188"></a>
-## Page 1188
-
-# ISO/IEC 1989:2023 (E)
 
 Entrance
 
@@ -48939,11 +43117,6 @@ Augment identifier-2 with current BY value
 
 ---
 
-
-<a id="page-1189"></a>
-## Page 1189
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-27"></a>
 ### D.27 Example of free-form reference format
@@ -48985,10 +43158,6 @@ area a
 
 ---
 
-<a id="page-1190"></a>
-## Page 1190
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-28"></a>
 ### D.28 Conditional compilation
@@ -49038,23 +43207,12 @@ Startt.
 ```
 
 
-<a id="page-1191"></a>
-## Page 1191
-
-**ISO/IEC 1989:2023 (E)**
-
 ```
 >>END-IF
 
  ...
 ```
 
-
-
-<a id="page-1192"></a>
-## Page 1192
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-29"></a>
 ### D.29 CALL-CONVENTION directive
@@ -49095,10 +43253,6 @@ These mechanisms use various terms to describe internal formats, and the definit
 
 1) Standard numeric date form: a date in the Gregorian calendar in the form YYYYMMDD, in which the first four character positions represent the year, the next two the month of the year, and the next two the date of the month. The example date above is represented as 19950215 in standard numeric date form.
 
-<a id="page-1193"></a>
-## Page 1193
-**ISO/IEC 1989:2023 (E)**
-
 
 2) Standard numeric time form: a numeric time value representing seconds past midnight. The mechanisms that accept this form require that the implementation be able to recognize at least nine digits to the right of the decimal point in the value, thus providing the ability to represent times to nanosecond precision. (The implementor is not required to provide the current time in the operating environment to nanosecond accuracy, but is encouraged to provide as accurate a value as feasible in that form). The example time above is represented in standard numeric time form as 18867.812479168304.
 
@@ -49132,12 +43286,6 @@ ACCEPT FROM DAY provides a five-digit usage display numeric result representing 
 
 ACCEPT FROM DAY YYYYDDD provides a seven-digit usage display numeric result representing the current Julian date: four digit year, and three digit day of the year in the range 001 through 366; for example, 1995046.
 
-
-
-<a id="page-1194"></a>
-## Page 1194
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-31-2-6"></a>
 ##### D.31.2.6 ACCEPT FROM DAY-OF-WEEK
@@ -49179,10 +43327,6 @@ The CURRENT-DATE function returns a 21-character alphanumeric value representing
 — Two digits indicating the number of hours the reported time is ahead of or behind Greenwich Mean Time
 — Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be "1995021505142781-0500"; in operating environments that do not have that capability, the returned result would be "199502150514278100000".
 
-<a id="page-1195"></a>
-## Page 1195
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-31-3-3"></a>
 ##### D.31.3.3 WHEN-COMPILED function
@@ -49219,11 +43363,6 @@ The TEST-DATE-YYYYMMDD function accepts an argument in standard date form (YYYYM
 
 The TEST-DAY-YYYYDDD function accepts an argument in Julian date form (YYYYDDD). It returns a zero if the argument is a valid date; the value 1 if the year subfield content is out of range; or the value 2 if the day subfield content is out of range for the given year.
 
-
-<a id="page-1196"></a>
-## Page 1196
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-d-31-4"></a>
 #### D.31.4 Locale date and time intrinsic functions
@@ -49266,11 +43405,6 @@ Intrinsic functions support the handling of dates and times in several internati
 The date formats, time formats, and combined date and time formats supported by COBOL are illustrated in D.31.5.2, Examples of time and date formats.
 
 
-<a id="page-1197"></a>
-## Page 1197
-
-# ISO/IEC 1989:2023 (E)
-
 The intrinsic functions that support international date and time formats are described in D.31.5.3 through D.31.5.11. The order in which these functions are presented is intended to illustrate the interrelationships among them. In those intrinsic function descriptions the following three formats are used for illustrative purposes: the basic calendar date format ("YYYYMMDD"); a basic local time format with four digits of fractional seconds and offset from GMT ("hhmmss.ssss+hhmm"), and a combined date-and-time format that consists of the illustrative date format and the illustrative time format, separated by the letter "T" ("YYYYMMDDThhmmss.ssss+hhmm").
 
 <a id="section-d-31-5-2"></a>
@@ -49310,10 +43444,6 @@ The combined basic date and time formats consist of any basic date format follow
 
 ---
 
-<a id="page-1198"></a>
-## Page 1198
-
-# ISO/IEC 1989:2023 (E)
 
 In the above examples for fractional-seconds time representations, the period is used as the decimal separator, and four "s" characters after the period are used for illustrative purposes. The decimal separator used for such formats is dependent on the presence or absence of the DECIMAL-POINT IS COMMA clause. The number of "s" characters that may be specified after the decimal separator in these formats may range from 1 to a maximum of 9.
 
@@ -49344,10 +43474,6 @@ The FORMATTED-TIME function accepts three arguments – a literal that is a vali
 
 The FORMATTED-DATETIME function is a combination of the FORMATTED-DATE and FORMATTED-TIME functions. It accepts four arguments – a literal that is a valid combined date and time format; a value in integer date form; a value in standard numeric time form; and an optional offset parameter (see the FORMATTED-TIME function) – and returns a combined date and time in the specified format. For example, given as the first argument the format "YYMMDDThhmmss.ss+hhmm", as the second argument the value 143951, as the third argument the value 18867.812479168304, and as the fourth argument the value +300, the returned value would be "19950215T05142781+0500".
 
-<a id="page-1199"></a>
-## Page 1199
-# ISO/IEC 1989:2023 (E)
-
 
 <a id="section-d-31-5-8"></a>
 ##### D.31.5.8 INTEGER-OF-FORMATTED-DATE function
@@ -49375,11 +43501,6 @@ The COMBINED-DATETIME function accepts two arguments – a date in integer date 
 
 ---
 
-
-<a id="page-1200"></a>
-## Page 1200
-
-# ISO/IEC 1989:2023 (E)
 
 These three functions apply to any type of numeric and numeric-edited item. Most of their functionality can also be achieved with the standard-float-content format of the SET statement and the MOVE ZERO TO statement.
 
@@ -49431,19 +43552,8 @@ The IN-ARITHMETIC-RANGE class test independently provides the ability to determi
 ---
 
 
-<a id="page-1201"></a>
-## Page 1201
-
-**ISO/IEC 1989:2023 (E)**
-
 The function LOWEST-ALGEBRAIC (numeric item) for an unsigned numeric item provides an equivalent to SMALLEST-ALGEBRAIC for fixed-point numeric items, it is unlikely that the same approach for floating-point items would work.
 
-
-
-<a id="page-1202"></a>
-## Page 1202
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-annex-e"></a>
 ## Annex E
@@ -49482,11 +43592,6 @@ In the previous COBOL standard, some of the features listed above were designate
 It is believed that few, if any, programs will be affected by these changes.
 
 
-<a id="page-1203"></a>
-## Page 1203
-
-**ISO/IEC 1989:2023 (E)**
-
 2) **ALIGN clause.** The ALIGN clause is added to the lists for required consistency between typed data items and the rules for strongly typed items have been amended to also include the alignment of corresponding bit items.
 
    Justification:
@@ -49522,12 +43627,6 @@ It is believed that few, if any, programs will be affected by these changes.
    — COBOL-WORDS
    — DISPLAY
 
-
-
-<a id="page-1204"></a>
-## Page 1204
-
-# ISO/IEC 1989:2023 (E)
 
 — FLAG-14
 — I-O-STATUS-04
@@ -49568,11 +43667,6 @@ This corrects an error in the previous standard
 It is believed that few if any programs would be affected, as it is probable that implementors already implemented these rules as now written.
 
 
-<a id="page-1205"></a>
-## Page 1205
-
-# ISO/IEC 1989:2023 (E)
-
 9) **External items.** Exception conditions for checking conformance have now been added, where previously the mechanism for doing so was unspecified. It was up to the implementor to decide how to do so, though that was not previously specified as an implementor defined item.
 
    Justification:
@@ -49603,11 +43697,6 @@ It is believed that few if any programs would be affected, as it is probable tha
 
     Justification:
 
-
-<a id="page-1206"></a>
-## Page 1206
-
-# ISO/IEC 1989:2023 (E)
 
 To ensure that the setting of the FILE STATUS data item for a file by I-O statements is consistent between runtime elements.
 
@@ -49646,11 +43735,6 @@ This corrects an error in the previous standard. The following characters, repre
 It is believed that few if any programs would be affected, as the characters are believed to be rarely used in user-defined words.
 
 
-<a id="page-1207"></a>
-## Page 1207
-
-# ISO/IEC 1989:2023 (E)
-
 15) **I-O Status '04'.** The setting of I-O Status '04' is clarified to state when it is set. It was in the list of known errors in the previous COBOL standard as not clearly defined.
 
     Justification:
@@ -49688,11 +43772,6 @@ It is believed that few if any programs would be affected, as the characters are
     a) INVALID KEY processing. If an INVALID KEY phrase is not specified and an invalid key condition occurs, any declarative that specified INPUT, OUTPUT, I-O, or EXTEND would not have been executed. It will now be executed. This appears to be an error in previous COBOL standards.
 
 
-<a id="page-1208"></a>
-## Page 1208
-
-# ISO/IEC 1989:2023 (E)
-
 b) READ processing. If an exception that is not an invalid key or at end occurs, any declarative that specifies INPUT or I-O would not have been executed. It will now be executed. This appears to be an error in previous standards.
 
 Justification:
@@ -49729,11 +43808,6 @@ It is believed that few, if any, programs will be affected by these changes.
 
 Justification:
 
-
-<a id="page-1209"></a>
-## Page 1209
-
-# ISO/IEC 1989:2023 (E)
 
 The prior standard had a note that conflicted with a rule to state that the at end condition normally exists, while the rule itself stated that the first record would be retrieved. The rule itself has been amended such that an at end condition would occur.
 
@@ -49774,11 +43848,6 @@ It is believed that few if any programs will be affected by this change, as it i
 - — SEND
 
 
-<a id="page-1210"></a>
-## Page 1210
-
-# ISO/IEC 1989:2023 (E)
-
 — XOR
 
 Justification:
@@ -49816,11 +43885,6 @@ It is believed that few, if any, programs will be affected by these changes.
 Justification:
 
 
-<a id="page-1211"></a>
-## Page 1211
-
-**ISO/IEC 1989:2023 (E)**
-
 This appears to be an omission from the previous standard and now ensures that the content of such data items is consistent with their definitions when the VALUE clause is specified.
 
 It is thought that relatively few programs would be affected and that those that are should be changed to reflect the outcome that was probably originally intended. It seems unlikely that implementors ever applied the rule that they were not to be included.
@@ -49854,12 +43918,6 @@ Some items in this annex require new reserved words, new intrinsic function name
 
    — For the Commit and Rollback facility (EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT and EC-FLOW-ROLLBACK)
 
-
-
-<a id="page-1212"></a>
-## Page 1212
-
-# ISO/IEC 1989:2023 (E)
 
 — For additional functionality for the CONTINUE statement (EC-CONTINUE, EC-CONTINUE-IMP, EC-CONTINUE-LESS-THAN-ZERO)
 
@@ -49904,10 +43962,6 @@ Latin:
 
 ---
 
-<a id="page-1213"></a>
-## Page 1213
-
-# ISO/IEC 1989:2023 (E)
 
 02B0-02B8, 02E0-02E4, 212A-212B, 2160-2183
 
@@ -49962,9 +44016,6 @@ Bhaiksuki:
 Bopomofo:
 312D-312F, 31B8-31BF Brahmi:
 
-<a id="page-1214"></a>
-## Page 1214
-# ISO/IEC 1989:2023 (E)
 
 11000-11046, 11066-1106F, 1107F
 
@@ -50019,9 +44070,6 @@ Cyrillic:
 0483-0484, 0487, 048A-048B, 04C5-04C6, 04C9-04CA, 04CD-04CF, 04F6-04F7,
 04FA-052F, 1C80-1C88, 1D2B, 1D78, 2DE0-2DFF, A640-A66F, A674-A67D, A67F-A69F, FE2E-FE2F Deseret:
 
-<a id="page-1215"></a>
-## Page 1215
-# ISO/IEC 1989:2023 (E)
 
 10400-1044F
 
@@ -50080,11 +44128,6 @@ Gujarati:
 ---
 
 
-<a id="page-1216"></a>
-## Page 1216
-
-# ISO/IEC 1989:2023 (E)
-
 0A8C, 0ABC, 0AE1-0AE3, 0AF9-0AFF
 
 Gunjala_Gondi:
@@ -50139,9 +44182,6 @@ A980-A9C0, A9D0-A9D9
 Kaithi:
 11080-110BA Kannada:
 
-<a id="page-1217"></a>
-## Page 1217
-# ISO/IEC 1989:2023 (E)
 
 0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2
 
@@ -50195,9 +44235,6 @@ A4D0-A4FD, 11FB0
 Lycian:
 10280-1029C Lydian:
 
-<a id="page-1218"></a>
-## Page 1218
-# ISO/IEC 1989:2023 (E)
 
 10920-10939
 
@@ -50251,9 +44288,6 @@ Mongolian:
 Mro:
 16A40-16A5E, 16A60-16A69 Multani:
 
-<a id="page-1219"></a>
-## Page 1219
-# ISO/IEC 1989:2023 (E)
 
 11280-11286, 11288, 1128A-1128D, 1128F-1129D, 1129F-112A8
 
@@ -50306,9 +44340,6 @@ Old_Sogdian:
 Old_South_Arabian:
 10A60-10A7C Old_Turkic:
 
-<a id="page-1220"></a>
-## Page 1220
-# ISO/IEC 1989:2023 (E)
 
 10C00-10C48
 
@@ -50363,9 +44394,6 @@ Siddham:
 SignWriting:
 1DA00-1DA36, 1DA3B-1DA6C, 1DA75, 1DA84, 1DA9B-1DA9F, 1DAA1-1DAAF Sinhala:
 
-<a id="page-1221"></a>
-## Page 1221
-# ISO/IEC 1989:2023 (E)
 
 0D81, 0DE6-0DEF
 
@@ -50417,9 +44445,6 @@ Telugu:
 Thaana:
 07B1
 
-<a id="page-1222"></a>
-## Page 1222
-# ISO/IEC 1989:2023 (E)
 
 Tibetan:
 0F3E-0F3F, 0F6B-0F6C, 0F8C-0F8F, 0FC6
@@ -50479,12 +44504,6 @@ Zanabazar_Square:
 ```
 
 
-
-<a id="page-1223"></a>
-## Page 1223
-
-# ISO/IEC 1989:2023 (E)
-
 (1CB7,10F7);(1CB8,10F8);(1CB9,10F9);(1CBA,10FA);
 (1CBD,10FD);(1CBE,10FE);(1CBF,10FF);(1E9E,00DF);
 (1EFA,1EFB);(1EFC,1EFD);(1EFE,1EFF);(2132,214E);
@@ -50541,10 +44560,6 @@ Zanabazar_Square:
 
 ---
 
-<a id="page-1224"></a>
-## Page 1224
-
-# ISO/IEC 1989:2023 (E)
 
 (A784,A785);(A786,A787);(A78B,A78C);(A78D,0265);
 (A790,A791);(A792,A793);(A796,A797);(A798,A799);
@@ -50600,11 +44615,6 @@ Zanabazar_Square:
 (118AD,118CD);(118AE,118CE);(118AF,118CF);(118B0,118D0);
 
 
-<a id="page-1225"></a>
-## Page 1225
-
-# ISO/IEC 1989:2023 (E)
-
 ```
 (118B1,118D1);(118B2,118D2);(118B3,118D3);(118B4,118D4);
 (118B5,118D5);(118B6,118D6);(118B7,118D7);(118B8,118D8);
@@ -50650,10 +44660,6 @@ Zanabazar_Square:
 
 ---
 
-<a id="page-1226"></a>
-## Page 1226
-
-# ISO/IEC 1989:2023 (E)
 
 — BACKWARD
 — BYTE
@@ -50690,12 +44696,6 @@ Zanabazar_Square:
 25) **FUNCTION EXCEPTION-FILE.** An optional argument has been added to this function to permit the user to specify the file connector for which the information is requested, while leaving the original feature unchanged when no argument is supplied.
 
 
-
-<a id="page-1227"></a>
-## Page 1227
-
-# ISO/IEC 1989:2023 (E)
-
 26) **FUNCTION EXCEPTION-FILE-N.** An optional argument has been added to this function to permit the user to specify the file connector for which the information is requested, while leaving the original feature unchanged when no argument is supplied.
 
 27) **FUNCTION FIND-STRING.** The FIND-STRING intrinsic function has been added to provide the facility to locate the position of one string within another.
@@ -50729,10 +44729,6 @@ Zanabazar_Square:
 
 ---
 
-<a id="page-1228"></a>
-## Page 1228
-
-# ISO/IEC 1989:2023 (E)
 
 41) **REWRITE statement.** Clarification that where identifier-1 is subordinate to the file description, then its contents are not available after execution of the REWRITE statement.
 
@@ -50744,11 +44740,6 @@ Zanabazar_Square:
 
 45) **WRITE statement.** Clarification that where identifier-1 is subordinate to the file description, then its contents are not available after execution of the WRITE statement
 
-
-<a id="page-1229"></a>
-## Page 1229
-
-# ISO/IEC 1989:2023 (E)
 
 <a id="section-annex-f"></a>
 ## Annex F
@@ -50788,11 +44779,6 @@ A conforming implementation shall support obsolete language elements except for 
 ---
 
 
-<a id="page-1230"></a>
-## Page 1230
-
-# ISO/IEC 1989:2023 (E)
-
 The following are obsolete language elements:
 
 1. **FLAG-02 directive.** The FLAG-02 directive was specified in the previous COBOL standard to flag incompatibilities between that COBOL standard and the COBOL standard previous to it. The FLAG-14 directive is specified in the current COBOL standard to flag incompatibilities between the current COBOL standard and the previous COBOL standard. There is no longer a need for the older FLAG-02 directive.
@@ -50809,11 +44795,6 @@ The following are obsolete language elements:
 
    Unlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.
 
-
-<a id="page-1231"></a>
-## Page 1231
-
-# ISO/IEC 1989:2023 (E)
 
 # Annex G
 (informative)
@@ -50855,18 +44836,8 @@ The following are known errors in this Working Draft International Standard:
 2) **Mapping of uppercase letters to lowercase letters.** Uppercase Cherokee syllables are not mapped to lowercase Cherokee syllables in Annex C. The Changes_When_Lowercased property is set to Cherokee Uppercase syllables in UAX #44, Unicode 13.0.0, but no correspondence with lowercase syllables is specified. The uppercase Cherokee syllables are not folded to lowercase in this document.
 
 
-<a id="page-1232"></a>
-## Page 1232
-
-# ISO/IEC 1989:2023 (E)
-
 3) **Physical file.** The terms "physical file" and "physically" are used in many places where it is not necessary for COBOL to distinguish between logical files or physical files, since COBOL will generally treat the use of the term file as meaning a file presented to COBOL by the environment in which it is running however it is actually stored or derived. It is planned to review and replace such instances by the term "file" where appropriate in the next revision of the standard.
 
-
-<a id="page-1233"></a>
-## Page 1233
-
-# ISO/IEC 1989:2023 (E)
 
 ---
 
@@ -50893,124 +44864,127 @@ The following documents are useful references for implementors and users of this
 ---
 
 
-<a id="page-1234"></a>
-## Page [1234](#page-1234)
-
-# ISO/IEC 1989:2023 (E)
-
 ## Index
+
+> **About these references.** The printed index points at PAGE numbers, which mean nothing in this
+> transcription. Each has been converted to a link to the CLAUSE it falls in. Slightly over half resolve
+> exactly — the index term is itself a clause title, or the term was located on the referenced page. The
+> remainder are page-level approximations: a printed page can span several clauses, so such a link lands on
+> the clause the page opens with rather than precisely on the term. A reference that could not be resolved
+> at all keeps its printed page number as plain text. The printed page numbers themselves are recoverable
+> from the PDF, which remains the canonical source.
 
 ### Symbols
 
 ::
-operator [133](#page-133), [173](#page-173)
+operator [8.3.2.2.23](#section-8-3-2-2-23), [8.4.3.14.2](#section-8-4-3-14-2)
 '-
-Literal continuation indicator [34](#page-34)
+Literal continuation indicator [3](#section-3)
 "-
-Literal continuation indicator [34](#page-34)
+Literal continuation indicator [3](#section-3)
 *
-Comment line [38](#page-38)
-operator [172](#page-172)
+Comment line [3](#section-3)
+operator [8.4.3.13.2](#section-8-4-3-13-2)
 **
-operator [172](#page-172)
+operator [8.4.3.13.2](#section-8-4-3-13-2)
 *>
-Comment indicator [34](#page-34)
-Comment line [39](#page-39)
-Inline comment [39](#page-39)
+Comment indicator [3](#section-3)
+Comment line [3](#section-3)
+Inline comment [3](#section-3)
 /
-Comment line [38](#page-38)
-operator [172](#page-172)
+Comment line [3](#section-3)
+operator [8.4.3.13.2](#section-8-4-3-13-2)
 &
-operator [173](#page-173)
+operator [8.4.3.14.2](#section-8-4-3-14-2)
 +
-operator [172](#page-172)
+operator [8.4.3.13.2](#section-8-4-3-13-2)
 –
-operator [172](#page-172)
+operator [8.4.3.13.2](#section-8-4-3-13-2)
 <
-Relation [173](#page-173)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
 <=
-Relation [173](#page-173)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
 <>
-Relation [173](#page-173)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
 =
-COMPUTE statement [602](#page-602)
-Relation [173](#page-173)
-SEARCH statement [720](#page-720)
+COMPUTE statement [14.9.8](#section-14-9-8)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
+SEARCH statement [14.9.37](#section-14-9-37)
 ==
-pseudo-text delimiter [44](#page-44), [50](#page-50)
+pseudo-text delimiter [3](#section-3)
 >
-Relation [173](#page-173)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
 >=
-Relation [173](#page-173)
+Relation [8.4.3.14.2](#section-8-4-3-14-2)
 >>
-Compiler directive [54](#page-54)
-Compiler directive indicator [34](#page-34)
+Compiler directive [4.2.11](#section-4-2-11)
+Compiler directive indicator [3](#section-3)
 
 ### Numerics
 
-0 PICTURE symbol [448](#page-448)
-01 entry [152](#page-152), [415](#page-415)
-1 PICTURE symbol [446](#page-446)
-66 RENAMES data description entry [152](#page-152), [415](#page-415), [473](#page-473)
-77 level data description entry [152](#page-152), [357](#page-357)
-88 condition-name data description entry [152](#page-152), [415](#page-415)
-9 PICTURE symbol [448](#page-448)
+0 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
+01 entry [8.4.2.2.3](#section-8-4-2-2-3), [13.18.13.4](#section-13-18-13-4)
+1 PICTURE symbol [13.18.33.4](#section-13-18-33-4)
+66 RENAMES data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4), [13.18.40.3](#section-13-18-40-3)
+77 level data description entry [8.4.2.3](#section-8-4-2-3), [12.4.5.10](#section-12-4-5-10)
+88 condition-name data description entry [8.4.2.3](#section-8-4-2-3), [13.18.13.4](#section-13-18-13-4)
+9 PICTURE symbol [13.18.34.4](#section-13-18-34-4)
 
 ### A
 
-A PICTURE symbol [441](#page-441)
-Abbreviated combined relation conditions [202](#page-202)
-Abnormal run unit termination [546](#page-546), [549](#page-549)
-ABS function [816](#page-816)
-ACCEPT statement [292](#page-292), [480](#page-480), [512](#page-512), [576](#page-576)
-FROM phrase [576](#page-576)
-Screen format [740](#page-740)
-ACCESS MODE clause [319](#page-319)
-FILE-CONTROL paragraph [312](#page-312)
-Access modes [220](#page-220)
-ACOS function [817](#page-817)
-ACTIVATING [890](#page-890)
-Active state [537](#page-537)
-ACTIVE-CLASS phrase [248](#page-248), [570](#page-570), [735](#page-735)
-USAGE clause [503](#page-503)
-ADD statement [564](#page-564), [583](#page-583)
-Additional language elements [24](#page-24)
-ADDRESS OF phrase [170](#page-170)
-Data-address-identifier [139](#page-139)
-SET statement, pointer assignment [730](#page-730)
+A PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+Abbreviated combined relation conditions [8.8.4.12](#section-8-8-4-12)
+Abnormal run unit termination [14.6.12](#section-14-6-12)
+ABS function [15.7](#section-15-7)
+ACCEPT statement [14.9.1](#section-14-9-1)
+FROM phrase [14.6.12](#section-14-6-12)
+Screen format [14.9.35](#section-14-9-35)
+ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Access modes [9.1.8](#section-9-1-8)
+ACOS function [15.8](#section-15-8)
+ACTIVATING [15.40](#section-15-40)
+Active state [14.6.2.2](#section-14-6-2-2)
+ACTIVE-CLASS phrase [9.1.3](#section-9-1-3), [14.6.4](#section-14-6-4), [14.9.32.4](#section-14-9-32-4)
+USAGE clause [13.18.60](#section-13-18-60)
+ADD statement [14.9.2](#section-14-9-2)
+Additional language elements 24
+ADDRESS OF phrase [8.4.3.11.2](#section-8-4-3-11-2)
+Data-address-identifier [8.4.3.11](#section-8-4-3-11)
+SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
 ADDRESS OF PROGRAM phrase
-Program-address-identifier [141](#page-141)
-SET statement, pointer assignment [730](#page-730)
-Address-identifier [125](#page-125)
+Program-address-identifier [8.4.3.13](#section-8-4-3-13)
+SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+Address-identifier [8.2.2](#section-8-2-2)
 ADVANCING ON LOCK phrase
-READ statement [692](#page-692)
+READ statement [14.9.30](#section-14-9-30)
 ADVANCING phrase
-READ statement [692](#page-692)
+READ statement [14.9.30](#section-14-9-30)
 AFTER ADVANCING phrase
-WRITE statement [785](#page-785)
+WRITE statement [14.9.51](#section-14-9-51)
 AFTER EXCEPTION phrase
-USE statement [774](#page-774)
+USE statement [14.9.49](#section-14-9-49)
 AFTER phrase
-INSPECT statement [644](#page-644)
-PERFORM statement [683](#page-683)
+INSPECT statement [14.9.22](#section-14-9-22)
+PERFORM statement [14.9.28](#section-14-9-28)
 AFTER STANDARD ERROR phrase
-USE statement [774](#page-774)
+USE statement [14.9.49](#section-14-9-49)
 AFTER STANDARD EXCEPTION phrase
-USE statement [774](#page-774)
-Algebraic signs [153](#page-153)
-ALIGNED clause [372](#page-372)
+USE statement [14.9.49](#section-14-9-49)
+Algebraic signs [8.5.1.5](#section-8-5-1-5)
+ALIGNED clause [13.18.1](#section-13-18-1)
 Alignment of data
-In storage [154](#page-154)
-Within data items [542](#page-542)
-ALL figurative constant [114](#page-114)
-ALL literal [117](#page-117)
+In storage [8.4.2.3.4](#section-8-4-2-3-4)
+Within data items [13.18.61](#section-13-18-61)
+ALL figurative constant [7.3.24](#section-7-3-24)
+ALL literal [8.1.2](#section-8-1-2)
 ALL option
-FLAG-02 directive [70](#page-70)
+FLAG-02 directive [7.3.14](#section-7-3-14)
 ALL OTHER phrase
-OPEN statement [675](#page-675)
-SHARING clause [332](#page-332)
+OPEN statement [14.9.27](#section-14-9-27)
+SHARING clause [12.4.5.15](#section-12-4-5-15)
 ALL phrase
-INITIALIZE statement [637](#page-637)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 
 ---
 
@@ -51018,631 +44992,605 @@ INITIALIZE statement [637](#page-637)
 ---
 
 
-<a id="page-1235"></a>
-## Page [1235](#page-1235)
-
-# ISO/IEC 1989:2023 (E)
-
-INSPECT statement [643](#page-643)
-SEARCH statement [720](#page-720)
-UNSTRING statement [769](#page-769)
-ALL subscript [123](#page-123)
-Intrinsic function [798](#page-798)
-ALLOCATE statement [170](#page-170), [521](#page-521), [586](#page-586), [627](#page-627)
+INSPECT statement [14.9.22](#section-14-9-22)
+SEARCH statement [14.9.37](#section-14-9-37)
+UNSTRING statement [14.9.48](#section-14-9-48)
+ALL subscript [8.1.4](#section-8-1-4)
+Intrinsic function [14.9.47](#section-14-9-47)
+ALLOCATE statement [14.9.3](#section-14-9-3)
 ALPHABET clause
-SPECIAL-NAMES paragraph [291](#page-291)
-Alphabetic category [162](#page-162), [445](#page-445)
-Alphabetic character [3](#page-3)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Alphabetic category [8.5.2.2](#section-8-5-2-2)
+Alphabetic character 3
 Alphabetic class
 Class of data
-Alphabetic [162](#page-162)
-Alphabetic data item [162](#page-162)
+Alphabetic [8.4.3.3.4](#section-8-4-3-3-4)
+Alphabetic data item [8.4.3.3.4](#section-8-4-3-3-4)
 ALPHABETIC phrase
-CLASS clause [194](#page-194), [382](#page-382)
-INITIALIZE statement [637](#page-637)
+CLASS clause [13.18.11](#section-13-18-11)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 ALPHABETIC-LOWER phrase
-CLASS clause [194](#page-194), [382](#page-382)
-ALPHABETIC-UPPER phrase [194](#page-194)
-CLASS clause [382](#page-382)
-Alphabet-name [98](#page-98), [289](#page-289), [517](#page-517), [566](#page-566), [618](#page-618)
-CODE-SET clause [384](#page-384)
-COLLATING SEQUENCE clause [322](#page-322)
-Definition [100](#page-100)
-FILE-CONTROL paragraph [312](#page-312)
-OBJECT-COMPUTER paragraph [285](#page-285)
-Scope of [146](#page-146)
-SPECIAL-NAMES paragraph [291](#page-291)
-Alphabets [93](#page-93)
-Alphanumeric category [162](#page-162), [411](#page-411), [445](#page-445)
-Alphanumeric character [3](#page-3)
-Alphanumeric character set [87](#page-87), [1073](#page-1073)
-Alphanumeric class [162](#page-162)
-Alphanumeric coded character set [87](#page-87), [1073](#page-1073)
-Alphanumeric data item [162](#page-162)
-Alphanumeric functions [796](#page-796)
-Alphanumeric literals [107](#page-107)
-Continuation of [37](#page-37), [39](#page-39)
+CLASS clause [13.18.11](#section-13-18-11)
+ALPHABETIC-UPPER phrase [8.5.2.9](#section-8-5-2-9)
+CLASS clause [13.18.11](#section-13-18-11)
+Alphabet-name [8.3.2.2.1](#section-8-3-2-2-1)
+CODE-SET clause [13.18.13](#section-13-18-13)
+COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+Definition [7.3.14](#section-7-3-14)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Alphabets [8.1.4](#section-8-1-4)
+Alphanumeric category [8.5.2.3](#section-8-5-2-3)
+Alphanumeric character 3
+Alphanumeric character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+Alphanumeric class [8.4.3.3.4](#section-8-4-3-3-4)
+Alphanumeric coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+Alphanumeric data item [8.4.3.3.4](#section-8-4-3-3-4)
+Alphanumeric functions [14.9.46](#section-14-9-46)
+Alphanumeric literals [8.3.3.2](#section-8-3-3-2)
+Continuation of [3](#section-3)
 ALPHANUMERIC phrase
-CODE-SET clause [384](#page-384)
-COLLATING SEQUENCE clause [322](#page-322)
-INITIALIZE statement [637](#page-637)
-MERGE statement [657](#page-657)
-SORT statement [745](#page-745)
-SPECIAL-NAMES paragraph [290](#page-290), [291](#page-291)
-Alphanumeric-edited category [162](#page-162), [163](#page-163), [446](#page-446)
-Alphanumeric-edited data item [163](#page-163)
+CODE-SET clause [13.18.13](#section-13-18-13)
+COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+MERGE statement [14.9.24](#section-14-9-24)
+SORT statement [14.9.40](#section-14-9-40)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Alphanumeric-edited category [8.5.2.4](#section-8-5-2-4)
+Alphanumeric-edited data item [8.4.3.4](#section-8-4-3-4)
 ALPHANUMERIC-EDITED phrase
-INITIALIZE statement [637](#page-637)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 ALSO phrase
-EVALUATE statement [618](#page-618)
-ALTERNATE RECORD KEY clause [320](#page-320), [794](#page-794)
-FILE-CONTROL paragraph [312](#page-312)
-ALTERNATE RECORD KEY clause, [1007](#page-1007)
+EVALUATE statement [14.9.13](#section-14-9-13)
+ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+ALTERNATE RECORD KEY clause, [A.4.8](#section-a-4-8)
 AND operator
-In combined conditions [201](#page-201)
-In complex conditions [200](#page-200)
+In combined conditions [8.6.7](#section-8-6-7)
+In complex conditions [8.6.5](#section-8-6-5)
 
 AND phrase
-SEARCH statement [720](#page-720)
-ANNUITY function [818](#page-818)
-ANY LENGTH clause [133](#page-133), [373](#page-373), [574](#page-574), [590](#page-590)
+SEARCH statement [14.9.37](#section-14-9-37)
+ANNUITY function [15.9](#section-15-9)
+ANY LENGTH clause [13.18.2](#section-13-18-2)
 ANY phrase
-EVALUATE statement [618](#page-618)
-ANYCASE keyword [920](#page-920)
-Apostrophe [91](#page-91)
-APPLY COMMIT [333](#page-333), [1019](#page-1019)
-Commit and Rollback [233](#page-233)
-EC-FLOW-APPLY-COMMIT Exception-name [553](#page-553)
-ROLLBACK statement [718](#page-718)
-APPLY COMMIT clause [601](#page-601), [608](#page-608), [718](#page-718)
-Archaic language element flagging [24](#page-24)
-Archaic language elements [24](#page-24), [1199](#page-1199)
-Continuation of COBOL words [1199](#page-1199)
-Identifier-n (text-n) in a COPY statement [1199](#page-1199)
+EVALUATE statement [14.9.13](#section-14-9-13)
+ANYCASE keyword [15.65](#section-15-65)
+Apostrophe [7.3.10.4](#section-7-3-10-4)
+APPLY COMMIT [12.3.7.4](#section-12-3-7-4), [B.3](#section-b-3)
+Commit and Rollback [9.1.18](#section-9-1-18)
+EC-FLOW-APPLY-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
+ROLLBACK statement [14.9.36](#section-14-9-36)
+APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
+Archaic language element flagging 24
+Archaic language elements [4.2.12](#section-4-2-12)
+Continuation of COBOL words [D.31.5.8](#section-d-31-5-8)
+Identifier-n (text-n) in a COPY statement [D.31.5.8](#section-d-31-5-8)
 MOVE of figurative constants that are not numeric to
-numeric items [1199](#page-1199)
-NEXT SENTENCE phrase [635](#page-635), [720](#page-720), [1199](#page-1199)
-ON OVERFLOW phrase of CALL [1199](#page-1199)
-Arguments [30](#page-30)
-Arguments, intrinsic functions [796](#page-796)
-Arithmetic [172](#page-172), [175](#page-175)
-Native [175](#page-175)
-Standard [175](#page-175)
-Standard-binary [176](#page-176)
-Standard-decimal [179](#page-179)
-ARITHMETIC clause [176](#page-176), [272](#page-272)
-Arithmetic compute [602](#page-602)
-Arithmetic expressions [31](#page-31), [175](#page-175)
-COMPUTE statement [602](#page-602)
-EVALUATE statement [618](#page-618)
-Parenthesis in [175](#page-175)
-Sign condition [198](#page-198)
-Arithmetic Operators [172](#page-172)
-Arithmetic statements [564](#page-564)
-ADD statement [564](#page-564), [583](#page-583)
-COMPUTE statement [564](#page-564), [602](#page-602)
-Data conversion [564](#page-564)
-decimal point alignment [564](#page-564)
-DIVIDE statement [564](#page-564), [614](#page-614)
-maximum operand size [565](#page-565)
-MULTIPLY statement [564](#page-564), [673](#page-673)
-SUBTRACT statement [564](#page-564), [762](#page-762)
+numeric items [D.31.5.8](#section-d-31-5-8)
+NEXT SENTENCE phrase [14.9.10](#section-14-9-10), [14.9.28.4](#section-14-9-28-4), [D.31.5.8](#section-d-31-5-8)
+ON OVERFLOW phrase of CALL [D.31.5.8](#section-d-31-5-8)
+Arguments [15.3](#section-15-3)
+Arguments, intrinsic functions [14.9.46](#section-14-9-46)
+Arithmetic [8.4.3.13.2](#section-8-4-3-13-2), [8.4.4.2](#section-8-4-4-2)
+Native [8.4.4.2](#section-8-4-4-2)
+Standard [8.4.4.2](#section-8-4-4-2)
+Standard-binary [8.4.6](#section-8-4-6)
+Standard-decimal [8.4.6.3](#section-8-4-6-3)
+ARITHMETIC clause [11.9.5](#section-11-9-5)
+Arithmetic compute [14.8.3](#section-14-8-3)
+Arithmetic expressions [5.4](#section-5-4)
+COMPUTE statement [14.9.8](#section-14-9-8)
+EVALUATE statement [14.9.13](#section-14-9-13)
+Parenthesis in [8.4.4.2](#section-8-4-4-2)
+Sign condition [8.6.3](#section-8-6-3)
+Arithmetic Operators [8.7.1](#section-8-7-1)
+Arithmetic statements [14.7.7](#section-14-7-7)
+ADD statement [14.9.2](#section-14-9-2)
+COMPUTE statement [14.9.8](#section-14-9-8)
+Data conversion [14.5.1](#section-14-5-1)
+decimal point alignment [14.5.1](#section-14-5-1)
+DIVIDE statement [14.9.12](#section-14-9-12)
+maximum operand size [14.5.2](#section-14-5-2)
+MULTIPLY statement [14.9.26](#section-14-9-26)
+SUBTRACT statement [14.9.44](#section-14-9-44)
 AS phrase
-CALL statement [589](#page-589)
-CLASS-ID paragraph [264](#page-264)
-EXTERNAL clause [342](#page-342), [343](#page-343), [400](#page-400)
-FUNCTION-ID paragraph [267](#page-267)
-INTERFACE-ID paragraph [268](#page-268)
-PROGRAM-ID paragraph [280](#page-280)
-REPOSITORY paragraph [304](#page-304)
+CALL statement [14.9.4](#section-14-9-4)
+CLASS-ID paragraph [11.3](#section-11-3)
+EXTERNAL clause [13.18.22](#section-13-18-22)
+FUNCTION-ID paragraph [11.5](#section-11-5)
+INTERFACE-ID paragraph [11.6](#section-11-6)
+PROGRAM-ID paragraph [11.10](#section-11-10)
+REPOSITORY paragraph [12.3.8](#section-12-3-8)
 ASCENDING KEY phrase
-MERGE statement [657](#page-657)
-OCCURS clause [430](#page-430)
-SEARCH statement [724](#page-724)
-SORT statement [745](#page-745)
+MERGE statement [14.9.24](#section-14-9-24)
+OCCURS clause [13.18.38](#section-13-18-38)
+SEARCH statement [14.9.37](#section-14-9-37)
+SORT statement [14.9.40](#section-14-9-40)
 
 
 ---
 
 
-<a id="page-1236"></a>
-## Page [1236](#page-1236)
-
-# ISO/IEC 1989:2023 (E)
-
-ASIN function [819](#page-819)
+ASIN function [15.10](#section-15-10)
 ASSIGN clause
-FILE-CONTROL paragraph [312](#page-312)
-Asterisk (*) comment line [38](#page-38)
-AT END [222](#page-222)
-At end condition [700](#page-700), [708](#page-708)
-Definition [560](#page-560)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Asterisk (*) comment line [3](#section-3)
+AT END [8.8.4.2.13](#section-8-8-4-2-13)
+At end condition [14.7.2](#section-14-7-2)
+Definition [14.2.3](#section-14-2-3)
 AT END phrase
-READ statement [692](#page-692)
-RETURN statement [708](#page-708)
-SEARCH statement [720](#page-720)
-AT END-OF-PAGE [222](#page-222)
+READ statement [14.9.30](#section-14-9-30)
+RETURN statement [14.9.34](#section-14-9-34)
+SEARCH statement [14.9.37](#section-14-9-37)
+AT END-OF-PAGE [8.8.4.2.13](#section-8-8-4-2-13)
 AT END-OF-PAGE phrase
-WRITE statement [785](#page-785)
-AT EOP [222](#page-222)
+WRITE statement [14.9.51](#section-14-9-51)
+AT EOP [8.8.4.2.13](#section-8-8-4-2-13)
 AT EOP phrase
-WRITE statement [785](#page-785)
-ATAN function [820](#page-820)
+WRITE statement [14.9.51](#section-14-9-51)
+ATAN function [15.11](#section-15-11)
 ATTRIBUTE phrase
-SET statement, attribute setting [730](#page-730)
-AUTO clause [374](#page-374)
-Automatic data [168](#page-168), [537](#page-537), [538](#page-538)
-Automatic items [168](#page-168)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+AUTO clause [13.18.3](#section-13-18-3)
+Automatic data [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
+Automatic items [8.4.3.9.3](#section-8-4-3-9-3)
 AUTOMATIC phrase
-LOCK MODE clause [325](#page-325)
+LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
 AWAY-FROM-ZERO phrase
-DEFAULT ROUNDED clause [273](#page-273)
-ROUNDED phrase [560](#page-560)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+ROUNDED phrase [14.7.4](#section-14-7-4)
 
 ## B
 
-B PICTURE symbol [441](#page-441)
-BACKGROUND-COLOR clause [375](#page-375)
-BACKWARD [646](#page-646)
-B-AND operator [172](#page-172)
-BASE class [941](#page-941)
-BASECONVERT function [821](#page-821)
-BASED clause [170](#page-170), [366](#page-366), [376](#page-376)
-Based data [170](#page-170)
-Based data item [521](#page-521)
-ALLOCATE statement [587](#page-587)
-SET statement [735](#page-735)
-Based entry [170](#page-170)
+B PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+BACKGROUND-COLOR clause [13.18.4](#section-13-18-4)
+BACKWARD [14.9.12.4](#section-14-9-12-4)
+B-AND operator [8.4.3.13.2](#section-8-4-3-13-2)
+BASE class [16.2](#section-16-2)
+BASECONVERT function [15.12](#section-15-12)
+BASED clause [13.18.5](#section-13-18-5)
+Based data [8.4.3.11.2](#section-8-4-3-11-2)
+Based data item [13.18.55](#section-13-18-55)
+ALLOCATE statement [14.9.3](#section-14-9-3)
+SET statement [14.9.39](#section-14-9-39)
+Based entry [8.4.3.11.2](#section-8-4-3-11-2)
 Basic calendar date format
-Definition [799](#page-799)
-Basic combined date and time format [803](#page-803)
+Definition [14.9.48](#section-14-9-48)
+Basic combined date and time format [14.9.48.4](#section-14-9-48-4)
 Basic common time format
-Definition [801](#page-801)
+Definition [14.9.48.4](#section-14-9-48-4)
 Basic common time format with integer seconds representation
 Definition
 Basic common time format
-Definition [801](#page-801)
+Definition [14.9.48.4](#section-14-9-48-4)
 Basic common time3 format with fractional seconds
-Definition [801](#page-801)
-Basic letters [90](#page-90)
-Basic local time format [802](#page-802)
+Definition [14.9.48.4](#section-14-9-48-4)
+Basic letters [7.3.10](#section-7-3-10)
+Basic local time format [14.9.48.4](#section-14-9-48-4)
 
-Basic offset time format [802](#page-802)
+Basic offset time format [14.9.48.4](#section-14-9-48-4)
 Basic ordinal date format
-Definition [799](#page-799)
-Basic UTC time format [802](#page-802)
+Definition [14.9.48](#section-14-9-48)
+Basic UTC time format [14.9.48.4](#section-14-9-48-4)
 Basic week date format
-Definition [800](#page-800)
+Definition [14.9.48.4](#section-14-9-48-4)
 BEFORE ADVANCING phrase
-WRITE statement [785](#page-785)
+WRITE statement [14.9.51](#section-14-9-51)
 BEFORE phrase
-INSPECT statement [644](#page-644)
-PERFORM statement [683](#page-683)
+INSPECT statement [14.9.22](#section-14-9-22)
+PERFORM statement [14.9.28](#section-14-9-28)
 BEFORE REPORTING phrase
-USE statement [774](#page-774)
-BELL clause [377](#page-377)
+USE statement [14.9.49](#section-14-9-49)
+BELL clause [13.18.6](#section-13-18-6)
 BELL phrase
-SET statement, attribute setting [730](#page-730)
-big-endian [509](#page-509)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+big-endian [13.18.49.4](#section-13-18-49-4)
 Binary encoding
-ISO/IEC/IEEE 60559 definition reference [509](#page-509)
+ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
 BINARY phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 BINARY-CHAR phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 BINARY-DOUBLE phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 BINARY-ENCODING phrase
-FLOAT-DECIMAL clause [275](#page-275)
-USAGE clause [504](#page-504)
+FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+USAGE clause [13.18.60](#section-13-18-60)
 BINARY-LONG phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 BINARY-SHORT phrase
-USAGE clause [503](#page-503)
-BIT [410](#page-410)
-Bit data item [410](#page-410), [506](#page-506)
-Bit group [1070](#page-1070)
-Bit group item [410](#page-410)
+USAGE clause [13.18.60](#section-13-18-60)
+BIT [13.18.9](#section-13-18-9)
+Bit data item [13.18.9](#section-13-18-9), [13.18.47](#section-13-18-47)
+Bit group [D.5](#section-d-5)
+Bit group item [13.18.9](#section-13-18-9)
 BIT phrase
-USAGE clause [503](#page-503)
-BLANK clause [378](#page-378)
-Blank line [38](#page-38), [39](#page-39)
-BLANK WHEN ZERO clause [379](#page-379), [443](#page-443)
-BLINK clause [380](#page-380)
+USAGE clause [13.18.60](#section-13-18-60)
+BLANK clause [13.18.7](#section-13-18-7)
+Blank line [3](#section-3)
+BLANK WHEN ZERO clause [13.18.8](#section-13-18-8)
+BLINK clause [13.18.9](#section-13-18-9)
 BLINK phrase
-SET statement, attribute setting [730](#page-730)
-BLOCK CONTAINS clause [381](#page-381)
-File description entry [342](#page-342)
-B-NOT operator [172](#page-172)
-Boolean category [162](#page-162), [163](#page-163), [410](#page-410), [446](#page-446)
-Boolean character [5](#page-5)
-Boolean class [162](#page-162)
-BOOLEAN clause [194](#page-194)
-Boolean compute [602](#page-602)
-Boolean data item [163](#page-163)
-Boolean expression [62](#page-62)
-Boolean expressions [182](#page-182)
-COMPUTE statement [602](#page-602)
-EVALUATE statement [618](#page-618)
-Parenthesis in [182](#page-182)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
+File description entry [13.4.5](#section-13-4-5)
+B-NOT operator [8.4.3.13.2](#section-8-4-3-13-2)
+Boolean category [8.5.2.5](#section-8-5-2-5)
+Boolean character 5
+Boolean class [8.4.3.3.4](#section-8-4-3-3-4)
+BOOLEAN clause [8.5.2.9](#section-8-5-2-9)
+Boolean compute [14.8.3](#section-14-8-3)
+Boolean data item [8.4.3.4](#section-8-4-3-4)
+Boolean expression [5.6](#section-5-6)
+Boolean expressions [8.8.2](#section-8-8-2)
+COMPUTE statement [14.9.8](#section-14-9-8)
+EVALUATE statement [14.9.13](#section-14-9-13)
+Parenthesis in [8.5.1.3.2](#section-8-5-1-3-2)
 
 ---
 
 
-
-<a id="page-1237"></a>
-## Page [1237](#page-1237)
-
-# ISO/IEC 1989:2023 (E)
-
-Relation condition [187](#page-187)
-Boolean functions [796](#page-796)
-Boolean literals [110](#page-110)
-&nbsp;&nbsp;&nbsp;&nbsp;Continuation of [37](#page-37), [39](#page-39)
-Boolean operators [172](#page-172)
+Relation condition [8.5.1.9.2](#section-8-5-1-9-2)
+Boolean functions [14.9.46](#section-14-9-46)
+Boolean literals [8.3.3.4](#section-8-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Continuation of [3](#section-3)
+Boolean operators [8.7.2](#section-8-7-2)
 BOOLEAN phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [382](#page-382)
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [637](#page-637)
+&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [13.18.11](#section-13-18-11)
+&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
 Boolean zero-length literal
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [111](#page-111)
-BOOLEAN-OF-INTEGER function [822](#page-822)
-B-OR operator [172](#page-172)
-Braces [29](#page-29)
-Brackets [29](#page-29)
-B-SHIFT-L operator [172](#page-172)
-B-SHIFT-LC operator [172](#page-172)
-B-SHIFT-R operator [172](#page-172)
-B-SHIFT-RC operator [172](#page-172)
-B-XOR operator [172](#page-172)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.21](#section-7-3-21)
+BOOLEAN-OF-INTEGER function [15.13](#section-15-13)
+B-OR operator [8.4.3.13.2](#section-8-4-3-13-2)
+Braces [5.2.6.3](#section-5-2-6-3)
+Brackets [5.2.6.2](#section-5-2-6-2)
+B-SHIFT-L operator [8.4.3.13.2](#section-8-4-3-13-2)
+B-SHIFT-LC operator [8.4.3.13.2](#section-8-4-3-13-2)
+B-SHIFT-R operator [8.4.3.13.2](#section-8-4-3-13-2)
+B-SHIFT-RC operator [8.4.3.13.2](#section-8-4-3-13-2)
+B-XOR operator [8.4.3.13.2](#section-8-4-3-13-2)
 BY CONTENT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [588](#page-588)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [651](#page-651)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [130](#page-130)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2.1](#section-8-3-2-2-1)
 BY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [46](#page-46)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [637](#page-637)
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [644](#page-644)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [673](#page-673)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [683](#page-683)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, pointer arithmetic [731](#page-731)
-&nbsp;&nbsp;&nbsp;&nbsp;VARYING clause [525](#page-525)
+&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [7.2.3](#section-7-2-3)
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
+&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
+&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
+&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
+&nbsp;&nbsp;&nbsp;&nbsp;VARYING clause [13.18.64](#section-13-18-64)
 BY REFERENCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [588](#page-588)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [651](#page-651)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [129](#page-129), [528](#page-528)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
 BY VALUE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [589](#page-589)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [651](#page-651)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [130](#page-130), [528](#page-528)
-BYTE-LENGTH function [823](#page-823)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2.1](#section-8-3-2-2-1), [13.18.57.4](#section-13-18-57-4)
+BYTE-LENGTH function [15.14](#section-15-14)
 BYTE-LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [355](#page-355)
+&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [13.10](#section-13-10)
 
 ## C
 
-Calendar date format [799](#page-799)
+Calendar date format [14.9.48](#section-14-9-48)
 CALL
-&nbsp;&nbsp;&nbsp;&nbsp;Failure [568](#page-568)
-CALL statement [588](#page-588), [633](#page-633)
-CALL-CONVENTION directive [59](#page-59), [1162](#page-1162)
-Call-convention-name [104](#page-104)
-call-convention-name [59](#page-59)
-CANCEL statement [538](#page-538), [595](#page-595), [633](#page-633)
-CAPACITY [430](#page-430)
-Case mapping [92](#page-92)
+&nbsp;&nbsp;&nbsp;&nbsp;Failure [14.6.2.3.2](#section-14-6-2-3-2)
+CALL statement [14.9.4](#section-14-9-4)
+CALL-CONVENTION directive [7.3.9](#section-7-3-9)
+Call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
+call-convention-name [8.3.2.3.2](#section-8-3-2-3-2)
+CANCEL statement [14.9.5](#section-14-9-5)
+CAPACITY [13.18.22](#section-13-18-22)
+Case mapping [7.3.11](#section-7-3-11)
 Category of data
 
-Alphabetic [162](#page-162), [445](#page-445)
-Alphanumeric [162](#page-162), [411](#page-411), [445](#page-445)
-Alphanumeric-edited [162](#page-162), [163](#page-163), [446](#page-446)
-Boolean [162](#page-162), [163](#page-163), [410](#page-410), [446](#page-446)
-Boolean literal [110](#page-110)
-Data-pointer [162](#page-162), [163](#page-163)
-Function-pointer [162](#page-162), [163](#page-163)
-Index [162](#page-162), [163](#page-163), [506](#page-506)
-National [162](#page-162), [164](#page-164), [411](#page-411), [446](#page-446)
-National literal [111](#page-111)
-National-edited [162](#page-162), [164](#page-164), [446](#page-446)
-Numeric [162](#page-162), [164](#page-164), [446](#page-446)
-Numeric literal [109](#page-109)
-Numeric-edited [165](#page-165), [446](#page-446)
-Object-reference [162](#page-162), [165](#page-165), [509](#page-509)
-Program-pointer [162](#page-162), [165](#page-165)
+Alphabetic [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33](#section-13-18-33)
+Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4), [13.18.10](#section-13-18-10), [13.18.33](#section-13-18-33)
+Alphanumeric-edited [8.4.3.3.4](#section-8-4-3-3-4), [13.18.33.4](#section-13-18-33-4)
+Boolean [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4.2](#section-8-4-3-4-2), [13.18.9](#section-13-18-9), [13.18.33.4](#section-13-18-33-4)
+Boolean literal [7.3.20](#section-7-3-20)
+Data-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
+Function-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4)
+Index [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.4](#section-8-4-3-4), [13.18.47](#section-13-18-47)
+National [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.10](#section-13-18-10), [13.18.33.4](#section-13-18-33-4)
+National literal [7.3.21](#section-7-3-21)
+National-edited [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
+Numeric [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.5](#section-8-4-3-5), [13.18.33.4](#section-13-18-33-4)
+Numeric literal [7.3.19](#section-7-3-19)
+Numeric-edited [8.4.3.6](#section-8-4-3-6), [13.18.33.4](#section-13-18-33-4)
+Object-reference [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6), [13.18.49.4](#section-13-18-49-4)
+Program-pointer [8.4.3.3.4](#section-8-4-3-3-4), [8.4.3.6](#section-8-4-3-6)
 CF phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
 CH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
-CHAR function [825](#page-825)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
+CHAR function [15.15](#section-15-15)
 Character
-&nbsp;&nbsp;&nbsp;&nbsp;Alphabetic [3](#page-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [3](#page-3)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [5](#page-5)
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric [16](#page-16)
-CHARACTER CLASSIFICATION clause [287](#page-287)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [285](#page-285)
-Character sets [87](#page-87), [289](#page-289), [1073](#page-1073)
-Character substitution [93](#page-93)
+&nbsp;&nbsp;&nbsp;&nbsp;Alphabetic 3
+&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric 3
+&nbsp;&nbsp;&nbsp;&nbsp;Boolean 5
+&nbsp;&nbsp;&nbsp;&nbsp;Numeric 16
+CHARACTER CLASSIFICATION clause [10.6.1](#section-10-6-1)
+&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+Character sets [8.1](#section-8-1)
+Character substitution [4.2.17](#section-4-2-17)
 CHARACTERS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [586](#page-586)
-&nbsp;&nbsp;&nbsp;&nbsp;BLOCK CONTAINS clause [381](#page-381)
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [643](#page-643)
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD clause [467](#page-467)
-Character-string [6](#page-6)
+&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
+&nbsp;&nbsp;&nbsp;&nbsp;BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
+&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
+&nbsp;&nbsp;&nbsp;&nbsp;RECORD clause [13.18.43](#section-13-18-43)
+Character-string 6
 character-strings
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [97](#page-97)
-CHAR-NATIONAL function [826](#page-826)
-Choice indicators [29](#page-29)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.13.4](#section-7-3-13-4)
+CHAR-NATIONAL function [15.16](#section-15-16)
+Choice indicators [5.2.6.4](#section-5-2-6-4)
 Class
-&nbsp;&nbsp;&nbsp;&nbsp;BASE [941](#page-941)
-&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [251](#page-251)
-Class and category of data [161](#page-161)
-CLASS clause [194](#page-194), [382](#page-382)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Class condition [193](#page-193)
-&nbsp;&nbsp;&nbsp;&nbsp;BOOLEAN phrase [194](#page-194)
-Class inheritance [250](#page-250)
+&nbsp;&nbsp;&nbsp;&nbsp;BASE [15.81](#section-15-81)
+&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [9.1.8.2](#section-9-1-8-2)
+Class and category of data [8.4.3.3](#section-8-4-3-3)
+CLASS clause [13.18.11](#section-13-18-11)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Class condition [8.5.2.4](#section-8-5-2-4)
+&nbsp;&nbsp;&nbsp;&nbsp;BOOLEAN phrase [8.5.2.9](#section-8-5-2-9)
+Class inheritance [9.3.9](#section-9-3-9)
 Class of data
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;Index [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;National [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;Object [162](#page-162)
-&nbsp;&nbsp;&nbsp;&nbsp;Pointer [162](#page-162)
+&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Boolean [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Index [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;National [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Numeric [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Object [8.4.3.3.4](#section-8-4-3-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Pointer [8.4.3.3.4](#section-8-4-3-3-4)
 CLASS phrase
 
 
 ---
 
-<a id="page-1238"></a>
-## Page [1238](#page-1238)
 
-# ISO/IEC 1989:2023 (E)
-
-USAGE clause [503](#page-503)
-Class polymorphism [241](#page-241)
-Class-definition [258](#page-258)
-CLASS-ID paragraph [264](#page-264)
-Class-name [289](#page-289)
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [382](#page-382)
-&nbsp;&nbsp;&nbsp;&nbsp;CLASS-ID paragraph [264](#page-264)
-&nbsp;&nbsp;&nbsp;&nbsp;Object orientation [101](#page-101)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [146](#page-146)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-&nbsp;&nbsp;&nbsp;&nbsp;Truth value [98](#page-98), [101](#page-101)
-Clause [6](#page-6)
-CLOSE statement [71](#page-71), [596](#page-596), [597](#page-597)
-&nbsp;&nbsp;&nbsp;&nbsp;Implied [661](#page-661), [662](#page-662), [751](#page-751), [752](#page-752)
-Closing delimiter [118](#page-118)
-COBOL character repertoire [90](#page-90)
-COBOL compilation group [256](#page-256)
-COBOL library [43](#page-43)
-COBOL reserved words [105](#page-105)
-COBOL source program structure [254](#page-254)
-COBOL word [97](#page-97)
-COBOL-WORDS directive [42](#page-42), [60](#page-60), [309](#page-309)
-CODE clause [383](#page-383)
-&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [358](#page-358)
-Coded character set [87](#page-87), [1073](#page-1073)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [153](#page-153)
-Code-name [104](#page-104)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [291](#page-291)
-CODE-SET clause [87](#page-87), [384](#page-384), [481](#page-481), [482](#page-482)
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [342](#page-342)
-Collating sequence [289](#page-289)
-COLLATING SEQUENCE clause [322](#page-322)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [312](#page-312)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [285](#page-285)
+USAGE clause [13.18.60](#section-13-18-60)
+Class polymorphism [9.3.5.2](#section-9-3-5-2)
+Class-definition [9.1.13.8](#section-9-1-13-8)
+CLASS-ID paragraph [11.3](#section-11-3)
+Class-name [8.3.2.2.2](#section-8-3-2-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;CLASS clause [13.18.11](#section-13-18-11)
+&nbsp;&nbsp;&nbsp;&nbsp;CLASS-ID paragraph [11.3](#section-11-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Object orientation [9.1.18.6](#section-9-1-18-6)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+&nbsp;&nbsp;&nbsp;&nbsp;Truth value [7.3.13.4](#section-7-3-13-4), [7.3.14.4](#section-7-3-14-4)
+Clause 6
+CLOSE statement [14.9.6](#section-14-9-6)
+&nbsp;&nbsp;&nbsp;&nbsp;Implied [14.9.18](#section-14-9-18), [14.9.18.4](#section-14-9-18-4), [14.9.37.3](#section-14-9-37-3), [14.9.37.4](#section-14-9-37-4)
+Closing delimiter [8.1.2](#section-8-1-2)
+COBOL character repertoire [8.1.3](#section-8-1-3)
+COBOL compilation group [10.6](#section-10-6)
+COBOL library [3](#section-3)
+COBOL reserved words [7.3.16](#section-7-3-16)
+COBOL source program structure [9.1.13.2](#section-9-1-13-2)
+COBOL word [7.3.13.4](#section-7-3-13-4)
+COBOL-WORDS directive [7.3.10](#section-7-3-10)
+CODE clause [13.18.12](#section-13-18-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [13.8.4](#section-13-8-4)
+Coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.2.3.3](#section-8-4-2-3-3)
+Code-name [8.3.2.3.3](#section-8-3-2-3-3)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+CODE-SET clause [13.18.13](#section-13-18-13)
+&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
+Collating sequence [10.6.2](#section-10-6-2)
+COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
 COLLATING SEQUENCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [657](#page-657)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [745](#page-745)
-Collating sequences [93](#page-93)
-Colon [91](#page-91)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [118](#page-118)
-Color number [238](#page-238)
+&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [14.9.24](#section-14-9-24)
+&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
+Collating sequences [8.1.5](#section-8-1-5)
+Colon [7.3.10.4](#section-7-3-10-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
+Color number [9.2.7](#section-9-2-7)
 COLUMN (COL) phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [577](#page-577)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [610](#page-610)
-COLUMN clause [386](#page-386)
-Combined conditions [201](#page-201)
-Combined date and time format [803](#page-803)
-COMBINED-DATETIME [827](#page-827)
-Comma [29](#page-29)
-&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with semicolon [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [117](#page-117)
-Comment [38](#page-38), [39](#page-39)
-&nbsp;&nbsp;&nbsp;&nbsp;Inline [38](#page-38), [40](#page-40)
-&nbsp;&nbsp;&nbsp;&nbsp;Line [38](#page-38), [39](#page-39)
-Comment indicator [34](#page-34)
-commit [1019](#page-1019)
-COMMIT statement [234](#page-234), [334](#page-334), [601](#page-601), [718](#page-718)
-&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [333](#page-333)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
+&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
+COLUMN clause [13.18.14](#section-13-18-14)
+Combined conditions [8.6.7](#section-8-6-7)
+Combined date and time format [14.9.48.4](#section-14-9-48-4)
+COMBINED-DATETIME [15.3](#section-15-3)
+Comma 29
+&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with semicolon [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
+Comment [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Inline [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Line [3](#section-3)
+Comment indicator [3](#section-3)
+commit [B.3](#section-b-3)
+COMMIT statement [14.9.7](#section-14-9-7)
+&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
 
-EC-FLOW-COMMIT Exception-name [553](#page-553)
-COMMON [682](#page-682)
+EC-FLOW-COMMIT Exception-name [13.18.63.4](#section-13-18-63-4)
+COMMON [14.9.23.3](#section-14-9-23-3)
 COMMON clause
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [280](#page-280)
-Common exception processing [1091](#page-1091)
-COMMON phrase [549](#page-549)
-Common phrases [559](#page-559)
-Common program [170](#page-170)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [149](#page-149)
-Common time format [801](#page-801)
+&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
+Common exception processing [D.16](#section-d-16)
+COMMON phrase [13.18.63.3](#section-13-18-63-3)
+Common phrases [14.2.3](#section-14-2-3)
+Common program [8.4.3.11.2](#section-8-4-3-11-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
+Common time format [14.9.48.4](#section-14-9-48-4)
 COMP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [503](#page-503)
+&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
 Comparison
-&nbsp;&nbsp;&nbsp;&nbsp;Between message tags [192](#page-192)
-&nbsp;&nbsp;&nbsp;&nbsp;Between object reference identifiers [192](#page-192)
-&nbsp;&nbsp;&nbsp;&nbsp;Locale-based [191](#page-191)
-&nbsp;&nbsp;&nbsp;&nbsp;Of alphanumeric operands [189](#page-189)
-&nbsp;&nbsp;&nbsp;&nbsp;Of boolean operands [190](#page-190)
-&nbsp;&nbsp;&nbsp;&nbsp;Of data-pointer operands [192](#page-192)
-&nbsp;&nbsp;&nbsp;&nbsp;Of index data items [192](#page-192)
-&nbsp;&nbsp;&nbsp;&nbsp;Of mixed operands [189](#page-189)
-&nbsp;&nbsp;&nbsp;&nbsp;Of national operands [190](#page-190)
-&nbsp;&nbsp;&nbsp;&nbsp;Of numeric operands [188](#page-188)
-&nbsp;&nbsp;&nbsp;&nbsp;Of strongly-typed group items [191](#page-191)
+&nbsp;&nbsp;&nbsp;&nbsp;Between message tags [8.5.2.2](#section-8-5-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Between object reference identifiers [8.5.2.2](#section-8-5-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Locale-based [8.5.1.12.2](#section-8-5-1-12-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Of alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Of boolean operands [8.5.1.12](#section-8-5-1-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Of data-pointer operands [8.5.2.2](#section-8-5-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Of index data items [8.5.2.2](#section-8-5-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Of mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Of national operands [8.5.1.12](#section-8-5-1-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Of numeric operands [8.5.1.10](#section-8-5-1-10)
+&nbsp;&nbsp;&nbsp;&nbsp;Of strongly-typed group items [8.5.1.12.2](#section-8-5-1-12-2)
 Compatibility
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-85 directive [70](#page-70), [72](#page-72)
+&nbsp;&nbsp;&nbsp;&nbsp;FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
 Compatibility of Variable-length groups
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [160](#page-160)
-Compilation group [254](#page-254), [1041](#page-1041)
-Compilation stage [42](#page-42)
-Compilation unit [25](#page-25), [254](#page-254), [1041](#page-1041)
-Compilation variable name [62](#page-62)
-Compilation-variable-name [62](#page-62), [97](#page-97), [98](#page-98), [101](#page-101), [150](#page-150)
-Compiler directing statement [44](#page-44)
-&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [44](#page-44)
-&nbsp;&nbsp;&nbsp;&nbsp;REPLACE statement [44](#page-44)
-Compiler directive [54](#page-54)
-Compiler directive indicator [34](#page-34)
-Compiler-directive word [54](#page-54), [97](#page-97), [213](#page-213)
-Compile-time arithmetic expressions [55](#page-55), [355](#page-355)
-Compile-time boolean expressions [56](#page-56)
-Composite of operands [176](#page-176)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [584](#page-584)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [615](#page-615)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [673](#page-673)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [763](#page-763)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.3.2.4](#section-8-4-3-2-4)
+Compilation group [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
+Compilation stage [3](#section-3)
+Compilation unit 25, [9.1.13.2](#section-9-1-13-2), [D.2.3.3.3](#section-d-2-3-3-3)
+Compilation variable name [5.6](#section-5-6)
+Compilation-variable-name [8.3.2.2.3](#section-8-3-2-2-3)
+Compiler directing statement [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;COPY statement [7.2.3](#section-7-2-3)
+&nbsp;&nbsp;&nbsp;&nbsp;REPLACE statement [7.2.4](#section-7-2-4)
+Compiler directive [4.2.11](#section-4-2-11)
+Compiler directive indicator [3](#section-3)
+Compiler-directive word [4.2.11](#section-4-2-11), [7.3.13.4](#section-7-3-13-4), [8.8.2](#section-8-8-2)
+Compile-time arithmetic expressions [7.3.6](#section-7-3-6)
+Compile-time boolean expressions [7.3.7](#section-7-3-7)
+Composite of operands [8.4.6](#section-8-4-6)
+&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
+&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
+&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
 COMPUTATIONAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [503](#page-503)
-COMPUTE statement [564](#page-564), [602](#page-602)
-Computer's character set [87](#page-87), [1073](#page-1073)
-Computer's coded character set [87](#page-87), [151](#page-151), [1073](#page-1073)
-Computer-name [104](#page-104)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [285](#page-285)
-&nbsp;&nbsp;&nbsp;&nbsp;SOURCE-COMPUTER paragraph [284](#page-284)
-CONCAT function [828](#page-828)
-Concatenation expressions [185](#page-185)
-Concatenation operator [173](#page-173)
-Concepts [1005](#page-1005)
+&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
+COMPUTE statement [14.9.8](#section-14-9-8)
+Computer's character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+Computer's coded character set [8.1.2](#section-8-1-2)
+Computer-name [8.3.2.3.4](#section-8-3-2-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+&nbsp;&nbsp;&nbsp;&nbsp;SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
+CONCAT function [15.18](#section-15-18)
+Concatenation expressions [8.8.3](#section-8-8-3)
+Concatenation operator [8.7.3](#section-8-7-3)
+Concepts [A.4.3](#section-a-4-3)
 
 ---
 
 
-
-<a id="page-1239"></a>
-## Page [1239](#page-1239)
-
-# ISO/IEC 1989:2023 (E)
-
-CONDITION [774](#page-774)
-Condition [186](#page-186)
-&nbsp;&nbsp;&nbsp;&nbsp;Abbreviated combined relation condition [202](#page-202)
-&nbsp;&nbsp;&nbsp;&nbsp;Class condition [193](#page-193)
-&nbsp;&nbsp;&nbsp;&nbsp;Condition-name condition [197](#page-197)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [618](#page-618)
-&nbsp;&nbsp;&nbsp;&nbsp;Evaluation order rules [201](#page-201)
-&nbsp;&nbsp;&nbsp;&nbsp;IF statement [635](#page-635)
-&nbsp;&nbsp;&nbsp;&nbsp;Omitted argument condition [199](#page-199)
-&nbsp;&nbsp;&nbsp;&nbsp;Sign condition [198](#page-198)
-&nbsp;&nbsp;&nbsp;&nbsp;Switch-status condition [197](#page-197)
-Conditional compilation [75](#page-75), [1160](#page-1160)
-Conditional expression [186](#page-186), [684](#page-684), [1146](#page-1146)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [618](#page-618)
-Conditional phrase [533](#page-533), [535](#page-535)
-Conditional statement [533](#page-533)
-Conditional variable [197](#page-197)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [144](#page-144)
-Conditionally-processed compilation group [44](#page-44)
-Condition-name [98](#page-98), [101](#page-101), [144](#page-144), [197](#page-197)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified with subscripts [145](#page-145)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [146](#page-146), [148](#page-148)
-&nbsp;&nbsp;&nbsp;&nbsp;Subscripted [123](#page-123)
-&nbsp;&nbsp;&nbsp;&nbsp;Switch status [145](#page-145)
-Condition-name condition [197](#page-197)
-Configuration section [283](#page-283)
-Conformance [246](#page-246)
-Conformance for object orientation [247](#page-247)
-Conforming implementation [25](#page-25), [26](#page-26)
-Conforming run unit [25](#page-25)
-Constant conditional expression [57](#page-57)
-Constant entry [355](#page-355)
-CONSTANT RECORD [478](#page-478)
-CONSTANT RECORD clause [277](#page-277), [391](#page-391)
-Constant-name [98](#page-98), [101](#page-101), [146](#page-146), [355](#page-355)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [148](#page-148)
-Contained source unit [255](#page-255)
-Contained statement [536](#page-536)
+CONDITION [14.9.39.4](#section-14-9-39-4)
+Condition [8.5.1.7](#section-8-5-1-7)
+&nbsp;&nbsp;&nbsp;&nbsp;Abbreviated combined relation condition [8.7](#section-8-7)
+&nbsp;&nbsp;&nbsp;&nbsp;Class condition [8.5.2.4](#section-8-5-2-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Condition-name condition [8.5.3.3](#section-8-5-3-3)
+&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
+&nbsp;&nbsp;&nbsp;&nbsp;Evaluation order rules [8.6.7](#section-8-6-7)
+&nbsp;&nbsp;&nbsp;&nbsp;IF statement [14.9.19](#section-14-9-19)
+&nbsp;&nbsp;&nbsp;&nbsp;Omitted argument condition [8.6.4](#section-8-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Sign condition [8.6.3](#section-8-6-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Switch-status condition [8.5.3.3](#section-8-5-3-3)
+Conditional compilation [7.3.5](#section-7-3-5)
+Conditional expression [8.5.1.7](#section-8-5-1-7), [14.9.23.4](#section-14-9-23-4), [D.19.5.3](#section-d-19-5-3)
+&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
+Conditional phrase [14.5.2](#section-14-5-2)
+Conditional statement [13.18.60.2](#section-13-18-60-2)
+Conditional variable [8.5.3.3](#section-8-5-3-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.3.3.6.2](#section-8-3-3-6-2)
+Conditionally-processed compilation group [3](#section-3)
+Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Qualified with subscripts [8.3.3.6.4](#section-8-3-3-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4), [8.3.5](#section-8-3-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Subscripted [8.1.4](#section-8-1-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Switch status [8.3.3.6.4](#section-8-3-3-6-4)
+Condition-name condition [8.5.3.3](#section-8-5-3-3)
+Configuration section [12.3](#section-12-3)
+Conformance [D.19.5.3](#section-d-19-5-3)
+Conformance for object orientation [9.3.8.2](#section-9-3-8-2)
+Conforming implementation 25, 26
+Conforming run unit 25
+Constant conditional expression [7.3.8](#section-7-3-8)
+Constant entry [13.10](#section-13-10)
+CONSTANT RECORD [13.18.40.4](#section-13-18-40-4)
+CONSTANT RECORD clause [13.18.15](#section-13-18-15)
+Constant-name [8.3.2.2.5](#section-8-3-2-2-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.5](#section-8-3-5)
+Contained source unit [9.1.13.3](#section-9-1-13-3)
+Contained statement [13.18.60.4](#section-13-18-60-4)
 CONTENT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [651](#page-651)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement [732](#page-732)
-&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [513](#page-513)
-Content validation [781](#page-781)
-Context-sensitive word [106](#page-106)
-Context-sensitive word list [208](#page-208)
-Contiguity of data items [159](#page-159)
-Continuation indicator [34](#page-34)
-Continuation of lines [37](#page-37), [38](#page-38)
-CONTINUE phrase [703](#page-703)
-CONTINUE statement [539](#page-539), [604](#page-604), [625](#page-625), [636](#page-636), [722](#page-722)
-Continued line [39](#page-39)
-Control break [392](#page-392), [409](#page-409)
-Control break processing [628](#page-628)
-CONTROL clause [392](#page-392), [628](#page-628), [778](#page-778)
-&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [358](#page-358)
+&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement [14.9.39](#section-14-9-39)
+&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+Content validation [D.22.4](#section-d-22-4)
+Context-sensitive word [7.3.17](#section-7-3-17)
+Context-sensitive word list [8.8.1.4.3](#section-8-8-1-4-3)
+Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
+Continuation indicator [3](#section-3)
+Continuation of lines [6.3.5](#section-6-3-5)
+CONTINUE phrase [14.9.26](#section-14-9-26)
+CONTINUE statement [14.9.9](#section-14-9-9)
+Continued line [3](#section-3)
+Control break [13.16](#section-13-16), [13.18.8](#section-13-18-8)
+Control break processing [14.9.6.4](#section-14-9-6-4)
+CONTROL clause [13.18.16](#section-13-18-16)
+&nbsp;&nbsp;&nbsp;&nbsp;Report description entry [13.8.4](#section-13-8-4)
 CONTROL FOOTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
 CONTROL HEADING phrase
 
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
-CONVERT function [829](#page-829)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
+CONVERT function [15.19](#section-15-19)
 CONVERTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [643](#page-643)
-COPY statement [44](#page-44), [46](#page-46), [67](#page-67), [75](#page-75)
-&nbsp;&nbsp;&nbsp;&nbsp;Nesting [49](#page-49)
+&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
+COPY statement [7.2.3](#section-7-2-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Nesting [3](#section-3)
 Correspondence
-&nbsp;&nbsp;&nbsp;&nbsp;Variable-length groups [161](#page-161)
-CORRESPONDING (CORR) phrase [563](#page-563)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [564](#page-564), [583](#page-583)
-&nbsp;&nbsp;&nbsp;&nbsp;FILLER clause [564](#page-564)
-&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [564](#page-564), [664](#page-664)
-&nbsp;&nbsp;&nbsp;&nbsp;OCCURS clause [564](#page-564)
-&nbsp;&nbsp;&nbsp;&nbsp;REDEFINES clause [564](#page-564)
-&nbsp;&nbsp;&nbsp;&nbsp;RENAMES clause [564](#page-564)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [564](#page-564), [762](#page-762)
-COS function [833](#page-833)
+&nbsp;&nbsp;&nbsp;&nbsp;Variable-length groups [8.5.1.12](#section-8-5-1-12)
+CORRESPONDING (CORR) phrase [14.5.1](#section-14-5-1)
+&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
+&nbsp;&nbsp;&nbsp;&nbsp;FILLER clause [14.5.1](#section-14-5-1)
+&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [14.9.25](#section-14-9-25)
+&nbsp;&nbsp;&nbsp;&nbsp;OCCURS clause [13.18.38](#section-13-18-38)
+&nbsp;&nbsp;&nbsp;&nbsp;REDEFINES clause [13.18.44](#section-13-18-44)
+&nbsp;&nbsp;&nbsp;&nbsp;RENAMES clause [13.18.45](#section-13-18-45)
+&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
+COS function [15.20](#section-15-20)
 COUNT IN phrase
-&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [769](#page-769)
-CR PICTURE symbol [441](#page-441)
-CRT status [236](#page-236)
+&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [14.9.48](#section-14-9-48)
+CR PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+CRT status [9.2.3](#section-9-2-3)
 CRT STATUS clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Cultural adaptability [1082](#page-1082)
-Cultural elements [94](#page-94)
-Cultural ordering table [916](#page-916), [947](#page-947)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [102](#page-102)
-Currency sign [289](#page-289)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Cultural adaptability [D.6.5.3.1](#section-d-6-5-3-1)
+Cultural elements [7.3.12](#section-7-3-12)
+Cultural ordering table [15.61](#section-15-61), [15.85.4](#section-15-85-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.15](#section-7-3-15)
+Currency sign [10.6.2](#section-10-6-2)
 CURRENCY SIGN clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Currency string [295](#page-295)
-Currency symbol [290](#page-290), [295](#page-295)
-currency_symbol [95](#page-95)
-Current screen item [238](#page-238)
-Current volume pointer [222](#page-222), [1010](#page-1010)
-CURRENT-DATE function [834](#page-834)
-Cursor [237](#page-237)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Currency string [11.3.4](#section-11-3-4)
+Currency symbol [10.6.2](#section-10-6-2), [11.3.4](#section-11-3-4)
+currency_symbol [7.3.12.4](#section-7-3-12-4)
+Current screen item [9.2.6](#section-9-2-6)
+Current volume pointer [9.1.10](#section-9-1-10)
+CURRENT-DATE function [15.21](#section-15-21)
+Cursor [9.2.4](#section-9-2-4)
 CURSOR clause
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Cursor locator [238](#page-238)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Cursor locator [9.2.5](#section-9-2-5)
 CYCLE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [623](#page-623)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
 
 ## D
 
-d_fmt [96](#page-96)
+d_fmt [7.3.13](#section-7-3-13)
 DATA BY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [637](#page-637)
-Data conversion [564](#page-564), [580](#page-580)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [580](#page-580)
-&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [667](#page-667)
-Data description entry [347](#page-347), [362](#page-362)
-Data division [338](#page-338)
-Data division entries [339](#page-339)
-Data item [124](#page-124)
-Data-address-identifier [139](#page-139)
-Data-name [398](#page-398)
+&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
+Data conversion [14.5.1](#section-14-5-1), [14.6.13.1.4](#section-14-6-13-1-4)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
+&nbsp;&nbsp;&nbsp;&nbsp;MOVE statement [14.9.25](#section-14-9-25)
+Data description entry [13.16](#section-13-16)
+Data division [13](#section-13)
+Data division entries [12.3.8.4](#section-12-3-8-4)
+Data item [8.2](#section-8-2)
+Data-address-identifier [8.4.3.11](#section-8-4-3-11)
+Data-name [8.3.2.2.6](#section-8-3-2-2-6)
 
 ---
 
@@ -51650,1118 +45598,1071 @@ Data-name [398](#page-398)
 ---
 
 
-<a id="page-1240"></a>
-## Page [1240](#page-1240)
-
-# ISO/IEC 1989:2023 (E)
-
-Data description entry [363](#page-363)
-Definition [101](#page-101)
-Identifier [126](#page-126)
-Qualified [126](#page-126)
-Scope of [148](#page-148)
-Subscripted [123](#page-123), [126](#page-126)
-data-name [98](#page-98)
-Data-pointer [95](#page-95), [586](#page-586), [627](#page-627)
-Definition [510](#page-510)
-Data-pointer category [140](#page-140), [162](#page-162), [163](#page-163)
-Data-pointer data item [163](#page-163)
+Data description entry [13.16](#section-13-16)
+Definition [7.3.14.4](#section-7-3-14-4)
+Identifier [8.4.3.1](#section-8-4-3-1)
+Qualified [8.2.2](#section-8-2-2)
+Scope of [8.3.5](#section-8-3-5)
+Subscripted [8.1.4](#section-8-1-4), [8.2.2](#section-8-2-2)
+data-name [8.3.2.2.6](#section-8-3-2-2-6)
+Data-pointer [7.3.12.4](#section-7-3-12-4), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
+Definition [13.18.50](#section-13-18-50)
+Data-pointer category [8.5.2.6](#section-8-5-2-6)
+Data-pointer data item [8.4.3.4](#section-8-4-3-4)
 DATA-POINTER phrase
-INITIALIZE statement [637](#page-637)
-Date forms [805](#page-805)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+Date forms [14.9.49.3](#section-14-9-49-3)
 DATE phrase
-ACCEPT statement [576](#page-576)
-DATE-OF-INTEGER function [836](#page-836)
-DATE-TO-YYYYMMDD function [837](#page-837)
+ACCEPT statement [14.9.1](#section-14-9-1)
+DATE-OF-INTEGER function [15.22](#section-15-22)
+DATE-TO-YYYYMMDD function [15.23](#section-15-23)
 DAY phrase
-ACCEPT statement [576](#page-576)
-Day subfield [799](#page-799)
-DAY-OF-INTEGER function [839](#page-839)
+ACCEPT statement [14.9.1](#section-14-9-1)
+Day subfield [14.9.48](#section-14-9-48)
+DAY-OF-INTEGER function [15.24](#section-15-24)
 DAY-OF-WEEK phrase
-ACCEPT statement [576](#page-576)
-Day-of-week subfield [800](#page-800)
-Day-of-year subfield [799](#page-799)
-DAY-TO-YYYYDDD function [840](#page-840)
-DB PICTURE symbol [441](#page-441)
+ACCEPT statement [14.9.1](#section-14-9-1)
+Day-of-week subfield [14.9.48.4](#section-14-9-48-4)
+Day-of-year subfield [14.9.48](#section-14-9-48)
+DAY-TO-YYYYDDD function [15.25](#section-15-25)
+DB PICTURE symbol [13.18.29.4](#section-13-18-29-4)
 DE phrase
-TYPE clause [494](#page-494)
+TYPE clause [13.18.57](#section-13-18-57)
 Decimal encoding
-ISO/IEC/IEEE 60559 definition reference [509](#page-509)
-Decimal point [289](#page-289)
-Decimal point alignment [564](#page-564)
+ISO/IEC/IEEE 60559 definition reference [13.18.49.4](#section-13-18-49-4)
+Decimal point [10.6.2](#section-10-6-2)
+Decimal point alignment [14.5.1](#section-14-5-1)
 Decimal separator
-Definition [301](#page-301)
+Definition [11.8.1](#section-11-8-1)
 DECIMAL-ENCODING phrase
-FLOAT-DECIMAL clause [275](#page-275)
-USAGE clause [504](#page-504)
-DECIMAL-POINT IS COMMA clause [894](#page-894), [896](#page-896), [898](#page-898)
-Definition [301](#page-301)
-SPECIAL-NAMES paragraph [290](#page-290)
-Declarative statement [533](#page-533)
-USE statement [774](#page-774)
-DECLARATIVES [527](#page-527), [532](#page-532)
-Declaratives [527](#page-527), [532](#page-532)
-Normal completion [548](#page-548)
-De-editing [667](#page-667), [668](#page-668)
-DEFAULT clause [394](#page-394)
+FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+USAGE clause [13.18.60](#section-13-18-60)
+DECIMAL-POINT IS COMMA clause [15.42](#section-15-42), [15.43.4](#section-15-43-4), [15.45](#section-15-45)
+Definition [11.8.1](#section-11-8-1)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Declarative statement [13.18.60.2](#section-13-18-60-2)
+USE statement [14.9.49](#section-14-9-49)
+DECLARATIVES [14.3](#section-14-3)
+Declaratives [14.3](#section-14-3)
+Normal completion [13.18.63.3](#section-13-18-63-3)
+De-editing [14.9.20](#section-14-9-20), [14.9.20.4](#section-14-9-20-4)
+DEFAULT clause [13.18.17](#section-13-18-17)
 DEFAULT phrase
-INITIALIZE statement [637](#page-637)
-SET statement, locale [731](#page-731)
-DEFAULT ROUNDED clause [273](#page-273)
-DEFAULT ROUNDED MODE IS PROHIBITED clause [563](#page-563), [1195](#page-1195)
-DEFINE directive [62](#page-62)
-Defined condition [58](#page-58)
-Definitions [3](#page-3)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+SET statement, locale [14.9.30.4](#section-14-9-30-4)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+DEFAULT ROUNDED MODE IS PROHIBITED clause [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
+DEFINE directive [7.3.11](#section-7-3-11)
+Defined condition [7.3.8.4](#section-7-3-8-4)
+Definitions 3
 
-DELETE FILE statement [605](#page-605)
-DELETE statement [605](#page-605)
+DELETE FILE statement [14.8.4.3](#section-14-8-4-3)
+DELETE statement [14.9.10](#section-14-9-10)
 DELIMITED BY phrase
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
 DELIMITED phrase
-DYNAMIC LENGTH STRUCTURE clause [291](#page-291)
-Delimited scope statement [535](#page-535)
+DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+Delimited scope statement [13.18.60.4](#section-13-18-60-4)
 DELIMITER IN phrase
-UNSTRING statement [769](#page-769)
+UNSTRING statement [14.9.48](#section-14-9-48)
 DEPENDING ON phrase
-GO TO statement [630](#page-630)
-OCCURS clause [430](#page-430)
-RECORD clause [467](#page-467)
+GO TO statement [14.9.17](#section-14-9-17)
+OCCURS clause [13.18.38](#section-13-18-38)
+RECORD clause [13.18.43](#section-13-18-43)
 DESCENDING KEY phrase
-MERGE statement [657](#page-657)
-OCCURS clause [430](#page-430)
-SEARCH statement [724](#page-724)
-SORT statement [745](#page-745)
-DESTINATION clause [396](#page-396), [397](#page-397)
+MERGE statement [14.9.24](#section-14-9-24)
+OCCURS clause [13.18.38](#section-13-18-38)
+SEARCH statement [14.9.37](#section-14-9-37)
+SORT statement [14.9.40](#section-14-9-40)
+DESTINATION clause [13.18.18](#section-13-18-18)
 DETAIL phrase
-TYPE clause [494](#page-494)
-Device-name [104](#page-104)
-FILE-CONTROL paragraph [312](#page-312)
-SPECIAL-NAMES paragraph [290](#page-290)
+TYPE clause [13.18.57](#section-13-18-57)
+Device-name [8.3.2.3.5](#section-8-3-2-3-5)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 Directive-name
-Definition [101](#page-101)
-directive-name [98](#page-98)
-DISPLAY directive [64](#page-64)
+Definition [7.3.14.4](#section-7-3-14-4)
+directive-name [8.3.2.2.7](#section-8-3-2-2-7)
+DISPLAY directive [7.3.12](#section-7-3-12)
 DISPLAY phrase
-USAGE clause [503](#page-503)
-DISPLAY screen statement [610](#page-610), [740](#page-740)
-DISPLAY statement [292](#page-292), [610](#page-610)
-DISPLAY-OF function [842](#page-842)
-DIVIDE statement [564](#page-564), [614](#page-614)
-Division header [255](#page-255)
+USAGE clause [13.18.60](#section-13-18-60)
+DISPLAY screen statement [14.9.1.4](#section-14-9-1-4), [14.9.35](#section-14-9-35)
+DISPLAY statement [14.9.11](#section-14-9-11)
+DISPLAY-OF function [15.26](#section-15-26)
+DIVIDE statement [14.9.12](#section-14-9-12)
+Division header [9.1.13.3](#section-9-1-13-3)
 DOWN phrase
-SET statement, index arithmetic [729](#page-729), [731](#page-731)
-SET statement, pointer arithmetic [731](#page-731)
+SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
+SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
 DUPLICATES phrase
-ALTERNATE RECORD KEY clause [320](#page-320)
-SORT statement [745](#page-745)
-DYNAMIC [430](#page-430)
-Dynamic access mode [221](#page-221), [1009](#page-1009)
-DYNAMIC LENGTH clause [397](#page-397)
-Data description entry [363](#page-363)
-DYNAMIC LENGTH STRUCTURE clause [291](#page-291)
+ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+SORT statement [14.9.40](#section-14-9-40)
+DYNAMIC [13.18.22](#section-13-18-22)
+Dynamic access mode [9.1.8.4](#section-9-1-8-4)
+DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+Data description entry [13.16](#section-13-16)
+DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
 DYNAMIC phrase
-ACCESS MODE clause [312](#page-312), [319](#page-319)
-Dynamic storage [586](#page-586), [627](#page-627)
-Dynamic-capacity tables [1036](#page-1036)
-Definition [156](#page-156)
+ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+Dynamic storage [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6](#section-14-9-6)
+Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+Definition 156
 Dynamic-capacity-table
-Format [430](#page-430)
+Format [13.18.22.2](#section-13-18-22-2)
 Dynamic-length elementary item
-Definition [158](#page-158)
-Dynamic-length elementary items [1018](#page-1018)
-Dynamic-length-structure-name [98](#page-98), [101](#page-101)
+Definition [8.4.3.2.3](#section-8-4-3-2-3)
+Dynamic-length elementary items [8.5.1.10](#section-8-5-1-10)
+Dynamic-length-structure-name [8.3.2.2.8](#section-8-3-2-2-8)
 
 
-
-<a id="page-1241"></a>
-## Page [1241](#page-1241)
-
-# ISO/IEC 1989:2023 (E)
-
-DYNAMIC LENGTH clause [363](#page-363), [397](#page-397)
-Scope of [146](#page-146)
+DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+Scope of [8.3.3.6.4](#section-8-3-3-6-4)
 
 ## E
 
-E function [843](#page-843)
-E PICTURE symbol [441](#page-441)
-EC [70](#page-70), [554](#page-554), [555](#page-555), [774](#page-774)
-EC-ALL [222](#page-222)
-EC-ALL exception [70](#page-70), [85](#page-85), [548](#page-548), [552](#page-552), [1091](#page-1091)
-EC-ARGUMENT exception [548](#page-548), [552](#page-552), [1091](#page-1091)
-EC-ARGUMENT-FUNCTION exception [552](#page-552), [798](#page-798), [951](#page-951)
-EC-ARGUMENT-FUNCTION exception condition [919](#page-919)
-EC-ARGUMENT-IMP exception [552](#page-552)
-EC-BOUND exception [548](#page-548), [552](#page-552), [1091](#page-1091)
-EC-BOUND-IMP exception [552](#page-552)
-EC-BOUND-ODO exception [435](#page-435), [552](#page-552)
-EC-BOUND-OVERFLOW exception [158](#page-158), [552](#page-552)
-EC-BOUND-PTR exception [376](#page-376), [552](#page-552)
-EC-BOUND-REF-MOD exception [132](#page-132), [552](#page-552)
-EC-BOUND-SET exception [552](#page-552), [742](#page-742)
-EC-BOUND-SUBSCRIPT exception [124](#page-124), [552](#page-552), [742](#page-742)
-EC-BOUND-SUBSCRIPT exception condition [737](#page-737), [739](#page-739)
-EC-BOUND-TABLE-LIMIT exception [158](#page-158), [552](#page-552), [742](#page-742)
-EC-CONTINUE exception [552](#page-552)
-EC-CONTINUE-IMP [552](#page-552)
-EC-CONTINUE-LESS-THAN-ZERO exception [552](#page-552), [604](#page-604)
-EC-DATA exception [548](#page-548), [552](#page-552), [1091](#page-1091)
-EC-DATA-CONVERSION exception [552](#page-552), [668](#page-668), [831](#page-831), [842](#page-842), [892](#page-892)
-EC-DATA-IMP exception [552](#page-552)
-EC-DATA-INCOMPATIBLE exception [177](#page-177), [179](#page-179), [552](#page-552), [558](#page-558), [559](#page-559), [564](#page-564), [581](#page-581), [582](#page-582), [630](#page-630), [669](#page-669), [782](#page-782), [964](#page-964)
-EC-DATA-NOT-FINITE exception [552](#page-552), [559](#page-559)
-EC-DATA-OVERFLOW exception [553](#page-553), [669](#page-669)
-EC-DATA-PTR-NULL exception [376](#page-376), [553](#page-553), [741](#page-741)
-EC-EXTERNAL [553](#page-553)
-EC-EXTERNAL exception [574](#page-574), [593](#page-593)
-EC-EXTERNAL-DATA-MISMATCH [553](#page-553), [592](#page-592), [655](#page-655)
-EC-EXTERNAL-FILE-MISMATCH [553](#page-553), [592](#page-592), [655](#page-655)
-EC-EXTERNAL-FORMAT-CONFLICT [553](#page-553), [592](#page-592), [655](#page-655)
-EC-EXTERNAL-IMP [553](#page-553)
-EC-FLOW exception [548](#page-548), [553](#page-553), [1091](#page-1091)
-EC-FLOW-APPLY exception [334](#page-334)
-EC-FLOW-APPLY-COMMIT exception [334](#page-334), [553](#page-553)
-EC-FLOW-COMMIT exception [601](#page-601)
-EC-FLOW-GLOBAL-EXIT exception [553](#page-553)
-EC-FLOW-GLOBAL-GOBACK exception [553](#page-553), [633](#page-633)
-EC-FLOW-IMP exception [553](#page-553)
-EC-FLOW-RELEASE exception [553](#page-553), [704](#page-704)
-EC-FLOW-REPORT exception [553](#page-553), [778](#page-778)
-EC-FLOW-RETURN exception [553](#page-553), [708](#page-708)
-EC-FLOW-ROLLBACK exception [553](#page-553), [718](#page-718)
-EC-FLOW-SEARCH exception [553](#page-553), [743](#page-743)
-EC-FLOW-USE exception [553](#page-553), [776](#page-776)
-EC-FUNCTION exception [553](#page-553)
-EC-FUNCTION-ARG-OMITTED [554](#page-554)
+E function [15.27](#section-15-27)
+E PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+EC [6.4.4.3](#section-6-4-4-3), [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
+EC-ALL [8.8.4.2.13](#section-8-8-4-2-13)
+EC-ALL exception [6.4.4.3](#section-6-4-4-3), [7.3.4](#section-7-3-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+EC-ARGUMENT exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.7](#section-d-7)
+EC-ARGUMENT-FUNCTION exception [13.18.63.4](#section-13-18-63-4), [14.9.47](#section-14-9-47), [15.88](#section-15-88)
+EC-ARGUMENT-FUNCTION exception condition [15.64](#section-15-64)
+EC-ARGUMENT-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-BOUND exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+EC-BOUND-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-BOUND-ODO exception [13.18.24.4](#section-13-18-24-4), [13.18.63.4](#section-13-18-63-4)
+EC-BOUND-OVERFLOW exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4)
+EC-BOUND-PTR exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4)
+EC-BOUND-REF-MOD exception [8.3.2.2.13](#section-8-3-2-2-13), [13.18.63.4](#section-13-18-63-4)
+EC-BOUND-SET exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-BOUND-SUBSCRIPT exception [8.2](#section-8-2), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-BOUND-SUBSCRIPT exception condition [14.9.33.4](#section-14-9-33-4), [14.9.34.4](#section-14-9-34-4)
+EC-BOUND-TABLE-LIMIT exception [8.4.3.2.3](#section-8-4-3-2-3), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-CONTINUE exception [13.18.63.4](#section-13-18-63-4)
+EC-CONTINUE-IMP [13.18.63.4](#section-13-18-63-4)
+EC-CONTINUE-LESS-THAN-ZERO exception [13.18.63.4](#section-13-18-63-4), [14.8.4](#section-14-8-4)
+EC-DATA exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+EC-DATA-CONVERSION exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4), [15.3.3](#section-15-3-3), [15.6](#section-15-6), [15.41](#section-15-41)
+EC-DATA-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-DATA-INCOMPATIBLE exception [8.4.6.2](#section-8-4-6-2), [8.4.6.3](#section-8-4-6-3), [13.18.63.4](#section-13-18-63-4), [14.2.2](#section-14-2-2), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.6.4](#section-14-9-6-4), [14.9.20.4](#section-14-9-20-4), [14.9.40.4](#section-14-9-40-4), [15.97](#section-15-97)
+EC-DATA-NOT-FINITE exception [13.18.63.4](#section-13-18-63-4), [14.2.3](#section-14-2-3)
+EC-DATA-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.20.4](#section-14-9-20-4)
+EC-DATA-PTR-NULL exception [13.4.6](#section-13-4-6), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-EXTERNAL [13.18.63.4](#section-13-18-63-4)
+EC-EXTERNAL exception [14.6.9](#section-14-6-9), [14.7.6](#section-14-7-6)
+EC-EXTERNAL-DATA-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+EC-EXTERNAL-FILE-MISMATCH [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+EC-EXTERNAL-FORMAT-CONFLICT [13.18.63.4](#section-13-18-63-4), [14.7.5](#section-14-7-5), [14.9.14.4](#section-14-9-14-4)
+EC-EXTERNAL-IMP [13.18.63.4](#section-13-18-63-4)
+EC-FLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [D.8](#section-d-8)
+EC-FLOW-APPLY exception [12.3.8](#section-12-3-8)
+EC-FLOW-APPLY-COMMIT exception [12.3.8](#section-12-3-8), [13.18.63.4](#section-13-18-63-4)
+EC-FLOW-COMMIT exception [14.8.2.3.3](#section-14-8-2-3-3)
+EC-FLOW-GLOBAL-EXIT exception [13.18.63.4](#section-13-18-63-4)
+EC-FLOW-GLOBAL-GOBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.8.4](#section-14-9-8-4)
+EC-FLOW-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-FLOW-RELEASE exception [13.18.63.4](#section-13-18-63-4), [14.9.26.4](#section-14-9-26-4)
+EC-FLOW-REPORT exception [13.18.63.4](#section-13-18-63-4), [14.9.40.4](#section-14-9-40-4)
+EC-FLOW-RETURN exception [13.18.63.4](#section-13-18-63-4), [14.9.27.4](#section-14-9-27-4)
+EC-FLOW-ROLLBACK exception [13.18.63.4](#section-13-18-63-4), [14.9.28.4](#section-14-9-28-4)
+EC-FLOW-SEARCH exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-FLOW-USE exception [13.18.63.4](#section-13-18-63-4), [14.9.40.3](#section-14-9-40-3)
+EC-FUNCTION exception [13.18.63.4](#section-13-18-63-4)
+EC-FUNCTION-ARG-OMITTED [13.18.63.4](#section-13-18-63-4)
 
-EC-FUNCTION-ARG-OMITTED exception [131](#page-131)
-EC-FUNCTION-IMP exception [554](#page-554)
-EC-FUNCTION-NOT-FOUND exception [130](#page-130), [554](#page-554)
-EC-FUNCTION-PTR-INVALID exception [554](#page-554), [740](#page-740)
-EC-FUNCTION-PTR-NULL exception [130](#page-130), [554](#page-554)
-EC-IMP exception [548](#page-548), [554](#page-554), [624](#page-624), [1091](#page-1091)
-EC-IMP-suffix [554](#page-554)
-EC-I-O [222](#page-222)
-EC-I-O exception [230](#page-230), [547](#page-547), [548](#page-548), [549](#page-549), [554](#page-554), [596](#page-596), [681](#page-681), [844](#page-844), [846](#page-846), [1091](#page-1091)
-EC-I-O-AT-END exception [223](#page-223), [554](#page-554), [700](#page-700), [1012](#page-1012)
-EC-I-O-EOP exception [554](#page-554), [792](#page-792)
-EC-I-O-EOP-OVERFLOW exception [554](#page-554), [792](#page-792)
-EC-I-O-FILE-SHARING exception [223](#page-223), [554](#page-554)
-EC-I-O-IMP exception [223](#page-223), [554](#page-554)
-EC-I-O-INVALID-KEY exception [223](#page-223), [230](#page-230), [554](#page-554)
-EC-I-O-LINAGE exception [418](#page-418), [554](#page-554)
-EC-I-O-LOGIC-ERROR exception [223](#page-223), [470](#page-470), [554](#page-554)
-EC-I-O-PERMANENT-ERROR exception [223](#page-223), [554](#page-554)
-EC-I-O-RECORD-CONTENT [554](#page-554)
-EC-I-O-RECORD-OPERATION exception [223](#page-223), [554](#page-554)
-EC-I-O-WARNING exception [85](#page-85), [223](#page-223), [554](#page-554)
-EC-LOCALE exception [548](#page-548), [554](#page-554)
-EC-LOCALE-IMP exception [554](#page-554)
-EC-LOCALE-INCOMPATIBLE exception [190](#page-190), [191](#page-191), [554](#page-554)
-EC-LOCALE-INVALID exception [95](#page-95), [554](#page-554)
-EC-LOCALE-INVALID-PTR exception [554](#page-554), [741](#page-741)
-EC-LOCALE-MISSING exception [95](#page-95), [554](#page-554), [742](#page-742), [875](#page-875), [876](#page-876), [877](#page-877), [878](#page-878), [896](#page-896)
-EC-LOCALE-SIZE exception [456](#page-456), [554](#page-554)
-EC-MCS [554](#page-554)
-EC-MCS-ABNORMAL-TERMINATION exception [555](#page-555)
-EC-MCS-IMP exception [555](#page-555)
-EC-MCS-INVALID-TAG [555](#page-555)
-EC-MCS-INVALID-TAG exception [555](#page-555), [703](#page-703)
-EC-MCS-MESSAGE-LENGTH exception [555](#page-555), [703](#page-703)
-EC-MCS-NO-RECEIVER exception [728](#page-728)
-EC-MCS-NO-REQUESTER exception [555](#page-555)
-EC-MCS-NORMAL-TERMINATION [555](#page-555)
-EC-MCS-NO-SERVER exception [555](#page-555), [728](#page-728)
-EC-MCS-REQUESTOR-FAILED exception [555](#page-555), [703](#page-703)
-EC-OO exception [548](#page-548), [555](#page-555), [1091](#page-1091)
-EC-OO-ARG-OMITTED exception [555](#page-555), [656](#page-656)
-EC-OO-CONFORMANCE exception [134](#page-134), [135](#page-135), [555](#page-555), [568](#page-568)
-EC-OO-EXCEPTION exception [551](#page-551), [555](#page-555)
-EC-OO-IMP exception [555](#page-555)
-EC-OO-METHOD exception [243](#page-243), [555](#page-555), [655](#page-655)
-EC-OO-NULL exception [555](#page-555), [654](#page-654)
-EC-OO-RESOURCE exception [555](#page-555), [942](#page-942)
-EC-OO-UNIVERSAL exception [555](#page-555), [568](#page-568), [655](#page-655)
-EC-ORDER exception [548](#page-548), [555](#page-555)
-EC-ORDER-IMP exception [555](#page-555)
-EC-ORDER-NOT-SUPPORTED exception [555](#page-555), [916](#page-916)
-EC-ORDER-NOT-SUPPORTED exception condition [972](#page-972)
-EC-OVERFLOW exception [548](#page-548), [555](#page-555), [1091](#page-1091)
-EC-OVERFLOW-IMP exception [555](#page-555)
-EC-OVERFLOW-STRING exception [555](#page-555), [761](#page-761)
-EC-OVERFLOW-UNSTRING exception [555](#page-555), [772](#page-772)
+EC-FUNCTION-ARG-OMITTED exception [8.3.2.2.2](#section-8-3-2-2-2)
+EC-FUNCTION-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-FUNCTION-NOT-FOUND exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
+EC-FUNCTION-PTR-INVALID exception [13.18.63.4](#section-13-18-63-4), [14.9.35](#section-14-9-35)
+EC-FUNCTION-PTR-NULL exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.63.4](#section-13-18-63-4)
+EC-IMP exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.9.4.4](#section-14-9-4-4), [D.8](#section-d-8)
+EC-IMP-suffix [13.18.63.4](#section-13-18-63-4)
+EC-I-O [8.8.4.2.13](#section-8-8-4-2-13)
+EC-I-O exception [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4), [14.7.8](#section-14-7-8), [14.9.23](#section-14-9-23), [15.6](#section-15-6), [15.7](#section-15-7), [D.8](#section-d-8)
+EC-I-O-AT-END exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4), [14.9.25.4](#section-14-9-25-4), [B.3](#section-b-3)
+EC-I-O-EOP exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
+EC-I-O-EOP-OVERFLOW exception [13.18.63.4](#section-13-18-63-4), [14.9.44](#section-14-9-44)
+EC-I-O-FILE-SHARING exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-IMP exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-INVALID-KEY exception [8.8.4.3](#section-8-8-4-3), [8.8.4.8.4](#section-8-8-4-8-4), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-LINAGE exception [13.18.14.4](#section-13-18-14-4), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-LOGIC-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.39.4](#section-13-18-39-4), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-PERMANENT-ERROR exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-RECORD-CONTENT [13.18.63.4](#section-13-18-63-4)
+EC-I-O-RECORD-OPERATION exception [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+EC-I-O-WARNING exception [7.3.4](#section-7-3-4), [8.8.4.3](#section-8-8-4-3), [13.18.63.4](#section-13-18-63-4)
+EC-LOCALE exception [13.18.63.3](#section-13-18-63-3), [13.18.63.4](#section-13-18-63-4)
+EC-LOCALE-IMP exception [13.18.63.4](#section-13-18-63-4)
+EC-LOCALE-INCOMPATIBLE exception [8.5.1.12](#section-8-5-1-12), [8.5.1.12.2](#section-8-5-1-12-2), [13.18.63.4](#section-13-18-63-4)
+EC-LOCALE-INVALID exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4)
+EC-LOCALE-INVALID-PTR exception [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4)
+EC-LOCALE-MISSING exception [7.3.12.4](#section-7-3-12-4), [13.18.63.4](#section-13-18-63-4), [14.9.35.4](#section-14-9-35-4), [15.28.4](#section-15-28-4), [15.29](#section-15-29), [15.29.4](#section-15-29-4), [15.30](#section-15-30), [15.43.4](#section-15-43-4)
+EC-LOCALE-SIZE exception [13.18.36](#section-13-18-36), [13.18.63.4](#section-13-18-63-4)
+EC-MCS [13.18.63.4](#section-13-18-63-4)
+EC-MCS-ABNORMAL-TERMINATION exception [13.18.64](#section-13-18-64)
+EC-MCS-IMP exception [13.18.64](#section-13-18-64)
+EC-MCS-INVALID-TAG [13.18.64](#section-13-18-64)
+EC-MCS-INVALID-TAG exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+EC-MCS-MESSAGE-LENGTH exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+EC-MCS-NO-RECEIVER exception [14.9.30.4](#section-14-9-30-4)
+EC-MCS-NO-REQUESTER exception [13.18.64](#section-13-18-64)
+EC-MCS-NORMAL-TERMINATION [13.18.64](#section-13-18-64)
+EC-MCS-NO-SERVER exception [13.18.64](#section-13-18-64), [14.9.30.4](#section-14-9-30-4)
+EC-MCS-REQUESTOR-FAILED exception [13.18.64](#section-13-18-64), [14.9.26](#section-14-9-26)
+EC-OO exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
+EC-OO-ARG-OMITTED exception [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
+EC-OO-CONFORMANCE exception [8.3.2.3.2](#section-8-3-2-3-2), [8.3.2.3.9](#section-8-3-2-3-9), [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2)
+EC-OO-EXCEPTION exception [13.18.63.4](#section-13-18-63-4), [13.18.64](#section-13-18-64)
+EC-OO-IMP exception [13.18.64](#section-13-18-64)
+EC-OO-METHOD exception [8.11](#section-8-11), [13.18.64](#section-13-18-64), [14.9.14.4](#section-14-9-14-4)
+EC-OO-NULL exception [13.18.64](#section-13-18-64), [14.9.14.3](#section-14-9-14-3)
+EC-OO-RESOURCE exception [13.18.64](#section-13-18-64), [15.82](#section-15-82)
+EC-OO-UNIVERSAL exception [13.18.64](#section-13-18-64), [14.6.2.3.2](#section-14-6-2-3-2), [14.9.14.4](#section-14-9-14-4)
+EC-ORDER exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64)
+EC-ORDER-IMP exception [13.18.64](#section-13-18-64)
+EC-ORDER-NOT-SUPPORTED exception [13.18.64](#section-13-18-64), [15.61](#section-15-61)
+EC-ORDER-NOT-SUPPORTED exception condition [16.2.1.2](#section-16-2-1-2)
+EC-OVERFLOW exception [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [D.8](#section-d-8)
+EC-OVERFLOW-IMP exception [13.18.64](#section-13-18-64)
+EC-OVERFLOW-STRING exception [13.18.64](#section-13-18-64), [14.9.39.2](#section-14-9-39-2)
+EC-OVERFLOW-UNSTRING exception [13.18.64](#section-13-18-64), [14.9.39.4](#section-14-9-39-4)
 
 
 ---
 
 
-<a id="page-1242"></a>
-## Page [1242](#page-1242)
-
-# ISO/IEC 1989:2023 (E)
-
-EC-PROGRAM exception [70](#page-70), [548](#page-548), [555](#page-555), [593](#page-593), [1091](#page-1091)
-EC-PROGRAM-ARG-MISMATCH exception [555](#page-555), [592](#page-592)
-EC-PROGRAM-ARG-OMITTED exception [70](#page-70), [131](#page-131), [555](#page-555), [594](#page-594)
-EC-PROGRAM-CANCEL-ACTIVE exception [555](#page-555), [596](#page-596)
+EC-PROGRAM exception [6.4.4.3](#section-6-4-4-3), [13.18.63.3](#section-13-18-63-3), [13.18.64](#section-13-18-64), [14.7.6](#section-14-7-6), [D.8](#section-d-8)
+EC-PROGRAM-ARG-MISMATCH exception [13.18.64](#section-13-18-64), [14.7.5](#section-14-7-5)
+EC-PROGRAM-ARG-OMITTED exception [6.4.4.3](#section-6-4-4-3), [8.3.2.2.2](#section-8-3-2-2-2), [13.18.64](#section-13-18-64), [14.7.7](#section-14-7-7)
+EC-PROGRAM-CANCEL-ACTIVE exception [13.18.64](#section-13-18-64), [14.7.8](#section-14-7-8)
 EC-PROGRAM-EXCEPTIONS option
-FLAG-02 directive [70](#page-70)
-EC-PROGRAM-IMP exception [556](#page-556)
-EC-PROGRAM-NOT-FOUND exception [70](#page-70), [142](#page-142), [556](#page-556), [592](#page-592)
-EC-PROGRAM-PTR-NULL exception [556](#page-556), [592](#page-592)
-EC-PROGRAM-RECURSIVE-CALL exception [556](#page-556), [593](#page-593)
-EC-PROGRAM-RESOURCES exception [130](#page-130), [556](#page-556), [592](#page-592)
-EC-RAISING exception [556](#page-556)
-EC-RAISING-IMP exception [556](#page-556)
-EC-RAISING-NOT-SPECIFIED exception [556](#page-556), [633](#page-633)
-EC-RANGE exception [548](#page-548), [556](#page-556), [1091](#page-1091)
-EC-RANGE-IMP exception [556](#page-556)
-EC-RANGE-INDEX exception [71](#page-71), [434](#page-434), [556](#page-556)
-EC-RANGE-INDEX exception condition [738](#page-738), [739](#page-739)
-EC-RANGE-INSPECT-SIZE exception [556](#page-556), [649](#page-649)
-EC-RANGE-INVALID exception [556](#page-556), [566](#page-566)
-EC-RANGE-PERFORM-VARYING exception [556](#page-556), [685](#page-685)
-EC-RANGE-PTR exception [556](#page-556), [741](#page-741)
-EC-RANGE-SEARCH-INDEX exception [556](#page-556), [722](#page-722), [723](#page-723)
-EC-RANGE-SEARCH-NO-MATCH exception [556](#page-556), [722](#page-722), [724](#page-724), [725](#page-725)
-EC-REPORT exception [548](#page-548), [556](#page-556), [1091](#page-1091)
-EC-REPORT-ACTIVE exception [556](#page-556), [642](#page-642)
-EC-REPORT-COLUMN-OVERLAP exception [388](#page-388), [556](#page-556)
-EC-REPORT-FILE-MODE exception [556](#page-556), [642](#page-642)
-EC-REPORT-IMP exception [556](#page-556)
-EC-REPORT-INACTIVE exception [556](#page-556), [629](#page-629), [766](#page-766)
-EC-REPORT-LINE-OVERLAP exception [422](#page-422), [556](#page-556)
-EC-REPORT-NOT-TERMINATED exception [557](#page-557), [599](#page-599)
-EC-REPORT-PAGE-LIMIT exception [422](#page-422), [557](#page-557)
-EC-REPORT-PAGE-WIDTH exception [388](#page-388), [557](#page-557)
-EC-REPORT-SUM-SIZE exception [489](#page-489), [557](#page-557)
-EC-REPORT-VARYING exception [526](#page-526), [557](#page-557)
-EC-SCREEN exception [557](#page-557), [582](#page-582)
-EC-SCREEN-FIELD-OVERLAP exception [557](#page-557), [581](#page-581), [612](#page-612), [613](#page-613)
-EC-SCREEN-IMP exception [557](#page-557)
-EC-SCREEN-ITEM-TRUNCATED exception [390](#page-390), [557](#page-557), [613](#page-613)
-EC-SCREEN-LINE-NUMBER exception [425](#page-425), [557](#page-557), [613](#page-613)
-EC-SCREEN-STARTING-COLUMN exception [389](#page-389), [557](#page-557), [613](#page-613)
-EC-SIZE exception [548](#page-548), [557](#page-557), [561](#page-561), [562](#page-562), [563](#page-563), [564](#page-564), [1091](#page-1091)
-EC-SIZE-ADDRESS exception [557](#page-557), [741](#page-741)
-EC-SIZE-EXPONENTIATION exception [176](#page-176), [179](#page-179), [182](#page-182), [557](#page-557), [563](#page-563)
-EC-SIZE-IMP exception [557](#page-557)
-EC-SIZE-OVERFLOW exception [178](#page-178), [180](#page-180), [557](#page-557), [563](#page-563)
-EC-SIZE-TRUNCATION exception [278](#page-278), [279](#page-279), [557](#page-557), [561](#page-561), [563](#page-563), [1195](#page-1195)
-EC-SIZE-UNDERFLOW exception [178](#page-178), [180](#page-180), [557](#page-557), [563](#page-563)
-EC-SIZE-ZERO-DIVIDE exception [557](#page-557), [563](#page-563)
-EC-SORT-MERGE exception [548](#page-548), [557](#page-557), [1091](#page-1091)
-EC-SORT-MERGE-ACTIVE exception [557](#page-557), [661](#page-661), [750](#page-750), [751](#page-751)
+FLAG-02 directive [7.3.14](#section-7-3-14)
+EC-PROGRAM-IMP exception [13.18.64.4](#section-13-18-64-4)
+EC-PROGRAM-NOT-FOUND exception [6.4.4.3](#section-6-4-4-3), [8.3.3.5.3](#section-8-3-3-5-3), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+EC-PROGRAM-PTR-NULL exception [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+EC-PROGRAM-RECURSIVE-CALL exception [13.18.64.4](#section-13-18-64-4), [14.7.6](#section-14-7-6)
+EC-PROGRAM-RESOURCES exception [8.3.2.2.1](#section-8-3-2-2-1), [13.18.64.4](#section-13-18-64-4), [14.7.5](#section-14-7-5)
+EC-RAISING exception [13.18.64.4](#section-13-18-64-4)
+EC-RAISING-IMP exception [13.18.64.4](#section-13-18-64-4)
+EC-RAISING-NOT-SPECIFIED exception [13.18.64.4](#section-13-18-64-4), [14.9.8.4](#section-14-9-8-4)
+EC-RANGE exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
+EC-RANGE-IMP exception [13.18.64.4](#section-13-18-64-4)
+EC-RANGE-INDEX exception [6.5](#section-6-5), [13.18.24.4](#section-13-18-24-4), [13.18.64.4](#section-13-18-64-4)
+EC-RANGE-INDEX exception condition [14.9.34](#section-14-9-34), [14.9.34.4](#section-14-9-34-4)
+EC-RANGE-INSPECT-SIZE exception [13.18.64.4](#section-13-18-64-4), [14.9.13.3](#section-14-9-13-3)
+EC-RANGE-INVALID exception [13.18.64.4](#section-13-18-64-4), [14.6](#section-14-6)
+EC-RANGE-PERFORM-VARYING exception [13.18.64.4](#section-13-18-64-4), [14.9.23.4](#section-14-9-23-4)
+EC-RANGE-PTR exception [13.18.64.4](#section-13-18-64-4), [14.9.35.4](#section-14-9-35-4)
+EC-RANGE-SEARCH-INDEX exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.3](#section-14-9-30-3)
+EC-RANGE-SEARCH-NO-MATCH exception [13.18.64.4](#section-13-18-64-4), [14.9.30](#section-14-9-30), [14.9.30.4](#section-14-9-30-4)
+EC-REPORT exception [13.18.63.3](#section-13-18-63-3), [13.18.64.4](#section-13-18-64-4), [D.8](#section-d-8)
+EC-REPORT-ACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
+EC-REPORT-COLUMN-OVERLAP exception [13.14](#section-13-14), [13.18.64.4](#section-13-18-64-4)
+EC-REPORT-FILE-MODE exception [13.18.64.4](#section-13-18-64-4), [14.9.11.4](#section-14-9-11-4)
+EC-REPORT-IMP exception [13.18.64.4](#section-13-18-64-4)
+EC-REPORT-INACTIVE exception [13.18.64.4](#section-13-18-64-4), [14.9.6.4](#section-14-9-6-4), [14.9.39.3](#section-14-9-39-3)
+EC-REPORT-LINE-OVERLAP exception [13.18.16](#section-13-18-16), [13.18.64.4](#section-13-18-64-4)
+EC-REPORT-NOT-TERMINATED exception [14](#section-14), [14.8.2.2](#section-14-8-2-2)
+EC-REPORT-PAGE-LIMIT exception [13.18.16](#section-13-18-16), [14](#section-14)
+EC-REPORT-PAGE-WIDTH exception [13.14](#section-13-14), [14](#section-14)
+EC-REPORT-SUM-SIZE exception [13.18.40.6](#section-13-18-40-6), [14](#section-14)
+EC-REPORT-VARYING exception [13.18.57.4](#section-13-18-57-4), [14](#section-14)
+EC-SCREEN exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6)
+EC-SCREEN-FIELD-OVERLAP exception [14](#section-14), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.1.4](#section-14-9-1-4), [14.9.2](#section-14-9-2)
+EC-SCREEN-IMP exception [14](#section-14)
+EC-SCREEN-ITEM-TRUNCATED exception [13.15.3](#section-13-15-3), [14](#section-14), [14.9.2](#section-14-9-2)
+EC-SCREEN-LINE-NUMBER exception [13.18.17.4](#section-13-18-17-4), [14](#section-14), [14.9.2](#section-14-9-2)
+EC-SCREEN-STARTING-COLUMN exception [13.15](#section-13-15), [14](#section-14), [14.9.2](#section-14-9-2)
+EC-SIZE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.3](#section-14-3), [14.5.1](#section-14-5-1), [D.8](#section-d-8)
+EC-SIZE-ADDRESS exception [14](#section-14), [14.9.35.4](#section-14-9-35-4)
+EC-SIZE-EXPONENTIATION exception [8.4.6](#section-8-4-6), [8.4.6.3](#section-8-4-6-3), [8.5.1.3.2](#section-8-5-1-3-2), [14](#section-14), [14.5.1](#section-14-5-1)
+EC-SIZE-IMP exception [14](#section-14)
+EC-SIZE-OVERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
+EC-SIZE-TRUNCATION exception [9.3.8.2.3](#section-9-3-8-2-3), [14](#section-14), [14.2.3](#section-14-2-3), [14.5.1](#section-14-5-1), [D.31.3.3](#section-d-31-3-3)
+EC-SIZE-UNDERFLOW exception [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14](#section-14), [14.5.1](#section-14-5-1)
+EC-SIZE-ZERO-DIVIDE exception [14](#section-14), [14.5.1](#section-14-5-1)
+EC-SORT-MERGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14), [D.8](#section-d-8)
+EC-SORT-MERGE-ACTIVE exception [14](#section-14), [14.9.18](#section-14-9-18), [14.9.37](#section-14-9-37), [14.9.37.3](#section-14-9-37-3)
 
-EC-SORT-MERGE-FILE-ACTIVE exception [968](#page-968)
-EC-SORT-MERGE-FILE-OPEN exception [557](#page-557), [660](#page-660), [662](#page-662), [749](#page-749), [750](#page-750), [968](#page-968)
-EC-SORT-MERGE-IMP exception [557](#page-557)
-EC-SORT-MERGE-RELEASE exception [470](#page-470), [557](#page-557), [660](#page-660), [751](#page-751)
-EC-SORT-MERGE-RETURN exception [557](#page-557), [709](#page-709)
-EC-SORT-MERGE-SEQUENCE exception [557](#page-557), [660](#page-660)
-EC-STORAGE exception [548](#page-548), [557](#page-557)
-EC-STORAGE-IMP exception [557](#page-557)
-EC-STORAGE-NOT-ALLOC exception [558](#page-558), [627](#page-627)
-EC-STORAGE-NOT-AVAIL exception [558](#page-558), [587](#page-587), [744](#page-744)
-EC-USER exception [529](#page-529), [548](#page-548), [558](#page-558), [624](#page-624), [633](#page-633), [1091](#page-1091)
-EC-VALIDATE exception [558](#page-558), [783](#page-783)
-EC-VALIDATE-CONTENT exception [558](#page-558), [783](#page-783)
-EC-VALIDATE-FORMAT exception [558](#page-558), [783](#page-783)
-EC-VALIDATE-IMP exception [558](#page-558)
-EC-VALIDATE-RELATION exception [558](#page-558), [783](#page-783)
-EC-VALIDATE-VARYING exception [526](#page-526), [558](#page-558)
-EDITING phrase [1150](#page-1150)
-Editing rules [452](#page-452)
-Elementary items [151](#page-151)
-Ellipses [29](#page-29), [31](#page-31)
+EC-SORT-MERGE-FILE-ACTIVE exception [15.99.3](#section-15-99-3)
+EC-SORT-MERGE-FILE-OPEN exception [14](#section-14), [14.9.17](#section-14-9-17), [14.9.18.4](#section-14-9-18-4), [14.9.36.4](#section-14-9-36-4), [14.9.37](#section-14-9-37), [15.99.3](#section-15-99-3)
+EC-SORT-MERGE-IMP exception [14](#section-14)
+EC-SORT-MERGE-RELEASE exception [13.18.39.4](#section-13-18-39-4), [14](#section-14), [14.9.17](#section-14-9-17), [14.9.37.3](#section-14-9-37-3)
+EC-SORT-MERGE-RETURN exception [14](#section-14), [14.9.27.4](#section-14-9-27-4)
+EC-SORT-MERGE-SEQUENCE exception [14](#section-14), [14.9.17](#section-14-9-17)
+EC-STORAGE exception [13.18.63.3](#section-13-18-63-3), [14](#section-14)
+EC-STORAGE-IMP exception [14](#section-14)
+EC-STORAGE-NOT-ALLOC exception [14.2.2](#section-14-2-2), [14.9.6](#section-14-9-6)
+EC-STORAGE-NOT-AVAIL exception [14.2.2](#section-14-2-2), [14.6.13.1.6](#section-14-6-13-1-6), [14.9.35.4](#section-14-9-35-4)
+EC-USER exception [13.18.57.4](#section-13-18-57-4), [13.18.63.3](#section-13-18-63-3), [14.2.2](#section-14-2-2), [14.9.4.4](#section-14-9-4-4), [14.9.8.4](#section-14-9-8-4), [D.8](#section-d-8)
+EC-VALIDATE exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+EC-VALIDATE-CONTENT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+EC-VALIDATE-FORMAT exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+EC-VALIDATE-IMP exception [14.2.2](#section-14-2-2)
+EC-VALIDATE-RELATION exception [14.2.2](#section-14-2-2), [14.9.40.4](#section-14-9-40-4)
+EC-VALIDATE-VARYING exception [13.18.57.4](#section-13-18-57-4), [14.2.2](#section-14-2-2)
+EDITING phrase [D.19.5.4.2](#section-d-19-5-4-2)
+Editing rules [13.18.40.5](#section-13-18-40-5)
+Elementary items [14.8.2.3](#section-14-8-2-3)
+Ellipses [5.2.7](#section-5-2-7)
 ELSE NEXT SENTENCE phrase
-IF statement [635](#page-635)
+IF statement [14.9.19](#section-14-9-19)
 ELSE phrase
-IF statement [635](#page-635)
-END CLASS marker [261](#page-261)
-END DECLARATIVES [527](#page-527), [532](#page-532)
-END FACTORY marker [261](#page-261)
-END FUNCTION marker [261](#page-261)
-END INTERFACE marker [261](#page-261)
-END MARKERS [261](#page-261)
-END METHOD marker [261](#page-261)
-END OBJECT marker [261](#page-261)
-End of COBOL source program [261](#page-261)
-END PROGRAM marker [261](#page-261)
-END-ACCEPT phrase [576](#page-576)
-END-ADD phrase [583](#page-583)
-END-CALL phrase [588](#page-588)
-END-COMPUTE phrase [602](#page-602)
-END-DELETE phrase [605](#page-605)
-END-DISPLAY phrase [610](#page-610)
-END-DIVIDE phrase [614](#page-614)
-END-EVALUATE phrase [618](#page-618)
+IF statement [14.9.19](#section-14-9-19)
+END CLASS marker [9.1.15](#section-9-1-15)
+END DECLARATIVES [13.18.57.4](#section-13-18-57-4), [13.18.60](#section-13-18-60)
+END FACTORY marker [9.1.15](#section-9-1-15)
+END FUNCTION marker [9.1.15](#section-9-1-15)
+END INTERFACE marker [9.1.15](#section-9-1-15)
+END MARKERS [10.7](#section-10-7)
+END METHOD marker [9.1.15](#section-9-1-15)
+END OBJECT marker [9.1.15](#section-9-1-15)
+End of COBOL source program [9.1.15](#section-9-1-15)
+END PROGRAM marker [9.1.15](#section-9-1-15)
+END-ACCEPT phrase [14.6.12](#section-14-6-12)
+END-ADD phrase [14.6.13.1.6](#section-14-6-13-1-6)
+END-CALL phrase [14.6.13.2](#section-14-6-13-2)
+END-COMPUTE phrase [14.8.3](#section-14-8-3)
+END-DELETE phrase [14.8.4.3](#section-14-8-4-3)
+END-DISPLAY phrase [14.9.1.4](#section-14-9-1-4)
+END-DIVIDE phrase [14.9.2.3](#section-14-9-2-3)
+END-EVALUATE phrase [14.9.4](#section-14-9-4)
 END-IF phrase
-IF statement [635](#page-635)
-END-MULTIPLY phrase [673](#page-673)
-END-OF-PAGE phrase [792](#page-792)
-WRITE statement [785](#page-785)
-END-READ phrase [692](#page-692)
-END-RETURN phrase [708](#page-708)
-END-REWRITE phrase [710](#page-710)
-END-SEARCH phrase [720](#page-720)
-END-START phrase [754](#page-754)
-END-STRING phrase [759](#page-759)
-END-SUBTRACT phrase [762](#page-762)
-END-UNSTRING phrase [769](#page-769)
+IF statement [14.9.19](#section-14-9-19)
+END-MULTIPLY phrase [14.9.22](#section-14-9-22)
+END-OF-PAGE phrase [14.9.44](#section-14-9-44)
+WRITE statement [14.9.51](#section-14-9-51)
+END-READ phrase [14.9.24.4](#section-14-9-24-4)
+END-RETURN phrase [14.9.27.4](#section-14-9-27-4)
+END-REWRITE phrase [14.9.27.4](#section-14-9-27-4)
+END-SEARCH phrase [14.9.28.4](#section-14-9-28-4)
+END-START phrase [14.9.37.4](#section-14-9-37-4)
+END-STRING phrase [14.9.39](#section-14-9-39)
+END-SUBTRACT phrase [14.9.39.3](#section-14-9-39-3)
+END-UNSTRING phrase [14.9.39.4](#section-14-9-39-4)
 
 
-
-<a id="page-1243"></a>
-## Page [1243](#page-1243)
-
-# ISO/IEC 1989:2023 (E)
-
-END-WRITE phrase [785](#page-785)
-ENTRY-CONVENTION clause [274](#page-274), [1162](#page-1162)
-Entry-convention-name [104](#page-104), [274](#page-274)
-Entry-name clause [398](#page-398)
-Environment division [282](#page-282)
-EO [774](#page-774)
+END-WRITE phrase [14.9.41.4](#section-14-9-41-4)
+ENTRY-CONVENTION clause [11.9.7](#section-11-9-7)
+Entry-convention-name [8.3.2.3.6](#section-8-3-2-3-6)
+Entry-name clause [13.18.20](#section-13-18-20)
+Environment division [12](#section-12)
+EO [14.9.39.4](#section-14-9-39-4)
 EOP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [785](#page-785)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
 EQUAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [720](#page-720)
-Equivalent arithmetic expression [805](#page-805)
-ERASE clause [399](#page-399)
-ERROR clause [513](#page-513)
-Error indication [781](#page-781)
+&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [14.9.37](#section-14-9-37)
+Equivalent arithmetic expression [14.9.49.3](#section-14-9-49-3)
+ERASE clause [13.18.21](#section-13-18-21)
+ERROR clause [13.18.52](#section-13-18-52)
+Error indication [D.22.6](#section-d-22-6)
 ERROR phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [682](#page-682)
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [758](#page-758)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
-&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [513](#page-513)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
+&nbsp;&nbsp;&nbsp;&nbsp;VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
 ERROR PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
-EVALUATE directive [66](#page-66)
-EVALUATE statement [618](#page-618)
-Evaluation of conditional expressions [201](#page-201)
-Evaluation of conditions [1146](#page-1146)
-Evaluation rules for conditions [204](#page-204)
-EXCEPTION [682](#page-682)
-EXCEPTION CONDITION [774](#page-774)
-Exception condition handling [546](#page-546)
-Exception conditions [546](#page-546), [551](#page-551)
-&nbsp;&nbsp;&nbsp;&nbsp;Fatal [549](#page-549)
-&nbsp;&nbsp;&nbsp;&nbsp;Nonfatal [550](#page-550)
-Exception declaratives [1012](#page-1012)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
+EVALUATE directive [7.3.13](#section-7-3-13)
+EVALUATE statement [14.9.13](#section-14-9-13)
+Evaluation of conditional expressions [8.6.7](#section-8-6-7)
+Evaluation of conditions [D.19.5.3](#section-d-19-5-3)
+Evaluation rules for conditions [8.7.5.2](#section-8-7-5-2)
+EXCEPTION [14.9.23.3](#section-14-9-23-3)
+EXCEPTION CONDITION [14.9.39.4](#section-14-9-39-4)
+Exception condition handling [14.6.13](#section-14-6-13)
+Exception conditions [9.1.18.7](#section-9-1-18-7)
+&nbsp;&nbsp;&nbsp;&nbsp;Fatal [13.18.63.3](#section-13-18-63-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Nonfatal [13.18.63.3](#section-13-18-63-3)
+Exception declaratives [D.2.3.4.4](#section-d-2-3-4-4)
 EXCEPTION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EC-MCS-NORMAL-TERMINATION
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exception [546](#page-546)
-Exception functions [1012](#page-1012)
-Exception handling [546](#page-546), [774](#page-774), [1011](#page-1011)
-&nbsp;&nbsp;&nbsp;&nbsp;Input-output exceptions [222](#page-222)
-EXCEPTION OBJECT [774](#page-774)
-Exception object [550](#page-550), [774](#page-774)
-EXCEPTION phrase [631](#page-631)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [577](#page-577)
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [588](#page-588)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [610](#page-610)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [623](#page-623)
-&nbsp;&nbsp;&nbsp;&nbsp;RAISE statement [691](#page-691)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exception [13.18.63](#section-13-18-63)
+Exception functions [D.2.3.4.5](#section-d-2-3-4-5)
+Exception handling [D.2.3.4](#section-d-2-3-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Input-output exceptions [8.8.4.2.13](#section-8-8-4-2-13)
+EXCEPTION OBJECT [14.9.39.4](#section-14-9-39-4)
+Exception object [13.18.63.3](#section-13-18-63-3), [14.9.39.4](#section-14-9-39-4)
+EXCEPTION phrase [14.9.7](#section-14-9-7)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
+&nbsp;&nbsp;&nbsp;&nbsp;RAISE statement [14.9.29](#section-14-9-29)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
 EXCEPTION PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
-Exception status indicators [547](#page-547)
-Exception-checking PERFORM statement. [597](#page-597)
-EXCEPTION-FILE function [844](#page-844)
-EXCEPTION-FILE-N function [846](#page-846)
-EXCEPTION-LOCATION function [848](#page-848)
-EXCEPTION-LOCATION-N function [850](#page-850)
-Exception-names [106](#page-106), [548](#page-548), [551](#page-551)
-EXCEPTION-OBJECT [135](#page-135), [547](#page-547), [691](#page-691)
-EXCEPTION-STATEMENT function [852](#page-852)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
+Exception status indicators [13.18.63.3](#section-13-18-63-3)
+Exception-checking PERFORM statement. [14.7.9](#section-14-7-9)
+EXCEPTION-FILE function [15.28](#section-15-28)
+EXCEPTION-FILE-N function [15.29](#section-15-29)
+EXCEPTION-LOCATION function [15.30](#section-15-30)
+EXCEPTION-LOCATION-N function [15.31](#section-15-31)
+Exception-names [8.3.2.7](#section-8-3-2-7)
+EXCEPTION-OBJECT [8.4.3.6](#section-8-4-3-6)
+EXCEPTION-STATEMENT function [15.32](#section-15-32)
 
-EXCEPTION-STATUS function [547](#page-547), [853](#page-853)
-EXCLUSIVE-OR [174](#page-174), [200](#page-200), [204](#page-204)
-Execution [536](#page-536)
-EXIT FUNCTION statement [10](#page-10), [685](#page-685)
-EXIT PARAGRAPH statement [10](#page-10), [623](#page-623), [626](#page-626)
-EXIT PERFORM statement [10](#page-10), [623](#page-623), [625](#page-625)
-EXIT PROGRAM statement [10](#page-10), [623](#page-623), [625](#page-625)
-EXIT PROGRAM Statement. [1199](#page-1199)
-EXIT SECTION statement [10](#page-10), [623](#page-623), [626](#page-626)
-EXIT statement [548](#page-548), [623](#page-623)
-EXP function [854](#page-854)
-EXP10 function [855](#page-855)
-Expanded compilation group [44](#page-44)
+EXCEPTION-STATUS function [15.33](#section-15-33)
+EXCLUSIVE-OR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
+Execution [14.6](#section-14-6)
+EXIT FUNCTION statement 10, [14.9.23.4](#section-14-9-23-4)
+EXIT PARAGRAPH statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+EXIT PERFORM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+EXIT PROGRAM statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5](#section-14-9-5)
+EXIT PROGRAM Statement. [D.31.5.8](#section-d-31-5-8)
+EXIT SECTION statement 10, [14.9.4.4](#section-14-9-4-4), [14.9.5.4](#section-14-9-5-4)
+EXIT statement [14.9.14](#section-14-9-14)
+EXP function [15.34](#section-15-34)
+EXP10 function [15.35](#section-15-35)
+Expanded compilation group [3](#section-3)
 EXPANDS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;REPOSITORY paragraph [251](#page-251)
+&nbsp;&nbsp;&nbsp;&nbsp;REPOSITORY paragraph [12.3.8](#section-12-3-8)
 Expected capacity
-&nbsp;&nbsp;&nbsp;&nbsp;Exceeding [157](#page-157)
+&nbsp;&nbsp;&nbsp;&nbsp;Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
 Expected capacity of a dynamic table
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [156](#page-156)
-Explicit attributes [339](#page-339)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition 156
+Explicit attributes [12.3.8.4](#section-12-3-8-4)
 Explicit reference
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [145](#page-145)
-Explicit scope terminators [535](#page-535)
-Explicit transfer of control [539](#page-539)
-Exponent [110](#page-110)
-Exponentiation [176](#page-176)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.3.3.6.4](#section-8-3-3-6-4)
+Explicit scope terminators [13.18.60.4](#section-13-18-60-4)
+Explicit transfer of control [13.18.60.4](#section-13-18-60-4)
+Exponent [7.3.20](#section-7-3-20)
+Exponentiation [8.4.6](#section-8-4-6)
 Expression
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [31](#page-31), [175](#page-175)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [182](#page-182), [187](#page-187), [602](#page-602), [618](#page-618)
-&nbsp;&nbsp;&nbsp;&nbsp;Compile-time arithmetic [55](#page-55)
-&nbsp;&nbsp;&nbsp;&nbsp;Compile-time boolean [56](#page-56)
-&nbsp;&nbsp;&nbsp;&nbsp;Concatenation [185](#page-185)
-&nbsp;&nbsp;&nbsp;&nbsp;Conditional [186](#page-186), [1146](#page-1146)
-&nbsp;&nbsp;&nbsp;&nbsp;Constant conditional [57](#page-57)
+&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [1](#section-1), [8.4.4.2](#section-8-4-4-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Boolean [8.5.1.3.2](#section-8-5-1-3-2), [8.5.1.9.2](#section-8-5-1-9-2), [14.8.3](#section-14-8-3), [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Compile-time arithmetic [4.2.16](#section-4-2-16)
+&nbsp;&nbsp;&nbsp;&nbsp;Compile-time boolean [4.5](#section-4-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Concatenation [8.5.1.6.4](#section-8-5-1-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Conditional [8.5.1.7](#section-8-5-1-7), [D.19.5.3](#section-d-19-5-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Constant conditional [5](#section-5)
 EXTEND phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [682](#page-682)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
 Extended calendar date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [799](#page-799)
-Extended combined date and time format [804](#page-804)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48](#section-14-9-48)
+Extended combined date and time format [14.9.49](#section-14-9-49)
 Extended common time format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [801](#page-801)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
 Extended common time format with fractional seconds
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [801](#page-801)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
 Extended common time format with integer seconds
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;representation
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [801](#page-801)
-Extended letters [91](#page-91), [980](#page-980)
-Extended local time format [802](#page-802)
-Extended offset time format [802](#page-802)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
+Extended letters [A.4.6](#section-a-4-6)
+Extended local time format [14.9.48.4](#section-14-9-48-4)
+Extended offset time format [14.9.48.4](#section-14-9-48-4)
 Extended ordinal date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [800](#page-800)
-Extended relational operator [174](#page-174)
-Extended UTC time format [802](#page-802)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
+Extended relational operator [8.4.3.15.4](#section-8-4-3-15-4)
+Extended UTC time format [14.9.48.4](#section-14-9-48-4)
 Extended week date format
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [800](#page-800)
-Extension language elements [23](#page-23)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.9.48.4](#section-14-9-48-4)
+Extension language elements 23
 
 
 ---
 
 
-<a id="page-1244"></a>
-## Page [1244](#page-1244)
-
-# ISO/IEC 1989:2023 (E)
-
 Extensions
-Nonstandard [23](#page-23)
-Standard [23](#page-23)
-External [168](#page-168)
-EXTERNAL clause [166](#page-166), [400](#page-400), [478](#page-478), [500](#page-500)
-Data description entry [363](#page-363)
-File description entry [345](#page-345)
-External data items [521](#page-521)
-External items [168](#page-168), [574](#page-574), [592](#page-592)
+Nonstandard 23
+Standard 23
+External [8.4.3.9.3](#section-8-4-3-9-3)
+EXTERNAL clause [13.18.22](#section-13-18-22)
+Data description entry [13.16](#section-13-16)
+File description entry [13.4.5](#section-13-4-5)
+External data items [13.18.55](#section-13-18-55)
+External items [14.8.4](#section-14-8-4)
 EXTERNAL phrase
-File description entry [342](#page-342)
-External repository [216](#page-216)
-Externalized names [99](#page-99)
-External-locale-name [104](#page-104)
-Externally provided functionality [24](#page-24)
+File description entry [13.4.5](#section-13-4-5)
+External repository [8.13](#section-8-13)
+Externalized names [7.3.13.4](#section-7-3-13-4)
+External-locale-name [8.3.2.3.7](#section-8-3-2-3-7)
+Externally provided functionality 24
 
 ## F
 
-FACTORIAL function [856](#page-856)
+FACTORIAL function [15.36](#section-15-36)
 FACTORY clause
-METHOD-ID paragraph [269](#page-269)
-Factory data [250](#page-250), [1107](#page-1107)
-Factory definition [266](#page-266)
-Factory method [240](#page-240), [1107](#page-1107)
-Factory object [240](#page-240), [266](#page-266), [1107](#page-1107)
-Life cycle for [252](#page-252)
-FACTORY paragraph [266](#page-266)
-FACTORY phrase [570](#page-570)
-USAGE clause [503](#page-503)
-Factory-definition [258](#page-258)
-FactoryObject method [942](#page-942)
+METHOD-ID paragraph [11.7](#section-11-7)
+Factory data [9.1.7.3](#section-9-1-7-3), [D.12.5](#section-d-12-5)
+Factory definition [9.2](#section-9-2)
+Factory method [8.10](#section-8-10), [D.12.5](#section-d-12-5)
+Factory object [8.10](#section-8-10), [9.2](#section-9-2), [D.12.5](#section-d-12-5)
+Life cycle for [9.1.10](#section-9-1-10)
+FACTORY paragraph [11.4](#section-11-4)
+FACTORY phrase [14.6.4](#section-14-6-4)
+USAGE clause [13.18.60](#section-13-18-60)
+Factory-definition [9.1.13.8](#section-9-1-13-8)
+FactoryObject method [16.2.2](#section-16-2-2)
 FALSE phrase
-EVALUATE statement [618](#page-618)
-SET statement, condition setting [730](#page-730)
-FARTHEST-FROM-ZERO [743](#page-743)
+EVALUATE statement [14.9.13](#section-14-9-13)
+SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
+FARTHEST-FROM-ZERO [14.9.35.4](#section-14-9-35-4)
 FARTHEST-FROM-ZERO phrase
-CLASS clause [194](#page-194)
-SET statement [732](#page-732)
-Fatal exception conditions [549](#page-549)
-FD entry [342](#page-342)
-Feature-name [104](#page-104)
-FILE-CONTROL paragraph [314](#page-314)
-RECORD DELIMITER clause [328](#page-328)
-SPECIAL-NAMES paragraph [290](#page-290)
-Figurative constant [113](#page-113)
-INITIALIZE statement [640](#page-640)
-Symbolic characters in [117](#page-117)
+CLASS clause [13.18.11](#section-13-18-11)
+SET statement [14.9.39](#section-14-9-39)
+Fatal exception conditions [14.6.13.1.3](#section-14-6-13-1-3)
+FD entry [12.4.5.1](#section-12-4-5-1)
+Feature-name [8.3.2.3.8](#section-8-3-2-3-8)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Figurative constant [7.3.23](#section-7-3-23)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+Symbolic characters in [8](#section-8)
 File
-logical [217](#page-217)
-Physical [217](#page-217)
-Physical aspects [151](#page-151)
-File attribute conflict condition [679](#page-679)
-File attributes [219](#page-219)
-File connector [218](#page-218)
-OPEN statement [676](#page-676)
-File control entry [311](#page-311)
-File description entry [342](#page-342)
+logical [8.8.4.2.2](#section-8-8-4-2-2)
+Physical [8.8.4.2.2](#section-8-8-4-2-2)
+Physical aspects [8.4.2.2.3](#section-8-4-2-2-3)
+File attribute conflict condition [14.9.22.4](#section-14-9-22-4)
+File attributes [8.8.4.2.5](#section-8-8-4-2-5)
+File connector [9.1.3](#section-9-1-3)
+OPEN statement [14.9.27](#section-14-9-27)
+File control entry [12.4.5](#section-12-4-5)
+File description entry [13.4.5](#section-13-4-5)
 
-File operations [1010](#page-1010)
-File organization [219](#page-219), [1005](#page-1005)
+File operations [D.2.3.3](#section-d-2-3-3)
+File organization [D.2.2](#section-d-2-2)
 FILE phrase
-REWRITE statement [710](#page-710)
-WRITE statement [785](#page-785)
-File position indicator [222](#page-222)
-File processing [1008](#page-1008)
-File section [341](#page-341)
-File sharing [332](#page-332), [1013](#page-1013)
-File sharing conflict condition [224](#page-224), [567](#page-567)
-FILE STATUS clause [324](#page-324)
-FILE-CONTROL paragraph [312](#page-312)
-FILE-CONTROL paragraph [311](#page-311)
-File-name [98](#page-98), [101](#page-101)
-Scope of [148](#page-148)
-Files [217](#page-217), [1005](#page-1005)
-Indexed [220](#page-220)
-Relative [220](#page-220)
-Sequential [219](#page-219)
-FILLER clause [398](#page-398), [492](#page-492)
+REWRITE statement [14.9.35](#section-14-9-35)
+WRITE statement [14.9.51](#section-14-9-51)
+File position indicator [9.1.11](#section-9-1-11)
+File processing [D.2.3](#section-d-2-3)
+File section [13.4](#section-13-4)
+File sharing [D.2.4.2](#section-d-2-4-2)
+File sharing conflict condition [8.8.4.4.2](#section-8-8-4-4-2), [14.6.2](#section-14-6-2)
+FILE STATUS clause [12.4.5.8](#section-12-4-5-8)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+File-name [8.3.2.2.9](#section-8-3-2-2-9)
+Scope of [8.3.5](#section-8-3-5)
+Files [9.1](#section-9-1)
+Indexed [9.1.7.4](#section-9-1-7-4)
+Relative [9.1.7.3](#section-9-1-7-3)
+Sequential [9.1.7.2](#section-9-1-7-2)
+FILLER clause [13.17](#section-13-17), [13.18.41.4](#section-13-18-41-4)
 FILLER phrase
-INITIALIZE statement [637](#page-637)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 FINAL phrase
-CLASS-ID paragraph [264](#page-264)
-SUM clause [487](#page-487)
-TYPE clause [494](#page-494)
-FINALLY [206](#page-206), [682](#page-682)
+CLASS-ID paragraph [11.3](#section-11-3)
+SUM clause [13.18.54](#section-13-18-54)
+TYPE clause [13.18.57](#section-13-18-57)
+FINALLY [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
 FIRST DETAIL phrase
-PAGE clause [438](#page-438)
+PAGE clause [13.18.39](#section-13-18-39)
 FIRST phrase
-INSPECT statement [644](#page-644)
-START statement [754](#page-754)
-Fixed file attributes [219](#page-219), [679](#page-679)
-Fixed indicators [34](#page-34)
-Fixed insertion editing [454](#page-454)
+INSPECT statement [14.9.22](#section-14-9-22)
+START statement [14.9.41](#section-14-9-41)
+Fixed file attributes [9.1.6](#section-9-1-6)
+Fixed indicators [6.2.2](#section-6-2-2)
+Fixed insertion editing [13.18.35.4](#section-13-18-35-4)
 Fixed-capacity table
-Comparing to dynamic-capacity table [544](#page-544)
+Comparing to dynamic-capacity table [13.18.62.4](#section-13-18-62-4)
 Fixed-capacity tables
-Definition [156](#page-156)
+Definition 156
 Fixed-length data item
-Definition [159](#page-159)
+Definition [8.4.3.2.4](#section-8-4-3-2-4)
 Fixed-length group
-Definition [160](#page-160)
-Fixed-length records [1007](#page-1007)
+Definition [8.4.3.2.4](#section-8-4-3-2-4)
+Fixed-length records [D.2.2.5.1](#section-d-2-2-5-1)
 Fixed-point numeric data item
-Definition [446](#page-446)
-Fixed-point numeric literal [109](#page-109)
+Definition [13.18.33.4](#section-13-18-33-4)
+Fixed-point numeric literal [7.3.19](#section-7-3-19)
 Fixed-point numeric-edited data item
-Definition [446](#page-446)
-FLAG-02 directive [70](#page-70)
-FLAG-14 deirective [72](#page-72)
-FLAG-85 directive [70](#page-70), [72](#page-72)
+Definition [13.18.33.4](#section-13-18-33-4)
+FLAG-02 directive [7.3.14](#section-7-3-14)
+FLAG-14 deirective [7](#section-7)
+FLAG-85 directive [6.4.4.3](#section-6-4-4-3), [7](#section-7)
 Flagging and warning mechanisms
-Archaic language elements [24](#page-24)
-FLAG-02 directive [72](#page-72)
-Nonstandard extensions [23](#page-23)
-Obsolete language elements [24](#page-24)
-Processor-dependent elements [22](#page-22)
+Archaic language elements [4.2.12](#section-4-2-12)
+FLAG-02 directive [7.3.14](#section-7-3-14)
+Nonstandard extensions [4.2.10](#section-4-2-10)
+Obsolete language elements [4.2.13](#section-4-2-13)
+Processor-dependent elements 22
 
 
-
-<a id="page-1245"></a>
-## Page [1245](#page-1245)
-
-# ISO/IEC 1989:2023 (E)
-
-Prototype versus repository [216](#page-216)
-Syntax violations [21](#page-21)
-FLAG-NATIVE-ARITHMETIC directive [74](#page-74)
-FLOAT-BINARY clause [275](#page-275)
+Prototype versus repository [8.8.4](#section-8-8-4)
+Syntax violations 21
+FLAG-NATIVE-ARITHMETIC directive [7.2.2](#section-7-2-2)
+FLOAT-BINARY clause [11.9.8](#section-11-9-8)
 FLOAT-BINARY-128
-Definition [508](#page-508)
+Definition [13.18.49](#section-13-18-49)
 FLOAT-BINARY-128 phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FLOAT-BINARY-32
-Definition [507](#page-507)
+Definition [13.18.48](#section-13-18-48)
 FLOAT-BINARY-32 phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FLOAT-BINARY-64
-Definition [508](#page-508)
+Definition [13.18.49](#section-13-18-49)
 FLOAT-BINARY-64 phrase
-USAGE clause [503](#page-503)
-FLOAT-DECIMAL clause [275](#page-275)
+USAGE clause [13.18.60](#section-13-18-60)
+FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
 FLOAT-DECIMAL-16
-Definition [508](#page-508)
+Definition [13.18.49](#section-13-18-49)
 FLOAT-DECIMAL-16 phrase
 USAGE clause
 FLOAT-DECIMAL-34 phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FLOAT-DECIMAL-34
-Definition [508](#page-508)
+Definition [13.18.49](#section-13-18-49)
 FLOAT-EXTENDED phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FLOAT-INFINITY phrase
-CLASS clause [194](#page-194)
-SET statement [732](#page-732)
-Floating indicators [34](#page-34)
+CLASS clause [13.18.11](#section-13-18-11)
+SET statement [14.9.39](#section-14-9-39)
+Floating indicators [6.2.3](#section-6-2-3)
 Floating-point numeric data item
-Definition [543](#page-543)
-Floating-point numeric literal [109](#page-109)
+Definition [13.18.62](#section-13-18-62)
+Floating-point numeric literal [7.3.19](#section-7-3-19)
 Floating-point numeric-edited data item
-Definition [446](#page-446)
+Definition [13.18.33.4](#section-13-18-33-4)
 FLOAT-LONG phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FLOAT-NOT-A-NUMBER phrase
-SET statement [732](#page-732)
+SET statement [14.9.39](#section-14-9-39)
 FLOAT-NOT-A-NUMBER-QUIET phrase
-CLASS clause [194](#page-194)
+CLASS clause [13.18.11](#section-13-18-11)
 FLOAT-NOT-A-NUMBER-SIGNALING phrase
-CLASS clause [194](#page-194)
-SET statement [732](#page-732)
+CLASS clause [13.18.11](#section-13-18-11)
+SET statement [14.9.39](#section-14-9-39)
 FLOAT-SHORT phrase
-USAGE clause [503](#page-503)
+USAGE clause [13.18.60](#section-13-18-60)
 FOOTING phrase
-PAGE clause [438](#page-438)
+PAGE clause [13.18.39](#section-13-18-39)
 FOR phrase
-INSPECT statement [643](#page-643)
-VALIDATE-STATUS clause [513](#page-513)
+INSPECT statement [14.9.22](#section-14-9-22)
+VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
 FOR REMOVAL phrase
-CLOSE statement [597](#page-597)
-FOREGROUND-COLOR clause [402](#page-402)
+CLOSE statement [14.9.6](#section-14-9-6)
+FOREGROUND-COLOR clause [13.18.23](#section-13-18-23)
 FOREVER phrase
-DELETE statement [605](#page-605)
-OPEN statement [675](#page-675)
+DELETE statement [14.9.10](#section-14-9-10)
+OPEN statement [14.9.27](#section-14-9-27)
 
-READ statement [692](#page-692)
-RETRY phrase [567](#page-567)
-REWRITE statement [710](#page-710)
-WRITE statement [785](#page-785)
-Formal parameter [529](#page-529), [568](#page-568)
-FORMAT clause [481](#page-481)
-File description entry [342](#page-342)
+READ statement [14.9.30](#section-14-9-30)
+RETRY phrase [14.7.9](#section-14-7-9)
+REWRITE statement [14.9.35](#section-14-9-35)
+WRITE statement [14.9.51](#section-14-9-51)
+Formal parameter [13.18.57.4](#section-13-18-57-4), [14.6.2.3.2](#section-14-6-2-3-2)
+FORMAT clause [13.18.24](#section-13-18-24)
+File description entry [13.4.5](#section-13-4-5)
 FORMAT phrase
-VALIDATE-STATUS clause [513](#page-513)
-Format validation [781](#page-781)
-PICTURE clause [449](#page-449)
-FORMATTED-CURRENT-DATE function [858](#page-858)
-FORMATTED-DATE function [859](#page-859)
-FORMATTED-DATETIME function [860](#page-860)
-FORMATTED-TIME function [862](#page-862)
+VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+Format validation [D.22.2](#section-d-22-2)
+PICTURE clause [13.18.40](#section-13-18-40)
+FORMATTED-CURRENT-DATE function [15.38](#section-15-38)
+FORMATTED-DATE function [15.39](#section-15-39)
+FORMATTED-DATETIME function [15.40](#section-15-40)
+FORMATTED-TIME function [15.41](#section-15-41)
 Forms of arithmetic
-Concepts [1099](#page-1099)
-frac_digits [96](#page-96)
-FRACTION-PART function [864](#page-864)
-FREE statement [627](#page-627)
-Free-form reference format [38](#page-38)
-FROM clause [406](#page-406)
-FROM phrase [576](#page-576)
-ACCEPT statement [576](#page-576)
-Constant entry [355](#page-355)
-PERFORM statement [683](#page-683)
-RELEASE statement [702](#page-702), [704](#page-704)
-REWRITE statement [710](#page-710)
-SUBTRACT statement [762](#page-762)
-VARYING clause [525](#page-525)
-WRITE statement [785](#page-785)
-FULL clause [407](#page-407)
+Concepts [D.10](#section-d-10)
+frac_digits [7.3.13](#section-7-3-13)
+FRACTION-PART function [15.42](#section-15-42)
+FREE statement [14.9.15](#section-14-9-15)
+Free-form reference format [6.4](#section-6-4)
+FROM clause [13.18.25](#section-13-18-25)
+FROM phrase [14.6.12](#section-14-6-12)
+ACCEPT statement [14.9.1](#section-14-9-1)
+Constant entry [13.10](#section-13-10)
+PERFORM statement [14.9.28](#section-14-9-28)
+RELEASE statement [14.9.32](#section-14-9-32)
+REWRITE statement [14.9.35](#section-14-9-35)
+SUBTRACT statement [14.9.44](#section-14-9-44)
+VARYING clause [13.18.64](#section-13-18-64)
+WRITE statement [14.9.51](#section-14-9-51)
+FULL clause [13.18.26](#section-13-18-26)
 Function activation
-Failure [568](#page-568)
-Function keys [236](#page-236)
+Failure [14.6.2.3.2](#section-14-6-2-3-2)
+Function keys [9.2.2](#section-9-2-2)
 FUNCTION phrase
-EXIT statement [10](#page-10)
-Function summary [806](#page-806)
-Function-definition [257](#page-257)
-FUNCTION-ID paragraph [267](#page-267)
-Function-identifier [127](#page-127)
+EXIT statement [14.9.14](#section-14-9-14)
+Function summary [14.9.49.4](#section-14-9-49-4)
+Function-definition [9.1.13.7](#section-9-1-13-7)
+FUNCTION-ID paragraph [11.5](#section-11-5)
+Function-identifier [8.4.3.2](#section-8-4-3-2)
 Function-pointer
-Definition [511](#page-511)
-Function-pointer category [162](#page-162), [163](#page-163)
-Function-pointer data item [163](#page-163)
+Definition [13.18.51](#section-13-18-51)
+Function-pointer category [8.5.2.7](#section-8-5-2-7)
+Function-pointer data item [8.4.3.4](#section-8-4-3-4)
 FUNCTION-POINTER phrase
-USAGE clause [503](#page-503)
-Function-prototype [256](#page-256)
-Function-prototype-name [98](#page-98), [101](#page-101)
+USAGE clause [13.18.60](#section-13-18-60)
+Function-prototype [9.1.13.5](#section-9-1-13-5)
+Function-prototype-name [8.3.2.2.10](#section-8-3-2-2-10)
 Functions
-Intrinsic [213](#page-213), [796](#page-796)
-User-defined [252](#page-252), [304](#page-304)
+Intrinsic [8.8.2](#section-8-8-2), [14.9.46](#section-14-9-46)
+User-defined [9.1.10](#section-9-1-10), [11.9.7.4](#section-11-9-7-4)
 
 ## G
 
-General formats [27](#page-27)
-General rules [30](#page-30)
+General formats [5.2](#section-5-2)
+General rules [5.3.3](#section-5-3-3)
 
 
 ---
 
 
-<a id="page-1246"></a>
-## Page [1246](#page-1246)
-
-# ISO/IEC 1989:2023 (E)
-
-GENERATE statement [497](#page-497), [628](#page-628), [766](#page-766), [775](#page-775)
+GENERATE statement [14.9.16](#section-14-9-16)
 GIVING phrase
-ADD statement [583](#page-583)
-DIVIDE statement [614](#page-614)
-MERGE statement [657](#page-657)
-MULTIPLY statement [673](#page-673)
-SORT statement [745](#page-745)
-SUBTRACT statement [762](#page-762)
-GLOBAL clause [408](#page-408), [478](#page-478)
-Constant entry [355](#page-355)
-File description entry [342](#page-342)
-Report description entry [358](#page-358)
-Global names [147](#page-147), [167](#page-167)
-GLOBAL phrase [633](#page-633)
-USE statement [774](#page-774)
-GO TO statement [630](#page-630)
-GOBACK statement [81](#page-81), [548](#page-548), [631](#page-631), [685](#page-685)
+ADD statement [14.9.2](#section-14-9-2)
+DIVIDE statement [14.9.12](#section-14-9-12)
+MERGE statement [14.9.24](#section-14-9-24)
+MULTIPLY statement [14.9.26](#section-14-9-26)
+SORT statement [14.9.40](#section-14-9-40)
+SUBTRACT statement [14.9.44](#section-14-9-44)
+GLOBAL clause [13.18.27](#section-13-18-27)
+Constant entry [13.10](#section-13-10)
+File description entry [13.4.5](#section-13-4-5)
+Report description entry [13.8.4](#section-13-8-4)
+Global names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
+GLOBAL phrase [14.9.8.4](#section-14-9-8-4)
+USE statement [14.9.49](#section-14-9-49)
+GO TO statement [14.9.17](#section-14-9-17)
+GOBACK statement [14.9.18](#section-14-9-18)
 Group
-Strongly-typed [165](#page-165)
-Group items [151](#page-151)
-Group move [667](#page-667)
+Strongly-typed [8.4.3.6](#section-8-4-3-6)
+Group items [14.8.2.2](#section-14-8-2-2)
+Group move [14.9.20](#section-14-9-20)
 Grouping separator
-Definition [301](#page-301)
-GROUP-USAGE [410](#page-410)
-GROUP-USAGE clause [410](#page-410), [495](#page-495), [780](#page-780)
+Definition [11.8.1](#section-11-8-1)
+GROUP-USAGE [13.18.9](#section-13-18-9)
+GROUP-USAGE clause [13.18.29](#section-13-18-29)
 
 ## H
 
 HEADING phrase
-PAGE clause [438](#page-438)
-HIGHEST-ALGEBRAIC function [865](#page-865)
-HIGHLIGHT clause [412](#page-412)
+PAGE clause [13.18.39](#section-13-18-39)
+HIGHEST-ALGEBRAIC function [15.43](#section-15-43)
+HIGHLIGHT clause [13.18.30](#section-13-18-30)
 HIGHLIGHT phrase
-SET statement, attribute setting [730](#page-730)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
 HIGH-ORDER-LEFT phrase
-FLOAT-BINARY clause [275](#page-275)
-FLOAT-DECIMAL clause [275](#page-275)
-USAGE clause [504](#page-504)
+FLOAT-BINARY clause [11.9.8](#section-11-9-8)
+FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+USAGE clause [13.18.60](#section-13-18-60)
 HIGH-ORDER-RIGHT phrase
-FLOAT-BINARY clause [275](#page-275)
-FLOAT-DECIMAL clause [275](#page-275)
-USAGE clause [504](#page-504)
-HIGH-VALUE/HIGH-VALUES figurative constant [116](#page-116)
-Hours subfield [801](#page-801)
+FLOAT-BINARY clause [11.9.8](#section-11-9-8)
+FLOAT-DECIMAL clause [11.9.9](#section-11-9-9)
+USAGE clause [13.18.60](#section-13-18-60)
+HIGH-VALUE/HIGH-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
+Hours subfield [14.9.48.4](#section-14-9-48-4)
 
 ## I
 
-Identification division [263](#page-263)
+Identification division [11](#section-11)
 Identifier
-Data-name [126](#page-126)
-Identifiers [124](#page-124)
-IF directive [75](#page-75)
-IF statement [635](#page-635)
+Data-name [8.3.2.2.6](#section-8-3-2-2-6)
+Identifiers [8.4.3](#section-8-4-3)
+IF directive [7.3.16](#section-7-3-16)
+IF statement [14.9.19](#section-14-9-19)
 IGNORING LOCK phrase
-READ statement [692](#page-692)
-IMP directive [54](#page-54), [55](#page-55)
-Imperative statement [533](#page-533)
+READ statement [14.9.30](#section-14-9-30)
+IMP directive [4.2.11](#section-4-2-11), [4.2.16](#section-4-2-16)
+Imperative statement [13.18.60.2](#section-13-18-60-2)
 
 Implementation
-Nonstandard extensions [23](#page-23)
-Reserved words [23](#page-23)
-Standard extensions [23](#page-23)
+Nonstandard extensions [4.2.10](#section-4-2-10)
+Reserved words [4.2.8](#section-4-2-8)
+Standard extensions [4.2.9](#section-4-2-9)
 Implementor-defined
-Language element list [943](#page-943)
-Language elements [22](#page-22)
-Native arithmetic [176](#page-176)
-Record types [1008](#page-1008)
-IMPLEMENTS clause [266](#page-266), [271](#page-271)
-Implicit attributes [339](#page-339)
+Language element list [15.83](#section-15-83)
+Language elements 22
+Native arithmetic [8.8.1.3](#section-8-8-1-3)
+Record types [A.4.11](#section-a-4-11)
+IMPLEMENTS clause [9.2](#section-9-2), [9.3.5.2](#section-9-3-5-2)
+Implicit attributes [12.3.8.4](#section-12-3-8-4)
 Implicit reference
-Definition [145](#page-145)
-Implicit scope terminators [535](#page-535)
-Implicit transfer of control [539](#page-539)
+Definition [8.3.3.6.4](#section-8-3-3-6-4)
+Implicit scope terminators [13.18.60.4](#section-13-18-60-4)
+Implicit transfer of control [13.18.60.4](#section-13-18-60-4)
 IN phrase
-COPY statement [46](#page-46)
-With identifiers [124](#page-124)
-With qualification [121](#page-121)
-IN-ARITHMETIC-RANGE [744](#page-744)
+COPY statement [7.2.3](#section-7-2-3)
+With identifiers [8.2](#section-8-2)
+With qualification [8.1.3.2](#section-8-1-3-2)
+IN-ARITHMETIC-RANGE [14.9.35.4](#section-14-9-35-4)
 IN-ARITHMETIC-RANGE phrase
-CLASS clause [194](#page-194)
-Incompatibility flagging [72](#page-72)
-Incompatible data [558](#page-558)
+CLASS clause [13.18.11](#section-13-18-11)
+Incompatibility flagging [7](#section-7)
+Incompatible data [14.6.13.2](#section-14-6-13-2)
 Index
-Definition [433](#page-433)
-Index-name [123](#page-123)
-Index category [162](#page-162), [163](#page-163), [506](#page-506)
-Index class [162](#page-162)
-Index data item [163](#page-163), [505](#page-505)
-Index functions [796](#page-796)
+Definition [13.18.24](#section-13-18-24)
+Index-name [8.3.2.2.11](#section-8-3-2-2-11)
+Index category [8.5.2.8](#section-8-5-2-8)
+Index class [8.4.3.3.4](#section-8-4-3-3-4)
+Index data item [8.4.3.4](#section-8-4-3-4), [13.18.46](#section-13-18-46)
+Index functions [14.9.46](#section-14-9-46)
 INDEX phrase
-USAGE clause [503](#page-503)
-INDEXED BY phrase [123](#page-123), [737](#page-737)
-OCCURS clause [430](#page-430)
+USAGE clause [13.18.60](#section-13-18-60)
+INDEXED BY phrase [8.1.4](#section-8-1-4), [14.9.33.4](#section-14-9-33-4)
+OCCURS clause [13.18.38](#section-13-18-38)
 Indexed files
-Definition [220](#page-220)
-Indexed organization [1007](#page-1007)
-INDEXED phrase [721](#page-721)
-ORGANIZATION clause [327](#page-327)
-Index-name [98](#page-98), [101](#page-101)
-Scope of [148](#page-148), [149](#page-149)
-Indicator area [36](#page-36)
-Indicators [33](#page-33)
-Comment [34](#page-34)
-Compiler directive [34](#page-34)
-Continuation [34](#page-34)
-Fixed [34](#page-34)
-Floating [34](#page-34)
-Literal continuation [34](#page-34)
-Source [34](#page-34)
+Definition [8.8.4.2.8](#section-8-8-4-2-8)
+Indexed organization [D.2.2.3](#section-d-2-2-3)
+INDEXED phrase [14.9.29](#section-14-9-29)
+ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+Index-name [8.3.2.2.11](#section-8-3-2-2-11)
+Scope of [8.3.5](#section-8-3-5), [8.4.2.1](#section-8-4-2-1)
+Indicator area [6.3.3](#section-6-3-3)
+Indicators [6.2](#section-6-2)
+Comment [3](#section-3)
+Compiler directive [3](#section-3)
+Continuation [3](#section-3)
+Fixed [3](#section-3)
+Floating [3](#section-3)
+Literal continuation [3](#section-3)
+Source [3](#section-3)
 Inheritance
-Conforming [251](#page-251)
+Conforming [9.1.8.2](#section-9-1-8-2)
 INHERITS clause
-CLASS-ID paragraph [264](#page-264)
-INTERFACE-ID paragraph [268](#page-268)
+CLASS-ID paragraph [11.3](#section-11-3)
+INTERFACE-ID paragraph [11.6](#section-11-6)
 INITIAL clause
-PROGRAM-ID paragraph [280](#page-280)
+PROGRAM-ID paragraph [11.10](#section-11-10)
 
 
 ---
 
 
-<a id="page-1247"></a>
-## Page [1247](#page-1247)
-
-# ISO/IEC 1989:2023 (E)
-
-Initial data [168](#page-168), [347](#page-347), [537](#page-537), [538](#page-538)
-Initial items [168](#page-168), [538](#page-538)
-Initial program [170](#page-170)
+Initial data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3), [13.18.60.4](#section-13-18-60-4)
+Initial items [8.4.3.9.3](#section-8-4-3-9-3), [13.18.60.4](#section-13-18-60-4)
+Initial program [8.4.3.11.2](#section-8-4-3-11-2)
 initial program
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [281](#page-281)
-Initial state [537](#page-537), [538](#page-538)
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [538](#page-538), [595](#page-595)
-INITIALIZE [276](#page-276)
-INITIALIZE clause [276](#page-276), [537](#page-537)
-INITIALIZE statement [521](#page-521), [637](#page-637)
-INITIALIZED [430](#page-430)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [9.3.9](#section-9-3-9)
+Initial state [14.6.2.3.2](#section-14-6-2-3-2)
+&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
+INITIALIZE [9.3.7](#section-9-3-7)
+INITIALIZE clause [11.9.10](#section-11-9-10)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+INITIALIZED [13.18.22](#section-13-18-22)
 INITIALIZED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [586](#page-586)
-INITIATE statement [642](#page-642), [677](#page-677), [775](#page-775)
-Inline comment [38](#page-38), [40](#page-40)
-Inline method invocation [133](#page-133)
-Input distribution [781](#page-781)
+&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
+INITIATE statement [14.9.21](#section-14-9-21)
+Inline comment [3](#section-3)
+Inline method invocation [8.4.3.4](#section-8-4-3-4)
+Input distribution [D.22.3](#section-d-22-3)
 INPUT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [682](#page-682)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
 INPUT PROCEDURE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [745](#page-745)
-Input-output section [310](#page-310)
-Insertion character [454](#page-454)
-INSPECT statement [643](#page-643)
-INSPECT statement examples [1151](#page-1151)
-Instance data [250](#page-250)
-Instance method [1105](#page-1105)
-Instance object [240](#page-240), [271](#page-271), [1105](#page-1105)
-&nbsp;&nbsp;&nbsp;&nbsp;Life cycle for [252](#page-252)
-instance-definition [258](#page-258)
-int_curr_symbol [95](#page-95)
-int_frac_digits [96](#page-96)
+&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
+Input-output section [12.4](#section-12-4)
+Insertion character [13.18.35.4](#section-13-18-35-4)
+INSPECT statement [14.9.22](#section-14-9-22)
+INSPECT statement examples [D.19.5.4.3](#section-d-19-5-4-3)
+Instance data [9.1.7.3](#section-9-1-7-3)
+Instance method [D.11.4](#section-d-11-4)
+Instance object [8.10](#section-8-10), [9.3.5.2](#section-9-3-5-2), [D.11.4](#section-d-11-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Life cycle for [9.1.10](#section-9-1-10)
+instance-definition [9.1.13.8](#section-9-1-13-8)
+int_curr_symbol [7.3.12.4](#section-7-3-12-4)
+int_frac_digits [7.3.13](#section-7-3-13)
 Integer
-&nbsp;&nbsp;&nbsp;&nbsp;In general formats and rules [31](#page-31)
-Integer date form [805](#page-805)
-INTEGER function [867](#page-867)
-Integer functions [796](#page-796)
-Integer literal [109](#page-109)
-Integer-n [28](#page-28)
-INTEGER-OF-BOOLEAN function [868](#page-868)
-INTEGER-OF-DATE function [869](#page-869)
-INTEGER-OF-DAY function [870](#page-870)
-INTEGER-OF-FORMATTED-DATE function [871](#page-871)
-INTEGER-PART function [872](#page-872)
+&nbsp;&nbsp;&nbsp;&nbsp;In general formats and rules [1](#section-1)
+Integer date form [15.5.2](#section-15-5-2)
+INTEGER function [15.44](#section-15-44)
+Integer functions [14.9.46](#section-14-9-46)
+Integer literal [7.3.19](#section-7-3-19)
+Integer-n 28
+INTEGER-OF-BOOLEAN function [15.45](#section-15-45)
+INTEGER-OF-DATE function [15.46](#section-15-46)
+INTEGER-OF-DAY function [15.47](#section-15-47)
+INTEGER-OF-FORMATTED-DATE function [15.48](#section-15-48)
+INTEGER-PART function [15.49](#section-15-49)
 Interface
-&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [252](#page-252)
-Interface-definition [259](#page-259)
-INTERFACE-ID paragraph [268](#page-268)
-Interface-name [98](#page-98), [101](#page-101)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [149](#page-149)
-Interfaces [246](#page-246)
-INTERMEDIATE ROUNDING clause [278](#page-278)
-Internal items [168](#page-168)
-International date and time [1166](#page-1166)
+&nbsp;&nbsp;&nbsp;&nbsp;Parameterized [9.1.10](#section-9-1-10)
+Interface-definition [9.1.13.9](#section-9-1-13-9)
+INTERFACE-ID paragraph [11.6](#section-11-6)
+Interface-name [8.3.2.2.12](#section-8-3-2-2-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
+Interfaces [9.3.8.2.2](#section-9-3-8-2-2)
+INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+Internal items [8.4.3.9.3](#section-8-4-3-9-3)
+International date and time [D.20.6](#section-d-20-6)
 INTO phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
 
-READ statement [692](#page-692)
-RETURN statement [708](#page-708)
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
-Intrinsic function summary [806](#page-806)
-Intrinsic functions [796](#page-796)
-Intrinsic-function-name [106](#page-106)
-INVALID clause [413](#page-413)
-INVALID KEY [222](#page-222)
-Invalid key condition [230](#page-230), [757](#page-757)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [560](#page-560)
-INVALID KEY phrase [230](#page-230)
-&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [605](#page-605)
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [692](#page-692)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [710](#page-710)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [754](#page-754)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [786](#page-786)
+READ statement [14.9.30](#section-14-9-30)
+RETURN statement [14.9.34](#section-14-9-34)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
+Intrinsic function summary [14.9.49.4](#section-14-9-49-4)
+Intrinsic functions [15](#section-15)
+Intrinsic-function-name [7.3.17](#section-7-3-17)
+INVALID clause [13.18.31](#section-13-18-31)
+INVALID KEY [8.8.4.2.13](#section-8-8-4-2-13)
+Invalid key condition [9.1.14](#section-9-1-14)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [14.2.3](#section-14-2-3)
+INVALID KEY phrase [8.8.4.8.4](#section-8-8-4-8-4)
+&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [14.9.10](#section-14-9-10)
+&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
+&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
+&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
 INVALID phrase
-&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [516](#page-516)
-Invocation operator [173](#page-173)
-INVOKE statement [651](#page-651)
+&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [13.18.63](#section-13-18-63)
+Invocation operator [8.7.4](#section-8-7-4)
+INVOKE statement [14.9.23](#section-14-9-23)
 I-O phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [682](#page-682)
-&nbsp;&nbsp;&nbsp;&nbsp;USE statement [774](#page-774)
-I-O status [223](#page-223), [230](#page-230), [714](#page-714), [1011](#page-1011)
-I-O-CONTROL paragraph [333](#page-333)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+&nbsp;&nbsp;&nbsp;&nbsp;USE statement [14.9.49](#section-14-9-49)
+I-O status [9.1.13](#section-9-1-13)
+I-O-CONTROL paragraph [12.4.6](#section-12-4-6)
 IO-STATUS-07 option
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [71](#page-71)
-ISO [196](#page-196)
-ISO 8601 [1174](#page-1174)
-ISO 8601-1 [2](#page-2), [799](#page-799), [801](#page-801), [805](#page-805), [1166](#page-1166)
-ISO/IEC 1001 [2](#page-2), [328](#page-328)
-ISO/IEC 10646 [2](#page-2), [12](#page-12), [88](#page-88), [91](#page-91), [153](#page-153), [299](#page-299), [998](#page-998), [1073](#page-1073), [1176](#page-1176)
-ISO/IEC 14651 [2](#page-2), [302](#page-302), [916](#page-916), [947](#page-947), [972](#page-972), [973](#page-973), [1081](#page-1081)
-ISO/IEC 1989 [1203](#page-1203)
-ISO/IEC 1989:2002 [72](#page-72)
-ISO/IEC 60559 [2](#page-2), [177](#page-177), [178](#page-178), [179](#page-179), [180](#page-180), [181](#page-181), [182](#page-182), [196](#page-196), [199](#page-199), [507](#page-507), [508](#page-508), [509](#page-509), [543](#page-543), [743](#page-743), [958](#page-958), [1100](#page-1100), [1195](#page-1195)
-ISO/IEC 646 [2](#page-2), [88](#page-88), [91](#page-91), [107](#page-107), [298](#page-298), [1073](#page-1073), [1078](#page-1078), [1080](#page-1080)
-ISO/IEC 9945 [2](#page-2), [94](#page-94)
-Item identification [540](#page-540)
+&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [7.3.14](#section-7-3-14)
+ISO [8.5.3.1](#section-8-5-3-1)
+ISO 8601 [D.22.8.2](#section-d-22-8-2)
+ISO 8601-1 2, [14.9.47.4](#section-14-9-47-4), [14.9.48.4](#section-14-9-48-4), [14.9.49.2](#section-14-9-49-2), [D.20.5.2](#section-d-20-5-2)
+ISO/IEC 1001 2, [12.3.7.4](#section-12-3-7-4)
+ISO/IEC 10646 2, 12, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [8.4.2.3.2](#section-8-4-2-3-2), [11.6.4](#section-11-6-4), [A.2](#section-a-2), [D.6.1.1](#section-d-6-1-1), [D.22.8.3](#section-d-22-8-3)
+ISO/IEC 14651 2, [11.8.4](#section-11-8-4), [15.60.4](#section-15-60-4), [15.85.4](#section-15-85-4), [16.2.1.1](#section-16-2-1-1), [16.2.2.2](#section-16-2-2-2), [D.6.4.3](#section-d-6-4-3)
+ISO/IEC 1989 [E.2](#section-e-2)
+ISO/IEC 1989:2002 [6.5](#section-6-5)
+ISO/IEC 60559 2, [8.4.6.1](#section-8-4-6-1), [8.4.6.2.1](#section-8-4-6-2-1), [8.4.6.2.6](#section-8-4-6-2-6), [8.4.6.5](#section-8-4-6-5), [8.4.6.11](#section-8-4-6-11), [8.5.1.3.1](#section-8-5-1-3-1), [8.5.3.1](#section-8-5-3-1), [8.6.4](#section-8-6-4), [13.18.47.3](#section-13-18-47-3), [13.18.48.3](#section-13-18-48-3), [13.18.49.4](#section-13-18-49-4), [13.18.61.4](#section-13-18-61-4), [14.9.35.4](#section-14-9-35-4), [15.93.4](#section-15-93-4), [D.10](#section-d-10), [D.31.3.2](#section-d-31-3-2)
+ISO/IEC 646 2, [7.3.8.3](#section-7-3-8-3), [7.3.10.4](#section-7-3-10-4), [7.3.17.4](#section-7-3-17-4), [11.5.4](#section-11-5-4), [D.6.1.1](#section-d-6-1-1), [D.6.3.2](#section-d-6-3-2), [D.6.3.6](#section-d-6-3-6)
+ISO/IEC 9945 2, [7.3.11.4](#section-7-3-11-4)
+Item identification [14.6.4](#section-14-6-4)
 
 ## J
 
-Julian date form [806](#page-806)
-JUSTIFIED clause [414](#page-414), [518](#page-518), [759](#page-759)
-&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [363](#page-363)
+Julian date form [15.5.4](#section-15-5-4)
+JUSTIFIED clause [13.18.32](#section-13-18-32)
+&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [13.16](#section-13-16)
 
 ## K
 
-Key of reference [757](#page-757)
+Key of reference [14.9.38.4](#section-14-9-38-4)
 KEY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [692](#page-692)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [754](#page-754)
-Keywords [27](#page-27)
-Known errors in the standard [1201](#page-1201)
+&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
+&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
+Keywords [5.2.2](#section-5-2-2)
+Known errors in the standard [D.32](#section-d-32)
 
 
 ---
 
-<a id="page-1248"></a>
-## Page [1248](#page-1248)
-
-# ISO/IEC 1989:2023 (E)
 
 ## L
 
 LAST DETAIL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PAGE clause [438](#page-438)
-LAST EXCEPTION phrase [631](#page-631)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [623](#page-623)
-Last exception status [1092](#page-1092)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [547](#page-547)
+&nbsp;&nbsp;&nbsp;&nbsp;PAGE clause [13.18.39](#section-13-18-39)
+LAST EXCEPTION phrase [14.9.7](#section-14-9-7)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
+Last exception status [D.8.2](#section-d-8-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.63.3](#section-13-18-63-3)
 LAST phrase
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [754](#page-754)
-Last-used state [537](#page-537), [538](#page-538)
-LC_ALL [94](#page-94)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_COLLATE [94](#page-94), [116](#page-116), [541](#page-541)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_CTYPE [94](#page-94), [541](#page-541), [881](#page-881), [934](#page-934)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_MESSAGES [94](#page-94)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_MONETARY [94](#page-94), [541](#page-541)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_NUMERIC [94](#page-94)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-LC_TIME [94](#page-94), [542](#page-542)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
+&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
+Last-used state [14.6.2.3.3](#section-14-6-2-3-3)
+LC_ALL [7.3.12.2](#section-7-3-12-2)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_COLLATE [7.3.12](#section-7-3-12), [7.3.25.4](#section-7-3-25-4), [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_CTYPE [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4), [15.31.3](#section-15-31-3), [15.74](#section-15-74)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_MESSAGES [7.3.12](#section-7-3-12)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_MONETARY [7.3.12](#section-7-3-12), [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_NUMERIC [7.3.12](#section-7-3-12)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+LC_TIME [7.3.12.1](#section-7-3-12-1), [13.18.61](#section-13-18-61)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
 LEADING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [643](#page-643)
-&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [483](#page-483)
-LEAP-SECOND directive [76](#page-76)
+&nbsp;&nbsp;&nbsp;&nbsp;INSPECT statement [14.9.22](#section-14-9-22)
+&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [13.18.52](#section-13-18-52)
+LEAP-SECOND directive [7.3.17](#section-7-3-17)
 LEFT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [491](#page-491)
-LENGTH function [873](#page-873)
+&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+LENGTH function [15.50](#section-15-50)
 LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [355](#page-355)
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [754](#page-754)
-Letter mapping [998](#page-998)
-Level-number [98](#page-98), [102](#page-102), [152](#page-152), [415](#page-415)
-&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [363](#page-363)
-&nbsp;&nbsp;&nbsp;&nbsp;Screen description entry [368](#page-368)
-Levels [151](#page-151)
-Lexical elements [97](#page-97)
-Library text [44](#page-44)
-Library-name [46](#page-46), [105](#page-105)
+&nbsp;&nbsp;&nbsp;&nbsp;Constant entry [13.10](#section-13-10)
+&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
+Letter mapping [A.2](#section-a-2)
+Level-number [8.3.2.2.13](#section-8-3-2-2-13)
+&nbsp;&nbsp;&nbsp;&nbsp;Data description entry [13.16](#section-13-16)
+&nbsp;&nbsp;&nbsp;&nbsp;Screen description entry [13.17](#section-13-17)
+Levels [8.5.1.3](#section-8-5-1-3)
+Lexical elements [8.3](#section-8-3)
+Library text [3](#section-3)
+Library-name [8.3.2.3.9](#section-8-3-2-3-9)
 Life cycle
-&nbsp;&nbsp;&nbsp;&nbsp;Data [167](#page-167)
-&nbsp;&nbsp;&nbsp;&nbsp;Object [252](#page-252)
+&nbsp;&nbsp;&nbsp;&nbsp;Data [8.4.3.9.1](#section-8-4-3-9-1)
+&nbsp;&nbsp;&nbsp;&nbsp;Object [9.1.10](#section-9-1-10)
 LIMIT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH clause [363](#page-363), [397](#page-397)
-LINAGE clause [417](#page-417)
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [342](#page-342)
-Linage concepts [1010](#page-1010)
-LINAGE-COUNTER [142](#page-142), [148](#page-148)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified [122](#page-122)
+&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH clause [13.18.19](#section-13-18-19)
+LINAGE clause [13.18.34](#section-13-18-34)
+&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
+Linage concepts [D.2.3.2.8](#section-d-2-3-2-8)
+LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
+&nbsp;&nbsp;&nbsp;&nbsp;Qualified [8.1.3.2](#section-8-1-3-2)
 Line
-&nbsp;&nbsp;&nbsp;&nbsp;Comment [38](#page-38), [39](#page-39)
-&nbsp;&nbsp;&nbsp;&nbsp;Continuation [38](#page-38)
-&nbsp;&nbsp;&nbsp;&nbsp;Floating indicator [34](#page-34)
-&nbsp;&nbsp;&nbsp;&nbsp;Slant (/) comment line [38](#page-38)
+&nbsp;&nbsp;&nbsp;&nbsp;Comment [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Continuation [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Floating indicator [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Slant (/) comment line [3](#section-3)
 
-&nbsp;&nbsp;&nbsp;&nbsp;Source text [33](#page-33)
+&nbsp;&nbsp;&nbsp;&nbsp;Source text [3](#section-3)
 LINE (LINES) phrase
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [785](#page-785)
-LINE clause [420](#page-420)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
+LINE clause [13.18.35](#section-13-18-35)
 LINE NUMBER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [577](#page-577)
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [610](#page-610)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
+&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
 line sequential files
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [219](#page-219)
-LINE-COUNTER [143](#page-143), [148](#page-148), [358](#page-358), [422](#page-422)
-&nbsp;&nbsp;&nbsp;&nbsp;Qualified [122](#page-122)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.8.4.2.5](#section-8-8-4-2-5)
+LINE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11), [13.18.16](#section-13-18-16)
+&nbsp;&nbsp;&nbsp;&nbsp;Qualified [8.1.3.2](#section-8-1-3-2)
 LINES AT BOTTOM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [417](#page-417)
+&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
 LINES AT clause
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [342](#page-342)
+&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
 LINES AT TOP phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [417](#page-417)
-Linkage section [349](#page-349)
-LISTING [65](#page-65)
-LISTING directive [78](#page-78)
-Literal continuation indicator [34](#page-34)
+&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
+Linkage section [13.7](#section-13-7)
+LISTING [6.2.3.2](#section-6-2-3-2)
+LISTING directive [7.3.18](#section-7-3-18)
+Literal continuation indicator [3](#section-3)
 Literal delimiter
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [118](#page-118)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
 Literal-phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [291](#page-291)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 Literals
-&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [107](#page-107)
-&nbsp;&nbsp;&nbsp;&nbsp;Boolean [110](#page-110)
-&nbsp;&nbsp;&nbsp;&nbsp;National [111](#page-111)
-&nbsp;&nbsp;&nbsp;&nbsp;Numeric [109](#page-109)
-little-endian [509](#page-509)
-Local names [147](#page-147), [167](#page-167)
-Local time format [802](#page-802)
-Locale [94](#page-94)
-&nbsp;&nbsp;&nbsp;&nbsp;Category names [94](#page-94)
-&nbsp;&nbsp;&nbsp;&nbsp;Field names [94](#page-94), [95](#page-95)
-LOCALE argument [920](#page-920)
-LOCALE clause [166](#page-166)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Locale identification [541](#page-541)
-LOCALE phrase [166](#page-166), [541](#page-541)
-&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [441](#page-441)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [291](#page-291)
-LOCALE-COMPARE function [875](#page-875)
-LOCALE-DATE function [876](#page-876)
-Locale-name [98](#page-98)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [102](#page-102)
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [285](#page-285)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [146](#page-146)
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [731](#page-731)
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [290](#page-290)
-Locale-names [289](#page-289)
-LOCALE-TIME function [877](#page-877)
-LOCALE-TIME-FROM-SECONDS function [878](#page-878)
-Local-storage section [348](#page-348)
-LOCATION [206](#page-206), [682](#page-682)
-LOCK MODE clause [325](#page-325)
+&nbsp;&nbsp;&nbsp;&nbsp;Alphanumeric [7.3.17.4](#section-7-3-17-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Boolean [7.3.20](#section-7-3-20)
+&nbsp;&nbsp;&nbsp;&nbsp;National [7.3.21](#section-7-3-21)
+&nbsp;&nbsp;&nbsp;&nbsp;Numeric [7.3.19](#section-7-3-19)
+little-endian [13.18.49.4](#section-13-18-49-4)
+Local names [8.3.4](#section-8-3-4), [8.4.3.8.4](#section-8-4-3-8-4)
+Local time format [14.9.48.4](#section-14-9-48-4)
+Locale [7.3.12](#section-7-3-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Category names [7.3.12](#section-7-3-12)
+&nbsp;&nbsp;&nbsp;&nbsp;Field names [7.3.12](#section-7-3-12), [7.3.12.4](#section-7-3-12-4)
+LOCALE argument [15.65](#section-15-65)
+LOCALE clause [8.4.3.7](#section-8-4-3-7)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Locale identification [14.6.6](#section-14-6-6)
+LOCALE phrase [8.4.3.7](#section-8-4-3-7), [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [13.18.40](#section-13-18-40)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+LOCALE-COMPARE function [15.51](#section-15-51)
+LOCALE-DATE function [15.52](#section-15-52)
+Locale-name [8.3.2.2.14](#section-8-3-2-2-14)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.15](#section-7-3-15)
+&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, locale [14.9.30.4](#section-14-9-30-4)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Locale-names [10.6.2](#section-10-6-2)
+LOCALE-TIME function [15.53](#section-15-53)
+LOCALE-TIME-FROM-SECONDS function [15.54](#section-15-54)
+Local-storage section [13.6](#section-13-6)
+LOCATION [8.8.1.3](#section-8-8-1-3), [14.9.23.3](#section-14-9-23-3)
+LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
 
 ---
 
@@ -52769,253 +46670,243 @@ LOCK MODE clause [325](#page-325)
 ---
 
 
-<a id="page-1249"></a>
-## Page [1249](#page-1249)
-
-# ISO/IEC 1989:2023 (E)
-
-FILE-CONTROL paragraph [312](#page-312)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
 LOCK ON MULTIPLE clause
-LOCK MODE clause [325](#page-325)
+LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
 LOCK phrase
-READ statement [692](#page-692)
-REWRITE statement [710](#page-710)
-WRITE statement [786](#page-786)
-LOG function [879](#page-879)
-LOG10 function [880](#page-880)
-Logical file [217](#page-217)
-Logical operators [174](#page-174)
-In complex conditions [200](#page-200)
-Logical record [381](#page-381), [1007](#page-1007)
+READ statement [14.9.30](#section-14-9-30)
+REWRITE statement [14.9.35](#section-14-9-35)
+WRITE statement [14.9.51](#section-14-9-51)
+LOG function [15.55](#section-15-55)
+LOG10 function [15.56](#section-15-56)
+Logical file [8.8.4.2.2](#section-8-8-4-2-2)
+Logical operators [8.7.6](#section-8-7-6)
+In complex conditions [8.6.5](#section-8-6-5)
+Logical record [13.8](#section-13-8), [A.4.8](#section-a-4-8)
 Logical unit of work
-Definition [232](#page-232)
-LOWER-CASE function [881](#page-881), [920](#page-920)
-Lowercase letters [90](#page-90)
-LOWEST-ALGEBRAIC function [882](#page-882)
-LOWLIGHT clause [426](#page-426)
+Definition [8.8.4.12](#section-8-8-4-12)
+LOWER-CASE function [15.57](#section-15-57)
+Lowercase letters [7.3.10](#section-7-3-10)
+LOWEST-ALGEBRAIC function [15.58](#section-15-58)
+LOWLIGHT clause [13.18.36](#section-13-18-36)
 LOWLIGHT phrase
-SET statement, attribute setting [730](#page-730)
-LOW-VALUE/LOW-VALUES figurative constant [116](#page-116)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+LOW-VALUE/LOW-VALUES figurative constant [7.3.25.4](#section-7-3-25-4)
 
 ## M
 
 MANUAL phrase
-LOCK MODE clause [325](#page-325)
-Mapping letters [998](#page-998)
+LOCK MODE clause [12.4.5.9](#section-12-4-5-9)
+Mapping letters [A.2](#section-a-2)
 Matching
-Definition [161](#page-161)
-Variable-length groups [161](#page-161)
-MAX function [884](#page-884)
+Definition [8.4.3.3](#section-8-4-3-3)
+Variable-length groups [8.5.1.12](#section-8-5-1-12)
+MAX function [15.59](#section-15-59)
 Maximum capacity
-Exceeding [157](#page-157)
+Exceeding [8.4.3.1.4](#section-8-4-3-1-4)
 Maximum capacity of a dynamic table
-Definition [156](#page-156)
-MEAN function [885](#page-885)
-MEDIAN function [886](#page-886)
-Merge file [234](#page-234)
-MERGE statement [657](#page-657), [708](#page-708)
-Merging [1011](#page-1011)
-message tag [702](#page-702)
-MESSAGE-TAG [505](#page-505)
-message-tag [727](#page-727)
-Message-tag category [162](#page-162), [164](#page-164)
-Message-tag class [162](#page-162)
-Meta-terms [30](#page-30)
-Method [941](#page-941)
-Invocation [242](#page-242)
-Method definition [240](#page-240)
+Definition 156
+MEAN function [15.60](#section-15-60)
+MEDIAN function [15.61](#section-15-61)
+Merge file [9.1.20](#section-9-1-20)
+MERGE statement [14.9.24](#section-14-9-24)
+Merging [D.2.3.3.3](#section-d-2-3-3-3)
+message tag [14.9.25.4](#section-14-9-25-4)
+MESSAGE-TAG [13.18.46](#section-13-18-46)
+message-tag [14.9.30.4](#section-14-9-30-4)
+Message-tag category [8.5.2.9](#section-8-5-2-9)
+Message-tag class [8.4.3.3.4](#section-8-4-3-3-4)
+Meta-terms [5.2.10](#section-5-2-10)
+Method [15.81](#section-15-81)
+Invocation [8.10](#section-8-10)
+Method definition [8.10](#section-8-10)
 Method invocation
-Failure [568](#page-568)
-Method overloading [241](#page-241)
+Failure [14.6.2.3.2](#section-14-6-2-3-2)
+Method overloading [8.10](#section-8-10)
 METHOD phrase
-EXIT statement [623](#page-623)
-Method prototypes [246](#page-246), [260](#page-260)
+EXIT statement [14.9.14](#section-14-9-14)
+Method prototypes [9.3.7](#section-9-3-7)
 Method resolution signature
 
-Definition [241](#page-241)
-Method-definition [259](#page-259)
-METHOD-ID paragraph [269](#page-269)
-Method-name [98](#page-98), [102](#page-102)
-METHOD-ID paragraph [269](#page-269)
-Scope of [149](#page-149)
-Methods [240](#page-240)
-MIDRANGE function [887](#page-887)
-MIN function [888](#page-888)
-Minutes subfield [801](#page-801)
-Mnemonic-name [98](#page-98), [102](#page-102), [289](#page-289)
-ACCEPT statement [576](#page-576)
-DISPLAY statement [610](#page-610)
-Scope of [146](#page-146)
-SET statement, switch setting [729](#page-729)
-SPECIAL-NAMES paragraph [290](#page-290)
-WRITE statement [785](#page-785)
-MOD function [889](#page-889)
-mon_decimal_point [95](#page-95)
-mon_grouping [95](#page-95)
-mon_thousands_sep [95](#page-95)
-Month subfield [799](#page-799)
+Definition [8.10](#section-8-10)
+Method-definition [9.1.13.9](#section-9-1-13-9)
+METHOD-ID paragraph [11.7](#section-11-7)
+Method-name [8.3.2.2.15](#section-8-3-2-2-15)
+METHOD-ID paragraph [11.7](#section-11-7)
+Scope of [8.4.2.1](#section-8-4-2-1)
+Methods [9.3.4](#section-9-3-4)
+MIDRANGE function [15.62](#section-15-62)
+MIN function [15.63](#section-15-63)
+Minutes subfield [14.9.48.4](#section-14-9-48-4)
+Mnemonic-name [8.3.2.2.16](#section-8-3-2-2-16)
+ACCEPT statement [14.9.1](#section-14-9-1)
+DISPLAY statement [14.9.11](#section-14-9-11)
+Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+WRITE statement [14.9.51](#section-14-9-51)
+MOD function [15.64](#section-15-64)
+mon_decimal_point [7.3.12.4](#section-7-3-12-4)
+mon_grouping [7.3.12.4](#section-7-3-12-4)
+mon_thousands_sep [7.3.12.4](#section-7-3-12-4)
+Month subfield [14.9.48](#section-14-9-48)
 MOVE
-Dynamic-capacity tables [544](#page-544)
-MOVE statement [71](#page-71), [512](#page-512), [564](#page-564), [612](#page-612), [664](#page-664), [771](#page-771)
-CORRESPONDING phrase [564](#page-564)
-Implicit [639](#page-639)
+Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+MOVE statement [14.9.25](#section-14-9-25)
+CORRESPONDING phrase [14.7.6](#section-14-7-6)
+Implicit [14.9.10.4](#section-14-9-10-4)
 MOVE-TO-SAME-NAME option
-FLAG-02 directive [71](#page-71)
-Multilingual support [1082](#page-1082)
-MULTIPLY statement [564](#page-564), [673](#page-673)
+FLAG-02 directive [7.3.14](#section-7-3-14)
+Multilingual support [D.6.5.3.1](#section-d-6-5-3-1)
+MULTIPLY statement [14.9.26](#section-14-9-26)
 
 ## N
 
-N PICTURE symbol [441](#page-441)
-n_cs_precedes [96](#page-96)
-Names [1047](#page-1047)
+N PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+n_cs_precedes [7.3.13](#section-7-3-13)
+Names [D.6.3.2](#section-d-6-3-2)
 NaN
-Definition [196](#page-196)
-NATIONAL [410](#page-410)
-National category [162](#page-162), [164](#page-164), [411](#page-411), [446](#page-446)
-National character set [87](#page-87), [1073](#page-1073)
-National class [162](#page-162)
-National coded character set [87](#page-87), [1073](#page-1073)
-National data item [164](#page-164)
-National functions [796](#page-796)
-National group item [410](#page-410)
-National literal [111](#page-111)
-Continuation of [37](#page-37), [39](#page-39)
+Definition [8.5.3.1](#section-8-5-3-1)
+NATIONAL [13.18.9](#section-13-18-9)
+National category [8.5.2.10](#section-8-5-2-10)
+National character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+National class [8.4.3.3.4](#section-8-4-3-3-4)
+National coded character set [7.3.7.3](#section-7-3-7-3), [D.6.1.1](#section-d-6-1-1)
+National data item [8.4.3.5](#section-8-4-3-5)
+National functions [14.9.46](#section-14-9-46)
+National group item [13.18.9](#section-13-18-9)
+National literal [7.3.21](#section-7-3-21)
+Continuation of [3](#section-3)
 NATIONAL phrase
-CODE-SET clause [384](#page-384)
-COLLATING SEQUENCE clause [322](#page-322)
-INITIALIZE statement [637](#page-637)
-MERGE statement [657](#page-657)
-SORT statement [745](#page-745)
-SPECIAL-NAMES paragraph [290](#page-290), [291](#page-291)
-National-edited category [162](#page-162), [164](#page-164), [446](#page-446)
+CODE-SET clause [13.18.13](#section-13-18-13)
+COLLATING SEQUENCE clause [12.4.5.7](#section-12-4-5-7)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+MERGE statement [14.9.24](#section-14-9-24)
+SORT statement [14.9.40](#section-14-9-40)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+National-edited category [8.5.2.11](#section-8-5-2-11)
 
 
 ---
 
 
-<a id="page-1250"></a>
-## Page [1250](#page-1250)
-
-# ISO/IEC 1989:2023 (E)
-
-National-edited data item [164](#page-164)
+National-edited data item [8.4.3.5](#section-8-4-3-5)
 NATIONAL-EDITED phrase
-INITIALIZE statement [637](#page-637)
-NATIONAL-OF function [892](#page-892)
-Native arithmetic [31](#page-31), [175](#page-175), [176](#page-176), [565](#page-565), [673](#page-673), [764](#page-764), [804](#page-804)
-NATIVE phrase [272](#page-272)
-ARITHMETIC clause [272](#page-272)
-SPECIAL-NAMES paragraph [291](#page-291)
-Natural language text [32](#page-32)
-Natural logarithm [843](#page-843), [879](#page-879)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+NATIONAL-OF function [15.66](#section-15-66)
+Native arithmetic [8.8.1.3](#section-8-8-1-3)
+NATIVE phrase [9.3.6](#section-9-3-6)
+ARITHMETIC clause [11.9.5](#section-11-9-5)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Natural language text [2](#section-2)
+Natural logarithm [15.6](#section-15-6), [15.30.3](#section-15-30-3)
 NEAREST EVEN phrase
-DEFAULT ROUNDED clause [273](#page-273)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
 NEAREST-AWAY-FROM-ZERO phrase
-DEFAULT ROUNDED clause [273](#page-273)
-INTERMEDIATE ROUNDING clause [278](#page-278)
-ROUNDED phrase [560](#page-560)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+ROUNDED phrase [14.7.4](#section-14-7-4)
 NEAREST-EVEN phrase
-DEFAULT ROUNDED clause [273](#page-273)
-INTERMEDIATE ROUNDING clause [278](#page-278)
-ROUNDED phrase [560](#page-560)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+ROUNDED phrase [14.7.4](#section-14-7-4)
 NEAREST-TOWARD-ZERO phrase
-DEFAULT ROUNDED clause [273](#page-273)
-ROUNDED phrase [560](#page-560)
-NEAREST-TO-ZERO [743](#page-743)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+ROUNDED phrase [14.7.4](#section-14-7-4)
+NEAREST-TO-ZERO [14.9.35.4](#section-14-9-35-4)
 NEAREST-TO-ZERO phrase
-CLASS clause [194](#page-194)
-SET statement [732](#page-732)
-Negated conditions [200](#page-200)
-negative_sign [96](#page-96)
-NESTED phrase [589](#page-589)
-Nested statement [536](#page-536)
-New method [941](#page-941)
-Next executable statement [540](#page-540)
-NEXT GROUP clause [427](#page-427)
-NEXT PAGE phrase [421](#page-421)
-NEXT GROUP clause [427](#page-427)
+CLASS clause [13.18.11](#section-13-18-11)
+SET statement [14.9.39](#section-14-9-39)
+Negated conditions [8.6.5](#section-8-6-5)
+negative_sign [7.3.13](#section-7-3-13)
+NESTED phrase [14.6.13.3](#section-14-6-13-3)
+Nested statement [13.18.60.4](#section-13-18-60-4)
+New method [16.2.1](#section-16-2-1)
+Next executable statement [13.18.60.4](#section-13-18-60-4)
+NEXT GROUP clause [13.18.37](#section-13-18-37)
+NEXT PAGE phrase [13.18.15](#section-13-18-15)
+NEXT GROUP clause [13.18.37](#section-13-18-37)
 NEXT phrase
-READ statement [692](#page-692)
+READ statement [14.9.30](#section-14-9-30)
 NEXT RECORD phrase
-READ statement [692](#page-692)
+READ statement [14.9.30](#section-14-9-30)
 NEXT SENTENCE phrase
-IF statement [635](#page-635)
-SEARCH statement [720](#page-720)
+IF statement [14.9.19](#section-14-9-19)
+SEARCH statement [14.9.37](#section-14-9-37)
 NEXT STATEMENT phrase
-RESUME statement [706](#page-706)
+RESUME statement [14.9.33](#section-14-9-33)
 NO ADVANCING phrase
-DISPLAY statement [610](#page-610)
+DISPLAY statement [14.9.11](#section-14-9-11)
 NO LOCK phrase
-READ statement [692](#page-692)
-REWRITE statement [710](#page-710)
-WRITE statement [786](#page-786)
+READ statement [14.9.30](#section-14-9-30)
+REWRITE statement [14.9.35](#section-14-9-35)
+WRITE statement [14.9.51](#section-14-9-51)
 NO OTHER phrase
-OPEN statement [675](#page-675)
-SHARING clause [332](#page-332)
+OPEN statement [14.9.27](#section-14-9-27)
+SHARING clause [12.4.5.15](#section-12-4-5-15)
 NO REWIND phrase
-CLOSE statement [597](#page-597)
-OPEN statement [675](#page-675)
-Noncontiguous data items [152](#page-152)
+CLOSE statement [14.9.6](#section-14-9-6)
+OPEN statement [14.9.27](#section-14-9-27)
+Noncontiguous data items [8.4.2.3](#section-8-4-2-3)
 
-Noncontiguous elementary items [357](#page-357)
-Nonfatal exception conditions [550](#page-550)
-Nonstandard extension flagging [23](#page-23)
+Noncontiguous elementary items [12.4.5.10](#section-12-4-5-10)
+Nonfatal exception conditions [14.6.13.1.4](#section-14-6-13-1-4)
+Nonstandard extension flagging 23
 NORMAL phrase
-STOP statement [758](#page-758)
-Normal run unit termination [545](#page-545)
+STOP statement [14.9.42](#section-14-9-42)
+Normal run unit termination [14.6.11](#section-14-6-11)
 NOT AT END phrase
-READ statement [692](#page-692)
-RETURN statement [708](#page-708)
+READ statement [14.9.30](#section-14-9-30)
+RETURN statement [14.9.34](#section-14-9-34)
 NOT AT END-OF-PAGE phrase
-WRITE statement [785](#page-785)
+WRITE statement [14.9.51](#section-14-9-51)
 NOT AT EOP phrase
-WRITE statement [785](#page-785)
+WRITE statement [14.9.51](#section-14-9-51)
 NOT INVALID KEY phrase
-DELETE statement [605](#page-605)
-READ statement [692](#page-692)
-REWRITE statement [710](#page-710)
-START statement [754](#page-754)
-WRITE statement [786](#page-786)
+DELETE statement [14.9.10](#section-14-9-10)
+READ statement [14.9.30](#section-14-9-30)
+REWRITE statement [14.9.35](#section-14-9-35)
+START statement [14.9.41](#section-14-9-41)
+WRITE statement [14.9.51](#section-14-9-51)
 NOT ON EXCEPTION phrase
-ACCEPT statement [577](#page-577)
-CALL statement [588](#page-588)
-DISPLAY statement [610](#page-610)
-RECEIVE statement [703](#page-703)
-SEND statement [727](#page-727)
+ACCEPT statement [14.9.1](#section-14-9-1)
+CALL statement [14.9.4](#section-14-9-4)
+DISPLAY statement [14.9.11](#section-14-9-11)
+RECEIVE statement [14.9.31](#section-14-9-31)
+SEND statement [14.9.38](#section-14-9-38)
 NOT ON OVERFLOW phrase
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
 NOT ON SIZE ERROR phrase
-ADD statement [583](#page-583)
-COMPUTE statement [602](#page-602)
-DIVIDE statement [614](#page-614)
-MULTIPLY statement [673](#page-673)
-SUBTRACT statement [762](#page-762)
+ADD statement [14.9.2](#section-14-9-2)
+COMPUTE statement [14.9.8](#section-14-9-8)
+DIVIDE statement [14.9.12](#section-14-9-12)
+MULTIPLY statement [14.9.26](#section-14-9-26)
+SUBTRACT statement [14.9.44](#section-14-9-44)
 NOT operator
-In complex conditions [200](#page-200)
-In negated conditions [200](#page-200)
+In complex conditions [8.6.5](#section-8-6-5)
+In negated conditions [8.6.5](#section-8-6-5)
 NOT phrase
-EVALUATE statement [618](#page-618)
-NOT SIZE ERROR phrase [563](#page-563)
+EVALUATE statement [14.9.13](#section-14-9-13)
+NOT SIZE ERROR phrase [14.5.1](#section-14-5-1)
 NULL
-Predefined object [136](#page-136)
-Predefined-address [139](#page-139)
+Predefined object [8.3.2.4.3](#section-8-3-2-4-3)
+Predefined-address [8.3.3.3](#section-8-3-3-3)
 NULL phrase
-SET statement, pointer assignment [730](#page-730)
-NULL predefined address [627](#page-627)
-ALLOCATE statement [586](#page-586)
-INITIALIZE statement [640](#page-640)
+SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+NULL predefined address [14.9.6](#section-14-9-6)
+ALLOCATE statement [14.9.3](#section-14-9-3)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 NULL predefined object reference
-INITIALIZE statement [640](#page-640)
-Numeric category [162](#page-162), [164](#page-164), [446](#page-446)
-Numeric character [16](#page-16)
-Numeric class [162](#page-162)
-Numeric comparison [188](#page-188)
-Numeric data item [164](#page-164)
-Numeric functions [796](#page-796)
-Numeric literal [109](#page-109)
-Fixed-point [109](#page-109)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+Numeric category [8.5.2.12](#section-8-5-2-12)
+Numeric character 16
+Numeric class [8.4.3.3.4](#section-8-4-3-3-4)
+Numeric comparison [8.5.1.10](#section-8-5-1-10)
+Numeric data item [8.4.3.5](#section-8-4-3-5)
+Numeric functions [14.9.46](#section-14-9-46)
+Numeric literal [7.3.19](#section-7-3-19)
+Fixed-point [7.3.19](#section-7-3-19)
 
 ---
 
@@ -53023,627 +46914,600 @@ Fixed-point [109](#page-109)
 ---
 
 
-<a id="page-1251"></a>
-## Page [1251](#page-1251)
-
-# ISO/IEC 1989:2023 (E)
-
-Floating-point [109](#page-109)
+Floating-point [7.3.19](#section-7-3-19)
 NUMERIC phrase
-CLASS clause [194](#page-194), [382](#page-382)
-INITIALIZE statement [637](#page-637)
+CLASS clause [13.18.11](#section-13-18-11)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 NUMERIC-EDITED
-INITIALIZE statement [637](#page-637)
-Numeric-edited category [165](#page-165), [379](#page-379), [446](#page-446)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+Numeric-edited category [8.5.2.13](#section-8-5-2-13)
 Category of data
-Numeric-edited [162](#page-162)
-Numeric-edited data item [165](#page-165)
-NUMVAL function [893](#page-893)
-NUMVAL-C function [895](#page-895)
-NUMVAL-F function [898](#page-898)
+Numeric-edited [8.4.3.3.4](#section-8-4-3-3-4)
+Numeric-edited data item [8.4.3.6](#section-8-4-3-6)
+NUMVAL function [15.67](#section-15-67)
+NUMVAL-C function [15.68](#section-15-68)
+NUMVAL-F function [15.69](#section-15-69)
 
 ## O
 
-OBJECT [774](#page-774)
+OBJECT [14.9.39.4](#section-14-9-39-4)
 Object
-Instance [252](#page-252)
-Interface [246](#page-246)
-Life cycle of [252](#page-252)
-OBJECT paragraph [271](#page-271)
-Object class [162](#page-162)
-Object data item [1106](#page-1106)
-Object orientation [98](#page-98), [102](#page-102)
-Class [240](#page-240)
-Class-name [101](#page-101), [102](#page-102)
-object-class-name [98](#page-98)
-Object oriented concepts [1104](#page-1104)
-OBJECT paragraph [271](#page-271)
-Object properties [137](#page-137), [269](#page-269)
-Object references [240](#page-240)
-Initialization [521](#page-521), [587](#page-587)
-Object-class-name [98](#page-98), [102](#page-102)
-Scope of [149](#page-149)
-OBJECT-COMPUTER paragraph [285](#page-285)
-Object-reference category [162](#page-162), [165](#page-165), [509](#page-509)
-Object-reference data item [165](#page-165)
+Instance [9.1.10](#section-9-1-10)
+Interface [8.13](#section-8-13)
+Life cycle of [9.1.10](#section-9-1-10)
+OBJECT paragraph [11.8](#section-11-8)
+Object class [8.4.3.3.4](#section-8-4-3-3-4)
+Object data item [D.12.3](#section-d-12-3)
+Object orientation [9.1.18.6](#section-9-1-18-6)
+Class [8.10](#section-8-10)
+Class-name [8.3.2.2.2](#section-8-3-2-2-2)
+object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
+Object oriented concepts [D.19](#section-d-19)
+OBJECT paragraph [11.8](#section-11-8)
+Object properties [8.3.3.2](#section-8-3-3-2), [9.2.7](#section-9-2-7)
+Object references [9.3.2](#section-9-3-2)
+Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
+Object-class-name [8.3.2.2.17](#section-8-3-2-2-17)
+Scope of [8.4.2.1](#section-8-4-2-1)
+OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
+Object-reference category [8.5.2.14](#section-8-5-2-14)
+Object-reference data item [8.4.3.6](#section-8-4-3-6)
 OBJECT-REFERENCE phrase
-INITIALIZE statement [637](#page-637)
-Objects and classes [240](#page-240)
-Object-view [134](#page-134)
-Obsolete language element flagging [24](#page-24)
-Obsolete language elements [24](#page-24), [1199](#page-1199)
-ARITHMETIC IS STANDARD [1200](#page-1200)
-OCCURS ... DEPENDING clause [71](#page-71)
-OCCURS clause [123](#page-123), [430](#page-430), [473](#page-473), [478](#page-478), [492](#page-492), [512](#page-512), [519](#page-519), [525](#page-525),
-[721](#page-721), [747](#page-747), [781](#page-781)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+Objects and classes [9.3.1](#section-9-3-1)
+Object-view [8.4.3.5](#section-8-4-3-5)
+Obsolete language element flagging 24
+Obsolete language elements [4.2.13](#section-4-2-13)
+ARITHMETIC IS STANDARD [D.32](#section-d-32)
+OCCURS ... DEPENDING clause [6.5](#section-6-5)
+OCCURS clause [13.18.38](#section-13-18-38),
+[14.9.29](#section-14-9-29), [14.9.35.4](#section-14-9-35-4), [14.9.40.4](#section-14-9-40-4)
 Occurs-depending group item
-Definition [435](#page-435)
+Definition [13.18.24.4](#section-13-18-24-4)
 Occurs-depending tables
-Definition [156](#page-156)
+Definition 156
 OF phrase
-COPY statement [46](#page-46)
-With identifiers [124](#page-124)
-With qualification [121](#page-121)
+COPY statement [7.2.3](#section-7-2-3)
+With identifiers [8.2](#section-8-2)
+With qualification [8.1.3.2](#section-8-1-3-2)
 OFF phrase
 
-SET statement, attribute setting [730](#page-730)
-SET statement, switch setting [729](#page-729)
-SPECIAL-NAMES paragraph [290](#page-290)
-Offset subformat [802](#page-802)
-Offset time format [802](#page-802)
-Offset-hours subfield [802](#page-802)
-Offset-minutes subfield [802](#page-802)
-OMITTED phrase [128](#page-128), [651](#page-651)
-CALL statement [589](#page-589)
-Omitted-argument condition [199](#page-199)
-ON EXCEPTION [222](#page-222)
-ON EXCEPTION phrase [593](#page-593), [703](#page-703)
-ACCEPT statement [577](#page-577)
-CALL statement [588](#page-588)
-DISPLAY statement [610](#page-610)
-SEND statement [727](#page-727)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Offset subformat [14.9.48.4](#section-14-9-48-4)
+Offset time format [14.9.48.4](#section-14-9-48-4)
+Offset-hours subfield [14.9.48.4](#section-14-9-48-4)
+Offset-minutes subfield [14.9.48.4](#section-14-9-48-4)
+OMITTED phrase [8.3.2.2](#section-8-3-2-2), [14.9.13.4](#section-14-9-13-4)
+CALL statement [14.9.4](#section-14-9-4)
+Omitted-argument condition [8.6.4](#section-8-6-4)
+ON EXCEPTION [8.8.4.2.13](#section-8-8-4-2-13)
+ON EXCEPTION phrase [14.7.5](#section-14-7-5), [14.9.26](#section-14-9-26)
+ACCEPT statement [14.9.1](#section-14-9-1)
+CALL statement [14.9.4](#section-14-9-4)
+DISPLAY statement [14.9.11](#section-14-9-11)
+SEND statement [14.9.38](#section-14-9-38)
 ON OVERFLOW phrase
-CALL statement [588](#page-588)
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
+CALL statement [14.9.4](#section-14-9-4)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
 ON phrase
-SET statement, attribute setting [730](#page-730)
-SET statement, switch setting [729](#page-729)
-SPECIAL-NAMES paragraph [290](#page-290)
-VALIDATE-STATUS clause [513](#page-513)
-ON SIZE ERROR phrase [561](#page-561)
-ADD statement [583](#page-583)
-COMPUTE statement [602](#page-602)
-DIVIDE statement [614](#page-614)
-MULTIPLY statement [673](#page-673)
-SUBTRACT statement [762](#page-762)
-ONLY phrase [570](#page-570)
-USAGE clause [503](#page-503)
-Open mode [218](#page-218), [676](#page-676), [1009](#page-1009)
-OPEN statement [675](#page-675)
-Opening delimiter [118](#page-118)
-Operands [28](#page-28)
-Operational sign [153](#page-153)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+ON SIZE ERROR phrase [14.2.3](#section-14-2-3)
+ADD statement [14.9.2](#section-14-9-2)
+COMPUTE statement [14.9.8](#section-14-9-8)
+DIVIDE statement [14.9.12](#section-14-9-12)
+MULTIPLY statement [14.9.26](#section-14-9-26)
+SUBTRACT statement [14.9.44](#section-14-9-44)
+ONLY phrase [14.6.4](#section-14-6-4)
+USAGE clause [13.18.60](#section-13-18-60)
+Open mode [9.1.4](#section-9-1-4)
+OPEN statement [14.9.27](#section-14-9-27)
+Opening delimiter [8.1.2](#section-8-1-2)
+Operands [5.2.4](#section-5-2-4)
+Operational sign [8.4.2.3.3](#section-8-4-2-3-3)
 Operators
-Arithmetic [172](#page-172)
-Boolean [172](#page-172)
-Concatenation [173](#page-173)
-Invocation [173](#page-173)
-Logical [174](#page-174)
-Relational [173](#page-173)
+Arithmetic [8.4.3.13.2](#section-8-4-3-13-2)
+Boolean [8.4.3.13.2](#section-8-4-3-13-2)
+Concatenation [8.4.3.14.2](#section-8-4-3-14-2)
+Invocation [8.4.3.14.2](#section-8-4-3-14-2)
+Logical [8.4.3.15.4](#section-8-4-3-15-4)
+Relational [8.4.3.14.2](#section-8-4-3-14-2)
 OPTIONAL phrase
-FILE-CONTROL paragraph [312](#page-312)
-Procedure division header [128](#page-128), [528](#page-528)
-Optional words [28](#page-28), [106](#page-106)
-OPTIONS paragraph [272](#page-272)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
+Optional words [5.2.3](#section-5-2-3)
+OPTIONS paragraph [11.9](#section-11-9)
 OR operator
-In combined conditions [201](#page-201)
-In complex conditions [200](#page-200)
+In combined conditions [8.6.7](#section-8-6-7)
+In complex conditions [8.6.5](#section-8-6-5)
 OR PAGE phrase
-TYPE clause [494](#page-494)
+TYPE clause [13.18.57](#section-13-18-57)
 OR phrase
-UNSTRING statement [769](#page-769)
-ORD function [900](#page-900)
+UNSTRING statement [14.9.48](#section-14-9-48)
+ORD function [15.70](#section-15-70)
 
 
 ---
 
 
-<a id="page-1252"></a>
-## Page [1252](#page-1252)
-
-# ISO/IEC 1989:2023 (E)
-
 ORDER keyword
-SORT statement [745](#page-745)
-Order of evaluation of conditions [204](#page-204)
-ORDER TABLE [290](#page-290), [916](#page-916)
-Ordering table [916](#page-916)
-Ordering-name [98](#page-98), [102](#page-102), [290](#page-290)
-Scope of [146](#page-146)
-Ordinal date format [799](#page-799)
-ORD-MAX function [901](#page-901)
-ORD-MIN function [902](#page-902)
-Organization [219](#page-219)
-Indexed [220](#page-220)
-Relative [220](#page-220)
-Sequential [219](#page-219)
-ORGANIZATION clause [327](#page-327)
-FILE-CONTROL paragraph [312](#page-312)
+SORT statement [14.9.40](#section-14-9-40)
+Order of evaluation of conditions [8.8.4.13](#section-8-8-4-13)
+ORDER TABLE [10.6.3](#section-10-6-3), [15.61](#section-15-61)
+Ordering table [15.61](#section-15-61)
+Ordering-name [8.3.2.2.18](#section-8-3-2-2-18)
+Scope of [8.3.3.6.4](#section-8-3-3-6-4)
+Ordinal date format [14.9.48](#section-14-9-48)
+ORD-MAX function [15.71](#section-15-71)
+ORD-MIN function [15.72](#section-15-72)
+Organization [9.1.7](#section-9-1-7)
+Indexed [9.1.7.4](#section-9-1-7-4)
+Relative [9.1.7.3](#section-9-1-7-3)
+Sequential [9.1.7.2](#section-9-1-7-2)
+ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
 OTHER phrase
-EVALUATE statement [618](#page-618)
-SELECT WHEN clause [481](#page-481)
-Out-of-line PERFORM statement [682](#page-682)
+EVALUATE statement [14.9.13](#section-14-9-13)
+SELECT WHEN clause [13.18.51](#section-13-18-51)
+Out-of-line PERFORM statement [14.9.23.3](#section-14-9-23-3)
 OUTPUT phrase
-OPEN statement [675](#page-675)
-PERFORM statement [682](#page-682)
-USE statement [774](#page-774)
+OPEN statement [14.9.27](#section-14-9-27)
+PERFORM statement [14.9.28](#section-14-9-28)
+USE statement [14.9.49](#section-14-9-49)
 OUTPUT PROCEDURE phrase
-MERGE statement [657](#page-657)
-SORT statement [745](#page-745)
+MERGE statement [14.9.24](#section-14-9-24)
+SORT statement [14.9.40](#section-14-9-40)
 OVERFLOW phrase
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
-Overlapping operands [545](#page-545), [641](#page-641)
-STRING statement [761](#page-761)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
+Overlapping operands [14.6.10](#section-14-6-10)
+STRING statement [14.9.43](#section-14-9-43)
 OVERRIDE clause
-METHOD-ID paragraph [269](#page-269)
+METHOD-ID paragraph [11.7](#section-11-7)
 
 ## P
 
-P PICTURE symbol [441](#page-441)
-p_cs_precedes [96](#page-96)
+P PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+p_cs_precedes [7.3.13](#section-7-3-13)
 PACKED-DECIMAL phrase
-USAGE clause [503](#page-503)
-Page advance [629](#page-629)
-PAGE clause [438](#page-438)
-PAGE directive [79](#page-79)
-Page fit processing [628](#page-628)
+USAGE clause [13.18.60](#section-13-18-60)
+Page advance [14.9.6.4](#section-14-9-6-4)
+PAGE clause [13.18.39](#section-13-18-39)
+PAGE directive [7.3.19](#section-7-3-19)
+Page fit processing [14.9.6.4](#section-14-9-6-4)
 PAGE FOOTING phrase
-TYPE clause [494](#page-494)
+TYPE clause [13.18.57](#section-13-18-57)
 PAGE HEADING phrase
-TYPE clause [494](#page-494)
+TYPE clause [13.18.57](#section-13-18-57)
 PAGE LIMIT clause
-Report description entry [358](#page-358)
+Report description entry [13.8.4](#section-13-8-4)
 PAGE phrase
-WRITE statement [785](#page-785)
-PAGE-COUNTER [143](#page-143), [148](#page-148), [358](#page-358)
-Qualified [122](#page-122)
-Paragraph header [263](#page-263)
+WRITE statement [14.9.51](#section-14-9-51)
+PAGE-COUNTER [8.3.3.6](#section-8-3-3-6), [8.3.5](#section-8-3-5), [12.4.5.11](#section-12-4-5-11)
+Qualified [8.1.3.2](#section-8-1-3-2)
+Paragraph header [9.1.18](#section-9-1-18)
 PARAGRAPH phrase
 
-EXIT statement [10](#page-10), [623](#page-623)
-Paragraph-name [98](#page-98), [102](#page-102), [532](#page-532)
-Qualified [122](#page-122)
-Paragraphs [263](#page-263), [532](#page-532)
-PARAMETER phrase [64](#page-64)
-Parameterized classes [251](#page-251)
-Parameterized interfaces [252](#page-252)
-Parameter-name [98](#page-98), [102](#page-102)
-CLASS-ID paragraph [264](#page-264)
-Parametric polymorphism [241](#page-241)
+EXIT statement [14.9.14](#section-14-9-14)
+Paragraph-name [8.3.2.2.19](#section-8-3-2-2-19)
+Qualified [8.1.3.2](#section-8-1-3-2)
+Paragraphs [14.4.3](#section-14-4-3)
+PARAMETER phrase [6.2.2](#section-6-2-2)
+Parameterized classes [9.3.12](#section-9-3-12)
+Parameterized interfaces [9.3.13](#section-9-3-13)
+Parameter-name [8.3.2.2.20](#section-8-3-2-2-20)
+CLASS-ID paragraph [11.3](#section-11-3)
+Parametric polymorphism [9.3.5.3](#section-9-3-5-3)
 Parentheses
-Function-identifier [128](#page-128)
-In arithmetic expressions [175](#page-175)
-Separator [117](#page-117)
+Function-identifier [8.4.3.2](#section-8-4-3-2)
+In arithmetic expressions [8.4.4.2](#section-8-4-4-2)
+Separator [8](#section-8)
 Parenthesis
-In Boolean expression [182](#page-182)
-In logical conditions [201](#page-201)
+In Boolean expression [8.5.1.3.2](#section-8-5-1-3-2)
+In logical conditions [8.6.7](#section-8-6-7)
 PERFORM phrase
-EXIT statement [10](#page-10), [623](#page-623)
+EXIT statement [14.9.14](#section-14-9-14)
 PERFORM statemen
-Exception-checkingt [706](#page-706)
-PERFORM statement [682](#page-682)
-Exception checking [777](#page-777)
-Exception-checking [605](#page-605), [613](#page-613), [623](#page-623), [638](#page-638), [657](#page-657), [675](#page-675), [682](#page-682), [691](#page-691)
-infinite loop [686](#page-686)
-PERFORM statement examples [1155](#page-1155)
+Exception-checkingt [14.9.27.4](#section-14-9-27-4)
+PERFORM statement [14.9.28](#section-14-9-28)
+Exception checking [14.9.40.3](#section-14-9-40-3)
+Exception-checking [14.8.4.3](#section-14-8-4-3), [14.9.2](#section-14-9-2), [14.9.4.4](#section-14-9-4-4), [14.9.10.4](#section-14-9-10-4), [14.9.15](#section-14-9-15), [14.9.22.4](#section-14-9-22-4), [14.9.23.3](#section-14-9-23-3), [14.9.24.4](#section-14-9-24-4)
+infinite loop [14.9.23.4](#section-14-9-23-4)
+PERFORM statement examples [D.19.10](#section-d-19-10)
 Period
-Separator [30](#page-30), [117](#page-117)
+Separator 30, [8](#section-8)
 PF phrase
-TYPE clause [494](#page-494)
+TYPE clause [13.18.57](#section-13-18-57)
 PH phrase
-TYPE clause [494](#page-494)
-PHYSICAL [823](#page-823), [874](#page-874)
-Physical file [217](#page-217)
-Physical record [381](#page-381)
-Physical-structure-name [105](#page-105)
-PI function [903](#page-903)
-Picture character-string [117](#page-117), [759](#page-759)
-PICTURE clause [441](#page-441), [504](#page-504), [512](#page-512)
-Data description entry [363](#page-363)
-Precedence rules [457](#page-457)
+TYPE clause [13.18.57](#section-13-18-57)
+PHYSICAL [14.9.51.4](#section-14-9-51-4), [15.28](#section-15-28)
+Physical file [8.8.4.2.2](#section-8-8-4-2-2)
+Physical record [13.8](#section-13-8)
+Physical-structure-name [8.3.2.3.10](#section-8-3-2-3-10)
+PI function [15.73](#section-15-73)
+Picture character-string [8](#section-8), [14.9.39](#section-14-9-39)
+PICTURE clause [13.18.40](#section-13-18-40)
+Data description entry [13.16](#section-13-16)
+Precedence rules [13.18.40.6](#section-13-18-40-6)
 PICTURE SYMBOL phrase
-SPECIAL-NAMES paragraph [290](#page-290)
-Pointer [590](#page-590)
-Initialization [521](#page-521), [587](#page-587)
-Pointer class [162](#page-162)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Pointer [14.7.2](#section-14-7-2)
+Initialization [13.18.55](#section-13-18-55), [14.6.13.1.6](#section-14-6-13-1-6)
+Pointer class [8.4.3.3.4](#section-8-4-3-3-4)
 POINTER phrase
-STRING statement [759](#page-759)
-UNSTRING statement [769](#page-769)
-USAGE clause [503](#page-503)
-Polymorphism [240](#page-240)
-Class [241](#page-241)
-Parametric [241](#page-241)
-POP directive [55](#page-55), [80](#page-80)
-positive_sign [95](#page-95)
-Precedence of logical operators [201](#page-201)
-Predefined object reference [779](#page-779)
+STRING statement [14.9.43](#section-14-9-43)
+UNSTRING statement [14.9.48](#section-14-9-48)
+USAGE clause [13.18.60](#section-13-18-60)
+Polymorphism [9.3.5](#section-9-3-5)
+Class [8.10](#section-8-10)
+Parametric [8.10](#section-8-10)
+POP directive [7.3.20](#section-7-3-20)
+positive_sign [7.3.12.4](#section-7-3-12-4)
+Precedence of logical operators [8.6.7](#section-8-6-7)
+Predefined object reference [14.9.40.4](#section-14-9-40-4)
 
 ---
 
 
-
-<a id="page-1253"></a>
-## Page [1253](#page-1253)
-
-# ISO/IEC 1989:2023 (E)
-
-Predefined-address [139](#page-139)
+Predefined-address [8.3.3.3](#section-8-3-3-3)
 PREFIXED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [291](#page-291)
-PRESENT WHEN clause [387](#page-387), [409](#page-409), [421](#page-421), [461](#page-461), [472](#page-472), [781](#page-781)
-PRESENT-VALUE function [904](#page-904)
-Prime record key [329](#page-329)
+&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+PRESENT WHEN clause [13.18.41](#section-13-18-41)
+PRESENT-VALUE function [15.74](#section-15-74)
+Prime record key [12.3.7.4](#section-12-3-7-4)
 PRINTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SUPPRESS statement [765](#page-765)
-Procedure division [527](#page-527)
-&nbsp;&nbsp;&nbsp;&nbsp;Declarative portion [532](#page-532)
-&nbsp;&nbsp;&nbsp;&nbsp;Nondeclarative portion [532](#page-532)
-PROCEDURE DIVISION header [527](#page-527)
-Procedure-name [532](#page-532)
-Procedures [532](#page-532)
-Processor-dependent element flagging [22](#page-22)
-Processor-dependent language elements [22](#page-22)
-&nbsp;&nbsp;&nbsp;&nbsp;List of [969](#page-969)
+&nbsp;&nbsp;&nbsp;&nbsp;SUPPRESS statement [14.9.45](#section-14-9-45)
+Procedure division [14](#section-14)
+&nbsp;&nbsp;&nbsp;&nbsp;Declarative portion [13.18.60](#section-13-18-60)
+&nbsp;&nbsp;&nbsp;&nbsp;Nondeclarative portion [13.18.60](#section-13-18-60)
+PROCEDURE DIVISION header [13.18.57.4](#section-13-18-57-4)
+Procedure-name [13.18.60](#section-13-18-60)
+Procedures [14.4](#section-14-4)
+Processor-dependent element flagging 22
+Processor-dependent language elements [4.2.6](#section-4-2-6)
+&nbsp;&nbsp;&nbsp;&nbsp;List of [15.100](#section-15-100)
 PROGRAM COLLATING SEQUENCE clause
-&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [285](#page-285)
+&nbsp;&nbsp;&nbsp;&nbsp;OBJECT-COMPUTER paragraph [12.3.6](#section-12-3-6)
 PROGRAM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [10](#page-10), [623](#page-623)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
 Program prototype
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [589](#page-589)
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [595](#page-595)
-Program-address-identifier [141](#page-141)
-Program-definition [257](#page-257)
-PROGRAM-ID paragraph [280](#page-280)
-Program-name [98](#page-98), [102](#page-102)
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [280](#page-280)
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [149](#page-149)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
+Program-address-identifier [8.4.3.13](#section-8-4-3-13)
+Program-definition [9.1.13.7](#section-9-1-13-7)
+PROGRAM-ID paragraph [11.10](#section-11-10)
+Program-name [8.3.2.2.21](#section-8-3-2-2-21)
+&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.4.2.1](#section-8-4-2-1)
 Program-pointer
-&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [595](#page-595)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [510](#page-510)
-Program-pointer category [142](#page-142), [162](#page-162), [165](#page-165)
-Program-pointer data item [165](#page-165)
+&nbsp;&nbsp;&nbsp;&nbsp;CANCEL statement [14.9.5](#section-14-9-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.50](#section-13-18-50)
+Program-pointer category [8.5.2.15](#section-8-5-2-15)
+Program-pointer data item [8.4.3.6](#section-8-4-3-6)
 PROGRAM-POINTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [637](#page-637)
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [503](#page-503)
-Program-prototype [256](#page-256)
-Program-prototype-name [98](#page-98), [102](#page-102)
+&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
+&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
+Program-prototype [9.1.13.5](#section-9-1-13-5)
+Program-prototype-name [8.3.2.2.22](#section-8-3-2-2-22)
 PROHIBITED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DEFAULT ROUNDED clause [273](#page-273)
-&nbsp;&nbsp;&nbsp;&nbsp;INTERMEDIATE ROUNDING clause [278](#page-278)
-&nbsp;&nbsp;&nbsp;&nbsp;ROUNDED phrase [560](#page-560)
-PROPAGATE directive [81](#page-81)
-PROPERTY clause [137](#page-137), [464](#page-464)
-&nbsp;&nbsp;&nbsp;&nbsp;METHOD-ID paragraph [269](#page-269)
-Property-name [98](#page-98), [103](#page-103)
+&nbsp;&nbsp;&nbsp;&nbsp;DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+&nbsp;&nbsp;&nbsp;&nbsp;INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+&nbsp;&nbsp;&nbsp;&nbsp;ROUNDED phrase [14.7.4](#section-14-7-4)
+PROPAGATE directive [7.3.21](#section-7-3-21)
+PROPERTY clause [13.18.42](#section-13-18-42)
+&nbsp;&nbsp;&nbsp;&nbsp;METHOD-ID paragraph [11.7](#section-11-7)
+Property-name [8.3.2.2.23](#section-8-3-2-2-23)
 PROTOTYPE clause
-&nbsp;&nbsp;&nbsp;&nbsp;FUNCTION-ID paragraph [267](#page-267)
-&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [280](#page-280)
-Prototype versus repository flagging [216](#page-216)
-Pseudo-text [44](#page-44), [50](#page-50)
-Pseudo-text delimiter [44](#page-44)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [118](#page-118)
-PUSH directive [55](#page-55), [82](#page-82)
+&nbsp;&nbsp;&nbsp;&nbsp;FUNCTION-ID paragraph [11.5](#section-11-5)
+&nbsp;&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph [11.10](#section-11-10)
+Prototype versus repository flagging [8.8.4](#section-8-8-4)
+Pseudo-text [7.2.2.4](#section-7-2-2-4)
+Pseudo-text delimiter [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8.1.2](#section-8-1-2)
+PUSH directive [7.3.22](#section-7-3-22)
 
 ## Q
 
-Qualification [124](#page-124)
-&nbsp;&nbsp;&nbsp;&nbsp;Implicit [120](#page-120)
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE-COUNTER [122](#page-122)
-&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER [122](#page-122)
-&nbsp;&nbsp;&nbsp;&nbsp;Of condition-names [145](#page-145)
-&nbsp;&nbsp;&nbsp;&nbsp;Of data-names [126](#page-126)
-&nbsp;&nbsp;&nbsp;&nbsp;Of paragraph-names [122](#page-122)
-&nbsp;&nbsp;&nbsp;&nbsp;OF phrase [121](#page-121)
-&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER [122](#page-122)
-&nbsp;&nbsp;&nbsp;&nbsp;Subscripting [124](#page-124)
-&nbsp;&nbsp;&nbsp;&nbsp;Uniqueness of reference [119](#page-119)
-Qualified [126](#page-126)
+Qualification [8.4.2.2](#section-8-4-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Implicit [8.1.3](#section-8-1-3)
+&nbsp;&nbsp;&nbsp;&nbsp;LINAGE-COUNTER [8.4.3.14](#section-8-4-3-14)
+&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER [8.1.3.2](#section-8-1-3-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Of condition-names [8.3.3.6.4](#section-8-3-3-6-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Of data-names [8.2.2](#section-8-2-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Of paragraph-names [8.1.3.2](#section-8-1-3-2)
+&nbsp;&nbsp;&nbsp;&nbsp;OF phrase [8.1.3.2](#section-8-1-3-2)
+&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER [8.1.3.2](#section-8-1-3-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Subscripting [D.3.5](#section-d-3-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Uniqueness of reference [8.4.2](#section-8-4-2)
+Qualified [8.2.2](#section-8-2-2)
 Quiet NaN
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [196](#page-196)
-Quotation mark [91](#page-91)
-Quotation symbol [118](#page-118)
-QUOTE/QUOTES figurative constant [117](#page-117)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.5.3.1](#section-8-5-3-1)
+Quotation mark [7.3.10.4](#section-7-3-10-4)
+Quotation symbol [8.1.2](#section-8-1-2)
+QUOTE/QUOTES figurative constant [8](#section-8)
 
 ## R
 
-RAISE statement [691](#page-691)
-RAISING phrase [631](#page-631), [728](#page-728)
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [623](#page-623)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [527](#page-527)
-Random access mode [221](#page-221), [1009](#page-1009)
-RANDOM function [905](#page-905)
+RAISE statement [14.9.29](#section-14-9-29)
+RAISING phrase [14.9.7](#section-14-9-7), [14.9.30.4](#section-14-9-30-4)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [13.18.57.4](#section-13-18-57-4)
+Random access mode [9.1.8.3](#section-9-1-8-3)
+RANDOM function [15.75](#section-15-75)
 RANDOM phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [312](#page-312), [319](#page-319)
-RANGE function [906](#page-906)
-Range of PERFORM statement [684](#page-684)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+RANGE function [15.76](#section-15-76)
+Range of PERFORM statement [14.9.23.4](#section-14-9-23-4)
 RANGE-EXCEPTION-FOR-INDEX option
-&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [71](#page-71)
-RD entry [351](#page-351)
+&nbsp;&nbsp;&nbsp;&nbsp;FLAG-02 directive [7.3.14](#section-7-3-14)
+RD entry [D.20.3](#section-d-20-3)
 READ ONLY phrase
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;SHARING clause [332](#page-332)
-READ statement [692](#page-692), [711](#page-711)
-RECEIVE statement [727](#page-727)
-Receiving operand [157](#page-157), [542](#page-542), [565](#page-565), [589](#page-589), [624](#page-624), [653](#page-653), [691](#page-691), [731](#page-731)
-receiving run unit [727](#page-727)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;SHARING clause [12.4.5.15](#section-12-4-5-15)
+READ statement [14.9.30](#section-14-9-30)
+RECEIVE statement [14.9.31](#section-14-9-31)
+Receiving operand [8.4.3.2.3](#section-8-4-3-2-3), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
+receiving run unit [14.9.30.4](#section-14-9-30-4)
 Record
-&nbsp;&nbsp;&nbsp;&nbsp;Logical [381](#page-381)
-&nbsp;&nbsp;&nbsp;&nbsp;Physical [381](#page-381)
-RECORD clause [467](#page-467), [755](#page-755)
+&nbsp;&nbsp;&nbsp;&nbsp;Logical [13.8.4](#section-13-8-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Physical [13.8.4](#section-13-8-4)
+RECORD clause [13.18.43](#section-13-18-43)
 RECORD CONTAINS clause
-&nbsp;&nbsp;&nbsp;&nbsp;File description entry [342](#page-342)
-RECORD DELIMITER clause [328](#page-328)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [314](#page-314)
-Record description entry [357](#page-357)
-RECORD IS VARYING clause [790](#page-790)
-Record key [320](#page-320), [329](#page-329)
-RECORD KEY clause [329](#page-329)
+&nbsp;&nbsp;&nbsp;&nbsp;File description entry [13.4.5](#section-13-4-5)
+RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
+&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Record description entry [13.11](#section-13-11)
+RECORD IS VARYING clause [14.9.43.4](#section-14-9-43-4)
+Record key [12.3.7.2](#section-12-3-7-2), [12.3.7.4](#section-12-3-7-4)
+RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
 RECORD keyword
-&nbsp;&nbsp;&nbsp;&nbsp;RETURN statement [708](#page-708)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [710](#page-710)
+&nbsp;&nbsp;&nbsp;&nbsp;RETURN statement [14.9.34](#section-14-9-34)
+&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
 
 
 ---
 
 
-<a id="page-1254"></a>
-## Page [1254](#page-1254)
-
-# ISO/IEC 1989:2023 (E)
-
-UNLOCK statement [768](#page-768)
-Record locking [232](#page-232), [325](#page-325), [332](#page-332), [768](#page-768), [1014](#page-1014)
-Record locks [755](#page-755), [768](#page-768)
-Record operations [1008](#page-1008)
+UNLOCK statement [14.9.47](#section-14-9-47)
+Record locking [9.1.16](#section-9-1-16)
+Record locks [14.9.37.4](#section-14-9-37-4), [14.9.39.4](#section-14-9-39-4)
+Record operations [D.2.3.2](#section-d-2-3-2)
 RECORD phrase
-DELETE statement [605](#page-605)
-Record selection [481](#page-481)
+DELETE statement [14.9.10](#section-14-9-10)
+Record selection [13.18.40.4](#section-13-18-40-4)
 RECORD-KEY clause
-FILE-CONTROL paragraph [312](#page-312)
-Record-key-name [98](#page-98), [103](#page-103)
-RECORD KEY clause [329](#page-329)
-Record-name [98](#page-98), [103](#page-103)
-Scope of [148](#page-148)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Record-key-name [8.3.2.2.24](#section-8-3-2-2-24)
+RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
+Record-name [8.3.2.2.25](#section-8-3-2-2-25)
+Scope of [8.3.5](#section-8-3-5)
 RECORDS keyword
-UNLOCK statement [768](#page-768)
+UNLOCK statement [14.9.47](#section-14-9-47)
 RECORDS phrase
-BLOCK CONTAINS clause [381](#page-381)
+BLOCK CONTAINS clause [13.18.10](#section-13-18-10)
 RECURSIVE clause
-PROGRAM-ID paragraph [280](#page-280)
-Recursive functions [252](#page-252)
-Recursive methods [240](#page-240)
-Recursive program [170](#page-170)
-REDEFINES clause [471](#page-471), [478](#page-478), [491](#page-491), [518](#page-518), [639](#page-639)
-Reel [221](#page-221)
+PROGRAM-ID paragraph [11.10](#section-11-10)
+Recursive functions [9.1.10](#section-9-1-10)
+Recursive methods [8.10](#section-8-10)
+Recursive program [8.4.3.11.2](#section-8-4-3-11-2)
+REDEFINES clause [13.18.44](#section-13-18-44)
+Reel [8.8.4.2.10](#section-8-8-4-2-10)
 REEL phrase
-CLOSE statement [597](#page-597)
-Reference format [33](#page-33)
-Fixed-form [36](#page-36)
-Free-form [38](#page-38)
-Logical conversion [40](#page-40)
-Reference format example [1159](#page-1159)
+CLOSE statement [14.9.6](#section-14-9-6)
+Reference format [6](#section-6)
+Fixed-form [3](#section-3)
+Free-form [3](#section-3)
+Logical conversion [6.5](#section-6-5)
+Reference format example [D.19.11.3](#section-d-19-11-3)
 REFERENCE phrase
-INVOKE statement [651](#page-651)
-Reference-modification [131](#page-131)
-REF-MOD-ZERO-LENGTH directive [83](#page-83)
-References [119](#page-119)
-REF-MOD-ZERO-LENGTH directive [83](#page-83)
+INVOKE statement [14.9.23](#section-14-9-23)
+Reference-modification [8.4.3.3](#section-8-4-3-3)
+REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
+References [8.4](#section-8-4)
+REF-MOD-ZERO-LENGTH directive [7.3.23](#section-7-3-23)
 Relation condition
-Alphanumeric operands [189](#page-189)
-Arithmetic expression in [187](#page-187)
-Boolean operands [190](#page-190)
-Data-pointer operands [192](#page-192)
-Index data item in [187](#page-187)
-Index data items [192](#page-192)
-Message tags [192](#page-192)
-Mixed operands [189](#page-189)
-National operands [190](#page-190)
-Numeric operands [188](#page-188)
-Object reference identifiers [192](#page-192)
-Order of evaluation [204](#page-204)
-Strongly-typed group items [191](#page-191)
+Alphanumeric operands [8.5.1.10.4](#section-8-5-1-10-4)
+Arithmetic expression in [8.5.1.9.2](#section-8-5-1-9-2)
+Boolean operands [8.5.1.12](#section-8-5-1-12)
+Data-pointer operands [8.5.2.2](#section-8-5-2-2)
+Index data item in [8.5.1.9.2](#section-8-5-1-9-2)
+Index data items [8.5.2.2](#section-8-5-2-2)
+Message tags [8.5.2.2](#section-8-5-2-2)
+Mixed operands [8.5.1.10.4](#section-8-5-1-10-4)
+National operands [8.5.1.12](#section-8-5-1-12)
+Numeric operands [8.5.1.10](#section-8-5-1-10)
+Object reference identifiers [8.5.2.2](#section-8-5-2-2)
+Order of evaluation [8.7.5.2](#section-8-7-5-2)
+Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
 RELATION phrase
-VALIDATE-STATUS clause [513](#page-513)
-Relation validation [781](#page-781)
-Relational operator [173](#page-173)
-START statement [754](#page-754)
+VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+Relation validation [D.22.5](#section-d-22-5)
+Relational operator [8.4.3.14.2](#section-8-4-3-14-2)
+START statement [14.9.41](#section-14-9-41)
 Relative files
-Definition [220](#page-220)
+Definition [8.8.4.2.8](#section-8-8-4-2-8)
 
-RELATIVE KEY clause [330](#page-330)
-FILE-CONTROL paragraph [313](#page-313)
-START statement [754](#page-754)
-Relative organization [1006](#page-1006)
+RELATIVE KEY clause [12.4.5.13](#section-12-4-5-13)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+START statement [14.9.41](#section-14-9-41)
+Relative organization [D.2.2.2](#section-d-2-2-2)
 RELATIVE phrase
-ORGANIZATION clause [327](#page-327)
-Relative record number [220](#page-220), [330](#page-330)
-RELEASE statement [704](#page-704)
-REM function [907](#page-907)
+ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+Relative record number [8.8.4.2.8](#section-8-8-4-2-8), [12.3.7.4](#section-12-3-7-4)
+RELEASE statement [14.9.32](#section-14-9-32)
+REM function [15.77](#section-15-77)
 REMAINDER phrase
-DIVIDE statement [615](#page-615)
+DIVIDE statement [14.9.12](#section-14-9-12)
 REMOVAL phrase
-CLOSE statement [597](#page-597)
-RENAMES clause [152](#page-152), [473](#page-473), [639](#page-639)
+CLOSE statement [14.9.6](#section-14-9-6)
+RENAMES clause [13.18.45](#section-13-18-45)
 REPEATED phrase
-VALUE clause [516](#page-516)
-REPLACE statement [44](#page-44), [50](#page-50), [67](#page-67), [75](#page-75)
+VALUE clause [13.18.63](#section-13-18-63)
+REPLACE statement [7.2.4](#section-7-2-4)
 REPLACING phrase
-COPY statement [46](#page-46)
-INITIALIZE statement [637](#page-637)
-INSPECT statement [643](#page-643)
-REPORT clause [475](#page-475)
-Report description entry [351](#page-351), [358](#page-358)
+COPY statement [7.2.3](#section-7-2-3)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+INSPECT statement [14.9.22](#section-14-9-22)
+REPORT clause [13.18.46](#section-13-18-46)
+Report description entry [13.8.4](#section-13-8-4)
 REPORT FOOTING phrase
-TYPE clause [494](#page-494)
-Report group description entry [359](#page-359)
+TYPE clause [13.18.57](#section-13-18-57)
+Report group description entry [13.8.5](#section-13-8-5)
 REPORT HEADING phrase
-TYPE clause [494](#page-494)
-Report section [351](#page-351)
-Report writer [1130](#page-1130)
-Report-name [98](#page-98), [103](#page-103), [475](#page-475)
-Report description entry [358](#page-358)
-Scope of [148](#page-148)
-Repository [216](#page-216)
-REPOSITORY paragraph [97](#page-97), [304](#page-304), [776](#page-776)
-requestor [702](#page-702)
-REQUIRED clause [476](#page-476)
-Required word [105](#page-105)
-RESERVE clause [331](#page-331)
-FILE-CONTROL paragraph [312](#page-312)
-Reserved words [97](#page-97), [105](#page-105)
-Compiler directives [213](#page-213)
-Implementation [23](#page-23)
-Source text [205](#page-205)
+TYPE clause [13.18.57](#section-13-18-57)
+Report section [13.8](#section-13-8)
+Report writer [A.4.11](#section-a-4-11)
+Report-name [8.3.2.2.26](#section-8-3-2-2-26)
+Report description entry [13.8.4](#section-13-8-4)
+Scope of [8.3.5](#section-8-3-5)
+Repository [8.8.4](#section-8-8-4)
+REPOSITORY paragraph [12.3.8](#section-12-3-8)
+requestor [14.9.25.4](#section-14-9-25-4)
+REQUIRED clause [13.18.47](#section-13-18-47)
+Required word [7.3.16](#section-7-3-16)
+RESERVE clause [12.4.5.14](#section-12-4-5-14)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Reserved words [4.2.8](#section-4-2-8)
+Compiler directives [7.3](#section-7-3)
+Implementation 23
+Source text [8.8](#section-8-8)
 RESET phrase
-NEXT GROUP clause [427](#page-427)
-SUM clause [487](#page-487)
-Restricted data pointer [140](#page-140)
+NEXT GROUP clause [13.18.37](#section-13-18-37)
+SUM clause [13.18.54](#section-13-18-54)
+Restricted data pointer [8.3.3.4](#section-8-3-3-4)
 Restricted data-pointer
-Definition [510](#page-510)
-Restricted pointer [510](#page-510)
-RESUME statement [706](#page-706)
-RETRY phrase [567](#page-567), [607](#page-607), [681](#page-681), [1018](#page-1018)
-DELETE statement [605](#page-605)
-OPEN statement [675](#page-675)
-READ statement [692](#page-692)
-REWRITE statement [710](#page-710)
-WRITE statement [785](#page-785)
+Definition [13.18.50](#section-13-18-50)
+Restricted pointer [13.18.50](#section-13-18-50)
+RESUME statement [14.9.33](#section-14-9-33)
+RETRY phrase [14.7.9](#section-14-7-9)
+DELETE statement [14.9.10](#section-14-9-10)
+OPEN statement [14.9.27](#section-14-9-27)
+READ statement [14.9.30](#section-14-9-30)
+REWRITE statement [14.9.35](#section-14-9-35)
+WRITE statement [14.9.51](#section-14-9-51)
 
 
-
-<a id="page-1255"></a>
-## Page [1255](#page-1255)
-
-# ISO/IEC 1989:2023 (E)
-
-RETURN statement [708](#page-708)
-Returned values, intrinsic functions [804](#page-804)
-RETURNING phrase [633](#page-633)
-&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [586](#page-586)
-&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [588](#page-588)
-&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [651](#page-651)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [129](#page-129), [527](#page-527)
-REVERSE function [908](#page-908)
-REVERSE-VIDEO clause [477](#page-477)
+RETURN statement [14.9.34](#section-14-9-34)
+Returned values, intrinsic functions [14.9.49](#section-14-9-49)
+RETURNING phrase [14.9.8.4](#section-14-9-8-4)
+&nbsp;&nbsp;&nbsp;&nbsp;ALLOCATE statement [14.9.3](#section-14-9-3)
+&nbsp;&nbsp;&nbsp;&nbsp;CALL statement [14.9.4](#section-14-9-4)
+&nbsp;&nbsp;&nbsp;&nbsp;INVOKE statement [14.9.23](#section-14-9-23)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedure division header [8.3.2.2](#section-8-3-2-2), [13.18.57.4](#section-13-18-57-4)
+REVERSE function [15.78](#section-15-78)
+REVERSE-VIDEO clause [13.18.48](#section-13-18-48)
 REVERSE-VIDEO phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SET statement, attribute setting [730](#page-730)
-REWRITE statement [710](#page-710)
+&nbsp;&nbsp;&nbsp;&nbsp;SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+REWRITE statement [14.9.35](#section-14-9-35)
 RF phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
 RH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [494](#page-494)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPE clause [13.18.57](#section-13-18-57)
 RIGHT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;JUSTIFIED clause [414](#page-414)
-&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [491](#page-491)
-rollback [1019](#page-1019)
-ROLLBACK statement [234](#page-234), [334](#page-334), [718](#page-718)
-&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [333](#page-333)
-&nbsp;&nbsp;&nbsp;&nbsp;EC-FLOW-ROLLBACK Exception-name [553](#page-553)
-ROUNDED MODE IS PROHIBITED phrase [1195](#page-1195)
-ROUNDED phrase [560](#page-560)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [583](#page-583)
-&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [602](#page-602)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [673](#page-673)
-&nbsp;&nbsp;&nbsp;&nbsp;SOURCE clause [485](#page-485)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [762](#page-762)
-&nbsp;&nbsp;&nbsp;&nbsp;SUM clause [487](#page-487)
+&nbsp;&nbsp;&nbsp;&nbsp;JUSTIFIED clause [13.18.32](#section-13-18-32)
+&nbsp;&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+rollback [B.3](#section-b-3)
+ROLLBACK statement [14.9.36](#section-14-9-36)
+&nbsp;&nbsp;&nbsp;&nbsp;APPLY COMMIT clause [12.4.6.3](#section-12-4-6-3)
+&nbsp;&nbsp;&nbsp;&nbsp;EC-FLOW-ROLLBACK Exception-name [13.18.63.4](#section-13-18-63-4)
+ROUNDED MODE IS PROHIBITED phrase [D.31.3.3](#section-d-31-3-3)
+ROUNDED phrase [14.7.4](#section-14-7-4)
+&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
+&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [14.9.8](#section-14-9-8)
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
+&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
+&nbsp;&nbsp;&nbsp;&nbsp;SOURCE clause [13.18.53](#section-13-18-53)
+&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
+&nbsp;&nbsp;&nbsp;&nbsp;SUM clause [13.18.54](#section-13-18-54)
 Rounding
-&nbsp;&nbsp;&nbsp;&nbsp;Concepts [1095](#page-1095)
-Rounding rules [176](#page-176)
-Rules [30](#page-30)
-Run unit [18](#page-18), [536](#page-536)
-Run unit termination [545](#page-545), [546](#page-546), [758](#page-758)
-Runtime element [255](#page-255)
+&nbsp;&nbsp;&nbsp;&nbsp;Concepts [D.9](#section-d-9)
+Rounding rules [8.4.6](#section-8-4-6)
+Rules [5.3](#section-5-3)
+Run unit 18, [13.18.60.4](#section-13-18-60-4)
+Run unit termination [9.1.18.5](#section-9-1-18-5)
+Runtime element [9.1.13.3](#section-9-1-13-3)
 
 ## S
 
-S PICTURE symbol [441](#page-441), [483](#page-483)
-SAME AREA clause [335](#page-335), [658](#page-658), [747](#page-747)
-SAME AS clause [478](#page-478)
-SAME clause [335](#page-335)
-SAME RECORD AREA clause [335](#page-335), [704](#page-704), [712](#page-712), [788](#page-788)
-SAME SORT AREA clause [335](#page-335), [658](#page-658), [747](#page-747)
-SAME SORT-MERGE AREA clause [335](#page-335), [658](#page-658), [747](#page-747)
+S PICTURE symbol [13.18.29.4](#section-13-18-29-4), [13.18.40.5](#section-13-18-40-5)
+SAME AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
+SAME AS clause [13.18.49](#section-13-18-49)
+SAME clause [12.4.6.4](#section-12-4-6-4)
+SAME RECORD AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.26.4](#section-14-9-26-4), [14.9.28](#section-14-9-28), [14.9.42](#section-14-9-42)
+SAME SORT AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
+SAME SORT-MERGE AREA clause [12.3.8.3](#section-12-3-8-3), [14.9.16](#section-14-9-16), [14.9.35.4](#section-14-9-35-4)
 SBIDI
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [177](#page-177)
-Scope of names [146](#page-146)
-Scope of statements [535](#page-535)
-Scope terminators [535](#page-535)
-Screen description entry [368](#page-368)
-Screen section [354](#page-354)
-Screen-name [98](#page-98), [103](#page-103), [398](#page-398)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.6.2](#section-8-4-6-2)
+Scope of names [8.4.6](#section-8-4-6)
+Scope of statements [14.5.3](#section-14-5-3)
+Scope terminators [13.18.60.4](#section-13-18-60-4)
+Screen description entry [13.17](#section-13-17)
+Screen section [13.9](#section-13-9)
+Screen-name [8.3.2.2.27](#section-8-3-2-2-27)
 
 Screen-names
-&nbsp;&nbsp;&nbsp;&nbsp;Scope of [148](#page-148)
-Screens [236](#page-236)
-SD entry [346](#page-346)
+&nbsp;&nbsp;&nbsp;&nbsp;Scope of [8.3.5](#section-8-3-5)
+Screens [9.2](#section-9-2)
+SD entry [12.4.5.2](#section-12-4-5-2)
 SDIDI
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [180](#page-180)
-SEARCH statement [505](#page-505), [720](#page-720)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.6.5](#section-8-4-6-5)
+SEARCH statement [14.9.37](#section-14-9-37)
 SECONDS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [605](#page-605)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [692](#page-692)
-&nbsp;&nbsp;&nbsp;&nbsp;RETRY phrase [567](#page-567)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [710](#page-710)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [785](#page-785)
-Seconds subfield [801](#page-801)
-SECONDS-FROM-FORMATTED-TIME function [909](#page-909)
-SECONDS-PAST-MIDNIGHT function [910](#page-910)
-SECTION header [527](#page-527)
+&nbsp;&nbsp;&nbsp;&nbsp;DELETE statement [14.9.10](#section-14-9-10)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
+&nbsp;&nbsp;&nbsp;&nbsp;RETRY phrase [14.7.9](#section-14-7-9)
+&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
+Seconds subfield [14.9.48.4](#section-14-9-48-4)
+SECONDS-FROM-FORMATTED-TIME function [15.79](#section-15-79)
+SECONDS-PAST-MIDNIGHT function [15.80](#section-15-80)
+SECTION header [13.18.57.4](#section-13-18-57-4)
 SECTION phrase
-&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [10](#page-10), [623](#page-623)
-Section-name [98](#page-98), [103](#page-103), [532](#page-532)
-Sections [532](#page-532)
-SECURE clause [480](#page-480)
+&nbsp;&nbsp;&nbsp;&nbsp;EXIT statement [14.9.14](#section-14-9-14)
+Section-name [8.3.2.2.28](#section-8-3-2-2-28)
+Sections [14.4.2](#section-14-4-2)
+SECURE clause [13.18.50](#section-13-18-50)
 SELECT clause
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [312](#page-312)
-SELECT WHEN clause [478](#page-478), [481](#page-481)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [749](#page-749)
-SELF predefined object identifier [136](#page-136)
-Semicolon [29](#page-29)
-&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with comma [29](#page-29), [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [117](#page-117)
-SEND statement [702](#page-702), [726](#page-726)
-Sending operand [157](#page-157), [542](#page-542), [565](#page-565), [589](#page-589), [624](#page-624), [653](#page-653), [691](#page-691), [731](#page-731)
-Sentence [532](#page-532)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [533](#page-533)
+&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+SELECT WHEN clause [13.18.51](#section-13-18-51)
+&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
+SELF predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
+Semicolon 29
+&nbsp;&nbsp;&nbsp;&nbsp;Interchangeable with comma 29, [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
+SEND statement [14.9.38](#section-14-9-38)
+Sending operand [8.4.3.1.4](#section-8-4-3-1-4), [13.18.61.3](#section-13-18-61-3), [14.5.2](#section-14-5-2), [14.6.13.2](#section-14-6-13-2), [14.9.4.4](#section-14-9-4-4), [14.9.14](#section-14-9-14), [14.9.24.4](#section-14-9-24-4), [14.9.30.4](#section-14-9-30-4)
+Sentence [13.18.60](#section-13-18-60)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [13.18.60.2](#section-13-18-60-2)
 SEPARATE CHARACTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [483](#page-483)
-Separators [30](#page-30), [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Colon [118](#page-118)
-&nbsp;&nbsp;&nbsp;&nbsp;Comma [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Literal delimiter [118](#page-118)
-&nbsp;&nbsp;&nbsp;&nbsp;Parentheses [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Period [30](#page-30), [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text delimiter [118](#page-118)
-&nbsp;&nbsp;&nbsp;&nbsp;Semicolon [117](#page-117)
-&nbsp;&nbsp;&nbsp;&nbsp;Space [117](#page-117)
+&nbsp;&nbsp;&nbsp;&nbsp;SIGN clause [13.18.52](#section-13-18-52)
+Separators [8.3.5](#section-8-3-5)
+&nbsp;&nbsp;&nbsp;&nbsp;Colon [8.1.2](#section-8-1-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Comma [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Literal delimiter [8.1.2](#section-8-1-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Parentheses [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Period 30, [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text delimiter [8.1.2](#section-8-1-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Semicolon [8](#section-8)
+&nbsp;&nbsp;&nbsp;&nbsp;Space [8](#section-8)
 separators
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [97](#page-97)
-Sequential access mode [221](#page-221), [1008](#page-1008)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.13.4](#section-7-3-13-4)
+Sequential access mode [9.1.8.2](#section-9-1-8-2)
 Sequential files
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [219](#page-219)
-Sequential organization [1005](#page-1005)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.8.4.2.5](#section-8-8-4-2-5)
+Sequential organization [D.2.2.1](#section-d-2-2-1)
 SEQUENTIAL phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [312](#page-312), [319](#page-319)
-&nbsp;&nbsp;&nbsp;&nbsp;ORGANIZATION clause [327](#page-327)
-server run unit [727](#page-727)
-SET statement [71](#page-71), [505](#page-505), [729](#page-729)
-&nbsp;&nbsp;&nbsp;&nbsp;Dynamic-capacity tables [157](#page-157)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCESS MODE clause [12.4.5.4](#section-12-4-5-4)
+&nbsp;&nbsp;&nbsp;&nbsp;ORGANIZATION clause [12.4.5.10](#section-12-4-5-10)
+server run unit [14.9.30.4](#section-14-9-30-4)
+SET statement [14.9.39](#section-14-9-39)
+&nbsp;&nbsp;&nbsp;&nbsp;Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
 
 ---
 
@@ -53651,127 +47515,122 @@ SET statement [71](#page-71), [505](#page-505), [729](#page-729)
 ---
 
 
-<a id="page-1256"></a>
-## Page [1256](#page-1256)
-
-# ISO/IEC 1989:2023 (E)
-
-Implicit [639](#page-639)
-Shared files [230](#page-230), [681](#page-681)
-Shared memory area [1038](#page-1038)
-SHARING clause [325](#page-325), [332](#page-332), [660](#page-660), [750](#page-750)
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [312](#page-312)
-Sharing data [171](#page-171)
-Sharing file connectors [219](#page-219)
-Sharing mode [230](#page-230), [1013](#page-1013)
-SHARING phrase [325](#page-325)
-&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [660](#page-660)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [750](#page-750)
+Implicit [14.9.10.4](#section-14-9-10-4)
+Shared files [8.8.4.8.4](#section-8-8-4-8-4), [14.9.23](#section-14-9-23)
+Shared memory area [D.4](#section-d-4)
+SHARING clause [12.4.5.15](#section-12-4-5-15)
+&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+Sharing data [D.6.5.7](#section-d-6-5-7)
+Sharing file connectors [9.1.5](#section-9-1-5)
+Sharing mode [9.1.15](#section-9-1-15)
+SHARING phrase [12.3.7.3](#section-12-3-7-3)
+&nbsp;&nbsp;&nbsp;&nbsp;MERGE statement [14.9.24](#section-14-9-24)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
+&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
 SHORT phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [291](#page-291)
-SIGN clause [153](#page-153), [479](#page-479), [483](#page-483), [495](#page-495)
-Sign condition [198](#page-198)
-SIGN function [911](#page-911)
+&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+SIGN clause [13.18.52](#section-13-18-52)
+Sign condition [8.6.3](#section-8-6-3)
+SIGN function [15.81](#section-15-81)
 Signaling NaN
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [196](#page-196)
-Signature [216](#page-216)
-&nbsp;&nbsp;&nbsp;&nbsp;Method resolution [241](#page-241)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.5.3.1](#section-8-5-3-1)
+Signature [8.8.4](#section-8-8-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Method resolution [8.10](#section-8-10)
 SIGNED phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [291](#page-291)
-&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [503](#page-503)
-Simple insertion editing [453](#page-453)
-Simple relational operator [174](#page-174)
-SIN function [912](#page-912)
-SIZE ERROR condition [562](#page-562)
-Size error condition [178](#page-178), [180](#page-180), [561](#page-561)
-SIZE ERROR phrase [561](#page-561)
-&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [583](#page-583)
-&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [602](#page-602)
-&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [614](#page-614)
-&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [673](#page-673)
-&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [762](#page-762)
+&nbsp;&nbsp;&nbsp;&nbsp;DYNAMIC LENGTH STRUCTURE clause [10.7](#section-10-7)
+&nbsp;&nbsp;&nbsp;&nbsp;USAGE clause [13.18.60](#section-13-18-60)
+Simple insertion editing [13.18.35.4](#section-13-18-35-4)
+Simple relational operator [8.4.3.15.4](#section-8-4-3-15-4)
+SIN function [15.82](#section-15-82)
+SIZE ERROR condition [14.3](#section-14-3)
+Size error condition [8.4.6.2.2](#section-8-4-6-2-2), [8.4.6.6](#section-8-4-6-6), [14.2.3](#section-14-2-3)
+SIZE ERROR phrase [14.2.3](#section-14-2-3)
+&nbsp;&nbsp;&nbsp;&nbsp;ADD statement [14.9.2](#section-14-9-2)
+&nbsp;&nbsp;&nbsp;&nbsp;COMPUTE statement [14.9.8](#section-14-9-8)
+&nbsp;&nbsp;&nbsp;&nbsp;DIVIDE statement [14.9.12](#section-14-9-12)
+&nbsp;&nbsp;&nbsp;&nbsp;MULTIPLY statement [14.9.26](#section-14-9-26)
+&nbsp;&nbsp;&nbsp;&nbsp;SUBTRACT statement [14.9.44](#section-14-9-44)
 SIZE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [441](#page-441)
-&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [759](#page-759)
-Slant (/) comment line [38](#page-38)
-SMALLEST-ALGEBRAIC function [913](#page-913), [959](#page-959)
-Sort file [234](#page-234)
-SORT statement [704](#page-704), [708](#page-708), [745](#page-745)
-Sorting [1010](#page-1010)
-Sorting tables [1034](#page-1034)
-Sort-merge file description entry [346](#page-346)
-SOURCE clause [485](#page-485)
-Source element [255](#page-255)
-SOURCE FORMAT directive [84](#page-84)
-Source indicator [34](#page-34)
+&nbsp;&nbsp;&nbsp;&nbsp;PICTURE clause [13.18.40](#section-13-18-40)
+&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [14.9.43](#section-14-9-43)
+Slant (/) comment line [3](#section-3)
+SMALLEST-ALGEBRAIC function [15.83](#section-15-83)
+Sort file [9.1.19](#section-9-1-19)
+SORT statement [14.9.40](#section-14-9-40)
+Sorting [D.2.3.3.2](#section-d-2-3-3-2)
+Sorting tables [D.3.6](#section-d-3-6)
+Sort-merge file description entry [13.4.6](#section-13-4-6)
+SOURCE clause [13.18.53](#section-13-18-53)
+Source element [9.1.13.3](#section-9-1-13-3)
+SOURCE FORMAT directive [7.3.24](#section-7-3-24)
+Source indicator [3](#section-3)
 SOURCE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ALTERNATE RECORD KEY clause [320](#page-320)
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD KEY clause [329](#page-329)
-Source unit [254](#page-254)
-SOURCE-COMPUTER paragraph [284](#page-284)
+&nbsp;&nbsp;&nbsp;&nbsp;ALTERNATE RECORD KEY clause [12.4.5.6](#section-12-4-5-6)
+&nbsp;&nbsp;&nbsp;&nbsp;RECORD KEY clause [12.4.5.12](#section-12-4-5-12)
+Source unit [9.1.13.2](#section-9-1-13-2)
+SOURCE-COMPUTER paragraph [12.3.5](#section-12-3-5)
 Space
-&nbsp;&nbsp;&nbsp;&nbsp;Separator [117](#page-117)
-SPACE/SPACES figurative constant [116](#page-116)
-Special character words [105](#page-105)
+&nbsp;&nbsp;&nbsp;&nbsp;Separator [8](#section-8)
+SPACE/SPACES figurative constant [7.3.25.4](#section-7-3-25-4)
+Special character words [7.3.16](#section-7-3-16)
 
-In formats [30](#page-30)
-Special insertion editing [453](#page-453)
-SPECIAL-NAMES paragraph [196](#page-196), [197](#page-197), [289](#page-289), [736](#page-736)
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [577](#page-577)
-SQRT function [915](#page-915)
-Standard arithmetic [175](#page-175), [176](#page-176), [565](#page-565), [674](#page-674), [804](#page-804)
-&nbsp;&nbsp;&nbsp;&nbsp;Concepts [1100](#page-1100)
-Standard classes [941](#page-941)
-Standard date form [806](#page-806)
-Standard language element acceptance [21](#page-21)
-Standard numeric time form [806](#page-806)
+In formats 30
+Special insertion editing [13.18.35.4](#section-13-18-35-4)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
+SQRT function [15.84](#section-15-84)
+Standard arithmetic [8.4.4.2](#section-8-4-4-2), [8.4.6](#section-8-4-6), [14.5.2](#section-14-5-2), [14.9.22.3](#section-14-9-22-3), [14.9.49](#section-14-9-49)
+&nbsp;&nbsp;&nbsp;&nbsp;Concepts [D.10](#section-d-10)
+Standard classes [16](#section-16)
+Standard date form [15.5.3](#section-15-5-3)
+Standard language element acceptance 21
+Standard numeric time form [15.5.5](#section-15-5-5)
 STANDARD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [272](#page-272)
+&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
 STANDARD-1
-&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [314](#page-314)
+&nbsp;&nbsp;&nbsp;&nbsp;FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
 STANDARD-1 phrase
-&nbsp;&nbsp;&nbsp;&nbsp;RECORD DELIMITER clause [328](#page-328)
+&nbsp;&nbsp;&nbsp;&nbsp;RECORD DELIMITER clause [12.4.5.11](#section-12-4-5-11)
 STANDARD-1,2 phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [291](#page-291)
+&nbsp;&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 Standard-binary
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [176](#page-176)
-Standard-binary arithmetic [176](#page-176), [565](#page-565), [804](#page-804)
-Standard-binary intermediate data item [177](#page-177)
-STANDARD-BINARY phrase [273](#page-273)
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [272](#page-272)
-STANDARD-COMPARE function [916](#page-916)
+&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [8.4.5](#section-8-4-5)
+Standard-binary arithmetic [8.8.1.4](#section-8-8-1-4)
+Standard-binary intermediate data item [8.8.1.4.2](#section-8-8-1-4-2)
+STANDARD-BINARY phrase [9.3.6](#section-9-3-6)
+&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
+STANDARD-COMPARE function [15.85](#section-15-85)
 Standard-decimal
-&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [179](#page-179)
-Standard-decimal arithmetic [179](#page-179), [565](#page-565), [804](#page-804)
-Standard-decimal intermediate data item [180](#page-180)
-STANDARD-DECIMAL phrase [273](#page-273)
-&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [272](#page-272)
-STANDARD-DEVIATION function [918](#page-918)
-START statement [754](#page-754)
+&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic [8.4.6.3](#section-8-4-6-3)
+Standard-decimal arithmetic [8.8.1.5](#section-8-8-1-5)
+Standard-decimal intermediate data item [8.8.1.5.2](#section-8-8-1-5-2)
+STANDARD-DECIMAL phrase [9.3.6](#section-9-3-6)
+&nbsp;&nbsp;&nbsp;&nbsp;ARITHMETIC clause [11.9.5](#section-11-9-5)
+STANDARD-DEVIATION function [15.86](#section-15-86)
+START statement [14.9.41](#section-14-9-41)
 State of
-&nbsp;&nbsp;&nbsp;&nbsp;Function [537](#page-537)
-&nbsp;&nbsp;&nbsp;&nbsp;Method [537](#page-537)
-&nbsp;&nbsp;&nbsp;&nbsp;Object data [539](#page-539)
-&nbsp;&nbsp;&nbsp;&nbsp;Program [537](#page-537)
-Statement [532](#page-532)
-&nbsp;&nbsp;&nbsp;&nbsp;Compiler-directing [44](#page-44)
-&nbsp;&nbsp;&nbsp;&nbsp;Declarative [533](#page-533)
-&nbsp;&nbsp;&nbsp;&nbsp;Procedural [532](#page-532)
-Static data [168](#page-168), [347](#page-347)
-Static items [168](#page-168)
-STOP [540](#page-540)
-STOP statement [758](#page-758)
-STOP statement, [633](#page-633)
-STRING statement [759](#page-759)
-STRONG phrase [166](#page-166)
-&nbsp;&nbsp;&nbsp;&nbsp;TYPEDEF clause [500](#page-500)
-Strongly-typed group items [165](#page-165)
-Strongly-typed groups [165](#page-165)
-Strongly-typed items [1061](#page-1061)
-Structured compilation group [43](#page-43), [44](#page-44), [254](#page-254)
-Structured constant [391](#page-391), [1140](#page-1140)
-Subfield [799](#page-799)
+&nbsp;&nbsp;&nbsp;&nbsp;Function [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Method [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Object data [13.18.60.4](#section-13-18-60-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Program [13.18.60.4](#section-13-18-60-4)
+Statement [13.18.60](#section-13-18-60)
+&nbsp;&nbsp;&nbsp;&nbsp;Compiler-directing [3](#section-3)
+&nbsp;&nbsp;&nbsp;&nbsp;Declarative [13.18.60.2](#section-13-18-60-2)
+&nbsp;&nbsp;&nbsp;&nbsp;Procedural [13.18.60](#section-13-18-60)
+Static data [8.4.3.9.3](#section-8-4-3-9-3), [12.4.5.3](#section-12-4-5-3)
+Static items [8.4.3.9.3](#section-8-4-3-9-3)
+STOP [13.18.60.4](#section-13-18-60-4)
+STOP statement [14.9.42](#section-14-9-42)
+STOP statement, [14.9.8.4](#section-14-9-8-4)
+STRING statement [14.9.43](#section-14-9-43)
+STRONG phrase [8.4.3.7](#section-8-4-3-7)
+&nbsp;&nbsp;&nbsp;&nbsp;TYPEDEF clause [13.18.58](#section-13-18-58)
+Strongly-typed group items [8.5.3.3](#section-8-5-3-3)
+Strongly-typed groups [8.4.3.6](#section-8-4-3-6)
+Strongly-typed items [D.3.5.3](#section-d-3-5-3)
+Structured compilation group [10](#section-10)
+Structured constant [D.21](#section-d-21)
+Subfield [14.9.48](#section-14-9-48)
 Subscripted
 
 ---
@@ -53780,343 +47639,322 @@ Subscripted
 ---
 
 
-<a id="page-1257"></a>
-## Page [1257](#page-1257)
-
-# ISO/IEC 1989:2023 (E)
-
-Data-name [123](#page-123)
-Subscripted identifier [124](#page-124)
-Subscripting [1030](#page-1030)
-Condition-name [123](#page-123)
-Subscripts [122](#page-122), [123](#page-123)
-Dynamic-capacity tables [157](#page-157)
-Substantive changes list [1172](#page-1172)
-SUBSTITUTE function [919](#page-919)
-SUBTRACT statement [564](#page-564), [762](#page-762)
-CORRESPONDING phrase [564](#page-564)
-SUM clause [272](#page-272), [487](#page-487)
-Sum counter [488](#page-488)
-SUM function [921](#page-921)
-Summary of functions [806](#page-806)
-SUPER predefined object identifier [136](#page-136)
-SUPPRESS [312](#page-312), [320](#page-320)
-SUPPRESS statement [765](#page-765)
-SUPPRESS WHEN phrase [697](#page-697), [716](#page-716), [757](#page-757), [1007](#page-1007)
-Surrogate pair [132](#page-132)
-Definition [19](#page-19)
+Data-name [8.3.2.2.6](#section-8-3-2-2-6)
+Subscripted identifier [8.2](#section-8-2)
+Subscripting [D.3.5](#section-d-3-5)
+Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+Subscripts [8.4.2.3](#section-8-4-2-3)
+Dynamic-capacity tables [8.5.1.9](#section-8-5-1-9)
+Substantive changes list [D.22.4](#section-d-22-4)
+SUBSTITUTE function [15.87](#section-15-87)
+SUBTRACT statement [14.9.44](#section-14-9-44)
+CORRESPONDING phrase [14.7.6](#section-14-7-6)
+SUM clause [13.18.54](#section-13-18-54)
+Sum counter [13.18.40.6](#section-13-18-40-6)
+SUM function [15.88](#section-15-88)
+Summary of functions [15.6](#section-15-6)
+SUPER predefined object identifier [8.3.2.4.3](#section-8-3-2-4-3)
+SUPPRESS [12](#section-12), [12.3.7.2](#section-12-3-7-2)
+SUPPRESS statement [14.9.45](#section-14-9-45)
+SUPPRESS WHEN phrase [14.9.25.4](#section-14-9-25-4), [14.9.28.4](#section-14-9-28-4), [14.9.38.4](#section-14-9-38-4), [A.4.8](#section-a-4-8)
+Surrogate pair [8.3.2.2.13](#section-8-3-2-2-13)
+Definition 19
 Switch status
-Condition-name [145](#page-145)
-Switch-name [105](#page-105), [197](#page-197)
-SPECIAL-NAMES paragraph [290](#page-290)
-Switch-status condition [197](#page-197)
-Symbolic-character [98](#page-98), [103](#page-103), [289](#page-289)
-Figurative constant [117](#page-117)
-Scope of [146](#page-146)
+Condition-name [8.3.2.2.4](#section-8-3-2-2-4)
+Switch-name [8.3.2.3.11](#section-8-3-2-3-11)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Switch-status condition [8.5.3.3](#section-8-5-3-3)
+Symbolic-character [8.3.2.2.29](#section-8-3-2-2-29)
+Figurative constant [8](#section-8)
+Scope of [8.3.3.6.4](#section-8-3-3-6-4)
 SYMBOLIC-CHARACTERS clause
-SPECIAL-NAMES paragraph [292](#page-292)
-SYNCHRONIZED clause [155](#page-155), [491](#page-491), [518](#page-518)
-Syntax rules [30](#page-30), [31](#page-31), [33](#page-33), [34](#page-34)
-Syntax violation flagging [21](#page-21)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+SYNCHRONIZED clause [13.18.55](#section-13-18-55)
+Syntax rules [5.3.2](#section-5-3-2)
+Syntax violation flagging 21
 SYSTEM-DEFAULT phrase
-SET statement [731](#page-731)
-System-name [103](#page-103)
-System-names [289](#page-289)
+SET statement [14.9.39](#section-14-9-39)
+System-name [7.3.15.4](#section-7-3-15-4)
+System-names [8.3.2.3](#section-8-3-2-3)
 
 ## T
 
-t_fmt [96](#page-96)
-Table handling [1018](#page-1018)
-Table sort [746](#page-746)
-Tables [152](#page-152), [430](#page-430)
+t_fmt [7.3.13](#section-7-3-13)
+Table handling [B.3](#section-b-3)
+Table sort [14.9.35.4](#section-14-9-35-4)
+Tables [8.5.1.3.3](#section-8-5-1-3-3)
 TALLYING phrase
-INSPECT statement [643](#page-643)
-UNSTRING statement [769](#page-769)
-Terminal screen [236](#page-236)
-TERMINATE statement [71](#page-71), [766](#page-766), [775](#page-775)
+INSPECT statement [14.9.22](#section-14-9-22)
+UNSTRING statement [14.9.48](#section-14-9-48)
+Terminal screen [9.2.1](#section-9-2-1)
+TERMINATE statement [14.9.46](#section-14-9-46)
 TERMINATE-WITH-VARYING option
-FLAG-02 directive [71](#page-71)
+FLAG-02 directive [7.3.14](#section-7-3-14)
 TEST AFTER phrase
-PERFORM statement [683](#page-683)
+PERFORM statement [14.9.28](#section-14-9-28)
 TEST BEFORE phrase
-PERFORM statement [683](#page-683)
+PERFORM statement [14.9.28](#section-14-9-28)
 TEST phrase
-PERFORM statement [683](#page-683)
+PERFORM statement [14.9.28](#section-14-9-28)
 
-TEST-FORMATTED-DATETIME function [925](#page-925)
-TEST-NUMVAL function [926](#page-926)
-Text manipulation [43](#page-43)
-Text manipulation stage [42](#page-42), [43](#page-43)
-Text-name [47](#page-47), [105](#page-105)
-Text-word [45](#page-45)
+TEST-FORMATTED-DATETIME function [15.92](#section-15-92)
+TEST-NUMVAL function [15.93](#section-15-93)
+Text manipulation [7.2](#section-7-2)
+Text manipulation stage [3](#section-3)
+Text-name [8.3.2.3.12](#section-8-3-2-3-12)
+Text-word [3](#section-3)
 THEN phrase
-IF statement [635](#page-635)
-INITIALIZE statement [637](#page-637)
+IF statement [14.9.19](#section-14-9-19)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 THEN REPLACING phrase
-INITIALIZE statement [637](#page-637)
-THROUGH (THRU) phrase [566](#page-566)
-EVALUATE directive [66](#page-66)
-EVALUATE statement [618](#page-618)
-MERGE statement [657](#page-657)
-PERFORM statement [682](#page-682)
-RENAMES clause [473](#page-473)
-SORT statement [745](#page-745)
-VALUE clause [516](#page-516)
-Time format [800](#page-800)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+THROUGH (THRU) phrase [14.6](#section-14-6)
+EVALUATE directive [7.3.13](#section-7-3-13)
+EVALUATE statement [14.9.13](#section-14-9-13)
+MERGE statement [14.9.24](#section-14-9-24)
+PERFORM statement [14.9.28](#section-14-9-28)
+RENAMES clause [13.18.45](#section-13-18-45)
+SORT statement [14.9.40](#section-14-9-40)
+VALUE clause [13.18.63](#section-13-18-63)
+Time format [14.9.48.4](#section-14-9-48-4)
 TIME phrase
-ACCEPT statement [576](#page-576)
+ACCEPT statement [14.9.1](#section-14-9-1)
 TIMES phrase
-DELETE statement [605](#page-605)
-OPEN statement [675](#page-675)
-PERFORM statement [683](#page-683)
-READ statement [692](#page-692)
-RETRY phrase [567](#page-567)
-REWRITE statement [710](#page-710)
-VALUE clause [516](#page-516)
-WRITE statement [785](#page-785)
-TO clause [493](#page-493)
+DELETE statement [14.9.10](#section-14-9-10)
+OPEN statement [14.9.27](#section-14-9-27)
+PERFORM statement [14.9.28](#section-14-9-28)
+READ statement [14.9.30](#section-14-9-30)
+RETRY phrase [14.7.9](#section-14-7-9)
+REWRITE statement [14.9.35](#section-14-9-35)
+VALUE clause [13.18.63](#section-13-18-63)
+WRITE statement [14.9.51](#section-14-9-51)
+TO clause [13.18.56](#section-13-18-56)
 TO END phrase
-VALUE clause [516](#page-516)
+VALUE clause [13.18.63](#section-13-18-63)
 TO phrase
-ADD statement [583](#page-583)
-INITIALIZE statement [637](#page-637)
-INSPECT statement [643](#page-643)
-MOVE statement [664](#page-664)
-SET statement, condition setting [730](#page-730)
-SET statement, index assignment [729](#page-729)
-SET statement, object identifier assignment [730](#page-730)
-SET statement, pointer assignment [730](#page-730)
-SET statement, switch setting [729](#page-729)
+ADD statement [14.9.2](#section-14-9-2)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+INSPECT statement [14.9.22](#section-14-9-22)
+MOVE statement [14.9.25](#section-14-9-25)
+SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
+SET statement, index assignment [14.9.30.4](#section-14-9-30-4)
+SET statement, object identifier assignment [14.9.30.4](#section-14-9-30-4)
+SET statement, pointer assignment [14.9.30.4](#section-14-9-30-4)
+SET statement, switch setting [14.9.30.4](#section-14-9-30-4)
 TO VALUE clause
-INITIALIZE statement [637](#page-637)
+INITIALIZE statement [14.9.20](#section-14-9-20)
 TOWARD-GREATER phrase
-DEFAULT ROUNDED clause [273](#page-273)
-ROUNDED phrase [560](#page-560)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+ROUNDED phrase [14.7.4](#section-14-7-4)
 TOWARD-LESSER phrase
-DEFAULT ROUNDED clause [273](#page-273)
-ROUNDED phrase [560](#page-560)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+ROUNDED phrase [14.7.4](#section-14-7-4)
 TRAILING phrase
-SIGN clause [483](#page-483)
-Transfer of control [539](#page-539)
-EXIT FUNCTION statement [540](#page-540)
-EXIT PROGRAM statement [540](#page-540)
-EXIT statement [539](#page-539)
+SIGN clause [13.18.52](#section-13-18-52)
+Transfer of control [D.6.5.2](#section-d-6-5-2)
+EXIT FUNCTION statement [13.18.60.4](#section-13-18-60-4)
+EXIT PROGRAM statement [13.18.60.4](#section-13-18-60-4)
+EXIT statement [14.9.14](#section-14-9-14)
 
 
-<a id="page-1258"></a>
-## Page [1258](#page-1258)
-
-# ISO/IEC 1989:2023 (E)
-
-GOBACK statement [540](#page-540), [631](#page-631)
-MERGE statement [539](#page-539)
-PERFORM statement [540](#page-540)
-SORT statement [539](#page-539)
-STOP statement [540](#page-540)
-TRIM function [932](#page-932)
+GOBACK statement [14.9.18](#section-14-9-18)
+MERGE statement [14.9.24](#section-14-9-24)
+PERFORM statement [14.9.28](#section-14-9-28)
+SORT statement [14.9.40](#section-14-9-40)
+STOP statement [14.9.42](#section-14-9-42)
+TRIM function [15.96](#section-15-96)
 TRUE phrase
-EVALUATE directive [66](#page-66)
-EVALUATE statement [618](#page-618)
-SET statement, condition setting [730](#page-730)
+EVALUATE directive [7.3.13](#section-7-3-13)
+EVALUATE statement [14.9.13](#section-14-9-13)
+SET statement, condition setting [14.9.30.4](#section-14-9-30-4)
 TRUNCATION phrase
-DEFAULT ROUNDED clause [273](#page-273)
-INTERMEDIATE ROUNDING clause [278](#page-278)
-ROUNDED phrase [560](#page-560)
-TURN directive [70](#page-70), [85](#page-85), [548](#page-548), [561](#page-561), [689](#page-689)
-TYPE clause [478](#page-478), [494](#page-494)
-TYPEDEF clause [500](#page-500)
-Data description entry [363](#page-363)
-Type-name [98](#page-98), [103](#page-103)
-Scope of [148](#page-148)
-TYPE clause [494](#page-494)
+DEFAULT ROUNDED clause [11.9.6](#section-11-9-6)
+INTERMEDIATE ROUNDING clause [11.9.11](#section-11-9-11)
+ROUNDED phrase [14.7.4](#section-14-7-4)
+TURN directive [7.3.25](#section-7-3-25)
+TYPE clause [13.18.57](#section-13-18-57)
+TYPEDEF clause [13.18.58](#section-13-18-58)
+Data description entry [13.16](#section-13-16)
+Type-name [8.3.2.2.30](#section-8-3-2-2-30)
+Scope of [8.3.5](#section-8-3-5)
+TYPE clause [13.18.57](#section-13-18-57)
 Types
-Definition of [165](#page-165)
-Types of functions [796](#page-796)
+Definition of [8.4.3.6](#section-8-4-3-6)
+Types of functions [15.2](#section-15-2)
 
 ## U
 
-UCS [6](#page-6), [19](#page-19), [88](#page-88), [108](#page-108), [668](#page-668), [1073](#page-1073), [1089](#page-1089)
-UCS-4 [299](#page-299)
+UCS 6, 19, [7.3.8.4](#section-7-3-8-4), [7.3.18](#section-7-3-18), [14.9.20.4](#section-14-9-20-4), [D.6.1.1](#section-d-6-1-1), [D.7](#section-d-7)
+UCS-4 [11.7](#section-11-7)
 UCS-4 phrase
-SPECIAL-NAMES paragraph [291](#page-291)
-Undefined language element list [963](#page-963)
-UNDERLINE clause [501](#page-501)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+Undefined language element list [A.2](#section-a-2)
+UNDERLINE clause [13.18.59](#section-13-18-59)
 UNDERLINE phrase
-SET statement, attribute setting [730](#page-730)
-Underscore [97](#page-97)
-Unicode [1089](#page-1089)
-Unicode 13.0.0 [1201](#page-1201)
-Unicode version 13.0 [998](#page-998)
-Uniqueness of reference [119](#page-119)
-Unit [221](#page-221)
-UNIT phrase [71](#page-71)
-CLOSE statement [597](#page-597)
-Universal object reference [509](#page-509)
-UNLOCK statement [768](#page-768)
+SET statement, attribute setting [14.9.30.4](#section-14-9-30-4)
+Underscore [7.3.13.4](#section-7-3-13-4)
+Unicode [D.7](#section-d-7)
+Unicode 13.0.0 [D.32](#section-d-32)
+Unicode version 13.0 [A.2](#section-a-2)
+Uniqueness of reference [8.4.2](#section-8-4-2)
+Unit [8.8.4.2.10](#section-8-8-4-2-10)
+UNIT phrase [6.5](#section-6-5)
+CLOSE statement [14.9.6](#section-14-9-6)
+Universal object reference [13.18.49.4](#section-13-18-49-4)
+UNLOCK statement [14.9.47](#section-14-9-47)
 UNSIGNED phrase
-USAGE clause [503](#page-503)
-UNSTRING statement [769](#page-769)
+USAGE clause [13.18.60](#section-13-18-60)
+UNSTRING statement [14.9.48](#section-14-9-48)
 UNTIL phrase
-PERFORM statement [683](#page-683)
+PERFORM statement [14.9.28](#section-14-9-28)
 UP phrase
-SET statement, index arithmetic [729](#page-729), [731](#page-731)
-SET statement, pointer arithmetic [731](#page-731)
-UPON phrase [64](#page-64)
-DISPLAY statement [610](#page-610)
-SUM clause [487](#page-487)
-UPPER-CASE function [934](#page-934)
+SET statement, index arithmetic [14.9.30.4](#section-14-9-30-4)
+SET statement, pointer arithmetic [14.9.30.4](#section-14-9-30-4)
+UPON phrase [6.2.2](#section-6-2-2)
+DISPLAY statement [14.9.11](#section-14-9-11)
+SUM clause [13.18.54](#section-13-18-54)
+UPPER-CASE function [15.97](#section-15-97)
 
-Uppercase letters [90](#page-90)
-USAGE clause [479](#page-479), [495](#page-495), [502](#page-502)
-USE EXCEPTION [596](#page-596)
-USE EXCEPTION declarative [550](#page-550)
-USE statement [532](#page-532), [681](#page-681), [774](#page-774)
-User default locale [94](#page-94)
+Uppercase letters [7.3.10](#section-7-3-10)
+USAGE clause [13.18.60](#section-13-18-60)
+USE EXCEPTION [14.7.8](#section-14-7-8)
+USE EXCEPTION declarative [13.18.63.3](#section-13-18-63-3)
+USE statement [14.9.49](#section-14-9-49)
+User default locale [7.3.12](#section-7-3-12)
 USER-DEFAULT phrase
-SET statement [731](#page-731)
-User-defined functions [252](#page-252), [304](#page-304)
-User-defined words [980](#page-980)
-Definition [97](#page-97)
-Notation [980](#page-980)
-User-function-name [98](#page-98), [103](#page-103)
-USING clause [512](#page-512)
-CLASS-ID paragraph [264](#page-264)
-INTERFACE-ID paragraph [268](#page-268)
+SET statement [14.9.39](#section-14-9-39)
+User-defined functions [9.4](#section-9-4)
+User-defined words [8.3.2.2](#section-8-3-2-2)
+Definition [7.3.13.4](#section-7-3-13-4)
+Notation [B.2](#section-b-2)
+User-function-name [8.3.2.2.31](#section-8-3-2-2-31)
+USING clause [13.18.61](#section-13-18-61)
+CLASS-ID paragraph [11.3](#section-11-3)
+INTERFACE-ID paragraph [11.6](#section-11-6)
 USING phrase
-CALL statement [588](#page-588)
-FILE-CONTROL paragraph [312](#page-312)
-INVOKE statement [651](#page-651)
-MERGE statement [657](#page-657)
-Procedure division header [528](#page-528)
-SORT statement [745](#page-745)
-UTC time format [802](#page-802)
-UTF-16 [19](#page-19), [153](#page-153)
-SPECIAL-NAMES paragraph [291](#page-291)
-UTF-8 [108](#page-108)
-SPECIAL-NAMES paragraph [291](#page-291)
+CALL statement [14.9.4](#section-14-9-4)
+FILE-CONTROL paragraph [12.4.4](#section-12-4-4)
+INVOKE statement [14.9.23](#section-14-9-23)
+MERGE statement [14.9.24](#section-14-9-24)
+Procedure division header [13.18.57.4](#section-13-18-57-4)
+SORT statement [14.9.40](#section-14-9-40)
+UTC time format [14.9.48.4](#section-14-9-48-4)
+UTF-16 19, [8.4.2.3.3](#section-8-4-2-3-3)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
+UTF-8 [7.3.18](#section-7-3-18)
+SPECIAL-NAMES paragraph [12.3.7](#section-12-3-7)
 
 ## V
 
-V PICTURE symbol [441](#page-441)
+V PICTURE symbol [13.18.29.4](#section-13-18-29-4)
 VALID phrase
-VALUE clause [516](#page-516)
-Validate facility [1141](#page-1141)
-VALIDATE statement [413](#page-413), [525](#page-525), [780](#page-780)
-VALIDATE-STATUS clause [513](#page-513), [780](#page-780)
-VALUE clause [471](#page-471), [516](#page-516), [587](#page-587), [640](#page-640)
+VALUE clause [13.18.63](#section-13-18-63)
+Validate facility [D.22](#section-d-22)
+VALIDATE statement [14.9.50](#section-14-9-50)
+VALIDATE-STATUS clause [13.18.62](#section-13-18-62)
+VALUE clause [13.18.63](#section-13-18-63)
 VALUE phrase
-INITIALIZE statement [637](#page-637)
-INVOKE statement [651](#page-651)
+INITIALIZE statement [14.9.20](#section-14-9-20)
+INVOKE statement [14.9.23](#section-14-9-23)
 Variable-length data item
-Contiguity of data items [159](#page-159)
-Definition [159](#page-159)
+Contiguity of data items [8.5.1.11.2](#section-8-5-1-11-2)
+Definition [8.4.3.2.4](#section-8-4-3-2-4)
 Variable-length group
-Comparison of [192](#page-192)
+Comparison of [8.5.2.2](#section-8-5-2-2)
 Variable-length groups
-Compatibility [160](#page-160)
-Definition [160](#page-160)
-Variable-length records [1007](#page-1007)
-VARIANCE function [936](#page-936)
-VARYING clause [525](#page-525)
+Compatibility [8.4.3.2.4](#section-8-4-3-2-4)
+Definition [8.4.3.2.4](#section-8-4-3-2-4)
+Variable-length records [D.2.2.5.2](#section-d-2-2-5-2)
+VARIANCE function [15.98](#section-15-98)
+VARYING clause [13.18.64](#section-13-18-64)
 VARYING phrase
-PERFORM statement [683](#page-683)
-RECORD clause [467](#page-467)
-SEARCH statement [720](#page-720)
+PERFORM statement [14.9.28](#section-14-9-28)
+RECORD clause [13.18.43](#section-13-18-43)
+SEARCH statement [14.9.37](#section-14-9-37)
 
 ---
 
-
-
-<a id="page-1259"></a>
-## Page [1259](#page-1259)
-
-# ISO/IEC 1989:2023 (E)
 
 ## W
 
-Weakly-typed items [166](#page-166), [1061](#page-1061)
-Week date format [800](#page-800)
-Week-of-year subfield [800](#page-800)
-WHEN [682](#page-682)
-WHEN phrase [222](#page-222), [547](#page-547), [548](#page-548), [549](#page-549), [550](#page-550), [561](#page-561), [582](#page-582)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE directive [66](#page-66)
-&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [618](#page-618)
-&nbsp;&nbsp;&nbsp;&nbsp;INVALID clause [413](#page-413)
-&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [720](#page-720)
+Weakly-typed items [8.5.3.2](#section-8-5-3-2)
+Week date format [14.9.48.4](#section-14-9-48-4)
+Week-of-year subfield [14.9.48.4](#section-14-9-48-4)
+WHEN [14.9.23.3](#section-14-9-23-3)
+WHEN phrase [8.8.4.2.13](#section-8-8-4-2-13), [13.18.63.3](#section-13-18-63-3), [14.2.3](#section-14-2-3), [14.6.13.1.6](#section-14-6-13-1-6)
+&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE directive [7.3.13](#section-7-3-13)
+&nbsp;&nbsp;&nbsp;&nbsp;EVALUATE statement [14.9.13](#section-14-9-13)
+&nbsp;&nbsp;&nbsp;&nbsp;INVALID clause [13.18.31](#section-13-18-31)
+&nbsp;&nbsp;&nbsp;&nbsp;SEARCH statement [14.9.37](#section-14-9-37)
 WHEN SET TO FALSE phrase
-&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [516](#page-516)
-WHEN-COMPILED function [937](#page-937)
+&nbsp;&nbsp;&nbsp;&nbsp;VALUE clause [13.18.63](#section-13-18-63)
+WHEN-COMPILED function [15.99](#section-15-99)
 WITH DUPLICATES phrase
-&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [745](#page-745)
+&nbsp;&nbsp;&nbsp;&nbsp;SORT statement [14.9.40](#section-14-9-40)
 WITH ERROR STATUS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [758](#page-758)
+&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
 WITH FILLER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [637](#page-637)
+&nbsp;&nbsp;&nbsp;&nbsp;INITIALIZE statement [14.9.20](#section-14-9-20)
 WITH FOOTING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [417](#page-417)
+&nbsp;&nbsp;&nbsp;&nbsp;LINAGE clause [13.18.34](#section-13-18-34)
 WITH LENGTH phrase
-&nbsp;&nbsp;&nbsp;&nbsp;START statement [754](#page-754)
+&nbsp;&nbsp;&nbsp;&nbsp;START statement [14.9.41](#section-14-9-41)
 WITH LOCK phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [692](#page-692)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [710](#page-710)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [786](#page-786)
+&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
+&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
 WITH NO ADVANCING phrase
-&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [610](#page-610)
+&nbsp;&nbsp;&nbsp;&nbsp;DISPLAY statement [14.9.11](#section-14-9-11)
 WITH NO LOCK phrase
-&nbsp;&nbsp;&nbsp;&nbsp;READ statement [692](#page-692)
-&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [710](#page-710)
-&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [786](#page-786)
-WITH NO REWIND phrase [71](#page-71)
-&nbsp;&nbsp;&nbsp;&nbsp;CLOSE statement [597](#page-597)
-&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [675](#page-675)
+&nbsp;&nbsp;&nbsp;&nbsp;READ statement [14.9.30](#section-14-9-30)
+&nbsp;&nbsp;&nbsp;&nbsp;REWRITE statement [14.9.35](#section-14-9-35)
+&nbsp;&nbsp;&nbsp;&nbsp;WRITE statement [14.9.51](#section-14-9-51)
+WITH NO REWIND phrase [6.5](#section-6-5)
+&nbsp;&nbsp;&nbsp;&nbsp;CLOSE statement [14.9.6](#section-14-9-6)
+&nbsp;&nbsp;&nbsp;&nbsp;OPEN statement [14.9.27](#section-14-9-27)
 WITH NORMAL STATUS phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [758](#page-758)
+&nbsp;&nbsp;&nbsp;&nbsp;STOP statement [14.9.42](#section-14-9-42)
 WITH POINTER phrase
-&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [759](#page-759)
-&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [769](#page-769)
+&nbsp;&nbsp;&nbsp;&nbsp;STRING statement [14.9.43](#section-14-9-43)
+&nbsp;&nbsp;&nbsp;&nbsp;UNSTRING statement [14.9.48](#section-14-9-48)
 WITH TEST phrase
-&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [683](#page-683)
-Word [97](#page-97)
-Working-storage section [347](#page-347)
-WRITE statement [292](#page-292), [785](#page-785)
+&nbsp;&nbsp;&nbsp;&nbsp;PERFORM statement [14.9.28](#section-14-9-28)
+Word [7.3.13.3](#section-7-3-13-3)
+Working-storage section [13.5](#section-13-5)
+WRITE statement [14.9.51](#section-14-9-51)
 
 ## X
 
-X &nbsp;&nbsp;&nbsp;PICTURE symbol [441](#page-441)
-XOR [174](#page-174), [200](#page-200), [204](#page-204)
+X &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+XOR [8.4.3.15.4](#section-8-4-3-15-4), [8.6.5](#section-8-6-5), [8.7.6](#section-8-7-6)
 
 ## Y
 
-Year subfield [799](#page-799)
+Year subfield [14.9.48](#section-14-9-48)
 
-YEAR-TO-YYYY function [939](#page-939)
+YEAR-TO-YYYY function [15.100](#section-15-100)
 YYYYDDD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [576](#page-576)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
 YYYYMMDD phrase
-&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [576](#page-576)
+&nbsp;&nbsp;&nbsp;&nbsp;ACCEPT statement [14.9.1](#section-14-9-1)
 
 ## Z
 
-Z &nbsp;&nbsp;&nbsp;PICTURE symbol [441](#page-441)
-ZERO/ZEROES/ZEROS figurative constant [116](#page-116)
-Zero-length item [435](#page-435), [470](#page-470)
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [167](#page-167)
+Z &nbsp;&nbsp;&nbsp;PICTURE symbol [13.18.29.4](#section-13-18-29-4)
+ZERO/ZEROES/ZEROS figurative constant [7.3.25.4](#section-7-3-25-4)
+Zero-length item [13.18.24.4](#section-13-18-24-4), [13.18.39.4](#section-13-18-39-4)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [8.4.3.8.3](#section-8-4-3-8-3)
 Zero-length literal
-&nbsp;&nbsp;&nbsp;&nbsp;Definition [107](#page-107)
+&nbsp;&nbsp;&nbsp;&nbsp;Definition [7.3.17.4](#section-7-3-17-4)
 
 ---
 
 
 ---
 
-
-<a id="page-1260"></a>
-## Page [1260](#page-1260)
 
 The page appears to be blank except for the watermark/footer text at the bottom. Since you've instructed me to ignore watermark text, and there is no other visible content on this page, there is no text to extract.
 
-<a id="page-1261"></a>
-## Page [1261](#page-1261)
 
 **ISO/IEC 1989:2023(E)**
 
