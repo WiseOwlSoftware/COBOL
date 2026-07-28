@@ -47,9 +47,9 @@ internal sealed partial class EcBinder
 
         CheckSr14Sr15(census);
 
-        // GR14 overlay: imp-1 binds with the WHEN-named ECs implicitly enabled over its extent (WITH LOCATION iff
-        // the PERFORM specifies LOCATION). The overlay is popped (base restored) after imp-1 — imp-2..5 bind
-        // against the base state (GR21/GR22).
+        // GR14 overlay, part 1 of 2: imp-1 binds with the WHEN-named ECs implicitly enabled over its extent
+        // (WITH LOCATION iff the PERFORM specifies LOCATION). Popped after imp-1 — and then REPLACED by the
+        // TURN OFF ALL floor below, which is GR14's other half. imp-2..5 do NOT bind against the base state.
         var savedTurn = ctx.EcState.Turn;
         // imp-1's line ≈ the PERFORM statement's line (imp-1's statements are at ≥ this line, pre-PERFORM
         // directives at < it) — the GR14 synthetic is placed here so a pre-PERFORM >>TURN OFF loses to it.
@@ -65,12 +65,26 @@ internal sealed partial class EcBinder
         // __MDispatch + the entry frame FLOOR. (Formerly rejected loud COBOLNET0899 — the F3StagedInMethodStub gap,
         // lifted here.)
 
-        // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind IN LEXICAL CONTEXT with InF3When (RESUME-NEXT relaxation;
-        // base TurnState per GR21) and are REDIRECTED into synthetic pc-range paragraphs (the pc-RANGE interceptor,
-        // §9.1-B) run by the reused __RunUse; imp-5 (FINALLY) stays inline. The GR14 overlay is already popped, so
-        // these bind against the base state (GR21/GR22).
+        // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind IN LEXICAL CONTEXT with InF3When (RESUME-NEXT relaxation)
+        // and are REDIRECTED into synthetic pc-range paragraphs (the pc-RANGE interceptor, §9.1-B) run by the
+        // reused __RunUse; imp-5 (FINALLY) stays inline.
+        //
+        // ⛔ THEY BIND UNDER TURN OFF ALL, not under the base state. §14.9.28.4 GR14: "An implicit PUSH ALL
+        // followed by TURN OFF ALL is assumed at the END of imperative-statement-1. Immediately preceding the END
+        // PERFORM phrase, there is an implicit POP ALL …" — and imp-2..5 all run between those two points, so no
+        // checking is in effect inside them (§14.6.13.1.1: "if checking for an exception that occurs is not
+        // enabled, no exception condition is raised"). This code previously restored the BASE state here and cited
+        // GR21, which says only that an exception raised in imp-2..5 does not transfer control back into them —
+        // re-entry, not checking. A pre-PERFORM `>>TURN ec ON` therefore leaked into every handler body and
+        // EcWrap wrapped handler statements in BoundEcChecked that the standard says cannot fire.
+        //
+        // The floor is spliced at the FIRST HANDLER's line (the END-PERFORM line when there is no WHEN), so a real
+        // `>>TURN` written INSIDE a handler still sorts after it and still wins — GR14 disables, it does not
+        // freeze. Restored to savedTurn after imp-5 so GR22 governs what survives the PERFORM.
         int performId = ctx.EcState.NextF3PerformId();
         int line = p.Start.Line;
+        int handlerLine = whenPhrases.Length > 0 ? whenPhrases[0].Start.Line : p.Stop.Line;
+        ctx.EcState.Turn = savedTurn.WithAllDisabledFrom(handlerLine);
         bool savedInWhen = ctx.EcState.InF3When;
         ctx.EcState.InF3When = true;
         var whens = new List<BoundExceptionMatch>();
@@ -86,6 +100,7 @@ internal sealed partial class EcBinder
             ? ctx.Table.AddF3Handler(host.BindBlocks(c.statementBlock()), performId, line) : null;
         ctx.EcState.InF3When = savedInWhen;
         var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;
+        ctx.EcState.Turn = savedTurn;   // GR14's implicit POP ALL precedes END-PERFORM; GR22 governs from here
 
         bool handlerHasExit = HandlerBodiesContainExitPerform(p);
         return new BoundExceptionPerform(imp1, whens, otherPc, commonPc, final, withLocation, performId, handlerHasExit);

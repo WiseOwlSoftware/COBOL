@@ -428,9 +428,20 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         using (w.Block($"{(asLocal ? "" : "private ")}int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
         {
-            w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
-            w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
-            w.Line("return __a;");
+            // §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
+            // imperative-statement-1" — so imp-2/3/4 run with NO exception checking enabled (§14.6.13.1.1: "if
+            // checking for an exception that occurs is not enabled, no exception condition is raised"). It has to
+            // be done HERE, at runtime, and not only by binding the handler bodies under a disabled TurnState:
+            // the ambient gates are set by the guard around the RAISING statement, and this composer is called
+            // from inside that guard, before its finally clears them.
+            w.Line("var __ck = ExceptionState.PushAllCheckingOff();   // GR14 implicit PUSH ALL + TURN OFF ALL");
+            using (w.Block("try"))
+            {
+                w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
+                w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
+                w.Line("return __a;");
+            }
+            w.Line("finally { ExceptionState.PopAllChecking(__ck); }   // GR14 implicit POP ALL");
         }
         w.Line();
     }
