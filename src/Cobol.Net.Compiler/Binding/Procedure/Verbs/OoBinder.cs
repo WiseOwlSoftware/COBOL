@@ -752,12 +752,34 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     "SET … TO SELF: SELF is defined only within a method of a class (ISO §14.9.39.3 SR12c)");
                 return new BoundNop();
             }
+            // The receiver decides WHICH rule governs a SELF sender: SR12c when it is described with an
+            // object-class-name, SR10d when it is described with an interface-name. A UNIVERSAL receiver
+            // (ObjectClassName null) constrains nothing — SR8.
             foreach (var tp in targets)
-                if (tp.Item.Pic!.ObjectClassName is { } tcn
-                    && host.OoClasses?.Find(tcn) is { } tcls && !cur.ConformsTo(tcls))
+            {
+                if (tp.Item.Pic!.ObjectClassName is not { } tcn) continue;
+                if (host.OoClasses?.Find(tcn) is { } tcls)
+                {
+                    if (!cur.ConformsTo(tcls))
+                        ctx.Edition.Error("COBOLNET0867",
+                            $"SET '{tp.Item.CobolName}' TO SELF: class '{cur.Name}' is not '{tcls.Name}' or a "
+                            + "subclass of it (ISO §14.9.39.3 SR12c2)");
+                }
+                // §14.9.39.3 SR10d — "the predefined object reference SELF, subject to the following rules:
+                // 1. if the SET statement is contained in a method within the FACTORY definition of the class,
+                // that factory definition shall be described with an IMPLEMENTS clause that references int-1,
+                // 2. if … within the INSTANCE definition …, that instance definition shall be described with an
+                // IMPLEMENTS clause that references int-1". `Find` is class-only, so before this an
+                // interface-typed receiver fell through both arms unchecked and the emitter rendered a raw
+                // `(I)(this)` cast — a runtime InvalidCastException, or a Roslyn CS error on generated user
+                // source for a sealed class, which the G4 no-CS-on-user-source rule forbids.
+                else if (host.OoClasses?.FindInterface(tcn) is { } tiface
+                         && !host.OoClasses.ImplementsClosure(cur, host.OoInFactory).Contains(tiface))
                     ctx.Edition.Error("COBOLNET0867",
-                        $"SET '{tp.Item.CobolName}' TO SELF: class '{cur.Name}' is not '{tcls.Name}' or a "
-                        + "subclass of it (ISO §14.9.39.3 SR12c2)");
+                        $"SET '{tp.Item.CobolName}' TO SELF: the {(host.OoInFactory ? "factory" : "instance")} "
+                        + $"definition of class '{cur.Name}' does not IMPLEMENT interface '{tiface.Name}' "
+                        + $"(ISO §14.9.39.3 SR10d{(host.OoInFactory ? 1 : 2)})");
+            }
         }
         else if (!senderNull)
         {

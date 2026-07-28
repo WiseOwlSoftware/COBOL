@@ -79,6 +79,7 @@
     "multiple-file-tape",
     "national-of-wrong-category",
     "oo-interface-arg-mismatch",
+    "oo-set-self-interface-not-implemented",
     "oo-multi-base-inherits",
     "open-reversed",
     "options-default-rounded-at-2002",
