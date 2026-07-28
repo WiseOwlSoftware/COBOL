@@ -161,6 +161,34 @@ public sealed class ExceptionEngine
         return false;
     }
 
+    // ── The ambient checking flags, and GR14's PUSH ALL / TURN OFF ALL / POP ALL ──────────────────────────────
+
+    /// <summary>Every ambient <c>…Checking</c> flag as ONE value — see <see cref="CheckingFlags"/> for why this
+    /// is a struct and not loose fields. The public properties below delegate to it, so generated code and every
+    /// runtime raise site are unaffected by the storage shape.</summary>
+    private CheckingFlags _checking;
+
+    /// <summary>The §14.9.28.4 GR14 <b>implicit PUSH ALL followed by TURN OFF ALL</b>: return the current ambient
+    /// checking state and disable ALL of it. Pair with <see cref="PopAllChecking"/> in a <c>finally</c>.
+    ///
+    /// <para>An exception-checking PERFORM takes this at the END of imperative-statement-1 and restores it
+    /// "immediately preceding the END PERFORM phrase", so imp-2/3/4 (WHEN / OTHER / COMMON) and imp-5 (FINALLY)
+    /// all run with NO checking enabled — §14.6.13.1.1: "if checking for an exception that occurs is not enabled,
+    /// no exception condition is raised". This has to happen at RUNTIME, not only in the binder: the ambient
+    /// gates are set by the guard around the RAISING statement, and a handler is dispatched from inside that
+    /// guard, before its <c>finally</c> clears them — so binding a handler body under a disabled TurnState
+    /// removes the handler's OWN guard but leaves the raiser's flags standing.</para></summary>
+    public CheckingFlags PushAllCheckingOff()
+    {
+        var saved = _checking;
+        _checking = default;   // TURN OFF ALL — every flag, including any added after this was written
+        return saved;
+    }
+
+    /// <summary>The GR14 <b>implicit POP ALL</b>: restore the ambient checking state taken by
+    /// <see cref="PushAllCheckingOff"/>.</summary>
+    public void PopAllChecking(CheckingFlags saved) => _checking = saved;
+
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
 
     /// <summary>True while the currently-executing statement has EC-ARGUMENT-FUNCTION checking enabled (set and
@@ -169,7 +197,11 @@ public sealed class ExceptionEngine
     /// clear, the default result stands (§14.6.13.1.4). Ambient (not a per-call argument) because intrinsic
     /// calls render inline inside arbitrary expressions — threading a mask through every runtime signature would
     /// fork each intrinsic into checked/unchecked twins. Run-unit-scoped since P8 (was process-global).</summary>
-    public bool ArgumentFunctionChecking { get; set; }
+    public bool ArgumentFunctionChecking
+    {
+        get => _checking.ArgumentFunction;
+        set => _checking.ArgumentFunction = value;
+    }
 
     /// <summary>Raise EC-ARGUMENT-FUNCTION for an intrinsic argument/domain error when checking is enabled
     /// (Table 13: Fatal — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for USE F3
@@ -189,7 +221,11 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-DATA-CONVERSION checking enabled (the
     /// nonfatal twin of <see cref="ArgumentFunctionChecking"/>).</summary>
-    public bool DataConversionChecking { get; set; }
+    public bool DataConversionChecking
+    {
+        get => _checking.DataConversion;
+        set => _checking.DataConversion = value;
+    }
 
     /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§15.19.4 r1/r3)
     /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§15.26.4 r3 / §15.66.4 r3). Nonfatal
@@ -205,7 +241,11 @@ public sealed class ExceptionEngine
     /// <summary>True while the currently-executing statement has EC-BOUND-OVERFLOW checking enabled (the
     /// nonfatal twin of <see cref="DataConversionChecking"/>). A dynamic-capacity table's implicit growth past
     /// its expected (TO) capacity consults it.</summary>
-    public bool BoundOverflowChecking { get; set; }
+    public bool BoundOverflowChecking
+    {
+        get => _checking.BoundOverflow;
+        set => _checking.BoundOverflow = value;
+    }
 
     /// <summary>Record EC-BOUND-OVERFLOW when a dynamic-capacity table's implicit growth (a receiving subscript)
     /// first exceeds its expected capacity (§8.5.1.9.6 GR1 — the FIRST crossing only; an already-exceeded
@@ -220,7 +260,11 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-BOUND-REF-MOD checking enabled (the fatal
     /// twin of <see cref="ArgumentFunctionChecking"/>). Reference-modification evaluation sites consult it.</summary>
-    public bool BoundRefModChecking { get; set; }
+    public bool BoundRefModChecking
+    {
+        get => _checking.BoundRefMod;
+        set => _checking.BoundRefMod = value;
+    }
 
     /// <summary>Raise EC-BOUND-REF-MOD for a reference-modification whose leftmost-position or length is out of
     /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a specified negative
@@ -242,7 +286,11 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
     /// The PERFORM VARYING index-name initialization site consults it.</summary>
-    public bool PerformVaryingChecking { get; set; }
+    public bool PerformVaryingChecking
+    {
+        get => _checking.PerformVarying;
+        set => _checking.PerformVarying = value;
+    }
 
     /// <summary>Raise EC-RANGE-PERFORM-VARYING when a PERFORM VARYING (or AFTER) initializes an INDEX-NAME from a
     /// data-item FROM operand whose value is NOT POSITIVE (&lt;= 0) at the time of initialization (ISO §14.9.28.4 GR3,
@@ -262,7 +310,11 @@ public sealed class ExceptionEngine
     /// <summary>True while the currently-executing statement has EC-DATA-NOT-FINITE checking enabled (fatal, the twin
     /// of <see cref="BoundRefModChecking"/>). Every non-exempt read of a standard-float SENDING operand consults it —
     /// the always-emitted <see cref="CobolFloat.Sending(double)"/> wrap at both float read chokepoints.</summary>
-    public bool FloatNotFiniteChecking { get; set; }
+    public bool FloatNotFiniteChecking
+    {
+        get => _checking.FloatNotFinite;
+        set => _checking.FloatNotFinite = value;
+    }
 
     /// <summary>Raise EC-DATA-NOT-FINITE when a standard-float sending operand whose content is NaN or ±Infinity is
     /// referenced (ISO §14.6.13.2 item 3, spec :24571; Table 13 Fatal), unless one of the four exemptions applies
@@ -284,7 +336,11 @@ public sealed class ExceptionEngine
     /// <summary>True while the currently-executing statement has EC-DATA-OVERFLOW checking enabled (fatal). Only a
     /// MOVE into a single-precision standard-float receiver consults it — the <see cref="CobolFloat.StoreSingleChecked"/>
     /// store site (§14.9.25.4 GR4 step 4a is MOVE-only).</summary>
-    public bool FloatOverflowChecking { get; set; }
+    public bool FloatOverflowChecking
+    {
+        get => _checking.FloatOverflow;
+        set => _checking.FloatOverflow = value;
+    }
 
     /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
     /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR4 step 4a,
@@ -451,6 +507,12 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.TakePropagated"/>
     public static bool TakePropagated(out string name, out bool fatal) => E.TakePropagated(out name, out fatal);
+
+    /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
+    public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();
+
+    /// <inheritdoc cref="ExceptionEngine.PopAllChecking"/>
+    public static void PopAllChecking(CheckingFlags saved) => E.PopAllChecking(saved);
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentFunctionChecking"/>
     public static bool ArgumentFunctionChecking
