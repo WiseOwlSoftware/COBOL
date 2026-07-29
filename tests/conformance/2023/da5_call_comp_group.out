@@ -1,0 +1,4 @@
+LEN=7
+PRE  N=1234 P=567 A=abc
+SUB  N=1234 P=567 A=abc
+POST N=7777 P=890 A=xyz

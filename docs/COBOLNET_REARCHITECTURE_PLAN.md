@@ -409,19 +409,25 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-29, V59 + DA2 COMPLETE — supersedes the 4116/913 earlier the same day):** FULL
-  Conformance **4117/4117, zero skipped, NOTHING red** (+1 = `v59_length_agrees`, +1 = `da2_function_as_text`;
-  the earlier +2 was `v59_byte_image` and `v59_sort_binary_key`) · greenfield Unit **940/940, zero skipped**
-  (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`, +2 `ReceiverContextRestoreDriftTests`; the V59
-  invariant is un-skipped and green, and the codec + byte-form tables are table-driven) · characterization
-  **33/33** · `guard-fast.sh` **ALL GREEN, NIST 353 MATCH / 0 REGRESSION** · the GnuCOBOL differential **2 flips,
-  both FIXES, 0 regressions**.
-  ⚠ **Two carried figures, stated so they are not mistaken for fresh measurements.** Characterization and
-  `guard-fast`/NIST are carried from the step-4 gate; the GnuCOBOL differential is carried from the same point.
-  **DA2 makes re-running the differential the highest-value next check** — it CHANGED the rendering of a numeric
-  FUNCTION in every string context, and GnuCOBOL renders those differently on purpose (it zero-pads a computed
-  `ORD`), so the per-case verdicts WILL move. Those moves are expected and are not regressions; diff them
-  per-case rather than reading the totals. The 2026-07-28 numbers below are the
+- **Battery reference (2026-07-29, V59 + DA2 + the DA5 CALL half — supersedes the 4117/940 earlier the same day):**
+  FULL Conformance **4118/4118, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
+  +1 `da5_call_comp_group`; the earlier +2 was `v59_byte_image` and `v59_sort_binary_key`) · greenfield Unit
+  **942/942, zero skipped** (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
+  +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
+  green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`
+  **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**.
+  ✅ **THE GnuCOBOL DIFFERENTIAL IS RE-RUN AND CLEAN AFTER DA2 (2026-07-29): 0 per-case flips, 0 regressions**,
+  totals unchanged at **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104
+  WE_ACCEPT_THEY_REJECT over 1323 cases**, diffed per-case against the stored report (not by comparing totals).
+  ⛔ **AND THE PREDICTION THAT IT WOULD MOVE WAS WRONG — the correction is the useful part.** This section
+  previously said DA2's rendering change would move the per-case verdicts. It cannot: the differential's verdict
+  is a COMPILE-TIME **accept/reject** comparison, so it is structurally blind to a change in RUNTIME OUTPUT. DA2
+  altered what a numeric FUNCTION *prints* and turned a runtime throw into a success; neither changes whether the
+  program COMPILES, and the affected cases were already AGREE_ACCEPT. **Do not reach for this differential to
+  validate an output-semantics change** — for those, the goldens are the instrument and this net is silent by
+  construction. It remains the right tool for reference-format and grammar work.
+  ⚠ Characterization and `guard-fast`/NIST are still carried forward from the step-4 gate — re-run at the next
+  batch boundary rather than trusting this line indefinitely. The 2026-07-28 numbers below are the
   phase-14 merge gate and stay for provenance. The total moved twice today and both moves are accounted for: 3929/3930 → 3931/3931 when the VCR's
   dangling spec LINE citations were re-keyed onto the clause hierarchy (the one red closed; its replacement pair
   adds a fact), then → 4113/4113 when CA14 added the 182-cell introduction-axis theory

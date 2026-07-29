@@ -12,6 +12,38 @@
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
 
+### DA5 · [MAJOR] · data-model · 🟡 PARTLY LANDED — V59's image predicate was migrated at SOME emit guards and not others
+- **The two predicates.** V59 added `DataItem.IsImageCapable` (a BINARY/PACKED leaf HAS a pinned byte image, so a
+  group containing one qualifies; only float / COMP-5 / INDEX are genuinely imageless) beside the pre-V59
+  `DataItem.IsCharacterImage` (a COMP/binary leaf qualifies only via `StoreAsImage` promotion). `TierCIsland`
+  documents the pair as deliberate P1/P2 — that was true BEFORE V59.
+- **Why the split is now a defect and not a design.** `RecordStructEmitter.cs:123` emits `AsImage()`/`FromImage()`
+  for exactly `IsImageCapable`, so the codec EXISTS for a plain COMP group. A guard still on `IsCharacterImage`
+  therefore loud-stages a construct whose codec was actually generated. `MoveEmitter` ends up using BOTH
+  predicates, which is the tell that this is an unfinished migration rather than a distinction.
+- **✅ THE CALL HALF IS LANDED (DEVLOG 1105).** `01 G. 05 N PIC S9(4) COMP. 05 P PIC 9(3) COMP-3. 05 A PIC X(3).`
+  answered `BYTE-LENGTH(G) = 7` and then threw *"no whole-group character image"* on `CALL "SUB" USING G`. That
+  claim was false and refusing the CALL rejected conforming source: **§14.2.3 GR8** (`cite.py`-verified) — "If the
+  argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the
+  same storage area as the argument" — which COBOL.NET realizes through that very image round-trip. Both CALL
+  guards (the `ArgText` read half and the `CallStringWrite` write half) now test `IsImageCapable`; the leaf-kind
+  wording follows the predicate. Golden `da5_call_comp_group` pins the round-trip IN **and** OUT, since a test that
+  only checked "no longer throws" would miss a broken round-trip. A float/COMP-5/INDEX group still stages loud.
+- **⏳ SEVEN GUARDS REMAIN, AND THEY ARE NOT AUTOMATICALLY BUGS.** `NumericRenderer.cs:186` ·
+  `AcceptDisplayEmitter.cs:66,129` · `InspectEmitter.cs:89` · `MoveEmitter.cs:144` · `SortEmitter.cs:224` ·
+  `StringEmitter.cs:151,193`. **⛔ V59's own governing lesson is BYTES ARE NOT TEXT:** a COMP leaf's image is
+  radix-2 bytes, not its digits, so a verb defined over CHARACTER POSITIONS (STRING/UNSTRING/INSPECT) may be
+  CORRECT to refuse it — consuming those bytes as text would be a silent wrong answer, strictly worse than the
+  loud stage. Each site needs its own spec derivation (does the operation need TEXT or STORAGE?), plus the
+  separate question of whether a syntax-rule violation is being deferred to RUN TIME where it belongs at COMPILE
+  time (e.g. §14.9.43.3 SR1 requires STRING's identifiers be usage display or national). **NOT swept here rather
+  than swept on guesswork** — an owner-visible deferral, and the reason is that the per-site analysis is the work,
+  not the predicate swap.
+- **The inventory is PINNED, so none of the seven can be forgotten.**
+  `tests/Cobol.Net.Tests.Unit/V59ImagePredicateDriftTests.cs` asserts the exact per-file set (and that CALL's two
+  halves stay in lockstep), so adding, removing, or silently migrating a site fails a test and forces the decision
+  to be recorded. It counts CODE only — the first cut failed on its own explanatory comment.
+
 ### DA4 · [MAJOR] · inspect-string · ⏳ OPEN — the STRING statement's sending operand REJECTS a function-identifier at PARSE time
 - **Spec:** §14.9.43.2's general format gives the sending operand as **`identifier-1`**, and §8.4.3.1.2 **Format 1
   of an identifier IS `function-identifier-1`** (`cite.py --check`-verified). No syntax rule excludes a function:
