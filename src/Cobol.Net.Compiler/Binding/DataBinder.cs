@@ -2870,23 +2870,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                         MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
-                    else if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Binary or Usage.Packed } bp)
-                    {
+                    else if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Binary or Usage.Packed })
                         // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
-                        // the one string backing IS its zoned digit image (ISO §13.18.60 USAGE GR4 — implementor
-                        // representation; COBOLNET_DESIGN §14.4). Its profile MUST be rewritten to describe that
-                        // zoned storage: every accessor (EmitArithAssign stores, NumericRenderer reads, the
-                        // window splice) threads `_P_`, and the leaf's declared BinaryMinus form is VARIABLE
-                        // width (a leading '-' only when negative) — FormatDisplay(BinaryMinus) would write a
-                        // Digits+1 image into the Digits-wide window and corrupt the value (and every following
-                        // leaf). NOTE the observable consequence: DISPLAY of such a leaf shows the zoned
-                        // overpunch image (like any signed zoned item), not the '-100' binary-minus form — the
-                        // conformant face of the GR4 license. The DigitCount truncation discipline is unchanged
-                        // (BINARY truncates by digit count; PACKED's 2n−1 over-capacity digits cannot survive an
-                        // image round trip — standard stores never create them without implementor permission).
-                        MarkImageForced(leaf);   // the collected image fact (the SignKind rewrite below is a Pic fact and stays)
-                        leaf.Pic = bp with { SignKind = bp.ImageSignKind };
-                    }
+                        // the one string backing IS its BYTES — radix-2 two's complement or BCD, of exactly
+                        // PicInfo.StorageWidth (ISO §13.18.60.4 GR4/GR11 implementor representation;
+                        // COBOLNET_DESIGN §14.4, V59). Every accessor threads the leaf's OWN `_P_` profile
+                        // through CobolNum.FormatImage/ParseImage, so no profile rewrite is needed or wanted:
+                        // the sign lives in the bytes (two's complement / the sign nibble), and SignKind — a
+                        // DISPLAY concern — stays the declared BinaryMinus, which is what DISPLAY of the leaf
+                        // must still render. The former rewrite to a trailing-overpunch ZONED image existed only
+                        // because the window used to be Digits characters wide.
+                        MarkImageForced(leaf);
                 }
         }
     }

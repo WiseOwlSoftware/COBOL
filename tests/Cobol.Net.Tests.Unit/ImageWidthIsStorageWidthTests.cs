@@ -49,7 +49,7 @@ public sealed class ImageWidthIsStorageWidthTests
         return data;
     }
 
-    [Theory(Skip = "V59 (plan §0 NEXT 1, owner-decided 2026-07-28): the record IMAGE still uses Pic.Digits for a BINARY/PACKED leaf while StorageWidth/ByteWidth/FUNCTION BYTE-LENGTH use the pinned 1-2-4-8 / BCD widths. RED for exactly that defect (39 of 83 cases) and turns GREEN when the image is re-based on StorageWidth. NOT a tolerated divergence - it is the decided, specified next change; this test is here so the class cannot be forgotten.")]
+    [Theory]
     [MemberData(nameof(ImageCapableNumerics))]
     public void ImageWidth_EqualsByteWidth_ForEveryImageCapableNumeric(Usage usage, int digits, bool signed)
     {
@@ -109,7 +109,7 @@ public sealed class ImageWidthIsStorageWidthTests
 
     /// <summary>A group's two widths compose from its leaves', so the invariant holds transitively — this is the
     /// shape the original defect actually presented as (BYTE-LENGTH(G) = 5 vs LENGTH(G) = 8).</summary>
-    [Fact(Skip = "V59 (plan §0 NEXT 1, owner-decided 2026-07-28): the record IMAGE still uses Pic.Digits for a BINARY/PACKED leaf while StorageWidth/ByteWidth/FUNCTION BYTE-LENGTH use the pinned 1-2-4-8 / BCD widths. RED for exactly that defect (39 of 83 cases) and turns GREEN when the image is re-based on StorageWidth. NOT a tolerated divergence - it is the decided, specified next change; this test is here so the class cannot be forgotten.")]
+    [Fact]
     public void MixedUsageGroup_ImageWidthEqualsByteWidth()
     {
         var group = new DataItem { Level = 1, CobolName = "G", CsName = "G" };

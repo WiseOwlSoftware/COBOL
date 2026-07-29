@@ -219,7 +219,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
                 w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
-                    ? RuntimeApi.NumFormatDisplay(stored, target.Item.ProfileName)
+                    ? RuntimeApi.NumFormatImage(stored, target.Item.ProfileName)
                     : ArithmeticEmitter.Narrow(stored, target.Item)));
                 return;
             default:

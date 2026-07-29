@@ -65,9 +65,24 @@ internal static class RuntimeApi
     public static string NumStore(string value, string scale, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({value}, {scale}, {profile})";
 
-    /// <summary>Render an unscaled value as the receiver's DISPLAY image — <c>CobolNum.FormatDisplay</c>.</summary>
+    /// <summary>Render an unscaled value as the receiver's DISPLAY image — <c>CobolNum.FormatDisplay</c>.
+    /// ⛔ This is the CHARACTER rendering (what a DISPLAY statement shows). For the bytes an item occupies in a
+    /// record, a file, a SORT key or a REDEFINES backing, use <see cref="NumFormatImage"/> — for a BINARY or
+    /// PACKED item the two differ, and that difference is V59.</summary>
     public static string NumFormatDisplay(string value, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatDisplay)}({value}, {profile})";
+
+    /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
+    /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
+    /// COBOLNET_DESIGN §14.4). Zoned items render exactly as <see cref="NumFormatDisplay"/>; BINARY and PACKED
+    /// render their radix-2 / BCD bytes.</summary>
+    public static string NumFormatImage(string value, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImage)}({value}, {profile})";
+
+    /// <summary>Decode an item's record-image bytes back to its unscaled value — <c>CobolNum.ParseImage</c>, the
+    /// inverse of <see cref="NumFormatImage"/>.</summary>
+    public static string NumParseImage(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImage)}({image}, {profile})";
 
     // ── Strings (CobolString) ──
 
@@ -572,6 +587,12 @@ internal static class RuntimeApi
     /// current value — <c>CobolNum.StoreDisplay</c>.</summary>
     public static string NumStoreDisplay(string image, string profile, string current) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.StoreDisplay)}({image}, {profile}, {current})";
+
+    /// <summary>Decode a spliced RECORD IMAGE back into a numeric leaf — <c>CobolNum.StoreImage</c>, the write
+    /// half of <see cref="NumFormatImage"/> (the <paramref name="current"/> dummy selects the storage form's
+    /// conversion, exactly as <see cref="NumStoreDisplay"/> does).</summary>
+    public static string NumStoreImage(string image, string profile, string current) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.StoreImage)}({image}, {profile}, {current})";
 
     // ── Inter-program ABI (CobolArgAdapt / CobolPassMode; interprogram design D1/D2) — Step 9-final sweep ──
 

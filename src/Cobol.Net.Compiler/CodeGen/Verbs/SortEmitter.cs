@@ -227,7 +227,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         return k.Pic switch
         {
             { Category: PicCategory.Numeric, IsFloat: false } when k.StoreAsImage =>
-                $"{RuntimeApi.NumParseDisplay(pa, k.ProfileName)}.CompareTo({RuntimeApi.NumParseDisplay(pb, k.ProfileName)})",
+                $"{RuntimeApi.NumParseImage(pa, k.ProfileName)}.CompareTo({RuntimeApi.NumParseImage(pb, k.ProfileName)})",
             { Category: PicCategory.Numeric, IsFloat: false } => $"({pa}).CompareTo({pb})",
             { Category: PicCategory.Numeric } => $"({pa}).CompareTo({pb})",   // COMP-1/2 — IEEE value order
             _ => RuntimeApi.StrCompare(pa, pb, weightsArg),
@@ -239,7 +239,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     private static string KeysExpr(IReadOnlyList<BoundSortMergeKey> keys) =>
         RuntimeApi.SortKeyArray(keys.Select(k =>
             $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {(k.Numeric ? "true" : "false")}, "
-            + $"{(k.Signed ? "true" : "false")}, NumericSign.{k.SignKind})"));
+            + $"{(k.Item is { } ki ? ki.ProfileName : "default")})"));
 
     /// <summary>The weights argument for the statement's GR5-resolved collating sequence: <c>null</c> for the
     /// native order, the compiled <c>__COLLATE</c> field when the resolved sequence IS the program collating

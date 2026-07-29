@@ -13,11 +13,11 @@ internal sealed class _PRG_CHAR_INITIALIZE : ICobolProgram
     {
         public long WS_N;   // WS-N
         public string WS_A;   // WS-A
-        public readonly string AsImage() => CobolNum.FormatDisplay(WS_N, _P_1) + WS_A;
+        public readonly string AsImage() => CobolNum.FormatImage(WS_N, _P_1) + WS_A;
         public void FromImage(string __s)
         {
             __s = CobolString.Store(__s, 7);
-            WS_N = (long)CobolNum.ParseDisplay(__s.Substring(0, 3), _P_1);
+            WS_N = (long)CobolNum.ParseImage(__s.Substring(0, 3), _P_1);
             WS_A = __s.Substring(3, 4);
         }
     }

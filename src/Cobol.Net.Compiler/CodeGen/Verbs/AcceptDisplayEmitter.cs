@@ -68,7 +68,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT into group", "COMP/binary")));
                 return;
             }
-            string img = $"AcceptSource.Device({item.ImageWidth})";
+            string img = $"AcceptSource.Device({item.DisplayTextWidth})";
             // A Tier-B view group's image IS its character window; a record-struct group distributes via FromImage.
             w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
@@ -78,8 +78,10 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         switch (pic)
         {
             case { Category: PicCategory.Numeric, IsFloat: false }:
-                // ImageWidth = digit count + a SIGN SEPARATE character position (ISO §13.18.52 GR6a).
-                string image = $"AcceptSource.Device({item.ImageWidth})";
+                // The DEVICE window is CHARACTERS — digit count + a SIGN SEPARATE position (ISO §13.18.52
+                // GR6a) — never the item's byte width: a PIC 9(4) COMP receiver reads FOUR typed digits and
+                // stores TWO bytes (V59).
+                string image = $"AcceptSource.Device({item.DisplayTextWidth})";
                 w.Line(item.StoreAsImage || target is RedefViewPlace
                     ? PlaceRenderer.Write(target, image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
                     : PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
@@ -130,7 +132,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 return;
             }
             // A group receiver is an alphanumeric-category move (§14.9.25.4 GR4 — filled without conversion).
-            string img = RuntimeApi.StrStore(sendImage, $"{item.ImageWidth}");
+            string img = RuntimeApi.StrStore(sendImage, $"{item.DisplayTextWidth}");
             w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
         }
@@ -142,7 +144,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // the integer sender is at scale 0; the receiver keeps its LOW-order digits when smaller).
                 string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
                 w.Line(PlaceRenderer.Write(target, item.StoreAsImage
-                    ? RuntimeApi.NumFormatDisplay(stored, item.ProfileName)
+                    ? RuntimeApi.NumFormatImage(stored, item.ProfileName)
                     : stored));
                 return;
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2

@@ -945,27 +945,24 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 
 ### 14.4 ONE whole-group / materialize-to-image facility (G6)
 
-> ⛔ **THE BINARY/PACKED IMAGE REPRESENTATION BELOW IS SUPERSEDED BY OWNER DECISION (2026-07-28) AND IS THE ACTIVE
-> WORK ITEM — see plan §0 NEXT and fix-queue V59.** What is described here is the CURRENT compiler and stays
-> accurate until the change lands; do not implement from it.
-> **What changed and why.** "Named loser (c)" below rejects raw bytes on the grounds that *"cross-engine file
-> compatibility is not required"*. That premise is now reversed (differential-fidelity doctrine). But the decisive
-> argument is not interchange at all — **the zoned image contradicts the compiler's own pinned byte widths**:
-> `PicInfo.StorageWidth` already defines BINARY as 1-2-4-8 and PACKED as `Digits/2+1` BCD, `DataItem.ByteWidth`
-> documents them, and `FUNCTION BYTE-LENGTH` reports them. So for `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC 9(4)
-> COMP-3.` the compiler answers **BYTE-LENGTH(G) = 5** and **LENGTH(G) = 8** for one group, and accepts
-> `REDEFINES G PIC X(8)`. §15.14.4 GR1 returns the length in BYTES and §15.50.4 GR3 the length in ALPHANUMERIC
-> CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and a conforming program observes
-> the disagreement with no file and no byte pun. **One representation, at every byte boundary** — the image, file
-> records, SORT keys and the REDEFINES backing all take `StorageWidth` and the radix those widths already imply.
->
-> **Landed so far** (the rest of the sequence is plan §0 NEXT 1): ① the ONE-WIDTH INVARIANT as a test —
-> `ImageWidthIsStorageWidthTests` asserts `ImageWidth == ByteWidth` for every image-capable item, RED for exactly
-> this defect and carrying an explicit `Skip` until the image is re-based. ② the STORAGE-FORM DISCRIMINATOR —
-> `NumProfile.ByteForm` (`NumericByteForm`, §6.3) now carries each usage's pinned byte representation to the
-> runtime, because `NumericTruncation` never could: DISPLAY and BINARY are both `DigitCount`. The discriminator is
-> stated but not yet CONSUMED — the codec below still writes the zoned image described here, and that is what a
-> reader must implement against until step ③ re-bases `DataItem.ElementaryImageWidth`.
+> ✅ **THE RE-BASE HAS LANDED (V59, 2026-07-29): ONE BYTE REPRESENTATION AT EVERY BYTE BOUNDARY.** A fixed-point
+> BINARY or PACKED leaf occupies its TRUE BYTES in the image — radix-2 two's complement (big-endian) or BCD, of
+> exactly `PicInfo.StorageWidth` — everywhere the image is consumed: the whole-group codec, file records, SORT/MERGE
+> key windows and the Tier-B REDEFINES backing. `CobolNum.FormatImage`/`ParseImage` (`CobolNum.Image.cs`) is the ONE
+> codec; `DataItem.ImageWidth` and `DataItem.ByteWidth` are now two views of one fact, asserted by
+> `ImageWidthIsStorageWidthTests`. The zoned digit image described below survives ONLY as USAGE DISPLAY's own byte
+> form, and `PicInfo.ImageSignKind` is DELETED — a binary leaf's sign lives in its bytes, so there is no
+> image-specific sign convention left to carry. **What is NOT the record image: an item's DISPLAY-statement text.**
+> An ELEMENTARY numeric operand used as text still renders its DIGITS (§14.9.25.4 GR6 / §8.8.4.2.2 — "as though it
+> were moved to an alphanumeric data item"), which is why `DataItem.DisplayTextWidth` exists beside `ImageWidth` and
+> why `OperandText` decodes a non-zoned stored image before rendering it. A GROUP operand is the opposite case:
+> §8.8.4.1.1 makes it alphanumeric over the items' REPRESENTATION, so its text IS the record image, bytes and all.
+> **⚠ MIGRATION — THE ON-DISK RECORD LAYOUT CHANGED.** A data file written by a build BEFORE this carries a
+> BINARY/PACKED field as its zoned digit characters; this build reads that window as radix-2 / BCD bytes. A
+> fixed-length sequential file carries no self-description, so the failure would present as silent garbage. Detection
+> where it is provable — a fixed-length file whose byte length is not a multiple of the declared record length —
+> is plan §0 NEXT 1 step ⑤. Files written and read by ONE build are unaffected, and the pinned forms match IBM /
+> Micro Focus / GnuCOBOL, so this build's files interchange where the previous ones did not.
 
 
 There is ONE facility that turns a typed group/numeric into its alphanumeric image and back: a generated
@@ -979,23 +976,29 @@ mixed-usage (DISPLAY+BINARY+PACKED) groups — the byte path remains only for th
 usages (see the total rule below).
 
 **Mixed-usage (COMP-leaf) groups — the TOTAL rule.** The
-standard leaves a binary item's representation to the implementor (§13.18.60 USAGE GR4 — "Each implementor specifies
+standard leaves a binary item's representation to the implementor (§13.18.60.4 GR4 — "Each implementor specifies
 the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including the
-representation of any algebraic sign"; §8.8.4.1.1 — a group operand is alphanumeric over the items'
-representations). The typed-native backend DEFINES that representation, totally: **a fixed-point BINARY/PACKED
-leaf's character image is its fixed-width zoned digit image — `Pic.Digits` characters, implied decimal point, sign
-as a TRAILING OVERPUNCH on the last digit** (`PicInfo.ImageSignKind`, the ONE image-sign mapping). The generated
-`AsImage()`/`FromImage()` (gated on `DataItem.IsImageCapable`) implements it for every consumer — whole-group
-MOVE/compare/DISPLAY senders, WRITE/RELEASE, READ/RETURN distribution, SORT/MERGE key decode — via
-`CobolNum.FormatDisplay`/`ParseDisplay` with the leaf's `_P_` profile `with`-overridden to the image sign (the
-leaf's OWN profile keeps `BinaryMinus`, so DISPLAY-statement output of a native leaf is unchanged). **Named losers:**
-(a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with its own
-`BinaryMinus` profile, a latent VARIABLE-WIDTH bug that would shift every following leaf for a negative value, and
-it bailed on fixed-OCCURS children the generated codec handles; (b) leading-separate-sign images (would change
-`ImageWidth` and every offset computation, buying only debuggability); (c) raw big-endian bytes as Latin-1 chars
-(the legacy on-disk form) — a SECOND representation for one concept (the §4.1 incoherence trap), and cross-engine
-file compatibility is not required. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity`
-stores values beyond the PICTURE digit count), INDEX. A whole-group **MOVE between two mixed groups with
+representation of any algebraic sign"; GR11 the same for PACKED-DECIMAL; §8.8.4.1.1 — a group operand is
+alphanumeric over the items' representations). The typed-native backend DEFINES that representation, totally, and
+it is ONE representation everywhere: **a fixed-point leaf's image IS its bytes** — zoned digits for USAGE DISPLAY,
+radix-2 two's complement (big-endian) for BINARY, BCD with a `0xC`/`0xD`/`0xF` sign nibble for PACKED — of exactly
+`PicInfo.StorageWidth` (`NumericByteForm`, §6.3). The generated `AsImage()`/`FromImage()` (gated on
+`DataItem.IsImageCapable`) implements it for every consumer — whole-group MOVE/compare senders, WRITE/RELEASE,
+READ/RETURN distribution, SORT/MERGE key decode, the Tier-B REDEFINES backing — through the ONE codec
+`CobolNum.FormatImage`/`ParseImage` with the leaf's OWN `_P_` profile. There is no image-specific sign convention:
+a binary leaf's sign is in its bytes, so `SignKind` (a DISPLAY concern) is not consulted, and DISPLAY-statement
+output of the same leaf is unchanged (`OperandText` decodes a non-zoned stored image and renders the digits —
+§14.9.25.4 GR6 treats an elementary numeric operand used as text as though it were MOVED to an alphanumeric item).
+**Named losers:** (a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with
+its own `BinaryMinus` profile, a latent VARIABLE-WIDTH bug that would shift every following leaf for a negative
+value, and it bailed on fixed-OCCURS children the generated codec handles; (b) leading-separate-sign images (buying
+only debuggability); (c) **the fixed-width ZONED DIGIT image with a trailing-overpunch sign — the form this design
+carried through P13 and V59 retired.** It was defensible on §13.18.60.4 GR4's representation latitude alone, but it
+contradicted the compiler's OWN pinned widths: `BYTE-LENGTH(G) = 5` while `LENGTH(G) = 8` for one group
+(§15.14.4 GR1 vs §15.50.4 GR3, which cannot disagree in a single-byte-character model), it made a conforming
+program observe the disagreement with no file and no byte pun, and it put a `PIC 9(4) COMP` on disk as the ASCII
+bytes `31 32 33 34`. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity` stores values
+beyond the PICTURE digit count, so its bytes and its picture disagree), INDEX (§13.18.60.4 GR10 — no image at all). A whole-group **MOVE between two mixed groups with
 positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is still emitted as a **memberwise
 leaf copy** (`MoveEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
 representation copy and the memberwise copy are indistinguishable, and the memberwise path skips the encode/decode

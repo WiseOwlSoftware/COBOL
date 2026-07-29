@@ -193,10 +193,11 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         { IsFloat: true } => new NumX(
             floatCheck ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
-        // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
-        // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
+        // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): decode the STORED BYTES to
+        // its unscaled value for numeric use — zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59;
+        // ISO §14.6.13.2 — incompatible content decodes deterministically).
         { } pic when p.Item.StoreAsImage =>
-            new NumX($"CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
+            new NumX($"CobolNum.ParseImage({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);

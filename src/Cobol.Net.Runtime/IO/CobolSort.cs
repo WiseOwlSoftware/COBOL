@@ -19,7 +19,7 @@ public static class CobolSort
     /// zoned/separate-sign image and compares ALGEBRAICALLY (GR8 → §8.8.4.2.4; never through a collating
     /// sequence), an alphanumeric key compares character-wise under the statement's resolved sequence (GR5 /
     /// §8.8.4.2.7).</summary>
-    public readonly record struct Key(int Offset, int Length, bool Descending, bool Numeric, bool Signed, NumericSign SignKind);
+    public readonly record struct Key(int Offset, int Length, bool Descending, bool Numeric, NumProfile Profile);
 
     /// <summary>The per-SD store: released images (in release order — the stability anchor GR3 requires), the
     /// USING stream boundaries for MERGE, and the return cursor.</summary>
@@ -188,21 +188,11 @@ public static class CobolSort
         return image.Substring(k.Offset, k.Length);
     }
 
-    /// <summary>Decode a numeric DISPLAY key window to its algebraic value via the ONE zoned/separate-sign decoder
-    /// (<see cref="CobolNum.ParseDisplay"/> — the same over-punch tables every numeric DISPLAY item uses,
-    /// COBOLNET_DESIGN §6.4). Scale is irrelevant for ordering: both operands of one key share one PICTURE, so the
-    /// unscaled values order identically to the scaled ones.</summary>
-    private static Int128 NumericKey(string image, in Key k)
-    {
-        var profile = new NumProfile
-        {
-            Digits = k.Length,
-            FractionDigits = 0,
-            Signed = k.Signed,
-            SignKind = k.SignKind,
-            Truncation = NumericTruncation.DigitCount,
-            ByteForm = NumericByteForm.Zoned,   // a key WINDOW of the record image: one byte per digit
-        };
-        return CobolNum.ParseDisplay(Slice(image, k), profile);
-    }
+    /// <summary>Decode a numeric key window to its algebraic value through the KEY ITEM'S OWN profile — the ONE
+    /// description of what those bytes are (<see cref="CobolNum.ParseImage"/>: zoned digits for USAGE DISPLAY,
+    /// radix-2 / BCD for BINARY / PACKED, V59). A profile rebuilt from the window width alone could only ever
+    /// describe a zoned key, which is how a COMP key would have sorted by its digit characters instead of its
+    /// value. Scale is irrelevant for ordering: both operands of one key share one PICTURE, so the unscaled
+    /// values order identically to the scaled ones.</summary>
+    private static Int128 NumericKey(string image, in Key k) => CobolNum.ParseImage(Slice(image, k), k.Profile);
 }

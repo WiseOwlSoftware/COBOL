@@ -3,6 +3,7 @@
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
+using CobolNet.Runtime;
 
 namespace CobolNet.CodeGen.Emit;
 
@@ -58,6 +59,27 @@ internal static class OperandText
     /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
     public static bool IsString(BoundOperand op) => op.Accept(_isString);
 
+    /// <summary>⛔ BYTES ARE NOT TEXT (V59). An image-STORED BINARY/PACKED leaf holds its radix-2 / BCD bytes, and
+    /// those bytes are not the item's alphanumeric text: an ELEMENTARY numeric operand used as text is "treated as
+    /// though it were moved to an alphanumeric data item" (ISO §14.9.25.4 GR6, and §8.8.4.2.2 for a numeric ↔
+    /// nonnumeric comparison), which yields its DIGITS. So decode the stored bytes and re-render the DISPLAY image.
+    /// Returns null for every ZONED item — there the stored image IS the text, and passing the window through
+    /// verbatim also preserves the incompatible content a group MOVE can legitimately deposit (spaces in a numeric
+    /// leaf), which a decode-and-reformat round trip would silently turn into zeros.
+    /// <para>A GROUP operand is the opposite case and is handled before this: §8.8.4.1.1 makes it alphanumeric over
+    /// the items' REPRESENTATION, so its text IS the record image, bytes and all.</para></summary>
+    private static string? NonTextBytes(Place p, bool deSign)
+    {
+        if (p.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false } pic
+            || pic.ByteForm is NumericByteForm.Zoned or NumericByteForm.None) return null;
+        string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName);
+        // GR6a: an alphanumeric move/compare drops the operational sign — the magnitude digits, never the
+        // BinaryMinus form (which is VARIABLE width and would shift a fixed receiver).
+        return deSign
+            ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(value, pic.Digits), pic)
+            : RuntimeApi.NumFormatDisplay(value, p.Item.ProfileName);
+    }
+
     private static string FieldAsString(Place p, bool deSign = false, bool floatCheck = true)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
@@ -75,8 +97,9 @@ internal static class OperandText
         // (over-punch or separate sign), so decode and re-emit the magnitude digits (ISO §14.9.25.4 GR6a), exactly
         // as the StoreAsImage branch below does — the same de-sign rule, just a different storage shape.
         if (p is RedefViewPlace)
-            return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
-                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName}), {rvp.Digits})", rvp)
+            return NonTextBytes(p, deSign) is { } rvBytes ? rvBytes
+                : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), rvp.Digits), rvp)
                 : PlaceRenderer.Read(p);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters, each NATIVE fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned decimal digit image —
@@ -94,8 +117,9 @@ internal static class OperandText
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
-            return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
-                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName}), {sip.Digits})", sip)
+            return NonTextBytes(p, deSign) is { } siBytes ? siBytes
+                : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
+                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), sip.Digits), sip)
                 : PlaceRenderer.Read(p);
         return p.Item.Pic switch
         {

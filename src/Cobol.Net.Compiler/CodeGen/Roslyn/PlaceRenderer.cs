@@ -29,8 +29,10 @@ internal static class PlaceRenderer
     {
         // A reference-modified slice inner(start:length) (ISO §8.4.3.3): a substring of the inner field's image.
         RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
-        // A NUMERIC-DISPLAY item viewed as its character image (ISO §8.4.2.4): format the stored value's display image.
-        NumericImagePlace n => RuntimeApi.NumFormatDisplay(Read(n.Inner), n.Inner.Item.ProfileName),
+        // A NUMERIC item viewed as its character image (ISO §8.4.2.4 ref-mod; §13.18.45 a RENAMES span leaf):
+        // the BYTES it occupies — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED
+        // (V59), which is what a span over it renames.
+        NumericImagePlace n => RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -71,8 +73,9 @@ internal static class PlaceRenderer
         // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
         RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
             r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
-        // Decode the spliced image back into the typed field (sign-aware via the FormatDisplay/StoreDisplay pair).
-        NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreDisplay(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
+        // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
+        // bytes the read produced, so a splice round-trips whatever the item's byte form is).
+        NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         RenamesPlace n => WriteRenames(n, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
         // A member/fixed-table store — the structural path as an assignment target.

@@ -12,6 +12,32 @@
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
 
+### DA3 · [MAJOR] · conditions · ⏳ OPEN — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
+- **Spec:** §8.3.3.2 defines the hexadecimal format of an alphanumeric literal (`X"F0F1"`), and it is an
+  ALPHANUMERIC LITERAL — §8.8.4.1.1 admits a literal on either side of a relation condition with no format
+  restriction. So `IF G = X"FFF94142"` is CONFORMING SOURCE.
+- **Observed (2026-07-29, while re-pinning the V59 group-image test):** the program compiles and then throws
+  `NotImplementedCobolFeatureException: comparison operand` at run time. A quoted literal in the same position works
+  (`IF G = "000PAB"`), so the gap is the hex FORM reaching the comparison-operand renderer, not the comparison.
+  Hex literals DO work in a VALUE/ALPHABET position (DA1 landed that decode), which is what hid this.
+- **Scope note:** not V59; the V59 test pins the same fact with an alphanumeric REDEFINES instead and says so.
+
+### DA2 · [MAJOR] · accept-display · ⏳ OPEN — a FUNCTION operand of DISPLAY is legal and is staged loud at RUN TIME
+- **Spec:** §14.9.11.2 Format 1 (device) takes `identifier-1`; §8.4.3.1.2 gives **`function-identifier-1`** as one of
+  the general formats of an identifier; §14.9.11.3 SR1 excludes only class message-tag, object and pointer — nothing
+  excludes a function. So `DISPLAY FUNCTION ORD(C)` is CONFORMING SOURCE. All three clauses `cite.py --check`-verified.
+- **Observed (2026-07-29, while writing the V59 byte-image golden):** `DISPLAY FUNCTION ORD(C)` compiles and then
+  throws `NotImplementedCobolFeatureException: computed expression in a string context` at run time, while
+  `MOVE FUNCTION ORD(C) TO N` + `DISPLAY N` works. A COMPILE-TIME-FOLDABLE intrinsic is fine
+  (`DISPLAY FUNCTION BYTE-LENGTH(G)` prints), which is what hid it: the gap is a RUNTIME-computed NUMERIC intrinsic
+  in a string context.
+- **Where:** `OperandText.AsString` intercepts only an intrinsic whose `ResultCategory` is alphanumeric/national/
+  boolean; a NUMERIC-result intrinsic falls to the visitor's computed arm, which is the loud stage. The fix is the
+  numeric-result arm — render through the numeric channel and format with the intrinsic's own profile — not a new
+  mechanism.
+- **Scope note:** this is NOT V59 and was not caused by it; the V59 golden routes the ordinal through a numeric item
+  and says so in a comment, so the gap stays visible rather than absorbed.
+
 ### DA1 · [MAJOR] · special-names · ✅ LANDED (DEVLOG 1019) — verified end-to-end (char-THRU worked, isolating the defect to hex decode) + root-caused + fixed
 - **Spec:** ISO §12.3.7 k)5 (ALPHABET literal-1 THRU literal-2 — "the native run from operand-1 to operand-2, either
   direction, ascending positions"); §8.3.3.6.4 GR6/GR7 (HIGH-/LOW-VALUE = the PCS position extremes).

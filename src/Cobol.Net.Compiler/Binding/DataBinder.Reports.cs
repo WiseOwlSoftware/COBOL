@@ -762,7 +762,7 @@ public sealed partial class DataBinder
                         foreach (var spec in f.Columns)
                         {
                             int left = spec.Relative ? hc + spec.Value : spec.Value;
-                            hc = left + f.PrintItem.ImageWidth - 1;   // GR9 — the rightmost column becomes the counter
+                            hc = left + f.PrintItem.DisplayTextWidth - 1;   // GR9 — the rightmost column becomes the counter
                             widest = Math.Max(widest, hc);
                         }
                 }

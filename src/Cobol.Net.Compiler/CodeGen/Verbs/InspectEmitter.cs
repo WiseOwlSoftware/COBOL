@@ -116,8 +116,8 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
                 string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
                 w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
-                w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatDisplay(
-                    $"{RuntimeApi.NumParseDisplay(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
+                w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
+                    $"{RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
                 return;
             }
         }

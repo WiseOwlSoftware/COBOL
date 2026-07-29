@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace CobolNet.Binding.Model;
@@ -318,15 +319,15 @@ public sealed class DataItem
     /// <summary>
     /// True if this item participates in the generated record-image codec (<c>AsImage()</c>/<c>FromImage()</c>,
     /// COBOLNET_DESIGN §14.4): every <see cref="IsCharacterImage"/> item, PLUS any fixed-point numeric leaf —
-    /// DISPLAY (native <c>long</c>/<c>Int128</c>, its image is its zoned form) and BINARY/PACKED, whose character
-    /// image is the implementor-defined zoned digit image with a trailing-overpunch sign (ISO/IEC 1989:2023
-    /// §13.18.60 USAGE GR4 leaves the representation, including the sign, to the implementor; see
-    /// <see cref="PicInfo.ImageSignKind"/>). Excluded — kept loud (§1.4): COMP-1/COMP-2 floats (no fixed decimal
-    /// width) and COMP-5 (its <c>BinaryCapacity</c> discipline stores values EXCEEDING the PICTURE digit count —
-    /// a Digits-wide image cannot carry them) and INDEX items (no character image at all, §13.18.60). A group is
-    /// image-capable when every child is. Width-wise the codec reuses <see cref="ImageWidth"/> unchanged: a
-    /// binary/packed leaf's image is exactly <c>Pic.Digits</c> characters (the SIGN SEPARATE add is DISPLAY-only,
-    /// §13.18.52 SR2 — a binary item never carries a separate sign).
+    /// DISPLAY (native <c>long</c>/<c>Int128</c>, its image is its zoned digit form) and BINARY/PACKED, whose
+    /// image is its TRUE BYTES: radix-2 two's complement or BCD of exactly <see cref="Model.PicInfo.StorageWidth"/>
+    /// (ISO/IEC 1989:2023 §13.18.60.4 GR4/GR11 leave the representation, including the sign, to the implementor —
+    /// see <see cref="NumericByteForm"/>; V59). Excluded — kept loud (§1.4): COMP-1/COMP-2 floats (no fixed
+    /// decimal width) and COMP-5 (its <c>BinaryCapacity</c> discipline stores values EXCEEDING the PICTURE digit
+    /// count, so its bytes and its picture disagree) and INDEX items (no image at all, §13.18.60.4 GR10). A group
+    /// is image-capable when every child is. Width-wise the codec uses <see cref="ImageWidth"/>, which IS
+    /// <see cref="ByteWidth"/> for every item that reaches an image — the ONE-WIDTH invariant
+    /// (<c>ImageWidthIsStorageWidthTests</c>).
     /// </summary>
     public bool IsImageCapable =>
         !IsDynamicTable && !IsDynamicLength && (   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
@@ -367,10 +368,34 @@ public sealed class DataItem
             if (IsDynamicLength) return 0;
             if (Pic is not { } pic) return 0;
             if (pic.Category is PicCategory.Numeric)
-                return pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0);
+                // ⛔ ONE WIDTH (V59). An item with a byte form of its own occupies THOSE bytes in the image —
+                // BINARY 1-2-4-8-16, PACKED its BCD nibbles — never a byte per decimal digit. Before this, a
+                // PIC 9(4) COMP claimed 4 image positions while FUNCTION BYTE-LENGTH reported 2, and §15.14.4
+                // GR1 (bytes) and §15.50.4 GR3 (alphanumeric character positions) cannot disagree in a
+                // single-byte-character model. The zoned form's digit run IS its byte form, so it stays digits
+                // plus a SIGN SEPARATE position (§13.18.52; a binary item never carries a separate sign).
+                return pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
+                        or NumericByteForm.PackedNoSign
+                    ? pic.StorageWidth
+                    : pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0);
             return pic.Length;
         }
     }
+
+    /// <summary>The number of CHARACTER positions this item's DISPLAY-STATEMENT / DEVICE text occupies — digits
+    /// plus a SIGN SEPARATE position for a numeric item, else the PICTURE length. DISTINCT from
+    /// <see cref="ImageWidth"/> for exactly the items V59 separated: a <c>PIC 9(4) COMP</c> occupies TWO bytes in
+    /// a record and prints FOUR digits, because §14.9.13 DISPLAY transfers the operand's VALUE (a numeric operand
+    /// is treated as though moved to an alphanumeric item, §14.9.25.4 GR6) while §15.50.4 GR3 counts the
+    /// character positions it OCCUPIES. Read by the text-facing surfaces only — ACCEPT's device window, DISPLAY's
+    /// fit, and the Report Writer's print columns (§13.18.14.4 GR9); every storage/record surface uses
+    /// <see cref="ImageWidth"/>.</summary>
+    public int DisplayTextWidth =>
+        IsElementary && Pic is { } pic
+            ? pic.Category is PicCategory.Numeric
+                ? pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0)
+                : pic.Length
+            : ImageWidth;   // a group prints its image (its leaves' storage, §8.8.4.1.1)
 
     /// <summary>The item's size in BYTES — the FUNCTION BYTE-LENGTH (§15.14) authority (the D7 byte-vs-position
     /// distinction). A group sums each non-redefining child's byte contribution × its own fixed-OCCURS count

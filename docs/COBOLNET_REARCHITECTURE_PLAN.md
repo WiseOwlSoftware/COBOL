@@ -90,11 +90,27 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      associated decimal picture character-string", and a signed 19-digit picture already exceeds 2^63−1. A
      16-byte tier now covers 19–38 digits (sign-independent, per GR12's precedent); `FUNCTION BYTE-LENGTH` was
      the only reader and it answered 8 for all of S9(19)/9(20)/S9(31) before this. Corpus instances: zero.
-   - **NEXT STEPS, in order:** ④ re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`,
-     wire `GroupImageCodec` onto `FormatImage`/`ParseImage`, and sweep the 129 `ImageWidth` references — **this is
-     the commit where the on-disk layout changes** · ⑤ the support diagnostic (a fixed-length file whose byte
-     length is not a multiple of the record length) · ⑥ §4.2.16 documentation + byte-level goldens · ⑦ un-Skip
-     step 1. ⛔ Step ④ needs the FULL Conformance leg plus the GnuCOBOL differential, not the wave-local gate.
+   - **✅ STEP 4 LANDED (DEVLOG 1101): the RE-BASE — the image IS the bytes, and step 1's invariant is UN-SKIPPED
+     and green.** `ElementaryImageWidth` answers `StorageWidth` for BINARY/PACKED; `GroupImageCodec`, the
+     `StoreAsImage` accessor pair, the Tier-B backing, `NumericImagePlace` and the SORT key all go through
+     `FormatImage`/`ParseImage`. The 129 `ImageWidth` references mostly needed NO edit — every width single-sources
+     through `ElementaryImageWidth` — which is the architecture working. **Two mechanisms DIED:**
+     `PicInfo.ImageSignKind` (and the Tier-B `SignKind` rewrite it drove) and the SORT key descriptor's
+     re-derived `(Signed, SignKind)`, now the key ITEM's own profile. **⛔ The distinction the old design never had
+     to make: BYTES ARE NOT TEXT.** New `DataItem.DisplayTextWidth` serves the text-facing surfaces (ACCEPT's
+     device window, DISPLAY's fit, Report Writer print columns, §13.18.14.4 GR9); `OperandText.NonTextBytes`
+     decodes a non-zoned stored image before rendering an ELEMENTARY numeric operand as text (§14.9.25.4 GR6 /
+     §8.8.4.2.2) while a GROUP operand's text stays the record image (§8.8.4.1.1). Goldens `v59_byte_image`
+     (BYTE-LENGTH == LENGTH == 5; FUNCTION ORD reads `005 211` / `002 036 080`) and `v59_sort_binary_key`.
+     **⚠ ON-DISK LAYOUT CHANGED — the migration note is in design §14.4; step ⑤ is its detection.**
+   - **NEXT STEPS, in order:** ⑤ the support diagnostic (a fixed-length file whose byte length is not a multiple of
+     the record length — the provable half of the migration hazard) · ⑥ the §4.2.16 user-facing documentation (the
+     width table and the radix, with a worked byte example per usage — audience: the COBOL developer) · ⑦ the
+     `LENGTH(x) == BYTE-LENGTH(x)` drift test over the corpus, so the CLASS cannot return.
+   - **⏳ TWO GAPS DISCOVERED while writing the goldens, both QUEUED, neither caused by V59:** DA2 — a FUNCTION
+     operand of DISPLAY (`DISPLAY FUNCTION ORD(C)`) throws at run time though §14.9.11.2 + §8.4.3.1.2 make it
+     legal · DA3 — a HEX literal as a comparison operand (`IF G = X"FFF94142"`) throws though §8.3.3.2 makes it an
+     ordinary alphanumeric literal. Each golden routes around its gap in plain COBOL and says so in a comment.
    - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
      support, maintenance, production quality").** The plan above is complete on correctness and gates and was
      still short on three of the five. It is NOT done without:
@@ -360,9 +376,10 @@ result. Run the long legs ONE AT A TIME.
   git-ignored `tests/external/gnucobol/`; run `fetch-gnucobol-tests.ps1` if absent). It is a TRIAGE net, not a
   green/red gate: run it BEFORE and AFTER a change and diff the per-case verdicts — a FIX is a divergence→AGREE
   flip, a REGRESSION is an AGREE→divergence flip (0 tolerated). It catches reference-format and grammar bugs the
-  internal battery is blind to. Baseline (2026-07-28, refreshed at the phase-14 merge and matching the stored
-  report): **472 AGREE_ACCEPT · 173 AGREE_REJECT · 574 WE_REJECT_THEY_ACCEPT · 104 WE_ACCEPT_THEY_REJECT over
-  1323 cases**. ⚖ GPL: never commit or reproduce their source or expected output — titles and
+  internal battery is blind to. Baseline (2026-07-29, refreshed at V59 step 4 and matching the stored
+  report): **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104 WE_ACCEPT_THEY_REJECT over
+  1323 cases** — the two moves from the previous 472/574 are both FIXES in `data_packed.at` ('PACKED-DECIMAL
+  numeric test (1)' and '(2)'), the external confirmation that the V59 byte forms are the ones the world writes. ⚖ GPL: never commit or reproduce their source or expected output — titles and
   keywords only.
 - **Mechanics that have burned us:** build `CobolSharp.sln` (not one project) before ANY `--no-build` test or CLI
   smoke — a stale test-bin compiler DLL hides regressions. Never `| tail -N` a guard verdict: redirect the FULL
@@ -370,8 +387,12 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-28 — supersedes DEVLOG 1006's 3891/3891):** FULL Conformance **4113/4113**, with
-  NOTHING red. The total moved twice today and both moves are accounted for: 3929/3930 → 3931/3931 when the VCR's
+- **Battery reference (2026-07-29 — supersedes the 4113/4113 of 2026-07-28):** FULL Conformance **4115/4115**
+  (+2 = the V59 goldens `v59_byte_image` and `v59_sort_binary_key`), with NOTHING red · greenfield Unit
+  **904/904, zero skipped** (the V59 invariant is un-skipped and green; the codec + byte-form tables are
+  table-driven) · characterization **33/33** · `guard-fast.sh` **ALL GREEN, NIST 353 MATCH / 0 REGRESSION** ·
+  the GnuCOBOL differential **2 flips, both FIXES, 0 regressions**. The 2026-07-28 numbers below are the
+  phase-14 merge gate and stay for provenance. The total moved twice today and both moves are accounted for: 3929/3930 → 3931/3931 when the VCR's
   dangling spec LINE citations were re-keyed onto the clause hierarchy (the one red closed; its replacement pair
   adds a fact), then → 4113/4113 when CA14 added the 182-cell introduction-axis theory
   (`IntroducedConstruct_IsRejectedUnderPermissive`) · greenfield Unit **580/580** · characterization **33/33**

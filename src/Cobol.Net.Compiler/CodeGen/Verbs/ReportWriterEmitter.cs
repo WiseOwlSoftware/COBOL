@@ -96,13 +96,13 @@ internal sealed class ReportWriterEmitter(
             if (!spec.Relative)
             {
                 w.Line($"{RuntimeApi.ReportPlace("__ln", spec.Value, image)};");
-                if (needsHc) w.Line($"__hc = {spec.Value + f.PrintItem.ImageWidth - 1};   // §13.18.14.4 GR9");
+                if (needsHc) w.Line($"__hc = {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
             }
             else
             {
                 w.Line($"__hc += {spec.Value};   // §13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
                 w.Line($"{RuntimeApi.ReportPlace("__ln", "__hc", image)};");
-                w.Line($"__hc += {f.PrintItem.ImageWidth - 1};   // §13.18.14.4 GR9");
+                w.Line($"__hc += {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
             }
         }
     }
@@ -206,7 +206,7 @@ internal sealed class ReportWriterEmitter(
                         if (f.GroupIndicate)
                             foreach (var spec in f.Columns)
                                 if (!spec.Relative)
-                                    w.Line($"__rg{r.CsIndex}_{gi}.IndicateFields.Add(({spec.Value}, {f.PrintItem.ImageWidth}));");
+                                    w.Line($"__rg{r.CsIndex}_{gi}.IndicateFields.Add(({spec.Value}, {f.PrintItem.DisplayTextWidth}));");
             }
             // CONTROL hierarchy (§13.18.16), major→minor: get/set image delegates over the typed storage — the
             // CALL boundary's one string-carrier pair (CallStringRead/CallStringWrite), reused verbatim.

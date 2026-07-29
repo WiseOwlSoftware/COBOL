@@ -188,19 +188,6 @@ public sealed record PicInfo(
     /// the ≥2002 not-implemented COBOLNET0899 stays inline in the analyzer (its <c>StagedNotImplemented</c>).</summary>
     public string? SkeletonGate { get; init; }
 
-    /// <summary>
-    /// The runtime <c>NumericSign</c> member name a fixed-point leaf's sign takes inside a RECORD/GROUP CHARACTER
-    /// IMAGE — the generated <c>AsImage()</c>/<c>FromImage()</c> facility and the SORT/MERGE key decode (the ONE
-    /// image-sign mapping; every image consumer reads this, never re-derives it). A USAGE DISPLAY leaf's image IS
-    /// its stored zoned form (<see cref="SignKind"/> verbatim — over-punch or separate sign). A BINARY/PACKED
-    /// leaf's character image is implementor-defined territory (ISO/IEC 1989:2023 §13.18.60 USAGE GR4 — "Each
-    /// implementor specifies the precise effect of the USAGE BINARY clause upon the … representation of the data
-    /// item …, including the representation of any algebraic sign"); COBOL.NET defines it as the fixed-width zoned
-    /// digit image with a TRAILING OVERPUNCH sign (COBOLNET_DESIGN §14.4). NOT the leaf's own
-    /// <see cref="SignKind"/> (<c>BinaryMinus</c>) — that DISPLAY-statement form is VARIABLE width (a leading
-    /// <c>-</c> only when negative) and cannot occupy a fixed record window.
-    /// </summary>
-    public string ImageSignKind => Usage is Usage.Display ? SignKind : "TrailingOverpunch";
 
     /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
     /// uppercased, the implied point <c>V</c> retained) — the mask <c>CobolEdit.Format</c> renders into. Null for

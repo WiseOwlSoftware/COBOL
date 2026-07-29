@@ -42,6 +42,19 @@ public static partial class CobolNum
     /// through. Lets the compiler emit ONE expression whose field storage is decided later.</summary>
     public static string FormatImage(string image, in NumProfile item) => image;
 
+    /// <summary>Store a (possibly spliced) record image back into a numeric field — the write half of an image
+    /// view over a numeric item (reference modification, a RENAMES span leaf). The <paramref name="current"/>
+    /// dummy selects the conversion for the field's ACTUAL storage, the same overload bridge
+    /// <see cref="StoreDisplay(string, in NumProfile, long)"/> is: a native field decodes, an image-stored field
+    /// keeps the image.</summary>
+    public static long StoreImage(string image, in NumProfile item, long current) => (long)ParseImage(image, item);
+
+    /// <inheritdoc cref="StoreImage(string, in NumProfile, long)"/>
+    public static Int128 StoreImage(string image, in NumProfile item, Int128 current) => ParseImage(image, item);
+
+    /// <inheritdoc cref="StoreImage(string, in NumProfile, long)"/>
+    public static string StoreImage(string image, in NumProfile item, string current) => image;
+
     /// <summary>Decode an item's record-image bytes back to its unscaled value — the inverse of
     /// <see cref="FormatImage(Int128, in NumProfile)"/>.</summary>
     public static Int128 ParseImage(string image, in NumProfile item) => item.ByteForm switch

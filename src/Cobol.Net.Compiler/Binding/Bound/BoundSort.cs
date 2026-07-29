@@ -16,7 +16,7 @@ namespace CobolNet.Binding.Bound;
 /// runtime <c>NumericSign</c> decode of the zoned/separate operational sign), an alphanumeric/group key compares as
 /// characters under the statement's resolved collating sequence (GR5).</summary>
 public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, bool Numeric, bool Signed, string SignKind);
+    bool Descending, int Offset, int Length, bool Numeric, DataItem? Item);
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
