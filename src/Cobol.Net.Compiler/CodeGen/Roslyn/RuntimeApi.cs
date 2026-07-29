@@ -61,6 +61,18 @@ internal static class RuntimeApi
     public static string NumFormatUnsignedDisplay(string value, int digits) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatUnsignedDisplay)}({value}, {digits})";
 
+    /// <summary>The text image of an intrinsic FUNCTION's returned value (ISO §15.4 temporary item;
+    /// characteristics implementor-defined under native arithmetic, §15.4.1) — <c>CobolNum.FormatFunctionText</c>.
+    /// The literal form, so a folded intrinsic and a computed one are indistinguishable (DA2).</summary>
+    /// <paramref name="deSign"/> carries §14.9.25.4 GR6a (the operational sign is not moved to an alphanumeric
+    /// receiver / text comparison) — the same flag <c>FieldAsString</c> honours for a signed FIELD operand.
+    public static string NumFormatFunctionText(string value, int scale, bool deSign = false) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatFunctionText)}({value}, {scale}{(deSign ? ", true" : "")})";
+
+    /// <summary>The same text image for a STANDARD-DECIMAL intermediate — <c>CobolDec.ToFunctionText</c>.</summary>
+    public static string DecFunctionText(string value, bool deSign = false) =>
+        $"({value}).{nameof(CobolDec.ToFunctionText)}({(deSign ? "true" : "")})";
+
     /// <summary>The numeric MOVE-rules store (decimal alignment, truncation/zero-fill) — <c>CobolNum.Store</c>.</summary>
     public static string NumStore(string value, string scale, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({value}, {scale}, {profile})";

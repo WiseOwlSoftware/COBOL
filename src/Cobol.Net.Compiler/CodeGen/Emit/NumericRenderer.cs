@@ -213,15 +213,27 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         { } pic => new NumX(PlaceRenderer.Read(p), pic.Scale),
     };
 
-    /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).</summary>
+    /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).
+    /// <para>⛔ SAVES AND RESTORES the ambient receiver, exactly as <see cref="Render"/> and <see cref="AsNum"/> do.
+    /// It did not, and that was a real defect rather than a tidiness point: <c>_rcv</c> is a per-unit MUTABLE field,
+    /// so an ADD left its receiver LATCHED on the renderer and the next receiver-less render — a numeric FUNCTION in
+    /// a DISPLAY or a text MOVE — silently inherited it. `DISPLAY FUNCTION SQRT(2)` printed `1.414213562`, then
+    /// `1.414213562373` after an unrelated `ADD 1 TO R`, because the intrinsic's working scale is
+    /// <c>max(Receiver.Scale, 9)</c>. A public entry that mutates ambient state must restore it or the
+    /// next caller reads someone else's context.</para></summary>
     public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
     {
+        var saved = _rcv; bool savedOut = _outermost;
         _rcv = rcv;
         _outermost = false;   // an ADD/SUBTRACT operand is never a final-transfer division (its result feeds the fold)
-        if (xs.Count == 0) return new NumX("0L", 0);
-        NumX acc = xs[0].Accept(this);
-        for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
-        return acc;
+        try
+        {
+            if (xs.Count == 0) return new NumX("0L", 0);
+            NumX acc = xs[0].Accept(this);
+            for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
+            return acc;
+        }
+        finally { _rcv = saved; _outermost = savedOut; }
     }
 
     /// <summary>Combine two scaled values with a COBOL operator, tracking the result scale (ISO §8.8.1). EVERY
@@ -231,9 +243,12 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
     public NumX Combine(NumX a, string op, NumX b, in ReceiverContext rcv, bool outermost = false)
     {
+        // Saves/restores the ambient receiver for the same reason Fold does — see its remark.
+        var saved = _rcv; bool savedOut = _outermost;
         _rcv = rcv;
         _outermost = outermost;
-        return CombineCore(a, op, b);
+        try { return CombineCore(a, op, b); }
+        finally { _rcv = saved; _outermost = savedOut; }
     }
 
     private NumX CombineCore(NumX a, string op, NumX b)

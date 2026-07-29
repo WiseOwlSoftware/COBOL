@@ -823,7 +823,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // LOWEST: sign-representable → −magnitude; else 0 (§15.58.4 / Annex D.32).
         return signable
             ? new BoundNumLiteral(Decimalize(unscaled, scale, negative: true))
-            : new BoundNumLiteral("0");
+            // Zero, but AT THE ITEM'S SCALE — routed through Decimalize rather than a bare "0" literal so the
+            // folded text carries the scale (a 9V99 item's lowest value is "0.00", not "0"), matching the runtime
+            // rule and keeping the literal's precision for any arithmetic it feeds.
+            : new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.Zero, scale, negative: false));
     }
 
     private BoundExpr AlgebraicArgError(IntrinsicSig sig)
@@ -840,11 +843,30 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Render an unscaled BigInteger at <paramref name="scale"/> fractional digits as a decimal literal
     /// string ('.' radix always — an internal C#-facing literal, never COBOL source, so DECIMAL-POINT IS COMMA
-    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.</summary>
+    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.
+    /// <para>
+    /// ⛔ DELEGATES to <see cref="CobolNet.Runtime.CobolNum.FormatFunctionText"/> — the SAME rule the RUNTIME uses
+    /// to render a computed intrinsic's value as text (DA2). These are the two halves of one job: this one folds a
+    /// constant-argument intrinsic to a literal at COMPILE time, that one renders a runtime-computed result, and a
+    /// COBOL programmer cannot tell which fired. Two hand-written copies of the rule is precisely the
+    /// two-mechanisms anti-pattern, and they HAD already drifted: this method early-returned <c>"0"</c> for a zero
+    /// magnitude and so DROPPED the scale, making <c>LOWEST-ALGEBRAIC</c> of an unsigned scaled item fold to
+    /// <c>"0"</c> where the runtime rule gives <c>"0.00"</c> — a literal at the wrong scale, which then feeds
+    /// subsequent arithmetic. Delegation removes the copy rather than syncing it.
+    /// </para>
+    /// <para>The BigInteger fallback survives only for a magnitude beyond <see cref="Int128"/>. Nothing here
+    /// currently produces one — the widest value is all-nines over 38 digit positions (10^38−1 &lt;
+    /// Int128.MaxValue) or a 128-bit COMP-5 container bound — but the parameter type permits it, so the path stays
+    /// rather than becoming an overflow waiting for a wider PICTURE.</para></summary>
     private static string Decimalize(System.Numerics.BigInteger unscaled, int scale, bool negative)
     {
-        if (unscaled == 0) return "0";
-        string s = System.Numerics.BigInteger.Abs(unscaled).ToString();
+        var mag = System.Numerics.BigInteger.Abs(unscaled);
+        if (mag <= (System.Numerics.BigInteger)Int128.MaxValue)
+        {
+            Int128 v = (Int128)mag;
+            return CobolNet.Runtime.CobolNum.FormatFunctionText(negative ? -v : v, scale);
+        }
+        string s = mag.ToString();
         string sign = negative ? "-" : "";
         if (scale <= 0) return sign + s + new string('0', -scale);          // S9PP: 99 @ −2 → "9900"; 1 @ −2 → "100"
         if (s.Length <= scale) s = s.PadLeft(scale + 1, '0');               // 1 @ 3 → "0001" → "0.001"

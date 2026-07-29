@@ -6,11 +6,25 @@
 > Source ledgers: `CODE-SPEC-AUDIT.md` (CA*), §24 (V54–V59). Part of the P14 full spec-conformance review
 > (`DESIGN-spec-conformance-review.md`).
 
-**46 total (43 CONFIRMED + 1 REFUTED + 2 OWNER-DECIDED) · 1 refuted · 0 pending · 44 LANDED · 1 REFUTED · 1 REMAIN (2026-07-28).** *(The count moved by TWO: CA14 landed, and CA11 · oo was already landed by DEVLOG 1088 with only its heading left unflipped — the duplicate CA11 id, one exceptions-ec and one oo, is what hid it. **Every CONFIRMED item is now landed; V59 alone remains**, and it is effort-L with an approved interim.)* *(+ the DISCOVERED-during-implementation candidate DA1 — §12.3.7 hex-literal ALPHABET decode — now ✅ LANDED (DEVLOG 1019); it was not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; the 3 remaining are all major/minor (the EC-infra + OO super-batch) + the 2 owner-decided.
+**46 total (43 CONFIRMED + 1 REFUTED + 2 OWNER-DECIDED) · 1 refuted · 0 pending · 45 LANDED · 1 REFUTED · 0 REMAIN (2026-07-29).** *(**⛔ THE 46-FINDING AUDIT IS CLOSED — V59 landed 2026-07-29 across DEVLOG 1097–1102, the last of the 45.** The count previously moved by TWO: CA14 landed, and CA11 · oo was already landed by DEVLOG 1088 with only its heading left unflipped — the duplicate CA11 id, one exceptions-ec and one oo, is what hid it.)* **What remains in this file is NOT the audit: it is the DISCOVERED-during-implementation set — DA2 and DA3, both OPEN, both MAJOR, both cases where CONFORMING SOURCE is rejected at run time. They are now the top of the queue.** *(+ the DISCOVERED-during-implementation candidate DA1 — §12.3.7 hex-literal ALPHABET decode — now ✅ LANDED (DEVLOG 1019); it was not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; the 3 remaining are all major/minor (the EC-infra + OO super-batch) + the 2 owner-decided.
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
+
+### DA4 · [MAJOR] · inspect-string · ⏳ OPEN — the STRING statement's sending operand REJECTS a function-identifier at PARSE time
+- **Spec:** §14.9.43.2's general format gives the sending operand as **`identifier-1`**, and §8.4.3.1.2 **Format 1
+  of an identifier IS `function-identifier-1`** (`cite.py --check`-verified). No syntax rule excludes a function:
+  §14.9.43.3 SR1 requires the identifiers be "described implicitly or explicitly as usage display or national",
+  which a function's §15.4 temporary elementary item satisfies implicitly, and **SR8 explicitly CONTEMPLATES a
+  numeric identifier-1** ("Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be
+  described as an integer…"). So `STRING FUNCTION ORD(C) DELIMITED BY SIZE INTO A` is CONFORMING SOURCE.
+- **Observed (2026-07-29, while landing DA2):** it does not reach the binder at all —
+  `error COBOL0001: no viable alternative at input 'FUNCTION'`. This is a GRAMMAR gap, not an emit gap, which is
+  why DA2's fix does not cover it: DA2 was the string-context RENDERER, and this operand never gets that far.
+- **Scope note:** discovered by testing whether DA2's root cause reached other string contexts. DISPLAY and
+  MOVE-to-alphanumeric did (both fixed by DA2); STRING is rejected one stage earlier. Grammar changes are
+  pre-authorized, so this is a `Core/*.g4` sending-operand alternative plus the bind path and a golden.
 
 ### DA3 · [MAJOR] · conditions · ⏳ OPEN — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
 - **Spec:** §8.3.3.2 defines the hexadecimal format of an alphanumeric literal (`X"F0F1"`), and it is an
@@ -22,7 +36,16 @@
   Hex literals DO work in a VALUE/ALPHABET position (DA1 landed that decode), which is what hid this.
 - **Scope note:** not V59; the V59 test pins the same fact with an alphanumeric REDEFINES instead and says so.
 
-### DA2 · [MAJOR] · accept-display · ⏳ OPEN — a FUNCTION operand of DISPLAY is legal and is staged loud at RUN TIME
+### DA2 · [MAJOR] · accept-display · ✅ LANDED (DEVLOG 1104) — a NUMERIC FUNCTION operand in ANY string context
+> **Landed 2026-07-29.** The gap was WIDER than "DISPLAY": `OperandText.AsString` is the one string-context
+> operand renderer, so `MOVE FUNCTION ORD(C) TO` a `PIC X` item failed identically. One arm fixes every such
+> context. **What the investigation actually found is bigger than the ticket:** the compile-time FOLD was
+> OBSERVABLE — an intrinsic over constant arguments folds to a numeric literal and printed, while a computed one
+> threw, so the two paths had different user-visible behaviour. The fix therefore had to pin ONE rendering rule
+> for both, not merely stop the throw. §15.4.1 and §14.9.11.4 GR1 both make the choice implementor-defined; the
+> determination (literal form — no zero padding, leading `-`) is documented in `docs/CONFORMANCE.md` and pinned by
+> the golden `da2_function_as_text`, whose first four lines are two fold/compute pairs of the same value.
+> Deliberately differs from GnuCOBOL, which zero-pads a computed `ORD` but prints a folded `MAX` minimally.
 - **Spec:** §14.9.11.2 Format 1 (device) takes `identifier-1`; §8.4.3.1.2 gives **`function-identifier-1`** as one of
   the general formats of an identifier; §14.9.11.3 SR1 excludes only class message-tag, object and pointer — nothing
   excludes a function. So `DISPLAY FUNCTION ORD(C)` is CONFORMING SOURCE. All three clauses `cite.py --check`-verified.
