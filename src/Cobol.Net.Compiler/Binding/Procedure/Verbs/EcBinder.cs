@@ -284,6 +284,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
     private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD", "EC-OO-UNIVERSAL"];
 
+    /// <summary>EC-FLOW-SEARCH (§14.9.39.4 GR31) — a capacity SET executed during a SEARCH of the same table.
+    /// PRECISE: the only statement that can raise it is the capacity SET itself.</summary>
+    private static readonly string[] FlowSearchNames = ["EC-FLOW-SEARCH"];
+
     /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
     private static readonly string[] ProgramNames =
     [
@@ -364,6 +368,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundInvoke or BoundInvokeUniversal:
                     Query(OoInvokeNames);   // §14.9.23.4 GR5 / GR7b
                     break;
+                // CA37 is PRECISE: EC-FLOW-SEARCH can only arise from a capacity SET (§14.9.39.4 GR31), which is
+                // one bound node, so the guard binds exactly there. Its twin EC-BOUND-TABLE-LIMIT is NOT precise
+                // — growth also happens on IMPLICIT receiving-reference growth, which renders inline — so it
+                // takes the ambient tail gate below. The two are deliberately not merged.
+                case BoundSetCapacity:
+                    Query(FlowSearchNames);
+                    break;
                 case BoundCallProgram:
                     Query(ProgramNames);
                     Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
@@ -427,6 +438,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 enabled.Add(("EC-BOUND-SUBSCRIPT", null));
             if (ctx.EcState.Turn.Enabled("EC-BOUND-ODO", null, line))
                 enabled.Add(("EC-BOUND-ODO", null));
+            // EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30) is ambient, unlike its CA37 twin: a dynamic table grows
+            // both from an explicit capacity SET and from an IMPLICIT receiving reference, and the latter renders
+            // inline through CobolDynTable.RefReceiving with no statement-level node of its own.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-TABLE-LIMIT", null, line))
+                enabled.Add(("EC-BOUND-TABLE-LIMIT", null));
             // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
             // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
             // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float

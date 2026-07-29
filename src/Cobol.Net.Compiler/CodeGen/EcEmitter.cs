@@ -130,6 +130,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // elements, and this flag is how the ACTIVATOR's half reaches the callee's __CobolInvoke, which runs
         // synchronously inside the guard. The method's half is a compile-time literal (OoEmitter.OoUnivStop).
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
+        ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
+        ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §14.9.39.4 GR30 — growth past the implementor max
     ];
 
     private bool EmitArgOrPlain(BoundEcChecked ec)

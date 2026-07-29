@@ -411,6 +411,50 @@ public sealed class ExceptionEngine
         set => _checking.OoUniversal = value;
     }
 
+    // ── The dynamic-table fatal ECs (CA37/CA38): EC-FLOW-SEARCH / EC-BOUND-TABLE-LIMIT ─────────────────
+    //
+    // Both are LENIENT with checking off, and unusually the standard states the lenient outcome outright, which
+    // is what makes the owner's rule easy here: §14.9.39.4 GR31 ends "and the SET statement is not executed",
+    // GR30 "and the capacity of the table is unchanged". So with checking off these helpers RETURN and the
+    // caller performs neither the SET nor the growth — a behaviour change from the previous UNCONDITIONAL throw,
+    // and the one the standard describes.
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-SEARCH checking enabled (fatal).</summary>
+    public bool FlowSearchChecking
+    {
+        get => _checking.FlowSearch;
+        set => _checking.FlowSearch = value;
+    }
+
+    /// <summary>Raise EC-FLOW-SEARCH (§14.9.39.4 GR31; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the caller leaves the SET unexecuted exactly as GR31 requires.</summary>
+    public void FlowSearchError(string detail)
+    {
+        if (FlowSearchChecking)
+        {
+            Set("EC-FLOW-SEARCH", fatal: true);
+            throw new CobolFatalException("EC-FLOW-SEARCH", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-TABLE-LIMIT checking enabled (fatal).</summary>
+    public bool BoundTableLimitChecking
+    {
+        get => _checking.BoundTableLimit;
+        set => _checking.BoundTableLimit = value;
+    }
+
+    /// <summary>Raise EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the caller leaves the capacity unchanged exactly as GR30 requires.</summary>
+    public void BoundTableLimitError(string detail)
+    {
+        if (BoundTableLimitChecking)
+        {
+            Set("EC-BOUND-TABLE-LIMIT", fatal: true);
+            throw new CobolFatalException("EC-BOUND-TABLE-LIMIT", detail);
+        }
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -693,6 +737,26 @@ public static class ExceptionState
         get => E.OoUniversalChecking;
         set => E.OoUniversalChecking = value;
     }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowSearchChecking"/>
+    public static bool FlowSearchChecking
+    {
+        get => E.FlowSearchChecking;
+        set => E.FlowSearchChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowSearchError"/>
+    public static void FlowSearchError(string detail) => E.FlowSearchError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundTableLimitChecking"/>
+    public static bool BoundTableLimitChecking
+    {
+        get => E.BoundTableLimitChecking;
+        set => E.BoundTableLimitChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundTableLimitError"/>
+    public static void BoundTableLimitError(string detail) => E.BoundTableLimitError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

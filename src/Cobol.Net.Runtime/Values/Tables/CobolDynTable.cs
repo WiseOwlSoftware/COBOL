@@ -78,6 +78,11 @@ public sealed class CobolDynTable<T>
                 ExceptionState.BoundOverflowError(
                     $"OCCURS DYNAMIC implicit growth to {occ} exceeds the expected capacity {exp} (ISO §8.5.1.9.6 GR1)");
             GrowTo((int)occ);
+            // ⛔ GrowTo may now DECLINE (GR30 leaves the capacity unchanged when checking is off), so the
+            // occurrence it was asked for can still not exist. Falling through to `_store[occ-1]` here would be
+            // an IndexOutOfRangeException — a raw .NET failure on user source, from the one path where a benign
+            // scratch slot is exactly what the model already provides for an unreachable occurrence.
+            if (occ > _count) { _scratch = _seedAt((int)occ); return ref _scratch; }
         }
         return ref _store[(int)(occ - 1)];
     }
@@ -92,8 +97,15 @@ public sealed class CobolDynTable<T>
     {
         if (newCount <= _count) return;
         if (newCount > MaxOccurrences)
-            throw new CobolFatalException("EC-BOUND-TABLE-LIMIT",
-                $"OCCURS DYNAMIC growth to {newCount} exceeds the implementor maximum ({MaxOccurrences}) — ISO §8.5.1.9.6");
+        {
+            // §14.9.39.4 GR30 states the outcome outright — "the EC-BOUND-TABLE-LIMIT exception condition is set
+            // to exist AND THE CAPACITY OF THE TABLE IS UNCHANGED" — so with checking off this returns and the
+            // table keeps its capacity, rather than the unconditional throw that used to abort the run unit.
+            ExceptionState.BoundTableLimitError(
+                $"OCCURS DYNAMIC growth to {newCount} exceeds the implementor maximum ({MaxOccurrences}) "
+                + "— ISO §14.9.39.4 GR30");
+            return;   // GR30: capacity unchanged
+        }
         if (newCount > _store.Length)
         {
             int cap = _store.Length < 4 ? 4 : _store.Length;
@@ -110,8 +122,15 @@ public sealed class CobolDynTable<T>
     public void SetCapacity(long n)
     {
         if (_searching > 0)
-            throw new CobolFatalException("EC-FLOW-SEARCH",
-                "SET of a dynamic-capacity table's capacity during a SEARCH of that same table (ISO §14.9.39 GR31)");
+        {
+            // §14.9.39.4 GR31 states the outcome outright — "the EC-FLOW-SEARCH exception condition is set to
+            // exist AND THE SET STATEMENT IS NOT EXECUTED" — so with checking off this returns having done
+            // nothing, rather than the unconditional throw that used to abort the run unit.
+            ExceptionState.FlowSearchError(
+                "SET of a dynamic-capacity table's capacity during a SEARCH of that same table "
+                + "(ISO §14.9.39.4 GR31)");
+            return;   // GR31: the SET statement is not executed
+        }
         long target = n < _min ? _min : n;
         if (target > _count) GrowTo((int)target);
         else if (target < _count) _count = (int)target;   // free the highest occurrences (§8.5.1.9.4)

@@ -65,4 +65,11 @@ public struct CheckingFlags
     /// an INVOKE by the emitted statement guard and read by the callee's <c>__CobolInvoke</c>, which is entered
     /// synchronously on the same run unit; the METHOD's half is a compile-time literal baked per method.</summary>
     public bool OoUniversal;
+
+    /// <summary>EC-BOUND-TABLE-LIMIT — a dynamic-capacity table grown past the implementor maximum
+    /// (§14.9.39.4 GR30).</summary>
+    public bool BoundTableLimit;
+
+    /// <summary>EC-FLOW-SEARCH — a capacity SET during a SEARCH of that same table (§14.9.39.4 GR31).</summary>
+    public bool FlowSearch;
 }
