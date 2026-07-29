@@ -267,13 +267,19 @@ been closed by re-keying them onto the clause hierarchy, so **`phase-14` is merg
 | greenfield Conformance | **3929 passed · 1 failed · 3930 total** (12m 05s), reproduced exactly on a clean re-run. The single failure was `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` — pre-existing, and now CLOSED (that test is replaced by `EverySpecCitation_ResolvesInTheSpec` + `NoSpecLineNumberIsCited_InTheVcr`). Nothing else failed. |
 | GnuCOBOL differential | **0 regressions from this batch.** Per-case diff vs the stored report: 3 flips — 1 fix, and 2 AGREE_ACCEPT→WE_REJECT_THEY_ACCEPT in `syn_value.at` ('Numeric item with picture P', 'Numeric item (non-integer)'), BOTH attributable to **CA34** (`COBOLNET1625`, introduced by `f54c9bd4`, present at this session's start commit), not to the EC batch. |
 
-⚠ **TWO BASELINES ARE STALE and must be refreshed by whoever next runs the differential:** the numbers quoted
-in "Gates" below (475 AGREE_ACCEPT · 171 AGREE_REJECT · 570 WE_REJECT_THEY_ACCEPT · 106 WE_ACCEPT_THEY_REJECT)
-and the stored `tests/external/gnucobol-differential-report.json`, which is dated 2026-07-22 and therefore
-PRE-CA34. The current run is **472 · 173 · 574 · 104 over 1323 cases** (the stored report holds 1321). Refresh
-the stored report so the next per-case diff has a truthful "before"; the two CA34 flips are a deliberate
-spec-derived tightening (§13.18.63.3 SR2) that GnuCOBOL's DEFAULT_DIALECT accepts as an extension, not a bug to
-chase — adjudicate before "fixing" them.
+✅ **THE BASELINE IS REFRESHED at the phase-14 merge (2026-07-28) — and note WHICH baseline is durable.**
+⛔ `tests/external/gnucobol-differential-report.json` is **GITIGNORED** (`.gitignore:85`), so it is a per-machine
+LOCAL artifact, not a committed "before": a fresh clone has none and the first run there can only establish one,
+never diff against one. **The committed baseline is the numbers in this section.** Both now read
+**472 AGREE_ACCEPT · 173 AGREE_REJECT · 574 WE_REJECT_THEY_ACCEPT · 104 WE_ACCEPT_THEY_REJECT over 1323 cases**,
+so a per-case diff on this machine has a truthful "before" and the numbers survive a clone.
+(Committing the report would make per-case diffs portable and is GPL-clean — §0's own rule allows their titles
+and keywords, which is all it carries of theirs. Not done here: that is a .gitignore policy change, not a merge.)
+The three flips the refresh absorbs are all CA34
+(`COBOLNET1625`, `f54c9bd4` — verified an ancestor of the merge's start commit, so none is from that work): two
+AGREE_ACCEPT→WE_REJECT_THEY_ACCEPT in `syn_value.at` and one WE_ACCEPT_THEY_REJECT→AGREE_REJECT. They are a
+deliberate spec-derived tightening (§13.18.63.3 SR2/SR3) that GnuCOBOL's DEFAULT_DIALECT accepts as an
+extension — not a bug to chase.
 
 ⚠ **Sequencing lesson from this run, worth repeating:** do NOT start `guard-fast.sh` while a `--no-build`
 Conformance run is in flight — guard rebuilds, and the first Conformance run produced no verdict at all as a
@@ -297,8 +303,9 @@ result. Run the long legs ONE AT A TIME.
   git-ignored `tests/external/gnucobol/`; run `fetch-gnucobol-tests.ps1` if absent). It is a TRIAGE net, not a
   green/red gate: run it BEFORE and AFTER a change and diff the per-case verdicts — a FIX is a divergence→AGREE
   flip, a REGRESSION is an AGREE→divergence flip (0 tolerated). It catches reference-format and grammar bugs the
-  internal battery is blind to. Baseline: **475/476 AGREE_ACCEPT · 171 AGREE_REJECT · 570 WE_REJECT_THEY_ACCEPT ·
-  106 WE_ACCEPT_THEY_REJECT**. ⚖ GPL: never commit or reproduce their source or expected output — titles and
+  internal battery is blind to. Baseline (2026-07-28, refreshed at the phase-14 merge and matching the stored
+  report): **472 AGREE_ACCEPT · 173 AGREE_REJECT · 574 WE_REJECT_THEY_ACCEPT · 104 WE_ACCEPT_THEY_REJECT over
+  1323 cases**. ⚖ GPL: never commit or reproduce their source or expected output — titles and
   keywords only.
 - **Mechanics that have burned us:** build `CobolSharp.sln` (not one project) before ANY `--no-build` test or CLI
   smoke — a stale test-bin compiler DLL hides regressions. Never `| tail -N` a guard verdict: redirect the FULL
