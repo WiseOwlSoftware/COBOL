@@ -176,7 +176,7 @@ public sealed class RecordImageCodecTests
     }
 
     /// <summary>THE ONE-WIDTH INVARIANT at the codec: an item's image is EXACTLY the bytes it occupies in
-    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§15.14.4 GR1) and <c>FUNCTION LENGTH</c> (§15.50.4
+    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§15.14.4 r1) and <c>FUNCTION LENGTH</c> (§15.50.4
     /// GR3) cannot disagree about.</summary>
     [Theory]
     [MemberData(nameof(Grid))]

@@ -16,7 +16,7 @@ namespace CobolNet.Runtime;
 /// GR11 PACKED-DECIMAL "a radix of 10 … each digit position shall occupy the minimum possible configuration",
 /// GR7 DISPLAY) and §4.2.16 obliges us to document ours — <see cref="NumericByteForm"/> carries that
 /// documentation and this file is its implementation. Widths come from <see cref="NumProfile.StorageLength"/>,
-/// which is what <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 GR1): ONE width, never two answers.
+/// which is what <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 r1): ONE width, never two answers.
 /// </para>
 /// <para>
 /// Scale is not represented — the image carries the UNSCALED digits and the decimal point stays implied, exactly

@@ -164,7 +164,7 @@ pages 600–829), so each site needs its own page checked. That is the remaining
      BYTE-LENGTH` reports them. There is no new representation to invent and a second one must not be invented.
   2. **The compiler contradicts itself, observably, with no file and no byte pun.** For `05 G-COMP PIC 9(4) COMP.
      05 G-PACK PIC 9(4) COMP-3.` it answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and accepts `REDEFINES G PIC
-     X(8)`. §15.14.4 GR1 (bytes) and §15.50.4 GR3 (alphanumeric character positions) cannot disagree in a
+     X(8)`. §15.14.4 r1 (bytes) and §15.50.4 r3 (alphanumeric character positions) cannot disagree in a
      single-byte-character model. **This makes V59 a genuine conformance defect, not only implementor latitude** —
      the original adjudication reached "not a clear §4.2.16 violation" by weighing only the byte-pun view.
   3. **`RedefCodec`/Tier C is NOT the mechanism.** The whole-group image is a Latin-1 `string`, and files, SORT and

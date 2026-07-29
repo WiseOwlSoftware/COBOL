@@ -31,8 +31,8 @@ public enum NumericTruncation
 /// to document the choice (Annex A.1 items 205 and 215 make USAGE BINARY's and USAGE PACKED-DECIMAL's "computer
 /// storage allocation, alignment and representation of data" REQUIRED user-documentation items). These members
 /// ARE that documentation, and the width they imply is <c>PicInfo.StorageWidth</c> — the SAME width
-/// <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 GR1) and the SAME width the item occupies in a group's
-/// character image (§15.50.4 GR3): one width, one representation, everywhere.
+/// <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 r1) and the SAME width the item occupies in a group's
+/// character image (§15.50.4 r3): one width, one representation, everywhere.
 /// </para>
 /// </summary>
 public enum NumericByteForm

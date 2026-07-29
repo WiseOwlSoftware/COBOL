@@ -371,7 +371,7 @@ public sealed class DataItem
                 // ⛔ ONE WIDTH (V59). An item with a byte form of its own occupies THOSE bytes in the image —
                 // BINARY 1-2-4-8-16, PACKED its BCD nibbles — never a byte per decimal digit. Before this, a
                 // PIC 9(4) COMP claimed 4 image positions while FUNCTION BYTE-LENGTH reported 2, and §15.14.4
-                // GR1 (bytes) and §15.50.4 GR3 (alphanumeric character positions) cannot disagree in a
+                // GR1 (bytes) and §15.50.4 r3 (alphanumeric character positions) cannot disagree in a
                 // single-byte-character model. The zoned form's digit run IS its byte form, so it stays digits
                 // plus a SIGN SEPARATE position (§13.18.52; a binary item never carries a separate sign).
                 return pic.ByteForm is NumericByteForm.Binary or NumericByteForm.Packed
@@ -386,7 +386,7 @@ public sealed class DataItem
     /// plus a SIGN SEPARATE position for a numeric item, else the PICTURE length. DISTINCT from
     /// <see cref="ImageWidth"/> for exactly the items V59 separated: a <c>PIC 9(4) COMP</c> occupies TWO bytes in
     /// a record and prints FOUR digits, because §14.9.13 DISPLAY transfers the operand's VALUE (a numeric operand
-    /// is treated as though moved to an alphanumeric item, §14.9.25.4 GR6) while §15.50.4 GR3 counts the
+    /// is treated as though moved to an alphanumeric item, §14.9.25.4 GR6) while §15.50.4 r3 counts the
     /// character positions it OCCUPIES. Read by the text-facing surfaces only — ACCEPT's device window, DISPLAY's
     /// fit, and the Report Writer's print columns (§13.18.14.4 GR9); every storage/record surface uses
     /// <see cref="ImageWidth"/>.</summary>

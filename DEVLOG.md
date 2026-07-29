@@ -13,6 +13,41 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1103 — 2026-07-29 11:35 PDT — The inherited citation: 32 rule labels that were right about everything except the rule
+
+Rule 1 says a citation you did not run `--check` on is not a citation, and that the failure mode is not
+inventing one but INHERITING one. This entry is that rule catching something, so it is worth writing down
+precisely what it caught, because the defect is subtler than "wrong number".
+
+Validating the V59 documentation's clauses turned up a failure on `§15.14.4`. Everything about the citation was
+right except one word. The clause number resolves. The quoted text is genuinely in the standard. The rule number
+is correct — §15.14.4 rule 1 really does say "the returned value is an integer that is the length of argument-1
+in number of bytes". What is wrong is the LABEL: §15.14.4 is titled **"Returned value rules"**, not "General
+rules", so writing `GR1` names a rule category the clause does not contain.
+
+What makes this the inherited-citation pattern rather than a typo is why it looked right. The V59 work sits
+almost entirely in §13.18.60.4 and §14.9.30.4, and BOTH of those genuinely are "General rules" — so `GR4`,
+`GR11`, `GR14` around it are all correct. The two intrinsic clauses are the odd ones out, and `GR` was applied
+to them by pattern-matching their neighbours. Nobody invented it; it propagated, from a design doc into code
+comments, into a golden's header, into the fix queue, into the DEVLOG — and, this session, into two citations I
+had just written in entry 1102 before the check ran.
+
+The sweep: **32 occurrences across three clauses** — §15.14.4, §15.50.4 and §15.97.4, all "Returned value
+rules" — in 12 files spanning `src/`, `tests/`, four design docs, the fix queue and this log. All are now the
+`r<N>` form the intrinsic binder had been using correctly all along, which is itself the tell: the code that
+was written while reading the clause got it right, and everything downstream of a summary got it wrong.
+
+**A tooling bug inside the sweep, which is the part worth remembering.** The first pass reported clean and was
+not. Its file-discovery pattern was `§?(15\.14\.4|…)`, and `§` is TWO UTF-8 bytes (C2 A7). In git grep's
+byte-oriented ERE the `?` binds to the trailing byte only, so the pattern effectively REQUIRES C2 and can never
+match a citation written bare as `15.14.4`. Two sites in `v59_byte_image.cob` — a golden, where a wrong citation
+is most likely to be copied onward — survived because of it, and were caught only by re-checking with a pattern
+that had no multi-byte optional in it. A sweep that reports zero is a claim, and the claim needs its own check;
+"the grep found nothing" and "there is nothing" are different statements.
+
+Behaviour is untouched — every edit is a comment or prose. Rebuilt and re-ran the affected legs to prove it:
+V59 goldens 3/3, the image/codec/byte-form/notice unit filter 333/333.
+
 ## Entry 1102 — 2026-07-29 10:57 PDT — V59 steps 5-7: the three the tie-breakers added, and the drift test that proved itself
 
 V59's correctness landed in step 4 — the image IS the bytes. This entry is the other three of the owner's five
@@ -240,7 +275,7 @@ zero — the only ≥19-digit pictures in the corpus are DISPLAY (`arith_standar
 present. Assertions compare HEX renderings, because a failing raw Latin-1 diff is unreadable.
 
 Three invariants run over the whole (usage × digits × sign) grid: the image is EXACTLY the storage width (the
-§15.14.4 GR1 / §15.50.4 GR3 agreement, at the codec) · every emitted char is ≤ 0xFF (a char above that is a byte
+§15.14.4 r1 / §15.50.4 r3 agreement, at the codec) · every emitted char is ≤ 0xFF (a char above that is a byte
 the framing cannot write) · encode/decode round-trips, with an unsigned item round-tripping the MAGNITUDE.
 
 **Not wired yet.** The image codec still calls `FormatDisplay`; step ④ re-bases `ElementaryImageWidth` and sweeps
@@ -328,7 +363,7 @@ whole class impossible, before any of the representation work.
 positions there as it occupies in storage: `DataItem.ImageWidth` and `DataItem.ByteWidth` are two views of one
 fact, never two answers. Every exclusion is principled rather than convenient — NATIONAL is excluded because it
 is deliberately 2 bytes per character position, which the test ASSERTS (exactly 2x) rather than skips; BOOLEAN
-because its unit is a boolean position, not a character position (§15.50.4 GR1); and anything not
+because its unit is a boolean position, not a character position (§15.50.4 r1); and anything not
 `IsImageCapable` because it never reaches an image at all (float / COMP-5 / INDEX, the loud Tier-C island) and so
 cannot contradict one.
 
@@ -432,7 +467,7 @@ view, where GR4/GR11 do give cover. But:
     05 G-COMP PIC 9(4) COMP.  05 G-PACK PIC 9(4) COMP-3.
     FUNCTION BYTE-LENGTH(G) = 5      FUNCTION LENGTH(G) = 8      REDEFINES G PIC X(8) accepted
 
-§15.14.4 GR1 returns the length in BYTES; §15.50.4 GR3 returns it in ALPHANUMERIC CHARACTER POSITIONS. In a
+§15.14.4 r1 returns the length in BYTES; §15.50.4 r3 returns it in ALPHANUMERIC CHARACTER POSITIONS. In a
 single-byte-character model those cannot disagree — and a conforming program observes the disagreement with no
 file, no REDEFINES and no byte pun at all. The latitude GR4 grants is over the REPRESENTATION; it does not
 license the compiler to give two different answers for the size of one group. That argument is independent of
@@ -7879,7 +7914,7 @@ fixed-attribute conflict (documented non-support — no persisted attribute cata
 sections (already pc-range targets), VCR 37 WRITE-no-EOP fall-through (natural default; no FLAG-14 option exists —
 the task hint was wrong), VCR 14 >>EVALUATE combined-condition (impl already matches the 2023 AND-truth GR6/GR10),
 VCR 17 figurative ALL unspecified length (§8.3.3.6.4 GR3b/c, already defined), VCR 20/49 UPPER/LOWER-CASE mappings
-(§15.97.4 GR4 makes the correspondence IMPLEMENTOR-DEFINED absent a locale — the decisive citation the audit didn't
+(§15.97.4 r4 makes the correspondence IMPLEMENTOR-DEFINED absent a locale — the decisive citation the audit didn't
 quote; .NET invariant tables, the 2023 annex code-point changes not separately tuned).
 
 **Doc-drift caught + corrected:** CONFORMANCE.md §3 falsely claimed I-O status '04' (record-length mismatch) "is

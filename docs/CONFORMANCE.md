@@ -115,8 +115,8 @@ of an unsupported facility.
 - **Figurative constant on an unspecified-length item (§8.3.3.6.4 GR3b/c; E.2 item 11)**: a bare figurative VALUE
   fills a single character (GR3b); an `ALL "literal"` fills the literal's own length (GR3c). Both are defined for
   dynamic-length items at all editions, superseding the pre-2023 undefined case.
-- **Case mappings (UPPER-CASE / LOWER-CASE, §15.97.4 GR4 / §15.57.4)**: absent a locale, the case correspondence is
-  **implementor-defined** (§15.97.4 GR4). COBOL.NET uses the .NET invariant Unicode case tables. Because the mapping
+- **Case mappings (UPPER-CASE / LOWER-CASE, §15.97.4 r4 / §15.57.4)**: absent a locale, the case correspondence is
+  **implementor-defined** (§15.97.4 r4). COBOL.NET uses the .NET invariant Unicode case tables. Because the mapping
   is delegated to the implementor, the enumerated 2023 annex changes (E.2 item 14 deletions of DOTLESS I
   `(0131,0069)` and GREEK FINAL SIGMA `(03C2,03C3)`; E.3.3 item 6 additions) are not separately tuned — the invariant
   mapping is the determination (a corner case; the general Latin/basic repertoire matches exactly).

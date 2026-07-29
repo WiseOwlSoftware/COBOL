@@ -495,8 +495,8 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
   BCD two digits per byte with a trailing sign nibble (`0xC` positive, `0xD` negative, `0xF` for an unsigned
   item) · `PackedNoSign` = the 2023 WITH NO SIGN form, digit nibbles only · `None` = reaches no byte image at all
   (USAGE INDEX, §13.18.60.4 GR10 — a codec handed one must reject it LOUDLY, never invent bytes). The width each
-  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§15.14.4 GR1) and
-  the same width the item occupies in a group image (§15.50.4 GR3). **One width, one representation, everywhere**
+  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§15.14.4 r1) and
+  the same width the item occupies in a group image (§15.50.4 r3). **One width, one representation, everywhere**
   (§14.4). `NumericByteFormDriftTests` pins the whole table, so a new usage cannot inherit a representation
   nobody chose.
 - DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline; COMP-3/PACKED → 2n−1; COMP-5/BINARY-* → native
@@ -995,7 +995,7 @@ value, and it bailed on fixed-OCCURS children the generated codec handles; (b) l
 only debuggability); (c) **the fixed-width ZONED DIGIT image with a trailing-overpunch sign — the form this design
 carried through P13 and V59 retired.** It was defensible on §13.18.60.4 GR4's representation latitude alone, but it
 contradicted the compiler's OWN pinned widths: `BYTE-LENGTH(G) = 5` while `LENGTH(G) = 8` for one group
-(§15.14.4 GR1 vs §15.50.4 GR3, which cannot disagree in a single-byte-character model), it made a conforming
+(§15.14.4 r1 vs §15.50.4 r3, which cannot disagree in a single-byte-character model), it made a conforming
 program observe the disagreement with no file and no byte pun, and it put a `PIC 9(4) COMP` on disk as the ASCII
 bytes `31 32 33 34`. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity` stores values
 beyond the PICTURE digit count, so its bytes and its picture disagree), INDEX (§13.18.60.4 GR10 — no image at all). A whole-group **MOVE between two mixed groups with

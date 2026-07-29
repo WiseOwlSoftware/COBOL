@@ -14,8 +14,8 @@ namespace CobolNet.Tests.Unit;
 /// <c>PicInfo.StorageWidth</c> pinned BINARY at 1-2-4-8 and PACKED at <c>Digits/2+1</c> BCD, <c>ByteWidth</c>
 /// documented them and <c>FUNCTION BYTE-LENGTH</c> reported them, while the image used <c>Pic.Digits</c>. For
 /// <c>05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC 9(4) COMP-3.</c> the compiler answered BYTE-LENGTH(G) = 5 and
-/// LENGTH(G) = 8 and accepted <c>REDEFINES G PIC X(8)</c>. ISO §15.14.4 GR1 returns the length in BYTES and
-/// §15.50.4 GR3 in ALPHANUMERIC CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and
+/// LENGTH(G) = 8 and accepted <c>REDEFINES G PIC X(8)</c>. ISO §15.14.4 r1 returns the length in BYTES and
+/// §15.50.4 r3 in ALPHANUMERIC CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and
 /// a CONFORMING program observes the disagreement with no file, no REDEFINES and no byte pun at all. Nothing in
 /// the battery said so, because nothing compared the two.
 /// </para>
@@ -24,7 +24,7 @@ namespace CobolNet.Tests.Unit;
 /// <list type="bullet">
 /// <item>NATIONAL is excluded because it is deliberately 2 bytes per character POSITION (D-N1/D-N3) — the two
 /// views legitimately differ by exactly that factor, which this test asserts rather than skips.</item>
-/// <item>BOOLEAN is excluded because its unit is a boolean position, not a character position (§15.50.4 GR1).</item>
+/// <item>BOOLEAN is excluded because its unit is a boolean position, not a character position (§15.50.4 r1).</item>
 /// <item>Everything NOT <see cref="DataItem.IsImageCapable"/> is excluded because it never reaches an image at
 /// all — float / COMP-5 / INDEX are the loud Tier-C island. An item outside the image cannot contradict it.</item>
 /// </list>
