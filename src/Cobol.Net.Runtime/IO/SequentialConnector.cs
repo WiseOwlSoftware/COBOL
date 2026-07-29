@@ -226,6 +226,7 @@ public sealed class SequentialConnector : FileConnector
                         ? new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
                             Encoding.Latin1)
                         : new StreamReader(HostPath, Encoding.Latin1);
+                    NoticeIfLayoutDisagrees();
                     break;
 
                 case FileOpenMode.Output:
@@ -237,6 +238,10 @@ public sealed class SequentialConnector : FileConnector
 
                 case FileOpenMode.Extend:
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
+                    // EXTEND is checked for the SAME arithmetic reason as INPUT, and the stakes are higher: a
+                    // program that APPENDS to a file whose existing layout disagrees writes a file interleaving
+                    // two record layouts, which is permanent corruption rather than a wrong computation.
+                    NoticeIfLayoutDisagrees();
                     _writer = SharedStreams
                         ? new StreamWriter(new FileStream(HostPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite),
                             Encoding.Latin1) { NewLine = "\r\n" }
@@ -259,6 +264,7 @@ public sealed class SequentialConnector : FileConnector
                     if (!exists) using (new StreamWriter(HostPath, append: false, Encoding.Latin1)) { }   // create empty, then close
                     _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite,
                         SharedStreams ? FileShare.ReadWrite : FileShare.Read), Encoding.Latin1);
+                    NoticeIfLayoutDisagrees();
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
             }
@@ -270,6 +276,26 @@ public sealed class SequentialConnector : FileConnector
             }
             return FileStatusCode.Success;
         }
+    }
+
+    /// <summary>Report a FIXED-LENGTH record-sequential file whose byte length is not a whole multiple of its
+    /// record length (<see cref="RecordLayoutNotice"/>) — the arithmetic proof that the file's layout and the
+    /// record description disagree, raised at OPEN rather than at the trailing '04' a program may never inspect.
+    /// Called on every mode that consults an EXISTING file's bytes — INPUT, I-O and EXTEND. OUTPUT is excluded
+    /// because it truncates: whatever the file held is discarded, so nothing can disagree.
+    /// Excluded, because a differing physical length is NORMAL for them: LINE SEQUENTIAL (records are delimited,
+    /// §9.1.13.2) and RECORD IS VARYING (each record carries its own length prefix, so a mismatch is detected
+    /// per record — §14.9.30.4 GR14).</summary>
+    private void NoticeIfLayoutDisagrees()
+    {
+        if (_lineSequential || IsVarying) return;
+        try
+        {
+            var info = new FileInfo(HostPath);
+            if (info.Exists) RecordLayoutNotice.CheckFixedLengthFile(HostPath, info.Length, RecordWidth);
+        }
+        catch (IOException) { }              // a notice is never worth failing an OPEN over
+        catch (UnauthorizedAccessException) { }
     }
 
     /// <summary>The sequential CLOSE body (ISO §14.9.7). A WRITE … ADVANCING stream is terminated with a

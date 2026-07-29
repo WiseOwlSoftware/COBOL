@@ -43,16 +43,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### NEXT, in order
 
-1. **V59 — the LAST item of the 46-finding conformance audit. SCOPE CORRECTED 2026-07-28; the analysis is DONE
-   and verified, the implementation is NOT started.** Owner decision: **ONE byte representation at EVERY byte
-   boundary** (the image, file records, SORT keys, the REDEFINES backing) — not Tier-C-only, which would have
-   given one COMP leaf two byte forms depending on which boundary it crossed.
+1. **✅ V59 — COMPLETE (all 7 steps landed; DEVLOG 1097–1102). WITH IT, THE 46-FINDING CONFORMANCE AUDIT IS
+   CLOSED.** Owner decision: **ONE byte representation at EVERY byte boundary** (the image, file records, SORT
+   keys, the REDEFINES backing) — not Tier-C-only, which would have given one COMP leaf two byte forms depending
+   on which boundary it crossed. The record below is the WHY, kept because the on-disk form it pins is now a
+   documented user-facing guarantee; the next worklist item is §2 (spec reconciliation) and the P14 Step-0
+   traceability inventory.
    - **Nothing to invent: the representation is already pinned and documented.** `PicInfo.StorageWidth` = BINARY
      1-2-4-8, PACKED `Digits/2+1` BCD; `DataItem.ByteWidth` documents them; `FUNCTION BYTE-LENGTH` reports them.
      The record IMAGE is the one place that ignores them, using `Pic.Digits` instead.
    - **It is a real conformance defect, not just implementor latitude.** `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC
      9(4) COMP-3.` answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and `REDEFINES G PIC X(8)` is accepted.
-     §15.14.4 GR1 (bytes) vs §15.50.4 GR3 (alphanumeric character positions) — both `cite.py`-verified — cannot
+     §15.14.4 r1 (bytes) vs §15.50.4 r3 (alphanumeric character positions) — both `cite.py`-verified — cannot
      disagree in a single-byte-character model, and a conforming program sees it with no file and no byte pun.
    - **`RedefCodec`/Tier C is NOT the mechanism** and stays unrealized. The whole-group image is a Latin-1
      `string` that files, SORT and the Tier-B backing all consume; giving a BINARY/PACKED leaf its true bytes
@@ -103,28 +105,48 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      §8.8.4.2.2) while a GROUP operand's text stays the record image (§8.8.4.1.1). Goldens `v59_byte_image`
      (BYTE-LENGTH == LENGTH == 5; FUNCTION ORD reads `005 211` / `002 036 080`) and `v59_sort_binary_key`.
      **⚠ ON-DISK LAYOUT CHANGED — the migration note is in design §14.4; step ⑤ is its detection.**
-   - **NEXT STEPS, in order:** ⑤ the support diagnostic (a fixed-length file whose byte length is not a multiple of
-     the record length — the provable half of the migration hazard) · ⑥ the §4.2.16 user-facing documentation (the
-     width table and the radix, with a worked byte example per usage — audience: the COBOL developer) · ⑦ the
-     `LENGTH(x) == BYTE-LENGTH(x)` drift test over the corpus, so the CLASS cannot return.
+   - **✅ STEPS 5–7 LANDED (DEVLOG 1102) — V59 IS COMPLETE, and with it the 46-finding conformance audit.**
+     · ⑤ **The support diagnostic.** `RecordLayoutNotice.CheckFixedLengthFile`, called from
+       `SequentialConnector.Open` on **INPUT, I-O and EXTEND**: a fixed-length record-sequential file whose byte
+       length is not a whole multiple of its record length is arithmetically inconsistent with the description
+       about to read it, so it is reported at OPEN — before a single record is misread — naming the file, both
+       lengths and the remainder. It is a NOTICE, never a status change: OPEN still succeeds and the I-O status is
+       untouched, because §14.9.30.4 GR14 defines the conforming detection ('04' on the short read) and inventing
+       an OPEN condition would be non-conformance. It goes to STANDARD ERROR, so no golden's stdout moves. LINE
+       SEQUENTIAL (delimited records, §9.1.13.2) and RECORD IS VARYING (per-record length prefix) are excluded by
+       construction, and it reports once per path.
+       **The sibling sweep (rule 4) caught the mode the first cut missed:** EXTEND was not checked, and its stakes
+       are HIGHER than INPUT's — appending to a file whose existing layout disagrees writes a file interleaving
+       two record layouts, permanent corruption rather than a wrong computation. OUTPUT stays excluded on a
+       principle, not an oversight: it truncates, so nothing survives to disagree. `RecordLayoutNoticeTests` —
+       9 facts, including the discriminating 13-bytes-warns / 15-bytes-silent pair and one per mode.
+     · ⑥ **The §4.2.16 user-facing documentation.** `docs/CONFORMANCE.md` now carries the storage-representation
+       family — Annex A.1 items **205 · 206 · 207 · 208 · 211 · 215** — stating the width ladder, the radix, the
+       byte order and a WORKED BYTE EXAMPLE per usage, written for the COBOL developer who needs to know what
+       lands on disk. Items 206/207 also pin the BINARY-CHAR family and the FLOAT usages; 211 states that INDEX
+       has no character image at all.
+     · ⑦ **The drift golden.** `v59_length_agrees` — 17 rows comparing `FUNCTION LENGTH` against
+       `FUNCTION BYTE-LENGTH` across every fixed-point usage, every width tier (INCLUDING the 16-byte tier, which
+       had no other corpus instance), SIGN SEPARATE, alphanumeric, edited, a mixed-usage group and an OCCURS table.
+       **⛔ IT IS NOT REDUNDANT WITH `ImageWidthIsStorageWidthTests`, AND THAT WAS MEASURED:** repointing the
+       `FUNCTION LENGTH` fold at `DataItem.DisplayTextWidth` — the third width step 4 introduced, and the one
+       plausible future drift — turns the golden RED at `B-2` while **all 324 model-level facts stay GREEN**. The
+       model tests pin `ImageWidth == ByteWidth`; only the golden pins WHICH width the intrinsic folds to.
    - **⏳ TWO GAPS DISCOVERED while writing the goldens, both QUEUED, neither caused by V59:** DA2 — a FUNCTION
      operand of DISPLAY (`DISPLAY FUNCTION ORD(C)`) throws at run time though §14.9.11.2 + §8.4.3.1.2 make it
      legal · DA3 — a HEX literal as a comparison operand (`IF G = X"FFF94142"`) throws though §8.3.3.2 makes it an
      ordinary alphanumeric literal. Each golden routes around its gap in plain COBOL and says so in a comment.
-   - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
-     support, maintenance, production quality").** The plan above is complete on correctness and gates and was
-     still short on three of the five. It is NOT done without:
-     · **Support / migration** — this changes the ON-DISK RECORD LAYOUT. Data files written by any earlier build
-       become unreadable, and a fixed-length sequential file carries no self-description, so the failure presents
-       as silent garbage. Partial detection IS available and must be built: a fixed-length file whose byte length
-       is not a multiple of the declared record length is provably wrong — diagnose it rather than read rubbish.
-       Ship a stated migration note; do not let a user discover this from wrong output.
-     · **Usability / understanding** — the on-disk form becomes a documented, user-facing guarantee (the §4.2.16
-       implementor-documentation obligation is the vehicle, but the audience is the COBOL developer, not the
-       auditor): state the width table and the radix, with a worked byte example per usage.
-     · **Maintenance** — the prize is not fixing the instance. A drift test asserting `LENGTH(x) ==
-       BYTE-LENGTH(x)` for every non-national, non-boolean item makes the whole CLASS impossible; today nothing
-       stops the two diverging again. Goldens must pin the actual BYTES, since nothing tests them at all.
+   - **✅ THE STANDING TIE-BREAKERS ARE SATISFIED (owner 2026-07-28: "we always bias towards usability,
+     understanding, support, maintenance, production quality").** Steps 1–4 were complete on correctness and gates
+     and short on three of the five; steps 5–7 closed exactly those three:
+     · **Support / migration** → step ⑤. This changed the ON-DISK RECORD LAYOUT, and a fixed-length sequential
+       file carries no self-description, so the failure would have presented as silent garbage. The provable half
+       is now diagnosed at OPEN (`RecordLayoutNotice`), and the migration note is stated in design §14.4.
+     · **Usability / understanding** → step ⑥. The on-disk form is a documented, user-facing guarantee:
+       `docs/CONFORMANCE.md` items 205–215, width table + radix + byte order + a worked byte example per usage.
+     · **Maintenance** → step ⑦. `v59_length_agrees` makes the CLASS impossible, not just the instance, and its
+       independence from the model-level tests was MEASURED rather than assumed (the `DisplayTextWidth` drift
+       above). The goldens pin actual BYTES via `v59_byte_image`'s `FUNCTION ORD` readings.
    CA14 landed 2026-07-28 (DEVLOG 1094), which also swept two further introduction-leniency sites its own new
    gate exposed.
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
