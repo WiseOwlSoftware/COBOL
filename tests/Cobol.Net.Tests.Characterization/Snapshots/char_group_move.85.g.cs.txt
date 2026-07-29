@@ -33,8 +33,8 @@ internal sealed class _PRG_CHAR_GROUP_MOVE : ICobolProgram
             D_QTY = __s.Substring(4, 3);
         }
     }
-    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.Zoned, StorageLength = 0 };
-    internal static readonly NumProfile _P_5 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_5 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private _T_0 WS_SRC = new _T_0 { S_NAME = new string(' ', 4), S_QTY = CobolNum.FormatDisplay(0L, _P_2) };   // WS-SRC
     private _T_3 WS_DST = new _T_3 { D_NAME = new string(' ', 4), D_QTY = CobolNum.FormatDisplay(0L, _P_5) };   // WS-DST
 

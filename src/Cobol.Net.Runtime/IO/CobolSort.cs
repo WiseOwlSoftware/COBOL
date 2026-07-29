@@ -201,7 +201,7 @@ public static class CobolSort
             Signed = k.Signed,
             SignKind = k.SignKind,
             Truncation = NumericTruncation.DigitCount,
-            StorageForm = NumericStorageForm.Zoned,   // a key WINDOW of the record image: one byte per digit
+            ByteForm = NumericByteForm.Zoned,   // a key WINDOW of the record image: one byte per digit
         };
         return CobolNum.ParseDisplay(Slice(image, k), profile);
     }

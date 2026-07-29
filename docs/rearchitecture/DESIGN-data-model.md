@@ -307,9 +307,9 @@ New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width 
   `NumProfile` field rename breaks one file, not silently at generated-compile time.
   - **Where the boundary actually runs (clarified when V59 step 2 landed).** It separates BUILDING a runtime value
     struct (still forbidden in Binding — the profile is emitted as text) from NAMING a runtime ENUM. `PicInfo`
-    already named one (`CobolEdit.EditRule` on `EditingRules`), and `PicInfo.StorageForm` / `PicInfo.Truncation`
-    now return `NumericStorageForm` / `NumericTruncation` rather than the initializer's former inline STRING
-    switch. Typing them is what lets `NumericStorageFormDriftTests` compare the mapping against the enum instead
+    already named one (`CobolEdit.EditRule` on `EditingRules`), and `PicInfo.ByteForm` / `PicInfo.Truncation`
+    now return `NumericByteForm` / `NumericTruncation` rather than the initializer's former inline STRING
+    switch. Typing them is what lets `NumericByteFormDriftTests` compare the mapping against the enum instead
     of against generated text, and what makes a renamed member a compile error in one file.
 
 ### 2.8 Value-literal decoding (folds the apostrophe latent bug)

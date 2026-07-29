@@ -14,7 +14,7 @@ namespace CobolNet.Runtime;
 /// <para>
 /// The representations are implementor-defined (ISO/IEC 1989:2023 §13.18.60.4 GR4 BINARY "a radix of 2 is used",
 /// GR11 PACKED-DECIMAL "a radix of 10 … each digit position shall occupy the minimum possible configuration",
-/// GR7 DISPLAY) and §4.2.16 obliges us to document ours — <see cref="NumericStorageForm"/> carries that
+/// GR7 DISPLAY) and §4.2.16 obliges us to document ours — <see cref="NumericByteForm"/> carries that
 /// documentation and this file is its implementation. Widths come from <see cref="NumProfile.StorageLength"/>,
 /// which is what <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 GR1): ONE width, never two answers.
 /// </para>
@@ -26,39 +26,39 @@ namespace CobolNet.Runtime;
 public static partial class CobolNum
 {
     /// <summary>Encode a fixed-point value as the bytes it occupies in a record, per the item's
-    /// <see cref="NumProfile.StorageForm"/>. The result is EXACTLY the item's image width: its
+    /// <see cref="NumProfile.ByteForm"/>. The result is EXACTLY the item's image width: its
     /// <see cref="NumProfile.StorageLength"/> for a binary/packed form, its digit run (plus a separate sign
     /// position) for the zoned form.</summary>
-    public static string FormatImage(Int128 unscaled, in NumProfile item) => item.StorageForm switch
+    public static string FormatImage(Int128 unscaled, in NumProfile item) => item.ByteForm switch
     {
-        NumericStorageForm.Zoned => FormatDisplay(unscaled, item),
-        NumericStorageForm.Binary => FormatBinaryImage(unscaled, item),
-        NumericStorageForm.Packed or NumericStorageForm.PackedNoSign => FormatPackedImage(unscaled, item),
+        NumericByteForm.Zoned => FormatDisplay(unscaled, item),
+        NumericByteForm.Binary => FormatBinaryImage(unscaled, item),
+        NumericByteForm.Packed or NumericByteForm.PackedNoSign => FormatPackedImage(unscaled, item),
         _ => throw NoByteImage(item),
     };
 
-    /// <summary>Storage-form bridge (the <see cref="FormatDisplay(string, in NumProfile)"/> pattern): a field whose
+    /// <summary>Storage-shape bridge (the <see cref="FormatDisplay(string, in NumProfile)"/> pattern): a field whose
     /// backing the whole-group analysis already turned into its character IMAGE is in image form — pass it
     /// through. Lets the compiler emit ONE expression whose field storage is decided later.</summary>
     public static string FormatImage(string image, in NumProfile item) => image;
 
     /// <summary>Decode an item's record-image bytes back to its unscaled value — the inverse of
     /// <see cref="FormatImage(Int128, in NumProfile)"/>.</summary>
-    public static Int128 ParseImage(string image, in NumProfile item) => item.StorageForm switch
+    public static Int128 ParseImage(string image, in NumProfile item) => item.ByteForm switch
     {
-        NumericStorageForm.Zoned => ParseDisplay(image, item),
-        NumericStorageForm.Binary => ParseBinaryImage(image, item),
-        NumericStorageForm.Packed or NumericStorageForm.PackedNoSign => ParsePackedImage(image, item),
+        NumericByteForm.Zoned => ParseDisplay(image, item),
+        NumericByteForm.Binary => ParseBinaryImage(image, item),
+        NumericByteForm.Packed or NumericByteForm.PackedNoSign => ParsePackedImage(image, item),
         _ => throw NoByteImage(item),
     };
 
-    /// <summary>An item with no byte representation (<see cref="NumericStorageForm.None"/> — USAGE INDEX, whose
+    /// <summary>An item with no byte representation (<see cref="NumericByteForm.None"/> — USAGE INDEX, whose
     /// occurrence-number carrier reaches no image at all, §13.18.60.4 GR10) reached a byte boundary. That is a
     /// compiler invariant break, never a COBOL runtime condition: the binder's <c>IsImageCapable</c> gate is
     /// supposed to make it unreachable. Fail LOUD rather than invent bytes — inventing them is exactly the class
     /// of defect this codec exists to retire.</summary>
     private static InvalidOperationException NoByteImage(in NumProfile item) =>
-        new($"no byte representation for a numeric item with StorageForm={item.StorageForm} "
+        new($"no byte representation for a numeric item with ByteForm={item.ByteForm} "
             + $"(Digits={item.Digits}, StorageLength={item.StorageLength}) — it must never reach a record image");
 
     // ── BINARY (radix 2, §13.18.60.4 GR4/GR6/GR12) ────────────────────────────────────────────────────────────
@@ -95,9 +95,9 @@ public static partial class CobolNum
         bytes >= 16 ? v : v & ((UInt128.One << (8 * bytes)) - 1);
 
     // ── PACKED-DECIMAL (radix 10 BCD, §13.18.60.4 GR11) ───────────────────────────────────────────────────────
-    // Two digits per byte, most significant first, zero-padded on the left. NumericStorageForm.Packed reserves
+    // Two digits per byte, most significant first, zero-padded on the left. NumericByteForm.Packed reserves
     // the LOW nibble of the last byte for the sign — 0xC positive, 0xD negative, 0xF for an item with no
-    // operational sign (the IBM / Micro Focus / GnuCOBOL convention); NumericStorageForm.PackedNoSign is the 2023
+    // operational sign (the IBM / Micro Focus / GnuCOBOL convention); NumericByteForm.PackedNoSign is the 2023
     // WITH NO SIGN form, which "reserves no storage for representing any sign value" (GR11), so every nibble is a
     // digit. The two forms can occupy the SAME number of bytes at an odd digit count — 3 digits is 2 bytes either
     // way — which is why the form, never the width, decides whether a sign nibble is present.
@@ -109,7 +109,7 @@ public static partial class CobolNum
     private static string FormatPackedImage(Int128 unscaled, in NumProfile item)
     {
         int n = Width(item);
-        bool hasSignNibble = item.StorageForm is NumericStorageForm.Packed;
+        bool hasSignNibble = item.ByteForm is NumericByteForm.Packed;
         int digitNibbles = 2 * n - (hasSignNibble ? 1 : 0);
         bool negative = item.Signed && unscaled < 0;
         Int128 mag = unscaled < 0 ? -unscaled : unscaled;
@@ -132,7 +132,7 @@ public static partial class CobolNum
     private static Int128 ParsePackedImage(string image, in NumProfile item)
     {
         int n = Width(item);
-        bool hasSignNibble = item.StorageForm is NumericStorageForm.Packed;
+        bool hasSignNibble = item.ByteForm is NumericByteForm.Packed;
         int take = image is null ? 0 : Math.Min(n, image.Length);
         int digitNibbles = 2 * take - (hasSignNibble ? 1 : 0);
 
@@ -152,7 +152,7 @@ public static partial class CobolNum
     }
 
     /// <summary>The pinned byte width a binary/packed form lays out. Zero would mean the profile claims a byte
-    /// form without a width — a construction bug (<c>NumericStorageFormDriftTests</c> pins the pairing), so it
+    /// form without a width — a construction bug (<c>NumericByteFormDriftTests</c> pins the pairing), so it
     /// fails loud here rather than silently producing an empty image.</summary>
     private static int Width(in NumProfile item) =>
         item.StorageLength > 0 ? item.StorageLength : throw NoByteImage(item);

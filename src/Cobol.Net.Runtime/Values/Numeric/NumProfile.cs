@@ -35,12 +35,12 @@ public enum NumericTruncation
 /// character image (§15.50.4 GR3): one width, one representation, everywhere.
 /// </para>
 /// </summary>
-public enum NumericStorageForm
+public enum NumericByteForm
 {
     /// <summary>NO byte representation — the item never reaches a character image or a file record, so a codec
     /// that is handed one must reject it LOUDLY rather than invent bytes. USAGE INDEX is the live case (an
     /// occurrence-number carrier, ISO §13.18.60.4 GR10; SET copies it unchanged and no other statement may
-    /// reference it). Value 0, so an unstated storage form fails loud instead of silently claiming to be
+    /// reference it). Value 0, so an unstated byte form fails loud instead of silently claiming to be
     /// DISPLAY.</summary>
     None = 0,
 
@@ -96,11 +96,11 @@ public enum NumericSign
 /// <summary>
 /// The compact, runtime-facing numeric profile of a COBOL data item: just enough to scale, round and bound-check
 /// a value, and to lay it out at a byte boundary. The COBOL.NET compiler builds it directly from a <c>PicInfo</c>
-/// (digits, scale, sign, usage→capacity discipline, usage→storage form) and threads it into every numeric store
+/// (digits, scale, sign, usage→capacity discipline, usage→byte form) and threads it into every numeric store
 /// so arithmetic obeys the receiver's PICTURE+USAGE (truncation / ROUNDED / SIZE ERROR) and into the record-image
 /// codec so the item occupies its true bytes (COBOLNET_DESIGN §14.4).
 /// <para><b>Three orthogonal axes, and conflating any two is a defect:</b> <see cref="Truncation"/> is the
-/// CAPACITY discipline (where SIZE ERROR bites), <see cref="StorageForm"/> is the BYTE REPRESENTATION (what the
+/// CAPACITY discipline (where SIZE ERROR bites), <see cref="ByteForm"/> is the BYTE REPRESENTATION (what the
 /// item occupies in a record), and <see cref="SignKind"/> is the SIGN PRESENTATION. DISPLAY and BINARY share one
 /// truncation discipline and differ entirely in representation — which is precisely how the record image came to
 /// disagree with <c>FUNCTION BYTE-LENGTH</c> (V59).</para>
@@ -130,13 +130,13 @@ public readonly record struct NumProfile
     /// <see cref="Truncation"/> (DISPLAY and BINARY are both <see cref="NumericTruncation.DigitCount"/>), and a
     /// profile built without stating it would silently claim to be one byte per digit. Every profile the compiler
     /// emits states it; the runtime's own hand-built profiles are character-image decoders and state
-    /// <see cref="NumericStorageForm.Zoned"/>.</summary>
-    public required NumericStorageForm StorageForm { get; init; }
+    /// <see cref="NumericByteForm.Zoned"/>.</summary>
+    public required NumericByteForm ByteForm { get; init; }
 
     /// <summary>Storage width in bytes — used for <see cref="NumericTruncation.PackedDecimal"/> capacity
     /// (2n−1 digits) and <see cref="NumericTruncation.BinaryCapacity"/> two's-complement range, and it is the
-    /// EXACT width <see cref="NumericStorageForm.Binary"/> / <see cref="NumericStorageForm.Packed"/> /
-    /// <see cref="NumericStorageForm.PackedNoSign"/> lay out. Zero for <see cref="NumericStorageForm.Zoned"/>,
+    /// EXACT width <see cref="NumericByteForm.Binary"/> / <see cref="NumericByteForm.Packed"/> /
+    /// <see cref="NumericByteForm.PackedNoSign"/> lay out. Zero for <see cref="NumericByteForm.Zoned"/>,
     /// whose width is <see cref="Digits"/> plus a separate-sign position (the digit run IS its own byte form).</summary>
     public int StorageLength { get; init; }
 

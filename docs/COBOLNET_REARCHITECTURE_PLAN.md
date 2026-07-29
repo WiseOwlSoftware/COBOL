@@ -69,10 +69,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      rows being precisely those where the pinned width and the digit count COINCIDE. The two failing facts carry an
      explicit `Skip` naming V59; they turn GREEN when the image is re-based on `StorageWidth`. ⛔ Not a tolerated
      divergence — keeping this test OUT of the tree is how the defect survived two phases.
-   - **✅ STEP 2 LANDED (DEVLOG 1098): the storage-form discriminator.** `NumProfile.StorageForm`
-     (`NumericStorageForm`, **required**) now carries each usage's pinned byte representation to the runtime, filled
-     by `PicInfo.StorageForm`; `PicInfo.Truncation` became a typed property beside it so `ProfileInitializer` states
-     both axes. `NumericStorageFormDriftTests` pins the whole `Usage` table (made red once to prove it) and asserts
+   - **✅ STEP 2 LANDED (DEVLOG 1098): the storage-form discriminator.** `NumProfile.ByteForm`
+     (`NumericByteForm`, **required**) now carries each usage's pinned byte representation to the runtime, filled
+     by `PicInfo.ByteForm`; `PicInfo.Truncation` became a typed property beside it so `ProfileInitializer` states
+     both axes. `NumericByteFormDriftTests` pins the whole `Usage` table (made red once to prove it) and asserts
      the cross-check that a byte form is exactly a positive `StorageWidth`. **The representation is now DOCUMENTED
      where it is used** — the enum members carry the §4.2.16 / Annex A.1 items 205+215 obligation, and design §6.3
      states the table. THREE facts implementation added: an INDEX item DOES carry a profile (hence `None = 0`, so an
@@ -81,7 +81,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      per the IBM/MF/GnuCOBOL survey, deliberately diverging from our own legacy engine's `0x0C`. Nothing CONSUMES
      the discriminator yet — the image is still zoned until step ③.
    - **✅ STEP 3 LANDED (DEVLOG 1099): the codec.** `CobolNum.Image.cs` — `FormatImage`/`ParseImage` beside
-     `FormatDisplay`, one dispatch on `StorageForm`, bytes carried in the SAME Latin-1 string the record framing
+     `FormatDisplay`, one dispatch on `ByteForm`, bytes carried in the SAME Latin-1 string the record framing
      uses (no second whole-group mechanism). `None` at a byte boundary THROWS. `RecordImageCodecTests` pins the
      bytes from the FORM, not from output (`1234` → `04 D2` binary, `01 23 4C` packed signed), and runs
      one-width / Latin-1-safe / round-trip invariants over the whole grid. **The sweep found a load-bearing

@@ -351,7 +351,7 @@ public sealed record PicInfo(
     };
 
     /// <summary>
-    /// The BYTE REPRESENTATION this item's storage takes (<see cref="NumericStorageForm"/>, which carries the
+    /// The BYTE REPRESENTATION this item's storage takes (<see cref="NumericByteForm"/>, which carries the
     /// pinned form of each) — the one fact that decides what the item occupies at EVERY byte boundary: the
     /// record/group character image, a file record, a SORT key window and the REDEFINES backing
     /// (COBOLNET_DESIGN §14.4). ISO §13.18.60.4 GR4 (BINARY, "a radix of 2 is used") and GR11 (PACKED-DECIMAL,
@@ -361,28 +361,28 @@ public sealed record PicInfo(
     /// <para>The truncation discipline CANNOT stand in for this: USAGE DISPLAY and USAGE BINARY are both
     /// <see cref="NumericTruncation.DigitCount"/> yet occupy entirely different bytes.</para>
     /// <para>Consulted only where a <c>NumProfile</c> is emitted (a non-float numeric item — see
-    /// <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericStorageForm.None"/> is the honest answer for
+    /// <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/> is the honest answer for
     /// USAGE INDEX, whose occurrence-number carrier reaches no image at all (§13.18.60.4 GR10), and for every
-    /// usage that carries no profile. <c>NumericStorageFormDriftTests</c> pins the whole table.</para>
+    /// usage that carries no profile. <c>NumericByteFormDriftTests</c> pins the whole table.</para>
     /// </summary>
-    public NumericStorageForm StorageForm => Usage switch
+    public NumericByteForm ByteForm => Usage switch
     {
         // Radix 2 (GR4 BINARY / GR6 COMPUTATIONAL / GR12 the fixed-width binary usages) — two's complement,
         // big-endian, StorageWidth bytes. COMP-5 and BINARY-CHAR..DOUBLE are excluded from the IMAGE by their
         // BinaryCapacity discipline (values beyond the PICTURE digit count), never by their representation:
         // stating the form here is what makes admitting them a width question, not a representation question.
         Usage.Binary or Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong
-            or Usage.BinaryDouble => NumericStorageForm.Binary,
+            or Usage.BinaryDouble => NumericByteForm.Binary,
         // Radix 10 BCD (GR11), with or without the trailing sign nibble the 2023 WITH NO SIGN phrase drops.
-        Usage.Packed => PackedNoSign ? NumericStorageForm.PackedNoSign : NumericStorageForm.Packed,
+        Usage.Packed => PackedNoSign ? NumericByteForm.PackedNoSign : NumericByteForm.Packed,
         // One byte per digit position (GR7). DISPLAY is the only profile-carrying usage that lands here; the
         // character usages (NATIONAL / BIT) and the carrier usages never reach this property.
-        Usage.Display => NumericStorageForm.Zoned,
-        _ => NumericStorageForm.None,
+        Usage.Display => NumericByteForm.Zoned,
+        _ => NumericByteForm.None,
     };
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
-    /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="StorageForm"/>, which is the byte
+    /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte
     /// representation: BINARY truncates by PICTURE digit count exactly as DISPLAY does, while COMP-5 and the
     /// fixed-width binary usages hold the native two's-complement range of their byte width (ISO §13.18.60.4
     /// GR12), and PACKED-DECIMAL's capacity follows its BCD nibbles.</summary>
@@ -395,7 +395,7 @@ public sealed record PicInfo(
     };
 
     /// <summary>The item's storage width in BYTES for every usage that has one of its own — the width its
-    /// <see cref="StorageForm"/> lays out, the width <c>FUNCTION BYTE-LENGTH</c> reports, and the width it
+    /// <see cref="ByteForm"/> lays out, the width <c>FUNCTION BYTE-LENGTH</c> reports, and the width it
     /// occupies in a record image (0 for the usages whose bytes ARE their character positions).</summary>
     public int StorageWidth => Usage switch
     {
@@ -427,7 +427,7 @@ public sealed record PicInfo(
     public string ProfileInitializer =>
         $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
         $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
-        $"Truncation = NumericTruncation.{Truncation}, StorageForm = NumericStorageForm.{StorageForm}, " +
+        $"Truncation = NumericTruncation.{Truncation}, ByteForm = NumericByteForm.{ByteForm}, " +
         $"StorageLength = {StorageWidth} }}";
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed

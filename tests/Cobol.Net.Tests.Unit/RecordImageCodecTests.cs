@@ -36,7 +36,7 @@ public sealed class RecordImageCodecTests
             Signed = signed,
             SignKind = usage is Usage.Display ? NumericSign.TrailingOverpunch : NumericSign.BinaryMinus,
             Truncation = pic.Truncation,
-            StorageForm = pic.StorageForm,
+            ByteForm = pic.ByteForm,
             StorageLength = pic.StorageWidth,
         };
     }
@@ -117,7 +117,7 @@ public sealed class RecordImageCodecTests
     }
 
     /// <summary>⛔ THE COLLISION: at an ODD digit count the signed and WITH NO SIGN forms occupy the SAME number
-    /// of bytes and lay them out DIFFERENTLY. This is why the storage FORM, never the width, decides whether a
+    /// of bytes and lay them out DIFFERENTLY. This is why the byte FORM, never the width, decides whether a
     /// sign nibble is present — a decoder inferring it from the byte count reads 123's last digit as a sign.</summary>
     [Fact]
     public void Packed_WithNoSign_SameWidth_DifferentBytes()
@@ -221,7 +221,7 @@ public sealed class RecordImageCodecTests
         var index = new NumProfile
         {
             Digits = 0, FractionDigits = 0, Signed = false,
-            Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.None,
+            Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.None,
         };
         Assert.Throws<InvalidOperationException>(() => CobolNum.FormatImage(1, index));
         Assert.Throws<InvalidOperationException>(() => CobolNum.ParseImage("x", index));

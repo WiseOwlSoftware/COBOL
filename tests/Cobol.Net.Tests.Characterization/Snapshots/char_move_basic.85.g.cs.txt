@@ -9,8 +9,8 @@ using CobolNet.Runtime;          // CobolNum / CobolString substrates + the inte
 internal sealed class _PRG_CHAR_MOVE_BASIC : ICobolProgram
 {
     private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)
-    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.Zoned, StorageLength = 0 };
-    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 5, FractionDigits = 2, Signed = true, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 5, FractionDigits = 2, Signed = true, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private string WS_ALPHA = new string(' ', 6);   // WS-ALPHA
     private long WS_NUM = 0L;   // WS-NUM
     private long WS_SIGNED = 0L;   // WS-SIGNED
