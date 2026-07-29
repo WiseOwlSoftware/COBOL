@@ -43,18 +43,41 @@ public sealed class CobolPtrTests
     {
         var cell = new StorageCell { Ref = "ABCDEFGHIJ" };
         var p = ManagedPointer.At(cell, 0);
-        // 2.0 at scale 1 (scaled 20) IS an integer value — moves by 2 (§14.9.39 F10 GR19 is a VALUE rule).
+        // 2.0 at scale 1 (scaled 20) IS an integer value — moves by 2 (§14.9.39.4 GR19 is a VALUE rule).
         Assert.Equal(2, ((CellPointer)CobolPtr.UpByScaled(p, 20, 1)).Offset);
-        // 2.5 at scale 1 (scaled 25) is NOT an integer — EC-SIZE-ADDRESS (Fatal), never a silent truncation.
-        Assert.Equal("EC-SIZE-ADDRESS",
-            Assert.Throws<CobolFatalException>(() => CobolPtr.UpByScaled(p, 25, 1)).EcName);
+
+        // 2.5 at scale 1 (scaled 25) is NOT an integer. §14.9.39.4 GR19 gives BOTH arms in one sentence: "the
+        // EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is
+        // unsuccessful, and the content of identifier-9 is unchanged" — so checking ON raises the named
+        // condition, and checking OFF leaves the operand alone. It is never a silent truncation either way.
+        ExceptionState.SizeAddressChecking = true;
+        try
+        {
+            Assert.Equal("EC-SIZE-ADDRESS",
+                Assert.Throws<CobolFatalException>(() => CobolPtr.UpByScaled(p, 25, 1)).EcName);
+        }
+        finally { ExceptionState.SizeAddressChecking = false; }
+
+        // Checking OFF: GR19's "content of identifier-9 is unchanged" — the operand comes back as it went in.
+        Assert.Equal(0, ((CellPointer)CobolPtr.UpByScaled(p, 25, 1)).Offset);
     }
 
     [Fact]
-    public void UpBy_Null_IsEcDataPtrNull()
+    public void UpBy_Null_RaisesWhenChecked_AndIsUnchangedWhenNot()
     {
-        var ex = Assert.Throws<CobolFatalException>(() => CobolPtr.UpBy(ManagedPointer.Null, 1));
-        Assert.Equal("EC-DATA-PTR-NULL", ex.EcName);    // F10 GR18
+        // §14.9.39.4 GR18 — a NULL identifier-9 sets EC-DATA-PTR-NULL.
+        ExceptionState.DataPtrNullChecking = true;
+        try
+        {
+            Assert.Equal("EC-DATA-PTR-NULL",
+                Assert.Throws<CobolFatalException>(() => CobolPtr.UpBy(ManagedPointer.Null, 1)).EcName);
+        }
+        finally { ExceptionState.DataPtrNullChecking = false; }
+
+        // Checking OFF is LENIENT here and loud at Deref — the owner's rule, because GR19 names the unchanged
+        // outcome for a SET while §13.18.5.4 GR3/GR4 name none for a dereference (see Deref_Null_… below, which
+        // still asserts the unconditional throw). A SET that cannot be performed leaves its operand NULL.
+        Assert.True(CobolPtr.UpBy(ManagedPointer.Null, 1).IsNull);
     }
 
     [Fact]
