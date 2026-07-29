@@ -31,8 +31,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
-- **Branch `phase-14`** (clean, pushed). `main` = `1f56f572` — the PHASE-13 grammar batch + Wave-D directives +
-  Track ③ PERFORM Format-3 runtime, merged 2026-07-22. P13 core is on `main`; the P13 residue + P14 proceed here.
+- **`main` = `c056f1f4` — PHASE-14 IS MERGED (2026-07-28).** 195 commits, 96 DEVLOG entries, 2026-07-22→28, under
+  a full comprehensive gate (below). `phase-14` is fully merged and its tree is identical to `main`; continue the
+  next wave there or cut a fresh branch from `main`.
 - **THE WORK = the spec-first CONFORMANCE FIX-QUEUE.** SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` — **its
   LANDED header is the live tally.** Work top-down by severity, batched by area; land each fix WITH its
   spec-derived golden (expected value computed from the spec, never copied from the legacy). Source ledgers:
@@ -62,6 +63,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      ASCII `31 32 33 34`.
    - Design SSOT annotated (`COBOLNET_DESIGN.md` §14.4 — its "named loser (c)" rejected raw bytes on a premise,
      "cross-engine file compatibility is not required", that the owner has now reversed).
+   - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
+     support, maintenance, production quality").** The plan above is complete on correctness and gates and was
+     still short on three of the five. It is NOT done without:
+     · **Support / migration** — this changes the ON-DISK RECORD LAYOUT. Data files written by any earlier build
+       become unreadable, and a fixed-length sequential file carries no self-description, so the failure presents
+       as silent garbage. Partial detection IS available and must be built: a fixed-length file whose byte length
+       is not a multiple of the declared record length is provably wrong — diagnose it rather than read rubbish.
+       Ship a stated migration note; do not let a user discover this from wrong output.
+     · **Usability / understanding** — the on-disk form becomes a documented, user-facing guarantee (the §4.2.16
+       implementor-documentation obligation is the vehicle, but the audience is the COBOL developer, not the
+       auditor): state the width table and the radix, with a worked byte example per usage.
+     · **Maintenance** — the prize is not fixing the instance. A drift test asserting `LENGTH(x) ==
+       BYTE-LENGTH(x)` for every non-national, non-boolean item makes the whole CLASS impossible; today nothing
+       stops the two diverging again. Goldens must pin the actual BYTES, since nothing tests them at all.
    CA14 landed 2026-07-28 (DEVLOG 1094), which also swept two further introduction-leniency sites its own new
    gate exposed.
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
@@ -254,9 +269,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
-**✅ THE COMPREHENSIVE PRE-MERGE GATE WAS RUN 2026-07-28** (results below). The EC-infra + OO super-batch is
-COMPLETE: **10 findings landed + CA12 REFUTED**. Its one red — the VCR's dangling spec LINE citations — has since
-been closed by re-keying them onto the clause hierarchy, so **`phase-14` is mergeable with nothing outstanding**.
+**✅ THE COMPREHENSIVE PRE-MERGE GATE RAN AND `phase-14` IS MERGED (2026-07-28, `c056f1f4`).** Every leg green,
+zero regressions. The table below is the EARLIER run of that gate, kept because it records the EC-infra + OO
+super-batch (**10 findings landed + CA12 REFUTED**) and the one red it found — the VCR's dangling spec LINE
+citations, since closed by re-keying them onto the clause hierarchy. **The MERGE gate's numbers are:**
+
+| leg | result |
+|---|---|
+| greenfield Conformance | **4113 / 4113** — nothing red |
+| greenfield Unit | **580 / 580** |
+| characterization | **33 / 33** byte-identical |
+| `guard-fast.sh` | **=== ALL GREEN ===** (exit 0) — NIST **353 MATCH / 0 REGRESSION** |
+| legacy Unit / Integration | 1203/1203 · 503/504 (1 skipped) |
+| GnuCOBOL differential | **0 REGRESSIONS.** Per-case diff: 3 flips, ALL pre-existing CA34 (`COBOLNET1625`) — verified, not inherited, via `git merge-base --is-ancestor f54c9bd4` against the branch tail. |
 
 | leg | result |
 |---|---|
