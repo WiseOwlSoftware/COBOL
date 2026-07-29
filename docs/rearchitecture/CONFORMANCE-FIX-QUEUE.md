@@ -12,7 +12,41 @@
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
 
-### DA5 · [MAJOR] · data-model · 🟡 PARTLY LANDED — V59's image predicate was migrated at SOME emit guards and not others
+### DA7 · [MINOR] · inspect-string · ⏳ OPEN — three syntax-rule violations are diagnosed at RUN TIME, not COMPILE time
+- **Sites:** `Binding/Procedure/Verbs/InspectBinder.cs:35` (INSPECT identifier-1 of USAGE BINARY — §14.9.22.3 SR1) ·
+  `CodeGen/Verbs/StringEmitter.cs:168` (STRING INTO an ELEMENTARY usage-binary receiver — §14.9.43.3 SR1 requires
+  usage display or national) · `StringEmitter.cs:226` (the UNSTRING counterpart, §14.9.48.3 SR4).
+- **What is and is not wrong.** Each construct is GENUINELY ILLEGAL, so no conforming program is rejected and the
+  compiler is not unconforming in its *verdict*. The defect is the STAGE: a syntax-rule violation should be a
+  compile-time diagnostic, and instead the program compiles clean and throws when control reaches the statement.
+  A user gets a run-time crash where the standard promises a compile error.
+- **Cheapest at `InspectBinder.cs:35`, which is already IN THE BINDER** — it stages a `BoundUnsupported` where a
+  diagnostic is immediately available, so that one is a pure staging choice with no plumbing to add.
+- **Needs:** a diagnostic code (next free `COBOLNET1626`), the four-edition gate sweep, and negative fixtures.
+  Separated from DA5 because DA5 was about a stale PREDICATE; this is about WHERE a correct verdict is reported.
+
+### DA6 · [MAJOR] · arithmetic · ⏳ OPEN — a GROUP as a NUMERIC operand is accepted, and behaves two different ways
+- **Spec:** §8.8.1.1 (`cite.py`-verified) — "An arithmetic expression may be an identifier referencing a **numeric
+  data item**, a numeric literal, the figurative constant ZERO …". A group item is class **alphanumeric** (§8.5), so
+  a group is NOT a permissible arithmetic-expression operand. `COMPUTE R = G + 1` is ILLEGAL SOURCE.
+- **Observed (2026-07-29), and the two halves disagree — which is the tell:**
+  · `01 G. 05 A PIC X(2) VALUE "12". 05 B PIC X(2) VALUE "34".` → `COMPUTE R = G + 1` **compiles and computes
+    `R = 001235`** (the image decoded through `CobolNum.FromAlphanumeric`).
+  · `01 G. 05 A PIC 9(2) VALUE 12. 05 B PIC 9(2) VALUE 34.` → the same statement **compiles and then THROWS**
+    `numeric use of group item 'G'` at run time (`NumericRenderer.cs:186`).
+  So the group whose digits are *unambiguous* fails, and the one whose content is merely *textual* succeeds — the
+  opposite of intuition, and neither is a compile-time rejection.
+- **⛔ NOT a V59 predicate residue.** Migrating `NumericRenderer.cs:186` to `IsImageCapable` would make the second
+  case silently compute too — i.e. it would extend acceptance of illegal source rather than fix anything. That is
+  why that one site is deliberately LEFT on `IsCharacterImage`, with a note in
+  `V59ImagePredicateDriftTests` saying so.
+- **The owner decision this needs** (hence not fixed here): accepting a group as a numeric operand is a common
+  vendor extension. Either (a) reject at COMPILE time under strict conformance with the leniency dialect-gated
+  (`--permissive`), or (b) accept it UNIFORMLY as a documented extension — which requires the numeric-DISPLAY-leaf
+  group to work as well as the alphanumeric one. The current state is neither, and the inconsistency is the bug
+  regardless of which way it is resolved.
+
+### DA5 · [MAJOR] · data-model · ✅ LANDED — V59's image predicate was migrated at SOME emit guards and not others
 - **The two predicates.** V59 added `DataItem.IsImageCapable` (a BINARY/PACKED leaf HAS a pinned byte image, so a
   group containing one qualifies; only float / COMP-5 / INDEX are genuinely imageless) beside the pre-V59
   `DataItem.IsCharacterImage` (a COMP/binary leaf qualifies only via `StoreAsImage` promotion). `TierCIsland`
@@ -46,17 +80,34 @@
   `IsImageCapable`. Verified by repro: MOVE into a COMP-containing group works in all three shapes — aligned
   memberwise, non-aligned image redistribution, and from an alphanumeric source. So `MoveEmitter` using both
   predicates is not "a distinction disagreeing with itself"; the two uses have different jobs.
-- **⏳ FOUR SITES REMAIN, AND THEY ARE NOT AUTOMATICALLY BUGS.** `NumericRenderer.cs:186` ·
-  `AcceptDisplayEmitter.cs:66,129` · `InspectEmitter.cs:89` · `StringEmitter.cs:151,193`.
-  **⛔ V59's own governing lesson is BYTES ARE NOT TEXT:** a COMP leaf's image is
+- **✅ THE REMAINING FIVE GROUP-RECEIVER GUARDS ARE LANDED (DEVLOG 1107) — DA5 IS COMPLETE.**
+  `StringEmitter.cs:151` (STRING INTO) · `:193` (UNSTRING INTO) · `InspectEmitter.cs:89`
+  (INSPECT REPLACING/CONVERTING) · `AcceptDisplayEmitter.cs:66` (ACCEPT into group) · `:129` (ACCEPT temporal).
+  **⛔ AND THE PREDICTION IN THE PREVIOUS REVISION OF THIS ENTRY WAS WRONG.** It said these were "not automatically
+  bugs" because STRING/UNSTRING/INSPECT are defined over CHARACTER POSITIONS, so refusing a byte-imaged COMP group
+  "may well be CORRECT". Measured, that reasoning is misapplied: **a group MOVE into the very same receiver already
+  worked**, and all of these are the same POSITIONAL character transfer into the group's storage (§14.9.25.4 GR4 —
+  the group move is alphanumeric, "filled without consideration for the individual items"). So five verbs
+  disagreed about one receiver. "BYTES ARE NOT TEXT" governs *rendering a COMP leaf's VALUE as text* (that is
+  `DisplayTextWidth`'s job, DA2), NOT writing characters positionally over its bytes.
+  Golden `da5_group_verbs_comp_leaf` pins the invariant that matters: STRING and UNSTRING land **byte-for-byte what
+  the group MOVE lands** (`MOV`/`STR`/`UNS` lines identical), and INSPECT REPLACING leaves the binary leaf's `00 00`
+  untouched because those bytes are not spaces. A float/COMP-5/INDEX group still stages loud on all four, with the
+  message now naming the predicate actually tested.
+- **⏳ ONE SITE REMAINS AND IT IS A DIFFERENT DEFECT — see DA6.** `NumericRenderer.cs:186` stays on
+  `IsCharacterImage` DELIBERATELY: migrating the predicate would be the wrong fix, because a group used as a
+  NUMERIC operand is ILLEGAL SOURCE, not a representable operation. Tracked separately.
+  *(Historical note, kept because the reasoning is instructive:* **⛔ V59's own governing lesson is BYTES ARE NOT
+  TEXT:** a COMP leaf's image is
   radix-2 bytes, not its digits, so a verb defined over CHARACTER POSITIONS (STRING/UNSTRING/INSPECT) may be
   CORRECT to refuse it — consuming those bytes as text would be a silent wrong answer, strictly worse than the
   loud stage. Each site needs its own spec derivation (does the operation need TEXT or STORAGE?), plus the
   separate question of whether a syntax-rule violation is being deferred to RUN TIME where it belongs at COMPILE
-  time (e.g. §14.9.43.3 SR1 requires STRING's identifiers be usage display or national). **NOT swept here rather
-  than swept on guesswork** — an owner-visible deferral, and the reason is that the per-site analysis is the work,
-  not the predicate swap.
-- **The inventory is PINNED, so none of the seven can be forgotten.**
+  time (e.g. §14.9.43.3 SR1 requires STRING's identifiers be usage display or national). **The caution was right in
+  KIND and wrong in APPLICATION** — it correctly refused a blind predicate swap, and the per-site derivation it
+  demanded is what showed the swap was in fact correct for all five. The half that survives is the staging
+  question, now DA7.*)
+- **The inventory is PINNED, so nothing can be forgotten.**
   `tests/Cobol.Net.Tests.Unit/V59ImagePredicateDriftTests.cs` asserts the exact per-file set (and that CALL's two
   halves stay in lockstep), so adding, removing, or silently migrating a site fails a test and forces the decision
   to be recorded. It counts CODE only — the first cut failed on its own explanatory comment.

@@ -409,11 +409,10 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-29, V59 + DA2 + the DA5 CALL and table-SORT halves — supersedes the 4118/942
-  earlier the same day):**
-  FULL Conformance **4119/4119, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
-  +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`; the earlier +2 was `v59_byte_image` and
-  `v59_sort_binary_key`) · greenfield Unit
+- **Battery reference (2026-07-29, V59 + DA2 + DA5 COMPLETE — supersedes the 4119/942 earlier the same day):**
+  FULL Conformance **4120/4120, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
+  +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`, +1 `da5_group_verbs_comp_leaf`; the earlier +2 was
+  `v59_byte_image` and `v59_sort_binary_key`) · greenfield Unit
   **942/942, zero skipped** (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
   +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
   green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`

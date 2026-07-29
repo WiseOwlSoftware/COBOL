@@ -148,9 +148,17 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         var w = ctx.Writer;
         if (p.Item.IsGroup && p is not RedefViewPlace)
         {
-            if (!p.Item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!p.Item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(p)}.FromImage({imageExpr});");
@@ -190,9 +198,17 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         }
         if (target.Item.IsGroup)
         {
-            if (!target.Item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!target.Item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group")));
                 return;
             }
             string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");

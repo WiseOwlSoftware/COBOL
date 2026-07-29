@@ -136,14 +136,17 @@ internal static class OperandText
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName), rvp.Digits), rvp)
                 : PlaceRenderer.Read(p);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
-        // characters, each NATIVE fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned decimal digit image —
-        // implementor-defined territory (ISO §8.8.4.1.1: a group operand is alphanumeric over the item's
-        // representation, and §13.18.60 USAGE GR4 leaves a binary item's representation, including its sign, to
-        // the implementor; the legacy byte engine used hardware bytes, the greenfield defines the digit image
-        // with a trailing-overpunch sign — COBOLNET_DESIGN §14.4, the ONE total definition; the inline
-        // MixedGroupImage concat it supersedes mis-imaged a signed negative COMP leaf variable-width and bailed
-        // on fixed-OCCURS children). Only a group with a float / COMP-5 / INDEX leaf stays the loud Tier-C
-        // island. This is the WRITE / RELEASE / DISPLAY / compare sender path.
+        // characters; a DISPLAY leaf its zoned digits; and a BINARY/PACKED leaf ⛔ ITS TRUE BYTES — radix-2
+        // two's complement of StorageWidth, or BCD with a trailing sign nibble (V59). Implementor-defined
+        // territory (§8.8.4.2.3 SR2 + §8.8.4.2.7: a group operand is class alphanumeric compared over its
+        // REPRESENTATION, and §13.18.60.4 GR4/GR11 leave a binary/packed item's representation, including its
+        // sign, to the implementor — COBOLNET_DESIGN §14.4 and docs/CONFORMANCE.md items 205–215 are the ONE
+        // total definition).
+        // ⚠ THIS COMMENT USED TO SAY "its zoned decimal digit image … with a trailing-overpunch sign", which was
+        // true of the PRE-V59 image and is now false — the bytes are not digits. Corrected rather than left, since
+        // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
+        // Only a group with a float / COMP-5 / INDEX leaf stays the loud Tier-C island. This is the
+        // WRITE / RELEASE / DISPLAY / compare sender path.
         if (p.Item.IsGroup)
             return p.Item.IsImageCapable
                 ? $"{PlaceRenderer.Read(p)}.AsImage()"

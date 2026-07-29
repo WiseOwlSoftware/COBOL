@@ -91,9 +91,12 @@ public sealed class V59ImagePredicateDriftTests
     {
         var expected = new Dictionary<string, int>
         {
+            // The ONLY remaining site, and it is NOT a predicate residue: a GROUP used as a NUMERIC operand.
+            // §8.8.1.1 admits only "an identifier referencing a numeric data item" in an arithmetic expression and
+            // a group is class alphanumeric, so `COMPUTE R = G + 1` is ILLEGAL SOURCE — which the compiler accepts
+            // and then throws on at RUN time. Migrating the predicate would be the wrong fix; the fix is a
+            // COMPILE-TIME diagnostic (queued as DA6). Left on IsCharacterImage deliberately.
             ["CodeGen/Emit/NumericRenderer.cs"] = 1,
-            ["CodeGen/Verbs/AcceptDisplayEmitter.cs"] = 2,
-            ["CodeGen/Verbs/InspectEmitter.cs"] = 1,
             // ⛔ MoveEmitter.cs:144 is NOT a Tier-C guard and must NOT be "migrated". It selects a STRATEGY: when
             // the receiver is not a character image it first tries the memberwise leaf-copy fast path (used when
             // the source and receiver leaf LAYOUTS are positionally identical), and only the fall-through reaches
@@ -102,7 +105,6 @@ public sealed class V59ImagePredicateDriftTests
             // redistribution, and from an alphanumeric source). Counted here so the inventory is complete, with
             // this note so nobody "fixes" a working fast path.
             ["CodeGen/Verbs/MoveEmitter.cs"] = 1,
-            ["CodeGen/Verbs/StringEmitter.cs"] = 2,
         };
 
         var actual = new Dictionary<string, int>();
