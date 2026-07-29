@@ -147,6 +147,14 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 **Rejected alternatives.** (a) Force floats through the Int128 scaled path — REJECTED: float values aren't base-10 fixed-point; scaling them is meaningless and lossy. (b) Promote everything to decimal when a float is present — REJECTED: locked out + wrong (COBOL float arithmetic is IEEE binary, not decimal).
 
+### D17. NumProfile carries a REQUIRED `StorageForm` field — the enum `NumericStorageForm` (None / Zoned / Binary / Packed / PackedNoSign) — because the CAPACITY discipline can never imply the BYTE REPRESENTATION: USAGE DISPLAY and USAGE BINARY are both `DigitCount`.
+
+*Landed (V59 step 2). Load-bearing spec: §13.18.60.4 GR4 (BINARY "a radix of 2 is used"), GR7 (DISPLAY, an alphanumeric coded character set aligned on a character boundary), GR11 (PACKED-DECIMAL "a radix of 10 … the minimum possible configuration", and the 2023 WITH NO SIGN phrase), GR12 (the fixed-width binary usages); §4.2.16 + Annex A.1 items 205/215 (documenting BINARY's and PACKED-DECIMAL's representation is a REQUIRED implementor-documentation item).*
+
+**Rationale.** A usage decides THREE orthogonal facts — capacity (`Truncation`), byte representation (`StorageForm`), sign presentation (`SignKind`) — and the profile carried only two of them. Because the two it carried *looked* sufficient, the record-image codec derived the representation from the digit count, so a `PIC 9(4) COMP` and a `PIC 9(4) COMP-3` both reached a file as the four ASCII bytes `31 32 33 34` while `FUNCTION BYTE-LENGTH` reported 2 and 3 (V59; §15.14.4 GR1 vs §15.50.4 GR3 cannot disagree in a single-byte-character model). The forms are implementor-defined and therefore OURS to pin: `Binary` = two's complement, BIG-ENDIAN, `StorageLength` bytes; `Packed` = BCD two digits per byte, trailing sign nibble `0xC`/`0xD` (`0xF` for an unsigned item); `PackedNoSign` = digit nibbles only; `Zoned` = one byte per digit position, sign per `SignKind`. Big-endian and the `0xF` unsigned nibble follow the IBM / Micro Focus / GnuCOBOL survey — the latter deliberately diverging from our own legacy `PicRuntime.EncodeComp3`, which writes `0x0C` for any positive value. `NumericStorageFormDriftTests` pins the whole `Usage` table so a new usage cannot inherit a representation nobody chose.
+
+**Rejected alternatives.** (a) Derive the form from `Truncation` — REJECTED: that IS the defect (DISPLAY and BINARY share `DigitCount`). (b) Derive "has a packed sign nibble" from `StorageLength` — REJECTED: the widths COLLIDE at odd digit counts (3 digits is 2 bytes with or without the nibble), so an odd-digit unsigned item's last digit would decode as a sign; `PackedNoSign` is its own member. (c) Default the field to `Zoned` instead of `required` + `None = 0` — REJECTED: an unstated form would silently claim one byte per digit, which is the same substitution bug one level down; `None` makes a codec handed a form-less profile (USAGE INDEX, §13.18.60.4 GR10) fail loud. (d) Carry the form on a separate image-only struct — REJECTED: the record-image codec already threads the leaf's `NumProfile`, and a second carrier for one concept is the §4.1 incoherence trap.
+
 ### D16. The floating-point USAGE TRIO (FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED) extends D7 to the full implementor-defined float facility (Phase 6a); the pinned IEEE family (FLOAT-BINARY-*/FLOAT-DECIMAL-*) is a separate leg (Phase 6b, stays loud).
 
 *Implemented (Phase 6a). Load-bearing spec: §13.18.60.4 GR13.*
@@ -235,10 +243,19 @@ public readonly record struct NumProfile {
   public required int Digits; public required int FractionDigits;
   // no separate P fields — FractionDigits IS the net signed scale (V-fraction + leading-P − trailing-P; may be NEGATIVE)
   public required bool Signed; public NumericSign SignKind;
-  public required NumericTruncation Truncation; public int StorageLength;
+  public required NumericTruncation Truncation;      // CAPACITY: where SIZE ERROR bites
+  public required NumericStorageForm StorageForm;    // REPRESENTATION: what the item occupies at a byte boundary (D17)
+  public int StorageLength;                          // the exact byte width Binary/Packed/PackedNoSign lay out
   public int FractionScale => FractionDigits;   // signed; CobolNum.Rescale handles a negative scale natively
 }
 public enum NumericSign { TrailingOverpunch, LeadingOverpunch, LeadingSeparate, TrailingSeparate, BinaryMinus }
+// The PINNED byte representations (implementor-defined by §13.18.60.4 GR4/GR7/GR11/GR12 — D17):
+//   None         reaches no byte image at all (USAGE INDEX) — a codec handed one rejects it LOUDLY
+//   Zoned        USAGE DISPLAY: one byte per digit position, sign per SignKind
+//   Binary       two's complement, BIG-ENDIAN, StorageLength bytes (1-2-4-8 by digit count)
+//   Packed       BCD, two digits per byte, trailing sign nibble 0xC/0xD (0xF unsigned) — Digits/2+1 bytes
+//   PackedNoSign the 2023 WITH NO SIGN form: digit nibbles only — ceil(Digits/2) bytes
+public enum NumericStorageForm { None = 0, Zoned, Binary, Packed, PackedNoSign }
 ```
 
 INTERMEDIATE CARRIER + ENGINE (conceptual — realized per D1 as Int128-typed `NumX` expressions + `CobolNum` kernels):

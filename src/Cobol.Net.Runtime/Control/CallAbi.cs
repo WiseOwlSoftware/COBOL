@@ -117,6 +117,7 @@ public static class CobolArgAdapt
                     FractionDigits = Math.Max(0, args[i].Scale),
                     Signed = false,
                     Truncation = NumericTruncation.DigitCount,
+                    StorageForm = NumericStorageForm.Zoned,   // the CHARACTER view of the argument: one byte per digit
                 };
                 int viewWidth = width < 0 ? digits : width;   // ANY LENGTH: the argument's own image width (§13.18.2 GR1)
                 return ManagedPointer<string>.OverField(
@@ -170,6 +171,7 @@ public static class CobolArgAdapt
                     FractionDigits = Math.Max(0, args[i].Scale),
                     Signed = false,
                     Truncation = NumericTruncation.DigitCount,
+                    StorageForm = NumericStorageForm.Zoned,   // the CHARACTER image of the argument: one byte per digit
                 };
                 return ManagedPointer<string>.Cell(CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), width));
             default:

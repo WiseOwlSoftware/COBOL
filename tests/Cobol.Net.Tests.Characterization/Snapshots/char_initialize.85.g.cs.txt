@@ -21,7 +21,7 @@ internal sealed class _PRG_CHAR_INITIALIZE : ICobolProgram
             WS_A = __s.Substring(3, 4);
         }
     }
-    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
+    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageForm = NumericStorageForm.Zoned, StorageLength = 0 };
     private _T_0 WS_REC = new _T_0 { WS_N = 999L, WS_A = CobolString.Store("ZZZZ", 4) };   // WS-REC
 
     public void Call(CobolArg[] __args, ManagedPointer? __ret)

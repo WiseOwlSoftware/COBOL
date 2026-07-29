@@ -21,6 +21,60 @@ public enum NumericTruncation
 }
 
 /// <summary>
+/// The BYTE REPRESENTATION a numeric item's storage takes — the one fact that decides what the item occupies at
+/// every byte boundary: the record/group character image, a file record, a SORT key window and the REDEFINES
+/// backing (COBOLNET_DESIGN §14.4). <see cref="NumericTruncation"/> cannot serve this role and never could: it
+/// is the CAPACITY discipline, and DISPLAY and BINARY share <see cref="NumericTruncation.DigitCount"/> while
+/// occupying entirely different bytes.
+/// <para>
+/// ISO/IEC 1989:2023 §13.18.60.4 leaves each of these representations to the implementor and §4.2.16 obliges us
+/// to document the choice (Annex A.1 items 205 and 215 make USAGE BINARY's and USAGE PACKED-DECIMAL's "computer
+/// storage allocation, alignment and representation of data" REQUIRED user-documentation items). These members
+/// ARE that documentation, and the width they imply is <c>PicInfo.StorageWidth</c> — the SAME width
+/// <c>FUNCTION BYTE-LENGTH</c> reports (§15.14.4 GR1) and the SAME width the item occupies in a group's
+/// character image (§15.50.4 GR3): one width, one representation, everywhere.
+/// </para>
+/// </summary>
+public enum NumericStorageForm
+{
+    /// <summary>NO byte representation — the item never reaches a character image or a file record, so a codec
+    /// that is handed one must reject it LOUDLY rather than invent bytes. USAGE INDEX is the live case (an
+    /// occurrence-number carrier, ISO §13.18.60.4 GR10; SET copies it unchanged and no other statement may
+    /// reference it). Value 0, so an unstated storage form fails loud instead of silently claiming to be
+    /// DISPLAY.</summary>
+    None = 0,
+
+    /// <summary>USAGE DISPLAY (ISO §13.18.60.4 GR7 — "an alphanumeric coded character set shall be used to
+    /// represent a data item … aligned on a character boundary"): ONE BYTE PER DIGIT POSITION, most significant
+    /// first, the implied decimal point occupying no position, the sign carried per <see cref="NumProfile.SignKind"/>
+    /// (an over-punch on the first/last digit, or a separate leading/trailing <c>+</c>/<c>-</c> byte that DOES
+    /// occupy a position, §13.18.52).</summary>
+    Zoned = 1,
+
+    /// <summary>USAGE BINARY / COMPUTATIONAL / COMP-5 / BINARY-CHAR..DOUBLE (ISO §13.18.60.4 GR4 "a radix of 2 is
+    /// used", GR6, GR12): a two's-complement integer of the UNSCALED value in exactly
+    /// <see cref="NumProfile.StorageLength"/> bytes, MOST SIGNIFICANT BYTE FIRST (big-endian). The width table is
+    /// pinned by digit count — 1-2-4-8 bytes for 1-2 / 3-4 / 5-9 / 10-18 digits — and the fixed-width usages own
+    /// their width directly (GR12). Big-endian is the implementor choice §13.18.60.4 GR4 asks for; it is what
+    /// IBM, Micro Focus and GnuCOBOL all write for USAGE BINARY, so a data file interchanges.</summary>
+    Binary = 2,
+
+    /// <summary>USAGE PACKED-DECIMAL / COMP-3 (ISO §13.18.60.4 GR11 — "a radix of 10 … each digit position shall
+    /// occupy the minimum possible configuration"): binary-coded decimal, TWO DIGITS PER BYTE, most significant
+    /// first, with a TRAILING SIGN NIBBLE in the low half of the last byte (<c>0x0C</c> positive, <c>0x0D</c>
+    /// negative, and <c>0x0F</c> for an unsigned item's implied positive). The digit count is padded with a
+    /// leading zero nibble when even, giving <c>Digits / 2 + 1</c> bytes.</summary>
+    Packed = 3,
+
+    /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11, a COBOL-2023 addition — "the
+    /// representation of the data item in the storage of the computer reserves no storage for representing any
+    /// sign value"): <see cref="Packed"/> without the trailing sign nibble, so <c>ceil(Digits / 2)</c> bytes with
+    /// a leading pad nibble when the digit count is odd. SR31 forbids an <c>S</c> in the picture; the value is
+    /// "always considered to have a zero, or positive value".</summary>
+    PackedNoSign = 4,
+}
+
+/// <summary>
 /// How a signed numeric item presents its sign in its DISPLAY image (ISO §13.18.45 SIGN / §8.5.1.2). For USAGE
 /// DISPLAY this is the operational-sign convention; for binary/packed usages the DISPLAY image carries a leading
 /// minus only when negative.
@@ -40,10 +94,16 @@ public enum NumericSign
 }
 
 /// <summary>
-/// The compact, runtime-facing numeric profile of a COBOL data item: just enough to scale, round, and
-/// bound-check a value, with no byte-layout or formatting concerns. The COBOL.NET compiler builds it directly
-/// from a <c>PicInfo</c> (digits, scale, sign, usage→capacity discipline) and threads it into every numeric
-/// store so arithmetic obeys the receiver's PICTURE+USAGE (truncation / ROUNDED / SIZE ERROR).
+/// The compact, runtime-facing numeric profile of a COBOL data item: just enough to scale, round and bound-check
+/// a value, and to lay it out at a byte boundary. The COBOL.NET compiler builds it directly from a <c>PicInfo</c>
+/// (digits, scale, sign, usage→capacity discipline, usage→storage form) and threads it into every numeric store
+/// so arithmetic obeys the receiver's PICTURE+USAGE (truncation / ROUNDED / SIZE ERROR) and into the record-image
+/// codec so the item occupies its true bytes (COBOLNET_DESIGN §14.4).
+/// <para><b>Three orthogonal axes, and conflating any two is a defect:</b> <see cref="Truncation"/> is the
+/// CAPACITY discipline (where SIZE ERROR bites), <see cref="StorageForm"/> is the BYTE REPRESENTATION (what the
+/// item occupies in a record), and <see cref="SignKind"/> is the SIGN PRESENTATION. DISPLAY and BINARY share one
+/// truncation discipline and differ entirely in representation — which is precisely how the record image came to
+/// disagree with <c>FUNCTION BYTE-LENGTH</c> (V59).</para>
 /// </summary>
 public readonly record struct NumProfile
 {
@@ -65,8 +125,19 @@ public readonly record struct NumProfile
     /// <summary>Which capacity discipline bounds the value (the SIZE ERROR boundary).</summary>
     public required NumericTruncation Truncation { get; init; }
 
+    /// <summary>The item's BYTE REPRESENTATION — what it occupies in a record image, a file record, a SORT key
+    /// window and a REDEFINES backing. <c>required</c> deliberately: it cannot be inferred from
+    /// <see cref="Truncation"/> (DISPLAY and BINARY are both <see cref="NumericTruncation.DigitCount"/>), and a
+    /// profile built without stating it would silently claim to be one byte per digit. Every profile the compiler
+    /// emits states it; the runtime's own hand-built profiles are character-image decoders and state
+    /// <see cref="NumericStorageForm.Zoned"/>.</summary>
+    public required NumericStorageForm StorageForm { get; init; }
+
     /// <summary>Storage width in bytes — used for <see cref="NumericTruncation.PackedDecimal"/> capacity
-    /// (2n−1 digits) and <see cref="NumericTruncation.BinaryCapacity"/> two's-complement range.</summary>
+    /// (2n−1 digits) and <see cref="NumericTruncation.BinaryCapacity"/> two's-complement range, and it is the
+    /// EXACT width <see cref="NumericStorageForm.Binary"/> / <see cref="NumericStorageForm.Packed"/> /
+    /// <see cref="NumericStorageForm.PackedNoSign"/> lay out. Zero for <see cref="NumericStorageForm.Zoned"/>,
+    /// whose width is <see cref="Digits"/> plus a separate-sign position (the digit run IS its own byte form).</summary>
     public int StorageLength { get; init; }
 
     /// <summary>The signed fractional scale a value is rescaled/rounded to when stored into this item — the net

@@ -481,6 +481,24 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
 
 ### 6.3 Usages & store
 
+- **A usage decides THREE orthogonal facts, and conflating any two is the V59 defect class.** ① the CAPACITY
+  discipline (`NumProfile.Truncation` — where SIZE ERROR bites), ② the BYTE REPRESENTATION
+  (`NumProfile.StorageForm` — what the item occupies in a record image, a file record, a SORT key window and a
+  REDEFINES backing), ③ the SIGN PRESENTATION (`SignKind`). DISPLAY and BINARY share ONE capacity discipline and
+  occupy entirely different bytes, so the discipline can never stand in for the representation — that substitution
+  is exactly how `PIC 9(4) COMP` came to reach a file as the four ASCII bytes `31 32 33 34`.
+- **The pinned representation table (`NumericStorageForm`) — implementor-defined by §13.18.60.4 GR4/GR7/GR11/GR12
+  and therefore ours to state, with the §4.2.16 / Annex A.1 items 205 and 215 documentation obligation attached:**
+  `Zoned` = USAGE DISPLAY, one byte per digit position, sign per `SignKind` · `Binary` = BINARY/COMP/COMP-5/
+  BINARY-CHAR..DOUBLE, two's complement, BIG-ENDIAN, `StorageLength` bytes (1-2-4-8 by digit count; the survey is
+  unanimous — IBM, Micro Focus and GnuCOBOL all write big-endian for USAGE BINARY) · `Packed` = PACKED-DECIMAL,
+  BCD two digits per byte with a trailing sign nibble (`0xC` positive, `0xD` negative, `0xF` for an unsigned
+  item) · `PackedNoSign` = the 2023 WITH NO SIGN form, digit nibbles only · `None` = reaches no byte image at all
+  (USAGE INDEX, §13.18.60.4 GR10 — a codec handed one must reject it LOUDLY, never invent bytes). The width each
+  implies IS `PicInfo.StorageWidth`, which is the same width `FUNCTION BYTE-LENGTH` reports (§15.14.4 GR1) and
+  the same width the item occupies in a group image (§15.50.4 GR3). **One width, one representation, everywhere**
+  (§14.4). `NumericStorageFormDriftTests` pins the whole table, so a new usage cannot inherit a representation
+  nobody chose.
 - DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline; COMP-3/PACKED → 2n−1; COMP-5/BINARY-* → native
   two's-complement width (binary-WRAP, not digit truncation — `PIC S9(4) COMP-5` = −32768..32767, `PIC 9(4) COMP-5`
   = 0..65535, an unsigned 8-byte needs `ulong`); COMP-1/COMP-2 → IEEE, bypass the scaled engine.
@@ -940,6 +958,14 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 > CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and a conforming program observes
 > the disagreement with no file and no byte pun. **One representation, at every byte boundary** — the image, file
 > records, SORT keys and the REDEFINES backing all take `StorageWidth` and the radix those widths already imply.
+>
+> **Landed so far** (the rest of the sequence is plan §0 NEXT 1): ① the ONE-WIDTH INVARIANT as a test —
+> `ImageWidthIsStorageWidthTests` asserts `ImageWidth == ByteWidth` for every image-capable item, RED for exactly
+> this defect and carrying an explicit `Skip` until the image is re-based. ② the STORAGE-FORM DISCRIMINATOR —
+> `NumProfile.StorageForm` (`NumericStorageForm`, §6.3) now carries each usage's pinned byte representation to the
+> runtime, because `NumericTruncation` never could: DISPLAY and BINARY are both `DigitCount`. The discriminator is
+> stated but not yet CONSUMED — the codec below still writes the zoned image described here, and that is what a
+> reader must implement against until step ③ re-bases `DataItem.ElementaryImageWidth`.
 
 
 There is ONE facility that turns a typed group/numeric into its alphanumeric image and back: a generated

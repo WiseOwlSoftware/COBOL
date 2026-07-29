@@ -69,9 +69,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      rows being precisely those where the pinned width and the digit count COINCIDE. The two failing facts carry an
      explicit `Skip` naming V59; they turn GREEN when the image is re-based on `StorageWidth`. ⛔ Not a tolerated
      divergence — keeping this test OUT of the tree is how the defect survived two phases.
-   - **NEXT STEPS, in order:** ① a storage-form discriminator on `NumProfile` — `NumericTruncation` cannot serve,
-     DISPLAY and BINARY are both `DigitCount` · ② the radix-2 / BCD codec beside `CobolNum.FormatDisplay`, carried
-     in the Latin-1 string image · ③ re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`
+   - **✅ STEP 2 LANDED (DEVLOG 1098): the storage-form discriminator.** `NumProfile.StorageForm`
+     (`NumericStorageForm`, **required**) now carries each usage's pinned byte representation to the runtime, filled
+     by `PicInfo.StorageForm`; `PicInfo.Truncation` became a typed property beside it so `ProfileInitializer` states
+     both axes. `NumericStorageFormDriftTests` pins the whole `Usage` table (made red once to prove it) and asserts
+     the cross-check that a byte form is exactly a positive `StorageWidth`. **The representation is now DOCUMENTED
+     where it is used** — the enum members carry the §4.2.16 / Annex A.1 items 205+215 obligation, and design §6.3
+     states the table. THREE facts implementation added: an INDEX item DOES carry a profile (hence `None = 0`, so an
+     unstated form fails loud rather than claiming DISPLAY) · `PackedNoSign` is a distinct FORM because the widths
+     COLLIDE at odd digit counts (3 digits = 2 bytes either way) · the unsigned packed sign nibble is pinned `0xF`
+     per the IBM/MF/GnuCOBOL survey, deliberately diverging from our own legacy engine's `0x0C`. Nothing CONSUMES
+     the discriminator yet — the image is still zoned until step ③.
+   - **NEXT STEPS, in order:** ② the radix-2 / BCD codec beside `CobolNum.FormatDisplay`, carried
+     in the Latin-1 string image (encode/decode per the step-2 pinned forms; big-endian, `0xC`/`0xD`/`0xF`) · ③
+     re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`
      and sweep the 129 `ImageWidth` references · ④ the support diagnostic (a fixed-length file whose byte length is
      not a multiple of the record length) · ⑤ §4.2.16 documentation + byte-level goldens · ⑥ un-Skip step 1.
    - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
