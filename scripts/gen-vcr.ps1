@@ -5,7 +5,8 @@
 # (a construct's `status` — active->done / pending->pending — is itself fixture-gated by VersionMatrixTests). The
 # renderer lives in VcrDriftTests (the catalogue is read there), so this script runs that test with
 # COBOLNET_WRITE_VCR=1 so it WRITES the block instead of asserting. Run normally in CI, the same test fails if the
-# committed block drifts, if a gate anchor names a non-existent construct, or if an appendix specLines ref dangles.
+# committed block drifts, if a gate anchor names a non-existent construct, or if a spec citation does not resolve
+# (unknown clause, a quoted fragment no longer inside it, or a resurrected spec LINE number).
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Push-Location $root

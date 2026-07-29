@@ -44,7 +44,7 @@ settle any of these, and it is what proved every one above rather than a reading
 Figure D.6 landed 2026-07-28 and `lint_rendering.py` is green. Every Annex D illustration is now drawn or
 deliberately left (see the table), every general format is generated from the printed page, and the
 reconciliation itself closed at 210/210. The next spec-side work is not here — it is the **grammar ↔ spec
-audit**, plan §0 NEXT item 4.
+audit**, plan §0 NEXT item 3.
 
 Should a further figure ever need drawing: captions sit ABOVE their figure, and a figure may flow onto the
 NEXT page — p1185 carries D.11's caption and chart plus D.12's caption, with D.12's chart on p1186; D.6's

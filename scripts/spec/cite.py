@@ -31,7 +31,14 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC = REPO / "specs" / "ISO_COBOL.md"
 
-HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*)\s+(.*?)\s*$")
+# A clause number is either the body's dotted decimal (14.9.39.4) or an ANNEX's letter-headed form
+# (E.2, A.4.14, D.2.2.5.1). The annex alternative requires at least one dot segment, which is what keeps it
+# from swallowing the annex TITLE headings ("## Annex A") — those name the annex, they are not a clause.
+# ⛔ Without the second alternative the whole of Annexes A–G is uncitable: `--check E.2 …` answers
+# "there is no clause §E.2", which reads as a bad citation rather than a blind tool.
+# The TITLE is optional: all 178 headings of clause 3 (Terms and definitions) are a bare number, the term
+# itself being the bold line beneath. Requiring a title made every definition in the standard uncitable.
+HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
 # The transcription escapes a rule label's delimiter (`1\)`) so Markdown does not eat it as a list — see
 # repairs/rule_numbering.py. Match both forms so this works on any revision.
 TOP = re.compile(r"^(\d+)\\?\)\s")
@@ -46,7 +53,7 @@ def norm(s: str) -> str:
 
 def clauses(lines):
     """(number, title, start, end) for every clause heading, in order."""
-    heads = [(m.group(1), m.group(2), i) for i, l in enumerate(lines) if (m := HEADING.match(l))]
+    heads = [(m.group(1), m.group(2) or "", i) for i, l in enumerate(lines) if (m := HEADING.match(l))]
     return [(n, t, s, heads[k + 1][2] if k + 1 < len(heads) else len(lines))
             for k, (n, t, s) in enumerate(heads)]
 

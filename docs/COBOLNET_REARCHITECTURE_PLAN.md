@@ -42,18 +42,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### NEXT, in order
 
-1. **⛔ RE-KEY THE VCR APPENDIX'S SPEC LINE REFERENCES ONTO THE CLAUSE HIERARCHY — THIS IS THE ONE THING
-   BLOCKING THE `phase-14` → `main` MERGE.** `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` is RED:
-   `docs/VERSION_CHANGE_REFERENCE.md`'s appendix carries ~180 spec LINE references across ~129 rows, reaching
-   line 50,407, while `specs/ISO_COBOL.md` now has 47,195 lines. **PRE-EXISTING, not from the EC batch** — at
-   this session's start commit (`199dcd43`) the spec already had 47,142 lines, so the refs were ~3,200 out
-   before any work here; the transcription repairs moved it 47,142 → 47,195 and changed nothing about the
-   verdict. It is the same "anything page-keyed must be re-keyed onto the clause hierarchy" work item as the
-   de-paged tools, never done for the VCR. **A LINE number is not a stable citation** — use the clause, and
-   validate with `python scripts/spec/cite.py --check <clause> "<text>"`.
-2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
+1. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
-3. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
+2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
    - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
      directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers
      removed; **zero content words lost.** Every cross-reference is now an intra-document link: the TOC is 896
@@ -149,7 +140,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      whose header now records this.
    - **Batch 1's exit criterion is PROVEN and yielding — SR1 and SR2 in the fix queue.**
 
-4. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic) — STARTED, and the first vein is OPTIONAL WORDS.**
+3. **GRAMMAR ↔ SPEC AUDIT (owner-directed, systematic) — STARTED, and the first vein is OPTIONAL WORDS.**
    **1,659 items: 321 general formats (432 numbered Formats) + 1,338 syntax rules.** Each divergence carries the
    EXACT ISO syntax its fix implements and becomes a fix-queue bug against the `.g4`.
    - **⛔ ROOT CAUSE FOUND (SR2): "unbracketed" was being used as the test for "required word".** §5.2.2/§5.2.3
@@ -163,7 +154,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      cheapest signal of all is **the grammar disagreeing with itself** about the same word.
    - Suggested order: §14 (489 items) first — GOBACK lives there and a too-restrictive statement rule bites
      hardest.
-5. **FIGURE RENDERING — style SETTLED, generator WORKS, band detection DOES NOT.**
+4. **FIGURE RENDERING — style SETTLED, generator WORKS, band detection DOES NOT.**
    `spec-reconciliation/FIGURE-STYLE.md` fixes how a general format is drawn: `<pre>` not a fence (a fence cannot
    carry underlining) · BOX DRAWING only (no Windows monospace font contains U+23A1–U+23AD, so those glyphs
    force per-glyph fallback and columns drift) · square brackets, curved braces with their point · `│` bars kept
@@ -235,7 +226,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      directive is not a blockquote, and a blockquoted FIGURE is not a note.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
 
-6. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
+5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
    denominator — **3,790 items** (1338 SR · 1470 GR · 216 AR · 223 RV · 222 Annex-A.1 doc obligations · 321 general
    formats), validated against the canonical PDF and cross-checked against the spec's own TOC. The traceability
@@ -244,8 +235,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
 **✅ THE COMPREHENSIVE PRE-MERGE GATE WAS RUN 2026-07-28** (results below). The EC-infra + OO super-batch is
-COMPLETE: **10 findings landed + CA12 REFUTED**. `phase-14` is mergeable EXCEPT for the ONE red in NEXT item 1,
-which is pre-existing and unrelated to the batch.
+COMPLETE: **10 findings landed + CA12 REFUTED**. Its one red — the VCR's dangling spec LINE citations — has since
+been closed by re-keying them onto the clause hierarchy, so **`phase-14` is mergeable with nothing outstanding**.
 
 | leg | result |
 |---|---|
@@ -253,7 +244,7 @@ which is pre-existing and unrelated to the batch.
 | `guard-fast.sh` (legacy + NIST) | **ALL GREEN — NIST 353 MATCH / 0 REGRESSION**, matching the recorded baseline |
 | legacy Unit / Integration | 1203/1203 · 503/504 (1 skipped) |
 | greenfield Unit | **580/580** — after fixing 2 `CobolPtrTests` that encoded CA9's pre-decision throw |
-| greenfield Conformance | **3929 passed · 1 failed · 3930 total** (12m 05s). The single failure is `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` — NEXT item 1, pre-existing. Nothing else failed. |
+| greenfield Conformance | **3929 passed · 1 failed · 3930 total** (12m 05s), reproduced exactly on a clean re-run. The single failure was `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` — pre-existing, and now CLOSED (that test is replaced by `EverySpecCitation_ResolvesInTheSpec` + `NoSpecLineNumberIsCited_InTheVcr`). Nothing else failed. |
 | GnuCOBOL differential | **0 regressions from this batch.** Per-case diff vs the stored report: 3 flips — 1 fix, and 2 AGREE_ACCEPT→WE_REJECT_THEY_ACCEPT in `syn_value.at` ('Numeric item with picture P', 'Numeric item (non-integer)'), BOTH attributable to **CA34** (`COBOLNET1625`, introduced by `f54c9bd4`, present at this session's start commit), not to the EC batch. |
 
 ⚠ **TWO BASELINES ARE STALE and must be refreshed by whoever next runs the differential:** the numbers quoted
@@ -295,9 +286,10 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-28, the EC-batch pre-merge gate — supersedes DEVLOG 1006's 3891/3891):** FULL
-  Conformance **3929/3930**, the ONE failure being the pre-existing `VcrDriftTests
-  .EverySpecLineRef_IsWithinTheSpec` (NEXT item 1) · greenfield Unit **580/580** · characterization **33/33**
+- **Battery reference (2026-07-28 — supersedes DEVLOG 1006's 3891/3891):** FULL Conformance **3931/3931**, with
+  NOTHING red (it was 3929/3930 at the EC-batch pre-merge gate and again on a clean re-run; the one red,
+  `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec`, is closed, and its replacement pair adds one fact to the
+  total) · greenfield Unit **580/580** · characterization **33/33**
   byte-identical · `guard-fast.sh` ALL GREEN with **NIST 353 MATCH / 0 regression** · legacy Unit 1203/1203,
   Integration 503/504 (1 skipped). **Conformance takes ~12 min; run the long legs ONE AT A TIME.** Re-confirm
   green (§9) before code changes.
@@ -338,7 +330,7 @@ result. Run the long legs ONE AT A TIME.
   grammar lands). Fixed anchors: introduction gate 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   recognize-and-name warning band 1560 · staged-not-implemented 0899. **A wave that does not need its whole
   reservation releases the remainder in its own §0 edit rather than leaving a hole.**
-- **⛔ The transcription is under active repair — see NEXT item 3.** `specs/ISO_COBOL.md` is lossy in a *directed*
+- **⛔ The transcription is under active repair — see NEXT item 2.** `specs/ISO_COBOL.md` is lossy in a *directed*
   way: every normative defect found so far is FALSELY RESTRICTIVE. Treat any grammar rule or diagnostic derived
   from a FIGURE as suspect until that figure has been checked against the printed page. The reproduction question
   is settled: the standard's own Introduction permits reproducing it in whole or in part provided the
@@ -2461,8 +2453,10 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > `ref-only` ×12 / `pin-to-spec` ×3, seeded from the old Status cells; per-table cell-count verified consistent).
 > The generated "Gating status index" block (`<!-- GEN:VCR-STATUS START/END -->`, 15 anchored constructs) is
 > rendered by `VcrDriftTests` (write mode via `scripts/gen-vcr.ps1` → `COBOLNET_WRITE_VCR=1`; the DIAGNOSTICS.md
-> pattern). `VcrDriftTests` (3 facts, CI-gated): forward coverage (every `gate:id` → a real construct),
-> citation-exists (every appendix specLines ref is within the spec), and index-in-sync. Tier-2 (the narrative
+> pattern). `VcrDriftTests` (4 facts, CI-gated): forward coverage (every `gate:id` → a real construct),
+> citation-resolves (every `§clause` in the document is a real clause AND the appendix's quoted fragment is
+> inside it — the `cite.py --check` contract), no-line-numbers (a spec LINE ref may never return), and
+> index-in-sync. Tier-2 (the narrative
 > audit) is DONE (DEVLOG 699). Battery: conformance 2058 · unit 227 · guard 353 MATCH.
 > 
 > **⛔ Step 5 DONE (DEVLOG 702).** Recon found the matrix was already near-complete: all 69 binder-`Check` ids are

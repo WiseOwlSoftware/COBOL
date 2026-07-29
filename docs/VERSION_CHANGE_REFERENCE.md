@@ -55,7 +55,8 @@ The **Gating status index** below is GENERATED from those anchors + the catalogu
 (`active`→`done` / `pending`→`pending` — itself fixture-gated by `VersionMatrixTests`, so `active` means the
 construct's (construct × edition) cells actually pass). Regenerate: `pwsh scripts/gen-vcr.ps1`. `VcrDriftTests` fails
 CI if the index drifts from the anchors+catalogue, if an anchor names a construct that doesn't exist, or if a cited
-`§` doesn't resolve in the spec — so the ledger can no longer go stale.
+`§` doesn't resolve in the spec (unknown clause, or an appendix fragment that is no longer inside the clause it
+names), or if a spec LINE number reappears anywhere in this file — so the ledger can no longer go stale.
 
 > **The two pin-to-spec determinations** (version-INVARIANT legacy bugs; the legacy oracle was non-conformant in
 > every edition, so they are pinned to the spec for **all** dialects rather than gated). They carry the
@@ -164,7 +165,7 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | 45 | BEFORE and AFTER both allowed in WRITE ADVANCING | E.3.3 item 2 | 2014→2023 | **Old:** BEFORE and AFTER could not both be specified. **New:** both allowed together. | No | new-feature-gate <!-- todo --> |
 | 46 | Binary operators B-SHIFT-L / B-SHIFT-LC / B-SHIFT-R / B-SHIFT-RC | E.3.3 item 3 | 2014→2023 | **Old:** no standard binary bit-shift operators; words not reserved. **New:** B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC added. | No | flag-new-reserved-word <!-- todo --> |
 | 47 | Characters CHANGED to be permitted as the first character of a user-defined word (Unicode reclassification) | E.3.3 item 4 | 2014→2023 | **Old:** listed code points not allowed as first char. **New:** now allowed as first char across scripts — Armenian (0559); Common (00B5, 02BB-02C1, 02D0-02D1, 02EE, 2102, 2107, 210A-2113, 2115, 2119-211D, 2124, 2128, 212C-212D, 212F-2131, 2133-2139, 3006); Greek (1FBE, 2126); Han (3005, 3007, 3021-3029, 3038-303A); Latin (02B0-02B8, 02E0-02E4, 212A-212B, 2160-2183); Tamil (0B83). | No | new-feature-gate <!-- todo --> |
-| 48 | Characters ADDED as permitted in user-defined words (large Unicode block additions) | E.3.3 item 5 | 2014→2023 | **Old:** listed code points not permitted. **New:** a large set of Unicode ranges across ~120 scripts (Adlam … Zanabazar_Square) added. (Scope-level entry; full per-script tables not enumerated — see specLines.) | No | new-feature-gate <!-- todo --> |
+| 48 | Characters ADDED as permitted in user-defined words (large Unicode block additions) | E.3.3 item 5 | 2014→2023 | **Old:** listed code points not permitted. **New:** a large set of Unicode ranges across ~120 scripts (Adlam … Zanabazar_Square) added. (Scope-level entry; full per-script tables not enumerated — see §E.3.3 item 5.) | No | new-feature-gate <!-- todo --> |
 | 49 | General case mappings added (Unicode upper/lower-case pairs) | E.3.3 item 6 | 2014→2023 | **Old:** listed pairs not defined as case-equivalent. **New:** large table of additional case mappings added; affects case-insensitive matching/conversion. (Scope-level entry; full table not enumerated.) | No | new-feature-gate <!-- todo --> |
 | 50 | Clarification of exception handling procedures | E.3.3 item 7 | 2014→2023 | **Old:** inconsistencies existed. **New:** resolved (clarification only). | No | none <!-- ref-only --> |
 | 51 | Clarification that GLOBAL clause rules do not contradict EXTERNAL clause rules | E.3.3 item 8 | 2014→2023 | **Old:** apparent contradiction GLOBAL vs EXTERNAL. **New:** clarified they do not contradict. | No | none <!-- ref-only --> |
@@ -212,12 +213,12 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 
 | # | Change (title) | § | Edition delta | Old → New behavior | Affects existing? | Compiler gating action |
 |---|---|---|---|---|---|---|
-| 89 | EXIT PROGRAM statement designated archaic | §F.1 item 1 (cf. §14.9.14 EXIT Program format NOTE @27372) | archaic-in-2023 (remains supported; superseded by GOBACK + MODULE-NAME intrinsic) | **Old:** ordinary statement — in a subprogram returns to caller (like GOBACK); in a main program acts like CONTINUE. **New:** archaic, discouraged; GOBACK + MODULE-NAME provide its features; no removal schedule but may cause future compiler errors. | Yes | flag-obsolete (flag as archaic) <!-- gate:exit-program-archaic-2023 --> |
-| 90 | NEXT SENTENCE phrase in IF and SEARCH designated archaic | §F.1 item 2 (IF §14.9.19; SEARCH §14.9.37; NOTES @27792, 30804, 30829) | archaic-in-2023 (remains supported; CONTINUE + scope delimiters preferred) | **Old:** transfers control to the statement after the next separator period. **New:** archaic, discouraged (confusing in delimited-scope statements, error-prone with stray periods); CONTINUE + scope delimiters are clearer; no removal schedule. | Yes | flag-obsolete (flag as archaic) <!-- gate:next-sentence-archaic-2023 --> |
-| 91 | FLAG-02 compiler directive designated obsolete | §F.2 item 1 (defined §7.3.14.1, NOTE @4366) | obsolete-in-2023 (FLAG-02 flagged 2002↔2014; superseded by FLAG-14) | **Old:** FLAG-02 flagged 2002↔2014 incompatibilities. **New:** obsolete, scheduled for removal next edition (FLAG-14 flags 2014↔2023); a conforming 2023 impl must still support but should flag use. | Yes | flag-obsolete <!-- todo --> |
-| 92 | MOVE of ALL "literal" / ALL symbolic-character (digits only) to integer numeric items designated obsolete | §F.2 item 2 (MOVE §14.9.25; GR5 + NOTE @28811-28813) | obsolete-in-2023 (the surviving digit-only ALL→integer MOVE now scheduled for removal) | **Old:** moving a digit-only ALL figurative constant to an integer numeric item was permitted. **New:** obsolete, to be removed next edition; use ZERO, HIGHEST-/LOWEST-ALGEBRAIC, or a numeric literal instead; 2023 impl must support but flag. | Yes | flag-obsolete <!-- gate:move-all-digit-integer-obsolete-2023 --> |
-| 93 | STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data Item designated obsolete | §F.2 item 3 (ARITHMETIC STANDARD-BINARY §8.8.x; NOTES @9086, 9099, 13404, 45853, 46001, 40076) | obsolete-in-2023 (reevaluation deferred to next revision before removal) | **Old:** STANDARD-BINARY mode and SBIDI were specified arithmetic facilities. **New:** obsolete (never implemented; no interest); reevaluated next revision before any removal; impls claiming support must support but flag. | Yes | flag-obsolete <!-- todo --> |
-| 94 | Fixed continuation indicator (hyphen in column 7) and literal continuation via it designated obsolete | §F.2 item 4 (fixed-form continuation §6.x; NOTES @2932, 3066) | obsolete-in-2023 (scheduled for removal) | **Old:** column-7 hyphen as fixed continuation indicator, incl. literal continuation. **New:** obsolete, to be removed next edition (error-prone; use the floating continuation indicator); 2023 impl must support but flag. | Yes | flag-obsolete <!-- gate:col7-continuation-obsolete-2023 --> |
+| 89 | EXIT PROGRAM statement designated archaic | §F.1 item 1 (cf. the §14.9.14.2 EXIT Program-format NOTE, and the §3.74 term entry) | archaic-in-2023 (remains supported; superseded by GOBACK + MODULE-NAME intrinsic) | **Old:** ordinary statement — in a subprogram returns to caller (like GOBACK); in a main program acts like CONTINUE. **New:** archaic, discouraged; GOBACK + MODULE-NAME provide its features; no removal schedule but may cause future compiler errors. | Yes | flag-obsolete (flag as archaic) <!-- gate:exit-program-archaic-2023 --> |
+| 90 | NEXT SENTENCE phrase in IF and SEARCH designated archaic | §F.1 item 2 (the archaic NOTEs: IF §14.9.19.2; SEARCH §14.9.37.2, twice) | archaic-in-2023 (remains supported; CONTINUE + scope delimiters preferred) | **Old:** transfers control to the statement after the next separator period. **New:** archaic, discouraged (confusing in delimited-scope statements, error-prone with stray periods); CONTINUE + scope delimiters are clearer; no removal schedule. | Yes | flag-obsolete (flag as archaic) <!-- gate:next-sentence-archaic-2023 --> |
+| 91 | FLAG-02 compiler directive designated obsolete | §F.2 item 1 (defined §7.3.14.1, whose own NOTE designates it obsolete) | obsolete-in-2023 (FLAG-02 flagged 2002↔2014; superseded by FLAG-14) | **Old:** FLAG-02 flagged 2002↔2014 incompatibilities. **New:** obsolete, scheduled for removal next edition (FLAG-14 flags 2014↔2023); a conforming 2023 impl must still support but should flag use. | Yes | flag-obsolete <!-- todo --> |
+| 92 | MOVE of ALL "literal" / ALL symbolic-character (digits only) to integer numeric items designated obsolete | §F.2 item 2 (MOVE §14.9.25.3 **SR**5 + its NOTE — a SYNTAX rule, not a general rule; the former "GR5" was wrong) | obsolete-in-2023 (the surviving digit-only ALL→integer MOVE now scheduled for removal) | **Old:** moving a digit-only ALL figurative constant to an integer numeric item was permitted. **New:** obsolete, to be removed next edition; use ZERO, HIGHEST-/LOWEST-ALGEBRAIC, or a numeric literal instead; 2023 impl must support but flag. | Yes | flag-obsolete <!-- gate:move-all-digit-integer-obsolete-2023 --> |
+| 93 | STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data Item designated obsolete | §F.2 item 3 (ARITHMETIC STANDARD-BINARY §8.8.1.4.1/§8.8.1.4.2; obsolete NOTEs also at §11.9.5.2, §11.9.11.2, §A.3, §D.18.1, §D.18.3.1) | obsolete-in-2023 (reevaluation deferred to next revision before removal) | **Old:** STANDARD-BINARY mode and SBIDI were specified arithmetic facilities. **New:** obsolete (never implemented; no interest); reevaluated next revision before any removal; impls claiming support must support but flag. | Yes | flag-obsolete <!-- todo --> |
+| 94 | Fixed continuation indicator (hyphen in column 7) and literal continuation via it designated obsolete | §F.2 item 4 (fixed-form continuation; obsolete NOTEs at §6.2.2 and §6.3.5) | obsolete-in-2023 (scheduled for removal) | **Old:** column-7 hyphen as fixed continuation indicator, incl. literal continuation. **New:** obsolete, to be removed next edition (error-prone; use the floating continuation indicator); 2023 impl must support but flag. | Yes | flag-obsolete <!-- gate:col7-continuation-obsolete-2023 --> |
 | 95 | VALIDATE facility designated obsolete | §F.2 item 5 (VALIDATE statement + validation-format data description; many NOTES) | obsolete-in-2023 (reevaluation deferred to next revision before removal) | **Old:** VALIDATE statement + its validation clauses + EC-VALIDATE were a specified facility. **New:** obsolete (never implemented; no interest); reevaluated next revision before any removal; impls claiming support must support but flag. | Yes | flag-obsolete <!-- todo --> |
 
 ---
@@ -280,7 +281,7 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | 130b | **signed-vs-alphanumeric comparison de-sign** — version-INVARIANT legacy bug, pinned to spec | §8.8.4.2.5 | version-invariant (legacy oracle non-conformant in every edition) | A signed numeric operand compared as alphanumeric drops its sign per §8.8.4.2.5 in every edition; legacy was wrong → **pinned to spec, not gated** (DEVLOG 509/516). | n/a (all dialects) | pin-to-spec (no gating) <!-- pin-to-spec --> |
 | 130c | **signed → group move: sign PRESERVED** — RETRACTED pin (was "group de-sign") | §14.9.25.4 GR4 (MOVE, non-elementary) | version-invariant | A MOVE to a GROUP receiver is NON-elementary (GR4 ¶1), so GR4 bars internal-representation conversion and the overpunch sign is PRESERVED (S9(3) −45 → "04N"). GR6a's sign-drop applies only to a valid ELEMENTARY move (GR6). The former "de-sign" claim mis-cited GR6a and mis-applied §8.8.4.1 (a relation-condition rule) to MOVE; the legacy oracle's sign-preserving "04N" was in fact correct — no divergence, nothing to pin. Corrected CA28. | n/a (all dialects) | no divergence (spec == legacy) <!-- ref-only --> |
 | 130d | **Report Writer edition availability** — follow-up research row | §13.14–§13.18 / §14.9.16/.21/.46; A.4.11 (optional language element) | 85: optional MODULE; 2023: optional language ELEMENT (A.4.11); **2002/2014 status NOT derivable from the 2023 spec text** | RW implemented at all targeted editions (COBOLNET_REPORT_WRITER_DESIGN); whether ISO 1989:2002 dropped/kept the module needs the 2002 text — until verified the grammar/binder is NOT edition-gated (claiming support everywhere is the safe non-rejecting posture). | No (accept-everywhere) | flag-only — research the 2002 edition text before any gate <!-- todo --> |
-| 130e | **WORKING-STORAGE in a METHOD definition banned** (2023 §13.5.3 SR 1: within a class definition WS only in a factory/instance definition, "but not in a method definition"; corroborated by INVOKE SR 10 @28443 — the OO deep-dive Spec correction #1) | §13.5.3 SR 1 (@16461) | **PINNED 2002/2014-legal → 2023-banned (provisional):** Annex E.2 does NOT itemize the removal, and the 2002/2014 texts are not in-repo — the pre-2023 legality follows the deep-dive D3 semantics (method WS persists across activations, SHARED across instances — the 2002-era method-WS description the legacy port carried) per the correction's own "pin the boundary" instruction; **if the 2014 text shows the ban arrived earlier, shift `removedIn` on the registry row — one drift-locked line** | **Old (≤2014):** method WS legal, static semantics (one copy per class). **New (2023):** banned; LOCAL-STORAGE + LINKAGE are the method storage. | Yes | gate-behavior-by-dialect <!-- gate:method-working-storage-window --> |
+| 130e | **WORKING-STORAGE in a METHOD definition banned** (2023 §13.5.3 SR 1: within a class definition WS only in a factory/instance definition, "but not in a method definition"; corroborated by INVOKE §14.9.23.3 SR 10 — the OO deep-dive Spec correction #1) | §13.5.3 SR 1 | **PINNED 2002/2014-legal → 2023-banned (provisional):** Annex E.2 does NOT itemize the removal, and the 2002/2014 texts are not in-repo — the pre-2023 legality follows the deep-dive D3 semantics (method WS persists across activations, SHARED across instances — the 2002-era method-WS description the legacy port carried) per the correction's own "pin the boundary" instruction; **if the 2014 text shows the ban arrived earlier, shift `removedIn` on the registry row — one drift-locked line** | **Old (≤2014):** method WS legal, static semantics (one copy per class). **New (2023):** banned; LOCAL-STORAGE + LINKAGE are the method storage. | Yes | gate-behavior-by-dialect <!-- gate:method-working-storage-window --> |
 
 ---
 
@@ -301,148 +302,161 @@ CI if the index drifts from the anchors+catalogue, if an anchor names a construc
 | 7.12 | **OPEN … REVERSED deleted** (obsolete '85 tape phrase; NO REWIND survives into 2023 §14.9.26). | accepted at 85; rejected ≥2002 | `open-reversed-removed-2002`, 0902 (P2.6, DEVLOG 589). |
 | 7.13 | ⚠ RESEARCH: **multi-character ALL literal associated with a numeric/numeric-edited item** — §8.3.3.6.3 SR3 prohibits it in 2023; possibly an '85-obsolete element deleted by 2002 (no in-repo evidence beyond the 2023 SR text). Currently rides the 2023 removal row (under-strict at 2002/2014, provisional). | TBD: reject ≥2002 if the 2002 deletion is confirmed | W2 track A note (DEVLOG 593); today via `move-alphanumeric-figurative-removed-2023` @2023. |
 | 7.14 | KNOWN MISBIND (adversarial review, DEVLOG 595): a **trailing `,` clause separator after a PICTURE string** (`77 X PIC 99, VALUE 3.` — §8.3.5 rule 2 makes `,`-followed-by-space a separator; §13.18.40.3 SR7 forbids a trailing `,` symbol unless PICTURE is the last clause) is over-captured by the greedy `PIC_STRING` lexer rule and silently classifies numeric-edited "99," — CONFORMING source, wrong shape, every edition; the legacy classifier shares the bug. The `;` twin was fixed at the Analyze funnel (single-strip); `,` needs clause-position context the funnel lacks. | the lexer-mode cure LANDED (W3, DEVLOG 596): PIC_STRING trims a trailing `,`/`;` ONLY when LA(1) is whitespace/EOF — the §8.3.5 r2 separator shape — so NC125A's legal SR7 `…9,.` mask keeps its `,` | **FIXED (W3, DEVLOG 596)**; the Analyze single-`;`-strip stays as defense-in-depth. |
-| 7.15 | **RERUN clause deleted** (I-O-CONTROL checkpoint hint: `RERUN [ON {file-name|implementor-name}] EVERY {[END OF] {REEL|UNIT} OF f | n RECORDS [OF f] | n CLOCK-UNITS | condition-name}`; a null rerun facility is conforming — the clause has no program-visible effect). ZERO CCVS usage (not even in `newcob.val`) — spec-driven only. | accepted-inert at 85 (parsed-and-ignored, the MULTIPLE FILE posture); rejected ≥2002 | `rerun-removed-2002`, 0902 (the W3 notInGrammar batch, DEVLOG 599). Citation: §8.9 ABSENCE @10661–10662 + whole-2023-text absence (no Annex E note exists — the deletion predates its 2014→2023 scope). |
-| 7.16 | **ENTER statement deleted** (X3.23-1985 Nucleus `ENTER language-name [routine-name]` — other-language entry; comment-equivalent when only COBOL is supported). The operands are SYSTEM-names, deliberately NOT `cobolWord` in the grammar: `ENTER COBOL.` is the conforming switch-back and COBOL is an '85 §8.9 reserved word (a cobolWord slot would false-0901 it). ZERO active CCVS usage (comments/literals only). | accepted-inert at 85 (BoundNop); rejected ≥2002 | `enter-removed-2002`, 0902 (W3, DEVLOG 599). Citation: §8.9 absence @10459–10460. |
-| 7.17 | **USE FOR DEBUGGING deleted** (the '85 debug facility's declarative; the whole facility — WITH DEBUGGING MODE [row 7.9], debug-lines [col-7 D, already comment-stripped by the reference-format processor], DEBUG-ITEM registers — left in 2002). '85-inert posture: WITHOUT the switch the debugging section is compiled **as if comment lines** (binder + validator both skip the body — DB103M is the corpus witness: 95 register references, must compile); WITH the switch it is compiled but the implementor-defined object-time switch is permanently OFF (never triggered; DB301M–305M compile). A DEBUG-* register reference under the switch diagnoses **0899 not-implemented** (the deferred facility — DB101A), never a false 0901. ⚠ Documented leniencies: the full register/trigger facility is deferred with the golden-less DB series; binder-side switch detection is per-unit (nested programs inherit it validator-side only). | accepted-inert at 85 per the '85 rules; rejected ≥2002 | `use-for-debugging-removed-2002`, 0902 (W3, DEVLOG 599). Citation: §8.9 absence @10407–10408 (the DEBUG-* family gone wholesale). |
-| 7.18 | **Section-header segment-numbers deleted** (the '85 Segmentation module: `section-name SECTION [0–99].`; 0–49 fixed, 50–99 independent; the SEGMENT-LIMIT companion is row 7.8). All-resident is conforming (the '85 guarantee: a segmented program's logic flow equals its unsegmented equivalent). ⚠ Documented leniency: the independent-segment special rules (ALTERed-GO-TO reversion on re-entry, PERFORM-range/ALTER-reference restrictions, SORT/MERGE restrictions) are deliberately NOT implemented — ALTER is itself gated (row 7.2) and obsolete-at-85; the SG programs verifying reversion (SG201A: "SEGMENT-LIMIT FEATURE IS TESTED BY USE OF ALTER") are golden-less residue. | accepted-inert at 85 (number parsed and discarded, both sectionDefinition and declarativeSection); rejected ≥2002 | `segment-numbers-removed-2002`, 0902 (W3, DEVLOG 599). Citation: 'segment' absent from the whole 2023 text; §8.9 absence @10681–10682. |
+| 7.15 | **RERUN clause deleted** (I-O-CONTROL checkpoint hint: `RERUN [ON {file-name\|implementor-name}] EVERY {[END OF] {REEL\|UNIT} OF f \| n RECORDS [OF f] \| n CLOCK-UNITS \| condition-name}`; a null rerun facility is conforming — the clause has no program-visible effect). ZERO CCVS usage (not even in `newcob.val`) — spec-driven only. | accepted-inert at 85 (parsed-and-ignored, the MULTIPLE FILE posture); rejected ≥2002 | `rerun-removed-2002`, 0902 (the W3 notInGrammar batch, DEVLOG 599). Citation: §8.9 ABSENCE — the reserved-word list runs REPOSITORY → RESERVE with no RERUN — + whole-2023-text absence (no Annex E note exists — the deletion predates its 2014→2023 scope). |
+| 7.16 | **ENTER statement deleted** (X3.23-1985 Nucleus `ENTER language-name [routine-name]` — other-language entry; comment-equivalent when only COBOL is supported). The operands are SYSTEM-names, deliberately NOT `cobolWord` in the grammar: `ENTER COBOL.` is the conforming switch-back and COBOL is an '85 §8.9 reserved word (a cobolWord slot would false-0901 it). ZERO active CCVS usage (comments/literals only). | accepted-inert at 85 (BoundNop); rejected ≥2002 | `enter-removed-2002`, 0902 (W3, DEVLOG 599). Citation: §8.9 absence — the list runs END-WRITE → ENVIRONMENT with no ENTER. |
+| 7.17 | **USE FOR DEBUGGING deleted** (the '85 debug facility's declarative; the whole facility — WITH DEBUGGING MODE [row 7.9], debug-lines [col-7 D, already comment-stripped by the reference-format processor], DEBUG-ITEM registers — left in 2002). '85-inert posture: WITHOUT the switch the debugging section is compiled **as if comment lines** (binder + validator both skip the body — DB103M is the corpus witness: 95 register references, must compile); WITH the switch it is compiled but the implementor-defined object-time switch is permanently OFF (never triggered; DB301M–305M compile). A DEBUG-* register reference under the switch diagnoses **0899 not-implemented** (the deferred facility — DB101A), never a false 0901. ⚠ Documented leniencies: the full register/trigger facility is deferred with the golden-less DB series; binder-side switch detection is per-unit (nested programs inherit it validator-side only). | accepted-inert at 85 per the '85 rules; rejected ≥2002 | `use-for-debugging-removed-2002`, 0902 (W3, DEVLOG 599). Citation: §8.9 absence — the list runs DE → DECIMAL-POINT with no DEBUG-ITEM (the DEBUG-* family gone wholesale). |
+| 7.18 | **Section-header segment-numbers deleted** (the '85 Segmentation module: `section-name SECTION [0–99].`; 0–49 fixed, 50–99 independent; the SEGMENT-LIMIT companion is row 7.8). All-resident is conforming (the '85 guarantee: a segmented program's logic flow equals its unsegmented equivalent). ⚠ Documented leniency: the independent-segment special rules (ALTERed-GO-TO reversion on re-entry, PERFORM-range/ALTER-reference restrictions, SORT/MERGE restrictions) are deliberately NOT implemented — ALTER is itself gated (row 7.2) and obsolete-at-85; the SG programs verifying reversion (SG201A: "SEGMENT-LIMIT FEATURE IS TESTED BY USE OF ALTER") are golden-less residue. | accepted-inert at 85 (number parsed and discarded, both sectionDefinition and declarativeSection); rejected ≥2002 | `segment-numbers-removed-2002`, 0902 (W3, DEVLOG 599). Citation: 'segment' absent from the whole 2023 text; §8.9 absence — the list runs SECTION → SELECT with no SEGMENT-LIMIT. |
 | 7.3 | **CURRENCY SIGN ... WITH PICTURE SYMBOL introduced** (ISO/IEC 1989:2002 §12.3.7 separates the currency STRING from the PICTURE symbol; ANSI X3.23-1985 had only the bare single-character form — an introduction, not a deletion). | rejected at `--std 85` with a specific diagnostic; accepted ≥2002 | COBOLNET0893 (DataBinder.SwitchBindCurrency, DEVLOG 558); matrix row `currency-picture-symbol-2002`. Multi-character currency STRINGS stay rejected everywhere (COBOLNET0896 — the M2-deferred size-changing surface). |
 
-## Appendix — spec line references (for jump-to-spec)
+## Appendix — spec citations (for jump-to-spec)
 
-Each catalogued change carries its `specLines` so a reader can jump straight to `specs/ISO_COBOL.md`. Listed by row #.
+Each catalogued change carries the CLAUSE that documents it plus a VERBATIM FRAGMENT of the sentence the row was
+written from, so a reader jumps straight to `specs/ISO_COBOL.md` and lands on the sentence, not merely on the
+clause. Listed by row #.
 
-| # | specLines |
-|---|---|
-| 1 | 49024, 49026 |
-| 2 | 49024, 49028 |
-| 3 | 49024, 49030 |
-| 4 | 49024, 49032 |
-| 5 | 49024, 49034 |
-| 6 | 49024, 49036 |
-| 7 | 49024, 49038 |
-| 8 | 49052, 49056, 49058 |
-| 9 | 49060, 49064 |
-| 10 | 49068, 49070, 49072, 49074 |
-| 11 | 49082, 49084, 49085, 49094, 49095, 49096, 49097, 49098, 49099, 49100 |
-| 12 | 49108, 49112 |
-| 13 | 49116, 49120 |
-| 14 | 49124, 49128, 49130 |
-| 15 | 49138, 49142, 49144 |
-| 16 | 49148, 49152 |
-| 17 | 49156, 49160, 49162 |
-| 18 | 49164, 49174, 49176 |
-| 19 | 49178, 49180, 49181, 49182, 49183, 49184, 49185, 49186, 49190 |
-| 20 | 49196, 49198, 49202, 49204, 49206 |
-| 21 | 49216, 49220 |
-| 22 | 49224, 49228, 49230 |
-| 23 | 49232, 49236, 49238 |
-| 24 | 49240, 49244 |
-| 25 | 49248, 49250, 49262 |
-| 26 | 49248, 49258, 49262 |
-| 27 | 49266, 49268 |
-| 28 | 49272, 49274, 49276, 49278, 49280 |
-| 29 | 49290, 49300, 49302 |
-| 30 | 49304, 49308, 49310 |
-| 31 | 49312, 49316, 49318 |
-| 32 | 49320, 49322–49336, 49344 |
-| 33 | 49352, 49356 |
-| 34 | 49360, 49364 |
-| 35 | 49368, 49372 |
-| 36 | 49376, 49386, 49388 |
-| 37 | 49390, 49394, 49396 |
-| 38 | 49409 |
-| 39 | 49411 |
-| 40 | 49413–49432 |
-| 41 | 49434 |
-| 42 | 49436 |
-| 43 | 49438 |
-| 44 | 49443 |
-| 45 | 49445 |
-| 46 | 49447 |
-| 47 | 49449–49478 |
-| 48 | 49479–50046 |
-| 49 | 50048–50227 |
-| 50 | 50229 |
-| 51 | 50231 |
-| 52 | 50233 |
-| 53 | 50235 |
-| 54 | 50237 |
-| 55 | 50239 |
-| 56 | 50241–50263 |
-| 57 | 50265 |
-| 58 | 50267 |
-| 59 | 50269 |
-| 60 | 50271 |
-| 61 | 50273 |
-| 62 | 50275 |
-| 63 | 50277 |
-| 64 | 50279 |
-| 65 | 50281 |
-| 66 | 50283 |
-| 67 | 50285 |
-| 68 | 50287 |
-| 69 | 50296 |
-| 70 | 50298 |
-| 71 | 50300 |
-| 72 | 50302 |
-| 73 | 50304 |
-| 74 | 50306 |
-| 75 | 50308 |
-| 76 | 50310 |
-| 77 | 50312 |
-| 78 | 50314 |
-| 79 | 50316 |
-| 80 | 50318 |
-| 81 | 50320 |
-| 82 | 50322 |
-| 83 | 50324 |
-| 84 | 50334 |
-| 85 | 50336 |
-| 86 | 50338 |
-| 87 | 50340 |
-| 88 | 50342 |
-| 89 | 50369 (also 27372, 1813) |
-| 90 | 50371 (also 27792, 30804, 30829) |
-| 91 | 50395 (also 4364, 4366) |
-| 92 | 50397 (also 28811, 28813) |
-| 93 | 50399–50401 (also 9086–9099, 13404–13406, 45853–45855, 46001, 40076) |
-| 94 | 50403 (also 2932, 3066) |
-| 95 | 50405–50407 (also 17196, 18436, 18502, 19207, 21044, 23027, 23211, 23508, 24867, 33117, 40499, 47712) |
-| 96 | 4366 |
-| 97 | 4401–4416 |
-| 98 | 4418 |
-| 99 | 4420–4424 |
-| 100 | 4426 |
-| 101 | 4428 |
-| 102 | 4509 |
-| 103 | 4511 |
-| 104 | 4513 |
-| 105 | 4515 |
-| 106 | 4517 |
-| 107 | 4519 |
-| 108 | 4521 |
-| 109 | 4523–4527 |
-| 110 | 4529 |
-| 111 | 4531 |
-| 112 | 4533 |
-| 113 | 4542 |
-| 114 | 2932; 3066 (annex F.2 #4 at 50403) |
-| 115 | 4366 (annex F.2 #1 at 50395) |
-| 116 | 9086; 9099; 13404; 13694; 40076; 45853; 46001 (annex F.2 #3 at 50399–50401) |
-| 117 | 17196 |
-| 118 | 18436 |
-| 119 | 18502 |
-| 120 | 19207 |
-| 121 | 21044 |
-| 122 | 23027 |
-| 123 | 23211 |
-| 124 | 23508 |
-| 125 | 24867 |
-| 126 | 1813; 27372 (annex F.1 #1 at 50369) |
-| 127 | 27792 (IF); 30804, 30829 (SEARCH) (annex F.1 #2 at 50371) |
-| 128 | 28811 (SR5 rule); 28813 (NOTE) (annex F.2 #2 at 50397) |
-| 129 | 33117; 40499; 47712 (annex F.2 #5 at 50405–50407) |
-| 130 | 45803 |
-| 130a | §14.9.11.4 |
-| 130b | §8.8.4.2.5 |
-| 130c | §14.9.25.4 GR6a |
+⛔ **A LINE NUMBER IS NOT A CITATION.** This table used to carry `specLines` into the transcription. Every one of
+them dangled the moment the transcription was repaired, figures were regenerated and pages were removed: ~180
+references reaching line 50,407 in a file that now has 47,195 lines, all of them silently pointing at the wrong
+sentence long before they pointed past the end. A clause number is the STANDARD's own identifier and does not
+move; the quoted fragment is what pins the reference INSIDE the clause. Both halves are checked mechanically —
+`VcrDriftTests.EverySpecCitation_ResolvesInTheSpec` applies the same contract as
+`python scripts/spec/cite.py --check <clause> "<text>"`, so a citation cannot rot without the battery going red.
+
+Annex E is the 2014→2023 substantive-changes list, Annex F the archaic/obsolete lists; a body clause beside them
+is the site the change actually lands on.
+
+| 1 | §E.2 `Move of alphanumeric figurative constants to numeric or numeric-edited` |
+| 2 | §E.2 `Continuation of COBOL words in fixed form reference format` |
+| 3 | §E.2 `On Overflow phrase of the CALL statement` |
+| 4 | §E.2 `Removal of support for non-pseudo-text operands in the replacing phrase` |
+| 5 | §E.2 `EXIT METHOD statement` |
+| 6 | §E.2 `EXIT FUNCTION statement` |
+| 7 | §E.2 `The WITH LOCK phrase of the CLOSE statement and the related File Status` |
+| 8 | §E.2 `2) ALIGN clause. The ALIGN clause is added to the lists for required` |
+| 9 | §E.2 `3) Boolean shifting operators. The boolean operators B-SHIFT-L,` |
+| 10 | §E.2 `4) Characters permitted in user-defined words. The following character,` |
+| 11 | §E.2 `5) Compiler-directive words. The following compiler directive words` |
+| 12 | §E.2 `6) Compile-Time Arithmetic Expression, Mode of arithmetic for` |
+| 13 | §E.2 `7) Determination of whether a year is a leap year. The International` |
+| 14 | §E.2 `8) EVALUATE compiler directive. The two rules about omitting text when` |
+| 15 | §E.2 `9) External items. Exception conditions for checking conformance have` |
+| 16 | §E.2 `10) External items. The CONSTANT RECORD clause may now only be` |
+| 17 | §E.2 `11) Figurative constant values with the ALL phrase where the length of` |
+| 18 | §E.2 `12) FILE STATUS and the EXTERNAL clause. It is now required that if a` |
+| 19 | §E.2 `13) FUNCTION ALL INTRINSIC and new intrinsic functions. If FUNCTION ALL` |
+| 20 | §E.2 `14) General case mappings. The following case mappings have been` |
+| 21 | §E.2 `15) I-O Status '04'. The setting of I-O Status '04' is clarified to` |
+| 22 | §E.2 `16) I-O Status '07'. The setting of I-O Status '07' is now restricted` |
+| 23 | §E.2 `17) I-O status '0x'. It is now implementor dependent whether or not` |
+| 24 | §E.2 `18) I-O Status '37'. The OPEN statement may return a file status '37'` |
+| 25 | §E.2 `a) INVALID KEY processing. If an INVALID KEY phrase is not specified` |
+| 26 | §E.2 `b) READ processing. If an exception that is not an invalid key or at` |
+| 27 | §E.2 `20) MERGE statement restriction: A MERGE statement is now prohibited in` |
+| 28 | §E.2 `21) Obsolete elements. The following features that were classified as` |
+| 29 | §E.2 `22) READ PREVIOUS statement following an OPEN statement. Ensure that an` |
+| 30 | §E.2 `23) Reference-modification. The resultant data item may now have a` |
+| 31 | §E.2 `24) Relative keys where the file is external. It is now a requirement` |
+| 32 | §E.2 `25) Reserved words. The following reserved words have been added:` |
+| 33 | §E.2 `26) Transfer of control. Explicit and implicit transfers of control` |
+| 34 | §E.2 `27) VALUE clause literal categories. Alphanumeric and national literals` |
+| 35 | §E.2 `28) VALUE clause and the figurative constant ZERO for numeric-edited` |
+| 36 | §E.2 `29) VALUE clause and editing symbols for numeric-edited items. Editing` |
+| 37 | §E.2 `30) WRITE statement and end-of-page condition processing. When the` |
+| 38 | §E.3.2 `1) Asynchronous messaging. A method of allowing communication between` |
+| 39 | §E.3.2 `2) Commit and rollback facility. The addition of this facility allows` |
+| 40 | §E.3.2 `3) Exception conditions. New exception conditions have been added:` |
+| 41 | §E.3.2 `4) Logical operators. Logical operators have been enhanced to include` |
+| 42 | §E.3.2 `5) The NO SIGN phrase of the USAGE clause. The USAGE clause has been` |
+| 43 | §E.3.2 `6) SYNCHRONIZED clause. This clause may now be specified for a group` |
+| 44 | §E.3.3 `1) The ANYCASE keyword of the NUMVAL-C function has been clarified to` |
+| 45 | §E.3.3 `2) BEFORE and AFTER phrases. Both BEFORE and AFTER are allowed together` |
+| 46 | §E.3.3 `3) Binary operators. Binary operators have been enhanced to include` |
+| 47 | §E.3.3 `4) Characters permitted in user-defined words. The following characters` |
+| 48 | §E.3.3 `5) Characters permitted in user-defined words. The following characters` |
+| 49 | §E.3.3 `6) General case mappings. The following case mappings have been added.` |
+| 50 | §E.3.3 `7) Clarification of exception handling procedures. Some inconsistencies` |
+| 51 | §E.3.3 `8) Clarification that the rules for the GLOBAL clause do not contradict` |
+| 52 | §E.3.3 `9) Clarified that real zeroes are permitted values when checking for` |
+| 53 | §E.3.3 `10) Clarified the size error rules in 14.7.5, SIZE ERROR phrase and` |
+| 54 | §E.3.3 `11) COBOL Words. COBOL words may now be 63 characters long.` |
+| 55 | §E.3.3 `12) COBOL-WORDS directive. The COBOL-WORDS directive may be used to` |
+| 56 | §E.3.3 `13) Context-sensitive words. In order to provide enhanced` |
+| 57 | §E.3.3 `14) Additional functionality added to the CONTINUE statement. The` |
+| 58 | §E.3.3 `15) The DELETE FILE statement. The DELETE FILE statement causes the` |
+| 59 | §E.3.3 `16) The DISPLAY directive. The DISPLAY directive allows the display of` |
+| 60 | §E.3.3 `17) Dynamic-length elementary items. The SET statement was enhanced to` |
+| 61 | §E.3.3 `18) EC-I-O-WARNING exception condition. This exception was added to` |
+| 62 | §E.3.3 `19) EDITING phrase. The EDITING phrase of the PICTURE clause adds the` |
+| 63 | §E.3.3 `20) EXTERNAL data items. External data items may now be strongly typed.` |
+| 64 | §E.3.3 `21) FLAG-14 directive. A compiler directive, FLAG-14, has been added` |
+| 65 | §E.3.3 `22) FUNCTION BASECONVERT. This function has been added to enable` |
+| 66 | §E.3.3 `23) FUNCTION CONCAT. The CONCAT function has been added to be able to` |
+| 67 | §E.3.3 `24) FUNCTION CONVERT. This function has been added to enable conversion` |
+| 68 | §E.3.3 `25) FUNCTION EXCEPTION-FILE. An optional argument has been added to` |
+| 69 | §E.3.3 `26) FUNCTION EXCEPTION-FILE-N. An optional argument has been added to` |
+| 70 | §E.3.3 `27) FUNCTION FIND-STRING. The FIND-STRING intrinsic function has been` |
+| 71 | §E.3.3 `28) FUNCTION MODULE-NAME. The MODULE-NAME intrinsic function has been` |
+| 72 | §E.3.3 `29) FUNCTION SMALLEST-ALGEBRAIC. The SMALLEST-ALGEBRAIC intrinsic` |
+| 73 | §E.3.3 `30) FUNCTION SUBSTITUTE. The SUBSTITUTE intrinsic function has been` |
+| 74 | §E.3.3 `31) FUNCTION TRIM. The TRIM function has been enhanced to truncate` |
+| 75 | §E.3.3 `32) The GOBACK statement now allows the same status phrase as the STOP` |
+| 76 | §E.3.3 `33) INITIALIZE clause of the OPTIONS paragraph. The content of data` |
+| 77 | §E.3.3 `34) INSPECT statement, BACKWARD context sensitive word added to provide` |
+| 78 | §E.3.3 `35) Setting of I-O status '05', '37', '39', '41', and '62'. The DELETE` |
+| 79 | §E.3.3 `36) PERFORM Statement. An exception checking variant of this statement` |
+| 80 | §E.3.3 `37) PERFORM Statement. The PERFORM statement now allows the UNTIL EXIT` |
+| 81 | §E.3.3 `38) PUSH and POP directives. The PUSH and POP directives are added to` |
+| 82 | §E.3.3 `39) RAISE statement. The processing of exception conditions is` |
+| 83 | §E.3.3 `40) Reserved Words. There is no longer a restriction in this Standard` |
+| 84 | §E.3.3 `41) REWRITE statement. Clarification that where identifier-1 is` |
+| 85 | §E.3.3 `42) SUPPRESS WHEN phrase. The SUPPRESS WHEN phrase may be specified as` |
+| 86 | §E.3.3 `43) VALUE clause, numeric-edited items and numeric literals. It is now` |
+| 87 | §E.3.3 `44) WRITE statement. Determination of identifier-1. The impossible` |
+| 88 | §E.3.3 `45) WRITE statement. Clarification that where identifier-1 is` |
+| 89 | §F.1 `1) The EXIT PROGRAM Statement. The EXIT PROGRAM statement provides the` · §14.9.14.2 `NOTE The Program format of the EXIT statement is an archaic feature.` · §3.74 `Note 1 to entry: The EXIT PROGRAM statement is an archaic feature. For` |
+| 90 | §F.1 `2) NEXT SENTENCE phrase in the IF and SEARCH statements. This phrase` · §14.9.19.2 `NOTE NEXT SENTENCE is an archaic feature. For details see F.1, Archaic` · §14.9.37.2 `NOTE 1 NEXT SENTENCE is an archaic feature. For details see F.1,` |
+| 91 | §F.2 `1. FLAG-02 directive. The FLAG-02 directive was specified in the` · §7.3.14.1 `The FLAG-02 directive specifies options to flag certain syntax for` |
+| 92 | §F.2 `2. MOVE of ALL "literal" figurative constant containing only digits or` · §14.9.25.3 `5) It is permitted to move an ALL "literal" figurative constant` |
+| 93 | §F.2 `3. STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data` · §8.8.1.4.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §8.8.1.4.2 `NOTE 1    The STANDARD BINARY Intermediate Data Item (SBIDI) is an` · §11.9.5.2 `NOTE 2 The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §D.18.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §D.18.3.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §A.3 `NOTE 1 The STANDARD-BINARY mode of arithmetic is an obsolete feature.` |
+| 94 | §F.2 `4. Use of the fixed continuation indicator (hyphen in column 7) and` · §6.2.2 `NOTE 1 &nbsp; Use of the hyphen as a fixed continuation indicator is an` · §6.3.5 `NOTE    continuation of literals using the fixed continuation indicator` |
+| 95 | §F.2 `5. Validate facility. The VALIDATE facility has not been implemented as` · §13.16.2 `NOTE    The validation format of the data description is an obsolete` · §13.18.17.1 `NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete` · §13.18.18.1 `NOTE The DESTINATION clause feature of the VALIDATE facility is an` · §13.18.31.1 `NOTE    The INVALID clause feature of the VALIDATE facility is an` · §13.18.41.1 `NOTE The PRESENT WHEN clause feature of the VALIDATE facility is an` · §13.18.62.1 `NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is` · §13.18.63.2 `NOTE The CONTENT-VALIDATION-ENTRY feature of the VALIDATE facility is` · §13.18.64.1 `NOTE    The VARYING clause feature of the VALIDATE facility is an` · §14.6.13.1.6 `NOTE    The level 2 EC-VALIDATE exception and all related level 3` · §14.9.50.1 `NOTE    The VALIDATE facility is an obsolete feature.` · §A.4.14 `NOTE The VALIDATE facility is an obsolete feature.` · §D.22.1 `NOTE The VALIDATE facility is an obsolete feature.` |
+| 96 | §7.3.14.1 `NOTE The FLAG-02 directive is an obsolete element in this Working Draft` |
+| 97 | §7.3.14.4 `b) EC-PROGRAM-EXCEPTIONS: A TURN directive for EC-ALL, EC-PROGRAM,` |
+| 98 | §7.3.14.4 `c) IO-STATUS-07: A CLOSE statement shall be flagged if it specifies` |
+| 99 | §7.3.14.4 `d) MOVE-TO-SAME-NAME: A MOVE statement shall be flagged when the` |
+| 100 | §7.3.14.4 `e) RANGE-EXCEPTION-FOR-INDEX: An index-assignment or index-arithmetic` |
+| 101 | §7.3.14.4 `f) TERMINATE-WITH-VARYING: A TERMINATE statement shall be flagged if` |
+| 102 | §7.3.15.4 `b) COMPILE-TIME-ARITHMETIC-EXPRESSIONS. A compile-time arithmetic` |
+| 103 | §7.3.15.4 `c) EVALUATE directive. A directive containing a WHEN phrase and a WHEN` |
+| 104 | §7.3.15.4 `d) I-O-DECLARATIVE. An input-output statement that can be specified` |
+| 105 | §7.3.15.4 `e) I-O-STATUS-04. A reference to a data item specified in a FILE STATUS` |
+| 106 | §7.3.15.4 `f) I-O-STATUS-07. A reference to a data item specified in a FILE STATUS` |
+| 107 | §7.3.15.4 `g) NUM-ED-ZERO-FIG-CONSTANT. The use of the figurative constant ZERO in` |
+| 108 | §7.3.15.4 `h) READ-PREVIOUS. A READ PREVIOUS statement shall be flagged.` |
+| 109 | §7.3.15.4 `i) REF-MOD-ZERO-LENGTH. A reference modification of a data-item shall` |
+| 110 | §7.3.15.4 `j) VALUE-EDITING. A VALUE clause for a numeric-edited data item that` |
+| 111 | §7.3.15.4 `k) VALUE-FIG-CON-NO-LENTH. A figurative constant specified in the VALUE` |
+| 112 | §7.3.15.4 `l) VALUE-ZERO. A numeric-edited data item that has a VALUE clause that` |
+| 113 | §7.3.15.4 `m) WRITE-END-OF-PAGE. A WRITE statement that allows an END-OF-PAGE` |
+| 114 | §6.2.2 `NOTE 1 &nbsp; Use of the hyphen as a fixed continuation indicator is an` · §6.3.5 `NOTE    continuation of literals using the fixed continuation indicator` · §F.2 `4. Use of the fixed continuation indicator (hyphen in column 7) and` |
+| 115 | §7.3.14.1 `NOTE The FLAG-02 directive is an obsolete element in this Working Draft` · §F.2 `1. FLAG-02 directive. The FLAG-02 directive was specified in the` |
+| 116 | §8.8.1.4.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §8.8.1.4.2 `NOTE 1    The STANDARD BINARY Intermediate Data Item (SBIDI) is an` · §11.9.5.2 `NOTE 2 The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §11.9.11.2 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §A.3 `NOTE 1 The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §D.18.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §D.18.3.1 `NOTE    The STANDARD-BINARY mode of arithmetic is an obsolete feature.` · §F.2 `3. STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data` |
+| 117 | §13.16.2 `NOTE    The validation format of the data description is an obsolete` |
+| 118 | §13.18.17.1 `NOTE The DEFAULT clause feature of the VALIDATE facility is an obsolete` |
+| 119 | §13.18.18.1 `NOTE The DESTINATION clause feature of the VALIDATE facility is an` |
+| 120 | §13.18.31.1 `NOTE    The INVALID clause feature of the VALIDATE facility is an` |
+| 121 | §13.18.41.1 `NOTE The PRESENT WHEN clause feature of the VALIDATE facility is an` |
+| 122 | §13.18.62.1 `NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is` |
+| 123 | §13.18.63.2 `NOTE The CONTENT-VALIDATION-ENTRY feature of the VALIDATE facility is` |
+| 124 | §13.18.64.1 `NOTE    The VARYING clause feature of the VALIDATE facility is an` |
+| 125 | §14.6.13.1.6 `NOTE    The level 2 EC-VALIDATE exception and all related level 3` |
+| 126 | §3.74 `Note 1 to entry: The EXIT PROGRAM statement is an archaic feature. For` · §14.9.14.2 `NOTE The Program format of the EXIT statement is an archaic feature.` · §F.1 `1) The EXIT PROGRAM Statement. The EXIT PROGRAM statement provides the` |
+| 127 | §14.9.19.2 `NOTE NEXT SENTENCE is an archaic feature. For details see F.1, Archaic` · §14.9.37.2 `NOTE 1 NEXT SENTENCE is an archaic feature. For details see F.1,` · §F.1 `2) NEXT SENTENCE phrase in the IF and SEARCH statements. This phrase` |
+| 128 | §14.9.25.3 `5) It is permitted to move an ALL "literal" figurative constant` · §F.2 `2. MOVE of ALL "literal" figurative constant containing only digits or` |
+| 129 | §14.9.50.1 `NOTE    The VALIDATE facility is an obsolete feature.` · §A.4.14 `NOTE The VALIDATE facility is an obsolete feature.` · §D.22.1 `NOTE The VALIDATE facility is an obsolete feature.` · §F.2 `5. Validate facility. The VALIDATE facility has not been implemented as` |
+| 130 | §D.17.2 `If the INTERMEDIATE ROUNDING clause is not specified, INTERMEDIATE` |
+| 130a | §14.9.11.4 `The DISPLAY statement causes the content of each operand to be transferred to the device` |
+| 130b | §8.8.4.2.5 `The integer operand is treated as though it were moved, according to the rules of the MOVE` |
+| 130c | §14.9.25.4 `Any move in which the sending operand is either a literal or an elementary item` · §14.9.25.4 `there is no conversion of data from one form of internal representation to another` |
+| 130d | §A.4.11 `Data division, REPORT SECTION header` |
+| 130e | §13.5.3 `may be specified only in a factory definition or an instance definition, but not in a method` · §14.9.23.3 `Identifier-3 shall not reference a data item defined in the file or working-storage section` |
