@@ -29,9 +29,26 @@
   guards (the `ArgText` read half and the `CallStringWrite` write half) now test `IsImageCapable`; the leaf-kind
   wording follows the predicate. Golden `da5_call_comp_group` pins the round-trip IN **and** OUT, since a test that
   only checked "no longer throws" would miss a broken round-trip. A float/COMP-5/INDEX group still stages loud.
-- **⏳ SEVEN GUARDS REMAIN, AND THEY ARE NOT AUTOMATICALLY BUGS.** `NumericRenderer.cs:186` ·
-  `AcceptDisplayEmitter.cs:66,129` · `InspectEmitter.cs:89` · `MoveEmitter.cs:144` · `SortEmitter.cs:224` ·
-  `StringEmitter.cs:151,193`. **⛔ V59's own governing lesson is BYTES ARE NOT TEXT:** a COMP leaf's image is
+- **✅ THE TABLE-SORT HALF IS LANDED TOO (DEVLOG 1106).** `SortEmitter.TableCompare` loud-staged a group key
+  containing a BINARY leaf. **§14.9.40.4 GR8** (`cite.py`-verified) is decisive: key data items are "compared
+  according to the rules for comparison of operands in a relation condition", and a GROUP operand in a relation is
+  class alphanumeric (§8.8.4.2.3 SR2) compared over its representation — which `OperandText` already renders via
+  `AsImage()` gated on `IsImageCapable`. So the stale predicate made **SORT and `IF` disagree about the same two
+  group operands**: the `IF` compared their byte images while the SORT threw. Golden
+  `da5_table_sort_group_key` pins the AGREEMENT (not merely that the SORT runs), including a NEGATIVE key: a
+  big-endian two's-complement image is not order-preserving across zero, so a group key holding −1 sorts AFTER one
+  holding +1 — **deliberate, GR8-mandated, and the `IF` agrees.** A program wanting value order names the
+  ELEMENTARY numeric item as the key. That case exists so a later reader cannot "fix" the byte order and break GR8.
+- **⛔ CORRECTION — `MoveEmitter.cs:144` IS NOT A GUARD AND MUST NOT BE MIGRATED.** The first cut of this entry
+  listed it among the stale sites; that was wrong. It selects a STRATEGY: when the receiver is not a character
+  image it first tries the memberwise leaf-copy fast path (source and receiver leaf layouts positionally
+  identical), and only the fall-through reaches the real capability guard at line 168, which is ALREADY on
+  `IsImageCapable`. Verified by repro: MOVE into a COMP-containing group works in all three shapes — aligned
+  memberwise, non-aligned image redistribution, and from an alphanumeric source. So `MoveEmitter` using both
+  predicates is not "a distinction disagreeing with itself"; the two uses have different jobs.
+- **⏳ FOUR SITES REMAIN, AND THEY ARE NOT AUTOMATICALLY BUGS.** `NumericRenderer.cs:186` ·
+  `AcceptDisplayEmitter.cs:66,129` · `InspectEmitter.cs:89` · `StringEmitter.cs:151,193`.
+  **⛔ V59's own governing lesson is BYTES ARE NOT TEXT:** a COMP leaf's image is
   radix-2 bytes, not its digits, so a verb defined over CHARACTER POSITIONS (STRING/UNSTRING/INSPECT) may be
   CORRECT to refuse it — consuming those bytes as text would be a silent wrong answer, strictly worse than the
   loud stage. Each site needs its own spec derivation (does the operation need TEXT or STORAGE?), plus the
