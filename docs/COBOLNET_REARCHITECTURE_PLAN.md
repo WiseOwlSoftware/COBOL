@@ -63,6 +63,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      ASCII `31 32 33 34`.
    - Design SSOT annotated (`COBOLNET_DESIGN.md` §14.4 — its "named loser (c)" rejected raw bytes on a premise,
      "cross-engine file compatibility is not required", that the owner has now reversed).
+   - **✅ STEP 1 LANDED (DEVLOG 1097, `26165232`): the one-width invariant.**
+     `tests/Cobol.Net.Tests.Unit/ImageWidthIsStorageWidthTests.cs` asserts that an IMAGE-CAPABLE item occupies the
+     same width in the image as in storage. RED for exactly the defect — 39 of 83 cases, the passing BINARY/PACKED
+     rows being precisely those where the pinned width and the digit count COINCIDE. The two failing facts carry an
+     explicit `Skip` naming V59; they turn GREEN when the image is re-based on `StorageWidth`. ⛔ Not a tolerated
+     divergence — keeping this test OUT of the tree is how the defect survived two phases.
+   - **NEXT STEPS, in order:** ① a storage-form discriminator on `NumProfile` — `NumericTruncation` cannot serve,
+     DISPLAY and BINARY are both `DigitCount` · ② the radix-2 / BCD codec beside `CobolNum.FormatDisplay`, carried
+     in the Latin-1 string image · ③ re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`
+     and sweep the 129 `ImageWidth` references · ④ the support diagnostic (a fixed-length file whose byte length is
+     not a multiple of the record length) · ⑤ §4.2.16 documentation + byte-level goldens · ⑥ un-Skip step 1.
    - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
      support, maintenance, production quality").** The plan above is complete on correctness and gates and was
      still short on three of the five. It is NOT done without:
