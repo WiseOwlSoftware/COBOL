@@ -1,0 +1,69 @@
+{
+  "batch": [1018, 1019, 1020, 1021, 1022, 1023, 1024, 1025, 1026, 1027, 1028, 1029],
+  "pages_checked": [1018, 1019, 1020, 1021, 1022, 1023, 1024, 1025, 1026, 1027, 1028, 1029],
+  "findings": [
+    {
+      "page": 1018,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1018 (printed 988) opens with the script label and its ranges on consecutive lines:\n\"Old_Italic:\n10300-1031F, 1032D-1032F\"",
+      "markdown_says": "The page-1018 block opens with a headless range, \"10300-1031F, 1032D-1032F\", with no \"Old_Italic:\" label. The label was pulled back onto the last line of the page-1017 block, where it is glued to the preceding script's ranges: \"10C80-10CB2, 10CC0-10CF2 Old_Italic:\" (ISO_COBOL.md line 40558).",
+      "why_it_matters": "Annex B (normative) \"Characters permitted in user-defined words\" is a label-to-code-point-range table. The union of code points is unchanged, but the binding of the range 10300-1031F, 1032D-1032F to the script Old_Italic is destroyed: read linearly the markdown shows Old_Hungarian's range line ending in a stray \"Old_Italic:\" token, followed by page furniture, followed by an unattributed range. Any mechanical extraction of the annex from the markdown mis-associates or drops the entry.",
+      "suggested_repair": "Split \"10C80-10CB2, 10CC0-10CF2 Old_Italic:\" at the end of the page-1017 block into \"10C80-10CB2, 10CC0-10CF2\", and move \"Old_Italic:\" to be the first content line of the page-1018 block, immediately above \"10300-1031F, 1032D-1032F\"."
+    },
+    {
+      "page": 1018,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1018 (printed 988) ends with \"Psalter_Pahlavi:\n10B80-10B91\" and nothing further. \"Rejang:\" is the FIRST line printed on page 1019 (printed 989), directly above \"A930-A946\".",
+      "markdown_says": "End of the page-1018 block: \"Psalter_Pahlavi:\n10B80-10B91 Rejang:\" — with \"Rejang:\" glued to the end of Psalter_Pahlavi's range line. The page-1019 block then opens with a headless \"A930-A946\".",
+      "why_it_matters": "Same normative-annex structural corruption as the Old_Italic case: the script name Rejang is detached from its code-point range A930-A946 and appended to a different script's entry on the previous page. A reader or extractor working page by page sees Psalter_Pahlavi's line polluted and Rejang's range unattributed.",
+      "suggested_repair": "Split the line into \"10B80-10B91\" (end of page-1018 block) and move \"Rejang:\" to be the first content line of the page-1019 block, above \"A930-A946\"."
+    },
+    {
+      "page": 1021,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1021 (printed 991) ends with \"Buginese:\n1A17-1A1B\". \"Buhid:\" is the FIRST line printed on page 1022 (printed 992), directly above \"1752-1753\".",
+      "markdown_says": "End of the page-1021 block: \"Buginese:\n1A17-1A1B Buhid:\". The page-1022 block then opens with a headless \"1752-1753\".",
+      "why_it_matters": "Annex B list 2) \"characters permitted in a user-defined word except as the start character\" is normative. The label Buhid is separated from its range 1752-1753 across the page break, so the entry cannot be read or extracted correctly from the markdown.",
+      "suggested_repair": "Split into \"1A17-1A1B\" and move \"Buhid:\" to the head of the page-1022 block, above \"1752-1753\"."
+    },
+    {
+      "page": 1022,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1022 (printed 992) ends with \"Gujarati:\n0A81-0A83, 0ABC, 0ABE-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AE2-0AE3, 0AE6-0AEF,\n0AFA-0AFF\". \"Gunjala_Gondi:\" is the FIRST line printed on page 1023 (printed 993), directly above \"11D8A-11D8E, 11D90-11D91, 11D93-11D97, 11DA0-11DA9\".",
+      "markdown_says": "End of the page-1022 block: \"0AFA-0AFF Gunjala_Gondi:\". The page-1023 block then opens with a headless \"11D8A-11D8E, 11D90-11D91, 11D93-11D97, 11DA0-11DA9\".",
+      "why_it_matters": "Gunjala_Gondi's code-point ranges are left unattributed in the normative Annex B table, and Gujarati's final range line carries a stray script label.",
+      "suggested_repair": "Split into \"0AFA-0AFF\" and move \"Gunjala_Gondi:\" to the head of the page-1023 block."
+    },
+    {
+      "page": 1023,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1023 (printed 993) ends with \"Khmer:\n17B4-17D3, 17DD, 17E0-17E9\". \"Khojki:\" is the FIRST line printed on page 1024 (printed 994), directly above \"1122C-11237, 1123E\".",
+      "markdown_says": "End of the page-1023 block: \"Khmer:\n17B4-17D3, 17DD, 17E0-17E9 Khojki:\". The page-1024 block then opens with a headless \"1122C-11237, 1123E\".",
+      "why_it_matters": "The script name Khojki is detached from its range 1122C-11237, 1123E in the normative Annex B table and appended to the Khmer entry.",
+      "suggested_repair": "Split into \"17B4-17D3, 17DD, 17E0-17E9\" and move \"Khojki:\" to the head of the page-1024 block."
+    },
+    {
+      "page": 1024,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1024 (printed 994) ends with \"Modi:\n11630-11640, 11650-11659\". \"Mongolian:\" is the FIRST line printed on page 1025 (printed 995), directly above \"180B-180D, 1810-1819, 18A9\".",
+      "markdown_says": "End of the page-1024 block: \"Modi:\n11630-11640, 11650-11659 Mongolian:\". The page-1025 block then opens with a headless \"180B-180D, 1810-1819, 18A9\".",
+      "why_it_matters": "Mongolian's code-point ranges are left unattributed in the normative Annex B table and the Modi entry carries a stray label.",
+      "suggested_repair": "Split into \"11630-11640, 11650-11659\" and move \"Mongolian:\" to the head of the page-1025 block."
+    },
+    {
+      "page": 1025,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 1025 (printed 995) ends with \"Saurashtra:\nA880-A881, A8B4-A8C5, A8D0-A8D9\". \"Sharada:\" is the FIRST line printed on page 1026 (printed 996), directly above \"11180-11182, 111B3-111C0, 111C9-111CC, 111CE-111D9\".",
+      "markdown_says": "End of the page-1025 block: \"A880-A881, A8B4-A8C5, A8D0-A8D9 Sharada:\". The page-1026 block then opens with a headless \"11180-11182, 111B3-111C0, 111C9-111CC, 111CE-111D9\".",
+      "why_it_matters": "Sharada's code-point ranges are left unattributed in the normative Annex B table and the Saurashtra entry carries a stray label.",
+      "suggested_repair": "Split into \"A880-A881, A8B4-A8C5, A8D0-A8D9\" and move \"Sharada:\" to the head of the page-1026 block."
+    }
+  ]
+}

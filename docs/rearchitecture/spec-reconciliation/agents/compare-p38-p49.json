@@ -1,0 +1,25 @@
+{
+  "batch": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+  "pages_checked": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+  "note": "This batch was routed as a FIGURES batch, but PDF pages 38-49 are Clause 3 'Terms and definitions' entries 3.48 through 3.173. There is NOT ONE general format, syntax skeleton, brace, bracket, choice-indicator bar, ellipsis or Figure caption on any of the twelve pages. The priority defect class (lost 5.2.6.4 choice-indicator bars) is not applicable here. Every definition entry, entry number, bold term, admitted-term line, <domain qualifier>, [SOURCE: ...] reference and 'Note 1 to entry' paragraph on all twelve pages was compared word for word against the rendered page and matches, including the ISO typo faithfully preserved at 3.156 ('rather than through of a series of procedural steps'). Only transcription-scaffolding hygiene defects were found.",
+  "findings": [
+    {
+      "page": 44,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "3.111\ninternal data\nall data described in a source unit except external data and external file connectors\n\n3.112\nkey of reference\nkey, either prime or alternate, currently being used to access records within an indexed file\n\n3.113\nline delimiter\n... (ten consecutive definition entries 3.111-3.120 set as ordinary body text on one page, with NO horizontal rule anywhere on the page)",
+      "markdown_says": "<a id=\"page-44\"></a>\n## Page 44\n\n# ISO/IEC 1989:2023 (E)\n\n---\n\n**3.111**\n**internal data**\nall data described in a source unit except external data and external file connectors\n\n---\n\n**3.112**\n**key of reference**\nkey, either prime or alternate, currently being used to access records within an indexed file\n\n---\n\n**3.113**\n... (a `---` thematic break inserted after the running header and after EVERY ONE of the ten entries 3.111-3.120; eleven spurious rules in total on this page, at ISO_COBOL.md lines 1994, 2000, 2006, 2014, 2020, 2026, 2032, 2038, 2045, 2051, 2057)",
+      "why_it_matters": "`---` is the transcription's reserved page-break separator: elsewhere in ISO_COBOL.md it appears exactly once per page, immediately before the `<a id=\"page-N\"></a>` anchor. Page 44 emits eleven additional `---` rules INSIDE the page. No normative text is lost, but any consumer that segments the markdown on `---` (the reconciliation slicer, a chunker, a diff-by-page tool) will see eleven phantom page boundaries in the middle of clause 3 and mis-attribute entries 3.111-3.120 to eleven different 'pages'. The rules also render as horizontal lines that are not in the PDF.",
+      "suggested_repair": "Delete the eleven `---` lines between the running header and entry 3.120 on page 44 (ISO_COBOL.md lines 1994-2057), leaving only the single page-separator `---` that precedes the `<a id=\"page-44\"></a>` anchor. Match the blank-line-separated entry layout used on pages 38-43 and 45-48."
+    },
+    {
+      "page": 49,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "3.164\nsource element\nsource unit excluding any contained source units\n\n3.165\nsource unit\nsequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation\n\nNote 1 to entry: Any source units contained within a source unit are part of the containing source unit.\n\n3.166\nstandard binary floating-point usages\n... (ten consecutive definition entries 3.164-3.173 set as ordinary body text on one page, with NO horizontal rule anywhere on the page)",
+      "markdown_says": "<a id=\"page-49\"></a>\n## Page 49\n\n**ISO/IEC 1989:2023 (E)**\n\n---\n\n**3.164**\n**source element**\nsource unit excluding any contained source units\n\n---\n\n**3.165**\n**source unit**\nsequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation\n\nNote 1 to entry: Any source units contained within a source unit are part of the containing source unit.\n\n---\n\n**3.166**\n... (a `---` thematic break inserted after the running header and after EVERY ONE of the ten entries 3.164-3.173; eleven spurious rules in total on this page, starting at ISO_COBOL.md line 2273)",
+      "why_it_matters": "Same defect as page 44 and it is the only other instance in this batch, so it is a two-page pattern rather than a one-off. `---` is the reserved page-break separator; eleven extra rules inside page 49 create phantom page boundaries for anything that segments on `---`, and render horizontal lines the PDF does not have.",
+      "suggested_repair": "Delete the eleven `---` lines between the running header and entry 3.173 on page 49 (from ISO_COBOL.md line 2273 onward), keeping only the single page-separator `---` that precedes the `<a id=\"page-49\"></a>` anchor. Sweep the whole file for the same pattern: any `---` that is not immediately followed by a blank line plus `<a id=\"page-N\"></a>` is spurious."
+    }
+  ]
+}

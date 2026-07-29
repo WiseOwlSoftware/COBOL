@@ -1,0 +1,25 @@
+{
+  "batch": [1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1233, 1234],
+  "pages_checked": [1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1233, 1234],
+  "notes": "No general-format / syntax-skeleton figures appear on any page of this batch (page_workunit.py reported '0 with figure content', confirmed by visual inspection of all 12 renders). Pages 1223-1225 are Annex C case-mapping code-point tables; 1225-1228 are the tail of Annex E (substantive changes list, items 7-45); 1229-1230 are Annex F (archaic/obsolete element lists); 1231-1232 are Annex G (known errors); 1233 is the Bibliography; 1234 is the first page of the Index. Therefore the priority defect class for this run (lost choice indicators / unbalanced brackets / misplaced ellipses / lost underlining in general formats) has no instances to check on these pages. All prose was compared word-for-word; the code-point tables on 1223-1225 were compared entry-for-entry.",
+  "findings": [
+    {
+      "page": 1231,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "Annex G\n(informative)\n\nKnown errors\n\nG.1  Rationale ... G.2  List of errors  [typeset identically to 'Annex F / (informative) / Archaic and obsolete language element lists / F.1 ... / F.2 ...' on p.1229 - same centered bold annex title style, same numbered-subclause style]",
+      "markdown_says": "specs/ISO_COBOL.md:49888  '# Annex G'  (H1, and with no <a id=\"section-annex-g\"></a> anchor preceding it), followed by '## G.1 Rationale' and '## G.2 List of errors' -- versus specs/ISO_COBOL.md:49823-49832 '<a id=\"section-annex-f\"></a>' + '## Annex F' (H2) + '### F.1 Archaic language elements'",
+      "why_it_matters": "Every other annex title in the transcription is an H2 with an anchor: '<a id=\"section-annex-a\">' .. '<a id=\"section-annex-f\">' at lines 38874, 40145, 41088, 41492, 48515, 49823, each followed by '## Annex X'. Annex G alone is promoted to H1 - the level the transcription reserves for the per-page running header '# ISO/IEC 1989:2023 (E)' - and alone has no section anchor. Any TOC builder, doc-map generator or cross-reference tool that walks heading levels will place Annex G at a different depth from Annexes A-F, and no '#section-annex-g' link target exists for it. Annex G is where the standard records its own known defects (the errata list this project must consult when adjudicating spec contradictions), so it must be reachable the same way as every other annex.",
+      "suggested_repair": "At specs/ISO_COBOL.md:49888 replace '# Annex G' with '<a id=\"section-annex-g\"></a>' on its own line followed by '## Annex G', matching the Annex A-F pattern. Optionally also demote '## G.1 Rationale' / '## G.2 List of errors' to '### ...' to match '### F.1' / '### F.2' (note that D.3+ and E.3 already show the same H2 drift, so that part is a pre-existing document-wide inconsistency, not specific to this page)."
+    },
+    {
+      "page": 1234,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Index / Symbols\n::\n        operator  133, 173\n...\nACCEPT statement  292, 480, 512, 576\n        FROM phrase  576\n        Screen format  740\nACCESS MODE clause  319\n        FILE-CONTROL paragraph  312\n...\nALL option\n        FLAG-02 directive  70\n   [every sub-entry is indented one level under its parent entry; parent entries are flush left]",
+      "markdown_says": "ACCEPT statement [292](#page-292), [480](#page-480), [512](#page-512), [576](#page-576)\nFROM phrase [576](#page-576)\nScreen format [740](#page-740)\nACCESS MODE clause [319](#page-319)\nFILE-CONTROL paragraph [312](#page-312)\n...\nALL option\nFLAG-02 directive [70](#page-70)\n   [all sub-entries flush left, no indentation, no list markers, no hard line breaks]",
+      "why_it_matters": "The index's only structure is its indentation: it is what says 'FROM phrase 576' is a sub-entry of ACCEPT statement and not a top-level entry, and it is the sole thing distinguishing the parentless heads ('ADDRESS OF PROGRAM phrase', 'ADVANCING ON LOCK phrase', 'ALL option', 'Alignment of data') from their children. Flattened to consecutive unindented lines with no trailing double-space or list markers, markdown renders the whole block as one run-on paragraph, so both the parent/child relation and the line structure are lost. This is the first index page; the same flattening applies to the whole index that follows.",
+      "suggested_repair": "Re-emit index sub-entries with indentation preserved - e.g. wrap each alphabetic section in a fenced block, or indent sub-entries by four spaces and make each entry a list item - so 'FROM phrase 576' remains visibly subordinate to 'ACCEPT statement'. Apply the same treatment to the remaining index pages."
+    }
+  ]
+}

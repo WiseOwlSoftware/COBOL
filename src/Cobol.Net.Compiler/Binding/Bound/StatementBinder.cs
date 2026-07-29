@@ -186,6 +186,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var used = new HashSet<string>(StringComparer.Ordinal);
         var methods = new List<BoundMethod>(roster.Count);
         var table = Ctx.Table;
+        // scope → owning method, so the appended Format-3 handler pc-ranges (keyed by their binding-time
+        // OoMethodScope) map back to each method's OoMethodBinding for the per-method slice (design SSOT §9.10).
+        var scopeToMethod = new Dictionary<OoMethodScope, OoMethodSymbol>();
 
         foreach (var m in roster)
         {
@@ -206,6 +209,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope };
+            scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
             m.Binding!.EntryPc = table.Paragraphs.Count;
             if (m.Ctx.procedureDivision() is { } pd)
@@ -250,7 +254,39 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
         }
-        return new BoundProgram(bound, 0, null, Ctx.EcState.BuildFeatures(), methods);
+        // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole class pc
+        // space (ISO §14.9.28.4 GR17; design SSOT §9.10 — the SAME allocation the program path uses at Bind():163).
+        // Empty until the F3-in-a-method un-reject (increment M4) — a class with no method-F3 stays byte-identical.
+        int handlerBase = bound.Count;
+        bound.AddRange(table.F3Handlers);
+        StampMethodHandlerSlices(handlerBase, table.F3HandlerMethods, scopeToMethod, roster);
+        return new BoundProgram(bound, 0, null, Ctx.EcState.BuildFeatures(), methods,
+            F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
+            F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null);
+    }
+
+    /// <summary>Stamp each method's contiguous Format-3 handler sub-range onto its <see cref="OoMethodBinding"/>
+    /// (design SSOT §9.10). The class handler pc-space partitions into per-method runs in method order — a method's
+    /// handlers are all appended while its paragraphs bind (the pc-order second bind loop). Asserts that invariant
+    /// LOUDLY (a future reorder that breaks contiguity must fail here, never emit a mis-sliced dispatch).</summary>
+    private static void StampMethodHandlerSlices(int handlerBase, IReadOnlyList<OoMethodScope?> handlerMethods,
+        Dictionary<OoMethodScope, OoMethodSymbol> scopeToMethod, IReadOnlyList<OoMethodSymbol> roster)
+    {
+        if (handlerMethods.Count == 0) return;
+        int k = 0;
+        while (k < handlerMethods.Count)
+        {
+            var sc = handlerMethods[k];
+            int start = k;
+            while (k < handlerMethods.Count && ReferenceEquals(handlerMethods[k], sc)) k++;
+            if (sc is null || !scopeToMethod.TryGetValue(sc, out var m)) continue;   // a program-unit handler (no method)
+            if (m.Binding!.HandlerCount != 0)
+                throw new InvalidOperationException(
+                    $"Format-3 handler contiguity invariant violated: method '{m.Name}' has a non-contiguous handler run "
+                    + "(design SSOT §9.10 assumes per-method handler pc-ranges are appended consecutively)");
+            m.Binding!.HandlerStartPc = handlerBase + start;
+            m.Binding!.HandlerCount = k - start;
+        }
     }
 
     // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────
@@ -401,7 +437,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Recognize-and-name an unsupported facility: emit its NAMED §4.2.6/§4.2.13 warning once per
     /// site on the non-failing channel and bind to <see cref="BoundNop"/>. The program still compiles and
     /// runs; the facility is inert. This is the ONE mechanism for the band — do not add a parallel
-    /// Lenient()/Unsupported() helper (feedback_singular_pattern); it routes through the same
+    /// Lenient()/Unsupported() helper (feedback_one_mechanism_per_job); it routes through the same
     /// <c>EditionContext.Warning</c> channel the SCREEN non-support warning already uses.</summary>
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {

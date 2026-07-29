@@ -95,8 +95,12 @@ public static class OdoModel
     {
         int elem = table.ImageWidth;                          // per-occurrence character width
         int max = table.Occurs ?? 1;                          // the allocated capacity = integer-2 (§8.5.1.8)
+        // integer-1 — the LOWER bound §13.18.38.4 GR7 requires the control value to fall within. Carried so the
+        // extent computation can raise EC-BOUND-ODO below it; the runtime floor used to be hardcoded 0, which
+        // made a below-minimum DEPENDING value clamp silently instead of setting the condition.
+        int min = table.OccursSpec?.Min ?? 0;
         int fixedChars = Model.RecordLayout.PhysicalWidth(group) - elem * max;   // SR22 — the variable tail is trailing
-        return new OdoGroupPlace(inner, depending, fixedChars, elem, max, IsWithin(depending.Item, group));
+        return new OdoGroupPlace(inner, depending, fixedChars, elem, min, max, IsWithin(depending.Item, group));
     }
 
     /// <summary>The SEARCH / SEARCH ALL depending item for an OCCURS DEPENDING table (ISO §14.9.37.4 GR4/GR9 →

@@ -14,8 +14,9 @@ namespace CobolNet.Tests.Conformance;
 /// generated "Gating status index" block (between <c>&lt;!-- GEN:VCR-STATUS START/END --&gt;</c>) is rendered from
 /// those anchors + <c>constructs.json</c>. This test both RENDERS the block (write mode, via
 /// <c>scripts/gen-vcr.ps1</c> → <c>COBOLNET_WRITE_VCR=1</c>) and, in normal CI, ASSERTS it is in sync, that every
-/// <c>gate:</c> anchor resolves to a real construct (forward coverage), and that every appendix specLines reference
-/// resolves inside the spec. Mirrors <c>DiagnosticRegistryDriftTests</c> (ONE renderer, in the test).
+/// <c>gate:</c> anchor resolves to a real construct (forward coverage), and that every SPEC CITATION resolves —
+/// the clause exists and the appendix's quoted fragment is still inside it, the <c>cite.py --check</c> contract.
+/// Mirrors <c>DiagnosticRegistryDriftTests</c> (ONE renderer, in the test).
 /// </summary>
 public sealed class VcrDriftTests
 {
@@ -110,32 +111,103 @@ public sealed class VcrDriftTests
             "VCR gate anchor(s) naming a construct absent from constructs.json (forward-coverage): " + string.Join(", ", bad));
     }
 
-    [Fact]
-    public void EverySpecLineRef_IsWithinTheSpec()
+    // A clause number is either the body's dotted decimal (14.9.39.4) or an annex's letter-headed form
+    // (E.2, A.4.14, D.2.2.5.1); the TITLE is optional because all 178 headings of clause 3 (Terms and
+    // definitions) are a bare number. Same grammar as scripts/spec/cite.py — one definition of "a clause".
+    private static readonly Regex SpecHeadingRx =
+        new(@"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+.*?)?\s*$", RegexOptions.Compiled);
+
+    /// <summary>Every `§clause` mentioned anywhere in the VCR, with the line it sits on.</summary>
+    private static readonly Regex SpecRefRx = new(@"§([0-9A-Z][0-9A-Za-z.]*)", RegexOptions.Compiled);
+
+    /// <summary>An appendix citation: the clause, then the verbatim fragment that pins it inside the clause.</summary>
+    private static readonly Regex CitationRx = new(@"§([0-9A-Z][0-9A-Za-z.]*)\s+`([^`]+)`", RegexOptions.Compiled);
+
+    /// <summary>⛔ A LINE NUMBER IS NOT A CITATION — `@27372` and friends must never come back.</summary>
+    private static readonly Regex LineRefRx = new(@"@[0-9]{3,6}(\s*[-–]\s*[0-9]{3,6})?", RegexOptions.Compiled);
+
+    private static string SpecPath => Path.Combine(EditionHarness.RepoRoot(), "specs", "ISO_COBOL.md");
+
+    /// <summary>Compare on words only — dashes, quotes, emphasis and spacing are typography, not content.</summary>
+    private static string NormalizeForCitation(string s) =>
+        Regex.Replace(Regex.Replace(s, @"[^\w\s]", " "), @"\s+", " ").Trim().ToLowerInvariant();
+
+    /// <summary>clause number → the normalized text of its own region, ending at the next clause heading.</summary>
+    private static Dictionary<string, List<string>> SpecClauseRegions()
     {
-        string specPath = Path.Combine(EditionHarness.RepoRoot(), "specs", "ISO_COBOL.md");
-        if (!File.Exists(specPath)) return;   // private submodule not initialized in this checkout — skip
-        int specLines = File.ReadAllLines(specPath).Length;
-        var lines = File.ReadAllLines(VcrPath);
-        int appIdx = Array.FindIndex(lines, l => l.Contains("Appendix", StringComparison.Ordinal) && l.Contains("spec line", StringComparison.OrdinalIgnoreCase));
-        Assert.True(appIdx >= 0, "VCR appendix (spec line references) not found");
-        var numRx = new Regex(@"\d+");
-        var bad = new List<string>();
-        for (int i = appIdx; i < lines.Length; i++)
+        var lines = File.ReadAllLines(SpecPath);
+        var heads = new List<(string Num, int At)>();
+        for (int i = 0; i < lines.Length; i++)
+            if (SpecHeadingRx.Match(lines[i]) is { Success: true } m)
+                heads.Add((m.Groups[1].Value, i));
+
+        var regions = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        for (int k = 0; k < heads.Count; k++)
         {
-            var ln = lines[i];
-            if (!ln.TrimStart().StartsWith("|", StringComparison.Ordinal)) continue;
-            var cells = ln.Split('|');
-            if (cells.Length < 4) continue;
-            string rownum = cells[1].Trim();
-            if (rownum is "#" || rownum.All(c => c is '-' or ':' or ' ')) continue;   // header / separator
-            foreach (Match mm in numRx.Matches(cells[2]))
+            int end = k + 1 < heads.Count ? heads[k + 1].At : lines.Length;
+            if (!regions.TryGetValue(heads[k].Num, out var body)) regions[heads[k].Num] = body = new List<string>();
+            for (int i = heads[k].At; i < end; i++) body.Add(NormalizeForCitation(lines[i]));
+        }
+        return regions;
+    }
+
+    /// <summary>
+    /// Every spec reference in the VCR resolves: the clause exists, and where the appendix quotes the sentence
+    /// the row was written from, that sentence is still inside that clause. This is the `cite.py --check`
+    /// contract in the battery. ⛔ It replaced a check on spec LINE NUMBERS, which is what let ~180 citations
+    /// rot silently — they pointed at the wrong sentence for months before they pointed past the end of the file.
+    /// </summary>
+    [Fact]
+    public void EverySpecCitation_ResolvesInTheSpec()
+    {
+        Assert.True(File.Exists(SpecPath), $"specs/ISO_COBOL.md is missing at {SpecPath} — it is tracked in this repo, so this is not a skip");
+        var regions = SpecClauseRegions();
+        var lines = File.ReadAllLines(VcrPath);
+        var bad = new List<string>();
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            foreach (Match m in SpecRefRx.Matches(lines[i]))
             {
-                int v = int.Parse(mm.Value);
-                if (v < 1 || v > specLines) bad.Add($"row {rownum}: spec line {v} (spec has {specLines} lines)");
+                string clause = m.Groups[1].Value.TrimEnd('.');
+                if (!regions.ContainsKey(clause)) bad.Add($"line {i + 1}: §{clause} is not a clause of the standard");
+            }
+            foreach (Match m in CitationRx.Matches(lines[i]))
+            {
+                string clause = m.Groups[1].Value.TrimEnd('.');
+                if (!regions.TryGetValue(clause, out var body)) continue;   // already reported above
+                string needle = NormalizeForCitation(m.Groups[2].Value);
+                if (!body.Any(l => l.Contains(needle, StringComparison.Ordinal)))
+                    bad.Add($"line {i + 1}: §{clause} exists but does not contain `{m.Groups[2].Value}`");
             }
         }
-        Assert.True(bad.Count == 0, "VCR appendix specLines outside the spec (dangling citation): " + string.Join(", ", bad));
+
+        Assert.True(bad.Count == 0,
+            "VERSION_CHANGE_REFERENCE.md spec citation(s) that do not resolve — re-derive with "
+            + "`python scripts/spec/cite.py --find \"<text>\"`:\n  " + string.Join("\n  ", bad));
+    }
+
+    /// <summary>
+    /// ⛔ A LINE NUMBER IS NOT A CITATION. The appendix carried `specLines` into the transcription and every one
+    /// of them dangled once the spec was repaired and de-paged. Cite the CLAUSE — the standard's own identifier,
+    /// which does not move — and quote the sentence. This test is what stops the habit returning.
+    /// </summary>
+    [Fact]
+    public void NoSpecLineNumberIsCited_InTheVcr()
+    {
+        var lines = File.ReadAllLines(VcrPath);
+        var bad = new List<string>();
+        for (int i = 0; i < lines.Length; i++)
+            foreach (Match m in LineRefRx.Matches(lines[i]))
+            {
+                // `@2023` / `@2014` name an EDITION, not a line.
+                string digits = m.Value.TrimStart('@');
+                if (digits.Length == 4 && digits[0] == '2' && int.Parse(digits) is >= 1985 and <= 2100) continue;
+                bad.Add($"line {i + 1}: {m.Value}");
+            }
+        Assert.True(bad.Count == 0,
+            "VERSION_CHANGE_REFERENCE.md cites spec LINE numbers, which do not survive a spec edit — "
+            + "cite the clause and quote the sentence instead:\n  " + string.Join("\n  ", bad));
     }
 
     [Fact]

@@ -11,7 +11,7 @@
 > rewrite it … the best possible COBOL to .NET implementation."* It supersedes the byte-substrate compiler in
 > `src/CobolSharp.Compiler` (the *legacy* engine, kept only as a differential oracle until cut-over, task G8) and the
 > pre-PIVOT byte-engine "data-model migration" plan (the greenfield is
-> born typed-native, no migration). See memory `feedback_complete_dotnet_migration_no_byte`.
+> born typed-native, no migration). See memory `feedback_typed_native_only`.
 
 ## 1. North Star
 

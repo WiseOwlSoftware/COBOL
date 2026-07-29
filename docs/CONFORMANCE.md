@@ -129,7 +129,11 @@ of an unsupported facility.
   no phrase) is 0. When a STATUS value is present it wins regardless of ERROR/NORMAL. A main-program GOBACK
   (§14.9.18.4 GR3) uses the same mapping; a status phrase on a GOBACK executed in a **called** program is inert
   (GR2). Programs with no status phrase leave the exit code at 0 (the abnormal-fatal case still forces item 44's
-  nonzero exit).
+  nonzero exit). The status is flushed to `Environment.ExitCode` at the write site by the `RunUnit.ExitStatus`
+  setter (so it crosses assembly boundaries — a separately-compiled module's STOP RUN … WITH STATUS reaches the
+  process exit code). Two host clamps apply on top of the value mapping and are outside COBOL's control: the
+  `long` status is narrowed to `Int32`, and a POSIX host reports only the low 8 bits of the exit code — so a
+  STATUS ≥ 256 (or outside `Int32`) is reduced modulo the platform's exit-code width.
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
   .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).
@@ -166,6 +170,30 @@ of an unsupported facility.
   GR17 passes control to imp-4 (WHEN COMMON) "at the completion of the execution of imperative-statement-2"; a RESUME
   (§14.9.33) is a transfer of control OUT of imp-2, so imp-2 does not "complete" and the GR17→imp-4 hand-off is not
   taken. **Pinned choice: a WHEN that RESUMEs (NEXT STATEMENT) does NOT run WHEN COMMON.**
+- **SET SIZE OF — the storage-physically-unavailable EC-STORAGE-NOT-AVAIL leg (§14.9.39.4 GR38 third sentence)**: a
+  dynamic-length elementary item is a managed .NET `System.String`, always allocatable within the runtime string
+  limit, so the "amount of storage required to expand … is not available" branch is unreachable. **Pinned choice:
+  that third leg never raises; the GR37 negative→0 and GR38 clamp-to-maximum legs DO set the nonfatal
+  EC-STORAGE-NOT-AVAIL (arithmetic-expression-5 form) under `>>TURN EC-STORAGE-NOT-AVAIL CHECKING ON` (golden
+  `2023/ec_storage_not_avail`).** The integer-2 literal form is compile-time bounded by SR34, so its out-of-range
+  cases are compile diagnostics, not this runtime EC.
+- **EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW applied to EVERY floating-point usage (§14.6.13.2 item 3 / §14.9.25.4 GR4
+  step 4a)**: the standard scopes these to a "standard floating-point usage" (the ISO/IEC 60559 FLOAT-BINARY-32/64/128
+  and FLOAT-DECIMAL-16/34 forms — §13.18.60 item 19; FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2 have
+  implementor-defined representation, §13.18.60 item 21, with implementor-specified exception conditions per
+  §14.6.13.4). In the typed-native model EVERY floating-point usage is a native IEEE `float`/`double`, so **pinned
+  choice: COBOL.NET raises both ECs for all floating-point usages uniformly** — mandatory for the standard usages,
+  an implementor determination (which the standard delegates) for FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2.
+  EC-DATA-NOT-FINITE (fatal) fires when a NaN/±Infinity float sending operand is referenced (both the numeric-value and
+  the string-image read paths) except in a class condition, a sign condition, a same-usage MOVE, or VALIDATE;
+  EC-DATA-OVERFLOW (fatal) fires when a MOVE's finite value overflows a single-precision receiver to ±Infinity. Both
+  default OFF (byte-identical to a pre-slice build). Goldens `2023/ec_data_not_finite`, `2023/ec_data_overflow`.
+  **Documented gaps:** (a) a floating-point NUMERIC-EDITED MOVE receiver is not covered by the EC-DATA-OVERFLOW seam
+  (§14.9.25.4 GR4 also names it) — deferred until floating-point numeric-edited PICTUREs are supported; (b) a
+  multi-receiver `ADD/SUBTRACT … TO/FROM` with several float receivers under EC-DATA-NOT-FINITE checking can
+  half-commit earlier receivers before a later non-finite receiver's read raises — only observable under USE-F3 +
+  RESUME NEXT STATEMENT, where a fatal-EC-interrupted statement already leaves undefined results (§14.6.13.1.3), a
+  precise follow-on.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
@@ -241,4 +269,6 @@ warning sites are the code-side counterpart — keep the two in sync. This file 
 
 | A.1 item | Element | Our determination |
 |---|---|---|
+| 2 | **ACCEPT statement — device used when FROM is unspecified**, §14.9.1 GR5, required + documented | The implementor default ACCEPT device is the process **standard input** stream. The input-capable SPECIAL-NAMES device-names (§12.3.7 Format 4, `device-name-1 IS mnemonic-name-3`) are **CONSOLE** and **SYSIN**, both naming standard input; a mnemonic bound to an output-only device fails §14.9.1.3 SR2 (`COBOLNET0817`). Implemented in `AcceptDisplayBinder` (`AcceptInputDevices`) + `AcceptDisplayEmitter.EmitAcceptDevice`. |
+| 59 | **DISPLAY statement — standard display device**, §14.9.11 GR8, required + documented | When the UPON phrase is omitted the standard display device is the process **standard output** stream. The output-capable SPECIAL-NAMES device-names are **CONSOLE** and **SYSOUT** (→ standard output) and **SYSERR** (→ standard error); a mnemonic bound to an input-only device (e.g. SYSIN) fails §14.9.11.3 SR2 (`COBOLNET0817`). Implemented in `AcceptDisplayBinder` (`DisplayOutputDevices` / `BindDisplayUpon`) + `AcceptDisplayEmitter.EmitDisplay`. |
 | 158 | **Reference format — rightmost character position of the program-text area (margin R)**, §6.3, required + documented | **Margin R is immediately to the right of character position 72**, i.e. the fixed-form program-text area is columns **8–72**. Characters beyond it are not part of the program text and are ignored — they are not an error (§6.3.4; comment-text likewise runs only "up to margin R"). Note §6.3.1 makes this position *implementor-defined*: the standard does **not** mandate 72, and ISO 2023 has no "identification area" (that was a COBOL-85 card-image convention). Columns 1–6, the sequence number area, are **optional** and may hold any character (§6.3.2) — a blank sequence area is ordinary fixed-form source. Free-form reference format (§6.2) is not column-bounded and is unaffected. Our auto-detection between the two formats is an implementor extension beyond the standard, which specifies fixed-form as the default and `>>SOURCE FORMAT` as the selector; the detector's rules live in `ReferenceFormatProcessor.IsFixedForm`. |

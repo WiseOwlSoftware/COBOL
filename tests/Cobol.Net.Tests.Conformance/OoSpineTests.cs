@@ -2086,8 +2086,17 @@ public sealed class OoSpineTests
 
     /// <summary>One driver + two classes whose same-named method takes DIFFERENT PIC formals — THE
     /// polymorphic hazard: a wrong-shaped crossing through universal must raise EC-OO-UNIVERSAL at run
-    /// (GR7c), never deliver silently wrong data (both formals project to C# <c>ref long</c>).</summary>
+    /// (GR7c), never deliver silently wrong data (both formals project to C# <c>ref long</c>).
+    ///
+    /// <para>⚠ The <c>&gt;&gt;TURN</c> is REQUIRED for these tests to assert the EC NAME, and its position is
+    /// load-bearing: §14.9.23.4 GR7c sets EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the
+    /// activated method and the activating runtime element". At the top of the compilation group it covers the
+    /// program AND the classes, so the tests exercise the enabled-in-both path. Without it nothing may be
+    /// attributed — the crossing is still refused, but as a non-attributing implementor stop, which is what
+    /// <c>ExceptionConditionConformanceTests.OoUniversal_EnabledInActivatorOnly_…</c> covers. These tests
+    /// previously carried no directive and passed only because the raise was unconditional.</para></summary>
     private static string UnivHazard(string pid, string statements) => $$"""
+        >>TURN EC-OO-UNIVERSAL CHECKING ON
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {{pid}}.
         ENVIRONMENT DIVISION.

@@ -11,6 +11,9 @@ public static class Constructs
 {
     public const string NucleusMoveDisplay = "nucleus-move-display";
     public const string ReadPrevious2002 = "read-previous-2002";
+    public const string ExitSection2002 = "exit-section-2002";
+    public const string ExitParagraph2002 = "exit-paragraph-2002";
+    public const string ExitPerform2002 = "exit-perform-2002";
     public const string StartFirstLast2002 = "start-first-last-2002";
     public const string DeleteFile2023 = "delete-file-2023";
     public const string Allocate2002 = "allocate-2002";
@@ -50,7 +53,7 @@ public static class Constructs
     public const string OptionsEntryConvention2014 = "options-entry-convention-2014";
     public const string OptionsFloatBinary2014 = "options-float-binary-2014";
     public const string OptionsFloatDecimal2014 = "options-float-decimal-2014";
-    public const string OptionsInitialize2014 = "options-initialize-2014";
+    public const string OptionsInitialize2023 = "options-initialize-2023";
     public const string OccursDynamic2014 = "occurs-dynamic-2014";
     public const string DynamicLengthItem2014 = "dynamic-length-item-2014";
     public const string TypeClause2002 = "type-clause-2002";

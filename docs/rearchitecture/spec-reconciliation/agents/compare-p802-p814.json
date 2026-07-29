@@ -1,0 +1,15 @@
+{
+  "batch": [802, 803, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
+  "pages_checked": [802, 803, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814],
+  "findings": [
+    {
+      "page": 810,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "NOTE    The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [both paragraphs are printed in the reduced NOTE typeface - measured cap height 27 px at 300 dpi, versus 30 px for the adjacent normative body paragraph 'The VALIDATE statement invokes data validation...'; the same wording appears elsewhere in the standard folded inside a single note, e.g. 'NOTE 1    The STANDARD BINARY Intermediate Data Item (SBIDI) is an obsolete feature. Unlike other obsolete features, it is intended that interest in this facility will be reevaluated...']",
+      "markdown_says": "NOTE    The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [second paragraph rendered as an ordinary body paragraph, styled identically to the normative text above it, with no NOTE marker or continuation indent]",
+      "why_it_matters": "The second paragraph is the continuation of the NOTE, i.e. informative text. Rendered as an unmarked body paragraph it reads as normative provision text, so a reader (or a tool mining the transcription for requirements) would treat an editorial statement about the next revision as a conformance requirement of 14.9.50.1. Notes are non-normative per ISO drafting rules.",
+      "suggested_repair": "Mark the 'Unlike other obsolete features...' paragraph as part of the preceding NOTE (fold it into the NOTE paragraph or indent it as a NOTE continuation). NOTE: this is a document-wide transcription convention, not a one-off - the identical NOTE + continuation pair also occurs at ISO_COBOL.md lines 8999/9001, 13208/13210, 45367/45369 and 47208/47210, so repair it globally rather than only on page 810."
+    }
+  ]
+}

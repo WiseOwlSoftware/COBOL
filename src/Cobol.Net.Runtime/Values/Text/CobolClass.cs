@@ -27,7 +27,7 @@ public static class CobolClass
     /// <summary>True if every character is A–Z, a–z, or space (ISO §8.8.4.1.4).</summary>
     public static bool IsAlphabetic(string? s)
     {
-        if (s is null) return false;
+        if (string.IsNullOrEmpty(s)) return false;   // a zero-length operand: the class condition is false (ISO §8.8.4.4.4 GR1)
         foreach (char c in s)
             if (c is not (>= 'A' and <= 'Z' or >= 'a' and <= 'z' or ' ')) return false;
         return true;
@@ -36,7 +36,7 @@ public static class CobolClass
     /// <summary>True if every character is A–Z or space.</summary>
     public static bool IsAlphabeticUpper(string? s)
     {
-        if (s is null) return false;
+        if (string.IsNullOrEmpty(s)) return false;   // a zero-length operand: the class condition is false (ISO §8.8.4.4.4 GR1)
         foreach (char c in s)
             if (c is not (>= 'A' and <= 'Z' or ' ')) return false;
         return true;
@@ -45,7 +45,7 @@ public static class CobolClass
     /// <summary>True if every character is a–z or space.</summary>
     public static bool IsAlphabeticLower(string? s)
     {
-        if (s is null) return false;
+        if (string.IsNullOrEmpty(s)) return false;   // a zero-length operand: the class condition is false (ISO §8.8.4.4.4 GR1)
         foreach (char c in s)
             if (c is not (>= 'a' and <= 'z' or ' ')) return false;
         return true;
@@ -78,11 +78,12 @@ public static class CobolClass
 
     /// <summary>A USER-DEFINED class test (ISO §8.8.4.1.4 with a SPECIAL-NAMES class-name, §12.3.7): true iff the
     /// value consists ENTIRELY of the class's member characters (<paramref name="members"/> — the clause's
-    /// literals/THRU ranges expanded at compile time). Spaces are members only if listed; an empty value is true
-    /// vacuously (no character violates membership — zero-length items are 2002+).</summary>
+    /// literals/THRU ranges expanded at compile time). Spaces are members only if listed; a zero-length item is
+    /// FALSE (ISO §8.8.4.4.4 GR1 — every class condition on a zero-length operand is false; zero-length items are
+    /// 2002+, reachable via a DYNAMIC-LENGTH item, an ODO group with count 0, or ref-mod X(1:0)).</summary>
     public static bool IsInClass(string? s, string members)
     {
-        if (s is null) return false;
+        if (string.IsNullOrEmpty(s)) return false;   // a zero-length operand: the class condition is false (ISO §8.8.4.4.4 GR1)
         foreach (char c in s)
             if (!members.Contains(c)) return false;
         return true;

@@ -2,7 +2,8 @@
   "enabled": [
     "wavef_dbg_proc",
     "phrase_order_arithmetic",
-    "phrase_order_overflow"
+    "phrase_order_overflow",
+    "optional_on_size_error"
   ],
   "pending": []
 }

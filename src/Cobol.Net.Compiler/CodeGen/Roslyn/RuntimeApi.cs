@@ -83,9 +83,12 @@ internal static class RuntimeApi
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Store)}({value}, {limit})";
 
     /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16) — set the current length of a dynamic-length
-    /// item, space-filling grown positions (GR39) — <c>CobolDynString.SetSize(current, newLen, limit)</c>.</summary>
-    public static string DynSetSize(string current, string newLen, string limit) =>
-        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit})";
+    /// item, space-filling grown positions (GR39); the negative→0 (GR37) and clamp-to-maximum (GR38) legs set the
+    /// nonfatal EC-STORAGE-NOT-AVAIL when <paramref name="checkStorage"/> is <c>true</c>. <paramref name="newLen"/> is
+    /// the arithmetic-expression-5 value at FULL precision (a <c>double</c>) so the GR37 sign test precedes the
+    /// toward-zero truncation — <c>CobolDynString.SetSize(current, newLen, limit, check)</c>.</summary>
+    public static string DynSetSize(string current, string newLen, string limit, string checkStorage) =>
+        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit}, {checkStorage})";
 
     /// <summary>CONTINUE AFTER n SECONDS (ISO §14.9.9) — the timed pause; a negative interval sets the nonfatal
     /// EC-CONTINUE-LESS-THAN-ZERO when checking is enabled — <c>CobolTiming.ContinueAfter(seconds, check)</c>.</summary>
@@ -180,6 +183,14 @@ internal static class RuntimeApi
     public static string BoolResize(string value, string width) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Resize)}({value}, {width})";
 
+    /// <summary>Alphanumeric/national THROUGH-range membership under the effective collating sequence —
+    /// <c>CobolString.ThruMember(read, lo, hi{collate})</c>: sets the nonfatal EC-RANGE-INVALID and returns false when
+    /// <c>lo</c> collates after <c>hi</c> (§14.7.8 rule 2), else the inclusive bound test. <paramref name="collate"/>
+    /// is the trailing collating-arg fragment (empty for the default, <c>, __COLLATE</c> / <c>, __COLLATE_NAT</c>
+    /// otherwise) selecting the matching <c>Compare</c> overload.</summary>
+    public static string ThruMember(string read, string lo, string hi, string collate) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.ThruMember)}({read}, {lo}, {hi}{collate})";
+
     /// <summary>The emitted-text reference to a <see cref="CobolRounding"/> value — <c>nameof</c>-anchored so a
     /// member rename breaks HERE, never the generated text.</summary>
     public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";
@@ -188,6 +199,24 @@ internal static class RuntimeApi
     /// <c>CobolFloat.ToScaled</c> (MOVE truncates toward zero, §14.6.8.2).</summary>
     public static string FloatToScaled(string value, string scale, CobolRounding mode) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.ToScaled)}({value}, {scale}, {RoundingText(mode)})";
+
+    /// <summary>The checked read of a standard-float SENDING operand — <c>CobolFloat.Sending(value)</c>: raises the
+    /// fatal EC-DATA-NOT-FINITE for a NaN/±Infinity content under checking (ISO §14.6.13.2 item 3), else returns the
+    /// value. Wrapped at both float read chokepoints (the numeric-value read and the string-image read); the exempt
+    /// sites (class/sign condition, same-usage MOVE) emit the raw read instead.</summary>
+    public static string FloatSending(string value) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.Sending)}({value})";
+
+    /// <summary>A float value's DISPLAY image — <c>CobolFloat.Display(value)</c> (invariant-culture shortest
+    /// round-trip, §14.9.11 GR1 implementor-defined).</summary>
+    public static string FloatDisplay(string value) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.Display)}({value})";
+
+    /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver —
+    /// <c>CobolFloat.StoreSingleChecked(src)</c>: raises the fatal EC-DATA-OVERFLOW when a finite source overflows to
+    /// ±Infinity under checking (ISO §14.9.25.4 GR4 step 4a), else returns the cast value.</summary>
+    public static string FloatStoreSingleChecked(string src) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreSingleChecked)}({src})";
 
     /// <summary>The BOOLEAN-receiver store (§14.6.8.6 — boolean-ZERO pad, explicit justification) —
     /// <c>CobolString.Store</c> with <c>pad: '0'</c>.</summary>
@@ -273,6 +302,11 @@ internal static class RuntimeApi
     public static string StrRefMod(string s, string start, string len, bool allowZeroLength = false) =>
         $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
+    /// <summary>The OMITTED-length ref-mod sentinel (<c>identifier(start:)</c> "to the end") as an emit expression —
+    /// routed through the façade (the P7 Step 4b ratchet) so a rename of the runtime const breaks HERE at compile time.
+    /// Distinct from −1 so a specified negative length raises EC-BOUND-REF-MOD (review C14).</summary>
+    public static string OmittedRefModLength => $"{nameof(CobolString)}.{nameof(CobolString.OmittedRefModLength)}";
+
     /// <summary>Splice <paramref name="rhs"/> into <paramref name="s"/> at a 1-based start/length, preserving the
     /// rest of the width — <c>CobolString.SpliceInto</c>. <paramref name="pad"/> is the optional fill-char argument
     /// (a C# <c>char</c> literal, e.g. boolean-zero <c>'0'</c>); null emits the default space fill.</summary>
@@ -296,8 +330,8 @@ internal static class RuntimeApi
 
     /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>.</summary>
-    public static string TableOdoExtent(string occ, int maxOccurs, int fixedChars, int elemChars) =>
-        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {maxOccurs}, {fixedChars}, {elemChars})";
+    public static string TableOdoExtent(string occ, int minOccurs, int maxOccurs, int fixedChars, int elemChars) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {minOccurs}, {maxOccurs}, {fixedChars}, {elemChars})";
 
     // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
 
@@ -573,11 +607,10 @@ internal static class RuntimeApi
 
     // ── Run-unit lifecycle (CobolFile) ──
 
-    /// <summary>Run-unit file-subsystem init (the entry wrapper's Main) — <c>CobolFile.Init</c>.</summary>
+    /// <summary>Run-unit file-subsystem init (the entry wrapper's Main) — <c>CobolFile.Init</c>. (The matching
+    /// §14.6.11 run-unit-termination implicit CLOSE is runtime-side — <see cref="Runtime.ProgramTable.RunMain"/>'s
+    /// finally — so a separately-compiled module's open files are closed even when this main group declares none.)</summary>
     public static string FileInit() => $"{nameof(CobolFile)}.{nameof(CobolFile.Init)}()";
-
-    /// <summary>The §14.6.11 run-unit-termination implicit CLOSE — <c>CobolFile.CloseAll</c>.</summary>
-    public static string FileCloseAll() => $"{nameof(CobolFile)}.{nameof(CobolFile.CloseAll)}()";
 
     /// <summary>Mint a per-object instance-file connector key (§9.1.4) — <c>CobolFile.MintInstanceKey</c>.</summary>
     public static string FileMintInstanceKey(string baseKeyLiteral) =>

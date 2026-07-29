@@ -68,8 +68,9 @@ public sealed class TurnState
     /// so the synthetic is placed at imp-1's line — AFTER every pre-PERFORM directive (a pre-PERFORM
     /// <c>&gt;&gt;TURN OFF</c> therefore LOSES to it, per GR14's "not enabled ⇒ assume on") and BEFORE any real
     /// <c>&gt;&gt;TURN OFF</c> inside imp-1 (which overrides it). The "not already enabled" guard means a real
-    /// enable BEFORE the PERFORM keeps its own settings (GR22 — no implicit is assumed). imp-2..5 bind against the
-    /// BASE state — this overlay is discarded (never assigned back) after imp-1 (GR21/GR22).
+    /// enable BEFORE the PERFORM keeps its own settings (GR22 — no implicit is assumed). This overlay is discarded
+    /// after imp-1; imp-2..5 then bind under <see cref="WithAllDisabledFrom"/>, which is GR14's other half — NOT
+    /// against the base state, as this comment used to claim.
     /// (Known edge, unobservable while the runtime is staged: a directive on the PERFORM's OWN line, and WITH
     /// LOCATION precedence when a real enable precedes — refinements for the interceptor wave.)</summary>
     public TurnState WithImplicitEnable(IEnumerable<(string Ec, string? File)> names, bool withLocation, int imp1Line)
@@ -80,6 +81,28 @@ public sealed class TurnState
             if (!Enabled(ec, file, imp1Line))   // GR14 implicit ON only when not already enabled (else GR22 persists)
                 s._events.Add(new Ev(imp1Line, ec, file, On: true, WithLocation: withLocation));
         foreach (var e in _events) if (e.Line >= imp1Line) s._events.Add(e);   // imp-1+ directives (line-sorted)
+        return s;
+    }
+
+    /// <summary>Return a NEW state = the base events with a synthetic <c>EC-ALL OFF</c> floor spliced in at
+    /// <paramref name="handlerLine"/> — the GR14 implicit disable that governs an exception-checking PERFORM's
+    /// HANDLER bodies (§14.9.28.4 GR14): "An implicit PUSH ALL followed by TURN OFF ALL is assumed AT THE END OF
+    /// imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL …".
+    /// imp-2/3/4 (WHEN / OTHER / COMMON) and imp-5 (FINALLY) all execute between those two points, so NO exception
+    /// checking is in effect inside them and §14.6.13.1.1 applies — "if checking for an exception that occurs is
+    /// not enabled, no exception condition is raised".
+    /// <para>⚠ GR21 is NOT the governing rule here, though the binder used to cite it: it says only that an
+    /// exception raised in imp-2..5 "will not cause transfer of control to any of these imperative-statements"
+    /// — re-entry, not the checking state. GR22 governs what survives AFTER the PERFORM. GR14 controls during.</para>
+    /// <para><c>EcAll</c> matches every name in <c>NameMatches</c>/<c>Fold</c>, so the floor shadows every prior
+    /// enable; real handler-local <c>&gt;&gt;TURN</c> directives are appended AFTER it and therefore still win,
+    /// which is what keeps the fold's line-sorted invariant meaningful rather than flattening the state.</para></summary>
+    public TurnState WithAllDisabledFrom(int handlerLine)
+    {
+        var s = new TurnState();
+        foreach (var e in _events) if (e.Line < handlerLine) s._events.Add(e);
+        s._events.Add(new Ev(handlerLine, ExceptionCatalog.EcAll, null, On: false, WithLocation: false));
+        foreach (var e in _events) if (e.Line >= handlerLine) s._events.Add(e);
         return s;
     }
 

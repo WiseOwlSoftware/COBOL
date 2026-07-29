@@ -256,6 +256,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // comparison by the same argument category. The legacy rule: all-non-numeric ⇒ the string family.
         var resolved = sig;
         var category = sig.ResultCategory;
+        // §15.97.1 (UPPER-CASE) / §15.57.1 (LOWER-CASE) / §15.78.1 (REVERSE) result-type tables: the result category
+        // FOLLOWS the argument — a National argument yields a National result (the transform is a code-unit op on the
+        // national UTF-16 string, so the same RuntimeMethod body applies). Hardcoding Alphanumeric in the catalog
+        // mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and feeding the wrong
+        // class to comparison collation. (CA25 — mirrors the V54 MAX/MIN category resolution.)
+        if (sig.RuntimeMethod is "UpperCase" or "LowerCase" or "Reverse"
+                && args.Count > 0 && OperandCategory(args[0]) is PicCategory.National)
+            category = PicCategory.National;
         if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
         {
             resolved = sig with
@@ -266,7 +274,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     "ORD-MAX" => "OrdMaxString", _ => "OrdMinString",
                 },
             };
-            if (sig.Name is "MAX" or "MIN") category = PicCategory.Alphanumeric;
+            // §15.59.1 (MAX) / §15.63.1 (MIN) result-type table: the result category FOLLOWS the arguments — an
+            // all-national argument list yields a NATIONAL result (the selected national UTF-16 string). Hardcoding
+            // Alphanumeric mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and
+            // feeding the wrong class to comparison collation. (V54.)
+            if (sig.Name is "MAX" or "MIN")
+                category = args.All(a => OperandCategory(a) is PicCategory.National)
+                    ? PicCategory.National : PicCategory.Alphanumeric;
         }
 
         // CHAR/ORD are PCS-relative (§15.15.4 r2 / §15.70.4 r1): flag the call when a NON-identity ALPHANUMERIC
@@ -278,9 +292,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // CollateNat flag, set only under a NON-native national sequence (an ALPHABET … FOR NATIONAL literal
         // phrase — NATIVE/UCS-4 are the D-N3 code-unit identity the parameterless runtime bodies realize).
         bool nationalArg = args.Any(a => OperandCategory(a) is PicCategory.National);
-        bool collate = sig.Name is "CHAR" or "ORD" && ctx.Data.Collating is not null && !nationalArg;
+        // MAX/MIN/ORD-MAX/ORD-MIN over string arguments compare by the SAME PCS as CHAR/ORD (§15.59.4 r1 → §8.8.4.2.7
+        // alphanumeric / §8.8.4.2.9 national) — flag the STRING form (resolved above) so the backend passes __COLLATE /
+        // __COLLATE_NAT, else it silently uses the native ordinal and disagrees with the program's relation conditions. (CA23.)
+        bool maxMinStr = resolved.RuntimeMethod is "MaxString" or "MinString" or "OrdMaxString" or "OrdMinString";
+        bool collate = (sig.Name is "CHAR" or "ORD" || maxMinStr) && ctx.Data.Collating is not null && !nationalArg;
         bool collateNat = ctx.Data.NationalCollating is not null
-            && (sig.Name is "CHAR-NATIONAL" || (sig.Name is "ORD" && nationalArg));
+            && (sig.Name is "CHAR-NATIONAL" || ((sig.Name is "ORD" || maxMinStr) && nationalArg));
 
         // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
         // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§15.16, implemented — the P10

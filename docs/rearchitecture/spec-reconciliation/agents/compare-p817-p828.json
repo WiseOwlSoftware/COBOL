@@ -1,0 +1,6 @@
+{
+  "batch": [817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828],
+  "pages_checked": [817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828],
+  "note": "Batch was routed to this run as a FIGURE batch, but none of PDF pages 817-828 (printed 787-798) contains a general format / syntax skeleton. Content is 14.9.51.3 WRITE syntax rules 9)-22), 14.9.51.4 WRITE general rules 1)-42) (ALL FILES / SEQUENTIAL FILES / RELATIVE FILES / INDEXED FILES), then 15 Intrinsic functions 15.1 General, 15.2 Types of functions, 15.3 Arguments. The choice-indicator / unbalanced-delimiter / ellipsis-placement / underlining checks therefore had no figure to apply to on these pages. Prose was compared line by line against the rendered 300dpi pages; two ambiguous lines (p824 GR 41, p825 the key-suppression paragraph) were re-read at crop zoom and confirmed matching.",
+  "findings": []
+}

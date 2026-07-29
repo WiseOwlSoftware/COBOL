@@ -279,10 +279,24 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// mask order (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
+    /// <summary>The OO fatal conditions an INVOKE raises (§14.9.23.4 GR5 EC-OO-NULL, GR7b EC-OO-METHOD).
+    /// A PRECISE per-node gate, not an ambient tail one: an INVOKE is a distinguishable bound node, so the guard
+    /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
+    private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD", "EC-OO-UNIVERSAL"];
+
+    /// <summary>EC-FLOW-SEARCH (§14.9.39.4 GR31) — a capacity SET executed during a SEARCH of the same table.
+    /// PRECISE: the only statement that can raise it is the capacity SET itself.</summary>
+    private static readonly string[] FlowSearchNames = ["EC-FLOW-SEARCH"];
+
     /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
     private static readonly string[] ProgramNames =
     [
         "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
+        // §14.9.4.4 GR3b — CALL through a program-pointer holding the predefined address NULL. Membership here is
+        // what makes QueryFor(BoundCallProgram) report the CALL as checkable, so EcWrap wraps it in
+        // BoundEcChecked and CallEmitter emits the name-filtered catch. Without it the runtime raise (ProgramTable
+        // .CallPointer) has no guard to be caught by; without that raise using this name, the guard never matches.
+        "EC-PROGRAM-PTR-NULL",
     ];
 
     /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
@@ -351,6 +365,16 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundKeyedRewrite k: Query(IoNames, k.File); break;
                 case BoundKeyedDelete k: Query(IoNames, k.File); break;
                 case BoundKeyedStart k: Query(IoNames, k.File); break;
+                case BoundInvoke or BoundInvokeUniversal:
+                    Query(OoInvokeNames);   // §14.9.23.4 GR5 / GR7b
+                    break;
+                // CA37 is PRECISE: EC-FLOW-SEARCH can only arise from a capacity SET (§14.9.39.4 GR31), which is
+                // one bound node, so the guard binds exactly there. Its twin EC-BOUND-TABLE-LIMIT is NOT precise
+                // — growth also happens on IMPLICIT receiving-reference growth, which renders inline — so it
+                // takes the ambient tail gate below. The two are deliberately not merged.
+                case BoundSetCapacity:
+                    Query(FlowSearchNames);
+                    break;
                 case BoundCallProgram:
                     Query(ProgramNames);
                     Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
@@ -360,6 +384,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     break;
                 case BoundFree:
                     Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)
+                    break;
+                // EC-RANGE-PERFORM-VARYING (fatal, §14.9.28.4 GR3): a PERFORM VARYING that initializes an index-name
+                // from a non-positive FROM item raises it. Unlike the blanket ambient gates below, a PERFORM is ONE
+                // identifiable node, so a PRECISE case (not a whole-statement gate) drives the FatalAmbientGates
+                // wrapper — the emitted index-init check (ControlFlowEmitter) throws inside that try for USE-F3.
+                case BoundInlinePerform { Control: PerformVarying { CheckIndexRange: true } }:
+                case BoundOutOfLinePerform { Control: PerformVarying { CheckIndexRange: true } }:
+                    Query(["EC-RANGE-PERFORM-VARYING"]);
                     break;
             }
             // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
@@ -386,6 +418,44 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // catch never fires). A precise ContainsRefMod filter is a documented follow-on.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line))
                 enabled.Add(("EC-BOUND-REF-MOD", null));
+            // EC-DATA-PTR-NULL / EC-BOUND-PTR (fatal, §13.18.5.4 GR3/GR4) and EC-SIZE-ADDRESS (fatal, §14.9.39
+            // Format 10 GR19) ride ambient per-statement gates for the same reason EC-BOUND-REF-MOD does: a BASED
+            // dereference renders INLINE through the generated bridge property that aliases CobolPtr.Deref, so it
+            // is not one node kind that a precise QueryFor case could match. Wrapped conservatively — any
+            // statement in a checking-on region — which is harmless, because each raise fires only at an actual
+            // pointer operation and the guard around a pointer-free statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-DATA-PTR-NULL", null, line))
+                enabled.Add(("EC-DATA-PTR-NULL", null));
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-PTR", null, line))
+                enabled.Add(("EC-BOUND-PTR", null));
+            if (ctx.EcState.Turn.Enabled("EC-SIZE-ADDRESS", null, line))
+                enabled.Add(("EC-SIZE-ADDRESS", null));
+            // EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2) and EC-BOUND-ODO (§13.18.38.4 GR7) are ambient for the same
+            // reason: a subscripted reference renders inline through CobolTable.At and an ODO group extent
+            // through CobolTable.OdoExtent, neither of which is a distinguishable node kind at the statement
+            // level. The guard around a table-free statement never catches anything.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-SUBSCRIPT", null, line))
+                enabled.Add(("EC-BOUND-SUBSCRIPT", null));
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-ODO", null, line))
+                enabled.Add(("EC-BOUND-ODO", null));
+            // EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30) is ambient, unlike its CA37 twin: a dynamic table grows
+            // both from an explicit capacity SET and from an IMPLICIT receiving reference, and the latter renders
+            // inline through CobolDynTable.RefReceiving with no statement-level node of its own.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-TABLE-LIMIT", null, line))
+                enabled.Add(("EC-BOUND-TABLE-LIMIT", null));
+            // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
+            // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
+            // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float
+            // read chokepoints raises only on an actual non-finite float read, so the guard around a float-free
+            // statement is harmless. A precise "references a float sending operand" filter is a documented follow-on.
+            if (ctx.EcState.Turn.Enabled("EC-DATA-NOT-FINITE", null, line))
+                enabled.Add(("EC-DATA-NOT-FINITE", null));
+            // EC-DATA-OVERFLOW (fatal, §14.9.25.4 GR4 step 4a) is MOVE-only: a MOVE whose finite algebraic value
+            // overflows a single-precision float receiver to ±Inf. A precise "has a single-float receiver" filter is
+            // a documented follow-on (like the ContainsRefMod note); MOVE CORRESPONDING expands to BoundMove steps
+            // which this sees through the BoundSequence recursion.
+            if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-OVERFLOW", null, line))
+                enabled.Add(("EC-DATA-OVERFLOW", null));
         }
         QueryFor(bound);
 

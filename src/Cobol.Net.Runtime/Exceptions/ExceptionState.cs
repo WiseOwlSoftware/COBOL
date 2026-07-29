@@ -161,6 +161,34 @@ public sealed class ExceptionEngine
         return false;
     }
 
+    // ── The ambient checking flags, and GR14's PUSH ALL / TURN OFF ALL / POP ALL ──────────────────────────────
+
+    /// <summary>Every ambient <c>…Checking</c> flag as ONE value — see <see cref="CheckingFlags"/> for why this
+    /// is a struct and not loose fields. The public properties below delegate to it, so generated code and every
+    /// runtime raise site are unaffected by the storage shape.</summary>
+    private CheckingFlags _checking;
+
+    /// <summary>The §14.9.28.4 GR14 <b>implicit PUSH ALL followed by TURN OFF ALL</b>: return the current ambient
+    /// checking state and disable ALL of it. Pair with <see cref="PopAllChecking"/> in a <c>finally</c>.
+    ///
+    /// <para>An exception-checking PERFORM takes this at the END of imperative-statement-1 and restores it
+    /// "immediately preceding the END PERFORM phrase", so imp-2/3/4 (WHEN / OTHER / COMMON) and imp-5 (FINALLY)
+    /// all run with NO checking enabled — §14.6.13.1.1: "if checking for an exception that occurs is not enabled,
+    /// no exception condition is raised". This has to happen at RUNTIME, not only in the binder: the ambient
+    /// gates are set by the guard around the RAISING statement, and a handler is dispatched from inside that
+    /// guard, before its <c>finally</c> clears them — so binding a handler body under a disabled TurnState
+    /// removes the handler's OWN guard but leaves the raiser's flags standing.</para></summary>
+    public CheckingFlags PushAllCheckingOff()
+    {
+        var saved = _checking;
+        _checking = default;   // TURN OFF ALL — every flag, including any added after this was written
+        return saved;
+    }
+
+    /// <summary>The GR14 <b>implicit POP ALL</b>: restore the ambient checking state taken by
+    /// <see cref="PushAllCheckingOff"/>.</summary>
+    public void PopAllChecking(CheckingFlags saved) => _checking = saved;
+
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
 
     /// <summary>True while the currently-executing statement has EC-ARGUMENT-FUNCTION checking enabled (set and
@@ -169,7 +197,11 @@ public sealed class ExceptionEngine
     /// clear, the default result stands (§14.6.13.1.4). Ambient (not a per-call argument) because intrinsic
     /// calls render inline inside arbitrary expressions — threading a mask through every runtime signature would
     /// fork each intrinsic into checked/unchecked twins. Run-unit-scoped since P8 (was process-global).</summary>
-    public bool ArgumentFunctionChecking { get; set; }
+    public bool ArgumentFunctionChecking
+    {
+        get => _checking.ArgumentFunction;
+        set => _checking.ArgumentFunction = value;
+    }
 
     /// <summary>Raise EC-ARGUMENT-FUNCTION for an intrinsic argument/domain error when checking is enabled
     /// (Table 13: Fatal — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for USE F3
@@ -189,7 +221,11 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-DATA-CONVERSION checking enabled (the
     /// nonfatal twin of <see cref="ArgumentFunctionChecking"/>).</summary>
-    public bool DataConversionChecking { get; set; }
+    public bool DataConversionChecking
+    {
+        get => _checking.DataConversion;
+        set => _checking.DataConversion = value;
+    }
 
     /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§15.19.4 r1/r3)
     /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§15.26.4 r3 / §15.66.4 r3). Nonfatal
@@ -205,7 +241,11 @@ public sealed class ExceptionEngine
     /// <summary>True while the currently-executing statement has EC-BOUND-OVERFLOW checking enabled (the
     /// nonfatal twin of <see cref="DataConversionChecking"/>). A dynamic-capacity table's implicit growth past
     /// its expected (TO) capacity consults it.</summary>
-    public bool BoundOverflowChecking { get; set; }
+    public bool BoundOverflowChecking
+    {
+        get => _checking.BoundOverflow;
+        set => _checking.BoundOverflow = value;
+    }
 
     /// <summary>Record EC-BOUND-OVERFLOW when a dynamic-capacity table's implicit growth (a receiving subscript)
     /// first exceeds its expected capacity (§8.5.1.9.6 GR1 — the FIRST crossing only; an already-exceeded
@@ -220,11 +260,16 @@ public sealed class ExceptionEngine
 
     /// <summary>True while the currently-executing statement has EC-BOUND-REF-MOD checking enabled (the fatal
     /// twin of <see cref="ArgumentFunctionChecking"/>). Reference-modification evaluation sites consult it.</summary>
-    public bool BoundRefModChecking { get; set; }
+    public bool BoundRefModChecking
+    {
+        get => _checking.BoundRefMod;
+        set => _checking.BoundRefMod = value;
+    }
 
     /// <summary>Raise EC-BOUND-REF-MOD for a reference-modification whose leftmost-position or length is out of
-    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a leftmost &lt; 1, or a
-    /// position outside the data item (ISO §8.4.2.3 c / the GR at spec :7089; Table 13 Fatal). When checking is
+    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a specified negative
+    /// length (never relaxable, review C14), a leftmost &lt; 1, or a position outside the data item (ISO §8.4.3.3.4
+    /// item 5b/5c, spec :7085-7089; Table 13 Fatal). When checking is
     /// enabled it throws <see cref="CobolFatalException"/> (caught by the statement guard for USE F3 dispatch, else
     /// terminating the run unit per §14.6.13.1.3 #5/#7); when checking is OFF it returns and the caller's lenient
     /// clamp/space-pad default stands (byte-identical to a pre-slice build).</summary>
@@ -234,6 +279,253 @@ public sealed class ExceptionEngine
         {
             Set("EC-BOUND-REF-MOD", fatal: true);
             throw new CobolFatalException("EC-BOUND-REF-MOD", detail);
+        }
+    }
+
+    // ── The pointer fatal ECs (CA9): EC-DATA-PTR-NULL / EC-BOUND-PTR / EC-SIZE-ADDRESS ────────────────────────
+    //
+    // ⛔ CHECKING-OFF IS NOT UNIFORM ACROSS THESE THREE, and the split is the owner's decided rule (2026-07-28):
+    // LENIENT wherever the standard NAMES the outcome, LOUD ABORT wherever it names none.
+    //   · SET pointer UP/DOWN BY — §14.9.39 Format 10 GR19 names it: "the execution of the SET statement is
+    //     unsuccessful, and the content of identifier-9 is unchanged". So with checking off these RETURN and the
+    //     caller leaves the operand alone.
+    //   · A DEREFERENCE — §13.18.5.4 GR3/GR4 name NO outcome, and `CobolPtr.Deref` must return a StorageCell, so
+    //     "lenient" there would mean fabricating a cell and continuing on garbage. It keeps its unconditional
+    //     throw. A five-compiler survey (GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL, NetCOBOL) found
+    //     every one of them hard-stops a null dereference; "checking off" nowhere means lenient, it means
+    //     UNGUARDED, and only our managed StorageCell makes leniency reachable at all.
+
+    /// <summary>True while the currently-executing statement has EC-DATA-PTR-NULL checking enabled (fatal).</summary>
+    public bool DataPtrNullChecking
+    {
+        get => _checking.DataPtrNull;
+        set => _checking.DataPtrNull = value;
+    }
+
+    /// <summary>Raise EC-DATA-PTR-NULL (§13.18.5.4 GR3 / §14.9.39 Format 10 GR18; Table 13 Fatal) when checking
+    /// is enabled. When it is OFF this RETURNS and the caller applies GR19's unchanged-operand outcome — used by
+    /// the SET UP/DOWN BY sites only; a dereference never routes through here (see the note above).</summary>
+    public void DataPtrNullError(string detail)
+    {
+        if (DataPtrNullChecking)
+        {
+            Set("EC-DATA-PTR-NULL", fatal: true);
+            throw new CobolFatalException("EC-DATA-PTR-NULL", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-PTR checking enabled (fatal).</summary>
+    public bool BoundPtrChecking
+    {
+        get => _checking.BoundPtr;
+        set => _checking.BoundPtr = value;
+    }
+
+    /// <summary>Raise EC-BOUND-PTR (§13.18.5.4 GR4; Table 13 Fatal) when checking is enabled; otherwise return
+    /// and let the caller apply its unchanged-operand outcome.</summary>
+    public void BoundPtrError(string detail)
+    {
+        if (BoundPtrChecking)
+        {
+            Set("EC-BOUND-PTR", fatal: true);
+            throw new CobolFatalException("EC-BOUND-PTR", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-SIZE-ADDRESS checking enabled (fatal).</summary>
+    public bool SizeAddressChecking
+    {
+        get => _checking.SizeAddress;
+        set => _checking.SizeAddress = value;
+    }
+
+    /// <summary>Raise EC-SIZE-ADDRESS for a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19;
+    /// Table 13 Fatal) when checking is enabled; otherwise return, and GR19's "the execution of the SET statement
+    /// is unsuccessful, and the content of identifier-9 is unchanged" stands.</summary>
+    public void SizeAddressError(string detail)
+    {
+        if (SizeAddressChecking)
+        {
+            Set("EC-SIZE-ADDRESS", fatal: true);
+            throw new CobolFatalException("EC-SIZE-ADDRESS", detail);
+        }
+    }
+
+    // ── The table-bound fatal ECs (CA10): EC-BOUND-SUBSCRIPT / EC-BOUND-ODO ───────────────────────────────────
+    // Checking-OFF stays LENIENT for both, per the owner's rule, and here the standard supplies the outcome to
+    // be lenient WITH: §13.18.38.4 GR7 ends "The content of a data item whose occurrence number exceeds the
+    // value of the data item referenced by data-name-1 is undefined", so the existing scratch-slot read and the
+    // [0,max] clamp are conforming implementor choices. Only the NAMED condition is new.
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-SUBSCRIPT checking enabled (fatal).</summary>
+    public bool BoundSubscriptChecking
+    {
+        get => _checking.BoundSubscript;
+        set => _checking.BoundSubscript = value;
+    }
+
+    /// <summary>Raise EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2: "If the value of the subscript is not a positive
+    /// integer or is less than one or is greater than the highest permissible occurrence number, the
+    /// EC-BOUND-SUBSCRIPT exception condition is set to exist"; Table 13 Fatal) when checking is enabled;
+    /// otherwise return and the caller's scratch-slot read stands, byte-identical to a pre-EC build.</summary>
+    public void SubscriptError(string detail)
+    {
+        if (BoundSubscriptChecking)
+        {
+            Set("EC-BOUND-SUBSCRIPT", fatal: true);
+            throw new CobolFatalException("EC-BOUND-SUBSCRIPT", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-ODO checking enabled (fatal).</summary>
+    public bool BoundOdoChecking
+    {
+        get => _checking.BoundOdo;
+        set => _checking.BoundOdo = value;
+    }
+
+    /// <summary>Raise EC-BOUND-ODO (§13.18.38.4 GR7: the value of the data item referenced by data-name-1
+    /// "shall fall within the bounds from integer-1 through integer-2"; Table 13 Fatal) when checking is
+    /// enabled; otherwise return and the caller's clamp stands.</summary>
+    public void OdoError(string detail)
+    {
+        if (BoundOdoChecking)
+        {
+            Set("EC-BOUND-ODO", fatal: true);
+            throw new CobolFatalException("EC-BOUND-ODO", detail);
+        }
+    }
+
+    // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
+
+    /// <summary>True while the currently-executing INVOKE has EC-OO-UNIVERSAL checking enabled in the ACTIVATING
+    /// runtime element. §14.9.23.4 GR7c sets the condition only "if checking for it is enabled in BOTH the
+    /// activated method and the activating runtime element", and the two halves are known in different places:
+    /// this flag carries the activator's, set by the emitted statement guard around the INVOKE and read by the
+    /// callee's generated <c>__CobolInvoke</c>, which runs synchronously on the same run unit. The method's half
+    /// cannot be a flag at all — it is a property of the CALLEE's source, so it is folded at bind time and baked
+    /// as a compile-time literal per emitted method.</summary>
+    public bool OoUniversalChecking
+    {
+        get => _checking.OoUniversal;
+        set => _checking.OoUniversal = value;
+    }
+
+    // ── The dynamic-table fatal ECs (CA37/CA38): EC-FLOW-SEARCH / EC-BOUND-TABLE-LIMIT ─────────────────
+    //
+    // Both are LENIENT with checking off, and unusually the standard states the lenient outcome outright, which
+    // is what makes the owner's rule easy here: §14.9.39.4 GR31 ends "and the SET statement is not executed",
+    // GR30 "and the capacity of the table is unchanged". So with checking off these helpers RETURN and the
+    // caller performs neither the SET nor the growth — a behaviour change from the previous UNCONDITIONAL throw,
+    // and the one the standard describes.
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-SEARCH checking enabled (fatal).</summary>
+    public bool FlowSearchChecking
+    {
+        get => _checking.FlowSearch;
+        set => _checking.FlowSearch = value;
+    }
+
+    /// <summary>Raise EC-FLOW-SEARCH (§14.9.39.4 GR31; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the caller leaves the SET unexecuted exactly as GR31 requires.</summary>
+    public void FlowSearchError(string detail)
+    {
+        if (FlowSearchChecking)
+        {
+            Set("EC-FLOW-SEARCH", fatal: true);
+            throw new CobolFatalException("EC-FLOW-SEARCH", detail);
+        }
+    }
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-TABLE-LIMIT checking enabled (fatal).</summary>
+    public bool BoundTableLimitChecking
+    {
+        get => _checking.BoundTableLimit;
+        set => _checking.BoundTableLimit = value;
+    }
+
+    /// <summary>Raise EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the caller leaves the capacity unchanged exactly as GR30 requires.</summary>
+    public void BoundTableLimitError(string detail)
+    {
+        if (BoundTableLimitChecking)
+        {
+            Set("EC-BOUND-TABLE-LIMIT", fatal: true);
+            throw new CobolFatalException("EC-BOUND-TABLE-LIMIT", detail);
+        }
+    }
+
+    // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
+
+    /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
+    /// The PERFORM VARYING index-name initialization site consults it.</summary>
+    public bool PerformVaryingChecking
+    {
+        get => _checking.PerformVarying;
+        set => _checking.PerformVarying = value;
+    }
+
+    /// <summary>Raise EC-RANGE-PERFORM-VARYING when a PERFORM VARYING (or AFTER) initializes an INDEX-NAME from a
+    /// data-item FROM operand whose value is NOT POSITIVE (&lt;= 0) at the time of initialization (ISO §14.9.28.4 GR3,
+    /// spec :29222; Table 13 Fatal). The <paramref name="value"/> is the DATA ITEM's value (GR3 tests the data item,
+    /// not the post-conversion index). Same fatal throw/dispatch contract as <see cref="RefModError"/>.</summary>
+    public void PerformVaryingIndexError(long value, string detail)
+    {
+        if (PerformVaryingChecking && value <= 0)
+        {
+            Set("EC-RANGE-PERFORM-VARYING", fatal: true);
+            throw new CobolFatalException("EC-RANGE-PERFORM-VARYING", detail);
+        }
+    }
+
+    // ── EC-DATA-NOT-FINITE ambient statement gate (a non-finite standard-float sending operand referenced) ──────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-NOT-FINITE checking enabled (fatal, the twin
+    /// of <see cref="BoundRefModChecking"/>). Every non-exempt read of a standard-float SENDING operand consults it —
+    /// the always-emitted <see cref="CobolFloat.Sending(double)"/> wrap at both float read chokepoints.</summary>
+    public bool FloatNotFiniteChecking
+    {
+        get => _checking.FloatNotFinite;
+        set => _checking.FloatNotFinite = value;
+    }
+
+    /// <summary>Raise EC-DATA-NOT-FINITE when a standard-float sending operand whose content is NaN or ±Infinity is
+    /// referenced (ISO §14.6.13.2 item 3, spec :24571; Table 13 Fatal), unless one of the four exemptions applies
+    /// (class condition, sign condition, same-usage MOVE, VALIDATE — realized as a raw, unwrapped read at those sites,
+    /// so this raise never reaches them). When checking is enabled it throws <see cref="CobolFatalException"/> (caught
+    /// by the statement guard for USE F3 dispatch, else terminating the run unit per §14.6.13.1.3 #5/#7); when checking
+    /// is OFF it returns and the caller's value stands (byte-identical to a pre-slice build).</summary>
+    public void FloatNotFiniteError(string detail)
+    {
+        if (FloatNotFiniteChecking)
+        {
+            Set("EC-DATA-NOT-FINITE", fatal: true);
+            throw new CobolFatalException("EC-DATA-NOT-FINITE", detail);
+        }
+    }
+
+    // ── EC-DATA-OVERFLOW ambient statement gate (a MOVE algebraic value overflows a standard-float receiver) ─────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-OVERFLOW checking enabled (fatal). Only a
+    /// MOVE into a single-precision standard-float receiver consults it — the <see cref="CobolFloat.StoreSingleChecked"/>
+    /// store site (§14.9.25.4 GR4 step 4a is MOVE-only).</summary>
+    public bool FloatOverflowChecking
+    {
+        get => _checking.FloatOverflow;
+        set => _checking.FloatOverflow = value;
+    }
+
+    /// <summary>Raise EC-DATA-OVERFLOW when a MOVE's finite sending algebraic value is farther from zero than the
+    /// standard-float receiver's usage can represent — an exponent overflow to ±Infinity (ISO §14.9.25.4 GR4 step 4a,
+    /// spec :28634; Table 13 Fatal). Distinct from an arithmetic ±Inf result (a valid §14.6.8.3 GR1 value, never this
+    /// EC) and from a NaN/±Inf SOURCE (that is EC-DATA-NOT-FINITE). Same fatal throw/dispatch contract as
+    /// <see cref="FloatNotFiniteError"/>.</summary>
+    public void FloatOverflowError(string detail)
+    {
+        if (FloatOverflowChecking)
+        {
+            Set("EC-DATA-OVERFLOW", fatal: true);
+            throw new CobolFatalException("EC-DATA-OVERFLOW", detail);
         }
     }
 
@@ -277,6 +569,21 @@ public sealed class ExceptionEngine
     /// is that a called program's raise is not intercepted by the caller's frame).</summary>
     internal void TrimPerformTo(int depth) { while (_perform.Count > depth) _perform.RemoveAt(_perform.Count - 1); }
 
+    /// <summary>The activation FLOOR — <see cref="RunTopFrame"/> never walks BELOW it. Zero by default (a program's
+    /// whole stack is visible — byte-identical behaviour). An OO method is a separate source element (ISO §14.9.18.3
+    /// SR2/SR4a): on entry an F3 method RAISES the floor to the current depth so its own unmatched raises are NOT
+    /// intercepted by the ACTIVATOR's WHEN (design SSOT §9.10.1-C2 — ECs cross a method boundary only via GOBACK/EXIT
+    /// … RAISING). Nests via the saved/restored old floor. The cross-CALL/INVOKE "in range" reading stays staged.</summary>
+    private int _floor;
+
+    /// <summary>Raise the frame-stack floor to the current depth (an F3-method entry), returning the previous floor
+    /// for a later <see cref="RestorePerformFloor"/>. Below this, <see cref="RunTopFrame"/> does not walk.</summary>
+    public int RaisePerformFloor() { int old = _floor; _floor = _perform.Count; return old; }
+
+    /// <summary>Restore the frame-stack floor to a value captured by <see cref="RaisePerformFloor"/> (the F3-method
+    /// exit — paired in a generated <c>finally</c> so any unwind still balances).</summary>
+    public void RestorePerformFloor(int floor) => _floor = floor;
+
     /// <summary>Select and run the innermost matching WHEN handler of an active exception-checking PERFORM
     /// (ISO §14.9.28.4 GR17 — the closest PERFORM whose imperative-statement-1 is executing; GR18 WHEN OTHER;
     /// GR21 — a frame is transparent to exception conditions raised while it is handling). Walks the stack
@@ -293,7 +600,7 @@ public sealed class ExceptionEngine
         var marked = new List<PerformFrame>(4);   // per-raise (the EC path is rare); re-entrancy-safe
         try
         {
-            for (int i = _perform.Count - 1; i >= 0; i--)   // innermost → outermost
+            for (int i = _perform.Count - 1; i >= _floor; i--)   // innermost → the activation floor (§9.10.1-C2)
             {
                 var f = _perform[i];
                 if (f.Handling) continue;                   // GR21 — its own imp-1/handler is transparent
@@ -374,6 +681,89 @@ public static class ExceptionState
     /// <inheritdoc cref="ExceptionEngine.TakePropagated"/>
     public static bool TakePropagated(out string name, out bool fatal) => E.TakePropagated(out name, out fatal);
 
+    /// <inheritdoc cref="ExceptionEngine.DataPtrNullChecking"/>
+    public static bool DataPtrNullChecking
+    {
+        get => E.DataPtrNullChecking;
+        set => E.DataPtrNullChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.DataPtrNullError"/>
+    public static void DataPtrNullError(string detail) => E.DataPtrNullError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundPtrChecking"/>
+    public static bool BoundPtrChecking
+    {
+        get => E.BoundPtrChecking;
+        set => E.BoundPtrChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundPtrError"/>
+    public static void BoundPtrError(string detail) => E.BoundPtrError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SizeAddressChecking"/>
+    public static bool SizeAddressChecking
+    {
+        get => E.SizeAddressChecking;
+        set => E.SizeAddressChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
+    public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundSubscriptChecking"/>
+    public static bool BoundSubscriptChecking
+    {
+        get => E.BoundSubscriptChecking;
+        set => E.BoundSubscriptChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SubscriptError"/>
+    public static void SubscriptError(string detail) => E.SubscriptError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOdoChecking"/>
+    public static bool BoundOdoChecking
+    {
+        get => E.BoundOdoChecking;
+        set => E.BoundOdoChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.OdoError"/>
+    public static void OdoError(string detail) => E.OdoError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.OoUniversalChecking"/>
+    public static bool OoUniversalChecking
+    {
+        get => E.OoUniversalChecking;
+        set => E.OoUniversalChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowSearchChecking"/>
+    public static bool FlowSearchChecking
+    {
+        get => E.FlowSearchChecking;
+        set => E.FlowSearchChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowSearchError"/>
+    public static void FlowSearchError(string detail) => E.FlowSearchError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundTableLimitChecking"/>
+    public static bool BoundTableLimitChecking
+    {
+        get => E.BoundTableLimitChecking;
+        set => E.BoundTableLimitChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundTableLimitError"/>
+    public static void BoundTableLimitError(string detail) => E.BoundTableLimitError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
+    public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();
+
+    /// <inheritdoc cref="ExceptionEngine.PopAllChecking"/>
+    public static void PopAllChecking(CheckingFlags saved) => E.PopAllChecking(saved);
+
     /// <inheritdoc cref="ExceptionEngine.ArgumentFunctionChecking"/>
     public static bool ArgumentFunctionChecking
     {
@@ -414,6 +804,36 @@ public static class ExceptionState
     /// <inheritdoc cref="ExceptionEngine.RefModError"/>
     public static void RefModError(string detail) => E.RefModError(detail);
 
+    /// <inheritdoc cref="ExceptionEngine.PerformVaryingChecking"/>
+    public static bool PerformVaryingChecking
+    {
+        get => E.PerformVaryingChecking;
+        set => E.PerformVaryingChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.PerformVaryingIndexError"/>
+    public static void PerformVaryingIndexError(long value, string detail) => E.PerformVaryingIndexError(value, detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteChecking"/>
+    public static bool FloatNotFiniteChecking
+    {
+        get => E.FloatNotFiniteChecking;
+        set => E.FloatNotFiniteChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteError"/>
+    public static void FloatNotFiniteError(string detail) => E.FloatNotFiniteError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FloatOverflowChecking"/>
+    public static bool FloatOverflowChecking
+    {
+        get => E.FloatOverflowChecking;
+        set => E.FloatOverflowChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FloatOverflowError"/>
+    public static void FloatOverflowError(string detail) => E.FloatOverflowError(detail);
+
     /// <inheritdoc cref="ExceptionEngine.ExternalCheckMask"/>
     public static int ExternalCheckMask
     {
@@ -436,4 +856,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.RunTopFrame"/>
     public static int RunTopFrame(string ec, string? file, out bool handled) => E.RunTopFrame(ec, file, out handled);
+
+    /// <inheritdoc cref="ExceptionEngine.PerformDepth"/>
+    public static int PerformDepth => E.PerformDepth;
+
+    /// <inheritdoc cref="ExceptionEngine.TrimPerformTo"/>
+    public static void TrimPerformTo(int depth) => E.TrimPerformTo(depth);
+
+    /// <inheritdoc cref="ExceptionEngine.RaisePerformFloor"/>
+    public static int RaisePerformFloor() => E.RaisePerformFloor();
+
+    /// <inheritdoc cref="ExceptionEngine.RestorePerformFloor"/>
+    public static void RestorePerformFloor(int floor) => E.RestorePerformFloor(floor);
 }

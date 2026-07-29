@@ -42,17 +42,21 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    long __n0 = 3;
-                    for (long __i0 = 0; __i0 < __n0; __i0++)
+                    long __n1 = 3;
+                    for (long __i1 = 0; __i1 < __n1; __i1++)
                     {
                         T = (long)(CobolNum.Store(((Int128)(T) + (1L)), 0, _P_1, CobolRounding.Truncation));
+                        __pcont0: ;
                     }
+                    __pexit0: ;
                     I = (long)(CobolNum.Store(1L, 0, _P_0, CobolRounding.Truncation));
                     while (!(I > 5L))
                     {
                         T = (long)(CobolNum.Store(((Int128)(T) + (I)), 0, _P_1, CobolRounding.Truncation));
+                        __pcont2: ;
                         I = (long)(CobolNum.Store(((Int128)(I) + (1L)), 0, _P_0, CobolRounding.Truncation));
                     }
+                    __pexit2: ;
                     __Dispatch(1, 1);
                     System.Console.WriteLine(CobolNum.FormatDisplay(T, _P_1));
                     throw new StopRun();

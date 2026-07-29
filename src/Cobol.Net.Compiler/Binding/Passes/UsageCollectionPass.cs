@@ -202,6 +202,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundGoTo n) => false;
         public bool Visit(BoundGoToAlterable n) => false;
         public bool Visit(BoundExitParagraph n) => false;
+        public bool Visit(BoundExitSection n) => false;
         public bool Visit(BoundExitPerform n) => false;
         public bool Visit(BoundExitProgram n) => false;
         public bool Visit(BoundNop n) => false;
@@ -240,6 +241,7 @@ internal static class UsageCollectionPass
             switch (a)
             {
                 case InitializeStore x: P(x.Target); Op(x.Source); break;
+                case InitializeSetNull x: P(x.Target); break;
                 case InitializeLoop x: foreach (var b in x.Body) InitAct(b); break;
                 case InitializeDynLoop x: foreach (var b in x.Body) InitAct(b); break;
                 default: break;

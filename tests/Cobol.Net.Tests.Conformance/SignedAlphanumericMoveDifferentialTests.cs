@@ -11,6 +11,11 @@ namespace CobolNet.Tests.Conformance;
 /// zoned/overpunch image. A numeric-vs-alphanumeric comparison follows the same rule (§8.8.4.2.5 treats the numeric as
 /// moved to an alphanumeric item). DISPLAY is unaffected — it shows the sign-aware image. Each result is derived from
 /// the spec, then cross-checked against the legacy oracle.
+///
+/// <para>EXCEPTION — a GROUP receiver: GR6a's sign-drop applies only to a valid ELEMENTARY move (GR6), and a group
+/// receiver makes the move NON-elementary (§14.9.25.4 GR4 ¶1). GR4 then bars any internal-representation conversion,
+/// so the overpunch sign is PRESERVED (see <see cref="SignedToAlphanumericGroup_SignPreserved"/>) — do not conflate
+/// the group case with the elementary-receiver de-sign.</para>
 /// </summary>
 public sealed class SignedAlphanumericMoveDifferentialTests
 {
@@ -83,16 +88,19 @@ public sealed class SignedAlphanumericMoveDifferentialTests
             "    IF SN = \"05\" DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF."), "EQ");
 
     [Fact]
-    // ISO §8.8.4.1: an alphanumeric GROUP receiver is treated as an elementary alphanumeric item, so a signed numeric
-    // source also drops its sign moving into a group (§14.9.25.4 GR6a) — the EmitGroupMove de-sign gap (DEVLOG 516).
-    // S9(3) -45 → "045". SPEC-ONLY: the legacy oracle is non-conformant for a group receiver — it copies the raw
-    // overpunch image ("04N") rather than de-signing (cf. the DISPLAY trailing-trim precedent in feedback_use_the_spec).
-    // INVESTIGATED version-invariant (DEVLOG 517): same MOVE de-sign rule the COBOL-85 corpus already exercises
-    // (NC114M MOVE-TEST-16/17), with §8.8.4.1 (group = elementary alphanumeric) unchanged across editions → pin-to-spec
-    // for ALL dialects (feedback_version_targeted_semantics / docs/VERSION_CHANGE_REFERENCE.md).
-    public void SignedToAlphanumericGroup_DeSigned()
+    // ISO §14.9.25.4 GR4: a GROUP receiver makes the move NON-elementary (GR4 ¶1 — an elementary move needs an
+    // elementary RECEIVER), so it is "treated as an alphanumeric to alphanumeric elementary move, EXCEPT that there is
+    // no conversion of data from one form of internal representation to another" (spec line 28569). GR6a's operational-
+    // sign drop is scoped to GR6's "valid elementary moves" (line 28573/28586) and therefore does NOT apply — dropping
+    // an overpunch (byte 'N' → '5') is exactly the representation conversion GR4 bars. So S9(3) -45 copies its DISPLAY
+    // overpunch image verbatim → "04N". CORRECTED 2026-07-22 (CA28, DEVLOG 998): this test previously pinned "045" on a
+    // MISREAD — it applied §8.8.4.1 (a RELATION-CONDITION rule, "a group compares as elementary alphanumeric") to MOVE,
+    // where §14.9.25.4 GR4 governs. The legacy oracle's "04N" (once mislabelled non-conformant) is in fact the
+    // SPEC-CORRECT value. The elementary-receiver de-sign (SignedToAlphanumeric_NegativeMagnitude → "123") stays
+    // correct — GR6a DOES apply there. Version-invariant (GR4 unchanged across editions).
+    public void SignedToAlphanumericGroup_SignPreserved()
         => AssertSpecOnly(Program("01 SN PIC S9(3) VALUE -45.\n01 GRP.\n   05 G1 PIC X(3).",
-            "    MOVE SN TO GRP.\n    DISPLAY \"R=\" GRP."), "R=045");
+            "    MOVE SN TO GRP.\n    DISPLAY \"R=\" GRP."), "R=04N");
 
     [Fact]
     // A signed numeric that is the CANONICAL of a REDEFINES is stored as its sign-aware character image and read

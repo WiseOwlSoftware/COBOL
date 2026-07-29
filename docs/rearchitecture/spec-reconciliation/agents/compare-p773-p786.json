@@ -1,0 +1,33 @@
+{
+  "batch": [773, 774, 776, 777, 778, 779, 780, 781, 782, 783, 785, 786],
+  "pages_checked": [773, 774, 776, 777, 778, 779, 780, 781, 782, 783, 785, 786],
+  "findings": [
+    {
+      "page": 776,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "SORT Format 2 (table), COLLATING SEQUENCE clause. The printed figure is an outer BRACKET containing 'COLLATING SEQUENCE' followed by a BRACE with two alternatives:  alternative 1 = 'IS alphabet-name-1 [ alphabet-name-2 ]';  alternative 2 = an inner BRACE WITH CHOICE INDICATORS, i.e. a vertical bar just inside each side of the inner brace, spanning the two lines 'FOR ALPHANUMERIC IS alphabet-name-1' and 'FOR NATIONAL IS alphabet-name-2'. Rendered linearly:  [ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]  |  { | FOR ALPHANUMERIC IS alphabet-name-1 | / | FOR NATIONAL IS alphabet-name-2 | } } ]",
+      "markdown_says": "```\nSORT data-name-2 [ ON { ASCENDING  } KEY [ data-name-1 ] … ] …\n                       { DESCENDING }\n\n    [ WITH DUPLICATES IN ORDER ]\n\n  [ COLLATING SEQUENCE { { IS alphabet-name-1 [ alphabet-name-2 ]          } } ]\n                       { { FOR ALPHANUMERIC IS alphabet-name-1             } }\n                       { { FOR NATIONAL IS alphabet-name-2                 } }\n```",
+      "why_it_matters": "Two separate losses, both toward falsely-restrictive syntax. (1) The choice-indicator bars just inside the inner brace are gone; per 5.2.6.4 those bars mean the enclosed alternatives may each be specified at most once, in any order, so 'FOR ALPHANUMERIC IS alphabet-name-1' and 'FOR NATIONAL IS alphabet-name-2' may BOTH appear. Without the bars the markdown reads as select-exactly-one, making a legal table SORT that sets both an alphanumeric and a national collating sequence look illegal. (2) The nesting is garbled: 'IS alphabet-name-1 [ alphabet-name-2 ]' is shown inside the same inner brace as the two FOR lines, whereas the PDF makes it a sibling ALTERNATIVE to the whole bar-group. The identical construct in SORT Format 1 (page 775) has already been repaired in the markdown with box-drawing brackets plus a 'Figure notes (SORT Format 1)' paragraph; Format 2 was left unrepaired, so the two general formats of the same statement now contradict each other.",
+      "suggested_repair": "Replace the Format 2 code fence with the same convention already used for Format 1 at page 775, e.g.\n\n```\nSORT data-name-2 ⎡ ON ⎧ ASCENDING  ⎫ KEY [ data-name-1 ] … ⎤ …\n                 ⎣    ⎩ DESCENDING ⎭                       ⎦\n\n    [ WITH DUPLICATES IN ORDER ]\n\n⎡                      ⎧  IS alphabet-name-1 [ alphabet-name-2 ]     ⎫ ⎤\n⎢ COLLATING SEQUENCE   ⎨ ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫   ⎬ ⎥\n⎣                      ⎩ ⎩| FOR NATIONAL IS alphabet-name-2     |⎭   ⎭ ⎦\n```\n\nand add a 'Figure notes (SORT Format 2)' paragraph mirroring the one at page 775: the bar-group is a brace WITH choice indicators (5.2.6.4) so both FOR phrases may be specified in any order; it is one alternative of the enclosing brace, the other being the single-line 'IS alphabet-name-1 [ alphabet-name-2 ]' form; the whole COLLATING SEQUENCE clause is optional; required words underlined in the printed figure are SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL."
+    },
+    {
+      "page": 776,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.40.3   Syntax rules   (printed bold, the same heading style/level as 14.9.40.1 General, 14.9.40.2 General formats and 14.9.41.4 General rules)",
+      "markdown_says": "<a id=\"section-14-9-40-3\"></a>\n## 14.9.40.3 Syntax rules",
+      "why_it_matters": "A fourth-level clause is transcribed at markdown level 2, the same level as its own parent '## 14.9.40 SORT statement', so in the generated outline 14.9.40.3 becomes a sibling of 14.9.40 rather than a child of it. Its own siblings are inconsistent: 14.9.40.1 and 14.9.40.2 are '###', and every corresponding heading in the neighbouring START clause (14.9.41.1 through 14.9.41.4) is '###'. Section-navigation and any anchor/TOC generation built on heading depth mis-nest this clause.",
+      "suggested_repair": "Demote to '### 14.9.40.3 Syntax rules' to match 14.9.40.1, 14.9.40.2 and the whole 14.9.41.x subtree."
+    },
+    {
+      "page": 778,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.40.4   General rules   (printed bold, the same heading style/level as 14.9.41.4 General rules on page 785)",
+      "markdown_says": "<a id=\"section-14-9-40-4\"></a>\n## 14.9.40.4 General rules",
+      "why_it_matters": "Same defect as 14.9.40.3: the clause is transcribed at markdown level 2, level with its parent '## 14.9.40 SORT statement', while the identically-ranked '### 14.9.41.4 General rules' (page 785) is level 3. The SORT clause's general rules therefore fall outside the SORT section in any outline built from heading depth.",
+      "suggested_repair": "Demote to '### 14.9.40.4 General rules'."
+    }
+  ]
+}

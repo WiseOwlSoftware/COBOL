@@ -639,6 +639,12 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitFunctionWindow, "the EXIT FUNCTION statement");
             else if (ctx.PROGRAM() is not null)
                 _p.Check(Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
+            else if (ctx.SECTION() is not null)   // §14.9.14 Format 4 — a COBOL-2002 structured-exit introduction
+                _p.Check(Constructs.ExitSection2002, "the EXIT SECTION statement");
+            else if (ctx.PARAGRAPH() is not null)   // §14.9.14.2 Format 4 — the COBOL-2002 EXIT PARAGRAPH twin of EXIT SECTION
+                _p.Check(Constructs.ExitParagraph2002, "the EXIT PARAGRAPH statement");
+            else if (ctx.PERFORM() is not null)     // §14.9.14.2 Format 3 — EXIT PERFORM [CYCLE], a COBOL-2002 structured exit
+                _p.Check(Constructs.ExitPerform2002, "the EXIT PERFORM statement");
             return base.VisitChildren(ctx);
         }
 
@@ -1280,7 +1286,9 @@ internal sealed class VersionConformancePass
         // the ExceptionCatalog EC-name windows, the PictureAnalyzer symbol rows, the digit caps) STAY binder-side
         // by design — their version facts live in their own tables, not in constructs.json — as do the two
         // sanctioned BEHAVIORAL edition reads (the <2002 keyword-omitted FUNCTION routing, the ≥2002 MOVE CORR
-        // pair-selection window) and the owner-disposition SYNCHRONIZED-on-group site (sync-on-group-2023).
+        // pair-selection window) and the SYNCHRONIZED-on-group site (sync-on-group-2023 — bind-side because
+        // "has subordinates" is not a parse-tree fact, but through the canonical Check funnel since CA14, so it
+        // is no longer a severity exception: NO site makes an introduction lenient).
 
         /// <summary>INSPECT BACKWARD (ISO §14.9.22.2; VCR row 77) — a COBOL-2023 introduction.</summary>
         public override object? VisitInspectStatement(CobolParserCore.InspectStatementContext ctx)
@@ -1419,9 +1427,10 @@ internal sealed class VersionConformancePass
         public override object? VisitFloatDecimalClause(CobolParserCore.FloatDecimalClauseContext ctx)
         { _p.Check(Constructs.OptionsFloatDecimal2014, "the FLOAT-DECIMAL clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>OPTIONS INITIALIZE (ISO §11.9.10) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        /// <summary>OPTIONS INITIALIZE (ISO §11.9.10) — a 2023 clause of the 2002 OPTIONS paragraph (Annex E §E.3.3
+        /// item 33: a NEW 2023 clause using already-reserved words, not a 2014 clause).</summary>
         public override object? VisitOptionsInitializeClause(CobolParserCore.OptionsInitializeClauseContext ctx)
-        { _p.Check(Constructs.OptionsInitialize2014, "the OPTIONS INITIALIZE clause"); return base.VisitChildren(ctx); }
+        { _p.Check(Constructs.OptionsInitialize2023, "the OPTIONS INITIALIZE clause"); return base.VisitChildren(ctx); }
 
         /// <summary>CURRENCY SIGN … WITH PICTURE SYMBOL (ISO §12.3.7) — the 1985 clause had only the
         /// single-character literal form; the PICTURE SYMBOL form is 2002+.</summary>
@@ -1724,10 +1733,15 @@ internal sealed class VersionConformancePass
                 return base.VisitChildren(ctx);
             if (_reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
             {
-                // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
-                // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
+                // The §8.9 reserved-word severity routes through the ONE policy — and the VERDICT is COMPUTED
+                // from the word's own reservation interval, never asserted here. Hard-coding `Removed` made
+                // --permissive accept a RE-RESERVED word (RECEIVE, END-RECEIVE) as a user-defined word at
+                // COBOL-85, where the '85 communication module reserves it and no conforming '85 program could
+                // contain one — a not-yet-introduced construct getting the migration mode's leniency (CA14's
+                // policy; these two were found by the introduction-axis theory the fix added).
                 _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                    EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
+                    EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                    "edition-reserved-word",
                     $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
                     + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             }

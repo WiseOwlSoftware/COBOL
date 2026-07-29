@@ -82,6 +82,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // inline in the host paragraph; only imp-2/3/4 become pc-ranges (run via the reused __RunUse).
     private readonly List<BoundParagraph> _f3Handlers = [];
     private readonly List<int> _f3Owners = [];   // owning PerformId per handler (parallel to _f3Handlers)
+    private readonly List<OoMethodScope?> _f3HandlerMethod = [];   // owning method scope per handler (null for a
+                                                                    // program unit; parallel to _f3Handlers — the
+                                                                    // per-method slice source, design SSOT §9.10)
 
     /// <summary>The first appended Format-3 handler pc = the frozen main paragraph count (declaratives + all
     /// nondeclarative paragraphs). A handler registered as the k-th lands at this pc + k, matching its eventual
@@ -89,6 +92,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     public int HandlerBasePc => _paras.Count;
     public IReadOnlyList<BoundParagraph> F3Handlers => _f3Handlers;
     public IReadOnlyList<int> F3HandlerOwners => _f3Owners;
+
+    /// <summary>The owning method scope of each appended Format-3 handler (parallel to <see cref="F3Handlers"/>;
+    /// null in a program unit) — the source of each method's contiguous handler sub-range (design SSOT §9.10).</summary>
+    public IReadOnlyList<OoMethodScope?> F3HandlerMethods => _f3HandlerMethod;
 
     /// <summary>Register one already-bound Format-3 handler body (imp-2/3/4) as a synthetic pc-range paragraph and
     /// return its pc (<see cref="HandlerBasePc"/> + the registration ordinal — dense, collision-free). The body is a
@@ -101,6 +108,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         int pc = _paras.Count + _f3Handlers.Count;
         _f3Handlers.Add(new BoundParagraph("(exception-checking PERFORM handler)", new[] { body }, line));
         _f3Owners.Add(performId);
+        _f3HandlerMethod.Add(ctx.CurrentMethodScope);   // the owning method (null in a program) — the per-method slice
         return pc;
     }
 

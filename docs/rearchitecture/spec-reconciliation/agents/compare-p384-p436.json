@@ -1,0 +1,42 @@
+{
+  "batch": [384, 394, 398, 400, 408, 412, 414, 416, 422, 424, 432, 436],
+  "pages_checked": [384, 394, 398, 400, 408, 412, 414, 416, 422, 424, 432, 436],
+  "findings": [
+    {
+      "page": 400,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 400 opens with its own paragraph: \"where screen-attribute-clauses is:\" immediately above the BELL / BLINK / HIGHLIGHT-LOWLIGHT / REVERSE-VIDEO / UNDERLINE / FOREGROUND-COLOR / BACKGROUND-COLOR figure. Page 399 ends with a separate, unrelated paragraph: \"where entry-name-clause is described in 13.18.20, Entry-name clause\".",
+      "markdown_says": "specs/ISO_COBOL.md line 17157 (before the <a id=\"page-400\"></a> anchor) reads as ONE run-on line: \"where entry-name-clause is described in 13.18.20, Entry-name clause where screen-attribute-clauses is:\" — and the page-400 region then jumps straight from the \"# ISO/IEC 1989:2023 (E)\" running header into the ``` fence with no introducer.",
+      "why_it_matters": "The sentence that names what the figure defines has been fused onto the tail of the previous page's unrelated sentence, producing a nonsensical run-on and leaving the screen-attribute-clauses figure with no caption. Any tool or reader slicing the transcription by page loses the binding between the name `screen-attribute-clauses` (referenced from the Format 1 diagram on page 398) and the diagram that defines it, and the fused sentence misreads as though entry-name-clause were described 'where screen-attribute-clauses is'.",
+      "suggested_repair": "Split line 17157 into two paragraphs: leave \"where entry-name-clause is described in 13.18.20, Entry-name clause\" on the page-399 side, and move \"where screen-attribute-clauses is:\" to immediately after the page-400 running header, directly above the ``` fence."
+    },
+    {
+      "page": 400,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "13.17.3   Syntax rules — printed at the same heading depth as 13.17.1 General, 13.17.2 General formats and 13.17.4 General rules (all three-component subclause numbers under 13.17).",
+      "markdown_says": "specs/ISO_COBOL.md line 17201: \"## 13.17.3 Syntax rules\" — an H2, while its siblings are H3: line 17051 \"### 13.17.1 General\", line 17056 \"### 13.17.2 General formats\", line 17254 \"### 13.17.4 General rules\", under line 17048 \"## 13.17 Screen description entry\".",
+      "why_it_matters": "13.17.3 is promoted a level, so it renders as a peer of the clause 13.17 itself rather than as one of its subclauses. Any generated table of contents, anchor map, or section-extraction tool that walks heading depth will place the Syntax rules of the screen description entry outside 13.17, breaking §-citation lookups for exactly the rules a compiler needs (e.g. 13.17.3 SR 1 on entry-name-clause ordering).",
+      "suggested_repair": "Change line 17201 to \"### 13.17.3 Syntax rules\" to match 13.17.1, 13.17.2 and 13.17.4."
+    },
+    {
+      "page": 408,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "13.18.7   BLANK clause — a third-level subclause under 13.18 Data division clauses, printed at the same depth as 13.18.1 ALIGNED clause.",
+      "markdown_says": "specs/ISO_COBOL.md line 17507: \"## 13.18.7 BLANK clause\" — an H2, the same level as line 17270 \"## 13.18 Data division clauses\", whereas line 17273 reads \"### 13.18.1 ALIGNED clause\".",
+      "why_it_matters": "Document-wide pattern, not a one-off: every 13.18.N clause heading from 13.18.2 onward (13.18.2 ANY LENGTH, 13.18.3 AUTO, ... 13.18.7 BLANK on p408, 13.18.11 CLASS on p412, 13.18.13 CODE-SET on p414, 13.18.14 COLUMN on p416, 13.18.16 CONTROL on p422, 13.18.17 DEFAULT on p424, 13.18.23 FOREGROUND-COLOR on p432, 13.18.25 FROM on p436) is emitted as H2, while only 13.18.1 keeps the correct H3. The clause headings therefore render as siblings of their own parent 13.18, so heading-depth-driven TOC generation and section extraction cannot nest the data-division clauses under 13.18.",
+      "suggested_repair": "Sweep 13.18.2 through the end of 13.18 and demote every \"## 13.18.N \" clause heading to \"### 13.18.N \", matching 13.18.1; leave \"## 13.18 Data division clauses\" at H2. Their own sub-subclause headings (13.18.N.M) are already at H3 and would then need H4 — apply the depth shift consistently."
+    },
+    {
+      "page": 422,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "The 13.18.16.2 General format diagram is printed as a normal in-flow figure, exactly like every other general-format diagram in clause 13.18.",
+      "markdown_says": "specs/ISO_COBOL.md renders the CONTROL clause figure inside a blockquote — the fence is written as \"> ```\" with each figure line prefixed \"> \", and the figure-notes paragraph is doubly quoted as \"> > **Figure notes (CONTROL clause general format).**\".",
+      "why_it_matters": "Every other general-format figure in this batch (pages 384, 394, 398, 400, 412, 414, 416, 424, 432, 436) uses a bare ``` fence followed by a single-level \"> **Figure notes ...**\" paragraph. Only 20 lines in the whole file use the \"> ```\" form. A figure-extraction pass that keys on a line equal to \"```\" will skip this diagram entirely, and the nested \"> >\" note renders at a different indent level from every sibling note. No syntax information is lost.",
+      "suggested_repair": "Unwrap the blockquote: drop the leading \"> \" from the fence and figure lines, and reduce the figure-notes paragraph from \"> > \" to \"> \", matching the surrounding figures."
+    }
+  ]
+}

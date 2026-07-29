@@ -686,8 +686,17 @@ statement
 //   [| ON EXCEPTION … |] [| NOT ON EXCEPTION … |] [ END-RECEIVE ]
 // RECEIVED is not in §8.9's reserved list and is not a §8.10 context-sensitive word either — the standard
 // simply never classifies it (recorded as a P14 Step-0 GAP row); matched as cobolWord, which is safe here.
+// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 732: RECEIVE, GIVING,
+// CONTINUE, MESSAGE and RECEIVED carry underline rules; FROM carries NONE, so FROM may be omitted.
+//
+// ⚠ AFTER and SECONDS are NOT made optional here even though page 732 prints them without underlines, because
+// THE STANDARD CONTRADICTS ITSELF about them. On page 634 — 14.9.9.2, the CONTINUE statement's OWN defining
+// general format — AFTER and SECONDS ARE underlined while CONTINUE is not; page 732 is exactly inverted. One of
+// the two pages is a typesetting defect, and page 634 is the defining occurrence, so it wins. It is also the
+// only reading that makes sense: with AFTER and SECONDS optional, `CONTINUE 5` would be legal and meaningless.
+// Recorded in specs/ISO_COBOL.md at both pages rather than silently resolved.
 mcsReceiveStatement
-    : RECEIVE FROM dataReference GIVING dataReference dataReference
+    : RECEIVE FROM? dataReference GIVING dataReference dataReference
       (CONTINUE AFTER (arithmeticExpression SECONDS | MESSAGE cobolWord))?
       mcsExceptionPhrases?
       END_RECEIVE?
@@ -695,8 +704,10 @@ mcsReceiveStatement
 
 // ISO §14.9.38.2 — Format 1 (to-message-server) and Format 2 (message-server-response), merged: they differ
 // only in the RETURNING vs RAISING tail, both optional here, which keeps one rule for one statement.
+// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 756, in BOTH send formats:
+// SEND, FROM, RETURNING and RAISING carry underline rules; TO carries none, so it may be omitted.
 mcsSendStatement
-    : SEND TO (literal | dataReference) FROM dataReference
+    : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION))?
       mcsExceptionPhrases?
@@ -705,9 +716,10 @@ mcsSendStatement
 
 // ISO 5.2.6.4: the printed RECEIVE/SEND figures enclose the ON EXCEPTION / NOT ON EXCEPTION pair in CHOICE
 // INDICATORS (verified against the PDF at 700 dpi), so BOTH may be written, each once, IN EITHER ORDER.
+// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
 mcsExceptionPhrases
-    : ON EXCEPTION statementBlock (NOT ON EXCEPTION statementBlock)?
-    | NOT ON EXCEPTION statementBlock (ON EXCEPTION statementBlock)?
+    : ON? EXCEPTION statementBlock (NOT ON? EXCEPTION statementBlock)?
+    | NOT ON? EXCEPTION statementBlock (ON? EXCEPTION statementBlock)?
     ;
 
 // ISO §14.9.50.2 — VALIDATE { identifier-1 } …
@@ -774,11 +786,16 @@ roundingModeName
 // brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER. The
 // reversed order was rejected until 2026-07-19 (our spec transcription had dropped the bars); the shape below
 // matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
+// ISO 5.2.3: ON is printed WITHOUT an underline in every one of these figures, so it is an OPTIONAL WORD
+// that may be written or omitted. Measured, not assumed: scripts/spec/figure_extract.py reads the
+// underline rectangles per word, and ON comes back plain on pages 632 (COMPUTE), 644 (DIVIDE), 703
+// (MULTIPLY), 607 and 756 (ON EXCEPTION). callOnExceptionPhrase already had `ON?`; these did not, so the
+// grammar contradicted itself and rejected `ADD A TO B SIZE ERROR ...` - legal COBOL.
 arithmeticOnSizeError
-    : ON SIZE ERROR statementBlock
-      (NOT ON SIZE ERROR statementBlock)?
-    | NOT ON SIZE ERROR statementBlock
-      (ON SIZE ERROR statementBlock)?
+    : ON? SIZE ERROR statementBlock
+      (NOT ON? SIZE ERROR statementBlock)?
+    | NOT ON? SIZE ERROR statementBlock
+      (ON? SIZE ERROR statementBlock)?
     ;
 
 // ==========================================
@@ -908,11 +925,12 @@ computeStore
     ;
 
 // ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note: both phrases, each once, any order.
+// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
 computeOnSizeError
-    : ON SIZE ERROR statementBlock
-      (NOT ON SIZE ERROR statementBlock)?
-    | NOT ON SIZE ERROR statementBlock
-      (ON SIZE ERROR statementBlock)?
+    : ON? SIZE ERROR statementBlock
+      (NOT ON? SIZE ERROR statementBlock)?
+    | NOT ON? SIZE ERROR statementBlock
+      (ON? SIZE ERROR statementBlock)?
     ;
 
 // ==========================================

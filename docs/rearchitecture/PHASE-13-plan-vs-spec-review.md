@@ -136,7 +136,19 @@
 - **Verifier correction:** Main-program GOBACK RAISING contradicts ISO 14.9.18.4 GR3 ("A RAISING phrase, if specified, is ignored") on TWO ungated emission legs, not one: (a) enabled checking - CallEmitter.cs:302 stages unconditionally via EmitRaisingStage -> SetPropagating (line 363), then ProgramTable.RunMain:90 ApplyPropagationDefault (ProgramTable.cs:99-105) throws CobolFatalException for a fatal name; (b) disabled checking + fatal - EmitRaisingStage emits an immediate throw new CobolFatalException at the GOBACK site itself (CallEmitter.cs:359-360), also ungated on __asCalled. Both reach the emitted Main catch (ProgramEmitter.cs:419) -> "abnormal run-unit termination" stderr + exit 1 instead of GR3's normal STOP-equivalent termination. Fix: wrap the EmitRaisingStage call in EmitGoback in the __asCalled gate (covers both legs; mirrors EmitExitProgram lines 316-329 which correctly gates per 14.9.14 GR2, and the STATUS phrase at line 307 which is already gated per GR3/GR10); delete the then-dead ApplyPropagationDefault call from RunMain (keep the CallProgram-path boundary default where 14.6.13.1.3 #8 legitimately applies); INVERT the existing test GobackRaisingFatal_InMainProgram_TerminatesAtRunUnitBoundary (ExceptionConditionConformanceTests.cs:662-673) which currently asserts the deviating behavior; correct COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md:104 in the same change set.
 - **Disposition:** _pending_
 
-### C14. [MAJOR | impl-vs-spec-drift | C3-ec-refmod-drift] A specified ref-mod length that evaluates negative at runtime is silently treated as the length-omitted form — EC-BOUND-REF-MOD can never raise for negatives
+### C14. [MAJOR | impl-vs-spec-drift | C3-ec-refmod-drift] ✅ LANDED 2026-07-22 — A specified ref-mod length that evaluates negative at runtime is silently treated as the length-omitted form — EC-BOUND-REF-MOD can never raise for negatives
+
+> ✅ **LANDED 2026-07-22 (DEVLOG 979)** — with the sibling **V48** (ODO zero-extent receive) + **C14-cite** doc fix.
+> The omitted "to the end" length now renders the DISTINCT sentinel `CobolString.OmittedRefModLength` (= `int.MinValue`,
+> via `RuntimeApi.OmittedRefModLength`; `PlaceRenderer.RmLen` + the INVOKE rule-1 prefix `OoEmitter`), so `CobolString.RefMod`/
+> `SpliceInto` distinguish it from a specified negative and raise EC-BOUND-REF-MOD (fatal) for `length < 0` regardless of
+> REF-MOD-ZERO-LENGTH (which relaxes only zero). **V48:** `PlaceRenderer.ReceiveInto` now passes `allowZeroLength: true`
+> (a zero-extent ODO group MOVE is a no-op, §13.18.38 GR8a, not a ref-mod violation). **C14-cite:** `ExceptionState.RefModError`
+> §8.4.2.3 c → §8.4.3.3.4 item 5b/5c; `PlaceRenderer.cs:30` (ref-mod) §8.4.2.4 → §8.4.3.3. Gate: `RefModRangeTests` 4/4
+> (specified-negative→fatal · negative-under-REF-MOD-ZERO-LENGTH→still-fatal · omitted→to-end · V48 zero-extent no-raise) +
+> characterization 33/33 byte-identical (no corpus program used the omitted form; the ratchet routed the new const through
+> `RuntimeApi`). Design SSOT `COBOLNET_STRING_OPS_DESIGN.md` updated to the sentinel encoding. RESIDUAL: `PlaceRenderer.cs:32`
+> (NumericImagePlace §8.4.2.4) left for the V50 doc pass — it is numeric-image, not ref-mod (needs its own §).
 
 - **Refs:** ISO §8.4.3.3.4 item 5c + raise sentence (specs/ISO_COBOL.md:7087-7089) · src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs:129-130 · src/Cobol.Net.Runtime/Values/Text/CobolString.cs:56-66,85-95
 - **Evidence:** 5c: 'The evaluation of length shall result in a positive nonzero integer, unless the REF-MOD-ZERO-LENGTH directive is set to ON, when the result may also be zero'; the consequence sentence raises EC-BOUND-REF-MOD for a value out of range (:7089). PlaceRenderer.RmLen renders the OMITTED length as the sentinel -1 ('r.Length is null ? "-1" : $"(int)({r.Length})"', PlaceRenderer.cs:130), and CobolString.RefMod/SpliceInto interpret ANY negative length as 'to the end'/clamp (CobolString.cs:63 'len = length < 0 ? avail : length'; the guard at :56/:85 tests only 'length == 0' and 'length > 0'). So with EC-BOUND-REF-MOD checking ON, X(2:L) where L holds -1 (or any negative) silently reads/writes to the end of the item instead of raising the fatal EC — while L=0 correctly raises. The sentinel collision makes the negative-length violation structurally undetectable at runtime. (Secondary: the ':7089 non-integer value' leg is also unreachable — the '(int)(...)' cast at PlaceRenderer.cs:129 truncates instead of raising.)
@@ -271,14 +283,14 @@ findings are marked.
 - **Proposed action:** Separate the omitted-length channel from the value channel (e.g. a bool hasLength/int.MinValue sentinel, or emit `Math.Max(...)`-free explicit int with a distinct overload) and add `length < 0` to the raise predicate in both RefMod and SpliceInto; add a negative-evaluated-length golden under CHECKING ON and OFF; fix the §8.4.2.3→§8.4.3.3.4 citation in ExceptionState.cs:227.
 - **Disposition:** _unverified — Wave I re-verify_
 
-### U4. [MAJOR | plan-omission | A2-fundamentals-ec] EC-DATA-NOT-FINITE and EC-DATA-OVERFLOW are catalogued but can never be raised, have no seam, and are absent from every residue/audit list — while the enabling binary32/64 standard-float usages shipped in P12
+### U4. [MAJOR | plan-omission | A2-fundamentals-ec] EC-DATA-NOT-FINITE and EC-DATA-OVERFLOW are catalogued but can never be raised, have no seam, and are absent from every residue/audit list — while the enabling binary32/64 standard-float usages shipped in P12 — ✅ LANDED 2026-07-22 (= V3; DEVLOG 981)
 
 - **Refs:** spec §14.6.13.2 item 3 specs/ISO_COBOL.md:24897; Table 13 :24655 (EC-DATA-NOT-FINITE Fatal), :24668 (EC-DATA-OVERFLOW Fatal); src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs:35,39-40,77; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs:89-90
 - **Evidence:** §14.6.13.2 3): referencing a standard-float sending operand that is NaN/infinity sets EC-DATA-NOT-FINITE (Fatal) outside four named exemptions; Table 13 :24668 defines EC-DATA-OVERFLOW as exponent overflow during MOVE to a standard-float receiver. P12 landed FLOAT-SHORT/FLOAT-LONG as native binary32/64, so both conditions are reachable by conforming programs (e.g. MOVE of an overflowing binary64 into binary32; arithmetic reference to a NaN-bearing FLOAT-LONG). CobolFloat.ToScaled maps NaN→0 and saturates ±Inf silently (:35,:39-40 — the comment claims 'implementor-defined', but that latitude exists only while checking is DISABLED per §14.6.13.1.3 #8; under >>TURN EC-DATA-NOT-FINITE CHECKING ON the condition must be set). Both names are catalogued (ExceptionCatalog.cs:89-90) but have zero raise sites, zero named seam comments (unlike the SORT/REPORT/ODO convention), and zero mentions in any doc, the P13 audit, the scouts, or the tracked P12 residues (which stage only external-float E PICTURE and binary128/decimal non-support): grep over docs/ + src (non-catalog) + tests = 0 hits for either name.
 - **Proposed action:** Add checking-gated raise seams on the twin pattern of ExceptionEngine.DataConversionChecking/BoundOverflowChecking: an EC-DATA-NOT-FINITE gate at the float sending-reference funnel and an EC-DATA-OVERFLOW gate at the float→float store when the result lands ±Inf from a finite source; or, if deferred, add them as named rows to the P13 audit residue list + a CONFORMANCE.md staging note in the same change set so the gap is tracked.
 - **Disposition:** _unverified — Wave I re-verify_
 
-### U5. [MAJOR | plan-omission | A2-fundamentals-ec] The EC-RANGE conditions of fully-implemented statements (SEARCH, PERFORM VARYING, THROUGH ranges) are catalogued but absent entirely — no raise, no seam comment, no doc/audit row
+### U5. [MAJOR | plan-omission | A2-fundamentals-ec] The EC-RANGE conditions of fully-implemented statements (SEARCH, PERFORM VARYING, THROUGH ranges) are catalogued but absent entirely — no raise, no seam comment, no doc/audit row — ✅ LANDED 2026-07-22 (= V4; DEVLOG 982–984)
 
 - **Refs:** spec §14.9.35 GR4 specs/ISO_COBOL.md:30935 + :30946,:30962 (EC-RANGE-SEARCH-INDEX/-NO-MATCH); §14.9.28 GR3 :29561 (EC-RANGE-PERFORM-VARYING, Fatal); §14.7.8 :25189 (EC-RANGE-INVALID); src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs:162-168; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SearchBinder.cs
 - **Evidence:** SEARCH must set EC-RANGE-SEARCH-INDEX when the initial index is out of range (:30935) and EC-RANGE-SEARCH-NO-MATCH on serial/binary exhaustion (:30946,:30962); PERFORM VARYING with an index-name and a non-positive FROM identifier must set the Fatal EC-RANGE-PERFORM-VARYING (:29561); a THROUGH range whose start collates above its end must set EC-RANGE-INVALID and evaluate as empty (:25189). SEARCH/SEARCH ALL, PERFORM VARYING, and THROUGH ranges are all implemented (SearchBinder.cs; EC-FLOW-SEARCH is even raised for dynamic tables at CobolDynTable.cs:105), yet these four names have zero raise sites, zero named 'seam' comments (the convention used for every other default-off EC family: SORT/MERGE in SortEmitter.cs:42-160, ODO in CobolTable.cs:49, REPORT in the RW design), and zero mentions in any doc, audit row, scout, or test (per-name grep across docs/, src non-catalog, tests = 0/0/0). This is 'catalogued but never raised AND untracked' — unlike EC-RANGE-INSPECT-SIZE (staged in COBOLNET_STRING_OPS_DESIGN.md:176) and EC-RANGE-INDEX/PTR (VCR row 100 todo / PHASE4_RECONCILIATION unbounded-pointer disposition).
@@ -638,7 +650,7 @@ The 3 verdicts that landed before the limit confirmed C2 (>>DEFINE AS PARAMETER)
 - **Refs:** ISO §14.9.42.4 GR5 (specs/ISO_COBOL.md:32250); E:\CobolSharp\src\Cobol.Net.Compiler\Binding\BinderDriver.cs:124-129; E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\ProgramEmitter.cs:383-387,424-427; E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\StatementEmitter.cs:93-96
 - **Evidence:** §14.9.42.4 GR5 applies to STOP wherever it executes in the run unit: the status "passed to the operating system". BoundStop always writes RunUnit.ExitStatus (StatementEmitter.cs:95), but the `Environment.ExitCode = (int) RunUnit.Current.ExitStatus` sink in the generated Main is emitted only when `UsesTerminationStatus` is true for THIS compilation group (BinderDriver.cs:129 scans only the group's parse tree; ProgramEmitter.cs:424-427). The emitter itself documents that a run unit spans sibling assemblies via the ProgramRegistry.ResolveVisible rule-4 probe (ProgramEmitter.cs:383-387). Failure scenario: a status-free main group CALLs a separately compiled program that executes STOP RUN WITH ERROR STATUS 8 → RunUnit.ExitStatus=8, StopRun unwinds to the main group's `catch (StopRun) {}` (no sink) → process exits 0 instead of 8.
 - **Proposed action:** Make the sink unconditional in the entry wrapper (read RunUnit.ExitStatus on both the normal-return and catch(StopRun) paths regardless of UsesTerminationStatus) and re-baseline the affected characterization goldens, or document the single-group restriction in docs/CONFORMANCE.md §4.2.16 alongside the existing implementor mapping.
-- **Disposition:** _raw resume-pass capture — dedupe vs sections 2/3, verify, route (Wave I)_
+- **Disposition:** ✅ **RECONCILED → V47 LANDED 2026-07-22 (DEVLOG 988).** This is the raw-capture of V47 (§19). Shipped fix chose the finding's SECOND route over the proposed unconditional-Main-sink: a runtime-side flush in the `RunUnit.ExitStatus` setter (no golden re-baseline, no per-`Main` scaffolding — §18.16 upheld). See V47 for the landed detail. The adversarial review of V47 surfaced two SAME-CLASS siblings — V52 (fatal-EC surface) and V53 (implicit CLOSE) — both still OPEN.
 
 ### R14. [MINOR | impl-vs-spec-drift | C3-ec-refmod-drift] Internal ODO-group receive splice can spuriously raise EC-BOUND-REF-MOD when the DEPENDING count makes the extent zero
 
@@ -820,12 +832,33 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 - **Verdicts:** spec-lens REAL (high) · code-lens refuted/dedupe (high)
 - **Disposition:** CONFIRMED-AS-DUPLICATE — merge into confirmed C14 (same defect); NEW increment for the C14 fix: ExceptionState.cs:227 still cites "ISO §8.4.2.3 c" (correct: §8.4.3.3.4), missed by the citation batch; also apply the fix to SpliceInto AND WriteFill. Spec nuance: the raise obligation for a negative is GR5c ("positive nonzero integer") — the EC trigger list never says "negative"; a specified length may NOT be reinterpreted as omission (omission is SYNTACTIC).
 
-### V3. EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW catalogued-unraisable, untracked
+### V3. EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW catalogued-unraisable, untracked — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** CONFIRMED — spec anchors: NOT-FINITE raise rule §14.6.13.2 item 3 (:24897, four exemptions: class condition, sign condition, same-standard-usage MOVE, VALIDATE); OVERFLOW = Fatal :24668. Route: raise seams at the float conversion/MOVE paths (checking-gated) or a NAMED residue row — currently in NO ledger.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 981).** Both raised via the always-emit ambient-gate pattern (mirror
+  EC-BOUND-REF-MOD): `ExceptionEngine.FloatNotFiniteChecking`/`FloatOverflowChecking` + `FatalAmbientGates` + `EcWrap`.
+  A 4-agent design-validation Workflow corrected the first cut — the singular chokepoint is TWO (`NumericRenderer:140`
+  numeric-value read + `OperandText:94` string-image read, both via `RuntimeApi.FloatSending`), not one; always-emit
+  (not emit-conditional) keeps `.g.cs` byte-identical. The four exemptions are raw reads (class + sign condition →
+  `floatCheck:false`; same-usage MOVE → `Usage`-equality; VALIDATE → documented no-op). EC-DATA-OVERFLOW = MOVE-only
+  `CobolFloat.StoreSingleChecked` (single-precision finite→±Inf; arithmetic ±Inf stays a bare cast — §14.6.8.3 GR1).
+  Applied to ALL float usages (mandatory for standard, implementor determination for FLOAT-SHORT/-LONG/-EXTENDED +
+  COMP-1/2 — `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` + `2023/ec_data_overflow`. (Correction: the
+  finding's cited lines :24897/:24668 were wrong — the real anchors are §14.6.13.2 item 3 :24571 and §14.9.25.4 GR4
+  step 4a :28634 / Table 13 :24329/:24342.) Documented gaps: float numeric-edited receiver overflow; multi-float-receiver
+  ADD/SUBTRACT half-commit (an undefined-results follow-on).
 
-### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID)
+### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID) — ✅ LANDED 2026-07-22
+
+> ✅ **LANDED 2026-07-22 (DEVLOG 982–984, three increments).** All four now raise, checking-gated: **SEARCH-INDEX/-NO-MATCH**
+> — `EmitSearchScan` restructured to a GR4/GR6/GR9 form (initial-index guard → SEARCH-INDEX serial-only + `<1` latent-bug
+> fix; advance-past-end → NO-MATCH; SEARCH ALL empty-table → NO-MATCH); **PERFORM-VARYING** (fatal) — a precise
+> `EcWrap.QueryFor` arm on `BoundInlinePerform/BoundOutOfLinePerform { PerformVarying { CheckIndexRange } }` + a
+> FatalAmbientGates entry + `PerformVaryingIndexError` (index-name FROM a data-item value ≤0, §14.9.28.4 GR3 — corrected
+> from the finding's "non-positive BY step"); **INVALID** — `CobolString.ThruMember` at the level-88 (`RenderMembershipTest`)
+> and EVALUATE-range (`BoundRangeMembership`) sites (§14.7.8 rule 2, alphanumeric/national only). Design validated by
+> `wf_a0883513-5f3`. Goldens `2023/ec_range_{search,perform_varying,invalid}`. (The finding's cited §s were corrected:
+> SEARCH is §14.9.37 not §14.9.35; PERFORM-VARYING is §14.9.28.4 GR3 :29222; INVALID is §14.7.8 :24863.)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED — the four names are EC-RANGE-SEARCH-INDEX (§14.9.35→serial SEARCH GR4 :30935), EC-RANGE-SEARCH-NO-MATCH (:30946/:30962), EC-RANGE-PERFORM-VARYING (§14.9.28 GR3 :29561 — non-POSITIVE, so zero too), EC-RANGE-INVALID; catalogued at ExceptionCatalog.cs:164-168 with no seam and no ledger row. Route: seams or a named residue row.
@@ -840,10 +873,21 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 Item 7 (RW SUPPRESS) was skipped as a duplicate of confirmed C5. Full verdict notes:
 `scratchpad/batch3-verdicts.json` + the batch-3 journal.
 
-### V6. DISPLAY … UPON silently dropped (SR2 unchecked, device ignored)
+### V6. DISPLAY … UPON silently dropped (SR2 unchecked, device ignored) — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** CONFIRMED (both high). Route: review-fix wave — bind displayUpon mirroring BindAcceptFromMnemonic (0817-style reject; output set CONSOLE/SYSOUT/SYSERR is an IMPLEMENTOR choice to document, §12.3.7.3 delegates), carry device on BoundDisplay, SYSERR→stderr, golden. Corrections: the intrinsics design doc :188 already PROMISES the routing; legacy-side tests cover UPON CONSOLE/SYSOUT only; nit — AcceptDisplayEmitter.cs:17 cites §14.9.8, 2023 numbering is §14.9.11. Also: MnemonicRegistry does NO device validation at declaration.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 978).** `BindDisplay` now binds `displayUpon` via `BindDisplayUpon`
+  (mirrors `BindAcceptFromMnemonic`): §14.9.11.3 SR2 rejects an undeclared mnemonic or an input-only device
+  (`COBOLNET0817`); the output-capable implementor device-names are CONSOLE / SYSOUT (→ standard output) and SYSERR
+  (→ standard error) — the §12.3.7.3-delegated choice, documented in `CONFORMANCE.md §7` A.1 items 2 + 59.
+  `BoundDisplay.ToStdErr` carries the routing; `EmitDisplay` writes `System.Console.Error` for SYSERR, else
+  `System.Console` (the no-UPON path byte-identical). The `AcceptDisplayEmitter` §14.9.8→§14.9.11 citation nit fixed.
+  `DisplayUponTests` 4/4 (SYSOUT/CONSOLE/default→stdout · SYSERR→stderr · undeclared 0817 · input-only 0817) +
+  characterization 33/33 byte-identical. RESIDUAL (a separate finding, not V6): `MnemonicRegistry` still does NO
+  device-name validation at the SPECIAL-NAMES DECLARATION (§12.3.7 rule 8) — an unknown device-name is only caught when
+  a consuming ACCEPT/DISPLAY names its mnemonic. ─── *(original)* Route: bind displayUpon mirroring BindAcceptFromMnemonic;
+  carry device on BoundDisplay, SYSERR→stderr, golden. Corrections: the intrinsics design doc :188 already PROMISES the
+  routing; legacy-side tests cover UPON CONSOLE/SYSOUT only; nit — AcceptDisplayEmitter.cs:17 cites §14.9.8, 2023 is §14.9.11.
 
 ### V8. CALL Format 2 (AS NESTED / prototype) + the OMITTED argument — zero grammar surface, SSOT reads as implemented
 
@@ -1097,7 +1141,32 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 ## 18. Batch-11 verdicts (2026-07-19 — minors 45/46/47, 6 agents, 0 errors)
 
-### V45. CheckExternalFileConsistency single-describer skip — CONFIRMED, with a NEW sharper bug found
+### V45. CheckExternalFileConsistency single-describer skip — ✅ LANDED 2026-07-22 (externality conjunct — both faces)
+
+> ✅ **LANDED 2026-07-22 (DEVLOG 986; design `wf_08814087-0e0`).** §14.8.4.2 conjunct 1 (EXTERNALITY) now enforced at
+> BOTH faces. **(a) V45-sentinel** — `ExternalTable.DataMismatch` OR-prefixed with `AnyNonExternalRef(prior|desc)`
+> (`IsNonExternal(r)=r?.Split(';').Contains("!")`, whole-token so an embedded LINAGE `"!"` counts); the both-`"!"`
+> false negative closed. **(b) V45-externality** — a per-connector externality conjunct hoisted ABOVE the `conns.Count<2`
+> early-out in `BinderDriver.CheckExternalFileConsistency` (FILE STATUS + RELATIVE KEY + LINAGE data-name operands →
+> ONE shared **COBOLNET1624**, 2023-gated Removed-freedom severity like 1573/1575). **(d)** the comment corrected +
+> the XML-doc rewritten to the two-conjunct model. **⚠ (c) CORRECTED:** the compile-time in-group LINAGE leg does NOT
+> add LINAGE to the CONSISTENCY conjunct (that would break `ec_external_data_mismatch.cob`, which routes its LINAGE
+> mismatch to RUNTIME) — LINAGE joins the EXTERNALITY conjunct only. In-group LINAGE CONSISTENCY (§13.4.5.4 GR2(c)) is a
+> separate LONGSTANDING always-Error requirement → tracked as **V51** below, NOT folded here. Goldens: 3 externality
+> negatives + 2 positive controls + `ExternalTableTests` (4). Byte-equivalent (existing external corpus 28/28 unchanged).
+
+### V51. In-group LINAGE consistency (§13.4.5.4 GR2(c)) unenforced at compile time — NEW (surfaced by the V45 design validation)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** OPEN. §13.4.5.4 GR2(c) — "if any of the file description entries [for an external file] has a LINAGE
+  clause, all shall have a LINAGE clause specifying (1) the same corresponding literal values and (2) the same
+  corresponding external data items." FILE STATUS / RELATIVE KEY consistency is enforced at compile time (COBOLNET1573/
+  1575, §12.4.5.3); the parallel LINAGE-consistency leg is NOT (only its EXTERNALITY half landed with V45; runtime carries
+  the sameness face). Unlike VCR 18/31, GR2(c) is **absent from Annex E.2** → a LONGSTANDING 1985/2002/2014 requirement,
+  so it must be an **edition-invariant always-Error**, NOT the 2023-gated Removed-freedom severity — a DIFFERENT diagnostic
+  and gate than 1573/1575/1624. Fix for a later batch: a compile-time in-group LINAGE-consistency check (all-or-none + same
+  literals + same external items) with edition-invariant severity; requires re-architecting `ec_external_data_mismatch.cob`
+  into two SEPARATELY-compiled assemblies so its LINAGE mismatch stays a runtime vector. Effort: M.
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** §14.8.4.2's "shall be external data items" first conjunct is UNCONDITIONAL, and the lone-
@@ -1111,6 +1180,122 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   external connector must have a non-null ExternalItemIdentity); (c) add the compile-time LINAGE leg
   (§13.4.5.4 GR2c); (d) correct the :154 comment.
 
+### V52. Run-unit abnormal-termination surface (fatal-EC diagnostic + `Environment.ExitCode = 1`) emitted PER-MAIN, gated on the MAIN group's EC scan — ✅ LANDED 2026-07-22 (DEVLOG 989)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47** (a run-unit-termination
+  observable gated on a compile-time scan of the MAIN group, blind to a sibling assembly / an unconditional
+  runtime raise-point).
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 989), with V53, as the coupled `RunMain`-epilogue move.** The
+  §14.6.12 abnormal-termination surface is now owned by `ProgramTable.RunMain` (runtime-side), catching BOTH
+  families — `CobolFatalException` (checking-enabled unresumed EC / raw runtime raise-points: NULL BASED deref,
+  OO `__CobolInvoke` EC-OO-UNIVERSAL) AND `CobolCallException` (EC-PROGRAM-NOT-FOUND / -RECURSIVE-CALL /
+  -CANCEL-ACTIVE / EC-FUNCTION-NOT-FOUND, §14.9.4.4 GR3h → §14.6.13.1.3 #8) — via a shared `AbnormalTermination`
+  helper, so neither escapes as a raw CLR crash. (The `CobolCallException` family was surfaced by the V52/V53
+  adversarial review `wf_b799fd6d-dd4` as the same pattern, build-verified; folded in same batch — no-deferral.)
+  The generated `Main` reduces to the unconditional `try { RunMain(path); } catch (StopRun) { }`. Tests
+  (`RunUnitTerminationTests`): EC-free-main null-deref, cross-assembly sub-fatal, CALL-not-found, and the
+  abnormal-path implicit CLOSE — all → the surface + exit 1. Gate: greenfield Conformance 3860/3860 0-reg ·
+  characterization 33/33 (one snapshot re-baseline) · GnuCOBOL differential 0-reg. Superseded detail follows.
+  Original code-lens: `ProgramEmitter.cs:429` emits `catch (CobolFatalException __fx) { Console.Error.WriteLine(
+  "abnormal run-unit termination: " + …); Environment.ExitCode = 1; }` ONLY under `if (_ecState.Active)` (=
+  `comp.EcActive`, the MAIN group's EC scan). But `CobolFatalException` arises from raise-points INDEPENDENT of the
+  main group's EC model: EC-OO-UNIVERSAL / EC-OO-METHOD from any class's `__CobolInvoke` (the `using … Exceptions`
+  at `:72` is `_ecState.Active || classes.Count > 0` — proving EcActive and "has classes" are independent),
+  `CobolPtr` null-BASED deref (`CobolPtr.cs:27`), and a separately-compiled sub built `>>TURN … CHECKING ON`.
+  `ProgramTable.RunMain`/`CallProgram` and the dispatcher (catches only `ProgramReturn`) have NO
+  `CobolFatalException` catch, so in a main whose own group has no EC feature the exception propagates unhandled →
+  a raw CLR crash (platform exit code, stderr stack trace, §14.6.11 implicit CloseAll BYPASSED) instead of the
+  documented `abnormal run-unit termination` + exit 1 (CONFORMANCE.md item 44/193; §14.6.13.1.3 #7 → §14.6.12).
+  **Fix DIRECTION (mirror V47 — runtime-side, NOT an unconditional emitter catch):** an unconditional per-`Main`
+  `catch` would add scaffolding to EVERY EC-free `Main` (re-baselining characterization + violating §18.16), so
+  handle abnormal termination runtime-side — either a run-unit boundary that converts a `CobolFatalException`
+  escaping `RunMain` into the diagnostic + exit 1 (RunUnit.Run-style), or the raise-points set the observable
+  themselves. Tests: a class-bearing EC-free program that INVOKEs an aborting method → the abnormal-termination
+  surface + exit 1 (not a raw crash); a two-assembly run unit where a file-less main CALLs a checking-on sub that
+  raises a fatal EC → same. ALSO fold the V47-coverage sibling (a `STOP RUN … WITH STATUS n` inside an INVOKEd
+  method reaching `Main` sets the exit code via the setter-flush — assert it). Effort: M.
+- **DECISION-COMPLETE DESIGN (V52 + V53 are ONE coupled fix; design finalized this session — spec §14.6.11/§14.6.12
+  read + `CloseAll` idempotency + byte-scope confirmed):** move the run-unit-termination epilogue OUT of the
+  generated `Main` and INTO `ProgramTable.RunMain` (the single run-unit boundary). New `RunMain` shape:
+  `try { try { inst.Activate(); ApplyPropagationDefault(); } catch (CobolFatalException fx) { Console.Error.WriteLine(
+  "abnormal run-unit termination: " + fx.Message); Environment.ExitCode = 1; } } finally { n.Active--; Modules.Pop();
+  _owner.Files.CloseAll(); }`. The generated `Main` reduces to an UNCONDITIONAL `try { ProgramRegistry.RunMain(path); }
+  catch (StopRun) { }` (drop the `_ecState.Active` fatal-catch AND the `anyFiles` FileInit/finally — ProgramEmitter.cs
+  :417,:429-435). **Byte-analysis:** EC-free + file-free programs are BYTE-IDENTICAL (their `Main` was already exactly
+  `try{RunMain}catch(StopRun){}`); only EC-active or file goldens re-baseline (they lose the inline catch/finally). §18.16
+  preserved for the common case. `StopRun` still propagates through `RunMain`'s finally to `Main`'s catch (ordering:
+  CloseAll now runs during the unwind, before `Main` catches — same observable). `CloseAll` is idempotent
+  (FileRegistry.cs:162 — sequential re-close harmless, keyed skip `!IsOpen`), so `RunUnit.Run`'s embedding-path finally
+  CloseAll double is safe. `FileInit()` also moves into RunMain (or stays emitted — verify FileInit is idempotent /
+  whether the run-unit needs it before any sub opens). The §14.6.11 non-file ops (COMMIT/ALLOCATE-release/object-destroy/
+  dynamic-free/MCS) remain .NET no-ops (GC), matching current behavior. **GATE (shared-runtime seam):** regenerate the
+  EC/file `.g.cs` goldens + characterization re-baseline + full Conformance + NIST/legacy guard + **GnuCOBOL differential
+  before/after** (the required confirmation that moving CloseAll into RunMain moves NO program's stdout). Effort: M.
+
+### V53. Run-unit implicit CLOSE at termination (§14.6.11 CloseAll) + FileInit emitted PER-MAIN, gated on the MAIN group's `anyFiles` — ✅ LANDED 2026-07-22 (DEVLOG 989)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high) — **SAME CLASS as V47.**
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 989), with V52.** The §14.6.11(2) implicit CLOSE of ALL open
+  run-unit connectors is now `ProgramTable.RunMain`'s `finally { _owner.Files.CloseAll(); }` — run-unit-scoped,
+  so a file-less main closes a separately-compiled sibling's open files (best-effort even on abnormal termination,
+  §14.6.12; `CloseAll` idempotent so the `RunUnit.Run` embedding double is harmless). `FileInit` (the run-unit-start
+  RESET) stays emitted gated on `anyFiles` — VERIFIED safe by the review: the `FileRegistry` is fresh per `RunUnit`,
+  so a sibling's OPEN into an un-reset fresh registry is correct (no start-side sibling. The adversarial review swept
+  the other §14.6.11 START/END steps CLEAR — external-describe per-activation, MODULE register unconditional, EC/
+  external/switch stores fresh-per-RunUnit, locale not-emitted, APPLY COMMIT vacuous, ALLOCATE/object GC). Test: a
+  file-less main CALLs a file-writing sub → the sub's output is flushed/closed at termination; plus the abnormal-path
+  CLOSE case (V52). Original code-lens: `ProgramEmitter.cs:417` (`if (anyFiles) FileInit()`) and `:434-435` (`if (anyFiles)
+  finally { CobolFile.CloseAll(); }`) both key off `anyFiles = comp.AnyFiles`, computed over the MAIN group's
+  units/classes only (`BinderDriver.cs:132-134`). The `FileRegistry` is run-unit-global and `CobolFile.CloseAll`
+  closes EVERY connector — but there is NO runtime finalizer / `ProcessExit` / `IDisposable` auto-close in
+  `src/Cobol.Net.Runtime/IO`, and the default emitted driver does not use `RunUnit.Run`'s finally-CloseAll. So a
+  file-less main that CALLs a separately-compiled sub which OPENs+WRITEs a file and leaves it open at run-unit
+  termination never gets the sub's connectors implicitly closed → buffered records / LINAGE footers / EOF
+  finalization LOST (§14.6.11 violation, silent data loss). **Fix DIRECTION (mirror V47 — runtime-side):** trigger
+  the run-unit-termination CloseAll (+ the FileInit reset) whenever the RUN UNIT — not the main group — may hold
+  open connectors (e.g. at a runtime run-unit boundary), preserving §18.16 for genuinely file-free run units. Test:
+  a two-assembly run unit (file-less main CALLs a file-writing sub) asserts the sub's output file is flushed/closed
+  at termination. Effort: M.
+- **DECISION-COMPLETE DESIGN: fixed by the SAME `RunMain`-epilogue move as V52 (see V52's decision-complete block —
+  the `finally { … _owner.Files.CloseAll(); }` closes ALL run-unit connectors regardless of which assembly opened
+  them). Land V52 + V53 together in one commit + one comprehensive gate.**
+
+## 24-AUDIT. Design-doc↔spec audit code-bugs (2026-07-22; audit `wf_480d50f5` + correction `wf_16d53d4e`) — VERIFY-THEN-FIX
+
+> The design-doc audit (owner concern: supposedly-validated designs carried spec conflicts) surfaced **54 doc↔spec
+> conflicts** (doc side corrected + persisted in `DESIGN-SPEC-RECONCILIATION.md`) and **6 SPEC-WRONG-AND-IMPLEMENTED
+> designs = candidate CONFORMANCE bugs** (below). Each was code-read by the auditor; VERIFY independently before the
+> fix (spec-first, one at a time). The design docs already describe the SPEC-CORRECT target — these bring the CODE up
+> to it. Not yet a wave; slot into the §24 queue by severity.
+
+### V54. FUNCTION MAX/MIN over all-NATIONAL args binds result category Alphanumeric, not National (§15.59.1/§15.63.1 result-type table)
+- **File:** `IntrinsicBinder.cs:259-270` (the `category = PicCategory.Alphanumeric` at :269, guarded by `args.All(IsStringOperand)` which admits National). **Fix:** resolve the polymorphic result category from the §15.59.1/§15.63.1 table (National args→National; all-Index→Index), not the binary all-non-numeric→alphanumeric collapse. Downstream MOVE/compare/size then treat the selected national string correctly.
+
+### V55. OO `__CobolInvoke` raises EC-OO-UNIVERSAL UNCONDITIONALLY; §14.9.23.4 GR7c gates it on checking-enabled-in-BOTH method + activator
+- **File:** `OoEmitter.cs:266/274/280/287` (bare `throw CobolFatalException("EC-OO-UNIVERSAL")`). **Fix:** gate the raise on checking enabled in both the activated method and the activating element, route through §14.6.13 GR7g; when not enabled-in-both, EC-OO-UNIVERSAL is not set to exist (an implementor fatal path may still stop a nonconforming typed-native crossing, but must not REPORT EC-OO-UNIVERSAL raised).
+
+### V56. Relation with a float operand under ARITHMETIC IS STANDARD[-DECIMAL] emitted as native IEEE-double compare, not SDIDI (§8.8.4.2.4)
+- **File:** `ConditionRenderer.cs:151` (+ figurative `:191`): the `if (l.Real||rr.Real) return native-double` branch fires BEFORE the standard-decimal branch, and floats are only SDIDI-converted in arithmetic (`NumericRenderer.cs:210`), not comparison. **Fix:** under `NumericRenderer.StandardDecimal`, route any numeric relation with a Real/fixed operand through `CobolDec.Compare(DecOperand(l),DecOperand(r))`; the native-double branch fires only under NATIVE arithmetic. Failure: `IF F = D` (F COMP-2) compares binary64 not decimal128 images.
+
+### V57. Exception-checking PERFORM (Format 3) binds handler bodies imp-2..5 under the pre-PERFORM TurnState, not TURN OFF ALL (§14.9.28.4 GR14)
+- **File:** `EcBinder.ExceptionPerform.cs:58` (`ctx.EcState.Turn = savedTurn;`) consumed by imp-2/3/4 binding (:77-88) + FINALLY (:88). **Fix:** bind imp-2..5 under an all-OFF TurnState (GR14 implicit PUSH ALL + TURN OFF ALL), then restore `savedTurn` per GR22 for statements after END-PERFORM. Failure: a `>>TURN ec ON` enclosing the F3 PERFORM leaks EC guards into WHEN/OTHER/COMMON/FINALLY bodies.
+
+### V58. GOBACK/EXIT PROGRAM RAISING a FATAL into an EC-free activator (and a MAIN GOBACK RAISING) terminates the run unit; spec says NOT raised (§14.9.18.4 GR1b/GR3, §14.9.14.4 GR2)
+- **File:** `ProgramTable.cs:136-139` (`ApplyPropagationDefault`: `if (…&& pf) throw CobolFatalException`), reached from `RunMain:98` + `CallProgram:216`. **Fix:** when checking for the EC is not enabled in the activator, DISCARD the staged condition (fatal or nonfatal) and continue; a main GOBACK RAISING is ignored (ordinary STOP). The nonfatal branch is already correct — only the `&& pf → throw` and the RunMain path diverge. *(Adjacent to the V52/V53 RunMain work, but a distinct pre-existing bug.)*
+
+### V59. REDEFINES/RENAMES Tier-B stores a BINARY/PACKED leaf as a zoned-decimal CHARACTER image — ✅ OWNER-DECIDED 2026-07-22: build Tier-C byte[] canonical (option B); current zoned image acceptable interim
+
+> ⚠ Reclassified from a §4.2.16 bug by the verification pass (`wf_29a15db2`): §13.18.60.4 GR4/GR11 make the byte
+> representation of USAGE BINARY (radix-2) / PACKED (BCD) EXPLICITLY implementor-defined and the value round-trips, so
+> no CONFORMING program can detect the radix — NOT a clear conformance violation; the question was GnuCOBOL/real-program
+> byte-pun fidelity. ✅ **OWNER APPROVED option (B): build the Tier-C `byte[]` canonical** (RedefCodec GetBinary/PutBinary
+> radix-2 + GetPacked/PutPacked BCD, so a character view reads the leaf's true bytes — matches GnuCOBOL + the GR4/GR11
+> letter + the byte-pun-fidelity mission); the current value-faithful Tier-B zoned image is ACCEPTABLE INTERIM (not a
+> blocker). Fix detail in `CONFORMANCE-FIX-QUEUE.md`. (CA14 SYNC-on-group was the other owner-decision — APPROVED the
+> uniform introduction-error policy.)
+
+- **File:** `DataBinder.cs:2861-2867` (`ComputeTier` Tier-C reject list omits `Usage.Binary`/`Usage.Packed` → falls to StringCanonical) + `:2795-2814` (stores the leaf as a `Pic.Digits`-wide zoned image). **Fix:** route a class mixing a BINARY/PACKED leaf with a different-representation view to Tier C (byte[] canonical via RedefCodec GetBinary/PutBinary + GetPacked/PutPacked), or the interim Tier-C loud-reject; do NOT add Binary/Packed to the zoned-image branch. Failure: `PIC S9(4) COMP` observed as 4 zoned chars through any REDEFINES/RENAMES/group-move/file view — diverges from GnuCOBOL.
+
 ### V46. COBOLNET1570's SR4/SR5 citation — REFUTED-as-cited; the NATIONAL half of E.2 item 27 is the real gap
 
 - **Verdicts:** spec-lens REAL-as-amended (high) · code-lens REAL (high)
@@ -1121,14 +1306,23 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   numeric-edited UNCONDITIONALLY at all editions (0898) and the ≥2023 size check reaches only '"'-leading
   literals. Route: review-fix wave (the national leg of the VALUE rework).
 
-### V47. Sibling-assembly STOP RUN WITH STATUS discarded — CONFIRMED
+### V47. Sibling-assembly STOP RUN WITH STATUS discarded — ✅ LANDED 2026-07-22 (DEVLOG 988)
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** the ONLY Environment.ExitCode sink is gated on the MAIN compilation group's own
-  HasStatusPhrase parse-tree scan (BinderDriver:129; ProgramEmitter:424-427) — a STOP RUN WITH STATUS executed
-  in a separately-compiled CALLed assembly is silently discarded (exit 0). Fix shape for Opus: make the sink
-  unconditional in the entry wrapper (or a runtime-side always-on exit-status register) so the status crosses
-  assembly boundaries; golden with a two-assembly run unit.
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 988).** Root cause: the ONLY `Environment.ExitCode` sink was
+  gated on the MAIN compilation group's own `HasStatusPhrase` parse-tree scan (BinderDriver / ProgramEmitter) —
+  a `STOP RUN … WITH STATUS` executed in a separately-compiled CALLed module is invisible to that scan, so its
+  status (though correctly written to the shared ambient `RunUnit.ExitStatus`) was never flushed (exit 0). Fixed
+  by the finding's **second** option — a **runtime-side always-on flush**: `RunUnit.ExitStatus`'s SETTER now
+  flushes to `Environment.ExitCode` at the write site, so the status crosses the assembly boundary (STOP RUN ends
+  the whole run unit from anywhere, §14.9.42.4 GR6). This is a NET DELETION — the `usesTerminationStatus` /
+  `HasStatusPhrase` compile-time scan + the per-`Main` `setExit` scaffolding are GONE, so the entry wrapper is now
+  UNCONDITIONALLY scaffolding-free (upholds §18.16 more purely than the gate did) and no `.g.cs` golden re-baselines
+  (status-free programs stay byte-identical; characterization 33/33). The chosen setter-flush keeps the singular
+  exit-code source AND a single flush point (the future RETURN-CODE writes the same field → same flush). Tests
+  (`StopGobackExitCodeTests`): a two-assembly run unit (`V47MAIN` no status CALLs `V47SUB` → `STOP RUN WITH ERROR
+  STATUS 16` ⇒ exit 16) + the in-group companion (exit 24); the 10 inline STOP/GOBACK cases + the GOBACK-inert
+  case remain green (22/22).
 
 ## 19. Batch-12 verdicts (2026-07-19 — minors 48/49/50, 6 agents, 0 errors) — THE ORIGINAL 50-ITEM WORKLIST IS FULLY VERIFIED
 
@@ -1250,11 +1444,16 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 ## 23. Batch-16 verdicts (2026-07-19 — batch-1 raw findings F10/F11/F12, 6 agents, 0 errors) — FINAL BATCH
 
-### VF10 (=§8 F10). SET [SIZE OF] never sets EC-STORAGE-NOT-AVAIL (GR37/GR38) — CONFIRMED major
+### VF10 (=§8 F10). SET [SIZE OF] never sets EC-STORAGE-NOT-AVAIL (GR37/GR38) — ✅ LANDED 2026-07-22
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
-- **Disposition:** §14.9.39.4 GR37/GR38 mandate "is set to exist" on the negative and clamp legs; no EC path
-  exists anywhere, while the SAME wave wired the identical nonfatal pattern for CONTINUE. STRENGTHENED: the
+- **Disposition:** ✅ **LANDED 2026-07-22 (DEVLOG 980).** Mirrors the CONTINUE pattern: bind-time
+  `Turn.Enabled("EC-STORAGE-NOT-AVAIL")` capture on `BoundSetSize.CheckStorage` (both construction sites) → runtime
+  `CobolDynString.SetSize` sets the nonfatal EC on the GR37 negative + GR38 clamp legs. Full-precision sign test
+  (a pre-commit anchor Workflow caught a fractional-negative `-0.5` bug from the pre-truncation-to-`long`). Golden
+  `2023/ec_storage_not_avail`; GR38's storage-unavailable third leg pinned N/A in `CONFORMANCE.md §3`; integer-2 form
+  is SR34-compile-bounded. §14.9.39.4 GR37/GR38 mandate "is set to exist" on the negative and clamp legs; no EC path
+  existed anywhere, while the SAME wave wired the identical nonfatal pattern for CONTINUE. STRENGTHENED: the
   persisted scout (wave-c-scout:614) explicitly specified the EC signaling — the implementation silently
   deviated from its own plan, and DEVLOG-890 falsely asserts "the runtime behavior on valid input is
   spec-correct". Fix for Opus: mirror the CONTINUE pattern (bind-time Turn.Enabled capture on BoundSetSize →
@@ -1297,7 +1496,7 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 **The prioritized fix queue for the follow-up session (majors first; each entry above carries the exact fix):**
 1. OO-surface scope decision (V16-V19 — MANDATORY surface; owner-visible).
-2. ASSIGN USING (F1) + DISPLAY UPON (V6) — the silent-semantics pair.
+2. ASSIGN USING (F1 — OPEN, owner-decision on route) + ~~DISPLAY UPON (V6)~~ ✅ **V6 LANDED 2026-07-22** — the silent-semantics pair.
 3. VALUE Format 2 + glued-multi-literal corruption (F4) → grammar batch.
 4. File-control COLLATING SEQUENCE core leg (F2) → grammar batch (with RW SUPPRESS, C5).
 5. The EC-seam batch: EC-RANGE four (V4) + EC-DATA twins (V3) + EC-FLOW trio raise side (V33) +

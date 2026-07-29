@@ -99,7 +99,16 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                     : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3)");
             return new BoundExitProgram();
         }
-        if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
+        if (e.SECTION() is not null)   // §14.9.14 Format 4, GR7 — transfer to the section's end (its return mechanism)
+        {
+            if (ctx.CurrentSection is not { } sec)   // §14.9.14.3 SR9 — EXIT SECTION may be specified only in a section
+            {
+                ctx.Edition.Error("COBOLNET0827",
+                    "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
+                return new BoundNop();
+            }
+            return new BoundExitSection(sec.EndPc, e.Start.Line);
+        }
         if (e.METHOD() is not null) return host.Oo.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
         if (e.FUNCTION() is not null) return host.Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT
@@ -211,7 +220,11 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
             levels.Add(level);
         }
-        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null);
+        // §14.9.28.4 GR3: an index-name varied/AFTER from a data-item FROM whose value is non-positive raises the
+        // fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps the
+        // directive-free output byte-identical (no check emitted when off).
+        bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
+        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, checkIndexRange);
     }
 
     /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression

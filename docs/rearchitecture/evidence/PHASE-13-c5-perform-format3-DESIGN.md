@@ -1121,8 +1121,10 @@ walled; every bounded `__RunUse`/PERFORM passes its own `__exitPc`, so PERFORM o
 ### 9.7 Staged-GAP boundary (each a loud COBOLNET0899 / dedicated diagnostic — never silent)
 ✅ **The open-mode WHEN operand form LANDED** (`WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND` — GR3b, tier 1: matches an
 EC-I-O whose file is currently open in that mode via `CobolFile.OpenModeOf(__f)`; an OPEN-failure's mode is
-best-effort). Remaining staged (kept explicit): **F3 PERFORM inside an OO method** (§9.1-B — reject loud until the OO
-pc-space wiring lands); cross-CALL GR1 "in range" (per-activation `TrimPerformTo` default, §5.4-2); EC-FLOW-USE /
+best-effort). ✅ **F3 PERFORM inside an OO method LANDED** (the pc-slice wiring, §9.10 IMPLEMENTED — the
+`F3StagedInMethodStub` 0899 is lifted). Remaining staged (kept explicit): cross-CALL / cross-INVOKE GR1 "in range"
+(the per-activation `TrimPerformTo`/frame-FLOOR default isolates the callee from the activator's frames — the
+cross-activation "in range" reading is the future opt-in, §5.4-2 / §9.10.1-C2); EC-FLOW-USE /
 `>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
 sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconcile the §8 doc to record them as SWEPT
 (more correct than §5.4-2's "un-swept" claim).
@@ -1164,4 +1166,183 @@ handler-region hook), `ControlFlowEmitter.cs` (`EmitExceptionPerform`), `Stateme
 `OoEmitter.cs` (flag set); source-gen visitor + `UsageCollectionPass`/`BoundStores`. SSOT same change set:
 `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12 (RESUME-skips-COMMON, FINALLY-on-fatal defect, bare-file tier),
 `CONFORMANCE.md`.
+
+### 9.10 F3 PERFORM inside an OO method — the pc-slice wiring (lifts the §9.7 `F3StagedInMethodStub` 0899)
+
+> STATUS: **IMPLEMENTED** 2026-07-22 (increments M1–M4 landed; the `F3StagedInMethodStub` 0899 is lifted — an F3
+> PERFORM inside an OO method compiles clean and runs). Gate: `PerformFormat3MethodBehaviorTests` 12/12 (the imp-2..5
+> matrix + the method-local per-activation capture + the §9.10.1-C2 cross-INVOKE isolation, all spec-pinned) +
+> characterization 33/33 byte-identical + the comprehensive gate. This section is the as-built record; the C1/C2/C3
+> corrections in §9.10.1 are folded into the code.
+
+**The two coupled problems** (both real; the second is the deeper one the §9.1-B comment under-states):
+1. **pc-reachability.** A program's `__Dispatch` covers `[0 .. Paragraphs.Count−1]` — the whole pc space, so the
+   handler pcs appended at `HandlerBasePc = mainCount` are ordinary `case`s it can reach via `__RunUse(id, pc, pc)`.
+   A CLASS has NO class-level dispatcher: each METHOD emits its OWN `__MDispatch(startPc, exitPc)` local function whose
+   `switch` carries cases ONLY for that method's contiguous slice `[m.Binding.EntryPc .. EndPc]` (`OoEmitter.EmitMethod`
+   → `DispatchEmitter.EmitDispatchMethod(bound, w, "int __MDispatch(...)", EntryPc, EndPc)`). A handler pc appended above
+   the whole class pc space falls outside every method slice → `default: __pc = __N` → the handler silently never runs.
+2. **data-scope (load-bearing).** A method's `__MDispatch` is a LOCAL FUNCTION precisely so it captures the method's
+   per-activation locals (LINKAGE formals-as-locals, LOCAL-STORAGE roots re-initialized each activation §14.5.3,
+   method-local INDEXED-BY cells) BY REFERENCE — that capture is what makes PERFORM recursion and the implicitly-
+   RECURSIVE-method rule (§11.7 / `:12032`) structural. A WHEN handler body (imp-2/3/4) references those same
+   per-activation locals, so it MUST run inside the method-local `__MDispatch`. But the program-path handler-dispatch
+   machinery — `__RunUse` (calls the instance `__Dispatch`), `__RunF3` (calls `__RunUse`), `__useActive` — are CLASS
+   members. A class member can neither call a method-local function nor see its per-activation locals. **So the parts of
+   the F3 machinery that reach the dispatcher must themselves be method-local.**
+
+**The singular resolution — the SAME pc-range mechanism, re-scoped per context** (NOT a second mechanism; NOT
+local-function-per-handler which would fork the EXIT-PERFORM/`ExitPerformSignal` + RESUME/`ResumeSignal` handling the
+pc-range path already gives us). Exactly which generated artifact lives at which scope follows the "reaches
+`__MDispatch`?" test:
+
+| Artifact | Program | Method (F3) | Why |
+|---|---|---|---|
+| handler pc-ranges (imp-2/3/4) in `bound.Paragraphs` | appended `[mainCount..]` | appended `[classCount..]` | one allocation scheme (`AddF3Handler`) — the binder is IDENTICAL |
+| the frame `Matcher` closure (`EmitExceptionPerform`) | inline in `__Dispatch` case | inline in `__MDispatch` case | emitted where the F3 PERFORM statement is — captures the enclosing local functions |
+| `__RunUse`, `__RunF3` | class members | **method-LOCAL functions** | they call `__MDispatch` and their sole caller (the Matcher / `__RunF3`) is method-local |
+| `__useActive` | instance field `bool[]` | **method-LOCAL `bool[]`** | per-activation re-entrancy guard (a recursive method needs its own; a local is per-activation by construction) |
+| `__EcPerform` | class member | class member | body is `RunTopFrame(ec,f,out h) ? a : (UnitHasF3 ? __EcDispatch : −3)` — reaches the handler ONLY through `RunTopFrame`→the Matcher, never `__RunF3` directly, so it is class-callable; a method has no F3 USE ⇒ its fallback is `−3`. **Emitted ONCE per class when `bound.Ec.HasF3Perform` (see §9.10.1-C1 — the class-level gate, NOT the per-method flag).** |
+| `__IoCheckEc` | class member | class member — **frame-first branch present when `bound.Ec.HasF3Perform`** | its F3 branch routes through `ExceptionState.RunTopFrame` (`EcEmitter.cs:375`) + the class-member `__EcPerform` (`:336`); a class has no F1/F3 declaratives so its `EmitUseTiers` is empty. **The branch is gated on `ecState.UnitHasF3Perform` AT EMIT TIME — §9.10.1-C1 sets it from the class-level `bound.Ec.HasF3Perform` around the `:219` emission (the per-method flag is false there ⇒ WITHOUT this fix the branch is silently absent — the blocker).** |
+
+The whole chain a raise resolves through: raise site in the method → `__EcPerform` (class) → `ExceptionState.RunTopFrame`
+(runtime) → the installed frame's `Matcher` closure (method-local, captures the method's locals + `__RunF3`) → `__RunF3`
+(method-local) → `__RunUse` (method-local) → `__MDispatch(hpc, hpc)` (method-local, runs the handler over its
+per-activation locals). A handler GOBACK throws `MethodReturn` (`StatementEmitter.cs:254`) which propagates the whole
+chain up to the method body's `catch (MethodReturn)` (`OoEmitter.cs:482`) — the exact mirror of the program path's
+`ProgramReturn`→`__Activate` catch. Nothing in `RunTopFrame`'s try/finally (the deferred-`Handling` clear) swallows it.
+
+**Binder changes** (small — the allocation is already unit-agnostic):
+- `EcBindExceptionPerform` (`EcBinder.ExceptionPerform.cs:62-65`): DELETE the `ctx.CurrentMethodScope is not null` early
+  return to `F3StagedInMethodStub`; a method binds the handler pc-ranges exactly like a program (the `AddF3Handler`
+  block at `:71-90`). Retire `F3StagedInMethodStub`. The GR14 overlay / `InF3When` / cross-statement bans are already
+  scope-independent. (`ctx.EcState.F3Perform=true` still fires — the gate.)
+- `BindMethodRoster` (`StatementBinder.cs:242-253`): after the statement-bind loop, mirror the program path's
+  `:163-168` — `int handlerBase = bound.Count; bound.AddRange(table.F3Handlers);` and pass
+  `F3HandlerBasePc`/`F3HandlerOwners` to the class `BoundProgram` (null when `table.F3Handlers.Count == 0`, so a
+  no-F3 class is byte-identical). CLASS `EntryPc` stays `0`, `Declaratives` stays `null`.
+- **Per-method handler slice.** The second bind loop walks paragraphs in pc order, i.e. method-by-method, and a method's
+  F3 handlers are all registered by `AddF3Handler` while that method's paragraphs bind — so the appended handler space
+  `[classCount .. classCount+H−1]` is partitioned into CONTIGUOUS per-method sub-ranges in method order (PROVEN by the
+  loop structure; assert it). Record each method's sub-range on `OoMethodBinding` as `HandlerStartPc` + `HandlerCount`
+  (snapshot `table.F3Handlers.Count` at each method's first/again — simplest: in `EcBindExceptionPerform`, when
+  `ctx.CurrentMethodScope` is set, stamp the owning method's `Binding` — but the Binding is reachable from the scope;
+  ALTERNATIVELY, and preferred for zero coupling, add a parallel `List<OoMethodScope?> _f3HandlerMethod` filled by
+  `AddF3Handler` from `ctx.CurrentMethodScope`, then in `BindMethodRoster` compute each method's `[HandlerStartPc,
+  HandlerCount]` from it — a method with no F3 handler gets count 0). The contiguity assertion guards the design
+  invariant loudly if a future reorder breaks it.
+
+**Emitter changes** (`OoEmitter` / `DispatchEmitter` / `EcEmitter`, all gated so a no-F3 class stays byte-identical):
+- `EmitTypeHalf` (`OoEmitter.cs:200-201`): keep `ecState.UnitHasF3 = false`; set `ecState.UnitHasF3Perform` PER METHOD
+  (below), not for the class. If ANY method has F3 handlers, emit the class-member `__EcPerform` ONCE (a new
+  `EcEmitter` entry that emits ONLY `__EcPerform`, not `__RunF3`/`__RunUse`) after the file/report members, alongside
+  the existing `__IoCheckEc` emission (`:219`).
+- `EmitMethod` (`OoEmitter.cs:474-484`), when `m.Binding.HandlerCount > 0`:
+  - set `ecState.UnitHasF3Perform = true`, `dispatch.DeclCount = 0`, `dispatch.F3HandlerBasePc = bound.F3HandlerBasePc`
+    (the CLASS base — used by `EmitDispatchMethod`'s region marking `:122` AND by `HandlerUseId = DeclCount + (pc −
+    F3HandlerBasePc)`; sizing `__useActive` to the class total `H` keeps the ONE `HandlerUseId` formula — a method uses
+    only its own contiguous sub-range of slots, the spare slots cost a few bytes/activation), restore after the method.
+  - emit the method-LOCAL `__useActive`/`__RunUse`/`__RunF3` (a scope-parameterized `EcEmitter`/`DispatchEmitter`
+    helper: same body text as the class-member form minus the `private` modifier and with `bool[] __useActive = new
+    bool[H];` as a local) BEFORE the `__MDispatch` local function. **C3 CORRECTION:** the existing `__RunUse` body
+    HARDCODES the literal `__Dispatch` (`DispatchEmitter.cs:203,215`) — it does NOT read `DispatchName`. The
+    scope-parameterized helper MUST render `{dispatch.DispatchName}` (which is `__MDispatch` inside a method) in place of
+    the literal, else a method-local `__RunUse` calls a non-existent class `__Dispatch` (C# CS0103). Generalize the
+    literal to `dispatch.DispatchName` in the shared body (byte-safe: for the program path `DispatchName == "__Dispatch"`).
+  - `EmitDispatchMethod` must emit the method's real slice `[EntryPc..EndPc]` AND the method's handler sub-range
+    `[HandlerStartPc .. HandlerStartPc+HandlerCount−1]` (both contiguous) as `case`s in the ONE `__MDispatch` switch —
+    generalize its signature to accept an optional second `(from,to)` handler range; the handler cases get the same
+    `F3Region.Handler` marking (`:122-124`) the program path uses. The wall is unchanged: the method body's
+    `try { __MDispatch(EntryPc, EndPc); }` bounds normal execution at the last REAL paragraph (`EndPc`); the handler
+    cases sit above it, entered ONLY via `__RunUse(id, hpc, hpc)`.
+- Raise sites inside the method already route through `EcDispatchExpr` (`EcEmitter.cs:39-42`) → `__EcPerform` once
+  `UnitHasF3Perform` is set for the method.
+
+**Edge cases / invariants:**
+- **Multiple F3 PERFORMs / nested F3 in one method** — all handlers land in the method's contiguous sub-range; all use
+  the method-local `__RunUse`/`__RunF3`. `PerformId` (`NextF3PerformId`, per-class-unit) stays unique within the class;
+  the `__f3fin{n}`/`__f3end{n}` labels and `ExitPerformSignal.Id == n` guard are method-body-scoped, so even id reuse
+  across methods could not cross-talk (distinct local scopes) — uniqueness is belt-and-suspenders.
+- **F3 method that also has EC-I-O checking** — `__IoCheckEc` (class member) frame-first path (`:372-378`) works via
+  `RunTopFrame` + `__EcPerform` (both class-callable), BUT ONLY if its frame-first branch is actually emitted — which
+  requires the class-level gate of §9.10.1-C1 (the per-method flag is false at the `:219` class-scope emission). No
+  method-local `__IoCheckEc` needed.
+- **Cross-INVOKE / cross-CALL exception isolation** — an F3 method invoked (or reached via SELF/SUPER/factory/universal
+  dispatch) during an outer element's imp-1 must NOT let its own unmatched raises be intercepted by the ACTIVATOR's
+  frame (a method is a separate source element, §14.9.18.3 SR2/SR4a; ECs propagate up only via GOBACK/EXIT … RAISING).
+  See §9.10.1-C2 — the per-activation frame-stack FLOOR.
+- **A class with a mix** (method A: EC-I-O no F3; method B: F3) — A is byte-identical; B gets its method-local
+  machinery; the class emits ONE `__EcPerform` + the existing `__IoCheckEc`. No cross-method interference.
+- **Byte-identity** — a class in which NO method has an F3 PERFORM sets `F3HandlerBasePc = null`, appends no handlers,
+  sets `UnitHasF3Perform=false` on every method, emits no `__EcPerform`/method-local machinery ⇒ generated source is
+  byte-for-byte the pre-change output (the zero-scaffolding invariant, guarded by characterization 33/33).
+
+**PROBES (verify-by-RUNNING):**
+- P1 the per-method handler-contiguity assertion actually holds on a class with F3 in ≥2 methods and a non-F3 method
+  between them.
+- P2 `UsageCollectionPass`/`BoundStores` collect the handler bodies' method-local field usage exactly once at the
+  synthetic handler paragraphs (same reconciliation §9.9-3, now for the class `bound.Paragraphs`) — regen the source-gen
+  visitor and diff.
+- P3 a handler GOBACK / EXIT PERFORM / RESUME NEXT inside a method (each throws `MethodReturn` / `ExitPerformSignal` /
+  `ResumeSignal` and is caught at the right frame) — the full imp-2..5 behavior matrix, but for a method activation.
+- P4 an F3 PERFORM in a FACTORY method + an INSTANCE method of the same class (two `EmitTypeHalf` halves) — both wired.
+- P5 a raise inside imp-1 that occurs in a PERFORMed paragraph of the method (not inline) still reaches the frame (the
+  frame is on `ExceptionState` for the whole imp-1 extent, spanning nested `__MDispatch` calls).
+
+**Increment plan** (each independently buildable + wave-local-gateable; the construct stays 0899-rejected in a method
+until M4):
+- **M1** `OoMethodBinding.HandlerStartPc`/`HandlerCount` + the `_f3HandlerMethod` parallel list + the `BindMethodRoster`
+  append + class `BoundProgram` F3 fields — all DEAD (still 0899-rejected, `HandlerCount` always 0). Gate: characterization
+  byte-identity; a unit test on the contiguity partition.
+- **M2** the scope-parameterized `__RunUse`/`__RunF3`/`__useActive`/`__EcPerform` emitters + `EmitDispatchMethod`
+  second-range generalization, behind `UnitHasF3Perform`. Still dead. Gate: characterization byte-identity + a
+  program-path re-emit diff (the refactor must not move the program output a byte).
+- **M3** `EmitMethod` wiring (the per-method F3 context + the emitted machinery + the two-range dispatch), still gated —
+  reachable only once M4 un-rejects. Gate: characterization byte-identity.
+- **M4** delete the `F3StagedInMethodStub` early return (un-reject); retire the stub. Gate: NEW
+  `PerformFormat3MethodBehaviorTests` (the imp-2..5 matrix + tier precedence, in a method — mirrors
+  `PerformFormat3BehaviorTests`) + the reshape-regression + characterization 33/33 + **full legacy guard + GnuCOBOL
+  differential** (shared EC/OO emit seams). Then the conformance program + doc sweep (this SSOT STATUS→IMPLEMENTED,
+  §9.7 boundary, plan §0, `CONFORMANCE.md`).
+
+### 9.10.1 Adversarial-review corrections (4-lens verify `wf_570480e6-06d`, folded 2026-07-22)
+
+The C# emission model lens verified SOUND (a field-stored lambda calling a method-local function compiles — C# promotes
+the referenced local function to a closure method; per-activation ref-captured locals, the `__MDispatch`↔`__RunF3`↔
+`__RunUse` mutual-local-function recursion, and the two-range switch all hold). Three defects were confirmed:
+
+- **C1 (BLOCKER — `__IoCheckEc`/`__EcPerform` frame-first gate scope; found by all 3 non-C# lenses).** `__IoCheckEc`
+  (and the new class-member `__EcPerform`) are emitted at CLASS scope in `EmitTypeHalf` (`OoEmitter.cs:219`), where
+  `ecState.UnitHasF3Perform == false` (set at `:201`; flipped true only PER METHOD, later, inside `EmitMethod`). The
+  frame-first branches in `EmitIoCheckEc` (`:334` warning path, `:372-378` unsuccessful path) read
+  `ecState.UnitHasF3Perform` AT EMIT TIME, so the class `__IoCheckEc` would emit WITHOUT them ⇒ an I/O WHEN (tiers 0-3:
+  bare-file / open-mode / EC-I-O-name FILE) inside a method never preempts the (empty) USE tiers → the fatal-status
+  default terminates the run instead of running imp-2. **FIX:** in `EmitTypeHalf`, gate the class-member `__IoCheckEc`
+  + `__EcPerform` emission on the CLASS-level `bool classF3 = bound.Ec is { HasF3Perform: true }` (which is already true
+  when ANY method has an F3 PERFORM — `EcBinder.ExceptionPerform.cs:29` sets `EcState.F3Perform` before the method-stub
+  check, flowing into `BuildFeatures`), and set `ecState.UnitHasF3Perform = classF3` for the DURATION of those two
+  emissions, then restore. Keep the per-method `UnitHasF3Perform` for the raise-site `EcDispatchExpr` gate (so a non-F3
+  method's raises stay `-3`, preserving byte-identity) and for the method-local machinery. Byte-safe: a class with no
+  F3 method keeps `HasF3Perform == false` ⇒ the flag stays false ⇒ `__IoCheckEc` renders byte-identically to today.
+- **C2 (MAJOR — cross-INVOKE/cross-CALL frame-stack isolation).** `ExceptionState._perform` is one run-unit-wide stack
+  and `RunTopFrame` walks ALL of it; `ProgramTable.CallProgram` only does a FINALLY-side `TrimPerformTo` (defensive
+  cleanup — it does NOT hide the activator's frames DURING the callee). So an F3 method M2 invoked during outer element
+  M1's imp-1 (M1's frame P1 live), raising an EC M2's own frame doesn't match (or raising OUTSIDE any imp-1 — M2's raise
+  sites emit `__EcPerform` because `UnitHasF3Perform` is a per-UNIT gate), has `RunTopFrame` walk up into P1 → M1
+  wrongly consumes M2's internal EC. The owner-stated default (design §9.2: "a called program's raise is not intercepted
+  by the caller's frame") is the CORRECT reading; `TrimPerformTo` alone under-realizes it. **FIX (the singular, O(1),
+  byte-safe mechanism):** add a per-activation FLOOR to `ExceptionEngine` — `private int _floor = 0;`,
+  `RunTopFrame`'s loop becomes `for (int i = _perform.Count-1; i >= _floor; i--)`, plus `int RaisePerformFloor()` (sets
+  `_floor = _perform.Count`, returns the old floor) and `RestorePerformFloor(int old)`. Raise the floor at **F3-method
+  ENTRY** (emitted in `EmitMethod` for a method with `HandlerCount > 0`, gated — so byte-identical for non-F3 methods):
+  `int __fl = ExceptionState.RaisePerformFloor(); try { <existing __MDispatch call + catch MethodReturn> } finally {
+  ExceptionState.RestorePerformFloor(__fl); ExceptionState.TrimPerformTo(<depth-at-entry>); }`. This isolates an F3
+  method from its activator's frames regardless of entry path (INVOKE/SELF/SUPER/factory/universal) — no per-INVOKE-site
+  emission needed. Default `_floor = 0` ⇒ ZERO behavior change for programs and the CALL path (they never raise the
+  floor — the cross-CALL "in range" reading stays the documented STAGED item, §5.4-2, unchanged). NEW probe P6: an F3
+  method whose imp-1 INVOKEs a second F3 method that raises an EC the inner's WHEN does not match — confirm the inner's
+  EC does NOT reach the outer method's WHEN (falls to the inner's own default), and confirm a raise in the inner F3
+  method's ORDINARY code (outside any imp-1) sees no frame.
+- **C3 (MINOR — see the M2/M3 emitter-changes note above):** the scope-parameterized `__RunUse` must render
+  `dispatch.DispatchName`, not the hardcoded literal `__Dispatch`.
 

@@ -11,7 +11,7 @@
 > 2002 / 2014 / 2023). We should test it as such."* A single corpus run at one dialect cannot validate that. This
 > document designs the **(construct × target-edition) test matrix** and the test-infrastructure rework to drive it,
 > sourced from [`VERSION_CHANGE_REFERENCE.md`](VERSION_CHANGE_REFERENCE.md). Companion memories:
-> `feedback_version_test_matrix`, `feedback_version_targeted_semantics`, `project_dialect_strictness`.
+> `feedback_four_editions_one_compiler`, `feedback_four_editions_one_compiler`, `project_dialect_two_axes`.
 >
 > **Scope:** the **greenfield** compiler (`src/Cobol.Net.*`, the active engine) is the target. The legacy
 > `CobolSharp.Compiler` is the **blueprint** (it already has the per-edition machinery) and is retired at G8.
@@ -143,7 +143,7 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   `dialectLevel` param — generalize its use.
 
 **6.2 Port the legacy per-edition model to the greenfield (the core rework).** The legacy already solved this; reuse
-the design (do not re-invent — `feedback_singular_pattern`):
+the design (do not re-invent — `feedback_one_mechanism_per_job`):
 - **`DialectConfig` (two-axis, one cached object queried everywhere)** — strictness (`IsStrict`) × version thresholds
   (`IsCobol2002OrLater`…), `FlagsFeaturesRemovedAfter85`, `DisplayName` for diagnostics. Port from
   `CobolSharp.Compiler/Semantics/DialectConfig.cs`.
@@ -212,7 +212,7 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
 - **Phase 2 — backfill + implement gating ✅ DONE.** The catalogue grew across the mechanically-testable rows; edition
   gating is built (the two-arm `VersionConformancePass` — its parse-tree arm the absorbed edition validator — plus the
   `ConstructDialectStatus` + `ConstructRegistry`); red cells go green per row. Each new feature ships its
-  matrix rows (extends `feedback_conformance_tests_per_feature`). The full implementation is the next section.
+  matrix rows (extends `feedback_goldens_ship_with_the_feature`). The full implementation is the next section.
 - **Phase 3 — negative corpus + flagging (in build-out).** The `_negative/` corpus; obsolete/archaic/new-reserved-word
   flagging; behavior-variant rows where INV-3 applies; auto-check the registry against the reference doc (drift guard).
 
@@ -251,7 +251,7 @@ untouched); `Program.cs` prints warnings to stderr always.
   `Outcome`.
 - **Division of labor:** syntax-only gating lives in the parse-tree arm; gating that needs bind/type information
   (e.g. the MOVE rows) lives in the bound-tree arm or binder-side — but EVERY severity decision routes through
-  `Removed()`/the registry (one policy, several emit sites; `feedback_singular_pattern`).
+  `Removed()`/the registry (one policy, several emit sites; `feedback_one_mechanism_per_job`).
 
 ### P2.3 Diagnostics band (COBOLNET0900–0999, verified unused)
 

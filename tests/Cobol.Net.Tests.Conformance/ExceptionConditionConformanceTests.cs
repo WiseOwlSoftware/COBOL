@@ -498,6 +498,131 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
+    [Fact]   // §14.9.4.4 GR3b names a condition DISTINCT from EC-PROGRAM-NOT-FOUND for the NULL case: "If the data
+             // item referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL
+             // exception condition is set to exist." (GR3g's "invalid program address … undefined" is the NON-null
+             // bad-address case.) Fatal per Table 13, so with no handler the run unit terminates — the arm the
+             // corpus golden ec_program_ptr_null cannot express, since it must run clean and RESUMEs instead.
+    public void CallPointerNull_Enabled_NoHandler_FatalTerminates()
+        => AssertFatal("""
+            >>TURN EC-PROGRAM-PTR-NULL CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT022P.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 PPTR USAGE PROGRAM-POINTER.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "BEFORE".
+                SET PPTR TO NULL.
+                CALL PPTR.
+                DISPLAY "NEVER".
+                STOP RUN.
+            """, "EC-PROGRAM-PTR-NULL", "BEFORE");
+
+    [Fact]   // §14.9.18.4 GR1b is CONDITIONAL: "If the RAISING phrase is specified, an exception condition is
+             // raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED in
+             // the activating runtime element". V58MAIN enables none, so the callee's GOBACK RAISING raises
+             // NOTHING in it and execution continues after the CALL. GR3 agrees for the main-program half: a
+             // GOBACK with no activator "operates as if executing a STOP statement … A RAISING phrase, if
+             // specified, is ignored."
+             //
+             // ⚠ SEPARATELY COMPILED on purpose, and it is the only way this rule is reachable: within ONE
+             // compilation group a >>TURN anywhere makes the whole group EC-active, so the CALL site emits its
+             // own propagation pickup and the unchecked-activator path is never taken. Two assemblies put the
+             // activator genuinely outside the callee's checking state.
+             //
+             // Before the fix ProgramTable.ApplyPropagationDefault threw for a staged FATAL condition, citing
+             // §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what may happen once a fatal
+             // condition EXISTS and GR1b stops it existing in an unchecked activator at all.
+    public void GobackRaising_IntoUncheckedActivator_IsNotRaisedThere()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V58MAIN.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "V58SUB".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            """, """
+            >>TURN EC-BOUND-SUBSCRIPT CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V58SUB.
+            PROCEDURE DIVISION.
+            SUB-P.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-BOUND-SUBSCRIPT.
+            """);
+        Assert.True(ok, $"the unchecked activator should continue past the CALL: {detail}" + stdout);
+        Assert.Equal("IN-SUB\nAFTER-CALL", stdout);
+    }
+
+    [Fact]   // §14.9.23.4 GR7c raises EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the activated
+             // method and the activating runtime element". Here the >>TURN is switched OFF before the CLASS, so
+             // only the ACTIVATOR has it enabled — the condition is therefore NOT set, the declarative must not
+             // select, and NOTHING may be attributed to EC-OO-UNIVERSAL.
+             //
+             // The nonconforming crossing still cannot proceed (PIC 9(6) argument into a PIC 9(4) formal, which
+             // only a universal receiver can defer to run time), so it stops as a CobolImplementorFatalException
+             // — §14.6.13.1.1 NOTE 3 latitude, carrying NO exception-name. The assertion that the message does
+             // NOT contain the EC name is the whole point of the test: attributing it would be the bug.
+             // Its twin, where checking IS enabled in both, is the corpus golden ec_oo_universal_both.
+    public void OoUniversal_EnabledInActivatorOnly_StopsWithoutAttributingTheCondition()
+    {
+        var (ok, stdout, detail) = CobolNet.CompileAndRun("""
+            >>TURN EC-OO-UNIVERSAL CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V55NOTB.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CUNIVN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 O USAGE OBJECT REFERENCE.
+            01 C USAGE OBJECT REFERENCE CUNIVN.
+            01 W PIC 9(6) VALUE 000007.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            H SECTION.
+                USE AFTER EXCEPTION CONDITION EC-OO-UNIVERSAL.
+            H-P.
+                DISPLAY "HANDLED".
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-P.
+                INVOKE CUNIVN "NEW" RETURNING C.
+                SET O TO C.
+                INVOKE O "TAKE" USING W.
+                DISPLAY "AFTER".
+                STOP RUN.
+            END PROGRAM V55NOTB.
+
+            >>TURN EC-OO-UNIVERSAL CHECKING OFF
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CUNIVN.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. TAKE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK PIC 9(4).
+            PROCEDURE DIVISION USING LK.
+            MAIN-P.
+                DISPLAY "IN-TAKE".
+            END METHOD TAKE.
+            END OBJECT.
+            END CLASS CUNIVN.
+            """);
+        Assert.False(ok, $"the nonconforming universal crossing must not proceed; stdout:\n{stdout}");
+        Assert.DoesNotContain("EC-OO-UNIVERSAL", detail);
+        Assert.DoesNotContain("HANDLED", stdout);
+        Assert.DoesNotContain("AFTER", stdout);
+    }
+
     [Fact]   // §14.9.4.4 GR3h + §14.6.13.1.4 #1: the CALL's ON EXCEPTION phrase handles the condition — no
              // termination; the last exception status IS set (checking enabled).
     public void CallNotFound_OnExceptionPhrase_WinsAndStatusSet()

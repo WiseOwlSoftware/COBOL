@@ -100,6 +100,39 @@ public sealed class VersionMatrixTests
         }
     }
 
+    /// <summary>The introduction contract's SECOND axis (CA14): a construct the targeted edition has NOT YET
+    /// acquired is an error under <c>--permissive</c> too, never a warning. <c>--permissive</c> is the §10 #1
+    /// MIGRATION mode — it exists so a program written against an older edition still compiles against a newer
+    /// one, which is meaningful only for constructs an edition REMOVED. No pre-existing program can legally
+    /// contain a construct its own edition had not yet acquired, so there is nothing to migrate and nothing to
+    /// be lenient about; <see cref="EditionSeverityPolicy"/> already says so
+    /// (<c>For(NotYetIntroduced) =&gt; Error</c> on both axes).
+    /// <para>⛔ THIS TEST IS THE REASON THE POLICY IS NOW AUTOMATIC. Until CA14 the permissive axis was tested
+    /// ONLY for removal rows, so the ONE site that routed an introduction through the removed-severity seam
+    /// (SYNCHRONIZED on a group item) accepted it with a warning under <c>--permissive</c> for two phases with
+    /// nothing red. A new introduction row joins this theory the moment it enters constructs.json.</para></summary>
+    public static IEnumerable<object[]> IntroducedMatrix()
+    {
+        foreach (var c in Catalogue.Where(c => c.Status == "active"))
+            foreach (int v in EditionHarness.Editions.Where(v => v < c.IntroducedIn))
+                yield return [c.Id, v];
+    }
+
+    [Theory]
+    [MemberData(nameof(IntroducedMatrix))]
+    public void IntroducedConstruct_IsRejectedUnderPermissive(string constructId, int edition)
+    {
+        var c = Catalogue.First(x => x.Id == constructId);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true);
+        Assert.False(ok, $"[{constructId}] is a COBOL-{c.IntroducedIn} introduction and must be REJECTED at "
+            + $"COBOL-{edition} under --permissive as well as strict — permissive is the migration mode for "
+            + $"REMOVED constructs, not a licence for future ones ({c.Vcr}). It compiled"
+            + (warnings.Count > 0 ? $", warning only:\n{string.Join("\n", warnings)}" : " clean."));
+        // Same code selection as the strict theory: a dual-window row rejects with its below-edge code.
+        if ((c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic) is { } code)
+            EditionHarness.AssertHasDiagnostic(errors, code);
+    }
+
     /// <summary>The §10 #1 migration contract (P2.7): a construct the targeted edition REMOVED must COMPILE
     /// under <c>--permissive</c> — with its edition-band diagnostic carried as a WARNING — preserving the
     /// pre-removal semantics. One theory row per (removed-construct × edition ≥ removedIn).</summary>

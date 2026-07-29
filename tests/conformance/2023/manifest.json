@@ -1,7 +1,16 @@
 {
   "_comment": "The 2023 positive-corpus DISCOVERY MANIFEST (roadmap Phase-1 runner shells): CorpusRunnerTests compiles (and, given a sibling .out, runs+compares) every ENABLED program at --std 2023 strict. Programs exercising not-yet-implemented features stay PENDING (the ISO-validation critics' mass-red guard) and are enabled by the wave that lands their feature. The integrity fact asserts every .cob here is listed (enabled or pending) - nothing is silently undiscovered.",
   "enabled": [
+    "ec_flow_search_set_capacity",
+    "ec_oo_universal_both",
+    "ec_oo_null_invoke",
+    "ec_bound_odo_below_min",
+    "ec_bound_subscript",
+    "ec_data_ptr_null",
+    "ec_program_ptr_null",
+    "f3_perform_handler_turn_off_all",
     "cc_in_copy",
+    "ca4_giving_composite",
     "cobol_words_equate",
     "cobol_words_substitute",
     "cobol_words_undefine",
@@ -16,7 +25,15 @@
     "external_type_decl",
     "external_file_status_consistency",
     "external_relative_key_consistency",
+    "external_file_status_externality_ok",
+    "external_linage_externality_ok",
     "ec_size_truncation_prohibited",
+    "ec_storage_not_avail",
+    "ec_data_not_finite",
+    "ec_data_overflow",
+    "ec_range_search",
+    "ec_range_perform_varying",
+    "ec_range_invalid",
     "find_string",
     "goback_status",
     "inspect_backward",
@@ -27,6 +44,10 @@
     "logical_xor",
     "module_name",
     "perform_until_exit",
+    "exit_perform_multilevel",
+    "exit_perform_cycle",
+    "move_numeric_edited_source",
+    "move_group_overpunch",
     "ref_mod_zero_length",
     "set_size",
     "smallest_algebraic",
@@ -38,7 +59,8 @@
     "ec_external_file_mismatch",
     "ec_external_data_mismatch",
     "altkey_suppress_when",
-    "wave_h_facilities_inert"
+    "wave_h_facilities_inert",
+    "optional_words_mcs"
   ],
   "pending": []
 }

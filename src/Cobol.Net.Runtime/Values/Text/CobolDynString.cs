@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -28,18 +30,40 @@ public static class CobolDynString
 
     /// <summary>
     /// SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, GR37–GR39): set the current length of a
-    /// dynamic-length item. GR39 — growing initializes the ADDED positions to SPACES (the national space is
-    /// U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking drops the
-    /// trailing positions. GR38 — a value above <paramref name="limit"/> clamps to it; GR37 — a value below zero
-    /// yields length 0. (The nonfatal EC-STORAGE-NOT-AVAIL that also becomes set in the clamp/negative cases when
-    /// checking is enabled is a checking-off no-op — the stored value is identical either way — so it is a staged
-    /// follow-on.) <paramref name="limit"/> below 0 means no LIMIT phrase — the implementor maximum, here unbounded.
-    /// A non-integer <paramref name="newLen"/> is already truncated toward zero by the integer-typed caller (GR37).
+    /// dynamic-length item. <paramref name="newLen"/> is the arithmetic-expression-5 value at FULL precision (the
+    /// GR37 sign test precedes the GR38 clamp and the non-integer truncation, so a fractional negative in (−1,0)
+    /// must be caught before the toward-zero truncation — hence a <see cref="double"/>, mirroring
+    /// <see cref="CobolTiming.ContinueAfter"/>). GR39 — growing initializes the ADDED positions to SPACES (the
+    /// national space is U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking
+    /// drops the trailing positions. GR37 — when the evaluated value does not evaluate to a nonnegative number the
+    /// length is set to 0 and, when <paramref name="checkStorage"/> (EC-STORAGE-NOT-AVAIL checking was enabled at the
+    /// statement), the nonfatal EC-STORAGE-NOT-AVAIL is set to exist; a non-integer nonnegative value is truncated
+    /// toward zero. GR38 — a value above <paramref name="limit"/> (the maximum size of data-name-3) is clamped to that
+    /// maximum and, when <paramref name="checkStorage"/>, the same nonfatal EC-STORAGE-NOT-AVAIL is set. (GR38's third
+    /// leg — the requested storage not being physically available — is N/A under the .NET managed heap: a within-LIMIT
+    /// length always allocates.) The stored value is identical whether or not checking is on; the flag only governs the
+    /// observable exception status. <paramref name="limit"/> below 0 means no LIMIT phrase — the implementor maximum,
+    /// here unbounded. (The integer-2 literal form is compile-time bounded by SR34, so these runtime raises pertain to
+    /// the arithmetic-expression-5 form.)
     /// </summary>
-    public static string SetSize(string? current, long newLen, int limit)
+    public static string SetSize(string? current, double newLen, int limit, bool checkStorage)
     {
         current ??= "";
-        long n = newLen < 0 ? 0 : limit >= 0 && newLen > limit ? limit : newLen;
+        long n;
+        if (newLen < 0.0)
+        {
+            n = 0;                                                       // GR37 — not nonnegative → length 0
+            if (checkStorage) ExceptionState.Set("EC-STORAGE-NOT-AVAIL", fatal: false);
+        }
+        else if (limit >= 0 && newLen > limit)
+        {
+            n = limit;                                                  // GR38 — above the maximum → clamp to it
+            if (checkStorage) ExceptionState.Set("EC-STORAGE-NOT-AVAIL", fatal: false);
+        }
+        else
+        {
+            n = (long)newLen;                                           // GR37 — non-integer truncates toward zero
+        }
         return n <= current.Length ? current[..(int)n] : current + new string(' ', (int)n - current.Length);
     }
 }

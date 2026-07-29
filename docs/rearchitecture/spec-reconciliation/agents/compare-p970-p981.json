@@ -1,0 +1,25 @@
+{
+  "batch": [970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981],
+  "pages_checked": [970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981],
+  "note": "NO general-format figures / syntax skeletons appear anywhere in this page range. PDF pages 940-951 (printed folio) cover the tail of 15.98 YEAR-TO-YYYY, all of clause 16 Standard classes (an interface-definition code listing, not a general format), and the start of Annex A A.1 Implementor-defined language element list (items 1-97). scripts/spec/page_workunit.py itself reported '0 with figure content' for all 12 pages. The choice-indicator / unclosed-brace / ellipsis-placement defect classes therefore have no instances to check here. Prose and the one COBOL code listing were transcribed faithfully; the only defects found are markdown heading-level inversions.",
+  "findings": [
+    {
+      "page": 972,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "16.2.1.2   General rules   ...   16.2.2   FactoryObject method   ...   16.2.2.1   General   ...   16.2.2.2   General rule",
+      "markdown_says": "## 16.2.1.2 General rules   ...   ## 16.2.2 FactoryObject method   ...   ### 16.2.2.1 General   ...   ### 16.2.2.2 General rule   (specs/ISO_COBOL.md lines 38833, 38840, 38843, 38848; compare line 38819 '### 16.2.1 New method' and line 38822 '#### 16.2.1.1 General')",
+      "why_it_matters": "The heading levels invert the clause hierarchy. 16.2.1.2 is a fourth-level clause but is emitted at h2 - shallower than its own parent 16.2.1, which is at h3, and shallower than its sibling 16.2.1.1, which is at h4. Likewise 16.2.2 (third level) is at h2 while its peer 16.2.1 is at h3, and 16.2.2.1 / 16.2.2.2 (fourth level) sit at h3 while their peer 16.2.1.1 sits at h4. Any tool that builds an outline, a table of contents, or a section-anchored citation index from the markdown headings will place 16.2.1.2 and 16.2.2 as top-level peers of the '## Page NNN' furniture rather than inside clause 16.2, so a spec-citation lookup walking the heading tree can fail to resolve 16.2.1.2 and 16.2.2.x.",
+      "suggested_repair": "Re-level to match the clause numbering used elsewhere in clause 16: '#### 16.2.1.2 General rules', '### 16.2.2 FactoryObject method', '#### 16.2.2.1 General', '#### 16.2.2.2 General rule'."
+    },
+    {
+      "page": 973,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "A.1   Implementor-defined language element list",
+      "markdown_says": "### **A.1 Implementor-defined language element list**   (specs/ISO_COBOL.md line 38880; compare line 39466 '## A.2 Undefined language element list', line 39672 '## A.3 Processor-dependent language element list', line 39846 '## A.4 Optional language element list')",
+      "why_it_matters": "A.1 is emitted at h3 with an extra bold wrapper while its siblings A.2, A.3 and A.4 are emitted at h2 unadorned. The outline therefore shows A.1 nested one level below A.2-A.4 instead of alongside them, and the bold markers become part of the heading text, so an exact heading-text match on 'A.1 Implementor-defined language element list' fails.",
+      "suggested_repair": "Change line 38880 to '## A.1 Implementor-defined language element list' to match A.2 through A.4."
+    }
+  ]
+}

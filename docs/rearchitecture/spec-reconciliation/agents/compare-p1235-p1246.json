@@ -1,0 +1,16 @@
+{
+  "batch": [1235, 1236, 1237, 1238, 1239, 1240, 1241, 1242, 1243, 1244, 1245, 1246],
+  "pages_checked": [1235, 1236, 1237, 1238, 1239, 1240, 1241, 1242, 1243, 1244, 1245, 1246],
+  "note": "This batch was routed as a FIGURES batch, but PDF pages 1235-1246 (printed pages 1205-1216) are the alphabetical Index (entries ALL..INITIAL clause). They contain NO general formats, NO syntax skeletons and NO diagrams, so the priority defect class for this run (lost choice-indicator bars, unclosed brackets/braces, misplaced ellipses, lost underlining, figure-note contradictions) has no surface area here. page_workunit.py agreed: it reported '0 with figure content'. Every entry line, page reference and page-number list on all 12 pages was compared token-by-token against the rendered PDF and matches, including ISO's own typos which the transcription faithfully preserves ('Basic common time3 format with fractional seconds' p1236, 'FLAG-14 deirective' p1244, 'Exception-checking PERFORM statement.' p1243, 'EXIT PROGRAM Statement. 1199' p1243). The only discrepancy found is the indentation issue below.",
+  "findings": [
+    {
+      "page": 1240,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "DYNAMIC LENGTH clause  397\n        Data description entry  363\nDYNAMIC LENGTH STRUCTURE clause  291   [the second line is printed indented one level, as a sub-entry of DYNAMIC LENGTH clause]",
+      "markdown_says": "DYNAMIC LENGTH clause [397](#page-397)\nData description entry [363](#page-363)\nDYNAMIC LENGTH STRUCTURE clause [291](#page-291)   [all three flush left, at the same level]",
+      "why_it_matters": "In an index the leading indent is the ONLY thing that marks a sub-entry as belonging to its parent. Flattening it detaches sub-items from their parents and promotes them to look like top-level index terms. The transcription is also self-inconsistent about this: pages 1237, 1238, 1239 and 1243 DO preserve the level with &nbsp; runs, while pages 1235, 1236, 1240, 1241, 1242, 1244, 1245, 1246 (and the right-hand 'Category of data' block on 1237, md lines 64-79) drop it entirely. The worst reading arises on page 1244, where the sub-entry 'FILE-CONTROL paragraph 312' (under FILE STATUS clause) is flattened and lands immediately above the genuine top-level entry 'FILE-CONTROL paragraph 311', so the two read as a contradictory duplicate. Index only - no normative text is affected.",
+      "suggested_repair": "Apply the same &nbsp;-per-level indentation scheme already used on pages 1237/1238/1239/1243 to the flattened index pages 1235, 1236, 1240, 1241, 1242, 1244, 1245, 1246, and to the 'Category of data' block on 1237. One level = 4 &nbsp;, matching the existing convention."
+    }
+  ]
+}

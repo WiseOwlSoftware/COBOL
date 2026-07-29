@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -120,6 +121,14 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             int objMark = host.Udf.PendingCount;
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
+            // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID. The rule
+            // is scoped to LITERAL alphanumeric/national ranges (rule 1's numeric ranges set no EC), so route only a
+            // string-literal range to the ThruMember carrier under checking; everything else keeps the plain relation
+            // pair (byte-identical when the directive is absent).
+            if (ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line)
+                && lo is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }
+                && hi is BoundStringLiteral)
+                return host.Udf.UdfAttachPerEvaluation(new BoundRangeMembership(left, lo, hi, CheckInvalid: true), objMark);
             return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
                 objMark);
@@ -146,7 +155,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             if (vo.arithmeticExpression() is not { } expr || ConditionBinder.SoleDataRef(expr) is not { } dref
                 || host.Cond.ConditionOf(dref) is not { } cond) return null;
             return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
-                ? new BoundCondition88(parent, cond)
+                ? new BoundCondition88(parent, cond,
+                    ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                 : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
         }
         char? kind = cls.NUMERIC() is not null ? 'N'

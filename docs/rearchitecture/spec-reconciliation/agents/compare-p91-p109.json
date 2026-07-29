@@ -1,0 +1,14 @@
+{
+  "batch": [91, 93, 95, 97, 98, 99, 101, 103, 104, 105, 107, 109],
+  "pages_checked": [91, 93, 95, 97, 98, 99, 101, 103, 104, 105, 107, 109],
+  "findings": [],
+  "notes": [
+    "Batch swept clean: no missing text, no incorrect text, no misplaced content, no missing/incorrect figures, no missing headings, no OCR errors found on any of the 12 pages.",
+    "Figures present in this batch: p105 (7.3.16.2 IF directive general format) and p109 (7.3.19.2 PAGE directive general format). Both reproduce the printed bracket structure exactly. Verified at 300 dpi with a 2x crop of the p105 figure: printed form is '>> IF constant-conditional-expression-1 [ text-1 ]' / '[ >> ELSE [ text-2 ] ]' / '>> END-IF'. No choice-indicator bars are printed in either figure (nothing to lose), every bracket that opens also closes, no ellipses appear, and the markdown matches glyph for glyph.",
+    "Underlining: p105 underlines IF, ELSE, END-IF; p109 underlines PAGE. In both figures EVERY uppercase word is underlined and every non-underlined token is a lowercase-hyphenated variable, so no required/optional distinction is lost by the plain-text rendering and no 'Figure notes' annotation is needed (unlike p102 FLAG-14 / p106 LEAP-SECOND, where the underlining is selective and IS annotated).",
+    "p103: the top-of-page sentence continuation 'is encountered that turns off all flagging options, or a FLAG-14 directive is encountered that turns off that option.' is NOT missing - the transcription joined it to page 102's rule 2 (ISO_COBOL.md line 4416). Correct paragraph reassembly across the page break, not a defect.",
+    "p103 g) and k) confirmed by 1.6x crop: the PDF really does print 'NUM-ED-ZERO-FIG-CONSTANT' and 'VALUE-FIG-CON-NO-LENTH', which disagree with the 'NUM-ED-ZERO-FIGCONST' / 'VALUE-FIG-CON-LENGTH' spellings in the p102 FLAG-14 general format. That is ISO's own internal inconsistency; the markdown reproduces both sides verbatim, so it is not a transcription defect.",
+    "p105 syntax rule 1 says '>>IF conditional-expression-1' while the general format says 'constant-conditional-expression-1'. Also an ISO defect faithfully transcribed, not a markdown defect.",
+    "Running-header level varies (p98/p105/p109 use '# ISO/IEC 1989:2023 (E)', the rest use bold). Excluded as page-break scaffolding per the run rules."
+  ]
+}

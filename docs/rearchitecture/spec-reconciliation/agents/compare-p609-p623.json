@@ -1,0 +1,24 @@
+{
+  "batch": [609, 610, 611, 612, 614, 615, 616, 617, 620, 621, 622, 623],
+  "pages_checked": [609, 610, 611, 612, 614, 615, 616, 617, 620, 621, 622, 623],
+  "findings": [
+    {
+      "page": 609,
+      "kind": "other",
+      "severity": "structural",
+      "pdf_says": "FORMAT 3",
+      "markdown_says": "## FORMAT 3",
+      "why_it_matters": "In the PDF, 'FORMAT 3' is an ordinary (non-bold, body-size) label paragraph that scopes the general rules that follow it inside 14.9.1.4 - exactly like 'FORMAT 1' / 'FORMAT 2' on pages 620 and 623, which the transcription renders as plain paragraphs. Promoting it to a level-2 markdown heading injects a phantom section into the document outline at the SAME level as '## 14.9.1.3 Syntax rules', so General rule 13) and everything after it appears to belong to a top-level section named 'FORMAT 3' rather than to 14.9.1.4, General rules. The transcription is overwhelmingly consistent the other way: 209 plain 'FORMAT n' label lines vs only 8 promoted to headings.",
+      "suggested_repair": "Change line 25360 of specs/ISO_COBOL.md from '## FORMAT 3' to the plain paragraph 'FORMAT 3', matching the 209 other FORMAT label lines. (The same fix applies to the other 7 promoted labels at lines 6280, 6284, 6288, 6298, 19800, 28029, 28033, which lie outside this batch.)"
+    },
+    {
+      "page": 614,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.2.3  Syntax rules  ...  14.9.2.4  General rules  (both printed in the same bold subclause style as 14.9.2.1 General and 14.9.2.2 General formats on page 613)",
+      "markdown_says": "## 14.9.2.3 Syntax rules  ...  ## 14.9.2.4 General rules  (level 2, while their siblings on page 613 are '### 14.9.2.1 General' and '### 14.9.2.2 General formats')",
+      "why_it_matters": "Four-component subclauses of a statement are transcribed at heading level 3 throughout 14.9 (### 14.9.3.1 .. ### 14.9.3.4 for ALLOCATE on page 616, ### 14.9.5.1 .. ### 14.9.5.4, ### 14.9.6.x, ### 14.9.8.x, and 14.9.2.1/14.9.2.2 on page 613 itself). Emitting 14.9.2.3 and 14.9.2.4 at level 2 makes them siblings of '## 14.9.2 ADD statement' instead of children of it, so the ADD statement's syntax rules and general rules detach from the ADD statement in any outline, TOC or anchor-walk built from the markdown.",
+      "suggested_repair": "In specs/ISO_COBOL.md change line 25525 '## 14.9.2.3 Syntax rules' to '### 14.9.2.3 Syntax rules' and line 25546 '## 14.9.2.4 General rules' to '### 14.9.2.4 General rules'. The identical demotion is needed for '## 14.9.1.3' (line 25270), '## 14.9.1.4' (line 25285) and '## 14.9.4.3' (line 25741), which fall on pages outside this batch."
+    }
+  ]
+}

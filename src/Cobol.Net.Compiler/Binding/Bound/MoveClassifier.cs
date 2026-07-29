@@ -35,7 +35,7 @@ public enum MoveKind
 /// <summary>THE MOVE-dispatch classifier (P7 Step 7): one pure function over bind-time facts, the single
 /// authority for <see cref="MoveKind"/> — called by <c>BindMove</c> AND by the emitter's synthetic implicit-MOVE
 /// constructions (READ INTO / WRITE FROM / RETURN INTO / INITIALIZE / CORRESPONDING / function RETURNING — the
-/// same classification, never a second table; feedback_singular_pattern).</summary>
+/// same classification, never a second table; feedback_one_mechanism_per_job).</summary>
 public static class MoveClassifier
 {
     /// <summary>The dispatch kind of storing <paramref name="source"/> into <paramref name="target"/> —

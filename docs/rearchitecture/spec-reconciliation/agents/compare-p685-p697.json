@@ -1,0 +1,51 @@
+{
+  "batch": [685, 686, 687, 688, 689, 690, 691, 692, 693, 695, 696, 697],
+  "pages_checked": [685, 686, 687, 688, 689, 690, 691, 692, 693, 695, 696, 697],
+  "findings": [
+    {
+      "page": 687,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "MERGE general format (14.9.24.2), COLLATING SEQUENCE alternative 2 is a brace carrying CHOICE INDICATOR bars just inside it: '{ | FOR ALPHANUMERIC IS alphabet-name-1 | }' over '{ | FOR NATIONAL IS alphabet-name-2 | }' -- i.e. a tall '{' followed by a tall vertical bar on the left, and a tall vertical bar followed by the closing '}' on the right, enclosing the two FOR lines.",
+      "markdown_says": "[ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]          } ]\n                     { { FOR ALPHANUMERIC IS alphabet-name-1 }          }\n                     { { FOR NATIONAL IS alphabet-name-2     }          }",
+      "why_it_matters": "The vertical bars are the 5.2.6.4 choice indicator: with them, BOTH 'FOR ALPHANUMERIC IS alphabet-name-1' and 'FOR NATIONAL IS alphabet-name-2' may be specified, each at most once, in any order. Without them a brace around stacked alternatives means EXACTLY ONE. The transcription therefore makes 'COLLATING SEQUENCE FOR ALPHANUMERIC IS alpha-1 FOR NATIONAL IS alpha-2' -- the normal case for a MERGE keyed on both alphanumeric and national items, and the case General rule 5a on page 660 explicitly describes -- look illegal, and would drive a compiler to reject legal source.",
+      "suggested_repair": "Restore the choice indicator in the ASCII figure, e.g.\n[ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]      } ]\n                     { {| FOR ALPHANUMERIC IS alphabet-name-1 |}   }\n                     { {| FOR NATIONAL IS alphabet-name-2     |}   }\nand note in the figure that the bars mean 'each at most once, in any order'."
+    },
+    {
+      "page": 687,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "MERGE general format (14.9.24.2), final group is a single tall BRACE spanning two lines:\n{ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ]\n{                                        { THRU    }\n{ GIVING { file-name-4 } ...",
+      "markdown_says": "[ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ] ]\n[                                         { THRU    }                    ]\n[ GIVING { file-name-4 } ...                                             ]",
+      "why_it_matters": "The PDF uses a brace, which per 5.2.6.2 means exactly one of the enclosed alternatives is REQUIRED: every MERGE statement shall specify either an OUTPUT PROCEDURE or a GIVING phrase. The markdown replaces the one brace with two independent brackets, which says both are optional and both may be omitted or both given. That both weakens a mandatory requirement (a MERGE with neither phrase would be accepted) and permits an illegal combination (OUTPUT PROCEDURE together with GIVING).",
+      "suggested_repair": "Render the final group as one brace spanning both alternatives, e.g.\n{ OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH } procedure-name-2 ] }\n{                                        { THRU    }                    }\n{ GIVING { file-name-4 } ...                                            }"
+    },
+    {
+      "page": 689,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.24.4   General rules  -- printed at the same typographic level as 14.9.24.1 General, 14.9.24.2 General format and 14.9.24.3 Syntax rules on page 657.",
+      "markdown_says": "## 14.9.24.4 General rules   (specs/ISO_COBOL.md line 28338), while its siblings are '### 14.9.24.1 General' (28260), '### 14.9.24.2 General format' (28265) and '### 14.9.24.3 Syntax rules' (28283).",
+      "why_it_matters": "The General rules subsection is promoted to the same heading level as its parent '## 14.9.24 MERGE statement', so the document outline shows 14.9.24.4 as a peer of 14.9.24 rather than a child. Any tooling that walks the heading tree (TOC generation, section extraction, the spec-lookup skill) resolves 14.9.24.4 outside the MERGE statement subtree. The same demotion pattern recurs at every '.4 General rules' heading in 14.9 (14.9.23.4 line 28172, 14.9.25.4 line 28544, 14.9.26.4 line 28794), so this is a systemic, sweepable defect rather than a one-off.",
+      "suggested_repair": "Change '## 14.9.24.4 General rules' to '### 14.9.24.4 General rules', and sweep the whole of clause 14.9 (and any other clause) for '^## \\d+\\.\\d+\\.\\d+\\.\\d+ ' headings that should be '###'."
+    },
+    {
+      "page": 696,
+      "kind": "missing-text",
+      "severity": "structural",
+      "pdf_says": "Table 16 has a two-level header: a spanning cell 'Category of receiving operand' across all six data columns, above the individual column labels 'Alphabetic', 'Alphanumeric-edited, Alphanumeric', 'Boolean', 'National, National-edited', 'Numeric, Numeric-edited', 'Type-name'; the stub cell to its left reads 'Category of sending operand'.",
+      "markdown_says": "| Category of sending operand | | Alphabetic | Alphanumeric-edited, Alphanumeric | Boolean | National, National-edited | Numeric, Numeric-edited | Type-name |",
+      "why_it_matters": "The spanning header 'Category of receiving operand' is printed in the PDF but absent from the transcription. It is the label that identifies the column axis; without it the table is only interpretable by inferring the axis from the stub, and a reader consulting the table to decide whether a MOVE is legal has no printed statement of which axis is the receiving operand. The Yes/No body of the table was checked cell by cell against the PDF and is transcribed correctly.",
+      "suggested_repair": "Reintroduce the column-group label, e.g. add a first header row '|  |  | Category of receiving operand | | | | | |' or fold it into the header text as '| Category of sending operand \\\\ Category of receiving operand | | Alphabetic | ... |'."
+    },
+    {
+      "page": 696,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.25.4   General rules  -- printed at the same typographic level as 14.9.25.1 General, 14.9.25.2 General formats and 14.9.25.3 Syntax rules.",
+      "markdown_says": "## 14.9.25.4 General rules   (specs/ISO_COBOL.md line 28544), while its siblings are '### 14.9.25.1 General' (28456), '### 14.9.25.2 General formats' (28461) and '### 14.9.25.3 Syntax rules' (28480).",
+      "why_it_matters": "Same defect as at 14.9.24.4: the General rules subsection is promoted to the level of its parent '## 14.9.25 MOVE statement', detaching it from the MOVE subtree in the document outline and in any heading-tree-driven extraction.",
+      "suggested_repair": "Change '## 14.9.25.4 General rules' to '### 14.9.25.4 General rules' as part of the document-wide sweep of '^## \\d+\\.\\d+\\.\\d+\\.\\d+ ' headings."
+    }
+  ]
+}

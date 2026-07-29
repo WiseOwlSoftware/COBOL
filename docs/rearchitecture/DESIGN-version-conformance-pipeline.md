@@ -43,7 +43,7 @@ this design rules out, each a way version gating decays if it is *not* a single 
 
 The single mechanism defined below — **superset parse + construct identity recovered by the pass +
 edition-agnostic bind + one two-arm `VersionConformancePass` (post-bind) + emit-if-clean** — is the direct answer to
-all four (`feedback_singular_pattern`: one canonical mechanism per job, with error-gated phase boundaries).
+all four (`feedback_one_mechanism_per_job`: one canonical mechanism per job, with error-gated phase boundaries).
 
 ## 1. Target architecture
 
@@ -87,17 +87,31 @@ is this closed, documented set:
    D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOLNET1502/1503, + the bespoke TRIM
    argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOLNET0878 — EcBinder, the USE
    F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
-   gate), and the §8.3.1.2 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 — `EditionInfo.MaxDigits`
-   is the table).
+   gate), and the §8.3.3.3.2 / §13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
+   `EditionInfo.MaxDigits` is the table; §8.3.3.3.2 caps fixed-point literals at 1–31 digits and §13.18.40.3 SR14
+   caps a numeric/fixed-point-numeric-edited item's PICTURE digit positions at 1–31).
 3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
    the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
    2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).
-4. **The owner-disposition SYNCHRONIZED-on-group site** (`DataBinder`, row sync-on-group-2023): deliberately a
-   manual `Edition.Removed`-severity emission (error strict / WARNING permissive) because the `Check`
-   introduction verdict errors on BOTH axes — the owner chose accept-inert continuity (P3 step 10; the row's
-   description records it).
+4. **The bind-time `Check` for SYNCHRONIZED on a group item** (`DataBinder.ResolveIndexItems`, row
+   sync-on-group-2023): a group/elementary distinction the parse tree does not carry — whether the entry HAS
+   subordinates is known only once the hierarchy is resolved — so this introduction fires at bind, through the
+   canonical `ConstructRegistry.Check` funnel like every other. It is an ERROR ON BOTH AXES.
+   ⛔ It was, until CA14 (2026-07-28), a manual `Edition.Removed`-severity emission chosen for accept-inert
+   continuity; that made it the sole site contradicting `EditionSeverityPolicy.For(NotYetIntroduced) => Error`
+   and the `EditionContext.Permissive` contract. **The exception is retired: there is no longer any site where
+   an introduction is lenient.**
 
 Any OTHER `DialectLevel` comparison appearing in `Binding/**` is a defect: relocate it into the pass.
+
+**The introduction axis is now gate-enforced, not documented-and-hoped.**
+`VersionMatrixTests.IntroducedConstruct_IsRejectedUnderPermissive` runs every active row × every edition below
+its `introducedIn` under `--permissive` and requires a rejection. Until CA14 the permissive axis was tested only
+for REMOVAL rows, which is why the exception above survived two phases — and why the same test immediately found
+two more: `receive-as-user-word` and `end-receive-as-user-word` at COBOL-85, where the §8.9 reserved-word arm
+hard-coded a `Removed` verdict. That arm now COMPUTES the verdict from the word's own reservation interval
+(`ReservedWordSet.UserWordVerdictAt`): a spelling an edition took away is the migration case, a spelling reserved
+at the target edition and at every edition before it never was a user word there.
 
 ## 2. Mechanisms
 

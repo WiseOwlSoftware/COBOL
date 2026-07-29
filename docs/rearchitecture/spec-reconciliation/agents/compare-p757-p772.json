@@ -1,0 +1,13 @@
+{
+  "batch": [757, 758, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772],
+  "pages_checked": [757, 758, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772],
+  "findings": [],
+  "notes": [
+    "Batch was routed as a FIGURE-fidelity batch, but none of these 12 PDF pages contains a general format, syntax skeleton, or any other figure. All twelve are pure prose: PDF pp. 727-728 (printed) = SEND 14.9.38.4 General rules, and PDF pp. 733-742 (printed) = SET 14.9.39.3 Syntax rules tail + 14.9.39.4 General rules. The SET general-format figures live on the PDF pages immediately before this range (759-762), which are NOT in this batch. Therefore no choice-indicator (5.2.6.4 vertical bar) check, unclosed-bracket check, or ellipsis-placement check was applicable on any page here.",
+    "page_workunit.py independently reported '0 with figure content' for this batch, corroborating the above.",
+    "Alignment verified: PDF page 757 renders printed page 727 and the markdown '## Page 757' slice matches it exactly; the offset holds for all 12 pages. Slice completeness verified against specs/ISO_COBOL.md anchor line ranges (e.g. page-763 = lines 30964-31008).",
+    "Cross-references spot-verified character by character and all match: '13.18.38, OCCURS clause' (pp. 768, 769, 770), '8.8.4.6, Simple switch-status condition' (p. 769), '8.5.1.10, Dynamic-length elementary items' (p. 767), '8.5.1.9.4, Explicit changes in capacity' (p. 772).",
+    "ISO's own oddities are transcribed FAITHFULLY and are not defects of the markdown: p. 757 GR 1 says 'the execution of the RECEIVE statement is unsuccessful' inside the SEND rules; p. 766/767 the syntax-rule FORMAT headings jump FORMAT 12 -> FORMAT 14 (no FORMAT 13); p. 769 GR 4 b) prints 'index-name 3' unhyphenated; p. 770 GR 12 ends without a full stop ('...is changed'); p. 770/771 GR 14 says 'the function referenced in the definition of identifier-13' (crop-verified at 300 dpi as '13', not '12'). Each of these appears identically in both sources.",
+    "Sub-list indentation is flattened to column 0 on pp. 763-765 and 767-769 (present as leading spaces on p. 757 and p. 771). Not reported as a finding: every level keeps its own label series (10) / a) / 1. / a. / em-dash), so parentage and nesting depth remain unambiguous, and no normative token is altered."
+  ]
+}

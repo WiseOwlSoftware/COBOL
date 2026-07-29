@@ -1,0 +1,29 @@
+{
+  "batch": [933, 934, 935, 936, 937, 938, 939, 940, 941, 942, 943, 944],
+  "pages_checked": [933, 934, 935, 936, 937, 938, 939, 940, 941, 942, 943, 944],
+  "findings": [
+    {
+      "page": 933,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "(3 + 0.1415926535897932384626433832795)",
+      "markdown_says": "(3 + 0.14159265358979323846264338327 95)",
+      "why_it_matters": "15.73.3 rule 1 gives the normative arithmetic expression that native-arithmetic FUNCTION PI approximates. The PDF prints the fractional part as one unbroken 31-digit run; the markdown injects a space before the final two digits ('...327 95'). No digit is lost or altered, but any reader or tool copying the constant can truncate at the space and silently obtain 0.14159265358979323846264338327 - wrong from the 30th decimal onward.",
+      "suggested_repair": "Delete the spurious space: '(3 + 0.1415926535897932384626433832795)'."
+    },
+    {
+      "page": 933,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "3.141592653589793238462643383279503.",
+      "markdown_says": "3.14159265358979323846264338327 9503.",
+      "why_it_matters": "15.73.3 rule 3 states the EXACT value FUNCTION PI returns under standard-decimal arithmetic - it is a hard requirement on the implementation, not an approximation. The PDF prints an unbroken 33-decimal-digit run; the markdown injects a space before the final four digits ('...327 9503'), so a copy that stops at the space yields a value wrong from the 30th decimal onward.",
+      "suggested_repair": "Delete the spurious space: '3.141592653589793238462643383279503.'."
+    }
+  ],
+  "notes": [
+    "Figures on these pages (15.73.2 FUNCTION PI, 15.74.2 FUNCTION PRESENT-VALUE, 15.75.2 FUNCTION RANDOM, 15.76.2 FUNCTION RANGE, 15.77.2 FUNCTION REM, 15.78.2 FUNCTION REVERSE, 15.79.2 FUNCTION SECONDS-FROM-FORMATTED-TIME, 15.80.2 FUNCTION SECONDS-PAST-MIDNIGHT, 15.81.2 FUNCTION SIGN, 15.82.2 FUNCTION SIN, 15.83.2 FUNCTION SMALLEST-ALGEBRAIC) were checked at 300 dpi with per-figure crops enlarged 2-3x. No choice indicators (5.2.6.4 vertical-bar pairs) are present in the PDF for any of them, so none were lost. All brackets and braces open and close correctly. Every ellipsis is on the correct side of its delimiter: 15.74.2 '{ argument-2 } ...' and 15.76.2 '( { argument-1 } ... )' both bind the ellipsis to the closing brace to its left, as printed.",
+    "NOT REPORTED as findings - document-wide transcription convention, not a page defect: underlining of required words is dropped from most general formats in this batch. The markdown renders these figures four different ways - fenced code block with no underline (pp. 933, 934, 935, 939, 940), <u>..</u> tags preserved (pp. 936, 941), bare text with no underline (pp. 937, 938, 943), inline backticks (p. 942). Under 5.2.6 an uppercase word that is NOT underlined is an optional word, so the un-underlined renderings formally read as though FUNCTION / REM / REVERSE / SIN / SMALLEST-ALGEBRAIC were omissible. Nothing is ambiguous in practice on these pages because every uppercase word in each of these formats is required and none sits inside a bracket, and the whole file carries only ~97 <u> markers against thousands of formats, so this is a global property of the transcription that should be settled once rather than ledgered per page.",
+    "NOT REPORTED - page-break furniture: the 15.83.4 NOTE table (Argument-1 Characteristics / Value returned) starts on p. 943 as a markdown table and continues on p. 944 as four plain lines ('S9(4) BINARY +1' etc.) because the page anchor splits it. All four rows and both columns are present and in order."
+  ]
+}

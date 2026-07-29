@@ -231,10 +231,13 @@ cannot reference the Runtime assembly, so the algorithm — not the code — is 
 * **Binary `B-AND`/`B-OR`/`B-XOR`** (rules 9/10) — bit-by-bit from the left; unequal length ⇒ shorter
   right-extended with boolean zeros; result length = the larger operand; zero-length ⇒ zero-length (rule 9
   NOTE 2).
-* **Shift `-L/-R/-LC/-RC`** (rule 8) — second operand is an **integer operand**: evaluated via the directive
-  arithmetic boundary (§7.3.3 SR10 + GR3-truncated) and required to be integral (a fractional value rejected,
-  rule 5); `count==0` identity; a **negative** count rejected (§8.8.2 defines only counts ≥ 1). Logical (zero-fill)
-  vs circular (wrap); result length = first operand; `count ≥ length` degenerates correctly.
+* **Shift `-L/-R/-LC/-RC`** (rule 8) — the second operand shall be an **integer operand** (rule 5): evaluated via
+  the directive arithmetic boundary (§7.3.3 SR10 + GR3-truncated) and required to be integral (a fractional value
+  rejected, rule 5). Rule 8 specifies a single shift, repeated `count` times when `count` is greater than 1; a
+  `count==0` is identity (the shift repeated zero times leaves the operand unchanged). §8.8.2 assigns no meaning to
+  a **negative** repetition count, so — a directive value must be determinate, never a silently wrong value — a
+  negative count is rejected loudly (COBOLNET1619). Logical (zero-fill) vs circular (wrap); result length = first
+  operand; `count ≥ length` degenerates correctly.
 * **Rules 4/5 ALL-adjacency are moot for the compile-time fold** — §7.3.3 SR10 rejects any figurative operand at
   the leaf UPSTREAM, so no `ALL literal` operand ever reaches a binary/shift combine. (The runtime `ConditionBinder`
   keeps its COBOLNET1511 rule-4/5 checks — it DOES admit the §8.8.2 figuratives; only the frontend fold does not.)

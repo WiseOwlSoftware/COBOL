@@ -1,0 +1,24 @@
+{
+  "batch": [108, 110, 111, 112, 113, 114, 115, 137, 141, 142, 144, 150],
+  "pages_checked": [108, 110, 111, 112, 113, 114, 115, 137, 141, 142, 144, 150],
+  "findings": [
+    {
+      "page": 111,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": ">> PROPAGATE { ON / OFF } — in the printed figure PROPAGATE and OFF carry underlines and ON does not. The standard's own convention for general formats is stated in 8.3.1.1: \"Keywords are reserved words or context-sensitive words. They are shown in uppercase and underlined in general formats. They are required in order to select the functionality associated with that keyword\" and \"Within each format, uppercase words that are not underlined are called optional words\". Nothing in the printed standard makes an underline mean 'default'.",
+      "markdown_says": "> **Figure notes (PROPAGATE directive general format).** `PROPAGATE` and `OFF` are underlined in the printed standard; `ON` is **not** underlined. In the compiler-directive formats the underlined alternative marks the default, which agrees with general rule 4 (\"The default for a compilation group is PROPAGATE OFF\"). The braces are a plain required choice — exactly one of `ON` / `OFF` shall be selected.",
+      "why_it_matters": "The added sentence invents a notation rule that the standard does not have and that the transcription itself contradicts twice: the LISTING note (p.108) calls the identical typography \"a typesetting omission\", and the POP note (p.110) says outright \"`ALL` is not a default — underlining marks it as a required word\". It is also falsified by LISTING itself, whose default is ON (7.3.18.3 GR 2, '>>LISTING ON') while OFF is the underlined alternative. An implementer taking the rule at face value would read defaults off the underlining of every directive format and get LISTING, REF-MOD-ZERO-LENGTH and TURN wrong.",
+      "suggested_repair": "Replace the invented rule with the same wording used in the POP and SOURCE FORMAT notes: `PROPAGATE` and `OFF` are underlined (required words); `ON` is not underlined. Note separately that 7.3.21.4 GR 4 — not the underlining — establishes PROPAGATE OFF as the compilation-group default, and cross-check the parallel ON/OFF directive notes so all five state the convention identically."
+    },
+    {
+      "page": 144,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Format 6 (all-literal): \"ALL literal-1\" with ALL underlined. Format 7 (symbolic-character): \"ALL symbolic-character-1\" with ALL NOT underlined (verified at 300 dpi including the descender band).",
+      "markdown_says": "Format 6 (all-literal):\\n\\nALL literal-1\\n\\nFormat 7 (symbolic-character):\\n\\nALL symbolic-character-1  — both transcribed as bare paragraph text, neither with a Figure-notes paragraph. The only record of Format 6's underline is an aside attached to the Format 5 figure: \"> ⓘ For contrast, in Format 6 (`ALL literal-1`) the printed standard **does** underline `ALL`, making it required there.\" Format 7's underline state is recorded nowhere.",
+      "why_it_matters": "Underlining is what separates a required keyword from an optional word (8.3.1.1). Formats 1–5 on this page each get a Figure-notes paragraph recording that `ALL` is NOT underlined there; Formats 6 and 7 get none, so a reader of the markdown cannot tell that `ALL` is required in Format 6 and — more importantly — cannot see that the printed standard leaves `ALL` un-underlined in Format 7 even though `ALL symbolic-character-1` is meaningless without it. That un-underlined `ALL` in Format 7 looks like an ISO typesetting defect of exactly the kind the Figure notes exist to record, and it is currently invisible.",
+      "suggested_repair": "Give Formats 6 and 7 their own Figure-notes paragraphs in the same style as Formats 1–5: for Format 6, `ALL` is underlined (required word), `literal-1` is not; for Format 7, flag with ⚠ that `ALL` is printed WITHOUT an underline although omitting it would leave a plain symbolic-character rather than a figurative constant — an apparent typesetting omission, reproduced as printed. Then delete the misplaced 'ⓘ For contrast' aside from the Format 5 notes."
+    }
+  ]
+}

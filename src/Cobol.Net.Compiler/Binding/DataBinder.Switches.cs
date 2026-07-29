@@ -684,6 +684,11 @@ public sealed partial class DataBinder
         string text = lit.GetText();
         if (CobolLiteral.IsStringLiteral(text))   // both ISO §8.3.1.2 delimiters (an apostrophe CLASS literal was miscompiled)
             return CobolLiteral.Decode(text);
+        // §8.3.3.2 hexadecimal-format alphanumeric literal (X"hh…"): each hex-digit pair is one character. Without
+        // this, X"FF" fell through to raw text, so its length != 1 skipped the THRU/ALSO range and the alphabet was
+        // silently left native (e.g. ALPHABET … X"FF" THRU X"00" never reversed — §12.3.7.4 GR5).
+        if (text.Length >= 3 && text[0] is 'X' or 'x' && text[1] is '"' or '\'')
+            return CobolLiteral.DecodeHex(text);
         return int.TryParse(text, out int ordinal) && ordinal >= 1 && ordinal <= 256
             ? ((char)(ordinal - 1)).ToString()
             : text;

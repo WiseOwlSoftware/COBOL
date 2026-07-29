@@ -13,6 +13,10 @@ public static class FileStatusCode
     /// length for the file's fixed attributes (ISO §9.1.13.2 item 3 / §14.9.30 GR14 — record-sequential only; the
     /// record is still delivered). Clarified in COBOL-2023 (Annex E.2 item 15), version-invariant behavior.</summary>
     public const string RecordLengthShortLong = "04";
+    /// <summary>06 — a LINE-SEQUENTIAL READ found a record longer than the maximum record size; it is truncated on the
+    /// right, the READ is SUCCESSFUL, and the file position indicator references the next unread character in the
+    /// record so the following READ continues the remainder (ISO §14.9.30.4 GR15 + NOTE 3; §9.1.13.2 item 5).</summary>
+    public const string LineRecordTooLong = "06";
     /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
     public const string OptionalFileNotFound = "05";
     /// <summary>10 — end-of-file reached on a sequential READ (the AT END condition).</summary>
@@ -45,6 +49,11 @@ public static class FileStatusCode
     /// VARYING bounds (§13.18.43 GR14 / §14.9.35 GR20), or a record-sequential REWRITE whose size differs from
     /// the record being replaced (§14.9.35 GR16).</summary>
     public const string RecordSizeViolation = "44";
+
+    /// <summary>71 — a line-sequential REWRITE whose new record contains a character outside the implementor-defined
+    /// line character set (ISO §14.9.35.4 GR17d); here a record carrying a line delimiter (CR/LF) that would corrupt
+    /// the line structure.</summary>
+    public const string LineRecordInvalidChar = "71";
 
     /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §9.1.13.2 item 2).</summary>
     public const string DuplicateAlternateKey = "02";

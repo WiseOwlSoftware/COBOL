@@ -283,9 +283,18 @@ public sealed class PerformFormat3BehaviorTests
     // ── GR21 transparency (an EC raised inside a handler is not re-caught by the SAME PERFORM) ──────────────────
 
     [Fact]   // GR21: an exception condition raised during imp-2 behaves as in a Format-2 PERFORM (this PERFORM's
-             // WHEN/OTHER do NOT re-catch it). The overflowing ADD in the handler raises EC-SIZE-TRUNCATION (storing
-             // 18 into PIC 9), which WHEN OTHER does NOT handle (the frame is transparent while handling) → the fatal
-             // default terminates. If GR21 were violated, WHEN OTHER would print "OTHER" and RESUME instead.
+             // WHEN/OTHER do NOT re-catch it), so the fatal EC-SIZE-OVERFLOW raised in the handler terminates. If
+             // GR21 were violated, WHEN OTHER would print "OTHER" and RESUME instead.
+             //
+             // ⚠ The handler-local >>TURN is load-bearing, not decoration. This test used to rely on the enclosing
+             // `>>TURN EC-ALL CHECKING ON` reaching into the handler — which §14.9.28.4 GR14 forbids: an "implicit
+             // PUSH ALL followed by TURN OFF ALL is assumed at the end of imperative-statement-1", so no checking
+             // is enabled inside a handler and §14.6.13.1.1 means the ADD raises nothing at all. The old form
+             // asserted pre-GR14 behaviour and passed only because handler bodies wrongly inherited the enclosing
+             // state. An explicit RAISE cannot substitute — §14.9.29.3 SR4: "Within an exception-checking PERFORM
+             // statement, the RAISE statement shall not be specified in any imperative statement other than
+             // imperative-statement-1" (COBOLNET1611). Re-enabling INSIDE the handler is the legal way to raise
+             // there, and it doubles as the proof that a handler-local directive still wins over the GR14 floor.
     public void Gr21_ReRaiseInHandler_NotReCaught_FallsToFatal()
         => AssertFatal("""
                 PERFORM
@@ -293,6 +302,7 @@ public sealed class PerformFormat3BehaviorTests
                     DISPLAY "AFTER"
                 WHEN EC-USER-DEMO
                     DISPLAY "WHEN"
+                >>TURN EC-SIZE-TRUNCATION CHECKING ON
                     ADD 9 TO N
                     DISPLAY "AFTER-ADD"
                 WHEN OTHER

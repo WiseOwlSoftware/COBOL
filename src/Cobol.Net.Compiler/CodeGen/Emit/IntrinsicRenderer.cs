@@ -130,8 +130,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 var (argList, _) = AlignedArgs(ic);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), 0);
             }
-            case "OrdMaxString" or "OrdMinString":                              // all-alphanumeric argument form
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)), 0);
+            case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
             // NUMVAL / NUMVAL-C (§15.67/§15.68): parse to (unscaled, actual scale), rescaled to the compile-time
             // working scale ws = max(Receiver.Scale, 6) — the ≥6 floor is the NUMVAL rule (the receiver scale is
@@ -298,6 +298,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private static string Collate(BoundIntrinsicCall ic) =>
         ic.Collate ? ", __COLLATE" : ic.CollateNat ? ", __COLLATE_NAT" : "";
 
+    /// <summary>The LEADING weights argument for a PCS-flagged MAX/MIN/ORD-MAX/ORD-MIN string form — collate goes
+    /// FIRST (a <c>params string[]</c> can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
+    /// params string[])</c> overload. The mirror of <see cref="Collate"/>'s trailing form for the single-arg CHAR/ORD.</summary>
+    private static string CollatePrefix(BoundIntrinsicCall ic) =>
+        ic.Collate ? "__COLLATE, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
+
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 
     /// <summary>Render an alphanumeric-result intrinsic as a C# string expression. An INSTANCE channel (P7
@@ -324,8 +330,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // (The legacy's runtime-clock placeholder also passes IF142A's plausibility checks; the constant is
             // the spec-correct form — scout brief §4.4.)
             "WhenCompiled" => EmitText.CsLiteral(WhenCompiledStamp.Value),
-            "MaxString" or "MinString" =>                                      // §15.59/63 all-alphanumeric form
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
+            "MaxString" or "MinString" =>                                      // §15.59/63 all-string form (PCS via CollatePrefix, CA23)
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)),
             "Concat" =>                                                        // §15.18 — concatenate all argument images (2023)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             // BOOLEAN-OF-INTEGER (§15.13.4 r1) — a boolean-result function on the D-B1 '0'/'1' substrate:

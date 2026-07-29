@@ -60,6 +60,19 @@ internal sealed class BinderDriver
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
+        // §14.9.23.4 GR7c's METHOD-side half, folded once now that every method symbol exists. See
+        // OoMethodSymbol.OoUniversalCheckingHere for why this is bind-time and why the METHOD-ID line is the
+        // query point.
+        foreach (var cls in table.Classes)
+            foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
+                // A PROPERTY accessor SYNTHESIZED from a PROPERTY clause (§13.18.42) has no METHOD-ID in source
+                // and therefore no method context at all — reading `m.Ctx.Start` on one is a NullReferenceException
+                // that takes down the whole bind, which is exactly what it did to oo_property/oo_property_ref.
+                // Its enclosing CLASS-ID line is the right query point: the accessor is part of that definition
+                // and has no source position of its own to disagree with.
+                m.OoUniversalCheckingHere = turn.Enabled(
+                    "EC-OO-UNIVERSAL", null, (m.Ctx?.Start ?? cls.Ctx.Start).Line);
+
         OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
         var ooAdapters = OoConformance.ValidateImplements(table, edition);   // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
         foreach (var cls in classes) oo.BindClassBody(cls);
@@ -133,22 +146,17 @@ internal sealed class BinderDriver
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
 
-        // The termination-status gate: any STOP RUN / GOBACK … WITH NORMAL/ERROR STATUS phrase in the group makes
-        // the generated Main pass RunUnit.ExitStatus to Environment.ExitCode (§14.9.42.4 GR5 / §14.9.18.4 GR10). A
-        // status-free group keeps its entry wrapper byte-identical (the zero-scaffolding invariant, SSOT §18.16) —
-        // the parse-tree scan finds the phrase (statusPhrase appears only on STOP/GOBACK; below-edition uses are
-        // rejected before codegen).
-        bool usesTerminationStatus = HasStatusPhrase(tree);
-
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
-            anyFiles, usesTerminationStatus);
+            anyFiles);
     }
 
-    /// <summary>VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — the ≥2023 cross-unit
-    /// external-file conformance check. Group the compilation group's file connectors by externalized name; for each
-    /// external connector described by more than one file control entry (in-group), require that FILE STATUS (VCR 18)
-    /// and — for a relative file — RELATIVE KEY (VCR 31) are specified by ALL corresponding entries and name the SAME
-    /// corresponding external data item. "If any specifies it, all shall" plus same-external-item identity.</summary>
+    /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
+    /// Two conjuncts of §14.8.4.2. <b>Conjunct 1 — externality (COBOLNET1624, per connector, ANY describer count):</b>
+    /// a specified FILE STATUS / RELATIVE KEY / LINAGE data item shall itself be an external data item. <b>Conjunct 2 —
+    /// consistency (VCR 18/31, COBOLNET1573/1575, needs ≥2 in-group describers):</b> "if any specifies it, all shall",
+    /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
+    /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
+    /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
     private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         var byExternalName = units.SelectMany(u => u.Data.Files)
@@ -160,10 +168,36 @@ internal sealed class BinderDriver
         // continuity witnesses need (an 85 NIST program that violates the new rule, e.g. IC227A with two differently-
         // named non-external FILE STATUS items, still COMPILES under permissive and rejects under strict).
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, edition.Edition);
+        // §14.8.4.2 conjunct 1 — EXTERNALITY: a FILE STATUS / RELATIVE KEY / LINAGE data item associated with an
+        // external file connector shall ITSELF be an external data item. One shared clause-parameterized diagnostic
+        // (the §14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
+        // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
+        EditionDiagnostic Externality(string ext, string clause, string name) =>
+            new("COBOLNET1624", severity, "external-file-item-not-external",
+                $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
+                + "(ISO §14.8.4.2; Annex E.2 item 9)",
+                $"external file '{ext}'", "ISO §14.8.4.2 / Annex E.2 item 9");
         foreach (var group in byExternalName)
         {
             var conns = group.ToList();
-            if (conns.Count < 2) continue;   // one describer in-group — nothing to reconcile here (VCR-15 runtime check owns cross-compilation)
+            // Conjunct 1 (externality) is enforced for EVERY external connector, regardless of describer count — a
+            // lone-program external file whose file-referencing item is non-external is a §14.8.4.2 violation.
+            foreach (var f in conns)
+            {
+                if (f.FileStatusName is not null && ExternalItemIdentity(f.FileStatusItem) is null)
+                    edition.Report(Externality(group.Key, "FILE STATUS", f.FileStatusName));
+                if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
+                    && ExternalItemIdentity(f.RelativeKeyItem) is null)
+                    edition.Report(Externality(group.Key, "RELATIVE KEY", f.RelativeKeyName));
+                if (f.Linage is { } lin)
+                    foreach (var op in lin.Operands)
+                        if (op.DataName is not null && ExternalItemIdentity(op.Item) is null)
+                            edition.Report(Externality(group.Key, "LINAGE", op.DataName));   // literal operands are exempt
+            }
+            // Conjunct 2 (cross-unit CONSISTENCY, §12.4.5.3 GR1(h)/(i)) needs ≥2 in-group describers to reconcile; the
+            // single-describer externality face is enforced above, and cross-compilation sameness stays with the
+            // ExternalTable runtime EC-EXTERNAL-DATA-MISMATCH check.
+            if (conns.Count < 2) continue;
 
             // VCR 18 — FILE STATUS: if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming the
             // same corresponding external data item (§12.4.5.3 GR1(i)).
@@ -210,16 +244,6 @@ internal sealed class BinderDriver
         path.Add(r.CobolName ?? "?");
         path.Reverse();
         return string.Join(".", path).ToUpperInvariant();
-    }
-
-    /// <summary>True when <paramref name="node"/> contains a STOP RUN / GOBACK status phrase anywhere in its
-    /// subtree (ISO §14.9.42.2 / §14.9.18.2 <c>statusPhrase</c>).</summary>
-    private static bool HasStatusPhrase(IParseTree node)
-    {
-        if (node is Core.StatusPhraseContext) return true;
-        for (int i = 0; i < node.ChildCount; i++)
-            if (HasStatusPhrase(node.GetChild(i))) return true;
-        return false;
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source

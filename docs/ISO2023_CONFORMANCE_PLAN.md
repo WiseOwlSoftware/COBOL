@@ -146,7 +146,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     `RecordLayoutBuilder` — is **dead code** (`IrLoadField`/`IrStoreField` zero producers; `ARCHITECTURE_ASSESSMENT`
     item 17); live storage is `ProgramState` byte[] via `StorageLayoutComputer`. The owner chose to build the real
     record-`struct` substrate (Option B) over a parallel-static-field shortcut and explicitly over the dual-write/
-    shadow hack (rejected, `feedback_no_transitional_hacks`). **Key insight:** byte-backed items stay in the byte
+    shadow hack (rejected, `feedback_change_the_dispatch_not_the_callers`). **Key insight:** byte-backed items stay in the byte
     areas (the §1.6 safety floor); only classifier-Typed items move into record-`struct` fields; they meet only at
     the §2.5 `IDataSlot` chokepoint (typed slots materialize a transient byte window — no shadow/drift). The
     concrete, staged, guard-green engineering roadmap is **`docs/RECORD_STRUCT_STORAGE_DESIGN.md`** (S0 IR+resolver
@@ -745,7 +745,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 - **Diagnostics quality** — comprehensive `CBL####` coverage, accurate source locations, actionable messages,
   exit codes; never crash on invalid input (P1 hardening already started — see memory `project_p1_diagnostics`).
 - **Dialect strictness** — the two-axis model (version `--std` × strictness); every leniency dialect-gated
-  (see memory `project_dialect_strictness`).
+  (see memory `project_dialect_two_axes`).
 - **Conformance corpus (BUILT — `tests/conformance/`)** — the NIST-equivalent suite for 2002/2014/2023. A
   file-based corpus (`<name>.cob` + `<name>.out`) per version, auto-discovered + run under the matching
   `--std` by `ConformanceTests` (integration project), inside the guard. Seeded with M2 features (UDF
@@ -762,7 +762,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 
 ## 6. POST-CONFORMANCE MILESTONES — GATED (do NOT start until an operational ISO 2023 compiler exists)
 
-> Owner-stated; see memory `project_post_conformance_goals`. Do nothing here until M2→M4 conformance is achieved.
+> Owner-stated; see memory `project_required_reviews`. Do nothing here until M2→M4 conformance is achieved.
 
 ### 6.1 Full software architectural review
 - Project **folder & file layout and naming** rationalized.
@@ -844,7 +844,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 - **2026-06-08 (session DEVLOG 453–456)** — **OO goes TYPED-NATIVE (ADR §7) + the multi-method keystone.** Owner
   course-correction: OO object data must be per-instance typed .NET fields (NOT the byte `ProgramState`); the
   `EnableTypedFields` gate is migration-safety for the legacy corpus, so OO is an **always-on consumer** of the typed
-  pipeline (memory `feedback_oo_typed_native_not_byte`). Landed, each guard-green + conformance-tested + (455)
+  pipeline (memory `feedback_typed_native_only`). Landed, each guard-green + conformance-tested + (455)
   adversarially reviewed: **453** object char data → per-instance `string`; **454** object numeric → per-instance
   `long`/`decimal` + the general typed-numeric→byte MOVE cell; **455** multi-method classes (N `METHOD-ID`/class, each
   its own .NET method + exit-bounded dispatch; per-method paragraph scope fixes CBL3104) + `INVOKE SELF`→`callvirt`

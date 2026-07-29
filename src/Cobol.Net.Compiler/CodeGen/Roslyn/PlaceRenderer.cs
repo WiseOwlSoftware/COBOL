@@ -27,7 +27,7 @@ internal static class PlaceRenderer
     /// <summary>A C# expression that reads <paramref name="p"/>'s current value.</summary>
     public static string Read(Place p) => p switch
     {
-        // A reference-modified slice inner(start:length) (ISO §8.4.2.4): a substring of the inner field's image.
+        // A reference-modified slice inner(start:length) (ISO §8.4.3.3): a substring of the inner field's image.
         RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
         // A NUMERIC-DISPLAY item viewed as its character image (ISO §8.4.2.4): format the stored value's display image.
         NumericImagePlace n => RuntimeApi.NumFormatDisplay(Read(n.Inner), n.Inner.Item.ProfileName),
@@ -127,7 +127,10 @@ internal static class PlaceRenderer
     // cast at the call site. Start/Length are the P5.11/D10 TRANSITIONAL string carrier (a rendered index expression);
     // they become BoundExpr when D10 removes the SUBSCRIPT lexer mode (PHASE 15) — see the PHASE-07 Step 11 plan.
     private static string RmStart(RefModPlace r) => $"(int)({r.Start})";
-    private static string RmLen(RefModPlace r) => r.Length is null ? "-1" : $"(int)({r.Length})";
+    // The OMITTED length (identifier(start:) — "to the end") renders the distinct CobolString.OmittedRefModLength
+    // sentinel, NOT −1, so a SPECIFIED length that evaluates negative at runtime is distinguishable and raises
+    // EC-BOUND-REF-MOD under checking (review C14; §8.4.3.3.4 item 5c positive-nonzero).
+    private static string RmLen(RefModPlace r) => r.Length is null ? RuntimeApi.OmittedRefModLength : $"(int)({r.Length})";
 
     /// <summary>Store into a multi-leaf RENAMES alias (ISO §13.18.45): store the value at the span width, then
     /// distribute the slices back into the leaves left to right (a write through the alias shows through every
@@ -163,12 +166,15 @@ internal static class PlaceRenderer
     public static string SendingImage(OdoGroupPlace p) => $"{Read(p.Inner)}.AsImage().Substring(0, {LengthExpr(p)})";
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
-    /// splice the stored prefix over the live image, leaving positions past the count unmodified.</summary>
+    /// splice the stored prefix over the live image, leaving positions past the count unmodified. <c>allowZeroLength</c>
+    /// because a zero current extent (OCCURS 0 TO n DEPENDING at count 0, §13.18.38 GR8a) is a no-op store, NOT a
+    /// reference-modification violation — this internal splice is not a user ref-mod, so it must not raise
+    /// EC-BOUND-REF-MOD under checking (review V48).</summary>
     public static string ReceiveInto(OdoGroupPlace p, string imageExpr) =>
-        $"{Read(p.Inner)}.FromImage({RuntimeApi.StrSpliceInto($"{Read(p.Inner)}.AsImage()", "1", LengthExpr(p), imageExpr)});";
+        $"{Read(p.Inner)}.FromImage({RuntimeApi.StrSpliceInto($"{Read(p.Inner)}.AsImage()", "1", LengthExpr(p), imageExpr, allowZeroLength: true)});";
 
     /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current character extent (GR8):
     /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site.</summary>
     public static string LengthExpr(OdoGroupPlace p) =>
-        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MaxOccurs, p.FixedChars, p.ElemChars);
+        RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(Read(p.Depending)), p.MinOccurs, p.MaxOccurs, p.FixedChars, p.ElemChars);
 }

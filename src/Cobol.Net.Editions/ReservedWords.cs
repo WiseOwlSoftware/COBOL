@@ -85,4 +85,28 @@ public sealed class ReservedWordSet
         if (_reserved?.Contains(upperWord) == true) return true;      // RESERVE — a new reserved word
         return Find(upperWord) is { Confidence: "high" } e && e.IsReservedAt(edition);
     }
+
+    /// <summary>
+    /// WHY <paramref name="upperWord"/> rejects at <paramref name="edition"/> — the availability of the construct
+    /// "this spelling used as a user-defined word", so the ONE
+    /// <see cref="EditionSeverityPolicy"/> decides the severity axis instead of the emit site asserting it.
+    /// <para>⛔ THE DISTINCTION IS NOT COSMETIC, and hard-coding <see cref="ConstructAvailability.Removed"/> got
+    /// it wrong for every RE-RESERVED word. A spelling an edition TOOK AWAY (COMMIT: user-definable until 2023
+    /// reserved it) is the migration case <c>--permissive</c> exists for — an existing program legitimately
+    /// contains it. A spelling that was reserved at the target edition AND at every edition before it
+    /// (RECEIVE / END-RECEIVE at COBOL-85, where the '85 communication module owns them) was NEVER a user word
+    /// there, so no conforming program of that vintage can contain one and there is nothing to migrate: it is
+    /// <see cref="ConstructAvailability.NotYetIntroduced"/>, an error on BOTH axes (CA14's policy, swept).</para>
+    /// </summary>
+    public ConstructAvailability UserWordVerdictAt(string upperWord, int edition)
+    {
+        if (!RejectsAt(upperWord, edition)) return ConstructAvailability.Available;
+        // A >>COBOL-WORDS RESERVE (ISO §7.3.10.4 GR5) is the PROGRAM's own reservation, not the edition's: the
+        // spelling was a user word until this compilation group's directive took it, which is the removed shape.
+        if (_reserved?.Contains(upperWord) == true) return ConstructAvailability.Removed;
+        if (Find(upperWord) is not { } e) return ConstructAvailability.Removed;
+        foreach (int older in EditionInfo.Before(edition))
+            if (!e.IsReservedAt(older)) return ConstructAvailability.Removed;
+        return ConstructAvailability.NotYetIntroduced;
+    }
 }

@@ -1,0 +1,25 @@
+{
+  "batch": [581, 582, 583, 584, 585, 586, 587, 588, 589, 591, 592, 593],
+  "pages_checked": [581, 582, 583, 584, 585, 586, 587, 588, 589, 591, 592, 593],
+  "notes": "No general-format / syntax-skeleton figures appear on any page in this batch (page_workunit.py also reported '0 with figure content'). Pages 582-588 are Table 13 (Exception-names and exception conditions) continuation pages; 581, 589, 591-593 are prose. All exception-name rows, Cat values and Description text were compared cell by cell against the rendered PDF and match verbatim. The priority defect class (lost choice-indicator bars per 5.2.6.4) is therefore not exercised by this batch. Only two cosmetic structural nits were found, both on page 591.",
+  "findings": [
+    {
+      "page": 591,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "5) If the NEAREST-EVEN phrase is specified and the arithmetic value cannot be exactly represented in the resultant identifier, ... If two such values are equally near, the value whose rightmost digit is even is chosen.\n\n        NOTE    This method is sometimes known as 'banker's rounding'.   [the NOTE is indented to the body-text indent of list item 5), i.e. it is a sub-item of rule 5]",
+      "markdown_says": "10\t5) If the NEAREST-EVEN phrase is specified ... the value whose rightmost digit is even is chosen.\n11\t\n12\tNOTE This method is sometimes known as 'banker's rounding'.\n13\t\n14\t6) If the NEAREST-TOWARD-ZERO phrase is specified ...   [the NOTE is flush at the left margin, detached from rule 5]",
+      "why_it_matters": "The NOTE is scoped to rule 5 (NEAREST-EVEN) in the printed standard. Flush-left placement between rules 5 and 6 reads as a note on the whole rounding-mode list rather than on NEAREST-EVEN alone. The same transcription indents NOTE 1 under item 1 on page 588, so the flush placement here is an inconsistency, not a house style.",
+      "suggested_repair": "Indent the NOTE line by 3-4 spaces so it nests under list item 5), matching the treatment of 'NOTE 1' under item 1 on page 588."
+    },
+    {
+      "page": 591,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "14.7.5   SIZE ERROR phrase and size error condition   [same clause depth as 14.7.1 General, 14.7.4 ROUNDED phrase, 14.7.6 CORRESPONDING phrase]",
+      "markdown_says": "### 14.7.5 SIZE ERROR phrase and size error condition   (specs/ISO_COBOL.md line 24682)",
+      "why_it_matters": "Every sibling clause in the run is transcribed at '##' - 14.7 (24595), 14.7.1 (24598), 14.7.2 (24610), 14.7.3 (24615), 14.7.4 (24620), 14.7.6 (24754), 14.7.7 (24790), 14.7.8 (24846), 14.7.9 (24874). 14.7.5 alone is at '###', so it is nested under 14.7.4 in any TOC or heading-depth walk instead of being its own clause, which misplaces the SIZE ERROR clause relative to ROUNDED.",
+      "suggested_repair": "Demote the marker from '###' to '##' so 14.7.5 sits at the same heading depth as its nine siblings."
+    }
+  ]
+}

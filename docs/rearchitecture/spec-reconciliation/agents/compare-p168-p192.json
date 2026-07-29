@@ -1,0 +1,14 @@
+{
+  "batch": [168, 170, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192],
+  "pages_checked": [168, 170, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192],
+  "findings": [],
+  "notes": [
+    "Batch was routed as figure-heavy, but page_workunit.py reported '0 with figure content' and visual inspection confirms it: the only general format in the whole batch is the one-line ADDRESS format on PDF page 170 (printed page 140), section 8.4.3.11.2. It has no brackets, braces, choice-indicator bars, or ellipses, so the priority defect class (dropped choice-indicator bars per 5.2.6.4) cannot occur here.",
+    "PDF p170 general format verified at 660 dpi effective zoom: 'ADDRESS' is underlined, 'OF' is NOT underlined. Markdown renders '<u>ADDRESS</u> OF identifier-1' - faithful.",
+    "PDF p192 Table 2 (Class and category relationships for elementary data items) verified row by row: all 9 class rows and all 15 category entries match the markdown table exactly, including the parenthetical qualifiers '(if usage is display)' and '(if usage is national)'.",
+    "PDF p190 opens mid-sentence with 'neighboring non-variable-length data items, this has no effect on the results of the execution of the program.' That text is NOT missing - it is present in ISO_COBOL.md line 8250, at the tail of the page-189 slice, because the transcription joins sentences reflowed across the page break. Not a defect.",
+    "PDF p180 section 8.4.6.8 ends without a terminating period ('...declared in the REPOSITORY paragraph'); the markdown reproduces the missing period faithfully. This is an ISO typographic defect, not a transcription defect.",
+    "PDF p190 item 4) carries an extra leading space after the ')' in the printed text; cosmetic justification artifact, not reported.",
+    "Batch page-number mapping for the record: PDF index 168..192 corresponds to printed pages 138..162 (offset 30)."
+  ]
+}

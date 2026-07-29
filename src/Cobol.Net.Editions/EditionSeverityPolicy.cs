@@ -7,7 +7,7 @@ namespace CobolNet.Editions;
 /// removed / reserved / obsolete / not-yet-introduced emit site asks HERE — never a local
 /// <c>if (permissive)</c>. This is exactly the decision the old <c>EditionContext.Removed</c> seam and the
 /// obsolete/introduction arms of <see cref="ConstructRegistry.Check"/> made; centralizing it lets the binder,
-/// the validator, and both frontend preprocessor gates share one policy (feedback_singular_pattern).
+/// the validator, and both frontend preprocessor gates share one policy (feedback_one_mechanism_per_job).
 /// </summary>
 public static class EditionSeverityPolicy
 {

@@ -58,7 +58,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         {
             // Register this program's SELECTed files at FIRST ACTIVATION of this instance (the IC114A lesson:
             // connectors belong to the program's entry, not the run-unit Main; a fresh instance after CANCEL /
-            // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the entry wrapper.
+            // an INITIAL activation re-registers — ISO §14.6.2.3.2). Run-unit CloseAll lives in the runtime RunMain boundary.
             if (ctx.Data.Files.Count > 0)
             {
                 using (w.Block("if (!__filesRegistered)"))
@@ -101,8 +101,40 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <c>__Dispatch</c>) and COBOL classes (<c>OoEmitMethod</c>: each METHOD-ID's contiguous slice of the
     /// class's ONE pc space as a local function; a pc outside the slice hits <c>default:</c> and exits — the
     /// emit-into-a-type parameterization of the OO deep-dive).</summary>
-    public void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc)
+    public void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc,
+        int handlerFromPc = -1, int handlerToPc = -1)
     {
+        void EmitCase(int i)
+        {
+            dispatchState.CurrentPc = i;
+            using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
+            {
+                // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
+                // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a
+                // dispatcher break. Owner = F3HandlerOwners[i − base] (the PerformId).
+                bool isHandler = bound.F3HandlerBasePc is int hb && i >= hb;
+                var f3saved = isHandler
+                    ? dispatchState.SetF3Region(F3Region.Handler, bound.F3HandlerOwners![i - bound.F3HandlerBasePc!.Value])
+                    : default;
+                // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): a debug SUBJECT procedure fires
+                // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
+                // transfer cause (__dbgCause, set by whatever transferred control here) and run the
+                // section over its bounded pc range.
+                if (dispatchState.DebugActive && dispatchState.DebugByPc.TryGetValue(i, out var subj))
+                    w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
+                        + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
+                if (!EmitParagraphBody(bound.Paragraphs[i], i))
+                {
+                    // Sequential fall-through into pc+1 is DEBUG-CONTENTS "FALL THROUGH"; DEBUG-LINE is
+                    // this paragraph's LAST statement (the causing statement that fell through, DB101A
+                    // FALL-THROUGH-TEST :403-407).
+                    dispatchState.EmitDebugCause(w, "FallThrough", bound.Paragraphs[i].SourceLine);
+                    w.Line($"__pc = {i + 1};");
+                    w.Line("break;");
+                }
+                if (isHandler) dispatchState.RestoreF3Region(f3saved);
+            }
+        }
         using (w.Block(header))
         {
             w.Line("int __pc = __startPc;");
@@ -111,37 +143,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 w.Line("bool __atExit = __pc == __exitPc;   // captured before the body overwrites __pc");
                 using (w.Block("switch (__pc)"))
                 {
-                    for (int i = fromPc; i <= toPc; i++)
-                    {
-                        dispatchState.CurrentPc = i;
-                        using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
-                        {
-                            // An appended Format-3 handler pc-range (imp-2/3/4): mark the region so an EXIT PERFORM in
-                            // its body throws ExitPerformSignal to the owning PERFORM boundary (§14.9.14.4 GR4), not a
-                            // dispatcher break. Owner = F3HandlerOwners[i − base] (the PerformId).
-                            bool isHandler = bound.F3HandlerBasePc is int hb && i >= hb;
-                            var f3saved = isHandler
-                                ? dispatchState.SetF3Region(F3Region.Handler, bound.F3HandlerOwners![i - bound.F3HandlerBasePc!.Value])
-                                : default;
-                            // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): a debug SUBJECT procedure fires
-                            // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
-                            // transfer cause (__dbgCause, set by whatever transferred control here) and run the
-                            // section over its bounded pc range.
-                            if (dispatchState.DebugActive && dispatchState.DebugByPc.TryGetValue(i, out var subj))
-                                w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
-                                    + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
-                            if (!EmitParagraphBody(bound.Paragraphs[i], i))
-                            {
-                                // Sequential fall-through into pc+1 is DEBUG-CONTENTS "FALL THROUGH"; DEBUG-LINE is
-                                // this paragraph's LAST statement (the causing statement that fell through, DB101A
-                                // FALL-THROUGH-TEST :403-407).
-                                dispatchState.EmitDebugCause(w, "FallThrough", bound.Paragraphs[i].SourceLine);
-                                w.Line($"__pc = {i + 1};");
-                                w.Line("break;");
-                            }
-                            if (isHandler) dispatchState.RestoreF3Region(f3saved);
-                        }
-                    }
+                    for (int i = fromPc; i <= toPc; i++) EmitCase(i);
+                    // The method's Format-3 handler pc-ranges (design SSOT §9.10) — a NON-contiguous second case set
+                    // (appended above the whole class pc space, so outside [EntryPc..EndPc]); entered ONLY via the
+                    // method-local __RunUse(id, hpc, hpc). Empty (handlerFromPc < 0) for a program's __Dispatch — whose
+                    // main loop [0..Count−1] already covers its appended handlers — so the program path is byte-identical.
+                    if (handlerFromPc >= 0)
+                        for (int i = handlerFromPc; i <= handlerToPc; i++) EmitCase(i);
                     using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }
                 }
                 w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph fell off its end");
@@ -190,31 +198,14 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         {
             w.Line($"private readonly bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §14.9.49.4 GR2 re-entrancy guards");
             if (ecState.Active)
-            {
                 // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
                 // protocol — EcEmitter): a RESUME statement unwinds via ResumeSignal (§14.9.33; the
                 // StopRun/ProgramReturn exception-as-control precedent) and __RunUse converts it to the
                 // action; normal completion is -1 (§14.6.13.1.2). Emitted ONLY when the group uses the
                 // EC model — an EC-free build keeps the void form byte-identical.
-                using (w.Block("private int __RunUse(int __id, int __startPc, int __endPc)"))
-                {
-                    w.Line("if (__useActive[__id]) return -1;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
-                    w.Line("__useActive[__id] = true;");
-                    w.Line("try { __Dispatch(__startPc, __endPc); }");
-                    w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
-                    w.Line("finally { __useActive[__id] = false; }");
-                    w.Line("return -1;   // normal completion (§14.6.13.1.2)");
-                }
-            }
+                using (w.Block("private int __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: true);
             else
-            {
-                using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
-                {
-                    w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
-                    w.Line("__useActive[__id] = true;");
-                    w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
-                }
-            }
+                using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: false);
             w.Line();
         }
         if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(bound, w);
@@ -250,6 +241,26 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 w.Line("__outer.__RunGlobalUse(__f);");
         }
         w.Line();
+    }
+
+    /// <summary>Emit the shared <c>__RunUse</c> body (bounded-dispatch invoker, ISO §14.9.49.4 GR2 re-entrancy guard).
+    /// Renders <see cref="DispatchState.DispatchName"/> — <c>__Dispatch</c> as a class member (a program), <c>__MDispatch</c>
+    /// as a method-local function (an OO method's F3 PERFORM, design SSOT §9.10) — so the ONE body serves both scopes
+    /// (the C3 correction: the former literal <c>__Dispatch</c> hardcode would name a nonexistent method inside a class).
+    /// <paramref name="ecModel"/> = the int RESUME-returning form (an EC-model group) vs the void form.</summary>
+    internal void EmitRunUseBody(CodeWriter w, bool ecModel)
+    {
+        w.Line($"if (__useActive[__id]) return{(ecModel ? " -1" : "")};   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+        w.Line("__useActive[__id] = true;");
+        if (ecModel)
+        {
+            w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc); }}");
+            w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
+            w.Line("finally { __useActive[__id] = false; }");
+            w.Line("return -1;   // normal completion (§14.6.13.1.2)");
+        }
+        else
+            w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc); }} finally {{ __useActive[__id] = false; }}");
     }
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,

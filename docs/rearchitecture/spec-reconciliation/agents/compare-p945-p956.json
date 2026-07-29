@@ -1,0 +1,24 @@
+{
+  "batch": [945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956],
+  "pages_checked": [945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956],
+  "findings": [
+    {
+      "page": 949,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST / LAST ] argument-2 argument-3 } ... )  -- printed as ONE tall square bracket enclosing FIRST stacked above LAST (verified at 300 dpi crop), i.e. a single optional choice of at most one of FIRST or LAST; no choice-indicator vertical bars are present inside either the brace or the bracket. FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are all underlined (required words).",
+      "markdown_says": "```\nFUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST ] argument-2 argument-3 } ... )\n                                               [ LAST  ]\n```",
+      "why_it_matters": "The one tall stacked-alternatives bracket has been transcribed as TWO independent square brackets, one under the other. Read literally that permits both FIRST and LAST to be specified in the same argument group, which the printed diagram forbids (a bracket around stacked alternatives without choice-indicator bars means AT MOST ONE, 5.2.6.4). The transcription is also the only general format in clause 15 on these pages that uses ad-hoc two-line ASCII brackets instead of the tall-delimiter convention the rest of the file uses (e.g. 15.65.2 MODULE-NAME uses the U+23A7..U+23AD stacked delimiters plus a 'Figure notes' paragraph), and it carries no Figure notes. The required-word underlining on FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST is also dropped, although 15.92.2 on page 955 preserves it.",
+      "suggested_repair": "Re-render the format with the tall stacked-bracket convention used elsewhere in the file, e.g.\n```\n                                             ⎡ FIRST ⎤\nFUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] ⎢       ⎥ argument-2 argument-3 } ... )\n                                             ⎣ LAST  ⎦\n```\nand add a Figure notes line: the bracket is a single notation bracket with NO choice indicators, so at most one of FIRST or LAST may be specified; FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined (required words) in the printed standard."
+    },
+    {
+      "page": 956,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "FUNCTION TEST-NUMVAL ( argument-1 )  -- both FUNCTION and TEST-NUMVAL are underlined in the printed general format (verified at 300 dpi crop).",
+      "markdown_says": "<u>FUNCTION</u> TEST-NUMVAL ( argument-1 )",
+      "why_it_matters": "The transcription marks FUNCTION as a required word but silently drops the underline on TEST-NUMVAL on the same line, so the file is internally inconsistent about which tokens the standard prints as required words. Compare 15.92.2 on page 955, which correctly renders '<u>FUNCTION</u> <u>TEST-FORMATTED-DATETIME</u> ( argument-1 argument-2)'. No syntax is made illegal here (the function name is required regardless), but the marking loss defeats any tooling that reads <u> to recover required words.",
+      "suggested_repair": "Change the 15.93.2 general format line to '<u>FUNCTION</u> <u>TEST-NUMVAL</u> ( argument-1 )'."
+    }
+  ]
+}

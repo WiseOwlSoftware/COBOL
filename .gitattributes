@@ -1,0 +1,4 @@
+# Workflow scripts must stay LF-only. Git's autocrlf rewrites them to CRLF on checkout, and the Workflow tool's
+# permission layer refuses a script containing control characters — CR is one — so a CRLF'd script cannot be
+# launched at all. The failure message ("script contains control characters") does not name the cause.
+.claude/workflows/*.js text eol=lf

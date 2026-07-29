@@ -1,0 +1,14 @@
+{
+  "batch": [853, 854, 855, 856, 857, 858, 861, 862, 863, 864, 865, 866],
+  "pages_checked": [853, 854, 855, 856, 857, 858, 861, 862, 863, 864, 865, 866],
+  "findings": [],
+  "notes": [
+    "Sweep of ISO/IEC 1989:2023 printed pages 823-836 (PDF pages 853-866), clause 15.14 BYTE-LENGTH through 15.22 DATE-OF-INTEGER, plus the tail of 15.19 CONVERT (pp. 861-862).",
+    "Every general format on these pages is a single-line intrinsic-function invocation skeleton: FUNCTION <name> ( arguments ). None contains a brace, a stacked alternative, or a choice indicator, so the priority defect class (lost 5.2.6.4 choice bars) cannot occur here. The only delimiter present anywhere in the batch is the bracket pair in 15.14.2 'FUNCTION BYTE-LENGTH ( argument-1 [ PHYSICAL ] )', which the markdown preserves verbatim, correctly paired, with nothing missing.",
+    "Ellipsis placement verified by 300 dpi crop for 15.18.2: PDF prints 'FUNCTION CONCAT ( argument-1, argument-2 ... )' with the ellipsis to the right of argument-2 and inside the closing parenthesis; the markdown matches.",
+    "Page 854 reproduces the ISO source's own duplicated phrase 'returns the same value same value that would be returned' verbatim. That is a defect in the printed standard, not in the transcription, and was deliberately not reported.",
+    "Page 858: the Argument type / Function type table ends with a bare 'National' row whose Function type cell is empty. Verified by 300 dpi crop that this is exactly what the PDF prints; the markdown's empty trailing cell is faithful.",
+    "Underlining: the printed general formats underline FUNCTION and the function-name (and PHYSICAL on p. 853). The markdown carries <u> markup on pages 857, 858 and 864 but omits it on 853, 855, 856, 863 and 866. This is a document-wide transcription convention rather than a page-level defect - the whole file contains only 97 <u> spans against hundreds of general formats - and on these pages no grammar is lost, because every word in a bare 'FUNCTION name ( args )' skeleton is required by construction and PHYSICAL's optionality is carried by its brackets. Not reported as a finding.",
+    "Page 854 line 6 emits sub-item 'c)' of Returned value rule 6 at indent 0 rather than indented under its parent, because rule 6 straddles the 853/854 page boundary. Verified this is the transcription's established page-slicing behaviour (30+ identical cases in pages 71-470 alone), so it is scaffolding fallout, not a page-specific defect. Not reported."
+  ]
+}

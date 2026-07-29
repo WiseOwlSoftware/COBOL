@@ -26,8 +26,11 @@ public static partial class CobolIntrinsics
     public static double Sin(double x) => Math.Sin(x);       // §15.82
     public static double Tan(double x) => Math.Tan(x);       // §15.89
     public static double Sqrt(double x) => Math.Sqrt(x);     // §15.84 — argument ≥ 0 (rule 1); negative → NaN → 0
-    public static double Log(double x) => Math.Log(x);       // §15.55 — argument > 0; ≤ 0 → NaN/−∞ → 0/saturate
-    public static double Log10(double x) => Math.Log10(x);   // §15.56
+    // §15.55.3 r2 / §15.56.3 r2: the argument domain is > 0. A ≤ 0 argument is a real ARGUMENT-rule violation → raise
+    // EC-ARGUMENT-FUNCTION at the body (§15.3 default 0 when checking off — the long result widens to double), NOT the
+    // saturating −∞ that FromDouble now returns for a legal EXP overflow (CA24). ArgumentError throws when checking on.
+    public static double Log(double x) => x <= 0 ? Exceptions.ExceptionState.ArgumentError("LOG argument must be > 0 (ISO §15.55.3 r2)") : Math.Log(x);
+    public static double Log10(double x) => x <= 0 ? Exceptions.ExceptionState.ArgumentError("LOG10 argument must be > 0 (ISO §15.56.3 r2)") : Math.Log10(x);
     public static double Exp(double x) => Math.Exp(x);       // §15.34 — e ** argument (COBOL-2002+)
     public static double Exp10(double x) => Math.Pow(10, x); // §15.35 — 10 ** argument (COBOL-2002+)
 

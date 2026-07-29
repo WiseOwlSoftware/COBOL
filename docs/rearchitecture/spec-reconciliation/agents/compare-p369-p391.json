@@ -1,0 +1,51 @@
+{
+  "batch": [369, 371, 373, 375, 377, 379, 381, 383, 385, 387, 389, 391],
+  "pages_checked": [369, 371, 373, 375, 377, 379, 381, 383, 385, 387, 389, 391],
+  "findings": [
+    {
+      "page": 373,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "13.4.5.2 General formats, Format 3 (report): the CODE-SET clause is printed as  [ CODE-SET { IS alphabet-name-1 [ alphabet-name-2]  /  { | FOR ALPHANUMERIC IS alphabet-name-1 | / | FOR NATIONAL IS alphabet-name-2 | } } ] — i.e. the INNER brace around the two FOR phrases carries a pair of vertical CHOICE INDICATOR bars just inside it (a full-height bar immediately after the inner '{' and another immediately before the inner '}'). Verified by 300 dpi crop of the region; underlined words on the two rows are ALPHANUMERIC and NATIONAL.",
+      "markdown_says": "[ CODE-SET { IS alphabet-name-1 [ alphabet-name-2] / { FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2 } } ]",
+      "why_it_matters": "Per 5.2.6.4, a pair of vertical bars just inside a brace means one or more of the enclosed alternatives may be specified, each at most once, in any order. Without the bars a brace means EXACTLY ONE. The markdown therefore makes 'CODE-SET FOR ALPHANUMERIC IS alpha-1 FOR NATIONAL IS alpha-2' — a legal Format 3 FD entry that specifies both phrases — look illegal, and also forbids the reversed order. This is the same construct that page 372 (Format 1) transcribes CORRECTLY with bars ('⎧ | FOR ALPHANUMERIC IS alphabet-name-1 | ⎫'), so the two formats of the same clause now disagree in the markdown.",
+      "suggested_repair": "Re-render Format 3's CODE-SET group with the inner-brace choice indicators, matching the Format 1 rendering already present under page 372, and add a Figure-notes line stating that per 5.2.6.4 both FOR phrases may be specified, in either order."
+    },
+    {
+      "page": 373,
+      "kind": "missing-text",
+      "severity": "structural",
+      "pdf_says": "Formats 2 and 3 are printed as typeset general-format diagrams with required words UNDERLINED: FD, EXTERNAL, AS, GLOBAL, BLOCK, TO, RECORDS, CODE-SET, ALPHANUMERIC, NATIONAL, REPORT, REPORTS. Deliberately NOT underlined: IS, CONTAINS, CHARACTERS, FOR, ARE. (Confirmed at 300 dpi: 'CHARACTERS' has no rule beneath it while 'RECORDS' directly below it does; 'REPORT'/'REPORTS' are underlined while the following 'IS'/'ARE' are not.)",
+      "markdown_says": "FD file-name-1\n\n[ IS EXTERNAL [ AS literal-1 ] ]\n\n[ IS GLOBAL ]\n\n[ BLOCK CONTAINS [ integer-1 TO ] integer-2 { CHARACTERS / RECORDS } ]\n\n[ record-clause ] .   ... (no code fence, and no 'Figure notes' paragraph anywhere for Format 2 or Format 3)",
+      "why_it_matters": "Underlining is the standard's only marking for required vs optional words, so dropping it erases the required/optional distinction for eleven words in these two formats — e.g. it no longer records that CHARACTERS is an optional word while RECORDS is required, or that IS may be omitted from 'IS EXTERNAL'. Page 372's Format 1 of the SAME entry does carry a Figure-notes paragraph listing its underlines, so the FD entry is now documented inconsistently across its three formats. The formats are also emitted as loose prose lines rather than inside a fenced block, unlike every other general format in clause 13.",
+      "suggested_repair": "Wrap Format 2 and Format 3 in fenced code blocks in the same box-drawing style used for Format 1 on page 372, and add a 'Figure notes (File description entry Format 2 / Format 3)' paragraph listing the underlined words (FD, EXTERNAL, AS, GLOBAL, BLOCK, TO, RECORDS, CODE-SET, ALPHANUMERIC, NATIONAL, REPORT, REPORTS) and the non-underlined ones (IS, CONTAINS, CHARACTERS, FOR, ARE)."
+    },
+    {
+      "page": 389,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "13.15.2 General format, the USAGE line is printed inside its OWN OUTER BRACKET spanning both rows:  ⎡ [ USAGE IS ] ⎧ DISPLAY ⎫ ⎤ / ⎣               ⎩ NATIONAL ⎭ ⎦ . Verified at 300 dpi: a square bracket opens to the left of the inner '[ USAGE IS ]' and closes to the right of the brace's '}'. USAGE, DISPLAY and NATIONAL are underlined; IS is not.",
+      "markdown_says": "  [ USAGE IS ] { DISPLAY  }\n               { NATIONAL }",
+      "why_it_matters": "The outer bracket is what makes the whole USAGE clause optional in a report group description entry. Stripped of it, the markdown reads as a mandatory brace: every report-group entry would be required to state DISPLAY or NATIONAL. That is falsely restrictive — the clause is optional, which is also what 13.15.4 general rule 2) presupposes when it says the USAGE clause, when present, behaves as in a data description entry. Every other clause on this page is shown bracketed/optional; USAGE is the only one whose bracket was dropped.",
+      "suggested_repair": "Restore the enclosing bracket, e.g.  ⎡ [ USAGE IS ] ⎧ DISPLAY  ⎫ ⎤ / ⎣               ⎩ NATIONAL ⎭ ⎦ , so the whole USAGE clause is optional."
+    },
+    {
+      "page": 389,
+      "kind": "missing-text",
+      "severity": "structural",
+      "pdf_says": "13.15.2 General format is a typeset diagram with required words UNDERLINED: USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN (in PRESENT WHEN), GROUP, OCCURS, TO, DEPENDING, STEP. Deliberately NOT underlined: IS, WHEN (in BLANK WHEN ZERO), INDICATE, TIMES, ON. (Confirmed at 300 dpi: in '[ BLANK WHEN ZERO ]' only BLANK and ZERO carry rules; in '[ GROUP INDICATE ]' only GROUP does; in '[ PRESENT WHEN condition-1 ]' both PRESENT and WHEN do.)",
+      "markdown_says": "```\nlevel-number [ entry-name-clause ]\n  ...\n  [ BLANK WHEN ZERO ]\n  ...\n  [ GROUP INDICATE ]\n  [ OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ] ]\n  [ varying-clause ] .\n```    (no 'Figure notes' paragraph follows the figure)",
+      "why_it_matters": "Underlining is the standard's sole marker of required words, so its loss erases the required/optional distinction for this format — notably that WHEN is REQUIRED in 'PRESENT WHEN' but OPTIONAL in 'BLANK WHEN ZERO', and that INDICATE and TIMES are optional words. Sibling general formats in the same clause (pages 369, 371, 377, 379, 381, 385) all carry a Figure-notes paragraph recording exactly this, so page 389 is the outlier.",
+      "suggested_repair": "Add a 'Figure notes (Report group description entry general format)' paragraph listing the underlined words (USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN, GROUP, OCCURS, TO, DEPENDING, STEP) and the non-underlined ones (IS, WHEN in BLANK WHEN ZERO, INDICATE, TIMES, ON), and note that the source/sum/value group is a plain bracket with no choice indicators."
+    },
+    {
+      "page": 391,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 391 opens with a stand-alone hanging paragraph, indented to the level of the a)/b)/c) sub-item text of syntax rule 14) which ends on page 390: 'where length is the length of the literal as specified in 8.3.3, Literals.'  Page 390's sub-item c) ends at \"If the literal is national, 'PICTURE N(length)'\" with no trailing text (verified at 300 dpi).",
+      "markdown_says": "The page-391 slice begins directly at '15) If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.' The sentence instead appears glued onto page 390's sub-item c):  \"c) If the literal is national, 'PICTURE N(length)' where length is the length of the literal as specified in 8.3.3, Literals.\"",
+      "why_it_matters": "In the PDF the paragraph is a hanging qualifier for ALL THREE implied-PICTURE cases a) X(length), b) 1(length) and c) N(length); merged into c) it reads as defining 'length' only for the national case, leaving the alphanumeric and boolean cases with an undefined 'length'. It also mis-attributes page-391 text to page 390, so a page-anchored citation to this sentence lands on the wrong page. Note the same sentence is transcribed correctly as a stand-alone paragraph elsewhere in the file (two other occurrences), so this is a local regression, not a house style.",
+      "suggested_repair": "Split the sentence back out: end page 390's item c) at \"'PICTURE N(length)'\" and open the page-391 slice with the stand-alone paragraph 'where length is the length of the literal as specified in 8.3.3, Literals.' indented as a continuation of rule 14)."
+    }
+  ]
+}

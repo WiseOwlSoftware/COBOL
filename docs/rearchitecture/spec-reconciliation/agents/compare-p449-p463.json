@@ -1,0 +1,24 @@
+{
+  "batch": [449, 451, 452, 453, 454, 455, 456, 458, 459, 461, 462, 463],
+  "pages_checked": [449, 451, 452, 453, 454, 455, 456, 458, 459, 461, 462, 463],
+  "findings": [
+    {
+      "page": 462,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "25) The STEP phrase shall be specified if the entry:\n    a) contains an absolute LINE clause, or\n    b) has an entry with an absolute LINE clause subordinate to it, or\n    c) contains an absolute COLUMN clause, or\n[page 462 ends here; page 463 opens with]\n    d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.\n\n    In all other cases, the STEP phrase is optional.",
+      "markdown_says": "c) contains an absolute COLUMN clause, or d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.\n\n<a id=\"page-463\"></a>\n## Page 463\n**ISO/IEC 1989:2023 (E)**\n\n\nIn all other cases, the STEP phrase is optional.",
+      "why_it_matters": "Sub-item d) of 13.18.38.3 GR 25 (OCCURS clause, FORMAT 3, when the STEP phrase is mandatory) is printed as its own list item at the top of PDF page 463, but the markdown runs it into the tail of item c) on page 462, so the enumeration ends at c) and d) survives only as an unlabelled clause hanging off c) after the word 'or'. Four independent conditions become three, one of them a garbled compound; a reader or extractor enumerating the mandatory-STEP conditions loses d) as a distinct condition, and the page attribution of d) is wrong (462 instead of 463).",
+      "suggested_repair": "In specs/ISO_COBOL.md split line 19671 into two list items: leave 'c) contains an absolute COLUMN clause, or' as the last item on page 462, and move 'd) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.' to page 463, immediately after the '## Page 463' / running-header scaffolding and before 'In all other cases, the STEP phrase is optional.'"
+    },
+    {
+      "page": 451,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "10) If more than one integer-1 or integer-2 operand is specified ... c) The occurrences of integer-1, if present, shall be in ascending numerical order. ... 12) Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item.  (all hyphens printed as the ordinary hyphen U+002D, as everywhere else in the document)",
+      "markdown_says": "integer‑1 / integer‑2 / Identifier‑1 / working‑storage / local‑storage  (specs/ISO_COBOL.md lines 19250, 19256, 19264 encode the hyphen as U+2011 NON-BREAKING HYPHEN instead of U+002D)",
+      "why_it_matters": "These are COBOL metavariable and section names. Encoded with U+2011 they are no longer byte-identical to 'integer-1', 'Identifier-1', 'working-storage', 'local-storage' as spelled in the surrounding text and everywhere else in the standard, so grep/citation tooling that searches for the operand names silently misses these three general rules of 13.18.35.3. The artifact is sporadic (107 occurrences on 38 lines file-wide), not a deliberate typographic convention.",
+      "suggested_repair": "Replace U+2011 with U+002D on lines 19250, 19256 and 19264; the same substitution should be swept across the remaining 35 lines that carry U+2011."
+    }
+  ]
+}

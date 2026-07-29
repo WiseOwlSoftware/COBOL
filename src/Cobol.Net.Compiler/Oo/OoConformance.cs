@@ -149,7 +149,7 @@ public static class OoConformance
     /// EC-OO-UNIVERSAL on mismatch (ISO §14.9.23.4 GR7c — §14.8.2/§14.8.3 conformance through a universal
     /// receiver is checked at runtime, §9.3.8.2.1 NOTE). Locked invariant (unit-tested): descriptor
     /// equality ⇔ <see cref="DescriptionMismatch"/> == null over every carried category — derived NEXT TO
-    /// the one mismatch function so the two projections cannot drift (feedback_singular_pattern).
+    /// the one mismatch function so the two projections cannot drift (feedback_one_mechanism_per_job).
     /// Deliberate strictness deltas, both LOUD-fail directions (AS-BUILT notes): equality cannot express
     /// §14.8.2.2 rule 1's by-ref group-PREFIX leniency (a smaller formal group raises EC-OO-UNIVERSAL
     /// through universal where the TYPED path accepts a prefix), and JUSTIFIED is encoded on alphanumeric

@@ -150,7 +150,7 @@ accessMode
 // suite writes "RECORD KEY data-name" without IS).
 //
 // Leniency L3 (see docs/dialect-strictness.md): ISO §12.4.5.12 requires `RECORD KEY IS data-name`
-// (KEY is unbracketed → required), but the CCVS suite writes `RECORD data-name` without KEY (e.g.
+// (⚠ KEY is NOT required — see below), and the CCVS suite writes `RECORD data-name` without KEY (e.g.
 // IX103A `RECORD IX-FS1-KEY`). The grammar parses the permissive superset `RECORD KEY? IS?
 // dataReference`; the no-KEY form is accepted in DialectMode.Default and diagnosed under named-strict
 // modes by the inline check in SemanticBuilder.VisitFileControlClauseGroup (CBL3615/3616). Disambiguation
@@ -352,8 +352,16 @@ readAtEnd
       (AT? END statementBlock)?
     ;
 
-// Leniency L1 (see docs/dialect-strictness.md): the grammar parses the permissive superset
-// "INVALID KEY?" — 'KEY' is required by the ISO statement formats (unbracketed), but the CCVS suite
+// ⚠ NOT A LENIENCY — THIS IS CONFORMANCE. Recorded as "Leniency L1" on the reasoning that KEY is
+// "unbracketed → required". That criterion is wrong: ISO 5.2.2/5.2.3 make UNDERLINING the test for a required
+// word, not bracketing. Bracketing marks whether a whole PHRASE may be omitted; underlining marks whether a
+// WORD within it must be written. Measured on the printed pages, INVALID carries an underline rule and KEY
+// carries none in ALL FIVE statements that have the phrase — DELETE (p635), READ (p722), REWRITE (p740),
+// START (p784) and WRITE (p816) — so `INVALID <imperative>` is conforming ISO. The same mistake was made for
+// the RECORD KEY clause above (p359: RECORD and SOURCE underlined, KEY and IS not) and for COLLATING in
+// SORT/MERGE (p687, p776). The legacy compiler still DIAGNOSES these under strict/warn modes, i.e. it reports
+// conforming source; that is filed as SR2 in CONFORMANCE-FIX-QUEUE.md. The grammar accepting them is correct.
+// Retained history: the CCVS suite
 // and 1980s/90s compilers tolerate "INVALID <imperative>" without it. The dropped 'KEY' is accepted
 // in DialectMode.Default and diagnosed under named-strict modes by
 // DialectStrictnessChecks.CheckInvalidKeyNoiseWord (called from FileIoBinder). 'INVALID' is a reserved

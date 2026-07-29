@@ -31,7 +31,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 ### D3. Counters (TALLYING), COUNT IN, and WITH POINTER route through the numeric subsystem (CobolNum + NumProfile), never a parallel int path.
 
-**Rationale.** They are numeric data items; the singular-pattern rule (feedback_singular_pattern) requires one canonical numeric store. Tally accumulates (INSPECT GR11: counter NOT initialized), so read current via CobolNum then store sum.
+**Rationale.** They are numeric data items; the singular-pattern rule (feedback_one_mechanism_per_job) requires one canonical numeric store. Tally accumulates (INSPECT GR11: counter NOT initialized), so read current via CobolNum then store sum.
 
 **Rejected alternatives.** Treat counters as raw C# long and bypass NumProfile — would skip PIC truncation/scale/sign and diverge from every other numeric store; rejected.
 
@@ -59,7 +59,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 > **`StringLvalue` IS a `Place`**). There is ONE lvalue model (`Place`, built by `ReferenceResolver`) consumed
 > identically by MOVE / arithmetic / INSPECT / STRING / UNSTRING / file READ-INTO / CALL-by-reference.
 > INSPECT/STRING/UNSTRING emit `field.Write(CobolStrings.…(field.Read(), …))` over a `Place`. Introducing a second
-> per-verb lvalue would violate `feedback_singular_pattern`.
+> per-verb lvalue would violate `feedback_one_mechanism_per_job`.
 
 **Rationale.** String-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)) — all resolved by `ReferenceResolver` into the universal `Place` (`MemberPlace`/`RefModPlace`, implemented in `src/Cobol.Net.Compiler/Binding/Model/Place.cs`). The single `Place` (a `MemberPlace`/`RefModPlace`) gives each a read C# expression and a write-back form. Centralizing this in the one resolver is required before any string-op write emits correctly.
 
@@ -86,9 +86,8 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 RUNTIME CLASS: `public static class CobolNet.Runtime.CobolStrings` (ported from legacy `InspectRuntime` + `StorageArea` STRING/UNSTRING). All algorithms operate on `string`/`char[]`; no byte arrays.
 
 === REFERENCE MODIFICATION ===
-READ:  `FIELD.Substring(p-1, len)` where p,len are 1-based leftmost-position + length (ISO §8.4.3.3.4 GR4: leftmost = ordinal 1). With length omitted: `FIELD.Substring(p-1)`. Wrap in a bounds helper that raises EC-BOUND-REF-MOD:
-  `public static string RefMod(string s, int leftmost, int length)` — validates 1<=leftmost, length>=1 (or ==0 when REF-MOD-ZERO-LENGTH on), leftmost+length-1<=s.Length; else throw CobolRuntimeException(EC-BOUND-REF-MOD).
-  `public static string RefModToEnd(string s, int leftmost)` — length-omitted form.
+READ:  `FIELD.Substring(p-1, len)` where p,len are 1-based leftmost-position + length (ISO §8.4.3.3.4 GR4: leftmost = ordinal 1). With length omitted the substring runs to the end of the item. A single bounds helper validates and (when EC-BOUND-REF-MOD checking is enabled) raises the fatal EC-BOUND-REF-MOD:
+  `public static string RefMod(string s, int leftmost, int length, bool allowZeroLength = false)` — validates 1<=leftmost<=s.Length; a SPECIFIED length shall be positive-nonzero with leftmost+length-1<=s.Length (item 5c) — a negative specified length is a violation regardless of the directive, and length==0 is a violation UNLESS `allowZeroLength` (the REF-MOD-ZERO-LENGTH directive, §7.3.23, relaxes ONLY zero). The OMITTED "to the end" form is encoded by passing the distinct sentinel **`CobolString.OmittedRefModLength`** (= `int.MinValue`, emitted via `RuntimeApi.OmittedRefModLength`) — NOT −1, so a specified length that evaluates to a negative is distinguishable from the omitted form and can raise (review C14; a −1 sentinel made the negative-length violation structurally undetectable). Checking OFF (the default) clamps/space-pads leniently (byte-identical to a pre-slice build).
 WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slice:
   COBOL `MOVE X TO FIELD(3:5)` →
   `FIELD = CobolString.SpliceInto(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`
@@ -101,7 +100,7 @@ WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slic
 Length-omitted write target: length = `dst.Length - (leftmost-1)`.
 
 === ALPHANUMERIC MOVE + COMPARISON (already present, keep) ===
-MOVE alpha→alpha: `DEST = CobolString.Store(<src-image>, destWidth, justifiedRight);` (left-justify pad/truncate right; JUSTIFIED RIGHT pad/truncate left — ISO §14.9.25/§13.18.36). Numeric source → its DISPLAY image first.
+MOVE alpha→alpha: `DEST = CobolString.Store(<src-image>, destWidth, justifiedRight);` (left-justify pad/truncate right; JUSTIFIED RIGHT pad/truncate left — ISO §14.9.25/§13.18.32). Numeric source → its DISPLAY image first.
 COMPARE: `CobolString.Compare(a,b) <op> 0` — shorter operand space-extended (ISO §8.8.4.1.2), ordinal.
 
 === INSPECT ===
@@ -113,7 +112,7 @@ EMIT (COBOL `INSPECT WS-T TALLYING C FOR ALL "A" BEFORE "X"`):
   `var _c = CobolStrings.InspectTally(WS_T, new[]{0/*All*/}, new[]{"A"}, new[]{"X"}, new string?[]{null}, false);`
   `C = CobolNum.Store(CobolNum.AsLong(C, _P_C) + _c[0], 0, _P_C);`   // counter NOT initialized (GR11)
 COBOL `INSPECT WS-T REPLACING ALL "A" BY "B"` → `WS_T = CobolStrings.InspectReplace(WS_T, new[]{0}, new[]{"A"}, new[]{"B"}, new string?[]{null}, new string?[]{null}, false);`
-kinds map: Tally{All=0,Leading=1,Characters=2}; Replace{All=0,First=1,Leading=2,Characters=3} (preserve legacy ordinals). FIRST/TRAILING in TALLYING fold to All (legacy behavior). The single comparison cycle over ordered operands is preserved exactly (ISO §14.9.22.4 GR8) — this is why "ALL A" before "LEADING AH" leaves LEADING=0.
+kinds map: Tally{All=0,Leading=1,Characters=2}; Replace{All=0,First=1,Leading=2,Characters=3} (the enum ordinals are runtime ABI). The tallying-phrase (Format 1/3) admits ONLY ALL / LEADING / CHARACTERS (ISO §14.9.22.2); FIRST is a REPLACING-phrase-only adjective and TRAILING is not an INSPECT keyword in any format, so `TALLYING … FOR FIRST`/`FOR TRAILING` is non-conforming and the binder REJECTS it with a diagnostic — never aliased to ALL. The single comparison cycle over ordered operands is preserved exactly (ISO §14.9.22.4 GR8) — this is why "ALL A" before "LEADING AH" leaves LEADING=0.
 
 === STRING ===
 One helper call per statement (sendings marshalled into parallel arrays); pointer is `ref int` (read via `CobolNum.AsLong` into an `int` local at statement start, written back via `CobolNum.Store` at statement end):
@@ -136,7 +135,7 @@ PREFERRED EMIT (mirrors proven legacy per-INTO loop): one `UnstringExtract` call
   pre-check: `if (_p<1 || _p>source.Length) _ovf=true;`
   per INTO: `var _ex = CobolStrings.UnstringExtract(source, ref _p, delimArr, allArr, out string? _delim); if(_ex>=0){ FLD = CobolString.Store(_ex_str, fldWidth); _t++; } if(DLM!=null) DLM=CobolString.Store(_delim??"", dlmWidth); if(CNT!=null) CNT=CobolNum.Store(_ex_count,0,_P_CNT); }`
   post: overflow |= (_p <= source.Length); writeback P, TLY.
-  `(string extracted, int count, int newPointer, string matchedDelim) UnstringExtract(string src, ref int ptr, string[] delims, bool[] allFlags)` — earliest-delimiter wins, tie→first-listed, ALL skips contiguous repeats (all ported verbatim from legacy). Two contiguous delimiters → empty extract → space-fill (alpha) / zero-fill (numeric) via CobolString.Store / CobolNum.Store (GR8). DELIMITED BY absent → take min(fieldWidth, remaining) chars (GR11b).
+  `(string extracted, int count, int newPointer, string matchedDelim) UnstringExtract(string src, ref int ptr, string[] delims, bool[] allFlags)` — earliest-delimiter wins, tie→first-listed, ALL skips contiguous repeats (all ported verbatim from legacy). Two contiguous delimiters → empty extract → space-fill (alpha) / zero-fill (numeric) via CobolString.Store / CobolNum.Store (GR8). DELIMITED BY absent → examine receiver-width characters — ONE LESS than the receiver size when the receiver's sign occupies a separate character position (SIGN … SEPARATE CHARACTER; an over-punched sign occupies none), stopping early if the source is exhausted first (GR11b).
 
 === NON-ALPHANUMERIC / GROUP MATERIALIZATION (the G6-boundary helper) ===
 For a numeric/edited/group target/source, the emitter wraps with materialize↔writeback:
@@ -204,7 +203,7 @@ String ops span editions. Every edition-varying construct carries TWO co-equal o
 - ISO/IEC 1989:2023 §14.9.22 INSPECT — General rules §14.9.22.4 (GR2 zero-length no-op; GR4a-d operand treatment incl. signed-numeric de-signing; GR8 single comparison cycle; GR9 BEFORE/AFTER; GR10/16 ALL/LEADING/FIRST transitivity; GR12 tally rules; GR13/18/21 overlap undefined; GR14/15/22 EC-RANGE-INSPECT-SIZE; GR17 replace rules; GR19 format-3; GR20/23 CONVERTING) — lines 28205-28358; BACKWARD §14.9.22.4 GR3/8 + NOTE — line 28227-28267
 - ISO/IEC 1989:2023 §14.9.43 STRING — General rules §14.9.43.4 (GR1 DELIMITED BY SIZE whole value; GR3a-c transfer + zero-length sending ignored; GR4/5 POINTER >0; GR6 char-at-a-time; GR7 only written positions change; GR8 EC-OVERFLOW-STRING + ON OVERFLOW; GR10 overlap undefined) — lines 32337-32383
 - ISO/IEC 1989:2023 §14.9.48 UNSTRING — General rules §14.9.48.4 (GR2 zero-length terminate; GR7 ALL contiguous; GR8 contiguous delimiters fill; GR9 multi-char delimiter; GR10 OR/first-listed; GR11a-g pointer/DELIMITED BY/COUNT IN/DELIMITER IN; GR13 pointer increment; GR14 tally per receiver acted upon; GR15 overflow conditions; GR16 ON OVERFLOW; GR18 overlap undefined) — lines 32764-32859
-- ISO/IEC 1989:2023 §14.9.25 MOVE (alphanumeric receiving: left-justify space-fill/right-truncate) + §13.18.36 JUSTIFIED (right-justify pad/truncate left)
+- ISO/IEC 1989:2023 §14.9.25 MOVE (alphanumeric receiving: left-justify space-fill/right-truncate) + §13.18.32 JUSTIFIED (right-justify pad/truncate left)
 - ISO/IEC 1989:2023 §14.6.10 Overlapping operands (results undefined when operands overlap) — referenced by INSPECT GR13/18/21, STRING GR10, UNSTRING GR18; spec note line 24376
 - ISO/IEC 1989:2023 NOTE at line 21209 (ref-mod of an edited receiving item as the whole of itself prevents editing rules being reapplied)
 

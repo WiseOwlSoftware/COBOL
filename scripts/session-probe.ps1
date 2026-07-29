@@ -11,7 +11,7 @@ Write-Host "=== SESSION PROBE ($(Get-Date -Format 'yyyy-MM-dd HH:mm')) ==="
 $branch = git rev-parse --abbrev-ref HEAD
 $head = git rev-parse --short HEAD
 $dirty = git status --porcelain
-Write-Host "branch : $branch @ $head $(if ($branch -ne 'phase-13-grammar-batch' -and $branch -ne 'main') { '⚠ UNEXPECTED BRANCH' })"
+Write-Host "branch : $branch @ $head $(if ($branch -ne 'phase-14' -and $branch -ne 'main') { '⚠ UNEXPECTED BRANCH' })"
 if ($dirty) { Write-Host "⚠ DIRTY TREE ($(@($dirty).Count) paths) — commit or explain before proceeding" } else { Write-Host "tree   : clean" }
 $unpushed = git log --oneline '@{u}..HEAD' 2>$null
 if ($unpushed) { Write-Host "⚠ UNPUSHED commits: $(@($unpushed).Count)" } else { Write-Host "push   : up to date" }

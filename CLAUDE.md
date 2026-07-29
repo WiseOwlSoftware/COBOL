@@ -1,61 +1,72 @@
-# CobolSharp — Claude Code Instructions
+# COBOL.NET — Claude Code Instructions
 
-## ⛔ NON-NEGOTIABLE PROCESS RULES (owner-emphasized — obey BEFORE writing any code)
-These are the rules the owner most insists on (repeatedly corrected). Full text at the top of `PROMPT.md`; durable in memories `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`,
-`feedback_spec_scopes_not_tests`.
-1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case** — read it and cite
-   the § for any semantics/syntax/output question; the legacy oracle is a regression net, NOT authority.
-2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists them) +
-   the spec — FOLLOW the doc, do not improvise.
-3. **Implement the COMPLETE feature to the spec + design — NEVER scope to what a test references** (tests VERIFY, not
-   SCOPE).
-4. **Keep the docs CURRENT** — when a change supersedes a deep-dive, update it in the same change set to state the
-   current design. Every doc **except `DEVLOG.md`** describes the CURRENT compiler; the historical narrative (how we
-   got here) lives only in `DEVLOG.md`.
-**Live kickoff = `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 — THE ONE PLAN** (owner-directed consolidation
-2026-07-19: it absorbed `resume-prompt.md` + all 17 phase docs + the P13 audit; read its §0 FIRST and update §0
-before ending every session). The COBOL.NET rewrite design SSOT is `docs/COBOLNET_DESIGN.md`.
+## ⛔ Non-negotiable process rules
+Owner-emphasized, each earned by a correction. These seven are the SSOT; `PROMPT.md` holds the standing doctrine
+(mission, architectural commitments, the four required reviews) and does not restate them.
 
-## ⛔ TOP-LEVEL PLAN: `docs/COBOLNET_REARCHITECTURE_PLAN.md` is THE ONE PLANNING DOCUMENT (read its §0 resume banner FIRST → the worklists → `docs/COBOLNET_DESIGN.md` for design)
-The North Star is a **commercial-quality, decades-sustainable COBOL compiler, 100% CONFORMING to ISO/IEC
-1989:2023 per §4.2.16 with correct support for all prior editions (1985/2002/2014)** — owner decision D13;
-optional modules may remain documented non-support; the definition of done is the PHASE-14 Step-0 traceability
-inventory at zero GAP. **The go-forward plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` — THE ONE PLANNING
-DOCUMENT** (17 phases; Roslyn↔CIL dual backend; §6 owner decisions D1–D20 all resolved). **Do NOT trust any
-status snapshot here or in memory — the plan's §0 banner is the ONLY live resume point** (phases 00–12 done;
-P13 in progress; then P14 [Step 0 = the traceability inventory] → P15 legacy retirement → P16 CIL backend).
-The SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission
-is validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` + `docs/VERSION_CHANGE_REFERENCE.md`);
-the verified defect/fix queue is the review ledger `docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` §24.
+1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case.** Read it and cite
+   the exact §/GR for any semantics, syntax, or output question. The legacy oracle, the NIST goldens and the
+   GnuCOBOL differential are regression NETS with known holes — never authority. When a general-format DIAGRAM is
+   load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically
+   lossy toward falsely-restrictive syntax.
+   **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.** The
+   failure mode is not inventing a citation, it is INHERITING one: a queue entry or design doc carries a §, its
+   quoted text is genuinely in the standard, and the clause NUMBER is never re-derived before it propagates into
+   code comments, goldens and the DEVLOG. Two CA10 citations were wrong exactly this way. A citation you did not
+   run `--check` on is not a citation.
+2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists them)
+   plus the spec. Follow the doc; do not improvise. A design correction updates the doc in the same change set.
+3. **Implement the COMPLETE feature to spec + design — never scope to what a test references.** Tests verify, they
+   do not scope. Deferral, a GAP, or rejecting legal source is debt, and only an explicit owner decision.
+4. **Fix the root architectural cause.** No workarounds, no papering over, no relabeling a bug a "quirk", never
+   change valid COBOL to dodge a compiler bug. Every bug is a pattern — sweep for its siblings.
+5. **RE-DESIGN AND RE-ARCHITECT WHEN NECESSARY — a stated scope is an estimate, never a ceiling.** This compiler
+   is production quality and must stay supportable for MORE THAN A DECADE, so when a queue entry, finding or
+   design doc says "one clause, no structural change" and implementation proves otherwise, the answer is the
+   restructuring — never the smallest diff that fits the estimate, and never a hand-maintained list where a
+   structure belongs. **Prefer the shape that makes the NEXT case automatic over the one that makes this case
+   small**, and pair it with a drift test so "automatic" stays true. Correcting the estimate is part of the work:
+   update the design doc and say so. (Rule 3 forbids shrinking the FEATURE; this forbids shrinking the DESIGN.)
+6. **Keep the docs CURRENT in the same change set.** Every doc except `DEVLOG.md` describes the CURRENT compiler.
+   The historical narrative lives ONLY in `DEVLOG.md`, which is DESCENDING — add each new entry at the TOP, under
+   the ordering note, headed `## Entry NNN — YYYY-MM-DD HH:MM TZ — Title` (stamp from `date "+%Y-%m-%d %H:%M %Z"`).
+7. **Work autonomously.** Commit AND push every checkpoint, with a forensic commit message and a DEVLOG entry.
+   Grammar changes are pre-authorized. Prompt only for genuine owner decisions — one at a time, as a bare question.
 
-## 🗺 DOC MAP: read `docs/DOC_INDEX.md` to navigate the docs
-The index of all docs — each doc's subject, type (LIVE/DESIGN/LEDGER/SPEC), and a maintenance guide. **Consult it to
-find the right doc; keep it in sync** when you add, retire, or materially change a doc. There is exactly one canonical
-doc per subsystem — extend it, never fork a second. A new subsystem ⇒ a new doc (with a status banner) + a new index
-row.
+## Start here every session
+1. **`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** — THE ONE PLANNING DOCUMENT and the ONLY live-state SSOT: the
+   worklist, the gates, the open GAPs. Trust §0 over any status written anywhere else, including memory.
+2. **`pwsh scripts/session-probe.ps1`** — the mechanical state check (branch · dirty/unpushed · next-free
+   diagnostic code · VCR todos · corpus counts · inventory GAP). Never hand-read state a script can compute.
+3. Update §0 and add a DEVLOG entry before the session ends.
 
-Read PROMPT.md before making any code change. It contains architectural doctrine and development rules. Every rule
-exists because it was violated and corrected. They are non-negotiable.
+## The project
+COBOL.NET (`src/Cobol.Net.*`, exe `cobol`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a
+COBOL record IS a .NET `record struct`, an elementary item IS a native field. **There is NO byte `ProgramState`
+substrate — never fall back to the legacy byte engine.** The legacy `CobolSharp.Compiler` survives only as a
+differential oracle until the P15 cut-over, and that differential is opt-in
+(`COBOLSHARP_LEGACY_DIFFERENTIAL=1`).
 
-Read DEVLOG.md for context on recent decisions, failures, and design rationale. **DEVLOG.md is in DESCENDING order —
-newest entry FIRST** (the latest `## Entry` is immediately below the preamble's `> **Ordering: DESCENDING**` note;
-the oldest is at the end). Add a new entry at the TOP, directly under that note, with a real date+time stamp in the
-header — `## Entry NNN — YYYY-MM-DD HH:MM TZ — Title` (from `date "+%Y-%m-%d %H:%M %Z"`). (Memory `feedback_devlog`.)
+**Mission (owner decision D13):** a commercial-quality, decades-sustainable compiler that is **100% conforming to
+ISO/IEC 1989:2023 per §4.2.16, with correct support for 1985/2002/2014** — validated as four per-edition compilers
+by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` + `docs/VERSION_CHANGE_REFERENCE.md`; the default
+`--std` is COBOL-2023). Done = the PHASE-14 Step-0 traceability inventory at zero GAP.
 
-specs/ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification (in the CobolSharp-private
-submodule). Refer to it for all specification, behavior, syntax, and semantic questions. It is the authoritative
-source — do not guess or assume COBOL semantics without consulting it. Initialize the submodule with:
-`git submodule update --init --recursive`
+**The product bar is broader than conformance.** The owner requires four review dimensions — **architecture · full
+code review · performance · duplication and efficiency** — as continuous criteria on every change, and as a
+comprehensive pass once the design settles (`PROMPT.md` §4).
 
-## ⛔🔥 The project: a blank-slate rewrite → COBOL.NET (COBOL → C# via Roslyn)
-COBOL.NET is a compiler (`src/Cobol.Net.*`, exe `cobol`) translating COBOL → **idiomatic typed-native C# source
-compiled by Roslyn** — a COBOL record IS a .NET `record struct`, an elementary item IS a native field. **There is NO
-byte `ProgramState` substrate; never fall back to the legacy byte engine.** **READ `docs/COBOLNET_DESIGN.md` FIRST** —
-the decision-complete SSOT (bound-tree pipeline [NO lowered IR], `Place` lvalue, native scaled-integer numerics,
-PC-dispatcher control flow, REDEFINES, files, OO, EC, intrinsics, Cobol.NET / `cobol.exe` naming, no-god-class
-structure, C# 14, §18 settled decisions, G0–G8 order); `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory:
-[[feedback_complete_dotnet_migration_no_byte]], [[feedback_fully_autonomous_push]]. The legacy `CobolSharp.Compiler`
-is kept ONLY as a reference + differential oracle until cut-over (G8). **MISSION = full ISO-2023 AND all prior editions
-(85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition compilers):
-`docs/VERSION_CHANGE_REFERENCE.md` + `docs/VERSION_TEST_MATRIX_DESIGN.md`. The default `--std` is COBOL-2023.**
-Memories `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.
+## Where things live
+- **Plan / live state:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8
+  forward-residue ledger · §9 verification commands + corpus mechanics · §11 analysis backlog · §12 risk register.
+- **Design SSOT:** `docs/COBOLNET_DESIGN.md` plus the `docs/rearchitecture/DESIGN-*.md` deep-dives.
+- **The work queue:** `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` (its LANDED header is the live tally).
+- **History:** `DEVLOG.md`, and nowhere else. **Doctrine:** `PROMPT.md`.
+- **Doc map:** `docs/DOC_INDEX.md` — consult it to find the right doc and keep it in sync. Exactly one canonical
+  doc per subsystem: extend it, never fork a second.
+- **Spec:** `specs/ISO_COBOL.md` (private submodule — `git submodule update --init --recursive`).
+
+## Testing
+Per commit, run only the WAVE-LOCAL filtered gate (~2 min). Run the FULL Conformance suite plus the GnuCOBOL
+differential once per accumulated batch, pre-merge. Build `CobolSharp.sln` — not a single project — before any
+`--no-build` run. Commands and the current battery baseline are in plan §0 "Gates" and §9.

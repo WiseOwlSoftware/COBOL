@@ -1,0 +1,25 @@
+{
+  "batch": [538, 539, 540, 541, 542, 544, 545, 547, 548, 549, 550, 551],
+  "pages_checked": [538, 539, 540, 541, 542, 544, 545, 547, 548, 549, 550, 551],
+  "notes": "Figure-fidelity sweep. This batch turned out to contain essentially no general-format diagrams: the only syntax skeleton on any of these twelve pages is the one-line USING clause general format on p.542 ('USING identifier-1'), whose underline on the required word USING is correctly preserved as <u>USING</u> in the markdown. There are therefore NO choice-indicator (5.2.6.4 vertical bar) sites, no unclosed brackets/braces, and no ellipsis-placement (5.2.7) sites to lose on these pages. All twelve pages were compared line by line against the rendered PDF; the numeric literals in the FLOAT-DECIMAL/FLOAT-BINARY NOTEs on pp.538-539 were digit-counted against zoomed crops and match the printed glyphs exactly (including ISO's own defects, e.g. the 15-digit '-9.999 999 999 999 99E+384' on p.538 and the 34-nine value on p.539). Only two cosmetic transcription artifacts were found.",
+  "findings": [
+    {
+      "page": 545,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "and each corresponding occurrence of the data item referenced by identifier-2.",
+      "markdown_says": "and each corresponding occurrence of the data item referenced by identifier-**2**.",
+      "why_it_matters": "Stray markdown emphasis delimiters were injected around the operand ordinal. The PDF prints plain 'identifier-2' with no emphasis. Read as plain text (which is how the spec is grepped for operand names) the token becomes 'identifier-**2**', so a literal search for 'identifier-2' misses this sentence. It is a known recurring artifact in this transcription (the same pattern appears at specs/ISO_COBOL.md line 32469: 'literal-**1**', 'identifier-**2**', 'character positions**.**'), so it should be swept, not fixed in isolation.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 22821 replace 'identifier-**2**.' with 'identifier-2.', and sweep the file for the sibling pattern /(?:identifier|literal|subscript|index|data-name)-\\*\\*\\d+\\*\\*/ plus stray '**.**'."
+    },
+    {
+      "page": 551,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "the initialization of the associated data item behaves as if the value of the data item referenced by the DEPENDING phrase in the OCCURS clause specified for the variable-occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause.  [the PDF breaks the compound term across the p.551/p.552 boundary: 'variable-' ends the last line of p.551 and 'occurrence data item' opens p.552]",
+      "markdown_says": "in the OCCURS clause specified for the variable- occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause.",
+      "why_it_matters": "'variable-occurrence data item' is a defined ISO term (see 8.5.1.6 / 13.18.38 OCCURS clause). The page-boundary rejoin left a space after the intrinsic hyphen, splitting the defined term into two tokens, so a search of the spec for 'variable-occurrence data item' does not find this General rule 6 of the VALUE clause.",
+      "suggested_repair": "In specs/ISO_COBOL.md line 23080 replace 'variable- occurrence data item' with 'variable-occurrence data item'; sweep for other '<word>- <word>' page-boundary rejoins of hyphenated defined terms."
+    }
+  ]
+}

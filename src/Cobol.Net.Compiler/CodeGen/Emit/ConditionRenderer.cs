@@ -50,10 +50,26 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
     public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr, num)})";
     public string Visit(BoundClassCondition n) => RenderClass(n);
+    // An EVALUATE WHEN alphanumeric/national THRU range (§14.7.8): ThruMember sets EC-RANGE-INVALID (nonfatal) for an
+    // inverted range (Lo collating after Hi) and returns false (empty range), else the inclusive-bound membership.
+    // Produced only under EC-RANGE-INVALID checking (else the plain BoundLogical of two relations renders — byte-identical).
+    public string Visit(BoundRangeMembership n)
+    {
+        string collate = IsNationalOperand(n.Left) || IsNationalOperand(n.Lo) ? ctx.NatCollateArg : ctx.CollateArg;
+        return RuntimeApi.ThruMember(
+            OperandText.AsString(n.Left, num), OperandText.AsString(n.Lo, num), OperandText.AsString(n.Hi, num), collate);
+    }
+
+    private static bool IsNationalOperand(BoundOperand op) => op switch
+    {
+        BoundStringLiteral { Category: PicCategory.National } => true,
+        BoundFieldOperand { Place.Item.Pic.Category: PicCategory.National } => true,
+        _ => false,
+    };
     // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
-        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})"
-        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})";
+        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})"
+        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num, floatCheck: false)}, {EmitText.CsLiteral(n.Members)})";
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
     // A per-evaluation user-function window (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): the activations run each
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
@@ -130,12 +146,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
         NumX l = num.AsNum(r.Left, ReceiverContext.None), rr = num.AsNum(r.Right, ReceiverContext.None);
-        // A float operand (D16): compare the algebraic values natively in IEEE double (§8.8.4.2.4). IEEE
-        // NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# — spec-conformant, no epsilon.
-        if (l.Real || rr.Real)
+        // A float operand under NATIVE arithmetic (D16): compare the algebraic values natively in IEEE double
+        // (§8.8.4.2.4 — "when native arithmetic is in effect, comparison proceeds by the rules of native
+        // arithmetic"). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
+        // spec-conformant, no epsilon. Under STANDARD-DECIMAL this branch is SKIPPED so the float lifts to SDIDI below.
+        if ((l.Real || rr.Real) && !num.StandardDecimal)
             return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
-        // A STANDARD-DECIMAL intermediate compares algebraically in SDIDI form (§8.8.1.5).
-        if (l.Dec || rr.Dec)
+        // Under standard-decimal, §8.8.4.2.4 requires EACH operand converted to standard-decimal intermediate form
+        // and compared decimally — a float lifts via the §8.8.1.5.1 float→SDIDI conversion (DecOperand →
+        // CobolDec.FromDouble) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
+        // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
+        if (l.Dec || rr.Dec || l.Real || rr.Real)
             return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
@@ -235,8 +256,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private string RenderSign(BoundSignCondition s)
     {
-        NumX v = num.Render(s.Expr, ReceiverContext.None);
-        string test = s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
+        // §14.6.13.2 dash-2: a float sending item referenced in a SIGN condition is EXEMPT from EC-DATA-NOT-FINITE —
+        // render the whole operand sub-tree with the finiteness wrap suppressed (a NaN/±Inf sign test is well-defined:
+        // NaN is neither >0, <0, nor ==0, so a compound sibling like `AND Y > 0.0` still raises on its own read).
+        NumX v = num.Render(s.Expr, ReceiverContext.None, floatSendingExempt: true);
+        // §8.8.4.7.4 GR2 (Format 2 — a bare standard-float name): POSITIVE/NEGATIVE test the IEEE sign BIT, not the
+        // algebraic value, "regardless of whether the content would evaluate to true in a NUMERIC class test or a
+        // ZERO sign test" — so +0.0 IS POSITIVE and −0.0 IS NEGATIVE. double.IsNegative reads the sign bit (true for
+        // −0.0 and a negative-signed NaN; false for +0.0). ZERO (GR2c) is sign-agnostic. Format 1 keeps the algebraic
+        // test. Widening FLOAT-SHORT→double preserves the sign of zero and NaN, so the single-precision case is covered.
+        string test = s.Format2Float
+            ? s.Kind switch { 'P' => $"!double.IsNegative({NumericRenderer.Real(v)})", 'N' => $"double.IsNegative({NumericRenderer.Real(v)})", _ => $"{NumericRenderer.Real(v)} == 0.0" }
+            : s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }
 
@@ -250,7 +281,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         var fld = c.Operand as BoundFieldOperand;
         bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
-        string arg = OperandText.AsString(c.Operand, num);
+        // §14.6.13.2 dash-1: a float sending item referenced in a CLASS condition is EXEMPT from EC-DATA-NOT-FINITE —
+        // the class test inspects the content precisely to categorize it, so a NaN/±Inf operand must not raise.
+        string arg = OperandText.AsString(c.Operand, num, floatCheck: false);
         string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
             : $"CobolClass.IsNumeric({arg})";
@@ -278,12 +311,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
         string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent), num) : num.FieldNum(c.Parent).Expr;
-        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
+        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High, c.CheckRangeInvalid));
         return "(" + string.Join(" || ", tests) + ")";
     }
 
-    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.</summary>
-    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high)
+    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
+    /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§14.7.8 rule 2), the range
+    /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
+    /// range (lo collating after hi) and treats it as empty.</summary>
+    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high,
+        bool checkRangeInvalid = false)
     {
         if (isString)
         {
@@ -299,7 +336,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             int width = parent.Pic?.Length ?? parent.ImageWidth;
             string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
-            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{pad}{collate}) <= 0)";
+            string hi = EmitText.CsLiteral(StringMembershipValue(high, width));
+            // §14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
+            // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
+            // otherwise emergent from the inclusive test). Boolean/other categories keep the inline byte-identical form.
+            if (checkRangeInvalid && cat is PicCategory.Alphanumeric or PicCategory.National)
+                return RuntimeApi.ThruMember(read, lo, hi, collate);
+            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{collate}) <= 0)";
         }
         // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
         // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would

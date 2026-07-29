@@ -25,6 +25,42 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
     },
     {
+      "id": "exit-section-2002",
+      "description": "EXIT SECTION (ISO §14.9.14 Format 4 / §14.9.14.4 GR7) — a COBOL-2002 structured-procedure exit transferring control to the end of the current section (firing its PERFORM/SORT/USE return mechanism); introduced 2002.",
+      "display": "the EXIT SECTION statement",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.14.2 Format 4 / §14.9.14.4 GR7 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXSEC.\nPROCEDURE DIVISION.\nDRIVER SECTION.\nD1.\n    PERFORM WORK-SEC.\n    STOP RUN.\nWORK-SEC SECTION.\nW1.\n    EXIT SECTION.\nW2.\n    DISPLAY \"W2\".\n"
+    },
+    {
+      "id": "exit-paragraph-2002",
+      "description": "EXIT PARAGRAPH (ISO §14.9.14.2 Format 4 / §14.9.14.4 GR6) — a COBOL-2002 structured-procedure exit transferring control to the implicit CONTINUE at the end of the current paragraph; introduced 2002 (the 85 EXIT is only Format 1, §14.9.14.3 SR1).",
+      "display": "the EXIT PARAGRAPH statement",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.14.2 Format 4 / §14.9.14.4 GR6 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXPAR.\nPROCEDURE DIVISION.\nP1.\n    EXIT PARAGRAPH.\n    DISPLAY \"AFTER\".\nP2.\n    DISPLAY \"P2\".\n    STOP RUN.\n"
+    },
+    {
+      "id": "exit-perform-2002",
+      "description": "EXIT PERFORM [CYCLE] (ISO §14.9.14.2 Format 3 / §14.9.14.4 GR5a) — a COBOL-2002 structured-procedure exit leaving (or cycling) the most closely preceding inline PERFORM; introduced 2002 (the 85 EXIT is only Format 1, §14.9.14.3 SR1). CYCLE is confined to an inline PERFORM by §14.9.14.3 SR8 and rides the same gate.",
+      "display": "the EXIT PERFORM statement",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.14.2 Format 3 / §14.9.14.4 GR5a — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXPERF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM UNTIL N > 5\n        ADD 1 TO N\n        IF N = 3 EXIT PERFORM END-IF\n    END-PERFORM.\n    DISPLAY N.\n    STOP RUN.\n"
+    },
+    {
       "id": "start-first-last-2002",
       "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002",
       "display": "START FIRST/LAST",
@@ -496,15 +532,15 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OFDP10AS.\nOPTIONS.\n    FLOAT-DECIMAL IS DECIMAL-ENCODING.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
     },
     {
-      "id": "options-initialize-2014",
-      "description": "The INITIALIZE clause of the OPTIONS paragraph (§11.9.10) — a 2014 clause of the 2002 paragraph (own introduction arm, P10 Step 12; VCR row 76 records the 2014→2023 semantic tightening separately)",
+      "id": "options-initialize-2023",
+      "description": "The INITIALIZE clause of the OPTIONS paragraph (§11.9.10) — a 2023 clause of the 2002 OPTIONS paragraph (Annex E §E.3.3 item 33 lists it among the 2014→2023 additions that use already-reserved words, so it is NEW in 2023, not a 2014 clause; VCR row 76 disposition 'new-feature-gate')",
       "display": "OPTIONS INITIALIZE",
       "diagnosticCode": "COBOLNET0900",
       "expectDiagnostic": "COBOLNET0900",
-      "citation": "ISO §11.9.10",
-      "introducedIn": 2014,
+      "citation": "ISO §11.9.10 — COBOL-2023 introduction (Annex E §E.3.3 item 33)",
+      "introducedIn": 2023,
       "removedIn": null,
-      "vcr": "2014 introduction (§11.9.10; VCR row 76)",
+      "vcr": "2023 introduction (§11.9.10; Annex E §E.3.3 item 33)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OINP10AS.\nOPTIONS.\n    INITIALIZE WORKING-STORAGE SECTION TO SPACES.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
     },
     {
@@ -1851,7 +1887,7 @@
     {
       "id": "sync-on-group-2023",
       "status": "active",
-      "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023 it is REJECTED under strict / ACCEPTED-INERT under --permissive (a manual Edition.Removed gate in ResolveIndexItems - error strict / warning permissive - which keeps INV-1 continuity). GATED P3 step 10 (owner-chosen disposition).",
+      "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). Below 2023 it is REJECTED on BOTH axes through the canonical ConstructRegistry.Check funnel in DataBinder.ResolveIndexItems, like every other introduction. CA14 (owner-approved option (a), 2026-07-28) RETIRED the former accept-inert-under---permissive disposition: it was the sole site routing an introduction through the removed-severity seam, contradicting EditionSeverityPolicy.For(NotYetIntroduced)=>Error and the EditionContext.Permissive contract. --permissive is the migration mode for constructs an edition REMOVED; it has no meaning for one the targeted edition has not yet acquired, which no pre-existing program can legally contain.",
       "display": "SYNCHRONIZED on a group item",
       "diagnosticCode": "COBOLNET0900",
       "citation": "ISO Annex E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §13.18.55",

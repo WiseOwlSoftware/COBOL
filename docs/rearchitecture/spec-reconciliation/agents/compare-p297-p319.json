@@ -1,0 +1,84 @@
+{
+  "batch": [297, 299, 301, 303, 305, 307, 309, 311, 313, 315, 317, 319],
+  "pages_checked": [297, 299, 301, 303, 305, 307, 309, 311, 313, 315, 317, 319],
+  "figure_verification": {
+    "note": "Every general-format diagram on these pages was rendered at 300 dpi and the bracket/brace interiors were crop-zoomed to look for the 5.2.6.4 choice-indicator bars. Result: all choice indicators present in the PDF are preserved in the markdown; no bar was dropped, no bracket/brace opens without closing, no ellipsis is on the wrong side of a delimiter, and no figure-notes paragraph contradicts its diagram.",
+    "figures": [
+      {"page": 297, "figure": "11.5.2 FUNCTION-ID Format 1 and Format 2", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful"},
+      {"page": 299, "figure": "11.7.2 METHOD-ID general format", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful (outer brace is a plain 2-way required choice; GET/SET inner brace plain; figure note states this correctly)"},
+      {"page": 301, "figure": "11.8.2 OBJECT general format", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful ('[ IMPLEMENTS { interface-name-1 } ... . ]' with the ellipsis to the right of the closing brace, i.e. bound to the brace group, matches the PDF)"},
+      {"page": 303, "figure": "11.9.6.2 DEFAULT ROUNDED general format", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful (8 alternatives in plain braces; all 8 words underlined, MODE/IS not; figure note correct)"},
+      {"page": 305, "figure": "11.9.8.2 FLOAT-BINARY general format", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful"},
+      {"page": 305, "figure": "11.9.9.2 FLOAT-DECIMAL general format", "bars_in_pdf": true, "bars_in_markdown": true, "verdict": "faithful - CHOICE INDICATORS confirmed in the print and PRESERVED in the markdown (encoding-phrase and endianness-phrase may both be specified, any order)"},
+      {"page": 307, "figure": "11.9.10.2 INITIALIZE general format", "bars_in_pdf": true, "bars_in_markdown": true, "verdict": "faithful - inner LOCAL-STORAGE/SCREEN/WORKING-STORAGE brace group carries choice-indicator bars in the print and they ARE preserved; outer brace and the fill-value brace are plain"},
+      {"page": 313, "figure": "12.3.2 CONFIGURATION SECTION general format", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "faithful (four independently bracketed optional paragraphs, no bars)"},
+      {"page": 315, "figure": "12.3.6.2 OBJECT-COMPUTER general format", "bars_in_pdf": true, "bars_in_markdown": true, "verdict": "faithful - choice indicators confirmed at TWO levels (outer bracket around CHARACTER CLASSIFICATION / PROGRAM COLLATING SEQUENCE, and each FOR ALPHANUMERIC / FOR NATIONAL inner brace) and both ARE preserved"},
+      {"page": 315, "figure": "12.3.6.2 locale-phrase-1 / locale-phrase-2 sub-figures", "bars_in_pdf": false, "bars_in_markdown": false, "verdict": "degraded to a bullet list - see findings"}
+    ]
+  },
+  "findings": [
+    {
+      "page": 303,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "NOTE 2    The STANDARD-BINARY mode of arithmetic is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [second paragraph printed at the NOTE indent, in the smaller NOTE type face - it is a continuation paragraph of NOTE 2]",
+      "markdown_says": "NOTE 2 The STANDARD-BINARY mode of arithmetic is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [emitted as an ordinary top-level body paragraph, with no NOTE indent, no continuation marker, and no association with NOTE 2]",
+      "why_it_matters": "In ISO documents NOTE text is explicitly non-normative. Detaching this paragraph from NOTE 2 promotes it to what reads as normative body text sitting between general rules 2) and 3) of 11.9.5.2, so a reader (or a citation-checker) can take 'interest in this facility will be reevaluated' as a requirement of the ARITHMETIC clause rather than as editorial commentary in a note.",
+      "suggested_repair": "Re-attach the paragraph to NOTE 2 the way the transcription handles other multi-paragraph notes - e.g. indent it under the NOTE 2 line (blockquote or continuation indent) so its non-normative status is unambiguous."
+    },
+    {
+      "page": 307,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "11.9.10.2   General format ... 11.9.10.3   Syntax rule ... 11.9.10.4   General rules  [three fourth-level subsections of the clause 11.9.10 INITIALIZE clause, printed exactly like 11.9.8.2 / 11.9.9.2, which the transcription renders as '###']",
+      "markdown_says": "## 11.9.10.2 General format\n## 11.9.10.3 Syntax rule\n## 11.9.10.4 General rules   [all three at '##', the same level as their own parent '## 11.9.10 INITIALIZE clause' at specs/ISO_COBOL.md:13393; the sibling subsections 11.9.8.2 and 11.9.9.2 are at '###']",
+      "why_it_matters": "The sub-structure of the INITIALIZE clause is flattened: General format / Syntax rule / General rules become siblings of the clause instead of its children, so an outline or generated TOC shows 11.9.10.2 as a peer of 11.9.10 and the containment 11.9.10 -> 11.9.10.2 is lost for any tool that navigates by heading depth.",
+      "suggested_repair": "Demote the three headings to '#### 11.9.10.2 / .3 / .4' (matching 11.9.8.x and 11.9.9.x once those are normalized), or at minimum to one level below whatever level '11.9.10 INITIALIZE clause' carries. Leave the <a id=\"section-11-9-10-2\"> anchors untouched."
+    },
+    {
+      "page": 311,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "11.10.4   General rules  [printed identically to 11.10.1 General, 11.10.2 General format, 11.10.3 Syntax rules - all four are fourth-level subsections of 11.10 PROGRAM-ID paragraph]",
+      "markdown_says": "## 11.10.4 General rules   [at '##', while its three siblings are '### 11.10.1 General' (specs/ISO_COBOL.md:13530), '### 11.10.2 General format' (:13537) and '### 11.10.3 Syntax rules' (:13555)]",
+      "why_it_matters": "One of four sibling subsections is promoted a level, so the PROGRAM-ID paragraph's General rules detach from the paragraph they belong to and become a peer of '## 11.10 PROGRAM-ID paragraph'. FORMAT 1 / FORMAT 2 rules for PROGRAM-ID then appear outside 11.10 in any depth-based outline.",
+      "suggested_repair": "Change '## 11.10.4 General rules' to '### 11.10.4 General rules' to match 11.10.1-11.10.3."
+    },
+    {
+      "page": 303,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "11.9.6   DEFAULT ROUNDED clause  [printed at exactly the same weight and size as 11.9.5 ARITHMETIC clause; both are third-level subsections of 11.9 OPTIONS paragraph]",
+      "markdown_says": "## 11.9.6 DEFAULT ROUNDED clause  (with '### 11.9.6.1 General', '### 11.9.6.2 General format', '### 11.9.6.3 General rules')   [its peer is transcribed one level deeper: '### 11.9.5 ARITHMETIC clause' at specs/ISO_COBOL.md:13175 with '#### 11.9.5.1 General format' at :13180]",
+      "why_it_matters": "Clause 11.9 is internally inconsistent: subsections 11.9.1-11.9.5 are children of '## 11.9 OPTIONS paragraph' but 11.9.6 is a sibling of it, so DEFAULT ROUNDED falls outside the OPTIONS paragraph in any depth-based outline while ARITHMETIC stays inside. Two peer clauses of the standard end up at different depths.",
+      "suggested_repair": "Pick one convention for the whole of 11.9 and apply it: either '### 11.9.6' + '#### 11.9.6.x' (matching 11.9.5), or demote 11.9.5 to '## ' - but not both conventions inside one clause. Same normalization is needed for 11.9.7 (:13258) and 11.9.11 (:13464)."
+    },
+    {
+      "page": 305,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "11.9.8   FLOAT-BINARY clause ... 11.9.9   FLOAT-DECIMAL clause  [both printed at the same weight and size as 11.9.5 ARITHMETIC clause; all are third-level subsections of 11.9 OPTIONS paragraph]",
+      "markdown_says": "## 11.9.8 FLOAT-BINARY clause  and  ## 11.9.9 FLOAT-DECIMAL clause  (children at '###')   [while the peer clause is '### 11.9.5 ARITHMETIC clause' at specs/ISO_COBOL.md:13175 with children at '####']",
+      "why_it_matters": "Same internal inconsistency as 11.9.6: FLOAT-BINARY and FLOAT-DECIMAL are lifted out of '## 11.9 OPTIONS paragraph' and become its peers, so a depth-based outline or TOC no longer shows them as clauses of the OPTIONS paragraph.",
+      "suggested_repair": "Normalize with the rest of 11.9 - '### 11.9.8' / '### 11.9.9' and '#### 11.9.8.x' / '#### 11.9.9.x' - keeping the existing <a id=\"section-11-9-8\"> anchors."
+    },
+    {
+      "page": 315,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "where locale-phrase-1 is:  followed by a vertical stack enclosed in a single tall brace pair: locae-name-1 / LOCALE / SYSTEM-DEFAULT / USER-DEFAULT, with LOCALE, SYSTEM-DEFAULT and USER-DEFAULT each underlined (required words). Same structure for locale-phrase-2 with locale-name-2.",
+      "markdown_says": "> A brace group containing:\n> - `locale-name-1`\n> - `LOCALE`\n> - `SYSTEM-DEFAULT`\n> - `USER-DEFAULT`",
+      "why_it_matters": "The two sub-figures are the only diagrams on these twelve pages that are paraphrased into prose plus a bullet list instead of being drawn like their siblings. The bullet form does not record that LOCALE, SYSTEM-DEFAULT and USER-DEFAULT are underlined (required words, i.e. reserved-word literals) whereas locale-name-1 is a user-defined word, and it does not state the brace semantics (exactly one alternative shall be selected). Nothing here is contradicted, but the required-word marking that the rest of the transcription preserves is absent.",
+      "suggested_repair": "Redraw both sub-figures in the same fenced brace-art style used by 11.9.8.2 / 11.9.9.2 and add the standard 'Figure notes' line recording that LOCALE, SYSTEM-DEFAULT and USER-DEFAULT are underlined in the print and that the plain braces mean exactly one alternative is selected."
+    },
+    {
+      "page": 315,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "locae-name-1   [the printed standard, verified on the 300 dpi render of the locale-phrase-1 brace group, spells it with the 'l' missing - an ISO typographical defect; the locale-phrase-2 stack below it spells 'locale-name-2' correctly, as does syntax rule 3) on the same page]",
+      "markdown_says": "- `locale-name-1`   [silently corrected, with no note that the print is defective]",
+      "why_it_matters": "The corrected spelling is the right text to implement against (syntax rule 12.3.6.3 3) 'Locale-name-1 and locale-name-2 shall be locale names defined in the SPECIAL-NAMES paragraph' confirms the intent), but the transcription is supposed to record ISO's own defects rather than quietly normalize them - otherwise a later reader who renders the page sees a mismatch and cannot tell whether the markdown or the print is wrong.",
+      "suggested_repair": "Keep `locale-name-1` and add a bracketed editorial note to the figure notes, e.g. '[ISO defect: the printed standard spells this locae-name-1 in the locale-phrase-1 stack; corrected here per 12.3.6.3 rule 3.]' Do NOT change the text back."
+    }
+  ]
+}

@@ -1141,6 +1141,70 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
     }
 
+    /// <summary>ISO §13.18.63.3 SR2/SR3: a numeric VALUE literal on a fixed-point numeric subject shall be a
+    /// permissible value within the range the PICTURE indicates, representable EXACTLY in the subject "without
+    /// truncation of leading or trailing nonzero digits" (SR2), and a signed numeric literal requires a signed
+    /// subject (SR3). Both are syntax rules ('shall'), so the only conforming response to a violation is a
+    /// compile-time diagnostic (COBOLNET1625) — never the legacy lenient truncating/sign-dropping store, which the
+    /// typed-native initializer would otherwise perform (ValueInitializer emits the literal verbatim through
+    /// <c>EmitText.UnscaledAtScale</c>, which does NO high-order modulo and NO unsigned magnitude).</summary>
+    /// <remarks>
+    /// The subject's stored ('9') digit positions are modeled by their power-of-ten exponents. Uniformly across an
+    /// implied point (V), a leading-P, and a trailing-P scaled picture — given <see cref="PicInfo.Digits"/> stored
+    /// digits and the signed <see cref="PicInfo.Scale"/> (trailing P ⇒ negative, leading P ⇒ &gt; Digits; ISO
+    /// §13.18.40.4) — the lowest stored exponent is <c>-Scale</c> and the highest is <c>Digits - Scale - 1</c>. The
+    /// literal is representable exactly iff every NONZERO digit of the literal lands within <c>[low, high]</c>; a
+    /// nonzero digit above the high exponent is a leading-nonzero truncation, one below the low exponent a
+    /// trailing-nonzero truncation. Zero (and a literal whose only nonzero digits are outside the tested span) is
+    /// handled naturally: a literal of value zero is always representable and skipped. A picture-less numeric item
+    /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's negative-into-unsigned test is
+    /// independent of the digit range. A COMP-5 / fixed-width binary item's Digits equals the decimal width of its
+    /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value (its full
+    /// binary-capacity range is a separate discipline, not SR2's PICTURE range).
+    /// </remarks>
+    private void ValidateNumericValue(PicInfo pic, string raw, string where)
+    {
+        if (pic.Digits <= 0) return;                        // picture-less numeric (INDEX) — no digit positions
+        string t = raw.Trim();
+        if (t.Length == 0) return;
+        bool neg = t[0] == '-';
+        if (neg || t[0] == '+') t = t[1..];
+        // A plain numeric literal is a digit run with at most one decimal point; figurative words, quoted
+        // alphanumeric, and national/boolean literals are validated on their own paths and are out of scope here.
+        int dot = t.IndexOf('.');
+        if (dot != t.LastIndexOf('.')) return;
+        string digits = dot < 0 ? t : t.Remove(dot, 1);
+        if (digits.Length == 0 || !digits.All(char.IsAsciiDigit)) return;
+
+        // SR3 (ISO §13.18.63.3, ISO_COBOL.md:22914): a signed numeric literal requires a signed numeric (or
+        // sign-bearing numeric-edited) subject. Scoped to a NEGATIVE literal (the sign-losing case) — a leading '+'
+        // into an unsigned item is the common harmless idiom (+5 == 5, no data loss) and is not rejected.
+        if (neg && !pic.Signed)
+        {
+            Edition.Error("COBOLNET1625", $"{where}: a signed (negative) numeric literal in the VALUE clause "
+                + "requires a signed numeric or sign-bearing numeric-edited subject (ISO §13.18.63.3 SR3)");
+            return;
+        }
+
+        // SR2 (ISO §13.18.63.3, ISO_COBOL.md:22906): the literal shall be a permissible value in the PICTURE range,
+        // representable without truncation of a leading or trailing nonzero digit. Compare the literal's nonzero
+        // digit-exponent span against the subject's stored-digit exponent span [-Scale, Digits-Scale-1].
+        int litScale = dot < 0 ? 0 : t.Length - dot - 1;    // the literal's fractional-digit count
+        int firstNonZero = -1, lastNonZero = -1;
+        for (int i = 0; i < digits.Length; i++)
+            if (digits[i] != '0') { if (firstNonZero < 0) firstNonZero = i; lastNonZero = i; }
+        if (firstNonZero < 0) return;                       // the literal is zero — always representable (SR2)
+        int last = digits.Length - 1;
+        int highLitExp = -litScale + (last - firstNonZero); // exponent of the most-significant nonzero digit
+        int lowLitExp = -litScale + (last - lastNonZero);   // exponent of the least-significant nonzero digit
+        int lowStoredExp = -pic.Scale;
+        int highStoredExp = pic.Digits - pic.Scale - 1;
+        if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
+            Edition.Error("COBOLNET1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
+                + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
+                + "of leading or trailing nonzero digits (ISO §13.18.63.3 SR2)");
+    }
+
     // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,
     // the one ISO §8.3.1.2 literal codec, PHASE-05 Step 1.)
 
@@ -1400,7 +1464,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// data description onto <paramref name="item"/> — the subject "as though the data description identified
     /// by data-name-1 had been coded in place of the SAME AS clause" (GR1), via the ONE
     /// <see cref="CopyEntryDescription"/>/<see cref="CloneItem"/> machinery TYPE expansion uses
-    /// (feedback_singular_pattern; SAME AS is structurally the TYPE expansion with a DATA-NAME source).
+    /// (feedback_one_mechanism_per_job; SAME AS is structurally the TYPE expansion with a DATA-NAME source).
     /// Excluded from the copy per GR1: data-name-1's level-number, name, CONSTANT RECORD, EXTERNAL, GLOBAL,
     /// REDEFINES, and SELECT WHEN (not modeled). Subordinate levels renumber relative to the subject (GR2b/c —
     /// the <see cref="CloneItem"/> levelDelta). <paramref name="expanding"/> is the SAME-AS expansion chain —
@@ -2062,12 +2126,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
-        if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, Digits: > 0 })
-            Edition.CheckDigitCapacity(pic.Digits, $"data item '{cobolName ?? "FILLER"}' (PICTURE {pictureText})");
+        // §13.18.40.3 SR14: the 1–31 (18 pre-2002) cap is measured against DIGIT POSITIONS, not just the '9' count —
+        // a numeric-edited Z(11)9(8) is 19 positions and Z(35) is 35 (Digits=0), both of which the old '9'-only
+        // Digits check let slip past. DigitPositions == Digits for pure-numeric-without-P, so no regression. (CA33.)
+        if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false } && pic.DigitPositions > 0)
+            Edition.CheckDigitCapacity(pic.DigitPositions, $"data item '{cobolName ?? "FILLER"}' (PICTURE {pictureText})");
 
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
+        // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
+        // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
+        // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
+        // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
+        // out-of-range native field (COBOLNET1625). Numeric-edited VALUEs ride the separate SR4/SR6 checks below.
+        if (rawValue is { } rvNum && pic is { Category: PicCategory.Numeric, IsFloat: false })
+            ValidateNumericValue(pic, rvNum, entryWhere);
         // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
         // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
         // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
@@ -2518,16 +2593,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
             if (item.Children.Count > 0)
             {
-                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (Annex E.3.2 item 6; before 2023 SYNC
-                // is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023
-                // it is REJECTED under strict but ACCEPTED-INERT under --permissive — the removed-severity seam
-                // (Edition.Removed = error strict / warning permissive) gives exactly that, and keeps INV-1
-                // continuity intact for any program carrying it (P3 step 10; owner-chosen disposition).
+                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
+                // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
+                // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
+                // axes: §4.2.2's warning mechanism reports violations of the standard, and --permissive is the
+                // migration mode for constructs an edition REMOVED — it has no meaning for one the targeted
+                // edition has not yet acquired, which no pre-existing program can legally contain (CA14,
+                // owner-approved option (a); this was the sole site routing an introduction through the
+                // removed-severity seam, contradicting the compiler's own single-policy contract).
                 if (item.Synchronized && Edition.DialectLevel < 2023)
-                    Edition.Removed(EditionCodes.Introduction,
-                        $"SYNCHRONIZED on a group item ('{item.CobolName ?? "FILLER"}') was introduced by ISO/IEC "
-                        + "1989:2023 (Annex E.3.2 item 6; before 2023 SYNCHRONIZED is permitted only on elementary "
-                        + $"items) - it requires --std 2023 or later (targeting COBOL-{Edition.DialectLevel})");
+                    ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SyncOnGroup2023,
+                        $"data item '{item.CobolName ?? "FILLER"}'");
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
                 // USAGE NATIONAL / BIT on a GROUP header sheds per §13.18.60.4 GR1 — with the SR12/SR5
                 // conformance check over the subordinate leaves (each leaf's own PICTURE has already

@@ -18,7 +18,7 @@ namespace CobolNet.Editions.Diagnostics;
 /// <param name="Severity">Error | Warning. Uses <see cref="EditionSeverity"/> (the Editions-native two-value
 /// severity) — every P2-catalogued diagnostic is one of those two. The eventual unification with the frontend's
 /// three-value <c>CobolNet.Frontend.Diagnostics.DiagnosticSeverity</c> (which adds Info) is the P7 diagnostic
-/// merge; deferred so P2 adds no third parallel severity type (feedback_singular_pattern).</param>
+/// merge; deferred so P2 adds no third parallel severity type (feedback_one_mechanism_per_job).</param>
 /// <param name="Title">A short human summary of what the diagnostic reports — the <c>docs/DIAGNOSTICS.md</c> row
 /// text and the eventual <c>--explain</c> text. NOT the runtime message: the emitted message is composed at the
 /// call site (many of these diagnostics interpolate item names / ISO §s that only the site has). Converting the

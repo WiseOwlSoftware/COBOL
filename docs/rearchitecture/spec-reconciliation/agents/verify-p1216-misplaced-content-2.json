@@ -1,0 +1,15 @@
+{
+  "page": 1216,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {
+    "pdf_says": "Kaithi:\n11080-110BA\n\n[page break to p1187]\n\nKannada:\n0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2",
+    "markdown_says": "Kaithi:\n11080-110BA Kannada:   (specs/ISO_COBOL.md line 49207) ... then page-1217 opens with the bare line '0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2' with no label",
+    "why_it_matters": "The 'Kannada:' label from the top of PDF page 1187 is concatenated onto Kaithi's range line, so Kaithi reads '11080-110BA Kannada:' and Kannada's ranges are orphaned at the head of the next page. Same script-to-range mapping corruption as the other page boundaries in this listing."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Independently confirmed against both rendered pages at 300 dpi. PDF page 1216 (printed folio 1186) ends its body with exactly two lines, 'Kaithi:' then '11080-110BA', followed by the footer '1186  (c)ISO/IEC 2023' — there is no 'Kannada:' anywhere on that page. PDF page 1217 (printed folio 1187) opens its body with 'Kannada:' on its own line, then '0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2', then 'Katakana:'. The markdown at specs/ISO_COBOL.md reads line 49206 'Kaithi:', line 49207 '11080-110BA Kannada:', then the page-1217 anchor/heading at 49209-49211, then line 49213 '0C80-0C81, 0CBC-0CBD, 0CD5-0CD6, 0CE2-0CE3, 0CF1-0CF2' with no owning label; grep for 'Kannada' in the whole file returns only 40411, 40862 and the corrupted 49207, so the label is not restored anywhere inside the page-1217 block. This is not page-break furniture or benign reflow: had the label merely migrated to the previous page on its own line, the script-to-range pairing would survive. Because it is CONCATENATED to a data line, the transcription asserts Kaithi's range list is '11080-110BA Kannada:' and leaves Kannada's five ranges attached to no script name — the script-to-repertoire mapping in this Unicode script listing is materially changed, so meaning is lost. Corroborating evidence that this is a systematic OCR pattern rather than a one-off: line 40403 in the same file shows the identical defect at the page 1014/1015 boundary ('A984-A9B2 Kaithi:'), while line 40859-40863 shows the correct uncorrupted shape mid-page.",
+    "corrected_description": "Claim confirmed; only a cosmetic labeling nit. The claim writes 'page break to p1187' and 'the top of PDF page 1187' — 1187 is the printed folio; the PDF page index is 1217 (the markdown block is '## Page 1217'). Substance is exact: markdown line 49207 must be split into '11080-110BA' (end of the page-1216 block) and a 'Kannada:' label line placed at the head of the page-1217 body immediately above line 49213's range list."
+  }
+}

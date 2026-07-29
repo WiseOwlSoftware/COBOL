@@ -32,6 +32,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // receiver-INDEPENDENT (GR4 -- the initial evaluation precedes any receiver's involvement): None.
             NumX value = num.Fold(operands, ReceiverContext.None with { InSizeError = ise });
             if (targets.Count > 1) value = Snapshot(value);
+            // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §14.6.13.2 NOTE 2), so a
+            // non-finite float receiver is caught by its CobolFloat.Sending wrap. Precise follow-on (parallel to the
+            // "precise ContainsRefMod filter" note): with MULTIPLE float receivers under EC-DATA-NOT-FINITE checking, a
+            // later receiver's non-finite read raises AFTER earlier receivers already stored — a half-commit that is
+            // only observable under USE-F3 + RESUME NEXT STATEMENT, where a fatal-EC-interrupted statement leaves
+            // undefined results anyway (§14.6.13.1.3). Pre-snapshotting all receiver reads before the first store would
+            // close it; deferred to avoid restructuring the byte-critical arithmetic store loop for an undefined case.
             foreach (var r in targets)
                 StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, ise)), r.Rounding);
         });
@@ -76,7 +83,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             {
                 // The quotient renders at the receiver's OWN scale + ROUNDED mode.
                 NumX q = dividendX ?? num.FieldNum(r.Place);            // INTO-no-GIVING divides the target
-                StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise)), r.Rounding);
+                // The DIVIDE top-level quotient IS the final transfer to r — outermost, so it rounds at r's scale +
+                // ROUNDED mode (§14.9.12.4 / §14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
+                StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise), outermost: true), r.Rounding);
             }
         });
 
@@ -163,7 +172,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 return;
             }
             foreach (var r in c.Targets)
-                StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise)), r.Rounding);
+                // Single receiver: the RHS's top-level division (if any) IS the final transfer to r — render it
+                // outermost so an outermost quotient rounds at r's scale + mode and a nested quotient does not
+                // inherit r's mode (CA5; §14.7.7 rule 3 NOTE 1).
+                StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding);
         });
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure

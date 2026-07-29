@@ -1,0 +1,31 @@
+{
+  "page": 961,
+  "kind": "other",
+  "severity": "cosmetic",
+  "claim": {
+    "pdf_says": "(FUNCTION LENGTH (argument-1) + 1).",
+    "markdown_says": "(FUNCTION LENGTH (argument-1) + 1)**.**",
+    "why_it_matters": "A stray pair of markdown bold markers has been wrapped around the terminating period of the returned-value expression; nothing in the printed page is emphasized there. The raw text now reads '+ 1)**.**' inside an arithmetic expression, and '**' is COBOL's exponentiation operator, so a reader or extraction tool taking the expression verbatim can misparse it. The sibling occurrence in 15.94.4 c) on page 958 is transcribed correctly as '(FUNCTION LENGTH (argument-1) + 1).'."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Verified independently on both sides; the claim quotes both sources exactly. MARKDOWN: specs/ISO_COBOL.md line 38466, inside the page-961 block opening at line 38455, reads verbatim '(FUNCTION LENGTH (argument-1) + 1)**.**'. PDF: I rendered page 961 at 300 dpi and cropped the expression line upscaled 3x. The printed line reads '(FUNCTION LENGTH (argument-1) + 1).' in uniform regular-weight roman; the terminating period is an ordinary-weight dot with the same stroke as every other period on the page. No emphasis, no bolding, no asterisk glyphs anywhere on the page. GLYPH-LEVEL CORROBORATION: the ISO PDF text layer is character-obfuscated, but its font metadata is not, so I inspected the font runs directly (PyMuPDF get_text('dict'), page index 960). The expression line at y=229.6 -- positionally bracketed by 'c) Otherwise,' at y=204.3 and the NOTE at y=254.2, matching the visual layout -- is a SINGLE span, font 'Cambria', size 10.70, flags=4, i.e. serif with the bold bit (16) clear, spanning the whole line including the period. The only bold run on the entire page is the running header at y=37.8, 'Cambria,Bold', flags=20, which the transcription correctly renders as '**ISO/IEC 1989:2023 (E)**'. So the converter's '**' output does track the Bold font elsewhere, and there is no bold font at the period for it to have been representing; the marker pair is inserted noise with no counterpart in the source. REFUTATIONS ATTEMPTED, ALL FAILING: (a) nothing is missing or reflowed onto an adjacent line -- this is a spurious INSERTION of four characters, so the 'text is actually present elsewhere' escape does not apply; (b) not page-break furniture, wrapping, or hyphenation -- the expression stands on its own line in both artifacts; (c) neither source is misquoted -- both strings match exactly; (d) the PDF period is not itself bold -- confirmed by eye and by font flags. The strongest available refutation is that emphasis markup is 'formatting' and a bold period renders indistinguishably from a plain one, so the RENDERED meaning is unchanged. That is true, and it is precisely why 'cosmetic' is the right severity; it does not reduce the finding to nothing, because this project consumes specs/ISO_COBOL.md as RAW text via Read and grep, not as rendered HTML, so the literal '**' is what a reader or tool actually sees. I also tested whether this is a systematic convention that should be excluded wholesale: '**.**' occurs only 10 times in the ~40k-line file, making it sporadic conversion noise rather than a convention, and line 38466 is the ONLY one of the ten where the stray markers abut a closing parenthesis inside an arithmetic expression, producing ')**' -- COBOL's exponentiation operator. The claim is confirmed as stated.",
+    "corrected_description": "Confirmed, with one factual refinement to the claim's supporting detail. Location: specs/ISO_COBOL.md line 38466, section 15.95.4 'Returned value rule' item c), TEST-NUMVAL-F function. The transcription inserts a markdown strong-emphasis pair around the terminating period -- '(FUNCTION LENGTH (argument-1) + 1)**.**' -- where PDF page 961 (printed page 931) prints plain regular-weight roman with an ordinary period and no emphasis; font-run inspection shows the line is one non-bold Cambria span and the page's only bold run is its running header. REFINEMENT: the claim cites a single clean sibling (15.94.4 c), page 958); there are in fact TWO, namely 15.93.4 c) TEST-NUMVAL at line 38324 on page 956 -- not page 957 -- and 15.94.4 c) TEST-NUMVAL-C at line 38393 on page 958, both transcribed plainly as '(FUNCTION LENGTH (argument-1) + 1).'. Both siblings strengthen the case that page 961 is the one-off outlier. IMPACT, stated more precisely than the claim: it is cosmetic and confined to the raw text -- rendered markdown shows the same sentence, no normative content is added, lost, or altered, and no reader of the rendered document is misled. The residual hazard is narrower than 'a reader can misparse it' implies: it is limited to tooling or an agent grepping the RAW markdown for the returned-value expression, which would capture '+ 1)**.**' where '**' collides with COBOL's exponentiation operator. Fix is a one-character-class deletion: remove the two '**' pairs on line 38466, leaving '(FUNCTION LENGTH (argument-1) + 1).'.",
+    "evidence": {
+      "markdown_line": 38466,
+      "markdown_text": "(FUNCTION LENGTH (argument-1) + 1)**.**",
+      "markdown_page_block_opens_at_line": 38455,
+      "pdf_page_index_0based": 960,
+      "pdf_printed_page": 931,
+      "pdf_expression_span": "y=229.6 font=Cambria size=10.70 flags=4 (serif, bold bit clear), single span covering the entire line including the period",
+      "only_bold_run_on_page": "y=37.8 font=Cambria,Bold flags=20 -- the running header 'ISO/IEC 1989:2023 (E)', correctly transcribed with ** markers",
+      "sibling_plain_occurrences": [
+        "line 38324 -- 15.93.4 TEST-NUMVAL c), page 956 (between page anchors at lines 38278 and 38333)",
+        "line 38393 -- 15.94.4 TEST-NUMVAL-C c), page 958 (between page anchors at lines 38344 and 38396)"
+      ],
+      "artifact_frequency": "'**.**' appears 10 times in specs/ISO_COBOL.md; line 38466 is the only occurrence where the markers follow a closing parenthesis inside an arithmetic expression",
+      "section": "15.95.4 TEST-NUMVAL-F Returned value rule, item c)",
+      "note_on_method": "The ISO PDF text layer is character-obfuscated, so text extraction is unusable; font-name/flag metadata and the 300dpi raster are the reliable signals and both were used."
+    }
+  }
+}

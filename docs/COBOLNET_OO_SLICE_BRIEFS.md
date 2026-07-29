@@ -2,7 +2,7 @@
 
 > **Status: LEDGER / implementation briefs** for the OO slices — all now implemented and folded into the
 > AUTHORITATIVE design `docs/COBOLNET_OO_DESIGN.md`; each brief's decisions LIVE IN the deep-dive, and
-> these working copies are kept in-repo as the derivation record (the feedback_plans_in_repo discipline;
+> these working copies are kept in-repo as the derivation record (the feedback_create_documents discipline;
 > they survive sessions — the /e/tmp brief-loss lesson). Verify spec line anchors on use.
 
 
@@ -14,7 +14,7 @@
 
 > Scope: ISO 11.4 FACTORY paragraph (specs/ISO_COBOL.md:13069), factory data + factory methods, `INVOKE class-name "M"` (non-NEW), SELF/SUPER inside factory methods (§14.9.23.3 SR4f/g/h/i, :28407+), and the NEW interplay (§16.2.1, :39170). Deep-dive: docs/COBOLNET_OO_DESIGN.md ("Never landed" list — FACTORY is net-new, no legacy port). Everything below is spec-derived and cites §/line anchors; tests VERIFY, never scope.
 
-## ⛔ D11 (the one load-bearing decision) — a factory is a REAL sibling C# class + one singleton instance, NOT static members. This SUPERSEDES the deep-dive's "FACTORY data → static fields" sketch (Summary :37, D7 :115, edge case :232); update the deep-dive in the SAME change set with this correction (process rule feedback_follow_design_docs_and_spec).
+## ⛔ D11 (the one load-bearing decision) — a factory is a REAL sibling C# class + one singleton instance, NOT static members. This SUPERSEDES the deep-dive's "FACTORY data → static fields" sketch (Summary :37, D7 :115, edge case :232); update the deep-dive in the SAME change set with this correction (process rule feedback_follow_the_deep_dive).
 
 **Chosen design.** For EVERY `CLASS-ID. FOO` emit a second class
 
@@ -141,7 +141,7 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 | 11 | FACTORY as a data-name at 85 / 2002 | matrix | OK / 0901 (continuity invariant) |
 | 12 | Whole class group at --std 85 | matrix | classDefinition edition diagnostic (existing gate) |
 
-## 3 conformance programs (tests/conformance/2002/, + .out, + manifest.json "enabled" — same commit, feedback_conformance_tests_per_feature)
+## 3 conformance programs (tests/conformance/2002/, + .out, + manifest.json "enabled" — same commit, feedback_goldens_ship_with_the_feature)
 
 **oo_factory_basic.cob** — factory data persistence + static-call binding. Expected out: `CNT=0002`
 ```cobol
@@ -310,7 +310,7 @@ methodDefinition                                            // :43–49 today
 
 ### D-B. OVERRIDE token strategy: a real context-sensitive lexer token, the established XOR/RAISE pattern
 `OVERRIDE` currently lexes as IDENTIFIER (only the dead sketch `CobolParserOO.g4:96` mentions it). Per
-`feedback_proper_fixes` (real tokens, never IDENTIFIER text-matching), add it as the repo's standard
+`feedback_root_cause_no_workarounds` (real tokens, never IDENTIFIER text-matching), add it as the repo's standard
 context-sensitive keyword — FOUR mirrored touch points (the pattern documented at `CobolParserCore.g4:19–24`):
 
 1. `Core/CobolLexer.g4` — `OVERRIDE : 'OVERRIDE' ;` next to `OVERFLOW` (:437 band; any position before
@@ -345,7 +345,7 @@ context-sensitive keyword — FOUR mirrored touch points (the pattern documented
   - `baseM != null && !m.HasOverride` → **SR4a**: `edition.Removed("COBOLNET0836", "class '{cls}': method '{name}' redefines a method inherited from '{base.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an inherited method may only be redefined with OVERRIDE; add OVERRIDE to the METHOD-ID paragraph)")`
     and STILL set `m.OverrideOf = baseM` in both severities — under strict the compile fails before emission
     anyway (setting it keeps 0829 messages coherent); under `--permissive` this IS the pre-wave inference,
-    preserved as the documented migration leniency (two-axis dialect model, `project_dialect_strictness`;
+    preserved as the documented migration leniency (two-axis dialect model, `project_dialect_two_axes`;
     §10 #1 migration contract precedent = `method-working-storage-window`).
   - `baseM == null && m.HasOverride` → **SR3**:
     `Error("COBOLNET0837", "class '{cls}': method '{name}' specifies OVERRIDE but no superclass defines a method with that signature{sym.Base is null ? " (the class has no INHERITS clause)" : ""} (ISO §11.7.3 SR3)")`.
@@ -357,7 +357,7 @@ context-sensitive keyword — FOUR mirrored touch points (the pattern documented
   deferred); the signature half of SR3/SR4a is exactly what 0829 already validates.
 - **Severity seam:** route 0836 through the existing `EditionContext.Removed` (`Binding/EditionContext.cs:62–66`
   — error strict / warning permissive) and widen its XML doc in the same change set to "removed-construct AND
-  documented-dialect-leniency gating" (`feedback_singular_pattern`: one policy seam, never a duplicate
+  documented-dialect-leniency gating" (`feedback_one_mechanism_per_job`: one policy seam, never a duplicate
   `Lenient()` method, never a local `if (Permissive)` test).
 - **Rejected:** keeping by-name auto-override as default (the pre-wave behavior) — it silently accepts
   nonconforming source and was only ever a documented stopgap ("until they land" — OoClassTable.cs:210 comment).
@@ -408,7 +408,7 @@ The existing overrides in `tests/conformance/2002/` violate SR4a as written (the
 - `oo_super.cob` — DOG's `METHOD-ID. SPEAK.` → add `OVERRIDE`.
 - `oo_self_polymorphic.cob` — DOG's `METHOD-ID. SOUND.` → add `OVERRIDE`.
 Goldens (`.out`) are byte-identical — attributes are compile-surface only. This is fixing INVALID test source
-to conform to ISO (tests verify, never scope — and `feedback_compiler_bugs` forbids only changing VALID source).
+to conform to ISO (tests verify, never scope — and `feedback_root_cause_no_workarounds` forbids only changing VALID source).
 These files are greenfield-only (2002 manifest); the legacy NIST guard never compiles them.
 
 ## 2. Exact change list (files/seams)
@@ -438,7 +438,7 @@ These files are greenfield-only (2002 manifest); the legacy NIST guard never com
 | COBOLNET0829 | §9.3.8.2 signature conformance (existing) | error (both axes — D9 makes it unemittable) | unchanged |
 | COBOLNET0901 | OVERRIDE as a user word at 2002+ (existing funnel + table row) | via `Removed` policy (existing) | activated by D-B item 4 |
 
-## 4. Tests (same commit — `feedback_conformance_tests_per_feature`, `feedback_parse_and_emit_together`)
+## 4. Tests (same commit — `feedback_goldens_ship_with_the_feature`, `feedback_goldens_ship_with_the_feature`)
 
 **Golden** `tests/conformance/2002/oo_override_final.cob` (+ `.out`, + `manifest.json` entry): driver +
 `CLASS-ID. ANIMAL.` with `METHOD-ID. SPEAK.` (virtual) — `CLASS-ID. DOG INHERITS FROM ANIMAL.` with
@@ -464,22 +464,22 @@ regression trap). Compiled strict `--std 2002`, run, byte-compared by CorpusRunn
 
 ## 5. Process cost — this touches THREE .g4 files (the expensive kind of change)
 
-- **Authorization:** grammar changes normally require owner approval (`feedback_grammar_approval`) — this one is
+- **Authorization:** grammar changes normally require owner approval (`feedback_grammar_preauthorized`) — this one is
   pre-authorized by the RATIFIED plan: the deep-dive's Open-questions grammar bullet explicitly schedules
   "the ISO method attributes (OVERRIDE / IS FINAL …) added incrementally … each behind the {is2002()}? dialect
   predicate" before the corresponding emit slices, and Phase 3 is the ratified roadmap phase. Log the change in
   DEVLOG regardless.
 - **Regen:** `Generated/` is a BUILD OUTPUT (untracked since DEVLOG 596) — the ANTLR regen runs at build (java +
   pwsh prerequisites; a failed regen FAILS the build). Regen must be verified on the Windows build; the WSL/Linux
-  side rides CI (`feedback_commit_generated_parser`, `reference_wsl_linux_repro`).
+  side rides CI (`feedback_generated_parser_is_a_build_output`, `reference_wsl_linux_repro`).
 - **Guard:** `scripts/guard-fast.sh` (~3.3 min) green after the grammar edit BEFORE layering the binder/emitter
   work (`feedback_grammar_version_factoring` — incremental, one guard-fast per grammar step), then the FULL
   legacy guard (`scripts/guard.sh`) + the full conformance battery + the corpus sweep before commit — a new
   lexer token can shift tokenization anywhere in the '85 corpus, and flipping SR4a from leniency to error is
   exactly the "flipped gated check needs an adversarial sweep, not just a corpus dry-run" lesson
   (`project_p1_diagnostics`).
-- **Docs in the same change set:** deep-dive updates (row 11 above — `feedback_follow_design_docs_and_spec`),
-  grammar comments already carry the doc-sync content (`feedback_grammar_doc_sync`), DEVLOG entry per commit.
+- **Docs in the same change set:** deep-dive updates (row 11 above — `feedback_follow_the_deep_dive`),
+  grammar comments already carry the doc-sync content (`feedback_grammar_preauthorized`), DEVLOG entry per commit.
 
 ## 6. Explicitly OUT of scope (forward obligations, recorded so they are not re-derived)
 
@@ -589,7 +589,7 @@ Boxing per the ARG's crossing form (the callee's is identical by descriptor equa
 ### D-U7. SET Format 5 goes live (StatementBinder.cs:715-716 currently `BoundUnsupported`).
 - New `OoBindSetObjectReference` (StatementBinder.Oo.cs) + `public sealed record BoundSetObjectRef(IReadOnlyList<Place> Targets, Place? Source, bool SourceIsNull, bool SourceIsSelf) : BoundStatement;` + `OoEmitSetObjectRef` (CSharpEmitter.Oo.cs): `tgt.Write(expr)` per target in order (GR9 :31592) where expr = `src.Read()` / `null` / `this`.
 - Bind rules: target `PicCategory.ObjectReference` else **0837** (SR8 :31298). Sender `NULL` ⇒ ok (SR12d). `SELF` ⇒ only in a method (reuse the 0827 pattern); typed target additionally requires `OoCurrentClass.ConformsTo(targetClass)` (SR12c2 :31357) else **0837**. `SUPER` ⇒ **0837** (SR9 :31300). dataReference sender: resolve data-first; object-ref item required; **target universal ⇒ always conformant (SET universal TO typed — SR10/12 never trigger on a universal receiver)**; target typed ⇒ sender must be typed AND `senderCls.ConformsTo(targetCls)` (SR12a2 :31341) — **a universal sender into a typed target is 0837** (SR12's closed list; the narrowing tool is an object view, deferred). An unresolvable-as-data name that IS a class of `OoClasses` ⇒ the SR13 factory-object form ⇒ `BoundUnsupported` naming the FACTORY slice. ONLY/FACTORY phrases have no grammar surface yet — nothing to check (note in doc).
-- Grammar delta (one token): `setObjectReferenceStatement : {is2002()}? SET dataReference+ TO objectReference` (src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4:1049-1051) to honor `{identifier-3}…`; run guard-fast after regen per the incremental-grammar rule; log under the Phase-3 OO drive's standing authorization (memory feedback_autonomous_grammar_nist analog — flag in the DEVLOG/commit).
+- Grammar delta (one token): `setObjectReferenceStatement : {is2002()}? SET dataReference+ TO objectReference` (src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4:1049-1051) to honor `{identifier-3}…`; run guard-fast after regen per the incremental-grammar rule; log under the Phase-3 OO drive's standing authorization (memory feedback_grammar_preauthorized analog — flag in the DEVLOG/commit).
 - Registry: add `new("set-object-reference-2002", "SET … TO object-reference (Format 5)", 2002, null, null, EditionCodes.Introduction, "ISO §14.9.39 F5 (OO); grammar-gated; LIVE as of the universal wave")` to src/Cobol.Net.Compiler/Validation/ConstructDialectStatus.cs (pattern of `invoke-2002`, :66).
 
 ### D-U8. Object relation conditions ride BoundRelational; "IS class" is struck as non-ISO.
@@ -654,7 +654,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 > USE Format 4 (EXCEPTION OBJECT), RAISING on method PD headers, GOBACK/EXIT … RAISING identifier in methods
 > AND programs, INVOKE-site + CALL-site object propagation pickup, and the unhandled-object → EC-OO-EXCEPTION
 > conversion. Fold this brief into `docs/COBOLNET_OO_DESIGN.md` (slice-6 AS-BUILT) and
-> `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN` in the SAME change set (feedback_follow_design_docs_and_spec).
+> `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN` in the SAME change set (feedback_follow_the_deep_dive).
 
 ## 1. Spec model (all anchors = specs/ISO_COBOL.md line numbers, verified this session)
 
@@ -711,7 +711,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 ## 2. Decisions
 
 ### D-EO1. ONE signal architecture: extend the existing carriers, never a parallel OO mechanism
-The object channel rides the LANDED shapes (feedback_singular_pattern): `BoundRaising` gains the object leg;
+The object channel rides the LANDED shapes (feedback_one_mechanism_per_job): `BoundRaising` gains the object leg;
 `ExceptionState` gains the object register/propagation slot beside `_propagated`; `CallEmitPropagationPickup`
 (CSharpEmitter.Call.cs:696-709) grows the object branch and is invoked from **both** CALL and INVOKE sites.
 **Rejected:** a distinct `ObjectException`/.NET-exception-based propagation (a thrown C# exception cannot honor
@@ -891,7 +891,7 @@ methods; RAISING LAST inside a method (needs method declaratives); EXCEPTION-OBJ
 |---|---|
 | `Grammar/CobolParserCore.g4:1119` | raiseStatement: dataReference → objectReference |
 | `Grammar/Core/CobolControlFlow.g4:176` | useStatement: `USE AFTER (EXCEPTION OBJECT \| EO) cobolWord` alternative |
-| `Grammar/CobolParserCore.g4:40` + lexer | EO context-sensitive word + `_dataNameTokens` mirror; regen both OSes (feedback_commit_generated_parser); guard-fast after the grammar step (feedback_grammar_version_factoring). Grammar changes are inside the ratified Phase-3 OO scope (`docs/COMPLETION_ROADMAP_COUNCIL.md`) — log per feedback_autonomous_grammar_nist |
+| `Grammar/CobolParserCore.g4:40` + lexer | EO context-sensitive word + `_dataNameTokens` mirror; regen both OSes (feedback_generated_parser_is_a_build_output); guard-fast after the grammar step (feedback_grammar_version_factoring). Grammar changes are inside the ratified Phase-3 OO scope (`docs/COMPLETION_ROADMAP_COUNCIL.md`) — log per feedback_grammar_preauthorized |
 | `Runtime/Exceptions/ExceptionState.cs` | D-EO2: ObjectSentinel, SetObject, SetPropagatingObject/TakePropagatedObject, SetPropagatingLast object leg, slot exclusivity, Clear |
 | `Binding/Bound/StatementBinder.Exceptions.cs:53-54` | BindRaise identifier leg → BoundRaiseObject (D-EO3) |
 | `Binding/Bound/StatementBinder.Exceptions.cs:149-177` | EcBindRaising ObjectSource leg + SR4a/SR4d (D-EO4); EcCollectPdRaising partition (D-EO8) |
@@ -921,7 +921,7 @@ methods; RAISING LAST inside a method (needs method declaratives); EXCEPTION-OBJ
   0876-band message as F3; EXIT METHOD RAISING at 2023 already rides `exit-method-window` (0902).
 - Version-matrix negatives: RAISE identifier and USE F4 at `--std 85` (targeted diagnostic, not a parse error).
 
-## 5. Tests (ship in the SAME commit — feedback_conformance_tests_per_feature)
+## 5. Tests (ship in the SAME commit — feedback_goldens_ship_with_the_feature)
 
 Conformance goldens (`tests/conformance/2002/`): `oo_ec_raise_object.cob/.out` — RAISE obj (subclass) with two
 F4 declaratives (base class + unrelated class): base-class declarative runs (GR14a subclass match), DISPLAYs
@@ -946,7 +946,7 @@ must stay green — every new emission is `_ecActive`/`_ecUnitHasF4`/node-presen
 
 Order of work: grammar+regen+guard-fast → ExceptionState (+unit tests) → binder legs (0830-0833) → emitter
 (RAISE obj, F4 selector, staging, pickup) → SET F5 → conformance goldens → full battery + guard + doc/DEVLOG
-sync. Compile/test after every step (feedback_test_after_every_change); one failing test at a time.
+sync. Compile/test after every step (feedback_tiered_gates); one failing test at a time.
 
 ---
 
@@ -1111,7 +1111,7 @@ named methods (§11.7.3 SR9 :13264 routes property conformance through §9.3.8.2
   accessors must be independently overridable/final-able (PROPERTY IS FINAL; explicit GET + implicit SET
   mixes), must carry `ref`-style SET marshaling symmetric with methods, and must satisfy interface members
   generated from `GET PROPERTY` prototypes whose C# shape is a METHOD. Methods keep ONE signature machinery
-  (feedback_singular_pattern).
+  (feedback_one_mechanism_per_job).
 - *v1-restricting PROPERTY to non-edited categories* — unnecessary; the direct-copy argument covers all
   categories the marshaling already carries; categories not yet crossing INVOKE stage loud via the existing
   `DescriptionMismatch` default arm.
@@ -1180,7 +1180,7 @@ oo_property_factory_ref proves the factory form. Interface GET/SET PROPERTY prot
 
 ---
 
-## Grammar additions (exact rules; each token/rule lands INCREMENTALLY with a full guard-fast run — the LL-regression lesson, deep-dive line 375 / feedback_grammar_version_factoring; OO-phase grammar work is ratified by the roadmap, log per feedback_autonomous_grammar_nist)
+## Grammar additions (exact rules; each token/rule lands INCREMENTALLY with a full guard-fast run — the LL-regression lesson, deep-dive line 375 / feedback_grammar_version_factoring; OO-phase grammar work is ratified by the roadmap, log per feedback_grammar_preauthorized)
 
 **Lexer** (`src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4`; `INTERFACE_ID`:125 and `FINAL`:358 already
 exist): add `IMPLEMENTS : 'IMPLEMENTS';`, `PROPERTY : 'PROPERTY';`, `GET : 'GET';`, `OVERRIDE : 'OVERRIDE';`,

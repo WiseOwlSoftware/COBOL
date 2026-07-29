@@ -1,0 +1,43 @@
+{
+  "batch": [248, 250, 252, 254, 256, 258, 260, 262, 264, 266, 268, 270],
+  "pages_checked": [248, 250, 252, 254, 256, 258, 260, 262, 264, 266, 268, 270],
+  "notes": "No general format / syntax skeleton figures appear on ANY page in this batch. Pages 248-270 (printed 218-240) are clause 9 (Data organization and manipulation: file connectors, I-O status, sharing/locking, screens, objects) and are continuous prose plus numbered lists. The figure-selection heuristic that chose this batch produced no figure content here (page_workunit.py itself reported '0 with figure content'). Every prose paragraph, dash bullet, numbered item and lettered sub-item on all 12 pages was compared and matches the PDF verbatim. Cross-page paragraph fragments at the top of pages 252, 254, 256 and 262 are correctly merged into the preceding page's slice in ISO_COBOL.md (verified by grep at lines 11182, 11258, 11336, 11561) and are therefore NOT losses. The odd phrase 'this Working Draft International Standard' in the page-260 and page-266 slices is the PDF's own wording (confirmed by rendering page 261) and is faithfully transcribed. Only defect class found: heading-depth encoding.",
+  "findings": [
+    {
+      "page": 250,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "9.1.7.3   Relative ... 9.1.7.4   Indexed ... 9.1.8   Access modes ... 9.1.8.1   General  (9.1.7.3 and 9.1.7.4 are fourth-level subclauses, peers of 9.1.7.1 and 9.1.7.2; 9.1.8.1 is a peer of 9.1.8.2/.3/.4)",
+      "markdown_says": "## 9.1.7.3 Relative ... ## 9.1.7.4 Indexed ... ## 9.1.8 Access modes ... ## 9.1.8.1 General  (while the sibling subclauses transcribed on the adjacent pages read '### 9.1.7.1 General', '### 9.1.7.2 Sequential', '### 9.1.8.2 Sequential access mode', '### 9.1.8.3 Random access mode', '### 9.1.8.4 Dynamic access mode')",
+      "why_it_matters": "Within one clause the transcription puts some subclause headings at markdown level 2 and their own siblings at level 3, so an outline or TOC built from the file shows 9.1.7.3 and 9.1.7.4 as peers of 9.1.7 rather than children of it, and 9.1.8.1 as a peer of 9.1.8. The heading text, number and anchor are all correct, so no normative content is lost; this is navigational only. The defect correlates exactly with page-slice boundaries (every heading inside the page-250 slice was emitted at '##'), so it is a systemic scaffolding artifact, not a per-page transcription error.",
+      "suggested_repair": "Normalize markdown heading depth to the depth of the printed clause number across the whole file (9.x -> '##', 9.x.y -> '###', 9.x.y.z -> '####'); do not touch heading text. Because the artifact is document-wide, fix it with one mechanical pass rather than page by page."
+    },
+    {
+      "page": 254,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "9.1.13.2   Successful completion  (a fourth-level subclause of 9.1.13 I-O status, peer of 9.1.13.1 General and 9.1.13.3 through 9.1.13.11)",
+      "markdown_says": "## 9.1.13.2 Successful completion  (whereas ISO_COBOL.md has '## 9.1.13 I-O status', '### 9.1.13.1 General', '### 9.1.13.3 ...', '### 9.1.13.4 ...', '### 9.1.13.5 ...' etc.)",
+      "why_it_matters": "9.1.13.2 is emitted at the same markdown level as its own parent 9.1.13 and one level shallower than all its siblings, so a generated outline detaches it from the I-O status clause and shows the nine remaining status subclauses as children of 9.1.13.2. Heading text and number are correct; nothing normative is lost.",
+      "suggested_repair": "Change '## 9.1.13.2 Successful completion' to '### 9.1.13.2 Successful completion' as part of the document-wide heading-depth normalization."
+    },
+    {
+      "page": 258,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "9.1.13.8   Record operation conflict condition with unsuccessful completion  (a fourth-level subclause of 9.1.13, peer of 9.1.13.7 and 9.1.13.9)",
+      "markdown_says": "## 9.1.13.8 Record operation conflict condition with unsuccessful completion  (whereas its immediate neighbours read '### 9.1.13.7 Logic error condition with unsuccessful completion' and '### 9.1.13.9 File sharing conflict condition with unsuccessful completion')",
+      "why_it_matters": "Same outline break as 9.1.13.2: the heading is one level shallower than its siblings, so 9.1.13.9, 9.1.13.10 and 9.1.13.11 become children of 9.1.13.8 in any generated TOC. No normative content is affected.",
+      "suggested_repair": "Change '## 9.1.13.8 ...' to '### 9.1.13.8 ...' as part of the document-wide heading-depth normalization."
+    },
+    {
+      "page": 264,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "9.1.18.5   Run unit termination ... 9.1.18.6   Object orientation ... 9.1.18.7   Exception conditions  (fourth-level subclauses of 9.1.18 Commit and Rollback, peers of 9.1.18.1 through 9.1.18.4)",
+      "markdown_says": "## 9.1.18.5 Run unit termination ... ## 9.1.18.6 Object orientation ... ## 9.1.18.7 Exception conditions  (whereas ISO_COBOL.md has '## 9.1.18 Commit and Rollback', '### 9.1.18.1 General', '### 9.1.18.2 Files and data items to be included', '### 9.1.18.3 Committing changes to files', '### 9.1.18.4 Rolling back changes to files and data items')",
+      "why_it_matters": "The last three subclauses of the Commit and Rollback clause are emitted at the same level as the clause itself, so an outline shows 9.1.18 as containing only .1 to .4 and lists .5, .6, .7 as sibling clauses. Heading text, numbers and anchors are correct; nothing normative is lost.",
+      "suggested_repair": "Change the three '## 9.1.18.x' headings to '### 9.1.18.x' as part of the document-wide heading-depth normalization."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "batch": [891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902],
+  "pages_checked": [891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902],
+  "findings": [
+    {
+      "page": 892,
+      "kind": "incorrect-figure",
+      "severity": "cosmetic",
+      "pdf_says": "FUNCTION  FORMATTED-TIME  ( argument-1 argument-2 [ argument-3 ] )   -- with FUNCTION and FORMATTED-TIME both printed UNDERLINED (required words per 5.2.6.2)",
+      "markdown_says": "FUNCTION FORMATTED-TIME ( argument-1 argument-2 [ argument-3 ] )   -- no underline markup at all",
+      "why_it_matters": "Underlining is the standard's own notation for a REQUIRED word. The transcription applies it inconsistently: it IS preserved on page 895 (`<u>FUNCTION</u> &nbsp;<u>HIGHEST-ALGEBRAIC</u> &nbsp;( argument-1 )`) and page 902 (`<u>FUNCTION</u> <u>INTEGER-PART</u> ( argument-1 )`), but dropped in the general formats on pages 892 (15.41.2), 894 (15.42.2), 897 (15.44.2), 898 (15.45.2), 899 (15.46.2), 900 (15.47.2) and 901 (15.48.2). On these particular pages every word in the format is required, so no legal syntax is made to look illegal and no optional word is made to look required -- the loss is presentational only. Recorded as a document-wide convention inconsistency, not a local semantic defect: the same drop occurs in roughly forty of the fifty section 15 function formats.",
+      "suggested_repair": "Apply the `<u>...</u>` convention already used at 15.43.2 and 15.49.2 uniformly to the general formats at 15.41.2, 15.42.2, 15.44.2, 15.45.2, 15.46.2, 15.47.2 and 15.48.2 (and, as a separate document-wide sweep, to the remaining section 15 function formats). Also normalize the code-span markup, which varies arbitrarily on these pages: plain text (15.41.2, 15.42.2, 15.44.2, 15.45.2), single backticks (15.46.2, 15.47.2), and a fenced block (15.48.2)."
+    }
+  ],
+  "notes": [
+    "PDF page N in this batch = printed page N-30 (PDF 891 = printed 861).",
+    "No lost choice indicators (5.2.6.4 vertical bars) on any page in this batch: every general format here is a simple function-invocation skeleton with at most one bracketed optional argument and no stacked alternatives, so no brace or bar pair is applicable.",
+    "No unclosed bracket or brace, no misplaced ellipsis, and no Figure notes paragraph on any page in this batch.",
+    "Page 897: the markdown faithfully reproduces the ISO typo 'COMP[UTE X ROUNDED MODE IS TOWARD-LESSER = Y.' exactly as printed in the PDF (the standard itself has the stray '[' inside COMPUTE). This is an ISO defect, NOT a transcription defect -- do not 'correct' it.",
+    "Pages 891, 893, 896: prose/table-only pages, verbatim match.",
+    "Page 896: the two-column table (Argument-1 characteristics / Value returned) is rendered as a markdown table with all seven rows and both header cells intact, including '$**,**9.99BCR' and the '(assuming an 8-bit representation)' qualifiers."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "batch": [1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073, 1074, 1075, 1076, 1077],
+  "pages_checked": [1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073, 1074, 1075, 1076, 1077],
+  "findings": [
+    {
+      "page": 1074,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Figure D.3 legend, lower group: the box captioned \"Runtime Module\" is drawn with a SOLID single-line border (visually identical to the \"Compilation Unit\" and \"Source Unit\" boxes in the upper legend group). Only the box below it, \"Runtime Element\", is drawn with a dashed border. The \"Run Unit\" box above it has the heavy double-weight border.",
+      "markdown_says": "| Symbol | Meaning |\n|--------|---------|\n| (solid double border box) | Run Unit |\n| (dashed border box) | Runtime Module |\n| (small dashed border box) | Runtime Element |",
+      "why_it_matters": "The markdown legend makes Runtime Module and Runtime Element share the same symbol (both 'dashed'), so the legend can no longer distinguish them and the reader cannot decode the lower half of Figure D.3. The figure's whole purpose is the three-way symbol distinction (run unit / runtime module / runtime element) mirroring the upper legend's four-way distinction; collapsing two of the three destroys it.",
+      "suggested_repair": "Change the second legend row to '| (solid single border box) | Runtime Module |' so the lower legend reads: solid double border = Run Unit, solid single border = Runtime Module, dashed border = Runtime Element."
+    },
+    {
+      "page": 1074,
+      "kind": "missing-figure",
+      "severity": "structural",
+      "pdf_says": "Figure D.3 — Compilation group and run unit structures is a nested-box schematic: a heavy-bordered COMPILATION GROUP box at the top containing three sub-boxes (a left compilation-unit column with an arrow labelled \"To other run unit\", a centre compilation-unit box, and a right compilation-unit column with an arrow labelled \"To other run unit\"); inside the centre box a source-unit box holds the dashed source element \"P-1\", beneath which sit the source units \"P-1-1\" and \"P-1-2\", and inside \"P-1-2\" the two dashed source elements \"P-1-2-1\" and \"P-1-2-2\". Arrows lead down to a second heavy-bordered RUN UNIT box at the bottom, whose interior repeats the same nesting in runtime-module / runtime-element form, with inbound arrows labelled \"From other comp. group\".",
+      "markdown_says": "**Figure D.3 — Compilation group and run unit structures**\n\nP-1\n\nP-1-1 &nbsp;&nbsp;&nbsp; P-1-2\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; P-1-2-1 &nbsp;&nbsp; P-1-2-2\n\nTo other run unit &nbsp;... To other run unit\n\nFrom other comp. group &nbsp;... From other comp. group",
+      "why_it_matters": "Every piece of information the figure carries lives in its box nesting and arrows, not in its labels. The markdown keeps only the floating labels, so the reader cannot recover which entities are compilation units versus source units versus source elements, that P-1-2-1 and P-1-2-2 are nested inside P-1-2, that P-1 is a source element of the centre compilation unit, or that the compilation group maps onto the run unit at all. The entire lower (run unit) half of the figure has no representation whatsoever. Read literally, the transcription looks like a stray list of program names.",
+      "suggested_repair": "Replace the loose labels with an ASCII-art or indented-tree rendition that preserves the containment (compilation group > compilation unit > source unit > source element) for both halves of the figure and marks the compilation-group-to-run-unit arrows and the 'To other run unit' / 'From other comp. group' edges."
+    },
+    {
+      "page": 1075,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "\"D.6.1.2   Runtime level organization\" and \"D.6.1.3   EXAMPLE\" are printed at the same typographic rank as \"D.6.1.1   Source level organization\" on the preceding page (1071) — all three are fourth-level clauses under D.6.1.",
+      "markdown_says": "## D.6.1.2 Runtime level organization  ...  ## D.6.1.3 EXAMPLE   (while page 1071 has '#### D.6.1.1 Source level organization' and '### D.6.1 Compilation group and run unit organization')",
+      "why_it_matters": "Siblings D.6.1.1, D.6.1.2 and D.6.1.3 land at three-different-to-two-different markdown levels, so D.6.1.2 and D.6.1.3 are hoisted out of D.6.1 and appear as peers of D.6 itself. Any TOC, outline fold, or section-extraction script driven off heading depth mis-parents them.",
+      "suggested_repair": "Demote both to '#### D.6.1.2 Runtime level organization' and '#### D.6.1.3 EXAMPLE' to match '#### D.6.1.1' on page 1071."
+    },
+    {
+      "page": 1076,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "\"D.6.2   Recursive and initial programs\" is printed at the same typographic rank as \"D.6.1   Compilation group and run unit organization\" (page 1071) — both are third-level clauses under D.6.",
+      "markdown_says": "## D.6.2 Recursive and initial programs   (while page 1071 has '### D.6.1 Compilation group and run unit organization')",
+      "why_it_matters": "D.6.2 is promoted to the same markdown level as its parent D.6, so it reads as a sibling of D.6 rather than a subclause of it. Outline-driven navigation and any tooling that reconstructs clause numbering from heading depth gets the wrong parent.",
+      "suggested_repair": "Demote to '### D.6.2 Recursive and initial programs' to match '### D.6.1' on page 1071."
+    },
+    {
+      "page": 1073,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "FUNCTION-ID F-1.          *> Source element start",
+      "markdown_says": "FUNCTION-ID. F-1.        *> Source element start",
+      "why_it_matters": "The PDF prints the identification entry without the separator period after FUNCTION-ID (an ISO typesetting defect in this informative example); the markdown silently repairs it. The transcription is meant to reproduce the PDF, and silently normalising the printed text hides an ISO defect that a later reader may need to see — and, conversely, a reader diffing markdown against the PDF finds an unexplained mismatch.",
+      "suggested_repair": "Restore 'FUNCTION-ID F-1.' verbatim and, if desired, flag it in the ISO-defect ledger rather than correcting it in place."
+    }
+  ]
+}

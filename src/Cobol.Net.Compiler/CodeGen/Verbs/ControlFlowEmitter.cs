@@ -23,6 +23,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The EC raise-site dispatcher (property-wired by <see cref="UnitEmitters"/>, the same cyclic edge as
+    /// <see cref="Statements"/>) — a SEARCH with EC-RANGE checking ON but NO AT END phrase dispatches the raised
+    /// range EC to an applicable USE declarative / Format-3 WHEN via <see cref="EcEmitter.EcDispatchExpr"/>
+    /// (ISO §14.9.37.4 GR1b2; CA36).</summary>
+    internal EcEmitter Ec { get; set; } = null!;
+
     /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.20 Format 2): a 1-based selector picks a pc; an
     /// out-of-range value transfers nowhere and falls through to the next statement.</summary>
     public void EmitGoToDepending(BoundGoToDepending d)
@@ -52,15 +58,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 Statements.EmitStatementList(iff.Else);
     }
 
-    // A nested inline PERFORM within an F3 region resets F3Cur to None around its body so a plain EXIT PERFORM
-    // inside it breaks the INNER loop (§14.9.14.4 GR5a — "the most closely preceding, unterminated inline PERFORM"),
-    // not the enclosing F3 PERFORM.
-    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () =>
-    {
-        var s = dispatch.SetF3Region(F3Region.None, 0);
-        Statements.EmitStatementList(p.Body);
-        dispatch.RestoreF3Region(s);
-    }, inline: true);
+    // EmitPerform(inline:true) brackets the body with a fresh F3Region.Inline(pid) + the __pcont/__pexit labels, so
+    // an EXIT PERFORM here targets THIS loop and a nested inline PERFORM (setting its OWN Inline id) targets the inner
+    // loop — §14.9.14.4 GR5a "the most closely preceding, unterminated inline PERFORM". No manual region reset needed.
+    public void EmitInlinePerform(BoundInlinePerform p) =>
+        EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
     /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) via the pc-RANGE interceptor
     /// (design SSOT §9.3.3). imperative-statement-1 is emitted INLINE inside a try (under the bind-time GR14
@@ -106,7 +108,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         if (p.FinallyBody is { } fb)
         {
             var s = dispatch.SetF3Region(F3Region.Finally, n);
-            Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
+            // §14.9.28.4 GR14 covers imp-5 too: the implicit POP ALL sits "immediately preceding the END PERFORM
+            // phrase", so FINALLY runs inside the TURN OFF ALL window just as the WHEN bodies do (__RunF3 does the
+            // same for imp-2/3/4). A `goto` out of this try to __f3end is legal C#, so EXIT PERFORM in imp-5
+            // (§14.9.28.4 GR16) still reaches the implicit CONTINUE following END-PERFORM.
+            w.Line($"var __ckfin{n} = ExceptionState.PushAllCheckingOff();   // GR14 implicit PUSH ALL + TURN OFF ALL");
+            using (w.Block("try"))
+                Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
+            w.Line($"finally {{ ExceptionState.PopAllChecking(__ckfin{n}); }}   // GR14 implicit POP ALL");
             dispatch.RestoreF3Region(s);
         }
         w.Line($"__f3end{n}: ;   // end of PERFORM");
@@ -217,7 +226,25 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     }
 
 
+    /// <summary>Emit a PERFORM's loop scaffold. For an inline PERFORM this wrapper brackets the body with the
+    /// per-PERFORM EXIT-PERFORM machinery: a fresh <see cref="F3Region.Inline"/> region, a <c>__pcont{id}</c> label at
+    /// the loop-control boundary (target of EXIT PERFORM CYCLE — falls through to the VARYING augment + re-test), and a
+    /// <c>__pexit{id}</c> label just past the loop (target of EXIT PERFORM — leaves EVERY nested VARYING level).
+    /// §14.9.14.4 GR5/GR6 require leaving/continuing the WHOLE inline PERFORM, which a bare C# break/continue cannot do
+    /// across the nested loops a multi-level VARYING emits (CA31/CA32). An out-of-line PERFORM never contains its own
+    /// EXIT PERFORM (SR8), so it takes the bare loop with no region/labels.</summary>
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
+    {
+        if (!inline) { EmitPerformLoop(control, body, inline: false); return; }
+        var w = ctx.Writer;
+        int pid = ctx.Names.NextLoop();
+        var saved = dispatch.SetF3Region(F3Region.Inline, pid);
+        EmitPerformLoop(control, () => { body(); w.Line($"__pcont{pid}: ;"); }, inline: true);
+        dispatch.RestoreF3Region(saved);
+        w.Line($"__pexit{pid}: ;");
+    }
+
+    private void EmitPerformLoop(BoundPerformControl control, Action body, bool inline)
     {
         var w = ctx.Writer;
         switch (control)
@@ -241,8 +268,8 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 EmitVarying(v, body);
                 break;
             case PerformForever:
-                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM emits
-                // `break` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
+                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM leaves
+                // via `goto __pexit` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
                 using (w.Block("while (true)")) body();
                 break;
             default:   // PerformOnce — an inline body runs once via do/while(false); an out-of-line call is unconditional
@@ -265,7 +292,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var levels = v.Levels;
         if (!v.TestAfter)
         {
-            foreach (var lv in levels) set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));   // GR13a: left-to-right init
+            foreach (var lv in levels) InitVaryingTarget(v, lv);   // GR13a: left-to-right init
             EmitBefore(0);
             void EmitBefore(int k)
             {
@@ -283,14 +310,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
                         // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
                         set.AugmentSetTarget(levels[k].Var, down: false, num.Render(levels[k].By, ReceiverContext.None));
-                        set.StoreSetTarget(levels[k + 1].Var, num.Render(levels[k + 1].From, ReceiverContext.None));
+                        InitVaryingTarget(v, levels[k + 1]);
                     }
                 }
             }
         }
         else
         {
-            set.StoreSetTarget(levels[0].Var, num.Render(levels[0].From, ReceiverContext.None));
+            InitVaryingTarget(v, levels[0]);
             EmitAfter(0);
             void EmitAfter(int k)
             {
@@ -299,7 +326,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1) body();
                     else
                     {
-                        set.StoreSetTarget(levels[k + 1].Var, num.Render(levels[k + 1].From, ReceiverContext.None));   // reinit on each entry
+                        InitVaryingTarget(v, levels[k + 1]);   // reinit on each entry
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");
@@ -307,6 +334,27 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 }
             }
         }
+    }
+
+    /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13). When the target
+    /// is an INDEX-NAME initialized from a data-item FROM and EC-RANGE-PERFORM-VARYING checking is enabled
+    /// (§14.9.28.4 GR3), materialize the FROM value ONCE, raise the fatal EC when it is not positive (the runtime
+    /// tests the DATA-ITEM value, GR3 — the throw is caught by the FatalAmbientGates guard for USE-F3 dispatch), then
+    /// assign the index; otherwise the plain store (byte-identical). GR3 governs FROM initialization only, so the
+    /// BY/augment sites are unaffected. A literal FROM (BoundNumLiteral) and an index-name FROM (BoundIndexRef) are
+    /// out of GR3 scope and take the plain path.</summary>
+    private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
+    {
+        if (v.CheckIndexRange && lv.Var is SetIndexTarget ix && lv.From is BoundNumRef)
+        {
+            string tmp = $"__pv{ctx.Names.NextVary()}";
+            ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(num.Render(lv.From, ReceiverContext.None), 0)});");
+            ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
+                + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
+            ctx.Writer.Line($"{ix.IndexField} = {tmp};");
+            return;
+        }
+        set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));
     }
 
     private static string CountExpr(BoundOperand count) => count switch
@@ -340,33 +388,79 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         else EmitSearchScan(s, id);
     }
 
-    /// <summary>The serial-SEARCH scan loop (ISO §14.9.37.4): past-end → AT END; else each WHEN in order; none true →
-    /// advance the index (and the VARYING item) and loop. The AT-END bound is the table's MAXIMUM occurrence count —
-    /// or, for an occurs-depending table its CURRENT count, or (D9) a dynamic table's current <c>Capacity</c>
-    /// (GR4/GR9 → §13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an EnterSearch/ExitSearch
-    /// try/finally.</summary>
+    /// <summary>The SEARCH scan loop (ISO §14.9.37.4). An INITIAL-index guard runs BEFORE the loop: for a serial
+    /// SEARCH a starting index &lt; 1 or &gt; the highest permissible occurrence is unsuccessful and, under checking,
+    /// sets EC-RANGE-SEARCH-INDEX (GR4); for SEARCH ALL (the index is already forced to 1, GR9) only an empty table
+    /// is unsuccessful and sets EC-RANGE-SEARCH-NO-MATCH. The loop then tries each WHEN in order; none true → the
+    /// index (and the GR8 VARYING item) advance and an advance-past-end check sets EC-RANGE-SEARCH-NO-MATCH (GR6/GR9).
+    /// Both failure sites route to ONE shared AT-END emission. The <c>&lt; 1</c> serial guard is emitted
+    /// UNCONDITIONALLY (a correctness fix — the pre-slice loop-top <c>&gt; bound</c> check let a zero/negative index
+    /// read a phantom scratch occurrence); only the EC <c>Set</c> calls are checking-gated. The AT-END bound is the
+    /// table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or (D9) a dynamic table's
+    /// current <c>Capacity</c> (§13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an
+    /// EnterSearch/ExitSearch try/finally.</summary>
     private void EmitSearchScan(BoundSearch s, int id)
     {
         var w = ctx.Writer;
-        w.Line($"__search{id}:");
-        // The AT-END bound: a dynamic table's current Capacity, an occurs-depending table's current count
-        // (CobolTable.Occ over data-name-1's place), else the compile-time maximum.
         string bound = s.DynTable is { } dt ? $"{dt}.Capacity"
             : s.DependItem is { } dp ? RuntimeApi.TableOcc(PlaceRenderer.Read(dp))
             : $"{s.Count}L";
-        using (w.Block($"if ({s.IndexField} > {bound})"))
+        // CA36 (ISO §14.9.37.4 GR1b2): when the AT END phrase is ABSENT and EC-RANGE checking is ON, a raised
+        // EC-RANGE-SEARCH-INDEX/-NO-MATCH must transfer to an applicable exception-processing statement (a USE
+        // AFTER EXCEPTION CONDITION declarative / Format-3 PERFORM WHEN) and, if control returns, to the end of the
+        // SEARCH. Track which range EC was raised so the shared AT-END funnel can DISPATCH it (mirror
+        // EcEmitter.EmitOverflow's no-phrase dispatch). Emitted ONLY in that niche, so every other SEARCH is
+        // byte-identical.
+        bool dispatchEc = s.AtEnd is null && (s.CheckSearchIndex || s.CheckSearchNoMatch);
+        string ecVar = $"__searchEc{id}";
+        if (dispatchEc) w.Line($"string {ecVar} = null;");
+        void RaiseRange(string ecName)
         {
-            bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
-            if (!terminated) w.Line($"goto __searchEnd{id};");
+            w.Line($"ExceptionState.Set(\"{ecName}\", false);");
+            if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
         }
+        // (1) Initial-index guard (§14.9.37.4 GR4) — before the loop label.
+        string initGuard = s.FromStart ? $"{s.IndexField} > {bound}"
+                                        : $"{s.IndexField} < 1 || {s.IndexField} > {bound}";
+        using (w.Block($"if ({initGuard})"))
+        {
+            if (s.FromStart)
+            {
+                if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
+            }
+            else if (s.CheckSearchIndex)
+                RaiseRange("EC-RANGE-SEARCH-INDEX");
+            w.Line($"goto __searchAtEnd{id};");
+        }
+        w.Line($"__search{id}:");
+        // (2) the WHEN conditions, first true wins (a body that completes jumps past the search).
         foreach (var when in s.Whens)
             using (w.Block($"if ({cond.Render(when.Condition)})"))
             {
                 if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
             }
+        // (3) advance the index (+ the GR8 varied item); an advance past the end is unsuccessful → NO-MATCH.
         w.Line($"{s.IndexField} += 1;");
         if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0));
+        using (w.Block($"if ({s.IndexField} > {bound})"))
+        {
+            if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
+            w.Line($"goto __searchAtEnd{id};");
+        }
         w.Line($"goto __search{id};");
+        // (4) the shared AT-END emission — both failure sites reach it (emitted ONCE), then the search-end label.
+        w.Line($"__searchAtEnd{id}: ;");
+        // GR1b2: AT END absent + checking on → dispatch the raised range EC to an applicable USE declarative / F3
+        // WHEN; >=0 = RESUME AT a procedure (transfer via the dispatcher break); -1/-2/-3 (declarative ran / RESUME
+        // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §14.6.13.1.4 #3/#4).
+        if (dispatchEc)
+            using (w.Block($"if ({ecVar} != null)"))
+            {
+                w.Line($"int __searchR{id} = {Ec.EcDispatchExpr(ecVar, "\"\"")};");
+                w.Line($"if (__searchR{id} >= 0) {{ __pc = __searchR{id}; break; }}");
+            }
+        bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
+        if (!terminated) w.Line($"goto __searchEnd{id};");
         w.Line($"__searchEnd{id}: ;");
     }
 

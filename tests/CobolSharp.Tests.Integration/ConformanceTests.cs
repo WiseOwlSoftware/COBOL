@@ -8,11 +8,18 @@ using Xunit;
 namespace CobolSharp.Tests.Integration;
 
 /// <summary>
-/// Version-conformance corpus runner — the NIST-equivalent suite for the post-1985 standards (2002/2014/2023).
-/// Auto-discovers every <c>tests/conformance/&lt;version&gt;/*.cob</c> program that has a sibling <c>.out</c>
-/// (expected stdout), compiles it under that version's <c>--standard</c> dialect, runs it, and asserts the
-/// output. Adding a conformance test is just dropping a <c>.cob</c> + <c>.out</c> in the right version directory
-/// — no test code changes. See tests/conformance/README.md. Runs as part of scripts/guard.sh.
+/// Version-conformance corpus runner through the LEGACY engine — a DIFFERENTIAL oracle over the shared
+/// <c>tests/conformance/&lt;version&gt;/*.cob</c> corpus.
+///
+/// <para>OPT-IN as of 2026-07-22 (owner decision, DEVLOG 997). The spec-first conformance fix-queue targets bugs the
+/// FROZEN legacy oracle SHARES, so this byte-compare gives near-zero correctness signal and pure friction (every
+/// spec-derived golden that corrects a shared bug would otherwise need a <see cref="GreenfieldOnly"/> exclusion). The
+/// authoritative net is now the greenfield <c>CorpusRunnerTests</c> (same corpus, spec-derived goldens) plus the
+/// GnuCOBOL EXTERNAL differential (an independent implementation, not our lineage). This suite therefore does NOT run
+/// in the default/required gate — set <c>COBOLSHARP_LEGACY_DIFFERENTIAL=1</c> to enable it (e.g. the P14 Step-0
+/// guard-equivalence proof, which still needs the legacy engine while it exists). No new GreenfieldOnly entries are
+/// added going forward; the existing ones + <see cref="LegacyDivergent"/> stay for the opt-in run. Full legacy
+/// deletion remains a P15 step.</para>
 /// </summary>
 public sealed class ConformanceTests : EndToEndTestBase
 {
@@ -26,9 +33,16 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", DialectMode.Cobol2023),
     };
 
-    /// <summary>Discover (version, program-name) for every conformance program with an expected-output file.</summary>
+    /// <summary>Discover (version, program-name) for every conformance program with an expected-output file. The
+    /// legacy differential is OPT-IN (see the class summary): with <c>COBOLSHARP_LEGACY_DIFFERENTIAL</c> unset, yield
+    /// a single no-op sentinel so the theory stays alive but compiles nothing through the frozen legacy engine.</summary>
     public static IEnumerable<object[]> Cases()
     {
+        if (Environment.GetEnvironmentVariable("COBOLSHARP_LEGACY_DIFFERENTIAL") is null)
+        {
+            yield return new object[] { "shell", "sentinel" };   // legacy differential decoupled from the gate (DEVLOG 997)
+            yield break;
+        }
         foreach (var (dir, _) in Versions)
         {
             string versionDir = Path.Combine(ConformanceRoot, dir);
@@ -76,6 +90,29 @@ public sealed class ConformanceTests : EndToEndTestBase
         // suppressed records off the alternate access path (invisible to alt READ/START) while leaving the prime
         // path intact. The frozen legacy compiler has no SUPPRESS WHEN grammar — greenfield-only.
         ("2023", "altkey_suppress_when"),
+        // The §24 EC-seam batch goldens (F10 · V3 · V4): each exercises a >>TURN EC-… CHECKING ON directive over a
+        // 2023-only construct (SET SIZE dynamic-length, COMP-2 float exceptions, EC-RANGE SEARCH/PERFORM-VARYING/
+        // THROUGH). The frozen legacy compiler has neither the directive nor these constructs — it fails them at
+        // parse — so the greenfield CorpusRunnerTests owns their byte-compare (DEVLOG 980–984).
+        ("2023", "ec_storage_not_avail"),   // SET SIZE → EC-STORAGE-NOT-AVAIL (F10)
+        ("2023", "ec_data_not_finite"),     // NaN/±Inf float sending operand → EC-DATA-NOT-FINITE (V3)
+        ("2023", "ec_data_overflow"),       // MOVE overflow to a single-precision float → EC-DATA-OVERFLOW (V3)
+        ("2023", "ec_range_search"),        // serial/SEARCH-ALL out-of-range → EC-RANGE-SEARCH-INDEX/-NO-MATCH (V4a)
+        ("2023", "ec_range_perform_varying"),   // index-name varied from a non-positive item → EC-RANGE-PERFORM-VARYING (V4b)
+        ("2023", "ec_range_invalid"),       // inverted THROUGH range → EC-RANGE-INVALID (V4c)
+        // CONFORMANCE-FIX-QUEUE CA31/CA32 (EXIT PERFORM / EXIT PERFORM CYCLE inside a multi-level inline PERFORM
+        // VARYING, §14.9.14.4 GR5a/GR5b): these are SPEC-DERIVED goldens fixing a bug the frozen legacy oracle
+        // SHARES (a bare break/continue leaves/cycles only the innermost lowered loop) — the legacy runner would
+        // mismatch the spec-correct .out (CA31) or INFINITE-LOOP (CA32, the augment is skipped). Greenfield owns
+        // their byte-compare; the legacy oracle is frozen and not corrected (DEVLOG-457).
+        ("2023", "exit_perform_multilevel"),   // EXIT PERFORM leaves the whole PERFORM (CA31)
+        ("2023", "exit_perform_cycle"),        // EXIT PERFORM CYCLE runs loop control (CA32)
+        // CONFORMANCE-FIX-QUEUE CA1/CA2 (INITIALIZE spec-derived goldens): CA1 (§14.9.20.4 GR7 dynamic-length →
+        // length 0) uses PIC X DYNAMIC LENGTH — a 2014 clause the frozen legacy grammar cannot parse. CA2
+        // (§14.9.20.4 GR4/GR6c INITIALIZE program-pointer → SET TO NULL) fixes a bug the legacy oracle SHARES
+        // (INITIALIZE of a pointer/object-ref emitted nothing). Greenfield owns their byte-compare.
+        ("2014", "initialize_dynamic_length"),   // INITIALIZE dynamic-length item → length 0 (CA1)
+        ("2002", "initialize_program_pointer"),  // INITIALIZE program-pointer → SET TO NULL (CA2)
         // SUPPRESS PRINTING (§14.9.45): the statement exists only in the greenfield grammar+binder+RW engine.
         // The frozen legacy compiler has no SUPPRESS grammar at all — it fails the program at parse — so the
         // golden (a suppressed detail's amount still rolls into the control total, §13.18.54.4 GR7/GR2) is
@@ -407,6 +444,7 @@ public sealed class ConformanceTests : EndToEndTestBase
     [MemberData(nameof(Cases))]
     public void Conformance(string version, string name)
     {
+        if (version == "shell") return;   // legacy differential opt-out sentinel (see Cases / the class summary)
         if (GreenfieldOnly.Contains((version, name))) return;   // never landed in legacy — greenfield coverage only
         DialectMode dialect = Versions.First(v => v.Dir == version).Dialect;
         string source = File.ReadAllText(Path.Combine(ConformanceRoot, version, name + ".cob"));

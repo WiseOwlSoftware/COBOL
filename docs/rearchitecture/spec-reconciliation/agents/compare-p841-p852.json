@@ -1,0 +1,42 @@
+{
+  "batch": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
+  "pages_checked": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
+  "findings": [
+    {
+      "page": 847,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "15.8.2   General format\n\n  FUNCTION  ACOS  ( argument-1 )      [FUNCTION and ACOS are both UNDERLINED in the printed general format]",
+      "markdown_says": "### 15.8.2 General format\n\n```\nFUNCTION ACOS ( argument-1 )\n```",
+      "why_it_matters": "Underlining in a general format is normative notation (5.2.6): an underlined word is a REQUIRED word. The transcription drops the underline on both FUNCTION and ACOS and wraps the format in a fenced code block instead. specs/ISO_COBOL.md line 34068. The house convention everywhere else in clause 15 is `<u>FUNCTION</u> <u>NAME</u>` (e.g. ABS line 34026, ANNUITY line 34102, ATAN line 34190), so any tool or reader deriving required-vs-optional words from the markup reads FUNCTION/ACOS as non-required here while reading them as required three formats away.",
+      "suggested_repair": "Replace the fenced block at specs/ISO_COBOL.md:34066-34069 with `<u>FUNCTION</u> <u>ACOS</u> ( argument-1 )` to match the ABS/ANNUITY/ATAN convention on the surrounding pages."
+    },
+    {
+      "page": 849,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "15.10.2   General format\n\n  FUNCTION  ASIN  ( argument-1 )      [FUNCTION and ASIN are both UNDERLINED in the printed general format]",
+      "markdown_says": "### 15.10.2 General format\n\n`FUNCTION ASIN ( argument-1 )`",
+      "why_it_matters": "Underlining in a general format is normative notation (5.2.6): an underlined word is a REQUIRED word. The transcription drops the underline on both FUNCTION and ASIN and renders the format as inline code. specs/ISO_COBOL.md line 34152. Adjacent formats in the same clause do preserve it (`<u>FUNCTION</u> <u>ATAN</u>` at line 34190), so the required-word marking is inconsistent within a two-page span.",
+      "suggested_repair": "Replace specs/ISO_COBOL.md:34152 with `<u>FUNCTION</u> <u>ASIN</u> ( argument-1 )`."
+    },
+    {
+      "page": 851,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "15.12.2   General format\n\n  FUNCTION  BASECONVERT  ( argument-1  argument-2  argument-3 )      [FUNCTION and BASECONVERT are both UNDERLINED in the printed general format]",
+      "markdown_says": "### 15.12.2 General format\n\nFUNCTION BASECONVERT ( argument-1 argument-2 argument-3 )",
+      "why_it_matters": "Underlining in a general format is normative notation (5.2.6): an underlined word is a REQUIRED word. The transcription emits the format as bare prose with no underline markup at all. specs/ISO_COBOL.md line 34228. BASECONVERT is a COBOL-2023 addition, so this is precisely the kind of format an implementer reads fresh; losing the required-word marking removes the only signal distinguishing required words from optional keywords.",
+      "suggested_repair": "Replace specs/ISO_COBOL.md:34228 with `<u>FUNCTION</u> <u>BASECONVERT</u> ( argument-1 argument-2 argument-3 )`."
+    },
+    {
+      "page": 852,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "15.13.2   General format\n\n  FUNCTION  BOOLEAN-OF-INTEGER  ( argument-1  argument-2 )      [FUNCTION and BOOLEAN-OF-INTEGER are both UNDERLINED in the printed general format]",
+      "markdown_says": "### 15.13.2 General format\n\n`FUNCTION BOOLEAN-OF-INTEGER ( argument-1 argument-2 )`",
+      "why_it_matters": "Underlining in a general format is normative notation (5.2.6): an underlined word is a REQUIRED word. The transcription drops the underline on both FUNCTION and BOOLEAN-OF-INTEGER and renders the format as inline code. specs/ISO_COBOL.md line 34265, against the `<u>…</u>` convention used for the same construct at COMBINED-DATETIME (line 34452) and CONCAT (line 34500) a few clauses later.",
+      "suggested_repair": "Replace specs/ISO_COBOL.md:34265 with `<u>FUNCTION</u> <u>BOOLEAN-OF-INTEGER</u> ( argument-1 argument-2 )`."
+    }
+  ]
+}

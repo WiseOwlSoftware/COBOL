@@ -1,7 +1,12 @@
-# COBOL.NET — Constraints and Anti-Pattern Catalog
+# COBOL.NET — Anti-Pattern Catalog
 
-This document captures the anti-patterns, engineering phases, process rituals, and behavioral
-constraints governing the COBOL.NET compiler's development. Referenced from PROMPT.md.
+**This document is the SSOT for the labelled anti-pattern catalog.** The labels (`[GodObject]`,
+`[LayerViolation]`, …) are cited from `kb/Context/Doctrine & Anti-Patterns.md` and
+`kb/Spec/Lookup/Constraints.md` — keep those in sync when a row changes here.
+
+Scope note (single-write rule): **doctrine → `PROMPT.md`** · **process rules + the session-start sequence →
+`CLAUDE.md`** · **phases, worklist and live state → `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** ·
+**history → `DEVLOG.md`**. This file holds the catalog and nothing else.
 
 ---
 
@@ -25,8 +30,9 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
   Action: Replace with explicit configuration objects, dependency injection, or immutable data.
 
 - **Ad-hoc feature flags and scattered dialect checks** `[ScatteredFlags]`
-  Random `if (isCobol80)` or similar checks scattered across the codebase.
-  Action: Centralize dialect and feature gating in a dedicated configuration or environment object.
+  Per-edition `if` checks smeared across the binder and emitter.
+  Action: Centralize edition gating in the one `VersionConformancePass` over the bound tree; the binder is
+  edition-agnostic.
 
 ### Code-Level Anti-Patterns
 
@@ -74,85 +80,16 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 
 ---
 
-## Migration Phases
+## How the catalog is used
 
-### Phase 1: Project and Build Modernization
-- Update target frameworks to net10.0
-- Update C# language version to 14
-- Ensure dependencies are compatible
-- Introduce nullable reference types if not already enabled
-- Introduce central package management
-- Add global.json to pin SDK
-- Establish baseline test runs
+- **Actively hunt, don't wait to trip over one.** When a change touches a file, the anti-patterns above are the
+  review lens for what it touches.
+- **Every instance, not the one you found.** An anti-pattern is a pattern: sweep the codebase and fix them together
+  (`feedback_scan_all_similar`).
+- **Fix it here, not around it.** Adding a case to a `[GodObject]` or wrapping a `[LayerViolation]` deepens the
+  anti-pattern. Refactor the dispatch first, then add the case.
+- **This list is illustrative, not exhaustive.** Anything meeting the same bar — hidden coupling, dead code,
+  duplicated logic — is in scope whether or not it has a label here.
 
-### Phase 2: Lexer and Tokenization
-- Remove ad-hoc tokenization logic
-- Introduce clear token types and domain types
-- Use modern C# features where appropriate
-- Ensure tests for lexical edge cases
-
-### Phase 3: Parser and Grammar
-- Clarify grammar representation (recursive descent, parser combinators, or table-driven)
-- Remove deeply nested conditionals and magic constants
-- Centralize grammar rules and error handling
-
-### Phase 4: Semantic Model and Symbol Tables
-- Introduce or refine symbol tables, type systems, and semantic passes
-- Remove global state and implicit context
-- Make semantic invariants explicit and testable
-
-### Phase 5: Bound Tree and Semantic Normalization
-- Resolve every reference/expression/condition to a bound node ONCE (the bound tree is the single
-  semantic model — there is NO separate lowered IR)
-- Centralize normalization on the bound node (control flow, arithmetic, PIC handling)
-- Remove duplication and scattered re-derivation of semantics at emit time
-
-### Phase 6: Code Generation and Runtime
-- Cleanly separate codegen from runtime
-- Use modern C# features in runtime types
-- Optimize hot paths and memory usage where justified
-
-### Phase 7: Numeric, PIC, and Editing Subsystems
-- Centralize PIC parsing and formatting
-- Remove duplicated numeric logic
-- Ensure behavior is spec-true and well-documented
-
-### Phase 8: Diagnostics, Logging, and Tooling
-- Standardize diagnostic reporting
-- Remove ad-hoc logging
-- Provide structured, testable diagnostics
-
-### Phase 9: Final Consolidation and Cleanup
-- Sweep for remaining anti-patterns
-- Normalize naming, documentation, and structure
-- Ensure the docs (DEVLOG.md, the plan's §0 banner, the design corpus) reflect a stable, long-term architecture
-
----
-
-## Session Rituals
-
-### Session-Start Ritual
-At the start of every session:
-1. Load and summarize the current state from docs/COBOLNET_REARCHITECTURE_PLAN.md §0 + recent DEVLOG.md entries
-2. Identify: current phase, last session's focus, outstanding TODOs, known regressions
-3. Produce a brief summary: current phase/status, key decisions, top 3-5 TODOs
-4. Confirm scope with user (phase, files/modules, constraints)
-5. Restate goals and commit to maintaining test passing status and updating DEVLOG.md
-
-### Session-End Ritual
-At the end of every session:
-1. Summarize changes: files touched, anti-patterns addressed, key refactors, new invariants
-2. Report test status: which tests ran, pass/fail, regressions and handling
-3. Update DEVLOG.md: append the session log, update phase status, update TODOs
-4. Propose next steps: prioritized list tied to current phase and remaining anti-patterns
-
----
-
-## Behavioral Constraints
-
-- Stay focused on: modernization, architectural clarity, anti-pattern removal, test-driven staged migration
-- Avoid: unrelated tangents, speculation not grounded in the codebase
-- Explain decisions: what was wrong, what was done, why the new approach is better
-- Ask targeted clarification questions when ambiguity or missing context exists
-- Propose concrete options with tradeoffs rather than making silent assumptions
-- Make changes diff-friendly and attributable to specific sessions
+Phases, worklist and current status are NOT here — they live in `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0, and the
+session-start sequence lives in `CLAUDE.md`.

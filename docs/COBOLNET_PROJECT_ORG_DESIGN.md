@@ -170,8 +170,8 @@ The legacy `CilEmitter` reached 2600 lines before being split into 11 `Cil*Emitt
 
 1. **Shared state lives in a context object, never a mega-class.** An immutable `EmitContext` (the `CodeWriter`, the `DataBinder`, the `NameAllocator`, the dialect config) is passed to every emitter; the per-render receiver travels by a `ReceiverContext` parameter, never as mutable context state. Emitters are stateless-but-for-the-context cooperating units — the same context-object pattern the legacy `EmissionContext`/`LoweringContext` used.
 2. **One file per statement-family emitter.** A verb family = a file. Adding a verb = a method in its family's emitter (or a new file for a new family), never a new branch threaded into a shared switch in a 2000-line file.
-3. **Respect the bind → emit boundary** (and `feedback_binder_no_ir`): the **binder** produces the backend-neutral bound tree (`BoundProgram`, `DataItem`/`PicInfo`, `Place`) and resolves ALL references and semantics; **emit** is a backend behind `ICodeGenBackend` that only RENDERS the bound tree — there is NO shared lowering phase; any structure→branch lowering (e.g. for the future CIL backend) is PRIVATE to that backend (COBOLNET_DESIGN §1.1). An emitter must not re-discover semantics the binder owns (e.g. category compatibility), bound nodes must not carry pre-rendered C#-specific fragments where a structured form is feasible, and the binder must not emit text.
-4. **Dispatch generically, refactor-first** (`feedback_refactor_first_always`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
+3. **Respect the bind → emit boundary** (and `project_dual_backend_goal`): the **binder** produces the backend-neutral bound tree (`BoundProgram`, `DataItem`/`PicInfo`, `Place`) and resolves ALL references and semantics; **emit** is a backend behind `ICodeGenBackend` that only RENDERS the bound tree — there is NO shared lowering phase; any structure→branch lowering (e.g. for the future CIL backend) is PRIVATE to that backend (COBOLNET_DESIGN §1.1). An emitter must not re-discover semantics the binder owns (e.g. category compatibility), bound nodes must not carry pre-rendered C#-specific fragments where a structured form is feasible, and the binder must not emit text.
+4. **Dispatch generically, refactor-first** (`feedback_change_the_dispatch_not_the_callers`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
 5. **Size is a *smell*, not the law — SRP is the law.** Heuristic thresholds: a class > ~400 lines or a method > ~60 lines triggers a "does this have one responsibility?" review. *But note `CilDataEmitter.cs` is 44 KB even after the split* — data is intrinsically broad; the test is cohesion, not line count. A 500-line class with one job is fine; a 200-line class doing two jobs is not.
 6. **Runtime split by concern** (already followed): `Numeric/`, `Text/`, `Control/`, `Pointers/`, `Files/` — never a `CobolRuntime` god class.
 7. **Edition gating is structural (G1 — four compilers in one executable).** `--std 85|2002|2014|2023` (default 2023) is parsed in `Cobol.Net.Cli`, flows as the dialect level through the binder and `EmitContext`, and every edition-varying construct carries BOTH obligations in code: the per-edition spec behavior AND the correct diagnostic in every edition that lacks the construct (not-yet-introduced or removed — `docs/VERSION_CHANGE_REFERENCE.md` is the checklist). No binder/emitter hard-codes a single edition's semantics, and no edition check is an ad-hoc comparison scattered per call site — gate through the one canonical dialect-level carrier.
@@ -235,7 +235,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `DataRefs`
 // GOOD — the existing pattern-switch dispatch, one arm per family, easy to extend:
 case var _ when s.moveStatement()    is { } m: _move.Emit(m);   break;
 case var _ when s.addStatement()     is { } a: _arith.EmitAdd(a); break;
-// BAD — a growing if/else ladder in every caller (forbidden by feedback_refactor_first_always)
+// BAD — a growing if/else ladder in every caller (forbidden by feedback_change_the_dispatch_not_the_callers)
 ```
 
 *Result bundle — `record struct` vs. out-params:*
@@ -253,7 +253,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx)   // GOOD: collaborator
 // BAD: a 790-line CSharpEmitter holding _data, _paras, _targetScale, and every Emit* method.
 ```
 
-**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_bare_end`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
+**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_spec_is_the_oracle`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
 
 ---
 

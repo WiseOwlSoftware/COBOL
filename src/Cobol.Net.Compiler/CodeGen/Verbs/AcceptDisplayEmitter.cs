@@ -14,13 +14,16 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// filename honest). Every runtime-member fragment routes through <see cref="RuntimeApi"/>.</summary>
 internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
 {
-    /// <summary>DISPLAY (ISO §14.9.8): shows the sign-aware image (deSign defaults false — the operational sign is
-    /// part of the displayed zoned representation, unlike a move to an alphanumeric receiver).</summary>
+    /// <summary>DISPLAY (ISO §14.9.11): shows the sign-aware image (deSign defaults false — the operational sign is
+    /// part of the displayed zoned representation, unlike a move to an alphanumeric receiver). The UPON device routing
+    /// (§14.9.11.3 SR2 / §14.9.11.4 GR8): a mnemonic bound to SYSERR writes the standard-error stream; CONSOLE / SYSOUT
+    /// and the no-UPON default use the standard display device (standard output) — the latter path is byte-identical.</summary>
     public void EmitDisplay(BoundDisplay d)
     {
         var parts = d.Operands.Select(o => OperandText.AsString(o, num)).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
-        ctx.Writer.Line(d.NoAdvancing ? $"System.Console.Write({image});" : $"System.Console.WriteLine({image});");
+        string sink = d.ToStdErr ? "System.Console.Error" : "System.Console";
+        ctx.Writer.Line(d.NoAdvancing ? $"{sink}.Write({image});" : $"{sink}.WriteLine({image});");
     }
 
     /// <summary>ACCEPT (ISO §14.9.1). Format 1 (device) is the GR1–GR4 transfer: 80-character card-image records

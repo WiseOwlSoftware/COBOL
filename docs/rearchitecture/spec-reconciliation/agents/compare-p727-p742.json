@@ -1,0 +1,33 @@
+{
+  "batch": [727, 728, 729, 730, 731, 733, 735, 737, 738, 739, 741, 742],
+  "pages_checked": [727, 728, 729, 730, 731, 733, 735, 737, 738, 739, 741, 742],
+  "findings": [
+    {
+      "page": 738,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "14.9.34.2 General format\n\nRETURN file-name-1 RECORD [ INTO identifier-1 ]\n   AT END imperative-statement-1\n   [ NOT AT END imperative-statement-2 ]\n   [ END-RETURN ]\n\n(printed underlining, verified at 300 dpi: RETURN, INTO, END, NOT, END, END-RETURN are underlined; RECORD, AT and AT are NOT underlined; file-name-1 / identifier-1 / imperative-statement-1 / imperative-statement-2 are lower-case generic terms.)",
+      "markdown_says": "### 14.9.34.2 General format\n\n`RETURN` file-name-1 `RECORD` [ `INTO` identifier-1 ]\n&nbsp;&nbsp;&nbsp;`AT` `END` imperative-statement-1\n&nbsp;&nbsp;&nbsp;[ `NOT` `AT` `END` imperative-statement-2 ]\n&nbsp;&nbsp;&nbsp;[ `END-RETURN` ]\n\n(no \"Figure notes (...)\" blockquote follows the figure)",
+      "why_it_matters": "The RETURN general format is the only general format in this page range and it is transcribed with a code-span-per-reserved-word convention that renders underlined and non-underlined words identically, then omits the compensating \"Figure notes\" blockquote that the rest of the transcription uses (see the REWRITE general format at 14.9.35.2, whose notes read \"`RECORD`, `WITH`, and `KEY` are **not** underlined — they are optional words\"). Per 5.2.6.2/5.2.6.3 a non-underlined reserved word is an OPTIONAL word that may be written or omitted with no effect on meaning. As transcribed, RECORD and both occurrences of AT read as required words, so an implementer working from the markdown would reject the legal forms `RETURN sm-file` (no RECORD), `RETURN sm-file RECORD END imp-stmt` (no AT) and `NOT END imp-stmt-2`. This is the same falsely-restrictive direction the transcription is known to drift in.",
+      "suggested_repair": "Re-render the figure using the transcription's established convention: a fenced code block holding the four lines exactly as printed, followed by a blockquote — \"**Figure notes (RETURN statement general format).** `RETURN`, `INTO`, `END`, `NOT`, `END`, and `END-RETURN` are underlined in the printed standard (required words). `RECORD` and both occurrences of `AT` are **not** underlined — they are optional words. No choice indicators appear in this figure; the `AT END` phrase is unbracketed and is therefore mandatory, while `NOT AT END` and `END-RETURN` are each optional and, per syntax rule 4, the AT END and NOT AT END phrases may be written in reversed order.\""
+    },
+    {
+      "page": 742,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 742 ends general rule 9 with only item a): \"a) when identifier-1 references an intrinsic function, as though implicit-record-1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as the returned value of the intrinsic function, or\". Items b) and c) are printed as separate, separately-indented list items at the TOP of page 743: \"b) when identifier-1 does not reference an intrinsic function, ... having the same description as identifier-1, or\" and \"c) when literal-1 is specified, ... having the same class, category, usage, and length as literal-1.\"",
+      "markdown_says": "   a) when identifier-1 references an intrinsic function, as though implicit-record-1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as the returned value of the intrinsic function, or b) when identifier‑1 does not reference an intrinsic function, as though implicit‑record‑1 were a record description entry subordinate to the file description entry having the same description as identifier‑1, or c) when literal‑1 is specified, as though implicit‑record‑1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as literal‑1.  — all three items run together as ONE paragraph inside the page-742 slice; the page-743 slice begins at \"NOTE 3\", with no b) or c) items.",
+      "why_it_matters": "Three distinct sub-items of REWRITE general rule 9 are collapsed into a single run-on paragraph, and two of them are attributed to the wrong page. The list structure is what makes \"General rule 9b\" and \"General rule 9c\" citable, and the run-on form makes the item boundaries invisible to any tooling (or reader) that splits the transcription on list markers. The text itself is intact, so this is a structural defect, not a loss of normative wording.",
+      "suggested_repair": "Split the paragraph back into three list items at the same indentation as item a), and move items b) and c) below the `<a id=\"page-743\"></a>` / `## Page 743` anchor so they carry their printed page attribution, leaving item a) as the last content of page 742."
+    },
+    {
+      "page": 735,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Page 735 opens with a displayed statement line and then a separate paragraph:\n\n        MOVE literal-1 TO record-name-1\n\n     according to the rules specified for the MOVE statement.\n\nfollowed by \"b) The same RELEASE statement without the FROM phrase.\"",
+      "markdown_says": "The page-735 slice begins directly at \"b) The same RELEASE statement without the FROM phrase.\" Both printed lines survive, but only as a single flattened line appended to the tail of the page-734 slice: \"      or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement.\"",
+      "why_it_matters": "The content is present, so nothing normative is lost, but the display form is. In the printed RELEASE general rule 4a the qualifier \"according to the rules specified for the MOVE statement\" is a standalone paragraph governing BOTH alternative MOVE statements; flattened onto the `or` line it reads as qualifying only the literal-1 alternative. The transcription renders the identical construct correctly for REWRITE on page 742 (MOVE line / `or` / MOVE line / qualifier, each on its own line), so this page is inconsistent with the file's own convention.",
+      "suggested_repair": "Restore the printed layout in the RELEASE 14.9.32.4 general rule 4a block — `MOVE identifier-1 TO record-name-1`, then `or`, then `MOVE literal-1 TO record-name-1`, then the qualifier paragraph on its own line — matching the REWRITE block at general rule 7a, and place the last two lines after the `<a id=\"page-735\"></a>` anchor."
+    }
+  ]
+}

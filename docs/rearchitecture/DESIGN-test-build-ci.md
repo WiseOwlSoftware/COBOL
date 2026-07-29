@@ -326,7 +326,7 @@ The rearchitecture proceeds so the net is STRENGTHENED before it is relied on, t
 - **Phases R2…Rn — the actual rearchitecture** (god-class splits, pass pipeline, storage-form unification, per the
   sibling DESIGN-* docs). EACH phase: run the full battery; gates (1)+(2) MUST stay green; gate (3) stays green or
   is reviewed-re-baselined IN THE SAME change set (with a DEVLOG note citing the intended emit change and the
-  gate-(1) proof). No phase merges red. Small phases (feedback_iterate_one_at_a_time) so a snapshot diff is legible.
+  gate-(1) proof). No phase merges red. Small phases (feedback_tiered_gates) so a snapshot diff is legible.
 - **Phase G8 — Sever legacy.** Once R1's `legacy-oracle` job has stayed green across the rearch, delete the legacy
   test projects, the legacy `ProjectReference`s, the legacy guard scripts, and the `legacy-oracle` CI job. The
   `build-test` matrix is now the whole gate, cross-platform.

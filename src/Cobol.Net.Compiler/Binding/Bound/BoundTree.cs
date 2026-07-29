@@ -237,7 +237,7 @@ public abstract record BoundOperand;
 
 /// <summary>A non-numeric literal, already decoded to its character value. <paramref name="Category"/> carries
 /// the literal's data category — Alphanumeric for a plain <c>"…"</c>, National for <c>N"…"</c> (§8.3.3.5),
-/// Boolean for <c>B"…"</c> (§8.3.3.4) — the ONE literal node for all three (feedback_singular_pattern); the
+/// Boolean for <c>B"…"</c> (§8.3.3.4) — the ONE literal node for all three (feedback_one_mechanism_per_job); the
 /// category drives MOVE legality (§14.9.25.3 Table 16), relation-class checks, and store fills.</summary>
 public sealed record BoundStringLiteral(string Value) : BoundOperand
 {
@@ -267,7 +267,7 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// <summary>True when the literal is one or more digit characters — the shape of ISO §14.9.25.3 SR5's sole
     /// surviving figurative→numeric MOVE ("an ALL "literal" figurative constant (containing only digits) … to an
     /// integer numeric item"). The ONE definition both the binder's edition gates and the emitter's value/image
-    /// split consult (feedback_singular_pattern).</summary>
+    /// split consult (feedback_one_mechanism_per_job).</summary>
     public bool IsDigitOnly => Literal.Length > 0 && Literal.All(c => c is >= '0' and <= '9');
 
     /// <summary>The literal's data category — always Alphanumeric today: <c>ALL N"…"</c>/<c>ALL B"…"</c>
@@ -322,7 +322,7 @@ public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
 
 /// <summary>A boolean expression used as a RELATION operand (ISO §8.8.4.2.2) — the ONE carrier that lets a
 /// boolean expression sit in a <see cref="BoundRelational"/> beside another boolean operand (item↔item compares
-/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_singular_pattern).</summary>
+/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_one_mechanism_per_job).</summary>
 public sealed record BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand;
 
 // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -345,10 +345,20 @@ public sealed record BoundNot(BoundCondition Operand) : BoundCondition;
 public sealed record BoundBooleanCondition(BoundBoolExpr Expr) : BoundCondition;
 
 /// <summary>A level-88 condition-name membership test over its (already-resolved) conditional variable place.</summary>
-public sealed record BoundCondition88(Place Parent, Condition88 Condition) : BoundCondition;
+public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool CheckRangeInvalid = false) : BoundCondition;
 
-/// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}.</summary>
-public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated) : BoundCondition;   // Kind: P/N/Z
+/// <summary>An alphanumeric/national THRU-range membership test (the EVALUATE WHEN <c>lo THRU hi</c> form, and the
+/// carrier for EC-RANGE-INVALID checking): <c>Left</c> is within [<c>Lo</c>, <c>Hi</c>] in the effective collating
+/// sequence. When <paramref name="CheckInvalid"/> and <c>lo</c> collates after <c>hi</c> (§14.7.8 rule 2) the nonfatal
+/// EC-RANGE-INVALID is set and the range is treated as empty — realized by the runtime <c>CobolString.ThruMember</c>
+/// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).</summary>
+public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, BoundOperand Hi, bool CheckInvalid) : BoundCondition;
+
+/// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}. <paramref
+/// name="Format2Float"/> marks the ISO §8.8.4.7.3 Format 2 form — a bare (unparenthesized) standard
+/// floating-point data-name — which tests the IEEE sign BIT (§8.8.4.7.4 GR2: +0.0 IS POSITIVE, −0.0 IS
+/// NEGATIVE) rather than the Format-1 algebraic value.</summary>
+public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated, bool Format2Float = false) : BoundCondition;   // Kind: P/N/Z
 
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
 /// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
@@ -409,8 +419,11 @@ public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatemen
 /// Replaces the silent bind-as-STOP-RUN mis-bind (the DEVLOG-578 latent bug; P2.6).</summary>
 public sealed record BoundStopLiteral(string Text) : BoundStatement;
 
-/// <summary><c>DISPLAY</c> of a sequence of operands (each rendered as its display image).</summary>
-public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing) : BoundStatement;
+/// <summary><c>DISPLAY</c> of a sequence of operands (each rendered as its display image). <paramref name="ToStdErr"/>
+/// carries the UPON device routing (ISO §14.9.11.3 SR2 / §14.9.11.4 GR8): a mnemonic-name bound to the SYSERR
+/// implementor device-name routes to the process standard-error stream; CONSOLE / SYSOUT and the no-UPON default use
+/// the standard display device (standard output). Default false keeps the no-UPON emission byte-identical.</summary>
+public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing, bool ToStdErr = false) : BoundStatement;
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand).</summary>
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
@@ -499,7 +512,8 @@ public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr 
 
 /// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28 Format 4, GR13): nested
 /// induction loops, leftmost level outermost.</summary>
-public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter) : BoundPerformControl;
+public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter,
+    bool CheckIndexRange = false) : BoundPerformControl;
 
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;
@@ -522,6 +536,14 @@ public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int
 
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
 public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
+
+/// <summary><c>EXIT SECTION</c> (ISO §14.9.14 Format 4, GR7) — transfer control to the unnamed empty paragraph
+/// following the LAST paragraph of the current section (pc <paramref name="SectionEndPc"/> + 1), "preceding any
+/// return mechanisms for that section". When the enclosing bounded dispatch was entered with its exit AT the section
+/// end (a PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE procedure / the top-level end wall), that
+/// section return mechanism fires — realized in the emitter by an explicit <c>return</c> when <c>__exitPc</c> equals
+/// the section end (the mid-section fall-through the bounded dispatch's own <c>__atExit</c> tail-check cannot see).</summary>
+public sealed record BoundExitSection(int SectionEndPc, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
 public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
@@ -634,10 +656,12 @@ public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCap
 /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of the
 /// dynamic-length elementary item at <paramref name="Target"/> to <paramref name="Amount"/> characters. Growing
 /// space-fills the added positions (GR39); shrinking drops the trailing ones; a value above <paramref name="Limit"/>
-/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). A self-identifying
-/// node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the explicit SIZE OF
-/// form and the bare re-routed form.</summary>
-public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
+/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). When
+/// <paramref name="CheckStorage"/> (EC-STORAGE-NOT-AVAIL checking was enabled at this statement — captured from the
+/// TurnState at bind time) the clamp/negative legs also set the nonfatal EC-STORAGE-NOT-AVAIL (GR37/GR38). A
+/// self-identifying node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the
+/// explicit SIZE OF form and the bare re-routed form.</summary>
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit, bool CheckStorage) : BoundStatement;
 
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
@@ -655,7 +679,8 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
-    bool FromStart = false, Place? DependItem = null, string? DynTable = null) : BoundStatement;
+    bool FromStart = false, Place? DependItem = null, string? DynTable = null,
+    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 

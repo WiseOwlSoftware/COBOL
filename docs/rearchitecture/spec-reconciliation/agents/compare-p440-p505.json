@@ -1,0 +1,33 @@
+{
+  "batch": [440, 444, 447, 450, 457, 460, 468, 471, 494, 497, 503, 505],
+  "pages_checked": [440, 444, 447, 450, 457, 460, 468, 471, 494, 497, 503, 505],
+  "findings": [
+    {
+      "page": 471,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "13.18.40.2 General formats / Format 1 (basic): the PICTURE Format 1 general-format diagram is printed EXACTLY ONCE on page 471 (one diagram: '{PICTURE/PIC} IS character-string-1 [ EDITING character-1 { IS literal-1 / FOR {| NEGATIVE IS literal-2 / POSITIVE IS literal-3 |} } ] ...'), followed immediately by 'Format 2 (locale):'.",
+      "markdown_says": "The Format 1 diagram is transcribed TWICE. Under the single 'Format 1 (basic):' heading there are two consecutive fenced code blocks, each followed by its own paragraph beginning '> **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).**' — the first block's middle row reads '⎨         ⎬ IS character-string-1  ⎢ EDITING character-1 ⎨     ⎧| NEGATIVE IS literal-2 |⎫  ⎬ ⎥ …' and the second block's middle row reads '⎨         ⎬  IS character-string-1  ⎢ EDITING character-1  ⎨       ⎧ | NEGATIVE IS literal-2 | ⎫  ⎬ ⎥ …'. There is no second Format 1 in the PDF; the second copy also renders the inner FOR brace malformed (bottom row uses '⎨ | POSITIVE IS literal-3 | ⎬' instead of the closing '⎩ ... ⎭').",
+      "why_it_matters": "One printed general format is presented as two, and the two renderings disagree with each other (different underline lists, different brace glyphs). A reader or a generator walking the markdown sees two Format 1 diagrams for PICTURE and cannot tell which is authoritative; the malformed inner brace in the second copy also misrepresents the FOR choice group's delimiters.",
+      "suggested_repair": "Delete the second fenced block (source lines 33-37 of the page-471 slice) and its accompanying figure-notes paragraph (line 39-40), keeping ONE Format 1 diagram. Retain the SECOND note's underline list (it is the accurate one - see the companion finding) merged onto the surviving diagram."
+    },
+    {
+      "page": 471,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": "In the PICTURE Format 1 diagram the word FOR is printed UNDERLINED (verified by rendering page 471 at 300 dpi and cropping the FOR group: 'FOR' carries a rule beneath it, exactly as NEGATIVE and POSITIVE do).",
+      "markdown_says": "First figure-notes paragraph: '**Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation).' — `FOR` is omitted from the list of underlined words. (The second, duplicate note on the same page does list `FOR` as underlined, so the two notes contradict each other.)",
+      "why_it_matters": "Per 5.2.6, an underlined word in a general format is a REQUIRED word that shall be written when the phrase is used; a non-underlined word is an optional word that may be omitted. Omitting FOR from the underlined list makes the FOR keyword look omissible, i.e. it would legalise 'EDITING c NEGATIVE IS lit-2' with no FOR - a grammar the standard does not permit. This is the falsely-permissive mirror of the usual defect and it is directly load-bearing for the PICTURE EDITING parser.",
+      "suggested_repair": "In the surviving Format 1 figure-notes paragraph state: '`PICTURE`, `PIC`, `EDITING`, `FOR`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `character-1`, and the literals are not.'"
+    },
+    {
+      "page": 460,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "13.18.38.2 General formats, 'Format 3 (report-writer):' is printed as a general-format figure in the diagram font with four words UNDERLINED: 'OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]' - OCCURS, TO, DEPENDING and STEP each carry an underline rule; TIMES, ON, integer-1, integer-2, integer-3 and data-name-1 do not.",
+      "markdown_says": "Line 41 of the page-460 slice: 'OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]' - transcribed as an ordinary markdown paragraph, outside any fenced block, with NO accompanying 'Figure notes' paragraph. Formats 1, 2 and 4 on the same page are each fenced and each carry a figure-notes paragraph recording their underlining; Format 3 alone records none.",
+      "why_it_matters": "This transcription carries the required-word (underline) information in the figure-notes paragraphs, because plain-text code fences cannot show underlining. For Format 3 that information is simply absent, so the markdown no longer records that OCCURS, TO, DEPENDING and STEP are required words while TIMES and ON are optional words. Rendering the format as prose rather than a fenced figure also loses its identity as a general format for any tool that walks the fenced blocks.",
+      "suggested_repair": "Wrap the Format 3 line in a fenced code block like its siblings and add: '> **Figure notes (OCCURS clause Format 3 (report-writer) syntax diagram).** `OCCURS`, `TO`, `DEPENDING`, and `STEP` are underlined in the printed standard (required words); `TIMES`, `ON`, `integer-1`, `integer-2`, `integer-3`, and `data-name-1` are not. The three brackets `[ integer-1 TO ]`, `[ DEPENDING ON data-name-1 ]`, and `[ STEP integer-3 ]` are independent optional phrases. No choice indicators appear in this figure.' Do the same for the first line of Format 4 (line 45), which is likewise printed as prose (its underlining is at least recorded in the Format 4 figure note)."
+    }
+  ]
+}

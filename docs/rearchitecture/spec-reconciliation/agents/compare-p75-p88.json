@@ -1,0 +1,51 @@
+{
+  "batch": [75, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88],
+  "pages_checked": [75, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88],
+  "findings": [
+    {
+      "page": 88,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "7.3.8.4.2 General format\n\ncompilation-variable-name-1 IS [ NOT ] DEFINED\n\n(printed with NOT and DEFINED UNDERLINED; IS is printed WITHOUT an underline; compilation-variable-name-1 is lowercase generic term)",
+      "markdown_says": "#### 7.3.8.4.2 General format\n\ncompilation-variable-name-1 IS [ NOT ] DEFINED\n\n(plain text; no underline markup, and no \"Figure notes\" blockquote recording which words are underlined -- unlike every other general format in the same clause range, e.g. 7.3.4 CALL-CONVENTION, 7.3.24 SOURCE FORMAT, 7.3.10 DEFINE, which all carry a Figure notes block naming the underlined words)",
+      "why_it_matters": "Per 8.3.1.1.2 / 5.2.6 notation, uppercase words that are UNDERLINED are keywords (required) and uppercase words that are NOT underlined are optional words that may be written or omitted with no effect on semantics (ISO_COBOL.md line 5805: 'Within each format, uppercase words that are not underlined are called optional words and may be specified at the user's option with no effect on the semantics of the format.'). In this figure IS is NOT underlined, so 'compilation-variable-name-1 DEFINED' and 'compilation-variable-name-1 NOT DEFINED' are legal defined conditions with IS omitted. The flattened markdown makes IS look mandatory -- the exact falsely-restrictive-syntax failure mode this sweep targets. It also loses that NOT and DEFINED are required. This is the only general format on pages 75-88 that carries underlining, and it is the only one with no Figure notes block.",
+      "suggested_repair": "Add a Figure notes blockquote after the format line, in the same style used at ISO_COBOL.md lines 3920 / 4871: '> **Figure notes (defined condition general format).** `NOT` and `DEFINED` are underlined in the printed standard (required words). `IS` is **not** underlined -- it is an optional word and may be omitted. `compilation-variable-name-1` is a generic term. The brackets around `NOT` make it optional; there are no choice indicators in this figure.'"
+    },
+    {
+      "page": 78,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Items b) through e) are printed indented one level under general rule 9) (which begins on page 77 with 'The comparison operation to determine text replacement occurs in the following manner:'), and the numbered items 1. through 6. are printed indented a further level under 'c) The following rules apply for the purpose of matching:'.",
+      "markdown_says": "'b) Pseudo-text-1 matches the library text ...', 'c) The following rules apply ...', 'd) If no match occurs ...', 'e) When all the REPLACING phrase operands ...' and '1. Each occurrence of a separator comma ...' through '6. Comments, if any, are treated as a single space.' all begin at column 0, while the sibling item 'a)' on page 77 is written as '   a) The leftmost library text-word ...' with a 3-space indent.",
+      "why_it_matters": "Within one and the same list (COPY general rule 9, items a) through g)) item a) is nested and items b)-e) are not, so a markdown renderer shows a) as a sub-item of 9) but b)-e) as top-level paragraphs. Items 1.-6. are valid markdown ordered-list markers at column 0, so they render as an independent top-level list rather than as sub-rules of c). The parent/child relation of the general rules is lost.",
+      "suggested_repair": "Indent b), c), d), e) by 3 spaces to match 'a)' on page 77, and indent 1. through 6. by 6 spaces under c) (matching the existing 'a.'/'b.' items which are already indented under 4.)."
+    },
+    {
+      "page": 79,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Items f) and g) are printed indented one level under general rule 9) (begun on page 77); the following items 10), 11), 12), 13) return to the outer level flush with 9).",
+      "markdown_says": "'f) When a match occurs between pseudo-text-1 and the library text ...' and 'g) The comparison operation continues ...' begin at column 0, at exactly the same indentation as the immediately following '10) If the REPLACING phrase is specified ...'.",
+      "why_it_matters": "f) and g) are sub-items of general rule 9) but are rendered as siblings of general rule 10). A reader (or a tool citing 7.2.3.4 GR 9 f)) cannot tell from the markdown that f) and g) belong to rule 9) rather than being top-level rules of 7.2.3.4.",
+      "suggested_repair": "Indent 'f)' and 'g)' by 3 spaces to match 'a)' on page 77."
+    },
+    {
+      "page": 82,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Items b), c), d) are printed indented one level under general rule 7) (begun on page 81); items a), b), c) are printed indented one level under general rule 8); items 1. through 4. are printed indented a further level under 'c) The following rules apply for the purpose of matching:'.",
+      "markdown_says": "'b) A format 1 REPLACE statement without the ALSO phrase ...', 'c) A format 2 REPLACE statement with the LAST phrase ...', 'd) A format 2 REPLACE statement without the LAST phrase ...', 'a) Starting with the leftmost source text-word ...', 'b) Pseudo-text-1 matches the source text ...', 'c) The following rules apply for the purpose of matching:' and '1.' through '4.' all begin at column 0, while the sibling item 'a) A format 1 REPLACE statement with the ALSO phrase results in the following:' on page 81 is written as '   a) ...' with a 3-space indent and its own sub-items '      1.' / '      2.' with a 6-space indent.",
+      "why_it_matters": "Within the same list (REPLACE general rule 7, items a) through d)) item a) is nested and b)-d) are not. Under rule 8) no item is nested at all, so a)-c) render as siblings of 8) and 1.-4. render as an unrelated top-level ordered list rather than as sub-rules of c). The three-level rule hierarchy of 7.2.4.4 is flattened.",
+      "suggested_repair": "Indent b), c), d) (under 7) and a), b), c) (under 8) by 3 spaces, and indent 1. through 4. by 6 spaces under c) -- matching the already-correct '   a)' / '      1.' pattern on page 81."
+    },
+    {
+      "page": 83,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "'b. In the content of the literal ...' is printed indented under '4. For alphanumeric, boolean, and national literals:'; '5.' and '6.' are printed indented under 'c) The following rules apply ...'; 'NOTE 1 Because comments are removed during logical conversion, none are expected.' is printed indented under item 6.; and d) through g) are printed indented one level under general rule 8).",
+      "markdown_says": "'b. In the content of the literal ...', '5. Each occurrence of a compiler directive line ...', '6. Comments, if any, are treated as a single space.', 'NOTE 1 Because comments are removed during logical conversion, none are expected.', 'd) If no match occurs ...', 'e) When all occurrences ...', 'f) When a match occurs ...' and 'g) The comparison operation continues ...' all begin at column 0. Its direct sibling 'a. The two representations of the quotation symbol ...' on page 82 is written with a 4-space indent.",
+      "why_it_matters": "Sibling sub-items a. and b. of rule 4. are at different indent levels across the page break, so b. detaches from its parent; NOTE 1 detaches from item 6.; and d)-g) render as siblings of general rules 9) and 10) instead of as sub-items of 8). The rule hierarchy of 7.2.4.4 GR 8 is unrecoverable from the markdown structure.",
+      "suggested_repair": "Indent 'b.' to 6 spaces (matching 'a.' once page 82 is corrected), indent '5.' and '6.' to 6 spaces under c), indent 'NOTE 1' under item 6., and indent d), e), f), g) by 3 spaces under general rule 8)."
+    }
+  ]
+}

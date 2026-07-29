@@ -1,0 +1,13 @@
+{
+  "batch": [418, 420, 426, 428, 430, 434, 438, 442, 443, 445, 446, 448],
+  "pages_checked": [418, 420, 426, 428, 430, 434, 438, 442, 443, 445, 446, 448],
+  "findings": [],
+  "notes": [
+    "Swept 2026-07-26. Renders produced by scripts/spec/page_workunit.py at 300 dpi into E:/Temp/specrecon/f19.",
+    "Anchor alignment verified: PDF page index N == markdown <a id=\"page-N\"> slice on every page in the batch (e.g. PDF p426 = printed p396 = 13.18.18 DESTINATION clause, matching the markdown slice).",
+    "General formats present in this batch and verified glyph-for-glyph (underlining, brackets, braces, ellipsis position): p426 'DESTINATION IS { identifier-1 } ...'; p428 Format 1 'data-name-1', Format 2 'screen-name-1', Format 3 'FILLER'; p430 'IS EXTERNAL [ AS literal-1 ]'; p438 'IS GLOBAL'; p442 'HIGHLIGHT'; p443 'INVALID WHEN condition-1'; p445 'level-number'.",
+    "No figure in this batch contains stacked alternatives, so no 5.2.6.4 choice-indicator bars could have been dropped. No unclosed bracket/brace, no misplaced ellipsis, no lost underlining.",
+    "p418, p420, p434, p446, p448 carry no general format; prose (including the CENTER column arithmetic on p418 and the LINAGE rules on p448) matches verbatim.",
+    "Non-finding observed, out of scope for this per-page sweep: ISO_COBOL.md TOC/index cross-references cite PRINTED page numbers but link to PDF-index anchors (e.g. line 702 '13.18.36 LOWLIGHT clause ... [426](#page-426)' resolves to PDF p426 = printed p396 = DESTINATION clause). This is a systematic ~30-page anchor offset affecting the whole TOC and index, not a defect in the page bodies swept here."
+  ]
+}

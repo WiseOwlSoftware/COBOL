@@ -1,0 +1,87 @@
+{
+  "batch": [597, 606, 607, 613, 618, 619, 625, 627, 640, 644, 648, 649],
+  "pages_checked": [597, 606, 607, 613, 618, 619, 625, 627, 640, 644, 648, 649],
+  "findings": [
+    {
+      "page": 607,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "ACCEPT screen-name-1 / Format 3 AT phrase, printed as a BRACE WITH CHOICE INDICATORS: '[ AT { |   LINE NUMBER { identifier-3 / integer-1 }   ,   { COLUMN / COL } NUMBER { identifier-4 / integer-2 }   | } ]'. Verified by cropping and enlarging spec_p607.png: immediately inside the tall brace that follows AT there is a single vertical bar on the left, and a matching single vertical bar immediately inside the closing brace on the right. There are NO brackets around the individual LINE / COLUMN rows.",
+      "markdown_says": "$$\\left[\\begin{array}{l} \\text{AT} \\left\\{\\begin{array}{l} \\left[\\begin{array}{l} \\underline{\\text{LINE}}\\ \\text{NUMBER} \\left\\{\\begin{array}{l} \\text{identifier-3} \\\\ \\text{integer-1} \\end{array}\\right\\} \\end{array}\\right] \\\\ \\left[\\begin{array}{l} \\left\\{\\begin{array}{l} \\underline{\\text{COLUMN}} \\\\ \\text{COL} \\end{array}\\right\\}\\ \\text{NUMBER} \\left\\{\\begin{array}{l} \\text{identifier-4} \\\\ \\text{integer-2} \\end{array}\\right\\} \\end{array}\\right] \\end{array}\\right\\} \\end{array}\\right]$$",
+      "why_it_matters": "The choice-indicator bars are dropped and each alternative is instead wrapped in a fabricated bracket. Per 5.2.6.4 bars inside a BRACE mean 'one or more of the enclosed alternatives, each at most once, in any order' -- so ACCEPT ... AT LINE NUMBER n COLUMN NUMBER m is legal. The markdown's brace-of-two-optional-brackets reads as 'exactly one of (optional LINE phrase) or (optional COLUMN phrase)', which forbids specifying BOTH LINE and COLUMN in one ACCEPT and also wrongly permits an empty AT with nothing after it. This is the exact falsely-restrictive loss the sweep is hunting; the identical construct on page 640 (DISPLAY Format 2) DOES preserve the bars, which proves the intended transcription and confirms 607 is the defect.",
+      "suggested_repair": "Retranscribe the AT phrase with the bars preserved, matching the page-640 DISPLAY Format 2 treatment, e.g. an ASCII-art block:  ⎡    ⎧|                ⎧ identifier-3 ⎫             |⎫ ⎤ / ⎢ AT ⎨| LINE NUMBER  ... |⎩ ⎭ ... ⎦ -- i.e. bars just inside the AT brace, no per-row brackets. Add a figure note citing 5.2.6.4 stating that one or more of the LINE and COLUMN phrases shall be specified, each at most once, in any order."
+    },
+    {
+      "page": 607,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "ACCEPT Format 3 exception phrase, printed as a BRACKET WITH CHOICE INDICATORS: '⎡|  ON EXCEPTION imperative-statement-1  |⎤' over '⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦'. Verified by cropping and enlarging spec_p607.png: a vertical bar sits immediately inside the opening bracket and a matching bar immediately inside the closing bracket, spanning both stacked rows.",
+      "markdown_says": "$$\\left[\\begin{array}{l} \\text{ON EXCEPTION imperative-statement-1} \\\\ \\text{NOT ON EXCEPTION imperative-statement-2} \\end{array}\\right]$$",
+      "why_it_matters": "Without the bars a bracket around stacked alternatives means AT MOST ONE of them. Per 5.2.6.4, bars inside a bracket mean zero or more, each at most once, in any order -- so a single ACCEPT screen statement may carry BOTH ON EXCEPTION and NOT ON EXCEPTION, in either order. The markdown makes legal source look illegal. Every sibling figure in this batch that has the same phrase (613 ADD, 618 CALL Fmt 1, 619 CALL Fmt 2, 640 DISPLAY, 644 DIVIDE) preserves the bars, so 607 is the sole holdout.",
+      "suggested_repair": "Replace the bare \\left[ ... \\right] with the bar-preserving form used on pages 618/640/644, e.g. a code block: '⎡|  ON EXCEPTION imperative-statement-1      |⎤' / '⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦', plus a figure note citing 5.2.6.4."
+    },
+    {
+      "page": 607,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "In the ACCEPT Format 3 AT phrase both alternatives of the inner brace are underlined: 'COLUMN' (underlined) over 'COL' (underlined).",
+      "markdown_says": "\\left\\{\\begin{array}{l} \\underline{\\text{COLUMN}} \\\\ \\text{COL} \\end{array}\\right\\}",
+      "why_it_matters": "COL is a required (reserved) word abbreviation of COLUMN -- 14.9.1 prints it underlined, and 14.9.11 (page 640) records it in its figure note as underlined. The markdown underlines COLUMN but not COL in the very same brace, so a reader/implementor derives that COL is a user-defined word rather than a reserved alternative. Loss of underlining changes the grammar.",
+      "suggested_repair": "Change \\text{COL} to \\underline{\\text{COL}} in the 14.9.1.2 Format 3 figure."
+    },
+    {
+      "page": 607,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "'ON EXCEPTION imperative-statement-1' with EXCEPTION underlined; 'NOT ON EXCEPTION imperative-statement-2' with NOT and EXCEPTION underlined (ON is NOT underlined in either row).",
+      "markdown_says": "\\text{ON EXCEPTION imperative-statement-1} \\\\ \\text{NOT ON EXCEPTION imperative-statement-2}",
+      "why_it_matters": "The whole exception block is transcribed with zero underline markup even though the surrounding figure (ACCEPT, FROM, LINE, COLUMN, END-ACCEPT) uses \\underline throughout, so the required-word/optional-word distinction is silently lost exactly where it matters: EXCEPTION and NOT are required, ON is optional. A reader would not be able to tell that 'NOT EXCEPTION' is legal and that 'EXCEPTION' cannot be omitted.",
+      "suggested_repair": "Mark up as \\text{ON } \\underline{\\text{EXCEPTION}} \\text{ imperative-statement-1} and \\underline{\\text{NOT}} \\text{ ON } \\underline{\\text{EXCEPTION}} \\text{ imperative-statement-2}, or move the figure to a code block with an explicit figure note listing EXCEPTION and NOT as the underlined words."
+    },
+    {
+      "page": 606,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "ACCEPT Format 2 (temporal): 'DATE [ YYYYMMDD ]' with BOTH DATE and YYYYMMDD underlined, and 'DAY [ YYYYDDD ]' with BOTH DAY and YYYYDDD underlined (verified on the enlarged crop -- each of YYYYMMDD and YYYYDDD carries its own underline rule inside the brackets).",
+      "markdown_says": "\\underline{\\text{DATE}} \\text{ [ YYYYMMDD ]} \\\\ \\underline{\\text{DAY}} \\text{ [ YYYYDDD ]}",
+      "why_it_matters": "YYYYMMDD and YYYYDDD are required (reserved) words inside their optional brackets. Every other word in this same figure -- ACCEPT, FROM, DATE, DAY, DAY-OF-WEEK, TIME, END-ACCEPT -- is wrapped in \\underline, so the omission is not a stylistic choice; it reads as if YYYYMMDD/YYYYDDD were user-supplied operands rather than fixed reserved words, which would let an implementor accept any word there.",
+      "suggested_repair": "Change to \\underline{\\text{DATE}} \\text{ [ } \\underline{\\text{YYYYMMDD}} \\text{ ]} and \\underline{\\text{DAY}} \\text{ [ } \\underline{\\text{YYYYDDD}} \\text{ ]}."
+    },
+    {
+      "page": 606,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 606 ends after the Format 2 (temporal) diagram (blank space, then the footer '576 (c)ISO/IEC 2023'). The label 'Format 3 (screen):' is the FIRST line printed on page 607, above 'ACCEPT screen-name-1'.",
+      "markdown_says": "$$\\underline{\\text{ACCEPT}} \\text{ identifier-2 } ... \\text{ ]}$$ Format 3 (screen):    <-- appended to the end of the Format 2 math line, on page 606, immediately before the <a id=\"page-607\"></a> anchor; page 607's slice has no 'Format 3 (screen):' line at all",
+      "why_it_matters": "The figure label is both on the wrong page and glued onto the closing '$$' of the preceding display-math block, so it renders as trailing text on the Format 2 formula instead of as the heading for the Format 3 diagram that follows the page break. Anyone reading page 607 sees 'ACCEPT screen-name-1' with no format label; anyone reading page 606 sees a stray label attached to the wrong figure.",
+      "suggested_repair": "In specs/ISO_COBOL.md around line 25254, split 'Format 3 (screen):' off the '$$...$$' line and move it below the <a id=\"page-607\"></a> / '## Page 607' scaffolding, directly above '<u>ACCEPT</u> screen-name-1'."
+    },
+    {
+      "page": 607,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.9.1.3 Syntax rules and 14.9.1.4 General rules are printed at the same typographic level as their siblings 14.9.1.1 General and 14.9.1.2 General formats (page 606), all four being fourth-level clauses under 14.9.1 ACCEPT statement.",
+      "markdown_says": "page 606: '#### 14.9.1.1 General' and '#### 14.9.1.2 General formats'; page 607: '## 14.9.1.3 Syntax rules' and '## 14.9.1.4 General rules' (source lines 25246, 25270, 25285)",
+      "why_it_matters": "Sibling clauses land two levels apart, and 14.9.1.3 / 14.9.1.4 end up at '##' -- the SAME level as their great-grandparent '## 14.9 Statements' -- so the syntax rules and general rules of ACCEPT detach from the ACCEPT statement in every generated table of contents and in any tool that walks the heading tree. 14.9.1.1/14.9.1.2 are the only two '####' headings among all 204 14.9.x.y headings in the file, so this pair is a localized anomaly, not the document convention.",
+      "suggested_repair": "Normalize all four to the dominant '### 14.9.1.N ...' level used by 162 of the 204 14.9.x.y headings (and by 14.9.1's own siblings' subclauses), i.e. demote the two '####' on page 606 and promote the two '##' on page 607."
+    },
+    {
+      "page": 644,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": "In all three DIVIDE figures the exception rows print as 'ON SIZE ERROR imperative-statement-1' / 'NOT ON SIZE ERROR imperative-statement-2' where SIZE and ERROR carry underline rules and NOT carries an underline rule, but ON is NOT underlined in either row (verified on the enlarged crop of the Format 1 block).",
+      "markdown_says": "> **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `ON`, `SIZE`, `ERROR`, `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).  -- and identically in the Format 2 note ('`DIVIDE`, `INTO`, `GIVING`, `ON`, `SIZE`, `ERROR`, `NOT`, and `END-DIVIDE`') and the Format 3 note ('`DIVIDE`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`, `NOT`, and `END-DIVIDE`')",
+      "why_it_matters": "ON is an optional word in the ON SIZE ERROR phrase -- 'SIZE ERROR ...' and 'NOT SIZE ERROR ...' are legal COBOL. Three figure notes on this page assert ON is a required word, which is the transcription's own annotation contradicting the printed glyphs and would drive an implementation to reject legal source. The correctly-written sibling notes on pages 618, 619 and 640 list only the genuinely underlined words and omit ON.",
+      "suggested_repair": "Delete '`ON`, ' from the underlined-word list in all three DIVIDE figure notes on page 644, leaving DIVIDE / INTO / GIVING / BY / SIZE / ERROR / NOT / END-DIVIDE as appropriate per format."
+    },
+    {
+      "page": 640,
+      "kind": "other",
+      "severity": "cosmetic",
+      "pdf_says": "DISPLAY Format 2 prints the AT phrase with choice-indicator bars inside its brace and the exception phrase with choice-indicator bars inside its bracket (both verified on the enlarged crop).",
+      "markdown_says": "> **Figure notes -- choice indicators (ISO 5.2.6.4).** Two groups in this format carry choice-indicator bars, both lost in transcription.  -- while the code block directly above it DOES render them: '⎧|                ⎧ identifier-2 ⎫             |⎫' and '⎡|  ON EXCEPTION imperative-statement-1      |⎤'",
+      "why_it_matters": "The figure note contradicts the diagram it annotates: it declares the bars 'lost in transcription' when the accompanying ASCII diagram correctly preserves them. A later reader (or a repair pass) may believe this figure is still defective and 'fix' an already-correct diagram, or conversely conclude the bars in the diagram are spurious. This is the only note in the batch that describes the transcription's own history rather than the printed standard.",
+      "suggested_repair": "Reword to describe the standard, not the transcription: 'Two groups in this format carry choice-indicator bars, both preserved in the diagram above.' (or simply drop the clause 'both lost in transcription')."
+    }
+  ]
+}

@@ -24,25 +24,41 @@ internal static class OperandText
     // exhaustive (PHASE-07 Step 6f) — a new BoundOperand leaf is a COMPILE error, the loud `_ =>` defaults are gone.
     // The intrinsic-operand case is intercepted at the entry (it needs the PER-UNIT renderer, which the cached
     // static visitors cannot hold); the visitor's computed arm keeps the loud non-intrinsic case.
-    private static readonly AsStringVisitor _asStringPlain = new(deSign: false);
-    private static readonly AsStringVisitor _asStringDeSign = new(deSign: true);
+    // Four cached instances = deSign × floatCheck (both flags carried on the instance so every call is
+    // allocation-free). floatCheck on (the default) wraps a float sending read in CobolFloat.Sending
+    // (EC-DATA-NOT-FINITE, §14.6.13.2 item 3); the exempt callers (class condition, future VALIDATE) pass false.
+    private static readonly AsStringVisitor _asStringPlain = new(deSign: false, floatCheck: true);
+    private static readonly AsStringVisitor _asStringDeSign = new(deSign: true, floatCheck: true);
+    private static readonly AsStringVisitor _asStringPlainNoCheck = new(deSign: false, floatCheck: false);
+    private static readonly AsStringVisitor _asStringDeSignNoCheck = new(deSign: true, floatCheck: false);
     private static readonly IsStringVisitor _isString = new();
 
-    public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false) =>
+    private static AsStringVisitor Visitor(bool deSign, bool floatCheck) =>
+        floatCheck ? (deSign ? _asStringDeSign : _asStringPlain)
+                   : (deSign ? _asStringDeSignNoCheck : _asStringPlainNoCheck);
+
+    public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false, bool floatCheck = true) =>
         op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } ic }
             ? num.Intrinsics.RenderString(ic)
-            : op.Accept(deSign ? _asStringDeSign : _asStringPlain);
+        // A bare figurative (HIGH-VALUE/LOW-VALUE/SPACE/…) in a DISPLAY/STRING/STOP value position is an
+        // alphanumeric value (§8.3.3.6.4 GR1) of one character (GR3b). Materialize it through the declared collating
+        // tables so HIGH-/LOW-VALUE is the runtime-collating extreme (§8.3.3.6.4 GR6/GR7), matching the MOVE and
+        // relation paths — not the native pin. Intercepted at the ENTRY (like the intrinsic channel) because the
+        // AsStringVisitor has no access to the renderer's collating context; cat=null ⇒ the alphanumeric PCS applies.
+        : op is BoundFigurative fig
+            ? $"new string({FigurativeConstants.Fill(fig.Kind, num.Collating, null, num.NationalCollating)}, 1)"
+            : op.Accept(Visitor(deSign, floatCheck));
 
     /// <summary>A data item's character image directly from its <see cref="Place"/> — the num-free entry for
     /// callers that hold a Place (a FIELD can never be an intrinsic operand, so no per-unit renderer is
     /// needed). Same rendering as <see cref="AsString"/> over a field operand.</summary>
-    public static string FieldImage(Place p, bool deSign = false) => FieldAsString(p, deSign);
+    public static string FieldImage(Place p, bool deSign = false, bool floatCheck = true) => FieldAsString(p, deSign, floatCheck);
 
     /// <summary>True if an operand is compared as text (an alphanumeric literal, or an alphanumeric/edited/group
     /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
     public static bool IsString(BoundOperand op) => op.Accept(_isString);
 
-    private static string FieldAsString(Place p, bool deSign = false)
+    private static string FieldAsString(Place p, bool deSign = false, bool floatCheck = true)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
         // category (ISO §8.4.2.4) — its Read() is already the character slice (a numeric inner goes through
@@ -91,7 +107,11 @@ internal static class OperandText
                 : $"CobolNum.FormatDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})",
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §14.9.11 GR1 implementor-defined) — never a bare .ToString().
-            { Category: PicCategory.Numeric } => $"CobolFloat.Display({PlaceRenderer.Read(p)})",
+            // The sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking,
+            // §14.6.13.2 item 3) UNLESS this is an exempt context (class condition / VALIDATE — floatCheck false).
+            { Category: PicCategory.Numeric } => floatCheck
+                ? RuntimeApi.FloatDisplay(RuntimeApi.FloatSending(PlaceRenderer.Read(p)))
+                : RuntimeApi.FloatDisplay(PlaceRenderer.Read(p)),
             // National and boolean items are string-stored (D-N1/D-B1) — the value IS the character image.
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean } => PlaceRenderer.Read(p),
@@ -115,11 +135,13 @@ internal static class OperandText
     /// <summary>The operand→DISPLAY-image dispatch (PHASE-07 Step 6f). <paramref name="deSign"/> carried on the
     /// instance so the two cached instances need no per-call allocation. Each Visit is the former <c>AsString</c>
     /// switch arm verbatim.</summary>
-    private sealed class AsStringVisitor(bool deSign) : IBoundOperandVisitor<string>
+    private sealed class AsStringVisitor(bool deSign, bool floatCheck) : IBoundOperandVisitor<string>
     {
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
-        public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign);
+        public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, floatCheck);
+        // A bare figurative is intercepted PCS-aware at AsString's ENTRY (the collating context lives on the
+        // renderer, not this visitor); this arm is the unreachable native-pin fallback the visitor interface requires.
         public string Visit(BoundFigurative n) => $"new string({FigurativeConstants.Fill(n.Kind, null)}, 1)";   // DISPLAY shows one occurrence (GR3)
         public string Visit(BoundAllLiteral n) => EmitText.CsLiteral(n.Literal);                          // length-unspecified: the literal once (GR3c)
         // An ALPHANUMERIC/NATIONAL-result intrinsic operand is intercepted at AsString's ENTRY (it renders

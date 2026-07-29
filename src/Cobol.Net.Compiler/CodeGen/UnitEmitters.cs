@@ -86,6 +86,7 @@ internal sealed class UnitEmitters
         SeqIo.Statements = Statements;
         Sort.Statements = Statements;
         ControlFlow.Statements = Statements;
+        ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr
         Call.Statements = Statements;
         Cond.Calls = Call;   // BoundUdfEvaluated — the per-evaluation function-activation text (P10 Step 10)
     }

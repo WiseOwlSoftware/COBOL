@@ -136,6 +136,50 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>Compile each of <paramref name="companions"/> into its OWN assembly beside
+    /// <paramref name="source"/>, then compile and run <paramref name="source"/> — the SEPARATELY COMPILED
+    /// module case, resolved at run time by <c>ProgramTable</c>'s sibling-module probe (§8.4.6.3 rule 4).
+    ///
+    /// <para>This is not a convenience: some rules are only reachable ACROSS a compilation boundary and are
+    /// untestable in a single group. §14.9.18.4 GR1b is the case that forced it — an exception condition
+    /// staged by <c>GOBACK … RAISING</c> is raised in the activator only if the ACTIVATOR enabled checking for
+    /// it, and within one compilation group any <c>>>TURN</c> anywhere makes the whole group EC-active, so an
+    /// unchecked-activator test cannot be written as one program.</para></summary>
+    public (bool ok, string stdout, string detail) CompileAndRunWith(string source, params string[] companions)
+    {
+        string dir = CutRunner.NewTempDir("cn");
+        try
+        {
+            foreach (string companion in companions)
+            {
+                // The assembly must be NAMED for its PROGRAM-ID: ProgramTable's sibling-module probe locates a
+                // separately-compiled program by looking for <program-name>.dll beside the caller (§8.4.6.3
+                // rule 4). A generic "companion0.dll" compiles fine and is then never found at run time, which
+                // surfaces as EC-PROGRAM-NOT-FOUND rather than as a harness error.
+                var m = System.Text.RegularExpressions.Regex.Match(
+                    companion, @"PROGRAM-ID\.\s*([A-Za-z0-9][A-Za-z0-9-]*)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (!m.Success) return (false, "", "[harness] a companion module has no PROGRAM-ID to name its assembly after");
+                string name = m.Groups[1].Value;
+                string csrc = Path.Combine(dir, name + ".cob");
+                File.WriteAllText(csrc, companion);
+                var cr = CompilerDriver.Compile(new CompilerDriver.Options(
+                    csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel));
+                if (!cr.Success)
+                    return (false, "", $"[cobolnet compile {name}] {cr.Status}: {string.Join("\n", cr.Errors)}");
+            }
+
+            string src = Path.Combine(dir, "prog.cob");
+            string dll = Path.Combine(dir, "prog.dll");
+            File.WriteAllText(src, source);
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            if (!result.Success)
+                return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
+
+            return CutRunner.Run(dll, dir);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>Compile+run and return the NUMERIC process exit code — the STOP RUN / GOBACK termination status
     /// "passed to the operating system" (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). A compile failure returns
     /// <c>(-1, "", detail)</c>.</summary>

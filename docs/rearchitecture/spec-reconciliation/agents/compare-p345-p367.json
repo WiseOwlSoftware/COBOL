@@ -1,0 +1,15 @@
+{
+  "batch": [345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367],
+  "pages_checked": [345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367],
+  "findings": [
+    {
+      "page": 363,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "12.4.6.3.2 General format:  APPLY COMMIT ON  [[ file-name-1][identifier-1]]...   — in the printed figure APPLY and COMMIT each carry an underline; ON carries no underline. (Preceding figure, 12.4.6.2: \"I-O-CONTROL  .  [ [ apply-commit-clause] . ]   [[{ same-clause }...].]\" — I-O-CONTROL is underlined.)",
+      "markdown_says": "```\nAPPLY COMMIT ON  [[ file-name-1][identifier-1]]…\n```\n(and, above it, \"```\\nI-O-CONTROL . [ [ apply-commit-clause] . ]  [[ { same-clause } …].]\\n```\") — both figures are plain code blocks with no <u> markup and no \"Figure notes\" paragraph, so no underlining information survives.",
+      "why_it_matters": "Underlining is normative in a general format: underlined uppercase words are required words, non-underlined uppercase words are optional words. With the underlines dropped, the markdown APPLY COMMIT ON reads as three required keywords, when ON is optional — the falsely-restrictive-syntax failure mode this sweep is hunting. Every other general format in this batch preserves the distinction: pages 349, 355, 357, 359, 361 and 365 each carry an explicit \"Figure notes\" paragraph naming which words are underlined, and page 365 Formats 1 and 2 use inline <u>SAME</u> / <u>RECORD</u> markup. Page 363 is the only figure-bearing page in the batch that records neither.",
+      "suggested_repair": "Add a \"Figure notes\" paragraph after each of the two code blocks on page 363, matching the convention used on 349/355/357/359/361/365: for 12.4.6.3.2 state that APPLY and COMMIT are underlined (required words) and ON is not underlined (optional word), and that the ellipsis binds to the outer bracket pair so the [ file-name-1 ][ identifier-1 ] group may repeat; for 12.4.6.2 state that I-O-CONTROL is underlined and that nothing else in that figure is."
+    }
+  ]
+}

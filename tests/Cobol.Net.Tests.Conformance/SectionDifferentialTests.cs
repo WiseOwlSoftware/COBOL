@@ -137,4 +137,81 @@ public sealed class SectionDifferentialTests
             BUMP.
                 ADD 1 TO WS-RUNS.
             """));
+
+    // ── EXIT SECTION (ISO §14.9.14 Format 4, GR7) — SPEC-PINNED (the legacy shares the __atExit latent bug so a
+    //    differential would match the WRONG output); EXIT SECTION is a 2002 introduction, so compiled at 2023 ──
+
+    /// <summary>§14.9.14.4 GR7 — EXIT SECTION from a MID-section paragraph of a PERFORMed section transfers to the
+    /// section end, triggering the PERFORM's return: the rest of W1 AND the following paragraph W2 must NOT run.
+    /// This is the exact case the design's bare <c>pc = lastPara+1</c> port gets wrong — the bounded dispatch's
+    /// <c>__atExit</c> tail-check is false for a mid-section pc, so it would fall through into W2. Pinned to the
+    /// ISO result (the legacy is non-conforming here).</summary>
+    [Fact]
+    public void ExitSection_MidSectionUnderPerform_TriggersPerformReturn()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V5EXIT.
+            PROCEDURE DIVISION.
+            DRIVER SECTION.
+            D1.
+                DISPLAY "start".
+                PERFORM WORK-SEC.
+                DISPLAY "back".
+                STOP RUN.
+            WORK-SEC SECTION.
+            W1.
+                DISPLAY "w1".
+                EXIT SECTION.
+                DISPLAY "w1-tail".
+            W2.
+                DISPLAY "w2".
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
+        Assert.True(ok, detail);
+        Assert.Equal("start\nw1\nback", stdout);   // EXIT SECTION skips w1-tail AND W2, returns from PERFORM WORK-SEC
+    }
+
+    /// <summary>§14.9.14.4 GR7 at top level (not PERFORMed): EXIT SECTION transfers to the section end and execution
+    /// continues into the NEXT section (the implicit sequential return) — S1's tail is skipped, S2 runs.</summary>
+    [Fact]
+    public void ExitSection_TopLevel_FallsThroughToNextSection()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V5TOP.
+            PROCEDURE DIVISION.
+            S1 SECTION.
+            P1.
+                DISPLAY "s1".
+                EXIT SECTION.
+                DISPLAY "s1-tail".
+            S2 SECTION.
+            P2.
+                DISPLAY "s2".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
+        Assert.True(ok, detail);
+        Assert.Equal("s1\ns2", stdout);
+    }
+
+    /// <summary>§14.9.14.3 SR9 — EXIT SECTION outside a section (a paragraph before any SECTION header) is rejected
+    /// at compile time (COBOLNET0827, the EXIT-placement SR family).</summary>
+    [Fact]
+    public void ExitSection_OutsideSection_IsRejected()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. V5SR9.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "x".
+                EXIT SECTION.
+                STOP RUN.
+            """;
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
+        Assert.False(ok, "EXIT SECTION outside a section must be rejected (SR9)");
+        Assert.Contains("COBOLNET0827", detail);
+    }
 }

@@ -489,7 +489,7 @@ the topology work as **behavior-preserving mechanical steps**, each independentl
 7. **Wave 6 — StatementBinder & CSharpEmitter class breakups** (changes 25–32, 40–43). Per verb family, in ~20 small
    commits: extract the binder class + its renderer class + wire through `BinderContext`/`EmitContext`, run guard, next.
    The `BoundNode.Visitor` (change 32) lands early in this wave so each extracted renderer registers a compile-checked
-   arm. **One verb at a time** (feedback_iterate_one_at_a_time).
+   arm. **One verb at a time** (feedback_tiered_gates).
 8. **Wave 7 — OO to `Oo/`** (changes 34–38) and **ReferenceResolver split** (change 33). OO last among the binders
    because `OoDriver` depends on the Bind phase (wave 5) already existing.
 9. **Wave 8 — Backend split + de-dup helpers** (changes 44–45, 52, 23, 30) and the driver pipeline (changes 50–51).
@@ -510,7 +510,7 @@ guard; each extracted class ships with the header block; DEVLOG entry per commit
    oracle.
 2. **Namespace rename touching the ANTLR generated package.** The generator hard-codes the package; if the MSBuild
    property isn't threaded correctly the regen fails the build on fresh checkout.
-   *Mitigation:* verify regen on both Windows and WSL (feedback_commit_generated_parser) in Wave 0.
+   *Mitigation:* verify regen on both Windows and WSL (feedback_generated_parser_is_a_build_output) in Wave 0.
 3. **Cross-partial hidden coupling surfaces as compile errors during Wave 6.** Real class boundaries will expose
    currently-implicit shared-state reads. *Mitigation:* `BinderContext`/`EmitContext` carry the genuinely-shared state
    explicitly; anything else that surfaces is a latent coupling bug to fix, not to re-hide.

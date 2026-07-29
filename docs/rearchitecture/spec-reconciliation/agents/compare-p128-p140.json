@@ -1,0 +1,42 @@
+{
+  "batch": [128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 139, 140],
+  "pages_checked": [128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 139, 140],
+  "findings": [
+    {
+      "page": 140,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "Format 1 (boolean) is printed as ONE brace pair spanning both rows:  ⎧  B\"[boolean-character-1]  ... \"   ⎫ / ⎩  B'[boolean-character-1]  ... '   ⎭ ; Format 2 (hexadecimal-boolean) likewise as ONE brace pair spanning  BX\"[hexadecimal-digit-1]  ... \"  and  BX'[hexadecimal-digit-1]  ... ' .",
+      "markdown_says": "```\n{ B\"[boolean-character-1] ... \" }\n{ B'[boolean-character-1] ... ' }\n```\n... \n```\n{ BX\"[hexadecimal-digit-1] ... \" }\n{ BX'[hexadecimal-digit-1] ... ' }\n```",
+      "why_it_matters": "The printed figure is a single brace enclosing two stacked alternatives, i.e. exactly one of the two rows is chosen (5.2.6.4). The markdown gives each row its OWN brace pair, so the figure reads as two independent required groups rather than one two-way choice. It also breaks the transcription's own established convention: the structurally identical alphanumeric-literal figures in 8.3.3.2.2 on page 137 are correctly rendered with the spanning-brace glyphs ⎧ ⎫ / ⎩ ⎭. Verified by zooming the rendered page: the braces carry no vertical choice-indicator bars, so the only defect is the split of the spanning brace.",
+      "suggested_repair": "Render both 8.3.3.4.2 figures with the same spanning-brace convention used at 8.3.3.2.2, e.g.\n⎧  B\"[boolean-character-1]  … \"  ⎫\n⎩  B'[boolean-character-1]  … '  ⎭\nand\n⎧  BX\"[hexadecimal-digit-1]  … \"  ⎫\n⎩  BX'[hexadecimal-digit-1]  … '  ⎭"
+    },
+    {
+      "page": 138,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "8.3.3.2.4   General rules  (a fifth-level clause under 8.3.3.2 Alphanumeric literals, sibling of 8.3.3.2.1 General, 8.3.3.2.2 General format, 8.3.3.2.3 Syntax rules)",
+      "markdown_says": "<a id=\"section-8-3-3-2-4\"></a>\n## 8.3.3.2.4 General rules",
+      "why_it_matters": "The heading is emitted at level 2 while its parent 8.3.3.2 is level 3 (`### 8.3.3.2 Alphanumeric literals`) and its own siblings 8.3.3.2.1/.2/.3 are level 4 (`#### ...`). The child therefore outranks its parent in the document outline: any generated table of contents or heading-based navigation places 8.3.3.2.4 General rules outside 8.3.3.2, detaching the alphanumeric-literal general rules from the clause they belong to.",
+      "suggested_repair": "Demote to `#### 8.3.3.2.4 General rules` so it sits with its siblings 8.3.3.2.1–8.3.3.2.3 under `### 8.3.3.2 Alphanumeric literals`."
+    },
+    {
+      "page": 131,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "8.3.2.2.2 Class-name, 8.3.2.2.3 Compilation-variable-name, … 8.3.2.2.12 Interface-name — all fifth-level clauses under 8.3.2.2, exactly the same depth as 8.3.2.2.1 Alphabet-name on page 130",
+      "markdown_says": "## 8.3.2.2.2 Class-name  … ## 8.3.2.2.12 Interface-name   (level 2), whereas page 130 has `### 8.3.2.2.1 Alphabet-name` (level 3)",
+      "why_it_matters": "Sibling clauses of identical depth are emitted at two different heading levels. At level 2 these sub-clauses become outline siblings of their own parent group and of 8.3.2.3 System-names (also `##` on page 133), so the user-defined-word catalogue loses its nesting. The same split continues across pages 132–135 (8.3.2.2.13–8.3.2.2.31 and 8.3.2.3.2–8.3.2.3.12 at `##` while 8.3.2.3.1 General is `###`).",
+      "suggested_repair": "Normalize every 8.3.2.2.n / 8.3.2.3.n sub-clause heading to one level below its parent (`###` under `## 8.3.2.2` / `## 8.3.2.3`), matching 8.3.2.2.1 and 8.3.2.3.1."
+    },
+    {
+      "page": 136,
+      "kind": "incorrect-text",
+      "severity": "cosmetic",
+      "pdf_says": "The special-character-word table's column headings, printed once at the head of the table on page 135, are: \"Word\" and \"Meaning\". Page 136 is a continuation of that table and prints no heading row.",
+      "markdown_says": "| Symbol | Description |\n|--------|-------------|\n| – | Arithmetic operator - unary minus or subtraction |",
+      "why_it_matters": "The continuation half of the table is given an invented heading row whose labels differ from the standard's own terms. 8.3.2.4.2 defines these entries as special character *words*; labelling the column \"Symbol\" instead of \"Word\" drifts from the spec's terminology, and \"Description\" replaces \"Meaning\". The page-135 half of the same table correctly uses `| **Word** | **Meaning** |`.",
+      "suggested_repair": "Change the page-136 continuation header to `| **Word** | **Meaning** |` to match the printed headings carried over from page 135 (or merge the two halves into a single table)."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "userIgnoreFilters": [
+    "src/",
+    "tests/",
+    "tools/",
+    "scripts/",
+    "samples/",
+    "agents/",
+    "claude/",
+    "scratchpad/",
+    "specs/scripts/",
+    "docs/rearchitecture/spec-reconciliation/agents/"
+  ]
+}

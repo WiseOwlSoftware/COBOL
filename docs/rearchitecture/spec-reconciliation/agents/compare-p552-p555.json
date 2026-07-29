@@ -1,0 +1,21 @@
+{
+  "batch": [552, 553, 554, 555],
+  "pages_checked": [552, 553, 554, 555],
+  "findings": [
+    {
+      "page": 552,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "a)   a group data item that contains an occurs-depending table.  |  b)   an occurs-depending table.  |  c)   a data item that is subordinate to an occurs-depending table.  |  If a VALUE clause is associated with the data item referenced by a DEPENDING phrase, that value is considered to be placed in the data item after the occurs-depending table is initialized. Further rules for initializing tables are specified in 13.18.38, OCCURS clause.  -- all four blocks are printed INDENTED, flush with the body text of general rule 6) (whose sentence 'A data item is associated with an occurs-depending table when a data item is one of the following:' ends page 551), i.e. they are sub-items / a continuation of rule 6).",
+      "markdown_says": "specs/ISO_COBOL.md lines 23087-23093 place them at column 0, with no indentation:\n\"a) a group data item that contains an occurs-depending table.\"\n\"b) an occurs-depending table.\"\n\"c) a data item that is subordinate to an occurs-depending table.\"\n\"If a VALUE clause is associated with the data item referenced by a DEPENDING phrase, that value is considered to be placed in the data item after the occurs-depending table is initialized. Further rules for initializing tables are specified in 13.18.38, OCCURS clause.\"",
+      "why_it_matters": "The list nesting is the only thing that binds a)/b)/c) and the closing paragraph to general rule 6) of 13.18.63.4. At column 0 they read as free-standing top-level items sitting between rule 6) and rule 7), so a reader (or a tool slicing rules by indentation) can attach them to the wrong rule or treat the closing sentence as a general statement about all VALUE clauses rather than a rule about occurs-depending tables. The transcription's own convention indents sub-items everywhere else in this very subclause -- line 23071 is \"   c) for all other items\" under rule 4), and the a)/b) of rule 16) on page 553 (lines 14 and 16 of the page-553 slice) are indented 3 spaces -- so this block is an isolated anomaly, not a house style.",
+      "suggested_repair": "Indent specs/ISO_COBOL.md lines 23087, 23089, 23091 and 23093 by three spaces so they nest under general rule 6), matching the existing convention at line 23071 and at the rule-16) sub-items on page 553."
+    }
+  ],
+  "notes": [
+    "Page 552: only figure-adjacent content is prose; the leading continuation clause 'occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with an occurs-depending table when a data item is one of the following:' is NOT missing -- it is correctly merged into rule 6) at line 23080 on the page-551 side of the break. Rules 7)-12), NOTE 1, and the FORMAT 2 label verified verbatim.",
+    "Page 553: clean. Rules 13)-21), sub-rules a)/b) of rule 16), NOTE 2, NOTE 3, and the FORMAT 3 / FORMAT 4 labels all verified verbatim, including cross-references 14.7.8 THROUGH phrase.",
+    "Page 554: clean. Rules 22)-29) and the FORMAT 5 label verified verbatim, including the three cross-references 13.18.28 GROUP INDICATE clause; 13.18.41 PRESENT WHEN clause; 13.18.38 OCCURS clause.",
+    "Page 555: the one general format on this batch, 13.18.64.2 VARYING clause, was cropped and magnified. PDF prints 'VARYING { data-name-1 [ FROM arithmetic-expression-1 ] [ BY arithmetic-expression-2 ] } ...' with VARYING, FROM and BY underlined. Markdown reproduces it exactly, with <u> on all three required words. There are NO choice-indicator bars inside the brace or either bracket in the printed page, so none were lost; the brace opens and closes; the ellipsis sits immediately to the right of the closing brace in both sources, so it correctly binds to the braced group. Heading levels 13.18.64 (##) and .1/.2/.3/.4 (###) match the convention used by 13.18.62 and 13.18.63."
+  ]
+}

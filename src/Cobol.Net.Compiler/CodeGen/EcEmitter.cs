@@ -106,10 +106,32 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// runtime raise site consults; a raise throws <see cref="Runtime.Exceptions.CobolFatalException"/> which the
     /// statement guard catches for USE F3 dispatch (RESUME) else re-throws to terminate. Fixed order for
     /// byte-stability. (Nonfatal twins live in <see cref="EmitChecked"/>'s set/reset wrapper — they need no catch.)</summary>
-    private static readonly (string Ec, string Flag)[] FatalAmbientGates =
+    private static readonly (string Ec, string? Flag)[] FatalAmbientGates =
     [
         ("EC-ARGUMENT-FUNCTION", "ArgumentFunctionChecking"),   // §15.3 — intrinsic argument/domain error
         ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §8.4.3.3.4 — ref-mod out of range / zero-length
+        ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §14.6.13.2 item 3 — NaN/±Inf float sending operand
+        ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §14.9.25.4 GR4 step 4a — MOVE overflows a float receiver
+        ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §14.9.28.4 GR3 — index-name varied from a non-positive item
+        ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §13.18.5.4 GR3 / §14.9.39 F10 GR18 — NULL data-address
+        ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §13.18.5.4 GR4 — address neither NULL nor valid
+        ("EC-SIZE-ADDRESS", "SizeAddressChecking"),             // §14.9.39 F10 GR19 — non-integer SET UP/DOWN BY amount
+        ("EC-BOUND-SUBSCRIPT", "BoundSubscriptChecking"),       // §8.4.2.3.4 GR2 — subscript outside 1..highest
+        ("EC-BOUND-ODO", "BoundOdoChecking"),                   // §13.18.38.4 GR7 — DEPENDING value outside int-1..int-2
+        // ⛔ FLAG = null: these two raise sites are UNCONDITIONAL, so there is no checking flag to set. §14.9.23.4
+        // GR5 ("If identifier-1 is null, the EC-OO-NULL exception condition is set to exist and execution of the
+        // INVOKE statement is terminated") and GR7b (the method could not be located) describe crossings a
+        // typed-native model can never proceed through — there is no lenient value to return, exactly as with a
+        // null dereference. The entry exists so the statement still gets its try/catch and the condition can
+        // reach a USE declarative; a flag nothing reads would be state a future maintainer has to disprove.
+        ("EC-OO-NULL", null),                                   // §14.9.23.4 GR5 — INVOKE on a null receiver
+        ("EC-OO-METHOD", null),                                 // §14.9.23.4 GR7b — method could not be located
+        // FLAGGED, unlike its two neighbours: §14.9.23.4 GR7c raises only when checking is enabled in BOTH
+        // elements, and this flag is how the ACTIVATOR's half reaches the callee's __CobolInvoke, which runs
+        // synchronously inside the guard. The method's half is a compile-time literal (OoEmitter.OoUnivStop).
+        ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
+        ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
+        ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §14.9.39.4 GR30 — growth past the implementor max
     ];
 
     private bool EmitArgOrPlain(BoundEcChecked ec)
@@ -127,18 +149,27 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // ⇒ the actual __af.EcName drives the status/dispatch.
         string ecExpr = gates.Count == 1 ? CsLiteral(gates[0].Ec) : $"__af{id}.EcName";
         string nameTest = string.Join(" || ", gates.Select(g => $"__af{id}.EcName == {CsLiteral(g.Ec)}"));
-        foreach (var g in gates) w.Line($"ExceptionState.{g.Flag} = true;");
+        foreach (var g in gates.Where(g => g.Flag is not null)) w.Line($"ExceptionState.{g.Flag} = true;");
         using (w.Block("try"))
             Statements.EmitStatement(ec.Inner);
         using (w.Block($"catch (CobolFatalException __af{id}) when ({nameTest})"))
         {
-            if (ec.Info.WithLocation)
-                w.Line($"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});");
+            // §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
+            // is set … the last exception status is set to indicate that exception condition." The guard only
+            // exists where checking IS enabled, so the status is set here unconditionally — with the location
+            // operands when the enabling TURN carried WITH LOCATION (§7.3.25.4 GR7), without them otherwise.
+            // Previously only the WITH LOCATION arm set it, which was invisible while every fatal EC set the
+            // status at its raise site; a gate whose raise is UNCONDITIONAL (EC-OO-NULL / EC-OO-METHOD) has no
+            // such site, and FUNCTION EXCEPTION-STATUS returned SPACES inside its own declarative.
+            w.Line(ec.Info.WithLocation
+                ? $"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});"
+                : $"ExceptionState.Set({ecExpr}, true);");
             w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
             w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
         }
-        w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
+        var reset = gates.Where(g => g.Flag is not null).Select(g => $"ExceptionState.{g.Flag} = false;").ToList();
+        if (reset.Count > 0) w.Line("finally { " + string.Join(" ", reset) + " }");
         return false;   // conservative: the catch can resume past an inner transfer
     }
 
@@ -396,6 +427,18 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// (design SSOT §9.6 Q3). Both handler bodies are bounded pc-ranges run by the reused <c>__RunUse</c>.</summary>
     public void EmitPerformInterceptor(CodeWriter w)
     {
+        EmitEcPerformMember(w);
+        EmitRunF3(w, asLocal: false);
+    }
+
+    /// <summary>Emit the class-member <c>__EcPerform</c> raise-site funnel (ISO §14.9.28.4 GR17: a matching WHEN
+    /// preempts the USE declaratives). ALWAYS a class member — it reaches a handler only through
+    /// <see cref="ExceptionEngine.RunTopFrame"/> → the frame's Matcher (never <c>__RunF3</c> directly), so it is
+    /// class-callable even when the F3 PERFORM (and hence <c>__RunF3</c>/<c>__RunUse</c>) is METHOD-LOCAL (an OO
+    /// method's F3 PERFORM, design SSOT §9.10). Emitted once per program (the interceptor) and once per class that
+    /// has any method-F3 (<see cref="OoEmitter"/>, gated on <c>bound.Ec.HasF3Perform</c>).</summary>
+    public void EmitEcPerformMember(CodeWriter w)
+    {
         using (w.Block("private int __EcPerform(string __ec, string __f)"))
         {
             w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
@@ -403,11 +446,30 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 + "// GR17/18 win over USE; else the USE tiers / -3");
         }
         w.Line();
-        using (w.Block("private int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
+    }
+
+    /// <summary>Emit <c>__RunF3</c> (the WHEN handler + WHEN COMMON composer, ISO §14.9.28.4 GR19). SCOPE-PARAMETERIZED:
+    /// a class MEMBER for a program's F3 PERFORM, a method-LOCAL function for an OO method's F3 PERFORM (design SSOT
+    /// §9.10 — it calls <c>__RunUse</c>, which calls the method-local <c>__MDispatch</c>). Its sole caller is the frame
+    /// Matcher, emitted inline where the F3 PERFORM statement is (so a method-local <c>__RunF3</c> is in scope).</summary>
+    public void EmitRunF3(CodeWriter w, bool asLocal)
+    {
+        using (w.Block($"{(asLocal ? "" : "private ")}int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
         {
-            w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
-            w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
-            w.Line("return __a;");
+            // §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
+            // imperative-statement-1" — so imp-2/3/4 run with NO exception checking enabled (§14.6.13.1.1: "if
+            // checking for an exception that occurs is not enabled, no exception condition is raised"). It has to
+            // be done HERE, at runtime, and not only by binding the handler bodies under a disabled TurnState:
+            // the ambient gates are set by the guard around the RAISING statement, and this composer is called
+            // from inside that guard, before its finally clears them.
+            w.Line("var __ck = ExceptionState.PushAllCheckingOff();   // GR14 implicit PUSH ALL + TURN OFF ALL");
+            using (w.Block("try"))
+            {
+                w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
+                w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
+                w.Line("return __a;");
+            }
+            w.Line("finally { ExceptionState.PopAllChecking(__ck); }   // GR14 implicit POP ALL");
         }
         w.Line();
     }

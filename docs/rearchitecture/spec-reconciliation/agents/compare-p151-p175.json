@@ -1,0 +1,33 @@
+{
+  "batch": [151, 155, 157, 159, 161, 163, 165, 167, 169, 171, 173, 175],
+  "pages_checked": [151, 155, 157, 159, 161, 163, 165, 167, 169, 171, 173, 175],
+  "findings": [
+    {
+      "page": 155,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 155 opens with its own paragraph \"Format 3 (reference-modification):\" and the next paragraph is \"identifier-1  reference-modifier-1\". On page 154 the Format 2 body is the paragraph \"qualified-data-name-with-subscripts-1\" and nothing follows it on that page.",
+      "markdown_says": "specs/ISO_COBOL.md line 6678: \"qualified-data-name-with-subscripts-1 Format 3 (reference-modification):\" — the Format 3 label is welded onto the end of the Format 2 body line, before the <a id=\"page-155\"></a> anchor; the page-155 slice then begins directly with \"identifier-1 reference-modifier-1\".",
+      "why_it_matters": "8.4.3.1.2 is a run of label/body pairs (Format 1 … Format 11). With the label absorbed into the previous body, Format 2's body reads \"qualified-data-name-with-subscripts-1 Format 3 (reference-modification):\" and Format 3 appears to have no label at all, so any reader or extractor pairing format labels with their general-format bodies mis-attributes both formats.",
+      "suggested_repair": "Split line 6678: leave \"qualified-data-name-with-subscripts-1\" as the Format 2 body on page 154, and place \"Format 3 (reference-modification):\" as its own paragraph immediately after the <a id=\"page-155\"></a> / \"## Page 155\" scaffolding and above \"identifier-1 reference-modifier-1\"."
+    },
+    {
+      "page": 163,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "8.4.3.4.4 General rule 1 lists the applicable INVOKE forms one per line. Page 163 prints: \"INVOKE identifier-1 literal-1 USING arguments RETURNING temp-identifier\" then \"INVOKE identifier-1 literal-1 RETURNING temp-identifier\"; page 164 continues with \"INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier\" then \"INVOKE object-class-name-1 literal-1 RETURNING temp-identifier\", followed by a separate paragraph \"where:\" and then items a) b) c).",
+      "markdown_says": "specs/ISO_COBOL.md line 7078 (end of the page-163 slice): \"INVOKE identifier-1 literal-1 RETURNING temp-identifier INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier INVOKE object-class-name-1 literal-1 RETURNING temp-identifier where:\" — three of the four printed forms plus the \"where:\" lead-in run together on a single line.",
+      "why_it_matters": "General rule 1 defines the semantics of an inline method invocation by equivalence to one of four distinct INVOKE statement forms. Merged onto one line they read as a single unparsable statement, so the boundaries between the four alternatives (and hence which forms exist) are no longer recoverable, and the \"where:\" lead-in that governs items a)-c) on page 164 is buried inside that line, orphaning those definitions.",
+      "suggested_repair": "Restore four separate lines for the four INVOKE forms (keeping the first two before the page-164 anchor and the last two after it, matching the print), and make \"where:\" its own paragraph immediately before items a) b) c)."
+    },
+    {
+      "page": 157,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "Headings printed on page 157 in the normal clause hierarchy: \"8.4.3.1.4  General rules\" (a fourth-level clause under 8.4.3.1), then \"8.4.3.2  Function-identifier\", \"8.4.3.2.1  General\", \"8.4.3.2.2  General format\", \"8.4.3.2.3  Syntax rules\".",
+      "markdown_says": "specs/ISO_COBOL.md lines 6794-6828: \"## **8.4.3.1.4 General rules**\", \"## **8.4.3.2 Function-identifier**\", \"### **8.4.3.2.1 General**\", \"### **8.4.3.2.2 General format**\", \"### **8.4.3.2.3 Syntax rules**\" — heading text wrapped in bold markup, and none of the five carries the <a id=\"section-8-4-3-...\"></a> anchor that every neighbouring page in this run uses (e.g. page 161: \"<a id=\\\"section-8-4-3-3-1\\\"></a>\" + \"#### 8.4.3.3.1 General\").",
+      "why_it_matters": "Page 157 is the only page in this batch whose clause headings deviate from the document's own convention: the four-part clause 8.4.3.1.4 sits at markdown level 2, the same level as its uncle 8.4.3.2 (page 161 correctly puts 8.4.3.3.1 at level 4 under 8.4.3.3 at level 3), so a generated TOC shows 8.4.3.1.4 as a peer of 8.4.3.2; and the five missing section anchors mean citations of the form #section-8-4-3-2-2 (the Function-identifier general format, a figure this compiler cites) have no target.",
+      "suggested_repair": "Renumber the levels to match the convention (#### for 8.4.3.1.4, ### for 8.4.3.2, #### for 8.4.3.2.1/.2/.3), drop the ** wrappers from the heading text, and add the <a id=\"section-8-4-3-1-4\"></a>, <a id=\"section-8-4-3-2\"></a>, <a id=\"section-8-4-3-2-1\"></a>, <a id=\"section-8-4-3-2-2\"></a>, <a id=\"section-8-4-3-2-3\"></a> anchors."
+    }
+  ]
+}

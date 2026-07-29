@@ -25,6 +25,21 @@ public sealed record OoMethodSymbol(
     /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
     public OoClassSymbol Owner { get; set; } = null!;
 
+    /// <summary>The METHOD's half of §14.9.23.4 GR7c's "enabled in BOTH" gate: whether EC-OO-UNIVERSAL checking
+    /// is enabled where THIS method is defined. Folded at BIND time from the compilation group's line-keyed
+    /// TurnState at the METHOD-ID line and baked by <c>OoEmitter</c> as a compile-time literal.
+    ///
+    /// <para>⛔ It is folded HERE and not in the emitter because CODEGEN OWNS NO TurnState — every
+    /// <c>&gt;&gt;TURN</c> query in the compiler lives in the binder and codegen consumes only the results.
+    /// Reading TurnState from an emitter would be a second mechanism for a job the binder already does.</para>
+    ///
+    /// <para>The METHOD-ID line is the query point because the raise sites are in the <c>__CobolInvoke</c>
+    /// PROLOGUE — the arity, per-argument descriptor and RETURNING checks — which run before any statement of
+    /// the method body, so the state on ENTRY is what "enabled in the activated method" means. A class- or
+    /// program-level directive earlier in the file is picked up for free, since the fold walks every event with
+    /// a lower line.</para></summary>
+    public bool OoUniversalCheckingHere { get; set; }
+
     /// <summary>True for a FACTORY method (§11.4) — the SELF/SUPER roster selector and diagnostic wording;
     /// its formals' profiles/statics live on the FACTORY class, so CONTENT-conversion call sites qualify by
     /// <see cref="OoClassSymbol.FactoryCsName"/>.</summary>

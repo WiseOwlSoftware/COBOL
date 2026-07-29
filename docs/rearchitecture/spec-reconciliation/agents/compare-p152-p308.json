@@ -1,0 +1,51 @@
+{
+  "batch": [152, 164, 166, 172, 218, 224, 228, 286, 302, 304, 306, 308],
+  "pages_checked": [152, 164, 166, 172, 218, 224, 228, 286, 302, 304, 306, 308],
+  "findings": [
+    {
+      "page": 286,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "The 10.6.1 COBOL compilation group general format prints the repetition ellipsis INSIDE the outer bracket, immediately to the right of the closing brace: [ { program-prototype / function-prototype / program-definition / function-definition / class-definition / interface-definition } … ]  — the '…' glyph sits between the closing brace and the closing bracket (verified at 300 dpi; the closing bracket's right stroke is clearly to the right of the ellipsis).",
+      "markdown_says": "```\n⎡ ⎧ program-prototype    ⎫ ⎤\n⎢ ⎪ function-prototype   ⎪ ⎥\n⎢ ⎨ program-definition   ⎬ ⎥ …\n⎢ ⎪ function-definition  ⎪ ⎥\n⎢ ⎪ class-definition     ⎪ ⎥\n⎣ ⎩ interface-definition ⎭ ⎦\n```\n\n> **Figure notes (COBOL compilation group general format syntax diagram).** … the `…` immediately to the right of the bracket pair repeats the whole bracketed portion, so a compilation group is zero or more source units in any mix.",
+      "why_it_matters": "Per 5.2.7 the ellipsis binds to the delimiter immediately to its LEFT. In the printed standard it binds to the BRACE (repeat the chosen source-unit selection) and the whole repeated group is then optional; the markdown moved it outside the bracket so it binds to the BRACKET, and the figure note then asserts that wrong binding as if it were the standard's. Any grammar or doc derived from the markdown records the wrong nesting of repetition vs. optionality for the top-level compilation-group production.",
+      "suggested_repair": "Move the ellipsis inside the outer bracket, to the right of the closing brace column (e.g. `⎢ ⎨ program-definition   ⎬ … ⎥`), and rewrite the figure note to say the ellipsis binds to the closing brace: the braced selection may repeat, and the whole bracketed repetition is optional."
+    },
+    {
+      "page": 286,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "In the 'where program-prototype is:' and 'where function-prototype is:' skeletons the required words are underlined and the optional word IS is NOT: 'IDENTIFICATION DIVISION.' (both underlined), 'PROGRAM-ID.' / 'FUNCTION-ID.' (underlined), 'AS' (underlined), 'IS' (NOT underlined), 'PROTOTYPE.' (underlined), 'END PROGRAM' / 'END FUNCTION' (both words underlined). Verified at 300 dpi.",
+      "markdown_says": "[ IDENTIFICATION DIVISION. ]\n\nPROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE.\n\n[ options-paragraph ]\n… (identically for FUNCTION-ID. / END FUNCTION) — plain text, no underline markup and no 'Figure notes' paragraph recording which words are underlined.",
+      "why_it_matters": "Per 5.2.6.2 an underlined word is required and a non-underlined reserved word is an optional word that may be omitted. The transcription drops the distinction entirely for these two skeletons, so 'IS' reads as mandatory when 'PROGRAM-ID. name PROTOTYPE.' is legal source — exactly the falsely-restrictive-syntax failure mode. Every other figure on these pages carries a Figure-notes paragraph recording underlining; these two do not.",
+      "suggested_repair": "Render both skeletons in one fenced block preserving their line structure and add the standard 'Figure notes' paragraph: IDENTIFICATION, DIVISION., PROGRAM-ID./FUNCTION-ID., AS, PROTOTYPE., END, PROGRAM/FUNCTION are underlined (required words); IS is not underlined (optional word)."
+    },
+    {
+      "page": 164,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Page 164 opens with two further INVOKE substitution forms, each on its own line, followed by a blank line and the lead-in 'where:':\n    INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier\n    INVOKE object-class-name-1 literal-1 RETURNING temp-identifier\n\nwhere:\n(they continue the four-form list under 8.4.3.4.4 General rule 1, whose first two forms are printed at the foot of page 163)",
+      "markdown_says": "specs/ISO_COBOL.md line 7078, inside the page-163 slice and BEFORE the `<a id=\"page-164\"></a>` anchor:\n\"   INVOKE identifier-1 literal-1 RETURNING temp-identifier INVOKE object-class-name-1 literal-1 USING arguments RETURNING temp-identifier INVOKE object-class-name-1 literal-1 RETURNING temp-identifier where:\"\nThe page-164 slice then begins directly at \"a) arguments are the operands specified within parentheses…\".",
+      "why_it_matters": "Three of the four INVOKE forms plus the 'where:' lead-in are concatenated onto one physical line, so the list of four distinct statement forms reads as a single malformed INVOKE statement, and the reader cannot recover which forms exist. The material printed on page 164 is also filed under page 163, so a page-anchored citation to the object-class-name-1 forms resolves to the wrong page.",
+      "suggested_repair": "Split the run-on line back into four separate lines (one per INVOKE form), put the last two forms and the 'where:' lead-in after the `<a id=\"page-164\"></a>` anchor, and set the four forms as an indented block so their line structure is stable."
+    },
+    {
+      "page": 304,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "The NOTE after General rule 2 of 11.9.6 ('NOTE   NEAREST-AWAY-FROM-ZERO is the rounding mode provided by the ROUNDED phrase in earlier COBOL standards.'), the NOTE after 11.9.7.4 General rule 1 ('NOTE   All information required to interact successfully with a runtime element…'), and sub-items a) and b) under 11.9.7.4 General rule 4 are all printed indented under their parent numbered rule (the NOTEs additionally in the smaller NOTE type size).",
+      "markdown_says": "All four are transcribed flush at column 0, at the same level as the numbered rules:\n\"NOTE NEAREST-AWAY-FROM-ZERO is the rounding mode provided by the ROUNDED phrase in earlier COBOL standards.\"\n\"NOTE All information required to interact successfully with a runtime element can be made available to the compiler via this entry convention association; …\"\n\"a) If a class definition includes the INHERITS clause, …\"\n\"b) If an interface definition includes the INHERITS clause, …\"",
+      "why_it_matters": "The NOTEs detach from the rules they qualify and read as free-standing notes of the enclosing subsection, and a)/b) detach from General rule 4 ('When ENTRY-CONVENTION is not specified, the entry convention used is as follows:') so the condition governing them is lost. The same transcription indents these correctly elsewhere (page 172 rule 1 a)-c), page 228 syntax-rule NOTE, page 308 rules 2 a)-e) and its NOTE), so this page departs from the document's own convention.",
+      "suggested_repair": "Indent the two NOTE paragraphs and the a)/b) sub-items by three spaces so they remain continuation content of their parent numbered rule, matching pages 172, 228 and 308."
+    },
+    {
+      "page": 172,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "8.4.3.13.2 General format, 8.4.3.13.3 Syntax rules and 8.4.3.13.4 General rules are printed at the same heading rank as 8.4.3.14.1 General on the same page (identical size and weight; all are fourth-level subsections of 8.4.3).",
+      "markdown_says": "Same page: `## 8.4.3.13.2 General format`, `## 8.4.3.13.3 Syntax rules`, `## 8.4.3.13.4 General rules` (level 2) but `### 8.4.3.14.1 General` (level 3) — the four-level headings of 8.4.3.13 are promoted to the same markdown level as the three-level section headings.",
+      "why_it_matters": "Promoted headings make 8.4.3.13.2-.4 siblings of 8.4.3.13 itself rather than its children, so a generated table of contents and any heading-based navigation misrepresent the section tree. NOTE: this is systemic, not local to page 172 — the same promotion occurs for 8.4.3.11.2-.4, 8.4.3.12.1-.4, 8.4.3.13.1, 8.4.3.14.2-.4, 8.4.3.15.2-.3 and (on page 306 of this batch) 11.9.10.1. Fix it as one sweep, not page by page.",
+      "suggested_repair": "Sweep the file and set heading level from the dotted section number depth (n dots => level n+1); do not hand-edit page 172 alone."
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+OK LEN=03 EC[                               ]
+FRAC LEN=00 EC[EC-STORAGE-NOT-AVAIL           ]
+NEG LEN=00 EC[EC-STORAGE-NOT-AVAIL           ]
+CLAMP LEN=05 EC[EC-STORAGE-NOT-AVAIL           ]

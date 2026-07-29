@@ -1,0 +1,78 @@
+{
+  "batch": [1187, 1188, 1189, 1190, 1191, 1192, 1193, 1194, 1195, 1196, 1197, 1198],
+  "pages_checked": [1187, 1188, 1189, 1190, 1191, 1192, 1193, 1194, 1195, 1196, 1197, 1198],
+  "findings": [
+    {
+      "page": 1188,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "The uncaptioned flowchart on page 1188 (printed page 1158) carries three control-flow edges that are drawn, not implied: (a) a line leaves the LEFT edge of the box \"Augment identifier-5 with current BY value\", runs left and upward, and ends in an arrowhead entering the flow immediately ABOVE the box \"Execute specified set of statements\"; (b) a line leaves the LEFT edge of the box \"Augment identifier-2 with current BY value\", runs left and upward the full height of the figure, and ends in an arrowhead entering the flow immediately ABOVE the box \"Set identifier-5 to cur-rent FROM value\"; (c) the \"True\" exit of \"Condition-2\" runs to the right, turns down, and rejoins the main flow BELOW \"Augment identifier-5 with current BY value\" and above \"Condition-1\". Only the \"True\" exit of \"Condition-1\" reaches \"Exit\".",
+      "markdown_says": "Entrance\n\nSet identifier-2 to current FROM value\n\nSet identifier-5 to current FROM value\n\nExecute specified set of statements\n\nCondition-2 → True\n\nFalse ↓\n\nAugment identifier-5 with current BY value\n\nCondition-1 → True → Exit\n\nFalse ↓\n\nAugment identifier-2 with current BY value",
+      "why_it_matters": "The entire purpose of this figure is to show the NESTED loop structure of the VARYING/AFTER phrases of PERFORM with TEST AFTER: the inner loop returns to \"Execute specified set of statements\" and the outer loop returns to \"Set identifier-5 to current FROM value\" (re-initialising the inner variable on every outer iteration). With all three edges dropped the markdown reads as a straight-line, single-pass sequence, which is the opposite of what the figure states, and it silently removes the re-initialisation of identifier-5 that distinguishes PERFORM VARYING ... AFTER from two independent loops. The transcription of the neighbouring figures does preserve loop-backs (page 1186 uses fenced box-drawing art, page 1187 draws \"↑_________________________________|\"), so this page is an outlier, not a house style.",
+      "suggested_repair": "Re-render the page-1188 figure inside a fenced code block with the three edges restored, in the same box-drawing style already used for Figure D.13 on page 1186; at minimum add explicit return markers, e.g. \"Augment identifier-5 with current BY value → (back to: Execute specified set of statements)\" and \"Augment identifier-2 with current BY value → (back to: Set identifier-5 to current FROM value)\", plus \"Condition-2 → True → (join before Condition-1)\"."
+    },
+    {
+      "page": 1197,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "Under \"Fractional-seconds time formats\": \"Basic local time      hhmmss.sssss      051427.8124\" (five \"s\" characters after the period; verified by cropping and enlarging the printed row — every other row on the page has four).",
+      "markdown_says": "| Basic local time | hhmmss.ssss | 051427.8124 |",
+      "why_it_matters": "The transcription silently normalises the printed token from five \"s\" to four. It is almost certainly an ISO typographical defect (page 1198 states \"four \\\"s\\\" characters after the period are used for illustrative purposes\", and the paired value 051427.8124 has four fractional digits), but the reconciled markdown is supposed to BE the printed page; quietly repairing a printed defect makes the defect invisible to anyone using this file as the citable source, and makes any future PDF-vs-markdown diff report a phantom mismatch here.",
+      "suggested_repair": "Restore the printed token \"hhmmss.sssss\" and, if desired, record the ISO defect in a bracketed editor's note (e.g. \"hhmmss.sssss [sic; four \\\"s\\\" elsewhere and per D.31.5.2 note on p.1168]\") rather than by altering the text."
+    },
+    {
+      "page": 1195,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Page 1195 (printed 1165) opens with a full-width, non-bulleted paragraph: \"For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be \\\"1995021505142781-0500\\\"; in operating environments that do not have that capability, the returned result would be \\\"199502150514278100000\\\".\" It is a paragraph of D.31.3.2 (CURRENT-DATE function), sibling to the em-dash list, not a continuation of the list's final item.",
+      "markdown_says": "— Two digits indicating the number of additional minutes the reported time is ahead of or behind Greenwich Mean Time For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be \"1995021505142781-0500\"; in operating environments that do not have that capability, the returned result would be \"199502150514278100000\".",
+      "why_it_matters": "The paragraph is glued onto the end of the last em-dash bullet with no sentence or paragraph break, so it reads as though the example describes only the final two-digit minutes subfield rather than the whole 21-character CURRENT-DATE result. No text is lost, but the attachment point is wrong and the run-on \"...Greenwich Mean Time For example...\" is not a sentence.",
+      "suggested_repair": "Split at \"Mean Time\" / \"For example,\" so the example becomes its own paragraph following the em-dash list, still under D.31.3.2."
+    },
+    {
+      "page": 1193,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "\"D.31.2   Temporal format ACCEPT statement\" is printed at the same typographic rank as \"D.31.1   General\" (page 1192) — both are third-level clause headings under \"D.31 Date and time handling\".",
+      "markdown_says": "## D.31.2 Temporal format ACCEPT statement   (while its sibling on page 1192 is \"### D.31.1 General\", and their common parent is \"## D.31 Date and time handling\")",
+      "why_it_matters": "D.31.2 is rendered as a sibling of its own parent D.31 rather than as a child, and as a peer of neither. Sibling headings at different levels break the document outline, so any TOC generated from this file, and any tooling that resolves \"the enclosing clause\" for a citation, mis-parents everything from D.31.2 onward.",
+      "suggested_repair": "Demote to \"### D.31.2 Temporal format ACCEPT statement\". The same one-level promotion affects D.31.3 (p.1194), D.31.4 (p.1196) and D.31.5 (p.1196); fix them in the same pass so all four are \"###\" under \"## D.31\"."
+    },
+    {
+      "page": 1194,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "\"D.31.2.6   ACCEPT FROM DAY-OF-WEEK\" and \"D.31.2.7   ACCEPT FROM TIME\" are printed at exactly the same rank as D.31.2.1 through D.31.2.5 on page 1193.",
+      "markdown_says": "## D.31.2.6 ACCEPT FROM DAY-OF-WEEK   and   ## D.31.2.7 ACCEPT FROM TIME   (whereas page 1193 has \"### D.31.2.1 General\" … \"### D.31.2.5 ACCEPT FROM DAY YYYYDDD\")",
+      "why_it_matters": "Two members of one numbered series sit two heading levels above their five siblings purely because a page break fell between them. The outline then shows ACCEPT FROM DAY-OF-WEEK and ACCEPT FROM TIME as top-level annex clauses rather than as parts of D.31.2, which is exactly the kind of drift that makes a section-anchored citation resolve to the wrong scope.",
+      "suggested_repair": "Change both to \"### D.31.2.6 …\" and \"### D.31.2.7 …\" to match D.31.2.1–D.31.2.5."
+    },
+    {
+      "page": 1195,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "\"D.31.3.3   WHEN-COMPILED function\", \"D.31.3.4   INTEGER-OF-DATE function\", \"D.31.3.5   INTEGER-OF-DAY function\", \"D.31.3.6   DATE-OF-INTEGER function\", \"D.31.3.7   DAY-OF-INTEGER function\", \"D.31.3.8   TEST-DATE-YYYYMMDD function\", \"D.31.3.9   TEST-DAY-YYYYDDD function\" are all printed at the same rank as D.31.3.1 and D.31.3.2 on page 1194.",
+      "markdown_says": "## D.31.3.3 WHEN-COMPILED function … ## D.31.3.9 TEST-DAY-YYYYDDD function   (whereas page 1194 has \"### D.31.3.1 General\" and \"### D.31.3.2 CURRENT-DATE function\")",
+      "why_it_matters": "Seven of the nine subclauses of D.31.3 are promoted out of their parent at the page boundary, so the outline claims the basic date/time intrinsic-function clause contains only General and CURRENT-DATE.",
+      "suggested_repair": "Change all seven to \"### D.31.3.n …\" to match D.31.3.1 and D.31.3.2."
+    },
+    {
+      "page": 1197,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "\"D.31.5.2   Examples of time and date formats\" is printed at the same rank as \"D.31.5.1   General\" on page 1196.",
+      "markdown_says": "## D.31.5.2 Examples of time and date formats   (whereas page 1196 has \"### D.31.5.1 General\")",
+      "why_it_matters": "The cross-reference on page 1196 — \"illustrated in D.31.5.2, Examples of time and date formats\" — points at a clause the outline no longer places inside D.31.5, so the reference and the structure disagree.",
+      "suggested_repair": "Change to \"### D.31.5.2 Examples of time and date formats\"."
+    },
+    {
+      "page": 1198,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "\"D.31.5.3   FORMATTED-CURRENT-DATE function\", \"D.31.5.4   SECONDS-PAST-MIDNIGHT function\", \"D.31.5.5   FORMATTED-DATE function\", \"D.31.5.6   FORMATTED-TIME function\", \"D.31.5.7   FORMATTED-DATETIME function\" are all printed at the same rank as \"D.31.5.1   General\" on page 1196.",
+      "markdown_says": "## D.31.5.3 FORMATTED-CURRENT-DATE function … ## D.31.5.7 FORMATTED-DATETIME function   (whereas page 1196 has \"### D.31.5.1 General\")",
+      "why_it_matters": "Page 1197 states \"The intrinsic functions that support international date and time formats are described in D.31.5.3 through D.31.5.11\"; with those clauses promoted to \"##\" the outline no longer shows them as belonging to D.31.5, breaking that navigation promise.",
+      "suggested_repair": "Change D.31.5.3 through D.31.5.7 (and, in the same pass, D.31.5.8 through D.31.5.11 on the following pages) to \"### D.31.5.n …\"."
+    }
+  ]
+}

@@ -76,33 +76,77 @@ public sealed class ProgramTable
         staticReset?.Invoke();   // run-unit start = initial state for the unit's static data (§14.6.2.3.2 case 1)
     }
 
-    /// <summary>Run the run unit's MAIN program (the first program of the compilation group).</summary>
+    /// <summary>Run the run unit's MAIN program (the first program of the compilation group), owning the run-unit
+    /// TERMINATION epilogue: the §14.6.12 abnormal-termination surface (a fatal EC escaping the run unit → the
+    /// documented diagnostic + a nonzero process exit) and the §14.6.11 implicit CLOSE of ALL open run-unit
+    /// connectors. Both are RUN-UNIT-scoped (not main-compilation-group-scoped), so each applies even when the fatal
+    /// EC or the open file originates in a SEPARATELY-COMPILED CALLed module whose descriptors the main group's
+    /// entry wrapper never saw — the entry wrapper only catches <see cref="StopRun"/> (the normal-termination unwind
+    /// boundary; the STOP status itself is flushed run-unit-side by the <see cref="RunUnit.ExitStatus"/> setter).</summary>
     public void RunMain(string path)
     {
         var n = _byPath[path];
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;
         _owner.Modules.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
-        try { inst.Activate(); }
-        finally { n.Active--; _owner.Modules.Pop(); }
-        // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
-        // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
-        ApplyPropagationDefault();
+        try
+        {
+            try { inst.Activate(); }
+            finally { n.Active--; _owner.Modules.Pop(); }
+            // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
+            // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
+            ApplyPropagationDefault();
+        }
+        // The §14.6.12 abnormal-termination surface for a FATAL condition that reached the run-unit boundary
+        // unhandled — BOTH families, so neither escapes as a raw CLR crash: exception-condition fatals
+        // (CobolFatalException — a checking-enabled unresumed EC, §14.6.13.1.3 #7, or a raw runtime raise-point like
+        // a NULL BASED deref / an OO __CobolInvoke EC-OO-UNIVERSAL) AND the CALL/CANCEL machinery fatals
+        // (CobolCallException — EC-PROGRAM-NOT-FOUND / -RECURSIVE-CALL / -CANCEL-ACTIVE / EC-FUNCTION-NOT-FOUND,
+        // §14.9.4.4 GR3h → §14.6.13.1.3 #8). Runtime-side so a fatal from ANY runtime element reaches the surface,
+        // incl. a separately-compiled CALLed module (the settled SSOT §18.16 implementor choice).
+        catch (CobolFatalException fx) { AbnormalTermination(fx.Message); }
+        catch (CobolCallException cx) { AbnormalTermination(cx.Message); }
+        // An implementor-defined stop that raised NO exception condition (§14.6.13.1.1 NOTE 3) still terminates
+        // the run unit through the COBOL boundary — a .NET stack trace on the console is not a diagnostic a COBOL
+        // programmer can act on, and letting one escape is the runtime twin of emitting a Roslyn CS error on
+        // generated user source. Reported WITHOUT an exception-name, because there is none to name.
+        catch (CobolImplementorFatalException ix) { AbnormalTermination(ix.Message); }
+        finally
+        {
+            // §14.6.11(2): an implicit CLOSE without phrases for EVERY open file in the RUN UNIT, executed even when
+            // termination is abnormal (§14.6.12). Idempotent (FileRegistry.CloseAll), so the RunUnit.Run embedding
+            // path's own finally-CloseAll is a harmless double. StopRun unwinding from Activate passes THROUGH here
+            // (CloseAll runs) on its way to the entry wrapper's catch.
+            _owner.Files.CloseAll();
+        }
     }
 
-    /// <summary>Apply the activation-boundary default to an exception condition staged by the returning
-    /// element's <c>GOBACK / EXIT PROGRAM … RAISING</c> (ISO §14.9.18 GR) when the activating CALL site emitted
-    /// no pickup of its own (an EC-free caller — checking is off there, so the condition is not raised in the
-    /// activating element; the §14.6.13.1.3 #8 implementor choice, recorded in the conditions-exceptions
-    /// deep-dive): a FATAL staged condition terminates the run unit loudly; a nonfatal one stands in the
-    /// last-exception status (§14.6.13.1.4) and execution continues.</summary>
-    private void ApplyPropagationDefault()
+    /// <summary>The §14.6.12 abnormal-run-unit-termination indication (§14.6.11 CLOSE is the caller's finally): the
+    /// OS "shall indicate an abnormal termination" — this implementation writes the diagnostic to stderr and sets a
+    /// nonzero exit code (Annex A ERROR ⇒ 1; the settled §18.16 implementor choice).</summary>
+    private static void AbnormalTermination(string message)
     {
-        if (_owner.Exceptions.TakePropagated(out string pn, out bool pf) && pf)
-            throw new CobolFatalException(pn, "exception condition propagated by GOBACK/EXIT PROGRAM RAISING "
-                + "into an activator without exception checking (ISO 14.9.18; 14.6.13.1.3 #8 - this "
-                + "implementation terminates)");
+        Console.Error.WriteLine("abnormal run-unit termination: " + message);
+        Environment.ExitCode = 1;
     }
+
+    /// <summary>Discard an exception condition staged by the returning element's
+    /// <c>GOBACK / EXIT PROGRAM … RAISING</c> when the activating CALL site emitted no pickup of its own — i.e.
+    /// the activator has NOT enabled checking for it.
+    ///
+    /// <para>§14.9.18.4 GR1b is explicit and conditional: "If the RAISING phrase is specified, an exception
+    /// condition is raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED
+    /// in the activating runtime element, and execution continues in that runtime element as specified in the
+    /// rules for the activating statement". An unchecked activator therefore never has the condition raised in
+    /// it at all — fatal or not — and execution simply continues after the CALL. GR3 says the same for the
+    /// main-program half: a GOBACK with no activator "operates as if executing a STOP statement … A RAISING
+    /// phrase, if specified, is ignored."</para>
+    ///
+    /// <para>⚠ This used to throw for a FATAL staged condition, citing §14.6.13.1.3 #8. That was a
+    /// misapplication: #8's implementor latitude governs what may happen once a fatal condition EXISTS, and
+    /// GR1b stops it from ever coming into existence in an unchecked activator. The returning element's own
+    /// last-exception status, set by SetPropagating, still stands (§14.6.13.1.4).</para></summary>
+    private void ApplyPropagationDefault() => _owner.Exceptions.TakePropagated(out _, out _);
 
     /// <summary>
     /// Execute one CALL (ISO §14.9.4.4): resolve <paramref name="name"/> from <paramref name="callerPath"/> per
@@ -209,11 +253,17 @@ public sealed class ProgramTable
     public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, ManagedPointer? returning,
         bool siteHandlesPropagation = false)
     {
+        // §14.9.4.4 GR3b names TWO DISTINCT conditions and the NULL case is the FIRST of them: "If the data item
+        // referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL exception
+        // condition is set to exist. If the program cannot be located or identifier-1 references a zero-length
+        // item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist." This site used to raise
+        // EC-PROGRAM-NOT-FOUND for NULL, so a `USE AFTER EXCEPTION CONDITION EC-PROGRAM-PTR-NULL` declarative
+        // could never select. (GR3g's "invalid program address … undefined" governs a NON-null bad address, not
+        // NULL — which is why the old message's appeal to it was misplaced.) Table 13: Fatal.
         if (target.IsNull)
             throw new CobolCallException(
-                "CALL through a NULL program-pointer: the pointer contains no program address "
-                + "(ISO §14.9.4.4 GR — an invalid program address; this implementation raises "
-                + "EC-PROGRAM-NOT-FOUND)", "EC-PROGRAM-NOT-FOUND");
+                "CALL through a NULL program-pointer: the pointer contains the predefined address NULL "
+                + "(ISO §14.9.4.4 GR3b — EC-PROGRAM-PTR-NULL)", "EC-PROGRAM-PTR-NULL");
         CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation);
     }
 

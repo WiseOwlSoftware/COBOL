@@ -33,7 +33,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(StatementBinder.DataRefs(toAddend).Select(host.Expr.BindExpr));
             var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand());
-            ctx.Validation.CheckComposite("ADD", addends, givingRecv);
+            // §14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
+            // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§14.7.7
+            // rule 2). Pass no receivers so a wide GIVING target does not spuriously push the composite past 31
+            // (COBOLNET0805). MULTIPLY (§14.9.26.3 SR4 counts the GIVING receiver) is correctly unchanged.
+            ctx.Validation.CheckComposite("ADD", addends, []);
             return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
         if (add.addToPhrase() is { } to)
@@ -54,7 +58,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             var fromX = host.Expr.BindExpr(from);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
-            ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
+            // §14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§14.7.7
+            // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
+            ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
             return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
         }
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)

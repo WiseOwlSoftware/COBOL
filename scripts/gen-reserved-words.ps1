@@ -86,13 +86,18 @@ foreach ($w in @('ORDER')) { [void]$gc85.Remove($w) }
 $lines = Get-Content -LiteralPath $specPath
 $start = -1; $end = -1
 for ($i = 0; $i -lt $lines.Count; $i++) {
-    if ($start -lt 0 -and $lines[$i] -match '^##\s+8\.9\s+Reserved words') { $start = $i; continue }
-    if ($start -ge 0 -and $lines[$i] -match '^##\s+8\.10\s') { $end = $i; break }
+    # `#{2,}` not `##`: the transcription's heading depths were normalised (repairs/heading_depth.py) and
+    # §8.9 is now `### `, so the old two-hash anchor matched NOTHING and this script threw on every run.
+    if ($start -lt 0 -and $lines[$i] -match '^#{2,}\s+8\.9\s+Reserved words') { $start = $i; continue }
+    if ($start -ge 0 -and $lines[$i] -match '^#{2,}\s+8\.10\s') { $end = $i; break }
 }
 if ($start -lt 0 -or $end -lt 0) { throw "spec §8.9 section not located (start=$start end=$end)" }
 $iso2023 = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
 for ($i = $start + 1; $i -lt $end; $i++) {
-    $t = $lines[$i].Trim()
+    # The list is a real Markdown list now (it rendered as run-on prose as bare lines), and the
+    # special-character words are inline code so Markdown cannot eat them — `>` and `>>` used to VANISH into a
+    # blockquote. Strip the bullet and the code fence before matching; the word regex below is unchanged.
+    $t = ($lines[$i] -replace '^\s*-\s+', '' -replace '`', '').Trim()
     if ($t.Length -eq 0) { continue }
     $t = $t.Replace([char]0x2013, '-').Replace([char]0x2014, '-').ToUpperInvariant()
     switch ($t) {                                   # OCR remaps (DEVLOG 578 scout findings)

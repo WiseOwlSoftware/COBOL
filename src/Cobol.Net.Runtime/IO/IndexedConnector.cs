@@ -370,7 +370,10 @@ public sealed class IndexedConnector : FileConnector
         if (_access == KeyedAccess.Sequential)
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43' GR5
-            if (prime != _lastReadPrime) return Status = FileStatusCode.SequenceError;          // '21' GR22
+            // '21' §14.9.35 GR22 — the prime key of the replaced record must EQUAL that of the last record read;
+            // equality is collating-sequence-based per §12.4.5.12.4 GR1 (KeyEq honors _primeWeights), not ordinal.
+            if (_lastReadPrime is not { } lastPrime || !KeyEq(prime, lastPrime, -1))
+                return Status = FileStatusCode.SequenceError;
         }
         KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r.Image, -1), prime, -1));
         if (target is null) return Status = FileStatusCode.RecordNotFound;                      // '23' GR23

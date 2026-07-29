@@ -8,9 +8,10 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// PERFORM Format 3 (exception-checking, ISO §14.9.28 Format 3, COBOL-2023) conformance tests: the §14.9.28.3
 /// syntax rules + cross-statement bans (COBOLNET1597-1617), the COBOLNET0900 introduction gate, and the LANDED
-/// runtime interceptor (the pc-range interceptor — at 2023 a well-formed F3 PERFORM compiles clean and runs;
-/// remaining staged sub-GAPs are the open-mode WHEN operand + F3-in-a-method, each a loud COBOLNET0899). The
-/// runtime BEHAVIOUR is verified in PerformFormat3BehaviorTests; the frame-stack mechanics in PerformFrameStackTests.
+/// runtime interceptor (the pc-range interceptor — at 2023 a well-formed F3 PERFORM compiles clean and runs, in a
+/// program AND inside an OO method [design §9.10]; the open-mode WHEN operand + F3-in-a-method sub-GAPs are LANDED).
+/// The runtime BEHAVIOUR is verified in PerformFormat3BehaviorTests (program) + PerformFormat3MethodBehaviorTests
+/// (method); the frame-stack mechanics in PerformFrameStackTests.
 /// See docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md §9.
 /// </summary>
 public sealed class PerformFormat3Tests

@@ -1,0 +1,24 @@
+{
+  "batch": [2, 66, 76, 80, 89, 90, 92, 94, 96, 100, 102, 106],
+  "pages_checked": [2, 66, 76, 80, 89, 90, 92, 94, 96, 100, 102, 106],
+  "findings": [
+    {
+      "page": 102,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "In the 7.3.15.2 FLAG-14 general format the glyphs printed WITHOUT an underline are 'ALL' (first outer alternative) and 'ON' (first alternative of the trailing brace). Underlined are '>> FLAG-14', the twelve option names (COMPILE-TIME-ARITHMETIC-EXPRESSIONS, EVALUATE, I-O-DECLARATIVE, I-O-STATUS-04, I-O-STATUS-07, NUM-ED-ZERO-FIGCONST, READ-PREVIOUS, REF-MOD-ZERO-LENGTH, VALUE-EDITING, VALUE-FIG-CON-LENGTH, VALUE-ZERO, WRITE-END-OF-PAGE) and 'OFF'. Verified by 300 dpi crops of the 'ALL' row and the ON/OFF brace: no rule beneath 'ALL', no rule beneath 'ON', a clear rule beneath 'OFF'.",
+      "markdown_says": "> **Figure notes (FLAG-14 directive general format syntax diagram).** `FLAG-14`, `ALL`, all twelve option names (`COMPILE-TIME-ARITHMETIC-EXPRESSIONS`, `EVALUATE`, `I-O-DECLARATIVE`, `I-O-STATUS-04`, `I-O-STATUS-07`, `NUM-ED-ZERO-FIGCONST`, `READ-PREVIOUS`, `REF-MOD-ZERO-LENGTH`, `VALUE-EDITING`, `VALUE-FIG-CON-LENGTH`, `VALUE-ZERO`, `WRITE-END-OF-PAGE`), `ON`, and `OFF` are underlined in the printed standard (required words).  [specs/ISO_COBOL.md line 4401]  It further calls the ON/OFF brace \"a separate, required one-of-two selection\".",
+      "why_it_matters": "Per 5.2.6 an underlined uppercase word is a REQUIRED word and a non-underlined uppercase word is an OPTIONAL word that may be written or omitted at the user's choice. Promoting ALL and ON to required words is a falsely-restrictive transcription: it makes '>> FLAG-14 EVALUATE' (ON implied) and '>> FLAG-14 ON' read as illegal, and it contradicts 7.3.14.4 GR 2 / 7.3.15.4 GR 2 (\"If ON is explicitly or implicitly specified for an option\"), which only makes sense because ON is omissible. The note also self-contradicts the sibling FLAG-02 note on page 100, which records the identical glyphs correctly (\"`ALL` and `ON` are **not** underlined\"). A compiler built from this note would reject legal source and would have no implicit-ON path.",
+      "suggested_repair": "Rewrite the first sentence of the FLAG-14 figure note to match the FLAG-02 note on page 100: \"`FLAG-14`, all twelve option names (...), and `OFF` are underlined in the printed standard (required words). `ALL` and `ON` are **not** underlined (optional words).\" Also soften \"a separate, required one-of-two selection\" to note that selecting the ON alternative and omitting the optional word ON leaves the ON/OFF phrase empty (implicit ON)."
+    },
+    {
+      "page": 106,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "In the 7.3.17.2 LEAP-SECOND general format, '>>LEAP-SECOND' carries a full-width underline and 'OFF' carries an underline, but 'ON' is printed with NO underline. Verified by a 300 dpi crop of the brace: a rule sits under 'OFF' only.",
+      "markdown_says": "> **Figure notes (LEAP-SECOND directive syntax diagram).** `LEAP-SECOND`, `ON`, and `OFF` are underlined in the printed standard (required words). ... The braces enclose two alternatives, exactly one of which shall be selected.  [specs/ISO_COBOL.md line 4547]",
+      "why_it_matters": "Same falsely-restrictive class as the FLAG-14 note: an underlined uppercase word is REQUIRED, a non-underlined one is OPTIONAL and may be omitted. Recording ON as required makes a bare '>>LEAP-SECOND' read as illegal, whereas the printed format permits selecting the ON alternative and omitting the optional word — which is exactly what 7.3.17.4 GR 2 and GR 4 (\"When ON is specified or implied\") presuppose. Implementing from this note would emit a diagnostic for legal source and would lose the implicit-ON case.",
+      "suggested_repair": "Change to: \"`LEAP-SECOND` and `OFF` are underlined in the printed standard (required words); `ON` is **not** underlined (an optional word), so the ON alternative may be selected with the word ON omitted — see 7.3.17.4 GR 2 and GR 4, 'When ON is specified or implied'.\""
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "batch": [670, 671, 672, 675, 676, 677, 678, 679, 680, 682, 683, 684],
+  "pages_checked": [670, 671, 672, 675, 676, 677, 678, 679, 680, 682, 683, 684],
+  "findings": [
+    {
+      "page": 680,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "FORMAT 3\n\n19) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements ...\n\nFORMAT 4\n\n20) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement ...   [both 'FORMAT 3' and 'FORMAT 4' are printed as ordinary body text in the same size/weight as the sibling labels 'FORMAT 1', 'FORMATS 2 AND 3' and 'FORMAT 2' on pages 675/676/679 - they are format-applicability labels inside 14.9.22.4 General rules, not headings]",
+      "markdown_says": "## FORMAT 3\n\n19) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements ...\n\n## FORMAT 4\n\n20) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement ...   [specs/ISO_COBOL.md lines 28029 and 28033 - promoted to level-2 ATX headings, whereas every other format-applicability label in the same section is left as plain text: 'FORMATS 1 AND 3' (line ~27893 region), 'FORMATS 2 AND 3', 'FORMAT 1', 'FORMAT 4' on the page-675 slice, 'FORMATS 1 AND 2' on the page-676 slice, 'FORMAT 1', 'FORMATS 2 AND 3', 'FORMAT 2' on the page-679 slice, and 'FORMAT 2' at line 28007]",
+      "why_it_matters": "'## FORMAT 3' is the same heading rank as '## 14.9.22 INSPECT statement' (line 27762). Any heading-based section extraction over ISO_COBOL.md therefore terminates 14.9.22.4 General rules at rule 18 and re-parents General rules 19 through 23 (the entire normative definition of INSPECT formats 3 and 4, including EC-RANGE-INSPECT-SIZE for format 4) into two bogus top-level sections named 'FORMAT 3' and 'FORMAT 4'. A citation lookup for 14.9.22.4 GR 20 will silently miss it. The inconsistency is local and self-evident: the identical labels on the immediately preceding and following pages are plain text.",
+      "suggested_repair": "Demote both lines to plain body text - replace '## FORMAT 3' with 'FORMAT 3' and '## FORMAT 4' with 'FORMAT 4' at specs/ISO_COBOL.md lines 28029 and 28033, matching the treatment of every other format-applicability label in 14.9.22. Sweep the other six doc-wide occurrences of a '^## FORMAT n' heading (lines 6280, 6284, 6288, 6298, 19800, 25360) and verify each against its PDF page before demoting."
+    },
+    {
+      "page": 675,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "14.9.22.4   General rules   [a fourth-level subsection of 14.9.22 INSPECT statement, printed in the same bold heading style as 14.9.21.4 General rules on page 672]",
+      "markdown_says": "<a id=\"section-14-9-22-4\"></a>\n## 14.9.22.4 General rules   [specs/ISO_COBOL.md line 27892 - level 2, the same rank as '## 14.9.22 INSPECT statement' at line 27762, whereas the directly comparable '### 14.9.21.4 General rules' at line 27735 is correctly level 3 under '## 14.9.21 INITIATE statement']",
+      "why_it_matters": "At level 2 the General rules of INSPECT are a sibling of the INSPECT statement section rather than its child, so a heading-derived outline shows 14.9.22.4 detached from 14.9.22 and shows 14.9.22 as containing only General/General formats/Syntax rules. The neighbouring INITIATE section proves the intended level is 3, so this is an internal inconsistency, not a transcription convention.",
+      "suggested_repair": "Change '## 14.9.22.4 General rules' to '### 14.9.22.4 General rules' (line 27892). This is systemic, not isolated - '## 14.9.22.3 Syntax rules' (line 27853) has the same defect, as do 14.9.20.4, 14.9.24.4, 14.9.25.4, 14.9.26.4, 14.9.27.4, 14.9.28.3, 14.9.28.4 and others. Fix with one doc-wide sweep that re-levels every four-component 14.x.y.z heading to '###', not a per-page edit."
+    },
+    {
+      "page": 683,
+      "kind": "missing-heading",
+      "severity": "cosmetic",
+      "pdf_says": "14.9.23.4   General rules   [a fourth-level subsection of 14.9.23 INVOKE statement, printed in the same bold heading style as 14.9.23.1 General / 14.9.23.2 General format / 14.9.23.3 Syntax rules]",
+      "markdown_says": "<a id=\"section-14-9-23-4\"></a>\n## 14.9.23.4 General rules   [specs/ISO_COBOL.md line 28172 - level 2, the same rank as '## 14.9.23 INVOKE statement' at line 28050, while its own siblings '### 14.9.23.1 General' (28053), '### 14.9.23.2 General format' (28058) and '### 14.9.23.3 Syntax rules' (28083) are all level 3]",
+      "why_it_matters": "Same defect as page 675: the General rules of INVOKE become a sibling of the INVOKE section instead of its child, so General rules 1 through 22 of 14.9.23 are outlined outside 14.9.23. Here the three immediately preceding sibling headings on the same statement are level 3, so the intended level is unambiguous.",
+      "suggested_repair": "Change '## 14.9.23.4 General rules' to '### 14.9.23.4 General rules' (line 28172), as part of the same doc-wide re-levelling sweep described for page 675."
+    }
+  ]
+}

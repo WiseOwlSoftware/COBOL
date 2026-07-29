@@ -28,6 +28,7 @@ internal sealed class NameAllocator
     private int _ptr;         // pointer temporaries (__ptrBy/__notAlloc)
     private int _sort;        // sort-family temporaries (__srt)
     private int _strUnstr;    // STRING/UNSTRING locals
+    private int _vary;        // PERFORM VARYING index-range-check temporaries (__pv)
 
     public int NextDep() => _dep++;
     public int NextSizeErr() => _sizeErr++;
@@ -44,4 +45,5 @@ internal sealed class NameAllocator
     public int NextPtr() => _ptr++;
     public int NextSort() => _sort++;
     public int NextStrUnstr() => _strUnstr++;
+    public int NextVary() => _vary++;
 }

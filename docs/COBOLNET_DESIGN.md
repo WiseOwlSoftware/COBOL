@@ -844,8 +844,11 @@ LENGTH OF/BYTE-LENGTH → a folded `long` byte-size from PIC+USAGE; ADDRESS OF �
 LINE-COUNTER/PAGE-COUNTER + XML-*/JSON-* register NAMES are reserved by the registry but attach to their (scope-flagged)
 subsystems. **The run-unit exit code is ONE canonical field** (`RunUnit.ExitStatus`) — written by the STOP RUN /
 main-program GOBACK **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10) and by RETURN-CODE
-when implemented, read by the generated `Main` as the process exit code (a cross-subsystem contract, §14/§15; the
-DISTINCT RETURNING/GIVING activation result does not feed it — decision 20).
+when implemented; the setter flushes it to `Environment.ExitCode` AT THE WRITE SITE, so a status set by a
+separately-compiled CALLed module crosses the assembly boundary to the process exit code (STOP RUN terminates the
+whole run unit from anywhere — the flush cannot live in the main group's generated `Main`, which never sees the
+sibling module's parse tree). A cross-subsystem contract (§14/§15); the DISTINCT RETURNING/GIVING activation
+result does not feed it — decision 20.
 
 ### 12.3 Smaller surfaces
 
@@ -923,6 +926,21 @@ silent-stale-read that triggered the blank-slate rewrite. (A write through a vie
 the same class — Tier A/B accessors share the canonical; Tier C shares the class `byte[]`.)
 
 ### 14.4 ONE whole-group / materialize-to-image facility (G6)
+
+> ⛔ **THE BINARY/PACKED IMAGE REPRESENTATION BELOW IS SUPERSEDED BY OWNER DECISION (2026-07-28) AND IS THE ACTIVE
+> WORK ITEM — see plan §0 NEXT and fix-queue V59.** What is described here is the CURRENT compiler and stays
+> accurate until the change lands; do not implement from it.
+> **What changed and why.** "Named loser (c)" below rejects raw bytes on the grounds that *"cross-engine file
+> compatibility is not required"*. That premise is now reversed (differential-fidelity doctrine). But the decisive
+> argument is not interchange at all — **the zoned image contradicts the compiler's own pinned byte widths**:
+> `PicInfo.StorageWidth` already defines BINARY as 1-2-4-8 and PACKED as `Digits/2+1` BCD, `DataItem.ByteWidth`
+> documents them, and `FUNCTION BYTE-LENGTH` reports them. So for `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC 9(4)
+> COMP-3.` the compiler answers **BYTE-LENGTH(G) = 5** and **LENGTH(G) = 8** for one group, and accepts
+> `REDEFINES G PIC X(8)`. §15.14.4 GR1 returns the length in BYTES and §15.50.4 GR3 the length in ALPHANUMERIC
+> CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and a conforming program observes
+> the disagreement with no file and no byte pun. **One representation, at every byte boundary** — the image, file
+> records, SORT keys and the REDEFINES backing all take `StorageWidth` and the radix those widths already imply.
+
 
 There is ONE facility that turns a typed group/numeric into its alphanumeric image and back: a generated
 `string AsImage()` (and `FromImage`) per `record struct`, used by (a) whole-group MOVE/compare, (b) INSPECT/STRING/
@@ -1084,7 +1102,7 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 
 7. **Managed-pointer naming.** Confirm the carrier may be the typed-native `ManagedRef<T>` (NOT the legacy
    `(byte[],offset,length)` `ManagedPointer`). Keep the PUBLIC name `ManagedPointer` over the typed carrier (the
-   owner's prior choice), or rename to `ManagedRef`? The `feedback_managed_pointers` memory text still describes the
+   owner's prior choice), or rename to `ManagedRef`? The `feedback_one_mechanism_per_job` memory text still describes the
    byte form (the abandoned byte-substrate era).
 
 8. **Multiple class inheritance (OO).** v1 restricts to single inheritance (sufficient for the whole corpus) and
@@ -1399,8 +1417,8 @@ The legacy `CilEmitter` reached 2600 lines before being split into 11 `Cil*Emitt
 
 1. **Shared state lives in a context object, never a mega-class.** An `EmissionContext` (the `CodeWriter`, the `DataBinder`, the paragraph table, the division working-scale `_targetScale`, the dialect level) is passed to every emitter. Emitters are stateless-but-for-the-context cooperating units — exactly the legacy `EmissionContext`/`LoweringContext` pattern that already works here.
 2. **One file per statement-family emitter.** A verb family = a file. Adding a verb = a method in its family's emitter (or a new file for a new family), never a new branch threaded into a shared switch in a 2000-line file.
-3. **Respect the bind → lower → emit boundary** (and `feedback_binder_no_ir`): the **binder** produces the typed model (`DataItem`/`PicInfo`) and resolves references; **lowering** (G3/G4) normalizes hard COBOL shapes (CORR expansion, control-flow flattening) into a C#-friendly form; **emit** turns that into C# text. An emitter must not re-discover semantics the binder owns (e.g. category compatibility), and the binder must not emit text.
-4. **Dispatch generically, refactor-first** (`feedback_refactor_first_always`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
+3. **Respect the bind → lower → emit boundary** (and `project_dual_backend_goal`): the **binder** produces the typed model (`DataItem`/`PicInfo`) and resolves references; **lowering** (G3/G4) normalizes hard COBOL shapes (CORR expansion, control-flow flattening) into a C#-friendly form; **emit** turns that into C# text. An emitter must not re-discover semantics the binder owns (e.g. category compatibility), and the binder must not emit text.
+4. **Dispatch generically, refactor-first** (`feedback_change_the_dispatch_not_the_callers`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
 5. **Size is a *smell*, not the law — SRP is the law.** Heuristic thresholds: a class > ~400 lines or a method > ~60 lines triggers a "does this have one responsibility?" review. *But note `CilDataEmitter.cs` is 44 KB even after the split* — data is intrinsically broad; the test is cohesion, not line count. A 500-line class with one job is fine; a 200-line class doing two jobs is not.
 6. **Runtime split by concern** (already followed): `Numeric/`, `Text/`, `Control/`, `Pointers/`, `Files/` — never a `CobolRuntime` god class.
 
@@ -1454,7 +1472,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `DataRefs`
 // GOOD — the existing pattern-switch dispatch, one arm per family, easy to extend:
 case var _ when s.moveStatement()    is { } m: _move.Emit(m);   break;
 case var _ when s.addStatement()     is { } a: _arith.EmitAdd(a); break;
-// BAD — a growing if/else ladder in every caller (forbidden by feedback_refactor_first_always)
+// BAD — a growing if/else ladder in every caller (forbidden by feedback_change_the_dispatch_not_the_callers)
 ```
 
 *Result bundle — `record struct` vs. out-params:*
@@ -1472,7 +1490,7 @@ internal sealed class ArithmeticEmitter(EmissionContext ctx)   // GOOD: collabor
 // BAD: a 790-line CSharpEmitter holding _data, _paras, _targetScale, and every Emit* method.
 ```
 
-**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_bare_end`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
+**Standing conventions** (already in force, restated): full XML doc comments on public surface + inline rationale on non-obvious COBOL semantics (with ISO §citations — `feedback_spec_is_the_oracle`); generated C# written to `<name>.g.cs`, always inspectable; `SymbolDisplay.FormatLiteral` for every emitted string literal (never hand-rolled escaping).
 
 ---
 
@@ -1519,13 +1537,14 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     standard has no ALTER; §14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
     `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); a STOP RUN / main-program `GOBACK` WITH
     {NORMAL|ERROR} STATUS (§14.9.42.4 GR5 / §14.9.18.4 GR10) writes the termination status into the run-unit
-    `RunUnit.ExitStatus` field, which the generated `Main` reads into `Environment.ExitCode` (the status rides the
-    run-unit field, NOT a `ProgramReturn`/`StopRun` payload — `ProgramReturn` is caught at `__Activate`, never
-    reaching `Main`; a called-program GOBACK status is inert, GR2).
+    `RunUnit.ExitStatus` field, whose setter flushes it to `Environment.ExitCode` at the write site (the status
+    rides the run-unit field, NOT a `ProgramReturn`/`StopRun` payload — `ProgramReturn` is caught at the dispatcher,
+    never reaching `Main`; the write-site flush is why a separately-compiled module's STOP RUN … WITH STATUS reaches
+    the exit code even when the main group has no status phrase; a called-program GOBACK status is inert, GR2).
 11. **CALL BY REFERENCE of an irregular receiver.** Array element → C# `ref`; a reference-modified splice →
     promote to BY CONTENT (lenient default), diagnosable under a strict dialect.
 12. **Pointer carrier.** A typed `ManagedRef<T>` (managed reference; NOT the abandoned `byte[]`+offset+length form);
-    keep the public name **`ManagedPointer`** (owner preference). The `feedback_managed_pointers` memory note
+    keep the public name **`ManagedPointer`** (owner preference). The `feedback_one_mechanism_per_job` memory note
     describes the abandoned byte form (pre-rewrite) and is updated.
 13. **Boundary codec.** `System.Text.Encoding.Latin1` (lossless 8-bit) is the ONE shared boundary codepage constant
     — used by file serialization, REDEFINES Tier C, and the whole-group image. Settled once in `CobolNet.Runtime`.
@@ -1536,7 +1555,10 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
     subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS plus the historical postfix superset):
-    - **Alphanumeric**: `CollatingTable` (256-entry position table, §12.3.7 GR7 k1–k6 incl. the k3
+    - **Alphanumeric**: `CollatingTable` (a native-code→position table over the alphabet's Latin-1 domain; the native
+      alphanumeric REPERTOIRE is Unicode/UTF-16 [CA26] — a code unit beyond the domain keeps its native position, NOT
+      capped at 256, and `CobolString.Compare` no longer masks `& 0xFF`; Latin-1 is only the byte serialization,
+      §8.1.2 NOTE 2 — §12.3.7 GR7 k1–k6 incl. the k3
       distinct-ascending unspecified tail), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
       the generated `__COLLATE` field, consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
       relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
@@ -1566,9 +1588,11 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 19. **Intrinsic internals.** Never `decimal` — exact via unscaled `long`/`Int128`, float via `double` (extends the
     owner's decimal/BigInteger ban into intrinsic internals).
 20. **RETURN-CODE / termination status.** The run-unit exit code is ONE canonical field — `RunUnit.ExitStatus`
-    (long), read by the generated `Main` into `Environment.ExitCode`. It is written by the STOP RUN / GOBACK
+    (long), whose setter flushes to `Environment.ExitCode` AT THE WRITE SITE (so a separately-compiled CALLed
+    module's STOP RUN … WITH STATUS crosses the assembly boundary to the process exit code — the flush is
+    runtime-side, never per-`Main` scaffolding, upholding §18.16). It is written by the STOP RUN / GOBACK
     **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10 — the OS termination status) and, when
-    implemented, by the RETURN-CODE special register; a single cross-subsystem owner, never duplicated. NOTE:
+    implemented, by the RETURN-CODE special register; a single cross-subsystem owner AND a single flush, never duplicated. NOTE:
     RETURNING / GIVING is the **activation result** (§14.9.18.4 GR2 — moved into the caller's RETURNING item), a
     DISTINCT mechanism from the OS status — it does NOT feed the exit code.
 21. **Whole-group-as-alphanumeric.** A generated `string AsImage()` / `FromImage()` per record struct is the

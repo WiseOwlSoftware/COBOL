@@ -1,0 +1,33 @@
+{
+  "batch": [376, 380, 382, 386, 388, 390, 392, 396, 402, 404, 406, 410],
+  "pages_checked": [376, 380, 382, 386, 388, 390, 392, 396, 402, 404, 406, 410],
+  "findings": [
+    {
+      "page": 388,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "RD report-name-1\n  [ IS GLOBAL ]\n  [code-clause]\n  [control-clause]\n  [page-clause]  .\n\n(printed page 358 / PDF page 388. In the printed figure the word 'RD' carries an underline and, inside the first bracket, 'GLOBAL' carries an underline while 'IS' does not.)",
+      "markdown_says": "RD report-name-1\n\n&nbsp;&nbsp;&nbsp;&nbsp;[IS GLOBAL]\n\n&nbsp;&nbsp;&nbsp;&nbsp;[code-clause]\n\n&nbsp;&nbsp;&nbsp;&nbsp;[control-clause]\n\n&nbsp;&nbsp;&nbsp;&nbsp;[page-clause] .",
+      "why_it_matters": "Per 5.2.5 (keywords are shown underlined; optional words are shown not underlined), the underline is the ONLY thing distinguishing the required keyword GLOBAL from the optional word IS, and RD from a non-keyword. With both underlines dropped, the figure no longer records which words are required, so a reader cannot tell from the transcription that 'RD report-name-1 GLOBAL.' is legal without IS. The transcription does preserve this markup elsewhere in the same batch (page 376 has '<u>SD</u>', page 402 '<u>ALIGNED</u>', page 404 '<u>AUTO</u>', page 406 '<u>BASED</u>', page 410 '<u>BLINK</u>'), so this page is an outlier, not a document-wide convention.",
+      "suggested_repair": "Restore the required-word underlines in the 13.14.2 general format: '<u>RD</u> report-name-1' and '[ IS <u>GLOBAL</u> ]'. Optionally add a 'Figure notes' blockquote in the style used elsewhere in the transcription recording that RD and GLOBAL are underlined, IS is not, the four brackets are independent options with no choice indicators, and the terminating period is printed outside the last bracket."
+    },
+    {
+      "page": 390,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "PDF page 390 (printed 360) ends syntax rule 14 with:\n\"c)  If the literal is national, 'PICTURE N(length)'\"\nand nothing further. PDF page 391 (printed 361) then opens with a SEPARATE paragraph, set at the subrule indent and NOT lettered:\n\"where length is the length of the literal as specified in 8.3.3, Literals.\"\nfollowed by \"15) If BLANK WHEN ZERO or JUSTIFIED is specified, ...\".",
+      "markdown_says": "   c) If the literal is national, 'PICTURE N(length)' where length is the length of the literal as specified in 8.3.3, Literals.",
+      "why_it_matters": "The 'where length is ...' sentence is the closing definition for ALL THREE implied PICTURE strings of syntax rule 14 (X(length), 1(length), N(length)). Splicing it onto the tail of subrule c) makes it read as if 'length' were defined only for the national case, leaving 'length' undefined for the alphanumeric and boolean subrules. The transcription itself renders the identical construct correctly at 13.16.3 syntax rule 9 (specs/ISO_COBOL.md line 16953), where the same sentence stands as its own indented paragraph after subrule c), which confirms the p390 rendering is the defect and not the convention.",
+      "suggested_repair": "Split the sentence out of subrule c). Leave 'c) If the literal is national, 'PICTURE N(length)'' as the last subrule of rule 14 in the page-390 slice, and place 'where length is the length of the literal as specified in 8.3.3, Literals.' as its own indented paragraph at the head of the page-391 slice, immediately before syntax rule 15 - matching both the printed page break and the existing correct pattern at 13.16.3 rule 9."
+    },
+    {
+      "page": 390,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "PDF page 390 (printed 360) opens with the final row of the two-column Term / Subclause list that began on printed page 359:\n\"varying-clause          13.18.64, VARYING clause\"",
+      "markdown_says": "varying-clause 13.18.64, VARYING clause",
+      "why_it_matters": "The transcription renders the rest of this list as a markdown table in the page-389 slice ('| Term | Subclause |' ... '| value-clause | 13.18.63, VALUE clause (report-section format) |'), but the one row that fell past the page break is emitted as a bare paragraph in the page-390 slice, detached from the table it belongs to. The term-to-subclause mapping is still legible, so no normative content is lost, but the row is structurally orphaned and will not render or be extracted as part of the 13.15.2 meta-language term list.",
+      "suggested_repair": "Move the varying-clause row into the table in the page-389 slice as '| varying-clause | 13.18.64, VARYING clause |', or - if the page-slice boundary must be preserved verbatim - repeat the table header in the page-390 slice so the row is a table row rather than loose prose."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "page": 1017,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {
+    "pdf_says": "Old_Hungarian:\n10C80-10CB2, 10CC0-10CF2\n\n[end of page 987] ... [top of page 988]\n\nOld_Italic:\n...",
+    "markdown_says": "Old_Hungarian:\n10C80-10CB2, 10CC0-10CF2 Old_Italic:\n\n<a id=\"page-1018\"></a>",
+    "why_it_matters": "Same page-boundary defect at the 1017/1018 boundary: 'Old_Italic:' is merged onto the Old_Hungarian range line, so the Old_Italic ranges opening page 988 carry no script name. The edit site is the last content line of page 1017."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Independently confirmed against both rendered pages at 300 dpi and against the committed markdown. (1) PDF p1017 (printed 987): the last content block on the page is exactly two lines, 'Old_Hungarian:' then '10C80-10CB2, 10CC0-10CF2'. I read the printed glyphs: nothing follows '10CF2' on that line, and no 'Old_Italic' token appears anywhere on p1017. (2) PDF p1018 (printed 988): the first content block is 'Old_Italic:' on its own line, then '10300-1031F, 1032D-1032F'. (3) specs/ISO_COBOL.md line 40558 reads '10C80-10CB2, 10CC0-10CF2 Old_Italic:' -- the label has been hoisted across the page boundary and concatenated onto the Old_Hungarian range line -- and page 1018's content then opens at line 40564 with the bare range line '10300-1031F, 1032D-1032F' with no preceding script name. Both quotes in the claim are verbatim-accurate to their sources. This is not page-break furniture, wrapping, or hyphenation: the transcription moved a semantic label out of its own record and joined it to a different record's data, breaking the script-name-to-code-point-range association that IS the content of this list. A consumer parsing the list either mis-attributes 10300-1031F,1032D-1032F to Old_Hungarian or loses Old_Italic entirely. Decisive corroboration: the document carries a second, independent copy of this script/range list (lines 49355-49359) which transcribes the identical pair correctly as 'Old_Hungarian:' / '10C80-10CB2, 10CC0-10CF2' / blank / 'Old_Italic:' / '10300-1031F, 1032D-1032F' -- establishing both the intended shape and that the p1017 copy is the defective one. I found no basis on which to refute the claim.",
+    "corrected_description": "The claim is accurate as written; two refinements. (a) Precise edit: at specs/ISO_COBOL.md line 40558, split the trailing label off, leaving '10C80-10CB2, 10CC0-10CF2', and reinsert 'Old_Italic:' as a standalone line inside the page-1018 block immediately before line 40564 ('10300-1031F, 1032D-1032F'), matching the correct sibling transcription at lines 49355-49359. (b) The defect is systematic across this annex's page boundaries, not isolated: the immediately preceding boundary shows the identical corruption -- line 40506 reads '10980-1099F Miao:' with page 1017 then opening on the orphaned range line '16F00-16F4A, 16F50, 16F93-16F9F'. Any fix should sweep every page boundary in this script-range list rather than patching 1017/1018 alone."
+  }
+}

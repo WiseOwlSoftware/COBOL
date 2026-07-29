@@ -15,14 +15,20 @@ namespace CobolNet.CodeGen;
 //  gate: the 32 characterization snapshots).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/// <summary>The lexical region of a Format-3 (exception-checking) PERFORM currently being emitted — decides what an
-/// <c>EXIT PERFORM</c> compiles to (ISO §14.9.14.4 GR4 / §14.9.28.4 GR16): a plain <c>goto</c> to the PERFORM's
-/// implicit-CONTINUE-before-FINALLY label in imperative-statement-1, a thrown <see cref="Runtime.Exceptions.ExitPerformSignal"/>
-/// from a handler pc-range (imp-2/3/4, which runs in a nested dispatcher a goto cannot leave), a <c>goto</c> to the
-/// end label in FINALLY (imp-5), or — <see cref="None"/> — the ordinary inline-PERFORM <c>break</c>/<c>continue</c>.
-/// A nested inline PERFORM inside any of these saves/restores this to <see cref="None"/> so its own EXIT PERFORM
-/// breaks the inner loop (§14.9.14.4 GR5a).</summary>
-internal enum F3Region { None, Imp1, Handler, Finally }
+/// <summary>The lexical region governing what an <c>EXIT PERFORM</c> compiles to (ISO §14.9.14.4 GR4/GR5 /
+/// §14.9.28.4 GR16). For a Format-3 (exception-checking) PERFORM: a plain <c>goto</c> to the PERFORM's
+/// implicit-CONTINUE-before-FINALLY label in imperative-statement-1 (<see cref="Imp1"/>), a thrown
+/// <see cref="Runtime.Exceptions.ExitPerformSignal"/> from a handler pc-range (<see cref="Handler"/> — imp-2/3/4,
+/// which runs in a nested dispatcher a goto cannot leave), or a <c>goto</c> to the end label in FINALLY
+/// (<see cref="Finally"/> — imp-5). For an ORDINARY inline PERFORM (<see cref="Inline"/>): a <c>goto</c> to the
+/// per-PERFORM <c>__pexit</c> label just past the loop (EXIT PERFORM) or the <c>__pcont</c> label at the
+/// loop-control boundary (EXIT PERFORM CYCLE) — a bare C# <c>break</c>/<c>continue</c> cannot express GR5a/GR6
+/// when a multi-level VARYING is emitted as nested loops (it would leave/cycle only the innermost). Every inline
+/// PERFORM sets its OWN <see cref="Inline"/> region with a fresh id, so a nested inline PERFORM's EXIT PERFORM
+/// targets the innermost loop (§14.9.14.4 GR5a "the most closely preceding, unterminated inline PERFORM").
+/// <see cref="None"/> is a defensive fallback the binder never reaches for a valid EXIT PERFORM (SR8 permits it
+/// only inside an inline/F3 PERFORM).</summary>
+internal enum F3Region { None, Imp1, Handler, Finally, Inline }
 
 /// <summary>The PC-dispatcher state the statement emitters cooperate over (COBOLNET_DESIGN §5): which paragraph
 /// is being emitted, the NEXT SENTENCE label, the dispatch-method name, and the USE-declaratives hooks.</summary>
