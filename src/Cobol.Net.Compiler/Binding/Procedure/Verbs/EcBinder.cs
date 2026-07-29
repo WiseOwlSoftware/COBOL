@@ -282,7 +282,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The OO fatal conditions an INVOKE raises (§14.9.23.4 GR5 EC-OO-NULL, GR7b EC-OO-METHOD).
     /// A PRECISE per-node gate, not an ambient tail one: an INVOKE is a distinguishable bound node, so the guard
     /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
-    private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD"];
+    private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD", "EC-OO-UNIVERSAL"];
 
     /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
     private static readonly string[] ProgramNames =

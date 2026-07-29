@@ -60,4 +60,9 @@ public struct CheckingFlags
     /// <summary>EC-BOUND-ODO — an OCCURS DEPENDING control value outside integer-1 through integer-2
     /// (§13.18.38.4 GR7).</summary>
     public bool BoundOdo;
+
+    /// <summary>EC-OO-UNIVERSAL — the ACTIVATOR's half of §14.9.23.4 GR7c's "enabled in BOTH" gate. Set around
+    /// an INVOKE by the emitted statement guard and read by the callee's <c>__CobolInvoke</c>, which is entered
+    /// synchronously on the same run unit; the METHOD's half is a compile-time literal baked per method.</summary>
+    public bool OoUniversal;
 }

@@ -251,6 +251,25 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// the display IMAGE string (bridged by the FormatDisplay/StoreDisplay overload pair); other N:* →
     /// the native value; O:* → the CobolObject reference. A type declaring zero non-override methods
     /// emits no override.</summary>
+    /// <summary>Render the §14.9.23.4 GR7c two-arm stop for one <c>__CobolInvoke</c> conformance check.
+    ///
+    /// <para>GR7c sets EC-OO-UNIVERSAL "if checking for it is enabled in BOTH the activated method and the
+    /// activating runtime element". The activator's half is <c>ExceptionState.OoUniversalChecking</c>, set by the
+    /// emitted statement guard around the INVOKE; the METHOD's half is a compile-time literal folded at bind time
+    /// (<see cref="OoMethodSymbol.OoUniversalCheckingHere"/>) — it is a property of the callee's SOURCE, not of
+    /// run-unit state, so it cannot be a flag.</para>
+    ///
+    /// <para>When it is not enabled in both, no exception condition exists and none may be attributed — but a
+    /// nonconforming crossing still cannot proceed into typed-native code, so the stop is a
+    /// <c>CobolImplementorFatalException</c>, which carries NO EC name and therefore cannot be selected by any
+    /// statement guard's <c>EcName ==</c> match (§14.6.13.1.1 NOTE 3 undefined-results latitude).</para></summary>
+    private static string OoUnivStop(OoMethodSymbol m, string cond, string detailExpr)
+    {
+        string both = m.OoUniversalCheckingHere ? "ExceptionState.OoUniversalChecking" : "false";
+        return $"if ({cond}) {{ if ({both}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", {detailExpr}); "
+            + $"throw new CobolImplementorFatalException({detailExpr}); }}";
+    }
+
     private void EmitCobolInvoke(string cobolName, IReadOnlyList<OoMethodSymbol> roster, CodeWriter w)
     {
         var cases = roster.Where(m => m.OverrideOf is null).ToList();
@@ -263,30 +282,30 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             {
                 using (w.Block($"case {Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true)}:"))
                 {
-                    w.Line($"if (__a.Length != {m.Binding!.Formals.Count}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
-                        + $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Binding!.Formals.Count} formal(s) "
-                        + "(ISO §14.9.23.4 GR7c/§14.8.2 — runtime conformance through a universal receiver)\");");
+                    w.Line(OoUnivStop(m, $"__a.Length != {m.Binding!.Formals.Count}",
+                        $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Binding!.Formals.Count} formal(s) "
+                        + "(ISO §14.9.23.4 GR7c/§14.8.2 — runtime conformance through a universal receiver)\""));
                     for (int i = 0; i < m.Binding!.Formals.Count; i++)
                     {
                         var f = m.Binding!.Formals[i];
                         string want = OoConformance.ConformanceDescriptor(f.Item);
                         string wantLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(want, quote: true);
-                        w.Line($"if (__a[{i}].Descriptor != {wantLit}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
-                            + $"$\"INVOKE '{cobolName}' '{m.Name}': argument {i + 1} does not conform to the formal "
-                            + $"(caller {{__a[{i}].Descriptor}}, formal {want.Replace('"', '\'')}) (ISO §14.9.23.4 GR7c/§14.8.2)\");");
+                        w.Line(OoUnivStop(m, $"__a[{i}].Descriptor != {wantLit}",
+                            $"$\"INVOKE '{cobolName}' '{m.Name}': argument {i + 1} does not conform to the formal "
+                            + $"(caller {{__a[{i}].Descriptor}}, formal {want.Replace('"', '\'')}) (ISO §14.9.23.4 GR7c/§14.8.2)\""));
                         w.Line($"var __p{i} = {OoUnivUnbox(f.Item, $"__a[{i}].Value")};");
                     }
                     if (m.Binding!.Returning is null)
-                        w.Line("if (__ret is not null) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
-                            + $"\"INVOKE '{cobolName}' '{m.Name}': RETURNING specified but the method declares none "
-                            + "(ISO §14.8.3/GR7c)\");");
+                        w.Line(OoUnivStop(m, "__ret is not null",
+                            $"\"INVOKE '{cobolName}' '{m.Name}': RETURNING specified but the method declares none "
+                            + "(ISO §14.8.3/GR7c)\""));
                     else
                     {
                         string rl = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
                             OoConformance.ConformanceDescriptor(m.Binding!.Returning), quote: true);
-                        w.Line($"if (__ret is null || __ret.Descriptor != {rl}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
-                            + $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
-                            + "(ISO §14.8.3/GR7c)\");");
+                        w.Line(OoUnivStop(m, $"__ret is null || __ret.Descriptor != {rl}",
+                            $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
+                            + "(ISO §14.8.3/GR7c)\""));
                     }
                     string argList = string.Join(", ", Enumerable.Range(0, m.Binding!.Formals.Count).Select(i => $"ref __p{i}"));
                     w.Line(m.Binding!.Returning is null

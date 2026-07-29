@@ -106,6 +106,11 @@ public sealed class ProgramTable
         // incl. a separately-compiled CALLed module (the settled SSOT §18.16 implementor choice).
         catch (CobolFatalException fx) { AbnormalTermination(fx.Message); }
         catch (CobolCallException cx) { AbnormalTermination(cx.Message); }
+        // An implementor-defined stop that raised NO exception condition (§14.6.13.1.1 NOTE 3) still terminates
+        // the run unit through the COBOL boundary — a .NET stack trace on the console is not a diagnostic a COBOL
+        // programmer can act on, and letting one escape is the runtime twin of emitting a Roslyn CS error on
+        // generated user source. Reported WITHOUT an exception-name, because there is none to name.
+        catch (CobolImplementorFatalException ix) { AbnormalTermination(ix.Message); }
         finally
         {
             // §14.6.11(2): an implicit CLOSE without phrases for EVERY open file in the RUN UNIT, executed even when

@@ -396,6 +396,21 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
+
+    /// <summary>True while the currently-executing INVOKE has EC-OO-UNIVERSAL checking enabled in the ACTIVATING
+    /// runtime element. §14.9.23.4 GR7c sets the condition only "if checking for it is enabled in BOTH the
+    /// activated method and the activating runtime element", and the two halves are known in different places:
+    /// this flag carries the activator's, set by the emitted statement guard around the INVOKE and read by the
+    /// callee's generated <c>__CobolInvoke</c>, which runs synchronously on the same run unit. The method's half
+    /// cannot be a flag at all — it is a property of the CALLEE's source, so it is folded at bind time and baked
+    /// as a compile-time literal per emitted method.</summary>
+    public bool OoUniversalChecking
+    {
+        get => _checking.OoUniversal;
+        set => _checking.OoUniversal = value;
+    }
+
     // ── EC-RANGE-PERFORM-VARYING ambient statement gate (an index-name varied from a non-positive FROM item) ────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-PERFORM-VARYING checking enabled (fatal).
@@ -671,6 +686,13 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.OdoError"/>
     public static void OdoError(string detail) => E.OdoError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.OoUniversalChecking"/>
+    public static bool OoUniversalChecking
+    {
+        get => E.OoUniversalChecking;
+        set => E.OoUniversalChecking = value;
+    }
 
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();

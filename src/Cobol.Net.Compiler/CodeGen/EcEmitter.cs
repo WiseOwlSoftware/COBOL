@@ -126,6 +126,10 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // reach a USE declarative; a flag nothing reads would be state a future maintainer has to disprove.
         ("EC-OO-NULL", null),                                   // §14.9.23.4 GR5 — INVOKE on a null receiver
         ("EC-OO-METHOD", null),                                 // §14.9.23.4 GR7b — method could not be located
+        // FLAGGED, unlike its two neighbours: §14.9.23.4 GR7c raises only when checking is enabled in BOTH
+        // elements, and this flag is how the ACTIVATOR's half reaches the callee's __CobolInvoke, which runs
+        // synchronously inside the guard. The method's half is a compile-time literal (OoEmitter.OoUnivStop).
+        ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
     ];
 
     private bool EmitArgOrPlain(BoundEcChecked ec)

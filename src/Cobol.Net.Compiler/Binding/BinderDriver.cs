@@ -60,6 +60,19 @@ internal sealed class BinderDriver
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
+        // §14.9.23.4 GR7c's METHOD-side half, folded once now that every method symbol exists. See
+        // OoMethodSymbol.OoUniversalCheckingHere for why this is bind-time and why the METHOD-ID line is the
+        // query point.
+        foreach (var cls in table.Classes)
+            foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
+                // A PROPERTY accessor SYNTHESIZED from a PROPERTY clause (§13.18.42) has no METHOD-ID in source
+                // and therefore no method context at all — reading `m.Ctx.Start` on one is a NullReferenceException
+                // that takes down the whole bind, which is exactly what it did to oo_property/oo_property_ref.
+                // Its enclosing CLASS-ID line is the right query point: the accessor is part of that definition
+                // and has no source position of its own to disagree with.
+                m.OoUniversalCheckingHere = turn.Enabled(
+                    "EC-OO-UNIVERSAL", null, (m.Ctx?.Start ?? cls.Ctx.Start).Line);
+
         OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
         var ooAdapters = OoConformance.ValidateImplements(table, edition);   // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
         foreach (var cls in classes) oo.BindClassBody(cls);
