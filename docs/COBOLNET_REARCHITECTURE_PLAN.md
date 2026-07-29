@@ -42,10 +42,28 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### NEXT, in order
 
-1. **V59 — the LAST item of the 46-finding conformance audit.** Owner-decided and fix-ready (the queue's
-   §OWNER-DECIDED carries the approved option B: a Tier-C `byte[]` canonical via `RedefCodec`). Effort-L and
-   **not a blocker**: the current value-faithful zoned image is the approved interim. CA14 landed 2026-07-28
-   (DEVLOG 1094), which also swept two further introduction-leniency sites its own new gate exposed.
+1. **V59 — the LAST item of the 46-finding conformance audit. SCOPE CORRECTED 2026-07-28; the analysis is DONE
+   and verified, the implementation is NOT started.** Owner decision: **ONE byte representation at EVERY byte
+   boundary** (the image, file records, SORT keys, the REDEFINES backing) — not Tier-C-only, which would have
+   given one COMP leaf two byte forms depending on which boundary it crossed.
+   - **Nothing to invent: the representation is already pinned and documented.** `PicInfo.StorageWidth` = BINARY
+     1-2-4-8, PACKED `Digits/2+1` BCD; `DataItem.ByteWidth` documents them; `FUNCTION BYTE-LENGTH` reports them.
+     The record IMAGE is the one place that ignores them, using `Pic.Digits` instead.
+   - **It is a real conformance defect, not just implementor latitude.** `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC
+     9(4) COMP-3.` answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and `REDEFINES G PIC X(8)` is accepted.
+     §15.14.4 GR1 (bytes) vs §15.50.4 GR3 (alphanumeric character positions) — both `cite.py`-verified — cannot
+     disagree in a single-byte-character model, and a conforming program sees it with no file and no byte pun.
+   - **`RedefCodec`/Tier C is NOT the mechanism** and stays unrealized. The whole-group image is a Latin-1
+     `string` that files, SORT and the Tier-B backing all consume; giving a BINARY/PACKED leaf its true bytes
+     there fixes every boundary through the mechanism that exists.
+   - **Cost:** the leaf's image WIDTH moves from `Pic.Digits` to `StorageWidth`; `ImageWidth` has 129 references
+     across 30 files. **Corpus blast radius: zero** — no golden and no NIST program has COMP/COMP-3 in an FD
+     record, which is why this was never caught. Today `PIC 9(4) COMP` and `PIC 9(4) COMP-3` both reach a file as
+     ASCII `31 32 33 34`.
+   - Design SSOT annotated (`COBOLNET_DESIGN.md` §14.4 — its "named loser (c)" rejected raw bytes on a premise,
+     "cross-engine file compatibility is not required", that the owner has now reversed).
+   CA14 landed 2026-07-28 (DEVLOG 1094), which also swept two further introduction-leniency sites its own new
+   gate exposed.
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
    - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
      directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers

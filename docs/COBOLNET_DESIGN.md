@@ -927,6 +927,21 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 
 ### 14.4 ONE whole-group / materialize-to-image facility (G6)
 
+> ⛔ **THE BINARY/PACKED IMAGE REPRESENTATION BELOW IS SUPERSEDED BY OWNER DECISION (2026-07-28) AND IS THE ACTIVE
+> WORK ITEM — see plan §0 NEXT and fix-queue V59.** What is described here is the CURRENT compiler and stays
+> accurate until the change lands; do not implement from it.
+> **What changed and why.** "Named loser (c)" below rejects raw bytes on the grounds that *"cross-engine file
+> compatibility is not required"*. That premise is now reversed (differential-fidelity doctrine). But the decisive
+> argument is not interchange at all — **the zoned image contradicts the compiler's own pinned byte widths**:
+> `PicInfo.StorageWidth` already defines BINARY as 1-2-4-8 and PACKED as `Digits/2+1` BCD, `DataItem.ByteWidth`
+> documents them, and `FUNCTION BYTE-LENGTH` reports them. So for `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC 9(4)
+> COMP-3.` the compiler answers **BYTE-LENGTH(G) = 5** and **LENGTH(G) = 8** for one group, and accepts
+> `REDEFINES G PIC X(8)`. §15.14.4 GR1 returns the length in BYTES and §15.50.4 GR3 the length in ALPHANUMERIC
+> CHARACTER POSITIONS; in a single-byte-character model those cannot disagree, and a conforming program observes
+> the disagreement with no file and no byte pun. **One representation, at every byte boundary** — the image, file
+> records, SORT keys and the REDEFINES backing all take `StorageWidth` and the radix those widths already imply.
+
+
 There is ONE facility that turns a typed group/numeric into its alphanumeric image and back: a generated
 `string AsImage()` (and `FromImage`) per `record struct`, used by (a) whole-group MOVE/compare, (b) INSPECT/STRING/
 UNSTRING of a group/numeric operand (§7.4), (c) ref-mod of a numeric receiver, and (d) RENAMES THRU composition over a

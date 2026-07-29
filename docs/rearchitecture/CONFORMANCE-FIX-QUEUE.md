@@ -130,7 +130,29 @@ pages 600–829), so each site needs its own page checked. That is the remaining
   already-present `sync-on-group-2023` row so SYNC-on-group is a hard error on BOTH axes like every other 2023
   introduction (removes the sole policy exception). Update the now-obsolete owner-disposition comments
   (`constructs.json:1866`, `DataBinder.cs:2521-2530`). Effort S.
-- **V59 → APPROVED option (B): build the Tier-C byte[] canonical** (current value-faithful Tier-B zoned image is
+- **V59 → SCOPE CORRECTED 2026-07-28 (owner: "every byte boundary"); the recipe below is superseded in its
+  MECHANISM, not its intent.** Three things were established before implementing, each verified rather than
+  reasoned:
+  1. **The representation was ALREADY CHOSEN and documented — the image just ignores it.** `PicInfo.StorageWidth`
+     pins BINARY at 1-2-4-8 and PACKED at `Digits/2+1` BCD; `DataItem.ByteWidth` documents them; `FUNCTION
+     BYTE-LENGTH` reports them. There is no new representation to invent and a second one must not be invented.
+  2. **The compiler contradicts itself, observably, with no file and no byte pun.** For `05 G-COMP PIC 9(4) COMP.
+     05 G-PACK PIC 9(4) COMP-3.` it answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and accepts `REDEFINES G PIC
+     X(8)`. §15.14.4 GR1 (bytes) and §15.50.4 GR3 (alphanumeric character positions) cannot disagree in a
+     single-byte-character model. **This makes V59 a genuine conformance defect, not only implementor latitude** —
+     the original adjudication reached "not a clear §4.2.16 violation" by weighing only the byte-pun view.
+  3. **`RedefCodec`/Tier C is NOT the mechanism.** The whole-group image is a Latin-1 `string`, and files, SORT and
+     the Tier-B REDEFINES backing all consume that one image. Making a BINARY/PACKED leaf's image its true bytes
+     (Latin-1-carried) fixes every boundary at once through the mechanism that already exists. Tier C's separate
+     `byte[]` canonical stays unrealized and unneeded — its reject list (float/COMP-5/INDEX) is unchanged.
+  **Effort: L, and larger than stated** — the leaf's image WIDTH changes from `Pic.Digits` to `StorageWidth`, and
+  `ImageWidth` has 129 references across 30 files (§14.4 itself flagged this axis: "would change `ImageWidth` and
+  every offset computation"). Measured blast radius in the corpus: **zero** — no conformance golden and no NIST
+  program has a COMP/COMP-3 field inside an FD record, which is also why the divergence was never caught.
+  Empirically today a `PIC 9(4) COMP` and a `PIC 9(4) COMP-3` both reach a sequential file as ASCII `31 32 33 34`.
+  ⛔ The `ComputeTier` reject-list still stays untouched. Design SSOT annotated at `COBOLNET_DESIGN.md` §14.4.
+
+- **V59 → superseded APPROVED option (B): build the Tier-C byte[] canonical** (current value-faithful Tier-B zoned image is
   ACCEPTABLE INTERIM). Route a REDEFINES/RENAMES class mixing a BINARY/PACKED leaf with a differently-represented view
   to Tier C: a `byte[]` canonical via `RedefCodec` `GetBinary/PutBinary` (radix-2, width+endian) + `GetPacked/PutPacked`
   (BCD nibbles + sign), so a character view reads the leaf's TRUE bytes (matches GnuCOBOL + the §13.18.60.4 GR4/GR11
