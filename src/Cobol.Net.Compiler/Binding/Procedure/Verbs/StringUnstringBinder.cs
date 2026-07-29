@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -65,6 +66,23 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (into.Item.Pic is { Category: PicCategory.NumericEdited }
             or { Category: PicCategory.Alphanumeric, EditMask: not null })
             return new BoundUnsupported("STRING INTO an edited receiver (ISO §14.9.43.3 SR5)");
+        // ⛔ DA7 — SR1 at BIND time. This check previously existed ONLY in StringEmitter as a run-time loud stage,
+        // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. SR1: "all identifiers,
+        // except identifier-4, shall be described implicitly or explicitly as usage display or national" —
+        // identifier-4 is the POINTER, so the INTO receiver is covered. A GROUP receiver is EXEMPT: usage is an
+        // elementary property, and §14.9.43.4 GR3a defines the transfer into identifier-3 "in accordance with the
+        // MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group — including one holding
+        // a BINARY/PACKED leaf (V59). Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.
+        if (!into.Item.IsGroup && into is not RefModPlace && !into.Item.StoreAsImage
+            && into.Item.Pic is { } ip && ip.Usage is not (Usage.Display or Usage.National))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                $"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}' is an elementary item of USAGE "
+                + $"{ip.Usage}, which has no character image; SR1 requires every identifier except the POINTER to be "
+                + "usage display or national (ISO §14.9.43.3 SR1)");
+            return new BoundUnsupported(
+                $"STRING INTO receiver of USAGE {ip.Usage} (ISO §14.9.43.3 SR1 — usage display or national only)");
+        }
 
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
@@ -121,11 +139,21 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // national + category national/numeric). A fixed-length group (SR10) and a reference-modified slice
                 // are alphanumeric-image receivers and are exempt; edited, COMP/packed/COMP-5, index, and float
                 // receivers are not permitted.
+                // ⛔ DA7: a COMPILE-TIME diagnostic. The verdict was already correct and already computed HERE,
+                // but returning only BoundUnsupported let the illegal program compile clean and throw when control
+                // reached the UNSTRING. Groups stay exempt — §14.9.43.4 GR3a's alphanumeric-MOVE semantics carry a
+                // group receiver, including one holding a BINARY/PACKED leaf (V59).
                 if (target is not RefModPlace && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                        $"UNSTRING INTO '{drefs[0].GetText()}' requires a usage-display alphabetic/alphanumeric/"
+                        + "numeric or usage-national national/numeric receiver; edited, COMP, packed, index and "
+                        + "float receivers have no character image (ISO §14.9.48.3 SR4)");
                     return new BoundUnsupported(
                         $"UNSTRING INTO '{drefs[0].GetText()}' — a usage-display alphabetic/alphanumeric/numeric or " +
                         "usage-national national/numeric receiver is required; edited, COMP, packed, index, and float " +
                         "receivers are not permitted (ISO §14.9.48.3 SR4)");
+                }
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
                     return new BoundUnsupported("UNSTRING DELIMITER IN / COUNT IN without DELIMITED BY (ISO §14.9.48.3 SR7)");

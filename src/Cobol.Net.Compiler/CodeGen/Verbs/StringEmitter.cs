@@ -152,7 +152,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // character transfer INTO the group's storage — the same job a group MOVE does, and
             // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
             // without consideration for the individual items). Refusing it while MOVE allows it made two
-            // verbs disagree about the same receiver. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
             // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
             // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
             // hence the leaf-kind wording now matches the predicate actually tested.
@@ -202,7 +207,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // character transfer INTO the group's storage — the same job a group MOVE does, and
             // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
             // without consideration for the individual items). Refusing it while MOVE allows it made two
-            // verbs disagree about the same receiver. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
             // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
             // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
             // hence the leaf-kind wording now matches the predicate actually tested.

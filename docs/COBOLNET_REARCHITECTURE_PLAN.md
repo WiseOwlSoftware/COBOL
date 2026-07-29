@@ -409,13 +409,15 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-29, V59 + DA2 + DA5 COMPLETE — supersedes the 4119/942 earlier the same day):**
-  FULL Conformance **4120/4120, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
-  +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`, +1 `da5_group_verbs_comp_leaf`; the earlier +2 was
-  `v59_byte_image` and `v59_sort_binary_key`) · greenfield Unit
+- **Battery reference (2026-07-29, V59 + DA2 + DA5 + DA7 COMPLETE — supersedes the 4120/942 earlier the same day):**
+  FULL Conformance **4123/4123, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
+  +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`, +1 `da5_group_verbs_comp_leaf`, **+3 DA7 NEGATIVE
+  fixtures** `da7-inspect-binary-operand`/`da7-string-into-binary`/`da7-unstring-into-binary`, each asserted to
+  reject at all four editions — negative corpus now 127 enabled; the earlier +2 was `v59_byte_image` and
+  `v59_sort_binary_key`) · greenfield Unit
   **942/942, zero skipped** (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
   +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
-  green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`
+  green, and the codec + byte-form tables are table-driven) · characterization **33/33 — RE-MEASURED 2026-07-29, no longer carried** · `guard-fast.sh`
   **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**.
   ✅ **THE GnuCOBOL DIFFERENTIAL IS RE-RUN AND CLEAN AFTER DA2 (2026-07-29): 0 per-case flips, 0 regressions**,
   totals unchanged at **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104

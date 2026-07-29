@@ -12,7 +12,27 @@
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
 
-### DA7 · [MINOR] · inspect-string · ⏳ OPEN — three syntax-rule violations are diagnosed at RUN TIME, not COMPILE time
+### DA7 · [MINOR] · inspect-string · ✅ LANDED (DEVLOG 1108) — three syntax-rule violations moved from RUN TIME to COMPILE time
+> **New diagnostic `COBOLNET1626` (`character-operand-usage`), edition-invariant.** All three rules are unchanged at
+> 85/2002/2014/2023, so the diagnostic is deliberately NOT gated and no introduction axis applies — verified firing
+> at all four editions. The verdicts were already correct; only the STAGE moved.
+> · `InspectBinder.cs` — §14.9.22.3 SR1, an elementary non-display/national identifier-1. Was a pure staging
+>   choice: the check already ran in the binder and merely returned `BoundUnsupported`.
+> · `StringUnstringBinder.cs` (UNSTRING) — §14.9.48.3 SR4. Same shape; the check already existed in the binder.
+> · `StringUnstringBinder.cs` (STRING) — §14.9.43.3 SR1. This one had to be ADDED to the binder: it existed only
+>   in `StringEmitter` as a run-time loud stage, so `STRING … INTO <a COMP item>` compiled clean and crashed.
+> **⛔ THE FALSE-POSITIVE CHECK IS THE POINT OF THIS CHANGE**, since adding a diagnostic risks rejecting legal
+> source. Verified: the three illegal forms now give `COBOLNET1626` at compile time, while ALL of
+> `INSPECT <alnum>`, `STRING/UNSTRING INTO <group>` (including a COMP-leaf group — DA5), and
+> `STRING/UNSTRING INTO <numeric DISPLAY>` still compile and run. **A GROUP receiver is exempt by design**:
+> usage is an ELEMENTARY property, and §14.9.43.4 GR3a transfers into STRING's receiver "in accordance with the
+> MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group. §14.9.22.3 SR1 says so
+> outright, naming "an alphanumeric or national group item" and constraining only an elementary operand.
+> Negative fixtures `da7-inspect-binary-operand` · `da7-string-into-binary` · `da7-unstring-into-binary`, each
+> asserted to reject at all four editions. `docs/DIAGNOSTICS.md` regenerated — the registry drift test caught the
+> stale doc and named the generator, which is that gate working.
+
+### DA7 (original entry, for provenance) — three syntax-rule violations diagnosed at RUN TIME, not COMPILE time
 - **Sites:** `Binding/Procedure/Verbs/InspectBinder.cs:35` (INSPECT identifier-1 of USAGE BINARY — §14.9.22.3 SR1) ·
   `CodeGen/Verbs/StringEmitter.cs:168` (STRING INTO an ELEMENTARY usage-binary receiver — §14.9.43.3 SR1 requires
   usage display or national) · `StringEmitter.cs:226` (the UNSTRING counterpart, §14.9.48.3 SR4).

@@ -532,6 +532,24 @@ public static class DiagnosticCatalog
         + "negative literal seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
         + "than silently mis-stored as an out-of-range native value.",
         "ISO §13.18.63.3 SR2/SR3");
+    // 1626 — the character-operand USAGE syntax rules of INSPECT / STRING / UNSTRING (DA7). These constructs were
+    // already REJECTED correctly; the defect was the STAGE. Each violation was reported as a run-time
+    // NotImplementedCobolFeatureException, so an illegal program compiled clean and then crashed when control
+    // reached the statement — where the standard promises a compile-time error. Edition-invariant: all three rules
+    // are present unchanged at 85/2002/2014/2023, so this is NOT edition-gated and needs no introduction axis.
+    public static readonly DiagnosticDescriptor CharacterOperandUsage = new(
+        "COBOLNET1626", "character-operand-usage", EditionSeverity.Error,
+        "An INSPECT, STRING or UNSTRING operand that must be a character item is not one. INSPECT identifier-1 "
+        + "shall be an alphanumeric/national GROUP item or an ELEMENTARY item of usage display or national "
+        + "(§14.9.22.3 SR1 — note the rule admits a group outright and constrains only an elementary operand); "
+        + "STRING's identifiers other than the POINTER shall be usage display or national (§14.9.43.3 SR1); and "
+        + "UNSTRING's INTO receiver shall be usage display with category alphabetic/alphanumeric/numeric, or usage "
+        + "national with category national/numeric (§14.9.48.3 SR4). A binary, packed, float, index or pointer "
+        + "ELEMENTARY operand has no character image and is rejected at bind time. ⛔ A GROUP receiver is NOT "
+        + "rejected: §14.9.43.4 GR3a transfers into STRING's receiver \"in accordance with the MOVE statement rules "
+        + "for alphanumeric-to-alphanumeric moves\", so a group takes whatever an alphanumeric MOVE may deposit, "
+        + "including a group holding a BINARY/PACKED leaf (V59 gave those leaves a byte image).",
+        "ISO §14.9.22.3 SR1 / §14.9.43.3 SR1 / §14.9.48.3 SR4");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
