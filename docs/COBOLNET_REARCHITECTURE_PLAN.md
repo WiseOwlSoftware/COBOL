@@ -288,10 +288,11 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-28 — supersedes DEVLOG 1006's 3891/3891):** FULL Conformance **3931/3931**, with
-  NOTHING red (it was 3929/3930 at the EC-batch pre-merge gate and again on a clean re-run; the one red,
-  `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec`, is closed, and its replacement pair adds one fact to the
-  total) · greenfield Unit **580/580** · characterization **33/33**
+- **Battery reference (2026-07-28 — supersedes DEVLOG 1006's 3891/3891):** FULL Conformance **4113/4113**, with
+  NOTHING red. The total moved twice today and both moves are accounted for: 3929/3930 → 3931/3931 when the VCR's
+  dangling spec LINE citations were re-keyed onto the clause hierarchy (the one red closed; its replacement pair
+  adds a fact), then → 4113/4113 when CA14 added the 182-cell introduction-axis theory
+  (`IntroducedConstruct_IsRejectedUnderPermissive`) · greenfield Unit **580/580** · characterization **33/33**
   byte-identical · `guard-fast.sh` ALL GREEN with **NIST 353 MATCH / 0 regression** · legacy Unit 1203/1203,
   Integration 503/504 (1 skipped). **Conformance takes ~12 min; run the long legs ONE AT A TIME.** Re-confirm
   green (§9) before code changes.
