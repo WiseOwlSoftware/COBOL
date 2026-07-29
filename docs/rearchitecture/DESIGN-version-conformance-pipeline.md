@@ -93,12 +93,25 @@ is this closed, documented set:
 3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
    the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
    2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).
-4. **The owner-disposition SYNCHRONIZED-on-group site** (`DataBinder`, row sync-on-group-2023): deliberately a
-   manual `Edition.Removed`-severity emission (error strict / WARNING permissive) because the `Check`
-   introduction verdict errors on BOTH axes — the owner chose accept-inert continuity (P3 step 10; the row's
-   description records it).
+4. **The bind-time `Check` for SYNCHRONIZED on a group item** (`DataBinder.ResolveIndexItems`, row
+   sync-on-group-2023): a group/elementary distinction the parse tree does not carry — whether the entry HAS
+   subordinates is known only once the hierarchy is resolved — so this introduction fires at bind, through the
+   canonical `ConstructRegistry.Check` funnel like every other. It is an ERROR ON BOTH AXES.
+   ⛔ It was, until CA14 (2026-07-28), a manual `Edition.Removed`-severity emission chosen for accept-inert
+   continuity; that made it the sole site contradicting `EditionSeverityPolicy.For(NotYetIntroduced) => Error`
+   and the `EditionContext.Permissive` contract. **The exception is retired: there is no longer any site where
+   an introduction is lenient.**
 
 Any OTHER `DialectLevel` comparison appearing in `Binding/**` is a defect: relocate it into the pass.
+
+**The introduction axis is now gate-enforced, not documented-and-hoped.**
+`VersionMatrixTests.IntroducedConstruct_IsRejectedUnderPermissive` runs every active row × every edition below
+its `introducedIn` under `--permissive` and requires a rejection. Until CA14 the permissive axis was tested only
+for REMOVAL rows, which is why the exception above survived two phases — and why the same test immediately found
+two more: `receive-as-user-word` and `end-receive-as-user-word` at COBOL-85, where the §8.9 reserved-word arm
+hard-coded a `Removed` verdict. That arm now COMPUTES the verdict from the word's own reservation interval
+(`ReservedWordSet.UserWordVerdictAt`): a spelling an edition took away is the migration case, a spelling reserved
+at the target edition and at every edition before it never was a user word there.
 
 ## 2. Mechanisms
 

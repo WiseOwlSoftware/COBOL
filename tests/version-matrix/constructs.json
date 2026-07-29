@@ -1887,7 +1887,7 @@
     {
       "id": "sync-on-group-2023",
       "status": "active",
-      "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023 it is REJECTED under strict / ACCEPTED-INERT under --permissive (a manual Edition.Removed gate in ResolveIndexItems - error strict / warning permissive - which keeps INV-1 continuity). GATED P3 step 10 (owner-chosen disposition).",
+      "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). Below 2023 it is REJECTED on BOTH axes through the canonical ConstructRegistry.Check funnel in DataBinder.ResolveIndexItems, like every other introduction. CA14 (owner-approved option (a), 2026-07-28) RETIRED the former accept-inert-under---permissive disposition: it was the sole site routing an introduction through the removed-severity seam, contradicting EditionSeverityPolicy.For(NotYetIntroduced)=>Error and the EditionContext.Permissive contract. --permissive is the migration mode for constructs an edition REMOVED; it has no meaning for one the targeted edition has not yet acquired, which no pre-existing program can legally contain.",
       "display": "SYNCHRONIZED on a group item",
       "diagnosticCode": "COBOLNET0900",
       "citation": "ISO Annex E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §13.18.55",

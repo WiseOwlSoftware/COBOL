@@ -1286,7 +1286,9 @@ internal sealed class VersionConformancePass
         // the ExceptionCatalog EC-name windows, the PictureAnalyzer symbol rows, the digit caps) STAY binder-side
         // by design — their version facts live in their own tables, not in constructs.json — as do the two
         // sanctioned BEHAVIORAL edition reads (the <2002 keyword-omitted FUNCTION routing, the ≥2002 MOVE CORR
-        // pair-selection window) and the owner-disposition SYNCHRONIZED-on-group site (sync-on-group-2023).
+        // pair-selection window) and the SYNCHRONIZED-on-group site (sync-on-group-2023 — bind-side because
+        // "has subordinates" is not a parse-tree fact, but through the canonical Check funnel since CA14, so it
+        // is no longer a severity exception: NO site makes an introduction lenient).
 
         /// <summary>INSPECT BACKWARD (ISO §14.9.22.2; VCR row 77) — a COBOL-2023 introduction.</summary>
         public override object? VisitInspectStatement(CobolParserCore.InspectStatementContext ctx)
@@ -1731,10 +1733,15 @@ internal sealed class VersionConformancePass
                 return base.VisitChildren(ctx);
             if (_reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
             {
-                // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
-                // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
+                // The §8.9 reserved-word severity routes through the ONE policy — and the VERDICT is COMPUTED
+                // from the word's own reservation interval, never asserted here. Hard-coding `Removed` made
+                // --permissive accept a RE-RESERVED word (RECEIVE, END-RECEIVE) as a user-defined word at
+                // COBOL-85, where the '85 communication module reserves it and no conforming '85 program could
+                // contain one — a not-yet-introduced construct getting the migration mode's leniency (CA14's
+                // policy; these two were found by the introduction-axis theory the fix added).
                 _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                    EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
+                    EditionSeverityPolicy.For(_reservedWords.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
+                    "edition-reserved-word",
                     $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
                     + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             }

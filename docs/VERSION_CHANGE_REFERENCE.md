@@ -94,6 +94,7 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 | next-sentence-archaic-2023 | 85 | obsolete 2023 | COBOLNET0903 | done | 90, 127 |
 | options-initialize-2023 | 2023 | — | COBOLNET0900 | done | 76 |
 | receive-as-user-word | 2002 | removed 2023 | COBOLNET0901 | done | 32 |
+| sync-on-group-2023 | 2023 | — | COBOLNET0900 | done | 43 |
 <!-- GEN:VCR-STATUS END -->
 
 ---
@@ -153,7 +154,7 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 | 40 | New exception conditions (EC-MCS-*, EC-FLOW-*, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING, EC-IO-RECORD-CONTENT) | E.3.2 item 3 | 2014→2023 | **Old:** these EC-* names did not exist (words available as user-defined names). **New:** reserved EC-* names added: EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FAILED; EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT, EC-FLOW-ROLLBACK; EC-CONTINUE, EC-CONTINUE-IMP, EC-CONTINUE-LESS-THAN-ZERO; EC-EXTERNAL, EC-EXTERNAL-DATA-MISMATCH, EC-EXTERNAL-FILE-MISMATCH, EC-EXTERNAL-FORMAT-CONFLICT, EC-EXTERNAL-IMP; EC-I-O-WARNING; EC-IO-RECORD-CONTENT. | Yes | flag-new-reserved-word <!-- todo --> |
 | 41 | Logical operators EXCLUSIVE-OR / XOR | E.3.2 item 4 | 2014→2023 | **Old:** logical operators limited to AND/OR/NOT; EXCLUSIVE-OR and XOR were user-defined words. **New:** EXCLUSIVE-OR and XOR added (reserved). | Yes | flag-new-reserved-word <!-- gate:logical-xor-operator-2023 --> |
 | 42 | NO SIGN phrase of the USAGE clause (PACKED-DECIMAL with no sign) | E.3.2 item 5 | 2014→2023 | **Old:** a PACKED-DECIMAL item always stored a sign value. **New:** USAGE enhanced to allow no sign (NO SIGN phrase). | Yes | new-feature-gate <!-- todo --> |
-| 43 | SYNCHRONIZED clause permitted on a group item | E.3.2 item 6 | 2014→2023 | **Old:** SYNCHRONIZED only on elementary items. **New:** allowed on a group item (as if specified for each permitted contained elementary item). | Yes | new-feature-gate <!-- todo --> |
+| 43 | SYNCHRONIZED clause permitted on a group item | E.3.2 item 6 | 2014→2023 | **Old:** SYNCHRONIZED only on elementary items. **New:** allowed on a group item (as if specified for each permitted contained elementary item). | Yes | new-feature-gate — a hard error on BOTH axes below 2023 since CA14 retired the accept-inert disposition <!-- gate:sync-on-group-2023 --> |
 
 ---
 

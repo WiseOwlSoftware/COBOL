@@ -42,8 +42,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### NEXT, in order
 
-1. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
-   effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
+1. **V59 — the LAST item of the 46-finding conformance audit.** Owner-decided and fix-ready (the queue's
+   §OWNER-DECIDED carries the approved option B: a Tier-C `byte[]` canonical via `RedefCodec`). Effort-L and
+   **not a blocker**: the current value-faithful zoned image is the approved interim. CA14 landed 2026-07-28
+   (DEVLOG 1094), which also swept two further introduction-leniency sites its own new gate exposed.
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
    - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
      directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers
@@ -2508,6 +2510,8 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 >   introduction, Annex E.3.2 item 6) was silently ACCEPTED below 2023. Now gated in `DataBinder.ResolveIndexItems`
 >   via a `DataItem.Synchronized` flag: **error strict / warning-permissive (accept-inert)** — the removed-severity
 >   seam, which keeps INV-1 continuity (SYNC is a no-op). Row + negative fixture.
+>   ⛔ **SUPERSEDED by CA14 (2026-07-28):** that accept-inert disposition is RETIRED — the site routes through the
+>   canonical `Check` funnel and errors on BOTH axes, like every other introduction.
 > 
 > The un-wireable residue is CATALOGUED (not silently absent): `inline-method-invocation-2023` (pending row, Step 5 —
 > `identifier(args)` has no distinctive token, OO-wave-owned) and NO SIGN of PACKED-DECIMAL (a 2023 feature not in the

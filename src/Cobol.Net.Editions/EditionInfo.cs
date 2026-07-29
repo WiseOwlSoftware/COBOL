@@ -36,6 +36,22 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// decision.</summary>
     public bool Has(int introducedIn) => Year >= introducedIn;
 
-    private static int Validate(int y) => y is 85 or 2002 or 2014 or 2023 ? y
-        : throw new ArgumentOutOfRangeException(nameof(y), y, "edition must be 85/2002/2014/2023");
+    /// <summary>Every ISO edition this compiler targets, OLDEST first — the one list. <see cref="Validate"/>
+    /// and every "was it so at an earlier edition?" walk read it, so a new edition is added in one place.</summary>
+    public static ReadOnlySpan<int> All => [85, 2002, 2014, 2023];
+
+    /// <summary>The editions STRICTLY OLDER than <paramref name="year"/>, oldest first.</summary>
+    public static ReadOnlySpan<int> Before(int year)
+    {
+        var all = All;
+        int n = 0;
+        while (n < all.Length && all[n] < year) n++;
+        return all[..n];
+    }
+
+    private static int Validate(int y)
+    {
+        foreach (int v in All) if (v == y) return y;
+        throw new ArgumentOutOfRangeException(nameof(y), y, "edition must be 85/2002/2014/2023");
+    }
 }

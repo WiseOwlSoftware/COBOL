@@ -2593,16 +2593,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
             if (item.Children.Count > 0)
             {
-                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (Annex E.3.2 item 6; before 2023 SYNC
-                // is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023
-                // it is REJECTED under strict but ACCEPTED-INERT under --permissive — the removed-severity seam
-                // (Edition.Removed = error strict / warning permissive) gives exactly that, and keeps INV-1
-                // continuity intact for any program carrying it (P3 step 10; owner-chosen disposition).
+                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
+                // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
+                // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
+                // axes: §4.2.2's warning mechanism reports violations of the standard, and --permissive is the
+                // migration mode for constructs an edition REMOVED — it has no meaning for one the targeted
+                // edition has not yet acquired, which no pre-existing program can legally contain (CA14,
+                // owner-approved option (a); this was the sole site routing an introduction through the
+                // removed-severity seam, contradicting the compiler's own single-policy contract).
                 if (item.Synchronized && Edition.DialectLevel < 2023)
-                    Edition.Removed(EditionCodes.Introduction,
-                        $"SYNCHRONIZED on a group item ('{item.CobolName ?? "FILLER"}') was introduced by ISO/IEC "
-                        + "1989:2023 (Annex E.3.2 item 6; before 2023 SYNCHRONIZED is permitted only on elementary "
-                        + $"items) - it requires --std 2023 or later (targeting COBOL-{Edition.DialectLevel})");
+                    ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SyncOnGroup2023,
+                        $"data item '{item.CobolName ?? "FILLER"}'");
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
                 // USAGE NATIONAL / BIT on a GROUP header sheds per §13.18.60.4 GR1 — with the SR12/SR5
                 // conformance check over the subordinate leaves (each leaf's own PICTURE has already
