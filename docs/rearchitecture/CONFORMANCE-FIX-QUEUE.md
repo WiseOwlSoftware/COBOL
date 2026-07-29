@@ -60,11 +60,33 @@
   case silently compute too — i.e. it would extend acceptance of illegal source rather than fix anything. That is
   why that one site is deliberately LEFT on `IsCharacterImage`, with a note in
   `V59ImagePredicateDriftTests` saying so.
-- **The owner decision this needs** (hence not fixed here): accepting a group as a numeric operand is a common
-  vendor extension. Either (a) reject at COMPILE time under strict conformance with the leniency dialect-gated
-  (`--permissive`), or (b) accept it UNIFORMLY as a documented extension — which requires the numeric-DISPLAY-leaf
-  group to work as well as the alphanumeric one. The current state is neither, and the inconsistency is the bug
-  regardless of which way it is resolved.
+- **✅ OWNER DECISION TAKEN (2026-07-29): reject at COMPILE time under strict conformance, with the leniency
+  DIALECT-GATED behind `--permissive`** — the standing rule that every leniency is dialect-gated.
+- **⛔ SCOPE IS WIDER THAN THIS ENTRY ORIGINALLY SAID, and the decision was taken on the narrower premise.**
+  §8.8.1.1 bars every ALPHANUMERIC arithmetic operand, not just a group. Measured, all three forms are accepted
+  today: `COMPUTE R = X + 1` with `X PIC X(4) VALUE "0012"` → **13**; `COMPUTE R = X(1:2) + 1` (a ref-mod slice,
+  alphanumeric per §8.4.2.4) → **1**; and the group → **35**. `NumericRenderer` has FOUR `FromAlphanumeric` arms
+  (literal · ref-mod · group · elementary alphanumeric/national), so rejecting only the group half would create a
+  FRESH inconsistency of exactly the kind DA5/DA6 exist to remove. ⚠ Note the elementary arm's own comment cites
+  §14.9.25.4 GR6 as justification — that is the MOVE rule, not the arithmetic-operand rule; a MOVE citation cannot
+  license an arithmetic operand.
+- **🔴 IMPLEMENTATION ATTEMPTED AND REVERTED — the measurement is the deliverable.** Putting the check at
+  `ExpressionBinder.RefExpr` (the natural-looking site: it is where a resolved data reference becomes a numeric
+  expression operand, and the neighbouring `NonNumericConstantExpr` already raises **COBOLNET0844** for this very
+  clause) produced **79 conformance failures** — and NOT from programs abusing the extension. The casualties were
+  `FUNCTION TRIM(S)`, `SUBSTITUTE`, `FIND-STRING`, `CONVERT`, `RefModArgument_Renders`: **legal alphanumeric
+  ARGUMENTS to string intrinsics** (§15.3), which §8.8.1.1 does not govern at all.
+  **The root cause is structural and is the real finding:** `RefExpr` is documented as "The ONE
+  dataReference→`BoundExpr` mapping, used by every expression path", so it is CONTEXT-FREE — it cannot distinguish
+  an arithmetic operand from a string-function argument. A context-sensitive syntax rule cannot live there.
+- **What the fix actually requires:** the check must sit where an ARITHMETIC-EXPRESSION operand is assembled, which
+  means threading an operand-context (arithmetic vs. intrinsic-argument vs. reference-modifier) through the
+  expression binder — a design change to the spine, not a guard. That is the work; the predicate is trivial.
+- **⛔ AND `NumericRenderer.cs:186` MUST MOVE TO `IsImageCapable` IN THE SAME CHANGE SET, NEVER BEFORE IT.** Under
+  the rejection, that arm becomes reachable only via `--permissive`, where the leniency must be CONSISTENT for both
+  group kinds (today a `PIC X`-leaf group computes and a `PIC 9`-leaf group throws). Migrating it while strict still
+  ACCEPTED the construct would extend acceptance of illegal source instead of fixing anything. Verified during the
+  attempt: paired, strict rejects both group kinds and `--permissive` computes both as `001235`.
 
 ### DA5 · [MAJOR] · data-model · ✅ LANDED — V59's image predicate was migrated at SOME emit guards and not others
 - **The two predicates.** V59 added `DataItem.IsImageCapable` (a BINARY/PACKED leaf HAS a pinned byte image, so a
