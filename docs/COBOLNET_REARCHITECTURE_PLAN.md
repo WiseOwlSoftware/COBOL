@@ -253,7 +253,7 @@ which is pre-existing and unrelated to the batch.
 | `guard-fast.sh` (legacy + NIST) | **ALL GREEN — NIST 353 MATCH / 0 REGRESSION**, matching the recorded baseline |
 | legacy Unit / Integration | 1203/1203 · 503/504 (1 skipped) |
 | greenfield Unit | **580/580** — after fixing 2 `CobolPtrTests` that encoded CA9's pre-decision throw |
-| greenfield Conformance | **1 FAIL: `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec`** (NEXT item 1). No other failure appeared in two full runs. ⚠ The second run was still in flight when the session ended — **re-run it to completion and record the pass count**; the batch's own areas were green in every filtered run (CorpusRunner+ExceptionCondition+Oo 618/618, +Occurs/Odo/Dyn/Search 469–474). |
+| greenfield Conformance | **3929 passed · 1 failed · 3930 total** (12m 05s). The single failure is `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` — NEXT item 1, pre-existing. Nothing else failed. |
 | GnuCOBOL differential | **0 regressions from this batch.** Per-case diff vs the stored report: 3 flips — 1 fix, and 2 AGREE_ACCEPT→WE_REJECT_THEY_ACCEPT in `syn_value.at` ('Numeric item with picture P', 'Numeric item (non-integer)'), BOTH attributable to **CA34** (`COBOLNET1625`, introduced by `f54c9bd4`, present at this session's start commit), not to the EC batch. |
 
 ⚠ **TWO BASELINES ARE STALE and must be refreshed by whoever next runs the differential:** the numbers quoted
@@ -295,9 +295,12 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference:** the most recent FULL Conformance gate was **3891/3891 · characterization 33/33
-  byte-identical** (DEVLOG 1006); the most recent full legacy guard was **NIST 353 MATCH / 0 regression** at the
-  `main` merge. Re-confirm green (§9) before code changes.
+- **Battery reference (2026-07-28, the EC-batch pre-merge gate — supersedes DEVLOG 1006's 3891/3891):** FULL
+  Conformance **3929/3930**, the ONE failure being the pre-existing `VcrDriftTests
+  .EverySpecLineRef_IsWithinTheSpec` (NEXT item 1) · greenfield Unit **580/580** · characterization **33/33**
+  byte-identical · `guard-fast.sh` ALL GREEN with **NIST 353 MATCH / 0 regression** · legacy Unit 1203/1203,
+  Integration 503/504 (1 skipped). **Conformance takes ~12 min; run the long legs ONE AT A TIME.** Re-confirm
+  green (§9) before code changes.
 
 ### Standing facts a session needs
 

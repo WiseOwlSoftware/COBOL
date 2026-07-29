@@ -48,9 +48,12 @@ before "fixing" them. Both baselines are stale and §0 now says so: the numbers 
 
 **⚠ A SEQUENCING MISTAKE OF MINE, recorded so it is not repeated.** I started `guard-fast.sh` while a
 `--no-build` Conformance run was still in flight. Guard REBUILDS, and the first Conformance run produced no
-verdict line at all as a result — I had to discard it and re-run. Long legs go ONE AT A TIME. The re-run
-reproduced the same single failure and no other, but was still finishing when the session ended, so the pass
-COUNT is not recorded and §0 asks for it to be re-run to completion rather than pretending it is known.
+verdict line at all as a result — I had to discard it and re-run. Long legs go ONE AT A TIME.
+
+**The clean re-run landed after the session state was written: 3929 passed · 1 failed · 3930 total, 12m 05s**,
+the single failure being the pre-existing VCR drift and nothing else. That is the new battery reference and it
+supersedes DEVLOG 1006's 3891/3891; §0 carries it. It also sizes the leg honestly for planning — Conformance
+alone is ~12 minutes, which is why it cannot be the per-commit gate.
 
 **Where the batch stands:** EC-infra + OO super-batch COMPLETE — 10 landed, CA12 refuted. Queue 42 LANDED ·
 1 REFUTED · 3 REMAIN. Every commit pushed; tree clean.
