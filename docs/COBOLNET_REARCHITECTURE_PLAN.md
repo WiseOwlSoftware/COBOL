@@ -80,11 +80,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      COLLIDE at odd digit counts (3 digits = 2 bytes either way) · the unsigned packed sign nibble is pinned `0xF`
      per the IBM/MF/GnuCOBOL survey, deliberately diverging from our own legacy engine's `0x0C`. Nothing CONSUMES
      the discriminator yet — the image is still zoned until step ③.
-   - **NEXT STEPS, in order:** ② the radix-2 / BCD codec beside `CobolNum.FormatDisplay`, carried
-     in the Latin-1 string image (encode/decode per the step-2 pinned forms; big-endian, `0xC`/`0xD`/`0xF`) · ③
-     re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`
-     and sweep the 129 `ImageWidth` references · ④ the support diagnostic (a fixed-length file whose byte length is
-     not a multiple of the record length) · ⑤ §4.2.16 documentation + byte-level goldens · ⑥ un-Skip step 1.
+   - **✅ STEP 3 LANDED (DEVLOG 1099): the codec.** `CobolNum.Image.cs` — `FormatImage`/`ParseImage` beside
+     `FormatDisplay`, one dispatch on `StorageForm`, bytes carried in the SAME Latin-1 string the record framing
+     uses (no second whole-group mechanism). `None` at a byte boundary THROWS. `RecordImageCodecTests` pins the
+     bytes from the FORM, not from output (`1234` → `04 D2` binary, `01 23 4C` packed signed), and runs
+     one-width / Latin-1-safe / round-trip invariants over the whole grid. **The sweep found a load-bearing
+     sibling:** the BINARY width ladder stopped at 8 bytes, so `PIC S9(31) COMP` claimed a width that cannot hold
+     it — §13.18.60.4 GR4 requires storage "sufficient … to contain the maximum range of values implied by the
+     associated decimal picture character-string", and a signed 19-digit picture already exceeds 2^63−1. A
+     16-byte tier now covers 19–38 digits (sign-independent, per GR12's precedent); `FUNCTION BYTE-LENGTH` was
+     the only reader and it answered 8 for all of S9(19)/9(20)/S9(31) before this. Corpus instances: zero.
+   - **NEXT STEPS, in order:** ④ re-base `DataItem.ElementaryImageWidth` for BINARY/PACKED onto `StorageWidth`,
+     wire `GroupImageCodec` onto `FormatImage`/`ParseImage`, and sweep the 129 `ImageWidth` references — **this is
+     the commit where the on-disk layout changes** · ⑤ the support diagnostic (a fixed-length file whose byte
+     length is not a multiple of the record length) · ⑥ §4.2.16 documentation + byte-level goldens · ⑦ un-Skip
+     step 1. ⛔ Step ④ needs the FULL Conformance leg plus the GnuCOBOL differential, not the wave-local gate.
    - **⛔ WHAT THE STANDING TIE-BREAKERS ADD (owner 2026-07-28: "we always bias towards usability, understanding,
      support, maintenance, production quality").** The plan above is complete on correctness and gates and was
      still short on three of the five. It is NOT done without:

@@ -394,12 +394,23 @@ public sealed record PicInfo(
         _ => NumericTruncation.DigitCount,
     };
 
-    /// <summary>Storage width in bytes, for the PACKED-DECIMAL / COMP-5 capacity disciplines (else 0 — unused).</summary>
+    /// <summary>The item's storage width in BYTES for every usage that has one of its own — the width its
+    /// <see cref="StorageForm"/> lays out, the width <c>FUNCTION BYTE-LENGTH</c> reports, and the width it
+    /// occupies in a record image (0 for the usages whose bytes ARE their character positions).</summary>
     public int StorageWidth => Usage switch
     {
         // WITH NO SIGN (§13.18.60.4 GR11) drops the trailing sign nibble → exactly the digit nibbles.
         Usage.Packed => PackedNoSign ? (Digits + 1) / 2 : Digits / 2 + 1,
-        Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
+        // ⛔ The ladder must be SUFFICIENT, not merely conventional: §13.18.60.4 GR4 closes with "Sufficient
+        // computer storage shall be allocated by the implementor to contain the maximum range of values implied
+        // by the associated decimal picture character-string." 1-2-4-8 covers 1..18 digits exactly (a signed
+        // 18-digit max 10^18−1 fits 2^63−1; a signed 19-digit 10^19−1 does NOT), so a 19–38-digit picture — legal
+        // at COBOL-2002+ and already stored as Int128 (IsWide/ClrType) — takes the 16-byte tier. Before this the
+        // table answered 8 for every picture ≥ 10 digits, so PIC S9(31) COMP claimed a width that cannot hold it.
+        // The ladder is SIGN-INDEPENDENT — an unsigned 19-digit value would fit 8 bytes, but GR12 pins SIGNED and
+        // UNSIGNED to one width for the fixed-width binary usages and every surveyed compiler follows that, so
+        // the boundary is set by the signed worst case rather than splitting one picture into two widths.
+        Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : Digits <= 18 ? 8 : 16,
         // The fixed-width binary usages own their byte width directly (independent of the implied Digits;
         // ISO §13.18.60.4 GR21 — implementor-defined length, SIGNED and UNSIGNED the same width).
         Usage.BinaryChar => 1,

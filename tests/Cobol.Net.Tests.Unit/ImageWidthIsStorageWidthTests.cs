@@ -71,6 +71,10 @@ public sealed class ImageWidthIsStorageWidthTests
     [InlineData(Usage.Binary, 9, 4)]
     [InlineData(Usage.Binary, 10, 8)]
     [InlineData(Usage.Binary, 18, 8)]
+    // The 16-byte tier: §13.18.60.4 GR4 requires storage SUFFICIENT for the range the picture implies, and a
+    // signed 19-digit picture (10^19−1) does not fit 2^63−1. Legal at COBOL-2002+ and stored as Int128.
+    [InlineData(Usage.Binary, 19, 16)]
+    [InlineData(Usage.Binary, 31, 16)]
     [InlineData(Usage.Packed, 1, 1)]
     [InlineData(Usage.Packed, 2, 2)]
     [InlineData(Usage.Packed, 3, 2)]

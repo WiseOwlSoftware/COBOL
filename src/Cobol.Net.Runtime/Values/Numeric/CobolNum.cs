@@ -20,7 +20,7 @@ namespace CobolNet.Runtime;
 /// any high-order digits beyond the picture, and applies the unsigned-magnitude rule. Representation (DISPLAY /
 /// COMP / COMP-3 / COMP-5) changes only the capacity discipline and the external byte image — not the value.</para>
 /// </remarks>
-public static class CobolNum
+public static partial class CobolNum
 {
     /// <summary>
     /// Rescale an unscaled integer from <paramref name="fromScale"/> to <paramref name="toScale"/> fractional
