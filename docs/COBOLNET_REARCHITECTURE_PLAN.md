@@ -42,39 +42,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### NEXT, in order
 
-1. **The EC-infra + OO SUPER-BATCH** — decision-complete plan `docs/rearchitecture/DESIGN-ec-oo-superbatch.md`
-   (5 tracks: E/C/D parallel-safe, then the serial EC chain, then CA12 last; an 11-step commit plan). Every item
-   shares `EcBinder`/`EcEmitter`/`ExceptionState`, so this batch stays **SERIAL under one coordinated design pass —
-   never parallelized.** ✅ **ALL THREE OWNER DECISIONS ARE RESOLVED (2026-07-28) — the batch is UNBLOCKED and
-   the 11-step commit plan stands as written.** ⚠ Still read its §Risks FIRST: two of the three resolutions
-   CORRECT recipes already written into the finding text (CA9's checking-OFF fall-through, V55's "at emit
-   time"), and there is a queue PASTE-ERROR — the CA21 prose describes an INITIALIZE fix already landed as CA2;
-   the real CA21 is the CALL-through-NULL-program-pointer wrong-EC-name bug (§14.9.4.4 GR3b).
-   - **✅ CHECKING-OFF DOCTRINE — DECIDED 2026-07-28, batch-wide:** when checking is OFF a fatal-EC raise site is
-     **LENIENT wherever the standard names the outcome, LOUD ABORT wherever it names none.** Lenient: CA37/CA38
-     (§14.9.39 GR30/GR31), CA9's SET pointer UP/DOWN BY (GR19 "content … unchanged"), CA10's scratch-read,
-     CA11/V55. Abort: the four `CobolPtr.Deref` sites — `Deref` returns a `StorageCell`, so leniency there means
-     continuing on a fabricated cell, and §13.18.5.4 GR3/GR4 name no outcome. ⚠ **This CORRECTS the CA9 recipe as
-     drafted** (which keeps the loud throw at all six raise sites): `UpBy`/`UpByScaled` become lenient. Behind it,
-     an owner-requested five-compiler survey — GnuCOBOL, gcobol, Micro Focus, IBM Enterprise COBOL and NetCOBOL
-     ALL hard-stop, none continues; "checking off" nowhere means lenient, it means UNGUARDED, and only our managed
-     `StorageCell` makes leniency reachable at all. Recorded in `DESIGN-ec-oo-superbatch.md` §Risks + the queue's
-     §OWNER-DECIDED.
-   - **❌ CA12 REFUTED 2026-07-28 — the co-land decision is MOOT.** A Format-3 USE cannot carry GLOBAL:
-     §14.9.49.2 gives `[ GLOBAL ]` to Formats 1 and 2 only (confirmed by rendering printed page 804), and
-     GR4b selects a declarative "with the GLOBAL attribute", so no Format-3 declarative is ever eligible
-     and the `return -3` tail is correct. The earlier claim that the I-O walk versus the -3 tail was one
-     rule with two behaviours was WRONG — it inherited the finding's premise instead of checking the
-     general format. See the queue's CA12 entry and DEVLOG 1091.
-   - **✅ V55's method-side "enabled" literal — RESOLVED, and it corrects the design** (2026-07-28). The source
-     EXISTS: `BoundCompilation.Turn` is group-wide and LINE-KEYED, folded at the METHOD-ID header line (the
-     raise is in the `__CobolInvoke` prologue, before any method statement, so entry state is the only
-     defensible reading). ⛔ But **NOT "at emit time"** as the design said: **codegen holds no TurnState at all**
-     — every TURN query lives in the binder and codegen sees only `BoundEcChecked` + `EcState` flags, so an
-     `OoEmitter` read would be a second mechanism for the binder's job. Fold at BIND time, record on
-     `OoMethodSymbol`, read the bool in the emitter. The not-enabled-in-both path throws a NEW non-attributing
-     `CobolImplementorFatalException` — every existing runtime exception carries an EC name, and GR7c requires
-     this one to stop without attributing EC-OO-UNIVERSAL.
+1. **⛔ RE-KEY THE VCR APPENDIX'S SPEC LINE REFERENCES ONTO THE CLAUSE HIERARCHY — THIS IS THE ONE THING
+   BLOCKING THE `phase-14` → `main` MERGE.** `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec` is RED:
+   `docs/VERSION_CHANGE_REFERENCE.md`'s appendix carries ~180 spec LINE references across ~129 rows, reaching
+   line 50,407, while `specs/ISO_COBOL.md` now has 47,195 lines. **PRE-EXISTING, not from the EC batch** — at
+   this session's start commit (`199dcd43`) the spec already had 47,142 lines, so the refs were ~3,200 out
+   before any work here; the transcription repairs moved it 47,142 → 47,195 and changed nothing about the
+   verdict. It is the same "anything page-keyed must be re-keyed onto the clause hierarchy" work item as the
+   de-paged tools, never done for the VCR. **A LINE number is not a stable citation** — use the clause, and
+   validate with `python scripts/spec/cite.py --check <clause> "<text>"`.
 2. **CA14 + V59** — owner-decided and fix-ready (the queue's §OWNER-DECIDED carries both approved options). V59 is
    effort-L and is **not a blocker**: the current value-faithful zoned image is the approved interim.
 3. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
@@ -267,9 +243,30 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
-**Owed before `phase-14` → `main`:** the comprehensive batch gate — FULL greenfield Conformance + the GnuCOBOL
-differential + NIST/characterization. Each landed wave passed its wave-local gate; the differential is the
-outstanding pre-merge confirmation.
+**✅ THE COMPREHENSIVE PRE-MERGE GATE WAS RUN 2026-07-28** (results below). The EC-infra + OO super-batch is
+COMPLETE: **10 findings landed + CA12 REFUTED**. `phase-14` is mergeable EXCEPT for the ONE red in NEXT item 1,
+which is pre-existing and unrelated to the batch.
+
+| leg | result |
+|---|---|
+| characterization | **33/33** byte-identical |
+| `guard-fast.sh` (legacy + NIST) | **ALL GREEN — NIST 353 MATCH / 0 REGRESSION**, matching the recorded baseline |
+| legacy Unit / Integration | 1203/1203 · 503/504 (1 skipped) |
+| greenfield Unit | **580/580** — after fixing 2 `CobolPtrTests` that encoded CA9's pre-decision throw |
+| greenfield Conformance | **1 FAIL: `VcrDriftTests.EverySpecLineRef_IsWithinTheSpec`** (NEXT item 1). No other failure appeared in two full runs. ⚠ The second run was still in flight when the session ended — **re-run it to completion and record the pass count**; the batch's own areas were green in every filtered run (CorpusRunner+ExceptionCondition+Oo 618/618, +Occurs/Odo/Dyn/Search 469–474). |
+| GnuCOBOL differential | **0 regressions from this batch.** Per-case diff vs the stored report: 3 flips — 1 fix, and 2 AGREE_ACCEPT→WE_REJECT_THEY_ACCEPT in `syn_value.at` ('Numeric item with picture P', 'Numeric item (non-integer)'), BOTH attributable to **CA34** (`COBOLNET1625`, introduced by `f54c9bd4`, present at this session's start commit), not to the EC batch. |
+
+⚠ **TWO BASELINES ARE STALE and must be refreshed by whoever next runs the differential:** the numbers quoted
+in "Gates" below (475 AGREE_ACCEPT · 171 AGREE_REJECT · 570 WE_REJECT_THEY_ACCEPT · 106 WE_ACCEPT_THEY_REJECT)
+and the stored `tests/external/gnucobol-differential-report.json`, which is dated 2026-07-22 and therefore
+PRE-CA34. The current run is **472 · 173 · 574 · 104 over 1323 cases** (the stored report holds 1321). Refresh
+the stored report so the next per-case diff has a truthful "before"; the two CA34 flips are a deliberate
+spec-derived tightening (§13.18.63.3 SR2) that GnuCOBOL's DEFAULT_DIALECT accepts as an extension, not a bug to
+chase — adjudicate before "fixing" them.
+
+⚠ **Sequencing lesson from this run, worth repeating:** do NOT start `guard-fast.sh` while a `--no-build`
+Conformance run is in flight — guard rebuilds, and the first Conformance run produced no verdict at all as a
+result. Run the long legs ONE AT A TIME.
 
 ### Gates — what to run, and when
 
@@ -303,6 +300,23 @@ outstanding pre-merge confirmation.
   `main` merge. Re-confirm green (§9) before code changes.
 
 ### Standing facts a session needs
+
+- **⛔ EVERY SPEC CITATION IS VALIDATED MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.**
+  CLAUDE.md rule 1 requires it. The failure mode is INHERITING a citation, not inventing one: a queue entry
+  carries a §, its quoted text is genuinely in the standard, and the clause NUMBER is never re-derived. Two CA10
+  citations were wrong exactly that way (real: §8.4.2.3.4 GR2 and §13.18.38.4 GR7); CA37/CA38's were one level
+  short (§14.9.39 → §14.9.39.4). The tool reads the MARKDOWN, never `spec-rule-catalog.json` — the catalog has
+  no block for a prose clause and its ordinal stops tracking the printed number once a rule has sub-letters.
+- **⛔ VALIDATING THE RULE TEXT IS NOT VALIDATING THE PREMISE.** CA12 was REFUTED after being implemented: its
+  GR3g/GR4b citations were correct, but a Format-3 `USE` cannot carry `GLOBAL` at all (§14.9.49.2 gives
+  `[ GLOBAL ]` to Formats 1 and 2 only — confirmed by RENDERING printed page 804), so GR4b can never select one
+  and the outward walk it asked for is unreachable. I had also told the owner the I-O/EC asymmetry was "one rule
+  with two behaviours"; that was wrong and is corrected in the queue, the deep-dive and DEVLOG 1091. **Ask what
+  the construct can SYNTACTICALLY BE, not only what the rule says about it.**
+- **A finding's stated scope is an estimate, not a ceiling** (CLAUDE.md rule 5). V57 said "binder-only" and
+  needed a runtime PUSH ALL/POP ALL; V55's "at emit time" was architecturally wrong (codegen owns no
+  `TurnState`); CA10 needed a shared emit-signature change. Expect to correct the recipe, and update the doc.
+
 
 - **Mission (owner decision D13):** 100% CONFORMING per ISO §4.2.16 across ALL FOUR editions (85/2002/2014/2023) —
   mandatory core complete plus every required implementor-documentation item; optional modules may remain
