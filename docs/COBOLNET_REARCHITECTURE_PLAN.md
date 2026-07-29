@@ -60,11 +60,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
      ALL hard-stop, none continues; "checking off" nowhere means lenient, it means UNGUARDED, and only our managed
      `StorageCell` makes leniency reachable at all. Recorded in `DESIGN-ec-oo-superbatch.md` §Risks + the queue's
      §OWNER-DECIDED.
-   - **✅ CA12 CO-LANDS, ordered LAST** (2026-07-28) — so all six fatal-EC findings inherit the outward-GLOBAL
-     walk rather than each shipping the same hole. The asymmetry is visible in the emitted code: the I/O path
-     already walks (`ProgramEmitter.cs:280` → `return __outer.__RunGlobalUse(__f);   // continue outward
-     (§14.9.49.4 GR4b)`) while the EC dispatch tail emits a bare `return -3;`, so ONE spec rule (GR3g directing
-     "repeated as specified in General rule 4") has two behaviours today.
+   - **❌ CA12 REFUTED 2026-07-28 — the co-land decision is MOOT.** A Format-3 USE cannot carry GLOBAL:
+     §14.9.49.2 gives `[ GLOBAL ]` to Formats 1 and 2 only (confirmed by rendering printed page 804), and
+     GR4b selects a declarative "with the GLOBAL attribute", so no Format-3 declarative is ever eligible
+     and the `return -3` tail is correct. The earlier claim that the I-O walk versus the -3 tail was one
+     rule with two behaviours was WRONG — it inherited the finding's premise instead of checking the
+     general format. See the queue's CA12 entry and DEVLOG 1091.
    - **✅ V55's method-side "enabled" literal — RESOLVED, and it corrects the design** (2026-07-28). The source
      EXISTS: `BoundCompilation.Turn` is group-wide and LINE-KEYED, folded at the METHOD-ID header line (the
      raise is in the `__CobolInvoke` prologue, before any method statement, so entry state is the only
