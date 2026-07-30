@@ -10,13 +10,13 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE DISCOVERED SET IS CLOSED — DA1 · DA2 · DA3 · DA4 · DA5 · DA6 · DA7 ALL LANDED (2026-07-29). THREE OPEN
-ITEMS REMAIN: `PB1` · `PB2` · `PB3`,** the first findings of the Phase-B traceability review. One batch of 55
-rules over 11 intrinsics produced **42 open rows**, and they are not 42 bugs: **11** are PB1 (the argument-class
-table declared 79 times and read zero times), **19** are PB2 (a floating-point argument falling off the end of the
-result path), 1 is PB3 (ORD under a custom collating sequence), and 11 are genuinely per-function. The inventory
-is now feeding this queue, which is the design working as intended (`DESIGN-spec-conformance-review.md` §3 Phase
-C: DIVERGES → the fix queue).
+**⛔ THE DISCOVERED SET IS CLOSED — DA1–DA7 ALL LANDED (2026-07-29). THE PHASE-B REVIEW HAS OPENED THREE:
+`PB1` ✅ LANDED (its class half; a named PARTIAL residue) · `PB2` ⛔ OPEN · `PB3` ⛔ OPEN.** One batch of 55 rules
+over 11 intrinsics produced 42 open rows, and they were never 42 bugs: **12** were PB1 (the argument-class table
+declared 79 times and read zero times — now enforced from a spec-verified table, closing 5 rows outright),
+**19** are PB2 (a floating-point argument falling off the end of the intrinsic result path), 1 is PB3 (ORD under a
+custom collating sequence), and the rest are genuinely per-function. The inventory is feeding this queue, which is
+the design working as intended (`DESIGN-spec-conformance-review.md` §3 Phase C: DIVERGES → the fix queue).
 The DA set: seven items, none part of the original 46, every one found while implementing
 something else. Their shared shape is worth carrying forward: **in DA3, DA5 and DA6 the reported symptom was a
 single construct failing, and the root cause was ONE RULE written down in more than one place** — three copies of a
@@ -27,7 +27,51 @@ stays as the register for anything NEW a future session discovers — add here, 
 
 ## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
 
-### PB1 · [MAJOR] · intrinsics · ⛔ OPEN — the intrinsic ARGUMENT-CLASS table is declared 79 times and read zero times
+### PB1 · [MAJOR] · intrinsics · ✅ LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
+
+> **`COBOLNET1627` (`intrinsic-argument-class`), edition-invariant, strict-reject with a `--permissive` warning —
+> the DA6 disposition for the sibling §8.8.1.1 question.** Five of the twelve rows CLOSE (ABS, PRESENT-VALUE,
+> RANDOM, RANGE, REM — bare class constraints, now fully enforced); five go **PARTIAL** because their rule has a
+> second half this screen does not reach, and one is unaffected. Half a rule enforced is PARTIAL, not CONFORMS.
+>
+> **⛔ THE RECIPE BELOW WAS WRONG, AND THE CORRECTION IS THE VALUABLE PART.** "Consume `sig.ArgKind(i)`" is what
+> this entry prescribed. Doing exactly that made the comprehensive gate return **12 failing corpus programs, every
+> one of them legal COBOL** — `FUNCTION BYTE-LENGTH(<numeric>)` rejected, though §15.14.3 admits an argument of
+> ANY class, and the nine rows with an empty `ArgKinds` default to `'n'`, which would have screened `LENGTH` as
+> numeric-only. **The table is not merely UNREAD, it is UNVERIFIED — and it was unverified *because* it was
+> unread.** Those codes were dispatch hints that drifted freely for years precisely because nothing consulted
+> them. Wiring 79 unaudited declarations into a rejection path converts one silent defect into 79 chances to
+> reject valid source.
+> So the screen is driven by `IntrinsicArgumentRules.Verified` — a table whose every entry carries **the ISO
+> clause it was read from**. Eleven entries (§15.7, §15.70–15.79: exactly the functions Phase B adjudicated). A
+> function absent from it is screened exactly as before, so landing this could not regress anything, and the table
+> grows as the review adjudicates each clause. Asserting the other 68 rules from an unaudited hint column would be
+> fabrication, not completeness.
+>
+> **RESIDUE, each recorded on its own inventory row as PARTIAL — not lost, and not silently deferred:**
+> · a LENGTH half — `AR-15.78.3-1` REVERSE ("at least one character position") and `AR-15.70.3-1` ORD ("one
+>   character position in length");
+> · a STRONGLY-TYPED GROUP exclusion — `AR-15.71.3-1` / `AR-15.72.3-1`, which the binder has no strong-type
+>   predicate to screen at this seam;
+> · a CROSS-ARGUMENT rule — `AR-15.79.3-3` ("argument-2 shall have the same type as argument-1"), which a
+>   per-position screen cannot express;
+> · the "all arguments of the same class" rules `AR-15.71.3-3` / `AR-15.72.3-3`, and the zero-length-literal
+>   rules `AR-15.71.3-2` / `AR-15.72.3-2`, all still DIVERGES.
+>
+> **GOLDENS** (all four registered in `tests/conformance/negative/manifest.json` in the same commit):
+> `pb1-numeric-arg-alphanumeric` · `pb1-string-arg-numeric` (the two hand reproductions) ·
+> `pb1-numeric-arg-numeric-edited` (§8.5.2.1 Table 2 — numeric-edited-when-display is class ALPHANUMERIC) ·
+> `pb1-numeric-arg2-alphanumeric` (REM's argument-2; a screen that stopped at the first argument would pass every
+> other fixture and still miss that rule's second half).
+>
+> **The guard that keeps it wired:** `IntrinsicArgumentClassDriftTests` — the screen is called, every verified
+> rule cites a §, every verified function is really in the catalog. It caught itself going blind on its first run
+> (its row-parsing regex required digits for the arity bounds; a variadic row writes `inf`, so every variadic
+> function was skipped and ORD-MAX read as absent from the catalog).
+>
+> The original finding follows, for provenance.
+
+### PB1 (as found) · the intrinsic ARGUMENT-CLASS table is declared 79 times and read zero times
 
 > **ONE architectural defect presenting as at least 12 separate rule violations.** Found by the first Phase-B
 > verdict batch (§15.7 + §15.70–15.79, 55 rules over 11 functions), and it is the reason that batch returned 18

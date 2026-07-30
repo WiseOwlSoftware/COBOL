@@ -39472,12 +39472,12 @@
   "ordinal": 1,
   "subject": "ABS function",
   "page": 846,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindFunctionArgumentExpr; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-numeric-arg-alphanumeric; conformance:negative/pb1-numeric-arg-numeric-edited",
   "editions": "2002,2014,2023",
-  "notes": "ISO 15.7.3 r1 is NEVER checked. IntrinsicSig.ArgKind (the per-position class code, 'n' on the ABS row) has ZERO callers anywhere in src/ -- the only read of ArgKinds is the == \"p\" MAX/MIN polymorphism test in IntrinsicBinder -- and BindArgOperand routes every argument through BindFunctionArgumentExpr, whose OperandContext.FunctionArgument arm deliberately skips the 8.8.1.1 class screen for EVERY function. RE-REPRODUCED BY HAND AT THE CLI (Debug build, --run), four failing inputs, none drawing any diagnostic at any edition: 01 A PIC X(5) VALUE \"12345\" with COMPUTE R = FUNCTION ABS(A) prints 12345.00; FUNCTION ABS(\"12345\") prints 12345.00; FUNCTION ABS(<01 NE PIC ZZ9.99 VALUE 12.34>) prints 12.34; FUNCTION ABS(<alphanumeric group item>) prints 123.00. All four operands are class ALPHANUMERIC -- 8.5.2.1 (an alphanumeric group item has class and category alphanumeric) and 8.5.2 Table 2 (class Alphanumeric covers category Alphanumeric and Numeric-edited when usage is display) -- so each violates 15.7.3 r1, and 4.2.2 paragraph 3 requires the warning mechanism to indicate violations of rules that are syntactically distinguishable, which a declared operand class is. The identical operand in COMPUTE R = A is correctly rejected COBOLNET0844, so the two paths disagree. ALREADY OWNED BY FIX-QUEUE ITEM PB1 in docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md, which names AR-15.7.3-1 by id and prescribes the general fix (consume sig.ArgKind(i) in BindIntrinsicCore for every catalogued function, plus a drift test that every row's ArgKinds is consulted) -- do NOT open a second entry for it. Converse leak on the same rule, detailed on RV-15.7.4-1: a LEGAL class-numeric COMP-1/COMP-2 argument (8.5.2.12 item 2) produces uncompilable C#. Editions rationale and the unresolved 2002-vs-2014 lower bound are on FMT-15.7.2. test-needed.",
-  "state": "GAP"
+  "notes": "PB1 LANDED. The whole rule is one class constraint and it is now enforced (COBOLNET1627, strict; --permissive warns). Both fixtures reject: an alphanumeric item AND a numeric-edited one, the second because 8.5.2.1 Table 2 puts numeric-edited-when-display under class ALPHANUMERIC. Editions left 2002,2014,2023 per the adversarial pass - 85 excluded on evidence (the 1989 Intrinsic Function Module is NIST IF101A..IF142A and ABS is not in it); 2002-vs-2014 stays an open question recorded on FMT-15.7.2.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.7.4-1",
@@ -43602,11 +43602,11 @@
   "ordinal": 1,
   "subject": "ORD function",
   "page": 930,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckRepertoireArgs; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Ord",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "NEITHER half of the rule is enforced. BindIntrinsicCore carries per-function argument-rule arms for CHAR (COBOLNET0844), DISPLAY-OF/NATIONAL-OF (CheckRepertoireArgs/COBOLNET1546), CONVERT, the date/time literal-format family and the ALGEBRAIC folds — and NO arm for ORD; IntrinsicCatalog's per-position ArgKinds code for ORD ('s') is decorative because IntrinsicSig.ArgKind has zero callers in src/, so no generic argument-class check exists either. §15.70.3 r1 plus §4.2.2 para 3 (violations of rules that are 'syntactically distinguishable' shall be indicated) require a diagnostic, and BOTH properties are statically known here: KnownWidth and OperandCategory live in this same class and already enforce the IDENTICAL 'shall be one character position in length' phrase for DISPLAY-OF/NATIONAL-OF argument-2. One rule written down in one place and the second site never written at all. REPRODUCED with the built CLI, ZERO diagnostics at BOTH --std 2023 and --std 85: 01 W3 PIC X(3) VALUE \"ABC\". 01 NUM PIC 9 VALUE 5. 01 NE PIC 9(3) VALUE 123. => MOVE FUNCTION ORD(\"AB\") TO R prints 00066; ORD(W3) prints 00066 (3 character positions); ORD(NUM) prints 00054 (category numeric); ORD(NE) prints 00050 (3 positions AND category numeric). Only the zero-length arm exists, at runtime, in CobolIntrinsics.Text.Ord (EC-ARGUMENT-FUNCTION citing §15.70.3). Editions: the length half applies from the 1989 Intrinsic Function amendment (the catalog row's IntroducedIn is 85 and --std 85 accepts ORD) onward; the 'or national' category alternative is meaningful 2002+. test-needed: a negative case rejecting a multi-character argument-1 and a category-numeric argument-1, at 85 and 2023.",
+  "notes": "PB1 landed the CATEGORY half only. 15.70.3 r1 requires argument-1 to be ONE CHARACTER POSITION IN LENGTH and of category alphabetic/alphanumeric/national; the length half is unscreened, so FUNCTION ORD over a PIC X(3) is still accepted. test-needed.",
   "state": "GAP"
  },
  {
@@ -43644,11 +43644,11 @@
   "ordinal": 1,
   "subject": "ORD-MAX function",
   "page": 931,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IsStringOperand; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
-  "editions": "2002,2014,2023",
-  "notes": "No argument-class check for ORD-MAX exists anywhere in the binder — BindIntrinsicCore calls CheckRepertoireArgs only for DISPLAY-OF/NATIONAL-OF — and IsStringOperand AFFIRMATIVELY admits two of the shapes §15.71.3 rule 1 bars: its BoundFieldOperand arm tests `f.Place.Item.IsGroup || f.Place.Item.Pic?.Category is ... PicCategory.Boolean`, routing both to OrdMaxString. Re-verified by compiling and running the built CLI: `01 B1 PIC 1 USAGE BIT VALUE B\"0\". 01 B2 PIC 1 USAGE BIT VALUE B\"1\". ... MOVE FUNCTION ORD-MAX(B1 B2) TO R` printed 0002, and `01 T1 IS TYPEDEF STRONG. 05 F1 PIC X(3). 01 G1 TYPE T1. 01 G2 TYPE T1. ... MOVE FUNCTION ORD-MAX(G1 G2) TO R` printed 0002 — both accepted with no diagnostic. A POINTER argument is not diagnosed either: `01 PT1 USAGE POINTER. 01 PT2 USAGE POINTER. ... FUNCTION ORD-MAX(PT1 PT2)` fails as a raw Roslyn error, 'CS1503: cannot convert from CobolNet.Runtime.ManagedPointer to System.Int128', leaking generated-C# detail instead of a §15.71.3 r1 diagnostic. Editions: at --std 85 the barred classes are not declarable (the boolean case was re-run at --std 85 and rejected with COBOLNET0900 'requires COBOL-2002'), so the rule is vacuous there and live 2002+. test-needed: negative cases for boolean, pointer, object-reference and strongly-typed-group arguments.",
+  "editions": "85,2002,2014,2023",
+  "notes": "PB1 landed the NEGATIVE class list (boolean/object/pointer now rejected for the MAX/MIN family). The rule also bars a STRONGLY-TYPED GROUP ITEM, which is not screened - the binder has no strong-type predicate at this seam. test-needed.",
   "state": "GAP"
  },
  {
@@ -43728,11 +43728,11 @@
   "ordinal": 1,
   "subject": "ORD-MIN function",
   "page": 932,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IsStringOperand; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
-  "editions": "2002,2014,2023",
-  "notes": "§15.72.3 rule 1 (cite.py --check verified) bars class boolean/message-tag/object/pointer and strongly-typed group arguments; BindIntrinsicCore runs an argument-class screen only for DISPLAY-OF/NATIONAL-OF (CheckRepertoireArgs) and CONVERT, never for the ArgKinds \"p\" rows, and IsStringOperand EXPLICITLY admits PicCategory.Boolean and IsGroup, so the barred shapes route to OrdMinString and return a value. Re-verified by running the built CLI at --std 2023: '01 B1 PIC 1(4) USAGE BIT VALUE B\"1010\". 01 B2 PIC 1(4) USAGE BIT VALUE B\"0011\". ... MOVE FUNCTION ORD-MIN(B1 B2) TO R' prints 0002; two '01 Gn TYPE T1.' items over '01 T1 TYPEDEF STRONG.' print 0002; two USAGE POINTER items are not diagnosed at all and escape as raw Roslyn 'CS1503: cannot convert from ManagedPointer to System.Int128' (a C# error, not a COBOL diagnostic). EDITIONS NARROWED from 85,2002,2014,2023 by the adversarial pass: at --std 85 all four barred shapes are rejected by COBOLNET0900 before the argument ever reaches ORD-MIN (verified for USAGE BIT, TYPEDEF/TYPE and USAGE POINTER), so the rule is vacuous at 85 and reachable only at 2002+ (message-tag is a 2023 class with no data-model support). No fix-queue item owns this — the queue is CLOSED at DA7; proposed DA8 (one shared §15 argument-class screen for the ArgKinds \"p\" rows ORD-MIN/ORD-MAX/MAX/MIN). test-needed: a tests/conformance/negative fixture per barred class at 2002/2014/2023.",
+  "editions": "85,2002,2014,2023",
+  "notes": "PB1 landed the NEGATIVE class list; the strongly-typed-group half is unscreened. Identical to AR-15.71.3-1 - ORD-MIN's rule is ORD-MAX's rule (feedback_scan_all_similar: fix both or neither). test-needed.",
   "state": "GAP"
  },
  {
@@ -43854,11 +43854,11 @@
   "ordinal": 1,
   "subject": "PRESENT-VALUE function",
   "page": 934,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#FunctionArgument; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "test-needed. §15.74.3 r1 (cite.py --check: OK) — argument-1 and argument-2 shall be of the class numeric; §15.3 argument type 10 reads 'An arithmetic expression or a numeric data item shall be specified'. NOTHING enforces it for PRESENT-VALUE. IntrinsicSig.ArgKind(int) has ZERO call sites across src/Cobol.Net.* (the only ArgKinds read anywhere is the `sig.ArgKinds == \"p\"` MAX/MIN test), and BindArgOperand routes every argument through ExpressionBinder with OperandContext.FunctionArgument, whose OperandRef gate is `context is OperandContext.Arithmetic && NonNumericOperandKind(p) is { }` — deliberately skipped for function arguments because 'the function's own §15.x argument rule governs' — and PRESENT-VALUE has no such per-function rule (unlike CHAR/COBOLNET0844, DISPLAY-OF+NATIONAL-OF/CheckRepertoireArgs, the ALGEBRAIC family/AlgebraicArgError). TWO shapes reproduced with the built CLI, no diagnostic at --std 85, 2002, 2014 or 2023: (a) data item — `01 ALPHA-ARG PIC X(5) VALUE \"ABCDE\". 01 AMT PIC 9(5)V99 VALUE 1000.00. COMPUTE RESULT-X = FUNCTION PRESENT-VALUE(ALPHA-ARG AMT)` prints 1000.0000 (ALPHA-ARG decoded through CobolNum.FromAlphanumeric as an unsigned integer, giving rate 0); (b) alphanumeric LITERAL — `COMPUTE RESULT-X = FUNCTION PRESENT-VALUE(\"ABC\" 100)` prints 100.000000. Required: reject both at bind time. Fix shape (rule 5): drive the check off IntrinsicSig.ArgKinds at the one BindIntrinsicCore chokepoint rather than adding a tenth hand-written per-function one-off — ArgKind() is dead for EVERY intrinsic, so the per-position class column of the catalog is currently decorative compiler-wide.",
+  "notes": "PB1 LANDED - both arguments screened class numeric. test-needed: no fixture of its own; the argument-2 path is covered generically by pb1-numeric-arg2-alphanumeric (REM), so this row stays CONFORMS-but-untested until PRESENT-VALUE has its own.",
   "state": "GAP"
  },
  {
@@ -43896,11 +43896,11 @@
   "ordinal": 1,
   "subject": "RANDOM function",
   "page": 935,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindFunctionArgumentExpr",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "No class-numeric screen is ever applied to a RANDOM argument. IntrinsicSig.ArgKind(int) is defined in IntrinsicCatalog.cs and has ZERO call sites in the whole tree (the only ArgKinds read anywhere is the `sig.ArgKinds == \"p\"` MAX/MIN polymorphism test in BindIntrinsicCore), and BindArgOperand deliberately routes every non-phrase argument through BindFunctionArgumentExpr, which binds at OperandContext.FunctionArgument and so suppresses the §8.8.1.1 numeric-operand screen. §15.75.3 rule 1 ('Argument-1 shall be of class numeric') with the §15.3 type-10 definition ('Numeric. An arithmetic expression or a numeric data item shall be specified') makes a class-alphanumeric operand illegal. REPRODUCED at HEAD with the built CLI: `01 ALPHA-X PIC X(3) VALUE \"ABC\". COMPUTE R = FUNCTION RANDOM(ALPHA-X).` compiles exit 0 with ZERO diagnostics and prints 726243270 — byte-identical to FUNCTION RANDOM(0), i.e. the operand silently degrades to seed 0. Structural fix (rule 4/5 — this is a pattern, not a RANDOM special case): one generic per-position class check in BindIntrinsicCore driven by sig.ArgKind(i), since the same hole leaves the §15.3 argument-class rule unenforced for EVERY catalogued intrinsic; pair it with a drift test asserting ArgKind has a consumer. test-needed: a tests/conformance/negative/ case asserting a diagnostic on FUNCTION RANDOM over a PIC X item.",
+  "notes": "PB1 LANDED - 15.75.3 r1 is a bare class-numeric constraint and is enforced. test-needed. NOTE the VALUE half of RANDOM's rules (r2, zero-or-positive-integer) is NOT this rule and remains open under PB2.",
   "state": "GAP"
  },
  {
@@ -44008,11 +44008,11 @@
   "ordinal": 1,
   "subject": "RANGE function",
   "page": 936,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindFunctionArgumentExpr; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "NOT ENFORCED — no class screen exists on a RANGE argument. The catalog row carries ArgKinds \"n\", but IntrinsicSig.ArgKind(i) has ZERO callers in src/ (only ArgKinds == \"p\" is read, for MAX/MIN string polymorphism), and BindArgOperand routes every generic argument through ExpressionBinder.BindFunctionArgumentExpr, whose OperandContext.FunctionArgument bypasses the `context is OperandContext.Arithmetic` guard in OperandRef that raises COBOLNET0844. Re-verified on the built CLI (strict, no --permissive, identical at --std 85/2002/2014/2023): `01 A-TXT PIC X(3) VALUE \"012\". 01 B-TXT PIC X(3) VALUE \"345\". COMPUTE R = FUNCTION RANGE(A-TXT B-TXT)` compiles with NO diagnostic and prints R=00333; also silently accepted are an alphanumeric literal (RANGE(\"99\" 5) -> 94), an alphanumeric GROUP item (-> 1234), a PIC N national item (-> 12), and a numeric-edited PIC ZZ9.99 (-> 10.50). §15.76.3 r1 requires class numeric and §15.3 type 10 says \"An arithmetic expression or a numeric data item shall be specified\"; per §8.5.2.1 Table 2 (Class and category relationships for elementary data items) categories alphanumeric / national / numeric-edited are NOT class numeric — note the correct clause is §8.5.2, NOT §8.4.2 (which is Uniqueness of reference; a prior draft of this record cited it wrongly). Note the internal inconsistency this creates: the group shape IS rejected by COBOLNET0844 in an arithmetic-operand position (DA6) but accepted as a function argument. test-needed: a tests/conformance/negative case rejecting a non-numeric RANGE argument at all four editions — the existing da6-alphanumeric/group/refmod-numeric-operand negatives pin §8.8.1.1 arithmetic operands only, which is precisely the context this bind exempts.",
+  "notes": "PB1 LANDED - bare class-numeric constraint, enforced across the variadic argument list. test-needed.",
   "state": "GAP"
  },
  {
@@ -44036,12 +44036,12 @@
   "ordinal": 1,
   "subject": "REM function",
   "page": 937,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindFunctionArgumentExpr; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-numeric-arg2-alphanumeric",
   "editions": "85,2002,2014,2023",
-  "notes": "REM's class-numeric argument rule is enforced NOWHERE. IntrinsicSig.ArgKind(int) is DEAD CODE -- a repo-wide grep for 'ArgKind' finds only its own declaration plus the one 'sig.ArgKinds == \"p\"' MAX/MIN category test, so the 'nn' on the REM catalog row is never read; BindArgOperand routes every argument through ExpressionBinder.BindFunctionArgumentExpr, which by DA6 design binds with OperandContext.FunctionArgument, and NonNumericOperandKind is consulted only under OperandContext.Arithmetic -- deliberately, because the per-function ISO 15.x argument rule is supposed to screen instead, and REM has none. Three ILLEGAL argument shapes are accepted silently, ZERO diagnostics, verified by running the built compiler at --std 85, 2002, 2014 and 2023: (1) category alphanumeric -- 01 ALPHA-ITEM PIC X(5) VALUE \"12345\". COMPUTE R = FUNCTION REM(ALPHA-ITEM, 7) prints R=000040{ (+4.00); (2) a GROUP item (class alphanumeric, ISO 8.5) -- 01 G. 05 G1 PIC 9(3) VALUE 123. 05 G2 PIC 9(3) VALUE 456. COMPUTE R = FUNCTION REM(G, 7) prints 4.00; (3) a reference-modified operand (class alphanumeric, ISO 8.4.2.4) -- FUNCTION REM(ALPHA-ITEM(2:3), 7) prints 3.00. Each decodes its digits through NumericRenderer.FieldNumCore's CobolNum.FromAlphanumeric arm. ISO 15.77.3 rule 1 plus ISO 15.3 item 10 ('An arithmetic expression or a numeric data item shall be specified') make all three illegal. FIX SHAPE (rule 5 -- make the NEXT function automatic): drive a class screen off the catalog's already-present ArgKinds column at BindIntrinsicCore, reusing NonNumericOperandKind as the classifier, rather than adding a REM-specific check; that closes the same hole for every 'n'/'i' row at once. test-needed: a negative fixture rejecting an alphanumeric, group and reference-modified argument to REM (the existing da6-* negative fixtures cover COMPUTE operands, not function arguments).",
-  "state": "GAP"
+  "notes": "PB1 LANDED. 15.77.3 r1 names BOTH arguments, so the fixture exercises argument-2 specifically - a screen that stopped at the first argument would pass every argument-1 test and still miss this rule's second half.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.77.3-2",
@@ -44078,11 +44078,11 @@
   "ordinal": 1,
   "subject": "REVERSE function",
   "page": 938,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind",
-  "test-ref": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-string-arg-numeric",
   "editions": "85,2002,2014,2023",
-  "notes": "test-needed. Neither half of ISO 15.78.3 rule 1 is enforced, and the divergence was re-reproduced independently against the built CLI at --std 85, 2002, 2014 AND 2023 (identical output at all four). (a) CLASS: the catalog row carries ArgKinds \"s\", but IntrinsicCatalog.ArgKind(int) has ZERO callers anywhere in src/ (grep-verified) and the only ArgKinds reader is the `sig.ArgKinds == \"p\"` MAX/MIN polymorphism test in BindIntrinsicCore - so no per-argument class check ever runs for REVERSE. `01 W-N PIC 9(5) VALUE 12345.` `MOVE FUNCTION REVERSE(W-N) TO W-X.` compiles clean and prints [54321   ]; `01 W-C PIC S9(4) COMP VALUE 987.` prints [7890    ]; `01 W-B PIC 1(4) USAGE BIT VALUE B\"1100\".` prints [0011    ]. Classes numeric and boolean are both outside the {alphabetic, alphanumeric, national} that 15.78.3 r1 requires (8.5.2.1 + Table 2 in 8.5.2.1 is the class/category authority - NOT 8.4.2, which is 'Uniqueness of reference'; the CheckRepertoireArgs doc-comment in IntrinsicBinder.cs carries that same wrong '8.4.2 table 2' pointer and should be corrected to 8.5.2.1 in the same change set). (b) MINIMUM LENGTH: `MOVE FUNCTION REVERSE(\"\") TO W-X.` compiles clean and yields spaces at 85 and 2023 alike; a zero-length alphanumeric literal is legal syntax (8.3.3.2.2 Format 1 brackets character-1) and is a zero-length item (8.5.4), but 15.78.3 r1 requires at least one character position. [CITATION FIXED: the prior draft cited 8.3.3.3.1 for the zero-length literal - that clause is 'Numeric literals are of the class and category numeric' and does not support the point.] FIX: the machinery exists one screen away - IntrinsicBinder.OperandCategory and IntrinsicBinder.KnownWidth already drive CheckRepertoireArgs (COBOLNET1546) for DISPLAY-OF/NATIONAL-OF - it is simply never applied to the 's' rows; make ArgKind drive a table-driven bind-time class/width check rather than adding a per-function `if`. SIBLING SWEEP (rule 4): UPPER-CASE 15.97.3 r1 and LOWER-CASE 15.57.3 r1 are WORD-FOR-WORD identical to 15.78.3 r1 (both cite-checked) and are equally unenforced. Two nearby rows are RELATED BUT NOT IDENTICAL and must not be swept blindly: ORD 15.70.3 r1 is 'one character position in length and ... category alphabetic, alphanumeric, or national' (exactly one, and CATEGORY not class) and its length half IS already enforced, at RUNTIME, by CobolIntrinsics.Ord's empty-argument ArgumentError - only its category half is missing; TRIM 15.96.3 r1 is 'shall be a DATA ITEM of class alphabetic, alphanumeric, or national' with no minimum-length clause and additionally bars a literal. Edition set is all four: the catalog row is IntroducedIn 85 (the 1989 Intrinsic Function Module amendment) and only the 2023 text was available, so the per-edition wording of the argument rule was not re-derived.",
+  "notes": "PB1 landed the CLASS half only. 15.78.3 r1 has TWO halves: 'shall be of class alphabetic, alphanumeric, or national AND shall be at least one character position in length'. The class half now rejects FUNCTION REVERSE over a numeric item (fixture); the zero-length half is not screened. Deliberately NOT recorded as CONFORMS - half a rule enforced is PARTIAL.",
   "state": "GAP"
  },
  {
@@ -44134,11 +44134,11 @@
   "ordinal": 3,
   "subject": "SECONDS-FROM-FORMATTED-TIME function",
   "page": 939,
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ArgKind",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "2014,2023",
-  "notes": "§15.79.3 r3 (with the Table 21 row 'Anum1 or Nat1, Anum2 or Nat2') requires argument-2 to have the SAME type as argument-1, but the binder performs no class or category check on argument-2 for this function. IntrinsicCatalog's per-position ArgKinds string (\"ss\" for this row) is DEAD METADATA: `IntrinsicSig.ArgKind(int)` has ZERO callers anywhere in src/ (only `.ArgKinds == \"p\"`, the MAX/MIN polymorphism probe, is read), and BindIntrinsicCore's only category tests are that MAX/MIN probe and the DISPLAY-OF/NATIONAL-OF CheckRepertoireArgs path. Three failing inputs, all verified compiling clean with no diagnostic and no EC-ARGUMENT-FUNCTION at --std 2014: `FUNCTION SECONDS-FROM-FORMATTED-TIME(N\"hh:mm:ss\", \"12:34:56\")` → +45296.00 (national argument-1, alphanumeric argument-2); `(\"hh:mm:ss\", WS-NAT)` with `01 WS-NAT PIC N(8) VALUE N\"12:34:56\"` → +45296.00 (the converse mismatch); and worst, a class-NUMERIC argument-2 — `01 WS-T PIC 9(6) VALUE 123456.` / `(\"hhmmss\", WS-T)` → +45296.00, where a numeric item is neither Anum nor Nat, so §15.3 argument types 2/9 are violated outright and the digits are being read straight out of the numeric image. Fix shape: make ArgKind live — drive a per-position class check off the catalog row (the OperandCategory helper already computes the statically knowable category) rather than adding a fourth bespoke per-function check, and add the r3 same-type cross-check for this row. test-needed.",
+  "notes": "PB1 screens BOTH arguments into the string family, but 15.79.3 r3 says argument-2 'shall have the same TYPE as argument-1' - a CROSS-ARGUMENT rule the per-position screen cannot express (national argument-1 with alphanumeric argument-2 is still accepted). test-needed.",
   "state": "GAP"
  },
  {

@@ -550,6 +550,25 @@ public static class DiagnosticCatalog
         + "for alphanumeric-to-alphanumeric moves\", so a group takes whatever an alphanumeric MOVE may deposit, "
         + "including a group holding a BINARY/PACKED leaf (V59 gave those leaves a byte image).",
         "ISO §14.9.22.3 SR1 / §14.9.43.3 SR1 / §14.9.48.3 SR4");
+    // 1627 — the ISO §15.3 intrinsic ARGUMENT-CLASS screen (fix-queue PB1). IntrinsicCatalog declared an
+    // ArgKinds class code on all 79 rows and IntrinsicSig.ArgKind had ZERO callers, so no §15 argument rule was
+    // enforced from the table built for it: FUNCTION REVERSE(<PIC 9(4)>) and FUNCTION ABS(<PIC X(4)>) both
+    // compiled clean and produced garbage. Edition-invariant — §15.3's argument types are unchanged across
+    // 85/2002/2014/2023 — so this is NOT edition-gated and needs no introduction axis. The --permissive leniency
+    // mirrors DA6/COBOLNET0844, which settled the sibling §8.8.1.1 question for ARITHMETIC operands; one
+    // mechanism for one question.
+    public static readonly DiagnosticDescriptor IntrinsicArgumentClass = new(
+        "COBOLNET1627", "intrinsic-argument-class", EditionSeverity.Error,
+        "An intrinsic-function argument is not of the class its argument rule requires. ISO §15.3 defines the "
+        + "argument types: type 10 Numeric admits \"an arithmetic expression or a numeric data item\", type 6 "
+        + "Integer admits an integer-valued arithmetic expression or an integer data item, and types 1/2/9 admit "
+        + "the alphabetic/alphanumeric/national family (a strongly-typed group item counting as alphanumeric). "
+        + "The MAX/MIN/ORD-MAX/ORD-MIN family instead carries a NEGATIVE rule — §15.71.3 r1 and siblings exclude "
+        + "class boolean, message-tag, object and pointer. ⛔ CLASS, not category: §8.5.2.1 Table 2 puts "
+        + "NUMERIC-EDITED under class ALPHANUMERIC when its usage is display, so PIC ZZ9.99 is not a legal "
+        + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
+        + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
+        "ISO §15.3 / §8.5.2.1 Table 2 / §4.2.2 paragraph 3");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

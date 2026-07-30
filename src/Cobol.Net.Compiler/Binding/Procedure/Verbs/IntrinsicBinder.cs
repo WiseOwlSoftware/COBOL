@@ -227,6 +227,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
 
+        // ISO §15.3 ARGUMENT-CLASS screen (fix-queue PB1). THE catalog-driven enforcement of every catalogued
+        // function's argument rule — see IntrinsicArgumentRules for why this had to be written: sig.ArgKinds
+        // declared the required class on all 79 rows and sig.ArgKind had ZERO callers, so `FUNCTION REVERSE` over
+        // a numeric item and `FUNCTION ABS` over an alphanumeric one both compiled clean and produced garbage.
+        // It sits HERE — after arity, before every per-function arm — so a new catalog row is screened the day it
+        // is added rather than the day someone remembers to write its arm.
+        CheckArgumentClasses(sig, args);
+
         // §15.38–15.41 / §15.48 / §15.79 / §15.92 rule 1: the date/time FORMAT (argument-1) shall be a LITERAL —
         // the format is analyzed/derived at compile time (SECONDS-FROM-FORMATTED-TIME needs the fraction scale).
         if (args.Count > 0 && args[0] is not BoundStringLiteral
@@ -673,6 +681,51 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
     /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>
+    /// <summary>
+    /// Screen every argument's CLASS against the catalog row's declared <c>ArgKinds</c> (ISO §15.3 argument
+    /// types; fix-queue PB1).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Rejects under strict conformance and warns under <c>--permissive</c>, matching DA6/<c>COBOLNET0844</c>,
+    /// which settled the same question for §8.8.1.1 arithmetic operands one wave earlier — the leniency is
+    /// dialect-gated, never silent.
+    /// </para>
+    /// <para>
+    /// ⚠ Binding CONTINUES after a violation rather than returning a <c>BoundExprError</c>. The argument is
+    /// well-formed, its class is merely wrong, so the rest of the call still binds and later rules still report —
+    /// which is what lets one compile name every bad argument in a statement instead of the first. Under
+    /// <c>--permissive</c> the existing coercion then runs unchanged, so the leniency is genuinely the old
+    /// behaviour and not a second code path.
+    /// </para>
+    /// </remarks>
+    private void CheckArgumentClasses(IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
+    {
+        // ⛔ Driven by the SPEC-VERIFIED table, not by sig.ArgKinds. The catalog's hint column is unaudited —
+        // BYTE-LENGTH is declared "s" while §15.14.3 admits any class, and an empty ArgKinds defaults to 'n',
+        // which would screen LENGTH as numeric-only. Screening from it rejected 12 legal corpus programs.
+        // A function absent from Verified is not screened, so this can only ever ADD rejections that a cited
+        // §15 rule demands. sig.ArgKind(i) still supplies the POSITION when the rule is per-argument.
+        if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;
+
+        for (int i = 0; i < args.Count; i++)
+        {
+            if (IntrinsicArgumentRules.Violation(rule.Kind, args[i]) is not { } why) continue;
+
+            string where = $"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})";
+            if (ctx.Edition.Permissive)
+            {
+                ctx.Edition.Warning(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                    $"{where}; accepted under --permissive with the existing coercion");
+            }
+            else
+            {
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                    $"{where}. --permissive accepts it as a coercion extension");
+            }
+        }
+    }
+
     private static bool IsStringOperand(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,

@@ -130,7 +130,11 @@
     "ref-mod-zero-length-malformed",
     "ec-external-turn-below-2023",
     "external-constant-record-weak-type-at-2023",
-    "user-word-validate"
+    "user-word-validate",
+    "pb1-numeric-arg-alphanumeric",
+    "pb1-string-arg-numeric",
+    "pb1-numeric-arg-numeric-edited",
+    "pb1-numeric-arg2-alphanumeric"
   ],
   "pending": []
 }

@@ -57,11 +57,23 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     1 losing its spec-derived cover), three of them rows counted as CLOSED. Corrected in DEVLOG 1116. **Wait for
     the workflow's completion notification before reading its output**; an output file that exists is not an
     output file that is finished.
-  · **⛔ 42 OPEN ROWS, BUT NOT 42 BUGS — three named root causes now own 31 of them.** `PB1` (11 rows): the
+  · **⛔ 42 OPEN ROWS, BUT NOT 42 BUGS — three named root causes owned 31 of them.** `PB1` (12 rows): the
     argument-class table declared 79 times, read zero times. `PB2` (19 rows): a FLOATING-POINT argument falls off
     the end of the intrinsic result path — no value, a `CS1503`, or a silent requantization. `PB3` (1 row): ORD
     reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE (ALSO collapse + >255 masking), which
-    also means **CA26's Unicode fix is incomplete on the ORD path**. 11 rows are genuinely per-function.
+    also means **CA26's Unicode fix is incomplete on the ORD path**. The rest are genuinely per-function.
+  · **✅ PB1 LANDED — `COBOLNET1627`, GAP 3781 → 3779, DIVERGES 19 → 9** (DEVLOG 1117). Strict-reject with a
+    `--permissive` warning, the DA6 disposition for the sibling §8.8.1.1 question. 5 rows close outright; 5 go
+    PARTIAL because their rule has a second half the screen cannot reach (a LENGTH clause, a strongly-typed-group
+    exclusion, a cross-argument "same type as argument-1"), each recorded on its own row rather than waved
+    through. Four negative fixtures, registered.
+    **⛔ AND THE QUEUE'S RECIPE WAS WRONG IN A WAY WORTH CARRYING.** "Consume `sig.ArgKind(i)`" — done exactly,
+    it made the comprehensive gate reject **12 legal corpus programs** (`BYTE-LENGTH` is declared `"s"` where
+    §15.14.3 admits any class; an empty `ArgKinds` defaults to `'n'`, screening `LENGTH` as numeric-only). **The
+    table was not merely unread, it was UNVERIFIED — because it was unread.** A declaration nothing consults
+    cannot be contradicted, so it drifts. The screen is therefore driven by `IntrinsicArgumentRules.Verified`,
+    where every entry carries the ISO clause it was read from; a function absent from it is screened exactly as
+    before. **Generalise this before wiring in any other long-dead lookup table.**
   · **⛔ PB1 — THE FIRST FINDING THE INVENTORY FED INTO THE FIX QUEUE, AND IT IS ONE DEFECT BEHIND 11 ROWS.**
     `IntrinsicCatalog` declares an `ArgKinds` argument-class string on all **79** rows and
     `IntrinsicSig.ArgKind(int)` has **zero callers** — the only read anywhere is the `== "p"` MAX/MIN test. So no
