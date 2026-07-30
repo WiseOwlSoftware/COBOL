@@ -37224,12 +37224,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "ACOS function",
-  "verdict": "DIVERGES",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-  "test-ref": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "UNSCREENED RESIDUAL OF PB1 — RE-REPRODUCED IN THIS PASS. §15.8.3 r1 (validated: cite.py --check 15.8.3 \"Argument-1 shall be of class numeric\" -> OK §15.8.3 1); the printed page was rendered here, python scripts/render-spec-page.py 847 = folio 817, and reads identically) is enforced NOWHERE for ACOS. IntrinsicBinder.CheckArgumentClasses opens `if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;`, and Verified holds ELEVEN rows — ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI (⚠ FACTUAL CORRECTION: the prior record said 12 rows while listing 11; the table's own doc comment says \"the eleven below\"). ACOS is absent, so the operand is never classed. §15.3 item 10 Numeric (validated: \"An arithmetic expression or a numeric data item shall be specified\") is the requirement; §8.5.2.1 Table 2 puts PIC X under class alphanumeric (§8.5.2.1 validated: \"refers to the category unless class is specifically indicated\"); §15.6 Table 21 independently gives ACOS as \"Num1\". ⚠ CITATION WEAKENED ON PURPOSE: the prior note said §4.2.2 \"requires the violation to be indicated\". Read whole, §4.2.2 para 3 ends \"it is left to the implementor's discretion to determine what is syntactically distinguishable\" — so §4.2.2 obliges a warning MECHANISM, not this particular diagnostic. The divergence therefore does not rest on §4.2.2: it rests on (a) a fabricated result, and (b) this compiler having ALREADY exercised that discretion the other way, which makes the omission an internal inconsistency rather than a choice. REPRO RE-RUN HERE against src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe — compiles clean and prints 000157079F (= +1.570796, ACOS of a silently coerced 0) at the default --std 2023 AND at --std 85: IDENTIFICATION DIVISION. PROGRAM-ID. ADVACOSCLS. DATA DIVISION. WORKING-STORAGE SECTION. 01 X PIC X(4) VALUE \"ABCD\". 01 R PIC S9(4)V9(6). PROCEDURE DIVISION. MAIN-PARA. COMPUTE R = FUNCTION ACOS(X). DISPLAY R. STOP RUN.  CONTROL RUN HERE: byte-identical program with FUNCTION ABS(X) is rejected — \"error intrinsic-argument-class: FUNCTION ABS argument-1 is of class alphanumeric; ISO 15.3 requires class numeric (15.7.3 r1)\" — which isolates the cause to the missing table row and nothing else. FIX: one row [\"ACOS\"] = ('n', \"§15.8.3 r1\") in IntrinsicArgumentRules.Verified (the same row shape ABS already carries); IntrinsicArgumentClassDriftTests holds the table and the batch list in agreement. EDITIONS BASIS (⛔ NOT the IntrinsicCatalog row): ACOS is in the §8.11 intrinsic-function-name list (validated), and a whole-document grep finds ACOS in exactly 6 places — the ToC, §8.11, §15.6 Table 21, §15.8 and the alphabetical index — i.e. in NO Annex E substantive-change item and NO Annex F archaic/obsolete item, so the rule is unchanged across the editions this compiler targets. Caveat stated per the sanctioned fallback: the ISO 1985 BASE standard had no intrinsic functions at all (ACOS arrived with the 1989 Intrinsic Function Module amendment), so \"85\" here means the amended 85 this compiler targets. test-needed: no spec-derived test exercises a wrong-class ACOS argument; grep of tests/ finds ACOS only in IntrinsicFunctionDifferentialTests.cs (see AR-15.8.3-2), tests/nist/programs/IF101A.cob and the GnuCOBOL tree — none of which is admissible and none of which passes a non-numeric argument.",
-  "state": "GAP"
+  "test-ref": "conformance:negative/pb1-numeric-arg-trig-family",
+  "editions": "2002,2014,2023",
+  "notes": "PB1 EXTENDED. ACOS is now in the Verified table, so 15.8.3 r1 (a bare class-numeric constraint) is enforced end to end. The batch-2 finding was precisely a table MISS, not a missing mechanism.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.8.3-2",
@@ -37263,12 +37263,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "ANNUITY function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-numeric-arg-family",
   "editions": "85,2002,2014,2023",
-  "notes": "SURVIVED ADVERSARIAL REVIEW — UNSCREENED. Citation re-validated: `cite.py --check 15.9.3 \"Argument-1 shall be of class numeric\"` -> OK §15.9.3 1). §15.3 type 10: 'Numeric. An arithmetic expression or a numeric data item shall be specified.' IntrinsicArgumentRules.Verified re-read at review time (11 rows: ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI) — ANNUITY is NOT among them, so CheckArgumentClasses returns at its first line (`if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;`) and the PB1 screen (COBOLNET1627) never runs. IntrinsicCatalog.Build declares ArgKinds \"ni\" for ANNUITY but that column is read only by the `== \"p\"` MAX/MIN polymorphism test. The violation is statically decidable, so ISO §4.2.2 para 3 requires it to be indicated. FAILING INPUT re-run independently on src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe (PROGRAM-ID ADVD01): `01 A PIC X(4) VALUE \"ABCD\". 01 R PIC S9(5)V9(4).` / `COMPUTE R = FUNCTION ANNUITY ( A 4 ). DISPLAY \"R=\" R.` -> compiles with ZERO diagnostics, prints `R=00000250{` (0.2500) — \"ABCD\" silently coerced to 0, selecting the §15.9.4 r1a zero-rate branch 1/4. FIX: an ANNUITY row ('n', \"§15.9.3 r1\") in IntrinsicArgumentRules.Verified. EDITIONS: all four — §15.9 carries no edition marker and no Annex E item names ANNUITY (whole-spec grep: TOC, §8.11 reserved list, Table 21, §15.9, index only), so the window is not derivable from the spec; IntrinsicCatalog's own IntroducedIn was deliberately not used as evidence. test-needed: no spec-derived test exists (tests/conformance holds no ANNUITY case except the in-flight tests/conformance/2023/pb5_float_quantize_range.cob, which exercises no wrong-class argument; the only other refs are the excluded IntrinsicFunctionDifferentialTests#FloatFamily_MatchesLegacy and the frozen-legacy CobolSharp.Tests.Unit).",
-  "state": "GAP"
+  "notes": "PB1 EXTENDED. ANNUITY 15.9.3 r1 (argument-1 class numeric) enforced; the existing family fixture already exercises ANNUITY's argument-1 with an alphanumeric operand.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.9.3-2",
@@ -37289,11 +37289,11 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "ANNUITY function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "SURVIVED ADVERSARIAL REVIEW — BOTH HALVES UNENFORCED. Citation re-validated: `cite.py --check 15.9.3 \"Argument-2 shall be a positive integer\"` -> OK §15.9.3 3). The rule has an INTEGER half (§15.3 type 6: 'An arithmetic expression that will always result in an integer value or an integer data item shall be specified'; corroborated by Table 21's row '| ANNUITY | Num1, Int2 | Num |') and a POSITIVE half (a permissible-value constraint carrying EC-ARGUMENT-FUNCTION through §15.3's closing paragraph). (a) INTEGER: sig.Float is true for ANNUITY, so IntrinsicRenderer's `if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);` routes EVERY argument through `Dbl(ic, i)`; RenderFloat calls IntArg only for RANDOM's seed, so argument-2 reaches CobolIntrinsics.Annuity as a real exponent to Math.Pow. ANNUITY is also absent from IntrinsicArgumentRules.Verified, so nothing screens it at bind. (b) POSITIVE: no value guard anywhere. FAILING INPUTS re-run independently in one program (PROGRAM-ID ADVD02/ADVD03) with `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` in force, `01 R PIC S9(5)V9(4).`, and a trailing FUNCTION LOG(0) that DID abort, proving checking was on: `COMPUTE R = FUNCTION ANNUITY ( 0.05 4.5 ).` -> `FRAC-N=00000253F` (0.2536 = 0.05/(1-1.05**-4.5)) — a non-integer argument-2 accepted and evaluated as a real exponent; `COMPUTE R = FUNCTION ANNUITY ( 0.05 -5 ).` -> `NEG-N=00000180R` (-0.1809), no exception; `COMPUTE R = FUNCTION ANNUITY ( 0.05 0 ).` -> `ZERO-N=03715884A` (03715.8841), the divide-by-zero +inf saturated in CobolIntrinsics.FromDouble and digit-truncated into the receiver — the digits are the tail of Int128.MaxValue (...3715884105727), i.e. silent garbage where §15.3 requires EC-ARGUMENT-FUNCTION. (This ZERO-N figure is the CURRENT one; the pre-review batch quoted 72036854G from the older long-based FromDouble — the saturation constant changed with fix-queue PB5, the acceptance did not.) All three argument-2 values are literals, hence statically decidable (§4.2.2 para 3). EDITIONS: all four — not derivable from the spec or Annex E (see AR-15.9.3-1). test-needed.",
+  "notes": "PB1 landed the CLASS half only. 15.9.3 r3 says argument-2 shall be a POSITIVE INTEGER: the class screen rejects a non-numeric operand, but neither the integer-ness nor the positivity is checked, and a value violation is 15.3's EC-ARGUMENT-FUNCTION business at RUN time rather than a class screen's. test-needed.",
   "state": "GAP"
  },
  {
@@ -37315,12 +37315,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "ASIN function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-numeric-arg-trig-family",
+  "editions": "2002,2014,2023",
+  "notes": "PB1 EXTENDED. NOTE THIS ROW DID NOT EXIST until the extractor fix: 15.10.3 is headed 'Argument*s* rules' and the literal-spelling KINDS map never recognised it, so ASIN's two rules were absent from the denominator entirely. Bare class-numeric constraint, now enforced.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.10.3-2",
@@ -37354,12 +37354,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "ATAN function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build",
-  "test-ref": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "SECOND ADVERSARIAL PASS: verdict SURVIVES. Re-derived from the spec, re-read in the code, and re-run against the built CLI by this reviewer; no part of the prior record was taken on trust.\n\nCITATION re-validated mechanically: `python scripts/spec/cite.py --check 15.11.3 \"Argument-1 shall be of class numeric\"` => OK  §15.11.3 1)  (Argument rule). Also confirmed against the PRINTED page (scripts/render-spec-page.py 850, printed folio 820): §15.11.3 has exactly ONE argument rule, so there is no second half to miss.\n\nCODE, read not inferred. `IntrinsicArgumentRules.Verified` holds exactly eleven rows — ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI. ATAN is NOT among them, and `IntrinsicBinder.CheckArgumentClasses` opens with `if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;` — so the PB1 §15.3 class screen (DiagnosticCatalog.IntrinsicArgumentClass / \"intrinsic-argument-class\") never runs for ATAN. `IntrinsicCatalog.Build` does carry ATAN (arity Fixed 1..1, ArgKinds \"n\"), but that hint column has no consumer for class screening — its own doc comment records that it is unaudited and that screening from it rejected 12 legal corpus programs. All three symbols verified literally present in the named files.\n\nFAILING INPUT, RE-RUN BY THIS REVIEWER against src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe at default --std 2023. Compiles clean, exit 0, ZERO diagnostics:\n\n       01 A PIC X(4) VALUE \"ABCD\".\n       01 E PIC ZZ9.99 VALUE ZERO.\n       01 R PIC S9(3)V9(9).\n       ...\n           COMPUTE R = FUNCTION ATAN(A).\n           DISPLAY \"ATAN-ALPHANUM=\" R.\n           COMPUTE R = FUNCTION ATAN(E).\n           DISPLAY \"ATAN-NUMEDIT=\" R.\n\nobserved output: ATAN-ALPHANUM=00000000000{ / ATAN-NUMEDIT=00000000000{ (overpunch { = 0 positive, i.e. a silent 0.000000000 — a WRONG VALUE, not merely a missing diagnostic). `COMPUTE R = FUNCTION ATAN(\"AB\").` — an alphanumeric LITERAL, which ClassOf maps through BoundStringLiteral => CobolClass.Alphanumeric — is likewise accepted and printed R=00000000000{.\n\nPREMISE CHECKED, not only the rule. Both operands are class ALPHANUMERIC under §8.5.2.1 Table 2: PIC X directly, and PIC ZZ9.99 is numeric-edited usage display, which Table 2 places under class alphanumeric — `IntrinsicArgumentRules.ClassOfCategory` already encodes precisely that row (`PicCategory.Alphanumeric or PicCategory.NumericEdited => CobolClass.Alphanumeric`) with a comment saying it is the row most easily read the other way. Neither is class numeric, so §15.11.3 r1 is violated and nothing says so. §4.2.2 (validated: `cite.py --check 4.2.2 \"syntactically distinguishable\"` => OK) requires such a violation to be indicated.\n\nCONTROL, re-run: the identical program with FUNCTION ABS (which IS in Verified) is correctly rejected, exit 70 — \"error intrinsic-argument-class: FUNCTION ABS argument-1 is of class alphanumeric; ISO 15.3 requires class numeric (15.7.3 r1). --permissive accepts it as a coercion extension\". The screen works; ATAN is simply not wired to it.\n\nFIX: one spec-derived row, [\"ATAN\"] = ('n', \"§15.11.3 r1\"). SIBLING SWEEP (CLAUDE.md rule 4): every catalogued function absent from Verified is equally unscreened — ACOS/ASIN/COS/SIN/TAN/SQRT/LOG/LOG10/EXP/EXP10/FACTORIAL/INTEGER/INTEGER-PART/MOD/SUM/MEAN are the immediate neighbours. Each needs its OWN §15.x.3 rule read and cited rather than a bulk copy from ArgKinds, for the reason the class comment already records.\n\nEDITIONS. Established from the standard, NOT from IntrinsicCatalog's MinEdition column (deliberately not consulted for this field). Positive evidence: Annex E.2 item 13 lists the intrinsic function names that are NEW in this edition — BASECONVERT, CONCAT, CONVERT, FIND-STRING, MODULE-NAME, SMALLEST-ALGEBRAIC, SUBSTITUTE — and ATAN is not among them, so ATAN is not a 2023 addition and applies at least to 2014 and 2023. §15.11 carries no edition qualification in any of its four subclauses, and Annex E contains no occurrence of ATAN, \"arctangent\" or \"trigonometric\". The 85/2002 boundary is NOT establishable from ISO/IEC 1989:2023 or its Annex E — intrinsic functions entered COBOL through the 1989 Amendment to COBOL-85 rather than the 1985 base text, and this document does not say so — therefore all four per the brief's stated fallback.\n\ntest-needed. VERIFIED ON DISK by this reviewer: `grep -rln ATAN tests/conformance/` returns NOTHING (the tree has 85/, 2002/, 2014/, 2023/, negative/), and no method under tests/Cobol.Net.Tests.Unit/ mentions ATAN. The only greenfield ATAN reference is tests/Cobol.Net.Tests.Conformance/IntrinsicFunctionDifferentialTests.cs line 52, `[InlineData(\"COMPUTE R = FUNCTION ATAN(0).\")]` inside FloatFamily_MatchesLegacy — a MatchesLegacy differential, struck by the rubric — plus tests/nist/programs/IF104A.cob and IF401M.cob, NIST regression nets, also struck. The covering test must be a NEGATIVE case asserting the COBOLNET1627 reject of a wrong-class argument; a test that merely calls ATAN cannot cover this rule.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "test-ref": "conformance:negative/pb1-numeric-arg-trig-family",
+  "editions": "2002,2014,2023",
+  "notes": "PB1 EXTENDED. ATAN 15.11.3 r1, bare class-numeric constraint, enforced.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.11.4-1",
@@ -37432,11 +37432,11 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "BOOLEAN-OF-INTEGER function",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
-  "editions": "",
-  "notes": "",
+  "editions": "2002,2014,2023",
+  "notes": "PB1 landed the CLASS half only. 15.13.3 r1 requires a POSITIVE INTEGER; only the numeric class is screened. NOTE THIS ROW DID NOT EXIST before the extractor fix - 15.13.3 is headed 'Argument*s* rules'. test-needed.",
   "state": "GAP"
  },
  {
@@ -37445,11 +37445,11 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "BOOLEAN-OF-INTEGER function",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
-  "editions": "",
-  "notes": "",
+  "editions": "2002,2014,2023",
+  "notes": "PB1 landed the CLASS half only. 15.13.3 r2 requires a positive NONZERO integer for argument-2; class screened, value not. Also a row recovered by the extractor fix. test-needed.",
   "state": "GAP"
  },
  {
@@ -37575,11 +37575,11 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "CHAR function",
-  "verdict": "DIVERGES",
+  "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "85,2002,2014,2023",
-  "notes": "test-needed. UPHELD by adversarial re-review, re-derived from the spec and re-reproduced from scratch. Citation revalidated mechanically: python scripts/spec/cite.py --check 15.15.3 \"Argument-1 shall be an integer\" -> OK (§15.15.3 1)). §15.15.3 r1 resolves through §15.3 argument type 6 (read in full at specs/ISO_COBOL.md line 29533: 'An arithmetic expression that will always result in an integer value or an integer data item shall be specified'), which is statically decidable and therefore falls under the §4.2.2-paragraph-3 warning mechanism PB1 established for the eleven screened siblings. CODE: CHAR is ABSENT from IntrinsicArgumentRules.Verified (read in full; the 11 entries are ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI) and CheckArgumentClasses returns on the TryGetValue miss (IntrinsicBinder.cs: 'if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;'), so the PB1 §15.3 class screen (COBOLNET1627) never runs for CHAR. The only CHAR argument guard is the NATIONAL arm (COBOLNET0844). MEASURED against src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe, identical at --std 2023 and --std 85, ZERO diagnostics: 01 XA PIC X(4) VALUE \"0066\". 01 NF PIC 9(3)V99 VALUE 66.75. 01 R PIC X. MOVE FUNCTION CHAR(XA) TO R. DISPLAY \"RA=[\" R \"]\". MOVE FUNCTION CHAR(NF) TO R. DISPLAY \"RN=[\" R \"]\". -> RA=[A] / RN=[A]. (a) XA is class ALPHANUMERIC per §8.5.2.1 Table 2 — not an integer data item; (b) NF has digit positions right of the radix point, excluded by §5.5 2)b)2., and is silently truncated to 66. THIRD FACET FOUND IN THIS REVIEW, not in the prior adjudication: §8.4.3.2.3 SR11 ('A numeric function shall not be specified where an integer operand is required, even though a particular reference of the numeric function might yield an integer value', specs/ISO_COBOL.md line 6062) is also unenforced for CHAR — MOVE FUNCTION CHAR(FUNCTION SQRT(4356)) TO R compiles clean and prints A. ⚠ A GREEN TEST PINS HALF THE DEFECT and will fail when this is fixed: tests/conformance/2014/func_expr_arg.cob line 40 'COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED))' with '01 WS-ED PIC Z9' (line 19) — numeric-edited usage display is class ALPHANUMERIC per §8.5.2.1 Table 2, and the file's own line-16 comment states the intent. ⚠ THE OBVIOUS FIX IS INSUFFICIENT: adding [\"CHAR\"] = ('i', \"§15.15.3 r1\") to Verified closes facet (a) only — IntrinsicArgumentRules.Admissible maps 'i' to [CobolClass.Numeric] and its own comment says 'integer-ness of a VALUE is not a class property and is not decided here' — so facets (b) and (c) need a SCALE/function-kind predicate the class screen cannot express. EDITIONS not derived from the IntrinsicCatalog row: CHAR appears in no Annex E 'added or enhanced' intrinsic list (the 2023 list at specs/ISO_COBOL.md lines 1114-1123 was read and does not contain it), so it predates 2002 and dates to the Intrinsic Function Module amendment to the 1985 standard; independently measured accepted at all four --std targets.",
+  "notes": "PB1 landed the CLASS half only. 15.15.3 r1 says argument-1 shall be an INTEGER - 15.3 type 6, which admits an integer data item or an arithmetic expression that always yields an integer. The screen rejects a non-numeric operand; a NON-INTEGER numeric one still passes. test-needed.",
   "state": "GAP"
  },
  {
@@ -37627,11 +37627,11 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "CHAR-NATIONAL function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ArgInt",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "2002,2014,2023",
-  "notes": "UPHELD on independent re-verification (read the code, re-ran the repros). CHAR-NATIONAL is ABSENT from IntrinsicArgumentRules.Verified (the dictionary holds exactly 11 names: ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI), so IntrinsicBinder.CheckArgumentClasses returns on its first line ('if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;') and the PB1 §15.3 class screen never runs. There is no per-function arm either: the neighbouring COBOLNET0844 arm at IntrinsicBinder is keyed 'if (sig.Name is \"CHAR\" && nationalArg)' — the sibling CHAR is guarded, CHAR-NATIONAL is not. CITATIONS VALIDATED with scripts/spec/cite.py --check: §15.16.3 r1 ('Argument-1 shall be an integer') OK; §15.3 argument type 6 ('An arithmetic expression that will always result in an integer value or an integer data item shall be specified') OK; Table 21 'Table of functions' independently types the row 'CHAR-NATIONAL | Int1 | Nat'; §4.2.2 ('This warning mechanism shall indicate violations of such rules') OK; §5.5 2) b) 2. ('a fixed-point numeric data item ... whose description does not include any digit positions to the right of the radix point') OK.\nRAN (exit 0, ZERO diagnostics, wrong answer) — CLASS ALPHANUMERIC operand:\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ADVCN01.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01  N-CHAR   PIC N(1) USAGE NATIONAL.\n       01  A-DISP   PIC X(4).\n       01  TXT      PIC X(4) VALUE \"ABCD\".\n       PROCEDURE DIVISION.\n           MOVE FUNCTION CHAR-NATIONAL (TXT) TO N-CHAR\n           MOVE FUNCTION DISPLAY-OF (N-CHAR) TO A-DISP\n           DISPLAY \"TXT=[\" A-DISP \"]\"\n           STOP RUN.\nprints TXT=[    ]. §8.5.2.1 Table 2 makes PIC X class alphanumeric, which §15.3 type 6 does not admit.\nRAN — CLASS NATIONAL operand, the exact shape CHAR rejects: '01 N-ARG PIC N(1) VALUE N\"B\".' with FUNCTION CHAR-NATIONAL (N-ARG) also compiles clean (exit 0, no diagnostics) and prints a space. So the guarded sibling's own violation passes unremarked here.\nRAN — SECOND HALF (integer-ness, not class): '01 FRAC PIC 99V9 VALUE 66.7.' with FUNCTION CHAR-NATIONAL (FRAC) compiles clean and prints A — truncated to 66 by IntrinsicRenderer.ArgInt's (long) cast. IntrinsicArgumentRules.Admissible('i') deliberately screens CLASS only ('integer-ness of a VALUE is not a class property and is not decided here'), so adding the Verified row closes ONLY the alphanumeric/national half; the scale-0 half of §5.5 2) b) 2. needs a second check the 'i' code does not carry.\nFIX: add [\"CHAR-NATIONAL\"] = ('i', \"§15.16.3 r1\") to Verified AND give 'i' a scale-0 predicate. PATTERN (CLAUDE.md rule 4): sibling CHAR (§15.15.3 r1, also Int1 in Table 21) is equally absent from Verified, and every other 'i' row in the catalog inherits the missing scale-0 check.\ntest-needed: a tests/conformance/negative/ case in the existing pb1-*.cob shape (reject-at: 2002 2014 2023), one leg per half.\nEDITIONS: 2014 and 2023 established from the spec — Annex E (substantive changes from the previous standard) names no change to CHAR-NATIONAL. 85 is excluded because the function's type is national (§15.16.1) and class national is not a COBOL-85 facility. The 2002 lower bound rests on national data's introduction in ISO/IEC 1989:2002 and is NOT derivable from the 2023 text; it was NOT taken from IntrinsicCatalog's row.",
+  "notes": "PB1 landed the CLASS half only - identical to AR-15.15.3-1, and fixed with it rather than separately (feedback_scan_all_similar: CHAR-NATIONAL's rule IS CHAR's rule). test-needed.",
   "state": "GAP"
  },
  {
@@ -37679,11 +37679,11 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "COMBINED-DATETIME function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#CombinedDatetime",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "2014,2023",
-  "notes": "SURVIVED ADVERSARIAL REVIEW - re-derived from the spec and re-reproduced against the built CLI, not inherited. Citation re-validated: `python scripts/spec/cite.py --check 15.17.3 \"integer date form\"` -> OK (§15.17.3 rule 1). Both halves of the rule are unenforced. (a) CLASS. Table 21 (specs/ISO_COBOL.md) types argument-1 `Int1`; §15.3 argument type 6 Integer admits only 'An arithmetic expression that will always result in an integer value or an integer data item'. I read the whole `IntrinsicArgumentRules.Verified` dictionary: eleven rows (ABS, ORD, ORD-MAX, ORD-MIN, PRESENT-VALUE, RANDOM, RANGE, REM, REVERSE, SECONDS-FROM-FORMATTED-TIME, PI) and COMBINED-DATETIME is not among them, so `CheckArgumentClasses` returns on its TryGetValue miss and the PB1 COBOLNET1627 screen never runs for this function. RE-RAN at --std 2023: `01 WS-BAD PIC X(6) VALUE \"ABCDEF\". 01 WS-SEC PIC 9(5) VALUE 45296. 01 WS-CD5 PIC Z(6)9.9(5). MOVE FUNCTION COMBINED-DATETIME(WS-BAD, WS-SEC) TO WS-CD5.` -> compiles with ZERO diagnostics, exit 0, prints `CLS1=      0.45296`. Expected COBOLNET1627 (error under strict, warning under --permissive, the landed DA6 disposition). (b) VALUE. §15.5.2 (cite.py --check 15.5.2 \"shall be greater than zero\" -> OK): 'It shall be greater than zero and shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671.' `CobolDate.CombinedDatetime` is a one-line scale shift with NO guard, while DateOfInteger, DayOfInteger, FormattedDate and FormattedDatetime in the SAME file each carry `if (integerDate is < 1 or > 3067671) ... ExceptionState.ArgumentError` - a missed sibling of an implemented pattern (CLAUDE.md rule 4). THE DECISIVE EVIDENCE IS THE EC, NOT THE PRINTED VALUE (§15.3 para 14, cite.py-validated, leaves the result implementor-defined while checking is off). RE-RAN with `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`, `01 WS-BIG PIC 9(8) VALUE 99999999.`: `MOVE FUNCTION COMBINED-DATETIME(WS-BIG, WS-BSEC) TO WS-CDB` prints `RNG= 100000008.99999` then `STILL-HERE`, and only the sibling call terminates - 'abnormal run-unit termination: EC-ARGUMENT-FUNCTION (fatal): DATE-OF-INTEGER argument 99999999 outside 1..3,067,671 (15.5.2)'. So the condition is never set to exist for this function. Also re-ran `FUNCTION COMBINED-DATETIME(0, 0)` -> `ZERO=         0.00000` with no EC, though §15.5.2 requires argument-1 greater than zero. FIX SHAPE: add `[\"COMBINED-DATETIME\"] = ('i', \"§15.17.3 r1\")` to `Verified` for the class half, and the `1..3067671` guard to `CobolDate.CombinedDatetime` for the value half; note the class screen alone cannot reach 'integer' (kind 'i' admits class Numeric, so PIC 9(5)V99 still passes) - that residue belongs to the same row. EDITIONS: the spec supports >= 2014 only. Annex E.2 item 13 enumerates the intrinsic function names NEW in this (2023) edition - BASECONVERT, CONCAT, CONVERT, FIND-STRING, MODULE-NAME, SMALLEST-ALGEBRAIC, SUBSTITUTE - and COMBINED-DATETIME is absent, so it existed in ISO/IEC 1989:2014. The 2002/85 boundary is NOT derivable from this document (it carries no earlier-edition function inventory) and docs/VERSION_CHANGE_REFERENCE.md has no row for it; 85/2002 are excluded on the external fact that the international date/time family is a 2014 addition, NOT from IntrinsicCatalog's `2014` row (which was deliberately not used as authority - it was only exercised as behaviour: COBOLNET1502 at --std 85 and --std 2002, clean at 2014/2023). test-needed: no spec-derived fixture exercises a wrong-class or out-of-range argument-1 - tests/conformance/2014/formatted_datetime.cob (read on disk) calls the function only with valid arguments, and the PB1 negative fixtures cover ABS/REM.",
+  "notes": "PB1 landed the CLASS half only. 15.17.3 r1 requires argument-1 to be in INTEGER DATE FORM - a value form (a valid standard date integer), not merely a class. The screen rejects a non-numeric operand and nothing more. test-needed.",
   "state": "GAP"
  },
  {
@@ -37692,11 +37692,11 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "COMBINED-DATETIME function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#CombinedDatetime",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "test-ref": "",
   "editions": "2014,2023",
-  "notes": "SURVIVED ADVERSARIAL REVIEW - independently re-reproduced. Citation re-validated: `cite.py --check 15.17.3 \"standard numeric time form\"` -> OK (§15.17.3 rule 2). The mirror of AR-15.17.3-1; both halves unenforced. (a) CLASS. Table 21 types argument-2 `Num2`; §15.3 argument type 10 Numeric admits only 'An arithmetic expression or a numeric data item'. The function is absent from `IntrinsicArgumentRules.Verified`, so NO argument position is screened. RE-RAN at --std 2023: `01 WS-ID PIC 9(7) VALUE 143951. 01 WS-BAD2 PIC X(5) VALUE \"12345\". MOVE FUNCTION COMBINED-DATETIME(WS-ID, WS-BAD2) TO WS-CD5.` -> zero diagnostics, exit 0, prints `CLS2= 143951.12345`. Expected COBOLNET1627. (b) VALUE. §15.5.5 (cite.py --check 15.5.5 \"less than 86,400\" -> OK): 'If the LEAP-SECOND directive with the OFF phrase is in effect, the value shall be greater than or equal to zero and less than 86,400.' OFF is the only mode this compiler supports (src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs states so, citing §7.3.17 / §15.5.5), so the applicable bound is 0 <= argument-2 < 86400 and §15.3 para 14 makes a violation set EC-ARGUMENT-FUNCTION. `CobolDate.CombinedDatetime` applies no bound: RE-RAN `01 WS-BSEC PIC 9(6) VALUE 999999.` -> accepted, contributing 9.99999 to `RNG= 100000008.99999`, and with `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` the run walks straight past the call (prints `STILL-HERE`) while the sibling DATE-OF-INTEGER on the same wave terminates the run unit - so the condition is never set to exist for argument-2 either. FIX SHAPE: the `Verified` entry covers argument-2's class as kind 'n'; the `0 <= a2 < 86400` bound belongs beside the argument-1 guard in `CobolDate.CombinedDatetime`. EDITIONS: derived exactly as on AR-15.17.3-1 (Annex E.2 item 13 establishes >= 2014; the pre-2014 boundary is not in this document; IntrinsicCatalog's row was not used as authority). test-needed: no spec-derived fixture exercises a wrong-class or out-of-range argument-2.",
+  "notes": "PB1 landed the CLASS half only. 15.17.3 r2 requires STANDARD NUMERIC TIME FORM for argument-2 - again a value form. Its class IS screened, which is what PB2's CombinedDatetimeReal depends on. test-needed.",
   "state": "GAP"
  },
  {

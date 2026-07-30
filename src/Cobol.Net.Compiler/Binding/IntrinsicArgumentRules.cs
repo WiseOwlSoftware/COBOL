@@ -20,6 +20,18 @@ namespace CobolNet.Binding;
 internal enum CobolClass
 {
     Alphanumeric,
+
+    /// <summary>
+    /// NUMERIC-EDITED with usage display — Table 2 class ALPHANUMERIC, but modelled apart because §15.3's
+    /// integer/numeric TYPES admit an arithmetic expression, and such an item DE-EDITS to a defined numeric
+    /// value and is therefore a legal arithmetic operand (DA6's §8.8.1.1 screen admits one deliberately).
+    /// </summary>
+    /// <remarks>
+    /// ⚠ Anywhere a rule says "shall be of CLASS alphanumeric", this counts as alphanumeric — that is what
+    /// Table 2 says and this member does not change it. It exists so a rule naming §15.3's INTEGER type can
+    /// admit the operand without the screen having to pretend a numeric-edited item is class numeric.
+    /// </remarks>
+    NumericEditedDeEditing,
     Boolean,
     National,
     Numeric,
@@ -116,9 +128,11 @@ internal static class IntrinsicArgumentRules
     /// <summary>ISO §8.5.2.1 Table 2, read as written.</summary>
     private static CobolClass? ClassOfCategory(PicCategory category) => category switch
     {
-        // ⛔ NumericEdited sits under ALPHANUMERIC in Table 2 when its usage is display. That row is the whole
-        // reason PIC ZZ9.99 is not a legal numeric argument, and it is the one most easily read the other way.
-        PicCategory.Alphanumeric or PicCategory.NumericEdited => CobolClass.Alphanumeric,
+        PicCategory.Alphanumeric => CobolClass.Alphanumeric,
+        // ⛔ NumericEdited sits under ALPHANUMERIC in Table 2 when its usage is display — which is why it is not
+        // a legal argument to a rule demanding CLASS NUMERIC (ABS). It is reported as its own member so a rule
+        // demanding §15.3's INTEGER TYPE can still admit it, since it de-edits to a numeric value.
+        PicCategory.NumericEdited => CobolClass.NumericEditedDeEditing,
         PicCategory.National => CobolClass.National,
         PicCategory.Numeric => CobolClass.Numeric,
         PicCategory.Boolean => CobolClass.Boolean,
@@ -171,24 +185,80 @@ internal static class IntrinsicArgumentRules
             // PI takes no arguments (§15.73.2) — present so the drift test can hold this table and the Phase-B
             // batch's function list in agreement rather than silently tolerating a gap.
             ["PI"] = (' ', "§15.73.2 — no arguments"),
+
+            // ── Phase-B batch 2 (§15.8–15.19). Eight of its twelve functions; the other four are listed under
+            //    DELIBERATELY UNSCREENED below, because their argument rule is not a class constraint at all.
+            ["ACOS"] = ('n', "§15.8.3 r1"),                           // shall be of class numeric
+            ["ASIN"] = ('n', "§15.10.3 r1"),                          // shall be of class numeric
+            ["ATAN"] = ('n', "§15.11.3 r1"),                          // shall be of class numeric
+            ["ANNUITY"] = ('n', "§15.9.3 r1"),                        // argument-1 class numeric; r3 makes
+                                                                      // argument-2 an integer, also class numeric
+            ["CHAR"] = ('i', "§15.15.3 r1"),                          // shall be an integer
+            ["CHAR-NATIONAL"] = ('i', "§15.16.3 r1"),                 // shall be an integer
+            ["BOOLEAN-OF-INTEGER"] = ('i', "§15.13.3 r1/r2"),         // both arguments positive integers
+            // §15.17.3 r1/r2 — argument-1 "in integer date form", argument-2 "in standard numeric time form".
+            // Both are numeric FORMS, so the class screen is the same for each position even though the two
+            // rules differ in what they additionally require of the VALUE.
+            ["COMBINED-DATETIME"] = ('n', "§15.17.3 r1/r2"),
+        };
+
+    /// <summary>
+    /// Functions whose §15 argument rule was READ during the Phase-B review and deliberately left UNSCREENED,
+    /// with the reason. Not an oversight, and recorded so it cannot be mistaken for one.
+    /// </summary>
+    /// <remarks>
+    /// A class screen can only express "the argument shall be of class X". These four rules are something else,
+    /// and forcing them into the table would reject legal COBOL — which is exactly how the first attempt at PB1
+    /// failed its gate on twelve corpus programs.
+    /// <list type="bullet">
+    ///   <item><b>BYTE-LENGTH</b> §15.14.3 r1 — "a data item of any class or category". There is nothing to
+    ///   screen; the catalog's <c>"s"</c> hint is simply wrong, and screening from it rejected legal source.</item>
+    ///   <item><b>BASECONVERT</b> §15.12.3 r1 — constrains USAGE ("a usage display or national data item or
+    ///   literal"), not class. A usage screen is a different mechanism and does not exist here yet.</item>
+    ///   <item><b>CONCAT</b> §15.18.3 r1 — admits "class alphabetic, alphanumeric, boolean, numeric or
+    ///   national", i.e. everything except index/object/pointer. Expressible in principle, but its r2/r3 add
+    ///   cross-argument USAGE agreement and an unsigned-integer condition, so a class-only screen would give a
+    ///   false sense that the rule is enforced.</item>
+    ///   <item><b>CONVERT</b> §15.19.3 — the admissible argument depends on the source-format KEYWORD (HEX /
+    ///   ANUM / NAT / ANY), so there is no single class for argument-1. Its own arm in the binder owns it.</item>
+    /// </list>
+    /// </remarks>
+    public static readonly IReadOnlyDictionary<string, string> DeliberatelyUnscreened =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["BYTE-LENGTH"] = "§15.14.3 r1 admits an argument of ANY class or category",
+            ["BASECONVERT"] = "§15.12.3 r1 constrains USAGE (display or national), not class",
+            ["CONCAT"] = "§15.18.3 r1 admits all classes but index/object/pointer; r2/r3 are cross-argument USAGE rules",
+            ["CONVERT"] = "§15.19.3 makes the admissible argument depend on the source-format keyword",
         };
 
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —
     /// the function's rule is a NEGATIVE list and its own arm owns it.</summary>
     public static CobolClass[]? Admissible(char kind) => kind switch
     {
-        // §15.3 type 10, Numeric: "An arithmetic expression or a numeric data item shall be specified."
+        // ⛔ 'n' is for a rule that says CLASS NUMERIC in those words — §15.7.3 r1 (ABS), §15.9.3 r1, §15.74.3 r1,
+        // §15.75.3 r1, §15.76.3 r1, §15.77.3 r1 and the trig family. Table 2 puts NUMERIC-EDITED under class
+        // ALPHANUMERIC, so such an operand is excluded, however numeric it looks.
         'n' => [CobolClass.Numeric],
-        // §15.3 type 6, Integer: "An arithmetic expression that will always result in an integer value or an
-        // integer data item shall be specified." Same CLASS screen; integer-ness of a VALUE is not a class
-        // property and is not decided here.
-        'i' => [CobolClass.Numeric],
+        // ⛔ 'i' IS NOT THE SAME SCREEN, AND TREATING IT AS ONE REJECTED LEGAL COBOL. §15.15.3 r1 (CHAR) says
+        // "shall be an INTEGER", which is §15.3 type 6: "An arithmetic expression that will always result in an
+        // integer value or an integer data item shall be specified." That admits an ARITHMETIC EXPRESSION — and a
+        // numeric-edited item is a legal arithmetic operand, because it DE-EDITS to a defined numeric value
+        // (DA6's own §8.8.1.1 screen deliberately admits one: NonNumericOperandKind matches only
+        // `EditMask: null`). So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is conforming, and a corpus golden plus an
+        // AssertSpec unit test had encoded that from the spec long before this screen existed. Screening 'i' as
+        // "class numeric" broke both.
+        // The distinction is REAL, not a fudge: a rule naming a CLASS and a rule naming §15.3's integer TYPE are
+        // different rules, and the catalog codes them differently for that reason.
+        'i' => [CobolClass.Numeric, CobolClass.NumericEditedDeEditing],
         // The string family — §15.3 type 1 Alphabetic, type 2 Alphanumeric (which explicitly treats a
         // strongly-typed group as alphanumeric) and type 9 National. Each catalogued 's' argument's own rule
         // names some subset of these; screening their UNION rejects the classes none of them admits (numeric,
         // boolean, object, pointer) without over-rejecting a function whose own rule is narrower. Narrowing
         // per-function is a later refinement, and it can only ADD rejections — never un-reject legal source.
-        's' => [CobolClass.Alphanumeric, CobolClass.National],
+        // Table 2 makes numeric-edited class ALPHANUMERIC, so the string family admits it as such — the
+        // distinct member above changes what §15.3's integer type accepts, never what a class rule means.
+        's' => [CobolClass.Alphanumeric, CobolClass.NumericEditedDeEditing, CobolClass.National],
         // 'p' — MAX/MIN/ORD-MAX/ORD-MIN, whose rule (§15.71.3 r1 and siblings) is a NEGATIVE list. An
         // admissible-set cannot express it without also excluding classes the rule permits.
         _ => null,
@@ -223,6 +293,7 @@ internal static class IntrinsicArgumentRules
     private static string Name(CobolClass c) => c switch
     {
         CobolClass.Alphanumeric => "alphanumeric",
+        CobolClass.NumericEditedDeEditing => "alphanumeric (numeric-edited)",
         CobolClass.Boolean => "boolean",
         CobolClass.National => "national",
         CobolClass.Numeric => "numeric",

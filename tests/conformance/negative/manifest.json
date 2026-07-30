@@ -136,7 +136,8 @@
     "pb1-numeric-arg-numeric-edited",
     "pb1-numeric-arg2-alphanumeric",
     "pb1-numeric-arg-family",
-    "pb6-call-by-value-alphanumeric"
+    "pb6-call-by-value-alphanumeric",
+    "pb1-numeric-arg-trig-family"
   ],
   "pending": []
 }
