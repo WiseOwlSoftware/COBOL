@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Compiler;
 using CobolNet.Frontend.Diagnostics;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolSharp.Tests.Integration;
@@ -12,8 +13,6 @@ namespace CobolSharp.Tests.Integration;
 /// </summary>
 public sealed class CobolErrorStrategyTests
 {
-    private const string NistProgramsDir = "tests/nist/programs";
-
     // BLANK WHEN ZERO now properly parsed — NC134A compiles successfully.
     // STATUS in SPECIAL-NAMES (ON STATUS IS / OFF STATUS IS) and
     // PROGRAM in OBJECT-COMPUTER (PROGRAM COLLATING SEQUENCE) are now
@@ -35,7 +34,7 @@ public sealed class CobolErrorStrategyTests
 
     private static Diagnostic[] CompileWithDiagnostics(string fileName)
     {
-        string path = Path.Combine(FindRepoRoot(), NistProgramsDir, fileName);
+        string path = TestRepo.Nist("programs", fileName);
         if (!File.Exists(path))
             throw new FileNotFoundException($"NIST test program not found: {path}");
 
@@ -47,16 +46,4 @@ public sealed class CobolErrorStrategyTests
 
     private static bool HasDiagnosticContaining(Diagnostic[] diagnostics, string fragment)
         => diagnostics.Any(d => DiagnosticNormalization.ContainsNormalized(d.Message, fragment));
-
-    private static string FindRepoRoot()
-    {
-        var dir = Directory.GetCurrentDirectory();
-        while (dir != null)
-        {
-            if (Directory.Exists(Path.Combine(dir, ".git")))
-                return dir;
-            dir = Directory.GetParent(dir)?.FullName;
-        }
-        throw new InvalidOperationException("Could not find repository root");
-    }
 }

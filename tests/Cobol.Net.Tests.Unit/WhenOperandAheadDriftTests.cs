@@ -3,6 +3,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CobolNet.Frontend.Generated;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -16,15 +17,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class WhenOperandAheadDriftTests
 {
-    private static string RepoRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "tests", "version-matrix")))
-            dir = dir.Parent;
-        Assert.NotNull(dir);
-        return dir!.FullName;
-    }
-
     private static HashSet<string> StopTokenNames() =>
         CobolParserCoreBase.WhenOperandStopTokens
             .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t))
@@ -32,7 +24,7 @@ public sealed class WhenOperandAheadDriftTests
 
     private static HashSet<string> NameSlotTokens()
     {
-        string path = Path.Combine(RepoRoot(), "tests", "version-matrix", "cobol-words.json");
+        string path = TestRepo.VersionMatrix("cobol-words.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("words").EnumerateArray()
             .Where(e => e.GetProperty("nameSlot").GetBoolean())
@@ -75,7 +67,7 @@ public sealed class WhenOperandAheadDriftTests
     [Fact]
     public void EveryKeywordLedCobolWordStatementLeader_IsInStopSet()
     {
-        string grammarDir = Path.Combine(RepoRoot(), "src", "Cobol.Net.Frontend", "Grammar");
+        string grammarDir = TestRepo.Src("Cobol.Net.Frontend", "Grammar");
         var g4 = Directory.GetFiles(grammarDir, "*.g4", SearchOption.AllDirectories)
             .Select(File.ReadAllText).Aggregate((a, b) => a + "\n" + b);
 

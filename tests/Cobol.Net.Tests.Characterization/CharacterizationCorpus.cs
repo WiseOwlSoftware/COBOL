@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Characterization;
 
@@ -23,23 +24,11 @@ public sealed record ProbeResult(bool Ok, IReadOnlyList<string> Diagnostics, str
 /// <summary>Corpus discovery + path resolution for the characterization harness.</summary>
 public static class CharacterizationCorpus
 {
-    /// <summary>The repo root — found by walking up from the test assembly until <c>CobolSharp.sln</c>.</summary>
-    public static string RepoRoot { get; } = FindRepoRoot();
-
     /// <summary>The corpus sources: <c>tests/characterization/{positive,negative}/*.cob</c>.</summary>
-    public static string CorpusDir => Path.Combine(RepoRoot, "tests", "characterization");
+    public static string CorpusDir => TestRepo.Tests("characterization");
 
     /// <summary>The committed goldens: <c>tests/Cobol.Net.Tests.Characterization/Snapshots/</c>.</summary>
-    public static string SnapshotDir => Path.Combine(RepoRoot, "tests", "Cobol.Net.Tests.Characterization", "Snapshots");
-
-    private static string FindRepoRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "CobolSharp.sln")))
-            dir = dir.Parent;
-        return dir?.FullName ?? throw new InvalidOperationException(
-            "characterization: repo root (CobolSharp.sln) not found above " + AppContext.BaseDirectory);
-    }
+    public static string SnapshotDir => TestRepo.Tests("Cobol.Net.Tests.Characterization", "Snapshots");
 
     /// <summary>Every corpus program. A <c>&lt;name&gt;.std</c> sidecar (containing an edition year) overrides the
     /// default edition (85 — most core programs); feature programs that need a later edition carry a sidecar.</summary>
@@ -104,7 +93,7 @@ public static class Snapshot
     private static bool Update => Environment.GetEnvironmentVariable("COBOLNET_UPDATE_SNAPSHOTS") == "1";
 
     private static readonly string RepoRootFwd =
-        CharacterizationCorpus.RepoRoot.Replace('\\', '/').TrimEnd('/') + "/";
+        TestRepo.Root.Replace('\\', '/').TrimEnd('/') + "/";
 
     /// <summary>Deterministic diagnostic text: the outcome line + the diagnostics PATH-NORMALIZED then sorted stably.
     /// Order is not a behavior (the SET of diagnostics is) — a refactor that reorders two diagnostics must NOT diff,

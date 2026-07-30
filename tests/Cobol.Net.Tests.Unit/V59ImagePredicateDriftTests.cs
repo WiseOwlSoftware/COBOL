@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -35,16 +36,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class V59ImagePredicateDriftTests
 {
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !File.Exists(Path.Combine(d.FullName, "CobolSharp.sln"))) d = d.Parent;
-        Assert.NotNull(d);
-        return d!.FullName;
-    }
-
-    private static string Read(params string[] parts) =>
-        File.ReadAllText(Path.Combine(new[] { RepoRoot() }.Concat(parts).ToArray()));
+    private static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));
 
     /// <summary>Count occurrences in CODE only. These predicates are discussed at length in comments (that is the
     /// point of the comments), so a raw text count is a false positive — the first cut of this test failed on its
@@ -106,7 +98,7 @@ public sealed class V59ImagePredicateDriftTests
         };
 
         var actual = new Dictionary<string, int>();
-        string root = Path.Combine(RepoRoot(), "src", "Cobol.Net.Compiler");
+        string root = TestRepo.Src("Cobol.Net.Compiler");
         foreach (string f in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
         {
             // The predicate's own definition and the StorageForm/pass plumbing that mirrors it are not emit guards.

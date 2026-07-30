@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -11,8 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class CorpusManifestTests
 {
-    private static string NistProgramsDir =>
-        Path.Combine(EditionHarness.RepoRoot(), "tests", "nist", "programs");
+    private static string NistProgramsDir => TestRepo.Nist("programs");
 
     [Fact]
     public void EveryProgramOnDisk_IsListed()
@@ -53,8 +53,7 @@ public sealed class CorpusManifestTests
     [Fact]
     public void GreenSet_MatchesInlineDataBaseline()
     {
-        string baselineFile = Path.Combine(EditionHarness.RepoRoot(),
-            "tests", "Cobol.Net.Tests.Conformance", "corpus-green-baseline.txt");
+        string baselineFile = TestRepo.Tests("Cobol.Net.Tests.Conformance", "corpus-green-baseline.txt");
         var baseline = File.ReadLines(baselineFile)
             .Where(l => !string.IsNullOrWhiteSpace(l)).Select(l => l.Trim())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);

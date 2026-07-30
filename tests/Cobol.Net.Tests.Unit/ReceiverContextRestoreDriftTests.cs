@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -25,15 +26,7 @@ namespace CobolNet.Tests.Unit;
 public sealed class ReceiverContextRestoreDriftTests
 {
     private static string Source() =>
-        File.ReadAllText(Path.Combine(RepoRoot(), "src", "Cobol.Net.Compiler", "CodeGen", "Emit", "NumericRenderer.cs"));
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !File.Exists(Path.Combine(d.FullName, "CobolSharp.sln"))) d = d.Parent;
-        Assert.NotNull(d);
-        return d!.FullName;
-    }
+        File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "NumericRenderer.cs"));
 
     /// <summary>Every method that assigns <c>_rcv</c> must also restore it. The restore is recognised by the
     /// <c>finally { _rcv = saved…</c> idiom the four entries share.</summary>

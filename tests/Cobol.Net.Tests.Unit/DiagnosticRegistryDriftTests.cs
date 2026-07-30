@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -57,7 +58,7 @@ public sealed class DiagnosticRegistryDriftTests
     [Fact]
     public void SplitCodes_HaveNoBareEmitLiteral_InCompiler()
     {
-        string compiler = Path.Combine(RepoRoot(), "src", "Cobol.Net.Compiler");
+        string compiler = TestRepo.Src("Cobol.Net.Compiler");
         var offenders = new List<string>();
         foreach (var file in Directory.EnumerateFiles(compiler, "*.cs", SearchOption.AllDirectories))
         {
@@ -82,7 +83,7 @@ public sealed class DiagnosticRegistryDriftTests
     {
         var known = DiagnosticCatalog.All.Select(d => d.Code).ToHashSet(StringComparer.Ordinal);
         var offenders = new List<string>();
-        string src = Path.Combine(RepoRoot(), "src");
+        string src = TestRepo.Src();
         var emitRx = new System.Text.RegularExpressions.Regex(
             "Report(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"|(?<![\\w.])(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"");
         foreach (var file in Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories))
@@ -108,7 +109,7 @@ public sealed class DiagnosticRegistryDriftTests
     [Fact]
     public void DiagnosticsDoc_IsInSync_WithTheCatalogue()
     {
-        string path = Path.Combine(RepoRoot(), "docs", "DIAGNOSTICS.md");
+        string path = TestRepo.Docs("DIAGNOSTICS.md");
         string expected = RenderMarkdown();
 
         if (Environment.GetEnvironmentVariable("COBOLNET_WRITE_DIAGNOSTICS_DOC") == "1")
@@ -148,11 +149,4 @@ public sealed class DiagnosticRegistryDriftTests
     private static string Cell(string s) => s.Replace("|", "\\|").Replace("\r", "").Replace("\n", " ");
 
     private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n') + "\n";
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "version-matrix"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/version-matrix) not found");
-    }
 }

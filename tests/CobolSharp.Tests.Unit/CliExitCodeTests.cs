@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolSharp.Tests.Unit;
@@ -16,13 +17,9 @@ public class CliExitCodeTests
 {
     private static string? FindCliDll()
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "PROMPT.md")))
-            dir = dir.Parent;
-        if (dir == null) return null;
         foreach (var cfg in new[] { "Debug", "Release" })
         {
-            string p = Path.Combine(dir.FullName, "src", "CobolSharp.CLI", "bin", cfg, "net10.0", "cobolsharp.dll");
+            string p = TestRepo.Src("CobolSharp.CLI", "bin", cfg, "net10.0", "cobolsharp.dll");
             if (File.Exists(p)) return p;
         }
         return null;

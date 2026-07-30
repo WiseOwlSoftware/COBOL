@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 using CobolNet.Editions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -20,7 +21,7 @@ public sealed class ReservedWordsDriftTests
     [Fact]
     public void Table_Matches_CanonicalJson_BothDirections()
     {
-        string path = Path.Combine(RepoRoot(), "tests", "version-matrix", "reserved-words.json");
+        string path = TestRepo.VersionMatrix("reserved-words.json");
         Assert.True(File.Exists(path), $"canonical json missing: {path} — run scripts/gen-reserved-words.ps1");
 
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
@@ -78,12 +79,5 @@ public sealed class ReservedWordsDriftTests
             "the 2014 additions (IEEE family among them) should be present");
         Assert.All(entries, e => Assert.True(e.Word == e.Word.ToUpperInvariant(), $"not uppercase: {e.Word}"));
         Assert.All(entries, e => Assert.True(e.Confidence is "high" or "medium", $"bad confidence: {e.Word}"));
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "version-matrix"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/version-matrix) not found");
     }
 }

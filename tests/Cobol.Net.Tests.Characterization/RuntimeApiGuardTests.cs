@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Characterization;
@@ -43,7 +44,7 @@ public sealed class RuntimeApiGuardTests
     [Fact]
     public void Bare_runtime_accesses_do_not_increase()
     {
-        string codeGen = Path.Combine(RepoRoot(), "src", "Cobol.Net.Compiler", "CodeGen");
+        string codeGen = TestRepo.Src("Cobol.Net.Compiler", "CodeGen");
         Assert.True(Directory.Exists(codeGen), codeGen);
         var over = new List<string>();
         foreach (string file in Directory.EnumerateFiles(codeGen, "*.cs", SearchOption.AllDirectories))
@@ -58,13 +59,5 @@ public sealed class RuntimeApiGuardTests
                 over.Add($"{name}: {count} bare Cobol*. accesses (baseline {allowed}) — route new emission through RuntimeApi");
         }
         Assert.True(over.Count == 0, string.Join("\n", over));
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "src", "Cobol.Net.Compiler")))
-            d = d.Parent!;
-        return d?.FullName ?? throw new InvalidOperationException("repo root not found");
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -20,10 +21,8 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class DifferentialGoldenDriftTests
 {
-    private static string ConformanceDir =>
-        Path.Combine(EditionHarness.RepoRoot(), "tests", "Cobol.Net.Tests.Conformance");
-    private static string DifferentialDir =>
-        Path.Combine(EditionHarness.RepoRoot(), "tests", "differential");
+    private static string ConformanceDir => TestRepo.Tests("Cobol.Net.Tests.Conformance");
+    private static string DifferentialDir => TestRepo.Tests("differential");
 
     /// <summary>Test classes (by file base name) whose body calls <c>DifferentialGolden.Assert</c> — the classes that
     /// own baked goldens. The infrastructure files (<c>DifferentialGolden</c> the helper, and this drift test — both
