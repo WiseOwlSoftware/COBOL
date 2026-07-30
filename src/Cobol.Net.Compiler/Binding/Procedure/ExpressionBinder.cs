@@ -27,12 +27,15 @@ using Core = CobolParserCore;
 ///   <item><see cref="FunctionArgument"/> — governed instead by the individual function's §15.x ARGUMENT RULE,
 ///         which for the string functions explicitly admits alphanumeric data: <c>FUNCTION TRIM(S)</c>,
 ///         <c>SUBSTITUTE</c>, <c>FIND-STRING</c> and <c>CONVERT</c> over a <c>PIC X</c> item are all legal.</item>
+///   <item><see cref="CallByValue"/> — governed by ISO §14.9.4.3 SR22 ("identifier-4 shall be of class numeric,
+///         object, or pointer"), a NARROWER rule than §8.8.1.1 rather than a wider one. Binding it as arithmetic
+///         happened to reject the right programs while citing the wrong rule.</item>
 /// </list>
 /// <para>
 /// ⛔ This is an ENUM and not a <c>bool</c> deliberately. A boolean would read as <c>BindExpr(node, true)</c> at the
 /// call site, would not survive the arrival of a third context, and — as an optional parameter — silently breaks
 /// the method-group conversions this spine is used through (<c>Select(host.Expr.BindExpr)</c>). The public surface
-/// is therefore two intention-revealing entry points over one private core, so no caller ever passes a flag.
+/// is therefore three intention-revealing entry points over one private core, so no caller ever passes a flag.
 /// </para></summary>
 internal enum OperandContext
 {
@@ -42,6 +45,24 @@ internal enum OperandContext
     /// <summary>An intrinsic-function argument: the function's own §15.x argument rule governs, so an alphanumeric
     /// operand may be perfectly legal here.</summary>
     FunctionArgument,
+
+    /// <summary>
+    /// A <c>CALL … USING BY VALUE</c> operand: ISO §14.9.4.3 SR22 governs, NOT §8.8.1.1.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ The grammar production is named <c>arithmeticExpression</c>, and the binder took that at its word and
+    /// bound the operand as arithmetic — so DA6's §8.8.1.1 screen fired on it and
+    /// <c>CALL "PROG2" USING BY VALUE X</c> (X alphanumeric) was refused with a message about *arithmetic
+    /// expressions* and a "digit-decoding extension". The VERDICT was right by accident — SR22 requires class
+    /// numeric, object or pointer, so an alphanumeric operand is indeed illegal — but the rule quoted was not the
+    /// rule broken, which tells the programmer to look in the wrong place. Caught by the pre-merge GnuCOBOL
+    /// differential as a two-case AGREE_ACCEPT→WE_REJECT flip, then traced rather than waved through.
+    /// <para>
+    /// A production's NAME is not its operand's rule. This is the same shape DA6 recorded for itself: a rule
+    /// enforced at a site that could not know its own context.
+    /// </para>
+    /// </remarks>
+    CallByValue,
 }
 
 /// <summary>
@@ -417,8 +438,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// reference-modifier offsets, relation conditions, SET and PERFORM VARYING, i.e. every ordinary caller.
     /// <para>Deliberately takes NO context parameter: an optional one would break the method-group conversions this
     /// spine is used through (<c>Select(host.Expr.BindExpr)</c>) and would put a bare <c>true</c> at a call site.
-    /// The one context that differs has its own named entry, <see cref="BindFunctionArgumentExpr"/>.</para></summary>
+    /// The contexts that differ have their own named entries, <see cref="BindFunctionArgumentExpr"/> and
+    /// <see cref="BindByValueExpr"/>.</para></summary>
     public BoundExpr BindExpr(IParseTree node) => BindExprCore(node, OperandContext.Arithmetic);
+
+    /// <summary>Bind a <c>CALL … USING BY VALUE</c> operand. Identical to <see cref="BindExpr"/> except that the
+    /// §8.8.1.1 numeric-operand screen does not apply: the operand's legality is ISO §14.9.4.3 SR22's business
+    /// ("identifier-4 shall be of class numeric, object, or pointer"), which the CALL binder enforces with its own
+    /// diagnostic. Binding it as arithmetic quoted §8.8.1.1 at a programmer who had broken SR22.</summary>
+    public BoundExpr BindByValueExpr(IParseTree node) => BindExprCore(node, OperandContext.CallByValue);
 
     /// <summary>Bind an INTRINSIC-FUNCTION ARGUMENT expression. Identical to <see cref="BindExpr"/> except that the
     /// §8.8.1.1 numeric-operand screen does not apply: an argument's legality is governed by the individual

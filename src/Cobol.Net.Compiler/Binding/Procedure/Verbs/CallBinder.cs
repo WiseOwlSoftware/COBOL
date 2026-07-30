@@ -3,6 +3,7 @@
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
 
@@ -88,8 +89,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
-                args.Add(new BoundCallArg(CobolPassMode.Value, null,
-                    new BoundComputedOperand(host.Expr.BindExpr(byValue.arithmeticExpression()))));
+                // ⛔ BindByValueExpr, NOT BindExpr — §14.9.4.3 SR22 governs a BY VALUE operand, not §8.8.1.1.
+                // The production is named arithmeticExpression and binding it as arithmetic put DA6's
+                // §8.8.1.1 screen on it, so an alphanumeric operand was refused with a message about arithmetic
+                // expressions and a "digit-decoding extension" — the right verdict quoting the wrong rule.
+                var byValueOperand = new BoundComputedOperand(
+                    host.Expr.BindByValueExpr(byValue.arithmeticExpression()));
+                CheckByValueClass(byValue, byValueOperand);
+                args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
             }
             else if (a.dataReference() is { } bare)
             {
@@ -209,5 +216,47 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // exclusive with RAISING by the grammar). Decode the shared statusPhrase into the termination status; the
         // emit passes it to the OS only in a MAIN program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
         return new BoundGoback(source, null, host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
+    }
+
+    /// <summary>
+    /// ISO §14.9.4.3 SR22 — a BY VALUE operand "shall be of class numeric, object, or pointer".
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Strict-reject with the leniency dialect-gated, the disposition DA6 established for the sibling §8.8.1.1
+    /// question. GnuCOBOL accepts an alphanumeric operand as an extension and silently assumes BY CONTENT — a
+    /// DIFFERENT passing mode from the one written, which is why accepting it quietly is the wrong kindness: the
+    /// callee would receive an address where the source said value.
+    /// </para>
+    /// <para>
+    /// ⚠ Fail-open on an undecidable class, exactly as the intrinsic screen does: a false reject turns legal
+    /// COBOL away, a missed one leaves a rule unenforced, and only the first is forbidden outright.
+    /// </para>
+    /// </remarks>
+    private void CheckByValueClass(Core.CallByValueContext byValue, BoundComputedOperand operand)
+    {
+        // ⛔ CLASSIFY THE UNDERLYING REFERENCE, NOT THE WRAPPER. IntrinsicArgumentRules.ClassOf maps any
+        // BoundComputedOperand to NUMERIC — correct in its own context, where a computed operand really is an
+        // arithmetic expression — so asking it about the wrapper made this check a silent no-op. The first
+        // version did exactly that and turned a wrongly-worded REJECT into a clean ACCEPT, which looks like a fix
+        // and is a regression: the rule stopped being enforced at all. A bare identifier binds to BoundNumRef, so
+        // its Place is the thing SR22 is about.
+        if (operand.Expr is not BoundNumRef { Place: { } place }) return;
+        if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place)) is not { } actual) return;
+        if (actual is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+
+        string what = byValue.arithmeticExpression().GetText();
+        string rule = $"CALL … USING BY VALUE operand '{what}' is of class {actual.ToString().ToLowerInvariant()}; "
+            + "ISO §14.9.4.3 SR22 admits only class numeric, object or pointer by value";
+        if (ctx.Edition.Permissive)
+        {
+            ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass.Id,
+                $"{rule}; accepted under --permissive");
+        }
+        else
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CallByValueOperandClass.Id,
+                $"{rule}. --permissive accepts it as an extension");
+        }
     }
 }

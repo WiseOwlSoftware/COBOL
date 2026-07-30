@@ -569,6 +569,23 @@ public static class DiagnosticCatalog
         + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
         + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
         "ISO §15.3 / §8.5.2.1 Table 2 / §4.2.2 para 3 (which leaves the determination to the implementor)");
+    // 1628 — CALL … USING BY VALUE operand class (ISO §14.9.4.3 SR22). Surfaced by the pre-merge GnuCOBOL
+    // differential: two AGREE_ACCEPT→WE_REJECT flips traced to DA6's §8.8.1.1 arithmetic screen firing on a BY
+    // VALUE operand, because the grammar production is named arithmeticExpression and the binder took that at
+    // its word. The VERDICT was right — SR22 does exclude an alphanumeric operand — but COBOLNET0844 quoted a
+    // rule about arithmetic expressions at a programmer who had broken a CALL rule. Edition-invariant in
+    // SUBSTANCE, but BY VALUE itself is a COBOL-2002 introduction, so it is unreachable below --std 2002 and
+    // needs no separate introduction axis of its own.
+    public static readonly DiagnosticDescriptor CallByValueOperandClass = new(
+        "COBOLNET1628", "call-by-value-operand-class", EditionSeverity.Error,
+        "A CALL … USING BY VALUE operand is not of a class the standard permits to be passed by value. ISO "
+        + "§14.9.4.3 SR22: \"If identifier-4 or its corresponding formal parameter is specified with a BY VALUE "
+        + "phrase, identifier-4 shall be of class numeric, object, or pointer.\" An alphanumeric, national or "
+        + "boolean operand is therefore rejected — GnuCOBOL accepts one as an extension, assuming BY CONTENT, "
+        + "which is a different passing mode and not what the source asked for. --permissive accepts it with a "
+        + "warning. ⛔ CLASS, not category (§8.5.2.1 Table 2): a numeric-edited item is class ALPHANUMERIC when "
+        + "its usage is display, so it is excluded however numeric it looks.",
+        "ISO §14.9.4.3 SR22 / §8.5.2.1 Table 2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
