@@ -84,16 +84,47 @@ ORDINAL = re.compile(r"^(?P<n>\d+)\\?[.)]\s+(?P<text>.*)$")
 # false confidence" DESIGN-spec-conformance-review.md §7 names. Adding two more spellings would have set up the
 # third occurrence, so the pluralisation is now normalised away and the unrecognised-heading check below fails loudly
 # on any rule-shaped heading this map does not know.
+#
+# ⛔ "Editing rules" AND "Precedence rules" ARE NOT A THIRD AND FOURTH KIND — the standard classifies them
+# ITSELF, and this map records that classification rather than inventing vocabulary for it:
+#   §5.3.3  "The rules of the PICTURE clause specified in 13.18.40.5, Editing rules, are General rules."
+#   §5.3.2  "The rules of the PICTURE clause specified in 13.18.40.6, Precedence rules, are syntax rules."
+# (both validated with `scripts/spec/cite.py --check`). So this is the SAME defect class as the pluralisation
+# above — a heading spelling the map did not know — not a change to what the denominator MEANS. 17 rules, all
+# core PICTURE editing: 15 GR + 2 SR. Owner decision 2026-07-30.
+# §5.3 "Rules" itself stays OUT and is the reason the two above come in: it is the clause that DEFINES the
+# taxonomy (§5.3.1–5.3.3 is prose about what syntax and general rules are) and carries no numbered rules of its
+# own, so there is nothing there to extract.
 KINDS = {
     "syntax rule": "SR",
     "general rule": "GR",
     "argument rule": "AR", "argument": "AR",
     "returned value rule": "RV", "returned value": "RV",
+    "editing rule": "GR",       # §13.18.40.5 — typed by §5.3.3, not a new kind
+    "precedence rule": "SR",    # §13.18.40.6 — typed by §5.3.2, not a new kind
 }
 
 #: Heading titles that name a rule block in some spelling. Anything matching this and NOT resolving through
 #: KINDS is a block the extractor would silently skip.
 RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
+
+#: Rule-shaped headings DELIBERATELY outside the denominator, each with the reason it carries no extractable
+#: rule. ⛔ A guard that reports an expected condition on every run is a guard people learn to ignore — the same
+#: cry-wolf failure §0 names for line-number code-locations — so a decided exclusion is recorded HERE rather than
+#: left to reappear as a warning forever. Anything NOT in this dict still fails loudly.
+EXCLUDED_BLOCKS = {
+    "5.3": "defines the rule taxonomy itself (§5.3.1–5.3.3 is prose about what syntax and general rules ARE) "
+           "and carries no numbered rules of its own — it is the clause that CLASSIFIES §13.18.40.5/.6, which "
+           "is why those two are in KINDS. Owner decision 2026-07-30.",
+}
+
+#: Recognised rule blocks that legitimately yield ZERO numbered rules, so "0 rules" is the correct answer rather
+#: than a parse failure. Same cry-wolf argument as EXCLUDED_BLOCKS.
+KNOWN_EMPTY_BLOCKS = {
+    "13.18.40.6": "the PICTURE precedence rules are UNNUMBERED prose plus Table 10 and Table 11 — the normative "
+                  "content IS the two precedence matrices, which have no per-rule ordinal to extract. Typed SR "
+                  "by §5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
+}
 
 
 def canonical_title(title: str) -> str:
@@ -417,6 +448,11 @@ def main() -> int:
     for sec, n in sorted(top.items(), key=lambda kv: (0, int(kv[0])) if kv[0].isdigit() else (1, 0)):
         print(f"      §{sec:<3s} {n:5d}")
 
+    expected_empty = [(s, k) for s, k in gaps if s in KNOWN_EMPTY_BLOCKS]
+    gaps = [(s, k) for s, k in gaps if s not in KNOWN_EMPTY_BLOCKS]
+    for sec, _kind in expected_empty:
+        print(f"\n· §{sec} yielded 0 rules, as declared: {KNOWN_EMPTY_BLOCKS[sec]}")
+
     if gaps:
         print(f"\n⚠ {len(gaps)} PARSE GAP(S) — rule-block headings that yielded ZERO rules.")
         print("  An omitted rule is silent false confidence; investigate before trusting the denominator:")
@@ -433,8 +469,10 @@ def main() -> int:
     # heading whose title contains "rule" and reports the ones KINDS cannot resolve.
     unrecognised = sorted(
         ((num, title) for num, title in titles.items()
-         if RULE_SHAPED.search(title) and kind_of(title) is None),
+         if RULE_SHAPED.search(title) and kind_of(title) is None and num not in EXCLUDED_BLOCKS),
         key=lambda kv: kv[0])
+    for num, why in sorted(EXCLUDED_BLOCKS.items()):
+        print(f"\n· §{num} '{titles.get(num, '?')}' is deliberately outside the denominator: {why}")
     if unrecognised:
         print(f"\n⛔ {len(unrecognised)} rule-shaped heading(s) the KINDS map does not recognise — their rules are")
         print("   ABSENT FROM THE DENOMINATOR, and absent silently (an unrecognised block is never a parse gap):")

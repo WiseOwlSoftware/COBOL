@@ -1,7 +1,7 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 3846,
- "blocks": 604,
+ "rule_count": 3861,
+ "blocks": 606,
  "parse_gaps": [
   {
    "section": "15.4",
@@ -12509,6 +12509,141 @@
    "sublist": 1,
    "subject": "PICTURE clause",
    "text": "The PICTURE clause takes effect during the format validation stage of the execution of a VALIDATE statement that refers directly or indirectly to the subject of the entry. The validation is carried out in accordance with the character classification and monetary specification in the locale."
+  },
+  {
+   "id": "GR-13.18.40.5-1",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "There are two methods of performing editing: either insertion or suppression with replacement. There are four types of insertion editing: — simple insertion — special insertion — fixed insertion — floating insertion There are two types of suppression with replacement: — zero suppression with replacement with spaces — zero suppression with replacement with asterisks"
+  },
+  {
+   "id": "GR-13.18.40.5-2",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "The type of editing that may be performed upon an item is dependent upon the category to which the item belongs. Table 7, Category and type of editing, specifies which type of editing may be performed upon a given category: **Table 7 — Category and type of editing** | Category | Type of editing | |----------|----------------| | Alphabetic | None | | Alphanumeric | None | | Boolean | None | | National | None | | Numeric | None | | Alphanumeric-edited | Simple insertion | | National-edited | Simple insertion | | Numeric-edited (fixed-point edited result) | All | | Numeric-edited (floating-point edited result) | Simple insertion, special insertion, and fixed insertion for the significand part None for the exponent part |"
+  },
+  {
+   "id": "GR-13.18.40.5-3",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Simple insertion editing Character-1 and the symbols 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion editing symbols. Simple insertion editing results in the insertion character occupying the same character position in the edited item as the associated symbol occupies in character-string-1."
+  },
+  {
+   "id": "GR-13.18.40.5-4",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Special insertion editing The symbol '.' is used as the special insertion editing symbol. Special insertion editing results in the period character occupying the same character position in the edited item as the symbol '.' occupies in character-string-1."
+  },
+  {
+   "id": "GR-13.18.40.5-5",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Fixed insertion editing Character-1, the currency symbol and the editing sign control symbols '+', '-', 'CR' and 'DB' are used as the fixed insertion editing symbols. Fixed insertion editing results in the insertion character(s) occupying the same character position(s) in the edited item as the associated symbol occupies in character-string-1. When character-1 is used, and is not a simple insertion character, it represents literal-2, or literal-3 as the insertion characters. Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing sign control symbol, depending on the value of the data item. **Table 8 — Results of fixed insertion editing** | **Editing symbol** | **Result** | | |---|---|---| | | **Positive or zero value** | **Negative value** | | + | + | – | | – | space | – | | CR | 2 spaces | CR | | DB | 2 spaces | DB | | character-1, NEGATIVE phrase | literal-2 | literal-2 or spaces | | character-1, POSITIVE phrase | literal-3 or spaces | literal-3 | Literal-2 or literal-3 or spaces means one instance of literal-2 or literal-3 or as many spaces as there are characters in literal-2 or literal-3. The uppercase letters CR and DB are the insertion characters for the insertion symbols 'CR' and 'DB'."
+  },
+  {
+   "id": "GR-13.18.40.5-6",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Floating insertion editing The currency symbol, the extended editing sign control symbols, if specified, and the fixed editing sign control symbols '+' and '-' are used as the floating insertion symbols. Floating insertion editing is indicated by specifying a string of at least two identical floating insertion editing symbols. Any of the simple insertion editing symbols embedded in this string or to the immediate right of this string are part of the string. The leftmost symbol of the insertion string represents the leftmost limit of the floating characters in the data item. The rightmost symbol of the insertion string represents the rightmost limit of the floating characters in the data item. The second floating symbol represents the leftmost limit of the numeric data that may be stored in the item. During editing, nonzero numeric characters may replace all the insertion symbols at or to the right of this limit. If truncation occurs, the value of the data that is used for editing is the value after truncation as specified in 14.6.8, Alignment and transfer of data into data items. NOTE 1 If the size of character-string-1 is not at least the number of characters in the sending operand, plus the number of non-floating insertion symbols to be inserted in the item, plus one. unwanted truncation of data can result. There are two ways of representing floating insertion editing: a) One way is to represent any or all of the leading numeric character positions to the left of the decimal point position by the same insertion symbol. The result is that a single occurrence of the replacement character(s) is (are) placed into the character position(s) immediately preceding whichever of the following is encountered first: — the first nonzero numeric character in the item — the first character position for which no floating insertion editing is specified — the decimal point position. Any character positions preceding this (these) insertion character(s) will contain the space character. b) The second way is to represent all of the numeric character positions by the same insertion symbol. The result depends upon the value of the data to be stored. If the value is not zero, the result is the same as if the floating insertion editing were defined only to the left of the decimal point position. If the value is zero, all character positions will contain the space character. Table 9, Results of floating insertion editing, shows the character produced by the floating editing sign control symbols 'es', '+' and '-', depending on the value of the data item. **Table 9 — Results of floating insertion editing** | **Editing symbol in picture character-string** | **Result** | | |---|---|---| | | **Data item positive or zero** | **Data item negative** | | + | + | – | | – | space | – | | character-1 NEGATIVE phrase | literal-2 or spaces | literal-2 | | character-1 POSITIVE phrase | literal-3 | literal-3 or spaces |"
+  },
+  {
+   "id": "GR-13.18.40.5-7",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Zero suppression with replacement editing The symbols 'Z' and '*' are used as the symbols for zero suppression with replacement. If the symbol 'Z' is used, the replacement character is the character space; if the symbol '*' is used, the replacement character is the character asterisk. Zero suppression with replacement is indicated by specifying a string of one or more identical zero-suppression characters. Any of the simple insertion editing symbols embedded in this string or to the immediate right of this string are part of the string. There are two ways of representing zero suppression with replacement: a) One way is to represent any or all of the leading numeric character positions to the left of the decimal point position by the zero-suppression symbol. The result is that the corresponding replacement character is placed into any character position immediately preceding whichever of the following is encountered first: — the first nonzero numeric character in the item — the first character position for which no zero suppression with replacement is specified — the decimal point position. b) The second way is to represent all of the numeric character positions by the zero-suppression symbol. The result depends upon the value of the data to be stored. If the value is not zero, the result is the same as if the zero suppression with replacement were defined only to the left of the decimal point position. If the value is zero and the zero-suppression symbol is the symbol 'Z', all character positions of the item will contain the character space. If the value is zero and the zero-suppression symbol is the symbol '\\*', all character positions of the item will contain the character asterisk, but the decimal separator, when specified, will appear in the item."
+  },
+  {
+   "id": "GR-13.18.40.5-8",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Zero value of a floating-point edited item If the value to be edited into a floating-point edited item is zero, then after editing all digit positions of the significand and all digit positions of the exponent shall be zero; the sign of the significand, if present, shall be positive; and the sign of the exponent shall be positive. FORMAT 2"
+  },
+  {
+   "id": "GR-13.18.40.5-9",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "The locale category LC_MONETARY is used for locale editing. The position, length, and character(s) used for the currency symbol are determined from that locale category."
+  },
+  {
+   "id": "GR-13.18.40.5-10",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 10,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "A BLANK WHEN ZERO clause takes precedence over locale editing."
+  },
+  {
+   "id": "GR-13.18.40.5-11",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 11,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "When locale-name-1 is specified, the locale used in editing and de-editing the item is the one associated with that name by the LOCALE clause in the SPECIAL-NAMES paragraph; otherwise, the current locale is used. NOTE 2 Switching locales between editing and de-editing of a given data item can result in unpredictable behavior. The programmer is responsible for ensuring that the locale used for de-editing is the same as the one used for editing."
+  },
+  {
+   "id": "GR-13.18.40.5-12",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 12,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "The decimal separator, the grouping separator, and the number of digits in a group are determined from the locale category LC_MONETARY."
+  },
+  {
+   "id": "GR-13.18.40.5-13",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 13,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "If the symbol '+' is specified, the manner of representing positive and negative numbers is determined from the locale."
+  },
+  {
+   "id": "GR-13.18.40.5-14",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 14,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "During editing, the data is aligned on the decimal point position with zero fill or truncation on either end, within a hypothetical data item, with grouping and separators in accordance with the locale specifications. The hypothetical data item is then moved to the data item being edited. The following rules apply: a) If the size of the data item is larger than the size of the hypothetical data item, the data is right justified, with space fill for the leftmost character positions. b) If the size of the data item is smaller than the size of the hypothetical data item, the leftmost character positions of the hypothetical data item are truncated. If any truncated character is neither a zero nor a space caused by a suppressed zero, the EC-LOCALE-SIZE exception condition is set to exist."
+  },
+  {
+   "id": "GR-13.18.40.5-15",
+   "section": "13.18.40.5",
+   "kind": "GR",
+   "ordinal": 15,
+   "sublist": 1,
+   "subject": "PICTURE clause",
+   "text": "Zero suppression with replacement editing &nbsp;&nbsp;&nbsp;&nbsp;The symbol 'Z' is used as the symbol for zero suppression with replacement. The replacement character is the character space. &nbsp;&nbsp;&nbsp;&nbsp;Zero suppression with replacement is indicated by specifying a string of one or more symbols 'Z'. &nbsp;&nbsp;&nbsp;&nbsp;There are two ways of representing zero suppression with replacement: a) One way is to represent any or all of the leading numeric character positions to the left of the decimal point position by the symbol 'Z'. The result is that the space character is placed into any character position immediately preceding whichever of the following is encountered first: — the first nonzero numeric character in the item — the first character position for which no zero suppression with replacement is specified — the decimal point position. b) The second way is to represent all of the numeric character positions by the symbol 'Z'. The result depends upon the value of the data to be stored. If the value is not zero, the result is the same as if the zero suppression with replacement were defined only to the left of the decimal point position. If the value is zero, all character positions of the item will contain the character space."
   },
   {
    "id": "SR-13.18.41.3-1",

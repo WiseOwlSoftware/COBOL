@@ -52,7 +52,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `19:05 PDT` while 1113 was being written** — the earlier stamps are ~2.5 h in the future, so entry 1113 correctly
   reads as EARLIER than 1112 above it. Stamp from `date`; do not manufacture a later time to preserve the look.
 - **THE STATE OF THE CONFORMANCE REVIEW — the numbers that matter, all computed, none carried.**
-  `pwsh scripts/session-probe.ps1` prints them; the shape is what this bullet is for. **The denominator is 3,846
+  `pwsh scripts/session-probe.ps1` prints them; the shape is what this bullet is for. **The denominator is 3,861
   normative rules** (corrected from a short 3,790 — see the caution below). Roughly 180 rules are adjudicated,
   all in §15 (the intrinsic functions), leaving the GAP a little under 3,800. **Never quote a number from this
   paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
@@ -98,14 +98,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     in their files. Read the notification's `<failures>` block before its results.
   · reading a two-stage workflow's output files EARLY published a wrong GAP number. **Every overturn is a
     downgrade, so an early read biases the result UPWARD.** Wait for the completion notification.
-- **⛔ THE DENOMINATOR WAS SHORT BY 56 AND IS NOW 3,846.** Ten rules sat under headings the extractor's
-  literal-spelling map did not know (`Argument`**`s`** ` rule(s)`, `Returned `**`values`**` rules`); the rest had
-  accumulated while the catalog was frozen behind a halt. Pluralisation is now NORMALISED and a guard reports any
-  rule-shaped heading the map cannot resolve — an unrecognised block is never a parse gap, so it is never counted
-  as missing. **Every percentage quoted against 3,790 flattered.**
-  ⚖ **AN OWNER DECISION IS OUTSTANDING:** the catalog still does NOT model §13.18.40.5 "Editing rules",
-  §13.18.40.6 "Precedence rules" or §5.3 "Rules". Those are rule KINDS, not spelling variants, and admitting them
-  changes what the denominator MEANS. The extractor prints them on every run; the decision has not been made.
+- **⛔ THE DENOMINATOR WAS SHORT TWICE AND IS NOW 3,861.** First by 56 (3,790 → 3,846): ten rules sat under
+  headings the extractor's literal-spelling map did not know (`Argument`**`s`** ` rule(s)`,
+  `Returned `**`values`**` rules`), the rest accumulated while the catalog was frozen behind a halt.
+  Then by 15 (3,846 → 3,861) — see the decision below. Pluralisation is NORMALISED and a guard reports any
+  rule-shaped heading the map cannot resolve. **Every percentage quoted against 3,790 or 3,846 flattered.**
+  ⚖ **OWNER DECISION 2026-07-30 — TAKEN, and the premise it was posed under did not survive contact with §5.3.**
+  It was framed as "§13.18.40.5 Editing rules, §13.18.40.6 Precedence rules and §5.3 Rules are rule KINDS, so
+  admitting them changes what the denominator MEANS". **The standard classifies them itself** (both validated
+  with `cite.py --check`): §5.3.3 — "The rules of the PICTURE clause specified in 13.18.40.5, Editing rules, are
+  **General rules**"; §5.3.2 — "…13.18.40.6, Precedence rules, are **syntax rules**". So they are GR and SR under
+  a heading spelling the map did not know — **the SAME defect class as the pluralisation fix, not a change of
+  meaning.** Decision: admit both, TYPED BY §5.3; exclude §5.3 itself, which defines the taxonomy and carries no
+  numbered rules (and is the very clause that types the other two).
+  ⚠ **THE EFFECT IS +15, NOT THE +17 FIRST REPORTED.** §13.18.40.5 yields 15 GRs; **§13.18.40.6 yields ZERO** —
+  its content is UNNUMBERED prose plus Tables 10 and 11, and the normative content IS those two precedence
+  matrices, which have no per-rule ordinal to extract. The "2" came from a line-range scan that ran past the
+  clause boundary. Both dispositions are now DECLARED IN THE EXTRACTOR (`EXCLUDED_BLOCKS` / `KNOWN_EMPTY_BLOCKS`,
+  each with its reason) rather than left to reappear as a warning on every run — a guard that reports an expected
+  condition forever is one people learn to ignore. The only PARSE GAP still reported is **§15.4 "Returned
+  values"**, which is PRE-EXISTING (verified by running the extractor on the pre-change tree) and unowned.
 - **PRECEDING WAVES, for provenance only** — V59 (one byte representation at every byte boundary; the 46-finding
   audit CLOSED, DEVLOG 1095–1102) and DA1–DA7 (the discovered-during-implementation set, DEVLOG 1103–1112).
   Narrative lives in `DEVLOG.md`; §0 states where we are, never how we got here.
@@ -118,7 +130,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 1. **⛔ START HERE — THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY REVIEW, AND IT NOW RUNS ON TWO TRACKS.**
    `pwsh scripts/session-probe.ps1` reports the live GAP against the catalog — **v1.0 is defined as ZERO GAP**,
-   and the denominator is **3,846** (never quote a GAP number from this document; the probe computes it).
+   and the denominator is **3,861** (never quote a GAP number from this document; the probe computes it).
    This is item **5** below (the FULL implementation↔spec review); it is the top of the list, not the bottom.
    **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema and
    §8 is the recording mechanism; the inventory enumerates every rule and drives it to zero, four editions wide.
@@ -385,7 +397,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
-   denominator — **3,846 items** (1352 SR · 1498 GR · 226 AR · 226 RV ·
+   denominator — **3,861 items** (1352 SR · 1513 GR · 226 AR · 226 RV ·
    222 Annex-A.1 doc obligations · 322 general formats). ⚠ It was **3,790 until 2026-07-30**, when
    the extractor's literal heading-spelling map was found to have silently skipped whole clauses; regenerate with
    `python scripts/spec/extract_rule_catalog.py`, which now also REPORTS any rule-shaped heading it cannot
@@ -467,12 +479,19 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — 2026-07-30, measured on `main` at the merge and again after each fix since.**
-  FULL greenfield Conformance **4150 / 4150, zero skipped, NOTHING red** · greenfield Unit **963 / 963, zero
+- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB8 (`41496ceb`).**
+  FULL greenfield Conformance **4155 / 4155, zero skipped, NOTHING red** · greenfield Unit **969 / 969, zero
   skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
-  0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** · GnuCOBOL differential
-  **1321 cases, 0 unexplained flips**, totals **566 WE_REJECT_THEY_ACCEPT · 478 AGREE_ACCEPT · 175 AGREE_REJECT ·
+  0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
+  carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential
+  **1323 cases, 0 unexplained flips**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 175 AGREE_REJECT ·
   102 WE_ACCEPT_THEY_REJECT**.
+  ⚠ **THE DIFFERENTIAL MOVED 19 CASES AND EVERY ONE IS ATTRIBUTED** (the stored per-machine report was a day
+  stale, so the diff spans PB1 · PB6 · PB7 · PB8 together, not PB8 alone): **17 FIXES**, of which **13 name
+  reference modding outright** (`FUNCTION UPPER-CASE/LOWER-CASE/REVERSE/SUBSTITUTE/TRIM … with reference
+  modding`, the three FORMATTED-* families) — the external corpus confirming PB8 — plus CURRENT-DATE and
+  WHEN-COMPILED (PB7) and `Intrinsic functions: argument type` (PB1). The **2 AGREE→divergence flips are PB6's
+  two PERMANENT deliberate divergences** already recorded below, not regressions.
   ⚠ **THE CONFORMANCE TOTAL MOVES WITH EVERY GOLDEN, so do not treat 4150 as a constant** — it is the number at
   the last measured commit and each landed fix adds its fixture. What must hold is **zero failures, zero
   skipped**. Conformance takes ~11–16 min; **run the long legs ONE AT A TIME** (a `--no-build` run alongside a
