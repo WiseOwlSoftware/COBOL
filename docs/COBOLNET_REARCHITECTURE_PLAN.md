@@ -31,124 +31,66 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
-- **`main` = `c056f1f4` — PHASE-14 IS MERGED (2026-07-28).** 195 commits, 96 DEVLOG entries, 2026-07-22→28, under
-  a full comprehensive gate (below). `phase-14` is fully merged and its tree is identical to `main`; continue the
-  next wave there or cut a fresh branch from `main`.
-- **THE WORK = the spec-first CONFORMANCE FIX-QUEUE.** SSOT `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` — **its
-  LANDED header is the live tally.** Work top-down by severity, batched by area; land each fix WITH its
-  spec-derived golden (expected value computed from the spec, never copied from the legacy). Source ledgers:
-  `CODE-SPEC-AUDIT.md` (CA*) and the review ledger `PHASE-13-plan-vs-spec-review.md` §24 (V*).
-  Owner directive: spec-first is the ONLY going priority (`feedback_spec_is_the_oracle`) — the
+- **⛔ WORK IN PROGRESS ON `phase-14` — 17 COMMITS AHEAD OF `main` AND NOT MERGED (2026-07-29 21:05 PDT).**
+  `phase-14` = **`ccfc091d`**, `main` = `0e534dc7`. Those 17 commits are the V59 wave plus the whole DA set
+  (DEVLOG entries **1095–1111**, +872 lines). Tree clean, pushed, full battery green at `ccfc091d` (below).
+  **A merge to `main` has NOT happened and is an owner decision** — the previous phase-14 merge line in this
+  section said the trees were identical, which stopped being true the moment this wave started.
+- **WHAT LANDED IN THIS WAVE (all spec-derived, all gated):**
+  · **V59 COMPLETE** — one byte representation at every byte boundary; with it the **46-finding conformance audit
+    is CLOSED**. DEVLOG 1095–1102.
+  · **The whole DISCOVERED-during-implementation set is CLOSED: DA1–DA7, ZERO open items in the fix queue.**
+    DA2 (a numeric FUNCTION in any string context — the compile-time fold was observable) · DA3 (a hex literal is
+    an alphanumeric literal; root cause was THREE copies of one dispatch) · DA4 (a function-identifier in every
+    STRING/UNSTRING sending position; grammar + binder) · DA5 (V59's image predicate was half-migrated across nine
+    emit guards) · DA6 (§8.8.1.1 — an alphanumeric arithmetic operand, strict-reject with `--permissive` leniency)
+    · DA7 (`COBOLNET1626` — three syntax-rule violations moved from RUN TIME to COMPILE time).
+  · A **32-site citation sweep**: §15.14.4/§15.50.4/§15.97.4 are "Returned value rules", so `r<N>` and never
+    `GR<N>`. The inherited-citation defect class rule 1 warns about.
+- **⛔ THE ARCHITECTURAL LESSON OF THE WAVE, and the thing to carry into the next one.** DA3 was three copies of a
+  literal dispatch; DA5 was two predicates for one question; DA6 was one rule enforced at a site that could not
+  know its own context. Every reported symptom was a single construct failing, and in every case fixing only that
+  construct would have left the mechanism that produced it intact. **The tell is always the same rule written down
+  more than once.** Recorded as `feedback_one_rule_one_place`.
+- **THE WORK WAS the spec-first CONFORMANCE FIX-QUEUE — AND IT IS NOW EMPTY.**
+  `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` (its LANDED header is the live tally) has **ZERO open items**: 45
+  of the 46 audit findings landed, 1 refuted, and DA1–DA7 all landed. Source ledgers `CODE-SPEC-AUDIT.md` (CA*) and
+  `PHASE-13-plan-vs-spec-review.md` §24 (V*) are exhausted. So **the queue is no longer where the next work comes
+  from** — the traceability inventory is (NEXT item 1). Keep the queue as the register for anything NEW that a
+  future session discovers, and keep landing each fix WITH its spec-derived golden (expected value computed from
+  the spec, never copied from the legacy).
+  Owner directive, still standing: spec-first is the ONLY going priority (`feedback_spec_is_the_oracle`) — the
   NIST/GnuCOBOL/corpus checks are differential and structurally blind to a spec violation shared with the oracle.
+  ⚠ And one measured limit on that net, learned this wave: the **GnuCOBOL differential compares COMPILE-TIME
+  accept/reject verdicts, so it is structurally blind to a change in RUNTIME OUTPUT.** DA2 altered how a numeric
+  intrinsic renders in every string context and the differential came back 0 flips. For output semantics the
+  instrument is the spec-derived goldens.
 
 ### NEXT, in order
 
-1. **✅ V59 — COMPLETE (all 7 steps landed; DEVLOG 1097–1102). WITH IT, THE 46-FINDING CONFORMANCE AUDIT IS
-   CLOSED.** Owner decision: **ONE byte representation at EVERY byte boundary** (the image, file records, SORT
-   keys, the REDEFINES backing) — not Tier-C-only, which would have given one COMP leaf two byte forms depending
-   on which boundary it crossed. The record below is the WHY, kept because the on-disk form it pins is now a
-   documented user-facing guarantee; the next worklist item is §2 (spec reconciliation) and the P14 Step-0
-   traceability inventory.
-   - **Nothing to invent: the representation is already pinned and documented.** `PicInfo.StorageWidth` = BINARY
-     1-2-4-8, PACKED `Digits/2+1` BCD; `DataItem.ByteWidth` documents them; `FUNCTION BYTE-LENGTH` reports them.
-     The record IMAGE is the one place that ignores them, using `Pic.Digits` instead.
-   - **It is a real conformance defect, not just implementor latitude.** `05 G-COMP PIC 9(4) COMP. 05 G-PACK PIC
-     9(4) COMP-3.` answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and `REDEFINES G PIC X(8)` is accepted.
-     §15.14.4 r1 (bytes) vs §15.50.4 r3 (alphanumeric character positions) — both `cite.py`-verified — cannot
-     disagree in a single-byte-character model, and a conforming program sees it with no file and no byte pun.
-   - **`RedefCodec`/Tier C is NOT the mechanism** and stays unrealized. The whole-group image is a Latin-1
-     `string` that files, SORT and the Tier-B backing all consume; giving a BINARY/PACKED leaf its true bytes
-     there fixes every boundary through the mechanism that exists.
-   - **Cost:** the leaf's image WIDTH moves from `Pic.Digits` to `StorageWidth`; `ImageWidth` has 129 references
-     across 30 files. **Corpus blast radius: zero** — no golden and no NIST program has COMP/COMP-3 in an FD
-     record, which is why this was never caught. Today `PIC 9(4) COMP` and `PIC 9(4) COMP-3` both reach a file as
-     ASCII `31 32 33 34`.
-   - Design SSOT annotated (`COBOLNET_DESIGN.md` §14.4 — its "named loser (c)" rejected raw bytes on a premise,
-     "cross-engine file compatibility is not required", that the owner has now reversed).
-   - **✅ STEP 1 LANDED (DEVLOG 1097, `26165232`): the one-width invariant.**
-     `tests/Cobol.Net.Tests.Unit/ImageWidthIsStorageWidthTests.cs` asserts that an IMAGE-CAPABLE item occupies the
-     same width in the image as in storage. RED for exactly the defect — 39 of 83 cases, the passing BINARY/PACKED
-     rows being precisely those where the pinned width and the digit count COINCIDE. The two failing facts carry an
-     explicit `Skip` naming V59; they turn GREEN when the image is re-based on `StorageWidth`. ⛔ Not a tolerated
-     divergence — keeping this test OUT of the tree is how the defect survived two phases.
-   - **✅ STEP 2 LANDED (DEVLOG 1098): the storage-form discriminator.** `NumProfile.ByteForm`
-     (`NumericByteForm`, **required**) now carries each usage's pinned byte representation to the runtime, filled
-     by `PicInfo.ByteForm`; `PicInfo.Truncation` became a typed property beside it so `ProfileInitializer` states
-     both axes. `NumericByteFormDriftTests` pins the whole `Usage` table (made red once to prove it) and asserts
-     the cross-check that a byte form is exactly a positive `StorageWidth`. **The representation is now DOCUMENTED
-     where it is used** — the enum members carry the §4.2.16 / Annex A.1 items 205+215 obligation, and design §6.3
-     states the table. THREE facts implementation added: an INDEX item DOES carry a profile (hence `None = 0`, so an
-     unstated form fails loud rather than claiming DISPLAY) · `PackedNoSign` is a distinct FORM because the widths
-     COLLIDE at odd digit counts (3 digits = 2 bytes either way) · the unsigned packed sign nibble is pinned `0xF`
-     per the IBM/MF/GnuCOBOL survey, deliberately diverging from our own legacy engine's `0x0C`. Nothing CONSUMES
-     the discriminator yet — the image is still zoned until step ③.
-   - **✅ STEP 3 LANDED (DEVLOG 1099): the codec.** `CobolNum.Image.cs` — `FormatImage`/`ParseImage` beside
-     `FormatDisplay`, one dispatch on `ByteForm`, bytes carried in the SAME Latin-1 string the record framing
-     uses (no second whole-group mechanism). `None` at a byte boundary THROWS. `RecordImageCodecTests` pins the
-     bytes from the FORM, not from output (`1234` → `04 D2` binary, `01 23 4C` packed signed), and runs
-     one-width / Latin-1-safe / round-trip invariants over the whole grid. **The sweep found a load-bearing
-     sibling:** the BINARY width ladder stopped at 8 bytes, so `PIC S9(31) COMP` claimed a width that cannot hold
-     it — §13.18.60.4 GR4 requires storage "sufficient … to contain the maximum range of values implied by the
-     associated decimal picture character-string", and a signed 19-digit picture already exceeds 2^63−1. A
-     16-byte tier now covers 19–38 digits (sign-independent, per GR12's precedent); `FUNCTION BYTE-LENGTH` was
-     the only reader and it answered 8 for all of S9(19)/9(20)/S9(31) before this. Corpus instances: zero.
-   - **✅ STEP 4 LANDED (DEVLOG 1101): the RE-BASE — the image IS the bytes, and step 1's invariant is UN-SKIPPED
-     and green.** `ElementaryImageWidth` answers `StorageWidth` for BINARY/PACKED; `GroupImageCodec`, the
-     `StoreAsImage` accessor pair, the Tier-B backing, `NumericImagePlace` and the SORT key all go through
-     `FormatImage`/`ParseImage`. The 129 `ImageWidth` references mostly needed NO edit — every width single-sources
-     through `ElementaryImageWidth` — which is the architecture working. **Two mechanisms DIED:**
-     `PicInfo.ImageSignKind` (and the Tier-B `SignKind` rewrite it drove) and the SORT key descriptor's
-     re-derived `(Signed, SignKind)`, now the key ITEM's own profile. **⛔ The distinction the old design never had
-     to make: BYTES ARE NOT TEXT.** New `DataItem.DisplayTextWidth` serves the text-facing surfaces (ACCEPT's
-     device window, DISPLAY's fit, Report Writer print columns, §13.18.14.4 GR9); `OperandText.NonTextBytes`
-     decodes a non-zoned stored image before rendering an ELEMENTARY numeric operand as text (§14.9.25.4 GR6 /
-     §8.8.4.2.2) while a GROUP operand's text stays the record image (§8.8.4.1.1). Goldens `v59_byte_image`
-     (BYTE-LENGTH == LENGTH == 5; FUNCTION ORD reads `005 211` / `002 036 080`) and `v59_sort_binary_key`.
-     **⚠ ON-DISK LAYOUT CHANGED — the migration note is in design §14.4; step ⑤ is its detection.**
-   - **✅ STEPS 5–7 LANDED (DEVLOG 1102) — V59 IS COMPLETE, and with it the 46-finding conformance audit.**
-     · ⑤ **The support diagnostic.** `RecordLayoutNotice.CheckFixedLengthFile`, called from
-       `SequentialConnector.Open` on **INPUT, I-O and EXTEND**: a fixed-length record-sequential file whose byte
-       length is not a whole multiple of its record length is arithmetically inconsistent with the description
-       about to read it, so it is reported at OPEN — before a single record is misread — naming the file, both
-       lengths and the remainder. It is a NOTICE, never a status change: OPEN still succeeds and the I-O status is
-       untouched, because §14.9.30.4 GR14 defines the conforming detection ('04' on the short read) and inventing
-       an OPEN condition would be non-conformance. It goes to STANDARD ERROR, so no golden's stdout moves. LINE
-       SEQUENTIAL (delimited records, §9.1.13.2) and RECORD IS VARYING (per-record length prefix) are excluded by
-       construction, and it reports once per path.
-       **The sibling sweep (rule 4) caught the mode the first cut missed:** EXTEND was not checked, and its stakes
-       are HIGHER than INPUT's — appending to a file whose existing layout disagrees writes a file interleaving
-       two record layouts, permanent corruption rather than a wrong computation. OUTPUT stays excluded on a
-       principle, not an oversight: it truncates, so nothing survives to disagree. `RecordLayoutNoticeTests` —
-       9 facts, including the discriminating 13-bytes-warns / 15-bytes-silent pair and one per mode.
-     · ⑥ **The §4.2.16 user-facing documentation.** `docs/CONFORMANCE.md` now carries the storage-representation
-       family — Annex A.1 items **205 · 206 · 207 · 208 · 211 · 215** — stating the width ladder, the radix, the
-       byte order and a WORKED BYTE EXAMPLE per usage, written for the COBOL developer who needs to know what
-       lands on disk. Items 206/207 also pin the BINARY-CHAR family and the FLOAT usages; 211 states that INDEX
-       has no character image at all.
-     · ⑦ **The drift golden.** `v59_length_agrees` — 17 rows comparing `FUNCTION LENGTH` against
-       `FUNCTION BYTE-LENGTH` across every fixed-point usage, every width tier (INCLUDING the 16-byte tier, which
-       had no other corpus instance), SIGN SEPARATE, alphanumeric, edited, a mixed-usage group and an OCCURS table.
-       **⛔ IT IS NOT REDUNDANT WITH `ImageWidthIsStorageWidthTests`, AND THAT WAS MEASURED:** repointing the
-       `FUNCTION LENGTH` fold at `DataItem.DisplayTextWidth` — the third width step 4 introduced, and the one
-       plausible future drift — turns the golden RED at `B-2` while **all 324 model-level facts stay GREEN**. The
-       model tests pin `ImageWidth == ByteWidth`; only the golden pins WHICH width the intrinsic folds to.
-   - **⏳ TWO GAPS DISCOVERED while writing the goldens, both QUEUED, neither caused by V59:** DA2 — a FUNCTION
-     operand of DISPLAY (`DISPLAY FUNCTION ORD(C)`) throws at run time though §14.9.11.2 + §8.4.3.1.2 make it
-     legal · DA3 — a HEX literal as a comparison operand (`IF G = X"FFF94142"`) throws though §8.3.3.2 makes it an
-     ordinary alphanumeric literal. Each golden routes around its gap in plain COBOL and says so in a comment.
-   - **✅ THE STANDING TIE-BREAKERS ARE SATISFIED (owner 2026-07-28: "we always bias towards usability,
-     understanding, support, maintenance, production quality").** Steps 1–4 were complete on correctness and gates
-     and short on three of the five; steps 5–7 closed exactly those three:
-     · **Support / migration** → step ⑤. This changed the ON-DISK RECORD LAYOUT, and a fixed-length sequential
-       file carries no self-description, so the failure would have presented as silent garbage. The provable half
-       is now diagnosed at OPEN (`RecordLayoutNotice`), and the migration note is stated in design §14.4.
-     · **Usability / understanding** → step ⑥. The on-disk form is a documented, user-facing guarantee:
-       `docs/CONFORMANCE.md` items 205–215, width table + radix + byte order + a worked byte example per usage.
-     · **Maintenance** → step ⑦. `v59_length_agrees` makes the CLASS impossible, not just the instance, and its
-       independence from the model-level tests was MEASURED rather than assumed (the `DisplayTextWidth` drift
-       above). The goldens pin actual BYTES via `v59_byte_image`'s `FUNCTION ORD` readings.
-   CA14 landed 2026-07-28 (DEVLOG 1094), which also swept two further introduction-leniency sites its own new
-   gate exposed.
+1. **⛔ START HERE — THE FIX QUEUE IS EMPTY, SO THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY INVENTORY.**
+   `pwsh scripts/session-probe.ps1` reports **3,790 rows · 3,790 GAP** — v1.0 is defined as ZERO GAP, and that
+   number has not moved this wave because the wave was conformance-fix work, not inventory work. This is item **5**
+   below (the FULL implementation↔spec review); it is now the top of the list rather than the bottom.
+   **Read §5 before starting** — it owns the mechanics, and the inventory is the instrument that enumerates every
+   Annex A.1 row and drives it to zero, four editions wide.
+   ⚠ Do NOT re-open the conformance fix-queue looking for work: `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` has
+   **ZERO open items** (45 of 46 audit findings landed, 1 refuted; DA1–DA7 all landed). Its LANDED header is the
+   live tally and it is current.
+
+1b. **The two SMALL residues left behind on purpose**, both ledgered where they belong rather than lost:
+   · `V59ImagePredicateDriftTests` pins a CLOSED inventory of ONE remaining `IsCharacterImage` use —
+     `MoveEmitter.cs:144`, which is a strategy fast-path and **not** a guard. It must NOT be "migrated"; the test
+     carries that note so a future session cannot do it by accident.
+   · DA7's ledger names three further WRONG-STAGE neighbours of the same family (a correct verdict delivered at run
+     time instead of compile time). None rejects legal source, so none is urgent.
+
+> **The V59 execution record that used to sit at item 1 has been REMOVED from this list — it is finished.** Its
+> reasoning (the one-width invariant, the byte-form discriminator, the record-image codec, the re-base, the support
+> diagnostic, the §4.2.16 documentation, the drift golden) is in DEVLOG 1095–1102, and the on-disk form it pins is a
+> documented user-facing guarantee in `docs/CONFORMANCE.md` items 205–215. §0 states WHERE WE ARE, never how we got
+> here.
+
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
    - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
      directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers
@@ -339,7 +281,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
 
-**✅ THE COMPREHENSIVE PRE-MERGE GATE RAN AND `phase-14` IS MERGED (2026-07-28, `c056f1f4`).** Every leg green,
+**✅ THE COMPREHENSIVE PRE-MERGE GATE RAN AND `phase-14` WAS MERGED (2026-07-28, `c056f1f4`).** Every leg green,
+⚠ **HISTORICAL — that merge is the 2026-07-28 one. A NEW WAVE (V59 + DA1–DA7) has since landed on `phase-14`
+and is 17 commits AHEAD of `main` = `0e534dc7`, UNMERGED. See §0 "Where we are" for the current state; the
+battery numbers below are superseded by §0's battery reference.**
 zero regressions. The table below is the EARLIER run of that gate, kept because it records the EC-infra + OO
 super-batch (**10 findings landed + CA12 REFUTED**) and the one red it found — the VCR's dangling spec LINE
 citations, since closed by re-keying them onto the clause hierarchy. **The MERGE gate's numbers are:**
