@@ -48,6 +48,17 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
     $inv = Get-Content 'tests/version-matrix/traceability-inventory.json' -Raw | ConvertFrom-Json
     $gaps = @($inv | Where-Object { $_.state -eq 'GAP' }).Count
     Write-Host "invent : $(@($inv).Count) rows · $gaps GAP (v1.0 = zero GAP)"
+    # Once Phase B starts, the GAP count alone hides the SHAPE of what is left — a DIVERGES is a queued fix, a
+    # NEEDS-OWNER-DECISION is blocked on the owner, and a CONFORMS still lacking a test is a golden away from
+    # closing. Print the breakdown only when there is one, so this stays a single line before Phase B.
+    $adjudicated = @($inv | Where-Object { $_.verdict })
+    if ($adjudicated.Count -gt 0) {
+        $byVerdict = $adjudicated | Group-Object verdict | Sort-Object Count -Descending |
+            ForEach-Object { "$($_.Name) $($_.Count)" }
+        Write-Host "       $($adjudicated.Count) adjudicated · $($byVerdict -join ' · ')"
+        $needTest = @($adjudicated | Where-Object { $_.verdict -eq 'CONFORMS' -and -not $_.'test-ref' }).Count
+        if ($needTest -gt 0) { Write-Host "       $needTest CONFORMS still test-needed (each is one golden from OK)" }
+    }
 } else {
     Write-Host "invent : not built yet (P14 Step 0)"
 }

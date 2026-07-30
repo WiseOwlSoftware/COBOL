@@ -31,13 +31,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
-- **⛔ WORK IN PROGRESS ON `phase-14` — 18 COMMITS AHEAD OF `main` AND NOT MERGED (2026-07-29 21:45 PDT).**
-  `phase-14` = **`42fa9dc6`**, `main` = `0e534dc7`. Those 18 commits are the V59 wave plus the whole DA set
-  (DEVLOG entries **1095–1112**). Tree clean, pushed; full battery green, measured at `ccfc091d` — the one
-  commit after it is DOCS ONLY (this section), so the numbers below still describe the code at HEAD.
-  **A merge to `main` has NOT happened and is an owner decision** — the previous phase-14 merge line in this
-  section said the trees were identical, which stopped being true the moment this wave started.
-- **WHAT LANDED IN THIS WAVE (all spec-derived, all gated):**
+- **⛔ WORK IN PROGRESS ON `phase-14` — AHEAD OF `main` = `0e534dc7` AND NOT MERGED.** The V59 wave plus the whole
+  DA set (DEVLOG **1095–1112**), and now the P14 Step-0 MECHANISM wave (DEVLOG **1113–**). Full battery
+  re-measured at the mechanism wave, not carried: Conformance **4137/4137**, Unit **953/953**, characterization
+  **33/33**. **A merge to `main` has NOT happened and is an owner decision** — the merge line this replaced said
+  the trees were identical, which stopped being true the moment the V59 wave started. Get the live count from
+  `git rev-list --count main..phase-14`, never from a number written here; a hand-kept commit count is stale the
+  next time anyone commits, which is exactly how the "trees are identical" line went wrong.
+  ⚠ **DEVLOG 1112 and this section were previously stamped `21:40`/`21:45 PDT` on 2026-07-29, but `date` returned
+  `19:05 PDT` while 1113 was being written** — the earlier stamps are ~2.5 h in the future, so entry 1113 correctly
+  reads as EARLIER than 1112 above it. Stamp from `date`; do not manufacture a later time to preserve the look.
+- **WHAT LANDED IN THE MECHANISM WAVE (DEVLOG 1113–):**
+  · **ONE repo-root locator** (`tests/_shared/TestRepo.cs`) replacing **19** private root-finders in **7**
+    mechanisms across five test projects, linked into every test project by `tests/Directory.Build.props`.
+  · **THE PHASE-B RECORDING MECHANISM — the reason the GAP count had never moved.** Phase A left a 3,790-rule
+    denominator and *no way to write a verdict into it*. Now: the verdict rules as DATA
+    (`tests/version-matrix/inventory-schema.json`), one shared loader (`scripts/spec/inventory_schema.py`), an
+    all-or-nothing atomic writer (`scripts/spec/record_verdicts.py`), and a battery gate
+    (`SpecTraceabilityInventoryDriftTests`) that RECOMPUTES `state` and resolves every `code-location` and
+    `test-ref` against the tree. See NEXT item 1 for the loop.
+- **WHAT LANDED IN THE PRECEDING WAVE (all spec-derived, all gated):**
   · **V59 COMPLETE** — one byte representation at every byte boundary; with it the **46-finding conformance audit
     is CLOSED**. DEVLOG 1095–1102.
   · **The whole DISCOVERED-during-implementation set is CLOSED: DA1–DA7, ZERO open items in the fix queue.**
@@ -70,14 +83,36 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 ### NEXT, in order
 
 1. **⛔ START HERE — THE FIX QUEUE IS EMPTY, SO THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY INVENTORY.**
-   `pwsh scripts/session-probe.ps1` reports **3,790 rows · 3,790 GAP** — v1.0 is defined as ZERO GAP, and that
-   number has not moved this wave because the wave was conformance-fix work, not inventory work. This is item **5**
-   below (the FULL implementation↔spec review); it is now the top of the list rather than the bottom.
-   **Read §5 before starting** — it owns the mechanics, and the inventory is the instrument that enumerates every
-   Annex A.1 row and drives it to zero, four editions wide.
+   `pwsh scripts/session-probe.ps1` reports the live GAP against **3,790 rows** — v1.0 is defined as ZERO GAP.
+   This is item **5** below (the FULL implementation↔spec review); it is now the top of the list rather than the
+   bottom. **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema
+   and §8 is the recording mechanism; the inventory is the instrument that enumerates every Annex A.1 row and
+   drives it to zero, four editions wide.
    ⚠ Do NOT re-open the conformance fix-queue looking for work: `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` has
    **ZERO open items** (45 of 46 audit findings landed, 1 refuted; DA1–DA7 all landed). Its LANDED header is the
    live tally and it is current.
+
+   **⛔ THE MECHANISM EXISTS NOW — USE IT; NEVER HAND-EDIT THE INVENTORY.** Phase A left a denominator and no way
+   to write a verdict into it, which is why the number had not moved. The loop is:
+
+   ```
+   # ① fan out by clause; each agent gets its OWN input file of rule TEXT and writes ONE batch file
+   python scripts/spec/record_verdicts.py --dry-run <batch.json>   # shape-validate, see the GAP delta
+   python scripts/spec/record_verdicts.py <batch.json> ...         # merge, all-or-nothing + atomic
+   dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
+   ```
+
+   · The verdict vocabulary, each verdict's required evidence and the `test-ref` forms are DATA in
+     `tests/version-matrix/inventory-schema.json` — all three engines read it, none carries a copy.
+   · `code-location` is `path` or `path#Symbol`, **never a line number** (they rot; the gate would cry wolf).
+   · `state` is RECOMPUTED by the gate, so closing a GAP by hand fails the battery. `NEEDS-OWNER-DECISION` does
+     not close one — an unanswered question is not coverage — and `DOCUMENTED-NON-SUPPORT` is an OWNER decision
+     (D13), never an agent's.
+   · **A verdict is CONFORMS only if the implementing code was read.** Not located ⇒ NOT-IMPLEMENTED; located but
+     an edge unverified ⇒ PARTIAL. A false CONFORMS is worse than an open GAP: a GAP gets revisited, a closed row
+     never does.
+   · Every candidate verdict is adversarially re-verified before it is trusted (design doc §7) — the refuter is
+     told to overturn, and to default to overturning when uncertain.
 
 1b. **The two SMALL residues left behind on purpose**, both ledgered where they belong rather than lost:
    · `V59ImagePredicateDriftTests` pins a CLOSED inventory of ONE remaining `IsCharacterImage` use —
@@ -363,7 +398,9 @@ result. Run the long legs ONE AT A TIME.
   fixtures** `da7-inspect-binary-operand`/`da7-string-into-binary`/`da7-unstring-into-binary`, each asserted to
   reject at all four editions — negative corpus now 127 enabled; the earlier +2 was `v59_byte_image` and
   `v59_sort_binary_key`) · greenfield Unit
-  **942/942, zero skipped** (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
+  **953/953, zero skipped** (⚠ re-measured 2026-07-29 19:0x PDT: 942 + the 11 P14-mechanism tests — 9
+  `SpecTraceabilityInventoryDriftTests` + 2 `TestRepoDriftTests`; the 942 line below is the pre-mechanism figure)
+  (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
   +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
   green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`
   **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**, legacy Unit **1203/1203**, Integration **503/504 (1 skipped)**.
