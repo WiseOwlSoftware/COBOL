@@ -45,8 +45,45 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <c>refModPart</c> reference-modifies the RESULT (ISO §8.4.3.3.3 SR2 — fix-queue PB8).</summary>
     public BoundExpr BindIntrinsic(Core.FunctionCallContext fc)
     {
-        string display = $"FUNCTION {fc.functionName().GetText()}";
-        var call = BindIntrinsicCore(fc.functionName().GetText(), ArgsOf(fc.functionArgList()));
+        // The KEYWORD-OMITTED alternative for a reserved intrinsic name (fix-queue PB9: RANDOM / SIGN / SUM —
+        // §8.9-reserved words that are also §8.11 intrinsic function names). §8.4.3.2.3 SR2 permits the omission
+        // ONLY when the REPOSITORY declares the function, which the grammar cannot know; enforce it here.
+        // Rejecting is unambiguous: a reserved word cannot be a data name (§8.3.2.4.1), so there is no other
+        // reading to fall back to and a plain, cited error is the whole answer.
+        string? reservedName = fc.reservedIntrinsicArgFn()?.GetText() ?? fc.RANDOM()?.GetText();
+        if (reservedName is { } fn)
+        {
+            if (!ctx.Data.RepositoryAllIntrinsic && !ctx.Data.RepositoryIntrinsics.Contains(fn))
+            {
+                ctx.Edition.Error("COBOLNET1543",
+                    $"'{fn}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
+                    + $"it. ISO §8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — "
+                    + $"write 'FUNCTION {fn}', or add 'REPOSITORY. FUNCTION {fn} INTRINSIC.' (or FUNCTION ALL "
+                    + "INTRINSIC).");
+                return new BoundExprError($"FUNCTION {fn}");
+            }
+            // The captured group is the ARGUMENT LIST unless it holds a depth-0 colon, in which case it is a
+            // reference modification of a zero-argument result — the same two shapes, decided the same way, as
+            // KeywordOmittedFunction. §8.4.3.2.3 SR6 is then applied by ResultRefMod exactly as for the
+            // FUNCTION-keyword form, so `RANDOM (1:4)` is rejected as an argument list on both routes.
+            var sp = fc.subscriptPart();
+            if (sp?.subscriptOrRefMod() is { } grp && ReferenceResolver.HasDepth0Colon(grp))
+                return ResultRefMod(BindIntrinsicCore(fn, []), ctx.Refs.ReadRefMod(grp),
+                    argListWritten: false, fn);
+            var args = sp is null ? [] : ReparseArgs(sp);
+            return args is null
+                ? new BoundExprError($"FUNCTION {fn} arguments")
+                : FinishIntrinsic(fc, BindIntrinsicCore(fn, args), fn);
+        }
+        string name = fc.functionName().GetText();
+        return FinishIntrinsic(fc, BindIntrinsicCore(name, ArgsOf(fc.functionArgList())), $"FUNCTION {name}");
+    }
+
+    /// <summary>The tail both <c>functionCall</c> alternatives share: the §8.4.3.3.3 ref-mod on the RESULT
+    /// (fix-queue PB8). Shared so the FUNCTION-keyword form and the reserved-name keyword-omitted form cannot
+    /// drift apart on SR2/SR3/SR6 — the drift PB8 itself was.</summary>
+    private BoundExpr FinishIntrinsic(Core.FunctionCallContext fc, BoundExpr call, string display)
+    {
         var refMods = fc.refModPart();
         if (refMods.Length == 0) return call;
         // §8.4.3.3.3 SR3, enforced HERE rather than by the grammar's arity so that a function result and a data

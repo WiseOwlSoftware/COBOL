@@ -286,8 +286,56 @@ primaryExpression
 // SR6 — "if a function's definition permits arguments … the left parenthesis is ALWAYS … that function's
 // arguments" — is a CATALOG question the grammar cannot answer, so the binder enforces it (IntrinsicBinder):
 // a bare ref-mod directly after an argument-PERMITTING function name is an SR6/SR8 argument-list error.
+// ── THE KEYWORD-OMITTED FORM FOR A RESERVED INTRINSIC NAME (fix-queue PB9) ────────────────────────────────
+// §8.4.3.2.3 SR2 lets the word FUNCTION be omitted for any intrinsic the REPOSITORY declares. For an ordinary
+// intrinsic name that omission is the D2 IRREDUCIBLE AMBIGUITY — `FOO(1)` is equally a subscripted data
+// reference — so it has no grammar alternative and the binder re-routes a dataReference instead.
+// ⛔ THAT ARGUMENT DOES NOT APPLY TO A RESERVED WORD, and that is the whole basis for this alternative: a
+// reserved word can NEVER be a user-defined data name (§8.3.2.4.1), so `SUM(1 2 3)` cannot be a subscripted
+// data reference and there is nothing to be ambiguous with. §8.9 ∩ §8.11 is exactly four words — LENGTH,
+// RANDOM, SIGN, SUM. LENGTH already reaches the binder through the cobolWord name slot (it needs to be there
+// for `START WITH LENGTH` anyway) and keeps that route; the other three arrive here.
+// ⚠ WHY NOT JUST ADD THEM TO cobolWord LIKE LENGTH — this was tried and NIST NC116A caught it. A word in the
+// name slot is admissible as a VALUE-clause literal (a constant-name), so the greedy literal list swallows a
+// FOLLOWING data-description clause keyword:
+//     01 W PICTURE S99999 VALUE ZERO
+//            SIGN LEADING SEPARATE.        ->  COBOLNET1585 "takes exactly one literal"
+// LENGTH is safe there only because LENGTH does not BEGIN a data-description clause; SIGN and SUM both do
+// (§13.18.53 SIGN, §13.14 report-writer SUM). This alternative is confined to expression/operand positions and
+// cannot reach a data description at all, so that whole class is structurally out of reach.
+// ⚠ THE ARGUMENT LIST IS A `subscriptPart`, NOT `LPAREN functionArgList RPAREN`, and a token dump is what says
+// so: these words carry subscriptTrigger=true, so with no FUNCTION keyword before them the lexer pushes
+// SUBSCRIPT mode at the '(' and the arguments arrive as SUB_* tokens —
+//     COMPUTE N = SUM(1 2 3)  ==>  COMPUTE IDENTIFIER EQUALS SUM LPAREN SUB_INTEGERLIT×3 SUB_RPAREN
+// which is exactly the D2 carrier the keyword-omitted form already uses. The binder therefore re-parses it
+// through the SAME `ReparseArgs` → `functionArgListFragment` path as every other keyword-omitted reference,
+// rather than growing a second argument grammar. (Pinned by CobolLexerModeDriftTests.)
+// ⛔ THE ARGUMENT GROUP IS REQUIRED FOR SIGN AND SUM, AND THAT IS WHAT KEEPS THIS SAFE — it is derived from the
+// functions' own general formats, not an ad-hoc guard. §15.81.2 writes `FUNCTION SIGN ( argument-1 )` and
+// §15.88.2 `FUNCTION SUM ( { argument-1 } … )`: neither has a no-argument form, so a BARE `SIGN` or `SUM` is
+// never a function reference. Requiring the group is what stops the collision NIST NC116A found:
+//     01 W PICTURE S99999 VALUE ZERO
+//            SIGN LEADING SEPARATE.
+// A VALUE clause operand is a `unaryExpression`, which reaches functionCall, and the operand loop is greedy —
+// so admitting a BARE SIGN made the loop swallow the SIGN CLAUSE of the NEXT line as a second VALUE literal
+// (COBOLNET1585). With the group required, `SIGN LEADING` cannot match a functionCall at all and the loop stops
+// where it should. The same applies to the report-writer `SUM OF` clause (§13.14).
+// RANDOM is different and needs no group: §15.75.2 brackets the whole parenthesised part, so the bare form is
+// legal — and RANDOM begins no data-description clause, so nothing can swallow it.
 functionCall
     : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*
+    | reservedIntrinsicArgFn subscriptPart refModPart*
+    | RANDOM subscriptPart? refModPart*
+    ;
+
+// The §8.9-reserved words that are also §8.11 intrinsic function names AND require arguments. LENGTH is the
+// fourth member of §8.9 ∩ §8.11 and is absent deliberately: it already reaches the binder through the cobolWord
+// name slot (where it must be anyway, for `START WITH LENGTH`), and adding it here would make `LENGTH OF x`
+// ambiguous. Legal only when the REPOSITORY declares the function — a question the grammar cannot answer, so
+// IntrinsicBinder enforces §8.4.3.2.3 SR2.
+reservedIntrinsicArgFn
+    : SIGN
+    | SUM
     ;
 
 // Arguments separate by space (no token — plain juxtaposition) or by the §8.3.5 comma/semicolon-plus-space

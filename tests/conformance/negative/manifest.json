@@ -141,7 +141,8 @@
     "pb8-refmod-numeric-function",
     "pb8-refmod-arg-permitting-function",
     "pb8-refmod-of-refmod-function",
-    "pb8-refmod-of-refmod-data"
+    "pb8-refmod-of-refmod-data",
+    "pb9-reserved-fn-no-repository"
   ],
   "pending": []
 }

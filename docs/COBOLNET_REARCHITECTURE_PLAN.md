@@ -139,19 +139,27 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    Its header is the tally. Two sources of work now exist and they interleave: adjudicate the next clause
    (grows the map), and fix what earlier batches found (shrinks it).
 
-   **⛔ THE ONE OPEN ITEM IS PB9, AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): `RANDOM` is the
-   ONLY zero-argument intrinsic that cannot be written in the keyword-omitted form — `COMPUTE N = RANDOM` under
-   `REPOSITORY. FUNCTION ALL INTRINSIC.` is `COBOL0001`, though §8.4.3.2.3 SR2 permits the omission and
-   §15.75.2's format brackets the whole parenthesised part. Scope is MEASURED at exactly one word (the other
-   eight zero-argument intrinsics bind). Root cause is TOKENIZATION, not PB7's suffix arity: `RANDOM` lexes as a
-   reserved word and never reaches `cobolWord`. The fix is a `cobol-words.json` row, so it carries the
-   `new-construct` skill's mandatory edition-gate sweep — that sweep, not the row, is the work.
+   **✅ THE FIX QUEUE IS EMPTY AGAIN — PB1–PB9 ALL LANDED (2026-07-30).** It empties by being WORKED, and it
+   refills from the review, so an empty queue means "adjudicate the next clause", never "done".
+   ⛔ **PB9 IS THE STANDING WARNING ABOUT A *MEASURED* SCOPE.** Its entry said "measured scope is exactly one
+   word (RANDOM)" — measured by sweeping the nine ZERO-ARGUMENT intrinsics, a set that structurally could not
+   contain SIGN or SUM because they take arguments. The right set is **§8.9 reserved words ∩ §8.11 intrinsic
+   function names** = LENGTH, RANDOM, SIGN, SUM. A measurement is only as good as the population it ranged over,
+   and "measured" in a queue entry does not say which population.
 
    **PB8 IS DONE (DEVLOG 1131)** — reference-modifying a function result, all four reference shapes plus the
    standard's own §D.14.3.6 example, with SR2/SR3/SR6 each reported against its own rule. Two siblings fell out
    of its sweep and are also landed: SR3 was silently unenforced for DATA references (`MOVE A (3:4)(2:2)`
    compiled clean and returned `A(2:2)`), and today's `COBOLNET1627`/`COBOLNET1628` were printing their slugs
    instead of their codes.
+   **PB9 IS DONE (DEVLOG 1133)** — a reserved intrinsic name (LENGTH/RANDOM/SIGN/SUM) in the keyword-omitted
+   form. ⚠ **TWO WRONG FIXES PRECEDED THE RIGHT ONE AND NIST NC116A CAUGHT BOTH**, identically: admitting these
+   words as OPERANDS (first via the `cobolWord` name slot, then via a `functionCall` alternative I wrongly called
+   "confined to expression positions") lets the greedy VALUE-clause operand loop swallow the FOLLOWING
+   data-description clause — `VALUE ZERO` then `SIGN LEADING SEPARATE` became two literals. `valueClauseOperand`
+   reaches `functionCall` in one hop through `unaryExpression`. The fix is DERIVED, not guarded: §15.81.2 and
+   §15.88.2 give SIGN and SUM no no-argument form, so requiring the argument group makes a bare `SIGN`/`SUM`
+   unmatchable and the collision structurally impossible.
 
    **THEN: THE NEXT PHASE-B BATCH — the tooling is in the repo, so this needs no archaeology.**
    Three batches have run (§15.7 + §15.70–15.79 · §15.8–15.19 · §15.20–15.31), so the next contiguous block is
@@ -479,13 +487,13 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB8 (`41496ceb`).**
-  FULL greenfield Conformance **4155 / 4155, zero skipped, NOTHING red** · greenfield Unit **969 / 969, zero
+- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB9.**
+  FULL greenfield Conformance **4157 / 4157, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
   skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
   0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
   carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential
   **1323 cases, 0 unexplained flips**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 175 AGREE_REJECT ·
-  102 WE_ACCEPT_THEY_REJECT**.
+  102 WE_ACCEPT_THEY_REJECT** (measured at PB8; PB9 landed after and its differential leg is NOT yet re-run).
   ⚠ **THE DIFFERENTIAL MOVED 19 CASES AND EVERY ONE IS ATTRIBUTED** (the stored per-machine report was a day
   stale, so the diff spans PB1 · PB6 · PB7 · PB8 together, not PB8 alone): **17 FIXES**, of which **13 name
   reference modding outright** (`FUNCTION UPPER-CASE/LOWER-CASE/REVERSE/SUBSTITUTE/TRIM … with reference

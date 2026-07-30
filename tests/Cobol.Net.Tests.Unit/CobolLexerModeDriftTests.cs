@@ -61,4 +61,21 @@ public sealed class CobolLexerModeDriftTests
         Assert.Contains("SUB_COLON", names);
         Assert.DoesNotContain("COLON", names);
     }
+
+    /// <summary>The RESERVED intrinsic names (§8.9 ∩ §8.11) written WITHOUT the FUNCTION keyword (fix-queue
+    /// PB9): each carries <c>subscriptTrigger=true</c>, so with no FUNCTION token before it the lexer pushes
+    /// SUBSCRIPT mode at the '(' and the arguments arrive as <c>SUB_*</c> tokens. That is why the
+    /// <c>functionCall</c> alternative for them takes a <c>subscriptPart</c> and re-parses through the ONE D2
+    /// argument path, instead of the DEFAULT-mode <c>functionArgList</c> the FUNCTION-keyword form uses. If the
+    /// trigger were ever dropped for one of these words, that alternative would silently stop matching.</summary>
+    [Theory]
+    [InlineData("COMPUTE N = SIGN(V)")]
+    [InlineData("COMPUTE N = SUM(1 2 3)")]
+    [InlineData("COMPUTE N = LENGTH(A)")]
+    public void ReservedIntrinsicName_KeywordOmitted_CapturesArgumentsInSubscriptMode(string src)
+    {
+        string[] names = TokenNames(src);
+        Assert.Contains("LPAREN", names);
+        Assert.Contains(names, n => n.StartsWith("SUB_", StringComparison.Ordinal));
+    }
 }

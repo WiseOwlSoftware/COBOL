@@ -10,14 +10,14 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7.4 GR7 1.3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE PHASE-B TRACEABILITY REVIEW IS NOW THE SOURCE OF WORK, AND IT HAS OPENED NINE ITEMS: `PB1`–`PB8`
-LANDED, `PB9` OPEN (2026-07-30).** The older campaigns are closed — the 46-finding audit (45 landed, 1 refuted)
+**⛔ THE PHASE-B TRACEABILITY REVIEW IS NOW THE SOURCE OF WORK, AND IT HAS OPENED NINE ITEMS: `PB1`–`PB9`
+LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (45 landed, 1 refuted)
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ PB9 IS THE ONE OPEN ITEM AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): `RANDOM` is the one
-zero-argument intrinsic that cannot be written in the keyword-omitted form, because it lexes as a reserved word
-rather than reaching `cobolWord`. Measured scope is exactly one word; the other eight bind.
+**✅ PB1–PB9 ALL LANDED — THE QUEUE IS EMPTY AGAIN (2026-07-30), and it is refilled by the traceability review,
+not by exhaustion.** PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
+from sweeping the wrong set, and the real answer was four.
 
 **⚠ PB8 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN ROOT-CAUSE CLAIM.** Its entry named a LEXER-MODE defect
 and budgeted "the riskiest category in this codebase"; a token dump showed the parens were already in DEFAULT mode
@@ -241,7 +241,52 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > merely sharing a name with a function. Verified both directions.
 > **GOLDEN** `conformance:2023/pb7_keyword_omitted_zero_arg`.
 
-### PB9 · [MAJOR] · intrinsics · ⛔ OPEN — `RANDOM` cannot be written in the KEYWORD-OMITTED form at all
+### PB9 · [MAJOR] · intrinsics · ✅ LANDED (DEVLOG 1133) — a RESERVED intrinsic name in the KEYWORD-OMITTED form
+
+> **⛔ THE SCOPE IN THIS ENTRY WAS WRONG — IT IS FOUR WORDS, NOT ONE — AND THE MEASUREMENT THAT CORRECTED IT ALSO
+> FOUND A TRANSCRIPTION DEFECT.** The entry said "measured scope is exactly one word (RANDOM)". That sweep covered
+> the nine ZERO-ARGUMENT intrinsics, which structurally could not see SIGN or SUM because they take arguments.
+> The set that matters is **§8.9 reserved words ∩ §8.11 intrinsic function names** — a reserved word cannot be a
+> data name (§8.3.2.4.1), so it can never arrive through the ordinary keyword-omitted route — and that
+> intersection is **LENGTH, RANDOM, SIGN, SUM**. LENGTH already worked (it is in the `cobolWord` name slot for
+> `START WITH LENGTH`); the other three were rejected.
+> ⚠ The first intersection returned 88 names because **§8.11's transcribed list ran six names together on one
+> line** (`SUM TAN TEST-DATE-YYYYMMDD …`) — a PAGE-BOUNDARY join, confirmed by rendering printed folios 213/214
+> where each sits on its own line. Repaired under a word-conservation assert; the list now reads 94.
+>
+> **⛔ TWO WRONG FIXES BEFORE THE RIGHT ONE, both caught by NIST NC116A, both the SAME collision:**
+> ```
+> 01  WRK-DS-LS-5 PICTURE S99999   VALUE ZERO
+>         SIGN LEADING SEPARATE.        ->  COBOLNET1585 "takes exactly one literal"
+> ```
+> · **Attempt 1 — `nameSlot: true`** (copying LENGTH). A name-slot word is admissible as a VALUE-clause literal,
+>   and the operand loop is greedy, so it swallowed the SIGN CLAUSE of the next line as a second literal. LENGTH
+>   is safe there only because LENGTH does not BEGIN a data-description clause; SIGN (§13.18.53) and SUM (§13.14)
+>   both do.
+> · **Attempt 2 — a dedicated `functionCall` alternative**, described in its own comment as "confined to
+>   expression positions, so it cannot reach a data description". It reaches one in a single hop:
+>   `valueClauseOperand : unaryExpression` → `primaryExpression` → `functionCall`. Identical failure. Confinement
+>   was ASSERTED rather than traced.
+>
+> **THE FIX IS DERIVED FROM THE FUNCTIONS' OWN GENERAL FORMATS, NOT GUARDED.** §15.81.2 writes
+> `FUNCTION SIGN ( argument-1 )` and §15.88.2 `FUNCTION SUM ( { argument-1 } … )` — neither has a no-argument
+> form, so a BARE `SIGN` or `SUM` is never a function reference. Requiring the argument group makes
+> `SIGN LEADING` unmatchable as a functionCall, so the collision is **structurally impossible** rather than
+> defended against, and the report-writer `SUM OF` clause is covered by the same fact. RANDOM keeps its bare form
+> (§15.75.2 brackets the whole parenthesised part) and begins no data-description clause.
+> **The argument carrier came from a TOKEN DUMP:** these words carry `subscriptTrigger=true`, so with no FUNCTION
+> keyword the lexer pushes SUBSCRIPT mode — `SUM(1 2 3)` lexes `SUM LPAREN SUB_INTEGERLIT×3 SUB_RPAREN` — so the
+> alternative takes a `subscriptPart` and re-parses through the ONE D2 `ReparseArgs` path. Pinned by
+> `CobolLexerModeDriftTests`.
+> **GOLDEN** `conformance:2023/pb9_reserved_intrinsic_names` — all four words in BOTH reference forms, asserted
+> equal, plus the NC116A construct itself so the regression that cost two attempts is pinned inside the test.
+> **NEGATIVE** `pb9-reserved-fn-no-repository` — §8.4.3.2.3 SR2: without a REPOSITORY declaration the omission is
+> not permitted, and since a reserved word cannot be a data name the rejection is unambiguous.
+>
+> ---
+> *The original entry follows, kept because the scope correction is only legible beside it.*
+
+### PB9 (as originally filed) · `RANDOM` cannot be written in the KEYWORD-OMITTED form at all
 
 > **We reject legal COBOL** (the CLAUDE.md rule 4 red line), and it is the last survivor of PB7's family.
 > ```
