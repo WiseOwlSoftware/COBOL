@@ -11,8 +11,10 @@
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
 **⛔ THE DISCOVERED SET IS CLOSED — DA1–DA7 ALL LANDED (2026-07-29). THE PHASE-B REVIEW HAS OPENED THREE:
-`PB1` ✅ LANDED (its class half) · `PB2` ✅ LANDED (its argument path) · `PB3` ⛔ OPEN — each with a named
-PARTIAL residue rather than a silent one.** One batch of 55 rules
+`PB1` ✅ LANDED (its class half) · `PB2` ✅ LANDED (its argument path) · `PB3` ⛔ OPEN, HAND-VERIFIED AND HALF
+REFUTED · `PB4` ✅ LANDED — each residue named rather than silent. PB4 was not in the batch at all: it was found
+when PB3's test vehicle turned out to be corrupted by it, and it is the most damaging of the four (a hexadecimal
+literal silently stored as its own source text in five positions).** One batch of 55 rules
 over 11 intrinsics produced 42 open rows, and they were never 42 bugs: **12** were PB1 (the argument-class table
 declared 79 times and read zero times — now enforced from a spec-verified table, closing 5 rows outright),
 **19** are PB2 (a floating-point argument falling off the end of the intrinsic result path), 1 is PB3 (ORD under a
@@ -196,7 +198,61 @@ stays as the register for anything NEW a future session discovers — add here, 
 >
 > ⚠ Agent-surfaced, adversarially re-verified, NOT hand-confirmed. Verify before it drives a code change.
 
-### PB3 · [MAJOR] · intrinsics · ⛔ OPEN — ORD reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE
+### PB4 · [MAJOR] · literals · ✅ LANDED (DEVLOG 1119) — a HEXADECIMAL literal was not decoded in FIVE positions
+
+> **Found by accident, which is the part worth keeping.** It surfaced while building a test vehicle for PB3: the
+> vehicle used `PIC X VALUE X"FF"` and reported `ORD = 89`. 89 − 1 = 0x58 = **'X'** — the item held the letter X,
+> because the VALUE path had stored the literal's own SOURCE TEXT and truncated it to the picture. PB3's agent
+> report was measured through this same distortion.
+>
+> **§8.3.3.2 makes a hexadecimal literal one FORM of an alphanumeric literal** — "each pair of hexadecimal digits
+> represents a single character" — so every position accepting an alphanumeric literal accepts it. Five did not,
+> each failing differently, and the data division disagreed with the procedure division about the same literal:
+>
+> | site | before | correct |
+> |---|---|---|
+> | `01 B PIC X(2) VALUE X"4142"` | `X"` (source text, truncated) | `AB` |
+> | `01 A PIC X(4) VALUE ALL X"41"` | `ALLX` | `AAAA` |
+> | `05 E OCCURS 2 PIC X(2) VALUE X"4142"` | as VALUE | `AB` / `AB` |
+> | `88 IS-AB VALUE X"4142"` | never matched | matches |
+> | `MOVE ALL X"41" TO M` | parsed, then a RUN-TIME `NotImplementedCobolFeatureException` | `AA` |
+> | (`MOVE X"4142" TO M` decoded correctly all along) | `AB` | `AB` |
+>
+> **⛔ ROOT CAUSE — one rule written down twice, and BOTH copies wrong the same way.** `CobolLiteral` carried the
+> prefix-letter list in `Decode` AND in `IsStringLiteral`, and neither included `X`. So a hex literal was
+> simultaneously *not recognised as a literal* and *not decoded as one*, which is why the five sites failed in
+> five different ways: each had built its own compensation on top of a decoder that quietly returned the input
+> unchanged. Adding a `DecodeHex` arm at `ValueInitializer` would have made it the **fifth** copy of the dispatch
+> DA3 already found three of. The list is now one `PrefixLetters` constant behind one `SplitLiteral` helper.
+> The remaining site was `ExpressionBinder.FigurativeOperand`, whose own comment said "(ALL HEXLIT / NULL stay a
+> later slice)" while the grammar had listed `ALL HEXLIT` all along.
+>
+> ⚠ **The X-prefix guard is load-bearing**: `DecodeHex` returns "" for anything it does not recognise, so
+> delegating on a leading `X` alone would turn the ordinary word `XYZ` — which `Decode` contracts to return
+> unchanged — into the empty string. The golden pins `XYZ`.
+>
+> **GOLDEN** `conformance:2023/pb4_hex_literal_value` — all five sites plus the guard, expected values from
+> §8.3.3.2 arithmetic.
+
+### PB3 · [MAJOR] · intrinsics · ⛔ OPEN — ORD skips an ordinal position past the 256-entry collating table
+> **⚠ HAND-VERIFIED AND NARROWED — the original report was measured through PB4 and is half wrong.** The ALSO
+> collapse it blamed is CORRECT: under `ALPHABET AL IS "A" ALSO "B"`, `ORD("A")` = `ORD("B")` = **1** (§12.3.7
+> GR L3.6 — ALSO assigns one ordinal position), `ORD("C")` = **67** and `ORD(X"FF")` = **255**, all matching the
+> derivation {A,B} at 1 · 0x00–0x40 at 2–66 · 0x43–0xFF at 67–255. Nothing there is wrong.
+> **What IS wrong is the character past the table:** `ORD(U+0100)` = **257**, so position **256 is occupied by
+> nothing** while 255 and 257 are. `CobolIntrinsics.Text.Ord` is
+> `c < weights.Length ? weights[c] + 1 : c + 1` — the fallback ignores the collating sequence entirely, so a
+> character one past the 256-entry table is numbered by a different rule than its neighbour.
+> ⛔ **And do NOT inherit the original citation.** It cited "§12.3.7 GR7 k3" for unspecified characters taking
+> "distinct ascending positions with no gap"; no clause of that content is in the rule catalog. What the spec
+> does give is L3.2 ("the order in which the literals appear … specifies, in ascending sequence, the ordinal
+> number") — and §15.70.4 r1 returns "the ordinal position", which a sequence containing a hole does not have.
+> The exact value for U+0100 is under-specified (the UTF-16 repertoire is our own documented choice, CA26); that
+> it cannot leave a gap is not.
+> **This means CA26's Unicode fix is incomplete on the ORD path** — the fix is a collating structure that spans
+> the repertoire rather than a 256-entry array, so it is a data-structure change, not a one-liner.
+
+### PB3 (as found) · ORD reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE
 
 > Found by the adversarial pass OVERTURNING a CONFORMS, which is the clearest evidence that pass earns its cost.
 > `RV-15.70.4-1` — two independent failures, each compiled and RUN at `--std 2023`:

@@ -70,7 +70,8 @@
     "altkey_suppress_when",
     "wave_h_facilities_inert",
     "optional_words_mcs",
-    "pb2_float_argument_exact_family"
+    "pb2_float_argument_exact_family",
+    "pb4_hex_literal_value"
   ],
   "pending": []
 }

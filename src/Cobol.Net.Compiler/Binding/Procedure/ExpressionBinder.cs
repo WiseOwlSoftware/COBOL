@@ -158,12 +158,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return new BoundStringLiteral(value) { Category = PicCategory.Boolean };
     }
 
-    /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> (a multi-character figurative,
-    /// ISO §8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc. are the single-character
-    /// figurative repeated to width, identical to the bare word. (ALL HEXLIT / NULL stay a later slice.)</summary>
+    /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a
+    /// multi-character figurative, ISO §8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
+    /// are the single-character figurative repeated to width, identical to the bare word.</summary>
+    /// <remarks>
+    /// ⛔ The HEXLIT arm was the FIFTH site of the hexadecimal-literal defect (fix-queue PB4), and the one the
+    /// grammar had been ready for all along — <c>figurativeConstant</c> lists <c>ALL HEXLIT</c>, and this method
+    /// tested only <c>STRINGLIT</c>, so <c>MOVE ALL X"41" TO X</c> parsed and then died at RUN time with
+    /// "figurative constant 'ALLX\"41\"'". §8.3.3.2 makes a hexadecimal literal one form of an ALPHANUMERIC
+    /// literal, so Format 6's literal-1 admits it and the two arms are the same case.
+    /// </remarks>
     public static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
         if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(CobolLiteral.Decode(allLit.GetText()));
+        if (fig.HEXLIT() is { } allHex) return new BoundAllLiteral(CobolLiteral.Decode(allHex.GetText()));
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
         if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');

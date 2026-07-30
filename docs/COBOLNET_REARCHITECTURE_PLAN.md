@@ -62,6 +62,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     the end of the intrinsic result path — no value, a `CS1503`, or a silent requantization. `PB3` (1 row): ORD
     reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE (ALSO collapse + >255 masking), which
     also means **CA26's Unicode fix is incomplete on the ORD path**. The rest are genuinely per-function.
+  · **✅ PB4 LANDED — a HEXADECIMAL literal was not decoded in FIVE positions** (DEVLOG 1119). Not from the
+    batch: found when PB3's test vehicle turned out to be corrupted by it. §8.3.3.2 makes a hex literal one FORM
+    of an alphanumeric literal, but `VALUE X"4142"` stored the literal's SOURCE TEXT truncated to the picture
+    (`X"`), `VALUE ALL X"41"` gave `ALLX`, an `OCCURS` VALUE and an `88` condition likewise, and
+    `MOVE ALL X"41"` died at RUN time — while `MOVE X"4142"` was correct all along, so the data division and the
+    procedure division disagreed about the same literal. Four of five were SILENT.
+    **⛔ ROOT CAUSE: the prefix-letter list was written down TWICE in `CobolLiteral` and BOTH copies omitted `X`,**
+    so a hex literal was neither recognised as a literal nor decoded as one — which is why five sites failed in
+    five different shapes. Fixing it at the symptom (`ValueInitializer`) would have been the FIFTH copy of the
+    dispatch DA3 found three of, and would have fixed one site of five.
+  · **⚠ PB3 HAND-VERIFIED AND HALF REFUTED** — the ALSO collapse the report blamed is CORRECT
+    (`ORD("A")`=`ORD("B")`=1, `ORD("C")`=67, `ORD(X"FF")`=255, all spec-derived). What survives:
+    `ORD(U+0100)`=257, so ordinal 256 is occupied by nothing — the `c + 1` fallback past the 256-entry weights
+    table ignores the collating sequence. **Its cited clause "§12.3.7 GR7 k3" does not exist in the catalog; do
+    not inherit it.** Still OPEN; needs a repertoire-wide collating structure, not a one-liner.
   · **✅ PB2 LANDED — GAP 3779 → 3774** (DEVLOG 1118). The renderer routes on the ARGUMENT's type, not only the
     function's family; a floating-point body per exact-family function in `CobolIntrinsics.RealArgs.cs`. It was
     worse than reported: legal COBOL emitted a **raw Roslyn `CS1503` escaping as a backend error** on ten of
