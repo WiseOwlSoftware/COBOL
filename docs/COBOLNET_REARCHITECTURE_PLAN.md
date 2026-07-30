@@ -31,13 +31,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
-- **⛔ WORK IN PROGRESS ON `phase-14` — AHEAD OF `main` = `0e534dc7` AND NOT MERGED.** The V59 wave plus the whole
-  DA set (DEVLOG **1095–1112**), and now the P14 Step-0 MECHANISM wave (DEVLOG **1113–**). Full battery
-  re-measured at the mechanism wave, not carried: Conformance **4137/4137**, Unit **953/953**, characterization
-  **33/33**. **A merge to `main` has NOT happened and is an owner decision** — the merge line this replaced said
-  the trees were identical, which stopped being true the moment the V59 wave started. Get the live count from
-  `git rev-list --count main..phase-14`, never from a number written here; a hand-kept commit count is stale the
-  next time anyone commits, which is exactly how the "trees are identical" line went wrong.
+- **✅ MERGED TO `main` (2026-07-30, `1d0c24c9`) — 33 commits: the V59 wave, DA1–DA7, and the P14 Step-0
+  MECHANISM wave with PB1–PB6.** `phase-14` and `main` are at the same commit as of that merge.
+  ⛔ **THAT SENTENCE GOES STALE THE NEXT TIME ANYONE COMMITS, and the previous version of this line is why the
+  warning is here**: it said the trees were identical and stayed said while a whole wave landed on top.
+  **Never read a commit count or a branch relationship from this document** — run
+  `git rev-list --count main..phase-14`, or `pwsh scripts/session-probe.ps1`, which computes it.
+  **THE PRE-MERGE GATE, every leg measured at the merge (not carried):** Conformance **4148/4148** zero skipped ·
+  Unit **963/963** · characterization **33/33** · `guard-fast.sh` **ALL GREEN** with NIST **353 MATCH /
+  0 REGRESSION**, legacy Unit 1203/1203, Integration 503/504 (1 skipped) · GnuCOBOL differential **10 per-case
+  flips, ALL ATTRIBUTED, 0 unexplained**. Conformance and characterization were re-run ON THE MERGE COMMIT
+  ITSELF, because a merge produces a tree neither branch was tested as.
+  ⚠ **The differential found PB6, which no other leg could see** — and six of its eight FIXES are PB2, a
+  runtime-shaped defect that manifested as a FAILED COMPILE. §0 records this net as "structurally blind to a
+  change in RUNTIME OUTPUT", which is true and incomplete: a runtime defect that stops the program COMPILING is
+  fully visible to it.
   ⚠ **DEVLOG 1112 and this section were previously stamped `21:40`/`21:45 PDT` on 2026-07-29, but `date` returned
   `19:05 PDT` while 1113 was being written** — the earlier stamps are ~2.5 h in the future, so entry 1113 correctly
   reads as EARLIER than 1112 above it. Stamp from `date`; do not manufacture a later time to preserve the look.
