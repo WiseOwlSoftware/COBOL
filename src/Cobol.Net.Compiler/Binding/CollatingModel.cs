@@ -13,7 +13,7 @@ namespace CobolNet.Binding;
 /// </summary>
 /// <param name="Positions">Native char code → 0-based collating position. ALSO members share one position
 /// (§12.3.7 GR7 k6); unspecified characters take DISTINCT ascending positions above the highest specified, in
-/// native relative order (GR7 k3 — never a shared bucket; ORD over them must stay distinct).</param>
+/// native relative order (§12.3.7.4 GR7 1.3 — never a shared bucket; ORD over them must stay distinct).</param>
 /// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§12.3.7 GR8 + §8.3.3.6 GR6/7):
 /// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.</param>
 /// <param name="LowValue">The runtime LOW-VALUE character (§12.3.7 GR9): lowest position; tie takes the FIRST
@@ -24,7 +24,7 @@ public sealed record CollatingTable(ushort[] Positions, char HighValue, char Low
 /// A NATIONAL collating sequence built from an <c>ALPHABET … FOR NATIONAL</c> literal phrase (ISO §12.3.7 GR7 k,
 /// applied over the native NATIONAL character set — the 65,536 UTF-16 code units, one per national position,
 /// D-N1). SPARSE by design: only the SPECIFIED characters are tabulated; every unspecified code unit takes a
-/// DISTINCT ascending position above the highest specified one, in native (code-unit) relative order (GR7 k3),
+/// DISTINCT ascending position above the highest specified one, in native (code-unit) relative order (§12.3.7.4 GR7 1.3),
 /// which the runtime computes arithmetically (<c>CobolNet.Runtime.NationalCollation.Weight</c>) — a dense
 /// 65,536-entry table would bloat every generated program for a handful of remapped characters.
 /// </summary>
@@ -39,7 +39,7 @@ public sealed record CollatingTable(ushort[] Positions, char HighValue, char Low
 /// position <c>NextFree + (c − |specified codes &lt; c|)</c>.</param>
 /// <param name="HighValue">The national HIGH-VALUE character under this sequence (§12.3.7 GR8): the character
 /// at the highest position — the LARGEST unspecified code unit (unspecified characters sit above all specified
-/// ones, GR7 k3), or, when every code unit is specified, the GR8 tie rule over the specified block.</param>
+/// ones, §12.3.7.4 GR7 1.3), or, when every code unit is specified, the GR8 tie rule over the specified block.</param>
 /// <param name="LowValue">The national LOW-VALUE character (§12.3.7 GR9): the character at position 0 — the
 /// first character specified (a position-0 ALSO tie takes the FIRST specified, which is the same character).</param>
 public sealed record NationalCollatingTable(ushort[] Codes, ushort[] Positions, ushort[] RepByPos, int NextFree,

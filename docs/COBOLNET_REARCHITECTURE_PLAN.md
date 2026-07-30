@@ -72,7 +72,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     so a hex literal was neither recognised as a literal nor decoded as one — which is why five sites failed in
     five different shapes. Fixing it at the symptom (`ValueInitializer`) would have been the FIFTH copy of the
     dispatch DA3 found three of, and would have fixed one site of five.
-  · **⚠ PB3 HAND-VERIFIED AND HALF REFUTED** — the ALSO collapse the report blamed is CORRECT
+  · **✅ PB3 LANDED — GAP 3774 → 3773; CA26's residue on the ORD path is CLOSED** (DEVLOG 1121). `ORD` continues
+    the collating sequence above the highest tabulated position instead of falling back to `c + 1`, so the hole at
+    ordinal 256 is gone: `ORD(U+0100)` = **256**. The rule is **§12.3.7.4 GR7 1.3** — unspecified characters sit
+    above the highest specified one in unchanged native order — which is the arithmetic `NationalCollation.Weight`
+    had performed all along. ⚠ **And it did NOT need the data-structure change the queue entry predicted**: the
+    dense 256-entry array is fine, because the table's own maximum position is all the arithmetic needs. A scope
+    guess that reads as authoritative is how a fix gets deferred for being "big".
+    ⛔ **THE FABRICATED CITATION WAS IN `src/` TOO — 13 more sites across five files**, including
+    `NationalCollation`'s own comments describing the very rule it implements correctly. The doc sweep had scanned
+    only `docs/`. All corrected; the deliberate QUOTATIONS of the fabrication (in the entries explaining it) stay.
+  · **⚠ PB3 as first reported was HALF REFUTED** — the ALSO collapse the report blamed is CORRECT
     (`ORD("A")`=`ORD("B")`=1, `ORD("C")`=67, `ORD(X"FF")`=255, all spec-derived). What survives:
     `ORD(U+0100)`=257, so ordinal 256 is occupied by nothing — the `c + 1` fallback past the 256-entry weights
     table ignores the collating sequence. **Its cited clause "§12.3.7 GR7 k3" does not exist in the catalog; do

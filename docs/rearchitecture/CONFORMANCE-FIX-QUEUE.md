@@ -234,7 +234,7 @@ stays as the register for anything NEW a future session discovers — add here, 
 > **GOLDEN** `conformance:2023/pb4_hex_literal_value` — all five sites plus the guard, expected values from
 > §8.3.3.2 arithmetic.
 
-### PB3 · [MAJOR] · intrinsics · ⛔ OPEN — ORD skips an ordinal position past the 256-entry collating table
+### PB3 · [MAJOR] · intrinsics · ✅ LANDED (DEVLOG 1121) — ORD skipped an ordinal position past the 256-entry collating table
 > **⚠ HAND-VERIFIED AND NARROWED — the original report was measured through PB4 and is half wrong.** The ALSO
 > collapse it blamed is CORRECT: under `ALPHABET AL IS "A" ALSO "B"`, `ORD("A")` = `ORD("B")` = **1** (§12.3.7
 > GR L3.6 — ALSO assigns one ordinal position), `ORD("C")` = **67** and `ORD(X"FF")` = **255**, all matching the
@@ -261,12 +261,18 @@ stays as the register for anything NEW a future session discovers — add here, 
 > U+00FF at 255 the answer is **256** — and 257 is wrong for a citable reason, not merely an inconsistent one.
 > The observed 255 for `X"FF"` and 1 for both ALSO characters are likewise GR7 1.3 and L3.6 exactly.
 >
-> **THE FIX IS ONE RULE ALREADY IMPLEMENTED ON THE OTHER SIDE.** `NationalCollatingTable` is SPARSE over all
-> 65,536 code units and computes the unspecified tail arithmetically — precisely GR7 1.3. The ALPHANUMERIC side
-> is a 256-entry array with a `c + 1` fallback that abandons the collating sequence past the table. One rule, two
-> implementations, one of them incomplete (`feedback_one_rule_one_place`). **CA26's Unicode fix is therefore
-> incomplete on the ORD path**, and the repair is to give the alphanumeric side the national side's arithmetic —
-> a data-structure change, not a one-liner.
+> ✅ **FIXED BY GIVING THE ALPHANUMERIC SIDE THE ARITHMETIC THE NATIONAL SIDE ALREADY HAD** —
+> `NationalCollation.Weight` computes the unspecified tail as `nextFree + (c − |specified below c|)`, precisely
+> GR7 1.3, and has done all along. `CobolIntrinsics.Text.Ord(string, ushort[])` now continues the sequence above
+> the highest tabulated position instead of falling back to `c + 1`. One rule, two implementations, and only one
+> of them was incomplete (`feedback_one_rule_one_place`).
+> ⚠ **It did NOT need the data-structure change this entry predicted.** The dense 256-entry array is fine: the
+> table's own maximum position is all the arithmetic needs, so the repair is local to `Ord`. The estimate was
+> wrong in the cheap direction for once — recorded because a scope guess that reads as authoritative is how a
+> fix gets deferred for being "big".
+> Measured after the fix, all six spec-derived: `ORD("A")`=`ORD("B")`=1 · `ORD("C")`=67 · `ORD(X"FF")`=255 ·
+> **`ORD(U+0100)`=256** · `ORD(U+0101)`=257. **CA26's residue on the ORD path is closed.**
+> **GOLDEN** `conformance:2023/pb3_ord_collating_tail`.
 
 ### PB3 (as found) · ORD reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE
 
@@ -1140,7 +1146,7 @@ The existing StringEmitter.cs:226 default arm stays as defense-in-depth. Ship a 
 
 Derivation: R1 is category NUMERIC-EDITED and R3 is category numeric with usage COMP-3 (packed, not display, not national). SR4 permits receivers only of (usage display + alphabetic/alphanumeric/numeric) or (usage national + national/numeric); neither shape is in that set ⇒ both statements violate SR4 ⇒ a conforming processor must indicate the violation. EXPECTED (spec-correct): each UNSTRING is rejected with a diagnostic naming §14.9.48.3 SR4 (in the codebase's convention, a BoundUnsupported ⇒ NotImplementedCobolFeatureException naming SR4 at the statement — no silent extraction). CURRENT (buggy): both compile and run — '123' truncated to 2 chars? no: DELIMITED BY SIZE takes the whole field '123' (R1 reception 3 digit positions) → NumFromAlphanumeric('123')=123 → ZZ9 edit → '123' stored in R1; and 123 packed into R3 — a wrong (unflagged) result. A LEGAL control (01 R2 PIC 999 display) correctly receives '123', proving the divergence is receiver-category-specific. Editions: ALL (85/2002/2014/2023) — UNSTRING is a COBOL-85 verb and its receiver-category SR4 is edition-invariant (StringUnstringBinder.cs:11-15 documents the whole surface as '85, no edition gate).
 
-### CA26 · [MINOR/S] · intrinsics · ✅ LANDED (DEVLOG 1018) — resolved toward the ESTABLISHED Unicode design (owner: Unicode was always intended, spec-permitted), NOT the finding's original 256/Latin-1 recommendation. The native alphanumeric repertoire is UTF-16; the residual `& 0xFF` weights aliasing + `Char(n,weights)` domain cap were widened to the full range (§12.3.7 k)3), CHAR/ORD guards already correct.
+### CA26 · [MINOR/S] · intrinsics · ✅ LANDED (DEVLOG 1018) — resolved toward the ESTABLISHED Unicode design (owner: Unicode was always intended, spec-permitted), NOT the finding's original 256/Latin-1 recommendation. The native alphanumeric repertoire is UTF-16; the residual `& 0xFF` weights aliasing + `Char(n,weights)` domain cap were widened to the full range (§12.3.7.4 GR7 1.3), CHAR/ORD guards already correct.
 - **Spec:** §15.15.3 r2 — 'The value of argument-1 shall be greater than zero and less than or equal to the number of positions in the alphanumeric program collating sequence'; §15.16.3 r2 (CHAR-NATIONAL, 65 536)
 - **Verified:** The implementation DOCUMENTS its alphanumeric coded character set as 8-bit Latin-1 = 256 positions in multiple places: the char-set model comment CobolIntrinsics.Text.cs:166 ('the alphanumeric coded set is 8-bit Latin-1'), CONVERT ANUM (:195-198, 1 byte/char, '?'-substitutes code points > 0xFF), DISPLAY-OF/NATIONAL-OF's D-N4 Latin-1↔national correspondence, and the 256-entry non-native alphanumeric PCS weights domain (CobolString.Compare(...,ushort[]) masks `& 0xFF`; IntrinsicBinder.cs:277). Yet CobolIntrinsics.Text.cs:21 CHAR's native path guards `c is < 0 or > 0xFFFF` (accepting n up to 65 536 — the NATIONAL bound), so CHAR(257)..CHAR(65536) return U+0100..U+FFFF and raise nothing, and ORD (:84) is likewise unbounded. Under §15.15.3 r2 with the documented 256-position count, CHAR(257) violates the argument rule and must raise EC-ARGUMENT-FUNCTION (checking on) / return the §15.3 implementor default (the code already uses one space). This is a real internal inconsistency — the native CHAR/ORD path contradicts the implementation's own documented 256-position alphanumeric repertoire. CAVEAT (owner ratification): the 'number of positions' is implementor-defined; if the owner instead declares the native alphanumeric sequence to span full UTF-16 (a PIC X is a UTF-16 string in the typed-native model), the fix moves to the docs/CONVERT/non-native-domain side and CHAR's native path is 'correct'. The preponderance of Latin-1/256 documentation makes 256 the self-consistent, conformant choice.
 - **Fix:** Presuming the documented 256-position alphanumeric repertoire (recommended): CobolIntrinsics.Text.cs:21 change `if (c is < 0 or > 0xFFFF)` to `if (c is < 0 or > 0xFF)` so CHAR(n) with n > 256 takes the existing ArgumentError + one-space-default path (leave CHAR-NATIONAL at 0xFFFF, :55). Optionally tighten ORD (:84) so a code point > 0xFF in an alphanumeric argument is out-of-repertoire. If the owner ratifies 65 536 instead, no code change to CHAR — instead correct the Text.cs:166 char-set-model documentation and widen the non-native weights domain; that is the less defensible direction given the pervasive Latin-1 model.

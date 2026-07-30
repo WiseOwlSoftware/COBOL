@@ -159,7 +159,7 @@ internal sealed class ProgramEmitter
             if (data.NationalCollating is { } nat)
                 // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11; an ALPHABET … FOR
                 // NATIONAL literal phrase) — SPARSE: the specified code units + positions; the runtime computes
-                // every unspecified character's GR7 k3 position arithmetically (NationalCollation.Weight).
+                // every unspecified character's §12.3.7.4 GR7 1.3 position arithmetically (NationalCollation.Weight).
                 w.Line("private static readonly NationalCollation __COLLATE_NAT = new("
                     + $"new ushort[] {{ {string.Join(", ", nat.Codes)} }}, "
                     + $"new ushort[] {{ {string.Join(", ", nat.Positions)} }}, "

@@ -96,15 +96,41 @@ public static partial class CobolIntrinsics
         ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
         : national.Weight(s[0]) + 1L;
 
-    /// <summary>ORD under a non-identity PCS: the character's collating weight + 1 (<c>Positions[c]</c> is the
-    /// 0-based position). A char beyond the table keeps its native ordinal (the table covers the alphabet's
-    /// domain; ALSO members share one position).</summary>
+    /// <summary>ORD under a non-identity alphanumeric PCS: the character's collating position + 1 (§15.70.4 r1;
+    /// <c>weights[c]</c> is the 0-based position, and ALSO members share one).</summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ A CHARACTER PAST THE TABLE CONTINUES THE SEQUENCE — it does NOT fall back to its native ordinal
+    /// (fix-queue PB3). §12.3.7.4 GR7 1.3: "Any characters of the native collating sequence that are not
+    /// specified in the literal phrase shall assume a position in the collating sequence that is greater than
+    /// that of the highest character specified in this literal phrase. The relative order within the set of these
+    /// unspecified characters is unchanged from the native collating sequence."
+    /// </para>
+    /// <para>
+    /// The old <c>c + 1</c> fallback ignored the collating sequence entirely, so a character one past the table
+    /// was numbered by a different rule than its neighbour and left a HOLE. Measured, under
+    /// <c>ALPHABET AL IS "A" ALSO "B"</c>: <c>ORD(X"FF")</c> gave 255 (correct — the ALSO collapse shifts
+    /// everything down one) while <c>ORD(U+0100)</c> gave 257, so ordinal 256 was occupied by nothing. §15.70.4
+    /// r1 returns "the ordinal position", and a sequence containing a hole does not have one.
+    /// </para>
+    /// <para>
+    /// This is the arithmetic <see cref="NationalCollation.Weight"/> has always performed on the national side —
+    /// one rule, two implementations, and only this one was incomplete. It is also the residue of CA26, which
+    /// made the alphanumeric repertoire Unicode without extending the 256-entry table's tail.
+    /// </para>
+    /// </remarks>
     public static long Ord(string s, ushort[] weights)
     {
         if (s.Length == 0)
             return Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)");
         char c = s[0];
-        return c < weights.Length ? weights[c] + 1L : c + 1L;
+        if (c < weights.Length) return weights[c] + 1L;
+
+        // Above the specified block, in unchanged native order: the highest tabulated position, then one
+        // distinct position per code unit past the table. Never a shared bucket, never a gap.
+        int highest = 0;
+        foreach (ushort w in weights) if (w > highest) highest = w;
+        return highest + 1L + (c - weights.Length) + 1L;
     }
 
     /// <summary>UPPER-CASE (§15.97.4): every lowercase letter replaced by its uppercase correspondent; result

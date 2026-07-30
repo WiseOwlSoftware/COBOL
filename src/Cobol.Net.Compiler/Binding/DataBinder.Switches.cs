@@ -400,7 +400,7 @@ public sealed partial class DataBinder
             foreach (char c in operands[0]) Assign(c, advance: true);
         }
 
-        // k)3: unspecified characters follow, DISTINCT ascending positions in native relative order.
+        // §12.3.7.4 GR7 1.3: unspecified characters follow, DISTINCT ascending positions in native relative order.
         for (int code = 0; code < 256; code++)
             if (pos[code] == ushort.MaxValue) pos[code] = next++;
 
@@ -546,7 +546,7 @@ public sealed partial class DataBinder
         // GR8/GR9 extremes over the FULL national sequence: position 0 belongs to the first character specified
         // (a position-0 ALSO tie also resolves to it — GR9 takes the FIRST specified); the HIGHEST position
         // belongs to the largest UNSPECIFIED code unit (unspecified characters sit above all specified ones,
-        // GR7 k3) — U+FFFF unless specified, else the next free code downward; if every code unit is specified
+        // §12.3.7.4 GR7 1.3) — U+FFFF unless specified, else the next free code downward; if every code unit is specified
         // (unreachable from real source), GR8's tie rule over the top specified position applies.
         char low = specOrder[0];
         char high = '\uffff';
