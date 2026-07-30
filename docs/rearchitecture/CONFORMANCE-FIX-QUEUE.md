@@ -10,24 +10,27 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7.4 GR7 1.3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE DISCOVERED SET IS CLOSED — DA1–DA7 ALL LANDED (2026-07-29). THE PHASE-B REVIEW HAS OPENED THREE:
-`PB1` ✅ LANDED (its class half) · `PB2` ✅ LANDED (its argument path) · `PB3` ⛔ OPEN, HAND-VERIFIED AND HALF
-REFUTED · `PB4` ✅ LANDED — each residue named rather than silent. PB4 was not in the batch at all: it was found
-when PB3's test vehicle turned out to be corrupted by it, and it is the most damaging of the four (a hexadecimal
-literal silently stored as its own source text in five positions).** One batch of 55 rules
-over 11 intrinsics produced 42 open rows, and they were never 42 bugs: **12** were PB1 (the argument-class table
-declared 79 times and read zero times — now enforced from a spec-verified table, closing 5 rows outright),
-**19** are PB2 (a floating-point argument falling off the end of the intrinsic result path), 1 is PB3 (ORD under a
-custom collating sequence), and the rest are genuinely per-function. The inventory is feeding this queue, which is
-the design working as intended (`DESIGN-spec-conformance-review.md` §3 Phase C: DIVERGES → the fix queue).
-The DA set: seven items, none part of the original 46, every one found while implementing
-something else. Their shared shape is worth carrying forward: **in DA3, DA5 and DA6 the reported symptom was a
-single construct failing, and the root cause was ONE RULE written down in more than one place** — three copies of a
-literal dispatch, two predicates for one question, and a rule enforced at a site that could not know its own
-context. Fixing only the reported construct would have left the mechanism intact each time.
-⚠ **This file is no longer where the next work comes from** (plan §0 NEXT item 1 is the traceability inventory). It
-stays as the register for anything NEW a future session discovers — add here, keep the tally above current.
+**⛔ THE PHASE-B TRACEABILITY REVIEW IS NOW THE SOURCE OF WORK, AND IT HAS OPENED EIGHT ITEMS: `PB1`–`PB7`
+LANDED, `PB8` OPEN (2026-07-30).** The older campaigns are closed — the 46-finding audit (45 landed, 1 refuted)
+and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
+landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
+**⛔ PB8 IS THE ONE OPEN ITEM AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): reference-modifying a
+function result is a PARSE ERROR, while §8.4.3.3.3 SR2 explicitly permits it. Root cause located in the LEXER;
+see its entry below for both repros and the exact decision point.
+
+**TWO OF THE SEVEN WERE BLOCKERS, AND BOTH WERE SILENT** — the reason this review exists rather than a
+differential:
+· **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
+  ordinary `PIC 9(12)V99` money field returned 9223372036.85 for 10000000001.00, with **NO SIZE ERROR**. Wrong
+  arithmetic in routine business ranges.
+· **PB7** — every ZERO-ARGUMENT intrinsic was unreachable in the keyword-omitted form: the program COMPILED
+  CLEAN and threw at run time.
+
+**⚠ THE COUNT OF FINDINGS IS NOT THE COUNT OF DEFECTS, and reading it that way wastes a session.** The first
+batch produced 42 open rows over 11 functions; **31 of them were three root causes** (PB1's dead argument-class
+table, PB2's floating-point argument path, PB3's collating tail). The second batch's 41 were **34 of one thing** —
+PB1's table simply did not yet list those functions. Cluster before triaging.
 ## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
 
 ### PB1 · [MAJOR] · intrinsics · ✅ LANDED — the CLASS half (DEVLOG 1117); a named residue stays open

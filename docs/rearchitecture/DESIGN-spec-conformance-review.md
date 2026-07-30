@@ -204,3 +204,60 @@ equals the derived one, every verdict carries its required evidence, every editi
 > REAL artifact once, by corrupting `traceability-inventory.json` in place: a row hand-promoted to `OK` and a
 > CONFORMS row citing a file and a golden that do not exist turned exactly three tests red, then green again on
 > restore.
+
+## 9. RUNNING A PHASE-B BATCH — the fan-out, and what its prompt MUST carry
+
+A batch is: pick the next contiguous clause block → generate one input file per subject → fan out one agent per
+subject → hand each result to an INDEPENDENT agent told to overturn it → merge → gate.
+
+```
+python scripts/spec/phase_b_batch.py 15.32-15.44     # writes scratchpad/phase-b/in-<slug>.json, prints the slugs
+#   … run the workflow (one adjudicate agent + one refute agent per slug) …
+python scripts/spec/record_verdicts.py --dry-run scratchpad/phase-b/out-*.json
+python scripts/spec/record_verdicts.py scratchpad/phase-b/out-*.json
+dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
+```
+
+`phase_b_batch.py` excludes rules that already carry a verdict, so a re-run after a partial batch is safe.
+
+### ⛔ The refute stage is not optional, and the evidence is now three batches deep
+
+Every batch's refute stage overturned verdicts, and **every overturn was a DOWNGRADE** — the pass only ever
+removes confidence. It has also found defects the adjudicator looked straight at:
+
+- **PB5** (the quantizer saturating at 9.2 × 10⁹) — the adjudicator had sampled only small receivers, where the
+  clamp cannot bite. The refuter read the implementation instead of sampling outputs.
+- **PB7** (every zero-argument intrinsic unreachable in the keyword-omitted form) — invisible to output-sampling,
+  because the program COMPILES and fails at run time.
+
+So: **an all-CONFORMS report is a red flag, not a good result**, and that sentence belongs in the refuter's prompt.
+
+### What every batch prompt must carry — each line paid for by a defect
+
+1. **The spec is the only oracle**, and the legacy / GnuCOBOL / existing goldens are regression nets.
+2. **Validate every citation** with `cite.py --check`. Give the concrete precedents: the fabricated
+   "§12.3.7 GR7 k3 … distinct ascending" that came out of *our own design doc*, and the one-level-short shape
+   (§13.18.60 where the rule is in §13.18.60.4).
+3. **Only a SPEC-DERIVED test closes a row.** Name `nist:`, `characterization:` and any `*MatchesLegacy` method
+   as non-qualifying, and say that CONFORMS-but-untested is a legitimate, expected outcome. The first batch
+   offered seven rows that would otherwise have closed on a differential.
+4. **Editions are never derived from `IntrinsicCatalog`'s own row** — that is deriving the answer from the code
+   under review, and it produced a wrong window in batch 1.
+5. **CONFORMS costs something**: code not located ⇒ NOT-IMPLEMENTED; an edge unverified ⇒ PARTIAL; a rule with
+   two halves where one was verified ⇒ PARTIAL, always.
+6. **`DOCUMENTED-NON-SUPPORT` is never an agent's to choose** (owner decision, D13).
+7. **`code-location` is `path#Symbol`, never a line number.**
+8. **The fixes that have already landed** (currently PB1–PB7), so agents do not re-report them — and so they know
+   that a function ABSENT from `IntrinsicArgumentRules.Verified` is genuinely unscreened.
+9. **Read-only, and no `dotnet build`/`dotnet test`** — other work is usually in flight.
+
+### ⚠ Reading the results
+
+- **Wait for the workflow's completion notification.** Output files exist from stage one and are REWRITTEN by
+  stage two; reading early published a wrong GAP number once, and because every overturn is a downgrade, an early
+  read biases the result *upward*.
+- **Read the notification's `<failures>` block before its results.** One run reported "completed" with 5 of 12
+  refuters dead on API 529, leaving unrefuted stage-one output in their files. `resumeFromRunId` re-runs only the
+  failures.
+- **Cluster before triaging.** The finding count is not the defect count: batch 1's 42 open rows were three root
+  causes for 31 of them; batch 2's 41 were 34 of a single one.

@@ -32,7 +32,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
 - **✅ MERGED TO `main` (2026-07-30, `1d0c24c9`) — 33 commits: the V59 wave, DA1–DA7, and the P14 Step-0
-  MECHANISM wave with PB1–PB6.** `phase-14` and `main` are at the same commit as of that merge.
+  MECHANISM wave through PB6.** ⚠ **WORK HAS CONTINUED ON `main` SINCE** (PB7, the PB1 table extension, Phase-B
+  batches 2 and 3), so the merge commit is a milestone in the history, NOT the head. `phase-14` and `main` were
+  at the same commit at the merge and are kept in step; **verify, do not assume** — the probe computes it.
   ⛔ **THAT SENTENCE GOES STALE THE NEXT TIME ANYONE COMMITS, and the previous version of this line is why the
   warning is here**: it said the trees were identical and stayed said while a whole wave landed on top.
   **Never read a commit count or a branch relationship from this document** — run
@@ -49,161 +51,99 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   ⚠ **DEVLOG 1112 and this section were previously stamped `21:40`/`21:45 PDT` on 2026-07-29, but `date` returned
   `19:05 PDT` while 1113 was being written** — the earlier stamps are ~2.5 h in the future, so entry 1113 correctly
   reads as EARLIER than 1112 above it. Stamp from `date`; do not manufacture a later time to preserve the look.
-- **WHAT LANDED IN THE MECHANISM WAVE (DEVLOG 1113–):**
-  · **ONE repo-root locator** (`tests/_shared/TestRepo.cs`) replacing **19** private root-finders in **7**
-    mechanisms across five test projects, linked into every test project by `tests/Directory.Build.props`.
-  · **THE PHASE-B RECORDING MECHANISM — the reason the GAP count had never moved.** Phase A left a 3,790-rule
-    denominator and *no way to write a verdict into it*. Now: the verdict rules as DATA
-    (`tests/version-matrix/inventory-schema.json`), one shared loader (`scripts/spec/inventory_schema.py`), an
-    all-or-nothing atomic writer (`scripts/spec/record_verdicts.py`), and a battery gate
-    (`SpecTraceabilityInventoryDriftTests`) that RECOMPUTES `state` and resolves every `code-location` and
-    `test-ref` against the tree. See NEXT item 1 for the loop.
-  · **THE FIRST VERDICT BATCH — §15.7 + §15.70–15.79, 55 rules over 11 intrinsics. GAP 3790 → 3781.**
-    13 CONFORMS (9 closed · 4 CONFORMS-but-untested) · 19 DIVERGES · 21 PARTIAL · 2 NEEDS-OWNER-DECISION.
-    ⚠ **DEVLOG 1115 first published 3778/12-closed. That was a MID-FLIGHT read** — the adversarial refute stage
-    was still running, and its completion overturned 10 rows (7 CONFORMS→PARTIAL, 1→DIVERGES, 1→NEEDS-OWNER,
-    1 losing its spec-derived cover), three of them rows counted as CLOSED. Corrected in DEVLOG 1116. **Wait for
-    the workflow's completion notification before reading its output**; an output file that exists is not an
-    output file that is finished.
-  · **⛔ 42 OPEN ROWS, BUT NOT 42 BUGS — three named root causes owned 31 of them.** `PB1` (12 rows): the
-    argument-class table declared 79 times, read zero times. `PB2` (19 rows): a FLOATING-POINT argument falls off
-    the end of the intrinsic result path — no value, a `CS1503`, or a silent requantization. `PB3` (1 row): ORD
-    reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE (ALSO collapse + >255 masking), which
-    also means **CA26's Unicode fix is incomplete on the ORD path**. The rest are genuinely per-function.
-  · **✅ PB4 LANDED — a HEXADECIMAL literal was not decoded in FIVE positions** (DEVLOG 1119). Not from the
-    batch: found when PB3's test vehicle turned out to be corrupted by it. §8.3.3.2 makes a hex literal one FORM
-    of an alphanumeric literal, but `VALUE X"4142"` stored the literal's SOURCE TEXT truncated to the picture
-    (`X"`), `VALUE ALL X"41"` gave `ALLX`, an `OCCURS` VALUE and an `88` condition likewise, and
-    `MOVE ALL X"41"` died at RUN time — while `MOVE X"4142"` was correct all along, so the data division and the
-    procedure division disagreed about the same literal. Four of five were SILENT.
-    **⛔ ROOT CAUSE: the prefix-letter list was written down TWICE in `CobolLiteral` and BOTH copies omitted `X`,**
-    so a hex literal was neither recognised as a literal nor decoded as one — which is why five sites failed in
-    five different shapes. Fixing it at the symptom (`ValueInitializer`) would have been the FIFTH copy of the
-    dispatch DA3 found three of, and would have fixed one site of five.
-  · **⛔ THE DENOMINATOR WAS SHORT BY 56 — the catalog is now 3,846 and GAP is 3,814** (DEVLOG 1125). The P14
-    metric is GAP over the normative-rule total, and that total was wrong, so every percentage quoted against
-    3,790 flattered. 122 adjudicated rows carried forward, 0 removed — nothing verified was lost.
-    Two causes: the extractor's `KINDS` map keys on literal heading spellings and missed "Argument**s** rule(s)"
-    (§15.10.3, §15.13.3, §15.100.3) and "Returned **values** rules" (§15.69.4); and the catalog had been FROZEN
-    since before de-paging because the builder HALTED on a missing page anchor, so it stopped tracking the
-    transcription's own repairs. ⛔ **The map's own comment recorded this class happening once before** — the
-    previous fix added spellings to the list, and the list came back. Pluralisation is now NORMALISED away on all
-    three axes, and a new guard reports any rule-shaped heading `KINDS` cannot resolve, because an unrecognised
-    block is never a parse gap and so is never counted as missing.
-    ⚖ **THREE HEADINGS REMAIN REPORTED AND ARE AN OWNER DECISION**: §13.18.40.5 "Editing rules",
-    §13.18.40.6 "Precedence rules", §5.3 "Rules". Those are rule KINDS the catalog has never modelled, not
-    spelling variants — adding a kind changes what the denominator MEANS, so they are left loud rather than
-    absorbed. The halt is discharged by DELETING the page column it guarded (a rule is cited by clause, never by
-    page), which re-keys the catalog onto the clause hierarchy.
-  · **PHASE-B BATCH 2 MERGED — 67 rules over 12 intrinsics (ACOS…CONVERT); 122 rules now adjudicated.**
-    34 of its 41 DIVERGES are ONE thing: PB1's `Verified` table does not yet list these functions, so they are
-    unscreened — rows waiting for their function to be added, exactly as PB1 predicted. ⚠ Five of twelve refuters
-    died on API 529 and were re-run via `resumeFromRunId`; **a workflow reporting "completed" is not every agent
-    in it succeeding.**
-  · **⛔✅ PB5 LANDED — [BLOCKER] the float→fixed quantizer SATURATED AT 9.2 × 10⁹** (DEVLOG 1124).
-    `FromDouble` returned a `long` and clamped at `long.MaxValue`; quantizing at `ws = max(Receiver.Scale, 9)`
-    put the clamp at an ORDINARY COBOL magnitude, so every float-family result at or above it became the
-    constant **9223372036.85** — `ANNUITY(1e10 1)` into a `PIC 9(12)V99` money field, `SQRT(1e20)`,
-    `EXP(23.3)`, `ABS`/`MAX` over a COMP-2 — with **NO SIZE ERROR**, because §14.7.4 never saw an overflow.
-    Silent wrong arithmetic in ordinary business ranges. Fixed by returning `Int128`, which the scaled domain
-    already is everywhere else; at scale 9 its ceiling is past anything a PICTURE can describe.
-    ⚠ **Found by the REFUTE stage; the adjudicator had checked only small receivers where the clamp never
-    bites.** An all-CONFORMS batch is a warning sign, not a good result.
-    ⚠ **And five of twelve refuters died on API 529**, leaving unrefuted stage-one output in their out files —
-    the entry-1116 state by a different route. **A workflow reporting "completed" is not every agent in it
-    succeeding**: read the notification's `<failures>` block before its results. Resumed to re-run only those.
-  · **✅ PB3 LANDED — GAP 3774 → 3773; CA26's residue on the ORD path is CLOSED** (DEVLOG 1121). `ORD` continues
-    the collating sequence above the highest tabulated position instead of falling back to `c + 1`, so the hole at
-    ordinal 256 is gone: `ORD(U+0100)` = **256**. The rule is **§12.3.7.4 GR7 1.3** — unspecified characters sit
-    above the highest specified one in unchanged native order — which is the arithmetic `NationalCollation.Weight`
-    had performed all along. ⚠ **And it did NOT need the data-structure change the queue entry predicted**: the
-    dense 256-entry array is fine, because the table's own maximum position is all the arithmetic needs. A scope
-    guess that reads as authoritative is how a fix gets deferred for being "big".
-    ⛔ **THE FABRICATED CITATION WAS IN `src/` TOO — 13 more sites across five files**, including
-    `NationalCollation`'s own comments describing the very rule it implements correctly. The doc sweep had scanned
-    only `docs/`. All corrected; the deliberate QUOTATIONS of the fabrication (in the entries explaining it) stay.
-  · **⚠ PB3 as first reported was HALF REFUTED** — the ALSO collapse the report blamed is CORRECT
-    (`ORD("A")`=`ORD("B")`=1, `ORD("C")`=67, `ORD(X"FF")`=255, all spec-derived). What survives:
-    `ORD(U+0100)`=257, so ordinal 256 is occupied by nothing — the `c + 1` fallback past the 256-entry weights
-    table ignores the collating sequence. **Its cited clause "§12.3.7 GR7 k3" does not exist in the catalog; do
-    not inherit it.** Still OPEN; needs a repertoire-wide collating structure, not a one-liner.
-  · **✅ PB2 LANDED — GAP 3779 → 3774** (DEVLOG 1118). The renderer routes on the ARGUMENT's type, not only the
-    function's family; a floating-point body per exact-family function in `CobolIntrinsics.RealArgs.cs`. It was
-    worse than reported: legal COBOL emitted a **raw Roslyn `CS1503` escaping as a backend error** on ten of
-    eleven functions probed. ⚠ **The elegant fix — same-named `double` overloads — broke SIX corpus programs
-    that never touched a float**, because an integer literal converts implicitly to both `Int128` and `double`
-    (`CS0121`). Names now follow a `…Real` convention, guarded. The drift test then found a 17th function my
-    hand-probe missed (`COMBINED-DATETIME`, whose argument-2 §15.6 types `Num2`). Residue recorded PARTIAL:
-    RANDOM's fixed-point RECEIVER path, the standard-arithmetic legs, and the EC-ARGUMENT-FUNCTION **value**
-    rules (§15.3 makes those RUN-TIME, deliberately untouched by a compile-time change).
-  · **✅ PB1 LANDED — `COBOLNET1627`, GAP 3781 → 3779, DIVERGES 19 → 9** (DEVLOG 1117). Strict-reject with a
-    `--permissive` warning, the DA6 disposition for the sibling §8.8.1.1 question. 5 rows close outright; 5 go
-    PARTIAL because their rule has a second half the screen cannot reach (a LENGTH clause, a strongly-typed-group
-    exclusion, a cross-argument "same type as argument-1"), each recorded on its own row rather than waved
-    through. Four negative fixtures, registered.
-    **⛔ AND THE QUEUE'S RECIPE WAS WRONG IN A WAY WORTH CARRYING.** "Consume `sig.ArgKind(i)`" — done exactly,
-    it made the comprehensive gate reject **12 legal corpus programs** (`BYTE-LENGTH` is declared `"s"` where
-    §15.14.3 admits any class; an empty `ArgKinds` defaults to `'n'`, screening `LENGTH` as numeric-only). **The
-    table was not merely unread, it was UNVERIFIED — because it was unread.** A declaration nothing consults
-    cannot be contradicted, so it drifts. The screen is therefore driven by `IntrinsicArgumentRules.Verified`,
-    where every entry carries the ISO clause it was read from; a function absent from it is screened exactly as
-    before. **Generalise this before wiring in any other long-dead lookup table.**
-  · **⛔ PB1 — THE FIRST FINDING THE INVENTORY FED INTO THE FIX QUEUE, AND IT IS ONE DEFECT BEHIND 11 ROWS.**
-    `IntrinsicCatalog` declares an `ArgKinds` argument-class string on all **79** rows and
-    `IntrinsicSig.ArgKind(int)` has **zero callers** — the only read anywhere is the `== "p"` MAX/MIN test. So no
-    §15 argument-class rule is enforced from the table built for it. Reproduced BY HAND both ways:
-    `FUNCTION REVERSE(<PIC 9(4)>)` compiles and prints `4321`; `FUNCTION ABS(<PIC X(4)>)` compiles and prints
-    `0000000{`. ⚠ It is also a **hole in DA6** — function arguments bypass the §8.8.1.1 screen DA6 installed.
-    Scope: 216 AR rules over 43 functions in §15, 47 of them explicit class constraints; 11 functions adjudicated.
-  · **⛔ AND THE LESSON THAT CHANGED THE MECHANISM: A DIFFERENTIAL MAY NOT CLOSE A ROW.** The batch offered 19
-    CONFORMS with a covering test and **7 of them rested only on a NIST golden or a `*_MatchesLegacy`
-    differential** — the artifacts CLAUDE.md rule 1 calls regression nets, never authority. Merging would have
-    moved the v1.0 burn-down on exactly the evidence the mission forbids. Every `test-ref` form now carries
-    `spec-derived`, `disqualifying-method-patterns` strikes `*_MatchesLegacy`-style tests, and BOTH evaluators
-    enforce it. That in turn split `requires` (what a RECORD needs) from what a ROW needs to CLOSE, which is what
-    makes **CONFORMS-but-untested** expressible — the category design doc §3 Phase C names. `session-probe` had
-    the same bug in the same direction and is fixed. DEVLOG 1115.
-- **WHAT LANDED IN THE PRECEDING WAVE (all spec-derived, all gated):**
-  · **V59 COMPLETE** — one byte representation at every byte boundary; with it the **46-finding conformance audit
-    is CLOSED**. DEVLOG 1095–1102.
-  · **The whole DISCOVERED-during-implementation set is CLOSED: DA1–DA7, ZERO open items in the fix queue.**
-    DA2 (a numeric FUNCTION in any string context — the compile-time fold was observable) · DA3 (a hex literal is
-    an alphanumeric literal; root cause was THREE copies of one dispatch) · DA4 (a function-identifier in every
-    STRING/UNSTRING sending position; grammar + binder) · DA5 (V59's image predicate was half-migrated across nine
-    emit guards) · DA6 (§8.8.1.1 — an alphanumeric arithmetic operand, strict-reject with `--permissive` leniency)
-    · DA7 (`COBOLNET1626` — three syntax-rule violations moved from RUN TIME to COMPILE time).
-  · A **32-site citation sweep**: §15.14.4/§15.50.4/§15.97.4 are "Returned value rules", so `r<N>` and never
-    `GR<N>`. The inherited-citation defect class rule 1 warns about.
-- **⛔ THE ARCHITECTURAL LESSON OF THE WAVE, and the thing to carry into the next one.** DA3 was three copies of a
-  literal dispatch; DA5 was two predicates for one question; DA6 was one rule enforced at a site that could not
-  know its own context. Every reported symptom was a single construct failing, and in every case fixing only that
-  construct would have left the mechanism that produced it intact. **The tell is always the same rule written down
-  more than once.** Recorded as `feedback_one_rule_one_place`.
-- **THE WORK WAS the spec-first CONFORMANCE FIX-QUEUE — AND IT IS NOW EMPTY.**
-  `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` (its LANDED header is the live tally) has **ZERO open items**: 45
-  of the 46 audit findings landed, 1 refuted, and DA1–DA7 all landed. Source ledgers `CODE-SPEC-AUDIT.md` (CA*) and
-  `PHASE-13-plan-vs-spec-review.md` §24 (V*) are exhausted. So **the queue is no longer where the next work comes
-  from** — the traceability inventory is (NEXT item 1). Keep the queue as the register for anything NEW that a
-  future session discovers, and keep landing each fix WITH its spec-derived golden (expected value computed from
-  the spec, never copied from the legacy).
-  Owner directive, still standing: spec-first is the ONLY going priority (`feedback_spec_is_the_oracle`) — the
-  NIST/GnuCOBOL/corpus checks are differential and structurally blind to a spec violation shared with the oracle.
-  ⚠ And one measured limit on that net, learned this wave: the **GnuCOBOL differential compares COMPILE-TIME
-  accept/reject verdicts, so it is structurally blind to a change in RUNTIME OUTPUT.** DA2 altered how a numeric
-  intrinsic renders in every string context and the differential came back 0 flips. For output semantics the
-  instrument is the spec-derived goldens.
+- **THE STATE OF THE CONFORMANCE REVIEW — the numbers that matter, all computed, none carried.**
+  `pwsh scripts/session-probe.ps1` prints them; the shape is what this bullet is for. **The denominator is 3,846
+  normative rules** (corrected from a short 3,790 — see the caution below). Roughly 180 rules are adjudicated,
+  all in §15 (the intrinsic functions), leaving the GAP a little under 3,800. **Never quote a number from this
+  paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
+  handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
+- **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
+  its header is the tally). **PB1–PB7 LANDED, PB8 OPEN.** Two were blockers and both were SILENT:
+  · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
+    ordinary `PIC 9(12)V99` money field returned 9223372036.85 for 10000000001.00, with **NO SIZE ERROR**.
+  · **PB7** — every ZERO-ARGUMENT intrinsic was unreachable in the keyword-omitted form:
+    `REPOSITORY. FUNCTION ALL INTRINSIC.` + `MOVE CURRENT-DATE TO X` compiled clean and threw at RUN TIME.
+  The rest: PB1 (the §15.3 argument-class screen, `COBOLNET1627`) · PB2 (a float argument routed to a `…Real`
+  body instead of emitting a raw `CS1503`) · PB3 (ORD past the 256-entry collating table) · PB4 (a hexadecimal
+  literal decoded in VALUE / ALL / 88 / OCCURS) · PB6 (`CALL BY VALUE` screened by §14.9.4.3 SR22,
+  `COBOLNET1628`). Each landed with a spec-derived golden.
+- **⛔ THE LESSON THIS REVIEW KEEPS RE-TEACHING, in three forms.** Carry it into the next batch:
+  · **One rule written down more than once** (`feedback_one_rule_one_place`) — PB4's prefix list was duplicated
+    inside ONE file and both copies omitted `X`; PB3's tail arithmetic existed correctly on the national side and
+    not the alphanumeric one.
+  · **A table nothing reads has never been contradicted** (`feedback_a_dead_lookup_is_also_unverified`) — PB1's
+    `ArgKinds` column was not merely unread but UNVERIFIED, and enforcing it as written rejected 12 legal corpus
+    programs. Re-derive a dead table before wiring it in.
+  · **A code that stands for two rules enforces neither** — screening `'n'` (class numeric) and `'i'`
+    (§15.3 type 6 integer) identically rejected `FUNCTION CHAR(<numeric-edited>)`, which is legal because type 6
+    admits an arithmetic expression and a numeric-edited item de-edits.
+- **⚠ THE INSTRUMENTS HAVE LIED MORE OFTEN THAN THE COMPILER HAS.** Every one of these cost real time:
+  · a citation audit reported **133 defects of which essentially none was real** (it matched quoted LABELS and
+    doc-internal `§` refs); the precise form — text that IS in the spec, filed under the WRONG clause — found 9.
+  · `guard-fast` reported **exit 1 on a green run** because the command chain ended in a `grep -c` that found
+    nothing. **Gate on the verdict line, never the exit code** (`feedback_gate_on_the_verdict_line`).
+  · a **workflow reported "completed" with 5 of 12 agents dead on API 529**, leaving unrefuted stage-one output
+    in their files. Read the notification's `<failures>` block before its results.
+  · reading a two-stage workflow's output files EARLY published a wrong GAP number. **Every overturn is a
+    downgrade, so an early read biases the result UPWARD.** Wait for the completion notification.
+- **⛔ THE DENOMINATOR WAS SHORT BY 56 AND IS NOW 3,846.** Ten rules sat under headings the extractor's
+  literal-spelling map did not know (`Argument`**`s`** ` rule(s)`, `Returned `**`values`**` rules`); the rest had
+  accumulated while the catalog was frozen behind a halt. Pluralisation is now NORMALISED and a guard reports any
+  rule-shaped heading the map cannot resolve — an unrecognised block is never a parse gap, so it is never counted
+  as missing. **Every percentage quoted against 3,790 flattered.**
+  ⚖ **AN OWNER DECISION IS OUTSTANDING:** the catalog still does NOT model §13.18.40.5 "Editing rules",
+  §13.18.40.6 "Precedence rules" or §5.3 "Rules". Those are rule KINDS, not spelling variants, and admitting them
+  changes what the denominator MEANS. The extractor prints them on every run; the decision has not been made.
+- **PRECEDING WAVES, for provenance only** — V59 (one byte representation at every byte boundary; the 46-finding
+  audit CLOSED, DEVLOG 1095–1102) and DA1–DA7 (the discovered-during-implementation set, DEVLOG 1103–1112).
+  Narrative lives in `DEVLOG.md`; §0 states where we are, never how we got here.
+- **⚠ A MEASURED LIMIT ON THE GnuCOBOL DIFFERENTIAL, corrected once already.** It compares COMPILE-TIME
+  accept/reject verdicts, so it is blind to a change in RUNTIME OUTPUT — but NOT to a runtime-shaped defect that
+  stops the program COMPILING. Six of eight fixes in the pre-merge run were PB2, whose symptom was a Roslyn
+  `CS1503`. The accurate rule: **changes that leave compilability unaltered are invisible to it.**
 
 ### NEXT, in order
 
-1. **⛔ START HERE — THE FIX QUEUE IS EMPTY, SO THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY INVENTORY.**
-   `pwsh scripts/session-probe.ps1` reports the live GAP against **3,790 rows** — v1.0 is defined as ZERO GAP.
-   This is item **5** below (the FULL implementation↔spec review); it is now the top of the list rather than the
-   bottom. **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema
-   and §8 is the recording mechanism; the inventory is the instrument that enumerates every Annex A.1 row and
-   drives it to zero, four editions wide.
-   ⚠ Do NOT re-open the conformance fix-queue looking for work: `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` has
-   **ZERO open items** (45 of 46 audit findings landed, 1 refuted; DA1–DA7 all landed). Its LANDED header is the
-   live tally and it is current.
+1. **⛔ START HERE — THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY REVIEW, AND IT NOW RUNS ON TWO TRACKS.**
+   `pwsh scripts/session-probe.ps1` reports the live GAP against the catalog — **v1.0 is defined as ZERO GAP**,
+   and the denominator is **3,846** (never quote a GAP number from this document; the probe computes it).
+   This is item **5** below (the FULL implementation↔spec review); it is the top of the list, not the bottom.
+   **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema and
+   §8 is the recording mechanism; the inventory enumerates every rule and drives it to zero, four editions wide.
+   ⛔ **THE FIX QUEUE IS NO LONGER EMPTY — it is now FED BY this review, which is the design working.**
+   `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` carries **PB8 OPEN** plus the named PARTIAL residue of PB1–PB7.
+   Its header is the tally. Two sources of work now exist and they interleave: adjudicate the next clause
+   (grows the map), and fix what earlier batches found (shrinks it).
+
+   **⛔ IF YOU DO ONE THING, DO THIS: PB8.** It is the only OPEN item and it REJECTS LEGAL COBOL, which is the
+   CLAUDE.md rule 4 red line — `MOVE FUNCTION CURRENT-DATE (1:4) TO X` and
+   `MOVE FUNCTION UPPER-CASE("abc") (1:2) TO T` are both `COBOL0001: no viable alternative at input '('`, while
+   §8.4.3.3.3 SR2 (validated verbatim) explicitly permits reference-modifying a function-identifier. The queue
+   entry carries both repros and the ROOT CAUSE, already located: `CobolLexer.g4`'s `OnDefaultLParen` pushes
+   SUBSCRIPT mode (which captures a ref-mod) only when
+   `PreviousTokenCouldBeDataName() && !PreviousIsFunctionName()`, and the two shapes miss it for DIFFERENT
+   reasons. ⚠ It is a LEXER-MODE change plus a `functionCall` grammar tail — the riskiest category in this
+   codebase, and the lexer's own comment warns the decision "is frozen at lex time and cannot be repaired later".
+   Budget for it accordingly; do not start it at the end of a session.
+
+   **THEN: THE NEXT PHASE-B BATCH — the tooling is in the repo, so this needs no archaeology.**
+   Three batches have run (§15.7 + §15.70–15.79 · §15.8–15.19 · §15.20–15.31), so the next contiguous block is
+   **§15.32 onward**:
+   ```
+   python scripts/spec/phase_b_batch.py 15.32-15.44   # one input file per subject + the slug list; skips
+                                                      # any rule that already carries a verdict
+   ```
+   **`DESIGN-spec-conformance-review.md` §9 is the batch playbook** — the fan-out shape, the nine things a batch
+   prompt MUST carry (each one paid for by a defect), and how to read the results without the two mistakes that
+   have already cost a wrong published number. Read it before writing the workflow.
+
+   **ALSO OPEN, from batch 3 and NOT yet hand-verified** (design doc §7 — verify before any code change):
+   · `FUNCTION COS`'s returned value depends on the RECEIVER's scale — `COS(1)` differs between a 9-decimal and a
+     17-decimal receiver, against §15.4.1's "the returned value is the same for all instances of a given function
+     within a single execution". `RenderFloat` quantizes at `ws = max(Receiver.Scale, 9)` and has no
+     arithmetic-mode branch at all.
+   · `Pow10.BuildDouble` builds 10ⁿ by a cumulative ×10 DOUBLE recurrence, exact only through 10²², so
+     `COS(0)` into `PIC SV9(30)` reportedly prints 0.999999999999999879… instead of 1.
 
    **⛔ THE MECHANISM EXISTS NOW — USE IT; NEVER HAND-EDIT THE INVENTORY.** Phase A left a denominator and no way
    to write a verdict into it, which is why the number had not moved. The loop is:
@@ -430,8 +370,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
-   denominator — **3,790 items** (1338 SR · 1470 GR · 216 AR · 223 RV · 222 Annex-A.1 doc obligations · 321 general
-   formats), validated against the canonical PDF and cross-checked against the spec's own TOC. The traceability
+   denominator — **3,846 items** (1352 SR · 1498 GR · 226 AR · 226 RV ·
+   222 Annex-A.1 doc obligations · 322 general formats). ⚠ It was **3,790 until 2026-07-30**, when
+   the extractor's literal heading-spelling map was found to have silently skipped whole clauses; regenerate with
+   `python scripts/spec/extract_rule_catalog.py`, which now also REPORTS any rule-shaped heading it cannot
+   resolve. The traceability
    inventory exists at `tests/version-matrix/traceability-inventory.json` and session-probe now reports the live
    GAP. Phase B = map + verify each rule → code → verdict (resumable; verdicts persist across sessions) · Phase C =
    close every DIVERGES / NOT-IMPLEMENTED / untested-CONFORMS. **The inventory at zero GAP = P14 DONE = D13.**
@@ -509,46 +452,22 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-29 — V59 · DA2 · DA3 · DA4 · DA5 · DA7 COMPLETE, DA6 COMPLETE; supersedes the
-  4123/942 earlier the same day):** FULL Conformance **4137/4137, zero skipped, NOTHING red** (+14 over 4123: the
-  `da3_hex_literal_operand` and `da4_function_sending_operand` goldens, 3 DA6 negative fixtures, and 9
-  `ArithmeticOperandClassTests` facts) (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
-  +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`, +1 `da5_group_verbs_comp_leaf`, **+3 DA7 NEGATIVE
-  fixtures** `da7-inspect-binary-operand`/`da7-string-into-binary`/`da7-unstring-into-binary`, each asserted to
-  reject at all four editions — negative corpus now 127 enabled; the earlier +2 was `v59_byte_image` and
-  `v59_sort_binary_key`) · greenfield Unit
-  **953/953, zero skipped** (⚠ re-measured 2026-07-29 19:0x PDT: 942 + the 11 P14-mechanism tests — 9
-  `SpecTraceabilityInventoryDriftTests` + 2 `TestRepoDriftTests`; the 942 line below is the pre-mechanism figure)
-  (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
-  +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
-  green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`
-  **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**, legacy Unit **1203/1203**, Integration **503/504 (1 skipped)**.
-  ✅ **NOTHING IN THIS LINE IS CARRIED ANY MORE — every figure was measured on 2026-07-29 at this commit.**
-  Characterization and `guard-fast`/NIST had been carried from the step-4 gate for most of the day. `guard-fast`
-  was re-run TWICE: the second time because naming the STRING/UNSTRING sending operands in the grammar touches a
-  LEGACY-SHARED SEAM (the legacy binder consumes the same productions), which is exactly the case the gate policy
-  above reserves it for.
-  ✅ **THE GnuCOBOL DIFFERENTIAL IS RE-RUN AND CLEAN AFTER DA2 (2026-07-29): 0 per-case flips, 0 regressions**,
-  totals unchanged at **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104
-  WE_ACCEPT_THEY_REJECT over 1323 cases**, diffed per-case against the stored report (not by comparing totals).
-  ⛔ **AND THE PREDICTION THAT IT WOULD MOVE WAS WRONG — the correction is the useful part.** This section
-  previously said DA2's rendering change would move the per-case verdicts. It cannot: the differential's verdict
-  is a COMPILE-TIME **accept/reject** comparison, so it is structurally blind to a change in RUNTIME OUTPUT. DA2
-  altered what a numeric FUNCTION *prints* and turned a runtime throw into a success; neither changes whether the
-  program COMPILES, and the affected cases were already AGREE_ACCEPT. **Do not reach for this differential to
-  validate an output-semantics change** — for those, the goldens are the instrument and this net is silent by
-  construction. It remains the right tool for reference-format and grammar work.
-  ⚠ Characterization and `guard-fast`/NIST are still carried forward from the step-4 gate — re-run at the next
-  batch boundary rather than trusting this line indefinitely. The 2026-07-28 numbers below are the
-  phase-14 merge gate and stay for provenance. The total moved twice today and both moves are accounted for: 3929/3930 → 3931/3931 when the VCR's
-  dangling spec LINE citations were re-keyed onto the clause hierarchy (the one red closed; its replacement pair
-  adds a fact), then → 4113/4113 when CA14 added the 182-cell introduction-axis theory
-  (`IntroducedConstruct_IsRejectedUnderPermissive`) · greenfield Unit **580/580** · characterization **33/33**
-  byte-identical · `guard-fast.sh` ALL GREEN with **NIST 353 MATCH / 0 regression** · legacy Unit 1203/1203,
-  Integration 503/504 (1 skipped). **Conformance takes ~12 min; run the long legs ONE AT A TIME.** Re-confirm
-  green (§9) before code changes.
-
-### Standing facts a session needs
+- **⛔ BATTERY REFERENCE — 2026-07-30, measured on `main` at the merge and again after each fix since.**
+  FULL greenfield Conformance **4150 / 4150, zero skipped, NOTHING red** · greenfield Unit **963 / 963, zero
+  skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
+  0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** · GnuCOBOL differential
+  **1321 cases, 0 unexplained flips**, totals **566 WE_REJECT_THEY_ACCEPT · 478 AGREE_ACCEPT · 175 AGREE_REJECT ·
+  102 WE_ACCEPT_THEY_REJECT**.
+  ⚠ **THE CONFORMANCE TOTAL MOVES WITH EVERY GOLDEN, so do not treat 4150 as a constant** — it is the number at
+  the last measured commit and each landed fix adds its fixture. What must hold is **zero failures, zero
+  skipped**. Conformance takes ~11–16 min; **run the long legs ONE AT A TIME** (a `--no-build` run alongside a
+  rebuilding guard produces no verdict at all).
+  ⚠ **The two permanent differential divergences are DELIBERATE**: `CALL BY VALUE` with an alphanumeric and with
+  a national operand stay `WE_REJECT_THEY_ACCEPT` forever, because §14.9.4.3 SR22 excludes them and GnuCOBOL
+  accepts them as an extension (PB6). They are not a residual regression; do not "fix" them back.
+  ⛔ **Read the VERDICT LINE, never the exit code.** `guard-fast` reported exit 1 on a fully green run because
+  the invoking command chain ended in a `grep -c` that matched nothing. Redirect the full output to a file, then
+  `grep 'ALL GREEN'` and `grep -icE 'crash|abort|Failed: *[1-9]'`.
 
 - **⛔ EVERY SPEC CITATION IS VALIDATED MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.**
   CLAUDE.md rule 1 requires it. The failure mode is INHERITING a citation, not inventing one: a queue entry
