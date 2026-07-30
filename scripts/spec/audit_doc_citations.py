@@ -69,6 +69,12 @@ def main() -> int:
     show_all = "--all" in sys.argv
 
     docs = sorted(REPO.joinpath("docs").rglob("*.md")) + [REPO / "CLAUDE.md"]
+    # ⛔ SOURCE DOC-COMMENTS TOO. Scanning only docs/ measures half the prose: an XML comment above the
+    # implementing method carries a citation at the same density and with the same authority as the design doc,
+    # and is read by the same person for the same reason. PB3 proved it — the fabricated "GR7 k3" survived a full
+    # docs/ sweep in THIRTEEN places across five source files, including the comments on the one implementation
+    # that gets the rule right.
+    docs += sorted(REPO.joinpath("src").rglob("*.cs")) + sorted(REPO.joinpath("src").rglob("*.g4"))
     seen: set[tuple[str, str]] = set()
     misfiled: list[tuple[str, str, str, str]] = []
     absent: list[tuple[str, str, str]] = []

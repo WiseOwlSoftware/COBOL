@@ -97,7 +97,7 @@ public sealed class DataItem
     /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §13.18.22 SR1 — a level-1
     /// type declaration may be external; §13.18.58.3 SR3). The type declaration itself has no storage
     /// (§13.18.58.4 GR2); the effect is on its REFERENCES: any record description containing that type is itself
-    /// EXTERNAL (§13.18.22 GR3) and must be level-1 (GR2) — <c>ExpandType</c> marks the subject
+    /// EXTERNAL (§13.18.22.4 GR3) and must be level-1 (GR2) — <c>ExpandType</c> marks the subject
     /// <see cref="ExternalFromType"/>, and <c>CallBindExternalAndGlobal</c> re-bases it onto the run-unit
     /// <c>ExternalStore</c> cell like any explicitly-EXTERNAL record.</summary>
     public bool IsExternalTypedef { get; init; }
@@ -109,7 +109,7 @@ public sealed class DataItem
     public bool HasExternalClause { get; init; }
 
     /// <summary>True when this record became EXTERNAL by referencing an EXTERNAL type declaration
-    /// (ISO §13.18.22 GR3 — "the record descriptions in which it is specified are also external"). Set by
+    /// (ISO §13.18.22.4 GR3 — "the record descriptions in which it is specified are also external"). Set by
     /// <c>ExpandType</c>; consumed by <c>CallBindExternalAndGlobal</c> (which cannot see it in the parse tree —
     /// the record's own entry carries no EXTERNAL clause).</summary>
     public bool ExternalFromType { get; set; }
