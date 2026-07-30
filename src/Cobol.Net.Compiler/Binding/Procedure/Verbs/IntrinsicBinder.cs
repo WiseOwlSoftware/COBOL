@@ -78,7 +78,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Edition.DialectLevel < 2002) return null;
         if (dref.cobolWord() is not { } cw) return null;                    // special registers (LINAGE/LINE/PAGE-COUNTER) are never functions
         var suffixes = dref.dataReferenceSuffix();
-        if (suffixes.Length != 1 || suffixes[0].subscriptPart() is not { } sp) return null;   // exactly `name(args)` — no qualification / refmod tail
+        // ⛔ ZERO SUFFIXES IS A LEGAL FORM, and requiring exactly one made every ZERO-ARGUMENT intrinsic
+        // unreachable in the keyword-omitted form (fix-queue PB7). §15.21.2's general format is
+        // `FUNCTION CURRENT-DATE` with no parentheses at all, so with the keyword omitted it is a BARE NAME —
+        // zero suffixes, not one. `REPOSITORY. FUNCTION ALL INTRINSIC.` + `MOVE CURRENT-DATE TO X` therefore
+        // fell through to a data reference, resolved to nothing, COMPILED CLEAN and threw
+        // NotImplementedCobolFeatureException at RUN TIME. PI, E, WHEN-COMPILED and the rest of the family
+        // failed identically; the standard writes the form itself at §D.14.3.6.
+        // Admitted ONLY when the catalog says the function can take zero arguments, so a bare word can never be
+        // re-routed away from a data reference on the strength of merely sharing a name with some function.
+        Core.SubscriptPartContext? sp = null;
+        if (suffixes.Length == 1)
+        {
+            if (suffixes[0].subscriptPart() is not { } only) return null;   // a qualification / refmod tail is not an argument list
+            sp = only;
+        }
+        else if (suffixes.Length != 0)
+        {
+            return null;
+        }
         string name = cw.GetText();
         bool isFn = ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase)
@@ -86,6 +104,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 && IntrinsicCatalog.TryGet(name, out _));
         if (!isFn) return null;
         if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)) return null;   // a declared data item wins — never a mis-routed subscript
+        if (sp is null)
+        {
+            // A bare name only becomes a function reference when the function genuinely admits ZERO arguments
+            // (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form, whose §15.75.2
+            // format brackets the whole parenthesised part). Anything else stays a data reference and reports
+            // through the ordinary unresolved-name path rather than being turned into an arity error.
+            return IntrinsicCatalog.TryGet(name, out var zeroArg) && zeroArg.MinArgs == 0
+                ? BindIntrinsicCore(name, [])
+                : null;
+        }
         return ReparseArgs(sp) is { } args
             ? BindIntrinsicCore(name, args)
             : new BoundExprError($"FUNCTION {name} arguments");

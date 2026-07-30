@@ -198,6 +198,67 @@ stays as the register for anything NEW a future session discovers — add here, 
 >
 > ⚠ Agent-surfaced, adversarially re-verified, NOT hand-confirmed. Verify before it drives a code change.
 
+### PB6 · [MAJOR] · interprogram · ✅ LANDED (DEVLOG 1126) — CALL BY VALUE quoted §8.8.1.1 at a programmer who broke §14.9.4.3 SR22
+
+> Found by the pre-merge GnuCOBOL differential, which no other gate leg could have caught: the VERDICT was right,
+> so nothing failed anywhere — only the rule quoted was wrong. `CALL … USING BY VALUE <alphanumeric>` was refused
+> by DA6's §8.8.1.1 ARITHMETIC screen because the grammar production is named `arithmeticExpression` and the
+> binder called `BindExpr` on it. §14.9.4.3 SR22 is the governing rule ("identifier-4 shall be of class numeric,
+> object, or pointer"), so the operand IS illegal — but a diagnostic naming the wrong clause sends the programmer
+> to the wrong place. **A production's NAME is not its operand's rule.**
+> `COBOLNET1628` + `OperandContext.CallByValue`; golden `pb6-call-by-value-alphanumeric`.
+> ⚠ **The first fix was a SILENT REGRESSION that looked like success**: screening the wrapper via
+> `IntrinsicArgumentRules.ClassOf` made both cases compile CLEAN, because that method maps any
+> `BoundComputedOperand` to NUMERIC. A wrongly-worded reject had become no enforcement at all. **A fix whose
+> evidence is "the error went away" cannot distinguish a fix from a deletion.**
+
+### PB7 · [BLOCKER] · intrinsics · ✅ LANDED (DEVLOG 1129) — every ZERO-ARGUMENT intrinsic was unreachable in the keyword-omitted form, and it compiled clean
+
+> **Silent compile-then-crash, the worst failure mode this review has produced.**
+> ```cobol
+> REPOSITORY. FUNCTION ALL INTRINSIC.
+>     MOVE CURRENT-DATE TO WS-CD      *> compiles with zero diagnostics
+> ```
+> then at RUN TIME: `NotImplementedCobolFeatureException: reference 'CURRENT-DATE'`. `PI` and `E` failed
+> identically — the whole zero-argument family.
+>
+> §15.21.2's general format is `FUNCTION CURRENT-DATE` with NO parentheses, so with the keyword omitted
+> (§12.3.8.1 + §8.4.3.2.3 SR2) the reference is a **bare name — ZERO suffixes, not one**.
+> `IntrinsicBinder.KeywordOmittedFunction` opened `if (suffixes.Length != 1 …) return null;`, so it fell through
+> to a data reference, resolved to nothing, and reached the runtime's not-implemented stage. The standard writes
+> the form itself at §D.14.3.6: `MOVE FUNCTION LOCALE-DATE (CURRENT-DATE (1:8))`.
+>
+> **Fixed narrowly.** A bare name becomes a function reference ONLY when the catalog says the function admits
+> zero arguments (`MinArgs == 0`), so a declared data item still wins and no other bare word is re-routed for
+> merely sharing a name with a function. Verified both directions.
+> **GOLDEN** `conformance:2023/pb7_keyword_omitted_zero_arg`.
+
+### PB8 · [MAJOR] · reference-modification · ⛔ OPEN — reference-modifying a FUNCTION result is a PARSE ERROR
+
+> **We reject legal COBOL — the CLAUDE.md rule 4 red line.** Both forms, hand-verified at `--std 2023`:
+> ```
+> MOVE FUNCTION CURRENT-DATE (1:4)      TO WS-YR  ->  COBOL0001: no viable alternative at input '('
+> MOVE FUNCTION UPPER-CASE("abc") (1:2) TO T      ->  COBOL0001: no viable alternative at input '('
+> ```
+> ✅ **§8.4.3.3.3 SR2, validated verbatim:** "If identifier-1 is a function-identifier, it shall reference an
+> alphanumeric, boolean, or national function." The standard explicitly contemplates reference-modifying a
+> function-identifier and constrains only WHICH functions qualify — CURRENT-DATE (§15.21.1, alphanumeric) and
+> UPPER-CASE both do. The shape is normative at §15.23.3 r5, §15.25.3 r5 and §15.100.3 r5, and written out at
+> §D.14.3.6.
+>
+> **⛔ ROOT CAUSE IS IN THE LEXER, AND THE FILE WARNS IT CANNOT BE REPAIRED DOWNSTREAM.**
+> `CobolLexer.g4`'s `OnDefaultLParen` pushes SUBSCRIPT mode — which is what captures a ref-mod — only when
+> `PreviousTokenCouldBeDataName() && !PreviousIsFunctionName()`. The two failing shapes miss it for DIFFERENT
+> reasons:
+> · after a zero-argument function NAME, `PreviousIsFunctionName()` is TRUE, so the trigger is suppressed;
+> · after a function call's closing `)`, the previous token is not a data name at all, so it never fires.
+> The lexer's own comment: "the SUBSCRIPT-mode decision at '(' is frozen at lex time and cannot be repaired
+> later." The fix is therefore a lexer-mode change PLUS a `functionCall` ref-mod tail in the grammar — the
+> riskiest category in this codebase, and deliberately NOT attempted in the same pass that landed PB7.
+>
+> ⚠ Interaction worth knowing: PB7 made zero-argument keyword-omitted references bind, so the standard's own
+> §D.14.3.6 example `CURRENT-DATE (1:8)` gains a second reason to work once this lands.
+
 ### PB5 · [BLOCKER] · numerics · ✅ LANDED (DEVLOG 1124) — the float→fixed quantizer saturated at an ORDINARY COBOL magnitude
 
 > **Silent wrong arithmetic in ordinary business ranges — the worst defect this review has surfaced.**

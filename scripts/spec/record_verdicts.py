@@ -83,6 +83,17 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, known: set[s
         if unknown := set(rec) - {"rule-id", *ADJUDICATED}:
             bad.append(f"{where}: unknown field(s) {sorted(unknown)} — a record may set only {list(ADJUDICATED)}")
 
+        # ⛔ TYPE-CHECK BEFORE TOUCHING A FIELD. A batch file is UNTRUSTED input — it is written by an agent, or
+        # by hand — and the first real batch to get this wrong supplied `editions` as a JSON LIST, which made the
+        # validator itself throw an AttributeError. A validator that crashes on malformed input tells the author
+        # nothing about what to fix and reports no other violation in the file; it must FAIL THE RECORD, not the
+        # run. Checked here so every field access below is safe.
+        if mistyped := sorted(f for f in ADJUDICATED if f in rec and not isinstance(rec[f], str)):
+            for f in mistyped:
+                bad.append(f"{where}: '{f}' is {type(rec[f]).__name__}, not a string"
+                           + (f" — write it as \"{','.join(map(str, rec[f]))}\"" if isinstance(rec[f], list) else ""))
+            continue
+
         verdict = rec.get("verdict", "")
         if not verdict:
             bad.append(f"{where}: no verdict")
