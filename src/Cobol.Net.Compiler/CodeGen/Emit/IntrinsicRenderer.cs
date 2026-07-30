@@ -54,7 +54,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             return new NumX(EmitText.LoudValue("long", $"string-class FUNCTION {sig.Name} in a numeric context"), 0);
 
-        if (sig.Float) return RenderFloat(ic);
+        // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
+        // computes over scale-aligned Int128, which is right (deep-dive D1) — but a FLOATING-POINT argument is
+        // legal for all of it (§15.7.3 r1 and siblings require class NUMERIC, and a COMP-2 item is class
+        // numeric), and dispatching on sig.Float alone handed a double expression to an Int128 parameter. The
+        // user saw the generated C# fail: "CS1503: cannot convert from 'double' to 'System.Int128'" — an
+        // internal failure escaping as a backend error on legal source. Ten of eleven functions probed did it.
+        // Under native arithmetic §15.4.1 makes the returned value implementor-defined and each of these
+        // functions is an equivalent arithmetic expression over its own operands, so once an argument arrives as
+        // binary64 the EAE *is* a binary64 evaluation — nothing exact is surrendered, because there was nothing
+        // exact left to keep. The real-argument bodies are CobolIntrinsics.RealArgs.cs, deliberately sharing
+        // these method names so this one line is the whole dispatch.
+        if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
+        if (AnyRealArgument(ic)) return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
 
         switch (sig.RuntimeMethod)
         {
@@ -225,16 +237,29 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>The §15.4.1 floating-math family: arguments as doubles (through the one scaled→double
     /// conversion), result quantized by the ONE FromDouble at <c>ws = max(Receiver.Scale, 9)</c> (the ≥9 float floor).</summary>
-    private NumX RenderFloat(BoundIntrinsicCall ic)
+    /// <summary>The FLOATING-POINT body's name for an exact-family runtime method (PB2).</summary>
+    /// <remarks>
+    /// A CONVENTION, not a table: <c>XxxScaled</c> → <c>XxxReal</c>, anything else gains a <c>Real</c> suffix.
+    /// The obvious alternative — a same-named <c>double</c> overload — does not compile: an integer literal
+    /// converts implicitly to both <c>Int128</c> and <c>double</c>, so <c>FUNCTION MAX(5 7)</c> became a CS0121
+    /// ambiguity and broke six corpus programs that never touched a float. <c>IntrinsicRealArgDriftTests</c>
+    /// asserts the counterpart exists for every exact method reachable with a real argument.
+    /// </remarks>
+    internal static string RealMethod(string exact) =>
+        exact.EndsWith("Scaled", StringComparison.Ordinal)
+            ? string.Concat(exact.AsSpan(0, exact.Length - "Scaled".Length), "Real")
+            : exact + "Real";
+
+    private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
         var sig = ic.Sig;
         int ws = Math.Max(num.Receiver.Scale, 9);
-        string call = sig.RuntimeMethod switch
+        string call = method switch
         {
             // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
-            "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(sig.RuntimeMethod, ""),
-            "Random" => RuntimeApi.Intrinsic(sig.RuntimeMethod, IntArg(ic, 0)),
-            _ => RuntimeApi.Intrinsic(sig.RuntimeMethod,
+            "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
+            "Random" => RuntimeApi.Intrinsic(method, IntArg(ic, 0)),
+            _ => RuntimeApi.Intrinsic(method,
                 string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
         };
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
@@ -248,6 +273,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
 
     private NumX Arg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i], num.Receiver);
+
+    /// <summary>Does any argument render as FLOATING (binary64) rather than as a scaled integer? (PB2.)</summary>
+    /// <remarks>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
+    /// to be computed in binary64 and only then quantized, which is exactly what <see cref="RenderFloat"/>'s
+    /// <c>FromDouble</c> tail does.</remarks>
+    private bool AnyRealArgument(BoundIntrinsicCall ic) =>
+        ic.Args.Any(a => num.AsNum(a, num.Receiver).Real);
 
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier).</summary>
     private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(Arg(ic, i));

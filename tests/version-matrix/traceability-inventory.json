@@ -39486,12 +39486,12 @@
   "ordinal": 1,
   "subject": "ABS function",
   "page": 846,
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#AbsScaled; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#AbsReal; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+  "test-ref": "conformance:2023/pb2_float_argument_exact_family",
   "editions": "2002,2014,2023",
-  "notes": "AbsScaled(v) => v < 0 ? -v : v over the unscaled Int128, with the ARGUMENT'S OWN scale carried through by the RenderNum \"AbsScaled\" case, IS the 15.7.4 equivalent arithmetic expression for both branch (a) and branch (b). RE-VERIFIED AT THE CLI across the class-numeric shapes of 8.5.2.12: item 1 PICTURE numeric display S9(4)V99 -12.34 -> 12.34; item 1 PACKED-DECIMAL -12.34 -> 12.34 and PIC S9(9) BINARY -777 -> 777.00; item 2 NON-float usages BINARY-LONG -5 -> 5.00 and BINARY-CHAR -3 -> 3.00; item 4 LINAGE-COUNTER agrees exactly with the bare operand; items 6/7 nested function arguments FUNCTION ABS(FUNCTION MAX(...)) -> 12.34 and FUNCTION ABS(FUNCTION INTEGER(-12.34)) -> 13.00. IT DOES NOT HOLD FOR THE FLOATING-POINT USAGES OF 8.5.2.12 ITEM 2: USAGE COMP-1 / COMP-2 (float-short / float-long) is class numeric and therefore a perfectly legal argument-1, but the ABS row is not in the 15.4.1 Float family, so IntrinsicRenderer hands a Real NumX to the Int128 AbsScaled signature -- 01 F USAGE COMP-2. COMPUTE R = FUNCTION ABS(F) fails with 'error: backend compilation failed ... CS1503: cannot convert from double to System.Int128'. NO value is produced at all, so this is a hole in the rule rather than a rounding difference, and it also fails 4.2.2 paragraph 1. FAMILY-WIDE PATTERN, NOT ABS-ONLY: FUNCTION SIGN and FUNCTION INTEGER over the same COMP-2 item fail identically in a single compile, so the fix belongs in the renderer's exact-family arm (float-usage operands must be quantized to the exact engine, or the exact-family entries given a float overload), never on the ABS row alone. Editions rationale and the unresolved 2002-vs-2014 lower bound are on FMT-15.7.2. test-needed.",
-  "state": "GAP"
+  "notes": "PB2 LANDED. The exact path already realized the 15.7.4 equivalent arithmetic expression; the residue was that a FLOATING-POINT argument had no path at all and emitted a raw CS1503. The renderer now routes on the ARGUMENT's type and AbsReal computes the same EAE in binary64, which is what 15.4.1 licenses under native arithmetic once the operand is already a float.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.8.3-1",
@@ -43686,12 +43686,12 @@
   "ordinal": 1,
   "subject": "ORD-MAX function",
   "page": 931,
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMax; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgs; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgsEx",
-  "test-ref": "nist:IF128A; conformance-test:IntrinsicFunctionDifferentialTests.OrdMax_TieTakesFirst_PinnedToSpec",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMaxReal; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+  "test-ref": "conformance:2023/pb2_float_argument_exact_family",
   "editions": "85,2002,2014,2023",
-  "notes": "The 1-based ordinal is correct for fixed-point numeric arguments (OrdMax over scale-aligned Int128) and for string arguments (OrdMaxString = ExtremeIndex + 1) — re-verified by running: mixed scales (1.4/1.6 -> 2; 1.05/1.1 -> 2), mixed usages (S9(4) COMP -5, S9(4) DISPLAY -3, S9(4)V99 COMP-3 -3.5 -> 2), IND(ALL) over 3,9,1,9 -> 2, nested ORD-MAX -> 2, alphabetic PIC A -> 2, numeric-edited PIC ZZ9 -> 2. But a FLOATING-POINT argument — legal COBOL, since §15.71.3 r1 bars only boolean/message-tag/object/pointer/strongly-typed-group — produces NO value at all: the renderer's `OrdMax or OrdMin` case calls AlignedArgs, which discards the AnyReal flag AlignedArgsEx already computes, and NumericRenderer.Align then feeds a `double` into a `params Int128[]` slot. Concrete failing input, reproduced: `01 F1 USAGE COMP-2. 01 F2 USAGE COMP-2. 01 R PIC 9(4). ... MOVE 1.5 TO F1 MOVE 2.5 TO F2 MOVE FUNCTION ORD-MAX(F1 F2) TO R` -> 'error: backend compilation failed ... CS1503: cannot convert from double to System.Int128'. Sibling sweep: the same AlignedArgs path backs MaxScaled/MinScaled/SumScaled/RangeScaled/MedianScaled/MidrangeScaled, so FUNCTION MAX(F1 F2) over COMP-2 fails identically — a family-wide defect, fix it at the renderer's shared alignment seam, not per function.",
-  "state": "GAP"
+  "notes": "PB2 LANDED. The 1-based ordinal was already correct for fixed-point and string arguments; the float leg produced no value. OrdMaxReal returns the leftmost greatest position per 15.71.4 r3, and the golden pins ORD-MAX over two COMP-2 items.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.71.4-2",
@@ -43770,12 +43770,12 @@
   "ordinal": 1,
   "subject": "ORD-MIN function",
   "page": 932,
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMin; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMinString; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgs; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgsEx; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Align",
-  "test-ref": "nist:IF129A",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMinReal; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+  "test-ref": "conformance:2023/pb2_float_argument_exact_family",
   "editions": "85,2002,2014,2023",
-  "notes": "Correct 1-based ordinal for fixed-point numeric, alphanumeric, national, group and INDEX-NAME arguments (CLI-verified: ORD-MIN(9 8 7 6 5 4 3 2 1)=9, ORD-MIN(7)=1, PIC A + PIC X = 2, two INDEXED BY index-names SET to 3 and 2 return 2 — the §15.6 table's 'Ind1 …' shape works). It does NOT hold whenever an argument renders on a carrier other than Int128, because AlignedArgs/NumericRenderer.Align hands the bare expression to OrdMin(params Int128[]): (a) FLOATING-POINT — '01 F1 USAGE FLOAT-LONG. 01 F2 USAGE FLOAT-LONG. ... MOVE FUNCTION ORD-MIN(F1 F2) TO R' fails with raw Roslyn 'error CS1503: cannot convert from double to System.Int128' (same for COMP-1/COMP-2), no value and no COBOL diagnostic, although §15.72.3 bars no numeric usage; (b) NEW in the adversarial pass — under 'OPTIONS. ARITHMETIC IS STANDARD-DECIMAL.' an argument that is a DIVISION subexpression renders as CobolDec and fails with 'CS1503: cannot convert from CobolNet.Runtime.CobolDec to System.Int128' (a plain field-argument call under standard-decimal is fine). Both legs are family-wide — reproduced for ORD-MAX, MAX and MIN. Note AlignedArgsEx already tracks AnyReal for MEAN's benefit and tracks nothing for Dec, so any fix must cover BOTH non-Int128 carriers, not just float. No fix-queue item owns it; proposed DA9 (float AND decimal legs for the Int128 variadic statistical family). test-needed for both legs. Struck the earlier nist:IF402M ref: its ORD-MIN statement is 'IF FUNCTION ORD-MIN(5,3,2,8,3,1) = FUNCTION ORD-MIN(5,3,2,8,3,1)', a tautology in a flag-expectation paragraph that would pass for any constant return value, so it verifies no returned value at all.",
-  "state": "GAP"
+  "notes": "PB2 LANDED. Same rule and same fix as AR/RV-15.71 - ORD-MIN's body is ORD-MAX's body with the comparison reversed, so fixing one without the other would have been the split the DA wave warned about (feedback_scan_all_similar).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.72.4-2",
@@ -44022,12 +44022,12 @@
   "ordinal": 1,
   "subject": "RANGE function",
   "page": 936,
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RangeScaled; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgsEx; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Align",
-  "test-ref": "nist:IF132A; conformance-test:IntrinsicFunctionDifferentialTests.ExactFamily_MatchesLegacy",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RangeReal; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+  "test-ref": "conformance:2023/pb2_float_argument_exact_family",
   "editions": "85,2002,2014,2023",
-  "notes": "OVERTURNED FROM CONFORMS — holds for FIXED-POINT arguments only; a FLOATING-POINT argument produces NO returned value at all. §8.5.2.12 item 2 makes an item of usage float-short/float-long/float-extended (COMP-1/COMP-2) category numeric, hence class numeric per §8.5.2.1 Table 2, so it is a fully legal §15.76.3 argument — but RenderNum's `MaxScaled or MinScaled or SumScaled or RangeScaled` arm calls AlignedArgsEx, which renders a float leaf as a NumX(<double expr>, 0, Real: true) and passes it through NumericRenderer.Align unchanged into `CobolIntrinsics.RangeScaled(params Int128[])`. AlignedArgsEx computes an AnyReal flag but ONLY the MeanScaled arm consumes it. Concrete failing input, reproduced on the built CLI at --std 85, 2002, 2014 AND 2023: `01 F1 USAGE FLOAT-LONG. 01 F2 USAGE FLOAT-LONG. … COMPUTE R = FUNCTION RANGE(F1 F2)` -> `error: backend compilation failed … error CS1503: Argument 1: cannot convert from 'double' to 'System.Int128'`. Same for COMP-2, for a MIXED float/fixed list, and for a floating-point literal (`FUNCTION RANGE(1.5E1 2)`). This violates the compiler's own bind-success-implies-compilable invariant and is shared machinery — FUNCTION MAX and FUNCTION SUM over the same COMP-2 pair fail identically — so it belongs in the fix queue as one variadic-family entry (grep-confirmed undocumented: nothing in docs/CONFORMANCE.md, the fix queue or plan §0). What DOES conform: the fixed-point path is literally the EAE, `RangeScaled(params Int128[] xs) => MaxScaled(xs) - MinScaled(xs)` over §8.8.1 scale-aligned operands returned at the common scale, exact in Int128 with no buried rounding; verified against the spec's EAE written out longhand — FUNCTION RANGE(N1 N2 7) and FUNCTION MAX(N1 N2 7) - FUNCTION MIN(N1 N2 7) both give 52.50 for N1=-12.50 N2=40, the one-argument case gives 0, a mixed-scale table(ALL) gives 13.50, and the pair still agrees under ARITHMETIC IS STANDARD-DECIMAL. Adjacent, lower-priority and NOT counted in this verdict: §15.76.1 types the result Integer when all arguments are integer, but `E(FUNCTION RANGE(1 3))` throws NotImplementedCobolFeatureException at run time — that is the shared D10/Phase-15 subscript-token deferral (any FUNCTION inside a subscript fails; `E(1 + 1)` works), not a RANGE rule. test-needed: a float-argument case for the exact-variadic family; the two cited test-refs pin fixed-point RANGE values only.",
-  "state": "GAP"
+  "notes": "PB2 LANDED. This row is the one that named the defect most precisely - a float item is category numeric (8.5.2.12 item 2) hence class numeric (8.5.2.1 Table 2) and therefore a fully legal 15.76.3 argument, and it produced no returned value. RangeReal is MAX minus MIN in binary64.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.77.3-1",
@@ -44064,12 +44064,12 @@
   "ordinal": 1,
   "subject": "REM function",
   "page": 937,
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RemScaled; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Align",
-  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Rem_TruncatedRemainder_PinnedToSpec; nist:IF133A",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RemReal; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument",
+  "test-ref": "conformance:2023/pb2_float_argument_exact_family",
   "editions": "85,2002,2014,2023",
-  "notes": "The equivalent arithmetic expression is realized EXACTLY for fixed-point operands: RenderNum aligns both arguments to s = max(scaleA, scaleB) and RemScaled returns a % b at scale s; Int128 % truncates toward zero, so it IS FUNCTION INTEGER-PART of the quotient -- (a_u - b_u*trunc(a_u/b_u))/10^s = argument-1 - argument-2 * INTEGER-PART(argument-1/argument-2), and the result scale s is the exact scale of that value. Verified by execution: REM(-11,5) = -1, REM(11,-5) = 1, REM(11.5,2.25) = 0.25, REM(11,-4) = 3. But NO value is produced at all for two operand shapes ISO 15.3 item 10 permits, because NumericRenderer.Align passes a Real (double) or Dec (CobolDec) NumX through UNCHANGED into a RemScaled(Int128, Int128) call: (a) a FLOAT operand (USAGE COMP-2/COMP-1 -- category numeric per ISO 8.5.2.12 item 2) -> 'error CS1503: cannot convert from double to System.Int128', reproduced at --std 85, 2002, 2014 AND 2023; failing input: 01 F1 USAGE COMP-2. 01 F2 USAGE COMP-2. 01 R PIC S9(5)V99. MOVE 11.5 TO F1. MOVE 2.25 TO F2. COMPUTE R = FUNCTION REM(F1, F2). (b) under OPTIONS ARITHMETIC IS STANDARD-DECIMAL an arithmetic-EXPRESSION argument -> 'error CS1503: cannot convert from CobolNet.Runtime.CobolDec to System.Int128'; failing input: OPTIONS. ARITHMETIC IS STANDARD-DECIMAL. ... COMPUTE R = FUNCTION REM(A + 3, B). CORRECTION to the first pass, which said both legs hit 'every edition': leg (b) is 2014+ ONLY -- at --std 85 the same source draws COBOLNET0804 (OPTIONS paragraph requires COBOL-2002) and COBOLNET0900 (ARITHMETIC IS STANDARD-DECIMAL requires COBOL-2014), and the PLAIN field form FUNCTION REM(A, B) under STANDARD-DECIMAL compiles and runs correctly (17 rem 5 = 2.00), so only the CobolDec-rendered expression argument fails. FAMILY DEFECT, not a REM defect (rule 4 sweep, re-verified in one program with two COMP-2 operands): MAX, ABS, SUM, MOD, RANGE and INTEGER-PART each produced their own CS1503 sites on the identical inputs; MIN, MEDIAN, MIDRANGE, ORD-MAX, ORD-MIN, INTEGER and FRACTION-PART travel the same Arg/AlignedArgs -> Int128 signature path. The fix belongs in the shared render path (a float/Dec-aware overload set or a conversion at Align), not in the REM case label. test-needed: neither test-ref reaches the float or STANDARD-DECIMAL shapes.",
-  "state": "GAP"
+  "notes": "PB2 LANDED. The exact leg was already the EAE exactly; the float leg is now RemReal, which TRUNCATES the quotient (15.77.4) rather than flooring it - the golden pins REM(-7,3) = -1 against MOD(-7,3) = 2, the pair that distinguishes a correct body from a plausible one.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.78.3-1",

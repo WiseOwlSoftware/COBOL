@@ -11,7 +11,8 @@
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
 **⛔ THE DISCOVERED SET IS CLOSED — DA1–DA7 ALL LANDED (2026-07-29). THE PHASE-B REVIEW HAS OPENED THREE:
-`PB1` ✅ LANDED (its class half; a named PARTIAL residue) · `PB2` ⛔ OPEN · `PB3` ⛔ OPEN.** One batch of 55 rules
+`PB1` ✅ LANDED (its class half) · `PB2` ✅ LANDED (its argument path) · `PB3` ⛔ OPEN — each with a named
+PARTIAL residue rather than a silent one.** One batch of 55 rules
 over 11 intrinsics produced 42 open rows, and they were never 42 bugs: **12** were PB1 (the argument-class table
 declared 79 times and read zero times — now enforced from a spec-verified table, closing 5 rows outright),
 **19** are PB2 (a floating-point argument falling off the end of the intrinsic result path), 1 is PB3 (ORD under a
@@ -136,7 +137,44 @@ stays as the register for anything NEW a future session discovers — add here, 
 > zero-callers fact were confirmed by hand.** Design doc §7 stands: verify each before it drives a code change.
 > All are DIVERGES/PARTIAL, which do NOT close a GAP, so nothing in the burn-down rests on them.
 
-### PB2 · [MAJOR] · intrinsics · ⛔ OPEN — a FLOATING-POINT argument falls off the end of the intrinsic result path
+### PB2 · [MAJOR] · intrinsics · ✅ LANDED — the ARGUMENT path (DEVLOG 1118); the RECEIVER residue stays open
+
+> **The renderer now routes on the ARGUMENT's type, not only on the function's family** — one line in
+> `IntrinsicRenderer.RenderNum`, plus a floating-point body per exact-family function in
+> `CobolIntrinsics.RealArgs.cs`. Five rows close (ABS, ORD-MAX, ORD-MIN, RANGE, REM); GAP 3779 → 3774.
+>
+> **⛔ IT WAS WORSE THAN THIS ENTRY SAID.** Not "no value, a CS1503, or a silent requantization" as three
+> possibilities — for the exact family it was reliably a **raw Roslyn error escaping the compiler on legal
+> COBOL**: `CS1503: cannot convert from 'double' to 'System.Int128'`, quoting generated C# the user never asked
+> to see. Ten of eleven functions probed did it. That is an INTERNAL failure surfaced as a diagnostic, which is
+> worse than a wrong answer.
+>
+> **⚠ THE FIRST FIX WAS WRONG AND THE CORPUS CAUGHT IT.** The elegant form — give the real bodies the SAME names
+> as the exact ones, since `Int128` has no implicit conversion from `double`, and let one dispatch line do
+> everything — does not compile. An integer LITERAL converts implicitly to BOTH, so `FUNCTION MAX(5 7)` emitted
+> `MaxScaled(5, 7)` and C# reported `CS0121: ambiguous call`, **breaking six previously-green corpus programs
+> that never touched a float**. The real bodies therefore carry a `…Real` name, by a CONVENTION rather than a
+> table (`XxxScaled` → `XxxReal`, else a `Real` suffix — one string transform in `IntrinsicRenderer.RealMethod`).
+>
+> **AND THE DRIFT TEST FOUND A GAP THE PROBE MISSED**: `COMBINED-DATETIME`, whose argument-2 §15.6 types `Num2`
+> and which may therefore legitimately be a float. Its body is `argument-1 + (argument-2 / 100000)` exactly as
+> §15.17.4 r1 writes it (the exact twin encodes the same expression as a scale shift, so the two agree by
+> construction).
+>
+> **RESIDUE — the rows this did NOT fix, each still recorded PARTIAL:** `RV-15.75.4-1` RANDOM, whose defect is
+> the fixed-point RECEIVER path (`FromDouble(call, ws)` re-rounding a value §15.75.4 r1 already places in
+> `[0,1)`), not the argument path; the standard-arithmetic legs `RV-15.73.3-2` / `-3` (PI under
+> standard-binary/standard-decimal) and `RV-15.74.4-1`; and the EC-ARGUMENT-FUNCTION **value** rules
+> (`AR-15.74.3-2`, `AR-15.75.3-2`, `AR-15.77.3-2`), which §15.3 makes a RUN-TIME condition and which this
+> compile-time change deliberately does not touch.
+>
+> **GOLDEN:** `conformance:2023/pb2_float_argument_exact_family` — 17 lines, every expected value derived from
+> the spec, built around the pairs that distinguish a correct body from a plausible one (MOD floors where REM
+> truncates; INTEGER floors where INTEGER-PART truncates). It matched on the first run.
+>
+> The original finding follows, for provenance.
+
+### PB2 (as found) · a FLOATING-POINT argument falls off the end of the intrinsic result path
 
 > **19 of the batch's 42 open rows cluster here** — the second pattern behind the same 11-function sample, and
 > independent of PB1. Where PB1 is "no argument-class rule is enforced", this is "an argument of a class the rule

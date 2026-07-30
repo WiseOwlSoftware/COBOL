@@ -69,7 +69,8 @@
     "ec_external_data_mismatch",
     "altkey_suppress_when",
     "wave_h_facilities_inert",
-    "optional_words_mcs"
+    "optional_words_mcs",
+    "pb2_float_argument_exact_family"
   ],
   "pending": []
 }

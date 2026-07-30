@@ -62,6 +62,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     the end of the intrinsic result path — no value, a `CS1503`, or a silent requantization. `PB3` (1 row): ORD
     reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE (ALSO collapse + >255 masking), which
     also means **CA26's Unicode fix is incomplete on the ORD path**. The rest are genuinely per-function.
+  · **✅ PB2 LANDED — GAP 3779 → 3774** (DEVLOG 1118). The renderer routes on the ARGUMENT's type, not only the
+    function's family; a floating-point body per exact-family function in `CobolIntrinsics.RealArgs.cs`. It was
+    worse than reported: legal COBOL emitted a **raw Roslyn `CS1503` escaping as a backend error** on ten of
+    eleven functions probed. ⚠ **The elegant fix — same-named `double` overloads — broke SIX corpus programs
+    that never touched a float**, because an integer literal converts implicitly to both `Int128` and `double`
+    (`CS0121`). Names now follow a `…Real` convention, guarded. The drift test then found a 17th function my
+    hand-probe missed (`COMBINED-DATETIME`, whose argument-2 §15.6 types `Num2`). Residue recorded PARTIAL:
+    RANDOM's fixed-point RECEIVER path, the standard-arithmetic legs, and the EC-ARGUMENT-FUNCTION **value**
+    rules (§15.3 makes those RUN-TIME, deliberately untouched by a compile-time change).
   · **✅ PB1 LANDED — `COBOLNET1627`, GAP 3781 → 3779, DIVERGES 19 → 9** (DEVLOG 1117). Strict-reject with a
     `--permissive` warning, the DA6 disposition for the sibling §8.8.1.1 question. 5 rows close outright; 5 go
     PARTIAL because their rule has a second half the screen cannot reach (a LENGTH clause, a strongly-typed-group
