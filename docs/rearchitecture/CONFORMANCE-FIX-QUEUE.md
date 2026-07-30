@@ -10,11 +10,13 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE DISCOVERED SET IS CLOSED — DA1 · DA2 · DA3 · DA4 · DA5 · DA6 · DA7 ALL LANDED (2026-07-29). ONE OPEN
-ITEM REMAINS: `PB1`,** the first finding of the Phase-B traceability review — the intrinsic argument-class table
-declared 79 times and read zero times, which is what makes that batch's 18 DIVERGES mostly ONE defect. The
-inventory is now feeding this queue, which is the design working as intended (`DESIGN-spec-conformance-review.md`
-§3 Phase C: DIVERGES → the fix queue).
+**⛔ THE DISCOVERED SET IS CLOSED — DA1 · DA2 · DA3 · DA4 · DA5 · DA6 · DA7 ALL LANDED (2026-07-29). THREE OPEN
+ITEMS REMAIN: `PB1` · `PB2` · `PB3`,** the first findings of the Phase-B traceability review. One batch of 55
+rules over 11 intrinsics produced **42 open rows**, and they are not 42 bugs: **11** are PB1 (the argument-class
+table declared 79 times and read zero times), **19** are PB2 (a floating-point argument falling off the end of the
+result path), 1 is PB3 (ORD under a custom collating sequence), and 11 are genuinely per-function. The inventory
+is now feeding this queue, which is the design working as intended (`DESIGN-spec-conformance-review.md` §3 Phase
+C: DIVERGES → the fix queue).
 The DA set: seven items, none part of the original 46, every one found while implementing
 something else. Their shared shape is worth carrying forward: **in DA3, DA5 and DA6 the reported symptom was a
 single construct failing, and the root cause was ONE RULE written down in more than one place** — three copies of a
@@ -79,15 +81,54 @@ stays as the register for anything NEW a future session discovers — add here, 
 > (`FUNCTION REM(x 0)`, `FUNCTION PRESENT-VALUE(-1 …)`, `FUNCTION RANDOM(-1)`, a zero-length literal to ORD-MAX),
 > and none of those raises today either.
 >
-> **INSTANCES RECORDED IN THE INVENTORY** (each row carries its own §, code-location and reproduction):
+> **INSTANCES RECORDED IN THE INVENTORY** — 11 rows (each carries its own §, code-location and reproduction):
 > `AR-15.7.3-1` ABS · `AR-15.70.3-1` ORD · `AR-15.71.3-1`/`-3` ORD-MAX · `AR-15.72.3-1`/`-3` ORD-MIN ·
 > `AR-15.74.3-1` PRESENT-VALUE · `AR-15.75.3-1` RANDOM · `AR-15.76.3-1` RANGE · `AR-15.77.3-1` REM ·
 > `AR-15.78.3-1` REVERSE · `AR-15.79.3-3` SECONDS-FROM-FORMATTED-TIME.
+> The **zero-length-literal** rules ride the same dead table from the other side: `AR-15.71.3-2` /
+> `AR-15.72.3-2` note the guard exists for CONVERT and the repertoire functions and for nothing else.
 >
-> ⚠ **The 18 DIVERGES and 13 PARTIAL rows behind this are AGENT-SURFACED and adversarially re-verified, but only
-> the two reproductions above and the zero-callers fact were confirmed by hand.** The design doc §7 rule stands:
-> verify each before it drives a code change. They are recorded as DIVERGES/PARTIAL, which do NOT close a GAP, so
-> nothing in the burn-down rests on them.
+> ⚠ **These rows are AGENT-SURFACED and adversarially re-verified, but only the two reproductions above and the
+> zero-callers fact were confirmed by hand.** Design doc §7 stands: verify each before it drives a code change.
+> All are DIVERGES/PARTIAL, which do NOT close a GAP, so nothing in the burn-down rests on them.
+
+### PB2 · [MAJOR] · intrinsics · ⛔ OPEN — a FLOATING-POINT argument falls off the end of the intrinsic result path
+
+> **19 of the batch's 42 open rows cluster here** — the second pattern behind the same 11-function sample, and
+> independent of PB1. Where PB1 is "no argument-class rule is enforced", this is "an argument of a class the rule
+> ALLOWS is not handled".
+>
+> The intrinsic result path is written for fixed-point operands. A float argument — legal for every one of these
+> functions, since §15.71.3 r1 and its siblings bar only boolean/message-tag/object/pointer/strongly-typed-group —
+> variously produces no value at all, a Roslyn `CS1503`, or a silent requantization. Reported instances span
+> ORD-MAX/ORD-MIN (`RenderNum`'s `OrdMax or OrdMin` arm calls the scale-aligning path), RANGE, REM, ABS with a
+> COMP-2 operand, and RANDOM's fixed-point RECEIVER leg (`FromDouble(call, ws)` re-rounds a value the spec says is
+> already in `[0,1)`). PI's `standard-binary` / `standard-decimal` rows (`RV-15.73.3-2`, `-3`) are the same seam
+> seen from the arithmetic-mode side, as is PRESENT-VALUE's `RV-15.74.4-1`.
+>
+> **Do not fix these one function at a time.** The shape of the defect is a missing branch in ONE renderer seam,
+> so the fix belongs there, with the per-function rows as its verification set. Rows: `RV-15.7.4-1`,
+> `RV-15.71.4-1`/`-2`, `RV-15.72.4-1`/`-2`/`-3`, `RV-15.73.3-1`/`-2`/`-3`, `AR-15.74.3-2`, `RV-15.74.4-1`,
+> `AR-15.75.3-2`, `AR-15.75.3-4`, `RV-15.75.4-1`/`-3`, `RV-15.76.4-1`, `AR-15.77.3-2`, `RV-15.77.4-1`,
+> `RV-15.78.4-1`.
+>
+> ⚠ Agent-surfaced, adversarially re-verified, NOT hand-confirmed. Verify before it drives a code change.
+
+### PB3 · [MAJOR] · intrinsics · ⛔ OPEN — ORD reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE
+
+> Found by the adversarial pass OVERTURNING a CONFORMS, which is the clearest evidence that pass earns its cost.
+> `RV-15.70.4-1` — two independent failures, each compiled and RUN at `--std 2023`:
+> · **ALSO collapse.** With `ALPHABET AL IS "A" ALSO "B"` and `PROGRAM COLLATING SEQUENCE AL`, `ORD(X"FF")`
+>   printed `00255` and `ORD(U+0100)` printed `00257` — skipping position 256. §12.3.7 GR7 k3 gives unspecified
+>   characters *distinct ascending* positions with no gap. The correct arithmetic already exists on the NATIONAL
+>   twin, which returns the right value for the identical alphabet shape — one rule, two implementations, one of
+>   them wrong (`feedback_one_rule_one_place`).
+> · **>255 masking.** `CobolIntrinsics.Text.Ord(string, ushort[] weights)` is
+>   `c < weights.Length ? weights[c] + 1L : c + 1L`, so any code unit past the 256-entry table bypasses the
+>   collating sequence entirely. With a custom PCS, EVERY character then reports a wrong ordinal.
+>
+> ⚠ This directly contradicts CA26 ("the alphanumeric repertoire is UNICODE … no longer 8-bit-aliased", DEVLOG
+> 1018), so CA26's fix is incomplete on the ORD path. Agent-surfaced and run, not hand-confirmed by me.
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set) — ALL LANDED
 

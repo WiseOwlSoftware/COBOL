@@ -50,9 +50,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     all-or-nothing atomic writer (`scripts/spec/record_verdicts.py`), and a battery gate
     (`SpecTraceabilityInventoryDriftTests`) that RECOMPUTES `state` and resolves every `code-location` and
     `test-ref` against the tree. See NEXT item 1 for the loop.
-  · **THE FIRST VERDICT BATCH — §15.7 + §15.70–15.79, 55 rules over 11 intrinsics. GAP 3790 → 3778.**
-    23 CONFORMS (12 closed · 11 CONFORMS-but-untested) · 18 DIVERGES · 13 PARTIAL · 1 NEEDS-OWNER-DECISION.
-  · **⛔ PB1 — THE FIRST FINDING THE INVENTORY FED INTO THE FIX QUEUE, AND IT IS ONE DEFECT BEHIND 12 ROWS.**
+  · **THE FIRST VERDICT BATCH — §15.7 + §15.70–15.79, 55 rules over 11 intrinsics. GAP 3790 → 3781.**
+    13 CONFORMS (9 closed · 4 CONFORMS-but-untested) · 19 DIVERGES · 21 PARTIAL · 2 NEEDS-OWNER-DECISION.
+    ⚠ **DEVLOG 1115 first published 3778/12-closed. That was a MID-FLIGHT read** — the adversarial refute stage
+    was still running, and its completion overturned 10 rows (7 CONFORMS→PARTIAL, 1→DIVERGES, 1→NEEDS-OWNER,
+    1 losing its spec-derived cover), three of them rows counted as CLOSED. Corrected in DEVLOG 1116. **Wait for
+    the workflow's completion notification before reading its output**; an output file that exists is not an
+    output file that is finished.
+  · **⛔ 42 OPEN ROWS, BUT NOT 42 BUGS — three named root causes now own 31 of them.** `PB1` (11 rows): the
+    argument-class table declared 79 times, read zero times. `PB2` (19 rows): a FLOATING-POINT argument falls off
+    the end of the intrinsic result path — no value, a `CS1503`, or a silent requantization. `PB3` (1 row): ORD
+    reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE (ALSO collapse + >255 masking), which
+    also means **CA26's Unicode fix is incomplete on the ORD path**. 11 rows are genuinely per-function.
+  · **⛔ PB1 — THE FIRST FINDING THE INVENTORY FED INTO THE FIX QUEUE, AND IT IS ONE DEFECT BEHIND 11 ROWS.**
     `IntrinsicCatalog` declares an `ArgKinds` argument-class string on all **79** rows and
     `IntrinsicSig.ArgKind(int)` has **zero callers** — the only read anywhere is the `== "p"` MAX/MIN test. So no
     §15 argument-class rule is enforced from the table built for it. Reproduced BY HAND both ways:
