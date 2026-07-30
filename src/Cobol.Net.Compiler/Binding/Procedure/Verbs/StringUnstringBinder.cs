@@ -38,14 +38,13 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         var hasPhrase = new bool[n];
         for (int i = 0; i < n; i++)
         {
-            values[i] = StrUnstrOperand(phrases[i].functionCall(),
-                phrases[i].dataReference(), phrases[i].literal(), phrases[i].figurativeConstant(), "STRING sending operand");
+            values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
             if (values[i] is BoundAllLiteral)   // SR2 — literal-1 shall not be an ALL figurative
                 values[i] = new BoundOperandError("STRING sending ALL literal (ISO §14.9.43.3 SR2)");
             if (phrases[i].delimitedByPhrase() is not { } dp) continue;
             hasPhrase[i] = true;
             if (dp.SIZE() is not null) { bySize[i] = true; continue; }
-            var d = StrUnstrOperand(dp.functionCall(), dp.dataReference(), dp.literal(), dp.figurativeConstant(), "STRING delimiter");
+            var d = StrUnstrOperand(dp.strUnstrOperand(), "STRING delimiter");
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
             if (dp.ALL() is not null || d is BoundAllLiteral)
                 d = new BoundOperandError("STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
@@ -108,8 +107,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     public BoundStatement BindUnstring(Core.UnstringStatementContext un)
     {
         // DA4: the sender is an identifier, so it may be a function-identifier (§14.9.48.2 + §8.4.3.1.2 Format 1).
-        string senderText = (un.functionCall() as Antlr4.Runtime.ParserRuleContext ?? un.dataReference()).GetText();
-        var source = StrUnstrOperand(un.functionCall(), un.dataReference(), null, null, $"UNSTRING source '{senderText}'");
+        string senderText = un.strUnstrSender().GetText();
+        var source = StrUnstrSender(un.strUnstrSender(), $"UNSTRING source '{senderText}'");
         if (source is BoundOperandError) return new BoundUnsupported($"UNSTRING source '{senderText}'");
         // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
         // reference-modified slice are alphanumeric-image senders and remain permitted). A numeric item — INCLUDING
@@ -126,7 +125,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             foreach (var item in dp.unstringDelimiterItem())
             {
                 bool all = item.ALL() is not null;
-                var v = StrUnstrOperand(item.functionCall(), item.dataReference(), item.literal(), item.figurativeConstant(), "UNSTRING delimiter");
+                var v = StrUnstrOperand(item.strUnstrOperand(), "UNSTRING delimiter");
                 if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal); all = true; }
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
@@ -217,15 +216,24 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// never be reached — the rejection happened a whole stage earlier.
     /// </para>
     /// <para>ONE helper serves all four sending positions (STRING identifier-1 and identifier-2, UNSTRING
-    /// identifier-1 and the DELIMITED BY … OR … items), so this arm is written once rather than four times.</para>
+    /// identifier-1 and the DELIMITED BY … OR … items), so this arm is written once rather than four times. The
+    /// grammar names the two shapes — <c>strUnstrOperand</c> (identifier or literal) and its strict subset
+    /// <c>strUnstrSender</c> (identifier only) — so this takes ONE context parameter rather than a row of
+    /// mutually-exclusive nullable ones that a caller could transpose.</para>
     /// </summary>
-    private BoundOperand StrUnstrOperand(
-        Core.FunctionCallContext? fn, Core.DataReferenceContext? dref, Core.LiteralContext? lit,
-        Core.FigurativeConstantContext? fig, string role)
-        => fn is not null ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
-        : dref is not null ? host.Expr.FieldOperand(dref)
-        : lit is not null ? host.Expr.LiteralOperand(lit)
-        : fig is not null ? ExpressionBinder.FigurativeOperand(fig)
+    private BoundOperand StrUnstrOperand(Core.StrUnstrOperandContext? op, string role)
+        => op is null ? new BoundOperandError(role)
+        : op.strUnstrSender() is { } snd ? StrUnstrSender(snd, role)
+        : op.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+        : op.figurativeConstant() is { } fig ? ExpressionBinder.FigurativeOperand(fig)
+        : new BoundOperandError(role);
+
+    /// <summary>Bind the narrower SENDER shape — an identifier only (a function-identifier or a data reference),
+    /// no literal. This is what §14.9.48.2's `UNSTRING identifier-1` admits, and
+    /// <see cref="StrUnstrOperand"/> delegates its two identifier arms here so the shapes cannot drift apart.</summary>
+    private BoundOperand StrUnstrSender(Core.StrUnstrSenderContext? snd, string role)
+        => snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
+        : snd?.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
         : new BoundOperandError(role);
 
     /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender, or <see langword="null"/> when

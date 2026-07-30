@@ -419,8 +419,13 @@ result. Run the long legs ONE AT A TIME.
   `v59_sort_binary_key`) · greenfield Unit
   **942/942, zero skipped** (+9 `RecordLayoutNoticeTests`, +25 `FunctionTextImageTests`,
   +2 `ReceiverContextRestoreDriftTests`, +2 `V59ImagePredicateDriftTests`; the V59 invariant is un-skipped and
-  green, and the codec + byte-form tables are table-driven) · characterization **33/33 — RE-MEASURED 2026-07-29, no longer carried** · `guard-fast.sh`
-  **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**.
+  green, and the codec + byte-form tables are table-driven) · characterization **33/33** · `guard-fast.sh`
+  **ALL GREEN, NIST 353 MATCH / 0 REGRESSION**, legacy Unit **1203/1203**, Integration **503/504 (1 skipped)**.
+  ✅ **NOTHING IN THIS LINE IS CARRIED ANY MORE — every figure was measured on 2026-07-29 at this commit.**
+  Characterization and `guard-fast`/NIST had been carried from the step-4 gate for most of the day. `guard-fast`
+  was re-run TWICE: the second time because naming the STRING/UNSTRING sending operands in the grammar touches a
+  LEGACY-SHARED SEAM (the legacy binder consumes the same productions), which is exactly the case the gate policy
+  above reserves it for.
   ✅ **THE GnuCOBOL DIFFERENTIAL IS RE-RUN AND CLEAN AFTER DA2 (2026-07-29): 0 per-case flips, 0 regressions**,
   totals unchanged at **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104
   WE_ACCEPT_THEY_REJECT over 1323 cases**, diffed per-case against the stored report (not by comparing totals).

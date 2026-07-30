@@ -45,7 +45,10 @@
 - **Needs:** a diagnostic code (next free `COBOLNET1626`), the four-edition gate sweep, and negative fixtures.
   Separated from DA5 because DA5 was about a stale PREDICATE; this is about WHERE a correct verdict is reported.
 
-### DA6 · [MAJOR] · arithmetic · ⏳ OPEN — a GROUP as a NUMERIC operand is accepted, and behaves two different ways
+### DA6 · [MAJOR] · arithmetic · ✅ LANDED (DEVLOG 1110) — an ALPHANUMERIC arithmetic operand, in all three shapes
+> Heading corrected: the body below was updated to LANDED while this line still said OPEN. In a register the
+> project treats as live-state SSOT that is a defect in itself, so it is fixed here rather than left to be
+> read as the truth.
 - **Spec:** §8.8.1.1 (`cite.py`-verified) — "An arithmetic expression may be an identifier referencing a **numeric
   data item**, a numeric literal, the figurative constant ZERO …". A group item is class **alphanumeric** (§8.5), so
   a group is NOT a permissible arithmetic-expression operand. `COMPUTE R = G + 1` is ILLEGAL SOURCE.
