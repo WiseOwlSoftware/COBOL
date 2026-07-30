@@ -188,6 +188,24 @@ public sealed record BoundIntrinsicCall(
     /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
     public bool CollateNat { get; init; }
 
+    /// <summary>A reference modification applied to this function's RESULT — <c>FUNCTION CURRENT-DATE (1:4)</c>,
+    /// <c>FUNCTION UPPER-CASE("abc") (1:2)</c>, and their keyword-omitted twins (fix-queue PB8). ISO §8.4.3.1.2
+    /// Format 3 composes an identifier from an identifier plus a reference-modifier, and §8.4.3.3.3 SR2 admits a
+    /// function-identifier as identifier-1; §8.4.3.1.4 GR1 (f)→(g) fixes the order — the argument list binds to
+    /// the name first, THEN the reference modifier applies to the identifier on its left.
+    /// <para>⛔ A RIDER ON THIS NODE, NOT A WRAPPER AROUND IT, and that is a deliberate structural choice. The
+    /// alphanumeric string channel is selected by pattern-matching <c>BoundComputedOperand { Expr:
+    /// BoundIntrinsicCall }</c> at several sites (<c>OperandText.AsString</c>, the nested-argument visitor,
+    /// <c>IntrinsicArgumentRules</c>, <c>EcBinder</c>); a wrapper node would have silently stopped matching at
+    /// every one of them, and the failure mode is not a compile error but a DROPPED ref-mod — the exact silent
+    /// wrong answer this fix exists to remove. The rider also keeps <see cref="ResultCategory"/> correct with no
+    /// extra rule: §8.4.3.3.4 GR6 preserves class and category for the three categories SR2 admits (alphanumeric,
+    /// boolean, national), so a ref-modified result has the SAME category as the unmodified one.</para>
+    /// <para>Null for every unmodified call, which is nearly all of them. SR2 confines this to alphanumeric /
+    /// boolean / national functions — all of which render through the ONE <c>IntrinsicRenderer.RenderString</c> —
+    /// so exactly one emit site has to honour it, and a numeric-result call can never carry one.</para></summary>
+    public RefModSpec? RefMod { get; init; }
+
     /// <summary>EXCEPTION-FILE / EXCEPTION-FILE-N with a file-connector-name argument (§15.28.4 r2 / §15.29.4 r2,
     /// COBOL-2023): the resolved FD <see cref="FileModel"/> the function reports the I-O status of. Non-null only
     /// for the arg form; the renderer passes its <c>FileKeyExpr</c> so the runtime reads the NAMED connector's

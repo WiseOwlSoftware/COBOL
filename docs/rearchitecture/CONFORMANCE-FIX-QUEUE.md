@@ -10,14 +10,19 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7.4 GR7 1.3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE PHASE-B TRACEABILITY REVIEW IS NOW THE SOURCE OF WORK, AND IT HAS OPENED EIGHT ITEMS: `PB1`–`PB7`
-LANDED, `PB8` OPEN (2026-07-30).** The older campaigns are closed — the 46-finding audit (45 landed, 1 refuted)
+**⛔ THE PHASE-B TRACEABILITY REVIEW IS NOW THE SOURCE OF WORK, AND IT HAS OPENED NINE ITEMS: `PB1`–`PB8`
+LANDED, `PB9` OPEN (2026-07-30).** The older campaigns are closed — the 46-finding audit (45 landed, 1 refuted)
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ PB8 IS THE ONE OPEN ITEM AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): reference-modifying a
-function result is a PARSE ERROR, while §8.4.3.3.3 SR2 explicitly permits it. Root cause located in the LEXER;
-see its entry below for both repros and the exact decision point.
+**⛔ PB9 IS THE ONE OPEN ITEM AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): `RANDOM` is the one
+zero-argument intrinsic that cannot be written in the keyword-omitted form, because it lexes as a reserved word
+rather than reaching `cobolWord`. Measured scope is exactly one word; the other eight bind.
+
+**⚠ PB8 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN ROOT-CAUSE CLAIM.** Its entry named a LEXER-MODE defect
+and budgeted "the riskiest category in this codebase"; a token dump showed the parens were already in DEFAULT mode
+and the lexer was never touched. The entry had been REASONED from the lexer source rather than MEASURED. When an
+entry names a root cause, re-measure it before budgeting for it — `use_antlr_tree_dump` exists for this.
 
 **TWO OF THE SEVEN WERE BLOCKERS, AND BOTH WERE SILENT** — the reason this review exists rather than a
 differential:
@@ -236,8 +241,74 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > merely sharing a name with a function. Verified both directions.
 > **GOLDEN** `conformance:2023/pb7_keyword_omitted_zero_arg`.
 
-### PB8 · [MAJOR] · reference-modification · ⛔ OPEN — reference-modifying a FUNCTION result is a PARSE ERROR
+### PB9 · [MAJOR] · intrinsics · ⛔ OPEN — `RANDOM` cannot be written in the KEYWORD-OMITTED form at all
 
+> **We reject legal COBOL** (the CLAUDE.md rule 4 red line), and it is the last survivor of PB7's family.
+> ```
+> REPOSITORY. FUNCTION ALL INTRINSIC.
+> COMPUTE N = RANDOM        ->  COBOL0001: no viable alternative at input 'COMPUTEN=RANDOM'
+> MOVE RANDOM TO T          ->  COBOL0001: no viable alternative at input 'MOVERANDOM'
+> ```
+> ✅ **§8.4.3.2.3 SR2** permits omitting FUNCTION for any REPOSITORY-declared intrinsic, and **§15.75.2**'s
+> general format brackets the whole parenthesised part, so a bare `RANDOM` is a legal zero-argument reference.
+>
+> **MEASURED SCOPE — exactly one word.** A sweep of all nine zero-argument intrinsics in the keyword-omitted
+> form: CURRENT-DATE · WHEN-COMPILED · PI · E · EXCEPTION-STATUS · EXCEPTION-LOCATION · EXCEPTION-STATEMENT ·
+> SECONDS-PAST-MIDNIGHT all bind (PB7); **RANDOM alone fails.**
+>
+> **ROOT CAUSE — a DIFFERENT one from PB7's**, which is why PB7's fix did not reach it. PB7 was about suffix
+> ARITY in `KeywordOmittedFunction`; this is about TOKENIZATION. `RANDOM` lexes as its own reserved-word token,
+> so `MOVE RANDOM` never reaches `dataReference`/`cobolWord` and the keyword-omitted router is never consulted.
+> The fix is a `cobol-words.json` row, so it carries the `new-construct` skill's mandatory edition-gate sweep —
+> deliberately NOT folded into PB8, whose root cause it does not share.
+> ⚠ **Not a regression:** verified identical on the pre-PB8 compiler by stashing the change.
+
+### PB8 · [MAJOR] · reference-modification · ✅ LANDED (DEVLOG 1131) — reference-modifying a FUNCTION result
+
+> **⛔ THE ROOT CAUSE RECORDED BELOW WAS WRONG, AND THE CORRECTION IS THE VALUABLE PART.** This entry said the
+> defect was a LEXER-MODE decision and that the fix was "a lexer-mode change PLUS a `functionCall` grammar tail —
+> the riskiest category in this codebase". **A token dump refuted it before a line was written** (the entry was
+> reasoned from `OnDefaultLParen`'s source, never measured): in BOTH keyword-present shapes the ref-mod paren is
+> **already lexed in DEFAULT mode** — after a function NAME the lexer's own FUNCTION suppression keeps it out of
+> SUBSCRIPT mode, and after the argument list's `)` the previous token is not a data-name so the SUBSCRIPT
+> trigger never fires. Both therefore reach the DEFAULT-mode `refModPart` that had existed all along for
+> `dataReference`. **THE LEXER WAS NEVER TOUCHED.** `CobolLexerModeDriftTests` now pins that per shape, so the
+> conclusion cannot rot. `use_antlr_tree_dump` is in memory for exactly this reason — the budgeted risk was an
+> artifact of not having dumped.
+>
+> **THE DEFECT WAS ALSO WIDER THAN THE TWO REPROS**, and the widest case was the one nobody had written down:
+> | shape | before |
+> |---|---|
+> | `FUNCTION CURRENT-DATE (1:4)` | COBOL0001 parse error |
+> | `FUNCTION UPPER-CASE("abc") (1:2)` | COBOL0001 parse error |
+> | `CURRENT-DATE (1:8)` (keyword-omitted) | COBOLNET1543 — the group was read as an ARGUMENT LIST |
+> | `UPPER-CASE("abc") (2:3)` (keyword-omitted) | ⛔ **COMPILED CLEAN, threw at RUN TIME** — the PB7/DA7 wrong-stage family |
+> | `FUNCTION LOCALE-DATE(CURRENT-DATE (1:8))` — **the standard's own §D.14.3.6 example** | COBOLNET1543 |
+>
+> ⚠ **AND THE GRAMMAR TAIL ALONE WOULD HAVE MADE IT WORSE.** With `refModPart` parsing but the binder ignoring
+> it, `FUNCTION UPPER-CASE("abcdefgh") (2:3)` compiled and printed **ABC** instead of BCD — the ref-mod silently
+> DROPPED. A loud parse error had become a silent wrong answer. Measured before proceeding, not after.
+>
+> **THE FIX, and where each rule lives:**
+> · grammar — `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*`;
+> · §8.4.3.3.3 SR2 (alphanumeric/boolean/national only) — `IntrinsicBinder.ResultRefMod`, **`COBOLNET1629`**;
+> · §8.4.3.2.3 SR6 (a `(` after an argument-PERMITTING function name is ALWAYS the argument list — the
+>   standard's own RANDOM trap) — same site, reported as the argument-list error it is (`COBOLNET1543`), not as
+>   a class error about a ref-mod that was never written;
+> · §8.4.3.3.3 SR3 (no ref-mod of a ref-mod) — **`COBOLNET1630`**, counted in the binder rather than expressed as
+>   the grammar's arity, so the function and data-reference sides report the SAME rule;
+> · the two source carriers (parsed `refModPart` · SUBSCRIPT-mode capture) now reduce through ONE reader,
+>   `ReferenceResolver.ReadRefMod` → `RefModSpec`, and the slice reuses `CobolString.RefMod` — so the
+>   §8.4.3.3.4 item-5c bounds check and EC-BOUND-REF-MOD are shared, not re-implemented.
+> **A RIDER, NOT A WRAPPER:** the ref-mod hangs on `BoundIntrinsicCall.RefMod` because the alphanumeric string
+> channel is selected by pattern-matching that node at several sites; a wrapper would have silently stopped
+> matching at each one, and the failure mode is a DROPPED ref-mod, not a compile error.
+> **GOLDEN** `conformance:2023/pb8_refmod_function_result` (9 cases incl. §D.14.3.6) + four negative fixtures.
+> **INVENTORY** `SR-8.4.3.3.3-2` and `SR-8.4.3.3.3-3` CLOSED; `SR-8.4.3.2.3-6` PARTIAL (see PB9).
+>
+> ---
+> *The original entry follows, kept because the correction above is only legible beside it.*
+>
 > **We reject legal COBOL — the CLAUDE.md rule 4 red line.** Both forms, hand-verified at `--std 2023`:
 > ```
 > MOVE FUNCTION CURRENT-DATE (1:4)      TO WS-YR  ->  COBOL0001: no viable alternative at input '('

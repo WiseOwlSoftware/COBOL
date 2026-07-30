@@ -41,9 +41,79 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// backend bakes into the generated source as a string constant.</summary>
     internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;
 
-    /// <summary>FUNCTION call in an expression position (the <c>BindPrimary</c> hook).</summary>
-    public BoundExpr BindIntrinsic(Core.FunctionCallContext fc) =>
-        BindIntrinsicCore(fc.functionName().GetText(), ArgsOf(fc.functionArgList()));
+    /// <summary>FUNCTION call in an expression position (the <c>BindPrimary</c> hook). A trailing
+    /// <c>refModPart</c> reference-modifies the RESULT (ISO §8.4.3.3.3 SR2 — fix-queue PB8).</summary>
+    public BoundExpr BindIntrinsic(Core.FunctionCallContext fc)
+    {
+        string display = $"FUNCTION {fc.functionName().GetText()}";
+        var call = BindIntrinsicCore(fc.functionName().GetText(), ArgsOf(fc.functionArgList()));
+        var refMods = fc.refModPart();
+        if (refMods.Length == 0) return call;
+        // §8.4.3.3.3 SR3, enforced HERE rather than by the grammar's arity so that a function result and a data
+        // reference report the SAME diagnostic (the data side must count anyway — dataReferenceSuffix* cannot
+        // express the limit either).
+        if (refMods.Length > 1)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
+                $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
+                + "be reference-modified twice (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier.");
+            return new BoundExprError($"reference modification of {display}");
+        }
+        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), fc.LPAREN() is not null, display);
+    }
+
+    /// <summary>
+    /// Apply a reference modification to a FUNCTION RESULT (fix-queue PB8) — the ONE applier, shared by the
+    /// FUNCTION-keyword form and both keyword-omitted shapes, so the two syntax rules below are enforced once.
+    /// <para><b>ISO §8.4.3.2.3 SR6</b> — "If a function's definition permits arguments and a left parenthesis
+    /// immediately follows … the left parenthesis is ALWAYS treated as the left parenthesis of that function's
+    /// arguments." So a ref-mod written directly after the NAME of a function that takes arguments is not a
+    /// ref-mod at all: that <c>(</c> opened an argument list, and <c>1:4</c> is not an argument (§8.4.3.2.3 SR8).
+    /// <c>FUNCTION RANDOM (1:4)</c> is the standard's own cautionary shape (the SR6 NOTE) and is REJECTED —
+    /// reported as the argument-list error it is, not as a class error about a ref-mod that was never written.
+    /// <paramref name="argListWritten"/> is what distinguishes it from the legal <c>FUNCTION UPPER-CASE(x) (1:2)</c>.</para>
+    /// <para><b>ISO §8.4.3.3.3 SR2</b> — "If identifier-1 is a function-identifier, it shall reference an
+    /// alphanumeric, boolean, or national function." A numeric/integer function has no character positions for
+    /// §8.4.3.3.4 GR4 to number, so it is rejected with <c>COBOLNET1629</c>.</para>
+    /// <para>A USER-DEFINED function's result is already a real <see cref="Place"/> (the §8.4.3.2.4 GR1 caller
+    /// temp cloned from the RETURNING item), so it reference-modifies through the SAME
+    /// <see cref="RefModPlace"/> a data item does — no second slicer, and the temp's own category answers SR2.</para>
+    /// </summary>
+    private BoundExpr ResultRefMod(BoundExpr call, RefModSpec? spec, bool argListWritten, string display)
+    {
+        if (call is BoundExprError) return call;                    // already loud — do not stack a second report
+        if (call is BoundIntrinsicCall ic && !argListWritten && ic.Sig.MaxArgs > 0)
+        {
+            ctx.Edition.Error("COBOLNET1543", $"'{display} (…)' — the '(' after the name of a function that "
+                + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2 SR6), so this is an argument list "
+                + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
+                + $"argument list first: {display}(<arguments>) (start:length).");
+            return new BoundExprError($"{display} arguments");
+        }
+        PicCategory? category = call switch
+        {
+            BoundIntrinsicCall c => c.ResultCategory,
+            BoundNumRef { Place.Item.Pic: { } pic } => pic.Category,
+            _ => null,
+        };
+        // §8.4.3.3.3 SR2. NumericEdited is NOT admitted: SR2 names the three FUNCTION types (§15.2), and no
+        // intrinsic is numeric-edited — the category exists here only for a user-function RETURNING item.
+        if (category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.RefModFunctionResultClass,
+                $"'{display}' is not an alphanumeric, boolean, or national function, so its result cannot be "
+                + "reference-modified (ISO §8.4.3.3.3 SR2).");
+            return new BoundExprError($"reference modification of {display}");
+        }
+        if (spec is not { } rm) return new BoundExprError($"reference modification of {display}");
+        return call switch
+        {
+            BoundIntrinsicCall c => c with { RefMod = rm },
+            BoundNumRef r => new BoundNumRef(new RefModPlace(r.Place, rm.Start, rm.Length)
+                { AllowZeroLength = rm.AllowZeroLength }),
+            _ => new BoundExprError($"reference modification of {display}"),
+        };
+    }
 
     private static IReadOnlyList<Core.FunctionArgumentContext> ArgsOf(Core.FunctionArgListContext? list) =>
         list?.functionArgument() ?? [];
@@ -87,11 +157,37 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // failed identically; the standard writes the form itself at §D.14.3.6.
         // Admitted ONLY when the catalog says the function can take zero arguments, so a bare word can never be
         // re-routed away from a data reference on the strength of merely sharing a name with some function.
+        // ── The suffix shapes a keyword-omitted function reference can wear ──────────────────────────────────
+        // With FUNCTION omitted the reference lexes as a dataReference, so its parenthesised groups arrive as
+        // dataReferenceSuffixes and the ARGUMENT list is indistinguishable from a subscript until this point.
+        // Reference modification of the RESULT (§8.4.3.3.3 SR2, fix-queue PB8) adds two more shapes, and the
+        // standard writes one of them itself at §D.14.3.6: `FUNCTION LOCALE-DATE (CURRENT-DATE (1:8))`.
+        //   ()                       zero suffixes  — a bare zero-argument reference           (PB7)
+        //   (args)                   subscriptPart, no depth-0 colon — the argument list
+        //   (start:len)              subscriptPart WITH a depth-0 colon — a ref-mod on a ZERO-ARGUMENT result
+        //   (args) (start:len)       the argument list, then a ref-mod
+        // The ref-mod tail is a refModPart, not a subscriptPart: after the argument list's ')' the previous
+        // token is no longer a data-name, so the lexer's SUBSCRIPT trigger does not fire and the group stays in
+        // DEFAULT mode. Both carriers are read by the ONE ReferenceResolver.ReadRefMod.
         Core.SubscriptPartContext? sp = null;
+        Core.SubscriptOrRefModContext? capturedRefMod = null;   // `name (start:len)` — a zero-argument result
+        Core.RefModPartContext? tailRefMod = null;              // `name (args) (start:len)`
         if (suffixes.Length == 1)
         {
-            if (suffixes[0].subscriptPart() is not { } only) return null;   // a qualification / refmod tail is not an argument list
-            sp = only;
+            if (suffixes[0].subscriptPart() is not { } only) return null;   // a qualification tail is not an argument list
+            if (only.subscriptOrRefMod() is { } g && ReferenceResolver.HasDepth0Colon(g)) capturedRefMod = g;
+            else sp = only;
+        }
+        else if (suffixes.Length == 2)
+        {
+            // Exactly `(args) (ref-mod)`. Anything else — two argument lists, a qualification, a second ref-mod
+            // (§8.4.3.3.3 SR3) — is not a function reference and stays a data reference, which reports through
+            // the ordinary unresolved-name path rather than being turned into a function-arity error here.
+            if (suffixes[0].subscriptPart() is not { } argsPart
+                || argsPart.subscriptOrRefMod() is { } ag && ReferenceResolver.HasDepth0Colon(ag)
+                || suffixes[1].refModPart() is not { } tail) return null;
+            sp = argsPart;
+            tailRefMod = tail;
         }
         else if (suffixes.Length != 0)
         {
@@ -110,13 +206,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form, whose §15.75.2
             // format brackets the whole parenthesised part). Anything else stays a data reference and reports
             // through the ordinary unresolved-name path rather than being turned into an arity error.
-            return IntrinsicCatalog.TryGet(name, out var zeroArg) && zeroArg.MinArgs == 0
-                ? BindIntrinsicCore(name, [])
-                : null;
+            if (!IntrinsicCatalog.TryGet(name, out var zeroArg) || zeroArg.MinArgs != 0) return null;
+            var bare = BindIntrinsicCore(name, []);
+            // `CURRENT-DATE (1:8)` — the captured group carries a depth-0 colon, so it is a reference
+            // modification of the RESULT, not an argument list. ResultRefMod still applies §8.4.3.2.3 SR6 with
+            // argListWritten: false, which is what rejects the same shape on RANDOM (MinArgs 0 but MaxArgs 1) —
+            // exactly as the FUNCTION-keyword form does, so the two reference forms cannot drift apart.
+            return capturedRefMod is null
+                ? bare
+                : ResultRefMod(bare, ctx.Refs.ReadRefMod(capturedRefMod), argListWritten: false, name);
         }
-        return ReparseArgs(sp) is { } args
+        var call = ReparseArgs(sp) is { } args
             ? BindIntrinsicCore(name, args)
             : new BoundExprError($"FUNCTION {name} arguments");
+        return tailRefMod is null
+            ? call
+            : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), argListWritten: true, name);
     }
 
     /// <summary>The D2 keyword-omitted argument re-parse: the SUBSCRIPT-mode captured argument text (verbatim
@@ -743,12 +848,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string where = $"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})";
             if (ctx.Edition.Permissive)
             {
-                ctx.Edition.Warning(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                ctx.Edition.Warning(DiagnosticCatalog.IntrinsicArgumentClass,
                     $"{where}; accepted under --permissive with the existing coercion");
             }
             else
             {
-                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
                     $"{where}. --permissive accepts it as a coercion extension");
             }
         }

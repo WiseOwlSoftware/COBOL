@@ -58,7 +58,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB7 LANDED, PB8 OPEN.** Two were blockers and both were SILENT:
+  its header is the tally). **PB1–PB8 LANDED, PB9 OPEN.** Two were blockers and both were SILENT:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
     ordinary `PIC 9(12)V99` money field returned 9223372036.85 for 10000000001.00, with **NO SIZE ERROR**.
   · **PB7** — every ZERO-ARGUMENT intrinsic was unreachable in the keyword-omitted form:
@@ -66,7 +66,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   The rest: PB1 (the §15.3 argument-class screen, `COBOLNET1627`) · PB2 (a float argument routed to a `…Real`
   body instead of emitting a raw `CS1503`) · PB3 (ORD past the 256-entry collating table) · PB4 (a hexadecimal
   literal decoded in VALUE / ALL / 88 / OCCURS) · PB6 (`CALL BY VALUE` screened by §14.9.4.3 SR22,
-  `COBOLNET1628`). Each landed with a spec-derived golden.
+  `COBOLNET1628`) · **PB8** (reference-modifying a FUNCTION result — §8.4.3.3.3 SR2/SR3 + §8.4.3.2.3 SR6,
+  `COBOLNET1629`/`COBOLNET1630`). Each landed with a spec-derived golden.
+- **⛔ A QUEUE ENTRY'S OWN "ROOT CAUSE, ALREADY LOCATED" IS A CLAIM, NOT A FACT — PB8 IS THE STANDING PROOF.**
+  Its entry named a LEXER-MODE defect and called the fix "the riskiest category in this codebase"; a token dump
+  showed both failing shapes were already lexed in DEFAULT mode and **the lexer was never touched.** The entry
+  had been REASONED from the lexer's source, never MEASURED. Re-measure a named root cause before budgeting for
+  it (`use_antlr_tree_dump`); `CobolLexerModeDriftTests` now pins the mode per shape so it cannot rot.
+- **⚠ TWO OF TODAY'S OWN FIXES SHIPPED A DEFECT A GREEN BATTERY CANNOT SEE.** `COBOLNET1627` (PB1) and
+  `COBOLNET1628` (PB6) emitted their kebab `Id` instead of their `Code`, so the code `DIAGNOSTICS.md` documents
+  and `--suppress` matches was never printed. Root cause was an API asymmetry — `Error` had a descriptor
+  overload, `Warning` did not — so a `--permissive` site had nothing correct to reach for. Both overloads now
+  exist and `DiagnosticEmitFormDriftTests` is a SOURCE-FORM guard, because no runtime test can see a mistake
+  only a caller can make.
 - **⛔ THE LESSON THIS REVIEW KEEPS RE-TEACHING, in three forms.** Carry it into the next batch:
   · **One rule written down more than once** (`feedback_one_rule_one_place`) — PB4's prefix list was duplicated
     inside ONE file and both copies omitted `X`; PB3's tail arithmetic existed correctly on the national side and
@@ -115,16 +127,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    Its header is the tally. Two sources of work now exist and they interleave: adjudicate the next clause
    (grows the map), and fix what earlier batches found (shrinks it).
 
-   **⛔ IF YOU DO ONE THING, DO THIS: PB8.** It is the only OPEN item and it REJECTS LEGAL COBOL, which is the
-   CLAUDE.md rule 4 red line — `MOVE FUNCTION CURRENT-DATE (1:4) TO X` and
-   `MOVE FUNCTION UPPER-CASE("abc") (1:2) TO T` are both `COBOL0001: no viable alternative at input '('`, while
-   §8.4.3.3.3 SR2 (validated verbatim) explicitly permits reference-modifying a function-identifier. The queue
-   entry carries both repros and the ROOT CAUSE, already located: `CobolLexer.g4`'s `OnDefaultLParen` pushes
-   SUBSCRIPT mode (which captures a ref-mod) only when
-   `PreviousTokenCouldBeDataName() && !PreviousIsFunctionName()`, and the two shapes miss it for DIFFERENT
-   reasons. ⚠ It is a LEXER-MODE change plus a `functionCall` grammar tail — the riskiest category in this
-   codebase, and the lexer's own comment warns the decision "is frozen at lex time and cannot be repaired later".
-   Budget for it accordingly; do not start it at the end of a session.
+   **⛔ THE ONE OPEN ITEM IS PB9, AND IT REJECTS LEGAL COBOL** (the CLAUDE.md rule 4 red line): `RANDOM` is the
+   ONLY zero-argument intrinsic that cannot be written in the keyword-omitted form — `COMPUTE N = RANDOM` under
+   `REPOSITORY. FUNCTION ALL INTRINSIC.` is `COBOL0001`, though §8.4.3.2.3 SR2 permits the omission and
+   §15.75.2's format brackets the whole parenthesised part. Scope is MEASURED at exactly one word (the other
+   eight zero-argument intrinsics bind). Root cause is TOKENIZATION, not PB7's suffix arity: `RANDOM` lexes as a
+   reserved word and never reaches `cobolWord`. The fix is a `cobol-words.json` row, so it carries the
+   `new-construct` skill's mandatory edition-gate sweep — that sweep, not the row, is the work.
+
+   **PB8 IS DONE (DEVLOG 1131)** — reference-modifying a function result, all four reference shapes plus the
+   standard's own §D.14.3.6 example, with SR2/SR3/SR6 each reported against its own rule. Two siblings fell out
+   of its sweep and are also landed: SR3 was silently unenforced for DATA references (`MOVE A (3:4)(2:2)`
+   compiled clean and returned `A(2:2)`), and today's `COBOLNET1627`/`COBOLNET1628` were printing their slugs
+   instead of their codes.
 
    **THEN: THE NEXT PHASE-B BATCH — the tooling is in the repo, so this needs no archaeology.**
    Three batches have run (§15.7 + §15.70–15.79 · §15.8–15.19 · §15.20–15.31), so the next contiguous block is

@@ -129,11 +129,10 @@ internal static class PlaceRenderer
     // The reference-modification start/length are `long`-valued expressions but the runtime takes `int` positions —
     // cast at the call site. Start/Length are the P5.11/D10 TRANSITIONAL string carrier (a rendered index expression);
     // they become BoundExpr when D10 removes the SUBSCRIPT lexer mode (PHASE 15) — see the PHASE-07 Step 11 plan.
-    private static string RmStart(RefModPlace r) => $"(int)({r.Start})";
-    // The OMITTED length (identifier(start:) — "to the end") renders the distinct CobolString.OmittedRefModLength
-    // sentinel, NOT −1, so a SPECIFIED length that evaluates negative at runtime is distinguishable and raises
-    // EC-BOUND-REF-MOD under checking (review C14; §8.4.3.3.4 item 5c positive-nonzero).
-    private static string RmLen(RefModPlace r) => r.Length is null ? RuntimeApi.OmittedRefModLength : $"(int)({r.Length})";
+    // The cast and the OMITTED-length sentinel are RuntimeApi's (the ONE definition, shared with the ref-modified
+    // FUNCTION RESULT channel in IntrinsicRenderer — the two must render identical positions).
+    private static string RmStart(RefModPlace r) => RuntimeApi.RefModStart(r.Start);
+    private static string RmLen(RefModPlace r) => RuntimeApi.RefModLength(r.Length);
 
     /// <summary>Store into a multi-leaf RENAMES alias (ISO §13.18.45): store the value at the span width, then
     /// distribute the slices back into the leaves left to right (a write through the alias shows through every

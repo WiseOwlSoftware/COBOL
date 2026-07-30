@@ -190,6 +190,29 @@ public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMemb
 }
 
 /// <summary>
+/// One source reference-modification <c>(start : [length])</c>, reduced to its RENDERED index expressions — the
+/// ISO §8.4.3.3.2 general format read off the source, independent of WHAT is being modified. Produced by the ONE
+/// reader (<c>ReferenceResolver.ReadRefMod</c>, which accepts both source carriers: the DEFAULT-mode parsed
+/// <c>refModPart</c> and the SUBSCRIPT-mode captured token group) and consumed by the two things a ref-mod can
+/// attach to:
+/// <list type="bullet">
+///   <item>a storage <b>place</b> — <see cref="RefModPlace"/>, readable AND writable (the splice);</item>
+///   <item>a <b>value</b> with no place — the result of a function-identifier (ISO §8.4.3.3.3 SR2), carried on
+///         <c>BoundIntrinsicCall.RefMod</c>. §8.4.3.2.3 SR1 makes a function-identifier a non-receiving operand,
+///         so the value form is read-only by construction and needs no splice counterpart.</item>
+/// </list>
+/// <paramref name="Start"/>/<paramref name="Length"/> are rendered index strings — the D10 TRANSITIONAL carrier,
+/// deliberately the SAME one <see cref="RefModPlace"/> uses so PHASE 15 migrates both to <c>BoundExpr</c> in one
+/// move rather than leaving a second, differently-shaped ref-mod behind.
+/// </summary>
+/// <param name="Start">The rendered leftmost-position expression (§8.4.3.3.4 item 5b).</param>
+/// <param name="Length">The rendered length expression, or <see langword="null"/> for the omitted
+/// "to the end" form (§8.4.3.3.4 item 5c).</param>
+/// <param name="AllowZeroLength">The REF-MOD-ZERO-LENGTH directive (ISO §7.3.23) is ON at this ref-mod's source
+/// line, so a zero-length result is allowed instead of raising EC-BOUND-REF-MOD.</param>
+public readonly record struct RefModSpec(string Start, string? Length, bool AllowZeroLength);
+
+/// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.

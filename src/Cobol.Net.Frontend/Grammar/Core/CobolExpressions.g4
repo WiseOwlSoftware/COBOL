@@ -261,8 +261,33 @@ primaryExpression
 // The keyword-omitted form name(args) (§8.4.3.2 SR2) has NO grammar alternative (D2 — irreducible ambiguity
 // with a subscripted dataReference); the binder re-parses its captured argument text through
 // functionArgListFragment below.
+//
+// ── REFERENCE-MODIFYING THE FUNCTION RESULT (fix-queue PB8, ISO §8.4.3.3.3 SR2) ────────────────────────────
+// §8.4.3.1.2 Format 3 makes `identifier-1 reference-modifier-1` an IDENTIFIER, and §8.4.3.3.3 SR2 admits a
+// function-identifier as identifier-1 ("If identifier-1 is a function-identifier, it shall reference an
+// alphanumeric, boolean, or national function"). §8.4.3.1.4 GR1 fixes the order: (f) the argument list applies
+// to the function-name on its left, THEN (g) "a reference modifier applies to the identifier on the left" — so
+// the tail sits after the optional argument list, and BOTH of these are legal:
+//     FUNCTION CURRENT-DATE (1:4)              -- zero-argument function, ref-modified
+//     FUNCTION UPPER-CASE("abc") (1:2)         -- argument list, THEN ref-modified
+// ⛔ NO LEXER CHANGE IS INVOLVED, and the fix-queue entry that said otherwise was wrong. A token dump of both
+// shapes (pinned by CobolLexerModeDriftTests) shows the ref-mod paren lexed in DEFAULT mode in each case: after
+// a function NAME the lexer's FUNCTION suppression already keeps it out of SUBSCRIPT mode, and after the
+// argument list's ')' the previous token is not a data-name so the SUBSCRIPT trigger never fires. Both therefore
+// reach the DEFAULT-mode refModPart (COLON, not SUB_COLON) that already exists for dataReference.
+// ⚠ `refModPart*`, not `refModPart?`, and that is deliberate: §8.4.3.3.3 SR3 ("identifier-1 shall not be a
+// reference-modification format identifier") forbids ref-modifying a ref-mod, and making the ARITY carry that
+// rule here would enforce SR3 in a SECOND place — the data-reference side already counts ref-mods in
+// ReferenceResolver, because `dataReferenceSuffix*` cannot express the limit either. One rule belongs in one
+// place, so both sides parse the extra modifier and the binder rejects it with COBOLNET1630, giving the same
+// cited message for FUNCTION F(X) (1:4)(1:2) as for A (3:4)(2:2) instead of a raw parse error on one side only.
+// ⚠ The two alternatives are disjoint on the COLON and need no predicate: a functionArgList can never contain a
+// DEFAULT-mode COLON (a nested data-item ref-mod inside an argument lexes SUB_COLON in SUBSCRIPT mode). §8.4.3.2
+// SR6 — "if a function's definition permits arguments … the left parenthesis is ALWAYS … that function's
+// arguments" — is a CATALOG question the grammar cannot answer, so the binder enforces it (IntrinsicBinder):
+// a bare ref-mod directly after an argument-PERMITTING function name is an SR6/SR8 argument-list error.
 functionCall
-    : FUNCTION functionName (LPAREN functionArgList? RPAREN)?
+    : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*
     ;
 
 // Arguments separate by space (no token — plain juxtaposition) or by the §8.3.5 comma/semicolon-plus-space

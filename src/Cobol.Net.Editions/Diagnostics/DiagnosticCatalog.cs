@@ -586,6 +586,38 @@ public static class DiagnosticCatalog
         + "warning. ⛔ CLASS, not category (§8.5.2.1 Table 2): a numeric-edited item is class ALPHANUMERIC when "
         + "its usage is display, so it is excluded however numeric it looks.",
         "ISO §14.9.4.3 SR22 / §8.5.2.1 Table 2");
+    // 1629 — reference-modifying a FUNCTION result whose function is not alphanumeric/boolean/national (ISO
+    // §8.4.3.3.3 SR2). Opened by fix-queue PB8, which made the shape PARSE for the first time: before it, every
+    // ref-modified function-identifier died at COBOL0001 and the class question could not even be asked. The
+    // rule is edition-invariant — reference modification of a function-identifier is in the 1989 intrinsic
+    // amendment's model and unchanged since — so no introduction axis of its own.
+    public static readonly DiagnosticDescriptor RefModFunctionResultClass = new(
+        "COBOLNET1629", "ref-mod-function-result-class", EditionSeverity.Error,
+        "Reference modification is applied to the result of a function that is not of a class the standard "
+        + "permits to be reference-modified. ISO §8.4.3.3.3 SR2: \"If identifier-1 is a function-identifier, it "
+        + "shall reference an alphanumeric, boolean, or national function.\" A NUMERIC or INTEGER function "
+        + "(FUNCTION PI, FUNCTION MAX over numerics, FUNCTION LENGTH …) is therefore rejected: §15.2 gives it a "
+        + "numeric temporary, and §8.4.3.3.4 GR1 has no character positions to number in one. ⛔ This is the "
+        + "FUNCTION's declared type (§15.2), not the shape of its arguments — FUNCTION MAX over alphanumeric "
+        + "arguments IS an alphanumeric function and is legal here. --permissive does NOT relax it: unlike a "
+        + "removed-construct leniency there is no defined value to fall back on.",
+        "ISO §8.4.3.3.3 SR2 / §15.2");
+    // 1630 — reference-modifying a reference modification (ISO §8.4.3.3.3 SR3). Found by the PB8 sibling sweep
+    // (CLAUDE.md rule 4), NOT by PB8's own repro: the grammar's `dataReferenceSuffix*` admits unlimited
+    // refModParts, and ReferenceResolver kept only the FIRST of each carrier via `??=` while the DEFAULT-mode
+    // form outranked the SUBSCRIPT-mode one — so `MOVE A (3:4)(2:2)` compiled clean and silently returned
+    // A(2:2), neither the composition nor the rejection the standard requires. Closes the traceability row
+    // SR-8.4.3.3.3-3, which stood at state GAP with an empty code-location.
+    public static readonly DiagnosticDescriptor RefModOfRefMod = new(
+        "COBOLNET1630", "ref-mod-of-ref-mod", EditionSeverity.Error,
+        "A reference modification is applied to something that is already reference-modified. ISO §8.4.3.3.3 "
+        + "SR3: \"Identifier-1 shall not be a reference-modification format identifier.\" §8.4.3.3.4 GR5 numbers "
+        + "positions within the item identifier-1 references, and a ref-mod result is a NEW unique data item "
+        + "(GR5), so a second modifier has no defined base to count from. Write the composed positions directly: "
+        + "A (3:4)(2:2) is A (4:2). ⛔ A SUBSCRIPT followed by a reference modification — T(I) (2:3) — is a "
+        + "different and entirely legal shape (§8.4.3.1.4 GR1 a→g) and is not affected; only a SECOND reference "
+        + "modification is rejected.",
+        "ISO §8.4.3.3.3 SR3 / §8.4.3.3.4 GR5");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

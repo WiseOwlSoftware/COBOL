@@ -84,6 +84,15 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
     public void Warning(string code, string message) => Warnings.Add($"warning {code}: {message}");
 
+    /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
+    /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor
+    /// overload to reach for, so <c>--permissive</c> sites passed <c>descriptor.Id</c> to the string overload
+    /// instead and emitted the kebab SLUG in the code position. That shipped in COBOLNET1627 (PB1) and
+    /// COBOLNET1628 (PB6) — both documented under codes they never printed. Warning and Error must offer the
+    /// SAME shape, or the asymmetry writes the bug for the next caller.
+    /// <see cref="DiagnosticEmitFormDriftTests"/> keeps it from returning.</summary>
+    public void Warning(DiagnosticDescriptor descriptor, string message) => Warning(descriptor.Code, message);
+
     /// <summary>THE severity seam for removed-construct gating (P2.1): a construct the targeted edition REMOVED
     /// is an error under strict, a warning (with the pre-removal semantics preserved) under
     /// <see cref="Permissive"/>. Every removed/reserved-word emit site routes its severity decision through

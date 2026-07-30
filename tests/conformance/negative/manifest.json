@@ -137,7 +137,11 @@
     "pb1-numeric-arg2-alphanumeric",
     "pb1-numeric-arg-family",
     "pb6-call-by-value-alphanumeric",
-    "pb1-numeric-arg-trig-family"
+    "pb1-numeric-arg-trig-family",
+    "pb8-refmod-numeric-function",
+    "pb8-refmod-arg-permitting-function",
+    "pb8-refmod-of-refmod-function",
+    "pb8-refmod-of-refmod-data"
   ],
   "pending": []
 }

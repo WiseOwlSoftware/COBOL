@@ -343,7 +343,23 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <see cref="NumericRenderer"/> under <see cref="ReceiverContext.None"/> (a string-channel call has no
     /// numeric receiver), so division, float items, nested numeric intrinsics, and numeric-edited de-edits
     /// all render where the static channel stayed loud (H3 closed).</summary>
+    /// <summary>
+    /// Reference-modify the function RESULT when the reference carried one (ISO §8.4.3.3.3 SR2, fix-queue PB8),
+    /// through the SAME <c>CobolString.RefMod</c> — and therefore the same §8.4.3.3.4 item-5c bounds check and
+    /// EC-BOUND-REF-MOD raise — that a reference-modified data item uses. No second slicer exists.
+    /// <para>⛔ THIS IS THE ONLY EMIT SITE THAT HAS TO HONOUR IT, and that is provable rather than surveyed: SR2
+    /// admits a ref-mod only on an alphanumeric, boolean or national function, and every such result renders
+    /// through this one method (reached from <c>OperandText.AsString</c> and from the nested-argument visitor).
+    /// A numeric-result call cannot carry one — the binder rejects it with COBOLNET1629 — so the numeric and
+    /// folded channels need no arm. Wrapping HERE rather than at each caller is what keeps that true.</para>
+    /// </summary>
     public string RenderString(BoundIntrinsicCall ic)
+    {
+        string value = RenderStringValue(ic);
+        return ic.RefMod is { } rm ? RuntimeApi.StrRefMod(value, rm) : value;
+    }
+
+    private string RenderStringValue(BoundIntrinsicCall ic)
     {
         var sig = ic.Sig;
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)

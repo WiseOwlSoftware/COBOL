@@ -124,7 +124,18 @@ public sealed class ReferenceResolver(DataBinder data)
         Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
         Core.RefModPartContext? cleanRef = null;         // the refModPart form (parsed arithmeticExpression : ...)
 
-        void Classify(Core.SubscriptOrRefModContext s) { if (HasDepth0Colon(s)) refCtx ??= s; else subCtx ??= s; }
+        // ISO §8.4.3.3.3 SR3 — "Identifier-1 shall not be a reference-modification format identifier." The
+        // grammar cannot express this (dataReferenceSuffix* and qualification's own (subscriptPart|refModPart)*
+        // both admit unlimited ref-mods), so it is counted here. Before this count, `??=` kept the FIRST of each
+        // carrier and the DEFAULT-mode form then outranked the SUBSCRIPT-mode one, so `MOVE A (3:4)(2:2)`
+        // COMPILED CLEAN and returned A(2:2) — a silent wrong value, not a composition and not a rejection.
+        // ⛔ Counts REF-MODS ONLY: a subscript followed by a ref-mod (T(I) (2:3)) is the legal §8.4.3.1.4 GR1
+        // a→g order and must stay untouched.
+        int refModCount = 0;
+        void Classify(Core.SubscriptOrRefModContext s)
+        {
+            if (HasDepth0Colon(s)) { refModCount++; refCtx ??= s; } else subCtx ??= s;
+        }
 
         foreach (var suffix in dref.dataReferenceSuffix())
         {
@@ -132,10 +143,18 @@ public sealed class ReferenceResolver(DataBinder data)
             {
                 qualifiers.Add(q.cobolWord().Name());
                 foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
+                refModCount += q.refModPart().Length;
                 if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
             }
-            else if (suffix.refModPart() is { } rmp) cleanRef ??= rmp;
+            else if (suffix.refModPart() is { } rmp) { refModCount++; cleanRef ??= rmp; }
             else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) Classify(s);
+        }
+        if (refModCount > 1)
+        {
+            data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
+                $"'{name}' carries {refModCount} reference modifications; a reference-modified item cannot itself "
+                + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
+            return null;
         }
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
@@ -211,32 +230,52 @@ public sealed class ReferenceResolver(DataBinder data)
         else if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean)) return null;
         if (cleanRef is not null)
+            return ReadRefMod(cleanRef) is { } cs
+                ? new RefModPlace(inner, cs.Start, cs.Length) { AllowZeroLength = cs.AllowZeroLength }
+                : null;
+        return ReadRefMod(refCtx!) is { } ss
+            ? new RefModPlace(inner, ss.Start, ss.Length) { AllowZeroLength = ss.AllowZeroLength }
+            : null;
+    }
+
+    // ── The ONE reference-modification reader (ISO §8.4.3.3.2) ───────────────────────────────────────────────
+    // A ref-mod reaches the binder through TWO source carriers, decided by the lexer at the '(' and frozen there:
+    // the DEFAULT-mode PARSED form (`refModPart : LPAREN arithmeticExpression COLON arithmeticExpression? RPAREN`)
+    // and the SUBSCRIPT-mode CAPTURED token group (a depth-0 SUB_COLON). Both reduce to the same
+    // <see cref="RefModSpec"/> through the same segment renderer, so the rule "how a ref-mod's start and length
+    // are read off the source" is written down ONCE. Both overloads are internal because the intrinsic binder
+    // reads the SAME two carriers for a ref-modified FUNCTION RESULT (§8.4.3.3.3 SR2, fix-queue PB8) — a second
+    // copy of this reader there is exactly the one-rule-two-places defect PB4 was.
+
+    /// <summary>Read the PARSED DEFAULT-mode <c>refModPart</c> form. Null when a start/length expression uses a
+    /// form the segment renderer does not handle, so the caller fails loud rather than emitting a wrong slice.</summary>
+    internal RefModSpec? ReadRefMod(Core.RefModPartContext rmp)
+    {
+        var rmExprs = rmp.refModSpec().arithmeticExpression();
+        if (rmExprs.Length == 0) return null;
+        var startToks = new List<IToken>();
+        CollectLeafTokens(rmExprs[0], startToks);
+        if (RenderSegment(startToks) is not { } rmStart) return null;
+        string? rmLen = null;
+        if (rmExprs.Length > 1)
         {
-            // The PARSED refModSpec form `(arithmetic-expression : [arithmetic-expression])` (ISO §8.4.2.4 —
-            // the lexer stayed in DEFAULT mode): render each expression's leaf tokens through the same segment
-            // renderer the SUBSCRIPT-mode form uses (NC224A's TEST-1-DATA(3:)).
-            var rmExprs = cleanRef.refModSpec().arithmeticExpression();
-            if (rmExprs.Length == 0) return null;
-            var startToks = new List<IToken>();
-            CollectLeafTokens(rmExprs[0], startToks);
-            if (RenderSegment(startToks) is not { } rmStart) return null;
-            string? rmLen = null;
-            if (rmExprs.Length > 1)
-            {
-                var lenToks = new List<IToken>();
-                CollectLeafTokens(rmExprs[1], lenToks);
-                if (RenderSegment(lenToks) is not { } l) return null;
-                rmLen = l;
-            }
-            // §7.3.23 / §8.4.3.3.4 item 5c: the ref-mod allows a zero-length result iff REF-MOD-ZERO-LENGTH is ON at
-            // this site's source line (the group's compile-time directive fold; OFF everywhere by default).
-            return new RefModPlace(inner, rmStart, rmLen)
-                { AllowZeroLength = data.RefModZeroLength.IsOnAt(cleanRef.Start.Line) };
+            var lenToks = new List<IToken>();
+            CollectLeafTokens(rmExprs[1], lenToks);
+            if (RenderSegment(lenToks) is not { } l) return null;
+            rmLen = l;
         }
-        var (rm, _) = InterpretSubscripts(refCtx!);
+        // §7.3.23 / §8.4.3.3.4 item 5c: the ref-mod allows a zero-length result iff REF-MOD-ZERO-LENGTH is ON at
+        // this site's source line (the group's compile-time directive fold; OFF everywhere by default).
+        return new RefModSpec(rmStart, rmLen, data.RefModZeroLength.IsOnAt(rmp.Start.Line));
+    }
+
+    /// <summary>Read the SUBSCRIPT-mode CAPTURED group form. The caller has already established the group IS a
+    /// ref-mod (<see cref="HasDepth0Colon"/>); null on an unrenderable segment.</summary>
+    internal RefModSpec? ReadRefMod(Core.SubscriptOrRefModContext group)
+    {
+        var (rm, _) = InterpretSubscripts(group);
         return rm is { Count: > 0 }
-            ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null)
-                { AllowZeroLength = data.RefModZeroLength.IsOnAt(refCtx!.Start.Line) }
+            ? new RefModSpec(rm[0], rm.Count > 1 ? rm[1] : null, data.RefModZeroLength.IsOnAt(group.Start.Line))
             : null;
     }
 
@@ -604,8 +643,11 @@ public sealed class ReferenceResolver(DataBinder data)
     /// cannot be rendered yields a null list (→ the caller fails loud).
     /// </summary>
     /// <summary>True if the flat token stream has a depth-0 <c>SUB_COLON</c> — i.e. it is a reference modification
-    /// (<c>start:length</c>) rather than a subscript list.</summary>
-    private static bool HasDepth0Colon(Core.SubscriptOrRefModContext ctx)
+    /// (<c>start:length</c>) rather than a subscript list. Internal because the keyword-omitted FUNCTION path
+    /// asks the SAME question of a captured group (fix-queue PB8): with the FUNCTION keyword omitted,
+    /// <c>CURRENT-DATE (1:8)</c> captures its ref-mod in SUBSCRIPT mode exactly as a data reference would, and
+    /// only this test separates it from an argument list.</summary>
+    internal static bool HasDepth0Colon(Core.SubscriptOrRefModContext ctx)
     {
         var tokens = new List<IToken>();
         CollectLeafTokens(ctx, tokens);

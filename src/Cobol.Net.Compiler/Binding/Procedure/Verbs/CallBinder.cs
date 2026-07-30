@@ -250,12 +250,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             + "ISO §14.9.4.3 SR22 admits only class numeric, object or pointer by value";
         if (ctx.Edition.Permissive)
         {
-            ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass.Id,
+            ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass,
                 $"{rule}; accepted under --permissive");
         }
         else
         {
-            ctx.Edition.Error(DiagnosticCatalog.CallByValueOperandClass.Id,
+            ctx.Edition.Error(DiagnosticCatalog.CallByValueOperandClass,
                 $"{rule}. --permissive accepts it as an extension");
         }
     }

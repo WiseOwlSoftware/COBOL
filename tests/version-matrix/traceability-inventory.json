@@ -4139,11 +4139,11 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "Function-identifier",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen",
+  "test-ref": "conformance:negative/pb8-refmod-arg-permitting-function",
+  "editions": "85,2002,2014,2023",
+  "notes": "PARTIAL, not CONFORMS. The FUNCTION-keyword form is fully enforced: the lexer already gives the '(' after a function name to the argument list, and a ref-mod written there instead is rejected with COBOLNET1543 citing SR6 (the standard's own RANDOM trap). The KEYWORD-OMITTED form rejects the same shape through the ordinary unresolved-name path rather than the SR6 message, and RANDOM in particular cannot be written keyword-omitted at all because it lexes as a reserved word - fix-queue PB9 owns that.",
   "state": "GAP"
  },
  {
@@ -4373,12 +4373,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod",
+  "test-ref": "conformance:2023/pb8_refmod_function_result; conformance:negative/pb8-refmod-numeric-function",
+  "editions": "85,2002,2014,2023",
+  "notes": "The POSITIVE half (a function-identifier IS admissible as identifier-1) and the NEGATIVE half (it shall be an alphanumeric, boolean, or national function) are both enforced. Before fix-queue PB8 the shape was a COBOL0001 parse error at every edition, so neither half could be reached. A non-conforming class is rejected with COBOLNET1629; national and alphanumeric results are covered by the golden, and the user-defined-function result reference-modifies through RefModPlace using the RETURNING item's own category.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.3.3-3",
@@ -4386,12 +4386,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#Resolve; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+  "test-ref": "conformance:negative/pb8-refmod-of-refmod-data; conformance:negative/pb8-refmod-of-refmod-function",
+  "editions": "85,2002,2014,2023",
+  "notes": "Found unenforced by the PB8 sibling sweep, not by PB8's own repro: MOVE A (3:4)(2:2) COMPILED CLEAN and silently returned A(2:2), because dataReferenceSuffix* admits unlimited ref-mods and the resolver kept only the first of each carrier while the DEFAULT-mode form outranked the SUBSCRIPT-mode one. Now counted in ONE place per reference kind and rejected with COBOLNET1630. A subscript followed by a ref-mod (the legal 8.4.3.1.4 GR1 a-to-g order) is unaffected.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.3.3-4",

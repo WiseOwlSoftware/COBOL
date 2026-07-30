@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Model;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 
@@ -333,6 +334,25 @@ internal static class RuntimeApi
     /// routed through the façade (the P7 Step 4b ratchet) so a rename of the runtime const breaks HERE at compile time.
     /// Distinct from −1 so a specified negative length raises EC-BOUND-REF-MOD (review C14).</summary>
     public static string OmittedRefModLength => $"{nameof(CobolString)}.{nameof(CobolString.OmittedRefModLength)}";
+
+    // The rendered ref-mod positions are `long`-valued COBOL expressions and the runtime takes `int`, so each is
+    // cast at the call site; an omitted length renders the distinct sentinel above rather than −1. Both rules live
+    // HERE and nowhere else: a ref-mod attaches to a storage PLACE (PlaceRenderer, readable and writable) and to a
+    // ref-modified FUNCTION RESULT (IntrinsicRenderer, read-only — §8.4.3.3.3 SR2), and the two must agree.
+
+    /// <summary>The runtime <c>int</c> leftmost-position from a rendered start expression (§8.4.3.3.4 item 5b).</summary>
+    public static string RefModStart(string renderedStart) => $"(int)({renderedStart})";
+
+    /// <summary>The runtime <c>int</c> length from a rendered length expression, or the OMITTED sentinel when the
+    /// "to the end" form was written (§8.4.3.3.4 item 5c).</summary>
+    public static string RefModLength(string? renderedLength) =>
+        renderedLength is null ? OmittedRefModLength : $"(int)({renderedLength})";
+
+    /// <summary>A reference-modification slice over an already-rendered VALUE, from the model's
+    /// <see cref="RefModSpec"/>. The value form has no splice counterpart: §8.4.3.2.3 SR1 makes a
+    /// function-identifier a non-receiving operand, so a ref-modified function result is read-only.</summary>
+    public static string StrRefMod(string s, RefModSpec rm) =>
+        StrRefMod(s, RefModStart(rm.Start), RefModLength(rm.Length), rm.AllowZeroLength);
 
     /// <summary>Splice <paramref name="rhs"/> into <paramref name="s"/> at a 1-based start/length, preserving the
     /// rest of the width — <c>CobolString.SpliceInto</c>. <paramref name="pad"/> is the optional fill-char argument
