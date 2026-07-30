@@ -72,7 +72,8 @@
     "optional_words_mcs",
     "pb2_float_argument_exact_family",
     "pb4_hex_literal_value",
-    "pb3_ord_collating_tail"
+    "pb3_ord_collating_tail",
+    "pb1_intrinsic_formats"
   ],
   "pending": []
 }

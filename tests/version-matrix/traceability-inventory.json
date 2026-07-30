@@ -43856,10 +43856,10 @@
   "page": 934,
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-  "test-ref": "",
+  "test-ref": "conformance:negative/pb1-numeric-arg-family",
   "editions": "85,2002,2014,2023",
-  "notes": "PB1 LANDED - both arguments screened class numeric. test-needed: no fixture of its own; the argument-2 path is covered generically by pb1-numeric-arg2-alphanumeric (REM), so this row stays CONFORMS-but-untested until PRESENT-VALUE has its own.",
-  "state": "GAP"
+  "notes": "PB1; the family fixture now covers PRESENT-VALUE's own 15.74.3 r1 rejection rather than relying on a sibling function's.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.74.3-2",
@@ -43898,10 +43898,10 @@
   "page": 935,
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-  "test-ref": "",
+  "test-ref": "conformance:negative/pb1-numeric-arg-family",
   "editions": "85,2002,2014,2023",
-  "notes": "PB1 LANDED - 15.75.3 r1 is a bare class-numeric constraint and is enforced. test-needed. NOTE the VALUE half of RANDOM's rules (r2, zero-or-positive-integer) is NOT this rule and remains open under PB2.",
-  "state": "GAP"
+  "notes": "PB1; 15.75.3 r1 (class numeric) covered. The VALUE half of RANDOM's rules (r2, zero-or-positive-integer) is a separate, still-open EC-ARGUMENT-FUNCTION question.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.75.3-2",
@@ -43954,10 +43954,10 @@
   "page": 935,
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
-  "test-ref": "",
+  "test-ref": "conformance:2023/pb1_intrinsic_formats",
   "editions": "85,2002,2014,2023",
-  "notes": "CONFORMS-but-untested. `public static double Random() => _random.NextDouble()` advances the ONE current sequence, and IntrinsicRenderer.RenderFloat routes `\"Random\" when ic.Args.Count == 0` to it (so the FUNCTION RANDOM ( ) empty-parens shape continues the sequence too — verified). One static in the shared Cobol.Net.Runtime assembly gives the rule's run-unit scope. Verified NOT merely that 'the value changes' but that it is the NEXT number of the CURRENT sequence: after RANDOM(42) the successive draws were 668106466 / 140907298 / 125518289, exactly draws 1/2/3 of .NET's seeded back-compat subtractive generator for seed 42 as computed by an independent from-scratch reimplementation (which also reproduces seeds 0, 1, 5 and 2147483643 byte-for-byte against the compiler's output). Test-ref conformance-test:IntrinsicFunctionDifferentialTests.Random_SeededSequence_PinnedToSpec was STRUCK by review: its only relevant assertion is R2 NOT = R1, which would still pass if the argument-less form drew from a SEPARATE generator instead of continuing the current sequence, so it does not cover this rule. test-needed: a spec-derived case asserting that RANDOM(s) followed by two argument-less references reproduces its prefix after a re-seed to s.",
-  "state": "GAP"
+  "notes": "15.75.3 r5 - a reference WITHOUT argument-1 returns the next number in the current sequence. Asserted STRUCTURALLY (the two unseeded references differ; a re-seed reproduces the first), never as this implementation's own numbers, because the numbers themselves are implementor-defined and pinning them would be pinning the implementation rather than the rule.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.75.4-1",
@@ -44010,10 +44010,10 @@
   "page": 936,
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-  "test-ref": "",
+  "test-ref": "conformance:negative/pb1-numeric-arg-family",
   "editions": "85,2002,2014,2023",
-  "notes": "PB1 LANDED - bare class-numeric constraint, enforced across the variadic argument list. test-needed.",
-  "state": "GAP"
+  "notes": "PB1; 15.76.3 r1 covered, and the screen walks the whole variadic list.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.76.4-1",
@@ -49539,11 +49539,11 @@
   "subject": "ORD-MAX function",
   "page": 931,
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "nist:IF128A",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+  "test-ref": "conformance:2023/pb1_intrinsic_formats",
   "editions": "85,2002,2014,2023",
-  "notes": "Independently re-rendered the printed page (PDF 931 = printed folio 901) rather than trusting the OCR: FUNCTION and ORD-MAX are both UNDERLINED (required), the parentheses are required, `{ argument-1 } ...` is one-or-more with no upper bound — the specs/ISO_COBOL.md transcription is faithful, no falsely-restrictive diagram artifact. Grammar `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` is a deliberate superset; the catalog row is `IntrinsicArity.Variadic, 1, inf`, and arity 0 is caught by the MinArgs check. Re-verified against the built CLI: both `FUNCTION ORD-MAX` and `FUNCTION ORD-MAX()` give 'COBOLNET1504: FUNCTION ORD-MAX takes at least 1 argument(s); 0 given'; 1, 2, 3 and 12 arguments, space and comma separators, spaced parentheses `ORD-MAX ( 4 5 )`, an arithmetic-expression argument `ORD-MAX(C1 + 1, D1)`, table(ALL) expansion and nested ORD-MAX all parse, bind and produce the right ordinal. nist:IF128A exists, is listed in tests/Cobol.Net.Tests.Conformance/corpus-green-baseline.txt, and exercises the format at arities 1-6 including IND(ALL) and a nested ORD-MAX.",
-  "state": "GAP"
+  "notes": "15.71.2 FUNCTION ORD-MAX ( {argument-1} ... ) - the variadic format, now covered by a SPEC-DERIVED golden (the previous NIST-only cover is a regression net and cannot close a row). The golden also pins 15.71.4 r3 leftmost-wins on a tie.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.72.2",
@@ -49553,11 +49553,11 @@
   "subject": "ORD-MIN function",
   "page": 932,
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "nist:IF129A; nist:IF402M",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+  "test-ref": "conformance:2023/pb1_intrinsic_formats",
   "editions": "85,2002,2014,2023",
-  "notes": "Independently re-verified by the adversarial pass. PDF page 932 (printed page 902) re-rendered: the transcription is faithful — FUNCTION and ORD-MIN both underlined (required), parentheses shown, '{ argument-1 } …' = one-or-more, no optional element and no required separator. Catalog row is Add(new(\"ORD-MIN\", IntrinsicType.Integer, IntrinsicArity.Variadic, 1, inf, \"p\", \"OrdMin\", IntrinsicBind.Runtime, false, 85)) — MinArgs 1, MaxArgs int.MaxValue, IntroducedIn 85; the grammar's 'FUNCTION functionName (LPAREN functionArgList? RPAREN)?' makes the parenthesis group syntactically optional and BindIntrinsicCore narrows it. CLI-verified: 'FUNCTION ORD-MIN' and 'FUNCTION ORD-MIN()' both reject with COBOLNET1504 (\"takes at least 1 argument(s); 0 given\"), 'FUNCTION ORD-MIN(1, OMITTED, 3)' rejects with COBOLNET1544 (§8.4.3.2 SR7), 'FUNCTION ORD-MIN(7)' returns 0001, and a nine-argument space-separated call returns 0009; a call at --std 85 compiles and runs. GAP in coverage, not in behaviour: no tests/conformance/negative fixture pins the COBOLNET1504 rejection for ORD-MIN — the two NIST refs witness only the positive form (IF402M's reference is a tautological 'X = X' inside a flag-expectation paragraph, so it witnesses parse acceptance and nothing more).",
-  "state": "GAP"
+  "notes": "15.72.2 FUNCTION ORD-MIN ( {argument-1} ... ) - variadic format covered by a spec-derived golden, replacing a NIST-only cover.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.73.2",
@@ -49581,11 +49581,11 @@
   "subject": "PRESENT-VALUE function",
   "page": 934,
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "nist:IF130A",
+  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+  "test-ref": "conformance:2023/pb1_intrinsic_formats",
   "editions": "85,2002,2014,2023",
-  "notes": "Independently re-verified, not inherited. §15.74.2 validated with cite.py, and the TRANSCRIPTION checked against the canonical PDF (page 934 = printed folio 904, text extracted from specs-private/): the printed diagram reads 'FUNCTION PRESENT-VALUE ( argument-1 { argument-2 }  ...  )' with FUNCTION and PRESENT-VALUE the only underlined words — no OCR loss, no falsely-restrictive residue. Per §5.2 (spec line 2379) the ellipsis repeats the portion between the matching brace pair, and a single-alternative brace is required, so argument-2 shall appear at least once: minimum 2 arguments, no maximum. The grammar is a deliberate generic superset (functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?; functionArgList : functionArgument (FNARG_SEPARATOR? functionArgument)*), so arity is the binder's job, and the catalog row Add(new(\"PRESENT-VALUE\", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, \"n\", \"PresentValue\", IntrinsicBind.Runtime, true, 85)) encodes exactly min 2 / unbounded; BindIntrinsicCore reaches the generic arity gate for PRESENT-VALUE (none of the phrase-keyword early returns match it). Executed against the built CLI: one argument is rejected with 'error COBOLNET1504: FUNCTION PRESENT-VALUE takes at least 2 argument(s); 1 given (ISO §15.3)' at --std 85, 2002, 2014 AND 2023; 2, 4 and 31 arguments compile and run; space and comma separators both work; a table(ALL) argument expands and agrees to the digit with the explicit list. ⚠ TEST-REF CORRECTED: nist:IF403M was STRUCK — tests/nist/corpus.tsv line 406 registers it 'pending / none / cataloged (not asserted)', so no gate compiles or runs it and it exercises nothing. nist:IF130A survives (corpus.tsv 'green / valid', in corpus-green-baseline.txt, run by NistDifferentialTests.NistProgram_MatchesGolden and VersionMatrixTests at 2002/2014/2023) and genuinely exercises the format: 2..6 arguments, comma separators, arithmetic-expression arguments, subscripted arguments, and a PRESENT-VALUE nested as its own argument-1. Residual coverage gap (not a conformance gap): the min-arity REJECTION leg has NO negative test — it was verified only by hand here, so a negative case belongs in tests/conformance/negative/.",
-  "state": "GAP"
+  "notes": "15.74.2 FUNCTION PRESENT-VALUE ( argument-1 {argument-2} ... ) - both the one- and two-occurrence shapes exercised, with values from 15.74.4 r1 (rate 1.0: 100/2 = 50; 100/2 + 100/4 = 75), replacing a NIST-only cover.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.75.2",
