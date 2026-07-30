@@ -1587,14 +1587,18 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     - **Alphanumeric**: `CollatingTable` (a native-code→position table over the alphabet's Latin-1 domain; the native
       alphanumeric REPERTOIRE is Unicode/UTF-16 [CA26] — a code unit beyond the domain keeps its native position, NOT
       capped at 256, and `CobolString.Compare` no longer masks `& 0xFF`; Latin-1 is only the byte serialization,
-      §8.1.2 NOTE 2 — §12.3.7 GR7 k1–k6 incl. the k3
-      distinct-ascending unspecified tail), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
+      §8.1.2 NOTE 2 — §12.3.7.4 GR7 1., whose sub-rule **3** places the unspecified tail:
+      "Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
+      position in the collating sequence that is greater than that of the highest character specified in this
+      literal phrase. The relative order within the set of these unspecified characters is unchanged from the
+      native collating sequence."), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
       the generated `__COLLATE` field, consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
       relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
       figurative fills.
     - **National** (P10 Step 4): `NationalCollatingTable` — a SPARSE table over the 65,536 UTF-16 code units
-      (only the specified characters tabulated; every unspecified code unit takes its GR7 k3 distinct ascending
-      position arithmetically) — built by `AlphabetBindNational` (`NationalAlphabets`/`NationalCollating`),
+      (only the specified characters tabulated; every unspecified code unit takes its §12.3.7.4 GR7 1.3 position
+      — above the highest specified character, native relative order preserved — computed arithmetically rather
+      than stored) — built by `AlphabetBindNational` (`NationalAlphabets`/`NationalCollating`),
       rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
       `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§8.8.4.2.9 / §12.3.6 GR11),
       by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §15.16.4/§15.70.4 r2), and by the national figurative
