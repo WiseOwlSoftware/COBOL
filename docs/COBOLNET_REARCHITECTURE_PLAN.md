@@ -31,9 +31,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
   sequence, which runs **folio + 30** (30 pages of front matter). Clause references (14.9.41.2) are unambiguous
   either way and are the better citation.
-- **⛔ WORK IN PROGRESS ON `phase-14` — 17 COMMITS AHEAD OF `main` AND NOT MERGED (2026-07-29 21:05 PDT).**
-  `phase-14` = **`ccfc091d`**, `main` = `0e534dc7`. Those 17 commits are the V59 wave plus the whole DA set
-  (DEVLOG entries **1095–1111**, +872 lines). Tree clean, pushed, full battery green at `ccfc091d` (below).
+- **⛔ WORK IN PROGRESS ON `phase-14` — 18 COMMITS AHEAD OF `main` AND NOT MERGED (2026-07-29 21:45 PDT).**
+  `phase-14` = **`42fa9dc6`**, `main` = `0e534dc7`. Those 18 commits are the V59 wave plus the whole DA set
+  (DEVLOG entries **1095–1112**). Tree clean, pushed; full battery green, measured at `ccfc091d` — the one
+  commit after it is DOCS ONLY (this section), so the numbers below still describe the code at HEAD.
   **A merge to `main` has NOT happened and is an owner decision** — the previous phase-14 merge line in this
   section said the trees were identical, which stopped being true the moment this wave started.
 - **WHAT LANDED IN THIS WAVE (all spec-derived, all gated):**
@@ -283,7 +284,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 **✅ THE COMPREHENSIVE PRE-MERGE GATE RAN AND `phase-14` WAS MERGED (2026-07-28, `c056f1f4`).** Every leg green,
 ⚠ **HISTORICAL — that merge is the 2026-07-28 one. A NEW WAVE (V59 + DA1–DA7) has since landed on `phase-14`
-and is 17 commits AHEAD of `main` = `0e534dc7`, UNMERGED. See §0 "Where we are" for the current state; the
+and is 18 commits AHEAD of `main` = `0e534dc7`, UNMERGED. See §0 "Where we are" for the current state; the
 battery numbers below are superseded by §0's battery reference.**
 zero regressions. The table below is the EARLIER run of that gate, kept because it records the EC-infra + OO
 super-batch (**10 findings landed + CA12 REFUTED**) and the one red it found — the VCR's dangling spec LINE
