@@ -568,7 +568,7 @@ public static class DiagnosticCatalog
         + "NUMERIC-EDITED under class ALPHANUMERIC when its usage is display, so PIC ZZ9.99 is not a legal "
         + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
         + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
-        "ISO §15.3 / §8.5.2.1 Table 2 / §4.2.2 paragraph 3");
+        "ISO §15.3 / §8.5.2.1 Table 2 / §4.2.2 para 3 (which leaves the determination to the implementor)");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

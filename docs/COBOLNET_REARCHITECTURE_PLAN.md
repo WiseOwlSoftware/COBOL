@@ -72,6 +72,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     so a hex literal was neither recognised as a literal nor decoded as one — which is why five sites failed in
     five different shapes. Fixing it at the symptom (`ValueInitializer`) would have been the FIFTH copy of the
     dispatch DA3 found three of, and would have fixed one site of five.
+  · **⛔ THE DENOMINATOR WAS SHORT BY 56 — the catalog is now 3,846 and GAP is 3,814** (DEVLOG 1125). The P14
+    metric is GAP over the normative-rule total, and that total was wrong, so every percentage quoted against
+    3,790 flattered. 122 adjudicated rows carried forward, 0 removed — nothing verified was lost.
+    Two causes: the extractor's `KINDS` map keys on literal heading spellings and missed "Argument**s** rule(s)"
+    (§15.10.3, §15.13.3, §15.100.3) and "Returned **values** rules" (§15.69.4); and the catalog had been FROZEN
+    since before de-paging because the builder HALTED on a missing page anchor, so it stopped tracking the
+    transcription's own repairs. ⛔ **The map's own comment recorded this class happening once before** — the
+    previous fix added spellings to the list, and the list came back. Pluralisation is now NORMALISED away on all
+    three axes, and a new guard reports any rule-shaped heading `KINDS` cannot resolve, because an unrecognised
+    block is never a parse gap and so is never counted as missing.
+    ⚖ **THREE HEADINGS REMAIN REPORTED AND ARE AN OWNER DECISION**: §13.18.40.5 "Editing rules",
+    §13.18.40.6 "Precedence rules", §5.3 "Rules". Those are rule KINDS the catalog has never modelled, not
+    spelling variants — adding a kind changes what the denominator MEANS, so they are left loud rather than
+    absorbed. The halt is discharged by DELETING the page column it guarded (a rule is cited by clause, never by
+    page), which re-keys the catalog onto the clause hierarchy.
+  · **PHASE-B BATCH 2 MERGED — 67 rules over 12 intrinsics (ACOS…CONVERT); 122 rules now adjudicated.**
+    34 of its 41 DIVERGES are ONE thing: PB1's `Verified` table does not yet list these functions, so they are
+    unscreened — rows waiting for their function to be added, exactly as PB1 predicted. ⚠ Five of twelve refuters
+    died on API 529 and were re-run via `resumeFromRunId`; **a workflow reporting "completed" is not every agent
+    in it succeeding.**
   · **⛔✅ PB5 LANDED — [BLOCKER] the float→fixed quantizer SATURATED AT 9.2 × 10⁹** (DEVLOG 1124).
     `FromDouble` returned a `long` and clamped at `long.MaxValue`; quantizing at `ws = max(Receiver.Scale, 9)`
     put the clamp at an ORDINARY COBOL magnitude, so every float-family result at or above it became the

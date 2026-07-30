@@ -19,7 +19,7 @@ neither owns the rules: the verdict vocabulary, each verdict's required evidence
 DATA, in `tests/version-matrix/inventory-schema.json`, loaded through `inventory_schema.py`.
 
 Row schema (one per rule):
-    rule-id / section / kind / ordinal / subject / page   from the Phase-A catalog (regenerated, authoritative)
+    rule-id / section / kind / ordinal / subject         from the Phase-A catalog (regenerated, authoritative)
     state                                    derived — never written by hand; the GAP count is what session-probe
                                              reports and what v1.0 is defined against
     verdict / code-location / test-ref /     the adjudicated fields, preserved across every rebuild;
@@ -60,7 +60,7 @@ def main() -> int:
     for r in rules:
         row = {
             "rule-id": r["id"], "section": r["section"], "kind": r["kind"], "ordinal": r["ordinal"],
-            "subject": r["subject"], "page": r["page"],
+            "subject": r["subject"],
             "verdict": "", "code-location": "", "test-ref": "", "editions": "", "notes": "",
         }
         if old := prior.get(r["id"]):

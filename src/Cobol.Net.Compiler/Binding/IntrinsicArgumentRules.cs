@@ -52,8 +52,19 @@ internal enum CobolClass
 /// <para>
 /// <b>ERROR, WITH THE LENIENCY DIALECT-GATED.</b> ISO §4.2.2 paragraph 3: "There are rules in standard COBOL that
 /// are not identified as general formats or syntax rules, but nevertheless specify elements that are syntactically
-/// distinguishable. This warning mechanism shall indicate violations of such rules." An argument rule is exactly
-/// that — not labelled a syntax rule, yet statically decidable. The disposition follows DA6, which settled the
+/// distinguishable. This warning mechanism shall indicate violations of such rules."
+/// <para>
+/// ⚠ Read that paragraph to its END, because it is a DISCRETION clause wrapped around an obligation and the first
+/// draft of this comment stated only the obligation: it closes "For elements not specified in general formats or
+/// in explicit syntax rules, it is left to the implementor's discretion to determine what is syntactically
+/// distinguishable." So the standard does not decree that an argument rule is compile-time checkable — WE
+/// determine that, and having determined it, the mechanism "shall indicate violations of such rules". An
+/// argument rule qualifies on its merits: it constrains the CLASS of an operand, which is a static property of
+/// the source. The obligation is real; it is just downstream of a judgement that is ours to make and to defend.
+/// (Caught by an adversarial reviewer reading the clause past the sentence this comment had quoted.)
+/// </para>
+/// <para>
+/// The disposition follows DA6, which settled the
 /// sibling §8.8.1.1 question (a wrong-class ARITHMETIC operand) one wave earlier: reject under strict conformance,
 /// keep the leniency behind <c>--permissive</c>. Two mechanisms for one question would be the anti-pattern.
 /// </para>
