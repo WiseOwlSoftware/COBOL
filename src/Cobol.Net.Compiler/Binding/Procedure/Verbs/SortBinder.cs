@@ -314,14 +314,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
                     + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
                     + "(ISO §14.9.40.3 SR6g)");
-            // The key descriptor's sign convention is the key's IMAGE form, never the leaf's stored form: a signed
-            // BINARY/PACKED key's image inside the sort-record image is the zoned digit form with a TRAILING
-            // OVERPUNCH (PicInfo.ImageSignKind — the §13.18.60 USAGE GR4 implementor representation). The leaf's
-            // own SignKind (BinaryMinus) would mis-decode the zoned window — negatives would sort positive
-            // (CobolSort.NumericKey decodes via CobolNum.ParseDisplay; §14.9.40 GR8 + §8.8.4.2.4: numeric keys
-            // compare by ALGEBRAIC value regardless of how their usage is described).
-            keys.Add(new BoundSortMergeKey(descending, off, len, numeric, pic?.Signed ?? false,
-                pic?.ImageSignKind ?? "TrailingOverpunch"));
+            // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
+            // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
+            // BINARY / PACKED; V59). §14.9.40 GR8 + §8.8.4.2.4: numeric keys compare by ALGEBRAIC value
+            // regardless of how their usage is described, so the decode must match the representation exactly.
+            keys.Add(new BoundSortMergeKey(descending, off, len, numeric, numeric ? item : null));
         }
         return null;
     }

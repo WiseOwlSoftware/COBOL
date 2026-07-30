@@ -5,6 +5,7 @@ using System.Text.Json;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Editions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -25,7 +26,7 @@ public sealed class ConstructRegistryDriftTests
 
     private static List<JsonRow> LoadRows()
     {
-        string path = Path.Combine(RepoRoot(), "tests", "version-matrix", "constructs.json");
+        string path = TestRepo.VersionMatrix("constructs.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return [.. doc.RootElement.GetProperty("constructs").EnumerateArray().Select(e => new JsonRow(
             e.GetProperty("id").GetString()!,
@@ -108,12 +109,5 @@ public sealed class ConstructRegistryDriftTests
         // Unregistered id → programming error, loud.
         var bad = new EditionContext(2023);
         Assert.Throws<ArgumentException>(() => ConstructRegistry.Check(bad.Edition, bad, "no-such-id", "x"));
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "version-matrix"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/version-matrix) not found");
     }
 }

@@ -77,16 +77,41 @@ ORDINAL = re.compile(r"^(?P<n>\d+)\\?[.)]\s+(?P<text>.*)$")
 # SINGULAR forms are load-bearing, not a nicety: the standard writes "Syntax rule" when a block holds exactly one
 # (§10.6.3, §11.9.4, §13.4.3, …). A plural-only map skipped 15 whole blocks — invisible to the empty-block check,
 # because a block that is never RECOGNISED is never counted as seen. The TOC cross-check below is what caught it.
+# ⛔ KEYED ON THE SINGULAR CANONICAL FORM ONLY — every plural variant is normalised into it by `kind_of`.
+# The literal-spelling map came back a SECOND time: it carried "argument rules"/"argument rule" and still missed
+# §15.10.3, §15.13.3 and §15.100.3, which the standard heads "Argument**s** rule(s)". Ten normative rules were
+# absent from the denominator, and the burn-down was measuring against a total that was short — the exact "silent
+# false confidence" DESIGN-spec-conformance-review.md §7 names. Adding two more spellings would have set up the
+# third occurrence, so the pluralisation is now normalised away and the unrecognised-heading check below fails loudly
+# on any rule-shaped heading this map does not know.
 KINDS = {
-    "syntax rules": "SR", "syntax rule": "SR",
-    "general rules": "GR", "general rule": "GR",
-    "argument rules": "AR", "argument rule": "AR", "arguments": "AR",
-    "returned value rules": "RV", "returned value rule": "RV", "returned value": "RV",
+    "syntax rule": "SR",
+    "general rule": "GR",
+    "argument rule": "AR", "argument": "AR",
+    "returned value rule": "RV", "returned value": "RV",
 }
+
+#: Heading titles that name a rule block in some spelling. Anything matching this and NOT resolving through
+#: KINDS is a block the extractor would silently skip.
+RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
+
+
+def canonical_title(title: str) -> str:
+    """Lower-case, de-punctuated, and SINGULARISED on both words of the block name.
+
+    The standard is inconsistent in both positions independently — "Syntax rule" / "Syntax rules" /
+    "Argument rules" / "Arguments rules" / "Arguments rule" all occur — so canonicalising is the only form that
+    does not need a new map entry per combination.
+    """
+    t = title.strip().lower().rstrip(".")
+    t = re.sub(r"\brules\b", "rule", t)
+    t = re.sub(r"\barguments\b", "argument", t)
+    t = re.sub(r"\bvalues\b", "value", t)      # §15.69.4 "Returned values rules" — a THIRD pluralisation axis
+    return t
 
 
 def kind_of(title: str) -> str | None:
-    return KINDS.get(title.strip().lower().rstrip("."))
+    return KINDS.get(canonical_title(title))
 
 
 def subject_for(num: str, titles: dict[str, str]) -> str:
@@ -155,7 +180,6 @@ def main() -> int:
                 "ordinal": ordinal,
                 "sublist": sublist,
                 "subject": subject_for(sec, titles),
-                "page": rule_page,
                 "text": re.sub(r"\s+", " ", text),
             })
             blocks_with_rules.add(cur)
@@ -233,7 +257,7 @@ def main() -> int:
         text = "\n".join(body).strip()
         rules.append({
             "id": f"FMT-{sec}", "section": sec, "kind": "FMT", "ordinal": 0, "sublist": 1,
-            "subject": subject_for(sec, titles), "page": pg,
+            "subject": subject_for(sec, titles),
             # How many numbered Formats the section declares — Format 1 / Format 2 usually map to DIFFERENT
             # grammar alternatives, so this is a size signal for the verification work, not decoration.
             "formats": len(re.findall(r"^\s*Format\s+\d+", text, re.M)) or 1,
@@ -275,7 +299,7 @@ def main() -> int:
                     req = "unclassified"
                 rules.append({
                     "id": f"DOC-A.1-{ordinal}", "section": "A.1", "kind": "DOC", "ordinal": ordinal,
-                    "sublist": 1, "subject": text.split(".")[0][:120], "page": rule_page,
+                    "sublist": 1, "subject": text.split(".")[0][:120],
                     "requirement": req, "documented": "shall be documented" in low, "text": text,
                 })
                 a1_items += 1
@@ -318,14 +342,11 @@ def main() -> int:
         (re.compile(r"<!--\s*TRANSCRIPTION-FAILED", re.I), "declared transcription gap (tracked, not hidden)"),
     ]
     meta_hits = []
-    # ⛔ PAGES WERE REMOVED from the transcription (2026-07-27); this loop records a page per rule and would
-    # now silently stamp every one with 0. The catalog is the P14 traceability DENOMINATOR, so a column of
-    # zeroes would be worse than no column. It stops instead — re-key onto the clause hierarchy (the clause
-    # is what a rule is cited by anyway: 14.9.41.2 GR3, never "page 754").
-    if not any(re.match(r'^<a id="page-\d+"></a>', l) for l in lines):
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — this catalog builder stamps a PAGE on every "
-                 "rule and would record 0 for all of them. Re-key it onto the clause hierarchy before "
-                 "regenerating; the existing catalog remains valid.")
+    # ⛔ RE-KEYED ONTO THE CLAUSE HIERARCHY (the halt this replaces is discharged). Pages were removed from the
+    # transcription in 2026-07-27's de-paging, so this builder's per-rule PAGE column had nothing left to record
+    # and the script stopped rather than stamp a column of zeroes. The column is simply GONE now: a rule is cited
+    # by its clause — 14.9.41.2 GR3, never "page 754" — so the field was dead weight even while pages existed.
+    # The internal page bookkeeping below is retained only because the figure/FMT scan shares the loop.
     pg = 0
     for i, line in enumerate(lines):
         if m := re.match(r'^<a id="page-(\d+)"></a>', line):
@@ -406,8 +427,25 @@ def main() -> int:
     else:
         print("\n✓ no parse gaps — every rule-block heading yielded at least one rule")
 
+    # ⛔ THE CHECK THAT WOULD HAVE CAUGHT THE MISSING TEN. A parse gap is a block that was RECOGNISED and then
+    # yielded nothing; a block whose heading spelling is unknown is never recognised, so it is never counted as a
+    # gap and never appears in any total — the denominator is simply short, silently. This walks every numbered
+    # heading whose title contains "rule" and reports the ones KINDS cannot resolve.
+    unrecognised = sorted(
+        ((num, title) for num, title in titles.items()
+         if RULE_SHAPED.search(title) and kind_of(title) is None),
+        key=lambda kv: kv[0])
+    if unrecognised:
+        print(f"\n⛔ {len(unrecognised)} rule-shaped heading(s) the KINDS map does not recognise — their rules are")
+        print("   ABSENT FROM THE DENOMINATOR, and absent silently (an unrecognised block is never a parse gap):")
+        for num, title in unrecognised:
+            print(f"      §{num}  '{title}'")
+        print("   Add the CANONICAL singular form to KINDS, or extend canonical_title's normalisation.")
+    else:
+        print("✓ every rule-shaped heading in the spec resolves to a known rule kind")
+
     if args.check:
-        return 1 if gaps else 0
+        return 1 if (gaps or unrecognised) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({

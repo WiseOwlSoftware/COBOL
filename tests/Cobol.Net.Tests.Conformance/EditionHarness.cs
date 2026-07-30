@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -49,7 +50,7 @@ public static class EditionHarness
     public static (bool Ok, IReadOnlyList<string> Diagnostics) CompileNist(
         string testName, int edition, bool permissive = false, bool checkOnly = false)
     {
-        string src = Path.Combine(RepoRoot(), "tests", "nist", "programs", testName + ".cob");
+        string src = TestRepo.Nist("programs", testName + ".cob");
         Assert.True(File.Exists(src), $"NIST source not found: {src}");
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ed_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
@@ -105,13 +106,5 @@ public static class EditionHarness
     {
         var hit = diagnostics.FirstOrDefault(d => d.Contains(substring, StringComparison.OrdinalIgnoreCase));
         Assert.True(hit is null, $"expected NO diagnostic containing '{substring}' but found: {hit}");
-    }
-
-    /// <summary>Walk up from the test assembly to the repository root.</summary>
-    public static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "nist"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/nist) not found");
     }
 }

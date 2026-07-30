@@ -227,6 +227,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
 
+        // ISO §15.3 ARGUMENT-CLASS screen (fix-queue PB1). THE catalog-driven enforcement of every catalogued
+        // function's argument rule — see IntrinsicArgumentRules for why this had to be written: sig.ArgKinds
+        // declared the required class on all 79 rows and sig.ArgKind had ZERO callers, so `FUNCTION REVERSE` over
+        // a numeric item and `FUNCTION ABS` over an alphanumeric one both compiled clean and produced garbage.
+        // It sits HERE — after arity, before every per-function arm — so a new catalog row is screened the day it
+        // is added rather than the day someone remembers to write its arm.
+        CheckArgumentClasses(sig, args);
+
         // §15.38–15.41 / §15.48 / §15.79 / §15.92 rule 1: the date/time FORMAT (argument-1) shall be a LITERAL —
         // the format is analyzed/derived at compile time (SECONDS-FROM-FORMATTED-TIME needs the fraction scale).
         if (args.Count > 0 && args[0] is not BoundStringLiteral
@@ -673,6 +681,51 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
     /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>
+    /// <summary>
+    /// Screen every argument's CLASS against the catalog row's declared <c>ArgKinds</c> (ISO §15.3 argument
+    /// types; fix-queue PB1).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Rejects under strict conformance and warns under <c>--permissive</c>, matching DA6/<c>COBOLNET0844</c>,
+    /// which settled the same question for §8.8.1.1 arithmetic operands one wave earlier — the leniency is
+    /// dialect-gated, never silent.
+    /// </para>
+    /// <para>
+    /// ⚠ Binding CONTINUES after a violation rather than returning a <c>BoundExprError</c>. The argument is
+    /// well-formed, its class is merely wrong, so the rest of the call still binds and later rules still report —
+    /// which is what lets one compile name every bad argument in a statement instead of the first. Under
+    /// <c>--permissive</c> the existing coercion then runs unchanged, so the leniency is genuinely the old
+    /// behaviour and not a second code path.
+    /// </para>
+    /// </remarks>
+    private void CheckArgumentClasses(IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
+    {
+        // ⛔ Driven by the SPEC-VERIFIED table, not by sig.ArgKinds. The catalog's hint column is unaudited —
+        // BYTE-LENGTH is declared "s" while §15.14.3 admits any class, and an empty ArgKinds defaults to 'n',
+        // which would screen LENGTH as numeric-only. Screening from it rejected 12 legal corpus programs.
+        // A function absent from Verified is not screened, so this can only ever ADD rejections that a cited
+        // §15 rule demands. sig.ArgKind(i) still supplies the POSITION when the rule is per-argument.
+        if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;
+
+        for (int i = 0; i < args.Count; i++)
+        {
+            if (IntrinsicArgumentRules.Violation(rule.Kind, args[i]) is not { } why) continue;
+
+            string where = $"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})";
+            if (ctx.Edition.Permissive)
+            {
+                ctx.Edition.Warning(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                    $"{where}; accepted under --permissive with the existing coercion");
+            }
+            else
+            {
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass.Id,
+                    $"{where}. --permissive accepts it as a coercion extension");
+            }
+        }
+    }
+
     private static bool IsStringOperand(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,
@@ -823,7 +876,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // LOWEST: sign-representable → −magnitude; else 0 (§15.58.4 / Annex D.32).
         return signable
             ? new BoundNumLiteral(Decimalize(unscaled, scale, negative: true))
-            : new BoundNumLiteral("0");
+            // Zero, but AT THE ITEM'S SCALE — routed through Decimalize rather than a bare "0" literal so the
+            // folded text carries the scale (a 9V99 item's lowest value is "0.00", not "0"), matching the runtime
+            // rule and keeping the literal's precision for any arithmetic it feeds.
+            : new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.Zero, scale, negative: false));
     }
 
     private BoundExpr AlgebraicArgError(IntrinsicSig sig)
@@ -840,11 +896,30 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Render an unscaled BigInteger at <paramref name="scale"/> fractional digits as a decimal literal
     /// string ('.' radix always — an internal C#-facing literal, never COBOL source, so DECIMAL-POINT IS COMMA
-    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.</summary>
+    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.
+    /// <para>
+    /// ⛔ DELEGATES to <see cref="CobolNet.Runtime.CobolNum.FormatFunctionText"/> — the SAME rule the RUNTIME uses
+    /// to render a computed intrinsic's value as text (DA2). These are the two halves of one job: this one folds a
+    /// constant-argument intrinsic to a literal at COMPILE time, that one renders a runtime-computed result, and a
+    /// COBOL programmer cannot tell which fired. Two hand-written copies of the rule is precisely the
+    /// two-mechanisms anti-pattern, and they HAD already drifted: this method early-returned <c>"0"</c> for a zero
+    /// magnitude and so DROPPED the scale, making <c>LOWEST-ALGEBRAIC</c> of an unsigned scaled item fold to
+    /// <c>"0"</c> where the runtime rule gives <c>"0.00"</c> — a literal at the wrong scale, which then feeds
+    /// subsequent arithmetic. Delegation removes the copy rather than syncing it.
+    /// </para>
+    /// <para>The BigInteger fallback survives only for a magnitude beyond <see cref="Int128"/>. Nothing here
+    /// currently produces one — the widest value is all-nines over 38 digit positions (10^38−1 &lt;
+    /// Int128.MaxValue) or a 128-bit COMP-5 container bound — but the parameter type permits it, so the path stays
+    /// rather than becoming an overflow waiting for a wider PICTURE.</para></summary>
     private static string Decimalize(System.Numerics.BigInteger unscaled, int scale, bool negative)
     {
-        if (unscaled == 0) return "0";
-        string s = System.Numerics.BigInteger.Abs(unscaled).ToString();
+        var mag = System.Numerics.BigInteger.Abs(unscaled);
+        if (mag <= (System.Numerics.BigInteger)Int128.MaxValue)
+        {
+            Int128 v = (Int128)mag;
+            return CobolNet.Runtime.CobolNum.FormatFunctionText(negative ? -v : v, scale);
+        }
+        string s = mag.ToString();
         string sign = negative ? "-" : "";
         if (scale <= 0) return sign + s + new string('0', -scale);          // S9PP: 99 @ −2 → "9900"; 1 @ −2 → "100"
         if (s.Length <= scale) s = s.PadLeft(scale + 1, '0');               // 1 @ 3 → "0001" → "0.001"
@@ -883,22 +958,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (a.fnArgPhraseWord() is { } kw)
             return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");   // a phrase word this function does not take
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
-        return OperandOf(host.Expr.BindExpr(a.arithmeticExpression()));
+        // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
+        // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
+        // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
+        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()));
     }
 
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
-    /// introduction-gate helpers every literal channel uses). HEXLIT stays loud (no §15 consumer).</summary>
-    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn)
-    {
-        // §8.8.3.3 GR3: a concatenation expression folds to the equivalent single literal — so e.g.
-        // FUNCTION LENGTH("AB" & "CD") sees one 4-character alphanumeric literal argument (§15.55).
-        if (nn.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
-        if (nn.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
-        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (nn.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
-        if (nn.BOOLLIT() is { } b) return host.Expr.BooleanLiteralOperand(b.GetText());
-        return new BoundOperandError($"literal argument '{nn.GetText()}'");
-    }
+    /// introduction-gate helpers every literal channel uses). HEXLIT decodes as the alphanumeric literal it is
+    /// (§8.3.3.2 Format 2) — DA3.</summary>
+    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn) =>
+        // Through the ONE literal mapping (ExpressionBinder.NonNumericLiteralOperand) — this used to be a second
+        // hand-maintained copy of the same chain, which is how the hexadecimal form came to be supported in some
+        // literal positions and not others (DA3). §8.8.3.3 GR3 concatenation folding and the §8.3.3.4/.5/.6.4
+        // decode + introduction gates all live there now.
+        host.Expr.NonNumericLiteralOperand(nn) ?? new BoundOperandError($"literal argument '{nn.GetText()}'");
 
     /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
     /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —

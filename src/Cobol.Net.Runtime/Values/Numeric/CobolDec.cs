@@ -243,6 +243,12 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>The value as a <see cref="double"/> (the float-context bridge, e.g. exponentiation).</summary>
     public double ToDouble() => (double)Sig * Math.Pow(10, Exp);
 
+    /// <summary>The text image of an SDIDI intermediate used as an intrinsic function's returned value in a
+    /// string context (DA2). An SDIDI carries its own exponent, so the fixed-point scale is <c>-Exp</c>; routing
+    /// through <see cref="CobolNum.FormatFunctionText"/> rather than formatting here keeps ONE rendering rule for
+    /// a function result, whichever arithmetic mode produced it (§8.8.1.5 vs native, ISO §15.4.1).</summary>
+    public string ToFunctionText(bool deSign = false) => CobolNum.FormatFunctionText(Sig, -Exp, deSign);
+
     // ── 34-digit rounding core ───────────────────────────────────────────────────────────────────────────────
 
     private static CobolDec Round34(Int128 sig, int exp, bool sticky, CobolRounding mode)

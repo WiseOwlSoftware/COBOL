@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -23,11 +24,10 @@ public sealed class NistDifferentialTests
     [MemberData(nameof(CorpusManifest.GreenData), MemberType = typeof(CorpusManifest))]
     public void NistProgram_MatchesGolden(string testName)
     {
-        string root = RepoRoot();
-        string goldenPath = Path.Combine(root, "tests", "nist", "valid", testName + ".txt");
+        string goldenPath = TestRepo.Nist("valid", testName + ".txt");
         Assert.True(File.Exists(goldenPath), $"golden not found: {goldenPath}");
 
-        var (ok, output, detail) = RunNist(root, testName);
+        var (ok, output, detail) = RunNist(testName);
         Assert.True(ok, detail);
         Assert.Equal(Normalize(File.ReadAllText(goldenPath)), output);
     }
@@ -51,13 +51,13 @@ public sealed class NistDifferentialTests
     /// chain predecessors first, when <c>chains.tsv</c> lists any — returning the program's output read from its
     /// print file (the CCVS report) — or stdout for a DISPLAY-only program — normalized to the NIST acceptance
     /// basis.</summary>
-    private static (bool ok, string output, string detail) RunNist(string root, string testName)
+    private static (bool ok, string output, string detail) RunNist(string testName)
     {
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Nist_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
         try
         {
-            string src = Path.Combine(root, "tests", "nist", "programs", testName + ".cob");
+            string src = TestRepo.Nist("programs", testName + ".cob");
             if (!File.Exists(src)) return (false, "", $"source not found: {src}");
             string dll = Path.Combine(dir, testName + ".dll");
 
@@ -73,13 +73,13 @@ public sealed class NistDifferentialTests
             if (chained)
                 foreach (string p in predecessors!)
                 {
-                    string pSrc = Path.Combine(root, "tests", "nist", "programs", p + ".cob");
+                    string pSrc = TestRepo.Nist("programs", p + ".cob");
                     string pDll = Path.Combine(dir, p + ".dll");
                     var pResult = CompilerDriver.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p,
                         DialectLevel: NistStd, Permissive: NistPermissive));
                     if (!pResult.Success)
                         return (false, "", $"[chain {p}] compile {pResult.Status}: {string.Join("\n", pResult.Errors)}");
-                    string pDat = Path.Combine(root, "tests", "nist", "data", p + ".dat");
+                    string pDat = TestRepo.Nist("data", p + ".dat");
                     var (pOk, _, pDetail) = CutRunner.Run(pDll, dir, File.Exists(pDat) ? pDat : null, env);
                     if (!pOk) return (false, "", $"[chain {p}] run exit non-zero: {pDetail}");
                 }
@@ -89,7 +89,7 @@ public sealed class NistDifferentialTests
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
-            string dat = Path.Combine(root, "tests", "nist", "data", testName + ".dat");
+            string dat = TestRepo.Nist("data", testName + ".dat");
             var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
             if (!runOk) return (false, "", $"[run] exit non-zero: {runDetail}");
 
@@ -114,13 +114,5 @@ public sealed class NistDifferentialTests
         var lines = s.ReplaceLineEndings("\n").Split('\n')
             .Select(line => System.Text.RegularExpressions.Regex.Replace(line.TrimEnd(' '), "COMPUTED=  [0-9]*", "COMPUTED=  XXXXXXXXX"));
         return string.Join("\n", lines).TrimEnd('\n');
-    }
-
-    /// <summary>Walk up from the test assembly to the repository root (the directory holding <c>tests/nist</c>).</summary>
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "nist"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/nist) not found");
     }
 }

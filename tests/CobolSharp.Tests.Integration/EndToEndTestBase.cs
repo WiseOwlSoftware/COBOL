@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CobolNet.Tests.Shared;
 using CobolSharp.Compiler;
 using Xunit;
 
@@ -89,10 +90,7 @@ public class EndToEndTestBase : IDisposable
     protected (bool success, string stdout, string stderr) CompileNistAndRun(
         string testName, Dictionary<string, string>? envVars = null)
     {
-        string nistDir = Path.GetFullPath(Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
-            "tests", "nist", "programs"));
-        string sourcePath = Path.Combine(nistDir, testName + ".cob");
+        string sourcePath = TestRepo.Nist("programs", testName + ".cob");
         string outputPath = Path.Combine(_tempDir, testName + ".dll");
 
         var compilation = new Compilation { NistTestName = testName };
@@ -148,10 +146,7 @@ public class EndToEndTestBase : IDisposable
     protected IReadOnlyList<string> CompileNistDiagnostics(
         string testName, CobolSharp.Compiler.Semantics.DialectMode dialect)
     {
-        string nistDir = Path.GetFullPath(Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
-            "tests", "nist", "programs"));
-        string sourcePath = Path.Combine(nistDir, testName + ".cob");
+        string sourcePath = TestRepo.Nist("programs", testName + ".cob");
         string outputPath = Path.Combine(_tempDir, testName + ".dll");
 
         var compilation = new Compilation();

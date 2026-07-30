@@ -13,15 +13,15 @@ internal sealed class _PRG_CHAR_INITIALIZE : ICobolProgram
     {
         public long WS_N;   // WS-N
         public string WS_A;   // WS-A
-        public readonly string AsImage() => CobolNum.FormatDisplay(WS_N, _P_1) + WS_A;
+        public readonly string AsImage() => CobolNum.FormatImage(WS_N, _P_1) + WS_A;
         public void FromImage(string __s)
         {
             __s = CobolString.Store(__s, 7);
-            WS_N = (long)CobolNum.ParseDisplay(__s.Substring(0, 3), _P_1);
+            WS_N = (long)CobolNum.ParseImage(__s.Substring(0, 3), _P_1);
             WS_A = __s.Substring(3, 4);
         }
     }
-    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
+    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private _T_0 WS_REC = new _T_0 { WS_N = 999L, WS_A = CobolString.Store("ZZZZ", 4) };   // WS-REC
 
     public void Call(CobolArg[] __args, ManagedPointer? __ret)

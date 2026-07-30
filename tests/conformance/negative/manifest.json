@@ -1,6 +1,12 @@
 {
   "_comment": "The NEGATIVE corpus (must-REJECT programs; VERSION_TEST_MATRIX_DESIGN P2.8/Phase-2): each enabled entry is <name>.cob + <name>.err (the expected diagnostic substring, e.g. an edition-band code) + an \"editions\" map naming the --std values that must reject. Seeding: >=1 case per Wave-1 gate + the reserved-word interval witnesses (roadmap Phase 2 W2). The matrix reject cells already pin gate diagnostics; THIS corpus holds the free-form adversarial cases.",
   "enabled": [
+    "da6-refmod-numeric-operand",
+    "da6-alphanumeric-numeric-operand",
+    "da6-group-numeric-operand",
+    "da7-unstring-into-binary",
+    "da7-string-into-binary",
+    "da7-inspect-binary-operand",
     "max_national_result_to_an",
     "reverse_national_result_to_an",
     "numedit_digits_over18_at85",
@@ -124,7 +130,13 @@
     "ref-mod-zero-length-malformed",
     "ec-external-turn-below-2023",
     "external-constant-record-weak-type-at-2023",
-    "user-word-validate"
+    "user-word-validate",
+    "pb1-numeric-arg-alphanumeric",
+    "pb1-string-arg-numeric",
+    "pb1-numeric-arg-numeric-edited",
+    "pb1-numeric-arg2-alphanumeric",
+    "pb1-numeric-arg-family",
+    "pb6-call-by-value-alphanumeric"
   ],
   "pending": []
 }

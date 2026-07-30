@@ -42,7 +42,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && raw.StartsWith('"'))
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && vals.FigurativeInitializer(raw, pic) is null)
-                return RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(raw, pic.Scale), item.ProfileName);
+                return RuntimeApi.NumFormatImage(EmitText.UnscaledAtScale(raw, pic.Scale), item.ProfileName);
             // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6).
             if (pic.Category is PicCategory.NumericEdited && !raw.StartsWith('"')
                 && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
@@ -58,7 +58,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
         }
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
-            ? RuntimeApi.NumFormatDisplay("0L", item.ProfileName)
+            ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
             : pic.Category is PicCategory.Boolean
                 ? $"new string('0', {pic.Length})"   // boolean initial state — zeros (§13.18.63)
                 : $"new string(' ', {pic.Length})";
@@ -81,25 +81,30 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
-    /// <c>AsImage()</c>, a NATIVE fixed-point leaf its zoned digit image (<c>CobolNum.FormatDisplay</c> with the
-    /// leaf's image profile — fixed <c>Pic.Digits</c> width, trailing-overpunch sign for binary/packed), or — for a
-    /// fixed-OCCURS table — the concatenation of every occurrence's image (ISO §14.9: a group move treats the whole
-    /// group, INCLUDING every OCCURS position, as one alphanumeric item).</summary>
+    /// <c>AsImage()</c>, a NATIVE fixed-point leaf the BYTES it occupies (<c>CobolNum.FormatImage</c> with the
+    /// leaf's own profile — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED,
+    /// §13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
+    /// (ISO §14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
+    /// item).</summary>
     private static string AsImageOf(PhysicalModel.Physical f) =>
         f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
-               : f.NumLeaf is { } leaf ? RuntimeApi.NumFormatDisplay(f.Name, ImageProfileOf(leaf))
+               : f.NumLeaf is { } leaf ? RuntimeApi.NumFormatImage(f.Name, leaf.ProfileName)
                : f.Name)
         : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
-        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.NumFormatDisplay("__e", ImageProfileOf(l))}))"
+        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.NumFormatImage("__e", l.ProfileName)}))"
         : $"string.Concat({f.Name})";
 
     /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar string field
-    /// gets its substring; a nested group gets <c>FromImage</c>; a NATIVE fixed-point leaf decodes its zoned slice
-    /// (<c>CobolNum.ParseDisplay</c> with the image profile, cast to the leaf's CLR storage type — non-digit
-    /// positions, e.g. the spaces a short record's pad legitimately deposits, decode deterministically per ISO
+    /// gets its substring; a nested group gets <c>FromImage</c>; a NATIVE fixed-point leaf decodes its byte slice
+    /// (<c>CobolNum.ParseImage</c> with the leaf's own profile, cast to its CLR storage type — an incompatible
+    /// position, e.g. the spaces a short record's pad legitimately deposits, decodes deterministically per ISO
     /// §14.6.13.2, see CobolNum); a fixed-OCCURS table loops its occurrences, each taking its per-occurrence width
-    /// in source order (the array elements are value-type structs/strings, mutated in place).</summary>
+    /// in source order (the array elements are value-type structs/strings, mutated in place).
+    /// <para>ONE profile, never an image-specific override: since the image IS the item's bytes, a BINARY/PACKED
+    /// leaf's sign lives in those bytes (two's complement / the sign nibble) and its <c>SignKind</c> — a DISPLAY
+    /// concern — is not consulted at all. The former <c>ImageProfileOf</c> sign rewrite existed only because the
+    /// image was a zoned digit run that had to carry a fixed-width sign.</para></summary>
     private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w)
     {
         if (f.Occurs == 0)
@@ -107,7 +112,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
                 : f.NumLeaf is { } leaf
-                ? $"{f.Name} = ({leaf.Pic!.ClrType}){RuntimeApi.NumParseDisplay($"__s.Substring({off}, {f.Width})", ImageProfileOf(leaf))};"
+                ? $"{f.Name} = ({leaf.Pic!.ClrType}){RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName)};"
                 : $"{f.Name} = __s.Substring({off}, {f.Width});");
             return;
         }
@@ -116,24 +121,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
                 : f.NumLeaf is { } l
-                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){RuntimeApi.NumParseDisplay($"__s.Substring({off} + __i * {elem}, {elem})", ImageProfileOf(l))};"
+                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName)};"
                 : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
     }
-
-    /// <summary>The C# <c>NumProfile</c> expression a native fixed-point leaf's IMAGE encodes/decodes with: the
-    /// leaf's own <c>_P_</c> profile when its stored sign form IS its image form (every DISPLAY leaf), else the
-    /// profile with the sign overridden to the image convention (a signed BINARY/PACKED leaf: its stored profile
-    /// says <c>BinaryMinus</c> — a VARIABLE-width DISPLAY-statement form no fixed record window can carry — so its
-    /// image carries a trailing overpunch instead, <see cref="PicInfo.ImageSignKind"/>; ISO §13.18.60 USAGE GR4
-    /// makes the representation, including the sign, implementor-defined). The leaf's own profile is UNTOUCHED —
-    /// DISPLAY-statement output (a leading minus, locked golden behavior) still formats through <c>_P_</c>.
-    /// <c>NumProfile</c> is a readonly record struct, so the <c>with</c> copy is cheap and allocation-free.</summary>
-    private static string ImageProfileOf(DataItem leaf)
-    {
-        var pic = leaf.Pic!;
-        return pic.ImageSignKind == pic.SignKind
-            ? leaf.ProfileName
-            : $"({leaf.ProfileName} with {{ SignKind = NumericSign.{pic.ImageSignKind} }})";
-    }
-
 }

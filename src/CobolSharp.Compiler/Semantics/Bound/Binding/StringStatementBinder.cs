@@ -339,13 +339,18 @@ internal sealed class StringStatementBinder
         var sendings = new List<BoundStringSending>();
         foreach (var phrase in ctx.stringSendingPhrase())
         {
-            // Grammar: (identifier | literal | figurativeConstant) delimitedByPhrase?
+            // Grammar: strUnstrOperand delimitedByPhrase?  — the operand alternatives now live in ONE named rule
+            // (strUnstrOperand -> strUnstrSender | literal | figurativeConstant), so reach them through it. A
+            // function-identifier sender (DA4) is greenfield-only: it lands on none of these arms and skips, which
+            // is this binder's existing posture for any shape it does not implement. Legacy survives only as the
+            // P15 differential oracle.
+            var sendOp = phrase.strUnstrOperand();
             BoundExpression value;
-            if (phrase.dataReference() is { } valId)
+            if (sendOp?.strUnstrSender()?.dataReference() is { } valId)
                 value = _ctx.Expression.BindDataReferenceWithSubscripts(valId);
-            else if (phrase.literal() is { } valLit)
+            else if (sendOp?.literal() is { } valLit)
                 value = _ctx.Expression.BindLiteral(valLit);
-            else if (phrase.figurativeConstant() is { } valFig)
+            else if (sendOp?.figurativeConstant() is { } valFig)
                 value = _ctx.Expression.BindFigurativeConstantExpression(valFig);
             else
                 continue;
@@ -359,15 +364,15 @@ internal sealed class StringStatementBinder
                 {
                     delimitedBySize = true;
                 }
-                else if (delim.dataReference() is { } delimId)
+                else if (delim.strUnstrOperand()?.strUnstrSender()?.dataReference() is { } delimId)
                 {
                     delimiter = _ctx.Expression.BindDataReferenceWithSubscripts(delimId);
                 }
-                else if (delim.literal() is { } delimLit)
+                else if (delim.strUnstrOperand()?.literal() is { } delimLit)
                 {
                     delimiter = _ctx.Expression.BindLiteral(delimLit);
                 }
-                else if (delim.figurativeConstant() is { } delimFig)
+                else if (delim.strUnstrOperand()?.figurativeConstant() is { } delimFig)
                 {
                     delimiter = _ctx.Expression.BindFigurativeConstantExpression(delimFig);
                 }
@@ -436,8 +441,11 @@ internal sealed class StringStatementBinder
 
     internal BoundStatement? BindUnstring(CobolParserCore.UnstringStatementContext ctx)
     {
-        // Source identifier
-        var sourceExpr = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
+        // Source identifier — reached through the named strUnstrSender rule (functionCall | dataReference). A
+        // function-identifier source is greenfield-only (DA4); legacy binds the data-reference arm as before and
+        // survives only as the P15 differential oracle.
+        if (ctx.strUnstrSender()?.dataReference() is not { } srcRef) return null;
+        var sourceExpr = _ctx.Expression.BindDataReferenceWithSubscripts(srcRef);
 
         // DELIMITED BY phrase (optional) — supports OR-separated delimiters
         var delimiterItems = new List<(BoundExpression Expr, bool IsAll)>();
@@ -447,12 +455,15 @@ internal sealed class StringStatementBinder
             {
                 bool itemAll = item.ALL() != null;
                 BoundExpression itemExpr;
-                if (item.dataReference() is { } delimId)
+                var delimOp = item.strUnstrOperand();
+                if (delimOp?.strUnstrSender()?.dataReference() is { } delimId)
                     itemExpr = _ctx.Expression.BindDataReferenceWithSubscripts(delimId);
-                else if (item.literal() is { } delimLit)
+                else if (delimOp?.literal() is { } delimLit)
                     itemExpr = _ctx.Expression.BindLiteral(delimLit);
+                else if (delimOp?.figurativeConstant() is { } delimFig)
+                    itemExpr = _ctx.Expression.BindFigurativeConstantExpression(delimFig);
                 else
-                    itemExpr = _ctx.Expression.BindFigurativeConstantExpression(item.figurativeConstant());
+                    continue;   // a shape legacy does not implement (e.g. DA4's function-identifier) — skip, as before
                 delimiterItems.Add((itemExpr, itemAll));
             }
         }

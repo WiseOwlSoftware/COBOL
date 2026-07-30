@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -37,14 +38,13 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         var hasPhrase = new bool[n];
         for (int i = 0; i < n; i++)
         {
-            values[i] = StrUnstrOperand(
-                phrases[i].dataReference(), phrases[i].literal(), phrases[i].figurativeConstant(), "STRING sending operand");
+            values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
             if (values[i] is BoundAllLiteral)   // SR2 — literal-1 shall not be an ALL figurative
                 values[i] = new BoundOperandError("STRING sending ALL literal (ISO §14.9.43.3 SR2)");
             if (phrases[i].delimitedByPhrase() is not { } dp) continue;
             hasPhrase[i] = true;
             if (dp.SIZE() is not null) { bySize[i] = true; continue; }
-            var d = StrUnstrOperand(dp.dataReference(), dp.literal(), dp.figurativeConstant(), "STRING delimiter");
+            var d = StrUnstrOperand(dp.strUnstrOperand(), "STRING delimiter");
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
             if (dp.ALL() is not null || d is BoundAllLiteral)
                 d = new BoundOperandError("STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
@@ -65,6 +65,23 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (into.Item.Pic is { Category: PicCategory.NumericEdited }
             or { Category: PicCategory.Alphanumeric, EditMask: not null })
             return new BoundUnsupported("STRING INTO an edited receiver (ISO §14.9.43.3 SR5)");
+        // ⛔ DA7 — SR1 at BIND time. This check previously existed ONLY in StringEmitter as a run-time loud stage,
+        // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. SR1: "all identifiers,
+        // except identifier-4, shall be described implicitly or explicitly as usage display or national" —
+        // identifier-4 is the POINTER, so the INTO receiver is covered. A GROUP receiver is EXEMPT: usage is an
+        // elementary property, and §14.9.43.4 GR3a defines the transfer into identifier-3 "in accordance with the
+        // MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group — including one holding
+        // a BINARY/PACKED leaf (V59). Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.
+        if (!into.Item.IsGroup && into is not RefModPlace && !into.Item.StoreAsImage
+            && into.Item.Pic is { } ip && ip.Usage is not (Usage.Display or Usage.National))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                $"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}' is an elementary item of USAGE "
+                + $"{ip.Usage}, which has no character image; SR1 requires every identifier except the POINTER to be "
+                + "usage display or national (ISO §14.9.43.3 SR1)");
+            return new BoundUnsupported(
+                $"STRING INTO receiver of USAGE {ip.Usage} (ISO §14.9.43.3 SR1 — usage display or national only)");
+        }
 
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
@@ -89,15 +106,18 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// here, so the binder reads it as the UNSTRING ALL phrase over the plain literal.</summary>
     public BoundStatement BindUnstring(Core.UnstringStatementContext un)
     {
-        if (ctx.Refs.Resolve(un.dataReference()) is not { } source)
-            return new BoundUnsupported($"UNSTRING source '{un.dataReference().GetText()}'");
+        // DA4: the sender is an identifier, so it may be a function-identifier (§14.9.48.2 + §8.4.3.1.2 Format 1).
+        string senderText = un.strUnstrSender().GetText();
+        var source = StrUnstrSender(un.strUnstrSender(), $"UNSTRING source '{senderText}'");
+        if (source is BoundOperandError) return new BoundUnsupported($"UNSTRING source '{senderText}'");
         // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
         // reference-modified slice are alphanumeric-image senders and remain permitted). A numeric item — INCLUDING
         // usage DISPLAY, whose zoned image would otherwise be examined as characters — a numeric-edited item, or a
-        // boolean item is not a permitted sender.
-        if (source.Item.Pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean })
+        // boolean item is not a permitted sender. The screen reads the CATEGORY off whichever shape arrived: a
+        // field's PICTURE, or an intrinsic's §15.2 result category.
+        if (UnstringSenderCategory(source) is { } badCat)
             return new BoundUnsupported(
-                $"UNSTRING sender '{un.dataReference().GetText()}' is category {source.Item.Pic.Category} " +
+                $"UNSTRING sender '{senderText}' is category {badCat} " +
                 "(category alphanumeric or national required, ISO §14.9.48.3 SR2)");
 
         var delims = new List<BoundUnstringDelimiter>();
@@ -105,7 +125,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             foreach (var item in dp.unstringDelimiterItem())
             {
                 bool all = item.ALL() is not null;
-                var v = StrUnstrOperand(item.dataReference(), item.literal(), item.figurativeConstant(), "UNSTRING delimiter");
+                var v = StrUnstrOperand(item.strUnstrOperand(), "UNSTRING delimiter");
                 if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal); all = true; }
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
@@ -121,11 +141,21 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // national + category national/numeric). A fixed-length group (SR10) and a reference-modified slice
                 // are alphanumeric-image receivers and are exempt; edited, COMP/packed/COMP-5, index, and float
                 // receivers are not permitted.
+                // ⛔ DA7: a COMPILE-TIME diagnostic. The verdict was already correct and already computed HERE,
+                // but returning only BoundUnsupported let the illegal program compile clean and throw when control
+                // reached the UNSTRING. Groups stay exempt — §14.9.43.4 GR3a's alphanumeric-MOVE semantics carry a
+                // group receiver, including one holding a BINARY/PACKED leaf (V59).
                 if (target is not RefModPlace && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                        $"UNSTRING INTO '{drefs[0].GetText()}' requires a usage-display alphabetic/alphanumeric/"
+                        + "numeric or usage-national national/numeric receiver; edited, COMP, packed, index and "
+                        + "float receivers have no character image (ISO §14.9.48.3 SR4)");
                     return new BoundUnsupported(
                         $"UNSTRING INTO '{drefs[0].GetText()}' — a usage-display alphabetic/alphanumeric/numeric or " +
                         "usage-national national/numeric receiver is required; edited, COMP, packed, index, and float " +
                         "receivers are not permitted (ISO §14.9.48.3 SR4)");
+                }
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
                     return new BoundUnsupported("UNSTRING DELIMITER IN / COUNT IN without DELIMITED BY (ISO §14.9.48.3 SR7)");
@@ -174,15 +204,51 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         return new BoundUnstringStmt(source, delims, receivers, pointer, tallying, onOvf, notOvf);
     }
 
-    /// <summary>Bind a STRING/UNSTRING operand position (exactly one of a data reference, a literal, or a
-    /// figurative constant per the grammar). A figurative word is the implicit ONE-character item (STRING GR2 /
-    /// UNSTRING GR7); the callers screen the ALL-literal figurative per their SRs.</summary>
-    private BoundOperand StrUnstrOperand(
-        Core.DataReferenceContext? dref, Core.LiteralContext? lit, Core.FigurativeConstantContext? fig, string role)
-        => dref is not null ? host.Expr.FieldOperand(dref)
-        : lit is not null ? host.Expr.LiteralOperand(lit)
-        : fig is not null ? ExpressionBinder.FigurativeOperand(fig)
+    /// <summary>Bind a STRING/UNSTRING SENDING operand position (exactly one of a function-identifier, a data
+    /// reference, a literal, or a figurative constant per the grammar). A figurative word is the implicit
+    /// ONE-character item (STRING GR2 / UNSTRING GR7); the callers screen the ALL-literal figurative per their SRs.
+    /// <para>
+    /// ⛔ DA4 — the function-identifier arm. §14.9.43.2 and §14.9.48.2 write these operands as identifier-N, and
+    /// §8.4.3.1.2 Format 1 makes <c>function-identifier-1</c> a FORMAT of an identifier, so a function is
+    /// admissible in every one of them; §8.4.3.2.3 SR1 excludes it only from a RECEIVING operand, which is why the
+    /// INTO phrases do not route through here. Before this, <c>STRING FUNCTION ORD(C) DELIMITED BY SIZE INTO A</c>
+    /// did not even PARSE ("no viable alternative at input 'FUNCTION'"), so DA2's string-context renderer could
+    /// never be reached — the rejection happened a whole stage earlier.
+    /// </para>
+    /// <para>ONE helper serves all four sending positions (STRING identifier-1 and identifier-2, UNSTRING
+    /// identifier-1 and the DELIMITED BY … OR … items), so this arm is written once rather than four times. The
+    /// grammar names the two shapes — <c>strUnstrOperand</c> (identifier or literal) and its strict subset
+    /// <c>strUnstrSender</c> (identifier only) — so this takes ONE context parameter rather than a row of
+    /// mutually-exclusive nullable ones that a caller could transpose.</para>
+    /// </summary>
+    private BoundOperand StrUnstrOperand(Core.StrUnstrOperandContext? op, string role)
+        => op is null ? new BoundOperandError(role)
+        : op.strUnstrSender() is { } snd ? StrUnstrSender(snd, role)
+        : op.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+        : op.figurativeConstant() is { } fig ? ExpressionBinder.FigurativeOperand(fig)
         : new BoundOperandError(role);
+
+    /// <summary>Bind the narrower SENDER shape — an identifier only (a function-identifier or a data reference),
+    /// no literal. This is what §14.9.48.2's `UNSTRING identifier-1` admits, and
+    /// <see cref="StrUnstrOperand"/> delegates its two identifier arms here so the shapes cannot drift apart.</summary>
+    private BoundOperand StrUnstrSender(Core.StrUnstrSenderContext? snd, string role)
+        => snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
+        : snd?.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
+        : new BoundOperandError(role);
+
+    /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender, or <see langword="null"/> when
+    /// it is a permitted one. Reads the category off whichever operand shape the sender is: a FIELD's PICTURE
+    /// (a group has none and is an alphanumeric-image sender, so it passes), or a numeric/boolean intrinsic's
+    /// §15.2 RESULT category. A string-class function (UPPER-CASE, TRIM, SUBSTITUTE …) is a permitted sender;
+    /// FUNCTION ORD or a boolean function is not, for exactly the reason a numeric ITEM is not.</summary>
+    private static PicCategory? UnstringSenderCategory(BoundOperand source) => source switch
+    {
+        BoundFieldOperand f when f.Place.Item.Pic is
+            { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean } pic => pic.Category,
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } when ic.ResultCategory is
+            PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean => ic.ResultCategory,
+        _ => null,
+    };
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /
     /// UNSTRING SR5–SR6 require of the POINTER / COUNT IN / TALLYING items (a V or P picture yields a non-zero

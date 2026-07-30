@@ -86,9 +86,22 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         if (p.Item.IsGroup)
         {
             if (p is RedefViewPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
-            if (!p.Item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!p.Item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "INSPECT REPLACING/CONVERTING into group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "INSPECT REPLACING/CONVERTING into group")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(p)}.FromImage({img});");
@@ -116,8 +129,8 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
                 string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
                 w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
-                w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatDisplay(
-                    $"{RuntimeApi.NumParseDisplay(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
+                w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
+                    $"{RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
                 return;
             }
         }

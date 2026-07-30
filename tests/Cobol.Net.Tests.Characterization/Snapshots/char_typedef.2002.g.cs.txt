@@ -13,16 +13,16 @@ internal sealed class _PRG_CHAR_TYPEDEF : ICobolProgram
     {
         public long PX;   // PX
         public long PY;   // PY
-        public readonly string AsImage() => CobolNum.FormatDisplay(PX, _P_4) + CobolNum.FormatDisplay(PY, _P_5);
+        public readonly string AsImage() => CobolNum.FormatImage(PX, _P_4) + CobolNum.FormatImage(PY, _P_5);
         public void FromImage(string __s)
         {
             __s = CobolString.Store(__s, 6);
-            PX = (long)CobolNum.ParseDisplay(__s.Substring(0, 3), _P_4);
-            PY = (long)CobolNum.ParseDisplay(__s.Substring(3, 3), _P_5);
+            PX = (long)CobolNum.ParseImage(__s.Substring(0, 3), _P_4);
+            PY = (long)CobolNum.ParseImage(__s.Substring(3, 3), _P_5);
         }
     }
-    internal static readonly NumProfile _P_4 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
-    internal static readonly NumProfile _P_5 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
+    internal static readonly NumProfile _P_4 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_5 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private _T_3 P1 = new _T_3 { PX = 0L, PY = 0L };   // P1
 
     public void Call(CobolArg[] __args, ManagedPointer? __ret)

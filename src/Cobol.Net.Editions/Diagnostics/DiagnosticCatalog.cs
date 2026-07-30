@@ -532,6 +532,60 @@ public static class DiagnosticCatalog
         + "negative literal seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
         + "than silently mis-stored as an out-of-range native value.",
         "ISO §13.18.63.3 SR2/SR3");
+    // 1626 — the character-operand USAGE syntax rules of INSPECT / STRING / UNSTRING (DA7). These constructs were
+    // already REJECTED correctly; the defect was the STAGE. Each violation was reported as a run-time
+    // NotImplementedCobolFeatureException, so an illegal program compiled clean and then crashed when control
+    // reached the statement — where the standard promises a compile-time error. Edition-invariant: all three rules
+    // are present unchanged at 85/2002/2014/2023, so this is NOT edition-gated and needs no introduction axis.
+    public static readonly DiagnosticDescriptor CharacterOperandUsage = new(
+        "COBOLNET1626", "character-operand-usage", EditionSeverity.Error,
+        "An INSPECT, STRING or UNSTRING operand that must be a character item is not one. INSPECT identifier-1 "
+        + "shall be an alphanumeric/national GROUP item or an ELEMENTARY item of usage display or national "
+        + "(§14.9.22.3 SR1 — note the rule admits a group outright and constrains only an elementary operand); "
+        + "STRING's identifiers other than the POINTER shall be usage display or national (§14.9.43.3 SR1); and "
+        + "UNSTRING's INTO receiver shall be usage display with category alphabetic/alphanumeric/numeric, or usage "
+        + "national with category national/numeric (§14.9.48.3 SR4). A binary, packed, float, index or pointer "
+        + "ELEMENTARY operand has no character image and is rejected at bind time. ⛔ A GROUP receiver is NOT "
+        + "rejected: §14.9.43.4 GR3a transfers into STRING's receiver \"in accordance with the MOVE statement rules "
+        + "for alphanumeric-to-alphanumeric moves\", so a group takes whatever an alphanumeric MOVE may deposit, "
+        + "including a group holding a BINARY/PACKED leaf (V59 gave those leaves a byte image).",
+        "ISO §14.9.22.3 SR1 / §14.9.43.3 SR1 / §14.9.48.3 SR4");
+    // 1627 — the ISO §15.3 intrinsic ARGUMENT-CLASS screen (fix-queue PB1). IntrinsicCatalog declared an
+    // ArgKinds class code on all 79 rows and IntrinsicSig.ArgKind had ZERO callers, so no §15 argument rule was
+    // enforced from the table built for it: FUNCTION REVERSE(<PIC 9(4)>) and FUNCTION ABS(<PIC X(4)>) both
+    // compiled clean and produced garbage. Edition-invariant — §15.3's argument types are unchanged across
+    // 85/2002/2014/2023 — so this is NOT edition-gated and needs no introduction axis. The --permissive leniency
+    // mirrors DA6/COBOLNET0844, which settled the sibling §8.8.1.1 question for ARITHMETIC operands; one
+    // mechanism for one question.
+    public static readonly DiagnosticDescriptor IntrinsicArgumentClass = new(
+        "COBOLNET1627", "intrinsic-argument-class", EditionSeverity.Error,
+        "An intrinsic-function argument is not of the class its argument rule requires. ISO §15.3 defines the "
+        + "argument types: type 10 Numeric admits \"an arithmetic expression or a numeric data item\", type 6 "
+        + "Integer admits an integer-valued arithmetic expression or an integer data item, and types 1/2/9 admit "
+        + "the alphabetic/alphanumeric/national family (a strongly-typed group item counting as alphanumeric). "
+        + "The MAX/MIN/ORD-MAX/ORD-MIN family instead carries a NEGATIVE rule — §15.71.3 r1 and siblings exclude "
+        + "class boolean, message-tag, object and pointer. ⛔ CLASS, not category: §8.5.2.1 Table 2 puts "
+        + "NUMERIC-EDITED under class ALPHANUMERIC when its usage is display, so PIC ZZ9.99 is not a legal "
+        + "numeric argument however numeric it looks. An operand whose class is not statically decidable is "
+        + "never rejected. --permissive downgrades this to a warning and proceeds with the existing coercion.",
+        "ISO §15.3 / §8.5.2.1 Table 2 / §4.2.2 para 3 (which leaves the determination to the implementor)");
+    // 1628 — CALL … USING BY VALUE operand class (ISO §14.9.4.3 SR22). Surfaced by the pre-merge GnuCOBOL
+    // differential: two AGREE_ACCEPT→WE_REJECT flips traced to DA6's §8.8.1.1 arithmetic screen firing on a BY
+    // VALUE operand, because the grammar production is named arithmeticExpression and the binder took that at
+    // its word. The VERDICT was right — SR22 does exclude an alphanumeric operand — but COBOLNET0844 quoted a
+    // rule about arithmetic expressions at a programmer who had broken a CALL rule. Edition-invariant in
+    // SUBSTANCE, but BY VALUE itself is a COBOL-2002 introduction, so it is unreachable below --std 2002 and
+    // needs no separate introduction axis of its own.
+    public static readonly DiagnosticDescriptor CallByValueOperandClass = new(
+        "COBOLNET1628", "call-by-value-operand-class", EditionSeverity.Error,
+        "A CALL … USING BY VALUE operand is not of a class the standard permits to be passed by value. ISO "
+        + "§14.9.4.3 SR22: \"If identifier-4 or its corresponding formal parameter is specified with a BY VALUE "
+        + "phrase, identifier-4 shall be of class numeric, object, or pointer.\" An alphanumeric, national or "
+        + "boolean operand is therefore rejected — GnuCOBOL accepts one as an extension, assuming BY CONTENT, "
+        + "which is a different passing mode and not what the source asked for. --permissive accepts it with a "
+        + "warning. ⛔ CLASS, not category (§8.5.2.1 Table 2): a numeric-edited item is class ALPHANUMERIC when "
+        + "its usage is display, so it is excluded however numeric it looks.",
+        "ISO §14.9.4.3 SR22 / §8.5.2.1 Table 2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

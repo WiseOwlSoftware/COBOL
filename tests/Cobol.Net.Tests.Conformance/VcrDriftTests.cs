@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -23,13 +24,13 @@ public sealed class VcrDriftTests
     private const string Start = "<!-- GEN:VCR-STATUS START -->";
     private const string End = "<!-- GEN:VCR-STATUS END -->";
 
-    private static string VcrPath => Path.Combine(EditionHarness.RepoRoot(), "docs", "VERSION_CHANGE_REFERENCE.md");
+    private static string VcrPath => TestRepo.Docs("VERSION_CHANGE_REFERENCE.md");
 
     private sealed record Con(string Id, int IntroducedIn, int? RemovedIn, int? ObsoleteIn, string DiagnosticCode, string Status);
 
     private static Dictionary<string, Con> LoadConstructs()
     {
-        string p = Path.Combine(EditionHarness.RepoRoot(), "tests", "version-matrix", "constructs.json");
+        string p = TestRepo.VersionMatrix("constructs.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(p));
         var d = new Dictionary<string, Con>(StringComparer.Ordinal);
         foreach (var e in doc.RootElement.GetProperty("constructs").EnumerateArray())
@@ -126,7 +127,7 @@ public sealed class VcrDriftTests
     /// <summary>⛔ A LINE NUMBER IS NOT A CITATION — `@27372` and friends must never come back.</summary>
     private static readonly Regex LineRefRx = new(@"@[0-9]{3,6}(\s*[-–]\s*[0-9]{3,6})?", RegexOptions.Compiled);
 
-    private static string SpecPath => Path.Combine(EditionHarness.RepoRoot(), "specs", "ISO_COBOL.md");
+    private static string SpecPath => TestRepo.Specs("ISO_COBOL.md");
 
     /// <summary>Compare on words only — dashes, quotes, emphasis and spacing are typography, not content.</summary>
     private static string NormalizeForCitation(string s) =>

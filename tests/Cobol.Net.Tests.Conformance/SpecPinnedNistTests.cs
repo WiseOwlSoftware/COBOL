@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -22,8 +23,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC236A_SearchVaryingOtherTableIndex_ExecutesAllTests()
     {
-        string root = RepoRoot();
-        string src = Path.Combine(root, "tests", "nist", "programs", "NC236A.cob");
+        string src = TestRepo.Nist("programs", "NC236A.cob");
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
         try
@@ -51,8 +51,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC235A_SearchAllConditionNameOverOdo_ExecutesAllTests()
     {
-        string root = RepoRoot();
-        string src = Path.Combine(root, "tests", "nist", "programs", "NC235A.cob");
+        string src = TestRepo.Nist("programs", "NC235A.cob");
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
         try
@@ -70,12 +69,5 @@ public sealed class SpecPinnedNistTests
             Assert.DoesNotContain("TEST DELETED", output);
         }
         finally { CutRunner.TryDelete(dir); }
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "nist"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/nist) not found");
     }
 }

@@ -1,0 +1,142 @@
+{
+  "$comment": [
+    "THE schema for the P14 Step-0 spec-traceability inventory — the single place the verdict vocabulary and the",
+    "per-verdict evidence requirements are written down. Three consumers read THIS file rather than carrying their",
+    "own copy: scripts/spec/build_inventory.py (which derives each row's GAP/OK state), ",
+    "scripts/spec/record_verdicts.py (which validates an incoming batch before merging it), and the C# battery gate",
+    "SpecTraceabilityInventoryDriftTests (which enforces referential integrity against the working tree).",
+    "",
+    "It is DATA, not code, for the reason CLAUDE.md rule 5 gives: a hand-maintained list in three languages drifts,",
+    "and the DA wave's lesson (feedback_one_rule_one_place) was that every symptom traced back to one rule written",
+    "down more than once. Adding a verdict here is the whole change.",
+    "",
+    "Definition of DONE per docs/rearchitecture/DESIGN-spec-conformance-review.md section 1: every normative rule has",
+    "(a) a located implementation OR a recorded owner documented-non-support decision, (b) a verdict verified against",
+    "the spec TEXT, and (c) a spec-derived test. A row is OK only when all three hold; everything else is a GAP, and",
+    "the GAP count is the v1.0 burn-down metric (owner decision D13: zero GAP = P14 DONE)."
+  ],
+
+  "$verdict-vs-state": [
+    "⛔ 'requires' IS NOT THE SAME QUESTION AS 'does this row close'. `requires` lists the evidence a RECORD must",
+    "carry to be well-formed — the evidence for the VERDICT itself. Closing the row additionally needs a",
+    "spec-derived covering test (see test-ref below). Keeping them apart is what makes CONFORMS-but-untested",
+    "expressible, and DESIGN-spec-conformance-review.md §3 Phase C names that category outright: 'CONFORMS-but-",
+    "untested → write the spec-derived golden (so coverage is DURABLE, not merely asserted)'.",
+    "It is a genuinely useful state — the rule is verified, and the row is one golden away from done — and",
+    "collapsing it into either CONFORMS-and-closed or PARTIAL would lose that. The first Phase-B batch produced",
+    "seven of them on its first run."
+  ],
+
+  "verdicts": {
+    "CONFORMS": {
+      "resolves": true,
+      "requires": ["code-location"],
+      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP."
+    },
+    "DOCUMENTED-NON-SUPPORT": {
+      "resolves": true,
+      "requires": ["notes"],
+      "meaning": "An OWNER decision (never an agent's) that an optional module is not supported, per ISO 4.2.16. The notes field carries the decision reference; closing still needs a test proving we diagnose rather than silently miscompile."
+    },
+    "DIVERGES": {
+      "resolves": false,
+      "requires": ["code-location", "notes"],
+      "meaning": "The implementation contradicts the spec. The notes field carries the CONFORMANCE-FIX-QUEUE item id that owns the fix."
+    },
+    "PARTIAL": {
+      "resolves": false,
+      "requires": ["code-location", "notes"],
+      "meaning": "Implemented for some editions, operand shapes or paths but not all. The notes field states which."
+    },
+    "NOT-IMPLEMENTED": {
+      "resolves": false,
+      "requires": ["notes"],
+      "meaning": "No implementation was located. The notes field states what is absent — a staged COBOLNET0899, a loud reject, or nothing at all."
+    },
+    "NEEDS-OWNER-DECISION": {
+      "resolves": false,
+      "requires": ["notes"],
+      "meaning": "An unanswered question, deliberately still a GAP: an unanswered question is not coverage. The notes field carries the bare question."
+    }
+  },
+
+  "editions": ["85", "2002", "2014", "2023"],
+
+  "code-location": {
+    "$comment": [
+      "Form: '<repo-relative-path>' or '<repo-relative-path>#<Symbol>'. Several are separated by '; '.",
+      "",
+      "DESIGN CORRECTION against the design doc's original 'file:line'. A line number rots on the next edit to the",
+      "file, so 3,790 rows of them would turn the gate permanently red for reasons that have nothing to do with",
+      "conformance — and a gate that cries wolf is a gate nobody reads. A SYMBOL survives refactoring, moves with",
+      "the code it names, and fails only when the thing it points at actually stops existing, which is precisely",
+      "the event worth failing on."
+    ],
+    "pattern": "^[A-Za-z0-9_./-]+(#[A-Za-z0-9_.<>]+)?$",
+    "separator": "; "
+  },
+
+  "test-ref": {
+    "$comment": [
+      "The covering spec-derived test. Every form RESOLVES to something on disk, so 'tested' can never be a claim",
+      "the inventory merely makes about itself — which is the difference between a burn-down and a self-report.",
+      "Several refs are separated by '; '.",
+      "",
+      "Each form is machine-readable so the gate does not carry a second copy of this table: 'path-template' is",
+      "the repo-relative path the ref's body fills in at {0}, and 'test-dir' marks the xUnit forms, whose body is",
+      "<Class>.<Method> and which resolve to a [Fact]/[Theory] method of that name in <Class>.cs under that",
+      "directory. Adding a form is an edit to THIS object and nothing else.",
+      "",
+      "⛔ RESOLVING ON DISK IS NOT ENOUGH — IT MUST BE SPEC-DERIVED. DESIGN-spec-conformance-review.md §1(c)",
+      "requires a covering test 'whose expected value is COMPUTED FROM THE SPEC, never copied from an",
+      "implementation oracle', and CLAUDE.md rule 1 names the NIST goldens, the legacy engine and the GnuCOBOL",
+      "differential as regression NETS WITH KNOWN HOLES, never authority. A differential is structurally blind to",
+      "a violation both implementations share — and many of this compiler's defects were ported FROM the legacy,",
+      "so agreeing with it is evidence of nothing. A row closed on that basis is a burn-down moving on the exact",
+      "evidence the standard forbids.",
+      "",
+      "So each form carries 'spec-derived', and a resolving verdict needs at least ONE ref that has it. A",
+      "non-spec-derived ref is still worth RECORDING — knowing NIST also exercises a rule is useful — it just",
+      "cannot be what closes the row. This was found the hard way: the first Phase-B batch came back with 19",
+      "CONFORMS rows, and 7 of them rested on nothing but a NIST golden or a *_MatchesLegacy differential."
+    ],
+    "separator": "; ",
+    "spec-derived-required": true,
+    "$disqualifying-comment": [
+      "An xUnit form CAN be spec-derived, so the form alone cannot decide it — but this repo names the two kinds",
+      "apart by convention (*_PinnedToSpec versus *_MatchesLegacy), and a method whose own name says it matches",
+      "the legacy is self-evidently not computed from the spec. Any test-ref whose method name matches one of",
+      "these is treated as NOT spec-derived, whatever its form says."
+    ],
+    "disqualifying-method-patterns": ["MatchesLegacy$", "MatchesGnuCobol$", "MatchesOracle$"],
+    "forms": {
+      "conformance": {
+        "syntax": "conformance:<edition>/<case>   where edition is 85 | 2002 | 2014 | 2023 | negative",
+        "path-template": "tests/conformance/{0}.cob",
+        "spec-derived": true
+      },
+      "nist": {
+        "syntax": "nist:<program>",
+        "path-template": "tests/nist/programs/{0}.cob",
+        "spec-derived": false,
+        "why-not": "A NIST CCVS golden is a REGRESSION NET, not an oracle (CLAUDE.md rule 1). Record it as corroboration; it can never be what closes a row."
+      },
+      "characterization": {
+        "syntax": "characterization:<positive|negative>/<case>",
+        "path-template": "tests/characterization/{0}.cob",
+        "spec-derived": false,
+        "why-not": "A characterization snapshot pins CURRENT behaviour byte-for-byte — it is the definition of a differential, and it would happily pin a defect."
+      },
+      "unit": {
+        "syntax": "unit:<Class>.<Method>",
+        "test-dir": "tests/Cobol.Net.Tests.Unit",
+        "spec-derived": true
+      },
+      "conformance-test": {
+        "syntax": "conformance-test:<Class>.<Method>",
+        "test-dir": "tests/Cobol.Net.Tests.Conformance",
+        "spec-derived": true
+      }
+    }
+  }
+}

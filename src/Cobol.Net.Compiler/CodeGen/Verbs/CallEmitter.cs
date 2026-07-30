@@ -202,9 +202,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             string digits = (p.Pic?.Digits ?? 0).ToString();
             string scale = (p.Pic?.Scale ?? 0).ToString();
-            if (p.Item.IsGroup && !p.Item.IsCharacterImage && p is not RedefViewPlace)
+            // ⛔ V59 RESIDUE FIX: the predicate is IsImageCapable, not the pre-V59 IsCharacterImage. A group whose
+            // only non-character leaf is BINARY/PACKED now HAS a whole-group image — V59 gave those leaves their
+            // pinned bytes — and `RecordStructEmitter` emits AsImage()/FromImage() for exactly IsImageCapable
+            // items. Guarding on the stricter predicate therefore loud-staged a CALL whose codec had actually been
+            // generated: `01 G. 05 N PIC S9(4) COMP. 05 A PIC X(3).` answered BYTE-LENGTH(G) = 5 and then threw
+            // "no whole-group character image" on `CALL "SUB" USING G`. That claim was false, and refusing the
+            // CALL rejected conforming source — §14.2.3 GR8 (`cite.py`-verified): "If the argument is passed by
+            // reference, the activated runtime element operates as if the formal parameter occupies the same
+            // storage area as the argument", which COBOL.NET realizes through the very image round-trip that
+            // exists. A float / COMP-5 / INDEX leaf is still genuinely imageless and stays loud — hence the
+            // leaf-kind wording now matches the predicate actually being tested.
+            if (p.Item.IsGroup && !p.Item.IsImageCapable && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
-                    + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group", "COMP/binary"))
+                    + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
                     + "), 0, 0)";
             if (a.Mode == CobolPassMode.Reference)
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";
@@ -279,7 +290,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
         // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
         // image through FromImage, never the GR8a current-extent splice.
-        p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsCharacterImage
+        // IsImageCapable, matching the ArgText guard above — the two are the READ and WRITE halves of ONE
+        // round-trip, so a predicate that differed between them would let a group cross IN through FromImage and
+        // back OUT through a raw write (or refuse the write for a group the guard had just admitted). Kept in
+        // lockstep deliberately; `V59ImagePredicateDriftTests` fails if they diverge again.
+        p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsImageCapable
             ? $"{PlaceRenderer.Read(p)}.FromImage({value});"
             : PlaceRenderer.Write(p, value);
 

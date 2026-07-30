@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CobolNet.Tests.Shared;
 using CobolSharp.Compiler.Semantics;
 using Xunit;
 
@@ -23,8 +24,7 @@ namespace CobolSharp.Tests.Integration;
 /// </summary>
 public sealed class ConformanceTests : EndToEndTestBase
 {
-    private static readonly string ConformanceRoot = Path.GetFullPath(Path.Combine(
-        AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "tests", "conformance"));
+    private static readonly string ConformanceRoot = TestRepo.Tests("conformance");
 
     private static readonly (string Dir, DialectMode Dialect)[] Versions =
     {

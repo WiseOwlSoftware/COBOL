@@ -346,11 +346,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             else
                 w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
-            w.Line($"else {PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(tmp, profile) : Narrow(tmp, target.Item))}");
+            w.Line($"else {PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatImage(tmp, profile) : Narrow(tmp, target.Item))}");
             return;
         }
         string stored = RuntimeApi.NumStoreRounded(args, mode);
-        w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, profile) : Narrow(stored, target.Item)));
+        w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatImage(stored, profile) : Narrow(stored, target.Item)));
     }
 
     /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed

@@ -8,6 +8,16 @@ namespace CobolNet.Runtime;
 /// never decimal). The "<c>…Scaled</c>" variadic entries take arguments ALREADY ALIGNED by the emitter to one
 /// common scale (the same Align machinery the arithmetic verbs use, ISO §8.8.1), so value comparison/arithmetic on
 /// the unscaled longs IS comparison/arithmetic on the algebraic values.
+/// <para>
+/// ⚠ <b>"Never double" scopes the ARGUMENT REPRESENTATION these bodies accept, not the family's whole surface.</b>
+/// A floating-point argument is legal for every one of these functions (§15.7.3 r1 and siblings require class
+/// NUMERIC; §8.5.2.12 item 2 makes COMP-1/COMP-2 category numeric, hence class numeric by §8.5.2.1 Table 2), and
+/// it is served by the <c>…Real</c> twins in <c>CobolIntrinsics.RealArgs.cs</c> — reached by routing on the
+/// ARGUMENT's type rather than the function's family. Nothing exact is surrendered: once the operand arrives as
+/// binary64 there is no exact value left to preserve, and §15.4.1 makes the returned value implementor-defined
+/// under native arithmetic. Read as an absolute, the sentence above said a legal program had no path at all —
+/// which is exactly what it meant before PB2, when such a program emitted a raw Roslyn <c>CS1503</c>.
+/// </para>
 /// <para><b>Standard arithmetic (ISO §15.4.1 r1 / §8.8.1.5, P10 Step 12).</b> Under ARITHMETIC IS STANDARD /
 /// STANDARD-DECIMAL a function with an equivalent arithmetic expression must return EXACTLY that expression's
 /// SDIDI-evaluated value. This family already satisfies it, so the mode needs no routing here: every EAE step of

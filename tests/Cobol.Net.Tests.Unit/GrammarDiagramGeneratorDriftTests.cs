@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -19,7 +20,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
     [Fact]
     public void Generator_RunsClean()
     {
-        string script = Path.Combine(RepoRoot(), "scripts", "gen-grammar-diagrams.ps1");
+        string script = TestRepo.Scripts("gen-grammar-diagrams.ps1");
         Assert.True(File.Exists(script), $"missing generator: {script}");
 
         var psi = new ProcessStartInfo("pwsh", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -Check")
@@ -27,7 +28,7 @@ public sealed class GrammarDiagramGeneratorDriftTests
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
-            WorkingDirectory = RepoRoot(),
+            WorkingDirectory = TestRepo.Root,
         };
 
         using var p = Process.Start(psi)!;
@@ -38,12 +39,5 @@ public sealed class GrammarDiagramGeneratorDriftTests
         Assert.True(p.ExitCode == 0,
             $"gen-grammar-diagrams.ps1 -Check exited {p.ExitCode}\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         Assert.Contains("grammar-diagram note", stdout); // sanity: it reported a generation summary
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "version-matrix"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/version-matrix) not found");
     }
 }

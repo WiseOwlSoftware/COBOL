@@ -41,6 +41,10 @@ public sealed record BoundUnstringReceiver(Place Target, Place? DelimiterIn, Pla
 /// <summary><c>UNSTRING source [DELIMITED BY …] INTO receivers… [WITH POINTER ptr] [TALLYING IN tly]
 /// [ON/NOT ON OVERFLOW …]</c> (ISO §14.9.48).</summary>
 public sealed record BoundUnstringStmt(
-    Place Source, IReadOnlyList<BoundUnstringDelimiter> Delimiters, IReadOnlyList<BoundUnstringReceiver> Receivers,
+    // ⛔ DA4: an OPERAND, not a Place. §14.9.48.2 writes the sender as identifier-1 and §8.4.3.1.2 Format 1 makes a
+    // function-identifier an identifier, so `UNSTRING FUNCTION UPPER-CASE(S) …` is conforming source. A function
+    // result has no Place, and the emitter never needed one: it already renders the sender through
+    // OperandText.AsString (THE one string-context renderer), it was merely wrapping the Place to get there.
+    BoundOperand Source, IReadOnlyList<BoundUnstringDelimiter> Delimiters, IReadOnlyList<BoundUnstringReceiver> Receivers,
     Place? Pointer, Place? Tallying,
     IReadOnlyList<BoundStatement>? OnOverflow, IReadOnlyList<BoundStatement>? NotOnOverflow) : BoundStatement;

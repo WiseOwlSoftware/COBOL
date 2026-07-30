@@ -166,7 +166,7 @@ public static class OoConformance
             PicCategory.ObjectReference =>
                 p.ObjectClassName is { } cls ? "O:" + cls.ToUpperInvariant() : "O:*",
             PicCategory.Numeric =>
-                $"N:{p.Usage}:{p.Digits}:{p.Scale}:{(p.Signed ? "S" : "U")}:{p.ImageSignKind}:"
+                $"N:{p.Usage}:{p.Digits}:{p.Scale}:{(p.Signed ? "S" : "U")}:{p.SignKind}:"
                 + (item.BlankWhenZero ? "B" : "-"),
             PicCategory.Alphanumeric =>
                 // An ANY LENGTH item's length is runtime-varying (ISO §13.18.2 GR1) — encoded '*' so the pair
@@ -262,8 +262,8 @@ public static class OoConformance
                 if (f.Usage != a.Usage)
                     return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2.3.2 rule 2 "
                         + "requires the same USAGE clause BY REFERENCE)";
-                if (f.ImageSignKind != a.ImageSignKind)
-                    return $"SIGN clause mismatch (formal {f.ImageSignKind}, argument {a.ImageSignKind} — "
+                if (f.SignKind != a.SignKind)
+                    return $"SIGN clause mismatch (formal {f.SignKind}, argument {a.SignKind} — "
                         + "§14.8.2.3.2 rule 2: the SIGN clauses shall be the same)";
                 if (formal.BlankWhenZero != arg.BlankWhenZero)
                     return "BLANK WHEN ZERO mismatch (§14.8.2.3.2 rule 2)";

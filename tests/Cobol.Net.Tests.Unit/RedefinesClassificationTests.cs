@@ -101,22 +101,27 @@ public sealed class RedefinesClassificationTests
     }
 
     [Fact]
-    public void TierB_BinaryLeafPun_StringCanonicalWithZonedWindow()
+    public void TierB_BinaryLeafPun_StringCanonicalOverItsTrueBytes()
     {
-        // Phase 1E (supersedes the interim Tier-C rejection): a DISPLAY + fixed-point BINARY pun is Tier B under
-        // the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, incl. the sign, is
-        // implementor-defined; COBOLNET_DESIGN §4.2/§14.4): one string backing, the COMP leaf an image-stored
-        // zoned window with its profile rewritten to the image sign (REDEFINES deep-dive D10).
+        // Phase 1E (supersedes the interim Tier-C rejection): a DISPLAY + fixed-point BINARY pun is Tier B —
+        // ONE string backing, the COMP leaf an image-stored window over it. V59 re-based that window on the
+        // leaf's TRUE BYTES: a PIC S9(8) COMP occupies FOUR bytes (radix 2, §13.18.60.4 GR4), not eight zoned
+        // digit characters, so the pun sees the first four positions of the X(8) area and the class width comes
+        // from the WIDER member. The former zoned window also had to rewrite the leaf's SignKind to a trailing
+        // overpunch, because a variable-width BinaryMinus image could not sit in a fixed digit window; with the
+        // sign in the bytes there is nothing to rewrite, and DISPLAY of the leaf still renders '-100'.
         var d = Bind("01 WS-A PIC X(8).\n01 WS-B REDEFINES WS-A PIC S9(8) COMP.");
         var cls = Item(d, "WS-A").Class!;
         Assert.Equal(RedefinesTier.StringCanonical, cls.Tier);
-        Assert.Equal(8, cls.Width);   // the binary view's image width is its DIGIT count (no separate-sign add)
+        Assert.Equal(8, cls.Width);   // class-max: the X(8) member, now strictly wider than the 4-byte COMP view
         var b = Item(d, "WS-B");
+        Assert.Equal(4, b.ImageWidth);   // 8 digits → the pinned 4-byte binary tier
+        Assert.Equal(b.ByteWidth, b.ImageWidth);   // the one-width invariant, at a REDEFINES window
         // P5.7: the classifier RECORDS the image fact (ImageForcedItems) instead of mutating a flag; the final
         // StoreAsImage/Storage is computed once by the group-tail StorageFormPass, which this bare resolve-only
         // harness never runs — so assert the resolve-time COLLECTED FACT, the exact thing the classifier owns.
         Assert.Contains(b, d.ImageForcedItems);
-        Assert.Equal("TrailingOverpunch", b.Pic!.SignKind);   // BinaryMinus would corrupt the fixed window (D10)
+        Assert.Equal("BinaryMinus", b.Pic!.SignKind);   // untouched: the sign lives in the two's-complement bytes
     }
 
     [Fact]

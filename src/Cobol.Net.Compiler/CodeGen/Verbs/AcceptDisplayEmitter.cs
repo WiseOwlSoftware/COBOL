@@ -63,12 +63,25 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
 
         if (item.IsGroup)
         {
-            if (!item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT into group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT into group")));
                 return;
             }
-            string img = $"AcceptSource.Device({item.ImageWidth})";
+            string img = $"AcceptSource.Device({item.DisplayTextWidth})";
             // A Tier-B view group's image IS its character window; a record-struct group distributes via FromImage.
             w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
@@ -78,8 +91,10 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         switch (pic)
         {
             case { Category: PicCategory.Numeric, IsFloat: false }:
-                // ImageWidth = digit count + a SIGN SEPARATE character position (ISO §13.18.52 GR6a).
-                string image = $"AcceptSource.Device({item.ImageWidth})";
+                // The DEVICE window is CHARACTERS — digit count + a SIGN SEPARATE position (ISO §13.18.52
+                // GR6a) — never the item's byte width: a PIC 9(4) COMP receiver reads FOUR typed digits and
+                // stores TWO bytes (V59).
+                string image = $"AcceptSource.Device({item.DisplayTextWidth})";
                 w.Line(item.StoreAsImage || target is RedefViewPlace
                     ? PlaceRenderer.Write(target, image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
                     : PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
@@ -124,13 +139,26 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
 
         if (item.IsGroup)
         {
-            if (!item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT temporal into group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT temporal into group")));
                 return;
             }
             // A group receiver is an alphanumeric-category move (§14.9.25.4 GR4 — filled without conversion).
-            string img = RuntimeApi.StrStore(sendImage, $"{item.ImageWidth}");
+            string img = RuntimeApi.StrStore(sendImage, $"{item.DisplayTextWidth}");
             w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
         }
@@ -142,7 +170,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // the integer sender is at scale 0; the receiver keeps its LOW-order digits when smaller).
                 string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
                 w.Line(PlaceRenderer.Write(target, item.StoreAsImage
-                    ? RuntimeApi.NumFormatDisplay(stored, item.ProfileName)
+                    ? RuntimeApi.NumFormatImage(stored, item.ProfileName)
                     : stored));
                 return;
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2

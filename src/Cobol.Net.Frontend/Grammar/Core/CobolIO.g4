@@ -692,13 +692,33 @@ stringStatement
     : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? END_STRING?
     ;
 
+// ── The two STRING/UNSTRING SENDING-operand shapes, named ONCE each ──────────────────────────────────────
+// The general formats distinguish them, so the grammar does too rather than repeating an alternative list in
+// four productions:
+//   §14.9.48.2  `UNSTRING identifier-1`               -> an IDENTIFIER only; a literal sender is not admitted.
+//   §14.9.43.2  `STRING {identifier-1 | literal-1}`   -> an identifier OR a literal.
+// The sender is therefore a strict SUBSET of the operand, and strUnstrOperand says so by referencing it.
+//
+// DA4: functionCall is FIRST in the sender — §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so
+// every "identifier-N" SENDING position admits one. It is keyword-led (FUNCTION …), so it can never be shadowed
+// by dataReference (ANTLR takes the first matching alternative). §8.4.3.2.3 SR1 bars a function-identifier only
+// from a RECEIVING operand, which is why the INTO phrases below are untouched. A keyword-OMITTED function (a
+// repository name + parens) still parses as a dataReference and is resolved by the binder's
+// KeywordOmittedFunction path — unchanged.
+strUnstrSender
+    : functionCall | dataReference
+    ;
+
+strUnstrOperand
+    : strUnstrSender | literal | figurativeConstant
+    ;
+
 stringSendingPhrase
-    : (dataReference | literal | figurativeConstant)
-      delimitedByPhrase?
+    : strUnstrOperand delimitedByPhrase?
     ;
 
 delimitedByPhrase
-    : DELIMITED BY? (ALL)? (dataReference | literal | figurativeConstant | SIZE)
+    : DELIMITED BY? (ALL)? (strUnstrOperand | SIZE)
     ;
 
 stringIntoPhrase
@@ -723,7 +743,7 @@ stringOnOverflow
 // ==========================================
 
 unstringStatement
-    : UNSTRING dataReference
+    : UNSTRING strUnstrSender
       unstringDelimiterPhrase?
       unstringIntoPhrase+
       unstringWithPointer?
@@ -738,7 +758,7 @@ unstringDelimiterPhrase
     ;
 
 unstringDelimiterItem
-    : (ALL)? (dataReference | literal | figurativeConstant)
+    : (ALL)? strUnstrOperand
     ;
 
 unstringIntoPhrase

@@ -6,11 +6,573 @@
 > Source ledgers: `CODE-SPEC-AUDIT.md` (CA*), §24 (V54–V59). Part of the P14 full spec-conformance review
 > (`DESIGN-spec-conformance-review.md`).
 
-**46 total (43 CONFIRMED + 1 REFUTED + 2 OWNER-DECIDED) · 1 refuted · 0 pending · 44 LANDED · 1 REFUTED · 1 REMAIN (2026-07-28).** *(The count moved by TWO: CA14 landed, and CA11 · oo was already landed by DEVLOG 1088 with only its heading left unflipped — the duplicate CA11 id, one exceptions-ec and one oo, is what hid it. **Every CONFIRMED item is now landed; V59 alone remains**, and it is effort-L with an approved interim.)* *(+ the DISCOVERED-during-implementation candidate DA1 — §12.3.7 hex-literal ALPHABET decode — now ✅ LANDED (DEVLOG 1019); it was not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; the 3 remaining are all major/minor (the EC-infra + OO super-batch) + the 2 owner-decided.
+**46 total (43 CONFIRMED + 1 REFUTED + 2 OWNER-DECIDED) · 1 refuted · 0 pending · 45 LANDED · 1 REFUTED · 0 REMAIN (2026-07-29).** *(**⛔ THE 46-FINDING AUDIT IS CLOSED — V59 landed 2026-07-29 across DEVLOG 1097–1102, the last of the 45.** The count previously moved by TWO: CA14 landed, and CA11 · oo was already landed by DEVLOG 1088 with only its heading left unflipped — the duplicate CA11 id, one exceptions-ec and one oo, is what hid it.)* **What remains in this file is NOT the audit: it is the DISCOVERED-during-implementation set — DA2 and DA3, both OPEN, both MAJOR, both cases where CONFORMING SOURCE is rejected at run time. They are now the top of the queue.** *(+ the DISCOVERED-during-implementation candidate DA1 — §12.3.7 hex-literal ALPHABET decode — now ✅ LANDED (DEVLOG 1019); it was not part of the original 46 audit set.)* Original severity mix: blocker=2, major=30, minor=10, nit=2, plus the 2 owner-decided (CA14 major, V59 major-L). Both blockers are done; the 3 remaining are all major/minor (the EC-infra + OO super-batch) + the 2 owner-decided.
 
-**LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
+**LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7.4 GR7 1.3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set)
+**⛔ THE DISCOVERED SET IS CLOSED — DA1–DA7 ALL LANDED (2026-07-29). THE PHASE-B REVIEW HAS OPENED THREE:
+`PB1` ✅ LANDED (its class half) · `PB2` ✅ LANDED (its argument path) · `PB3` ⛔ OPEN, HAND-VERIFIED AND HALF
+REFUTED · `PB4` ✅ LANDED — each residue named rather than silent. PB4 was not in the batch at all: it was found
+when PB3's test vehicle turned out to be corrupted by it, and it is the most damaging of the four (a hexadecimal
+literal silently stored as its own source text in five positions).** One batch of 55 rules
+over 11 intrinsics produced 42 open rows, and they were never 42 bugs: **12** were PB1 (the argument-class table
+declared 79 times and read zero times — now enforced from a spec-verified table, closing 5 rows outright),
+**19** are PB2 (a floating-point argument falling off the end of the intrinsic result path), 1 is PB3 (ORD under a
+custom collating sequence), and the rest are genuinely per-function. The inventory is feeding this queue, which is
+the design working as intended (`DESIGN-spec-conformance-review.md` §3 Phase C: DIVERGES → the fix queue).
+The DA set: seven items, none part of the original 46, every one found while implementing
+something else. Their shared shape is worth carrying forward: **in DA3, DA5 and DA6 the reported symptom was a
+single construct failing, and the root cause was ONE RULE written down in more than one place** — three copies of a
+literal dispatch, two predicates for one question, and a rule enforced at a site that could not know its own
+context. Fixing only the reported construct would have left the mechanism intact each time.
+⚠ **This file is no longer where the next work comes from** (plan §0 NEXT item 1 is the traceability inventory). It
+stays as the register for anything NEW a future session discovers — add here, keep the tally above current.
+
+## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
+
+### PB1 · [MAJOR] · intrinsics · ✅ LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
+
+> **`COBOLNET1627` (`intrinsic-argument-class`), edition-invariant, strict-reject with a `--permissive` warning —
+> the DA6 disposition for the sibling §8.8.1.1 question.** Five of the twelve rows CLOSE (ABS, PRESENT-VALUE,
+> RANDOM, RANGE, REM — bare class constraints, now fully enforced); five go **PARTIAL** because their rule has a
+> second half this screen does not reach, and one is unaffected. Half a rule enforced is PARTIAL, not CONFORMS.
+>
+> **⛔ THE RECIPE BELOW WAS WRONG, AND THE CORRECTION IS THE VALUABLE PART.** "Consume `sig.ArgKind(i)`" is what
+> this entry prescribed. Doing exactly that made the comprehensive gate return **12 failing corpus programs, every
+> one of them legal COBOL** — `FUNCTION BYTE-LENGTH(<numeric>)` rejected, though §15.14.3 admits an argument of
+> ANY class, and the nine rows with an empty `ArgKinds` default to `'n'`, which would have screened `LENGTH` as
+> numeric-only. **The table is not merely UNREAD, it is UNVERIFIED — and it was unverified *because* it was
+> unread.** Those codes were dispatch hints that drifted freely for years precisely because nothing consulted
+> them. Wiring 79 unaudited declarations into a rejection path converts one silent defect into 79 chances to
+> reject valid source.
+> So the screen is driven by `IntrinsicArgumentRules.Verified` — a table whose every entry carries **the ISO
+> clause it was read from**. Eleven entries (§15.7, §15.70–15.79: exactly the functions Phase B adjudicated). A
+> function absent from it is screened exactly as before, so landing this could not regress anything, and the table
+> grows as the review adjudicates each clause. Asserting the other 68 rules from an unaudited hint column would be
+> fabrication, not completeness.
+>
+> **RESIDUE, each recorded on its own inventory row as PARTIAL — not lost, and not silently deferred:**
+> · a LENGTH half — `AR-15.78.3-1` REVERSE ("at least one character position") and `AR-15.70.3-1` ORD ("one
+>   character position in length");
+> · a STRONGLY-TYPED GROUP exclusion — `AR-15.71.3-1` / `AR-15.72.3-1`, which the binder has no strong-type
+>   predicate to screen at this seam;
+> · a CROSS-ARGUMENT rule — `AR-15.79.3-3` ("argument-2 shall have the same type as argument-1"), which a
+>   per-position screen cannot express;
+> · the "all arguments of the same class" rules `AR-15.71.3-3` / `AR-15.72.3-3`, and the zero-length-literal
+>   rules `AR-15.71.3-2` / `AR-15.72.3-2`, all still DIVERGES.
+>
+> **GOLDENS** (all four registered in `tests/conformance/negative/manifest.json` in the same commit):
+> `pb1-numeric-arg-alphanumeric` · `pb1-string-arg-numeric` (the two hand reproductions) ·
+> `pb1-numeric-arg-numeric-edited` (§8.5.2.1 Table 2 — numeric-edited-when-display is class ALPHANUMERIC) ·
+> `pb1-numeric-arg2-alphanumeric` (REM's argument-2; a screen that stopped at the first argument would pass every
+> other fixture and still miss that rule's second half).
+>
+> **The guard that keeps it wired:** `IntrinsicArgumentClassDriftTests` — the screen is called, every verified
+> rule cites a §, every verified function is really in the catalog. It caught itself going blind on its first run
+> (its row-parsing regex required digits for the arity bounds; a variadic row writes `inf`, so every variadic
+> function was skipped and ORD-MAX read as absent from the catalog).
+>
+> The original finding follows, for provenance.
+
+### PB1 (as found) · the intrinsic ARGUMENT-CLASS table is declared 79 times and read zero times
+
+> **ONE architectural defect presenting as at least 12 separate rule violations.** Found by the first Phase-B
+> verdict batch (§15.7 + §15.70–15.79, 55 rules over 11 functions), and it is the reason that batch returned 18
+> DIVERGES — most of them are not independent bugs.
+>
+> **THE DEFECT.** `IntrinsicCatalog.cs` gives every one of its **79** catalog rows an `ArgKinds` string declaring
+> each argument's required class (`"n"` numeric · `"s"` string · `"i"` integer · `"p"` polymorphic), and exposes
+> `IntrinsicSig.ArgKind(int i)` to read it. **`ArgKind` has zero callers.** The only read of `ArgKinds` anywhere
+> in `src/` is one equality test:
+>
+> ```
+> src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:267
+>     if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
+> ```
+>
+> — the MAX/MIN category-polymorphism switch. So the table that exists precisely to enforce §15's argument rules
+> enforces nothing, and argument-class checking survives only as hand-written per-function arms for a handful of
+> functions (`CheckRepertoireArgs` for DISPLAY-OF/NATIONAL-OF, `BindConvert`, CHAR, the ALGEBRAIC family). **One
+> rule, written in a few places and declared-but-unread in all the others** — the shape DA3/DA5/DA6 recorded as
+> `feedback_one_rule_one_place`, this time with the general mechanism already built and simply not wired in.
+>
+> **⛔ REPRODUCED BY HAND, both directions, at the CLI — not taken from an agent's report:**
+> ```cobol
+> 01 N PIC 9(4) VALUE 1234.   01 R PIC X(10).
+>     MOVE FUNCTION REVERSE(N) TO R        *> §15.78.3 r1: alphabetic/alphanumeric/national ONLY
+> ```
+> compiles clean and displays `4321      `. And the mirror:
+> ```cobol
+> 01 A PIC X(4) VALUE "ABCD". 01 R PIC S9(6)V99.
+>     COMPUTE R = FUNCTION ABS(A)          *> §15.7.3 r1: argument-1 shall be of class numeric
+> ```
+> compiles clean and displays `0000000{` — garbage from coercing `"ABCD"` through `CobolNum.FromAlphanumeric`.
+> Neither emits a diagnostic at any edition.
+>
+> **⚠ AND IT IS A HOLE IN DA6, WHICH LANDED HOURS EARLIER.** DA6 installed the §8.8.1.1 strict reject for an
+> alphanumeric ARITHMETIC operand (`COBOLNET0844`). Function arguments bypass it: `BindArgOperand` routes through
+> `BindFunctionArgumentExpr`, whose `OperandContext.FunctionArgument` deliberately suppresses the
+> `ExpressionBinder.OperandRef` numeric screen. So `COMPUTE R = A` is correctly rejected while
+> `COMPUTE R = FUNCTION ABS(A)` is not. Sweeping DA6's siblings is part of this fix (`feedback_scan_all_similar`).
+>
+> **THE FIX IS THE WIRING, NOT TWELVE PATCHES** (CLAUDE.md rule 5 — prefer the shape that makes the next case
+> automatic). Consume `sig.ArgKind(i)` in `IntrinsicBinder.BindIntrinsicCore` as the general per-argument class
+> screen for every catalogued function, with the existing hand-written arms folded into it or kept only where a
+> rule is genuinely function-specific. Pair it with a drift test asserting that every catalog row's declared
+> `ArgKinds` is actually consulted — otherwise the table can go dead again exactly as it did.
+>
+> **SCOPE — this is bigger than the 12 rows that found it.** §15 holds **216 AR rules across 43 functions**, of
+> which **47 are explicit class/category constraints**; only 11 functions have been adjudicated so far. Expect the
+> remaining §15 clauses to return the same verdict, and expect the count to grow as Phase B proceeds. The
+> VALUE-constraint rules ride along: §15.3 requires a bad argument VALUE to set **EC-ARGUMENT-FUNCTION**
+> (`FUNCTION REM(x 0)`, `FUNCTION PRESENT-VALUE(-1 …)`, `FUNCTION RANDOM(-1)`, a zero-length literal to ORD-MAX),
+> and none of those raises today either.
+>
+> **INSTANCES RECORDED IN THE INVENTORY** — 11 rows (each carries its own §, code-location and reproduction):
+> `AR-15.7.3-1` ABS · `AR-15.70.3-1` ORD · `AR-15.71.3-1`/`-3` ORD-MAX · `AR-15.72.3-1`/`-3` ORD-MIN ·
+> `AR-15.74.3-1` PRESENT-VALUE · `AR-15.75.3-1` RANDOM · `AR-15.76.3-1` RANGE · `AR-15.77.3-1` REM ·
+> `AR-15.78.3-1` REVERSE · `AR-15.79.3-3` SECONDS-FROM-FORMATTED-TIME.
+> The **zero-length-literal** rules ride the same dead table from the other side: `AR-15.71.3-2` /
+> `AR-15.72.3-2` note the guard exists for CONVERT and the repertoire functions and for nothing else.
+>
+> ⚠ **These rows are AGENT-SURFACED and adversarially re-verified, but only the two reproductions above and the
+> zero-callers fact were confirmed by hand.** Design doc §7 stands: verify each before it drives a code change.
+> All are DIVERGES/PARTIAL, which do NOT close a GAP, so nothing in the burn-down rests on them.
+
+### PB2 · [MAJOR] · intrinsics · ✅ LANDED — the ARGUMENT path (DEVLOG 1118); the RECEIVER residue stays open
+
+> **The renderer now routes on the ARGUMENT's type, not only on the function's family** — one line in
+> `IntrinsicRenderer.RenderNum`, plus a floating-point body per exact-family function in
+> `CobolIntrinsics.RealArgs.cs`. Five rows close (ABS, ORD-MAX, ORD-MIN, RANGE, REM); GAP 3779 → 3774.
+>
+> **⛔ IT WAS WORSE THAN THIS ENTRY SAID.** Not "no value, a CS1503, or a silent requantization" as three
+> possibilities — for the exact family it was reliably a **raw Roslyn error escaping the compiler on legal
+> COBOL**: `CS1503: cannot convert from 'double' to 'System.Int128'`, quoting generated C# the user never asked
+> to see. Ten of eleven functions probed did it. That is an INTERNAL failure surfaced as a diagnostic, which is
+> worse than a wrong answer.
+>
+> **⚠ THE FIRST FIX WAS WRONG AND THE CORPUS CAUGHT IT.** The elegant form — give the real bodies the SAME names
+> as the exact ones, since `Int128` has no implicit conversion from `double`, and let one dispatch line do
+> everything — does not compile. An integer LITERAL converts implicitly to BOTH, so `FUNCTION MAX(5 7)` emitted
+> `MaxScaled(5, 7)` and C# reported `CS0121: ambiguous call`, **breaking six previously-green corpus programs
+> that never touched a float**. The real bodies therefore carry a `…Real` name, by a CONVENTION rather than a
+> table (`XxxScaled` → `XxxReal`, else a `Real` suffix — one string transform in `IntrinsicRenderer.RealMethod`).
+>
+> **AND THE DRIFT TEST FOUND A GAP THE PROBE MISSED**: `COMBINED-DATETIME`, whose argument-2 §15.6 types `Num2`
+> and which may therefore legitimately be a float. Its body is `argument-1 + (argument-2 / 100000)` exactly as
+> §15.17.4 r1 writes it (the exact twin encodes the same expression as a scale shift, so the two agree by
+> construction).
+>
+> **RESIDUE — the rows this did NOT fix, each still recorded PARTIAL:** `RV-15.75.4-1` RANDOM, whose defect is
+> the fixed-point RECEIVER path (`FromDouble(call, ws)` re-rounding a value §15.75.4 r1 already places in
+> `[0,1)`), not the argument path; the standard-arithmetic legs `RV-15.73.3-2` / `-3` (PI under
+> standard-binary/standard-decimal) and `RV-15.74.4-1`; and the EC-ARGUMENT-FUNCTION **value** rules
+> (`AR-15.74.3-2`, `AR-15.75.3-2`, `AR-15.77.3-2`), which §15.3 makes a RUN-TIME condition and which this
+> compile-time change deliberately does not touch.
+>
+> **GOLDEN:** `conformance:2023/pb2_float_argument_exact_family` — 17 lines, every expected value derived from
+> the spec, built around the pairs that distinguish a correct body from a plausible one (MOD floors where REM
+> truncates; INTEGER floors where INTEGER-PART truncates). It matched on the first run.
+>
+> The original finding follows, for provenance.
+
+### PB2 (as found) · a FLOATING-POINT argument falls off the end of the intrinsic result path
+
+> **19 of the batch's 42 open rows cluster here** — the second pattern behind the same 11-function sample, and
+> independent of PB1. Where PB1 is "no argument-class rule is enforced", this is "an argument of a class the rule
+> ALLOWS is not handled".
+>
+> The intrinsic result path is written for fixed-point operands. A float argument — legal for every one of these
+> functions, since §15.71.3 r1 and its siblings bar only boolean/message-tag/object/pointer/strongly-typed-group —
+> variously produces no value at all, a Roslyn `CS1503`, or a silent requantization. Reported instances span
+> ORD-MAX/ORD-MIN (`RenderNum`'s `OrdMax or OrdMin` arm calls the scale-aligning path), RANGE, REM, ABS with a
+> COMP-2 operand, and RANDOM's fixed-point RECEIVER leg (`FromDouble(call, ws)` re-rounds a value the spec says is
+> already in `[0,1)`). PI's `standard-binary` / `standard-decimal` rows (`RV-15.73.3-2`, `-3`) are the same seam
+> seen from the arithmetic-mode side, as is PRESENT-VALUE's `RV-15.74.4-1`.
+>
+> **Do not fix these one function at a time.** The shape of the defect is a missing branch in ONE renderer seam,
+> so the fix belongs there, with the per-function rows as its verification set. Rows: `RV-15.7.4-1`,
+> `RV-15.71.4-1`/`-2`, `RV-15.72.4-1`/`-2`/`-3`, `RV-15.73.3-1`/`-2`/`-3`, `AR-15.74.3-2`, `RV-15.74.4-1`,
+> `AR-15.75.3-2`, `AR-15.75.3-4`, `RV-15.75.4-1`/`-3`, `RV-15.76.4-1`, `AR-15.77.3-2`, `RV-15.77.4-1`,
+> `RV-15.78.4-1`.
+>
+> ⚠ Agent-surfaced, adversarially re-verified, NOT hand-confirmed. Verify before it drives a code change.
+
+### PB5 · [BLOCKER] · numerics · ✅ LANDED (DEVLOG 1124) — the float→fixed quantizer saturated at an ORDINARY COBOL magnitude
+
+> **Silent wrong arithmetic in ordinary business ranges — the worst defect this review has surfaced.**
+> `CobolIntrinsics.FromDouble` returned a `long` and clamped at `long.MaxValue`; its caller quantizes at
+> `ws = max(Receiver.Scale, 9)`, so the clamp bit at **|value| ≈ 9.2 × 10⁹**. Every float-family result at or
+> above that magnitude was replaced by the constant **9223372036.85**.
+>
+> ```cobol
+> 01 R PIC 9(12)V99.
+>     COMPUTE R = FUNCTION ANNUITY(10000000000 1)      *> §15.9.4 r1b ⇒ exactly 1 + argument-1 = 10000000001.00
+>       ON SIZE ERROR ... NOT ON SIZE ERROR ...        *> printed NO SIZE ERROR
+>     R = 00922337203685                                *> wrong by 8%
+> ```
+> `SQRT(1e20)`, `EXP(23.3)`, `ABS` and `MAX` over a COMP-2 all produced that same constant. **A twelve-digit
+> money field is routine COBOL**, so this was not an edge case; and there was no diagnostic, because §14.7.4
+> never saw an overflow — the value had already been clamped to something that fits.
+>
+> ⛔ §15.4.1 licenses an implementor-defined **approximation** of the equivalent arithmetic expression under
+> native arithmetic. **9223372036.85 is not an approximation of 10000000001.**
+>
+> **THE FIX IS A TYPE, AND IT IS A CORRECTNESS FIX RATHER THAN A WIDENING FOR COMFORT.** The scaled domain of
+> this compiler already IS `Int128` — every `…Scaled` body takes one — and `FromDouble` was the one member of
+> that pipeline still returning `long`. At scale 9 the Int128 ceiling is ≈1.7 × 10²⁹, past the 10¹⁸ any PICTURE
+> can describe, so the saturation is now unreachable from a declarable receiver rather than merely further away.
+> One emit site (`IntrinsicRenderer.RenderFloat`), so the change is contained.
+>
+> ⚠ **FOUND BY THE PHASE-B REFUTE STAGE, NOT BY THE ADJUDICATOR** — the ANNUITY reviewer overturned a PARTIAL to
+> DIVERGES and produced the repro. The adjudicator had checked only small receivers (`V9(4)`, `V9(7)`), where
+> the clamp never bites. That is the second time this session the adversarial pass paid for itself on a defect
+> the first pass had looked straight at.
+>
+> **AND A CITATION DEFECT AT THE SAME SITE:** the `FromDouble` comment cited **§14.6.13.1.1 Table 13** for
+> EC-ARGUMENT-FUNCTION being fatal. `cite.py --check` FAILS on it (that clause is titled "General"); the real
+> one is **§14.6.13.1.6**. It had propagated from the source comment into an agent's adjudication — the
+> inherited-citation shape again, and one the quoted-fragment audit could not see because it carries no quote.
+>
+> **GOLDEN** `conformance:2023/pb5_float_quantize_range` — pins the saturation, deliberately NOT the binary64
+> cent that the §15.4.1 approximation legitimately produces on ANNUITY's division.
+
+### PB4 · [MAJOR] · literals · ✅ LANDED (DEVLOG 1119) — a HEXADECIMAL literal was not decoded in FIVE positions
+
+> **Found by accident, which is the part worth keeping.** It surfaced while building a test vehicle for PB3: the
+> vehicle used `PIC X VALUE X"FF"` and reported `ORD = 89`. 89 − 1 = 0x58 = **'X'** — the item held the letter X,
+> because the VALUE path had stored the literal's own SOURCE TEXT and truncated it to the picture. PB3's agent
+> report was measured through this same distortion.
+>
+> **§8.3.3.2 makes a hexadecimal literal one FORM of an alphanumeric literal** — "each pair of hexadecimal digits
+> represents a single character" — so every position accepting an alphanumeric literal accepts it. Five did not,
+> each failing differently, and the data division disagreed with the procedure division about the same literal:
+>
+> | site | before | correct |
+> |---|---|---|
+> | `01 B PIC X(2) VALUE X"4142"` | `X"` (source text, truncated) | `AB` |
+> | `01 A PIC X(4) VALUE ALL X"41"` | `ALLX` | `AAAA` |
+> | `05 E OCCURS 2 PIC X(2) VALUE X"4142"` | as VALUE | `AB` / `AB` |
+> | `88 IS-AB VALUE X"4142"` | never matched | matches |
+> | `MOVE ALL X"41" TO M` | parsed, then a RUN-TIME `NotImplementedCobolFeatureException` | `AA` |
+> | (`MOVE X"4142" TO M` decoded correctly all along) | `AB` | `AB` |
+>
+> **⛔ ROOT CAUSE — one rule written down twice, and BOTH copies wrong the same way.** `CobolLiteral` carried the
+> prefix-letter list in `Decode` AND in `IsStringLiteral`, and neither included `X`. So a hex literal was
+> simultaneously *not recognised as a literal* and *not decoded as one*, which is why the five sites failed in
+> five different ways: each had built its own compensation on top of a decoder that quietly returned the input
+> unchanged. Adding a `DecodeHex` arm at `ValueInitializer` would have made it the **fifth** copy of the dispatch
+> DA3 already found three of. The list is now one `PrefixLetters` constant behind one `SplitLiteral` helper.
+> The remaining site was `ExpressionBinder.FigurativeOperand`, whose own comment said "(ALL HEXLIT / NULL stay a
+> later slice)" while the grammar had listed `ALL HEXLIT` all along.
+>
+> ⚠ **The X-prefix guard is load-bearing**: `DecodeHex` returns "" for anything it does not recognise, so
+> delegating on a leading `X` alone would turn the ordinary word `XYZ` — which `Decode` contracts to return
+> unchanged — into the empty string. The golden pins `XYZ`.
+>
+> **GOLDEN** `conformance:2023/pb4_hex_literal_value` — all five sites plus the guard, expected values from
+> §8.3.3.2 arithmetic.
+
+### PB3 · [MAJOR] · intrinsics · ✅ LANDED (DEVLOG 1121) — ORD skipped an ordinal position past the 256-entry collating table
+> **⚠ HAND-VERIFIED AND NARROWED — the original report was measured through PB4 and is half wrong.** The ALSO
+> collapse it blamed is CORRECT: under `ALPHABET AL IS "A" ALSO "B"`, `ORD("A")` = `ORD("B")` = **1** (§12.3.7
+> GR L3.6 — ALSO assigns one ordinal position), `ORD("C")` = **67** and `ORD(X"FF")` = **255**, all matching the
+> derivation {A,B} at 1 · 0x00–0x40 at 2–66 · 0x43–0xFF at 67–255. Nothing there is wrong.
+> **What IS wrong is the character past the table:** `ORD(U+0100)` = **257**, so position **256 is occupied by
+> nothing** while 255 and 257 are. `CobolIntrinsics.Text.Ord` is
+> `c < weights.Length ? weights[c] + 1 : c + 1` — the fallback ignores the collating sequence entirely, so a
+> character one past the 256-entry table is numbered by a different rule than its neighbour.
+> ⛔ **The original citation is FABRICATED — "§12.3.7 GR7 k3 … distinct ascending" — and it came from our own
+> design doc, not from the agent.** `cite.py --find "distinct ascending"` returns *"NO CLAUSE contains 'distinct
+> ascending'"*: the phrase is nowhere in the standard. `COBOLNET_DESIGN.md` carried it twice and the Phase-B agent
+> inherited it from there. Exactly the failure mode CLAUDE.md rule 1 names — not invented, INHERITED. The design
+> doc is corrected in the same change set.
+>
+> ✅ **THE REAL RULE IS §12.3.7.4 GR7 1.3, and it is STRONGER than the fabrication** (`cite.py --check` OK):
+> *"Any characters of the native collating sequence that are not specified in the literal phrase shall assume a
+> position in the collating sequence that is greater than that of the highest character specified in this literal
+> phrase. The relative order within the set of these unspecified characters is unchanged from the native
+> collating sequence."*
+>
+> ⚠ **This CORRECTS what this entry first said.** It claimed the value for U+0100 was "under-specified" and only
+> the absence of a gap was provable. Not so: GR7 1.3 DETERMINES it. Unspecified characters sit above the highest
+> specified one in unchanged native relative order, and U+0100 immediately follows U+00FF in that order, so with
+> U+00FF at 255 the answer is **256** — and 257 is wrong for a citable reason, not merely an inconsistent one.
+> The observed 255 for `X"FF"` and 1 for both ALSO characters are likewise GR7 1.3 and L3.6 exactly.
+>
+> ✅ **FIXED BY GIVING THE ALPHANUMERIC SIDE THE ARITHMETIC THE NATIONAL SIDE ALREADY HAD** —
+> `NationalCollation.Weight` computes the unspecified tail as `nextFree + (c − |specified below c|)`, precisely
+> GR7 1.3, and has done all along. `CobolIntrinsics.Text.Ord(string, ushort[])` now continues the sequence above
+> the highest tabulated position instead of falling back to `c + 1`. One rule, two implementations, and only one
+> of them was incomplete (`feedback_one_rule_one_place`).
+> ⚠ **It did NOT need the data-structure change this entry predicted.** The dense 256-entry array is fine: the
+> table's own maximum position is all the arithmetic needs, so the repair is local to `Ord`. The estimate was
+> wrong in the cheap direction for once — recorded because a scope guess that reads as authoritative is how a
+> fix gets deferred for being "big".
+> Measured after the fix, all six spec-derived: `ORD("A")`=`ORD("B")`=1 · `ORD("C")`=67 · `ORD(X"FF")`=255 ·
+> **`ORD(U+0100)`=256** · `ORD(U+0101)`=257. **CA26's residue on the ORD path is closed.**
+> **GOLDEN** `conformance:2023/pb3_ord_collating_tail`.
+
+### PB3 (as found) · ORD reports the wrong ordinal under a custom PROGRAM COLLATING SEQUENCE
+
+> Found by the adversarial pass OVERTURNING a CONFORMS, which is the clearest evidence that pass earns its cost.
+> `RV-15.70.4-1` — two independent failures, each compiled and RUN at `--std 2023`:
+> · **ALSO collapse.** With `ALPHABET AL IS "A" ALSO "B"` and `PROGRAM COLLATING SEQUENCE AL`, `ORD(X"FF")`
+>   printed `00255` and `ORD(U+0100)` printed `00257` — skipping position 256. §12.3.7 GR7 k3 gives unspecified
+>   characters *distinct ascending* positions with no gap. The correct arithmetic already exists on the NATIONAL
+>   twin, which returns the right value for the identical alphabet shape — one rule, two implementations, one of
+>   them wrong (`feedback_one_rule_one_place`).
+> · **>255 masking.** `CobolIntrinsics.Text.Ord(string, ushort[] weights)` is
+>   `c < weights.Length ? weights[c] + 1L : c + 1L`, so any code unit past the 256-entry table bypasses the
+>   collating sequence entirely. With a custom PCS, EVERY character then reports a wrong ordinal.
+>
+> ⚠ This directly contradicts CA26 ("the alphanumeric repertoire is UNICODE … no longer 8-bit-aliased", DEVLOG
+> 1018), so CA26's fix is incomplete on the ORD path. Agent-surfaced and run, not hand-confirmed by me.
+
+## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set) — ALL LANDED
+
+### DA7 · [MINOR] · inspect-string · ✅ LANDED (DEVLOG 1108) — three syntax-rule violations moved from RUN TIME to COMPILE time
+> **New diagnostic `COBOLNET1626` (`character-operand-usage`), edition-invariant.** All three rules are unchanged at
+> 85/2002/2014/2023, so the diagnostic is deliberately NOT gated and no introduction axis applies — verified firing
+> at all four editions. The verdicts were already correct; only the STAGE moved.
+> · `InspectBinder.cs` — §14.9.22.3 SR1, an elementary non-display/national identifier-1. Was a pure staging
+>   choice: the check already ran in the binder and merely returned `BoundUnsupported`.
+> · `StringUnstringBinder.cs` (UNSTRING) — §14.9.48.3 SR4. Same shape; the check already existed in the binder.
+> · `StringUnstringBinder.cs` (STRING) — §14.9.43.3 SR1. This one had to be ADDED to the binder: it existed only
+>   in `StringEmitter` as a run-time loud stage, so `STRING … INTO <a COMP item>` compiled clean and crashed.
+> **⛔ THE FALSE-POSITIVE CHECK IS THE POINT OF THIS CHANGE**, since adding a diagnostic risks rejecting legal
+> source. Verified: the three illegal forms now give `COBOLNET1626` at compile time, while ALL of
+> `INSPECT <alnum>`, `STRING/UNSTRING INTO <group>` (including a COMP-leaf group — DA5), and
+> `STRING/UNSTRING INTO <numeric DISPLAY>` still compile and run. **A GROUP receiver is exempt by design**:
+> usage is an ELEMENTARY property, and §14.9.43.4 GR3a transfers into STRING's receiver "in accordance with the
+> MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group. §14.9.22.3 SR1 says so
+> outright, naming "an alphanumeric or national group item" and constraining only an elementary operand.
+> Negative fixtures `da7-inspect-binary-operand` · `da7-string-into-binary` · `da7-unstring-into-binary`, each
+> asserted to reject at all four editions. `docs/DIAGNOSTICS.md` regenerated — the registry drift test caught the
+> stale doc and named the generator, which is that gate working.
+
+### DA7 (original entry, for provenance) — three syntax-rule violations diagnosed at RUN TIME, not COMPILE time
+- **Sites:** `Binding/Procedure/Verbs/InspectBinder.cs:35` (INSPECT identifier-1 of USAGE BINARY — §14.9.22.3 SR1) ·
+  `CodeGen/Verbs/StringEmitter.cs:168` (STRING INTO an ELEMENTARY usage-binary receiver — §14.9.43.3 SR1 requires
+  usage display or national) · `StringEmitter.cs:226` (the UNSTRING counterpart, §14.9.48.3 SR4).
+- **What is and is not wrong.** Each construct is GENUINELY ILLEGAL, so no conforming program is rejected and the
+  compiler is not unconforming in its *verdict*. The defect is the STAGE: a syntax-rule violation should be a
+  compile-time diagnostic, and instead the program compiles clean and throws when control reaches the statement.
+  A user gets a run-time crash where the standard promises a compile error.
+- **Cheapest at `InspectBinder.cs:35`, which is already IN THE BINDER** — it stages a `BoundUnsupported` where a
+  diagnostic is immediately available, so that one is a pure staging choice with no plumbing to add.
+- **Needs:** a diagnostic code (next free `COBOLNET1626`), the four-edition gate sweep, and negative fixtures.
+  Separated from DA5 because DA5 was about a stale PREDICATE; this is about WHERE a correct verdict is reported.
+
+### DA6 · [MAJOR] · arithmetic · ✅ LANDED (DEVLOG 1110) — an ALPHANUMERIC arithmetic operand, in all three shapes
+> Heading corrected: the body below was updated to LANDED while this line still said OPEN. In a register the
+> project treats as live-state SSOT that is a defect in itself, so it is fixed here rather than left to be
+> read as the truth.
+- **Spec:** §8.8.1.1 (`cite.py`-verified) — "An arithmetic expression may be an identifier referencing a **numeric
+  data item**, a numeric literal, the figurative constant ZERO …". A group item is class **alphanumeric** (§8.5), so
+  a group is NOT a permissible arithmetic-expression operand. `COMPUTE R = G + 1` is ILLEGAL SOURCE.
+- **Observed (2026-07-29), and the two halves disagree — which is the tell:**
+  · `01 G. 05 A PIC X(2) VALUE "12". 05 B PIC X(2) VALUE "34".` → `COMPUTE R = G + 1` **compiles and computes
+    `R = 001235`** (the image decoded through `CobolNum.FromAlphanumeric`).
+  · `01 G. 05 A PIC 9(2) VALUE 12. 05 B PIC 9(2) VALUE 34.` → the same statement **compiles and then THROWS**
+    `numeric use of group item 'G'` at run time (`NumericRenderer.cs:186`).
+  So the group whose digits are *unambiguous* fails, and the one whose content is merely *textual* succeeds — the
+  opposite of intuition, and neither is a compile-time rejection.
+- **⛔ NOT a V59 predicate residue.** Migrating `NumericRenderer.cs:186` to `IsImageCapable` would make the second
+  case silently compute too — i.e. it would extend acceptance of illegal source rather than fix anything. That is
+  why that one site is deliberately LEFT on `IsCharacterImage`, with a note in
+  `V59ImagePredicateDriftTests` saying so.
+- **✅ OWNER DECISION TAKEN (2026-07-29): reject at COMPILE time under strict conformance, with the leniency
+  DIALECT-GATED behind `--permissive`** — the standing rule that every leniency is dialect-gated.
+- **⛔ SCOPE IS WIDER THAN THIS ENTRY ORIGINALLY SAID, and the decision was taken on the narrower premise.**
+  §8.8.1.1 bars every ALPHANUMERIC arithmetic operand, not just a group. Measured, all three forms are accepted
+  today: `COMPUTE R = X + 1` with `X PIC X(4) VALUE "0012"` → **13**; `COMPUTE R = X(1:2) + 1` (a ref-mod slice,
+  alphanumeric per §8.4.2.4) → **1**; and the group → **35**. `NumericRenderer` has FOUR `FromAlphanumeric` arms
+  (literal · ref-mod · group · elementary alphanumeric/national), so rejecting only the group half would create a
+  FRESH inconsistency of exactly the kind DA5/DA6 exist to remove. ⚠ Note the elementary arm's own comment cites
+  §14.9.25.4 GR6 as justification — that is the MOVE rule, not the arithmetic-operand rule; a MOVE citation cannot
+  license an arithmetic operand.
+- **✅ LANDED (DEVLOG 1110) — strict rejects, `--permissive` accepts CONSISTENTLY.** The rule is enforced for ALL
+  THREE alphanumeric shapes (group, elementary alphanumeric/national, reference-modified), reusing
+  **COBOLNET0844** — which already IS "not a numeric operand (ISO §8.8.1.1)". Edition-invariant, verified at
+  85/2002/2014/2023. Under `--permissive` both group kinds now decode identically (`R=001235`), which is the
+  inconsistency this entry existed to remove; `NumericRenderer`'s group arm moved to `IsImageCapable` in the SAME
+  change set, correct only paired with the rejection. `ArithmeticOperandClassTests` owns the permissive-leniency
+  and consistency facts a reject-only fixture cannot express, plus the FALSE-POSITIVE guard; negative fixtures
+  `da6-group-numeric-operand` / `da6-alphanumeric-numeric-operand` / `da6-refmod-numeric-operand`.
+- **⛔ THE DESIGN THE FIRST ATTEMPT PROVED NECESSARY.** The rule is context-sensitive and the leaf cannot infer the
+  context, so the operand context TRAVELS BY PARAMETER — the same discipline the render-side receiver follows
+  (P7 Step 3: "never mutable context state"). An `OperandContext` ENUM, not a bool: the public surface is two
+  intention-revealing entries, `BindExpr` (arithmetic, the default for all ~36 existing callers) and
+  `BindFunctionArgumentExpr` (the ONE opt-out), over one private `BindExprCore` that threads the enum. A bool would
+  have read as `BindExpr(node, true)`, would not survive a third context, and as an OPTIONAL parameter silently
+  breaks the method-group conversions this spine is used through (`Select(host.Expr.BindExpr)`) — which is exactly
+  how the first attempt failed to compile.
+- **🔴 THE FIRST ATTEMPT AND WHY IT FAILED — kept, because the measurement is what produced the design.** Putting the check at
+  `ExpressionBinder.RefExpr` (the natural-looking site: it is where a resolved data reference becomes a numeric
+  expression operand, and the neighbouring `NonNumericConstantExpr` already raises **COBOLNET0844** for this very
+  clause) produced **79 conformance failures** — and NOT from programs abusing the extension. The casualties were
+  `FUNCTION TRIM(S)`, `SUBSTITUTE`, `FIND-STRING`, `CONVERT`, `RefModArgument_Renders`: **legal alphanumeric
+  ARGUMENTS to string intrinsics** (§15.3), which §8.8.1.1 does not govern at all.
+  **The root cause is structural and is the real finding:** `RefExpr` is documented as "The ONE
+  dataReference→`BoundExpr` mapping, used by every expression path", so it is CONTEXT-FREE — it cannot distinguish
+  an arithmetic operand from a string-function argument. A context-sensitive syntax rule cannot live there.
+- **What the fix actually requires:** the check must sit where an ARITHMETIC-EXPRESSION operand is assembled, which
+  means threading an operand-context (arithmetic vs. intrinsic-argument vs. reference-modifier) through the
+  expression binder — a design change to the spine, not a guard. That is the work; the predicate is trivial.
+- **⛔ AND `NumericRenderer.cs:186` MUST MOVE TO `IsImageCapable` IN THE SAME CHANGE SET, NEVER BEFORE IT.** Under
+  the rejection, that arm becomes reachable only via `--permissive`, where the leniency must be CONSISTENT for both
+  group kinds (today a `PIC X`-leaf group computes and a `PIC 9`-leaf group throws). Migrating it while strict still
+  ACCEPTED the construct would extend acceptance of illegal source instead of fixing anything. Verified during the
+  attempt: paired, strict rejects both group kinds and `--permissive` computes both as `001235`.
+
+### DA5 · [MAJOR] · data-model · ✅ LANDED — V59's image predicate was migrated at SOME emit guards and not others
+- **The two predicates.** V59 added `DataItem.IsImageCapable` (a BINARY/PACKED leaf HAS a pinned byte image, so a
+  group containing one qualifies; only float / COMP-5 / INDEX are genuinely imageless) beside the pre-V59
+  `DataItem.IsCharacterImage` (a COMP/binary leaf qualifies only via `StoreAsImage` promotion). `TierCIsland`
+  documents the pair as deliberate P1/P2 — that was true BEFORE V59.
+- **Why the split is now a defect and not a design.** `RecordStructEmitter.cs:123` emits `AsImage()`/`FromImage()`
+  for exactly `IsImageCapable`, so the codec EXISTS for a plain COMP group. A guard still on `IsCharacterImage`
+  therefore loud-stages a construct whose codec was actually generated. `MoveEmitter` ends up using BOTH
+  predicates, which is the tell that this is an unfinished migration rather than a distinction.
+- **✅ THE CALL HALF IS LANDED (DEVLOG 1105).** `01 G. 05 N PIC S9(4) COMP. 05 P PIC 9(3) COMP-3. 05 A PIC X(3).`
+  answered `BYTE-LENGTH(G) = 7` and then threw *"no whole-group character image"* on `CALL "SUB" USING G`. That
+  claim was false and refusing the CALL rejected conforming source: **§14.2.3 GR8** (`cite.py`-verified) — "If the
+  argument is passed by reference, the activated runtime element operates as if the formal parameter occupies the
+  same storage area as the argument" — which COBOL.NET realizes through that very image round-trip. Both CALL
+  guards (the `ArgText` read half and the `CallStringWrite` write half) now test `IsImageCapable`; the leaf-kind
+  wording follows the predicate. Golden `da5_call_comp_group` pins the round-trip IN **and** OUT, since a test that
+  only checked "no longer throws" would miss a broken round-trip. A float/COMP-5/INDEX group still stages loud.
+- **✅ THE TABLE-SORT HALF IS LANDED TOO (DEVLOG 1106).** `SortEmitter.TableCompare` loud-staged a group key
+  containing a BINARY leaf. **§14.9.40.4 GR8** (`cite.py`-verified) is decisive: key data items are "compared
+  according to the rules for comparison of operands in a relation condition", and a GROUP operand in a relation is
+  class alphanumeric (§8.8.4.2.3 SR2) compared over its representation — which `OperandText` already renders via
+  `AsImage()` gated on `IsImageCapable`. So the stale predicate made **SORT and `IF` disagree about the same two
+  group operands**: the `IF` compared their byte images while the SORT threw. Golden
+  `da5_table_sort_group_key` pins the AGREEMENT (not merely that the SORT runs), including a NEGATIVE key: a
+  big-endian two's-complement image is not order-preserving across zero, so a group key holding −1 sorts AFTER one
+  holding +1 — **deliberate, GR8-mandated, and the `IF` agrees.** A program wanting value order names the
+  ELEMENTARY numeric item as the key. That case exists so a later reader cannot "fix" the byte order and break GR8.
+- **⛔ CORRECTION — `MoveEmitter.cs:144` IS NOT A GUARD AND MUST NOT BE MIGRATED.** The first cut of this entry
+  listed it among the stale sites; that was wrong. It selects a STRATEGY: when the receiver is not a character
+  image it first tries the memberwise leaf-copy fast path (source and receiver leaf layouts positionally
+  identical), and only the fall-through reaches the real capability guard at line 168, which is ALREADY on
+  `IsImageCapable`. Verified by repro: MOVE into a COMP-containing group works in all three shapes — aligned
+  memberwise, non-aligned image redistribution, and from an alphanumeric source. So `MoveEmitter` using both
+  predicates is not "a distinction disagreeing with itself"; the two uses have different jobs.
+- **✅ THE REMAINING FIVE GROUP-RECEIVER GUARDS ARE LANDED (DEVLOG 1107) — DA5 IS COMPLETE.**
+  `StringEmitter.cs:151` (STRING INTO) · `:193` (UNSTRING INTO) · `InspectEmitter.cs:89`
+  (INSPECT REPLACING/CONVERTING) · `AcceptDisplayEmitter.cs:66` (ACCEPT into group) · `:129` (ACCEPT temporal).
+  **⛔ AND THE PREDICTION IN THE PREVIOUS REVISION OF THIS ENTRY WAS WRONG.** It said these were "not automatically
+  bugs" because STRING/UNSTRING/INSPECT are defined over CHARACTER POSITIONS, so refusing a byte-imaged COMP group
+  "may well be CORRECT". Measured, that reasoning is misapplied: **a group MOVE into the very same receiver already
+  worked**, and all of these are the same POSITIONAL character transfer into the group's storage (§14.9.25.4 GR4 —
+  the group move is alphanumeric, "filled without consideration for the individual items"). So five verbs
+  disagreed about one receiver. "BYTES ARE NOT TEXT" governs *rendering a COMP leaf's VALUE as text* (that is
+  `DisplayTextWidth`'s job, DA2), NOT writing characters positionally over its bytes.
+  Golden `da5_group_verbs_comp_leaf` pins the invariant that matters: STRING and UNSTRING land **byte-for-byte what
+  the group MOVE lands** (`MOV`/`STR`/`UNS` lines identical), and INSPECT REPLACING leaves the binary leaf's `00 00`
+  untouched because those bytes are not spaces. A float/COMP-5/INDEX group still stages loud on all four, with the
+  message now naming the predicate actually tested.
+- **⏳ ONE SITE REMAINS AND IT IS A DIFFERENT DEFECT — see DA6.** `NumericRenderer.cs:186` stays on
+  `IsCharacterImage` DELIBERATELY: migrating the predicate would be the wrong fix, because a group used as a
+  NUMERIC operand is ILLEGAL SOURCE, not a representable operation. Tracked separately.
+  *(Historical note, kept because the reasoning is instructive:* **⛔ V59's own governing lesson is BYTES ARE NOT
+  TEXT:** a COMP leaf's image is
+  radix-2 bytes, not its digits, so a verb defined over CHARACTER POSITIONS (STRING/UNSTRING/INSPECT) may be
+  CORRECT to refuse it — consuming those bytes as text would be a silent wrong answer, strictly worse than the
+  loud stage. Each site needs its own spec derivation (does the operation need TEXT or STORAGE?), plus the
+  separate question of whether a syntax-rule violation is being deferred to RUN TIME where it belongs at COMPILE
+  time (e.g. §14.9.43.3 SR1 requires STRING's identifiers be usage display or national). **The caution was right in
+  KIND and wrong in APPLICATION** — it correctly refused a blind predicate swap, and the per-site derivation it
+  demanded is what showed the swap was in fact correct for all five. The half that survives is the staging
+  question, now DA7.*)
+- **The inventory is PINNED, so nothing can be forgotten.**
+  `tests/Cobol.Net.Tests.Unit/V59ImagePredicateDriftTests.cs` asserts the exact per-file set (and that CALL's two
+  halves stay in lockstep), so adding, removing, or silently migrating a site fails a test and forces the decision
+  to be recorded. It counts CODE only — the first cut failed on its own explanatory comment.
+
+### DA4 · [MAJOR] · inspect-string · ✅ LANDED (DEVLOG 1110) — a function-identifier in every STRING/UNSTRING SENDING position
+> **Grammar + binder, four positions, one helper.** §14.9.43.2 / §14.9.48.2 write these operands as identifier-N and
+> §8.4.3.1.2 Format 1 makes `function-identifier-1` a FORMAT of an identifier, so all four admit one: STRING
+> identifier-1 and identifier-2 (DELIMITED BY), UNSTRING identifier-1 (the source) and identifier-2/-3
+> (DELIMITED BY … OR …). `functionCall` is keyword-led so it goes FIRST in each alternative and cannot be shadowed
+> by `dataReference`; a keyword-OMITTED function still parses as a dataReference and resolves in the binder as before.
+> **⚠ THE `INTO` PHRASES ARE DELIBERATELY NOT OPENED** — §8.4.3.2.3 SR1 (`cite.py`-verified): "A
+> function-identifier shall not be specified as a receiving operand." All four changed positions are SENDING.
+> **The UNSTRING source needed a bound-tree change and it made the code SIMPLER:** `BoundUnstringStmt.Source` was a
+> `Place`, which a function result has none of, and is now a `BoundOperand` like every other sending operand in
+> these two statements — the emitter had only ever been wrapping the Place to reach `OperandText.AsString`, THE one
+> string-context renderer, so it now passes the operand straight through. SR2's category screen reads whichever
+> shape arrived (a field's PICTURE or an intrinsic's §15.2 result category), so `UNSTRING FUNCTION ORD(C)` is still
+> correctly refused as category numeric. Golden `da4_function_sending_operand` pins all four positions.
+
+### DA4 (original entry, for provenance) — the STRING statement's sending operand REJECTS a function-identifier at PARSE time
+- **Spec:** §14.9.43.2's general format gives the sending operand as **`identifier-1`**, and §8.4.3.1.2 **Format 1
+  of an identifier IS `function-identifier-1`** (`cite.py --check`-verified). No syntax rule excludes a function:
+  §14.9.43.3 SR1 requires the identifiers be "described implicitly or explicitly as usage display or national",
+  which a function's §15.4 temporary elementary item satisfies implicitly, and **SR8 explicitly CONTEMPLATES a
+  numeric identifier-1** ("Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be
+  described as an integer…"). So `STRING FUNCTION ORD(C) DELIMITED BY SIZE INTO A` is CONFORMING SOURCE.
+- **Observed (2026-07-29, while landing DA2):** it does not reach the binder at all —
+  `error COBOL0001: no viable alternative at input 'FUNCTION'`. This is a GRAMMAR gap, not an emit gap, which is
+  why DA2's fix does not cover it: DA2 was the string-context RENDERER, and this operand never gets that far.
+- **Scope note:** discovered by testing whether DA2's root cause reached other string contexts. DISPLAY and
+  MOVE-to-alphanumeric did (both fixed by DA2); STRING is rejected one stage earlier. Grammar changes are
+  pre-authorized, so this is a `Core/*.g4` sending-operand alternative plus the bind path and a golden.
+
+### DA3 · [MAJOR] · conditions · ✅ LANDED (DEVLOG 1110) — and the ROOT CAUSE was three copies of one dispatch
+> ⚠ **THE SWEEP WAS NOT COMPLETE, and "three copies" should not be read as a closed count.** `PB4`
+> (DEVLOG 1119) found the same hexadecimal-literal defect in FIVE further positions — the whole VALUE
+> family and the `ALL <hex>` figurative — because the prefix-letter list in `CobolLiteral` was itself
+> duplicated, and BOTH copies omitted `X`. DA3 fixed the three OPERAND dispatches it could see from the
+> reported symptom; the decoder underneath them was the shared cause and was not examined. When a finding
+> names N copies of a rule, the count is what the symptom exposed, not what exists.
+> §8.3.3.2 **Format 2** is the hexadecimal-alphanumeric FORMAT *of* the alphanumeric literal, and §8.3.3.2.1 makes
+> every format of it "of the class and category alphanumeric" (both `cite.py`-verified). So `X"…"` belongs wherever
+> an alphanumeric literal belongs.
+> **⛔ THE REAL DEFECT WAS DUPLICATION, NOT A MISSING ARM.** The "non-numeric literal → operand" chain existed in
+> THREE hand-maintained copies — `ExpressionBinder.LiteralOperand`, `IntrinsicBinder.NonNumericOperand`, and inline
+> in `ConditionBinder`'s comparison-operand binder — and the hex form was simply absent from one of them. That is
+> why the same literal worked in a MOVE and staged loud as "comparison operand" in a relation. Adding a fourth arm
+> to a third copy would have guaranteed the next literal form broke too, so the fix EXTRACTED one canonical
+> `NonNumericLiteralOperand` mapping that all three now call; a new literal form is a one-line change in one place.
+> Golden `da3_hex_literal_operand` pins all three positions (relation, MOVE, intrinsic argument).
+
+### DA3 (original entry, for provenance) — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
+- **Spec:** §8.3.3.2 defines the hexadecimal format of an alphanumeric literal (`X"F0F1"`), and it is an
+  ALPHANUMERIC LITERAL — §8.8.4.1.1 admits a literal on either side of a relation condition with no format
+  restriction. So `IF G = X"FFF94142"` is CONFORMING SOURCE.
+- **Observed (2026-07-29, while re-pinning the V59 group-image test):** the program compiles and then throws
+  `NotImplementedCobolFeatureException: comparison operand` at run time. A quoted literal in the same position works
+  (`IF G = "000PAB"`), so the gap is the hex FORM reaching the comparison-operand renderer, not the comparison.
+  Hex literals DO work in a VALUE/ALPHABET position (DA1 landed that decode), which is what hid this.
+- **Scope note:** not V59; the V59 test pins the same fact with an alphanumeric REDEFINES instead and says so.
+
+### DA2 · [MAJOR] · accept-display · ✅ LANDED (DEVLOG 1104) — a NUMERIC FUNCTION operand in ANY string context
+> **Landed 2026-07-29.** The gap was WIDER than "DISPLAY": `OperandText.AsString` is the one string-context
+> operand renderer, so `MOVE FUNCTION ORD(C) TO` a `PIC X` item failed identically. One arm fixes every such
+> context. **What the investigation actually found is bigger than the ticket:** the compile-time FOLD was
+> OBSERVABLE — an intrinsic over constant arguments folds to a numeric literal and printed, while a computed one
+> threw, so the two paths had different user-visible behaviour. The fix therefore had to pin ONE rendering rule
+> for both, not merely stop the throw. §15.4.1 and §14.9.11.4 GR1 both make the choice implementor-defined; the
+> determination (literal form — no zero padding, leading `-`) is documented in `docs/CONFORMANCE.md` and pinned by
+> the golden `da2_function_as_text`, whose first four lines are two fold/compute pairs of the same value.
+> Deliberately differs from GnuCOBOL, which zero-pads a computed `ORD` but prints a folded `MAX` minimally.
+- **Spec:** §14.9.11.2 Format 1 (device) takes `identifier-1`; §8.4.3.1.2 gives **`function-identifier-1`** as one of
+  the general formats of an identifier; §14.9.11.3 SR1 excludes only class message-tag, object and pointer — nothing
+  excludes a function. So `DISPLAY FUNCTION ORD(C)` is CONFORMING SOURCE. All three clauses `cite.py --check`-verified.
+- **Observed (2026-07-29, while writing the V59 byte-image golden):** `DISPLAY FUNCTION ORD(C)` compiles and then
+  throws `NotImplementedCobolFeatureException: computed expression in a string context` at run time, while
+  `MOVE FUNCTION ORD(C) TO N` + `DISPLAY N` works. A COMPILE-TIME-FOLDABLE intrinsic is fine
+  (`DISPLAY FUNCTION BYTE-LENGTH(G)` prints), which is what hid it: the gap is a RUNTIME-computed NUMERIC intrinsic
+  in a string context.
+- **Where:** `OperandText.AsString` intercepts only an intrinsic whose `ResultCategory` is alphanumeric/national/
+  boolean; a NUMERIC-result intrinsic falls to the visitor's computed arm, which is the loud stage. The fix is the
+  numeric-result arm — render through the numeric channel and format with the intrinsic's own profile — not a new
+  mechanism.
+- **Scope note:** this is NOT V59 and was not caused by it; the V59 golden routes the ordinal through a numeric item
+  and says so in a comment, so the gap stays visible rather than absorbed.
 
 ### DA1 · [MAJOR] · special-names · ✅ LANDED (DEVLOG 1019) — verified end-to-end (char-THRU worked, isolating the defect to hex decode) + root-caused + fixed
 - **Spec:** ISO §12.3.7 k)5 (ALPHABET literal-1 THRU literal-2 — "the native run from operand-1 to operand-2, either
@@ -138,7 +700,7 @@ pages 600–829), so each site needs its own page checked. That is the remaining
      BYTE-LENGTH` reports them. There is no new representation to invent and a second one must not be invented.
   2. **The compiler contradicts itself, observably, with no file and no byte pun.** For `05 G-COMP PIC 9(4) COMP.
      05 G-PACK PIC 9(4) COMP-3.` it answers `BYTE-LENGTH(G) = 5` and `LENGTH(G) = 8`, and accepts `REDEFINES G PIC
-     X(8)`. §15.14.4 GR1 (bytes) and §15.50.4 GR3 (alphanumeric character positions) cannot disagree in a
+     X(8)`. §15.14.4 r1 (bytes) and §15.50.4 r3 (alphanumeric character positions) cannot disagree in a
      single-byte-character model. **This makes V59 a genuine conformance defect, not only implementor latitude** —
      the original adjudication reached "not a clear §4.2.16 violation" by weighing only the byte-pun view.
   3. **`RedefCodec`/Tier C is NOT the mechanism.** The whole-group image is a Latin-1 `string`, and files, SORT and
@@ -480,7 +1042,7 @@ Derivation: no element equals 9, so per §14.9.37.4 GR4 the scan advances past o
   rejected) — the one COBOLNET0805 test (`StandardDecimalTests`) is operand-driven (40-digit) and unaffected. Golden
   `conformance/2023/ca4_giving_composite` (positive, .out-verified: 0000030000000000 ×2). Gate: Conformance
   Corpus+StandardDecimal+Arithmetic+Compute 400/400 · characterization 33/33.
-- **Spec:** §14.9.2.3 SR1b (ADD Format 2) and §14.9.44.3 SR1b (SUBTRACT Format 2): composite = "all of the operands in the statement excluding the data items that follow the word GIVING"; §14.7.7 rule 2 (the composite is the superimposition of the operands). Code: ArithmeticBinder.cs:35-37 (ADD GIVING) and :56-57 (SUBTRACT GIVING); StatementValidation.cs:105-143 (CheckComposite), :129-131 (receiver shaping).
+- **Spec:** §14.9.2.3 SR1b (ADD Format 2) gives the composite verbatim — "all of the operands in the statement excluding the data items that follow the word GIVING" — and §14.9.44.3 SR1b (SUBTRACT Format 2) states the same rule, differing only in reading "the data item that follow" (singular); §14.7.7 rule 2 (the composite is the superimposition of the operands). Code: ArithmeticBinder.cs:35-37 (ADD GIVING) and :56-57 (SUBTRACT GIVING); StatementValidation.cs:105-143 (CheckComposite), :129-131 (receiver shaping).
 - **Verified:** CONFIRMED. §14.9.2.3 SR1b and §14.9.44.3 SR1b (spec lines 25530 / 32133) both exclude the GIVING data items from the ADD/SUBTRACT Format-2 composite. ArithmeticBinder.BindAdd (:36) passes `givingRecv` and BindSubtract (:57) passes `recv` as the `receivers` argument to CheckComposite, which unconditionally Shape()s every numeric non-float receiver into maxInt/maxFrac (StatementValidation.cs:129-131). So the GIVING resultant's digit positions are wrongly counted against the 31-digit cap, and a conformant program is rejected with COBOLNET0805. I verified the scope is exactly ADD+SUBTRACT: MULTIPLY (§14.9.26.3 SR4, spec line 28770) says "all of the operands" with NO GIVING exclusion, and DIVIDE (§14.9.12.3 SR4, spec line 26731) excludes ONLY the REMAINDER data item — the code correctly includes the MULTIPLY/DIVIDE GIVING receivers and correctly omits the DIVIDE remainder (ArithmeticBinder.cs:79,108,118,129), so those verbs must NOT be changed. The check is edition-invariant (lives in StatementValidation; the GIVING-exclusion is present in all editions).
 - **Fix:** ArithmeticBinder.cs: in the ADD GIVING branch change line 36 `ctx.Validation.CheckComposite("ADD", addends, givingRecv);` to `ctx.Validation.CheckComposite("ADD", addends, []);`, and in the SUBTRACT GIVING branch change line 57 `ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], recv);` to `ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);` — i.e. pass an empty IReadOnlyList<Receiver> so the GIVING resultants are excluded from the composite per SR1b (the receivers are still used unchanged to build BoundAddGiving/BoundSubtractGiving). `[]` target-types to the IEnumerable<Receiver> parameter. (Equivalent, more self-documenting alternative: add an overload CheckComposite(verb, operands) that omits the receiver loop and call it from the two GIVING branches.) Leave MULTIPLY/DIVIDE call sites untouched — they conform to §14.9.26.3 SR4 / §14.9.12.3 SR4.
 - **Golden (spec-derived):** COBOL (any edition — 9(25) and the composite rule are edition-invariant):\nIDENTIFICATION DIVISION.\nPROGRAM-ID. CA4ADD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9(25) VALUE 1.\n01 B PIC 9(25) VALUE 2.\n01 C PIC 9(6)V9(10).\nPROCEDURE DIVISION.\n    ADD A B GIVING C.\n    DISPLAY C.\n    STOP RUN.\nSPEC-DERIVED (§14.9.2.3 SR1b + §14.7.7 rule 2): composite excludes C = {A(25 int), B(25 int)} -> max int 25, max frac 0 -> composite 25 <= 31 -> LEGAL, compiles with no COBOLNET0805. Runtime A+B = 3 -> C (PIC 9(6)V9(10)) = 3.0. EXPECTED OUTPUT (DISPLAY of the 16 implied digits, V not shown):\n0000030000000000\nCURRENT (bug): CheckComposite also shapes C (6 int, 10 frac) -> max int 25, max frac 10 -> composite 35 > 31 -> emits COBOLNET0805 "the composite of operands spans 35 digits" and REJECTS the program.\nSUBTRACT analogue (§14.9.44.3 SR1b): with A PIC 9(25) VALUE 5, B PIC 9(25) VALUE 2, C PIC 9(6)V9(10), `SUBTRACT B FROM A GIVING C.` -> composite excludes C = {A,B} = 25 <= 31 -> legal, C = 3 -> 0000030000000000; current code rejects identically.
@@ -623,7 +1185,7 @@ The existing StringEmitter.cs:226 default arm stays as defense-in-depth. Ship a 
 
 Derivation: R1 is category NUMERIC-EDITED and R3 is category numeric with usage COMP-3 (packed, not display, not national). SR4 permits receivers only of (usage display + alphabetic/alphanumeric/numeric) or (usage national + national/numeric); neither shape is in that set ⇒ both statements violate SR4 ⇒ a conforming processor must indicate the violation. EXPECTED (spec-correct): each UNSTRING is rejected with a diagnostic naming §14.9.48.3 SR4 (in the codebase's convention, a BoundUnsupported ⇒ NotImplementedCobolFeatureException naming SR4 at the statement — no silent extraction). CURRENT (buggy): both compile and run — '123' truncated to 2 chars? no: DELIMITED BY SIZE takes the whole field '123' (R1 reception 3 digit positions) → NumFromAlphanumeric('123')=123 → ZZ9 edit → '123' stored in R1; and 123 packed into R3 — a wrong (unflagged) result. A LEGAL control (01 R2 PIC 999 display) correctly receives '123', proving the divergence is receiver-category-specific. Editions: ALL (85/2002/2014/2023) — UNSTRING is a COBOL-85 verb and its receiver-category SR4 is edition-invariant (StringUnstringBinder.cs:11-15 documents the whole surface as '85, no edition gate).
 
-### CA26 · [MINOR/S] · intrinsics · ✅ LANDED (DEVLOG 1018) — resolved toward the ESTABLISHED Unicode design (owner: Unicode was always intended, spec-permitted), NOT the finding's original 256/Latin-1 recommendation. The native alphanumeric repertoire is UTF-16; the residual `& 0xFF` weights aliasing + `Char(n,weights)` domain cap were widened to the full range (§12.3.7 k)3), CHAR/ORD guards already correct.
+### CA26 · [MINOR/S] · intrinsics · ✅ LANDED (DEVLOG 1018) — resolved toward the ESTABLISHED Unicode design (owner: Unicode was always intended, spec-permitted), NOT the finding's original 256/Latin-1 recommendation. The native alphanumeric repertoire is UTF-16; the residual `& 0xFF` weights aliasing + `Char(n,weights)` domain cap were widened to the full range (§12.3.7.4 GR7 1.3), CHAR/ORD guards already correct.
 - **Spec:** §15.15.3 r2 — 'The value of argument-1 shall be greater than zero and less than or equal to the number of positions in the alphanumeric program collating sequence'; §15.16.3 r2 (CHAR-NATIONAL, 65 536)
 - **Verified:** The implementation DOCUMENTS its alphanumeric coded character set as 8-bit Latin-1 = 256 positions in multiple places: the char-set model comment CobolIntrinsics.Text.cs:166 ('the alphanumeric coded set is 8-bit Latin-1'), CONVERT ANUM (:195-198, 1 byte/char, '?'-substitutes code points > 0xFF), DISPLAY-OF/NATIONAL-OF's D-N4 Latin-1↔national correspondence, and the 256-entry non-native alphanumeric PCS weights domain (CobolString.Compare(...,ushort[]) masks `& 0xFF`; IntrinsicBinder.cs:277). Yet CobolIntrinsics.Text.cs:21 CHAR's native path guards `c is < 0 or > 0xFFFF` (accepting n up to 65 536 — the NATIONAL bound), so CHAR(257)..CHAR(65536) return U+0100..U+FFFF and raise nothing, and ORD (:84) is likewise unbounded. Under §15.15.3 r2 with the documented 256-position count, CHAR(257) violates the argument rule and must raise EC-ARGUMENT-FUNCTION (checking on) / return the §15.3 implementor default (the code already uses one space). This is a real internal inconsistency — the native CHAR/ORD path contradicts the implementation's own documented 256-position alphanumeric repertoire. CAVEAT (owner ratification): the 'number of positions' is implementor-defined; if the owner instead declares the native alphanumeric sequence to span full UTF-16 (a PIC X is a UTF-16 string in the typed-native model), the fix moves to the docs/CONVERT/non-native-domain side and CHAR's native path is 'correct'. The preponderance of Latin-1/256 documentation makes 256 the self-consistent, conformant choice.
 - **Fix:** Presuming the documented 256-position alphanumeric repertoire (recommended): CobolIntrinsics.Text.cs:21 change `if (c is < 0 or > 0xFFFF)` to `if (c is < 0 or > 0xFF)` so CHAR(n) with n > 256 takes the existing ArgumentError + one-space-default path (leave CHAR-NATIONAL at 0xFFFF, :55). Optionally tighten ORD (:84) so a code point > 0xFF in an alphanumeric argument is out-of-repertoire. If the owner ratifies 65 536 instead, no code change to CHAR — instead correct the Text.cs:166 char-set-model documentation and widen the non-native weights domain; that is the less defensible direction given the pervasive Latin-1 model.

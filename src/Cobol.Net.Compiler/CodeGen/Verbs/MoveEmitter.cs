@@ -396,7 +396,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 int nScale = n.Real ? recvScaleM : n.Scale;
                 string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
-                return target.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, target.ProfileName) : stored;
+                return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:
                 return "default";
         }

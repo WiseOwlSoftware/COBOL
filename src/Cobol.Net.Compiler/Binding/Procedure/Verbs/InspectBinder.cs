@@ -3,6 +3,7 @@
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -32,9 +33,23 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // the admitted set at Phase 4a (M2-DATA-3): a national item is a plain string under D-N1, so the
         // character-based INSPECT machinery applies unchanged (the cross-class operand-MIX validation across
         // the whole operand set is residue #12). Display-form boolean items pass the Display arm.
+        // ⛔ DA7 — A COMPILE-TIME DIAGNOSTIC, not a run-time stage. The verdict was always right (SR1 genuinely bars
+        // an elementary binary/packed/float/index identifier-1), but returning BoundUnsupported meant the illegal
+        // program COMPILED CLEAN and threw only when control reached the INSPECT. The standard promises a syntax
+        // error, so a user was getting a crash where they were owed a diagnostic. Edition-invariant — SR1 is
+        // unchanged at 85/2002/2014/2023, so this is deliberately NOT gated. Note the rule constrains only an
+        // ELEMENTARY operand: `target.Item.Pic is { }` is false for a GROUP, so an alphanumeric group — including
+        // one holding a BINARY/PACKED leaf, which SR1 admits outright as "an alphanumeric or national group item" —
+        // never reaches this check.
         if (target.Item.Pic is { } tp && tp.Usage is not (Usage.Display or Usage.National))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                $"INSPECT identifier-1 '{target.Item.CobolName}' is an elementary item of USAGE {tp.Usage}, which "
+                + "has no character image; SR1 admits an alphanumeric/national GROUP item or an ELEMENTARY item of "
+                + "usage display or national (ISO §14.9.22.3 SR1)");
             return new BoundUnsupported(
                 $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
+        }
 
         bool backward = ins.BACKWARD() is not null;   // inspect-backward-2023: the pass owns the edition gate (Exec Step E)
 

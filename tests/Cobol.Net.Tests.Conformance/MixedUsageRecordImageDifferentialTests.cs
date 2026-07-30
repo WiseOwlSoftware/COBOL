@@ -6,15 +6,14 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// The mixed-usage record-image codec (COBOLNET_DESIGN §14.4/§8.2, the Phase-1E Tier-C lift): a fixed-point
-/// BINARY/PACKED leaf's character image inside a record/group image is its fixed-width <b>zoned decimal digit
-/// image</b> — <c>Pic.Digits</c> characters, implied decimal point, sign carried as a TRAILING OVERPUNCH on the
-/// last digit. This is implementor-defined territory: ISO/IEC 1989:2023 §13.18.60 USAGE GR4 — "Each implementor
-/// specifies the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including
-/// the representation of any algebraic sign" — and group MOVE (§14.9.25.4 GR4) / group compare (§8.8.4.2.1) are
-/// statements about that representation. The facts here are therefore <b>spec-pinned</b>, never legacy-pinned: the
-/// legacy byte engine's raw hardware bytes are a DIFFERENT implementor choice with no authority over this one
-/// (the NIST ST goldens stay the regression net — they observe COMP values only through numeric moves, never raw
-/// bytes). What the spec DOES fix regardless of representation is pinned throughout: SORT/MERGE keys compare by
+/// BINARY/PACKED leaf's image inside a record/group image is its TRUE BYTES — radix-2 two's complement
+/// (big-endian) or BCD with a <c>0xC</c>/<c>0xD</c>/<c>0xF</c> sign nibble, of exactly
+/// <c>PicInfo.StorageWidth</c> (V59). This is implementor-defined territory: ISO/IEC 1989:2023 §13.18.60.4 GR4 —
+/// "Each implementor specifies the precise effect of the USAGE BINARY clause upon the … representation of the data
+/// item …, including the representation of any algebraic sign" — and GR11 the same for PACKED-DECIMAL; group MOVE
+/// (§14.9.25.4 GR4) / group compare (§8.8.4.2.1) are statements about that representation. The facts here are
+/// therefore <b>spec-pinned</b>, never legacy-pinned (the NIST ST goldens stay the regression net — they observe
+/// COMP values only through numeric moves, never raw bytes). What the spec DOES fix regardless of representation is pinned throughout: SORT/MERGE keys compare by
 /// ALGEBRAIC value (§14.9.40 GR8 / §8.8.4.2.4 — "regardless of the manner in which their usage is described"),
 /// DUPLICATES IN ORDER stability (GR3b), the RELEASE/RETURN record-area round trip (§14.9.32 GR2 / §14.9.34 GR3),
 /// group-move positional fill without conversion (§14.9.25.4 GR4), and SAME RECORD AREA as an implicit leftmost-
@@ -85,9 +84,9 @@ public sealed class MixedUsageRecordImageDifferentialTests
 
     /// <summary>An ASCENDING signed-COMP key orders NEGATIVES algebraically (−8000 &lt; −14 &lt; 0 &lt; +1 &lt; +99)
     /// — §14.9.40 GR8 via §8.8.4.2.4: numeric comparison is "with respect to the algebraic value of the operands
-    /// regardless of the manner in which their usage is described". The load-bearing piece is the key descriptor's
-    /// IMAGE sign (PicInfo.ImageSignKind): decoding the zoned trailing-overpunch window with the leaf's stored
-    /// BinaryMinus convention would sort every negative as positive (the brief's hazard 1 — silent if untested).</summary>
+    /// regardless of the manner in which their usage is described". The load-bearing piece is the decode of the key
+    /// WINDOW through the key item's own profile (<c>CobolSort.Key.Profile</c>): reading two's-complement bytes as
+    /// text would sort every negative LAST, since a negative's first byte is 0xFF (hazard 1 — silent if untested).</summary>
     [Fact]
     public void Sort_SignedBinaryKey_Ascending_NegativesOrderAlgebraically()
         => AssertSpec(SortProgram("MXSRT1", """
@@ -146,8 +145,8 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "        MOVE S-KEY TO WS-ED DISPLAY \"K=\" WS-ED \" \" S-TXT"),
             "K=-0005 A1\nK=-0005 A2\nK=-0005 A3\nK=+0007 B1");
 
-    /// <summary>A signed PACKED-DECIMAL (COMP-3) key orders algebraically too — the image-sign mapping covers both
-    /// decimal-digit usages (PicInfo.ImageSignKind: BINARY and PACKED alike image as zoned trailing-overpunch).</summary>
+    /// <summary>A signed PACKED-DECIMAL (COMP-3) key orders algebraically too — one codec covers both usages
+    /// (NumericByteForm: BINARY images as radix-2 bytes, PACKED as BCD with a trailing sign nibble).</summary>
     [Fact]
     public void Sort_SignedPackedKey_Ascending_NegativesOrderAlgebraically()
         => AssertSpec(SortProgram("MXSRT4", """
@@ -202,8 +201,12 @@ public sealed class MixedUsageRecordImageDifferentialTests
 
     /// <summary>A NON-ALIGNED mixed-group MOVE (3 source leaves → 4 receiver leaves — the ST127A 10→11 shape) is a
     /// positional representation copy "without consideration for the individual elementary items" (§14.9.25.4 GR4):
-    /// the source's image <c>"AB" + "012L" + "CDE"</c> (−123 in S9(4) COMP images as digits 0123 with 'L' = the
-    /// −3 trailing overpunch) refills the receiver's windows as AB | 01 | 2L | CDE ⇒ +1, −23.</summary>
+    /// the source's image is <c>"AB" + FF 85 + "CDE"</c> — a <c>PIC S9(4) COMP</c> holding −123 is TWO bytes of
+    /// two's complement, 0x10000 − 123 = 0xFF85 (§13.18.60.4 GR4, radix 2; V59) — and it refills the receiver's
+    /// windows as AB | FF | 85 | CDE. Each one-byte <c>PIC S9(2) COMP</c> receiver then reads its byte as signed:
+    /// 0xFF ⇒ −1, 0x85 ⇒ −123. (−123 exceeds a 2-digit picture, which is exactly what GR4 permits: the copy is of
+    /// REPRESENTATION, and the resulting content need not be consistent with the receiver's description —
+    /// §14.6.13.2 leaves the subsequent numeric use undefined, so this pins OUR deterministic decode.)</summary>
     [Fact]
     public void Move_NonAlignedMixedGroups_FillsPositionallyByImage()
         => AssertSpec(Program("MXMOV1", """
@@ -218,7 +221,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
                05 DST-B PIC X(3).
             """, """
                 MOVE G-SRC TO G-DST.
-                IF DST-A = "AB" AND DST-N1 = 1 AND DST-N2 = -23 AND DST-B = "CDE"
+                IF DST-A = "AB" AND DST-N1 = -1 AND DST-N2 = -123 AND DST-B = "CDE"
                     DISPLAY "OK"
                 ELSE
                     DISPLAY "BAD"
@@ -226,23 +229,33 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "OK");
 
-    /// <summary>The retired-MixedGroupImage latent-bug regression: a SIGNED NEGATIVE binary leaf's group image is
-    /// FIXED width — −7 in S9(4) COMP images as <c>"000P"</c> ('P' = the −7 trailing overpunch), 4 characters, so
-    /// the group is 6 and the following leaf does NOT shift. (The old inline concat formatted the leaf with its own
-    /// BinaryMinus profile — <c>"-0007"</c>, 5 characters — shifting every following leaf by one.) The group
-    /// compares as an elementary alphanumeric item over this representation (§8.8.4.2.1), and DISPLAY shows it
-    /// verbatim (§14.9.11.4 GR1) — both pins of the documented §13.18.60 GR4 implementor definition.</summary>
+    /// <summary>A SIGNED NEGATIVE binary leaf's group image is its TWO'S-COMPLEMENT BYTES, big-endian, and FIXED
+    /// width: −7 in <c>PIC S9(4) COMP</c> is 0x10000 − 7 = <c>FF F9</c> — TWO bytes (§13.18.60.4 GR4 radix 2, the
+    /// pinned 1-2-4-8 ladder), so the group is 4 and the following leaf does not shift. Two failure modes this
+    /// pins at once: the retired inline concat formatted the leaf with its own BinaryMinus profile
+    /// (<c>"-0007"</c>, VARIABLE width — a negative value shifted every following leaf), and the zoned digit image
+    /// that replaced it made the same group 6 characters wide while <c>FUNCTION BYTE-LENGTH</c> said 4 (V59). The
+    /// The WIDTH is asserted two ways that a shift would break: <c>FUNCTION LENGTH</c> of the group is 4, and an
+    /// alphanumeric REDEFINES finds "AB" at positions 3-4 — under the retired zoned image the leaf occupied four
+    /// positions and "AB" sat at 5-6. (This harness compiles at COBOL-85, so the byte VALUES themselves are pinned
+    /// where the intrinsics exist: the 2023 golden <c>v59_byte_image</c> reads each byte with FUNCTION ORD, and
+    /// <c>RecordImageCodecTests</c> pins the hex vectors at the codec.)</summary>
     [Fact]
-    public void GroupImage_SignedNegativeBinaryLeaf_IsFixedWidthZoned()
+    public void GroupImage_SignedNegativeBinaryLeaf_IsTwosComplementBytes()
         => AssertSpec(Program("MXCMP1", """
             01 G1.
                05 G1-N PIC S9(4) COMP VALUE -7.
                05 G1-X PIC X(2) VALUE "AB".
+            01 G1R REDEFINES G1.
+               05 G1R-NUM PIC X(2).
+               05 G1R-TXT PIC X(2).
+            01 L1 PIC 9(2).
             """, """
-                IF G1 = "000PAB" DISPLAY "EQ" ELSE DISPLAY "NE" END-IF.
-                DISPLAY "[" G1 "]".
+                MOVE FUNCTION LENGTH(G1) TO L1.
+                DISPLAY L1.
+                IF G1R-TXT = "AB" DISPLAY "AT2" ELSE DISPLAY "SHIFTED" END-IF.
             """),
-            "EQ\n[000PAB]");
+            "04\nAT2");
 
     /// <summary>A fixed-OCCURS COMP child participates in the group image (ISO §14.9 — every OCCURS position is
     /// part of the whole group; the retired MixedGroupImage bailed on OCCURS entirely): a group-to-group move

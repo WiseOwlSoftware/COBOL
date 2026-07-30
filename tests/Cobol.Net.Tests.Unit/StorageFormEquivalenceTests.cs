@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Binding.Passes;
 using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
+using CobolNet.Tests.Shared;
 using Xunit;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
@@ -79,7 +80,7 @@ public sealed class StorageFormEquivalenceTests
     [Fact]
     public void NistCorpus_StorageFormEqualsLegacy()
     {
-        string dir = Path.Combine(RepoRoot(), "tests", "nist", "programs");
+        string dir = TestRepo.Nist("programs");
         Assert.True(Directory.Exists(dir), $"NIST corpus dir not found: {dir}");
         var progs = Directory.GetFiles(dir, "*.cob").OrderBy(p => p).ToList();
         Assert.NotEmpty(progs);
@@ -97,13 +98,6 @@ public sealed class StorageFormEquivalenceTests
         Assert.True(allDivergences.Count == 0,
             $"{allDivergences.Count} StorageForm divergence(s) across {parsed} NIST programs:\n"
             + string.Join("\n", allDivergences.Take(15)));
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "nist"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/nist) not found");
     }
 
     private const string WholeGroupMove = """

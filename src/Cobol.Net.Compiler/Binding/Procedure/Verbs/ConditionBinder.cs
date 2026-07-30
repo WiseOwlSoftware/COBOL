@@ -567,11 +567,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
         // §8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.
-        if (vo?.nonNumericLiteral()?.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
-        if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
-        if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
-        if (vo?.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.Expr.BooleanLiteralOperand(bl.GetText());
+        // Through the ONE literal mapping. ⛔ THIS was the copy that lacked the hexadecimal arm, so
+        // `IF A = X"6162"` — conforming source, since §8.8.4.1.1 admits a literal on either side of a relation and
+        // §8.3.3.2 Format 2 makes X"…" an alphanumeric literal — fell past every arm here and staged loud as
+        // "comparison operand" at run time, while the SAME literal worked in a MOVE (DA3).
+        if (host.Expr.NonNumericLiteralOperand(vo?.nonNumericLiteral()) is { } litOp) return litOp;
         if (vo?.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it

@@ -1,0 +1,3 @@
+POS 1=aaa 2=bbb 3=ccc
+IF  NEG-GT-POS
+SRT 1=POS 2=NEG

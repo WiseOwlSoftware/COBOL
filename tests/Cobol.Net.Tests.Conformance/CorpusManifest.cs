@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -19,8 +20,7 @@ public sealed record CorpusRow(string Name, string Suite, string Status, string[
 /// </summary>
 public static class CorpusManifest
 {
-    private static string ManifestPath =>
-        Path.Combine(EditionHarness.RepoRoot(), "tests", "nist", "corpus.tsv");
+    private static string ManifestPath => TestRepo.Nist("corpus.tsv");
 
     /// <summary>Every manifest row (comment/blank lines skipped).</summary>
     public static IReadOnlyList<CorpusRow> Rows { get; } = Load();

@@ -13,35 +13,27 @@ moves adds new rules and reports removed ones; it never silently discards adjudi
     python scripts/spec/build_inventory.py            # create or refresh
     python scripts/spec/build_inventory.py --stats    # report only, write nothing
 
+⛔ THIS SCRIPT SEEDS ROWS; IT NEVER WRITES A VERDICT. Verdicts are recorded by `record_verdicts.py`, which merges
+a validated batch file — see there for why hand-editing the inventory is not an option. The two agree because
+neither owns the rules: the verdict vocabulary, each verdict's required evidence and the GAP/OK derivation are
+DATA, in `tests/version-matrix/inventory-schema.json`, loaded through `inventory_schema.py`.
+
 Row schema (one per rule):
-    rule-id / section / kind / ordinal / subject / page   from the Phase-A catalog (regenerated, authoritative)
-    state           GAP until a verdict is recorded — this is what session-probe counts
-    verdict         CONFORMS | DIVERGES | PARTIAL | NOT-IMPLEMENTED | DOCUMENTED-NON-SUPPORT | NEEDS-OWNER-DECISION
-    code-location   the implementing file:line, or "" if not located
-    test-ref        the covering spec-derived golden/xUnit, or "" (Phase C writes these)
-    editions        85 / 2002 / 2014 / 2023 applicability once determined
-    notes           the fix-queue item id for a DIVERGES, or the owner decision for a non-support
+    rule-id / section / kind / ordinal / subject         from the Phase-A catalog (regenerated, authoritative)
+    state                                    derived — never written by hand; the GAP count is what session-probe
+                                             reports and what v1.0 is defined against
+    verdict / code-location / test-ref /     the adjudicated fields, preserved across every rebuild;
+      editions / notes                       their vocabulary and requirements live in inventory-schema.json
 """
 from __future__ import annotations
 
 import argparse
 import json
-import pathlib
 import sys
 from collections import Counter
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
-INVENTORY = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
-
-# A row is "resolved" (no longer a GAP) only with one of these verdicts. NEEDS-OWNER-DECISION deliberately stays a
-# GAP: an unanswered question is not coverage.
-RESOLVED = {"CONFORMS", "DOCUMENTED-NON-SUPPORT"}
-CARRIED = ("verdict", "code-location", "test-ref", "editions", "notes")
-
-
-def state_for(row: dict) -> str:
-    return "OK" if row.get("verdict") in RESOLVED and row.get("test-ref") else "GAP"
+from inventory_schema import (ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG,
+                              INVENTORY_PATH as INVENTORY, REPO, load_schema, write_inventory)
 
 
 def main() -> int:
@@ -56,6 +48,7 @@ def main() -> int:
     if not CATALOG.exists():
         sys.exit(f"catalog not found: {CATALOG}\nRun: python scripts/spec/extract_rule_catalog.py")
 
+    schema = load_schema()
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
 
     prior: dict[str, dict] = {}
@@ -67,14 +60,14 @@ def main() -> int:
     for r in rules:
         row = {
             "rule-id": r["id"], "section": r["section"], "kind": r["kind"], "ordinal": r["ordinal"],
-            "subject": r["subject"], "page": r["page"],
+            "subject": r["subject"],
             "verdict": "", "code-location": "", "test-ref": "", "editions": "", "notes": "",
         }
         if old := prior.get(r["id"]):
             for k in CARRIED:
                 if old.get(k):
                     row[k] = old[k]
-        row["state"] = state_for(row)
+        row["state"] = schema.state_for(row)
         out.append(row)
 
     added = [r["rule-id"] for r in out if r["rule-id"] not in prior]
@@ -104,8 +97,7 @@ def main() -> int:
     if args.stats:
         return 0
 
-    INVENTORY.parent.mkdir(parents=True, exist_ok=True)
-    INVENTORY.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_inventory(out)
     print(f"\nwrote {INVENTORY.relative_to(REPO)}  ({INVENTORY.stat().st_size / 1_048_576:.1f} MB)")
     print("session-probe will now report the live GAP count.")
     return 0

@@ -220,14 +220,29 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         string pa = key.MemberPath.Length == 0 ? a : $"{a}.{key.MemberPath}";
         string pb = key.MemberPath.Length == 0 ? b : $"{b}.{key.MemberPath}";
         DataItem k = key.Key;
+        // ⛔ V59 RESIDUE FIX (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. §14.9.40.4 GR8
+        // (`cite.py`-verified) makes a key comparison IDENTICAL to a relation condition — key data items are
+        // "compared according to the rules for comparison of operands in a relation condition" — and a GROUP
+        // operand in a relation condition is class alphanumeric (§8.8.4.2.3 SR2) compared over its
+        // representation, which `OperandText` already renders through `AsImage()` gated on IsImageCapable. Testing
+        // the stricter predicate here therefore made SORT and `IF a > b` DISAGREE about the very same two group
+        // operands: the IF compared their byte images while the SORT threw "no whole-group character image" —
+        // a claim V59 falsified, since the codec is emitted for exactly IsImageCapable items. A group with a
+        // float / COMP-5 / INDEX leaf is still genuinely imageless and stays loud, so the leaf-kind wording now
+        // matches the predicate actually tested.
+        // ⚠ NOT A BUG, AND DELIBERATE: a big-endian two's-complement image is NOT order-preserving across zero,
+        // so a group key holding a NEGATIVE binary leaf orders by its bytes rather than its value. That is what
+        // the standard prescribes — GR8 defers to the relation-condition rules, and those make a GROUP
+        // alphanumeric — and it is exactly what the same group compared with IF already does. A program wanting
+        // value order names the ELEMENTARY numeric item as the key, which takes the by-value arm below.
         if (k.IsGroup)
-            return k.IsCharacterImage
+            return k.IsImageCapable
                 ? RuntimeApi.StrCompare($"{pa}.AsImage()", $"{pb}.AsImage()", weightsArg)
                 : LoudValue("int", TierCIsland.Reason($"table-sort key '{k.CobolName}' over a mixed-usage group"));
         return k.Pic switch
         {
             { Category: PicCategory.Numeric, IsFloat: false } when k.StoreAsImage =>
-                $"{RuntimeApi.NumParseDisplay(pa, k.ProfileName)}.CompareTo({RuntimeApi.NumParseDisplay(pb, k.ProfileName)})",
+                $"{RuntimeApi.NumParseImage(pa, k.ProfileName)}.CompareTo({RuntimeApi.NumParseImage(pb, k.ProfileName)})",
             { Category: PicCategory.Numeric, IsFloat: false } => $"({pa}).CompareTo({pb})",
             { Category: PicCategory.Numeric } => $"({pa}).CompareTo({pb})",   // COMP-1/2 — IEEE value order
             _ => RuntimeApi.StrCompare(pa, pb, weightsArg),
@@ -239,7 +254,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     private static string KeysExpr(IReadOnlyList<BoundSortMergeKey> keys) =>
         RuntimeApi.SortKeyArray(keys.Select(k =>
             $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {(k.Numeric ? "true" : "false")}, "
-            + $"{(k.Signed ? "true" : "false")}, NumericSign.{k.SignKind})"));
+            + $"{(k.Item is { } ki ? ki.ProfileName : "default")})"));
 
     /// <summary>The weights argument for the statement's GR5-resolved collating sequence: <c>null</c> for the
     /// native order, the compiled <c>__COLLATE</c> field when the resolved sequence IS the program collating

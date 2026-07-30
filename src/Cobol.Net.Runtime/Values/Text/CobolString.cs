@@ -155,7 +155,7 @@ public static class CobolString
     /// <summary>The collating weight of a code unit under a non-native alphanumeric PROGRAM COLLATING SEQUENCE: a code
     /// unit within the alphabet's remapped domain (0..weights.Length-1) takes its assigned position; a code unit beyond
     /// it (the Unicode alphanumeric repertoire extends past the Latin-1 domain the ALPHABET positions) keeps its NATIVE
-    /// position — code-unit order AFTER the whole positioned set (ISO §12.3.7 k)3), matching ORD's native-ordinal
+    /// position — code-unit order AFTER the whole positioned set (ISO §12.3.7 §12.3.7.4 GR7 1.3), matching ORD's native-ordinal
     /// branch. Byte-identical to the former <c>weights[c &amp; 0xFF]</c> for every code unit ≤ 0xFF.</summary>
     private static int Weight(char c, ushort[] weights) => c < weights.Length ? weights[c] : c;
 

@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    Test-tree props. MSBuild stops at the FIRST Directory.Build.props found walking up, so the repo-root one is
+    imported explicitly — without this line every test project silently loses TargetFramework, Nullable,
+    TreatWarningsAsErrors and the rest.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <ItemGroup>
+    <!--
+      ONE repo-root locator for every test project (tests/_shared/TestRepo.cs). Linked rather than referenced as a
+      project so a NEW test project under tests/ inherits it with no wiring — which is what stops the sixteen
+      private RepoRoot() walkers this replaced from growing back one project at a time.
+    -->
+    <Compile Include="$(MSBuildThisFileDirectory)_shared\*.cs" Link="_shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

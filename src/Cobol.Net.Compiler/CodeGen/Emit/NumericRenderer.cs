@@ -183,7 +183,14 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // this branch — a group SENDER makes the move a GROUP move (§14.9.25.4 GR4: no conversion; classified
         // at EmitMove → EmitGroupToElementaryMove), never a numeric decode of the image (the pre-fix NC105A
         // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
-        null when p.Item.IsCharacterImage =>
+        // ⛔ IsImageCapable, and correct ONLY because strict conformance now REJECTS a group arithmetic operand
+        // (DA6 — §8.8.1.1, COBOLNET0844 in ExpressionBinder). Reaching here therefore means --permissive was
+        // requested, and the leniency must be CONSISTENT: before, a group of PIC X leaves computed while a group of
+        // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
+        // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
+        // of illegal source instead of fixing anything — the two changes are correct only together. A
+        // float/COMP-5/INDEX group has no image at all and stays loud even under --permissive.
+        null when p.Item.IsImageCapable =>
             new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? PlaceRenderer.Read(p) : $"{PlaceRenderer.Read(p)}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? PlaceRenderer.Read(p)}'"), 0),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
@@ -193,10 +200,11 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         { IsFloat: true } => new NumX(
             floatCheck ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
-        // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
-        // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
+        // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): decode the STORED BYTES to
+        // its unscaled value for numeric use — zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59;
+        // ISO §14.6.13.2 — incompatible content decodes deterministically).
         { } pic when p.Item.StoreAsImage =>
-            new NumX($"CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
+            new NumX($"CobolNum.ParseImage({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);
@@ -212,15 +220,27 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         { } pic => new NumX(PlaceRenderer.Read(p), pic.Scale),
     };
 
-    /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).</summary>
+    /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).
+    /// <para>⛔ SAVES AND RESTORES the ambient receiver, exactly as <see cref="Render"/> and <see cref="AsNum"/> do.
+    /// It did not, and that was a real defect rather than a tidiness point: <c>_rcv</c> is a per-unit MUTABLE field,
+    /// so an ADD left its receiver LATCHED on the renderer and the next receiver-less render — a numeric FUNCTION in
+    /// a DISPLAY or a text MOVE — silently inherited it. `DISPLAY FUNCTION SQRT(2)` printed `1.414213562`, then
+    /// `1.414213562373` after an unrelated `ADD 1 TO R`, because the intrinsic's working scale is
+    /// <c>max(Receiver.Scale, 9)</c>. A public entry that mutates ambient state must restore it or the
+    /// next caller reads someone else's context.</para></summary>
     public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
     {
+        var saved = _rcv; bool savedOut = _outermost;
         _rcv = rcv;
         _outermost = false;   // an ADD/SUBTRACT operand is never a final-transfer division (its result feeds the fold)
-        if (xs.Count == 0) return new NumX("0L", 0);
-        NumX acc = xs[0].Accept(this);
-        for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
-        return acc;
+        try
+        {
+            if (xs.Count == 0) return new NumX("0L", 0);
+            NumX acc = xs[0].Accept(this);
+            for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
+            return acc;
+        }
+        finally { _rcv = saved; _outermost = savedOut; }
     }
 
     /// <summary>Combine two scaled values with a COBOL operator, tracking the result scale (ISO §8.8.1). EVERY
@@ -230,9 +250,12 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
     public NumX Combine(NumX a, string op, NumX b, in ReceiverContext rcv, bool outermost = false)
     {
+        // Saves/restores the ambient receiver for the same reason Fold does — see its remark.
+        var saved = _rcv; bool savedOut = _outermost;
         _rcv = rcv;
         _outermost = outermost;
-        return CombineCore(a, op, b);
+        try { return CombineCore(a, op, b); }
+        finally { _rcv = saved; _outermost = savedOut; }
     }
 
     private NumX CombineCore(NumX a, string op, NumX b)

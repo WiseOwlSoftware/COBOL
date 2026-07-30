@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -28,7 +29,7 @@ public sealed class VersionMatrixTests
 
     private static IReadOnlyList<Construct> LoadCatalogue()
     {
-        string path = Path.Combine(EditionHarness.RepoRoot(), "tests", "version-matrix", "constructs.json");
+        string path = TestRepo.VersionMatrix("constructs.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         var list = new List<Construct>();
         foreach (var e in doc.RootElement.GetProperty("constructs").EnumerateArray())

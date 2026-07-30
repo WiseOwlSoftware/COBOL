@@ -20,7 +20,7 @@ namespace CobolNet.Runtime;
 /// any high-order digits beyond the picture, and applies the unsigned-magnitude rule. Representation (DISPLAY /
 /// COMP / COMP-3 / COMP-5) changes only the capacity discipline and the external byte image — not the value.</para>
 /// </remarks>
-public static class CobolNum
+public static partial class CobolNum
 {
     /// <summary>
     /// Rescale an unscaled integer from <paramref name="fromScale"/> to <paramref name="toScale"/> fractional
@@ -282,6 +282,51 @@ public static class CobolNum
         Int128 v = value % Pow10Wide(digits);
         string s = (v < 0 ? -v : v).ToString(CultureInfo.InvariantCulture);
         return s.PadLeft(digits, '0');
+    }
+
+    /// <summary>
+    /// ⛔ THE TEXT IMAGE OF AN INTRINSIC FUNCTION'S RETURNED VALUE (DA2). A function's value lives in a
+    /// "temporary elementary data item" (ISO §15.4) whose characteristics, under native arithmetic, are
+    /// explicitly <b>defined by the implementor</b> (§15.4.1); §14.9.11.4 GR1 likewise makes any conversion
+    /// between a DISPLAY operand and the device implementor-defined. COBOL.NET's determination — documented as
+    /// an Annex A.1 item — is the <b>literal form of the value</b>: the significant digits with no leading-zero
+    /// padding, a leading <c>-</c> when negative, and a decimal point followed by exactly
+    /// <paramref name="scale"/> fraction digits when the value is scaled.
+    /// <para>
+    /// ⛔ WHY THIS RULE AND NOT A FIXED FIELD WIDTH: an intrinsic whose arguments are all literals is FOLDED at
+    /// compile time to a numeric literal, and a numeric literal renders as its own text (<c>DISPLAY 42</c> →
+    /// <c>42</c>). If a computed result rendered in a padded fixed width instead, then
+    /// <c>DISPLAY FUNCTION LENGTH(X)</c> and <c>DISPLAY FUNCTION ORD(C)</c> would print in different formats for
+    /// no reason a COBOL programmer can see — the optimization would have become OBSERVABLE. One rule, so the
+    /// fold cannot be detected.
+    /// </para>
+    /// </summary>
+    /// <param name="deSign">⛔ §14.9.25.4 GR6a — "If the sending operand is described as being signed numeric, the
+    /// operational sign is not moved." True for every context that MOVES this value to an alphanumeric/national/
+    /// edited receiver, compares it as text (§8.8.4.2.5 routes that through the MOVE rules), or INSPECTs it: the
+    /// MAGNITUDE travels, never the sign. This is a GENERAL rule with no implementor latitude — the §15.4.1 /
+    /// §14.9.11.4 GR1 latitude this determination rests on covers the FORM of the text, not whether the sign
+    /// travels. False for DISPLAY, where the sign IS part of the value being shown.</param>
+    public static string FormatFunctionText(Int128 unscaled, int scale, bool deSign = false)
+    {
+        if (deSign && unscaled < 0) unscaled = -unscaled;
+        bool neg = unscaled < 0;
+        string digits = (neg ? -unscaled : unscaled).ToString(CultureInfo.InvariantCulture);
+        string body;
+        if (scale <= 0)
+        {
+            // A NEGATIVE scale is a P-scaled value: the Ps are trailing zeros that occupy no storage
+            // (§13.18.40.3 symbol-P operations item b), so they are restored here.
+            body = scale < 0 ? digits + new string('0', -scale) : digits;
+        }
+        else
+        {
+            // Left-pad so a value smaller than one full unit still shows the leading "0." (1 unscaled at
+            // scale 2 is 0.01, never .01).
+            digits = digits.PadLeft(scale + 1, '0');
+            body = digits[..^scale] + "." + digits[^scale..];
+        }
+        return neg ? "-" + body : body;
     }
 
     /// <summary>

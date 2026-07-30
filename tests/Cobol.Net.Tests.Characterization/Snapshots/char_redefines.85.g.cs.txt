@@ -17,8 +17,8 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
             __s = CobolString.Store(__s, 0);
         }
     }
-    internal static readonly NumProfile _P_0 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
-    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
+    internal static readonly NumProfile _P_0 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private long WS_A = 0L;   // WS-A
     private string _redef_WS_G = CobolString.Store((new string(' ', 2) + new string(' ', 2)), 4);   // REDEFINES backing for WS-G
 

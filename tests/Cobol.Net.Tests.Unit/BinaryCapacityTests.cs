@@ -22,6 +22,7 @@ public sealed class BinaryCapacityTests
         FractionDigits = 0,
         Signed = signed,
         Truncation = NumericTruncation.BinaryCapacity,
+        ByteForm = NumericByteForm.Binary,   // COMP-5 / BINARY-CHAR..DOUBLE: radix 2, `bytes` wide (GR4/GR12)
         StorageLength = bytes,
     };
 

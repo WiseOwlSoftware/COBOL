@@ -12,18 +12,18 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
     private record struct _T_0
     {
         public long[] WS_ELEM;   // WS-ELEM OCCURS 5
-        public readonly string AsImage() => string.Concat(System.Array.ConvertAll(WS_ELEM, __e => CobolNum.FormatDisplay(__e, _P_1)));
+        public readonly string AsImage() => string.Concat(System.Array.ConvertAll(WS_ELEM, __e => CobolNum.FormatImage(__e, _P_1)));
         public void FromImage(string __s)
         {
             __s = CobolString.Store(__s, 10);
             for (int __i = 0; __i < 5; __i++)
             {
-                WS_ELEM[__i] = (long)CobolNum.ParseDisplay(__s.Substring(0 + __i * 2, 2), _P_1);
+                WS_ELEM[__i] = (long)CobolNum.ParseImage(__s.Substring(0 + __i * 2, 2), _P_1);
             }
         }
     }
-    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
-    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, StorageLength = 0 };
+    internal static readonly NumProfile _P_1 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_2 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private long _IX_0 = 1;   // INDEX-NAME IX
     private _T_0 WS_TBL = new _T_0 { WS_ELEM = new long[] { 0L, 0L, 0L, 0L, 0L } };   // WS-TBL
     private long J = 0L;   // J

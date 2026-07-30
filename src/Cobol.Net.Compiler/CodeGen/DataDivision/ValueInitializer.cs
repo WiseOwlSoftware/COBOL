@@ -123,15 +123,15 @@ internal sealed class ValueInitializer(EmitContext ctx)
                 ? RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(q)), $"{pic.Length}")
                 : EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
 
-        // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): initialize to the formatted
-        // image of its unscaled VALUE (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
+        // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): initialize to the BYTES
+        // of its unscaled VALUE (zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED — V59) (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
         // declared textually earlier (EmitProfiles runs first), so it is initialized before this use.
         if (item.StoreAsImage)
         {
             string unscaled = effRaw is { } rv && FigurativeInitializer(rv, pic) is null
                 ? EmitText.UnscaledAtScale(rv, pic.Scale)
                 : "0L";
-            return RuntimeApi.NumFormatDisplay(unscaled, item.ProfileName);
+            return RuntimeApi.NumFormatImage(unscaled, item.ProfileName);
         }
 
         if (effRaw is not { } raw) return pic.DefaultInitializer;

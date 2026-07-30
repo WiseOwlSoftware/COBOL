@@ -13,6 +13,1775 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1126 - 2026-07-30 04:10 PDT - PB6: the pre-merge differential earned its place, and my first fix for it was a silent regression
+
+**THE COMPREHENSIVE PRE-MERGE GATE FOUND A DEFECT NO OTHER LEG COULD.** Conformance, Unit, characterization and
+guard-fast were all green. The GnuCOBOL differential's per-case diff showed **10 flips: 8 FIX, 2 REGRESSION** —
+and plan §0 tolerates zero unexplained AGREE→divergence flips, so the two had to be traced rather than accepted
+on the strength of their titles saying "(extension)".
+
+Both are `CALL … USING BY VALUE` with an alphanumeric and a national operand. Reproduced, the rejection was
+`COBOLNET0844` — **DA6's §8.8.1.1 ARITHMETIC screen, firing on a CALL argument.** The grammar production is named
+`arithmeticExpression`, the binder called `BindExpr` on it, and `BindExpr` hard-codes `OperandContext.Arithmetic`.
+
+⚖ **THE VERDICT WAS RIGHT BY ACCIDENT.** §14.9.4.3 SR22 (validated): "If identifier-4 or its corresponding formal
+parameter is specified with a BY VALUE phrase, identifier-4 shall be of class numeric, object, or pointer." So an
+alphanumeric operand IS illegal and rejecting it is correct — GnuCOBOL accepts it as an extension and silently
+assumes BY CONTENT, a DIFFERENT passing mode from the one written. But the rule QUOTED was not the rule BROKEN,
+and a diagnostic that names the wrong clause sends the programmer to the wrong place to fix it. **A production's
+NAME is not its operand's rule** — the same shape DA6 recorded about itself: a rule enforced at a site that could
+not know its own context.
+
+**⛔ AND MY FIRST FIX WAS A SILENT REGRESSION THAT LOOKED LIKE SUCCESS.** I added `OperandContext.CallByValue` so
+the arithmetic screen would not fire, and screened with `IntrinsicArgumentRules.ClassOf(operand)`. Both cases then
+**compiled clean** — which reads as "fixed" and is strictly worse than what it replaced: `ClassOf` maps any
+`BoundComputedOperand` to NUMERIC (correct in its own context, where a computed operand really is an arithmetic
+expression), so the check was a no-op and SR22 stopped being enforced at all. I had converted a wrongly-worded
+REJECT into no enforcement. Caught only because I re-ran the repro instead of trusting a green build — **a fix
+whose evidence is "the error went away" cannot distinguish a fix from a deletion.** It now classifies the
+underlying `BoundNumRef`'s `Place`, and the comment says why.
+
+`COBOLNET1628` (`call-by-value-operand-class`) names SR22 directly, rejects strict with `--permissive` leniency
+(the DA6 disposition), and ships with the negative golden `pb6-call-by-value-alphanumeric`.
+
+**EVERY FLIP IS NOW ATTRIBUTED** — the rule plan §0 states as "attribute every red":
+
+- **6 FIX from PB2** — `FUNCTION CHAR` / `CURRENT-DATE` / `SIGN` / `SUBSTITUTE` / `LOWER-CASE` and
+  `CALL with OCCURS DEPENDING ON`, all WE_REJECT to AGREE_ACCEPT. PB2's `CS1503` was a BACKEND COMPILATION
+  FAILURE, which the differential counts as a reject; fixing the float path turned them into accepts.
+  ⚠ Worth keeping: §0 records the differential as "structurally blind to a change in RUNTIME OUTPUT", and that is
+  true — but a runtime-shaped defect that manifests as a *failed compile* is fully visible to it.
+- **2 FIX from PB1** — "Intrinsic functions: argument type" and "Category check of Format 1", both
+  WE_ACCEPT_THEY_REJECT to AGREE_REJECT: we now reject what GnuCOBOL rejects.
+- **2 spec-derived tightenings** — the CALL BY VALUE pair, which stay WE_REJECT_THEY_ACCEPT permanently and
+  correctly, the same shape as CA34's recorded flips.
+
+⚠ **A FALSE ALARM OF MY OWN MAKING, worth the line.** `guard-fast`'s re-run reported EXIT 1 while its output
+ended `=== ALL GREEN ===`. The exit code was my command chain's: I had ended it with a `grep -c` for
+crash/abort/fail strings, and **grep exits 1 when it finds nothing**. Gating on that would have reported a failing
+gate on a green run — the mirror of the failure `feedback_gate_on_the_verdict_line` exists to prevent, and the
+reason plan §0 says to grep the verdict rather than read the exit code.
+
+**GATES (the comprehensive pre-merge set).** Conformance **4148/4148** · Unit **963/963** · characterization
+**33/33** · `guard-fast` **ALL GREEN**, NIST **353 MATCH / 0 REGRESSION**, legacy Unit 1203/1203, Integration
+503/504 (1 skipped) · differential **10 flips, all attributed, 0 unexplained**.
+
+## Entry 1125 - 2026-07-30 02:30 PDT - The denominator was short by 56 rules, and the burn-down had been measuring against a total that flattered it
+
+**GAP 3758 → 3814, and that is the number going the RIGHT way.** The P14 metric is `GAP / 3,790 normative rules`.
+The 3,790 was wrong. The catalog now holds **3,846**, and every one of the 122 adjudicated rows carried forward
+(zero removed), so nothing verified was lost — the denominator simply grew to what the standard actually contains.
+
+**HOW IT SURFACED.** Adding the twelve batch-2 functions to PB1's `Verified` table, I went to read ASIN's argument
+rule and the catalog had **none** — only RV and FMT. ACOS §15.8.3 has argument rules; ATAN §15.11.3 has them; ASIN
+§15.10.3 had zero. The spec has them:
+
+```
+#### 15.10.3 Arguments rules
+1) Argument-1 shall be of class numeric.
+2) The value of argument-1 shall be greater than or equal to –1 and less than or equal to +1.
+```
+
+**"Argument*s* rules".** The extractor's `KINDS` map keys on literal heading spellings and carried
+`"argument rules"` / `"argument rule"` — not the plural noun. Three clauses (§15.10.3, §15.13.3, §15.100.3) were
+never recognised at all, and §15.69.4 says "Returned *values* rules".
+
+⛔ **AND THE MAP'S OWN COMMENT SAID THIS HAD HAPPENED BEFORE**: *"A plural-only map skipped 15 whole blocks —
+invisible to the empty-block check, because a block that is never RECOGNISED is never counted as seen."* The
+previous fix was to add the singular spellings to the list. The list came back. Adding two more spellings would
+have set up the third occurrence, so the pluralisation is **normalised away** — `canonical_title` singularises
+`rules`, `arguments` and `values` independently, since the standard is inconsistent on all three axes
+separately, and a map of literal combinations needs a new entry per combination forever.
+
+**THE GUARD IS THE REAL DELIVERABLE.** A *parse gap* is a block that was recognised and yielded nothing; a block
+whose heading spelling is unknown is never recognised, so it is never a gap, never counted, never missed — the
+denominator is just quietly short. The extractor now walks every numbered heading whose title contains "rule" and
+reports the ones `KINDS` cannot resolve. It fired immediately on four more, and **three remain reported**:
+§13.18.40.5 "Editing rules", §13.18.40.6 "Precedence rules" and §5.3 "Rules". Those are NOT spelling variants —
+they are rule KINDS the catalog has never modelled, and adding a kind changes what the denominator means. Left
+loud for an owner decision rather than absorbed on my judgement.
+
+**⚠ THE OTHER 43 ARE STALENESS, NOT SPELLING.** Ten rules come from the heading fix. The rest arrived because the
+catalog had been frozen since before the de-paging: the extractor HALTED on a missing page anchor and had not run
+since, while the transcription gained repaired rules from the figure sweep, the table merges and the run-in format
+repairs. **A denominator that cannot be regenerated silently stops tracking its source.**
+
+**THE HALT IS DISCHARGED BY DELETING WHAT IT GUARDED.** It existed because the builder stamped a PAGE on every
+rule and would have recorded zero for all of them after de-paging. The column is gone: a rule is cited by its
+clause — 14.9.41.2 GR3, never "page 754" — so the field was dead weight even while pages existed
+([[project_no_page_numbers_in_markdown]]). Removing it re-keys the catalog onto the clause hierarchy, which is
+what plan §0 had listed as the blocker.
+
+**GATES.** `SpecTraceabilityInventoryDriftTests` 10/10 over 3,846 rows. Unit **963/963**. Characterization
+**33/33**. 122 adjudicated rows preserved, 56 new, 0 removed.
+
+## Entry 1124 - 2026-07-30 01:40 PDT - PB5: the quantizer saturated at 9.2 billion, and the refute stage found it where the adjudicator had looked straight at it
+
+**THE WORST DEFECT THIS REVIEW HAS SURFACED, and it was silent.** `CobolIntrinsics.FromDouble` returned a `long`
+and clamped at `long.MaxValue`. Its caller quantizes at `ws = max(Receiver.Scale, 9)`, so the clamp bit at
+**|value| ≈ 9.2 × 10⁹** — and every float-family result at or above that magnitude was replaced by the constant
+**9223372036.85**.
+
+```cobol
+01 R PIC 9(12)V99.
+    COMPUTE R = FUNCTION ANNUITY(10000000000 1)     *> §15.9.4 r1b with argument-2 = 1 reduces to 1 + argument-1
+      ON SIZE ERROR ... NOT ON SIZE ERROR ...       *> printed NO SIZE ERROR
+    R = 00922337203685                               *> the spec value is 10000000001.00 — wrong by 8%
+```
+
+`SQRT(1e20)`, `EXP(23.3)`, `ABS` and `MAX` over a COMP-2 all produced that same constant. **A twelve-digit money
+field is routine COBOL**, so this was not an edge: it was wrong arithmetic in ordinary business ranges, with no
+diagnostic — §14.7.4 never saw an overflow, because the value had already been clamped to something that fits.
+
+⛔ §15.4.1 licenses an implementor-defined **approximation** of the equivalent arithmetic expression under native
+arithmetic. **9223372036.85 is not an approximation of 10000000001.**
+
+**THE FIX IS A TYPE, AND IT IS CORRECTNESS RATHER THAN COMFORT.** The scaled domain of this compiler already IS
+`Int128` — every `…Scaled` body takes one — and `FromDouble` was the last member of that pipeline still returning
+`long`. At scale 9 the Int128 ceiling is ≈1.7 × 10²⁹, past the 10¹⁸ any PICTURE can describe, so the saturation is
+now unreachable from a declarable receiver rather than merely further away. One emit site
+(`IntrinsicRenderer.RenderFloat`), so the change is contained; the full suite is the proof it is safe.
+
+After the fix: `ABS`, `MAX` and `SQRT` all give exactly 010000000000.00. ANNUITY lands a cent low
+(010000000000.99) because its EAE carries a division and binary64 loses it at the 17th significant digit — THAT
+is the §15.4.1 approximation, and the golden deliberately does not pin it. The fixture pins the saturation.
+
+**⚠ THE REFUTE STAGE FOUND IT, AND THE ADJUDICATOR HAD LOOKED STRAIGHT AT IT.** The ANNUITY adjudicator returned
+PARTIAL, having checked only small receivers (`V9(4)`, `V9(7)`) where the clamp never bites. The refuter overturned
+to DIVERGES and produced the repro — reading `FromDouble` rather than sampling outputs. Second time today the
+adversarial pass paid for itself on something the first pass had in front of it. **An all-CONFORMS batch is a
+warning sign, not a good result**, and this is why that sentence is now in the fan-out prompt.
+
+**⚠ AND FIVE OF THE TWELVE REFUTERS DIED ON API 529.** `char`, `baseconvert`, `byte-length`, `concat`,
+`char-national` errored, so their out files hold UNREFUTED stage-one output — the exact state that cost a wrong
+published number in entry 1116, arriving this time by a different route. The workflow reported "completed"
+because it had; the per-agent failures are in the notification's own `<failures>` block. Resumed with
+`resumeFromRunId`, which replays the cached agents and re-runs only the five. **A workflow completing is not the
+same as every agent in it succeeding** — read the failure list before the results.
+
+**A CITATION DEFECT AT THE SAME SITE.** The `FromDouble` comment cited §14.6.13.1.1 "Table 13" for
+EC-ARGUMENT-FUNCTION being fatal. `cite.py --check` FAILS on it — that clause is titled "General" — and the real
+one is **§14.6.13.1.6**. It had already propagated from this comment into an agent's adjudication. The
+quoted-fragment audit could not have caught it: the citation carries no quote, so nothing mechanical connects the
+number to the text it claims. That residue is real and stated in the audit's own docstring.
+
+**GATES.** Conformance **4147/4147**, zero skipped, nothing red — the numeric core's return type changed
+underneath the whole suite. Unit **963/963**. Characterization **33/33**.
+
+## Entry 1123 - 2026-07-30 00:55 PDT - Closing the CONFORMS-but-untested rows, and one golden that must NOT pin its own numbers
+
+**SEVEN ROWS CLOSED, GAP 3773 → 3766**, with two spec-derived goldens. These were the category the schema split
+exists to express: the rule verified against the code, no test yet pinning it. Three of the seven had a test-ref
+already — and it was a NIST golden, which is a REGRESSION NET and cannot close a conformance row (CLAUDE.md
+rule 1). The gate had been refusing them all along, which is exactly what it is for.
+
+**`pb1-numeric-arg-family`** (negative) — PRESENT-VALUE, RANDOM and RANGE each screened for §15.3 class numeric.
+All three were already enforced by PB1's `Verified` table but had no fixture of their own, so each row rested on
+a SIBLING function's fixture. That is not coverage: it proves the mechanism works, not that this function is
+wired into it. One fixture, three rejections, each naming its own clause (§15.74.3 r1 / §15.75.3 r1 / §15.76.3 r1).
+
+**`pb1_intrinsic_formats`** (positive) — the general formats of ORD-MAX, ORD-MIN and PRESENT-VALUE, every value
+from the spec: `ORD-MAX(3 9 1)` = 2, `ORD-MIN(3 9 1)` = 3, `ORD-MAX(7 7 2)` = **1** (§15.71.4 r3, leftmost wins on
+a tie), and §15.74.4 r1 at rate 1.0 giving 100/2 = **50** for one occurrence and 100/2 + 100/4 = **75** for two.
+
+**⛔ AND THE ONE THAT COULD NOT BE PINNED THE OBVIOUS WAY.** §15.75.3 r5 — "subsequent references without
+specifying argument-1 return the next number in the current sequence". The obvious golden displays those numbers.
+That would have been **pinning the implementation, not the rule**: §15.4.1 makes RANDOM's values
+implementor-defined, and §15.75.4 r2 promises only that a given seed always yields the SAME sequence. A golden
+carrying our own doubles would fail the day the generator legitimately changed, while proving nothing about the
+rule. So it is asserted STRUCTURALLY — the two unseeded references DIFFER (the sequence advances), and a re-seed
+REPRODUCES the first (r2) — printing `SEQ-ADVANCES` / `SEED-REPRODUCES`. Both are properties the standard
+guarantees; neither is a number the standard leaves to us.
+
+⚠ **A drafting error worth the line.** My first `.out` for the PRESENT-VALUE rows read `000050.00`, a
+human-readable form. The receiver was `PIC S9(6)V99`, so DISPLAY renders the zoned overpunch `0000500{`. The
+VALUES were right and the RENDERING assumption was wrong — I had written the expectation from arithmetic without
+asking what DISPLAY does with a signed DISPLAY item. Fixed by making the receiver UNSIGNED, so the golden is
+about the FORMATS rather than about zoned rendering, which has its own goldens. Deriving the value from the spec
+is only half of writing a golden; the other half is deriving how it will be SHOWN.
+
+`session-probe` no longer prints a "test-needed" line at all: zero CONFORMS-but-untested.
+
+**GATES.** Conformance **4146/4146**, zero skipped, nothing red. Unit 963/963. Corpus 233 positive · 135 negative.
+
+## Entry 1122 - 2026-07-30 00:25 PDT - The citation audit was measuring half the prose
+
+**A ONE-LINE WIDENING, recorded because of what it found in the first second.** `audit_doc_citations.py` scanned
+`docs/` plus `CLAUDE.md`. PB3 had just shown that to be half the prose: the fabricated "§12.3.7 GR7 k3" survived a
+complete `docs/` sweep in **thirteen** places across five SOURCE files — including the doc comments on
+`NationalCollation`, the one implementation that gets that rule right.
+
+The justification is not "more coverage is better". **A source doc-comment carries a citation at the same density
+and with the same authority as a design doc, and is read by the same person for the same reason.** Someone
+checking why `Ord` places an unspecified character reads the XML comment above `Ord`, not
+`COBOLNET_DESIGN.md` §…. Splitting prose by file extension had no basis; the audit's own scope was the defect.
+
+Widened to `src/**/*.cs` and `src/**/*.g4`. It found one more immediately, of the family the plan already names:
+`DataItem.cs` cited **§13.18.22** for text that is really in **§13.18.22.4 GR3** — one level short, the CA37/CA38
+shape, four bare references corrected together.
+
+Now **0 misfiled across docs and source together**, 30 verbatim citations verified.
+
+⚠ **The residue is honest, not zero.** The audit only checks citations that pair a clause with a quoted fragment
+of ≥30 characters on one line; a citation with no quote cannot be checked mechanically at all, and the broad form
+that tries reported 133 defects of which essentially none was real. What this closes is one exact defect class —
+the quoted text is genuinely in the standard, filed under the wrong clause — which is precisely the INHERITED
+citation CLAUDE.md rule 1 is about, and precisely how a fabrication reached a Phase-B finding from our own design
+doc.
+
+**GATES.** Build clean, Unit **963/963**. Comments and one script; no behaviour change.
+
+## Entry 1121 - 2026-07-30 00:05 PDT - PB3: the fix was a line, not the data-structure change I had predicted — and the fabricated citation was in src/ too
+
+**PB3 CLOSED.** `FUNCTION ORD` under a custom PROGRAM COLLATING SEQUENCE now returns the §15.70.4 r1 ordinal
+position for EVERY character, including one past the 256-entry alphanumeric weights table. Measured after the
+fix, all six spec-derived: `ORD("A")` = `ORD("B")` = 1 · `ORD("C")` = 67 · `ORD(X"FF")` = 255 ·
+**`ORD(U+0100)` = 256** · `ORD(U+0101)` = 257. The hole at 256 is gone.
+
+**THE RULE, and it is the one the doc sweep recovered yesterday.** §12.3.7.4 GR7 1.3: "Any characters of the
+native collating sequence that are not specified in the literal phrase shall assume a position in the collating
+sequence that is greater than that of the highest character specified in this literal phrase. The relative order
+within the set of these unspecified characters is unchanged from the native collating sequence." The old
+`c < weights.Length ? weights[c] + 1 : c + 1` abandoned the collating sequence entirely past the table, numbering
+a character by a different rule than its neighbour.
+
+**⚠ AND THE FIX WAS A LINE, NOT THE DATA-STRUCTURE CHANGE I WROTE INTO THE QUEUE.** That entry said the repair
+"is a collating structure that spans the repertoire rather than a 256-entry array, so it is a data-structure
+change, not a one-liner." Wrong, in the cheap direction. The dense 256-entry array is fine: the table's own
+maximum position is all the arithmetic needs — walk it once for the highest tabulated position, then place each
+code unit past the table one position further on. `NationalCollation.Weight` has computed exactly this on the
+national side all along (`nextFree + (c − |specified below c|)`), so this was one rule with two implementations
+and only one of them incomplete. **I am recording the wrong estimate because a scope guess that reads as
+authoritative is how a fix gets deferred for being "big"** — and this one had already been characterised as
+CA26's un-finished business rather than a line of arithmetic.
+
+**⛔ THE FABRICATED CITATION WAS IN `src/` TOO, AND YESTERDAY'S SWEEP MISSED IT.** `audit_doc_citations.py`
+scans `docs/`. Going into `CobolIntrinsics.Text.cs` to fix ORD, the neighbouring `NationalCollation` doc comment
+read "ISO §12.3.7 GR7 k3 — never a shared bucket". Thirteen more instances across five files —
+`CollatingModel.cs`, `DataBinder.Switches.cs`, `ProgramEmitter.cs`, `CobolString.cs`, `NationalCollation.cs` —
+including the comments on the one implementation that gets the rule RIGHT. All corrected to §12.3.7.4 GR7 1.3.
+
+The lesson is about the instrument, not the citation: **a doc audit that scans only `docs/` measures half the
+prose.** Source doc-comments carry citations at the same density and with the same authority — the DESIGN doc and
+the XML comment above the implementing method are read by the same person for the same reason. The deliberate
+QUOTATIONS of the fabrication (the queue entries that exist to explain it) are left intact, which is why the
+grep still finds five.
+
+**GOLDEN** `pb3_ord_collating_tail` — the full derivation for `ALPHABET AL IS "A" ALSO "B"`: {A,B} at 1 ·
+0x00–0x40 at 2–66 · 0x43–0xFF at 67–255 · U+0100 at 256 · U+0101 at 257. Every value from GR7 1.3 and 1.6, none
+observed first.
+
+**GATES.** Conformance **4144/4144**, zero skipped, nothing red. Unit **963/963**. Characterization **33/33**.
+GAP **3774 → 3773**.
+
+## Entry 1120 - 2026-07-29 23:20 PDT - The fabricated citation came from OUR design doc, and a checker that reported 133 defects had 133 bugs
+
+**WHY THIS SWEEP HAPPENED.** PB3's agent report cited "§12.3.7 GR7 k3" for unspecified characters taking "distinct
+ascending positions with no gap". I refused to inherit it (CLAUDE.md rule 1) and checked: `cite.py --find
+"distinct ascending"` returns **"NO CLAUSE contains 'distinct ascending'"**. The phrase is nowhere in the standard.
+
+**⛔ AND IT WAS OURS.** `COBOLNET_DESIGN.md` carried it TWICE — "§12.3.7 GR7 k1–k6 incl. the k3 distinct-ascending
+unspecified tail" and "every unspecified code unit takes its GR7 k3 distinct ascending position". The agent did
+not invent it; **it read our design SSOT and quoted it back.** That is rule 1's failure mode running to completion:
+a citation propagates from a design doc into a finding, and would have propagated into a fix and a golden. A third
+site was in the CA26 LANDED record (`§12.3.7 k)3`).
+
+✅ **THE REAL RULE IS §12.3.7.4 GR7 1.3, and it is STRONGER than the invention** (`--check` OK): "Any characters of
+the native collating sequence that are not specified in the literal phrase shall assume a position in the
+collating sequence that is greater than that of the highest character specified in this literal phrase. The
+relative order within the set of these unspecified characters is unchanged from the native collating sequence."
+
+That **corrects PB3's entry in our favour**. I had written that U+0100's ordinal was "under-specified" and only the
+absence of a gap was provable. GR7 1.3 DETERMINES it: unspecified characters sit above the highest specified one
+in unchanged native order, so with U+00FF at 255 the answer is **256** and the observed 257 is wrong for a citable
+reason. The 255 and the two ALSO characters at 1 are GR7 1.3 and L3.6 exactly — so the substance of the design
+doc's claim was right all along and only its citation was fiction. It also names the fix precisely:
+`NationalCollatingTable` is already SPARSE over all 65,536 code units and computes the tail arithmetically, which
+IS GR7 1.3; the alphanumeric side is a 256-entry array with a `c + 1` fallback. One rule, two implementations, one
+incomplete.
+
+**⚠ THEN I BUILT A CHECKER AND IT REPORTED 133 DEFECTS OUT OF 183 CITATIONS.** Not one of the first batch I
+inspected was real. Every `§N.N … "quoted text"` pair, demanding the text be inside that clause — and it captured
+quotes across markdown blockquote markers, paraphrases attributed to a clause, `§1.6`-style references to a DOC's
+own sections, and above all quoted **LABELS** (`"shall-not-with-APPLY-COMMIT"`, `"element; para; line"`) that were
+never claims about spec text. A doc uses quotation marks for quoting AND for naming, and nothing in the text
+tells them apart. **That check cannot be made precise and is not offered as a gate.**
+
+The precise check is narrower: **the quoted text IS in the spec and is NOT in the named clause.** A label is found
+nowhere, so it never fires. That went 9 → 4 → 0 as two further calibrations came out, and BOTH were my bugs:
+
+· the pattern took the FIRST `§` on the line, not the nearest. "never the §13.18.38 window — §14.2.3 GR8 says
+  '…'" reported §13.18.38 — a CORRECT citation flagged as misfiled.
+· an 18-character floor let defined TERMS through (`"implementor-defined"`, `"the end of the PERFORM"`), and a
+  term legitimately appears in many clauses, so locating it elsewhere says nothing. Raised to 30.
+
+This is the figure-audit lesson again (§0: "MY CHECKERS WERE BUGGIER THAN THE TRANSCRIPTION" — 76 findings to 1 as
+three tool bugs came out). I very nearly "fixed" a correct citation.
+
+**THE FIVE REAL DEFECTS, each `--check`-validated after correction:**
+· `COBOLNET_DESIGN.md` ×2 and the CA26 record ×1 — the fabricated `GR7 k3` → **§12.3.7.4 GR7 1.3**, quoted.
+· `COBOLNET_REDEFINES_DESIGN.md` — §13.18.60 GR4/GR11 → **§13.18.60.4**, one level short (the CA37/CA38 shape).
+· `PHASE-11-scout-notes.md` — §13.18.62 → **§13.18.63.4 GR4c**, and a stale spec LINE ref dropped.
+· `PHASE-13-remaining-waves-scout.md` ×4 — §8.5.3→§8.5.3.1, §13.6.2→§11.9.10.4 GR7, §13.18.63→§13.18.63.3, plus
+  two more stale LINE refs.
+· `CONFORMANCE-FIX-QUEUE.md` CA4 — the composite quote is ADD's exact §14.9.2.3 SR1b wording; SUBTRACT's
+  §14.9.44.3 SR1b differs by a word ("the data item that follow", singular). Reworded so the quote sits with the
+  clause that contains it.
+
+**OTHER DOCS BROUGHT CURRENT** for this session's code changes (rule 6):
+· `CobolIntrinsics.Exact.cs` said the family is "never double". PB2 made that false as an absolute — a float
+  ARGUMENT is legal and now routes to the `…Real` twins. Scoped rather than deleted, since it is still true of
+  the argument REPRESENTATION these bodies accept.
+· `CONFORMANCE.md` gains the **§15.4.1 implementor determination** PB2 created: when any argument renders
+  floating-point, the equivalent arithmetic expression is evaluated in IEEE binary64, with the spec's sign
+  discipline preserved (MOD floors, REM truncates). D13 counts required implementor-documentation items, so an
+  undocumented determination is a conformance gap in itself.
+· The `DA3` entry gains a warning that its "three copies" is **what the symptom exposed, not what exists** — PB4
+  found five more.
+
+`scripts/spec/audit_doc_citations.py` is committed with its own false-positive history in the docstring, and
+exits 0 across the doc set.
+
+**GATES.** Build clean, Unit **963/963**. Docs + doc-comments only; no behaviour change.
+
+## Entry 1119 - 2026-07-29 22:30 PDT - PB4: the test vehicle for one bug was corrupted by another, and the other was silent data loss in VALUE
+
+**HOW IT WAS FOUND, because the provenance is the useful part.** I was building a repro for PB3 (ORD under a
+custom collating sequence) and wrote `01 HI PIC X VALUE X"FF".` The program reported `ORD(HI) = 89`. Nothing about
+89 fits a collating-sequence theory — and 89 − 1 = 0x58 = **'X'**. The item held the letter X. The VALUE clause
+had stored the literal's own SOURCE TEXT and truncated it to the picture.
+
+**So the instrument was broken, not the thing it was measuring** — and PB3's agent report had been taken through
+this same distortion, which is why its numbers never reconciled with mine.
+
+**THE DEFECT.** §8.3.3.2 makes a hexadecimal literal one FORM of an alphanumeric literal — "each pair of
+hexadecimal digits represents a single character" — so every position that accepts an alphanumeric literal accepts
+it. **Five did not**, each failing differently:
+
+    01 B PIC X(2) VALUE X"4142"          ->  [X"]     the source text, truncated to the picture
+    01 A PIC X(4) VALUE ALL X"41"        ->  [ALLX]
+    05 E OCCURS 2 PIC X(2) VALUE X"4142" ->  as VALUE
+    88 IS-AB VALUE X"4142"               ->  the condition never matched
+    MOVE ALL X"41" TO M                  ->  parsed, then died at RUN time on 'figurative constant ALLX"41"'
+    MOVE X"4142" TO M                    ->  [AB]     correct, all along
+
+**The data division and the procedure division disagreed about what the same literal meant**, and four of the five
+were SILENT. A program initializing a field with a hex literal got the source text and no diagnostic.
+
+**⛔ ROOT CAUSE: ONE RULE WRITTEN DOWN TWICE, BOTH COPIES WRONG THE SAME WAY.** `CobolLiteral` carried the
+prefix-letter list in `Decode` and again in `IsStringLiteral`, and **neither included `X`**. A hex literal was
+therefore simultaneously *not recognised as a literal* and *not decoded as one* — which is precisely why the five
+sites failed in five different shapes rather than one: each had grown its own compensation on top of a decoder
+that quietly handed back its input unchanged.
+
+That also explains the near-miss. The obvious fix is a `DecodeHex` arm in `ValueInitializer`, where the symptom
+is. That would have been the **fifth copy of the dispatch DA3 already found three of** — and it would have fixed
+one of five sites. The list is now a single `PrefixLetters` constant behind one `SplitLiteral` helper, and
+`Decode`/`IsStringLiteral` are two lines each over it. The last site was
+`ExpressionBinder.FigurativeOperand`, whose own comment read "(ALL HEXLIT / NULL stay a later slice)" — while the
+grammar had listed `ALL HEXLIT` as an alternative all along. The parser had been ready for years; only the binder
+arm was missing.
+
+⚠ **The X-prefix guard is load-bearing and nearly went wrong.** `DecodeHex` returns the empty string for anything
+it does not recognise, and `Decode` contracts to return a non-literal unchanged. Delegating on a leading `X`
+alone would have turned the ordinary word `XYZ` into `""`. The delegation keys on the full parsed shape, and the
+golden pins `XYZ` so a future simplification cannot quietly reintroduce it.
+
+**AND WITH THE INSTRUMENT REPAIRED, PB3 IS HALF REFUTED.** Re-run against the fixed compiler, the ALSO collapse
+the report blamed is CORRECT: `ORD("A")` = `ORD("B")` = 1 (§12.3.7 GR L3.6 — ALSO assigns one ordinal position),
+`ORD("C")` = 67, `ORD(X"FF")` = **255**, all matching the derivation {A,B} at 1 · 0x00–0x40 at 2–66 · 0x43–0xFF at
+67–255. What survives is narrower and real: `ORD(U+0100)` = **257**, so position **256 is occupied by nothing**.
+`Ord` is `c < weights.Length ? weights[c] + 1 : c + 1`, and the fallback ignores the collating sequence entirely,
+numbering a character one past the table by a different rule than its neighbour.
+
+⛔ I also declined to inherit the report's citation. It cited "§12.3.7 GR7 k3" for unspecified characters taking
+"distinct ascending positions with no gap"; **no clause of that content is in the rule catalog.** What the spec
+does give is L3.2 — "the order in which the literals appear … specifies, in ascending sequence, the ordinal
+number" — and §15.70.4 r1 returning "the ordinal position", which a sequence containing a hole does not have.
+The exact value for U+0100 is under-specified (the UTF-16 repertoire is our own documented choice, CA26); that it
+cannot leave a gap is not. PB3 stays OPEN, re-scoped, and needs a collating structure spanning the repertoire
+rather than a 256-entry array — a data-structure change, not a one-liner.
+
+**GOLDEN** `pb4_hex_literal_value` — all five sites plus the `XYZ` guard, every expected value from §8.3.3.2
+arithmetic (X"41" = 'A', X"4142" = "AB").
+
+**GATES.** Unit **963/963**, characterization **33/33**. This changes the CANONICAL literal decoder, so the full
+Conformance suite is the gate that matters.
+
+## Entry 1118 - 2026-07-29 21:35 PDT - PB2: legal COBOL was emitting a raw Roslyn error, and my elegant fix broke six programs that had nothing to do with it
+
+**THE DEFECT, verified by hand before any code was read.** A floating-point argument is legal for every
+exact-family intrinsic — §15.7.3 r1 and its siblings require class NUMERIC, §8.5.2.12 item 2 makes a COMP-1/COMP-2
+item category numeric, and §8.5.2.1 Table 2 makes that class numeric. `FUNCTION ABS(<COMP-2>)` produced:
+
+```
+error: backend compilation failed (generated C# at F1.g.cs):
+  (43,69): error CS1503: Argument 1: cannot convert from 'double' to 'System.Int128'
+```
+
+**Ten of the eleven functions I probed did that.** Not a wrong answer — an INTERNAL failure escaping as a
+diagnostic, phrased in generated C# the user never asked to see. The queue entry had described three possible
+symptoms ("no value, a CS1503, or a silent requantization"); for the exact family it is reliably the second.
+
+**ROOT CAUSE, one line.** `RenderNum` opened with `if (sig.Float) return RenderFloat(ic);` — dispatch by the
+FUNCTION's family, never by the ARGUMENT's type. The exact family then rendered every argument through
+`Align()`, which for a Real operand returns the double expression unchanged, straight into an `Int128` parameter.
+The machinery to notice was already there and unused: `NumX` has carried a `Real` flag all along, and
+`AlignedArgsEx` already computed `anyReal` for MEAN's benefit alone.
+
+**WHY A DOUBLE BODY IS CONFORMING AND NOT A SHORTCUT.** Under native arithmetic — the default — §15.4.1 makes the
+returned value's characteristics implementor-defined, and each of these functions is defined by an equivalent
+arithmetic expression over its own operands. Once an argument arrives as binary64 the EAE *is* a binary64
+evaluation. Nothing exact is surrendered, because there was nothing exact left to keep.
+
+**⛔ AND THEN THE ELEGANT VERSION BROKE SIX PROGRAMS THAT NEVER TOUCHED A FLOAT.**
+
+The first implementation gave the real bodies the SAME names as the exact ones. The reasoning was sound as far as
+it went: `Int128` has no implicit conversion from `double`, so an exact call could never silently bind to a float
+body — and then `RenderFloat`, which already renders every argument through `Dbl()` and calls
+`sig.RuntimeMethod` by name, would route everything with a one-line change and no second naming scheme. I wrote
+that argument into the file's doc comment as a virtue.
+
+It does not compile. An integer **literal** converts implicitly to BOTH `Int128` and `double`, so
+`FUNCTION MAX(5 7)` emitted `MaxScaled(5, 7)` and C# answered:
+
+```
+CS0121: The call is ambiguous between 'MaxScaled(params Int128[])' and 'MaxScaled(params double[])'
+```
+
+Six previously-green corpus programs went red — `da2_function_as_text`, `arith_standard`, `udf_nested_args`,
+`udf_keyword_omitted`, `func_expr_arg`, `cobol_words_intrinsic` — none of which involves a floating-point
+argument at all. **The blast radius of an ambiguous overload is every call site, not the ones you were thinking
+about.** The bodies now carry a `…Real` name by a CONVENTION rather than a table (`XxxScaled` → `XxxReal`, else a
+`Real` suffix — one string transform), and `NoRealBody_SharesAnExactMethodName` asserts the trap cannot come back.
+
+**THE DRIFT TEST THEN FOUND A GAP MY PROBE MISSED.** I had tested sixteen functions by hand;
+`EveryExactArm_HasItsRealCounterpart` reported a seventeenth — **COMBINED-DATETIME**, whose argument-2 §15.6
+types `Num2` and which may therefore legitimately be a float. Confirmed: it failed with `CS0117` for the missing
+body. §15.17.4 r1 gives the returned value as `argument-1 + (argument-2 / 100000)`, and the exact twin turns out
+to encode precisely that as a scale shift (`date × 10^(scale+5) + secUnscaled`, read at scale+5), so the two
+agree by construction. Verified: `COMBINED-DATETIME(20260729, 3661.5)` = `20260729.036615`.
+
+⚠ **And that test needed correcting twice before it was honest.** Its first form demanded a real body for every
+arm, including the date/format and integer-argument ones that can never receive a float. Its second scoped by the
+catalog's `ArgKinds` column — the very column PB1 established is UNAUDITED. That is acceptable *here* and would
+not be in the compiler, for a reason worth stating: this use only SCOPES A TEST, so a wrong hint leaves a gap in
+what is asserted; PB1's use would have REJECTED SOURCE, where a wrong hint turns legal COBOL away. Same column,
+opposite blast radius. It also needed the zero-arity exclusion, since SECONDS-PAST-MIDNIGHT takes no arguments
+and its empty `ArgKinds` reads as "numeric" through the empty-means-`'n'` default.
+
+**THE GOLDEN IS BUILT AROUND THE PAIRS THAT DISCRIMINATE.** A wrong body agrees with a right one on positive
+operands, so `pb2_float_argument_exact_family` pins the four cases where they diverge: MOD(−7,3) = **2** (floored,
+sign of argument-2, §15.64.4) against REM(−7,3) = **−1** (truncated, sign of argument-1, §15.77.4); and
+INTEGER(−3.5) = **−4** (§15.44, "greatest integer not greater than") against INTEGER-PART(−3.5) = **−3** (§15.49,
+truncated). Seventeen expected values, every one derived from the spec. It matched on the first run.
+
+**WHAT DID NOT LAND, recorded rather than waved through.** `RV-15.75.4-1` RANDOM keeps its PARTIAL: its defect is
+the fixed-point RECEIVER path (`FromDouble(call, ws)` re-rounding a value §15.75.4 r1 already places in `[0,1)`),
+not the argument path. The standard-arithmetic legs (PI's `RV-15.73.3-2`/`-3`, PRESENT-VALUE's `RV-15.74.4-1`)
+are a different seam. And the EC-ARGUMENT-FUNCTION **value** rules stay open by design: §15.3 makes an incorrect
+argument VALUE a run-time condition, and this change is compile-time routing — conflating the two would be DA7's
+wrong-stage defect in reverse.
+
+**GATES.** Conformance **4142/4142**, zero skipped, nothing red. Unit **963/963**. Characterization **33/33**.
+GAP **3779 → 3774**.
+
+## Entry 1117 - 2026-07-29 20:40 PDT - PB1: the argument-class table was not merely unread, it was unverified — and wiring it in as-written rejected 12 legal programs
+
+**THE DEFECT.** `IntrinsicCatalog` declares an `ArgKinds` per-argument class code on all **79** rows and exposes
+`IntrinsicSig.ArgKind(int)` to read it. `ArgKind` had **zero callers** — the only read of `ArgKinds` anywhere in
+`src/` was one `== "p"` MAX/MIN polymorphism test. So no §15 argument rule was enforced from the table built for
+it, and class checking survived only as hand-written arms for a handful of functions. Found by the Phase-B
+traceability review as 11 separate DIVERGES rows over 11 functions; it is ONE defect.
+
+**THE SPEC SPLIT, derived before reading any code.** §15.3 draws a line the fix has to respect. Argument **TYPE**
+is static — "Numeric. An arithmetic expression or a numeric data item **shall be specified**" — so a violation is
+a compile-time matter. Argument **VALUE** is not: "The rules for a function may place constraints on the
+permissible values … if the **evaluation** of an argument results in an incorrect value … the
+**EC-ARGUMENT-FUNCTION** exception condition is set to exist." This change implements the first half only.
+Conflating them would have been DA7's wrong-stage defect in reverse — a run-time condition raised at compile time.
+
+**§4.2.2 paragraph 3 is the hook** (validated; the phrase the first agent implied, "shall be indicated", is not in
+that clause): "There are rules in standard COBOL that are not identified as general formats or syntax rules, but
+nevertheless specify elements that are syntactically distinguishable. This warning mechanism shall indicate
+violations of such rules." An argument rule is exactly that. Disposition follows **DA6**, which settled the
+sibling §8.8.1.1 question for arithmetic operands hours earlier: reject under strict conformance, leniency
+dialect-gated behind `--permissive`. One question, one mechanism.
+
+**⛔ CLASS, NOT CATEGORY — the row that decides the whole thing.** §8.5.2.1 Table 2 puts **numeric-edited (usage
+display) under class ALPHANUMERIC**, and §8.5.2.1 closes with "Use of the name of a data class or data category in
+the rules of COBOL refers to the category unless class is specifically indicated". §15.7.3 r1 says *class*. So
+`PIC ZZ9.99` is not a legal numeric argument however numeric it looks. Reading that row the other way would have
+silently admitted the exact operand the rule excludes, so it has its own negative fixture.
+
+**⛔ AND THEN THE ESTIMATE BROKE, WHICH IS THE ENTRY'S REAL CONTENT.**
+
+The queue entry said "consume `sig.ArgKind(i)` in `BindIntrinsicCore`". I did. The comprehensive gate returned
+**12 failing corpus programs, every one of them legal COBOL**:
+
+    FUNCTION BYTE-LENGTH(<numeric item>)   rejected — but §15.14.3 admits an argument of ANY class
+
+`BYTE-LENGTH` is declared `"s"`. `LENGTH` and eight others declare `""`, and `ArgKind`'s own body reads
+`ArgKinds.Length == 0 ? 'n' : …` — so the empty rows would have been screened as NUMERIC-ONLY.
+
+**The table is not merely UNREAD. It is UNVERIFIED — and it was unverified *because* it was unread.** Those codes
+were written as dispatch hints and drifted freely for years for precisely the reason PB1 exists: nothing consulted
+them, so nothing could contradict them. Wiring 79 unaudited declarations into a rejection path converts one silent
+defect into 79 chances to reject valid source, which is strictly worse than what it replaced and is the one
+outcome CLAUDE.md rule 4 forbids outright.
+
+So the screen is driven from a **spec-verified table**, not from `ArgKinds`: an entry names the function, the
+admissible classes, and **the ISO clause it was read from**. Eleven entries — §15.7 and §15.70–15.79, exactly the
+functions the Phase-B batch adjudicated. A function absent from it is screened exactly as before, which is why
+this cannot regress anything, and the table grows as the review adjudicates each clause.
+
+⚠ **That is not a deferral, and the distinction matters.** The FEATURE — enforce §15.3 argument classes — is
+implemented completely and generally. What I decline to do is assert 68 argument rules I have not read. Claiming
+them would not be completeness; it would be fabrication, with every wrong entry rejecting legal COBOL.
+
+**THE DRIFT TEST CAUGHT ITSELF GOING BLIND.** `IntrinsicArgumentClassDriftTests` asserts the screen is wired, that
+every verified rule cites a §, and that every verified function is really in the catalog. That last one failed
+immediately: it reported **ORD-MAX as absent from the catalog**. It is not — my row-parsing regex required digits
+for the arity bounds, and a variadic row writes `inf`, so every variadic function was silently skipped. A guard
+against a dead table had itself gone half-dead on its first run. Fixed, with the reason in a comment, because it
+is the same failure mode one level up.
+
+**Evidence the central guard bites:** at the pre-fix commit the binder contains `ArgKind(` **zero** times and the
+guard asserts more than zero — so it fails at `HEAD` and passes now.
+
+**WHAT LANDED, AND WHAT HONESTLY DID NOT.** Of the 12 rows PB1 owned, **5 close** (ABS, PRESENT-VALUE, RANDOM,
+RANGE, REM — bare class constraints, fully enforced) and **5 go PARTIAL**, because their rules have a second half
+this screen does not reach: REVERSE and ORD also require a LENGTH ("at least one character position", "one
+character position"), ORD-MAX/ORD-MIN also bar a STRONGLY-TYPED GROUP, and SECONDS-FROM-FORMATTED-TIME's r3 is a
+CROSS-ARGUMENT rule ("argument-2 shall have the same type as argument-1") that a per-position screen cannot
+express. Half a rule enforced is PARTIAL, not CONFORMS — recording those as closed is how a burn-down starts
+lying.
+
+**GOLDENS.** Four negative fixtures, registered in `tests/conformance/negative/manifest.json` in the same commit:
+`pb1-numeric-arg-alphanumeric` · `pb1-string-arg-numeric` (the two hand reproductions) ·
+`pb1-numeric-arg-numeric-edited` (the Table-2 row) · `pb1-numeric-arg2-alphanumeric` (REM's argument-2 — a screen
+that stopped at the first argument would pass every other fixture and still miss that rule's second half).
+
+**GATES.** Solution build clean. Unit **960/960**, characterization **33/33**, `docs/DIAGNOSTICS.md` regenerated
+for `COBOLNET1627` (the drift test caught that omission — rule 6 working). False-positive sweep by hand over 18
+legal forms including group items, ref-mod, nested expressions, national, MAX polymorphism and zero-argument
+functions: all compile. `--permissive` downgrades all four fixtures to warnings and compiles.
+
+## Entry 1116 - 2026-07-29 20:05 PDT - I read the batch before it finished, and published 3778 when the answer was 3781
+
+**CORRECTION TO ENTRY 1115, and the mistake is the useful part.**
+
+1115 reported the first Phase-B batch as **GAP 3790 → 3778**, 23 CONFORMS with 12 closed. That was a **MID-FLIGHT
+READ**. The workflow is a two-stage pipeline — adjudicate, then an independent agent told to OVERTURN — and I
+polled the scratchpad, saw all 11 `out-*.json` files present, and merged. The out file is written by stage one and
+REWRITTEN by stage two. Files existing is not files finished.
+
+The workflow's completion notification arrived after I had committed and pushed. Re-running the merge against the
+final artifacts moved **10 rows**:
+
+    RV-15.70.4-1  CONFORMS → PARTIAL          RV-15.71.4-2  CONFORMS → PARTIAL
+    RV-15.72.4-3  CONFORMS → PARTIAL          RV-15.76.4-1  CONFORMS → PARTIAL
+    AR-15.77.3-2  CONFORMS → PARTIAL          RV-15.78.4-1  CONFORMS → PARTIAL
+    AR-15.79.3-1  CONFORMS → PARTIAL          AR-15.79.3-4  CONFORMS → PARTIAL
+    AR-15.79.3-5  CONFORMS → DIVERGES         AR-15.75.3-4  CONFORMS → NEEDS-OWNER-DECISION
+
+**Three of those were rows I had counted as CLOSED.** The true figures: **GAP 3781**, 9 closed — 13 CONFORMS
+(9 closed · 4 CONFORMS-but-untested) · 19 DIVERGES · 21 PARTIAL · 2 NEEDS-OWNER-DECISION. Plan §0, the fix queue
+and the inventory now carry the corrected numbers; 1115 stays as written with this entry as its correction, since
+the DEVLOG is a narrative and rewriting it would hide the error rather than record it.
+
+**⛔ WHAT SAVED IT, AND WHAT DID NOT.** The gate did not catch this and could not: every one of those rows was
+internally consistent, its symbols resolved, its state matched its verdict. A stale-but-valid batch is invisible
+to a referential integrity check. What caught it was the completion notification — the one signal I had bypassed.
+The rule going forward is flat: **wait for the workflow's completion notification; never poll its output
+directory for readiness.** A pipeline's intermediate artifact is indistinguishable from its final one.
+
+⚠ And note the direction of the error: every single overturn was a DOWNGRADE. The adversarial pass only ever
+removes confidence, so reading a two-stage pipeline early is not a neutral race — it systematically reports a
+better result than the truth. That is the worst possible bias for a completion metric.
+
+**THE REFUTE STAGE PAID FOR ITSELF SEVERAL TIMES OVER**, which is the other half of the lesson. A sample of what
+the second pass produced that the first missed:
+
+· **`RV-15.70.4-1` ORD, CONFORMS → PARTIAL — a real defect the first agent excused.** It saw the `c & 0xFF`
+  masking in the alphabet builder, charged it to §12.3.7 and reasoned "ORD faithfully reports whatever the table
+  holds". The refuter read the runtime instead: `Ord(s, weights)` is `c < weights.Length ? weights[c]+1 : c+1`, so
+  a code unit past the 256-entry table never consults the collating sequence at all. It then RAN two programs:
+  with `ALPHABET AL IS "A" ALSO "B"`, `ORD(X"FF")` gives 255 and `ORD(U+0100)` gives 257 — skipping 256, where
+  §12.3.7 GR7 k3 requires distinct ascending positions with no gap. And the correct arithmetic **already exists on
+  the NATIONAL twin**, which returns the right value for the identical alphabet. One rule, two implementations,
+  one wrong. Filed as PB3 — and it means **CA26's Unicode fix (DEVLOG 1018) is incomplete on the ORD path**.
+· **`AR-15.7.3-1` ABS — verdict survived, but the note contained a false claim**: "No CONFORMANCE-FIX-QUEUE item
+  owns this yet." PB1 already named that rule id. Left standing it would have invited a duplicate queue entry.
+· **Editions widened on the ABS rows, 2014,2023 → 2002,2014,2023, for a reason worth keeping.** The first agent
+  derived the edition window from `IntrinsicCatalog`'s own ABS row — deriving the answer from the code under
+  review, the inherited-citation failure in a new costume. The refuter established 85's exclusion on real evidence
+  (the 1989 Intrinsic Function Module is the 42 functions of NIST `IF101A`..`IF142A`, matching the catalog's 42
+  `IntroducedIn: 85` rows exactly; ABS is in neither) and left 2002 IN, because excluding it asserts something
+  nobody established — and `cobol --std 2002` rejects `FUNCTION ABS` today, which is a §4.2.2 violation if ABS is
+  a 2002 function. An honest open question beats a confident guess.
+· A refuter also caught **`cite.py --check 4.2.2 "shall be indicated"` FAILING** — the first agent's §4.2.2 hook
+  was paragraph 3, not the phrase it implied. Exactly the mechanical-validation rule doing its job one level down.
+
+**A SECOND PATTERN CAME OUT OF THE COMPLETED DATA, which the mid-flight read had also obscured.** Clustering the
+42 open rows by root cause: **11 are PB1** (the dead argument-class table), **19 are PB2** — a FLOATING-POINT
+argument falling off the end of the intrinsic result path, producing no value, a Roslyn `CS1503`, or a silent
+requantization — **1 is PB3**, and only **11 are genuinely per-function**. Three named seams own three quarters of
+the batch. That ratio is the argument for the whole exercise: 42 rows of symptoms, three places to fix.
+
+**GATES.** Inventory re-merged from the final artifacts; `SpecTraceabilityInventoryDriftTests` 10/10 over all 55
+adjudicated rows; probe and writer agree at 3781 / 4 test-needed. No compiler code changed.
+
+## Entry 1115 - 2026-07-29 19:40 PDT - The first Phase-B batch: 55 rules, 12 GAPs closed, and the moment I nearly closed 7 more on evidence the standard forbids
+
+First real use of the mechanism from 1114. **§15.7 + §15.70–15.79 — 55 normative rules over 11 intrinsic
+functions (24 AR · 20 RV · 11 FMT)**, fanned out one agent per function, each with its OWN input file of rule
+text, each verdict then handed to an independent agent told to OVERTURN it and to default to overturning when
+uncertain.
+
+**RESULT: 3790 → 3778 GAP.** 23 CONFORMS (12 closed, 11 CONFORMS-but-untested) · 18 DIVERGES · 13 PARTIAL ·
+1 NEEDS-OWNER-DECISION. The gate passes on all 55: every `code-location` symbol resolves, every `test-ref` names
+a test really on disk, every `state` equals the derived one.
+
+**⛔ THE FINDING: 18 DIVERGES IS NOT 18 BUGS. IT IS ONE.**
+
+`IntrinsicCatalog.cs` gives each of its **79** rows an `ArgKinds` string declaring every argument's required class,
+and exposes `IntrinsicSig.ArgKind(int)` to read it. **`ArgKind` has zero callers.** The only read of `ArgKinds`
+anywhere in `src/` is the `sig.ArgKinds == "p"` MAX/MIN polymorphism test. The table that exists precisely to
+enforce §15's argument rules enforces nothing; class checking survives only as hand-written arms for a handful of
+functions. One rule, written in a few places and declared-but-unread in all the rest — the DA3/DA5/DA6 shape
+again, except this time the general mechanism was already built and simply never wired in.
+
+I did not take that from the agents. **Reproduced by hand at the CLI, both directions:**
+`MOVE FUNCTION REVERSE(N) TO R` with `N PIC 9(4) VALUE 1234` compiles clean and prints `4321` (§15.78.3 r1 allows
+alphabetic/alphanumeric/national only); `COMPUTE R = FUNCTION ABS(A)` with `A PIC X(4) VALUE "ABCD"` compiles
+clean and prints `0000000{` (§15.7.3 r1 requires class numeric). No diagnostic, at any edition.
+
+⚠ **And it is a hole in DA6, which landed hours earlier the same day.** DA6 installed the §8.8.1.1 reject for an
+alphanumeric ARITHMETIC operand. `COMPUTE R = A` is correctly rejected; `COMPUTE R = FUNCTION ABS(A)` is not,
+because `BindFunctionArgumentExpr` deliberately suppresses that screen for function arguments. Filed as **PB1**,
+the first item the traceability review has fed into the fix queue — which is the design working as intended.
+Scope: §15 holds 216 AR rules over 43 functions, 47 of them explicit class constraints; 11 functions adjudicated
+so far.
+
+**⛔ AND THE THING I ALMOST GOT WRONG, WHICH IS THE REAL LESSON OF THE BATCH.**
+
+The batch came back with 19 CONFORMS rows carrying a covering test. I was about to merge. Then I read the
+test-refs: `nist:IF128A`, `nist:IF129A`, `IntrinsicFunctionDifferentialTests.ExactFamily_MatchesLegacy`,
+`ChannelMatrix_IfEvaluateMove_MatchesLegacy`.
+
+**Seven of those nineteen rows would have closed on a NIST golden or a `*_MatchesLegacy` differential** — exactly
+the artifacts CLAUDE.md rule 1 names as "regression NETS with known holes, never authority", and exactly what
+`DESIGN-spec-conformance-review.md` §1(c) rules out: the expected value must be COMPUTED FROM THE SPEC, never
+copied from an implementation oracle. A differential is structurally blind to a violation both implementations
+share, and many of this compiler's defects were ported FROM the legacy — so agreeing with it is evidence of
+nothing. Closing rows that way would have moved the v1.0 burn-down on precisely the evidence the mission forbids.
+
+**It was my fault, in the prompt and in the schema.** I told agents which test-ref forms RESOLVE and never that a
+cover must be spec-derived, and the schema listed `nist:` as a legal form with nothing marking it differential.
+The agents did what I asked.
+
+Fixed structurally, not row by row:
+· Every `test-ref` form now carries **`spec-derived`** — `conformance`/`unit`/`conformance-test` true;
+  `nist` and `characterization` false, each with a `why-not` saying so. A non-qualifying ref is still worth
+  RECORDING (knowing NIST exercises a rule is useful); it just cannot be what closes the row.
+· An xUnit form CAN be spec-derived, so the form alone cannot decide it — but this repo names the two kinds apart
+  by convention, so **`disqualifying-method-patterns`** (`MatchesLegacy$`, `MatchesGnuCobol$`, `MatchesOracle$`)
+  strikes a test whose own name says its expected value came from an oracle.
+· Both evaluators enforce it, and `EveryResolvedRow_CitesASpecDerivedTest` states the rule independently of the
+  derivation.
+
+**⛔ WHICH EXPOSED A CONFLATION IN MY OWN SCHEMA, and this is the better half of the fix.** `requires` was doing
+two jobs: the evidence a RECORD needs to be well-formed, and the evidence a ROW needs to CLOSE. Splitting them
+makes **CONFORMS-but-untested** expressible — and the design doc §3 Phase C names that category outright
+("CONFORMS-but-untested → write the spec-derived golden"). So `CONFORMS` now requires only `code-location` to be
+recorded, and closes only once a spec-derived test covers it. The 7 differential-only rows land honestly: verdict
+CONFORMS, NIST golden recorded as corroboration, row still open. Had I folded the test into `requires`, each
+would have had to be misrecorded as PARTIAL or closed on the differential.
+
+**⚠ A THIRD INSTRUMENT WAS LYING, IN THE SAME DIRECTION.** `session-probe` reported "4 CONFORMS still
+test-needed" against the writer's 11, because I had keyed it on an EMPTY test-ref rather than on the row not
+closing — so the 7 rows citing a differential looked covered. Three places measured "is this tested" and one of
+them measured something else. Now keyed on `state -eq 'GAP'`, and probe and writer agree at 11.
+
+**PROCESS NOTES.** The writer's all-or-nothing validation earned itself immediately: two records carried a
+`verified-by` field an agent invented, and the whole 55-record batch was refused rather than half-applied. The
+field's content was good evidence, so it was folded into `notes` rather than dropped. And the writer's own report
+was overstating — it labelled all 23 CONFORMS "(closes the GAP)" when 12 did; it now reports per-verdict what
+ACTUALLY closed, because printing the nominal number as if it were the real one is how a burn-down gets
+overstated by the tool meant to measure it.
+
+**GATES.** Solution build clean. `SpecTraceabilityInventoryDriftTests` 10/10 over the 55 adjudicated rows,
+`TestRepoDriftTests` 2/2. Unit full suite green at 1114's commit; the only code added since is test code.
+
+## Entry 1114 - 2026-07-29 19:20 PDT - Phase B had a 3,790-row denominator and no way to write a verdict into it
+
+**THE STATE I FOUND.** Phase A of the spec-conformance review is complete: `spec-rule-catalog.json` holds 3,790
+normative rules with their full text, `build_inventory.py` seeds one inventory row per rule, and
+`session-probe.ps1` reports `3790 rows · 3790 GAP`. That number is the definition of v1.0 (D13: zero GAP = P14
+done). It has never moved, and the reason is not that the work is hard. **There was no mechanism to record a
+verdict.** `build_inventory.py` only ever PRESERVES the adjudicated fields across a rebuild; nothing sets them.
+The only way to record one was to hand-edit a 1 MB JSON array — which loses a batch the first time two writers
+overlap, and offers no point at which anything is checked.
+
+That second half is the real problem. **The GAP count is a completion metric, so every row is a claim about
+completion, and an unaudited claim about completion is a self-report.** Closing a row by hand cost one string.
+
+**WHAT LANDED — four parts, and the boundary between them is the design.**
+
+| part | owns |
+|---|---|
+| `tests/version-matrix/inventory-schema.json` | the RULES, as data: the six verdicts, each one's `resolves` flag and required evidence, the legal editions, the `code-location` pattern, the `test-ref` forms |
+| `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, the ATOMIC write |
+| `scripts/spec/record_verdicts.py` | validating a batch's SHAPE, merging all-or-nothing |
+| `SpecTraceabilityInventoryDriftTests` | REFERENTIAL integrity, continuously, in the battery |
+
+**The vocabulary is data because three engines read it.** The row builder, the writer and the C# gate all need the
+verdict list and the required-evidence matrix; before this, `build_inventory.py` carried its own `RESOLVED` set
+and its docstring carried a second copy of the vocabulary in prose. Both are gone. Adding a verdict is now an edit
+to one JSON file. Having just spent a wave on DA3 (three copies of one dispatch) and DA5 (two predicates for one
+question), writing the list down a fourth time was not available.
+
+**SHAPE AT RECORD TIME, REFERENCE AT BATTERY TIME — deliberately with no overlap.** This was the one genuinely
+hard call. Both the writer and the gate want to ask "does this reference resolve?", and implementing it twice is
+the anti-pattern. So they split by WHEN the question has to be answered, not by convenience: the writer checks
+what is knowable about a batch in isolation (rule-id real, verdict in vocabulary, required fields filled, editions
+legal, each reference parses) and stops. Whether a symbol still exists and a test is still on disk has to keep
+holding as the tree changes underneath a row recorded sessions ago, so it belongs to something that runs every
+build. Neither side hard-codes a verdict name or a form — both read the JSON — so what exists twice is a ten-line
+evaluator, not the rule. And the divergence that would matter is itself gated: the C# side recomputes every row's
+`state` and fails if it disagrees with the stored one, so a Python evaluator drifting from the C# one turns the
+battery red rather than quietly inflating the burn-down.
+
+**⛔ A DESIGN CORRECTION, made and recorded in the same change set.** `DESIGN-spec-conformance-review.md` §4
+specified `code-location` as `file:line`. That is wrong at this scale and I changed it to `path` or `path#Symbol`.
+A line number rots on the next edit to the file; 3,790 rows of them would hold the gate permanently red for
+reasons having nothing to do with conformance, and **a gate that cries wolf is a gate nobody reads** — which
+would have cost more than the traceability it bought. A symbol survives refactoring, moves with the code it
+names, and fails only when the thing it points at actually stops existing. The doc now carries the correction and
+the reasoning, and the writer REJECTS a line-number form outright (verified: `a.cs:123` fails validation).
+
+**ALL-OR-NOTHING, THEN AN ATOMIC REPLACE.** Every record across every named batch validates before any of them
+merges, and the write goes through a temp file plus an `os.replace`. A half-applied batch is the worst outcome
+available here: the rows that DID land look exactly like reviewed work and nothing afterwards can distinguish
+them. A torn write is worse still, because a truncated JSON array is not a parse error — it is a valid, silently
+shorter inventory.
+
+**⛔ THE GATE IS PROVEN ABLE TO FAIL, TWICE OVER.** A gate observed only passing is indistinguishable from one
+that inspects nothing (`feedback_green_gates_arent_evidence`), and this one will spend most of its life green over
+rows nobody has touched.
+
+1. `TheseChecks_ActuallyFail_OnAFabricatedInventory` drives all nine checks against rows built to break them —
+   one defect class at a time — **plus positive controls**, so a failure cannot come from a checker that simply
+   rejects everything. It runs on every build, so the evidence does not decay.
+2. And once against the REAL artifact: I corrupted `traceability-inventory.json` in place — one row hand-promoted
+   to `OK`, one CONFORMS row citing a file and a golden that do not exist — and got exactly three reds
+   (`EveryRowState_IsDerived_NotAsserted`, `EveryCodeLocation_ResolvesInTheTree`,
+   `EveryTestRef_ResolvesToARealTest`), then green again on restore. That is the wiring test the synthetic rows
+   cannot give: it proves the checks are pointed at the real file, the real schema and the real catalog.
+
+The writer's validator was exercised the same way, on a batch carrying seven deliberate defects — unknown
+rule-id, unknown verdict, missing required evidence, unknown test-ref form, a duplicate rule-id within the run, an
+illegal edition, a line-number `code-location`, an unknown field. It reported all 14 violations at once and wrote
+nothing. Reporting them together rather than one at a time is deliberate: a batch produced by a fan-out of agents
+tends to carry the SAME mistake in many rows, and seeing all of them turns a twenty-round correction loop into one.
+
+**WHAT IS DELIBERATELY STILL A GAP.** `NEEDS-OWNER-DECISION` does not resolve a row. An unanswered question is not
+coverage, and the metric must never be cheaper to move than the work it stands for. `DOCUMENTED-NON-SUPPORT` does
+resolve one, but it is an owner decision (D13) and agents are forbidden from choosing it.
+
+**GATES.** Solution build clean. Unit **953/953** (942 + 11 new). Characterization **33/33**.
+`build_inventory.py --stats` unchanged at 3790/3790 after the refactor.
+
+## Entry 1113 - 2026-07-29 19:05 PDT - Nineteen answers to "where is the repo root", and the grep that found only thirteen
+
+⚠ **Timestamp note.** Entry 1112 above is stamped `21:40 PDT` and §0 said `21:45 PDT`, both on this same day, but
+`date "+%Y-%m-%d %H:%M %Z"` returns **19:05 PDT** as I write this. So 1112's stamp is roughly two and a half hours
+in the future and this entry, correctly stamped, reads as EARLIER than the entry above it. I have used the real
+clock rather than manufacture a later time to preserve the visual ordering, because the rule says stamp from
+`date` and a fabricated timestamp is worse than a visibly odd one. Something mis-stamped 1112; worth a glance
+before it propagates.
+
+**WHAT I WAS DOING.** Starting the Phase-14 Step-0 inventory work, which needed a new drift test in
+`Cobol.Net.Tests.Unit`. Every such test begins by finding the repo root. I went to copy the idiom from a
+neighbouring test and found I had a choice of four.
+
+**WHAT WAS THERE.** `RepoRoot()` existed **nineteen times** across five test projects, in **seven** distinct
+mechanisms:
+
+| mechanism | sites |
+|---|---|
+| walk up for `tests/version-matrix` | 6 |
+| walk up for `tests/nist` | 4 |
+| walk up for `CobolSharp.sln` | 2 |
+| walk up for `src/Cobol.Net.Compiler` | 2 |
+| walk up for `PROMPT.md` | 1 |
+| walk up for `.git` (from `Directory.GetCurrentDirectory()`, not the assembly) | 1 |
+| count `".."` hops from `AppDomain.CurrentDomain.BaseDirectory` | 3 |
+
+Not one of them was wrong on the day it was written. They accumulated because writing a six-line walker is
+cheaper in the moment than finding the one that already exists — which is precisely the mechanism
+`feedback_one_rule_one_place` describes, arriving here as ordinary sediment rather than as a bug.
+
+Every sentinel is a PROXY for the root, and each proxy is a separate way for the answer to drift: rename
+`tests/version-matrix` and six tests break while thirteen carry on. The `".."`-counting sites are worse than
+that — they encode the OUTPUT DIRECTORY DEPTH, so they break on a TargetFramework change that touches no test.
+
+**THE FIX.** One `TestRepo` in `tests/_shared/TestRepo.cs`, linked into every project under `tests/` by a new
+`tests/Directory.Build.props`. Linked rather than referenced as a project so a NEW test project inherits it with
+no wiring at all — the point is not to remove nineteen copies once, it is to make the twentieth not worth
+writing. Its marker is `CobolSharp.sln` CORROBORATED by `src/` and `tests/` beside it, because a lone `.sln` can
+be copied into a build drop and a walker that accepted it would resolve to a tree with no sources and fail with a
+file-not-found raised far from the cause. Typed helpers (`Src`, `Tests`, `Docs`, `Scripts`, `Specs`,
+`VersionMatrix`, `Nist`) replace the `Path.Combine(RepoRoot(), "tests", "version-matrix", …)` chains, so the call
+sites got shorter as well as singular.
+
+`EditionHarness.RepoRoot()` and `CharacterizationCorpus.RepoRoot` were PUBLIC — the de-facto shared ones — and
+both are deleted outright with their callers rewritten, not left as forwarders
+(`feedback_change_the_dispatch_not_the_callers`).
+
+**⛔ THE PART WORTH REMEMBERING: MY FIRST DRIFT TEST WOULD HAVE BLESSED SIX OF THE NINETEEN.** I wrote the guard
+before the sweep finished, keying it on the shape I had seen: `AppContext.BaseDirectory` near `.Parent`. That is
+thirteen of the nineteen. The `.git` walker starts from `Directory.GetCurrentDirectory()`, and the three
+hop-counters start from `AppDomain.CurrentDomain.BaseDirectory` and never touch `.Parent` at all. My *grep* had
+the same blind spot, which is why I reported "sixteen sites" to the owner and the real number is nineteen — a
+fan-out agent found the other three by reading the files rather than matching my pattern.
+
+The test now pairs ANY base-directory anchor (`AppContext.BaseDirectory`, `AppDomain.CurrentDomain.BaseDirectory`,
+`Directory.GetCurrentDirectory(`) with ANY upward move (`.Parent`, `Directory.GetParent`, `".."`). It is the
+COMBINATION that means "finding the root the long way round"; either half alone stays legal. Generalising from
+the instances you happened to find is how a guard ends up certifying the cases it never saw.
+
+**⚠ AND A TOOLING TRAP, found by an adversarial verifier and worth carrying.**
+`tests/Cobol.Net.Tests.Conformance/DifferentialGolden.cs` contains a NUL byte at offset 4895, so **ripgrep treats
+it as binary and SILENTLY SKIPS IT** — a `Grep` for `TestRepo\.` returned 19 hits and omitted that file's use
+entirely. `git grep` at least prints `Binary file … matches`. Any sweep over `tests/` that relies on ripgrep alone
+has a hole exactly there. The C# drift test does not: it reads with `File.ReadAllText`, so the guard is sound even
+though the grep that motivated it was not.
+
+**GATES.** Solution build clean (0 warnings, `TreatWarningsAsErrors`). Unit **953/953** — the 942 baseline plus
+exactly the 11 tests added here and in the next entry. Characterization **33/33**. And the FULL Conformance suite
+**4137/4137, zero skipped, nothing red**, matching the §0 baseline figure exactly — run because this touched
+eleven Conformance files including `EditionHarness`, which every test in that project reaches through, and a
+filtered gate would not have covered the blast radius.
+
+## Entry 1112 - 2026-07-29 21:40 PDT - Making the resume actually resume: the stalest line in §0 was the one about main
+
+Owner asked that a cleared session pick up exactly here. That is a doc-only change, but auditing §0 against reality
+turned up one line that would have actively misled a fresh session, plus three that had quietly inverted.
+
+**THE DANGEROUS ONE.** §0 "Where we are" said: "`main` = `c056f1f4` — PHASE-14 IS MERGED (2026-07-28) … `phase-14`
+is fully merged and its tree is identical to `main`." True when written; false the moment this wave started. A
+cleared session would have believed the tree was merged and clean against main while sitting on **17 unmerged
+commits**. Replaced with the measured state: `phase-14` = `ccfc091d`, `main` = `0e534dc7`, 17 commits ahead,
+DEVLOG 1095–1111, unmerged, and the merge is an owner decision. The old §284 merge-gate record is kept but
+date-stamped as HISTORICAL with a forward pointer, since it is legitimate history and only reads wrong as state.
+
+**THREE THAT HAD INVERTED, all the same class: a doc describing an intention that has since been fulfilled.**
+· NEXT item 1 was the V59 execution record — seven steps of a finished wave sitting at the top of a worklist. §0
+  states WHERE WE ARE, never how we got here, so it is gone and its reasoning lives in DEVLOG 1095–1102. The list
+  now OPENS with what is actually next: the P14 Step-0 traceability inventory, 3,790 rows still at full GAP, which
+  is the real road to v1.0 and had been sitting at item 5.
+· "THE WORK = the spec-first CONFORMANCE FIX-QUEUE" — the queue now has ZERO open items, so that sentence pointed a
+  new session at an empty file. Rewritten to say it is exhausted, to keep it as the register for NEW discoveries,
+  and to name the inventory as the actual source of work.
+· `DOC_INDEX.md` still advertised "30 landed / 16 remain as of 2026-07-23" beside the correct advice to trust the
+  doc's own header. An inline count that contradicts the header it defers to is worse than no count.
+
+**AND A HEADING THAT CONTRADICTED ITS OWN BODY.** DA6's queue heading read "⏳ OPEN" while the bullets beneath it
+recorded it as landed — I had updated the body and missed the line above it. In a register the project treats as
+live-state SSOT that is a defect, not untidiness: a session reads the heading first. The queue now has zero "OPEN"
+strings in it, which is a greppable invariant rather than a claim.
+
+**TWO MEMORIES, because the wave's lessons are durable and not repo-specific.**
+· `one_rule_one_place` — when a single construct fails, grep for the RULE, not the construct. DA3 (three copies of
+  a literal dispatch), DA5 (two predicates for one question) and DA6 (one rule at a context-free site) were all
+  reported as one construct failing. Includes the tell I nearly missed: patching two of three copies and finding it
+  STILL broken is the signal, not a puzzle.
+· `green_test_can_hold_a_gap_open` — a RED test is a bug report; a GREEN test pinning a loud-stage reads as a
+  DECISION and nothing questions it. Carries the two related traps from the same day: a fan-out whose zero result
+  could not distinguish "nothing wrong" from "nothing ran", and a hand-built probe set that inherited my framing
+  (every DA6 probe was arithmetic, none was a string intrinsic; the corpus found 79).
+
+**Verification, since a resume doc that is merely plausible is worthless.** Grepped for every stale claim by
+pattern (`c056f1f4`, "identical to main", "V59 — the LAST item", "implementation is NOT started", "1 REMAIN",
+"⏳ OPEN") — all clean or date-stamped; re-read §0 in bootstrap order as a cleared session would; and ran the
+registry/VCR/predicate drift guards (10/10) since the doc edits touch guarded ledgers.
+
+**Gates.** Doc-only change; drift guards 10/10. The code battery is unchanged from `ccfc091d`: Conformance
+4137/4137, Unit 942/942, characterization 33/33, guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION, GnuCOBOL
+differential 0 flips — every figure measured at that commit, none carried.
+
+## Entry 1111 - 2026-07-29 21:05 PDT - Naming the sending operand once, and the battery with nothing carried
+
+Two cleanup pieces, both prompted by the owner restating the standing bar: production quality, decade-supportable,
+refactor to whatever extent that takes.
+
+**THE REFACTOR I HAD LEFT UNDONE.** DA4 shipped working but with two smells I would have criticised in anyone
+else's change. `StrUnstrOperand` had grown to FIVE parameters, four of them mutually-exclusive nullable ANTLR
+contexts - the kind of signature a caller silently transposes - and the grammar repeated the same four-alternative
+list in FOUR productions. That second one is precisely the "same rule written down more than once" pattern entry
+1110 identified as the root cause of DA3, DA5 and DA6. Leaving it would have meant shipping the disease alongside
+the cure.
+
+The two shapes are not arbitrary; the general formats distinguish them, so the grammar now does too:
+  §14.9.48.2  `UNSTRING identifier-1`              -> an IDENTIFIER only, no literal sender
+  §14.9.43.2  `STRING {identifier-1 | literal-1}`  -> an identifier OR a literal
+so the sender is a strict SUBSET of the operand, and `strUnstrOperand : strUnstrSender | literal |
+figurativeConstant` states that subset relationship directly rather than restating the alternatives. Four
+productions now reference the two names. The binder's helper takes ONE context parameter, and `StrUnstrOperand`
+delegates its two identifier arms to `StrUnstrSender` so the shapes cannot drift apart. Adding a fifth operand
+form is a one-line grammar change.
+
+**⛔ AND THE GRAMMAR IS A LEGACY-SHARED SEAM, which the build proved immediately.** The legacy compiler consumes the
+same productions, so `StringStatementBinder` broke in eight places the moment the rule shapes changed - it was
+reaching `phrase.dataReference()` where the operand now lives one level down. Updated to go through the named rules,
+with the function-identifier arm falling to its existing skip posture (legacy survives only as the P15 differential
+oracle, and DA4 is greenfield). This is exactly the case the gate policy reserves `guard-fast` for, so it was re-run:
+ALL GREEN, NIST 353 MATCH / 0 REGRESSION, legacy Unit 1203/1203, Integration 503/504.
+
+**THE BATTERY NOW HAS NOTHING CARRIED.** I had flagged characterization and `guard-fast`/NIST as carried forward
+from the step-4 gate three separate times while reporting other work as green. Both are now measured at this commit,
+and plan §0 says so explicitly instead of quoting a figure whose provenance a reader has to reconstruct.
+Characterization 33/33 matched its carried value - so the carry was accurate, which is worth knowing but is not the
+same as having checked.
+
+**A DOC DEFECT WORTH NAMING.** DA6's queue heading still read "⏳ OPEN" while its own body recorded it as landed: I
+had updated the bullets and missed the line above them. In a register the project treats as live-state SSOT, a
+heading that contradicts its body is a defect in itself, not untidiness - a future session reads the heading. Fixed,
+and the queue now has ZERO open items.
+
+**Gates.** Greenfield Unit 942/942, zero skipped. FULL Conformance 4137/4137, zero skipped, nothing red - unchanged
+across the refactor, which is what behaviour-neutral means. `guard-fast` ALL GREEN with NIST 353 MATCH / 0
+REGRESSION. Every figure in plan §0's battery line measured at this commit.
+
+## Entry 1110 - 2026-07-29 19:20 PDT - DA3, DA4 and DA6 all land, and in every one of the three the real defect was DUPLICATION
+
+Owner directive: implement the real, ISO-agreed fixes, all of them, to production quality - refactor to whatever
+extent that takes. Three queue items closed, and the striking thing is that none of the three was ultimately a
+missing feature. Each was ONE RULE implemented in several places, with one of those places out of step.
+
+**DA6 - the arithmetic operand class, and the design the failed attempt bought.** §8.8.1.1 admits only "an
+identifier referencing a NUMERIC data item, a numeric literal, the figurative constant ZERO" in an arithmetic
+expression, so a group (class alphanumeric), an elementary alphanumeric/national item, and a reference-modified
+slice (§8.4.2.4) are all inadmissible. Entry 1109 recorded the first attempt failing with 79 conformance failures
+because the check sat at `RefExpr`, a deliberately CONTEXT-FREE chokepoint that also serves intrinsic arguments.
+
+The fix is that the operand context TRAVELS BY PARAMETER - the same discipline the render-side receiver already
+follows (P7 Step 3: "never mutable context state"). ⛔ And an ENUM, not a bool, for three concrete reasons: a bool
+reads as `BindExpr(node, true)` at the call site; it does not survive a third context; and as an OPTIONAL parameter
+it silently breaks the method-group conversions this spine is used through (`Select(host.Expr.BindExpr)`) - which is
+literally how my first pass failed to compile, in `ArithmeticBinder`. So the public surface is TWO
+intention-revealing entries over one private core: `BindExpr` (arithmetic - the default, and all ~36 existing
+callers keep working untouched) and `BindFunctionArgumentExpr` (the ONE opt-out), with `BindExprCore` threading an
+`OperandContext` enum. No caller passes a flag, and the 79 failures stay fixed because an argument's legality comes
+from its function's §15.x argument rule, not §8.8.1.1.
+
+Strict now rejects all three shapes at all four editions via COBOLNET0844 - reused, not minted, because 0844
+already IS "not a numeric operand (§8.8.1.1)" for a constant-name in the same position. Under `--permissive` both
+group kinds finally decode IDENTICALLY (`R=001235`), which was the actual defect: a PIC X-leaf group computed while
+a PIC 9-leaf group threw at run time, so the operand whose digits were unambiguous failed and the merely-textual one
+succeeded. `NumericRenderer`'s group arm moved to `IsImageCapable` in the SAME change set - correct only paired with
+the rejection, since it is now reachable only under `--permissive`.
+
+**DA3 - the hex literal, where the root cause was THREE COPIES of one dispatch.** §8.3.3.2 Format 2 is the
+hexadecimal-alphanumeric FORMAT *of* the alphanumeric literal and §8.3.3.2.1 makes every format of it "of the class
+and category alphanumeric", so `X"…"` belongs wherever an alphanumeric literal belongs. It did not: a relation
+condition staged loud as "comparison operand" at run time while the SAME literal worked in a MOVE.
+
+I added the hex arm, rebuilt, and the comparison still threw - which was the useful moment. The
+"non-numeric literal → operand" chain existed in THREE hand-maintained copies: `ExpressionBinder.LiteralOperand`,
+`IntrinsicBinder.NonNumericOperand`, and inline in `ConditionBinder`'s comparison-operand binder. I had patched two.
+Adding a fourth arm to a third copy would have guaranteed the next literal form broke the same way, so the fix
+EXTRACTED one canonical `NonNumericLiteralOperand` mapping that all three now call. A new literal form is now a
+one-line change in one place. That is the difference between fixing the instance and fixing the class.
+
+**DA4 - a function-identifier in every STRING/UNSTRING SENDING position.** §14.9.43.2 / §14.9.48.2 write those
+operands as identifier-N and §8.4.3.1.2 Format 1 makes `function-identifier-1` a FORMAT of an identifier, so all
+four admit one. None of them PARSED before ("no viable alternative at input 'FUNCTION'") - the rejection happened a
+whole stage earlier than the string-context renderer DA2 fixed, which is why DA2 could never reach it.
+⚠ The INTO phrases are deliberately NOT opened: §8.4.3.2.3 SR1, "A function-identifier shall not be specified as a
+receiving operand." All four changed positions are sending. `functionCall` is keyword-led so it goes first in each
+alternative and cannot shadow `dataReference`.
+
+The UNSTRING source needed a bound-tree change, and it made the code SIMPLER rather than more complex.
+`BoundUnstringStmt.Source` was a `Place`, which a function result has none of; it is now a `BoundOperand` like every
+other sending operand in these two statements. The emitter had only ever been WRAPPING that Place to reach
+`OperandText.AsString` - THE one string-context renderer - so it now passes the operand straight through, one
+indirection lighter. SR2's category screen reads whichever shape arrived (a field's PICTURE or an intrinsic's §15.2
+result category), so `UNSTRING FUNCTION ORD(C)` is still correctly refused as category numeric.
+
+**THE PATTERN ACROSS ALL THREE, WHICH IS THE THING WORTH KEEPING.** DA3 was three copies of a literal dispatch.
+DA5 (yesterday's) was two predicates for one question. DA6 was one rule enforced at a site that could not know its
+own context. In each case the reported symptom was a single construct failing, and in each case fixing only that
+construct would have left the mechanism that produced it intact. The tell is always the same: the same rule
+written down more than once.
+
+**Gates.** Greenfield Unit 942/942, zero skipped. FULL Conformance **4137/4137, zero skipped, nothing red** - +14
+over 4123, being the two new goldens, three DA6 negative fixtures, and nine `ArithmeticOperandClassTests` facts
+(which own the `--permissive` leniency, the both-group-kinds consistency, and the false-positive guard proving
+alphanumeric INTRINSIC arguments still compile under strict).
+
+## Entry 1109 - 2026-07-29 17:15 PDT - DA6 attempted and REVERTED: the decision was right, the site was wrong, and 79 failures said so
+
+The owner chose strict rejection with the leniency dialect-gated behind `--permissive`. I implemented it, measured
+it, and backed it out. The measurement is the deliverable, so this entry records the negative result rather than a
+landed fix.
+
+**FIRST, THE SCOPE WAS WIDER THAN I HAD FILED - AND THE DECISION WAS TAKEN ON MY NARROWER PREMISE.** I had described
+DA6 as "a GROUP used as a numeric operand". §8.8.1.1 bars every ALPHANUMERIC arithmetic operand. Measured, all three
+forms are accepted today:
+
+    COMPUTE R = X + 1        X PIC X(4) VALUE "0012"   ->  13
+    COMPUTE R = X(1:2) + 1   a ref-mod slice           ->   1
+    COMPUTE R = G + 1        the group                 ->  35
+
+`NumericRenderer` has FOUR `FromAlphanumeric` arms - literal, ref-mod, group, elementary alphanumeric/national - so
+rejecting only the group half would have created a FRESH inconsistency of exactly the kind DA5 and DA6 exist to
+remove. Worth noting the elementary arm justifies itself by citing §14.9.25.4 GR6, which is the MOVE rule; a MOVE
+citation cannot license an arithmetic operand.
+
+**THEN THE IMPLEMENTATION, WHICH LOOKED RIGHT AND WAS NOT.** The natural site is
+`ExpressionBinder.RefExpr` - it is where a resolved data reference becomes a numeric expression operand, and the
+method immediately below it, `NonNumericConstantExpr`, already raises **COBOLNET0844** for this very clause when a
+non-numeric CONSTANT-name appears there. Reusing 0844 rather than minting a code seemed obviously correct: a data
+item is the third shape of one rule.
+
+Strict rejected all three forms; `--permissive` accepted all three with warnings and identical values; and pairing
+it with the `NumericRenderer` group-arm migration made the two group kinds finally agree (both `001235` lenient,
+both rejected strict). Every targeted check passed.
+
+**Then the full corpus: 79 failures.** And they were not programs abusing the extension. They were
+`FUNCTION TRIM(S)`, `SUBSTITUTE`, `FIND-STRING`, `CONVERT`, `RefModArgument_Renders` - **legal alphanumeric
+ARGUMENTS to string intrinsics**, governed by §15.3, which §8.8.1.1 has nothing to do with.
+
+**The root cause is structural, and it is the actual finding.** `RefExpr`'s own doc comment says it is "The ONE
+dataReference→`BoundExpr` mapping, used by every expression path". That is precisely why it cannot host this check:
+it is CONTEXT-FREE by design, serving arithmetic operands and string-intrinsic arguments through the same door. I
+put a context-sensitive syntax rule at a deliberately context-free chokepoint. The 79 failures are that mistake
+measured, not a tuning problem - no amount of narrowing the predicate fixes a site that cannot know the context.
+
+So it is reverted, clean, and DA6 now carries what the attempt bought: the real scope, the real requirement (thread
+an operand-context - arithmetic vs. intrinsic-argument vs. reference-modifier - through the expression spine, which
+is a design change, not a guard), and the pairing constraint that `NumericRenderer.cs:186` must move to
+`IsImageCapable` in the SAME change set and never before it.
+
+**Why this is worth an entry rather than a silent revert.** I set the bar myself in DEVLOG 1108: adding a diagnostic
+risks rejecting legal source, which is a worse defect than the one being fixed, so the false-positive check IS the
+change. DA7 passed that bar. DA6 failed it - and it failed it only at the FULL corpus, after every targeted probe I
+wrote had gone green. The targeted probes were all in arithmetic contexts because that is what I was thinking about;
+none of them was a string intrinsic. That is the lesson: a hand-built probe set inherits the author's framing, and
+the corpus is what does not.
+
+**Gates.** Tree reverted to `df8dc11a` behaviour and re-verified: the three alphanumeric forms compute again exactly
+as before. Nothing landed from this attempt except the queue entry.
+
+## Entry 1108 - 2026-07-29 16:30 PDT - DA7: a correct verdict delivered at the wrong time, and the question I had to settle before believing my own previous commit
+
+Three constructs - an elementary COMP operand of INSPECT, and a COMP receiver of STRING or UNSTRING - are
+GENUINELY ILLEGAL. The compiler already refused all three, so its verdict was right and no conforming program was
+being rejected. The defect was the STAGE: each was reported as a run-time NotImplementedCobolFeatureException, so
+an illegal program compiled clean and crashed only when control reached the statement, where the standard promises
+a syntax error. New diagnostic `COBOLNET1626` (`character-operand-usage`).
+
+**⛔ BUT FIRST I HAD TO SETTLE A QUESTION ABOUT THE COMMIT I HAD JUST PUSHED.** Reading the syntax rules for this
+work surfaced something uncomfortable: §14.9.48.3 SR4 requires UNSTRING's receiver be "described implicitly or
+explicitly as usage display", and §14.9.43.3 SR1 says the same of every STRING identifier bar the POINTER. A group
+containing a COMP leaf is not uniformly display. So had entry 1107's DA5 fix - which had just ENABLED
+STRING/UNSTRING into exactly such a group - started accepting ILLEGAL source?
+
+That mattered enough to stop and answer, and the answer is no, on text rather than on my earlier inference:
+
+  · §14.9.43.4 **GR3a** (cite.py-verified): characters are transferred into identifier-3 "in accordance with the
+    MOVE statement rules for alphanumeric-to-alphanumeric moves". So whatever an alphanumeric MOVE may deposit
+    into a group, STRING may deposit into the SAME group. That converts entry 1107's empirical argument
+    ("MOVE works, therefore STRING must") into a cited rule.
+  · §14.9.22.3 **SR1** goes further and settles it outright, naming "an alphanumeric or national **group item**" as
+    a valid INSPECT identifier-1 and applying the usage requirement only to an ELEMENTARY operand.
+
+So usage is an ELEMENTARY property, the group receiver is governed by the group-move semantics, and DA5 stands -
+now on a textual basis instead of a consistency argument. I went back and put both citations into the five DA5
+comments, replacing the inference that was there. ⚠ And a label correction on the way: I would have written that
+first one as GR5a from my line-window numbering; cite.py reports §14.9.43.4 **3) a)**. The exact defect class of
+entry 1103, caught before it propagated, which is the whole reason that check exists.
+
+**WHAT THE FIX COST, PER SITE.** Two were pure staging - `InspectBinder` and the UNSTRING arm of
+`StringUnstringBinder` already ran the check in the binder and merely returned `BoundUnsupported`. The STRING SR1
+check did NOT exist in the binder at all; it lived only in `StringEmitter` as a run-time loud stage, so it had to
+be added where the receiver is resolved.
+
+**THE FALSE-POSITIVE CHECK IS THE POINT.** Adding a diagnostic risks rejecting legal source, which would be a far
+worse defect than the one being fixed. Verified explicitly: the three illegal forms now give `COBOLNET1626` at
+compile time, while `INSPECT <alnum>`, `STRING/UNSTRING INTO <group>` (including a COMP-leaf group), and
+`STRING/UNSTRING INTO <numeric DISPLAY>` all still compile and run. Edition-invariant and confirmed firing at 85,
+2002, 2014 and 2023 - all three rules are unchanged across the editions, so this is deliberately NOT gated and no
+introduction axis applies.
+
+**THE DOC-SYNC GATE EARNED ITS KEEP.** The full unit suite went red on
+`DiagnosticRegistryDriftTests.DiagnosticsDoc_IsInSync_WithTheCatalogue` - `docs/DIAGNOSTICS.md` was stale the
+moment 1626 was registered - and the failure message named the generator to run. That is exactly what a
+registry-drift test is for: the doc cannot silently fall behind the catalogue.
+
+**Also re-measured, having flagged it as carried three times:** characterization 33/33, freshly run rather than
+carried forward from the step-4 gate. It matches, so the carried figure was accurate - but it is now measured.
+
+**Gates.** Greenfield Unit 942/942, zero skipped. Negative corpus 141/141 (+3, each asserted to reject at all four
+editions). FULL Conformance re-run. Characterization 33/33 fresh.
+
+## Entry 1107 - 2026-07-29 15:40 PDT - DA5 closed: five verbs disagreed about one receiver, and my "bytes are not text" caution was misapplied
+
+The fan-out came back. All ten agents completed, zero errors - the platform incident had cleared - and the result
+contradicted my own prediction, which is the most useful thing a review can do.
+
+**WHAT I PREDICTED, AND WHY IT WAS WRONG.** Twice in writing - in the queue entry and in entry 1106 - I argued the
+four remaining group-receiver guards were probably CORRECT: STRING, UNSTRING and INSPECT are defined over CHARACTER
+POSITIONS, and V59's own governing lesson is that a COMP leaf's image is radix-2 bytes rather than its digits, so
+feeding those bytes to a character operation would be a silent wrong answer - strictly worse than a loud stage. I
+was confident enough to defer the work rather than guess at it.
+
+Five of six came back STALE, and every one survived adversarial refutation. So I checked it myself instead of
+believing either side, and the disproof is one line long:
+
+    MOVE SRC TO G                          -> N=8501 A=LLO
+    STRING SRC DELIMITED BY SIZE INTO G    -> THROWS
+    UNSTRING SRC INTO G                    -> THROWS
+    INSPECT G REPLACING ALL " " BY "x"     -> THROWS
+
+Same receiver, a group of one BINARY leaf and one PIC X leaf. The group MOVE already worked. So the question was
+never "may a character operation touch these bytes?" - MOVE settles that it may, under §14.9.25.4 GR4, which makes
+a group move alphanumeric and "filled without consideration for the individual items". The question was only
+whether five verbs may disagree about one receiver, and they may not.
+
+My error was applying the right rule to the wrong operation. "BYTES ARE NOT TEXT" governs *RENDERING a COMP leaf's
+VALUE as text* - that is what `DisplayTextWidth` exists for, and DA2 is entirely about it. Writing characters
+POSITIONALLY over a group's bytes is a different operation, and it is exactly what a group MOVE does. I had the
+distinction in hand and reached for the wrong side of it.
+
+Worth being precise about what the caution got right, though, because the lesson is not "trust the fan-out". It
+refused a blind predicate swap and demanded a per-site derivation - and that derivation is what proved the swap
+correct. Right in kind, wrong in application.
+
+**LANDED.** `StringEmitter.cs:151` and `:193`, `InspectEmitter.cs:89`, `AcceptDisplayEmitter.cs:66` and `:129` all
+move to `IsImageCapable`, and the leaf-kind wording drops its `"COMP/binary"` override so the surviving message
+names the predicate actually tested. Verified both directions: the four verbs now land byte-for-byte what the MOVE
+lands, and a float/COMP-5/INDEX group still stages loud on all four with the truthful `float/COMP-5/INDEX` wording.
+
+The golden pins the INVARIANT rather than the absence of a crash: `MOV`, `STR` and `UNS` must be IDENTICAL lines,
+because STRING and UNSTRING are the same positional transfer the MOVE is. The INSPECT case is the sharpest - the
+binary leaf holds 0, whose bytes `00 00` are not spaces, so REPLACING ALL " " must leave the leaf untouched and
+change only the text tail (`INS N=0000 A=xxx`). A golden asserting merely "no longer throws" would pass over a
+verb that scribbled on the wrong bytes.
+
+**A STALE COMMENT IN CODE V59 ITSELF TOUCHED, which the review also caught.** `OperandText.cs` still described a
+native BINARY/PACKED leaf as contributing "its zoned decimal digit image ... with a trailing-overpunch sign". That
+was true of the PRE-V59 image and V59 falsified it - the bytes are not digits. Corrected rather than left, because
+a comment describing the old representation is precisely how the two-predicate residue spread in the first place.
+
+**TWO GENUINELY DIFFERENT DEFECTS SEPARATED OUT AND QUEUED.** Neither is a predicate residue, which is why neither
+is fixed here.
+
+DA6 - a GROUP used as a NUMERIC operand. §8.8.1.1 admits only "an identifier referencing a numeric data item", and
+a group is class alphanumeric, so `COMPUTE R = G + 1` is illegal source. COBOL.NET does two different wrong things
+with it: a group of `PIC X` leaves COMPILES AND COMPUTES (`R = 001235`), while a group of `PIC 9` leaves compiles
+and THROWS at run time. The group whose digits are unambiguous fails and the merely-textual one succeeds - the
+opposite of intuition, and neither is a compile-time rejection. ⛔ This is exactly why `NumericRenderer.cs:186` is
+DELIBERATELY left on the old predicate: migrating it would make the second case silently compute too, extending
+acceptance of illegal source rather than fixing anything. The drift test carries that note. Resolution needs an
+owner call on the leniency axis (reject strictly with `--permissive` leniency, or accept uniformly as a documented
+extension), because group-as-numeric is a common vendor extension.
+
+DA7 - three syntax-rule violations diagnosed at RUN TIME rather than COMPILE time (`InspectBinder.cs:35`,
+`StringEmitter.cs:168`, `:226`). Every one of those constructs is genuinely ILLEGAL, so no conforming program is
+rejected and the compiler's VERDICT is right; only the STAGE is wrong. The `InspectBinder` one is cheapest because
+it is already in the binder, where a diagnostic is immediately available and the `BoundUnsupported` is a pure
+staging choice. Needs `COBOLNET1626`, the four-edition sweep and negative fixtures.
+
+**Gates.** Greenfield Unit 942/942, zero skipped. FULL Conformance re-run with the new golden.
+
+## Entry 1106 - 2026-07-29 14:45 PDT - The table-SORT half of the V59 residue, a correction to my own last entry, and doing it by hand because the fan-out was down
+
+Continuing DA5. Two of the sites resolved, in opposite directions.
+
+**SortEmitter WAS a residue, and the argument for it is the strongest of the family.** `TableCompare` loud-staged a
+group sort key containing a BINARY leaf: "table-sort key 'K' over a mixed-usage group - no whole-group character
+image". False, exactly as the CALL one was - `AsImage()` is emitted for that group.
+
+What makes this case airtight rather than merely plausible is **14.9.40.4 GR8** (cite.py-verified): key data items
+are "compared according to the rules for comparison of operands in a relation condition". A GROUP operand in a
+relation is class alphanumeric (8.8.4.2.3 SR2) compared over its REPRESENTATION, and `OperandText` already renders
+precisely that through `AsImage()` gated on `IsImageCapable` - its own comment names the compare path. So the stale
+predicate did not merely refuse something: it made **SORT and IF disagree about the same two group operands**. The
+IF compared their byte images and answered; the SORT threw. GR8 exists to forbid exactly that divergence.
+
+Verified both directions. `SORT E ON ASCENDING KEY K` over keys 300/100/200 now returns aaa, bbb, ccc. And with a
+NEGATIVE key: `IF FK(1) > FK(2)` answers NEG-GT-POS (bytes FF FF beat 00 01) and the SORT places POS first -
+consistent. The golden pins the AGREEMENT rather than just "the sort runs", because agreement is the actual
+requirement.
+
+⚠ **That negative case is a documented consequence, not a bug, and the golden exists to protect it.** A big-endian
+two's-complement image is NOT order-preserving across zero, so a group key holding -1 sorts AFTER one holding +1.
+That is what the standard prescribes for a GROUP key - GR8 defers to the relation rules, and those make a group
+alphanumeric - and a program wanting value order names the ELEMENTARY numeric item as the key, which takes the
+by-value arm. Without a golden case someone will eventually "fix" the byte order and silently break GR8.
+
+**⛔ A CORRECTION TO ENTRY 1105.** I wrote there that "MoveEmitter used BOTH predicates in one file - a distinction
+does not usually disagree with itself", and listed `MoveEmitter.cs:144` among the stale guards. That was wrong, and
+reading the code properly is what showed it. Line 144 is not a Tier-C guard at all: it selects a STRATEGY. When the
+receiver is not a character image it first tries the memberwise leaf-copy fast path - used when source and receiver
+leaf layouts are positionally identical - and only the fall-through reaches the real capability guard at line 168,
+which was ALREADY on `IsImageCapable`. Verified by repro: MOVE into a COMP-containing group works in all three
+shapes (aligned memberwise; non-aligned, where the bytes redistribute positionally per 14.9.25.4 GR4; and from an
+alphanumeric source). So the two uses have different jobs and the file was never inconsistent. The count is four
+remaining sites, not seven, and the drift test now carries a comment so nobody migrates a working fast path.
+
+That mistake is worth keeping visible because of how I made it: I inferred "same file, two predicates, therefore
+unfinished migration" from a grep, and the grep could not see that the two call sites answer different questions.
+The CALL and SORT findings were real; this one was pattern-matching.
+
+**FOUR SITES REMAIN AND ARE STILL NOT SWEPT** - `NumericRenderer:186`, `AcceptDisplayEmitter:66,129`,
+`InspectEmitter:89`, `StringEmitter:151,193`. STRING, UNSTRING and INSPECT are defined over CHARACTER POSITIONS, so
+refusing a byte-imaged COMP group is quite possibly CORRECT: V59 gave those leaves bytes, not text, and feeding
+radix-2 bytes to a character operation is a silent wrong answer, strictly worse than a loud stage. Each needs its
+own derivation, plus the separate question of whether a syntax-rule violation is being deferred to run time when it
+belongs at compile time.
+
+**⛔ THE FAN-OUT WAS DOWN, AND THAT CHANGED HOW THIS GOT DONE.** Three successive multi-agent audits lost EVERY
+agent to API 529 - nine, nine, then three - with zero tokens and zero tool calls each. The owner then confirmed a
+platform incident ("elevated errors across multiple models"). The main loop was fine throughout; only subagent
+spawning failed. So the CALL, SORT and MoveEmitter findings above were all derived by hand, and the four remaining
+sites are the ones that did not get done. That is the honest accounting: the outage did not corrupt any result, it
+reduced coverage, and the queue says which four.
+
+One durable lesson from the first of those failures, already fixed: its synthesis fallback reported "every
+IsCharacterImage use is a correct text-context guard" when NOTHING had run, because the branch could not
+distinguish an empty answer from an absent one. Both later runs correctly said INCONCLUSIVE.
+
+**Gates.** Greenfield Unit 942/942, zero skipped. FULL Conformance re-run with the new golden.
+
+## Entry 1105 - 2026-07-29 14:05 PDT - V59 left a predicate half-migrated, the differential is blind to output, and a fan-out reported a false clean
+
+Three findings, none of which was the thing I set out to do.
+
+**THE DIFFERENTIAL IS RE-RUN AND CLEAN - AND MY PREDICTION ABOUT IT WAS WRONG.** I had written into plan section 0
+that DA2 would move the GnuCOBOL per-case verdicts, because it changed how a numeric FUNCTION renders in every
+string context and GnuCOBOL renders those differently on purpose. Re-ran it against the preserved before-image:
+**0 per-case flips, 0 regressions**, totals identical at 474/173/572/104 over 1323 cases. The prediction was not
+merely pessimistic, it was structurally impossible: the differential's verdict is a COMPILE-TIME accept/reject
+comparison, so it CANNOT see a change in runtime output. The affected cases were already AGREE_ACCEPT because they
+always compiled; DA2 changed what they print and turned a runtime throw into a success, and neither is visible to
+this net. Corrected in plan section 0 with the reason, because "re-run the differential" was about to become
+standing advice for a class of change it can never validate. For output semantics the instrument is the goldens.
+
+**V59 LEFT ITS IMAGE PREDICATE HALF-MIGRATED - MY OWN DEBT, FOUND BY REVIEWING MY OWN WORK.** V59 introduced
+`DataItem.IsImageCapable` (a BINARY/PACKED leaf HAS a pinned byte image, so a group containing one qualifies; only
+float / COMP-5 / INDEX are genuinely imageless) beside the pre-V59 `DataItem.IsCharacterImage` (a COMP/binary leaf
+qualifies only via `StoreAsImage` promotion). `TierCIsland` documents the pair as a deliberate P1/P2 distinction -
+and that WAS true before V59.
+
+What makes it a defect now is `RecordStructEmitter.cs:123`: it emits `AsImage()`/`FromImage()` for exactly
+`IsImageCapable`. So the codec EXISTS for a plain COMP group, while nine emit guards still tested the stricter
+predicate and loud-staged constructs whose codec had actually been generated. `MoveEmitter` ended up using BOTH
+predicates in one file, which is the tell - a distinction does not usually disagree with itself.
+
+The instance: `01 G. 05 N PIC S9(4) COMP. 05 P PIC 9(3) COMP-3. 05 A PIC X(3).` answered `BYTE-LENGTH(G) = 7` and
+then threw *"no whole-group character image"* on `CALL "SUB" USING G`. The message asserted something V59 had made
+false, and refusing the CALL rejected conforming source. Section 14.2.3 GR8, cite.py-verified: "If the argument is
+passed by reference, the activated runtime element operates as if the formal parameter occupies the same storage
+area as the argument."
+
+⛔ **A HYPOTHESIS I HAD TO ABANDON MID-ANALYSIS, WHICH IS WHY THE FIX IS RIGHT.** My first reading was that BY
+REFERENCE needs no image at all - it aliases storage, so why would a character image matter? Reading `RefCarrier`
+killed that: for a GROUP, COBOL.NET implements GR8's aliasing AS an image round-trip (`AsImage` out, `FromImage`
+back). So an image genuinely IS required here, and the defect is the narrower, duller one - the predicate is
+stale, not the requirement. Had I acted on the first reading I would have "fixed" it by bypassing the image
+entirely and broken the round-trip. Both CALL guards now test `IsImageCapable`, kept in lockstep because they are
+the read and write halves of ONE round-trip.
+
+The golden pins the round-trip in BOTH directions: the callee sees `N=1234 P=567`, and its writes come back as
+`N=7777 P=890`. A test asserting only "no longer throws" would have passed over a broken round-trip.
+
+**SEVEN GUARDS REMAIN AND I DELIBERATELY DID NOT SWEEP THEM.** `NumericRenderer:186`, `AcceptDisplayEmitter:66,129`,
+`InspectEmitter:89`, `MoveEmitter:144`, `SortEmitter:224`, `StringEmitter:151,193`. They are NOT automatically
+bugs, and this is V59's own lesson turned against a lazy sweep: BYTES ARE NOT TEXT. A COMP leaf's image is radix-2
+bytes, not its digits, so a verb defined over CHARACTER POSITIONS may be CORRECT to refuse it - consuming those
+bytes as text would be a silent wrong answer, strictly worse than a loud stage. Each site needs its own derivation
+of whether the operation wants TEXT or STORAGE, plus the separate question of whether a syntax-rule violation is
+being deferred to run time when it belongs at compile time. Filed as DA5 with the evidence rather than swept on
+guesswork; the per-site analysis IS the work, not the predicate swap. The inventory is PINNED by
+`V59ImagePredicateDriftTests` (exact per-file set, plus CALL's two halves in lockstep), so none can be forgotten
+or silently migrated - it counts CODE only, after its first cut failed on its own explanatory comment.
+
+**⛔ A FAN-OUT REPORTED A FALSE CLEAN, AND THAT IS A DEFECT IN HOW I WROTE IT.** The nine-agent sweep meant to
+classify those guards lost ALL NINE agents to API 529 - zero tokens, zero tool calls, nothing examined. Its
+summary said: *"No gate survived adversarial verification - every IsCharacterImage use is a correct text-context
+guard."* That reads exactly like a finding. It was my script's `defects.length ? ... : fallback` branch firing on
+an empty set, unable to distinguish "nothing was wrong" from "nothing ran". This is the same shape as the green
+test that held DA2's gap open: an absence of evidence rendered as evidence of absence. Fixed to report
+INCONCLUSIVE and name the failure, and the retry (also all-529) correctly said so. The lesson generalises to every
+harness I write: a zero result needs to distinguish an empty answer from an absent one.
+
+**Gates.** Greenfield Unit 942/942, zero skipped (+2 `V59ImagePredicateDriftTests`). FULL Conformance re-run with
+the new golden. GnuCOBOL differential 0 flips / 0 regressions, diffed per-case.
+
+## Entry 1104 - 2026-07-29 11:59 PDT - DA2: the fold was observable, a green test held the gap open, and the review found three blockers in the fix
+
+`DISPLAY FUNCTION ORD(C)` threw at run time. The queue entry called it an accept-display gap. It was several other
+things, and all of them are worth more than the ticket.
+
+**It was not about DISPLAY.** `OperandText.AsString` is the ONE renderer for every string-context operand, so
+`MOVE FUNCTION ORD(C) TO` a `PIC X` item failed identically, with the same message. Testing sideways from the
+repro found that, and it is why the fix is a single arm at one entry point rather than a patch in the DISPLAY
+emitter. 8.4.3.1.2 Format 1 of an IDENTIFIER is `function-identifier-1`, so every "identifier-N" position admits
+a function unless a syntax rule excludes it, and 14.9.11.3 SR1 excludes only message-tag, object and pointer.
+This was conforming source being refused.
+
+**The real finding: the compile-time FOLD was OBSERVABLE.** `FUNCTION LENGTH(G)` over a fixed item folds to a
+numeric literal, and a literal renders as its own text - so it printed `5`. `FUNCTION ORD(C)` has a runtime
+argument, does not fold, and threw. Same construct, same statement, behaviour decided purely by whether an
+optimization fired. So the fix could not just be "stop throwing"; it had to pin ONE rendering rule both paths
+reach, or the two would merely have disagreed more quietly.
+
+**Choosing the rule.** 15.4 puts a returned value in a "temporary elementary data item" and 15.4.1 makes its
+characteristics IMPLEMENTOR-DEFINED under native arithmetic; 14.9.11.4 GR1 independently makes the DISPLAY
+conversion implementor-defined. The standard does not choose - but it obliges us to document the choice. Surveying
+first: GnuCOBOL prints `000000108` for a computed `ORD("k")` and `8` for `MAX(3 -14 0 8 -3)` - zero-padded when
+computed, minimal when folded. That is our own inconsistency, showing up in their output instead of as a crash.
+We deliberately did not match it. COBOL.NET's determination is the LITERAL form: significant digits, no zero
+padding, leading minus when negative, exactly the result's scale in fraction digits. Chosen because the fold
+renders literals, so it is the only rule under which fold and compute are indistinguishable. Documented in
+`docs/CONFORMANCE.md` as an Annex A.1 determination, including the deliberate divergence and why.
+
+**THE DANGEROUS PART: A GREEN TEST WAS HOLDING THE GAP OPEN.** The gate came back 4116 passed, 1 failed - and the
+red was `NumericIntrinsicInStringContext_FailsLoud`, asserting that this construct MUST fail loud, with a
+rationale ("hazard H3, a named staged-out channel"). Not a stale test: a deliberate characterization of the gap as
+intended behaviour. This is the most dangerous shape a defect can take. A RED test is a bug report; a GREEN test
+pinning the wrong behaviour reads as a decision, and nothing in the battery will ever question it. The fact is
+inverted now and says so.
+
+**AND THEN THE REVIEW FOUND THREE BLOCKERS IN THE FIX ITSELF.** A 25-agent adversarial pass - the owner's four
+review dimensions plus a spec-derived audit of every loud-staging site - returned defects I had just introduced,
+each with a runnable repro. I reproduced every one independently before believing it, and all held.
+
+1. **The intercept dropped `deSign`, violating 14.9.25.4 GR6a.** Putting the numeric arm at `AsString`'s ENTRY put
+it AHEAD of `Visitor(deSign, floatCheck)`, and the helper never took the flag. GR6a is unconditional - "If the
+sending operand is described as being signed numeric, the operational sign is not moved" - and the 15.4.1 /
+14.9.11.4 GR1 latitude covers the FORM of the text, never whether the sign travels. `MOVE SGN TO A` gave `014`
+while `MOVE FUNCTION MIN(3 -14 0) TO B` gave `-14`: a signed item and a function returning the same value behaved
+differently in identical statements, and a text comparison disagreed with itself. Before my change that path was
+LOUD; I turned it into a silent wrong answer, which is strictly worse. The structural lesson is about
+interception-at-the-entry - that entry now carries three special cases, each re-implementing by hand the flags the
+visitor owns. Mine forgot one.
+
+2. **A function's printed text depended on a PRECEDING statement.** `NumericIntrinsicText` called `RenderNum`
+directly, and an intrinsic's working scale is `max(Receiver.Scale, 9)` read from the renderer's ambient receiver.
+`DISPLAY FUNCTION SQRT(2)` printed `1.414213562`, then `1.414213562373` after an unrelated `ADD 1 TO R`. The root
+cause was not mine: `Render` and `AsNum` save and restore the ambient receiver in a `finally`, but `Fold` and
+`Combine` merely ASSIGNED it, so every ADD/SUBTRACT left its receiver latched on the per-unit renderer. The class
+was invisible because a leak only shows when a LATER render has no receiver of its own - which nothing did until a
+numeric function could reach a text context. Fixed at the source (both entries restore now), not only at my call
+site, which additionally passes `ReceiverContext.None` - the convention `IntrinsicRenderer.ArgNum` already
+documented and I had bypassed. `ReceiverContextRestoreDriftTests` pins the discipline for every future public
+entry, and was made to fail once by re-breaking `Combine`.
+
+3. **Two implementations of the one rule, already drifted.** The whole point was that fold and compute render
+identically - and the FOLD path had its own renderer, `IntrinsicBinder.Decimalize`, which early-returned `"0"` for
+a zero magnitude and DROPPED the scale. `FUNCTION LOWEST-ALGEBRAIC` of an unsigned `9V99` item folded to `"0"`
+where the runtime rule gives `"0.00"` - a literal at the wrong scale, feeding whatever arithmetic used it. I had
+written the anti-pattern I claimed to be removing. `Decimalize` now DELEGATES to `CobolNum.FormatFunctionText`
+(keeping a BigInteger fallback beyond `Int128`), and the bare `"0"` on the unsigned-LOWEST path routes through it.
+
+**The golden was weak, and the review said so.** Its MOVE case used only the positive `FUNCTION ORD`, so it passed
+with or without the GR6a bug. It now carries the negative-signed MOVE, the DISPLAY that must KEEP the sign, the
+text relation on both sides, two SQRT renders that must agree across an intervening ADD, and the four ALGEBRAIC
+folds that must carry scale. A golden that cannot distinguish the fix from the bug is decoration.
+
+**Discovered while testing sideways - DA4, queued.** `STRING FUNCTION ORD(C) DELIMITED BY SIZE INTO A` does not
+parse: `no viable alternative at input 'FUNCTION'`. 14.9.43.2 gives the sending operand as `identifier-1`,
+8.4.3.1.2 makes a function-identifier an identifier, and SR8 explicitly contemplates a NUMERIC identifier-1.
+DA2's fix cannot reach it - the rejection is a stage earlier, in the grammar. Filed rather than folded in.
+
+**A self-inflicted scare worth logging.** Writing this entry, I truncated DEVLOG.md to zero bytes:
+`open(path,'wb').write(add + anchor)` evaluates `open(...,'wb')` - which TRUNCATES - before evaluating an argument
+that then raised a TypeError (str + bytes). The committed history was safe and `git checkout --` restored it; only
+this uncommitted entry was lost and had to be rewritten. For a 3 MB append-only file that is the whole log, the
+lesson is to build the bytes FIRST and open for writing only once they exist.
+
+**Gates.** Greenfield Unit 940/940, zero skipped. FULL Conformance 4117/4117, zero skipped, nothing red.
+
+## Entry 1103 — 2026-07-29 11:35 PDT — The inherited citation: 32 rule labels that were right about everything except the rule
+
+Rule 1 says a citation you did not run `--check` on is not a citation, and that the failure mode is not
+inventing one but INHERITING one. This entry is that rule catching something, so it is worth writing down
+precisely what it caught, because the defect is subtler than "wrong number".
+
+Validating the V59 documentation's clauses turned up a failure on `§15.14.4`. Everything about the citation was
+right except one word. The clause number resolves. The quoted text is genuinely in the standard. The rule number
+is correct — §15.14.4 rule 1 really does say "the returned value is an integer that is the length of argument-1
+in number of bytes". What is wrong is the LABEL: §15.14.4 is titled **"Returned value rules"**, not "General
+rules", so writing `GR1` names a rule category the clause does not contain.
+
+What makes this the inherited-citation pattern rather than a typo is why it looked right. The V59 work sits
+almost entirely in §13.18.60.4 and §14.9.30.4, and BOTH of those genuinely are "General rules" — so `GR4`,
+`GR11`, `GR14` around it are all correct. The two intrinsic clauses are the odd ones out, and `GR` was applied
+to them by pattern-matching their neighbours. Nobody invented it; it propagated, from a design doc into code
+comments, into a golden's header, into the fix queue, into the DEVLOG — and, this session, into two citations I
+had just written in entry 1102 before the check ran.
+
+The sweep: **32 occurrences across three clauses** — §15.14.4, §15.50.4 and §15.97.4, all "Returned value
+rules" — in 12 files spanning `src/`, `tests/`, four design docs, the fix queue and this log. All are now the
+`r<N>` form the intrinsic binder had been using correctly all along, which is itself the tell: the code that
+was written while reading the clause got it right, and everything downstream of a summary got it wrong.
+
+**A tooling bug inside the sweep, which is the part worth remembering.** The first pass reported clean and was
+not. Its file-discovery pattern was `§?(15\.14\.4|…)`, and `§` is TWO UTF-8 bytes (C2 A7). In git grep's
+byte-oriented ERE the `?` binds to the trailing byte only, so the pattern effectively REQUIRES C2 and can never
+match a citation written bare as `15.14.4`. Two sites in `v59_byte_image.cob` — a golden, where a wrong citation
+is most likely to be copied onward — survived because of it, and were caught only by re-checking with a pattern
+that had no multi-byte optional in it. A sweep that reports zero is a claim, and the claim needs its own check;
+"the grep found nothing" and "there is nothing" are different statements.
+
+Behaviour is untouched — every edit is a comment or prose. Rebuilt and re-ran the affected legs to prove it:
+V59 goldens 3/3, the image/codec/byte-form/notice unit filter 333/333.
+
+## Entry 1102 — 2026-07-29 10:57 PDT — V59 steps 5-7: the three the tie-breakers added, and the drift test that proved itself
+
+V59's correctness landed in step 4 — the image IS the bytes. This entry is the other three of the owner's five
+standing tie-breakers: support, understanding, maintenance. Correctness alone would have shipped a compiler that
+silently ate every data file written by an earlier build.
+
+**Step 5 — the support diagnostic.** Changing the on-disk record layout is a migration hazard with no
+self-description to lean on: a fixed-length record-sequential file is just bytes, so a 5-byte record description
+reading an 8-byte-record file produces rubbish, not an error. The provable half of that hazard is arithmetic — a
+file whose byte length is not a whole multiple of its record length cannot match the description about to read
+it — and `RecordLayoutNotice.CheckFixedLengthFile` now says so at OPEN, naming the file, both lengths and the
+remainder, before a single record is misread.
+
+The design discipline here was in what it does NOT do. §14.9.30.4 GR14 already defines the conforming detection:
+a record whose byte count falls outside the description's min/max is a SUCCESSFUL read with I-O status '04'.
+That fires only on the trailing partial record, only when the total is not a multiple, and only if the program
+inspects FILE STATUS — too late and too quiet for a layout migration, but it IS the standard's answer. So the
+notice changes nothing conforming: OPEN still succeeds, the I-O status is untouched, '04' still arrives at the
+short read. Inventing an OPEN condition the standard does not define would have been non-conformance dressed up
+as helpfulness. It writes to STANDARD ERROR, so no golden's stdout moves. LINE SEQUENTIAL and RECORD IS VARYING
+are excluded by construction rather than by a flag — delimited records (§9.1.13.2) and per-record length
+prefixes have no arithmetic relationship to a fixed width, so for them a differing physical length is NORMAL.
+
+The sibling sweep earned its keep. The first cut wired the check into INPUT and I-O and stopped there, which is
+the mode a reader thinks of. EXTEND is the one that matters MORE: appending to a file whose existing layout
+disagrees writes a file interleaving two record layouts, and that is permanent corruption rather than a wrong
+computation you can re-run. OUTPUT remains excluded, but on a principle rather than an omission — it truncates,
+so nothing survives to disagree with the description. Each of the four modes now has a fact asserting which way
+it goes.
+
+**Step 6 — the documentation.** §4.2.16's implementor-documentation obligation is the vehicle, but the audience
+is the COBOL developer who needs to know what lands on disk, not an auditor ticking A.1 rows. `CONFORMANCE.md`
+gained the whole storage-representation family — items 205, 206, 207, 208, 211, 215 — each with the width
+ladder, the radix, the byte order and a WORKED BYTE EXAMPLE. Writing them forced three facts into the open that
+the code knew and no prose stated: BINARY widths are sign-INDEPENDENT (GR12's precedent), the unsigned packed
+sign nibble is `F` and not our legacy engine's `0C`, and INDEX has no character image at all.
+
+**Step 7 — the drift test, which had to justify its own existence.** `v59_length_agrees` compares FUNCTION
+LENGTH against FUNCTION BYTE-LENGTH across 17 rows: every fixed-point usage, every width tier, SIGN SEPARATE,
+alphanumeric, edited, a mixed-usage group, an OCCURS table. §15.14.4 r1 counts bytes and §15.50.4 r3 counts
+alphanumeric character positions, and in a single-byte-character model those cannot disagree — so every line
+must read "OK".
+
+The obvious objection is that `ImageWidthIsStorageWidthTests` already pins `ImageWidth == ByteWidth` at the
+model level, generatively, so the golden is redundant. I MEASURED it instead of assuming, and the objection is
+wrong. Step 4 introduced a THIRD width — `DataItem.DisplayTextWidth`, for the text-facing surfaces — which is
+exactly the shape a future maintainer would plausibly mistake for the right answer. Repointing the FUNCTION
+LENGTH fold at it turns the golden RED at `B-2` (`PIC 9(2) COMP`: prints 2 digits, occupies 1 byte) while
+**all 324 model-level facts stay GREEN**. The model tests pin that two widths agree; only the golden pins WHICH
+width the intrinsic actually folds to. That evidence is now written into the golden's own comment header, so the
+next reader does not have to re-derive it before "simplifying" the test away.
+
+While extending the grid I also covered the 16-byte BINARY tier (`S9(19)`/`S9(31)` COMP → 16). Step 3 added that
+tier and noted it had zero corpus instances — which made it the newest and least-observed width in the compiler,
+and the one place drift would have gone unnoticed longest. It answers correctly.
+
+**Gates.** Greenfield Unit **913/913, zero skipped** — the 904 baseline plus exactly the 9 new
+`RecordLayoutNotice` facts, including the discriminating pair (13 bytes warns, 15 bytes silent) that proves the
+check actually looks at the file rather than always firing, and one fact per OPEN mode. Full Conformance
+**4116/4116, zero skipped, nothing red** — the 4115 baseline plus exactly the one new golden; re-run in full
+because the connector change touches every sequential OPEN. One process note: the first Conformance run was
+started BEFORE the EXTEND sweep landed, so its binary was already superseded — it was killed and re-run against
+a verified-current build rather than reported, since a green leg on a stale artifact is not evidence.
+
+**A citation defect the mechanical check caught, exactly as rule 1 predicts.** Validating the new documentation's
+clauses with `cite.py --check` failed on `§15.14.4`, and the failure was instructive. The clause number is right
+and the quoted text is right — but §15.14.4 and §15.50.4 are titled **"Returned value rules"**, not "General
+rules", so labelling them `GR1`/`GR3` names a rule category the clause does not have. `§13.18.60.4` and
+`§14.9.30.4` genuinely ARE General rules, so the `GR` labels around them are correct, which is precisely why the
+wrong ones read as plausible. This is the INHERITED-citation failure mode: nobody invented it, it propagated.
+A repo-wide sweep finds **34 occurrences across three clauses** (§15.14.4, §15.50.4, §15.97.4) in code comments,
+design docs, the fix queue and the DEVLOG — including two I had just written into this entry. The V59 change set
+is corrected to the `r<N>` form the intrinsic binder already used; the remaining pre-existing sites are swept in
+a separate commit so this one stays about V59.
+
+**Friction, for the record.** This session began as a resume after a Windows-update reboot killed the previous
+one mid-step. The three steps were already drafted in the working tree and unverified; the reboot cost the
+verification, not the work. Recovery was cheap because the tree was self-describing — the plan's §0 named the
+remaining steps in order and the untracked files mapped one-to-one onto them.
+
+Separately, and worth logging honestly: all file edits were blocked partway through by a `Semgrep Guardian`
+plugin hook that had been enabled three days earlier and failed closed after the reboot lost its session. It
+registered PreToolUse/PostToolUse hooks on every Write, Edit and Bash call, and its binary carries
+`scanner.semgrep.dev` and `telemetry.semgrep.dev` endpoints. The owner had not knowingly authorized it and
+removed it, along with `serena` (whose MCP entry ran `uvx --from git+https://github.com/oraios/serena`,
+unpinned, fetching and executing from a GitHub repo at every start). No repository file was written while the
+block was active, and none was written by routing around it.
+
+## Entry 1101 — 2026-07-29 02:00 PDT — V59 step 4: the re-base — the image IS the bytes, and the day BYTES ARE NOT TEXT became a rule
+
+The width, the codec and the discriminator were all in the tree; this is the commit where they meet and the
+on-disk layout actually changes. `DataItem.ElementaryImageWidth` now answers `StorageWidth` for a BINARY or
+PACKED leaf, `GroupImageCodec` encodes and decodes through `CobolNum.FormatImage`/`ParseImage`, and the
+one-width invariant test from step 1 is UN-SKIPPED and green: 85 cases, `ImageWidth == ByteWidth` for every
+image-capable item.
+
+**The 129 `ImageWidth` references mostly did not need touching, and that is the architecture working.** Every
+width in the compiler single-sources through `ElementaryImageWidth` — `RecordLayout` reads it, `StorageFormPass`
+derives `StorageForm.Width` from it, file record sizes and REDEFINES offsets and SORT windows all compose from
+it. Changing the leaf answer moved all of them at once. What DID need touching were the sites where "width"
+never meant bytes at all.
+
+**BYTES ARE NOT TEXT — the distinction the old design never had to make.** While the image was a zoned digit run,
+an item's record image and its DISPLAY text were the same string, so one width and one formatter served both. They
+are now different things:
+
+- **`DataItem.DisplayTextWidth`** (new) is the CHARACTER width of an item's DISPLAY/device text — digits plus a
+  separate sign. ACCEPT's device window reads it (a `PIC 9(4) COMP` receiver takes FOUR typed digits and stores
+  TWO bytes), DISPLAY's fit uses it, and the Report Writer's print columns use it (§13.18.14.4 GR9 — a report line
+  is characters). Everything storage-facing keeps `ImageWidth`.
+- **`OperandText.NonTextBytes`** decodes a non-zoned STORED image before rendering it as text, because
+  §14.9.25.4 GR6 (and §8.8.4.2.2 for a numeric↔nonnumeric comparison) treat an ELEMENTARY numeric operand used as
+  text "as though it were moved to an alphanumeric data item" — its DIGITS. It returns null for every zoned item,
+  which keeps two things: existing behaviour byte-identical, and the incompatible content a group MOVE can
+  legitimately deposit (spaces in a numeric leaf) passing through instead of being silently reformatted to zeros.
+  A GROUP operand is the opposite case and was already right: §8.8.4.1.1 makes it alphanumeric over the items'
+  REPRESENTATION, so its text IS the record image, bytes and all.
+
+**Two mechanisms died, which is the real prize.** `PicInfo.ImageSignKind` is DELETED — it existed only to give a
+binary leaf a fixed-width trailing-overpunch sign inside a zoned window, and a two's-complement byte carries its
+own sign. With it goes the Tier-B classifier's `leaf.Pic = bp with { SignKind = bp.ImageSignKind }` rewrite, so an
+image-stored COMP leaf now keeps its declared `BinaryMinus` and DISPLAY of it still prints `-100`. And the SORT key
+descriptor stopped carrying `(Signed, SignKind)` re-derived from the window width; it carries the KEY ITEM, so
+`CobolSort.NumericKey` decodes through the leaf's own profile. That one had teeth: a signed COMP key's first byte
+is `0xFF`, so a text decode would have sorted every negative LAST.
+
+**The gate found exactly two reds, and both were tests of the retired design.** `MixedUsageRecordImageDifferential`
+asserted `"000PAB"` for a group whose COMP leaf holds −7; it now asserts the leaf occupies TWO positions with "AB"
+at 3-4 and `FUNCTION LENGTH` = 4 — the same defence against a shifting leaf, stated in the current representation.
+The non-aligned group MOVE now reads `FF 85` positionally into two one-byte receivers as −1 and −123. Both expected
+values were re-derived from the pinned form, not observed.
+
+**Two goldens, and a preference worth stating.** `v59_byte_image` is the conforming-program proof: `BYTE-LENGTH(G)`
+and `LENGTH(G)` both answer 5 (they said 5 and 8 before), and `FUNCTION ORD` over an alphanumeric REDEFINES reads
+the actual bytes — `005 211` for `1234` in `PIC 9(4) COMP` (0x04D2) and `002 036 080` for the same value packed
+(0x01 0x23 0x4F, the unsigned `0xF` nibble). `v59_sort_binary_key` sorts −50, −3, 0, 7, 1000 through a signed COMP
+key. I wrote both to read a byte at a time rather than dumping raw bytes: an expected file full of Latin-1
+control characters is unreviewable, and a golden nobody can read is a golden nobody will maintain.
+
+**Two unrelated gaps surfaced while writing them, and both are QUEUED rather than absorbed** (DA2, DA3). A
+FUNCTION operand of DISPLAY (`DISPLAY FUNCTION ORD(C)`) throws "computed expression in a string context" at run
+time — legal source per §14.9.11.2 Format 1 + §8.4.3.1.2, hidden until now because a compile-time-foldable
+intrinsic like BYTE-LENGTH prints fine. And a HEX literal as a comparison operand (`IF G = X"FFF94142"`) throws
+"comparison operand" — legal per §8.3.3.2, hidden because hex literals DO work in VALUE and ALPHABET positions
+(DA1 landed that decode). Each golden routes around its gap in ordinary COBOL and says in a comment that it is
+doing so, so neither disappears into a green suite.
+
+**Migration, stated plainly because a user must not discover it from wrong output:** this changes the ON-DISK
+RECORD LAYOUT. A data file written by an earlier build carries a BINARY/PACKED field as zoned digits and this
+build reads that window as bytes; a fixed-length sequential file carries no self-description, so it would present
+as silent garbage. The provable case — a fixed-length file whose byte length is not a multiple of its record
+length — becomes a diagnostic in the next step. The compensation is real: these forms are what IBM, Micro Focus
+and GnuCOBOL write, so files interchange where they previously could not.
+
+**Gates — the comprehensive battery, because this changes every emitted program and the on-disk layout.**
+FULL greenfield Conformance **4115/4115** (4113 + the two new goldens), nothing red · greenfield Unit **904/904,
+ZERO skipped** — the step-1 invariant is un-skipped and green · characterization **33/33** after a re-baked emit
+diff that is exactly `FormatDisplay` -> `FormatImage` at the storage sites, 10 lines over 4 files ·
+`guard-fast.sh` **ALL GREEN**, NIST **353 MATCH / 0 REGRESSION** including the whole ST mixed-usage series ·
+GnuCOBOL differential **2 flips, both FIXES, zero regressions** — and both are in `data_packed.at`
+('PACKED-DECIMAL numeric test (1)' and '(2)'), which is the external oracle confirming that the pinned byte forms
+are the ones the rest of the world writes. New differential baseline: 474 / 173 / 572 / 104 over 1323 cases.
+
+## Entry 1100 — 2026-07-29 01:09 PDT — `NumericStorageForm` → `NumericByteForm`: two "storage forms" one dereference apart
+
+Caught while surveying the 129 `ImageWidth` references for the re-base: the compiler ALREADY has a
+`StorageForm` — `Binding/Model/StorageForm.cs`, the closed classification of how a value is stored in C#
+(`NativeInt` / `NativeFloat` / `CharImage` / `TierBWindow` / …), computed by `StorageFormPass` and held on
+`DataItem.Storage`. And I had just put a `StorageForm` property on `PicInfo`, **in the same namespace**, meaning
+something different: the COBOL byte representation. `item.Storage` is a `StorageForm`; `item.Pic.StorageForm`
+was a `NumericStorageForm`. Two concepts, one word, one dereference apart — the maintenance trap the
+decades-sustainable bar exists to refuse.
+
+Renamed to **`NumericByteForm`** / `NumProfile.ByteForm` / `PicInfo.ByteForm` before it could spread. The new
+name is better than merely non-colliding: it pairs with `DataItem.ByteWidth` and `FUNCTION BYTE-LENGTH`, which
+is exactly the invariant V59 is about — the FORM and the WIDTH of the same bytes. `StorageWidth` /
+`StorageLength` keep their names (they are widths, and they were never ambiguous).
+
+Two commits old, so the cost was a mechanical rewrite of 8 code files, the drift-test file rename, four docs and
+a snapshot re-bake — 127 lines, all of them the same word. Left alone deliberately: DEVLOG entries 1098 and 1099
+still say `NumericStorageForm`, because the log is what happened, not what the tree currently says.
+
+The renaming rule I want to keep: a name that collides with an existing concept in the same namespace is not a
+style question, it is a correctness question for the next reader — and the moment to fix it is while the
+compiler is the only thing that knows the old name.
+
+Gates: build green · characterization 33/33 after re-bake (the emitted profile field is now `ByteForm = …`) ·
+the four affected unit classes 281/283 (2 skipped = the V59 facts).
+
+## Entry 1099 — 2026-07-29 01:42 PDT — V59 step 3: the codec, and the width table that could not hold what it claimed
+
+The discriminator says WHICH representation; this step writes it. `CobolNum.Image.cs` adds `FormatImage` /
+`ParseImage` beside `FormatDisplay` — one dispatch on `NumProfile.StorageForm`, carrying the bytes in the SAME
+Latin-1 string the record framing already uses, so a binary or packed leaf rides the existing image carrier and
+no second whole-group mechanism appears.
+
+**BINARY** = two's complement, big-endian, exactly `StorageLength` bytes; an unsigned item holds the absolute
+value (§14.9.25.4 GR8). **PACKED** = BCD two digits per byte, trailing sign nibble `0xC`/`0xD`, `0xF` when the
+item has no operational sign; **PackedNoSign** drops the nibble entirely. Decoding accepts the foreign readings
+too — `0xB` and `0xD` negative, everything else positive — so a file another COBOL system wrote decodes right.
+`NumericStorageForm.None` at a byte boundary THROWS: an INDEX item reaching a record image is a compiler
+invariant break, and inventing bytes for it is the exact class of defect this codec retires.
+
+**Then the sweep found a sibling, and it was load-bearing.** Rule 4 says every bug is a pattern, so before
+writing the encoder I asked what width it would be handed for a wide picture. `PIC S9(31) COMP` answered **8**.
+§13.18.60.4 GR4 closes with "Sufficient computer storage shall be allocated by the implementor to contain the
+maximum range of values implied by the associated decimal picture character-string" — and 8 bytes cannot hold
+10^31, or even a signed 19-digit 10^19−1 (2^63−1 ≈ 9.22×10^18). The ladder `1-2-4-8` was correct through 18
+digits and then just stopped, because nothing above 18 had ever needed a width: `IsWide` already stores those
+pictures as `Int128`, and `FUNCTION BYTE-LENGTH` was the only reader. Verified by running it —
+`FUNCTION BYTE-LENGTH` answered 8 for `PIC S9(19)`, `PIC 9(20)` and `PIC S9(31)` COMP alike, while the value
+9,999,999,999,999,999,999 round-tripped correctly through the Int128 storage. So the ladder gains a 16-byte
+tier, and the encoder can no longer be handed a width that silently truncates.
+
+The tier is deliberately **sign-independent** — an unsigned 19-digit value would fit 8 bytes, but GR12 pins
+SIGNED and UNSIGNED to one width for the fixed-width binary usages and every surveyed compiler follows that, so
+the boundary is set by the signed worst case rather than splitting one picture into two widths. Corpus impact:
+zero — the only ≥19-digit pictures in the corpus are DISPLAY (`arith_standard`, `ca4_giving_composite`).
+
+**Every expected value in `RecordImageCodecTests` is computed from the pinned form, never from output.** 1234 as
+`PIC 9(4) COMP` is `04 D2` because 1234 = 0x04D2; as `PIC S9(4) COMP` negative it is `FB 2E` because
+65536−1234 = 0xFB2E; as `PIC S9(4) COMP-3` it is `01 23 4C`. The test that matters most is the COLLISION one: at
+3 digits the signed and WITH NO SIGN packed forms are BOTH 2 bytes and lay them out differently (`12 3C` vs
+`01 23`), which is the executable statement of why the form — never the width — decides whether a sign nibble is
+present. Assertions compare HEX renderings, because a failing raw Latin-1 diff is unreadable.
+
+Three invariants run over the whole (usage × digits × sign) grid: the image is EXACTLY the storage width (the
+§15.14.4 r1 / §15.50.4 r3 agreement, at the codec) · every emitted char is ≤ 0xFF (a char above that is a byte
+the framing cannot write) · encode/decode round-trips, with an unsigned item round-tripping the MAGNITUDE.
+
+**Not wired yet.** The image codec still calls `FormatDisplay`; step ④ re-bases `ElementaryImageWidth` and sweeps
+the 129 `ImageWidth` references, and that is the commit where the on-disk layout actually changes.
+
+**Gates.** Wave-local: greenfield Unit **837/839** (2 skipped = the V59 facts; 675 → 837 as the codec grid lands)
+· characterization **33/33** byte-identical, unchanged — nothing emits differently yet. Full Conformance is not
+re-run here: no emitted program changes, and the one compiler-visible change (the 16-byte tier) has no corpus
+instance. It rides the batch gate.
+
+## Entry 1098 — 2026-07-29 00:47 PDT — V59 step 2: the storage-form discriminator, and why the capacity axis could never carry it
+
+Step 1 put the one-width invariant in the tree as a red-but-labelled test. Step 2 gives the compiler the fact it
+has been missing all along: **what bytes a numeric item actually occupies.**
+
+The compiler already knew the WIDTH — `PicInfo.StorageWidth` pins BINARY at 1-2-4-8 and PACKED at `Digits/2+1`,
+`DataItem.ByteWidth` documents them, `FUNCTION BYTE-LENGTH` reports them. What nothing carried was the FORM those
+bytes take, and the reason the gap survived two phases is that the profile *looks* like it has the answer:
+`NumericTruncation` sits right there with three members. It cannot serve and never could — it is the CAPACITY
+discipline, the SIZE-ERROR boundary, and **USAGE DISPLAY and USAGE BINARY are both `DigitCount`** while occupying
+entirely different bytes. Deriving the representation from the discipline is precisely how a `PIC 9(4) COMP`
+came to reach a file as the four ASCII bytes `31 32 33 34`.
+
+So `NumProfile` gains a **required** `StorageForm`, and `PicInfo` gains the `Usage → NumericStorageForm` mapping
+that fills it. `NumericStorageForm`'s members ARE the §4.2.16 documentation of our implementor choices (Annex A.1
+items 205 and 215 make USAGE BINARY's and USAGE PACKED-DECIMAL's "computer storage allocation, alignment and
+representation of data" required user-documentation items): `Zoned` one byte per digit position (§13.18.60.4 GR7)
+· `Binary` two's complement, big-endian, `StorageLength` bytes (GR4 "a radix of 2 is used", GR6, GR12) · `Packed`
+BCD two digits per byte with a trailing sign nibble (GR11 "a radix of 10 … the minimum possible configuration")
+· `PackedNoSign` the 2023 WITH NO SIGN form · `None`. Every citation `cite.py --check`-verified.
+
+**Three things the implementation taught that the plan entry did not know.**
+
+**(1) An INDEX item carries a `NumProfile`.** `PicInfo.IndexItem` is `PicCategory.Numeric, Usage.Index`, and
+`RecordStructEmitter.EmitProfiles` emits a profile for every non-float numeric — so the mapping had to answer for
+a usage that reaches no image at all (§13.18.60.4 GR10: an occurrence-number carrier only SET, SEARCH and
+relation conditions may reference). That is what `None` is for, and it is why `None = 0`: an unstated storage form
+now fails LOUD in a codec instead of silently claiming to be one byte per digit. A default of `Zoned` would have
+been the same substitution bug one level down.
+
+**(2) PACKED-DECIMAL WITH NO SIGN is a different FORM, not a narrower width — and the width cannot discriminate
+it.** For 4 digits, signed packs to 3 bytes and WITH NO SIGN to 2; but for 3 digits **both are 2 bytes**
+(3 digits + sign nibble = 4 nibbles; 3 digit nibbles + a leading pad = 4). A codec that inferred "has a sign
+nibble" from the byte count would read the last digit of an odd-digit unsigned item as a sign. Hence a distinct
+member rather than a width test.
+
+**(3) The unsigned packed sign nibble diverges from our own legacy engine, deliberately.**
+`PicRuntime.EncodeComp3` writes `0x0C` for a positive value whether or not the item is signed. IBM, Micro Focus
+and GnuCOBOL all write `0xF` for an UNSIGNED packed item. Since no greenfield byte path exists yet — that is the
+whole of V59 — there is no behaviour to preserve, so the pinned form follows the survey (`0xC`/`0xD` signed,
+`0xF` unsigned) rather than the legacy. Big-endian for BINARY is likewise unanimous across those three. Noted
+here because step ② will implement the codec against this paragraph.
+
+**Made it fail once.** A drift test that has never been red is a decoration. Dropping `Usage.Binary` from the
+Binary arm of `PicInfo.StorageForm` turns `NumericStorageFormDriftTests` red in four places at once — the table
+row, the byte-form-vs-pinned-width agreement, the image-capable check, and the emitted profile text. Reverted; the
+table is the point. It enumerates EVERY `Usage` member, so a usage added later cannot inherit a representation
+nobody chose, and it asserts the cross-check that a byte form is exactly a positive pinned width.
+
+`required` rather than defaulted, deliberately: the four hand-written `NumProfile` sites in the runtime
+(`CallAbi` ×2, `CobolSort`, and the `BinaryCapacityTests` helper) now each state their form, and three of them
+turn out to be character-image decoders — a SORT key window and the two CALL argument views — which is worth
+having written down at the site.
+
+**Gates.** Solution build green. Greenfield Unit **675/677, 2 skipped** (the 2 skips are step 1's V59 facts; the
+count moves 580 → 675 because the two new theories are table-driven over all 25 usages). Characterization
+**33/33** after a re-bake: the emitted profile gains one field and the diff is exactly that field, 13 snapshot
+files, nothing else moved — and every profile in the characterization corpus reads `Zoned`, which is the same
+"blast radius: zero" the plan measured, seen from the other side. Full greenfield Conformance re-run because the
+change touches every emitted program.
+
+**Friction, logged.** My first `cite.py` call passed `"13.18.60.4 GR4"` as a single argument and got back
+`FAIL: there is no clause §13.18.60.4` — which reads exactly like a bad citation when it was a bad invocation
+(the flag takes CLAUSE and TEXT as two arguments). I nearly went hunting for the "real" USAGE clause number. The
+tool is right to be strict; the lesson is that a citation-checker's failure message should be read as being about
+the *invocation* first and the *citation* second.
+
+
+## Entry 1097 — 2026-07-28 23:40 PDT — V59 step 1: the invariant that retires the class, red for exactly the defect
+
+The maintenance tie-breaker says the prize is not fixing the instance. So V59 starts with the test that makes the
+whole class impossible, before any of the representation work.
+
+**The invariant.** An item that participates in the record/group character image must occupy THE SAME number of
+positions there as it occupies in storage: `DataItem.ImageWidth` and `DataItem.ByteWidth` are two views of one
+fact, never two answers. Every exclusion is principled rather than convenient — NATIONAL is excluded because it
+is deliberately 2 bytes per character position, which the test ASSERTS (exactly 2x) rather than skips; BOOLEAN
+because its unit is a boolean position, not a character position (§15.50.4 r1); and anything not
+`IsImageCapable` because it never reaches an image at all (float / COMP-5 / INDEX, the loud Tier-C island) and so
+cannot contradict one.
+
+**It is red for exactly the defect, which is the part worth checking.** 39 of 83 cases fail, and the pass/fail
+split is not arbitrary: the passing BINARY/PACKED rows are precisely those where the pinned width and the digit
+count COINCIDE (BINARY `PIC 9`, PACKED `PIC 9` and `PIC 99`). Every other row fails by exactly the difference
+between `StorageWidth` and `Pic.Digits`. A test that went red for a sloppier reason would have been worth less
+than no test.
+
+**What I did NOT do, and why it is recorded as a Skip rather than left out.** The rest of V59 — a storage-form
+discriminator on `NumProfile` (the existing `NumericTruncation` cannot serve: DISPLAY and BINARY are both
+`DigitCount`), the radix-2/BCD codec, re-basing the image width, the 129 `ImageWidth` call sites, the
+file-length support diagnostic, the §4.2.16 documentation and byte-level goldens — is more than could land
+cleanly in the time left, and a half-applied storage-model refactor is worse than none.
+
+The two failing facts carry an explicit `Skip` naming V59, the plan item and the exact defect. That is NOT a
+tolerated divergence and not a new deferral: the owner decided this change today, it is plan §0 NEXT 1, and the
+Skip text says so. The alternative — keeping the test out of the tree until the fix lands — is how this defect
+survived two phases in the first place. It turns green the moment the image is re-based on `StorageWidth`, and
+until then it is a labelled, unmissable statement of what is wrong.
+
+Gates: greenfield Unit 596 passed / 2 skipped / 598 · characterization 33/33.
+
 ## Entry 1096 — 2026-07-28 23:14 PDT — PHASE-14 merges, and a principle that changed a plan I had already called finished
 
 `main` is `c056f1f4`. 195 commits, 96 DEVLOG entries, 2026-07-22 to 2026-07-28.
@@ -93,7 +1862,7 @@ view, where GR4/GR11 do give cover. But:
     05 G-COMP PIC 9(4) COMP.  05 G-PACK PIC 9(4) COMP-3.
     FUNCTION BYTE-LENGTH(G) = 5      FUNCTION LENGTH(G) = 8      REDEFINES G PIC X(8) accepted
 
-§15.14.4 GR1 returns the length in BYTES; §15.50.4 GR3 returns it in ALPHANUMERIC CHARACTER POSITIONS. In a
+§15.14.4 r1 returns the length in BYTES; §15.50.4 r3 returns it in ALPHANUMERIC CHARACTER POSITIONS. In a
 single-byte-character model those cannot disagree — and a conforming program observes the disagreement with no
 file, no REDEFINES and no byte pun at all. The latitude GR4 grants is over the REPRESENTATION; it does not
 license the compiler to give two different answers for the size of one group. That argument is independent of
@@ -7540,7 +9309,7 @@ fixed-attribute conflict (documented non-support — no persisted attribute cata
 sections (already pc-range targets), VCR 37 WRITE-no-EOP fall-through (natural default; no FLAG-14 option exists —
 the task hint was wrong), VCR 14 >>EVALUATE combined-condition (impl already matches the 2023 AND-truth GR6/GR10),
 VCR 17 figurative ALL unspecified length (§8.3.3.6.4 GR3b/c, already defined), VCR 20/49 UPPER/LOWER-CASE mappings
-(§15.97.4 GR4 makes the correspondence IMPLEMENTOR-DEFINED absent a locale — the decisive citation the audit didn't
+(§15.97.4 r4 makes the correspondence IMPLEMENTOR-DEFINED absent a locale — the decisive citation the audit didn't
 quote; .NET invariant tables, the 2023 annex code-point changes not separately tuned).
 
 **Doc-drift caught + corrected:** CONFORMANCE.md §3 falsely claimed I-O status '04' (record-length mismatch) "is

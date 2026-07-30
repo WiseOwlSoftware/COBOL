@@ -68,7 +68,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         int id = ctx.Names.NextStrUnstr();
         string src = $"__unsSrc{id}", dels = $"__unsDel{id}", alls = $"__unsAll{id}",
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
-        w.Line($"string {src} = {ReadImage(s.Source)};");
+        w.Line($"string {src} = {OperandText.AsString(s.Source, num)};");   // DA4: an operand (may be a function)
         if (s.Delimiters.Count > 0)
         {
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative
@@ -148,9 +148,22 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         var w = ctx.Writer;
         if (p.Item.IsGroup && p is not RedefViewPlace)
         {
-            if (!p.Item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!p.Item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(p)}.FromImage({imageExpr});");
@@ -190,9 +203,22 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         }
         if (target.Item.IsGroup)
         {
-            if (!target.Item.IsCharacterImage)
+            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
+            // character transfer INTO the group's storage — the same job a group MOVE does, and
+            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
+            // without consideration for the individual items). Refusing it while MOVE allows it made two
+            // verbs disagree about the same receiver — and that is not merely a consistency argument:
+            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
+            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
+            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
+            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
+            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
+            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
+            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
+            // hence the leaf-kind wording now matches the predicate actually tested.
+            if (!target.Item.IsImageCapable)
             {
-                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group", "COMP/binary")));
+                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group")));
                 return;
             }
             string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");
@@ -219,7 +245,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
                 w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
-                    ? RuntimeApi.NumFormatDisplay(stored, target.Item.ProfileName)
+                    ? RuntimeApi.NumFormatImage(stored, target.Item.ProfileName)
                     : ArithmeticEmitter.Narrow(stored, target.Item)));
                 return;
             default:

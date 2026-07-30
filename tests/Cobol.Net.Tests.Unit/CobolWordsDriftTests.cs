@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CobolNet.Frontend.Generated;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -31,7 +32,7 @@ public sealed class CobolWordsDriftTests
 
     private static List<WordRow> LoadJsonWords()
     {
-        string path = Path.Combine(RepoRoot(), "tests", "version-matrix", "cobol-words.json");
+        string path = TestRepo.VersionMatrix("cobol-words.json");
         Assert.True(File.Exists(path), $"canonical json missing: {path} — run scripts/gen-cobol-words.ps1");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("words").EnumerateArray()
@@ -121,7 +122,7 @@ public sealed class CobolWordsDriftTests
 
     private static HashSet<string> ParseCobolWordAlternatives()
     {
-        string path = Path.Combine(RepoRoot(), "src", "Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
+        string path = TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
         Assert.True(File.Exists(path), $"generated grammar missing: {path} — run scripts/gen-cobol-words.ps1");
         var alts = new HashSet<string>(StringComparer.Ordinal);
         bool inRule = false;
@@ -139,18 +140,11 @@ public sealed class CobolWordsDriftTests
 
     private static Dictionary<string, bool> LoadReserved2023()
     {
-        string path = Path.Combine(RepoRoot(), "tests", "version-matrix", "reserved-words.json");
+        string path = TestRepo.VersionMatrix("reserved-words.json");
         Assert.True(File.Exists(path), $"reserved-words.json missing: {path}");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("words").EnumerateArray()
             .ToDictionary(e => e.GetProperty("word").GetString()!, e => e.GetProperty("r2023").GetBoolean(),
                           StringComparer.Ordinal);
-    }
-
-    private static string RepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "tests", "version-matrix"))) d = d.Parent;
-        return d?.FullName ?? throw new InvalidOperationException("repo root (with tests/version-matrix) not found");
     }
 }

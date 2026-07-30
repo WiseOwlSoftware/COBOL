@@ -28,17 +28,40 @@ public static partial class CobolIntrinsics
     /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §15.55.3/§15.56.3 violation and is caught at the
     /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
     /// </summary>
-    public static long FromDouble(double d, int scale)
+    /// <remarks>
+    /// ⛔ RETURNS <see cref="Int128"/>, NOT <see cref="long"/> — and that is a CORRECTNESS fix, not a widening for
+    /// comfort (fix-queue PB5). The scaled domain of this compiler IS Int128 (every <c>…Scaled</c> body takes
+    /// one), but this function saturated at <c>long.MaxValue</c>. Its caller quantizes at
+    /// <c>ws = max(Receiver.Scale, 9)</c>, so the old clamp bit at |value| ≈ <b>9.2 × 10⁹</b> — an utterly
+    /// ordinary COBOL magnitude. A twelve-digit money field is routine, and every float-family result at or above
+    /// that magnitude was silently replaced by 9223372036.85:
+    /// <code>
+    ///   01 R PIC 9(12)V99.
+    ///       COMPUTE R = FUNCTION ANNUITY(10000000000 1)   *> §15.9.4 r1b gives exactly 10000000001.00
+    ///         ON SIZE ERROR ... NOT ON SIZE ERROR ...     *> prints NO SIZE ERROR
+    ///   R = 00922337203685
+    /// </code>
+    /// <c>SQRT(1e20)</c>, <c>EXP(23.3)</c>, <c>ABS</c> and <c>MAX</c> over a COMP-2 all produced the same constant.
+    /// No diagnostic, no size error — §14.7.4 never saw an overflow because the value had already been clamped to
+    /// something that fits. §15.4.1's native-arithmetic licence permits an implementor-defined APPROXIMATION of
+    /// the equivalent arithmetic expression; 9223372036.85 is not an approximation of 10000000001.
+    /// <para>
+    /// At scale 9 the Int128 ceiling is ≈1.7 × 10²⁹, which is past the 10¹⁸ any PICTURE can describe, so the
+    /// saturation is now unreachable from a declarable receiver rather than merely further away.
+    /// </para>
+    /// </remarks>
+    public static Int128 FromDouble(double d, int scale)
     {
-        // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.1 Table 13, fatal): the §15.3 default 0 when checking is off,
-        // the raise (throw) when the statement carries enabled checking (the ambient gate). NaN only — an over-range
-        // ±∞ is a legal overflow that saturates like a finite over-range value (the receiver store size-truncates).
+        // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the
+        // §15.3 default 0 when checking is off, the raise (throw) when the statement carries enabled checking (the
+        // ambient gate). NaN only — an over-range ±∞ is a legal overflow that saturates like a finite over-range
+        // value (the receiver store size-truncates).
         if (double.IsNaN(d)) return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)");
-        if (double.IsInfinity(d)) return d > 0 ? long.MaxValue : long.MinValue;
+        if (double.IsInfinity(d)) return d > 0 ? Int128.MaxValue : Int128.MinValue;
         double scaled = d * Pow10.AsDouble(scale);
-        if (scaled >= 9.2e18) return long.MaxValue;
-        if (scaled <= -9.2e18) return long.MinValue;
-        return (long)Math.Round(scaled, MidpointRounding.AwayFromZero);
+        if (scaled >= 1.7e38) return Int128.MaxValue;
+        if (scaled <= -1.7e38) return Int128.MinValue;
+        return (Int128)Math.Round(scaled, MidpointRounding.AwayFromZero);
     }
 
 }

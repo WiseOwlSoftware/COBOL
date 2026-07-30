@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Runtime;
 
 namespace CobolNet.Binding.Model;
 
@@ -187,19 +188,6 @@ public sealed record PicInfo(
     /// the ≥2002 not-implemented COBOLNET0899 stays inline in the analyzer (its <c>StagedNotImplemented</c>).</summary>
     public string? SkeletonGate { get; init; }
 
-    /// <summary>
-    /// The runtime <c>NumericSign</c> member name a fixed-point leaf's sign takes inside a RECORD/GROUP CHARACTER
-    /// IMAGE — the generated <c>AsImage()</c>/<c>FromImage()</c> facility and the SORT/MERGE key decode (the ONE
-    /// image-sign mapping; every image consumer reads this, never re-derives it). A USAGE DISPLAY leaf's image IS
-    /// its stored zoned form (<see cref="SignKind"/> verbatim — over-punch or separate sign). A BINARY/PACKED
-    /// leaf's character image is implementor-defined territory (ISO/IEC 1989:2023 §13.18.60 USAGE GR4 — "Each
-    /// implementor specifies the precise effect of the USAGE BINARY clause upon the … representation of the data
-    /// item …, including the representation of any algebraic sign"); COBOL.NET defines it as the fixed-width zoned
-    /// digit image with a TRAILING OVERPUNCH sign (COBOLNET_DESIGN §14.4). NOT the leaf's own
-    /// <see cref="SignKind"/> (<c>BinaryMinus</c>) — that DISPLAY-statement form is VARIABLE width (a leading
-    /// <c>-</c> only when negative) and cannot occupy a fixed record window.
-    /// </summary>
-    public string ImageSignKind => Usage is Usage.Display ? SignKind : "TrailingOverpunch";
 
     /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
     /// uppercased, the implied point <c>V</c> retained) — the mask <c>CobolEdit.Format</c> renders into. Null for
@@ -349,12 +337,67 @@ public sealed record PicInfo(
         _ => "default",
     };
 
-    /// <summary>Storage width in bytes, for the PACKED-DECIMAL / COMP-5 capacity disciplines (else 0 — unused).</summary>
+    /// <summary>
+    /// The BYTE REPRESENTATION this item's storage takes (<see cref="NumericByteForm"/>, which carries the
+    /// pinned form of each) — the one fact that decides what the item occupies at EVERY byte boundary: the
+    /// record/group character image, a file record, a SORT key window and the REDEFINES backing
+    /// (COBOLNET_DESIGN §14.4). ISO §13.18.60.4 GR4 (BINARY, "a radix of 2 is used") and GR11 (PACKED-DECIMAL,
+    /// "a radix of 10 … the minimum possible configuration") leave the representation to the implementor and
+    /// §4.2.16 obliges us to document the choice; <see cref="StorageWidth"/> is the width that representation
+    /// implies, and <c>DataItem.ByteWidth</c> / <c>DataItem.ImageWidth</c> are two views of it, never two answers.
+    /// <para>The truncation discipline CANNOT stand in for this: USAGE DISPLAY and USAGE BINARY are both
+    /// <see cref="NumericTruncation.DigitCount"/> yet occupy entirely different bytes.</para>
+    /// <para>Consulted only where a <c>NumProfile</c> is emitted (a non-float numeric item — see
+    /// <c>RecordStructEmitter.EmitProfiles</c>); <see cref="NumericByteForm.None"/> is the honest answer for
+    /// USAGE INDEX, whose occurrence-number carrier reaches no image at all (§13.18.60.4 GR10), and for every
+    /// usage that carries no profile. <c>NumericByteFormDriftTests</c> pins the whole table.</para>
+    /// </summary>
+    public NumericByteForm ByteForm => Usage switch
+    {
+        // Radix 2 (GR4 BINARY / GR6 COMPUTATIONAL / GR12 the fixed-width binary usages) — two's complement,
+        // big-endian, StorageWidth bytes. COMP-5 and BINARY-CHAR..DOUBLE are excluded from the IMAGE by their
+        // BinaryCapacity discipline (values beyond the PICTURE digit count), never by their representation:
+        // stating the form here is what makes admitting them a width question, not a representation question.
+        Usage.Binary or Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong
+            or Usage.BinaryDouble => NumericByteForm.Binary,
+        // Radix 10 BCD (GR11), with or without the trailing sign nibble the 2023 WITH NO SIGN phrase drops.
+        Usage.Packed => PackedNoSign ? NumericByteForm.PackedNoSign : NumericByteForm.Packed,
+        // One byte per digit position (GR7). DISPLAY is the only profile-carrying usage that lands here; the
+        // character usages (NATIONAL / BIT) and the carrier usages never reach this property.
+        Usage.Display => NumericByteForm.Zoned,
+        _ => NumericByteForm.None,
+    };
+
+    /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
+    /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte
+    /// representation: BINARY truncates by PICTURE digit count exactly as DISPLAY does, while COMP-5 and the
+    /// fixed-width binary usages hold the native two's-complement range of their byte width (ISO §13.18.60.4
+    /// GR12), and PACKED-DECIMAL's capacity follows its BCD nibbles.</summary>
+    public NumericTruncation Truncation => Usage switch
+    {
+        Usage.Packed => NumericTruncation.PackedDecimal,
+        Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+            => NumericTruncation.BinaryCapacity,
+        _ => NumericTruncation.DigitCount,
+    };
+
+    /// <summary>The item's storage width in BYTES for every usage that has one of its own — the width its
+    /// <see cref="ByteForm"/> lays out, the width <c>FUNCTION BYTE-LENGTH</c> reports, and the width it
+    /// occupies in a record image (0 for the usages whose bytes ARE their character positions).</summary>
     public int StorageWidth => Usage switch
     {
         // WITH NO SIGN (§13.18.60.4 GR11) drops the trailing sign nibble → exactly the digit nibbles.
         Usage.Packed => PackedNoSign ? (Digits + 1) / 2 : Digits / 2 + 1,
-        Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
+        // ⛔ The ladder must be SUFFICIENT, not merely conventional: §13.18.60.4 GR4 closes with "Sufficient
+        // computer storage shall be allocated by the implementor to contain the maximum range of values implied
+        // by the associated decimal picture character-string." 1-2-4-8 covers 1..18 digits exactly (a signed
+        // 18-digit max 10^18−1 fits 2^63−1; a signed 19-digit 10^19−1 does NOT), so a 19–38-digit picture — legal
+        // at COBOL-2002+ and already stored as Int128 (IsWide/ClrType) — takes the 16-byte tier. Before this the
+        // table answered 8 for every picture ≥ 10 digits, so PIC S9(31) COMP claimed a width that cannot hold it.
+        // The ladder is SIGN-INDEPENDENT — an unsigned 19-digit value would fit 8 bytes, but GR12 pins SIGNED and
+        // UNSIGNED to one width for the fixed-width binary usages and every surveyed compiler follows that, so
+        // the boundary is set by the signed worst case rather than splitting one picture into two widths.
+        Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : Digits <= 18 ? 8 : 16,
         // The fixed-width binary usages own their byte width directly (independent of the implied Digits;
         // ISO §13.18.60.4 GR21 — implementor-defined length, SIGNED and UNSIGNED the same width).
         Usage.BinaryChar => 1,
@@ -368,22 +411,11 @@ public sealed record PicInfo(
     /// The C# initializer text for this item's runtime <c>NumProfile</c> (threaded into every numeric store so
     /// arithmetic obeys the receiver's PICTURE+USAGE). Emitted once per numeric item as a static readonly field.
     /// </summary>
-    public string ProfileInitializer
-    {
-        get
-        {
-            string trunc = Usage switch
-            {
-                Usage.Packed => "NumericTruncation.PackedDecimal",
-                Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
-                    => "NumericTruncation.BinaryCapacity",
-                _ => "NumericTruncation.DigitCount",
-            };
-            return $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
-                   $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
-                   $"Truncation = {trunc}, StorageLength = {StorageWidth} }}";
-        }
-    }
+    public string ProfileInitializer =>
+        $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
+        $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
+        $"Truncation = NumericTruncation.{Truncation}, ByteForm = NumericByteForm.{ByteForm}, " +
+        $"StorageLength = {StorageWidth} }}";
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
     /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)
