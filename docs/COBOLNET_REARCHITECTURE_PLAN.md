@@ -72,6 +72,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     so a hex literal was neither recognised as a literal nor decoded as one — which is why five sites failed in
     five different shapes. Fixing it at the symptom (`ValueInitializer`) would have been the FIFTH copy of the
     dispatch DA3 found three of, and would have fixed one site of five.
+  · **⛔✅ PB5 LANDED — [BLOCKER] the float→fixed quantizer SATURATED AT 9.2 × 10⁹** (DEVLOG 1124).
+    `FromDouble` returned a `long` and clamped at `long.MaxValue`; quantizing at `ws = max(Receiver.Scale, 9)`
+    put the clamp at an ORDINARY COBOL magnitude, so every float-family result at or above it became the
+    constant **9223372036.85** — `ANNUITY(1e10 1)` into a `PIC 9(12)V99` money field, `SQRT(1e20)`,
+    `EXP(23.3)`, `ABS`/`MAX` over a COMP-2 — with **NO SIZE ERROR**, because §14.7.4 never saw an overflow.
+    Silent wrong arithmetic in ordinary business ranges. Fixed by returning `Int128`, which the scaled domain
+    already is everywhere else; at scale 9 its ceiling is past anything a PICTURE can describe.
+    ⚠ **Found by the REFUTE stage; the adjudicator had checked only small receivers where the clamp never
+    bites.** An all-CONFORMS batch is a warning sign, not a good result.
+    ⚠ **And five of twelve refuters died on API 529**, leaving unrefuted stage-one output in their out files —
+    the entry-1116 state by a different route. **A workflow reporting "completed" is not every agent in it
+    succeeding**: read the notification's `<failures>` block before its results. Resumed to re-run only those.
   · **✅ PB3 LANDED — GAP 3774 → 3773; CA26's residue on the ORD path is CLOSED** (DEVLOG 1121). `ORD` continues
     the collating sequence above the highest tabulated position instead of falling back to `c + 1`, so the hole at
     ordinal 256 is gone: `ORD(U+0100)` = **256**. The rule is **§12.3.7.4 GR7 1.3** — unspecified characters sit
