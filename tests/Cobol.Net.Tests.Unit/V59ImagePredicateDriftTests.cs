@@ -82,21 +82,19 @@ public sealed class V59ImagePredicateDriftTests
             + $"{character} occurrence(s).");
     }
 
-    /// <summary>The EXPLICIT inventory of emit guards still on the pre-V59 predicate. Each is either a correct
-    /// text-context guard (STRING/UNSTRING/INSPECT are defined over character positions) or an unmigrated V59
-    /// residue — that judgement is per-site spec work, tracked as queue item DA5. This test pins the SET so a
-    /// site cannot be added or silently migrated without a decision being recorded here.</summary>
+    /// <summary>⛔ THE MIGRATION IS COMPLETE — this inventory is now a CLOSED set of ONE, and that one is not a
+    /// guard at all. Every genuine Tier-C guard has moved to <c>IsImageCapable</c>: CALL (both halves), the
+    /// table-SORT key, STRING/UNSTRING INTO, INSPECT REPLACING/CONVERTING, ACCEPT (device and temporal), and the
+    /// numeric-operand arm of <c>NumericRenderer</c> (that last one paired with DA6's §8.8.1.1 rejection, since it
+    /// is reachable only under <c>--permissive</c>).
+    /// <para>The test's job is now to keep the set closed: an ADDED use of the pre-V59 predicate is a regression
+    /// toward the two-mechanism split that caused DA5, and a REMOVED one means the last non-guard use was touched.
+    /// Either way a deliberate decision has to be recorded here rather than happening silently.</para></summary>
     [Fact]
     public void RemainingPreV59Guards_AreTheKnownInventory()
     {
         var expected = new Dictionary<string, int>
         {
-            // The ONLY remaining site, and it is NOT a predicate residue: a GROUP used as a NUMERIC operand.
-            // §8.8.1.1 admits only "an identifier referencing a numeric data item" in an arithmetic expression and
-            // a group is class alphanumeric, so `COMPUTE R = G + 1` is ILLEGAL SOURCE — which the compiler accepts
-            // and then throws on at RUN time. Migrating the predicate would be the wrong fix; the fix is a
-            // COMPILE-TIME diagnostic (queued as DA6). Left on IsCharacterImage deliberately.
-            ["CodeGen/Emit/NumericRenderer.cs"] = 1,
             // ⛔ MoveEmitter.cs:144 is NOT a Tier-C guard and must NOT be "migrated". It selects a STRATEGY: when
             // the receiver is not a character image it first tries the memberwise leaf-copy fast path (used when
             // the source and receiver leaf LAYOUTS are positionally identical), and only the fall-through reaches

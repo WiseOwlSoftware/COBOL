@@ -1,0 +1,4 @@
+CMP=EQ
+MOV=[ab  ]
+LEN=0004
+UPP=[AB  ]

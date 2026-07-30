@@ -905,22 +905,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (a.fnArgPhraseWord() is { } kw)
             return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");   // a phrase word this function does not take
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
-        return OperandOf(host.Expr.BindExpr(a.arithmeticExpression()));
+        // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
+        // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
+        // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
+        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()));
     }
 
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
-    /// introduction-gate helpers every literal channel uses). HEXLIT stays loud (no §15 consumer).</summary>
-    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn)
-    {
-        // §8.8.3.3 GR3: a concatenation expression folds to the equivalent single literal — so e.g.
-        // FUNCTION LENGTH("AB" & "CD") sees one 4-character alphanumeric literal argument (§15.55).
-        if (nn.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
-        if (nn.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
-        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (nn.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
-        if (nn.BOOLLIT() is { } b) return host.Expr.BooleanLiteralOperand(b.GetText());
-        return new BoundOperandError($"literal argument '{nn.GetText()}'");
-    }
+    /// introduction-gate helpers every literal channel uses). HEXLIT decodes as the alphanumeric literal it is
+    /// (§8.3.3.2 Format 2) — DA3.</summary>
+    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn) =>
+        // Through the ONE literal mapping (ExpressionBinder.NonNumericLiteralOperand) — this used to be a second
+        // hand-maintained copy of the same chain, which is how the hexadecimal form came to be supported in some
+        // literal positions and not others (DA3). §8.8.3.3 GR3 concatenation folding and the §8.3.3.4/.5/.6.4
+        // decode + introduction gates all live there now.
+        host.Expr.NonNumericLiteralOperand(nn) ?? new BoundOperandError($"literal argument '{nn.GetText()}'");
 
     /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
     /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —

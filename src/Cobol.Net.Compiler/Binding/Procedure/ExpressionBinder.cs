@@ -13,6 +13,38 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
+/// WHY an expression is being bound, which decides whether an ALPHANUMERIC operand is admissible in it (DA6).
+/// <para>
+/// The COBOL grammar production is named <c>arithmeticExpression</c> but is REUSED as the generic argument
+/// expression, so one spine serves two rule sets and the leaf cannot tell them apart on its own:
+/// </para>
+/// <list type="bullet">
+///   <item><see cref="Arithmetic"/> — ISO §8.8.1.1: "An arithmetic expression may be an identifier referencing a
+///         NUMERIC data item, a numeric literal, the figurative constant ZERO …". A group (class alphanumeric,
+///         §8.5), an elementary alphanumeric/national item, and a reference-modified slice (§8.4.2.4) are all
+///         inadmissible. This is the default and by far the common case: COMPUTE, the arithmetic verbs,
+///         subscripts, reference-modifier offsets, relation conditions, SET, PERFORM VARYING.</item>
+///   <item><see cref="FunctionArgument"/> — governed instead by the individual function's §15.x ARGUMENT RULE,
+///         which for the string functions explicitly admits alphanumeric data: <c>FUNCTION TRIM(S)</c>,
+///         <c>SUBSTITUTE</c>, <c>FIND-STRING</c> and <c>CONVERT</c> over a <c>PIC X</c> item are all legal.</item>
+/// </list>
+/// <para>
+/// ⛔ This is an ENUM and not a <c>bool</c> deliberately. A boolean would read as <c>BindExpr(node, true)</c> at the
+/// call site, would not survive the arrival of a third context, and — as an optional parameter — silently breaks
+/// the method-group conversions this spine is used through (<c>Select(host.Expr.BindExpr)</c>). The public surface
+/// is therefore two intention-revealing entry points over one private core, so no caller ever passes a flag.
+/// </para></summary>
+internal enum OperandContext
+{
+    /// <summary>An ISO §8.8.1.1 arithmetic expression: numeric operands only.</summary>
+    Arithmetic,
+
+    /// <summary>An intrinsic-function argument: the function's own §15.x argument rule governs, so an alphanumeric
+    /// operand may be perfectly legal here.</summary>
+    FunctionArgument,
+}
+
+/// <summary>
 /// The shared operand/expression/receiving spine (P7 Step 10q — the expression-spine flip; the plan’s
 /// `Binding/Procedure/ExpressionBinder`, a SIBLING of <see cref="BinderContext"/>/<see cref="PhraseBlocks"/>,
 /// deliberately NOT `Verbs/` — every verb binder consumes it). Three families over <see cref="BinderContext"/>:
@@ -37,22 +69,48 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
-    public BoundOperand LiteralOperand(Core.LiteralContext lit)
+    /// <summary>⛔ THE ONE <c>nonNumericLiteral</c> → <see cref="BoundOperand"/> MAPPING (ISO §8.3.3). Returns
+    /// <see langword="null"/> when the node is absent or is not a non-numeric literal, so each caller supplies its
+    /// own fallback — a numeric literal for <see cref="LiteralOperand"/>, a named error for an intrinsic argument,
+    /// the expression path for a comparison operand.
+    /// <para>
+    /// ⛔ WHY THIS IS EXTRACTED. This chain existed in THREE hand-maintained copies — here, in
+    /// <c>IntrinsicBinder.NonNumericOperand</c>, and inline in <c>ConditionBinder</c>'s comparison-operand binder —
+    /// and that duplication IS the defect DA3 reported. A hexadecimal-alphanumeric literal was simply MISSING from
+    /// one copy, so <c>IF G = X"6162"</c> (conforming source) staged loud as a "comparison operand" at run time
+    /// while the same literal worked in a MOVE. Three copies of one dispatch guarantee that the next literal form
+    /// added will be wired into two of them; one copy makes the next form a one-line change.
+    /// </para></summary>
+    public BoundOperand? NonNumericLiteralOperand(Core.NonNumericLiteralContext? nn)
     {
-        var nn = lit.nonNumericLiteral();
+        if (nn is null) return null;
         // A concatenation expression folds to its equivalent single literal at COMPILE time (ISO §8.8.3.3
         // GR3 — "equivalent to a literal of the same class and value"): no BoundConcat node, no emitter leg;
         // the folded value rides the same operand shapes the plain literals produce (P10 Step 14).
-        if (nn?.concatenationExpression() is { } ce) return ConcatOperand(ce);
-        if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
-        if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
+        if (nn.concatenationExpression() is { } ce) return ConcatOperand(ce);
+        if (nn.figurativeConstant() is { } fig) return FigurativeOperand(fig);
+        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
+        // ⛔ DA3 — X"…" is an ALPHANUMERIC literal, not a separate species: §8.3.3.2 Format 2 IS the
+        // hexadecimal-alphanumeric FORMAT of the alphanumeric literal, and §8.3.3.2.1 makes every format of it "of
+        // the class and category alphanumeric" (both cite.py-verified). So it belongs wherever an alphanumeric
+        // literal belongs — a relation condition (§8.8.4.1.1 admits a literal on either side), MOVE, STRING, an
+        // intrinsic argument. CobolLiteral.DecodeHex is the ONE hex codec (landed by DA1 for the §12.3.7 ALPHABET
+        // path); this reuses it rather than decoding again.
+        if (nn.HEXLIT() is { } hx) return new BoundStringLiteral(CobolLiteral.DecodeHex(hx.GetText()));
         // National N"…" (§8.3.3.5) / boolean B"…" (§8.3.3.4) literals — LIVE (Phase 4a): the introduction
         // gate rides every occurrence (0900 below 2002); content/size guards are the 0814 band. The lexer
         // already restricts a BOOLLIT's content to [01]+ (CobolLexer.g4).
-        if (nn?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
-        if (nn?.BOOLLIT() is { } b) return BooleanLiteralOperand(b.GetText());
-        return new BoundNumericLiteral(CheckLiteral(lit.GetText()));   // edition digit cap (ISO §8.3.1.2)
+        if (nn.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
+        if (nn.BOOLLIT() is { } b) return BooleanLiteralOperand(b.GetText());
+        return null;
     }
+
+    /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
+    /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal under the edition digit cap
+    /// (ISO §8.3.1.2).</summary>
+    public BoundOperand LiteralOperand(Core.LiteralContext lit) =>
+        NonNumericLiteralOperand(lit.nonNumericLiteral())
+        ?? new BoundNumericLiteral(CheckLiteral(lit.GetText()));
 
     /// <summary>Bind a §8.8.3 concatenation expression as a literal operand: fold to the equivalent single
     /// literal (§8.8.3.3 GR2/GR3 — the ONE ConcatFolder chokepoint enforces the §8.8.3.2 SRs) and produce the
@@ -161,7 +219,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); the LINAGE-COUNTER register reads its
     /// file's runtime counter (ISO §8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
-    private BoundExpr RefExpr(Core.DataReferenceContext dref) =>
+    private BoundExpr RefExpr(Core.DataReferenceContext dref, OperandContext context) =>
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
@@ -175,8 +233,52 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : ctx.Data.ConstantOf(dref) is { } k
             ? k.Category is PicCategory.Numeric ? new BoundNumLiteral(CheckLiteral(k.Text))
                 : NonNumericConstantExpr(dref.GetText(), k.Category)
-        : ctx.Refs.Resolve(dref) is { } p ? new BoundNumRef(p)
+        : ctx.Refs.Resolve(dref) is { } p ? OperandRef(dref, p, context)
         : new BoundExprError(RefFailure(dref));
+
+    /// <summary>The §8.8.1.1 class screen for a resolved data reference used as an expression operand (DA6).
+    /// <para>
+    /// COBOL.NET accepted every alphanumeric shape here and decoded its digit characters — and did so
+    /// INCONSISTENTLY: a group of <c>PIC X</c> leaves computed, while a group of <c>PIC 9</c> leaves compiled and
+    /// then THREW at run time, so the operand whose digits were unambiguous failed and the merely-textual one
+    /// succeeded. Owner decision 2026-07-29: reject under strict conformance, keep the leniency DIALECT-GATED
+    /// behind <c>--permissive</c> (the standing rule that every leniency is dialect-gated).
+    /// </para>
+    /// <para>
+    /// Reuses <c>COBOLNET0844</c> rather than minting a code: 0844 already IS "not a numeric operand (ISO
+    /// §8.8.1.1)", raised by <see cref="NonNumericConstantExpr"/> for a non-numeric constant-name and for a
+    /// national/boolean literal in this same position. A data item is the third shape of ONE rule, not a new rule.
+    /// </para></summary>
+    private BoundExpr OperandRef(Core.DataReferenceContext dref, Place p, OperandContext context)
+    {
+        if (context is OperandContext.Arithmetic && NonNumericOperandKind(p) is { } what)
+        {
+            if (ctx.Edition.Permissive)
+                ctx.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
+                    + "under --permissive, decoding its digit characters as an unsigned integer");
+            else
+            {
+                ctx.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
+                    + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
+                    + "ZERO in an arithmetic expression. --permissive accepts it as a digit-decoding extension");
+                return new BoundExprError($"{what} in an arithmetic expression (ISO §8.8.1.1)");
+            }
+        }
+        return new BoundNumRef(p);
+    }
+
+    /// <summary>A human-readable description of WHY a place is not a numeric operand, or <see langword="null"/>
+    /// when it is one. A numeric-EDITED item de-edits to a defined numeric value and is admissible; class BOOLEAN
+    /// carries its own §8.8.1 rejection in the renderer; INDEX / POINTER never resolve to a <c>Pic</c> here. Only
+    /// the alphanumeric family is at issue, in its three shapes.</summary>
+    private static string? NonNumericOperandKind(Place p) => p switch
+    {
+        RefModPlace => "a reference-modified operand (class alphanumeric, ISO §8.4.2.4)",
+        _ when p.Item.IsGroup => $"group item '{p.Item.CobolName}' (class alphanumeric, ISO §8.5)",
+        _ when p.Item.Pic is { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: null } pic =>
+            $"item '{p.Item.CobolName}' of category {pic.Category}",
+        _ => null,
+    };
 
     /// <summary>Reject a non-numeric constant-name in a numeric-expression position (ISO §8.8.1.1 — arithmetic
     /// operands shall be numeric; the constant stands for its literal, §13.10.3 SR2), mirroring the written
@@ -302,18 +404,38 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         stores.Select(s => ResolveReceiving(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
               .OfType<Receiver>().ToList();
 
-    /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) to a bound expression.</summary>
-    public BoundExpr BindExpr(IParseTree node) => node switch
+    /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) as an ISO §8.8.1.1
+    /// ARITHMETIC expression — numeric operands only. THE entry for COMPUTE, the arithmetic verbs, subscripts,
+    /// reference-modifier offsets, relation conditions, SET and PERFORM VARYING, i.e. every ordinary caller.
+    /// <para>Deliberately takes NO context parameter: an optional one would break the method-group conversions this
+    /// spine is used through (<c>Select(host.Expr.BindExpr)</c>) and would put a bare <c>true</c> at a call site.
+    /// The one context that differs has its own named entry, <see cref="BindFunctionArgumentExpr"/>.</para></summary>
+    public BoundExpr BindExpr(IParseTree node) => BindExprCore(node, OperandContext.Arithmetic);
+
+    /// <summary>Bind an INTRINSIC-FUNCTION ARGUMENT expression. Identical to <see cref="BindExpr"/> except that the
+    /// §8.8.1.1 numeric-operand screen does not apply: an argument's legality is governed by the individual
+    /// function's §15.x argument rule, which for the string functions admits alphanumeric data
+    /// (<c>FUNCTION TRIM(S)</c> over a <c>PIC X</c> item is legal). The grammar reuses the
+    /// <c>arithmeticExpression</c> production for arguments, which is why the distinction has to be made by the
+    /// CALLER and cannot be inferred at the leaf.</summary>
+    public BoundExpr BindFunctionArgumentExpr(IParseTree node) => BindExprCore(node, OperandContext.FunctionArgument);
+
+    /// <summary>The ONE recursive expression spine. <paramref name="context"/> rides every recursive call rather
+    /// than living in a field — the same discipline the render-side receiver follows (P7 Step 3: "travels by
+    /// parameter into every public entry, never mutable context state"), and for the same reason: ambient state
+    /// goes stale across a re-entrant descent.</summary>
+    private BoundExpr BindExprCore(IParseTree node, OperandContext context) => node switch
     {
-        Core.ArithmeticExpressionContext a => BindExpr(a.GetChild(0)),
-        Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext => BindChain(node),
-        Core.PowerExpressionContext p => BindPower(p),
-        Core.UnaryExpressionContext u => u.primaryExpression() is { } pr ? BindExpr(pr)
-            : u.addOp().GetText() == "-" ? new BoundNegate(BindExpr(u.unaryExpression())) : BindExpr(u.unaryExpression()),
-        Core.PrimaryExpressionContext pe => BindPrimary(pe),
+        Core.ArithmeticExpressionContext a => BindExprCore(a.GetChild(0), context),
+        Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext => BindChain(node, context),
+        Core.PowerExpressionContext p => BindPower(p, context),
+        Core.UnaryExpressionContext u => u.primaryExpression() is { } pr ? BindExprCore(pr, context)
+            : u.addOp().GetText() == "-" ? new BoundNegate(BindExprCore(u.unaryExpression(), context))
+                : BindExprCore(u.unaryExpression(), context),
+        Core.PrimaryExpressionContext pe => BindPrimary(pe, context),
         Core.LiteralContext l => NumLiteral(l),
-        Core.DataReferenceContext d => RefExpr(d),
-        _ => BindOperandExpr(node),   // operand wrappers (addOperand, multiplyByOperand, …)
+        Core.DataReferenceContext d => RefExpr(d, context),
+        _ => BindOperandExprCore(node, context),   // operand wrappers (addOperand, multiplyByOperand, …)
     };
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
@@ -356,32 +478,32 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return text;
     }
 
-    private BoundExpr BindChain(IParseTree node)
+    private BoundExpr BindChain(IParseTree node, OperandContext context)
     {
         BoundExpr? acc = null;
         char op = '+';
         foreach (var child in StatementBinder.Children(node))
         {
             if (child is Core.AddOpContext or Core.MulOpContext) op = child.GetText()[0];
-            else { var x = BindExpr(child); acc = acc is null ? x : new BoundBinary(acc, op, x); }
+            else { var x = BindExprCore(child, context); acc = acc is null ? x : new BoundBinary(acc, op, x); }
         }
         return acc ?? new BoundNumLiteral("0");
     }
 
-    private BoundExpr BindPower(Core.PowerExpressionContext p)
+    private BoundExpr BindPower(Core.PowerExpressionContext p, OperandContext context)
     {
         var bases = p.unaryExpression();
-        BoundExpr acc = BindExpr(bases[0]);
-        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExpr(bases[i]));
+        BoundExpr acc = BindExprCore(bases[0], context);
+        for (int i = 1; i < bases.Length; i++) acc = new BoundPower(acc, BindExprCore(bases[i], context));
         return acc;
     }
 
-    private BoundExpr BindPrimary(Core.PrimaryExpressionContext pe)
+    private BoundExpr BindPrimary(Core.PrimaryExpressionContext pe, OperandContext context)
     {
         if (pe.numericLiteral() is { } num) return new BoundNumLiteral(CheckLiteral(num.GetText()));
         if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
-        if (pe.dataReference() is { } dref) return RefExpr(dref);
-        if (pe.arithmeticExpression() is { } paren) return BindExpr(paren);
+        if (pe.dataReference() is { } dref) return RefExpr(dref, context);
+        if (pe.arithmeticExpression() is { } paren) return BindExprCore(paren, context);
         // FUNCTION call (ISO §15; the 1989 Intrinsic Function Module) — StatementBinder.Intrinsics.cs.
         if (pe.functionCall() is { } fc) return host.Intrinsic.BindIntrinsic(fc);
         return new BoundExprError("primary-expression operand");
@@ -392,7 +514,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// valueOperand → arithmeticExpression</c>, CobolExpressions.g4), so the walk is BREADTH-FIRST to the
     /// shallowest match — a depth-first leaf grab would collapse a multi-term operand to its first data
     /// reference (a sign condition's operand is the WHOLE expression, ISO §8.8.4.3 — NC250A IF--TEST-55/56).</summary>
-    public BoundExpr BindOperandExpr(IParseTree node)
+    public BoundExpr BindOperandExpr(IParseTree node) => BindOperandExprCore(node, OperandContext.Arithmetic);
+
+    /// <inheritdoc cref="BindOperandExpr"/>
+    private BoundExpr BindOperandExprCore(IParseTree node, OperandContext context)
     {
         var queue = new Queue<IParseTree>();
         queue.Enqueue(node);
@@ -402,9 +527,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             for (int i = 0; i < n.ChildCount; i++)
             {
                 var c = n.GetChild(i);
-                if (c is Core.ArithmeticExpressionContext ae) return BindExpr(ae);
+                if (c is Core.ArithmeticExpressionContext ae) return BindExprCore(ae, context);
                 if (c is Core.LiteralContext l) return NumLiteral(l);
-                if (c is Core.DataReferenceContext d) return RefExpr(d);
+                if (c is Core.DataReferenceContext d) return RefExpr(d, context);
                 queue.Enqueue(c);
             }
         }

@@ -119,7 +119,7 @@ internal static class UsageCollectionPass
         }
         public bool Visit(BoundUnstringStmt n)
         {
-            P(n.Source); P(n.Pointer); P(n.Tallying);
+            Op(n.Source); P(n.Pointer); P(n.Tallying);   // DA4: Source is an operand
             foreach (var r in n.Receivers) { P(r.Target); P(r.DelimiterIn); P(r.CountIn); }
             return false;
         }

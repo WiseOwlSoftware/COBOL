@@ -183,7 +183,14 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // this branch — a group SENDER makes the move a GROUP move (§14.9.25.4 GR4: no conversion; classified
         // at EmitMove → EmitGroupToElementaryMove), never a numeric decode of the image (the pre-fix NC105A
         // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
-        null when p.Item.IsCharacterImage =>
+        // ⛔ IsImageCapable, and correct ONLY because strict conformance now REJECTS a group arithmetic operand
+        // (DA6 — §8.8.1.1, COBOLNET0844 in ExpressionBinder). Reaching here therefore means --permissive was
+        // requested, and the leniency must be CONSISTENT: before, a group of PIC X leaves computed while a group of
+        // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
+        // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
+        // of illegal source instead of fixing anything — the two changes are correct only together. A
+        // float/COMP-5/INDEX group has no image at all and stays loud even under --permissive.
+        null when p.Item.IsImageCapable =>
             new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? PlaceRenderer.Read(p) : $"{PlaceRenderer.Read(p)}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? PlaceRenderer.Read(p)}'"), 0),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native

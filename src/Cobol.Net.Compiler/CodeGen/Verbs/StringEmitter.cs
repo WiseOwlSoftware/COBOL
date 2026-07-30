@@ -68,7 +68,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         int id = ctx.Names.NextStrUnstr();
         string src = $"__unsSrc{id}", dels = $"__unsDel{id}", alls = $"__unsAll{id}",
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
-        w.Line($"string {src} = {ReadImage(s.Source)};");
+        w.Line($"string {src} = {OperandText.AsString(s.Source, num)};");   // DA4: an operand (may be a function)
         if (s.Delimiters.Count > 0)
         {
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative

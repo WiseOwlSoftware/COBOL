@@ -692,13 +692,18 @@ stringStatement
     : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? END_STRING?
     ;
 
+// DA4: functionCall is FIRST — §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so every
+// "identifier-N" SENDING position admits one. Keyword-led (FUNCTION …), so it cannot be shadowed by
+// dataReference. §8.4.3.2.3 SR1 bars a function-identifier only from a RECEIVING operand, which is why the
+// INTO phrases below are untouched. A keyword-OMITTED function (a repository name + parens) still parses as a
+// dataReference and is resolved by the binder's KeywordOmittedFunction path — unchanged.
 stringSendingPhrase
-    : (dataReference | literal | figurativeConstant)
+    : (functionCall | dataReference | literal | figurativeConstant)
       delimitedByPhrase?
     ;
 
 delimitedByPhrase
-    : DELIMITED BY? (ALL)? (dataReference | literal | figurativeConstant | SIZE)
+    : DELIMITED BY? (ALL)? (functionCall | dataReference | literal | figurativeConstant | SIZE)
     ;
 
 stringIntoPhrase
@@ -723,7 +728,7 @@ stringOnOverflow
 // ==========================================
 
 unstringStatement
-    : UNSTRING dataReference
+    : UNSTRING (functionCall | dataReference)
       unstringDelimiterPhrase?
       unstringIntoPhrase+
       unstringWithPointer?
@@ -738,7 +743,7 @@ unstringDelimiterPhrase
     ;
 
 unstringDelimiterItem
-    : (ALL)? (dataReference | literal | figurativeConstant)
+    : (ALL)? (functionCall | dataReference | literal | figurativeConstant)
     ;
 
 unstringIntoPhrase

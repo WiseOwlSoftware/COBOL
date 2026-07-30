@@ -70,7 +70,23 @@
   FRESH inconsistency of exactly the kind DA5/DA6 exist to remove. ⚠ Note the elementary arm's own comment cites
   §14.9.25.4 GR6 as justification — that is the MOVE rule, not the arithmetic-operand rule; a MOVE citation cannot
   license an arithmetic operand.
-- **🔴 IMPLEMENTATION ATTEMPTED AND REVERTED — the measurement is the deliverable.** Putting the check at
+- **✅ LANDED (DEVLOG 1110) — strict rejects, `--permissive` accepts CONSISTENTLY.** The rule is enforced for ALL
+  THREE alphanumeric shapes (group, elementary alphanumeric/national, reference-modified), reusing
+  **COBOLNET0844** — which already IS "not a numeric operand (ISO §8.8.1.1)". Edition-invariant, verified at
+  85/2002/2014/2023. Under `--permissive` both group kinds now decode identically (`R=001235`), which is the
+  inconsistency this entry existed to remove; `NumericRenderer`'s group arm moved to `IsImageCapable` in the SAME
+  change set, correct only paired with the rejection. `ArithmeticOperandClassTests` owns the permissive-leniency
+  and consistency facts a reject-only fixture cannot express, plus the FALSE-POSITIVE guard; negative fixtures
+  `da6-group-numeric-operand` / `da6-alphanumeric-numeric-operand` / `da6-refmod-numeric-operand`.
+- **⛔ THE DESIGN THE FIRST ATTEMPT PROVED NECESSARY.** The rule is context-sensitive and the leaf cannot infer the
+  context, so the operand context TRAVELS BY PARAMETER — the same discipline the render-side receiver follows
+  (P7 Step 3: "never mutable context state"). An `OperandContext` ENUM, not a bool: the public surface is two
+  intention-revealing entries, `BindExpr` (arithmetic, the default for all ~36 existing callers) and
+  `BindFunctionArgumentExpr` (the ONE opt-out), over one private `BindExprCore` that threads the enum. A bool would
+  have read as `BindExpr(node, true)`, would not survive a third context, and as an OPTIONAL parameter silently
+  breaks the method-group conversions this spine is used through (`Select(host.Expr.BindExpr)`) — which is exactly
+  how the first attempt failed to compile.
+- **🔴 THE FIRST ATTEMPT AND WHY IT FAILED — kept, because the measurement is what produced the design.** Putting the check at
   `ExpressionBinder.RefExpr` (the natural-looking site: it is where a resolved data reference becomes a numeric
   expression operand, and the neighbouring `NonNumericConstantExpr` already raises **COBOLNET0844** for this very
   clause) produced **79 conformance failures** — and NOT from programs abusing the extension. The casualties were
@@ -154,7 +170,22 @@
   halves stay in lockstep), so adding, removing, or silently migrating a site fails a test and forces the decision
   to be recorded. It counts CODE only — the first cut failed on its own explanatory comment.
 
-### DA4 · [MAJOR] · inspect-string · ⏳ OPEN — the STRING statement's sending operand REJECTS a function-identifier at PARSE time
+### DA4 · [MAJOR] · inspect-string · ✅ LANDED (DEVLOG 1110) — a function-identifier in every STRING/UNSTRING SENDING position
+> **Grammar + binder, four positions, one helper.** §14.9.43.2 / §14.9.48.2 write these operands as identifier-N and
+> §8.4.3.1.2 Format 1 makes `function-identifier-1` a FORMAT of an identifier, so all four admit one: STRING
+> identifier-1 and identifier-2 (DELIMITED BY), UNSTRING identifier-1 (the source) and identifier-2/-3
+> (DELIMITED BY … OR …). `functionCall` is keyword-led so it goes FIRST in each alternative and cannot be shadowed
+> by `dataReference`; a keyword-OMITTED function still parses as a dataReference and resolves in the binder as before.
+> **⚠ THE `INTO` PHRASES ARE DELIBERATELY NOT OPENED** — §8.4.3.2.3 SR1 (`cite.py`-verified): "A
+> function-identifier shall not be specified as a receiving operand." All four changed positions are SENDING.
+> **The UNSTRING source needed a bound-tree change and it made the code SIMPLER:** `BoundUnstringStmt.Source` was a
+> `Place`, which a function result has none of, and is now a `BoundOperand` like every other sending operand in
+> these two statements — the emitter had only ever been wrapping the Place to reach `OperandText.AsString`, THE one
+> string-context renderer, so it now passes the operand straight through. SR2's category screen reads whichever
+> shape arrived (a field's PICTURE or an intrinsic's §15.2 result category), so `UNSTRING FUNCTION ORD(C)` is still
+> correctly refused as category numeric. Golden `da4_function_sending_operand` pins all four positions.
+
+### DA4 (original entry, for provenance) — the STRING statement's sending operand REJECTS a function-identifier at PARSE time
 - **Spec:** §14.9.43.2's general format gives the sending operand as **`identifier-1`**, and §8.4.3.1.2 **Format 1
   of an identifier IS `function-identifier-1`** (`cite.py --check`-verified). No syntax rule excludes a function:
   §14.9.43.3 SR1 requires the identifiers be "described implicitly or explicitly as usage display or national",
@@ -168,7 +199,19 @@
   MOVE-to-alphanumeric did (both fixed by DA2); STRING is rejected one stage earlier. Grammar changes are
   pre-authorized, so this is a `Core/*.g4` sending-operand alternative plus the bind path and a golden.
 
-### DA3 · [MAJOR] · conditions · ⏳ OPEN — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
+### DA3 · [MAJOR] · conditions · ✅ LANDED (DEVLOG 1110) — and the ROOT CAUSE was three copies of one dispatch
+> §8.3.3.2 **Format 2** is the hexadecimal-alphanumeric FORMAT *of* the alphanumeric literal, and §8.3.3.2.1 makes
+> every format of it "of the class and category alphanumeric" (both `cite.py`-verified). So `X"…"` belongs wherever
+> an alphanumeric literal belongs.
+> **⛔ THE REAL DEFECT WAS DUPLICATION, NOT A MISSING ARM.** The "non-numeric literal → operand" chain existed in
+> THREE hand-maintained copies — `ExpressionBinder.LiteralOperand`, `IntrinsicBinder.NonNumericOperand`, and inline
+> in `ConditionBinder`'s comparison-operand binder — and the hex form was simply absent from one of them. That is
+> why the same literal worked in a MOVE and staged loud as "comparison operand" in a relation. Adding a fourth arm
+> to a third copy would have guaranteed the next literal form broke too, so the fix EXTRACTED one canonical
+> `NonNumericLiteralOperand` mapping that all three now call; a new literal form is a one-line change in one place.
+> Golden `da3_hex_literal_operand` pins all three positions (relation, MOVE, intrinsic argument).
+
+### DA3 (original entry, for provenance) — a HEXADECIMAL literal as a comparison operand is staged loud at RUN TIME
 - **Spec:** §8.3.3.2 defines the hexadecimal format of an alphanumeric literal (`X"F0F1"`), and it is an
   ALPHANUMERIC LITERAL — §8.8.4.1.1 admits a literal on either side of a relation condition with no format
   restriction. So `IF G = X"FFF94142"` is CONFORMING SOURCE.

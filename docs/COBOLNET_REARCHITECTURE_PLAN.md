@@ -409,8 +409,10 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **Battery reference (2026-07-29, V59 + DA2 + DA5 + DA7 COMPLETE — supersedes the 4120/942 earlier the same day):**
-  FULL Conformance **4123/4123, zero skipped, NOTHING red** (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
+- **Battery reference (2026-07-29 — V59 · DA2 · DA3 · DA4 · DA5 · DA7 COMPLETE, DA6 COMPLETE; supersedes the
+  4123/942 earlier the same day):** FULL Conformance **4137/4137, zero skipped, NOTHING red** (+14 over 4123: the
+  `da3_hex_literal_operand` and `da4_function_sending_operand` goldens, 3 DA6 negative fixtures, and 9
+  `ArithmeticOperandClassTests` facts) (+1 `v59_length_agrees`, +1 `da2_function_as_text`,
   +1 `da5_call_comp_group`, +1 `da5_table_sort_group_key`, +1 `da5_group_verbs_comp_leaf`, **+3 DA7 NEGATIVE
   fixtures** `da7-inspect-binary-operand`/`da7-string-into-binary`/`da7-unstring-into-binary`, each asserted to
   reject at all four editions — negative corpus now 127 enabled; the earlier +2 was `v59_byte_image` and
