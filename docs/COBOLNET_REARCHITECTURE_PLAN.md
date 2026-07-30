@@ -50,6 +50,23 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     all-or-nothing atomic writer (`scripts/spec/record_verdicts.py`), and a battery gate
     (`SpecTraceabilityInventoryDriftTests`) that RECOMPUTES `state` and resolves every `code-location` and
     `test-ref` against the tree. See NEXT item 1 for the loop.
+  · **THE FIRST VERDICT BATCH — §15.7 + §15.70–15.79, 55 rules over 11 intrinsics. GAP 3790 → 3778.**
+    23 CONFORMS (12 closed · 11 CONFORMS-but-untested) · 18 DIVERGES · 13 PARTIAL · 1 NEEDS-OWNER-DECISION.
+  · **⛔ PB1 — THE FIRST FINDING THE INVENTORY FED INTO THE FIX QUEUE, AND IT IS ONE DEFECT BEHIND 12 ROWS.**
+    `IntrinsicCatalog` declares an `ArgKinds` argument-class string on all **79** rows and
+    `IntrinsicSig.ArgKind(int)` has **zero callers** — the only read anywhere is the `== "p"` MAX/MIN test. So no
+    §15 argument-class rule is enforced from the table built for it. Reproduced BY HAND both ways:
+    `FUNCTION REVERSE(<PIC 9(4)>)` compiles and prints `4321`; `FUNCTION ABS(<PIC X(4)>)` compiles and prints
+    `0000000{`. ⚠ It is also a **hole in DA6** — function arguments bypass the §8.8.1.1 screen DA6 installed.
+    Scope: 216 AR rules over 43 functions in §15, 47 of them explicit class constraints; 11 functions adjudicated.
+  · **⛔ AND THE LESSON THAT CHANGED THE MECHANISM: A DIFFERENTIAL MAY NOT CLOSE A ROW.** The batch offered 19
+    CONFORMS with a covering test and **7 of them rested only on a NIST golden or a `*_MatchesLegacy`
+    differential** — the artifacts CLAUDE.md rule 1 calls regression nets, never authority. Merging would have
+    moved the v1.0 burn-down on exactly the evidence the mission forbids. Every `test-ref` form now carries
+    `spec-derived`, `disqualifying-method-patterns` strikes `*_MatchesLegacy`-style tests, and BOTH evaluators
+    enforce it. That in turn split `requires` (what a RECORD needs) from what a ROW needs to CLOSE, which is what
+    makes **CONFORMS-but-untested** expressible — the category design doc §3 Phase C names. `session-probe` had
+    the same bug in the same direction and is fixed. DEVLOG 1115.
 - **WHAT LANDED IN THE PRECEDING WAVE (all spec-derived, all gated):**
   · **V59 COMPLETE** — one byte representation at every byte boundary; with it the **46-finding conformance audit
     is CLOSED**. DEVLOG 1095–1102.
@@ -111,6 +128,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    · **A verdict is CONFORMS only if the implementing code was read.** Not located ⇒ NOT-IMPLEMENTED; located but
      an edge unverified ⇒ PARTIAL. A false CONFORMS is worse than an open GAP: a GAP gets revisited, a closed row
      never does.
+   · **⛔ ONLY A SPEC-DERIVED TEST CLOSES A ROW.** A NIST golden, a characterization snapshot and any
+     `*_MatchesLegacy` test are REGRESSION NETS (CLAUDE.md rule 1) — record them as corroboration, but the row
+     stays open until a test whose expected value was computed FROM THE SPEC covers it. The gate enforces this;
+     the first batch offered 7 rows that would have closed on a differential. **CONFORMS-but-untested is a real,
+     recordable state** — verdict recorded, row still a GAP, one golden from done — and it is what the
+     `test-needed` line in `session-probe` counts.
    · Every candidate verdict is adversarially re-verified before it is trusted (design doc §7) — the refuter is
      told to overturn, and to default to overturning when uncertain.
 

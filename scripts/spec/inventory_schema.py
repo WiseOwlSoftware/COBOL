@@ -50,6 +50,8 @@ class Schema:
         self.code_location_sep: str = raw["code-location"]["separator"]
         self.test_ref_sep: str = raw["test-ref"]["separator"]
         self.test_ref_forms: dict[str, dict[str, Any]] = raw["test-ref"]["forms"]
+        self.spec_derived_required: bool = raw["test-ref"]["spec-derived-required"]
+        self.disqualifying_methods = [re.compile(p) for p in raw["test-ref"]["disqualifying-method-patterns"]]
 
     @property
     def resolving(self) -> set[str]:
@@ -59,19 +61,47 @@ class Schema:
     def requires(self, verdict: str) -> list[str]:
         return list(self.verdicts[verdict]["requires"])
 
+    def is_spec_derived(self, reference: str) -> bool:
+        """Can this ONE test-ref be the basis for closing a row?
+
+        Two ways to fail. The FORM can be inherently differential — a NIST CCVS golden, a characterization
+        snapshot — which CLAUDE.md rule 1 makes a regression net rather than authority. Or the form can be
+        spec-derived-capable while the specific test is not: an xUnit test named `*_MatchesLegacy` says in its own
+        name that its expected value came from the legacy engine.
+        """
+        scheme, _, body = reference.partition(":")
+        form = self.test_ref_forms.get(scheme)
+        if form is None or not form.get("spec-derived"):
+            return False
+        method = body.rsplit(".", 1)[-1].strip()
+        return not any(rx.search(method) for rx in self.disqualifying_methods)
+
     def state_for(self, row: dict[str, Any]) -> str:
-        """A row is OK only when its verdict resolves AND every field that verdict requires is filled.
+        """A row is OK only when its verdict resolves, its required evidence is present, AND a SPEC-DERIVED test
+        covers it.
 
         This is the definition of DONE from `DESIGN-spec-conformance-review.md` §1, evaluated rather than
         asserted: (a) a located implementation or a recorded non-support decision, (b) a spec-verified verdict,
         (c) a covering spec-derived test. A row that merely says CONFORMS with nothing behind it stays a GAP —
-        which is the point, since the GAP count is the v1.0 completion metric and must never be cheaper to move
-        than the work it stands for.
+        the point being that the GAP count is the v1.0 completion metric and must never be cheaper to move than
+        the work it stands for.
+
+        ⛔ The spec-derived clause is separate from `requires` ON PURPOSE, and it is the whole reason
+        CONFORMS-but-untested is expressible: the rule can be verified against the code (a real, recordable
+        finding) while no test yet pins it (so the row is not done). Folding the test into `requires` would force
+        every such row to be misrecorded as PARTIAL or, worse, closed on whatever test happened to touch the
+        function — which on the first Phase-B batch would have closed seven rows on NIST goldens and a
+        `*_MatchesLegacy` differential.
         """
         verdict = row.get("verdict") or ""
         if verdict not in self.resolving:
             return "GAP"
-        return "OK" if all(row.get(f) for f in self.requires(verdict)) else "GAP"
+        if not all(row.get(f) for f in self.requires(verdict)):
+            return "GAP"
+        if not self.spec_derived_required:
+            return "OK" if row.get("test-ref") else "GAP"
+        refs = self.split(row.get("test-ref", ""), self.test_ref_sep)
+        return "OK" if any(self.is_spec_derived(r) for r in refs) else "GAP"
 
     def split(self, value: str, sep: str) -> list[str]:
         return [p for p in (p.strip() for p in value.split(sep.strip())) if p]

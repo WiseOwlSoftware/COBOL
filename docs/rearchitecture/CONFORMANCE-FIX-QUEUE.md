@@ -10,14 +10,84 @@
 
 **LANDED (spec-first, this campaign):** CA31 ✅, CA32 ✅ (blockers; DEVLOG 995) · CA1 ✅, CA2 ✅ (accept-display-misc; DEVLOG 996) · CA27 ✅, CA28 ✅ (move-convert — CA28 also RETRACTED a spec-wrong test + VCR row 130c; DEVLOG 998) · CA13 ✅, CA39 ✅ (editions-gating; DEVLOG 999) · CA15 ✅, CA16 ✅ (files-io — line-seq over-length '06', OPTIONAL I-O create '05'/'10'; DEVLOG 1000). **+ CA24 ✅ · V54 ✅ · CA23 ✅ · CA25 ✅ (intrinsics batch COMPLETE — EXP/EXP10 overflow + LOG/LOG10 domain; MAX/MIN national category; MAX/MIN/ORD PCS collation; UPPER/LOWER/REVERSE national category; DEVLOG 1001–1004). **+ CA33 ✅ (picture digit-position CAP; DEVLOG 1005) · CA34 ✅ (numeric VALUE range/sign §13.18.63.3 SR2/SR3, new COBOLNET1625; DEVLOG 1006) · CA35 ✅ (USAGE BINARY/COMP/PACKED-DECIMAL requires a numeric picture §13.18.60.3 SR3, reused COBOLNET0881; DEVLOG 1007) · CA4 ✅ (ADD/SUBTRACT-GIVING composite excludes the resultants §14.9.2.3/§14.9.44.3 SR1b; DEVLOG 1008) · CA5 ✅ (ROUNDED/PROHIBITED bind to the final transfer only — `_outermost` flag; DEVLOG 1009) · CA6 ✅ (binary-N operands excluded from the composite §14.7.7 rule 2b; DEVLOG 1010 — arithmetic batch COMPLETE) · CA7 ✅ (a class condition on a zero-length operand is FALSE §8.8.4.4.4 GR1; DEVLOG 1011) · CA36 ✅ (SEARCH range-EC dispatch to a USE declarative when AT END absent §14.9.37.4 GR1b2; DEVLOG 1012). **+ the phase-14 INDEPENDENT-MINORS batch (8 items separated from the EC-infra/OO super-batch; re-scout `wf_a09670d5-cdc`): CA17 ✅ (files-io — a sequential indexed REWRITE's prime-key change-detection is COLLATING-SEQUENCE-based per §14.9.35 GR22 / §12.4.5.12.4 GR1, not ordinal; DEVLOG 1013) · CA8 ✅ (conditions — a bare standard-float SIGN condition is Format 2 §8.8.4.7.3 SR2, tests the IEEE sign bit §8.8.4.7.4 GR2: +0.0 IS POSITIVE / −0.0 IS NEGATIVE; DEVLOG 1014) · V56 ✅ (conditions — a float relation under STANDARD-DECIMAL compares in SDIDI not native double §8.8.4.2.4; DEVLOG 1014) · CA3 ✅ (accept-display — a bare HIGH-/LOW-VALUE in DISPLAY renders the PROGRAM COLLATING SEQUENCE extreme, not the native pin §8.3.3.6.4 GR6/GR7; DEVLOG 1015) · CA19 ✅ + CA20 ✅ (inspect-string — UNSTRING receiver SR4 + sender SR2 category screens §14.9.48.3, runtime-loud per the STRING-side convention; DEVLOG 1016) · CA18 ✅ (files-io — a line-sequential REWRITE overwrites in place per §14.9.35.4 GR17 [00/44/71], no longer a blanket '30'; a delimiter-aware line reader tracks the byte anchor; DEVLOG 1017) · CA26 ✅ (intrinsics — the alphanumeric repertoire is UNICODE [established design]; CHAR/ORD/collation span the full UTF-16 range under a non-native PCS §15.15.3/§12.3.7 k)3, no longer 8-bit-aliased; DEVLOG 1018).** Remaining: 16 fix-ready.** **The phase-14 INDEPENDENT-MINORS batch is COMPLETE (8/8): CA17/CA8/V56/CA3/CA19/CA20/CA18/CA26 all landed.** The 16 remaining are all the bigger/coordinated items: the EC-infra + OO SUPER-BATCH (CA9/10/11/12/V57 · CA21/22/V58 · CA29/30/V55 + CA37/38) and CA14 + V59 (owner-decided). *(DA1, the discovered candidate, is now ✅ LANDED — DEVLOG 1019.)* *(Legacy `GreenfieldOnly` exclusions no longer required — owner decision, DEVLOG 997.)*
 
-**⛔ THE DISCOVERED SET IS ALSO CLOSED — DA1 · DA2 · DA3 · DA4 · DA5 · DA6 · DA7 ALL LANDED (2026-07-29).
-ZERO OPEN ITEMS IN THIS FILE.** Seven items, none part of the original 46, every one found while implementing
+**⛔ THE DISCOVERED SET IS CLOSED — DA1 · DA2 · DA3 · DA4 · DA5 · DA6 · DA7 ALL LANDED (2026-07-29). ONE OPEN
+ITEM REMAINS: `PB1`,** the first finding of the Phase-B traceability review — the intrinsic argument-class table
+declared 79 times and read zero times, which is what makes that batch's 18 DIVERGES mostly ONE defect. The
+inventory is now feeding this queue, which is the design working as intended (`DESIGN-spec-conformance-review.md`
+§3 Phase C: DIVERGES → the fix queue).
+The DA set: seven items, none part of the original 46, every one found while implementing
 something else. Their shared shape is worth carrying forward: **in DA3, DA5 and DA6 the reported symptom was a
 single construct failing, and the root cause was ONE RULE written down in more than one place** — three copies of a
 literal dispatch, two predicates for one question, and a rule enforced at a site that could not know its own
 context. Fixing only the reported construct would have left the mechanism intact each time.
 ⚠ **This file is no longer where the next work comes from** (plan §0 NEXT item 1 is the traceability inventory). It
 stays as the register for anything NEW a future session discovers — add here, keep the tally above current.
+
+## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
+
+### PB1 · [MAJOR] · intrinsics · ⛔ OPEN — the intrinsic ARGUMENT-CLASS table is declared 79 times and read zero times
+
+> **ONE architectural defect presenting as at least 12 separate rule violations.** Found by the first Phase-B
+> verdict batch (§15.7 + §15.70–15.79, 55 rules over 11 functions), and it is the reason that batch returned 18
+> DIVERGES — most of them are not independent bugs.
+>
+> **THE DEFECT.** `IntrinsicCatalog.cs` gives every one of its **79** catalog rows an `ArgKinds` string declaring
+> each argument's required class (`"n"` numeric · `"s"` string · `"i"` integer · `"p"` polymorphic), and exposes
+> `IntrinsicSig.ArgKind(int i)` to read it. **`ArgKind` has zero callers.** The only read of `ArgKinds` anywhere
+> in `src/` is one equality test:
+>
+> ```
+> src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:267
+>     if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
+> ```
+>
+> — the MAX/MIN category-polymorphism switch. So the table that exists precisely to enforce §15's argument rules
+> enforces nothing, and argument-class checking survives only as hand-written per-function arms for a handful of
+> functions (`CheckRepertoireArgs` for DISPLAY-OF/NATIONAL-OF, `BindConvert`, CHAR, the ALGEBRAIC family). **One
+> rule, written in a few places and declared-but-unread in all the others** — the shape DA3/DA5/DA6 recorded as
+> `feedback_one_rule_one_place`, this time with the general mechanism already built and simply not wired in.
+>
+> **⛔ REPRODUCED BY HAND, both directions, at the CLI — not taken from an agent's report:**
+> ```cobol
+> 01 N PIC 9(4) VALUE 1234.   01 R PIC X(10).
+>     MOVE FUNCTION REVERSE(N) TO R        *> §15.78.3 r1: alphabetic/alphanumeric/national ONLY
+> ```
+> compiles clean and displays `4321      `. And the mirror:
+> ```cobol
+> 01 A PIC X(4) VALUE "ABCD". 01 R PIC S9(6)V99.
+>     COMPUTE R = FUNCTION ABS(A)          *> §15.7.3 r1: argument-1 shall be of class numeric
+> ```
+> compiles clean and displays `0000000{` — garbage from coercing `"ABCD"` through `CobolNum.FromAlphanumeric`.
+> Neither emits a diagnostic at any edition.
+>
+> **⚠ AND IT IS A HOLE IN DA6, WHICH LANDED HOURS EARLIER.** DA6 installed the §8.8.1.1 strict reject for an
+> alphanumeric ARITHMETIC operand (`COBOLNET0844`). Function arguments bypass it: `BindArgOperand` routes through
+> `BindFunctionArgumentExpr`, whose `OperandContext.FunctionArgument` deliberately suppresses the
+> `ExpressionBinder.OperandRef` numeric screen. So `COMPUTE R = A` is correctly rejected while
+> `COMPUTE R = FUNCTION ABS(A)` is not. Sweeping DA6's siblings is part of this fix (`feedback_scan_all_similar`).
+>
+> **THE FIX IS THE WIRING, NOT TWELVE PATCHES** (CLAUDE.md rule 5 — prefer the shape that makes the next case
+> automatic). Consume `sig.ArgKind(i)` in `IntrinsicBinder.BindIntrinsicCore` as the general per-argument class
+> screen for every catalogued function, with the existing hand-written arms folded into it or kept only where a
+> rule is genuinely function-specific. Pair it with a drift test asserting that every catalog row's declared
+> `ArgKinds` is actually consulted — otherwise the table can go dead again exactly as it did.
+>
+> **SCOPE — this is bigger than the 12 rows that found it.** §15 holds **216 AR rules across 43 functions**, of
+> which **47 are explicit class/category constraints**; only 11 functions have been adjudicated so far. Expect the
+> remaining §15 clauses to return the same verdict, and expect the count to grow as Phase B proceeds. The
+> VALUE-constraint rules ride along: §15.3 requires a bad argument VALUE to set **EC-ARGUMENT-FUNCTION**
+> (`FUNCTION REM(x 0)`, `FUNCTION PRESENT-VALUE(-1 …)`, `FUNCTION RANDOM(-1)`, a zero-length literal to ORD-MAX),
+> and none of those raises today either.
+>
+> **INSTANCES RECORDED IN THE INVENTORY** (each row carries its own §, code-location and reproduction):
+> `AR-15.7.3-1` ABS · `AR-15.70.3-1` ORD · `AR-15.71.3-1`/`-3` ORD-MAX · `AR-15.72.3-1`/`-3` ORD-MIN ·
+> `AR-15.74.3-1` PRESENT-VALUE · `AR-15.75.3-1` RANDOM · `AR-15.76.3-1` RANGE · `AR-15.77.3-1` REM ·
+> `AR-15.78.3-1` REVERSE · `AR-15.79.3-3` SECONDS-FROM-FORMATTED-TIME.
+>
+> ⚠ **The 18 DIVERGES and 13 PARTIAL rows behind this are AGENT-SURFACED and adversarially re-verified, but only
+> the two reproductions above and the zero-callers fact were confirmed by hand.** The design doc §7 rule stands:
+> verify each before it drives a code change. They are recorded as DIVERGES/PARTIAL, which do NOT close a GAP, so
+> nothing in the burn-down rests on them.
 
 ## 🔎 DISCOVERED DURING IMPLEMENTATION (not part of the original 46 audit set) — ALL LANDED
 

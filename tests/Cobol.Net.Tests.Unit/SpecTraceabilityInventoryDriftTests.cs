@@ -51,7 +51,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     private sealed record Verdict(string Name, bool Resolves, string[] Requires);
 
-    private sealed record TestRefForm(string Scheme, string? PathTemplate, string? TestDir);
+    private sealed record TestRefForm(string Scheme, string? PathTemplate, string? TestDir, bool SpecDerived);
 
     private sealed record Schema(
         IReadOnlyDictionary<string, Verdict> Verdicts,
@@ -59,7 +59,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Regex CodeLocationPattern,
         string CodeLocationSeparator,
         string TestRefSeparator,
-        IReadOnlyDictionary<string, TestRefForm> TestRefForms);
+        IReadOnlyDictionary<string, TestRefForm> TestRefForms,
+        bool SpecDerivedRequired,
+        Regex[] DisqualifyingMethods);
 
     private static string Str(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
@@ -80,12 +82,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 [.. p.Value.GetProperty("requires").EnumerateArray().Select(x => x.GetString()!)]);
         }
 
+        var testRef = root.GetProperty("test-ref");
         var forms = new Dictionary<string, TestRefForm>(StringComparer.Ordinal);
-        foreach (var p in root.GetProperty("test-ref").GetProperty("forms").EnumerateObject())
+        foreach (var p in testRef.GetProperty("forms").EnumerateObject())
         {
             string tpl = Str(p.Value, "path-template");
             string dir = Str(p.Value, "test-dir");
-            forms[p.Name] = new TestRefForm(p.Name, tpl.Length > 0 ? tpl : null, dir.Length > 0 ? dir : null);
+            forms[p.Name] = new TestRefForm(p.Name, tpl.Length > 0 ? tpl : null, dir.Length > 0 ? dir : null,
+                p.Value.GetProperty("spec-derived").GetBoolean());
         }
 
         var loc = root.GetProperty("code-location");
@@ -94,8 +98,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             [.. root.GetProperty("editions").EnumerateArray().Select(x => x.GetString()!)],
             new Regex(loc.GetProperty("pattern").GetString()!, RegexOptions.Compiled),
             loc.GetProperty("separator").GetString()!,
-            root.GetProperty("test-ref").GetProperty("separator").GetString()!,
-            forms);
+            testRef.GetProperty("separator").GetString()!,
+            forms,
+            testRef.GetProperty("spec-derived-required").GetBoolean(),
+            [.. testRef.GetProperty("disqualifying-method-patterns").EnumerateArray()
+                .Select(x => new Regex(x.GetString()!, RegexOptions.Compiled))]);
     }
 
     private static List<Row> LoadInventory()
@@ -126,11 +133,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     // ── the checks, as pure functions so the self-test can drive the SAME code ───────────────────────
 
-    /// <summary>The state a row is ENTITLED to, per the schema. Mirrors <c>Schema.state_for</c> in Python.</summary>
-    private static string DerivedState(Row r, Schema s) =>
-        s.Verdicts.TryGetValue(r.Verdict, out var v) && v.Resolves
-        && v.Requires.All(f => Field(r, f).Length > 0)
-            ? "OK" : "GAP";
+    /// <summary>
+    /// The state a row is ENTITLED to, per the schema. Mirrors <c>Schema.state_for</c> in Python — and
+    /// <see cref="EveryRowState_IsDerived_NotAsserted"/> is what catches the two drifting apart.
+    /// </summary>
+    /// <remarks>
+    /// The spec-derived clause is separate from <c>requires</c> on purpose: it is what makes
+    /// CONFORMS-but-untested expressible (the rule verified against the code, no test yet pinning it), a category
+    /// the design doc §3 Phase C names outright.
+    /// </remarks>
+    private static string DerivedState(Row r, Schema s)
+    {
+        if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves) return "GAP";
+        if (!v.Requires.All(f => Field(r, f).Length > 0)) return "GAP";
+        if (!s.SpecDerivedRequired) return r.TestRef.Length > 0 ? "OK" : "GAP";
+        return Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
+    }
 
     private static string Field(Row r, string name) => name switch
     {
@@ -160,6 +178,42 @@ public sealed class SpecTraceabilityInventoryDriftTests
             from f in v.Requires
             where Field(r, f).Length == 0
             select $"{r.RuleId}: verdict {r.Verdict} requires a non-empty '{f}'"];
+
+    /// <summary>
+    /// Is this one ref an acceptable BASIS for closing a row — spec-derived, not a differential?
+    /// </summary>
+    /// <remarks>
+    /// Two ways to fail. The FORM can be inherently differential (a NIST CCVS golden, a characterization
+    /// snapshot). Or the form can be spec-derived-capable while the specific test is not: an xUnit test named
+    /// <c>*_MatchesLegacy</c> says in its own name that its expected value came from the legacy engine, which
+    /// CLAUDE.md rule 1 forbids as authority. Keying on the repo's own naming convention is narrow, but it is
+    /// exact where it applies, and it fails LOUDLY rather than quietly accepting a differential as coverage.
+    /// </remarks>
+    private static bool IsSpecDerived(string reference, Schema s)
+    {
+        int colon = reference.IndexOf(':');
+        string scheme = colon < 0 ? reference : reference[..colon];
+        if (!s.TestRefForms.TryGetValue(scheme, out var form) || !form.SpecDerived) return false;
+        string body = colon < 0 ? "" : reference[(colon + 1)..].Trim();
+        string method = body[(body.LastIndexOf('.') + 1)..];
+        return !s.DisqualifyingMethods.Any(rx => rx.IsMatch(method));
+    }
+
+    /// <summary>
+    /// A row that is CLOSED (state OK) but rests only on differential evidence. <see cref="DerivedState"/> already
+    /// refuses to close such a row, so in a healthy tree this is unreachable — it is kept as a named, independent
+    /// assertion of the RULE, so that a future bug in the derivation cannot quietly close rows on NIST goldens.
+    /// </summary>
+    private static List<string> DifferentialOnlyCoverage(IEnumerable<Row> rows, Schema s)
+    {
+        if (!s.SpecDerivedRequired) return [];
+        return [.. from r in rows
+                   where r.State == "OK"
+                   let refs = Split(r.TestRef, s.TestRefSeparator)
+                   where !refs.Any(x => IsSpecDerived(x, s))
+                   select $"{r.RuleId}: state OK but covered ONLY by non-spec-derived test(s) "
+                          + $"[{string.Join(", ", refs)}] — a differential cannot close a row (design doc §1c)"];
+    }
 
     private static List<string> BadEditions(IEnumerable<Row> rows, Schema s) =>
         [.. from r in rows
@@ -342,6 +396,21 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(bad.Count == 0, Report("verdict(s) missing required evidence", bad, rows.Count));
     }
 
+    /// <summary>
+    /// ⛔ A row closes on a SPEC-DERIVED test or it does not close. The definition of DONE
+    /// (<c>DESIGN-spec-conformance-review.md</c> §1c) requires the expected value to be computed from the spec,
+    /// and CLAUDE.md rule 1 makes NIST, the legacy and GnuCOBOL regression nets rather than authority — a
+    /// differential is structurally blind to a violation both sides share, which is exactly the case a
+    /// conformance review exists to catch.
+    /// </summary>
+    [Fact]
+    public void EveryResolvedRow_CitesASpecDerivedTest()
+    {
+        var rows = LoadInventory();
+        var bad = DifferentialOnlyCoverage(rows, LoadSchema());
+        Assert.True(bad.Count == 0, Report("row(s) closed on differential evidence alone", bad, rows.Count));
+    }
+
     /// <summary>An <c>editions</c> field names only the four editions the compiler implements.</summary>
     [Fact]
     public void EveryEditionsField_NamesOnlyKnownEditions()
@@ -396,11 +465,36 @@ public sealed class SpecTraceabilityInventoryDriftTests
             State = "GAP",
         }], s));
 
-        // CONFORMS with no code-location and no test-ref: two required fields, two violations.
-        Assert.Equal(2, MissingEvidence([Base("X-4") with { Verdict = "CONFORMS" }], s).Count);
+        // CONFORMS with no code-location: the one field that verdict requires. (test-ref is NOT required to
+        // record a CONFORMS — only to CLOSE the row — which is what makes CONFORMS-but-untested expressible.)
+        Assert.Single(MissingEvidence([Base("X-4") with { Verdict = "CONFORMS" }], s));
 
         // An edition the compiler does not have.
         Assert.Single(BadEditions([Base("X-5") with { Editions = "85,1974" }], s));
+
+        // ⛔ DIFFERENTIAL-ONLY COVERAGE. A NIST golden alone, and a *_MatchesLegacy test alone, are both real
+        // shapes — the first Phase-B batch produced seven of them before this rule existed. Neither may close a
+        // row, so the derived state is GAP and a row asserting OK on that basis is caught twice over.
+        Row Covered(string id, string testRef) => Base(id) with
+        {
+            Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py", TestRef = testRef, State = "OK",
+        };
+        Assert.Single(DifferentialOnlyCoverage([Covered("X-5a", "nist:IF128A")], s));
+        Assert.Single(DifferentialOnlyCoverage(
+            [Covered("X-5b", "conformance-test:IntrinsicFunctionDifferentialTests.ExactFamily_MatchesLegacy")], s));
+        Assert.Single(BadStates([Covered("X-5c", "nist:IF128A")], s));   // OK asserted; GAP derived
+
+        // …but the SAME row also citing one spec-derived test is fine: corroboration is welcome, it just cannot
+        // be the whole basis.
+        Assert.Empty(DifferentialOnlyCoverage(
+            [Covered("X-5d", "nist:IF128A; conformance:2023/da2_function_as_text")], s));
+        Assert.Empty(BadStates([Covered("X-5e", "nist:IF128A; conformance:2023/da2_function_as_text")], s));
+
+        // CONFORMS-but-untested: verdict recordable, row NOT closed. This is the category the split exists for.
+        Assert.Empty(MissingEvidence(
+            [Base("X-5f") with { Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" }], s));
+        Assert.Empty(BadStates(
+            [Base("X-5g") with { Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" }], s));
 
         // A code-location whose FILE is gone, and one whose SYMBOL is gone from a file that still exists.
         Assert.Single(UnresolvedCodeLocations(

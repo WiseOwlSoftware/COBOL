@@ -168,6 +168,26 @@ A record sets only the five adjudicated fields and is keyed by `rule-id`:
   that DID land look exactly like reviewed work, and nothing afterwards can tell them apart.
 - **`state` is recomputed, never believed.** Both the Python side and the gate derive it from the verdict and its
   evidence. Closing a GAP by hand-editing a string fails the battery.
+- **⛔ ONLY A SPEC-DERIVED TEST CLOSES A ROW — §1(c), enforced rather than trusted.** Each `test-ref` form carries
+  `spec-derived`: `conformance` / `unit` / `conformance-test` yes; **`nist` and `characterization` no**, because a
+  NIST CCVS golden and a characterization snapshot are regression NETS (CLAUDE.md rule 1) and a differential is
+  structurally blind to a violation both implementations share. An xUnit form *can* be spec-derived, so the form
+  alone cannot decide it — `disqualifying-method-patterns` additionally strikes any test whose method name says
+  otherwise (`*_MatchesLegacy`, `*_MatchesGnuCobol`, `*_MatchesOracle`). A non-qualifying ref is still worth
+  recording as corroboration; it simply cannot be what closes the row.
+- **`requires` is NOT "what closes the row".** `requires` is the evidence a RECORD needs to be well-formed —
+  evidence for the VERDICT. Closing additionally needs the spec-derived test. Keeping them apart is what makes
+  **CONFORMS-but-untested** expressible, the Phase-C category §3 names: the rule verified against the code, no
+  test yet pinning it, row still a GAP and one golden from done. Folding the test into `requires` would force
+  every such row to be misrecorded as PARTIAL — or closed on whatever test happened to touch the function.
+
+> **⚠ BOTH OF THE ABOVE WERE LEARNED FROM THE FIRST BATCH, NOT DESIGNED IN.** It returned 19 CONFORMS rows
+> carrying a covering test, and **7 rested on nothing but a NIST golden or a `*_MatchesLegacy` differential** —
+> they would have moved the v1.0 burn-down on exactly the evidence this document's §1(c) rules out. The cause was
+> upstream of the agents: the fan-out prompt said which forms RESOLVE and never that a cover must be spec-derived,
+> and the schema listed `nist:` with nothing marking it differential. Any future fan-out prompt must state the
+> spec-derived requirement explicitly. `session-probe` had the same blind spot in the same direction — it counted
+> "test-needed" as an EMPTY `test-ref` rather than as a row that did not close, under-reporting 11 as 4.
 
 **What the gate actually enforces** (nine facts, and it is proven able to fail — see below): the inventory covers
 the catalog exactly, no row contradicts its catalog entry, every verdict is in the vocabulary, every stored `state`

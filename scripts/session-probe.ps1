@@ -56,8 +56,12 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
         $byVerdict = $adjudicated | Group-Object verdict | Sort-Object Count -Descending |
             ForEach-Object { "$($_.Name) $($_.Count)" }
         Write-Host "       $($adjudicated.Count) adjudicated · $($byVerdict -join ' · ')"
-        $needTest = @($adjudicated | Where-Object { $_.verdict -eq 'CONFORMS' -and -not $_.'test-ref' }).Count
-        if ($needTest -gt 0) { Write-Host "       $needTest CONFORMS still test-needed (each is one golden from OK)" }
+        # ⛔ "test-needed" is a row that DID NOT CLOSE, not a row with an empty test-ref. The two differ: a row
+        # can cite a NIST golden or a *_MatchesLegacy differential — which resolves on disk and is worth
+        # recording — and still be open, because only a SPEC-DERIVED test closes a row. Keying on the empty
+        # string under-reported this by 7 of 11 on the first Phase-B batch.
+        $needTest = @($adjudicated | Where-Object { $_.verdict -eq 'CONFORMS' -and $_.state -eq 'GAP' }).Count
+        if ($needTest -gt 0) { Write-Host "       $needTest CONFORMS still test-needed (each is one spec-derived golden from OK)" }
     }
 } else {
     Write-Host "invent : not built yet (P14 Step 0)"

@@ -147,6 +147,9 @@ def main() -> int:
 
     gap_before = sum(1 for r in rows if r["state"] == "GAP")
     changed, rewritten = 0, []
+    verdicts: Counter[str] = Counter()
+    closed: Counter[str] = Counter()
+    untested: list[str] = []
     for _, _, rec in records:
         row = by_id[rec["rule-id"]]
         had = row.get("verdict") or ""
@@ -158,15 +161,29 @@ def main() -> int:
         row["state"] = schema.state_for(row)
         if any(row[k] != before[k] for k in ADJUDICATED):
             changed += 1
+        verdicts[rec["verdict"]] += 1
+        if row["state"] == "OK":
+            closed[rec["verdict"]] += 1
+        elif rec["verdict"] in schema.resolving:
+            untested.append(rec["rule-id"])
 
     gap_after = sum(1 for r in rows if r["state"] == "GAP")
-    verdicts = Counter(rec["verdict"] for _, _, rec in records)
 
     print(f"records        : {len(records)} across {len(args.batches)} batch file(s)")
     print(f"rows changed   : {changed}")
     for v, n in sorted(verdicts.items(), key=lambda kv: -kv[1]):
-        closes = " (closes the GAP)" if v in schema.resolving else ""
-        print(f"    {v:<24s} {n:5d}{closes}")
+        # Report what ACTUALLY closed, per verdict — not what the verdict is nominally capable of closing. A
+        # resolving verdict still needs a SPEC-DERIVED covering test, so "CONFORMS n" and "n rows closed" are
+        # different numbers, and printing the first as if it were the second is how a burn-down gets overstated.
+        note = ""
+        if v in schema.resolving:
+            note = f" — {closed[v]} closed the GAP, {n - closed[v]} still test-needed"
+        print(f"    {v:<24s} {n:5d}{note}")
+    if untested:
+        print(f"\n  ⓘ {len(untested)} CONFORMS-but-untested row(s) — verdict recorded, row still open until a"
+              f" SPEC-DERIVED test covers it (a NIST golden or a *_MatchesLegacy differential does not):")
+        for rid in untested[:10]:
+            print(f"       {rid}")
     if rewritten:
         print(f"\n  ⚠ {len(rewritten)} row(s) RE-ADJUDICATED — a prior verdict was replaced:")
         for r in rewritten[:10]:
