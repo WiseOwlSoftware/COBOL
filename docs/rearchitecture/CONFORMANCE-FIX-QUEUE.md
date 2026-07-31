@@ -136,11 +136,38 @@ below index it).
 > express two of §8.5.2.1 Table 2's classes (INDEX stays unscreened), and the screen is STRUCTURALLY UNREACHABLE
 > for every phrase-keyword intrinsic (FIND-STRING, SUBSTITUTE, TRIM, CONVERT) — no `Verified` row can fix those.
 
-### PB13 · [BLOCKER] · numerics · ⛔ OPEN — the PB5 quantizer residue is still reachable, and wider than PB5 recorded
-> **7 findings over 4 subjects.** `FromDouble`'s saturation is reachable from a declarable receiver, contradicting
-> PB5's own note; and an INTEGER-TYPE result is quantized at `ws = max(Receiver.Scale, 9)` instead of scale 0, so
-> `FUNCTION INTEGER`'s value depends on its RECEIVER — the same §15.4.1 violation §0 already records for COS.
-> Silently wrong values in ordinary ranges, which is why this is the one BLOCKER in the set.
+### PB13 · [BLOCKER] · numerics · ⛔ OPEN — the float→fixed quantizer saturates SILENTLY, and PB5 closed on a false premise
+> **7 findings over 4 subjects. HAND-REPRODUCED — both cases below were run, and the cluster summary that used to
+> sit here UNDERSOLD it.** It said "reachable from a declarable receiver"; the sharper case needs no receiver at
+> all. A pending golden pins the correct behaviour: `conformance:2023/pb13_float_quantize_headroom` (registered
+> under `pending`, and verified to FAIL on both cases today).
+> ```
+> 01 R PIC 9(31).
+>     COMPUTE R = FUNCTION EXP(70) ON SIZE ERROR … NOT ON SIZE ERROR …
+>   -> NO-SIZE-ERROR ;  R = 0170141183460469231731687303715
+>      §15.34.4 r1 + §15.4.1 require ≈2.5154386709191670×10³⁰ — WRONG BY A FACTOR OF ~15, SILENTLY.
+>
+> IF FUNCTION EXP10(30) = FUNCTION EXP10(31)   ->  TRUE
+>   -> two values a FACTOR OF TEN apart compare EQUAL, with NO receiver in the statement.
+> ```
+> **⛔ PB5's CLOSING PREMISE IS FALSE TWICE, and that is why this survived.** `FromDouble`'s doc asserted the
+> clamp was "past the 10¹⁸ any PICTURE can describe, so unreachable from a declarable receiver". (1) A PICTURE
+> reaches 31 digit positions (CA33 caps it there), so `PIC 9(31)` holds 10³⁰. (2) The clamp fires at the
+> FUNCTION's quantization point, BEFORE any store — a relation operand renders under `ReceiverContext.None`
+> (scale 0 ⇒ ws = 9), so both sides saturate identically. The comment is now corrected in place.
+> **⛔ DO NOT WIDEN THE CLAMP CONSTANT.** At `ws = 9` the intermediate needs (receiver integer digits + 9)
+> decimal digits and `Int128` supplies ~38, so a 31-digit receiver is two digits short whatever constant is
+> chosen. The fix is TWO-SIDED and the second half is the structural blocker:
+> · **emitter** — `IntrinsicRenderer#RenderFloat` must choose the working scale against the receiver's
+>   CAPACITY, not just its scale. ⚠ `ReceiverContext(int Scale, bool Real, CobolRounding, bool InSizeError)`
+>   carries NO digit count, so threading capacity through it is the actual work;
+> · **runtime** — the receiver-less case cannot be fixed by any emitter-side choice, so `FromDouble` must stop
+>   SILENTLY saturating. §14.7.4 makes an intermediate overflow a size-error condition; loud is the minimum.
+> ⚠ **NOT reproduced: the "INTEGER's value depends on its receiver" half.** `FUNCTION INTEGER(-1.5)` returns −2
+> into scale-0, scale-4 and scale-9 receivers alike, and `COS(1)` into a 9- vs 17-digit receiver differs only by
+> ordinary receiver rounding of one value, which no rule forbids. Finding F80's INTEGER claim is about the
+> saturation path (same root cause as above), not about receiver-dependence — treat the §0 COS remark as
+> unproven until someone produces a case where the VALUE, not its stored rounding, changes.
 
 ### PB14 · [MAJOR] · numerics · ⛔ OPEN — STANDARD / STANDARD-DECIMAL arithmetic + an intrinsic argument emits raw CS1503
 > **4 findings over 4 subjects.** An arithmetic-expression argument under `ARITHMETIC IS STANDARD` reaches the

@@ -46,8 +46,28 @@ public static partial class CobolIntrinsics
     /// something that fits. §15.4.1's native-arithmetic licence permits an implementor-defined APPROXIMATION of
     /// the equivalent arithmetic expression; 9223372036.85 is not an approximation of 10000000001.
     /// <para>
-    /// At scale 9 the Int128 ceiling is ≈1.7 × 10²⁹, which is past the 10¹⁸ any PICTURE can describe, so the
-    /// saturation is now unreachable from a declarable receiver rather than merely further away.
+    /// ⛔ <b>THE CLAIM THAT USED TO SIT HERE — "past the 10¹⁸ any PICTURE can describe, so the saturation is now
+    /// unreachable from a declarable receiver" — IS FALSE, AND BELIEVING IT IS WHY PB5 WAS RECORDED AS CLOSED.</b>
+    /// It is wrong twice over. (1) A PICTURE can describe far more than 10¹⁸: <c>PictureAnalyzer</c> caps digit
+    /// positions at 31 (CA33), so <c>PIC 9(31)</c> is legal and holds 10³⁰ comfortably. (2) The clamp does not
+    /// need a receiver at all — it fires at the FUNCTION's quantization point, before any store.
+    /// Both are reproduced (fix-queue PB13):
+    /// <code>
+    ///   01 R PIC 9(31).
+    ///       COMPUTE R = FUNCTION EXP(70) ON SIZE ERROR … NOT ON SIZE ERROR …
+    ///   -> prints NO SIZE ERROR;  R = 0170141183460469231731687303715
+    ///      where §15.34.4 r1 + §15.4.1 require ≈2.5154386709191670×10³⁰ — wrong by a factor of ~15, silently.
+    ///
+    ///   IF FUNCTION EXP10(30) = FUNCTION EXP10(31)   -> TRUE
+    ///   -> two values a FACTOR OF TEN apart compare equal, with no receiver in the statement: a relation
+    ///      operand renders under ReceiverContext.None, so ws = 9 and both sides saturate to Int128.MaxValue.
+    /// </code>
+    /// The saturation is therefore REACHABLE and SILENT, which is the defect PB5 fixed one instance of.
+    /// ⚠ Do not "fix" this by widening the clamp: at ws = 9 the intermediate needs
+    /// (receiver integer digits + 9) decimal digits, and Int128 supplies ~38, so a 31-digit receiver is 2 digits
+    /// short no matter what constant is chosen. The working scale has to be chosen against the receiver's
+    /// CAPACITY — which <see cref="CodeGen.Roslyn.ReceiverContext"/> does not currently carry — and the
+    /// receiver-less case has to stop being silent. Both halves are PB13.
     /// </para>
     /// </remarks>
     public static Int128 FromDouble(double d, int scale)
