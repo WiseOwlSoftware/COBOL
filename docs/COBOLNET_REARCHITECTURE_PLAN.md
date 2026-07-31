@@ -493,7 +493,10 @@ result. Run the long legs ONE AT A TIME.
   0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
   carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential
   **1323 cases, 0 unexplained flips**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 175 AGREE_REJECT ·
-  102 WE_ACCEPT_THEY_REJECT** (measured at PB8; PB9 landed after and its differential leg is NOT yet re-run).
+  102 WE_ACCEPT_THEY_REJECT** — RE-RUN AT PB9 with a per-case diff showing **0 flips in either direction**, so
+  the totals stand unchanged. ⚠ That is a clean result, not a strong one: the GPL corpus does not exercise
+  the keyword-omitted reserved-name form at all, so the differential had nothing to say about PB9 either
+  way. The internal battery is the evidence there.
   ⚠ **THE DIFFERENTIAL MOVED 19 CASES AND EVERY ONE IS ATTRIBUTED** (the stored per-machine report was a day
   stale, so the diff spans PB1 · PB6 · PB7 · PB8 together, not PB8 alone): **17 FIXES**, of which **13 name
   reference modding outright** (`FUNCTION UPPER-CASE/LOWER-CASE/REVERSE/SUBSTITUTE/TRIM … with reference
