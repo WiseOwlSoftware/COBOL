@@ -60,6 +60,31 @@ below index it).
 > STRING/UNSTRING only. ⛔ **Fix the DISPATCH, not the ten call sites** — this is one rule written in four places
 > and wanted in a dozen. Interacts with PB8: ref-mod of a function result now works, so the ref-mod POSITIONS
 > should too.
+>
+> **⛔ THREE MEASURED CORRECTIONS TO THE FINDINGS ABOVE — made by running them, before any code was written.**
+> · **The SUBSCRIPT and REFERENCE-MODIFIER positions are NOT parse errors.** The finding said "rejected"; they
+>   COMPILE CLEAN and throw `NotImplementedCobolFeatureException` at RUN TIME — `MOVE E(FUNCTION INTEGER(3))`
+>   reaches the runtime as `reference 'E(FUNCTION INTEGER(3))'`. That is the PB7/DA7 wrong-stage family and a
+>   DIFFERENT root cause from the parse rejections: the SUBSCRIPT-mode capture reaches `ReferenceResolver`'s
+>   segment renderer, which has no arm for a nested FUNCTION call. Do not fold it into the grammar fix.
+> · **INSPECT is FORMAT-DEPENDENT and the finding's blanket SR1 citation over-claims.** §14.9.22.2 has four
+>   formats; identifier-1 is a SENDING operand only in Format 1 (TALLYING). In Formats 2/3/4
+>   (REPLACING / TALLYING-and-REPLACING / CONVERTING) it is MODIFIED IN PLACE, so §8.4.3.2.3 SR1 ("a
+>   function-identifier shall not be specified as a receiving operand", validated) BARS one there. Admitting it
+>   unconditionally would accept illegal source. Grammar admits, binder screens per format.
+> · **⚠ THE FIX TOUCHES THE LEGACY COMPILER, which is why it is not a one-file change.** `writeFrom`,
+>   `rewriteFrom`, `releaseFrom` and `initializeReplacingItem` live in the SHARED `CobolParserCore.g4`/`Core`
+>   grammar, so routing them through `moveSendingOperand` breaks ~8 call sites across BOTH `Cobol.Net.Compiler`
+>   AND `CobolSharp.Compiler` (`FileIoBinder`, `DataStatementBinder`, `InitializeBinder`,
+>   `VersionConformancePass`), each of which reads `.dataReference()`/`.literal()` off the context directly.
+>   Attempted and REVERTED rather than landed half-done. The legacy engine survives until the P15 cut-over, so
+>   its binders must be carried, not abandoned — budget for two compilers.
+>
+> **THE SPEC IS ALREADY DERIVED for the clean half**, so the next session starts at code, not at the standard:
+> §14.9.51.4 GR5a makes WRITE FROM equivalent to `MOVE identifier-1 TO record-name-1` (validated), and
+> §14.9.20.3 SR4 says INITIALIZE REPLACING's identifier-2 is "the SENDING item" of a MOVE (validated) — so both
+> admit exactly what `moveSendingOperand` admits, and using that ONE rule is the standard's own definition of
+> the operand rather than a convenience.
 
 ### PB11 · [MAJOR] · date/time · ⛔ OPEN — the §15.39/40/41 date-time FORMAT rules are validated nowhere
 > **19 findings over the 4 FORMATTED-* functions.** §15.39.3 r2, §15.40.3 r2–r7 and §15.41.3 r2–r6 are enforced
