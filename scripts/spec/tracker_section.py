@@ -73,7 +73,15 @@ def build(ledger: dict) -> str:
         by_sev[f["severity"]] += 1
 
     if complete:
-        status = "**COMPLETE** — all %d pages reconciled, every claim adjudicated." % TOTAL_PAGES
+        # ⛔ "COMPLETE" scopes THAT SWEEP, not the transcription. A post-sweep defect was found on
+        # 2026-07-30 while doing unrelated work — §8.11's intrinsic-function-name list had six names
+        # RUN TOGETHER on one line (a page-boundary join), which the page-by-page pass did not catch.
+        # Saying "every claim adjudicated" without that qualifier reads as "provably defect-free".
+        status = ("**COMPLETE for the page-by-page sweep** — all %d pages reconciled, every claim "
+                  "adjudicated. ⚠ That scopes the SWEEP, not the transcription: a defect of exactly "
+                  "this class (a page-boundary run-in in §8.11's intrinsic-name list) was found and "
+                  "repaired AFTER it closed, found by using the file rather than by re-sweeping it. "
+                  "Treat the count as 'what that pass found', not as a proof of absence." % TOTAL_PAGES)
     elif len(swept) < TOTAL_PAGES:
         status = ("⚠ **Sweep IN PROGRESS — %d of %d pages reconciled. This list is NOT final; do not start "
                   "repairs until it is.**" % (len(swept), TOTAL_PAGES))
@@ -118,10 +126,12 @@ def build(ledger: dict) -> str:
         out.append(f"- [ ] **{title}** — {len(items)} finding(s) across {len(pages)} page(s): {shown}")
     out += ["",
             "**Repair discipline:** correct each FAMILY as a whole — the seven ON/OFF directive notes must agree "
-            "with each other or the inconsistency merely moves. After each family: re-run "
-            "`python scripts/spec/extract_rule_catalog.py` (the catalog derives from this file) and confirm the "
-            "page-anchor count is unchanged at 1261, since the anchors are load-bearing for "
-            "`render-spec-page.py`.",
+            "with each other or the inconsistency merely moves. After each family re-run "
+            "`python scripts/spec/extract_rule_catalog.py` (the catalog derives from this file) and "
+            "`python scripts/spec/lint_rendering.py` (the only gate that measures LEGIBILITY rather "
+            "than fidelity). ⛔ The old instruction to confirm a page-anchor count of 1261 is GONE: "
+            "pages were REMOVED from the transcription (it is clause-structured now), so there are no "
+            "`#page-N` anchors left to count and `render-spec-page.py` reads the PDF directly."
             "", END]
     return "\n".join(out)
 
