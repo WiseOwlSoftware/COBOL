@@ -15,8 +15,9 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**✅ PB1–PB9 ALL LANDED — THE QUEUE IS EMPTY AGAIN (2026-07-30), and it is refilled by the traceability review,
-not by exhaustion.** PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
+**⛔ PB1–PB9 LANDED; PB10–PB16 OPENED THE SAME DAY by the §15.32–15.44 batch (2026-07-30).** The queue emptied
+and refilled within hours, which is the design working: adjudicating a clause OPENS items, fixing them CLOSES
+them. **PB10 is the red line — it rejects legal COBOL in a dozen operand positions.** PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
 from sweeping the wrong set, and the real answer was four.
 
 **⚠ PB8 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN ROOT-CAUSE CLAIM.** Its entry named a LEXER-MODE defect
@@ -37,6 +38,79 @@ batch produced 42 open rows over 11 functions; **31 of them were three root caus
 table, PB2's floating-point argument path, PB3's collating tail). The second batch's 41 were **34 of one thing** —
 PB1's table simply did not yet list those functions. Cluster before triaging.
 ## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
+
+### ⛔ BATCH §15.32–15.44 OPENED PB10–PB16 (2026-07-30) — 82 findings, SEVEN root causes
+
+The batch adjudicated 67 rules over 13 functions and returned **31 DIVERGES · 22 PARTIAL · 14 NOT-IMPLEMENTED ·
+ZERO CONFORMS**. Every subject was refuted by an independent agent and every refutation was a downgrade or a
+widening. **The 82 findings are not 82 defects** — clustering them by root cause gives the seven items below plus
+a residue. ⚠ Do NOT work these finding-by-finding: most are one cause seen from ten functions, and fixing the
+cause retires the whole column. Repros: `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md` (F-numbers
+below index it).
+
+**⛔ SEVERITY ORDER, and PB10 is the CLAUDE.md rule 4 red line.**
+
+### PB10 · [MAJOR] · references · ⛔ OPEN — a function-identifier is REJECTED in most identifier-N sending positions
+> **18 findings over 10 subjects — legal COBOL rejected, the widest defect this review has surfaced.**
+> §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, and §8.4.3.2.3 SR1 bars it only from a RECEIVING
+> operand — so EVERY identifier-N SENDING position admits one. The grammar reaches `functionCall` from just FOUR
+> places (`primaryExpression`, `displayStatement`, `moveSendingOperand`, `strUnstrSender`), so the rest reject it:
+> `WRITE`/`REWRITE`/`RELEASE … FROM`, `INSPECT` identifier-1, `INITIALIZE … REPLACING … BY`, a SUBSCRIPT, and a
+> REFERENCE-MODIFIER's positions. `CobolIO.g4`'s own DA4 comment states the principle and then applied it to
+> STRING/UNSTRING only. ⛔ **Fix the DISPATCH, not the ten call sites** — this is one rule written in four places
+> and wanted in a dozen. Interacts with PB8: ref-mod of a function result now works, so the ref-mod POSITIONS
+> should too.
+
+### PB11 · [MAJOR] · date/time · ⛔ OPEN — the §15.39/40/41 date-time FORMAT rules are validated nowhere
+> **19 findings over the 4 FORMATTED-* functions.** §15.39.3 r2, §15.40.3 r2–r7 and §15.41.3 r2–r6 are enforced
+> nowhere: a TIME format passes where a DATE format is required, a combined/basic/extended chimera is accepted, an
+> out-of-range argument-2/3/4 is never checked, and argument-4 is silently DISCARDED when the format admits no
+> offset. The failure mode is a FABRICATED value with no exception condition, not mere over-acceptance.
+> ⛔ **The fix is a RECOGNIZER, not added checks**: `CobolDate.Tokenize` enforces a per-character class and a
+> per-field width, and never answers "is this string one of the formats §15.5 defines".
+
+### PB12 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.3 argument-class screen is absent for most of these functions
+> **13 findings over 10 subjects.** PB1's `IntrinsicArgumentRules.Verified` screen only runs for functions with a
+> row, and these have none — so their argument rules are unenforced and illegal source computes a value. This is
+> PB1's DESIGNED residue (the table grows as the review adjudicates each clause), so it is now due for exactly the
+> clauses this batch adjudicated. ⚠ Two findings say the one-row fix is NOT sufficient: the class lattice cannot
+> express two of §8.5.2.1 Table 2's classes (INDEX stays unscreened), and the screen is STRUCTURALLY UNREACHABLE
+> for every phrase-keyword intrinsic (FIND-STRING, SUBSTITUTE, TRIM, CONVERT) — no `Verified` row can fix those.
+
+### PB13 · [BLOCKER] · numerics · ⛔ OPEN — the PB5 quantizer residue is still reachable, and wider than PB5 recorded
+> **7 findings over 4 subjects.** `FromDouble`'s saturation is reachable from a declarable receiver, contradicting
+> PB5's own note; and an INTEGER-TYPE result is quantized at `ws = max(Receiver.Scale, 9)` instead of scale 0, so
+> `FUNCTION INTEGER`'s value depends on its RECEIVER — the same §15.4.1 violation §0 already records for COS.
+> Silently wrong values in ordinary ranges, which is why this is the one BLOCKER in the set.
+
+### PB14 · [MAJOR] · numerics · ⛔ OPEN — STANDARD / STANDARD-DECIMAL arithmetic + an intrinsic argument emits raw CS1503
+> **4 findings over 4 subjects.** An arithmetic-expression argument under `ARITHMETIC IS STANDARD` reaches the
+> backend as a raw Roslyn `CS1503`, or silently computes the wrong value. This is **the PB2 shape on the Dec axis
+> instead of the Real axis** — PB2 fixed one arm of the same dispatch. One of the four is a missing runtime member
+> (`CobolIntrinsics.FactorialReal` does not exist yet `RenderNum` routes to it).
+
+### PB15 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.x RESULT-TYPE tables are ignored for the FORMATTED-* family and TRIM
+> **4 findings.** §15.39.1/§15.40.1/§15.41.1 make the function's type follow ARGUMENT-1 (national argument ⇒
+> national function); `IntrinsicCatalog` hardcodes `Alphanumeric`. Wrong result category propagates into Table-16
+> MOVE legality and the string channels, so it under-rejects as well as mis-typing.
+
+### PB16 · [MINOR] · date/time · ⛔ OPEN — a fractional-seconds field of ≥19 's' characters overflows and emits garbage
+> `EmitFormatted` computes `(long)Pow10.AsWide(s.Width)`, which overflows past 10¹⁸. Narrow, contained, and a
+> crash rather than a wrong value.
+
+### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
+> Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in
+> every intrinsic argument position (§13.10.4 GR1) · no COBOL word may contain an UNDERSCORE though the standard
+> has permitted it since COBOL-2002 · the hexadecimal-national literal `NX"…"` (§8.3.3.5.2 Format 2) has NO lexer
+> rule and degrades SILENTLY into two arguments · `EXCEPTION-STATEMENT` returns `GO` where Table 12 requires
+> `GO TO` · `EXCEPTION-STATUS` silently truncates an exception-name at 31 characters · `EcBinder.EcWrap` collapses
+> per-CONDITION `WITH LOCATION` into ONE per-STATEMENT bool, so one stray directive contaminates every other
+> condition's §15.32.3 r1 answer · `GOBACK … RAISING` carries no location at all (`BoundRaising` has no such
+> field, unlike its sibling `BoundRaise`) · `FIND-STRING` truncates argument-3 from long to int · a FIGURATIVE
+> CONSTANT as a §15 string argument compiles and throws at run time · `HIGHEST-ALGEBRAIC` rejects every
+> floating-point argument and mis-folds unsigned COMP-5 at the 19–31-digit tier. See the evidence ledger.
+
+
 
 ### PB1 · [MAJOR] · intrinsics · ✅ LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
 

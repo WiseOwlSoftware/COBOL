@@ -139,8 +139,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    Its header is the tally. Two sources of work now exist and they interleave: adjudicate the next clause
    (grows the map), and fix what earlier batches found (shrinks it).
 
-   **✅ THE FIX QUEUE IS EMPTY AGAIN — PB1–PB9 ALL LANDED (2026-07-30).** It empties by being WORKED, and it
-   refills from the review, so an empty queue means "adjudicate the next clause", never "done".
+   **⛔ THE QUEUE EMPTIED AND REFILLED THE SAME DAY — PB1–PB9 LANDED, PB10–PB16 OPENED (2026-07-30).** The
+   §15.32–15.44 batch adjudicated 67 rules over 13 functions and returned **31 DIVERGES · 22 PARTIAL ·
+   14 NOT-IMPLEMENTED · ZERO CONFORMS**, with 82 findings clustering to **seven root causes**. That is the design
+   working, not a setback: adjudicating a clause OPENS items and fixing them CLOSES them.
+   ⛔ **START WITH PB10 — it is the CLAUDE.md rule 4 red line and the widest defect the review has found.** A
+   function-identifier is an IDENTIFIER (§8.4.3.1.2 Format 1) barred only from RECEIVING operands (§8.4.3.2.3
+   SR1), so every identifier-N SENDING position admits one — but the grammar reaches `functionCall` from just
+   FOUR places, so `WRITE … FROM`, `INSPECT`, `INITIALIZE … REPLACING`, a subscript and a ref-mod's positions all
+   reject it. Fix the DISPATCH, not the call sites.
+   ⚠ **Do NOT work the 82 findings one by one** — most are one cause seen from ten functions. Repros are in
+   `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`; the queue carries the clusters.
+   **The NEXT batch after those is §15.45 onward** (`python scripts/spec/phase_b_batch.py 15.45-15.57`).
    ⛔ **PB9 IS THE STANDING WARNING ABOUT A *MEASURED* SCOPE.** Its entry said "measured scope is exactly one
    word (RANDOM)" — measured by sweeping the nine ZERO-ARGUMENT intrinsics, a set that structurally could not
    contain SIGN or SUM because they take arguments. The right set is **§8.9 reserved words ∩ §8.11 intrinsic
