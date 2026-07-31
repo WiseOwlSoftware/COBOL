@@ -136,7 +136,7 @@ below index it).
 > screen sees only the class half; the value half is EC-ARGUMENT-FUNCTION's at run time.
 >
 > **⛔ SIX FUNCTIONS DELIBERATELY GOT NO ROW, and the omissions are the remaining work:**
-> · **FIND-STRING + the four FORMATTED-\* functions** take MIXED argument classes (an alphanumeric/national
+> · **FIND-STRING + the four FORMATTED-* functions** take MIXED argument classes (an alphanumeric/national
 >   format string plus integer operands) and this table carries ONE kind per FUNCTION. A row would screen every
 >   position by the first one's class and REJECT LEGAL SOURCE. Needs a per-POSITION schema — a design change,
 >   which is the half of PB12 still open.

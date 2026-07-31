@@ -161,6 +161,16 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    SR1), so every identifier-N SENDING position admits one — but the grammar reaches `functionCall` from just
    FOUR places, so `WRITE … FROM`, `INSPECT`, `INITIALIZE … REPLACING`, a subscript and a ref-mod's positions all
    reject it. Fix the DISPATCH, not the call sites.
+   ◑ **PB12's SEVEN ROWS ARE LANDED (DEVLOG 1138); PB13 IS REPRODUCED AND SCOPED (DEVLOG 1137).** PB12's open
+   half is the MIXED-argument functions (FIND-STRING + the four FORMATTED-*), which need a per-POSITION kind
+   rather than the table's one-kind-per-function, plus HIGHEST-ALGEBRAIC (whose rule admits numeric-edited, so
+   an `'n'` row would reject legal source). PB13 is not started: widening the clamp constant cannot work, and
+   the fix needs the receiver's CAPACITY threaded through `ReceiverContext` plus a runtime that stops silently
+   saturating — a float→fixed pipeline change, pinned meanwhile by a PENDING golden that fails today.
+   ⚠ **TWO ARGUMENTS WERE TRIED AND REFUTED TODAY; both are recorded IN THE CODE so they are not re-run.**
+   Widening the `'n'` argument-class screen to admit numeric-edited (refuted by §8.8.1.1 — an arithmetic
+   expression needs an identifier referencing a NUMERIC DATA ITEM; caught by an existing negative fixture), and
+   the claim that `FUNCTION INTEGER`'s value depends on its receiver (does not reproduce).
    ⚠ **Do NOT work the 82 findings one by one** — most are one cause seen from ten functions. Repros are in
    `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`; the queue carries the clusters.
    **The NEXT batch after those is §15.45 onward** (`python scripts/spec/phase_b_batch.py 15.45-15.57`).
@@ -510,8 +520,8 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB10.**
-  FULL greenfield Conformance **4160 / 4160, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
+- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB12.**
+  FULL greenfield Conformance **4161 / 4161, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
   skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
   0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
   carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential
