@@ -77,7 +77,9 @@
     "pb5_float_quantize_range",
     "pb7_keyword_omitted_zero_arg",
     "pb8_refmod_function_result",
-    "pb9_reserved_intrinsic_names"
+    "pb9_reserved_intrinsic_names",
+    "general_format_intrinsics_batch1",
+    "argument_rule_equivalences_batch1"
   ],
   "pending": []
 }
