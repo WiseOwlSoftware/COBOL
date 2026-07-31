@@ -200,6 +200,32 @@ internal static class IntrinsicArgumentRules
             // Both are numeric FORMS, so the class screen is the same for each position even though the two
             // rules differ in what they additionally require of the VALUE.
             ["COMBINED-DATETIME"] = ('n', "§15.17.3 r1/r2"),
+
+            // ── §15.32–15.44, the review's fourth batch (fix-queue PB12) ────────────────────────────────────
+            // Each row is the function's OWN §15.x.3 argument rule, read and mechanically cited. Six of the
+            // thirteen functions the batch adjudicated are NOT here, and the omissions are the point:
+            //   · FIND-STRING and the four FORMATTED-* functions take MIXED argument classes (an alphanumeric or
+            //     national format string plus integer operands), and this table carries ONE kind for the whole
+            //     function. A row would screen every position by the first one's class and reject legal source.
+            //     That needs a per-POSITION schema, not an entry — it is the half of PB12 that is a design change.
+            //   · HIGHEST-ALGEBRAIC is the sharper omission: §15.43.3 r1 admits "a data item of category numeric
+            //     OR NUMERIC-EDITED", and §8.5.2.1 Table 2 puts numeric-edited under class ALPHANUMERIC when its
+            //     usage is display — so an 'n' row would REJECT an argument the standard admits. That is exactly
+            //     the PB1 trap (12 legal corpus programs rejected by asserting an unaudited kind), so it stays
+            //     unscreened until a kind exists that can say "category numeric or numeric-edited".
+            ["EXP"] = ('n', "§15.34.3 r1"),                           // shall be of class numeric
+            ["EXP10"] = ('n', "§15.35.3 r1"),                         // shall be of class numeric
+            ["FRACTION-PART"] = ('n', "§15.42.3 r1"),                 // shall be of the class numeric
+            ["INTEGER"] = ('n', "§15.44.3 r1"),                       // shall be of class numeric
+            // ⚠ PARTIAL by construction: §15.36.3 r1 is "an integer GREATER THAN OR EQUAL TO ZERO". The 'i' kind
+            // screens the CLASS half (§15.3 type 6, which admits an arithmetic expression and de-edits a
+            // numeric-edited item); the VALUE half is a run-time property this compile-time screen cannot see, so
+            // FACTORIAL(-1) still passes here and is EC-ARGUMENT-FUNCTION's business.
+            ["FACTORIAL"] = ('i', "§15.36.3 r1"),                     // shall be an integer (>= 0 is a value rule)
+            // Zero-argument functions: the general format admits no argument at all, so any argument is an arity
+            // error (COBOLNET1504) before class screening is reached. Recorded so the review can close the row.
+            ["EXCEPTION-STATEMENT"] = (' ', "§15.32.2 — no arguments"),
+            ["EXCEPTION-STATUS"] = (' ', "§15.33.2 — no arguments"),
         };
 
     /// <summary>
@@ -239,6 +265,14 @@ internal static class IntrinsicArgumentRules
         // ⛔ 'n' is for a rule that says CLASS NUMERIC in those words — §15.7.3 r1 (ABS), §15.9.3 r1, §15.74.3 r1,
         // §15.75.3 r1, §15.76.3 r1, §15.77.3 r1 and the trig family. Table 2 puts NUMERIC-EDITED under class
         // ALPHANUMERIC, so such an operand is excluded, however numeric it looks.
+        // ⚠ THIS WAS CHALLENGED AND THE CHALLENGE WAS WRONG — recorded so it is not re-argued a third time.
+        // The argument for widening it to match 'i' runs: §15.3's type 10 "Numeric" admits "an ARITHMETIC
+        // EXPRESSION or a numeric data item" (--check verified), which is verbatim what type 6 admits for 'i',
+        // so a numeric-edited item should de-edit and be admissible here too. It does not follow, because
+        // §8.8.1.1 defines what an arithmetic expression may BE: "an identifier referencing a NUMERIC DATA ITEM,
+        // a numeric literal, the figurative constant ZERO …" (--check verified). A numeric-edited item is
+        // category numeric-edited and class alphanumeric — not a numeric data item — so it is neither of type
+        // 10's two alternatives. The exclusion is correct and `pb1-numeric-arg-numeric-edited` pins it.
         'n' => [CobolClass.Numeric],
         // ⛔ 'i' IS NOT THE SAME SCREEN, AND TREATING IT AS ONE REJECTED LEGAL COBOL. §15.15.3 r1 (CHAR) says
         // "shall be an INTEGER", which is §15.3 type 6: "An arithmetic expression that will always result in an

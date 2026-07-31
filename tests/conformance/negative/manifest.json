@@ -142,7 +142,8 @@
     "pb8-refmod-arg-permitting-function",
     "pb8-refmod-of-refmod-function",
     "pb8-refmod-of-refmod-data",
-    "pb9-reserved-fn-no-repository"
+    "pb9-reserved-fn-no-repository",
+    "pb12-exp-alphanumeric-argument"
   ],
   "pending": []
 }

@@ -128,7 +128,32 @@ below index it).
 > ⛔ **The fix is a RECOGNIZER, not added checks**: `CobolDate.Tokenize` enforces a per-character class and a
 > per-field width, and never answers "is this string one of the formats §15.5 defines".
 
-### PB12 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.3 argument-class screen is absent for most of these functions
+### PB12 · [MAJOR] · intrinsics · ◑ HALF LANDED (DEVLOG 1138) — the §15.3 argument-class screen for this batch's functions
+> **✅ SEVEN ROWS ADDED**, each read from its own §15.x.3 argument rule and mechanically cited: EXP · EXP10 ·
+> FRACTION-PART · INTEGER (`'n'`, "shall be of class numeric") · FACTORIAL (`'i'`) · EXCEPTION-STATEMENT ·
+> EXCEPTION-STATUS (`' '`, no arguments). Negative fixture `pb12-exp-alphanumeric-argument`.
+> ⚠ FACTORIAL is PARTIAL by construction: §15.36.3 r1 is "an integer GREATER THAN OR EQUAL TO ZERO" and the
+> screen sees only the class half; the value half is EC-ARGUMENT-FUNCTION's at run time.
+>
+> **⛔ SIX FUNCTIONS DELIBERATELY GOT NO ROW, and the omissions are the remaining work:**
+> · **FIND-STRING + the four FORMATTED-\* functions** take MIXED argument classes (an alphanumeric/national
+>   format string plus integer operands) and this table carries ONE kind per FUNCTION. A row would screen every
+>   position by the first one's class and REJECT LEGAL SOURCE. Needs a per-POSITION schema — a design change,
+>   which is the half of PB12 still open.
+> · **HIGHEST-ALGEBRAIC** — §15.43.3 r1 admits "a data item of category numeric OR NUMERIC-EDITED", and
+>   §8.5.2.1 Table 2 files numeric-edited under class ALPHANUMERIC, so an `'n'` row would reject an argument the
+>   standard ADMITS. Left unscreened until a kind can express "category numeric or numeric-edited".
+>
+> **⚠ A WIDENING OF `'n'` WAS ATTEMPTED, REFUTED AND REVERTED — recorded so it is not re-argued a third time.**
+> Seeing `FUNCTION EXP(<numeric-edited>)` rejected, the argument runs: §15.3 type 10 admits "an ARITHMETIC
+> EXPRESSION or a numeric data item", verbatim what type 6 admits for `'i'`, so numeric-edited should de-edit
+> and be admissible. It does NOT follow — §8.8.1.1 defines what an arithmetic expression may BE: "an identifier
+> referencing a NUMERIC DATA ITEM, a numeric literal, the figurative constant ZERO …" (validated). A
+> numeric-edited item is not a numeric data item, so it is neither of type 10's alternatives. **The existing
+> negative fixture `pb1-numeric-arg-numeric-edited` caught the widening**, which would have silently ACCEPTED
+> ILLEGAL COBOL. The refutation now sits beside the screen in `IntrinsicArgumentRules`.
+
+### PB12 (the original entry) · the §15.3 argument-class screen is absent for most of these functions
 > **13 findings over 10 subjects.** PB1's `IntrinsicArgumentRules.Verified` screen only runs for functions with a
 > row, and these have none — so their argument rules are unenforced and illegal source computes a value. This is
 > PB1's DESIGNED residue (the table grows as the review adjudicates each clause), so it is now due for exactly the
