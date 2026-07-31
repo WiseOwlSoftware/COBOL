@@ -578,8 +578,12 @@ initializeDefaultPhrase
     : THEN? TO DEFAULT
     ;
 
+// ⛔ ADDITIVE — §14.9.20.3 SR4 states it outright: "a MOVE statement with identifier-2 or literal-1 as the
+// SENDING item", so identifier-2 admits a function-identifier (§8.4.3.1.2 Format 1; §8.4.3.2.3 SR1 bars one
+// only from a RECEIVING operand). See the writeFrom note above for why this adds an alternative instead of
+// collapsing to `moveSendingOperand`: the accessors are load-bearing for the shared legacy binders.
 initializeReplacingItem
-    : initializeCategory DATA? BY (dataReference | literal)
+    : initializeCategory DATA? BY (functionCall | dataReference | literal)
     ;
 
 // Category names for INITIALIZE REPLACING and TO VALUE phrases.

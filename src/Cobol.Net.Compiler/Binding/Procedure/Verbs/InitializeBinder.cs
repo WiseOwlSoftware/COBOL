@@ -48,7 +48,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 InitializeCategory cat = InitializeCategoryOf(item.initializeCategory());
                 if (!ctx.Validation.CheckInitializeReplacingUnique(replacements, cat))
                     continue;   // ISO §14.9.20.3 SR6 — reported by the pure check; the skip stays here
-                BoundOperand value = item.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+                // §14.9.20.3 SR4 makes identifier-2 "the SENDING item" of a MOVE, so a function-identifier
+                // is admissible (§8.4.3.1.2 Format 1; §8.4.3.2.3 SR1 bars one only from a RECEIVING
+                // operand). It was a COBOL0001 parse error before — fix-queue PB10.
+                BoundOperand value = item.functionCall() is { } ifc ? host.Intrinsic.IntrinsicOperand(ifc)
+                    : item.literal() is { } lit ? host.Expr.LiteralOperand(lit)
                     : item.dataReference() is { } sref ? host.Expr.FieldOperand(sref)
                     : new BoundOperandError("INITIALIZE REPLACING sending operand");
                 replacements.Add((cat, value));

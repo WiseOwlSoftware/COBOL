@@ -50,7 +50,23 @@ below index it).
 
 **⛔ SEVERITY ORDER, and PB10 is the CLAUDE.md rule 4 red line.**
 
-### PB10 · [MAJOR] · references · ⛔ OPEN — a function-identifier is REJECTED in most identifier-N sending positions
+### PB17 · [MAJOR] · references · ⛔ OPEN — a function-identifier as a SUBSCRIPT or a REF-MOD position compiles clean and throws
+> **SPLIT OUT OF PB10, because it is a different root cause and would have been hidden inside a grammar fix.**
+> The PB10 findings said these positions were "rejected". They are not — they PARSE:
+> ```
+> MOVE E(FUNCTION INTEGER(3)) TO T      -> compiles clean; at RUN TIME:
+>     NotImplementedCobolFeatureException: reference 'E(FUNCTION INTEGER(3))'
+> MOVE A(FUNCTION INTEGER(3):2) TO T    -> same
+> ```
+> That is the PB7/DA7 WRONG-STAGE family. Root cause: both positions lex in SUBSCRIPT mode, so the operand
+> reaches `ReferenceResolver`'s flat-token segment renderer (`RenderSegment`), which has arms for literals,
+> data-names, the operators and parentheses — and NONE for a nested FUNCTION call, so the reference fails to
+> resolve and falls through to the loud runtime guard. §8.4.2.3.3 admits an arithmetic expression as a subscript
+> and §8.4.3.3.3 SR4 admits one as a ref-mod position, and §8.4.3.1.2 Format 1 makes a function-identifier an
+> identifier — so both are legal source. ⚠ Fixing this in the GRAMMAR is the wrong move: the D10/PHASE-15 plan
+> removes SUBSCRIPT mode entirely, so the durable fix is the segment renderer, not a new alternative.
+
+### PB10 · [MAJOR] · references · ◑ HALF LANDED (DEVLOG 1136) — a function-identifier in the identifier-N sending positions
 > **18 findings over 10 subjects — legal COBOL rejected, the widest defect this review has surfaced.**
 > §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, and §8.4.3.2.3 SR1 bars it only from a RECEIVING
 > operand — so EVERY identifier-N SENDING position admits one. The grammar reaches `functionCall` from just FOUR
@@ -80,7 +96,25 @@ below index it).
 >   Attempted and REVERTED rather than landed half-done. The legacy engine survives until the P15 cut-over, so
 >   its binders must be carried, not abandoned — budget for two compilers.
 >
-> **THE SPEC IS ALREADY DERIVED for the clean half**, so the next session starts at code, not at the standard:
+> **✅ LANDED — the four positions the STANDARD ITSELF defines as MOVE sending items**, all verified through
+> their own binder paths (SequentialIo · KeyedIo · SortBinder · InitializeBinder), not inferred from the shared
+> helper: `WRITE … FROM` · `REWRITE … FROM` · `RELEASE … FROM` · `INITIALIZE … REPLACING … BY`. All four bind
+> through the ONE `SequentialIoBinder.WriteSource` helper, so the next FROM phrase inherits the arm.
+> **GOLDEN** `conformance:2023/pb10_function_identifier_sending`.
+> ⛔ **THE GRAMMAR CHANGE IS ADDITIVE — `(functionCall | dataReference | literal)`, NOT a rewrite to
+> `moveSendingOperand` — and the reason is recorded in the `.g4`:** collapsing to the shared rule DELETES the
+> generated `.dataReference()`/`.literal()` accessors and breaks ~8 call sites across BOTH compilers, because
+> this grammar is shared with the legacy `CobolSharp.Compiler`, which survives to the P15 cut-over. Tried,
+> reverted, then done additively. The unification belongs to P15, when the legacy side is DELETED rather than
+> migrated — doing it now is work that gets thrown away.
+>
+> **⛔ STILL OPEN ON THIS ITEM: INSPECT, and it needs a per-FORMAT screen rather than a grammar widening.**
+> §14.9.22.2 has four formats; identifier-1 is a SENDING operand only in Format 1 (TALLYING). In Formats 2/3/4
+> (REPLACING / TALLYING-and-REPLACING / CONVERTING) it is modified IN PLACE, so §8.4.3.3.3… no — §8.4.3.2.3 SR1
+> ("a function-identifier shall not be specified as a receiving operand", validated) BARS one there. Admitting it
+> unconditionally would ACCEPT ILLEGAL SOURCE, so the grammar admits and the binder screens by format.
+>
+> **THE SPEC IS ALREADY DERIVED for the remaining half**, so the next session starts at code, not at the standard:
 > §14.9.51.4 GR5a makes WRITE FROM equivalent to `MOVE identifier-1 TO record-name-1` (validated), and
 > §14.9.20.3 SR4 says INITIALIZE REPLACING's identifier-2 is "the SENDING item" of a MOVE (validated) — so both
 > admit exactly what `moveSendingOperand` admits, and using that ONE rule is the standard's own definition of

@@ -79,7 +79,8 @@
     "pb8_refmod_function_result",
     "pb9_reserved_intrinsic_names",
     "general_format_intrinsics_batch1",
-    "argument_rule_equivalences_batch1"
+    "argument_rule_equivalences_batch1",
+    "pb10_function_identifier_sending"
   ],
   "pending": []
 }

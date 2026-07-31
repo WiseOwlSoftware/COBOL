@@ -230,7 +230,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             // operand is a later-standard extension of the format (present in ISO/IEC 1989:2023 §14.9.32.2;
             // VERSION_CHANGE_REFERENCE ledger instructs gating pending verification against the 2002/2014 texts).
             // release-from-literal-2002: the pass owns the edition gate (Exec Step E).
-            from = seqIo.WriteSource(rf.dataReference(), rf.literal());
+            from = seqIo.WriteSource(rf.dataReference(), rf.literal(), rf.functionCall());
         }
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).

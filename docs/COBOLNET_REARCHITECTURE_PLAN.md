@@ -143,7 +143,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    §15.32–15.44 batch adjudicated 67 rules over 13 functions and returned **31 DIVERGES · 22 PARTIAL ·
    14 NOT-IMPLEMENTED · ZERO CONFORMS**, with 82 findings clustering to **seven root causes**. That is the design
    working, not a setback: adjudicating a clause OPENS items and fixing them CLOSES them.
-   ⛔ **START WITH PB10 — it is the CLAUDE.md rule 4 red line and the widest defect the review has found.** A
+   ◑ **PB10's CLEAN HALF IS LANDED (DEVLOG 1136)** — `WRITE`/`REWRITE`/`RELEASE … FROM` and
+   `INITIALIZE … REPLACING … BY` now take a function-identifier. **What remains on PB10 is INSPECT**, which needs
+   a per-FORMAT bind-time screen (identifier-1 is SENDING only in Format 1; Formats 2/3/4 modify it in place,
+   where §8.4.3.2.3 SR1 BARS one — so a grammar widening there would accept ILLEGAL source). The subscript and
+   ref-mod positions were SPLIT OUT as **PB17**: they are not parse errors at all, they compile clean and throw
+   at run time (the PB7/DA7 wrong-stage family), and their fix is `ReferenceResolver`'s segment renderer.
+   ⚠ **A SHARED-GRAMMAR CHANGE MUST BE ADDITIVE UNTIL P15.** Collapsing a rule to a shared one deletes the
+   generated accessors and breaks the LEGACY compiler, which shares this grammar until the cut-over.
+   ⚠ **THE BATTERY IS NON-DETERMINISTIC UNDER LOAD AND IT COST A DIAGNOSIS TODAY.** A full run returned
+   4159/4160 with `NumvalC_Formats_PinnedToSpec` red; the identical tree then returned 4160/4160. Each test
+   spawns a `dotnet` process with a 30-second timeout, so the parallel-contention false-red class §0 already
+   names is the suspect — **but that is UNPROVEN**, and a harness that can false-RED under load can also MASK a
+   real failure. Re-run a named red serially before believing it, and do not accept "flake" without a mechanism.
+   ⛔ **THE ORIGINAL PB10 FRAMING, kept because it is still the shape of the remaining work:** A
    function-identifier is an IDENTIFIER (§8.4.3.1.2 Format 1) barred only from RECEIVING operands (§8.4.3.2.3
    SR1), so every identifier-N SENDING position admits one — but the grammar reaches `functionCall` from just
    FOUR places, so `WRITE … FROM`, `INSPECT`, `INITIALIZE … REPLACING`, a subscript and a ref-mod's positions all
@@ -497,8 +510,8 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB9.**
-  FULL greenfield Conformance **4157 / 4157, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
+- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB10.**
+  FULL greenfield Conformance **4160 / 4160, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
   skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
   0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
   carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential

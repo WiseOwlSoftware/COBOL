@@ -113,7 +113,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             .Any(p => p.dataReference() is { } mref && ctx.Mnemonics.Of(p).ContainsKey(mref.GetText())) ?? false);   // SR13 — pure check
 
         var (beforeAdv, afterAdv) = BindAdvancingPair(w.writeBeforeAfter());
-        return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
+        return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
             beforeAdv, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, AfterAdvancing = afterAdv };
     }
@@ -147,14 +147,24 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §14.7.9 / §14.9.35 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
-        return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
+        return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry };
     }
 
     /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>
-    public BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit) =>
-        lit is not null ? host.Expr.LiteralOperand(lit) : dref is not null ? host.Expr.FieldOperand(dref) : null;
+    /// <summary>The ONE sending-operand binder behind every <c>… FROM</c> phrase (WRITE / REWRITE / RELEASE,
+    /// sequential and keyed alike). <paramref name="fc"/> is the function-identifier arm (fix-queue PB10):
+    /// §14.9.51.4 GR5a makes <c>WRITE … FROM identifier-1</c> equivalent to
+    /// <c>MOVE identifier-1 TO record-name-1</c>, and §8.4.3.1.2 Format 1 makes a function-identifier an
+    /// IDENTIFIER that §8.4.3.2.3 SR1 bars only from RECEIVING operands — so it is admissible here and was
+    /// rejected outright before. Threaded through THIS helper rather than each of the four call sites, so the
+    /// next FROM phrase inherits it.</summary>
+    public BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit,
+                                     Core.FunctionCallContext? fc = null) =>
+        fc is not null ? host.Intrinsic.IntrinsicOperand(fc)
+        : lit is not null ? host.Expr.LiteralOperand(lit)
+        : dref is not null ? host.Expr.FieldOperand(dref) : null;
 
     /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.
     /// An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS MNEMONIC-NAME</c>, SQ207M) positions

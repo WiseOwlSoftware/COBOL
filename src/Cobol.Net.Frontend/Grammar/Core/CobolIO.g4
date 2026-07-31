@@ -393,8 +393,17 @@ writeStatement
 
     ;
 
+// ⛔ ADDITIVE, not a rewrite to `moveSendingOperand` — and the reason is worth recording. §14.9.51.4 GR5a makes this phrase equivalent to `MOVE identifier-1 TO record-name-1`,
+// so a function-identifier belongs here: §8.4.3.1.2 Format 1 makes one an IDENTIFIER and §8.4.3.2.3 SR1
+// bars it only from RECEIVING operands, so `FROM FUNCTION UPPER-CASE(X)` was legal source we rejected
+// with COBOL0001 (fix-queue PB10). Replacing the alternatives with a single shared rule is the tidier
+// shape and was tried FIRST; it deletes the generated `.dataReference()`/`.literal()` accessors and so
+// breaks ~8 call sites across BOTH compilers — this grammar is shared with the legacy
+// `CobolSharp.Compiler`, which survives until the P15 cut-over. Adding an alternative keeps every
+// existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
+// legacy side is deleted rather than migrated.
 writeFrom
-    : FROM (dataReference | literal)
+    : FROM (functionCall | dataReference | literal)
     ;
 
 // ISO §14.9.51: one or (COBOL-2023, SR17) BOTH of BEFORE/AFTER ADVANCING. The combined form is introduction-gated
@@ -450,8 +459,17 @@ rewriteStatement
 
     ;
 
+// ⛔ ADDITIVE, not a rewrite to `moveSendingOperand` — and the reason is worth recording. §14.9.35.4 makes this phrase the same MOVE,
+// so a function-identifier belongs here: §8.4.3.1.2 Format 1 makes one an IDENTIFIER and §8.4.3.2.3 SR1
+// bars it only from RECEIVING operands, so `FROM FUNCTION UPPER-CASE(X)` was legal source we rejected
+// with COBOL0001 (fix-queue PB10). Replacing the alternatives with a single shared rule is the tidier
+// shape and was tried FIRST; it deletes the generated `.dataReference()`/`.literal()` accessors and so
+// breaks ~8 call sites across BOTH compilers — this grammar is shared with the legacy
+// `CobolSharp.Compiler`, which survives until the P15 cut-over. Adding an alternative keeps every
+// existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
+// legacy side is deleted rather than migrated.
 rewriteFrom
-    : FROM (dataReference | literal)
+    : FROM (functionCall | dataReference | literal)
     ;
 
 // ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
@@ -680,8 +698,17 @@ releaseStatement
 
     ;
 
+// ⛔ ADDITIVE, not a rewrite to `moveSendingOperand` — and the reason is worth recording. §14.9.32.4 makes this phrase the same MOVE,
+// so a function-identifier belongs here: §8.4.3.1.2 Format 1 makes one an IDENTIFIER and §8.4.3.2.3 SR1
+// bars it only from RECEIVING operands, so `FROM FUNCTION UPPER-CASE(X)` was legal source we rejected
+// with COBOL0001 (fix-queue PB10). Replacing the alternatives with a single shared rule is the tidier
+// shape and was tried FIRST; it deletes the generated `.dataReference()`/`.literal()` accessors and so
+// breaks ~8 call sites across BOTH compilers — this grammar is shared with the legacy
+// `CobolSharp.Compiler`, which survives until the P15 cut-over. Adding an alternative keeps every
+// existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
+// legacy side is deleted rather than migrated.
 releaseFrom
-    : FROM (dataReference | literal)
+    : FROM (functionCall | dataReference | literal)
     ;
 
 // ==========================================
