@@ -5,6 +5,18 @@ namespace CobolNet.Binding;
 /// <summary>The three things a §15.3.1–§15.3.4 format string can be.</summary>
 internal enum DateTimeFormatKind { Date, Time, Combined }
 
+/// <summary>The ZONE of a format's time portion (ISO §15.3.3.4–§15.3.3.6): a plain common time format
+/// (<c>Local</c>), one suffixed <c>Z</c> (<c>Utc</c>), or one carrying an explicit <c>+hhmm</c>/<c>+hh:mm</c>
+/// subformat (<c>Offset</c>). <c>None</c> is a DATE format, which has no time portion at all — kept distinct from
+/// <c>Local</c> because §15.40.3 r6 / §15.41.3 r5 are predicates on the TIME portion, and collapsing the two would
+/// make a date format silently answer a question about a time.</summary>
+internal enum DateTimeZone { None, Local, Utc, Offset }
+
+/// <summary>What <see cref="DateTimeFormatGrammar.Describe"/> knows about a legal §15.3 format: its KIND (the
+/// §15.39/40/41/48/79/92 rule-2 screen, COBOLNET1631) and its time portion's ZONE (the §15.40.3 r6 / §15.41.3 r5
+/// screen, COBOLNET1633).</summary>
+internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, DateTimeZone Zone);
+
 /// <summary>
 /// THE RECOGNIZER for the ISO §15.3.1–§15.3.4 date, time and combined date-and-time formats — the answer to
 /// "is this string one of the formats the standard defines?", which nothing previously asked (fix-queue PB11).
@@ -53,11 +65,27 @@ internal static class DateTimeFormatGrammar
     /// <summary>Classify <paramref name="format"/>, or null when it is not a legal §15.3 format at all.
     /// <paramref name="decimalComma"/> selects the seconds-fraction separator: §15.3.3.2 makes it a comma under
     /// <c>DECIMAL-POINT IS COMMA</c> and a period otherwise.</summary>
-    internal static DateTimeFormatKind? Classify(string format, bool decimalComma)
+    internal static DateTimeFormatKind? Classify(string format, bool decimalComma) =>
+        Describe(format, decimalComma)?.Kind;
+
+    /// <summary>
+    /// <see cref="Classify"/> plus the TIME PORTION'S ZONE — the fact §15.40.3 r6 and §15.41.3 r5 turn on:
+    /// "argument-4 [resp. argument-3] shall not be specified if the time portion of the format in argument-1 is
+    /// neither a UTC format nor an offset format." Those rules are decidable at BIND time, because §15.40.3 r1 /
+    /// §15.41.3 r1 make argument-1 a LITERAL and the argument's presence is syntactic.
+    /// <para>⛔ THE ZONE WAS ALWAYS COMPUTED HERE AND THEN THROWN AWAY. <see cref="IsTimeOfWidth"/> already
+    /// decided local-vs-UTC-vs-offset in order to answer "is this a time format" at all; it simply collapsed the
+    /// three into a bool. Returning what the recogniser already knows is why this closes the r6/r5 pair without
+    /// a second parser — the alternative, re-inspecting the format string at the call site, would be the same
+    /// rule written down twice (feedback_one_rule_one_place).</para>
+    /// </summary>
+    internal static DateTimeFormatInfo? Describe(string format, bool decimalComma)
     {
         char sep = decimalComma ? ',' : '.';
-        if (IsDate(format)) return DateTimeFormatKind.Date;
-        if (IsTime(format, sep)) return DateTimeFormatKind.Time;
+        // A DATE format has no time portion at all, so it has no zone — and r6/r5 are about the TIME portion,
+        // which is why None is a distinct value rather than an alias for Local.
+        if (IsDate(format)) return new DateTimeFormatInfo(DateTimeFormatKind.Date, DateTimeZone.None);
+        if (ZoneOf(format, sep) is { } tz) return new DateTimeFormatInfo(DateTimeFormatKind.Time, tz);
 
         // §15.3.4 — a combined format is <date>T<time>, basic with basic and extended with extended. 'T' occurs
         // in no other position of any format, so the first one is the separator.
@@ -65,28 +93,33 @@ internal static class DateTimeFormatGrammar
         if (t > 0)
         {
             string d = format[..t], time = format[(t + 1)..];
-            if (Array.IndexOf(BasicDates, d) >= 0 && IsTimeOfWidth(time, extended: false, sep))
-                return DateTimeFormatKind.Combined;
-            if (Array.IndexOf(ExtendedDates, d) >= 0 && IsTimeOfWidth(time, extended: true, sep))
-                return DateTimeFormatKind.Combined;
+            if (Array.IndexOf(BasicDates, d) >= 0 && ZoneOfWidth(time, extended: false, sep) is { } bz)
+                return new DateTimeFormatInfo(DateTimeFormatKind.Combined, bz);
+            if (Array.IndexOf(ExtendedDates, d) >= 0 && ZoneOfWidth(time, extended: true, sep) is { } xz)
+                return new DateTimeFormatInfo(DateTimeFormatKind.Combined, xz);
         }
         return null;
     }
 
+    /// <summary>The zone of a time format at either width, or null when it is not a time format.</summary>
+    private static DateTimeZone? ZoneOf(string s, char sep) =>
+        ZoneOfWidth(s, false, sep) ?? ZoneOfWidth(s, true, sep);
+
     private static bool IsDate(string s) => Array.IndexOf(BasicDates, s) >= 0 || Array.IndexOf(ExtendedDates, s) >= 0;
 
-    private static bool IsTime(string s, char sep) => IsTimeOfWidth(s, false, sep) || IsTimeOfWidth(s, true, sep);
-
     /// <summary>§15.3.3.4–§15.3.3.6: a time format is a common time format, optionally followed by <c>Z</c> (UTC)
-    /// or by an offset subformat. The offset subformat's own width must MATCH the common part's — §15.3.3.6.1
-    /// gives the basic subformat five characters (<c>+hhmm</c>) and the extended one six (<c>+hh:mm</c>).</summary>
-    private static bool IsTimeOfWidth(string s, bool extended, char sep)
+    /// or by an offset subformat — and WHICH of the three it is, since §15.40.3 r6 / §15.41.3 r5 turn on exactly
+    /// that. Null when it is not a time format at this width. The offset subformat's own width must MATCH the
+    /// common part's — §15.3.3.6.1 gives the basic subformat five characters (<c>+hhmm</c>) and the extended one
+    /// six (<c>+hh:mm</c>).</summary>
+    private static DateTimeZone? ZoneOfWidth(string s, bool extended, char sep)
     {
-        if (IsCommonTime(s, extended, sep)) return true;                                  // local
-        if (s.Length > 0 && s[^1] == 'Z' && IsCommonTime(s[..^1], extended, sep)) return true;   // UTC
-        string offset = extended ? "+hh:mm" : "+hhmm";                                    // offset
-        return s.EndsWith(offset, StringComparison.Ordinal)
-            && IsCommonTime(s[..^offset.Length], extended, sep);
+        if (IsCommonTime(s, extended, sep)) return DateTimeZone.Local;
+        if (s.Length > 0 && s[^1] == 'Z' && IsCommonTime(s[..^1], extended, sep)) return DateTimeZone.Utc;
+        string offset = extended ? "+hh:mm" : "+hhmm";
+        return s.EndsWith(offset, StringComparison.Ordinal) && IsCommonTime(s[..^offset.Length], extended, sep)
+            ? DateTimeZone.Offset
+            : null;
     }
 
     /// <summary>§15.3.3.1/§15.3.3.2: <c>hhmmss</c> or <c>hh:mm:ss</c>, optionally followed by the decimal

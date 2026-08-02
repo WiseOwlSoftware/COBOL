@@ -48,4 +48,28 @@
            DISPLAY "DT-B=" T
            MOVE FUNCTION FORMATTED-DATETIME("YYYY-MM-DDThh:mm:ss" 100000 3600) TO T
            DISPLAY "DT-E=" T
+      *> ---- THE VALUE RULES (PB11's second half) ----
+      *> 15.41.3 r6 / 15.40.3 r7 - the offset argument may be OMITTED for a UTC or offset format, and the
+      *> function is then "evaluated as though 0 were specified". This is the CONVERSE of r5/r6 and is LEGAL;
+      *> the COBOLNET1633 screen is deliberately one-sided so it cannot reject these.
+           MOVE FUNCTION FORMATTED-TIME("hhmmss+hhmm" 3600) TO T
+           DISPLAY "OMIT-OFF=" T
+           MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmssZ" 100000 3600) TO T
+           DISPLAY "OMIT-DT-UTC=" T
+      *> 15.41.3 r4 / 15.40.3 r5 - the magnitude of the offset shall be <= 1439. The BOUNDARY is legal, and the
+      *> NOTE explains why it is that number: 1439 minutes is 23 hours 59 minutes, one minute less than a day -
+      *> which is exactly what it renders as.
+           MOVE FUNCTION FORMATTED-TIME("hhmmss+hhmm" 3600 1439) TO T
+           DISPLAY "OFF-MAX=" T
+           MOVE FUNCTION FORMATTED-TIME("hhmmss+hhmm" 3600 -1439) TO T
+           DISPLAY "OFF-MIN=" T
+      *> 15.41.3 r3 / 15.40.3 r4 - the seconds argument shall be a value in STANDARD NUMERIC TIME FORM, whose
+      *> range 7.3.17 r5 fixes at 0 <= v < 86,400 under LEAP-SECOND OFF (the only mode this compiler supports).
+      *> 86399 is the last legal value; 100000 seconds is about 27.7 hours and used to FABRICATE hh=27 with no
+      *> exception condition. It now takes the 15.3 EC-ARGUMENT-FUNCTION default result.
+           MOVE FUNCTION FORMATTED-TIME("hhmmss" 86399) TO T
+           DISPLAY "SEC-MAX=" T
+           MOVE SPACES TO T
+           MOVE FUNCTION FORMATTED-TIME("hhmmss" 100000) TO T
+           DISPLAY "SEC-OVER=[" T "]"
            STOP RUN.

@@ -325,7 +325,47 @@ public static class CobolDate
     /// format displays a2 adjusted by the offset a3 (r2), an offset format shows a2 direct + a3 in the offset field
     /// (r3). a3 omitted with a UTC/offset format is treated as 0 (r7).</summary>
     public static string FormattedTime(string format, long secUnscaled, int secScale, long offsetMinutes, bool hasOffset)
-        => EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, hasOffset);
+        => SecondsOutOfStandardForm("FORMATTED-TIME", "argument-2", secUnscaled, secScale)
+           || OffsetOutOfRange("FORMATTED-TIME", "argument-3", offsetMinutes, hasOffset, "§15.41.3 r4")
+            ? ""
+            : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, hasOffset);
+
+    /// <summary>§15.41.3 r3 / §15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
+    /// The §7.3.17 LEAP-SECOND directive defines that range and this compiler supports only its default OFF
+    /// (documented at <see cref="Tokenize"/>; §7.3.17 r5 — "When OFF is specified or implied, a standard numeric
+    /// time form value shall be greater than or equal to zero and less than 86,400"). ⚠ Under ON the bound would
+    /// be 86,401, so the constant is tied to the directive rather than to the number of seconds in a day —
+    /// which is why it is cited here rather than written as a bare 86400.
+    /// <para>Unenforced before this: a seconds argument of, say, 100000 produced <c>hh = 27</c> — a fabricated
+    /// time with no exception condition, the same failure mode as the offset bound below.</para>
+    /// <para>The comparison is exact and stays in <see cref="Int128"/>: the argument arrives as an unscaled
+    /// value plus its scale, so scaling the BOUND up is exact where scaling the value down would truncate and
+    /// silently admit a fractional overshoot.</para></summary>
+    private static bool SecondsOutOfStandardForm(string fn, string argName, long secUnscaled, int secScale)
+    {
+        Int128 limit = (Int128)86400 * Pow10.AsWide(secScale);
+        if (secUnscaled >= 0 && secUnscaled < limit) return false;
+        Exceptions.ExceptionState.ArgumentError(
+            $"{fn} {argName} is not in standard numeric time form: the value shall be >= 0 and < 86,400 "
+            + $"(ISO §7.3.17 r5, LEAP-SECOND OFF — the only mode this compiler supports)");
+        return true;
+    }
+
+    /// <summary>§15.40.3 r5 / §15.41.3 r4: "If argument-4 [argument-3] is specified, the magnitude of the value
+    /// shall be less than or equal to 1439." The NOTE explains the bound — 1439 minutes is 23 hours 59 minutes,
+    /// one minute short of a day.
+    /// <para>⛔ A RUN-TIME check, unlike its §15.40.3 r6 / §15.41.3 r5 sibling (COBOLNET1633, bind time): the
+    /// offset is an ordinary numeric argument, so its VALUE is generally not known until execution. It was
+    /// enforced NOWHERE — an offset of 5000 minutes formatted a nonsense zone with no exception condition, which
+    /// is the fabricated-value failure mode PB11 exists to close, not mere over-acceptance.</para></summary>
+    private static bool OffsetOutOfRange(string fn, string argName, long offsetMinutes, bool hasOffset, string cite)
+    {
+        if (!hasOffset || Math.Abs(offsetMinutes) <= 1439) return false;
+        Exceptions.ExceptionState.ArgumentError(
+            $"{fn} {argName} is {offsetMinutes} minutes; the magnitude shall be <= 1439, one minute less than a "
+            + $"day (ISO {cite})");
+        return true;
+    }
 
     /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 per the combined format a1; UTC ⇒ adjust
     /// by a4; offset ⇒ a3 direct in time and a4 direct in the offset field.</summary>
@@ -334,6 +374,8 @@ public static class CobolDate
     {
         if (integerDate is < 1 or > 3067671)
         { Exceptions.ExceptionState.ArgumentError($"FORMATTED-DATETIME argument {integerDate} outside 1..3,067,671 (§15.5.2)"); return ""; }
+        if (SecondsOutOfStandardForm("FORMATTED-DATETIME", "argument-3", secUnscaled, secScale)) return "";
+        if (OffsetOutOfRange("FORMATTED-DATETIME", "argument-4", offsetMinutes, hasOffset, "§15.40.3 r5")) return "";
         return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset);
     }
 

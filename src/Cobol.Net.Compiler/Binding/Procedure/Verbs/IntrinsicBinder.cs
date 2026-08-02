@@ -298,6 +298,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
+    /// <summary>The ZERO-BASED position of the optional offset-from-UTC argument, for the two functions that take
+    /// one, else null. FORMATTED-DATETIME's is argument-4 (§15.40.3 r5/r6) and FORMATTED-TIME's is argument-3
+    /// (§15.41.3 r4/r5) — the same rule at different ordinals, which is exactly why the ordinal is a lookup and
+    /// not a literal at the screen. ⚠ FORMATTED-CURRENT-DATE takes no offset argument at all (§15.38.2 gives it
+    /// one operand), so it is absent here rather than mapped to a position it does not have.</summary>
+    private static int? OffsetArgumentIndex(string name) => name switch
+    {
+        "FORMATTED-DATETIME" => 3,
+        "FORMATTED-TIME" => 2,
+        _ => null,
+    };
+
     /// <summary>The clause each function's format-content rule lives in, for the diagnostic text.</summary>
     private static string FormatRuleCitation(string name) => name switch
     {
@@ -469,6 +481,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the question nothing asked before: is it one of the §15.3.1–§15.3.4 formats, and is it a kind THIS
         // function admits? Character-wise validation cannot answer that — every counter-example is assembled
         // from individually legal subfields.
+        // §15.40.3 r6 / §15.41.3 r5 — the OFFSET ARGUMENT vs the format's ZONE (fix-queue PB11's value half).
+        // "Argument-4 [argument-3] shall not be specified if the time portion of the format in argument-1 is
+        // neither a UTC format nor an offset format." Decidable HERE because rule 1 above already established
+        // argument-1 is a literal, so `Describe` knows the zone, and the argument's presence is syntactic.
+        // ⚠ ONE-SIDED, deliberately: the CONVERSE is explicitly legal — omitting the argument for a UTC/offset
+        // format "shall be evaluated as though 0 were specified" (§15.40.3 r7 / §15.41.3 r6), which the emitter
+        // already does by passing hasOffset:false. Screening that too would reject conforming source.
+        // Before this the argument bound cleanly and was then SILENTLY DISCARDED by a local format.
+        if (args.Count > 0 && args[0] is BoundStringLiteral zoneFmt
+            && OffsetArgumentIndex(sig.Name) is { } offIx && args.Count > offIx
+            && DateTimeFormatGrammar.Describe(zoneFmt.Value, ctx.Data.DecimalPointIsComma) is { } zoneInfo
+            && zoneInfo.Zone is DateTimeZone.Local)
+            ctx.Edition.Error(DiagnosticCatalog.DateTimeOffsetArgumentNotPermitted,
+                $"FUNCTION {sig.Name} is given an offset-from-UTC argument (argument-{offIx + 1}), but its format "
+                + $"'{zoneFmt.Value}' has a LOCAL time portion — neither a UTC format (a trailing 'Z') nor an "
+                + "offset format (an explicit '+hhmm' / '+hh:mm' subformat), ISO §15.3.3.4–§15.3.3.6. "
+                + (sig.Name == "FORMATTED-DATETIME" ? "§15.40.3 r6" : "§15.41.3 r5")
+                + " bars the argument there. Use a UTC or offset format, or drop the argument");
+
         if (args.Count > 0 && args[0] is BoundStringLiteral fmt
             && FormatKindsAdmittedBy(sig.Name) is { } admitted)
         {

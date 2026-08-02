@@ -648,6 +648,19 @@ public static class DiagnosticCatalog
         + "TALLYING-and-REPLACING / CONVERTING), where GR7 replaces its characters and GR20 makes format 4 "
         + "execute as a format 2 over the same identifier-1. Move the function result into a data item first.",
         "ISO §8.4.3.2.3 SR1 (with §14.9.22.4 GR1/GR7/GR20 for INSPECT's per-format split)");
+    // PB11's VALUE half. Decidable at BIND time and therefore a diagnostic rather than a run-time check:
+    // §15.40.3 r1 / §15.41.3 r1 make argument-1 a LITERAL, so the format's zone is known at compile time, and the
+    // offset argument's PRESENCE is syntactic. Before this the argument was accepted and silently DISCARDED.
+    public static readonly DiagnosticDescriptor DateTimeOffsetArgumentNotPermitted = new(
+        "COBOLNET1633", "datetime-offset-argument-not-permitted", EditionSeverity.Error,
+        "An offset-from-UTC argument is supplied for a format whose time portion is a LOCAL time — it carries no "
+        + "place to put an offset. ISO §15.41.3 r5: \"Argument-3 shall not be specified if the time portion of "
+        + "the format in argument-1 is neither a UTC format nor an offset format\"; §15.40.3 r6 says the same of "
+        + "FORMATTED-DATETIME's argument-4. A UTC format ends in 'Z' and an offset format carries an explicit "
+        + "'+hhmm' / '+hh:mm' subformat (§15.3.3.4–§15.3.3.6); a plain 'hhmmss' / 'hh:mm:ss' is local. ⚠ The "
+        + "converse is NOT an error: omitting the argument for a UTC or offset format is explicitly legal and "
+        + "evaluates as though 0 were specified (§15.40.3 r7 / §15.41.3 r6).",
+        "ISO §15.40.3 r6 / §15.41.3 r5 (zone per §15.3.3.4–§15.3.3.6)");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

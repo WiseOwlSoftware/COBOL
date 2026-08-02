@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB10 + PB13 LANDED · PB16 RETIRED · PB11, PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -159,7 +159,7 @@ below index it).
 > admit exactly what `moveSendingOperand` admits, and using that ONE rule is the standard's own definition of
 > the operand rather than a convenience.
 
-### PB11 · [MAJOR] · date/time · ◑ HALF LANDED (DEVLOG 1139) — the §15.3 format GRAMMAR is now recognised
+### PB11 · [MAJOR] · date/time · ✅ LANDED (DEVLOG 1139 + 1144) — the §15.3 format GRAMMAR *and* the value rules
 > **✅ THE RECOGNIZER EXISTS: `DateTimeFormatGrammar`, and rule 2 of all SEVEN format-taking functions is
 > enforced** (`COBOLNET1631`). The legal set is CLOSED — §15.3.1.1's six date formats, §15.3.2's twelve time
 > formats (four common-time shapes × local/UTC/offset), and §15.3.4's combined = date + `T` + time with **basic
@@ -174,11 +174,36 @@ below index it).
 > (≥ 9), and it is now DOCUMENTED at 18 (`CONFORMANCE.md` item 87) — exactly where `long` stops being exact — so
 > the ≥19-digit overflow is unreachable rather than separately guarded.
 >
-> **⛔ STILL OPEN ON PB11 — the VALUE rules, which the recogniser does not touch.** It answers "is this a
-> format"; it says nothing about the DATA. Still unenforced: §15.40.3 r4/r5 (argument-3 in [0,86400), |argument-4|
-> ≤ 1439), r6 (argument-4 supplied when the format has no offset/UTC portion — compile-time decidable now that
-> the format is classified), §15.41.3 r3–r5 likewise, and the §15.3.1.3/.5/.7 permitted-value ranges. Those need
-> the recogniser's SUBFIELD breakdown, which it does not yet return — it classifies only.
+> **✅ THE VALUE RULES CLOSED 2026-08-02 (DEVLOG 1144), and the recogniser needed only to RETURN WHAT IT ALREADY
+> KNEW.** `IsTimeOfWidth` had always decided local-vs-UTC-vs-offset in order to answer "is this a time format" at
+> all, then collapsed the three into a bool. `Describe` now returns `DateTimeFormatInfo(Kind, Zone)`; the
+> alternative — re-inspecting the format string at the call site — would have been the same rule written twice.
+> ⚠ **THE PREVIOUS SUMMARY OF THESE RULES WAS WRONG IN TWO PLACES, both found by reading them rather than the
+> summary.** It said "§15.40.3 r4/r5 (argument-3 in [0,86400), |argument-4| ≤ 1439)". In fact **r4 says
+> "argument-3 shall be a value in STANDARD NUMERIC TIME FORM"** — a defined term, not an inline range — and that
+> range is fixed by the **§7.3.17 LEAP-SECOND directive**, not by the number of seconds in a day: OFF gives
+> `< 86,400` and **ON gives `< 86,401`**. We support only the default OFF (already documented), so the constant
+> is cited to the directive rather than written as a bare 86400, which is what makes the ON case a documented
+> gap instead of a silent wrong answer.
+> · **§15.40.3 r6 / §15.41.3 r5 — BIND time** (`COBOLNET1633`): the offset argument is barred when the format's
+>   time portion is LOCAL. Decidable at compile time because rule 1 makes argument-1 a LITERAL and the argument's
+>   presence is syntactic. Previously the argument bound cleanly and was then SILENTLY DISCARDED.
+>   ⚠ **ONE-SIDED DELIBERATELY:** the converse is explicitly LEGAL — omitting it for a UTC/offset format "shall
+>   be evaluated as though 0 were specified" (§15.40.3 r7 / §15.41.3 r6) — so screening both ways would reject
+>   conforming source. The positive golden pins the omitted form for exactly that reason.
+> · **§15.40.3 r5 / §15.41.3 r4 — RUN time**: `|offset| ≤ 1439`, enforced nowhere before. The boundary renders as
+>   `+2359`, which is the spec NOTE's own explanation of the number (23 h 59 m, one minute less than a day).
+> · **§15.41.3 r3 / §15.40.3 r4 — RUN time**: the seconds argument in standard numeric time form. A value of
+>   100000 (≈27.7 h) used to FABRICATE `hh=27` with no exception condition; it now takes the §15.3 EC default.
+>   The bound is scaled UP into `Int128` rather than scaling the value down, so a fractional overshoot cannot be
+>   truncated into range.
+> **GOLDENS:** `pb11_datetime_format_grammar` extended (omitted-offset for both functions, ±1439 boundaries,
+> the 86399 boundary and the over-range EC default) · `negative/pb11-offset-arg-local-format-time` ·
+> `negative/pb11-offset-arg-local-format-datetime`.
+> ⚠ **RESIDUE, NAMED:** §15.3.1.3/.5/.7's permitted-value ranges constrain the DATA in a formatted string on the
+> PARSING side (INTEGER-OF-FORMATTED-DATE / TEST-FORMATTED-DATETIME / SECONDS-FROM-FORMATTED-TIME), which is a
+> different seam from the FORMATTING side closed here — `CobolDate.Analyze`'s per-field bounds already cover part
+> of it. Not folded in on a guess; it needs its own reading of those three clauses against `Analyze`.
 
 ### PB11 (the original entry) · the §15.39/40/41 date-time FORMAT rules are validated nowhere
 > **19 findings over the 4 FORMATTED-* functions.** §15.39.3 r2, §15.40.3 r2–r7 and §15.41.3 r2–r6 are enforced

@@ -58,7 +58,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB9 + PB10 + PB13 LANDED; PB11, PB12, PB14, PB15, PB17, PB18 are the live set** — see
+  its header is the tally). **PB1–PB11 + PB13 LANDED; PB12, PB14, PB15, PB17, PB18 are the live set** — see
   NEXT for the order to work them. **No BLOCKER is open.** Three of the ten landed were blockers and every one
   was SILENT — the pattern this review exists to catch:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
@@ -165,7 +165,6 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
    | item | state | the next action |
    |---|---|---|
-   | **PB11** | half landed | Remaining: the VALUE rules §15.40.3 r4/r5/r6, §15.41.3 r3–r5 and the §15.3.1.3/.5/.7 permitted ranges. `DateTimeFormatGrammar` classifies but does not return its SUBFIELD breakdown; returning it is the natural next increment and unlocks all of them at once. |
    | **PB12** | half landed | Remaining: the MIXED-argument functions (FIND-STRING + the four FORMATTED-*) need a **per-POSITION** kind — `IntrinsicArgumentRules.Verified` carries one kind per FUNCTION. Plus HIGHEST-ALGEBRAIC, whose §15.43.3 r1 admits *numeric-edited*, so an `'n'` row would reject legal source. |
    | **PB14** | open | STANDARD/STANDARD-DECIMAL arithmetic + an intrinsic argument emits a raw Roslyn `CS1503` — the PB2 shape on the Dec axis, where PB2 fixed only the Real arm of the same dispatch. |
    | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
