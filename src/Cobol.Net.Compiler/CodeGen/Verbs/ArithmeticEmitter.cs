@@ -52,8 +52,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // receiver is float -- the §14.7.7 GR4 one-initial-evaluation shape EmitCompute's multi-target path
             // established (D16). Pre-P7.3 this RHS rendered under the PREVIOUS statement's leftover Target*
             // state (EmitGiving never called SetTarget) -- the H1 staleness ReceiverContext kills.
+            // The float-quantization headroom is the MOST CONSTRAINING receiver's — the widest integer part —
+            // since one rendered value has to land in all of them (PB13).
             var rcv = new ReceiverContext(targets.Max(t => ScaleOf(t.Place)),
-                targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise);
+                targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise,
+                targets.Max(t => IntDigitsOf(t.Place)));
             NumX v = value(rcv);
             // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
@@ -71,7 +74,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // rounding the spec's intermediate to each resultant. Sub-expression quotients inside the operands
             // render at the widest receiver scale (the intermediate must not lose receiver-visible digits).
             var opRcv = new ReceiverContext(targets.Max(t => ScaleOf(t.Place)),
-                targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise);
+                targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise,
+                targets.Max(t => IntDigitsOf(t.Place)));
             NumX divisorX = num.Render(divisor, opRcv);
             NumX? dividendX = dividend is not null ? num.Render(dividend, opRcv) : null;
             if (targets.Count > 1)
@@ -107,7 +111,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // The senders render FOR the quotient receiver (its scale governs the intermediate, GR6c/GR7);
             // pre-P7.3 they rendered under the previous statement's leftover Target* state (H1).
             var rcv = new ReceiverContext(qs, d.Quotient.Place.Item.Pic is { IsFloat: true },
-                CobolRounding.Truncation, ise);
+                CobolRounding.Truncation, ise, IntDigitsOf(d.Quotient.Place));
             // Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in
             // SEVERAL emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores
             // BEFORE the remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.
@@ -165,7 +169,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // temp with its own ROUNDED mode. Re-rendering per receiver would re-read senders a prior
                 // receiver may alias. Real only when EVERY target is float (D16).
                 var rcv = new ReceiverContext(c.Targets.Max(t => ScaleOf(t.Place)),
-                    c.Targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise);
+                    c.Targets.All(t => t.Place.Item.Pic is { IsFloat: true }), CobolRounding.Truncation, ise,
+                    c.Targets.Max(t => IntDigitsOf(t.Place)));
                 NumX v = Snapshot(num.Render(c.Rhs, rcv));
                 foreach (var r in c.Targets)
                     StoreArith(r.Place, v, r.Rounding);
@@ -181,7 +186,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
     /// factory replacing the mutable <c>SetTarget</c> context writes).</summary>
     public ReceiverContext RcvFor(Receiver r, bool inSizeError) =>
-        new(ScaleOf(r.Place), r.Place.Item.Pic is { IsFloat: true }, r.Rounding, inSizeError);
+        new(ScaleOf(r.Place), r.Place.Item.Pic is { IsFloat: true }, r.Rounding, inSizeError, IntDigitsOf(r.Place));
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
@@ -365,4 +370,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
             ? RuntimeApi.MaskScale(m, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)
         : p.Item.Pic?.Scale ?? 0;
+
+    /// <summary>The receiver's INTEGER digit positions — <see cref="ReceiverContext.IntegerDigits"/>, which caps
+    /// the float quantization working scale (PB13). Measured from <c>DigitPositions</c> (ISO §13.18.40.3 SR14 —
+    /// '9' plus Z/*/floating-sign/P positions), never from the '9' count alone: for a numeric-EDITED receiver
+    /// <c>Digits</c> counts only '9', so <c>PIC ZZZ9</c> would report 1 integer digit where it holds 4, and
+    /// UNDER-counting is the one direction that breaks <see cref="ReceiverContext.FloatWorkingScale"/>'s
+    /// saturation-is-visible invariant. A place with no PICTURE (a float item, an index) reports 0 = unconstrained;
+    /// a float receiver never reaches the quantizer at all.</summary>
+    private int IntDigitsOf(Place p) =>
+        p.Item.Pic is { } pic ? Math.Max(0, pic.DigitPositions - ScaleOf(p)) : 0;
 }

@@ -11,7 +11,7 @@ Decision-complete design for COBOL.NET's native scaled-integer numeric model. SU
 
 THE CENTRAL HARDENING: the runtime's value engine (`src/Cobol.Net.Runtime/Numeric/CobolNum.cs`) is Int128-monomorphic, NOT long — a long-only engine would silently overflow real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). The single intermediate carrier is an Int128 value + its compile-time scale (conceptually `CobolInt(Int128 Unscaled, int Scale)`). Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
-INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = the §8.8.1.2 implementor-defined approximation (double `Math.Pow`, quantized through `CobolIntrinsics.FromDouble` at `max(receiver-scale, 9)`); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
+INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = the §8.8.1.2 implementor-defined approximation (double `Math.Pow`, quantized through `CobolIntrinsics.FromDouble` at `ReceiverContext.FloatWorkingScale` — see D18); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the `CobolRounding` enum; `Store` is the no-SIZE-ERROR (silent-truncation) branch and `TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR) is the ON SIZE ERROR branch.
 
@@ -229,6 +229,70 @@ unchanged (§14.7.4.3 rule 7); a transcendental intrinsic into a float receiver 
 **Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOLNET0900 below
 2002, silent ≥2002; default `--std` 2023). COMP-1/2 accepted at ALL editions (universal vendor synonyms of the
 conformant usages — a documented asymmetry, matches the legacy oracle).
+
+### D18. Every WORKING SCALE is capped at the receiver's Int128 headroom, and a RECEIVER-LESS float render is not quantized at all (`ReceiverContext.WorkingScale(floor)` / `.Receiverless`).
+
+**Decision.** Two rules, one carrier. (a) When a fixed-point receiver governs the render, a value landed at a
+WORKING scale uses `ws = min(max(receiverScale, floor), 38 − receiverIntegerDigits)`, where `floor` is the
+family's own: **9** for the §15.4.1 float family and `**` (`FloatWorkingScale`), **6** for the NUMVAL family
+(§15.67/§15.68/§15.69). One method parameterised by the floor — NOT one rule per family, because the defect is a
+property of the working-scale-then-rescale SHAPE and not of which function produced the value, and a per-family
+copy is exactly how PB5 fixed the float clamp while leaving `Numval`/`NumvalF` clamping at `long.MaxValue`.
+(b) When NOTHING governs the render — `ReceiverContext.None`: a relation operand, a sign condition, a
+DISPLAY/STRING text operand, a MOVE source — a float-family value stays binary64 (`NumX.Real`) and is never
+quantized.
+
+**Corollaries that fall out of (a) and (b), both landed with it.** `CobolIntrinsics.Numval`/`NumvalC`/`NumvalF`
+return `Int128` and saturate there through one shared `Rescaled` helper (which also BOUNDS the decimal shift
+before calling `Pow10.AsWide`, whose fallback loop wraps past 10³⁸ — an unbounded `E±nn` would otherwise multiply
+by a wrapped power and yield a plausible wrong value instead of a saturated one). And `NumericRenderer.Align`
+gained a `Real` arm: rule (b) lets a binary64 reach the receiver-less integral sites (subscript, SET amount,
+PERFORM VARYING FROM/BY, report VARYING, RETRY count), and without it the double expression went straight to a
+caller expecting a scaled integral — the PB2 shape. It was already reachable through a COMP-2 operand, so the arm
+is a latent fix as well as a required one, and it belongs at the ONE choke point rather than at forty call sites.
+
+**Rationale (fix-queue PB13).** `FromDouble` saturates at `Int128.MaxValue`, and the store then rescales
+ws→receiver scale, which DIVIDES the sentinel back down. The receiver's digit-capacity check — the one mechanism
+that would raise the size error — therefore never sees it, which is why the saturation was SILENT rather than
+loud. The flat `max(Scale, 9)` needed `receiverIntegerDigits + 9` digits where Int128 supplies 38, so a `PIC 9(31)`
+receiver was two digits short: `COMPUTE R = FUNCTION EXP(70)` stored 0170141183460469231731687303715 — wrong by a
+factor of ~15 — and reported NO SIZE ERROR. The cap restores BOTH halves of the contract, and the second is what
+makes it sufficient rather than merely better: a value that fits can no longer saturate, and a value that does not
+saturates to a sentinel that STILL exceeds the receiver after the rescale, so the store raises the size error
+condition (§14.7.5 case 5 — a native intermediate outside its implementor-defined range, that range being declared
+checked under §8.8.1.3). This is the same discipline `CobolFloat.ToScaled` already relied on; it got the guarantee
+free by landing AT the receiver's scale, and only the working-scale path lost it.
+
+Rule (b) is the half no working-scale choice can reach, because with no receiver there is no scale to quantize TO
+and the `ws = 9` stand-in was arbitrary. §15.4.1 leaves "the characteristics and representation of the returned
+value" to the implementor under native arithmetic, and **COBOL.NET's determination is that the §15.4.1 float
+family's returned value IS a binary64** — the quantization is part of the TRANSFER into a fixed-point receiver
+(§14.6.8), not part of the value. Every consumer of a receiver-less numeric already had a `Real` arm and is more
+correct on it: a relation compares natively (§8.8.4.2.4, the arm a COMP-2 operand already took), the text channel
+renders through the one `CobolFloat.Display` a float ITEM uses (§14.9.11.4 GR1), and a MOVE source lands through
+`CobolFloat.ToScaled` at the receiver's scale — the saturation-safe form. This is also what `docs/CONFORMANCE.md`
+had ALREADY documented ("a FLOAT-valued function renders through the same shortest-round-trip `CobolFloat.Display`
+a COMP-2 item does, so the function and an item holding its value agree"); the working-scale form silently broke
+it, printing `2.000000000` for `FUNCTION SQRT(4)` against a determination that says "no zero padding", and
+printing the saturation sentinel outright for `FUNCTION EXP10(31)`.
+
+**Blast radius, measured.** The cap BINDS only past 29 integer digits (below that `38 − intDigits ≥ 9` and the
+float floor still wins), so no ordinary picture changed; the whole Conformance corpus moved exactly one golden,
+`da2_function_as_text`, and it moved TOWARD its own stated determination.
+
+**Rejected alternatives.** (a) Widen the clamp constant — REJECTED and provably impossible: at ws = 9 a 31-digit
+receiver needs 40 digits and Int128 supplies 38, whatever constant is chosen. (b) Raise inside `FromDouble` —
+REJECTED: it cannot see a receiver, the capacity check already reports the condition correctly, and raising there
+would convert an EC-SIZE-TRUNCATION into an EC-SIZE-OVERFLOW with different fatality for no gain. It would also
+abort legal source in the receiver-less case (`DISPLAY FUNCTION EXP10(31)`), which is worse than rejecting it.
+(c) Encode "receiver-less" as `IntegerDigits == 0` — REJECTED: an all-fraction receiver (`PIC V9(9)`) also has
+zero integer digits but DOES define a quantization scale, hence the separate `Receiverless` flag.
+
+**Guard.** `FloatQuantizeHeadroomDriftTests` proves both invariants over every legal (integer-digits, scale) pair
+a picture can present, pins the below-29 behaviour-neutrality, and fails on a hand-rolled `Math.Max(rcv.Scale, 9)`
+at either quantize site — a mistake no runtime test can see, since it is correct for every ordinary picture.
+Goldens: `pb13_float_quantize_headroom` (the two cases the queue carried) and `pb13_float_quantize_siblings` (the
+four the sibling sweep found, `**` included — it reaches the same quantizer and carried the identical defect).
 
 ## C# mapping
 

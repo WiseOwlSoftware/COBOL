@@ -15,12 +15,21 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB9 LANDED · PB16 RETIRED · PB10, PB11, PB12 HALF LANDED · PB13, PB14, PB15, PB17 OPEN.**
+**⛔ THE TALLY: PB1–PB9 + PB13 LANDED · PB16 RETIRED · PB10, PB11, PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
-**PB13 is the only BLOCKER** (a silently saturating quantizer). Each half-landed item names its own remaining
-half in its entry, and plan §0's NEXT table carries them in the order to work them. PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
+**There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
+names its own remaining half in its entry, and plan §0's NEXT table carries them in the order to work them. PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
 from sweeping the wrong set, and the real answer was four.
+
+**⚠ PB13 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN *RECIPE*** (PB8's is about its root CAUSE). This
+entry's recipe read "the fix is TWO-SIDED … the runtime must stop silently saturating, which no emitter-side
+choice can reach." That conclusion followed from taking the only emitter lever to be the working SCALE. The
+actual lever was **whether to quantize at all**, and once used, the whole fix is emitter-side and the runtime
+needed no change — the saturation became loud *by construction*. The entry also cited **§14.7.4** for "an
+intermediate overflow is a size-error condition"; §14.7.4 is the **ROUNDED phrase**, and the real clause is
+**§14.7.5 case 5**. Both errors were INHERITED into the plan and into a runtime doc comment before anyone
+re-derived them (CLAUDE.md rule 1 — a citation you did not `--check` is not a citation).
 
 **⚠ PB8 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN ROOT-CAUSE CLAIM.** Its entry named a LEXER-MODE defect
 and budgeted "the riskiest category in this codebase"; a token dump showed the parens were already in DEFAULT mode
@@ -184,7 +193,76 @@ below index it).
 > express two of §8.5.2.1 Table 2's classes (INDEX stays unscreened), and the screen is STRUCTURALLY UNREACHABLE
 > for every phrase-keyword intrinsic (FIND-STRING, SUBSTITUTE, TRIM, CONVERT) — no `Verified` row can fix those.
 
-### PB13 · [BLOCKER] · numerics · ⛔ OPEN — the float→fixed quantizer saturates SILENTLY, and PB5 closed on a false premise
+### PB13 · [BLOCKER] · numerics · ✅ LANDED 2026-08-02 (DEVLOG 1141) — the cap is on the WORKING SCALE, and the fix is entirely emitter-side
+
+> **THE ROOT CAUSE, stated as a mechanism rather than a symptom.** `CobolIntrinsics.FromDouble` lands a double at
+> a WORKING scale and saturates at `Int128.MaxValue`. The store then rescales working→receiver scale, which
+> **DIVIDES the saturation sentinel back down** — so the receiver's digit-capacity check, the one mechanism that
+> would raise the size error, never sees it. *That* is why the saturation was silent rather than loud, and it is
+> the whole defect. `CobolFloat.ToScaled` was never affected because it lands AT the receiver's scale, so its
+> sentinel survives into the capacity check; only the working-scale path lost the evidence.
+>
+> **THE FIX — `ReceiverContext.FloatWorkingScale`, one rule, two consumers.**
+> `ws = min(max(receiverScale, 9), 38 − receiverIntegerDigits)`. `ReceiverContext` gained `IntegerDigits`
+> (measured from §13.18.40.3 SR14 `DigitPositions`, never the '9' count — under-counting is the one unsafe
+> direction) and `Receiverless`. It restores both halves of the contract:
+> · a value that FITS the receiver can no longer saturate (intDigits + ws ≤ 38);
+> · a value that does NOT fit saturates to a sentinel that STILL exceeds the receiver after the rescale, so the
+>   store RAISES the size error (§14.7.5 case 5 — `--check`ed). `COMPUTE R = FUNCTION EXP(700)` into `PIC 9(31)`
+>   now reports SIZE ERROR where it stored a saturated value silently.
+>
+> **THE RECEIVER-LESS HALF — and the entry's recipe was wrong about it.** With no receiver there is no scale to
+> quantize TO, so the `ws = 9` stand-in was arbitrary; §15.4.1 leaves the returned value's representation to the
+> implementor under native arithmetic, and COBOL.NET's determination is that the float family's value **IS a
+> binary64**. `ReceiverContext.None` renders now stay `Real`. Every consumer already had a `Real` arm and is more
+> correct on it — a relation compares natively (§8.8.4.2.4), the text channel renders through the one
+> `CobolFloat.Display` a float ITEM uses, and a MOVE source lands via `CobolFloat.ToScaled` at the receiver's
+> scale. **`docs/CONFORMANCE.md` had already documented exactly this** ("a FLOAT-valued function renders through
+> the same shortest-round-trip `CobolFloat.Display` a COMP-2 item does"); the code did not match its own
+> determination. No runtime change was needed, and none was made.
+>
+> **THE SIBLING SWEEP (rule 4) FOUND THREE MORE SITES, AND THE ENTRY NAMED NONE OF THEM.**
+> · **`**`** — `NumericRenderer.Power` reaches the SAME quantizer with the SAME formula, so
+>   `COMPUTE R = 10 ** 30` into `PIC 9(31)` stored the identical wrong constant and `IF 10 ** 30 = 10 ** 31`
+>   was TRUE.
+> · **The NUMVAL family (§15.67/§15.68/§15.69)** — and this one is **PB5's OWN defect, in the sibling PB5 never
+>   swept.** `Numval`/`NumvalC`/`NumvalF` still returned `long` and clamped at `long.MaxValue`, the very 9.2×10¹⁸
+>   clamp PB5 widened to `Int128` in `FromDouble`. With the family's ≥6/≥9 working floor the clamp fires on
+>   ORDINARY arguments: **`FUNCTION NUMVAL-F("1E+20")` returned 9223372036** — ten orders of magnitude out, with
+>   no size error — where §15.69.4 r2 (`--check`ed) requires "an approximation of the numeric value represented
+>   by argument-1". All three now return `Int128` and saturate through one shared `Rescaled` helper that also
+>   bounds the exponent, because `Pow10.AsWide` WRAPS past 10³⁸ and a large `E±nn` would otherwise multiply by a
+>   wrapped power — a plausible wrong value rather than a saturated one.
+> · **`NumericRenderer.Align`** — no `Real` arm, so a receiver-less binary64 reaching a subscript / SET amount /
+>   PERFORM VARYING / report VARYING / RETRY count was handed to a caller expecting a scaled integral. Already
+>   reachable through a COMP-2 operand; the arm landed at the ONE choke point, not at forty call sites.
+> ⚠ **THE GUARD FOUND THE NUMVAL FAMILY, NOT A HUMAN.** `FloatQuantizeHeadroomDriftTests` failed on its FIRST
+> run against a site the sweep had missed by eye. Its first version matched only the float floor `, 9)` and
+> passed over the three floor-`6` NUMVAL sites — the alternation is on `\d+` now. **The floor is part of the
+> pattern, not part of the site**, which is the generalisable lesson: `ReceiverContext.WorkingScale(floor)` is
+> one rule parameterised by the family's documented floor, so a family cannot get a cap the others lack — which
+> is precisely the state PB5 left behind.
+>
+> **BLAST RADIUS, MEASURED not asserted.** The cap binds only past 29 integer digits, so no ordinary picture
+> moved: the full Conformance corpus changed exactly ONE golden, `da2_function_as_text`, whose
+> `Q1=[2.000000000]` became `Q1=[2]` — *toward* the "significant digits, no zero padding" determination its own
+> header states and against which `2.000000000` was already wrong.
+>
+> **GOLDENS + GUARD:** `pb13_float_quantize_headroom` (promoted from `pending`; the two cases below) ·
+> `pb13_float_quantize_siblings` (the four the sweep found) · `FloatQuantizeHeadroomDriftTests`, which proves both
+> invariants over EVERY legal (integer-digits, scale) pair, pins the below-29 behaviour-neutrality, and fails on a
+> hand-rolled `Math.Max(rcv.Scale, 9)` at either site — a mistake no runtime test can see, because it is correct
+> for every ordinary picture, which is exactly how PB13 survived PB5. Design: `COBOLNET_NUMERIC_DESIGN.md` D18.
+>
+> **A SEPARATE FINDING THIS EXPOSED, not fixed here (see the residue below):** `10 ** 30` now returns
+> 1000000000000000071935427891953 — the `Math.Pow` double approximation — where Int128 could hold 10³⁰ exactly.
+> §8.8.1.2 r6 imposes no exactness requirement and §8.8.1.3 makes native implementor-defined, so it CONFORMS, but
+> it contradicts our own documented native technique (design D3: "the exact Int128 fixed-point engine"). An
+> integer exponent with fixed-point operands should evaluate exactly.
+>
+> The finding as originally recorded follows, for provenance.
+
+### PB13 (as found) · [BLOCKER] · numerics — the float→fixed quantizer saturates SILENTLY, and PB5 closed on a false premise
 > **7 findings over 4 subjects. HAND-REPRODUCED — both cases below were run, and the cluster summary that used to
 > sit here UNDERSOLD it.** It said "reachable from a declarable receiver"; the sharper case needs no receiver at
 > all. A pending golden pins the correct behaviour: `conformance:2023/pb13_float_quantize_headroom` (registered
@@ -231,6 +309,22 @@ below index it).
 ### PB16 · [MINOR] · date/time · ✅ RETIRED BY PB11 — a fractional-seconds field of ≥19 's' characters overflowed
 > `EmitFormatted` computes `(long)Pow10.AsWide(s.Width)`, which overflows past 10¹⁸. Narrow, contained, and a
 > crash rather than a wrong value.
+
+### PB18 · [MINOR] · numerics · ⛔ OPEN — a native `**` with an INTEGER exponent goes through `Math.Pow`, losing exactness Int128 could hold
+
+> **Found by PB13's sibling sweep, and only visible once PB13 stopped the saturation from masking it.**
+> `COMPUTE R = 10 ** 30` into `PIC 9(31)` returns **1000000000000000071935427891953** — the binary64
+> approximation — where the exact 10³⁰ fits Int128 (31 digits of 38) comfortably.
+> **It CONFORMS**: §8.8.1.2 r6 places no exactness requirement on exponentiation, and §8.8.1.3 makes native
+> arithmetic implementor-defined end to end. **But it contradicts our own §8.8.1.3 implementor documentation** —
+> numeric design D3 declares the documented native technique to be "the exact Int128 fixed-point engine", and
+> `NumericRenderer.Power` routes every fixed-point base to `System.Math.Pow` regardless of the exponent.
+> The standard-decimal path already does this correctly (`CobolDec.Pow` — binary square-and-multiply over exact
+> SDIDI multiplication, §8.8.1.5.4 r2a–r2e), so the shape to copy exists: an INTEGER exponent with fixed-point
+> operands should evaluate by repeated exact `Int128` multiplication, with the existing size-error escape at the
+> Int128 boundary, and only a NON-integer exponent should fall through to the double approximation.
+> ⚠ Scope note: this is the same "an implementor-defined approximation used where an exact result was available"
+> family as PB13, not a saturation bug — no value is silently wrong, only less exact than documented.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in

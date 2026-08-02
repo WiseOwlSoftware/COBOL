@@ -24,9 +24,17 @@ public static partial class CobolIntrinsics
     /// maps to the EC-ARGUMENT-FUNCTION default result 0 — §15.3: "the implementor defines the result of the function
     /// reference" while EC checking is disabled. ±∞ SATURATES to long.Max/MinValue: it is NOT necessarily a domain
     /// error — a LEGAL class-numeric argument whose e**x / 10**x result merely overflows binary64 (EXP(710) ≈ 2.25e308
-    /// = +∞) is a genuine huge result under §14.7.4 receiver handling, exactly like a FINITE over-range value
+    /// = +∞) is a genuine huge result under §14.7.5 receiver handling, exactly like a FINITE over-range value
     /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §15.55.3/§15.56.3 violation and is caught at the
     /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
+    /// <para>
+    /// ⛔ <b><paramref name="scale"/> IS NOT FREE — IT MUST BE <c>ReceiverContext.FloatWorkingScale</c> (PB13).</b>
+    /// This function saturating is SAFE only when the caller chose a scale that leaves the sentinel above the
+    /// receiver's digit capacity, so the store's capacity check raises the size error. That is a property of the
+    /// CALLER, not of this function — it cannot be checked here, because a scaled unscaled-value carries no
+    /// receiver. <c>CobolFloat.ToScaled</c> gets the same guarantee for free by landing AT the receiver's scale;
+    /// this one lands at a WORKING scale, and a later rescale down is what used to hide the sentinel.
+    /// </para>
     /// </summary>
     /// <remarks>
     /// ⛔ RETURNS <see cref="Int128"/>, NOT <see cref="long"/> — and that is a CORRECTNESS fix, not a widening for
@@ -65,9 +73,31 @@ public static partial class CobolIntrinsics
     /// The saturation is therefore REACHABLE and SILENT, which is the defect PB5 fixed one instance of.
     /// ⚠ Do not "fix" this by widening the clamp: at ws = 9 the intermediate needs
     /// (receiver integer digits + 9) decimal digits, and Int128 supplies ~38, so a 31-digit receiver is 2 digits
-    /// short no matter what constant is chosen. The working scale has to be chosen against the receiver's
-    /// CAPACITY — which <see cref="CodeGen.Roslyn.ReceiverContext"/> does not currently carry — and the
-    /// receiver-less case has to stop being silent. Both halves are PB13.
+    /// short no matter what constant is chosen.
+    /// </para>
+    /// <para>
+    /// ✅ <b>BOTH CASES ARE CLOSED, AND THE FIX IS ENTIRELY EMITTER-SIDE — WHICH THE QUEUE ENTRY SAID IT COULD NOT
+    /// BE.</b> Its recipe read "the runtime must stop silently saturating, which no emitter-side choice can
+    /// reach"; that followed from taking the only emitter lever to be the working SCALE. The actual lever is
+    /// WHETHER TO QUANTIZE AT ALL, and using it makes this function's saturation correct as it stands:
+    /// <list type="number">
+    ///   <item><b>With a receiver</b> — <c>ReceiverContext.FloatWorkingScale</c> caps the working scale at the
+    ///         receiver's Int128 headroom (ws ≤ 38 − integer digits). A value that fits can no longer saturate,
+    ///         and a value that does not saturates to a sentinel that still exceeds the receiver's capacity after
+    ///         the rescale — so the store RAISES the size error (§14.7.5 case 5: a native intermediate out of its
+    ///         implementor-defined range). <c>COMPUTE R = FUNCTION EXP(700)</c> into <c>PIC 9(31)</c> now reports
+    ///         SIZE ERROR where it used to store a saturated value silently. Nothing here had to change.</item>
+    ///   <item><b>With no receiver</b> — the render never reaches this function. §15.4.1 leaves "the
+    ///         characteristics and representation of the returned value" to the implementor under native
+    ///         arithmetic, and COBOL.NET's determination is that the float family's value IS a binary64; the
+    ///         quantization exists only to land it in a fixed-point receiver, whose scale defines it. A relation
+    ///         then compares natively (§8.8.4.2.4) and the text channel renders through
+    ///         <c>CobolFloat.Display</c>, which is what docs/CONFORMANCE.md already required.</item>
+    /// </list>
+    /// ⚠ So this function is NOT the place to add a raise. Doing so would convert an EC-SIZE-TRUNCATION that the
+    /// capacity check already reports correctly into an EC-SIZE-OVERFLOW with different fatality, for no gain.
+    /// What keeps the guarantee true is <c>FloatQuantizeHeadroomDriftTests</c>, which proves both invariants over
+    /// every legal picture shape and fails if a caller hand-rolls the working scale again.
     /// </para>
     /// </remarks>
     public static Int128 FromDouble(double d, int scale)

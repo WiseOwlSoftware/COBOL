@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ EVERY PUBLIC ENTRY OF <c>NumericRenderer</c> THAT SETS THE AMBIENT RECEIVER MUST RESTORE IT.
 /// <para>
 /// <c>NumericRenderer._rcv</c> is per-unit MUTABLE state read by the intrinsic renderer to pick a working scale
-/// (<c>max(Receiver.Scale, 9)</c>) and to decide the float/fixed shape. <c>Render</c> and <c>AsNum</c> always
+/// (<c>ReceiverContext.FloatWorkingScale</c>) and to decide the float/fixed shape. <c>Render</c> and <c>AsNum</c> always
 /// saved and restored it in a <c>finally</c>; <c>Fold</c> and <c>Combine</c> did NOT, and simply assigned. An
 /// ADD/SUBTRACT therefore left its receiver LATCHED on the renderer, and the next receiver-less render inherited
 /// it — so <c>DISPLAY FUNCTION SQRT(2)</c> printed <c>1.414213562</c>, and then <c>1.414213562373</c> after an

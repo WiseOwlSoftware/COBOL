@@ -202,7 +202,7 @@ public static partial class CobolIntrinsics
     /// (rule 2), one decimal separator — '.' normally, ',' under DECIMAL-POINT IS COMMA
     /// (<paramref name="commaMode"/>, rule 5). Malformed content → the EC-ARGUMENT-FUNCTION default 0 (§15.3).
     /// </summary>
-    public static long Numval(string text, int scale, bool commaMode = false)
+    public static Int128 Numval(string text, int scale, bool commaMode = false)
     {
         char dec = commaMode ? ',' : '.';
         string s = text.Trim();
@@ -244,9 +244,30 @@ public static partial class CobolIntrinsics
         if (frac < 0) frac = 0;
         // Rescale (unscaled, frac) → the requested scale. Widening is exact; narrowing truncates (the requested
         // scale already carries the ≥ 6 working floor, and the receiver's own store rounds/truncates once more).
-        Int128 r = scale >= frac ? unscaled * Pow10.AsWide(scale - frac) : unscaled / Pow10.AsWide(frac - scale);
-        if (neg) r = -r;
-        return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
+        // ⛔ RETURNS Int128 AND SATURATES THERE, not at long.MaxValue (PB13's sweep — this is PB5's own defect,
+        // in the sibling PB5 never swept). A 20-digit NUMVAL string at the ≥6 floor needs 26 digits, so the old
+        // long clamp fired on an ordinary argument and returned 9223372036.854775807 with NO size error.
+        Int128 r = Rescaled(unscaled, scale - frac);
+        return neg ? -r : r;
+    }
+
+    /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places, SATURATING at the
+    /// <c>Int128</c> carrier instead of wrapping. The saturation is safe for the same reason
+    /// <c>ReceiverContext.WorkingScale</c> makes the float quantizer's safe: the emitter caps the working scale at
+    /// the receiver's headroom, so a saturated value still exceeds the receiver's capacity after the store's
+    /// rescale and RAISES the size error (§14.7.5 case 5) rather than storing silently. ⚠ <c>Pow10.AsWide</c>
+    /// itself WRAPS past 10³⁸ (its fallback loop is unchecked), so the exponent is bounded BEFORE the call —
+    /// without that guard a large <c>E±nn</c> would multiply by a wrapped power and produce a plausible wrong
+    /// value rather than a saturated one.</summary>
+    private static Int128 Rescaled(Int128 unscaled, int shift)
+    {
+        if (unscaled == 0) return Int128.Zero;
+        if (shift == 0) return unscaled;
+        if (shift < 0) return -shift > 38 ? Int128.Zero : unscaled / Pow10.AsWide(-shift);
+        if (shift > 38) return unscaled > 0 ? Int128.MaxValue : Int128.MinValue;
+        Int128 limit = Int128.MaxValue / Pow10.AsWide(shift);
+        if (Int128.Abs(unscaled) > limit) return unscaled > 0 ? Int128.MaxValue : Int128.MinValue;
+        return unscaled * Pow10.AsWide(shift);
     }
 
     /// <summary>NUMVAL-F (§15.69, COBOL-2014+): the floating NUMVAL — a signed mantissa (with an optional decimal
@@ -254,7 +275,7 @@ public static partial class CobolIntrinsics
     /// scale) then rescaled to the emitter's working <paramref name="scale"/> (native arithmetic ⇒ the §15.69.4 r2
     /// approximation license). Malformed content → the §15.3 default 0. Leading/trailing spaces (and, in the value
     /// path, any interior space) are ignored (rule 5); TEST-NUMVAL-F enforces exact placement.</summary>
-    public static long NumvalF(string text, int scale, bool commaMode = false)
+    public static Int128 NumvalF(string text, int scale, bool commaMode = false)
     {
         char dec = commaMode ? ',' : '.';
         string s = text.Replace(" ", "");
@@ -288,9 +309,12 @@ public static partial class CobolIntrinsics
             exp = int.Parse(exps) * (eneg ? -1 : 1);                   // 1..4 exponent digits (§15.69.3)
         }
         int shift = scale + exp - frac;                               // the final decimal shift of the unscaled mantissa
-        Int128 r = shift >= 0 ? unscaled * Pow10.AsWide(shift) : unscaled / Pow10.AsWide(-shift);
-        if (neg) r = -r;
-        return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
+        // ⛔ Int128 + the SATURATING shared shift, not the old long.MaxValue clamp (PB13's sweep). With a 1..4-digit
+        // exponent this clamp was trivially reachable on conforming source: FUNCTION NUMVAL-F("1E+20") returned
+        // 9223372036 — ten orders of magnitude out, silently — where §15.69.4 r2 requires an approximation of the
+        // value argument-1 represents. Pow10.AsWide would also WRAP for a large exponent; Rescaled bounds it first.
+        Int128 r = Rescaled(unscaled, shift);
+        return neg ? -r : r;
     }
 
     /// <summary>TEST-NUMVAL-F (§15.95, COBOL-2014+): 0 if the string conforms to the NUMVAL-F format; else the
@@ -342,7 +366,7 @@ public static partial class CobolIntrinsics
     /// grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are ignored (§15.68.4 rule 2);
     /// then the remainder parses exactly as NUMVAL (sign / CR / DB, rule 3).
     /// </summary>
-    public static long NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false)
+    public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false)
     {
         char group = commaMode ? '.' : ',';
         string cur = currency.Trim();

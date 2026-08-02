@@ -12,11 +12,13 @@ namespace CobolNet.CodeGen.Emit;
 /// catalog row — the SINGLE render channel (P7 Step 12: the former parallel static evaluator is deleted;
 /// DESIGN-codegen-backend §2.5). Three §15.2-type shapes (deep-dive D1):
 /// <list type="bullet">
-///   <item><b>floating-math</b> (Float rows, §15.4.1 native-arithmetic license) — compute in double, quantize
-///         through the ONE <c>CobolIntrinsics.FromDouble</c> at working scale <c>max(Receiver.Scale, 9)</c>: the
-///         scale FLOOR covers receiver-less contexts, which render at scale 0 (P7.3 <c>ReceiverContext.None</c> — IF conditions /
-///         EVALUATE subjects), and 9 fraction digits leave 9 integer digits in the long, ample for every
-///         trig/financial value;</item>
+///   <item><b>floating-math</b> (Float rows, §15.4.1 native-arithmetic license) — compute in double; a
+///         FIXED-POINT receiver then quantizes through the ONE <c>CobolIntrinsics.FromDouble</c> at
+///         <see cref="ReceiverContext.FloatWorkingScale"/> (the ≥9 float floor CAPPED at the receiver's Int128
+///         headroom, so a saturation can never store silently — PB13), while a FLOAT receiver and a
+///         RECEIVER-LESS context both keep the binary64 value: §15.4.1 leaves the returned value's
+///         representation to the implementor, and with no receiver there is no scale to quantize TO
+///         (P7.3 <c>ReceiverContext.None</c> — IF conditions / EVALUATE subjects / DISPLAY operands);</item>
 ///   <item><b>exact numeric / integer</b> — unscaled Int128 values at a known scale, aligned with the same
 ///         <see cref="NumericRenderer.Align"/> machinery the arithmetic verbs use (§8.8.1);</item>
 ///   <item><b>alphanumeric</b> — the INSTANCE string channel (<see cref="RenderString"/>, reached from
@@ -146,16 +148,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
             // NUMVAL / NUMVAL-C (§15.67/§15.68): parse to (unscaled, actual scale), rescaled to the compile-time
-            // working scale ws = max(Receiver.Scale, 6) — the ≥6 floor is the NUMVAL rule (the receiver scale is
-            // stale in IF conditions; the suite's deepest literal fraction is 5 digits, so 6 is lossless).
+            // working scale — the ≥6 floor is the NUMVAL rule (the receiver scale is stale in IF conditions; the
+            // suite's deepest literal fraction is 5 digits, so 6 is lossless), CAPPED at the receiver's Int128
+            // headroom by the same PB13 argument the float family uses. These carried the defect too: the runtime
+            // clamped the parsed value at long.MaxValue, so a 20-digit NUMVAL string at ws = 6 needs 26 digits and
+            // silently became 9223372036.854775807.
             case "Numval":
             {
-                int ws = Math.Max(num.Receiver.Scale, 6);
+                int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}"), ws);
             }
             case "NumvalC":
             {
-                int ws = Math.Max(num.Receiver.Scale, 6);
+                int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}"), ws);
             }
@@ -219,9 +224,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "TestFormattedDatetime":                                       // §15.92 — 0 (valid) or the 1-based error position
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}"), 0);
-            case "NumvalF":                                                      // §15.69 — floating NUMVAL; ws floor 9 (the float-family precedent)
+            // §15.69 NUMVAL-F — the ws floor follows the float-family precedent, and so does its CAP: this is a
+            // THIRD instance of the PB13 quantizer defect, and the one PB5 itself missed. The runtime still
+            // clamped at long.MaxValue (PB5's original 9.2×10¹⁸ clamp, never swept to this sibling), so
+            // FUNCTION NUMVAL-F("1E+20") into a PIC 9(31) returned 9223372036 — ten orders of magnitude out,
+            // with NO SIZE ERROR, where §15.69.4 r2 requires "an approximation of the numeric value represented
+            // by argument-1". Found by FloatQuantizeHeadroomDriftTests, not by eye.
+            case "NumvalF":
             {
-                int ws = Math.Max(num.Receiver.Scale, 9);
+                int ws = num.Receiver.FloatWorkingScale;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}"), ws);
             }
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
@@ -253,7 +264,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
         var sig = ic.Sig;
-        int ws = Math.Max(num.Receiver.Scale, 9);
+        // The ≥9 float floor CAPPED at the receiver's Int128 headroom — the one rule, on ReceiverContext (PB13).
+        int ws = num.Receiver.FloatWorkingScale;
         string call = method switch
         {
             // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
@@ -265,7 +277,23 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
         // at the working scale (the established behavior the intrinsic goldens encode). (D16 review finding.)
-        return num.Receiver.Real
+        //
+        // ⛔ AND SO DOES A RECEIVER-LESS CONTEXT (fix-queue PB13, the half no working-scale choice can reach).
+        // §15.4.1: "When native arithmetic is in effect, the characteristics and representation of the returned
+        // value are defined by the implementor" — COBOL.NET's determination is that the §15.4.1 float family's
+        // returned value IS a binary64, and the quantization exists ONLY to land it in a fixed-point receiver,
+        // whose scale is what defines the quantization. With no receiver there is no scale to quantize TO, and the
+        // arbitrary ws = 9 stand-in was not merely a different rendering — it was WRONG, because FromDouble
+        // saturates: `IF FUNCTION EXP10(30) = FUNCTION EXP10(31)` evaluated TRUE (both sides saturating to the
+        // same Int128.MaxValue) and `DISPLAY FUNCTION EXP10(31)` printed 170141183460469231731687303715.884105727.
+        // Every consumer of a receiver-less numeric already has a Real arm and is MORE correct on it: a relation
+        // compares natively (§8.8.4.2.4 — "comparison proceeds by the rules of native arithmetic", the same arm a
+        // COMP-2 operand takes), the text channel renders through the one CobolFloat.Display a float ITEM uses
+        // (§14.9.11.4 GR1), and a MOVE source lands through CobolFloat.ToScaled AT THE RECEIVER'S SCALE — which is
+        // the saturation-safe form, since the store's capacity check then sees the sentinel undivided.
+        // This is what makes FUNCTION SQRT(2) and a COMP-2 item holding that value the SAME value everywhere,
+        // which OperandText.NumericIntrinsicText already documented as required and the ws = 9 form silently broke.
+        return num.Receiver.Real || num.Receiver.Receiverless
             ? new NumX(call, 0, Real: true)
             : new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
     }

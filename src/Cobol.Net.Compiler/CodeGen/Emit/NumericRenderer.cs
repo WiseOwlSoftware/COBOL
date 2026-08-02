@@ -362,9 +362,22 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s);
     }
 
-    /// <summary>Rescale a value's unscaled long up to <paramref name="toScale"/> (widening only here → exact).</summary>
+    /// <summary>Rescale a value's unscaled long up to <paramref name="toScale"/> (widening only here → exact).
+    /// <para>⛔ TOTAL OVER THE CARRIER KINDS, and it has to be: a <c>Real</c> (binary64) operand reaches the
+    /// receiver-less sites — a subscript, a SET amount, a PERFORM VARYING FROM/BY, a report VARYING, a RETRY
+    /// count — and without this arm the double expression was handed straight to a caller expecting a scaled
+    /// integral, so legal source produced uncompilable C# (the PB2 shape). It was already reachable through a
+    /// COMP-2 operand; PB13 widened it by keeping a receiver-less FLOAT-FAMILY result in binary64 too, so the
+    /// arm is landed at the ONE choke point rather than at each of the forty-odd call sites
+    /// (feedback_change_the_dispatch_not_the_callers). A float lands through the same
+    /// <c>CobolFloat.ToScaled</c> every other float→fixed transfer uses — the saturation-SAFE one, because it
+    /// lands AT the requested scale, so an out-of-range magnitude stays above the caller's capacity check
+    /// instead of being rescaled back into range. TRUNCATION matches this helper's existing contract (alignment
+    /// is not a ROUNDED transfer; §14.7 NOTE 1 gives ROUNDED only to the final transfer).</para></summary>
     public static string Align(NumX x, int toScale) =>
-        toScale == x.Scale ? x.Expr : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
+        x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        : toScale == x.Scale ? x.Expr
+        : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
 
     /// <summary>Render a STOP RUN / GOBACK termination-status phrase to a C# <c>long</c> exit-status expression
     /// (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
@@ -391,9 +404,16 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
             return new NumX(RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode), 0, Dec: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
-        if (b.Real || e.Real || _rcv.Real)
+        // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family
+        // does (PB13): §8.8.1.2 already makes this an implementor-defined approximation computed in double, and
+        // with no receiver there is no scale to quantize TO — the ws = 9 stand-in saturated, so `IF 10 ** 30 =
+        // 10 ** 31` evaluated TRUE. A fixed-point receiver still quantizes, at the capacity-capped working scale.
+        if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)
             return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
-        int ws = Math.Max(_rcv.Scale, 9);
+        // ⛔ THE SAME QUANTIZER, SO THE SAME CAP (PB13's sibling — feedback_scan_all_similar). A flat
+        // max(Scale, 9) here silently saturated `COMPUTE R = 10 ** 30` into a PIC 9(31) exactly as it did for the
+        // float-intrinsic family; ReceiverContext.FloatWorkingScale is the one rule both consume.
+        int ws = _rcv.FloatWorkingScale;
         return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);
     }
 
