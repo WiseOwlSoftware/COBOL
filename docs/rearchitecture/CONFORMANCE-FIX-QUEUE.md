@@ -120,7 +120,28 @@ below index it).
 > admit exactly what `moveSendingOperand` admits, and using that ONE rule is the standard's own definition of
 > the operand rather than a convenience.
 
-### PB11 · [MAJOR] · date/time · ⛔ OPEN — the §15.39/40/41 date-time FORMAT rules are validated nowhere
+### PB11 · [MAJOR] · date/time · ◑ HALF LANDED (DEVLOG 1139) — the §15.3 format GRAMMAR is now recognised
+> **✅ THE RECOGNIZER EXISTS: `DateTimeFormatGrammar`, and rule 2 of all SEVEN format-taking functions is
+> enforced** (`COBOLNET1631`). The legal set is CLOSED — §15.3.1.1's six date formats, §15.3.2's twelve time
+> formats (four common-time shapes × local/UTC/offset), and §15.3.4's combined = date + `T` + time with **basic
+> paired to basic and extended to extended** — so membership is the test. §15.39.3 r1 makes argument-1 a
+> LITERAL, so it is decided at BIND time. Goldens: `conformance:2023/pb11_datetime_format_grammar` (all six date
+> formats + the time and combined variants) · `negative/pb11-format-wrong-kind` · `negative/pb11-format-kind-chimera`.
+> ⚠ **THE KIND IS A SET PER FUNCTION, NOT ONE VALUE — the corpus caught the first version.** Four of the seven
+> rules name more than one kind (§15.48.3 r2 date-or-combined · §15.79.3 r2 time-or-combined · §15.92.3 r2
+> date-or-time-or-combined), and inferring the siblings by NAME ANALOGY rejected the legal corpus program
+> `2014/formatted_datetime`. Each row now quotes its own rule.
+> ✅ **PB16 IS RETIRED BY CONSTRUCTION**: §15.3.3.2 makes the seconds-fraction maximum implementor-defined
+> (≥ 9), and it is now DOCUMENTED at 18 (`CONFORMANCE.md` item 87) — exactly where `long` stops being exact — so
+> the ≥19-digit overflow is unreachable rather than separately guarded.
+>
+> **⛔ STILL OPEN ON PB11 — the VALUE rules, which the recogniser does not touch.** It answers "is this a
+> format"; it says nothing about the DATA. Still unenforced: §15.40.3 r4/r5 (argument-3 in [0,86400), |argument-4|
+> ≤ 1439), r6 (argument-4 supplied when the format has no offset/UTC portion — compile-time decidable now that
+> the format is classified), §15.41.3 r3–r5 likewise, and the §15.3.1.3/.5/.7 permitted-value ranges. Those need
+> the recogniser's SUBFIELD breakdown, which it does not yet return — it classifies only.
+
+### PB11 (the original entry) · the §15.39/40/41 date-time FORMAT rules are validated nowhere
 > **19 findings over the 4 FORMATTED-* functions.** §15.39.3 r2, §15.40.3 r2–r7 and §15.41.3 r2–r6 are enforced
 > nowhere: a TIME format passes where a DATE format is required, a combined/basic/extended chimera is accepted, an
 > out-of-range argument-2/3/4 is never checked, and argument-4 is silently DISCARDED when the format admits no
@@ -205,7 +226,7 @@ below index it).
 > national function); `IntrinsicCatalog` hardcodes `Alphanumeric`. Wrong result category propagates into Table-16
 > MOVE legality and the string channels, so it under-rejects as well as mis-typing.
 
-### PB16 · [MINOR] · date/time · ⛔ OPEN — a fractional-seconds field of ≥19 's' characters overflows and emits garbage
+### PB16 · [MINOR] · date/time · ✅ RETIRED BY PB11 — a fractional-seconds field of ≥19 's' characters overflowed
 > `EmitFormatted` computes `(long)Pow10.AsWide(s.Width)`, which overflows past 10¹⁸. Narrow, contained, and a
 > crash rather than a wrong value.
 

@@ -160,6 +160,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    SR1), so every identifier-N SENDING position admits one — but the grammar reaches `functionCall` from just
    FOUR places, so `WRITE … FROM`, `INSPECT`, `INITIALIZE … REPLACING`, a subscript and a ref-mod's positions all
    reject it. Fix the DISPATCH, not the call sites.
+   ◑ **PB11's RECOGNISER IS LANDED (DEVLOG 1139) and PB16 IS RETIRED BY IT.** `DateTimeFormatGrammar` decides
+   membership of the CLOSED §15.3 format set, so rule 2 of all seven format-taking functions is enforced at bind
+   time (`COBOLNET1631`). What remains on PB11 is the VALUE rules — §15.40.3 r4/r5/r6, §15.41.3 r3–r5 and the
+   §15.3.1.3/.5/.7 permitted ranges — which need the recogniser to return its SUBFIELD breakdown rather than
+   just a verdict; that is the natural next increment.
    ◑ **PB12's SEVEN ROWS ARE LANDED (DEVLOG 1138); PB13 IS REPRODUCED AND SCOPED (DEVLOG 1137).** PB12's open
    half is the MIXED-argument functions (FIND-STRING + the four FORMATTED-*), which need a per-POSITION kind
    rather than the table's one-kind-per-function, plus HIGHEST-ALGEBRAIC (whose rule admits numeric-edited, so
@@ -519,8 +524,8 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — 2026-07-30, re-measured on `main` at PB12.**
-  FULL greenfield Conformance **4161 / 4161, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
+- **⛔ BATTERY REFERENCE — re-measured on `main` at PB11.**
+  FULL greenfield Conformance **4164 / 4164, zero skipped, NOTHING red** · greenfield Unit **972 / 972, zero
   skipped** · characterization **33 / 33** · `guard-fast.sh` **=== ALL GREEN ===** with NIST **353 MATCH /
   0 REGRESSION**, legacy Unit **1203 / 1203**, Integration **503 / 504 (1 skipped)** *(the guard/NIST/legacy legs
   carried from the pre-PB8 measurement — PB8 touches no legacy-shared seam)* · GnuCOBOL differential

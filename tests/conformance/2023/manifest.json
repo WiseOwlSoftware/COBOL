@@ -80,7 +80,8 @@
     "pb9_reserved_intrinsic_names",
     "general_format_intrinsics_batch1",
     "argument_rule_equivalences_batch1",
-    "pb10_function_identifier_sending"
+    "pb10_function_identifier_sending",
+    "pb11_datetime_format_grammar"
   ],
   "pending": [
     "pb13_float_quantize_headroom"

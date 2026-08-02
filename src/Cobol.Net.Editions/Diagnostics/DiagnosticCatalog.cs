@@ -618,6 +618,21 @@ public static class DiagnosticCatalog
         + "different and entirely legal shape (§8.4.3.1.4 GR1 a→g) and is not affected; only a SECOND reference "
         + "modification is rejected.",
         "ISO §8.4.3.3.3 SR3 / §8.4.3.3.4 GR5");
+    // 1631 — a FORMATTED-*/INTEGER-OF-FORMATTED-DATE/… format argument that is not one of the §15.3.1–§15.3.4
+    // formats, or is the wrong KIND for the function (fix-queue PB11). Before this, the format was validated
+    // character-wise only, so any string assembled from legal subfields was accepted and the function
+    // FABRICATED a value — `FORMATTED-DATE("hhmmss" …)` returned "000000". Edition-invariant in substance; the
+    // functions themselves are 2014+ (§15.39–§15.41), so it is unreachable below that.
+    public static readonly DiagnosticDescriptor DateTimeFormatKindMismatch = new(
+        "COBOLNET1631", "date-time-format-kind", EditionSeverity.Error,
+        "A date/time FORMAT argument is not a format the standard defines, or is the wrong KIND for the "
+        + "function. ISO §15.3.1.1 fixes SIX date formats (basic and extended, for calendar, ordinal and week "
+        + "dates), §15.3.2 twelve time formats (four common-time shapes × local / UTC / offset), and §15.3.4 "
+        + "makes a combined format a date format, an uppercase T, and a time format. §15.39.3 r2 requires a "
+        + "DATE format, §15.41.3 r2 a TIME format and §15.40.3 r2 a COMBINED one. ⛔ BASIC AND EXTENDED NEVER "
+        + "MIX: `YYYY-MMDD` and `YYYY-MM-DDThhmmss` are built entirely from legal subfields and are still not "
+        + "formats, which is why membership is tested rather than each field in isolation.",
+        "ISO §15.3.1.1 / §15.3.2 / §15.3.4 / §15.39.3 r2 / §15.40.3 r2 / §15.41.3 r2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

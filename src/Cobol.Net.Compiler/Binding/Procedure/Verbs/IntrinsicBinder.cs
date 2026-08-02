@@ -261,6 +261,56 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), argListWritten: true, name);
     }
 
+
+    private static string Name(DateTimeFormatKind k) => k switch
+    {
+        DateTimeFormatKind.Date => "DATE",
+        DateTimeFormatKind.Time => "TIME",
+        _ => "COMBINED date-and-time",
+    };
+
+    /// <summary>The §15.3 format kinds each format-taking function ADMITS — a SET, not one kind, because four
+    /// of the seven rules name more than one.
+    /// <para>⛔ THIS WAS A SINGLE VALUE AND THE CORPUS CAUGHT IT. Reading the three "sibling" functions by name
+    /// analogy gave TEST-FORMATTED-DATETIME "combined", and §15.92.3 r2 actually says "either a date format, a
+    /// time format, or a combined date and time format" — so an existing, legal corpus program
+    /// (<c>2014/formatted_datetime</c>, <c>TEST-FORMATTED-DATETIME("YYYYMMDD" …)</c>) was rejected. Each row
+    /// below is now the function's OWN rule, quoted:</para>
+    /// <list type="bullet">
+    ///   <item>§15.38.3 r2 FORMATTED-CURRENT-DATE — "shall be a combined date and time format"</item>
+    ///   <item>§15.39.3 r2 FORMATTED-DATE — "shall be a date format"</item>
+    ///   <item>§15.40.3 r2 FORMATTED-DATETIME — "shall be a combined date and time format"</item>
+    ///   <item>§15.41.3 r2 FORMATTED-TIME — "shall be a time format"</item>
+    ///   <item>§15.48.3 r2 INTEGER-OF-FORMATTED-DATE — "either a date format or a combined date and time format"</item>
+    ///   <item>§15.79.3 r2 SECONDS-FROM-FORMATTED-TIME — "either a time format or a combined date and time format"</item>
+    ///   <item>§15.92.3 r2 TEST-FORMATTED-DATETIME — "either a date format, a time format, or a combined …"</item>
+    /// </list>
+    /// Null for a function that takes no format argument.</summary>
+    private static DateTimeFormatKind[]? FormatKindsAdmittedBy(string name) => name switch
+    {
+        "FORMATTED-DATE" => [DateTimeFormatKind.Date],
+        "FORMATTED-TIME" => [DateTimeFormatKind.Time],
+        "FORMATTED-CURRENT-DATE" or "FORMATTED-DATETIME" => [DateTimeFormatKind.Combined],
+        "INTEGER-OF-FORMATTED-DATE" => [DateTimeFormatKind.Date, DateTimeFormatKind.Combined],
+        "SECONDS-FROM-FORMATTED-TIME" => [DateTimeFormatKind.Time, DateTimeFormatKind.Combined],
+        "TEST-FORMATTED-DATETIME" =>
+            [DateTimeFormatKind.Date, DateTimeFormatKind.Time, DateTimeFormatKind.Combined],
+        _ => null,
+    };
+
+    /// <summary>The clause each function's format-content rule lives in, for the diagnostic text.</summary>
+    private static string FormatRuleCitation(string name) => name switch
+    {
+        "FORMATTED-CURRENT-DATE" => "ISO §15.38.3 r2",
+        "FORMATTED-DATE" => "ISO §15.39.3 r2",
+        "FORMATTED-DATETIME" => "ISO §15.40.3 r2",
+        "FORMATTED-TIME" => "ISO §15.41.3 r2",
+        "INTEGER-OF-FORMATTED-DATE" => "ISO §15.48.3 r2",
+        "SECONDS-FROM-FORMATTED-TIME" => "ISO §15.79.3 r2",
+        "TEST-FORMATTED-DATETIME" => "ISO §15.92.3 r2",
+        _ => "ISO §15.3",
+    };
+
     /// <summary>The D2 keyword-omitted argument re-parse: the SUBSCRIPT-mode captured argument text (verbatim
     /// from the source char stream, spacing intact) re-parses through the ONE <c>functionArgList</c> grammar
     /// rule via <see cref="FunctionArgFragment"/> — the same tokens, rule, and binding path as the
@@ -413,6 +463,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1517", $"FUNCTION {sig.Name} argument-1 shall be a literal date/time format "
                 + "(ISO §15 — the FORMATTED-*/INTEGER-OF-FORMATTED-DATE/SECONDS-FROM-FORMATTED-TIME/"
                 + "TEST-FORMATTED-DATETIME format is a literal)");
+
+        // §15.38.3/§15.39.3/§15.40.3/§15.41.3/§15.48.3/§15.79.3/§15.92.3 rule 2 — the format's CONTENT
+        // (fix-queue PB11). The literal screen above established only that argument-1 IS a literal; this asks
+        // the question nothing asked before: is it one of the §15.3.1–§15.3.4 formats, and is it a kind THIS
+        // function admits? Character-wise validation cannot answer that — every counter-example is assembled
+        // from individually legal subfields.
+        if (args.Count > 0 && args[0] is BoundStringLiteral fmt
+            && FormatKindsAdmittedBy(sig.Name) is { } admitted)
+        {
+            var actual = DateTimeFormatGrammar.Classify(fmt.Value, ctx.Data.DecimalPointIsComma);
+            if (actual is null || Array.IndexOf(admitted, actual.Value) < 0)
+                ctx.Edition.Error(DiagnosticCatalog.DateTimeFormatKindMismatch,
+                    $"FUNCTION {sig.Name} argument-1 is '{fmt.Value}', which is "
+                    + (actual is null
+                        ? "not a date, time or combined date-and-time format at all (ISO §15.3.1.1 / §15.3.2 / "
+                          + "§15.3.4 — note that basic and extended forms never mix)"
+                        : $"a {Name(actual.Value)} format; this function admits "
+                          + string.Join(" or ", admitted.Select(Name)))
+                    + $" ({FormatRuleCitation(sig.Name)}).");
+        }
 
         // FUNCTION LENGTH folds at compile time from PIC metadata (§15.50; deep-dive D7).
         if (sig.Bind == IntrinsicBind.Fold && sig.Name == "LENGTH")
