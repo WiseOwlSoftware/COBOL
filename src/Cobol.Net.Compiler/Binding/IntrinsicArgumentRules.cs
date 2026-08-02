@@ -274,17 +274,22 @@ internal static class IntrinsicArgumentRules
         // category numeric-edited and class alphanumeric — not a numeric data item — so it is neither of type
         // 10's two alternatives. The exclusion is correct and `pb1-numeric-arg-numeric-edited` pins it.
         'n' => [CobolClass.Numeric],
-        // ⛔ 'i' IS NOT THE SAME SCREEN, AND TREATING IT AS ONE REJECTED LEGAL COBOL. §15.15.3 r1 (CHAR) says
-        // "shall be an INTEGER", which is §15.3 type 6: "An arithmetic expression that will always result in an
-        // integer value or an integer data item shall be specified." That admits an ARITHMETIC EXPRESSION — and a
-        // numeric-edited item is a legal arithmetic operand, because it DE-EDITS to a defined numeric value
-        // (DA6's own §8.8.1.1 screen deliberately admits one: NonNumericOperandKind matches only
-        // `EditMask: null`). So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is conforming, and a corpus golden plus an
-        // AssertSpec unit test had encoded that from the spec long before this screen existed. Screening 'i' as
-        // "class numeric" broke both.
-        // The distinction is REAL, not a fudge: a rule naming a CLASS and a rule naming §15.3's integer TYPE are
-        // different rules, and the catalog codes them differently for that reason.
-        'i' => [CobolClass.Numeric, CobolClass.NumericEditedDeEditing],
+        // ⛔ 'i' SCREENS EXACTLY AS 'n' DOES (owner decision 2026-08-02). The comment that stood here argued the
+        // opposite — that §15.3 type 6 "admits an ARITHMETIC EXPRESSION — and a numeric-edited item is a legal
+        // arithmetic operand, because it DE-EDITS to a defined numeric value" — and cited DA6's screen, a corpus
+        // golden and an AssertSpec test as encoding it. ⚠ THAT WAS THE SAME READING THE 'n' ARM BELOW HAD
+        // ALREADY REFUTED, so the two arms rested on readings of §8.8.1.1 that could not both be right; the
+        // agreement of a golden and a test is not independent evidence when both were written from the same
+        // wrong premise. Re-derived, all three citations `--check`ed:
+        //   · §8.8.1.1 admits "an identifier referencing a NUMERIC DATA ITEM"; §8.5.2.13 says a numeric-edited
+        //     item "is referred to as a NUMERIC-EDITED data item" — a distinct defined term — and §8.5.2.1
+        //     Table 2 puts category numeric-edited in class ALPHANUMERIC or NATIONAL, never numeric;
+        //   · type 6's only other alternative is "an INTEGER DATA ITEM", which it also is not;
+        //   · de-editing is granted by the MOVE rules (§14.9.25.4 GR6d1) and nowhere extended to arithmetic — a
+        //     grant that would be unnecessary if de-editing were generally available.
+        // So `FUNCTION CHAR(WS-ED)` over a `PIC Z9` is NOT conforming. The distinction between a CLASS rule and
+        // §15.3's integer TYPE is still real — it is just not a distinction about numeric-edited.
+        'i' => [CobolClass.Numeric],
         // The string family — §15.3 type 1 Alphabetic, type 2 Alphanumeric (which explicitly treats a
         // strongly-typed group as alphanumeric) and type 9 National. Each catalogued 's' argument's own rule
         // names some subset of these; screening their UNION rejects the classes none of them admits (numeric,

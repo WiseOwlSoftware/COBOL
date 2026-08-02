@@ -297,13 +297,38 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>A human-readable description of WHY a place is not a numeric operand, or <see langword="null"/>
-    /// when it is one. A numeric-EDITED item de-edits to a defined numeric value and is admissible; class BOOLEAN
-    /// carries its own §8.8.1 rejection in the renderer; INDEX / POINTER never resolve to a <c>Pic</c> here. Only
-    /// the alphanumeric family is at issue, in its three shapes.</summary>
+    /// when it is one. Class BOOLEAN carries its own §8.8.1 rejection in the renderer; INDEX / POINTER never
+    /// resolve to a <c>Pic</c> here.
+    /// <para>
+    /// ⛔ <b>A NUMERIC-EDITED ITEM IS REJECTED (owner decision 2026-08-02, reversing DA6's admission).</b> This
+    /// arm previously read "a numeric-EDITED item de-edits to a defined numeric value and is admissible", and it
+    /// was derived from the wrong place — from what de-editing CAN do, not from what §8.8.1.1 ADMITS. The
+    /// standard decides it three ways, all validated with <c>cite.py --check</c>:
+    /// <list type="bullet">
+    ///   <item>§8.8.1.1 admits "an identifier referencing a <b>numeric data item</b>", and §8.5.2.13 says such an
+    ///         item "is referred to as a <b>numeric-edited data item</b>" — a DISTINCT defined term. Table 2
+    ///         (§8.5.2.1) puts category numeric-edited in class ALPHANUMERIC (usage display) or NATIONAL, never
+    ///         class numeric. It is neither the class nor the category §8.8.1.1 names.</item>
+    ///   <item>Every de-editing rule in the standard is a MOVE/editing rule — §14.9.25.4 GR6d1 ("de-editing
+    ///         establishes the operand's numeric value"), the CURRENCY SIGN and LOCALE clauses. GR6d1 has to
+    ///         GRANT de-editing for the MOVE, which it would not need to do if de-editing were generally
+    ///         available to any numeric context.</item>
+    ///   <item>§15.3's integer type 6 offers "an arithmetic expression … or an <b>integer data item</b>" as its
+    ///         only two alternatives; a numeric-edited item is neither.</item>
+    /// </list>
+    /// The sibling <c>IntrinsicArgumentRules</c> 'n' arm had ALREADY refuted this same reading (its negative
+    /// fixture <c>pb1-numeric-arg-numeric-edited</c> pins it), so the two screens rested on readings of §8.8.1.1
+    /// that could not both be right. They now agree. ⚠ This changes ONLY what an ARITHMETIC operand may be — the
+    /// 's' string family still admits a numeric-edited item, because Table 2 genuinely makes it class
+    /// alphanumeric and a CLASS rule means what it says.
+    /// </para></summary>
     private static string? NonNumericOperandKind(Place p) => p switch
     {
         RefModPlace => "a reference-modified operand (class alphanumeric, ISO §8.4.2.4)",
         _ when p.Item.IsGroup => $"group item '{p.Item.CobolName}' (class alphanumeric, ISO §8.5)",
+        _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
+            $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "
+            + "data item — ISO §8.5.2.13 + §8.5.2.1 Table 2; de-editing is a MOVE rule, §14.9.25.4 GR6d1)",
         _ when p.Item.Pic is { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: null } pic =>
             $"item '{p.Item.CobolName}' of category {pic.Category}",
         _ => null,

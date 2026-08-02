@@ -95,8 +95,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
     `ArgKinds` column was not merely unread but UNVERIFIED, and enforcing it as written rejected 12 legal corpus
     programs. Re-derive a dead table before wiring it in.
   · **A code that stands for two rules enforces neither** — screening `'n'` (class numeric) and `'i'`
-    (§15.3 type 6 integer) identically rejected `FUNCTION CHAR(<numeric-edited>)`, which is legal because type 6
-    admits an arithmetic expression and a numeric-edited item de-edits.
+    (§15.3 type 6 integer) identically was recorded here as wrongly rejecting `FUNCTION CHAR(<numeric-edited>)`,
+    "because type 6 admits an arithmetic expression and a numeric-edited item de-edits".
+    ⛔ **THAT SECOND CLAUSE WAS FALSE, AND IT IS NOW AN OWNER DECISION (2026-08-02): a numeric-edited item is
+    NOT an arithmetic operand and NOT an integer argument.** §8.8.1.1 admits "an identifier referencing a
+    NUMERIC data item"; §8.5.2.13 calls this a "numeric-edited data item" — a distinct defined term — and
+    §8.5.2.1 Table 2 puts that category in class ALPHANUMERIC or NATIONAL, never numeric; §15.3 type 6's only
+    other alternative is "an integer data item"; and de-editing is GRANTED by the MOVE rules (§14.9.25.4 GR6d1)
+    and nowhere extended to arithmetic. The `'n'` arm had already refuted the identical reading, so the two arms
+    rested on readings of §8.8.1.1 that could not both be right. Both external oracles agree: no NIST program
+    depends on it, and GnuCOBOL exercises de-editing only under MOVE. **The surviving lesson is narrower and
+    sharper — a golden and a unit test agreeing is NOT independent evidence when both were written from the
+    same premise.** DA6's screen, `IntrinsicArgumentRules`'s `'i'` arm, one corpus golden and one AssertSpec
+    test all moved together; the rejection is pinned by `pb1-integer-arg-numeric-edited`.
 - **⚠ THE INSTRUMENTS HAVE LIED MORE OFTEN THAN THE COMPILER HAS.** Every one of these cost real time:
   · a citation audit reported **133 defects of which essentially none was real** (it matched quoted LABELS and
     doc-internal `§` refs); the precise form — text that IS in the spec, filed under the WRONG clause — found 9.
@@ -459,9 +470,16 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — re-measured on `main` at PB13 (2026-08-02).**
-  FULL greenfield Conformance **4166 / 4166, zero skipped, NOTHING red** (4164 + PB13's two goldens) · greenfield
-  Unit **3615 / 3615, zero skipped** · characterization **33 / 33** · GnuCOBOL differential **1323 cases, ONE
+- **⛔ BATTERY REFERENCE — re-measured on `main` at PB13 + the `'i'`/`'n'` adjudication (2026-08-02).**
+  FULL greenfield Conformance **4168 / 4168, zero skipped, NOTHING red** (4164 + PB13's two goldens + the
+  adjudication's negative fixture and rejection test) · greenfield
+  Unit **3615 / 3615, zero skipped** · characterization **33 / 33**.
+  ⚖ **THE ADJUDICATION'S OWN ORACLE EVIDENCE, since it changed accept/reject:** NIST stayed **entirely green**
+  across the flip — of 4166 cases the ONLY three reds were the three artifacts encoding the old premise — and the
+  GnuCOBOL differential moved **0 of 1323 cases**. ⚠ Read that second number honestly: 0 flips proves the
+  tightening moved nothing the GPL corpus COVERS, not that GnuCOBOL endorses the reading; their suite contains
+  no numeric-edited arithmetic operand at all, and files de-editing exclusively under MOVE.
+  · GnuCOBOL differential (at PB13) **1323 cases, ONE
   per-case flip, ATTRIBUTED, 0 unexplained** — `syn_functions.at :: invalid formats w/ DECIMAL-POINT IS COMMA`
   moved `WE_ACCEPT_THEY_REJECT → AGREE_REJECT`, i.e. a FIX; it is **PB11's** `COBOLNET1631`, not PB13's, proved
   by `git log -S` putting that code in `21c39c3d` which `merge-base --is-ancestor` confirms predates this

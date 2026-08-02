@@ -13,14 +13,20 @@
        01 C PIC 9(3) VALUE 5.
        01 ARR VALUE "40537".
            02 IND OCCURS 5 TIMES PIC 9.
-      *> WS-ED is numeric-edited so CHAR(WS-ED) exercises numeric-edited de-editing;
-      *> it is initialized by MOVE (not a numeric-literal VALUE, which is a COBOL-2023
-      *> feature per ISO §13.18.63 SR6 / Annex E.3.3 item 43 — invalid at --std 2014).
-       01 WS-ED PIC Z9.
+      *> ⛔ THE NUMERIC-EDITED CASE THAT USED TO SIT HERE IS GONE, AND IS NOW A NEGATIVE
+      *> FIXTURE (pb1-numeric-edited-arith-operand). It read
+      *>     COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED))   *> WS-ED PIC Z9
+      *> and asserted that a numeric-edited item de-edits as an arithmetic operand. Owner
+      *> decision 2026-08-02: it does not. 8.8.1.1 admits "an identifier referencing a
+      *> NUMERIC data item"; 8.5.2.13 calls a numeric-edited item a "numeric-edited data
+      *> item" - a distinct defined term - and 8.5.2.1 Table 2 puts that category in class
+      *> ALPHANUMERIC or NATIONAL, never numeric. De-editing is granted by the MOVE rules
+      *> (14.9.25.4 GR6d1) and nowhere extended to arithmetic. The rest of this golden is
+      *> untouched: FUNCTION arguments ARE real arithmetic expressions (8.4.3.2 SR8), which
+      *> is what it exists to pin.
        01 R PIC 9(5).
        PROCEDURE DIVISION.
        MAIN-PARA.
-           MOVE 34 TO WS-ED.
            COMPUTE R = FUNCTION MAX(A / B, C).
            DISPLAY "DIV=" R.
            COMPUTE R = FUNCTION MAX(A * B, (C + 1) / 2, 3 + 4).
@@ -37,7 +43,5 @@
            DISPLAY "ALL=" R.
            COMPUTE R = FUNCTION ORD(FUNCTION CHAR(66 / 2 + 1)).
            DISPLAY "ORD=" R.
-           COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).
-           DISPLAY "EDT=" R.
            STOP RUN.
        END PROGRAM FNEXPARG.

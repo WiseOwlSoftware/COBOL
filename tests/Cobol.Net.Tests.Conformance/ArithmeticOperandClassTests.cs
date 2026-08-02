@@ -106,9 +106,35 @@ public sealed class ArithmeticOperandClassTests
     public void Strict_AcceptsNumericOperands()
     {
         var (ok, output, detail) = EditionHarness.CompileAndRun(Program(
+            "       01 N PIC 9(4) VALUE 12.\n       01 M PIC S9(3)V9 VALUE 7.\n       01 R PIC 9(6).",
+            "           COMPUTE R = N + M + 1.\n           DISPLAY \"R=\" R."), 2023);
+        Assert.True(ok, detail);
+        Assert.Equal("R=000020", output.Trim());   // 12 + 7 + 1 — both operands are class NUMERIC
+    }
+
+    /// <summary>
+    /// ⛔ A NUMERIC-EDITED OPERAND IS REJECTED (owner decision 2026-08-02, REVERSING DA6's admission — the
+    /// control above used to be <c>01 E PIC ZZ9 VALUE 7</c> and asserted it de-edited).
+    /// <para>
+    /// The old reading took de-editing to make a numeric-edited item a legal arithmetic operand. It does not:
+    /// §8.8.1.1 admits "an identifier referencing a <b>numeric data item</b>", §8.5.2.13 calls this a
+    /// "<b>numeric-edited</b> data item" — a distinct defined term — and §8.5.2.1 Table 2 puts that category in
+    /// class ALPHANUMERIC (usage display) or NATIONAL, never numeric. Every de-editing rule in the standard is a
+    /// MOVE/editing rule (§14.9.25.4 GR6d1), and GR6d1 has to GRANT de-editing for the MOVE, which would be
+    /// unnecessary if it were generally available. The sibling `IntrinsicArgumentRules` 'n' screen had already
+    /// refuted this same reading, so the two rested on readings of §8.8.1.1 that could not both be right.
+    /// </para>
+    /// <para>⚠ Both external oracles were consulted before landing: NO NIST program depends on it (the whole
+    /// NIST corpus stayed green through the flip), and GnuCOBOL's own suite exercises de-editing only under
+    /// MOVE — every one of its cases is titled "MOVE with de-editting to …".</para>
+    /// </summary>
+    [Fact]
+    public void Strict_RejectsNumericEditedOperand()
+    {
+        var (ok, output, detail) = EditionHarness.CompileAndRun(Program(
             "       01 N PIC 9(4) VALUE 12.\n       01 E PIC ZZ9 VALUE 7.\n       01 R PIC 9(6).",
             "           COMPUTE R = N + E + 1.\n           DISPLAY \"R=\" R."), 2023);
-        Assert.True(ok, detail);
-        Assert.Equal("R=000020", output.Trim());   // 12 + 7 + 1 — a numeric-edited operand de-edits
+        Assert.False(ok, $"a numeric-edited arithmetic operand must be rejected (ISO §8.8.1.1); got: {output}");
+        Assert.Contains("COBOLNET0844", detail + output);
     }
 }

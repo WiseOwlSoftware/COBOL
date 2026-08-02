@@ -184,6 +184,26 @@ below index it).
 > numeric-edited item is not a numeric data item, so it is neither of type 10's alternatives. **The existing
 > negative fixture `pb1-numeric-arg-numeric-edited` caught the widening**, which would have silently ACCEPTED
 > ILLEGAL COBOL. The refutation now sits beside the screen in `IntrinsicArgumentRules`.
+>
+> **✅ AND THE `'i'` ARM HAS NOW BEEN BROUGHT INTO LINE — OWNER DECISION 2026-08-02 (DEVLOG 1142).** The two arms
+> had come to rest on readings of §8.8.1.1 that could not both be right: `'n'` refuted the de-editing reading
+> while `'i'` was landed ON it, citing DA6's screen, a corpus golden and an AssertSpec test. Re-derived, every
+> citation `--check`ed, the exclusion holds for BOTH — and the decisive evidence was three lines above this
+> paragraph the whole time:
+> **⭐ WHEN THE STANDARD MEANS TO ADMIT A NUMERIC-EDITED ARGUMENT, IT SAYS SO EXPLICITLY.** §15.43.3 r1
+> (HIGHEST-ALGEBRAIC) admits "a data item of category numeric **or numeric-edited**". §15.3's type 6 and type 10
+> say "an arithmetic expression … or an integer/numeric data item" and name numeric-edited NOWHERE. A reading
+> that makes numeric-edited implicit in "numeric data item" makes §15.43.3 r1's second alternative redundant.
+> Supporting: §8.5.2.13 calls it a "numeric-edited data item" (a distinct defined term); Table 2 files it under
+> class ALPHANUMERIC/NATIONAL; and de-editing is GRANTED by the MOVE rules (§14.9.25.4 GR5/GR6d1) and nowhere
+> extended to arithmetic — a grant that would be unnecessary if it were general.
+> **Both external oracles were consulted, per the owner's standing rule for interpretation questions:** no NIST
+> program depends on it (the entire NIST corpus stayed green across the flip — the ONLY three reds were the
+> three artifacts that encoded the old premise), and GnuCOBOL's suite exercises de-editing exclusively under
+> MOVE, every case titled "MOVE with de-editting to …".
+> ⚠ **THE LESSON THAT SURVIVES IS ABOUT EVIDENCE, NOT ABOUT EDITING:** a corpus golden and a spec-derived unit
+> test AGREEING is not independent corroboration when both were written from the same premise. Three artifacts
+> agreed for months and all three were wrong together. New fixture: `pb1-integer-arg-numeric-edited`.
 
 ### PB12 (the original entry) · the §15.3 argument-class screen is absent for most of these functions
 > **13 findings over 10 subjects.** PB1's `IntrinsicArgumentRules.Verified` screen only runs for functions with a

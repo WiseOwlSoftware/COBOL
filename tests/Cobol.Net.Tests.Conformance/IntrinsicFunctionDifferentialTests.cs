@@ -30,6 +30,17 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Equal(CutRunner.Normalize(expected), cout);
     }
 
+    /// <summary>The counterpart of <see cref="AssertSpec"/> for a program the spec REQUIRES be rejected: the
+    /// compile must fail, and it must fail with the NAMED diagnostic rather than incidentally. Asserting only
+    /// "did not compile" would pass on a typo in the fixture, which is the failure mode this shape exists to
+    /// avoid — the same reason the negative corpus pins an expected diagnostic substring per case.</summary>
+    private static void AssertRejected(string source, string expectedCode, int dialect = 85)
+    {
+        var (cok, cout, cdetail) = new CobolNetCompiler(dialect).CompileAndRun(source);
+        Assert.False(cok, $"expected rejection ({expectedCode}); the program compiled and produced: {cout}");
+        Assert.Contains(expectedCode, cdetail + cout, StringComparison.Ordinal);
+    }
+
     private static string Program(string ws, string proc, string id = "IFTEST") => $"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {id}.
@@ -836,14 +847,20 @@ public sealed class IntrinsicFunctionDifferentialTests
             "    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(66 / 2 + 1)).\n    DISPLAY R."), "034");
 
     [Fact]
-    public void StringChannel_NumericEditedArg_DeEdits() =>
-        // A numeric-edited argument inside the string channel DE-EDITS to its value (§14.9.25.4 GR5) — the
-        // former context-free channel stayed loud on numeric-edited operands.
-        // WS-ED is initialized by MOVE (not a numeric-literal VALUE, which is a COBOL-2023 feature per ISO
-        // §13.18.63 SR6 / Annex E.3.3 item 43 — invalid at the default dialect 85); the de-editing under test is
-        // edition-invariant.
-        AssertSpec(Program("01 WS-ED PIC Z9.\n01 R PIC 9(3).",
-            "    MOVE 34 TO WS-ED.\n    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."), "034");
+    public void IntegerArgument_NumericEdited_IsRejected() =>
+        // ⛔ THIS TEST ASSERTED THE OPPOSITE, AND IT WAS THE OLD READING'S ONLY "spec-derived" WITNESS.
+        // It read `AssertSpec(… FUNCTION ORD(FUNCTION CHAR(WS-ED)) …, "034")` over a PIC Z9 and was cited, with a
+        // corpus golden, as evidence that a numeric-edited item de-edits into an INTEGER argument. Its own
+        // comment cited §14.9.25.4 GR5 — a MOVE rule — for a §15.3 type-6 argument position, which is the
+        // misapplication in one line. Owner decision 2026-08-02: exclude it. §8.8.1.1 admits "an identifier
+        // referencing a NUMERIC data item"; §8.5.2.13 calls this a "numeric-edited data item" and §8.5.2.1
+        // Table 2 puts that category in class ALPHANUMERIC/NATIONAL, never numeric; §15.3 type 6's only other
+        // alternative is "an integer data item", which it also is not. ⚠ A golden and a test agreeing is not
+        // independent evidence when both were written from the same premise.
+        // The rejection fixture is `pb1-integer-arg-numeric-edited`; this pins the same verdict at the unit seam.
+        AssertRejected(Program("01 WS-ED PIC Z9.\n01 R PIC 9(3).",
+            "    MOVE 34 TO WS-ED.\n    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."),
+            "COBOLNET1627");
 
     [Fact]
     public void RefModArgument_Renders() =>
