@@ -15,9 +15,11 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ PB1–PB9 LANDED; PB10–PB16 OPENED THE SAME DAY by the §15.32–15.44 batch (2026-07-30).** The queue emptied
-and refilled within hours, which is the design working: adjudicating a clause OPENS items, fixing them CLOSES
-them. **PB10 is the red line — it rejects legal COBOL in a dozen operand positions.** PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
+**⛔ THE TALLY: PB1–PB9 LANDED · PB16 RETIRED · PB10, PB11, PB12 HALF LANDED · PB13, PB14, PB15, PB17 OPEN.**
+The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
+clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
+**PB13 is the only BLOCKER** (a silently saturating quantizer). Each half-landed item names its own remaining
+half in its entry, and plan §0's NEXT table carries them in the order to work them. PB9's own entry is the standing warning about a MEASURED scope: "exactly one word" came
 from sweeping the wrong set, and the real answer was four.
 
 **⚠ PB8 IS THE STANDING WARNING ABOUT A QUEUE ENTRY'S OWN ROOT-CAUSE CLAIM.** Its entry named a LEXER-MODE defect
