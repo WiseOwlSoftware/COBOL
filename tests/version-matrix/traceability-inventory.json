@@ -39005,12 +39005,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "FORMATTED-CURRENT-DATE function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:negative/pb11-format-kind-chimera",
   "editions": "2014,2023",
-  "notes": "OVERTURNED: PARTIAL -> NOT-IMPLEMENTED. Citation re-validated: `cite.py --check 15.38.3 \"The content of argument-1 shall be a combined date and time format\"` -> OK (rule 2); the defining clause is 15.3.3.7 (`cite.py --check 15.3.3.7 \"A basic combined date and time format consists of a basic date format\"` -> OK, and `--check 15.3.3.7 \"Combinations of basic date formats with extended time formats\"` -> OK). WHY THE DOWNGRADE: the first pass credited PARTIAL to \"the ill-formed-format leg genuinely exists and raises the correct EC\". That leg enforces a DIFFERENT obligation -- that the string be A §15.3 format at all -- not this rule. NOTHING anywhere in the compiler or runtime asks whether the format is COMBINED. Read from source: the binder's ONLY format-related arm is the COBOLNET1517 literal-ness test; IntrinsicRenderer folds the literal only via RuntimeApi.DateFormatFractionDigits and only for SECONDS-FROM-FORMATTED-TIME; CobolDate.Tokenize has no notion of date-part / 'T' / time-part composition and returns a flat List<Seg>; EmitFormatted computes only `hasDate` (any Fld.Year) and `hasTime` (any Fld.Hour) and uses them for the UTC day-roll, never as a gate. Zero implementing code exists, and rule 1 makes argument-1 a LITERAL, so every part of this rule is compile-time decidable -- there is not even a run-time approximation of it. The rule is NOT-IMPLEMENTED, and the code-location above is where the absent screen must live, not where it is. The accept-set I confirmed by reading Tokenize: date-only \"YYYYMMDD\" (no Fld.Hour, emitter simply ignores the time components); time-only \"hhmmss\"; ZERO-LENGTH \"\" (the while loop never executes, so Tokenize returns an EMPTY list -- NOT null -- and even the ExceptionState.ArgumentError leg is bypassed, so the 15.3 EC-ARGUMENT-FUNCTION path cannot fire); and basic-date-with-extended-time \"YYYYMMDDThh:mm:ss\", which 15.3.3.7 forbids outright. THREE FURTHER ACCEPTANCES THE FIRST PASS MISSED, all read off Tokenize/EmitFormatted: (a) `\"YYYYMMDDThhmmss+hhmmZ\"` -- an offset subformat AND the UTC marker together, which 15.3.3.5 and 15.3.3.6 make alternatives. `isUtc` is `segs.Any(s => !s.IsField && s.Sep == 'Z')` and `hasOffset` is hardcoded true for this function, so EmitFormatted BOTH subtracts the offset (converting the time to UTC) AND prints the local offset sign/hours/minutes AND appends 'Z' -- a self-contradictory value of the shape `20260731T002304-0700Z`. (b) a date-only format carrying 'Z' -- `hasTime` is false so no conversion runs, and a LOCAL date is emitted under a UTC marker. (c) `\"hhmmss.ss.ss\"` and `\"hhmmss:ss\"` -- the `sawSecond` flag makes ANY later 's' run a Fraction segment regardless of what precedes it, so a second decimal separator (two fraction fields, both fed the same `frac`) and a fraction introduced by a COLON instead of a decimal separator both tokenize. 15.3.3.2 admits exactly one decimal separator and one fraction run. SIDE FINDING (confirmed, benign in value): 15.3.3.2 pins the separator to a comma under DECIMAL-POINT IS COMMA and a period otherwise; Tokenize's `default:` arm accepts either in either mode with no mode parameter -- over-acceptance only, since the emitted character follows the format string. LOAD-BEARING CONSEQUENCE: `bool extended = fmt.IndexOf(':') >= 0 || fmt.IndexOf('-') >= 0` decides basic-vs-extended for the WHOLE string, and hence whether the decimal separator is data-bearing; it is sound ONLY while 15.3.3.7's no-mixing rule holds, and that rule is precisely the unenforced one -- so an extended-date/basic-time format silently gets the wrong separator disposition. EDITIONS: as for AR-15.38.3-1, same derivation and same caveat. TEST: none; test-needed is a negative fixture covering date-only, time-only, zero-length, mixed basic/extended, and the offset+Z combination.",
-  "state": "GAP"
+  "notes": "Was NOT-IMPLEMENTED. 15.38.3 r2 requires a COMBINED format for FORMATTED-CURRENT-DATE and it is now screened by the same table and recogniser. ⚠ Corroborated rather than directly covered: the golden cannot pin FORMATTED-CURRENT-DATE's VALUE (it reads the clock), so the format-content rule is exercised through the shared screen, whose reject path the chimera fixture covers.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.38.4-1",
@@ -39057,12 +39057,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "FORMATTED-DATE function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#Tokenize",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DateTimeFormatGrammar.cs#Classify; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2023/pb11_datetime_format_grammar; conformance:negative/pb11-format-wrong-kind",
   "editions": "2014,2023",
-  "notes": "CONFIRMED — and re-derived from the code and re-run, not accepted on the prior record's word.\n\nCITATIONS RE-VALIDATED BY ME: cite.py --check 15.39.3 \"The content of argument-1 shall be a date format.\" -> OK (§15.39.3 2)). cite.py --check 15.3.1.1 \"COBOL supports six date formats\" -> OK. §15.3.1.2/.4/.6 fix those six exactly: YYYYMMDD, YYYY-MM-DD, YYYYDDD, YYYY-DDD, YYYYWwwD, YYYY-Www-D.\n\nREAD THE IMPLEMENTATION: CobolDate.Tokenize is a pure character/width lexer — its whole vocabulary is Y/M/D/W/w/T/Z/h/m/s/+/-/:/./, it returns null ONLY for an unknown character or a wrong field width, and the Seg list it returns carries no notion of date-vs-time-vs-combined and no notion of the six enumerated shapes. Its only consumers that inspect the classification are EmitFormatted's `hasDate`/`hasTime`/`isUtc` booleans, used to decide WHICH components to render — never to reject. Nothing anywhere in the compiler classifies a format at bind time (the single compile-time use of the format string is RuntimeApi.DateFormatFractionDigits for SECONDS-FROM-FORMATTED-TIME's result scale). So there is no site at which r2 could fire.\n\nRE-RAN (scratchpad/ref/rfd9.cob, rfdb.cob) — zero diagnostics, exit 0:\n  FUNCTION FORMATTED-DATE (\"hhmmss\" 143951)          -> \"000000\"           (a TIME format)\n  FUNCTION FORMATTED-DATE (\"hh:mm:ss\" 143951)        -> \"00:00:00\"         (an extended TIME format)\n  FUNCTION FORMATTED-DATE (\"YYYYMMDDThhmmss\" 143951) -> \"19950215T000000\"  (a COMBINED format)\n  FUNCTION FORMATTED-DATE (\"YYYY-MMDD\" 143951)       -> \"1995-0215\"        (basic/extended mix, barred by §15.3.1.2)\nSTRONGER THAN THE PRIOR RUN: I re-ran the time-format case with `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` so the §15.3 rule-14 latitude cannot excuse it — it still prints `TIM=[00:00:00] NO-EC` and exits 0. The runtime does not merely default; it never notices. Same at --std 2014.\n\nWHY COMPILE TIME IS THE RIGHT PLACE (re-validated): r1 forces argument-1 to be a literal, so the content is statically known in every legal program; cite.py --check 4.2.2 \"This warning mechanism shall indicate violations of such rules\" -> OK — read to its end it is a discretion clause wrapped around an obligation, and the implementation has ALREADY exercised that discretion for this very argument by putting r1 in the binder as COBOLNET1517.\n\nFIX SHAPE (one mechanism, six callers — a per-function ad-hoc test would be the anti-pattern): the single Tokenize should return the format's CLASSIFICATION (date / time / combined / invalid) and the binder should reject the mismatch by name — §15.39.3 r2 date only; §15.41.3 r2 time only; §15.38.3 / §15.40.3 r2 combined; §15.48.3 r2 date OR combined; §15.92.3 r2 date, time OR combined.\n\ntest-ref EMPTY: no test anywhere asserts the rejection of a non-date format; tests/conformance/2014/formatted_datetime.cob exercises legal formats only.",
-  "state": "GAP"
+  "notes": "Was DIVERGES: the format was validated character-wise, so a TIME format passed and the function FABRICATED a value (FORMATTED-DATE(\"hhmmss\") returned \"000000\"). Now decided by MEMBERSHIP of the closed 15.3 set at bind time (15.39.3 r1 makes argument-1 a literal), rejecting with COBOLNET1631. The negative fixture pins the wrong-KIND case; the positive golden pins all six date formats of 15.3.1.1 so the recogniser cannot pass by rejecting everything.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.39.3-3",
@@ -39109,12 +39109,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "FORMATTED-DATETIME function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DateTimeFormatGrammar.cs#Classify; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2023/pb11_datetime_format_grammar; conformance:negative/pb11-format-kind-chimera",
   "editions": "2014,2023",
-  "notes": "OVERTURNED PARTIAL -> NOT-IMPLEMENTED. Citation re-validated: §15.40.3 r2 'The content of argument-1 shall be a combined date and time format.' NO CODE IMPLEMENTS THIS RULE. The prior pass credited `CobolDate.Tokenize` with a partial implementation; reading it shows it enforces a DIFFERENT and much weaker property — a per-character class check plus a per-field width check — and never the rule's predicate. There is no combined-ness test anywhere, so this is code-not-located, not a half-done rule. WHAT TOKENIZE ACTUALLY ACCEPTS (read, not sampled): field ORDER is unconstrained ('DDMMYYYY' tokenizes and emits '16062021'); fields may REPEAT ('YYYYMMDDYYYYMMDD'); fields may be OMITTED ('MMDDThhmmss' tokenizes); the 'T' separator §15.3.3.7 REQUIRES is optional; 'Z' may appear anywhere, not only after a common time format (§15.3.3.5 says 'followed by'); a date-only ('YYYYMMDD') and a time-only ('hhmmss') format are both accepted for a function whose argument shall be COMBINED; and §15.3.3.7's prohibition (verbatim: 'Combinations of basic date formats with extended time formats, or of extended date formats with basic time formats, are not allowed') is absent, so 'YYYY-MM-DDThhmmss' emits. §15.3.1 and §15.3.2 define a FIXED ENUMERATION — six date formats (calendar/ordinal/week x basic/extended) and four time-format kinds x basic/extended — so the correct mechanism is a recognizer over that enumeration, not a scanner; that is the re-architecture this row should drive. NEW CONSEQUENCE THE PRIOR PASS MISSED: `EmitFormatted` computes `hasDate` as `segs.Any(s => s.IsField && s.Field == Fld.Year)`, so a format carrying month/day/week fields but no 'YYYY' leaves yy/mo/dm/doy/isoW/isoD at ZERO and renders them — `FUNCTION FORMATTED-DATETIME(\"MMDDThhmmss\", 153569, 45296)` emits '0000T123456' silently. WHAT IS RIGHT, and it is real: the §15.3.3.2 basic-vs-extended decimal-separator distinction is implemented (`extended` = the format contains ':' or '-', so the separator is a phantom in a basic format and appears in an extended one), which matches §15.3.3.2's two paragraphs and the D.31.5.7 worked value. Also RUNTIME-ONLY: r1 forces argument-1 to be a literal, so the whole rule is compile-time decidable and the compiler already reaches the tokenizer via `RuntimeApi.DateFormatFractionDigits` (used on the SECONDS-FROM-FORMATTED-TIME arm only); a typo'd format compiles clean and returns spaces. TEST: none.",
-  "state": "GAP"
+  "notes": "Was NOT-IMPLEMENTED. 15.3.4 pairs BASIC with BASIC and EXTENDED with EXTENDED, so the negative fixture is the chimera 'YYYY-MM-DDThhmmss' - every subfield legal, the whole not a format. That case is why the fix is a recogniser rather than more per-field checks.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.40.3-3",
@@ -39239,12 +39239,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "FORMATTED-TIME function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#Tokenize",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DateTimeFormatGrammar.cs#Classify; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2023/pb11_datetime_format_grammar",
   "editions": "2014,2023",
-  "notes": "OVERTURNED (PARTIAL -> DIVERGES). Rule (cite-verified §15.41.3 2)): \"The content of argument-1 shall be a time format.\" The adjudicator's factual reading of Tokenize is correct and I re-verified all twelve §15.3.2 formats by hand against its arms (basic/extended x local/UTC/offset x integer/fractional seconds, including the §15.3.3.2 phantom-vs-data decimal separator, the §15.3.3.5 'Z' tail and the §15.3.3.6.1 '+hhmm' / '+hh:mm' subformats) — no legal time format is rejected. But \"over-acceptance only\" UNDERSTATES it, and PARTIAL is the wrong verdict for two reasons. (1) THE EC IS NOT SET. §15.3 (cite-verified) says of an argument whose value violates the function's rules: \"the EC-ARGUMENT-FUNCTION exception condition IS SET TO EXIST\", and only then \"If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking … is not enabled, the implementor defines the RESULT of the function reference.\" The obligation to SET the condition is unconditional; only the result is implementor latitude. For a DATE format in argument-1 nothing is set at all. (2) THE RESULT IS FABRICATED, NOT MERELY UNCHECKED. CobolDate#FormattedTime calls EmitFormatted with integerDate = 1, and EmitFormatted computes `hasDate` from a Year segment and renders `Epoch.AddDays(day - 1)` — so `FUNCTION FORMATTED-TIME(\"YYYYMMDD\", 45296)` returns \"16010101\", a date the program never supplied, with a clean compile and no exception condition. That is silently wrong behaviour, not an accepted-but-inert illegality. Argument-1 is required to be a LITERAL by r1, so the format's KIND is a static property of the source and this belongs at bind time (§4.2.2 paragraph 3, cite-verified — the discretion-plus-obligation reading PB1 already defended). Tokenize is additionally a strict superset of the twelve shapes: \"hh\", \"mmss\", the mixed basic/extended \"hh:mmss\", and \"hhmmss.\" (a decimal separator with zero fraction digits, where §15.3.3.2 requires \"at least one lowercase 's' character\") all tokenize. See defects.",
-  "state": "GAP"
+  "notes": "Was DIVERGES. FORMATTED-TIME now requires a TIME format; a DATE format is rejected with COBOLNET1631 where it previously fabricated a value. The golden covers the common-time shapes of 15.3.3.1/15.3.3.2 plus the UTC (15.3.3.5) and offset (15.3.3.6) forms, including the extended offset subformat pairing 15.3.3.6.1 requires.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.41.3-3",
@@ -39551,12 +39551,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "INTEGER-OF-FORMATTED-DATE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2023/pb11_datetime_format_grammar",
+  "editions": "2014,2023",
+  "notes": "Rule 2 admits a date format OR a combined format - a SET, not one kind. The first implementation inferred this function's kind by name analogy and got it wrong; the rule is now quoted per row. Corroborated by the shared screen and the format set the golden pins.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.48.3-3",
@@ -41800,12 +41800,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "SECONDS-FROM-FORMATTED-TIME function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#Tokenize; src/Cobol.Net.Runtime/Intrinsics/CobolDate.cs#SecondsFromFormattedTime; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2023/pb11_datetime_format_grammar",
   "editions": "2014,2023",
-  "notes": "§15.79.3 r2 requires argument-1's CONTENT to be a time format (§15.3.2/§15.3.3) or a combined date and time format (§15.3.3.7), but nothing anywhere checks the format's KIND or its well-formedness beyond tokenizability: Tokenize only returns null for an unknown character or a bad field-character run, and neither the binder nor CobolDate asks whether an hours/minutes/seconds subfield is present. Four verified holes, all compiling clean and returning a value with no diagnostic and no EC-ARGUMENT-FUNCTION even under `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`: (1) a DATE-only format — `FUNCTION SECONDS-FROM-FORMATTED-TIME(\"YYYYMMDD\", \"20210616\")` → +000000000; (2) a partial time that is no format at all — `(\"hhmm\", \"1234\")` → +000045240, though §15.3.3.1 makes hh, mm AND ss all mandatory in a common time format; (3) an illegal basic/extended MIXTURE — `(\"YYYY-MM-DDThhmmss\", \"2021-06-16T123456\")` → +45296.00, which §15.3.3.7 expressly forbids ('Combinations of basic date formats with extended time formats, or of extended date formats with basic time formats, are not allowed'); (4) a fraction wider than any defined maximum — `(\"hhmmss.ssssssssss\", …)` is accepted although §15.3.3.2 makes the maximum implementor-defined (floor nine) and COBOL.NET defines none (see RV-15.79.4-1). Additionally the decimal separator is taken from whichever of '.' / ',' is written in the format regardless of DECIMAL-POINT IS COMMA, so both `\"hh:mm:ss,ss\"` and `\"hh:mm:ss.ss\"` are accepted under either setting (verified both directions) — §15.3.3.2 makes exactly one of them the legal separator. Sibling swept: INTEGER-OF-FORMATTED-DATE has the mirror hole for §15.48.3 r2 — `FUNCTION INTEGER-OF-FORMATTED-DATE(\"hhmmss\", \"123456\")` → 0 silently. Fix shape: classify the tokenized segment list once (date-only / time-only / combined / not-a-format) in Tokenize and let each §15 caller assert the kind it requires. test-needed.",
-  "state": "GAP"
+  "notes": "Was DIVERGES. Rule 2 admits a time format OR a combined format. Same set-not-value correction as 15.48.3 r2.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.79.3-3",
@@ -42541,12 +42541,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "TEST-FORMATTED-DATETIME function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+  "test-ref": "conformance:2014/formatted_datetime",
+  "editions": "2014,2023",
+  "notes": "Rule 2 admits a date format, a time format OR a combined format - the widest of the seven, and the one that caught the set-not-value error: the existing corpus program 2014/formatted_datetime uses TEST-FORMATTED-DATETIME(\"YYYYMMDD\"), which the first implementation rejected. That program is spec-derived and is the covering test for the date arm.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.92.4-1",
