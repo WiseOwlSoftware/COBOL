@@ -26,6 +26,38 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// both fail loud rather than silently aliasing to ALL.</summary>
     public BoundStatement Bind(Core.InspectStatementContext ins)
     {
+        // ── identifier-1 may be a FUNCTION-IDENTIFIER, but only where the statement does not MODIFY it (PB10).
+        // §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so this position admits one; §8.4.3.2.3
+        // SR1 bars it from a RECEIVING operand. INSPECT splits BY FORMAT, and the split is derived, not assumed:
+        // §14.9.22.4 GR1 concedes only that "for purposes of determining its length, identifier-1 is treated as a
+        // sending data item" (a scoped concession that would be pointless if it were generally sending); GR7 has
+        // each match "tallied (format 1) or replaced by literal-3 (format 2)"; and GR20 makes format 4 execute AS
+        // a format 2 over the same identifier-1. So Format 1 (TALLYING alone) SENDS and Formats 2/3/4 RECEIVE.
+        // ⚠ The screen keys on the PHRASES PRESENT rather than on a format number, because that is what the
+        // grammar gives us and it is the same predicate the emitter already computes as `mutated` — one fact,
+        // not two representations of it.
+        bool modifies = ins.inspectReplacingPhrase() is not null || ins.inspectConvertingPhrase() is not null;
+        if (ins.functionCall() is { } fnTarget)
+        {
+            if (modifies)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.FunctionIdentifierReceiving,
+                    $"INSPECT identifier-1 is the function-identifier '{fnTarget.GetText()}', but this INSPECT "
+                    + (ins.inspectConvertingPhrase() is not null
+                        ? "CONVERTS it (ISO §14.9.22.2 Format 4, which §14.9.22.4 GR20 executes as a Format 2 "
+                          + "over the same identifier-1)"
+                        : "REPLACES characters in it (ISO §14.9.22.2 Format 2/3, §14.9.22.4 GR7)")
+                    + " — a receiving operand, which ISO §8.4.3.2.3 SR1 bars a function-identifier from. A "
+                    + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
+                return new BoundUnsupported(
+                    $"INSPECT REPLACING/CONVERTING over the function-identifier '{fnTarget.GetText()}' (ISO §8.4.3.2.3 SR1)");
+            }
+            // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
+            // emitter's AsString read; nothing stores back, so no Place is needed. SR1's usage constraint is
+            // satisfied by construction — a function's returned value is a temporary elementary item of the
+            // function's own category (§15.4), never a binary/packed/float/index storage form.
+            return BindPhrases(host.Intrinsic.IntrinsicOperand(fnTarget), ins);
+        }
         if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
@@ -51,6 +83,15 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
         }
 
+        return BindPhrases(new BoundFieldOperand(target), ins);
+    }
+
+    /// <summary>Bind the TALLYING / REPLACING / CONVERTING phrases over an already-bound identifier-1. Split out
+    /// from <see cref="Bind"/> so the DATA-REFERENCE and FUNCTION-IDENTIFIER targets share one body rather than
+    /// two copies of the phrase walk (PB10) — the target's SHAPE is the only thing that differs, and it differs
+    /// only in whether a Place exists to store back into.</summary>
+    private BoundStatement BindPhrases(BoundOperand targetOperand, Core.InspectStatementContext ins)
+    {
         bool backward = ins.BACKWARD() is not null;   // inspect-backward-2023: the pass owns the edition gate (Exec Step E)
 
         var tallying = new List<BoundInspectTally>();
@@ -141,7 +182,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             converting = new BoundInspectConvert(from, to, before, after);
         }
 
-        return new BoundInspect(target, tallying, replacing, converting, backward);
+        return new BoundInspect(targetOperand, tallying, replacing, converting, backward);
     }
 
     /// <summary>Bind a per-operand BEFORE/AFTER delimiter pair (ISO §14.9.22.2 after-before-phrase; both may

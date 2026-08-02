@@ -633,6 +633,21 @@ public static class DiagnosticCatalog
         + "MIX: `YYYY-MMDD` and `YYYY-MM-DDThhmmss` are built entirely from legal subfields and are still not "
         + "formats, which is why membership is tested rather than each field in isolation.",
         "ISO §15.3.1.1 / §15.3.2 / §15.3.4 / §15.39.3 r2 / §15.40.3 r2 / §15.41.3 r2");
+    // PB10's INSPECT half. Deliberately NOT an INSPECT-specific code: §8.4.3.2.3 SR1 is ONE rule about
+    // function-identifiers in RECEIVING positions, and PB10's remaining positions plus PB17 want the same
+    // verdict. Naming it after the rule rather than the statement is what stops the next site minting a second
+    // code for the same sentence (feedback_one_rule_one_place).
+    public static readonly DiagnosticDescriptor FunctionIdentifierReceiving = new(
+        "COBOLNET1632", "function-identifier-receiving", EditionSeverity.Error,
+        "A function-identifier is written where the statement MODIFIES the operand. ISO §8.4.3.2.3 SR1: \"A "
+        + "function-identifier shall not be specified as a receiving operand.\" A function returns a temporary "
+        + "value (§15.4), so there is nothing for the statement to store into. ⛔ THIS IS POSITION-SPECIFIC, NOT "
+        + "STATEMENT-SPECIFIC: §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so every "
+        + "identifier-N SENDING position admits one — INSPECT identifier-1 is legal in Format 1 (TALLYING), "
+        + "where §14.9.22.4 GR1 treats it as sending, and barred in Formats 2/3/4 (REPLACING / "
+        + "TALLYING-and-REPLACING / CONVERTING), where GR7 replaces its characters and GR20 makes format 4 "
+        + "execute as a format 2 over the same identifier-1. Move the function result into a data item first.",
+        "ISO §8.4.3.2.3 SR1 (with §14.9.22.4 GR1/GR7/GR20 for INSPECT's per-format split)");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

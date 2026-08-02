@@ -29,7 +29,10 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         var w = ctx.Writer;
         int id = ctx.Names.NextInspectTmp();
         string img = $"__ins{id}";
-        w.Line($"string {img} = {OperandText.AsString(new BoundFieldOperand(ins.Target), num, deSign: true)};");
+        // identifier-1 is read as its character image whatever its SHAPE — a field, or (Format 1 only) a
+        // function-identifier (PB10). AsString already dispatches on the operand kind, so admitting the function
+        // case cost nothing here; it is the STORE below that the shape constrains.
+        w.Line($"string {img} = {OperandText.AsString(ins.Target, num, deSign: true)};");
         string back = ins.Backward ? "true" : "false";
 
         if (ins.Tallying.Count > 0)
@@ -67,7 +70,22 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             mutated = true;
         }
 
-        if (mutated) EmitStore(ins.Target, img);
+        // ⛔ THE INVARIANT, ASSERTED RATHER THAN ASSUMED (PB10). `mutated` is true exactly for Formats 2/3/4 —
+        // the formats in which §14.9.22.4 GR7/GR20 make identifier-1 a RECEIVING operand — and §8.4.3.2.3 SR1
+        // bars a function-identifier from precisely those. So a non-field target reaching here means the
+        // binder's COBOLNET1632 screen was bypassed, not that this statement needs a fallback: fail loud rather
+        // than silently dropping the write-back, which would compute the replacement and discard it.
+        if (mutated)
+        {
+            if (ins.Target is not BoundFieldOperand fieldTarget)
+            {
+                ctx.Writer.Line(EmitText.LoudStmt(
+                    "INSPECT REPLACING/CONVERTING over a non-field identifier-1 (ISO §8.4.3.2.3 SR1 — the "
+                    + "InspectBinder screen should have rejected this with COBOLNET1632)"));
+                return;
+            }
+            EmitStore(fieldTarget.Place, img);
+        }
     }
 
     /// <summary>Store the replaced/converted image back into identifier-1 by its storage shape: a character-image

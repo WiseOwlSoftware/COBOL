@@ -37,9 +37,18 @@ public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, Bou
 /// <summary>INSPECT (ISO §14.9.22). Formats 1–3 carry the flattened tallying/replacing operand lists; format 4
 /// carries <see cref="Converting"/>. A format 3 executes as two successive statements — tallying then replacing —
 /// over the same identifier-1 (GR19). <see cref="Backward"/> reverses the scan direction (2023-only, gated at
-/// bind time).</summary>
+/// bind time).
+/// <para>
+/// ⛔ <see cref="Target"/> IS AN OPERAND, NOT A <c>Place</c> (PB10) — because identifier-1 admits a
+/// FUNCTION-IDENTIFIER in Format 1. §8.4.3.1.2 Format 1 makes a function-identifier an identifier, and
+/// §8.4.3.2.3 SR1 excludes it only from a RECEIVING operand; §14.9.22.4 GR1/GR7/GR20 make identifier-1 sending
+/// in Format 1 and receiving in Formats 2/3/4. <b>The invariant that keeps this sound is exactly the emitter's
+/// existing <c>mutated</c> flag: a non-<see cref="BoundFieldOperand"/> target can only ever appear where nothing
+/// stores back</b>, which is Format 1 — the correspondence is checked in <c>InspectBinder</c> (COBOLNET1632)
+/// and asserted at the store site rather than assumed.
+/// </para></summary>
 public sealed record BoundInspect(
-    Place Target,
+    BoundOperand Target,
     IReadOnlyList<BoundInspectTally> Tallying,
     IReadOnlyList<BoundInspectReplace> Replacing,
     BoundInspectConvert? Converting,

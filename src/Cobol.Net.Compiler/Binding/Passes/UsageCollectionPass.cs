@@ -105,7 +105,11 @@ internal static class UsageCollectionPass
         public bool Visit(BoundAccept n) { P(n.Target); return false; }
         public bool Visit(BoundInspect n)
         {
-            P(n.Target);
+            // identifier-1 is an OPERAND since PB10 (it may be a function-identifier in Format 1). Op() delegates
+            // a field operand to P() unchanged and ignores a computed one, which is right: this pass collects
+            // whole-GROUP references for the image mechanism, and a function's returned value is a temporary,
+            // never a declared group.
+            Op(n.Target);
             foreach (var t in n.Tallying) { P(t.Counter); Op(t.Pattern); Op(t.Before); Op(t.After); }
             foreach (var r in n.Replacing) { Op(r.Pattern); Op(r.Replacement); Op(r.Before); Op(r.After); }
             if (n.Converting is { } c) { Op(c.From); Op(c.To); Op(c.Before); Op(c.After); }

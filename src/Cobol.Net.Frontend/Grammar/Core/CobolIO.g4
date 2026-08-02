@@ -819,8 +819,20 @@ unstringOnOverflow
 // INSPECT (§14.9.21 — COBOL-85)
 // ==========================================
 
+// identifier-1 admits a FUNCTION-IDENTIFIER, but only in Format 1 (PB10). §8.4.3.1.2 Format 1 makes a
+// function-identifier an IDENTIFIER, so every identifier-N position admits one unless a syntax rule excludes it —
+// and §8.4.3.2.3 SR1 excludes it from a RECEIVING operand. INSPECT is FORMAT-DEPENDENT here, which is why the
+// grammar cannot decide it alone: identifier-1 is SENDING only in Format 1 (TALLYING). §14.9.22.4 GR1 concedes
+// only that "for purposes of determining its length, identifier-1 is treated as a sending data item" — a scoped
+// concession that would be unnecessary if it were generally sending — and GR7 has each match "tallied (format 1)
+// or replaced by literal-3 (format 2)", while GR20 makes format 4 execute AS a format 2 over the same
+// identifier-1. So Formats 2/3/4 MODIFY it and bar a function-identifier. ⛔ THE BINDER SCREENS PER FORMAT
+// (InspectBinder, COBOLNET1632); widening the grammar alone would ACCEPT ILLEGAL SOURCE.
+// ⛔ ADDITIVE — an ALTERNATIVE, never a rewrite to a shared rule: this grammar is shared with the legacy
+// CobolSharp.Compiler until the P15 cut-over, and collapsing the rule would DELETE the generated
+// .dataReference() accessor its binder reads. The legacy binder guards on the new null instead.
 inspectStatement
-    : INSPECT BACKWARD? dataReference
+    : INSPECT BACKWARD? (functionCall | dataReference)
       ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
       | inspectConvertingPhrase )

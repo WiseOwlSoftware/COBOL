@@ -180,8 +180,11 @@ public static class BoundStores
                 ? StoreKind.ReadWrite                                   // GR11a/GR13 + GR14 read-then-add
                 : StoreOrKids(n.Receivers.Any(r => Hit(r.Target) || Hit(r.DelimiterIn) || Hit(r.CountIn)),
                     StoreKind.Write, n.OnOverflow, n.NotOnOverflow);    // GR11c/d/e pure stores
+        // identifier-1 is an OPERAND since PB10. A function-identifier target has no Place, so it can never be a
+        // STORE — which is not a special case here but the same rule stated twice: the guard below already
+        // requires REPLACING/CONVERTING, and §8.4.3.2.3 SR1 bars a function-identifier from exactly those.
         public StoreKind? Visit(BoundInspect n) =>
-            (n.Replacing.Count > 0 || n.Converting is not null) && Hit(n.Target)
+            (n.Replacing.Count > 0 || n.Converting is not null) && Hit((n.Target as BoundFieldOperand)?.Place)
                 ? StoreKind.ReadWrite                                   // image read, modified, stored
                 : n.Tallying.Any(tl => Hit(tl.Counter))
                     ? StoreKind.ReadWrite                               // GR11 counter accumulate

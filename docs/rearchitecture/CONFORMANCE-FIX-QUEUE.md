@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB9 + PB13 LANDED · PB16 RETIRED · PB10, PB11, PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
+**⛔ THE TALLY: PB1–PB10 + PB13 LANDED · PB16 RETIRED · PB11, PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -77,7 +77,35 @@ below index it).
 > identifier — so both are legal source. ⚠ Fixing this in the GRAMMAR is the wrong move: the D10/PHASE-15 plan
 > removes SUBSCRIPT mode entirely, so the durable fix is the segment renderer, not a new alternative.
 
-### PB10 · [MAJOR] · references · ◑ HALF LANDED (DEVLOG 1136) — a function-identifier in the identifier-N sending positions
+### PB10 · [MAJOR] · references · ✅ LANDED (DEVLOG 1136 + 1143) — a function-identifier in the identifier-N sending positions
+
+> **✅ THE INSPECT HALF CLOSED 2026-08-02 (DEVLOG 1143) — the position the grammar could not decide alone.**
+> identifier-1 is SENDING only in Format 1, and the split was DERIVED, not taken from this entry's own summary:
+> §14.9.22.4 GR1 concedes only that "for purposes of determining its length, identifier-1 is treated as a sending
+> data item" — a SCOPED concession that would be unnecessary if it were generally sending; GR7 has each match
+> "tallied (format 1) or replaced by literal-3 (format 2)"; and GR20 makes a Format 4 execute AS a Format 2 over
+> the same identifier-1. So Formats 2/3/4 RECEIVE and §8.4.3.2.3 SR1 bars a function-identifier there
+> (all `--check`ed). Grammar admits ADDITIVELY, binder screens per format — **`COBOLNET1632`
+> (`function-identifier-receiving`), named after the RULE and not the statement**, because PB10's remaining
+> positions and PB17 want the same verdict and a statement-shaped code invites a second one for the same sentence.
+>
+> **⭐ THE SCREEN KEYS ON THE PHRASES PRESENT, NOT ON A FORMAT NUMBER — and that is the whole subtlety.** A screen
+> keyed on "TALLYING present ⇒ Format 1" ACCEPTS Format 3 (`TALLYING … REPLACING …`), which is illegal: TALLYING
+> genuinely is present, and the REPLACING phrase still modifies identifier-1. Keying on
+> REPLACING-or-CONVERTING is also **exactly the predicate the emitter already computed as `mutated`** — one fact
+> with one representation, so the bind-time screen and the store-back decision cannot drift apart. The emitter
+> now ASSERTS that correspondence (a non-field target reaching the store is loud, not a silently dropped write).
+> Pinned by three negative fixtures, one per format branch: `pb10-inspect-fn-replacing` · `-converting` ·
+> **`-tallying-replacing`** (the one a naive screen passes).
+>
+> **STRUCTURAL:** `BoundInspect.Target` moved `Place` → `BoundOperand`, since a function result is a VALUE with
+> no place. Two analysis sites moved with it and both were semantic, not mechanical: `BoundStores` now asks
+> `(Target as BoundFieldOperand)?.Place` (a function target can never be a store — the same rule stated twice,
+> since the guard already requires REPLACING/CONVERTING), and `UsageCollectionPass` walks it as an operand.
+> ⚠ **THE LEGACY BINDER WAS CARRIED, NOT ABANDONED** (this entry's own third caution): `inspectStatement` is in
+> the SHARED `Core/CobolIO.g4`, so `.dataReference()` became nullable and `StringStatementBinder.BindInspect`
+> would have dereferenced it. It now declines the new shape cleanly, which is the established
+> unsupported-statement contract rather than a crash.
 > **18 findings over 10 subjects — legal COBOL rejected, the widest defect this review has surfaced.**
 > §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, and §8.4.3.2.3 SR1 bars it only from a RECEIVING
 > operand — so EVERY identifier-N SENDING position admits one. The grammar reaches `functionCall` from just FOUR

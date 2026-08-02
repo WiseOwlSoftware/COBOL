@@ -26,7 +26,13 @@ internal sealed class StringStatementBinder
 
     internal BoundStatement? BindInspect(CobolParserCore.InspectStatementContext ctx)
     {
-        var targetExpr = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
+        // identifier-1 became `(functionCall | dataReference)` in the SHARED grammar (PB10 — §8.4.3.1.2 Format 1
+        // makes a function-identifier an identifier, admissible here in Format 1 only). The legacy engine has no
+        // function-identifier operand path, so it DECLINES the new shape cleanly rather than dereferencing the
+        // now-nullable accessor. Carried, not abandoned: the legacy compiler survives to the P15 cut-over, and a
+        // null here would be a crash where an unsupported-statement return is the established contract.
+        if (ctx.dataReference() is not { } targetRef) return null;
+        var targetExpr = _ctx.Expression.BindDataReferenceWithSubscripts(targetRef);
         if (targetExpr is not BoundIdentifierExpression targetId) return null;
 
         var tallying = new List<BoundInspectTallyingItem>();
