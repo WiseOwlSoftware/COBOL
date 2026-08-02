@@ -58,7 +58,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB8 LANDED, PB9 OPEN.** Two were blockers and both were SILENT:
+  its header is the tally). **PB1–PB9 LANDED; PB10–PB17 are the live set** — see NEXT for the order to
+  work them. Two of the first nine were blockers and both were SILENT:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
     ordinary `PIC 9(12)V99` money field returned 9223372036.85 for 10000000001.00, with **NO SIZE ERROR**.
   · **PB7** — every ZERO-ARGUMENT intrinsic was unreachable in the keyword-omitted form:
@@ -73,7 +74,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   showed both failing shapes were already lexed in DEFAULT mode and **the lexer was never touched.** The entry
   had been REASONED from the lexer's source, never MEASURED. Re-measure a named root cause before budgeting for
   it (`use_antlr_tree_dump`); `CobolLexerModeDriftTests` now pins the mode per shape so it cannot rot.
-- **⚠ TWO OF TODAY'S OWN FIXES SHIPPED A DEFECT A GREEN BATTERY CANNOT SEE.** `COBOLNET1627` (PB1) and
+- **⚠ TWO LANDED FIXES SHIPPED A DEFECT A GREEN BATTERY CANNOT SEE — the pattern, not the incident.** `COBOLNET1627` (PB1) and
   `COBOLNET1628` (PB6) emitted their kebab `Id` instead of their `Code`, so the code `DIAGNOSTICS.md` documents
   and `--suppress` matches was never printed. Root cause was an API asymmetry — `Error` had a descriptor
   overload, `Warning` did not — so a `--permissive` site had nothing correct to reach for. Both overloads now
@@ -134,116 +135,43 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    This is item **5** below (the FULL implementation↔spec review); it is the top of the list, not the bottom.
    **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema and
    §8 is the recording mechanism; the inventory enumerates every rule and drives it to zero, four editions wide.
-   ⛔ **THE FIX QUEUE IS NO LONGER EMPTY — it is now FED BY this review, which is the design working.**
-   `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` carries **PB8 OPEN** plus the named PARTIAL residue of PB1–PB7.
-   Its header is the tally. Two sources of work now exist and they interleave: adjudicate the next clause
-   (grows the map), and fix what earlier batches found (shrinks it).
+   ⛔ **TWO SOURCES OF WORK INTERLEAVE, AND BOTH ARE LIVE.** *Adjudicate* the next clause (grows the map, opens
+   items) and *fix* what earlier batches found (shrinks it). `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` is
+   the defect register and its header is the tally; **read `DESIGN-spec-conformance-review.md` §9 before running
+   a batch** and **§4/§8 before recording a verdict**.
 
-   **⛔ THE QUEUE EMPTIED AND REFILLED THE SAME DAY — PB1–PB9 LANDED, PB10–PB16 OPENED (2026-07-30).** The
-   §15.32–15.44 batch adjudicated 67 rules over 13 functions and returned **31 DIVERGES · 22 PARTIAL ·
-   14 NOT-IMPLEMENTED · ZERO CONFORMS**, with 82 findings clustering to **seven root causes**. That is the design
-   working, not a setback: adjudicating a clause OPENS items and fixing them CLOSES them.
-   ◑ **PB10's CLEAN HALF IS LANDED (DEVLOG 1136)** — `WRITE`/`REWRITE`/`RELEASE … FROM` and
-   `INITIALIZE … REPLACING … BY` now take a function-identifier. **What remains on PB10 is INSPECT**, which needs
-   a per-FORMAT bind-time screen (identifier-1 is SENDING only in Format 1; Formats 2/3/4 modify it in place,
-   where §8.4.3.2.3 SR1 BARS one — so a grammar widening there would accept ILLEGAL source). The subscript and
-   ref-mod positions were SPLIT OUT as **PB17**: they are not parse errors at all, they compile clean and throw
-   at run time (the PB7/DA7 wrong-stage family), and their fix is `ReferenceResolver`'s segment renderer.
-   ⚠ **A SHARED-GRAMMAR CHANGE MUST BE ADDITIVE UNTIL P15.** Collapsing a rule to a shared one deletes the
-   generated accessors and breaks the LEGACY compiler, which shares this grammar until the cut-over.
-   ⚠ **THE BATTERY IS NON-DETERMINISTIC UNDER LOAD — now registered as §11 A12 + §12 R-6, not carried here.**
-   Two full Conformance runs on an identical tree gave 4159/4160 then 4160/4160. Re-run a named red serially
-   before believing it, and never accept "flake" without a mechanism; the evidence and the open audit live in
-   those two rows, which outlive this NEXT item.
-   ⛔ **THE ORIGINAL PB10 FRAMING, kept because it is still the shape of the remaining work:** A
-   function-identifier is an IDENTIFIER (§8.4.3.1.2 Format 1) barred only from RECEIVING operands (§8.4.3.2.3
-   SR1), so every identifier-N SENDING position admits one — but the grammar reaches `functionCall` from just
-   FOUR places, so `WRITE … FROM`, `INSPECT`, `INITIALIZE … REPLACING`, a subscript and a ref-mod's positions all
-   reject it. Fix the DISPATCH, not the call sites.
-   ◑ **PB11's RECOGNISER IS LANDED (DEVLOG 1139) and PB16 IS RETIRED BY IT.** `DateTimeFormatGrammar` decides
-   membership of the CLOSED §15.3 format set, so rule 2 of all seven format-taking functions is enforced at bind
-   time (`COBOLNET1631`). What remains on PB11 is the VALUE rules — §15.40.3 r4/r5/r6, §15.41.3 r3–r5 and the
-   §15.3.1.3/.5/.7 permitted ranges — which need the recogniser to return its SUBFIELD breakdown rather than
-   just a verdict; that is the natural next increment.
-   ◑ **PB12's SEVEN ROWS ARE LANDED (DEVLOG 1138); PB13 IS REPRODUCED AND SCOPED (DEVLOG 1137).** PB12's open
-   half is the MIXED-argument functions (FIND-STRING + the four FORMATTED-*), which need a per-POSITION kind
-   rather than the table's one-kind-per-function, plus HIGHEST-ALGEBRAIC (whose rule admits numeric-edited, so
-   an `'n'` row would reject legal source). PB13 is not started: widening the clamp constant cannot work, and
-   the fix needs the receiver's CAPACITY threaded through `ReceiverContext` plus a runtime that stops silently
-   saturating — a float→fixed pipeline change, pinned meanwhile by a PENDING golden that fails today.
-   ⚠ **TWO ARGUMENTS WERE TRIED AND REFUTED TODAY; both are recorded IN THE CODE so they are not re-run.**
-   Widening the `'n'` argument-class screen to admit numeric-edited (refuted by §8.8.1.1 — an arithmetic
-   expression needs an identifier referencing a NUMERIC DATA ITEM; caught by an existing negative fixture), and
-   the claim that `FUNCTION INTEGER`'s value depends on its receiver (does not reproduce).
-   ⚠ **Do NOT work the 82 findings one by one** — most are one cause seen from ten functions. Repros are in
-   `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`; the queue carries the clusters.
-   **The NEXT batch after those is §15.45 onward** (`python scripts/spec/phase_b_batch.py 15.45-15.57`).
-   ⛔ **PB9 IS THE STANDING WARNING ABOUT A *MEASURED* SCOPE.** Its entry said "measured scope is exactly one
-   word (RANDOM)" — measured by sweeping the nine ZERO-ARGUMENT intrinsics, a set that structurally could not
-   contain SIGN or SUM because they take arguments. The right set is **§8.9 reserved words ∩ §8.11 intrinsic
-   function names** = LENGTH, RANDOM, SIGN, SUM. A measurement is only as good as the population it ranged over,
-   and "measured" in a queue entry does not say which population.
+   **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.45-15.57`** (§15.7, §15.70–15.79, §15.8–15.19,
+   §15.20–15.31 and §15.32–15.44 are done). A batch is: generate one input file per subject → one adjudicating
+   agent and one INDEPENDENT refuting agent each → `record_verdicts.py --dry-run` → merge → gate.
 
-   **PB8 IS DONE (DEVLOG 1131)** — reference-modifying a function result, all four reference shapes plus the
-   standard's own §D.14.3.6 example, with SR2/SR3/SR6 each reported against its own rule. Two siblings fell out
-   of its sweep and are also landed: SR3 was silently unenforced for DATA references (`MOVE A (3:4)(2:2)`
-   compiled clean and returned `A(2:2)`), and today's `COBOLNET1627`/`COBOLNET1628` were printing their slugs
-   instead of their codes.
-   **PB9 IS DONE (DEVLOG 1133)** — a reserved intrinsic name (LENGTH/RANDOM/SIGN/SUM) in the keyword-omitted
-   form. ⚠ **TWO WRONG FIXES PRECEDED THE RIGHT ONE AND NIST NC116A CAUGHT BOTH**, identically: admitting these
-   words as OPERANDS (first via the `cobolWord` name slot, then via a `functionCall` alternative I wrongly called
-   "confined to expression positions") lets the greedy VALUE-clause operand loop swallow the FOLLOWING
-   data-description clause — `VALUE ZERO` then `SIGN LEADING SEPARATE` became two literals. `valueClauseOperand`
-   reaches `functionCall` in one hop through `unaryExpression`. The fix is DERIVED, not guarded: §15.81.2 and
-   §15.88.2 give SIGN and SUM no no-argument form, so requiring the argument group makes a bare `SIGN`/`SUM`
-   unmatchable and the collision structurally impossible.
+   **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
+   | item | state | the next action |
+   |---|---|---|
+   | **PB13** | BLOCKER, reproduced, NOT started | The float→fixed quantizer saturates SILENTLY (`EXP(70)` into `PIC 9(31)` is wrong by ~15× with no SIZE ERROR; `EXP10(30) = EXP10(31)` is TRUE). ⛔ Widening the clamp constant provably cannot work. Needs the receiver's CAPACITY threaded through `ReceiverContext` (which carries no digit count — that is the real work) **and** a runtime that stops silently saturating for the receiver-less case. A PENDING golden `pb13_float_quantize_headroom` already pins the correct values and FAILS today. |
+   | **PB10** | half landed | Remaining: **INSPECT**. identifier-1 is SENDING only in Format 1 (TALLYING); Formats 2/3/4 modify it in place where §8.4.3.2.3 SR1 BARS a function-identifier — so the grammar admits and the BINDER screens per format. A grammar widening here would accept ILLEGAL source. |
+   | **PB11** | half landed | Remaining: the VALUE rules §15.40.3 r4/r5/r6, §15.41.3 r3–r5 and the §15.3.1.3/.5/.7 permitted ranges. `DateTimeFormatGrammar` classifies but does not return its SUBFIELD breakdown; returning it is the natural next increment and unlocks all of them at once. |
+   | **PB12** | half landed | Remaining: the MIXED-argument functions (FIND-STRING + the four FORMATTED-*) need a **per-POSITION** kind — `IntrinsicArgumentRules.Verified` carries one kind per FUNCTION. Plus HIGHEST-ALGEBRAIC, whose §15.43.3 r1 admits *numeric-edited*, so an `'n'` row would reject legal source. |
+   | **PB14** | open | STANDARD/STANDARD-DECIMAL arithmetic + an intrinsic argument emits a raw Roslyn `CS1503` — the PB2 shape on the Dec axis, where PB2 fixed only the Real arm of the same dispatch. |
+   | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
+   | **PB17** | open | A function-identifier as a SUBSCRIPT or in a REF-MOD position compiles clean and throws at RUN TIME (not a parse error). `ReferenceResolver`'s flat-token segment renderer has no arm for a nested FUNCTION call. ⚠ Fix the RENDERER, not the grammar — D10/PHASE-15 removes SUBSCRIPT mode. |
+   | **residue** | open | 16 unclustered findings, several of which also reject legal COBOL (a CONSTANT-NAME refused in every intrinsic argument position; no COBOL word may contain an UNDERSCORE though permitted since 2002; `NX"…"` has no lexer rule; `EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`). |
+   ⛔ **Repros for every one of the 82 findings:** `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`.
+   The queue carries the CLUSTERS; that ledger carries the repro behind each. **Do not work the findings one by
+   one** — most are one cause seen from ten functions.
 
-   **THEN: THE NEXT PHASE-B BATCH — the tooling is in the repo, so this needs no archaeology.**
-   Three batches have run (§15.7 + §15.70–15.79 · §15.8–15.19 · §15.20–15.31), so the next contiguous block is
-   **§15.32 onward**:
-   ```
-   python scripts/spec/phase_b_batch.py 15.32-15.44   # one input file per subject + the slug list; skips
-                                                      # any rule that already carries a verdict
-   ```
-   **`DESIGN-spec-conformance-review.md` §9 is the batch playbook** — the fan-out shape, the nine things a batch
-   prompt MUST carry (each one paid for by a defect), and how to read the results without the two mistakes that
-   have already cost a wrong published number. Read it before writing the workflow.
-
-   **ALSO OPEN, from batch 3 and NOT yet hand-verified** (design doc §7 — verify before any code change):
-   · `FUNCTION COS`'s returned value depends on the RECEIVER's scale — `COS(1)` differs between a 9-decimal and a
-     17-decimal receiver, against §15.4.1's "the returned value is the same for all instances of a given function
-     within a single execution". `RenderFloat` quantizes at `ws = max(Receiver.Scale, 9)` and has no
-     arithmetic-mode branch at all.
-   · `Pow10.BuildDouble` builds 10ⁿ by a cumulative ×10 DOUBLE recurrence, exact only through 10²², so
-     `COS(0)` into `PIC SV9(30)` reportedly prints 0.999999999999999879… instead of 1.
-
-   **⛔ THE MECHANISM EXISTS NOW — USE IT; NEVER HAND-EDIT THE INVENTORY.** Phase A left a denominator and no way
-   to write a verdict into it, which is why the number had not moved. The loop is:
-
-   ```
-   # ① fan out by clause; each agent gets its OWN input file of rule TEXT and writes ONE batch file
-   python scripts/spec/record_verdicts.py --dry-run <batch.json>   # shape-validate, see the GAP delta
-   python scripts/spec/record_verdicts.py <batch.json> ...         # merge, all-or-nothing + atomic
-   dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
-   ```
-
-   · The verdict vocabulary, each verdict's required evidence and the `test-ref` forms are DATA in
-     `tests/version-matrix/inventory-schema.json` — all three engines read it, none carries a copy.
-   · `code-location` is `path` or `path#Symbol`, **never a line number** (they rot; the gate would cry wolf).
-   · `state` is RECOMPUTED by the gate, so closing a GAP by hand fails the battery. `NEEDS-OWNER-DECISION` does
-     not close one — an unanswered question is not coverage — and `DOCUMENTED-NON-SUPPORT` is an OWNER decision
-     (D13), never an agent's.
-   · **A verdict is CONFORMS only if the implementing code was read.** Not located ⇒ NOT-IMPLEMENTED; located but
-     an edge unverified ⇒ PARTIAL. A false CONFORMS is worse than an open GAP: a GAP gets revisited, a closed row
-     never does.
-   · **⛔ ONLY A SPEC-DERIVED TEST CLOSES A ROW.** A NIST golden, a characterization snapshot and any
-     `*_MatchesLegacy` test are REGRESSION NETS (CLAUDE.md rule 1) — record them as corroboration, but the row
-     stays open until a test whose expected value was computed FROM THE SPEC covers it. The gate enforces this;
-     the first batch offered 7 rows that would have closed on a differential. **CONFORMS-but-untested is a real,
-     recordable state** — verdict recorded, row still a GAP, one golden from done — and it is what the
-     `test-needed` line in `session-probe` counts.
-   · Every candidate verdict is adversarially re-verified before it is trusted (design doc §7) — the refuter is
-     told to overturn, and to default to overturning when uncertain.
+   **⚠ FOUR STANDING CAUTIONS, each earned by a defect and each outliving the item that produced it.**
+   · **A SHARED-GRAMMAR CHANGE MUST BE ADDITIVE UNTIL P15.** Collapsing a rule to a shared one deletes the
+     generated `.dataReference()`/`.literal()` accessors and breaks the LEGACY compiler, which shares
+     `CobolParserCore.g4` until the cut-over. Add an alternative; unify at P15, when legacy is deleted not migrated.
+   · **A QUEUE ENTRY'S "ROOT CAUSE, ALREADY LOCATED" IS A CLAIM.** PB8's named a lexer defect and budgeted the
+     riskiest category; a token dump showed the lexer was never involved. PB9's said "measured scope: one word"
+     and the real answer was four — measured over the wrong population. Re-measure before budgeting.
+   · **RUN THE FINDING'S OWN REPRO, NOT YOUR SUMMARY OF IT.** A weaker repro of PB13 missed the clamp entirely
+     and nearly filed the blocker as a false positive.
+   · **THE BATTERY IS NON-DETERMINISTIC UNDER LOAD** — two full Conformance runs on an identical tree gave
+     4159/4160 then 4160/4160. Re-run a named red serially before believing it, and never accept "flake" without
+     a mechanism. Registered as **§11 A12** (the audit) + **§12 R-6** (the risk); until A12 closes, a green
+     battery is necessary-but-not-sufficient evidence for a conformance claim.
 
 1b. **The two SMALL residues left behind on purpose**, both ledgered where they belong rather than lost:
    · `V59ImagePredicateDriftTests` pins a CLOSED inventory of ONE remaining `IsCharacterImage` use —
