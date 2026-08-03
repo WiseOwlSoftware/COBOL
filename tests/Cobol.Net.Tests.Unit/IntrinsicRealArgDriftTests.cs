@@ -43,11 +43,22 @@ public sealed class IntrinsicRealArgDriftTests
         int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
         Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.RuntimeMethod — this guard is blind");
         string body = src[from..];
-        return [.. Regex.Matches(body, "case \"(?<m>[A-Za-z]+)\"").Select(m => m.Groups["m"].Value)];
+        // ⛔ EVERY LABEL OF AN or-CHAIN, NOT JUST THE FIRST (fix-queue PB21 — the guard's SECOND blind spot).
+        // This read `case "(?<m>[A-Za-z]+)"`, which anchors on the word `case`, so
+        //     case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
+        // contributed ONE name and hid three. That is how `IntegerOfDayReal` stayed missing while this test was
+        // green: `FUNCTION INTEGER-OF-DAY(<COMP-2>)` bound clean and failed Roslyn with CS0117. The renderer
+        // uses or-chained labels throughout, so the under-count was systematic rather than incidental.
+        // A label list runs from `case` to `:` or to a `when` guard; each quoted name inside it is an arm.
+        return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z]+""(?:\s+or\s+""[A-Za-z]+"")*)\s*(?::|when\b)")
+            .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z]+)""")
+                                  .Select(x => x.Groups["n"].Value))];
     }
 
     private static HashSet<string> RealBodies() =>
-        [.. Regex.Matches(RealArgsSource(), @"public static (?:double|long) (?<m>\w+)\(")
+        // Int128 is in the alternation because FactorialReal returns it (§15.36 — 33! needs the wide carrier).
+        // Without it the guard would report FactorialReal missing while it sat two lines away.
+        [.. Regex.Matches(RealArgsSource(), @"public static (?:double|long|Int128) (?<m>\w+)\(")
             .Select(m => m.Groups["m"].Value)];
 
     /// <summary>The documented transform, mirrored here so a change to it has to be deliberate.</summary>
@@ -63,10 +74,22 @@ public sealed class IntrinsicRealArgDriftTests
     /// only SCOPES A TEST: a wrong hint leaves a gap in what is asserted, or asserts one body too many. PB1's use
     /// would have REJECTED SOURCE, where a wrong hint turns legal COBOL away. Same column, opposite blast radius.
     /// <para>
-    /// Deriving the scope this way rather than hand-listing exemptions is what keeps it true: an integer-argument
-    /// function ('i' — DATE-OF-INTEGER, FACTORIAL), a string-argument one ('s' — the NUMVAL family, ORD) and a
-    /// date/format one cannot receive a float without violating their own argument rule first, which is PB1's
-    /// business, not this test's.
+    /// ⛔ <b>'i' IS INCLUDED, AND ITS EXEMPTION WAS THE BUG (fix-queue PB21).</b> This used to scope on <c>'n'</c>
+    /// alone, reasoning that "an integer-argument function ('i' — DATE-OF-INTEGER, FACTORIAL) … cannot receive a
+    /// float without violating their own argument rule first". <b>That premise is false.</b> §15.3's INTEGER type
+    /// resolves through CLASS NUMERIC — and a COMP-2 item is category numeric (§8.5.2.12 item 2) hence class
+    /// numeric (§8.5.2.1 Table 2) — so <c>IntrinsicArgumentRules.Admissible('i')</c> is <c>[Numeric]</c> and
+    /// ADMITS a float. The integer-ness is a VALUE property, checked at run time, not a class the screen can
+    /// reject on. So an 'i' row can absolutely reach the renderer with a float, and did:
+    /// <c>FUNCTION INTEGER-OF-DAY(&lt;COMP-2&gt;)</c> bound clean and then failed Roslyn with <b>CS0117</b>,
+    /// because <c>IntegerOfDayReal</c> did not exist. The guard that existed to prevent exactly that outcome had
+    /// exempted the group it happened in.
+    /// </para>
+    /// <para>
+    /// The genuinely exempt kinds are the ones whose admissible set EXCLUDES class numeric: <c>'s'</c> (the string
+    /// family — alphanumeric / numeric-edited / national) and <c>'b'</c> (boolean, PB19). Those reject a float at
+    /// bind time, so no <c>…Real</c> body can be reached. That is why <c>IntegerOfBooleanReal</c> is deliberately
+    /// NOT written: PB19's §15.45.3 r1 screen made it unreachable, and an unreachable body reads as coverage.
     /// </para>
     /// </remarks>
     private static HashSet<string> NumericArgumentMethods()
@@ -78,7 +101,9 @@ public sealed class IntrinsicRealArgDriftTests
             // A zero-argument function can never receive a float — SECONDS-PAST-MIDNIGHT is 0/0 and its empty
             // ArgKinds would otherwise read as "numeric" through the empty-means-'n' default.
             .Where(m => m.Groups["max"].Value != "0")
-            .Where(m => m.Groups["k"].Value.Contains('n') || m.Groups["k"].Value.Length == 0)
+            // 'n' AND 'i' — both resolve to Admissible == [CobolClass.Numeric], which admits a float item.
+            .Where(m => m.Groups["k"].Value.Contains('n') || m.Groups["k"].Value.Contains('i')
+                     || m.Groups["k"].Value.Length == 0)
             .Select(m => m.Groups["rm"].Value)
             .Where(s => s.Length > 0)];
     }
@@ -95,6 +120,15 @@ public sealed class IntrinsicRealArgDriftTests
 
         var missing = ExactArms()
             .Where(numericArg.Contains)
+            // ⛔ THE ONE ARM ROUTED TO ITSELF RATHER THAN TO A ...Real BODY (PB21). RenderFloat wraps every
+            // result in FromDouble(double, ws), so a ...Real body must return something a double can carry —
+            // and §15.36's cannot: 33! is ~8.7e36, which is why the exact body returns Int128. Its arm consumes
+            // the argument through IntArg, whose (long)(double) handles a float, so RenderNum skips the float
+            // dispatch for it by name. Writing FactorialReal to satisfy the pattern would have meant returning a
+            // double and losing exactness past 2^53 — the same argument-shape dependence PB13 closed.
+            // ⚠ This exemption is NOT a free pass: the assertion below still fails if the RENDERER stops
+            // skipping it, because then the missing body becomes reachable again.
+            .Where(m => m != "Factorial" || !RendererSource().Contains("sig.RuntimeMethod != \"Factorial\""))
             .Where(m => !m.EndsWith("String", StringComparison.Ordinal))
             .Where(m => !real.Contains(RealName(m)))
             .Order()

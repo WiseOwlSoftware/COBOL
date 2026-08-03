@@ -85,7 +85,8 @@
     "pb13_float_quantize_headroom",
     "pb13_float_quantize_siblings",
     "pb13_domain_raise_receiver_shape",
-    "pb19_argument_class_batch5"
+    "pb19_argument_class_batch5",
+    "pb21_float_arg_integer_family"
   ],
   "pending": []
 }

@@ -50,6 +50,64 @@ namespace CobolNet.Runtime;
 /// </remarks>
 public static partial class CobolIntrinsics
 {
+    /// <summary>
+    /// ⛔ THE ONE FLOAT→INTEGER-ARGUMENT LANDING for the §15.3 type-6 family (fix-queue PB21). Every integer-
+    /// argument body below funnels through here so a float operand gets the IDENTICAL disposition a fixed-point
+    /// one gets from <c>IntrinsicRenderer.AsInt</c> — truncation toward zero, the §15.3 implementor latitude for
+    /// a value that is not the integer the rule demands. Two separate conversions would let the same function
+    /// answer differently depending on how its argument happened to be stored, which is the receiver-shape class
+    /// of defect PB13 closed; one helper makes that impossible rather than merely unlikely.
+    /// <para>⚠ THE RANGE GUARD IS NOT DECORATION (PB22's lesson, applied before PB22 lands): a
+    /// <c>(long)</c> cast on an out-of-range double is UNDEFINED in C#, so a huge operand would wrap into a
+    /// plausible date rather than raising. Out of range ⇒ EC-ARGUMENT-FUNCTION (§15.3), never a wrapped value.
+    /// The bound is stated as ±9.2e18 rather than long.MaxValue because the nearest double to long.MaxValue is
+    /// ABOVE it — comparing against the exact integer would let the boundary value through the cast.</para>
+    /// </summary>
+    private static bool TryIntegerArg(double v, string fn, out long n)
+    {
+        if (double.IsFinite(v) && v > -9.2e18 && v < 9.2e18) { n = (long)Math.Truncate(v); return true; }
+        Exceptions.ExceptionState.ArgumentError(
+            $"{fn}: the floating-point argument {v} is outside the integer-argument range (ISO §15.3)");
+        n = 0;
+        return false;
+    }
+
+    // ── §15.3 type-6 INTEGER arguments reached with a FLOATING-POINT operand (PB21) ────────────────────────────
+    // A COMP-2 item is category numeric (§8.5.2.12 item 2) hence class numeric (§8.5.2.1 Table 2), so
+    // `Admissible('i')` ADMITS it — the integer-ness is a VALUE property, not a class the screen can reject on.
+    // Without these bodies `IntrinsicRenderer.RenderNum`'s AnyRealArgument dispatch emitted a call to a member
+    // that does not exist and the user saw a raw Roslyn CS0117 on conforming source.
+    // ⚠ INTEGER-OF-BOOLEAN is DELIBERATELY ABSENT: §15.45.3 r1 requires class BOOLEAN, so PB19's screen rejects a
+    // float operand at bind time and a body here would be unreachable code that reads as coverage.
+    /// <summary>§15.22 DATE-OF-INTEGER with a floating-point argument.</summary>
+    public static long DateOfIntegerReal(double v) => TryIntegerArg(v, "DATE-OF-INTEGER", out long n) ? CobolDate.DateOfInteger(n) : 0;
+    /// <summary>§15.24 DAY-OF-INTEGER with a floating-point argument.</summary>
+    public static long DayOfIntegerReal(double v) => TryIntegerArg(v, "DAY-OF-INTEGER", out long n) ? CobolDate.DayOfInteger(n) : 0;
+    /// <summary>§15.46 INTEGER-OF-DATE with a floating-point argument.</summary>
+    public static long IntegerOfDateReal(double v) => TryIntegerArg(v, "INTEGER-OF-DATE", out long n) ? CobolDate.IntegerOfDate(n) : 0;
+    /// <summary>§15.47 INTEGER-OF-DAY with a floating-point argument.</summary>
+    public static long IntegerOfDayReal(double v) => TryIntegerArg(v, "INTEGER-OF-DAY", out long n) ? CobolDate.IntegerOfDay(n) : 0;
+    /// <summary>§15.90 TEST-DATE-YYYYMMDD with a floating-point argument.</summary>
+    public static long TestDateYyyymmddReal(double v) => TryIntegerArg(v, "TEST-DATE-YYYYMMDD", out long n) ? CobolDate.TestDateYyyymmdd(n) : 0;
+    /// <summary>§15.91 TEST-DAY-YYYYDDD with a floating-point argument.</summary>
+    public static long TestDayYyyydddReal(double v) => TryIntegerArg(v, "TEST-DAY-YYYYDDD", out long n) ? CobolDate.TestDayYyyyddd(n) : 0;
+
+    // The Y2K windowing trio (§15.23 / §15.25 / §15.100) — the optional argument-2/argument-3 keep the SAME
+    // C#-optional defaults the exact bodies use (50 / the argument-3 = 0 execution-year sentinel), because the
+    // renderer emits only the arguments actually written.
+    /// <summary>§15.23 DATE-TO-YYYYMMDD with a floating-point argument.</summary>
+    public static long DateToYyyymmddReal(double date, double off = 50, double baseYear = 0) =>
+        TryIntegerArg(date, "DATE-TO-YYYYMMDD", out long d) && TryIntegerArg(off, "DATE-TO-YYYYMMDD", out long o)
+        && TryIntegerArg(baseYear, "DATE-TO-YYYYMMDD", out long b) ? CobolDate.DateToYyyymmdd(d, o, b) : 0;
+    /// <summary>§15.25 DAY-TO-YYYYDDD with a floating-point argument.</summary>
+    public static long DayToYyyydddReal(double day, double off = 50, double baseYear = 0) =>
+        TryIntegerArg(day, "DAY-TO-YYYYDDD", out long d) && TryIntegerArg(off, "DAY-TO-YYYYDDD", out long o)
+        && TryIntegerArg(baseYear, "DAY-TO-YYYYDDD", out long b) ? CobolDate.DayToYyyyddd(d, o, b) : 0;
+    /// <summary>§15.100 YEAR-TO-YYYY with a floating-point argument.</summary>
+    public static long YearToYyyyReal(double yy, double off = 50, double baseYear = 0) =>
+        TryIntegerArg(yy, "YEAR-TO-YYYY", out long y) && TryIntegerArg(off, "YEAR-TO-YYYY", out long o)
+        && TryIntegerArg(baseYear, "YEAR-TO-YYYY", out long b) ? CobolDate.YearToYyyy(y, o, b) : 0;
+
     /// <summary>§15.7 ABS — the absolute value of a floating-point argument.</summary>
     public static double AbsReal(double v) => Math.Abs(v);
 

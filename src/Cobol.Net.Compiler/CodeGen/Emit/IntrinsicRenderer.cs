@@ -68,7 +68,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // exact left to keep. The real-argument bodies are CobolIntrinsics.RealArgs.cs, deliberately sharing
         // these method names so this one line is the whole dispatch.
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
-        if (AnyRealArgument(ic)) return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
+        // ⛔ FACTORIAL IS ROUTED TO ITS EXACT ARM EVEN WITH A FLOAT ARGUMENT (PB21), and it is the only one.
+        // RenderFloat wraps every result in FromDouble(double, ws), so a ...Real body must return something a
+        // double can carry — and §15.36's result cannot be: 33! is ~8.7e36, which is why the exact body returns
+        // Int128. The exact arm consumes its argument through IntArg, whose (long)(double) conversion handles a
+        // float operand correctly, so the float case needs no separate body at all. Writing FactorialReal to
+        // satisfy the pattern would have meant returning a double and silently losing exactness past 2^53 — a
+        // function answering differently because of how its ARGUMENT was stored, which is the shape-dependence
+        // defect PB13 closed. IntrinsicRealArgDriftTests carries the matching exemption with this reason.
+        if (AnyRealArgument(ic) && sig.RuntimeMethod != "Factorial")
+            return RenderFloat(ic, RealMethod(sig.RuntimeMethod));
 
         switch (sig.RuntimeMethod)
         {

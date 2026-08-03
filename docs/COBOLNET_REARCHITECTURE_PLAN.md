@@ -58,7 +58,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   paragraph — run the probe.** FOUR Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB11 + PB13 + PB19 + PB20 LANDED; PB12, PB14, PB15, PB17, PB18, PB21–PB27 are the live set** — see
+  its header is the tally). **PB1–PB11 + PB13 + PB19–PB21 LANDED; PB12, PB14, PB15, PB17, PB18, PB22–PB27 are the live set** — see
   NEXT for the order to work them. **No BLOCKER is open.** Three of the ten landed were blockers and every one
   was SILENT — the pattern this review exists to catch:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
@@ -174,7 +174,6 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
    | **PB17** | open | A function-identifier as a SUBSCRIPT or in a REF-MOD position compiles clean and throws at RUN TIME (not a parse error). `ReferenceResolver`'s flat-token segment renderer has no arm for a nested FUNCTION call. ⚠ Fix the RENDERER, not the grammar — D10/PHASE-15 removes SUBSCRIPT mode. |
    | **PB18** | open (NEW, from PB13's sweep) | A native `**` with an INTEGER exponent routes through `System.Math.Pow`, so `10 ** 30` returns 1000000000000000071935427891953 where Int128 holds 10³⁰ exactly. CONFORMS (§8.8.1.2 r6 imposes no exactness requirement; §8.8.1.3 is implementor-defined) but contradicts our OWN documented native technique (numeric design D3, "the exact Int128 fixed-point engine"). Copy the shape `CobolDec.Pow` already uses: exact repeated multiplication for an integer exponent, double only for a non-integer one. Was invisible until PB13 stopped the saturation from masking it. |
-   | **PB21** | open (NEW, batch 4) | Three `…Real` runtime members do not exist (`IntegerOfBooleanReal`/`IntegerOfDateReal`/`IntegerOfDayReal`), so a legal float argument emits a raw Roslyn **CS0117**. ⚠ `IntrinsicRealArgDriftTests` EXEMPTS every integer-kind row, which is why the guard never saw it — widening the guard is part of the fix. |
    | **PB22** | open (NEW, batch 4) | `IntrinsicRenderer.AsInt`'s unchecked `(long)(Int128)` cast WRAPS, so §15.5.2 range guards are unreachable past 2⁶³ even with checking ON. **One cast feeds eleven functions** — fix the cast, not the call sites. |
    | **PB24** | open (NEW, batch 4) | FUNCTION LENGTH is wrong or absent on four shapes: a variable-length group folds to a WRONG compile-time constant (silent), a ref-modified argument throws at RUN TIME, and the PHYSICAL argument + the §15.50.4 r9 rounding step do not exist. |
    | **PB26** | open (NEW, batch 4) | The ambient EC-ARGUMENT-FUNCTION gate is emitted only for statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written switch, so the SAME function reference raises in one statement and is silent in another. A hand-maintained list where a structure belongs — and the general form of the receiver-shape defect PB13 hit. |

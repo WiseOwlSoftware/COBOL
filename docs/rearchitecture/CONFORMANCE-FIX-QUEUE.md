@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB19 + PB20 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18, PB21–PB27 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB19 + PB20 + PB21 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB22–PB27 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -133,7 +133,25 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > always-alphanumeric `ClassOfPlace` would falsely reject **the standard's own Annex D worked example**,
 > `FUNCTION INTEGER-OF-BOOLEAN (bit-item (1:6))`. Fix the class rule FIRST, then add the row.
 
-### PB21 · [MAJOR] · intrinsics · ⛔ OPEN — three `…Real` runtime members do not exist, so conforming source emits a raw Roslyn CS0117
+### PB21 · [MAJOR] · intrinsics · ✅ LANDED 2026-08-02 (DEVLOG 1148) — it was TEN members, not three, and the guard had two blind spots
+> **The batch said three because it looked at three FUNCTIONS; the guard, once it could see, reported the CLASS**
+> — the whole integer date/windowing family plus FACTORIAL (which also closes PB14's named half).
+> ⛔ **BLIND SPOT 1 — the scope filter.** It scoped on `ArgKinds` `'n'` alone, reasoning that an `'i'` function
+> "cannot receive a float without violating their own argument rule first". FALSE: §15.3's INTEGER type resolves
+> through CLASS NUMERIC, so `Admissible('i')` is `[Numeric]` and ADMITS a float — integer-ness is a VALUE
+> property, not a class. The exemption reasoned about the rule's INTENT where the code screens on its CLASS.
+> ⛔ **BLIND SPOT 2 — the extraction.** `case "(?<m>…)"` anchors on the word `case`, so an or-chained label
+> contributed ONE name and hid the rest — systematic, since the renderer uses or-chains throughout.
+> **FIX:** nine bodies over ONE `TryIntegerArg` landing helper (identical disposition to the fixed-point path —
+> two conversions would be argument-shape dependence, the PB13 class), with PB22's range guard applied early.
+> ⚠ **FACTORIAL is routed to its EXACT arm instead**: `RenderFloat` wraps results in `FromDouble(double, ws)`
+> and 33! ≈ 8.7e36 cannot ride a double. The guard's exemption is COUPLED — it applies only while the renderer
+> contains the skip, so removing the skip fails the test rather than silently re-opening the hole.
+> ⚠ `IntegerOfBooleanReal` deliberately absent: PB19's screen makes it unreachable.
+> Golden `pb21_float_arg_integer_family` (round-trip cross-checks + float-vs-fixed agreement).
+> The finding as originally recorded follows.
+
+### PB21 (as found) · three `…Real` runtime members do not exist, so conforming source emits a raw Roslyn CS0117
 > **The PB2/PB14 family again, in the integer date/boolean group.** `IntrinsicRenderer.AnyRealArgument` routes a
 > floating-point argument to `CobolIntrinsics.<Name>Real`, and **`IntegerOfBooleanReal`, `IntegerOfDateReal` and
 > `IntegerOfDayReal` exist nowhere in the runtime** — so
