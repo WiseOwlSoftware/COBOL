@@ -502,10 +502,26 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    ⛔ **AR and RV are essentially §15-ONLY kinds, and they are the two the review has driven.** GR + SR are
    **2,865 rows — 74 % of everything — and effectively untouched.** 327 of the 330 adjudicated rows are §15.
 
-   **⚠ THE CURRENT BATCH SHAPE DOES NOT GENERALISE, AND THAT IS THE FIRST THING TO FIX.** `phase_b_batch.py`
-   fans out ONE AGENT PER FUNCTION, which works because §15 is a list of functions. §14 is STATEMENTS and §13 is
-   CLAUSES; a per-function batch has no meaning there. **Before the first §14 batch, `phase_b_batch.py` needs a
-   per-STATEMENT subject key** (and per-CLAUSE for §13). This is a small tooling change that gates 2,124 rows.
+   ~~**⚠ THE CURRENT BATCH SHAPE DOES NOT GENERALISE…** `phase_b_batch.py` fans out ONE AGENT PER FUNCTION…
+   it needs a per-STATEMENT subject key (and per-CLAUSE for §13).~~
+   ⛔ **MEASURED 2026-08-03 — THIS PREMISE WAS WRONG TOO, AND THE REAL GATE IS SIZE.** `phase_b_batch.py` never
+   had a per-FUNCTION key; it groups by the catalog's `subject`, and that field **is already the statement name
+   in §14** ("SET statement", "READ statement" — 54 subjects over 1,141 rules) **and the clause name in §13**
+   ("PICTURE clause", "VALUE clause" — 78 over 983). The key generalised all along.
+   **What does not generalise is the batch SIZE.** The four §15 batches that have actually run — fanned out,
+   adversarially refuted, landed — topped out at **18 rules per agent**. §14 has **18 subjects over 25 rules and
+   5 over 40**, SET carrying **98**; §13 has 9 over 25 with PICTURE at 72; §12's SPECIAL-NAMES is 81. Handing one
+   agent 98 rules is a five-fold departure from the only shape with evidence behind it.
+   ✅ **DONE:** `phase_b_batch.py --max-rules` (default 20) splits an oversized subject **at CLAUSE boundaries
+   first** — every construct is laid out `.2` general format / `.3` syntax rules / `.4` general rules, which are
+   genuinely different questions, so the seam is free and it separates the FMT+SR vein from the GR vein without
+   anyone arranging it. A subject that FITS is not split at all, preserving §15's proven whole-function shape
+   (verified: a §15 batch still produces 12 subjects → 12 files, unchanged). A split part carries `part i of n`,
+   its sibling slugs, and the WHOLE subject's clause map, so an agent knows what it is not seeing and is told to
+   say so rather than guess. A partition invariant asserts no rule is dropped or duplicated — a lost rule would
+   never be issued to any agent and nothing downstream would say so, the §11 A12c failure one register over.
+   **THE PLANNING NUMBERS THIS UNLOCKS:** §14 = 90 agent files · §13 = 99 · §12 = 29 · §8 = 36 · §7 = 27 ·
+   §11 = 16 · §15 (remaining) = 35.
 
    **⭐ THE SINGLE LARGEST EFFICIENCY WIN — TWO LEDGERS ARE COUNTING ONE BODY OF WORK.**
    Item 3 above (the grammar↔spec audit) scopes itself as **"1,659 items: 321 general formats + 1,338 syntax
@@ -560,7 +576,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    |---|---|---|
    | 1 | ✅ **MOSTLY DONE 2026-08-03 — §11 A12 · A12b · A12c · A12e CLOSED. A12d's STRUCTURAL half is done; its DISTRIBUTION is still uncollected, and A13 (b) is unmeasured — neither blocks step 2.** | Until they closed, "all legs green" was not evidence, and EVERY step below is validated by that battery. The rule is `DESIGN-test-build-ci.md` §3.10 (the verdict-evidence invariant): a verdict needs the observation it claims, a run's results must PARTITION its declared population, and the expectation comes from a committed manifest — never a remembered number. ⚠ It also closed a defect this list did not anticipate: the same process-runner bug existed SEVEN times across five test projects. |
    | 2 | ⚠ **AUDITED 2026-08-03 — and the answer inverts this row.** The audit itself is DONE and is now a gate (`scripts/spec/audit_annex_a1.py --check`, self-tested, proven to fail on a real defect). | This row said "highest closure per unit effort … the one vein that can move the GAP number visibly early". **Measured: 10 of 199 obligations discharged, 189 remain**, and the "already documented" mass it assumed was Annex A.3 / Annex E, which are different registers. The 189 are determinations to be MADE, not recorded. It moves the GAP number no faster than any other vein — but it is still the only one needing no compiler change, and the audit has made the remaining set exact and drift-proof, which is what step 2 was really worth. **Re-rank the veins against this before planning the next campaign phase.** |
-   | 3 | **Teach `phase_b_batch.py` a per-STATEMENT / per-CLAUSE subject key** | Gates 2,124 rows in §14+§13. Small tooling change, blocks everything after it. |
+   | 3 | ✅ **DONE 2026-08-03 — but not the change this row named.** | The subject key was ALREADY per-statement/per-clause; the real gate was per-agent SIZE (§15's proven max is 18 rules; SET is 98). `phase_b_batch.py --max-rules` now splits an oversized subject at clause boundaries, leaves a fitting subject whole, and asserts the partition loses nothing. Gates the 2,124 rows in §14+§13 as this row intended. Planning numbers: §14 = 90 agent files, §13 = 99. |
    | 4 | **Unify the grammar audit with FMT+SR** — one pass emitting both a grammar finding and a verdict batch | Avoids auditing ~1,670 rules twice. Do it BEFORE starting the SR mass. |
    | 5 | **Drain the fix queue to zero once** (PB12, PB14–PB18, PB23–PB27 + residue) | A queue carried across a 40-batch campaign becomes unreviewable; empty it while it is 12 items. |
    | 6 | **§14 then §13 GR/SR batches, interleaved with fixing** | The semantic mass, in the two clauses that dominate it. |

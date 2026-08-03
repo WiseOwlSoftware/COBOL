@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """Prepare a Phase-B adjudication batch: one input file per SUBJECT, holding the full text of its rules.
 
-    python scripts/spec/phase_b_batch.py 15.32-15.44           # a clause range
-    python scripts/spec/phase_b_batch.py 14.9.1 14.9.2         # explicit clauses
-    python scripts/spec/phase_b_batch.py 15.32-15.44 --out DIR # somewhere other than the default scratchpad
+    python scripts/spec/phase_b_batch.py 15.32-15.44             # a clause range
+    python scripts/spec/phase_b_batch.py 14.9.1 14.9.2           # explicit clauses
+    python scripts/spec/phase_b_batch.py 14 --max-rules 20        # a whole clause, agent-sized
+    python scripts/spec/phase_b_batch.py 15.32-15.44 --out DIR    # somewhere other than the default scratchpad
+
+⚠ ONE SUBJECT IS NOT ALWAYS ONE AGENT. The `subject` key is the statement name in §14 and the clause name in
+§13, so it generalises past §15's functions — but the SIZE does not. The four §15 batches that have actually run
+topped out at 18 rules per agent; SET carries 98, PICTURE 72, SPECIAL-NAMES 81. `--max-rules` (default 20) splits
+an oversized subject at CLAUSE boundaries (`.2` format / `.3` syntax rules / `.4` general rules are different
+questions, so the seam is free), leaves a fitting subject WHOLE, and gives each part its siblings and the whole
+subject's clause map so no agent adjudicates a slice believing it is the set.
 
 ⛔ ONE AGENT, ONE INPUT FILE — never "read the shared catalog and take element k". Agents miscount the index, and
 one fan-out cost four double-processed clusters and five skipped entirely (`feedback_agent_dispatch`). This writes
@@ -55,12 +63,87 @@ def selected(section: str, specs: list[str]) -> bool:
     return False
 
 
+#: The most rules one agent is given. §15's batches — the four that have actually run, adversarially refuted —
+#: topped out at 18 rules per agent, so 20 is "the proven shape, rounded up", not a guess. §14 and §13 are a
+#: different scale entirely: SET carries 98 rules, PICTURE 72, SPECIAL-NAMES 81.
+DEFAULT_MAX_RULES = 20
+
+
+def partition(rows: list[dict], cap: int) -> list[list[dict]]:
+    """Split one subject's rules into agent-sized files — BY CLAUSE first, then by size.
+
+    ⭐ THE CLAUSE BOUNDARY IS THE RIGHT SEAM, and it is free. Every construct in the standard is laid out the
+    same way: `.2` the general format, `.3` the syntax rules, `.4` the general rules. Those are genuinely
+    different questions — SR asks "does the grammar admit exactly this?", GR asks "does the implementation DO
+    this?" — and splitting there also separates plan §5b's FMT+SR vein from its GR vein without anyone
+    arranging it. An arbitrary chunk at rule 20 would cut a rule list mid-argument instead.
+
+    ⚠ A SUBJECT THAT FITS IS NOT SPLIT AT ALL. §15's proven shape is one agent per function seeing ALL of its
+    rules together, because a function's argument rules and returned-value rules interlock; splitting those
+    would trade a measured-good shape for tidiness. Only an oversized subject is cut.
+    """
+    if len(rows) <= cap:
+        return [rows]
+    groups = [sorted((r for r in rows if r["section"] == s), key=lambda x: (x["kind"], x["id"]))
+              for s in sorted({r["section"] for r in rows}, key=clause_key)]
+    parts: list[list[dict]] = []
+    pending: list[dict] = []
+    for group in groups:
+        if len(group) > cap:
+            # Too big for one agent even as a single clause (SET's 53 syntax rules). Cut it into EVEN chunks —
+            # not one full file plus a stub — so no agent gets a lopsided share of the same question.
+            n = -(-len(group) // cap)
+            size = -(-len(group) // n)
+            chunks = [group[i:i + size] for i in range(0, len(group), size)]
+            # ⚠ Absorb anything pending into the first chunk if it fits. Without this a construct's ONE general
+            # format rule becomes its own agent — a whole fan-out slot spent on a single FMT row, which is what
+            # the first version of this function actually did to SET.
+            if pending and len(pending) + len(chunks[0]) <= cap:
+                chunks[0] = pending + chunks[0]
+                pending = []
+            if pending:
+                parts.append(pending)
+                pending = []
+            parts.extend(chunks)
+            continue
+        if len(pending) + len(group) <= cap:
+            pending += group
+        else:
+            parts.append(pending)
+            pending = list(group)
+    if pending:
+        parts.append(pending)
+    return parts
+
+
+def part_slug(base: str, index: int, total: int) -> str:
+    """`set-statement` when whole; `set-statement-p1…p6` when split.
+
+    ⚠ The slug is an INDEX, not a clause name, because a part may span clauses once the packer absorbs a small
+    group into a larger neighbour — a clause-named slug would then be a lie. The clause coverage of every part
+    is printed as a table when the batch is generated, and is inside each file as `clauses`.
+    """
+    if total == 1:
+        return base
+    return f"{base}-p{index + 1}"
+
+
 def main() -> int:
+    # ⚠ BEFORE parse_args, not after. argparse prints this module's docstring for --help, and the docstring
+    # carries ⚠/⛔; on a cp1252 Windows console that raises UnicodeEncodeError from inside argparse, so
+    # `--help` crashed with a traceback instead of printing help. Reconfiguring afterwards was too late.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("clauses", nargs="+", help="clauses or ranges, e.g. 15.32-15.44 or 14.9.1")
+    ap.add_argument("--max-rules", type=int, default=DEFAULT_MAX_RULES,
+                    help=f"most rules in one agent's file before the subject is split (default {DEFAULT_MAX_RULES})")
     ap.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
     args = ap.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8")
 
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
     done = {r["rule-id"] for r in json.loads(INVENTORY.read_text(encoding="utf-8")) if r.get("verdict")}
@@ -77,18 +160,64 @@ def main() -> int:
 
     args.out.mkdir(parents=True, exist_ok=True)
     slugs = []
+    oversized = []
+    part_index: dict[str, list[dict]] = {}
     for subject, rows in sorted(by_subject.items()):
-        slug = subject.replace(" function", "").lower().replace(" ", "-").replace("/", "-")
-        (args.out / f"in-{slug}.json").write_text(json.dumps({
-            "subject": subject,
-            "clauses": sorted({r["section"] for r in rows}, key=clause_key),
-            "rules": [{"rule-id": r["id"], "kind": r["kind"], "section": r["section"], "text": r["text"]}
-                      for r in sorted(rows, key=lambda x: (x["kind"], x["id"]))],
-        }, indent=1, ensure_ascii=False), encoding="utf-8")
-        slugs.append(slug)
+        base = subject.replace(" function", "").lower().replace(" ", "-").replace("/", "-")
+        parts = partition(rows, args.max_rules)
+        # ⛔ THE PARTITION INVARIANT. If `partition` ever drops a rule, that rule is never issued to any agent
+        # and therefore never adjudicated — and NOTHING downstream would say so: the batch would look complete,
+        # the verdicts would merge cleanly, and the inventory would simply never move for it. That is the same
+        # failure this session closed across the test harnesses (§11 A12c): a missing item read as no item.
+        # Assert it here, where it is cheap, rather than discover it as an unexplained GAP months later.
+        flat = [r for p in parts for r in p]
+        assert len(flat) == len(rows) and {id(r) for r in flat} == {id(r) for r in rows}, (
+            f"partition lost or duplicated rules for {subject!r}: {len(rows)} in, {len(flat)} out")
+        if len(parts) > 1:
+            oversized.append((subject, len(rows), len(parts)))
+        sibling_slugs = [part_slug(base, i, len(parts)) for i, _ in enumerate(parts)]
+        clause_map = collections.Counter(r["section"] for r in rows)
+        for pi, (part, slug) in enumerate(zip(parts, sibling_slugs)):
+            doc = {
+                "subject": subject,
+                "clauses": sorted({r["section"] for r in part}, key=clause_key),
+                "rules": [{"rule-id": r["id"], "kind": r["kind"], "section": r["section"], "text": r["text"]}
+                          for r in sorted(part, key=lambda x: (x["kind"], x["id"]))],
+            }
+            if len(parts) > 1:
+                # ⛔ AN AGENT MUST KNOW IT IS SEEING A SLICE. A statement's syntax rules and its general rules
+                # interlock; adjudicating GR7 while unaware that SR12 exists is how a verdict comes back
+                # confidently wrong. So a split file says so, names its siblings, and carries the WHOLE
+                # subject's clause map — it withholds rule TEXT it does not own, never the fact of it.
+                doc["part"] = {
+                    "index": pi + 1,
+                    "of": len(parts),
+                    "sibling-slugs": sibling_slugs,
+                    "whole-subject-clause-map": {c: n for c, n in sorted(clause_map.items(), key=lambda kv: clause_key(kv[0]))},
+                    "note": (f"This file holds PART {pi + 1} of {len(parts)} of '{subject}' "
+                             f"({len(rows)} rules total, split because one agent adjudicating them all reliably "
+                             f"degrades). Adjudicate ONLY the rules below, but read the clause map: rules you do "
+                             f"not see here exist and may bear on yours. If a verdict depends on a rule outside "
+                             f"this part, say so in the notes rather than guessing."),
+                }
+            (args.out / f"in-{slug}.json").write_text(
+                json.dumps(doc, indent=1, ensure_ascii=False), encoding="utf-8")
+            slugs.append(slug)
+            if len(parts) > 1:
+                part_index[slug] = part
 
-    print(f"{len(chosen)} rule(s) over {len(slugs)} subject(s); {skipped} already adjudicated and skipped")
-    print(f"input files -> {args.out}")
+    print(f"{len(chosen)} rule(s) over {len(by_subject)} subject(s) -> {len(slugs)} agent file(s); "
+          f"{skipped} already adjudicated and skipped")
+    if oversized:
+        print(f"\n⚠ {len(oversized)} subject(s) exceeded --max-rules={args.max_rules} and were SPLIT "
+              f"(largest first). Each part names its siblings and carries the whole subject's clause map:")
+        for subject, n, p in sorted(oversized, key=lambda t: -t[1]):
+            print(f"    {subject:<40} {n:>4} rules -> {p} parts")
+        print(f"\n  part -> clauses -> rule count:")
+        for slug, part in sorted(part_index.items()):
+            print(f"    {slug:<40} {','.join(sorted({r['section'] for r in part}, key=clause_key)):<28} "
+                  f"{len(part):>3}")
+    print(f"\ninput files -> {args.out}")
     print("\nslug list for the workflow script:\n")
     print(json.dumps(slugs))
     return 0
