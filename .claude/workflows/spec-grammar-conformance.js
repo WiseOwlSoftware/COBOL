@@ -45,6 +45,12 @@ const RESULT = {
         properties: {
           section: { type: 'string' },
           construct: { type: 'string' },
+          // ⛔ THE RULE IDs THIS FINDING ACTUALLY ADJUDICATED, e.g. ["SR-14.9.1.3-4","FMT-14.9.1.2-1"].
+          // The inventory is keyed per RULE, not per section, so this is what lets one pass feed both the
+          // grammar report and record_verdicts.py (plan §5b step 4). List ONLY rules you genuinely checked —
+          // grammar_findings_to_batch.py refuses to expand a finding across a section's other rules, because
+          // blanket-adjudicating 19 syntax rules from one observation is manufacturing verdicts.
+          rule_ids: { type: 'array', items: { type: 'string' } },
           verdict: { type: 'string', enum: ['MATCHES', 'DIVERGES', 'NOT-IMPLEMENTED', 'UNCLEAR'] },
           divergence_kind: {
             type: 'string',
@@ -57,7 +63,7 @@ const RESULT = {
           observed: { type: 'string' },
           fix_sketch: { type: 'string' },
         },
-        required: ['section', 'construct', 'verdict', 'grammar_site'],
+        required: ['section', 'construct', 'verdict', 'grammar_site', 'rule_ids'],
       },
     },
     sections_checked: { type: 'array', items: { type: 'string' } },
@@ -109,6 +115,13 @@ const results = await pipeline(
       '  cd E:/CobolSharp && src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> -o <out.dll> --std 2023',
       'ALWAYS include a CONTROL program that must succeed, so a rejection is attributable to the construct rather',
       'than to unrelated invalid source. Put the exact source in `repro` and the exact output in `observed`.',
+      '',
+      '⛔ EVERY FINDING MUST CARRY `rule_ids` — the catalog rule ids it actually adjudicated, from the STEP 1',
+      'listing (e.g. ["SR-14.9.1.3-4","SR-14.9.1.3-5"]). This is what lets one pass feed BOTH the grammar report',
+      'and the traceability inventory (plan §5b step 4) instead of auditing the same ~1,670 rules twice.',
+      'List ONLY the rules you genuinely checked. Do NOT list a section\'s other rules to look thorough: the',
+      'converter refuses to expand a finding across rules you did not examine, and an un-adjudicated rule',
+      'staying a GAP is CORRECT — a wrong verdict is far more expensive than a missing one.',
       '',
       'VERDICTS:',
       '  MATCHES         - the grammar models the printed syntax. Give the passing repro.',
