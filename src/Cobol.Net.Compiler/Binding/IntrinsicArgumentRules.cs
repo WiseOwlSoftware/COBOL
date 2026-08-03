@@ -105,7 +105,13 @@ internal static class IntrinsicArgumentRules
     /// decidable (an index item and other PIC-less leaves included — those are simply not screened).</summary>
     public static CobolClass? ClassOf(BoundOperand op) => op switch
     {
-        BoundStringLiteral => CobolClass.Alphanumeric,
+        // ⛔ A LITERAL HAS A CATEGORY, AND THIS IGNORED IT — the PB1 trap, sprung a second time and caught by the
+        // corpus, not by reading. `BoundStringLiteral` carries `Category` (Alphanumeric by default, but National
+        // for N"…" and BOOLEAN for B"…"), and returning a flat Alphanumeric made the brand-new §15.45.3 r1
+        // boolean screen REJECT `FUNCTION INTEGER-OF-BOOLEAN(B"00000101")` — legal source, written in
+        // `2002/intrinsics_boolean_conv` and in a spec-derived unit test. A screen is only as good as its
+        // classifier, and a classifier that flattens a category is how a correct rule rejects a correct program.
+        BoundStringLiteral sl => ClassOfCategory(sl.Category) ?? CobolClass.Alphanumeric,
         BoundNumericLiteral => CobolClass.Numeric,
         BoundFieldOperand f => ClassOfPlace(f.Place),
         // An arithmetic expression IS a numeric argument (§15.3 types 6 and 10 admit one outright); a nested
@@ -233,14 +239,46 @@ internal static class IntrinsicArgumentRules
             ["FRACTION-PART"] = ('n', "§15.42.3 r1"),                 // shall be of the class numeric
             ["INTEGER"] = ('n', "§15.44.3 r1"),                       // shall be of class numeric
             // ⚠ PARTIAL by construction: §15.36.3 r1 is "an integer GREATER THAN OR EQUAL TO ZERO". The 'i' kind
-            // screens the CLASS half (§15.3 type 6, which admits an arithmetic expression and de-edits a
-            // numeric-edited item); the VALUE half is a run-time property this compile-time screen cannot see, so
-            // FACTORIAL(-1) still passes here and is EC-ARGUMENT-FUNCTION's business.
+            // screens the CLASS half (§15.3 type 6); the VALUE half is a run-time property this compile-time
+            // screen cannot see, so FACTORIAL(-1) still passes here and is EC-ARGUMENT-FUNCTION's business.
             ["FACTORIAL"] = ('i', "§15.36.3 r1"),                     // shall be an integer (>= 0 is a value rule)
             // Zero-argument functions: the general format admits no argument at all, so any argument is an arity
             // error (COBOLNET1504) before class screening is reached. Recorded so the review can close the row.
             ["EXCEPTION-STATEMENT"] = (' ', "§15.32.2 — no arguments"),
             ["EXCEPTION-STATUS"] = (' ', "§15.33.2 — no arguments"),
+
+            // ── §15.45–15.57, the review's fifth batch (fix-queue PB19) ─────────────────────────────────────
+            // Every rule below was read at its own clause and `cite.py --check`ed. The batch reported these as
+            // "entirely unscreened", which they were: CheckArgumentClasses returns at its TryGetValue guard for
+            // any function absent from this table, so §15.49.3 r1 was enforced NOWHERE while the adjacent INTEGER
+            // and FRACTION-PART — whose rule text is the same sentence — were enforced. That asymmetry is what
+            // "the table grows as the review adjudicates each clause" looks like from inside.
+            ["INTEGER-OF-DATE"] = ('i', "§15.46.3 r1"),               // an integer of the form YYYYMMDD
+            ["INTEGER-OF-DAY"] = ('i', "§15.47.3 r1"),                // an integer of the form YYYYDDD
+            ["INTEGER-PART"] = ('n', "§15.49.3 r1"),                  // shall be of class numeric
+            ["LOG"] = ('n', "§15.55.3 r1"),                           // shall be of class numeric
+            ["LOG10"] = ('n', "§15.56.3 r1"),                         // shall be of class numeric
+            // ⚠ PARTIAL, exactly like REVERSE (`AR-15.78.3-1`): §15.57.3 r1 / §15.97.3 r1 are ONE sentence with
+            // TWO halves — "of class alphabetic, alphanumeric, or national" AND "at least one character position
+            // in length". This screens the class half only. Half a rule enforced is PARTIAL, never CONFORMS.
+            ["LOWER-CASE"] = ('s', "§15.57.3 r1"),                    // class alphabetic/alphanumeric/national
+            ["UPPER-CASE"] = ('s', "§15.97.3 r1"),                    // the SAME sentence, verbatim
+            // §15.48.3 r1 makes argument-1 a national or alphanumeric LITERAL (its literal-ness is the existing
+            // COBOLNET1517 arm, its CONTENT the COBOLNET1631 format screen); r3 makes argument-2 "a data item of
+            // the same type as argument-1". Both positions are therefore in the string family, so one kind serves
+            // both — the same shape SECONDS-FROM-FORMATTED-TIME already uses.
+            // ⚠ RESIDUE: r3 is a CROSS-ARGUMENT rule ("the SAME type as argument-1"), which a per-position screen
+            // cannot express — the sibling of `AR-15.79.3-3`. This closes the class half, which is the half that
+            // was silently accepting a class-numeric argument-2; the cross-argument half stays PARTIAL.
+            ["INTEGER-OF-FORMATTED-DATE"] = ('s', "§15.48.3 r1/r3"),
+            // ⛔ THE ONE THAT NEEDED PB20 FIRST. §15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
+            // rule in the catalogue that names that class, and `Admissible` had no arm able to say it. It is
+            // listed last because it was BLOCKED, not forgotten: until PB20, every reference-modified operand was
+            // typed class ALPHANUMERIC on the authority of a clause that does not exist, so this screen would
+            // have rejected the standard's OWN Annex D worked example, `FUNCTION INTEGER-OF-BOOLEAN (bit (1:6))`.
+            // §8.4.3.3.4 GR6 preserves the category, so a ref-modified boolean item is class boolean and the
+            // example is admitted. Ordering was the whole risk here.
+            ["INTEGER-OF-BOOLEAN"] = ('b', "§15.45.3 r1"),            // shall be of class boolean
         };
 
     /// <summary>
@@ -289,6 +327,15 @@ internal static class IntrinsicArgumentRules
         // category numeric-edited and class alphanumeric — not a numeric data item — so it is neither of type
         // 10's two alternatives. The exclusion is correct and `pb1-numeric-arg-numeric-edited` pins it.
         'n' => [CobolClass.Numeric],
+        // ⛔ 'b' — class BOOLEAN, and §15.45.3 r1 (INTEGER-OF-BOOLEAN) is the only rule in the catalogue that
+        // names it. There was no arm able to express this at all before PB19, which is why the function was
+        // unscreened rather than merely unlisted: a screen cannot reject what its vocabulary cannot describe.
+        // ⚠ IT DEPENDS ON PB20. §8.4.3.3.4 GR6 preserves a reference-modified item's class, so
+        // `FUNCTION INTEGER-OF-BOOLEAN (bit-item (1:6))` — the standard's own Annex D worked example — passes.
+        // Under the pre-PB20 rule, which typed EVERY ref-mod result class alphanumeric on the authority of a
+        // clause that does not exist, this arm would have rejected that example. Adding the row before fixing
+        // the class rule would have shipped a screen that rejects the specification's own sample program.
+        'b' => [CobolClass.Boolean],
         // ⛔ 'i' SCREENS EXACTLY AS 'n' DOES (owner decision 2026-08-02). The comment that stood here argued the
         // opposite — that §15.3 type 6 "admits an ARITHMETIC EXPRESSION — and a numeric-edited item is a legal
         // arithmetic operand, because it DE-EDITS to a defined numeric value" — and cited DA6's screen, a corpus

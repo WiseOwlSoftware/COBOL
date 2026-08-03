@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB20 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN · PB19, PB21–PB27 OPEN (batch 4, §15.45–15.57).**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB19 + PB20 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18, PB21–PB27 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -70,7 +70,27 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 >   (`conformance-test:<Class>.<Method>` for the Conformance assembly). Fixed in the BATCH FILES and re-merged —
 >   nobody hand-edits the inventory.
 
-### PB19 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.3 argument-class screen is absent for THIS batch's functions
+### PB19 · [MAJOR] · intrinsics · ✅ LANDED 2026-08-02 (DEVLOG 1147) — nine rows, and the classifier under them was lossy
+> **Nine rows, each read at its own clause and `--check`ed.** `'i'` INTEGER-OF-DATE/-OF-DAY · `'n'` INTEGER-PART,
+> LOG, LOG10 · `'s'` LOWER-CASE, UPPER-CASE, INTEGER-OF-FORMATTED-DATE · **`'b'` INTEGER-OF-BOOLEAN, on a class
+> arm that did not exist**. INTEGER-PART is the telling one: its §15.49.3 r1 is the SAME SENTENCE as INTEGER's
+> and FRACTION-PART's, both already registered — the rule was enforced for two of three identical functions.
+> ⛔ **THE PB20 ORDERING WAS PROVED, NOT ASSUMED:** the pre-PB20 rule was temporarily restored and
+> `FUNCTION INTEGER-OF-BOOLEAN(BITS(1:6))` — Annex D's own worked example — was confirmed REJECTED under it.
+> ⛔ **AND THE PB1 TRAP SPRANG A SECOND TIME, ONE LAYER DOWN.** The full corpus returned 2 failures on LEGAL
+> source (`INTEGER-OF-BOOLEAN(B"00000101")` in `2002/intrinsics_boolean_conv`, and a spec-derived unit test).
+> The ROW was right; `ClassOf` flattened every `BoundStringLiteral` to alphanumeric, **ignoring the `Category`
+> the record carries** (National for `N"…"`, Boolean for `B"…"`). **A screen is only as good as its classifier,
+> and a classifier that flattens a category is how a correct rule rejects a correct program** — PB1's disaster
+> was unaudited ROWS; this was an audited row over a lossy CLASSIFIER, invisible to any review of the rows.
+> The nested-function shape was already correct (`IntrinsicType.Boolean` → `ResultCategory`) and was left alone.
+> ⚠ **RESIDUE, not rounded up:** LOWER-CASE/UPPER-CASE keep the unenforced "at least one character position"
+> half (PARTIAL, like REVERSE's `AR-15.78.3-1`), and §15.48.3 r3's "same type as argument-1" is a CROSS-ARGUMENT
+> rule a per-position screen cannot express (PARTIAL, like `AR-15.79.3-3`).
+> Goldens: `pb19_argument_class_batch5` (incl. the Annex D ref-mod shape) + three negative fixtures.
+> The finding as originally recorded follows.
+
+### PB19 (as found) · the §15.3 argument-class screen is absent for THIS batch's functions
 > **20 rows over 8 functions — PB1's DESIGNED residue, now due for §15.45–15.57.** `IntrinsicArgumentRules.Verified`
 > is deliberately partial and grows as the review adjudicates each clause, so absence is a real finding.
 > Unscreened: **INTEGER-OF-DATE** (§15.46.3 r1) · **INTEGER-OF-DAY** (§15.47.3 r1) · **INTEGER-PART** (§15.49.3 r1
