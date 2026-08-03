@@ -76,9 +76,17 @@ const results = await pipeline(
       'KNOWN losses, and the grammar was written from it. Using the markdown as your reference would confirm the',
       'very defects you are looking for. Render and LOOK at the page.',
       '',
-      'STEP 1 - find the section and its printed page:',
-      '  cd E:/CobolSharp && python -c "import json;d=json.load(open(r\'docs/rearchitecture/spec-rule-catalog.json\',encoding=\'utf-8\'));[print(r[\'id\'],r[\'page\'],r[\'subject\']) for r in d[\'rules\'] if r[\'section\'] in ' + JSON.stringify(batch) + ']"',
-      '  then: python scripts/spec/page_workunit.py <page> --out E:/Temp/gc' + i + ' --dpi 300',
+      'STEP 1 - render the printed page(s) for these clauses, and list their rules:',
+      '  cd E:/CobolSharp && python scripts/spec/clause_page.py ' + batch.join(' ') +
+        ' --render E:/Temp/gc' + i + ' --dpi 300',
+      '  That resolves each clause to its PDF page AND renders it. It EXITS NON-ZERO if a clause does not',
+      '  resolve — if that happens, STOP and report it; do not proceed without a page.',
+      '  Then list the rules (note the PREFIX match — every catalog row is a SUB-clause like 14.9.1.3, so an',
+      '  exact match on "14.9.1" returns nothing):',
+      '  python -c "import json;d=json.load(open(r\'docs/rearchitecture/spec-rule-catalog.json\',encoding=\'utf-8\'));' +
+        'w=' + JSON.stringify(batch) + ';' +
+        '[print(r[\'id\'],r[\'kind\'],r[\'section\'],r[\'subject\']) for r in d[\'rules\'] ' +
+        'if any(r[\'section\']==c or r[\'section\'].startswith(c+\'.\') for c in w)]"',
       '  and Read the rendered PNG. Read the general format AND the syntax rules for the section.',
       '',
       'STEP 2 - read the grammar. Search E:/CobolSharp/src/Cobol.Net.Frontend/Grammar/ (CobolParserCore.g4 and',
