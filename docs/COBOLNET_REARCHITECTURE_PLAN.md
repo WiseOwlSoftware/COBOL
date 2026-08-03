@@ -201,6 +201,14 @@ because `ClassOf` flattened every `BoundStringLiteral` to alphanumeric and ignor
 PB1's disaster was unaudited ROWS; this was an audited row over a lossy CLASSIFIER, one layer down and invisible
 to any review of the rows.
 
+**⛔ BEFORE PICKING THE NEXT ITEM, READ §5b — THE ROAD TO ZERO GAP.** The NEXT table below is the FIX queue in
+working order; §5b is the CAMPAIGN plan for v1.0, and it changes what "next" should mean. Its three load-bearing
+measurements: **3,531 of 3,861 rows are unadjudicated (91 %)** and 327 of the 330 done are §15 — the review has
+driven the narrowest vein; **GR + SR are 2,865 rows (74 %) at ~0 %**; and **only 19 % of adjudicated rows CLOSED**,
+so adjudication maps the territory while only Phase C shrinks the GAP. It also names the single largest efficiency
+win available — **item 3's grammar audit (1,659 items) and the inventory's FMT+SR (1,674 rows) are the same body
+of work counted twice**, and unifying them before the SR mass starts avoids auditing ~1,670 rules a second time.
+
 ### NEXT, in order
 
 1. **⛔ START HERE — THE ROAD TO v1.0 IS THE PHASE-14 STEP-0 TRACEABILITY REVIEW, AND IT NOW RUNS ON TWO TRACKS.**
@@ -446,6 +454,83 @@ to any review of the rows.
      word-conservation check (151 then 97 words gained), both from `^\s*>` matching `>>` — a compiler
      directive is not a blockquote, and a blockquoted FIGURE is not a note.
    - ⚠ `audit_figure_structure.py` still reads FENCED blocks; it needs the `<pre>` form before the sweep lands.
+
+5b. **⛔ THE ROAD TO ZERO GAP — THE EXECUTION PLAN (written 2026-08-03, measured not estimated).**
+   v1.0 is defined as this inventory at zero GAP (D13). Everything below is computed from
+   `tests/version-matrix/traceability-inventory.json`; **re-measure before trusting any number here.**
+
+   **WHERE THE WORK ACTUALLY IS — and it is not where the review has been looking.**
+   | | rows | adjudicated |
+   |---|---|---|
+   | §14 Procedure Division (statements) | **1141** | **0 %** |
+   | §13 Data Division (clauses) | **983** | **0 %** |
+   | §15 intrinsics | 546 | **60 %** ← *all four batches so far* |
+   | §12 Environment Division | 293 | 0 % |
+   | §8 concepts / reference format | 282 | 1 % |
+   | §7 compiler directives | 252 | 0 % |
+   | **Annex A implementor-documentation** | **222** | **0 %** |
+   | §11 OPTIONS / configuration | 114 | 0 % |
+   | §10, §6, §16, §5 | 28 | 0 % |
+
+   By RULE KIND: **GR 1513 (0 %) · SR 1352 (0.2 %) · FMT 322 (19 %) · AR 226 (58 %) · RV 226 (59 %) · DOC 222 (0 %)**.
+   ⛔ **AR and RV are essentially §15-ONLY kinds, and they are the two the review has driven.** GR + SR are
+   **2,865 rows — 74 % of everything — and effectively untouched.** 327 of the 330 adjudicated rows are §15.
+
+   **⚠ THE CURRENT BATCH SHAPE DOES NOT GENERALISE, AND THAT IS THE FIRST THING TO FIX.** `phase_b_batch.py`
+   fans out ONE AGENT PER FUNCTION, which works because §15 is a list of functions. §14 is STATEMENTS and §13 is
+   CLAUSES; a per-function batch has no meaning there. **Before the first §14 batch, `phase_b_batch.py` needs a
+   per-STATEMENT subject key** (and per-CLAUSE for §13). This is a small tooling change that gates 2,124 rows.
+
+   **⭐ THE SINGLE LARGEST EFFICIENCY WIN — TWO LEDGERS ARE COUNTING ONE BODY OF WORK.**
+   Item 3 above (the grammar↔spec audit) scopes itself as **"1,659 items: 321 general formats + 1,338 syntax
+   rules"**. The inventory's **FMT (322) + SR (1,352) = 1,674 rows**. Those are THE SAME TERRITORY, counted
+   independently, differing by ~15 (inside the known denominator corrections). Run as two efforts it is ~1,670
+   rules audited TWICE; run as one it is a single pass that emits an inventory verdict AND a grammar finding.
+   **Do this before the SR mass is started, not after.** The `spec-grammar-conformance` skill already exists and
+   already keys on clause numbers — it needs to emit `record_verdicts.py` batch files as well as its report.
+
+   **THE FOUR VEINS, ordered by yield per unit of effort:**
+   1. **DOC — 222 rows, closes by DOCUMENTING, not by code.** §4.2.16 requires the implementor-documentation
+      items and D13 makes them part of v1.0. `docs/CONFORMANCE.md` already carries a large numbered set, so an
+      unknown but likely LARGE fraction of these are *already satisfied and merely unrecorded*. **Audit these
+      first**: it is the cheapest closure in the whole inventory and it needs no compiler change. ⚠ Verify each
+      against the clause rather than assuming CONFORMANCE.md's numbering lines up with Annex A.1's.
+   2. **FMT + SR — 1,674 rows, unified with item 3** (above). Mostly mechanical: does the grammar admit exactly
+      what the general format and syntax rules say? The vein already has a proven root cause (SR2's
+      underlining-vs-bracketing) and a tool (`audit_grammar_optional_words.py`).
+   3. **GR — 1,513 rows, the semantic mass.** The expensive vein: each is "does the implementation DO what the
+      rule says". This is where the per-statement batch shape and the refute stage matter most.
+   4. **THE FIX QUEUE — 268 open non-conforming rows today**, and it grows with adjudication.
+
+   **THE RATE, AND WHY ADJUDICATION ALONE NEVER REACHES ZERO.**
+   Of the 330 rows adjudicated so far, only **62 closed (19 %)**; **268 (81 %) OPENED work.** Batch 4 adjudicated
+   77 rules and closed **zero**. If that ratio holds, adjudicating the remaining 3,531 rows yields roughly **660
+   closures and ~2,870 open findings**. **Adjudication maps the territory; only Phase C closes it.** Plan for
+   both, interleaved — a pure-adjudication run drives the GAP DOWN not at all and the queue UP steeply.
+   ⚠ **CLUSTER BEFORE COUNTING THAT AS 2,870 DEFECTS.** Batch 4's 77 findings were 9 queue items: 33 were ONE
+   owner-ratified disposition and 20 were ONE root cause. The observed finding:defect ratio is ~8:1, and every
+   prior batch reported the same shape.
+
+   **THE CLOSING BOTTLENECK IS TESTS, NOT VERDICTS.** A CONFORMS row stays a GAP until a **spec-derived** test
+   covers it (`nist:` and `characterization:` never qualify — §8's `spec-derived` flag enforces it). Today all 62
+   CONFORMS rows happen to be tested, so the bottleneck is invisible; **it appears the moment a batch produces
+   CONFORMS rows in bulk.** Budget golden-writing as a first-class phase, and prefer ONE golden covering many
+   rules of a clause over one per rule.
+
+   **EXECUTION ORDER (each step's output makes the next cheaper):**
+   | # | step | why here |
+   |---|---|---|
+   | 1 | **Close §11 A12c/A12d/A12e** (the instrument defects) | Until they close, "all legs green" is not evidence, and EVERY step below is validated by that battery. Cheapest possible insurance. |
+   | 2 | **Audit the 222 DOC rows against Annex A.1** | Highest closure per unit effort, no compiler change, and it is the one vein that can move the GAP number visibly early. |
+   | 3 | **Teach `phase_b_batch.py` a per-STATEMENT / per-CLAUSE subject key** | Gates 2,124 rows in §14+§13. Small tooling change, blocks everything after it. |
+   | 4 | **Unify the grammar audit with FMT+SR** — one pass emitting both a grammar finding and a verdict batch | Avoids auditing ~1,670 rules twice. Do it BEFORE starting the SR mass. |
+   | 5 | **Drain the fix queue to zero once** (PB12, PB14–PB18, PB23–PB27 + residue) | A queue carried across a 40-batch campaign becomes unreviewable; empty it while it is 12 items. |
+   | 6 | **§14 then §13 GR/SR batches, interleaved with fixing** | The semantic mass, in the two clauses that dominate it. |
+   | 7 | **§12, §7, §8, §11, then the small clauses** | The tail. |
+
+   ⚠ **DO NOT DROP THE REFUTE STAGE TO GO FASTER.** It is the single most productive part of the loop: every
+   overturn across four batches was a DOWNGRADE, it found PB5 and PB7, and in batch 4 it found a regression
+   introduced hours earlier in the same session. An all-CONFORMS report is a red flag, not a good result.
 
 5. **PHASE-14 STEP-0 — the FULL implementation↔spec review**, plan
    `docs/rearchitecture/DESIGN-spec-conformance-review.md`. **Phase A is DONE:** `spec-rule-catalog.json` holds the
