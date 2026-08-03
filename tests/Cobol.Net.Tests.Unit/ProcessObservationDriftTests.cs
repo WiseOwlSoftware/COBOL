@@ -86,7 +86,7 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void ACompletedProcess_IsObservedNormally()
     {
-        var obs = ProcessObserver.ObserveOrThrow(Cmd("exit /b 7"));
+        var obs = ProcessObserver.ObserveOrThrow(ExitsWith(7));
         Assert.Equal(ProcessOutcome.Completed, obs.Outcome);
         Assert.Equal(7, obs.ExitCode);
     }
@@ -95,7 +95,7 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void ACompletedProcess_YieldsItsStdout()
     {
-        var obs = ProcessObserver.ObserveOrThrow(Cmd("echo HELLO-FROM-CHILD"));
+        var obs = ProcessObserver.ObserveOrThrow(Echoes("HELLO-FROM-CHILD"));
         Assert.Contains("HELLO-FROM-CHILD", obs.Stdout, StringComparison.Ordinal);
     }
 
@@ -109,7 +109,7 @@ public sealed class ProcessObservationDriftTests
     {
         // A short budget so the test costs ~2×1s rather than 2×120s; the retry path is exercised either way.
         var ex = Assert.Throws<HarnessNonObservationException>(
-            () => ProcessObserver.ObserveOrThrow(Cmd("ping -n 30 127.0.0.1 >nul"), timeoutMs: 1_000));
+            () => ProcessObserver.ObserveOrThrow(RunsForever(), timeoutMs: 1_000));
         Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
         Assert.Contains("NOT a value mismatch", ex.Message, StringComparison.Ordinal);
         // Both attempts must be reported — a single-attempt message would mean the retry never ran.
@@ -130,15 +130,30 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void Observe_ReportsATimeoutWithoutThrowing()
     {
-        var obs = ProcessObserver.Observe(Cmd("ping -n 30 127.0.0.1 >nul"), null, 1_000);
+        var obs = ProcessObserver.Observe(RunsForever(), null, 1_000);
         Assert.Equal(ProcessOutcome.TimedOut, obs.Outcome);
         // ⛔ And it is EMPTY on purpose: the partial stdout of a killed run is exactly what must never reach a
         // comparison. If this ever starts returning content, the A12 defect is back.
         Assert.Equal("", obs.Stdout);
     }
 
-    private static ProcessStartInfo Cmd(string command) =>
+    // ⛔ THE SHELL COMMANDS ARE WRITTEN PER-OS, NOT TRANSLATED. The first version of this helper took one
+    // cmd.exe string and string-replaced `>nul` for `>/dev/null` on POSIX — which left `exit /b 7` intact, and
+    // `/bin/sh` does not accept it. The Windows leg was green, the Linux CI leg was red, and the defect was a
+    // TRANSLATION that only covered the token I happened to think of. A cross-platform helper validated on one
+    // platform is not cross-platform (`feedback_wsl_linux_repro`: build on Windows, RUN under WSL).
+    private static ProcessStartInfo Shell(string windows, string posix) =>
         OperatingSystem.IsWindows()
-            ? new ProcessStartInfo("cmd.exe", $"/c {command}")
-            : new ProcessStartInfo("/bin/sh", $"-c \"{command.Replace(">nul", ">/dev/null")}\"");
+            ? new ProcessStartInfo("cmd.exe", $"/c {windows}")
+            : new ProcessStartInfo("/bin/sh", $"-c \"{posix}\"");
+
+    /// <summary>A process that terminates immediately with a chosen exit code.</summary>
+    private static ProcessStartInfo ExitsWith(int code) => Shell($"exit /b {code}", $"exit {code}");
+
+    /// <summary>A process that writes one marker line to stdout and exits.</summary>
+    private static ProcessStartInfo Echoes(string marker) => Shell($"echo {marker}", $"echo {marker}");
+
+    /// <summary>A process that does not finish within any budget this test would set.</summary>
+    private static ProcessStartInfo RunsForever() =>
+        Shell("ping -n 30 127.0.0.1 >nul", "sleep 30");
 }
