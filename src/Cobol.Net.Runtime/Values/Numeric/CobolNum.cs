@@ -220,7 +220,7 @@ public static partial class CobolNum
     public static string FormatDisplay(string image, in NumProfile receiver) => image;
 
     /// <summary>Store a (possibly spliced) DISPLAY image back into a numeric field — the write half of an image
-    /// view over a numeric item (reference modification / a RENAMES span leaf, ISO §8.4.2.4 / §13.18.45). The
+    /// view over a numeric item (reference modification / a RENAMES span leaf, ISO §8.4.3.3.4 GR6 / §13.18.45). The
     /// overload set is the storage-form bridge: the <paramref name="current"/> dummy selects the conversion for
     /// the field's ACTUAL storage (native <c>long</c>/<c>Int128</c> → sign-aware decode; an image-stored string
     /// field keeps the image).</summary>

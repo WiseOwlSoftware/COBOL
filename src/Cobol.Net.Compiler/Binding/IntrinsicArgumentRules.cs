@@ -22,14 +22,22 @@ internal enum CobolClass
     Alphanumeric,
 
     /// <summary>
-    /// NUMERIC-EDITED with usage display — Table 2 class ALPHANUMERIC, but modelled apart because §15.3's
-    /// integer/numeric TYPES admit an arithmetic expression, and such an item DE-EDITS to a defined numeric
-    /// value and is therefore a legal arithmetic operand (DA6's §8.8.1.1 screen admits one deliberately).
+    /// NUMERIC-EDITED with usage display — Table 2 class ALPHANUMERIC, modelled apart so the STRING family can
+    /// admit it as the alphanumeric item Table 2 says it is, without the screen having to pretend it is numeric.
     /// </summary>
     /// <remarks>
     /// ⚠ Anywhere a rule says "shall be of CLASS alphanumeric", this counts as alphanumeric — that is what
-    /// Table 2 says and this member does not change it. It exists so a rule naming §15.3's INTEGER type can
-    /// admit the operand without the screen having to pretend a numeric-edited item is class numeric.
+    /// Table 2 says and this member does not change it.
+    /// <para>
+    /// ⛔ THE NAME IS NOW HISTORICAL AND THE REASONING IT RECORDS WAS OVERTURNED (owner decision 2026-08-02).
+    /// This member used to justify itself by "such an item DE-EDITS to a defined numeric value and is therefore a
+    /// legal arithmetic operand" — which is FALSE. §8.8.1.1 admits "an identifier referencing a NUMERIC data
+    /// item"; §8.5.2.13 calls this a "numeric-edited data item", a distinct defined term; and §15.43.3 r1 shows
+    /// that when the standard means to admit one it says "category numeric OR NUMERIC-EDITED" explicitly, which
+    /// §15.3's integer and numeric types do not. De-editing is granted by the MOVE rules (§14.9.25.4 GR5/GR6d1)
+    /// and nowhere extended to arithmetic. The <c>'i'</c> and <c>'n'</c> arms therefore BOTH exclude it now;
+    /// only the <c>'s'</c> string family admits it. See DEVLOG 1142 and <c>pb1-integer-arg-numeric-edited</c>.
+    /// </para>
     /// </remarks>
     NumericEditedDeEditing,
     Boolean,
@@ -109,8 +117,15 @@ internal static class IntrinsicArgumentRules
 
     private static CobolClass? ClassOfPlace(Place p)
     {
-        // §8.4.2.4 — the result of reference modification is of category alphanumeric.
-        if (p is RefModPlace) return CobolClass.Alphanumeric;
+        // ISO §8.4.3.3.4 GR6 — the unique data item reference modification creates has the SAME class and
+        // category as identifier-1 except for the three lettered rewrites (PB20). This said "class alphanumeric,
+        // always", on the authority of a clause number that DOES NOT EXIST (the old text cited "8.4.2.4";
+        // cite.py --check reports no such clause). The rule now lives in ONE
+        // place; a ref-modified boolean item is class BOOLEAN and a ref-modified national item class NATIONAL.
+        if (p is RefModPlace rmp)
+            return rmp.Inner.Item.Pic is { } innerPic ? ClassOfCategory(RefModPlace.CategoryOf(innerPic))
+                 : rmp.Inner.Item.IsGroup ? ClassOfPlace(rmp.Inner)   // a ref-modded group takes the group's own class
+                 : null;
         // §8.5.2.1 — an alphanumeric group item has class alphanumeric, a bit group boolean, a national group
         // national. A group has no PICTURE of its own, so it cannot fall through to the category table.
         if (p.Item.IsGroup)

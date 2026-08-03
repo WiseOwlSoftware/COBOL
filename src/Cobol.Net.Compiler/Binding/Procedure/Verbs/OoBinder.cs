@@ -441,7 +441,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// auto-CONTENT, and every literal — takes §14.8.2.3.3: COMPUTE rules for a numeric formal (any numeric
     /// argument), SET rules for an object-reference formal (widening), MOVE rules otherwise. A
     /// reference-modified argument conforms by its EFFECTIVE description (a unique elementary alphanumeric
-    /// item of the window length, §8.4.2.4). Null on a diagnostic.</summary>
+    /// item of the window length, §8.4.3.3.4 GR6). Null on a diagnostic.</summary>
     private BoundInvokeArg? OoBindInvokeArg(Core.InvokeArgumentContext arg, DataItem formal, string methodName)
     {
         void Err(string msg) => ctx.Edition.Error("COBOLNET0828", $"INVOKE \"{methodName}\": {msg}");
@@ -479,13 +479,13 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             bool byReference = !explicitContent && !objectData;   // GR6a — REFERENCE assumed when SR9/10 hold
 
             // A reference-modified operand is a unique ELEMENTARY ALPHANUMERIC item of the window length
-            // (§8.4.2.4): conformance goes against that effective description, never the whole inner item.
+            // (§8.4.3.3.4 GR6): conformance goes against that effective description, never the whole inner item.
             if (place is RefModPlace rmp)
             {
                 if (formal.IsGroup || formal.Pic?.Category is not PicCategory.Alphanumeric)
                 {
                     Err($"reference-modified argument '{dref.GetText()}': the operand is elementary "
-                        + $"alphanumeric (§8.4.2.4) and does not conform to formal '{formal.CobolName}'");
+                        + $"alphanumeric (§8.4.3.3.4 GR6) and does not conform to formal '{formal.CobolName}'");
                     return null;
                 }
                 if (byReference)

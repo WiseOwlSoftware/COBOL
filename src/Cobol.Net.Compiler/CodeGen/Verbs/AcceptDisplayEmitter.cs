@@ -51,7 +51,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         var item = target.Item;
 
         // A ref-modified receiver: the slice length IS the transfer size; the splice left-justifies/space-fills
-        // into the slice (§8.4.2.4), which coincides with the GR4 left-aligned store.
+        // into the slice (§8.4.3.3.4 GR6), which coincides with the GR4 left-aligned store.
         if (target is RefModPlace rm)
         {
             string len = rm.Length is { } l
@@ -130,7 +130,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         string sendImage = RuntimeApi.NumFormatUnsignedDisplay(call, digits);
 
         // A ref-modified receiver slice takes the sending characters (left-justified, space-filled, truncated to
-        // the slice — §14.9.25.4 alphanumeric move into the §8.4.2.4 slice).
+        // the slice — §14.9.25.4 alphanumeric move into the §8.4.3.3.4 GR6 slice).
         if (target is RefModPlace)
         {
             w.Line(PlaceRenderer.Write(target, sendImage));

@@ -117,7 +117,7 @@ internal static class OperandText
     private static string FieldAsString(Place p, bool deSign = false, bool floatCheck = true)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
-        // category (ISO §8.4.2.4) — its Read() is already the character slice (a numeric inner goes through
+        // category (ISO §8.4.3.3.4 GR6) — its Read() is already the character slice (a numeric inner goes through
         // NumericImagePlace), never the numeric format path.
         if (p is RefModPlace) return PlaceRenderer.Read(p);
         // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the

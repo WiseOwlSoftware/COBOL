@@ -137,7 +137,7 @@ public sealed record OdoGroupPlace(
     : PlaceDecorator(Inner);
 
 /// <summary>
-/// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.2.4 — the unique
+/// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.3.3.4 GR6 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
 /// the FormatDisplay/StoreDisplay pair). Rendered by <c>CodeGen.PlaceRenderer</c>.
@@ -227,4 +227,54 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// is <see langword="false"/> for every ref-mod outside a <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> region — an
     /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
     public bool AllowZeroLength { get; init; }
+
+    /// <summary>
+    /// The CATEGORY of the unique data item reference modification creates — <b>ISO §8.4.3.3.4 GR6, verbatim</b>:
+    /// "The unique data item has the same class, category, and usage as that defined for identifier-1, except
+    /// that: a) the category alphanumeric-edited is considered class and category alphanumeric, b) the category
+    /// national-edited is considered class and category national, c) the categories numeric and numeric-edited
+    /// are considered class and category national if the usage is national; otherwise they are considered class
+    /// and category alphanumeric."
+    /// <para>
+    /// ⛔ <b>THE ONE PLACE THIS RULE IS WRITTEN (fix-queue PB20).</b> It was previously written three times and
+    /// none of the three was right: <c>IntrinsicArgumentRules.ClassOfPlace</c> returned class ALPHANUMERIC
+    /// unconditionally, <c>ExpressionBinder</c> said the same in prose, and <c>MoveBinder</c> carried a partial
+    /// map that got national and boolean right but still flattened national-edited and national-usage numeric.
+    /// The base case is the whole point: <b>GR6 PRESERVES the category</b>, and only the three lettered
+    /// exceptions rewrite it — so a ref-modified BOOLEAN item stays boolean and a ref-modified NATIONAL item
+    /// stays national.
+    /// </para>
+    /// <para>
+    /// ⚠ <b>All three copies justified themselves with "ISO 8.4.2.4", A CLAUSE THAT DOES NOT EXIST</b>
+    /// (<c>cite.py --check 8.4.2.4</c> → "there is no clause 8.4.2.4 in the transcription"; §8.4.2 has only
+    /// .1/.2/.3, and reference modification is §8.4.3.3). It was inherited into 21 sites across 14 files — the
+    /// failure mode CLAUDE.md rule 1 names, at scale. A fabricated citation is how a wrong rule survives review:
+    /// every reader saw a § and stopped.
+    /// </para>
+    /// <para>
+    /// NOTE this compiler's <see cref="PicCategory.Alphanumeric"/> covers ISO's alphanumeric AND alphabetic
+    /// categories (the alphabetic-ness rides on <c>PicInfo.IsAlphabetic</c>), so GR6's base case preserves both
+    /// through the same member. No ref-mod result is ever category NUMERIC — GR6c rewrites numeric away — which
+    /// is why the §8.8.1.1 arithmetic-operand bar on a ref-modified operand is correct as it stands.
+    /// </para></summary>
+    /// <remarks>
+    /// ⚠ <b>GR6 a AND b HAVE NO ARM HERE, AND THAT IS A PROPERTY OF THE MODEL, NOT OF THE RULE.</b>
+    /// <see cref="PicCategory"/> has no <c>AlphanumericEdited</c> member — an alphanumeric-edited item already
+    /// carries <see cref="PicCategory.Alphanumeric"/> with an <c>EditMask</c> — so GR6a is satisfied by the base
+    /// case rather than skipped. GR6b is the same shape for a different reason: national-edited is a
+    /// recognized-but-unimplemented SKELETON that <c>PictureAnalyzer</c> recovers to
+    /// <see cref="PicCategory.Alphanumeric"/> (<c>SkeletonGate = NationalEdited2002</c>), so this cannot see it
+    /// and must not pretend to — the gap belongs to that skeleton, not to this rule. **If either category ever
+    /// gains its own member, both arms must appear here**, which is why they are named rather than silently
+    /// absent.
+    /// </remarks>
+    public static PicCategory CategoryOf(PicInfo inner) => inner.Category switch
+    {
+        // GR6 c — numeric and numeric-edited become national under a national usage, alphanumeric otherwise.
+        PicCategory.Numeric or PicCategory.NumericEdited =>
+            inner.Usage == Usage.National ? PicCategory.National : PicCategory.Alphanumeric,
+        // GR6 base — the category is PRESERVED. This is the arm the three old copies did not have: it is what
+        // keeps a ref-modified BOOLEAN boolean and a ref-modified NATIONAL national.
+        _ => inner.Category,
+    };
 }

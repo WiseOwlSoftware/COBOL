@@ -29,7 +29,7 @@ internal static class PlaceRenderer
     {
         // A reference-modified slice inner(start:length) (ISO §8.4.3.3): a substring of the inner field's image.
         RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
-        // A NUMERIC item viewed as its character image (ISO §8.4.2.4 ref-mod; §13.18.45 a RENAMES span leaf):
+        // A NUMERIC item viewed as its character image (ISO §8.4.3.3.4 GR6 ref-mod; §13.18.45 a RENAMES span leaf):
         // the BYTES it occupies — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED
         // (V59), which is what a span over it renames.
         NumericImagePlace n => RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),

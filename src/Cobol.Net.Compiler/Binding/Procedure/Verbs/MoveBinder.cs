@@ -47,7 +47,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         MoveFigurativeEditionGates(source, resolved);
         // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
         MoveCategoryLegality(source, resolved);
-        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
+        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(resolved);
         ctx.Validation.CheckStrongMove(source, resolved);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
@@ -64,7 +64,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <item>GROUP receivers — a group move is a character copy without conversion (§14.9.25.4 GR4), not a
     /// numeric elementary move, so SR5 does not reach it.</item>
     /// <item>Reference-modified receivers — the unique result of reference modification is an elementary
-    /// ALPHANUMERIC item whatever the underlying item (§8.4.2.4), so the receiver is not numeric.</item>
+    /// ALPHANUMERIC item whatever the underlying item (§8.4.3.3.4 GR6), so the receiver is not numeric.</item>
     /// <item>The digit-only single-character ALL "literal" into an INTEGER numeric item — SR5's surviving
     /// exception, valid at every edition; obsolete-flagged 0903 at ≥2023 (SR5 NOTE; Annex F.2 item 2).</item>
     /// </list>
@@ -122,20 +122,19 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
     }
 
-    /// <summary>The receiver-view data category of a MOVE target for the §14.9.25.3 Table 16 legality check:
-    /// a reference-modified receiver is the unique elementary item of its INNER's class — alphanumeric for the
-    /// classic categories (§8.4.3.3 GR6), but ref-mod of a national/boolean item stays national/boolean (GR1
-    /// positions are national/boolean positions; GR5a). Groups return null (a group move is a conversion-free
-    /// character copy, GR4 — Table 16 does not reach it; bit/national GROUP-USAGE groups are grammar residue).</summary>
+    /// <summary>The receiver-view data category of a MOVE target for the §14.9.25.3 Table 16 legality check.
+    /// A reference-modified receiver is the unique data item of ISO §8.4.3.3.4 GR6, whose category is computed by
+    /// the ONE rule on <see cref="RefModPlace.CategoryOf"/> (PB20). Groups return null (a group move is a
+    /// conversion-free character copy, GR4 — Table 16 does not reach it; bit/national GROUP-USAGE groups are
+    /// grammar residue).
+    /// <para>⛔ THIS CARRIED ITS OWN PARTIAL COPY of GR6 and got two of the three lettered exceptions wrong:
+    /// national and boolean were preserved correctly, but national-EDITED flattened to alphanumeric (GR6b makes
+    /// it national) and so did a numeric item of usage NATIONAL (GR6c makes it national). Three copies of one
+    /// rule, none complete — the copies are gone.</para></summary>
     private static PicCategory? MoveReceiverCategory(Place t) => t switch
     {
         _ when t.Item.IsGroup || t.Item.Pic is null => null,
-        RefModPlace rm => rm.Inner.Item.Pic?.Category switch
-        {
-            PicCategory.National => PicCategory.National,
-            PicCategory.Boolean => PicCategory.Boolean,
-            _ => PicCategory.Alphanumeric,
-        },
+        RefModPlace rm => rm.Inner.Item.Pic is { } inner ? RefModPlace.CategoryOf(inner) : null,
         _ => t.Item.Pic!.Category,
     };
 
@@ -242,7 +241,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <summary>
     /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified
     /// slice of a numeric USAGE-DISPLAY item writes CHARACTERS into the item's character positions
-    /// (§8.4.2.4 — the unique result is an elementary alphanumeric item). Without image backing the resolver
+    /// (§8.4.3.3.4 GR6 — the unique result is an elementary alphanumeric item). Without image backing the resolver
     /// wraps <c>NumericImagePlace(long)</c> and the spliced image ROUND-TRIPS through the <c>long</c> on
     /// store, silently losing any non-digit deposit (<c>MOVE SPACE TO N(1:2)</c> left N's digits — and the
     /// observable result flipped with whether UNRELATED code elsewhere image-backed the item). Mark the

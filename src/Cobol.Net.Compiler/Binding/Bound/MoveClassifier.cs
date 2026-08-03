@@ -62,7 +62,7 @@ public static class MoveClassifier
 
     /// <summary>True when a MOVE source operand is a GROUP data item (ISO §14.9.25.4 GR4 sender-side test). A
     /// reference-modified sender is excluded — its unique result is an elementary alphanumeric item whatever the
-    /// underlying item (§8.4.2.4) — and so is a RENAMES alias (the level-66 view is composed as ONE elementary
+    /// underlying item (§8.4.3.3.4 GR6) — and so is a RENAMES alias (the level-66 view is composed as ONE elementary
     /// alphanumeric item, §13.18.45). A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
     /// not its storage shape.</summary>
     public static bool IsGroupSender(BoundOperand source) =>

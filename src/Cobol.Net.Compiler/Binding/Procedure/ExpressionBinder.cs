@@ -21,7 +21,7 @@ using Core = CobolParserCore;
 /// <list type="bullet">
 ///   <item><see cref="Arithmetic"/> — ISO §8.8.1.1: "An arithmetic expression may be an identifier referencing a
 ///         NUMERIC data item, a numeric literal, the figurative constant ZERO …". A group (class alphanumeric,
-///         §8.5), an elementary alphanumeric/national item, and a reference-modified slice (§8.4.2.4) are all
+///         §8.5), an elementary alphanumeric/national item, and a reference-modified slice (§8.4.3.3.4 GR6) are all
 ///         inadmissible. This is the default and by far the common case: COMPUTE, the arithmetic verbs,
 ///         subscripts, reference-modifier offsets, relation conditions, SET, PERFORM VARYING.</item>
 ///   <item><see cref="FunctionArgument"/> — governed instead by the individual function's §15.x ARGUMENT RULE,
@@ -324,7 +324,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// </para></summary>
     private static string? NonNumericOperandKind(Place p) => p switch
     {
-        RefModPlace => "a reference-modified operand (class alphanumeric, ISO §8.4.2.4)",
+        RefModPlace => "a reference-modified operand (class alphanumeric, ISO §8.4.3.3.4 GR6)",
         _ when p.Item.IsGroup => $"group item '{p.Item.CobolName}' (class alphanumeric, ISO §8.5)",
         _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
             $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "

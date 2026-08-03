@@ -741,7 +741,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", RuntimeApi.OmittedRefModLength)}"));
             }
             else if (src is RefModPlace)
-                post.Add(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
+                post.Add(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.3.3.4 GR6)
             else if (stringCarried)
                 post.Add(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
             else
@@ -798,7 +798,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     }
 
     /// <summary>The copy-in read of an identifier argument for a STRING-CARRIED formal: a reference-modified
-    /// place reads its window verbatim (§8.4.2.4 — the operand IS elementary alphanumeric); a string-stored
+    /// place reads its window verbatim (§8.4.3.3.4 GR6 — the operand IS elementary alphanumeric); a string-stored
     /// item reads directly; a native display-numeric item formats through its OWN profile (caller-side). A
     /// CONTENT crossing normalizes to the formal's width (MOVE pad/truncate).</summary>
     /// <summary>The INVOKE-site propagation pickup (D-EO6): a method GOBACK/EXIT … RAISING stages; the

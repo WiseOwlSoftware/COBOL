@@ -115,7 +115,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         }
         if (place is RefModPlace)
         {
-            // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §8.4.2.4 —
+            // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §8.4.3.3.4 GR6 —
             // a reference-modifier defines a unique alphanumeric data item); no VALUE clause attaches to it.
             if (InitializeSender(InitializeCategory.Alphanumeric, rawValue: null, spec) is { } src)
                 actions.Add(new InitializeStore(place, src));

@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN · PB19–PB27 OPEN (batch 4, §15.45–15.57).**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB20 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN · PB19, PB21–PB27 OPEN (batch 4, §15.45–15.57).**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -85,7 +85,18 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 >   carries a single-kind string row. TEST-FORMATTED-DATETIME is the third function with that shape and the same
 >   omission. Do not defer these three behind PB12.
 
-### PB20 · [MAJOR] · references · ⛔ OPEN — a NONEXISTENT clause "§8.4.2.4" is cited in ~9 files, and the rule it stands for is wrong
+### PB20 · [MAJOR] · references · ✅ LANDED 2026-08-02 (DEVLOG 1146) — the nonexistent clause is gone and GR6 has ONE implementation
+> **21 occurrences across 14 files** (more than the batch reported), all swept to §8.4.3.3.4 GR6. The rule now
+> lives once, on `RefModPlace.CategoryOf`, replacing THREE partial copies of which none was right — the base
+> case (GR6 PRESERVES the category) is the arm all three lacked.
+> ⚠ **LATENT BY DESIGN, and the tests say so:** Conformance stayed 4174/4174 because no rule the §15.3 screen
+> consults today demands class boolean. The value is that **PB19's INTEGER-OF-BOOLEAN row is now unblocked**.
+> ⚠ **§8.8.4.2.4 IS REAL** (Comparison of numeric operands, 15 occurrences) and sits one character from the
+> fabricated clause — the guard regex carries a `(?<![.0-9])` boundary, and a naive grep-replace corrupts it.
+> Guard: `RefModCategoryDriftTests` (13 cases; made to FAIL once before being trusted).
+> The finding as originally recorded follows.
+
+### PB20 (as found) · a NONEXISTENT clause "§8.4.2.4" is cited in ~9 files, and the rule it stands for is wrong
 > ⛔ **`python scripts/spec/cite.py --check 8.4.2.4 …` → "there is no clause §8.4.2.4 in the transcription"**
 > (verified independently, not taken from the agent). §8.4.2 has only .1/.2/.3; reference modification is
 > §8.4.3.3. The citation is INHERITED across `ExpressionBinder`, `MoveBinder` (×3), `InitializeBinder`,

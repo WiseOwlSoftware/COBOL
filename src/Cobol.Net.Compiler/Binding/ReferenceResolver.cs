@@ -216,7 +216,7 @@ public sealed class ReferenceResolver(DataBinder data)
 
         if (refCtx is null && cleanRef is null) return inner;
         // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B
-        // view), or a NUMERIC USAGE-DISPLAY item viewed through its character image (ISO §8.4.2.4 — the unique
+        // view), or a NUMERIC USAGE-DISPLAY item viewed through its character image (ISO §8.4.3.3.4 GR6 — the unique
         // result is alphanumeric; NC224A's TEST-1-DATA(3:) over PIC 9(6)). Binary/packed usage stays loud.
         if (item.Pic?.Category is PicCategory.Numeric)
         {
