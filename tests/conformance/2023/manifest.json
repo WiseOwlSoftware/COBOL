@@ -83,7 +83,8 @@
     "pb10_function_identifier_sending",
     "pb11_datetime_format_grammar",
     "pb13_float_quantize_headroom",
-    "pb13_float_quantize_siblings"
+    "pb13_float_quantize_siblings",
+    "pb13_domain_raise_receiver_shape"
   ],
   "pending": []
 }

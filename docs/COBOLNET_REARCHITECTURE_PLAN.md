@@ -55,7 +55,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `pwsh scripts/session-probe.ps1` prints them; the shape is what this bullet is for. **The denominator is 3,861
   normative rules** (corrected from a short 3,790 — see the caution below). Roughly 180 rules are adjudicated,
   all in §15 (the intrinsic functions), leaving the GAP a little under 3,800. **Never quote a number from this
-  paragraph — run the probe.** Three Phase-B batches have run, each fanned out one agent per function and then
+  paragraph — run the probe.** FOUR Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
   its header is the tally). **PB1–PB11 + PB13 LANDED; PB12, PB14, PB15, PB17, PB18 are the live set** — see
@@ -158,9 +158,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    the defect register and its header is the tally; **read `DESIGN-spec-conformance-review.md` §9 before running
    a batch** and **§4/§8 before recording a verdict**.
 
-   **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.45-15.57`** (§15.7, §15.70–15.79, §15.8–15.19,
-   §15.20–15.31 and §15.32–15.44 are done). A batch is: generate one input file per subject → one adjudicating
-   agent and one INDEPENDENT refuting agent each → `record_verdicts.py --dry-run` → merge → gate.
+   **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.58-15.69`** (§15.7, §15.70–15.79, §15.8–15.19,
+   §15.20–15.31, §15.32–15.44 and §15.45–15.57 are done). A batch is: generate one input file per subject → one
+   adjudicating agent and one INDEPENDENT refuting agent each → `record_verdicts.py --dry-run` → merge → gate.
+   ⛔ **MERGE THE BATCH'S OWN FILES BY NAME, NEVER `out-*.json`.** The playbook's documented glob sweeps EVERY
+   prior batch's output out of the shared directory: at batch 4 it offered 144 records instead of 77 and would
+   have RE-ADJUDICATED PB11's freshly-closed FORMATTED-* rows BACKWARDS from 07-30 files written before PB11
+   existed. **The tell is the GAP going UP in the `--dry-run`** — which is the whole reason that flag exists.
 
    **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
    | item | state | the next action |
@@ -170,6 +174,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
    | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
    | **PB17** | open | A function-identifier as a SUBSCRIPT or in a REF-MOD position compiles clean and throws at RUN TIME (not a parse error). `ReferenceResolver`'s flat-token segment renderer has no arm for a nested FUNCTION call. ⚠ Fix the RENDERER, not the grammar — D10/PHASE-15 removes SUBSCRIPT mode. |
    | **PB18** | open (NEW, from PB13's sweep) | A native `**` with an INTEGER exponent routes through `System.Math.Pow`, so `10 ** 30` returns 1000000000000000071935427891953 where Int128 holds 10³⁰ exactly. CONFORMS (§8.8.1.2 r6 imposes no exactness requirement; §8.8.1.3 is implementor-defined) but contradicts our OWN documented native technique (numeric design D3, "the exact Int128 fixed-point engine"). Copy the shape `CobolDec.Pow` already uses: exact repeated multiplication for an integer exponent, double only for a non-integer one. Was invisible until PB13 stopped the saturation from masking it. |
+   | **PB20** | open (NEW, batch 4) | ⛔ **A NONEXISTENT CLAUSE, `§8.4.2.4`, is cited in ~9 files** (`cite.py --check` → "there is no clause §8.4.2.4"), and the rule it stands for is wrong: every `RefModPlace` is typed class ALPHANUMERIC, where §8.4.3.3.4 GR1/GR6 PRESERVE class — a ref-modified BOOLEAN stays boolean, and `ConditionRenderer` already says so, so the codebase contradicts itself. **Do this before PB19's INTEGER-OF-BOOLEAN row**, which would otherwise falsely reject the standard's own Annex D example `FUNCTION INTEGER-OF-BOOLEAN (bit-item (1:6))`. |
+   | **PB21** | open (NEW, batch 4) | Three `…Real` runtime members do not exist (`IntegerOfBooleanReal`/`IntegerOfDateReal`/`IntegerOfDayReal`), so a legal float argument emits a raw Roslyn **CS0117**. ⚠ `IntrinsicRealArgDriftTests` EXEMPTS every integer-kind row, which is why the guard never saw it — widening the guard is part of the fix. |
+   | **PB22** | open (NEW, batch 4) | `IntrinsicRenderer.AsInt`'s unchecked `(long)(Int128)` cast WRAPS, so §15.5.2 range guards are unreachable past 2⁶³ even with checking ON. **One cast feeds eleven functions** — fix the cast, not the call sites. |
+   | **PB19** | open (NEW, batch 4) | The §15.3 argument-class screen is absent for 8 more functions (PB1's designed residue). Six are one-line rows; **INTEGER-OF-BOOLEAN needs a class-BOOLEAN kind `Admissible` cannot express** and is blocked behind PB20. |
+   | **PB24** | open (NEW, batch 4) | FUNCTION LENGTH is wrong or absent on four shapes: a variable-length group folds to a WRONG compile-time constant (silent), a ref-modified argument throws at RUN TIME, and the PHYSICAL argument + the §15.50.4 r9 rounding step do not exist. |
+   | **PB26** | open (NEW, batch 4) | The ambient EC-ARGUMENT-FUNCTION gate is emitted only for statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written switch, so the SAME function reference raises in one statement and is silent in another. A hand-maintained list where a structure belongs — and the general form of the receiver-shape defect PB13 hit. |
+   | **PB23 · PB25 · PB27** | open (NEW, batch 4) | Smaller: a raw `System.ArgumentOutOfRangeException` where §15.3 requires EC-ARGUMENT-FUNCTION (a TWO-day window, correcting the landed `AR-15.79.3-5`) · LOWER-CASE's LOCALE arm refused + a figurative argument aborting at run time · three silent leaks in the otherwise-loud §A.4.9 locale non-support. |
    | **residue** | open | 16 unclustered findings, several of which also reject legal COBOL (a CONSTANT-NAME refused in every intrinsic argument position; no COBOL word may contain an UNDERSCORE though permitted since 2002; `NX"…"` has no lexer rule; `EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`). |
    ⛔ **Repros for every one of the 82 findings:** `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`.
    The queue carries the CLUSTERS; that ledger carries the repro behind each. **Do not work the findings one by

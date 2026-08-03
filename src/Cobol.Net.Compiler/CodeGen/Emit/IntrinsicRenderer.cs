@@ -293,8 +293,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the saturation-safe form, since the store's capacity check then sees the sentinel undivided.
         // This is what makes FUNCTION SQRT(2) and a COMP-2 item holding that value the SAME value everywhere,
         // which OperandText.NumericIntrinsicText already documented as required and the ws = 9 form silently broke.
+        // ⛔ THE UNQUANTIZED ARMS KEEP THE RAISE SITE. FromDouble is where an out-of-domain NaN became the §15.3
+        // EC-ARGUMENT-FUNCTION default (or the raise, under checking); leaving the value in binary64 skips it, so
+        // `COMPUTE R = FUNCTION ACOS(2)` gave the default 0 while `IF FUNCTION ACOS(2) = 0` propagated a raw NaN
+        // and compared FALSE. RealResult restores the screen without re-quantizing — a function's returned value
+        // must not depend on the SHAPE of its receiver (§15.4), and under EC-ARGUMENT-FUNCTION checking
+        // §14.6.13.1 requires the condition be raised at all. (Found by the Phase-B §15.55 refuter.)
         return num.Receiver.Real || num.Receiver.Receiverless
-            ? new NumX(call, 0, Real: true)
+            ? new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true)
             : new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
     }
 

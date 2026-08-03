@@ -247,8 +247,13 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
    two halves where one was verified ⇒ PARTIAL, always.
 6. **`DOCUMENTED-NON-SUPPORT` is never an agent's to choose** (owner decision, D13).
 7. **`code-location` is `path#Symbol`, never a line number.**
-8. **The fixes that have already landed** (currently PB1–PB7), so agents do not re-report them — and so they know
-   that a function ABSENT from `IntrinsicArgumentRules.Verified` is genuinely unscreened.
+8. **The fixes that have already landed** (currently **PB1–PB11 and PB13**), so agents do not re-report them — and
+   so they know that a function ABSENT from `IntrinsicArgumentRules.Verified` is genuinely unscreened, because
+   that table is deliberately partial and grows as this review adjudicates each clause.
+   ⚠ **THIS LINE GOES STALE EVERY TIME A PB ITEM LANDS, and a stale list is worse than none** — it tells agents a
+   defect is still open when it is fixed, and they spend the batch re-reporting it. Re-read the fix queue's LANDED
+   header when writing the batch prompt rather than copying this sentence; it read "PB1–PB7" while PB8–PB11 and
+   PB13 had all landed.
 9. **Read-only, and no `dotnet build`/`dotnet test`** — other work is usually in flight.
 
 ### ⚠ Reading the results

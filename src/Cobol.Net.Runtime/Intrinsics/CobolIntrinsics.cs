@@ -100,6 +100,29 @@ public static partial class CobolIntrinsics
     /// every legal picture shape and fails if a caller hand-rolls the working scale again.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// The EC-ARGUMENT-FUNCTION screen for a float-family result that is NOT quantized — the receiver-less and
+    /// float-receiver arms of <c>IntrinsicRenderer.RenderFloat</c>, which keep the value in binary64 (PB13).
+    /// <para>
+    /// ⛔ THIS EXISTS BECAUSE PB13 MOVED THE RAISE SITE OUT FROM UNDER THOSE ARMS. <see cref="FromDouble"/> is
+    /// where an out-of-domain NaN became the §15.3 default result (or the raise, under checking), and keeping a
+    /// receiver-less render in binary64 skips it — so <c>COMPUTE R = FUNCTION ACOS(2)</c> yielded the default 0
+    /// while the receiver-less <c>IF FUNCTION ACOS(2) = 0</c> propagated a raw NaN and compared FALSE. Two things
+    /// were wrong with that: a function's returned value must not depend on the shape of its receiver (§15.4 puts
+    /// it in a temporary of the function's own characteristics), and with EC-ARGUMENT-FUNCTION checking ENABLED
+    /// §14.6.13.1 requires the condition to be RAISED — which cannot happen if nothing looks at the value.
+    /// </para>
+    /// <para>Found by the Phase-B refute stage on §15.55 (LOG), against code landed the same day. The domain
+    /// violation itself is still caught at the FUNCTION BODY where the body can name its own rule (see
+    /// <see cref="Float.Log"/>, §15.55.3 r2); this is the catch-all for the families whose out-of-domain result
+    /// is simply NaN — ACOS/ASIN of |x|&gt;1 (§15.8.3/§15.10.3), SQRT of a negative (§15.84.3).</para>
+    /// <para>±∞ is deliberately NOT screened here, exactly as <see cref="FromDouble"/> does not screen it: an
+    /// overflowing EXP is a legal huge result, not a domain error (CA24).</para>
+    /// </summary>
+    public static double RealResult(double d) => double.IsNaN(d)
+        ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
+        : d;
+
     public static Int128 FromDouble(double d, int scale)
     {
         // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the

@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14, PB15, PB17, PB18 OPEN · PB19–PB27 OPEN (batch 4, §15.45–15.57).**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -49,6 +49,123 @@ batch produced 42 open rows over 11 functions; **31 of them were three root caus
 table, PB2's floating-point argument path, PB3's collating tail). The second batch's 41 were **34 of one thing** —
 PB1's table simply did not yet list those functions. Cluster before triaging.
 ## 🧭 FOUND BY THE PHASE-B TRACEABILITY REVIEW (the inventory is now feeding this queue, as designed)
+
+### 📦 BATCH 4 — §15.45–15.57 (2026-08-02): 77 rules, 13 subjects, **ZERO CONFORMS**
+
+> **26 agents, 0 failures, 16 verdicts overturned by the refuters — every overturn a downgrade, as in all three
+> prior batches.** Totals: DIVERGES 25 · PARTIAL 16 · NOT-IMPLEMENTED 36 · **CONFORMS 0**. Adjudicated 253 → 330.
+> ⚠ **THE FINDING COUNT IS NOT THE DEFECT COUNT** (the standing lesson): 33 of the 36 NOT-IMPLEMENTED are ONE
+> owner-ratified disposition — the §A.4.9 locale module, loudly rejected by `COBOLNET1518` — and 20 of the rest
+> are ONE root cause, PB1's designed table residue. The genuinely new defects are PB19–PB27 below.
+>
+> ⛔ **TWO PROCESS TRAPS THIS BATCH EXPOSED, both caught by a mechanism rather than by a person:**
+> · **The playbook's own documented merge command would have REVERTED PB11.**
+>   `record_verdicts.py scratchpad/phase-b/out-*.json` globs EVERY out-file, including the previous batch's —
+>   26 files, 144 records, and four rows re-adjudicated BACKWARDS (`CONFORMS → NOT-IMPLEMENTED` on exactly the
+>   FORMATTED-* rows PB11 closed hours earlier, from files dated 07-30 written before PB11 existed). **The tell
+>   was the GAP going UP** (3799 → 3803) in the `--dry-run`. Merge the batch's OWN files by name; the glob is a
+>   trap the moment a second batch shares the directory.
+> · **The inventory gate caught 15 unresolved `test-ref`s** — agents wrote the corpus-golden form
+>   `conformance:` for xUnit METHODS. All seven referents existed; only the form was wrong
+>   (`conformance-test:<Class>.<Method>` for the Conformance assembly). Fixed in the BATCH FILES and re-merged —
+>   nobody hand-edits the inventory.
+
+### PB19 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.3 argument-class screen is absent for THIS batch's functions
+> **20 rows over 8 functions — PB1's DESIGNED residue, now due for §15.45–15.57.** `IntrinsicArgumentRules.Verified`
+> is deliberately partial and grows as the review adjudicates each clause, so absence is a real finding.
+> Unscreened: **INTEGER-OF-DATE** (§15.46.3 r1) · **INTEGER-OF-DAY** (§15.47.3 r1) · **INTEGER-PART** (§15.49.3 r1
+> — while the adjacent INTEGER and FRACTION-PART, whose rule text is identical, ARE registered) · **LOG**
+> (§15.55.3 r1) · **LOG10** (§15.56.3 r1) · **LOWER-CASE** (§15.57.3 r1 — the same sentence verbatim as REVERSE's
+> §15.78.3 r1, which IS registered) · **INTEGER-OF-FORMATTED-DATE argument-2** (§15.48.3 r3).
+> ⚠ **TWO ARE NOT ONE-LINE ROWS, and that is the finding:**
+> · **INTEGER-OF-BOOLEAN** (§15.45.3 r1) needs a **class-BOOLEAN kind that `Admissible` cannot express** — there
+>   is no arm admitting `CobolClass.Boolean` at all.
+> · **INTEGER-OF-FORMATTED-DATE argument-2 IS a one-line row and is NOT blocked by PB12's per-position redesign** —
+>   §15.6 Table 21 types BOTH its positions "Anum or Nat", exactly like SECONDS-FROM-FORMATTED-TIME which already
+>   carries a single-kind string row. TEST-FORMATTED-DATETIME is the third function with that shape and the same
+>   omission. Do not defer these three behind PB12.
+
+### PB20 · [MAJOR] · references · ⛔ OPEN — a NONEXISTENT clause "§8.4.2.4" is cited in ~9 files, and the rule it stands for is wrong
+> ⛔ **`python scripts/spec/cite.py --check 8.4.2.4 …` → "there is no clause §8.4.2.4 in the transcription"**
+> (verified independently, not taken from the agent). §8.4.2 has only .1/.2/.3; reference modification is
+> §8.4.3.3. The citation is INHERITED across `ExpressionBinder`, `MoveBinder` (×3), `InitializeBinder`,
+> `OoBinder` (×3), `Place`, `ReferenceResolver`, `MoveClassifier` and `IntrinsicArgumentRules` — CLAUDE.md rule 1's
+> exact failure mode, at scale.
+> **AND THE SUBSTANCE IS WRONG TOO, not just the number.** The code treats EVERY `RefModPlace` as class
+> ALPHANUMERIC. The real rules (§8.4.3.3.4, all `--check`ed): **GR1** makes a leftmost-position boolean,
+> alphanumeric or national "respectively" by identifier-1's class; **GR2** re-reads a usage-DISPLAY item of
+> another category as alphanumeric; **GR3** re-reads a usage-NATIONAL item of another category as national;
+> **GR6** gives the unique data item "the SAME class, category, and usage as that defined for identifier-1"
+> except as listed. So a ref-modified **BOOLEAN** item stays BOOLEAN — and `ConditionRenderer` already knows this
+> ("national/boolean ref-mod stays national/boolean"), so the codebase contradicts itself.
+> ⚠ **THIS BLOCKS PB19's INTEGER-OF-BOOLEAN ROW:** a naive boolean screen over the current
+> always-alphanumeric `ClassOfPlace` would falsely reject **the standard's own Annex D worked example**,
+> `FUNCTION INTEGER-OF-BOOLEAN (bit-item (1:6))`. Fix the class rule FIRST, then add the row.
+
+### PB21 · [MAJOR] · intrinsics · ⛔ OPEN — three `…Real` runtime members do not exist, so conforming source emits a raw Roslyn CS0117
+> **The PB2/PB14 family again, in the integer date/boolean group.** `IntrinsicRenderer.AnyRealArgument` routes a
+> floating-point argument to `CobolIntrinsics.<Name>Real`, and **`IntegerOfBooleanReal`, `IntegerOfDateReal` and
+> `IntegerOfDayReal` exist nowhere in the runtime** — so
+> `COMPUTE R = FUNCTION INTEGER-OF-DAY(1.995046E6)` binds clean and then fails Roslyn with **CS0117** at every
+> edition. A float argument is LEGAL here (a COMP-2 item is class numeric).
+> ⛔ **AND THE GUARD THAT SHOULD HAVE CAUGHT IT IS EXEMPT BY CONSTRUCTION:** `IntrinsicRealArgDriftTests` asserts
+> the `…Real` counterpart exists for every exact method reachable with a real argument — **but exempts every
+> integer-kind row**, which is precisely this group. Widening the guard is part of the fix, not a follow-up.
+
+### PB22 · [MAJOR] · intrinsics · ⛔ OPEN — an unchecked `(long)(Int128)` cast makes every range guard unreachable past 2⁶³
+> `IntrinsicRenderer.AsInt` emits `(long)(<Int128 expr>)` and `RoslynBackend` sets no `checkOverflow`, so the cast
+> WRAPS. The correct §15.5.2 guard inside `CobolDate.IntegerOfDay` (1601..9999 / 1..366) is then unreachable for
+> any argument ≥ 2⁶³: `FUNCTION INTEGER-OF-DAY(P * 100 + 62)` with `P PIC 9(18) VALUE 184467440737115466`
+> (= 2⁶⁴ + 1995046) returns **143951** with NO EC-ARGUMENT-FUNCTION **even with checking ON**.
+> ⚠ **ONE CAST FEEDS ELEVEN FUNCTIONS** — same unfixed root as the already-recorded DATE-OF-INTEGER row. Fix the
+> cast, not the eleven call sites.
+
+### PB23 · [MINOR] · date/time · ⛔ OPEN — a raw CLR exception where §15.3 requires EC-ARGUMENT-FUNCTION
+> `INTEGER-OF-FORMATTED-DATE("YYYYWwwD", "9999W527")` passes every §15.3.1.7 subfield rule — so §15.48.3 r4 is MET
+> and §15.48.4 r1 demands a returned value — and then `CobolDate.Analyze`'s `ISOWeek.ToDateTime` reconstructs past
+> `DateTime.MaxValue` and throws **`System.ArgumentOutOfRangeException`**. §15.3 rule 14 (covering an incorrect
+> value "for that argument OR FOR THE RETURNED VALUE") permits only EC-ARGUMENT-FUNCTION or the
+> implementor-defined result, never a CLR fault.
+> ⚠ **THE WINDOW IS TWO DAYS WIDE, NOT ONE — and this CORRECTS THE ALREADY-LANDED ROW `AR-15.79.3-5`**, which
+> cited only day 7. Recomputing ordinal = 360 + d against the 365-day year 9999 makes day-of-week **6**
+> (10000-01-01) fault as well as day 7 (10000-01-02).
+
+### PB24 · [MAJOR] · intrinsics · ⛔ OPEN — FUNCTION LENGTH is wrong or absent on four shapes
+> · **A VARIABLE-LENGTH GROUP folds to a WRONG COMPILE-TIME CONSTANT** — no arm recognises §8.5.1.12, so a
+>   dynamic-length child contributes 0 and a dynamic-capacity table is counted as ONE occurrence. Silent.
+> · **A REFERENCE-MODIFIED argument** — `FUNCTION LENGTH(WS-NAME(1:5))`, legal per §8.4.3.3.3 SR5 / §8.4.3.3.4 GR6
+>   (both `--check`ed) — hits `BindLengthFold`'s `RefModPlace` arm, returns `BoundExprError`, and renders as
+>   NotImplemented: compiles clean, throws at RUN TIME (the PB7/DA7 wrong-stage family).
+> · **The PHYSICAL argument (§15.50.4 r8) does not exist at all** — no grammar production, no catalog arity slot.
+> · **The §15.50.4 r9 rounding step is absent** — `BindLengthFold` emits a bare width with no rounding anywhere.
+
+### PB25 · [MINOR] · intrinsics · ⛔ OPEN — LOWER-CASE/UPPER-CASE: the LOCALE arm is refused and a figurative argument aborts at run time
+> · **`FUNCTION LOWER-CASE(x LOCALE loc)`** — the bracketed `[LOCALE locale-name-1]` arm of §15.57.2 is REFUSED
+>   rather than diagnosed as the §A.4.9 non-support it is.
+> · **A FIGURATIVE CONSTANT or ALL-literal argument compiles clean and ABORTS AT RUN TIME** —
+>   `IntrinsicRenderer.StrArgVisitor`'s `Visit(BoundFigurative)` / `Visit(BoundAllLiteral)` both render
+>   `EmitText.LoudValue`. Wrong stage again, and NOT a duplicate of the residue's "figurative as a §15 string
+>   argument" row: this is the same defect reached through a different visitor.
+
+### PB26 · [MAJOR] · exceptions · ⛔ OPEN — the ambient EC-ARGUMENT-FUNCTION gate is a HAND-MAINTAINED SWITCH
+> A domain guard such as LOG10's raises only when `ExceptionState.ArgumentFunctionChecking` is set, and that
+> ambient gate is emitted **only for the statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written
+> `switch`** — so the identical function reference raises in one statement and is silent in another. That is a
+> hand-maintained list where a STRUCTURE belongs (CLAUDE.md rule 5), and it is the general form of the
+> receiver-shape defect PB13 hit: **an exception's reachability must not depend on which statement encloses it.**
+
+### PB27 · [MINOR] · locale · ⛔ OPEN — the §A.4.9 non-support is loud everywhere EXCEPT the places that leak silently
+> The locale module's documented non-support (`COBOLNET1518`, owner-ratified 2026-07-03) is correct and loud for
+> the FUNCTION forms — 33 of this batch's 36 NOT-IMPLEMENTED rows are that one ratified disposition and are NOT
+> defects. Three leaks are:
+> · **The SPECIAL-NAMES `LOCALE` clause is SILENTLY ACCEPTED**, not a parse error as previously recorded: `LOCALE`
+>   is not a lexer token, and `specialNameEntry`'s `implementorSwitchEntry` / `genericClause` catch-alls swallow
+>   it. The one place in the disposition where the reject is not loud.
+> · **`LOCALE-TIME`'s catalog row declares `ArgKinds "is"`** — argument-1 as integer — where §15.53.3 r1 and the
+>   normative §15.6 Table 21 ("Anum1 or Nat1, Loc2") require alphanumeric/national of 6 character positions.
+> · **`LOCALE-TIME-FROM-SECONDS` carries `IntroducedIn 2002`**; the function belongs to the 2014 date/time
+>   package (argument-1 is in standard numeric time form, §15.5.5 — a form no 2002 function produced).
+
 
 ### ⛔ BATCH §15.32–15.44 OPENED PB10–PB16 (2026-07-30) — 82 findings, SEVEN root causes
 
