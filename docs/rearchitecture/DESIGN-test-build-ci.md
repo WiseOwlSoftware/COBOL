@@ -38,8 +38,16 @@ implicitly `tests/nist/chains.tsv`).
 - `scripts/guard.sh` — serial: builds the legacy `cobolsharp.dll`, runs legacy unit+integration, then compiles+runs
   ~353 NIST programs THROUGH THE LEGACY ENGINE and diffs against `tests/nist/valid/`. Carries `LEGACY_DIVERGENT`
   (11 ISO-rebaselined goldens the legacy legitimately differs on) and the golden-cleanliness sweep.
-- `scripts/guard-fast.sh` — parallel version (per-suite isolation), proven equivalent by `guard-verify.sh`.
-- `scripts/guard-run-group.sh`, `guard-verify.sh` — grouping + equivalence proof.
+- `scripts/guard-fast.sh` — parallel version. Isolation is now the CONNECTED COMPONENTS of `corpus.tsv`'s
+  declared `chain-preds` (332 groups over 376 programs, longest 9), replacing the former per-suite heuristic —
+  see §3.10/§3.11. Verdicts are checked ABSOLUTELY by `guard-nist-audit.sh` against the manifest, which is a
+  stronger check than `guard-verify.sh`'s diff against the serial guard (that one is relative: it cannot see the
+  two guards deviating together).
+- `scripts/guard-run-group.sh` — one group, serial, in its own scratch dir; owns the per-test EVIDENCE RULES.
+- `scripts/guard-nist-audit.sh` — the population/manifest/expectation audit, consumed by BOTH guards.
+- `scripts/guard-verify.sh` — the serial↔parallel equivalence proof. ⚠ Its verdict filter had silently omitted
+  `LEGACY DIVERGENT`, dropping 11 programs from both sides; the vocabulary is complete now and an unrecognized
+  verdict-shaped line is reported rather than discarded.
 - `scripts/version-continuity-sweep.sh` — INV-1: one warm `cobol check-batch` over ~350 programs × 4 editions
   (no Roslyn), fails on any `BREAKS`. THIS one drives the greenfield CLI.
 - `scripts/compliance.sh`, `nist-batch.sh`, `run-suite.sh` — legacy dashboards.
@@ -279,6 +287,60 @@ checkout (a failed regen fails the build — keep).
   `feedback_devlog*` memories. Each rearch phase commit references its ROADMAP phase id.
 - **`docs/DOC_INDEX.md`** — add rows for `COBOLNET_REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP),
   `DIAGNOSTICS.md`, this doc, and the sibling `DESIGN-*` / `PHASE-*` docs; keep the "one canonical doc per subsystem" rule.
+
+### 3.10 THE VERDICT-EVIDENCE INVARIANT (the instrument gate — plan §11 A12/A12b/A12c/A12d/A12e)
+
+> **A missing observation is not a negative observation.** Every harness in this repo produces verdicts about
+> the compiler. Each of them had the same defect, and each of them had it silently: an outcome the harness
+> *failed to observe* was folded into a bucket that means *the compiler did something wrong*. This section is
+> the design rule that closes the class, and every gate below implements it.
+
+**The rule.** A verdict about the compiler is produced ONLY from an observation the harness actually made.
+
+| verdict | the evidence it requires | with nothing else |
+|---|---|---|
+| ACCEPT / compiled | the process exited 0 **and** the artifact it claims to have produced exists | NO-VERDICT |
+| REJECT / compile failed | the process exited non-zero **and** emitted at least one diagnostic line | NO-VERDICT |
+| MATCH / DIFF | the program **ran to completion** — not killed, not timed out, not failed to launch | NO-VERDICT |
+| *(no line at all)* | — | ⛔ NO-VERDICT, and LOUD: a missing verdict is a failure, never a subtraction |
+
+A NO-VERDICT is never MATCH and never REGRESSION. It is an explicit statement that the run learned nothing,
+and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
+
+**Three corollaries, each earned by a defect.**
+
+1. **Assert the POPULATION, not just the failure count.** A verdict computed from the results that *arrived*
+   cannot see a program that produced none — losing one lowers MATCH and still passes. `guard-fast.sh` printed
+   `=== ALL GREEN ===` at 352 MATCH against a 353 baseline exactly this way. Every iterating harness asserts
+   that its results are a **partition of its declared population**: one verdict per member, no strays.
+2. **Compare against a COMMITTED MANIFEST, never a remembered number.** "353 MATCH" was a fact in a document.
+   The expected verdict of every NIST program is *derivable* — `tests/nist/corpus.tsv` status/golden columns
+   crossed with the population — so `scripts/guard-nist-audit.sh` compares per-program and self-updates the
+   moment a golden lands. It also cross-checks the manifest against what is on disk, so a golden that vanishes
+   cannot quietly turn its program into an expected `NO BASELINE`.
+3. **Prove the instrument can fail, and prove it fails for the right reason.** `--self-test` on the audit runs
+   eleven synthetic runs each built to break exactly one check, and asserts each produces *its own named
+   finding* — the first draft had two cases "passing" because an unrelated bug had already reddened the
+   control. `gnucobol_differential.py` runs an **evidence control** at startup (one program that must be
+   accepted, one that must be rejected *with a reason*) and refuses to score anything if this build cannot be
+   told apart, because `has_evidence` would otherwise reclassify every genuine rejection as a lost result.
+
+**Where it is implemented.**
+
+| site | what it does now |
+|---|---|
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. Budget `COBOLNET_RUN_TIMEOUT_MS` (default 120 s); every retry and non-observation is appended to `COBOLNET_HARNESS_LOG` so the rate is measurable. |
+| `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
+| `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by **both** guards so the rule is written once. `--self-test` proves all eleven checks can fail. |
+| `scripts/guard-run-group.sh`, `scripts/guard.sh` | The evidence rules per test, kept character-for-character in step because `guard-verify.sh` proves the two guards equivalent by diffing these very lines. Compile diagnostics are captured (`<TEST>.compile.log` + `.compile.rc`) instead of `/dev/null`; the run is bounded by `timeout` and its exit status kept instead of `\|\| true`. |
+| `scripts/guard-fast.sh` | Group-runner stderr captured instead of discarded (a group could die and take its verdicts with it in silence); the audit gates `ALL GREEN`. ⛔ **FULL FAN-OUT IS KEPT AND THE LOST OBSERVATIONS ARE RE-TAKEN INSTEAD** — capping `-P` would pay for the damage on every run to protect against something the evidence rules now DETECT. Contention can no longer corrupt a verdict, only lose one, so step 3b re-runs just the affected groups serially. See §3.11 for the grouping. |
+| `scripts/guard-fast.sh` grouping | ⭐ **Isolation now comes from the DECLARED chain graph** (`corpus.tsv` `chain-preds`, as connected components: 332 groups over 376 programs) instead of a hand-written "these six suites run serially" list. Longest serial group **40 → 9**. Justified by evidence, not guessed: `NistDifferentialTests` already runs all 349 programs in per-program directories with only their declared predecessors and is green. Isolation is strictly SAFER than ordering — guard.sh's prose anti-dependencies ("no other TF022 writer between them") exist only because it shares ONE directory, and per-component dirs make them unstateable. It also corrected the hand list, which over-grouped `SQ204A` (that program `OPEN OUTPUT`s its own file). ⚠ **AND IT DID NOT MAKE THE LEG FASTER — say so.** Measured on a 32-core Windows box: NIST phase **564 s before, 598 s after**. The leg is THROUGHPUT-bound on `dotnet` cold-start (~150 s of the total is the compile phase alone, and effective concurrency was observed at ~7, not 32), not TAIL-bound, so shortening the longest serial group from 40 to 9 buys nothing here. It should matter on Linux CI where process spawn is far cheaper. **The real lever is a persistent run-host to amortize cold-start** — the change is kept for correctness and for retiring a hand-maintained list, NOT for speed. |
+| `scripts/guard-verify.sh` | Its verdict filter had silently omitted `LEGACY DIVERGENT`, dropping 11 programs from **both** sides of the equivalence proof. The vocabulary is now complete and any verdict-shaped line it does not recognize is reported rather than discarded. |
+| `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. |
+
+**What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
+prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11
+beside the row, not here.
 
 ---
 

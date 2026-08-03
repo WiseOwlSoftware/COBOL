@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
 using CobolNet;                                          // CompilerDriver (the greenfield compiler)
+using CobolNet.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 using LegacyCompilation = CobolSharp.Compiler.Compilation;
 using LegacyState = CobolSharp.Runtime.ProgramState;
 
@@ -63,34 +64,23 @@ internal static class CutRunner
 
     /// <summary>Like <see cref="Run"/> but returns the NUMERIC process exit code (the run-unit termination status
     /// "passed to the operating system" — ISO §14.9.42.4 GR5 / §14.9.18.4 GR10), not just success. The exit-code
-    /// tests assert the value; the golden harness only needs the <c>ok</c> bool. A timeout returns <c>-1</c>.</summary>
+    /// tests assert the value; the golden harness only needs the <c>ok</c> bool.
+    ///
+    /// <para>⛔ A run that does not COMPLETE no longer returns anything (plan §11 A12). It used to return
+    /// <c>-1</c> plus whatever partial stdout had been captured — often the empty string — which the callers
+    /// then compared against a golden, so a contention timeout was reported as a value mismatch. It now raises
+    /// <c>HarnessNonObservationException</c> via <see cref="ProcessObserver.ObserveOrThrow"/>, which retries
+    /// once serially first. No caller had to change: the fix is in the dispatch, and all ~730 call sites
+    /// inherit it.</para></summary>
     public static (int exitCode, string stdout, string detail) RunExit(string dllPath, string workDir,
         string? stdinFile = null, IReadOnlyDictionary<string, string>? env = null)
     {
-        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"")
-        {
-            WorkingDirectory = workDir,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            RedirectStandardInput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
+        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = workDir };
         if (env is not null)
             foreach (var (k, v) in env) psi.Environment[k] = v;
-        using var proc = Process.Start(psi)!;
-        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh:135-138 parity.
-        if (stdinFile is not null) proc.StandardInput.Write(File.ReadAllText(stdinFile));
-        proc.StandardInput.Close();
-        var outTask = proc.StandardOutput.ReadToEndAsync();
-        var errTask = proc.StandardError.ReadToEndAsync();
-        if (!proc.WaitForExit(30000))
-        {
-            proc.Kill();
-            proc.WaitForExit(2000);
-            return (-1, Normalize(outTask.IsCompleted ? outTask.Result : ""), "process timed out after 30s");
-        }
-        return (proc.ExitCode, Normalize(outTask.Result), Normalize(errTask.Result));
+        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh parity.
+        var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile));
+        return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }
 
     /// <summary>Create a fresh isolated temp directory for one compile-and-run.</summary>

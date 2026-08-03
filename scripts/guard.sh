@@ -172,12 +172,40 @@ export COBOL_SWITCH_1=ON
 #                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
 LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
 
+# ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10) — kept
+# CHARACTER-FOR-CHARACTER in step with scripts/guard-run-group.sh, because guard-verify.sh proves the two
+# guards equivalent by DIFFING these very lines. A verdict is produced only from an observation actually made:
+# a compile is FAILED only with a non-zero rc AND diagnostic text; a non-matching run is a DIFF only if the
+# process RAN TO COMPLETION. Anything else is a NO-VERDICT — never MATCH, never REGRESSION.
+RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
+VERDICTS="$GUARD_WORK/verdicts.txt"; : > "$VERDICTS"
+v() { echo "  $1: $2"; echo "$1: $2" >> "$VERDICTS"; }     # one verdict line, echoed AND recorded
+
+# GUARD_TESTS overrides the population with a subset — for exercising this loop's own branches, or for the
+# owner's standing rule that a change should not re-run cases it cannot reach. The AUDIT still applies in full:
+# it takes the population as an argument, so a subset run asserts a partition of the SUBSET and each member's
+# verdict against the same committed manifest. ⚠ A subset run is NOT the regression gate; it proves the loop,
+# not the corpus. The gate is the whole list (or scripts/guard-fast.sh, which is proven equivalent).
+if [ -n "${GUARD_TESTS:-}" ]; then
+    echo "  ⚠ GUARD_TESTS override in effect — running a SUBSET, not the regression gate: $GUARD_TESTS"
+    NIST_TESTS="$GUARD_TESTS"
+fi
+
 FAILURES=0
 for test in $NIST_TESTS; do
-    # Compile
-    if ! dotnet "$CLI" --nist "$NIST_PROGS/$test.cob" -o "$NIST_OUT/$test.dll" 2>/dev/null; then
-        echo "  $test: COMPILE FAILED — REGRESSION!"
-        FAILURES=$((FAILURES + 1))
+    # Compile — keep the diagnostics; they are what distinguishes a rejection from a lost result.
+    clog="$NIST_OUT/$test.compile.log"
+    crc=0
+    dotnet "$CLI" --nist "$NIST_PROGS/$test.cob" -o "$NIST_OUT/$test.dll" > "$clog" 2>&1 || crc=$?
+    if [ "$crc" -ne 0 ] || [ ! -f "$NIST_OUT/$test.dll" ]; then
+        if [ "$crc" -ne 0 ] && [ -s "$clog" ]; then
+            v "$test" "COMPILE FAILED — REGRESSION! (rc=$crc: $(head -1 "$clog" | tr -d '\r' | cut -c1-110))"
+            FAILURES=$((FAILURES + 1))
+        elif [ "$crc" -eq 0 ]; then
+            v "$test" "COMPILE NO-VERDICT (rc=0 but no .dll — contradictory evidence) — NOT SCORED"
+        else
+            v "$test" "COMPILE NO-VERDICT (rc=$crc with NO diagnostic — a rejection with no reason is a lost result) — NOT SCORED"
+        fi
         continue
     fi
 
@@ -185,11 +213,13 @@ for test in $NIST_TESTS; do
     # Pipe NIST data file to stdin when available (for ACCEPT tests)
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
     stdoutfile="$NIST_OUT/${test}-stdout.txt"
+    errfile="$NIST_OUT/${test}-stderr.txt"
     datafile="$NIST_DATA/$test.dat"
+    rrc=0
     if [ -f "$datafile" ]; then
-        (cd $NIST_OUT && dotnet "$test.dll" 2>/dev/null || true) < "$datafile" > "$stdoutfile"
+        (cd $NIST_OUT && timeout -k 5 "$RUN_TIMEOUT" dotnet "$test.dll" 2>"$errfile") < "$datafile" > "$stdoutfile" || rrc=$?
     else
-        (cd $NIST_OUT && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
+        (cd $NIST_OUT && timeout -k 5 "$RUN_TIMEOUT" dotnet "$test.dll" 2>"$errfile") > "$stdoutfile" || rrc=$?
     fi
 
     # Compare output (files written to $NIST_OUT/)
@@ -198,14 +228,14 @@ for test in $NIST_TESTS; do
         # No baseline = test has known failures. Still compile/run but don't compare.
         fail_count=$(grep -c "FAIL\*" "$NIST_OUT/$outfile" 2>/dev/null || true)
         fail_count=${fail_count:-0}
-        echo "  $test: NO BASELINE (${fail_count} FAIL* — pending fix)"
+        v "$test" "NO BASELINE (${fail_count} FAIL* — pending fix)"
         continue
     fi
 
     # An ISO-re-baselined golden the legacy legitimately diverges from: compiled and ran above; the diff is
     # expected (see LEGACY_DIVERGENT) — never a regression.
     case " $LEGACY_DIVERGENT " in *" $test "*)
-        echo "  $test: LEGACY DIVERGENT (golden = ISO-conforming baseline; expected diff)"
+        v "$test" "LEGACY DIVERGENT (golden = ISO-conforming baseline; expected diff)"
         continue ;;
     esac
 
@@ -227,8 +257,19 @@ for test in $NIST_TESTS; do
     fi
 
     if [ -z "$actual" ]; then
-        echo "  $test: DIFF — REGRESSION!"
-        FAILURES=$((FAILURES + 1))
+        # Nothing matched — but a killed or timed-out process leaves a TRUNCATED report that diffs exactly
+        # like a wrong answer does. Score a regression only where the run actually finished.
+        if [ "$rrc" -eq 124 ] || [ "$rrc" -eq 137 ]; then
+            v "$test" "RUN NO-VERDICT (timeout/kill after ${RUN_TIMEOUT}s, rc=$rrc) — NOT SCORED"
+        elif [ "$rrc" -gt 128 ]; then
+            v "$test" "RUN NO-VERDICT (killed by signal $((rrc - 128))) — NOT SCORED"
+        elif [ "$rrc" -ne 0 ]; then
+            v "$test" "DIFF — REGRESSION! (run exited $rrc: $(head -1 "$errfile" 2>/dev/null | tr -d '\r' | cut -c1-110))"
+            FAILURES=$((FAILURES + 1))
+        else
+            v "$test" "DIFF — REGRESSION!"
+            FAILURES=$((FAILURES + 1))
+        fi
         continue
     fi
 
@@ -243,17 +284,24 @@ for test in $NIST_TESTS; do
     footer_failed=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$actual" 2>/dev/null | grep -oE "^[0-9]+" | head -1)
     footer_failed=${footer_failed:-0}
     if [ "$footer_failed" -gt 0 ] 2>/dev/null; then
-        echo "  $test: FOOTER ${footer_failed} TEST(S) FAILED — REGRESSION!"
+        v "$test" "FOOTER ${footer_failed} TEST(S) FAILED — REGRESSION!"
         FAILURES=$((FAILURES + 1))
     elif [ "$fail_count" -gt 0 ] 2>/dev/null; then
-        echo "  $test: MATCH (${fail_count} FAIL*)"
+        v "$test" "MATCH (${fail_count} FAIL*)"
     else
-        echo "  $test: MATCH"
+        v "$test" "MATCH"
     fi
 done
 
-if [ $FAILURES -gt 0 ]; then
-    echo "=== $FAILURES NIST REGRESSION(S) ==="
+# ⛔ THE POPULATION + EXPECTATION AUDIT (plan §11 A12c). $FAILURES is computed from the tests that REPORTED, so
+# it cannot see a program that produced nothing. The audit asserts the run is a partition of the declared
+# population and that each verdict is the one tests/nist/corpus.tsv predicts.
+echo "$NIST_TESTS" | tr ' ' '\n' | grep . | sort > "$GUARD_WORK/population.txt"
+NIST_AUDIT=0
+bash "$(dirname "$0")/guard-nist-audit.sh" "$VERDICTS" "$GUARD_WORK/population.txt" || NIST_AUDIT=$?
+
+if [ $FAILURES -gt 0 ] || [ $NIST_AUDIT -ne 0 ]; then
+    echo "=== $FAILURES NIST REGRESSION(S), audit rc=$NIST_AUDIT ==="
     exit 1
 fi
 

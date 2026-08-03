@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
 using CobolNet;
+using CobolNet.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 
 namespace CobolNet.Tests.Unit;
 
@@ -38,25 +39,13 @@ public abstract class CobolNetTestBase : IDisposable
         if (!result.Success)
             return (false, "", $"{result.Status}: {string.Join("\n", result.Errors)}");
 
-        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"")
-        {
-            WorkingDirectory = TempDir,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-        using var proc = Process.Start(psi)!;
-        var outTask = proc.StandardOutput.ReadToEndAsync();
-        var errTask = proc.StandardError.ReadToEndAsync();
-        if (!proc.WaitForExit(30000))
-        {
-            proc.Kill();
-            return (false, "", "process timed out");
-        }
+        // The ONE child-process observer (tests/_shared/ProcessObservation.cs) — a run that does not complete
+        // raises rather than returning an empty stdout for the caller to compare. See plan §11 A12.
+        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = TempDir };
+        var obs = ProcessObserver.ObserveOrThrow(psi);
         // Canonicalize newlines so multi-line expectations are platform-independent (a compiled program's DISPLAY
         // uses the platform newline: \r\n on Windows, \n on Linux/CI). See the legacy EndToEndTestBase note.
-        string stdout = outTask.Result.ReplaceLineEndings("\r\n").TrimEnd();
-        return (proc.ExitCode == 0, stdout, errTask.Result.Trim());
+        string stdout = obs.Stdout.ReplaceLineEndings("\r\n").TrimEnd();
+        return (obs.ExitCode == 0, stdout, obs.Stderr.Trim());
     }
 }

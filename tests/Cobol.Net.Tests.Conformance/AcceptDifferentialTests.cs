@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics;
+using CobolNet.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
 using CobolNet;
 using Xunit;
 
@@ -31,28 +32,13 @@ public sealed class AcceptDifferentialTests
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
-            var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"")
-            {
-                WorkingDirectory = dir,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
+            // The ONE child-process observer (tests/_shared/ProcessObservation.cs). This method used to carry
+            // its own copy of the 30s-timeout-returns-empty-output shape; a timeout here surfaced as an
+            // ACCEPT test seeing no input echoed back, which reads exactly like a semantic defect. See §11 A12.
+            var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"") { WorkingDirectory = dir };
             if (clock is not null) psi.Environment["COBOLNET_CLOCK"] = clock;
-            using var proc = Process.Start(psi)!;
-            proc.StandardInput.Write(stdin);
-            proc.StandardInput.Close();
-            var outTask = proc.StandardOutput.ReadToEndAsync();
-            var errTask = proc.StandardError.ReadToEndAsync();
-            if (!proc.WaitForExit(30000))
-            {
-                proc.Kill();
-                proc.WaitForExit(2000);
-                return (false, "", "process timed out after 30s");
-            }
-            return (proc.ExitCode == 0, CutRunner.Normalize(outTask.Result), CutRunner.Normalize(errTask.Result));
+            var obs = ProcessObserver.ObserveOrThrow(psi, stdin);
+            return (obs.ExitCode == 0, CutRunner.Normalize(obs.Stdout), CutRunner.Normalize(obs.Stderr));
         }
         finally { CutRunner.TryDelete(dir); }
     }

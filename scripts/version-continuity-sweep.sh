@@ -38,7 +38,25 @@ for SRC in tests/nist/programs/*.cob; do
 done
 
 # One warm process parse+bind-checks the whole manifest in parallel (no Roslyn emit).
-dotnet "$CLI" check-batch "$MANIFEST" > "$RESULTS"
+# ⛔ EVIDENCE + POPULATION (plan §11 A12c; DESIGN-test-build-ci.md §3.10). The exit code used to be discarded
+# and nothing compared the result count to the manifest, so a check-batch that died partway simply produced
+# FEWER lines — and the aggregation below reads a program with NO 85 row as "OK", because `p85[n]` is only
+# ever "FAIL" when a FAIL row was actually seen. A truncated run therefore reported FEWER breaks, which is a
+# FALSE GREEN in a sweep whose whole purpose is to find breaks.
+CB_RC=0
+dotnet "$CLI" check-batch "$MANIFEST" > "$RESULTS" || CB_RC=$?
+WANT=$(grep -c . "$MANIFEST"); GOT=$(grep -c . "$RESULTS")
+if [ "$CB_RC" -ne 0 ] || [ "$GOT" -ne "$WANT" ]; then
+  echo "=== SWEEP NO-VERDICT: check-batch rc=$CB_RC and returned $GOT of $WANT (source,std) verdicts ===" >&2
+  echo "    A missing verdict is NOT a passing program. Nothing below is trustworthy; re-run." >&2
+  # Key on (program name, std), normalized the SAME way the aggregation below normalizes — the emitted source
+  # path may not be byte-identical to the manifest's (separator form, relative vs resolved).
+  awk -F'\t' '
+    function key(p, s,   n) { n=p; sub(/.*[\/\\]/,"",n); sub(/\.cob$/,"",n); return n "\t" s }
+    NR==FNR { seen[key($1,$2)]=1; next }
+    !(key($1,$2) in seen) { print "    NO VERDICT: " key($1,$2) }' "$RESULTS" "$MANIFEST" >&2
+  exit 1
+fi
 
 # Aggregate the per-(source,std) PASS/FAIL verdicts into the per-program verdict:
 #   85 FAIL            -> SKIP85 (not in the 85 witness set)

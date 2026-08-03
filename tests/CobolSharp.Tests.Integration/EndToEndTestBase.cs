@@ -67,20 +67,14 @@ public class EndToEndTestBase : IDisposable
             CreateNoWindow = true
         };
 
-        using var process = Process.Start(psi)!;
-        // Async reads + bounded wait + kill-on-timeout: a synchronous ReadToEnd() pair can deadlock on a full
-        // pipe, and accessing ExitCode after a timed-out WaitForExit throws. A generous timeout keeps a slow
-        // process under heavy parallel test load from being mistaken for a hang (the source of the transient
-        // file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual; DEVLOG 352/355).
-        var stdoutTask = process.StandardOutput.ReadToEndAsync();
-        var stderrTask = process.StandardError.ReadToEndAsync();
-        if (!process.WaitForExit(30000))
-        {
-            process.Kill();
-            process.WaitForExit(2000);
-            return (false, NormalizeOutput(stdoutTask.IsCompleted ? stdoutTask.Result : ""), "Process timed out after 30s");
-        }
-        return (process.ExitCode == 0, NormalizeOutput(stdoutTask.Result), NormalizeOutput(stderrTask.Result));
+        // The ONE child-process observer (tests/_shared/ProcessObservation.cs). ⛔ The comment this replaces
+        // named the symptom exactly — "a slow process under heavy parallel test load … mistaken for a hang
+        // (the source of the transient file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual;
+        // DEVLOG 352/355)" — and answered it by RAISING the timeout while still returning the partial stdout
+        // for the caller to compare. That is the §11 A12 defect: a run that never finished was handed back as
+        // a value. The observer retries once serially and RAISES rather than fabricating output.
+        var obs = CobolNet.Tests.Shared.ProcessObserver.ObserveOrThrow(psi);
+        return (obs.ExitCode == 0, NormalizeOutput(obs.Stdout), NormalizeOutput(obs.Stderr));
     }
 
     /// <summary>
@@ -119,22 +113,11 @@ public class EndToEndTestBase : IDisposable
                 psi.EnvironmentVariables[key] = value;
         }
 
-        using var process = Process.Start(psi)!;
-        // Use async reads to avoid deadlock when process hangs
-        var stdoutTask = process.StandardOutput.ReadToEndAsync();
-        var stderrTask = process.StandardError.ReadToEndAsync();
-        bool exited = process.WaitForExit(15000);
-        if (!exited)
-        {
-            process.Kill();
-            process.WaitForExit(2000); // wait for kill to complete
-            string partialOut = stdoutTask.IsCompleted ? stdoutTask.Result : "";
-            return (false, NormalizeOutput(partialOut), "Process timed out after 15s");
-        }
-        string stdout = stdoutTask.Result;
-        string stderr = stderrTask.Result;
-
-        return (process.ExitCode == 0, NormalizeOutput(stdout), NormalizeOutput(stderr));
+        // The ONE child-process observer — same rule as the two sibling sites above/below. The 15s budget here
+        // was the tightest of the three and so the likeliest to fire under load; all three now share the one
+        // (raised, env-overridable) budget and none of them fabricates output from an unfinished run.
+        var obs = CobolNet.Tests.Shared.ProcessObserver.ObserveOrThrow(psi);
+        return (obs.ExitCode == 0, NormalizeOutput(obs.Stdout), NormalizeOutput(obs.Stderr));
     }
 
     /// <summary>
@@ -212,19 +195,13 @@ public class EndToEndTestBase : IDisposable
             CreateNoWindow = true
         };
 
-        using var process = Process.Start(psi)!;
-        // Async reads + bounded wait + kill-on-timeout: a synchronous ReadToEnd() pair can deadlock on a full
-        // pipe, and accessing ExitCode after a timed-out WaitForExit throws. A generous timeout keeps a slow
-        // process under heavy parallel test load from being mistaken for a hang (the source of the transient
-        // file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual; DEVLOG 352/355).
-        var stdoutTask = process.StandardOutput.ReadToEndAsync();
-        var stderrTask = process.StandardError.ReadToEndAsync();
-        if (!process.WaitForExit(30000))
-        {
-            process.Kill();
-            process.WaitForExit(2000);
-            return (false, NormalizeOutput(stdoutTask.IsCompleted ? stdoutTask.Result : ""), "Process timed out after 30s");
-        }
-        return (process.ExitCode == 0, NormalizeOutput(stdoutTask.Result), NormalizeOutput(stderrTask.Result));
+        // The ONE child-process observer (tests/_shared/ProcessObservation.cs). ⛔ The comment this replaces
+        // named the symptom exactly — "a slow process under heavy parallel test load … mistaken for a hang
+        // (the source of the transient file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual;
+        // DEVLOG 352/355)" — and answered it by RAISING the timeout while still returning the partial stdout
+        // for the caller to compare. That is the §11 A12 defect: a run that never finished was handed back as
+        // a value. The observer retries once serially and RAISES rather than fabricating output.
+        var obs = CobolNet.Tests.Shared.ProcessObserver.ObserveOrThrow(psi);
+        return (obs.ExitCode == 0, NormalizeOutput(obs.Stdout), NormalizeOutput(obs.Stderr));
     }
 }

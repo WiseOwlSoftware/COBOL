@@ -443,18 +443,17 @@ public class BinderDecompositionTests
             if (!result.Success)
                 return (false, "", string.Join("\n", result.Diagnostics.Select(d => d.ToString())));
 
+            // The ONE child-process observer (tests/_shared/ProcessObservation.cs). ⛔ The code this replaces
+            // was the worst copy of the seven: it read both streams SYNCHRONOUSLY and sequentially (a full
+            // stdout pipe deadlocks before stderr is ever drained), then DISCARDED the return value of
+            // WaitForExit(10000) and read process.ExitCode regardless — which throws if the wait expired.
+            // See plan §11 A12.
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "dotnet", Arguments = outPath,
-                WorkingDirectory = _tempDir,
-                RedirectStandardOutput = true, RedirectStandardError = true,
-                UseShellExecute = false, CreateNoWindow = true
+                FileName = "dotnet", Arguments = outPath, WorkingDirectory = _tempDir,
             };
-            using var process = System.Diagnostics.Process.Start(psi)!;
-            string stdout = process.StandardOutput.ReadToEnd();
-            string stderr = process.StandardError.ReadToEnd();
-            process.WaitForExit(10000);
-            return (process.ExitCode == 0, stdout.TrimEnd(), stderr.TrimEnd());
+            var obs = CobolNet.Tests.Shared.ProcessObserver.ObserveOrThrow(psi);
+            return (obs.ExitCode == 0, obs.Stdout.TrimEnd(), obs.Stderr.TrimEnd());
         }
     }
 }
