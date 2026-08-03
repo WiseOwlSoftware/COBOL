@@ -174,6 +174,30 @@ allows; reduce the WORK, not the parallelism.** `scripts/battery.sh` now runs Co
 concurrently (§11 A13; §0's "one leg at a time" caution is specifically about a REBUILDING leg overlapping a
 `--no-build` one, not about two `--no-build` assemblies).
 
+**⚙ 2026-08-03 (same session, after the instrument wave) — §5b STEPS 2, 3 AND 4 WORKED, AND THREE OF THE FOUR
+PREMISES WERE WRONG.** That is the headline: §5b was written from reasoning, not measurement, and measuring it
+first — before doing the work it described — changed the work every time. **Measure a plan step before executing
+it; the measurement is usually cheaper than the step.**
+· **Step 2 (the 222 DOC rows) — premise REFUTED.** Ranked "the cheapest closure in the whole inventory" on the
+  belief that a large fraction were already documented. Measured: **10 of 199 obligations discharged, 189 remain**.
+  The "large numbered set" it meant is CONFORMANCE.md §2 (Annex A.3) and §3 (Annex E) — different registers.
+  It also found §7 filing the §15.3.3.2 determination under **item 87**, which is FORMATTED-CURRENT-DATE; it is
+  **item 202**. `scripts/spec/audit_annex_a1.py --check` now re-derives every number and is proven to fail on it.
+· **Step 3 (a per-STATEMENT batch key) — premise REFUTED.** The key was ALREADY per-statement/per-clause. The real
+  gate is per-agent SIZE (§15's proven max is 18 rules; SET carries 98). `phase_b_batch.py --max-rules` splits at
+  clause boundaries, leaves a fitting subject whole, and asserts the partition loses nothing.
+· **Step 4 (unify the grammar audit with FMT+SR) — premise HOLDS**, the only one that did. But the audit **could
+  not run at all**: de-paging removed the catalog's `page` field and its section lookup matched exactly, so its
+  own example args selected zero rules SILENTLY. Fixed (`clause_page.py`), then unified —
+  `grammar_findings_to_batch.py` turns one pass into both a grammar report and a verdict batch, and **refuses to
+  expand a finding across rules nobody examined**.
+⛔ **AND CI WENT RED ON MY OWN INSTRUMENT-WAVE COMMIT** — one test, ubuntu only, Windows green. A "cross-platform"
+helper built by STRING SUBSTITUTION (`>nul`→`>/dev/null`) left `exit /b 7` for POSIX `sh`, which returns rc=2.
+`feedback_wsl_linux_repro` exists for exactly this and I did not apply it when writing the file. **Write per-OS
+commands explicitly; run under WSL before pushing** — 2 minutes against a 30-minute round trip. ⚠ Note the two
+sibling tests that PASSED on Linux with Windows-only `ping -n 30` syntax, purely because iputils keeps running:
+green for the wrong reason, inside the wave's own guard.
+
 **⚠ PREVIOUS SESSION (2026-08-02/03, head `cf7887a7`) — nine commits: PB13 · the `'i'`/`'n'` adjudication · PB10 ·
 PB11 · Phase-B batch 4 · PB20 · PB19 · PB21 · PB22.** No BLOCKER is open. Corpus 242 → 247 positive
 goldens, 145 → 154 negative fixtures. Inventory 253 → **330 adjudicated**, GAP unchanged at 3799 — adjudicating
