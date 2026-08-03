@@ -576,6 +576,27 @@ below index it).
 > Int128 boundary, and only a NON-integer exponent should fall through to the double approximation.
 > ⚠ Scope note: this is the same "an implementor-defined approximation used where an exact result was available"
 > family as PB13, not a saturation bug — no value is silently wrong, only less exact than documented.
+>
+> **✅ RE-VERIFIED 2026-08-03 — every claim in this entry HOLDS, which is worth saying because three queue-entry
+> summaries were wrong last session.** ① Both citations validate (`cite.py --check 8.8.1.2 "exponentiation"`,
+> `--check 8.8.1.3 "implementor"`). ② The repro is exact: `COMPUTE R = 10 ** 30` into `PIC 9(31)` prints
+> **1000000000000000071935427891953** against the exact `1000000000000000000000000000000`. ③ The named code is
+> real — `NumericRenderer.Power` (`NumericRenderer.cs:417`) emits `FromDouble(System.Math.Pow(…), ws)` for
+> fixed-point operands **regardless of whether the exponent is an integer**. ④ The "shape to copy" is real:
+> `CobolDec.Pow` does binary square-and-multiply over exact SDIDI (`CobolDec.cs:107–116`) and its own `Math.Pow`
+> (line 120) is only the NON-integer fallback, correctly guarded.
+>
+> ⛔ **BUT THE RECIPE DOES NOT ANSWER THE QUESTION THE FIX TURNS ON: SCALE EXPLOSION.** "Repeated exact `Int128`
+> multiplication" is straightforward only when the base has scale 0. A base with scale *s* raised to *n* yields
+> scale *s·n*: `10 ** 30` is 31 digits and fits Int128 comfortably, but `1.5 ** 30` needs scale 30 on a value of
+> ~191751, i.e. ~36 significant digits *before* the receiver's own capacity is considered, and a scale-2 base at
+> a modest exponent leaves Int128 entirely. So the fix must decide, per §8.8.1.3's implementor licence and the
+> D3 documented technique, what happens when the EXACT result does not fit: raise EC-SIZE-EXPONENTIATION
+> (`CobolDec.Pow`'s precedent — it throws `CobolSizeError` past its loop bound), or fall back to the documented
+> double approximation for that case only. **That is a numeric-design decision, not a code edit**, and it belongs
+> in `docs/COBOLNET_NUMERIC_DESIGN.md` before the emitter changes (CLAUDE.md rules 2 and 5). Deliberately NOT
+> started as a small change — the verification above is what the next session should build on, not a guess about
+> the size.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in
