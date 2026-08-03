@@ -58,7 +58,8 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   paragraph — run the probe.** FOUR Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
 - **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB11 + PB13 + PB19–PB22 LANDED; PB12, PB14, PB15, PB17, PB18, PB23–PB27 are the live set** — see
+  its header is the tally). **PB1–PB11 + PB13 + PB19–PB22 LANDED (PB14 half-closed by PB21); PB12, PB14, PB15, PB17, PB18, PB23–PB27 are
+  the live set** — see
   NEXT for the order to work them. **No BLOCKER is open.** Three of the ten landed were blockers and every one
   was SILENT — the pattern this review exists to catch:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
@@ -144,6 +145,61 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   accept/reject verdicts, so it is blind to a change in RUNTIME OUTPUT — but NOT to a runtime-shaped defect that
   stops the program COMPILING. Six of eight fixes in the pre-merge run were PB2, whose symptom was a Roslyn
   `CS1503`. The accurate rule: **changes that leave compilability unaltered are invisible to it.**
+
+### ⛔ SESSION HANDOFF — 2026-08-02/03, head `cf7887a7`. READ THIS BEFORE THE TABLE BELOW.
+
+**Nine commits landed: PB13 · the `'i'`/`'n'` adjudication · PB10 · PB11 · Phase-B batch 4 · PB20 · PB19 · PB21 ·
+PB22.** No BLOCKER is open. Every leg was green at the head (see BATTERY REFERENCE). Corpus 242 → 247 positive
+goldens, 145 → 154 negative fixtures. Inventory 253 → **330 adjudicated**, GAP unchanged at 3799 — adjudicating
+OPENS items, fixing CLOSES them, and this session did both.
+
+**⚖ ONE OWNER DECISION WAS TAKEN AND IS NOW LAW (2026-08-02):** a **numeric-edited item is NOT an arithmetic
+operand and NOT an integer argument**. §8.8.1.1 admits "an identifier referencing a NUMERIC data item"; §8.5.2.13
+calls this a "numeric-edited data item", a distinct defined term; and §15.43.3 r1 shows that when the standard
+means to admit one it says "category numeric **or numeric-edited**" explicitly, which §15.3's integer and numeric
+types do not. De-editing is granted by the MOVE rules (§14.9.25.4 GR5/GR6d1) and nowhere extended to arithmetic.
+Both external oracles agree. **Do not re-argue this** — it was argued three times; DEVLOG 1142 and
+`pb1-integer-arg-numeric-edited` carry it.
+
+**⛔ FOUR THINGS THAT WILL BITE THE NEXT SESSION, each earned today:**
+
+1. **A GREEN `guard-fast` IS NOT EVIDENCE until §11 A12c/A12d/A12e close.** It printed `=== ALL GREEN ===` at
+   **352 MATCH against a 353 baseline** because `SQ135A` vanished from the report and NOTHING ASSERTS THE
+   POPULATION. Five runs on ONE unchanged tree gave five outcomes across five different programs. The GnuCOBOL
+   differential has the same defect class: it scored a case `WE_REJECT_THEY_ACCEPT` — the 0-tolerance direction —
+   with `ourCodes: []` and an EMPTY error string, and the case compiles clean. **One root cause: a MISSING
+   OBSERVATION IS BEING READ AS A NEGATIVE OBSERVATION.** Attribute every red MECHANICALLY (does the change even
+   reach that program?), never statistically.
+2. **⛔ NEVER MERGE A PHASE-B BATCH WITH `record_verdicts.py … out-*.json`.** The playbook's own documented glob
+   sweeps EVERY prior batch's output out of the shared directory: at batch 4 it offered **144 records instead of
+   77** and would have RE-ADJUDICATED PB11's freshly-closed rows BACKWARDS from files written before PB11
+   existed. **The tell is the GAP going UP in the `--dry-run`.** Merge the batch's own files BY NAME.
+3. **A QUEUE ENTRY'S SUMMARY IS A CLAIM — three were wrong today.** PB13 cited **§14.7.4** (the ROUNDED phrase)
+   where the rule is **§14.7.5 case 5**; PB13's recipe said the fix "cannot be emitter-side" when it is entirely
+   emitter-side; PB11's said "argument-3 in [0,86400)" when r4 states no range at all and the bound comes from
+   the **§7.3.17 LEAP-SECOND directive**. Re-derive the citation before building on it.
+4. **THE WORST DEFECTS RETURN A PLAUSIBLE ANSWER, NOT A BROKEN ONE.** PB5 returned `9223372036.85` for a money
+   value; PB13 returned `0170141183460469231731687303715`; PB22 returned **143951, a genuinely valid integer
+   date**, because 2⁶⁴ + 1995046 wraps to 1995046. **Sampling outputs cannot find these** — read the
+   implementation. That is why the Phase-B refute stage keeps finding what the adjudicators looked straight at.
+
+**⚠ A REGRESSION WAS INTRODUCED AND CAUGHT WITHIN THE SESSION, by the review's own refute stage.** PB13's
+receiver-less arm bypassed `FromDouble`, which was the EC-ARGUMENT-FUNCTION raise site, so
+`COMPUTE R = FUNCTION ACOS(2)` gave the §15.3 default 0 while `IF FUNCTION ACOS(2) = 0` propagated a raw NaN —
+and under checking it raised nothing at all. Fixed by `CobolIntrinsics.RealResult`, pinned by
+`pb13_domain_raise_receiver_shape`. **A function's returned value must not depend on the SHAPE of its receiver**
+(§15.4), and PB26 below is the general form of that same defect.
+
+**⚠ TWO GUARDS WERE FOUND BLIND, AND BOTH HAD BEEN GREEN FOR MONTHS.** `IntrinsicRealArgDriftTests` exempted the
+exact group its defect lived in (an `'i'` row DOES admit a float — §15.3's integer type resolves through class
+NUMERIC) *and* its case-label regex captured only the first name of an `or`-chain, so "three missing members" was
+really **ten**. When a guard is green, ask what it LOOKED AT. Make a guard fail once before trusting it — that is
+now done for `FloatQuantizeHeadroomDriftTests`, `RefModCategoryDriftTests` and the PB20 citation guard.
+
+**⚠ AND A SCREEN IS ONLY AS GOOD AS ITS CLASSIFIER.** PB19's rows were right and still rejected legal source,
+because `ClassOf` flattened every `BoundStringLiteral` to alphanumeric and ignored the `Category` it carries.
+PB1's disaster was unaudited ROWS; this was an audited row over a lossy CLASSIFIER, one layer down and invisible
+to any review of the rows.
 
 ### NEXT, in order
 
@@ -475,10 +531,16 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- **⛔ BATTERY REFERENCE — re-measured on `main` at PB13 + the `'i'`/`'n'` adjudication (2026-08-02).**
-  FULL greenfield Conformance **4168 / 4168, zero skipped, NOTHING red** (4164 + PB13's two goldens + the
-  adjudication's negative fixture and rejection test) · greenfield
-  Unit **3615 / 3615, zero skipped** · characterization **33 / 33**.
+- **⛔ BATTERY REFERENCE — re-measured on `main` at PB22, `cf7887a7` (2026-08-03).**
+  FULL greenfield Conformance **4180 / 4180, zero skipped, NOTHING red** · greenfield Unit **3628 / 3628, zero
+  skipped** · characterization **33 / 33** · GnuCOBOL differential **1323 cases, 0 per-case flips**.
+  ⚠ **THE CONFORMANCE TOTAL MOVED 4164 → 4180 ACROSS ONE SESSION** because each landed fix ships its goldens —
+  do not treat any of these as constants. What must hold is **zero failures, zero skipped**, and a per-case
+  differential diff of zero UNEXPLAINED flips.
+  ⚠ **THE UNIT COUNT'S 972 → 3628 JUMP IS TWO DRIFT TESTS, NOT A WAVE.**
+  `FloatQuantizeHeadroomDriftTests` proves its invariants over every legal (integer-digits, scale) pair a PICTURE
+  can present (528 pairs × 5 theories) and `RefModCategoryDriftTests` adds 13. Wall-clock is unchanged (~2m 30s).
+  ⛔ **AND A GREEN `guard-fast` IS NOT EVIDENCE UNTIL §11 A12c/A12d/A12e CLOSE — see the cautions below.**
   ⚖ **THE ADJUDICATION'S OWN ORACLE EVIDENCE, since it changed accept/reject:** NIST stayed **entirely green**
   across the flip — of 4166 cases the ONLY three reds were the three artifacts encoding the old premise — and the
   GnuCOBOL differential moved **0 of 1323 cases**. ⚠ Read that second number honestly: 0 flips proves the
