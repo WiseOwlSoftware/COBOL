@@ -119,6 +119,40 @@ public static partial class CobolIntrinsics
     /// <para>±∞ is deliberately NOT screened here, exactly as <see cref="FromDouble"/> does not screen it: an
     /// overflowing EXP is a legal huge result, not a domain error (CA24).</para>
     /// </summary>
+    /// <summary>
+    /// ⛔ THE §15.3 INTEGER-ARGUMENT LANDING (fix-queue PB22) — the ONE place a wide intrinsic argument narrows
+    /// to the <c>long</c> the integer bodies take. The emitter used to write a bare <c>(long)(…)</c> over an
+    /// <c>Int128</c>-typed expression, and <c>RoslynBackend</c> sets no <c>checkOverflow</c>, so that cast WRAPS
+    /// MODULO 2⁶⁴ — silently, and BEFORE the function's own range guard can see the value.
+    /// <para>
+    /// The guard inside <c>CobolDate.IntegerOfDay</c> (§15.5.2 — 1601..9999 / 1..366) is correct and was simply
+    /// unreachable: <c>FUNCTION INTEGER-OF-DAY(P * 100 + 62)</c> with <c>P PIC 9(18) VALUE 184467440737115466</c>
+    /// evaluates 18446744073711546662, which is 2⁶⁴ + 1995046, so the cast delivered 1995046 and the function
+    /// answered 143951 — a plausible date, from an argument nineteen orders of magnitude away, with NO
+    /// EC-ARGUMENT-FUNCTION even under enabled checking.
+    /// </para>
+    /// <para>
+    /// ⚠ ONE CAST FED SEVEN RENDERER ARMS over eleven functions, which is why this is a landing rather than
+    /// seven repairs: a value the receiving body cannot represent is an incorrect argument (§15.3), and the
+    /// place to say so is where the narrowing happens.
+    /// </para></summary>
+    public static long IntegerArg(Int128 v) =>
+        v >= long.MinValue && v <= long.MaxValue
+            ? (long)v
+            : Exceptions.ExceptionState.ArgumentError(
+                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §15.3)");
+
+    /// <summary>The <see cref="IntegerArg(Int128)"/> twin for a FLOATING-POINT argument — a distinct NAME rather
+    /// than an overload, deliberately: an integer literal converts implicitly to BOTH <c>Int128</c> and
+    /// <c>double</c>, so an overload pair would make <c>FUNCTION FACTORIAL(5)</c> a CS0121 ambiguity. That exact
+    /// collision is documented in <c>CobolIntrinsics.RealArgs.cs</c> and it broke six corpus programs once.
+    /// <para>Reached only by FACTORIAL, the one arm PB21 routes to its exact body with a float argument.</para></summary>
+    public static long IntegerArgReal(double v) =>
+        double.IsFinite(v) && v > -9.2e18 && v < 9.2e18
+            ? (long)Math.Truncate(v)
+            : Exceptions.ExceptionState.ArgumentError(
+                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §15.3)");
+
     public static double RealResult(double d) => double.IsNaN(d)
         ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
         : d;

@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB19 + PB20 + PB21 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB22–PB27 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB27 OPEN.**
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -161,7 +161,19 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > the `…Real` counterpart exists for every exact method reachable with a real argument — **but exempts every
 > integer-kind row**, which is precisely this group. Widening the guard is part of the fix, not a follow-up.
 
-### PB22 · [MAJOR] · intrinsics · ⛔ OPEN — an unchecked `(long)(Int128)` cast makes every range guard unreachable past 2⁶³
+### PB22 · [MAJOR] · intrinsics · ✅ LANDED 2026-08-03 (DEVLOG 1149) — one landing replaced the unchecked cast
+> `CobolIntrinsics.IntegerArg(Int128)` RAISES EC-ARGUMENT-FUNCTION instead of wrapping, and `AsInt` routes to
+> it — covering SEVEN renderer arms over eleven functions from one site, because a value the receiving body
+> cannot represent is an incorrect argument (§15.3) and the place to say so is where the narrowing happens.
+> ⚠ The double twin is `IntegerArgReal`, a DISTINCT NAME not an overload: an integer literal converts to both
+> `Int128` and `double`, so an overload pair would make `FUNCTION FACTORIAL(5)` a CS0121 ambiguity — the exact
+> collision documented in `RealArgs.cs` that broke six corpus programs once.
+> ⚠ The wrap IMPERSONATED A VALID DATE: 2⁶⁴ + 1995046 wraps to 1995046, so the answer looked ordinary. Third
+> defect this session whose symptom was plausible rather than obviously broken.
+> Golden `pb22_integer_arg_narrowing` pins `WRAPPED=NO` rather than a value — §15.3 leaves the default to us.
+> The finding as originally recorded follows.
+
+### PB22 (as found) · an unchecked `(long)(Int128)` cast makes every range guard unreachable past 2⁶³
 > `IntrinsicRenderer.AsInt` emits `(long)(<Int128 expr>)` and `RoslynBackend` sets no `checkOverflow`, so the cast
 > WRAPS. The correct §15.5.2 guard inside `CobolDate.IntegerOfDay` (1601..9999 / 1..366) is then unreachable for
 > any argument ≥ 2⁶³: `FUNCTION INTEGER-OF-DAY(P * 100 + 62)` with `P PIC 9(18) VALUE 184467440737115466`

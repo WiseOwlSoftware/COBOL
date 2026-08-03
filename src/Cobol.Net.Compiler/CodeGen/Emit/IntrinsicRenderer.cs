@@ -331,9 +331,26 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// fraction — integer arguments "shall be integers", §15.3; a fractional value is the program's EC latitude).</summary>
     private string IntArg(BoundIntrinsicCall ic, int i) => AsInt(Arg(ic, i));
 
-    private static string AsInt(NumX a) => a.Scale == 0
-        ? $"(long)({a.Expr})"
-        : $"(long)({RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation)})";
+    /// <summary>
+    /// ⛔ THE ONE NARROWING, AND IT RAISES RATHER THAN WRAPS (fix-queue PB22). This emitted a bare
+    /// <c>(long)(…)</c> over an <c>Int128</c>-typed expression, and <c>RoslynBackend</c> sets no
+    /// <c>checkOverflow</c> — so the cast wrapped MODULO 2⁶⁴, silently, and BEFORE the function's own range
+    /// guard could see the value. <c>FUNCTION INTEGER-OF-DAY(P * 100 + 62)</c> with
+    /// <c>P PIC 9(18) VALUE 184467440737115466</c> is 2⁶⁴ + 1995046, so §15.5.2's correct 1601..9999 / 1..366
+    /// check received 1995046 and returned a plausible 143951 — from an argument nineteen orders of magnitude
+    /// away, with no EC-ARGUMENT-FUNCTION even under enabled checking.
+    /// <para>Both entries (<see cref="IntArg"/> for the numeric channel, <see cref="ArgInt"/> for the string one)
+    /// funnel here, so ONE change covers seven renderer arms over eleven functions — which is the point: a value
+    /// the receiving body cannot represent is an incorrect argument (§15.3), and the place to say so is where
+    /// the narrowing happens, not eleven times downstream.</para>
+    /// <para>The <c>Real</c> arm takes the double-typed twin by NAME rather than by overload: an integer literal
+    /// converts implicitly to both <c>Int128</c> and <c>double</c>, and an overload pair would turn
+    /// <c>FUNCTION FACTORIAL(5)</c> into a CS0121 ambiguity — the collision that broke six corpus programs when
+    /// the <c>…Real</c> bodies were first written.</para></summary>
+    private static string AsInt(NumX a) =>
+        a.Real ? RuntimeApi.IntegerArg(a.Expr, real: true)
+        : a.Scale == 0 ? RuntimeApi.IntegerArg(a.Expr)
+        : RuntimeApi.IntegerArg(RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation));
 
     /// <summary>The variadic arguments aligned to their common scale (ISO §8.8.1 — alignment makes unscaled
     /// comparison/arithmetic equal value comparison/arithmetic), as a C# argument list + that scale.</summary>
