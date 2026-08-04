@@ -188,14 +188,19 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      probe, and `LocaleDispositionTests` already covered it. Only the inventory and the *justification* were
      missing, which is why this closed 8 rows without a line of compiler change.
    · **THE DENOMINATOR — adjudicate all 100 unharvested clauses as ONE BATCH and admit the normative ones.**
-     ⚙ **STARTED: §8.8.1's five clauses ADMITTED (21 GR rules), 95 clauses / 439 ordinals remain.** The
-     denominator is now **3,882** (was 3,861) and §11 **A3 is UNBLOCKED** — it can no longer audit the
+     ⚙ **STARTED: 7 clauses ADMITTED (43 rules), 93 clauses / 417 ordinals remain.** §8.8.1's five (21 GR),
+     plus **§15.4.1 (6 RV)** and **§14.7.5 (16 GR)**. The denominator is now **3,904** (was 3,861) and §11
+     **A3 is UNBLOCKED** — it can no longer audit the
      intermediate-results model against a catalog omitting §8.8.1. The MECHANISM is data-driven: a clause is
      admitted by setting `disposition: "rules"` + `kind` in `spec-unharvested-rule-blocks.json`, never by adding
      its prose title to `KINDS` (that would be the hand-maintained list this project keeps deleting).
-     ⭐ **SHAPE IS THE TRIAGE SIGNAL** — 89 clauses / 350 items are a SINGLE ascending list (rule-block shaped),
-     11 clauses / 110 items are nested sub-lists (prose-enumeration shaped). Weak evidence either way, not proof;
-     every clause is still judged individually.
+     ⛔ **THE SHAPE SIGNAL I WROTE HERE WAS FALSE AND IS RETRACTED (measured 2026-08-04, DEVLOG 1165).** It said
+     nested sub-lists were weak evidence for a prose enumeration. **All ELEVEN multi-sublist clauses were read and
+     every one is normative** — §14.7.5 DEFINES the size error condition and §15.4.1 r1 is "the returned value
+     shall equal the value of the equivalent arithmetic expression". Multiple restarting sub-lists mean the clause
+     states SEVERAL rules, each with its own lead-in, which the extractor already represents as
+     `L<sublist>.<ordinal>`. **Shape records LIST STRUCTURE AND NOTHING MORE — expect the 460 upper bound to be a
+     HIGH one, and READ THE CLAUSE.**
      ⚠ **AND MY OWN EXAMPLE WAS WRONG** — see DEVLOG 1162: I said §8.3.2.2 "User-defined words" lists kinds of
      word, reading the TITLE and asserting the BODY. Its 15 items are five nested sub-lists, several normative.
      The conclusion held; the reason did not. `docs/rearchitecture/spec-unharvested-rule-blocks.json`
@@ -247,8 +252,13 @@ the single origin of every numeric argument. Measure the WHOLE population after 
    ⭐ **WHY THE TWO EARLIER DENOMINATOR FIXES COULD NOT HAVE FOUND THIS:** both extended a HEADING-keyed guard,
    and §8.8.1.2 is titled "Native, standard-binary, and standard-decimal arithmetic". **A guard keyed on what a
    block is CALLED can never find a block called something else.** Reach for a content key next time.
-   ⚙ **The owner decided, and §8.8.1's five clauses are now ADMITTED: the denominator is 3,882 and §11 A3 is
-   UNBLOCKED.** 95 clauses / 439 ordinals remain `pending` — that is the rest of the batch.
+   ⚙ **The owner decided; 7 clauses are ADMITTED, the denominator is 3,904 and §11 A3 is UNBLOCKED.**
+   93 clauses / 417 ordinals remain `pending` — the rest of the batch.
+   ⭐ **AND THE EXTRACTOR NOW REPORTS ZERO PARSE GAPS, for the first time.** The `RV §15.4 (Returned values)` gap
+   that §0 carried for months as "PRE-EXISTING and unowned" is EXPLAINED, not suppressed: §15.4's rules live in
+   the **§15.4.1** sub-clause, whose prose heading `KINDS` does not recognise — PB29's defect class one level
+   down. §15.4.1 is admitted (6 RV rules, including the r1 this session cited repeatedly while it sat outside the
+   denominator) and §15.4 is a DECLARED empty block carrying that reason.
 4. **THE REFUTE STAGE IS NOW MEASURED, NOT ASSUMED: five batches, ~16 overturns in batch 5 alone, EVERY overturn
    a downgrade.** The two mechanisms are the playbook's own — "the adjudication SAMPLED OUTPUTS" and "read ONE
    of the TWO bodies". Never drop it to go faster; an adjudicator's CONFORMS is worth what its refuter leaves.
