@@ -148,6 +148,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
+**⚙ 2026-08-04 SESSION CLOSE — four commits: PB15, its follow-up (PB40 opened), the fleet build guard, and the
+PB17 analysis.** ⛔ Run the probe; never quote a number from this paragraph.
+**▶ THE NEXT SESSION'S FIRST TASK IS PB17, AND ITS DESIGN IS ALREADY SETTLED AND OWNER-APPROVED** — `kb/Work/PB17.md`
+carries a numbered execution order, the corrected six-link citation chain, and the one correctness trap
+(§8.8.4.13 r2 — do NOT hoist a function out of a repeatedly-evaluated condition; follow `UdfBinder`'s
+per-evaluation precedent including its loud residue). ⚖ **Owner ruling: implement in FULL; the stage-loud stopgap
+was explicitly declined**, so PB17's run-time crash STANDS until the real fix lands — deliberate, not an oversight.
+⚠ **A PROCESS GUARD LANDED THIS SESSION AND IT IS MECHANICAL, NOT ADVISORY:** `scripts/hooks/fleet_active_build.py`
+DENIES `dotnet build`/`test` while any subagent transcript for the session was written in the last 120 s. It exists
+because I rebuilt the compiler ~6 times underneath a running 60-agent measurement fleet, wasting all of it —
+and explained away the `MSB3027 cobol.exe locked` build failure that was the tell. Measure INLINE first; a fan-out
+for work already done is pure waste.
+
 **⚙ 2026-08-04 (later session) — PB15 LANDED, and the subject was an ARCHITECTURAL claim that had been false for
 a year.** ⛔ Run the probe; never quote a number from this paragraph.
 `COBOLNET_INTRINSICS_DESIGN.md` **D2** says the catalog "is the single source of result-category truth" — it was
