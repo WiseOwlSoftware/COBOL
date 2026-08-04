@@ -343,8 +343,30 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// wrong than "does not compile" and is NOT the end state: the §15.4.1 r1 answer is a Dec-carrier body, and it
     /// is ledgered as PB38 rather than left as an unrecorded approximation.</para>
     /// </remarks>
+    /// <remarks>
+    /// ⛔ <b>AND A FLOAT OPERAND LANDS THE SAME WAY UNDER A STANDARD ARITHMETIC MODE (fix-queue PB38).</b> This is
+    /// where the ARITHMETIC MODE beats the float branch, which is the ordering `COBOLNET_NUMERIC_DESIGN.md` D3
+    /// states in words ("the mode branch runs BEFORE the D16 float branch") and which
+    /// <c>NumericRenderer.CombineCore</c>, <c>NumericRenderer.Power</c> and <c>ConditionRenderer</c> all obey —
+    /// <c>RenderNum</c> was the ONE renderer that did not, so a single COMP-1/COMP-2 argument demoted the whole
+    /// list to binary64 even under <c>ARITHMETIC IS STANDARD-DECIMAL</c>, where §15.4.1 r1 is unconditional (the
+    /// returned value <i>shall equal</i> the equivalent arithmetic expression) and §8.8.1.5.2 r1 converts every
+    /// fixed-point operand into an SDIDI EXACTLY. MEASURED before the fix, with three 18-digit items and a COMP-2
+    /// pair: <c>FUNCTION MEDIAN(H1 H2 H3 F1 F1)</c> returned 100000000000000004.76 where the SDIDI-exact answer
+    /// is 100000000000000001, and <c>FUNCTION MAX(H1 H2 H3 F1)</c> returned the same 100000000000000004.76
+    /// against 100000000000000003 — the three distinct 18-digit operands all collapse to ONE binary64 (the ulp
+    /// at 1e17 is 16) and compare EQUAL, so the §8.8.4.2.4 comparison the clause mandates never happens. The same
+    /// operands without the float are exact in the same program.
+    /// <para>The float converts through <see cref="NumericRenderer.DecOperand"/> — the compiler's own §8.8.1.5.1
+    /// conversion, the one <c>CombineCore</c> and <c>Power</c> already use — and then lands by the identical
+    /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
+    /// and the exact Int128 family evaluates the EAE as §15.4.1 r1 requires.</para>
+    /// </remarks>
     private NumX Landed(NumX x)
     {
+        // The MODE first: under a standard mode a float operand is converted in (§8.8.1.5.1), not computed in.
+        if (x.Real && num.StandardDecimal)
+            x = new NumX(num.DecOperand(x), 0, Dec: true);
         if (!x.Dec) return x;
         int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
         return new NumX(RuntimeApi.DecToUnscaled(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
@@ -354,8 +376,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
     /// to be computed in binary64 and only then quantized, which is exactly what <see cref="RenderFloat"/>'s
     /// <c>FromDouble</c> tail does.</remarks>
+    /// <remarks>⛔ ASKED OF THE <b>LANDED</b> OPERAND, NOT THE RAW ONE (fix-queue PB38). Under a standard
+    /// arithmetic mode <see cref="Landed"/> converts a float in per §8.8.1.5.1, so it is no longer floating and
+    /// this dispatch must not route the call to the binary64 body. Reading the RAW operand here would reinstate
+    /// the exact defect the landing exists to remove, with the landing silently doing nothing — the two must ask
+    /// the same question of the same value.</remarks>
     private bool AnyRealArgument(BoundIntrinsicCall ic) =>
-        ic.Args.Any(a => num.AsNum(a, num.Receiver).Real);
+        ic.Args.Any(a => Landed(num.AsNum(a, num.Receiver)).Real);
 
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier).</summary>
     private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(Arg(ic, i));

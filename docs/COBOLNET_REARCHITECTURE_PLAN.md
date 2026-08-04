@@ -227,11 +227,13 @@ the single origin of every numeric argument. Measure the WHOLE population after 
    function's value depending on its receiver's SHAPE, which §15.4 forbids and PB13 closed for the float family
    only. Its root cause is PB18 (`**` has no exact arm for an integer exponent), so **it closes when PB18 does**.
    Verified still reproducing after this wave landed.
-   ⚠ **AND PB38 IS THE NEW RESIDUE:** `RenderNum` is the ONE renderer that does not test the arithmetic mode
-   before its float branch — `CombineCore`, `Power` and `ConditionRenderer` all do, which is the ordering D3
-   states in words. **Do not answer it by adding a mode test to `RenderNum`; that is the sixth individual fix.**
-   The carrier selection is written down in four renderers and drifted in the fourth: it belongs in ONE selector,
-   with a drift test asserting no renderer branches on `.Real`/`.Dec`/`StandardDecimal` outside it.
+   ✅ **AND PB38 — the last member — LANDED 2026-08-04.** `RenderNum` was the ONE renderer not testing the
+   arithmetic mode before its float branch. The fix needed **no new selector and no Dec-carrier body**: the mode
+   belongs inside the ONE landing PB32 built (`IntrinsicRenderer.Landed`), where a float now converts in through
+   the compiler's own §8.8.1.5.1 `DecOperand` and lands exactly as a `Dec` operand does. ⛔ **The half that would
+   have been missed:** `AnyRealArgument` had to be asked of the **LANDED** operand — reading the raw one leaves
+   the dispatch on the binary64 body while the landing silently does nothing, i.e. the fix present, the defect
+   intact and every test green. **The whole PB2 · PB13 · PB14 · PB28 · PB32 · PB38 family is now closed.**
 3. **⚙ PB29 — DETECTOR LANDED (`24e9e117`); THE ADJUDICATION IS THE OWNER DECISION IN ITEM 0.**
    The extractor now scans by CONTENT, not by heading text: `unharvested_rule_blocks` reports every clause whose
    body carries an ascending `N)` list that nothing harvested, compared against the committed manifest
@@ -411,7 +413,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    | **PB23 · PB25 · PB27** | open (NEW, batch 4) | Smaller: a raw `System.ArgumentOutOfRangeException` where §15.3 requires EC-ARGUMENT-FUNCTION (a TWO-day window, correcting the landed `AR-15.79.3-5`) · LOWER-CASE's LOCALE arm refused + a figurative argument aborting at run time · three silent leaks in the otherwise-loud §A.4.9 locale non-support. |
    | **PB32** | ⚠ HALF LANDED 2026-08-03 | Structural half done (see handoff item 2). **Remaining half is BLOCKED on PB18** — the receiver-shape control-flow defect (`FUNCTION MOD(A ** 2, B)` = 930000007 vs 930000008). Nothing to do here until the owner's `**` decision. |
    | **PB33** | open (NEW, batch 5) | The same asymmetry one register over: `TestNumvalC` applies the 31-digit native cap and `NumvalC` does not — the validating twin fixed, the value-producing one not. Independent of PB32's blocked half; workable now. |
-   | **PB38** | open (NEW 2026-08-03) | Under a STANDARD mode a FLOAT argument still demotes the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires. ⛔ **Answer it with ONE carrier selector every renderer consults, not a mode test bolted onto `RenderNum`** — that would be the sixth individual fix of this shape. |
+   | **PB38** | ✅ LANDED 2026-08-04 | The mode now beats the float branch inside the ONE landing PB32 built (`IntrinsicRenderer.Landed`), so no separate selector and no Dec-carrier body were needed. ⛔ The half that would have been missed: `AnyRealArgument` had to be asked of the **LANDED** operand — reading the raw one leaves the dispatch on the binary64 body while the landing silently does nothing. Golden pins the whole `AlignedArgs` family. |
    | **PB28** | open, BLOCKED on PB18 | §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one — `0 ** 0` → 1 and `-2 ** 0.5` → 0, neither raising SIZE ERROR (both re-verified 2026-08-03), and `CobolDec.Pow` already carries the correct half. Same two lines as PB18. |
    | **PB29** | ⚙ detector LANDED; adjudication is an OWNER DECISION | See handoff items 0 and 3. |
    | **PB18** | open, VERIFIED not started | Every claim re-verified (citations, repro, code, the shape to copy). ⛔ Its recipe omits SCALE EXPLOSION: exact `Int128` power is easy only for a scale-0 base. **Decide EC-SIZE-EXPONENTIATION vs the documented double fallback in `COBOLNET_NUMERIC_DESIGN.md` FIRST** — it is a design decision, not a code edit. Fixes with PB28 (same two lines). |

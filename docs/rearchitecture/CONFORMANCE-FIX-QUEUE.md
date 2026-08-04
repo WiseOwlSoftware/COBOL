@@ -840,7 +840,7 @@ below index it).
 > `record_verdicts.py` pass and add the determination to `docs/CONFORMANCE.md`'s locale non-support list, so the
 > doc and the inventory agree.
 
-### PB38 · [MAJOR] · numerics · ⛔ OPEN (NEW 2026-08-03, from PB32/PB14's landing) — under a STANDARD mode a FLOAT argument demotes the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires
+### PB38 · [MAJOR] · numerics · ✅ LANDED 2026-08-04 — under a STANDARD mode a FLOAT argument demoted the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires
 > **The one renderer that does not test the arithmetic mode before its float branch.** `IntrinsicRenderer.RenderNum`
 > routes on `AnyRealArgument(ic)` with NO mode guard, while `NumericRenderer.CombineCore`, `NumericRenderer.Power`
 > and `ConditionRenderer` all test `StandardDecimal` FIRST — the ordering `COBOLNET_NUMERIC_DESIGN.md` D3 states
@@ -862,6 +862,25 @@ below index it).
 > selector, and whether the exact/Dec/real bodies then unify generically over the carrier (`Int128`, `double`,
 > `CobolDec`) so a rule cannot be written twice at all, is the design question to settle in
 > `COBOLNET_NUMERIC_DESIGN.md` before code.
+>
+> ✅ **LANDED 2026-08-04, AND IT NEEDED NEITHER A NEW SELECTOR NOR A DEC-CARRIER BODY** — which is why the
+> warning above about "the sixth individual fix" was still the right instinct and the estimate under it was
+> wrong. The landing built for PB32/PB14 (`IntrinsicRenderer.Landed`, the ONE SDIDI → exact-carrier conversion at
+> `Arg`) already WAS the place the mode belongs: a float operand under a standard mode now converts in through
+> `NumericRenderer.DecOperand` — the compiler's own §8.8.1.5.1 conversion, the one `CombineCore` and `Power`
+> already use — and then lands by the identical route a `Dec` operand takes. **One landing, not a second
+> mechanism beside the first**, and the exact `Int128` family evaluates the EAE as §15.4.1 r1 requires.
+> ⛔ **THE SECOND HALF IS THE ONE THAT WOULD HAVE BEEN MISSED:** `AnyRealArgument` had to be asked of the
+> **LANDED** operand rather than the raw one. Reading the raw operand there would have left the dispatch routing
+> to the binary64 body while the landing silently did nothing — the fix present, the defect intact, the build
+> green. The dispatch and the landing must ask the same question of the same value.
+> **MEASURED, before → after:** `FUNCTION MEDIAN(H1 H2 H3 F1 F1)` 100000000000000004.76 → **100000000000000001**;
+> `FUNCTION MAX(H1 H2 H3 F1)` 100000000000000004.76 → **100000000000000003**. The all-fixed control was exact
+> throughout, in the same program and mode, which is the attribution: the error was injected by the ROUTE.
+> **Golden:** `2023/pb38_standard_mode_beats_float_argument` — and it pins the WHOLE `AlignedArgs` family
+> (MEDIAN · MAX · MIN · RANGE · MIDRANGE · ORD-MAX · ORD-MIN) plus the all-fixed control and a non-collapse
+> relation, because the route is shared and a golden over three of eight functions leaves five arms free to
+> regress on the exact line this changed.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in
