@@ -27,10 +27,10 @@
   "single_list_ordinals": 350,
   "multi_sublist_clauses": 11,
   "multi_sublist_ordinals": 110,
-  "admitted_clauses": 7,
-  "admitted_ordinals": 43,
-  "pending_clauses": 93,
-  "pending_ordinals": 417
+  "admitted_clauses": 15,
+  "admitted_ordinals": 116,
+  "pending_clauses": 85,
+  "pending_ordinals": 344
  },
  "blocks": {
   "4.2.10": {
@@ -119,7 +119,8 @@
    "lists": 5,
    "longest": 6,
    "disposition": "pending",
-   "shape": "multi-sublist"
+   "shape": "multi-sublist",
+   "why": "NOT ADJUDICATED 2026-08-04, and the reason is a MECHANISM LIMIT rather than doubt about normativity. All five sub-lists are normative, but they are NOT ALL THE SAME KIND: 'a given user-defined word may be used as only one type ... with the following exceptions' and 'Externalized names shall be referenced in a source element only: ...' constrain where words may be WRITTEN (SR per SS5.3.2), while 'The following user-defined words shall be externalized to the operating environment' and the INVOKE/CALL naming-convention lists state effect and meaning (GR per SS5.3.3). This manifest carries ONE `kind` per CLAUSE, so admitting it as either kind would mis-type half its rules. Admitting it needs per-SUBLIST kinds - a manifest and extractor change, not a judgement call. It is the first clause of the 100 to need one, and there will be others."
   },
   "8.3.2.4.2": {
    "title": "Required words",
@@ -536,8 +537,10 @@
    "ordinals": 6,
    "lists": 2,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: 'If the invalid key condition exists after the execution of the input-output operation ..., the following actions occur:'"
   },
   "9.1.15": {
    "title": "Sharing mode",
@@ -568,16 +571,20 @@
    "ordinals": 23,
    "lists": 5,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: 'Method resolution proceeds as follows:' - resolution order and exact-match criteria."
   },
   "9.3.8.2.3": {
    "title": "Conformance between interfaces",
    "ordinals": 8,
    "lists": 2,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: 'interface-1 conforms to interface-2 if and only if ...' - defines what conformance MEANS."
   },
   "10.3": {
    "title": "Source units",
@@ -624,8 +631,10 @@
    "ordinals": 10,
    "lists": 2,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: 'Static data is placed in the initial state:' / 'the following occurs in the order specified:'."
   },
   "14.6.3": {
    "title": "Explicit and implicit transfers of control",
@@ -728,8 +737,10 @@
    "ordinals": 6,
    "lists": 2,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: 'When an exception object is raised, the following occurs:'."
   },
   "14.6.13.2": {
    "title": "Incompatible data",
@@ -786,24 +797,30 @@
    "ordinals": 6,
    "lists": 2,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: '... the conformance rules are the following:' for elementary items passed BY REFERENCE."
   },
   "14.8.2.3.3": {
    "title": "Elementary items passed by content or by value",
    "ordinals": 4,
    "lists": 2,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: '... the conformance rules are the following:' for items passed BY CONTENT or BY VALUE."
   },
   "14.8.3.3": {
    "title": "Elementary items",
    "ordinals": 10,
    "lists": 3,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29; the multi-sublist slice, all eleven read). Kind GR per SS5.3.3 - 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (cite.py --check OK) - and NOT SR, because SS5.3.2 scopes syntax rules to 'the order in which words or elements may be WRITTEN' (--check OK) and this clause states execution semantics. Lead-in: '... the following rules apply' for returning-item and sending/receiving operand conformance."
   },
   "15.1": {
    "title": "General",

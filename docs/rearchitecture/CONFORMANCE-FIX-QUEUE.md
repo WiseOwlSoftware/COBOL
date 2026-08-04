@@ -903,6 +903,30 @@ below index it).
 > relation, because the route is shared and a golden over three of eight functions leaves five arms free to
 > regress on the exact line this changed.
 
+### PB39 · [MAJOR] · process/traceability · ⛔ OPEN (NEW 2026-08-04) — 326 catalog rule-ids do not match the standard's own rule numbering, because a NESTED list mis-segments the top-level one
+
+> **Found while admitting §9.3.8.2.3 (PB29's multi-sublist slice): the manifest predicted 8 rules and the
+> extractor harvested 12.** The clause's raw ordinal sequence is `1,2,3,4,5, 1,2,3, 6,7,8,9` — nine top-level
+> rules with a THREE-ITEM NESTED LIST inside rule 5's item c), which the transcription flattens onto column 0.
+> `extract_rule_catalog.py` opens a new sub-list on the backwards jump (correct) and then **never returns to the
+> parent**, so top-level rules 6–9 are filed as `GR-9.3.8.2.3-L2.6 … -L2.9` instead of `-6 … -9`.
+>
+> ⛔ **THIS IS PRE-EXISTING AND WIDESPREAD — 40 sub-lists, 326 rules, 8% of the catalog.** The signature is a
+> sub-list whose ordinals are not contiguous-from-1. Worst cases: `SR §12.3.7.3 L7: [1,2,3,4,5, 18…32]` (fifteen
+> top-level rules mis-filed), `GR §14.9.10.4 L2: [2, 8…21]`, `GR §12.3.7.4 L3: [2…6, 8…19]`.
+>
+> ⚠ **THE COUNT IS NOT AFFECTED, SO THE DENOMINATOR IS SOUND** — every rule is harvested exactly once and 3,981
+> is right. What is wrong is the rule's IDENTITY: `SR-12.3.7.3-L7.18` *is* "§12.3.7.3 syntax rule 18", and nobody
+> reading the standard would guess that id. For a project whose deliverable is spec↔code traceability, an id that
+> does not match the standard's own numbering is the defect, not a cosmetic one.
+>
+> **THE FIX** is a parent stack rather than a counter: on an ordinal that exceeds the current sub-list's last but
+> continues the PARENT's run, pop back to the parent instead of extending the sub-list. ⚠ **It renumbers 326 ids,
+> so it needs a migration** — but the exposure is measured and tiny: **only 2 adjudicated rows** use a
+> mis-segmented id, `AR-15.68.3-L3.6` and `AR-15.68.3-L3.7`, which are §15.68.3 rules 6 and 7 — the NUMVAL-C
+> digit caps PB33/PB34 landed the same day. Everything else is an untouched GAP row that the next
+> `build_inventory` run would simply re-key.
+
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in
 > every intrinsic argument position (§13.10.4 GR1) · no COBOL word may contain an UNDERSCORE though the standard

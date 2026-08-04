@@ -188,9 +188,8 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      probe, and `LocaleDispositionTests` already covered it. Only the inventory and the *justification* were
      missing, which is why this closed 8 rows without a line of compiler change.
    · **THE DENOMINATOR — adjudicate all 100 unharvested clauses as ONE BATCH and admit the normative ones.**
-     ⚙ **STARTED: 7 clauses ADMITTED (43 rules), 93 clauses / 417 ordinals remain.** §8.8.1's five (21 GR),
-     plus **§15.4.1 (6 RV)** and **§14.7.5 (16 GR)**. The denominator is now **3,904** (was 3,861) and §11
-     **A3 is UNBLOCKED** — it can no longer audit the
+     ⚙ **STARTED: 15 clauses ADMITTED (120 rules), 85 clauses / 344 ordinals remain.** The whole MULTI-SUBLIST
+     slice is done except §8.3.2.2. The denominator is now **3,981** (was 3,861) and §11 **A3 is UNBLOCKED** — it can no longer audit the
      intermediate-results model against a catalog omitting §8.8.1. The MECHANISM is data-driven: a clause is
      admitted by setting `disposition: "rules"` + `kind` in `spec-unharvested-rule-blocks.json`, never by adding
      its prose title to `KINDS` (that would be the hand-maintained list this project keeps deleting).
@@ -253,7 +252,13 @@ the single origin of every numeric argument. Measure the WHOLE population after 
    and §8.8.1.2 is titled "Native, standard-binary, and standard-decimal arithmetic". **A guard keyed on what a
    block is CALLED can never find a block called something else.** Reach for a content key next time.
    ⚙ **The owner decided; 7 clauses are ADMITTED, the denominator is 3,904 and §11 A3 is UNBLOCKED.**
-   93 clauses / 417 ordinals remain `pending` — the rest of the batch.
+   85 clauses / 344 ordinals remain `pending` — the rest of the batch, now all SINGLE-list except §8.3.2.2.
+   ⚠ **§8.3.2.2 IS PENDING FOR A MECHANISM REASON, NOT DOUBT:** its five sub-lists are normative but NOT ALL THE
+   SAME KIND (two constrain where words may be WRITTEN ⇒ SR; two state effect ⇒ GR), and the manifest carries ONE
+   `kind` per CLAUSE. Admitting it needs per-SUBLIST kinds — a manifest + extractor change. First of the 100 to
+   need one; there will be others.
+   ⛔ **AND ADMITTING §9.3.8.2.3 EXPOSED PB39** — 326 catalog rule-ids (8%) do not match the standard's own
+   numbering, because a nested list mis-segments the top-level run. The COUNT is right, the IDENTITY is not.
    ⭐ **AND THE EXTRACTOR NOW REPORTS ZERO PARSE GAPS, for the first time.** The `RV §15.4 (Returned values)` gap
    that §0 carried for months as "PRE-EXISTING and unowned" is EXPLAINED, not suppressed: §15.4's rules live in
    the **§15.4.1** sub-clause, whose prose heading `KINDS` does not recognise — PB29's defect class one level

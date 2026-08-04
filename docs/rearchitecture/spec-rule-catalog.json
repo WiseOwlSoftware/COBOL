@@ -1,13 +1,8 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 3904,
- "blocks": 613,
- "parse_gaps": [
-  {
-   "section": "15.4",
-   "kind": "RV"
-  }
- ],
+ "rule_count": 3981,
+ "blocks": 621,
+ "parse_gaps": [],
  "rules": [
   {
    "id": "SR-6.2.3.2-1",
@@ -4562,6 +4557,375 @@
    "sublist": 1,
    "subject": "Abbreviated combined relation conditions",
    "text": "The effect of using abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition. NOTE When NOT appears in an abbreviated combined relation condition, it could be as a logical operator preceding the explicit subject of relation-condition-1, or it could be as a part of an extended-relational-operator. However, NOT cannot immediately precede an extended-relational operator. The interaction of these rules often lead to results that are not intuitive and therefore it should be avoided. Some examples of such usage with the expanded equivalent expression follow: | Abbreviated combined relation condition | Expanded equivalent | |---|---| | a > b AND NOT < c OR d | ((a > b) AND (a NOT < c)) OR (a NOT < d) | | a NOT EQUAL b OR c | (a NOT EQUAL b) OR (a NOT EQUAL c) | | NOT a = b OR c | (NOT (a = b)) OR (a = c) | | NOT (a GREATER b OR < c) | NOT ((a GREATER b) OR (a < c)) | | NOT (a NOT > b AND c AND NOT d) | NOT (((a NOT > b) AND (a NOT > c)) AND (NOT (a NOT > d))) | | NOT (a NOT > b XOR c AND NOT d) | NOT ((a NOT > b) XOR ((a NOT > c) AND NOT (a NOT > d))) |"
+  },
+  {
+   "id": "GR-9.1.14-1",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "The I-O status of the file connector associated with the statement is set to a value indicating the invalid key condition as described in 9.1.13.5, Invalid key condition with unsuccessful completion, and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist."
+  },
+  {
+   "id": "GR-9.1.14-2",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "If the INVALID KEY phrase is specified in the input-output statement, any applicable exception processing statements are not executed, and control is transferred to the imperative-statement specified in the INVALID KEY phrase. If control is returned from the INVALID KEY phrase, control is then transferred to the end of the input-output statement."
+  },
+  {
+   "id": "GR-9.1.14-3",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed, and control is transferred according to the rules for those statements. If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement."
+  },
+  {
+   "id": "GR-9.1.14-4",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement. If the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified. The I-O status of the file connector associated with the statement is updated and the following actions occur:"
+  },
+  {
+   "id": "GR-9.1.14-L2.1",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Files",
+   "text": "If the I-O status indicates an unsuccessful completion that is not an invalid key condition, control is transferred according to the rules of any applicable exception processing statements associated with an EC-I-O exception condition that was raised. If control is returned from those statements, then control is transferred to the end of the input-output statement."
+  },
+  {
+   "id": "GR-9.1.14-L2.2",
+   "section": "9.1.14",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Files",
+   "text": "If the I-O status indicates a successful completion, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, if control is returned from the NOT INVALID KEY phrase, control is then transferred to the end of the input-output statement."
+  },
+  {
+   "id": "GR-9.3.6-1",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Objects",
+   "text": "if the identified object is a factory object, the method invocation will resolve to a factory method"
+  },
+  {
+   "id": "GR-9.3.6-2",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Objects",
+   "text": "otherwise, the resolution will be to an instance method. Additionally, if an invocation specifies the object using SUPER, the invocation will resolve to a method by using a restricted search, as specified in 8.4.3.8, SELF and SUPER. If an invocation specifies the object using a class name, the factory object of the specified class is used as the object on which the method is invoked, and the method invocation will resolve to a factory method. Method resolution proceeds as follows:"
+  },
+  {
+   "id": "GR-9.3.6-L2.1",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "if a method with the method-name specified in the invocation is defined in the class of the object and that method is an exact match between the method invocation and the method resolution signature as specified below, that method is bound;"
+  },
+  {
+   "id": "GR-9.3.6-L2.2",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "otherwise, each inherited class upward in the hierarchy of inheritance is inspected in the order in which the hierarchy is specified in the INHERITS clause until either a method with the method-name specified in the invocation is defined in the inspected class and is an exact match, or all inherited classes have been inspected without finding such a method. If a method is found, that method is bound;"
+  },
+  {
+   "id": "GR-9.3.6-L2.3",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "otherwise, if one or more methods with the method-name specified in the invocation is defined in the class of the object and one or more of those methods match between the method invocation and the method resolution signature, that method is bound as specified below;"
+  },
+  {
+   "id": "GR-9.3.6-L2.4",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "otherwise, each inherited class upward in the hierarchy of inheritance is inspected in the order in which the hierarchy is specified in the INHERITS clause until either one or more methods with the method-name specified in the invocation is defined in the inspected class and one or more of those methods match between the method invocation and the method resolution signature, or all inherited classes have been inspected without finding such a method. If a method is found, that method is bound;"
+  },
+  {
+   "id": "GR-9.3.6-L2.5",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "otherwise, if any invocation parameter is a literal, steps 3 and 4 are repeated, ignoring the requirements specified in 4c, 4d, 5c and 5d below that the SET and MOVE statements not cause truncation;"
+  },
+  {
+   "id": "GR-9.3.6-L2.6",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 2,
+   "subject": "Objects",
+   "text": "otherwise, the EC-OO-METHOD exception condition is set to exist. For a method invocation to match the method resolution signature of a method, the following shall be true:"
+  },
+  {
+   "id": "GR-9.3.6-L3.1",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 3,
+   "subject": "Objects",
+   "text": "The number of invocation parameters shall be equal to the number of parameters defined in the invoked method. If the number of parameters in the invocation is less than the number of parameters in the invoked method, and all parameters to the right of the parameter in the position that corresponds to the number of parameters in the invocation are described with the OPTIONAL phrase, the invocation and the invoked method shall be considered to have an equal number of parameters. If there is a returning item in the invocation there shall be a returning item in the invoked method, if there is no returning item in the invocation there shall be no returning item in the invoked method."
+  },
+  {
+   "id": "GR-9.3.6-L3.2",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 3,
+   "subject": "Objects",
+   "text": "The same calling convention shall be in effect for the invocation as is in effect for the invoked method."
+  },
+  {
+   "id": "GR-9.3.6-L3.3",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 3,
+   "subject": "Objects",
+   "text": "For each parameter of the invocation that is passed by reference there shall be a corresponding parameter in the invoked method that: a) is specified with the BY REFERENCE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly. c) is the same class and category d) if the parameter in the invoked method is an object reference, the corresponding parameter shall follow these rules: 1\\. If the parameter in the invoked method is a universal object reference, the corresponding parameter in the invocation is a universal object reference. 2\\. If the parameter in the invoked method is described with an interface-name, the corresponding parameter is described with the same interface- name. 3\\. If the parameter in the invoked method is described with an object-class-name, the corresponding parameter in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions."
+  },
+  {
+   "id": "GR-9.3.6-L3.4",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 3,
+   "subject": "Objects",
+   "text": "If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation."
+  },
+  {
+   "id": "GR-9.3.6-L3.5",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 3,
+   "subject": "Objects",
+   "text": "If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation. e) If the parameter in the invoked method is not an object reference, the corresponding parameter has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints:"
+  },
+  {
+   "id": "GR-9.3.6-L4.1",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "Currency symbols match if and only if the corresponding currency strings are the same."
+  },
+  {
+   "id": "GR-9.3.6-L4.2",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces."
+  },
+  {
+   "id": "GR-9.3.6-L4.3",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "Locale specifications in the PICTURE clauses match if and only if: a. both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and b. both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
+  },
+  {
+   "id": "GR-9.3.6-L4.4",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "For each parameter that is passed by content there shall be a corresponding parameter in the invoked method that: a) is specified with the BY REFERENCE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly. c) if the parameter in the invoked method is class index, object, or pointer, may be a receiving data item in a SET statement with the parameter of the invocation as a sending data item. If the sending data item is a literal, the SET statement shall not cause truncation. d) if the parameter in the invoked method is not class index, object, or pointer, may be a receiving data item in a MOVE statement with the parameter of the invocation as a sending data item. If the sending data item is a literal, the MOVE statement shall not cause truncation."
+  },
+  {
+   "id": "GR-9.3.6-L4.5",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that: a) is specified with the BY VALUE phrase b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly. c) if the parameter in the invoked method is class index, object, or pointer, may be a receiving data item in a SET statement with the parameter of the invocation as a sending data item. If the sending data item is a literal, the SET statement shall not cause truncation. d) if the parameter in the invoked method is not class index, object, or pointer, may be a receiving data item in a MOVE statement with the parameter of the invocation as a sending data item. If the sending data item is a literal, the MOVE statement shall not cause truncation."
+  },
+  {
+   "id": "GR-9.3.6-L4.6",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "If the invocation specifies a returning item and the returning item is usage OBJECT REFERENCE, POINTER or INDEX, there shall be a corresponding specification in the invoked method that may be a sending item in a SET statement with the returning item as the receiving item."
+  },
+  {
+   "id": "GR-9.3.6-L4.7",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 4,
+   "subject": "Objects",
+   "text": "If the invocation specifies a returning item and the returning item is not usage OBJECT REFERENCE, POINTER or INDEX, there shall be a corresponding specification in the invoked method that may be a sending item in a MOVE statement with the returning item as the receiving item. Additionally, for each parameter that is passed by value or by content, and for the returning item, the following criteria are considered an exact match:"
+  },
+  {
+   "id": "GR-9.3.6-L5.1",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 5,
+   "subject": "Objects",
+   "text": "the parameter or returning item in the invocation and the corresponding parameter or returning item in the invoked method are the same class and category."
+  },
+  {
+   "id": "GR-9.3.6-L5.2",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 5,
+   "subject": "Objects",
+   "text": "if the parameter or returning item in the invoked method is an object reference, the corresponding parameter or returning item shall follow these rules: a) If the parameter or returning item in the invoked method is a universal object reference, the corresponding parameter or returning item in the invocation is a universal object reference. b) If the parameter or returning item in the invoked method is described with an interface-name, the corresponding parameter or returning item in is described with the same interface- name. c) If the parameter or returning item in the invoked method is described with an object-class-name, the corresponding parameter or returning item in the invocation is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions. d) If the parameter in the invoked method is described with the ACTIVE-CLASS phrase and FACTORY phrase is not specified, the corresponding parameter shall evaluate to an object reference of the same class specified in the invocation. e) If the parameter in the invoked method is described with the ACTIVE-CLASS and FACTORY phrases, the corresponding parameter shall evaluate to an object reference to the factory of the class specified in the invocation."
+  },
+  {
+   "id": "GR-9.3.6-L5.3",
+   "section": "9.3.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 5,
+   "subject": "Objects",
+   "text": "if the parameter or returning item in the invoked method is not an object reference, the corresponding parameter or returning item has the same ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following additional constraints: a) Currency symbols match if and only if the corresponding currency strings are the same. b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. c) Locale specifications in the PICTURE clauses match if and only if: 1\\. both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and 2\\. both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph. For the purpose of determining an exact match, an alphanumeric, boolean, or national literal is considered to be equivalent to a data item with no PICTURE clause and a VALUE clause that specifies that literal. If the literal is a numeric literal: the implied usage is DISPLAY; the implied picture clause consists of the same number of picture symbol characters '9' as there are digits in the literal; the presence or absence of signs is the same; the decimal separator is the same; and the decimal separator is in the same position within the picture character-string as in the literal. All parameters passed by reference are exact matches. A method invocation is considered to match exactly if all parameters match exactly. If two or more methods in a class match, preference is given to the method that has the greatest number of parameters that match exactly. If the number of parameters that match exactly are equal, preference is given first to the methods with the least number of exact matches due to omitted optional parameters, second to those methods where the returning item is an exact match, and then to the first method defined in the class or interface."
+  },
+  {
+   "id": "GR-9.3.8.2.3-1",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Conformance for object orientation",
+   "text": "The number of parameters are the same, with consistent BY REFERENCE and BY VALUE specifications."
+  },
+  {
+   "id": "GR-9.3.8.2.3-2",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Conformance for object orientation",
+   "text": "If the formal parameter of the method in interface-2 is an object reference, the corresponding parameter in interface-1 is an object reference following these rules: a) If the parameter in interface-2 is a universal object reference, the corresponding parameter in interface-1 is a universal object reference. b) If the parameter in interface-2 is described with an interface-name, the corresponding parameter in interface-1 is described with the same interface- name. c) If the parameter in interface-2 is described with an object-class-name, the corresponding parameter in interface-1 is described with the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both interfaces. d) If the parameter in interface-2 is described with the ACTIVE-CLASS phrase, the corresponding parameter in interface-1 is described with the ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same in both interfaces."
+  },
+  {
+   "id": "GR-9.3.8.2.3-3",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Conformance for object orientation",
+   "text": "If the formal parameter of the method in interface-2 is not an object reference, the corresponding formal parameter in interface-1 has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions: a) Currency symbols match if and only if the corresponding currency strings are the same. b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Additionally, locale specifications in the PICTURE clauses match if and only if: — both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and — both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with the locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
+  },
+  {
+   "id": "GR-9.3.8.2.3-4",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Conformance for object orientation",
+   "text": "The presence or absence of the procedure division RETURNING phrase is the same."
+  },
+  {
+   "id": "GR-9.3.8.2.3-5",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Conformance for object orientation",
+   "text": "If the returning item of the method of interface-2 is an object reference, the corresponding returning item in interface-1 is an object reference following these rules: a) If the returning item in interface-2 is a universal object reference, the corresponding returning item in interface-1 is an object reference. b) If the returning item in interface-2 is described with an interface-name that identifies the interface int-r, the corresponding returning item in interface-1 is either of the following: 1\\. an object reference described with an interface-name that identifies int-r or an interface described with an INHERITS clause that references int-r, 2\\. an object reference described with an object-class-name, subject to the following rules: a. if described with the FACTORY phrase, the factory object of the specified class shall be described with an IMPLEMENTS clause that references int-r, b. if described without the FACTORY phrase, the instance objects of the specified class shall be described with an IMPLEMENTS clause that references int-r. c) If the returning item in interface-2 is described with an object-class-name, the corresponding returning item in interface-1 is an object reference, subject to the following rules:"
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.1",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "If the returning item in interface-2 is described with the ONLY phrase, the returning item in interface-1 shall be described with the ONLY phrase and the same object-class-name."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.2",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "If the returning item in interface-2 is described without the ONLY phrase, the returning item in interface-1 shall be described with the same object-class-name or a subclass of that object-class-name."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.3",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "The presence or absence of the FACTORY phrase shall be the same. d) If the returning item in interface-2 is described with the ACTIVE-CLASS phrase, the corresponding returning item in interface-1 is described with the ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same. If the description of the returning item of a method in interface-1 directly or indirectly references interface-2, the description of the returning item of the corresponding method in interface-2 shall not directly or indirectly reference interface-1."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.6",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "If the returning item of the method of interface-2 is not an object reference, the corresponding returning item has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions: a) Currency symbols match if and only if the corresponding currency strings are the same. b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these interfaces. Additionally, locale specifications in the PICTURE clauses match if and only if: — both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and — both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with a locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.7",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "If either of the corresponding formal parameters or returning items in interface-1 or interface-2 is a strongly-typed group item, both are of the same type."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.8",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "The presence or absence of the OPTIONAL phrase is the same for corresponding parameters."
+  },
+  {
+   "id": "GR-9.3.8.2.3-L2.9",
+   "section": "9.3.8.2.3",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 2,
+   "subject": "Conformance for object orientation",
+   "text": "If the RAISING phrase is specified in the procedure division header of the method in interface-1, the corresponding method in interface-2 specifies the RAISING phrase following these rules: a) If an exception-name is specified in the RAISING phrase in interface-1, the corresponding RAISING phrase in interface-2 specifies the same exception-name. b) If an object-class-name is specified in the RAISING phrase in interface-1, the corresponding RAISING phrase in interface-2 specifies one of the following: — the same object-class-name or the name of a superclass of the class identified by that object-class-name, including the FACTORY phrase if and only if the RAISING phrase in interface-1 specifies the FACTORY phrase, — the name of an interface implemented by the factory object of that class, if the RAISING phrase in interface-1 specifies the FACTORY phrase, — the name of an interface implemented by the instance object of that class, if the RAISING phrase in interface-1 does not specify the FACTORY phrase. c) If an interface-name is specified in the RAISING phrase in interface-1, the corresponding RAISING phrase in interface-2 specifies the same interface-name or the name of an interface inherited by that interface. An alphanumeric group item that is not strongly typed is, for the purpose of conformance checking, considered to be equivalent to an elementary alphanumeric data item of the same length. Variable-length groups conform if they are compatible groups, and all variable-length data items correspond to variable-length data items as specified in 8.5.1.12, Variable-length groups."
   },
   {
    "id": "SR-10.6.2-1",
@@ -16399,6 +16763,150 @@
    "text": "When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products. NOTE 2 The details of these restrictions and mechanisms might include parameter matching, representation of a data type, return of a value, and omission of parameters."
   },
   {
+   "id": "GR-14.6.2.3.2-1",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Initial and last-used states of data",
+   "text": "The first time the function, method, or program in which it is described is activated in a run unit."
+  },
+  {
+   "id": "GR-14.6.2.3.2-2",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Initial and last-used states of data",
+   "text": "The first time the program in which it is described is activated after the execution of an activating statement referencing a program that possesses the initial attribute and directly or indirectly contains the program."
+  },
+  {
+   "id": "GR-14.6.2.3.2-3",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Initial and last-used states of data",
+   "text": "The first time the program in which it is described is activated after the execution of a CANCEL statement referencing the program or CANCEL statement referencing a program that directly or indirectly contains the program. When data in a function, method, or program is placed in the initial state, the following occurs in the order specified:"
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.1",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "If the INITIALIZE clause is specified in the OPTIONS paragraph, the storage allocated for the implied or associated sections is set to the specified-fill-character."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.2",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63, VALUE clause."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.3",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "The function, method, or program's internal file connectors are initialized by setting them to not be in any open mode."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.4",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "The attributes of screen items are set as specified in the screen description entry."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.5",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "The address of each based item is set to null."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.6",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "For each dynamic-capacity table, except where the table is defined by an elementary entry with a VALUE clause, the capacity of the table is set to the minimum capacity specified in the corresponding OCCURS clause. If the INITIALIZED keyword is present in the OCCURS clause, all the occurrences, if any, of the table are then initialized."
+  },
+  {
+   "id": "GR-14.6.2.3.2-L2.7",
+   "section": "14.6.2.3.2",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 2,
+   "subject": "Initial and last-used states of data",
+   "text": "The length of each dynamic-length elementary item that is specified without a VALUE clause is set to zero. Before data is placed in the initial state, the initial alphanumeric and national program collating sequences are determined as specified in 12.3.6, OBJECT-COMPUTER paragraph."
+  },
+  {
+   "id": "GR-14.6.13.1.5-1",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "The predefined object reference EXCEPTION-OBJECT is set to the content of the object reference specified in the RAISE statement or the RAISING phrase of the EXIT or GOBACK statement that caused the exception object to be raised."
+  },
+  {
+   "id": "GR-14.6.13.1.5-2",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "The last exception status is set to indicate that an exception object has been raised. If an exception object is raised by a RAISE statement, the associated declarative is executed. If execution of the declarative completes normally, execution continues with the statement following the RAISE statement. If there is no associated declarative, execution continues as specified in the RAISE statement. If an exception object is raised by an EXIT or GOBACK statement, one of the following occurs:"
+  },
+  {
+   "id": "GR-14.6.13.1.5-L2.1",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Exception conditions",
+   "text": "If the exception object is neither of the following: a) an object whose class is specified or whose class is a subclass of a class specified in the RAISING phrase of the procedure division header of the source element containing this EXIT or GOBACK statement and the presence or absence of the FACTORY phrase is the same in the description of the object reference raised by the EXIT or GOBACK statement as in the RAISING phrase of the procedure division header of the source element that contains this EXIT statement, or b) an object that implements an interface specified in the RAISING phrase of the procedure division header of the source element containing this EXIT or GOBACK statement; execution of the EXIT or GOBACK statement is as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase of the EXIT or GOBACK statement instead of an exception object and processing continues as specified in 14.6.13.1.3, Fatal exception conditions."
+  },
+  {
+   "id": "GR-14.6.13.1.5-L2.2",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Exception conditions",
+   "text": "Otherwise, if a USE statement in the activating runtime element specifies an applicable class or interface, the associated declarative is executed. If execution of the declarative completes normally, execution continues as specified in the activating statement for normal execution."
+  },
+  {
+   "id": "GR-14.6.13.1.5-L2.3",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Exception conditions",
+   "text": "Otherwise, if a PROPAGATE ON directive is in effect for the activating runtime element, the exception is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were specified in this activating runtime element. However, if no applicable class or interface is specified in the RAISING phrase of the procedure division header in the activating element, the RAISING phrase is EXCEPTION EC-OO-EXCEPTION, instead of LAST EXCEPTION."
+  },
+  {
+   "id": "GR-14.6.13.1.5-L2.4",
+   "section": "14.6.13.1.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 2,
+   "subject": "Exception conditions",
+   "text": "Otherwise, execution of the EXIT or GOBACK statement in the activated element is as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase, instead of an exception object."
+  },
+  {
    "id": "GR-14.7.4.3-1",
    "section": "14.7.4.3",
    "kind": "GR",
@@ -16667,6 +17175,186 @@
    "sublist": 1,
    "subject": "RETRY phrase",
    "text": "If the I/O operation is unsuccessful on the first attempt because of a file sharing conflict condition or a record operation conflict condition, the following apply: a) If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero, the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13, I-O status, and execution proceeds as indicated for unsuccessful execution in the applicable statement; otherwise, b) The mass storage control system attempts to complete the input-output operation as specified in General rules 1, 2, or 3. If the mass storage control system permits the requested access on one of these attempts, the statement is successful and the results are as if the file sharing or record operation conflict had never occurred. Otherwise, the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13, I-O status, and execution proceeds as indicated for unsuccessful execution in the applicable statement."
+  },
+  {
+   "id": "GR-14.8.2.3.2-1",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "If either the argument or the formal parameter is a universal object reference, the corresponding formal parameter or argument shall be a universal object reference."
+  },
+  {
+   "id": "GR-14.8.2.3.2-2",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "If either the argument or the formal parameter is described with an interface-name, the corresponding formal parameter or argument shall be described with the same interface-name."
+  },
+  {
+   "id": "GR-14.8.2.3.2-3",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "If either the argument or the formal parameter is described with an object-class-name, the corresponding formal parameter or argument shall be described with the same object-class-name, and the FACTORY and ONLY phrases shall be the same."
+  },
+  {
+   "id": "GR-14.8.2.3.2-4",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "If the formal parameter is described with the ACTIVE-CLASS phrase, one of the following conditions shall be true: a) The argument shall be an object reference described with the ACTIVE-CLASS phrase, where the presence or absence of the FACTORY phrase is the same as in the formal parameter, and the method to be activated shall be invoked with the predefined object references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase. b) The argument shall be an object reference described with an object-class-name and the ONLY phrase, where the presence or absence of the FACTORY phrase is the same as in the formal parameter, and the method to be activated shall be invoked with that object-class-name or with an object reference described with that object-class-name and the ONLY phrase. If either the argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding items shall be of the same category. If either is a restricted pointer, both shall be restricted and of the same type. If the formal parameter or the corresponding argument is of class object-reference, both shall be of class object-reference. If neither the formal parameter nor the argument is of class message-tag, object, or pointer, the conformance rules are the following:"
+  },
+  {
+   "id": "GR-14.8.2.3.2-L2.1",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Elementary items",
+   "text": "If the activated element is a program for which there is no program-specifier in the REPOSITORY paragraph of the activating element and there is no NESTED phrase specified on the CALL statement, the formal parameter shall be of the same length as the corresponding argument."
+  },
+  {
+   "id": "GR-14.8.2.3.2-L2.2",
+   "section": "14.8.2.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Elementary items",
+   "text": "If the activated element is one of the following: — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement — a method — a function then the definition of the formal parameter and the definition of the argument shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions: a) Currency symbols match if and only if the corresponding currency strings are the same. b) Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them. Additionally: a) Locale specifications in the PICTURE clauses match if and only if: — both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and — both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with a locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph. b) A bit group item matches an elementary bit data item described with the same number of boolean positions. c) A national group item matches an elementary data item of usage national described with the same number of national character positions. d) If the formal parameter is described with the ANY LENGTH clause, its length is considered to match the length of the corresponding argument. e) If the argument is described with the ANY LENGTH clause, the corresponding formal parameter shall be described with the ANY LENGTH clause."
+  },
+  {
+   "id": "GR-14.8.2.3.3-1",
+   "section": "14.8.2.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "The method to be activated shall be invoked with the predefined object references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase, and a SET statement shall be valid in the activating unit with the argument as the sending operand and an object reference described with the ACTIVE-CLASS phrase, where the presence or absence of the FACTORY phrase is the same as in the formal parameter, as the receiving operand."
+  },
+  {
+   "id": "GR-14.8.2.3.3-2",
+   "section": "14.8.2.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Elementary items",
+   "text": "The method to be activated shall be invoked with an object-class-name or with an object reference described with an object-class-name and the ONLY phrase, and a SET statement shall be valid in the activating unit with the argument as the sending operand and an object reference described with that object-class-name and the ONLY phrase, where the presence or absence of the FACTORY phrase is the same as in the formal parameter, as the receiving operand. If the formal parameter is of class pointer or an object reference described without the ACTIVE-CLASS phrase, the conformance rules shall be the same as if a SET statement were performed in the activating runtime element with the argument as the sending operand and the corresponding formal parameter as the receiving operand. If the formal parameter is not of class object or pointer, the conformance rules are the following:"
+  },
+  {
+   "id": "GR-14.8.2.3.3-L2.1",
+   "section": "14.8.2.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Elementary items",
+   "text": "If the activated element is a program for which there is no program-specifier in the REPOSITORY paragraph of the activating element and there is no NESTED phrase specified on the CALL statement, the formal parameter shall be of the same length as the corresponding argument."
+  },
+  {
+   "id": "GR-14.8.2.3.3-L2.2",
+   "section": "14.8.2.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Elementary items",
+   "text": "If the activated element is one of the following: — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement — a method — a function then the conformance rules depend on the type of the formal parameter as specified in the following rules: a) If the formal parameter is numeric, the conformance rules are the same as for a COMPUTE statement with the argument as the sending operand and the corresponding formal parameter as the receiving operand. b) If the formal parameter is an index data item, the conformance rules are the same as for a SET statement with the argument as the sending operand and the corresponding formal parameter as the receiving operand. c) If the formal parameter is described with the ANY LENGTH clause, its length is considered to match the length of the corresponding argument. d) Otherwise, the conformance rules are the same as for a MOVE statement with the argument as the sending operand and the corresponding formal parameter as the receiving operand."
+  },
+  {
+   "id": "GR-14.8.3.3-1",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Returning items",
+   "text": "If the returning item in the activated element is not described with an ACTIVE-CLASS phrase, the conformance rules are the same as if a SET statement were performed in the activated runtime element with the returning item in the activated element as the sending operand and the corresponding returning item in the activating element as the receiving operand."
+  },
+  {
+   "id": "GR-14.8.3.3-2",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Returning items",
+   "text": "If the returning item in the activated element is described with an ACTIVE-CLASS phrase, the conformance rules are the same as the conformance rules for a SET statement specified in the activating element with the following operands: a) A receiving operand that is the returning item in the activating element. b) A sending operand that is an object reference described as follows: 1\\. If the activated method is invoked with an object-class-name, the sending object reference is described with that same object-class-name and an ONLY phrase. 2\\. If the activated method is invoked with the predefined object reference SELF or SUPER, the sending object reference is described with an ACTIVE-CLASS phrase. 3\\. If the activated method is invoked with an object reference that is described with an interface-name, the sending object reference is a universal object reference. 4\\. If the activated method is invoked with any other object reference, the sending operand has the same description as that object reference. If the sending operand defined above is described with an object-class-name or an ACTIVE-CLASS phrase, the presence or absence of the FACTORY phrase is the same as in the returning item of the activated element. If the sending operand is not an object reference, the receiving operand shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses, with the following exceptions:"
+  },
+  {
+   "id": "GR-14.8.3.3-L2.1",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Returning items",
+   "text": "Currency symbols match if and only if the corresponding currency strings are the same."
+  },
+  {
+   "id": "GR-14.8.3.3-L2.2",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Returning items",
+   "text": "Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them."
+  },
+  {
+   "id": "GR-14.8.3.3-L2.3",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Returning items",
+   "text": "Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both the activating and the activated runtime elements or for neither of them. Additionally, if the sending operand is not an object reference:"
+  },
+  {
+   "id": "GR-14.8.3.3-L3.1",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 3,
+   "subject": "Returning items",
+   "text": "Locale specifications in the PICTURE clauses match if and only if: — both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and — both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with a locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph."
+  },
+  {
+   "id": "GR-14.8.3.3-L3.2",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 3,
+   "subject": "Returning items",
+   "text": "A bit group item matches an elementary boolean data item of usage bit described with the same number of boolean positions."
+  },
+  {
+   "id": "GR-14.8.3.3-L3.3",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 3,
+   "subject": "Returning items",
+   "text": "A national group item matches an elementary data item of usage national described with the same number of national character positions."
+  },
+  {
+   "id": "GR-14.8.3.3-L3.4",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 3,
+   "subject": "Returning items",
+   "text": "If the receiving operand is described with the ANY LENGTH clause, the sending operand shall also be described with the ANY LENGTH clause."
+  },
+  {
+   "id": "GR-14.8.3.3-L3.5",
+   "section": "14.8.3.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 3,
+   "subject": "Returning items",
+   "text": "If the sending operand is described with the ANY LENGTH clause, the length of the sending operand is considered to match the length of the receiving operand."
   },
   {
    "id": "SR-14.9.1.3-1",
