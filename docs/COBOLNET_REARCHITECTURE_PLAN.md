@@ -148,10 +148,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ WHERE THE 2026-08-03/04 SESSION ENDED — 9 commits, tree clean, pushed.** In order: PB32's structural half +
+**⚙ WHERE THE 2026-08-03/04 SESSION ENDED — 13 commits, tree clean, pushed.** In order: PB32's structural half +
 PB14 · PB29's detector · a §0 handoff · PB37 answered · PB18 + PB28 (+ PB32's blocked half) · the PB29 triage
-correction · §8.8.1 admitted to the denominator · A3 unblocked · PB38. Live numbers — **run the probe, never
-quote these**: denominator **3,861 → 3,882**, GAP **3,796 → 3,808**, corpus 247 → **251** positive goldens.
+correction · §8.8.1 admitted to the denominator · A3 unblocked · PB38 · a §0 handoff · PB33 + PB34. Live numbers
+— **run the probe, never quote these**: denominator **3,861 → 3,882**, GAP **3,796 → 3,808**, corpus 247 →
+**252** positive goldens.
+**FINAL COMPREHENSIVE GATE on the landed tree: Conformance 4185/4185 · Unit 3639/3639, both 0 failed 0 skipped.**
 ⭐ **THE WHOLE TWO-ARM-DISPATCH FAMILY IS CLOSED** — PB2 · PB13 · PB14 · PB28 · PB32 · PB38, six items, five of
 which were the same sentence. **All three owner decisions were taken and applied.**
 ⚠ **THE GAP WENT UP, AND THAT IS THE MODEL WORKING:** admitting §8.8.1's 21 rules added 21 GAP rows while the
@@ -411,8 +413,11 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
       DATA edit (`disposition: "rules"` + `kind`), never a code edit.
    2. **§11 A3 — the numeric-semantics depth audit — is UNBLOCKED and its worklist exists:** 20 open §8.8.1 GR
       rows (the 21st, GR-8.8.1.2-6, is already CONFORMS). It was blocked precisely on those rows existing.
-   3. **The fix queue below**, now that the two-arm family is closed. PB33 is the natural next one — the same
-      validating-twin-fixed asymmetry (`TestNumvalC` has the 31-digit cap, `NumvalC` does not).
+   3. **The fix queue below**, now that the two-arm family is closed. ⚙ **PB33's digit-cap half + PB34 landed
+      2026-08-04 and were ONE defect measured as three** — all three NUMVAL validators enforced the cap and all
+      three value producers returned an `Int128` saturation artifact while execution continued past a FATAL
+      condition. **PB33's other half (§15.68.3 r1's two general formats) is still open** and is the natural next
+      item; after it, PB12 · PB15 · PB17 · PB23–PB27 · PB30 · PB31 · PB35 · PB36 + the 16-finding residue.
 
    **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
    | item | state | the next action |
