@@ -125,6 +125,13 @@ EXCLUDED_BLOCKS = {
 #: Recognised rule blocks that legitimately yield ZERO numbered rules, so "0 rules" is the correct answer rather
 #: than a parse failure. Same cry-wolf argument as EXCLUDED_BLOCKS.
 KNOWN_EMPTY_BLOCKS = {
+    "15.4": "its numbered rules live in the SUB-CLAUSE §15.4.1 'Numeric and integer functions', whose prose "
+            "heading KINDS does not recognise — so this heading resolves to RV and correctly yields nothing of "
+            "its own. ⛔ THIS WAS AN UNOWNED PARSE GAP FOR MONTHS and the content-keyed scan explained it "
+            "(fix-queue PB29, 2026-08-04): the same defect class as §8.8.1, one level down. §15.4.1 is now "
+            "ADMITTED in spec-unharvested-rule-blocks.json and contributes its 6 RV rules — including r1, 'the "
+            "returned value shall equal the value of the equivalent arithmetic expression', which PB38 and the "
+            "D3 correction both turn on. Declared here rather than left as a warning forever.",
     "13.18.40.6": "the PICTURE precedence rules are UNNUMBERED prose plus Table 10 and Table 11 — the normative "
                   "content IS the two precedence matrices, which have no per-rule ordinal to extract. Typed SR "
                   "by §5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",

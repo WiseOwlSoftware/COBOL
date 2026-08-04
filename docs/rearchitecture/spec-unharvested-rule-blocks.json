@@ -5,12 +5,15 @@
   "MEASURED 2026-08-03 by the content-keyed scan (fix-queue PB29), after PB28 proved two rules of",
   "SS8.8.1.2 are violated by the compiler while absent from the denominator entirely.",
   "",
-  "SHAPE IS THE TRIAGE SIGNAL AND IT WAS ADDED AFTER THE FIRST COUNT MISLED ITS OWN AUTHOR.",
-  "'ordinals' alone reads like a rule count: SS8.3.2.2 'User-defined words' reports 15, which sounds",
-  "like a numbered rule block, but they are FIVE nested sub-lists inside prose each restarting at 1.",
-  "A rule block is normally ONE ascending list, so shape='single-list' is weak evidence FOR admitting",
-  "the clause and 'multi-sublist' weak evidence for a prose enumeration. NEITHER IS PROOF - every",
-  "clause is still adjudicated one at a time.",
+  "SHAPE RECORDS LIST STRUCTURE AND NOTHING MORE. An earlier draft of this file said shape='single-list'",
+  "was weak evidence FOR admitting a clause and 'multi-sublist' weak evidence for a prose enumeration.",
+  "THAT WAS TESTED 2026-08-04 BY READING ALL ELEVEN multi-sublist clauses, AND IT IS FALSE: every one of",
+  "them is normative. SS14.7.5 defines when the size error condition exists; SS15.4.1 r1 is 'the returned",
+  "value shall equal the value of the equivalent arithmetic expression'; SS9.3.6, SS9.3.8.2.3, SS14.8.2.3.2,",
+  "SS14.8.2.3.3, SS14.8.3.3 are conformance rules; SS8.3.2.2 says user-defined words 'shall be externalized'.",
+  "Multiple restarting sub-lists mean the clause states several rules each with its own lead-in sentence -",
+  "which the extractor already represents as L<sublist>.<ordinal> ids. Do NOT use shape as a normativity",
+  "proxy; READ THE CLAUSE. The count is still an upper bound, but expect it to be a HIGH one.",
   "",
   "disposition='pending' means NOT YET ADJUDICATED - a worklist entry, never a decision.",
   "Admitting a clause is a DENOMINATOR change and the denominator defines v1.0 (D13).",
@@ -24,10 +27,10 @@
   "single_list_ordinals": 350,
   "multi_sublist_clauses": 11,
   "multi_sublist_ordinals": 110,
-  "admitted_clauses": 5,
-  "admitted_ordinals": 21,
-  "pending_clauses": 95,
-  "pending_ordinals": 439
+  "admitted_clauses": 7,
+  "admitted_ordinals": 43,
+  "pending_clauses": 93,
+  "pending_ordinals": 417
  },
  "blocks": {
   "4.2.10": {
@@ -741,8 +744,10 @@
    "ordinals": 16,
    "lists": 3,
    "longest": 8,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29). SS14.7.5 DEFINES the size error condition - when it exists, what happens with and without the SIZE ERROR phrase, and which EC-SIZE-* conditions are set. It is load-bearing for this compiler: PB28, PB32's halving boundary and PB33's NUMVAL cap all dispose through it. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - this is execution semantics, not syntax."
   },
   "14.7.6": {
    "title": "CORRESPONDING phrase",
@@ -829,8 +834,10 @@
    "ordinals": 6,
    "lists": 2,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "multi-sublist"
+   "disposition": "rules",
+   "shape": "multi-sublist",
+   "kind": "RV",
+   "why": "ADMITTED 2026-08-04 (fix-queue PB29). SS15.4.1 states the RETURNED VALUE rules for numeric and integer functions, including r1 'the returned value shall equal the value of the equivalent arithmetic expression' (cite.py --check OK) - the rule PB38 and the D3 design correction both turn on, cited repeatedly while it sat OUTSIDE the denominator. Kind RV per SS5.3.5, 'Returned value rules define how the arguments are used to derive the result of an intrinsic function' (--check OK); its parent SS15.4 is titled 'Returned values'. THIS ALSO EXPLAINS THE STANDING PARSE GAP: the extractor has long reported 'RV SS15.4 (Returned values)' as a recognised block yielding ZERO rules, unowned. SS15.4's rules are not missing - they live in the SS15.4.1 sub-clause, whose prose heading the KINDS map does not recognise. Same defect class as PB29, one level down."
   },
   "15.6": {
    "title": "Summary of functions",

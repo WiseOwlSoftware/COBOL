@@ -1,7 +1,7 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 3882,
- "blocks": 611,
+ "rule_count": 3904,
+ "blocks": 613,
  "parse_gaps": [
   {
    "section": "15.4",
@@ -16489,6 +16489,150 @@
    "text": "If the TRUNCATION phrase is specified or implied, and the arithmetic value cannot be represented exactly in the resultant identifier, the arithmetic value is rounded to the nearest value nearer to zero that can be represented in the resultant identifier."
   },
   {
+   "id": "GR-14.7.5-1",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if the rules for evaluation of exponentiation are violated;"
+  },
+  {
+   "id": "GR-14.7.5-2",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if the divisor in a divide operation or in a DIVIDE statement is zero;"
+  },
+  {
+   "id": "GR-14.7.5-3",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if, after radix point alignment and any applicable rounding specifications, the result of an arithmetic statement is further from zero than permitted for the associated resultant data item;"
+  },
+  {
+   "id": "GR-14.7.5-4",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if the nonzero result of an arithmetic statement after radix point alignment and any applicable rounding specifications is nearer to zero than permitted for the associated resultant data item;"
+  },
+  {
+   "id": "GR-14.7.5-5",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if native arithmetic is in effect and the implementor defines that the range of values allowed for the intermediate data item is to be checked, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the allowed range;"
+  },
+  {
+   "id": "GR-14.7.5-6",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if standard-binary arithmetic is in effect, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the range allowed for a standard-binary intermediate data item;"
+  },
+  {
+   "id": "GR-14.7.5-7",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if standard-decimal arithmetic is in effect, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the range allowed for a standard-decimal intermediate data item;"
+  },
+  {
+   "id": "GR-14.7.5-8",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "if the rules for a statement or an expression explicitly specify that an EC-SIZE exception condition is set to exist. If the size error condition exists and the SIZE ERROR phrase is specified, the following occurs:"
+  },
+  {
+   "id": "GR-14.7.5-L2.1",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Common phrases and features for statements",
+   "text": "If the size error condition occurred during the arithmetic operations specified by the arithmetic statement, the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement. Execution proceeds as indicated in rule 3, below;"
+  },
+  {
+   "id": "GR-14.7.5-L2.2",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Common phrases and features for statements",
+   "text": "If the absolute value of the result of the arithmetic operation exceeds the maximum value allowed for any resultant identifier, the content of that resultant identifier is not changed from the content that existed at the start of the execution of the arithmetic statement. The values of resultant identifiers for which the size error condition did not occur are the same as they would have been if the size error condition had not existed for any of the resultant identifiers. Execution proceeds as indicated in rule 3, below;"
+  },
+  {
+   "id": "GR-14.7.5-L2.3",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 2,
+   "subject": "Common phrases and features for statements",
+   "text": "After completion of the arithmetic operations, and possibly the storing of values into resultant data items as specified in rule 2, control is transferred to the imperative-statement specified in the SIZE ERROR phrase. If control is returned from the SIZE ERROR phrase, control is then transferred to the end of the arithmetic statement. If the size error condition exists and a SIZE ERROR phrase is not specified:"
+  },
+  {
+   "id": "GR-14.7.5-L3.1",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 3,
+   "subject": "Common phrases and features for statements",
+   "text": "if the rules for evaluation of exponentiation are violated, the EC-SIZE-EXPONENTIATION exception condition is set to exist;"
+  },
+  {
+   "id": "GR-14.7.5-L3.2",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 3,
+   "subject": "Common phrases and features for statements",
+   "text": "if the divisor in a divide operation or the DIVIDE statement is zero, the EC-SIZE-ZERO-DIVIDE exception condition is set to exist;"
+  },
+  {
+   "id": "GR-14.7.5-L3.3",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 3,
+   "subject": "Common phrases and features for statements",
+   "text": "If an arithmetic operation on an intermediate data item of the form corresponding to the mode of arithmetic currently in effect would cause the new nonzero value to be farther from zero or nearer to zero than is allowed for the intermediate data item, the applicable EC-SIZE exception condition, either EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW, is set to exist;"
+  },
+  {
+   "id": "GR-14.7.5-L3.4",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 3,
+   "subject": "Common phrases and features for statements",
+   "text": "if the result of the arithmetic statement is a value further from zero than permitted for the associated resultant data item, the EC-SIZE-TRUNCATION exception condition is set to exist;"
+  },
+  {
+   "id": "GR-14.7.5-L3.5",
+   "section": "14.7.5",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 3,
+   "subject": "Common phrases and features for statements",
+   "text": "if the result of the arithmetic statement is a nonzero value nearer to zero than permitted for the associated resultant data item and the DEFAULT ROUNDED MODE IS PROHIBITED clause or the ROUNDED MODE IS PROHIBITED phrase is in effect, the EC-SIZE-TRUNCATION exception condition is set to exist; and processing proceeds as specified in 14.6.13.1.3, Fatal exception conditions. If a NOT SIZE ERROR phrase is specified, it is ignored. If no size error condition occurs during the execution of the arithmetic operations specified by an arithmetic statement or expression or while storing into the resultant identifiers, the SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or expression or to the imperative-statement specified in the NOT SIZE ERROR phrase if it is specified. In the latter case, if control is returned from the NOT SIZE ERROR phrase, control is then transferred to the end of the arithmetic statement."
+  },
+  {
    "id": "GR-14.7.9.3-1",
    "section": "14.7.9.3",
    "kind": "GR",
@@ -26081,6 +26225,60 @@
    "sublist": 1,
    "subject": "Intrinsic functions",
    "text": "Type declaration. A type-name shall be specified. The size associated with the type declaration may be used in determining the value of the function. A variable-length group shall be referenced as an argument to a function only when explicitly permitted in the function definition. If any function permits a type declaration as an argument, the type declaration shall not describe a variable-length group. The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If the evaluation of an argument results in an incorrect value for that argument or for the returned value according to the rules specified in the function definition and no exception condition was raised during item identification or expression evaluation, the EC-ARGUMENT-FUNCTION exception condition is set to exist. If an exception condition is raised during item identification or expression evaluation, that exception condition is raised, not EC-ARGUMENT-FUNCTION. If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function reference. NOTE An example of another exception condition that might be raised is EC-SIZE-OVERFLOW during evaluation of a subscript or arithmetic expression. When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL. If the subscript ALL is specified for a dynamic-capacity table, the range of values of the subscript is from 1 to the current capacity of the table. When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified. The order of the implicit specification of each occurrence is from left to right, with the first (or leftmost) specification being the identifier with each subscript specified by the word ALL replaced by one, the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one. This process continues with the rightmost ALL subscript being incremented by one for each implicit specification until the rightmost ALL subscript has been incremented through its range of values. If there are any additional ALL subscripts, the ALL subscript immediately to the left of the rightmost ALL subscript is incremented by one, the rightmost ALL subscript is reset to one and the process of varying the rightmost ALL subscript is repeated. The ALL subscript to the left of the rightmost ALL subscript is incremented by one through its range of values. For each additional ALL subscript, this process is repeated in turn until the leftmost ALL subscript has been incremented by one through its range of values. If the ALL subscript is associated with a data item described with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the function-identifier is undefined."
+  },
+  {
+   "id": "RV-15.4.1-1",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Native arithmetic is in effect."
+  },
+  {
+   "id": "RV-15.4.1-2",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "One or more of the arguments are implementor-defined."
+  },
+  {
+   "id": "RV-15.4.1-3",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "One or more of the arithmetic expressions that compose the equivalent arithmetic expression produces implementor-defined results."
+  },
+  {
+   "id": "RV-15.4.1-4",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "The result is explicitly implementor-defined. When standard-decimal arithmetic or standard-binary arithmetic is in effect and an equivalent arithmetic expression is specified:"
+  },
+  {
+   "id": "RV-15.4.1-L2.1",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "Intrinsic functions",
+   "text": "the returned value shall equal the value of the equivalent arithmetic expression. NOTE 2 As a result, the relation condition function-identifier = equivalent-arithmetic-expression will evaluate to true."
+  },
+  {
+   "id": "RV-15.4.1-L2.2",
+   "section": "15.4.1",
+   "kind": "RV",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Intrinsic functions",
+   "text": "the result of an equivalent arithmetic expression is implementor-defined if one or more of the following apply: a) One or more of the arguments are implementor-defined. b) One or more of the arithmetic expressions that compose the equivalent arithmetic expression produce implementor-defined results. c) The returned value is explicitly implementor-defined. When a numeric or integer function does not have an equivalent arithmetic expression, its returned value is implementor-defined unless otherwise specified in the function definition."
   },
   {
    "id": "AR-15.7.3-1",
