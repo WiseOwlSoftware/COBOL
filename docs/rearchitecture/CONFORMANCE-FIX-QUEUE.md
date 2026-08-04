@@ -920,8 +920,24 @@ below index it).
 > reading the standard would guess that id. For a project whose deliverable is spec↔code traceability, an id that
 > does not match the standard's own numbering is the defect, not a cosmetic one.
 >
-> **THE FIX** is a parent stack rather than a counter: on an ordinal that exceeds the current sub-list's last but
-> continues the PARENT's run, pop back to the parent instead of extending the sub-list. ⚠ **It renumbers 326 ids,
+> ⛔ **ATTEMPTED 2026-08-04 AND REVERTED — AND THE ATTEMPT FOUND THE MECHANISM.** A parent STACK (pop back when
+> an ordinal continues the parent's run) is **not sufficient**, and that is proven rather than suspected: it took
+> the mis-segmentation from 40 sub-lists / 326 rules to 23 / 121, and then **mis-split §15.68.3**, whose raw run
+> is `1\) …5\) , 1. …7. , 6\) 7\)` — nine top-level rules around a SEVEN-item nested one. No arithmetic on the
+> ordinals can tell the nested `6.` from the top-level `6\)`; the stack pops on the nested `6.` because it happens
+> to equal parent-last + 1. A second cut using the delimiter promoted the nested pair and demoted the real one,
+> i.e. inverted the clause. Both reverted; the catalog is byte-identical to its committed state and `--check` is
+> clean.
+>
+> ⭐ **THE MECHANISM IS THE DELIMITER FORM, AND IT IS IN THE SOURCE.** Read from the raw transcription:
+> §15.68.3's top-level rules are written `1\)` `2\)` … and its nested list `1.` `2.` … — the `ORDINAL` regex
+> accepts BOTH, which is exactly why they collide. ⚠ **The form is per-BLOCK, not global**: the transcription
+> uses `1.` as the TOP-LEVEL form in §8.8.3.2, §11.9.11.2, §13.18.24.3 and §14.9.30.3 (the `ORDINAL` comment
+> records that history), so the rule is *"whatever form this block OPENED with is its top level; a change of form
+> opens a nest, a return to it closes every open nest"*. Small and evidence-backed — but it must be re-measured
+> against §15.68.3, §13.18.60.4, §12.3.7.4 and §14.9.13.4, whose raw runs are recorded in DEVLOG 1167.
+>
+> **THE MIGRATION** is unchanged and still tiny: ⚠ **It renumbers 326 ids,
 > so it needs a migration** — but the exposure is measured and tiny: **only 2 adjudicated rows** use a
 > mis-segmented id, `AR-15.68.3-L3.6` and `AR-15.68.3-L3.7`, which are §15.68.3 rules 6 and 7 — the NUMVAL-C
 > digit caps PB33/PB34 landed the same day. Everything else is an untouched GAP row that the next
