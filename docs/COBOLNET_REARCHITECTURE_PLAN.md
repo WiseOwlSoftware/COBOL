@@ -178,7 +178,13 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      packaged in WSL but `apt-get install` needs a password: run
      `wsl -e bash -lc "sudo apt-get install -y gnucobol"` and the four cases can be probed for real.
      **This blocks PB18, PB28 AND PB32's remaining half** (see item 2).
-   · **PB37 — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?** Seven NOT-IMPLEMENTED rows hang on it.
+   · **PB37 — ⚖ ANSWERED 2026-08-03.** The owner replied with a **decision RULE, not a verdict**: *"We must obey
+     the spec and should follow the other compilers if practical."* Applied: the omission is **EDITORIAL**, so
+     NUMVAL-C's LOCALE is optional and the seven rows become **DOCUMENTED-NON-SUPPORT**. Evidence: §15.94 r1
+     defines TEST-NUMVAL-C's argument rules AS §15.68's and the two general formats are character-identical, so
+     the mandatory reading makes §A.4.9 optionalise a keyword whose rules delegate to a mandatory one; and
+     GnuCOBOL 3.2 gives the twins **identical** table rows (min/max 2 args, LOCALE on neither). **Next action:**
+     flip the rows in the next `record_verdicts.py` pass + add it to `docs/CONFORMANCE.md`'s locale list.
    · **NEW — the DENOMINATOR question PB29's detector raises.** 100 clauses carrying 460 ordinals sit outside the
      catalog. 460 is an **upper bound, not a defect count**: §8.3.2.2 "User-defined words" (15) lists kinds of
      word, while §14.7.5 (16) and §8.8.1.2 (7) are plainly normative. Admitting a clause CHANGES THE DENOMINATOR

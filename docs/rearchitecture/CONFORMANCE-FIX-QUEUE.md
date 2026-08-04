@@ -785,12 +785,36 @@ below index it).
 > §15.65.4 r5. The refuter found the blast radius LARGER than the adjudicator measured, and refuted the
 > adjudicator's load-bearing claim that "the STACK arm is already right".
 
-### PB37 · [OWNER] · locale · ⛔ NEEDS-OWNER-DECISION — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?
+### PB37 · [OWNER] · locale · ⚖ ANSWERED 2026-08-03 by the owner's decision RULE — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?
 > **The bare question:** Annex A §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not one of them —
 > item 12 is *TEST-NUMVAL-C function, LOCALE key*. Is NUMVAL-C's LOCALE phrase therefore MANDATORY, or is its
 > omission from A.4.9 an editorial gap? **Seven NOT-IMPLEMENTED rows (§15.68.3 r5b items 1–7) hang on the
 > answer** — documented non-support if optional, a conformance gap if not. `DOCUMENTED-NON-SUPPORT` is never an
 > agent's to choose (D13), so they are recorded NOT-IMPLEMENTED pending this.
+>
+> ⚖ **THE OWNER'S ANSWER WAS A RULE, NOT A VERDICT (2026-08-03):** *"We must obey the spec and should follow the
+> other compilers if practical."* Applied to the measured evidence below, that rule reads the omission as
+> **EDITORIAL**: NUMVAL-C's LOCALE phrase is an §A.4.9 optional element, so the seven rows are
+> **DOCUMENTED-NON-SUPPORT** alongside the rest of the locale surface rather than a conformance gap.
+>
+> **THE PREMISE, VERIFIED AGAINST THE SPEC** (not inherited — §A.4.9 read directly): thirteen items exactly, item
+> 12 is *TEST-NUMVAL-C function, LOCALE keyword and locale-name-1 (15.94)*, and NUMVAL-C (§15.68) is absent. The
+> annex does enumerate function-level LOCALE keywords individually — items 6 and 13 are LOWER-CASE and UPPER-CASE
+> — so the granularity is per-function and NUMVAL-C looks dropped rather than deliberately excluded.
+> ⭐ **AND THE SPEC ITSELF MAKES THE MANDATORY READING INCOHERENT.** The two general formats are character-identical
+> (`LOCALE [ locale-name-1 ]` + `[ ANYCASE ]`), and **§15.94 r1 states "The argument rules for the TEST-NUMVAL-C
+> function are the same as those specified in 15.68, NUMVAL-C function, Argument rules."** So §A.4.9 would be
+> making OPTIONAL a keyword whose rules are defined by REFERENCE to the one it leaves mandatory — an implementor
+> could omit item 12 and still owe every rule item 12 delegates to.
+> **THE SURVEY, MEASURED (`survey_compilers_on_latitude`; observational reading only — GnuCOBOL is GPL):**
+> GnuCOBOL 3.2's `cobc/reserved.c` gives **NUMVAL-C and TEST-NUMVAL-C IDENTICAL table rows** — same
+> `NUMVALC_FUNC` category, same `CB_FEATURE_ACTIVE`, same min/max **2 / 2** arguments, i.e. argument-1 plus the
+> currency string and **no LOCALE phrase on either**. Their testsuite exercises LOCALE-COMPARE / LOCALE-DATE /
+> LOCALE-TIME / LOCALE-TIME-FROM-SECONDS and never NUMVAL-C LOCALE. **No implementation distinguishes the twins**,
+> which is exactly the practicality the owner's rule turns on.
+> **NEXT ACTION:** flip the seven §15.68.3 r5b rows to DOCUMENTED-NON-SUPPORT in the next batch's
+> `record_verdicts.py` pass and add the determination to `docs/CONFORMANCE.md`'s locale non-support list, so the
+> doc and the inventory agree.
 
 ### PB38 · [MAJOR] · numerics · ⛔ OPEN (NEW 2026-08-03, from PB32/PB14's landing) — under a STANDARD mode a FLOAT argument demotes the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires
 > **The one renderer that does not test the arithmetic mode before its float branch.** `IntrinsicRenderer.RenderNum`
