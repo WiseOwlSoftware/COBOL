@@ -148,31 +148,76 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ WHERE THE 2026-08-03 SESSION ENDED — 9 commits, all CI-green, tree clean.** In order: the INSTRUMENT WAVE
-(§11 A12·A12b·A12c·A12e CLOSED) · the Annex-A.1 audit (§5b step 2) · a CI Linux fix · agent-sized batches
-(step 3) · the grammar-audit repair + unification (step 4) · PB18 re-verified-not-started (step 5) · PB28/PB29 ·
-**Phase-B batch 5**. Live numbers — **run the probe, never quote these**: inventory **420 adjudicated · GAP
-3796** (was 330 / 3799); fix queue **PB30–PB37** added.
+**⚙ WHERE THE LATEST 2026-08-03 SESSION ENDED — 2 commits (`1330cf5d`, `24e9e117`), tree clean, pushed.**
+**PB32's structural half + PB14 LANDED**, and **PB29's detector LANDED**. Live numbers — **run the probe, never
+quote these**: the inventory is UNCHANGED by this session (no rows adjudicated; fixing rows with multiple open
+legs does not close them — PB38 keeps them open). Fix queue: **PB14 ✅ · PB32 half · PB38 NEW**.
+
+⭐ **THE SESSION'S ONE TRANSFERABLE RESULT, AND IT IS THE SAME ONE AS LAST TIME, EARNED AGAIN ON DIFFERENT WORK:
+MEASURE THE ENTRY BEFORE IMPLEMENTING IT.** Both items were re-measured first and both changed:
+· **PB32's SHAPE was right and two of its three named INSTANCES were wrong.** MOD's zero-divisor drift is real
+  and worse than written (a FATAL condition never SET, execution continuing past it); MEDIAN's even-count mean is
+  correct in BOTH arms; MIDRANGE's ×5 is a defect of the **exact** arm, not the float one. And the family's
+  largest defect was filed as a **separate item** — PB14 and PB32's Dec leg are ONE defect recorded twice.
+· **PB29's count was exactly right for its subject and 5× short overall** — §8.8.1 is 21 ordinals as it says; the
+  same blind spot across the standard is **100 clauses / 460 ordinals**.
+
+⛔ **AND THE HALF-FIX LOOKED LIKE A WHOLE ONE.** Landing the `Dec` arm in `NumericRenderer.Align` alone made
+MAX / MIN / MOD / MEDIAN compile again while ABS, SIGN, INTEGER, FRACTION-PART and FACTORIAL still failed —
+**the four that recovered are exactly what a spot-check samples.** The landing belongs at `IntrinsicRenderer.Arg`,
+the single origin of every numeric argument. Measure the WHOLE population after a choke-point fix, not a sample.
 
 **⛔ THE FIVE THINGS THE NEXT SESSION SHOULD KNOW, in priority order.**
+
+0. **⚖ THREE OWNER DECISIONS ARE OPEN AND ALL THREE BLOCK REAL WORK — they are the top of the list.**
+   · **PB18 — the native `**` carrier policy.** ⚠ **ASKED, AND THE OWNER ASKED FOR A COMPILER SURVEY FIRST**
+     (`survey_compilers_on_latitude`). Documentation says IBM and Micro Focus fall back to FLOATING POINT past
+     the fixed capacity and GnuCOBOL has no boundary at all (GMP arbitrary precision), so **none of them raises a
+     size error merely because the exact power outgrew the carrier** — which argues against the
+     EC-SIZE-EXPONENTIATION option. ⛔ **THAT SURVEY IS UNMEASURED AND THEREFORE A HYPOTHESIS.** GnuCOBOL is
+     packaged in WSL but `apt-get install` needs a password: run
+     `wsl -e bash -lc "sudo apt-get install -y gnucobol"` and the four cases can be probed for real.
+     **This blocks PB18, PB28 AND PB32's remaining half** (see item 2).
+   · **PB37 — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?** Seven NOT-IMPLEMENTED rows hang on it.
+   · **NEW — the DENOMINATOR question PB29's detector raises.** 100 clauses carrying 460 ordinals sit outside the
+     catalog. 460 is an **upper bound, not a defect count**: §8.3.2.2 "User-defined words" (15) lists kinds of
+     word, while §14.7.5 (16) and §8.8.1.2 (7) are plainly normative. Admitting a clause CHANGES THE DENOMINATOR
+     and the denominator defines v1.0 (D13) — the §13.18.40.5/.6 admission was an owner decision on exactly that
+     ground. **§11 A3 stays blocked until this is taken.**
 
 1. **⭐ MEASURE A PLAN STEP BEFORE EXECUTING IT — three of §5b's four premises were WRONG.** This is the
    session's most transferable result. Step 2's "cheapest closure" was **10 of 199** DOC obligations discharged,
    not "a large fraction already done"; step 3's "needs a per-STATEMENT key" was already true and the real gate
    was per-agent SIZE; step 4's premise held but **the grammar audit could not run at all**. Each measurement
    cost minutes and changed the work. §5b's own rows now carry the corrections.
-2. **⛔ A DISPATCH WITH TWO ARMS WHERE ONLY ONE IS EVER FIXED IS THIS COMPILER'S MOST REPRODUCIBLE DEFECT SHAPE —
-   FIVE instances now** (PB2 · PB13 · PB14 · PB28 · PB32/PB33). Batch 5's refuters found it three more times in
-   one clause: `RenderNum` routes on `AnyRealArgument(ic)`, so every statistical/MOD function has an exact
-   `Int128` body AND a float `double` body, and MOD's zero-divisor rule, MEDIAN's even-count mean and
-   MIDRANGE's ×5 trick were each fixed in one arm only. **It deserves a structural answer, not a sixth
-   individual fix** — that is the highest-value open item in the queue.
-3. **⛔ PB29 — §8.8.1 IS NOT IN THE DENOMINATOR AT ALL** (21 numbered rules + 5 lettered). A rule absent from the
-   catalog can never BE a GAP, so **"zero GAP" is currently reachable while arithmetic-expression evaluation has
-   never been adjudicated** — including §8.8.1.2 r6a/r6c, which **PB28 proves are violated today** (`0 ** 0`
-   returns 1, `-2 ** 0.5` returns 0, neither raising SIZE ERROR). §11 **A3 is marked BLOCKED** on it. This is the
-   THIRD instance of the denominator's one defect class, so fix the EXTRACTOR (report any clause carrying
-   `N)`-shaped rules it did not harvest), not §8.8.1 by hand.
+2. **⛔ THE TWO-ARM DISPATCH — STRUCTURAL HALF LANDED; THE REMAINING HALF IS BLOCKED ON PB18.**
+   Three choke-point changes landed (`1330cf5d`): **one raise site per RULE, not per carrier**
+   (`ModZeroDivisor`/`RemZeroDivisor`) · **one SDIDI landing at `IntrinsicRenderer.Arg`** plus the `Dec` arm
+   `Align` was missing while its own comment declared itself "TOTAL OVER THE CARRIER KINDS" · **the exact
+   carrier's escape boundary raises `EC-SIZE-OVERFLOW` instead of wrapping**. `IntrinsicCarrierAgreementDriftTests`
+   now asserts the two carriers AGREE (its sibling only asserted the second body EXISTS) and its general arm
+   catches the shape rather than the instances.
+   ⛔ **WHAT IS LEFT IS A CONTROL-FLOW DEFECT AND IT NEEDS PB18 FIRST.** `NumericRenderer.Power` returns
+   `Real: true` in a receiver-less context, so `FUNCTION MOD(A ** 2, B)` is **930000007 under `COMPUTE` and
+   930000008 under `DISPLAY`/an `IF` subject**, and `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluates FALSE — a
+   function's value depending on its receiver's SHAPE, which §15.4 forbids and PB13 closed for the float family
+   only. Its root cause is PB18 (`**` has no exact arm for an integer exponent), so **it closes when PB18 does**.
+   Verified still reproducing after this wave landed.
+   ⚠ **AND PB38 IS THE NEW RESIDUE:** `RenderNum` is the ONE renderer that does not test the arithmetic mode
+   before its float branch — `CombineCore`, `Power` and `ConditionRenderer` all do, which is the ordering D3
+   states in words. **Do not answer it by adding a mode test to `RenderNum`; that is the sixth individual fix.**
+   The carrier selection is written down in four renderers and drifted in the fourth: it belongs in ONE selector,
+   with a drift test asserting no renderer branches on `.Real`/`.Dec`/`StandardDecimal` outside it.
+3. **⚙ PB29 — DETECTOR LANDED (`24e9e117`); THE ADJUDICATION IS THE OWNER DECISION IN ITEM 0.**
+   The extractor now scans by CONTENT, not by heading text: `unharvested_rule_blocks` reports every clause whose
+   body carries an ascending `N)` list that nothing harvested, compared against the committed manifest
+   `docs/rearchitecture/spec-unharvested-rule-blocks.json` (100 clauses / 460 ordinals, every entry
+   `disposition: "pending"`). **`--check` fails on three drifts** — a clause newly carrying rules, one that
+   stopped, a count that moved — and it was **proven by making it fail** before being trusted.
+   ⭐ **WHY THE TWO EARLIER DENOMINATOR FIXES COULD NOT HAVE FOUND THIS:** both extended a HEADING-keyed guard,
+   and §8.8.1.2 is titled "Native, standard-binary, and standard-decimal arithmetic". **A guard keyed on what a
+   block is CALLED can never find a block called something else.** Reach for a content key next time.
+   ⚠ The catalog is byte-unchanged; the denominator is still 3,861 until the owner decides. §11 A3 stays BLOCKED.
 4. **THE REFUTE STAGE IS NOW MEASURED, NOT ASSUMED: five batches, ~16 overturns in batch 5 alone, EVERY overturn
    a downgrade.** The two mechanisms are the playbook's own — "the adjudication SAMPLED OUTPUTS" and "read ONE
    of the TWO bodies". Never drop it to go faster; an adjudicator's CONFORMS is worth what its refuter leaves.
@@ -332,15 +377,18 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    | item | state | the next action |
    |---|---|---|
    | **PB12** | half landed | Remaining: the MIXED-argument functions (FIND-STRING + the four FORMATTED-*) need a **per-POSITION** kind — `IntrinsicArgumentRules.Verified` carries one kind per FUNCTION. Plus HIGHEST-ALGEBRAIC, whose §15.43.3 r1 admits *numeric-edited*, so an `'n'` row would reject legal source. |
-   | **PB14** | open | STANDARD/STANDARD-DECIMAL arithmetic + an intrinsic argument emits a raw Roslyn `CS1503` — the PB2 shape on the Dec axis, where PB2 fixed only the Real arm of the same dispatch. |
+   | **PB14** | ✅ LANDED 2026-08-03 | Was the SAME defect as PB32's Dec leg, filed twice. Closed by the one SDIDI landing at `IntrinsicRenderer.Arg` + `Align`'s missing `Dec` arm. Residue → PB38. |
    | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
    | **PB17** | open | A function-identifier as a SUBSCRIPT or in a REF-MOD position compiles clean and throws at RUN TIME (not a parse error). `ReferenceResolver`'s flat-token segment renderer has no arm for a nested FUNCTION call. ⚠ Fix the RENDERER, not the grammar — D10/PHASE-15 removes SUBSCRIPT mode. |
    | **PB18** | open (NEW, from PB13's sweep) | A native `**` with an INTEGER exponent routes through `System.Math.Pow`, so `10 ** 30` returns 1000000000000000071935427891953 where Int128 holds 10³⁰ exactly. CONFORMS (§8.8.1.2 r6 imposes no exactness requirement; §8.8.1.3 is implementor-defined) but contradicts our OWN documented native technique (numeric design D3, "the exact Int128 fixed-point engine"). Copy the shape `CobolDec.Pow` already uses: exact repeated multiplication for an integer exponent, double only for a non-integer one. Was invisible until PB13 stopped the saturation from masking it. |
    | **PB24** | open (NEW, batch 4) | FUNCTION LENGTH is wrong or absent on four shapes: a variable-length group folds to a WRONG compile-time constant (silent), a ref-modified argument throws at RUN TIME, and the PHYSICAL argument + the §15.50.4 r9 rounding step do not exist. |
    | **PB26** | open (NEW, batch 4) | The ambient EC-ARGUMENT-FUNCTION gate is emitted only for statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written switch, so the SAME function reference raises in one statement and is silent in another. A hand-maintained list where a structure belongs — and the general form of the receiver-shape defect PB13 hit. |
    | **PB23 · PB25 · PB27** | open (NEW, batch 4) | Smaller: a raw `System.ArgumentOutOfRangeException` where §15.3 requires EC-ARGUMENT-FUNCTION (a TWO-day window, correcting the landed `AR-15.79.3-5`) · LOWER-CASE's LOCALE arm refused + a figurative argument aborting at run time · three silent leaks in the otherwise-loud §A.4.9 locale non-support. |
-   | **PB32 · PB33** | open (NEW, batch 5) | ⭐ **WORK THIS FIRST — the highest-value item in the queue.** `RenderNum` routes on `AnyRealArgument(ic)`, so every statistical/MOD function has an EXACT `Int128` body AND a FLOAT `double` body; MOD's zero-divisor rule, MEDIAN's even-count mean and MIDRANGE's ×5-at-scale-s+1 were each fixed in ONE arm only. PB33 is the same shape again (`TestNumvalC` has the 31-digit cap, `NumvalC` does not). **The FIFTH instance of PB2/PB13/PB14/PB28 — answer the SHAPE, not the instance.** |
-   | **PB28 · PB29** | open (NEW) | PB28: §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one — `0 ** 0` → 1 and `-2 ** 0.5` → 0, neither raising SIZE ERROR, and `CobolDec.Pow` already carries the correct half. PB29: §8.8.1's 21 rules are absent from the catalog, so those rules can never be a GAP. **Fix the EXTRACTOR, not the clause.** |
+   | **PB32** | ⚠ HALF LANDED 2026-08-03 | Structural half done (see handoff item 2). **Remaining half is BLOCKED on PB18** — the receiver-shape control-flow defect (`FUNCTION MOD(A ** 2, B)` = 930000007 vs 930000008). Nothing to do here until the owner's `**` decision. |
+   | **PB33** | open (NEW, batch 5) | The same asymmetry one register over: `TestNumvalC` applies the 31-digit native cap and `NumvalC` does not — the validating twin fixed, the value-producing one not. Independent of PB32's blocked half; workable now. |
+   | **PB38** | open (NEW 2026-08-03) | Under a STANDARD mode a FLOAT argument still demotes the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires. ⛔ **Answer it with ONE carrier selector every renderer consults, not a mode test bolted onto `RenderNum`** — that would be the sixth individual fix of this shape. |
+   | **PB28** | open, BLOCKED on PB18 | §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one — `0 ** 0` → 1 and `-2 ** 0.5` → 0, neither raising SIZE ERROR (both re-verified 2026-08-03), and `CobolDec.Pow` already carries the correct half. Same two lines as PB18. |
+   | **PB29** | ⚙ detector LANDED; adjudication is an OWNER DECISION | See handoff items 0 and 3. |
    | **PB18** | open, VERIFIED not started | Every claim re-verified (citations, repro, code, the shape to copy). ⛔ Its recipe omits SCALE EXPLOSION: exact `Int128` power is easy only for a scale-0 base. **Decide EC-SIZE-EXPONENTIATION vs the documented double fallback in `COBOLNET_NUMERIC_DESIGN.md` FIRST** — it is a design decision, not a code edit. Fixes with PB28 (same two lines). |
    | **PB30 · PB31 · PB34–PB36** | open (NEW, batch 5) | Eight more functions absent from `IntrinsicArgumentRules.Verified` (PB30 — PB1's residue growing by the clause, and every new row must carry the ISO clause it was read from) · the CROSS-argument class-agreement rule enforced NOWHERE (PB31 — a `Verified` row cannot fix it) · NUMVAL-family digit caps (PB34) · zero-length MAX/MIN literal (PB35) · MODULE-NAME r5 activation mechanisms (PB36). |
    | **PB37** | ⚖ NEEDS OWNER DECISION | **The bare question:** §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not among them (item 12 is *TEST-NUMVAL-C function, LOCALE key*). Is NUMVAL-C's LOCALE phrase MANDATORY, or is the omission editorial? **Seven NOT-IMPLEMENTED rows hang on the answer.** |
