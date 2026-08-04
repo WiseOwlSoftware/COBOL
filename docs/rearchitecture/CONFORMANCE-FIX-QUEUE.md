@@ -15,7 +15,8 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB27 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB29 OPEN.**
+> **PB28 · PB29 opened 2026-08-03 by re-verifying PB18** — the sibling-arm sweep its entry did not ask for. PB28: §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one, so `0 ** 0` returns 1 and `-2 ** 0.5` returns 0, both with no SIZE ERROR. PB29: §8.8.1's 21 numbered rules are absent from the catalog entirely, so v1.0's zero-GAP definition does not currently cover arithmetic-expression evaluation — the THIRD instance of the denominator's one defect class.
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
 **There is no BLOCKER open** — PB13, the silently saturating quantizer, landed 2026-08-02. Each half-landed item
@@ -597,6 +598,63 @@ below index it).
 > in `docs/COBOLNET_NUMERIC_DESIGN.md` before the emitter changes (CLAUDE.md rules 2 and 5). Deliberately NOT
 > started as a small change — the verification above is what the next session should build on, not a guess about
 > the size.
+
+### PB28 · [MAJOR] · numerics · ⛔ OPEN — §8.8.1.2 r6a/r6c are enforced on the STANDARD-DECIMAL path and NOT on the NATIVE one, so `0 ** 0` returns 1 and `-2 ** 0.5` returns 0, both silently
+
+> **Found 2026-08-03 while re-verifying PB18 — the sibling-arm sweep PB18's own entry did not ask for.**
+> §8.8.1.2 rule 6 is a GENERAL rule of arithmetic-expression evaluation and applies to every arithmetic mode
+> (its own title is "Native, standard-binary, and standard-decimal arithmetic"). It has exactly three parts, and
+> two are mandatory `shall` requirements with a named exception condition:
+> · **r6a** — "If the value of an expression to be raised to a power is zero, the exponent shall have a value
+>   greater than zero. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size
+>   error condition is raised."
+> · **r6c** — "If the value of an expression to be raised to a power is less than zero, the evaluation of the
+>   exponent shall result in an integer. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to
+>   exist and the size error condition is raised."
+> (`EC-SIZE-EXPONENTIATION` is **Fatal** in Table 14.)
+>
+> **⛔ MEASURED, at `--std 2023`, `PIC S9(9)V9(4)` receiver, each with an `ON SIZE ERROR` arm:**
+> · `COMPUTE R = Z ** Z` with `Z = 0` → **1.0000**, and the ON SIZE ERROR arm **does not fire**.
+> · `COMPUTE R = N ** H` with `N = -2`, `H = 0.5` → **0.0000**, and the ON SIZE ERROR arm **does not fire**
+>   (`System.Math.Pow(-2, 0.5)` is NaN, and `CobolIntrinsics.FromDouble(NaN, ws)` yields 0).
+> Both are wrong ANSWERS delivered with no diagnostic — the "plausible result, not a broken one" family §0 names.
+>
+> **THE ROOT CAUSE IS A HALF-FIXED DISPATCH, and the correct half is already written.** `CobolDec.Pow`
+> (`CobolDec.cs:87` and `:93`) raises `CobolSizeError(..., "EC-SIZE-EXPONENTIATION")` for exactly these two legs,
+> citing §8.8.1.2 r6a and §8.8.1.2 r6c. `NumericRenderer.Power` routes STANDARD/STANDARD-DECIMAL there
+> (`RuntimeApi.DecPow`) and every NATIVE arm — the float/receiverless arm at `NumericRenderer.cs:412` and the
+> fixed-point arm at `:417` — straight to `System.Math.Pow` with **no r6 check at all**.
+> **This is the PB2/PB14 shape a third time**: one arm of a dispatch corrected, the sibling arm left behind
+> (`feedback_scan_all_similar`). The fix belongs with PB18, which touches the same two lines.
+>
+> ⚠ **r6b is a THIRD leg and is unexamined**: "If the evaluation yields both a positive and a negative real
+> number, the value returned as the result is the positive number." Check it in the same pass rather than
+> discovering it fourth.
+
+### PB29 · [MAJOR] · process/denominator · ⛔ OPEN — §8.8.1 contributes 21 numbered rules and the catalog holds NONE of them, so v1.0's "zero GAP" does not cover arithmetic-expression evaluation
+
+> **Found 2026-08-03 by PB28: the rules it proves violated are not in the denominator.**
+> `spec-rule-catalog.json` has **zero** sections under §8.8.1 — measured, not inferred. Every §8 section it does
+> hold has the shape `8.x.y.2` / `.3` / `.4`, because the extractor keys on the *General format* / *Syntax
+> rules* / *General rules* sub-clause headings. §8.8.1's rules are numbered `1)`…`n)` directly beneath ordinary
+> prose headings ("Native, standard-binary, and standard-decimal arithmetic"), so the heading map does not see
+> them.
+>
+> **THE COUNT, per clause (top-level + lettered sub-rules):** §8.8.1.2 **7 + 3** · §8.8.1.4.2 3 · §8.8.1.4.4
+> **4 + 2** · §8.8.1.5.2 3 · §8.8.1.5.4 4 — **21 top-level and 5 lettered, all missing.**
+>
+> ⛔ **THIS IS THE THIRD INSTANCE OF ONE DEFECT CLASS**, and the plan already records the first two: the
+> denominator went 3,790 → 3,846 (ten rules under headings the literal-spelling map did not know) → 3,861. The
+> pattern is the same every time — *a rule-bearing clause whose heading is not one of the three the extractor
+> recognises*. Fixing this instance by hand would leave the fourth to be found the same way; the extractor needs
+> to report any clause carrying `N)`-shaped rules that it did not harvest, exactly as it already reports an
+> unresolvable rule-shaped heading.
+>
+> **WHY IT MATTERS BEYOND THE COUNT.** D13 defines v1.0 as this inventory at zero GAP. A rule that is not in the
+> denominator can never be a GAP, so **zero GAP would currently be reachable while arithmetic-expression
+> evaluation — including the two rules PB28 proves violated — has never been adjudicated.** §11 **A3** (the
+> numeric-semantics depth audit, "the intermediate-results model vs §8.8.1 end-to-end") is scheduled precisely
+> here and would have been run against a denominator that omits its subject.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in
