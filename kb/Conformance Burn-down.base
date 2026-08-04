@@ -1,0 +1,61 @@
+filters:
+  and:
+    - file.inFolder("kb/Conformance")
+    - clause != null
+formulas:
+  remaining: 'if(items > 0, (gap / items) * 100, 0)'
+  unadjudicated: 'items - adjudicated'
+properties:
+  note.clause:
+    displayName: Clause
+  note.items:
+    displayName: Rules
+  note.gap:
+    displayName: GAP
+  note.adjudicated:
+    displayName: Adjudicated
+  note.resolved:
+    displayName: Resolved
+  formula.remaining:
+    displayName: "% GAP"
+  formula.unadjudicated:
+    displayName: Unadjudicated
+views:
+  - type: table
+    name: Burn-down by clause
+    order:
+      - clause
+      - items
+      - gap
+      - adjudicated
+      - unadjudicated
+      - remaining
+    sort:
+      - property: gap
+        direction: DESC
+  - type: table
+    name: Where the unadjudicated mass is
+    filters:
+      and:
+        - formula.unadjudicated > 0
+    order:
+      - clause
+      - unadjudicated
+      - items
+    sort:
+      - property: formula.unadjudicated
+        direction: DESC
+  - type: table
+    name: Adjudicated but still GAP
+    filters:
+      and:
+        - adjudicated > 0
+        - gap > 0
+    order:
+      - clause
+      - adjudicated
+      - gap
+      - resolved
+    sort:
+      - property: adjudicated
+        direction: DESC

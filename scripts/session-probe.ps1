@@ -63,6 +63,18 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
         $needTest = @($adjudicated | Where-Object { $_.verdict -eq 'CONFORMS' -and $_.state -eq 'GAP' }).Count
         if ($needTest -gt 0) { Write-Host "       $needTest CONFORMS still test-needed (each is one spec-derived golden from OK)" }
     }
+    # ⛔ IS THE VAULT'S BURN-DOWN VIEW STILL TELLING THE TRUTH? kb/Conformance/ is a GENERATED summary of the very
+    # file read above, and because nothing re-ran its generator it silently drifted: five of twelve clause notes
+    # were wrong and §15's claimed 533 GAP where the live number was 481 — it UNDER-reported real progress and was
+    # still read as current. build_inventory.py now regenerates it, so this only fires when the inventory was
+    # edited another way. Absent is NOT stale: it is a gitignored build output and legitimately missing on a fresh
+    # clone, which the checker reports as OK rather than as a red.
+    if (Test-Path 'kb/Conformance') {
+        $viewCheck = & python scripts/spec/gen_conformance_notes.py --check 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "vault  : ⛔ kb/Conformance burn-down is STALE — run: python scripts/spec/gen_conformance_notes.py"
+        }
+    }
 } else {
     Write-Host "invent : not built yet (P14 Step 0)"
 }
