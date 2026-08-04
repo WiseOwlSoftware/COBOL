@@ -92,7 +92,8 @@
     "pb32_exact_carrier_halving_boundary",
     "pb18_native_power_exact_and_rule6",
     "pb38_standard_mode_beats_float_argument",
-    "pb33_numval_family_digit_cap"
+    "pb33_numval_family_digit_cap",
+    "pb24_length_refmod_argument"
   ],
   "pending": []
 }

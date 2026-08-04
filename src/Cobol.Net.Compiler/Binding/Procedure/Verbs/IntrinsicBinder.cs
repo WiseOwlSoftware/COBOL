@@ -1020,8 +1020,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr BindLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
     {
         BoundStringLiteral s => new BoundNumLiteral(Math.Max(1, s.Value.Length).ToString()),
-        BoundFieldOperand { Place: RefModPlace } =>
-            new BoundExprError("FUNCTION LENGTH of a reference-modified argument (runtime length, §15.50.4)"),
+        // ⛔ A REFERENCE-MODIFIED ARGUMENT IS LEGAL AND ITS LENGTH IS THE RUNTIME CHANNEL'S ANSWER (fix-queue
+        // PB24). §15.50.3 r1 admits "a data item of any class or category", and §8.4.3.3.3 SR5 makes a
+        // reference-modified item a data item — so `FUNCTION LENGTH(WS-NAME(1:5))` is conforming source. It used
+        // to bind to a BoundExprError, which COMPILES CLEAN and throws NotImplementedCobolFeatureException at RUN
+        // TIME (the PB7/DA7 wrong-stage family): measured exit 127 on a five-line program.
+        // No new machinery is needed. `IntrinsicRenderer`'s Length arm renders its argument through the ONE
+        // string channel, and a ref-modified place renders as the SUBSTRING — so the runtime `.Length` over that
+        // image IS §15.50.4's character-position count, for the literal `(1:5)` form and the runtime `(I:L)` form
+        // alike, and the omitted-length `(I:)` form comes out right because the substring already ends where the
+        // item does.
+        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f when f.Place.Item.IsGroup
                 && OdoModel.TableUnder(f.Place.Item) is { OccursSpec.Depending: not null } =>
             new BoundExprError("FUNCTION LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.50.4 r7)"),
