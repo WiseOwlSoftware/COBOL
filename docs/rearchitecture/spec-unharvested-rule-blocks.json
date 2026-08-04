@@ -23,7 +23,11 @@
   "single_list_clauses": 89,
   "single_list_ordinals": 350,
   "multi_sublist_clauses": 11,
-  "multi_sublist_ordinals": 110
+  "multi_sublist_ordinals": 110,
+  "admitted_clauses": 5,
+  "admitted_ordinals": 21,
+  "pending_clauses": 95,
+  "pending_ordinals": 439
  },
  "blocks": {
   "4.2.10": {
@@ -303,40 +307,50 @@
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-03 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29). These are RULES, not a prose enumeration: SS5.3.1 states 'Except for intrinsic functions, rules are categorized as syntax rules and general rules' (cite.py --check OK), so a numbered normative list outside SS15 is one or the other. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - SS8.8.1 defines how an arithmetic expression is EVALUATED, which is semantics, not syntax. Corroboration: each clause is a SINGLE ascending list (the rule-block shape), cite.py itself resolves 'SS8.8.1.2 6) a)' as a rule, and PB28 proved r6a and r6c are VIOLATED by the compiler today - a rule that can be violated is a rule."
   },
   "8.8.1.4.2": {
    "title": "Standard-binary intermediate data item",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-03 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29). These are RULES, not a prose enumeration: SS5.3.1 states 'Except for intrinsic functions, rules are categorized as syntax rules and general rules' (cite.py --check OK), so a numbered normative list outside SS15 is one or the other. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - SS8.8.1 defines how an arithmetic expression is EVALUATED, which is semantics, not syntax. Corroboration: each clause is a SINGLE ascending list (the rule-block shape), cite.py itself resolves 'SS8.8.1.2 6) a)' as a rule, and PB28 proved r6a and r6c are VIOLATED by the compiler today - a rule that can be violated is a rule."
   },
   "8.8.1.4.4": {
    "title": "Exponentiation in standard-binary arithmetic",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-03 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29). These are RULES, not a prose enumeration: SS5.3.1 states 'Except for intrinsic functions, rules are categorized as syntax rules and general rules' (cite.py --check OK), so a numbered normative list outside SS15 is one or the other. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - SS8.8.1 defines how an arithmetic expression is EVALUATED, which is semantics, not syntax. Corroboration: each clause is a SINGLE ascending list (the rule-block shape), cite.py itself resolves 'SS8.8.1.2 6) a)' as a rule, and PB28 proved r6a and r6c are VIOLATED by the compiler today - a rule that can be violated is a rule."
   },
   "8.8.1.5.2": {
    "title": "Standard-decimal intermediate data item",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-03 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29). These are RULES, not a prose enumeration: SS5.3.1 states 'Except for intrinsic functions, rules are categorized as syntax rules and general rules' (cite.py --check OK), so a numbered normative list outside SS15 is one or the other. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - SS8.8.1 defines how an arithmetic expression is EVALUATED, which is semantics, not syntax. Corroboration: each clause is a SINGLE ascending list (the rule-block shape), cite.py itself resolves 'SS8.8.1.2 6) a)' as a rule, and PB28 proved r6a and r6c are VIOLATED by the compiler today - a rule that can be violated is a rule."
   },
   "8.8.1.5.4": {
    "title": "Exponentiation in standard-decimal arithmetic",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-03 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29). These are RULES, not a prose enumeration: SS5.3.1 states 'Except for intrinsic functions, rules are categorized as syntax rules and general rules' (cite.py --check OK), so a numbered normative list outside SS15 is one or the other. Kind GR per SS5.3.3, 'A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements' (--check OK) - SS8.8.1 defines how an arithmetic expression is EVALUATED, which is semantics, not syntax. Corroboration: each clause is a SINGLE ascending list (the rule-block shape), cite.py itself resolves 'SS8.8.1.2 6) a)' as a rule, and PB28 proved r6a and r6c are VIOLATED by the compiler today - a rule that can be violated is a rule."
   },
   "8.8.2": {
    "title": "Boolean expressions",

@@ -184,7 +184,17 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      probe, and `LocaleDispositionTests` already covered it. Only the inventory and the *justification* were
      missing, which is why this closed 8 rows without a line of compiler change.
    · **THE DENOMINATOR — adjudicate all 100 unharvested clauses as ONE BATCH and admit the normative ones.**
-     ⚠ **NOT YET STARTED, and it is the biggest scheduled item.** `docs/rearchitecture/spec-unharvested-rule-blocks.json`
+     ⚙ **STARTED: §8.8.1's five clauses ADMITTED (21 GR rules), 95 clauses / 439 ordinals remain.** The
+     denominator is now **3,882** (was 3,861) and §11 **A3 is UNBLOCKED** — it can no longer audit the
+     intermediate-results model against a catalog omitting §8.8.1. The MECHANISM is data-driven: a clause is
+     admitted by setting `disposition: "rules"` + `kind` in `spec-unharvested-rule-blocks.json`, never by adding
+     its prose title to `KINDS` (that would be the hand-maintained list this project keeps deleting).
+     ⭐ **SHAPE IS THE TRIAGE SIGNAL** — 89 clauses / 350 items are a SINGLE ascending list (rule-block shaped),
+     11 clauses / 110 items are nested sub-lists (prose-enumeration shaped). Weak evidence either way, not proof;
+     every clause is still judged individually.
+     ⚠ **AND MY OWN EXAMPLE WAS WRONG** — see DEVLOG 1162: I said §8.3.2.2 "User-defined words" lists kinds of
+     word, reading the TITLE and asserting the BODY. Its 15 items are five nested sub-lists, several normative.
+     The conclusion held; the reason did not. `docs/rearchitecture/spec-unharvested-rule-blocks.json`
      is the worklist (100 clauses / 460 ordinals, every entry `disposition: "pending"`). Each is judged either
      normative rules (admit, typed per §5.3) or prose enumeration (`not-rules`, with the reason). **460 is an
      UPPER BOUND**, and SHAPE is the triage signal: **89 clauses / 350 items are a SINGLE ascending list**

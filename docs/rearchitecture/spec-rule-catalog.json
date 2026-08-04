@@ -1,7 +1,7 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 3861,
- "blocks": 606,
+ "rule_count": 3882,
+ "blocks": 611,
  "parse_gaps": [
   {
    "section": "15.4",
@@ -3995,6 +3995,195 @@
    "sublist": 1,
    "subject": "Relational operators",
    "text": "<> is an abbreviation for NOT EQUAL."
+  },
+  {
+   "id": "GR-8.8.1.2-1",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "Parentheses may be used in arithmetic expressions to specify the order of the arithmetic operations. Operations within parentheses are executed before operations on the parenthesized expression; the result is treated as a single operand in any further operation. When nested parentheses are specified, operations are executed from within the least inclusive set of parentheses to the most inclusive set."
+  },
+  {
+   "id": "GR-8.8.1.2-2",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "When operands are at the same level of inclusiveness, the following hierarchical order of execution is implied: 1st — Unary plus and minus 2nd — Exponentiation 3rd — Multiplication and division 4th — Addition and subtraction"
+  },
+  {
+   "id": "GR-8.8.1.2-3",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "When the sequence of execution is not specified by parentheses, the order of execution of consecutive operations of the same hierarchical level is from left to right. NOTE 1 Parentheses are used to eliminate ambiguities in logic where consecutive operations of the same hierarchical level appear, to modify the normal hierarchical sequence of execution in expressions where it is necessary to have some deviation from the normal precedence, or to emphasize the normal sequence for the sake of clarity."
+  },
+  {
+   "id": "GR-8.8.1.2-4",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "The ways in which identifiers, literals, operators, and parentheses may be combined in arithmetic expressions are summarized in Table 3, Combinations of symbols in arithmetic expressions. **Table 3 — Combinations of symbols in arithmetic expressions** | First symbol ↓ &nbsp; Second symbol → | **Identifier or literal** | **+ − \\* / \\*\\*** | **Unary + or −** | **(** | **)** | |---|---|---|---|---|---| | Identifier or literal | — | P | — | — | P | | + − \\* / ** | P | — | P | P | — | | Unary **+** or **−** | P | — | — | P | — | | ( | P | — | P | P | — | | ) | — | P | — | — | P | > **Table note.** The printed table has a TWO-LEVEL header: the corner cell `First symbol` beside a single `Second symbol` cell spanning all five data columns. Markdown cannot span a header cell, so the two axes are named in the corner instead — the ROWS are the first symbol, the COLUMNS the second. The letter 'P' indicates a permissible pair of symbols. The character '—' indicates an invalid pair."
+  },
+  {
+   "id": "GR-8.8.1.2-5",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "An arithmetic expression may begin only with the symbol '(', '+', '−', an identifier, or a literal and may end only with a ')', an identifier, or a literal. There shall be a one-to-one correspondence between left and right parentheses of an arithmetic expression such that each left parenthesis is to the left of its corresponding right parenthesis. If the first operator in an arithmetic expression is a unary operator, it shall be immediately preceded by a left parenthesis if that arithmetic expression immediately follows an identifier or another arithmetic expression. NOTE 2 For example, when '1' and '+ 2' are used as subscripts for a two-dimensional table A, the arithmetic expression '+ 2' needs to be enclosed in parentheses, as in A (1 (+ 2))."
+  },
+  {
+   "id": "GR-8.8.1.2-6",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "The following rules apply to evaluation of exponentiation in an arithmetic expression: a) If the value of an expression to be raised to a power is zero, the exponent shall have a value greater than zero. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised. b) If the evaluation yields both a positive and a negative real number, the value returned as the result is the positive number. c) If the value of an expression to be raised to a power is less than zero, the evaluation of the exponent shall result in an integer. Otherwise, the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised."
+  },
+  {
+   "id": "GR-8.8.1.2-7",
+   "section": "8.8.1.2",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Arithmetic expressions",
+   "text": "Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and receiving data items."
+  },
+  {
+   "id": "GR-8.8.1.4.2-1",
+   "section": "8.8.1.4.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "Any operand of an arithmetic expression that is not already in SBIDI is converted into SBIDI form. If the operand value cannot be expressed exactly in an SBIDI, the value is rounded according to the rules in 11.9.11, INTERMEDIATE ROUNDING clause. NOTE 4 Many decimal values (for example, 1.0E+50 and 0.1) cannot be represented exactly in an SBIDI. In such cases, the algebraic value in the SBIDI is a rounded approximation of the algebraic value of the original operand."
+  },
+  {
+   "id": "GR-8.8.1.4.2-2",
+   "section": "8.8.1.4.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "The size error condition is set to exist and the EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exception-condition is set to exist if the value is too large or too small, respectively, to be contained in an item in SBIDI format as specified in 14.7.5, SIZE ERROR phrase and size error condition."
+  },
+  {
+   "id": "GR-8.8.1.4.2-3",
+   "section": "8.8.1.4.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "The rounding rules that apply to standard-binary intermediate data items are described in 11.9.11, INTERMEDIATE ROUNDING clause."
+  },
+  {
+   "id": "GR-8.8.1.4.4-1",
+   "section": "8.8.1.4.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "When operand-2 is zero and operand-1 is other than zero, the result shall be equivalent to the evaluation of the arithmetic expression (1)"
+  },
+  {
+   "id": "GR-8.8.1.4.4-2",
+   "section": "8.8.1.4.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "When the value of operand-2 is greater than zero, the results shall be determined as follows: a) When operand-2 is an integer and the following condition is true (operand-2 = 1) the equivalent expression shall be (operand-1) b) When operand-2 is an integer and the following condition is true (operand-2 = 2) the equivalent expression shall be (operand-1 \\* operand-1) c) When operand-2 is an integer and the following condition is true (operand-2 = 3) the equivalent expression shall be ((operand-1 \\* operand-1) \\* operand-1) d) When operand-2 is an integer and the following condition is true (operand-2 = 4) the equivalent expression shall be ((operand-1 \\* operand-1) \\* (operand-1 \\* operand-1)) e) Otherwise, the equivalent arithmetic expression is defined by the implementor. Operands used in the development of that value shall be in SBIDI form. All additions, subtractions, multiplications and divisions performed in the development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020."
+  },
+  {
+   "id": "GR-8.8.1.4.4-3",
+   "section": "8.8.1.4.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "When operand-2 is less than zero, the result shall be equivalent to the evaluation of the arithmetic expression (1 / (operand-1 ** FUNCTION ABS (operand-2)))"
+  },
+  {
+   "id": "GR-8.8.1.4.4-4",
+   "section": "8.8.1.4.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Standard-binary arithmetic",
+   "text": "When both operand-1 and operand-2 are equal to zero, the EC-SIZE-EXPONENTIATION exception condition is set to exist."
+  },
+  {
+   "id": "GR-8.8.1.5.2-1",
+   "section": "8.8.1.5.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "Any operand of an arithmetic expression that is not already in SDIDI form is converted into this form. If the operand value cannot be expressed exactly in an SDIDI, the value is rounded according to the rules in 11.9.11, INTERMEDIATE ROUNDING clause. NOTE 3 Many binary values (for example, 2**+120 and 2**-60) cannot be represented exactly in an SDIDI. In such cases, the algebraic value in the SDIDI is a rounded approximation of the algebraic value of the original operand."
+  },
+  {
+   "id": "GR-8.8.1.5.2-2",
+   "section": "8.8.1.5.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "The size error condition is set to exist and the EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exception condition is set to exist if the value is too large or too small, respectively, to be contained in an item in decimal128 format. Refer to 14.7.5, SIZE ERROR phrase and size error condition, for more information."
+  },
+  {
+   "id": "GR-8.8.1.5.2-3",
+   "section": "8.8.1.5.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "The rounding rules that apply to standard-decimal intermediate data items are described in 11.9.11, INTERMEDIATE ROUNDING clause."
+  },
+  {
+   "id": "GR-8.8.1.5.4-1",
+   "section": "8.8.1.5.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "When operand-2 is zero and operand-1 is other than zero, the result shall be equivalent to the evaluation of the arithmetic expression (1)"
+  },
+  {
+   "id": "GR-8.8.1.5.4-2",
+   "section": "8.8.1.5.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "When the value of operand-2 is greater than zero, the results shall be determined as follows: a) When operand-2 is an integer and the following condition is true (operand-2 = 1) the equivalent expression shall be (operand-1) b) When operand-2 is an integer and the following condition is true (operand-2 = 2) the equivalent expression shall be (operand-1 \\* operand-1) c) When operand-2 is an integer and the following condition is true (operand-2 = 3) the equivalent expression shall be ((operand-1 \\* operand-1) \\* operand-1) d) When operand-2 is an integer and the following condition is true (operand-2 = 4) the equivalent expression shall be ((operand-1 \\* operand-1) \\* (operand-1 \\* operand-1)) e) Otherwise, the equivalent arithmetic expression is defined by the implementor. Operands used in the development of that value shall be in SDIDI form. All additions, subtractions, multiplications and divisions performed in the development of the result shall be performed in accordance with the corresponding rules in ISO/IEC 60559:2020."
+  },
+  {
+   "id": "GR-8.8.1.5.4-3",
+   "section": "8.8.1.5.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "When operand-2 is less than zero, the result shall be equivalent to the evaluation of the arithmetic expression (1 / (operand-1 ** FUNCTION ABS (operand-2)))"
+  },
+  {
+   "id": "GR-8.8.1.5.4-4",
+   "section": "8.8.1.5.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Standard-decimal arithmetic",
+   "text": "When both operand-1 and operand-2 are equal to zero, the EC-SIZE-EXPONENTIATION exception condition is set to exist."
   },
   {
    "id": "SR-8.8.3.2-1",

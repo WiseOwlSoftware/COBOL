@@ -249,6 +249,14 @@ def main() -> int:
     if not SPEC.exists():
         sys.exit(f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
 
+    # The clauses ADMITTED to the denominator by adjudication (PB29) — section ⇒ declared rule kind. Read from
+    # the manifest so admitting a clause is a data edit with a recorded reason, never a code edit.
+    admitted: dict[str, str] = {}
+    if UNHARVESTED.exists():
+        for sec, info in json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"].items():
+            if info.get("disposition") == "rules":
+                admitted[sec] = info["kind"]
+
     lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
     titles: dict[str, str] = {}
 
@@ -313,7 +321,15 @@ def main() -> int:
         if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
             flush()
             num, title = m.group("num"), m.group("title")
-            k = kind_of(title)
+            # ⛔ A CLAUSE MAY BE A RULE BLOCK WITHOUT ITS HEADING SAYING SO, AND THAT IS DECLARED IN DATA, NOT
+            # HERE (fix-queue PB29). §8.8.1.2 is headed "Native, standard-binary, and standard-decimal
+            # arithmetic" and carries seven numbered rules, two of which PB28 proved the compiler violates —
+            # §5.3.1 settles that they ARE rules ("Except for intrinsic functions, rules are categorized as
+            # syntax rules and general rules", validated with cite.py). Adding such titles to KINDS would be a
+            # hand-maintained list of prose headings, which is the shape this project keeps deleting; the
+            # ADMITTED set lives in `spec-unharvested-rule-blocks.json` beside the reason each was admitted, and
+            # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
+            k = kind_of(title) or admitted.get(num)
             sublist, last_ordinal = 1, 0
             if k:
                 cur = (num, k)
