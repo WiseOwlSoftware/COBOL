@@ -112,7 +112,5 @@ kb/Grammar/
 # The inventory JSON is the SSOT and IS tracked; these 3,200+ notes are its Dataview-queryable projection.
 kb/Conformance/
 
-# ── Obsidian MCP server (optional; see .mcp.json + scripts/setup-obsidian-mcp.ps1) ───────────────────────────
-# The plugin's SELF-SIGNED TLS cert, exported per machine so Node will trust https://127.0.0.1:27124.
-# Machine-local by nature (CN=Obsidian Local REST API, regenerated per install) and never a build input.
+# Machine-local scratch for optional tooling (e.g. an exported TLS cert). Never a build input.
 .claude/local/
