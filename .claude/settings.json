@@ -42,6 +42,23 @@
             "command": "python E:/CobolSharp/scripts/hooks/devlog_staged.py",
             "if": "Bash(git commit*)",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "python E:/CobolSharp/scripts/hooks/fleet_active_build.py",
+            "if": "Bash(dotnet *)",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python E:/CobolSharp/scripts/hooks/fleet_active_build.py",
+            "if": "PowerShell(dotnet *)",
+            "timeout": 30
           }
         ]
       }
