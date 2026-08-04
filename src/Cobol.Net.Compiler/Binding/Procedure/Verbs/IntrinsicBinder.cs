@@ -438,6 +438,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // from the runtime module call-name stack; bound apart from the generic argument path.
         if (sig.Name == "MODULE-NAME") return BindModuleName(sig, argCtxs);
 
+        // FUNCTION LENGTH's optional PHYSICAL keyword (§15.50.2's general format:
+        // `FUNCTION LENGTH ( argument-1 [ PHYSICAL ] )`). Bound apart from the generic argument path for the same
+        // reason ANYCASE is: it is a KEYWORD, not an operand, and the generic path counts it as one — which is
+        // exactly what it did, rejecting the conforming `FUNCTION LENGTH(WS-G PHYSICAL)` with
+        // "COBOLNET1504: takes 1 argument(s); 2 given" (fix-queue PB24).
+        if (sig.Name == "LENGTH") return BindLengthFamily(sig, argCtxs);
+
         // NUMVAL-C / TEST-NUMVAL-C (§15.68.2 / §15.94.2) — the optional ANYCASE keyword (orthogonal to the
         // argument-2 currency; §15.94.3 r1 imports every §15.68.3 argument rule) + the §15.68.3 r3
         // compilation-unit currency injection; bound apart from the generic argument path. The LOCALE phrase
@@ -1081,6 +1088,45 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // item of any class or category", handled by the BoundFieldOperand arm above). So this error is spec-correct.
         _ => new BoundExprError("FUNCTION LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.50.3)"),
     };
+
+    /// <summary>
+    /// FUNCTION LENGTH (§15.50.2) — argument-1 plus the optional PHYSICAL keyword.
+    /// </summary>
+    /// <remarks>
+    /// <para>⛔ <b>PHYSICAL IS A KEYWORD, NOT AN ARGUMENT</b>, and the generic argument path counted it as one:
+    /// `FUNCTION LENGTH(WS-G PHYSICAL)` — conforming source — was rejected with "COBOLNET1504: FUNCTION LENGTH
+    /// takes 1 argument(s); 2 given" (fix-queue PB24). Consumed here exactly as ANYCASE is for the NUMVAL-C
+    /// family, so no grammar change is needed: a bare word already parses as an argument context.</para>
+    /// <para>⚖ <b>WHAT IT RETURNS IS AN IMPLEMENTOR DETERMINATION, AND §15.50.4 r8 IS THE ONE THAT MAKES IT
+    /// SMALL.</b> r8's closing sentence: <i>"If argument-1 is physically located where it is defined, LENGTH
+    /// returns the same value that would be returned had the PHYSICAL argument not been specified."</i> COBOL.NET
+    /// determines that a variable-length group IS physically located where it is defined — the program has no
+    /// addressable out-of-line pointer to observe, and the group presents as a contiguous character image at its
+    /// defined position — so PHYSICAL returns the r7 value. The alternative reading (r8's middle sentence: "the
+    /// returned value includes only the length of the implementor-defined pointer") would require inventing a
+    /// user-visible pointer width that nothing in this implementation exposes. Recorded in
+    /// <c>docs/CONFORMANCE.md</c> per §4.2.16.</para>
+    /// <para>The keyword is therefore ACCEPTED and semantically transparent — which is the whole defect: the
+    /// prior behaviour was not a different answer, it was a REJECTION of legal source.</para>
+    /// </remarks>
+    private BoundExpr BindLengthFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        bool physical = false;
+        var operands = new List<BoundOperand>();
+        foreach (var a in argCtxs)
+        {
+            if (KeywordWordOf(a) == "PHYSICAL") { physical = true; continue; }
+            operands.Add(BindArgOperand(a));
+        }
+        if (operands.Count != 1)
+        {
+            ctx.Edition.Error("COBOLNET1504",
+                $"FUNCTION LENGTH takes argument-1 [PHYSICAL] (ISO §15.50.2); {operands.Count} operand argument(s) given");
+            return new BoundExprError("FUNCTION LENGTH arity");
+        }
+        _ = physical;   // §15.50.4 r8 — see the remarks: transparent under this implementation's determination.
+        return BindLengthFold(sig, operands);
+    }
 
     /// <summary>Does this group have a DYNAMIC LENGTH elementary item somewhere beneath it? (§15.50.4 r7b.)
     /// Recursive, because r7 says "all subordinate", not "all immediate children".</summary>

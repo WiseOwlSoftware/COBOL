@@ -94,7 +94,8 @@
     "pb38_standard_mode_beats_float_argument",
     "pb33_numval_family_digit_cap",
     "pb24_length_refmod_argument",
-    "pb24_length_variable_length_group"
+    "pb24_length_variable_length_group",
+    "pb24_length_physical_keyword"
   ],
   "pending": []
 }

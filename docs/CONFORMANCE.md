@@ -234,6 +234,17 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    > as excluding one keyword of one function, on an omission the standard nowhere states, would also be the only
    > reading under which a processor could claim A.4.9 non-support and still owe `NUMVAL-C` locale parsing.
 
+> ⚖ **DETERMINATION — `FUNCTION LENGTH`'s `PHYSICAL` argument (§15.50.4 rule 8)** (2026-08-04; fix-queue PB24).
+> Rule 8 splits on whether argument-1 "is physically located where it is defined": if it is not, the returned
+> value "includes only the length of the implementor-defined pointer"; if it is, "LENGTH returns the same value
+> that would be returned had the PHYSICAL argument not been specified".
+> **COBOL.NET determines that a variable-length group IS physically located where it is defined**, so `PHYSICAL`
+> is accepted and semantically transparent — it returns the rule-7 value. Grounds: this implementation exposes no
+> addressable out-of-line pointer for a program to observe, and a group presents as a contiguous character image
+> at its defined position; the alternative reading would require inventing a user-visible pointer width that
+> nothing here exposes. Pinned by `2023/pb24_length_physical_keyword`, which asserts each PHYSICAL form equals
+> its plain form.
+
 ## 5. Annex A.4 optional-element disposition (§4.2.7)
 
 One row per A.4 optional module. **Claimed** = support is claimed (§4.2.7/A.4.1); **Partial** = the supported /
