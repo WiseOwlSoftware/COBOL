@@ -385,8 +385,8 @@ because `ClassOf` flattened every `BoundStringLiteral` to alphanumeric and ignor
 PB1's disaster was unaudited ROWS; this was an audited row over a lossy CLASSIFIER, one layer down and invisible
 to any review of the rows.
 
-**⛔ BEFORE PICKING THE NEXT ITEM, READ §5b — THE ROAD TO ZERO GAP.** The NEXT table below is the FIX queue in
-working order; §5b is the CAMPAIGN plan for v1.0, and it changes what "next" should mean. Its three load-bearing
+**⛔ BEFORE PICKING THE NEXT ITEM, RUN `python scripts/spec/work.py next` — THE WORKLIST IS `kb/Work/`, NOT §0.**
+§5b below is the CAMPAIGN plan for v1.0 and changes what "next" should mean; it is strategy, not a worklist. Its three load-bearing
 measurements: **3,531 of 3,861 rows are unadjudicated (91 %)** and 327 of the 330 done are §15 — the review has
 driven the narrowest vein; **GR + SR are 2,865 rows (74 %) at ~0 %**; and **only 19 % of adjudicated rows CLOSED**,
 so adjudication maps the territory while only Phase C shrinks the GAP. It also names the single largest efficiency
@@ -434,29 +434,22 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
       condition. **PB33's other half (§15.68.3 r1's two general formats) is still open** and is the natural next
       item; after it, PB12 · PB15 · PB17 · PB23–PB27 · PB30 · PB31 · PB35 · PB36 + the 16-finding residue.
 
-   **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
-   | item | state | the next action |
-   |---|---|---|
-   | **PB12** | half landed | Remaining: the MIXED-argument functions (FIND-STRING + the four FORMATTED-*) need a **per-POSITION** kind — `IntrinsicArgumentRules.Verified` carries one kind per FUNCTION. Plus HIGHEST-ALGEBRAIC, whose §15.43.3 r1 admits *numeric-edited*, so an `'n'` row would reject legal source. |
-   | **PB14** | ✅ LANDED 2026-08-03 | Was the SAME defect as PB32's Dec leg, filed twice. Closed by the one SDIDI landing at `IntrinsicRenderer.Arg` + `Align`'s missing `Dec` arm. Residue → PB38. |
-   | **PB15** | open | The §15.x RESULT-TYPE tables are ignored for FORMATTED-*/TRIM: the type follows argument-1, and `IntrinsicCatalog` hardcodes `Alphanumeric`. |
-   | **PB17** | open | A function-identifier as a SUBSCRIPT or in a REF-MOD position compiles clean and throws at RUN TIME (not a parse error). `ReferenceResolver`'s flat-token segment renderer has no arm for a nested FUNCTION call. ⚠ Fix the RENDERER, not the grammar — D10/PHASE-15 removes SUBSCRIPT mode. |
-   | **PB18** | open (NEW, from PB13's sweep) | A native `**` with an INTEGER exponent routes through `System.Math.Pow`, so `10 ** 30` returns 1000000000000000071935427891953 where Int128 holds 10³⁰ exactly. CONFORMS (§8.8.1.2 r6 imposes no exactness requirement; §8.8.1.3 is implementor-defined) but contradicts our OWN documented native technique (numeric design D3, "the exact Int128 fixed-point engine"). Copy the shape `CobolDec.Pow` already uses: exact repeated multiplication for an integer exponent, double only for a non-integer one. Was invisible until PB13 stopped the saturation from masking it. |
-   | **PB24** | open (NEW, batch 4) | FUNCTION LENGTH is wrong or absent on four shapes: a variable-length group folds to a WRONG compile-time constant (silent), a ref-modified argument throws at RUN TIME, and the PHYSICAL argument + the §15.50.4 r9 rounding step do not exist. |
-   | **PB26** | open (NEW, batch 4) | The ambient EC-ARGUMENT-FUNCTION gate is emitted only for statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written switch, so the SAME function reference raises in one statement and is silent in another. A hand-maintained list where a structure belongs — and the general form of the receiver-shape defect PB13 hit. |
-   | **PB23 · PB25 · PB27** | open (NEW, batch 4) | Smaller: a raw `System.ArgumentOutOfRangeException` where §15.3 requires EC-ARGUMENT-FUNCTION (a TWO-day window, correcting the landed `AR-15.79.3-5`) · LOWER-CASE's LOCALE arm refused + a figurative argument aborting at run time · three silent leaks in the otherwise-loud §A.4.9 locale non-support. |
-   | **PB32** | ⚠ HALF LANDED 2026-08-03 | Structural half done (see handoff item 2). **Remaining half is BLOCKED on PB18** — the receiver-shape control-flow defect (`FUNCTION MOD(A ** 2, B)` = 930000007 vs 930000008). Nothing to do here until the owner's `**` decision. |
-   | **PB33** | open (NEW, batch 5) | The same asymmetry one register over: `TestNumvalC` applies the 31-digit native cap and `NumvalC` does not — the validating twin fixed, the value-producing one not. Independent of PB32's blocked half; workable now. |
-   | **PB38** | ✅ LANDED 2026-08-04 | The mode now beats the float branch inside the ONE landing PB32 built (`IntrinsicRenderer.Landed`), so no separate selector and no Dec-carrier body were needed. ⛔ The half that would have been missed: `AnyRealArgument` had to be asked of the **LANDED** operand — reading the raw one leaves the dispatch on the binary64 body while the landing silently does nothing. Golden pins the whole `AlignedArgs` family. |
-   | **PB28** | open, BLOCKED on PB18 | §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one — `0 ** 0` → 1 and `-2 ** 0.5` → 0, neither raising SIZE ERROR (both re-verified 2026-08-03), and `CobolDec.Pow` already carries the correct half. Same two lines as PB18. |
-   | **PB29** | ⚙ detector LANDED; adjudication is an OWNER DECISION | See handoff items 0 and 3. |
-   | **PB18** | open, VERIFIED not started | Every claim re-verified (citations, repro, code, the shape to copy). ⛔ Its recipe omits SCALE EXPLOSION: exact `Int128` power is easy only for a scale-0 base. **Decide EC-SIZE-EXPONENTIATION vs the documented double fallback in `COBOLNET_NUMERIC_DESIGN.md` FIRST** — it is a design decision, not a code edit. Fixes with PB28 (same two lines). |
-   | **PB30 · PB31 · PB34–PB36** | open (NEW, batch 5) | Eight more functions absent from `IntrinsicArgumentRules.Verified` (PB30 — PB1's residue growing by the clause, and every new row must carry the ISO clause it was read from) · the CROSS-argument class-agreement rule enforced NOWHERE (PB31 — a `Verified` row cannot fix it) · NUMVAL-family digit caps (PB34) · zero-length MAX/MIN literal (PB35) · MODULE-NAME r5 activation mechanisms (PB36). |
-   | **PB37** | ⚖ NEEDS OWNER DECISION | **The bare question:** §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not among them (item 12 is *TEST-NUMVAL-C function, LOCALE key*). Is NUMVAL-C's LOCALE phrase MANDATORY, or is the omission editorial? **Seven NOT-IMPLEMENTED rows hang on the answer.** |
-   | **residue** | open | 16 unclustered findings, several of which also reject legal COBOL (a CONSTANT-NAME refused in every intrinsic argument position; no COBOL word may contain an UNDERSCORE though permitted since 2002; `NX"…"` has no lexer rule; `EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`). |
-   ⛔ **Repros for every one of the 82 findings:** `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`.
-   The queue carries the CLUSTERS; that ledger carries the repro behind each. **Do not work the findings one by
-   one** — most are one cause seen from ten functions.
+   ⛔ **THE OPEN QUEUE LIVES IN `kb/Work/`, NOT HERE, AND THIS SECTION MUST NEVER REGROW ONE.**
+   A worklist table used to sit at this spot. It was a SECOND register beside the fix queue, and it rotted
+   exactly as a duplicate must: on 2026-08-04 it still listed PB18 and PB38 as open when both had landed, and
+   PB28 as blocked on a decision already taken. **Everything it held is now one note per item under `kb/Work/`.**
+
+   | to ask | run |
+   |---|---|
+   | what should I work on now? | `python scripts/spec/work.py next` — session-probe already prints it |
+   | show me everything open | `kb/Work.base` → **Fix next** · **Blocked** · **Open but nobody gets a wrong answer** |
+   | is the register sound? | `python scripts/spec/work.py check` |
+   | counts by kind/status | `python scripts/spec/work.py stats` |
+
+   **`Fix next` = `not landed AND (wrong-answer OR crashes) AND not blocked`** — ranked by what a defect DOES to
+   a user's program, never by its severity label. PB24 (`FUNCTION LENGTH` silently wrong) and PB39 (rule-id
+   numbering, zero wrong answers) are BOTH `[MAJOR]`, and a session picked PB39. Severity cannot separate them.
+   ⛔ **Repros for the batch-4 findings:** `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`.
 
    **⚠ FOUR STANDING CAUTIONS, each earned by a defect and each outliving the item that produced it.**
    · **A SHARED-GRAMMAR CHANGE MUST BE ADDITIVE UNTIL P15.** Collapsing a rule to a shared one deletes the

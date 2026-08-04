@@ -90,4 +90,4 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
     Write-Host "invent : not built yet (P14 Step 0)"
 }
 
-Write-Host "=== next: confirm the battery green (plan §9) before code changes; read plan §0 for the worklist ==="
+Write-Host "=== next: confirm the battery green (plan §9) before code changes; the worklist is kb/Work (work.py next, above); plan 0 is live state ==="

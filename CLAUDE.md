@@ -1,7 +1,7 @@
 # COBOL.NET — Claude Code Instructions
 
 ## ⛔ Non-negotiable process rules
-Owner-emphasized, each earned by a correction. These seven are the SSOT; `PROMPT.md` holds the standing doctrine
+Owner-emphasized, each earned by a correction. These eight are the SSOT; `PROMPT.md` holds the standing doctrine
 (mission, architectural commitments, the four required reviews) and does not restate them.
 
 1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case.** Read it and cite
@@ -33,12 +33,31 @@ Owner-emphasized, each earned by a correction. These seven are the SSOT; `PROMPT
 7. **Work autonomously.** Commit AND push every checkpoint, with a forensic commit message and a DEVLOG entry.
    Grammar changes are pre-authorized. Prompt only for genuine owner decisions — one at a time, as a bare question.
 
+8. **⛔ THERE IS EXACTLY ONE WORK REGISTER — `kb/Work/` — AND YOU MAY NOT CREATE ANOTHER.** One note per item
+   (`kind:` defect · analysis · adjudication · decision), tracked in git, frontmatter carrying `status`,
+   `severity`, `area` and the harm flags; the forensic prose lives in the note body. `kb/Work.base` is the view.
+   **Read it with `python scripts/spec/work.py next` and keep it CURRENT in the same change set as the work** —
+   a landed fix flips its note's `status` in the commit that lands it, and a newly found defect becomes a note
+   before it becomes a DEVLOG paragraph.
+   ⛔ **DO NOT open a new list, table, tracker, checklist or "remaining work" section anywhere — not in plan §0,
+   not in a design doc, not in a new markdown file, not in a JSON sidecar.** Five such registers accumulated by
+   2026-08-04, three of which each declared themselves canonical, and the cost was measurable: a WRONG-ANSWER
+   defect (`EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`) sat inside a prose paragraph where
+   no work list could see it, while §0's own duplicate table rotted into listing landed items as open. **If you
+   feel the urge to start a list, add notes to `kb/Work/` instead.** The only other registers are the ones
+   derived mechanically from the spec (the rule catalog → the traceability inventory → its generated burn-down)
+   and `constructs.json`; those are GENERATED or CI-owned, never hand-maintained work lists.
+
 ## Start here every session
-1. **`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** — THE ONE PLANNING DOCUMENT and the ONLY live-state SSOT: the
-   worklist, the gates, the open GAPs. Trust §0 over any status written anywhere else, including memory.
-2. **`pwsh scripts/session-probe.ps1`** — the mechanical state check (branch · dirty/unpushed · next-free
+1. **`kb/Work/` — THE WORK REGISTER, and the answer to "what do I do now".** Run
+   `python scripts/spec/work.py next`; `kb/Work.base` → **Fix next** is the same list, sortable. It ranks on what
+   a defect DOES to a user's program, not on its severity label. ⛔ Never re-derive a worklist from prose.
+2. **`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** — live state, gates, open GAPs, owner decisions and the campaign
+   narrative. ⛔ **It no longer carries a worklist and must never regrow one** (rule 8). Trust §0 over any status
+   written anywhere else, including memory — but trust `kb/Work/` over §0 for what is OPEN.
+3. **`pwsh scripts/session-probe.ps1`** — the mechanical state check (branch · dirty/unpushed · next-free
    diagnostic code · VCR todos · corpus counts · inventory GAP). Never hand-read state a script can compute.
-3. Update §0 and add a DEVLOG entry before the session ends.
+4. Before the session ends: update the `kb/Work/` notes you touched, update §0, add a DEVLOG entry.
 
 ## The project
 COBOL.NET (`src/Cobol.Net.*`, exe `cobol`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a

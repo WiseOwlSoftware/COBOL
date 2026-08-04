@@ -8,12 +8,30 @@ description: Use at the start of every COBOL.NET session, and whenever asked "wh
 Live state is **computed, never remembered**. Memory and any status line written in a doc may be stale; these three
 steps are not.
 
-## 1. Read plan §0 — the ONLY live-state SSOT
+## 1. Ask the work register what to do — `kb/Work/`
 
-`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0. It owns: where we are, the NEXT worklist in order, the gates, the open
-GAPs, and the standing facts. **Trust §0 over any status written anywhere else, including memory and this skill.**
+⛔ **THE WORKLIST IS `kb/Work/`, NOT plan §0, AND NOT ANY OTHER FILE (CLAUDE.md rule 8).**
 
-## 2. Run the probe — never hand-read what a script computes
+```
+python scripts/spec/work.py next     # the ranked list; session-probe prints it too
+python scripts/spec/work.py check    # the register is well-formed
+```
+
+`kb/Work.base` is the same data, sortable: **Fix next** · **Blocked** · **Open but nobody gets a wrong answer** ·
+**Analyses (§11)** · **Everything**. `Fix next` = `not landed AND (wrong-answer OR crashes) AND not blocked` —
+ranked by what a defect DOES to a user's program, never by its severity label. PB24 and PB39 are both `[MAJOR]`
+and only one of them returns a wrong answer.
+
+⛔ **KEEP IT CURRENT IN THE SAME CHANGE SET AS THE WORK.** A landed fix flips its note's `status` in the commit
+that lands it. A newly found defect becomes a `kb/Work/` note *before* it becomes a DEVLOG paragraph. **Do not
+start a list anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical.
+
+## 2. Read plan §0 — live state, gates and owner decisions
+
+`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0. It owns: where we are, the gates, the open GAPs, owner decisions and
+the campaign narrative. ⛔ **It does NOT own a worklist — `kb/Work/` does, and §0 must never regrow one.** **Trust §0 over any status written anywhere else, including memory and this skill.**
+
+## 3. Run the probe — never hand-read what a script computes
 
 ```
 pwsh -NoProfile -File scripts/session-probe.ps1
@@ -30,17 +48,17 @@ Reading its output:
 - **`invent`** — the traceability inventory GAP count is the P14 burn-down metric. "not built yet" means the
   denominator does not exist and no conformance percentage can be quoted.
 
-## 3. Confirm the battery baseline before changing code
+## 4. Confirm the battery baseline before changing code
 
 Plan §0 "Gates" carries the last known-green counts. If the last session ended mid-batch, re-confirm green before
 building on it — see the `gate` skill.
 
 ## Before the session ends
 
-Update §0 (it is the single-write location for live state) and add a `DEVLOG.md` entry per commit. Commit and push
+Update the `kb/Work/` notes you touched, update §0 (live state only), and add a `DEVLOG.md` entry per commit. Commit and push
 every checkpoint.
 
 ## What NOT to do here
 
 - Do not summarize the plan back to the owner unless asked. Read it and start working.
-- Do not ask "what would you like to work on?" — the top of §0 NEXT is the answer.
+- Do not ask "what would you like to work on?" — `python scripts/spec/work.py next` is the answer.
