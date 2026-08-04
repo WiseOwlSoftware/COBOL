@@ -1,5 +1,8 @@
 # COBOL.NET — Documentation Index
 
+> ⛔ **ONE WORK REGISTER: `kb/Work/`.** `python scripts/spec/work.py next` answers "what now"; `kb/Work.base` is the view. **Keep it current in the SAME change set as the work**, and **never start a list, table, tracker or "remaining work" section anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical (CLAUDE.md rule 8).
+
+
 > **The map of the surviving docs.** Referenced by `CLAUDE.md`. **Keep in sync:** when you add, retire, or materially
 > change a doc, update its row here. There is exactly **one canonical doc per subsystem** — extend it, never fork a second.
 >

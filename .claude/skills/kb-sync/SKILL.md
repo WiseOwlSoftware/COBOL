@@ -5,6 +5,9 @@ description: Use after landing work that changes remaining-work state, and at ev
 
 # KB sync
 
+> ⛔ **ONE WORK REGISTER: `kb/Work/`.** `python scripts/spec/work.py next` answers "what now"; `kb/Work.base` is the view. **Keep it current in the SAME change set as the work**, and **never start a list, table, tracker or "remaining work" section anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical (CLAUDE.md rule 8).
+
+
 ⛔ **THIS SKILL SHRANK ON 2026-08-04, AND THE REASON IS THE POINT.** It existed because FOUR registers described
 remaining work and drifted independently — and three of them each claimed to be canonical. They are now ONE:
 **`kb/Work/`**, one note per item. Most of what this skill used to reconcile no longer needs reconciling, because
