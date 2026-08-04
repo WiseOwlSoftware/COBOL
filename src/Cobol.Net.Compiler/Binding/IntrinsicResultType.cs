@@ -183,12 +183,18 @@ internal static class IntrinsicResultType
         IntrinsicResultRule.FollowsConcatArguments =>
             CategoryOf(args, 0) is PicCategory.National ? IntrinsicType.National : IntrinsicType.Alphanumeric,
 
-        // CONVERT's destination format is not an ordinary operand — the binder resolves it from the keyword
-        // phrase and passes the answer through the row it builds, so there is nothing for a generic reader to
-        // inspect here. Kept as an explicit arm rather than falling into `_` so that adding a member without
-        // handling it is a compile error, not a silent Fixed.
+        // CONVERT's destination format is NOT an operand — it is a keyword phrase, so there is nothing here for a
+        // generic reader to inspect. `BindConvert` resolves §15.19.1 itself (`dst == 3 ? National : Alphanumeric`)
+        // and passes the answer to the node it builds. The arm is written out rather than left to fall through,
+        // so the rule is visibly ACCOUNTED FOR at the one place rules are read.
         IntrinsicResultRule.FollowsDestinationFormat => sig.Type,
 
+        IntrinsicResultRule.Fixed => sig.Type,
+
+        // ⚠ THIS CATCH-ALL MEANS A NEW ENUM MEMBER FAILS SILENTLY AS `Fixed`, NOT AT COMPILE TIME — a C# switch
+        // expression over an enum warns rather than errors, so exhaustiveness cannot be enforced here.
+        // `IntrinsicResultTypeDriftTests.EveryResultRule_IsHandledByTheResolver` is the guard that makes it loud;
+        // it is a test precisely because the language will not do it.
         _ => sig.Type,
     };
 
@@ -274,7 +280,12 @@ internal static class IntrinsicResultType
         // as a scale-0 numeric PicInfo that would otherwise answer true.
         BoundFieldOperand { Place.Item: { IsGroup: false } item } =>
             item.Pic is { Category: PicCategory.Numeric, Scale: 0, Usage: not Usage.Index },
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.Sig.Type is IntrinsicType.Integer,
+        // ⚠ A NESTED CALL IS ASKED FOR ITS RESOLVED TYPE, NOT ITS DECLARED ONE. Reading `ic.Sig.Type` here would
+        // answer NUMERIC for `FUNCTION SUM(FUNCTION ABS(I) J)` — ABS's row DECLARES Numeric and resolves to
+        // Integer only against its own argument — so the outer "all arguments integer" row would never be
+        // selected through a nested integer function. The recursion is bounded by expression nesting depth.
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+            Resolve(ic.Sig, ic.Args) is IntrinsicType.Integer,
         _ => false,
     };
 

@@ -148,6 +148,32 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
+**⚙ 2026-08-04 (later session) — PB15 LANDED, and the subject was an ARCHITECTURAL claim that had been false for
+a year.** ⛔ Run the probe; never quote a number from this paragraph.
+`COBOLNET_INTRINSICS_DESIGN.md` **D2** says the catalog "is the single source of result-category truth" — it was
+not. **Three** mechanisms decided the property: the scalar `IntrinsicType` column plus **two hand-written name
+lists** in `IntrinsicBinder` (CA25's three names, V54's two). ISO §15 gives **twenty** functions a type that
+depends on their arguments, so the ten nobody had a list for stayed mislabelled. The rule is now a catalog
+COLUMN (`IntrinsicResultRule`) with **one** reader, and `IntrinsicResultTypeDriftTests` **re-derives the
+population from `specs/ISO_COBOL.md` itself**, so the next such function fails the build instead of being missed.
+⭐ **THE TRANSFERABLE RESULT IS THE SAME ONE AS THE LAST TWO SESSIONS, EARNED AGAIN: MEASURE THE ENTRY.** PB15
+named four functions; eight were broken. It was filed `wrong_answer`; the run-time value was correct in every
+case and the defect is a silent **under-rejection** — a different defect needing a different fix.
+⚠ **AND MEASURING THE FIX'S OWN CLOSING CLAIM OPENED PB40.** The note said the new INTEGER-following rules were
+"not yet observable"; probing that produced `FUNCTION CHAR(FUNCTION ABS(<PIC 9V9>))` compiling clean against
+§15.15.3 r1. The §15.3 screen resolves through CLASS and §15.2 puts integer and numeric functions both in class
+numeric, so its `'i'` arm cannot distinguish them. **A claim about reachability is a measurement, not a
+deduction.**
+⛔ **THREE OF MY OWN ERRORS, EACH CAUGHT BY RUNNING SOMETHING:** a "sibling defect" I fixed and had to un-fix (a
+group of `PIC N` children is an ALPHANUMERIC group — §8.5.2.10 item 3 needs `GROUP-USAGE NATIONAL`, which is not
+modelled — so the compiler was already right); a citation `cite.py --check` rejected (§13.18.27 for GROUP-USAGE;
+it is **§13.18.29**); and a new source-form guard that fired on **its own explanatory comment**, found only
+because the guard was proven in the failing direction before being trusted.
+⚠ **A METHOD WARNING AGAINST MYSELF:** I launched a measurement fan-out over this population and then rebuilt the
+compiler underneath it, so its agents probed a moving binary and its refuters re-ran against an already-fixed
+tree. It was stopped and **none of the numbers above come from it** — every one is a before/after run directly.
+**Do not start a measurement fleet and then edit its subject.**
+
 **⚙ WHERE THE 2026-08-03/04 SESSION ENDED — 27 commits, tree clean, pushed.** ⛔ **Run the probe; never quote a
 number from this paragraph.** At close: denominator **3,861 → 3,981** · GAP **3,796 → 3,907** · corpus 247 →
 **255** positive goldens · work register **67 items, 35 open / 3 half / 28 landed, 14 actionable**.
