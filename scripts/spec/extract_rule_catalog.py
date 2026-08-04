@@ -39,6 +39,10 @@ from collections import Counter
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC = REPO / "specs" / "ISO_COBOL.md"
 OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
+#: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
+#: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
+#: observation rather than a memory. See unharvested_rule_blocks() and fix-queue PB29.
+UNHARVESTED = REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks.json"
 
 # A numbered section heading, e.g. "## 8.4.3.13.3 Syntax rules" or "### 14.9.28.4 General rules".
 HEADING = re.compile(r"^#{2,6}\s+(?P<num>\d+(?:\.\d+)*)\s+(?P<title>.+?)\s*$")
@@ -143,6 +147,55 @@ def canonical_title(title: str) -> str:
 
 def kind_of(title: str) -> str | None:
     return KINDS.get(canonical_title(title))
+
+
+def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[str, dict]:
+    """Every clause whose BODY carries an ascending ``N)`` list that this extractor does not harvest.
+
+    ⛔ THE THIRD INSTANCE OF ONE DEFECT CLASS, AND THE FIRST DETECTOR THAT CAN SEE IT (fix-queue PB29).
+    The denominator has been short twice — 3,790 → 3,846 (heading spellings the literal map did not know) →
+    3,861 (§13.18.40.5/.6, typed by §5.3) — and both fixes extended a HEADING-keyed guard. ``RULE_SHAPED``
+    reports a heading containing the word "rule" that ``KINDS`` cannot resolve, which is exactly why it cannot
+    see this one: §8.8.1.2 is headed *"Native, standard-binary, and standard-decimal arithmetic"* and its seven
+    numbered rules sit under ordinary prose. A guard keyed on what a block is CALLED can never find a block that
+    is called something else, so this one is keyed on what a block CONTAINS.
+
+    ⚠ THE RESULT IS AN UPPER BOUND, NOT A DEFECT COUNT, AND IT MUST NOT BE ADDED TO THE DENOMINATOR WHOLESALE.
+    The standard numbers ordinary prose enumerations the same way it numbers rules — §8.3.2.2 "User-defined
+    words" lists the KINDS of user-defined word, not fifteen requirements. Admitting all of them would be the
+    mirror of the short denominator, and the denominator defines v1.0 (D13). So each clause is adjudicated and
+    recorded in the committed manifest beside this script; this function only MEASURES.
+    """
+    found: dict[str, dict] = {}
+    cur: tuple[str, str] | None = None
+    body: list[str] = []
+
+    def close() -> None:
+        if cur is None:
+            return
+        num, title = cur
+        ordinals, last = 0, 0
+        for ln in body:
+            if m := ORDINAL.match(ln):
+                n = int(m.group("n"))
+                if n == last + 1 or n == 1:      # a rule list ascends from 1; a stray "3)" mid-prose does not
+                    ordinals, last = ordinals + 1, n
+        if ordinals and kind_of(title) is None:
+            found[num] = {"title": title, "ordinals": ordinals}
+
+    for line in lines:
+        if ANY_HEADING.match(line):
+            if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+                close()
+                cur, body = (m.group("num"), m.group("title")), []
+                continue
+            close()
+            cur, body = None, []
+            continue
+        if cur:
+            body.append(line)
+    close()
+    return found
 
 
 def subject_for(num: str, titles: dict[str, str]) -> str:
@@ -482,8 +535,35 @@ def main() -> int:
     else:
         print("✓ every rule-shaped heading in the spec resolves to a known rule kind")
 
+    # ⛔ THE CONTENT-KEYED CHECK — the one the two previous denominator corrections could not have made.
+    # See unharvested_rule_blocks(). Measured against a COMMITTED MANIFEST rather than a remembered number, so a
+    # newly-transcribed clause carrying rules is LOUD instead of silently absent from the denominator.
+    measured = unharvested_rule_blocks(lines, titles)
+    declared = json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"] if UNHARVESTED.exists() else {}
+    added = sorted(set(measured) - set(declared))
+    removed = sorted(set(declared) - set(measured))
+    changed = sorted(s for s in set(measured) & set(declared)
+                     if measured[s]["ordinals"] != declared[s]["ordinals"])
+    pending = {s: v for s, v in declared.items() if v.get("disposition") == "pending"}
+
+    print(f"\n⛔ CONTENT-KEYED SCAN — clauses carrying an ascending 'N)' list that this extractor does NOT harvest:")
+    print(f"      {len(measured):4d} clauses, {sum(v['ordinals'] for v in measured.values()):5d} ordinals (an UPPER BOUND — see the docstring)")
+    print(f"      {len(pending):4d} clauses, {sum(v['ordinals'] for v in pending.values()):5d} ordinals awaiting a denominator disposition (fix-queue PB29)")
+    if added or removed or changed:
+        print("\n⛔ THE UNHARVESTED SET HAS DRIFTED FROM ITS MANIFEST — the denominator may now be short again.")
+        for s in added:
+            print(f"      + §{s} ({measured[s]['ordinals']} ordinals) '{measured[s]['title']}' — NEW, undeclared")
+        for s in removed:
+            print(f"      - §{s} — declared but no longer measured (harvested now, or the transcription moved)")
+        for s in changed:
+            print(f"      ~ §{s}  {declared[s]['ordinals']} → {measured[s]['ordinals']} ordinals")
+        print(f"   Adjudicate each and update {UNHARVESTED.relative_to(REPO)}: a clause is either a RULE block")
+        print("   (give its heading a kind in KINDS) or a prose enumeration (disposition 'not-rules', with why).")
+    else:
+        print("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
+
     if args.check:
-        return 1 if (gaps or unrecognised) else 0
+        return 1 if (gaps or unrecognised or added or removed or changed) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({

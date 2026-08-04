@@ -678,6 +678,26 @@ below index it).
 > evaluation — including the two rules PB28 proves violated — has never been adjudicated.** §11 **A3** (the
 > numeric-semantics depth audit, "the intermediate-results model vs §8.8.1 end-to-end") is scheduled precisely
 > here and would have been run against a denominator that omits its subject.
+>
+> ⚙ **DETECTOR LANDED 2026-08-03, AND IT MEASURED THE HOLE AT FIVE TIMES THIS ENTRY'S ESTIMATE.**
+> The entry's own count is exactly right for its subject — §8.8.1's five clauses carry 7 + 3 + 4 + 3 + 4 = **21**
+> ordinals, confirmed. But the same blind spot is not confined to §8.8.1: the content-keyed scan measures
+> **100 clauses carrying 460 ordinals** that the extractor never harvests. The two previous denominator
+> corrections could not have found any of them, because both extended a HEADING-keyed guard: `RULE_SHAPED` looks
+> for the word "rule" in a title, and §8.8.1.2 is headed *"Native, standard-binary, and standard-decimal
+> arithmetic"*. **A guard keyed on what a block is CALLED can never find a block that is called something else**,
+> which is why the new one is keyed on what a block CONTAINS (`unharvested_rule_blocks`).
+> ⚠ **460 IS AN UPPER BOUND, NOT A DEFECT COUNT, AND ADMITTING IT WHOLESALE WOULD BE THE MIRROR OF THE SHORT
+> DENOMINATOR.** The standard numbers ordinary prose enumerations exactly as it numbers rules: §8.3.2.2
+> "User-defined words" (15 ordinals) lists the KINDS of user-defined word, not fifteen requirements, whereas
+> §14.7.5 "SIZE ERROR phrase and size error condition" (16) and §8.8.1.2 (7) plainly are normative. Each clause
+> needs adjudicating, and the set is committed as `spec-unharvested-rule-blocks.json` with every entry
+> `disposition: "pending"` — a worklist row, never a decision.
+> **The guard is proven to fail:** dropping §8.8.1.2 from the manifest and perturbing §14.7.5's count were both
+> reported precisely, so "nothing new has fallen out of the denominator" is an observation and not a memory.
+> ⚖ **WHAT REMAINS IS AN OWNER DECISION, not an implementation step** — admitting a clause CHANGES THE
+> DENOMINATOR, and the denominator defines v1.0 (D13). The §13.18.40.5/.6 admission was taken as an owner
+> decision for exactly this reason. The bare question is in plan §0.
 
 ### ⛔ BATCH 5 (§15.58–15.69) — 79 open findings, EIGHT root causes
 
