@@ -187,7 +187,9 @@ the single origin of every numeric argument. Measure the WHOLE population after 
      ⚠ **NOT YET STARTED, and it is the biggest scheduled item.** `docs/rearchitecture/spec-unharvested-rule-blocks.json`
      is the worklist (100 clauses / 460 ordinals, every entry `disposition: "pending"`). Each is judged either
      normative rules (admit, typed per §5.3) or prose enumeration (`not-rules`, with the reason). **460 is an
-     UPPER BOUND** — §8.3.2.2 "User-defined words" lists kinds of word; §14.7.5 and §8.8.1.2 are plainly
+     UPPER BOUND**, and SHAPE is the triage signal: **89 clauses / 350 items are a SINGLE ascending list**
+     (rule-block shaped) against **11 clauses / 110 items of nested sub-lists** (prose-enumeration shaped).
+     ⚠ §8.3.2.2 "User-defined words" is in the SECOND group — 15 items in five restarting sub-lists; §14.7.5 and §8.8.1.2 are plainly
      normative. The denominator and therefore v1.0's meaning change when this lands. **§11 A3 unblocks with it.**
 
    ⛔ **AND THE PROCESS LESSON THAT COST THE MOST: I ASKED TWO DECISIONS, GOT COUNTER-QUESTIONS BACK, ANSWERED

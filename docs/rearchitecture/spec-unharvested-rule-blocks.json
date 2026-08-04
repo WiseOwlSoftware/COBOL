@@ -1,510 +1,830 @@
 {
- "_comment": "The COMMITTED inventory of clauses whose body carries an ascending 'N)' list that extract_rule_catalog.py does NOT harvest, because the heading does not resolve through KINDS. MEASURED 2026-08-03 by the content-keyed scan (fix-queue PB29) after PB28 proved that two rules of SS8.8.1.2 are violated by the compiler while being absent from the denominator entirely. This is an UPPER BOUND, not a defect count: the standard numbers ordinary prose enumerations the same way it numbers rules, so each clause needs adjudicating. disposition='pending' means NOT YET ADJUDICATED - it is a worklist entry, never a decision. Admitting a clause is a DENOMINATOR change and the denominator defines v1.0 (D13), so it is an owner decision, exactly as the SS13.18.40.5/.6 admission was.",
+ "_comment": [
+  "The COMMITTED inventory of clauses whose body carries an ascending 'N)' list that",
+  "extract_rule_catalog.py does NOT harvest, because the heading does not resolve through KINDS.",
+  "MEASURED 2026-08-03 by the content-keyed scan (fix-queue PB29), after PB28 proved two rules of",
+  "SS8.8.1.2 are violated by the compiler while absent from the denominator entirely.",
+  "",
+  "SHAPE IS THE TRIAGE SIGNAL AND IT WAS ADDED AFTER THE FIRST COUNT MISLED ITS OWN AUTHOR.",
+  "'ordinals' alone reads like a rule count: SS8.3.2.2 'User-defined words' reports 15, which sounds",
+  "like a numbered rule block, but they are FIVE nested sub-lists inside prose each restarting at 1.",
+  "A rule block is normally ONE ascending list, so shape='single-list' is weak evidence FOR admitting",
+  "the clause and 'multi-sublist' weak evidence for a prose enumeration. NEITHER IS PROOF - every",
+  "clause is still adjudicated one at a time.",
+  "",
+  "disposition='pending' means NOT YET ADJUDICATED - a worklist entry, never a decision.",
+  "Admitting a clause is a DENOMINATOR change and the denominator defines v1.0 (D13).",
+  "OWNER DECISION 2026-08-03: adjudicate all 100 as one batch and admit the normative ones."
+ ],
  "measured": "2026-08-03",
  "totals": {
   "clauses": 100,
-  "ordinals": 460
+  "ordinals": 460,
+  "single_list_clauses": 89,
+  "single_list_ordinals": 350,
+  "multi_sublist_clauses": 11,
+  "multi_sublist_ordinals": 110
  },
  "blocks": {
   "4.2.10": {
    "title": "Nonstandard extensions",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "4.4": {
    "title": "A conforming run unit",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "5.5": {
    "title": "Integer operands",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "6.1": {
    "title": "General",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "6.3.4": {
    "title": "Program-text area",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "6.3.5": {
    "title": "Continuation of lines",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "6.5": {
    "title": "Logical conversion",
    "ordinals": 9,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "7.2.2.5": {
    "title": "Text-words",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.1.2": {
    "title": "Computer's coded character set",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.3.2.1": {
    "title": "General",
    "ordinals": 5,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.3.2.2": {
    "title": "User-defined words",
    "ordinals": 15,
-   "disposition": "pending"
+   "lists": 5,
+   "longest": 6,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "8.3.2.4.2": {
    "title": "Required words",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.3.3.3.2": {
    "title": "Fixed-point numeric literals",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.3.3.3.3": {
    "title": "Floating-point numeric literals",
    "ordinals": 5,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.3.5": {
    "title": "Separators",
    "ordinals": 9,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.4.2.2.1": {
    "title": "General",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.4.6.2.1": {
    "title": "General",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.4.6.3": {
    "title": "Scope of program-names",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.3.2": {
    "title": "Level-numbers",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.4": {
    "title": "Limitations of character handling",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.6.4": {
    "title": "Item alignment for increased object-code efficiency",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.9.1": {
    "title": "General",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.9.6": {
    "title": "Exceeding capacity",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.11.3": {
    "title": "Availability and persistence of variable-length data items",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.1.12.1": {
    "title": "General",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.3": {
    "title": "Alphanumeric category",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.5": {
    "title": "Boolean category",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.8": {
    "title": "Index category",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.10": {
    "title": "National category",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.12": {
    "title": "Numeric category",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.2.13": {
    "title": "Numeric-edited category",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.3.1": {
    "title": "General",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.5.4": {
    "title": "Zero-length items",
    "ordinals": 9,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.6.7": {
    "title": "Sharing data items",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.1.2": {
    "title": "Native, standard-binary, and standard-decimal arithmetic",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.1.4.2": {
    "title": "Standard-binary intermediate data item",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.1.4.4": {
    "title": "Exponentiation in standard-binary arithmetic",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.1.5.2": {
    "title": "Standard-decimal intermediate data item",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.1.5.4": {
    "title": "Exponentiation in standard-decimal arithmetic",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.2": {
    "title": "Boolean expressions",
    "ordinals": 10,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 10,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.2.1": {
    "title": "General",
    "ordinals": 13,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 13,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.2.7": {
    "title": "Comparison of alphanumeric operands",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.2.8": {
    "title": "Comparison of boolean operands",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.2.10": {
    "title": "Standard comparison",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.2.13": {
    "title": "Comparisons involving index-names or index data items",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.12.1": {
    "title": "General",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "8.8.4.13": {
    "title": "Order of evaluation of conditions",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.1": {
    "title": "Physical and logical files",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.5": {
    "title": "Sharing file connectors",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.11": {
    "title": "File position indicator",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.12": {
    "title": "Input-output exception processing",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.2": {
    "title": "Successful completion",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.3": {
    "title": "Implementor-defined successful completion",
    "ordinals": 1,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.4": {
    "title": "At end condition with unsuccessful completion",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.5": {
    "title": "Invalid key condition with unsuccessful completion",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.6": {
    "title": "Permanent error condition with unsuccessful completion",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.7": {
    "title": "Logic error condition with unsuccessful completion",
    "ordinals": 9,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.8": {
    "title": "Record operation conflict condition with unsuccessful completion",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.9": {
    "title": "File sharing conflict condition with unsuccessful completion",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.10": {
    "title": "Record with invalid content with unsuccessful completion",
    "ordinals": 1,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.13.11": {
    "title": "Implementor-defined condition with unsuccessful completion",
    "ordinals": 1,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.1.14": {
    "title": "Invalid key condition",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "9.1.15": {
    "title": "Sharing mode",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.2.3": {
    "title": "CRT status",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.3.5.3": {
    "title": "Parametric polymorphism",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "9.3.6": {
    "title": "Method invocation",
    "ordinals": 23,
-   "disposition": "pending"
+   "lists": 5,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "9.3.8.2.3": {
    "title": "Conformance between interfaces",
    "ordinals": 8,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "10.3": {
    "title": "Source units",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "13.8.6.2.3": {
    "title": "Report Items",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "13.18.41.1": {
    "title": "General",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.5.3.2": {
    "title": "Explicit scope termination",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.5.3.3": {
    "title": "Implicit scope termination",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.2.3.2": {
    "title": "Initial state",
    "ordinals": 10,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "14.6.3": {
    "title": "Explicit and implicit transfers of control",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.4": {
    "title": "Item identification",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.6": {
    "title": "Locale identification",
    "ordinals": 9,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.8.2": {
    "title": "Fixed-point numeric and fixed-point numeric-edited receiving data items",
    "ordinals": 5,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.8.3": {
    "title": "Floating-point numeric receiving data items",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.8.4": {
    "title": "Floating-point numeric-edited receiving data items",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.9.2": {
    "title": "Moving a table",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.10": {
    "title": "Overlapping operands",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.11": {
    "title": "Normal run unit termination",
    "ordinals": 7,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.13.1.2": {
    "title": "Normal completion of a declarative procedure",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.13.1.3": {
    "title": "Fatal exception conditions",
    "ordinals": 8,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 8,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.13.1.4": {
    "title": "Nonfatal exception conditions",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.6.13.1.5": {
    "title": "Exception objects",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "14.6.13.2": {
    "title": "Incompatible data",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.7.5": {
    "title": "SIZE ERROR phrase and size error condition",
    "ordinals": 16,
-   "disposition": "pending"
+   "lists": 3,
+   "longest": 8,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "14.7.6": {
    "title": "CORRESPONDING phrase",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.7.7": {
    "title": "Arithmetic statements",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.7.8": {
    "title": "THROUGH phrase",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.8.2.2": {
    "title": "Group items",
    "ordinals": 2,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "14.8.2.3.2": {
    "title": "Elementary items passed by reference",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "14.8.2.3.3": {
    "title": "Elementary items passed by content or by value",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 2,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "14.8.3.3": {
    "title": "Elementary items",
    "ordinals": 10,
-   "disposition": "pending"
+   "lists": 3,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "15.1": {
    "title": "General",
    "ordinals": 5,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "15.2": {
    "title": "Types of functions",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "15.3.3.6.1": {
    "title": "Offset subformats",
    "ordinals": 3,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "shape": "single-list"
   },
   "15.4.1": {
    "title": "Numeric and integer functions",
    "ordinals": 6,
-   "disposition": "pending"
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "multi-sublist"
   },
   "15.6": {
    "title": "Summary of functions",
    "ordinals": 4,
-   "disposition": "pending"
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "shape": "single-list"
   }
  }
 }

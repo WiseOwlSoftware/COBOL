@@ -708,7 +708,7 @@ below index it).
 > which is why the new one is keyed on what a block CONTAINS (`unharvested_rule_blocks`).
 > ⚠ **460 IS AN UPPER BOUND, NOT A DEFECT COUNT, AND ADMITTING IT WHOLESALE WOULD BE THE MIRROR OF THE SHORT
 > DENOMINATOR.** The standard numbers ordinary prose enumerations exactly as it numbers rules: §8.3.2.2
-> "User-defined words" (15 ordinals) lists the KINDS of user-defined word, not fifteen requirements, whereas
+> "User-defined words" (15 ordinals) is FIVE nested sub-lists inside prose, each restarting at 1, whereas
 > §14.7.5 "SIZE ERROR phrase and size error condition" (16) and §8.8.1.2 (7) plainly are normative. Each clause
 > needs adjudicating, and the set is committed as `spec-unharvested-rule-blocks.json` with every entry
 > `disposition: "pending"` — a worklist row, never a decision.

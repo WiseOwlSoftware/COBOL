@@ -174,14 +174,40 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
         if cur is None:
             return
         num, title = cur
-        ordinals, last = 0, 0
+        # ⛔ COUNT THE LISTS, NOT ONLY THE ITEMS — the distinction is the whole triage signal, and reporting only
+        # a total actively misleads. §8.3.2.2 "User-defined words" reports 15 items, which reads like a numbered
+        # rule block; they are FIVE nested sub-lists inside prose, each restarting at 1 (1-2-3, 1-2, 1-6, 1-2,
+        # 1-2). A rule block is normally ONE ascending list, so `lists == 1` is weak evidence FOR admitting the
+        # clause and `lists > 1` is weak evidence for a prose enumeration — neither is proof, which is why each
+        # clause is still adjudicated, but the shape is what makes 100 clauses triageable at all.
+        # The real rule-block parser above tracks the same phenomenon as `sublist`; this mirrors it.
+        ordinals, lists, last = 0, 0, 0
         for ln in body:
             if m := ORDINAL.match(ln):
                 n = int(m.group("n"))
-                if n == last + 1 or n == 1:      # a rule list ascends from 1; a stray "3)" mid-prose does not
+                if n == 1:
+                    lists, last = lists + 1, 1
+                    ordinals += 1
+                elif n == last + 1:              # ascending within the current list
                     ordinals, last = ordinals + 1, n
+                # anything else is a stray "3)" mid-prose and is not counted
         if ordinals and kind_of(title) is None:
-            found[num] = {"title": title, "ordinals": ordinals}
+            found[num] = {"title": title, "ordinals": ordinals, "lists": lists, "longest": max_run(body)}
+
+    def max_run(lines_: list[str]) -> int:
+        """The longest single ascending run — the size of the biggest candidate rule list in the clause."""
+        best, run, last = 0, 0, 0
+        for ln in lines_:
+            if m := ORDINAL.match(ln):
+                n = int(m.group("n"))
+                if n == 1:
+                    run, last = 1, 1
+                elif n == last + 1:
+                    run, last = run + 1, n
+                else:
+                    continue
+                best = max(best, run)
+        return best
 
     for line in lines:
         if ANY_HEADING.match(line):
