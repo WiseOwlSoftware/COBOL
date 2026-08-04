@@ -48,7 +48,7 @@ Keep the graph & search to docs + notes: Settings → **Files & Links → Exclud
 ## Planned: generated code-reference layer
 A Roslyn build generator emits one note per type from the `///` doc-comments — starting with the 158 `Bound*` nodes
 (`Binding/Bound/*.cs`), replacing the hand-maintained [[kb/Spec/Lookup/IR Mapping]] with a drift-proof
-generated version. Tracked in [[kb/Remaining Work Tracker]].
+generated version. Tracked in [[kb/Work.base|the work register]].
 
 
 **✅ Pilot LIVE (2026-07-23):** `scripts/gen-vault-reference.ps1` generates **634 type notes** across all six greenfield projects (Bound, Compiler, SourceGen, Editions, Runtime, Frontend) — class / record / record-struct / struct / enum / interface into `kb/Reference/` (index: [[kb/Reference/Bound/_Index]]) from the source `///` summaries — drift-proof, gitignored

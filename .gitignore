@@ -108,9 +108,6 @@ tests/external/gnucobol-differential-report.json
 kb/Reference/
 # Generated grammar railroad diagrams (regenerated from *.g4 by scripts/gen-grammar-diagrams.ps1).
 kb/Grammar/
-# Generated fix-queue notes (regenerated from CONFORMANCE-FIX-QUEUE.md by scripts/spec/gen_fix_queue_notes.py).
-# The .base view and the JSON index ARE tracked; only the per-item notes are a build output.
-kb/Fixes/
 # Generated conformance view over the traceability inventory (scripts/spec/gen_conformance_notes.py).
 # The inventory JSON is the SSOT and IS tracked; these 3,200+ notes are its Dataview-queryable projection.
 kb/Conformance/

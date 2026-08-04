@@ -69,16 +69,15 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
     # still read as current. build_inventory.py now regenerates it, so this only fires when the inventory was
     # edited another way. Absent is NOT stale: it is a gitignored build output and legitimately missing on a fresh
     # clone, which the checker reports as OK rather than as a red.
-    # ⛔ THE WORK LIST, PRINTED. Deriving "what should I fix next" from a 2,400-line prose queue is what led to
-    # picking PB39 (rule-id cosmetics, zero wrong answers) over PB24 (FUNCTION LENGTH silently wrong) — both are
-    # [MAJOR], so severity could not separate them. This ranks on what the defect DOES to a user's program.
-    if (Test-Path 'docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md') {
-        & python scripts/spec/gen_fix_queue_notes.py --next 2>&1 | ForEach-Object { Write-Host $_ }
-        if (Test-Path 'kb/Fixes') {
-            & python scripts/spec/gen_fix_queue_notes.py --check *>$null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "vault  : the kb/Fixes view is STALE - run: python scripts/spec/gen_fix_queue_notes.py"
-            }
+    # ⛔ THE WORK LIST, PRINTED, FROM THE ONE REGISTER. Deriving "what should I fix next" from a 2,400-line
+    # prose queue is what led to picking PB39 (rule-id cosmetics, zero wrong answers) over PB24 (FUNCTION LENGTH
+    # silently wrong) — both are [MAJOR], so severity could not separate them. kb/Work/ replaced FIVE overlapping
+    # registers; this ranks on what a defect DOES to a user's program.
+    if (Test-Path 'kb/Work') {
+        & python scripts/spec/work.py next 2>&1 | ForEach-Object { Write-Host $_ }
+        & python scripts/spec/work.py check *>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "work   : the kb/Work register has malformed items - run: python scripts/spec/work.py check"
         }
     }
     if (Test-Path 'kb/Conformance') {

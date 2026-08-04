@@ -18,7 +18,7 @@ The rearchitecture roadmap, the spec-first conformance campaign, and the audit m
 - [[kb/Modernization/Tasks]] — the 17-phase roadmap (00–16), what's done vs in progress (P14 Step-0 zero-GAP inventory) vs future (P15 legacy cut-over, P16 CIL backend), and the CONFORMANCE-FIX-QUEUE campaign.
 - [[kb/Modernization/Audit Artifacts]] — the code↔spec (CA1–CA38) and design↔spec (V54–V59) audits, the PHASE-13 review ledger, and the three PowerShell audit scripts.
 
-- [[Remaining Work Tracker]] — ⭐ the live remaining-work checklist (16 pending constructs + 16 fix-queue items); tracked here from now on.
+- [[kb/Work.base|the work register]] — ⭐ the live remaining-work checklist (16 pending constructs + 16 fix-queue items); tracked here from now on.
 
 ## See also
 

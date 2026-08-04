@@ -207,7 +207,7 @@ hierarchy that batch 2 just spent 2,039 edits making correct.
 
 **Why this runs LAST, not now.** The anchors are load-bearing today: five tools map markdown to PDF page through
 them (`render-spec-page.py`, `page_workunit.py`, `extract_rule_catalog.py`, `tracker_section.py`,
-`fix_spec_pagebreaks.py`), all 3,790 catalog rules carry a `page` field, and **every open finding is keyed by
+`fix_spec_pagebreaks.py` — ⚠ `tracker_section.py` was **DELETED 2026-08-04**, its tracker folded into `kb/Work/`), all 3,790 catalog rules carry a `page` field, and **every open finding is keyed by
 page**. Stripping the anchors mid-repair would destroy the ability to locate the work still outstanding.
 
 **What makes it safe.** ISO citations are by CLAUSE, not page — the whole project cites `§14.9.24.3 GR5`. Page

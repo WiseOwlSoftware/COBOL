@@ -5,13 +5,18 @@ description: Use when landing a conformance fix-queue item or any spec-derived f
 
 # Land a fix
 
-The work queue is `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` (its LANDED header is the live tally). Work
-top-down by severity, batched by area.
+The work register is **`kb/Work/`** — one note per item, `kb/Work.base` is the view, and
+`python scripts/spec/work.py next` prints the ranked list (session-probe shows it every session).
+
+⛔ **WORK THE `Fix next` VIEW TOP-DOWN, NOT SEVERITY TOP-DOWN.** It ranks on what a defect DOES to a user's
+program — `not landed AND (wrong-answer OR crashes) AND not blocked` — because severity cannot separate the
+cases that matter: PB24 (`FUNCTION LENGTH` silently wrong) and PB39 (rule-id numbering, zero wrong answers) are
+BOTH `[MAJOR]`, and a session picked PB39. Each item's forensic prose is in its own note body.
 
 ## 1. Derive before you read
 
 Use the `spec-lookup` skill. Produce the §/GR, the expected behavior, and the edition applicability BEFORE reading
-the implementation. Queue entries carry a candidate fix — **verify it against the spec text; some are false
+the implementation. Work items carry a candidate fix — **verify it against the spec text; some are false
 positives.**
 
 ## 2. Scope it completely

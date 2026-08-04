@@ -1,0 +1,85 @@
+filters:
+  and:
+    - file.inFolder("kb/Work")
+    - id != null
+formulas:
+  harm: 'if(wrong_answer, "wrong answer", if(crashes, "crash", if(rejects_legal_source, "rejects legal source", if(under_rejects, "under-rejects", "process"))))'
+properties:
+  note.id:
+    displayName: Item
+  note.kind:
+    displayName: Kind
+  note.status:
+    displayName: Status
+  note.severity:
+    displayName: Severity
+  note.area:
+    displayName: Area
+  note.wrong_answer:
+    displayName: Wrong answer
+  note.crashes:
+    displayName: Crashes
+  note.silent:
+    displayName: Silent
+  note.blocked:
+    displayName: Blocked
+  formula.harm:
+    displayName: Harm
+views:
+  # ⛔ THE ONLY VIEW THAT DECIDES WHAT TO WORK ON. Ranked by what the defect DOES to a user's program, never by
+  # its severity label: PB24 (FUNCTION LENGTH silently wrong) and PB39 (rule-id numbering, zero wrong answers)
+  # are BOTH [MAJOR], and on 2026-08-04 the session picked PB39. This filter drops PB39 off the list entirely.
+  - type: table
+    name: Fix next
+    filters:
+      and:
+        - status != "landed"
+        - wrong_answer or crashes
+        - 'blocked == false'
+    order:
+      - id
+      - severity
+      - area
+      - harm
+      - silent
+    sort:
+      - property: severity
+        direction: ASC
+      - property: id
+        direction: ASC
+  - type: table
+    name: Blocked
+    filters:
+      and:
+        - status != "landed"
+        - 'blocked == true'
+    order: [id, kind, severity, area, blocked_by, harm]
+  # Real work that harms nobody today — visible so it is DEFERRED on purpose rather than forgotten.
+  - type: table
+    name: Open but nobody gets a wrong answer
+    filters:
+      and:
+        - status != "landed"
+        - 'wrong_answer == false'
+        - 'crashes == false'
+    order: [id, kind, severity, area, harm]
+    sort:
+      - property: kind
+        direction: ASC
+  - type: table
+    name: Analyses (§11 backlog)
+    filters:
+      and:
+        - 'kind == "analysis"'
+    order: [id, status, area]
+    sort:
+      - property: status
+        direction: ASC
+  - type: table
+    name: Everything
+    order: [id, kind, status, severity, area, harm]
+    sort:
+      - property: kind
+        direction: ASC
+      - property: id
+        direction: ASC

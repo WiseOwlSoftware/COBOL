@@ -81,4 +81,4 @@ selectable `ICodeGenBackend` (**Roslyn C# primary**, CIL future) renders. See [[
 - Lookup diagrams: [[kb/Diagrams/Grammar Hierarchy]] · [[kb/Diagrams/IR Node Hierarchy]] · [[kb/Diagrams/Semantic Rule Flow]] · [[kb/Diagrams/Runtime Behavior Flow]]
 - **Bridge**: [[kb/Compiler/Pipeline-to-ISO-Mapping]] — every compiler phase → the ISO COBOL constructs, rules, and constraints it implements or enforces.
 - **IR flow**: [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] — for each IR node family, the path from ISO construct → semantic rule → runtime behavior.
-- **Reverse indexes & trackers**: [[kb/Compiler/ISO-Clause-to-Phase]] · [[kb/Runtime/Runtime-Class-to-IR]] · [[kb/Spec/Lookup/Diagnostics]] · [[kb/IR/Data-Flow-Traces]] · [[Remaining Work Tracker]]
+- **Reverse indexes & trackers**: [[kb/Compiler/ISO-Clause-to-Phase]] · [[kb/Runtime/Runtime-Class-to-IR]] · [[kb/Spec/Lookup/Diagnostics]] · [[kb/IR/Data-Flow-Traces]] · [[kb/Work.base|the work register]]

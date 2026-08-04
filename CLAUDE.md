@@ -60,7 +60,11 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 - **Plan / live state:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8
   forward-residue ledger · §9 verification commands + corpus mechanics · §11 analysis backlog · §12 risk register.
 - **Design SSOT:** `docs/COBOLNET_DESIGN.md` plus the `docs/rearchitecture/DESIGN-*.md` deep-dives.
-- **The work queue:** `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` (its LANDED header is the live tally).
+- **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision),
+  tracked in git, with the forensic prose in the note body. `kb/Work.base` is the view; **`Fix next`** ranks
+  on what a defect DOES to a user's program, not on its severity label. `python scripts/spec/work.py next`
+  prints it and session-probe shows it every session. ⛔ It replaced FIVE overlapping registers, three of
+  which each claimed to be canonical; `CONFORMANCE-FIX-QUEUE.md` is now a pointer.
 - **History:** `DEVLOG.md`, and nowhere else. **Doctrine:** `PROMPT.md`.
 - **Doc map:** `docs/DOC_INDEX.md` — consult it to find the right doc and keep it in sync. Exactly one canonical
   doc per subsystem: extend it, never fork a second.

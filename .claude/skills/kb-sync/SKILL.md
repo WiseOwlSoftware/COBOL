@@ -1,21 +1,31 @@
 ---
 name: kb-sync
-description: Use after landing work that changes remaining-work state, and at every phase close - keeps the Obsidian tracker, constructs.json, the fix-queue tally and plan section 0 in agreement, and sweeps the docs.
+description: Use after landing work that changes remaining-work state, and at every phase close - validates the kb/Work register, regenerates the derived views, keeps constructs.json and plan section 0 in agreement, and sweeps the docs.
 ---
 
 # KB sync
 
-Four registers describe remaining work. They drift independently unless moved together.
+⛔ **THIS SKILL SHRANK ON 2026-08-04, AND THE REASON IS THE POINT.** It existed because FOUR registers described
+remaining work and drifted independently — and three of them each claimed to be canonical. They are now ONE:
+**`kb/Work/`**, one note per item. Most of what this skill used to reconcile no longer needs reconciling, because
+there is nothing to reconcile it WITH.
+
+What remains:
+
+1. `python scripts/spec/work.py check` — the register is well-formed (kind/status/id, no duplicates).
+2. `python scripts/spec/gen_conformance_notes.py --check` — the derived burn-down still matches the inventory.
+3. `constructs.json` — still its own authority for CI and the drift tests; unchanged.
+4. Plan §0 — narrative and owner decisions ONLY. It no longer carries a worklist; `Fix next` does.
 
 ## The registers and who owns what
 
 | Register | Owns | Authority |
 |---|---|---|
 | `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 | live state: where we are, NEXT, gates, open GAPs | **the only live-state SSOT** |
-| `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` | the spec-derived defect queue | its LANDED header is the tally |
+| `kb/Work/` (was CONFORMANCE-FIX-QUEUE.md) | the spec-derived defect queue | its LANDED header is the tally |
 | `tests/version-matrix/constructs.json` | per-construct edition metadata + status | authoritative for CI and drift tests |
 | `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT |
-| `kb/Remaining Work Tracker.md` (Obsidian) | the human-facing checklist | **mirrors** the four above |
+| `kb/Work/` (the work register) (Obsidian) | the human-facing checklist | **mirrors** the four above |
 
 The tracker covers **three distinct workstreams** — §A unimplemented ISO constructs (the `pending` rows of
 `constructs.json`), §B the open remainder of the fix queue, and §C spec-transcription corrections. Do not conflate
@@ -23,11 +33,7 @@ them; they are different sets and they get fixed in different places. §A and §
 `specs/ISO_COBOL.md`** — the transcription, not the code. Where a transcription defect also reached the compiler,
 that is a separate §B item.
 
-§C is **generated** — `python scripts/spec/tracker_section.py` replaces the section between its HTML markers, so
-regenerating after another sweep never duplicates or drops content. Never hand-edit it; record findings in the
-ledger and regenerate. It is checkboxed by DEFECT FAMILY rather than per finding, for the same reason §B does not
-enumerate item IDs: individual findings drift, and they are not independently actionable anyway — the seven ON/OFF
-directive notes must be corrected together or the inconsistency between them merely moves.
+⛔ **§C IS GONE, WITH THE NOTE IT LIVED IN (2026-08-04).** It mirrored the spec-reconciliation ledger into `kb/Remaining Work Tracker.md` via `scripts/spec/tracker_section.py`. Both were retired: that ledger is **COMPLETE (210/210, nothing outstanding)** and the tracker was folded into `kb/Work/`, so the script mirrored a closed register into a deleted note. Do not look for either.
 
 ## When a construct lands
 
@@ -65,3 +71,5 @@ tags. Leave genuinely historical artifacts alone: `DEVLOG.md`, `PHASE4_RECONCILI
 Sweep all of it: the phase doc's status and each exit criterion reconciled to as-built, plan §0's worklist and
 next-phase pointer, the affected design docs' open questions, `docs/DOC_INDEX.md` rows for anything added or
 retired, the memory index, and a DEVLOG entry.
+
+> ⛔ **The `Remaining Work Tracker` and `CONFORMANCE-FIX-QUEUE.md` were RETIRED 2026-08-04** — five overlapping registers, three of which each claimed to be canonical, were folded into **`kb/Work/`** (one note per item) with `kb/Work.base` as the view. Nothing was lost: bodies migrated verbatim.

@@ -134,7 +134,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
     dash += ["",
              "## Related", "",
              "- [[kb/Conformance Burn-down.base|the sortable Bases view]] — the same data, filterable and sortable",
-             "- [[kb/Remaining Work Tracker]] — §C carries the spec-transcription corrections",
+             "- [[kb/Work.base|the work register]] — every open defect, analysis and decision, ranked by harm",
              "- `docs/rearchitecture/spec-reconciliation/REPAIR-PLAN.md` — the repair order for all 210 defects",
              "- `docs/rearchitecture/DESIGN-spec-conformance-review.md` — the P14 Step-0 methodology", ""]
     notes["_Dashboard.md"] = "\n".join(dash)
