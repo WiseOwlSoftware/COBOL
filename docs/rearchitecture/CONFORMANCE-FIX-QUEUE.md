@@ -193,6 +193,7 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > cast, not the eleven call sites.
 
 ### PB23 · [MINOR] · date/time · ⛔ OPEN — a raw CLR exception where §15.3 requires EC-ARGUMENT-FUNCTION
+> ⚙ **flags:** crashes
 > `INTEGER-OF-FORMATTED-DATE("YYYYWwwD", "9999W527")` passes every §15.3.1.7 subfield rule — so §15.48.3 r4 is MET
 > and §15.48.4 r1 demands a returned value — and then `CobolDate.Analyze`'s `ISOWeek.ToDateTime` reconstructs past
 > `DateTime.MaxValue` and throws **`System.ArgumentOutOfRangeException`**. §15.3 rule 14 (covering an incorrect
@@ -203,6 +204,7 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > (10000-01-01) fault as well as day 7 (10000-01-02).
 
 ### PB24 · [MAJOR] · intrinsics · ⛔ OPEN — FUNCTION LENGTH is wrong or absent on four shapes
+> ⚙ **flags:** wrong-answer · silent · crashes
 > · **A VARIABLE-LENGTH GROUP folds to a WRONG COMPILE-TIME CONSTANT** — no arm recognises §8.5.1.12, so a
 >   dynamic-length child contributes 0 and a dynamic-capacity table is counted as ONE occurrence. Silent.
 > · **A REFERENCE-MODIFIED argument** — `FUNCTION LENGTH(WS-NAME(1:5))`, legal per §8.4.3.3.3 SR5 / §8.4.3.3.4 GR6
@@ -212,6 +214,7 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > · **The §15.50.4 r9 rounding step is absent** — `BindLengthFold` emits a bare width with no rounding anywhere.
 
 ### PB25 · [MINOR] · intrinsics · ⛔ OPEN — LOWER-CASE/UPPER-CASE: the LOCALE arm is refused and a figurative argument aborts at run time
+> ⚙ **flags:** crashes · rejects-legal-source
 > · **`FUNCTION LOWER-CASE(x LOCALE loc)`** — the bracketed `[LOCALE locale-name-1]` arm of §15.57.2 is REFUSED
 >   rather than diagnosed as the §A.4.9 non-support it is.
 > · **A FIGURATIVE CONSTANT or ALL-literal argument compiles clean and ABORTS AT RUN TIME** —
@@ -220,6 +223,7 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 >   argument" row: this is the same defect reached through a different visitor.
 
 ### PB26 · [MAJOR] · exceptions · ⛔ OPEN — the ambient EC-ARGUMENT-FUNCTION gate is a HAND-MAINTAINED SWITCH
+> ⚙ **flags:** wrong-answer · silent
 > A domain guard such as LOG10's raises only when `ExceptionState.ArgumentFunctionChecking` is set, and that
 > ambient gate is emitted **only for the statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written
 > `switch`** — so the identical function reference raises in one statement and is silent in another. That is a
@@ -227,6 +231,7 @@ PB1's table simply did not yet list those functions. Cluster before triaging.
 > receiver-shape defect PB13 hit: **an exception's reachability must not depend on which statement encloses it.**
 
 ### PB27 · [MINOR] · locale · ⛔ OPEN — the §A.4.9 non-support is loud everywhere EXCEPT the places that leak silently
+> ⚙ **flags:** silent
 > The locale module's documented non-support (`COBOLNET1518`, owner-ratified 2026-07-03) is correct and loud for
 > the FUNCTION forms — 33 of this batch's 36 NOT-IMPLEMENTED rows are that one ratified disposition and are NOT
 > defects. Three leaks are:
@@ -251,6 +256,7 @@ below index it).
 **⛔ SEVERITY ORDER, and PB10 is the CLAUDE.md rule 4 red line.**
 
 ### PB17 · [MAJOR] · references · ⛔ OPEN — a function-identifier as a SUBSCRIPT or a REF-MOD position compiles clean and throws
+> ⚙ **flags:** crashes
 > **SPLIT OUT OF PB10, because it is a different root cause and would have been hidden inside a grammar fix.**
 > The PB10 findings said these positions were "rejected". They are not — they PARSE:
 > ```
@@ -403,6 +409,7 @@ below index it).
 > per-field width, and never answers "is this string one of the formats §15.5 defines".
 
 ### PB12 · [MAJOR] · intrinsics · ◑ HALF LANDED (DEVLOG 1138) — the §15.3 argument-class screen for this batch's functions
+> ⚙ **flags:** under-rejects · rejects-legal-source
 > **✅ SEVEN ROWS ADDED**, each read from its own §15.x.3 argument rule and mechanically cited: EXP · EXP10 ·
 > FRACTION-PART · INTEGER (`'n'`, "shall be of class numeric") · FACTORIAL (`'i'`) · EXCEPTION-STATEMENT ·
 > EXCEPTION-STATUS (`' '`, no arguments). Negative fixture `pb12-exp-alphanumeric-argument`.
@@ -577,6 +584,7 @@ below index it).
 > **Residue → PB38:** an argument list containing a FLOAT still demotes to binary64 under a standard mode.
 
 ### PB15 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.x RESULT-TYPE tables are ignored for the FORMATTED-* family and TRIM
+> ⚙ **flags:** wrong-answer
 > **4 findings.** §15.39.1/§15.40.1/§15.41.1 make the function's type follow ARGUMENT-1 (national argument ⇒
 > national function); `IntrinsicCatalog` hardcodes `Alphanumeric`. Wrong result category propagates into Table-16
 > MOVE legality and the string channels, so it under-rejects as well as mis-typing.
@@ -674,6 +682,7 @@ below index it).
 > discovering it fourth.
 
 ### PB29 · [MAJOR] · process/denominator · ⛔ OPEN — §8.8.1 contributes 21 numbered rules and the catalog holds NONE of them, so v1.0's "zero GAP" does not cover arithmetic-expression evaluation
+> ⚙ **flags:** process
 
 > **Found 2026-08-03 by PB28: the rules it proves violated are not in the denominator.**
 > `spec-rule-catalog.json` has **zero** sections under §8.8.1 — measured, not inferred. Every §8 section it does
@@ -729,6 +738,7 @@ below index it).
 > **Cluster, do not work these one by one** — 79 findings, eight causes.
 
 ### PB30 · [MAJOR] · intrinsics · ⛔ OPEN — eight more functions are absent from `IntrinsicArgumentRules.Verified`, so their §15.x argument rules are screened nowhere
+> ⚙ **flags:** under-rejects
 > MAX, MIN, MEAN, MEDIAN, MIDRANGE, MOD, NUMVAL-C and LOWEST-ALGEBRAIC carry argument-class rules that no code
 > consults. This is PB1's named residue growing by the clause, exactly as designed — the table is deliberately
 > partial and each batch is supposed to extend it. ⚠ Every new row must carry **the ISO clause it was read
@@ -736,6 +746,7 @@ below index it).
 > corpus programs.
 
 ### PB31 · [MAJOR] · intrinsics · ⛔ OPEN — the CROSS-ARGUMENT class-agreement rule is enforced NOWHERE
+> ⚙ **flags:** under-rejects
 > §15.59.3 r2 / §15.63.3 r2 (MAX/MIN) require all arguments to be of the same class family. `CheckArgumentClass`
 > screens each argument INDEPENDENTLY, so `MAX(1, "A")` is accepted. ⛔ **Adding a `Verified` row cannot fix
 > this** — the screen has no cross-argument shape at all, which is why it is its own item and not part of PB30.
@@ -793,6 +804,7 @@ below index it).
 > unaffected and remains open.
 
 ### PB33 · [MAJOR] · intrinsics · ⚠ HALF LANDED 2026-08-04 (the digit cap, with PB34; the two general formats remain OPEN) — the cap existed on TEST-NUMVAL-C but not NUMVAL-C
+> ⚙ **flags:** under-rejects
 > §15.68.3 r1's two formats are the substance of the rule and are unenforced; sub-rules b–f conform. The
 > 31-digit native cap is applied by `TestNumvalC` and not by `NumvalC` — the SAME asymmetry, from the same cause
 > (the validating twin was fixed, the value-producing one was not). A sibling of PB32.
@@ -824,13 +836,16 @@ below index it).
 > ⛔ **PB33's OTHER half is still open:** §15.68.3 r1's two general formats are unenforced.
 
 ### PB35 · [MINOR] · intrinsics · ⛔ OPEN — a ZERO-LENGTH literal is accepted as a MAX/MIN argument with no diagnostic at any edition
+> ⚙ **flags:** under-rejects · silent
 > §15.59.3 / §15.63.3. Related to PB30 but distinct: the screen would have to test LENGTH, not class.
 
 ### PB36 · [MAJOR] · oo/intrinsics · ⛔ OPEN — MODULE-NAME's r5 names four activation mechanisms and INVOKE is not among the implemented ones
+> ⚙ **flags:** wrong-answer
 > §15.65.4 r5. The refuter found the blast radius LARGER than the adjudicator measured, and refuted the
 > adjudicator's load-bearing claim that "the STACK arm is already right".
 
 ### PB37 · [OWNER] · locale · ⚖ ANSWERED 2026-08-03 by the owner's decision RULE — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?
+> ⚙ **flags:** process
 > **The bare question:** Annex A §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not one of them —
 > item 12 is *TEST-NUMVAL-C function, LOCALE key*. Is NUMVAL-C's LOCALE phrase therefore MANDATORY, or is its
 > omission from A.4.9 an editorial gap? **Seven NOT-IMPLEMENTED rows (§15.68.3 r5b items 1–7) hang on the
@@ -904,6 +919,7 @@ below index it).
 > regress on the exact line this changed.
 
 ### PB39 · [MAJOR] · process/traceability · ⛔ OPEN (NEW 2026-08-04) — 326 catalog rule-ids do not match the standard's own rule numbering, because a NESTED list mis-segments the top-level one
+> ⚙ **flags:** process
 
 > **Found while admitting §9.3.8.2.3 (PB29's multi-sublist slice): the manifest predicted 8 rules and the
 > extractor harvested 12.** The clause's raw ordinal sequence is `1,2,3,4,5, 1,2,3, 6,7,8,9` — nine top-level
