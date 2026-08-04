@@ -74,22 +74,47 @@ public static partial class CobolIntrinsics
 
     // ── MOD / REM (ISO §15.64 / §15.77) — over scale-ALIGNED unscaled values ──────────────────────────────────
 
+    /// <summary>
+    /// ⛔ THE §15.64.3 r2 ZERO-DIVISOR RULE — ONE RAISE SITE PER RULE, NOT ONE PER CARRIER (fix-queue PB32).
+    /// </summary>
+    /// <remarks>
+    /// MOD is implemented TWICE — the exact <see cref="ModScaled"/> and the binary64 <c>ModReal</c> that
+    /// <c>IntrinsicRenderer.RenderNum</c>'s <c>AnyRealArgument</c> route reaches — and the rule was written into
+    /// both, then corrected in only one. <c>ModReal</c> read <c>b == 0 ? 0 : …</c>: a SECOND, INDEPENDENT
+    /// zero-divisor guard that returned a finite 0.0 and never called <see cref="Exceptions.ExceptionState.ArgumentError"/>,
+    /// so the exception condition was not mis-defaulted — it was never SET. Neither screen the renderer relies on
+    /// could see it either, because <c>RealResult</c> and <c>FromDouble</c> both test only for NaN. Measured under
+    /// <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING ON</c>: <c>DISPLAY FUNCTION MOD(A ** 2, Z)</c> printed 0 and
+    /// execution CONTINUED past a condition Table 13 (§14.6.13.1.1) makes FATAL, while the very next statement —
+    /// the same function through the exact body — correctly terminated the run unit.
+    /// <para>The <c>long</c> return converts implicitly to both <see cref="Int128"/> and <see cref="double"/>, so
+    /// every carrier's body can <c>return</c> this directly and the §15.3 default, the message and the clause
+    /// citation cannot drift apart again. <c>IntrinsicCarrierAgreementDriftTests</c> asserts the two carriers
+    /// agree on it.</para>
+    /// </remarks>
+    internal static long ModZeroDivisor() =>
+        Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (ISO §15.64.3 rule 2)");
+
+    /// <summary>The §15.77.3 r2 zero-divisor rule — one raise site for REM, whichever carrier evaluates it
+    /// (see <see cref="ModZeroDivisor"/> for why this is not written per body).</summary>
+    internal static long RemZeroDivisor() =>
+        Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (ISO §15.77.3 rule 2)");
+
     /// <summary>MOD (§15.64.4): <c>a − b × FUNCTION INTEGER(a / b)</c> — the floored modulus (the spec NOTE's sign
     /// table: −11 MOD 5 = 4, 11 MOD −5 = −4). Operands aligned to one scale, result at that scale (0 for the §15.64.3
-    /// integer arguments). A zero divisor violates rule 2 → EC-ARGUMENT default 0 (§15.3).</summary>
+    /// integer arguments). A zero divisor violates rule 2 → <see cref="ModZeroDivisor"/>.</summary>
     public static Int128 ModScaled(Int128 a, Int128 b)
     {
-        if (b == 0)                                          // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (§15.64.3 rule 2)");
+        if (b == 0) return ModZeroDivisor();                 // the ONE §15.64.3 r2 raise site (both carriers)
         Int128 q = a / b;                                    // truncating quotient of the ALIGNED values
         if (a % b != 0 && (a < 0) != (b < 0)) q -= 1;        // → floor (FUNCTION INTEGER of the true ratio)
         return a - b * q;
     }
 
     /// <summary>REM (§15.77.4): <c>a − b × FUNCTION INTEGER-PART(a / b)</c> — the truncated remainder (sign follows
-    /// the dividend). Operands aligned to one scale, result at that scale. Zero divisor → 0 (§15.3 EC default).</summary>
+    /// the dividend). Operands aligned to one scale, result at that scale. Zero divisor → <see cref="RemZeroDivisor"/>.</summary>
     public static Int128 RemScaled(Int128 a, Int128 b) => b == 0
-        ? Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (§15.77.3 rule 2)")   // raise point / §15.3 default
+        ? RemZeroDivisor()                                   // the ONE §15.77.3 r2 raise site (both carriers)
         : a % b;   // C# % truncates toward zero — exactly INTEGER-PART
 
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §15.59–§15.63, §15.71–72, §15.76, §15.88) ──
@@ -121,19 +146,65 @@ public static partial class CobolIntrinsics
     /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale.</summary>
     public static Int128 RangeScaled(params Int128[] xs) => MaxScaled(xs) - MinScaled(xs);
 
+    /// <summary>
+    /// ⛔ THE EXACT CARRIER'S ESCAPE BOUNDARY, WRITTEN ONCE (fix-queue PB32).
+    /// </summary>
+    /// <remarks>
+    /// MEDIAN and MIDRANGE return at scale common+1 so that their halving is EXACT (odd: ×10; even/midrange: ×5).
+    /// That trick is correct in the middle of the range and is exactly where they break at the top of it: it
+    /// spends a decimal digit of <see cref="Int128"/> headroom that MAX / MIN / SUM / RANGE do not spend, so these
+    /// two wrap at ONE FIFTH the magnitude their siblings survive. MEASURED, with an <c>ON SIZE ERROR</c> phrase
+    /// present and NOT taken: for <c>P PIC S9(29)V99 = 99999999999999999999999999999.98</c> and
+    /// <c>Q PIC SV9(9) = 0.000000002</c>, MAX returned <c>…999.98</c> and MIN returned <c>0.00</c> — both exact —
+    /// while MIDRANGE returned <c>15971763307906153653662539256.81</c> against a true value of
+    /// <c>49999999999999999999999999999.99</c> that FITS the receiver, and the compiler's OWN hand-written
+    /// §15.62.4 EAE <c>(FUNCTION MAX(P Q) + FUNCTION MIN(P Q)) / 2</c> produced that correct value in the same run.
+    /// <para><c>COBOLNET_NUMERIC_DESIGN.md</c>'s substrate paragraph already fixes the policy and the code simply
+    /// did not implement it: "the Int128 escape boundary is reached only when a single product … exceeds Int128
+    /// (~38 digits) → EC-SIZE-OVERFLOW". A wrap is never a conforming answer — §15.4.1 asks at worst for "an
+    /// implementor-defined approximation", and a value 3.2× out with its top thirty digits wrong approximates
+    /// nothing. <see cref="CobolSizeError"/> is the runtime's own carrier for that condition and lands on the
+    /// statement's ON SIZE ERROR arm through the existing <c>ArithmeticEmitter</c> handler.</para>
+    /// </remarks>
+    private static Int128 ScaleForHalving(Int128 v, int factor, string fn) =>
+        Int128.Abs(v) <= Int128.MaxValue / factor
+            ? v * factor
+            : throw new CobolSizeError(
+                $"FUNCTION {fn}: the exact result exceeds the Int128 intermediate carrier "
+                + "(COBOLNET_NUMERIC_DESIGN.md D1; ISO §8.8.1.2 rule 7)", "EC-SIZE-OVERFLOW");
+
+    /// <summary>The sum of two aligned unscaled operands at the exact carrier's boundary — the ADD that precedes
+    /// every ×5 halving. Guarded for the same reason and by the same policy as <see cref="ScaleForHalving"/>.</summary>
+    private static Int128 AddForHalving(Int128 a, Int128 b, string fn)
+    {
+        try { return checked(a + b); }
+        catch (OverflowException)
+        {
+            throw new CobolSizeError(
+                $"FUNCTION {fn}: the exact result exceeds the Int128 intermediate carrier "
+                + "(COBOLNET_NUMERIC_DESIGN.md D1; ISO §8.8.1.2 rule 7)", "EC-SIZE-OVERFLOW");
+        }
+    }
+
     /// <summary>MEDIAN (§15.61.4): odd count ⇒ the middle of the sorted arguments (rule 1); even count ⇒ the mean
     /// of the two middles, <c>(b + c) / 2</c> (rule 2). Returned at scale common+1 — the ×10 makes the halving
-    /// EXACT in both branches (odd: middle × 10; even: (b + c) × 5), so no rounding decision is buried here.</summary>
+    /// EXACT in both branches (odd: middle × 10; even: (b + c) × 5), so no rounding decision is buried here.
+    /// The scale bump costs a decimal digit of carrier headroom, which is why both branches go through
+    /// <see cref="ScaleForHalving"/> rather than multiplying raw (fix-queue PB32).</summary>
     public static Int128 MedianScaled(params Int128[] xs)
     {
         var sorted = (Int128[])xs.Clone();
         Array.Sort(sorted);
         int mid = sorted.Length / 2;
-        return sorted.Length % 2 != 0 ? sorted[mid] * 10 : (sorted[mid - 1] + sorted[mid]) * 5;
+        return sorted.Length % 2 != 0
+            ? ScaleForHalving(sorted[mid], 10, "MEDIAN")
+            : ScaleForHalving(AddForHalving(sorted[mid - 1], sorted[mid], "MEDIAN"), 5, "MEDIAN");
     }
 
-    /// <summary>MIDRANGE (§15.62.4): <c>(MAX + MIN) / 2</c> — returned at scale common+1 ((max+min) × 5, exact).</summary>
-    public static Int128 MidrangeScaled(params Int128[] xs) => (MaxScaled(xs) + MinScaled(xs)) * 5;
+    /// <summary>MIDRANGE (§15.62.4): <c>(MAX + MIN) / 2</c> — returned at scale common+1 ((max+min) × 5, exact),
+    /// through <see cref="ScaleForHalving"/> for the headroom reason documented there (fix-queue PB32).</summary>
+    public static Int128 MidrangeScaled(params Int128[] xs) =>
+        ScaleForHalving(AddForHalving(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
 
     /// <summary>ORD-MAX (§15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
     /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>

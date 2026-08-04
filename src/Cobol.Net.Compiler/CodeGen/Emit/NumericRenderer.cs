@@ -374,8 +374,26 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// lands AT the requested scale, so an out-of-range magnitude stays above the caller's capacity check
     /// instead of being rescaled back into range. TRUNCATION matches this helper's existing contract (alignment
     /// is not a ROUNDED transfer; §14.7 NOTE 1 gives ROUNDED only to the final transfer).</para></summary>
+    /// <para>⛔ AND THE <c>Dec</c> ARM IS THE ONE IT WAS MISSING (fix-queue PB32/PB14). The paragraph above
+    /// declares this helper TOTAL over the carrier kinds; <see cref="NumX"/> has THREE — exact scaled
+    /// <see cref="Int128"/>, the <c>CobolDec</c> SDIDI, and binary64 — and only two were written down. Under
+    /// <c>ARITHMETIC IS STANDARD-DECIMAL</c> every arithmetic expression becomes a <c>Dec</c> carrier
+    /// (<see cref="CombineCore"/>, <see cref="Power"/>), so a §15.3 type-10 arithmetic-expression argument — legal
+    /// at 2014 and 2023 — reached <c>MaxScaled(params Int128[])</c> as a raw <c>CobolDec</c>, which has no
+    /// conversion operator, and the user saw a raw Roslyn error on conforming COBOL:
+    /// <c>COMPUTE R = FUNCTION MAX(A + B, B)</c> ⇒ <c>error CS1503: cannot convert from
+    /// 'CobolNet.Runtime.CobolDec' to 'System.Int128'</c>. That is the PB2 shape on the Dec axis, and it is why
+    /// this arm is placed BEFORE the <c>toScale == x.Scale</c> test rather than after: a <c>Dec</c> operand
+    /// carries <c>Scale 0</c> by convention, so a scale-0 alignment would otherwise pass the <c>CobolDec</c>
+    /// expression through untouched and reproduce the same failure.
+    /// <para>⚠ THE LANDING IS EXACT ONLY TO <paramref name="toScale"/>. An SDIDI carries its exponent at RUN
+    /// time, so there is no compile-time scale to preserve and the value lands at the argument list's common
+    /// scale; a quotient with more fraction digits than that is truncated before the function sees it. That is a
+    /// strictly smaller wrong than "does not compile" and it is not the end state — the §15.4.1 r1 answer is a
+    /// Dec-carrier body, ledgered as PB38.</para></para></summary>
     public static string Align(NumX x, int toScale) =>
         x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        : x.Dec ? RuntimeApi.DecToUnscaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
         : toScale == x.Scale ? x.Expr
         : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
 

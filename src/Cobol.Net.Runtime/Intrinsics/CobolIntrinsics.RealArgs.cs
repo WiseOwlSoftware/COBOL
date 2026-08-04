@@ -125,14 +125,17 @@ public static partial class CobolIntrinsics
     public static double FractionPartReal(double v) => v - Math.Truncate(v);
 
     /// <summary>§15.64 MOD — the FLOORED modulus, whose result takes the sign of argument-2
-    /// (§15.64.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER (argument-1 / argument-2))</c>).</summary>
-    public static double ModReal(double a, double b) => b == 0 ? 0 : a - (b * Math.Floor(a / b));
+    /// (§15.64.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER (argument-1 / argument-2))</c>).
+    /// ⛔ The zero-divisor leg calls the SHARED <see cref="ModZeroDivisor"/> rather than carrying its own guard
+    /// (fix-queue PB32): this body used to answer <c>b == 0 ? 0 : …</c>, which returned the §15.3 default WITHOUT
+    /// ever setting the fatal EC-ARGUMENT-FUNCTION its exact twin sets.</summary>
+    public static double ModReal(double a, double b) => b == 0 ? ModZeroDivisor() : a - (b * Math.Floor(a / b));
 
     /// <summary>§15.77 REM — the TRUNCATED remainder, whose result takes the sign of argument-1
     /// (§15.77.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2))</c>).
     /// ⚠ Distinct from <see cref="ModReal(double, double)"/> exactly as the two exact bodies are: REM(−7, 3) is
-    /// −1 where MOD(−7, 3) is 2.</summary>
-    public static double RemReal(double a, double b) => b == 0 ? 0 : a - (b * Math.Truncate(a / b));
+    /// −1 where MOD(−7, 3) is 2. Shares <see cref="RemZeroDivisor"/> with the exact carrier for the same reason.</summary>
+    public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a - (b * Math.Truncate(a / b));
 
     /// <summary>§15.59 MAX — the greatest argument value.</summary>
     public static double MaxReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Max();

@@ -15,7 +15,16 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB37 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB14 + PB19–PB22 LANDED · PB16 RETIRED · PB12 · PB32 HALF LANDED · PB15, PB17, PB18, PB23–PB31, PB33–PB38 OPEN.**
+> **PB32 (structural half) + PB14 LANDED 2026-08-03.** PB14 and PB32's Dec leg were **the same defect filed
+> twice**, found by measuring both. Three choke-point changes: one raise site per RULE rather than per carrier
+> (`ModZeroDivisor`/`RemZeroDivisor`); one SDIDI landing at `IntrinsicRenderer.Arg` + the `Dec` arm
+> `NumericRenderer.Align` was missing while its own comment declared itself total over the carriers; and the
+> exact carrier's escape boundary raising `EC-SIZE-OVERFLOW` instead of wrapping silently. **PB38 opened** for the
+> residue (a float argument still bypasses the SDIDI under a standard mode). ⚠ **Two of PB32's three named
+> instances did not survive measurement** — MEDIAN's even-count mean is correct in BOTH arms, and MIDRANGE's ×5 is
+> a defect of the EXACT arm, not the float one. The SHAPE the entry named was right; two of its three examples
+> were not, which is why the recipe was re-measured before any code changed.
 > **BATCH 5 (§15.58–15.69) adjudicated 2026-08-03** — 90 rules, 12 subjects, independently refuted: DIVERGES 42 · PARTIAL 21 · NOT-IMPLEMENTED 15 · CONFORMS 11 (3 closed) · NEEDS-OWNER-DECISION 1. Inventory 330 → **420 adjudicated**, GAP 3799 → **3796**. The 79 open findings cluster into EIGHT causes, **PB30–PB37** — and ~16 refute-stage overturns were ALL downgrades.
 > **PB28 · PB29 opened 2026-08-03 by re-verifying PB18** — the sibling-arm sweep its entry did not ask for. PB28: §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one, so `0 ** 0` returns 1 and `-2 ** 0.5` returns 0, both with no SIZE ERROR. PB29: §8.8.1's 21 numbered rules are absent from the catalog entirely, so v1.0's zero-GAP definition does not currently cover arithmetic-expression evaluation — the THIRD instance of the denominator's one defect class.
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
@@ -548,11 +557,24 @@ below index it).
 > saturation path (same root cause as above), not about receiver-dependence — treat the §0 COS remark as
 > unproven until someone produces a case where the VALUE, not its stored rounding, changes.
 
-### PB14 · [MAJOR] · numerics · ⛔ OPEN — STANDARD / STANDARD-DECIMAL arithmetic + an intrinsic argument emits raw CS1503
+### PB14 · [MAJOR] · numerics · ✅ LANDED 2026-08-03 (the CS1503 half; the wrong-VALUE half is now PB38) — STANDARD / STANDARD-DECIMAL arithmetic + an intrinsic argument emitted raw CS1503
 > **4 findings over 4 subjects.** An arithmetic-expression argument under `ARITHMETIC IS STANDARD` reaches the
 > backend as a raw Roslyn `CS1503`, or silently computes the wrong value. This is **the PB2 shape on the Dec axis
 > instead of the Real axis** — PB2 fixed one arm of the same dispatch. One of the four is a missing runtime member
 > (`CobolIntrinsics.FactorialReal` does not exist yet `RenderNum` routes to it).
+>
+> ⛔ **PB14 AND PB32'S SECOND LEG ARE THE SAME DEFECT, FILED TWICE — found only by MEASURING both.** The queue
+> carried them as separate items for two batches. The CS1503 half is closed by PB32's landing: `NumX` has THREE
+> carriers and `IntrinsicRenderer` handled two, so the fix is one SDIDI landing at `IntrinsicRenderer.Arg` — the
+> single origin of every numeric argument — plus the `Dec` arm that `NumericRenderer.Align` was missing while its
+> own doc comment declared it "TOTAL OVER THE CARRIER KINDS".
+> ⚠ **AND FIXING `Align` ALONE WOULD HAVE LOOKED LIKE A FULL FIX.** Measured after that edit: MAX / MIN / MOD /
+> MEDIAN compiled again while ABS, SIGN, INTEGER, FRACTION-PART and FACTORIAL still did not, because those arms
+> consume `Arg(...).Expr` or `AsInt` and never reach `Align`. The four recovered functions are exactly the ones a
+> spot-check would have sampled. Pinned by `2023/pb32_dec_carrier_intrinsic_argument` over all nine.
+> The FactorialReal half was already closed by PB21 (Factorial is deliberately routed to its exact arm even with
+> a float argument; `IntrinsicRealArgDriftTests` carries the exemption and its reason).
+> **Residue → PB38:** an argument list containing a FLOAT still demotes to binary64 under a standard mode.
 
 ### PB15 · [MAJOR] · intrinsics · ⛔ OPEN — the §15.x RESULT-TYPE tables are ignored for the FORMATTED-* family and TRIM
 > **4 findings.** §15.39.1/§15.40.1/§15.41.1 make the function's type follow ARGUMENT-1 (national argument ⇒
@@ -679,12 +701,52 @@ below index it).
 > screens each argument INDEPENDENTLY, so `MAX(1, "A")` is accepted. ⛔ **Adding a `Verified` row cannot fix
 > this** — the screen has no cross-argument shape at all, which is why it is its own item and not part of PB30.
 
-### PB32 · [MAJOR] · intrinsics/numerics · ⛔ OPEN — TWO bodies implement each statistical/MOD function and only ONE was ever corrected
+### PB32 · [MAJOR] · intrinsics/numerics · ⚠ HALF LANDED 2026-08-03 — TWO bodies implement each statistical/MOD function and only ONE was ever corrected
 > `RenderNum` routes on `AnyRealArgument(ic)`, so every one of these functions has an EXACT (`Int128`) body and a
 > FLOAT (`double`) body — and the refuters found fix after fix applied to one arm only (MOD's zero-divisor rule,
 > MEDIAN's even-count mean, MIDRANGE's ×5-at-scale-s+1). ⛔ **This is the PB2 / PB13 / PB14 / PB28 family for the
 > fifth time**: a dispatch with two arms, one corrected. It is the single highest-value item in the batch,
 > because the pattern predicts the NEXT defect rather than describing this one.
+>
+> ⛔ **MEASURED FIRST, AND THE SUMMARY ABOVE WAS RIGHT ABOUT THE SHAPE AND WRONG ABOUT TWO OF ITS THREE
+> INSTANCES.** Every claim was re-run before any code changed:
+> · **MOD's zero-divisor rule — CONFIRMED, and it is the worst of the three.** `ModReal` was `b == 0 ? 0 : …`, a
+>   second independent guard that returned the §15.3 default without ever SETTING EC-ARGUMENT-FUNCTION. Under
+>   `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`, `DISPLAY FUNCTION MOD(A ** 2, Z)` printed 0 and execution
+>   CONTINUED past a condition Table 13 makes FATAL — while the very next statement, the same function through
+>   the exact body, correctly terminated the run unit. **REM is the identical defect** and the refuter's sweep is
+>   exact: these two are the ONLY real bodies with a domain guard that returns instead of raising.
+> · **MEDIAN's even-count mean — NOT a two-arm drift.** `MedianReal`'s `(s[m-1] + s[m]) / 2.0` is correct in
+>   binary64; `MedianScaled`'s `(b + c) × 5` is correct at scale s+1. Both arms are right, in their own carrier.
+> · **MIDRANGE's ×5 — a REAL defect, but on the EXACT arm, not the float one.** The ×5/×10 that makes the halving
+>   exact costs a decimal digit of `Int128` headroom that MAX/MIN/SUM/RANGE never spend, so MEDIAN and MIDRANGE
+>   wrap at ONE FIFTH their siblings' magnitude. Measured with `ON SIZE ERROR` present and NOT taken: MAX and MIN
+>   both exact at the boundary while MIDRANGE returned `15971763307906153653662539256.81` for a true
+>   `49999999999999999999999999999.99` that FITS the receiver — and the compiler's own hand-written §15.62.4 EAE
+>   produced the correct value in the same run.
+>
+> **✅ LANDED — the structural half, three changes, each at a choke point rather than at an instance:**
+> · **One raise site per RULE, not per carrier** — `CobolIntrinsics.ModZeroDivisor` / `RemZeroDivisor`. The `long`
+>   return converts implicitly to both `Int128` and `double`, so every carrier returns the same §15.3 default,
+>   the same message and the same citation.
+> · **One SDIDI landing** at `IntrinsicRenderer.Arg` + the `Dec` arm `NumericRenderer.Align` was missing — closes
+>   PB14's CS1503 half (see that entry; fixing `Align` alone recovered only four of nine functions).
+> · **The exact carrier's escape boundary is EC-SIZE-OVERFLOW, never a wrap** (`ScaleForHalving`), which is the
+>   policy `COBOLNET_NUMERIC_DESIGN.md`'s substrate paragraph already stated and the code had never implemented.
+> **Drift test:** `IntrinsicCarrierAgreementDriftTests` — its sibling asserted the second body EXISTS; nothing
+> asserted the two AGREE. Its general arm fails on ANY real body answering a domain guard with a literal, so the
+> SIXTH instance is caught by shape rather than by name, and it is self-tested against the pre-fix `ModReal`
+> (it also failed on its own first run, against a comment QUOTING the defective form — comments are now stripped).
+> **Goldens:** `2023/pb32_dec_carrier_intrinsic_argument`, `2023/pb32_exact_carrier_halving_boundary`.
+>
+> ⛔ **THE REMAINING HALF IS THE ONE THE SUMMARY DID NOT NAME, AND IT IS BLOCKED.** The float body is still
+> REACHED for a legal integer argument because `NumericRenderer.Power` returns `Real: true` in a receiver-less
+> context, so `FUNCTION MOD(A ** 2, B)` is exact under `COMPUTE` and binary64 under `DISPLAY` / an `IF` subject:
+> 930000007 vs **930000008**, and `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluates FALSE — a control-flow
+> defect from a function's value depending on its receiver's SHAPE, which §15.4 forbids and PB13 closed for the
+> float family only. **Its root cause is PB18** (`**` has no exact arm for an integer exponent), so it closes
+> when PB18 does, and PB18 is waiting on the owner's native-`**` carrier decision. Verified unchanged by this
+> wave's landing.
 
 ### PB33 · [MAJOR] · intrinsics · ⛔ OPEN — NUMVAL-C's two general formats are not enforced, and the digit cap exists on TEST-NUMVAL-C but not NUMVAL-C
 > §15.68.3 r1's two formats are the substance of the rule and are unenforced; sub-rules b–f conform. The
@@ -709,6 +771,29 @@ below index it).
 > omission from A.4.9 an editorial gap? **Seven NOT-IMPLEMENTED rows (§15.68.3 r5b items 1–7) hang on the
 > answer** — documented non-support if optional, a conformance gap if not. `DOCUMENTED-NON-SUPPORT` is never an
 > agent's to choose (D13), so they are recorded NOT-IMPLEMENTED pending this.
+
+### PB38 · [MAJOR] · numerics · ⛔ OPEN (NEW 2026-08-03, from PB32/PB14's landing) — under a STANDARD mode a FLOAT argument demotes the whole intrinsic to binary64, bypassing the SDIDI §15.4.1 r1 requires
+> **The one renderer that does not test the arithmetic mode before its float branch.** `IntrinsicRenderer.RenderNum`
+> routes on `AnyRealArgument(ic)` with NO mode guard, while `NumericRenderer.CombineCore`, `NumericRenderer.Power`
+> and `ConditionRenderer` all test `StandardDecimal` FIRST — the ordering `COBOLNET_NUMERIC_DESIGN.md` D3 states
+> in words ("the mode branch runs BEFORE the D16 float branch"). So ONE COMP-1/COMP-2 argument evaluates the whole
+> list in binary64 even under `ARITHMETIC IS STANDARD-DECIMAL`, where §15.4.1 r1 is unconditional (the returned
+> value *shall equal* the SDIDI-evaluated EAE) and §8.8.1.5.2 r1 converts every fixed-point operand into an SDIDI
+> exactly. Measured by the batch-5 refuters: `FUNCTION MEDIAN(H1 H2 H3 F1 F1)` over three 18-digit items plus a
+> COMP-2 pair returns 100000000000000004.76 where the SDIDI-exact answer is 100000000000000001 — the three
+> operands collapse to one binary64 (the ulp at 1e17 is 16) and compare EQUAL, so the §8.8.4.2.4 comparison the
+> clause mandates never happens. The same three operands without the float pair are exact in the same program.
+>
+> ⛔ **THE FIX IS A `CobolDec` CARRIER BODY, NOT A THIRD ROUTE.** PB32 landed an interim SDIDI landing at
+> `IntrinsicRenderer.Arg` that converts a Dec argument into the exact carrier at the argument list's common
+> working scale; that stops the crash and is exact for ordinary operands, but it cannot preserve an SDIDI whose
+> resolution exceeds that scale, and it does not help a FLOAT argument at all. ⚠ **Do not answer this by adding a
+> mode test to `RenderNum`** — that is the sixth individual fix of the same shape. The carrier selection is
+> written down in four renderers and drifted in the fourth; it belongs in ONE selector every renderer consults,
+> with a drift test asserting no renderer branches on `.Real`/`.Dec`/`StandardDecimal` outside it. Sizing that
+> selector, and whether the exact/Dec/real bodies then unify generically over the carrier (`Int128`, `double`,
+> `CobolDec`) so a rule cannot be written twice at all, is the design question to settle in
+> `COBOLNET_NUMERIC_DESIGN.md` before code.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in

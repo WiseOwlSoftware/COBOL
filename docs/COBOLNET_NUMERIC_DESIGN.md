@@ -76,10 +76,29 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   decimal128 value's 34-digit significand exactly; only the rejection of `decimal` (96-bit/28-digit) stands.
 > - **Intrinsic functions under the standard modes (§15.4.1 r1):** a function WITH an equivalent arithmetic
 >   expression must return exactly the SDIDI-evaluated EAE value. The exact-Int128 family (MOD/REM/MAX/MIN/
->   RANGE/SUM/MEDIAN/MIDRANGE/ABS/SIGN/INTEGER…) already satisfies it — every EAE step is exact in both engines
+>   RANGE/SUM/MEDIAN/MIDRANGE/ABS/SIGN/INTEGER…) satisfies it **for an argument list that is entirely
+>   fixed-point** — every EAE step is exact in both engines
 >   (the documented-equivalence header of `CobolIntrinsics.Exact.cs`; the one recorded residue: an exact result
 >   past 34 digits — FACTORIAL 31–33, a >34-digit SUM chain — keeps MORE precision than the per-op-rounded
->   SDIDI would). MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
+>   SDIDI would).
+>   ⛔ **THIS PARAGRAPH READ "already satisfies it", UNQUALIFIED, AND THAT WAS FALSE IN THREE MEASURED WAYS
+>   (fix-queue PB32, 2026-08-03).** It is recorded here rather than quietly reworded because the claim is what
+>   made the family look reviewed:
+>   · **A `Dec`-carried argument did not COMPILE.** `NumX` has three carriers — exact scaled `Int128`, the
+>     `CobolDec` SDIDI, binary64 — and `IntrinsicRenderer` handled two, so a §15.3 type-10 arithmetic-expression
+>     argument (legal at 2014/2023) reached `MaxScaled(params Int128[])` as a raw `CobolDec` and Roslyn reported
+>     `CS1503` on conforming source. **Now landed at the ONE choke point, `IntrinsicRenderer.Arg`**, through the
+>     same `WorkingScale(floor)` discipline the NUMVAL and float families use.
+>   · **A float argument still demotes the whole list to binary64**, because `RenderNum`'s `AnyRealArgument`
+>     route carries no arithmetic-mode guard while `CombineCore`, `Power` and `ConditionRenderer` all test the
+>     mode BEFORE their float branch — the ordering this very section prescribes ("the mode branch runs BEFORE
+>     the D16 float branch"). **Still open**, ledgered as PB38: the §15.4.1 r1 answer is a Dec-carrier body, and
+>     the interim landing above is exact only to the argument list's common scale.
+>   · **MEDIAN and MIDRANGE wrapped on the EXACT path**, at one fifth the magnitude of MAX/MIN/SUM/RANGE,
+>     because returning at scale common+1 spends a decimal digit of carrier headroom that its siblings do not.
+>     **Now `EC-SIZE-OVERFLOW`** per the substrate paragraph's escape-boundary policy, which the code had simply
+>     never implemented (`CobolIntrinsics.ScaleForHalving`).
+>   MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
 >   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
 >   log/E/PI) has no EAE — implementor-defined in every mode (§15.4.1 last ¶), converting into expressions per
 >   §8.8.1.5.2 r1. **Staged LOUD:** ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION (inexact-division

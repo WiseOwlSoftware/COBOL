@@ -87,7 +87,9 @@
     "pb13_domain_raise_receiver_shape",
     "pb19_argument_class_batch5",
     "pb21_float_arg_integer_family",
-    "pb22_integer_arg_narrowing"
+    "pb22_integer_arg_narrowing",
+    "pb32_dec_carrier_intrinsic_argument",
+    "pb32_exact_carrier_halving_boundary"
   ],
   "pending": []
 }

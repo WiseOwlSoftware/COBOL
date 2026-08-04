@@ -315,7 +315,40 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
 
-    private NumX Arg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i], num.Receiver);
+    private NumX Arg(BoundIntrinsicCall ic, int i) => Landed(num.AsNum(ic.Args[i], num.Receiver));
+
+    /// <summary>
+    /// ⛔ THE ONE SDIDI → EXACT-CARRIER LANDING FOR AN INTRINSIC ARGUMENT (fix-queue PB32/PB14).
+    /// </summary>
+    /// <remarks>
+    /// <para><see cref="NumX"/> has THREE carriers — exact scaled <see cref="Int128"/>, the <c>CobolDec</c> SDIDI,
+    /// and binary64 — and this renderer's arms were written for two. Under <c>ARITHMETIC IS STANDARD-DECIMAL</c>
+    /// every arithmetic expression renders as a <c>Dec</c> carrier (<c>NumericRenderer.CombineCore</c> /
+    /// <c>Power</c>), so a §15.3 type-10 arithmetic-expression argument — legal at 2014 and 2023 — was handed raw
+    /// to a body expecting <c>Int128</c> and the user saw a Roslyn <c>CS1503</c> on conforming COBOL.</para>
+    /// <para>⛔ IT IS LANDED HERE, AT <see cref="Arg"/>, AND NOT IN EACH ARM. Placing the arm in
+    /// <c>NumericRenderer.Align</c> alone fixed only the variadic family that happens to route through it —
+    /// measured: MAX / MIN / MOD / MEDIAN recovered while ABS, SIGN, INTEGER, FRACTION-PART and FACTORIAL still
+    /// failed to compile, because those arms consume <c>Arg(...).Expr</c> (or <see cref="AsInt"/>) directly. Every
+    /// numeric argument in this renderer originates HERE, so one landing covers all of them and the NEXT arm
+    /// added is covered without anyone remembering to (feedback_change_the_dispatch_not_the_callers). Landing
+    /// early also gives the SDIDI a compile-time <c>Scale</c>, so it participates in
+    /// <see cref="AlignedArgsEx"/>'s common-scale maximum instead of contributing the placeholder 0 and dragging
+    /// the whole argument list down to integer alignment.</para>
+    /// <para>⚠ THE SCALE IS A CHOICE, AND IT IS THE FAMILY-FLOOR RULE, NOT A NEW ONE. An SDIDI carries its
+    /// exponent at RUN time, so there is no compile-time scale to preserve; the value lands through the same
+    /// <c>WorkingScale(floor)</c> discipline the NUMVAL and float families use — the receiver's scale, never below
+    /// the §15.67 fraction floor, capped at the receiver's <c>Int128</c> headroom by the PB13 argument. A quotient
+    /// with more fraction digits than that is truncated before the function sees it, which is a strictly smaller
+    /// wrong than "does not compile" and is NOT the end state: the §15.4.1 r1 answer is a Dec-carrier body, and it
+    /// is ledgered as PB38 rather than left as an unrecorded approximation.</para>
+    /// </remarks>
+    private NumX Landed(NumX x)
+    {
+        if (!x.Dec) return x;
+        int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
+        return new NumX(RuntimeApi.DecToUnscaled(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
+    }
 
     /// <summary>Does any argument render as FLOATING (binary64) rather than as a scaled integer? (PB2.)</summary>
     /// <remarks>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
