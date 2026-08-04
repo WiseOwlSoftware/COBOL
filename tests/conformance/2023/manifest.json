@@ -95,7 +95,8 @@
     "pb33_numval_family_digit_cap",
     "pb24_length_refmod_argument",
     "pb24_length_variable_length_group",
-    "pb24_length_physical_keyword"
+    "pb24_length_physical_keyword",
+    "pb15_result_type_follows_argument"
   ],
   "pending": []
 }

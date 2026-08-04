@@ -44,11 +44,19 @@ SMALLER SURFACES (one approach each, dependency named): figurative constants mod
 
 **Rejected alternatives.** (a) Reuse legacy decimal bodies as-is — reintroduces banned software-decimal, less spec-faithful, and forces a decimal↔long boundary at every call site. (b) Make every intrinsic return double — loses base-10 exactness for SUM/MOD/INTEGER-PART and breaks ROUNDED determinism.
 
-### D2. One declarative IntrinsicCatalog table (name → §15.2 type, result category, arity, arg categories, runtime-method-or-fold) is the single source of result-category truth, consulted during emission.
+### D2. One declarative IntrinsicCatalog table (name → §15.2 type, RESULT-TYPE RULE, arity, arg categories, runtime-method-or-fold) is the single source of result-category truth, consulted during emission.
 
 **Rationale.** Replaces the legacy ad-hoc AlphanumericFunctions HashSet + scattered special-cases with one table that the NumPrimary, DISPLAY, MOVE-source, and condition-operand paths all consult. Decades-sustainable: adding a function is one row. Fits the bound-tree pipeline (the binder consults the catalog once and produces a structured bound node; no lowered IR; backends only render — the dual-backend discipline, SSOT §1.1/§18 #23).
 
-**Rejected alternatives.** Per-call-site if/else chains (the legacy ad-hoc approach) — violates the refactor-first/canonical-dispatch doctrine and drifts out of sync. A class-per-function hierarchy — over-engineered for a static catalog.
+**⛔ THE TYPE COLUMN IS A RULE, NOT A SCALAR — and this decision was silently false for a year (fix-queue PB15).** Twenty §15 functions do not have a constant type: their own §15.x.1 clause carries a table whose left column is an ARGUMENT property and whose right column is the function type ("The type of this function depends on the type of argument-1 as follows"). A scalar column cannot express that, so each such function needed a hand-written exception in the binder — and only five ever got one, in **two separate name lists** (CA25's `RuntimeMethod is "UpperCase" or "LowerCase" or "Reverse"`, V54's `Name is "MAX" or "MIN"`). The other ten stayed mislabelled, every one a silent under-rejection: a national result labelled alphanumeric passes the §14.9.25.3 Table-16 MOVE guard instead of being rejected by it. **Three mechanisms decided one property, so "the single source of result-category truth" named a file that was not one.**
+
+The row now carries `IntrinsicResultRule` — seven spec-derived shapes covering all twenty functions (`FollowsArgument1` alone covers ten) — and `IntrinsicResultType.Resolve` is the ONE reader, called from the generic bind path **and from every bespoke one**. That last clause is load-bearing: TRIM and SUBSTITUTE parse phrase keywords and build their own bound node, so a correct catalog row left them wrong until their construction sites read the rule too — the two-arm dispatch in its silent form, with the fix present and every test green.
+
+**Resolve returns the §15.2 TYPE, not the category.** `ResultCategory` folds INTEGER, NUMERIC and INDEX into `PicCategory.Numeric` — correct for every consumer that exists today, and precisely why resolving to a category would have made the four integer-following rules unrepresentable, i.e. dead members reading as coverage. Resolving the type keeps D1's §15.2 classification intact and leaves the answer already correct for the first consumer of integer-ness that arrives.
+
+**`IntrinsicResultTypeDriftTests` re-derives the population from `specs/ISO_COBOL.md` itself** — the structural key is a markdown table in §15.x.1 whose header names the "Function type" column — so a function whose clause grows a table, or a new function that has one, fails the build until its row declares a rule. Without that, this decision decays exactly the way it decayed the first time: silently, because a name list cannot say what it omits.
+
+**Rejected alternatives.** Per-call-site if/else chains (the legacy ad-hoc approach) — violates the refactor-first/canonical-dispatch doctrine and drifts out of sync; PB15 is the measured proof, since that is what the two name lists were. A class-per-function hierarchy — over-engineered for a static catalog. Keying the drift test on the clauses' PROSE rather than on the table — the wordings differ ("depends on the argument type" §15.38.1, "depends on the type of argument-1" §15.39.1, "depends upon the argument types" §15.18.1) and a prose key found ten of twenty, a dead guard inside the guard against a dead lookup.
 
 ### D3. Model every special register as a synthesized DataItem registered in DataBinder.ByName (with type, storage class, read-only/fold flags).
 
@@ -210,9 +218,27 @@ Model RETURN-CODE as a synthesized static long DataItem (normal read/store), hav
 
 The SET dispatch slots (index→long, cond-name→store the 88's first VALUE into its parent, switch→bool, pointer→ManagedPointer) rely on the 88-level binding and INDEXED BY dependencies (`Condition88`, DataBinder index-name registration), so the cond-name/index arms are implemented directly; only the level-66 and switch-mnemonic dependencies remain stubbed — the catalog/registry spines do not depend on this.
 
-### MAX/MIN are category-polymorphic — the result TYPE follows the argument type per the §15.59.1/§15.63.1 table.
+### TWENTY functions are category-polymorphic — the result TYPE follows the arguments, per the §15.x.1 result-type table each one carries.
 
-Resolve MAX/MIN result category at the call site from the §15.59.1/§15.63.1 result-type table, which is a function of the (uniform, §15.59.3/§15.63.3 r2) argument type: alphabetic or alphanumeric arguments → an ALPHANUMERIC result (the selected string); NATIONAL arguments → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX arguments → an INDEX result; all-integer arguments → an INTEGER result; otherwise (numeric, some arguments possibly integer) → a NUMERIC result. The size of an alphanumeric or national result is the size of the selected argument-1 (§15.59.4/§15.63.4 r3). ORD-MAX/ORD-MIN always return an INTEGER ordinal but dispatch their comparison by the same argument category. The catalog row marks them category-polymorphic and the binder resolves the result category from the bound argument categories at bind time.
+⚠ **This section used to name MAX/MIN only, and that framing is what let the defect spread** (fix-queue PB15): treating it as a two-function quirk produced a two-function fix, twice. It is a §15-wide rule shape. The catalog row carries `IntrinsicResultRule` and `IntrinsicResultType.Resolve` reads it at bind time; **`IntrinsicResultTypeDriftTests` derives the population from the spec**, so this list is documentation, never the register.
+
+The seven shapes, and the functions each covers:
+
+| Rule | Functions | The table it implements |
+|---|---|---|
+| `FollowsArgument1` | BASECONVERT §15.12 · FORMATTED-CURRENT-DATE §15.38 · FORMATTED-DATE §15.39 · FORMATTED-DATETIME §15.40 · FORMATTED-TIME §15.41 · LOWER-CASE §15.57 · REVERSE §15.78 · SUBSTITUTE §15.87 · TRIM §15.96 · UPPER-CASE §15.97 | Alphabetic→Alphanumeric · Alphanumeric→Alphanumeric · National→National |
+| `IntegerFollowsArgument1` | ABS §15.7 · HIGHEST-ALGEBRAIC §15.43 · LOWEST-ALGEBRAIC §15.58 · SMALLEST-ALGEBRAIC §15.83 | Integer→Integer, every other admitted row→Numeric |
+| `IntegerFollowsAllArguments` | RANGE §15.76 · SUM §15.88 | All arguments integer→Integer · otherwise Numeric |
+| `FollowsUniformArguments` | MAX §15.59 · MIN §15.63 | the six-row table below |
+| `FollowsConcatArguments` | CONCAT §15.18 | keyed on class AND usage |
+| `FollowsDestinationFormat` | CONVERT §15.19 | keyed on the destination KEYWORDS, not an argument |
+| `Fixed` | everything else | §15.x.1 states one type, or §15.2/§15.6 does |
+
+**MAX/MIN in full** (§15.59.1/§15.63.1, over the uniform §15.59.3/§15.63.3 r2 argument list): alphabetic or alphanumeric → an ALPHANUMERIC result (the selected string); NATIONAL → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX → an INDEX result; all-integer → an INTEGER result; otherwise → NUMERIC. The size of an alphanumeric or national result is the size of the selected argument-1 (§15.59.4/§15.63.4 r3). ⚠ The INDEX row is **not** a `PicCategory` — an index item is PICTURE-less and this model carries it as `PicInfo.IndexItem`, category Numeric with usage Index, so a category-keyed test would route it to the numeric arm and, since its scale is 0, answer INTEGER: a plausible wrong type rather than a visible failure.
+
+**ORD-MAX §15.71 / ORD-MIN §15.72 are `Fixed` and share none of this.** They always return an integer ordinal — their §15.71.1/§15.72.1 clauses carry no result-type table at all — but they DO dispatch their comparison to the string body by the same argument category. That `RuntimeMethod` choice is deliberately kept separate from the result-type resolution in the binder: folding the two together is what made the old code read as if MAX's type and MAX's comparison body were one decision.
+
+**The FORMATTED-\* family is the row most easily read backwards.** Their type follows argument-1 — the FORMAT literal (§15.38.3 r1 and siblings admit "a national or alphanumeric literal") — so `FUNCTION FORMATTED-DATE(N"YYYYMMDD" D)` is a NATIONAL function even though what it renders is an integer date.
 
 ### FUNCTION argument shapes: table(ALL) expansion, optional trailing args (e.g. RANDOM seed), and variadic statistical functions — REAL argument parse trees (P7 Step 12).
 

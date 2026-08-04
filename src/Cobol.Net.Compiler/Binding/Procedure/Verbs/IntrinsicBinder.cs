@@ -537,19 +537,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 && sig.Name is "SMALLEST-ALGEBRAIC" or "HIGHEST-ALGEBRAIC" or "LOWEST-ALGEBRAIC")
             return BindAlgebraicFold(sig, args);
 
-        // MAX/MIN are category-polymorphic (§15.59/§15.63: the result follows the arguments — all-alphanumeric
-        // arguments return the SELECTED STRING); ORD-MAX/ORD-MIN always return an ordinal but dispatch their
-        // comparison by the same argument category. The legacy rule: all-non-numeric ⇒ the string family.
+        // ⛔ THE ONE RESULT-TYPE RESOLUTION (§15.x.1 result-type tables; fix-queue PB15). Twenty functions have a
+        // type that DEPENDS ON THEIR ARGUMENTS, and this used to be two hand-written name lists here — a
+        // `RuntimeMethod is "UpperCase" or "LowerCase" or "Reverse"` chain (CA25) and a `Name is "MAX" or "MIN"`
+        // arm (V54) — so the other TEN functions silently kept the catalog's hardcoded Alphanumeric. The rule now
+        // lives on the catalog ROW (IntrinsicSig.Result) and is read HERE and nowhere else; adding a function is
+        // a column, not an edit to this method. IntrinsicResultTypeDriftTests re-derives the population from
+        // specs/ISO_COBOL.md so a new §15.x.1 table cannot be missed.
+        var category = IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, args));
+
+        // ⚠ SEPARATE CONCERN, DELIBERATELY NOT MERGED ABOVE: which runtime BODY compares the arguments.
+        // MAX/MIN/ORD-MAX/ORD-MIN over string arguments dispatch to the string comparison body; ORD-MAX/ORD-MIN
+        // still return an ordinal (§15.71.1/§15.72.1 carry NO result-type table — only MAX/MIN do), which is why
+        // this is a RuntimeMethod choice and not a type one, and why the two must not be folded together.
         var resolved = sig;
-        var category = sig.ResultCategory;
-        // §15.97.1 (UPPER-CASE) / §15.57.1 (LOWER-CASE) / §15.78.1 (REVERSE) result-type tables: the result category
-        // FOLLOWS the argument — a National argument yields a National result (the transform is a code-unit op on the
-        // national UTF-16 string, so the same RuntimeMethod body applies). Hardcoding Alphanumeric in the catalog
-        // mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and feeding the wrong
-        // class to comparison collation. (CA25 — mirrors the V54 MAX/MIN category resolution.)
-        if (sig.RuntimeMethod is "UpperCase" or "LowerCase" or "Reverse"
-                && args.Count > 0 && OperandCategory(args[0]) is PicCategory.National)
-            category = PicCategory.National;
         if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
         {
             resolved = sig with
@@ -560,13 +561,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     "ORD-MAX" => "OrdMaxString", _ => "OrdMinString",
                 },
             };
-            // §15.59.1 (MAX) / §15.63.1 (MIN) result-type table: the result category FOLLOWS the arguments — an
-            // all-national argument list yields a NATIONAL result (the selected national UTF-16 string). Hardcoding
-            // Alphanumeric mis-labelled it, bypassing the §14.9.25.4 Table-16 National→Alphanumeric MOVE guard and
-            // feeding the wrong class to comparison collation. (V54.)
-            if (sig.Name is "MAX" or "MIN")
-                category = args.All(a => OperandCategory(a) is PicCategory.National)
-                    ? PicCategory.National : PicCategory.Alphanumeric;
         }
 
         // CHAR/ORD are PCS-relative (§15.15.4 r2 / §15.70.4 r1): flag the call when a NON-identity ALPHANUMERIC
@@ -656,7 +650,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1502", "the FUNCTION TRIM argument-2 form (removing characters other than "
                 + "space) was introduced by ISO/IEC 1989:2023 (§15.96; Annex E.3.3 item 31) — it requires "
                 + $"--std 2023 or later (targeting COBOL-{ctx.Edition.DialectLevel}); TRIM removed only spaces through 2014");
-        return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { TrimMode = mode };
+        // ⛔ THE §15.96.1 RESULT-TYPE TABLE APPLIES HERE TOO, AND THIS SITE IS WHY PB15 NEEDED FINDING TWICE.
+        // TRIM has a BESPOKE bind (the LEADING/TRAILING phrase), so it builds its own node and NEVER reaches the
+        // generic path's resolution — hardcoding Alphanumeric here left `MOVE FUNCTION TRIM(national) TO PIC X`
+        // compiling clean even with the catalog row correct. The two-arm dispatch, in its silent form: the fix
+        // present, the defect intact, every test green. Both arms now read the ONE rule.
+        return new BoundIntrinsicCall(
+            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
+            { TrimMode = mode };
     }
 
     /// <summary>FIND-STRING (§15.37) — <c>argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]</c>
@@ -729,7 +730,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A well-formed call ends on a completed pair with no dangling keyword/operand (§15.87.3 rule requires
         // at least one pair; the source alone or a half pair is malformed).
         if (!haveSource || modes.Count == 0 || pairOperands != 0 || pending != 0) return Malformed();
-        return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { SubstituteModes = modes };
+        // §15.87.1's result-type table follows argument-1, and this bespoke bind is the second site that bypassed
+        // it (see the TRIM note above — the same two-arm shape, the same silent under-rejection).
+        return new BoundIntrinsicCall(
+            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
+            { SubstituteModes = modes };
     }
 
     /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed by two phrase
@@ -800,16 +805,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// argument class/category rules): a categorized literal, a non-group field reference (a reference-modified
     /// operand keeps its item's category — a national item's ref-mod is category national, §8.4.4.4), a nested
     /// intrinsic's result category, or numeric for a computed arithmetic expression. Null = no fixed static
-    /// class (groups, figuratives, ALL literals, error operands) — the caller skips its check.</summary>
-    private static PicCategory? OperandCategory(BoundOperand op) => op switch
-    {
-        BoundStringLiteral sl => sl.Category,
-        BoundNumericLiteral => PicCategory.Numeric,
-        BoundFieldOperand f => f.Place.Item.IsGroup ? null : f.Place.Item.Pic?.Category,
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
-        BoundComputedOperand => PicCategory.Numeric,
-        _ => null,
-    };
+    /// class (groups, figuratives, ALL literals, error operands) — the caller skips its check.
+    /// <para>⚠ THE DEFINITION LIVES IN <see cref="IntrinsicResultType"/>: the §15.x.1 RESULT-type rules need the
+    /// same §8.5.2.1 answer these §15.3 ARGUMENT rules do, and two copies of one rule is how they drift apart
+    /// (<c>feedback_one_rule_one_place</c>). This is a local alias, not a second implementation.</para></summary>
+    private static PicCategory? OperandCategory(BoundOperand op) => IntrinsicResultType.OperandCategory(op);
 
     /// <summary>The statically knowable width (character positions) of a function argument, or null when the
     /// length exists only at runtime (ref-mod views, ANY LENGTH items, computed results).</summary>

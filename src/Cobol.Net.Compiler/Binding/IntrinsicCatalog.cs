@@ -40,18 +40,36 @@ public enum IntrinsicBind { Runtime, Fold, Deferred, Unsupported }
 public readonly record struct IntrinsicSig(
     string Name, IntrinsicType Type, IntrinsicArity Arity, int MinArgs, int MaxArgs,
     string ArgKinds, string RuntimeMethod, IntrinsicBind Bind, bool Float,
-    int IntroducedIn, int? RemovedIn = null)
+    int IntroducedIn, int? RemovedIn = null,
+    IntrinsicResultRule Result = IntrinsicResultRule.Fixed)
 {
     /// <summary>The §15.3 kind code of argument position <paramref name="i"/> (0-based; the last code repeats).</summary>
     public char ArgKind(int i) =>
         ArgKinds.Length == 0 ? 'n' : ArgKinds[Math.Min(i, ArgKinds.Length - 1)];
 
     /// <summary>The data category of the function result (§15.2 → §8.4.2) — what MOVE/comparison/DISPLAY consult.
-    /// A NATIONAL-type function's result IS category national (§15.2 type 4 — NATIONAL-OF §15.66.1: "the type of
-    /// the function is national"), and a BOOLEAN-type function's result IS class/category boolean with implicit
-    /// usage bit (§15.2 item 2; §8.5.2.5 item 4 lists "a boolean function"), so the §14.9.25.3 Table-16 legality
-    /// and the string channels see the correct class — never an alphanumeric or numeric fold.</summary>
-    public PicCategory ResultCategory => Type switch
+    /// <para>
+    /// ⚠ For a row whose <see cref="Result"/> rule is not <see cref="IntrinsicResultRule.Fixed"/> this is the
+    /// DECLARED type's category, which is only the answer for a call whose arguments select that row of the
+    /// §15.x.1 table. The binder resolves the call's actual type through
+    /// <c>IntrinsicResultType.Resolve</c> and stores the resulting category on the bound node — read
+    /// <c>BoundIntrinsicCall.ResultCategory</c>, not this, when a call is in hand.
+    /// </para></summary>
+    public PicCategory ResultCategory => CategoryOf(Type);
+
+    /// <summary>THE §15.2-type → §8.4.2-category mapping, in ONE place so the declared and the argument-resolved
+    /// paths cannot disagree. A NATIONAL-type function's result IS category national (§15.2 type 4 — NATIONAL-OF
+    /// §15.66.1: "the type of the function is national"), and a BOOLEAN-type function's result IS class/category
+    /// boolean with implicit usage bit (§15.2 item 2; §8.5.2.5 item 4 lists "a boolean function"), so the
+    /// §14.9.25.3 Table-16 legality and the string channels see the correct class — never an alphanumeric or
+    /// numeric fold.
+    /// <para>
+    /// ⚠ INTEGER, NUMERIC and INDEX all fold to <see cref="PicCategory.Numeric"/> here. That is correct for every
+    /// consumer that exists today — the distinctions are §15.2 TYPE distinctions with no category of their own in
+    /// §8.4.2 — and it is exactly why <c>IntrinsicResultType.Resolve</c> returns an
+    /// <see cref="IntrinsicType"/> rather than a category: the standard's classification survives the fold.
+    /// </para></summary>
+    public static PicCategory CategoryOf(IntrinsicType type) => type switch
     {
         IntrinsicType.National => PicCategory.National,
         IntrinsicType.Alphanumeric => PicCategory.Alphanumeric,
@@ -106,15 +124,15 @@ public static class IntrinsicCatalog
         Add(new("INTEGER-PART", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "n", "Truncate", IntrinsicBind.Runtime, false, 85)); // §15.49
         Add(new("MOD", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ii", "ModScaled", IntrinsicBind.Runtime, false, 85));      // §15.64
         Add(new("REM", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "nn", "RemScaled", IntrinsicBind.Runtime, false, 85));      // §15.77
-        Add(new("MAX", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MaxScaled", IntrinsicBind.Runtime, false, 85));  // §15.59 (category-polymorphic)
-        Add(new("MIN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MinScaled", IntrinsicBind.Runtime, false, 85));  // §15.63 (category-polymorphic)
+        Add(new("MAX", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MaxScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments));  // §15.59.1
+        Add(new("MIN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MinScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments));  // §15.63.1
         Add(new("ORD-MAX", IntrinsicType.Integer, IntrinsicArity.Variadic, 1, inf, "p", "OrdMax", IntrinsicBind.Runtime, false, 85)); // §15.71
         Add(new("ORD-MIN", IntrinsicType.Integer, IntrinsicArity.Variadic, 1, inf, "p", "OrdMin", IntrinsicBind.Runtime, false, 85)); // §15.72
-        Add(new("SUM", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "SumScaled", IntrinsicBind.Runtime, false, 85));  // §15.88
+        Add(new("SUM", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "SumScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.IntegerFollowsAllArguments));  // §15.88.1
         Add(new("MEAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MeanScaled", IntrinsicBind.Runtime, false, 85)); // §15.60
         Add(new("MEDIAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MedianScaled", IntrinsicBind.Runtime, false, 85)); // §15.61
         Add(new("MIDRANGE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MidrangeScaled", IntrinsicBind.Runtime, false, 85)); // §15.62
-        Add(new("RANGE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "RangeScaled", IntrinsicBind.Runtime, false, 85)); // §15.76
+        Add(new("RANGE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "RangeScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.IntegerFollowsAllArguments)); // §15.76.1
         Add(new("NUMVAL", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "Numval", IntrinsicBind.Runtime, false, 85));       // §15.67
         Add(new("NUMVAL-C", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NumvalC", IntrinsicBind.Runtime, false, 85)); // §15.68
 
@@ -122,9 +140,9 @@ public static class IntrinsicCatalog
         Add(new("CHAR", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "i", "Char", IntrinsicBind.Runtime, false, 85));      // §15.15
         Add(new("ORD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Ord", IntrinsicBind.Runtime, false, 85));             // §15.70
         Add(new("LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Length", IntrinsicBind.Fold, false, 85));          // §15.50 (D7 compile-time fold)
-        Add(new("LOWER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "LowerCase", IntrinsicBind.Runtime, false, 85)); // §15.57
-        Add(new("UPPER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "UpperCase", IntrinsicBind.Runtime, false, 85)); // §15.97
-        Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85)); // §15.78
+        Add(new("LOWER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "LowerCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.57.1
+        Add(new("UPPER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "UpperCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.97.1
+        Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.78.1
 
         // Date/time family (CobolDate; integer date form §15.5.2).
         Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85)); // §15.21
@@ -181,8 +199,8 @@ public static class IntrinsicCatalog
         Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "EcLocationN", IntrinsicBind.Runtime, false, 2002));   // §15.31
         Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002)); // §15.32
         Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002));    // §15.33
-        Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002)); // §15.43 (compile-time PICTURE fold)
-        Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002));  // §15.58 (compile-time PICTURE fold)
+        Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1)); // §15.43.1 (compile-time PICTURE fold)
+        Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1));  // §15.58.1 (compile-time PICTURE fold)
         Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "IntegerOfBoolean", IntrinsicBind.Runtime, false, 2002)); // §15.45 — the unsigned MSB-first value of the bit configuration (r1)
         // The A.4.9 locale module (optional; ratified decision 3 = documented non-support, conforming per
         // §4.2.7 + A.4.1): the four locale functions take a bare POSITIONAL [locale-name-1] (no LOCALE
@@ -218,27 +236,30 @@ public static class IntrinsicCatalog
         // extension is a SEPARATE decision for a future vendor-extension wave, not an ISO edition window.
 
         // ── COBOL-2014 additions (windows provisional pending the matrix wave) ────────────────────────────────
-        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014));     // §15.7
+        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1));     // §15.7.1
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.17
-        Add(new("FORMATTED-CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "FormattedCurrentDate", IntrinsicBind.Runtime, false, 2014)); // §15.38
-        Add(new("FORMATTED-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 2, 2, "si", "FormattedDate", IntrinsicBind.Runtime, false, 2014));        // §15.39
-        Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.40 (a4 = optional offset minutes)
-        Add(new("FORMATTED-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "snn", "FormattedTime", IntrinsicBind.Runtime, false, 2014));      // §15.41 (a3 = optional offset minutes)
+        // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§15.38.1/§15.39.1/
+        // §15.40.1/§15.41.1) — so FUNCTION FORMATTED-DATE(N"YYYYMMDD" D) is a NATIONAL function even though the
+        // date it renders is an integer. §15.38.3 r1 and siblings admit "a national or alphanumeric literal".
+        Add(new("FORMATTED-CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "FormattedCurrentDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.38.1
+        Add(new("FORMATTED-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 2, 2, "si", "FormattedDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));        // §15.39.1
+        Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.40.1 (a4 = optional offset minutes)
+        Add(new("FORMATTED-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "snn", "FormattedTime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));      // §15.41.1 (a3 = optional offset minutes)
         Add(new("INTEGER-OF-FORMATTED-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "IntegerOfFormattedDate", IntrinsicBind.Runtime, false, 2014)); // §15.48
         Add(new("NUMVAL-F", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "NumvalF", IntrinsicBind.Runtime, false, 2014));        // §15.69
         Add(new("SECONDS-FROM-FORMATTED-TIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ss", "SecondsFromFormattedTime", IntrinsicBind.Runtime, false, 2014)); // §15.79
         Add(new("TEST-FORMATTED-DATETIME", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "TestFormattedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.92
         Add(new("TEST-NUMVAL-F", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumvalF", IntrinsicBind.Runtime, false, 2014));   // §15.95
-        Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "ss", "Trim", IntrinsicBind.Runtime, false, 2014)); // §15.96 — arg-1 + the LEADING/TRAILING phrase + one-or-more argument-2 trim chars (special bind path)
+        Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "ss", "Trim", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.96.1 — arg-1 + the LEADING/TRAILING phrase + one-or-more argument-2 trim chars (special bind path)
 
         // ── COBOL-2023 additions (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) ────────────────────────────────
-        Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "BaseConvert", IntrinsicBind.Runtime, false, 2023)); // §15.12
-        Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, "s", "Concat", IntrinsicBind.Runtime, false, 2023)); // §15.18
-        Add(new("CONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, 4, "s", "Convert", IntrinsicBind.Runtime, false, 2023)); // §15.19 — arg-1 source-format destination-format (bespoke keyword bind; result category computed per §15.19.1)
+        Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "BaseConvert", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsArgument1)); // §15.12.1
+        Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, "s", "Concat", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsConcatArguments)); // §15.18.1
+        Add(new("CONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, 4, "s", "Convert", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsDestinationFormat)); // §15.19.1 — arg-1 source-format destination-format (bespoke keyword bind; the destination keywords, not an argument, decide the type)
         Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 3, "sssii", "FindString", IntrinsicBind.Runtime, false, 2023)); // §15.37 — arg-1 arg-2 [LAST] [[START AFTER] arg-3] [ANYCASE] (special bind path)
         Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "ModuleName", IntrinsicBind.Runtime, false, 2023)); // §15.65 — the ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL keyword (special bind path)
-        Add(new("SMALLEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2023)); // §15.83 (compile-time PICTURE fold)
-        Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "Substitute", IntrinsicBind.Runtime, false, 2023)); // §15.87 — arg-1 + one-or-more [ANYCASE][FIRST|LAST] arg-2 arg-3 pairs (special bind path)
+        Add(new("SMALLEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2023, Result: IntrinsicResultRule.IntegerFollowsArgument1)); // §15.83.1 (compile-time PICTURE fold)
+        Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "Substitute", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsArgument1)); // §15.87.1 — arg-1 + one-or-more [ANYCASE][FIRST|LAST] arg-2 arg-3 pairs (special bind path)
 
         return t;
     }
