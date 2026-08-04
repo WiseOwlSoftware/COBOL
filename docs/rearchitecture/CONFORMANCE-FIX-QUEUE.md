@@ -15,7 +15,8 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB29 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB19–PB22 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB14 (half closed by PB21), PB15, PB17, PB18, PB23–PB37 OPEN.**
+> **BATCH 5 (§15.58–15.69) adjudicated 2026-08-03** — 90 rules, 12 subjects, independently refuted: DIVERGES 42 · PARTIAL 21 · NOT-IMPLEMENTED 15 · CONFORMS 11 (3 closed) · NEEDS-OWNER-DECISION 1. Inventory 330 → **420 adjudicated**, GAP 3799 → **3796**. The 79 open findings cluster into EIGHT causes, **PB30–PB37** — and ~16 refute-stage overturns were ALL downgrades.
 > **PB28 · PB29 opened 2026-08-03 by re-verifying PB18** — the sibling-arm sweep its entry did not ask for. PB28: §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one, so `0 ** 0` returns 1 and `-2 ** 0.5` returns 0, both with no SIZE ERROR. PB29: §8.8.1's 21 numbered rules are absent from the catalog entirely, so v1.0's zero-GAP definition does not currently cover arithmetic-expression evaluation — the THIRD instance of the denominator's one defect class.
 The queue emptied at PB9 and was refilled by the §15.32–15.44 batch, which is the design working: adjudicating a
 clause OPENS items, fixing them CLOSES them, and an empty queue means "adjudicate the next clause".
@@ -655,6 +656,59 @@ below index it).
 > evaluation — including the two rules PB28 proves violated — has never been adjudicated.** §11 **A3** (the
 > numeric-semantics depth audit, "the intermediate-results model vs §8.8.1 end-to-end") is scheduled precisely
 > here and would have been run against a denominator that omits its subject.
+
+### ⛔ BATCH 5 (§15.58–15.69) — 79 open findings, EIGHT root causes
+
+> **Adjudicated 2026-08-03: 90 rules over 12 subjects (LOWEST-ALGEBRAIC · MAX · MEAN · MEDIAN · MIDRANGE · MIN ·
+> MOD · MODULE-NAME · NATIONAL-OF · NUMVAL · NUMVAL-C · NUMVAL-F), each independently refuted.**
+> DIVERGES 42 · PARTIAL 21 · NOT-IMPLEMENTED 15 · CONFORMS 11 (3 closed) · NEEDS-OWNER-DECISION 1.
+> ⚠ **The refute stage overturned ~16 verdicts and EVERY overturn was a DOWNGRADE**, for the two reasons the
+> playbook predicts by name: *"the adjudication SAMPLED OUTPUTS"* and *"read ONE of the TWO bodies"*. An
+> adjudicator's CONFORMS is worth what its refuter leaves of it.
+> **Cluster, do not work these one by one** — 79 findings, eight causes.
+
+### PB30 · [MAJOR] · intrinsics · ⛔ OPEN — eight more functions are absent from `IntrinsicArgumentRules.Verified`, so their §15.x argument rules are screened nowhere
+> MAX, MIN, MEAN, MEDIAN, MIDRANGE, MOD, NUMVAL-C and LOWEST-ALGEBRAIC carry argument-class rules that no code
+> consults. This is PB1's named residue growing by the clause, exactly as designed — the table is deliberately
+> partial and each batch is supposed to extend it. ⚠ Every new row must carry **the ISO clause it was read
+> from**: PB1's disaster was wiring 79 *unaudited* declarations into a rejection path and rejecting 12 legal
+> corpus programs.
+
+### PB31 · [MAJOR] · intrinsics · ⛔ OPEN — the CROSS-ARGUMENT class-agreement rule is enforced NOWHERE
+> §15.59.3 r2 / §15.63.3 r2 (MAX/MIN) require all arguments to be of the same class family. `CheckArgumentClass`
+> screens each argument INDEPENDENTLY, so `MAX(1, "A")` is accepted. ⛔ **Adding a `Verified` row cannot fix
+> this** — the screen has no cross-argument shape at all, which is why it is its own item and not part of PB30.
+
+### PB32 · [MAJOR] · intrinsics/numerics · ⛔ OPEN — TWO bodies implement each statistical/MOD function and only ONE was ever corrected
+> `RenderNum` routes on `AnyRealArgument(ic)`, so every one of these functions has an EXACT (`Int128`) body and a
+> FLOAT (`double`) body — and the refuters found fix after fix applied to one arm only (MOD's zero-divisor rule,
+> MEDIAN's even-count mean, MIDRANGE's ×5-at-scale-s+1). ⛔ **This is the PB2 / PB13 / PB14 / PB28 family for the
+> fifth time**: a dispatch with two arms, one corrected. It is the single highest-value item in the batch,
+> because the pattern predicts the NEXT defect rather than describing this one.
+
+### PB33 · [MAJOR] · intrinsics · ⛔ OPEN — NUMVAL-C's two general formats are not enforced, and the digit cap exists on TEST-NUMVAL-C but not NUMVAL-C
+> §15.68.3 r1's two formats are the substance of the rule and are unenforced; sub-rules b–f conform. The
+> 31-digit native cap is applied by `TestNumvalC` and not by `NumvalC` — the SAME asymmetry, from the same cause
+> (the validating twin was fixed, the value-producing one was not). A sibling of PB32.
+
+### PB34 · [MINOR] · intrinsics · ⛔ OPEN — digit caps (standard-decimal 34, standard-binary) are absent across the NUMVAL family
+> §15.67/68/69's cap sentences are unimplemented in every arithmetic mode: `IntrinsicRenderer.DigitCap` is not
+> consulted by the NUMVAL bodies, so an over-long argument silently produces a value instead of the specified
+> truncation/EC.
+
+### PB35 · [MINOR] · intrinsics · ⛔ OPEN — a ZERO-LENGTH literal is accepted as a MAX/MIN argument with no diagnostic at any edition
+> §15.59.3 / §15.63.3. Related to PB30 but distinct: the screen would have to test LENGTH, not class.
+
+### PB36 · [MAJOR] · oo/intrinsics · ⛔ OPEN — MODULE-NAME's r5 names four activation mechanisms and INVOKE is not among the implemented ones
+> §15.65.4 r5. The refuter found the blast radius LARGER than the adjudicator measured, and refuted the
+> adjudicator's load-bearing claim that "the STACK arm is already right".
+
+### PB37 · [OWNER] · locale · ⛔ NEEDS-OWNER-DECISION — is NUMVAL-C's LOCALE phrase an §A.4.9 optional element?
+> **The bare question:** Annex A §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not one of them —
+> item 12 is *TEST-NUMVAL-C function, LOCALE key*. Is NUMVAL-C's LOCALE phrase therefore MANDATORY, or is its
+> omission from A.4.9 an editorial gap? **Seven NOT-IMPLEMENTED rows (§15.68.3 r5b items 1–7) hang on the
+> answer** — documented non-support if optional, a conformance gap if not. `DOCUMENTED-NON-SUPPORT` is never an
+> agent's to choose (D13), so they are recorded NOT-IMPLEMENTED pending this.
 
 ### ⚠ RESIDUE — 16 findings not yet clustered, each its own root cause
 > Individually smaller but several are "rejects legal COBOL": an alphanumeric/national CONSTANT-NAME refused in

@@ -272,8 +272,13 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    the defect register and its header is the tally; **read `DESIGN-spec-conformance-review.md` §9 before running
    a batch** and **§4/§8 before recording a verdict**.
 
-   **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.58-15.69`** (§15.7, §15.70–15.79, §15.8–15.19,
-   §15.20–15.31, §15.32–15.44 and §15.45–15.57 are done). A batch is: generate one input file per subject → one
+   **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.20-15.31`** — ⚠ verify against the inventory
+   rather than this line; §15.7, §15.8–15.19, §15.32–15.44, §15.45–15.57, **§15.58–15.69 (batch 5, 2026-08-03)**
+   and §15.70–15.79 are done. **Batch 5: 90 rules, 12 subjects, 24 agents, 0 errors — DIVERGES 42 · PARTIAL 21 ·
+   NOT-IMPLEMENTED 15 · CONFORMS 11 (3 closed) · NEEDS-OWNER-DECISION 1; inventory 330 → 420 adjudicated, GAP
+   3799 → 3796. Its 79 open findings cluster into EIGHT causes (fix-queue PB30–PB37), and ~16 refute-stage
+   overturns were ALL downgrades** — for the two reasons the playbook names: the adjudicator sampled outputs,
+   or read one of two bodies. A batch is: generate one input file per subject → one
    adjudicating agent and one INDEPENDENT refuting agent each → `record_verdicts.py --dry-run` → merge → gate.
    ⛔ **MERGE THE BATCH'S OWN FILES BY NAME, NEVER `out-*.json`.** The playbook's documented glob sweeps EVERY
    prior batch's output out of the shared directory: at batch 4 it offered 144 records instead of 77 and would
