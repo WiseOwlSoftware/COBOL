@@ -1,0 +1,6 @@
+fixed group        = 0010  (expect 0010)
+one dynamic  4+3   = 0007  (expect 0007)
+two dynamic 2+2+3+4= 0011  (expect 0011)
+nested      5+2+1  = 0008  (expect 0008)
+after regrow 4+12  = 0016  (expect 0016)
+after empty  4+0   = 0004  (expect 0004)

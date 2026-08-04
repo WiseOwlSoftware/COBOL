@@ -1049,6 +1049,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             new BoundExprError("FUNCTION LENGTH of a NATIONAL DYNAMIC LENGTH item (current length in bytes = 2× character positions, ISO §15.50.4 rule 6)"),
         BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        // ⛔ A VARIABLE-LENGTH GROUP IS §15.50.4 r7's SUM, NOT A FIXED WIDTH (fix-queue PB24). This arm did not
+        // exist, so such a group fell through to the fixed fold below — and `DataItem.ImageWidth` contributes
+        // ZERO for a dynamic-length child (its width is a runtime fact, §8.5.1.10). MEASURED: a group of
+        // `PIC X(4)` plus a `PIC X DYNAMIC LENGTH` child holding "XYZ" returned **4** where r7 requires **7**,
+        // with no diagnostic. A missing arm in a dispatch, which is this compiler's most reproducible defect
+        // shape — and the silent kind, which is the worst.
+        // ⚠ THE CHEAP FIX DOES NOT WORK AND WAS TRIED: routing the group through the runtime string channel
+        // fails, because the whole-group IMAGE of a group with a dynamic child is itself staged loud (the Tier-C
+        // byte island). So r7 is built from the structure, which is known at COMPILE time:
+        //   r7(a) the fixed subordinates — exactly what `ImageWidth` already returns, since it zeroes the
+        //         dynamic ones; and
+        //   r7(b) the CURRENT length of each dynamic-length subordinate — one runtime LENGTH per leaf, summed.
+        BoundFieldOperand g when g.Place.Item.IsGroup && HasDynamicLengthLeaf(g.Place.Item)
+                                 && !HasDynamicCapacityTable(g.Place.Item)
+            => VariableLengthGroupSum(sig, g.Place.Item),
+        // ⚠ r7(c) — a subordinate DYNAMIC-CAPACITY table — is NOT implemented, and is staged LOUD rather than
+        // summed wrong. `ImageWidth` counts such a table as ONE occurrence (`c.Occurs ?? 1`), so folding it would
+        // return a plausible number that is wrong by (capacity − 1) elements. A loud stage is a worse experience
+        // and a better answer than a silent miscount (§1.4).
+        BoundFieldOperand g when g.Place.Item.IsGroup && HasDynamicCapacityTable(g.Place.Item) =>
+            new BoundExprError("FUNCTION LENGTH of a group with a subordinate DYNAMIC-CAPACITY table "
+                               + "(current capacity is a runtime value, ISO §15.50.4 rule 7c)"),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
         // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
         // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
@@ -1059,6 +1081,57 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // item of any class or category", handled by the BoundFieldOperand arm above). So this error is spec-correct.
         _ => new BoundExprError("FUNCTION LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.50.3)"),
     };
+
+    /// <summary>Does this group have a DYNAMIC LENGTH elementary item somewhere beneath it? (§15.50.4 r7b.)
+    /// Recursive, because r7 says "all subordinate", not "all immediate children".</summary>
+    private static bool HasDynamicLengthLeaf(DataItem g) =>
+        g.Children.Any(c => c.RedefinesTargetName is null
+                            && (c.IsDynamicLength || (c.IsGroup && HasDynamicLengthLeaf(c))));
+
+    /// <summary>Does this group have a DYNAMIC-CAPACITY table beneath it? (§15.50.4 r7c — not implemented, staged
+    /// loud rather than miscounted; see the arm that uses this.)</summary>
+    private static bool HasDynamicCapacityTable(DataItem g) =>
+        g.Children.Any(c => c.RedefinesTargetName is null
+                            && (c.IsDynamicTable || (c.IsGroup && HasDynamicCapacityTable(c))));
+
+    /// <summary>
+    /// §15.50.4 r7 as an expression: the fixed subordinates (r7a) plus the CURRENT length of every dynamic-length
+    /// subordinate (r7b).
+    /// </summary>
+    /// <remarks>
+    /// <para>r7a is <see cref="DataItem.ImageWidth"/> unchanged — it already sums the fixed subordinates and
+    /// contributes zero for each dynamic-length one, which is precisely the split r7 asks for. That is why this
+    /// adds to it rather than recomputing it: two independent width walks would be two things to keep in
+    /// agreement, and the fixed-layout math elsewhere already depends on this one.</para>
+    /// <para>Each dynamic leaf contributes one runtime <c>FUNCTION LENGTH</c> over the leaf itself — the same
+    /// single-item path measured correct before this change (a `DYNAMIC LENGTH` item holding "ABCDEFG" returns 7).
+    /// A leaf whose place cannot be resolved is not silently dropped: the whole fold degrades to the loud stage,
+    /// because an under-counted length is a wrong answer and a missing one is a visible failure.</para>
+    /// </remarks>
+    private BoundExpr VariableLengthGroupSum(IntrinsicSig sig, DataItem group)
+    {
+        var leaves = new List<DataItem>();
+        void Walk(DataItem g)
+        {
+            foreach (var c in g.Children.Where(x => x.RedefinesTargetName is null))
+            {
+                if (c.IsDynamicLength) leaves.Add(c);
+                else if (c.IsGroup) Walk(c);
+            }
+        }
+        Walk(group);
+
+        BoundExpr sum = new BoundNumLiteral(group.ImageWidth.ToString());          // r7a
+        foreach (DataItem leaf in leaves)
+        {
+            if (ctx.Refs.ResolveItem(leaf) is not { } place)
+                return new BoundExprError($"FUNCTION LENGTH of a variable-length group: the dynamic-length "
+                                          + $"subordinate '{leaf.CobolName ?? "(unnamed)"}' could not be addressed (ISO §15.50.4 rule 7b)");
+            sum = new BoundBinary(sum, '+',
+                new BoundIntrinsicCall(sig, [new BoundFieldOperand(place)], PicCategory.Numeric));   // r7b
+        }
+        return sum;
+    }
 
     /// <summary>FUNCTION BYTE-LENGTH (§15.14.4 r1): the argument's length in BYTES — the compile-time twin of the
     /// LENGTH fold, counting bytes instead of character positions (D7). §15.14.3 r1 restricts a LITERAL argument
