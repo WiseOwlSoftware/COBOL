@@ -150,11 +150,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 **⚙ 2026-08-04 SESSION CLOSE — four commits: PB15, its follow-up (PB40 opened), the fleet build guard, and the
 PB17 analysis.** ⛔ Run the probe; never quote a number from this paragraph.
-**▶ THE NEXT SESSION'S FIRST TASK IS PB17, AND ITS DESIGN IS ALREADY SETTLED AND OWNER-APPROVED** — `kb/Work/PB17.md`
-carries a numbered execution order, the corrected six-link citation chain, and the one correctness trap
-(§8.8.4.13 r2 — do NOT hoist a function out of a repeatedly-evaluated condition; follow `UdfBinder`'s
-per-evaluation precedent including its loud residue). ⚖ **Owner ruling: implement in FULL; the stage-loud stopgap
-was explicitly declined**, so PB17's run-time crash STANDS until the real fix lands — deliberate, not an oversight.
+**▶ THE NEXT SESSION'S FIRST TASK IS PB17, AND ITS DESIGN IS SETTLED, OWNER-APPROVED AND CANONICAL IN THE DESIGN
+DOC.** Implement FROM **`COBOLNET_DATA_MODEL_DESIGN.md` D18** (rule 2 — that doc owns `Place`/`ReferenceResolver`);
+`kb/Work/PB17.md` adds the numbered execution order and the measured repro. D18 carries the corrected six-link
+citation chain, BOTH rejected alternatives with their reasons, and the one correctness trap (§8.8.4.13 r2 — do NOT
+hoist a function out of a repeatedly-evaluated condition; follow `UdfBinder`'s per-evaluation precedent INCLUDING
+its loud residue). ⚖ **Owner ruling: implement in FULL; the stage-loud stopgap was explicitly declined**, so
+PB17's run-time crash STANDS until the real fix lands — deliberate, not an oversight.
+⛔ **Run the comprehensive battery FIRST** — see the Gates bullet: PB15 changed compiler code and only the
+wave-local gate has run on it.
 ⚠ **A PROCESS GUARD LANDED THIS SESSION AND IT IS MECHANICAL, NOT ADVISORY:** `scripts/hooks/fleet_active_build.py`
 DENIES `dotnet build`/`test` while any subagent transcript for the session was written in the last 120 s. It exists
 because I rebuilt the compiler ~6 times underneath a running 60-agent measurement fleet, wasting all of it —
@@ -907,8 +911,17 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
+- ⛔ **THE COMPREHENSIVE GATE IS OWED BEFORE PB17 LANDS — PB15 CHANGED COMPILER CODE AND ONLY THE WAVE-LOCAL GATE
+  HAS RUN ON IT.** Measured on the PB15 tree: greenfield **Unit 3646/3646** and **Conformance corpus 431/431**,
+  both 0 failed / 0 skipped (the corpus filter, NOT the full Conformance suite). **NOT yet run since PB15:** the
+  FULL greenfield Conformance suite, the characterization leg, and the **GnuCOBOL differential** — and the
+  differential is the leg that can see a reference/subscript change, which is exactly PB17's subject. §0's own
+  standing rule applies verbatim: *re-run the full battery before the next COMPILER change*. **PB17 is that
+  change**, so the next session runs `bash scripts/battery.sh` FIRST, attributes any red mechanically, and only
+  then starts D18. ⚠ Do not read "431/431" as a battery result — it is one filter.
 - ⚠ **WHAT THE BATTERY REFERENCE BELOW DOES AND DOES NOT COVER (2026-08-03 session close).** It was measured
-  after the INSTRUMENT WAVE and is still the compiler's baseline: **nothing after it changed compiler code.**
+  after the INSTRUMENT WAVE and is **NO LONGER the compiler's baseline — PB15 changed compiler code on
+  2026-08-04** (see the bullet above). It stands only as the last COMPREHENSIVE measurement.
   The later commits touched docs, `scripts/spec/*`, a workflow, and `traceability-inventory.json` (a data file
   the compiler never reads). Batch 5's gate is therefore the right one and it is GREEN —
   `SpecTraceabilityInventoryDriftTests` **10/10**, which is what proves the recorded references resolve in the

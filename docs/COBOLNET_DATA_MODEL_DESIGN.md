@@ -459,6 +459,61 @@ resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name col
 typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up); STRONG group
 alignment (GR2d/§8.5.1.6.5) is D6/SYNC domain, out of scope.
 
+### D18. A FUNCTION-IDENTIFIER in a subscript or reference-modification position materializes into a COMPILER TEMP hoisted as a statement pre-op — never a new arm on `RenderSegment`, and never an early `BoundExpr` carrier migration.
+
+**The problem (fix-queue PB17).** `MOVE W-E(FUNCTION INTEGER(3)) TO W-R` and
+`MOVE W-A(FUNCTION INTEGER(3):2) TO W-R` are **legal source** that compiles clean and throws
+`NotImplementedCobolFeatureException` at run time — the PB7/DA7 wrong-stage family. The chain, every link
+`cite.py --check`ed: **§8.4.3.1.2** Format 1 makes a function-identifier an identifier → **§15.4** "the evaluation
+of a function produces a returned value in a temporary elementary data item" → **§15.2** items 5–6 put integer and
+numeric functions "of the class and category numeric" → **§8.8.1.1** "an arithmetic expression may be an identifier
+referencing a numeric data item" → **§8.4.2.3.2** + **§8.4.2.3.4 GR1b** admit `arithmetic-expression-1` as a
+subscript, and **§8.4.3.3.3 SR4** as a ref-mod position.
+⚠ **§8.4.3.2.3 SR11/SR12 do NOT bar it** — they bar functions where an *integer* or *unsigned integer* is
+required, and a subscript is neither: **GR1b sets EC-BOUND-SUBSCRIPT when the expression does not evaluate to an
+integer**, a runtime condition that would be pointless if the position required one syntactically (SR14 confirms
+it from the other side, having to impose that restriction *specially* for a BY REFERENCE bit item).
+
+**Root cause.** `ReferenceResolver.RenderSegment` is a hand-rolled expression compiler over flat SUBSCRIPT-mode
+tokens that emits C# text at BIND time; its `default:` arm literally lists `FUNCTION` among the token types it
+cannot render.
+
+**Two tempting fixes, both REJECTED.**
+· *Add a FUNCTION arm to `RenderSegment`* — that hand-writes intrinsic rendering into a `StringBuilder`, i.e. a
+  THIRD expression compiler beside `ExpressionBinder` and `IntrinsicRenderer`.
+· *Migrate `RefModPlace.Start`/`Length` to `BoundExpr`* — **forbidden here**: they are the documented **D10
+  TRANSITIONAL carrier**, deliberately the same shape as `RefModSpec` "so PHASE 15 migrates both in one move
+  rather than leaving a second, differently-shaped ref-mod behind", and **D10 is an owner ruling relocated to
+  PHASE 15 §"CUT 2.5"**, blocked while the frozen legacy compiler still shares `SUB_*`/`SubscriptEntryContext`.
+  The string carrier is deliberate sequencing, not decay.
+
+**The decision.** Materialize what §15.4 already describes. Bind the function through the ONE function pipeline
+(`IntrinsicBinder.BindIntrinsicCore` — shared by the FUNCTION-keyword form, the keyword-omitted re-parse and every
+nested recursion, so a USER-defined function in a subscript falls out of the same change); synthesize the temp via
+`DataBinder.CreateCompilerTemp`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
+pending PRE-op drained at the `BindStatement` chokepoint — the mark-on-entry / drain-own-suffix protocol that
+ALREADY serves two clients (`Udf.PendingCount`, `data.OoPendingPropertyOps`). The subscript segment then renders
+as an ordinary data-name through the existing `ResolveSubscriptName`.
+⭐ **Prefer GENERALIZING the UDF pending list to a third list**: a function-identifier is never a receiving operand
+(**§8.4.3.2.3 SR1**), so intrinsic and user-function activations are both unconditional pre-ops with identical
+hoist rules — two mechanisms for one job would be the banned anti-pattern.
+
+⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §8.8.4.13 r2 evaluates a
+function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
+SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
+(`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) and STAGES LOUD the windows it does not reach
+(`UdfStagePerEvaluationResidue`, COBOLNET1509) — **follow that precedent exactly, including its loud residue.**
+
+**On the "do NOT re-grammar this" guidance below:** this adds an ISOLATED
+`subscriptExpressionFragment : arithmeticExpression EOF ;` entry rule reachable ONLY from the binder re-parse and
+referenced by nothing in `compilationUnit` — the `functionArgListFragment` / `compileTimeOperandFragment`
+precedent, whose own comment records "ZERO blast radius on the main parse". The main subscript grammar is
+untouched.
+
+**Deleted by D10.** When PHASE 15 §"CUT 2.5" removes the SUBSCRIPT lexer mode and the string carrier becomes
+`BoundExpr`, the temp path goes with it — this is a decision that is *designed to be deleted*, which is why it
+must not grow a second carrier in the meantime.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:
@@ -531,6 +586,8 @@ CONCRETE COBOL→C# MAPPINGS:
 ### The grammar captures subscript and ref-mod content as ONE undifferentiated raw token stream (subToken+ in SUBSCRIPT lexer mode); `(I J)` (2 subscripts) and `(3:2)` (ref-mod) and `(I)(3:2)` (subscript THEN ref-mod) are syntactically identical at the rule level — only the presence of SUB_COLON distinguishes them.
 
 Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is proven over 364 NIST tests): for each `(...)` suffix group, scan tokens — if it contains SUB_COLON it is a ref-mod (split into start/length sub-expressions at the colon), else it is a subscript list (split on SUB_WS / SUB_COMMA into N subscript expressions, each itself possibly a relative `idx ± lit`). Phase-A flatten produces a clean {qualifiers[], subscriptGroups[][], refMod?} that Phase-B resolves. Do NOT try to re-grammar this — the SUBSCRIPT-mode design is intentional and reusing the interpreter avoids re-deriving COBOL subscript edge cases.
+
+⚠ **The interpreter is a token renderer, not an expression compiler, and the difference is where it ends (D18).** `RenderSegment` handles literals, data-names, index-names, the operators and parentheses; its `default:` arm rejects `FUNCTION`, `SUB_STRINGLIT`, `SUB_DECIMALLIT` and `SUB_ALL`. A segment it cannot render is **re-parsed through an isolated fragment rule and bound by the real pipeline** (D18) — never grown a new hand-written arm, which is how a token renderer turns into a third expression compiler. **The remaining three rejected token types are NOT yet adjudicated**: `ALL` is legal only in the §8.4.2.3.3 r6 positions, and a decimal-literal subscript is legal source that GR1b then faults at run time via EC-BOUND-SUBSCRIPT. Route them one at a time with their clause read — enforcing them wholesale from this list would repeat PB1's unaudited-table mistake.
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 
