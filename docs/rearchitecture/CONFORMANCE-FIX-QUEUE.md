@@ -792,15 +792,36 @@ below index it).
 > `2023/pb18_native_power_exact_and_rule6`. The residue PB38 (a FLOAT argument under a standard mode) is
 > unaffected and remains open.
 
-### PB33 · [MAJOR] · intrinsics · ⛔ OPEN — NUMVAL-C's two general formats are not enforced, and the digit cap exists on TEST-NUMVAL-C but not NUMVAL-C
+### PB33 · [MAJOR] · intrinsics · ⚠ HALF LANDED 2026-08-04 (the digit cap, with PB34; the two general formats remain OPEN) — the cap existed on TEST-NUMVAL-C but not NUMVAL-C
 > §15.68.3 r1's two formats are the substance of the rule and are unenforced; sub-rules b–f conform. The
 > 31-digit native cap is applied by `TestNumvalC` and not by `NumvalC` — the SAME asymmetry, from the same cause
 > (the validating twin was fixed, the value-producing one was not). A sibling of PB32.
 
-### PB34 · [MINOR] · intrinsics · ⛔ OPEN — digit caps (standard-decimal 34, standard-binary) are absent across the NUMVAL family
+### PB34 · [MINOR] · intrinsics · ✅ LANDED 2026-08-04 (with PB33 — one defect, not two) — digit caps were absent across the NUMVAL family
 > §15.67/68/69's cap sentences are unimplemented in every arithmetic mode: `IntrinsicRenderer.DigitCap` is not
 > consulted by the NUMVAL bodies, so an over-long argument silently produces a value instead of the specified
 > truncation/EC.
+>
+> ✅ **LANDED 2026-08-04 — AND PB33 AND PB34 WERE ONE DEFECT, MEASURED AS THREE INSTANCES.** The sweep (rule 4)
+> was the whole content: with a 34-digit argument at `--std 2023` under `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`,
+> **all three validators were right and all three value producers were wrong.** `TEST-NUMVAL` and
+> `TEST-NUMVAL-C` both correctly reported position 32, while `NUMVAL`, `NUMVAL-C` and `NUMVAL-F` each returned an
+> `Int128.MaxValue` **saturation artifact** (`0141183460469231731687303715884` / `7014118346046923173168730371588`)
+> and **execution continued past all three** — a FATAL condition never set, and a plausible-looking 31-digit
+> number returned rather than a broken one. That is the PB5/PB13 saturation family meeting PB32's
+> validating-twin-fixed asymmetry.
+> **The fix is one rule in one place, and the delegation gave two functions for free:** `Numval` now takes the
+> `digitCap` the TEST- twins already received and checks it BEFORE accumulating, so an over-long argument never
+> reaches `Rescaled`'s saturation; **`NumvalC` delegates to `Numval`**, so threading the parameter covered it
+> without a second implementation. `NumvalF` counts the **significand** only (§15.69.3 r2/r3 says so explicitly)
+> and therefore keeps its own count. One raise site, `DigitCapExceeded`.
+> ⚠ **The cap is MODE-DEPENDENT and that is now observable:** native 31, standard-decimal 34 (standard-binary's
+> 35 is unreachable — the mode is loudly refused). Verified by the two dispositions differing: a 34-digit
+> argument raises the FATAL EC-ARGUMENT-FUNCTION under native and is ACCEPTED under STANDARD-DECIMAL.
+> **Golden:** `2023/pb33_numval_family_digit_cap` — the 31-digit control, all three producers over the cap, and
+> the three validators at the same boundary, because a fix that moved the validators would trade one asymmetry
+> for another.
+> ⛔ **PB33's OTHER half is still open:** §15.68.3 r1's two general formats are unenforced.
 
 ### PB35 · [MINOR] · intrinsics · ⛔ OPEN — a ZERO-LENGTH literal is accepted as a MAX/MIN argument with no diagnostic at any edition
 > §15.59.3 / §15.63.3. Related to PB30 but distinct: the screen would have to test LENGTH, not class.

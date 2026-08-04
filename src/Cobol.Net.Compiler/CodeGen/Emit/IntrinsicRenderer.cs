@@ -165,13 +165,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "Numval":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}"), ws);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
             }
             case "NumvalC":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}"), ws);
+                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}"), ws);
             }
 
             // The §15.93/§15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
@@ -242,7 +242,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "NumvalF":
             {
                 int ws = num.Receiver.FloatWorkingScale;
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}"), ws);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
             }
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{CommaFlag}"), 0);

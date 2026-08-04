@@ -273,7 +273,30 @@ public static partial class CobolIntrinsics
     /// (rule 2), one decimal separator — '.' normally, ',' under DECIMAL-POINT IS COMMA
     /// (<paramref name="commaMode"/>, rule 5). Malformed content → the EC-ARGUMENT-FUNCTION default 0 (§15.3).
     /// </summary>
-    public static Int128 Numval(string text, int scale, bool commaMode = false)
+    /// <summary>
+    /// ⛔ THE NUMVAL-FAMILY DIGIT CAP — ONE RAISE SITE FOR THE VALUE-PRODUCING HALF (fix-queue PB33 + PB34).
+    /// </summary>
+    /// <remarks>
+    /// §15.67.3 r3/r4 (NUMVAL), §15.68.3 r6/r7 (NUMVAL-C) and §15.69.3 r2/r3 (NUMVAL-F) all cap argument-1 at
+    /// <b>31 digits under native arithmetic, 34 under standard-decimal</b> (35 standard-binary, unreachable —
+    /// that mode is loudly refused). ⚠ NUMVAL-F counts the digits of the <b>significand</b>, not of the whole
+    /// literal, which is why the check sits on each body's own count rather than on a shared scan.
+    /// <para><b>THE THREE VALIDATORS ENFORCED IT AND THE THREE VALUE PRODUCERS DID NOT</b> — the same
+    /// validating-twin-fixed asymmetry as PB32's MOD, three times over. MEASURED at <c>--std 2023</c> under
+    /// <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING ON</c>, with a 34-digit argument:
+    /// <c>TEST-NUMVAL</c> and <c>TEST-NUMVAL-C</c> both correctly reported position 32, while <c>NUMVAL</c>,
+    /// <c>NUMVAL-C</c> and <c>NUMVAL-F</c> each returned an <c>Int128.MaxValue</c> SATURATION ARTIFACT
+    /// (0141183460469231731687303715884) and <b>execution continued past all three</b> — a fatal exception
+    /// condition never set, and a plausible-looking 31-digit number returned instead.</para>
+    /// </remarks>
+    internal static Int128 DigitCapExceeded(string fn, int digits, int cap, string clause) =>
+        Exceptions.ExceptionState.ArgumentError(
+            $"{fn}: argument-1 has more than {cap} digits ({digits} so far), which the arithmetic mode in "
+            + $"effect does not permit ({clause})");
+
+    /// <param name="digitCap">The §15.67.3 r3/r4 cap — 31 native, 34 standard-decimal; supplied by the emitter's
+    /// <c>DigitCapFlag</c>, the same one the TEST- twins already received.</param>
+    public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
         char dec = commaMode ? ',' : '.';
         string s = text.Trim();
@@ -301,6 +324,10 @@ public static partial class CobolIntrinsics
         {
             if (char.IsAsciiDigit(c))
             {
+                // §15.67.3 r3/r4 (and §15.68.3 r6/r7 — NUMVAL-C delegates here). Checked BEFORE accumulating, so
+                // an over-long argument never reaches Rescaled's saturation and cannot return a plausible value.
+                if (digits + 1 > digitCap)
+                    return DigitCapExceeded("NUMVAL", digits + 1, digitCap, "ISO §15.67.3 rules 3-4");
                 unscaled = unscaled * 10 + (c - '0');
                 digits++;
                 if (frac >= 0) frac++;
@@ -346,7 +373,9 @@ public static partial class CobolIntrinsics
     /// scale) then rescaled to the emitter's working <paramref name="scale"/> (native arithmetic ⇒ the §15.69.4 r2
     /// approximation license). Malformed content → the §15.3 default 0. Leading/trailing spaces (and, in the value
     /// path, any interior space) are ignored (rule 5); TEST-NUMVAL-F enforces exact placement.</summary>
-    public static Int128 NumvalF(string text, int scale, bool commaMode = false)
+    /// <param name="digitCap">§15.69.3 r2/r3. ⚠ NUMVAL-F caps the digits of the SIGNIFICAND, not of the whole
+    /// literal — the exponent's own 1..4 digits do not count toward it (fix-queue PB34).</param>
+    public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
         char dec = commaMode ? ',' : '.';
         string s = text.Replace(" ", "");
@@ -361,7 +390,12 @@ public static partial class CobolIntrinsics
         Int128 unscaled = 0; int frac = -1, digits = 0;
         foreach (char c in mant)
         {
-            if (char.IsAsciiDigit(c)) { unscaled = unscaled * 10 + (c - '0'); digits++; if (frac >= 0) frac++; continue; }
+            if (char.IsAsciiDigit(c))
+            {
+                if (digits + 1 > digitCap)                       // §15.69.3 r2/r3 — SIGNIFICAND digits only
+                    return DigitCapExceeded("NUMVAL-F", digits + 1, digitCap, "ISO §15.69.3 rules 2-3");
+                unscaled = unscaled * 10 + (c - '0'); digits++; if (frac >= 0) frac++; continue;
+            }
             if (c == dec && frac < 0) { frac = 0; continue; }
             return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F mantissa '{text}' is malformed (§15.69.3)");
         }
@@ -437,7 +471,10 @@ public static partial class CobolIntrinsics
     /// grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are ignored (§15.68.4 rule 2);
     /// then the remainder parses exactly as NUMVAL (sign / CR / DB, rule 3).
     /// </summary>
-    public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false)
+    /// <param name="digitCap">§15.68.3 r6/r7 — enforced by the delegated <see cref="Numval"/> parse, so the
+    /// rule has ONE implementation for both functions rather than a copy per twin (fix-queue PB33).</param>
+    public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false,
+                                 int digitCap = 31)
     {
         char group = commaMode ? '.' : ',';
         string cur = currency.Trim();
@@ -449,7 +486,7 @@ public static partial class CobolIntrinsics
         // The currency may sit between the sign and the digits ("- $ 890.05"): removing it can leave interior
         // spaces after the sign, which Numval's sign-strip + TrimStart already ignores (§15.68.3 r4a's
         // space-strings around the currency).
-        return Numval(s, scale, commaMode);
+        return Numval(s, scale, commaMode, digitCap);
     }
 
     // ── The §15.93/§15.94 TEST validators — position-reporting scanners beside their value parsers ────────────
