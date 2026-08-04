@@ -148,6 +148,49 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
+**⚙ WHERE THE 2026-08-03 SESSION ENDED — 9 commits, all CI-green, tree clean.** In order: the INSTRUMENT WAVE
+(§11 A12·A12b·A12c·A12e CLOSED) · the Annex-A.1 audit (§5b step 2) · a CI Linux fix · agent-sized batches
+(step 3) · the grammar-audit repair + unification (step 4) · PB18 re-verified-not-started (step 5) · PB28/PB29 ·
+**Phase-B batch 5**. Live numbers — **run the probe, never quote these**: inventory **420 adjudicated · GAP
+3796** (was 330 / 3799); fix queue **PB30–PB37** added.
+
+**⛔ THE FIVE THINGS THE NEXT SESSION SHOULD KNOW, in priority order.**
+
+1. **⭐ MEASURE A PLAN STEP BEFORE EXECUTING IT — three of §5b's four premises were WRONG.** This is the
+   session's most transferable result. Step 2's "cheapest closure" was **10 of 199** DOC obligations discharged,
+   not "a large fraction already done"; step 3's "needs a per-STATEMENT key" was already true and the real gate
+   was per-agent SIZE; step 4's premise held but **the grammar audit could not run at all**. Each measurement
+   cost minutes and changed the work. §5b's own rows now carry the corrections.
+2. **⛔ A DISPATCH WITH TWO ARMS WHERE ONLY ONE IS EVER FIXED IS THIS COMPILER'S MOST REPRODUCIBLE DEFECT SHAPE —
+   FIVE instances now** (PB2 · PB13 · PB14 · PB28 · PB32/PB33). Batch 5's refuters found it three more times in
+   one clause: `RenderNum` routes on `AnyRealArgument(ic)`, so every statistical/MOD function has an exact
+   `Int128` body AND a float `double` body, and MOD's zero-divisor rule, MEDIAN's even-count mean and
+   MIDRANGE's ×5 trick were each fixed in one arm only. **It deserves a structural answer, not a sixth
+   individual fix** — that is the highest-value open item in the queue.
+3. **⛔ PB29 — §8.8.1 IS NOT IN THE DENOMINATOR AT ALL** (21 numbered rules + 5 lettered). A rule absent from the
+   catalog can never BE a GAP, so **"zero GAP" is currently reachable while arithmetic-expression evaluation has
+   never been adjudicated** — including §8.8.1.2 r6a/r6c, which **PB28 proves are violated today** (`0 ** 0`
+   returns 1, `-2 ** 0.5` returns 0, neither raising SIZE ERROR). §11 **A3 is marked BLOCKED** on it. This is the
+   THIRD instance of the denominator's one defect class, so fix the EXTRACTOR (report any clause carrying
+   `N)`-shaped rules it did not harvest), not §8.8.1 by hand.
+4. **THE REFUTE STAGE IS NOW MEASURED, NOT ASSUMED: five batches, ~16 overturns in batch 5 alone, EVERY overturn
+   a downgrade.** The two mechanisms are the playbook's own — "the adjudication SAMPLED OUTPUTS" and "read ONE
+   of the TWO bodies". Never drop it to go faster; an adjudicator's CONFORMS is worth what its refuter leaves.
+5. **⚠ CI RUNS ON LINUX AND THIS SESSION BROKE IT ONCE.** A "cross-platform" test helper built by STRING
+   SUBSTITUTION left `exit /b 7` for POSIX `sh` (rc=2, not 7). `feedback_wsl_linux_repro` now names the TRIGGER:
+   **writing any per-OS branch**, not seeing a red. Build on Windows, run under WSL (`/mnt/e/CobolSharp`,
+   `~/.dotnet/dotnet`, `--no-build`) — 2 minutes against a ~30-minute round trip.
+
+**BATCH MECHANICS THAT CHANGED — use these, the old commands mislead.**
+· `phase_b_batch.py --max-rules` (default 20) splits an oversized subject at CLAUSE boundaries; §14 = 90 agent
+  files, §13 = 99. A subject that FITS is not split, so §15's proven shape is unchanged.
+· Write batch outputs to a **batch-specific directory** (`scratchpad/phase-b/b<N>/`) and merge **BY NAME**.
+· Run `scripts/spec/normalize_batch.py <files> --in-place` BEFORE `record_verdicts.py`: agents append commentary
+  to `test-ref`/`code-location` and write `Foo.cs#Foo.Bar` where the file already names the class. It reports
+  every change and preserves rather than deletes.
+· Then the gate: `dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"`.
+
+
 **⚙ 2026-08-03 — THE INSTRUMENT WAVE (§5b step 1). The harnesses were fixed BEFORE any more of their output was
 believed.** No compiler behaviour changed; every change is to a gate, a guard or a test harness.
 **ONE ROOT CAUSE, five harnesses: A MISSING OBSERVATION WAS BEING READ AS A NEGATIVE OBSERVATION.** §11
@@ -296,6 +339,11 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    | **PB24** | open (NEW, batch 4) | FUNCTION LENGTH is wrong or absent on four shapes: a variable-length group folds to a WRONG compile-time constant (silent), a ref-modified argument throws at RUN TIME, and the PHYSICAL argument + the §15.50.4 r9 rounding step do not exist. |
    | **PB26** | open (NEW, batch 4) | The ambient EC-ARGUMENT-FUNCTION gate is emitted only for statement kinds enumerated in `EcBinder#DirectIntrinsic`'s hand-written switch, so the SAME function reference raises in one statement and is silent in another. A hand-maintained list where a structure belongs — and the general form of the receiver-shape defect PB13 hit. |
    | **PB23 · PB25 · PB27** | open (NEW, batch 4) | Smaller: a raw `System.ArgumentOutOfRangeException` where §15.3 requires EC-ARGUMENT-FUNCTION (a TWO-day window, correcting the landed `AR-15.79.3-5`) · LOWER-CASE's LOCALE arm refused + a figurative argument aborting at run time · three silent leaks in the otherwise-loud §A.4.9 locale non-support. |
+   | **PB32 · PB33** | open (NEW, batch 5) | ⭐ **WORK THIS FIRST — the highest-value item in the queue.** `RenderNum` routes on `AnyRealArgument(ic)`, so every statistical/MOD function has an EXACT `Int128` body AND a FLOAT `double` body; MOD's zero-divisor rule, MEDIAN's even-count mean and MIDRANGE's ×5-at-scale-s+1 were each fixed in ONE arm only. PB33 is the same shape again (`TestNumvalC` has the 31-digit cap, `NumvalC` does not). **The FIFTH instance of PB2/PB13/PB14/PB28 — answer the SHAPE, not the instance.** |
+   | **PB28 · PB29** | open (NEW) | PB28: §8.8.1.2 r6a/r6c enforced on the standard-decimal path and NOT the native one — `0 ** 0` → 1 and `-2 ** 0.5` → 0, neither raising SIZE ERROR, and `CobolDec.Pow` already carries the correct half. PB29: §8.8.1's 21 rules are absent from the catalog, so those rules can never be a GAP. **Fix the EXTRACTOR, not the clause.** |
+   | **PB18** | open, VERIFIED not started | Every claim re-verified (citations, repro, code, the shape to copy). ⛔ Its recipe omits SCALE EXPLOSION: exact `Int128` power is easy only for a scale-0 base. **Decide EC-SIZE-EXPONENTIATION vs the documented double fallback in `COBOLNET_NUMERIC_DESIGN.md` FIRST** — it is a design decision, not a code edit. Fixes with PB28 (same two lines). |
+   | **PB30 · PB31 · PB34–PB36** | open (NEW, batch 5) | Eight more functions absent from `IntrinsicArgumentRules.Verified` (PB30 — PB1's residue growing by the clause, and every new row must carry the ISO clause it was read from) · the CROSS-argument class-agreement rule enforced NOWHERE (PB31 — a `Verified` row cannot fix it) · NUMVAL-family digit caps (PB34) · zero-length MAX/MIN literal (PB35) · MODULE-NAME r5 activation mechanisms (PB36). |
+   | **PB37** | ⚖ NEEDS OWNER DECISION | **The bare question:** §A.4.9 lists thirteen optional locale elements and NUMVAL-C is not among them (item 12 is *TEST-NUMVAL-C function, LOCALE key*). Is NUMVAL-C's LOCALE phrase MANDATORY, or is the omission editorial? **Seven NOT-IMPLEMENTED rows hang on the answer.** |
    | **residue** | open | 16 unclustered findings, several of which also reject legal COBOL (a CONSTANT-NAME refused in every intrinsic argument position; no COBOL word may contain an UNDERSCORE though permitted since 2002; `NX"…"` has no lexer rule; `EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`). |
    ⛔ **Repros for every one of the 82 findings:** `docs/rearchitecture/evidence/PHASE-B-15.32-15.44-findings.md`.
    The queue carries the CLUSTERS; that ledger carries the repro behind each. **Do not work the findings one by
@@ -699,6 +747,12 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
+- ⚠ **WHAT THE BATTERY REFERENCE BELOW DOES AND DOES NOT COVER (2026-08-03 session close).** It was measured
+  after the INSTRUMENT WAVE and is still the compiler's baseline: **nothing after it changed compiler code.**
+  The later commits touched docs, `scripts/spec/*`, a workflow, and `traceability-inventory.json` (a data file
+  the compiler never reads). Batch 5's gate is therefore the right one and it is GREEN —
+  `SpecTraceabilityInventoryDriftTests` **10/10**, which is what proves the recorded references resolve in the
+  tree. **Re-run the full battery before the next COMPILER change, not before the next doc change.**
 - **⛔ BATTERY REFERENCE — re-measured on `main` after the INSTRUMENT WAVE (2026-08-03).**
   Measured by one `bash scripts/battery.sh` run (Conformance ∥ Unit ∥ Characterization, then the differential),
   which printed **`=== BATTERY: ALL GREEN ===`**:
