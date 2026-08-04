@@ -148,12 +148,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ WHERE THE LATEST 2026-08-03 SESSION ENDED — 2 commits (`1330cf5d`, `24e9e117`), tree clean, pushed.**
-**PB32's structural half + PB14 LANDED**, and **PB29's detector LANDED**. Live numbers — **run the probe, never
-quote these**: **GAP 3796 → 3788** (the eight PB37 rows; the PB32/PB18 fixes closed no rows because their
-rows carry other open legs — PB38 and PB30/PB31 keep them open, which is the adjudication model working as
-designed). Corpus 247 → **250** positive goldens. Fix queue: **PB14 · PB18 · PB28 · PB32 ✅ LANDED · PB37
-answered+applied · PB29 detector landed · PB38 NEW**.
+**⚙ WHERE THE 2026-08-03/04 SESSION ENDED — 9 commits, tree clean, pushed.** In order: PB32's structural half +
+PB14 · PB29's detector · a §0 handoff · PB37 answered · PB18 + PB28 (+ PB32's blocked half) · the PB29 triage
+correction · §8.8.1 admitted to the denominator · A3 unblocked · PB38. Live numbers — **run the probe, never
+quote these**: denominator **3,861 → 3,882**, GAP **3,796 → 3,808**, corpus 247 → **251** positive goldens.
+⭐ **THE WHOLE TWO-ARM-DISPATCH FAMILY IS CLOSED** — PB2 · PB13 · PB14 · PB28 · PB32 · PB38, six items, five of
+which were the same sentence. **All three owner decisions were taken and applied.**
+⚠ **THE GAP WENT UP, AND THAT IS THE MODEL WORKING:** admitting §8.8.1's 21 rules added 21 GAP rows while the
+fixes closed 9 (8 PB37 + GR-8.8.1.2-6). Adjudication OPENS work; only Phase C closes it.
 
 ⭐ **THE SESSION'S ONE TRANSFERABLE RESULT, AND IT IS THE SAME ONE AS LAST TIME, EARNED AGAIN ON DIFFERENT WORK:
 MEASURE THE ENTRY BEFORE IMPLEMENTING IT.** Both items were re-measured first and both changed:
@@ -399,6 +401,18 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    prior batch's output out of the shared directory: at batch 4 it offered 144 records instead of 77 and would
    have RE-ADJUDICATED PB11's freshly-closed FORMATTED-* rows BACKWARDS from 07-30 files written before PB11
    existed. **The tell is the GAP going UP in the `--dry-run`** — which is the whole reason that flag exists.
+
+   **⛔ START HERE NEXT SESSION — the three live fronts, in value order.**
+   1. **THE DENOMINATOR BATCH — 95 clauses / 439 ordinals still `pending`** in
+      `docs/rearchitecture/spec-unharvested-rule-blocks.json`. The owner authorised admitting the normative ones;
+      §8.8.1's five are done as the worked example (mechanism, citation pattern and `why` text all in that file).
+      **Shape is the triage signal:** 89 of the 100 are a SINGLE ascending list (rule-block shaped), 11 are nested
+      sub-lists. ⚠ Weak evidence, not proof — §8.3.2.2 taught that the hard way (DEVLOG 1162). Admitting is a
+      DATA edit (`disposition: "rules"` + `kind`), never a code edit.
+   2. **§11 A3 — the numeric-semantics depth audit — is UNBLOCKED and its worklist exists:** 20 open §8.8.1 GR
+      rows (the 21st, GR-8.8.1.2-6, is already CONFORMS). It was blocked precisely on those rows existing.
+   3. **The fix queue below**, now that the two-arm family is closed. PB33 is the natural next one — the same
+      validating-twin-fixed asymmetry (`TestNumvalC` has the 31-digit cap, `NumvalC` does not).
 
    **THE OPEN QUEUE, in the order to work it.** Each line says what the NEXT action is, not what happened.
    | item | state | the next action |
