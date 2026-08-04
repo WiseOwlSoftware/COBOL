@@ -223,6 +223,17 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    OBJECT-COMPUTER `CHARACTER CLASSIFICATION`) currently have **no named diagnostic** — the first two are parse
    errors, the third is silently accepted; naming them is a tracked review-ledger fix (F3).
 
+   > ⚖ **DETERMINATION — `NUMVAL-C`'s `LOCALE` phrase, which A.4.9 does not itself list** (owner decision
+   > 2026-08-03; fix-queue PB37). A.4.9 enumerates thirteen optional locale elements and names the `LOCALE`
+   > keywords of `LOWER-CASE` (item 6), `TEST-NUMVAL-C` (item 12) and `UPPER-CASE` (item 13) individually, but
+   > **not `NUMVAL-C`'s**. COBOL.NET reads that omission as **editorial**, so `NUMVAL-C`'s `LOCALE` phrase is an
+   > optional element of this module and its non-support is documented non-support rather than a conformance gap.
+   > Grounds: the `NUMVAL-C` and `TEST-NUMVAL-C` general formats are character-identical, and **§15.94 rule 1
+   > states that the `TEST-NUMVAL-C` argument rules ARE §15.68's** — so the alternative reading has A.4.9 making
+   > item 12 optional while leaving mandatory the very rules item 12 delegates to. Reading a whole optional module
+   > as excluding one keyword of one function, on an omission the standard nowhere states, would also be the only
+   > reading under which a processor could claim A.4.9 non-support and still owe `NUMVAL-C` locale parsing.
+
 ## 5. Annex A.4 optional-element disposition (§4.2.7)
 
 One row per A.4 optional module. **Claimed** = support is claimed (§4.2.7/A.4.1); **Partial** = the supported /

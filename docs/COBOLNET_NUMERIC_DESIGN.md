@@ -11,7 +11,7 @@ Decision-complete design for COBOL.NET's native scaled-integer numeric model. SU
 
 THE CENTRAL HARDENING: the runtime's value engine (`src/Cobol.Net.Runtime/Numeric/CobolNum.cs`) is Int128-monomorphic, NOT long — a long-only engine would silently overflow real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). The single intermediate carrier is an Int128 value + its compile-time scale (conceptually `CobolInt(Int128 Unscaled, int Scale)`). Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
-INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = the §8.8.1.2 implementor-defined approximation (double `Math.Pow`, quantized through `CobolIntrinsics.FromDouble` at `ReceiverContext.FloatWorkingScale` — see D18); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
+INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = **EXACT `Int128` repeated multiplication while the result fits the carrier, and the §8.8.1.2 implementor-defined double approximation past it** (⚖ OWNER DECISION 2026-08-03, fix-queue PB18 — `CobolIntrinsics.PowNativeInt`, landing through `CobolIntrinsics.FromDouble` at `ReceiverContext.FloatWorkingScale` so an out-of-range magnitude saturates rather than wraps; see D18); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the `CobolRounding` enum; `Store` is the no-SIZE-ERROR (silent-truncation) branch and `TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR) is the ON SIZE ERROR branch.
 
@@ -476,3 +476,60 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - DIV_GUARD_DIGITS value (14, reproducing the legacy decimal accumulator's headroom). Empirical: confirmed against the NIST division-rounding goldens (byte-identical) — a too-small guard loses rounding precision, too-large risks Int128 overflow on already-deep operands. Tunable, but locked pending any new counter-example.
 - The >38-digit ceiling: COBOL-2002/2014 permit pictures up to 31 (mandatory) and some profiles to 38; arithmetic intermediates on 19+-digit operands can exceed Int128. If the conformance target ever requires guaranteed-exact arithmetic beyond 38 digits, the carrier must widen (Int256 / a fixed 128-bit decimal). Confirm 38 digits is sufficient for the 2002/2014/2023 `--std` conformance scope (per `docs/VERSION_CHANGE_REFERENCE.md` + the version test matrix), else this becomes a substrate question.
 - RESOLVED: `COBOLNET_ARCHITECTURE.md` §3's data-model table is native `long`/`Int128`-unscaled (NO `decimal`); no second SSOT remains.
+
+### D19. NATIVE `**` is EXACT while the result fits the `Int128` carrier and the documented double approximation past it; §8.8.1.2 rule 6 is screened on EVERY native arm.
+
+**Decision (⚖ OWNER, 2026-08-03; fix-queue PB18 + PB28 + PB32).** Two parts, and only the first is a choice.
+
+**(a) The technique — a choice, taken.** §8.8.1.3 makes native arithmetic implementor-defined, so any of exact,
+approximate, or exact-then-raise conforms. COBOL.NET's documented native technique is **exact `Int128` repeated
+multiplication whenever the result fits the carrier, falling back to the double approximation when it does not** —
+never a size error merely for outgrowing the carrier. `CobolIntrinsics.PowNativeInt` is the one implementation;
+the fallback lands through `FromDouble`, so an out-of-range magnitude SATURATES and stays above the receiver's
+capacity check instead of wrapping (the D18/PB13 mechanism, reused rather than re-derived).
+
+**Rationale.** Routing an integer power through `System.Math.Pow` contradicted D3's own "exact `Int128`
+fixed-point engine": `COMPUTE R = 10 ** 30` into a `PIC 9(31)` returned `1000000000000000071935427891953` where
+`Int128` holds 10³⁰ exactly. ⭐ **And the SURVEY decided the shape of the fallback** (`survey_compilers_on_latitude`
+— the owner asked for it before deciding): IBM Enterprise COBOL and Micro Focus both fall back to FLOATING POINT
+past the fixed capacity, and GnuCOBOL has no boundary at all because `cob_decimal` is GMP arbitrary-precision.
+**No surveyed implementation raises a size error merely because the exact power outgrew the carrier**, which is
+what ruled out the EC-SIZE-EXPONENTIATION alternative that `CobolDec.Pow`'s precedent would otherwise have
+suggested. The cost is that the technique is VALUE-dependent — the same expression is exact or approximate
+depending on magnitude — and that is deliberate and documented here rather than left to read as drift.
+
+**⚠ SCALE IS WHY THE EXACT ARM IS RESTRICTED TO A SCALE-0 BASE.** A scale-*s* base to the *n* has scale *s·n*, so
+`1.5 ** 30` needs ~36 significant digits before a receiver is considered and there is no compile-time scale to
+give the result; a scale-0 base raised to an integer is scale 0 **whatever the exponent**, so the result scale is
+known without knowing the exponent's value. A fractional base keeps the approximation arm.
+**⚠ AND A NEGATIVE EXPONENT IS THE RECIPROCAL, NOT AN INTEGER.** `PowNativeInt` therefore takes the LANDING scale
+as a parameter: a first cut returned the exact integer at scale 0 unconditionally and turned `COMPUTE R = 2 ** -2`
+into **0.0000** instead of 0.2500. In a receiver-less context — where the landing scale is 0 — the exact arm is
+taken only for a **non-negative literal** exponent, read from the BOUND TREE (`BoundNumLiteral`) and never from
+the rendered expression text; testing the rendered text silently stopped matching and put every literal exponent
+back on the approximation arm.
+
+**(b) §8.8.1.2 rule 6 — NOT a choice.** Rule 6's own title is "Native, standard-binary, and standard-decimal
+arithmetic", so it binds native `**` exactly as it binds the SDIDI one. **r6a** (a zero base shall have an
+exponent greater than zero) and **r6c** (a negative base shall have an integer exponent) are mandatory `shall`
+requirements whose violation sets EC-SIZE-EXPONENTIATION, Fatal in Table 14. `CobolDec.Pow` had enforced both
+since it was written; every NATIVE arm went straight to `System.Math.Pow` with no rule-6 check, so the same
+program answered differently depending only on whether an ARITHMETIC clause was present — `0 ** 0` returned
+**1** (IEEE's convention, not COBOL's) and `-2 ** 0.5` returned **0** (`Math.Pow` yields NaN and the quantizer
+turned it into zero), both silently. One screen, `CheckPowRule6`, now runs on every native arm.
+**r6b** is a selection rule, not a screen ("if the evaluation yields both a positive and a negative real number,
+the value returned is the positive number") and cannot arise here — both bodies yield a single value. Checked in
+the same pass rather than left to be discovered as a fourth leg.
+
+**Rejected alternatives.** (a) Raise EC-SIZE-EXPONENTIATION when the exact result does not fit — REJECTED by the
+owner on the survey: principled, and matched by no shipping COBOL, so `1.5 ** 30` would start raising where every
+other compiler approximates. (b) Keep `Math.Pow` everywhere and reword D3 — REJECTED: it leaves `10 ** 30` wrong
+against a carrier that holds it exactly, and it leaves PB32's receiver-shape defect with no route to a fix, since
+that closes only when `**` gains an exact integer arm.
+
+**What this closed beyond itself.** PB32's remaining half. `Power` returned `Real: true` in a receiver-less
+context, so `A ** 2` was exact under `COMPUTE` and binary64 under `DISPLAY`/an `IF` subject — which routed
+`FUNCTION MOD` to a DIFFERENT BODY and produced 930000008 against 930000007, making
+`IF FUNCTION MOD(A ** 2, B) = 930000007` evaluate FALSE. Testing the OPERANDS before the receiver restores §15.4's
+rule that a function's value must not depend on the shape of its receiver. Pinned by
+`2023/pb18_native_power_exact_and_rule6`.

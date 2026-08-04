@@ -15,7 +15,7 @@ LANDED (2026-07-30).** The older campaigns are closed — the 46-finding audit (
 and the discovered set DA1–DA7 — so everything live in this file is a PB item plus the NAMED PARTIAL residue each
 landed fix left behind. Nothing is silently deferred: every residue is a row in the traceability inventory.
 
-**⛔ THE TALLY: PB1–PB11 + PB13 + PB14 + PB19–PB22 LANDED · PB16 RETIRED · PB12 · PB32 HALF LANDED · PB15, PB17, PB18, PB23–PB31, PB33–PB38 OPEN.**
+**⛔ THE TALLY: PB1–PB11 + PB13 + PB14 + PB18 + PB19–PB22 + PB28 + PB32 LANDED · PB16 RETIRED · PB12 HALF LANDED · PB29 · PB37 OWNER-ANSWERED · PB15, PB17, PB23–PB27, PB30, PB31, PB33–PB36, PB38 OPEN.**
 > **PB32 (structural half) + PB14 LANDED 2026-08-03.** PB14 and PB32's Dec leg were **the same defect filed
 > twice**, found by measuring both. Three choke-point changes: one raise site per RULE rather than per carrier
 > (`ModZeroDivisor`/`RemZeroDivisor`); one SDIDI landing at `IntrinsicRenderer.Arg` + the `Dec` arm
@@ -585,7 +585,26 @@ below index it).
 > `EmitFormatted` computes `(long)Pow10.AsWide(s.Width)`, which overflows past 10¹⁸. Narrow, contained, and a
 > crash rather than a wrong value.
 
-### PB18 · [MINOR] · numerics · ⛔ OPEN — a native `**` with an INTEGER exponent goes through `Math.Pow`, losing exactness Int128 could hold
+### PB18 · [MINOR] · numerics · ✅ LANDED 2026-08-03 — a native `**` with an INTEGER exponent went through `Math.Pow`, losing exactness Int128 could hold
+
+> ⚖ **THE OWNER DECISION THIS WAITED ON WAS TAKEN 2026-08-03: exact `Int128` while the result fits, the
+> documented double approximation past it — never a size error merely for outgrowing the carrier.** Recorded in
+> full as `COBOLNET_NUMERIC_DESIGN.md` **D19**. ⭐ **The SURVEY decided it, and the owner asked for the survey
+> before deciding:** IBM Enterprise COBOL and Micro Focus both fall back to floating point past the fixed
+> capacity, and GnuCOBOL has no boundary at all (GMP arbitrary precision), so **no shipping COBOL raises a size
+> error merely because the exact power outgrew the carrier** — which ruled out the EC-SIZE-EXPONENTIATION
+> alternative that `CobolDec.Pow`'s own precedent would otherwise have suggested.
+> **The entry's warning about SCALE EXPLOSION was right and is answered by restriction, not by a cap:** the exact
+> arm takes a **scale-0 base** only, because a scale-0 base raised to an integer is scale 0 whatever the exponent,
+> so the result scale is known without knowing the exponent's value. A fractional base keeps the approximation.
+> ⚠ **TWO SELF-INFLICTED DEFECTS, BOTH CAUGHT BY PROBING RATHER THAN REASONING, both recorded because the next
+> person will reach for the same shortcuts:** returning the exact integer at scale 0 unconditionally turned
+> `COMPUTE R = 2 ** -2` into **0.0000** (a negative exponent is §8.8.1.2's reciprocal, not an integer — the
+> landing scale is now a parameter); and testing `long.TryParse(e.Expr)` on the RENDERED text to spot a literal
+> exponent silently never matched, putting every literal back on the approximation arm and re-opening PB32's
+> defect — it reads `BoundNumLiteral` from the BOUND TREE instead.
+> **Lands with PB28 (the same two lines, as the entry predicted) and CLOSES PB32's blocked half.**
+> Golden: `2023/pb18_native_power_exact_and_rule6`.
 
 > **Found by PB13's sibling sweep, and only visible once PB13 stopped the saturation from masking it.**
 > `COMPUTE R = 10 ** 30` into `PIC 9(31)` returns **1000000000000000071935427891953** — the binary64
@@ -622,7 +641,7 @@ below index it).
 > started as a small change — the verification above is what the next session should build on, not a guess about
 > the size.
 
-### PB28 · [MAJOR] · numerics · ⛔ OPEN — §8.8.1.2 r6a/r6c are enforced on the STANDARD-DECIMAL path and NOT on the NATIVE one, so `0 ** 0` returns 1 and `-2 ** 0.5` returns 0, both silently
+### PB28 · [MAJOR] · numerics · ✅ LANDED 2026-08-03 (with PB18, same two lines as predicted) — §8.8.1.2 r6a/r6c were enforced on the STANDARD-DECIMAL path and NOT on the NATIVE one, so `0 ** 0` returned 1 and `-2 ** 0.5` returned 0, both silently
 
 > **Found 2026-08-03 while re-verifying PB18 — the sibling-arm sweep PB18's own entry did not ask for.**
 > §8.8.1.2 rule 6 is a GENERAL rule of arithmetic-expression evaluation and applies to every arithmetic mode
@@ -721,7 +740,7 @@ below index it).
 > screens each argument INDEPENDENTLY, so `MAX(1, "A")` is accepted. ⛔ **Adding a `Verified` row cannot fix
 > this** — the screen has no cross-argument shape at all, which is why it is its own item and not part of PB30.
 
-### PB32 · [MAJOR] · intrinsics/numerics · ⚠ HALF LANDED 2026-08-03 — TWO bodies implement each statistical/MOD function and only ONE was ever corrected
+### PB32 · [MAJOR] · intrinsics/numerics · ✅ LANDED 2026-08-03 (structural half, then its blocked half via PB18) — TWO bodies implement each statistical/MOD function and only ONE was ever corrected
 > `RenderNum` routes on `AnyRealArgument(ic)`, so every one of these functions has an EXACT (`Int128`) body and a
 > FLOAT (`double`) body — and the refuters found fix after fix applied to one arm only (MOD's zero-divisor rule,
 > MEDIAN's even-count mean, MIDRANGE's ×5-at-scale-s+1). ⛔ **This is the PB2 / PB13 / PB14 / PB28 family for the
@@ -765,8 +784,13 @@ below index it).
 > 930000007 vs **930000008**, and `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluates FALSE — a control-flow
 > defect from a function's value depending on its receiver's SHAPE, which §15.4 forbids and PB13 closed for the
 > float family only. **Its root cause is PB18** (`**` has no exact arm for an integer exponent), so it closes
-> when PB18 does, and PB18 is waiting on the owner's native-`**` carrier decision. Verified unchanged by this
-> wave's landing.
+> when PB18 does.
+> ✅ **AND PB18 LANDED THE SAME DAY, SO THIS IS NOW CLOSED.** Giving `**` an exact integer arm — tested on the
+> OPERANDS before the receiver — makes `A ** 2` exact in every context, so both shapes reach the same MOD body.
+> MEASURED after: `DISPLAY` now prints **930000007** (was 930000008) and
+> `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluates **TRUE** (was FALSE). Pinned by
+> `2023/pb18_native_power_exact_and_rule6`. The residue PB38 (a FLOAT argument under a standard mode) is
+> unaffected and remains open.
 
 ### PB33 · [MAJOR] · intrinsics · ⛔ OPEN — NUMVAL-C's two general formats are not enforced, and the digit cap exists on TEST-NUMVAL-C but not NUMVAL-C
 > §15.68.3 r1's two formats are the substance of the rule and are unenforced; sub-rules b–f conform. The

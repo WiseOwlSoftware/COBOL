@@ -127,7 +127,19 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         return CombineCore(l, n.Op.ToString(), r);
     }
     public NumX Visit(BoundNegate n) => Negate(n.Operand.Accept(this));
-    public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));
+    public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this), NonNegativeIntegerLiteral(n.Exp));
+
+    /// <summary>Is this exponent a literal integer that is not negative? Read from the BOUND TREE, never from the
+    /// rendered expression text — a first cut did <c>long.TryParse(e.Expr)</c> and silently stopped matching,
+    /// because an operand does not render as its bare digits, which put every literal exponent back on the
+    /// approximation arm and re-opened the defect the arm exists to close. See <see cref="Power"/>.</summary>
+    /// <remarks>A <c>BoundNegate</c> wrapper is deliberately NOT unwrapped: it can only make the exponent
+    /// negative, which is precisely the case that must stay on the approximation arm.</remarks>
+    private static bool NonNegativeIntegerLiteral(BoundExpr e) =>
+        e is BoundNumLiteral { Text: var t }
+        && long.TryParse(t, System.Globalization.NumberStyles.AllowLeadingSign,
+                         System.Globalization.CultureInfo.InvariantCulture, out long v)
+        && v >= 0;
     public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
@@ -411,7 +423,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25); the 9-digit floor mirrors the float-intrinsic
     /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
-    private NumX Power(NumX b, NumX e)
+    private NumX Power(NumX b, NumX e, bool expIsNonNegativeLiteral = false)
     {
         // STANDARD / STANDARD-DECIMAL: exponentiation follows §8.8.1.5.4 — an integer exponent evaluates by
         // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
@@ -420,19 +432,47 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // runtime implementation is CobolDec.Pow.
         if (StandardDecimal)
             return new NumX(RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode), 0, Dec: true);
+        // ⛔ AN INTEGER BASE RAISED TO AN INTEGER EXPONENT IS EXACT, AND IT IS CHECKED BEFORE THE RECEIVER IS EVEN
+        // CONSULTED (owner decision 2026-08-03; fix-queue PB18 + PB32). Two things turn on this arm:
+        //   · `COMPUTE R = 10 ** 30` returned 1000000000000000071935427891953 where Int128 holds 10^30 exactly —
+        //     the native technique contradicting our OWN documented one (numeric design D3).
+        //   · It is the ROOT of PB32's receiver-shape defect. The arm below returns `Real: true` whenever the
+        //     receiver is receiver-less, so `A ** 2` was binary64 under DISPLAY / an IF subject and exact under
+        //     COMPUTE — which then routed FUNCTION MOD to a DIFFERENT BODY and gave 930000008 against 930000007,
+        //     making `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluate FALSE. A function's value must not depend
+        //     on the SHAPE of its receiver (§15.4); testing the OPERANDS before the receiver is what restores it.
+        // A scale-0 base to an integer exponent is scale 0 for ANY exponent, so the result scale is known without
+        // knowing the exponent's value — which is exactly why this arm is restricted to a scale-0 base (a
+        // scale-s base to the n has scale s·n, with no compile-time scale to give it).
+        // ⚠ THE RECEIVER-LESS ARM TAKES IT ONLY FOR A NON-NEGATIVE LITERAL EXPONENT, and that restriction is a
+        // measured correction rather than caution: a negative exponent is §8.8.1.2's RECIPROCAL, which is not an
+        // integer, so landing it at the scale-0 a receiver-less context implies would truncate the value away
+        // (`2 ** -2` ⇒ 0 instead of 0.25 — a regression this arm introduced and probing caught). With a receiver
+        // there IS a scale to land at, so that arm needs no such test and stays exact for every exponent.
+        bool integerOperands = !b.Real && !e.Real && !b.Dec && !e.Dec && b.Scale == 0 && e.Scale == 0;
+        bool receiverless = _rcv.Real || _rcv.Receiverless;
+        if (integerOperands && (!receiverless || expIsNonNegativeLiteral))
+        {
+            int pscale = receiverless ? 0 : _rcv.FloatWorkingScale;
+            return new NumX(RuntimeApi.Intrinsic("PowNativeInt", $"{b.Expr}, {e.Expr}, {pscale}"), pscale);
+        }
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family
         // does (PB13): §8.8.1.2 already makes this an implementor-defined approximation computed in double, and
         // with no receiver there is no scale to quantize TO — the ws = 9 stand-in saturated, so `IF 10 ** 30 =
         // 10 ** 31` evaluated TRUE. A fixed-point receiver still quantizes, at the capacity-capped working scale.
+        // ⛔ BOTH ARMS NOW SCREEN §8.8.1.2 RULE 6 (PB28) — `PowNativeReal`, not a bare `System.Math.Pow`. The rule
+        // is a GENERAL rule of arithmetic-expression evaluation and binds native `**` exactly as it binds the
+        // SDIDI one, which `CobolDec.Pow` above has always honoured while every native arm ignored it.
         if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)
-            return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
+            return new NumX(RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}"), 0, Real: true);
         // ⛔ THE SAME QUANTIZER, SO THE SAME CAP (PB13's sibling — feedback_scan_all_similar). A flat
         // max(Scale, 9) here silently saturated `COMPUTE R = 10 ** 30` into a PIC 9(31) exactly as it did for the
         // float-intrinsic family; ReceiverContext.FloatWorkingScale is the one rule both consume.
         int ws = _rcv.FloatWorkingScale;
-        return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);
+        return new NumX(RuntimeApi.Intrinsic("FromDouble",
+            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}"), ws);
     }
 
     private static NumX Negate(NumX x) =>

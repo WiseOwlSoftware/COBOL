@@ -108,6 +108,101 @@ public static partial class CobolIntrinsics
         TryIntegerArg(yy, "YEAR-TO-YYYY", out long y) && TryIntegerArg(off, "YEAR-TO-YYYY", out long o)
         && TryIntegerArg(baseYear, "YEAR-TO-YYYY", out long b) ? CobolDate.YearToYyyy(y, o, b) : 0;
 
+    // ── NATIVE EXPONENTIATION (ISO §8.8.1.2 rule 6; fix-queue PB18 + PB28) ──────────────────────────────────────
+
+    /// <summary>
+    /// ⛔ THE §8.8.1.2 RULE-6 SCREEN, WRITTEN ONCE FOR EVERY NATIVE ARM (fix-queue PB28).
+    /// </summary>
+    /// <remarks>
+    /// Rule 6 is a GENERAL rule of arithmetic-expression evaluation — its own title is "Native, standard-binary,
+    /// and standard-decimal arithmetic" — so it binds native `**` exactly as it binds the SDIDI one, and two of
+    /// its three parts are mandatory <c>shall</c> requirements with a named exception condition:
+    /// <list type="bullet">
+    ///   <item><b>r6a</b> — a zero base shall have an exponent greater than zero, else EC-SIZE-EXPONENTIATION;</item>
+    ///   <item><b>r6c</b> — a negative base shall have an integer exponent, else EC-SIZE-EXPONENTIATION.</item>
+    /// </list>
+    /// <c>CobolDec.Pow</c> has enforced both since it was written; every NATIVE arm went straight to
+    /// <c>System.Math.Pow</c> with no rule-6 check at all, so the same program answered differently depending only
+    /// on whether an ARITHMETIC clause was present. MEASURED at <c>--std 2023</c> with an <c>ON SIZE ERROR</c>
+    /// phrase that did NOT fire: <c>0 ** 0</c> returned <b>1</b> (IEEE's convention, not COBOL's) and
+    /// <c>-2 ** 0.5</c> returned <b>0</b> (<c>Math.Pow</c> yields NaN and <c>FromDouble(NaN, ws)</c> quantizes it
+    /// to zero). Both are wrong ANSWERS delivered silently. EC-SIZE-EXPONENTIATION is Fatal in Table 14.
+    /// <para>⚠ r6b — "if the evaluation yields both a positive and a negative real number, the value returned is
+    /// the positive number" — is NOT a screen: it is a selection rule, and it cannot arise here because
+    /// <c>Math.Pow</c> and the exact loop below each yield a single value. Checked in this pass rather than left
+    /// to be discovered as a fourth leg.</para>
+    /// </remarks>
+    private static void CheckPowRule6(double b, double e)
+    {
+        if (b == 0 && e <= 0)
+            throw new CobolSizeError(
+                $"exponentiation: a zero base requires an exponent greater than zero, not {e} "
+                + "(ISO §8.8.1.2 rule 6a)", "EC-SIZE-EXPONENTIATION");
+        if (b < 0 && e != Math.Floor(e))
+            throw new CobolSizeError(
+                $"exponentiation: a negative base ({b}) requires an integer exponent, not {e} "
+                + "(ISO §8.8.1.2 rule 6c)", "EC-SIZE-EXPONENTIATION");
+    }
+
+    /// <summary>Native <c>**</c> on the FLOATING arm — the §8.8.1.3 implementor-defined approximation, screened by
+    /// <see cref="CheckPowRule6"/> first so the two mandatory legs of rule 6 hold on this arm too (PB28).</summary>
+    public static double PowNativeReal(double b, double e)
+    {
+        CheckPowRule6(b, e);
+        return Math.Pow(b, e);
+    }
+
+    /// <summary>
+    /// ⛔ NATIVE <c>**</c> WITH AN INTEGER BASE AND AN INTEGER EXPONENT — EXACT WHEN IT FITS, THE DOCUMENTED
+    /// DOUBLE APPROXIMATION WHEN IT DOES NOT (owner decision 2026-08-03; fix-queue PB18).
+    /// </summary>
+    /// <remarks>
+    /// <para>§8.8.1.3 makes native arithmetic implementor-defined, so either technique conforms — but routing an
+    /// integer power through <c>System.Math.Pow</c> contradicted our OWN documented technique (numeric design D3,
+    /// "the exact Int128 fixed-point engine"): <c>COMPUTE R = 10 ** 30</c> into a <c>PIC 9(31)</c> returned
+    /// <c>1000000000000000071935427891953</c> where <see cref="Int128"/> holds 10³⁰ exactly.</para>
+    /// <para><b>The owner's decision and the survey behind it.</b> Exact while the result fits the carrier, the
+    /// documented double approximation past it — never a size error merely for outgrowing the carrier. That
+    /// follows the field: IBM Enterprise COBOL and Micro Focus both fall back to floating point past the fixed
+    /// capacity, and GnuCOBOL has no boundary at all (GMP arbitrary precision). The cost is that the technique is
+    /// VALUE-dependent, which is deliberate and documented rather than drift.</para>
+    /// <para>⚠ SCALE IS WHY THIS ARM IS RESTRICTED TO A SCALE-0 BASE. A scale-<i>s</i> base to the <i>n</i> has
+    /// scale <i>s·n</i>, so <c>1.5 ** 30</c> needs ~36 significant digits before a receiver is even considered —
+    /// there is no compile-time scale to give the result. A scale-0 base raised to an integer is scale 0 whatever
+    /// the exponent, so the result scale is known without knowing the exponent's value. The fractional-base case
+    /// keeps the approximation arm.</para>
+    /// <para>The overflow fallback quantizes through <see cref="FromDouble"/> rather than casting, so an
+    /// out-of-range magnitude SATURATES and stays above the receiver's capacity check instead of wrapping — the
+    /// PB13 mechanism, reused rather than re-derived.</para>
+    /// </remarks>
+    /// <param name="scale">The fraction digits the result is returned at. ⛔ THIS PARAMETER IS WHY THE ARM IS
+    /// CORRECT FOR A NEGATIVE EXPONENT, and its absence was a regression caught by probing rather than reasoning:
+    /// a first cut returned the exact integer at scale 0 unconditionally, so <c>COMPUTE R = 2 ** -2</c> into a
+    /// <c>PIC S9(9)V9(4)</c> gave <b>0.0000</b> where it must give 0.2500 — §8.8.1.2's reciprocal for a negative
+    /// exponent is not an integer, and forcing an integer carrier onto it truncates the whole value away. The
+    /// exact loop still runs at the true integer scale; only the LANDING uses this scale.</param>
+    public static Int128 PowNativeInt(Int128 b, Int128 e, int scale)
+    {
+        CheckPowRule6((double)b, (double)e);
+        if (e >= 0)
+        {
+            Int128 r = 1, mag = Int128.Abs(b);
+            bool fits = true;
+            for (Int128 i = 0; i < e && fits; i++)
+            {
+                if (mag > 1 && Int128.Abs(r) > Int128.MaxValue / mag) { fits = false; break; }
+                r *= b;
+            }
+            // Exact only if the integer result AND its landing at `scale` both stay inside the carrier.
+            if (fits && (r == 0 || Int128.Abs(r) <= Int128.MaxValue / Pow10.AsWide(scale)))
+                return r * Pow10.AsWide(scale);
+        }
+        // The documented double approximation: a negative exponent's reciprocal, or an exact result that left
+        // the carrier. Quantized through FromDouble rather than cast, so an out-of-range magnitude SATURATES and
+        // stays above the receiver's capacity check instead of wrapping (the PB13 mechanism, reused).
+        return FromDouble(Math.Pow((double)b, (double)e), scale);
+    }
+
     /// <summary>§15.7 ABS — the absolute value of a floating-point argument.</summary>
     public static double AbsReal(double v) => Math.Abs(v);
 
