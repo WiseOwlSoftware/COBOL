@@ -63,10 +63,17 @@ accident, and for an hour I was reasoning from a number that meant something els
 lied more often than the compiler has; this instrument was mine, written thirty seconds earlier. **A sweep that
 reports the SAME error for every case is reporting something about the sweep.**
 
-⚙ **Still open:** `EVALUATE TRUE / WHEN FUNCTION SQRT(X) > 0` throws at run time. It is a BIND-level
-misclassification — a plain `WHEN W-Z > 0` works, so the pairing is implemented; a relation whose LEFT operand is
-a function-identifier is not recognised as a condition. A genuinely different code path, which is why the entry's
-own "do NOT assume these share one fix" was right.
+⚙ **Still open:** `EVALUATE TRUE / WHEN FUNCTION SQRT(X) > 0` throws at run time — a genuinely different code
+path, which is why the entry's own "do NOT assume these share one fix" was right.
+
+⛔ **CORRECTION, SAME DAY (commit `6aad1ef8`): I FIRST WROTE THAT THIS IS "a BIND-level misclassification",
+AND MEASURING REFUTED IT.** `WHEN FUNCTION PI > 1` — the same position, a function with NO ARGUMENT and so no
+parenthesis — parses as a condition perfectly, while `WHEN FUNCTION SQRT(W-Z) > 1` does not, for any operator
+and with or without an AND chain. **The discriminator is the ARGUMENT PARENTHESIS, not the
+function-identifier**, which points at the SUBSCRIPT lexer mode rather than at the binder. I had written a
+mechanism down from the symptom without measuring the one variable that separates the cases. The next step is
+a TOKEN DUMP — PB8's entry named a lexer-mode cause the same way and a dump showed the lexer was never
+involved.
 
 ## Entry 1180 — 2026-08-05 10:30 PDT — the STACK collapse was losing recursion depth, and the mechanism it lived in got challenged, measured, and kept
 

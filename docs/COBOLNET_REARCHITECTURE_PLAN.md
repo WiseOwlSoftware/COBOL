@@ -149,7 +149,44 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚖ OWNER DECISION 2026-08-04 — `USAGE BIT` IS IMPLEMENTED IN FULL, REVERSING D-B1's USAGE BIT HALF.**
+**⚙ 2026-08-05 SESSION CLOSE — NINE COMMITS, SEVEN FIX-QUEUE ITEMS, EVERY ONE BATTERY-GREEN BEFORE IT LANDED.**
+⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is OPEN, not this section.
+LANDED: **PB17 + PB41 + PB42** (function-identifier subscripts / scaled ordinal positions / `**` and decimal
+literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its last sub-item was PB43's symptom) ·
+**PB26** (the EC-ARGUMENT-FUNCTION gate) · **PB36** (INVOKE activation + r9 STACK) · **PB44** (a gate that could
+false-red) · **PB45 half** (the arithmetic family + INSPECT).
+
+**▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next` — PB45 · PB23 · PB25.**
+
+⛔ **PB45's OPEN THIRD IS A TOKEN DUMP, NOT AN EDIT, AND THE NOTE SAYS WHY.**
+`EVALUATE TRUE / WHEN FUNCTION SQRT(X) > 1` throws at run time, but **`WHEN FUNCTION PI > 1` — same position, no
+argument parenthesis — parses fine**. The discriminator is the PARENTHESIS, not the function-identifier, which
+points at the SUBSCRIPT lexer mode. PB8 is the standing warning: its entry NAMED a lexer-mode cause and a token
+dump showed the lexer was never involved. **Dump the tokens for both shapes before proposing a mechanism**, and do
+NOT reorder `evaluateWhenItem`'s alternatives on the symptom — Table 15 makes the OBJECT's legality depend on the
+SUBJECT, which a context-free order cannot express.
+
+⭐ **THE PATTERN THIS SESSION KEPT FINDING — WORTH CARRYING IN.** THREE separate design comments justified an
+omission by citing a clause that is REAL and answers a DIFFERENT QUESTION, and `cite.py --check` passes on all
+three: D-B1 cited §13.18.40.4 GR14 (the representations AVAILABLE) to avoid §13.18.60.4 GR5 ("bits SHALL be
+used"); PB24's entry cited §15.50.4 r9 (rounding) for a case §8.5.1.6.3 alignment actually decides;
+`ModuleStack` cited §15.65.4 r3/r4 (non-COBOL elements / the FORM of a name) to justify omitting a method frame
+that r5 names outright. **The check that catches this is not mechanical — ask whether the cited rule answers the
+question being asked, and distrust the word "permanently".**
+
+⚙ **AND FOUR TIMES A GREEN TEST HELD THE DEFECT OPEN** (`feedback_green_test_can_hold_a_gap_open`): the D-B1
+storage-width test, `ModuleName_StackFromNestedProgram_2023`, and two of my own attempts at a drift guard that
+were UNSOUND (probing an uninitialized node cannot detect a missing arm — the generated null-safe helpers make an
+armless leaf and an armed-but-null leaf indistinguishable). **A green assertion resting on a misreading reads as a
+decision.**
+
+⚠ **TWO PROCESS RULES EARNED THE HARD WAY THIS SESSION, both now in the mechanics list below.**
+① Do not edit compiler sources while `battery.sh` runs — phase 2 REBUILDS (broken once, and again the next day
+with a "it's only a comment" excuse; both runs were stopped and re-run whole).
+② Pick the wave-local filter from what the CHANGE touches, not from where the new goldens live — `~Corpus` alone
+missed a MODULE-NAME test and cost a full battery run.
+
+⚖ **OWNER DECISION 2026-08-04 — `USAGE BIT` IS IMPLEMENTED IN FULL, REVERSING D-B1's USAGE BIT HALF.**
 Asked whether to implement bit-packed storage, record a documented non-conformance, or reject `USAGE BIT` loudly:
 **implement in full.** Landed as **D19** in `COBOLNET_DATA_MODEL_DESIGN.md` (fix-queue PB43) — the §8.5.1.6.3
 layout, a packed record image, and `LENGTH`/`BYTE-LENGTH` agreeing with both.
@@ -909,6 +946,11 @@ result. Run the long legs ONE AT A TIME.
   "FullyQualifiedName~<Area>"`; for an edition gate ALSO `--filter "FullyQualifiedName~VersionMatrix"`.
   ⛔ Do NOT run the full ~11–20 min Conformance suite per fix (owner-corrected; §3 and
   `feedback_tiered_gates`).
+  ⛔ **PICK THE FILTER FROM WHAT THE CHANGE TOUCHES, NOT FROM WHERE THE NEW GOLDENS LIVE.** A PB36 wave filtered
+  on `~Corpus` (440/440 green) because that is where its goldens sat; the change was to MODULE-NAME semantics,
+  whose tests are named for it, and a green test pinning the OLD behaviour sailed through to the comprehensive
+  gate. `~Corpus|~ModuleName` gives 447/447 in the same ~20 s. Filters are cheap and OR-able — name the SUBJECT
+  (`~Arithmetic|~Inspect|~Intrinsic`), not just the corpus.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
   the GnuCOBOL differential, plus `scripts/guard-fast.sh` (~3.3 min parallel) when a legacy-shared seam is touched
   — never the ~20 min serial `guard.sh`.
