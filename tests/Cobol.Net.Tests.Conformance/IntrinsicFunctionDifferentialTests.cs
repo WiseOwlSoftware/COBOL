@@ -683,8 +683,18 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void ModuleName_StackFromNestedProgram_2023()
     {
-        // §15.65.4 r9 — a nested program shares its compilation unit's outermost id; STACK collapses same-unit
-        // frames to ONE runtime element (OUTERM), not the OUTERM;OUTERM duplicate a per-CALL-frame walk gives.
+        // ⛔ §15.65.4 r9 — STACK LISTS RUNTIME ELEMENTS, so a CONTAINED program yields its outermost name TWICE.
+        // This test used to assert the opposite ("STACK collapses same-unit frames to ONE runtime element …, not
+        // the OUTERM;OUTERM duplicate a per-CALL-frame walk gives") and that collapse was REMOVED by owner
+        // decision 2026-08-05 (fix-queue PB36), because it could not represent RECURSION: three nested
+        // activations of one RECURSIVE program reported a SINGLE entry, while ACTIVATING in the same frame
+        // correctly named the program — STACK and ACTIVATING contradicting each other on plain COBOL.
+        //
+        // The duplicate is r9's own composition, not a defect: r9 builds the list from the other keywords, and
+        // its first entry is CURRENT (r7 — OUTERMOST granularity) while every entry after it is the ACTIVATING
+        // chain (r5 — ELEMENT granularity). For a contained program those two coincide, so OUTERM appears as both
+        // the CURRENT entry and the first link of the chain. A visible repeat can be read; dropped frames cannot.
+        // Recorded as an implementor determination in docs/CONFORMANCE.md §4.2.16 row 213.
         var src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OUTERM.
@@ -707,7 +717,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             """;
         var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("K=OUTERM;", output);   // the trailing operating-environment space is Normalize-trimmed
+        Assert.Equal("K=OUTERM;OUTERM;", output);   // the trailing operating-environment space is Normalize-trimmed
     }
 
     // ── SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83/§15.43/§15.58, Phase 5, DEVLOG 634): PICTURE-metadata folds ──

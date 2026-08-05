@@ -63,19 +63,36 @@ public sealed class ModuleStack
             case 2:   // NESTED — the most recently nested currently-running program (r8)
                 for (int i = s.Count - 1; i >= 0; i--) if (s[i].IsNested) return s[i].Name;
                 return top.Name;                             // arg-rule-1-violating build — implementor-defined (r3/r4)
-            case 3:   // STACK (r9): CURRENT ; <activator chain, incl. TOP-LEVEL penultimate> ; <single space>.
-            {         // Entries are RUNTIME ELEMENTS (compilation units), emitted by their outermost program-id
-                      // (r7 CURRENT granularity) — a nested/contained program shares its unit's outermost id, so
-                      // consecutive same-unit frames collapse to ONE entry (no MAIN;MAIN duplicate).
+            case 3:   // STACK (r9) — built EXACTLY as r9 defines it, in terms of the other keywords.
+            {
+                // r9: "The first entry is the name of the runtime element that would be returned if the CURRENT
+                // keyword were specified. The penultimate entry is the runtime element name that would be returned
+                // if the TOP-LEVEL keyword were specified. The final entry is a single space indicating the
+                // operating environment. The series of module names following the first one are the names of the
+                // runtime elements that would have been returned if the ACTIVATING keyword were specified within
+                // the previous module in the list."
+                //
+                // So: entry[0] = CURRENT (r7 — the OUTERMOST of the running unit); every entry after it is the
+                // ACTIVATING chain (r5 — the ELEMENT name of the frame below); the last chain entry is s[0].Name,
+                // which IS TOP-LEVEL (r10) and therefore lands penultimate as r9 requires.
+                //
+                // ⛔ THIS REPLACED A COLLAPSE OF CONSECUTIVE SAME-COMPILATION-UNIT FRAMES, AND THE COLLAPSE WAS
+                // LOSING REAL DEPTH (owner decision 2026-08-05, fix-queue PB36). It was written to avoid a
+                // "MAIN;MAIN" duplicate for a nested program, but it also swallowed every RECURSIVE activation —
+                // three nested CALLs of one RECURSIVE program reported `R;MAIN; `, one entry, while ACTIVATING in
+                // the same frame correctly answered `R`. STACK and ACTIVATING contradicted each other on plain
+                // COBOL with no OO involved, and a stack list that silently drops recursion is worse than a
+                // cosmetic repeat: the repeat is visible, the missing frames are not.
+                //
+                // ⚖ THE COST, DOCUMENTED (docs/CONFORMANCE.md §4.2.16): a CONTAINED program now yields
+                // `MAIN;MAIN; ` — CURRENT is outermost-granularity (r7) while ACTIVATING is element-granularity
+                // (r5), so for a nested program the first two entries coincide. That is r9's own composition, not
+                // a defect; §15.65.1's looser "a list of all the module names" reading was the alternative and it
+                // cannot represent recursion at all.
                 var sb = new System.Text.StringBuilder();
-                string? prev = null;
-                for (int i = s.Count - 1; i >= 0; i--)
-                {
-                    if (s[i].Outermost == prev) continue;    // same compilation unit as the frame above
-                    if (prev is not null) sb.Append(';');
-                    sb.Append(s[i].Outermost);
-                    prev = s[i].Outermost;
-                }
+                sb.Append(top.Outermost);                    // entry 0 = CURRENT (r7)
+                for (int i = s.Count - 2; i >= 0; i--)       // the ACTIVATING chain (r5), ending at TOP-LEVEL (r10)
+                    sb.Append(';').Append(s[i].Name);
                 sb.Append("; ");                             // final entry = a single space (the operating environment)
                 return sb.ToString();
             }

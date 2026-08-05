@@ -46,6 +46,7 @@
            DISPLAY "AFTER-CUR=[" FUNCTION MODULE-NAME(CURRENT) "]".
            DISPLAY "AFTER-STACK=[" FUNCTION MODULE-NAME(STACK) "]".
            CALL "PB36MNSUB".
+           CALL "PB36MNREC".
            STOP RUN.
        END PROGRAM PB36MODNAME.
 
@@ -59,6 +60,31 @@
            DISPLAY "C-STACK=[" FUNCTION MODULE-NAME(STACK) "]".
            GOBACK.
        END PROGRAM PB36MNSUB.
+
+      *> ⛔ THE RECURSION WITNESS, AND THE REASON THE COLLAPSE HAD TO GO. Three
+      *> nested activations of ONE RECURSIVE program are three runtime elements.
+      *> The old builder collapsed consecutive frames sharing a compilation unit
+      *> and reported `PB36MNREC;PB36MODNAME; ` - one entry for three activations -
+      *> while ACTIVATING in the same frame correctly answered PB36MNREC. STACK and
+      *> ACTIVATING contradicted each other on plain COBOL with no OO in sight, and
+      *> a stack list that silently drops recursion depth is worse than a visible
+      *> repeat: the repeat can be read, the missing frames cannot.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB36MNREC RECURSIVE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 D PIC 9 VALUE 0.
+       PROCEDURE DIVISION.
+       R.
+           ADD 1 TO D.
+           IF D < 3
+               CALL "PB36MNREC"
+           ELSE
+               DISPLAY "R-ACT=[" FUNCTION MODULE-NAME(ACTIVATING) "]"
+               DISPLAY "R-STACK=[" FUNCTION MODULE-NAME(STACK) "]"
+           END-IF.
+           GOBACK.
+       END PROGRAM PB36MNREC.
 
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB36MNFN.
@@ -94,19 +120,17 @@
        METHOD-ID. DEEPER.
        PROCEDURE DIVISION.
        M.
-      *> A METHOD ACTIVATED BY A METHOD. ACTIVATING names the invoking METHOD -
-      *> r4 permits the method-id form - and that is what makes the next line the
-      *> OPEN half of PB36 rather than a settled answer.
+      *> A METHOD ACTIVATED BY A METHOD. ACTIVATING names the invoking METHOD;
+      *> r4 permits the method-id form, and it is the more informative choice.
            DISPLAY "D-ACT=[" FUNCTION MODULE-NAME(ACTIVATING) "]".
-      *> ⚠ OPEN QUESTION, PINNED SO IT CANNOT DRIFT SILENTLY (see kb/Work/PB36.md).
-      *> r9 says the entries after the first are "the names of the runtime elements
-      *> that would have been returned if the ACTIVATING keyword were specified
-      *> within the previous module in the list" - which would make the second
-      *> entry SHOW, matching D-ACT. It is the CLASS instead, because the STACK
-      *> builder collapses consecutive frames sharing a compilation unit (a rule
-      *> written for nested programs). STACK and ACTIVATING therefore disagree for
-      *> method-to-method activation. This line records TODAY'S value; it is not a
-      *> claim that the value is right.
+      *> r9 builds STACK from the OTHER keywords: entry 1 is CURRENT, every entry
+      *> after it is "the names of the runtime elements that would have been
+      *> returned if the ACTIVATING keyword were specified within the previous
+      *> module in the list", the penultimate is TOP-LEVEL and the last is a single
+      *> space. So the second entry must be SHOW - the same answer D-ACT gives one
+      *> line above. It used to be the CLASS, because the builder collapsed
+      *> consecutive frames sharing a compilation unit; owner decision 2026-08-05
+      *> removed that collapse (see PB36MNREC above for why).
            DISPLAY "D-STACK=[" FUNCTION MODULE-NAME(STACK) "]".
            GOBACK.
        END METHOD DEEPER.

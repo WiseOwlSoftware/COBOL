@@ -957,10 +957,10 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB36 tree (2026-08-05 09:00).**
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB36-complete tree (2026-08-05 11:05).**
   One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`**:
   FULL greenfield Conformance **4203 / 4203, zero skipped, NOTHING red**
-  (11 m 20 s) · greenfield Unit **3650 / 3650, zero skipped** · characterization **33 / 33** · `guard-fast`
+  (10 m 31 s) · greenfield Unit **3650 / 3650, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
   **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
   101 WE_ACCEPT_THEY_REJECT**, and — measured against the committed per-case baseline, not inferred from those

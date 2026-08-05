@@ -8,6 +8,12 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static class CobolModule
 {
+    /// <summary>The run unit's stack, resolved ONCE. <see cref="RunUnit.Current"/> is an
+    /// <c>AsyncLocal</c> lookup, so a caller that pushes and pops (every method activation) pays the ambient
+    /// resolution TWICE unless it holds the stack across the pair — measured at ~12 ns per activation, which is
+    /// the ambient reads, not the list bookkeeping (fix-queue PB36).</summary>
+    public static ModuleStack Stack => RunUnit.Current.Modules;
+
     /// <inheritdoc cref="ModuleStack.PushMain"/>
     public static void PushMain(string name) => RunUnit.Current.Modules.PushMain(name);
 

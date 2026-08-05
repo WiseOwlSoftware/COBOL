@@ -467,7 +467,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
             string __mLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true);
             string __cLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Owner.Name.ToUpperInvariant(), quote: true);
-            w.Line($"{RuntimeApi.ModulePushMethod(__mLit, __cLit)};   // §15.65.4 r5 — INVOKE is an activation");
+            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false);   // §15.65.4 r5 — INVOKE is an activation");
             w.Line("try");
             w.Line("{");
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
@@ -592,7 +592,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // GOBACK unwinding as MethodReturn, and an exception propagating to the invoker — or the stack leaks a
             // frame and every later MODULE-NAME reads one element too deep.
             w.Line("}");
-            w.Line($"finally {{ {RuntimeApi.ModulePop()}; }}   // §15.65.4 — the activation ends with the method");
+            w.Line("finally { __ms.Pop(); }   // §15.65.4 — the activation ends with the method");
         }
         w.Line();
     }

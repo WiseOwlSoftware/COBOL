@@ -734,6 +734,9 @@ internal static class RuntimeApi
     public static string ModulePushMethod(string nameLit, string classLit) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Push)}({nameLit}, {classLit}, false)";
 
+    /// <summary>The run unit's module stack, resolved once per activation — <c>CobolModule.Stack</c>.</summary>
+    public static string ModuleStack() => $"{nameof(CobolModule)}.{nameof(CobolModule.Stack)}";
+
     /// <summary>Pop the activation frame pushed by <see cref="ModulePushMethod"/> — always in a finally.</summary>
     public static string ModulePop() => $"{nameof(CobolModule)}.{nameof(CobolModule.Pop)}()";
 
