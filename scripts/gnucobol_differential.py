@@ -185,6 +185,80 @@ def run_case(args):
             'xfail': group.get('xfail', False)}
 
 
+BASELINE_HEADER = """\
+# COBOL.NET GnuCOBOL external-differential PER-CASE VERDICT BASELINE.
+#
+# ⛔ WHY THIS FILE EXISTS. The differential's four TOTALS matching the previous run is NOT evidence of zero
+# flips — offsetting flips look identical, and for a long time no per-case report was kept, so "0 per-case
+# flips" was asserted from totals alone. This manifest makes the claim mechanical: one row per case, so a
+# flip is a ONE-LINE git diff a reviewer can see, exactly as tests/nist/corpus.tsv does for NIST.
+#
+# ⚖ LICENSING (owner decisions 2026-07-19 and 2026-08-04). Every column here is OURS: the case ID is a
+# coordinate we compute, the tier is our classification, the verdict is our compiler's behaviour compared
+# with theirs. Their COBOL test SOURCE and their EXPECTED OUTPUT are never committed and are not here.
+# Titles and keywords are deliberately OMITTED — the diff does not need them, so this file carries nothing
+# but our own generated results.
+#
+# ⛔ REGENERATING IS A DELIBERATE ACT, NEVER A FIX FOR A RED. `--write-baseline` rewrites it; the commit that
+# does so must ATTRIBUTE every changed row. A flip is either a fix (we now accept ISO source we rejected), a
+# regression, or a corpus refresh — and only the first two are visible here. Rewriting to make a red go away
+# destroys the only record that the behaviour moved.
+#
+# Tab-separated, sorted by id; a leading # is a comment. Columns: id<TAB>tier<TAB>verdict
+"""
+
+
+def read_baseline(path: str) -> dict[str, tuple[str, str]] | None:
+    """The committed manifest as {id: (tier, verdict)}, or None when absent (first run / corpus not fetched)."""
+    if not os.path.exists(path):
+        return None
+    out: dict[str, tuple[str, str]] = {}
+    with open(path, encoding='utf-8') as fh:
+        for line in fh:
+            line = line.rstrip('\n')
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split('\t')
+            if len(parts) != 3:
+                continue
+            out[parts[0]] = (parts[1], parts[2])
+    return out
+
+
+def write_baseline(path: str, results: list[dict]) -> None:
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    with open(path, 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(BASELINE_HEADER)
+        for r in sorted(results, key=lambda x: x['id']):
+            fh.write(f"{r['id']}\t{r['tier']}\t{r['verdict']}\n")
+
+
+def diff_baseline(base: dict[str, tuple[str, str]], results: list[dict], path: str) -> int:
+    """Print the PER-CASE diff and return the number of VERDICT FLIPS (0 = clean).
+
+    NEW / REMOVED cases are reported but are NOT flips: they mean the fetched corpus changed, which is a
+    legitimate event the compiler did not cause. Conflating the two is how a corpus refresh would either mask
+    a real regression or manufacture 1300 false ones.
+    """
+    cur = {r['id']: r for r in results}
+    flips = [(i, base[i][1], cur[i]['verdict']) for i in sorted(base.keys() & cur.keys())
+             if base[i][1] != cur[i]['verdict']]
+    new, gone = sorted(cur.keys() - base.keys()), sorted(base.keys() - cur.keys())
+
+    print(f'\n=== PER-CASE DIFF vs {path} ===')
+    if new or gone:
+        print(f'  corpus changed: {len(new)} NEW case(s), {len(gone)} REMOVED — not flips, but explain them.')
+        for i in new[:10]:
+            print(f'    NEW      {i}  -> {cur[i]["verdict"]}')
+        for i in gone[:10]:
+            print(f'    REMOVED  {i}  (was {base[i][1]})')
+    for i, was, now in flips:
+        why = (cur[i].get('ourFirstError') or '').replace('\n', ' ')[:100]
+        print(f'    FLIP     {i:<28} {was} -> {now}   {why}')
+    print(f'=== DIFFERENTIAL: {len(flips)} PER-CASE FLIP(S) ===')
+    return len(flips)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--exe', default='src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe')
@@ -192,6 +266,11 @@ def main() -> int:
     ap.add_argument('--only', default='')
     ap.add_argument('--jobs', type=int, default=max(2, (os.cpu_count() or 4) - 2))
     ap.add_argument('--report', default='tests/external/gnucobol-differential-report.json')
+    ap.add_argument('--baseline', default='tests/external/gnucobol-verdict-baseline.tsv',
+                    help='committed per-case verdict manifest to diff against (see write_baseline)')
+    ap.add_argument('--write-baseline', action='store_true',
+                    help='REWRITE --baseline from this run instead of diffing against it. Deliberate only: '
+                         'every accepted flip must be attributed in the commit message that rewrites it.')
     a = ap.parse_args()
 
     if not os.path.exists(a.exe):
@@ -275,7 +354,21 @@ def main() -> int:
                    'byTier': {f'{v}|{t}': n for (v, t), n in by_vt.items()},
                    'cases': results}, fh, indent=1)
     print(f'\nreport -> {a.report}')
-    return 0
+
+    # ── PER-CASE FLIP DETECTION (the claim the four totals above cannot make) ────────────────────────────
+    if a.write_baseline:
+        write_baseline(a.baseline, results)
+        print(f'baseline REWRITTEN -> {a.baseline}  ({len(results)} cases). '
+              'Attribute every changed row in the commit that does this.')
+        return 0
+    base = read_baseline(a.baseline)
+    if base is None:
+        # Absent baseline is a LOUD gap, not a pass: without it this run proves nothing per-case, and
+        # silently returning 0 is what let "0 per-case flips" be asserted from totals for weeks.
+        print(f'\n!! NO VERDICT BASELINE at {a.baseline} — this run CANNOT claim zero per-case flips.\n'
+              f'   Create it deliberately: --write-baseline', file=sys.stderr)
+        return 5
+    return 6 if diff_baseline(base, results, a.baseline) else 0
 
 
 if __name__ == '__main__':

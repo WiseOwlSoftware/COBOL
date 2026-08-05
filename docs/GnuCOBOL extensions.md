@@ -57,8 +57,13 @@ Regenerate the evidence with:
 
 ```
 pwsh scripts/fetch-gnucobol-tests.ps1        # GPL corpus -> git-ignored tree
-python3 scripts/gnucobol_differential.py     # -> tests/external/gnucobol-differential-report.json
+python3 scripts/gnucobol_differential.py     # -> report + the PER-CASE diff vs the committed baseline
 ```
+
+The run ends with `=== DIFFERENTIAL: n PER-CASE FLIP(S) ===` against
+`tests/external/gnucobol-verdict-baseline.tsv` (committed: `id⇥tier⇥verdict`, all three columns ours). **0 is
+required**; a flip is named with its case ID and our first diagnostic. When a change legitimately moves a verdict,
+regenerate with `--write-baseline` and attribute every changed row in that commit.
 
 ## Extension families
 

@@ -81,7 +81,12 @@ tests/external/*.zip
 scripts/__pycache__/
 # Regenerable output of scripts/gnucobol_differential.py (re-run to recreate). NOT a licensing
 # exclusion — per the owner's 2026-07-19 ruling its case titles/keywords are citable; it is simply
-# generated. The COMMITTED artifact is tests/external/gnucobol-expectations.json (our classifications).
+# generated, and it is BULKY (it carries every case's title, keywords and our full first diagnostic).
+# ⛔ THE COMMITTED ARTIFACT IS tests/external/gnucobol-verdict-baseline.tsv — one row per case,
+# id/tier/verdict, all three columns OURS (owner decision 2026-08-04: "names+verdicts is our generated
+# results, okay to commit"). It exists so a per-case flip is a ONE-LINE git diff; the four summary totals
+# cannot detect offsetting flips and for a long time "0 per-case flips" was asserted from totals alone.
+# `battery.sh` gates on it and an ABSENT baseline is a RED, not a pass.
 tests/external/gnucobol-differential-report.json
 
 # Session convenience files — untracked by convention (feedback_plans_in_repo)

@@ -78,6 +78,16 @@ if [ "${SKIP_DIFF:-0}" != "1" ]; then
     if grep -q 'NO COMPILER VERDICT' "$OUT/gnucobol.log"; then
         note "gnucobol:        ⛔ cases with NO COMPILER VERDICT — see $OUT/gnucobol.log"; RC=1
     fi
+    # ⛔ THE PER-CASE DIFF IS THE LEG THAT MATTERS, NOT THE FOUR TOTALS ABOVE. Identical totals are consistent
+    # with OFFSETTING flips, so this gates on the per-case verdict line (never the exit code — §0's standing
+    # rule) and names every flip in the log. An ABSENT baseline is a RED, not a pass: without it the run
+    # cannot claim zero flips, which is precisely the hole this closes.
+    note "$(printf '%-16s %s' 'gnucobol diff:' "$(grep -E '^=== DIFFERENTIAL: ' "$OUT/gnucobol.log" | tail -1)")"
+    grep -E '^(  corpus changed:|    (FLIP|NEW|REMOVED) )' "$OUT/gnucobol.log" \
+        | sed 's/^/                 /' | tee -a "$SUMMARY"
+    if ! grep -qF '=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===' "$OUT/gnucobol.log"; then
+        note "gnucobol diff:   ⛔ per-case verdict flips (or no baseline) — see $OUT/gnucobol.log"; RC=1
+    fi
 fi
 
 el "=== BATTERY SUMMARY (artifacts in $OUT) ==="

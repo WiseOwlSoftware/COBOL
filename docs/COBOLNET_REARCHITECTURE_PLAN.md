@@ -903,13 +903,16 @@ result. Run the long legs ONE AT A TIME.
   Step-0 equivalence proof; deletion is P15.
 - **GnuCOBOL external differential — USE IT (owner directive):** `python3 scripts/gnucobol_differential.py --exe
   src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe --report <path>` over the fetched GPL corpus (1323 groups,
-  git-ignored `tests/external/gnucobol/`; run `fetch-gnucobol-tests.ps1` if absent). It is a TRIAGE net, not a
-  green/red gate: run it BEFORE and AFTER a change and diff the per-case verdicts — a FIX is a divergence→AGREE
-  flip, a REGRESSION is an AGREE→divergence flip (0 tolerated). It catches reference-format and grammar bugs the
-  internal battery is blind to. Baseline (2026-07-29, refreshed at V59 step 4 and matching the stored
-  report): **474 AGREE_ACCEPT · 173 AGREE_REJECT · 572 WE_REJECT_THEY_ACCEPT · 104 WE_ACCEPT_THEY_REJECT over
-  1323 cases** — the two moves from the previous 472/574 are both FIXES in `data_packed.at` ('PACKED-DECIMAL
-  numeric test (1)' and '(2)'), the external confirmation that the V59 byte forms are the ones the world writes. ⚖ GPL: never commit or reproduce their source or expected output — titles and
+  git-ignored `tests/external/gnucobol/`; run `fetch-gnucobol-tests.ps1` if absent). It catches reference-format
+  and grammar bugs the internal battery is blind to.
+  ⛔ **IT IS NOW A GREEN/RED GATE, AND THE DIFF IS MECHANICAL — do NOT hand-compare runs any more.** It diffs
+  each case against the committed `tests/external/gnucobol-verdict-baseline.tsv` and prints
+  `=== DIFFERENTIAL: n PER-CASE FLIP(S) ===`; **0 is required**, an absent baseline is a RED, and NEW/REMOVED
+  cases are reported as a corpus refresh rather than counted as flips. A FIX is a divergence→AGREE flip, a
+  REGRESSION is an AGREE→divergence flip; both show up as named rows, and both require the baseline be
+  regenerated with `--write-baseline` in a commit that ATTRIBUTES every changed row. ⚠ Never read the four
+  summary totals as the verdict — offsetting flips leave them identical, which is exactly what this replaced.
+  ⚖ GPL: never commit or reproduce their source or expected output — titles and
   keywords only.
 - **Mechanics that have burned us:** build `CobolSharp.sln` (not one project) before ANY `--no-build` test or CLI
   smoke — a stale test-bin compiler DLL hides regressions. Never `| tail -N` a guard verdict: redirect the FULL
@@ -926,21 +929,28 @@ result. Run the long legs ONE AT A TIME.
   `=== BATTERY: ALL GREEN ===`** (2026-08-04 19:13, one `bash scripts/battery.sh` run, artifacts
   `/tmp/battery-20260804-191318`). It therefore covers PB15 as well, which had only ever had the wave-local gate.
   See the BATTERY REFERENCE below for the numbers — they are not restated here (single-write rule).
-  ⚠ **ONE LIMIT ON THAT VERDICT, STATED RATHER THAN GLOSSED:** the differential's four totals are IDENTICAL to
-  the recorded baseline across 1323 cases, which is strong evidence of zero flips but is **not** the per-case diff
-  `feedback_comprehensive_gate_mechanics` asks for — offsetting flips would look the same. No per-case report from
-  the previous run had been kept, so there was nothing to diff against. **This run's report is now preserved at
-  `tests/external/gnucobol/last-differential-report.json`** (git-ignored, so no GPL content is committed) and the
-  next battery CAN do the per-case diff. Whether a per-case baseline of names+verdicts should be committed is an
-  open owner question, not something to decide silently.
+- ✅ **THE DIFFERENTIAL NOW PROVES ZERO PER-CASE FLIPS MECHANICALLY — it had been asserting them from four
+  totals.** Identical totals are consistent with OFFSETTING flips, so "0 per-case flips" was an inference, and no
+  per-case report from a prior run had even been kept to diff against.
+  **`tests/external/gnucobol-verdict-baseline.tsv` is now COMMITTED** — 1323 rows of `id⇥tier⇥verdict`, every
+  column ours (owner decision 2026-08-04: names+verdicts are our generated results; their SOURCE and EXPECTED
+  OUTPUT remain uncommitted, and titles/keywords are deliberately omitted since the diff does not need them).
+  `gnucobol_differential.py --baseline` diffs against it, names each flip with that case's first diagnostic,
+  counts NEW/REMOVED cases as a corpus refresh rather than a flip, and **treats an ABSENT baseline as a RED**.
+  `battery.sh` gates on the `=== DIFFERENTIAL: n PER-CASE FLIP(S) ===` verdict line, never the exit code.
+  ⛔ **Regenerating it (`--write-baseline`) is deliberate, and every changed row must be attributed in the commit
+  that does it** — rewriting a baseline to clear a red destroys the only record that behaviour moved.
+  ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
+  two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
+  returned **0 flips** against the committed baseline.
 - **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB17 + PB41 + PB42 tree (2026-08-04 19:13).**
   One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`** (artifacts
   `/tmp/battery-20260804-191318`): FULL greenfield Conformance **4200 / 4200, zero skipped, NOTHING red**
   (10 m 10 s) · greenfield Unit **3646 / 3646, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
   **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
-  101 WE_ACCEPT_THEY_REJECT** — identical to the previous run's totals. ⚠ **Totals-identical is NOT the per-case
-  diff** (see the paid-gate bullet above); this run's report is preserved for the next one to diff against.
+  101 WE_ACCEPT_THEY_REJECT**, and — measured on a fresh run against the committed baseline, not inferred from
+  those totals — **0 PER-CASE FLIPS**.
   ⚠ Conformance moved 4180 → 4200 because each landed fix ships its goldens (PB15's, plus this wave's six).
   What must hold is **zero failures, zero skipped**, never a particular total.
 - ⚙ **THE SUPERSEDED REFERENCE (2026-08-03, after the INSTRUMENT WAVE)** — kept ONLY because it measured legs the
