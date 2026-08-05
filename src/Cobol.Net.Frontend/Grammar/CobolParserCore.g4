@@ -811,9 +811,22 @@ addOperandList
     : addOperand+
     ;
 
+// ⛔ THE FOUR SENDING ARITHMETIC OPERANDS BELOW ARE ONE RULE WRITTEN FOUR TIMES, AND ALL FOUR WERE WRONG
+// (fix-queue PB45). ISO §8.4.3.1.2 Format 1 makes a function-identifier an identifier, so every position a
+// format writes as `identifier-n | literal-n` in a SENDING role admits one — yet `ADD FUNCTION SQRT(X) TO Y`
+// was a PARSE error across the WHOLE arithmetic family (ADD/SUBTRACT/MULTIPLY/DIVIDE, every format), while
+// COMPUTE accepted it because its RHS is an arithmeticExpression.
+// ⚠ THEY ARE NOT COLLAPSED INTO ONE RULE, AND THAT IS A RECORDED CONSTRAINT RATHER THAN A PREFERENCE: the
+// FROZEN legacy compiler (src/CobolSharp.Compiler) shares this grammar and reads `.dataReference()`/`.literal()`
+// off AddOperandContext / SubtractOperandContext / MultiplyOperandContext / DivideOperandContext by name, so
+// both a collapse and an alias break it — the same freeze that blocks D10 until PHASE 15 CUT 2 deletes legacy.
+// The change is therefore ADDITIVE (the standing grammar discipline), and
+// ArithmeticSendingOperandDriftTests pins the four alternative sets IDENTICAL so they cannot drift apart while
+// they must stay separate. Collapse them to ONE rule at CUT 2.
 addOperand
-    : dataReference
-    | literal
+    : literal
+    | functionCall
+    | dataReference
     ;
 
 addToPhrase
@@ -838,8 +851,9 @@ subtractOperandList
     ;
 
 subtractOperand
-    : dataReference
-    | literal
+    : literal
+    | functionCall
+    | dataReference
     ;
 
 subtractFromPhrase
@@ -864,8 +878,9 @@ multiplyStatement
     ;
 
 multiplyOperand
-    : dataReference
-    | literal
+    : literal
+    | functionCall
+    | dataReference
     ;
 
 multiplyByOperand
@@ -886,8 +901,9 @@ divideStatement
     ;
 
 divideOperand
-    : dataReference
-    | literal
+    : literal
+    | functionCall
+    | dataReference
     ;
 
 divideIntoPhrase

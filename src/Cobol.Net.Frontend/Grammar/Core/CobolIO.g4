@@ -864,9 +864,16 @@ inspectCountPhrase
     | {IsBareInspectOperand()}? inspectChar inspectDelimiters?
     ;
 
+// ⛔ A FUNCTION-IDENTIFIER IS ADMISSIBLE HERE (ISO §8.4.3.1.2 Format 1 makes it an identifier; fix-queue PB45).
+// §14.9.22.2 writes every one of these operands as `identifier-n | literal-n`, and each use of inspectChar is a
+// SENDING position — the TALLYING pattern, and BOTH sides of REPLACING (the item being inspected, identifier-1, is
+// the only receiver and is a separate rule). So `INSPECT S TALLYING N FOR ALL FUNCTION TRIM(X)` is conforming
+// source that was a PARSE error. Additive and unambiguous: functionCall begins with the FUNCTION token, so it
+// cannot be confused with the dataReference alternative or with the {IsBareInspectOperand()}? bare form above.
 inspectChar
-    : dataReference
-    | literal
+    : literal
+    | functionCall
+    | dataReference
     | figurativeConstant
     ;
 

@@ -103,7 +103,8 @@
     "pb42_power_and_decimal_subscript",
     "pb43_usage_bit_occupies_bits",
     "pb26_ec_argument_function_every_statement",
-    "pb36_module_name_invoke_activation"
+    "pb36_module_name_invoke_activation",
+    "pb45_function_in_sending_operands"
   ],
   "pending": []
 }

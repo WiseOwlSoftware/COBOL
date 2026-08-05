@@ -218,6 +218,13 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     "INSPECT operand ALL \"literal\" (ISO §14.9.22.3 SR3 — a figurative constant beginning with ALL is not permitted)"), false);
             return (new BoundStringLiteral(InspectFigurativeChar(fig).ToString()), true);
         }
+        // ⛔ A FUNCTION-IDENTIFIER OPERAND (ISO §8.4.3.1.2 Format 1; fix-queue PB45). §14.9.22.2 writes these as
+        // `identifier-n | literal-n` and every inspectChar use is SENDING, so `INSPECT S TALLYING N FOR ALL
+        // FUNCTION UPPER-CASE(P)` is conforming. It used to be a PARSE error; once the grammar admitted it, this
+        // arm was still missing and the operand fell through to the not-implemented tail, which reported a
+        // MISLEADING reason — "a numeric literal is not a valid INSPECT literal" — for something that is neither
+        // numeric nor a literal. Routed through the ONE intrinsic-operand entry the other verbs use.
+        if (c.functionCall() is { } fc) return (host.Intrinsic.IntrinsicOperand(fc), false);
         // §8.8.3.3 GR3: a concatenation expression is the equivalent single literal — fold and use it as the
         // INSPECT literal operand (not Figurative: the fold result is a plain literal value).
         if (c.literal()?.nonNumericLiteral()?.concatenationExpression() is { } ce)

@@ -589,11 +589,23 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             {
                 var c = n.GetChild(i);
                 if (c is Core.ArithmeticExpressionContext ae) return BindExprCore(ae, context);
+                // ⛔ A FUNCTION CALL MUST BE CAUGHT HERE, BEFORE THE WALK CAN DESCEND INTO IT (fix-queue PB45).
+                // This walk is breadth-first over the wrapper's subtree looking for something bindable, and a
+                // functionCall CONTAINS a dataReference — its argument. Without this arm the walk fell through to
+                // the arm below and bound `FUNCTION SQRT(W-Z)` as plain `W-Z`: `ADD FUNCTION SQRT(W-Z) TO W-R`
+                // with W-Z = 4 added FOUR instead of TWO. Silent, and it survives "does it compile" entirely —
+                // it was caught only by checking the VALUE against the spec-derived answer.
+                if (c is Core.FunctionCallContext fc) return host.Intrinsic.BindIntrinsic(fc);
                 if (c is Core.LiteralContext l) return NumLiteral(l);
                 if (c is Core.DataReferenceContext d) return RefExpr(d, context);
                 queue.Enqueue(c);
             }
         }
+        // ⚠ A WRAPPER HOLDING NOTHING BINDABLE SILENTLY BECOMES ZERO, which is the same silent-wrong-answer shape
+        // as the defect above: a new operand alternative that nobody adds an arm for degrades to `0` rather than
+        // failing. Kept as a literal zero ONLY because an errored parse can reach here; every REACHABLE shape must
+        // have an arm above, and ArithmeticSendingOperandDriftTests exists to keep the grammar from growing one
+        // this walk cannot see.
         return new BoundNumLiteral("0");
     }
 }
