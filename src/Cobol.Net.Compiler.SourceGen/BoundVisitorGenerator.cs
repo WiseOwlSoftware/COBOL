@@ -121,7 +121,158 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
         // The statement-tree child enumeration (PHASE-07 Step 6g) — the ONE drift-proof source of "what statements
         // nest inside statement X", so the walker consumers recurse over it instead of hand-listing children.
         EmitStatementChildren(sb, roots, allTypes);
+        // The statement's OWN value parts (fix-queue PB26) — the same completeness-by-construction technique
+        // applied to the expression/operand/condition side of a statement instead of its nested statements.
+        EmitOwnValueParts(sb, roots, allTypes);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Emit <c>BoundStatementTree.OwnValueParts(this BoundStatement) : IEnumerable&lt;object&gt;</c> — every
+    /// BoundExpr / BoundCondition / BoundOperand / BoundBoolExpr a statement holds DIRECTLY (through its own
+    /// properties, its lists, and its single-depth helper records), and NOT the ones inside its nested statements.
+    ///
+    /// <para><b>Why this exists (fix-queue PB26).</b> <c>EcBinder.DirectIntrinsic</c> hand-listed ~17 statement
+    /// kinds and defaulted to <c>false</c>, so the EC-ARGUMENT-FUNCTION ambient gate was emitted for a statement
+    /// only if someone had remembered to add its arm. <b>ISO §15.3 item 14 attaches that condition to the FUNCTION
+    /// REFERENCE, with no statement-kind qualification anywhere</b> — so the identical reference raised in COMPUTE
+    /// and was silent in STRING. A hand-maintained list where a structure belongs; this is the structure, and a
+    /// statement kind added tomorrow is covered without an edit.</para>
+    ///
+    /// <para>The value ROOTS are exactly the <c>[BoundNode]</c> roots that are not <c>BoundStatement</c> — read
+    /// from the semantic model, so a new value hierarchy joins the walk by existing.</para>
+    /// </summary>
+    private static void EmitOwnValueParts(StringBuilder sb, List<INamedTypeSymbol> roots, List<INamedTypeSymbol> allTypes)
+    {
+        var boundStatement = roots.FirstOrDefault(r => r.Name == "BoundStatement");
+        if (boundStatement is null) return;
+        // ⛔ A [BoundNode] ROOT IS NOT AUTOMATICALLY A VALUE — some are CONTAINERS, and treating them as values is
+        // the bug this walk shipped with. `BoundPerformControl` holds a PERFORM's UNTIL condition and
+        // `BoundSetTarget` a SET's target; yielding the container and stopping meant `PERFORM UNTIL FUNCTION
+        // LOG10(0)` still never reached the EC gate — the same silence PB26 set out to remove, one level in.
+        // TERMINAL roots are the hierarchies a consumer INTERPRETS directly (EcBinder.PartHasIntrinsic has a
+        // walker for each); every other root is walked THROUGH. This is the one place the distinction is written
+        // down, and BoundNodeRootPartitionDriftTests fails if a new root appears without a decision here.
+        var terminalNames = new HashSet<string> { "BoundExpr", "BoundCondition", "BoundOperand", "BoundBoolExpr" };
+        var valueRoots = roots.Where(r => terminalNames.Contains(r.Name)).ToList();
+        var containerRoots = roots
+            .Where(r => !SymbolEqualityComparer.Default.Equals(r, boundStatement) && !terminalNames.Contains(r.Name))
+            .ToList();
+        if (valueRoots.Count == 0) return;
+
+        var leaves = allTypes
+            .Where(t => !t.IsAbstract && DerivesFrom(t, boundStatement))
+            .OrderBy(t => t.Name, System.StringComparer.Ordinal)
+            .ToList();
+
+        sb.Append("\n/// <summary>Every value node (");
+        sb.Append(string.Join(" / ", valueRoots.Select(r => r.Name)));
+        sb.Append(") a statement holds DIRECTLY — not those inside its nested\n");
+        sb.Append("/// statements, which a walker reaches via StatementChildren. Read from every property through the\n");
+        sb.Append("/// semantic model, so it cannot forget an operand the way a hand-written switch did (PB26).</summary>\n");
+        sb.Append("public static partial class BoundStatementTree\n{\n");
+        sb.Append("    private static IEnumerable<object> V(object? x) => x is null ? Array.Empty<object>() : new[] { x };\n");
+        sb.Append("    private static IEnumerable<object> Vz<T>(IEnumerable<T>? xs) => xs is null ? Array.Empty<object>() : xs.Where(e => e is not null).Cast<object>();\n\n");
+        // One walker per CONTAINER root, pattern-matching its leaves — generated, so a leaf added under a container
+        // root joins the walk by existing rather than by an edit here.
+        foreach (var croot in containerRoots)
+        {
+            var cleaves = allTypes.Where(t => !t.IsAbstract && DerivesFrom(t, croot))
+                .OrderBy(t => t.Name, System.StringComparer.Ordinal).ToList();
+            sb.Append("    private static IEnumerable<object> Parts_").Append(croot.Name)
+              .Append("(").Append(croot.Name).Append("? n) => n switch\n    {\n");
+            foreach (var cl in cleaves)
+            {
+                var inner = new List<string>();
+                foreach (var q in InstanceProps(cl))
+                    CollectValueSources("x." + q.Name, q.Type, boundStatement, valueRoots, containerRoots, roots, inner, 1);
+                if (inner.Count == 0) continue;
+                sb.Append("        ").Append(cl.Name).Append(" x => ").Append(Combine(inner)).Append(",\n");
+            }
+            sb.Append("        _ => Array.Empty<object>(),\n    };\n\n");
+        }
+
+        sb.Append("    public static IEnumerable<object> OwnValueParts(this BoundStatement n) => n switch\n    {\n");
+        foreach (var leaf in leaves)
+        {
+            var sources = new List<string>();
+            foreach (var p in InstanceProps(leaf))
+                CollectValueSources("x." + p.Name, p.Type, boundStatement, valueRoots, containerRoots, roots, sources, 0);
+            if (sources.Count == 0) continue;
+            sb.Append("        ").Append(leaf.Name).Append(" x => ").Append(Combine(sources)).Append(",\n");
+        }
+        sb.Append("        _ => Array.Empty<object>(),\n    };\n}\n");
+    }
+
+    /// <summary>The value-side twin of <see cref="CollectSources"/>: accumulate the C# expressions yielding every
+    /// value node a property contributes. Mirrors its structure deliberately — a value node, a list of them, or the
+    /// value properties of a single-depth helper record (a SizeErrorPhrase's condition, a BoundSearchWhen's match).
+    /// ⛔ It does NOT descend into nested BoundStatements: those belong to the caller's StatementChildren recursion,
+    /// and descending here would double-count them.</summary>
+    private static void CollectValueSources(string access, ITypeSymbol type, INamedTypeSymbol boundStatement,
+        List<INamedTypeSymbol> valueRoots, List<INamedTypeSymbol> containerRoots, List<INamedTypeSymbol> roots,
+        List<string> sources, int depth)
+    {
+        if (depth > 4) return;
+        if (IsStatementLike(type, boundStatement)) return;            // a nested statement — not ours
+        if (valueRoots.Any(r => IsDerivedFrom(type, r) || SymbolEqualityComparer.Default.Equals(type, r)))
+        {
+            sources.Add($"V({access})");
+            return;
+        }
+        // A CONTAINER root (BoundPerformControl, BoundSetTarget) is walked THROUGH via its generated helper, which
+        // pattern-matches the root's leaves. Yielding the container itself and stopping is what left
+        // `PERFORM UNTIL FUNCTION LOG10(0)` silent after the first cut of this walk — the container is not a value,
+        // it HOLDS one.
+        if (containerRoots.FirstOrDefault(r => IsDerivedFrom(type, r) || SymbolEqualityComparer.Default.Equals(type, r))
+            is { } croot)
+        {
+            sources.Add($"Parts_{croot.Name}({access})");
+            return;
+        }
+        if (TryListElement(type, out var elem))
+        {
+            if (IsStatementLike(elem, boundStatement)) return;
+            if (valueRoots.Any(r => IsDerivedFrom(elem, r) || SymbolEqualityComparer.Default.Equals(elem, r)))
+            {
+                sources.Add($"Vz({access})");
+                return;
+            }
+            if (IsStatementBearing(elem, boundStatement, roots) || IsValueBearing(elem, valueRoots, roots))
+            {
+                var inner = new List<string>();
+                string v = "__v" + depth;
+                foreach (var q in InstanceProps((INamedTypeSymbol)elem))
+                    CollectValueSources(v + "." + q.Name, q.Type, boundStatement, valueRoots, containerRoots, roots, inner, depth + 1);
+                if (inner.Count > 0)
+                    sources.Add($"({access} ?? Array.Empty<{elem.ToDisplayString()}>()).SelectMany({v} => {Combine(inner)})");
+            }
+            return;
+        }
+        if (IsStatementBearing(type, boundStatement, roots) || IsValueBearing(type, valueRoots, roots))
+            foreach (var q in InstanceProps((INamedTypeSymbol)type))
+                CollectValueSources($"{access}?.{q.Name}", q.Type, boundStatement, valueRoots, containerRoots, roots, sources, depth + 1);
+    }
+
+    /// <summary>A non-Bound helper record in our assembly that transitively holds a value node — the value-side twin
+    /// of <see cref="IsStatementBearing"/> (e.g. a Receiver holding a Place, a phrase record holding a condition).</summary>
+    private static bool IsValueBearing(ITypeSymbol type, List<INamedTypeSymbol> valueRoots, List<INamedTypeSymbol> roots) =>
+        IsValueBearing(type, valueRoots, roots, new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default));
+
+    private static bool IsValueBearing(ITypeSymbol type, List<INamedTypeSymbol> valueRoots,
+        List<INamedTypeSymbol> roots, HashSet<INamedTypeSymbol> visited)
+    {
+        if (type is not INamedTypeSymbol nt || !visited.Add(nt)) return false;
+        if (roots.Any(r => IsDerivedFrom(nt, r) || SymbolEqualityComparer.Default.Equals(nt, r))) return false;
+        if (nt.ContainingAssembly is null || !nt.ContainingAssembly.Name.StartsWith("Cobol.Net.Compiler")) return false;
+        foreach (var p in InstanceProps(nt))
+        {
+            var t = p.Type;
+            if (TryListElement(t, out var e)) t = e;
+            if (valueRoots.Any(r => IsDerivedFrom(t, r) || SymbolEqualityComparer.Default.Equals(t, r))) return true;
+            if (IsValueBearing(t, valueRoots, roots, visited)) return true;
+        }
+        return false;
     }
 
     /// <summary>Emit <c>BoundStatementTree.StatementChildren(this BoundStatement) : IEnumerable&lt;BoundStatement&gt;</c>
@@ -140,7 +291,7 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
         sb.Append("\n/// <summary>The direct child statements of a bound statement — the ONE drift-proof source of the\n");
         sb.Append("/// statement-tree shape (PHASE-07 Step 6g), read from every property via the semantic model so it\n");
         sb.Append("/// cannot forget a nested phrase. Walker consumers recurse over this instead of hand-listing children.</summary>\n");
-        sb.Append("public static class BoundStatementTree\n{\n");
+        sb.Append("public static partial class BoundStatementTree\n{\n");
         sb.Append("    private static IEnumerable<BoundStatement> One(BoundStatement? s) => s is null ? Array.Empty<BoundStatement>() : new[] { s };\n");
         sb.Append("    private static IEnumerable<BoundStatement> Nz(IEnumerable<BoundStatement>? xs) => xs ?? Array.Empty<BoundStatement>();\n\n");
         sb.Append("    /// <summary>The statements directly nested one level inside <paramref name=\"n\"/> (phrase bodies,\n");

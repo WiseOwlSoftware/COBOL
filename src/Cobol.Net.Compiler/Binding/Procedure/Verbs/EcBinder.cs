@@ -493,25 +493,31 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         DirectIntrinsic(s) || s.StatementChildren().Any(ContainsIntrinsic);
 
     /// <summary>The intrinsic in THIS statement's OWN operands/expressions/conditions (not its nested statements —
-    /// those are the recursion's job via <see cref="BoundStatementTree.StatementChildren"/>).</summary>
-    private static bool DirectIntrinsic(BoundStatement s) => s switch
+    /// those are the recursion's job via <see cref="BoundStatementTree.StatementChildren"/>).
+    ///
+    /// <para>⛔ <b>THIS WAS A HAND-WRITTEN SWITCH OVER ~17 STATEMENT KINDS WITH <c>_ => false</c>, AND THE DEFAULT
+    /// ARM WAS A SILENT WRONG ANSWER</b> (fix-queue PB26). <b>ISO §15.3 item 14 attaches EC-ARGUMENT-FUNCTION to
+    /// the FUNCTION REFERENCE</b> — "If the evaluation of an argument results in an incorrect value … the
+    /// EC-ARGUMENT-FUNCTION exception condition is set to exist" — with no statement-kind qualification anywhere in
+    /// it. So the ambient checking gate must be emitted wherever a function reference is, and the switch made it
+    /// depend on whether someone had remembered to add an arm: <c>FUNCTION LOG10(0)</c> raised in COMPUTE, MOVE,
+    /// DISPLAY and IF, and was SILENT in STRING and every other unlisted kind. Measured, not reasoned.</para>
+    ///
+    /// <para>The list is now a STRUCTURE (CLAUDE.md rule 5): <see cref="BoundStatementTree.OwnValueParts"/> is
+    /// generated from the semantic model by reading every property of every statement leaf, so a statement kind
+    /// added tomorrow is covered without an edit here — and <c>EcArgumentFunctionGateDriftTests</c> fails the build
+    /// if that ever stops being true.</para></summary>
+    private static bool DirectIntrinsic(BoundStatement s) => s.OwnValueParts().Any(PartHasIntrinsic);
+
+    /// <summary>One generated value part → does it carry an intrinsic call? The four value hierarchies each have
+    /// their own walker below; a part of any other shape (a <c>Place</c>, a receiver) carries no expression and
+    /// answers false.</summary>
+    private static bool PartHasIntrinsic(object part) => part switch
     {
-        BoundDisplay d => d.Operands.Any(OpHasIntrinsic),
-        BoundMove m => OpHasIntrinsic(m.Source),
-        BoundCompute c => ExprHasIntrinsic(c.Rhs),
-        BoundComputeBoolean cb => BoolExprHasIntrinsic(cb.Rhs),
-        BoundAddTo a => a.Addends.Any(ExprHasIntrinsic),
-        BoundAddGiving a => a.Addends.Any(ExprHasIntrinsic),
-        BoundSubtractFrom a => a.Minuends.Any(ExprHasIntrinsic),
-        BoundSubtractGiving a => a.Minuends.Any(ExprHasIntrinsic) || ExprHasIntrinsic(a.From),
-        BoundMultiplyBy a => ExprHasIntrinsic(a.A),
-        BoundMultiplyGiving a => ExprHasIntrinsic(a.A) || ExprHasIntrinsic(a.B),
-        BoundDivideInto a => ExprHasIntrinsic(a.Divisor),
-        BoundDivideGiving a => ExprHasIntrinsic(a.Dividend) || ExprHasIntrinsic(a.Divisor),
-        BoundDivideRemainder a => ExprHasIntrinsic(a.Dividend) || ExprHasIntrinsic(a.Divisor),
-        BoundIf i => CondHasIntrinsic(i.Condition),   // Then/Else recursed by StatementChildren
-        BoundSetTo st => ExprHasIntrinsic(st.Value),
-        BoundEvaluate ev => ev.Whens.Any(wn => CondHasIntrinsic(wn.Match)),   // when/Other statements recursed
+        BoundExpr e => ExprHasIntrinsic(e),
+        BoundCondition c => CondHasIntrinsic(c),
+        BoundOperand o => OpHasIntrinsic(o),
+        BoundBoolExpr b => BoolExprHasIntrinsic(b),
         _ => false,
     };
 

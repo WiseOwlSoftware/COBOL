@@ -957,21 +957,21 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB43 + PB44 tree (2026-08-04 23:24).**
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB26 tree (2026-08-05 02:13).**
   One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`** (artifacts
-  `/tmp/battery-20260804-232419`): FULL greenfield Conformance **4201 / 4201, zero skipped, NOTHING red**
-  (10 m 34 s) · greenfield Unit **3647 / 3647, zero skipped** · characterization **33 / 33** · `guard-fast`
+  `/tmp/battery-20260805-021348`): FULL greenfield Conformance **4202 / 4202, zero skipped, NOTHING red**
+  (10 m 33 s) · greenfield Unit **3650 / 3650, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
   **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
   101 WE_ACCEPT_THEY_REJECT**, and — measured against the committed per-case baseline, not inferred from those
   totals — **0 PER-CASE FLIPS**.
-  ⚠ Conformance moved 4180 → 4201 because each landed fix ships its goldens. What must hold is **zero failures,
+  ⚠ Conformance moved 4180 → 4202 because each landed fix ships its goldens. What must hold is **zero failures,
   zero skipped**, never a particular total.
-  ⚙ **THE RUN BEFORE THIS ONE WAS RED, AND THE RED WAS THE GATE'S OWN.**
+  ⚙ **A BATTERY ON THE PB43 TREE (2026-08-04) CAME BACK RED, AND THE RED WAS THE GATE'S OWN.**
   `GrammarDiagramGeneratorDriftTests` hit a Windows file-handle race reading back `rr.war`'s output under the
-  parallel load (**PB44** — fixed here, not merely filed); it passed on a serial re-run of the SAME tree, and the
-  generator touches ANTLR fragments rather than anything the wave changed. **Attribute every red by name: a gate
-  that can go red without a defect trains everyone to discount reds.**
+  parallel load (**PB44** — fixed, not merely filed); it passed on a serial re-run of the SAME tree, and the
+  generator touches ANTLR fragments rather than anything that wave changed. Kept here as standing guidance:
+  **attribute every red by name — a gate that can go red without a defect trains everyone to discount reds.**
 - ⚙ **THE SUPERSEDED REFERENCE (2026-08-03, after the INSTRUMENT WAVE)** — kept ONLY because it measured legs the
   current run does not (the LEGACY suites and the serial `guard.sh`), and for the instrument notes below it.
   ⛔ Its greenfield numbers are stale; read them as history, never as the baseline.
