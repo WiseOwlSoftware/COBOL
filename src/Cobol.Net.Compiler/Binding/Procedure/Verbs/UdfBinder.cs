@@ -43,12 +43,18 @@ using Core = CobolParserCore;
 /// gate exception (fires on RECOGNITION, pre-hoist), moved VERBATIM.</summary>
 internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>THIS statement's not-yet-hoisted function activations (statement-scoped: BindStatement
-    /// marks the count on entry and drains only its own suffix — the property-op discipline).</summary>
-    private readonly List<BoundCallProgram> _udfPendingCalls = [];
+    /// <summary>THIS statement's not-yet-hoisted PRE-ops (statement-scoped: BindStatement marks the count on entry
+    /// and drains only its own suffix — the property-op discipline).
+    /// <para>⛔ IT IS THE SHARED <see cref="DataBinder.PendingPreOps"/>, NOT A LIST OWNED HERE. A D18
+    /// function-bearing subscript registers its §15.4 temp store on the same list while this binder's arguments
+    /// bind (fix-queue PB17), and only ONE list in registration order sequences the store before the activation
+    /// that consumes it. Every member below is therefore written against <see cref="BoundStatement"/>, not
+    /// <see cref="BoundCallProgram"/>.</para></summary>
+    private List<BoundStatement> Pending => ctx.Data.PendingPreOps;
 
-    /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol).</summary>
-    internal int PendingCount => _udfPendingCalls.Count;
+    /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol) — now covering BOTH
+    /// pre-op kinds, so the per-evaluation machinery below serves function subscripts with no extra wiring.</summary>
+    internal int PendingCount => Pending.Count;
 
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
     /// REPOSITORY-declared name, which per §12.3.8.2 GR12 refers to the user function and never a same-named
@@ -165,7 +171,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
             return new BoundExprError($"FUNCTION {name} result temporary");
 
-        _udfPendingCalls.Add(new BoundCallProgram(fn.Name, null, callArgs, tempPlace, null, null) { IsFunction = true });
+        Pending.Add(new BoundCallProgram(fn.Name, null, callArgs, tempPlace, null, null) { IsFunction = true });
         // The reading expression: a BoundNumRef over the temp's Place. Every general-operand chokepoint
         // (MOVE source, DISPLAY, relation operands, function arguments — IntrinsicBinder.OperandOf) maps it
         // to a BoundFieldOperand, whose Place.Item carries the cloned category into Table-16 legality, the
@@ -284,7 +290,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// EVALUATE subject occurrence).</summary>
     internal BoundStatement UdfWrapCalls(BoundStatement core, int mark)
     {
-        var calls = _udfPendingCalls;
+        var calls = Pending;
         if (calls.Count <= mark) return core;
         var taken = calls.GetRange(mark, calls.Count - mark);
         calls.RemoveRange(mark, calls.Count - mark);
@@ -299,7 +305,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// the condition unchanged (zero cost for the UDF-free path).</summary>
     internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, int mark)
     {
-        var calls = _udfPendingCalls;
+        var calls = Pending;
         if (calls.Count <= mark) return cond;
         var taken = calls.GetRange(mark, calls.Count - mark);
         calls.RemoveRange(mark, calls.Count - mark);
@@ -315,9 +321,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="UdfAttachPerEvaluation"/>.</summary>
     internal void UdfStagePerEvaluationResidue(int mark, string where)
     {
-        if (_udfPendingCalls.Count <= mark) return;
+        if (Pending.Count <= mark) return;
         ctx.Edition.Error("COBOLNET1509",
-            $"a user-defined function reference in {where} requires an activation cardinality this "
+            $"a function reference in {where} requires an activation cardinality this "
             + "implementation does not yet realize for that operand position (ISO §8.4.3.2.4 GR1/GR6a; "
             + "§14.9.28 GR12/GR13 / §14.9.13) — move the reference to a preceding COMPUTE");
     }

@@ -45,6 +45,38 @@ public static class CobolString
     /// length-omitted ref-mod and by the INVOKE §14.8.2.2 rule-1 prefix splice.</summary>
     public const int OmittedRefModLength = int.MinValue;
 
+    /// <summary>A SCALED reference-modifier leftmost-position or length (ISO §8.4.3.3.4 rule 5)c); fix-queue
+    /// PB41): "If the evaluation of leftmost-position or length results in a non-integer value, a zero value, or a
+    /// value that references a position outside the area of identifier-1, the EC-BOUND-REF-MOD exception condition
+    /// is set to exist." §8.4.3.3.3 SR4 makes both positions arithmetic expressions, so a scaled numeric item is
+    /// legal there and its VALUE — not its unscaled storage — is the ordinal position.
+    /// <para>The exact twin of <c>CobolTable.Occ(…, scale)</c> for the subscript position, differing ONLY in which
+    /// Table 13 condition it names; the shared de-scale/integrality arithmetic is
+    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>. Returns <c>long</c> because the rendered ref-mod positions
+    /// are long-valued COBOL expressions that <c>RuntimeApi.RefModStart</c>/<c>RefModLength</c> cast at the call
+    /// site. Checking OFF truncates toward zero and continues, the same lenient posture
+    /// <see cref="RefMod(string,int,int,bool)"/> takes for an out-of-range position.</para>
+    /// <para>The three arities mirror the subscript side's, and for the same reason: the item's storage form
+    /// (native <c>long</c>, character image, or the <see cref="Int128"/> wide tier of a D18 function-position
+    /// temp) is decided after the bind-time expression text is produced.</para></summary>
+    public static long RefModPosition(long unscaled, int scale) => RefModScaled(unscaled, scale);
+
+    /// <inheritdoc cref="RefModPosition(long,int)"/>
+    public static long RefModPosition(string image, int scale) =>
+        RefModScaled(CobolNum.FromAlphanumeric(image), scale);
+
+    /// <inheritdoc cref="RefModPosition(long,int)"/>
+    public static long RefModPosition(Int128 unscaled, int scale) => RefModScaled(unscaled, scale);
+
+    private static long RefModScaled(Int128 unscaled, int scale)
+    {
+        if (CobolNum.HasFraction(unscaled, scale))
+            ExceptionState.RefModError(
+                $"reference-modification position {CobolNum.PlainValue(unscaled, scale)} is not an integer "
+                + "(ISO §8.4.3.3.4 item 5c)");
+        return CobolNum.PositionOf(unscaled, scale);
+    }
+
     /// <summary>
     /// Reference modification read (ISO §8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
     /// <paramref name="leftmost"/> for <paramref name="length"/> characters (<see cref="OmittedRefModLength"/> = the

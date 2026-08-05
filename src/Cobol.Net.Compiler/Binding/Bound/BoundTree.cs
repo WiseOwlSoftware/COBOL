@@ -402,8 +402,14 @@ public sealed record BoundConditionError(string Feature) : BoundCondition;
 /// The renderer emits an immediately-invoked <c>Func&lt;bool&gt;</c> so the activations execute exactly when the
 /// C# condition text evaluates — including inside loop headers and short-circuited <c>&amp;&amp;</c>/<c>||</c>
 /// chains. This is the ONE deliberate exception to the "side-effect-free predicate tree" contract above; the
-/// activations are the SAME <see cref="BoundCallProgram"/> lowering the hoist uses (one mechanism).</summary>
-public sealed record BoundUdfEvaluated(IReadOnlyList<BoundCallProgram> Activations, BoundCondition Inner)
+/// activations are the SAME lowering the hoist uses (one mechanism).
+/// <para>⚠ <paramref name="Activations"/> is <see cref="BoundStatement"/>, not <see cref="BoundCallProgram"/>,
+/// because the statement-pending list it drains from carries BOTH pre-op kinds (see
+/// <c>DataBinder.PendingPreOps</c>): a user-function activation AND a D18 function-bearing subscript's §15.4
+/// temporary store (fix-queue PB17). The window rule is identical for both — §8.8.4.13 r2 governs "functions",
+/// not one spelling of them — so widening the carrier is what makes the subscript case ride the machinery the
+/// UDF case already proved, instead of a parallel one.</para></summary>
+public sealed record BoundUdfEvaluated(IReadOnlyList<BoundStatement> Activations, BoundCondition Inner)
     : BoundCondition;
 
 // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────────────

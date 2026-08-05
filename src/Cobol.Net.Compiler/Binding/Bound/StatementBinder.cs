@@ -130,9 +130,20 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// method return; EXIT PROGRAM → §14.9.14.3 SR7 violation).</summary>
     internal bool InMethod => Ctx.CurrentMethodScope is not null;
 
+    /// <summary>Install the D18 segment-materialization hook on this binder's <see cref="ReferenceResolver"/>
+    /// (fix-queue PB17). Called from BOTH procedure-bind entry points — <see cref="Bind"/> and
+    /// <see cref="BindMethodRoster"/> — because the primary constructor has no body to install it in, and because
+    /// a resolver only needs the hook once a PROCEDURE DIVISION is actually being bound. Idempotent.
+    /// <para>⛔ THIS IS THE ONLY EDGE FROM THE PROCEDURE BINDER BACK INTO THE RESOLVER, and it is a delegate, not
+    /// a type reference: the dependency is one-way by design (<c>StatementBinder(DataBinder, ReferenceResolver)</c>),
+    /// so a resolver that never gets one keeps the pre-D18 loud posture — which is exactly what the DATA-division
+    /// throwaway resolvers in <c>DataBinder.Constants</c>/<c>Ptr</c> should have.</para></summary>
+    private void AttachSegmentMaterializer() => refs.MaterializeSegment ??= MaterializeSubscriptSegment;
+
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
+        AttachSegmentMaterializer();
         // Report-section PRESENT WHEN conditions + VARYING expressions (§13.18.41/§13.18.64) bind through the
         // procedure-phase binders (they resolve ordinary data references) — before statement binding, and even
         // for a PD-less unit (the report emission does not require a PROCEDURE DIVISION).
@@ -183,6 +194,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// </summary>
     public BoundProgram BindMethodRoster(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> roster)
     {
+        AttachSegmentMaterializer();
         var used = new HashSet<string>(StringComparer.Ordinal);
         var methods = new List<BoundMethod>(roster.Count);
         var table = Ctx.Table;

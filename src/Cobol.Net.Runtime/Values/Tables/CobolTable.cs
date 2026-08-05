@@ -50,6 +50,36 @@ public static class CobolTable
     /// <inheritdoc cref="Occ(long)"/>
     public static long Occ(string image) => (long)CobolNum.FromAlphanumeric(image);
 
+    /// <summary>A SCALED subscript expression's occurrence number (ISO §8.4.2.3.4 GR1b; fix-queue PB41): "the
+    /// subscript is the result of the evaluation of arithmetic-expression-1. If the evaluation of
+    /// arithmetic-expression-1 does not result in an integer, the EC-BOUND-SUBSCRIPT exception condition is set to
+    /// exist." A COBOL.NET numeric item stores UNSCALED, so <c>PIC 9V9 VALUE 2.0</c> is the field <c>20L</c> at
+    /// scale 1 — the VALUE is 2 and the STORAGE is 20. The scale-less overloads above are the scale-0 fast path and
+    /// stay byte-identical; these carry the scale the item's PICTURE declares.
+    /// <para>The three arities exist for the same reason the scale-less pair does: a subscript item's storage form
+    /// (native <c>long</c>, the character image a post-bind whole-group analysis may select, or the
+    /// <see cref="Int128"/> wide tier a D18 function-subscript temp uses) is decided AFTER the bind-time
+    /// expression text is produced, so C# overload resolution picks the conversion at backend-compile time.</para>
+    /// <para>With EC-BOUND-SUBSCRIPT checking OFF the fractional position truncates toward zero and the reference
+    /// continues — the same lenient posture <see cref="At{T}"/> takes for an out-of-range occurrence, and
+    /// conforming for the same reason: the standard names the condition, and leaves the checking-off outcome to
+    /// the implementor.</para></summary>
+    public static long Occ(long unscaled, int scale) => OccScaled(unscaled, scale);
+
+    /// <inheritdoc cref="Occ(long,int)"/>
+    public static long Occ(string image, int scale) => OccScaled(CobolNum.FromAlphanumeric(image), scale);
+
+    /// <inheritdoc cref="Occ(long,int)"/>
+    public static long Occ(Int128 unscaled, int scale) => OccScaled(unscaled, scale);
+
+    private static long OccScaled(Int128 unscaled, int scale)
+    {
+        if (CobolNum.HasFraction(unscaled, scale))
+            ExceptionState.SubscriptError(
+                $"subscript value {CobolNum.PlainValue(unscaled, scale)} is not an integer (ISO 8.4.2.3.4 GR1b)");
+        return CobolNum.PositionOf(unscaled, scale);
+    }
+
     /// <summary>The CURRENT character extent of an occurs-depending GROUP operand (ISO/IEC 1989:2023 §13.18.38
     /// GR8): the fixed prefix plus data-name-1's value clamped to [0, max] occurrences, times the per-occurrence
     /// width. A count outside integer-1..integer-2 makes the excess content undefined (GR7); the benign clamp is

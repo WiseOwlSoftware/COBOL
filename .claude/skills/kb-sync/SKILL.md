@@ -24,27 +24,26 @@ What remains:
 
 | Register | Owns | Authority |
 |---|---|---|
-| `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 | live state: where we are, NEXT, gates, open GAPs | **the only live-state SSOT** |
-| `kb/Work/` (was CONFORMANCE-FIX-QUEUE.md) | the spec-derived defect queue | its LANDED header is the tally |
+| **`kb/Work/`** | ⛔ **ALL remaining work** — defects, analyses, adjudications, decisions | **the ONE work register**; `work.py next` is "what now" |
+| `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 | live state: where we are, gates, open GAPs, owner decisions, campaign narrative | **the only live-state SSOT** — and **NOT a worklist** |
 | `tests/version-matrix/constructs.json` | per-construct edition metadata + status | authoritative for CI and drift tests |
-| `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT |
-| `kb/Work/` (the work register) (Obsidian) | the human-facing checklist | **mirrors** the four above |
+| `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT — **COMPLETE, 210/210** |
 
-The tracker covers **three distinct workstreams** — §A unimplemented ISO constructs (the `pending` rows of
-`constructs.json`), §B the open remainder of the fix queue, and §C spec-transcription corrections. Do not conflate
-them; they are different sets and they get fixed in different places. §A and §B change the COMPILER; **§C changes
-`specs/ISO_COBOL.md`** — the transcription, not the code. Where a transcription defect also reached the compiler,
-that is a separate §B item.
-
-⛔ **§C IS GONE, WITH THE NOTE IT LIVED IN (2026-08-04).** It mirrored the spec-reconciliation ledger into `kb/Remaining Work Tracker.md` via `scripts/spec/tracker_section.py`. Both were retired: that ledger is **COMPLETE (210/210, nothing outstanding)** and the tracker was folded into `kb/Work/`, so the script mirrored a closed register into a deleted note. Do not look for either.
+⛔ **THERE IS NO "TRACKER" AND NO §A/§B/§C ANY MORE.** Those were sections of `kb/Remaining Work Tracker.md`,
+retired 2026-08-04 along with `CONFORMANCE-FIX-QUEUE.md` and its LANDED header. One note per item in `kb/Work/`
+carries what all of them used to. If a doc still tells you to tick a tracker box or update a queue header, that
+doc is stale — fix it on discovery (below).
 
 ## When a construct lands
 
-Check its box in the tracker AND flip its `status` in `constructs.json`. Both, same commit.
+Flip its `status` in `constructs.json`, and flip the `status` of its `kb/Work/` note if it has one. Same commit.
 
 ## When a fix-queue item lands
 
-Update the queue's LANDED header, and the tracker's §B. If it moved the worklist, update plan §0.
+Flip `status: landed` in the item's `kb/Work/` note **in the commit that lands the fix**, and record what the work
+corrected — a design doc that specified the wrong thing gets fixed in the same change set (CLAUDE.md rule 2).
+Update plan §0 only for what §0 owns: live state, gates, owner decisions, narrative. **Never re-add a worklist
+there.**
 
 ## The Obsidian vault
 
@@ -71,8 +70,8 @@ tags. Leave genuinely historical artifacts alone: `DEVLOG.md`, `PHASE4_RECONCILI
 
 ## At every phase close
 
-Sweep all of it: the phase doc's status and each exit criterion reconciled to as-built, plan §0's worklist and
-next-phase pointer, the affected design docs' open questions, `docs/DOC_INDEX.md` rows for anything added or
-retired, the memory index, and a DEVLOG entry.
+Sweep all of it: the phase doc's status and each exit criterion reconciled to as-built, plan §0's live state and
+next-phase pointer, the open notes in `kb/Work/`, the affected design docs' open questions, `docs/DOC_INDEX.md`
+rows for anything added or retired, the memory index, and a DEVLOG entry.
 
 > ⛔ **The `Remaining Work Tracker` and `CONFORMANCE-FIX-QUEUE.md` were RETIRED 2026-08-04** — five overlapping registers, three of which each claimed to be canonical, were folded into **`kb/Work/`** (one note per item) with `kb/Work.base` as the view. Nothing was lost: bodies migrated verbatim.

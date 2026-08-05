@@ -396,6 +396,31 @@ public sealed partial class DataBinder
     /// not to an arm statement that binds later).</summary>
     internal List<OoPendingPropertyOp> OoPendingPropertyOps { get; } = [];
 
+    /// <summary>⛔ THE ONE statement-scoped pending PRE-OP list — every activation that must run BEFORE the
+    /// carrying statement, in REGISTRATION order. Two clients register here:
+    /// <list type="bullet">
+    ///   <item>a user-defined function activation (<c>UdfBinder</c>, ISO §8.4.3.2.4 GR1 — the caller-side
+    ///         <c>BoundCallProgram</c> into the result temp);</item>
+    ///   <item>a D18 function-bearing subscript / ref-mod segment's §15.4 temporary store
+    ///         (<c>StatementBinder.MaterializeSubscriptSegment</c>, fix-queue PB17).</item>
+    /// </list>
+    /// <para>⛔ ONE LIST, NOT TWO, AND THAT IS A CORRECTNESS REQUIREMENT rather than tidiness: the two kinds
+    /// INTERLEAVE. A function subscript inside a user-function argument — <c>FUNCTION F(W-E(FUNCTION INTEGER(3)))</c>
+    /// — registers the subscript temp while F's arguments bind and F's activation after, so only a single list in
+    /// registration order puts the store before the activation that consumes it. Two parallel lists would have to
+    /// re-derive that ordering, and any rule for merging them would be a second mechanism for one job.</para>
+    /// <para>Both kinds are UNCONDITIONAL pre-ops with identical hoist rules, because §8.4.3.2.3 SR1 makes a
+    /// function-identifier a non-receiving operand — so unlike <see cref="OoPendingPropertyOps"/> there is no
+    /// store-polarity classification and there are no post-ops.</para>
+    /// <para>It lives on <c>DataBinder</c> because that is the ONLY binder both clients can reach: the procedure
+    /// dependency is one-way, <c>StatementBinder(DataBinder, ReferenceResolver)</c>, so ReferenceResolver's
+    /// materialization hook cannot register on <c>UdfBinder</c>. <c>UdfBinder.PendingCount</c> is the mark for the
+    /// mark-on-entry / drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it now covers BOTH
+    /// kinds — which is why a function subscript in a per-evaluation window rides
+    /// <c>UdfAttachPerEvaluation</c> and one in an unreached operand window stages loud through
+    /// <c>UdfStagePerEvaluationResidue</c> with no extra wiring.</para></summary>
+    internal List<Bound.BoundStatement> PendingPreOps { get; } = [];
+
     /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary
     /// item CLONED from the accessor's crossing description (<paramref name="model"/> = the GET RETURNING
     /// item or the SET formal — identical by the §13.18.42 clone rule / the 0842 SR7 description-equality

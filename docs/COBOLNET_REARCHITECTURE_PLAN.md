@@ -57,10 +57,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   all in §15 (the intrinsic functions), leaving the GAP a little under 3,800. **Never quote a number from this
   paragraph — run the probe.** FOUR Phase-B batches have run, each fanned out one agent per function and then
   handed to an independent agent told to OVERTURN; every batch's overturns were downgrades.
-- **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW** (`docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md`;
-  its header is the tally). **PB1–PB11 + PB13 + PB19–PB22 LANDED (PB14 half-closed by PB21); PB12, PB14, PB15, PB17, PB18, PB23–PB27 are
-  the live set** — see
-  NEXT for the order to work them. **No BLOCKER is open.** Three of the ten landed were blockers and every one
+- **THE FIX QUEUE IS LIVE AGAIN AND IS FED BY THE REVIEW.** ⛔ **WHAT IS OPEN AND WHAT IS LANDED IS NOT WRITTEN
+  HERE — `kb/Work/` OWNS IT** (CLAUDE.md rule 8; `python scripts/spec/work.py next`, and session-probe prints it
+  every session). The enumeration that used to sit on this line was a worklist, which §0 may not carry, and it
+  rotted exactly the way rule 8 predicts — it listed landed items as live. **No BLOCKER is open.** What belongs
+  here is the SHAPE of what the review found, not its inventory: three of the landed were blockers and every one
   was SILENT — the pattern this review exists to catch:
   · **PB5** — the float→fixed quantizer saturated at |value| ≈ 9.2 × 10⁹, so `FUNCTION ANNUITY(1e10 1)` into an
     ordinary `PIC 9(12)V99` money field returned 9223372036.85 for 10000000001.00, with **NO SIZE ERROR**.
@@ -148,18 +149,23 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ 2026-08-04 SESSION CLOSE — four commits: PB15, its follow-up (PB40 opened), the fleet build guard, and the
-PB17 analysis.** ⛔ Run the probe; never quote a number from this paragraph.
-**▶ THE NEXT SESSION'S FIRST TASK IS PB17, AND ITS DESIGN IS SETTLED, OWNER-APPROVED AND CANONICAL IN THE DESIGN
-DOC.** Implement FROM **`COBOLNET_DATA_MODEL_DESIGN.md` D18** (rule 2 — that doc owns `Place`/`ReferenceResolver`);
-`kb/Work/PB17.md` adds the numbered execution order and the measured repro. D18 carries the corrected six-link
-citation chain, BOTH rejected alternatives with their reasons, and the one correctness trap (§8.8.4.13 r2 — do NOT
-hoist a function out of a repeatedly-evaluated condition; follow `UdfBinder`'s per-evaluation precedent INCLUDING
-its loud residue). ⚖ **Owner ruling: implement in FULL; the stage-loud stopgap was explicitly declined**, so
-PB17's run-time crash STANDS until the real fix lands — deliberate, not an oversight.
-⛔ **Run the comprehensive battery FIRST** — see the Gates bullet: PB15 changed compiler code and only the
-wave-local gate has run on it.
-⚠ **A PROCESS GUARD LANDED THIS SESSION AND IT IS MECHANICAL, NOT ADVISORY:** `scripts/hooks/fleet_active_build.py`
+**⚙ 2026-08-04 SESSION CLOSE — PB17 LANDED IN FULL, and it dragged two more defects out with it (PB41, PB42).**
+⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is open — not this section.
+**▶ THE D18 ROUTE IS NOW THE STANDING ANSWER for any subscript / ref-mod segment the token renderer cannot
+render**: re-parse the verbatim text through `subscriptExpressionFragment : arithmeticExpression EOF` and bind it
+through the ONE `ExpressionBinder.BindExpr`. **The gate is "can the renderer render it", NOT a token list** —
+PB42 is what the list version cost (`W-E(W-I ** 2)` and `W-E(2.0)`, plain arithmetic, still throwing at run time
+one commit later). The `arithmeticExpression` grammar adjudicates admissibility, so the next arithmetic form needs
+no edit at all.
+⚠ **THE OPEN RESIDUE THIS WAVE LEAVES**, both recorded on their notes and neither an oversight: the three
+per-evaluation windows `UdfStagePerEvaluationResidue` stages loud (`COBOLNET1509`) now reject function-bearing
+SUBSCRIPTS in those positions as well as user-function calls; and an alphanumeric-literal or `ALL` subscript is
+correctly refused but at RUN TIME rather than as a bind diagnostic.
+⛔ **A CORRECTNESS LESSON WORTH MORE THAN THE FIX: the §15.4 temp's own DESCRIPTION was a latent wrong answer.**
+D18 had specified `Scale: 0`; that truncates, so `W-E(FUNCTION SQRT(2))` would have silently indexed occurrence 1
+instead of setting EC-BOUND-SUBSCRIPT. Asking what that would do is what exposed PB41 — the same bug with no
+function in sight. When a design names a synthesized item's PICTURE, ask which spec fact that PICTURE destroys.
+⚠ **A PROCESS GUARD LANDED 2026-08-04 AND IT IS MECHANICAL, NOT ADVISORY:** `scripts/hooks/fleet_active_build.py`
 DENIES `dotnet build`/`test` while any subagent transcript for the session was written in the last 120 s. It exists
 because I rebuilt the compiler ~6 times underneath a running 60-agent measurement fleet, wasting all of it —
 and explained away the `MSB3027 cobol.exe locked` build failure that was the tell. Measure INLINE first; a fan-out
@@ -911,28 +917,38 @@ result. Run the long legs ONE AT A TIME.
   leg can FALSE-RED — re-run the NAMED test serially before believing a regression, and never `taskkill
   dotnet.exe` immediately before a guard. Gating a construct's `introducedIn` breaks every test/golden that
   compiles it below the new edition — sweep and re-bake in the same change set.
-- ⛔ **THE COMPREHENSIVE GATE IS OWED BEFORE PB17 LANDS — PB15 CHANGED COMPILER CODE AND ONLY THE WAVE-LOCAL GATE
-  HAS RUN ON IT.** Measured on the PB15 tree: greenfield **Unit 3646/3646** and **Conformance corpus 431/431**,
-  both 0 failed / 0 skipped (the corpus filter, NOT the full Conformance suite). **NOT yet run since PB15:** the
-  FULL greenfield Conformance suite, the characterization leg, and the **GnuCOBOL differential** — and the
-  differential is the leg that can see a reference/subscript change, which is exactly PB17's subject. §0's own
-  standing rule applies verbatim: *re-run the full battery before the next COMPILER change*. **PB17 is that
-  change**, so the next session runs `bash scripts/battery.sh` FIRST, attributes any red mechanically, and only
-  then starts D18. ⚠ Do not read "431/431" as a battery result — it is one filter.
-- ⚠ **WHAT THE BATTERY REFERENCE BELOW DOES AND DOES NOT COVER (2026-08-03 session close).** It was measured
-  after the INSTRUMENT WAVE and is **NO LONGER the compiler's baseline — PB15 changed compiler code on
-  2026-08-04** (see the bullet above). It stands only as the last COMPREHENSIVE measurement.
-  The later commits touched docs, `scripts/spec/*`, a workflow, and `traceability-inventory.json` (a data file
-  the compiler never reads). Batch 5's gate is therefore the right one and it is GREEN —
-  `SpecTraceabilityInventoryDriftTests` **10/10**, which is what proves the recorded references resolve in the
-  tree. **Re-run the full battery before the next COMPILER change, not before the next doc change.**
-- **⛔ BATTERY REFERENCE — re-measured on `main` after the INSTRUMENT WAVE (2026-08-03).**
-  Measured by one `bash scripts/battery.sh` run (Conformance ∥ Unit ∥ Characterization, then the differential),
-  which printed **`=== BATTERY: ALL GREEN ===`**:
+  ⛔ **DO NOT EDIT COMPILER SOURCES WHILE `battery.sh` IS RUNNING — PHASE 2 REBUILDS.** Phase 1 is `--no-build`,
+  which makes editing look safe; `guard-fast` in phase 2 is not, so a mid-run edit silently splits the battery
+  across two trees and every leg after phase 1 becomes unattributable. This cost a full 11-minute run on
+  2026-08-04. The `fleet_active_build.py` guard covers subagent FLEETS, not batteries — this one is on the human
+  side of the loop. If sources must change, stop the run, then re-run it whole.
+- ✅ **THAT OWED GATE HAS BEEN PAID — the comprehensive battery ran on the PB17+PB41+PB42 tree and printed
+  `=== BATTERY: ALL GREEN ===`** (2026-08-04 19:13, one `bash scripts/battery.sh` run, artifacts
+  `/tmp/battery-20260804-191318`). It therefore covers PB15 as well, which had only ever had the wave-local gate.
+  See the BATTERY REFERENCE below for the numbers — they are not restated here (single-write rule).
+  ⚠ **ONE LIMIT ON THAT VERDICT, STATED RATHER THAN GLOSSED:** the differential's four totals are IDENTICAL to
+  the recorded baseline across 1323 cases, which is strong evidence of zero flips but is **not** the per-case diff
+  `feedback_comprehensive_gate_mechanics` asks for — offsetting flips would look the same. No per-case report from
+  the previous run had been kept, so there was nothing to diff against. **This run's report is now preserved at
+  `tests/external/gnucobol/last-differential-report.json`** (git-ignored, so no GPL content is committed) and the
+  next battery CAN do the per-case diff. Whether a per-case baseline of names+verdicts should be committed is an
+  open owner question, not something to decide silently.
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB17 + PB41 + PB42 tree (2026-08-04 19:13).**
+  One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`** (artifacts
+  `/tmp/battery-20260804-191318`): FULL greenfield Conformance **4200 / 4200, zero skipped, NOTHING red**
+  (10 m 10 s) · greenfield Unit **3646 / 3646, zero skipped** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
+  **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
+  101 WE_ACCEPT_THEY_REJECT** — identical to the previous run's totals. ⚠ **Totals-identical is NOT the per-case
+  diff** (see the paid-gate bullet above); this run's report is preserved for the next one to diff against.
+  ⚠ Conformance moved 4180 → 4200 because each landed fix ships its goldens (PB15's, plus this wave's six).
+  What must hold is **zero failures, zero skipped**, never a particular total.
+- ⚙ **THE SUPERSEDED REFERENCE (2026-08-03, after the INSTRUMENT WAVE)** — kept ONLY because it measured legs the
+  current run does not (the LEGACY suites and the serial `guard.sh`), and for the instrument notes below it.
+  ⛔ Its greenfield numbers are stale; read them as history, never as the baseline.
   FULL greenfield Conformance **4180 / 4180, zero skipped, NOTHING red** (13 m 03 s) · greenfield Unit
   **3634 / 3634, zero skipped** (3628 + the 6 new `ProcessObservationDriftTests`) · characterization **33 / 33** ·
-  GnuCOBOL differential **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
-  101 WE_ACCEPT_THEY_REJECT** — IDENTICAL to the recorded baseline, so **0 per-case flips**, and **0
+  GnuCOBOL differential **1323 cases**, the same four totals — **0 per-case flips**, and **0
   `NO_COMPILER_EVIDENCE`** (the new A12e bucket found nothing evidence-free in a full run). Separately measured:
   legacy Unit **1203 / 1203** · legacy Integration **503 / 504 (1 skipped)** · `guard-fast` NIST **353 MATCH /
   0 REGRESSION** with **NIST AUDIT CLEAN — population 376/376, missing 0, duplicate 0, manifest 0, unexpected 0,

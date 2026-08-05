@@ -96,7 +96,11 @@
     "pb24_length_refmod_argument",
     "pb24_length_variable_length_group",
     "pb24_length_physical_keyword",
-    "pb15_result_type_follows_argument"
+    "pb15_result_type_follows_argument",
+    "pb17_function_subscript",
+    "pb41_scaled_position",
+    "pb41_position_not_integer",
+    "pb42_power_and_decimal_subscript"
   ],
   "pending": []
 }

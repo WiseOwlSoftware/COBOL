@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -29,8 +29,39 @@ using Core = CobolParserCore;
 /// register, a reference-modified reference (<c>(s:l)</c> — G2-1c), or a subscript form not yet handled — so the
 /// caller emits a loud not-implemented guard rather than silently mis-binding.
 /// </summary>
+/// <summary>Which ORDINAL-POSITION rule a rendered segment is subject to. The two positions share one token
+/// renderer and one integrality rule, and differ only in the Table 13 condition a non-integer value sets:
+/// §8.4.2.3.4 GR1b names EC-BOUND-SUBSCRIPT for a subscript, §8.4.3.3.4 rule 5)c) names EC-BOUND-REF-MOD for a
+/// leftmost-position/length (fix-queue PB41). Carried by parameter rather than a field — the renderer is
+/// re-entrant through <see cref="ReferenceResolver.ReadRefMod(CobolParserCore.RefModPartContext)"/>, and ambient
+/// state goes stale across a re-entrant descent (the ExpressionBinder OperandContext discipline).</summary>
+internal enum SegmentPosition
+{
+    /// <summary>A subscript (ISO §8.4.2.3.2 <c>arithmetic-expression-1</c>) — EC-BOUND-SUBSCRIPT.</summary>
+    Subscript,
+
+    /// <summary>A reference-modifier leftmost-position or length (§8.4.3.3.3 SR4) — EC-BOUND-REF-MOD.</summary>
+    RefMod,
+}
+
 public sealed class ReferenceResolver(DataBinder data)
 {
+    /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod segment the token renderer cannot render
+    /// (fix-queue PB17): given the segment's verbatim source text and its line, it re-parses the text through
+    /// <c>SubscriptExpressionFragment</c>, binds it through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes
+    /// the §15.4 temporary via <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped
+    /// pending PRE-op on <see cref="DataBinder.PendingPreOps"/>, and returns the temp — which this resolver then
+    /// renders as an ordinary data-name read.
+    /// <para>⛔ IT IS A HOOK, NOT A COLLABORATOR REFERENCE, because the binder dependency is ONE-WAY:
+    /// <c>StatementBinder(DataBinder, ReferenceResolver)</c>. StatementBinder installs it in its constructor (the
+    /// <c>ConditionRenderer.Calls</c> property-wire precedent). Null on the DATA-division resolution paths
+    /// (<c>DataBinder.Constants</c>/<c>Ptr</c> build a throwaway resolver with no procedure binder), where the
+    /// old loud posture stands — a VALUE/ADDRESS OF subscript cannot carry a function activation anyway.</para>
+    /// <para>⚠ Binding happens HERE, at resolve time, NOT at the drain. That is load-bearing for nesting: the UDF
+    /// precedent's own words are "a nested call registers while its consumer's arguments bind, so it precedes the
+    /// consumer in the sequence". Deferring the bind to the drain would append an INNER segment's temp AFTER its
+    /// consumer's — <c>W-E(FUNCTION INTEGER(W-F(FUNCTION INTEGER(2))))</c> would store in the wrong order.</para></summary>
+    internal Func<string, int, DataItem?>? MaterializeSegment { get; set; }
     /// <summary>The object-property reference BINDER (ISO §8.4.3.9; deep-dive D-P2): when normal
     /// qualification fails and the single qualifier is a class-name (factory form) or a TYPED object
     /// reference (instance form) whose roster carries an accessor for the head word under the PINNED
@@ -255,13 +286,13 @@ public sealed class ReferenceResolver(DataBinder data)
         if (rmExprs.Length == 0) return null;
         var startToks = new List<IToken>();
         CollectLeafTokens(rmExprs[0], startToks);
-        if (RenderSegment(startToks) is not { } rmStart) return null;
+        if (RenderSegment(startToks, SegmentPosition.RefMod) is not { } rmStart) return null;
         string? rmLen = null;
         if (rmExprs.Length > 1)
         {
             var lenToks = new List<IToken>();
             CollectLeafTokens(rmExprs[1], lenToks);
-            if (RenderSegment(lenToks) is not { } l) return null;
+            if (RenderSegment(lenToks, SegmentPosition.RefMod) is not { } l) return null;
             rmLen = l;
         }
         // §7.3.23 / §8.4.3.3.4 item 5c: the ref-mod allows a zero-length result iff REF-MOD-ZERO-LENGTH is ON at
@@ -411,7 +442,8 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>Render one subscript token segment to a C# index expression (the private
     /// <see cref="RenderSegment"/>), or null when the segment uses an unhandled form (caller fails loud).</summary>
-    internal string? RenderIndexSegment(List<IToken> tokens) => RenderSegment(tokens);
+    internal string? RenderIndexSegment(List<IToken> tokens) =>
+        RenderSegment(tokens, SegmentPosition.Subscript);
 
     /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §8.4.3.11) to its item plus the OCCURS displacement
     /// of its subscripts — <c>(idx − 1) × width [+ …]</c> character positions within the item's storage class,
@@ -676,12 +708,13 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         if (colonIdx >= 0)   // reference modification: start [: length]
         {
-            if (RenderSegment(tokens.GetRange(0, colonIdx)) is not { } start) return (null, true);
+            if (RenderSegment(tokens.GetRange(0, colonIdx), SegmentPosition.RefMod) is not { } start)
+                return (null, true);
             var result = new List<string> { start };
             var lengthTokens = tokens.GetRange(colonIdx + 1, tokens.Count - colonIdx - 1);
             if (lengthTokens.Any(t => t.Type != Core.SUB_WS))
             {
-                if (RenderSegment(lengthTokens) is not { } len) return (null, true);
+                if (RenderSegment(lengthTokens, SegmentPosition.RefMod) is not { } len) return (null, true);
                 result.Add(len);
             }
             return (result, true);
@@ -690,7 +723,7 @@ public sealed class ReferenceResolver(DataBinder data)
         var exprs = new List<string>();
         foreach (var seg in SplitSubscriptTokens(tokens))
         {
-            if (RenderSegment(seg) is not { } e) return (null, false);
+            if (RenderSegment(seg, SegmentPosition.Subscript) is not { } e) return (null, false);
             exprs.Add(e);
         }
         return (exprs, false);
@@ -766,12 +799,26 @@ public sealed class ReferenceResolver(DataBinder data)
         return segments;
     }
 
-    /// <summary>Render one subscript segment to a C# <c>long</c> index expression, or <see langword="null"/> if it
-    /// uses a form not yet handled (so the caller fails loud). Handles integer literals, data-name / index-name
-    /// references, the arithmetic operators, and parentheses — the relative-subscript and simple-index forms.</summary>
-    private string? RenderSegment(List<IToken> tokens)
+    /// <summary>Render one subscript / ref-mod segment to a C# <c>long</c> position expression, or
+    /// <see langword="null"/> if it uses a form neither the token renderer nor the D18 materialization route
+    /// handles (so the caller fails loud). The renderer proper is a fast path for the shapes that map to C# text
+    /// one token at a time — integer literals, data-name / index-name references, <c>+ - * /</c> and parentheses,
+    /// i.e. the relative-subscript and simple-index forms. <b>EVERYTHING ELSE routes through
+    /// <see cref="MaterializeViaFragment"/></b>, which re-parses and binds it properly; the renderer is an
+    /// optimization over that route, never the arbiter of what is legal in the position (fix-queue PB42).</summary>
+    private string? RenderSegment(List<IToken> tokens, SegmentPosition position)
     {
         var sb = new System.Text.StringBuilder();
+        // ⛔ A COMPOUND segment (one carrying an arithmetic operator) whose operands include a SCALED item cannot
+        // be rendered operand-by-operand, because §8.4.2.3.4 GR1b tests the integrality of THE RESULT of the whole
+        // expression, not of each operand: `W-E(W-P + W-Q)` with W-P = W-Q = 1.5 has the integral result 3.0 and
+        // is a legal subscript, while de-scaling each operand first yields 1 + 1 = 2 AND raises the condition
+        // twice on source that never violated it. Such a segment routes to the D18 materializer, which evaluates
+        // the expression at full precision into the §15.4 temp and applies the integrality rule exactly once — to
+        // the result, where the standard applies it. A SINGLE scaled operand needs no such detour: it IS the
+        // result, so the direct read below is equivalent and cheaper.
+        bool compound = tokens.Any(t => t.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR
+            or Core.SUB_SLASH or Core.SUB_POWER or Core.PLUS or Core.MINUS or Core.STAR or Core.SLASH);
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
@@ -803,15 +850,85 @@ public sealed class ReferenceResolver(DataBinder data)
                         j = m;
                     }
                     i = j;
-                    if (ResolveSubscriptName(name, qualifiers) is not { } readExpr) return null;
+                    // A FUNCTION-BEARING segment cannot be rendered token-by-token (the head word is a function
+                    // name, not a data-name), so the WHOLE segment routes to D18 rather than this arm failing.
+                    if (IsFunctionBearing(tokens)) return MaterializeViaFragment(tokens, position);
+                    if (ResolveSubscriptName(name, qualifiers, position, out bool scaled) is not { } readExpr)
+                        return null;
+                    // A scaled operand inside a compound segment — evaluate the whole expression instead (above).
+                    if (scaled && compound) return MaterializeViaFragment(tokens, position);
                     sb.Append(readExpr);
                     break;
                 }
-                default: return null;   // SUB_STRINGLIT / SUB_DECIMALLIT / SUB_ALL / FUNCTION etc.
+                // ⛔ EVERY token the renderer cannot render ROUTES TO D18 — the gate asks "can this be rendered",
+                // never "is this one of a listed set" (fix-queue PB42). The listed-set version shipped for one
+                // commit and dropped two shapes of plain legal arithmetic on the floor: `W-E(W-I ** 2)` and
+                // `W-E(2.0)` each compiled clean and threw at RUN TIME, because `**` had no case arm and a
+                // decimal literal had none either — while §8.8.1.1 admits "a numeric literal … separated by
+                // arithmetic operators" and §8.3.2.4.2 lists `**` as one, so both are arithmetic-expression-1
+                // under §8.4.2.3.2 and legal in the position.
+                // ⚠ THIS IS NOT THE UNAUDITED-TABLE MISTAKE PB1 TAUGHT, and the reason is structural: the
+                // materializer re-parses the segment through `subscriptExpressionFragment : arithmeticExpression
+                // EOF`, so THE ARITHMETIC-EXPRESSION GRAMMAR IS THE ADJUDICATOR. A shape §8.8.1.1 does not admit
+                // — an alphanumeric literal, an ALL figurative constant (legal only in the §8.4.2.3.3 r6
+                // positions) — cannot parse as an arithmetic expression, so the fragment returns null and the
+                // caller keeps the exact loud posture it had. Nothing is admitted by assertion; it is admitted by
+                // parsing, which is why the NEXT arithmetic token needs no edit here at all.
+                default: return MaterializeViaFragment(tokens, position);
             }
         }
         string expr = sb.ToString().Trim();
         return expr.Length == 0 ? null : expr;
+    }
+
+    /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §8.4.3.1.2 Format 1) and therefore
+    /// belongs to the D18 materialization route rather than the token renderer: either the explicit
+    /// <c>FUNCTION</c> keyword (a plain <c>SUB_IDENTIFIER</c> in SUBSCRIPT mode), or the §8.4.3.2.3 SR2
+    /// keyword-omitted form — a REPOSITORY-declared intrinsic or a user-function name, immediately followed by a
+    /// left parenthesis, that is NOT shadowed by a declared data item (a declared item always wins, exactly as in
+    /// <c>IntrinsicBinder.KeywordOmittedFunction</c>; the two must not drift apart, which is why both ask the
+    /// question the same way).</summary>
+    private bool IsFunctionBearing(List<IToken> tokens)
+    {
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i].Type is not (Core.SUB_IDENTIFIER or Core.IDENTIFIER)) continue;
+            string w = tokens[i].Text;
+            if (w.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)) return true;
+            int k = i + 1;
+            while (k < tokens.Count && tokens[k].Type == Core.SUB_WS) k++;
+            if (k >= tokens.Count || tokens[k].Type is not (Core.SUB_LPAREN or Core.LPAREN)) continue;
+            if (data.Symbols.TryResolve(w, data.ActiveScope, out _)) continue;   // a declared item wins
+            if (data.UserFunctionNames.Contains(w)
+                || ((data.RepositoryAllIntrinsic || data.RepositoryIntrinsics.Contains(w))
+                    && IntrinsicCatalog.TryGet(w, out _)))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>The D18 route (fix-queue PB17, widened by PB42): materialize ANY segment the token renderer
+    /// cannot render into the §15.4 temporary, and render the segment as that temp's ordinary position read. The
+    /// segment's VERBATIM source text is recovered from the char stream (the <c>IntrinsicBinder.ReparseArgs</c>
+    /// idiom — spacing is significant, e.g. <c>A - 4</c> vs <c>A -4</c>) and handed to the
+    /// <see cref="MaterializeSegment"/> hook.
+    /// <para>⛔ IT IS DELIBERATELY NOT GATED ON A TOKEN LIST. The hook re-parses the text through
+    /// <c>subscriptExpressionFragment : arithmeticExpression EOF</c>, so the ARITHMETIC-EXPRESSION GRAMMAR decides
+    /// admissibility: a shape §8.8.1.1 does not admit cannot parse, the hook returns null, and the caller keeps
+    /// its loud posture unchanged. That is what lets a function-identifier, <c>**</c>, a decimal literal and every
+    /// future arithmetic form share ONE route with no per-token edit — and why widening the gate cannot repeat
+    /// PB1's unaudited-table mistake.</para>
+    /// <para>Null when the hook is absent (a data-division resolver builds a throwaway resolver with no procedure
+    /// binder) or the fragment fails to parse or bind — in every such case the caller's loud posture is exactly
+    /// what it was before D18.</para></summary>
+    private string? MaterializeViaFragment(List<IToken> tokens, SegmentPosition position)
+    {
+        if (MaterializeSegment is null || tokens.Count == 0) return null;
+        var first = tokens[0];
+        if (first.InputStream is not { } stream) return null;
+        string text = stream.GetText(
+            new Antlr4.Runtime.Misc.Interval(first.StartIndex, tokens[^1].StopIndex));
+        return MaterializeSegment(text, first.Line) is { } temp ? PositionRead(temp, position) : null;
     }
 
     /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
@@ -819,8 +936,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// A data-item read is wrapped in <c>CobolTable.Occ(…)</c> — overload resolution converts a STRING-stored
     /// occurrence number (a leaf the post-bind whole-group analysis flags <see cref="DataItem.StoreAsImage"/>, a
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
-    private string? ResolveSubscriptName(string name, List<string> qualifiers)
+    /// <param name="scaled">Set when the resolved operand carries a nonzero PICTURE scale, so the caller can send a
+    /// COMPOUND segment to the D18 materializer instead (the §8.4.2.3.4 GR1b result-vs-operand distinction).</param>
+    private string? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
+        out bool scaled)
     {
+        scaled = false;
+        // An index-name is an occurrence number by construction (§13.18.38) and a constant-name substitutes an
+        // INTEGER literal — neither can be scaled, so both keep the fast path.
         if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field)) return field;
         // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §13.10.3 SR2 /
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — the literal text IS the C# read.
@@ -828,6 +951,36 @@ public sealed class ReferenceResolver(DataBinder data)
             && data.FindConstant(name) is { Category: PicCategory.Numeric, IsInteger: true } k)
             return k.Text;
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
-        return item is not null && AccessPath(item, []) is { } path ? $"CobolTable.Occ({path})" : null;
+        if (item is null) return null;
+        scaled = item.Pic?.Scale > 0;
+        return PositionRead(item, position);
+    }
+
+    /// <summary>⛔ THE ONE ORDINAL-POSITION READ (fix-queue PB41): an already-resolved numeric item → the C#
+    /// <c>long</c> expression for the POSITION it denotes, in either position kind.
+    /// <para>A COBOL.NET numeric item stores UNSCALED — <c>PIC 9V9 VALUE 2.0</c> is the field <c>20L</c> at scale
+    /// 1 — so the item's VALUE and its STORAGE are different numbers whenever the PICTURE has a <c>V</c>. Both
+    /// position clauses are about the VALUE: §8.4.2.3.4 GR1b makes the subscript "the result of the evaluation of
+    /// arithmetic-expression-1", and §8.4.3.3.4 rule 5)c) says the same for a leftmost-position/length. Reading the
+    /// storage instead is what made <c>W-E(W-S)</c> with <c>W-S = 2.0</c> index occurrence 20 and return the
+    /// out-of-range scratch.</para>
+    /// <para>A scale-0 item (the overwhelming majority) keeps the EXACT previous text — the bare
+    /// <c>CobolTable.Occ(path)</c> — so the generated C# for ordinary subscripts is byte-identical and no
+    /// de-scaling division is emitted where none is needed. A scaled item passes its scale to the overload that
+    /// de-scales and raises the position's own Table 13 condition on a fractional value.</para>
+    /// <para>⚠ The runtime call is spelled out rather than routed through <c>RuntimeApi</c>: this text is produced
+    /// at BIND time (the D10 transitional string carrier) and the binder cannot reference the CodeGen assembly.
+    /// When PHASE 15 CUT 2.5 removes the SUBSCRIPT lexer mode and the carrier becomes <c>BoundExpr</c>, this
+    /// rendering moves to the renderer with the rest of it.</para></summary>
+    private string? PositionRead(DataItem item, SegmentPosition position)
+    {
+        if (AccessPath(item, []) is not { } path) return null;
+        // Scale 0 — an integer item — has no integrality question to answer, so neither position can raise and the
+        // position kind is irrelevant: keep the ONE historical text unchanged for both.
+        int scale = item.Pic?.Scale ?? 0;
+        if (scale <= 0) return $"CobolTable.Occ({path})";
+        return position == SegmentPosition.Subscript
+            ? $"CobolTable.Occ({path}, {scale})"
+            : $"CobolString.RefModPosition({path}, {scale})";
     }
 }

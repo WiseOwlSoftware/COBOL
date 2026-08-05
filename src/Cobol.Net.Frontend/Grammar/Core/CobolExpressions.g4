@@ -378,6 +378,21 @@ functionArgListFragment
     : functionArgList? EOF
     ;
 
+// The D18 SUBSCRIPT-EXPRESSION re-parse entry (binder-invoked only; ISO §8.4.2.3.2 admits `arithmetic-expression-1`
+// as a subscript and §8.4.3.3.3 SR4 as a reference-modifier position). A subscript / ref-mod SEGMENT that the
+// SUBSCRIPT-mode token renderer (ReferenceResolver.RenderSegment) cannot render — today a function-identifier,
+// fix-queue PB17 — is re-lexed from its VERBATIM source text and parsed through the ONE arithmeticExpression rule,
+// so it binds through ExpressionBinder.BindExpr exactly as every other arithmetic expression does. That is what
+// keeps the token renderer a token renderer instead of growing a THIRD hand-written expression compiler beside
+// ExpressionBinder and IntrinsicRenderer.
+// Referenced by nothing in compilationUnit — the functionArgListFragment precedent, so ZERO blast radius on the
+// main parse; the SUBSCRIPT lexer mode and the main subscript grammar are untouched (the D10/PHASE-15 deferral
+// stands).
+// ⛔ DEFAULT lexer mode, NOT PrimeFunctionArgs: a subscript is not a function-argument region, so the
+// §8.3.3.3.2 sign-adjacent literal twinning (which makes `MAX(A -4)` two arguments) must NOT fire here — inside a
+// subscript `A -4` is the subtraction §8.7.1 says it is.
+subscriptExpressionFragment : arithmeticExpression EOF ;
+
 // ── COMPILE-TIME DIRECTIVE-EXPRESSION fragments (ISO §7.3.6 arithmetic / §7.3.7 boolean / §7.3.8 constant-
 // conditional-expression). Isolated fragment entry rules — reachable ONLY from the frontend's directive-expression
 // re-parse (the functionArgListFragment precedent: referenced by nothing in compilationUnit, so ZERO blast radius

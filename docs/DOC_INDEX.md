@@ -134,4 +134,4 @@
 
 | Path | Type | Subject |
 |---|---|---|
-| `kb/` | DERIVED | MOCs, lookup tables (keywords · grammar · semantic-rules · IR mapping · runtime mapping · diagnostics · construct catalogue), diagrams, reverse indexes (ISO-clause→phase, runtime-class→IR), data-flow traces, and the live top-level `Remaining Work Tracker.md`. Setup/role: `kb/Context/Vault & Docs Integration.md`. Refresh notes when the docs they cite change; each carries a `last_updated` stamp. |
+| `kb/` | DERIVED | MOCs, lookup tables (keywords · grammar · semantic-rules · IR mapping · runtime mapping · diagnostics · construct catalogue), diagrams, reverse indexes (ISO-clause→phase, runtime-class→IR) and data-flow traces. ⛔ The top-level `Remaining Work Tracker.md` was RETIRED 2026-08-04 — **`kb/Work/` is the one work register** (see its row above). Setup/role: `kb/Context/Vault & Docs Integration.md`. Refresh notes when the docs they cite change; each carries a `last_updated` stamp. |

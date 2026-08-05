@@ -159,7 +159,9 @@
     "pb9-reserved-fn-no-repository",
     "pb12-exp-alphanumeric-argument",
     "pb11-format-kind-chimera",
-    "pb11-format-wrong-kind"
+    "pb11-format-wrong-kind",
+    "pb17-function-subscript-varying-by",
+    "pb17-function-subscript-evaluate-subject"
   ],
   "pending": []
 }

@@ -498,6 +498,40 @@ as an ordinary data-name through the existing `ResolveSubscriptName`.
 (**§8.4.3.2.3 SR1**), so intrinsic and user-function activations are both unconditional pre-ops with identical
 hoist rules — two mechanisms for one job would be the banned anti-pattern.
 
+**⛔ THE §15.4 TEMPORARY'S DESCRIPTION IS A CORRECTNESS DECISION, NOT A FORMALITY — AND THE FIRST ANSWER WAS
+WRONG.** §15.4.1 leaves the temporary's "characteristics and representation … defined by the implementor" when
+native arithmetic is in effect, so the shape is a genuine implementor choice; the ONE constraint on it is that it
+must not destroy the fact §8.4.2.3.4 GR1b tests. This design originally specified `Scale: 0` on the reasoning that
+a subscript is an occurrence number. **That is exactly wrong.** GR1b makes a subscript whose expression "does not
+result in an integer" set EC-BOUND-SUBSCRIPT, and §8.4.3.3.4 item 5)c says the same for a ref-mod position — so a
+scale-0 temp TRUNCATES the value on the way in and `W-E(FUNCTION SQRT(2))` silently indexes occurrence 1 instead
+of raising. The temp's own description would have turned legal source into a wrong answer, in the very code
+written to stop legal source from throwing. **The temp is `PIC S9(21)V9(9)` — 30 digits, scale 9** — so it takes
+the `Int128` wide tier (`PicInfo.IsWide`, >18 digits) and no subscript a program can express overflows it, which
+matters because high-order truncation could WRAP an out-of-range subscript into an in-range one and convert a
+detectable error into a silent one. It is synthetic, never enters `DataBinder.ConformanceForest`, so the edition
+digit-capacity gates (18 at COBOL-85) do not reach it — it is not a PICTURE the programmer wrote.
+
+**⛔ AND THE INTEGRALITY RULE IS ONE READ SHARED WITH ORDINARY SCALED SUBSCRIPTS (fix-queue PB41).** Asking what a
+scale-0 temp would do to a NUMERIC function result is what exposed the pre-existing sibling: a COBOL.NET numeric
+item stores UNSCALED — `PIC 9V9 VALUE 2.0` is the field `20L` at scale 1 — and `ResolveSubscriptName` never
+consulted `Pic.Scale`, so `W-E(W-S)` with `W-S = 2.0` indexed **occurrence 20**, fell outside `1..5`, and read the
+benign scratch slot. Compiled clean, ran to completion, wrong answer. Both clauses are about the VALUE, so both
+resolve at **ONE place — `ReferenceResolver.PositionRead`** — which renders `CobolTable.Occ(path, scale)` for a
+subscript and `CobolString.RefModPosition(path, scale)` for a ref-mod position; the shared de-scale/integrality
+arithmetic is `CobolNum.HasFraction`/`PositionOf`, and the two wrappers exist ONLY because the positions name
+different Table 13 conditions (EC-BOUND-SUBSCRIPT vs EC-BOUND-REF-MOD). **The position kind therefore travels as a
+parameter (`SegmentPosition`), never as renderer state** — `RenderSegment` is re-entrant through `ReadRefMod`, and
+ambient state goes stale across a re-entrant descent. A scale-0 item keeps the exact previous text, so the emitted
+C# for ordinary subscripts is byte-identical and no de-scaling division is emitted where none is needed.
+
+⚠ **A COMPOUND SEGMENT CARRYING A SCALED OPERAND ROUTES TO THE TEMP, NOT TO OPERAND-WISE DE-SCALING.** GR1b tests
+the integrality of **the result** of the whole expression, not of each operand: `W-E(W-P + W-Q)` with
+`W-P = W-Q = 1.5` has the integral result 3.0 and is a legal subscript, while de-scaling each operand first yields
+`1 + 1 = 2` **and** raises the condition twice on source that never violated it. Such a segment therefore takes
+the same materialization route, which evaluates it at full precision and applies the rule exactly once, where the
+standard applies it. A SINGLE scaled operand IS the result, so it needs no detour.
+
 ⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §8.8.4.13 r2 evaluates a
 function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
 SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
@@ -513,6 +547,11 @@ untouched.
 **Deleted by D10.** When PHASE 15 §"CUT 2.5" removes the SUBSCRIPT lexer mode and the string carrier becomes
 `BoundExpr`, the temp path goes with it — this is a decision that is *designed to be deleted*, which is why it
 must not grow a second carrier in the meantime.
+⚠ **The PB41 half is NOT deleted with it.** The integrality rule belongs to the two clauses, not to the carrier:
+after CUT 2.5 the position read moves into the expression renderer with the rest of the carrier, still naming the
+position's own Table 13 condition. Only the *materialization* is transitional; `HasFraction`/`PositionOf` and the
+two wrappers are permanent, and the goldens `pb41_scaled_position` / `pb41_position_not_integer` pin them across
+the migration.
 
 ## C# mapping
 
@@ -587,7 +626,7 @@ CONCRETE COBOL→C# MAPPINGS:
 
 Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is proven over 364 NIST tests): for each `(...)` suffix group, scan tokens — if it contains SUB_COLON it is a ref-mod (split into start/length sub-expressions at the colon), else it is a subscript list (split on SUB_WS / SUB_COMMA into N subscript expressions, each itself possibly a relative `idx ± lit`). Phase-A flatten produces a clean {qualifiers[], subscriptGroups[][], refMod?} that Phase-B resolves. Do NOT try to re-grammar this — the SUBSCRIPT-mode design is intentional and reusing the interpreter avoids re-deriving COBOL subscript edge cases.
 
-⚠ **The interpreter is a token renderer, not an expression compiler, and the difference is where it ends (D18).** `RenderSegment` handles literals, data-names, index-names, the operators and parentheses; its `default:` arm rejects `FUNCTION`, `SUB_STRINGLIT`, `SUB_DECIMALLIT` and `SUB_ALL`. A segment it cannot render is **re-parsed through an isolated fragment rule and bound by the real pipeline** (D18) — never grown a new hand-written arm, which is how a token renderer turns into a third expression compiler. **The remaining three rejected token types are NOT yet adjudicated**: `ALL` is legal only in the §8.4.2.3.3 r6 positions, and a decimal-literal subscript is legal source that GR1b then faults at run time via EC-BOUND-SUBSCRIPT. Route them one at a time with their clause read — enforcing them wholesale from this list would repeat PB1's unaudited-table mistake.
+⚠ **The interpreter is a token renderer, not an expression compiler, and the difference is where it ends (D18).** `RenderSegment` renders integer literals, data-names, index-names, `+ - * /` and parentheses one token at a time; **everything else is re-parsed through the isolated `subscriptExpressionFragment` rule and bound by the real pipeline** — never grown a new hand-written arm, which is how a token renderer turns into a third expression compiler. **The renderer is an OPTIMIZATION over that route, never the arbiter of what is legal in the position, and stating it the other way round cost a defect: PB42.** For one commit the D18 gate asked "is this segment FUNCTION-bearing?" instead of "can the renderer render it", so `W-E(W-I ** 2)` and `W-E(2.0)` — plain arithmetic under §8.8.1.1 ("a numeric literal … separated by arithmetic operators") with §8.3.2.4.2 listing `**` as an arithmetic operator — kept compiling clean and throwing at run time. ⛔ **Routing everything is NOT the unaudited-table mistake PB1 taught, and the reason is structural: the fragment rule is `arithmeticExpression EOF`, so THE GRAMMAR ADJUDICATES.** A shape §8.8.1.1 does not admit — an alphanumeric literal, an `ALL` figurative constant (legal only in the §8.4.2.3.3 r6 positions) — cannot parse as an arithmetic expression, the fragment returns null, and the caller keeps its exact loud posture. Admission is by parsing, not by assertion, which is why the next arithmetic form needs no edit here. ⚠ Those two remain **run-time** throws where they should be bind-time diagnostics — right position, wrong stage; that is PB42's recorded residue.
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 

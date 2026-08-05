@@ -61,6 +61,37 @@ public sealed class CodeWriter
         _atLineStart = false;
     }
 
+    /// <summary>
+    /// Run <paramref name="emit"/> and return everything it wrote, INSTEAD of appending it to the source — the
+    /// statement-emitter's output captured as a string.
+    /// <para>It exists for EXPRESSION-POSITION statement text: a <c>BoundUdfEvaluated</c> per-evaluation window
+    /// (ISO §8.8.4.13 r2) renders its pre-ops inside an immediately-invoked <c>Func&lt;bool&gt;</c>, whose body is
+    /// C# statement text the condition renderer must have as a string. Capturing lets that body come from the ONE
+    /// statement emitter — so a hoisted store gets the same scale alignment, truncation and wide-tier handling as
+    /// it would at statement position — instead of a second hand-written store renderer.</para>
+    /// <para>Indentation is reset to zero for the duration (the captured text is spliced into a single line) and
+    /// restored afterwards, so a capture cannot perturb the surrounding layout. Re-entrant: the nested capture's
+    /// span is its own.</para>
+    /// </summary>
+    public string CaptureText(Action emit)
+    {
+        int start = _sb.Length, savedIndent = _indent;
+        bool savedAtLineStart = _atLineStart;
+        _indent = 0;
+        _atLineStart = true;
+        try
+        {
+            emit();
+            return _sb.ToString(start, _sb.Length - start);
+        }
+        finally
+        {
+            _sb.Length = start;
+            _indent = savedIndent;
+            _atLineStart = savedAtLineStart;
+        }
+    }
+
     /// <summary>The accumulated C# source.</summary>
     public override string ToString() => _sb.ToString();
 

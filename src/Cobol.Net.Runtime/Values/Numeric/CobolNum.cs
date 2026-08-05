@@ -168,6 +168,39 @@ public static partial class CobolNum
     private static bool IsInexactAtScale(Int128 value, int fromScale, int toScale) =>
         toScale < fromScale && value % Pow10Wide(fromScale - toScale) != 0;
 
+    // ── The ORDINAL-POSITION integrality rule (ISO §8.4.2.3.4 GR1b · §8.4.3.3.4 rule 5)c); fix-queue PB41) ──────
+    // A subscript and a reference-modifier leftmost-position/length are the VALUE of an arithmetic expression, and
+    // BOTH clauses make a non-integer value an exception condition rather than a truncation. A COBOL.NET numeric
+    // item stores UNSCALED (PIC 9V9 VALUE 2.0 is the field 20L, scale 1), so the value question and the storage
+    // question are different questions — reading the storage as an occurrence number is how PB41 indexed
+    // occurrence 20 for the subscript 2.0. These two helpers are the ONE place that difference is resolved; the
+    // two positions differ ONLY in which Table 13 condition they name (EC-BOUND-SUBSCRIPT vs EC-BOUND-REF-MOD),
+    // which is why the wrappers live with their position (CobolTable.Occ / CobolString.RefModPosition) and the
+    // arithmetic lives here.
+
+    /// <summary>True when <paramref name="unscaled"/> at <paramref name="scale"/> carries a nonzero fraction —
+    /// i.e. the ordinal position it denotes is NOT an integer (ISO §8.4.2.3.4 GR1b / §8.4.3.3.4 rule 5)c)).
+    /// A scale of zero is the ordinary integer item and can never be fractional.</summary>
+    public static bool HasFraction(Int128 unscaled, int scale) =>
+        scale > 0 && unscaled % Pow10Wide(scale) != 0;
+
+    /// <summary>The integer ordinal position <paramref name="unscaled"/> at <paramref name="scale"/> denotes —
+    /// the VALUE, de-scaled, truncating toward zero. The caller has already raised its position's exception
+    /// condition for a fractional value (<see cref="HasFraction"/>); with that condition's checking OFF the
+    /// truncated position is the lenient continue, matching the surrounding out-of-range scratch policy.</summary>
+    public static long PositionOf(Int128 unscaled, int scale) =>
+        (long)(scale > 0 ? unscaled / Pow10Wide(scale) : unscaled);
+
+    /// <summary>An unscaled/scale pair rendered as its plain decimal VALUE — for the diagnostic text of the two
+    /// position conditions, so the message names the value the program computed (2.5) and never its storage (25).</summary>
+    public static string PlainValue(Int128 unscaled, int scale)
+    {
+        if (scale <= 0) return unscaled.ToString();
+        bool neg = unscaled < 0;
+        Int128 mag = neg ? -unscaled : unscaled, div = Pow10Wide(scale);
+        return $"{(neg ? "-" : "")}{mag / div}.{(mag % div).ToString().PadLeft(scale, '0')}";
+    }
+
     /// <summary>Multiply two unscaled operands with overflow checking against the long engine's range: raises
     /// <see cref="OverflowException"/> (mapped to the size error condition, ISO §14.7.5 case 5) when the product
     /// exceeds <see cref="long"/>. Emitted only inside a statement that carries an ON SIZE ERROR phrase — so a

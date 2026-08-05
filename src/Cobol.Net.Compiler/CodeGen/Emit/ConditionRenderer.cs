@@ -24,6 +24,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// the ctor cannot take it — CallEmitter builds after this renderer).</summary>
     internal CallEmitter Calls { get; set; } = null!;
 
+    /// <summary>The statement emitter — property-wired by <see cref="UnitEmitters"/> for the same reason
+    /// <see cref="Calls"/> is. A per-evaluation window's pre-ops are not all CALLs: a D18 function-bearing
+    /// subscript hoists a §15.4 temporary STORE (fix-queue PB17), which is rendered by capturing this emitter's
+    /// output so the store gets the ONE arithmetic store path (scale alignment, truncation, the wide tier) rather
+    /// than a second hand-written renderer.</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>Render a bound condition as a C# boolean expression. Dispatch is the generated exhaustive
     /// <see cref="IBoundConditionVisitor{T}"/> (PHASE-07 Step 6e): every BoundCondition leaf has a Visit below, so a
     /// new leaf is a COMPILE error — the former loud <c>_ =></c> default is gone.</summary>
@@ -75,8 +82,21 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
     // short-circuited &&/|| operand position skips them exactly when COBOL's rule 1 skips the operand.
     public string Visit(BoundUdfEvaluated n) =>
-        $"new Func<bool>(() => {{ {string.Join(" ", n.Activations.Select(Calls.FunctionActivationText))} "
+        $"new Func<bool>(() => {{ {string.Join(" ", n.Activations.Select(PreOpText))} "
         + $"return {Render(n.Inner)}; }})()";
+
+    /// <summary>One pending PRE-op rendered for EXPRESSION position (inside the IIFE above).
+    /// <para>The two arms are a SEMANTIC split, not an incidental one. A user-function activation must NOT reuse
+    /// the statement-position CALL text: <see cref="CallEmitter.FunctionActivationText"/> deliberately omits
+    /// <c>siteHandlesPropagation</c>, because a declarative RESUME pickup is a <c>__pc</c>-anchored statement
+    /// surface that cannot run inside an expression. Every other pre-op — today a D18 function-bearing subscript's
+    /// §15.4 temporary store (fix-queue PB17) — has no such expression/statement divergence, so it renders through
+    /// the ONE statement emitter, captured as text.</para></summary>
+    private string PreOpText(BoundStatement s) => s switch
+    {
+        BoundCallProgram c => Calls.FunctionActivationText(c),
+        _ => ctx.Writer.CaptureText(() => Statements.EmitStatement(s)).Replace('\n', ' '),
+    };
 
     private string RenderRelational(BoundRelational r)
     {
