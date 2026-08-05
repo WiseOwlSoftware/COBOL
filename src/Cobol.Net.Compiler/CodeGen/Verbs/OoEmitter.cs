@@ -452,6 +452,24 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "virtual";
         using (w.Block($"public {(modifier.Length == 0 ? "" : modifier + " ")}{retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
         {
+            // ⛔ THE METHOD IS A RUNTIME ELEMENT AND MUST APPEAR ON THE MODULE-NAME STACK (fix-queue PB36).
+            // §15.65.4 r5 names the four activation mechanisms outright — "This may be by a CALL statement, an
+            // INVOKE statement, a function reference, or an inline invocation" — and INVOKE was the one missing,
+            // so inside a method ACTIVATING returned the SINGLE SPACE r5 reserves for a main program (claiming the
+            // method WAS one), CURRENT returned the caller's name, and STACK omitted the method entirely.
+            // ⚠ THE FORMER JUSTIFICATION CITED REAL RULES THAT DO NOT GOVERN: r3 is about elements that are NOT
+            // COBOL runtime elements, and r4 is about the FORM of the name — it even lists "method-id" among the
+            // forms an implementor may return, which presumes the element is THERE. Latitude over which name
+            // string, never over whether the frame exists.
+            // The push is HERE, not at the INVOKE site, because a method is reached by a typed direct call, by the
+            // universal __CobolInvoke switch, and by an inline invocation — one mechanism, not three arms.
+            // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
+            // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
+            string __mLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true);
+            string __cLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Owner.Name.ToUpperInvariant(), quote: true);
+            w.Line($"{RuntimeApi.ModulePushMethod(__mLit, __cLit)};   // §15.65.4 r5 — INVOKE is an activation");
+            w.Line("try");
+            w.Line("{");
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
             // entries start at their initial state (§14.2.3 GR6 — callee-allocated).
@@ -570,6 +588,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     : r.IsGroup ? $"{r.CsName}.AsImage()" : r.CsName;
                 w.Line($"return {src};   // the invocation result (§14.9.23.4 GR8)");
             }
+            // Close the PB36 activation try. The finally must cover every exit — the RETURNING `return` above, a
+            // GOBACK unwinding as MethodReturn, and an exception propagating to the invoker — or the stack leaks a
+            // frame and every later MODULE-NAME reads one element too deep.
+            w.Line("}");
+            w.Line($"finally {{ {RuntimeApi.ModulePop()}; }}   // §15.65.4 — the activation ends with the method");
         }
         w.Line();
     }

@@ -12,11 +12,18 @@ namespace CobolNet.Runtime;
 /// <c>[ThreadStatic]</c> — the ambient run unit's AsyncLocal now carries the activation scope uniformly,
 /// DESIGN-runtime-library §2.1).
 ///
-/// OO method (INVOKE) activation is the one runtime element that does not funnel through CallProgram (methods
-/// are not registry nodes). That is conformant, not residue: §15.65.4 r3/r4 make the returned form for
-/// method-id elements implementor-defined, and the corpus MODULE-NAME hierarchy is the CALL/program tree
-/// (§15.65.1). The extension point is the same single hook — when __CobolInvoke gains its activation entry it
-/// calls <see cref="Push"/>(methodName, declaringClassName, isNested:false) / <see cref="Pop"/> around the body.
+/// OO method (INVOKE) activation does not funnel through CallProgram (methods are not registry nodes), so the
+/// push is emitted INSIDE the method body — <c>OoEmitter.EmitMethod</c>, in a try/finally — rather than at any
+/// call site: a method is reached by a typed direct call, by the universal <c>__CobolInvoke</c> switch, and by
+/// an inline invocation, and a per-site push would be three arms of one dispatch (fix-queue PB36).
+///
+/// ⛔ THIS COMMENT USED TO SAY THE OMISSION WAS "conformant, not residue: §15.65.4 r3/r4 make the returned form
+/// for method-id elements implementor-defined". BOTH CITED RULES ARE REAL AND NEITHER GOVERNS. r3 is about a
+/// runtime element that is NOT a COBOL runtime element; a COBOL method is one. r4 is about the FORM of the name
+/// and explicitly lists "method-id" among the forms an implementor may return — which presumes the element is on
+/// the stack. Meanwhile r5 names "an INVOKE statement" as an activation mechanism outright. The cost of the
+/// misreading was three wrong answers inside every method: CURRENT returned the CALLER, STACK omitted the method,
+/// and ACTIVATING returned the single space r5 reserves for a MAIN PROGRAM.
 /// </summary>
 public sealed class ModuleStack
 {

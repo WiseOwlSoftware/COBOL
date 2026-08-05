@@ -726,6 +726,17 @@ internal static class RuntimeApi
     public static string EcFn(string method, string args = "") =>
         $"{nameof(Runtime.Exceptions.EcFunctions)}.{method}({args})";
 
+    /// <summary>Push a METHOD activation frame (ISO §15.65.4 r5 — "This may be by a CALL statement, an INVOKE
+    /// statement, a function reference, or an inline invocation"; fix-queue PB36). Emitted INSIDE the method body
+    /// rather than at the INVOKE site, because a method is reached by several paths — a typed direct call, the
+    /// universal <c>__CobolInvoke</c> switch, an inline invocation — and a per-site push would be the same
+    /// two-arm dispatch this compiler keeps re-learning.</summary>
+    public static string ModulePushMethod(string nameLit, string classLit) =>
+        $"{nameof(CobolModule)}.{nameof(CobolModule.Push)}({nameLit}, {classLit}, false)";
+
+    /// <summary>Pop the activation frame pushed by <see cref="ModulePushMethod"/> — always in a finally.</summary>
+    public static string ModulePop() => $"{nameof(CobolModule)}.{nameof(CobolModule.Pop)}()";
+
     /// <summary>FUNCTION MODULE-NAME's runtime read (§15.65) — <c>CobolModule.Name(kind)</c>.</summary>
     public static string ModuleNameFn(int kind) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
