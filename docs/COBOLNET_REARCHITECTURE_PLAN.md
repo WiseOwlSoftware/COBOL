@@ -149,6 +149,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
+**⚖ OWNER DECISION 2026-08-04 — `USAGE BIT` IS IMPLEMENTED IN FULL, REVERSING D-B1's USAGE BIT HALF.**
+Asked whether to implement bit-packed storage, record a documented non-conformance, or reject `USAGE BIT` loudly:
+**implement in full.** Landed as **D19** in `COBOLNET_DATA_MODEL_DESIGN.md` (fix-queue PB43) — the §8.5.1.6.3
+layout, a packed record image, and `LENGTH`/`BYTE-LENGTH` agreeing with both.
+⛔ **THE LESSON IS ABOUT DESIGN DOCS, NOT ABOUT BITS.** D-B1 justified char-per-bit storage with §13.18.40.4 GR14
+("a boolean character can be represented … as a bit, an alphanumeric character, or a national character") and
+called the choice "PERMANENTLY conforming". GR14 lists the AVAILABLE representations; **§13.18.60.4 GR5 — "the
+USAGE BIT clause specifies that bits SHALL be used" — SELECTS one**, and §13.18.60.3 SR13(b)+GR7 select the other
+when no USAGE clause is written. A design doc citing a real clause that does not govern is harder to catch than a
+wrong citation, because `cite.py --check` passes. **The word to distrust is "permanently".**
+⚠ Plain `PIC 1(n)` is untouched and its char-per-position storage is REQUIRED, not merely licensed — so a program
+that writes no `USAGE BIT` is unaffected, and that is proven structurally: the bit walk is reached only for a
+subtree with a `USAGE BIT` leaf, and without one it agrees with the old character sum by construction.
+
 **⚙ 2026-08-04 SESSION CLOSE — PB17 LANDED IN FULL, and it dragged two more defects out with it (PB41, PB42).**
 ⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is open — not this section.
 **▶ THE D18 ROUTE IS NOW THE STANDING ANSWER for any subscript / ref-mod segment the token renderer cannot
@@ -943,16 +957,21 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB17 + PB41 + PB42 tree (2026-08-04 19:13).**
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB43 + PB44 tree (2026-08-04 23:24).**
   One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`** (artifacts
-  `/tmp/battery-20260804-191318`): FULL greenfield Conformance **4200 / 4200, zero skipped, NOTHING red**
-  (10 m 10 s) · greenfield Unit **3646 / 3646, zero skipped** · characterization **33 / 33** · `guard-fast`
+  `/tmp/battery-20260804-232419`): FULL greenfield Conformance **4201 / 4201, zero skipped, NOTHING red**
+  (10 m 34 s) · greenfield Unit **3647 / 3647, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
   **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
-  101 WE_ACCEPT_THEY_REJECT**, and — measured on a fresh run against the committed baseline, not inferred from
-  those totals — **0 PER-CASE FLIPS**.
-  ⚠ Conformance moved 4180 → 4200 because each landed fix ships its goldens (PB15's, plus this wave's six).
-  What must hold is **zero failures, zero skipped**, never a particular total.
+  101 WE_ACCEPT_THEY_REJECT**, and — measured against the committed per-case baseline, not inferred from those
+  totals — **0 PER-CASE FLIPS**.
+  ⚠ Conformance moved 4180 → 4201 because each landed fix ships its goldens. What must hold is **zero failures,
+  zero skipped**, never a particular total.
+  ⚙ **THE RUN BEFORE THIS ONE WAS RED, AND THE RED WAS THE GATE'S OWN.**
+  `GrammarDiagramGeneratorDriftTests` hit a Windows file-handle race reading back `rr.war`'s output under the
+  parallel load (**PB44** — fixed here, not merely filed); it passed on a serial re-run of the SAME tree, and the
+  generator touches ANTLR fragments rather than anything the wave changed. **Attribute every red by name: a gate
+  that can go red without a defect trains everyone to discount reds.**
 - ⚙ **THE SUPERSEDED REFERENCE (2026-08-03, after the INSTRUMENT WAVE)** — kept ONLY because it measured legs the
   current run does not (the LEGACY suites and the serial `guard.sh`), and for the instrument notes below it.
   ⛔ Its greenfield numbers are stale; read them as history, never as the baseline.
@@ -1322,7 +1341,7 @@ EXPANDS PHASE-04 (see the note under the table).
 | D9 | Binder decomposition granularity. | ✅ **One class per verb (~18)** over an injected `BinderContext`. |
 | D10 | SUBSCRIPT lexer-mode. | ✅ **FULLY REMOVE** the lexer `SUBSCRIPT` mode + the binder subscript re-parse (a grammar-level `x(i)` rule) — the ambitious option, NOT the "defer" default. **Ruling stands; RELOCATED from PHASE 04 → PHASE 15 §"CUT 2.5"**: it is blocked by the frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until P15 Cut 2 deletes it. Designed in `DESIGN-frontend-grammar.md §9`. |
 | D11 | Emitted `.g.cs`. | ✅ **Keep always-on** (a Roslyn-backend debugging artifact; the CIL backend emits IL, not `.g.cs`). |
-| D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **Stay CHARACTER-width in the unified model** — one C# `char` per position, riding the shared `CobolString` substrate (the current D-N1/D-B1 model). |
+| D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **The VALUE CARRIER stays CHARACTER-width** — one C# `char` per position on the shared `CobolString` substrate (D-N1/D-B1). ⚠ **NARROWED 2026-08-04:** that is a statement about the CARRIER, never about what an item OCCUPIES. A `USAGE BIT` item occupies BITS (§13.18.60.4 GR5) and images packed — design **D19**, fix-queue PB43. Its carrier is unchanged, which is exactly why every MOVE/compare/ref-mod path was untouched. |
 | D13 | The conformance TARGET reading (2026-07-19). | ✅ **100% CONFORMING** per ISO §4.2.16: the MANDATORY core of each edition complete + every required implementor documentation item — with optional modules/processor-dependent elements permitted to remain **documented non-support** (§4.2.6/§4.2.7/Annex A; the CONFORMANCE.md dispositions are part of the deliverable, not a waiver). "Implement every optional module" is explicitly NOT the target; claiming one later is a new owner decision. The definition of DONE is the PHASE-14 Step-0 traceability inventory reaching zero-GAP/zero-UNKNOWN (every row LIVE, STAGED-with-schedule, or DISPOSED). |
 | D14 | RELEASE MILESTONES (2026-07-19). | ✅ **v1.0 = the P15 exit** ("100% conforming, four editions" — the D13 target achieved and documented). **P16 (the CIL backend) = v2** — an architecture deliverable, explicitly OFF the conformance critical path. Intermediate nameable milestones: **M4-beta** = the P13 merge to `main`; **conformance-mapped** = P14 Step 0 complete (every GAP scheduled). |
 | D15 | SCOPE-CONTROL RULE (2026-07-19 — the ratchet counterweight). | ✅ Every new finding/analysis output lands TIERED: **CONFORMANCE-BLOCKING** (may gate a phase exit) · **QUALITY** (scheduled work, never gates) · **POST-v1.0**. Only CONFORMANCE-BLOCKING items may extend a phase's exit criteria; the tier is assigned when the item is folded (review/inventory/campaign outputs alike). |

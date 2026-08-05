@@ -52,15 +52,28 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             // Boolean members of a Tier-B class contribute their zero-padded VALUE image (national never
             // reaches a Tier-B backing — ComputeTier rejects the class; the arm is defensive).
+            // ⛔ A USAGE BIT member contributes its PACKED image, not its carrier (D19/PB43): the backing is sized
+            // from ImageWidth, which is now ceil(n/8), so seeding it with n carrier characters would silently
+            // truncate against the backing width. Found by sweeping the OTHER image path after the AsImage/
+            // FromImage pair was packed — the two compose the same bytes and must agree (rule 4).
             if (pic.Category is PicCategory.Boolean)
-                return RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false);
+                return pic.Usage is Usage.Bit
+                    ? RuntimeApi.BitsPack(
+                        RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
+                                                   justifiedRight: false), $"{pic.Length}")
+                    : RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false);
             if (pic.Category is PicCategory.National)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
         }
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? RuntimeApi.NumFormatImage("0L", item.ProfileName)
+            // Boolean initial state — zeros (§13.18.63). A USAGE BIT item's zeros are PACKED, so the seed is
+            // ceil(n/8) zero BYTES rather than n zero characters (D19/PB43); the all-zero bit pattern makes the
+            // packed form '\0' repeated, which is what the AsImage side would produce for the same value.
             : pic.Category is PicCategory.Boolean
-                ? $"new string('0', {pic.Length})"   // boolean initial state — zeros (§13.18.63)
+                ? pic.Usage is Usage.Bit
+                    ? $"new string('\\0', {BitLayout.Characters(pic.Length)})"
+                    : $"new string('0', {pic.Length})"
                 : $"new string(' ', {pic.Length})";
     }
 
@@ -87,7 +100,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// (ISO §14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
     /// item).</summary>
     private static string AsImageOf(PhysicalModel.Physical f) =>
-        f.Occurs == 0
+        // D19/PB43 — a USAGE BIT run images as its PACKED bits (§13.18.60.4 GR5), high-order first, and a run may
+        // span several FIELDS because §8.5.1.6.3 puts same-level bit items at successive bit positions. The run's
+        // leader packs every member's carrier concatenated; a continuation contributed Width 0 and images as "".
+        f.BitRun is { } run
+            ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(m => m.CsName)),
+                                  $"{run.Sum(m => m.Pic!.Length * (m.Occurs ?? 1))}")
+        : f.Width == 0 ? "\"\""
+        : f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
                : f.NumLeaf is { } leaf ? RuntimeApi.NumFormatImage(f.Name, leaf.ProfileName)
                : f.Name)
@@ -107,6 +127,27 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// image was a zoned digit run that had to carry a fixed-width sign.</para></summary>
     private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w)
     {
+        // D19/PB43 — the run's leader unpacks the shared byte(s) ONCE and distributes the boolean positions back
+        // to each member in declaration order; the continuations have Width 0 and consume no slice.
+        if (f.BitRun is { } run)
+        {
+            int runBits = run.Sum(m => m.Pic!.Length * (m.Occurs ?? 1));
+            // ⚠ The carrier local is named for the run's OFFSET, not a bare `__bits`: a group may hold SEVERAL
+            // runs (two bit items separated by a character item are two runs, §8.5.1.6.3 — the character item
+            // breaks the same-level adjacency), and they all land in this one method scope. The first version
+            // emitted `var __bits` per run and a two-run group failed to compile with CS0128.
+            string carrier = $"__bits{off}";
+            w.Line($"var {carrier} = {RuntimeApi.BitsUnpack($"__s.Substring({off}, {f.Width})", $"{runBits}")};");
+            int at = 0;
+            foreach (var m in run)
+            {
+                int n = m.Pic!.Length * (m.Occurs ?? 1);
+                w.Line($"{m.CsName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{n}")};");
+                at += n;
+            }
+            return;
+        }
+        if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct

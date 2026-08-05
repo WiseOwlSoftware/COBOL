@@ -185,10 +185,12 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 - **D-N4 repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
   staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave; the §8.1.2 correspondence for NAT→ANUM remains
   the Latin-1 subset identity with '?'+EC-DATA-CONVERSION substitution beyond it).
-- **D-B1 boolean**: one alphanumeric character '0'/'1' per boolean position for BOTH usage display AND usage BIT —
-  the §13.18.40.4 GR14 R14 license, a PERMANENTLY conforming choice. byte=char HOLDS: boolean leaves are admitted
-  at every character surface (Tier-B windows, images, records, cells for the display form). The category
-  difference is carried entirely by the CobolString pad parameter ('0' fills, §14.6.8.6).
+- **D-B1 boolean (SUPERSEDED 2026-08-04 by D19 — see below).** It read: "one alphanumeric character '0'/'1' per
+  boolean position for BOTH usage display AND usage BIT — the §13.18.40.4 GR14 R14 license, a PERMANENTLY
+  conforming choice." **The display half is right and stays. The USAGE BIT half was wrong**, and the word
+  "PERMANENTLY" is what a reader should distrust: it rested on GR14 without reading §13.18.60.4 GR5. The **VALUE
+  CARRIER** is still a `'0'`/`'1'` string for both usages — that part never changed and is not observable to a
+  COBOL program; what changed is the LAYOUT (fix-queue PB43).
 
 **Rationale.** The string substrate gives MOVE/compare/ref-mod/images for free on the ONE proven machinery;
 the alternatives (a 1-byte national size, C# bool for PIC 1, bit-packing) each break a spec surface —
@@ -196,8 +198,85 @@ see the reconciliation design's F4 and the residue ledger.
 
 **Rejected alternatives.** (a) `PIC 1 → bool` — rejected (multi-position
 PIC 1(n)/fills/ref-mod need character semantics; a bool cannot carry them). (b) GR8's size-equal-alphanumeric
-national — rejected for forward-compat (the non-Latin-1/NX"/BYTE-LENGTH residue presumes 2-byte). (c) True
-bit-packing for USAGE BIT — optional forever under R14; revisit only with GROUP-USAGE BIT.
+national — rejected for forward-compat (the non-Latin-1/NX"/BYTE-LENGTH residue presumes 2-byte). (c) ~~True
+bit-packing for USAGE BIT — optional forever under R14~~ — **that alternative was not ours to reject; see D19.**
+
+### D19. `USAGE BIT` OCCUPIES BITS. The value carrier stays a string; the LAYOUT becomes bit-granular. (Supersedes the USAGE BIT half of D-B1; fix-queue PB43, owner decision 2026-08-04.)
+
+**The rule D-B1 did not read.** §13.18.40.4 GR14 says a boolean character "can be represented in storage as a bit,
+an alphanumeric character, or a national character" — but that lists the AVAILABLE representations; **the USAGE
+clause SELECTS one**, and both selections are mandatory:
+
+| declaration | governing rule | required representation |
+|---|---|---|
+| `PIC 1(n)` with no USAGE | **§13.18.60.3 SR13(b)** implies USAGE DISPLAY → **§13.18.60.4 GR7** "an alphanumeric coded character set shall be used" | one character per boolean position — **what COBOL.NET already does; unchanged** |
+| `PIC 1(n) USAGE BIT` | **§13.18.60.4 GR5** "the USAGE BIT clause specifies that **bits shall be used** … alignment … is specified in 8.5.1.6.3" | **bits**, aligned per §8.5.1.6.3 |
+
+Two storage forms for one category is **not** the two-mechanisms anti-pattern — it is precisely what the USAGE
+clause is for. And §8.5.1.6.3 exists solely to align items that occupy bits: a clause with nothing to say if
+USAGE BIT were char-per-position.
+
+⛔ **A GROUP OF BIT ITEMS IS *NOT* A BIT GROUP.** §13.18.29.4 GR3 — a group with no GROUP-USAGE clause specified
+or implied "is an **alphanumeric group item**"; §13.16.4 GR1 implies GROUP-USAGE BIT only for a group
+*subordinate to a bit group*. So `01 G. 05 A PIC 1(5) BIT. 05 B PIC 1(3) BIT.` is an alphanumeric group and
+`FUNCTION LENGTH(G)` is **§15.50.4 r3** — character positions, = **1** — not r1's boolean positions. Misreading
+"bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
+
+#### The architecture: V59's numeric byte forms, one granularity finer
+
+A `PIC 9(4) COMP` already holds its VALUE in a native `long` and occupies its **byte form**
+(`PicInfo.StorageWidth`) in the record image; COMP-3 images as BCD. **The C# carrier is not what the standard
+constrains** — sizes, offsets, overlays and the record image are. So a bit item keeps its `'0'`/`'1'` string
+carrier (every MOVE/compare/ref-mod/fill path is untouched) and gains a **bit width** and a **bit-granular
+offset**. The one thing bit items need that no numeric byte form does is **sub-byte sharing** — two same-level bit
+items inside one byte — which is exactly why `RecordLayout`'s `int` character offset is insufficient.
+
+#### The layout function (ISO §8.5.1.6.3, transcribed to a walk)
+
+`BitLayout.ExtentBits(group)` walks the non-redefining children, carrying a bit cursor:
+
+1. A **bit item immediately following an elementary bit item or bit group of the SAME LEVEL** → placed at the next
+   bit position (**no padding** — this is the only case that shares a byte).
+2. **Any other bit item** → advance the cursor to the next byte boundary, then place. (Covers a bit item after a
+   character item, after a bit item of a *different* level, and the first item of a group.)
+3. A **non-bit item** → advance to the next byte boundary (its natural boundary), then place `ByteWidth × 8` bits.
+   The implicit filler this generates is §8.5.1.6.3's "as needed to advance alignment to a required natural
+   boundary for the next item within that group".
+4. **At the group's end**, if the cursor is not byte-aligned → pad to a byte boundary. §8.5.1.6.3's trailing-filler
+   rule is stated for "a record that is an alphanumeric group or strongly-typed group item", and GR3 makes every
+   GROUP-USAGE-less group alphanumeric, so this fires for all of them.
+   ⚠ Its NOTE excludes "a record that is entirely a bit group, a level 77 item, or a level 1 elementary item" —
+   which is why an **elementary** bit item is not padded and keeps its exact bit count.
+5. **§15.50.4 r5** requires every implicit FILLER position generated above to be COUNTED. It is, by construction:
+   the cursor advances through filler.
+
+**Bits per character position is a pinned implementor choice** (§8.1.2 makes it implementor-specified): **8**,
+consistent with `ByteWidth`'s existing "DISPLAY = 1 byte per character position". Documented in
+`docs/CONFORMANCE.md` §4.2.16.
+
+#### What derives from it
+
+| surface | rule |
+|---|---|
+| `DataItem.ElementaryBitWidth` | a USAGE BIT leaf → `Pic.Length`; anything else → `ElementaryByteWidth × 8` |
+| `DataItem.ElementaryByteWidth` for USAGE BIT | `ceil(Length / 8)` (was: `Length`) |
+| `DataItem.ElementaryImageWidth` for USAGE BIT | `ceil(Length / 8)` — the character positions it OCCUPIES |
+| group `ImageWidth` / `ByteWidth` | `ceil(BitLayout.ExtentBits / 8)` **iff the group has a USAGE BIT descendant**, else the existing sum, byte-for-byte unchanged |
+| `FUNCTION LENGTH` of an ELEMENTARY bit item or a bit group | **§15.50.4 r1** — `Pic.Length` **boolean** positions, NOT `ImageWidth`. These coincided only by accident before; they must now be read from different members |
+| `FUNCTION BYTE-LENGTH` | `ByteWidth`, so `PIC 1(8) BIT` = 1 |
+
+⛔ **THE GATE IS "HAS A USAGE BIT DESCENDANT", AND THAT IS A CORRECTNESS CHOICE, NOT TIMIDITY.** Without a bit
+item there are no sub-byte runs, so the bit walk and the character sum agree *by construction* — gating on it
+makes the change provably byte-identical for every program that writes no `USAGE BIT`, which is the overwhelming
+majority and includes the entire existing corpus. (The same discipline as PB41's scale-0 fast path.)
+
+#### Scope boundary, stated rather than discovered later
+
+**IN:** the layout function, the sizing surfaces above, `FUNCTION LENGTH`/`BYTE-LENGTH`, and the record image
+codec packing a bit run into its bytes.
+**OUT, and each is loud rather than silently wrong:** `GROUP-USAGE BIT` (§13.18.29) is still not modelled —
+`DataBinder` says so — so a *declared* bit group stays rejected; and a sub-byte `REDEFINES` overlay (a redefiner
+starting mid-byte) is refused rather than given a rounded offset. Both are recorded on [[PB43]].
 
 ### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
 

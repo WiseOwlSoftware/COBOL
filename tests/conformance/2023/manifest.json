@@ -100,7 +100,8 @@
     "pb17_function_subscript",
     "pb41_scaled_position",
     "pb41_position_not_integer",
-    "pb42_power_and_decimal_subscript"
+    "pb42_power_and_decimal_subscript",
+    "pb43_usage_bit_occupies_bits"
   ],
   "pending": []
 }

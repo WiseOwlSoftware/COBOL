@@ -691,6 +691,21 @@ internal static class RuntimeApi
     public static string ObjNormalizeMethodName(string nameExpr) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.NormalizeMethodName)}({nameExpr})";
 
+    // ── USAGE BIT record images (ISO §13.18.60.4 GR5 / §8.5.1.6.3; design D19, fix-queue PB43) ──
+    // The VALUE carrier stays a '0'/'1' string for both boolean usages; only USAGE BIT's IMAGE is packed.
+
+    /// <summary>Pack a bit run's carrier into its packed record image — <c>CobolBits.Pack</c>.</summary>
+    public static string BitsPack(string bitsExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Pack)}({bitsExpr}, {countExpr})";
+
+    /// <summary>Unpack a packed image slice back to the run's carrier — <c>CobolBits.Unpack</c>.</summary>
+    public static string BitsUnpack(string imageExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Unpack)}({imageExpr}, {countExpr})";
+
+    /// <summary>One member's slice of an unpacked run carrier — <c>CobolBits.Slice</c>.</summary>
+    public static string BitsSlice(string carrierExpr, string offsetExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Slice)}({carrierExpr}, {offsetExpr}, {countExpr})";
+
     /// <summary>Repeat an element image for a table initializer — <c>CobolString.Repeat</c>.</summary>
     public static string StrRepeat(string s, string n) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Repeat)}({s}, {n})";

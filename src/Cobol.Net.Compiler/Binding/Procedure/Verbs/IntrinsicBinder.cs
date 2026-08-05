@@ -1078,6 +1078,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand g when g.Place.Item.IsGroup && HasDynamicCapacityTable(g.Place.Item) =>
             new BoundExprError("FUNCTION LENGTH of a group with a subordinate DYNAMIC-CAPACITY table "
                                + "(current capacity is a runtime value, ISO §15.50.4 rule 7c)"),
+        // ⛔ §15.50.4 r1 — AN ELEMENTARY BOOLEAN ITEM'S LENGTH IS IN BOOLEAN POSITIONS, NOT IN THE CHARACTER
+        // POSITIONS IT OCCUPIES: "If argument-1 is a bit group item, an elementary boolean data item, a boolean
+        // literal, or a type declaration for a boolean item, the returned value is an integer equal to the length
+        // of argument-1 in boolean positions." The generic fold below reads ImageWidth, and for a USAGE BIT item
+        // that is now ceil(n/8) — its OCCUPANCY (design D19, fix-queue PB43) — so `PIC 1(8) USAGE BIT` would fold
+        // to 1 instead of 8.
+        // ⚠ THIS ARM WAS NOT MISSING BEFORE; IT WAS UNNECESSARY, and that is the more useful way to say it. While
+        // USAGE BIT was stored one character per bit, boolean positions and occupied positions were the same
+        // number, so r1 and r3 could not be told apart and the generic arm answered both. Giving bit items their
+        // real occupancy separates the two rules, and the separation is what makes r1 need its own arm.
+        // Both usages come here: a DISPLAY-form boolean item (§13.18.60.3 SR13(b)) is equally "an elementary
+        // boolean data item", and for it the answer is unchanged because occupancy IS the boolean-position count.
+        BoundFieldOperand { Place.Item: { IsElementary: true, Pic.Category: PicCategory.Boolean } b } =>
+            new BoundNumLiteral(Math.Max(1, b.Pic!.Length).ToString()),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
         // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
         // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.

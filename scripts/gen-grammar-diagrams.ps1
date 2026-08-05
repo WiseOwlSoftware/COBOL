@@ -73,7 +73,18 @@ foreach ($frag in $Fragments) {
     # references, so a lookup by that rule name would find nothing and the header count wouldn't match).
     & java -jar "$rrWar" -md -suppressebnf -noinline "-width:$Width" "-out:$mdFile" "$ebnfFile"
     if ($LASTEXITCODE -ne 0) { Write-Error "rr.war failed for $frag (exit $LASTEXITCODE)"; exit 1 }
-    $diagrams = [IO.File]::ReadAllText($mdFile)
+    # ⛔ READ WITH RETRY — the java process has exited but its handle on $mdFile is not always released by the
+    # time PowerShell resumes (and a Windows AV scanner can hold it briefly besides). Under the comprehensive
+    # battery's parallel load that window widened enough to FALSE-RED the whole run:
+    #   Exception calling "ReadAllText": The process cannot access the file '…\CobolScreen.md'
+    #   because it is being used by another process.
+    # It passed on a serial re-run, which is exactly the shape §0 warns about — and a gate that can false-red
+    # trains people to ignore reds, so this is hardened rather than documented.
+    $diagrams = $null
+    foreach ($__try in 1..10) {
+        try { $diagrams = [IO.File]::ReadAllText($mdFile); break }
+        catch [System.IO.IOException] { if ($__try -eq 10) { throw }; Start-Sleep -Milliseconds (50 * $__try) }
+    }
     # Header states the number of diagrams ACTUALLY emitted (an image whose alt is a bare identifier — excludes
     # rr's "rr-2.6" / "Railroad-Diagram-Generator" footer marks), so it is always self-consistent with the note.
     # rr's recursion elimination can fold a directly-recursive rule into its reference (e.g. booleanFactor), so a

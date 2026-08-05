@@ -351,7 +351,18 @@ public sealed class DataItem
         // A REDEFINING child occupies NO new storage (ISO §13.18.44 — it overlays its target), so a group's size
         // sums only the non-redefining subordinates (NC252A: REDEF10 is 46 chars, not 46 + its RDF3 overlay).
         IsElementary ? ElementaryImageWidth
+        // D19/PB43: a subtree containing a USAGE BIT leaf cannot be SUMMED — two same-level bit items share a
+        // byte and a bit item after anything else skips to the next one, so position depends on the previous
+        // sibling. It is laid out by the ONE §8.5.1.6.3 walk instead. Without a bit leaf the walk and this sum
+        // agree by construction, so every bit-free program keeps byte-identical widths.
+        : HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(this))
         : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ImageWidth * (c.Occurs ?? 1));
+
+    /// <summary>True when this subtree contains a <c>USAGE BIT</c> leaf — the gate that sends a group's width
+    /// through the §8.5.1.6.3 bit walk (design D19, fix-queue PB43) instead of the plain character sum. It is the
+    /// PROOF that the change is inert for bit-free programs, not an optimization.</summary>
+    public bool HasBitDescendant =>
+        IsElementary ? BitLayout.IsBitLeaf(this) : Children.Any(c => c.HasBitDescendant);
 
     /// <summary>The character-image width of an elementary item (digit count + a separate-sign position when present
     /// for a signed numeric; otherwise the PICTURE's character length). A pure DECLARED-shape fact (reads only
@@ -367,6 +378,14 @@ public sealed class DataItem
             // LENGTH/BYTE-LENGTH). Zero keeps the fixed-layout math sound for the standalone-item case.
             if (IsDynamicLength) return 0;
             if (Pic is not { } pic) return 0;
+            // D19/PB43 — a USAGE BIT leaf OCCUPIES ceil(n/8) character positions, not n. §13.18.60.4 GR5 makes
+            // its representation bits; §8.1.2 leaves bits-per-character to the implementor and COBOL.NET pins 8.
+            // ⚠ This is its OCCUPANCY, deliberately NOT what FUNCTION LENGTH returns for it: §15.50.4 r1 gives an
+            // elementary bit item its length in BOOLEAN positions (n). The two coincided while USAGE BIT was
+            // stored char-per-bit, which is precisely how the defect stayed invisible — they are read from
+            // different members now (IntrinsicBinder's r1 arm reads Pic.Length).
+            if (pic is { Category: PicCategory.Boolean, Usage: Usage.Bit })
+                return BitLayout.Characters(pic.Length);
             if (pic.Category is PicCategory.Numeric)
                 // ⛔ ONE WIDTH (V59). An item with a byte form of its own occupies THOSE bytes in the image —
                 // BINARY 1-2-4-8-16, PACKED its BCD nibbles — never a byte per decimal digit. Before this, a
@@ -402,15 +421,20 @@ public sealed class DataItem
     /// (mirroring <see cref="ImageWidth"/>; a REDEFINING child overlays its target and adds no storage,
     /// §13.18.44). Per-usage byte widths are IMPLEMENTOR-DEFINED (§13.18.60 GR4/6/7/8/11/12; §8.1.2 even makes
     /// bits-per-byte implementor-specified) — these are COBOL.NET's PINNED, DOCUMENTED widths
-    /// (COBOLNET_INTRINSICS_DESIGN §BYTE-LENGTH): DISPLAY = 1 byte per character position; BIT/boolean = 1 byte
-    /// per boolean position (the §13.18.40.4 R14 one-alphanumeric-character representation COBOL.NET stores,
-    /// D-B1); NATIONAL = 2 bytes per position (UTF-16, D-N1/D-N3); BINARY/COMP-5/PACKED/BINARY-CHAR..DOUBLE =
+    /// (COBOLNET_INTRINSICS_DESIGN §BYTE-LENGTH): DISPLAY = 1 byte per character position; a boolean item of
+    /// usage DISPLAY (implied by §13.18.60.3 SR13(b) when no USAGE clause is written) = 1 byte per boolean
+    /// position, per §13.18.60.4 GR7's "alphanumeric coded character set"; a boolean item of **USAGE BIT** =
+    /// <c>ceil(n / 8)</c>, because §13.18.60.4 GR5 says bits SHALL be used and §8.1.2 leaves bits-per-character to
+    /// the implementor (COBOL.NET pins 8) — design D19, fix-queue PB43; NATIONAL = 2 bytes per position (UTF-16,
+    /// D-N1/D-N3); BINARY/COMP-5/PACKED/BINARY-CHAR..DOUBLE =
     /// their <see cref="Model.PicInfo.StorageWidth"/>; COMP-1/FLOAT-SHORT = 4, COMP-2/FLOAT-LONG/-EXTENDED = 8
     /// (the .NET Single/Double carriers); INDEX / POINTER / PROGRAM-POINTER / FUNCTION-POINTER / OBJECT REFERENCE
     /// = 8 (the 64-bit managed carrier). COBOL.NET has no SYNCHRONIZED physical padding, so a group carries no
     /// implicit-filler bytes (§15.14.4 r3 is satisfied vacuously).</summary>
     public int ByteWidth =>
         IsElementary ? ElementaryByteWidth
+        // D19/PB43 — same reason as ImageWidth: a bit-bearing subtree is LAID OUT, not summed.
+        : HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(this))
         : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ByteWidth * (c.Occurs ?? 1));
 
     /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>

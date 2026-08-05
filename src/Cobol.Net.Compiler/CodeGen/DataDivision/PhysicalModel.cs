@@ -37,7 +37,15 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// image facility then encodes/decodes it through <c>CobolNum.FormatDisplay</c>/<c>ParseDisplay</c> with the
     /// leaf's IMAGE profile (<see cref="ImageProfileOf"/>); null for every string-shaped field (alphanumeric, edited,
     /// <see cref="DataItem.StoreAsImage"/>, a Tier-B class backing) and for nested group structs.</summary>
-    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null);
+    /// <param name="BitRun">⛔ Set ONLY on the FIRST field of a <c>USAGE BIT</c> run, and it is what lets a run
+    /// span several FIELDS while occupying ONE image slice (design D19, fix-queue PB43). §8.5.1.6.3 puts two
+    /// same-level bit items at successive BIT positions — they SHARE a byte — so their image cannot be composed
+    /// field-by-field the way every other member is. The run's leaves are listed here, the first field carries the
+    /// whole run's <see cref="Width"/> (<c>ceil(bits/8)</c>) and emits one <c>CobolBits.Pack</c> over the
+    /// concatenated carriers, and the remaining fields carry <c>Width = 0</c> and contribute nothing — so the
+    /// group's image width still falls out of a plain sum and no caller needs to know runs exist. Null on every
+    /// non-bit field and on the continuation fields of a run.</param>
+    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
     public IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
@@ -56,7 +64,27 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// field. The class's numeric <c>NumProfile</c>s are still emitted elsewhere (EmitProfiles — D9).</summary>
     private IEnumerable<Physical> BuildPhysicals(IEnumerable<DataItem> items)
     {
-        foreach (var c in items)
+        // D19/PB43 — the §8.5.1.6.3 bit RUNS in this sibling list, keyed by the leaf that starts each one. A run is
+        // a maximal stretch of consecutive USAGE BIT leaves at the SAME level: exactly the items the standard puts
+        // at successive bit positions, i.e. the ones that share bytes. Computed once here so the emit loop below
+        // can stay a straight per-child walk.
+        var siblings = items as IList<DataItem> ?? items.ToList();
+        var runStart = new Dictionary<DataItem, List<DataItem>>(ReferenceEqualityComparer.Instance);
+        var inRun = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < siblings.Count; i++)
+        {
+            if (!BitLayout.IsBitLeaf(siblings[i]) || siblings[i].RedefinesTargetName is not null
+                || inRun.Contains(siblings[i])) continue;
+            var run = new List<DataItem> { siblings[i] };
+            for (int j = i + 1; j < siblings.Count && BitLayout.IsBitLeaf(siblings[j])
+                                && siblings[j].RedefinesTargetName is null
+                                && siblings[j].Level == siblings[i].Level; j++)
+                run.Add(siblings[j]);
+            foreach (var m in run) inRun.Add(m);
+            runStart[siblings[i]] = run;
+        }
+
+        foreach (var c in siblings)
         {
             if (!(c.IsGroup || c.IsElementary)) continue;
             if (c.Class is { Tier: RedefinesTier.StringCanonical } cls)
@@ -84,6 +112,17 @@ internal sealed class PhysicalModel(EmitContext ctx)
             DataItem? numLeaf = !c.IsGroup && c.ElementType is "long" or "Int128"
                 && c.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
                 ? c : null;
+            // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
+            // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is
+            // still a plain sum of Width and every downstream caller is unchanged.
+            if (BitLayout.IsBitLeaf(c))
+            {
+                var run = runStart.TryGetValue(c, out var r) ? r : null;
+                int runBits = run?.Sum(m => m.Pic!.Length * (m.Occurs ?? 1)) ?? 0;
+                yield return new Physical(c.CsName, c.FieldType, run is null ? 0 : BitLayout.Characters(runBits),
+                    false, Values.FieldInit(c), comment, occurs, null, run);
+                continue;
+            }
             yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c), comment, occurs, numLeaf);
         }
     }

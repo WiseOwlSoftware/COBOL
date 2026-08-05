@@ -33,6 +33,10 @@ internal static class RecordLayout
     /// storage (§13.18.44). Mirrors <c>DataItem.ImageWidth</c>.</summary>
     public static int ImageWidth(DataItem item) =>
         item.IsElementary ? item.ElementaryImageWidth
+        // D19/PB43 — a bit-bearing subtree is laid out by the ONE §8.5.1.6.3 walk, never summed. This mirror must
+        // move WITH DataItem.ImageWidth: they are two copies of one rule, and the whole point of this class's
+        // header is that the copies stay in step.
+        : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(item))
         : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => ImageWidth(c) * (c.Occurs ?? 1));
 
     /// <summary>The tier-aware PHYSICAL image width of an item — the extent the emitted <c>AsImage()</c>/<c>FromImage()</c>
@@ -45,6 +49,10 @@ internal static class RecordLayout
     public static int PhysicalWidth(DataItem item)
     {
         if (!item.IsGroup) return ImageWidth(item);
+        // D19/PB43 — a bit-bearing subtree's extent comes from the §8.5.1.6.3 walk. A REDEFINES class inside such
+        // a group is not reachable here: D-N2's byte≠char containment already refuses a sub-byte overlay, and
+        // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
+        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
         int w = 0;
         foreach (var c in item.Children)
         {
