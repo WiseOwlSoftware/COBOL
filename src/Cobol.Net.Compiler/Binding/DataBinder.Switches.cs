@@ -228,6 +228,20 @@ public sealed partial class DataBinder
             if (para.specialNamesParagraph() is not { } sn) continue;
             foreach (var entry in sn.specialNameEntry())
             {
+                // §12.3.7 LOCALE clause — an §A.4.9 item 10 optional-locale element ("SPECIAL-NAMES paragraph:
+                // LOCALE clause and LOCALE phrases in the ALPHABET clause"). COBOL.NET's non-support of the
+                // locale module is conformant per §4.2.7 / §A.4.1 only because it is DIAGNOSED, so this carries
+                // the same cited COBOLNET1518 the LOCALE phrase of LOWER-CASE / NUMVAL-C already emits. It used
+                // to be a raw COBOL0308 parse error pointing at the clause's own literal (fix-queue PB25) — an
+                // unexplained rejection, which is not documented non-support.
+                if (entry.localeClause() is { } loc)
+                {
+                    Edition.Error("COBOLNET1518", "the SPECIAL-NAMES LOCALE clause is in the optional locale "
+                        + "module (ISO/IEC 1989:2023 Annex A §A.4.9 item 10), which COBOL.NET does not support — "
+                        + "documented non-support, conformant per ISO §4.2.7 / §A.4.1. Use a supported "
+                        + "alternative (e.g. STANDARD-1/STANDARD-2 collating, or FORMATTED-DATE/-TIME).");
+                    continue;
+                }
                 if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
                 if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
                 if (entry.symbolicCharactersClause() is { } sc)

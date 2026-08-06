@@ -4,7 +4,9 @@
       *> (COBOLNET1518), while the SAME functions WITHOUT a LOCALE phrase remain fully supported (§15.57.4
       *> rule 4 implementor correspondence; NUMVAL-C without LOCALE). NUMVAL-C's LOCALE keyword is a spec
       *> Annex-A list omission disposed identically (PHASE-11-scout-notes.md spec:locale). LOCALE is not a
-      *> reserved word, so the phrase parses as extra arguments and is detected by name.
+      *> LEXER TOKEN here, so the phrase parses as extra arguments and is detected BY NAME. (It IS a reserved
+      *> word from 2002 per §8.9 / reserved-words.json — this line used to claim otherwise; not tokenizing it
+      *> is a deliberate choice, because a token would break that by-name detection. Fix-queue PB25.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11LOCKW.
        DATA DIVISION.

@@ -919,8 +919,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Detect an A.4.9 <c>LOCALE</c> phrase in a function's argument list — the keyword appears as a
     /// bare-word argument (via <see cref="KeywordWordOf"/>) at argument position 2 or later (never argument-1,
     /// the operand): <c>LOWER-CASE(arg-1 LOCALE locale-name-1)</c> (§15.57.2), <c>NUMVAL-C(arg-1 LOCALE
-    /// [locale-name-1])</c> (§15.68.2). LOCALE is not a reserved word, so the phrase parses as extra space- or
-    /// comma-separated arguments; the argument-1 exclusion avoids a false positive on a data item happening to
+    /// [locale-name-1])</c> (§15.68.2). LOCALE is not a LEXER TOKEN here, so the phrase parses as extra space- or
+    /// comma-separated arguments and is recognised by NAME.
+    /// <para>⚠ It IS a reserved word from 2002 (§8.9; <c>reserved-words.json</c> r2002/r2014/r2023) — this comment
+    /// used to say otherwise, which is wrong by the repo's own data. Not tokenizing it is a deliberate choice, not
+    /// a consequence of the reservation: this detection depends on the word arriving as an ordinary argument, so a
+    /// token would silently break the very diagnostic below. (fix-queue PB25.)</para>
+    /// The argument-1 exclusion avoids a false positive on a data item happening to
     /// be named LOCALE.</summary>
     private static bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
@@ -1097,10 +1102,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image
-        // A numeric / figurative / ALL literal is NOT a valid LENGTH argument — §15.50.3 item 1 restricts a LITERAL
-        // argument to "an alphanumeric, national, or boolean literal" (a numeric *data item* is allowed as "a data
-        // item of any class or category", handled by the BoundFieldOperand arm above). So this error is spec-correct.
-        _ => new BoundExprError("FUNCTION LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.50.3)"),
+        // ⛔ A FIGURATIVE CONSTANT IS A LEGAL LENGTH ARGUMENT, AND THE ARM BELOW USED TO REFUSE IT ALONGSIDE THE
+        // NUMERIC LITERAL IT CORRECTLY REFUSES (fix-queue PB25). One arm standing for TWO rules enforced neither:
+        // §15.50.3 r1 restricts a LITERAL argument to "an alphanumeric, national, or boolean literal", which
+        // excludes a NUMERIC literal — but says nothing about figurative constants, and §8.3.3.6.3 SR1 admits one
+        // "whenever 'literal' appears in a format" except where the literal is restricted to NUMERIC (a) or a
+        // syntax rule prohibits it (b). Neither exception applies, and §8.3.3.6.4 GR1 makes SPACE/QUOTE an
+        // ALPHANUMERIC character value here — precisely what r1 permits. So `FUNCTION LENGTH(SPACE)` is legal.
+        // The length is §8.3.3.6.4 GR3's, the "length not specified by the context" case that a bare argument is:
+        //   (b) a figurative other than ALL literal-1 is ONE character;
+        //   (c) otherwise, the length of literal-1.
+        // Both are compile-time constants, so they fold exactly like the literal arm above rather than reaching
+        // the runtime channel.
+        BoundFigurative => new BoundNumLiteral("1"),                                     // §8.3.3.6.4 GR3b
+        BoundAllLiteral a => new BoundNumLiteral(Math.Max(1, a.Literal.Length).ToString()),  // §8.3.3.6.4 GR3c
+        // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
+        // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
+        // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
+        _ => new BoundExprError("FUNCTION LENGTH argument (a numeric literal is not a valid argument, ISO §15.50.3)"),
     };
 
     /// <summary>

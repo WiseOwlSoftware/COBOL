@@ -616,8 +616,20 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
         public string Visit(BoundNumericLiteral n) => Loud(n);
-        public string Visit(BoundFigurative n) => Loud(n);
-        public string Visit(BoundAllLiteral n) => Loud(n);
+        // ⛔ A FIGURATIVE CONSTANT IS A LEGAL INTRINSIC ARGUMENT, AND ITS IMAGE IS ALREADY WRITTEN DOWN ONCE
+        // (fix-queue PB25). §8.3.3.6.3 SR1 admits a figurative constant "whenever 'literal' appears in a format",
+        // and §8.4.3.2.3 SR8 makes a literal a valid argument-1 — so `FUNCTION LOWER-CASE(SPACE)` is legal source.
+        // Both arms used to render EmitText.LoudValue, so it compiled CLEAN and aborted at RUN TIME with
+        // "intrinsic string argument 'BoundFigurative'": the wrong-stage family, on legal input.
+        // The image is §8.3.3.6.4 GR3's, for the case where "the length of the string is NOT specified in the
+        // rules for the context" — which is exactly a bare function argument: (b) a figurative other than
+        // ALL literal-1 is ONE character, (c) otherwise the length of literal-1. OperandText.AsString already
+        // implements precisely that, PCS-aware (its BoundFigurative interception is collating-context sensitive,
+        // which a local copy here could not be, since this visitor cannot reach the renderer's collating state).
+        // So these delegate rather than re-deriving it — the same delegation the BoundFieldOperand arm above
+        // already makes.
+        public string Visit(BoundFigurative n) => OperandText.AsString(n, owner.Num);
+        public string Visit(BoundAllLiteral n) => OperandText.AsString(n, owner.Num);
         public string Visit(BoundBoolOperand n) => Loud(n);
     }
 }

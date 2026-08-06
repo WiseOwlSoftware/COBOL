@@ -36,6 +36,34 @@ public abstract class CobolParserCoreBase : Parser
     protected bool is2023() => Edition.Has(2023);
 
     /// <summary>
+    /// True when a SPECIAL-NAMES entry is the §12.3.7 <c>LOCALE locale-name-1 IS {external-locale-name-1 |
+    /// literal-4}</c> clause — an <b>§A.4.9 item 10</b> optional-locale element ("SPECIAL-NAMES paragraph: LOCALE
+    /// clause and LOCALE phrases in the ALPHABET clause"), which must be DIAGNOSED as documented non-support
+    /// rather than fail as a parse error (fix-queue PB25).
+    /// <para>⛔ WHY A TEXT PREDICATE AND NOT A LEXER TOKEN. LOCALE <i>is</i> reserved at 2002+ (§8.9;
+    /// <c>reserved-words.json</c> r2002/r2014/r2023), so a token would be defensible — but the intrinsic side
+    /// DEPENDS on it arriving as a bare word: <c>IntrinsicBinder.KeywordWordOf</c> detects
+    /// <c>LOWER-CASE(x LOCALE …)</c> precisely because the phrase parses as ordinary space-separated arguments.
+    /// Tokenizing LOCALE would silently break that already-working diagnostic, so the reservation stays modelled
+    /// where the rest of §8.9 lives and this reads the word.</para>
+    /// <para>⚠ EDITION-GATED DELIBERATELY. At COBOL-85 LOCALE is NOT reserved (r85 = false), so
+    /// <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a legal implementor-switch entry there and must keep parsing as
+    /// one. Below 2002 this returns false and the entry falls through to <c>implementorSwitchEntry</c> unchanged.
+    /// </para>
+    /// <para>The shape check (a following word, then IS or the value) is what keeps it off that 85 switch entry
+    /// even when the predicate is reached: a bare <c>LOCALE IS FOO</c> has no locale-name and is not this clause.
+    /// </para>
+    /// </summary>
+    protected bool localeClauseAhead()
+    {
+        if (!Edition.Has(2002)) return false;
+        if (!string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase)) return false;
+        // LOCALE <locale-name> [IS] <external-locale-name | literal> — the second word is the locale-name, so a
+        // bare `LOCALE IS x` (the 85 switch shape) is excluded.
+        return TokenStream.LT(2) is { } second && !string.Equals(second.Text, "IS", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// True when the current token spells a reserved-as-facility keyword AT THE TARGETED EDITION — i.e. it can
     /// only be the (unsupported) facility verb here, never a user-defined word. Gates the recognize-and-name
     /// statement arms for the facilities COBOL.NET does not implement: MCS SEND/RECEIVE (ISO §14.9.31/§14.9.38,

@@ -25,8 +25,27 @@ specialNameEntry
     | cursorClause DOT?
     | channelClause DOT?
     | reserveClause DOT?
+    // MUST precede implementorSwitchEntry: `LOCALE FR IS "fr_FR"` otherwise matches `cobolWord (IS cobolWord)?`
+    // as far as the bare word LOCALE, then re-enters as `FR IS "fr_FR"` and dies on the LITERAL with
+    // COBOL0308 "a data-name is expected here, not a literal" — a parse error pointing at the wrong token, for a
+    // clause the standard defines (fix-queue PB25).
+    | localeClause DOT?
     | implementorSwitchEntry DOT?
     | genericClause DOT?
+    ;
+
+// LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 } (§12.3.7).
+// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED. This is an §A.4.9 item 10 optional-locale element —
+// "SPECIAL-NAMES paragraph: LOCALE clause and LOCALE phrases in the ALPHABET clause (12.3.7)" — and COBOL.NET's
+// documented non-support of the locale module is conformant per §4.2.7 / §A.4.1 ONLY if it is DIAGNOSED. The
+// binder emits COBOLNET1518, the same cited message the LOCALE phrase of LOWER-CASE / NUMVAL-C already gets; a
+// raw parse error is not documented non-support, it is an unexplained rejection. Superset-parse / bind-narrow,
+// exactly as the rest of this grammar does it.
+// ⚠ The predicate is EDITION-GATED (2002+, where §8.9 reserves LOCALE). At COBOL-85 LOCALE is an ordinary user
+// word, so `SPECIAL-NAMES. LOCALE IS FOO.` is a legal implementor-switch entry and must keep parsing as one —
+// below 2002 localeClauseAhead() is false and this alternative is unreachable.
+localeClause
+    : {localeClauseAhead()}? cobolWord cobolWord IS? (cobolWord | literal)
     ;
 
 implementorSwitchEntry

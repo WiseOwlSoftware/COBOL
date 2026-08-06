@@ -106,7 +106,8 @@
     "pb36_module_name_invoke_activation",
     "pb45_function_in_sending_operands",
     "pb45_function_in_when_object",
-    "pb23_week_date_beyond_integer_date_form"
+    "pb23_week_date_beyond_integer_date_form",
+    "pb25_figurative_intrinsic_argument"
   ],
   "pending": []
 }
