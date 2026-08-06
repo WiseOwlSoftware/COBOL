@@ -149,7 +149,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ 2026-08-05 SESSION CLOSE — TEN COMMITS, EIGHT FIX-QUEUE ITEMS, EVERY ONE BATTERY-GREEN BEFORE IT LANDED.**
+**⚙ 2026-08-05 SESSION CLOSE — THIRTEEN COMMITS, ELEVEN FIX-QUEUE ITEMS, EVERY ONE GATED BEFORE IT LANDED.**
+**PB45 · PB23 · PB25 · PB47 all CLOSED**, and three new defects filed from their sweeps (**PB46** CALL/INVOKE
+`BY CONTENT` omits `arithmetic-expression-1`; **PB47**, since closed; **PB48** the figurative ZERO rewritten to an
+arithmetic zero before binding). ⭐ **THE PATTERN ACROSS ALL FOUR: the spec-derived golden found a defect the queue
+entry never mentioned** — PB45's entry did not know `EVALUATE TRUE / WHEN <level-88>` was broken, PB23's named one
+intrinsic where the shared analyzer crashed THREE, PB25's blamed the function arm when the SPECIAL-NAMES
+declaration was the parse error, and PB47's own first implementation rejected legal source until the gate caught
+it. Writing the test from the general format rather than from the reported symptom is what found each one.
 ⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is OPEN, not this section.
 LANDED: **PB17 + PB41 + PB42** (function-identifier subscripts / scaled ordinal positions / `**` and decimal
 literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its last sub-item was PB43's symptom) ·
@@ -1006,15 +1013,22 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB45-CLOSED tree (2026-08-05 20:36).**
-  One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`**:
-  FULL greenfield Conformance **4205 / 4205, zero skipped, NOTHING red**
-  (11 m 37 s) · greenfield Unit **3658 / 3658, zero skipped** · characterization **33 / 33** · `guard-fast`
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB23+PB25+PB47 tree (2026-08-05 22:30).**
+  ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING.** Its one red was the differential
+  reporting **1 per-case flip** — `syn_misc:3506`, `WE_ACCEPT_THEY_REJECT → AGREE_REJECT`, carrying PB47's own
+  `COBOLNET1634`. By §0's own rule a divergence→AGREE flip is a **FIX**: a program we had been WRONGLY ACCEPTING
+  is now rejected, and GnuCOBOL had been rejecting it all along — independent corroboration of the Table 15
+  reading, from the one net that could contradict it. The baseline was regenerated with `--write-baseline` in the
+  landing commit with that single row attributed, and a fresh differential against it prints
+  **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**. Every other leg was green on this same tree, and the TSV is read
+  by that one leg only, so nothing is composed across trees:
+  FULL greenfield Conformance **4209 / 4209, zero skipped, NOTHING red**
+  (11 m 23 s) · greenfield Unit **3689 / 3689, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
-  **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
-  101 WE_ACCEPT_THEY_REJECT**, and — measured against the committed per-case baseline, not inferred from those
-  totals — **0 PER-CASE FLIPS**.
-  ⚠ Conformance moved 4180 → 4205 because each landed fix ships its goldens. What must hold is **zero failures,
+  **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 177 AGREE_REJECT ·
+  100 WE_ACCEPT_THEY_REJECT** (176→177 / 101→100 is the one attributed case moving), and — measured against the
+  regenerated per-case baseline, not inferred from those totals — **0 PER-CASE FLIPS**.
+  ⚠ Conformance moved 4180 → 4209 because each landed fix ships its goldens. What must hold is **zero failures,
   zero skipped**, never a particular total.
   ⚙ **THIS RUN IS THE STRONGEST EVIDENCE THE GATE HAS PRODUCED FOR A GRAMMAR CHANGE.** It measured an ARITY
   change to `evaluateWhenGroup` — in reach of every EVALUATE statement in the corpus, in NIST and in the GnuCOBOL

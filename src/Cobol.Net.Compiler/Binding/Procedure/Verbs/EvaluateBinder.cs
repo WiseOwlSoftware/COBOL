@@ -3,6 +3,7 @@
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -74,8 +75,80 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         return group.NOT() is not null ? new BoundNot(cond) : cond;
     }
 
+    /// <summary>ISO §14.9.13.3 SR10 — screen the pairing against Table 15 BEFORE binding it, so an invalid
+    /// combination is a compile-time diagnostic rather than the run-time fault it used to be (fix-queue PB47).
+    /// <para>⚠ DELIBERATELY CONSERVATIVE. Both classifiers return null when they cannot answer with certainty,
+    /// and a null on either side means NO diagnostic: over-rejection here would turn legal source away, which is
+    /// a worse failure than the wrong stage this closes. So this narrows what already failed; it does not widen
+    /// what is refused. The partial-expression and boolean-expression rows of Table 15 are consequently not yet
+    /// reachable — the grammar stages both (see <c>comparisonExpression</c>'s DEVLOG-621 note), so no operand
+    /// classifies into them today, and the table carries them for when it does.</para></summary>
+    private void ScreenPairing(Core.EvaluateSubjectContext subject, Core.EvaluateWhenItemContext item)
+    {
+        if (SubjectOperandKind(subject) is not { } s || ObjectOperandKind(item) is not { } o) return;
+        if (EvaluateOperandCombinations.IsPermitted(s, o)) return;
+        ctx.Edition.Error(DiagnosticCatalog.EvaluateOperandCombinationInvalid,
+            $"the selection subject is {EvaluateOperandCombinations.Label(s)} and the selection object "
+            + $"'{item.GetText()}' is {EvaluateOperandCombinations.Label(o)}; ISO §14.9.13.3 SR10 Table 15 marks "
+            + "that combination invalid.");
+    }
+
+    /// <summary>The subject's Table-15 COLUMN, or null when it cannot be classified with certainty.
+    /// §14.9.13.4 GR1 decides the literal-vs-expression case outright: "If an operand of the EVALUATE statement
+    /// consists of a single literal, that operand is treated as a literal, not as an expression."</summary>
+    private EvaluateSubjectOperand? SubjectOperandKind(Core.EvaluateSubjectContext subject)
+    {
+        if (subject.booleanLiteral() is not null) return EvaluateSubjectOperand.TrueOrFalse;
+        if (subject.classCondition() is not null) return EvaluateSubjectOperand.Condition;  // EVALUATE X NUMERIC
+        if (SubjectCondition(subject) is not null) return EvaluateSubjectOperand.Condition; // a level-88 subject
+        if (subject.valueOperand() is not { } vo) return null;
+        if (host.Cond.IsBooleanValueOperand(vo)) return null;   // §14.9.13.3 SR6b/d — the mirror of the object case
+        return OperandKindOf(vo) switch
+        {
+            EvaluateObjectOperand.Identifier => EvaluateSubjectOperand.Identifier,
+            EvaluateObjectOperand.Literal => EvaluateSubjectOperand.Literal,
+            EvaluateObjectOperand.ArithmeticExpression => EvaluateSubjectOperand.ArithmeticExpression,
+            _ => null,
+        };
+    }
+
+    /// <summary>The object's Table-15 ROW, or null when it cannot be classified with certainty.</summary>
+    private EvaluateObjectOperand? ObjectOperandKind(Core.EvaluateWhenItemContext item)
+    {
+        if (item.ANY() is not null) return EvaluateObjectOperand.Any;
+        if (item.valueRange() is not null) return EvaluateObjectOperand.RangeExpression;
+        if (item.condition() is { } c)
+            return SoleBooleanLiteral(c) is not null
+                ? EvaluateObjectOperand.TrueOrFalse : EvaluateObjectOperand.Condition;
+        if (item.valueOperand() is not { } vo) return null;
+        // ⛔ A BOOLEAN OPERAND IS NOT CLASSIFIABLE HERE, AND THIS SCREEN DECLINES RATHER THAN GUESS.
+        // §14.9.13.3 SR6 RECLASSIFIES it by the SUBJECT and by whether it "results in one boolean character":
+        // (a) against a TRUE/FALSE subject it becomes condition-2; (c) against any other subject it becomes
+        // boolean-expression-2. Those land in different Table 15 rows, and the length test is not implemented.
+        // ⚠ This is not hypothetical: classifying a boolean operand as a condition (which
+        // BareOperandAsCondition's §8.8.4.3 arm reports) rejected the legal `EVALUATE BW WHEN B"01"` over a
+        // `PIC 1(2)` item — identifier × condition is a blank cell. The wave-local gate caught it.
+        if (host.Cond.IsBooleanValueOperand(vo)) return null;
+        // A bare word that RESOLVES to a condition-name is condition-2 (§8.8.4.1.2), not identifier-2 — the same
+        // symbol-table question BindWhenItem asks below, asked once through the same helper.
+        return host.Cond.BareOperandAsCondition(vo) is not null ? EvaluateObjectOperand.Condition : OperandKindOf(vo);
+    }
+
+    /// <summary>Classify a bare value operand as identifier / literal / arithmetic-expression, or null when the
+    /// shape is not one of those with certainty. Shared by both sides so the subject and the object cannot drift
+    /// into classifying the same text differently.</summary>
+    private static EvaluateObjectOperand? OperandKindOf(Core.ValueOperandContext vo)
+    {
+        if (vo.nonNumericLiteral() is not null) return EvaluateObjectOperand.Literal;     // GR1
+        if (vo.arithmeticExpression() is not { } expr) return null;
+        if (ConditionBinder.SoleDataRef(expr) is not null) return EvaluateObjectOperand.Identifier;
+        if (ConditionBinder.SoleNumLiteral(expr) is not null) return EvaluateObjectOperand.Literal;   // GR1
+        return EvaluateObjectOperand.ArithmeticExpression;
+    }
+
     private BoundCondition BindWhenItem(Core.EvaluateSubjectContext subject, Core.EvaluateWhenItemContext item)
     {
+        ScreenPairing(subject, item);
         if (item.ANY() is not null) return new BoundLogical("&&", []);   // renders as true
 
         bool subjTrue = subject.booleanLiteral()?.TRUE_() is not null;

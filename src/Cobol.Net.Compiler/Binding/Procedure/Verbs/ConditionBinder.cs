@@ -116,7 +116,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// boolean expression (B-op tier) OR a sole category-boolean item / boolean literal — so the relation
     /// binder routes it through the boolean channel. (A bare category-boolean item parses as a valueOperand,
     /// not booleanExpression, so this inspects both.)</summary>
-    private bool IsBooleanValueOperand(Core.ValueOperandContext vo)
+    /// <para>⚠ Also read by EVALUATE's Table-15 screen, which DECLINES to classify a boolean operand: §14.9.13.3
+    /// SR6 reclassifies one by the SUBJECT and by whether it "results in one boolean character", and guessing
+    /// wrong there rejects legal source (fix-queue PB47 — it did, and the gate caught it).</para>
+    public bool IsBooleanValueOperand(Core.ValueOperandContext vo)
     {
         var nn = vo.nonNumericLiteral();
         if (nn?.BOOLLIT() is not null) return true;

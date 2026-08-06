@@ -661,6 +661,18 @@ public static class DiagnosticCatalog
         + "converse is NOT an error: omitting the argument for a UTC or offset format is explicitly legal and "
         + "evaluates as though 0 were specified (§15.40.3 r7 / §15.41.3 r6).",
         "ISO §15.40.3 r6 / §15.41.3 r5 (zone per §15.3.3.4–§15.3.3.6)");
+    // PB47. A SYNTAX RULE violation, so a compile-time diagnostic — and that is the whole point of the entry:
+    // an invalid pairing used to compile clean and reach a RUN-TIME NotImplementedCobolFeatureException reading
+    // "a COBOL feature that is not yet implemented", which is doubly wrong (it IS implemented; the source is
+    // inadmissible) and is coverage-shaped, since a WHEN branch that never executes never reported at all.
+    public static readonly DiagnosticDescriptor EvaluateOperandCombinationInvalid = new(
+        "COBOLNET1634", "evaluate-operand-combination-invalid", EditionSeverity.Error,
+        "This EVALUATE selection subject and selection object may not be paired. ISO §14.9.13.3 syntax rule 10: "
+        + "\"The permissible combinations of selection subject and selection object operands are indicated in "
+        + "Table 15, Combination of operands in the EVALUATE statement\", and the cell for this pairing is blank "
+        + "— \"a space indicates an invalid combination\". Most often this is a value object written against a "
+        + "TRUE/FALSE subject, whose only permissible objects are a condition, TRUE/FALSE, or ANY.",
+        "ISO §14.9.13.3 SR10 (Table 15)");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
