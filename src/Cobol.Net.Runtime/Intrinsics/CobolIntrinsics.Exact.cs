@@ -476,6 +476,23 @@ public static partial class CobolIntrinsics
     public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false,
                                  int digitCap = 31)
     {
+        // ⛔ THE FORMAT RULE IS ENFORCED BY THE VALIDATING TWIN, NOT BY A SECOND COPY (fix-queue PB33).
+        // §15.68.3 r4a: "Argument-1 shall have one of the following two formats" — the sign-before-currency form
+        // and the trailing-sign/CR/DB form. `TestNumvalC` already implements BOTH exactly (it is §15.94's whole
+        // job), while this function only STRIPPED the currency and grouping separators and delegated to Numval,
+        // checking nothing. The asymmetry is the one PB33 names — the validating twin was fixed and the
+        // value-producing one was not — and it did not merely return a default: `NUMVAL-C("12$34")` returned
+        // 1234, a WRONG ANSWER, where §15.94 correctly reports an error at position 3.
+        // §15.3: "If the evaluation of an argument results in an incorrect value for that argument … the
+        // EC-ARGUMENT-FUNCTION exception condition is set to exist"; when checking is not enabled the same
+        // clause leaves the result implementor-defined, which is what ArgumentError's 0 return supplies.
+        // ⚠ ONE validator, TWO consumers — never a reimplementation here (feedback_one_rule_one_place). The
+        // digit cap already works this way (PB33's landed half), so the whole rule now has one home.
+        if (TestNumvalC(text, currency, commaMode, anycase, digitCap) is var bad && bad != 0)
+            return Exceptions.ExceptionState.ArgumentError(
+                $"NUMVAL-C argument-1 \"{text}\" does not conform to either §15.68.3 r4a format "
+                + $"(first character in error at position {bad}; §15.94 TEST-NUMVAL-C reports the same position)");
+
         char group = commaMode ? '.' : ',';
         string cur = currency.Trim();
         // ANYCASE (§15.68.3 r4f): the currency match is performed as if both sides were lowercased per
