@@ -149,10 +149,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ 2026-08-05 SESSION CLOSE — THIRTEEN COMMITS, ELEVEN FIX-QUEUE ITEMS, EVERY ONE GATED BEFORE IT LANDED.**
-**PB45 · PB23 · PB25 · PB47 all CLOSED**, and three new defects filed from their sweeps (**PB46** CALL/INVOKE
-`BY CONTENT` omits `arithmetic-expression-1`; **PB47**, since closed; **PB48** the figurative ZERO rewritten to an
-arithmetic zero before binding). ⭐ **THE PATTERN ACROSS ALL FOUR: the spec-derived golden found a defect the queue
+**⚙ 2026-08-05 SESSION CLOSE — EVERY ITEM GATED BEFORE IT LANDED.**
+⛔ **THE COMMIT/ITEM TALLY THAT USED TO OPEN THIS PARAGRAPH IS GONE, AND ITS LAST VALUE WAS WRONG.** It read
+"THIRTEEN COMMITS, ELEVEN FIX-QUEUE ITEMS" against an actual ten commits — a hand-count in a paragraph whose own
+next line says never to quote a number from it, and the session spans two days so no single count is even
+well-defined. Counts come from `git log` and `python scripts/spec/work.py stats`; this paragraph carries the
+NARRATIVE.
+**PB45 · PB23 · PB25 · PB47 all CLOSED**, and every one of their sweeps filed further defects — ⛔ **what is OPEN
+is `kb/Work/`'s answer, not this paragraph's** (`python scripts/spec/work.py next`). ⭐ **THE PATTERN ACROSS ALL
+FOUR: the spec-derived golden found a defect the queue
 entry never mentioned** — PB45's entry did not know `EVALUATE TRUE / WHEN <level-88>` was broken, PB23's named one
 intrinsic where the shared analyzer crashed THREE, PB25's blamed the function arm when the SPECIAL-NAMES
 declaration was the parse error, and PB47's own first implementation rejected legal source until the gate caught

@@ -197,8 +197,19 @@ def load() -> list[dict]:
             elif v.startswith("["):
                 v = [x.strip() for x in v.strip("[]").split(",") if x.strip()]
             d[k.strip()] = v
+        # The note BODY, so check() can catch the status written a second time in the H1 heading.
+        d["_body"] = t[m.end():]
         items.append(d)
     return items
+
+
+# The `# PB45 — LANDED — …` heading writes the status a SECOND time, beside the frontmatter. That is one rule in
+# two places, and it drifted in FIVE notes before anyone looked (PB26/PB36/PB41/PB43/PB45 all read OPEN while
+# their frontmatter said landed) — because flipping `status:` is what `work.py next` reads, so nothing ever
+# contradicted the heading. A reader opening the note sees the heading first.
+HEADING_STATUS = re.compile(r"^#\s+\S+\s+—\s+(?P<status>[A-Z][A-Z\- ]*?)\s+—", re.M)
+# Heading spellings that mean the same thing as a frontmatter status.
+HEADING_ALIASES = {"closed": "landed", "fixed": "landed", "done": "landed"}
 
 
 def check() -> int:
@@ -214,6 +225,14 @@ def check() -> int:
             bad.append(f'{it["_file"]}: kind {it.get("kind")!r} not in {sorted(KINDS)}')
         if it.get("status") not in STATUSES:
             bad.append(f'{it["_file"]}: status {it.get("status")!r} not in {sorted(STATUSES)}')
+        # The H1's status word, when it carries one, shall agree with the frontmatter.
+        if (h := HEADING_STATUS.search(it.get("_body", ""))) is not None:
+            spelled = h.group("status").strip().lower()
+            meant = HEADING_ALIASES.get(spelled, spelled)
+            if meant in STATUSES and meant != it.get("status"):
+                bad.append(f'{it["_file"]}: heading says {h.group("status").strip()!r} but '
+                           f'status is {it.get("status")!r} — a landed note that still reads OPEN is how the '
+                           f'register lies to a reader (the frontmatter is what work.py next reads)')
     ids = [it.get("id") for it in items]
     for i in set(ids):
         if ids.count(i) > 1:
