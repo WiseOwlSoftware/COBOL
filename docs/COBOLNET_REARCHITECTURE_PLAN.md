@@ -1028,7 +1028,21 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured WHOLE on the PB12+PB30+PB31 tree (2026-08-06 02:05),
+- **⛔ BATTERY REFERENCE — CURRENT, the PB40 tree (2026-08-06 03:25).**
+  ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING** — the same shape as the
+  PB47 run. Its one red was the differential reporting **1 per-case flip**: `run_functions:221`,
+  `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`, carrying PB40's own `COBOLNET1627`. §0's mechanical rule classes
+  an AGREE→divergence flip a REGRESSION; attributed from the CASE, it is the opposite. The test passes a
+  `PIC S9(4)V9(4)` item to `FUNCTION CHAR`, and §15.15.3 r1 requires an integer while §15.3 type 6 admits
+  only an integer data item or an always-integral expression — **illegal COBOL that GnuCOBOL accepts and we
+  now reject**, with `--permissive` accepting it (verified) so migration is not blocked. Baseline
+  regenerated with `--write-baseline`; the diff is EXACTLY ONE ROW and a fresh differential prints
+  **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**. Every other leg was green on this same tree and the TSV is
+  read by that one leg only, so nothing is composed across trees:
+  FULL greenfield Conformance **4219 / 4219, zero skipped** (11 m 51 s) · greenfield Unit **3986 / 3986** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and
+  **NIST AUDIT CLEAN**.
+- **⛔ PRIOR BATTERY REFERENCE — the PB12+PB30+PB31 tree (2026-08-06 02:05),
   `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4216 / 4216, zero skipped** (11 m 10 s) ·
   greenfield Unit **3986 / 3986** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
   **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,

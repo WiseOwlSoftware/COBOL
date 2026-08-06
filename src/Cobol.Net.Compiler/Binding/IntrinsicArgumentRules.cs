@@ -577,6 +577,12 @@ internal static class IntrinsicArgumentRules
     /// </remarks>
     public static string? Violation(char kind, BoundOperand op)
     {
+        // §15.3 TYPE 6 IS "INTEGER", AND INTEGER IS NOT A CLASS (fix-queue PB40) — so the class test below
+        // cannot express it and never could. Both an integer function and a numeric function are class NUMERIC
+        // (§15.2 items 5 and 6, "these are of the class and category numeric"), so `'i'` admitted both and
+        // `FUNCTION CHAR(FUNCTION ABS(<scaled item>))` compiled clean. This arm is the missing half.
+        if (kind == 'i' && IntegerViolation(op) is { } notInteger) return notInteger;
+
         var candidates = CandidateClasses(op);
         if (candidates.Length == 0) return null;                          // not statically decidable — fail open
 
@@ -597,6 +603,48 @@ internal static class IntrinsicArgumentRules
             : string.Join(", ", ok[..^1].Select(Name)) + " or " + Name(ok[^1]);
         return $"is of class {Describe(candidates)}; ISO §15.3 requires class {wanted}";
     }
+
+    /// <summary>
+    /// Why this operand cannot satisfy a §15.3 <b>type 6 (Integer)</b> position, or <see langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// §15.3 type 6: "An arithmetic expression that will always result in an integer value or an integer data
+    /// item shall be specified." (`--check`ed.) Two shapes are PROVABLY outside that, and only those two are
+    /// rejected here — everything else fails open, because the position also admits any arithmetic expression
+    /// whose result is always integral and no screen can enumerate those.
+    /// </para>
+    /// <para>
+    /// ⛔ <b>THE FUNCTION ARM IS NOT A VALUE JUDGEMENT, AND THAT IS WHY IT CANNOT OVER-REJECT.</b>
+    /// §8.4.3.2.3 SR11: "A numeric function shall not be specified where an integer operand is required, EVEN
+    /// THOUGH A PARTICULAR REFERENCE OF THE NUMERIC FUNCTION MIGHT YIELD AN INTEGER VALUE." The standard settles
+    /// it on the function's TYPE — so a nested call resolving to §15.x.1's Numeric row is inadmissible outright,
+    /// with no question of "but this one is integral". That is the opposite of the fail-open reasoning the class
+    /// arms need, and it is the standard's own choice, not this screen's.
+    /// </para>
+    /// <para>
+    /// ⚠ WHAT MUST KEEP COMPILING, and the trap that makes the narrow form necessary:
+    /// <c>FUNCTION CHAR(W-I + 1)</c> over an unscaled item is an arithmetic expression that always results in an
+    /// integer, which type 6 admits in as many words. A screen written as "reject unless PROVABLY an integer"
+    /// would refuse it — the PB1 failure mode, arrived at from the opposite direction.
+    /// </para>
+    /// </remarks>
+    public static string? IntegerViolation(BoundOperand op) => op switch
+    {
+        // §8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic }
+            when IntrinsicResultType.Resolve(ic.Sig, ic.Args) is IntrinsicType.Numeric =>
+            $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
+            + "operand position even though a particular reference might yield an integer value",
+        // §15.3 type 6 — "an integer data item". A numeric item with digits to the right of the decimal point
+        // is not one, and as an arithmetic expression it does not always result in an integer either.
+        // (Usage INDEX is excluded: it is class index, §13.18.60, and reaches here as a scale-0 PicInfo anyway.)
+        BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: false } item }
+            when item.Pic is { Category: PicCategory.Numeric, Scale: > 0, Usage: not Usage.Index } =>
+            "is a numeric data item with digits to the right of the decimal point, which ISO §15.3 type 6 does "
+            + "not admit — it requires an integer data item or an always-integral arithmetic expression",
+        _ => null,
+    };
 
     /// <summary>The operand's class for a diagnostic — the one it has, or the choice it offers.</summary>
     private static string Describe(CobolClass[] candidates) => candidates.Length == 1

@@ -27,13 +27,23 @@
        01 B  PIC S9(9)V99 VALUE 7.25.
        01 R  PIC S9(9)V99.
        01 I  PIC S9(9).
+       01 J  PIC S9(9) VALUE 3.
        PROCEDURE DIVISION.
       *> The variadic family - reached through AlignedArgs.
            COMPUTE R = FUNCTION MAX(A + B, B)
            DISPLAY "MAX=" R
            COMPUTE R = FUNCTION MIN(A + B, B)
            DISPLAY "MIN=" R
-           COMPUTE R = FUNCTION MOD(A + B, B)
+      *> ⚠ MOD's OPERANDS ARE INTEGERS, AND THIS LINE USED SCALED ONES (corrected
+      *> with fix-queue PB40). 15.64.3 r1 is "Argument-1 and argument-2 shall be
+      *> integers" - MOD is a 15.3 TYPE 6 position, not the type 10 this file's
+      *> header cites for the rest of the family - so `FUNCTION MOD(A + B, B)`
+      *> over PIC S9(9)V99 items was ILLEGAL SOURCE that this golden asserted
+      *> COMPILES. It was accepted only because the argument screen tested CLASS,
+      *> and a scaled numeric item is class numeric. The dec-carrier point is
+      *> untouched: `J + 10` is still an arithmetic-expression argument reaching
+      *> the AlignedArgs route under ARITHMETIC IS STANDARD-DECIMAL.
+           COMPUTE R = FUNCTION MOD(J + 10, 7)
            DISPLAY "MOD=" R
            COMPUTE R = FUNCTION MEDIAN(A + B, B, A)
            DISPLAY "MEDIAN=" R

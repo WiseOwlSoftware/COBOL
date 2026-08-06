@@ -168,7 +168,9 @@
     "pb48-figurative-all-numeric-argument",
     "pb31-max-mixed-argument-classes",
     "pb12-find-string-integer-position",
-    "pb30-numval-c-currency-class"
+    "pb30-numval-c-currency-class",
+    "pb40-numeric-function-in-integer-position",
+    "pb40-scaled-item-in-integer-position"
   ],
   "pending": []
 }
