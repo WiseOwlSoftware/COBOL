@@ -16,6 +16,15 @@ public static class CobolDate
 {
     private static readonly DateTime Epoch = new(1601, 1, 1);   // integer date 1 (ISO §15.5.2)
 
+    /// <summary>The largest value in integer date form, fixed by ISO §15.5.2: a value "shall be greater than zero
+    /// and shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671" —
+    /// i.e. 9999-12-31. Pinned against the epoch arithmetic by <c>CobolDateRangeTests</c>.
+    /// <para>⛔ IT IS REACHABLE FROM VALID INPUT, WHICH IS THE WHOLE POINT (fix-queue PB23). A WEEK date's subfields
+    /// are each in range (§15.3.1.7: year ≤ 9999, week ≤ 52/53, day 1–7) while their COMBINATION lands past
+    /// 9999-12-31 — 9999-12-31 IS ISO 9999-W52-5, so 9999-W52-6 and -7 are 10000-01-01/02. Two days, and the
+    /// per-subfield range table cannot see them because no single subfield is wrong.</para></summary>
+    private const long MaxIntegerDate = 3_067_671;
+
     /// <summary>The §15.21.3 / §15.99.3 21-character timestamp layout: positions 1–16 <c>yyyyMMddHHmmss</c> +
     /// hundredths; 17 the offset sign ('+' when local time is at or ahead of UTC, '−' behind — '0' reserved for
     /// systems without an offset facility, which .NET always has); 18–19 offset hours; 20–21 offset minutes.
@@ -395,9 +404,16 @@ public static class CobolDate
     /// and range. Returns 0 when fully valid, else the 1-based position of the first character at which an error can
     /// be determined (§15.92.4 — per-digit range narrowing: "20051314"/YYYYMMDD ⇒ 6, "15990316" ⇒ 2). On success
     /// fills the integer date form + seconds×10^f + fraction digit count.</summary>
-    private static int Analyze(string format, string data, out long integerDate, out long secondsScaled, out int fracDigits)
+    /// <param name="dateRepresentable">False when the data is VALID per the format but the date it denotes has no
+    /// integer date form (§15.5.2's 3,067,671 ceiling — see <see cref="MaxIntegerDate"/>). Distinct from the return
+    /// value on purpose: only the caller that must PRODUCE an integer date form cares, so TEST-FORMATTED-DATETIME
+    /// still answers 0 (§15.92.4 — it reports "the ordinal character position at which the first error … was
+    /// detected", and no CHARACTER of "9999W526" is in error; the identical '6' in "2009W526" is valid) and
+    /// SECONDS-FROM-FORMATTED-TIME still returns its seconds.</param>
+    private static int Analyze(string format, string data, out long integerDate, out long secondsScaled,
+                               out int fracDigits, out bool dateRepresentable)
     {
-        integerDate = 0; secondsScaled = 0; fracDigits = 0;
+        integerDate = 0; secondsScaled = 0; fracDigits = 0; dateRepresentable = true;
         var segs = Tokenize(format);
         if (segs is null) return 1;
 
@@ -468,7 +484,31 @@ public static class CobolDate
         bool hasCal  = segs.Any(x => x.IsField && x.Field == Fld.DayOfMonth);
         if (hasCal) integerDate = (new DateTime(yy, mo, dm) - Epoch).Days + 1;
         else if (hasOrd) integerDate = (new DateTime(yy, 1, 1).AddDays(doy - 1) - Epoch).Days + 1;
-        else if (hasWeek) integerDate = (ISOWeek.ToDateTime(yy, wk, wd == 7 ? DayOfWeek.Sunday : (DayOfWeek)wd) - Epoch).Days + 1;
+        // ⛔ THE WEEK DATE IS COMPUTED IN INTEGER ARITHMETIC, NOT VIA ISOWeek.ToDateTime, AND THAT IS THE FIX
+        // (fix-queue PB23). `ISOWeek.ToDateTime(9999, 52, Saturday)` is 10000-01-01 and THROWS
+        // ArgumentOutOfRangeException — a raw CLR fault escaping from three intrinsics, where §15.3 rule 14 permits
+        // only EC-ARGUMENT-FUNCTION or the implementor-defined result. The input is VALID (every §15.3.1.7 subfield
+        // rule is met), so the fault cannot be prevented by tightening the range table; the arithmetic must simply
+        // not overflow. Week 1 is the week containing Jan 4 (§15.3.1.7: "The first week of a given year is the week
+        // that includes January 4"), so its Monday is Jan 4 minus its ISO weekday-1 — always well inside range —
+        // and every later day is that Monday plus a plain integer day count.
+        else if (hasWeek)
+        {
+            var jan4 = new DateTime(yy, 1, 4);
+            int isoDow = ((int)jan4.DayOfWeek + 6) % 7;                  // Monday = 0 … Sunday = 6
+            long week1Monday = (jan4 - Epoch).Days - isoDow + 1;         // integer date form of week 1's Monday
+            integerDate = week1Monday + ((long)wk - 1) * 7 + (wd - 1);
+        }
+
+        // §15.5.2 — a value in integer date form "shall be greater than zero and shall be less than or equal to
+        // … 3,067,671". A date whose subfields are each permissible can still have NO integer date form; the caller
+        // that must produce one raises EC-ARGUMENT-FUNCTION (§15.3 rule 14, "an incorrect value for that argument
+        // OR FOR THE RETURNED VALUE"), while the callers that only validate the FORMAT are unaffected.
+        // ⚠ Applied to EVERY path, not just the week one: the calendar and ordinal paths are bounded today only
+        // because the range table correlates day-with-month and day-of-year-with-year (measured — "99990231" and
+        // "9999366" are both rejected at the right character). This keeps that a property of ONE check rather than
+        // of three separate range expressions that must each stay right.
+        dateRepresentable = integerDate is > 0 and <= MaxIntegerDate || (!hasCal && !hasOrd && !hasWeek);
 
         secondsScaled = ((long)hh * 3600 + mi * 60 + ss) * (long)Pow10.AsWide(fracDigits) + frac;  // §15.79.4
         return 0;
@@ -478,17 +518,27 @@ public static class CobolDate
     /// time is validated but does not affect the result, r1 NOTE). Invalid content → the §15.3 default 0.</summary>
     public static long IntegerOfFormattedDate(string format, string data)
     {
-        int e = Analyze(format, data, out long id, out _, out _);
-        return e != 0
-            ? Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-FORMATTED-DATE: '{data}' is not valid per '{format}' (§15.48.3)")
-            : id;
+        int e = Analyze(format, data, out long id, out _, out _, out bool representable);
+        if (e != 0)
+            return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-FORMATTED-DATE: '{data}' is not valid per '{format}' (§15.48.3)");
+        // §15.48.4 r1 makes the returned value "the integer date form equivalent" — and past §15.5.2's 3,067,671
+        // ceiling there is none, so §15.3 rule 14's "incorrect value … for the returned value" arm applies. The
+        // data itself is VALID (§15.3.1.7), which is why this is a RETURNED-VALUE error and not an argument one.
+        return representable
+            ? id
+            : Exceptions.ExceptionState.ArgumentError(
+                $"INTEGER-OF-FORMATTED-DATE: '{data}' per '{format}' denotes a date after 9999-12-31, which has no "
+                + "integer date form (§15.5.2 caps it at 3,067,671) (§15.48.4)");
     }
 
     /// <summary>SECONDS-FROM-FORMATTED-TIME (§15.79): the hh/mm/ss subfields of a2 as (H*3600+M*60+S), scaled to
     /// the format's fractional-second count (the renderer supplies the matching result scale). Invalid → default 0.</summary>
     public static long SecondsFromFormattedTime(string format, string data, int scale)
     {
-        int e = Analyze(format, data, out _, out long secs, out int f);
+        // `dateRepresentable` is deliberately ignored: the seconds come from the TIME subfields, which §15.79.4
+        // computes without reference to the date, so a combined format whose DATE lands past 9999-12-31 still has
+        // a well-defined result here (PB23).
+        int e = Analyze(format, data, out _, out long secs, out int f, out _);
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"SECONDS-FROM-FORMATTED-TIME: '{data}' invalid per '{format}' (§15.79.3)");
         return scale == f ? secs : scale > f ? secs * (long)Pow10.AsWide(scale - f) : secs / (long)Pow10.AsWide(f - scale);
@@ -496,7 +546,11 @@ public static class CobolDate
 
     /// <summary>TEST-FORMATTED-DATETIME (§15.92): 0 when a2 is valid per a1, else the 1-based position of the first
     /// character at which an error can be determined.</summary>
-    public static long TestFormattedDatetime(string format, string data) => Analyze(format, data, out _, out _, out _);
+    /// <para>⚠ `dateRepresentable` is deliberately ignored. §15.92.1 tests validity "according to the specified
+    /// format", §15.3.1.7's subfield rules are all satisfied by e.g. "9999W526", and §15.92.4 requires any non-zero
+    /// answer to be "the ordinal character position at which the first error … was detected" — no CHARACTER of that
+    /// value is in error, so there is no position to report and the answer is 0 (PB23).</para>
+    public static long TestFormattedDatetime(string format, string data) => Analyze(format, data, out _, out _, out _, out _);
 
     /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).</summary>
     public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale)
