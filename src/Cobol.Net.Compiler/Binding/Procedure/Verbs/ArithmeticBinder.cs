@@ -163,8 +163,51 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
     }
 
+    /// <summary>The <c>booleanExpression</c> parse tree reduced to a BARE figurative ZERO (<c>ZERO</c>/
+    /// <c>ZEROS</c>/<c>ZEROES</c>), or null for anything else — including <c>ALL ZERO</c> and <c>ALL B"…"</c>.</summary>
+    /// <remarks>Read off the TREE, not the bound node: <c>BindBoolExpr</c> normalises a figurative ZERO to
+    /// <c>BoundBoolAll("0")</c>, the same node <c>ALL B"0"</c> produces, so by bind time the two are
+    /// indistinguishable — the loss that made <c>COMPUTE n = ZERO</c> report an ALL-literal rule (PB51).</remarks>
+    private static Core.FigurativeConstantContext? SoleFigurativeZero(Core.BooleanExpressionContext? b)
+    {
+        if (b?.booleanXorTerm() is not [{ } xor]) return null;
+        if (xor.booleanAndTerm() is not [{ } and]) return null;
+        if (and.booleanShiftTerm() is not [{ } shift]) return null;
+        if (shift.booleanShiftSuffix().Length != 0) return null;
+        if (shift.booleanFactor() is not { } factor) return null;
+        var fig = factor.valueOperand()?.nonNumericLiteral()?.figurativeConstant();
+        return fig is not null && fig.ALL() is null && fig.ZERO() is not null ? fig : null;
+    }
+
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
     {
+        // ⛔ F2 → F1 RE-ROUTE, THE MIRROR OF THE ONE ABOVE (fix-queue PB51). `COMPUTE <numeric> = ZERO` parsed
+        // as Format 2 and was REJECTED as "a boolean COMPUTE expression shall not consist solely of an ALL
+        // literal" — on a statement §8.8.1.1 makes legal arithmetic ("An arithmetic expression may be … the
+        // figurative constant ZERO"), with a diagnostic naming a construct the source does not contain.
+        // WHY IT LANDS HERE: a bare `ZERO` is not adjacent to an operator or paren, so ZeroTokenRewriter leaves
+        // it figurative and F1's `arithmeticExpression` cannot match it — the parser takes F2, whose
+        // `valueOperand` leaf admits the figurative. `BindBoolExpr` then normalises it to `BoundBoolAll("0")`
+        // (§8.3.3.6.4 GR4's boolean reading), indistinguishable from `ALL B"0"` by the time SR3 runs.
+        // ⚠ THE TEST IS ON THE PARSE TREE, NOT THE BOUND NODE, precisely because that normalisation is lossy:
+        // `SoleFigurativeZero` asks whether the SOURCE wrote a bare ZERO/ZEROS/ZEROES, so `ALL B"0"` and
+        // `ALL ZERO` keep their existing verdicts (§8.3.3.6.3 SR1a — "the only figurative constant permitted is
+        // ZERO … WITHOUT the ALL phrase").
+        // ⚠ AND IT IS GATED ON A NON-BOOLEAN RECEIVER: with a boolean receiver GR4's boolean reading is the right
+        // one and Format 2 genuinely applies, so that path is untouched.
+        // ⚙ MEASURED SCOPE: every OTHER arithmetic position already accepts a bare ZERO — ADD/SUBTRACT/MULTIPLY,
+        // the GIVING forms, IF and MOVE all have their own operand rules that admit the figurative. COMPUTE is
+        // the one verb whose RHS is a bare `arithmeticExpression`, which is why this is a targeted re-route and
+        // not the grammar re-architecture the queue entry proposed.
+        if (SoleFigurativeZero(boolExpr) is not null
+            && compute.computeStore().Length > 0
+            && ctx.Refs.Resolve(compute.computeStore(0).dataReference()) is not { Item.Pic.Category: PicCategory.Boolean })
+        {
+            // §8.3.3.6.4 GR4 — "the numeric value '0' … depending on context"; a numeric receiver IS that context.
+            return new BoundCompute(new BoundNumLiteral("0"), host.Expr.Receivers(compute.computeStore()),
+                host.BindSizeError(compute.computeOnSizeError()));
+        }
+
         // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
         // RECOGNITION in the VersionConformancePass parse-arm (VisitComputeStatement, HasBoolOp on the F2
         // booleanExpression); Step 14h.4b.
