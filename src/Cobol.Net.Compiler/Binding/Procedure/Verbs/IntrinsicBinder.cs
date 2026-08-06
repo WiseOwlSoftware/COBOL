@@ -14,7 +14,8 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// Intrinsic-function binding (ISO §15; COBOLNET_INTRINSICS_DESIGN spine 1). P7 Step 12: FUNCTION arguments
-/// are REAL parse trees — <c>functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?</c>, each
+/// are REAL parse trees — <c>functionCall : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)?</c>
+/// (the argument-list parens carry their own token type since PB48 — ISO §8.4.3.2.3 SR6), each
 /// <c>functionArgument</c> one of the §8.4.3.2 SR8 shapes (phrase word / OMITTED / non-numeric literal /
 /// arithmetic expression) — and every arithmetic argument binds through the ONE
 /// <see cref="ExpressionBinder.BindExpr"/> (nested <c>FUNCTION</c> calls recurse naturally through

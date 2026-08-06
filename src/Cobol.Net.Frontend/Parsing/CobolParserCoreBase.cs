@@ -209,14 +209,22 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>An operand-ENDING token — an operand can end with an identifier, a right paren, or a literal. Used by
     /// <see cref="boolExprAhead"/> to confirm a binary B-operator has a genuine LEFT operand (so a §8.9 user data-name
     /// spelled B-AND/B-OR/B-XOR heading a comparison below 2002 is not mistaken for the operator).</summary>
+    /// <remarks>FNARG_RPAREN is the function ARGUMENT-LIST ')' (ISO §8.4.3.2.3 SR6; fix-queue PB48) — the same
+    /// character, a different token type. A function result IS an operand, so `FUNCTION f(x) B-AND y` ends its
+    /// left operand on that token; without it here the predicate would answer false and the whole condition
+    /// would take the comparison path instead. Found by sweeping every consumer of the plain paren types after
+    /// the legacy binder's copy of this same omission cost 31 NIST regressions.</remarks>
     private static bool IsBoolOperandTerm(int t) => t is
-        CobolLexer.IDENTIFIER or CobolLexer.RPAREN or CobolLexer.SUB_RPAREN
+        CobolLexer.IDENTIFIER or CobolLexer.RPAREN or CobolLexer.SUB_RPAREN or CobolLexer.FNARG_RPAREN
         or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT
         or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
         or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
 
     /// <summary>An operand-STARTING token — a boolean operand can start with an identifier, '(', a nested B-NOT, a
     /// boolean literal, or figurative ZERO. Used to confirm a prefix B-NOT is a genuine unary operator.</summary>
+    /// <remarks>GROUPING-PAREN-ONLY (fix-queue PB48): FNARG_LPAREN is deliberately absent. An operand that
+    /// STARTS with a parenthesis is a parenthesized sub-expression, and that paren is always a plain LPAREN; a
+    /// function operand starts with the FUNCTION keyword or its name, never with the argument-list '('.</remarks>
     private static bool IsBoolOperandStart(int t) => t is
         CobolLexer.IDENTIFIER or CobolLexer.LPAREN or CobolLexer.B_NOT
         or CobolLexer.BOOLLIT or CobolLexer.ZERO;

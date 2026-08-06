@@ -559,7 +559,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The operand's sole unparenthesized data reference, or null when the arithmetic expression carries
     /// any operator, a unary sign, or enclosing parentheses (the list patterns fail for ≥2 sub-terms, and
-    /// <c>primaryExpression().dataReference()</c> is null for the unary-sign and <c>LPAREN … RPAREN</c> primaries)
+    /// <c>primaryExpression().dataReference()</c> is null for the unary-sign and <c>LPAREN … RPAREN</c> primaries —
+    /// GROUPING-PAREN-ONLY: a <c>primaryExpression</c> parenthesis is always the arithmetic grouping one, never
+    /// the §8.4.3.2.3 SR6 argument-list twin, which belongs to <c>functionCall</c>)
     /// — the SR2 "single data item … not enclosed in parentheses" reduction, mirroring
     /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.</summary>
     private static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith)

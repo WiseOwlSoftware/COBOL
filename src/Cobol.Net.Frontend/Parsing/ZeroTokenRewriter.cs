@@ -60,6 +60,7 @@ public static class ZeroTokenRewriter
         CobolLexer.STAR,
         CobolLexer.SLASH,
         CobolLexer.POWER,
+        // GROUPING-PAREN-ONLY — see the class remarks: excluding FNARG_LPAREN is the whole of fix-queue PB48.
         CobolLexer.LPAREN,
         // The reference-modification COLON (§8.4.3.3.3 SR4 — "leftmost-character-position and length shall be
         // arithmetic expressions"). Its ONE grammar use is refModSpec, so both neighbours are arithmetic by
@@ -79,6 +80,7 @@ public static class ZeroTokenRewriter
         CobolLexer.STAR,
         CobolLexer.SLASH,
         CobolLexer.POWER,
+        // GROUPING-PAREN-ONLY — FNARG_RPAREN excluded deliberately (PB48); see the class remarks.
         CobolLexer.RPAREN,
         CobolLexer.COLON,   // the ref-mod COLON — see PrecedingArithmeticContext (`… (ZERO:2)`)
     };

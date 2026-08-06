@@ -1028,7 +1028,22 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB23+PB25+PB47 tree (2026-08-05 22:30).**
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured WHOLE on the PB48 tree (2026-08-06 00:55), `=== BATTERY: ALL
+  GREEN ===`:** FULL greenfield Conformance **4212 / 4212, zero skipped** (10 m 29 s) · greenfield Unit
+  **3979 / 3979, zero skipped** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases**,
+  **0 PER-CASE FLIPS** against the committed baseline.
+  ⚠ Unit moved 3702 → 3979 because `ParenTokenTwinDriftTests` is a file-per-row theory. Conformance moved
+  4209 → 4212 with PB48's goldens. **Zero failures and zero skipped is what must hold, never a total.**
+  ⛔ **THE RUN BEFORE IT, ON THE SAME COMMIT'S CODE, EXITED 0 AND WAS NOT GREEN** — verdict
+  `=== FAILURES: nist=31 audit=1 unit_rc=0 int_rc=1 baselines=0 ===`, NIST 353 → **322 MATCH / 31 REGRESSION**,
+  every one the `IF` (intrinsic function) suite, every one a clean compile throwing at RUN TIME. PB48 split one
+  lexeme into two token types and swept the GRAMMAR consumers but not the CODE ones; the legacy oracle's
+  `MapFunctionArgTokens` had no arm for the new twin. ⭐ **The wave-local gate, FULL greenfield Conformance, the
+  unit suite, characterization AND the GnuCOBOL differential were ALL GREEN on that broken tree** — the
+  differential's documented blind spot exactly (compilability unaltered, runtime output changed). CI reproduced
+  it on Linux as `killed by signal 6`, scored `RUN NO-VERDICT`. Guarded now by `ParenTokenTwinDriftTests`.
+- **⛔ PRIOR BATTERY REFERENCE, for the differential-baseline provenance only — the PB23+PB25+PB47 tree (2026-08-05 22:30).**
   ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING.** Its one red was the differential
   reporting **1 per-case flip** — `syn_misc:3506`, `WE_ACCEPT_THEY_REJECT → AGREE_REJECT`, carrying PB47's own
   `COBOLNET1634`. By §0's own rule a divergence→AGREE flip is a **FIX**: a program we had been WRONGLY ACCEPTING

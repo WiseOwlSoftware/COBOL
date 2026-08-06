@@ -127,7 +127,7 @@ internal sealed class ExpressionBinder
 
     internal BoundExpression BindFunctionCall(CobolParserCore.FunctionCallContext ctx)
     {
-        // FUNCTION functionName (LPAREN functionArgList? RPAREN)? — the function name comes from the
+        // FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? — the function name comes from the
         // functionName rule (IDENTIFIER or a reserved-word alternative like SIGN/SUM/RANDOM).
         // P7 Step 12 reshaped the SHARED grammar: arguments now parse as DEFAULT-mode functionArgument
         // trees (one per argument — the grammar already did the comma/space separator split the old
@@ -839,6 +839,14 @@ internal sealed class ExpressionBinder
                 CobolParserCore.POWER => CobolParserCore.SUB_POWER,
                 CobolParserCore.LPAREN => CobolParserCore.SUB_LPAREN,
                 CobolParserCore.RPAREN => CobolParserCore.SUB_RPAREN,
+                // A NESTED call's own ARGUMENT-LIST parens inside this argument's subtree — the exact sibling of
+                // the FNARG_SEPARATOR arm below, and omitting them cost 31 NIST IF-suite regressions (fix-queue
+                // PB48). The lexer types the '(' after `FUNCTION <name>` as FNARG_LPAREN (ISO §8.4.3.2.3 SR6),
+                // so `FUNCTION MAX(FUNCTION ABS(X) 3)` contributes FNARG parens here where it used to contribute
+                // plain ones; unmapped they fell through to the segment binder as an unknown token and the
+                // compiled program threw IndexOutOfRange / "Sequence contains no elements" at RUN TIME.
+                CobolParserCore.FNARG_LPAREN => CobolParserCore.SUB_LPAREN,
+                CobolParserCore.FNARG_RPAREN => CobolParserCore.SUB_RPAREN,
                 CobolParserCore.COMMA => CobolParserCore.SUB_COMMA,
                 // A NESTED call's argument separator inside this argument's subtree (the outer grammar consumed
                 // the outer-level ones): the SUB twin keeps the inner argument split alive in the segment binder.

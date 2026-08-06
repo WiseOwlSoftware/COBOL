@@ -271,7 +271,9 @@ public sealed class ReferenceResolver(DataBinder data)
 
     // ── The ONE reference-modification reader (ISO §8.4.3.3.2) ───────────────────────────────────────────────
     // A ref-mod reaches the binder through TWO source carriers, decided by the lexer at the '(' and frozen there:
-    // the DEFAULT-mode PARSED form (`refModPart : LPAREN arithmeticExpression COLON arithmeticExpression? RPAREN`)
+    // the DEFAULT-mode PARSED form (`refModPart : (LPAREN | FNARG_LPAREN) refModSpec (RPAREN | FNARG_RPAREN)` —
+    // BOTH paren flavours, because a ref-mod written directly after a ZERO-ARGUMENT function name is delimited
+    // by the argument-list twins the lexer cannot rule out, §8.4.3.2.3 SR6's catalog precondition; PB48)
     // and the SUBSCRIPT-mode CAPTURED token group (a depth-0 SUB_COLON). Both reduce to the same
     // <see cref="RefModSpec"/> through the same segment renderer, so the rule "how a ref-mod's start and length
     // are read off the source" is written down ONCE. Both overloads are internal because the intrinsic binder
@@ -830,6 +832,12 @@ public sealed class ReferenceResolver(DataBinder data)
                 case Core.SUB_MINUS or Core.MINUS: sb.Append(" - "); break;
                 case Core.SUB_STAR or Core.STAR: sb.Append(" * "); break;
                 case Core.SUB_SLASH or Core.SLASH: sb.Append(" / "); break;
+                // GROUPING-PAREN-ONLY (fix-queue PB48): the argument-list twins FNARG_LPAREN/FNARG_RPAREN are
+                // deliberately absent. A segment carrying them is function-bearing, and the `default:` arm below
+                // routes ANY unrenderable token to D18 — which is where such a segment belongs anyway — so
+                // adding them here would render a function call's parens into a token-by-token string that the
+                // rest of this switch cannot complete. PB42's rule ("can the renderer render it") is what makes
+                // the omission safe rather than lucky.
                 case Core.SUB_LPAREN or Core.LPAREN: sb.Append('('); break;
                 case Core.SUB_RPAREN or Core.RPAREN: sb.Append(')'); break;
                 case Core.SUB_IDENTIFIER or Core.IDENTIFIER:
@@ -897,6 +905,10 @@ public sealed class ReferenceResolver(DataBinder data)
             if (w.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)) return true;
             int k = i + 1;
             while (k < tokens.Count && tokens[k].Type == Core.SUB_WS) k++;
+            // GROUPING-PAREN-ONLY (fix-queue PB48): this arm detects the KEYWORD-OMITTED form `name(args)`,
+            // which by definition has no FUNCTION token before the name — so its '(' is never retyped
+            // FNARG_LPAREN (the lexer's mark keys on exactly that token). The explicit-keyword form is caught by
+            // the `w == "FUNCTION"` test above and never reaches here.
             if (k >= tokens.Count || tokens[k].Type is not (Core.SUB_LPAREN or Core.LPAREN)) continue;
             if (data.Symbols.TryResolve(w, data.ActiveScope, out _)) continue;   // a declared item wins
             if (data.UserFunctionNames.Contains(w)
