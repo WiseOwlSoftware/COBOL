@@ -90,4 +90,17 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
     Write-Host "invent : not built yet (P14 Step 0)"
 }
 
+# ⛔ GITHUB ACTIONS IS DISABLED, AND A DISABLED GATE MUST NOT BE INVISIBLE (2026-08-06). The workflow was turned
+# off during GitHub's Actions outage so pushes stop queueing runs that cannot execute; it is an OWNER decision to
+# re-enable. Reported here because the probe is the one thing every session reads, and "CI is off" is exactly the
+# kind of live state that rots into a false sense of coverage (feedback_green_gates_arent_evidence).
+# Network-tolerant: any failure to reach GitHub is silent, so the probe still works offline.
+try {
+    $wf = & gh api repos/BrentRector/CobolSharp/actions/workflows --jq '.workflows[] | select(.state != "active") | "\(.name) [\(.state)]"' 2>$null
+    if ($LASTEXITCODE -eq 0 -and $wf) {
+        Write-Host "ci     : ⛔ DISABLED — $wf  (re-enable: gh workflow enable 'Build and Test')"
+        Write-Host "         every gate is LOCAL until then: bash scripts/battery.sh"
+    }
+} catch { }
+
 Write-Host "=== next: confirm the battery green (plan §9) before code changes; the worklist is kb/Work (work.py next, above); plan 0 is live state ==="
