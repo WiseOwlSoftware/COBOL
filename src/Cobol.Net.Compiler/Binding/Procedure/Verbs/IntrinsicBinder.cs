@@ -664,6 +664,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1502", "the FUNCTION TRIM argument-2 form (removing characters other than "
                 + "space) was introduced by ISO/IEC 1989:2023 (§15.96; Annex E.3.3 item 31) — it requires "
                 + $"--std 2023 or later (targeting COBOL-{ctx.Edition.DialectLevel}); TRIM removed only spaces through 2014");
+        // The §15.3 screen — see the PB12 note on the FIND-STRING arm: this binder returns before the
+        // generic path reaches CheckArgumentClasses, so it screens its own operand list.
+        CheckArgumentClasses(sig, operands);
         // ⛔ THE §15.96.1 RESULT-TYPE TABLE APPLIES HERE TOO, AND THIS SITE IS WHY PB15 NEEDED FINDING TWICE.
         // TRIM has a BESPOKE bind (the LEADING/TRAILING phrase), so it builds its own node and NEVER reaches the
         // generic path's resolution — hardcoding Alphanumeric here left `MOVE FUNCTION TRIM(national) TO PIC X`
@@ -702,6 +705,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"[[START AFTER] argument-3] (ISO §15.37.2); {operands.Count} operand argument(s) given");
             return new BoundExprError("FUNCTION FIND-STRING");
         }
+        // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
+        // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
+        // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
+        // `return` above it, so no Verified row could ever screen them. Screened here, after this
+        // binder's own arity check, exactly as the generic path orders it.
+        CheckArgumentClasses(sig, operands);
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, Anycase = anycase };
     }
 
@@ -746,6 +755,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (!haveSource || modes.Count == 0 || pairOperands != 0 || pending != 0) return Malformed();
         // §15.87.1's result-type table follows argument-1, and this bespoke bind is the second site that bypassed
         // it (see the TRIM note above — the same two-arm shape, the same silent under-rejection).
+        // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
+        // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
+        // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
+        // `return` above it, so no Verified row could ever screen them. Screened here, after this
+        // binder's own arity check, exactly as the generic path orders it.
+        CheckArgumentClasses(sig, operands);
         return new BoundIntrinsicCall(
             sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
             { SubstituteModes = modes };
@@ -785,6 +800,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "source-format destination-format pair (ISO §15.19.2 — ANY|ANUM|HEX|NAT then ANUM|NAT [HEX] | BYTE)");
             return new BoundExprError("FUNCTION CONVERT");
         }
+        // The §15.3 screen — see the PB12 note on the FIND-STRING arm: this binder returns before the
+        // generic path reaches CheckArgumentClasses, so it screens its own operand list.
+        CheckArgumentClasses(sig, operands);
         // SR3 — source shall differ from destination (only ANUM→ANUM / NAT→NAT with no HEX collide, §15.19.3).
         if ((src == 1 && dst == 1 && !hex) || (src == 3 && dst == 3 && !hex))
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: the source-format and destination-format are the "
@@ -971,6 +989,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"(ISO §{(sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2")}); {operands.Count} operand argument(s) given");
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
+        // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
+        // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
+        // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
+        // `return` above it, so no Verified row could ever screen them. Screened here, after this
+        // binder's own arity check, exactly as the generic path orders it.
+        CheckArgumentClasses(sig, operands);
         if (operands.Count == 1)
             operands.Add(new BoundStringLiteral(ctx.Data.CurrencyString));   // §15.68.3 r3
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Anycase = anycase };
@@ -1003,23 +1027,30 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // which would screen LENGTH as numeric-only. Screening from it rejected 12 legal corpus programs.
         // A function absent from Verified is not screened, so this can only ever ADD rejections that a cited
         // §15 rule demands. sig.ArgKind(i) still supplies the POSITION when the rule is per-argument.
-        if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var rule)) return;
+        if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var schema)) return;
 
+        // PER-POSITION (fix-queue PB12). `schema.At(i)` is null for a position the clause does not describe —
+        // UNSCREENED, never screened by whatever the previous position declared, which is exactly the mistake a
+        // one-kind-per-function table forced on FIND-STRING and the FORMATTED-* family.
         for (int i = 0; i < args.Count; i++)
         {
+            if (schema.At(i) is not { } rule) continue;
             if (IntrinsicArgumentRules.Violation(rule.Kind, args[i]) is not { } why) continue;
+            Report($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})");
+        }
 
-            string where = $"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})";
+        // CROSS-ARGUMENT (fix-queue PB31) — §15.59.3 r2 and its siblings, which no per-position check can see.
+        if (IntrinsicArgumentRules.CrossViolation(schema, args) is { } cross)
+            Report($"FUNCTION {sig.Name} {cross}");
+
+        void Report(string where)
+        {
             if (ctx.Edition.Permissive)
-            {
                 ctx.Edition.Warning(DiagnosticCatalog.IntrinsicArgumentClass,
                     $"{where}; accepted under --permissive with the existing coercion");
-            }
             else
-            {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
                     $"{where}. --permissive accepts it as a coercion extension");
-            }
         }
     }
 
@@ -1187,6 +1218,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 $"FUNCTION LENGTH takes argument-1 [PHYSICAL] (ISO §15.50.2); {operands.Count} operand argument(s) given");
             return new BoundExprError("FUNCTION LENGTH arity");
         }
+        // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
+        // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
+        // claimed it ran "before every per-function arm" — FALSE for the eight bespoke binders that
+        // `return` above it, so no Verified row could ever screen them. Screened here, after this
+        // binder's own arity check, exactly as the generic path orders it.
+        CheckArgumentClasses(sig, operands);
         _ = physical;   // §15.50.4 r8 — see the remarks: transparent under this implementation's determination.
         return BindLengthFold(sig, operands);
     }

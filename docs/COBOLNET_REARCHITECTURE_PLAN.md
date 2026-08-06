@@ -1028,7 +1028,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured WHOLE on the PB48 tree (2026-08-06 00:55), `=== BATTERY: ALL
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured WHOLE on the PB12+PB30+PB31 tree (2026-08-06 02:05),
+  `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4216 / 4216, zero skipped** (11 m 10 s) ·
+  greenfield Unit **3986 / 3986** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,
+  0 PER-CASE FLIPS**.
+  ⭐ **THAT DIFFERENTIAL RESULT IS THE LOAD-BEARING ONE.** The wave added FIFTEEN new bind-time REJECTIONS
+  to the §15.3 argument screen, and PB1's disaster was a screen that turned away 12 LEGAL corpus programs —
+  so "it rejects the right things" is the CHEAP half of the gate. 1,323 real GPL COBOL programs changing no
+  accept/reject verdict, plus 599 corpus programs and 353 NIST programs green, is the over-rejection
+  evidence; a probe of hand-written illegal cases is only the under-rejection half.
+- **⛔ PRIOR BATTERY REFERENCE — the PB48 tree (2026-08-06 00:55), `=== BATTERY: ALL
   GREEN ===`:** FULL greenfield Conformance **4212 / 4212, zero skipped** (10 m 29 s) · greenfield Unit
   **3979 / 3979, zero skipped** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
   **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases**,

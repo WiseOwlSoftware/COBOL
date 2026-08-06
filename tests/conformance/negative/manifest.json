@@ -165,7 +165,10 @@
     "pb17-function-subscript-varying-by",
     "pb17-function-subscript-evaluate-subject",
     "pb48-figurative-space-numeric-argument",
-    "pb48-figurative-all-numeric-argument"
+    "pb48-figurative-all-numeric-argument",
+    "pb31-max-mixed-argument-classes",
+    "pb12-find-string-integer-position",
+    "pb30-numval-c-currency-class"
   ],
   "pending": []
 }

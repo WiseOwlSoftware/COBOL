@@ -108,7 +108,8 @@
     "pb45_function_in_when_object",
     "pb23_week_date_beyond_integer_date_form",
     "pb25_figurative_intrinsic_argument",
-    "pb48_figurative_zero_intrinsic_argument"
+    "pb48_figurative_zero_intrinsic_argument",
+    "pb12_intrinsic_argument_schema"
   ],
   "pending": []
 }

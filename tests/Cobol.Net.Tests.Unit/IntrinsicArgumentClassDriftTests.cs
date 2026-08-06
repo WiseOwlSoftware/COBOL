@@ -91,11 +91,16 @@ public sealed class IntrinsicArgumentClassDriftTests
         Assert.True(at > 0, "IntrinsicArgumentRules.Verified is gone");
         string table = rules[at..rules.IndexOf("};", at, StringComparison.Ordinal)];
 
-        var entries = Regex.Matches(table, """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*\('(?<k>.)',\s*"(?<c>[^"]*)"\)""");
+        // ⚠ THE ROW SHAPE IS NOW A SCHEMA, NOT A KIND (fix-queue PB12): `Uniform('n', "§…")` for the common
+        // one-kind-per-position rule and `Schema("§…", ['s','s','i'], …)` for a mixed-class one. Both carry the
+        // clause in the SAME position — the first string literal — so this guard reads either without caring
+        // which. A regex that still required the old tuple would have silently matched nothing and passed.
+        var entries = Regex.Matches(table,
+            """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*(?:Uniform\('(?<k>.)',\s*"(?<c>[^"]*)"|Schema\("(?<c2>[^"]*)")""");
         Assert.True(entries.Count >= 11, $"only {entries.Count} verified rules parsed — the table shape changed "
             + "and this guard has gone blind; fix the regex, do not lower the floor.");
 
-        var uncited = entries.Where(m => !m.Groups["c"].Value.Contains('§'))
+        var uncited = entries.Where(m => !(m.Groups["c"].Value + m.Groups["c2"].Value).Contains('§'))
             .Select(m => m.Groups["f"].Value).ToList();
         Assert.True(uncited.Count == 0,
             $"verified argument rule(s) with no ISO clause: [{string.Join(", ", uncited)}]. An entry here is a "
@@ -115,10 +120,11 @@ public sealed class IntrinsicArgumentClassDriftTests
         var handled = new HashSet<char>(Regex.Matches(RulesSource(), @"'(?<c>[a-z])' =>")
             .Select(m => m.Groups["c"].Value[0])) { 'p', ' ' };
 
-        foreach (Match m in Regex.Matches(table, """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*\('(?<k>.)'"""))
+        foreach (Match m in Regex.Matches(table,
+            """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*(?:Uniform\('(?<k>.)'|Schema\("[^"]*",\s*\['(?<k2>.)')"""))
         {
             string fn = m.Groups["f"].Value;
-            char code = m.Groups["k"].Value[0];
+            char code = (m.Groups["k"].Value + m.Groups["k2"].Value)[0];
             Assert.True(catalogNames.Contains(fn),
                 $"verified rule names FUNCTION {fn}, which is not in IntrinsicCatalog — the screen can never fire");
             Assert.True(handled.Contains(code),
@@ -161,5 +167,66 @@ public sealed class IntrinsicArgumentClassDriftTests
         string block = catalog[at..Math.Min(catalog.Length, at + 2400)];
         foreach (string cite in new[] { "§15.3", "§8.5.2.1", "§4.2.2" })
             Assert.True(block.Contains(cite, StringComparison.Ordinal), $"COBOLNET1627 no longer cites {cite}");
+    }
+
+    /// <summary>
+    /// EVERY bespoke binder that <c>return</c>s before the generic path's screen calls the screen ITSELF.
+    /// </summary>
+    /// <remarks>
+    /// ⛔ THE COMMENT ON <c>CheckArgumentClasses</c> CLAIMED THIS PROPERTY AND IT WAS FALSE (fix-queue PB12).
+    /// It read: "It sits HERE — after arity, before every per-function arm — so a new catalog row is screened
+    /// the day it is added rather than the day someone remembers to write its arm." Eight functions
+    /// (TRIM, FIND-STRING, SUBSTITUTE, CONVERT, MODULE-NAME, LENGTH, NUMVAL-C, EXCEPTION-FILE) bind through a
+    /// bespoke arm that RETURNS ABOVE that line, so no <c>Verified</c> row could ever screen them — the review
+    /// recorded it as "structurally unreachable" and it stayed that way through three batches.
+    /// <para>
+    /// ⚠ A claim about control flow is exactly the kind a comment cannot keep true. This asserts it instead: a
+    /// binder that grows a new early return, or loses its screen call, fails HERE with the reason.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("BindTrim")]
+    [InlineData("BindFindString")]
+    [InlineData("BindSubstitute")]
+    [InlineData("BindConvert")]
+    [InlineData("BindNumvalCFamily")]
+    [InlineData("BindLengthFamily")]
+    public void EveryBespokeBinder_CallsTheArgumentClassScreenItself(string method)
+    {
+        string src = BinderSource();
+        int at = src.IndexOf($"private BoundExpr {method}(", StringComparison.Ordinal);
+        Assert.True(at > 0, $"{method} is gone from IntrinsicBinder — update this guard or restore the binder");
+        // The method body runs to the next `private BoundExpr Bind…(` declaration (or end of file).
+        int next = src.IndexOf("    private BoundExpr Bind", at + 10, StringComparison.Ordinal);
+        string body = next > 0 ? src[at..next] : src[at..];
+        Assert.True(body.Contains("CheckArgumentClasses(sig, operands)", StringComparison.Ordinal),
+            $"{method} returns before the generic §15.3 screen and does not call it on its own operand list, so "
+            + "every IntrinsicArgumentRules.Verified row for that function is DEAD — the 'structurally "
+            + "unreachable' state PB12 recorded. Add CheckArgumentClasses(sig, operands) after its arity check.");
+    }
+
+    /// <summary>A schema with a cross-argument rule cites the clause that rule came from — the same
+    /// spec-derived-not-guessed bar every per-position kind carries (fix-queue PB31).</summary>
+    [Fact]
+    public void EveryCrossArgumentRule_CitesItsClause()
+    {
+        string rules = RulesSource();
+        int at = rules.IndexOf("Verified =", StringComparison.Ordinal);
+        string table = rules[at..rules.IndexOf("};", at, StringComparison.Ordinal)];
+        var withCross = Regex.Matches(table, @"CrossArgRule\.(?<r>\w+)");
+        Assert.True(withCross.Count >= 4,
+            $"only {withCross.Count} cross-argument rules found — §15.59.3 r2, §15.63.3 r2, §15.68.3 r2 and "
+            + "§15.37.3 r2 are all modelled, so this guard has gone blind; fix the regex, do not lower the floor.");
+        foreach (Match m in Regex.Matches(table, """\["(?<f>[A-Z0-9-]+)"\][^\r\n]*CrossArgRule\.(?<r>\w+)"""))
+        {
+            if (m.Groups["r"].Value == "None") continue;
+            string row = m.Value;
+            // The crossClause: argument is the LAST string literal on the row (or its continuation line).
+            int rowEnd = table.IndexOf("),", m.Index, StringComparison.Ordinal);
+            string full = rowEnd > 0 ? table[m.Index..rowEnd] : row;
+            Assert.True(full.Contains('§'),
+                $"FUNCTION {m.Groups["f"].Value} declares a cross-argument rule with no ISO clause — an "
+                + "uncited cross rule rejects legal source on a guess.");
+        }
     }
 }

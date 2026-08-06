@@ -47,6 +47,71 @@ internal enum CobolClass
     Pointer,
 }
 
+/// <summary>One argument POSITION's requirement — the §15.x.3 rule for that ordinal, with the clause it was read
+/// from. <paramref name="Kind"/> is the code <see cref="IntrinsicArgumentRules.Admissible"/> resolves.</summary>
+internal readonly record struct ArgRule(char Kind, string Clause);
+
+/// <summary>A §15.x.3 rule about the argument list AS A WHOLE, which no per-position code can express.</summary>
+/// <remarks>
+/// ⛔ THIS EXISTS BECAUSE THE RULES DO, AND A PER-POSITION SCREEN WAS SILENTLY IGNORING THEM (fix-queue PB31,
+/// and the residue PB12/PB52 recorded three separate times before it was modelled). §15.59.3 r2 and §15.63.3 r2
+/// are not decoration: without them <c>FUNCTION MAX(1 "A")</c> is accepted, and every argument passes its own
+/// position's check while the LIST is illegal.
+/// </remarks>
+internal enum CrossArgRule
+{
+    /// <summary>No cross-argument constraint beyond the per-position kinds.</summary>
+    None,
+
+    /// <summary>§15.59.3 r2 / §15.63.3 r2 — "All arguments shall be of the same class with the exception that
+    /// mixing of arguments of alphabetic and alphanumeric classes is allowed." (The exception is free here:
+    /// <see cref="PicCategory"/> folds alphabetic into alphanumeric, so the two are one class in this model.)</summary>
+    AllSameClass,
+
+    /// <summary>§15.37.3 r2 / §15.68.3 r2 / §15.48.3 r3 / §15.79.3 r3 — the positions that share argument-1's
+    /// declared kind shall agree in class with argument-1. Positions declared with a DIFFERENT kind (FIND-STRING's
+    /// integer argument-3) are governed by their own rule and are not part of this one.</summary>
+    MatchArgument1,
+}
+
+/// <summary>
+/// A catalogued function's §15.x.3 ARGUMENT SCHEMA: what each POSITION requires, what a variadic tail requires,
+/// and the cross-argument rule the clause carries.
+/// </summary>
+/// <remarks>
+/// ⛔ THIS REPLACED ONE KIND PER FUNCTION, AND THE OLD SHAPE IS WHY SIX FUNCTIONS COULD NOT BE SCREENED AT ALL
+/// (fix-queue PB12). FIND-STRING and the four FORMATTED-* functions take MIXED argument classes — an
+/// alphanumeric/national format string PLUS integer operands — so a single-kind row would have screened every
+/// position by the first one's class and REJECTED LEGAL SOURCE. That is not a gap in the table, it is a gap in
+/// the table's SHAPE, and CLAUDE.md rule 5 says the answer is the restructuring rather than the smallest diff
+/// (<c>feedback_model_the_rule_shape_not_one_case</c>).
+/// <para>
+/// ⚠ The uniform case stays a one-liner (<see cref="Uniform"/>) and every pre-existing row migrated to it
+/// unchanged — a schema whose <see cref="Positions"/> is empty and whose <see cref="Tail"/> carries the one kind
+/// is EXACTLY the old behaviour, position for position, which is what made the restructuring provable rather
+/// than merely tested.
+/// </para>
+/// </remarks>
+internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRule Cross, string CrossClause)
+{
+    /// <summary>The rule governing argument position <paramref name="i"/> (0-based), or null when the schema
+    /// says nothing about it — a position past the declared ones with no variadic tail is UNSCREENED, never
+    /// screened by the previous position's kind.</summary>
+    public ArgRule? At(int i) => i < Positions.Length ? Positions[i] : Tail;
+
+    /// <summary>The positions <see cref="CrossArgRule.MatchArgument1"/> governs: those declaring the SAME kind as
+    /// argument-1. Derived from the table rather than listed beside it, so a new row cannot forget to say which
+    /// positions participate — and it is the honest reading, since "argument-2 shall be of the same class as
+    /// argument-1" is only meaningful where both were declared in the same family.</summary>
+    public IEnumerable<int> MatchedPositions()
+    {
+        if (Positions.Length == 0) yield break;
+        char first = Positions[0].Kind;
+        for (int i = 0; i < Positions.Length; i++)
+            if (Positions[i].Kind == first) yield return i;
+    }
+}
+
 /// <summary>
 /// The ISO §15.3 ARGUMENT-TYPE screen — the one place a catalogued intrinsic's declared per-argument class is
 /// checked against the operand actually written.
@@ -245,40 +310,56 @@ internal static class IntrinsicArgumentRules
     /// outcome CLAUDE.md rule 4 forbids outright.
     /// </para>
     /// </remarks>
-    public static readonly IReadOnlyDictionary<string, (char Kind, string Clause)> Verified =
-        new Dictionary<string, (char, string)>(StringComparer.OrdinalIgnoreCase)
+    /// <summary>ONE kind for every position — the shape most §15.x.3 argument rules actually have ("argument-1
+    /// shall be of class numeric", with argument-1 repeating for a variadic list). Expressed as a variadic TAIL
+    /// with no fixed positions, which is precisely what the pre-schema table did for every row.</summary>
+    private static ArgSchema Uniform(char kind, string clause, CrossArgRule cross = CrossArgRule.None,
+        string crossClause = "") => new([], new ArgRule(kind, clause), cross, crossClause);
+
+    /// <summary>Per-POSITION kinds, for a rule that constrains its ordinals differently — FIND-STRING's two
+    /// string operands plus an integer, the FORMATTED-* family's format literal plus its numeric values.
+    /// <paramref name="tail"/> is the kind for positions past the declared ones (a variadic tail), or
+    /// <c>'\0'</c> for none — and NONE is the honest default: a position the clause does not describe is
+    /// UNSCREENED, never screened by whatever the last declared position happened to be.</summary>
+    private static ArgSchema Schema(string clause, char[] kinds, char tail = '\0',
+        CrossArgRule cross = CrossArgRule.None, string crossClause = "") =>
+        new([.. kinds.Select(k => new ArgRule(k, clause))],
+            tail == '\0' ? null : new ArgRule(tail, clause), cross, crossClause);
+
+    public static readonly IReadOnlyDictionary<string, ArgSchema> Verified =
+        new Dictionary<string, ArgSchema>(StringComparer.OrdinalIgnoreCase)
         {
-            ["ABS"] = ('n', "§15.7.3 r1"),                            // shall be of class numeric
-            ["ORD"] = ('s', "§15.70.3 r1"),                           // category alphabetic/alphanumeric/national
-            ["ORD-MAX"] = ('p', "§15.71.3 r1"),                       // NOT boolean/message-tag/object/pointer
-            ["ORD-MIN"] = ('p', "§15.72.3 r1"),                       // NOT boolean/message-tag/object/pointer
-            ["PRESENT-VALUE"] = ('n', "§15.74.3 r1"),                 // argument-1 and argument-2 class numeric
-            ["RANDOM"] = ('n', "§15.75.3 r1"),                        // shall be of class numeric
-            ["RANGE"] = ('n', "§15.76.3 r1"),                         // shall be of class numeric
-            ["REM"] = ('n', "§15.77.3 r1"),                           // argument-1 and argument-2 class numeric
-            ["REVERSE"] = ('s', "§15.78.3 r1"),                       // class alphabetic/alphanumeric/national
+            ["ABS"] = Uniform('n', "§15.7.3 r1"),                            // shall be of class numeric
+            ["ORD"] = Uniform('s', "§15.70.3 r1"),                           // category alphabetic/alphanumeric/national
+            ["ORD-MAX"] = Uniform('p', "§15.71.3 r1"),                       // NOT boolean/message-tag/object/pointer
+            ["ORD-MIN"] = Uniform('p', "§15.72.3 r1"),                       // NOT boolean/message-tag/object/pointer
+            ["PRESENT-VALUE"] = Uniform('n', "§15.74.3 r1"),                 // argument-1 and argument-2 class numeric
+            ["RANDOM"] = Uniform('n', "§15.75.3 r1"),                        // shall be of class numeric
+            ["RANGE"] = Uniform('n', "§15.76.3 r1"),                         // shall be of class numeric
+            ["REM"] = Uniform('n', "§15.77.3 r1"),                           // argument-1 and argument-2 class numeric
+            ["REVERSE"] = Uniform('s', "§15.78.3 r1"),                       // class alphabetic/alphanumeric/national
             // §15.79.3 r1/r3 — argument-1 is a national or alphanumeric LITERAL (its literal-ness is enforced by
             // the existing COBOLNET1517 arm); argument-2 "shall have the same type as argument-1", so both sit in
             // the string family for the purposes of a class screen.
-            ["SECONDS-FROM-FORMATTED-TIME"] = ('s', "§15.79.3 r1/r3"),
+            ["SECONDS-FROM-FORMATTED-TIME"] = Uniform('s', "§15.79.3 r1/r3"),
             // PI takes no arguments (§15.73.2) — present so the drift test can hold this table and the Phase-B
             // batch's function list in agreement rather than silently tolerating a gap.
-            ["PI"] = (' ', "§15.73.2 — no arguments"),
+            ["PI"] = Uniform(' ', "§15.73.2 — no arguments"),
 
             // ── Phase-B batch 2 (§15.8–15.19). Eight of its twelve functions; the other four are listed under
             //    DELIBERATELY UNSCREENED below, because their argument rule is not a class constraint at all.
-            ["ACOS"] = ('n', "§15.8.3 r1"),                           // shall be of class numeric
-            ["ASIN"] = ('n', "§15.10.3 r1"),                          // shall be of class numeric
-            ["ATAN"] = ('n', "§15.11.3 r1"),                          // shall be of class numeric
-            ["ANNUITY"] = ('n', "§15.9.3 r1"),                        // argument-1 class numeric; r3 makes
+            ["ACOS"] = Uniform('n', "§15.8.3 r1"),                           // shall be of class numeric
+            ["ASIN"] = Uniform('n', "§15.10.3 r1"),                          // shall be of class numeric
+            ["ATAN"] = Uniform('n', "§15.11.3 r1"),                          // shall be of class numeric
+            ["ANNUITY"] = Uniform('n', "§15.9.3 r1"),                        // argument-1 class numeric; r3 makes
                                                                       // argument-2 an integer, also class numeric
-            ["CHAR"] = ('i', "§15.15.3 r1"),                          // shall be an integer
-            ["CHAR-NATIONAL"] = ('i', "§15.16.3 r1"),                 // shall be an integer
-            ["BOOLEAN-OF-INTEGER"] = ('i', "§15.13.3 r1/r2"),         // both arguments positive integers
+            ["CHAR"] = Uniform('i', "§15.15.3 r1"),                          // shall be an integer
+            ["CHAR-NATIONAL"] = Uniform('i', "§15.16.3 r1"),                 // shall be an integer
+            ["BOOLEAN-OF-INTEGER"] = Uniform('i', "§15.13.3 r1/r2"),         // both arguments positive integers
             // §15.17.3 r1/r2 — argument-1 "in integer date form", argument-2 "in standard numeric time form".
             // Both are numeric FORMS, so the class screen is the same for each position even though the two
             // rules differ in what they additionally require of the VALUE.
-            ["COMBINED-DATETIME"] = ('n', "§15.17.3 r1/r2"),
+            ["COMBINED-DATETIME"] = Uniform('n', "§15.17.3 r1/r2"),
 
             // ── §15.32–15.44, the review's fourth batch (fix-queue PB12) ────────────────────────────────────
             // Each row is the function's OWN §15.x.3 argument rule, read and mechanically cited. Six of the
@@ -292,18 +373,18 @@ internal static class IntrinsicArgumentRules
             //     usage is display — so an 'n' row would REJECT an argument the standard admits. That is exactly
             //     the PB1 trap (12 legal corpus programs rejected by asserting an unaudited kind), so it stays
             //     unscreened until a kind exists that can say "category numeric or numeric-edited".
-            ["EXP"] = ('n', "§15.34.3 r1"),                           // shall be of class numeric
-            ["EXP10"] = ('n', "§15.35.3 r1"),                         // shall be of class numeric
-            ["FRACTION-PART"] = ('n', "§15.42.3 r1"),                 // shall be of the class numeric
-            ["INTEGER"] = ('n', "§15.44.3 r1"),                       // shall be of class numeric
+            ["EXP"] = Uniform('n', "§15.34.3 r1"),                           // shall be of class numeric
+            ["EXP10"] = Uniform('n', "§15.35.3 r1"),                         // shall be of class numeric
+            ["FRACTION-PART"] = Uniform('n', "§15.42.3 r1"),                 // shall be of the class numeric
+            ["INTEGER"] = Uniform('n', "§15.44.3 r1"),                       // shall be of class numeric
             // ⚠ PARTIAL by construction: §15.36.3 r1 is "an integer GREATER THAN OR EQUAL TO ZERO". The 'i' kind
             // screens the CLASS half (§15.3 type 6); the VALUE half is a run-time property this compile-time
             // screen cannot see, so FACTORIAL(-1) still passes here and is EC-ARGUMENT-FUNCTION's business.
-            ["FACTORIAL"] = ('i', "§15.36.3 r1"),                     // shall be an integer (>= 0 is a value rule)
+            ["FACTORIAL"] = Uniform('i', "§15.36.3 r1"),                     // shall be an integer (>= 0 is a value rule)
             // Zero-argument functions: the general format admits no argument at all, so any argument is an arity
             // error (COBOLNET1504) before class screening is reached. Recorded so the review can close the row.
-            ["EXCEPTION-STATEMENT"] = (' ', "§15.32.2 — no arguments"),
-            ["EXCEPTION-STATUS"] = (' ', "§15.33.2 — no arguments"),
+            ["EXCEPTION-STATEMENT"] = Uniform(' ', "§15.32.2 — no arguments"),
+            ["EXCEPTION-STATUS"] = Uniform(' ', "§15.33.2 — no arguments"),
 
             // ── §15.45–15.57, the review's fifth batch (fix-queue PB19) ─────────────────────────────────────
             // Every rule below was read at its own clause and `cite.py --check`ed. The batch reported these as
@@ -311,16 +392,16 @@ internal static class IntrinsicArgumentRules
             // any function absent from this table, so §15.49.3 r1 was enforced NOWHERE while the adjacent INTEGER
             // and FRACTION-PART — whose rule text is the same sentence — were enforced. That asymmetry is what
             // "the table grows as the review adjudicates each clause" looks like from inside.
-            ["INTEGER-OF-DATE"] = ('i', "§15.46.3 r1"),               // an integer of the form YYYYMMDD
-            ["INTEGER-OF-DAY"] = ('i', "§15.47.3 r1"),                // an integer of the form YYYYDDD
-            ["INTEGER-PART"] = ('n', "§15.49.3 r1"),                  // shall be of class numeric
-            ["LOG"] = ('n', "§15.55.3 r1"),                           // shall be of class numeric
-            ["LOG10"] = ('n', "§15.56.3 r1"),                         // shall be of class numeric
+            ["INTEGER-OF-DATE"] = Uniform('i', "§15.46.3 r1"),               // an integer of the form YYYYMMDD
+            ["INTEGER-OF-DAY"] = Uniform('i', "§15.47.3 r1"),                // an integer of the form YYYYDDD
+            ["INTEGER-PART"] = Uniform('n', "§15.49.3 r1"),                  // shall be of class numeric
+            ["LOG"] = Uniform('n', "§15.55.3 r1"),                           // shall be of class numeric
+            ["LOG10"] = Uniform('n', "§15.56.3 r1"),                         // shall be of class numeric
             // ⚠ PARTIAL, exactly like REVERSE (`AR-15.78.3-1`): §15.57.3 r1 / §15.97.3 r1 are ONE sentence with
             // TWO halves — "of class alphabetic, alphanumeric, or national" AND "at least one character position
             // in length". This screens the class half only. Half a rule enforced is PARTIAL, never CONFORMS.
-            ["LOWER-CASE"] = ('s', "§15.57.3 r1"),                    // class alphabetic/alphanumeric/national
-            ["UPPER-CASE"] = ('s', "§15.97.3 r1"),                    // the SAME sentence, verbatim
+            ["LOWER-CASE"] = Uniform('s', "§15.57.3 r1"),                    // class alphabetic/alphanumeric/national
+            ["UPPER-CASE"] = Uniform('s', "§15.97.3 r1"),                    // the SAME sentence, verbatim
             // §15.48.3 r1 makes argument-1 a national or alphanumeric LITERAL (its literal-ness is the existing
             // COBOLNET1517 arm, its CONTENT the COBOLNET1631 format screen); r3 makes argument-2 "a data item of
             // the same type as argument-1". Both positions are therefore in the string family, so one kind serves
@@ -328,7 +409,7 @@ internal static class IntrinsicArgumentRules
             // ⚠ RESIDUE: r3 is a CROSS-ARGUMENT rule ("the SAME type as argument-1"), which a per-position screen
             // cannot express — the sibling of `AR-15.79.3-3`. This closes the class half, which is the half that
             // was silently accepting a class-numeric argument-2; the cross-argument half stays PARTIAL.
-            ["INTEGER-OF-FORMATTED-DATE"] = ('s', "§15.48.3 r1/r3"),
+            ["INTEGER-OF-FORMATTED-DATE"] = Uniform('s', "§15.48.3 r1/r3"),
             // ⛔ THE ONE THAT NEEDED PB20 FIRST. §15.45.3 r1 is "Argument-1 shall be of class BOOLEAN" — the only
             // rule in the catalogue that names that class, and `Admissible` had no arm able to say it. It is
             // listed last because it was BLOCKED, not forgotten: until PB20, every reference-modified operand was
@@ -336,7 +417,51 @@ internal static class IntrinsicArgumentRules
             // have rejected the standard's OWN Annex D worked example, `FUNCTION INTEGER-OF-BOOLEAN (bit (1:6))`.
             // §8.4.3.3.4 GR6 preserves the category, so a ref-modified boolean item is class boolean and the
             // example is admitted. Ordering was the whole risk here.
-            ["INTEGER-OF-BOOLEAN"] = ('b', "§15.45.3 r1"),            // shall be of class boolean
+            ["INTEGER-OF-BOOLEAN"] = Uniform('b', "§15.45.3 r1"),            // shall be of class boolean
+
+            // ── fix-queue PB30 · eight functions whose §15.x.3 rule no code consulted ────────────────────────
+            // Each read at its own clause and `cite.py --check`ed. MEAN/MEDIAN/MIDRANGE are VARIADIC and their
+            // rule names argument-1 only, which is the tail form: "argument-1 shall be of class numeric" governs
+            // every occurrence of the repeated argument, so Uniform is the rule's own shape, not a widening.
+            ["MEAN"] = Uniform('n', "§15.60.3 r1"),                          // shall be of class numeric
+            ["MEDIAN"] = Uniform('n', "§15.61.3 r1"),                        // shall be of class numeric
+            ["MIDRANGE"] = Uniform('n', "§15.62.3 r1"),                      // shall be of class numeric
+            ["MOD"] = Uniform('i', "§15.64.3 r1"),                           // argument-1 and argument-2 integers
+
+            // ── fix-queue PB31 · the CROSS-ARGUMENT rule, which no per-position screen could express ─────────
+            // §15.59.3 / §15.63.3 r1 is the NEGATIVE class list ('p'); r2 is the list-wide agreement. Both halves
+            // now fire: `FUNCTION MAX(1 "A")` was accepted because every argument passed its own position's
+            // check while the LIST was illegal.
+            // ⚠ RESIDUE, recorded rather than silently dropped: r1's "nor shall it be a strongly-typed group
+            // item" and r3's "argument-1 shall not be a zero-length literal" are not class constraints, so this
+            // row does not enforce them. Half a rule enforced is PARTIAL, never CONFORMS.
+            ["MAX"] = Uniform('p', "§15.59.3 r1", CrossArgRule.AllSameClass, "§15.59.3 r2"),
+            ["MIN"] = Uniform('p', "§15.63.3 r1", CrossArgRule.AllSameClass, "§15.63.3 r2"),
+
+            // ── fix-queue PB12 · the MIXED-CLASS functions, which are why the schema exists ──────────────────
+            // §15.68.3 r1 makes argument-1 "of category alphanumeric or national"; r2 makes argument-2 "of the
+            // same class as argument-1" — a cross-argument rule, so the currency string cannot be national while
+            // the subject is alphanumeric. ⚠ The screen runs BEFORE the §15.68.3 r3 default-currency injection,
+            // deliberately: that operand is compiler-supplied, not written by the user, and screening it would
+            // report a class disagreement on source that contains no argument-2 at all.
+            ["NUMVAL-C"] = Schema("§15.68.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1,
+                crossClause: "§15.68.3 r2"),
+            // §15.37.3 — r1: argument-1 of class alphabetic, alphanumeric, or national; r2: argument-2 in the
+            // SAME family as argument-1; r3: "argument-3 shall be an integer data item or integer literal".
+            // ⛔ THIS ROW IS THE WHOLE ARGUMENT FOR THE SCHEMA. Under one-kind-per-function it would have
+            // screened argument-3 as a string and REJECTED the legal `FUNCTION FIND-STRING(a b 2)`.
+            ["FIND-STRING"] = Schema("§15.37.3 r1/r2/r3", ['s', 's', 'i'],
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.37.3 r2"),
+            // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
+            // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
+            // positions are date/time VALUES — integer date form (§15.39.3 r3, §15.40.3 r3), standard numeric
+            // time form (§15.40.3 r4, §15.41.3 r3), and the integer UTC offset (§15.40.3 r5, §15.41.3 r4).
+            // ⚠ Standard numeric time form is 'n', not 'i': §15.3.3 admits a fractional-seconds representation,
+            // so screening it as an integer would reject a legal fractional time.
+            ["FORMATTED-CURRENT-DATE"] = Schema("§15.38.3 r1", ['s']),
+            ["FORMATTED-DATE"] = Schema("§15.39.3 r1/r3", ['s', 'i']),
+            ["FORMATTED-DATETIME"] = Schema("§15.40.3 r1/r3/r4/r5", ['s', 'i', 'n', 'i']),
+            ["FORMATTED-TIME"] = Schema("§15.41.3 r1/r3/r4", ['s', 'n', 'i']),
         };
 
     /// <summary>
@@ -367,6 +492,18 @@ internal static class IntrinsicArgumentRules
             ["BASECONVERT"] = "§15.12.3 r1 constrains USAGE (display or national), not class",
             ["CONCAT"] = "§15.18.3 r1 admits all classes but index/object/pointer; r2/r3 are cross-argument USAGE rules",
             ["CONVERT"] = "§15.19.3 makes the admissible argument depend on the source-format keyword",
+            // ⛔ HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC — and the PB12 note that put them here was WRONG about WHY.
+            // It recorded them as "left unscreened until a kind can express 'category numeric or numeric-edited'",
+            // which reads as a missing capability. Measured, the truth is the opposite: `BindAlgebraicFold`
+            // already enforces §15.43.3 r1 / §15.58.3 r1 IN FULL — the category test, the index exclusion, and
+            // the half a class screen structurally cannot express ("shall be a data item … and shall not be an
+            // integer function or numeric function", so a literal, expression, group, ref-mod or nested function
+            // is refused). Adding an admissible-set kind here would be a SECOND mechanism for a rule already
+            // enforced more completely by the first (feedback_one_mechanism_per_job), and the two would drift.
+            // ⚠ The finding was "unscreened"; the measurement is "screened by a better mechanism" —
+            // validate_the_premise_not_only_the_rule.
+            ["HIGHEST-ALGEBRAIC"] = "§15.43.3 r1 is enforced IN FULL by BindAlgebraicFold, including its data-item half",
+            ["LOWEST-ALGEBRAIC"] = "§15.58.3 r1 is enforced IN FULL by BindAlgebraicFold, including its data-item half",
         };
 
     /// <summary>The classes a verified class code admits, or <see langword="null"/> for "no general screen" —
@@ -465,6 +602,45 @@ internal static class IntrinsicArgumentRules
     private static string Describe(CobolClass[] candidates) => candidates.Length == 1
         ? Name(candidates[0])
         : string.Join(" or ", candidates.Select(Name));
+
+    /// <summary>Why this argument LIST violates the schema's cross-argument rule, or <see langword="null"/>.</summary>
+    /// <remarks>
+    /// ⛔ THE CANDIDATE-SET MODEL MAKES THIS AN INTERSECTION, and that is the whole reason it is three lines
+    /// rather than a special case per figurative. "All arguments shall be of the same class" is exactly "some
+    /// class is available to every argument": <c>MAX(ZERO 5)</c> intersects to {numeric} because §8.3.3.6.4 GR4
+    /// lets ZERO be either; <c>MAX(SPACE "A")</c> intersects to {alphanumeric}; <c>MAX(SPACE 5)</c> and
+    /// <c>MAX(1 "A")</c> intersect to EMPTY and are rejected. The PB48 set model was built for a different
+    /// question and answers this one for free (CLAUDE.md rule 5 — the shape that makes the next case automatic).
+    /// <para>
+    /// ⚠ FAIL-OPEN, like every other arm here: an operand whose class is not statically decidable contributes no
+    /// constraint rather than an empty intersection, so an undecidable argument can never turn a legal list into
+    /// a rejected one.
+    /// </para>
+    /// </remarks>
+    public static string? CrossViolation(ArgSchema schema, IReadOnlyList<BoundOperand> args)
+    {
+        if (schema.Cross == CrossArgRule.None || args.Count < 2) return null;
+
+        IEnumerable<int> governed = schema.Cross == CrossArgRule.AllSameClass
+            ? Enumerable.Range(0, args.Count)
+            : schema.MatchedPositions();
+
+        CobolClass[]? common = null;
+        foreach (int i in governed)
+        {
+            if (i >= args.Count) continue;
+            var cs = CandidateClasses(args[i]);
+            if (cs.Length == 0) continue;                       // not statically decidable — contributes nothing
+            common = common is null ? cs : [.. common.Intersect(cs)];
+            if (common.Length == 0)
+                return schema.Cross == CrossArgRule.AllSameClass
+                    ? $"argument-{i + 1} is of class {Describe(cs)}, which cannot agree with the earlier "
+                      + $"arguments; ISO {schema.CrossClause} requires all arguments to be of the same class"
+                    : $"argument-{i + 1} is of class {Describe(cs)}, which cannot agree with argument-1; "
+                      + $"ISO {schema.CrossClause} requires it to be of the same class as argument-1";
+        }
+        return null;
+    }
 
     private static string Name(CobolClass c) => c switch
     {
