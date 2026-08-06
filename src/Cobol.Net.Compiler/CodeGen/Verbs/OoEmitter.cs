@@ -706,7 +706,31 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
 
             string tmp = $"__iv{id}_{i}";
-            if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
+            // BY CONTENT boolean-expression-1 / boolean literal-2 (§14.9.23.2; fix-queue PB46) — its OWN value
+            // channel (D-B1: a '0'/'1' bit string), so it is rendered by the BOOLEAN renderer and stored by the
+            // string store, never through NumStore. FIRST in the chain because a boolean and an alphanumeric
+            // formal are both string-CARRIED, and the string arm below reads a Source or a literal this
+            // argument does not have.
+            if (a.ContentBool is { } cb)
+            {
+                string bv = BooleanRenderer.Render(cb, Num);
+                // §8.8.2 rule 10 — the value's length is the largest boolean ITEM referenced (0 = literals only,
+                // which carry no item width, so the receiver's store fits it). The same width §14.9.8.4 GR3
+                // states for a boolean COMPUTE, and EmitComputeBoolean applies it identically.
+                if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
+                int bw = Math.Max(1, a.Formal.Pic!.Length);
+                // §14.8.2.3.3 rule 2d ⇒ the MOVE store for the formal's category: a BOOLEAN receiver pads and
+                // truncates in boolean ZEROS (§14.6.8.6), an ALPHANUMERIC one in spaces with the boolean
+                // characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of class boolean, its
+                // boolean value shall be moved"). An ANY LENGTH formal takes the value at ITS OWN length
+                // (§13.18.2 GR1), so no width-fit — the same exemption OoStringReadOf makes.
+                w.Line($"string {tmp} = " + (a.Formal.Pic!.Category is PicCategory.Boolean
+                        ? RuntimeApi.StrStoreBoolean(bv, $"{bw}", a.Formal.Justified)
+                    : a.Formal.IsAnyLength ? bv
+                    : a.Formal.Justified ? RuntimeApi.StrStoreJustified(bv, $"{bw}")
+                    : RuntimeApi.StrStore(bv, $"{bw}")) + ";");
+            }
+            else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
                 // The image crossing. BY REFERENCE allows a SMALLER formal (§14.8.2.2 rule 1 — a PREFIX of
                 // the argument): pass the leading formal-width characters; the write-back below splices the
@@ -724,7 +748,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // A numeric literal into an image-stored numeric formal: compose the zoned image through
                     // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
                     : $"string {tmp} = {RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
-            else if (a.Formal.Pic is { Category: PicCategory.ObjectReference })
+            // The PICTURE-less carriers (object reference, data pointer, program pointer) cross VERBATIM: they
+            // have no picture, no scale and no character image, so the crossing is a reference/handle copy and
+            // never a numeric store. Pointer/ProgramPointer joined this arm with the §14.8.2.3.2 class-pointer
+            // conformance rule (fix-queue PB46) — before that they were unreachable, and the plain arm below
+            // would have run Num.AsNum over a ManagedPointer.
+            else if (a.Formal.Pic is { Category: PicCategory.ObjectReference or PicCategory.Pointer
+                                                 or PicCategory.ProgramPointer })
                 w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
             else if (a.Formal.Pic is { IsFloat: true })
                 // Same-usage float (bind-enforced): read the float value directly — never through the

@@ -274,13 +274,66 @@ public static class OoConformance
             case PicCategory.Alphanumeric:
                 if (formal.Justified != arg.Justified)
                     return "JUSTIFIED mismatch (§14.8.2.3.2 rule 2)";
+                // "The same PICTURE clause" is not implied by equal LENGTH: an alphanumeric-EDITED picture
+                // (§13.18.40 simple insertion — the B / 0 / / positions) and a plain X picture of the same
+                // character count are different PICTURE clauses, and rule 2 names the clause, not the size.
+                if (!string.Equals(f.EditMask, a.EditMask, StringComparison.Ordinal))
+                    return $"PICTURE mismatch (formal '{f.EditMask ?? "X(" + f.Length + ")"}', argument "
+                        + $"'{a.EditMask ?? "X(" + a.Length + ")"}' — §14.8.2.3.2 rule 2 requires the same "
+                        + "PICTURE clause)";
                 // ANY LENGTH: the length is considered to match (§14.8.2.3.2 rule d / §14.8.3.3 rule 5 in
                 // activation mode; both-sides-varying in pair mode — the top-of-function match rule).
                 return !anyLengthFormal && f.Length != a.Length
                     ? $"length mismatch (formal X({f.Length}), argument X({a.Length}))"
                     : null;
+            // ── The remaining PICTURE categories (ISO §14.8.2.3.2 rule 2, the SAME clause list the arms above
+            // spell out per category). ⛔ THESE THREE USED TO FALL INTO A `default:` THAT ANSWERED "formal
+            // category {c} is not yet carried across INVOKE", which made a category-boolean, category-national
+            // or numeric-edited FORMAL PARAMETER impossible in every passing mode — BY REFERENCE, BY CONTENT
+            // and bare alike (fix-queue PB46). Nothing was missing: all three are string-carried
+            // (OoClassTable.StringCarried), so the marshaling arms already carried them; only this screen said
+            // no. The standard contemplates them explicitly — §14.8.2.3.2's own lettered exceptions b and c
+            // pair a BIT GROUP with an elementary bit item and a NATIONAL GROUP with an elementary national
+            // item of the same position count.
+            case PicCategory.NumericEdited:
+            case PicCategory.National:
+            case PicCategory.Boolean:
+                if (formal.Justified != arg.Justified)
+                    return "JUSTIFIED mismatch (§14.8.2.3.2 rule 2)";
+                if (formal.BlankWhenZero != arg.BlankWhenZero)
+                    return "BLANK WHEN ZERO mismatch (§14.8.2.3.2 rule 2)";
+                // USAGE is a rule-2 clause in its own right, and for these categories it is NOT implied by the
+                // category: a boolean item is USAGE DISPLAY or USAGE BIT (§13.18.60.3 SR5) and both map to the
+                // same D-B1 character storage, so only this compare keeps the declarations identical.
+                if (f.Usage != a.Usage)
+                    return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2.3.2 rule 2 "
+                        + "requires the same USAGE clause BY REFERENCE)";
+                if (f.SignKind != a.SignKind)
+                    return $"SIGN clause mismatch (formal {f.SignKind}, argument {a.SignKind} — "
+                        + "§14.8.2.3.2 rule 2: the SIGN clauses shall be the same)";
+                // An EDITED picture's identity is its editing character-string, which equal length does not imply.
+                if (!string.Equals(f.EditMask, a.EditMask, StringComparison.Ordinal))
+                    return $"PICTURE mismatch (formal '{f.EditMask}', argument '{a.EditMask}' — "
+                        + "§14.8.2.3.2 rule 2 requires the same PICTURE clause)";
+                return !anyLengthFormal && f.Length != a.Length
+                    ? $"length mismatch (formal {f.Category} ({f.Length}), argument {a.Category} ({a.Length}))"
+                    : null;
+            // ── Class pointer (ISO §14.8.2.3.2, the class-pointer paragraph): "the corresponding formal
+            // parameter or argument shall be of class pointer and the corresponding items shall be of the same
+            // category" — which the f.Category != a.Category compare above has already proven. A PICTURE-less
+            // pointer has no length, USAGE variant or JUSTIFIED clause left to differ in. The RESTRICTED forms
+            // ("if either is a restricted pointer, both shall be restricted and of the same type") are not
+            // modeled at all — PictureAnalyzer stages the TO-prototype/TO-type-name declarations loud
+            // (COBOLNET0899), so an unrestricted pair is the only shape that reaches here.
+            case PicCategory.Pointer:
+            case PicCategory.ProgramPointer:
+                return null;
             default:
-                return $"formal category {f.Category} is not yet carried across INVOKE";
+                // Unreachable by construction: PicCategory.Group never reaches here (formal.IsGroup returned
+                // above, and a group item has no PicInfo), and every other member has an arm. Pinned by
+                // OoConformanceCategoryDriftTests — a NEW category must gain an arm, not fall in here, because
+                // this arm REJECTS LEGAL SOURCE for whatever lands in it.
+                return $"formal category {f.Category} has no §14.8.2.3.2 conformance rule";
         }
     }
 

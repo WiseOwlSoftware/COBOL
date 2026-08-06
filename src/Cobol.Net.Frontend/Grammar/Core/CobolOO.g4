@@ -147,10 +147,23 @@ invokeUsing
 // ⚠ BY VALUE keeps `arithmeticExpression` alone and does NOT gain the boolean arm: the format's BY VALUE branch
 // is `arithmetic-expression-1 | identifier-5 | literal-2` — the two phrases genuinely differ, and only
 // BY CONTENT carries boolean-expression-1.
+// ⛔ `boolean-expression-1` IS A SEPARATE VALUE CHANNEL, NOT A THIRD SPELLING OF THE ARITHMETIC ONE (D-B1: a
+// '0'/'1' bit-string world that never enters the numeric or DISPLAY channels), so it takes the proven
+// {boolExprAhead()}? gate — the same predicate `primaryCondition` and `compileTimeOperand` use. Unguarded it is
+// AMBIGUOUS with the arithmetic alternative, because `booleanExpression`'s leaf is `valueOperand`, which is
+// `arithmeticExpression | nonNumericLiteral` — i.e. it matches every operand the other two arms match.
+// ⚠ THE PREDICATE'S SCAN IS CONDITION-SHAPED AND CAN OVER-REACH HERE, BY DESIGN OF THE SHARED MECHANISM. It runs
+// to the statement's period, so in `USING BY CONTENT N + 1 BY CONTENT B1 B-AND B2` the FIRST argument's decision
+// already sees the SECOND argument's B-AND and takes this alternative. That is harmless and deliberately left
+// harmless: the binder reduces a B-operator-FREE booleanExpression back to its bare `valueOperand` (the same
+// UnwrapBareBool reduction BindPrimaryBoolean uses), so the predicate decides only which NODE an operand parses
+// into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
+// predicate for a local reason — the DEVLOG-621 lesson — and would buy nothing the reduction does not already
+// guarantee.
 invokeArgument
     : BY VALUE arithmeticExpression
     | BY REFERENCE dataReference
-    | BY CONTENT (literal | arithmeticExpression)
+    | BY CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
     | dataReference
     | literal
     ;

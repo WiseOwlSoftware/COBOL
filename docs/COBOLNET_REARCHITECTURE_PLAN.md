@@ -155,6 +155,13 @@ succeeding, runners stuck retrying jobs that no longer exist) — five consecuti
 dispatched run wedged between attempts so that `cancel` reports it completed while `force-cancel` reports a
 re-run that never queued, and neither path can clear it.
 
+**STATUS 2026-08-06 23:13 UTC (GitHub's own incident update) — RECOVERING, NOT RECOVERED.** Fixes deployed for
+runners assigned invalid jobs; job success rates back to ~99%; hosted-runner queues nearly burned down. But
+webhook-triggered Actions throughput is being restored **gradually**, and the self-hosted-runner fix is being
+enabled **incrementally**. ⛔ **That is precisely the condition in which a dispatched run is UNATTRIBUTABLE** —
+a red could be the bump, the backlog, or a runner that never picked up — so re-enabling still waits. Re-check
+the incident before acting on this line; it goes stale by the hour.
+
 **Re-enable:** `gh workflow enable "Build and Test"` — an OWNER decision, not a housekeeping step.
 ⚠ **Re-run CI on `main` BEFORE landing the actions-version bump** (`checkout` v4→v7, `cache` v4→v6,
 `setup-dotnet` v4→v6, all verified against their latest releases), so a red is attributable to the bump rather
@@ -196,6 +203,13 @@ LANDED: **PB17 + PB41 + PB42** (function-identifier subscripts / scaled ordinal 
 literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its last sub-item was PB43's symptom) ·
 **PB26** (the EC-ARGUMENT-FUNCTION gate) · **PB36** (INVOKE activation + r9 STACK) · **PB44** (a gate that could
 false-red) · **PB45 CLOSED** (the arithmetic family + INSPECT, then the EVALUATE selection object).
+
+**⚖ OPEN OWNER CALL — FOUR COMMITS LANDED WITH NO DEVLOG ENTRY.** `1838a304` (PB51), `dd45ddfd` (PB46's
+arithmetic half), `bd778375` (PB33) and `4808178a` (PB49) each shipped without one; the log runs 1191 → 1192
+across them. Their commit messages are forensic and their `kb/Work/` notes are current, so no FACT is lost —
+what is missing is the narrative, and `DEVLOG.md` is the only place it belongs (rule 6). Entry 1192 declines to
+reconstruct them from their own commit messages, because that puts invented recollection where lived narrative
+goes. **The call is the owner's: reconstruct, or leave the gap recorded.**
 
 **▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next`.**
 

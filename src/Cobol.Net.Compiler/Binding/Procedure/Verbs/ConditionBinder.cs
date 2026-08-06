@@ -250,7 +250,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The single leaf <c>valueOperand</c> of a B-op-FREE boolean expression (walking single-child
     /// tiers and paren groups), for re-binding as a normal operand; null if the shape is not a bare operand.</summary>
-    private static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx)
+    /// <remarks>THE discriminator for every <c>{boolExprAhead()}?</c>-gated alternative, not just this one:
+    /// the predicate's scan is condition-shaped and may fire on a B-operator that belongs elsewhere in the
+    /// statement, so a parse tree reaching a boolean alternative is not proof of a boolean expression. A
+    /// non-null result means "this operand carries NO boolean operator and is a bare operand" — reduce it and
+    /// bind it through the ordinary channel. Also read by <c>OoBinder</c>'s INVOKE BY CONTENT operand
+    /// normalization (fix-queue PB46).</remarks>
+    internal static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx)
     {
         var xor = ctx.booleanXorTerm();
         if (xor.Length != 1) return null;

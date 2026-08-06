@@ -458,6 +458,36 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         bool explicitReference = arg.REFERENCE() is not null;
         bool explicitContent = arg.CONTENT() is not null;
 
+        // ── ONE OPERAND, FOUR CHANNELS — resolved ONCE, here (ISO §14.9.23.2 BY CONTENT: `arithmetic-
+        // expression-1 | boolean-expression-1 | identifier-5 | literal-2`) ──────────────────────────────────
+        // ⛔ THE PARSE NODE AN OPERAND LANDS IN IS NOT ITS MEANING, and both of PB46's halves learned that the
+        // hard way. `arithmeticExpression` SUBSUMES `dataReference` and every numeric literal, and the
+        // `{boolExprAhead()}?`-gated `booleanExpression` alternative subsumes BOTH of those in turn — its leaf
+        // is `valueOperand`, and the predicate's scan runs to the statement's period, so in
+        // `USING BY CONTENT N + 1 BY CONTENT B1 B-AND B2` the FIRST argument reaches the boolean node on the
+        // strength of the SECOND argument's B-AND. Normalizing here is what makes that harmless: a boolean node
+        // carrying NO boolean operator reduces to its bare `valueOperand` (ConditionBinder.UnwrapBareBool — the
+        // same reduction BindPrimaryBoolean uses) and rides exactly the arm it would have without the predicate.
+        var boolCtx = arg.booleanExpression();
+        var arithCtx = arg.arithmeticExpression();
+        var nonNumCtx = arg.literal()?.nonNumericLiteral();
+        string? numLitRaw = arg.literal()?.numericLiteral()?.GetText();
+        if (boolCtx is not null && ConditionBinder.UnwrapBareBool(boolCtx) is { } bare)
+        {
+            boolCtx = null;
+            arithCtx = bare.arithmeticExpression();
+            nonNumCtx = bare.nonNumericLiteral();
+        }
+        // A SOLE numeric literal is a literal wherever it parsed. The grammar's own `literal` alternative wins
+        // it when the boolean/arithmetic arms are not taken, and the two paths must agree: the literal arm
+        // admits an unsigned integer into an ALPHANUMERIC formal by the MOVE rules, which the expression arm
+        // (§14.8.2.3.3 rule 2a, category-numeric formals only) correctly does not.
+        if (numLitRaw is null && arithCtx is not null && ConditionBinder.SoleNumLiteral(arithCtx) is { } soleNum)
+        {
+            numLitRaw = soleNum;
+            arithCtx = null;
+        }
+
         // ⛔ THE IDENTIFIER CASE IS RECOVERED HERE, NOT IN THE GRAMMAR (fix-queue PB46). BY CONTENT's operand
         // list admits an arithmetic expression, and `arithmeticExpression` SUBSUMES `dataReference` — so a bare
         // `BY CONTENT A` now arrives as an expression, and routing it to the expression arm would silently drop
@@ -465,7 +495,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // that only the identifier arm performs. The grammar cannot express "a reference, unless it is part of
         // an expression"; the binder can, through the SAME sole-reference reduction ConditionBinder and
         // IntrinsicBinder already use (feedback_one_rule_one_place — that helper is now shared, not re-copied).
-        var dref = arg.dataReference() ?? ConditionBinder.SoleDataReference(arg.arithmeticExpression());
+        var dref = arg.dataReference() ?? ConditionBinder.SoleDataReference(arithCtx);
         if (dref is not null)
         {
             if (ctx.Refs.Resolve(dref) is not { } place)
@@ -551,7 +581,35 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // an alphanumeric receiver only for an INTEGER sender, and an arithmetic expression carries no
         // compile-time guarantee of that, so the honest verdict is a cited diagnostic rather than silent
         // truncation.
-        if (arg.arithmeticExpression() is { } ax && explicitContent)   // a SOLE reference was taken above
+        // ── BY CONTENT boolean-expression-1 (ISO §14.9.23.2; fix-queue PB46) ────────────────────────────────
+        // The third operand shape the BY CONTENT branch admits, and the ONE the BY VALUE branch does not — the
+        // two phrases genuinely differ in the printed general format. It is its own VALUE channel (D-B1: a
+        // '0'/'1' bit string, §8.8.2), never the numeric one, which is why it needs a slot of its own rather
+        // than a second spelling of ContentExpr.
+        // §14.8.2.3.3 rule 2d governs the crossing: the formal is not numeric, not an index item and not
+        // ANY LENGTH, so "the conformance rules are the same as for a MOVE statement with the argument as the
+        // sending operand" — §14.9.25.3 Table 16's BOOLEAN row, which admits alphanumeric and boolean
+        // receivers and refuses alphabetic, numeric and numeric-edited ones.
+        // ⚠ TABLE 16 ALSO ADMITS A NATIONAL RECEIVER, AND THIS ARM REFUSES IT ON PURPOSE — the IDENTIFIER
+        // CONTENT arm above refuses the same pairing through OoContentMismatch's conservative strict gate, and
+        // two arms of one rule disagreeing is worse than one named residue. Both are recorded together.
+        if (boolCtx is { } bx && explicitContent)
+        {
+            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Alphanumeric or PicCategory.Boolean }
+                || formal.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: true })
+            {
+                Err($"BY CONTENT boolean-expression argument '{bx.GetText()}' for formal "
+                    + $"'{formal.CobolName}': §14.8.2.3.3 rule 2d transfers it by the MOVE rules, and "
+                    + "§14.9.25.3 Table 16 admits a boolean sending operand only to a boolean or alphanumeric "
+                    + "receiver");
+                return null;
+            }
+            var bound = host.Cond.BindBoolExpr(bx);
+            return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
+                { ContentBool = bound, ContentBoolWidth = ConditionBinder.Gr3Width(bound) };
+        }
+
+        if (arithCtx is { } ax && explicitContent)   // a SOLE reference / numeric literal was taken above
         {
             if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Numeric })
             {
@@ -574,13 +632,12 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // A literal argument — BY CONTENT (GR6a2; a literal never meets SR9). Per §9.3.6 resolution rule 5
         // a literal that would TRUNCATE still conforms (the SET/MOVE no-truncation requirements are ignored
         // for literal arguments), so length/digit overflow converts per MOVE rules rather than erroring.
-        var lit = arg.literal();
         // §8.8.3.3 GR3: an alphanumeric concatenation expression is the equivalent alphanumeric literal —
         // fold it and ride the STRINGLIT leg's conformance shape (a non-alphanumeric concat falls through
         // to the trailing unsupported-argument diagnostic like any other non-alphanumeric literal).
         string? alnumTxt =
-            lit?.nonNumericLiteral()?.STRINGLIT() is { } sl ? CobolLiteral.Decode(sl.GetText())
-            : lit?.nonNumericLiteral()?.concatenationExpression() is { } ice
+            nonNumCtx?.STRINGLIT() is { } sl ? CobolLiteral.Decode(sl.GetText())
+            : nonNumCtx?.concatenationExpression() is { } ice
               && ConcatFolder.ClassOf(ice) is PicCategory.Alphanumeric
                 ? ConcatFolder.Fold(ice, ctx.Edition, ctx.Data.Collating).Value
             : null;
@@ -588,13 +645,38 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
                 return new BoundInvokeArg(formal, null, null, alnumTxt, WriteBack: false, ByContent: true);
-            Err($"nonnumeric literal argument {lit!.GetText()} for the non-alphanumeric formal "
+            Err($"nonnumeric literal argument {nonNumCtx!.GetText()} for the non-alphanumeric formal "
                 + $"'{formal.CobolName}' (ISO §14.8.2.3.3 MOVE-rule conformance)");
             return null;
         }
-        if (lit?.numericLiteral() is { } nl)
+        // A BOOLEAN literal (or a boolean concatenation expression, §8.8.3.3 GR3) is literal-2 of the same
+        // BY CONTENT branch, and it is a boolean VALUE with no storage — so it rides the boolean channel this
+        // fix built rather than a fourth one. Without it, `INVOKE O "M" USING BY CONTENT B"1010"` fell all the
+        // way to the trailing "argument form … not yet carried" diagnostic: legal source (§14.9.23.3 SR17 bars
+        // only a ZERO-LENGTH literal-2), refused.
+        string? boolTxt =
+            nonNumCtx?.BOOLLIT() is { } bl ? CobolLiteral.Decode(bl.GetText())
+            : nonNumCtx?.concatenationExpression() is { } bce && ConcatFolder.ClassOf(bce) is PicCategory.Boolean
+                ? ConcatFolder.Fold(bce, ctx.Edition, ctx.Data.Collating).Value
+            : null;
+        if (boolTxt is not null)
         {
-            string raw = nl.GetText();
+            // Table 16's BOOLEAN row again (§14.8.2.3.3 rule 2d) — the same receivers the expression arm takes.
+            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Alphanumeric or PicCategory.Boolean }
+                || formal.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: true })
+            {
+                Err($"boolean literal argument {nonNumCtx!.GetText()} for formal '{formal.CobolName}': "
+                    + "§14.9.25.3 Table 16 admits a boolean sending operand only to a boolean or alphanumeric "
+                    + "receiver (ISO §14.8.2.3.3 rule 2d MOVE-rule conformance)");
+                return null;
+            }
+            // A LITERAL contributes no item width to §8.8.2 rule 10, so the value crosses at the formal's
+            // width — width 0, exactly as ConditionBinder.Gr3Width scores a literal-only expression.
+            return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
+                { ContentBool = new BoundBoolLiteral(boolTxt), ContentBoolWidth = 0 };
+        }
+        if (numLitRaw is { } raw)
+        {
             if (formal.Pic is { Category: PicCategory.Numeric, IsFloat: false })
                 return new BoundInvokeArg(formal, null, raw, null, WriteBack: false, ByContent: true);
             if (!formal.IsGroup && formal.Pic?.Category is PicCategory.Alphanumeric

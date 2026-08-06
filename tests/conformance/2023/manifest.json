@@ -113,7 +113,8 @@
     "pb40_integer_argument_positions",
     "pb46_invoke_by_content_expression",
     "pb51_compute_figurative_zero",
-    "pb33_numval_c_format_validation"
+    "pb33_numval_c_format_validation",
+    "pb46_invoke_by_content_boolean"
   ],
   "pending": []
 }

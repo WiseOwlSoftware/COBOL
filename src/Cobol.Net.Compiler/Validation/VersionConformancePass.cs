@@ -1519,27 +1519,50 @@ internal sealed class VersionConformancePass
         //     literal is left to the data/PIC gate (its item's national/boolean USAGE, Step 14g) — firing here too
         //     would double the below-2002 diagnostic.
 
-        /// <summary>The boolean operators B-AND/B-OR/B-XOR/B-NOT (ISO §8.7.2) in a CONDITION — a COBOL-2002
-        /// introduction. Fires ONCE per primaryCondition that carries a B-operator anywhere in its
-        /// booleanExpression operand(s) (matching BindPrimaryBoolean's <c>be.Any(HasBoolOp)</c>); a B-op-free
-        /// comparison uses the untouched shared comparison rule and never enters here.</summary>
+        /// <summary>⭐ THE boolean-operator introduction gate — ONE rule, called once per GRAMMAR SITE that hosts
+        /// a top-level <c>booleanExpression</c>. B-AND/B-OR/B-XOR/B-NOT are a COBOL-2002 introduction (ISO
+        /// §8.7.2) and the four boolean SHIFT operators a COBOL-2023 one (§8.8.2 rule 8).
+        /// <para>⚠ THE GATE IS PER-SITE, NOT PER-NODE, AND THAT IS DELIBERATE: the <c>booleanExpression</c>
+        /// tiers nest through parentheses and through the relation form, so a gate hanging off the tier rule
+        /// itself would fire once per nesting level and multiply the diagnostic. Passing a site's operand(s)
+        /// here fires exactly once for that site, matching the binder's own altitude
+        /// (<c>be.Any(HasBoolOp)</c> in BindPrimaryBoolean).</para>
+        /// <para>⛔ IT WAS COPIED PER SITE UNTIL PB46 ADDED A THIRD ONE. Two identical four-line bodies is the
+        /// point at which a new grammar site silently ships UNGATED — a 2023 shift operator accepted under
+        /// <c>--std 2002</c>. The hosting sites are enumerated by <c>BooleanExpressionGateSiteDriftTests</c>,
+        /// which reads the .g4 files, so a fourth one fails a test instead of passing silently.</para></summary>
+        private void GateBooleanOperators(params CobolParserCore.BooleanExpressionContext?[] operands)
+        {
+            if (operands.Any(b => b is not null && HasBoolOp(b)))
+                _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            if (operands.Any(b => b is not null && HasShiftOp(b)))
+                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
+        }
+
+        /// <summary>Site 1 — a boolean expression in a CONDITION (§8.8.4.2.2 relation / §8.8.4.3 simple
+        /// condition). A B-op-free comparison uses the untouched shared comparison rule and never enters here.</summary>
         public override object? VisitPrimaryCondition(CobolParserCore.PrimaryConditionContext ctx)
         {
-            if (ctx.booleanExpression().Any(HasBoolOp))
-                _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
-            if (ctx.booleanExpression().Any(HasShiftOp))
-                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
+            GateBooleanOperators(ctx.booleanExpression());
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The boolean operators in a COMPUTE Format 2 RHS (ISO §14.9.8) — the second BooleanOperators2002
-        /// site (matching BindComputeBoolean). The F1 arithmetic alternative has no <c>booleanExpression</c>.</summary>
+        /// <summary>Site 2 — the COMPUTE Format 2 RHS (ISO §14.9.8). The F1 arithmetic alternative has no
+        /// <c>booleanExpression</c>.</summary>
         public override object? VisitComputeStatement(CobolParserCore.ComputeStatementContext ctx)
         {
-            if (ctx.booleanExpression() is { } be && HasBoolOp(be))
-                _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
-            if (ctx.booleanExpression() is { } bse && HasShiftOp(bse))
-                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
+            GateBooleanOperators(ctx.booleanExpression());
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Site 3 — <c>INVOKE … USING BY CONTENT boolean-expression-1</c> (ISO §14.9.23.2; fix-queue
+        /// PB46). The BooleanOperators2002 half is unreachable in practice — INVOKE is itself a COBOL-2002
+        /// introduction, so no edition admits the statement but not the operators — but the SHIFT half is
+        /// live: <c>BY CONTENT B1 B-SHIFT-L 2</c> is a 2023 construct inside a 2002 statement, and without
+        /// this call it would compile clean under <c>--std 2002</c> and <c>--std 2014</c>.</summary>
+        public override object? VisitInvokeArgument(CobolParserCore.InvokeArgumentContext ctx)
+        {
+            GateBooleanOperators(ctx.booleanExpression());
             return base.VisitChildren(ctx);
         }
 

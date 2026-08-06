@@ -69,6 +69,23 @@ public sealed record BoundInvokeArg(
     /// expression has no storage to write back to — <see cref="WriteBack"/> is always false for it.
     /// </remarks>
     public BoundExpr? ContentExpr { get; init; }
+
+    /// <summary>A BY CONTENT <b>boolean-expression-1</b> argument (ISO §14.9.23.2; fix-queue PB46) — the third
+    /// operand shape the format's BY CONTENT branch admits, and the one BY VALUE deliberately does not.</summary>
+    /// <remarks>
+    /// It is its OWN value channel, not a spelling of <see cref="ContentExpr"/>: a boolean expression evaluates
+    /// to a '0'/'1' bit-string value (§8.8.2; D-B1) whose length is fixed by §8.8.2 rule 10, never to an
+    /// algebraic value, so it can neither be rendered by the numeric renderer nor stored by the numeric store.
+    /// A bare boolean LITERAL argument rides this same slot — it is a boolean VALUE with no storage, which is
+    /// exactly what this channel carries. BY CONTENT by construction, like <see cref="ContentExpr"/>.
+    /// </remarks>
+    public BoundBoolExpr? ContentBool { get; init; }
+
+    /// <summary>The §8.8.2 rule-10 length of <see cref="ContentBool"/>'s value — "the number of boolean
+    /// positions of the larger item referenced in that operation", applied recursively (0 = no ITEM operand, so
+    /// the value takes the receiving formal's width directly). The same width §14.9.8.4 GR3 states for a
+    /// boolean COMPUTE, computed by the same <c>ConditionBinder.Gr3Width</c>.</summary>
+    public int ContentBoolWidth { get; init; }
 }
 
 /// <summary>A bound UNIVERSAL-receiver INVOKE (deep-dive D10/D-U5): there is NO formal roster at compile
