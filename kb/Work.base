@@ -29,12 +29,21 @@ views:
   # ⛔ THE ONLY VIEW THAT DECIDES WHAT TO WORK ON. Ranked by what the defect DOES to a user's program, never by
   # its severity label: PB24 (FUNCTION LENGTH silently wrong) and PB39 (rule-id numbering, zero wrong answers)
   # are BOTH [MAJOR], and on 2026-08-04 the session picked PB39. This filter drops PB39 off the list entirely.
+  #
+  # ⛔ THE FILTER READ `wrong_answer or crashes` AND HID NINE OPEN ITEMS, FOUR OF THEM `rejects_legal_source` —
+  # the outcome CLAUDE.md rule 4 forbids outright. A false REJECT crashes nothing and computes nothing wrong; it
+  # simply stops the user's program compiling, and the two-flag predicate scored that as no harm at all. Measured
+  # 2026-08-06 while closing PB48, whose own PB51 would have vanished the moment it was filed.
+  # ⚠ THIS LIST IS THE SAME PREDICATE AS `work.py`'s HARM_FLAGS, WRITTEN IN A SECOND LANGUAGE BECAUSE IT MUST BE
+  # (Bases YAML cannot import Python). `work.py check` asserts the two agree, flag for flag — the copies exist,
+  # so something has to hold them together (feedback_one_rule_one_place).
   - type: table
     name: Fix next
     filters:
       and:
         - status != "landed"
-        - wrong_answer or crashes
+        - wrong_answer or crashes or rejects_legal_source or under_rejects
+        - 'process_only == false'
         - 'blocked == false'
     order:
       - id
@@ -55,13 +64,18 @@ views:
         - 'blocked == true'
     order: [id, kind, severity, area, blocked_by, harm]
   # Real work that harms nobody today — visible so it is DEFERRED on purpose rather than forgotten.
+  # ⚠ ITS OLD NAME WAS A CLAIM IT COULD NOT SUPPORT. "Open but nobody gets a wrong answer" tested only
+  # wrong_answer and crashes, so every item that merely REJECTS LEGAL SOURCE was parked here under a heading
+  # asserting it was harmless. The filter is now the exact complement of Fix next.
   - type: table
-    name: Open but nobody gets a wrong answer
+    name: Open but no harm flag set
     filters:
       and:
         - status != "landed"
         - 'wrong_answer == false'
         - 'crashes == false'
+        - 'rejects_legal_source == false'
+        - 'under_rejects == false'
     order: [id, kind, severity, area, harm]
     sort:
       - property: kind

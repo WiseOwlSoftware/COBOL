@@ -25,7 +25,7 @@ work list could see, because it lived inside a paragraph.
 - **`kb/Work/`** — the register. One note per item, tracked in git, frontmatter carrying `kind`, `status`,
   `severity`, `area` and the harm flags. The forensic prose — repro, citation, why a previous summary was wrong —
   is in each note's body, unchanged.
-- **`kb/Work.base`** — every view: *Fix next*, *Blocked*, *Open but nobody gets a wrong answer*, the §11
+- **`kb/Work.base`** — every view: *Fix next*, *Blocked*, *Open but no harm flag set*, the §11
   analyses, and everything.
 - **`scripts/spec/work.py`** — `check` validates the register, `next` prints the ranked list (session-probe
   shows it every session), `stats` counts it.

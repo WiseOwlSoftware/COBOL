@@ -212,6 +212,32 @@ HEADING_STATUS = re.compile(r"^#\s+\S+\s+—\s+(?P<status>[A-Z][A-Z\- ]*?)\s+—
 HEADING_ALIASES = {"closed": "landed", "fixed": "landed", "done": "landed"}
 
 
+def check_base_agrees() -> list[str]:
+    """`kb/Work.base`'s **Fix next** filter shall select on the same harm flags as :data:`HARM_FLAGS`.
+
+    ⛔ THE PREDICATE IS WRITTEN TWICE AND CANNOT BE WRITTEN ONCE — `work.py` is Python and the Bases view is a
+    YAML expression Obsidian evaluates, with no import between them. Both copies read `wrong_answer or crashes`
+    and both were wrong the same way, which is what hid nine open items; CLAUDE.md advertises the two as "the
+    same list", so a reader has no way to notice when they stop being it. Since the copies must exist, this
+    holds them together.
+    """
+    base = REPO / "kb" / "Work.base"
+    if not base.exists():
+        return [f"{base.relative_to(REPO)} is missing — the Fix next view is half the register's UI"]
+    text = base.read_text(encoding="utf-8")
+    m = re.search(r"name:\s*Fix next\s*\n\s*filters:\s*\n(?P<body>(?:\s{6,}.*\n)+)", text)
+    if m is None:
+        return ["kb/Work.base: no 'Fix next' view with a filters block — work.py check cannot verify it "
+                "agrees with HARM_FLAGS, and CLAUDE.md tells readers the two are the same list"]
+    # The one filter line that ORs the harm flags together.
+    line = next((l for l in m.group("body").splitlines() if " or " in l and "wrong_answer" in l), "")
+    named = set(re.findall(r"[a-z_]+", line)) & set(HARM_FLAGS)
+    missing = [f for f in HARM_FLAGS if f not in named]
+    return [] if not missing else [
+        f"kb/Work.base 'Fix next' does not select on {missing} — an item whose only harm flag is one of those "
+        f"is invisible in the view while work.py next ranks it. Update the filter to match HARM_FLAGS."]
+
+
 def check() -> int:
     if not WORK.exists():
         print(f"⛔ {WORK.relative_to(REPO)} does not exist — run: python scripts/spec/work.py migrate")
@@ -233,10 +259,20 @@ def check() -> int:
                 bad.append(f'{it["_file"]}: heading says {h.group("status").strip()!r} but '
                            f'status is {it.get("status")!r} — a landed note that still reads OPEN is how the '
                            f'register lies to a reader (the frontmatter is what work.py next reads)')
+        # ⛔ AN OPEN DEFECT WITH NO HARM FLAG IS INVISIBLE TO `next`, AND SILENCE IS HOW IT STAYS THAT WAY.
+        # `actionable` selects on HARM_FLAGS, so a defect that sets none of them is filed and then never
+        # ranked — the same disappearance the two-flag predicate used to cause for every false-reject. An item
+        # that genuinely does nothing to a user's program says so with `process_only: true`.
+        if (it.get("kind") == "defect" and it.get("status") in ("open", "half")
+                and not it.get("process_only") and not any(it.get(f) for f in HARM_FLAGS)):
+            bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
+                       f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
+                       f'genuinely does nothing to a user\'s program.')
     ids = [it.get("id") for it in items]
     for i in set(ids):
         if ids.count(i) > 1:
             bad.append(f"duplicate id {i}")
+    bad += check_base_agrees()
     if bad:
         print(f"⛔ {len(bad)} problem(s) in the work register:")
         for b in bad[:20]:
@@ -246,10 +282,27 @@ def check() -> int:
     return 0
 
 
+#: The harm flags that make an open item ACTIONABLE — what the defect DOES to a user's program.
+#:
+#: ⛔ THIS SET USED TO BE `wrong_answer or crashes`, AND THE REGISTER THAT EXISTS TO ANSWER "WHAT DO I DO NOW"
+#: COULD NOT SEE A DEFECT THAT REJECTS LEGAL SOURCE. Nine open items were hidden by that predicate when it was
+#: measured (2026-08-05) — four of them flagged `rejects_legal_source`, which CLAUDE.md rule 4 calls the one
+#: outcome forbidden outright, and five `under_rejects`. PB51 (`COMPUTE WS-N = ZERO` refused as a boolean
+#: Format-2 ALL literal) is the case that exposed it: a false REJECT crashes nothing and computes nothing wrong,
+#: it simply stops the user's program compiling, so the two-flag predicate scored it as no harm at all.
+#:
+#: ⚠ `silent` is deliberately ABSENT and is not an omission: it QUALIFIES a wrong answer (silently wrong vs.
+#: loudly wrong) rather than naming a harm of its own, so an item flagged silent alone would be one whose
+#: frontmatter has not said what it actually does. `process_only` is likewise not here — it marks an item that
+#: does nothing to a user's program by definition.
+HARM_FLAGS = ("wrong_answer", "crashes", "rejects_legal_source", "under_rejects")
+
+
 def actionable(items: list[dict]) -> list[dict]:
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
     live = [i for i in items if i.get("status") in ("open", "half")
-            and (i.get("wrong_answer") or i.get("crashes")) and not i.get("blocked")]
+            and any(i.get(f) for f in HARM_FLAGS)
+            and not i.get("process_only") and not i.get("blocked")]
     return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
 
 
@@ -270,7 +323,7 @@ def main() -> int:
     if a.cmd == "next":
         nxt = actionable(items)
         if not nxt:
-            print("next   : (nothing unblocked produces a wrong answer)")
+            print("next   : (nothing unblocked harms a user's program)")
             return 0
         print("next   : " + " · ".join(f'{i["id"]} ({i["area"]})' for i in nxt[:a.top])
               + f"   [{len(nxt)} actionable]")
