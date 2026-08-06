@@ -59,7 +59,17 @@ public sealed record BoundInvoke(
 /// caller; BY CONTENT and the §14.9.23.3 SR 10 object-data auto-CONTENT case do not).</summary>
 public sealed record BoundInvokeArg(
     DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack,
-    bool ByContent = false);
+    bool ByContent = false)
+{
+    /// <summary>A BY CONTENT <b>arithmetic-expression-1</b> argument (ISO §14.9.23.2; fix-queue PB46) — the
+    /// operand shape the format admits that is neither an identifier nor a literal, so it has no
+    /// <see cref="Source"/> and no literal text.</summary>
+    /// <remarks>
+    /// It is BY CONTENT by construction: §14.9.23.3 SR9 confines BY REFERENCE to an identifier, and an
+    /// expression has no storage to write back to — <see cref="WriteBack"/> is always false for it.
+    /// </remarks>
+    public BoundExpr? ContentExpr { get; init; }
+}
 
 /// <summary>A bound UNIVERSAL-receiver INVOKE (deep-dive D10/D-U5): there is NO formal roster at compile
 /// time, so the bound facts differ in KIND from <see cref="BoundInvoke"/> — the method selector is a

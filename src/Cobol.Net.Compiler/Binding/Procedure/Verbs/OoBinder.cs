@@ -458,7 +458,15 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         bool explicitReference = arg.REFERENCE() is not null;
         bool explicitContent = arg.CONTENT() is not null;
 
-        if (arg.dataReference() is { } dref)
+        // ⛔ THE IDENTIFIER CASE IS RECOVERED HERE, NOT IN THE GRAMMAR (fix-queue PB46). BY CONTENT's operand
+        // list admits an arithmetic expression, and `arithmeticExpression` SUBSUMES `dataReference` — so a bare
+        // `BY CONTENT A` now arrives as an expression, and routing it to the expression arm would silently drop
+        // the §14.9.23.3 SR9/SR10 object-data rules, the §14.8.2.3.2 conformance check and the ref-mod handling
+        // that only the identifier arm performs. The grammar cannot express "a reference, unless it is part of
+        // an expression"; the binder can, through the SAME sole-reference reduction ConditionBinder and
+        // IntrinsicBinder already use (feedback_one_rule_one_place — that helper is now shared, not re-copied).
+        var dref = arg.dataReference() ?? ConditionBinder.SoleDataReference(arg.arithmeticExpression());
+        if (dref is not null)
         {
             if (ctx.Refs.Resolve(dref) is not { } place)
             {
@@ -531,6 +539,36 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 return null;
             }
             return new BoundInvokeArg(formal, place, null, null, WriteBack: false, ByContent: true);
+        }
+
+        // ── BY CONTENT arithmetic-expression-1 (ISO §14.9.23.2; fix-queue PB46) ─────────────────────────────
+        // The general format's BY CONTENT branch admits an arithmetic expression, and this arm is what makes
+        // that true end to end. It is BY CONTENT by construction: §14.9.23.3 SR9 confines BY REFERENCE to an
+        // identifier, and an expression has no storage to write back to.
+        // §14.8.2.3.3 rule 2a governs the crossing — "the value is transferred according to the rules of the
+        // COMPUTE statement" — which is exactly a numeric formal. A NON-numeric formal is not a gap here but a
+        // CONFORMANCE failure the standard requires be reported: §14.9.25.3 Table 16 admits a numeric sender to
+        // an alphanumeric receiver only for an INTEGER sender, and an arithmetic expression carries no
+        // compile-time guarantee of that, so the honest verdict is a cited diagnostic rather than silent
+        // truncation.
+        if (arg.arithmeticExpression() is { } ax && explicitContent)   // a SOLE reference was taken above
+        {
+            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Numeric })
+            {
+                Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for formal "
+                    + $"'{formal.CobolName}': §14.8.2.3.3 rule 2a transfers an expression by the COMPUTE rules, "
+                    + "which requires a category-numeric formal parameter");
+                return null;
+            }
+            if (formal.Pic is { IsFloat: true })
+            {
+                Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for the floating-point formal "
+                    + $"'{formal.CobolName}': the fixed-point→float CONTENT conversion is the same documented "
+                    + "refinement the identifier arm defers (ISO §14.8.2.3.3)");
+                return null;
+            }
+            return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
+                { ContentExpr = host.Expr.BindExpr(ax) };
         }
 
         // A literal argument — BY CONTENT (GR6a2; a literal never meets SR9). Per §9.3.6 resolution rule 5

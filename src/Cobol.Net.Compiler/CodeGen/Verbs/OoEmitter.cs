@@ -730,6 +730,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // Same-usage float (bind-enforced): read the float value directly — never through the
                 // scaled-integer path (the review's silent-truncation finding).
                 w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
+            // BY CONTENT arithmetic-expression-1 (§14.9.23.2; fix-queue PB46) — §14.8.2.3.3 rule 2a transfers it
+            // "according to the rules of the COMPUTE statement", i.e. rescale + truncate into the formal's
+            // description through the OWNER's internal profile, exactly as the identifier CONTENT arm below
+            // does. The binder proved the formal is fixed-point category numeric, so this is the one shape.
+            else if (a.ContentExpr is { } cex
+                     && Num.AsNum(new BoundComputedOperand(cex), ReceiverContext.None) is var ex)
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(ex.Expr, $"{ex.Scale}", qualProfile)};");
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale

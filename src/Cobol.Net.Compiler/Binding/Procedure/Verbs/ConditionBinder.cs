@@ -564,7 +564,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the §8.4.3.2.3 SR6 argument-list twin, which belongs to <c>functionCall</c>)
     /// — the SR2 "single data item … not enclosed in parentheses" reduction, mirroring
     /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.</summary>
-    private static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith)
+    internal static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith)
     {
         if (arith?.additiveExpression() is not { } add) return null;
         if (add.multiplicativeExpression() is not [{ } mul]) return null;

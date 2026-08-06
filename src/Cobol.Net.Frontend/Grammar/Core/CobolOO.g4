@@ -127,10 +127,30 @@ invokeUsing
     : USING invokeArgument+
     ;
 
+// ⛔ BY CONTENT TAKES AN EXPRESSION, AND OMITTING IT MIS-PARSED RATHER THAN FAILING TO PARSE (fix-queue PB46).
+// The §14.9.23.2 general format's BY CONTENT branch admits `arithmetic-expression-1 | boolean-expression-1 |
+// identifier-5 | literal-2` — read off the rendered figure, not the prose. With only `(dataReference | literal)`
+// here, `INVOKE O "M" USING BY CONTENT N + 1` did not fail: `N` matched dataReference and `+ 1` started a
+// SECOND invokeArgument, so the statement reported `COBOLNET0828: 2 USING argument(s) for 1 formal parameter(s)`
+// — an arity diagnostic about a rule the program does not violate, which sends the reader at the method
+// signature. A silent mis-parse is worse than a parse error.
+// ⛔ `literal` FIRST, AND `dataReference` IS DELIBERATELY ABSENT — both facts were learned by breaking them.
+// `arithmeticExpression` SUBSUMES `dataReference` and every numeric literal, so an alternation listing them
+// alongside it does not mean what it reads as (feedback_grammar_precedence: ANTLR takes the first matching
+// alternative). A first cut wrote `(nonNumericLiteral | arithmeticExpression)` and silently DESTROYED the
+// identifier path: `BY CONTENT A` began matching the expression arm, losing the §14.9.23.3 SR9/SR10 object-data
+// rules, the §14.8.2.3.2 conformance check and the ref-mod handling — and `BY CONTENT "XY"` stopped binding at
+// all. `literal` is kept because the proven literal arm keys on it; the identifier case is recovered IN THE
+// BINDER from a sole-dataReference expression (OoBinder, the SoleDataReference shape ConditionBinder and
+// IntrinsicBinder already use), because the grammar cannot express "a reference, unless it is part of an
+// expression" without the ambiguity that caused the original defect.
+// ⚠ BY VALUE keeps `arithmeticExpression` alone and does NOT gain the boolean arm: the format's BY VALUE branch
+// is `arithmetic-expression-1 | identifier-5 | literal-2` — the two phrases genuinely differ, and only
+// BY CONTENT carries boolean-expression-1.
 invokeArgument
     : BY VALUE arithmeticExpression
     | BY REFERENCE dataReference
-    | BY CONTENT (dataReference | literal)
+    | BY CONTENT (literal | arithmeticExpression)
     | dataReference
     | literal
     ;

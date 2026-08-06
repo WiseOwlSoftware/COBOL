@@ -110,7 +110,8 @@
     "pb25_figurative_intrinsic_argument",
     "pb48_figurative_zero_intrinsic_argument",
     "pb12_intrinsic_argument_schema",
-    "pb40_integer_argument_positions"
+    "pb40_integer_argument_positions",
+    "pb46_invoke_by_content_expression"
   ],
   "pending": []
 }
