@@ -322,8 +322,15 @@ primaryExpression
 // where it should. The same applies to the report-writer `SUM OF` clause (§13.14).
 // RANDOM is different and needs no group: §15.75.2 brackets the whole parenthesised part, so the bare form is
 // legal — and RANDOM begins no data-description clause, so nothing can swallow it.
+// ⛔ THE ARGUMENT-LIST PARENS ARE FNARG_LPAREN / FNARG_RPAREN, NOT LPAREN / RPAREN (fix-queue PB48). §8.4.3.2.3
+// SR6 makes the '(' immediately after an intrinsic-function-name ALWAYS the argument list, never a grouping
+// paren, and the lexer retypes it from the _fnParenStack it already keeps. Writing the distinction into the
+// token vocabulary is what stops the post-lex passes from having to re-derive it: ZeroTokenRewriter's "ZERO
+// adjacent to a paren is arithmetic" rule was reading THIS paren and converting `FUNCTION LOWER-CASE(ZERO)`'s
+// figurative into an arithmetic zero, so the §15.3 class screen saw class numeric and rejected legal source.
+// A grouping paren INSIDE the list (`FUNCTION MAX((A + B) 2)`) is an ordinary LPAREN and is unaffected.
 functionCall
-    : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*
+    : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*
     | reservedIntrinsicArgFn subscriptPart refModPart*
     | RANDOM subscriptPart? refModPart*
     ;

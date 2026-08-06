@@ -163,7 +163,9 @@
     "pb11-format-kind-chimera",
     "pb11-format-wrong-kind",
     "pb17-function-subscript-varying-by",
-    "pb17-function-subscript-evaluate-subject"
+    "pb17-function-subscript-evaluate-subject",
+    "pb48-figurative-space-numeric-argument",
+    "pb48-figurative-all-numeric-argument"
   ],
   "pending": []
 }

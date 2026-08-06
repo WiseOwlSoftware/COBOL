@@ -96,7 +96,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "be reference-modified twice (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier.");
             return new BoundExprError($"reference modification of {display}");
         }
-        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), fc.LPAREN() is not null, display);
+        // FNARG_LPAREN, not LPAREN: the argument-list paren now carries its own token type (PB48), which is the
+        // §8.4.3.2.3 SR6 question this argument is asking, answered by the lexer instead of inferred here.
+        return ResultRefMod(call, ctx.Refs.ReadRefMod(refMods[0]), fc.FNARG_LPAREN() is not null, display);
     }
 
     /// <summary>
@@ -550,8 +552,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // MAX/MIN/ORD-MAX/ORD-MIN over string arguments dispatch to the string comparison body; ORD-MAX/ORD-MIN
         // still return an ordinal (§15.71.1/§15.72.1 carry NO result-type table — only MAX/MIN do), which is why
         // this is a RuntimeMethod choice and not a type one, and why the two must not be folded together.
+        // ⛔ A CLASS-NEUTRAL ARGUMENT MUST NOT VOTE (fix-queue PB48). This read `args.All(IsStringOperand)`, which
+        // silently counted the figurative ZERO as a NON-string argument and so forced the numeric body on a list
+        // that was alphanumeric: `FUNCTION MAX(ZERO "A")` returned "0" — a WRONG ANSWER, since §15.59.4 r1 takes
+        // the greatest by §8.8.4.2 relation rules and "A" (65) exceeds "0" (48) — and `FUNCTION MAX(SPACE "A")`,
+        // two plainly alphanumeric arguments, drove SPACE into the numeric channel and aborted at RUN TIME.
+        // §15.59.3 r2 requires all arguments to be of the SAME class, and §8.3.3.6.4 GR4 says ZERO takes its class
+        // from the context — so the non-neutral arguments are the context, and they are what chooses the body.
+        // With every argument neutral (`FUNCTION MAX(ZERO ZERO)`) there is no such context and the numeric reading
+        // stands, which is both GR4's first-listed value and §8.8.1.1's.
         var resolved = sig;
-        if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
+        if (sig.ArgKinds == "p" && args.Count > 0
+            && args.All(a => IsStringOperand(a) || IsClassNeutralOperand(a))
+            && args.Any(IsStringOperand))
         {
             resolved = sig with
             {
@@ -1019,8 +1032,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean,
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } => true,
+        // A figurative whose ONLY reading is a character value — SPACE, QUOTE, HIGH-VALUE, LOW-VALUE (§8.3.3.6.4
+        // GR5–GR8) — is a string operand exactly as a one-character alphanumeric literal is. ZERO is excluded by
+        // the neutrality test rather than by name, so the §8.3.3.6.4 table stays written down once (PB48).
+        BoundFigurative => !IsClassNeutralOperand(op),
+        // ALL "literal" is an alphanumeric literal repeated (§8.3.3.6.4 GR9); never numeric (§8.3.3.6.3 SR1a).
+        BoundAllLiteral => true,
         _ => false,
     };
+
+    /// <summary>Can this operand present a NUMERIC class and a character one both — i.e. does it take its class
+    /// from the context rather than bringing one (§8.3.3.6.4 GR4)? True for the figurative ZERO and nothing else
+    /// the binder can build today.</summary>
+    /// <remarks>Derived from <see cref="IntrinsicArgumentRules.CandidateClasses"/> rather than testing
+    /// <c>Kind == 'Z'</c>, so the §8.3.3.6.4 GR1/GR4–GR8 reading lives in ONE table and a change there cannot
+    /// leave this dispatch behind (<c>feedback_one_rule_one_place</c>).</remarks>
+    private static bool IsClassNeutralOperand(BoundOperand op) =>
+        IntrinsicArgumentRules.CandidateClasses(op) is { Length: > 1 } candidates
+        && candidates.Contains(CobolClass.Numeric);
 
     /// <summary>FUNCTION LENGTH (§15.50.4): the argument's length in character positions. A literal or a
     /// fixed-size item folds to its compile-time size — <c>DataItem.ImageWidth</c> IS the character-position
@@ -1239,7 +1268,23 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
             new BoundExprError("FUNCTION BYTE-LENGTH of a DYNAMIC LENGTH item (current length in bytes at runtime, ISO §15.14.4 rule 5)"),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ByteWidth).ToString()),
-        _ => new BoundExprError("FUNCTION BYTE-LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.14.3)"),
+        // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
+        // (fix-queue PB48 sweep). PB25 gave BindLengthFold its §8.3.3.6.4 GR3 arms and cited the reasoning in
+        // full; BYTE-LENGTH — the neighbouring fold, with the same rule shape — kept a default arm that named
+        // "a numeric/FIGURATIVE literal" as invalid on the authority of §15.14.3. §15.14.3 r1 says the opposite:
+        // "Argument-1 shall be an alphanumeric or national literal, a based entry, a type-name, or a data item of
+        // any class or category", and §8.3.3.6.4 GR1 makes a figurative in a character context an ALPHANUMERIC
+        // character value — exactly what r1 admits. §8.3.3.6.3 SR1 bars a figurative only where the literal is
+        // restricted to NUMERIC (a) or a syntax rule prohibits it (b); neither applies. So
+        // `FUNCTION BYTE-LENGTH(SPACE)` is legal source that aborted at RUN TIME, and it did so before PB48 as
+        // well — ZERO merely joined it once the figurative stopped being rewritten (feedback_scan_all_similar).
+        // The byte count follows §8.3.3.6.4 GR3: (b) one character for a figurative other than ALL literal-1,
+        // (c) the length of literal-1 otherwise; both are alphanumeric here, so one byte per character (D-N1).
+        BoundFigurative => new BoundNumLiteral("1"),                                        // §8.3.3.6.4 GR3b
+        BoundAllLiteral a => new BoundNumLiteral(Math.Max(1, a.Literal.Length).ToString()), // §8.3.3.6.4 GR3c
+        // A NUMERIC literal remains invalid — §15.14.3 r1 admits only "an alphanumeric or national literal"
+        // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
+        _ => new BoundExprError("FUNCTION BYTE-LENGTH argument (a numeric literal is not a valid argument, ISO §15.14.3)"),
     };
 
     /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83 / §15.43 / §15.58) — a compile-time PICTURE fold, like

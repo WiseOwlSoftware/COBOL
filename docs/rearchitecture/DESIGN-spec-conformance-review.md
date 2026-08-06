@@ -247,13 +247,17 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
    two halves where one was verified ⇒ PARTIAL, always.
 6. **`DOCUMENTED-NON-SUPPORT` is never an agent's to choose** (owner decision, D13).
 7. **`code-location` is `path#Symbol`, never a line number.**
-8. **The fixes that have already landed** (currently **PB1–PB11 and PB13**), so agents do not re-report them — and
-   so they know that a function ABSENT from `IntrinsicArgumentRules.Verified` is genuinely unscreened, because
-   that table is deliberately partial and grows as this review adjudicates each clause.
-   ⚠ **THIS LINE GOES STALE EVERY TIME A PB ITEM LANDS, and a stale list is worse than none** — it tells agents a
-   defect is still open when it is fixed, and they spend the batch re-reporting it. Re-read the fix queue's LANDED
-   header when writing the batch prompt rather than copying this sentence; it read "PB1–PB7" while PB8–PB11 and
-   PB13 had all landed.
+8. **The fixes that have already landed**, so agents do not re-report them — and so they know that a function
+   ABSENT from `IntrinsicArgumentRules.Verified` is genuinely unscreened, because that table is deliberately
+   partial and grows as this review adjudicates each clause.
+   ⛔ **THE LIST IS NOT WRITTEN HERE AND MUST NOT BE.** It read "PB1–PB7" while PB8–PB11 and PB13 had all landed,
+   then "PB1–PB11 and PB13" while a dozen more had — a hand-maintained roster inside the very doc that warns
+   against one, which is what CLAUDE.md rule 8 forbids. **Generate it when writing the batch prompt:**
+   `python scripts/spec/work.py stats`, or `status: landed` over `kb/Work/`. A stale roster is worse than none:
+   it tells an agent a fixed defect is open and the batch is spent re-reporting it.
+   ⚠ Also tell agents that `Verified` now screens by CLASS SETS, not one class per operand — a figurative
+   constant is admissible wherever ANY class it can present is admissible (§8.3.3.6.4 GR4; fix-queue PB48) — so
+   "the screen accepts ZERO here AND there" is correct behaviour, not a missing rule.
 9. **Read-only, and no `dotnet build`/`dotnet test`** — other work is usually in flight.
 
 ### ⚠ Reading the results

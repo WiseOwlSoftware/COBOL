@@ -380,8 +380,9 @@ java+pwsh prerequisites — `Invoke-Antlr4CSharp.ps1`, `GenerateIfNewer.ps1`). T
    `InvalidOperationException` from a buggy semantic predicate or lexer action now propagates as an internal
    compiler error (surfaced by the driver's top-level boundary — see DESIGN-driver.md) instead of being
    silently retried under LL.
-4. Keep the two-stage SLL→LL strategy and `ZeroTokenRewriter` verbatim (proven; the design does not touch
-   the prediction pipeline).
+4. Keep the two-stage SLL→LL strategy verbatim (proven; the design does not touch the prediction pipeline).
+   `ZeroTokenRewriter`'s ALGORITHM is likewise untouched — but see §7 for the one thing that changed underneath
+   it: what counts as an arithmetic parenthesis (fix-queue PB48).
 
 ### 3.6 Preprocessor pipeline (namespace + one contract fix)
 
@@ -607,7 +608,22 @@ regression bisects to one step.
 - **The single SUPERSET-grammar model** (one grammar, no per-edition forks) — correct and cheapest for
   four-editions-in-one; edition legality is the `VersionConformancePass`'s job, and we remove duplication
   *around* the grammar, not the one-grammar model itself.
-- **The two-stage SLL→LL parse + `ZeroTokenRewriter`** — proven, subtle, and not a smell; untouched.
+- **The two-stage SLL→LL parse** — proven, subtle, and not a smell; untouched.
+- **`ZeroTokenRewriter`'s algorithm** — untouched, but ⛔ **its INPUT vocabulary changed and the line that stood
+  here ("proven … untouched") was hiding a defect** (fix-queue PB48). The pass reads adjacency to `(` / `)` as
+  proof that a figurative ZERO sits inside parenthesized arithmetic. An argument list is delimited by those same
+  characters, so every bare `ZERO` argument was converted to an arithmetic zero before any function was known and
+  `FUNCTION LOWER-CASE(ZERO)` was rejected as class numeric — legal source, refused. ISO §8.4.3.2.3 SR6 makes the
+  argument-list paren categorically not a grouping paren, so the LEXER now types it `FNARG_LPAREN`/`FNARG_RPAREN`
+  from the `_fnParenStack` it already maintains, and the rewriter's rule became true as written. The pass also
+  gained the reference-modification `COLON` as arithmetic context (§8.4.3.3.3 SR4 — both positions are arithmetic
+  expressions), because a ref-mod written directly after a function name is delimited by FNARG parens too.
+  ⚠ `refModPart` accepts BOTH paren flavours: SR6's precondition is "if a function's definition **permits
+  arguments**", a catalog question no lexer can answer, so after a zero-argument name that token is the ref-mod.
+  ⚠ **The rewriter is still the standing answer to "where does figurative ZERO become arithmetic", and it is
+  still incomplete** — a bare `COMPUTE X = ZERO` and a `TB(ZERO + 1)` subscript are the positions no adjacency
+  arm reaches (`kb/Work/PB51.md`, `kb/Work/PB50.md`). Retiring the pass in favour of a `primaryExpression`
+  alternative is the structural candidate recorded there, with the ambiguity survey it requires.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its

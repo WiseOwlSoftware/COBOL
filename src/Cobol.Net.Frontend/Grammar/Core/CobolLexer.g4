@@ -7,6 +7,12 @@ options {
     caseInsensitive = true;
 }
 
+// Virtual token types for the FUNCTION argument-list parentheses (ISO §8.4.3.2.3 SR6). No lexer rule matches
+// them: the '(' / ')' rules below RETYPE themselves from the _fnParenStack the lexer already maintains, which is
+// the ONE place that knows which parens open an argument list. A distinct type is what lets every DOWNSTREAM
+// consumer stop guessing — see the SR6 note on OnDefaultLParen.
+tokens { FNARG_LPAREN, FNARG_RPAREN }
+
 @members {
     // Track the types of the last TWO non-WS tokens emitted: one for subscript-mode detection, two for the
     // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
@@ -77,6 +83,21 @@ options {
     // operand / cce region — DEFINED is a token and every '(' groups (DESIGN §4.1).
     public void PrimeDirectiveExpr() => _primeDirectiveExpr = true;
 
+    // ⛔ AN ARGUMENT-LIST PARENTHESIS IS NOT AN ARITHMETIC PARENTHESIS, AND EMITTING BOTH AS LPAREN MADE EVERY
+    // DOWNSTREAM PASS GUESS (fix-queue PB48). §8.4.3.2.3 SR6: "If a function's definition permits arguments and a
+    // left parenthesis immediately follows function-prototype-name-1 or intrinsic-function-name-1, the left
+    // parenthesis is ALWAYS treated as the left parenthesis of that function's arguments" — categorically, so it
+    // is never the '(' of a parenthesized arithmetic expression. ZeroTokenRewriter reads adjacency to '(' / ')'
+    // as proof that a figurative ZERO sits inside parenthesized arithmetic, which is true for a grouping paren and
+    // FALSE for this one; the result was that `FUNCTION LOWER-CASE(ZERO)` reached the binder as an arithmetic
+    // zero and was rejected as class numeric, while the keyword-omitted `LOWER-CASE(ZERO)` — whose arguments are
+    // re-lexed by FunctionArgFragment, where no parens are present — returned the correct "0". Two arms of one
+    // dispatch, one right (feedback_two_arm_dispatch).
+    // ⛔ THE FIX IS THE TOKEN TYPE, NOT A SECOND COPY OF THE PREDICATE. The rewriter could have re-derived "is
+    // this '(' an argument list" by walking back two tokens, but that is this method's rule written down twice,
+    // and the SUBSCRIPT decision above proves how easily the two copies drift (feedback_one_rule_one_place). The
+    // stack below is the single source of truth; retyping publishes it, so the rewriter's own rule — "ZERO
+    // adjacent to an ARITHMETIC paren is arithmetic" — becomes true as written, with no change to it at all.
     private void OnDefaultLParen()
     {
         // A directive-expression region never subscripts: every '(' groups (DESIGN §4.1). Checked first so a '('
@@ -86,13 +107,24 @@ options {
             PushMode(SUBSCRIPT);   // subscript / ref-mod capture — the matching ')' is SUB_RPAREN (popMode)
             return;
         }
-        // Staying DEFAULT: record whether this paren opens a FUNCTION argument region.
-        _fnParenStack.Add(PreviousIsFunctionName() && PreviousTokenCouldBeDataName());
+        // Staying DEFAULT: record whether this paren opens a FUNCTION argument region, and publish it as the type.
+        // ⚠ THE `&& PreviousTokenCouldBeDataName()` CONJUNCT THAT STOOD HERE IS GONE, and dropping it is part of
+        // the fix rather than a tidy-up. SR6 keys on the '(' following an intrinsic-function-name — it says
+        // nothing about whether that name's TOKEN happens to be one of the context-sensitive words that can also
+        // be a data name. Of the ten `functionName` alternatives, nine are in _dataNameTokens and BIT is not, so
+        // the conjunct silently made `FUNCTION BIT(…)` the one function call whose parens were not an argument
+        // region — a difference with no rule behind it, and exactly the sort of accidental exception a later
+        // reader would preserve as intentional.
+        _fnParenStack.Add(PreviousIsFunctionName());
+        if (PreviousIsFunctionName()) Type = FNARG_LPAREN;
     }
 
     private void OnDefaultRParen()
     {
-        if (_fnParenStack.Count > 0) _fnParenStack.RemoveAt(_fnParenStack.Count - 1);
+        if (_fnParenStack.Count == 0) return;   // unbalanced source — the parser reports it
+        bool wasFnArgs = _fnParenStack[_fnParenStack.Count - 1];
+        _fnParenStack.RemoveAt(_fnParenStack.Count - 1);
+        if (wasFnArgs) Type = FNARG_RPAREN;
     }
 
     // A signed numeric literal's sign is the leftmost CHARACTER of the literal (ISO §8.3.3.3.2 r2) and an

@@ -103,7 +103,65 @@ internal static class IntrinsicArgumentRules
 {
     /// <summary>The ISO §8.5.2.1 Table-2 class of an operand, or <see langword="null"/> when it is not statically
     /// decidable (an index item and other PIC-less leaves included — those are simply not screened).</summary>
-    public static CobolClass? ClassOf(BoundOperand op) => op switch
+    /// <remarks>
+    /// ⛔ THIS IS A VIEW OF <see cref="CandidateClasses"/>, NOT A SECOND CLASSIFIER. "The class of this operand"
+    /// is the right question only for an operand that HAS one; a figurative constant does not (§8.3.3.6.4 GR4 —
+    /// ZERO is "the numeric value '0' … or … the character '0' … DEPENDING ON CONTEXT"). Modelling the answer as
+    /// a SET and reading the singleton off it keeps both questions on one table
+    /// (<c>feedback_model_the_rule_shape_not_one_case</c>); the previous scalar-only shape is why a figurative
+    /// had to fall out of the screen entirely as "not statically decidable".
+    /// </remarks>
+    public static CobolClass? ClassOf(BoundOperand op) =>
+        CandidateClasses(op) is [var only] ? only : null;
+
+    /// <summary>
+    /// Every ISO §8.5.2.1 Table-2 class this operand is capable of presenting — a singleton for everything with a
+    /// fixed class, EMPTY when the class is not statically decidable, and genuinely plural only for a figurative
+    /// constant, whose class is chosen by the context it appears in.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>§8.3.3.6.4 GR1 + GR4–GR8, read as the table they are.</b> GR1: "When a figurative constant is used in a
+    /// context requiring national characters, the figurative constant represents a national character value.
+    /// Otherwise, when a figurative constant represents a character value, the figurative constant represents an
+    /// alphanumeric character value." GR4 (Format 1) then makes ZERO the exceptional one: it "represents the
+    /// numeric value '0', one or more of the boolean character '0', or one or more of the character '0' in the
+    /// computer's runtime coded character set, depending on context." GR5/GR6/GR7/GR8 give SPACE, HIGH-VALUE,
+    /// LOW-VALUE and QUOTE a CHARACTER reading only — none of them names a numeric or boolean value.
+    /// </para>
+    /// <para>
+    /// ⛔ SO THE ASYMMETRY IS THE POINT, and it is what a scalar column could not express: <b>ZERO is admissible
+    /// in a numeric argument position and in a string one; SPACE and its siblings are admissible only in a string
+    /// one.</b> §8.3.3.6.3 SR1a says the same thing from the other side — "If the literal is restricted to a
+    /// numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase" —
+    /// and §8.8.1.1 lists exactly one figurative among the operands an arithmetic expression may be built from.
+    /// </para>
+    /// <para>
+    /// ⚠ <c>ALL literal-1</c> is NOT class-neutral and is deliberately screened here: SR1a's "without the ALL
+    /// phrase" bars even <c>ALL "5"</c> from a numeric position, so it carries its literal's own class. Before
+    /// this, <c>FUNCTION ABS(ALL "5")</c> compiled clean and aborted at run time on <c>bound operand
+    /// 'BoundAllLiteral'</c> — the wrong-stage family again, on source the standard rejects.
+    /// </para>
+    /// </remarks>
+    public static CobolClass[] CandidateClasses(BoundOperand op) => op switch
+    {
+        // §8.3.3.6.4 GR4 — the zero format is the numeric value '0', the boolean character '0', OR the character
+        // '0'; GR1 makes that character national in a national context. Four candidates, and the context picks.
+        BoundFigurative { Kind: 'Z' } =>
+            [CobolClass.Numeric, CobolClass.Alphanumeric, CobolClass.National, CobolClass.Boolean],
+        // GR5/GR6/GR7/GR8 — SPACE, HIGH-VALUE, LOW-VALUE, QUOTE are CHARACTER values, alphanumeric by GR1 or
+        // national in a national context. Never numeric, never boolean.
+        BoundFigurative { Kind: 'S' or 'H' or 'L' or 'Q' } => [CobolClass.Alphanumeric, CobolClass.National],
+        // NULL/NULLS is the pointer figurative (§8.3.3.7) — class pointer, and no §15 argument rule admits it.
+        BoundFigurative { Kind: 'N' } => [CobolClass.Pointer],
+        BoundFigurative => [],                                   // an unmodelled kind screens as before: fail open
+        BoundAllLiteral all => ClassOfCategory(all.Category) is { } ac ? [ac] : [],
+        _ => ClassOf1(op) is { } c ? [c] : [],
+    };
+
+    /// <summary>The single-class classifier for every operand whose class is fixed — the original body of
+    /// <see cref="ClassOf"/>, now reached through <see cref="CandidateClasses"/> so there is one table.</summary>
+    private static CobolClass? ClassOf1(BoundOperand op) => op switch
     {
         // ⛔ A LITERAL HAS A CATEGORY, AND THIS IGNORED IT — the PB1 trap, sprung a second time and caught by the
         // corpus, not by reading. `BoundStringLiteral` carries `Category` (Alphanumeric by default, but National
@@ -372,24 +430,41 @@ internal static class IntrinsicArgumentRules
 
     /// <summary>Why this operand is inadmissible for an argument declaring <paramref name="kind"/>, or
     /// <see langword="null"/> when it is admissible or not statically decidable.</summary>
+    /// <remarks>
+    /// ⛔ THE TEST IS AN INTERSECTION, NOT AN EQUALITY, and that is what admits a figurative constant. An operand
+    /// is inadmissible only when NONE of the classes it is capable of presenting
+    /// (<see cref="CandidateClasses"/>) is one the rule permits — so ZERO passes both a class-numeric rule and a
+    /// class-alphanumeric one (§8.3.3.6.4 GR4, "depending on context"), while SPACE passes only the second.
+    /// For every operand with a fixed class the set is a singleton and the intersection IS the old equality, so
+    /// no previously-screened shape changes verdict.
+    /// </remarks>
     public static string? Violation(char kind, BoundOperand op)
     {
-        if (ClassOf(op) is not { } actual) return null;
+        var candidates = CandidateClasses(op);
+        if (candidates.Length == 0) return null;                          // not statically decidable — fail open
 
         if (kind == 'p')
         {
-            return PolymorphicExcluded.Contains(actual)
-                ? $"is of class {Name(actual)}, which ISO §15.71.3 excludes from a MAX/MIN-family argument list"
+            // §15.59.3 r1 and siblings are a NEGATIVE list, so the operand is rejected only when EVERY class it
+            // could present is excluded. A figurative that can be alphanumeric is therefore fine here, which is
+            // right: `FUNCTION MAX(SPACE "A")` is two alphanumeric arguments (§15.59.3 r2 — the same class).
+            return candidates.All(PolymorphicExcluded.Contains)
+                ? $"is of class {Describe(candidates)}, which ISO §15.71.3 excludes from a MAX/MIN-family argument list"
                 : null;
         }
 
-        if (Admissible(kind) is not { } ok || ok.Contains(actual)) return null;
+        if (Admissible(kind) is not { } ok || candidates.Any(ok.Contains)) return null;
 
         string wanted = ok.Length == 1
             ? Name(ok[0])
             : string.Join(", ", ok[..^1].Select(Name)) + " or " + Name(ok[^1]);
-        return $"is of class {Name(actual)}; ISO §15.3 requires class {wanted}";
+        return $"is of class {Describe(candidates)}; ISO §15.3 requires class {wanted}";
     }
+
+    /// <summary>The operand's class for a diagnostic — the one it has, or the choice it offers.</summary>
+    private static string Describe(CobolClass[] candidates) => candidates.Length == 1
+        ? Name(candidates[0])
+        : string.Join(" or ", candidates.Select(Name));
 
     private static string Name(CobolClass c) => c switch
     {

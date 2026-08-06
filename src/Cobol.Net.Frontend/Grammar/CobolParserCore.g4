@@ -507,8 +507,16 @@ subToken
     ;
 
 // refModPart for non-identifier context (default mode)
+// ⛔ BOTH PAREN FLAVOURS, AND THE FNARG ONE IS NOT AN OVERSIGHT (fix-queue PB48). The lexer types a '(' that
+// immediately follows `FUNCTION <name>` as FNARG_LPAREN, but §8.4.3.2.3 SR6 hands that paren to the argument list
+// only "if a function's definition PERMITS arguments" — a CATALOG question no lexer or grammar can answer. So for
+// a zero-argument function the very same token is the reference modifier: `FUNCTION CURRENT-DATE (1:8)` is the
+// standard's own shape (D.14.3.6) and `FUNCTION PI (1:2)` is the SR2 negative case. Accepting either flavour here
+// keeps the two alternatives disjoint on the COLON exactly as before — the superset parse — and leaves SR6's
+// catalog half to IntrinsicBinder, which reads `functionCall.FNARG_LPAREN()` (a DIRECT child, so an argument list
+// that actually parsed) to tell `FUNCTION RANDOM (1:4)` from `FUNCTION UPPER-CASE("x") (1:2)`.
 refModPart
-    : LPAREN refModSpec RPAREN
+    : (LPAREN | FNARG_LPAREN) refModSpec (RPAREN | FNARG_RPAREN)
     ;
 
 refModSpec

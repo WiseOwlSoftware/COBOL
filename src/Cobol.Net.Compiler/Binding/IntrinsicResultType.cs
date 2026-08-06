@@ -212,7 +212,17 @@ internal static class IntrinsicResultType
         // category would silently route every index argument into the numeric arm, and since an index item has
         // Scale 0 it would then answer INTEGER — a plausible wrong type rather than a visible failure.
         if (IsIndexOperand(args[0])) return IntrinsicType.Index;
-        return CategoryOf(args, 0) switch
+        // ⛔ "ARGUMENT-1 DECIDES" IS TRUE ONLY WHEN ARGUMENT-1 HAS A CLASS TO DECIDE WITH (fix-queue PB48).
+        // §8.3.3.6.4 GR4 makes the figurative ZERO the numeric value '0' or the character '0' "depending on
+        // context", so as argument-1 it carries no category and `CategoryOf(args, 0)` answers null — which fell
+        // straight through to the numeric row. `FUNCTION MAX(ZERO "A")` therefore typed its RESULT numeric while
+        // IntrinsicBinder chose the STRING comparison body for the same call, and the two halves of one decision
+        // disagreeing surfaced as "FUNCTION MAX (no numeric render recipe)" at run time.
+        // §15.59.3 r2 is what makes the repair exact rather than a guess: "All arguments shall be of the same
+        // class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed."
+        // Since the list is uniform, ANY argument that has a category has the list's category — so read the
+        // first one that does, and the neutral figuratives simply take it.
+        return FirstCategory(args) switch
         {
             PicCategory.National => IntrinsicType.National,
             // Alphabetic folds into Alphanumeric in this model, and both rows return Alphanumeric anyway.
@@ -230,6 +240,17 @@ internal static class IntrinsicResultType
     /// fixed static category (a group, a figurative, an ALL literal, an error operand).</summary>
     private static PicCategory? CategoryOf(IReadOnlyList<BoundOperand> args, int i) =>
         i < args.Count ? OperandCategory(args[i]) : null;
+
+    /// <summary>The category of the first argument that HAS one — the §15.59.1 / §15.63.1 uniform-argument row
+    /// read through §15.59.3 r2 (all arguments are of the same class), so a leading class-neutral figurative
+    /// (§8.3.3.6.4 GR4) defers to the arguments that do carry a class instead of collapsing the list to numeric.
+    /// Null when no argument has a static category, which keeps the numeric/integer rows exactly as before.</summary>
+    private static PicCategory? FirstCategory(IReadOnlyList<BoundOperand> args)
+    {
+        foreach (var a in args)
+            if (OperandCategory(a) is { } c) return c;
+        return null;
+    }
 
     /// <summary>
     /// ISO §8.5.2.1 — the data category of a bound function argument. THE one definition; <c>IntrinsicBinder</c>
@@ -286,6 +307,10 @@ internal static class IntrinsicResultType
         // selected through a nested integer function. The recursion is bounded by expression nesting depth.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
             Resolve(ic.Sig, ic.Args) is IntrinsicType.Integer,
+        // The figurative ZERO read numerically IS the integer 0 (§8.3.3.6.4 GR4 — "the numeric value '0'";
+        // §8.8.1.1 admits it as an arithmetic operand). It reaches here only in an all-numeric list, because any
+        // argument with a character category makes AllIntegerArgs fail on that argument first (PB48).
+        BoundFigurative { Kind: 'Z' } => true,
         _ => false,
     };
 

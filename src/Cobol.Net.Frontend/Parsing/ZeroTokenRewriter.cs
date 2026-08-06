@@ -18,6 +18,22 @@ namespace CobolNet.Frontend.Parsing;
 ///
 /// All other ZERO tokens are left unchanged — they remain figurative constants
 /// for VALUE, MOVE, comparison, and other non-arithmetic contexts.
+///
+/// <para>
+/// ⛔ THE PAREN ARMS MEAN <b>ARITHMETIC</b> PARENS, AND THAT ONLY BECAME TRUE WITH fix-queue PB48. A FUNCTION
+/// argument list is delimited by <c>FNARG_LPAREN</c>/<c>FNARG_RPAREN</c>, retyped by the lexer from the paren
+/// stack it already maintains (ISO §8.4.3.2.3 SR6 — that '(' is ALWAYS the argument list, never a grouping
+/// paren). They are deliberately absent from the two sets below, so a bare <c>ZERO</c> argument keeps its
+/// figurative identity all the way to the binder, where the function's own §15.3 argument type decides whether
+/// it is the numeric value 0 or the character '0' (§8.3.3.6.4 GR4 — "depending on context"). Before that, this
+/// pass answered the question itself, using adjacency, which cannot know the function: <c>LOWER-CASE(ZERO)</c>
+/// arrived as class numeric and was rejected as illegal.
+/// </para>
+/// <para>
+/// ⚠ Do NOT re-add a general LPAREN/RPAREN arm "for safety" — a grouping paren inside an argument list is still
+/// a plain LPAREN, so <c>FUNCTION ABS((ZERO))</c> and <c>FUNCTION MAX((ZERO + 1) 2)</c> continue to rewrite
+/// exactly as before. The two token types are what separates the two meanings; nothing here needs to.
+/// </para>
 /// </summary>
 public static class ZeroTokenRewriter
 {
@@ -45,6 +61,11 @@ public static class ZeroTokenRewriter
         CobolLexer.SLASH,
         CobolLexer.POWER,
         CobolLexer.LPAREN,
+        // The reference-modification COLON (§8.4.3.3.3 SR4 — "leftmost-character-position and length shall be
+        // arithmetic expressions"). Its ONE grammar use is refModSpec, so both neighbours are arithmetic by
+        // construction; `FUNCTION CURRENT-DATE (2:ZERO)` needs it because the delimiting parens of a ref-mod
+        // written directly after a function name are FNARG_*, which no longer count as arithmetic context.
+        CobolLexer.COLON,
     };
 
     /// <summary>
@@ -59,6 +80,7 @@ public static class ZeroTokenRewriter
         CobolLexer.SLASH,
         CobolLexer.POWER,
         CobolLexer.RPAREN,
+        CobolLexer.COLON,   // the ref-mod COLON — see PrecedingArithmeticContext (`… (ZERO:2)`)
     };
 
     /// <summary>

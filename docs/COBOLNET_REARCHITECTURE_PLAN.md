@@ -155,13 +155,23 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 next line says never to quote a number from it, and the session spans two days so no single count is even
 well-defined. Counts come from `git log` and `python scripts/spec/work.py stats`; this paragraph carries the
 NARRATIVE.
-**PB45 · PB23 · PB25 · PB47 all CLOSED**, and every one of their sweeps filed further defects — ⛔ **what is OPEN
-is `kb/Work/`'s answer, not this paragraph's** (`python scripts/spec/work.py next`). ⭐ **THE PATTERN ACROSS ALL
-FOUR: the spec-derived golden found a defect the queue
+**PB45 · PB23 · PB25 · PB47 · PB48 all CLOSED**, and every one of their sweeps filed further defects — ⛔ **what
+is OPEN is `kb/Work/`'s answer, not this paragraph's** (`python scripts/spec/work.py next`). ⭐ **THE PATTERN
+ACROSS ALL FIVE: the spec-derived golden found a defect the queue
 entry never mentioned** — PB45's entry did not know `EVALUATE TRUE / WHEN <level-88>` was broken, PB23's named one
 intrinsic where the shared analyzer crashed THREE, PB25's blamed the function arm when the SPECIAL-NAMES
-declaration was the parse error, and PB47's own first implementation rejected legal source until the gate caught
-it. Writing the test from the general format rather than from the reported symptom is what found each one.
+declaration was the parse error, PB47's own first implementation rejected legal source until the gate caught
+it, and PB48's entry named ONE arm of four — its probe matrix then turned up a WRONG ANSWER
+(`FUNCTION MAX(ZERO "A")` returning `"0"`) that no part of the report had predicted.
+Writing the test from the general format rather than from the reported symptom is what found each one.
+⭐ **PB48 also earns a rule about WHERE a decision belongs:** a lexical adjacency pass was answering "is this
+figurative ZERO numeric or a character", which §8.3.3.6.4 GR4 makes a question about the CONTEXT — the
+function's §15.3 argument type — that no token-level pass can see. The repair was to give the lexer's existing
+`_fnParenStack` a TOKEN TYPE (`FNARG_LPAREN`/`FNARG_RPAREN`, §8.4.3.2.3 SR6) so the downstream pass stopped
+having to guess, rather than to teach the pass a second copy of the predicate.
+⚠ And its first cut encoded SR6's CONCLUSION without SR6's PRECONDITION ("if a function's definition **permits
+arguments**" is a CATALOG question), which broke three PB8 ref-mod cases; `refModPart` accepts both paren
+flavours for exactly that reason.
 ⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is OPEN, not this section.
 LANDED: **PB17 + PB41 + PB42** (function-identifier subscripts / scaled ordinal positions / `**` and decimal
 literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its last sub-item was PB43's symptom) ·
