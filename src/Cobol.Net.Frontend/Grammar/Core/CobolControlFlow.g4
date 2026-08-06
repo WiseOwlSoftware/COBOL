@@ -164,8 +164,28 @@ evaluateWhenPhrase
     : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)*
     ;
 
+// ⛔ EXACTLY ONE selection-object per position — NOT a list (fix-queue PB45, the open half).
+// §14.9.13.2's general format is `{ { WHEN selection-object [ ALSO selection-object ] … } … imperative-statement-1 } …`
+// (verified against the PRINTED page, folio 618): selection-objects repeat ONLY through ALSO — which is
+// evaluateWhenGroup's own caller — never by juxtaposition. §14.9.13.3 SR2 fixes the count against the subjects
+// ("The number of selection objects within each set of selection objects shall be equal to the number of selection
+// subjects"), and the transcription's 900-dpi figure note records the object brace as "a single pair of braces
+// spanning ten stacked alternatives — exactly one shall be selected".
+// ⚠ THIS WAS `evaluateWhenItem+`, AND THE UNLICENSED REPETITION SILENTLY MISCOMPILED A FUNCTION-IDENTIFIER OBJECT.
+// `WHEN FUNCTION SQRT(W-Z) > 1` has two readings: the CORRECT one (a relation condition whose left operand is the
+// function-identifier) and a PEELED one that takes `FUNCTION SQRT` as a bare zero-argument object and re-reads the
+// ARGUMENT parenthesis as a second, parenthesised object `(W-Z) > 1`. The greedy/correct reading cannot consume the
+// trailing `> 1` once the item ends, so under `+` it was not viable and only the peel survived — and because
+// `valueOperand` precedes `condition` in evaluateWhenItem, ANTLR preferred it. The result was a VALUE object under an
+// `EVALUATE TRUE` subject: a clean compile that threw at RUN TIME (and, for an alphanumeric function, a raw parse
+// error). `FUNCTION PI > 1` always worked precisely because it has no argument parenthesis to peel.
+// ⛔ THE FIX IS THE ARITY, NOT THE ALTERNATIVE ORDER. Putting `condition` before `valueOperand` would also retarget
+// `EVALUATE X / WHEN Y` where Y is a level-88 condition-name — a value comparison silently becoming a condition test —
+// and §14.9.13.4 Table 15 makes the object's legality depend on the SUBJECT, which no context-free ordering can
+// express. With one item the peel is simply not a parse of this rule, and the alternative order is left untouched.
+// Pinned by EvaluateSelectionObjectArityDriftTests.
 evaluateWhenGroup
-    : NOT? evaluateWhenItem+
+    : NOT? evaluateWhenItem
     ;
 
 evaluateWhenItem

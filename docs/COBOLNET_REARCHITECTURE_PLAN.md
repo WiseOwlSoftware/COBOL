@@ -149,22 +149,29 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ 2026-08-05 SESSION CLOSE — NINE COMMITS, SEVEN FIX-QUEUE ITEMS, EVERY ONE BATTERY-GREEN BEFORE IT LANDED.**
+**⚙ 2026-08-05 SESSION CLOSE — TEN COMMITS, EIGHT FIX-QUEUE ITEMS, EVERY ONE BATTERY-GREEN BEFORE IT LANDED.**
 ⛔ Run the probe; never quote a number from this paragraph. `kb/Work/` says what is OPEN, not this section.
 LANDED: **PB17 + PB41 + PB42** (function-identifier subscripts / scaled ordinal positions / `**` and decimal
 literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its last sub-item was PB43's symptom) ·
 **PB26** (the EC-ARGUMENT-FUNCTION gate) · **PB36** (INVOKE activation + r9 STACK) · **PB44** (a gate that could
-false-red) · **PB45 half** (the arithmetic family + INSPECT).
+false-red) · **PB45 CLOSED** (the arithmetic family + INSPECT, then the EVALUATE selection object).
 
-**▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next` — PB45 · PB23 · PB25.**
+**▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next`.**
 
-⛔ **PB45's OPEN THIRD IS A TOKEN DUMP, NOT AN EDIT, AND THE NOTE SAYS WHY.**
-`EVALUATE TRUE / WHEN FUNCTION SQRT(X) > 1` throws at run time, but **`WHEN FUNCTION PI > 1` — same position, no
-argument parenthesis — parses fine**. The discriminator is the PARENTHESIS, not the function-identifier, which
-points at the SUBSCRIPT lexer mode. PB8 is the standing warning: its entry NAMED a lexer-mode cause and a token
-dump showed the lexer was never involved. **Dump the tokens for both shapes before proposing a mechanism**, and do
-NOT reorder `evaluateWhenItem`'s alternatives on the symptom — Table 15 makes the OBJECT's legality depend on the
-SUBJECT, which a context-free order cannot express.
+⛔ **PB45's CARRY-OVER IS DISCHARGED, AND THE TOKEN DUMP REFUTED THE HYPOTHESIS THIS BLOCK USED TO CARRY.** The
+previous handoff said the parenthesis discriminator "points at the SUBSCRIPT lexer mode". **It did not.** The
+failing `WHEN FUNCTION SQRT(X) > 1` and the always-working `IF FUNCTION SQRT(X) > 1` lex to **byte-identical,
+entirely DEFAULT-mode** token streams. The cause was `evaluateWhenGroup : NOT? evaluateWhenItem+` — a repetition
+§14.9.13.2 never licensed (objects repeat ONLY through ALSO) — which let the parser PEEL the argument
+parenthesis off the function and re-read it as a second selection object. ⭐ **The rule this earns: a parenthesis
+is also a PARSER decision, so "the discriminator is a parenthesis" does not implicate the lexer.** That is now
+three times an entry named a lexer-mode cause that a dump refuted (PB8, PB45 ×2). The warning against reordering
+`evaluateWhenItem` was CORRECT, was honoured, and is now pinned by `EvaluateSelectionObjectArityDriftTests`.
+
+⚙ **AND THE SPEC-DERIVED GOLDEN FOUND A DEFECT THE REPORT NEVER MENTIONED** — `EVALUATE TRUE / WHEN <level-88>`,
+one of the commonest idioms in COBOL, threw at run time too (fixed; Table 15 + §14.9.13.4 GR4a3). It was found
+ONLY because the golden was written from §14.9.13's general format rather than scoped to the reported symptom
+(`feedback_spec_scopes_not_tests`), and neither external oracle could see it: the program COMPILES either way.
 
 ⭐ **THE PATTERN THIS SESSION KEPT FINDING — WORTH CARRYING IN.** THREE separate design comments justified an
 omission by citing a clause that is REAL and answers a DIFFERENT QUESTION, and `cite.py --check` passes on all
@@ -999,16 +1006,20 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB45 tree (2026-08-05 10:47).**
+- **⛔ BATTERY REFERENCE — CURRENT, re-measured on `main` on the PB45-CLOSED tree (2026-08-05 20:36).**
   One `bash scripts/battery.sh` run printing **`=== BATTERY: ALL GREEN ===`**:
-  FULL greenfield Conformance **4204 / 4204, zero skipped, NOTHING red**
-  (11 m 07 s) · greenfield Unit **3652 / 3652, zero skipped** · characterization **33 / 33** · `guard-fast`
+  FULL greenfield Conformance **4205 / 4205, zero skipped, NOTHING red**
+  (11 m 37 s) · greenfield Unit **3658 / 3658, zero skipped** · characterization **33 / 33** · `guard-fast`
   **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential
   **1323 cases**, totals **559 WE_REJECT_THEY_ACCEPT · 487 AGREE_ACCEPT · 176 AGREE_REJECT ·
   101 WE_ACCEPT_THEY_REJECT**, and — measured against the committed per-case baseline, not inferred from those
   totals — **0 PER-CASE FLIPS**.
-  ⚠ Conformance moved 4180 → 4204 because each landed fix ships its goldens. What must hold is **zero failures,
+  ⚠ Conformance moved 4180 → 4205 because each landed fix ships its goldens. What must hold is **zero failures,
   zero skipped**, never a particular total.
+  ⚙ **THIS RUN IS THE STRONGEST EVIDENCE THE GATE HAS PRODUCED FOR A GRAMMAR CHANGE.** It measured an ARITY
+  change to `evaluateWhenGroup` — in reach of every EVALUATE statement in the corpus, in NIST and in the GnuCOBOL
+  differential — and **nothing moved**: 0 NIST regressions, 0 per-case flips, no conformance red. That is what
+  says the repetition it removed was dead for legal source (PB45), rather than merely that the new goldens pass.
   ⚙ **A BATTERY ON THE PB43 TREE (2026-08-04) CAME BACK RED, AND THE RED WAS THE GATE'S OWN.**
   `GrammarDiagramGeneratorDriftTests` hit a Windows file-handle race reading back `rr.war`'s output under the
   parallel load (**PB44** — fixed, not merely filed); it passed on a serial re-run of the SAME tree, and the

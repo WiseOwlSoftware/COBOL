@@ -62,13 +62,15 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// on the group negates the whole term.</summary>
     private BoundCondition BindWhenGroup(Core.EvaluateSubjectContext subject, Core.EvaluateWhenGroupContext group)
     {
-        var items = group.evaluateWhenItem();
-        // The grammar admits multiple items per group only for forms like `WHEN cond`-lists; the 85 surface
-        // pairs ONE item per subject — additional items AND in (a faithful reading of consecutive operands).
-        var terms = new List<BoundCondition>();
-        foreach (var item in items)
-            terms.Add(BindWhenItem(subject, item));
-        BoundCondition cond = terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms);
+        // ONE selection-object per position (§14.9.13.2 general format — objects repeat only through ALSO, which is
+        // this method's CALLER; §14.9.13.3 SR2 fixes the count against the subjects). The grammar enforces the arity,
+        // so there is no list to fold here.
+        // ⚠ This used to iterate an `evaluateWhenItem+` list and AND the terms together — a semantics with no clause
+        // behind it, invented to give the unlicensed repetition a meaning. Legal source can never produce a second
+        // item, so the only thing that rule ever bound was PB45's peeled misparse of
+        // `WHEN FUNCTION SQRT(X) > 1` (item 1 = `FUNCTION SQRT`, item 2 = `(X) > 1`), which is exactly how a
+        // function-identifier object reached the "value WHEN object" error below instead of binding as a condition.
+        BoundCondition cond = BindWhenItem(subject, group.evaluateWhenItem());
         return group.NOT() is not null ? new BoundNot(cond) : cond;
     }
 
@@ -106,6 +108,27 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             int objMark = host.Udf.PendingCount;
             var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
+        }
+
+        // §14.9.13.4 GR4a3 — "If the selection object is condition-2, the selection subject is either TRUE or
+        // FALSE… If the truth value of the selection subject and selection object match, the result of the
+        // analysis is true" — and §14.9.13.3 SR10 Table 15 admits ONLY a condition, TRUE/FALSE or ANY against a
+        // TRUE/FALSE subject, never identifier-2 or a value.
+        // ⛔ A BARE CONDITION-NAME IS condition-2 (§8.8.4.1.2) BUT ARRIVES THROUGH THE valueOperand ARM, because a
+        // bare word is equally an arithmeticExpression and the grammar cannot tell them apart — only the resolved
+        // SYMBOL can. Without this arm the commonest EVALUATE idiom there is —
+        //     EVALUATE TRUE  WHEN VALID-CODE …
+        // — compiled clean and threw "value WHEN object" at RUN TIME (fix-queue PB45). Reordering
+        // evaluateWhenItem's alternatives is NOT the fix: Table 15 makes the object's legality depend on the
+        // SUBJECT, so putting `condition` first would retarget `EVALUATE X WHEN <88>` (a VALUE subject, where the
+        // same name is an equality operand per GR4a6) in the opposite direction. The question is asked here, once,
+        // through ConditionBinder.BareOperandAsCondition — the same resolution the abbreviated-relation path uses.
+        if ((subjTrue || subjFalse) && item.valueOperand() is { } condObj
+            && host.Cond.BareOperandAsCondition(condObj) is { } objCond)
+        {
+            int objMark = host.Udf.PendingCount;
+            var bound = host.Udf.UdfAttachPerEvaluation(objCond, objMark);
+            return subjFalse ? new BoundNot(bound) : bound;
         }
 
         // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).

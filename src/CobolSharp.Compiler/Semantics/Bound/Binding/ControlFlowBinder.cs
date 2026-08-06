@@ -354,7 +354,12 @@ internal sealed class ControlFlowBinder
         BoundClassConditionExpression? classConditionSubject = null,
         BoundExpression? condNameSubject = null)
     {
-        var items = groupCtx.evaluateWhenItem();
+        // ONE selection-object per position (§14.9.13.2; the grammar's `evaluateWhenItem+` became a single item with
+        // fix-queue PB45 — objects repeat only through ALSO, which is the caller's `evaluateWhenGroup` loop). This is
+        // the mechanical adaptation of the frozen oracle to that arity: for legal source the list could never hold
+        // more than one item, so every reading below is unchanged.
+        var item0 = groupCtx.evaluateWhenItem();
+        CobolParserCore.EvaluateWhenItemContext[] items = item0 is null ? [] : [item0];
 
         if (isConditionSubject)
         {

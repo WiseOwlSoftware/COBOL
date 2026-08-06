@@ -491,32 +491,42 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// takes precedence. Shared by the generic path and the boolean-alt unwrap (a B-op-free bare operand).</summary>
     private BoundCondition BindSoleOperandCondition(Core.ValueOperandContext? vo, System.Func<BoundOperand> bindOperand, AbbrevCarry carry)
     {
-        if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
+        if (BareOperandAsCondition(vo) is { } sole)
         {
             carry.Reset();
+            return sole;
+        }
+        if (carry is { Subject: { } subject, Op: { } op })
+            return CheckedRelational(subject, op, bindOperand());
+        return new BoundConditionError($"condition '{vo?.GetText() ?? "operand"}'");
+    }
+
+    /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
+    /// condition-name (§8.8.4.1.2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
+    /// a length-1 boolean item/literal (§8.8.4.3) — or <c>null</c> when the operand is a plain VALUE.
+    /// <para>⛔ THIS IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is equally
+    /// a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the <c>valueOperand</c>
+    /// arm; only the resolved symbol says which it is. Extracted from <see cref="BindSoleOperandCondition"/> so
+    /// EVALUATE's selection-object classification asks the SAME question rather than growing a second copy
+    /// (§14.9.13.4 GR4a3 + Table 15: against a TRUE/FALSE selection subject the only permissible objects are a
+    /// condition, TRUE/FALSE, or ANY — never identifier-2). See <c>EvaluateBinder.BindWhenItem</c>.</para></summary>
+    public BoundCondition? BareOperandAsCondition(Core.ValueOperandContext? vo)
+    {
+        if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             // Capture EC-RANGE-INVALID checking (§14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
             return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
                 ? new BoundCondition88(parent, cond,
                     ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                 : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
-        }
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
-        {
-            carry.Reset();
             return swCond;
-        }
         // A SIMPLE BOOLEAN CONDITION over a bare length-1 boolean item/literal (§8.8.4.3).
         if (vo is not null && IsBooleanValueOperand(vo))
-        {
-            carry.Reset();
             return BindSimpleBooleanCondition(BindBoolOperandValue(vo));
-        }
-        if (carry is { Subject: { } subject, Op: { } op })
-            return CheckedRelational(subject, op, bindOperand());
-        return new BoundConditionError($"condition '{vo?.GetText() ?? "operand"}'");
+        return null;
     }
 
     /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean

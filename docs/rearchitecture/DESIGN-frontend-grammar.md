@@ -45,6 +45,25 @@ consumes).
    `VersionConformancePass` over the bound tree, not parse-time predicates — the one-grammar approach kept (correct and
    cheap), with both the duplication and the scattered gating removed. *(`DESIGN-version-conformance-pipeline.md`.)*
 6. **JSON/XML are non-ISO** — 0 spec occurrences; they are deleted from the live grammar (§4).
+7. **⛔ THE REPETITION ARITY IS THE GENERAL FORMAT'S, NEVER A CONVENIENCE.** A rule may parse a SUPERSET of the
+   operand *shapes* the standard admits (the parse-wide/bind-narrow doctrine) — it may **not** invent a
+   REPETITION the general format does not print. A loop the standard never licensed cannot accept new legal
+   source; all it can do is give the parser a second, wrong way to read source that is already legal.
+   **Worked example (PB45).** `evaluateWhenGroup : NOT? evaluateWhenItem+` against §14.9.13.2's
+   `{ { WHEN selection-object [ ALSO selection-object ] … } … }`, where objects repeat ONLY through ALSO. The
+   spare `+` let the parser PEEL a function's argument list off it — `WHEN FUNCTION SQRT(X) > 1` parsed as the
+   two objects `FUNCTION SQRT` and `(X) > 1`, because `functionCall`'s argument list is optional and
+   `primaryExpression` has a `LPAREN arithmeticExpression RPAREN` alternative. It compiled clean and threw at run
+   time. ⚠ **The hazard is ANTLR's first-*viable*-alternative rule, not its first-alternative rule**: where both
+   readings are viable the greedy one wins (measured: `DISPLAY`, `STRING`, `INSPECT`, nested function arguments
+   and multi-operand `ADD` never peeled), so the peel appears only where the correct reading is NOT viable — which
+   is precisely where it is hardest to notice. ⚠ And the binder had invented an uncited semantics ("additional
+   items AND in") to give the spare loop a meaning, so the misparse had somewhere to land.
+   **The check, when writing or reviewing any `+`/`*` in a statement rule: point at the `…` in the printed general
+   format that licenses it, and at the separator it repeats over.** If there is no `…`, there is no loop. A
+   PHASE-13 research artifact had already flagged this exact rule as a first-alternative hazard
+   (`evidence/PHASE-13-grammar-batch-research.json`) and nothing acted on it — findings live in `kb/Work/`, not in
+   evidence files.
 
 ---
 
