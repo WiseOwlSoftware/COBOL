@@ -147,31 +147,28 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   stops the program COMPILING. Six of eight fixes in the pre-merge run were PB2, whose symptom was a Roslyn
   `CS1503`. The accurate rule: **changes that leave compilability unaltered are invisible to it.**
 
-### ⛔ GITHUB ACTIONS IS DISABLED — EVERY GATE IS LOCAL (owner decision 2026-08-06)
+### ✅ GITHUB ACTIONS IS BACK — CI is `active` again (2026-08-07)
 
-`Build and Test` is `disabled_manually`, so **a push queues nothing**. Turned off during GitHub's Actions
-outage (Critical incident opened 15:22 UTC 2026-08-06: webhook triggers throttled to ~15%, ~65% of queued jobs
-succeeding, runners stuck retrying jobs that no longer exist) — five consecutive pushes produced ZERO runs, one
-dispatched run wedged between attempts so that `cancel` reports it completed while `force-cancel` reports a
-re-run that never queued, and neither path can clear it.
+`Build and Test` was `disabled_manually` through GitHub's Actions outage (Critical incident opened 15:22 UTC
+2026-08-06: webhook triggers throttled to ~15%, ~65% of queued jobs succeeding, runners stuck retrying jobs that
+no longer exist) — five consecutive pushes produced ZERO runs and one dispatched run wedged so that `cancel`
+reported it completed while `force-cancel` reported a re-run that never queued. **The incident is resolved, the
+wedged run settled to `completed/cancelled` on its own, and the workflow is re-enabled.**
 
-**STATUS 2026-08-06 23:13 UTC (GitHub's own incident update) — RECOVERING, NOT RECOVERED.** Fixes deployed for
-runners assigned invalid jobs; job success rates back to ~99%; hosted-runner queues nearly burned down. But
-webhook-triggered Actions throughput is being restored **gradually**, and the self-hosted-runner fix is being
-enabled **incrementally**. ⛔ **That is precisely the condition in which a dispatched run is UNATTRIBUTABLE** —
-a red could be the bump, the backlog, or a runner that never picked up — so re-enabling still waits. Re-check
-the incident before acting on this line; it goes stale by the hour.
+**RE-ENTRY WAS SEQUENCED, and the sequence is the reusable part.** ① `gh workflow enable "Build and Test"` →
+② dispatch ONE run (`workflow_dispatch`, not a push — `legacy-oracle` is `if: schedule || workflow_dispatch`, so
+only a dispatch exercises all FIVE jobs) → ③ confirm every job gets a RUNNER, not merely that the run exists →
+④ only then land the actions-version bump, so a red is attributable to the bump rather than to outage residue.
+Baseline run **31141695885 — all five jobs SUCCESS** on `ab691eff` with the OLD action versions; the bump
+(`checkout` v4→v7, `cache` v4→v6, `setup-dotnet` v4→v6 — 15 references, re-verified against
+`repos/{a}/releases/latest`: v7.0.1 / v6.1.0 / v6.0.0) landed on top of that baseline.
 
-**Re-enable:** `gh workflow enable "Build and Test"` — an OWNER decision, not a housekeeping step.
-⚠ **Re-run CI on `main` BEFORE landing the actions-version bump** (`checkout` v4→v7, `cache` v4→v6,
-`setup-dotnet` v4→v6, all verified against their latest releases), so a red is attributable to the bump rather
-than to the outage backlog.
-
-⛔ **UNTIL THEN, `bash scripts/battery.sh` IS THE ONLY GATE, AND IT IS NOT A SUPERSET OF CI.** The battery covers
-Conformance, Unit, characterization, `guard-fast` (NIST + legacy unit + integration) and the GnuCOBOL
-differential — but it runs on WINDOWS in DEBUG. **The Linux leg and the Release configuration are genuinely
-unverified while this is off**, and that is the whole reason this paragraph exists rather than a note in a commit
-message. `session-probe.ps1` prints the disabled state every session so it cannot quietly become the new normal.
+⛔ **THE STANDING FACT THE OUTAGE MADE VISIBLE: `bash scripts/battery.sh` IS NOT A SUPERSET OF CI.** The battery
+covers Conformance, Unit, characterization, `guard-fast` (NIST + legacy unit + integration) and the GnuCOBOL
+differential — but it runs on **WINDOWS in DEBUG**. Three of the five CI jobs are `ubuntu-latest` and the guard
+leg is Linux-only bash, so **the Linux legs and the Release configuration are verified by CI and by nothing
+else**. That was true before the outage too; the outage is merely what made a week of it unverifiable. Keep the
+battery as the per-batch local gate and let CI own the cross-platform axis.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
