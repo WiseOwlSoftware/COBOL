@@ -861,8 +861,22 @@ public sealed class ReferenceResolver(DataBinder data)
                     // A FUNCTION-BEARING segment cannot be rendered token-by-token (the head word is a function
                     // name, not a data-name), so the WHOLE segment routes to D18 rather than this arm failing.
                     if (IsFunctionBearing(tokens)) return MaterializeViaFragment(tokens, position);
+                    // ⛔ AN UNRESOLVABLE NAME ROUTES TO D18 — IT IS NOT A VERDICT (fix-queue PB50). This arm used
+                    // to `return null`, which is the caller's LOUD posture, and that made it the one place in
+                    // this renderer that decided a segment was unrenderable without asking D18 — contradicting
+                    // the rule stated ten lines below it ("EVERY token the renderer cannot render ROUTES TO
+                    // D18"). SUBSCRIPT mode has no ZERO token, so the figurative arrives as a plain
+                    // SUB_IDENTIFIER, resolves to no data item, and `E(ZERO + 1)` ABORTED AT RUN TIME —
+                    // §8.8.1.1 admits "the figurative constant ZERO" as an arithmetic operand and §8.4.2.3.2
+                    // makes a subscript an arithmetic expression, so that is legal source.
+                    // ⚠ A GENUINELY undefined name keeps the SAME posture, verified rather than assumed:
+                    // `E(NOSUCHNAME + 1)` aborted at run time before this change and aborts at run time after
+                    // it. Only the message improved — it now names `NOSUCHNAME` instead of the whole reference
+                    // text, because the fragment binder reaches the individual operand. (That an undefined
+                    // subscript name is a RUN-TIME abort at all is a separate, pre-existing wrong-stage
+                    // defect; it is recorded in PB50's note, not fixed here.)
                     if (ResolveSubscriptName(name, qualifiers, position, out bool scaled) is not { } readExpr)
-                        return null;
+                        return MaterializeViaFragment(tokens, position);
                     // A scaled operand inside a compound segment — evaluate the whole expression instead (above).
                     if (scaled && compound) return MaterializeViaFragment(tokens, position);
                     sb.Append(readExpr);

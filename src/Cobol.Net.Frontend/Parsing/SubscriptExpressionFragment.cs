@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Editions;
@@ -28,28 +28,7 @@ public static class SubscriptExpressionFragment
 {
     /// <summary>Parse one subscript / reference-modifier segment's source text (verbatim from the char stream so
     /// spacing survives) to the fragment CST, or <see langword="null"/> on any syntax error.</summary>
-    public static CobolParserCore.SubscriptExpressionFragmentContext? Parse(string text, EditionInfo edition)
-    {
-        var flag = new SyntaxErrorFlag();
-        var lexer = new CobolLexer(new AntlrInputStream(text));
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(flag);
-        var parser = new CobolParserCore(new CommonTokenStream(lexer)) { Edition = edition };
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(flag);
-        var frag = parser.subscriptExpressionFragment();
-        return flag.HasError ? null : frag;
-    }
-
-    /// <summary>Error-presence flag for both recognizers (parser tokens + lexer chars).</summary>
-    private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>
-    {
-        public bool HasError { get; private set; }
-
-        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-    }
+    public static CobolParserCore.SubscriptExpressionFragmentContext? Parse(string text, EditionInfo edition) =>
+        FragmentParse.Parse(text, edition, prime: null, rewriteZero: true,
+            static p => p.subscriptExpressionFragment());
 }

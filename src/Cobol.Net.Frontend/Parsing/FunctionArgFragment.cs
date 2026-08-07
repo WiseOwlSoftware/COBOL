@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Editions;
@@ -21,29 +21,7 @@ public static class FunctionArgFragment
     /// <summary>Parse function-argument text (the content BETWEEN the reference's parentheses, verbatim from
     /// the source char stream so spacing survives) to the fragment CST, or <see langword="null"/> on any
     /// syntax error — the caller reports and stays loud, never a partial parse.</summary>
-    public static CobolParserCore.FunctionArgListFragmentContext? Parse(string text, EditionInfo edition)
-    {
-        var flag = new SyntaxErrorFlag();
-        var lexer = new CobolLexer(new AntlrInputStream(text));
-        lexer.PrimeFunctionArgs();
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(flag);
-        var parser = new CobolParserCore(new CommonTokenStream(lexer)) { Edition = edition };
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(flag);
-        var frag = parser.functionArgListFragment();
-        return flag.HasError ? null : frag;
-    }
-
-    /// <summary>Error-presence flag for both recognizers (parser tokens + lexer chars).</summary>
-    private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>
-    {
-        public bool HasError { get; private set; }
-
-        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-    }
+    public static CobolParserCore.FunctionArgListFragmentContext? Parse(string text, EditionInfo edition) =>
+        FragmentParse.Parse(text, edition, static l => l.PrimeFunctionArgs(), rewriteZero: true,
+            static p => p.functionArgListFragment());
 }

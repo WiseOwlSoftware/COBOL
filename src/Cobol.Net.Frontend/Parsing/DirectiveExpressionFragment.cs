@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Editions;
@@ -35,31 +35,6 @@ public static class DirectiveExpressionFragment
     public static CobolParserCore.ConstantConditionalExpressionFragmentContext? ParseCce(string text) =>
         Parse(text, static p => p.constantConditionalExpressionFragment());
 
-    private static T? Parse<T>(string text, System.Func<CobolParserCore, T> rule) where T : class
-    {
-        var flag = new SyntaxErrorFlag();
-        var lexer = new CobolLexer(new AntlrInputStream(text));
-        lexer.PrimeDirectiveExpr();
-        lexer.RemoveErrorListeners();
-        lexer.AddErrorListener(flag);
-        var tokens = new CommonTokenStream(lexer);
-        ZeroTokenRewriter.Rewrite(tokens);
-        var parser = new CobolParserCore(tokens) { Edition = EditionInfo.Latest };
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(flag);
-        var tree = rule(parser);
-        return flag.HasError ? null : tree;
-    }
-
-    /// <summary>Error-presence flag for both recognizers (parser tokens + lexer chars).</summary>
-    private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>
-    {
-        public bool HasError { get; private set; }
-
-        public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol,
-            int line, int charPositionInLine, string msg, RecognitionException e) => HasError = true;
-    }
+    private static T? Parse<T>(string text, System.Func<CobolParserCore, T> rule) where T : class =>
+        FragmentParse.Parse(text, EditionInfo.Latest, static l => l.PrimeDirectiveExpr(), rewriteZero: true, rule);
 }
