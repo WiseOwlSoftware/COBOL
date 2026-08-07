@@ -1518,6 +1518,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (a.fnArgPhraseWord() is { } kw)
             return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");   // a phrase word this function does not take
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
+        // ⛔ A CONSTANT-NAME SUBSTITUTES ITS LITERAL, OF ITS OWN CLASS — HERE, BEFORE THE NUMERIC PATH BELOW
+        // (fix-queue R01). §13.10.4 GR1: "the effect of specifying constant-name-1 in other than this entry is as
+        // if literal-1 … were written where constant-name-1 is written", and §13.10.3 SR2 admits it "anywhere
+        // that a format specifies a literal of the class and category of constant-name-1". An intrinsic argument
+        // is such a position for whatever class the function's own §15.x argument rule admits.
+        // Without this arm the reference fell to `BindFunctionArgumentExpr` — the §8.8.1.1 NUMERIC-expression
+        // bind — and an alphanumeric or national constant was rejected as "not a numeric operand", in EVERY
+        // intrinsic argument position. `FUNCTION UPPER-CASE(K-TEXT)` did not compile while
+        // `FUNCTION UPPER-CASE("abcdef")` did, for source §13.10.4 GR1 makes identical.
+        // ⚠ A NUMERIC constant deliberately falls through: the expression path already substitutes it correctly
+        // (ExpressionBinder.RefExpr → BoundNumLiteral) and it must keep participating in arithmetic — an argument
+        // like `FUNCTION MAX(K-NUM + 1)` is an expression, not a bare literal, and only that path can bind it.
+        if (SoleDataReference(a) is { } cref
+            && ctx.Data.ConstantOf(cref) is { Category: not PicCategory.Numeric } k)
+            return new BoundStringLiteral(k.Text) { Category = k.Category };
         // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
         // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
         // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
