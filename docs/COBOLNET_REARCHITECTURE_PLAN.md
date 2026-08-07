@@ -166,6 +166,16 @@ push run **31143400444, all four push jobs SUCCESS** — `legacy-oracle` reports
 `if:` guard doing its job on a push, not a failure. That run also proves the **push trigger** recovered, which
 a dispatch cannot show.
 
+⚠ **A BURST OF COMMITS LEAVES ONLY THE LAST ONE WITH A CI VERDICT, and the runs it cancels say `cancelled`, not
+`failure`.** The workflow sets `concurrency: { group: workflow-ref, cancel-in-progress: true }`, so each push to
+`main` kills the run in flight. A full run is ~25 min; four commits landed inside that window on 2026-08-07 and
+**three of the four runs read `cancelled`** (the fast legs — Guard, INV-1-strong — had already reported success;
+Greenfield and Windows never finished). ⛔ **Do not read those as reds, and do not read the surviving run as
+per-commit coverage:** it validates the CUMULATIVE tree, so a red would need a bisect to attribute. The setting
+is correct for a busy branch — the alternative is a queue of stale runs — so the discipline is on the reading,
+not the config. When per-commit attribution actually matters (a bump, a shared-grammar change), let the run
+finish before pushing again, exactly as the actions-version bump did.
+
 ⛔ **THE STANDING FACT THE OUTAGE MADE VISIBLE: `bash scripts/battery.sh` IS NOT A SUPERSET OF CI.** The battery
 covers Conformance, Unit, characterization, `guard-fast` (NIST + legacy unit + integration) and the GnuCOBOL
 differential — but it runs on **WINDOWS in DEBUG**. Three of the five CI jobs are `ubuntu-latest` and the guard
