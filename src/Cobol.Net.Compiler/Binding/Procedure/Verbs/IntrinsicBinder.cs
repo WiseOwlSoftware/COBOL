@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Common;
@@ -1190,7 +1190,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
         // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
         // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
-        _ => new BoundExprError("FUNCTION LENGTH argument (a numeric literal is not a valid argument, ISO §15.50.3)"),
+        _ => InadmissibleArgument(sig,
+            "is a numeric literal, which §15.50.3 r1 does not admit — it takes an alphanumeric, national or "
+            + "boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
+            "§15.50.3 r1"),
     };
 
     /// <summary>
@@ -1297,12 +1300,41 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// view, a variable-length (OCCURS DEPENDING) group, or an ANY LENGTH item (§15.14.4 r2/r5) — have a byte
     /// length known only at runtime; with no runtime BYTE-LENGTH body (the §15.14 CONSTANT-entry path aside) they
     /// stage LOUD by name, the LENGTH discipline (§1.4).</summary>
+    /// <summary>An argument the §15 rules make INADMISSIBLE, reported where it is decidable — at BIND (fix-queue
+    /// PB52 cause 3). Returns a <see cref="BoundExprError"/> so the caller's expression shape is unchanged.</summary>
+    /// <remarks>
+    /// ⛔ THE DISTINCTION THIS DRAWS IS THE POINT, because the LENGTH/BYTE-LENGTH folds return
+    /// <c>BoundExprError</c> for TWO different reasons and only one of them is a defect. A ref-modified, ODO,
+    /// ANY LENGTH or DYNAMIC LENGTH argument has a RUNTIME length these compile-time folds genuinely cannot
+    /// produce — a staged gap, correctly loud where it is discovered. **An inadmissible LITERAL is not that**:
+    /// §15.14.3 r1 and §15.50.3 r1 decide it from the source text alone, so reporting it at run time is the
+    /// wrong-STAGE family ([[PB47]]'s shape), not a missing capability.
+    /// <para>
+    /// ⚠ IT IS A HARD ERROR AND DOES NOT TAKE THE <c>--permissive</c> DOWNGRADE the class screen's
+    /// <c>Report</c> helper applies. That helper's warning says "accepted … with the existing coercion", and
+    /// here there is no coercion to accept: the fold has no value it could produce for a numeric literal, so a
+    /// warning would be followed by the identical run-time abort. Permissive is the migration mode for
+    /// constructs an EDITION removed, and this is illegal in every edition.
+    /// </para>
+    /// </remarks>
+    private BoundExpr InadmissibleArgument(IntrinsicSig sig, string why, string clause)
+    {
+        ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
+            $"FUNCTION {sig.Name} argument-1 {why} (ISO {clause})");
+        return new BoundExprError($"FUNCTION {sig.Name} argument ({why}, ISO {clause})");
+    }
+
     private BoundExpr BindByteLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
     {
         BoundStringLiteral { Category: PicCategory.National } s => new BoundNumLiteral((2 * Math.Max(1, s.Value.Length)).ToString()),
         BoundStringLiteral { Category: PicCategory.Alphanumeric } s => new BoundNumLiteral(Math.Max(1, s.Value.Length).ToString()),
-        BoundStringLiteral =>
-            new BoundExprError("FUNCTION BYTE-LENGTH literal argument (only an alphanumeric or national literal is a valid argument, ISO §15.14.3)"),
+        // A literal of any OTHER class — in practice a BOOLEAN literal, since the alphanumeric and national
+        // arms matched above. §15.14.3 r1 admits "an alphanumeric or national literal" and stops there.
+        // ⚠ THE SIBLING CLAUSE DIFFERS AND THE TWO MUST NOT BE UNIFIED: §15.50.3 r1 admits "an alphanumeric,
+        // national, or BOOLEAN literal", so `FUNCTION LENGTH(B"101")` is legal where BYTE-LENGTH's is not.
+        BoundStringLiteral => InadmissibleArgument(sig,
+            "is a literal of a class §15.14.3 r1 does not admit — it takes an alphanumeric or national literal "
+            + "(a boolean literal is admissible to FUNCTION LENGTH, §15.50.3 r1, but not here)", "§15.14.3 r1"),
         BoundFieldOperand { Place: RefModPlace } =>
             new BoundExprError("FUNCTION BYTE-LENGTH of a reference-modified argument (runtime length, §15.14.4)"),
         BoundFieldOperand f when f.Place.Item.IsGroup
@@ -1332,7 +1364,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundAllLiteral a => new BoundNumLiteral(Math.Max(1, a.Literal.Length).ToString()), // §8.3.3.6.4 GR3c
         // A NUMERIC literal remains invalid — §15.14.3 r1 admits only "an alphanumeric or national literal"
         // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
-        _ => new BoundExprError("FUNCTION BYTE-LENGTH argument (a numeric literal is not a valid argument, ISO §15.14.3)"),
+        _ => InadmissibleArgument(sig,
+            "is a numeric literal, which §15.14.3 r1 does not admit — it takes an alphanumeric or national "
+            + "literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
+            "§15.14.3 r1"),
     };
 
     /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83 / §15.43 / §15.58) — a compile-time PICTURE fold, like

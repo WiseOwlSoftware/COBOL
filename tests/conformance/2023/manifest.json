@@ -117,7 +117,8 @@
     "pb46_invoke_by_content_boolean",
     "pb35_zero_length_literal_legal_forms",
     "pb50_figurative_zero_position_expressions",
-    "pb54_keyword_omitted_figurative_zero_argument"
+    "pb54_keyword_omitted_figurative_zero_argument",
+    "pb52_intrinsic_argument_stage"
   ],
   "pending": []
 }

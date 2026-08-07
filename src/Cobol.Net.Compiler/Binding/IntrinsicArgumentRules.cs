@@ -373,6 +373,20 @@ internal static class IntrinsicArgumentRules
             ["ACOS"] = Uniform('n', "§15.8.3 r1"),                           // shall be of class numeric
             ["ASIN"] = Uniform('n', "§15.10.3 r1"),                          // shall be of class numeric
             ["ATAN"] = Uniform('n', "§15.11.3 r1"),                          // shall be of class numeric
+            // ⛔ FIVE MEMBERS OF THIS SAME FAMILY WERE ABSENT, AND THE QUEUE ENTRY NAMED ONE (fix-queue PB52
+            // cause 1). SQRT, SIGN, COS, SIN and TAN each carry the IDENTICAL rule the three rows above carry —
+            // `FUNCTION SQRT(SPACE)` reached run time as "figurative 'S' in a numeric context" while
+            // `FUNCTION ACOS(SPACE)` had been a bind diagnostic all along. Each clause below was read and cited
+            // INDIVIDUALLY rather than inferred from its neighbours: this table is fail-open on purpose, and
+            // PB1 is what asserting an unaudited column costs (12 legal corpus programs rejected).
+            // ⚠ SQRT IS §15.84, NOT §15.81 — §15.81 is SIGN. A first pass read "§15.81.3 r1: Argument-1 shall
+            // be of class numeric" and took it for SQRT's; the text was real, the clause was another function's
+            // (feedback_a_real_clause_can_answer_a_different_question). Both rows below are now the measured ones.
+            ["COS"] = Uniform('n', "§15.20.3 r1"),                           // shall be of class numeric
+            ["SIN"] = Uniform('n', "§15.82.3 r1"),                           // shall be of class numeric
+            ["TAN"] = Uniform('n', "§15.89.3 r1"),                           // shall be of class numeric
+            ["SQRT"] = Uniform('n', "§15.84.3 r1"),                          // shall be of class numeric
+            ["SIGN"] = Uniform('n', "§15.81.3 r1"),                          // shall be of class numeric
             ["ANNUITY"] = Uniform('n', "§15.9.3 r1"),                        // argument-1 class numeric; r3 makes
                                                                       // argument-2 an integer, also class numeric
             ["CHAR"] = Uniform('i', "§15.15.3 r1"),                          // shall be an integer

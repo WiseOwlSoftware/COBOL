@@ -173,7 +173,8 @@
     "pb40-scaled-item-in-integer-position",
     "pb46-invoke-by-content-expression-alphanumeric-formal",
     "pb46-invoke-by-content-boolean-numeric-formal",
-    "pb35-zero-length-literal-max-argument"
+    "pb35-zero-length-literal-max-argument",
+    "pb52-intrinsic-argument-stage"
   ],
   "pending": []
 }
