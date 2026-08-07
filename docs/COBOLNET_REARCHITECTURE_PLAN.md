@@ -214,12 +214,19 @@ literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its la
 **PB26** (the EC-ARGUMENT-FUNCTION gate) · **PB36** (INVOKE activation + r9 STACK) · **PB44** (a gate that could
 false-red) · **PB45 CLOSED** (the arithmetic family + INSPECT, then the EVALUATE selection object).
 
-**⚖ OWNER DECISION 2026-08-07 — TAKEN: the four entry-less commits stay entry-less.** `1838a304` (PB51),
-`dd45ddfd` (PB46's arithmetic half), `bd778375` (PB33) and `4808178a` (PB49) each landed with no DEVLOG entry;
-the log runs 1191 → 1192 across them. **"Fact intact is fine"** — their commit messages are forensic and their
-`kb/Work/` notes are current, so the RECORD is complete even though the narrative is not. Do NOT reconstruct
-them later: a reconstruction written from a commit message reads exactly like a lived entry and cannot be told
-apart from one, which would make the whole log's provenance uncertain to buy back four paragraphs.
+**⚖ OWNER DECISION 2026-08-07 — RECONSTRUCTED, and the provenance is stated in each entry.** `dd45ddfd` (PB46's
+arithmetic half), `1838a304` (PB51), `bd778375` (PB33) and `4808178a` (PB49) each landed with no DEVLOG entry;
+the log ran 1191 → 1192 across them. The owner's call was **reconstruct if it can be done accurately**, and it
+could: those four commit messages are unusually forensic (defect, citations, fix, what was VERIFIED, residue,
+gate numbers, goldens), and each has a current `kb/Work/` note and its diff. They are now **entries 1191a–1191d**,
+at their real timestamps.
+
+⚠ **TWO CHOICES IN THAT RECONSTRUCTION ARE LOAD-BEARING.** (1) Each entry OPENS with a provenance line naming the
+commit it was rebuilt from and saying it was not written at the time — the objection to reconstructing was that a
+rebuilt entry is indistinguishable from a lived one, and a stated provenance is what answers it. (2) They are
+**LETTERED, not renumbered**: entries 1192–1198 are already referenced by pushed commit messages ("Entry 1192",
+"DEVLOG 1194"), which are immutable, so renumbering would have left the log and the git history disagreeing.
+Nothing is recalled in them; every fact is carried from the sources.
 
 **▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next`.**
 

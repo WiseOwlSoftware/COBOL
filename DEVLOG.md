@@ -378,6 +378,187 @@ plus a pointer, and the four over-reach controls. Negative
 *gradually* restored with webhook-triggered workflows still ramping, so a dispatched run stays unattributable
 and re-enabling waits. `bash scripts/battery.sh` remains the only gate, and it is Windows/DEBUG only.
 
+## Entry 1191d — 2026-08-06 15:22 PDT — PB49: hold the two string-image channels per-leaf, and the NUMERIC half needed an ANSWER rather than a guard
+
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`4808178a`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+
+**PB25 was one rule written in two places with only one copy right.** `IntrinsicRenderer.StrArgVisitor` delegates
+SOME `BoundOperand` leaves to `OperandText.AsString` and answers the rest itself, so it inherited neither the
+figurative arm nor the ALL-literal arm — and `FUNCTION LOWER-CASE(SPACE)`, legal source, compiled clean and
+aborted at RUN TIME. PB25 routed the two offending leaves to `AsString`; the guard its own evidence file
+prescribed was never built. This entry is that guard.
+
+**BUILT PER-LEAF, AS THE NOTE REQUIRED.** A blanket "these two functions are equal" would be WRONG, because the
+channels are MEANT to differ. Three buckets:
+
+- **DELEGATED** — `BoundFieldOperand` / `BoundFigurative` / `BoundAllLiteral` must route to `OperandText.AsString`.
+- **DIVERGENT BY DESIGN** — `BoundNumericLiteral` / `BoundBoolOperand` must stay LOUD in the argument channel.
+  ⭐ This direction matters as much as the first: "fixing" them into agreement would silently ADMIT an operand
+  §15.3 excludes — the inverse of PB25, and just as quiet.
+- **UNCLASSIFIED IS A FAILURE** — every leaf both channels implement must sit in one bucket, so a NEW leaf forces
+  a decision rather than being quietly added to one side, which is how PB25's arm went missing.
+
+**PROVEN IN THE FAILING DIRECTION:** re-introducing PB25 reds the guard on that exact row.
+
+⭐ **AND THE NUMERIC HALF HAD AN ANSWER RATHER THAN A GUARD.** The note said to check the same question for the
+numeric channels first. Measured: the compiler has FOUR `IBoundOperandVisitor` implementations — `StrArgVisitor`
+and `AsStringVisitor` (string), `IsStringVisitor` (a bool classifier), and `NumericRenderer`. `NumericRenderer` is
+the ONLY numeric one; `OperandText.NumericIntrinsicText` is a helper it is called from, not a parallel visitor.
+There is no numeric twin, so there is nothing to guard. A test asserts the count is exactly one, so that answer
+expires loudly if a second numeric channel ever appears.
+
+**GATE.** Test-only — no compiler source altered — so the wave is the unit suite (**3992/3992**, up 6) plus
+characterization (**33/33**). The tree is otherwise identical to PB33's, whose full battery was ALL GREEN.
+
+## Entry 1191c — 2026-08-06 15:16 PDT — PB33: NUMVAL-C enforces §15.68.3 r4a through its VALIDATING TWIN, and the defect was a wrong answer rather than the under-rejection the note claimed
+
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`bd778375`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+
+§15.68.3 r4a: "Argument-1 shall have one of the following two formats." **TEST-NUMVAL-C (§15.94) implements both
+exactly — that is its entire job — while NUMVAL-C stripped the currency and grouping separators, delegated to
+NUMVAL, and checked nothing.** The note called this "the validating twin was fixed, the value-producing one was
+not", which is right, and filed it `under_rejects`, which was too kind:
+
+```
+NUMVAL-C("12$34")     → 1234        A WRONG ANSWER   (TEST-NUMVAL-C: error at position 3)
+NUMVAL-C("$1,2X4.5")  → 0, silently                  (TEST-NUMVAL-C: error at position 5)
+NUMVAL-C("1.2.3")     → 0, silently                  (TEST-NUMVAL-C: error at position 4)
+```
+
+Interior currency is neither r4a format, and stripping it turned malformed input into a plausible number. **The
+note's `wrong_answer` and `silent` flags are now set — it had ranked itself below what it actually did.**
+
+**THE FIX IS THE VALIDATOR, NOT A SECOND COPY.** `NumvalC` now calls `TestNumvalC` and raises
+EC-ARGUMENT-FUNCTION on a non-zero verdict (§15.3 — "If the evaluation of an argument results in an incorrect
+value for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist"; with checking not
+enabled the same clause leaves the result implementor-defined, which `ArgumentError`'s 0 return supplies). The
+digit cap already worked this way (PB33's landed half — "the rule has ONE implementation for both functions
+rather than a copy per twin"), so the whole rule now has one home and the two functions cannot disagree
+(`feedback_one_rule_one_place`).
+
+**VERIFIED, NOT ASSUMED:** with `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` the declarative is dispatched and the
+run terminates (Table 13 fatal, §14.6.13.1.3 #7); with checking off the default stands. Conforming values are
+untouched — `$1,234.5` → 1234.5, `$1,234.5CR` → −1234.5, `$12.34-` → −12.34, `$1,23,4.5` → 1234.5 (r4a's
+grouping is `digit [, digit]…`, with no 3-digit constraint).
+
+⚖ **EXTERNAL ORACLE:** NUMVAL-C is well within GnuCOBOL's corpus (unlike PB46's INVOKE), and the differential
+reports 0 per-case flips across 1,323 programs — nothing that previously compiled changed verdict.
+
+**GATE.** `=== BATTERY: ALL GREEN ===` — FULL greenfield Conformance **4223/4223** zero skipped · Unit
+**3986/3986** · characterization **33/33** · guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and NIST
+AUDIT CLEAN · GnuCOBOL differential 1323 cases, **0 PER-CASE FLIPS**. Golden
+`pb33_numval_c_format_validation` — 8 assertions, each nonconforming case PAIRED with TEST-NUMVAL-C so the two
+functions are asserted to AGREE rather than merely both exist.
+
+## Entry 1191b — 2026-08-06 14:11 PDT — PB51: COMPUTE gained the F2→F1 re-route mirroring the F1→F2 one it already had, and the ambiguity survey the entry demanded is what made the grammar change unnecessary
+
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`1838a304`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+
+**`COMPUTE <numeric> = ZERO` was REJECTED** with "a boolean COMPUTE expression shall not consist solely of an ALL
+literal (ISO §14.9.8 Format 2 SR3)" — a diagnostic naming a construct the source does not contain, on a statement
+§8.8.1.1 makes legal arithmetic: "An arithmetic expression may be an identifier referencing a numeric data item,
+a numeric literal, **THE FIGURATIVE CONSTANT ZERO** (ZEROS, ZEROES), …".
+
+⭐ **THE ENTRY PROPOSED RETIRING `ZeroTokenRewriter` FOR A GRAMMAR ALTERNATIVE, AND DEMANDED AN AMBIGUITY SURVEY
+FIRST. THE SURVEY IS WHAT MADE THE CHANGE UNNECESSARY.** Sweeping every bare-ZERO position:
+
+```
+COMPUTE N = ZERO / ZEROS                                       ⛔ rejected
+ADD / SUBTRACT / MULTIPLY ZERO · the GIVING forms · IF · MOVE  ✅ already accepted
+COMPUTE N = ZERO + 3 · FUNCTION ABS(ZERO)                      ✅ already accepted
+```
+
+Every other arithmetic position already worked — those verbs carry their own operand rules admitting the
+figurative. **COMPUTE is the ONE verb whose RHS is a bare `arithmeticExpression`.** So the entry's premise
+("primaryExpression cannot express §8.8.1.1's figurative ZERO") is TRUE and was still the wrong basis for sizing
+the work: the blast radius is a single construct, not the grammar
+(`feedback_validate_the_premise_not_only_the_rule`).
+
+**THE FIX IS THE MIRROR OF ONE ALREADY PRESENT.** `ArithmeticBinder` carried an F1→F2 re-route (`COMPUTE bool =
+bool` parses as Format 1 because a sole-identifier RHS predicts the arithmetic alt), documented as "the ANTLR
+alternative-order reality precedent". The F2→F1 direction was simply absent. A Format-2 parse whose source is a
+BARE ZERO and whose receiver is not boolean is Format 1 with the value 0 — §8.3.3.6.4 GR4, "the numeric value
+'0' … depending on context", and a numeric receiver IS that context. No grammar touched, no ambiguity introduced.
+
+⚠ **THE TEST IS ON THE PARSE TREE, NOT THE BOUND NODE, and that is forced.** `BindBoolExpr` normalises a
+figurative ZERO to `BoundBoolAll("0")` — the same node `ALL B"0"` produces — so by bind time the two are
+indistinguishable, which is exactly why SR3 fired citing a construct the source lacked. `SoleFigurativeZero` asks
+what the SOURCE wrote, so `ALL ZERO` and `ALL B"0"` keep their verdicts (§8.3.3.6.3 SR1a — "the only figurative
+constant permitted is ZERO … WITHOUT the ALL phrase").
+
+**VERIFIED:** all three spellings (ZERO/ZEROS/ZEROES) → 0; ROUNDED, ON SIZE ERROR and multiple receivers all
+preserved through the re-route; `COMPUTE N = ALL ZERO` still rejected; every control (`ZERO + 3`, `ADD ZERO`,
+`MOVE ZERO`) unchanged.
+
+⚠ **RESIDUE, RECORDED NOT SILENTLY WIDENED:** `COMPUTE <boolean-item> = ZERO` still reports COBOLNET1511. The
+re-route excludes a boolean receiver ON PURPOSE — there GR4's boolean reading is the right one and Format 2
+genuinely applies — so that behaviour is unchanged rather than newly decided. But whether SR3's "an ALL literal"
+should bar a bare ZERO at all is a separate reading question: §8.3.3.6.2 Format 1 is `[ALL] ZERO`, and SR3's
+phrase most naturally means the Format-6 `ALL literal-1`, which a bare ZERO is not. **PB50 (a bare ZERO in a
+SUBSCRIPT or ref-mod position) is untouched and remains the one genuinely open member of this family.**
+
+⚖ **EXTERNAL ORACLE:** unlike PB46's INVOKE, this construct IS in GnuCOBOL's reach — the differential ran over
+1,323 real programs and reports 0 per-case flips, so nothing that previously compiled changed verdict.
+
+**GATE.** `=== BATTERY: ALL GREEN ===` on ONE whole run — FULL greenfield Conformance **4222/4222** zero skipped ·
+Unit **3986/3986** · characterization **33/33** · guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and
+NIST AUDIT CLEAN · GnuCOBOL differential 1323 cases, **0 PER-CASE FLIPS**. Golden
+`pb51_compute_figurative_zero` (9 assertions incl. the three controls that already worked).
+
+## Entry 1191a — 2026-08-06 13:46 PDT — PB46 (INVOKE half): BY CONTENT takes arithmetic-expression-1, and the first cut silently destroyed the identifier path my own comment had warned about
+
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`dd45ddfd`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+
+ISO §14.9.23.2's BY CONTENT branch admits `arithmetic-expression-1 | boolean-expression-1 | identifier-5 |
+literal-2` (read off the RENDERED general format). `invokeArgument` admitted `(dataReference | literal)`, **and
+the failure was NOT the parse error the queue entry predicted**: `INVOKE O "M" USING BY CONTENT N + 1` matched
+`N` as a dataReference and started a SECOND argument at `+ 1`, so it reported `COBOLNET0828: 2 USING argument(s)
+for 1 formal parameter(s)` — an arity diagnostic about a rule the program does not violate, pointing the reader
+at the method signature. **A silent mis-parse is worse than a rejection.**
+
+**FOUR LAYERS, because a computed operand had no representation:** the grammar alternative; a `ContentExpr` slot
+on `BoundInvokeArg` (which carried only Place / NumericLiteral / StringLiteral); an `OoBindInvokeArg` arm
+applying §14.8.2.3.3 rule 2a — an expression is transferred "according to the rules of the COMPUTE statement", so
+the formal shall be category numeric; and an `OoEmitter` arm rendering it through the SAME `NumStore` rescale the
+identifier CONTENT arm uses.
+
+⛔ **THE FIRST CUT CAUSED TWO REGRESSIONS, NEITHER A COMPILE ERROR, AND MY OWN COMMENT HAD WARNED ABOUT IT.** I
+wrote `(nonNumericLiteral | arithmeticExpression)` with a note citing `feedback_grammar_precedence`, then walked
+into it: `arithmeticExpression` SUBSUMES `dataReference`, so `BY CONTENT A` began matching the expression arm and
+lost the §14.9.23.3 SR9/SR10 object-data rules, the §14.8.2.3.2 conformance check and the ref-mod handling —
+while `BY CONTENT "XY"` stopped binding at all, because the proven literal arm keys on `literal`, not
+`nonNumericLiteral`. Caught by probing ALL TEN argument shapes rather than only the one being fixed
+(`feedback_probe_the_shape_the_subject_hides`).
+**THE REPAIR:** keep `literal` first, drop `dataReference` from the alternation entirely, and recover the
+identifier case IN THE BINDER from a sole-dataReference expression — the reduction `ConditionBinder` and
+`IntrinsicBinder` already use, now SHARED rather than copied a third time (`feedback_one_rule_one_place`). The
+grammar cannot express "a reference, unless it is part of an expression" without the ambiguity that caused the
+original defect.
+
+**VERIFIED, ten shapes:** `N + 1`→6 · `N * 2 - 3`→7 · `N`→5 · `42`→42 · `"XY"` · `A`→"ABCD" · BY REFERENCE ·
+bare identifier · bare literal — all correct; and an expression against an ALPHANUMERIC formal now rejects with
+the §14.8.2.3.3 citation (§14.9.25.3 Table 16 admits a numeric sender to an alphanumeric receiver only for an
+INTEGER sender, which an expression cannot guarantee at compile time).
+
+⚠ **WHAT REMAINS OPEN, neither for convenience.** (a) `boolean-expression-1` under BY CONTENT: the format admits
+it, but it is a SEPARATE VALUE CHANNEL (`BoundBoolExpr`, D-B1) needing the `{boolExprAhead()}?` predicate plus
+boolean marshaling — unguarded it is ambiguous with the arithmetic arm, because `booleanExpression`'s leaf is
+`valueOperand`. (b) The CALL half stays BLOCKED on the program-prototype registry (P13): §14.9.4.2 Format 2 is
+the program-prototype CALL and REPOSITORY has no `PROGRAM program-prototype-name` entry, so no parseable source
+selects it, while Format 1's BY CONTENT is `{ identifier-2 }` only — widening `callByContent` would trade a
+rejection of legal source for an acceptance of illegal source.
+
+⚖ **ON THE EXTERNAL-ORACLE BAR:** GnuCOBOL cannot serve as the oracle for this construct — it does not implement
+OO COBOL classes/methods, so INVOKE is absent from its corpus. The differential ran as a regression net (0 flips)
+but **corroborates nothing here**; the spec's rendered general format is the authority, and saying so is better
+than implying a survey that was not possible.
+
+**GATE.** `=== BATTERY: ALL GREEN ===` on ONE whole run — FULL greenfield Conformance **4221/4221** zero skipped ·
+Unit **3986/3986** · characterization **33/33** · guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and
+NIST AUDIT CLEAN · GnuCOBOL differential 1323 cases, **0 PER-CASE FLIPS**. Golden
+`pb46_invoke_by_content_expression` (8 assertions incl. the two regression controls) · negative
+`pb46-invoke-by-content-expression-alphanumeric-formal`.
+
 ## Entry 1191 — 2026-08-06 03:10 PDT — PB40: a CLASS screen cannot enforce a TYPE rule, and the fix caught a golden that asserted illegal source
 
 **`FUNCTION CHAR(FUNCTION ABS(W-F))` over a `PIC 9V9` item compiled clean.** §15.15.3 r1 is "Argument-1 shall be
