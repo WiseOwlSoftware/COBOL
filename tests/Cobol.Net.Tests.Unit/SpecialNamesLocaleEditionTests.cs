@@ -76,4 +76,58 @@ public sealed class SpecialNamesLocaleEditionTests
             "`LOCALE IS FOO` has no locale-name, so it is not the §12.3.7 LOCALE clause and must fall through to "
             + "implementorSwitchEntry. Got: " + string.Join(" | ", diags.Diagnostics.Select(d => d.ToString())));
     }
+
+    /// <summary>The FULL pipeline's diagnostics — the parse-only harness above cannot see the §8.9 funnel, which
+    /// runs in the VersionConformancePass after bind.</summary>
+    private static IReadOnlyList<string> CompileErrors(string specialNames)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "cn_snloc_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string src = Path.Combine(dir, "snloc.cob");
+            File.WriteAllText(src,
+                "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. SNLOCFULL.\n"
+                + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
+                + specialNames
+                + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n"
+                + "       01 X PIC X(3) VALUE \"AbC\".\n"
+                + "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY X\n           STOP RUN.\n");
+            return CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "snloc.dll"), DialectLevel: 2023, CheckOnly: true)).Errors;
+        }
+        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+    }
+
+    /// <summary>
+    /// ⛔ THE CLAUSE'S OWN KEYWORD IS NOT A USER-DEFINED WORD (fix-queue PB27). <c>LOCALE</c> is not a lexer
+    /// token, so §12.3.7's <c>localeClause</c> matches the clause KEYWORD through <c>cobolWord</c> — and the §8.9
+    /// funnel was reading it as a user-defined word, printing <i>"'LOCALE' is a reserved word … and cannot be
+    /// used as a user-defined word"</i> beside the correct COBOLNET1518 about a program that uses it as no such
+    /// thing. A true diagnostic and a false one, together.
+    /// <para>⚠ WHY A NEGATIVE FIXTURE COULD NOT CATCH THIS, and why the assertion below is a NOT: a negative
+    /// fixture's <c>.err</c> names ONE expected code, so <c>pb25-special-names-locale-a49</c> stayed green
+    /// through the whole defect — it asserted 1518 was present and could not ask whether anything else was
+    /// (feedback_green_test_can_hold_a_gap_open).</para>
+    /// </summary>
+    [Fact]
+    public void TheLocaleKeyword_IsNotFunneledAsAUserDefinedWord()
+    {
+        var errors = CompileErrors("           LOCALE FR IS \"fr_FR\".\n");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0901"));
+    }
+
+    /// <summary>⛔ THE FAILING DIRECTION, which is what makes the exemption position-EXACT rather than a blanket
+    /// over the clause. Slot [1] is locale-name-1 — a genuine user-defined word — so a §8.9-reserved word there
+    /// is still a violation. <c>LOCALE</c> itself is the probe: it is reserved at 2002+ AND lexes as an
+    /// identifier, so it reaches the funnel (a token-lexed reserved word like MOVE dies in the parser and never
+    /// tests this at all — the first probe of this did exactly that).</summary>
+    [Fact]
+    public void ButLocaleNameItself_IsStillFunneled()
+    {
+        var errors = CompileErrors("           LOCALE LOCALE IS \"fr_FR\".\n");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1518"));
+        Assert.Contains(errors, e => e.Contains("COBOLNET0901") && e.Contains("LOCALE"));
+    }
 }

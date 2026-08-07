@@ -1735,6 +1735,24 @@ internal sealed class VersionConformancePass
             // 2014 cell hit the COBOL reservation).
             if (ctx.Parent is CobolParserCore.EntryConventionClauseContext)
                 return base.VisitChildren(ctx);
+            // The SPECIAL-NAMES LOCALE clause (§12.3.7 general format:
+            // `LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 }`). LOCALE is not a lexer token, so
+            // the clause's OWN KEYWORD is grammar-matched as a cobolWord — and the funnel was reading it as a
+            // user-defined word, reporting `'LOCALE' is a reserved word … and cannot be used as a user-defined
+            // word` about a program that uses it as nothing of the sort. The clause already diagnoses correctly
+            // (COBOLNET1518, the ratified §A.4.9 item-10 non-support); this second diagnostic was a FALSE
+            // statement about the source, printed beside a true one (fix-queue PB27).
+            // ⚠ POSITION-EXACT, because the three cobolWord slots are three different KINDS of word:
+            //   [0] the keyword LOCALE — a use OF the reserved word            → exempt
+            //   [1] locale-name-1      — a genuine USER-DEFINED word           → stays funneled
+            //   [2] external-locale-name-1 — an IMPLEMENTOR name whose allowable values §12.3.7 GR5 leaves to
+            //       the implementor, never a user-defined-word definition      → exempt (ENTRY-CONVENTION's
+            //       entry-convention-name is the same shape and the same precedent)
+            // Exempting the whole clause would have hidden a real §8.9 violation in slot [1].
+            if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
+                && locale.cobolWord() is { Length: > 1 } localeWords
+                && !ReferenceEquals(ctx, localeWords[1]))
+                return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
             // (§8.9, 2002+) is exactly what makes the reference unambiguous. Any other position (declarations,

@@ -204,12 +204,12 @@ literals) · **PB43** (`USAGE BIT` occupies bits) · **PB24** (closed — its la
 **PB26** (the EC-ARGUMENT-FUNCTION gate) · **PB36** (INVOKE activation + r9 STACK) · **PB44** (a gate that could
 false-red) · **PB45 CLOSED** (the arithmetic family + INSPECT, then the EVALUATE selection object).
 
-**⚖ OPEN OWNER CALL — FOUR COMMITS LANDED WITH NO DEVLOG ENTRY.** `1838a304` (PB51), `dd45ddfd` (PB46's
-arithmetic half), `bd778375` (PB33) and `4808178a` (PB49) each shipped without one; the log runs 1191 → 1192
-across them. Their commit messages are forensic and their `kb/Work/` notes are current, so no FACT is lost —
-what is missing is the narrative, and `DEVLOG.md` is the only place it belongs (rule 6). Entry 1192 declines to
-reconstruct them from their own commit messages, because that puts invented recollection where lived narrative
-goes. **The call is the owner's: reconstruct, or leave the gap recorded.**
+**⚖ OWNER DECISION 2026-08-07 — TAKEN: the four entry-less commits stay entry-less.** `1838a304` (PB51),
+`dd45ddfd` (PB46's arithmetic half), `bd778375` (PB33) and `4808178a` (PB49) each landed with no DEVLOG entry;
+the log runs 1191 → 1192 across them. **"Fact intact is fine"** — their commit messages are forensic and their
+`kb/Work/` notes are current, so the RECORD is complete even though the narrative is not. Do NOT reconstruct
+them later: a reconstruction written from a commit message reads exactly like a lived entry and cannot be told
+apart from one, which would make the whole log's provenance uncertain to buy back four paragraphs.
 
 **▶ WHERE THE NEXT SESSION STARTS: `python scripts/spec/work.py next`.**
 

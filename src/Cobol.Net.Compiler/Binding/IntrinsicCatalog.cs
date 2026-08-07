@@ -208,9 +208,21 @@ public static class IntrinsicCatalog
         // locale-dependent — it consumes an ISO/IEC 14651:2020 cultural ordering table (SPECIAL-NAMES ORDER
         // TABLE, §12.3.7 GR17); its independent non-support route is A.3 item 25 (the implementor need not
         // accept the syntax absent a 14651 implementation) — cite BOTH. Bind = Unsupported → COBOLNET1518.
-        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Unsupported, false, 2002)); // §15.51 (A.4.9 item 2)
-        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3)
-        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4)
+        // ⛔ LOCALE-DATE AND LOCALE-TIME BOTH READ `"is"` — ARGUMENT-1 AS AN INTEGER — AND BOTH WERE WRONG
+        // (fix-queue PB27). §15.52.3 r1 and §15.53.3 r1 each say "Argument-1 shall be of class ALPHANUMERIC OR
+        // NATIONAL and shall be 8 [resp. 6] CHARACTER POSITIONS in length", and the normative Table 21 agrees
+        // for both: `Anum1 or Nat1, Loc2`. The queue entry named LOCALE-TIME alone; LOCALE-DATE is the line
+        // ABOVE it with the identical wrong value (feedback_scan_all_similar).
+        // ⚠ ANNEX D DISAGREES AND DOES NOT GOVERN: D.31.4.2 describes argument-1 as "a date in standard date
+        // form (YYYYMMDD)", which reads as an integer — but Annex D is marked `(informative)` and §1167 calls it
+        // an explanation of features, so clause 15 and Table 21 decide. A concepts annex is not a rule.
+        // ⚙ The column is NOT read for these rows today (Bind = Unsupported ⇒ COBOLNET1518 fires first, measured
+        // at every --std), which is exactly why it was never contradicted — a dead lookup is also an unverified
+        // one (feedback_a_dead_lookup_is_also_unverified). PB1 is the standing proof of the cost: an ArgKinds
+        // column enforced as written, without re-derivation, rejected 12 legal corpus programs.
+        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Unsupported, false, 2002)); // §15.51 (A.4.9 item 2) — Table 21 `Alph1/Anum1/Nat1, Alph2/Anum2/Nat2, Loc3`
+        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3) — §15.52.3 r1: alphanumeric/national, 8 character positions
+        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4) — §15.53.3 r1: alphanumeric/national, 6 character positions
         Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2002)); // §15.54 (A.4.9 item 5)
         Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2002)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
