@@ -1724,6 +1724,15 @@ internal sealed class VersionConformancePass
             // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
             string raw = ctx.Start.Text;
             int max = _p._edition.Year >= 2023 ? 63 : _p._edition.Year >= 2002 ? 31 : 30;
+            // §8.3.2.1's OTHER half — the word CHARACTER SET (fix-queue R02). The same sentence that caps the
+            // length names the admissible characters: "…the basic special characters HYPHEN AND UNDERSCORE. The
+            // hyphen or underscore shall not appear as the first or last character in such words." The
+            // underscore is a COBOL-2002 introduction ('85's set is hyphen-only), and the lexer admits it at
+            // every edition (superset-parse), so this is where a below-2002 use is named.
+            // ⚠ Deduped per distinct word through the SAME set the length check uses: one diagnostic per word
+            // per compilation, matching the §8.9 funnel's posture rather than one per occurrence.
+            if (raw.Contains('_') && (_overlongWords ??= []).Add("_" + raw.ToUpperInvariant()))
+                _p.Check(Constructs.UserWordUnderscore2002, $"the underscore in the COBOL word '{raw}'");
             if (raw.Length > max && (_overlongWords ??= []).Add(raw.ToUpperInvariant()))
                 _p._sink.Report(new EditionDiagnostic("COBOLNET1567", EditionSeverity.Error, "word-length-exceeded",
                     $"the COBOL word '{raw}' is {raw.Length} characters, exceeding the {max}-character maximum for "

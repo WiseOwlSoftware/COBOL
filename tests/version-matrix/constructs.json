@@ -2269,6 +2269,19 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 RW addition (the 85 LINE format is single-operand; staged with report-group OCCURS)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRML1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrml1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1 PAGE LIMIT IS 20 LINES.\n01 D-1 TYPE DE.\n   03 LINE 2 4.\n      05 COLUMN 1 PIC X(2) VALUE \"OK\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-underscore-2002",
+      "status": "active",
+      "description": "The UNDERSCORE as a character of a COBOL word (a user-defined word here) — ISO §8.3.2.1: \"Each character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.\" A COBOL-2002 introduction: the '85 word character set has the hyphen only. Parsed at EVERY edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than a raw `no viable alternative`. fix-queue R02.",
+      "display": "the underscore in a COBOL word",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard); the word-character-set half of §8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOLNET1567 rather than as a construct row",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWUS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MY_NAME PIC X(5) VALUE \"hello\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY MY_NAME.\n    STOP RUN.\n"
     }
   ]
 }

@@ -194,5 +194,6 @@ public static partial class ConstructRegistry
         new("report-varying-2002", "VARYING (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.64 / §13.15; introduction gate = VersionConformancePass ParseArm.VisitReportVaryingClause"),
         new("report-multi-column-2002", "multiple/relative COLUMN (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.14 Format 1 SR10/GR7–GR12; introduction gate = VersionConformancePass ParseArm.VisitReportColumnClause"),
         new("report-multi-line-2002", "multiple LINE (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.35 Format 1 SR10/GR9; recognized + edition-gated (ParseArm.VisitReportLineClause), repetition staged 0899"),
+        new("user-word-underscore-2002", "the underscore in a COBOL word", 2002, null, null, "COBOLNET0900", "ISO §8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only"),
     ];
 }

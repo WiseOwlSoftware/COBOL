@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 lexer grammar CobolLexer;
@@ -739,11 +739,27 @@ fragment BOOL_BODY : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\''                    
                    | 'BX' '\'' HEXDIGITS '\'' ;
 fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT / SUB_INTEGERLIT
 fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                                // DECIMALLIT / SUB_DECIMALLIT
+// ⛔ THE UNDERSCORE IS A COBOL WORD CHARACTER AND HAS BEEN SINCE COBOL-2002 (fix-queue R02). §8.3.2.1: "Each
+// character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters,
+// and the basic special characters HYPHEN AND UNDERSCORE. The hyphen or underscore shall not appear as the first
+// or last character in such words." Without it `01 MY_NAME PIC X(6).` — legal at three of the four editions this
+// compiler targets — did not parse at any of them, dying as `no viable alternative at input 'MY_'`.
+// ⚠ SUPERSET-PARSE / BIND-NARROW, the repo's standing doctrine: the underscore is admitted at EVERY edition here
+// and the COBOL-85 rejection is a BIND-time gate (Constructs.UserWordUnderscore2002 → COBOLNET0900, raised beside
+// the §8.3.2.1 word-LENGTH check in VersionConformancePass.VisitCobolWord — same clause, same visitor). A lexer
+// that refused it below 2002 would produce `no viable alternative`, which is an unexplained rejection rather
+// than a named edition diagnostic.
+// ⛔ AND "NOR LAST" IS NOW ENFORCED FOR BOTH SEPARATORS, WHICH IT WAS NOT. The same sentence bars a leading OR
+// trailing hyphen or underscore. NOT-FIRST was already structural (every alternative opens with a letter or a
+// digit) and NOT-LAST held only in the ALPHA-start alternative, whose tail is `[a-z0-9]`; the two DIGIT-start
+// alternatives ended in `*` over the separator class, so `1A-` and `42-X-` were ACCEPTED — a pre-existing hole
+// for the hyphen that the underscore would have silently inherited. Factoring the tail into NAME_TAIL, which
+// cannot end on a separator, closes it for both characters in all three alternatives at once.
+fragment NAME_TAIL : [a-z0-9_-]* [a-z0-9] ;   // a word tail that cannot END on a separator (§8.3.2.1)
 fragment NAME_BODY                                                                   // IDENTIFIER / SUB_IDENTIFIER
-    : [0-9]+ '-' [a-z0-9] [a-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
-    | [0-9]+ [a-z] [a-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
-    | [a-z] [a-z0-9-]* [a-z0-9]         // alpha-start: WRK-DS-01V00
-    | [a-z]                               // single letter: A
+    : [0-9]+ [-_] [a-z0-9] NAME_TAIL?   // digit-start with separator: 42-DATANAMES, 42_DATANAMES
+    | [0-9]+ [a-z] NAME_TAIL?           // digit-start with letter: 11A, 25COUNT, 80PARTS
+    | [a-z] NAME_TAIL?                  // alpha-start: A, WRK-DS-01V00, MY_NAME, MIXED_A-B
     ;
 
 // ── Function-argument signed literals (P7 Step 12) ──
