@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
+using CobolNet.Common;         // CobolLiteral — the ONE literal decoder / §8.3.3 hex-grouping rule (R03)
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;  // BoundUnit / OoClassUnit — the bound model (P6)
 using CobolNet.Binding.Passes; // GroupBindContext — this pass is the manifest's NAMED terminal pass (P6 Step 4)
@@ -1577,6 +1578,20 @@ internal sealed class VersionConformancePass
             if ((nat || ctx.BOOLLIT() is not null) && InStatement(ctx))
                 _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
                     nat ? "national literal N\"…\"" : "boolean literal B\"…\"");
+            // §8.3.3.2.3 r6 / §8.3.3.5.3 r5 — the hexadecimal GROUPING rule (fix-queue R03). Checked HERE because
+            // this override is the one place that sees EVERY nonNumericLiteral in the unit, VALUE clauses and
+            // level-88 operands included — not only the statement-scoped ones the introduction gates above screen.
+            // ⛔ IT IS DELIBERATELY NOT A LEXER RULE. A lexer that refused an odd digit count would not reject the
+            // program: the token would simply fail to match, `X"414"` would split into an IDENTIFIER and a
+            // STRINGLIT, and the literal would be back in the SILENT-degradation hole R03 exists to close. The
+            // token must match so that something is left to diagnose.
+            // ⚠ The pass's own §8.3.2.1 word-length check (VisitCobolWord) is the precedent for a syntax rule
+            // living in this walker: it is the tree walk, not a version-only walk.
+            foreach (var t in new[] { ctx.HEXLIT(), ctx.NATLIT(), ctx.BOOLLIT() })
+                if (t is not null && CobolLiteral.HexGroupViolation(t.GetText()) is { } why)
+                    _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.HexLiteralDigitGrouping.Code,
+                        EditionSeverity.Error, DiagnosticCatalog.HexLiteralDigitGrouping.Id,
+                        $"the literal {t.GetText()} {why}", "", "ISO §8.3.3"));
             return base.VisitChildren(ctx);
         }
 

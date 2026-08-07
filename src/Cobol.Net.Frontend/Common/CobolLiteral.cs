@@ -25,13 +25,26 @@ public static class CobolLiteral
 
     /// <summary>The prefix letter (upper-cased, <c>'\0'</c> when none) and the quoted body of a literal, or
     /// <see langword="null"/> when <paramref name="raw"/> is not a quoted literal at all.</summary>
-    private static (char Prefix, string Body)? SplitLiteral(string raw)
+    /// <summary>The prefix as WRITTEN, upper-cased — <c>""</c>, <c>"N"</c>, <c>"B"</c>, <c>"X"</c>, <c>"NX"</c>
+    /// or <c>"BX"</c> — and the quoted body; null when <paramref name="raw"/> is not a quoted literal.</summary>
+    private static (string Prefix, string Body)? SplitLiteral(string raw)
     {
         string body = raw;
-        char prefix = '\0';
-        if (body.Length >= 3 && PrefixLetters.Contains(body[0]) && body[1] is '"' or '\'')
+        string prefix = "";
+        // ⛔ THE TWO-LETTER PREFIXES ARE TESTED FIRST, AND THE ORDER IS THE WHOLE CORRECTNESS ARGUMENT
+        // (fix-queue R03). `NX"…"` is §8.3.3.5.2 Format 2 (hexadecimal-national) and `BX"…"` is §8.3.3.4.2
+        // Format 2 (hexadecimal-boolean). Both open with a letter that is ALSO a single-letter prefix, so a
+        // single-letter test running first sees `N` followed by `X` rather than a quote, concludes "not a
+        // literal", and hands back the raw source text — which is precisely how the token used to degrade.
+        if (body.Length >= 4 && body[0] is 'N' or 'n' or 'B' or 'b' && body[1] is 'X' or 'x'
+            && body[2] is '"' or '\'')
         {
-            prefix = char.ToUpperInvariant(body[0]);
+            prefix = body[..2].ToUpperInvariant();
+            body = body[2..];
+        }
+        else if (body.Length >= 3 && PrefixLetters.Contains(body[0]) && body[1] is '"' or '\'')
+        {
+            prefix = body[..1].ToUpperInvariant();
             body = body[1..];
         }
         return body.Length >= 2 && body[0] is '"' or '\'' && body[^1] == body[0] ? (prefix, body) : null;
@@ -74,7 +87,21 @@ public static class CobolLiteral
     public static string Decode(string raw)
     {
         if (SplitLiteral(raw) is not { } lit) return raw;
-        if (lit.Prefix == 'X') return DecodeHex(raw);
+        if (lit.Prefix == "X") return DecodeHex(raw);
+        // §8.3.3.5.2 Format 2 — hexadecimal-national. §8.3.3.5.3 SR5 makes the digits-per-national-character an
+        // IMPLEMENTOR choice, and D-N1 stores one UTF-16 code unit per national position, so that number is FOUR;
+        // §8.3.3.5.4 GR4 then gives each national character the bit configuration of one such group.
+        if (lit.Prefix == "NX") return DecodeHexGroups(lit.Body[1..^1], 4);
+        // §8.3.3.4.2 Format 2 — hexadecimal-boolean. §8.3.3.4.4 GR5 spells the mapping out digit by digit
+        // ("'0' is B\"0000\" … 'F' is B\"1111\""), i.e. each hexadecimal digit IS four boolean characters, and a
+        // boolean item stores those as the '0'/'1' characters of the D-B1 bit-string world.
+        if (lit.Prefix == "BX")
+        {
+            var sb = new System.Text.StringBuilder(lit.Body.Length * 4);
+            foreach (char c in lit.Body[1..^1])
+                sb.Append(System.Convert.ToString(System.Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0'));
+            return sb.ToString();
+        }
         char q = lit.Body[0];
         return lit.Body[1..^1].Replace(new string(q, 2), q.ToString());
     }
@@ -84,6 +111,59 @@ public static class CobolLiteral
     /// impossibility for a well-formed token, but tolerated) or a non-hex shape yields the empty string. The
     /// ONE hex decoder (P10 Step 14) — the former <c>OoBinder.OoDecodeMethodNameLiteral</c> inline copy now
     /// routes here, as does the §8.8.3 concatenation fold.</summary>
+    /// <summary>
+    /// ⭐ THE §8.3.3 HEXADECIMAL GROUPING RULE, for all three literal forms — a message naming the offending
+    /// clause, or <see langword="null"/> when the literal is well formed or is not a hexadecimal literal at all.
+    /// </summary>
+    /// <remarks>
+    /// Three formats state this rule and they do NOT state the same rule (fix-queue R03):
+    /// <list type="bullet">
+    /// <item><c>X"…"</c> — §8.3.3.2.3 <b>r6</b>: groups of the implementor's digits-per-alphanumeric-character,
+    /// which is TWO (one byte per character).</item>
+    /// <item><c>NX"…"</c> — §8.3.3.5.3 <b>r5</b>: the same sentence for national, and D-N1 stores one UTF-16 code
+    /// unit per national position, so it is FOUR.</item>
+    /// <item><c>BX"…"</c> — §8.3.3.4.3 <b>r3</b> says only "Hexadecimal-digit-1 shall be a hexadecimal digit".
+    /// <b>There is NO grouping rule</b>, because §8.3.3.4.4 GR5 maps each digit individually to four boolean
+    /// characters. Any digit count is well formed, so this returns null for BX always — writing a group check
+    /// for it "for symmetry" would reject legal source.</item>
+    /// </list>
+    /// <para>
+    /// ⛔ AN ILL-FORMED HEX LITERAL USED TO DECODE TO THE EMPTY STRING WITH NO DIAGNOSTIC — <c>X"414"</c> and
+    /// <c>NX"041"</c> both made <c>FUNCTION LENGTH</c> answer 1, silently, on source the standard rejects. The
+    /// decoders returned "" for a malformed shape and every caller took that as the value.
+    /// </para>
+    /// </remarks>
+    public static string? HexGroupViolation(string raw)
+    {
+        if (SplitLiteral(raw) is not { } lit) return null;
+        (int per, string clause) = lit.Prefix switch
+        {
+            "X" => (2, "§8.3.3.2.3 r6"),
+            "NX" => (4, "§8.3.3.5.3 r5"),
+            _ => (0, ""),      // BX has no grouping rule; every other prefix is not hexadecimal at all
+        };
+        if (per == 0) return null;
+        int n = lit.Body.Length - 2;
+        return n % per == 0 ? null
+            : $"has {n} hexadecimal digit(s), which is not a whole number of {per}-digit groups — {clause} "
+              + $"requires each hexadecimal character sequence to be {per} digits";
+    }
+
+    /// <summary>Decode <paramref name="digits"/> as groups of <paramref name="perChar"/> hexadecimal digits, one
+    /// character per group — the §8.3.3.5.4 GR4 hexadecimal-national mapping, and the shape §8.3.3.2's
+    /// alphanumeric hex form uses with <paramref name="perChar"/> = 2. A trailing partial group violates
+    /// §8.3.3.5.3 SR5 and yields the empty string, matching <see cref="DecodeHex"/>'s odd-digit posture (the
+    /// lexer already rejects the shape, so this is the belt to that braces).</summary>
+    private static string DecodeHexGroups(string digits, int perChar)
+    {
+        if (digits.Length == 0) return "";                       // §8.3.3.5.4 GR4 — zero-length is legal
+        if (digits.Length % perChar != 0) return "";
+        var chars = new char[digits.Length / perChar];
+        for (int i = 0; i < chars.Length; i++)
+            chars[i] = (char)Convert.ToInt32(digits.Substring(i * perChar, perChar), 16);
+        return new string(chars);
+    }
+
     public static string DecodeHex(string raw)
     {
         if (raw.Length < 3 || raw[0] is not ('X' or 'x')) return "";

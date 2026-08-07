@@ -174,7 +174,9 @@
     "pb46-invoke-by-content-expression-alphanumeric-formal",
     "pb46-invoke-by-content-boolean-numeric-formal",
     "pb35-zero-length-literal-max-argument",
-    "pb52-intrinsic-argument-stage"
+    "pb52-intrinsic-argument-stage",
+    "r03-hex-national-literal-at-85",
+    "r03-hex-literal-digit-grouping"
   ],
   "pending": []
 }

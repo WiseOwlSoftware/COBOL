@@ -673,6 +673,20 @@ public static class DiagnosticCatalog
         + "— \"a space indicates an invalid combination\". Most often this is a value object written against a "
         + "TRUE/FALSE subject, whose only permissible objects are a condition, TRUE/FALSE, or ANY.",
         "ISO §14.9.13.3 SR10 (Table 15)");
+    // R03. A SYNTAX RULE violation that used to produce a SILENT WRONG ANSWER rather than any diagnostic: the hex
+    // decoders answer "" for a malformed digit count and every caller took that as the literal's value, so
+    // `FUNCTION LENGTH(X"414")` said 1. Three formats state the grouping rule and they differ — §8.3.3.2.3 r6
+    // (alphanumeric, pairs), §8.3.3.5.3 r5 (national, four for the D-N1 UTF-16 unit) — while §8.3.3.4.3 r3
+    // states NO grouping rule for BX at all, because §8.3.3.4.4 GR5 maps each digit on its own. The check is
+    // therefore per-format, and BX is deliberately unscreened.
+    public static readonly DiagnosticDescriptor HexLiteralDigitGrouping = new(
+        "COBOLNET1635", "hex-literal-digit-grouping", EditionSeverity.Error,
+        "A hexadecimal literal's digits do not form whole characters. ISO §8.3.3.2.3 rule 6 (X\"…\") and "
+        + "§8.3.3.5.3 rule 5 (NX\"…\") each require every hexadecimal character sequence to consist of the number "
+        + "of digits that map to one character — two for an alphanumeric character, four for a national one. A "
+        + "hexadecimal-BOOLEAN literal (BX\"…\") has no such rule: §8.3.3.4.4 GR5 maps each digit independently "
+        + "to four boolean characters, so any digit count is well formed there.",
+        "ISO §8.3.3.2.3 r6 / §8.3.3.5.3 r5");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

@@ -119,7 +119,8 @@
     "pb50_figurative_zero_position_expressions",
     "pb54_keyword_omitted_figurative_zero_argument",
     "pb52_intrinsic_argument_stage",
-    "pb53_by_content_move_rules"
+    "pb53_by_content_move_rules",
+    "r03_hexadecimal_national_and_boolean_literals"
   ],
   "pending": []
 }

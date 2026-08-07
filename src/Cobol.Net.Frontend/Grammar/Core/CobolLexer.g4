@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 lexer grammar CobolLexer;
@@ -718,8 +718,25 @@ FLOATLIT    : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
 // char-for-char; now a future string-escape / national-literal / data-name fix is applied ONCE and cannot diverge
 // between modes (DESIGN-frontend-grammar §3.3b). Bodies are byte-identical to the retired inline forms.
 fragment STR_BODY  : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\'' ;   // STRINGLIT / SUB_STRINGLIT
-fragment NAT_BODY  : 'N' STR_BODY ;                                                  // NATLIT / SUB_NATLIT (N + string)
-fragment BOOL_BODY : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\'' ;                       // BOOLLIT / SUB_BOOLLIT
+// ⛔ FORMAT 2 IS THE SAME LITERAL KIND, SO IT IS THE SAME TOKEN (fix-queue R03). §8.3.3.5.2 and §8.3.3.4.2 each
+// print TWO general formats — `N"…"` / `NX"…"` and `B"…"` / `BX"…"` — and their ALL-FORMATS general rules put
+// both formats in ONE class and category (§8.3.3.5.4 GR2 national, §8.3.3.4.4 GR2 boolean). Folding Format 2
+// into the existing token is therefore what the standard says, and it is also what keeps the change tractable:
+// 32 call sites already route NATLIT→national and BOOLLIT→boolean, and every one stays correct untouched.
+// ⚠ THE ALTERNATIVE IS A MISTAKE ALREADY IN THIS FILE. `HEXLIT` is a token of its own even though §8.3.3.2 makes
+// a hexadecimal literal "one FORM of an alphanumeric literal, not a separate kind of thing" (CobolLiteral's own
+// words) — and that split is why its decoding had to be added at FOUR separate call sites, the fourth being a
+// silent VALUE-clause miscompile. A second token here would have bought the same bill twice over.
+// ⚠ ZERO LENGTH IS `*`, NOT `+`, and the standard says so in both places: §8.3.3.5.3 NOTE 2 "Hexadecimal-national
+// literals can be of zero length" and §8.3.3.4.3 NOTE "Hexadecimal-boolean literals can be of zero length".
+// Format 1's `[01]+` is left exactly as it was — widening THAT is §8.3.3.4.4 GR4, a different change set.
+fragment HEXDIGITS : [0-9a-f]* ;                                                     // caseInsensitive covers A-F
+fragment NAT_BODY  : 'N' STR_BODY                                                    // NATLIT / SUB_NATLIT F1
+                   | 'NX' '"' HEXDIGITS '"'                                          // §8.3.3.5.2 Format 2
+                   | 'NX' '\'' HEXDIGITS '\'' ;
+fragment BOOL_BODY : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\''                         // BOOLLIT / SUB_BOOLLIT F1
+                   | 'BX' '"' HEXDIGITS '"'                                          // §8.3.3.4.2 Format 2
+                   | 'BX' '\'' HEXDIGITS '\'' ;
 fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT / SUB_INTEGERLIT
 fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                                // DECIMALLIT / SUB_DECIMALLIT
 fragment NAME_BODY                                                                   // IDENTIFIER / SUB_IDENTIFIER
@@ -764,7 +781,12 @@ STRINGLIT   : STR_BODY ;
 // ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
 // identifier such as NAME is unaffected (it has no opening quote). NX"…" (hex national) is deferred.
 NATLIT      : NAT_BODY ;
-HEXLIT      : [x] '"' [0-9a-f]+ '"'
+// ⚠ ZERO LENGTH IS LEGAL HERE TOO — §8.3.3.2.3 NOTE 2, "Hexadecimal-alphanumeric literals can be of zero
+// length". The `+` refused `X""`, which then split into an IDENTIFIER and a STRINGLIT exactly as NX/BX did
+// (fix-queue R03's sweep). The GROUPING rule (§8.3.3.2.3 r6, pairs of digits) is enforced at bind by
+// CobolLiteral.HexGroupViolation, not here: a lexer that refused an odd count would put the literal back in
+// the silent-split hole this whole item exists to close.
+HEXLIT      : [x] '"' HEXDIGITS '"'
             | [x] '\'' [0-9a-f]+ '\''
             ;
 // Boolean literal B"0101" / B'0101' (binary digits only; ISO §8.3.3.4, COBOL-2002). The leading B is part
