@@ -719,14 +719,20 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // states for a boolean COMPUTE, and EmitComputeBoolean applies it identically.
                 if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
                 int bw = Math.Max(1, a.Formal.Pic!.Length);
-                // §14.8.2.3.3 rule 2d ⇒ the MOVE store for the formal's category: a BOOLEAN receiver pads and
-                // truncates in boolean ZEROS (§14.6.8.6), an ALPHANUMERIC one in spaces with the boolean
-                // characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of class boolean, its
-                // boolean value shall be moved"). An ANY LENGTH formal takes the value at ITS OWN length
-                // (§13.18.2 GR1), so no width-fit — the same exemption OoStringReadOf makes.
-                w.Line($"string {tmp} = " + (a.Formal.Pic!.Category is PicCategory.Boolean
+                // ⛔ ANY LENGTH IS TESTED FIRST, AND THE ORDER IS THE WHOLE POINT. §13.18.2.3 SR1 admits the
+                // picture symbol '1' as well as 'N' and 'X', so a category-BOOLEAN formal can carry ANY LENGTH
+                // — and §13.18.2.4 GR1b then makes n "the length of the corresponding argument", not the one
+                // symbol its PICTURE spells. With the category test first, `01 AL PIC 1 ANY LENGTH` received
+                // B"1000" as B"1" (measured: `AL=[1] LEN=1`), silently, while the alphanumeric twin beside it
+                // was right — the same two-arm asymmetry this whole fix exists to remove, reproduced inside
+                // the new arm. §14.8.2.3.3 rule 2c is the conformance half of the same rule.
+                // Otherwise §14.8.2.3.3 rule 2d ⇒ the MOVE store for the formal's category: a BOOLEAN receiver
+                // pads and truncates in boolean ZEROS (§14.6.8.6), an ALPHANUMERIC one in spaces with the
+                // boolean characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of class boolean,
+                // its boolean value shall be moved").
+                w.Line($"string {tmp} = " + (a.Formal.IsAnyLength ? bv
+                    : a.Formal.Pic!.Category is PicCategory.Boolean
                         ? RuntimeApi.StrStoreBoolean(bv, $"{bw}", a.Formal.Justified)
-                    : a.Formal.IsAnyLength ? bv
                     : a.Formal.Justified ? RuntimeApi.StrStoreJustified(bv, $"{bw}")
                     : RuntimeApi.StrStore(bv, $"{bw}")) + ";");
             }

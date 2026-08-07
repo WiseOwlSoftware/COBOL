@@ -88,7 +88,17 @@
       *> row, Alphanumeric column, "Yes"; 14.9.25.4 GR6a — "If the sending item is
       *> of class boolean, its boolean value shall be moved", space-filled.
            INVOKE O "TAKEA" USING BY CONTENT B1 B-XOR B2.
-      *> 12 — the other two string-imaged sibling categories, plus a pointer, all
+      *> 12 — ANY LENGTH, BOTH picture symbols, asserted as a PAIR. 13.18.2.3 SR1
+      *> admits '1' as well as 'N' and 'X', so a category-BOOLEAN formal can carry
+      *> ANY LENGTH, and 13.18.2.4 GR1b then makes n the ARGUMENT's length rather
+      *> than the one symbol the PICTURE spells (14.8.2.3.3 rule 2c is the
+      *> conformance half). The first cut of the emitter arm tested the CATEGORY
+      *> before ANY LENGTH and delivered B"1000" as B"1" — silently, and only on
+      *> the boolean side, while the alphanumeric twin below was right. The two
+      *> are asserted together because that asymmetry is the failure mode.
+           INVOKE O "TAKEAL" USING BY CONTENT B1 B-AND B2.
+           INVOKE O "TAKEAX" USING BY CONTENT B1 B-AND B2.
+      *> 12b — the other two string-imaged sibling categories, plus a pointer, all
       *> blocked by the same default arm.
            INVOKE O "TAKEN" USING NA.
            INVOKE O "TAKEE" USING ED.
@@ -137,6 +147,22 @@
        M.
            DISPLAY "A=[" Q "]".
        END METHOD TAKEA.
+       METHOD-ID. TAKEAL.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 AL PIC 1 ANY LENGTH.
+       PROCEDURE DIVISION USING AL.
+       M.
+           DISPLAY "AL=[" AL "] LEN=" FUNCTION LENGTH(AL).
+       END METHOD TAKEAL.
+       METHOD-ID. TAKEAX.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 AX PIC X ANY LENGTH.
+       PROCEDURE DIVISION USING AX.
+       M.
+           DISPLAY "AX=[" AX "] LEN=" FUNCTION LENGTH(AX).
+       END METHOD TAKEAX.
        METHOD-ID. TAKEN.
        DATA DIVISION.
        LINKAGE SECTION.
