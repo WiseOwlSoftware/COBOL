@@ -49,6 +49,14 @@ needed to stop it announcing a resolved condition. Its COMMENT did assert "GITHU
 present-tense state, which rule 6 does not allow outside `DEVLOG.md`; it now explains the CHECK and carries the
 incident as the reason the check exists.
 
+**VERDICT — the bump is GREEN.** Push run **31143400444**: Guard · Greenfield tests · INV-1-strong · Windows
+build+tests all SUCCESS; `legacy-oracle` **skipped**, which is its `if: schedule || workflow_dispatch` guard
+doing exactly what it should on a push — a skipped job is not a red, and reading it as one is how a correct
+guard gets "fixed". Two facts fall out of it that the dispatched baseline could not give: the **push trigger**
+itself has recovered, and `actions/checkout@v7` + `cache@v6` + `setup-dotnet@v6` are green on both `ubuntu-latest`
+and `windows-latest` across all four push jobs. `session-probe.ps1`'s CI line is now absent from the probe
+output, self-cleared as designed.
+
 ## Entry 1193 — 2026-08-06 17:05 PDT — the arm I wrote to close a two-arm defect had a two-arm defect, and only §13.18.2 found it
 
 **`01 AL PIC 1 ANY LENGTH.` received `B"1000"` as `B"1"`.** Entry 1192's `ContentBool` emit arm tested the

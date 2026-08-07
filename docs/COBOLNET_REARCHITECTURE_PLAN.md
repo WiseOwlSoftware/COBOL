@@ -161,7 +161,10 @@ only a dispatch exercises all FIVE jobs) → ③ confirm every job gets a RUNNER
 ④ only then land the actions-version bump, so a red is attributable to the bump rather than to outage residue.
 Baseline run **31141695885 — all five jobs SUCCESS** on `ab691eff` with the OLD action versions; the bump
 (`checkout` v4→v7, `cache` v4→v6, `setup-dotnet` v4→v6 — 15 references, re-verified against
-`repos/{a}/releases/latest`: v7.0.1 / v6.1.0 / v6.0.0) landed on top of that baseline.
+`repos/{a}/releases/latest`: v7.0.1 / v6.1.0 / v6.0.0) landed on top of that baseline and is **GREEN**:
+push run **31143400444, all four push jobs SUCCESS** — `legacy-oracle` reports `skipped`, which is the
+`if:` guard doing its job on a push, not a failure. That run also proves the **push trigger** recovered, which
+a dispatch cannot show.
 
 ⛔ **THE STANDING FACT THE OUTAGE MADE VISIBLE: `bash scripts/battery.sh` IS NOT A SUPERSET OF CI.** The battery
 covers Conformance, Unit, characterization, `guard-fast` (NIST + legacy unit + integration) and the GnuCOBOL
