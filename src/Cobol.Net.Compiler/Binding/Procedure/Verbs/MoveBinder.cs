@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
@@ -190,51 +190,27 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 continue;
             }
 
-            if (recvCat is PicCategory.Boolean)
-            {
-                // SR7: SPACE/QUOTE/HIGH-VALUE/LOW-VALUE (and ALL of non-boolean characters) never move to a
-                // boolean item; ZERO is boolean zeros by context (§8.3.3.6.4 GR4). Table 16 Boolean column:
-                // senders alphabetic / alphanumeric-edited / numeric / numeric-edited are "No".
-                if (source is BoundFigurative { Kind: not 'Z' })
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
-                        + "not boolean characters shall not be moved to a boolean data item "
-                        + "(ISO §14.9.25.3 SR7)");
-                else if (source is BoundAllLiteral bal && (bal.Literal.Length == 0
-                             || !bal.Literal.All(c => c is '0' or '1')))
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
-                        + "characters and shall not be moved to a boolean data item (ISO §14.9.25.3 SR7)");
-                else if (senderIsAlphabetic || senderIsAnEdited
-                         || senderCat is PicCategory.Numeric or PicCategory.NumericEdited)
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of an alphabetic, alphanumeric-edited, "
-                        + "numeric, or numeric-edited operand to a boolean data item is invalid "
-                        + "(ISO §14.9.25.3 SR10, Table 16)");
-            }
-            else if (recvCat is PicCategory.National)
-            {
-                // Table 16 National column: only a NON-integer numeric sender is "No".
-                if (senderNonInteger)
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a non-integer numeric operand to a "
-                        + "national data item is invalid (ISO §14.9.25.3 SR10, Table 16)");
-            }
-            else if (senderCat is PicCategory.National)
-            {
-                // Table 16 National row: alphabetic / alphanumeric / alphanumeric-edited receivers are "No"
-                // (FUNCTION DISPLAY-OF §15.26 is the sanctioned national→alphanumeric narrowing — residue).
-                if (recvCat is PicCategory.Alphanumeric)
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a national sending operand to an "
-                        + "alphabetic, alphanumeric, or alphanumeric-edited receiver is invalid (ISO "
-                        + "§14.9.25.3 SR10, Table 16; FUNCTION DISPLAY-OF is the sanctioned conversion)");
-            }
-            else if (senderCat is PicCategory.Boolean)
-            {
-                // Table 16 Boolean row: alphabetic / numeric / numeric-edited receivers are "No"
-                // (boolean → plain alphanumeric is "Yes").
-                if (t.Item.Pic is { IsAlphabetic: true }
-                    || recvCat is PicCategory.Numeric or PicCategory.NumericEdited)
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a boolean sending operand to an "
-                        + "alphabetic, numeric, or numeric-edited receiver is invalid "
-                        + "(ISO §14.9.25.3 SR10, Table 16)");
-            }
+            // §14.9.25.3 SR7 — a SOURCE-SHAPE rule, not a Table-16 one: a figurative constant whose characters
+            // are not boolean characters (and the ALL-literal form of the same) never moves to a boolean item.
+            // ZERO is boolean zeros by context (§8.3.3.6.4 GR4). This keys on the bound operand's shape, which a
+            // category table cannot see, so it stays here.
+            if (recvCat is PicCategory.Boolean && source is BoundFigurative { Kind: not 'Z' })
+                ctx.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
+                    + "not boolean characters shall not be moved to a boolean data item "
+                    + "(ISO §14.9.25.3 SR7)");
+            else if (recvCat is PicCategory.Boolean && source is BoundAllLiteral bal
+                     && (bal.Literal.Length == 0 || !bal.Literal.All(c => c is '0' or '1')))
+                ctx.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
+                    + "characters and shall not be moved to a boolean data item (ISO §14.9.25.3 SR7)");
+            // ⭐ AND THE CATEGORY-PAIR RULE ITSELF IS NOW ASKED OF THE ONE TABLE (fix-queue PB53). It used to be
+            // four inline arms here and a §14.8.2.3.2 STRICT-IDENTITY fallback in the INVOKE argument screen —
+            // two answers to one question, and §14.8.2.3.3 rule 2d says the INVOKE crossing asks THIS one.
+            else if (MoveTable16.Refusal(
+                         new Table16Operand(senderCat ?? PicCategory.Group, senderIsAlphabetic, senderIsAnEdited,
+                             senderNonInteger),
+                         new Table16Operand(recvCat, t.Item.Pic is { IsAlphabetic: true },
+                             t.Item.Pic?.EditMask is not null)) is { } refusal)
+                ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}");
         }
     }
 

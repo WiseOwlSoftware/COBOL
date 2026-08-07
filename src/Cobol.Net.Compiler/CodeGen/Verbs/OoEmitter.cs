@@ -881,10 +881,22 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §13.18.2 GR1 —
         // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the
         // formal's Pic.Length (1); the raw read IS the width-correct crossing.
-        return a.ByContent && a.Formal.Pic is { } fp && fp.Category is PicCategory.Alphanumeric
-                && !a.Formal.IsAnyLength
+        if (!a.ByContent || a.Formal.IsAnyLength || a.Formal.Pic is not { } fp) return read;
+        // ⭐ THE CROSSING TAKES THE RECEIVING CATEGORY'S MOVE STORE, REACHED RATHER THAN RE-DERIVED
+        // (fix-queue PB53). §14.8.2.3.3 rule 2d makes a BY CONTENT crossing conform "as for a MOVE statement",
+        // and the store discipline that rule implies already exists, written once, in
+        // <see cref="MoveEmitter.ConvertSource"/>: a BOOLEAN receiver pads and truncates in boolean ZEROS
+        // (§14.6.8.6), an ALPHANUMERIC one in spaces, a NATIONAL one in national spaces, a numeric-EDITED one
+        // EDITS into its mask (§14.9.25.4 GR5).
+        // ⛔ ONLY ALPHANUMERIC WAS HANDLED HERE, AND THAT WAS SAFE ONLY BECAUSE THE BINDER OVER-REJECTED. The
+        // screen demanded §14.8.2.3.2 strict IDENTITY for every other string-carried formal, so widths and
+        // categories always matched and no store discipline was needed. Table 16 admits differing categories,
+        // so the moment the screen was corrected this line became load-bearing.
+        return fp.Category is PicCategory.Alphanumeric && sp.Item.Pic?.Category == PicCategory.Alphanumeric
+                && fp.EditMask is null
+            // The proven identical-category fast path, byte-for-byte as before: a plain width fit.
             ? RuntimeApi.StrStore(read, $"{Math.Max(1, fp.Length)}")
-            : read;
+            : U.Move.ConvertSource(new BoundFieldOperand(sp), a.Formal);
     }
 
 }

@@ -729,8 +729,18 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 arg.Pic is { Category: PicCategory.ObjectReference } ap
                     ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, ap, f)
                     : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
-            _ => OoConformance.DescriptionMismatch(formal, arg,
-                anyLengthActivationRelax: true),   // edited/other: conservative strict gate (:25414c ANY LENGTH)
+            // ⭐ BOOLEAN / NATIONAL / NUMERIC-EDITED FORMALS ASK TABLE 16, NOT STRICT IDENTITY (fix-queue PB53).
+            // This arm used to call DescriptionMismatch — which is §14.8.2.3.2, the BY **REFERENCE** rule —
+            // described in its own comment as a "conservative strict gate". It was not conservative, it was the
+            // WRONG CLAUSE: §14.8.2.3.3 rule 2d says a BY CONTENT crossing whose formal is not numeric, not an
+            // index item and not ANY LENGTH conforms "as for a MOVE statement", i.e. by §14.9.25.3 Table 16.
+            // Identity is far narrower, so three pairings the standard admits were refused with a "category
+            // mismatch" naming a rule that does not govern the crossing:
+            //     boolean → national · alphanumeric → boolean · national → boolean
+            // ⚠ ANY LENGTH keeps its own answer FIRST: §14.8.2.3.3 rule 2c makes such a formal's length
+            // "considered to match", which is a statement about LENGTH and leaves the category pair to 2d.
+            _ => formal.IsAnyLength && !arg.IsAnyLength ? null
+                : MoveTable16.Refusal(Table16Operand.Of(arg), Table16Operand.Of(formal)),
         };
     }
 
