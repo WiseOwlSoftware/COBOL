@@ -27,6 +27,42 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind <c>CALL</c> (ISO §14.9.4 Format 1; design D2 — the uniform opaque ABI call).</summary>
     public BoundStatement BindCall(Core.CallStatementContext call)
     {
+        // ── §14.9.4.2 FORMAT 2: the AS phrase (fix-queue PB46, CALL half) ────────────────────────────────────
+        // `CALL {identifier-1 | literal-1} AS {NESTED | program-prototype-name-1}`. The presence of AS is what
+        // selects Format 2 — a SYNTACTIC discriminator, contrary to this item's own note, which had concluded the
+        // formats were indistinguishable at parse time and the whole half therefore blocked on P13.
+        // The brace has TWO arms with DIFFERENT dependencies, and only one of them needs the prototype registry.
+        bool formatTwo = call.callAsPhrase() is not null;
+        bool asNested = false;
+        if (call.callAsPhrase() is { } asPhrase)
+        {
+            string asWord = asPhrase.cobolWord().GetText();
+            asNested = string.Equals(asWord, "NESTED", StringComparison.OrdinalIgnoreCase);
+            if (!asNested)
+            {
+                // §14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the
+                // REPOSITORY paragraph." The REPOSITORY grammar has no `PROGRAM program-prototype-name` entry
+                // (§12.3.8.2's program-specifier), so no source can declare one — this arm is genuinely blocked
+                // on the P13 prototype registry, and says so by name instead of failing as an unresolved call.
+                ctx.Edition.Error(DiagnosticCatalog.CallAsPrototypeName,
+                    $"CALL … AS {asWord}: a program-prototype-name shall be declared by a PROGRAM specifier in "
+                    + "the REPOSITORY paragraph (ISO §14.9.4.3 SR16 / §12.3.8.2), which this compiler does not "
+                    + "yet accept — the program-prototype registry is P13. `AS NESTED` is supported.");
+                return new BoundNop();
+            }
+            // §14.9.4.3 SR13: the NESTED phrase may be specified only in a program definition.
+            // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
+            // directly contained in the calling program.
+            if (call.callTarget().literal() is null)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedNeedsLiteral,
+                    "CALL … AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
+                    + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §14.9.4.3 SR15)");
+                return new BoundNop();
+            }
+        }
+        _ = formatTwo;   // read below by the USING binder for the Format-2 BY CONTENT operand set
+
         // ── Target: literal (static) or identifier (dynamic, resolved at run time — GR3b) ──
         string? literalName = null;
         BoundOperand? dynamicName = null;
@@ -77,10 +113,49 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (a.callByContent() is { } byContent)
             {
                 mode = CobolPassMode.Content;
-                if (byContent.literal() is { } clit)
-                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
-                else if (byContent.dataReference() is { } cdref && ctx.Refs.Resolve(cdref) is { } cp)
+                // ── ONE OPERAND, THREE CHANNELS — normalized once, exactly as OoBindInvokeArg does ──
+                // The grammar parses BY CONTENT wide (both formats share this rule). A B-operator-FREE
+                // booleanExpression reduces to its bare valueOperand, so the predicate decides only which NODE
+                // an operand lands in, never what it means.
+                var cBool = byContent.booleanExpression();
+                var cArith = byContent.arithmeticExpression();
+                var cLit = byContent.literal();
+                if (cBool is not null && ConditionBinder.UnwrapBareBool(cBool) is { } cBare)
+                {
+                    cBool = null;
+                    cArith = cBare.arithmeticExpression();
+                }
+                // The grammar keeps a `dataReference` arm (legacy shares this rule), so a bare identifier lands
+                // there directly; the sole-reference reduction still covers one that arrived inside an
+                // expression node — the two paths must agree, which is why both are consulted here.
+                var cDref = byContent.dataReference() ?? ConditionBinder.SoleDataReference(cArith);
+                // §14.9.4.2 FORMAT 1's BY CONTENT IS `{ identifier-2 } …` AND NOTHING ELSE. An expression operand
+                // is legal only under Format 2, which the AS phrase selects — so accepting one here without that
+                // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
+                if (!formatTwo && (cBool is not null || (cArith is not null && cDref is null)))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                        $"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand belongs to the "
+                        + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects. "
+                        + "Format 1's BY CONTENT admits `{ identifier-2 } …` only.");
+                    return new BoundNop();
+                }
+                if (cDref is not null && ctx.Refs.Resolve(cDref) is { } cp)
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
+                else if (cLit is { } clit)
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
+                else if (cArith is { } cax)
+                    // Format-2 arithmetic-expression-1: bind through the ONE expression path and pass its value.
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null,
+                        IntrinsicBinder.OperandOf(host.Expr.BindExpr(cax))));
+                else if (cBool is not null)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                        "CALL … USING BY CONTENT <boolean-expression>: §14.9.4.2 Format 2 admits it and the "
+                        + "boolean value channel does not yet cross a CALL boundary (the INVOKE side landed as "
+                        + "PB46's BoundInvokeArg.ContentBool; the CALL argument model has no counterpart)");
+                    return new BoundNop();
+                }
                 else
                     return new BoundUnsupported($"CALL USING BY CONTENT argument '{byContent.GetText()}'");
             }

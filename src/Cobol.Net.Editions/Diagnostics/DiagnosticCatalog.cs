@@ -147,6 +147,34 @@ public static class DiagnosticCatalog
         + "byte-width authority lands ONCE, with it (the singular-pattern rule).", "ISO §13.10.4 GR5 / §15.14",
         RecognizedNotImplemented);
 
+    // ── COBOLNET0899 — the CALL Format-2 legs (fix-queue PB46, CALL half) ────────────────────────────────
+    // §14.9.4.2 Format 2 is `CALL {identifier-1|literal-1} AS {NESTED | program-prototype-name-1}`. The AS brace
+    // has TWO arms with different dependencies: NESTED is supported, the prototype-name arm is not, and a reader
+    // who hits the wall needs to be told WHICH half is missing rather than seeing an unresolved call.
+    public static readonly DiagnosticDescriptor CallAsPrototypeName = new(
+        NotImplemented, "call-as-prototype-name", EditionSeverity.Error,
+        "CALL … AS program-prototype-name requires the program-prototype registry. ISO §14.9.4.3 syntax rule 16 "
+        + "makes program-prototype-name-1 a name \"specified in a program-specifier in the REPOSITORY "
+        + "paragraph\", and §12.3.8.2's program-specifier (PROGRAM program-prototype-name-1 [AS literal-3]) has "
+        + "no repositoryEntry alternative, so no source can declare one. The sibling arm, CALL … AS NESTED, is "
+        + "supported. Tracked as the P13 prototype registry.",
+        "ISO §14.9.4.3 SR16 / §12.3.8.2", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor CallAsNestedNeedsLiteral = new(
+        NotImplemented, "call-as-nested-needs-literal", EditionSeverity.Error,
+        "CALL … AS NESTED names its program by literal-1. ISO §14.9.4.3 syntax rule 15: \"If the NESTED phrase "
+        + "is specified, literal-1 shall be specified. Literal-1 shall be the same as the program-name specified "
+        + "in a PROGRAM-ID paragraph of a common program … or of a program that is directly contained in the "
+        + "calling program.\" An identifier target cannot name a contained program at compile time.",
+        "ISO §14.9.4.3 SR15");
+    public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
+        NotImplemented, "call-content-operand-format", EditionSeverity.Error,
+        "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "
+        + "\"{ identifier-2 } …\" and nothing else; the expression operands (arithmetic-expression-1, "
+        + "boolean-expression-1) are Format 2's, which the AS phrase selects. A boolean expression is additionally "
+        + "not yet carried across a CALL boundary — the INVOKE side has BoundInvokeArg.ContentBool and the CALL "
+        + "argument model has no counterpart.",
+        "ISO §14.9.4.2 Formats 1 and 2", RecognizedNotImplemented);
+
     // ── COBOLNET0899 — the staged-loud standard-arithmetic leg (P10 Step 12) ─────────────────────────────
     public static readonly DiagnosticDescriptor ArithmeticStandardIntrinsic = new(
         NotImplemented, "arithmetic-standard-intrinsic",  EditionSeverity.Error,

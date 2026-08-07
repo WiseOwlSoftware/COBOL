@@ -1556,6 +1556,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>Site 4 — <c>CALL … USING BY CONTENT boolean-expression-1</c> (ISO §14.9.4.2 Format 2;
+        /// fix-queue PB46 CALL half). ⚙ THIS OVERRIDE EXISTS BECAUSE THE DRIFT TEST DEMANDED IT: widening
+        /// <c>callByContent</c> added a fourth grammar site and
+        /// <c>BooleanExpressionGateSiteDriftTests</c> — written one item earlier for exactly this — failed with
+        /// "grammar rule(s) admit a booleanExpression with no introduction gate: callByContent". The list is
+        /// derived from the <c>.g4</c> files, so it saw the new site the moment it appeared.</summary>
+        public override object? VisitCallByContent(CobolParserCore.CallByContentContext ctx)
+        {
+            GateBooleanOperators(ctx.booleanExpression());
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Site 3 — <c>INVOKE … USING BY CONTENT boolean-expression-1</c> (ISO §14.9.23.2; fix-queue
         /// PB46). The BooleanOperators2002 half is unreachable in practice — INVOKE is itself a COBOL-2002
         /// introduction, so no edition admits the statement but not the operators — but the SHIFT half is
@@ -1773,6 +1785,16 @@ internal sealed class VersionConformancePass
             //       the implementor, never a user-defined-word definition      → exempt (ENTRY-CONVENTION's
             //       entry-convention-name is the same shape and the same precedent)
             // Exempting the whole clause would have hidden a real §8.9 violation in slot [1].
+            // `CALL … AS NESTED` (§14.9.4.2 Format 2; fix-queue PB46 CALL half). The AS phrase is grammar-matched
+            // as `AS cobolWord` because the brace's two arms are the RESERVED word NESTED and a
+            // program-prototype-NAME, and only the binder can tell them apart. NESTED there is a use OF the
+            // reserved word, not a user-defined word — the same shape as the LOCALE clause below.
+            // ⚠ EXACTLY THE WORD NESTED, because the OTHER arm genuinely IS a user-defined word:
+            // program-prototype-name-1 is declared in the REPOSITORY paragraph (§14.9.4.3 SR16), so a reserved
+            // word written there is a real §8.9 violation and must keep reaching the funnel.
+            if (ctx.Parent is CobolParserCore.CallAsPhraseContext
+                && string.Equals(ctx.Start.Text, "NESTED", StringComparison.OrdinalIgnoreCase))
+                return base.VisitChildren(ctx);
             if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
                 && locale.cobolWord() is { Length: > 1 } localeWords
                 && !ReferenceEquals(ctx, localeWords[1]))

@@ -981,8 +981,15 @@ moveReceivingPhrase
 // CALL (§14.9.4)
 // ==========================================
 
+// ⛔ THE `AS` PHRASE IS WHAT SELECTS FORMAT 2, AND ITS ABSENCE IS WHY FORMAT 2 WAS UNREACHABLE (fix-queue PB46,
+// CALL half). §14.9.4.2 Format 2 prints `CALL { identifier-1 | literal-1 } AS { NESTED | program-prototype-name-1 }`
+// — a SYNTACTIC discriminator. PB46's note asserted the opposite ("the formats are NOT distinguishable at parse
+// time … what selects Format 2 is whether the called name resolves to a program-prototype — a SEMANTIC
+// question") and concluded the whole CALL half was blocked on the P13 prototype registry. Reading the rendered
+// general format refutes that: Format 1 has no AS phrase at all.
 callStatement
     : CALL callTarget
+      callAsPhrase?
       callUsingPhrase?
       callReturningPhrase?
       callExceptionPhrases?
@@ -993,6 +1000,16 @@ callStatement
 callTarget
     : literal
     | dataReference
+    ;
+
+// `AS NESTED` | `AS program-prototype-name-1`. ⚠ NESTED IS NOT LEXED AS A TOKEN and deliberately so: §8.9 makes
+// it a RESERVED word from 2002 (reserved-words.json r85=false, r2002+=true), but this repo enforces reservation
+// through the VisitCobolWord funnel on the word's SPELLING, not through tokenization — which is how its sibling
+// MODULE-NAME phrase words (CURRENT / ACTIVATING / STACK / TOP-LEVEL) are already handled. Tokenizing it would
+// break `FUNCTION MODULE-NAME(NESTED)`, force an entry in fnArgPhraseWord, and make NESTED asymmetric with those
+// siblings — all to answer a question the binder answers in one comparison.
+callAsPhrase
+    : AS cobolWord
     ;
 
 callUsingPhrase
@@ -1014,8 +1031,25 @@ callByValue
     : BY VALUE arithmeticExpression   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
     ;
 
+// ⛔ THE TWO FORMATS' BY CONTENT OPERAND SETS DIFFER, AND ONE RULE CANNOT BE BOTH (fix-queue PB46, CALL half).
+// §14.9.4.2 Format 1's BY CONTENT is `{ identifier-2 } …` and NOTHING else; Format 2's is
+// `arithmetic-expression-1 | boolean-expression-1 | identifier-4 | literal-2`. This rule serves both, so it is
+// parsed WIDE and narrowed in the binder by whether the AS phrase selected Format 2 — the repo's standing
+// superset-parse / bind-narrow doctrine. Widening the GRAMMAR alone would trade a rejection of legal Format-2
+// source for an acceptance of illegal Format-1 source, which is the trade this item's note correctly refused.
+// ⚠ The alternation is the SAME shape invokeArgument uses, for the same reasons: `literal` FIRST because
+// `arithmeticExpression` subsumes numeric literals; `dataReference` deliberately ABSENT because
+// `arithmeticExpression` subsumes it and the identifier case is recovered in the binder from a sole-dataReference
+// expression; and the boolean arm behind `{boolExprAhead()}?` because booleanExpression's leaf is valueOperand
+// and an unguarded alternative is ambiguous with the arithmetic one.
+// ⚠ `dataReference` STAYS IN THE ALTERNATION, unlike invokeArgument's, and §0's standing caution is why: this
+// rule lives in the SHARED `CobolParserCore.g4`, and the LEGACY binder reads `callByContent.dataReference()`.
+// Removing it deletes that generated accessor and breaks a compiler that shares this grammar until the P15
+// cut-over — the change must be ADDITIVE. Placing it BEFORE `arithmeticExpression` is also what preserves the
+// bare-identifier path: ANTLR predicts the alternative that matches the WHOLE operand, so `A` takes the
+// dataReference arm and `A + 1` falls through to the expression one.
 callByContent
-    : BY? CONTENT (dataReference | literal)
+    : BY? CONTENT ({boolExprAhead()}? booleanExpression | literal | dataReference | arithmeticExpression)
     ;
 
 callReturningPhrase

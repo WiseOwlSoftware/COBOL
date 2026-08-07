@@ -122,7 +122,8 @@
     "pb53_by_content_move_rules",
     "r03_hexadecimal_national_and_boolean_literals",
     "r01_constant_name_intrinsic_argument",
-    "r02_underscore_in_cobol_words"
+    "r02_underscore_in_cobol_words",
+    "pb46_call_format2_as_nested"
   ],
   "pending": []
 }

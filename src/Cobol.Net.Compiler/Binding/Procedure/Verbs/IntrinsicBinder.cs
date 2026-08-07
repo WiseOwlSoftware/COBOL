@@ -382,7 +382,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // D8 edition window: a function is rejected, BY NAME AND EDITION, outside [IntroducedIn, RemovedIn).
         // The 42-function 1989 Intrinsic Function Module rows carry IntroducedIn 85 — the amendment is part of
         // the CCVS-85 corpus, so --std 85 accepts them.
-        if (sig.IntroducedIn > ctx.Edition.DialectLevel)
+        // ⛔ A DOCUMENTED-NON-SUPPORT FUNCTION DOES NOT ASSERT AN INTRODUCTION EDITION (fix-queue PB27 §③).
+        // COBOLNET1502 states a FACT about the standard — "was introduced by ISO/IEC 1989:{year}" — and for the
+        // §A.4.9 locale family that year is HAND-ASSIGNED AND UNVERIFIABLE: the 2023 standard carries no
+        // introduction record (§8.11 lists the intrinsic NAMES with no edition data; Annex E covers only
+        // 2014→2023), the repo holds no 2002 or 2014 text, the reserved-word tables do not carry intrinsic
+        // names, and GnuCOBOL's testsuite pins no `-std=` on these functions. Every source was checked.
+        // ⚠ AND THE DIAGNOSTIC IS REDUNDANT HERE ANYWAY: `Bind = Unsupported` means COBOLNET1518 rejects the
+        // reference at EVERY edition, 2023 included (measured), so the edition claim adds no actionable
+        // information — no `--std` makes the program compile — while asserting something we cannot substantiate.
+        // ⚠ IT SELF-LIFTS: the suppression keys on Bind, so implementing the locale module restores the gate —
+        // at which point IntroducedIn would have to be verified anyway, which is the right forcing function.
+        if (sig.Bind is IntrinsicBind.Unsupported) { /* §A.4.9 non-support says it all; see above */ }
+        else if (sig.IntroducedIn > ctx.Edition.DialectLevel)
             ctx.Edition.Error("COBOLNET1502", $"FUNCTION {sig.Name} was introduced by ISO/IEC 1989:{sig.IntroducedIn} "
                 + $"(§15) — it requires --std {sig.IntroducedIn} or later (targeting COBOL-{ctx.Edition.DialectLevel})");
         else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)
