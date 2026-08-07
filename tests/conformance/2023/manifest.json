@@ -114,7 +114,8 @@
     "pb46_invoke_by_content_expression",
     "pb51_compute_figurative_zero",
     "pb33_numval_c_format_validation",
-    "pb46_invoke_by_content_boolean"
+    "pb46_invoke_by_content_boolean",
+    "pb35_zero_length_literal_legal_forms"
   ],
   "pending": []
 }

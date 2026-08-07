@@ -172,7 +172,8 @@
     "pb40-numeric-function-in-integer-position",
     "pb40-scaled-item-in-integer-position",
     "pb46-invoke-by-content-expression-alphanumeric-formal",
-    "pb46-invoke-by-content-boolean-numeric-formal"
+    "pb46-invoke-by-content-boolean-numeric-formal",
+    "pb35-zero-length-literal-max-argument"
   ],
   "pending": []
 }

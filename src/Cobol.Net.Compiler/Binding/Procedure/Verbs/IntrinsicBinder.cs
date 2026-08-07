@@ -1035,6 +1035,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         for (int i = 0; i < args.Count; i++)
         {
             if (schema.At(i) is not { } rule) continue;
+            // "Argument-N shall not be a zero-length literal" (fix-queue PB35) — a LENGTH rule, not a class one,
+            // so it is tested beside the class rule rather than through it. SIX §15 clauses state it and exactly
+            // ONE was enforced: NATIONAL-OF's, hand-written in CheckRepertoireArgs, while MAX, MIN, ORD-MAX,
+            // ORD-MIN and STANDARD-COMPARE accepted `FUNCTION MAX("" "AB")` silently at every edition.
+            // ⚠ THE TEST IS ON THE LITERAL, NOT ON THE LENGTH. A zero-length ITEM is legal in every one of these
+            // positions — the clauses each say "zero-length LITERAL" — so screening on width would reject legal
+            // source, which is how PB1 turned 12 conforming corpus programs away.
+            if (rule.NoZeroLengthClause is { } zlClause && args[i] is BoundStringLiteral { Value.Length: 0 })
+                Report($"FUNCTION {sig.Name} argument-{i + 1} is a zero-length literal, which {zlClause} "
+                    + "does not admit");
             if (IntrinsicArgumentRules.Violation(rule.Kind, args[i]) is not { } why) continue;
             Report($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})");
         }

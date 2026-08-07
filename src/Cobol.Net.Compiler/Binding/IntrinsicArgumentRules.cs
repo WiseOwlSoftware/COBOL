@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Brent Rector. All rights reserved.
+﻿// Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
@@ -49,7 +49,28 @@ internal enum CobolClass
 
 /// <summary>One argument POSITION's requirement — the §15.x.3 rule for that ordinal, with the clause it was read
 /// from. <paramref name="Kind"/> is the code <see cref="IntrinsicArgumentRules.Admissible"/> resolves.</summary>
-internal readonly record struct ArgRule(char Kind, string Clause);
+/// <param name="NoZeroLengthClause">
+/// The clause reference for "argument-N shall not be a zero-length literal" when this position carries that
+/// rule, else null (fix-queue PB35). SIX §15 clauses state it — §15.59.3 r3 (MAX), §15.63.3 r3 (MIN), §15.66.3
+/// r3 (NATIONAL-OF), §15.71.3 r2 (ORD-MAX), §15.72.3 r2 (ORD-MIN) and §15.85.3 r4 (STANDARD-COMPARE, on
+/// argument-1 AND argument-2) — and exactly ONE was enforced, hand-written inside <c>CheckRepertoireArgs</c> for
+/// NATIONAL-OF alone. Declaring it HERE, beside the position's class rule, makes the seventh clause a one-line
+/// table edit instead of a seventh copy of the check (<c>feedback_one_rule_one_place</c>, CLAUDE.md rule 5).
+/// <para>
+/// ⛔ IT IS A SEPARATE CLAUSE REFERENCE AND NOT A <c>bool</c>, because it is a DIFFERENT RULE NUMBER from the
+/// position's class rule in every one of the six: MAX's class rule is §15.59.3 <b>r1</b> and its zero-length
+/// rule is <b>r3</b>. A boolean would have made the diagnostic cite r1 for an r3 violation — a citation that
+/// passes <c>cite.py --check</c> (the text is real) while pointing at the wrong rule, which is the precise
+/// failure mode CLAUDE.md rule 1 exists for.
+/// </para>
+/// <para>
+/// ⚠ It rides the POSITION, not the function, because the clauses genuinely differ in reach: MAX/MIN/ORD-MAX/
+/// ORD-MIN print <c>FUNCTION MAX ( { argument-1 } … )</c>, so "argument-1" IS the whole variadic list and the
+/// prohibition covers every argument (it lands on the schema's <see cref="ArgSchema.Tail"/>); NATIONAL-OF's
+/// argument-1 is one ordinal of two; STANDARD-COMPARE names two ordinals and not its third.
+/// </para>
+/// </param>
+internal readonly record struct ArgRule(char Kind, string Clause, string? NoZeroLengthClause = null);
 
 /// <summary>A §15.x.3 rule about the argument list AS A WHOLE, which no per-position code can express.</summary>
 /// <remarks>
@@ -314,7 +335,8 @@ internal static class IntrinsicArgumentRules
     /// shall be of class numeric", with argument-1 repeating for a variadic list). Expressed as a variadic TAIL
     /// with no fixed positions, which is precisely what the pre-schema table did for every row.</summary>
     private static ArgSchema Uniform(char kind, string clause, CrossArgRule cross = CrossArgRule.None,
-        string crossClause = "") => new([], new ArgRule(kind, clause), cross, crossClause);
+        string crossClause = "", string? noZeroLen = null) =>
+        new([], new ArgRule(kind, clause, noZeroLen), cross, crossClause);
 
     /// <summary>Per-POSITION kinds, for a rule that constrains its ordinals differently — FIND-STRING's two
     /// string operands plus an integer, the FORMATTED-* family's format literal plus its numeric values.
@@ -331,8 +353,8 @@ internal static class IntrinsicArgumentRules
         {
             ["ABS"] = Uniform('n', "§15.7.3 r1"),                            // shall be of class numeric
             ["ORD"] = Uniform('s', "§15.70.3 r1"),                           // category alphabetic/alphanumeric/national
-            ["ORD-MAX"] = Uniform('p', "§15.71.3 r1"),                       // NOT boolean/message-tag/object/pointer
-            ["ORD-MIN"] = Uniform('p', "§15.72.3 r1"),                       // NOT boolean/message-tag/object/pointer
+            ["ORD-MAX"] = Uniform('p', "§15.71.3 r1", noZeroLen: "§15.71.3 r2"),                       // NOT boolean/message-tag/object/pointer
+            ["ORD-MIN"] = Uniform('p', "§15.72.3 r1", noZeroLen: "§15.72.3 r2"),                       // NOT boolean/message-tag/object/pointer
             ["PRESENT-VALUE"] = Uniform('n', "§15.74.3 r1"),                 // argument-1 and argument-2 class numeric
             ["RANDOM"] = Uniform('n', "§15.75.3 r1"),                        // shall be of class numeric
             ["RANGE"] = Uniform('n', "§15.76.3 r1"),                         // shall be of class numeric
@@ -435,8 +457,8 @@ internal static class IntrinsicArgumentRules
             // ⚠ RESIDUE, recorded rather than silently dropped: r1's "nor shall it be a strongly-typed group
             // item" and r3's "argument-1 shall not be a zero-length literal" are not class constraints, so this
             // row does not enforce them. Half a rule enforced is PARTIAL, never CONFORMS.
-            ["MAX"] = Uniform('p', "§15.59.3 r1", CrossArgRule.AllSameClass, "§15.59.3 r2"),
-            ["MIN"] = Uniform('p', "§15.63.3 r1", CrossArgRule.AllSameClass, "§15.63.3 r2"),
+            ["MAX"] = Uniform('p', "§15.59.3 r1", CrossArgRule.AllSameClass, "§15.59.3 r2", "§15.59.3 r3"),
+            ["MIN"] = Uniform('p', "§15.63.3 r1", CrossArgRule.AllSameClass, "§15.63.3 r2", "§15.63.3 r3"),
 
             // ── fix-queue PB12 · the MIXED-CLASS functions, which are why the schema exists ──────────────────
             // §15.68.3 r1 makes argument-1 "of category alphanumeric or national"; r2 makes argument-2 "of the
