@@ -756,6 +756,20 @@ public static class DiagnosticCatalog
         + "occurrence number elsewhere, SET a data item to it first (SET data-item TO index-name, §14.9.39) "
         + "and reference the data item.",
         "ISO §13.18.38.3 r7 / §8.4.3.1.2");
+    // kb/Work R19 (ledger F18). The OMITTED arm one line above it reports (COBOLNET1544) while this arm
+    // returned a silent BoundOperandError — the program compiled with zero diagnostics and threw
+    // NotImplementedCobolFeatureException at run time. §4.2.2 ¶3 obliges the warning mechanism to indicate a
+    // syntactically-distinguishable violation, and a reserved phrase word in an argument slot of a function
+    // that takes no phrase is exactly that. Generic to every catalogued function — reported at the ONE arm,
+    // never per function.
+    public static readonly DiagnosticDescriptor IntrinsicArgumentNotAValue = new(
+        "COBOLNET1638", "intrinsic-argument-not-a-value", EditionSeverity.Error,
+        "An intrinsic-function argument position holds a reserved phrase word (LEADING, TRAILING, LAST, "
+        + "FIRST, ANY, START, AFTER, ALPHANUMERIC, NATIONAL) or a literal form the position does not admit. "
+        + "The phrase words belong to the few functions whose §15.x.2 general format names them (FIND-STRING, "
+        + "SUBSTITUTE, CONVERT, TRIM, MODULE-NAME); every other function's format admits only its arguments — "
+        + "§15.3's argument types are identifiers, literals, and expressions, never a bare reserved word.",
+        "ISO §15.3 / §4.2.2 ¶3 (the per-function §15.x.2 general format decides)");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

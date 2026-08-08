@@ -1570,7 +1570,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return new BoundOperandError("OMITTED intrinsic argument");
         }
         if (a.fnArgPhraseWord() is { } kw)
-            return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");   // a phrase word this function does not take
+        {
+            // A phrase word this function does not take — REPORTED, not silently staged (kb/Work R19): the
+            // OMITTED arm above reports and this arm did not, so `FUNCTION EXP10(LEADING)` compiled with zero
+            // diagnostics and threw at run time (§4.2.2 ¶3 obliges the indication).
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
+                $"the reserved phrase word '{kw.GetText()}' is written as an intrinsic-function argument, but "
+                + "this function's §15.x.2 general format takes no phrase — a phrase word is not an identifier, "
+                + "literal, or expression (ISO §15.3)");
+            return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");
+        }
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
         // ⛔ A CONSTANT-NAME SUBSTITUTES ITS LITERAL, OF ITS OWN CLASS — HERE, BEFORE THE NUMERIC PATH BELOW
         // (fix-queue R01). §13.10.4 GR1: "the effect of specifying constant-name-1 in other than this entry is as
@@ -1596,12 +1605,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
     /// introduction-gate helpers every literal channel uses). HEXLIT decodes as the alphanumeric literal it is
     /// (§8.3.3.2 Format 2) — DA3.</summary>
-    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn) =>
+    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn)
+    {
         // Through the ONE literal mapping (ExpressionBinder.NonNumericLiteralOperand) — this used to be a second
         // hand-maintained copy of the same chain, which is how the hexadecimal form came to be supported in some
         // literal positions and not others (DA3). §8.8.3.3 GR3 concatenation folding and the §8.3.3.4/.5/.6.4
         // decode + introduction gates all live there now.
-        host.Expr.NonNumericLiteralOperand(nn) ?? new BoundOperandError($"literal argument '{nn.GetText()}'");
+        if (host.Expr.NonNumericLiteralOperand(nn) is { } op) return op;
+        // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
+        ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
+            $"the literal '{nn.GetText()}' is not a form this intrinsic-argument position admits (ISO §15.3)");
+        return new BoundOperandError($"literal argument '{nn.GetText()}'");
+    }
 
     /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
     /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —
