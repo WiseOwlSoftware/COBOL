@@ -13,6 +13,14 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1215 — 2026-08-07 22:42 PDT — Owner correction on A14: larger runners are NOT cost-neutral — the baseline is the free tier
+
+Entry 1214 (and the A14 note) claimed larger Linux runners were "roughly cost-neutral" by comparing
+per-core-minute RATES. The owner's correction: the standard-runner minutes in use today run inside GitHub's
+FREE allocation — the comparison baseline is $0, and larger runners bill from the first minute with no free
+tier. Pay-for-speed, full stop. The note is corrected; the sharding (options 1+2, landed in 1214) was the
+right implementation choice precisely because it achieves the speedup at the actual current cost of zero.
+
 ## Entry 1214 — 2026-08-07 22:20 PDT — A14: the 30-minute verdict becomes ~12 — conformance sharded with a population guard that cannot lose a test silently
 
 **The 30 minutes was ONE STEP.** Measured on run 31238417792: build ~1.1 min; the conformance suite ~23-24 min
