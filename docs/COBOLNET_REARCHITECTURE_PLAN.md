@@ -185,7 +185,34 @@ battery as the per-batch local gate and let CI own the cross-platform axis.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
-**⚙ 2026-08-07 SESSION CLOSE — PB46 (both halves) · PB27 · PB35 · PB50 · PB54 · PB52 · PB53 · R03 · R01 · R02.**
+**⚙ 2026-08-07 EVENING SESSION CLOSE — R04 · R05 · R06 · R07 · R08 · R09 (closed stale) · R10 (float half) —
+and the two NEXT items are fully planned in their `kb/Work/` notes.**
+⛔ Run the probe; the worklist is `kb/Work/` (`python scripts/spec/work.py next`), never this paragraph.
+
+**START HERE NEXT SESSION — two items, each carrying its complete plan in its note:**
+1. **R10's COMP-5 half — OWNER DECISION TAKEN (2026-08-07): UNSIGNED CARRIERS.** Unsigned COMP-5 emits `ulong`
+   (10–18 digits) / `UInt128` (19–31). One change set: `PicInfo.ClrType` / `DataItem.ElementType` storage tier ·
+   `CobolNum.WrapBinary`/`InBinaryRange` rework (fixing the bits=128 shift-mask bug where the modulus collapses
+   to 1 — F73) · the arithmetic render paths · the drift test pinning `BindAlgebraicFold`'s container-usage
+   list against `PicInfo`'s `NumericTruncation.BinaryCapacity` list (one list written twice). Plan: `kb/Work/R10.md`.
+2. **R00 — the ledger audit.** The old residue block enumerated exactly 10 findings (became R01–R10) while
+   claiming 16; the evidence ledger holds 82. Treat the COUNT as a hypothesis: disposition every F-finding
+   (R-note · PB cluster · landed-and-PROBED — R09 was closed stale, a note's word is not evidence · ORPHAN);
+   each orphan becomes an R11+ note first. Recipe + the cross-references already established: `kb/Work/R00.md`.
+   Prime orphan candidates: F7–F11 (function-identifier operand family, DISPLAY-of-index), F12 (signed float
+   literal arguments).
+
+⭐ **THE SESSION'S FINDING — the premise-failure pattern now stands at 14 of 16:** R04 (the token axis cannot
+name GO TO — `TO` is optional), R05 (the "truncation" was §15.33.3 r1 itself; the real defects were the missing
+record, the advisory, and a directive-word §8.3.2.1 hole the item's own fact discovered), R09 (already fixed by
+PB25 — closed on a PROBE, not the comment). R06 and R08 are the only two whose premises held as filed.
+Three structural extractions landed en route, each with a drift guard: `Table12StatementNames` (statement-kind →
+Table 12 name), `EcNameResolution` (the ONE written-exception-name funnel — it also closed the USE-site level-2
+edition-gate hole), and `CobolWordRule` (the ONE §8.3.2.1 length ceiling — the tree walk AND the directive
+stages, closing the `>>TURN`/`>>DEFINE` evasion). R07's lesson: `ExceptionState` is an ENGINE + a STATIC
+FACADE — editing one arm fails CS1501 at generated-code compile time; check both.
+
+**⚙ 2026-08-07 (morning) SESSION CLOSE — PB46 (both halves) · PB27 · PB35 · PB50 · PB54 · PB52 · PB53 · R03 · R01 · R02.**
 ⛔ Run the probe; never quote a count from this paragraph — `kb/Work/` says what is OPEN
 (`python scripts/spec/work.py next`), and it is down to residue items.
 
