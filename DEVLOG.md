@@ -13,6 +13,19 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1229 — 2026-08-08 13:39 PDT — The R17+R19+R20 battery lands ALL GREEN — the grammar change moved nothing
+
+The comprehensive battery the last session left in flight completed just after this session opened:
+every leg green — Conformance 4275/4275 zero skipped (11 m 52 s), Unit 4086/4086, characterization
+33/33, guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and a CLEAN audit, and the GnuCOBOL
+differential at 1323 cases, 0 per-case flips. The differential was the leg the handoff said to watch
+— R17 rewrote the signed floating-point literal into one token across every lexer region — and it
+moved nothing: not one of 1,323 real programs changed its accept/reject verdict.
+
+Battery reference advanced to the bc739114 tree (the docs-only handoff commit e922c011 landed after
+the battery's build phase, so the measured code tree is R20's). The R00-audit orphan wave continues
+from the top of work.py next: R21, the CURRENT-DATE / FORMATTED-CURRENT-DATE clock-seam bypass.
+
 ## Entry 1228 â 2026-08-08 13:24 PDT â R20: FIND-STRING's phrase walk goes positional â the last order-free arm, and the dangling START AFTER stops eating source
 
 FIND-STRING accepted its phrase words anywhere, repeated, and â the case that made this a defect rather

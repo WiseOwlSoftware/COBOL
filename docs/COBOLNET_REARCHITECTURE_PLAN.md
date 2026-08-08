@@ -40,13 +40,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   words as arguments) · **R20** (FIND-STRING's positional phrase walk). Each note's LANDED section carries
   the implementation record; DEVLOG 1217–1228 the narrative. Next-free diagnostic: session-probe computes it
   (1639 unless something landed since).
-  ⚠ **A COMPREHENSIVE BATTERY FOR THE R17+R19+R20 BATCH WAS IN FLIGHT WHEN THIS SESSION ENDED** — log at
-  `E:/Temp/claude/E--CobolSharp/f339feb3-c0ad-4d16-a57e-6fa42922e192/scratchpad/battery-r17r19r20.log`.
-  **The next session's FIRST act: read that log's verdict lines** (`grep -E "BATTERY|DIFFERENTIAL" <log>`)
-  — R17 is a GRAMMAR change, so the differential leg is the one to watch; a flip naming a float-literal or
-  arity diagnostic is attribution work, not automatically a regression (the 13011 precedent below). If the
-  log is absent or truncated, re-run `bash scripts/battery.sh` before building on the batch; if green,
-  advance the battery reference below and continue the wave.
+  ✅ **THE R17+R19+R20 COMPREHENSIVE BATTERY COMPLETED `ALL GREEN` (2026-08-08 13:38)** — every leg,
+  including the differential at **0 per-case flips** on the R17 grammar change, the leg the handoff said
+  to watch. The battery reference (§9 Gates) carries the numbers (single-write rule); the wave continues
+  from the top of `work.py next`.
 - **⛔ THE REPO LAYOUT CHANGED 2026-07-27.** `specs/` is now an ORDINARY PUBLIC DIRECTORY holding
   `specs/ISO_COBOL.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
   The Markdown path is unchanged, so all 1,663 spec citations still resolve. Tools that MEASURE the printed page
@@ -1157,7 +1154,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R24+R15+R16+R12 tree `db84240b` (2026-08-08 12:27).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R17+R19+R20 tree `bc739114` (2026-08-08 13:38),
+  `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4275 / 4275, zero skipped** (11 m 52 s) ·
+  greenfield Unit **4086 / 4086** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,
+  `=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** (artifacts `/tmp/battery-20260808-131723`). Covers R17
+  (the signed float literal as ONE token in every lexer region — a GRAMMAR change, so the differential
+  was the leg to watch, and it moved nothing), R19 (`COBOLNET1638`) and R20 (FIND-STRING's positional
+  phrase walk). The docs-only handoff commit `e922c011` landed after the battery's build phase, so the
+  measured code tree is `bc739114`'s.
+- **⛔ PRIOR BATTERY REFERENCE — the R24+R15+R16+R12 tree `db84240b` (2026-08-08 12:27).**
   ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING** — the PB40 shape again. Every
   internal leg was green: FULL greenfield Conformance **4271 / 4271, zero skipped** (11 m 7 s) · greenfield
   Unit **4083 / 4083** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
