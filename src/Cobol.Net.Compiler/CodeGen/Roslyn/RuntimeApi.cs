@@ -210,6 +210,16 @@ internal static class RuntimeApi
     public static string DecPow(string baseOperand, string expOperand, string mode) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
 
+    /// <summary>The exact §15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
+    public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
+
+    /// <summary>The exact §15.73.3 r3 FUNCTION PI constant under a standard mode — <c>CobolDec.Pi</c> (kb/Work R18).</summary>
+    public static string DecPi => $"{nameof(CobolDec)}.{nameof(CobolDec.Pi)}";
+
+    /// <summary>An exact fixed-point value lifted into SDIDI form — <c>CobolDec.From(unscaled, scale)</c>.</summary>
+    public static string DecFrom(string unscaled, string scale) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.From)}({unscaled}, {scale})";
+
     /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI operand conversion — <c>CobolDec.FromDouble</c>
     /// (the shortest round-trip decimal identity of the IEEE value; P10 Step 12).</summary>
     public static string DecFromDouble(string doubleExpr) =>

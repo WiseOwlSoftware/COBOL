@@ -22,6 +22,17 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// fits the 34-digit significand, §8.8.1.5.2).</summary>
     public static CobolDec From(Int128 unscaled, int scale) => new(unscaled, -scale);
 
+    /// <summary>FUNCTION E under a standard arithmetic mode — the EXACT §15.27.3 r3 value
+    /// (2.718281828459045235360287471352662, the full 34-digit SDIDI significand; kb/Work R18). The compiler
+    /// folds FUNCTION E to THIS constant and evaluates EXP's §15.34.4 equivalent arithmetic expression
+    /// (FUNCTION E ** argument-1) over it, so the function and its hand-written EAE agree by construction
+    /// (§15.4.1 r1).</summary>
+    public static readonly CobolDec E = new(Int128.Parse("2718281828459045235360287471352662"), -33);
+
+    /// <summary>FUNCTION PI under a standard arithmetic mode — the EXACT §15.73.3 r3 value
+    /// (3.141592653589793238462643383279503; kb/Work R18 — the E sibling, same rule shape).</summary>
+    public static readonly CobolDec Pi = new(Int128.Parse("3141592653589793238462643383279503"), -33);
+
     /// <summary>Lift a FLOATING-POINT operand into SDIDI form — the ISO §8.8.1.5.1 implementor-defined
     /// float→SDIDI conversion: the SHORTEST ROUND-TRIP decimal representation of the IEEE value (.NET "R" —
     /// ≤17 significant digits, so it always fits the 34-digit significand EXACTLY and the conversion itself

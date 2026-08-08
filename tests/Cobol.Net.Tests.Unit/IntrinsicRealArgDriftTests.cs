@@ -50,8 +50,10 @@ public sealed class IntrinsicRealArgDriftTests
         // green: `FUNCTION INTEGER-OF-DAY(<COMP-2>)` bound clean and failed Roslyn with CS0117. The renderer
         // uses or-chained labels throughout, so the under-count was systematic rather than incidental.
         // A label list runs from `case` to `:` or to a `when` guard; each quoted name inside it is an arm.
-        return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z]+""(?:\s+or\s+""[A-Za-z]+"")*)\s*(?::|when\b)")
-            .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z]+)""")
+        // ⛔ The name class includes DIGITS (kb/Work R18): `[A-Za-z]+` could not see a method like `Exp10`,
+        // so any digit-bearing arm was structurally invisible to this guard — the PB21 under-count shape again.
+        return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)")
+            .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
                                   .Select(x => x.Groups["n"].Value))];
     }
 

@@ -42,6 +42,7 @@
     "exception_statement_ambient",
     "exit_perform_cycle",
     "exit_perform_multilevel",
+    "exp_standard_decimal_eae",
     "external_file_status_consistency",
     "external_file_status_externality_ok",
     "external_linage_externality_ok",

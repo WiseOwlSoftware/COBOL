@@ -67,6 +67,28 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // binary64 the EAE *is* a binary64 evaluation — nothing exact is surrendered, because there was nothing
         // exact left to keep. The real-argument bodies are CobolIntrinsics.RealArgs.cs, deliberately sharing
         // these method names so this one line is the whole dispatch.
+        // ⛔ THE STANDARD-MODE ARM RUNS BEFORE THE FLOAT DISPATCH (kb/Work R18 — ledger F15/F19). Four float-family
+        // rows have their standard-mode value FIXED by the spec, with no §15.4.1 r2 latitude: FUNCTION E and
+        // FUNCTION PI are exact 34-digit constants (§15.27.3 r3 / §15.73.3 r3), and EXP / EXP10 carry equivalent
+        // arithmetic expressions — `FUNCTION E ** argument-1` (§15.34.4 r1) and `10 ** argument-1` (§15.35.4 r1) —
+        // that §15.4.1 r1 requires the returned value to EQUAL under a standard mode. Each renders through the
+        // SAME CobolDec.Pow the hand-written `**` uses (§8.8.1.5.4), over the SAME exact constants, so the
+        // function and its spelled-out EAE agree by construction — binary64 Math.Pow is not SDIDI arithmetic, and
+        // routing these through RenderFloat gave receiver-DEPENDENT answers (§15.4.1's same-for-all-instances
+        // rule) wrong from the third significant digit's ulp up. A float ARGUMENT lifts via DecOperand →
+        // CobolDec.FromDouble (§8.8.1.5.1), exactly as the landed exact-family lane does.
+        // (An if-chain, deliberately NOT a `switch (sig.RuntimeMethod)`: IntrinsicRealArgDriftTests anchors its
+        // exact-arm scan on the FIRST such switch, and these arms are not exact-family arms — a Real argument
+        // lifts through DecOperand, so no `…Real` body exists or is needed.)
+        if (num.StandardDecimal)
+        {
+            if (sig.RuntimeMethod == "E") return new NumX(RuntimeApi.DecE, 0, Dec: true);
+            if (sig.RuntimeMethod == "Pi") return new NumX(RuntimeApi.DecPi, 0, Dec: true);
+            if (sig.RuntimeMethod == "Exp")
+                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecE, num.DecOperand(Arg(ic, 0)), num.IntermediateMode), 0, Dec: true);
+            if (sig.RuntimeMethod == "Exp10")
+                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), num.DecOperand(Arg(ic, 0)), num.IntermediateMode), 0, Dec: true);
+        }
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
         // ⛔ FACTORIAL IS ROUTED TO ITS EXACT ARM EVEN WITH A FLOAT ARGUMENT (PB21), and it is the only one.
         // RenderFloat wraps every result in FromDouble(double, ws), so a ...Real body must return something a
