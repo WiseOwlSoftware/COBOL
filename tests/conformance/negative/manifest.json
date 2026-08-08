@@ -176,6 +176,7 @@
     "sync_group_below_2023",
     "test_validators_below_2002",
     "udf-by-value-arg-class",
+    "undefined-name-reference",
     "unlock-sort-file",
     "unlock_below_2002",
     "use-for-debugging",

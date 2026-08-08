@@ -140,8 +140,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + "Format 1's BY CONTENT admits `{ identifier-2 } …` only.");
                     return new BoundNop();
                 }
-                if (cDref is not null && ctx.Refs.Resolve(cDref) is { } cp)
-                    args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
+                if (cDref is not null && ctx.Refs.Probe(cDref) is { } cp)   // Probe — the cArith arm below is the
+                    args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));   // legal alternative and its bind demands (R30)
                 else if (cLit is { } clit)
                     args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
                 else if (cArith is { } cax)

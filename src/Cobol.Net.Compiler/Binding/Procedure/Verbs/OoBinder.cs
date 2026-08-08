@@ -241,8 +241,9 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         }
 
         // identifier-1 vs class-name-1 (§14.9.23.2): resolve as a data item first (a data-name shadows);
-        // an unresolved SIMPLE name is then a class-name candidate in the pass-1 table.
-        if (ctx.Refs.Resolve(dref) is { } receiver)
+        // an unresolved SIMPLE name is then a class-name candidate in the pass-1 table — a LEGAL alternative,
+        // so this is a Probe; the else-tail below reports when NEITHER reading holds (R30).
+        if (ctx.Refs.Probe(dref) is { } receiver)
             return OoBindInstanceInvoke(inv, receiver, methodName);
         if (host.OoClasses?.Find(dref.GetText()) is { } cls)
             return OoBindClassInvoke(inv, cls, methodName);
@@ -914,7 +915,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         else if (!senderNull)
         {
             if (senderRef is null) return new BoundUnsupported("SET object-reference sender shape");
-            var sp = ctx.Refs.Resolve(senderRef);
+            var sp = ctx.Refs.Probe(senderRef);   // Probe — EXCEPTION-OBJECT below is a legal alternative (R30)
             if (sp is not null && sp.Item.Pic is { Category: PicCategory.ObjectReference } spic)
             {
                 foreach (var tp in targets)

@@ -161,7 +161,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // Peek the FIRST target's category without consuming diagnostics: an index-name or non-pointer item
         // belongs to the Format-2 index path.
         if (host.Expr.IndexFieldOf(drefs[0]) is not null) return null;
-        if (ctx.Refs.Resolve(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
+        if (ctx.Refs.Probe(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
             return null;
 
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to

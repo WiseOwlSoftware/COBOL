@@ -129,7 +129,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // (and its SR diagnostics) happens exactly once, on the bind path this predicate selects.
         if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce) is PicCategory.Boolean;
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
-            && ctx.Refs.Resolve(dref) is { } p)
+            && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
             return (p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category) is PicCategory.Boolean;
         return false;
     }
@@ -561,7 +561,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
     private bool IsFormat2FloatSign(Core.ComparisonOperandContext operand) =>
         SoleDataReference(operand.valueOperand()?.arithmeticExpression()) is { } dref
-        && ctx.Refs.Resolve(dref) is { Item.Pic.IsFloat: true };
+        && ctx.Refs.Probe(dref) is { Item.Pic.IsFloat: true };   // Probe — a routing predicate is diagnostic-free (R30)
 
     /// <summary>The operand's sole unparenthesized data reference, or null when the arithmetic expression carries
     /// any operator, a unary sign, or enclosing parentheses (the list patterns fail for ≥2 sub-terms, and

@@ -122,8 +122,49 @@ public sealed class ReferenceResolver(DataBinder data)
         return temp;
     }
 
-    /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported here.</summary>
-    public Place? Resolve(Core.DataReferenceContext dref)
+    /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported
+    /// here — the DEMANDING form: a name that identifies NO declared item reports <c>COBOLNET1639</c> (kb/Work
+    /// R30 — §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"; before
+    /// this, a typo in any reference position compiled clean and threw at RUN time). Every OTHER null return —
+    /// a special register routed by the caller, an unsupported subscript/RENAMES/Tier-C shape — is feature-debt
+    /// staging and stays silent, so the caller's loud posture is unchanged. A caller asking "IS this a data
+    /// item?" with a legal alternative on no (the SET format sniffs, the INVOKE class-name receiver, the
+    /// boolean/float reroutes) reads <see cref="Probe"/> instead.</summary>
+    public Place? Resolve(Core.DataReferenceContext dref) => ResolveImpl(dref, report: true);
+
+    /// <summary>The SPECULATIVE form of <see cref="Resolve"/>: identical resolution, but a name that identifies
+    /// no item returns null SILENTLY — for type-discriminating probes whose null arm continues to a legal
+    /// alternative reading (INVOKE's class-name receiver, SET's format sniffs, EXCEPTION-OBJECT, the
+    /// boolean-operand predicate that is documented diagnostic-free). Never use it where a data item is
+    /// REQUIRED — that silence is exactly the R30 defect.</summary>
+    public Place? Probe(Core.DataReferenceContext dref) => ResolveImpl(dref, report: false);
+
+    /// <summary>The drefs already reported by <see cref="ReportUnidentified"/> — one report per source
+    /// reference even when a statement binder resolves the same node more than once.</summary>
+    private readonly HashSet<Core.DataReferenceContext> _reportedUnidentified = [];
+
+    /// <summary>The COBOLNET1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
+    /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
+    /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
+    private void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
+    {
+        if (!_reportedUnidentified.Add(dref)) return;
+        string text = dref.GetText();
+        string msg = !data.Symbols.TryResolve(name, data.ActiveScope, out var candidates)
+            ? $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so the "
+              + "statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
+              + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item."
+            : qualifiers.Count > 0
+                ? $"'{text}' does not uniquely identify a data item — '{name}' is declared, but not under the "
+                  + $"given qualifier{(qualifiers.Count > 1 ? "s" : "")} ({string.Join(" OF ", qualifiers)}) "
+                  + "(ISO §8.4.2.2 — qualification shall establish uniqueness)."
+                : $"'{text}' does not uniquely identify a data item — {candidates.Count} declarations share the "
+                  + "name and no qualification distinguishes them (ISO §8.4.2.2 — qualification shall establish "
+                  + "uniqueness).";
+        data.Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
+    }
+
+    private Place? ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
         DataReferenceCst r = dref;
         // A special register — LINAGE-COUNTER (I-O control system, ISO §8.4.3.14), LINE-/PAGE-COUNTER (Report
@@ -194,7 +235,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // GR1–GR3 temp and the rest of THIS method gives the temp the full normal tail (subscript rejection —
         // a temp has no OCCURS — and reference-modification, which SR5/SR6 permit on the property value).
         item ??= OoTryBindPropertyReference(name, qualifiers);
-        if (item is null) return null;
+        if (item is null)
+        {
+            // The NAME resolves to nothing — a typo or a mis-qualification, never a feature gap (kb/Work R30).
+            // Every later null in this method is an unsupported-shape staging of a name that DID resolve.
+            if (report) ReportUnidentified(dref, name, qualifiers);
+            return null;
+        }
 
         List<string> indexExprs = [];
         if (subCtx is not null)

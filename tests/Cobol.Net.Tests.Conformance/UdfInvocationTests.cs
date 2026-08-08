@@ -774,30 +774,21 @@ public sealed class UdfInvocationTests
         Assert.True(ok, "a data item named like an intrinsic must stay a subscript: " + string.Join("\n", errors));
     }
 
-    /// <summary>§8.4.3.2 SR2 is a PRECONDITION (a RUNTIME-observable property): WITHOUT a REPOSITORY intrinsic/ALL
-    /// specifier the word FUNCTION is REQUIRED — a bare MAX(a, b) is NOT the intrinsic. It is an unresolved data
-    /// reference, which under the §1.4 "references then fail loud" contract compiles but loud-fails at run time
-    /// (a compile-time assertion cannot distinguish it from the intrinsic-routed case — both compile). Contrast:
-    /// with FUNCTION ALL INTRINSIC the same source runs and computes MAX=34.</summary>
+    /// <summary>§8.4.3.2.3 SR2: WITHOUT a REPOSITORY intrinsic/ALL specifier the word FUNCTION is REQUIRED — a
+    /// bare MAX(a, b) is NOT the intrinsic. Since kb/Work R22 this is a COMPILE-TIME rejection: the name matches
+    /// a catalogued intrinsic, no data item shadows it, and the REPOSITORY does not declare it, so the reference
+    /// draws COBOLNET1543. (The previous form of this test PINNED the run-time loud-fail as green — the
+    /// green-test-holds-a-gap-open shape: its doc claimed "a compile-time assertion cannot distinguish it from
+    /// the intrinsic-routed case", which R22 made false.) Contrast: with FUNCTION ALL INTRINSIC the same source
+    /// runs and computes MAX=34.</summary>
     [Fact]
-    public void KeywordOmitted_RequiresRepositoryDeclaration_RuntimeLoudFail()
+    public void KeywordOmitted_RequiresRepositoryDeclaration_CompileTimeReject()
     {
-        string dir = CutRunner.NewTempDir("udfko");
-        try
-        {
-            string src = KoGroup("UDFKON", "    FUNCTION UDFDBL.",
-                "    COMPUTE WS-R = MAX(WS-A, WS-B).\n    DISPLAY \"R=\" WS-R.");
-            string cob = Path.Combine(dir, "UDFKON.cob");
-            File.WriteAllText(cob, src);
-            var r = CobolNet.CompilerDriver.Compile(
-                new CobolNet.CompilerDriver.Options(cob, Path.Combine(dir, "UDFKON.dll"), DialectLevel: 2002));
-            Assert.True(r.Success, "the undefined-reference program compiles (the §1.4 loud-fail is deferred to run "
-                + "time): " + string.Join("\n", r.Errors));
-            var (ok, _, detail) = CutRunner.Run(Path.Combine(dir, "UDFKON.dll"), dir);
-            Assert.False(ok, "MAX without FUNCTION and without an ALL/named-intrinsic specifier must not bind as "
-                + "the intrinsic — it is an unresolved reference that loud-fails");
-            Assert.Contains("MAX", detail, StringComparison.Ordinal);   // the loud-fail names the unresolved reference
-        }
-        finally { CutRunner.TryDelete(dir); }
+        string src = KoGroup("UDFKON", "    FUNCTION UDFDBL.",
+            "    COMPUTE WS-R = MAX(WS-A, WS-B).\n    DISPLAY \"R=\" WS-R.");
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.False(ok, "MAX without FUNCTION and without an ALL/named-intrinsic specifier is not the "
+            + "intrinsic and shall be rejected at compile time (ISO §8.4.3.2.3 SR2 — kb/Work R22)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1543");
     }
 }

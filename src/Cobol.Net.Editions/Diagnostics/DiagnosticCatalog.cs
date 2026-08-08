@@ -770,6 +770,23 @@ public static class DiagnosticCatalog
         + "SUBSTITUTE, CONVERT, TRIM, MODULE-NAME); every other function's format admits only its arguments — "
         + "§15.3's argument types are identifiers, literals, and expressions, never a bare reserved word.",
         "ISO §15.3 / §4.2.2 ¶3 (the per-function §15.x.2 general format decides)");
+    // kb/Work R30. Found while probing R22's name-collision control: MOVE NO-SUCH-NAME TO X and DISPLAY
+    // NO-SUCH-NAME compiled with zero diagnostics, exit 0, and threw NotImplementedCobolFeatureException at
+    // run time — in EVERY reference position measured (sender, receiver, arithmetic operand, condition,
+    // STRING, CALL USING, subscript, PERFORM UNTIL). ReferenceResolver.Resolve staged the unresolved
+    // fallthrough as a runtime loud; §4.2.2 ¶3 obliges the indication, and a typo is never a feature gap.
+    // Reported at the ONE chokepoint (Resolve's undefined arm, deduped per source reference); the
+    // type-discriminating probe sites with a legal alternative on failure (the SET format sniffs, INVOKE's
+    // class-name receiver, EXCEPTION-OBJECT, the boolean/float reroutes) read the silent Probe form, so a
+    // legal alternative reading never draws it. Unsupported-SHAPE nulls of a name that DID resolve keep the
+    // documented references-then-fail-loud staging — that debt is a different register entry than a typo.
+    public static readonly DiagnosticDescriptor UndefinedReference = new(
+        "COBOLNET1639", "undefined-reference", EditionSeverity.Error,
+        "A statement references a name that no declaration in the source element defines, or that the written "
+        + "qualifiers (or an unqualified ambiguity) leave unidentified. ISO §8.4.2.1: \"In order to use a "
+        + "resource, a statement shall contain a reference that uniquely identifies that resource\"; §8.4.2.2 "
+        + "requires qualification to establish uniqueness when spellings collide.",
+        "ISO §8.4.2.1 / §8.4.2.2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

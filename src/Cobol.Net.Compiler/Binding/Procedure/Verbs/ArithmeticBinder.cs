@@ -148,8 +148,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // bind (the "ANTLR alternative-order reality" precedent). A boolean RHS/receiver never reaches the
         // numeric channel.
         bool receiverBoolean = compute.computeStore().Length > 0
-            && ctx.Refs.Resolve(compute.computeStore(0).dataReference()) is { Item.Pic.Category: PicCategory.Boolean };
-        bool rhsBoolean = ConditionBinder.SoleDataRef(expr) is { } d && ctx.Refs.Resolve(d) is { Item.Pic.Category: PicCategory.Boolean };
+            && ctx.Refs.Probe(compute.computeStore(0).dataReference()) is { Item.Pic.Category: PicCategory.Boolean };
+        bool rhsBoolean = ConditionBinder.SoleDataRef(expr) is { } d && ctx.Refs.Probe(d) is { Item.Pic.Category: PicCategory.Boolean };
         if (receiverBoolean || rhsBoolean)
         {
             BoundBoolExpr rerouted = ConditionBinder.SoleDataRef(expr) is { } sd && ctx.Refs.Resolve(sd) is { } sp
@@ -201,7 +201,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // not the grammar re-architecture the queue entry proposed.
         if (SoleFigurativeZero(boolExpr) is not null
             && compute.computeStore().Length > 0
-            && ctx.Refs.Resolve(compute.computeStore(0).dataReference()) is not { Item.Pic.Category: PicCategory.Boolean })
+            && ctx.Refs.Probe(compute.computeStore(0).dataReference()) is not { Item.Pic.Category: PicCategory.Boolean })
         {
             // §8.3.3.6.4 GR4 — "the numeric value '0' … depending on context"; a numeric receiver IS that context.
             return new BoundCompute(new BoundNumLiteral("0"), host.Expr.Receivers(compute.computeStore()),

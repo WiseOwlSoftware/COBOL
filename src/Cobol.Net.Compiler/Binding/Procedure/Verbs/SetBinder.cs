@@ -38,7 +38,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape. A
             // PROGRAM-POINTER target selects Format 9 the same way (SR21; P10 Step 7).
             var sorCat = sor.dataReference().Length > 0
-                ? ctx.Refs.Resolve(sor.dataReference(0))?.Item.Pic?.Category : null;
+                ? ctx.Refs.Probe(sor.dataReference(0))?.Item.Pic?.Category : null;   // Probe — a format sniff (R30)
             if (sorCat is PicCategory.Pointer)
                 return BindSetPointer(sor.dataReference(),
                     sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
@@ -207,8 +207,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (tv.dataReference() is { Length: > 0 } tds
             && OoBinder.OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
         {
-            var t0 = ctx.Refs.Resolve(tds[0])?.Item.Pic?.Category;
-            var s0 = ctx.Refs.Resolve(senderDref)?.Item.Pic?.Category;
+            var t0 = ctx.Refs.Probe(tds[0])?.Item.Pic?.Category;        // Probe — format sniffs; the selected
+            var s0 = ctx.Refs.Probe(senderDref)?.Item.Pic?.Category;    // format's own bind demands (R30)
             // A POINTER on either side selects Format 4 (SET pointer TO pointer) — the Format-1 numeric
             // path cannot carry a ManagedPointer.
             if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
@@ -300,6 +300,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount)
     {
         if (targets.Count != 1 || targets[0].dataReferenceSuffix().Length != 0) return null;
+        // An index-name target belongs to Format 1 — peek it away BEFORE ResolveReceiving, whose demanding
+        // Resolve would report COBOLNET1639 on a name that is legally not a data item (R30).
+        if (host.Expr.IndexFieldOf(targets[0]) is not null) return null;
         if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
         bool checkStorage = ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, targets[0].Start.Line);
         return new BoundSetSize(p, host.Expr.BindExpr(amount), p.Item.DynLengthLimit, checkStorage);
