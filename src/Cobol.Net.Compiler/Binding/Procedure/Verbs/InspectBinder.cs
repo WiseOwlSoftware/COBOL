@@ -68,6 +68,16 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             return BindFunctionTarget(host.Intrinsic.IntrinsicOperand(fnTarget), fnTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
             return BindFunctionTarget(IntrinsicBinder.OperandOf(kof), ins.dataReference().GetText());
+        // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §13.18.38.3 r7's five index-name
+        // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
+        if (host.Expr.IndexFieldOf(ins.dataReference()) is not null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
+                $"INSPECT identifier-1 is the index-name '{ins.dataReference().GetText()}', which is not an "
+                + "identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, in "
+                + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
+            return new BoundUnsupported($"INSPECT of the index-name '{ins.dataReference().GetText()}' (ISO §13.18.38.3 r7)");
+        }
         if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a

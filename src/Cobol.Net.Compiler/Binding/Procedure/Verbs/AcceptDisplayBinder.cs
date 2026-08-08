@@ -117,7 +117,16 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             switch (child)
             {
                 case Core.LiteralContext lit: ops.Add(host.Expr.LiteralOperand(lit)); break;
-                case Core.DataReferenceContext dref: ops.Add(host.Expr.FieldOperand(dref)); break;
+                case Core.DataReferenceContext dref:
+                {
+                    // DISPLAY is none of §13.18.38.3 r7's five index-name contexts (kb/Work R16 — this
+                    // compiled clean and aborted at run time before).
+                    var op = host.Expr.FieldOperand(dref);
+                    ops.Add(host.Expr.ScreenIndexNameOperand(op, dref.GetText(), "DISPLAY")
+                        ? new BoundOperandError($"DISPLAY of the index-name '{dref.GetText()}' (ISO §13.18.38.3 r7)")
+                        : op);
+                    break;
+                }
                 // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
                 case Core.FunctionCallContext fc: ops.Add(host.Intrinsic.IntrinsicOperand(fc)); break;
             }

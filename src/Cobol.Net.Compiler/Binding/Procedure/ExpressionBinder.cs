@@ -214,6 +214,25 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : ConstantOperand(dref) is { } konst ? konst   // a constant-name substitutes its literal (§13.10.3 SR2)
         : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
 
+    /// <summary>The §13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
+    /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
+    /// R16. <see cref="FieldOperand"/> deliberately still BINDS the index-name (the r7-legal consumers share it),
+    /// so each ILLEGAL slot screens the result: before this, DISPLAY/STRING/MOVE-to-string aborted at RUN TIME
+    /// ("computed expression in a string context") and MOVE-to-numeric silently computed — against the same
+    /// judgment COBOLNET0809 already applies to class-index DATA ITEMS in MOVE. Returns true when the operand
+    /// was an index-name (the caller substitutes its own error operand or continues; the diagnostic is
+    /// emitted here, once).</summary>
+    public bool ScreenIndexNameOperand(BoundOperand op, string sourceText, string where)
+    {
+        if (op is not BoundComputedOperand { Expr: BoundIndexRef }) return false;
+        ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
+            $"{where} references the index-name '{sourceText}', which is not an identifier "
+            + "(ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, in PERFORM/SEARCH "
+            + "VARYING, in SET, or in a relation condition. SET a data item to the index first "
+            + $"(SET data-item TO {sourceText}) and reference the data item");
+        return true;
+    }
+
     /// <summary>The bound literal a bare constant-name reference substitutes, or <see langword="null"/> when
     /// <paramref name="dref"/> names no constant (ISO §13.10.3 SR2 / §13.10.4 GR1 — "as if [the] literal were
     /// written where constant-name-1 is written"): the SAME bound shape the equivalent plain literal would

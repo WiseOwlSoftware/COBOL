@@ -233,8 +233,20 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <see cref="StrUnstrOperand"/> delegates its two identifier arms here so the shapes cannot drift apart.</summary>
     private BoundOperand StrUnstrSender(Core.StrUnstrSenderContext? snd, string role)
         => snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
-        : snd?.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
+        : snd?.dataReference() is { } dref ? ScreenedField(dref, role)
         : new BoundOperandError(role);
+
+    /// <summary>A sending data reference, screened for an INDEX-NAME (kb/Work R16): STRING/UNSTRING are none
+    /// of §13.18.38.3 r7's five index-name contexts, and this funnel serves all four sending positions — the
+    /// one place, so the diagnostic cannot cover three slots and miss the fourth. Before, the reference
+    /// compiled clean and aborted at run time in the string channel.</summary>
+    private BoundOperand ScreenedField(Core.DataReferenceContext dref, string role)
+    {
+        var op = host.Expr.FieldOperand(dref);
+        return host.Expr.ScreenIndexNameOperand(op, dref.GetText(), role)
+            ? new BoundOperandError($"{role}: the index-name '{dref.GetText()}' (ISO §13.18.38.3 r7)")
+            : op;
+    }
 
     /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender, or <see langword="null"/> when
     /// it is a permitted one. Reads the category off whichever operand shape the sender is: a FIELD's PICTURE

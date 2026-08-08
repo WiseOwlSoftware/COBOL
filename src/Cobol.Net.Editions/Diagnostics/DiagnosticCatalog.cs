@@ -742,6 +742,20 @@ public static class DiagnosticCatalog
         + "hexadecimal-BOOLEAN literal (BX\"…\") has no such rule: §8.3.3.4.4 GR5 maps each digit independently "
         + "to four boolean characters, so any digit count is well formed there.",
         "ISO §8.3.3.2.3 r6 / §8.3.3.5.3 r5");
+    // kb/Work R16 (ledger F11). A SYNTAX RULE violation that used to compile clean and abort at RUN TIME
+    // ("computed expression in a string context") — DISPLAY IX, MOVE IX TO an alphanumeric, STRING IX — or,
+    // worse, silently compute (MOVE IX TO a numeric item), against the SAME judgment the W2 review already
+    // landed for class-index DATA ITEMS (COBOLNET0809 rejects a MOVE of one at every edition). §13.18.38.3 r7
+    // is a closed LIST, so the diagnostic names it and the legal spelling.
+    public static readonly DiagnosticDescriptor IndexNameContext = new(
+        "COBOLNET1637", "index-name-context", EditionSeverity.Error,
+        "An index-name is written where the statement needs an identifier. An index-name is not an identifier "
+        + "(ISO §8.4.3.1.2 defines the identifier formats and an index-name is none of them), and "
+        + "§13.18.38.3 r7 closes the list of contexts that may reference one: a subscript, the VARYING phrase "
+        + "of PERFORM or SEARCH, the SET statement, and a relation-condition operand. To use the index's "
+        + "occurrence number elsewhere, SET a data item to it first (SET data-item TO index-name, §14.9.39) "
+        + "and reference the data item.",
+        "ISO §13.18.38.3 r7 / §8.4.3.1.2");
     // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
     // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
     // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now

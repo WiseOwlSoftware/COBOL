@@ -39,6 +39,12 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
             : send.functionCall() is { } sfc ? host.Intrinsic.IntrinsicOperand(sfc)
             : new BoundOperandError("MOVE source");
+        // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
+        // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOLNET0809).
+        // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
+        if (send.dataReference() is { } sdref
+            && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
+            source = new BoundOperandError($"MOVE of the index-name '{sdref.GetText()}' (ISO §13.18.38.3 r7)");
         var resolved = host.Expr.ResolveTargets(targets.dataReference());
         // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
         // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
