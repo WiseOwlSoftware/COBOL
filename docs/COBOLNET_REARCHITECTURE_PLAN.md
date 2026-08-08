@@ -24,6 +24,29 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
+- **▶ THE CURRENT CAMPAIGN (2026-08-08): the R00-audit orphan wave — ELEVEN items landed in one session,
+  NINE register notes remain open, and `kb/Work/` owns every one of them** (`python scripts/spec/work.py
+  next` — 6 actionable at session end, headed R21 · R22 · R25; the rest are adjudications/decisions).
+  The wave's provenance: R00's full-ledger complement measurement dispositioned all 82 batch-4 findings BY
+  PROBE (62 measured fixed, 20 open → notes R14–R28, forensics + repro shapes in each note body — DEVLOG
+  1218). Landed since, in order: **R10** (unsigned COMP-5 carriers `ulong`/`UInt128` — the container-range
+  ownership decision, CONFORMANCE.md item 208) · **R14** (the ambient exception-status (statement, location)
+  channel + the same-line GR14 `Inclusive` fix) · **R18** (EXP/EXP10/E/PI under the standard modes via the
+  ONE `CobolDec.Pow`) · **R24** (the FORMATTED-* seconds channel carrier-total; `AsInt`'s missing Dec arm) ·
+  **R15** (keyword-omitted INSPECT) · **R16** (`COBOLNET1637` — §13.18.38.3 r7's closed index-name context
+  list; spawned R29) · **R12** (the CALL ABI crosses every native carrier TYPED — `CobolArgAdapt.Num<T>`,
+  no image; the probe showed the old wide-tier crossing was UNCOMPILABLE, not silently lossy) · **R17** (the
+  signed float literal's lexer twins + `SignedLiteralShapeDriftTests`) · **R19** (`COBOLNET1638` for phrase
+  words as arguments) · **R20** (FIND-STRING's positional phrase walk). Each note's LANDED section carries
+  the implementation record; DEVLOG 1217–1228 the narrative. Next-free diagnostic: session-probe computes it
+  (1639 unless something landed since).
+  ⚠ **A COMPREHENSIVE BATTERY FOR THE R17+R19+R20 BATCH WAS IN FLIGHT WHEN THIS SESSION ENDED** — log at
+  `E:/Temp/claude/E--CobolSharp/f339feb3-c0ad-4d16-a57e-6fa42922e192/scratchpad/battery-r17r19r20.log`.
+  **The next session's FIRST act: read that log's verdict lines** (`grep -E "BATTERY|DIFFERENTIAL" <log>`)
+  — R17 is a GRAMMAR change, so the differential leg is the one to watch; a flip naming a float-literal or
+  arity diagnostic is attribution work, not automatically a regression (the 13011 precedent below). If the
+  log is absent or truncated, re-run `bash scripts/battery.sh` before building on the batch; if green,
+  advance the battery reference below and continue the wave.
 - **⛔ THE REPO LAYOUT CHANGED 2026-07-27.** `specs/` is now an ORDINARY PUBLIC DIRECTORY holding
   `specs/ISO_COBOL.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
   The Markdown path is unchanged, so all 1,663 spec citations still resolve. Tools that MEASURE the printed page
