@@ -55,6 +55,7 @@
     "goback_status",
     "highest_algebraic_comp5_unsigned",
     "inspect_backward",
+    "inspect_keyword_omitted_function",
     "intrinsics_convert",
     "intrinsics_smallest_algebraic",
     "intrinsics_string_2023",

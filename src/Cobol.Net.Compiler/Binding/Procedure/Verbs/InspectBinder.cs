@@ -37,12 +37,18 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // grammar gives us and it is the same predicate the emitter already computes as `mutated` — one fact,
         // not two representations of it.
         bool modifies = ins.inspectReplacingPhrase() is not null || ins.inspectConvertingPhrase() is not null;
-        if (ins.functionCall() is { } fnTarget)
+        // Both function-identifier SPELLINGS funnel here — the keyword form (`FUNCTION F(…)`, PB10) and the
+        // §8.4.3.2.3 SR2 keyword-OMITTED form (kb/Work R15): SR2 makes them ONE reference, so they share one
+        // SR1 screen and one bind. The omitted form used to fall through name resolution into the loud stage
+        // ("INSPECT of unresolvable item"), compiling clean and dying at run time — the PB7 shape in the one
+        // operand slot that never consulted the hook. KeywordOmittedFunction itself yields to a declared data
+        // item, so a genuine subscripted reference still resolves as data below.
+        BoundStatement BindFunctionTarget(BoundOperand fnOperand, string spelling)
         {
             if (modifies)
             {
                 ctx.Edition.Error(DiagnosticCatalog.FunctionIdentifierReceiving,
-                    $"INSPECT identifier-1 is the function-identifier '{fnTarget.GetText()}', but this INSPECT "
+                    $"INSPECT identifier-1 is the function-identifier '{spelling}', but this INSPECT "
                     + (ins.inspectConvertingPhrase() is not null
                         ? "CONVERTS it (ISO §14.9.22.2 Format 4, which §14.9.22.4 GR20 executes as a Format 2 "
                           + "over the same identifier-1)"
@@ -50,14 +56,18 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     + " — a receiving operand, which ISO §8.4.3.2.3 SR1 bars a function-identifier from. A "
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
                 return new BoundUnsupported(
-                    $"INSPECT REPLACING/CONVERTING over the function-identifier '{fnTarget.GetText()}' (ISO §8.4.3.2.3 SR1)");
+                    $"INSPECT REPLACING/CONVERTING over the function-identifier '{spelling}' (ISO §8.4.3.2.3 SR1)");
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
             // emitter's AsString read; nothing stores back, so no Place is needed. SR1's usage constraint is
             // satisfied by construction — a function's returned value is a temporary elementary item of the
             // function's own category (§15.4), never a binary/packed/float/index storage form.
-            return BindPhrases(host.Intrinsic.IntrinsicOperand(fnTarget), ins);
+            return BindPhrases(fnOperand, ins);
         }
+        if (ins.functionCall() is { } fnTarget)
+            return BindFunctionTarget(host.Intrinsic.IntrinsicOperand(fnTarget), fnTarget.GetText());
+        if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
+            return BindFunctionTarget(IntrinsicBinder.OperandOf(kof), ins.dataReference().GetText());
         if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
