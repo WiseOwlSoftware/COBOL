@@ -51,12 +51,64 @@ jobs:
 
   # ── The greenfield COBOL.NET compiler (src/Cobol.Net.*) suites — the ACTIVE work (differential vs the legacy
   # oracle + the NIST byte-baselines + the version matrix + unit). guard.sh covers only the LEGACY engine, so
-  # these are a separate gate (DEVLOG 515). Built ONCE, then run --no-build so the suites don't each re-restore
-  # and rebuild. The Frontend's ANTLR generation needs java + pwsh (both preinstalled on the ubuntu-latest
-  # image); Generated/ is a PURE BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates,
-  # and a failed generation FAILS the build. ──
-  greenfield-tests:
-    name: Greenfield tests (conformance + unit)
+  # these are a separate gate (DEVLOG 515). Each job builds its own test project(s) then runs --no-build. The
+  # Frontend's ANTLR generation needs java + pwsh (both preinstalled on the runner images); Generated/ is a PURE
+  # BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates, and a failed generation
+  # FAILS the build. ──
+  # ⛔ THE CONFORMANCE SUITE IS SHARDED (kb/Work A14: it was ~23 min as ONE step on a 2-core runner — the whole
+  # job's wall time). Three shards, chosen from measured per-class test counts: the version matrix (~2020 light
+  # compiles) · the corpus + NIST runners (~820 heavy compile-and-runs) · THE COMPLEMENT — an exclusion filter,
+  # so a NEW test class automatically lands in shard "rest" and can never fall between buckets. Each shard
+  # publishes its executed-test Total; the conformance-population job asserts the shards SUM to the discovered
+  # test count on BOTH platforms — a filter typo or a class rename shows up as a loud mismatch, never as
+  # silently-untested code (feedback_measure_the_selectors_complement).
+  greenfield-conformance:
+    name: Greenfield conformance (Linux, sharded)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: matrix
+            filter: "FullyQualifiedName~VersionMatrixTests"
+          - shard: corpus-nist
+            filter: "FullyQualifiedName~CorpusRunnerTests|FullyQualifiedName~NistDifferentialTests"
+          - shard: rest
+            filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~CorpusRunnerTests&FullyQualifiedName!~NistDifferentialTests"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build the conformance project
+        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+      - name: Conformance shard ${{ matrix.shard }}
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
+            --filter "${{ matrix.filter }}" 2>&1 | tee shard.log
+          grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
+          echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
+      - name: Publish shard count
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-count-${{ runner.os }}-${{ matrix.shard }}
+          path: count.txt
+
+  # Unit + characterization moved OFF the conformance job's critical path (A14 option 1): they are
+  # project-granular (nothing hand-listed), so no population guard is needed here.
+  greenfield-unit:
+    name: Greenfield unit + characterization (Linux)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -74,17 +126,109 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
       - name: Build greenfield test projects
         run: |
-          dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
           dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
           dotnet build tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj
-      - name: Greenfield conformance tests (differential vs baked goldens + NIST + matrix)
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build
+
+  # The Windows twin of greenfield-conformance — SAME shard filters (the population job checks both platforms'
+  # sums), Release config like the rest of the Windows leg. Kept full-suite on Windows deliberately: the
+  # cross-platform net is load-bearing (the 2026-08-07 BOM break was Windows-caught).
+  windows-conformance:
+    name: Windows conformance (sharded)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: matrix
+            filter: "FullyQualifiedName~VersionMatrixTests"
+          - shard: corpus-nist
+            filter: "FullyQualifiedName~CorpusRunnerTests|FullyQualifiedName~NistDifferentialTests"
+          - shard: rest
+            filter: "FullyQualifiedName!~VersionMatrixTests&FullyQualifiedName!~CorpusRunnerTests&FullyQualifiedName!~NistDifferentialTests"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build the conformance project (Release)
+        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --configuration Release
+      - name: Conformance shard ${{ matrix.shard }}
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release \
+            --filter "${{ matrix.filter }}" 2>&1 | tee shard.log
+          grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
+          echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
+      - name: Publish shard count
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-count-${{ runner.os }}-${{ matrix.shard }}
+          path: count.txt
+
+  # ── The shard POPULATION GUARD: discovery is re-derived (`--list-tests`), and each platform's shard Totals
+  # must SUM to it exactly. Runs only when every shard succeeded — it is the "did the shards cover everything"
+  # check, not a substitute for their pass/fail. A theory whose cases cannot enumerate at discovery time would
+  # trip this loudly; that is the safe direction (a false red, never a silent gap). ──
+  conformance-population:
+    name: Conformance shard population guard
+    needs: [greenfield-conformance, windows-conformance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build the conformance project
+        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+      - name: Download shard counts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: shard-count-*
+          path: counts
+      - name: Assert the shards sum to the discovered population, per platform
+        shell: bash
+        run: |
+          disc=$(dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
+                   --list-tests 2>/dev/null | grep -cE '^    CobolNet\.Tests\.Conformance\.')
+          echo "discovered: $disc"
+          fail=0
+          for os in Linux Windows; do
+            sum=0
+            for f in counts/shard-count-$os-*/count.txt; do
+              n=$(cat "$f"); echo "$f: $n"; sum=$((sum + n))
+            done
+            echo "$os shard sum: $sum"
+            if [ "$sum" -ne "$disc" ]; then
+              echo "::error::POPULATION MISMATCH ($os): shards executed $sum of $disc discovered tests — a shard filter is dropping or double-counting tests"
+              fail=1
+            fi
+          done
+          exit $fail
 
   # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8): the full NIST golden battery must re-run
   # BYTE-EXACT at the shipping default edition in migration mode (--std 2023 --permissive) — the roadmap's
@@ -142,8 +286,8 @@ jobs:
         run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release
       - name: Integration tests
         run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
-      - name: Greenfield conformance tests (differential vs baked goldens + NIST)
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release
+      # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
+      # a third of the wall time; the population guard proves nothing fell between the shards.
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
