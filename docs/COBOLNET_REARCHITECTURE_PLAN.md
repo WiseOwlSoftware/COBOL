@@ -1134,7 +1134,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R10 unsigned-carrier tree `5312996a` (2026-08-08 00:26),
+- **⛔ BATTERY REFERENCE — CURRENT, the R24+R15+R16+R12 tree `db84240b` (2026-08-08 12:27).**
+  ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING** — the PB40 shape again. Every
+  internal leg was green: FULL greenfield Conformance **4271 / 4271, zero skipped** (11 m 7 s) · greenfield
+  Unit **4083 / 4083** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH /
+  0 REGRESSION**. The one red was the differential naming EXACTLY ONE flip: `run_file:13011`,
+  `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`, carrying R16's own `COBOLNET1637` — the case DISPLAYs an
+  index-name, GnuCOBOL's documented extension, which §13.18.38.3 r7's closed context list makes illegal;
+  our pre-R16 "accept" was a compile-clean runtime abort. Baseline regenerated (`--write-baseline`), the TSV
+  diff exactly one row, attributed in `c6909f89`; a fresh differential prints
+  **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**. (COBOLNET1637 is deliberately unconditional — no
+  `--permissive` coercion; the string band had nothing to coerce and R29 holds the broader adjudication.)
+- **⛔ PRIOR BATTERY REFERENCE — the R10 unsigned-carrier tree `5312996a` (2026-08-08 00:26),
   `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4263 / 4263, zero skipped** (11 m 24 s) ·
   greenfield Unit **4077 / 4077** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
   **353 MATCH / 0 REGRESSION** · GnuCOBOL differential **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**
