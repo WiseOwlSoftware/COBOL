@@ -261,7 +261,7 @@ public static class CobolDate
     /// <summary>Emit a formatted value from integer date form + seconds-past-midnight (unscaled/scale) + an
     /// optional UTC offset in minutes (§15.38–15.41). A date-only / time-only format ignores the components it
     /// does not reference. An ill-formed format sets EC-ARGUMENT-FUNCTION and yields the §15.3 default "".</summary>
-    private static string EmitFormatted(string format, long integerDate, long secUnscaled, int secScale,
+    private static string EmitFormatted(string format, long integerDate, Int128 secUnscaled, int secScale,
                                         long offsetMinutes, bool hasOffset)
     {
         var segs = Tokenize(format);
@@ -272,6 +272,17 @@ public static class CobolDate
         bool hasDate = segs.Any(s => s.IsField && s.Field == Fld.Year);
         bool hasTime = segs.Any(s => s.IsField && s.Field == Fld.Hour);
 
+        // ⛔ The seconds value arrives as Int128 unscaled + scale (kb/Work R24 — the former `long` parameter
+        // silently WRAPPED a wide-PICTURE argument's unscaled form, fabricating an in-range time from a legal
+        // value). A scale beyond 18 is first reduced EXACTLY (truncation — a format's fraction field is at most
+        // 18 's' wide, CONFORMANCE.md item 202, so nothing renderable is lost): that bounds the decimal split's
+        // divisor at 10^18 (a long) and the post-validation value at < 86,400 × 10^18 ≈ 8.6e22, inside
+        // decimal's 28-digit significand, so the split below is exact.
+        if (secScale > 18)
+        {
+            secUnscaled = CobolNum.Rescale(secUnscaled, secScale, 18, CobolRounding.Truncation);
+            secScale = 18;
+        }
         decimal secs = (decimal)secUnscaled / (decimal)(long)Pow10.AsWide(secScale);
         long day = integerDate;
         if (hasTime && isUtc && hasOffset)                              // §15.40/41 r2 — a UTC format displays local − offset
@@ -333,7 +344,7 @@ public static class CobolDate
     /// <summary>FORMATTED-TIME (§15.41): seconds past midnight (a2, unscaled/scale) per the time format a1; a UTC
     /// format displays a2 adjusted by the offset a3 (r2), an offset format shows a2 direct + a3 in the offset field
     /// (r3). a3 omitted with a UTC/offset format is treated as 0 (r7).</summary>
-    public static string FormattedTime(string format, long secUnscaled, int secScale, long offsetMinutes, bool hasOffset)
+    public static string FormattedTime(string format, Int128 secUnscaled, int secScale, long offsetMinutes, bool hasOffset)
         => SecondsOutOfStandardForm("FORMATTED-TIME", "argument-2", secUnscaled, secScale)
            || OffsetOutOfRange("FORMATTED-TIME", "argument-3", offsetMinutes, hasOffset, "§15.41.3 r4")
             ? ""
@@ -350,7 +361,7 @@ public static class CobolDate
     /// <para>The comparison is exact and stays in <see cref="Int128"/>: the argument arrives as an unscaled
     /// value plus its scale, so scaling the BOUND up is exact where scaling the value down would truncate and
     /// silently admit a fractional overshoot.</para></summary>
-    private static bool SecondsOutOfStandardForm(string fn, string argName, long secUnscaled, int secScale)
+    private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale)
     {
         Int128 limit = (Int128)86400 * Pow10.AsWide(secScale);
         if (secUnscaled >= 0 && secUnscaled < limit) return false;
@@ -378,7 +389,7 @@ public static class CobolDate
 
     /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 per the combined format a1; UTC ⇒ adjust
     /// by a4; offset ⇒ a3 direct in time and a4 direct in the offset field.</summary>
-    public static string FormattedDatetime(string format, long integerDate, long secUnscaled, int secScale,
+    public static string FormattedDatetime(string format, long integerDate, Int128 secUnscaled, int secScale,
                                            long offsetMinutes, bool hasOffset)
     {
         if (integerDate is < 1 or > 3067671)

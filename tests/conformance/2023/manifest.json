@@ -50,6 +50,7 @@
     "external_type_decl",
     "f3_perform_handler_turn_off_all",
     "find_string",
+    "formatted_time_seconds_channel",
     "general_format_intrinsics_batch1",
     "goback_status",
     "highest_algebraic_comp5_unsigned",

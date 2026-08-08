@@ -3,6 +3,18 @@ name: Build and Test
 on:
   push:
     branches: [ main ]
+    # Doc-only surfaces never change what this workflow builds or tests — a DEVLOG entry, a design-doc
+    # sweep or a kb/Work register update should not cost a full two-platform matrix (owner-flagged
+    # 2026-08-08 after a workflow-only push burned one). ⚠ Changes to THIS file still trigger runs (a
+    # broken workflow edit that never runs is worse than one spent matrix), and pull_request keeps full
+    # coverage — the ignore applies to direct pushes only.
+    paths-ignore:
+      - 'DEVLOG.md'
+      - 'docs/**'
+      - 'kb/**'
+      - 'PROMPT.md'
+      - 'CLAUDE.md'
+      - 'README.md'
   pull_request:
     branches: [ main ]
   workflow_dispatch:        # manual trigger — lets the opt-in legacy-oracle bake-verify cross-check be run on demand

@@ -431,6 +431,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// the <c>…Real</c> bodies were first written.</para></summary>
     private static string AsInt(NumX a) =>
         a.Real ? RuntimeApi.IntegerArg(a.Expr, real: true)
+        // The Dec arm (kb/Work R24 — ledger F44): an SDIDI intermediate (a §15.3 type-6/type-10 expression
+        // under a standard mode) lands at scale 0 through its own exact conversion. ⛔ BEFORE the Scale == 0
+        // test — a Dec NumX carries Scale 0 BY CONVENTION (the PB14/PB32 lesson), so the scale test would pass
+        // the CobolDec expression through raw and hand Roslyn the CS1503 this arm exists to close. This was
+        // the one carrier-total dispatch in the renderer family still missing its Dec arm.
+        : a.Dec ? RuntimeApi.IntegerArg(RuntimeApi.DecToUnscaled(a.Expr, "0", CobolRounding.Truncation))
         : a.Scale == 0 ? RuntimeApi.IntegerArg(a.Expr)
         : RuntimeApi.IntegerArg(RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation));
 
@@ -570,24 +576,47 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         };
     }
 
-    /// <summary>FORMATTED-TIME (§15.41): seconds as (unscaled long, scale) — NOT the truncating ArgInt, so the
-    /// fractional seconds survive — plus the optional offset-minutes (a3).</summary>
+    /// <summary>FORMATTED-TIME (§15.41): seconds as (unscaled, scale) via <see cref="SecondsArg"/> — NOT the
+    /// truncating ArgInt, so the fractional seconds survive — plus the optional offset-minutes (a3).</summary>
     private string RenderFormattedTime(BoundIntrinsicCall ic)
     {
-        NumX sec = ArgNum(ic.Args[1]);
+        var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[1]));
         bool hasOff = ic.Args.Count > 2;
-        return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, (long)({sec.Expr}), {sec.Scale}, "
+        return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {secExpr}, {secScale}, "
              + $"{(hasOff ? ArgInt(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")}");
     }
 
-    /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 (unscaled/scale) + the optional
-    /// offset-minutes a4.</summary>
+    /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 (via <see cref="SecondsArg"/>) + the
+    /// optional offset-minutes a4.</summary>
     private string RenderFormattedDatetime(BoundIntrinsicCall ic)
     {
-        NumX sec = ArgNum(ic.Args[2]);
+        var (secExpr, secScale) = SecondsArg(ArgNum(ic.Args[2]));
         bool hasOff = ic.Args.Count > 3;
         return RuntimeApi.DateFn(ic.Sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, "
-             + $"(long)({sec.Expr}), {sec.Scale}, {(hasOff ? ArgInt(ic.Args[3]) : "0")}, {(hasOff ? "true" : "false")}");
+             + $"{secExpr}, {secScale}, {(hasOff ? ArgInt(ic.Args[3]) : "0")}, {(hasOff ? "true" : "false")}");
+    }
+
+    /// <summary>The SECONDS argument of the formatted time family as an (unscaled, scale) pair, TOTAL over the
+    /// four value carriers (kb/Work R24 — ledger F44/F46/F57; §15.41.4 r1 / §15.40.4 make the returned value a
+    /// representation of the VALUE "contained in" the argument, fraction included):
+    /// <list type="bullet">
+    ///   <item>a FIXED-POINT operand passes through at its own scale with NO narrowing cast — the former
+    ///         <c>(long)(expr)</c> silently WRAPPED a wide picture's unscaled form (a 9(5)V9(15) item holding
+    ///         the in-range 45296.5 fabricated 02:20:03), and the runtime now takes <see cref="Int128"/>;</item>
+    ///   <item>a FLOAT operand lands through the checked <c>CobolFloat.ToScaled</c> at scale 9 — the
+    ///         FORMATTED-CURRENT-DATE nanosecond convention, and every reliable binary64 fraction digit under a
+    ///         5-integer-digit bound — where the former cast truncated to WHOLE seconds;</item>
+    ///   <item>an SDIDI operand (a legal §15.3 type-10 expression under a standard mode) lands exactly at scale
+    ///         18, the documented §15.3.3.2 maximum fraction width (CONFORMANCE.md item 202) — it used to reach
+    ///         the cast as a raw CS1503, the PB2 shape on the Dec axis;</item>
+    ///   <item>an unsigned-wide operand narrows through the R10 Widen funnel (a valid time always fits).</item>
+    /// </list></summary>
+    private static (string Expr, int Scale) SecondsArg(NumX x)
+    {
+        x = NumericRenderer.DeU(x);
+        if (x.Real) return (RuntimeApi.FloatToScaled(x.Expr, "9", CobolRounding.Truncation), 9);
+        if (x.Dec) return (RuntimeApi.DecToUnscaled(x.Expr, "18", CobolRounding.Truncation), 18);
+        return (x.Expr, x.Scale);
     }
 
     /// <summary>SUBSTITUTE (§15.87): the source (Args[0]) plus parallel from/to/mode arrays over the pair operands
