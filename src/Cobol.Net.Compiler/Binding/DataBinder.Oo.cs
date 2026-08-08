@@ -285,7 +285,13 @@ public sealed partial class DataBinder
                 string up = w.GetText().ToUpperInvariant();
                 if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var einfo))
                 {
-                    if (einfo.Level is 3 && einfo.Level2Parent is "EC-USER") m.RaisingEcNames.Add(up);
+                    // Direct TryGet, not the funnel: an unresolved word here may legally be a CLASS name
+                    // (SR8/SR9) — but accepted names still get the §15.33 width advisory (kb/Work R05).
+                    if (einfo.Level is 3 && einfo.Level2Parent is "EC-USER")
+                    {
+                        EcNameResolution.Advise(Edition, einfo);
+                        m.RaisingEcNames.Add(up);
+                    }
                     else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: an exception-name "
                         + "here shall be a level-3 EC-USER name (ISO §14.2.2 SR7)");
                 }

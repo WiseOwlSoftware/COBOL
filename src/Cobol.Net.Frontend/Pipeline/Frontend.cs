@@ -108,7 +108,8 @@ public sealed class Frontend
             dialectLevel: DialectLevel, permissive: Permissive);
         text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy,
             leaveTurnDirectives: true, leavePropagateDirectives: true, leaveRefModZeroLengthDirectives: true,
-            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
+            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: diagnostics,
+            sourcePath: sourcePath, dialectLevel: DialectLevel);
 
         if (NistTestName is { } nist)
             text = NistPreprocessor.Process(text, nist);

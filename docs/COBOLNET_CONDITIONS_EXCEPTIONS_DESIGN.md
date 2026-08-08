@@ -420,6 +420,16 @@ done).
 
 ## Resolved questions (settled in `COBOLNET_DESIGN.md` §18 — answers recorded inline per the keep-deep-dives-current rule)
 
+- SETTLED (kb/Work R05 — the §15.33 width collision): **FUNCTION EXCEPTION-STATUS returns exactly the 31-character
+  value §15.33.3 r1 prescribes, truncating a longer exception-name to its 31-character prefix.** The collision is
+  the STANDARD's own: COBOL-2023 words run to 63 characters (§8.3.2.1) and the §14.6.13.1.1 EC-USER-/EC-IMP-
+  suffixes are unbounded, so level-3 names of 32..63 characters are legal yet indistinguishable through this one
+  function — while checking, declarative selection, and PERFORM-WHEN matching all use the FULL name
+  (`ExceptionState.LastName`). The compile-time **COBOLNET1636 advisory** (Warning — legal source stays legal)
+  fires once per over-31 spelling from the ONE resolution funnel (`EcNameResolution`), so the truncation is never
+  silent. Below 2023 the situation cannot arise: the 31-character COBOL-2002 word ceiling (COBOLNET1567,
+  `CobolWordRule` — enforced for tree words AND directive-carried words) rejects the name first.
+
 - SETTLED (§18.16): EC checking ships OFF by default (NIST-faithful, fast, ISO §5000), enabled only by >>TURN/phrases; the conformance corpus drives the EC-on paths.
 - SETTLED (§18.16): an unhandled fatal EC terminates the run unit with a diagnostic + a nonzero exit (the ISO §14.6.13.1.3 implementor choice).
 - PROPAGATE (§4808) and the exception-checking PERFORM WHEN (§14.9.28) are COBOL-2023 constructs (VCR row 79) — in scope for full-2023 (G1: diagnosed at --std=85|2002|2014); they land after the declarative/phrase path (the seams — declarative-returns-ResumeAction, runtime ExceptionState — admit them without rework).

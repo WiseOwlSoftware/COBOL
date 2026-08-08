@@ -30,7 +30,8 @@ public sealed class CopyConditionalProcessorTests : IDisposable
         var copy = new CopyProcessor([_dir], bag, "t.cob", strict: true, dialectLevel: 2023, permissive: false);
         string text = ConditionalCompilationProcessor.ProcessWithCopy(mainText, _dir, copy,
             leaveTurnDirectives: true, leavePropagateDirectives: true, leaveRefModZeroLengthDirectives: true,
-            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: bag, sourcePath: "t.cob");
+            leaveFlagDirectives: true, leaveCobolWordsDirectives: true, diagnostics: bag, sourcePath: "t.cob",
+            dialectLevel: 2023);
         return (text, bag);
     }
 

@@ -57,9 +57,10 @@ public static class ConditionalCompilationProcessor
     public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
         bool leaveRefModZeroLengthDirectives = false, bool leaveFlagDirectives = false,
         bool leaveCobolWordsDirectives = false,
-        DiagnosticBag? diagnostics = null, string? sourcePath = null)
+        DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023)
         => new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
-                leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copy: null, sourceDir: null)
+                leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
+                dialectLevel)
             .Render(text);
 
     /// <summary>
@@ -74,11 +75,12 @@ public static class ConditionalCompilationProcessor
     public static string ProcessWithCopy(string text, string sourceDir, CopyProcessor copyProcessor,
         bool leaveTurnDirectives, bool leavePropagateDirectives, bool leaveRefModZeroLengthDirectives,
         bool leaveFlagDirectives, bool leaveCobolWordsDirectives,
-        DiagnosticBag? diagnostics, string? sourcePath)
+        DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
         string expanded = new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
-            leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copyProcessor, sourceDir).Render(text);
+            leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
+            dialectLevel).Render(text);
         return CopyProcessor.ApplyReplaceStatements(expanded);   // Step 3 — REPLACE over the expanded compilation group
     }
 
@@ -104,11 +106,17 @@ public static class ConditionalCompilationProcessor
         private readonly HashSet<string> _alreadyIncluded = new(StringComparer.OrdinalIgnoreCase);
         private int _depth;
 
+        // §8.3.2.1 word-length ceiling for >>DEFINE names — a compilation-variable-name never reaches the
+        // tree-walk funnel, so this stage enforces the rule itself (CobolWordRule — kb/Work R05's sweep).
+        private readonly int _dialectLevel;
+
         public Run(bool leaveTurn, bool leavePropagate, bool leaveRefMod, bool leaveFlag, bool leaveCobolWords,
-            DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir)
+            DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir,
+            int dialectLevel)
         {
             _leaveTurn = leaveTurn; _leavePropagate = leavePropagate; _leaveRefMod = leaveRefMod;
             _leaveFlag = leaveFlag; _leaveCobolWords = leaveCobolWords;
+            _dialectLevel = dialectLevel;
             _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan);
             // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
             // `_defines` (a directive may reference a variable an earlier directive — or a copybook — set); the
@@ -229,7 +237,7 @@ public static class ConditionalCompilationProcessor
                         }
                         break;
                     case "DEFINE":
-                        if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag);   // a DEFINE in an omitted branch has no effect
+                        if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel);   // a DEFINE in an omitted branch has no effect
                         break;
                     default:
                         // A >> directive other than the conditional-compilation set handled above. If it is a
@@ -333,10 +341,14 @@ public static class ConditionalCompilationProcessor
     }
 
     private static void ApplyDefine(string rest, Dictionary<string, CtValue> defines,
-        CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag)
+        CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag, int dialectLevel)
     {
         var (name, kind, operand, over) = SplitDefine(rest);
         if (name.Length == 0) return;
+        // §8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
+        // the DEFINITION site (the root: an over-long word can never become defined, so a reference-site spelling
+        // is already diagnosed as an unknown variable). Report and continue, matching the funnel's posture.
+        if (CobolWordRule.LengthViolation(name, dialectLevel) is { } violation) diag.WordLength(violation);
         switch (kind)
         {
             case DefineKind.Off:
@@ -529,6 +541,11 @@ public static class ConditionalCompilationProcessor
                 $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
                 new SourceLocation(_path, 0, line, 0), default);
         }
+
+        /// <summary>COBOLNET1567 — the §8.3.2.1 word-length ceiling on a directive-carried word, the SAME code
+        /// and text the tree-walk funnel emits (CobolWordRule owns the message).</summary>
+        public void WordLength(string violation) =>
+            Emit(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code, violation);
 
         private void Emit(string code, string message) =>
             bag?.ReportError(code, message, new SourceLocation(_path, 0, Line, 0), default);

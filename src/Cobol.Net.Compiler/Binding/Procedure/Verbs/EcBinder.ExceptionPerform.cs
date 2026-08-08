@@ -170,19 +170,8 @@ internal sealed partial class EcBinder
         foreach (var item in w.performWhenEcList()!.performWhenEcItem())
         {
             string raw = item.cobolWord().GetText();
-            if (!ExceptionCatalog.TryGet(raw, out var info))
-            {
-                ctx.Edition.Error("COBOLNET0711", $"WHEN '{raw}': not an exception-name of ISO/IEC 1989 "
-                    + "§14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
-                continue;
-            }
-            if (info.IntroducedIn > ctx.Edition.DialectLevel)
-            {
-                ctx.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
-                    + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
-                    + $"(targeting COBOL-{ctx.Edition.DialectLevel})");
-                continue;
-            }
+            // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05).
+            if (!EcNameResolution.TryResolve(ctx.Edition, raw, $"WHEN '{raw}'", out var info)) continue;
             var files = item.fileName();
             if (files.Length > 0 && !ExceptionCatalog.IsIoName(info.Name))
             {

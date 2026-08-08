@@ -53,7 +53,7 @@ public static class TurnDirectiveProcessor
                 lines[i] = "";
                 continue;
             }
-            if (ParseTurn(body[4..], i + 1, diagnostics, loc) is { } ev)
+            if (ParseTurn(body[4..], i + 1, dialectLevel, diagnostics, loc) is { } ev)
                 (events ??= []).Add(ev);
             lines[i] = "";   // blank, never delete — line-count preserving (H3)
         }
@@ -63,13 +63,24 @@ public static class TurnDirectiveProcessor
     /// <summary>Parse one directive body: <c>{ec-name [file-name]…}… CHECKING {ON [WITH LOCATION] | OFF}</c>
     /// (§7.3.25.2). SR1: any word starting <c>EC-</c> is an exception-name, not a file-name. Null on a malformed
     /// directive (reported).</summary>
-    private static TurnEvent? ParseTurn(string body, int line, DiagnosticBag diagnostics, SourceLocation loc)
+    private static TurnEvent? ParseTurn(string body, int line, int dialectLevel,
+        DiagnosticBag diagnostics, SourceLocation loc)
     {
         var words = body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         var names = new List<(string Ec, string? File)>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         bool? on = null;
         bool withLocation = false;
+
+        // §8.3.2.1 applies to DIRECTIVE-carried words too — the tree-walk funnel never sees them, so this was
+        // the hole through which a 44-character exception-name compiled at --std 2002 (CobolWordRule; the R05
+        // fact that found it). One check per operand word, exception-names and file-names alike.
+        void CheckLength(string w)
+        {
+            if (Common.CobolWordRule.LengthViolation(w, dialectLevel) is { } violation)
+                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code,
+                    violation, loc, default);
+        }
 
         int k = 0;
         string? currentEc = null;
@@ -114,6 +125,7 @@ public static class TurnDirectiveProcessor
             if (w.StartsWith("EC-", StringComparison.OrdinalIgnoreCase))   // SR1 — an EC- word is an exception-name
             {
                 Flush();
+                CheckLength(w);
                 currentEc = w;
             }
             else if (currentEc is not null)
@@ -125,6 +137,7 @@ public static class TurnDirectiveProcessor
                         + "with 'EC-I-O' (ISO §7.3.25.3 SR4)", loc, default);
                 else
                 {
+                    CheckLength(w);
                     AddPair(currentEc, w);
                     currentEcHasFiles = true;
                 }

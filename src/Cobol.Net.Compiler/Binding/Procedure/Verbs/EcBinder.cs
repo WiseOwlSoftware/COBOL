@@ -86,33 +86,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         return new BoundRaise(info.Name, info.Fatality is not EcFatality.Nonfatal, enabled, withLoc, EcLocation(line));
     }
 
-    /// <summary>Resolve and validate a written exception-name: must exist in the §14.6.13.1 catalog (or be a
-    /// valid EC-USER-/EC-IMP- name), be LEVEL-3 (§14.9.29.3 SR1 / §14.9.18.3 SR2 — the RAISE/RAISING contexts
-    /// take level-3 names only), and fall inside the targeted edition's window (the 2023-only families —
-    /// VERSION_CHANGE_REFERENCE rows 40/61). Null after diagnosing.</summary>
-    private EcInfo? EcResolveLevel3(string name, string context)
-    {
-        if (!ExceptionCatalog.TryGet(name, out var info))
-        {
-            ctx.Edition.Error("COBOLNET0711", $"{context}: '{name}' is not an exception-name of ISO/IEC 1989 "
-                + "§14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
-            return null;
-        }
-        if (info.Level != 3)
-        {
-            ctx.Edition.Error("COBOLNET0710", $"{context}: exception-name '{info.Name}' is a level-{info.Level} "
-                + "name; only a LEVEL-3 exception-name may be raised (ISO §14.9.29.3 SR1)");
-            return null;
-        }
-        if (info.IntroducedIn > ctx.Edition.DialectLevel)
-        {
-            ctx.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
-                + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
-                + $"(targeting COBOL-{ctx.Edition.DialectLevel})");
-            return null;
-        }
-        return info;
-    }
+    /// <summary>Resolve and validate a written exception-name for the RAISE/RAISING contexts — the ONE funnel
+    /// (kb/Work R05) plus this site's LEVEL-3 requirement (§14.9.29.3 SR1 / §14.9.18.3 SR2, checked before the
+    /// introduction gate so the level error keeps priority). Null after diagnosing.</summary>
+    private EcInfo? EcResolveLevel3(string name, string context) =>
+        EcNameResolution.TryResolve(ctx.Edition, name, context, out var info, requireLevel3: true)
+            ? info : null;
 
     // ── RESUME (§14.9.33) ────────────────────────────────────────────────────────────────────────────────────
 
@@ -255,7 +234,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         string up = word.ToUpperInvariant();
         if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var info))
         {
-            if (info.Level is 3 && info.Level2Parent is "EC-USER") ctx.EcState.PdRaising.Add(up);
+            // Direct TryGet, not the funnel: an unresolved word here may legally be a CLASS name (SR8/SR9),
+            // so the funnel's unknown-name error does not apply — but the accepted names still get the
+            // §15.33 width advisory (kb/Work R05).
+            if (info.Level is 3 && info.Level2Parent is "EC-USER")
+            {
+                EcNameResolution.Advise(ctx.Edition, info);
+                ctx.EcState.PdRaising.Add(up);
+            }
             else
                 ctx.Edition.Error("COBOLNET0858",
                     $"PROCEDURE DIVISION RAISING {up}: an exception-name here shall be a level-3 EC-USER "

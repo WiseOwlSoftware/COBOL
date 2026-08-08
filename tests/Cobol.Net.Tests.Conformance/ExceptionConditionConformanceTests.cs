@@ -1112,4 +1112,92 @@ public sealed class ExceptionConditionConformanceTests
         }
         finally { CutRunner.TryDelete(dir); }
     }
+
+    // ── The §15.33 width collision (kb/Work R05 — Phase-B F6): r1 fixes EXCEPTION-STATUS at 31 characters
+    //    while COBOL-2023 words run to 63 (§8.3.2.1) and the §14.6.13.1.1 open-family suffixes are unbounded.
+    //    The r1 width is implemented AS WRITTEN; COBOLNET1636 (Warning) makes the collision visible. ──────────
+
+    /// <summary>44 characters — legal at 2023 only (the 31-char COBOL-2002 word limit rejects it below).</summary>
+    private const string LongEc = "EC-USER-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    [Fact]   // §15.33.3 r1 IS the width: a 44-character legal name reads back as its 31-character prefix —
+             // the truncation is the rule's own, not an implementation choice.
+    public void ExceptionStatus_LongUserName_ReturnsThe31CharPrefix()
+        => AssertSpec($"""
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT048.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                RAISE EXCEPTION {LongEc}.
+                DISPLAY "S=[" FUNCTION EXCEPTION-STATUS "]".
+                STOP RUN.
+            """, $"S=[{LongEc[..31]}]");
+
+    [Fact]   // COBOLNET1636 fires ONCE per spelling even when the name appears at TURN + RAISE + USE (the ONE
+             // resolution funnel dedupes), and the program still compiles clean — legal source stays legal.
+    public void LongUserName_AdvisedOnce_CompilesClean()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Prog("ECT049",
+            $">>TURN {LongEc} CHECKING ON", "", "", $"""
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION {LongEc}.
+            EC-H-P.
+                RESUME AT NEXT STATEMENT.
+            """, $"""
+                RAISE EXCEPTION {LongEc}.
+                STOP RUN.
+            """), 2023);
+        Assert.True(ok, string.Join("\n", errors));
+        Assert.Equal(1, warnings.Count(w => w.Contains("COBOLNET1636")));
+    }
+
+    [Fact]   // The advisory rides the FUNNEL, not one verb: a name spelled ONLY in >>TURN — never RAISEd —
+             // is still advised (the arm a single-site fix would have missed; feedback_two_arm_dispatch).
+    public void LongUserName_TurnOnlySpelling_StillAdvised()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull($"""
+            >>TURN {LongEc} CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT050.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                STOP RUN.
+            """, 2023);
+        Assert.True(ok, string.Join("\n", errors));
+        Assert.Contains(warnings, w => w.Contains("COBOLNET1636"));
+    }
+
+    [Fact]   // Below 2023 the collision cannot arise: the 44-character word itself exceeds the COBOL-2002
+             // 31-character word limit — INCLUDING in a >>TURN directive, where the word never reaches the
+             // tree-walk funnel. ⛔ This fact FAILED when first written: the evidence ledger's "correctly
+             // rejected with COBOLNET1567" was measured on the RAISE spelling only, and the directive path
+             // compiled the same word clean (CobolWordRule closed that hole — TURN operands now share the
+             // §8.3.2.1 ceiling). No advisory either: 1636 is a 2023-collision message, not a length error.
+    public void LongUserName_At2002_TheWordItselfIsRejected()
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull($"""
+            >>TURN {LongEc} CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT051.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                STOP RUN.
+            """, 2002);
+        Assert.False(ok, "a 44-character word must not compile at --std 2002");
+        Assert.Contains(errors, e => e.Contains("COBOLNET1567"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1636"));
+    }
+
+    [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at
+             // --std 2002. The old USE-site copy guarded the introduction gate with Level == 3, so the level-2
+             // spelling slipped through un-gated; the funnel gates every level (COBOLNET0878).
+    public void UseAfterEc_Level2NameOf2023Family_At2002_Diagnosed()
+        => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(Prog("ECT052",
+            "", "", "", """
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-MCS.
+            EC-H-P.
+                RESUME AT NEXT STATEMENT.
+            """, """
+                STOP RUN.
+            """), 2002), "COBOLNET0878");
 }

@@ -41,19 +41,8 @@ public sealed class TurnState
         foreach (var ev in events)
             foreach (var (ec, file) in ev.Names)
             {
-                if (!ExceptionCatalog.TryGet(ec, out var info))
-                {
-                    edition.Error("COBOLNET0711", $">>TURN: '{ec}' is not an exception-name of ISO/IEC 1989 "
-                        + "§14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
-                    continue;
-                }
-                if (info.IntroducedIn > edition.DialectLevel)
-                {
-                    edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
-                        + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
-                        + $"(targeting COBOL-{edition.DialectLevel})");
-                    continue;
-                }
+                // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05).
+                if (!EcNameResolution.TryResolve(edition, ec, ">>TURN", out var info)) continue;
                 s._events.Add(new Ev(ev.Line, info.Name, file, ev.On, ev.WithLocation));
             }
         return s;

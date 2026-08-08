@@ -484,19 +484,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var entry in entries)
         {
             string raw = entry.cobolWord().GetText();
-            if (!Runtime.Exceptions.ExceptionCatalog.TryGet(raw, out var info))
-            {
-                ctx.Edition.Error("COBOLNET0711", $"declarative section '{sectionName}': '{raw}' is not an "
-                    + "exception-name of ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
-                continue;
-            }
-            if (info.Level == 3 && info.IntroducedIn > ctx.Edition.DialectLevel)
-            {
-                ctx.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
-                    + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
-                    + $"(targeting COBOL-{ctx.Edition.DialectLevel})");
-                continue;
-            }
+            // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05). ⚠ The funnel
+            // gates the introduction edition at EVERY level where this site's former copy guarded Level == 3 —
+            // a LEVEL-2 name of a 2023-only family (EC-MCS) in a USE entry slipped the old gate at 2002/2014.
+            if (!EcNameResolution.TryResolve(ctx.Edition, raw,
+                    $"declarative section '{sectionName}'", out var info)) continue;
             var fileNames = entry.fileName();
             if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
             {

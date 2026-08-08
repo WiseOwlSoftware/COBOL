@@ -7,6 +7,7 @@ using CobolNet.Binding.Model;  // BoundUnit / OoClassUnit — the bound model (P
 using CobolNet.Binding.Passes; // GroupBindContext — this pass is the manifest's NAMED terminal pass (P6 Step 4)
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
+using CobolNet.Frontend.Common;        // CobolWordRule — the ONE §8.3.2.1 word-length ceiling (shared with the directive stages)
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
 using CobolNet.Frontend.Parsing;       // CobolKeywordTokens — the reverse vocab map (>>COBOL-WORDS SR3/SR4 category)
 
@@ -1735,7 +1736,7 @@ internal sealed class VersionConformancePass
             // words, and at EVERY edition for >63 (a hard cap). Checked for every COBOL word regardless of role
             // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
             string raw = ctx.Start.Text;
-            int max = _p._edition.Year >= 2023 ? 63 : _p._edition.Year >= 2002 ? 31 : 30;
+            int max = CobolWordRule.MaxLength(_p._edition.Year);   // ONE ceiling — the directive stages share it
             // §8.3.2.1's OTHER half — the word CHARACTER SET (fix-queue R02). The same sentence that caps the
             // length names the admissible characters: "…the basic special characters HYPHEN AND UNDERSCORE. The
             // hyphen or underscore shall not appear as the first or last character in such words." The
@@ -1746,9 +1747,9 @@ internal sealed class VersionConformancePass
             if (raw.Contains('_') && (_overlongWords ??= []).Add("_" + raw.ToUpperInvariant()))
                 _p.Check(Constructs.UserWordUnderscore2002, $"the underscore in the COBOL word '{raw}'");
             if (raw.Length > max && (_overlongWords ??= []).Add(raw.ToUpperInvariant()))
-                _p._sink.Report(new EditionDiagnostic("COBOLNET1567", EditionSeverity.Error, "word-length-exceeded",
-                    $"the COBOL word '{raw}' is {raw.Length} characters, exceeding the {max}-character maximum for "
-                    + $"COBOL-{_p._edition.Year} (ISO §8.3.2.1 — COBOL-2023 raised the limit to 63)", "", "ISO §8.3.2.1"));
+                _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordLengthExceeded.Code,
+                    EditionSeverity.Error, DiagnosticCatalog.WordLengthExceeded.Id,
+                    CobolWordRule.LengthViolation(raw, _p._edition.Year)!, "", "ISO §8.3.2.1"));
             if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
                 return base.VisitChildren(ctx);
             string word = ctx.Start.Text.ToUpperInvariant();

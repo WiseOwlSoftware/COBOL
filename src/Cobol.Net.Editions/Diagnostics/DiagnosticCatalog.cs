@@ -68,6 +68,14 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor DigitCapacityOver31 = new(
         "COBOLNET0801", "digit-capacity-over-31", EditionSeverity.Error,
         "A fixed-point item/literal exceeds the 31-digit ISO limit.", "ISO §8.3.1.2");
+    // ── The §8.3.2.1 word-length ceiling — ONE rule (CobolWordRule), reported from the tree-walk funnel
+    //    (VersionConformancePass.VisitCobolWord) AND the directive stages (>>TURN operands, >>DEFINE names),
+    //    which never reach the tree walk (kb/Work R05's sweep). ─────────────────────────────────────────
+    public static readonly DiagnosticDescriptor WordLengthExceeded = new(
+        "COBOLNET1567", "word-length-exceeded", EditionSeverity.Error,
+        "A COBOL word exceeds the edition's length ceiling: 63 characters at COBOL-2023 (Annex E.3.3 item 11 — "
+        + "a relaxation, so a 32..63-character word below 2023 is a length error, not an introduction gate), "
+        + "31 at 2002/2014, 30 at 1985.", "ISO §8.3.2.1");
     public static readonly DiagnosticDescriptor DigitCapacityOver18Pre2002 = new(
         "COBOLNET0802", "digit-capacity-over-18-pre-2002", EditionSeverity.Error,
         "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.1.2");
@@ -90,6 +98,25 @@ public static class DiagnosticCatalog
         "COBOLNET0875", "turn-directive-below-2002", EditionSeverity.Error,
         ">>TURN is the COBOL-2002+ exception-condition checking directive — it requires --std 2002 or later "
         + "(ISO §7.3.25).", "ISO §7.3.25");
+    // ── Written exception-name resolution — ONE funnel (EcNameResolution; kb/Work R05). The unknown-name and
+    //    introduction-gate texts existed as four verbatim copies each before the funnel. ────────────────────────
+    public static readonly DiagnosticDescriptor EcNameUnknown = new(
+        "COBOLNET0711", "ec-name-unknown", EditionSeverity.Error,
+        "A written exception-name is neither in the §14.6.13.1 catalog nor a valid EC-USER-/EC-IMP- open-family "
+        + "name (suffix of basic letters/digits/hyphen/underscore, not ending in hyphen or underscore).",
+        "ISO §14.6.13.1.1");
+    public static readonly DiagnosticDescriptor EcNameIntroducedLater = new(
+        "COBOLNET0878", "ec-name-introduced-later", EditionSeverity.Error,
+        "An exception-name belongs to a family introduced by a later edition than the targeted one (the "
+        + "2023-only families — VERSION_CHANGE_REFERENCE rows 40/61).", "ISO §14.6.13.1");
+    public static readonly DiagnosticDescriptor EcNameWiderThanStatus = new(
+        "COBOLNET1636", "ec-name-wider-than-exception-status", EditionSeverity.Warning,
+        "A level-3 exception-name is longer than the 31-character value FUNCTION EXCEPTION-STATUS returns "
+        + "(§15.33.3 r1 fixes the width while COBOL-2023 words run to 63 characters, §8.3.2.1, and the "
+        + "§14.6.13.1.1 open-family suffixes are unbounded) — this name and any other sharing its first 31 "
+        + "characters are indistinguishable through that one function. Checking, declarative selection, and "
+        + "WHEN matching use the full name. See COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN §15.33.",
+        "ISO §15.33.3 r1 / §8.3.2.1 / §14.6.13.1.1");
     public static readonly DiagnosticDescriptor PropagateDirective = new(
         "COBOLNET0883", "propagate-directive", EditionSeverity.Error,
         "The >>PROPAGATE directive's compile-time diagnostics (ISO §7.3.21): below --std 2002 the directive is "
