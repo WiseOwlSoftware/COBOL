@@ -1162,7 +1162,15 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R21+R22+R30 tree `36ce29fa` (2026-08-08 15:51).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R31+R32+R25+R26 tree `2a0898c7` (2026-08-08 16:48),
+  `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4285 / 4285, zero skipped** (10 m 49 s) ·
+  greenfield Unit **4094 / 4094** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,
+  `=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** against the baseline the R31+R32 commit regenerated with
+  its 38 attributed rows. Covers the candidate-set qualified resolver (every qualified reference in every
+  corpus/NIST program re-resolved through the rewrite and nothing moved), the screen/alphabet-name
+  exemptions, R25's UTC-roll guard and R26's algebraic-fold arms.
+- **⛔ PRIOR BATTERY REFERENCE — the R21+R22+R30 tree `36ce29fa` (2026-08-08 15:51).**
   ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE DOING EXACTLY ITS JOB** — the
   differential was the one leg that could see what R30's new rejection does to REAL programs, and it did:
   every internal leg green — FULL greenfield Conformance **4279 / 4279, zero skipped** (12 m 17 s) ·
