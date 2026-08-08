@@ -1134,7 +1134,14 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB40 tree (2026-08-06 03:25).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R10 unsigned-carrier tree `5312996a` (2026-08-08 00:26),
+  `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4263 / 4263, zero skipped** (11 m 24 s) ·
+  greenfield Unit **4077 / 4077** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** · GnuCOBOL differential **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`**
+  (artifacts `/tmp/battery-20260808-001031`). Covers the whole R10 COMP-5 unsigned-carrier change set
+  (ulong/UInt128 carriers, the WrapBinary bits=128 fix, the checked additive siblings) — notable because a
+  numeric-substrate change is exactly the class the differential exists to catch, and it moved nothing.
+- **⛔ PRIOR BATTERY REFERENCE — the PB40 tree (2026-08-06 03:25).**
   ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE WORKING** — the same shape as the
   PB47 run. Its one red was the differential reporting **1 per-case flip**: `run_functions:221`,
   `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT`, carrying PB40's own `COBOLNET1627`. §0's mechanical rule classes
