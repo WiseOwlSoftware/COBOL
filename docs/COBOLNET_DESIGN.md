@@ -115,7 +115,9 @@ other, not just against the legacy oracle.
    REDEFINES byte-pun), built into a fresh scratch buffer, never persisted as program data.
 2. **Numerics are native.** Fixed-point → a native integer holding the **unscaled** value (all digits; the decimal
    point is compile-time scale metadata). ≤18 digits → `long`; 19–38 digits → `Int128`; `COMP-1`/`COMP-2` →
-   `float`/`double`; `COMP-5` → native int by width (binary-wrap). **No `decimal`, no `BigInteger`.**
+   `float`/`double`; `COMP-5` → native int by width (binary-wrap), and since the item owns its FULL container
+   range the carrier is unsigned where a signed one cannot hold it: unsigned 8-byte container → `ulong`,
+   unsigned 16-byte → `UInt128` (kb/Work R10; CONFORMANCE.md item 208). **No `decimal`, no `BigInteger`.**
 3. **Control flow is a single program-counter dispatcher.** Paragraphs/sections are LABELS (PC cases) in one flow,
    NOT separate methods. `GO TO` sets the PC; fall-through is PC++; a `PERFORM` range is a recursive bounded
    dispatch.
@@ -210,7 +212,7 @@ This correction must be applied to the architecture doc in the same change set (
 | `PIC 9(n)` / `S9(n)` (≤18 digits, any scale) | `long` (unscaled; scale = metadata) |
 | `PIC 9(n)`…(19–38 digits) | `Int128` (`WidePrecision`) |
 | `COMP-1` / `COMP-2` | `float` / `double` |
-| `COMP-5` / `BINARY-*` | native int by width (`sbyte…ulong`/`Int128`), binary-wrap |
+| `COMP-5` / `BINARY-*` | the narrowest of `long`/`ulong`/`Int128`/`UInt128` holding the FULL container range (unsigned 8-byte → `ulong`, unsigned 16-byte → `UInt128`; kb/Work R10), binary-wrap. Value paths (store/DISPLAY/relations) carry the whole range via the runtime's U-lane; arithmetic funnels through `CobolNum.Widen` into the `Int128` intermediate (CONFORMANCE.md items 123/179) |
 | numeric-edited (`Z * $ + - CR DB B 0 /`) | `string` (the formatted display image) |
 | `PIC 1` / `USAGE BIT` | `bool` |
 | `01`/group | nested `record struct` named `_T_<csname>` |

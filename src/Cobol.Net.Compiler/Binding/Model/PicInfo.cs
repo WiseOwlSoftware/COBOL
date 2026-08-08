@@ -212,6 +212,21 @@ public sealed record PicInfo(
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 
+    /// <summary>True for an UNSIGNED BinaryCapacity item whose 16-byte container range [0, 2^128) exceeds every
+    /// signed carrier — its CLR carrier is <see cref="UInt128"/> (kb/Work R10, owner decision 2026-08-07: the item
+    /// owns its full container range, ISO §13.18.60.4 GR12). Reads of such an item enter the numeric renderer on
+    /// the unsigned-wide lane (<c>NumX.U</c>), whose value paths keep the full range and whose arithmetic funnel
+    /// is <c>CobolNum.Widen</c>.</summary>
+    public bool IsUnsignedWideBinary => Category is PicCategory.Numeric && !Signed
+        && Truncation == NumericTruncation.BinaryCapacity && StorageWidth == 16;
+
+    /// <summary>True for an UNSIGNED BinaryCapacity item whose 8-byte container range [0, 2^64) exceeds
+    /// <c>long</c> but fits <see cref="Int128"/> — its CLR carrier is <c>ulong</c> (the F75 tier: the fold said
+    /// 2^64−1 while the <c>long</c> field topped out at 2^63−1). Its reads ride the ordinary Int128 engine
+    /// (every <c>ulong</c> value fits), cast at the read site.</summary>
+    public bool IsUnsignedLongBinary => Category is PicCategory.Numeric && !Signed
+        && Truncation == NumericTruncation.BinaryCapacity && StorageWidth == 8;
+
     private readonly int? _digitPositions;
     /// <summary>The ISO §13.18.40.3 SR14 DIGIT-POSITION count that the 1–31 (18 pre-2002) capacity cap is measured
     /// against: the '9'/Z/* positions, each 'P' (§13.18.40.4 — counted in the maximum digit positions though it stores
@@ -288,6 +303,11 @@ public sealed record PicInfo(
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
+        // ⛔ An UNSIGNED BinaryCapacity item owns its full container range (ISO §13.18.60.4 GR12; kb/Work R10,
+        // owner decision 2026-08-07), so its carrier is the container's own unsigned CLR type wherever a signed
+        // carrier cannot hold that range: an 8-byte container holds [0, 2^64) → ulong (long tops out at 2^63−1 —
+        // the F75 fold/storage disagreement), a 16-byte container holds [0, 2^128) → UInt128. Containers of
+        // 4 bytes and below fit long exactly and keep the common carrier.
         PicCategory.Numeric => Usage switch
         {
             Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "float",   // COMP-1 / FLOAT-SHORT / IEEE binary32
@@ -297,6 +317,8 @@ public sealed record PicInfo(
             // valid compile (never emit a non-conforming double/decimal for a pinned IEEE format).
             Usage.FloatBinary64 or Usage.FloatBinary128 => "double",
             Usage.FloatDecimal16 or Usage.FloatDecimal34 => "decimal",
+            _ when IsUnsignedWideBinary => "UInt128",
+            _ when IsUnsignedLongBinary => "ulong",
             _ => Digits > 18 ? "Int128" : "long",
         },
         _ => "object", // Group: never stored as a scalar (emitted as a record struct).
@@ -332,6 +354,8 @@ public sealed record PicInfo(
             Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "0f",
             Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 or Usage.FloatBinary128 => "0d",
             Usage.FloatDecimal16 or Usage.FloatDecimal34 => "0m",   // unreached (rejected at ParseUsage, COBOLNET1564)
+            _ when IsUnsignedWideBinary => "(UInt128)0",
+            _ when IsUnsignedLongBinary => "0UL",
             _ => Digits > 18 ? "(Int128)0" : "0L",
         },
         _ => "default",

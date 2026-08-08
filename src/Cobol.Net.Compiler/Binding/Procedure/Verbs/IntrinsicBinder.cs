@@ -1460,10 +1460,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
                        || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
         }
-        else if (pic.Usage is Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)
+        else if (pic.Truncation == CobolNet.Runtime.NumericTruncation.BinaryCapacity)
         {
+            // ⛔ Keyed on the ONE capacity-discipline table (PicInfo.Truncation) — this branch previously carried
+            // its own usage list (Comp5/BinaryChar/BinaryShort/BinaryLong/BinaryDouble), the same rule written
+            // twice (kb/Work R10, F74's drift-test demand); AlgebraicFoldContainerAgreementTests pins the fold's
+            // bound against the runtime capacity for every BinaryCapacity profile. The UNSIGNED container bound
+            // 2^128−1 (a 16-byte container, §13.18.60.4 GR12) exceeds Int128 — Decimalize's BigInteger arm
+            // renders it and EmitCore.IntLiteralX carries it as a UInt128 literal (F73's crash was this value
+            // forced through Int128.Parse).
             scale = pic.Scale;
-            int bits = 8 * pic.StorageWidth;   // container width (§13.18.60.4) — COMP-5 / BINARY-CHAR own the full range
+            int bits = 8 * pic.StorageWidth;   // container width (§13.18.60.4 GR12) — the item owns the full range
             unscaled = sig.Name == "HIGHEST-ALGEBRAIC"
                 ? (pic.Signed ? (System.Numerics.BigInteger.One << (bits - 1)) - 1 : (System.Numerics.BigInteger.One << bits) - 1)
                 : (pic.Signed ? -(System.Numerics.BigInteger.One << (bits - 1)) : System.Numerics.BigInteger.Zero);
@@ -1512,10 +1519,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <c>"0"</c> where the runtime rule gives <c>"0.00"</c> — a literal at the wrong scale, which then feeds
     /// subsequent arithmetic. Delegation removes the copy rather than syncing it.
     /// </para>
-    /// <para>The BigInteger fallback survives only for a magnitude beyond <see cref="Int128"/>. Nothing here
-    /// currently produces one — the widest value is all-nines over 38 digit positions (10^38−1 &lt;
-    /// Int128.MaxValue) or a 128-bit COMP-5 container bound — but the parameter type permits it, so the path stays
-    /// rather than becoming an overflow waiting for a wider PICTURE.</para></summary>
+    /// <para>The BigInteger arm is LIVE, not defensive: the HIGHEST-ALGEBRAIC fold of a 16-byte UNSIGNED
+    /// container is 2^128−1 (39 digits, beyond <see cref="Int128"/>), and this arm renders it. ⚠ Its previous
+    /// text asserted "nothing here currently produces one" — an unverified claim that hid exactly this value
+    /// (kb/Work R10, F73): the rendered literal was then forced through <c>Int128.Parse</c> and threw at run
+    /// time. <c>EmitCore.IntLiteralX</c> now carries a positive magnitude beyond Int128 as a <c>UInt128</c>
+    /// literal on the unsigned-wide lane.</para></summary>
     private static string Decimalize(System.Numerics.BigInteger unscaled, int scale, bool negative)
     {
         var mag = System.Numerics.BigInteger.Abs(unscaled);

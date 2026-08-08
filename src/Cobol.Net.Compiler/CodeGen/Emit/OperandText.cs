@@ -163,6 +163,11 @@ internal static class OperandText
             // ISO §14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
             // sign — the de-signed magnitude digits (FormatUnsignedDisplay), not the zoned/overpunch image. FormatDisplay
             // already yields these for an unsigned item, so deSign on an unsigned numeric is a no-op.
+            // A UInt128-carrier item (kb/Work R10) renders through the U-named lane — picked by name, never by
+            // overload (an int constant converts implicitly to both Int128 and UInt128; see CobolNum.FormatDisplayU).
+            { IsUnsignedWideBinary: true } pic => deSign
+                ? PExpand($"CobolNum.FormatUnsignedDisplayU({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
+                : RuntimeApi.NumFormatDisplay(PlaceRenderer.Read(p), p.Item.ProfileName, u: true),
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplay({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
                 : $"CobolNum.FormatDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})",

@@ -62,7 +62,13 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// <param name="Real">True when <see cref="Expr"/> is a C#-<c>double</c>-typed FLOATING-POINT intermediate (D16 —
 /// any expression with a float operand evaluates in IEEE binary64); <see cref="Scale"/> is 0 and unused. <c>Real</c>
 /// and <see cref="Dec"/> are mutually exclusive.</param>
-internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false);
+/// <param name="U">True when <see cref="Expr"/> is a <c>UInt128</c>-typed UNSIGNED-WIDE intermediate (kb/Work
+/// R10): a 16-byte unsigned COMP-5 item's field read, or a folded literal beyond <see cref="Int128.MaxValue"/>
+/// (the HIGHEST-ALGEBRAIC container bound, §15.43.4 r2). The VALUE paths (store, display, relation) keep the
+/// full [0, 2^128) range via the runtime's <c>UInt128</c> overloads; the ARITHMETIC paths funnel through
+/// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate — CONFORMANCE.md §4.2.16), never a
+/// silent wrap. Mutually exclusive with <see cref="Dec"/> and <see cref="Real"/>.</param>
+internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false, bool U = false);
 
 /// <summary>Small text utilities shared by every backend emitter: loud-failure guards, literal escaping, and the
 /// numeric-literal → unscaled-<c>long</c> conversions.</summary>
@@ -121,18 +127,29 @@ internal static class EmitText
         if (t.IndexOf('E') >= 0 || t.IndexOf('e') >= 0)
             return new NumX(t, 0, Real: true);
         int dot = t.IndexOf('.');
-        if (dot < 0) return new NumX(IntLiteral(t), 0);
-        int scale = t.Length - dot - 1;
-        return new NumX(IntLiteral(t.Remove(dot, 1)), scale);
+        var (lit, u) = IntLiteralX(dot < 0 ? t : t.Remove(dot, 1));
+        return new NumX(lit, dot < 0 ? 0 : t.Length - dot - 1, U: u);
     }
 
     /// <summary>The C# literal for an unscaled integer digit string: <c>…L</c> while it fits <see cref="long"/>
     /// (≤18 digits), else <c>Int128.Parse("…")</c>.</summary>
-    public static string IntLiteral(string signedDigits)
+    public static string IntLiteral(string signedDigits) => IntLiteralX(signedDigits).Text;
+
+    /// <summary>The carrier-aware form of <see cref="IntLiteral"/>. A SOURCE literal never exceeds 31 digits
+    /// (ISO §8.3.1.2), but a COMPILER-SYNTHESIZED literal can: the HIGHEST-ALGEBRAIC fold of a 16-byte unsigned
+    /// COMP-5 container is 2^128−1 (39 digits, §15.43.4 r2 — kb/Work R10 F73; the old unconditional
+    /// <c>Int128.Parse</c> threw <c>OverflowException</c> at run time). A positive magnitude beyond
+    /// <see cref="Int128.MaxValue"/> renders as <c>UInt128.Parse</c> and is flagged unsigned-wide (<c>U</c>) so
+    /// the renderer routes it down the unsigned lane. (A NEGATIVE value never needs it — the most negative fold,
+    /// −2^127, is exactly <see cref="Int128.MinValue"/>.)</summary>
+    internal static (string Text, bool U) IntLiteralX(string signedDigits)
     {
         string mag = signedDigits.TrimStart('-').TrimStart('0');
-        return mag.Length <= 18 ? $"{signedDigits}L"
-            : $"Int128.Parse(\"{signedDigits}\")";
+        if (mag.Length <= 18) return ($"{signedDigits}L", false);
+        if (signedDigits.StartsWith('-') || mag.Length < 39
+            || System.Numerics.BigInteger.Parse(mag) <= (System.Numerics.BigInteger)Int128.MaxValue)
+            return ($"Int128.Parse(\"{signedDigits}\")", false);
+        return ($"UInt128.Parse(\"{signedDigits}\")", true);
     }
 
     /// <summary>Render a numeric literal as a C# <c>long</c> holding its UNSCALED value at <paramref name="scale"/>

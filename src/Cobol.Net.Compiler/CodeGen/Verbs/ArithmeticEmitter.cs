@@ -346,25 +346,34 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             if (value.Real && mode == CobolRounding.Prohibited)
             {
                 w.Line($"if ({RuntimeApi.FloatInexactAtScale(value.Expr, $"{recvScale}")}) {onFail}");
-                w.Line($"else if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
+                w.Line($"else if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
             }
             else
-                w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
+                w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
             w.Line($"else {PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatImage(tmp, profile) : Narrow(tmp, target.Item))}");
             return;
         }
-        string stored = RuntimeApi.NumStoreRounded(args, mode);
+        string stored = RuntimeApi.NumStoreRounded(args, mode, value.U);
         w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatImage(stored, profile) : Narrow(stored, target.Item)));
     }
 
     /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed
     /// mask has PicInfo.Scale 0 — the point lives in the mask, not in V); a numeric item's is its PIC scale.</summary>
-    /// <summary>Wrap a wide (Int128) stored value for assignment into a NARROW receiver field: a ≤18-digit item
-    /// stores as native <c>long</c> (the value is already truncated/rounded to the receiver's digits, so the cast
-    /// is exact); a 19+-digit item (the 2002+ wide tier) stores the Int128 directly.</summary>
-    public static string Narrow(string expr, DataItem item) =>
-        item.Pic is { Digits: > 18 } ? expr : $"(long)({expr})";
+    /// <summary>Wrap a wide (Int128) stored value for assignment into the receiver's CARRIER type: a ≤18-digit
+    /// item stores as native <c>long</c> (the value is already truncated/rounded to the receiver's digits, so the
+    /// cast is exact); an unsigned 8-byte BinaryCapacity item casts to its <c>ulong</c> carrier (the stored
+    /// residue is in [0, 2^64) — exact); a 16-byte UNSIGNED BinaryCapacity item reinterprets the store's
+    /// container BITS as <c>UInt128</c> (<c>CobolNum.WrapBinary</c>'s documented 16-byte contract — kb/Work R10);
+    /// a signed 19+-digit item (the 2002+ wide tier) stores the Int128 directly. Keyed on the CARRIER, never the
+    /// digit count — the digit-count key is exactly how the F75 fold/storage disagreement shipped.</summary>
+    public static string Narrow(string expr, DataItem item) => item.Pic switch
+    {
+        { IsUnsignedWideBinary: true } => $"unchecked((UInt128)({expr}))",
+        { IsUnsignedLongBinary: true } => $"(ulong)({expr})",
+        { Digits: > 18 } => expr,
+        _ => $"(long)({expr})",
+    };
 
     private int ScaleOf(Place p) =>
         p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m }

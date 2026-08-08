@@ -394,7 +394,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 int recvScaleM = target.Pic!.Scale;
                 string nExpr = n.Real ? RuntimeApi.FloatToScaled(n.Expr, $"{recvScaleM}", CobolRounding.Truncation) : n.Expr;
                 int nScale = n.Real ? recvScaleM : n.Scale;
-                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName), target);
+                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName, n.U), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:

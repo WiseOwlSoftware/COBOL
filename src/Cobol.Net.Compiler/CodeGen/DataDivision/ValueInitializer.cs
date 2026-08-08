@@ -121,7 +121,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         if (effRaw is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
             return item.StoreAsImage
                 ? RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(q)), $"{pic.Length}")
-                : EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
+                : CarrierInit(EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale), pic);
 
         // A numeric leaf stored as its character image (whole-group-aliased / Tier-B): initialize to the BYTES
         // of its unscaled VALUE (zoned digits for DISPLAY, radix-2 / BCD for BINARY / PACKED — V59) (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
@@ -166,10 +166,19 @@ internal sealed class ValueInitializer(EmitContext ctx)
             PicCategory.Boolean =>
                 RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false),
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
-            PicCategory.Numeric => EmitText.UnscaledAtScale(raw, pic.Scale),
+            PicCategory.Numeric => CarrierInit(EmitText.UnscaledAtScale(raw, pic.Scale), pic),
             _ => pic.DefaultInitializer,
         };
     }
+
+    /// <summary>Cast a numeric VALUE literal to the item's CARRIER type where C# has no implicit conversion: an
+    /// unsigned BinaryCapacity item carries <c>ulong</c> / <c>UInt128</c> (kb/Work R10), and its VALUE literal —
+    /// a non-negative source literal of ≤31 digits (ISO §8.3.1.2), rendered as <c>…L</c> or <c>Int128.Parse</c> —
+    /// converts exactly.</summary>
+    private static string CarrierInit(string literal, PicInfo pic) =>
+        pic.IsUnsignedWideBinary ? $"(UInt128)({literal})"
+        : pic.IsUnsignedLongBinary ? $"(ulong)({literal})"
+        : literal;
 
     /// <summary>Parse a canonical (dot-decimal) numeric VALUE text to its unscaled value + scale, for
     /// compile-time editing. False for any non-numeric shape (the caller falls back to verbatim store).</summary>

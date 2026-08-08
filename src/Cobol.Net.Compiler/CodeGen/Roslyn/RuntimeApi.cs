@@ -74,16 +74,21 @@ internal static class RuntimeApi
     public static string DecFunctionText(string value, bool deSign = false) =>
         $"({value}).{nameof(CobolDec.ToFunctionText)}({(deSign ? "true" : "")})";
 
-    /// <summary>The numeric MOVE-rules store (decimal alignment, truncation/zero-fill) — <c>CobolNum.Store</c>.</summary>
-    public static string NumStore(string value, string scale, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({value}, {scale}, {profile})";
+    /// <summary>The numeric MOVE-rules store (decimal alignment, truncation/zero-fill) — <c>CobolNum.Store</c>,
+    /// or <c>CobolNum.StoreU</c> when the VALUE expression is on the unsigned-wide lane (<c>NumX.U</c> — a
+    /// 16-byte unsigned COMP-5 read or the HIGHEST-ALGEBRAIC fold literal, kb/Work R10). The lane is picked by
+    /// NAME, never by overload: an int constant converts implicitly to both Int128 and UInt128, so a same-name
+    /// pair makes every <c>Store(0, …)</c>-shaped emission a CS0121 ambiguity.</summary>
+    public static string NumStore(string value, string scale, string profile, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.StoreU) : nameof(CobolNum.Store))}({value}, {scale}, {profile})";
 
-    /// <summary>Render an unscaled value as the receiver's DISPLAY image — <c>CobolNum.FormatDisplay</c>.
+    /// <summary>Render an unscaled value as the receiver's DISPLAY image — <c>CobolNum.FormatDisplay</c>
+    /// (<c>FormatDisplayU</c> for a UInt128-carrier read — see <see cref="NumStore"/> on lane-by-name).
     /// ⛔ This is the CHARACTER rendering (what a DISPLAY statement shows). For the bytes an item occupies in a
     /// record, a file, a SORT key or a REDEFINES backing, use <see cref="NumFormatImage"/> — for a BINARY or
     /// PACKED item the two differ, and that difference is V59.</summary>
-    public static string NumFormatDisplay(string value, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatDisplay)}({value}, {profile})";
+    public static string NumFormatDisplay(string value, string profile, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.FormatDisplayU) : nameof(CobolNum.FormatDisplay))}({value}, {profile})";
 
     /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
     /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
@@ -176,13 +181,25 @@ internal static class RuntimeApi
 
     /// <summary>The checked numeric store — <c>CobolNum.TryStore</c> (false = capacity/PROHIBITED failure; the
     /// receiver stays unchanged, §14.7.5). <paramref name="argsFragment"/> is the pre-shaped value/scale/profile
-    /// argument run (fixed, Real-landed, or SDIDI overload).</summary>
-    public static string NumTryStore(string argsFragment, CobolRounding mode, string outVar) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.TryStore)}({argsFragment}, {RoundingText(mode)}, out var {outVar})";
+    /// argument run (fixed, Real-landed, or SDIDI overload); <paramref name="u"/> picks the unsigned-wide
+    /// <c>TryStoreU</c> lane by NAME (see <see cref="NumStore"/>).</summary>
+    public static string NumTryStore(string argsFragment, CobolRounding mode, string outVar, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.TryStoreU) : nameof(CobolNum.TryStore))}({argsFragment}, {RoundingText(mode)}, out var {outVar})";
 
-    /// <summary>The unchecked rounded store — the <c>CobolNum.Store</c> overload taking a rounding mode.</summary>
-    public static string NumStoreRounded(string argsFragment, CobolRounding mode) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({argsFragment}, {RoundingText(mode)})";
+    /// <summary>The unchecked rounded store — the <c>CobolNum.Store</c> overload taking a rounding mode
+    /// (<c>StoreU</c> on the unsigned-wide lane — see <see cref="NumStore"/>).</summary>
+    public static string NumStoreRounded(string argsFragment, CobolRounding mode, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.StoreU) : nameof(CobolNum.Store))}({argsFragment}, {RoundingText(mode)})";
+
+    /// <summary>The unsigned-wide → Int128 funnel — <c>CobolNum.Widen</c> (kb/Work R10: loud beyond the
+    /// documented native intermediate, never a silent wrap).</summary>
+    public static string NumWiden(string value) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Widen)}({value})";
+
+    /// <summary>An algebraic-value comparison with an unsigned-wide side — <c>CobolNum.CompareU</c> (kb/Work
+    /// R10). The overload set covers U-vs-U and either mixed order; operands are passed with their own scales.</summary>
+    public static string NumCompareU(string a, string aScale, string b, string bScale) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.CompareU)}({a}, {aScale}, {b}, {bScale})";
 
     /// <summary>An SDIDI intermediate landed to an unscaled value — the instance <c>CobolDec.ToUnscaled</c>.</summary>
     public static string DecToUnscaled(string decExpr, string scale, CobolRounding mode) =>

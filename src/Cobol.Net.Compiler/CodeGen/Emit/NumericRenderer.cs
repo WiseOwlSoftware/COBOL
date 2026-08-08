@@ -229,6 +229,15 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // caller (the string-channel intrinsic renderer) reaching one is a staged-out shape — loud (§1.4).
         { Category: PicCategory.NumericEdited } =>
             new NumX(EmitText.LoudValue("long", $"numeric-edited operand '{p.Item.CobolName}' in a context-free numeric read"), 0),
+        // A 16-byte UNSIGNED BinaryCapacity item (UInt128 carrier — kb/Work R10): the read enters the renderer
+        // on the unsigned-wide lane. Value paths (store/display/relation) keep the full [0, 2^128) range via the
+        // runtime's UInt128 overloads; arithmetic funnels through CobolNum.Widen (loud beyond the Int128
+        // intermediate), never a silent wrap.
+        { IsUnsignedWideBinary: true } pic => new NumX(PlaceRenderer.Read(p), pic.Scale, U: true),
+        // An 8-byte UNSIGNED BinaryCapacity item (ulong carrier): every ulong value fits the Int128 engine — the
+        // read is lifted at THIS one site so downstream text (comparisons against long literals, raw-expr
+        // alignment) never mixes ulong with long, which C# rejects as ambiguous.
+        { IsUnsignedLongBinary: true } pic => new NumX($"(Int128)({PlaceRenderer.Read(p)})", pic.Scale),
         { } pic => new NumX(PlaceRenderer.Read(p), pic.Scale),
     };
 
@@ -272,6 +281,12 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
 
     private NumX CombineCore(NumX a, string op, NumX b)
     {
+        // The unsigned-wide funnel (kb/Work R10): an ARITHMETIC operand enters the engine's documented Int128
+        // intermediate through CobolNum.Widen — a value beyond it raises the size-error condition (ON SIZE ERROR
+        // catches it; without the phrase it is loud), never a silent two's-complement wrap. The VALUE paths
+        // (store/display/relation) never come through here and keep the full [0, 2^128) range.
+        a = DeU(a);
+        b = DeU(b);
         // STANDARD / STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation of an arithmetic expression
         // evaluates in SDIDI form (decimal128 semantics), rounded per-op to 34 significant digits with the
         // INTERMEDIATE ROUNDING mode (§11.9.11) and range-checked at the decimal128 bounds (§8.8.1.5.2 r2);
@@ -307,10 +322,14 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// value lifts EXACTLY via <c>CobolDec.From</c> (≤31 digits always representable, §8.8.1.5.2); a FLOAT
     /// (Real) operand converts via <c>CobolDec.FromDouble</c> — the §8.8.1.5.1 implementor-defined float→SDIDI
     /// conversion (the shortest round-trip decimal, ≤17 digits, always exact in the 34-digit significand).</summary>
-    public string DecOperand(NumX x) =>
-        x.Dec ? x.Expr
-        : x.Real ? RuntimeApi.DecFromDouble(x.Expr)
-        : $"CobolDec.From({x.Expr}, {x.Scale})";
+    // An unsigned-wide operand funnels through DeU first: the SDIDI's 34-digit significand cannot hold a
+    // 39-digit value either (§8.8.1.5.2 r2 would range-check it out), so the failure is the size-error condition.
+    public string DecOperand(NumX x) => DeU(x) switch
+    {
+        { Dec: true } d => d.Expr,
+        { Real: true } r => RuntimeApi.DecFromDouble(r.Expr),
+        var v => $"CobolDec.From({v.Expr}, {v.Scale})",
+    };
 
     private NumX CombineNative(NumX a, string op, NumX b) => op switch
     {
@@ -368,9 +387,16 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         return new NumX($"CobolNum.{fn}({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
     }
 
-    private static NumX CombineAdditive(NumX a, string op, NumX b)
+    private NumX CombineAdditive(NumX a, string op, NumX b)
     {
         int s = Math.Max(a.Scale, b.Scale);
+        // Under an ON SIZE ERROR phrase the sum/difference is overflow-checked at the Int128 ENGINE boundary
+        // (AddChecked/SubChecked → OverflowException → the size error condition, §14.7.5 case 5) — the exact
+        // MulChecked contract. Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself
+        // (kb/Work R10), where an unchecked `+ 1` wraps to the container's far end and stores with no error.
+        // Without the phrase it stays the bare unchecked operator, like every other engine op.
+        if (_rcv.InSizeError)
+            return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)})", s);
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s);
     }
 
@@ -406,6 +432,10 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     public static string Align(NumX x, int toScale) =>
         x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
         : x.Dec ? RuntimeApi.DecToUnscaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        // Unsigned-wide (kb/Work R10): the receiver-less integral sites this helper feeds (a subscript, a SET
+        // amount, PERFORM VARYING, RETRY, exit status) are Int128-lane consumers — the Widen funnel applies
+        // (loud beyond the intermediate; a 39-digit subscript is not a computable position).
+        : x.U ? Align(DeU(x), toScale)
         : toScale == x.Scale ? x.Expr
         : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
 
@@ -425,6 +455,8 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
     private NumX Power(NumX b, NumX e, bool expIsNonNegativeLiteral = false)
     {
+        b = DeU(b);   // exponentiation is arithmetic — the unsigned-wide Widen funnel applies (kb/Work R10)
+        e = DeU(e);
         // STANDARD / STANDARD-DECIMAL: exponentiation follows §8.8.1.5.4 — an integer exponent evaluates by
         // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
         // every step per §8.8.1.5.3), r3's reciprocal for a negative exponent, and the EC-SIZE-EXPONENTIATION
@@ -478,7 +510,14 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     private static NumX Negate(NumX x) =>
         x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true)
         : x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true)
+        : x.U ? new NumX($"(-{DeU(x).Expr})", x.Scale)   // negation is arithmetic — the Widen funnel applies
         : new($"(-{x.Expr})", x.Scale);
+
+    /// <summary>The unsigned-wide → Int128-lane funnel (kb/Work R10): a <c>U</c> operand narrows through
+    /// <c>CobolNum.Widen</c> (loud beyond the documented Int128 intermediate, CONFORMANCE.md §4.2.16); every
+    /// other operand passes through unchanged. The ONE chokepoint every arithmetic path shares (internal: the
+    /// CALL BY CONTENT computed-argument site funnels through the same rule).</summary>
+    internal static NumX DeU(NumX x) => x.U ? new NumX(RuntimeApi.NumWiden(x.Expr), x.Scale) : x;
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS

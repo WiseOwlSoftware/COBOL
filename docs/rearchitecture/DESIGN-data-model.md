@@ -26,7 +26,7 @@ facts scattered across three layers and, for the pivotal case, **mutated late**:
 
 | Representation | Where it lives today | Decided by |
 |---|---|---|
-| Native `long` / `Int128` | `PicInfo.ClrType` → `DataItem.ElementType` (`DataItem.cs:242,304`) | PICTURE analysis (early) |
+| Native `long` / `ulong` / `Int128` / `UInt128` | `PicInfo.ClrType` → `DataItem.ElementType` (`DataItem.cs:242,304`); the unsigned carriers are the R10 full-container-range rule (`PicInfo.IsUnsignedLongBinary` / `IsUnsignedWideBinary`) | PICTURE analysis (early) |
 | Native `float` / `double` | `PicInfo.ClrType` (`PicInfo.cs:244`) | PICTURE/USAGE analysis (early) |
 | `string` character image | `DataItem.StoreAsImage` flips `ElementType` to `"string"` (`DataItem.cs:304`) | **late mutation** |
 | Tier-B `(offset,width)` window over one shared `string` | `RedefViewPlace` + `RedefinesClass.Tier` (`Place.cs:82`, `RedefinesModel.cs:46`) | REDEFINES classification pass |

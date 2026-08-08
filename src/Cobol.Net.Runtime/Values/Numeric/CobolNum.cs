@@ -51,7 +51,7 @@ public static partial class CobolNum
     /// Store an arithmetic result (the unscaled integer <paramref name="value"/> at <paramref name="valueScale"/>)
     /// into the receiver: rescale to the receiver's scale (rounding with <paramref name="mode"/>), drop any
     /// high-order digits beyond the picture (the no-ON-SIZE-ERROR behavior), and apply the unsigned-magnitude rule
-    /// for an unsigned receiver (ISO §14.9.25 GR8). Returns the receiver's stored unscaled integer.
+    /// for an unsigned receiver (ISO §14.9.25.4 GR6d2b). Returns the receiver's stored unscaled integer.
     /// </summary>
     public static Int128 Store(Int128 value, int valueScale, in NumProfile receiver,
         CobolRounding mode = CobolRounding.Truncation)
@@ -70,7 +70,7 @@ public static partial class CobolNum
     /// caller — when (a) the rescaled value's magnitude exceeds the receiver's digit capacity (high-order overflow,
     /// §14.7.5 case 3), or (b) <paramref name="mode"/> is <see cref="CobolRounding.Prohibited"/> and the rescale is
     /// inexact (a nonzero fraction would be dropped, §14.7.4.3 r7). Otherwise stores the value (unsigned-magnitude
-    /// rule applied, §14.9.25 GR8) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
+    /// rule applied, §14.9.25.4 GR6d2b) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
     /// only when an ON SIZE ERROR phrase is present.
     /// </summary>
     public static bool TryStore(Int128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
@@ -84,7 +84,7 @@ public static partial class CobolNum
 
         // BinaryCapacity (COMP-5 / BINARY-CHAR family): the SIZE ERROR boundary is the native two's-complement
         // range of the byte width (ISO §13.18.60.4 GR12) — signed [-2^(bits-1), 2^(bits-1)), unsigned magnitude
-        // [0, 2^bits) (§14.9.25 GR8 for the unsigned-magnitude rule).
+        // [0, 2^bits) (§14.9.25.4 GR6d2b for the unsigned-magnitude rule).
         if (receiver.Truncation == NumericTruncation.BinaryCapacity)
         {
             if (!InBinaryRange(v, receiver)) return false;
@@ -97,7 +97,7 @@ public static partial class CobolNum
         Int128 limit = Pow10Wide(receiver.Digits);   // Digits ≤ 38 within the wide engine
         if (v >= limit || v <= -limit) return false;
 
-        // Unsigned receiver stores the magnitude (§14.9.25 GR8); v is bounded (it passed the capacity check),
+        // Unsigned receiver stores the magnitude (§14.9.25.4 GR6d2b); v is bounded (it passed the capacity check),
         // so Math.Abs is safe.
         stored = receiver.Signed ? v : Int128.Abs(v);
         return true;
@@ -139,10 +139,21 @@ public static partial class CobolNum
     /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
     /// width analog of the DigitCount path's <c>%= 10^Digits</c>). A signed receiver folds by modulo 2^bits into
     /// [-2^(bits-1), 2^(bits-1)) (exactly a native sbyte/short/int/long cast); an unsigned receiver stores the
-    /// magnitude (ISO §14.9.25 GR8) reduced modulo 2^bits into [0, 2^bits). ISO §13.18.60.4 GR12/GR21.</summary>
+    /// magnitude (ISO §14.9.25.4 GR6d2b) reduced modulo 2^bits into [0, 2^bits). ISO §13.18.60.4 GR12/GR21.
+    /// <para>⛔ THE 16-BYTE TIER RETURNS CONTAINER BITS (kb/Work R10, F74). A C# <c>Int128</c> shift count is
+    /// masked to 7 bits, so the old <c>1 &lt;&lt; 128</c> silently produced modulus 1 and every 16-byte store
+    /// collapsed to 0. At bits = 128 the container range equals (unsigned: doubles) the <c>Int128</c> domain, so
+    /// the residue is returned as the container's TWO'S-COMPLEMENT BITS: an unsigned 16-byte receiver's stored
+    /// value in [2^127, 2^128) lands with its high bit in the sign position, and the emitted store's
+    /// <c>unchecked((UInt128))</c> cast reinterprets it exactly. The magnitude of <c>Int128.MinValue</c> (2^127,
+    /// which <c>Int128.Abs</c> cannot represent) is exactly its own bit pattern.</para></summary>
     private static Int128 WrapBinary(Int128 value, in NumProfile receiver)
     {
         int bits = 8 * receiver.StorageLength;
+        if (bits >= 128)
+            return receiver.Signed ? value                          // Int128 IS the signed 16-byte container
+                 : value == Int128.MinValue ? value                  // |MinValue| = 2^127: its own bit pattern
+                 : Int128.Abs(value);                                // magnitude < 2^127: bits = value
         Int128 modulus = (Int128)1 << bits;
         if (!receiver.Signed)
             return Int128.Abs(value) % modulus;
@@ -152,16 +163,163 @@ public static partial class CobolNum
 
     /// <summary>Whether a value fits the native two's-complement range of a BinaryCapacity receiver's storage
     /// width — the SIZE ERROR test for COMP-5 / the BINARY-CHAR family: signed [-2^(bits-1), 2^(bits-1));
-    /// unsigned magnitude [0, 2^bits) (ISO §13.18.60.4 GR12; §14.9.25 GR8 for the unsigned-magnitude rule).</summary>
+    /// unsigned magnitude [0, 2^bits) (ISO §13.18.60.4 GR12; §14.9.25.4 GR6d2b for the unsigned-magnitude rule).
+    /// At bits = 128 every <c>Int128</c> value is in range — signed because the domains coincide, unsigned
+    /// because every magnitude ≤ 2^127 &lt; 2^128 (kb/Work R10, F74 — the shift-mask bug made this leg answer
+    /// "[0, 1)" and the signed leg answer "never", so SIZE ERROR fired on every in-range 16-byte store).</summary>
     private static bool InBinaryRange(Int128 value, in NumProfile receiver)
     {
         int bits = 8 * receiver.StorageLength;
+        if (bits >= 128) return true;
         Int128 modulus = (Int128)1 << bits;
         if (!receiver.Signed)
             return Int128.Abs(value) < modulus;
         Int128 half = modulus >> 1;
         return value >= -half && value < half;
     }
+
+    // ── The UNSIGNED WIDE lane (kb/Work R10 — owner decision 2026-08-07: unsigned COMP-5 carriers are
+    // ulong / UInt128, and the item owns its full container range, ISO §13.18.60.4 GR12). A value in
+    // (Int128.MaxValue, 2^128) exists ONLY in a 16-byte unsigned BinaryCapacity item; it enters generated code
+    // as a UInt128-typed expression (the item's field read, or the HIGHEST-ALGEBRAIC fold literal §15.43.4 r2),
+    // and the EMITTER routes it here by the operand's static carrier (NumX.U) — the U-suffixed names are
+    // deliberate, see FormatDisplayU's remark on the int-constant CS0121 ambiguity an overload pair causes.
+    // The VALUE-preserving paths (store, display, compare) take the full range; the ARITHMETIC engine's
+    // intermediate stays Int128 (documented, CONFORMANCE.md §4.2.16), so an operand beyond it goes through
+    // Widen, which raises the size-error condition rather than wrapping. ─────────────────────────────────────────
+
+    /// <summary>Narrow an unsigned wide value into the native arithmetic intermediate (<see cref="Int128"/> —
+    /// the documented §8.8.1.3 native technique). A value beyond <see cref="Int128.MaxValue"/> cannot enter the
+    /// intermediate: it raises the size-error condition (EC-SIZE-OVERFLOW; ON SIZE ERROR catches it, without the
+    /// phrase it surfaces loud) — never a silent two's-complement wrap to a negative operand.</summary>
+    public static Int128 Widen(UInt128 value) =>
+        value <= (UInt128)Int128.MaxValue
+            ? (Int128)value
+            : throw new CobolSizeError("operand " + value + " exceeds the native arithmetic intermediate range "
+                + "(Int128 — the documented native technique, ISO §8.8.1.3 / CONFORMANCE.md §4.2.16)");
+
+    /// <summary>Store an unsigned wide value (a 16-byte unsigned COMP-5 item's full-container value, or the
+    /// HIGHEST-ALGEBRAIC fold of one — §15.43.4 r2) into the receiver: rescale to the receiver's scale, then the
+    /// receiver's capacity discipline. The unsigned-magnitude rule (§14.9.25.4 GR6d2b) is a no-op — the sending
+    /// value is non-negative. Returns the stored unscaled integer; ⛔ for a 16-byte BinaryCapacity receiver the
+    /// return is the container's two's-complement BITS (see <see cref="WrapBinary"/>) — the emitted
+    /// <c>unchecked((UInt128))</c> store cast reinterprets exactly.</summary>
+    public static Int128 StoreU(UInt128 value, int valueScale, in NumProfile receiver,
+        CobolRounding mode = CobolRounding.Truncation)
+    {
+        bool binary = receiver.Truncation == NumericTruncation.BinaryCapacity;
+        UInt128 v = RescaleU(value, valueScale, receiver.FractionScale, mode,
+            binary ? BinaryModulusU(8 * receiver.StorageLength) : Pow10U(receiver.Digits));
+        if (binary)
+        {
+            UInt128 m = BinaryModulusU(8 * receiver.StorageLength);
+            UInt128 residue = m == 0 ? v : v % m;               // m == 0 encodes modulus 2^128
+            return unchecked((Int128)residue);                   // ≤ 8-byte: exact; 16-byte: container bits
+        }
+        return (Int128)(v % Pow10U(receiver.Digits));            // DigitCount / PackedDecimal: ≤ 10^31 fits Int128
+    }
+
+    /// <summary>The SIZE-ERROR-checked sibling of <see cref="StoreU"/>: false on capacity overflow or a
+    /// PROHIBITED-inexact transfer (receiver left unchanged by the caller).</summary>
+    public static bool TryStoreU(UInt128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
+    {
+        stored = 0;
+        if (mode == CobolRounding.Prohibited && valueScale > receiver.FractionScale
+            && value % Pow10U(valueScale - receiver.FractionScale) != 0)
+            return false;   // inexact narrowing under PROHIBITED (§14.7.4.3 r7)
+        // Rescale exactly for the range check: a WIDENING beyond UInt128 already exceeds every capacity below it.
+        int up = receiver.FractionScale - valueScale;
+        if (up > 0 && value != 0 && (up > 38 || value > UInt128.MaxValue / Pow10U(up))) return false;
+        UInt128 v = up > 0 ? value * Pow10U(up)
+                  : up < 0 ? RoundDiv(value, Pow10U(-up), mode)
+                  : value;
+        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
+        {
+            int bits = 8 * receiver.StorageLength;
+            // Signed container: v ≤ 2^(bits−1) − 1 (the sending value is non-negative). Unsigned: v < 2^bits;
+            // at bits = 128 every UInt128 is in range.
+            UInt128 signedMax = ((UInt128)1 << (Math.Min(bits, 128) - 1)) - 1;
+            if (receiver.Signed && v > signedMax) return false;
+            if (!receiver.Signed && bits < 128 && v >= (UInt128)1 << bits) return false;
+            UInt128 m = BinaryModulusU(bits);
+            stored = unchecked((Int128)(m == 0 ? v : v % m));
+            return true;
+        }
+        if (v >= Pow10U(receiver.Digits)) return false;
+        stored = (Int128)v;
+        return true;
+    }
+
+    /// <summary>2^bits as a <see cref="UInt128"/> capacity modulus, with <c>0</c> encoding the full 2^128 (which
+    /// <see cref="UInt128"/> cannot represent; a C# shift count is masked, so <c>1 &lt;&lt; 128</c> would silently
+    /// be 1 — the F74 bug shape this helper exists to fence off).</summary>
+    private static UInt128 BinaryModulusU(int bits) => bits >= 128 ? 0 : (UInt128)1 << bits;
+
+    /// <summary>Compare an unsigned wide operand against an Int128-lane operand by algebraic VALUE at their own
+    /// scales (ISO §8.8.4.2.4). Returns &lt;0 / 0 / &gt;0. A negative right side is always the lesser; the
+    /// non-negative compare rides the both-unsigned overload.</summary>
+    public static int CompareU(UInt128 a, int aScale, Int128 b, int bScale) =>
+        b < 0 ? 1 : CompareU(a, aScale, (UInt128)b, bScale);
+
+    /// <summary>The mirrored operand order (an Int128-lane left side against an unsigned wide right side).</summary>
+    public static int CompareU(Int128 a, int aScale, UInt128 b, int bScale) => -CompareU(b, bScale, a, aScale);
+
+    /// <summary>Both sides unsigned wide: align the smaller-scale side up by a power of ten and compare. When the
+    /// scale-up would overflow <see cref="UInt128"/>, that side's algebraic value strictly exceeds the other
+    /// (which fits) — no wider intermediate is needed.</summary>
+    public static int CompareU(UInt128 a, int aScale, UInt128 b, int bScale)
+    {
+        if (aScale == bScale) return a.CompareTo(b);
+        if (aScale < bScale)
+        {
+            UInt128 f = Pow10U(bScale - aScale);
+            if (a != 0 && a > UInt128.MaxValue / f) return 1;   // a's value overflows the alignment ⇒ a > b
+            return (a * f).CompareTo(b);
+        }
+        return -CompareU(b, bScale, a, aScale);
+    }
+
+    /// <summary>The DISPLAY image of an unsigned wide item's value — the unsigned-wide sibling of
+    /// <see cref="FormatDisplay(Int128, in NumProfile)"/> (a 16-byte unsigned COMP-5 item is always unsigned, so
+    /// the image is the bare magnitude run at the picture's digit count). ⛔ DISTINCTLY NAMED, not an overload:
+    /// an <c>int</c> constant converts implicitly to BOTH <see cref="Int128"/> and <see cref="UInt128"/>
+    /// (the constant-expression conversion chains through <c>uint</c>), so a same-name overload pair makes
+    /// every emitted <c>Store(0, …)</c>-shaped call a CS0121 ambiguity — 119 corpus programs failed exactly
+    /// that way. The emitter picks the U-named lane from the operand's static carrier (NumX.U).</summary>
+    public static string FormatDisplayU(UInt128 value, in NumProfile receiver) =>
+        FormatUnsignedDisplayU(value, receiver.Digits);
+
+    /// <summary>The unsigned-wide sibling of <see cref="FormatUnsignedDisplay(Int128, int)"/> (distinctly
+    /// named — see <see cref="FormatDisplayU"/>).</summary>
+    public static string FormatUnsignedDisplayU(UInt128 value, int digits)
+    {
+        if (digits <= 0) return "";
+        UInt128 v = value % Pow10U(digits);
+        return v.ToString(CultureInfo.InvariantCulture).PadLeft(digits, '0');
+    }
+
+    /// <summary>Rescale an unsigned wide unscaled value between fraction scales. Narrowing divides with the
+    /// rounding <paramref name="mode"/> (the shared generic <see cref="RoundDiv{T}"/> kernel). Widening multiplies
+    /// by 10^k; a product beyond <see cref="UInt128"/> reduces MODULO the receiver's capacity
+    /// (<paramref name="capacityModulus"/>) one decade at a time — the deterministic no-ON-SIZE-ERROR truncation,
+    /// identical in effect to the in-range path followed by the caller's capacity reduction.</summary>
+    private static UInt128 RescaleU(UInt128 value, int fromScale, int toScale, CobolRounding mode, UInt128 capacityModulus)
+    {
+        if (toScale == fromScale || value == 0) return value;
+        if (toScale < fromScale) return RoundDiv(value, Pow10U(fromScale - toScale), mode);
+        int k = toScale - fromScale;
+        if (k <= 38 && value <= UInt128.MaxValue / Pow10U(k)) return value * Pow10U(k);
+        // The exact product exceeds UInt128 — reduce modulo the receiver's capacity one decade at a time (each
+        // step's operand stays below capacity × 10 ≤ 2^128); modulus 2^128 arrives encoded as 0, where the
+        // unchecked multiply IS the reduction.
+        UInt128 r = capacityModulus == 0 ? value : value % capacityModulus;
+        for (int i = 0; i < k; i++)
+            r = capacityModulus == 0 ? unchecked(r * 10) : (r * 10) % capacityModulus;
+        return r;
+    }
+
+    /// <summary>10^n as a <see cref="UInt128"/> (n in 0..38 — every capacity bound below 2^128).</summary>
+    private static UInt128 Pow10U(int n) => (UInt128)Pow10Wide(n);
 
     /// <summary>True when rescaling <paramref name="value"/> from <paramref name="fromScale"/> to a smaller
     /// <paramref name="toScale"/> would drop a nonzero fraction (an inexact transfer).</summary>
@@ -208,6 +366,18 @@ public static partial class CobolNum
     /// constant product is checked at run time, never folded to a compile-time error. (Products beyond the long
     /// range need the Int128 carrier; deferred — see the numeric design.)</summary>
     public static Int128 MulChecked(Int128 a, Int128 b) => checked(a * b);
+
+    /// <summary>The additive siblings of <see cref="MulChecked"/> (the same §14.7.5 case-5 mapping, kb/Work
+    /// R10): a sum/difference at the very top of a 16-byte BinaryCapacity container can exceed the Int128
+    /// engine itself (HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is exactly <see cref="Int128.MaxValue"/>, so
+    /// <c>ADD 1</c> overflows the CARRIER, not merely the receiver), and an unchecked <c>+</c> would wrap to
+    /// the far end of the container and store "in range" with NO size error. Emitted only inside a statement
+    /// that carries an ON SIZE ERROR phrase — a no-phrase add stays a bare unchecked <c>+</c>, exactly like
+    /// the multiply.</summary>
+    public static Int128 AddChecked(Int128 a, Int128 b) => checked(a + b);
+
+    /// <inheritdoc cref="AddChecked"/>
+    public static Int128 SubChecked(Int128 a, Int128 b) => checked(a - b);
 
     /// <summary>
     /// Divide (see <see cref="Divide"/>) but raise <see cref="CobolSizeError"/> on a zero divisor (ISO §14.7.5 case
@@ -266,6 +436,16 @@ public static partial class CobolNum
 
     /// <inheritdoc cref="StoreDisplay(string, in NumProfile, long)"/>
     public static string StoreDisplay(string image, in NumProfile receiver, string current) => image;
+
+    /// <inheritdoc cref="StoreDisplay(string, in NumProfile, long)"/>
+    /// <remarks>The unsigned-carrier bridges (kb/Work R10): the parsed image of an unsigned item is a
+    /// non-negative digit run of at most 31 positions, so the casts are exact.</remarks>
+    public static ulong StoreDisplay(string image, in NumProfile receiver, ulong current) =>
+        (ulong)ParseDisplay(image, receiver);
+
+    /// <inheritdoc cref="StoreDisplay(string, in NumProfile, ulong)"/>
+    public static UInt128 StoreDisplay(string image, in NumProfile receiver, UInt128 current) =>
+        (UInt128)ParseDisplay(image, receiver);
 
     // IBM-ASCII over-punch tables (ISO §8.5.1.2 / NIST-verified against the legacy): the units digit fused with the
     // operational sign. Positive 0–9 → "{ABCDEFGHI"; negative 0–9 → "}JKLMNOPQR".
@@ -456,24 +636,28 @@ public static partial class CobolNum
 
     /// <summary>
     /// Integer division of <paramref name="value"/> by <paramref name="divisor"/> rounding the (nonzero) remainder
-    /// per a COBOL ROUNDED mode — the kernel for scale reduction, in <see cref="Int128"/> so radix-aligned
-    /// intermediates beyond the long range round exactly. <paramref name="divisor"/> is a positive power of ten.
+    /// per a COBOL ROUNDED mode — the kernel for scale reduction. GENERIC over the integer carrier so the
+    /// <see cref="Int128"/> lane and the unsigned-wide <see cref="UInt128"/> lane (kb/Work R10) round by the ONE
+    /// implementation rather than a hand-synced copy (the negative-value arms are simply unreachable for an
+    /// unsigned carrier). <paramref name="divisor"/> is a positive power of ten.
     /// </summary>
-    private static Int128 RoundDiv(Int128 value, Int128 divisor, CobolRounding mode)
+    private static T RoundDiv<T>(T value, T divisor, CobolRounding mode) where T : System.Numerics.INumber<T>
     {
-        Int128 q = value / divisor, rem = value % divisor;
-        if (rem == 0) return q;
-        int sign = value < 0 ? -1 : 1;
-        Int128 twiceRem = Int128.Abs(rem) * 2;
+        T q = value / divisor, rem = value % divisor;
+        if (rem == T.Zero) return q;
+        bool neg = value < T.Zero;
+        T step = neg ? -T.One : T.One;                       // the away-from-zero unit (never negated for unsigned)
+        T two = T.One + T.One;
+        T twiceRem = T.Abs(rem) * two;
         return mode switch
         {
             CobolRounding.Truncation or CobolRounding.Prohibited => q,                 // toward zero
-            CobolRounding.AwayFromZero => q + sign,
-            CobolRounding.TowardGreater => value > 0 ? q + 1 : q,                       // ceiling
-            CobolRounding.TowardLesser => value < 0 ? q - 1 : q,                        // floor
-            CobolRounding.NearestAwayFromZero => twiceRem >= divisor ? q + sign : q,
-            CobolRounding.NearestTowardZero => twiceRem > divisor ? q + sign : q,
-            CobolRounding.NearestEven => twiceRem > divisor || (twiceRem == divisor && q % 2 != 0) ? q + sign : q,
+            CobolRounding.AwayFromZero => q + step,
+            CobolRounding.TowardGreater => !neg ? q + T.One : q,                        // ceiling
+            CobolRounding.TowardLesser => neg ? q - T.One : q,                          // floor
+            CobolRounding.NearestAwayFromZero => twiceRem >= divisor ? q + step : q,
+            CobolRounding.NearestTowardZero => twiceRem > divisor ? q + step : q,
+            CobolRounding.NearestEven => twiceRem > divisor || (twiceRem == divisor && q % two != T.Zero) ? q + step : q,
             _ => q,
         };
     }

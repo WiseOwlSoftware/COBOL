@@ -178,6 +178,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
         if (l.Dec || rr.Dec || l.Real || rr.Real)
             return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
+        // An UNSIGNED-WIDE operand (a 16-byte unsigned COMP-5 read or the HIGHEST-ALGEBRAIC fold literal —
+        // kb/Work R10) compares by algebraic VALUE over the full [0, 2^128) range: CobolNum.CompareU's overload
+        // set covers U-vs-U and either mixed order, so the comparison never narrows through the Int128 funnel
+        // (which would be loud for exactly the values this relation exists to test).
+        if (l.U || rr.U)
+            return $"{RuntimeApi.NumCompareU(l.Expr, $"{l.Scale}", rr.Expr, $"{rr.Scale}")} {r.Op} 0";
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }
@@ -287,6 +293,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // test. Widening FLOAT-SHORT→double preserves the sign of zero and NaN, so the single-precision case is covered.
         string test = s.Format2Float
             ? s.Kind switch { 'P' => $"!double.IsNegative({NumericRenderer.Real(v)})", 'N' => $"double.IsNegative({NumericRenderer.Real(v)})", _ => $"{NumericRenderer.Real(v)} == 0.0" }
+            // An unsigned-wide operand (kb/Work R10) tests its sign by VALUE over the full range via CompareU —
+            // C# defines no UInt128-vs-int operator, and the Widen funnel would be loud for exactly the large
+            // values a sign test must accept. (NEGATIVE is structurally false for an unsigned item; the compare
+            // form keeps the three kinds one mechanism.)
+            // (The zero is cast — an int constant converts implicitly to BOTH Int128 and UInt128, and the
+            // uncast form is a CS0121 ambiguity in the generated code.)
+            : v.U
+            ? s.Kind switch { 'P' => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} > 0", 'N' => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} < 0", _ => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} == 0" }
             : s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }

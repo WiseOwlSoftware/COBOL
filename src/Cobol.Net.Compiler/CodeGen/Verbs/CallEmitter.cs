@@ -245,7 +245,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // An expression argument snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY VALUE
                 // grammar leg binds Mode=Value; a UDF expression argument to a BY REFERENCE formal binds
                 // Mode=Content per §8.4.3.2.4 GR5b — the mode is bound, not assumed here).
-                NumX x = num.Render(expr.Expr, ReceiverContext.None);
+                // An unsigned-wide result (a HIGHEST-ALGEBRAIC fold literal — kb/Work R10) funnels through the
+                // same DeU rule as every arithmetic consumer: loud beyond the Int128 intermediate, never a wrap.
+                NumX x = NumericRenderer.DeU(num.Render(expr.Expr, ReceiverContext.None));
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
             }
             case BoundAllLiteral all:
@@ -272,7 +274,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
-        || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 };
+        || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 }
+        // The ulong carrier tier (kb/Work R10): an unsigned 8-byte BinaryCapacity leaf cannot ride the
+        // ManagedPointer<long> cell (C# has no ulong↔long assignment), so it crosses as its digit image exactly
+        // like the wide (>18-digit) tier. ⚠ Both tiers share the pre-existing picture-digit-image ABI, which
+        // truncates a value beyond the PICTURE's digit count — registered as its own kb/Work item (R12).
+        || p.Item.Pic is { IsUnsignedLongBinary: true };
 
     /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
     /// its FULL maximum-allocation image here, never the ODO window: BY REFERENCE "operates as if the [formal]
