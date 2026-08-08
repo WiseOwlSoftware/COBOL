@@ -106,9 +106,13 @@ public sealed class ExceptionEngine
     /// (GOBACK/EXIT PROGRAM … RAISING, §14.9.18). The generated CALL site consumes it via
     /// <see cref="TakePropagated"/>; <see cref="ProgramTable"/> applies the fatal default when no CALL-site
     /// pickup exists (checking off in the caller — the §14.6.13.1.3 #8 implementor choice: terminate loudly).</summary>
-    public void SetPropagating(string name, bool fatal)
+    public void SetPropagating(string name, bool fatal, string? statement = null, string? location = null)
     {
-        Set(name, fatal);   // the last exception status reflects the raise in the returning element
+        // kb/Work R07: the returning element's status carries the §15.32.3 r2 / §15.30.3 r2 operands when the
+        // RAISING statement's own TURN said WITH LOCATION — this Set was two-arg, so GOBACK … RAISING answered
+        // 63 spaces / one space even under WITH LOCATION. The activator's pickup dispatches without re-Setting,
+        // so the one Set here serves both elements.
+        Set(name, fatal, statement, location);
         _propagated = (name.ToUpperInvariant(), fatal);
     }
 
@@ -667,7 +671,8 @@ public static class ExceptionState
     public static void Clear() => E.Clear();
 
     /// <inheritdoc cref="ExceptionEngine.SetPropagating"/>
-    public static void SetPropagating(string name, bool fatal) => E.SetPropagating(name, fatal);
+    public static void SetPropagating(string name, bool fatal, string? statement = null, string? location = null)
+        => E.SetPropagating(name, fatal, statement, location);
 
     /// <inheritdoc cref="ExceptionEngine.SetPropagatingObject"/>
     public static void SetPropagatingObject(CobolObject? obj) => E.SetPropagatingObject(obj);

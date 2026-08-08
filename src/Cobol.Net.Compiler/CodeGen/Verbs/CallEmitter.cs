@@ -401,6 +401,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 + "not enabled (ISO 14.6.13.1.3 #8 - implementor-defined; this implementation terminates)\");");
             return;
         }
-        w.Line($"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")});   // staged for the activator (§14.9.18 GR)");
+        // kb/Work R07: the returning element's own last-exception status carries the §15.32.3 r2 operands when
+        // THIS name's TURN said WITH LOCATION (SetPropagating Sets before staging); null-null keeps the two-arg
+        // call byte-identical for the without-LOCATION case.
+        w.Line(r.WithLocation
+            ? $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")}, "
+              + $"{CsLiteral(r.StatementName!)}, {CsLiteral(r.Location!)});   // staged for the activator (§14.9.18 GR)"
+            : $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")});   // staged for the activator (§14.9.18 GR)");
     }
 }

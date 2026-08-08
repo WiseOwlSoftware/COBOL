@@ -1229,6 +1229,36 @@ public sealed class ExceptionConditionConformanceTests
         Assert.StartsWith($"S=[{"DIVIDE",-63}] L=[ECT053; MAIN-PARA OF MAIN;", lines[1]);
     }
 
+    [Fact]   // kb/Work R07 + §15.32.3 r2 / §15.30.3 r2: GOBACK … RAISING under WITH LOCATION records the
+             // Table 12 name ("GOBACK") and the three-part location. SetPropagating's Set was TWO-ARG, so both
+             // the returning element's status and what the activator reads answered 63 spaces / one space even
+             // with LOCATION on — a silent wrong answer (BoundRaising had no location fields at all, unlike
+             // its sibling BoundRaise).
+    public void GobackRaising_WithLocation_RecordsStatementAndLocation()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT054.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "ECT054S".
+                DISPLAY "S=[" FUNCTION EXCEPTION-STATEMENT "]".
+                DISPLAY "L=[" FUNCTION EXCEPTION-LOCATION "]".
+                STOP RUN.
+            """, """
+            >>TURN EC-USER CHECKING ON WITH LOCATION
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT054S.
+            PROCEDURE DIVISION RAISING EC-USER-R07.
+            SUB-P.
+                GOBACK RAISING EXCEPTION EC-USER-R07.
+            """);
+        Assert.True(ok, detail + stdout);
+        var lines = stdout.Split('\n');
+        Assert.Equal($"S=[{"GOBACK",-63}]", lines[0]);
+        Assert.StartsWith("L=[ECT054S; SUB-P;", lines[1]);
+    }
+
     [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at
              // --std 2002. The old USE-site copy guarded the introduction gate with Level == 3, so the level-2
              // spelling slipped through un-gated; the funnel gates every level (COBOLNET0878).

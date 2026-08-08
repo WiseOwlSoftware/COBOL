@@ -204,8 +204,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET0717", $"{verb} RAISING {info.Name}: an EC-USER exception-name shall be "
                 + "specified in the RAISING phrase of the procedure division header (ISO §14.9.18.3 SR2 — "
                 + "otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
+        // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS
+        // line (§7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
+        // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
         return new BoundRaising(info.Name, IsLast: false,
-            Fatal: info.Fatality is not EcFatality.Nonfatal, Enabled: ctx.EcState.Turn.Enabled(info.Name, null, line));
+            Fatal: info.Fatality is not EcFatality.Nonfatal, Enabled: ctx.EcState.Turn.Enabled(info.Name, null, line),
+            WithLocation: ctx.EcState.Turn.WithLocation(info.Name, null, line),
+            StatementName: verb.Split(' ')[0], Location: EcLocation(line));
     }
 
     /// <summary>Capture the PROCEDURE DIVISION header RAISING list (§14.2.1; consumed by the SR2 check above;

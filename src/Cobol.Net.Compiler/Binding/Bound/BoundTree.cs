@@ -873,7 +873,11 @@ public sealed record BoundSetLastException : BoundStatement;
 /// EXCEPTION — re-stages the current last exception status). The identifier (exception-object) form binds loud
 /// until the OO wave.</summary>
 public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled,
-    Place? ObjectSource = null);
+    Place? ObjectSource = null,
+    // kb/Work R07 — the RAISING statement's §15.32.3 r2 / §15.30.3 r2 operands, per-condition like BoundRaise's
+    // (§7.3.25.4 GR7 keys them on the TURN governing THIS name at THIS line). StatementName is the Table 12
+    // name: GOBACK, or EXIT (EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
+    bool WithLocation = false, string? StatementName = null, string? Location = null);
 // ObjectSource: the GOBACK/EXIT … RAISING identifier-1 leg (§14.9.18.3 SR4; the EC-OO wave) — exactly one
 // of EcName / IsLast / ObjectSource is set. Objects are NOT TURN-gated (§7.3.25 takes names only), so the
 // Enabled/Fatal fields are meaningless on this leg (the §14.6.13.1.5 activator rules decide fatality).
