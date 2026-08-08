@@ -111,7 +111,7 @@ jobs:
           grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
           echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
       - name: Publish shard count
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shard-count-${{ runner.os }}-${{ matrix.shard }}
           path: count.txt
@@ -198,7 +198,7 @@ jobs:
           grep -Eo 'Total:[[:space:]]+[0-9]+' shard.log | tail -1 | grep -Eo '[0-9]+' > count.txt
           echo "shard ${{ matrix.shard }} executed $(cat count.txt) tests"
       - name: Publish shard count
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shard-count-${{ runner.os }}-${{ matrix.shard }}
           path: count.txt
@@ -228,7 +228,7 @@ jobs:
       - name: Build the conformance project
         run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
       - name: Download shard counts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: shard-count-*
           path: counts
