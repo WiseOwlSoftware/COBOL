@@ -739,6 +739,47 @@ public sealed class IntrinsicFunctionDifferentialTests
     public void Algebraic_Fold(string call, string ws, string expected, int dialect)
         => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "ALGB"), expected, dialect);
 
+    // ── kb/Work R10 (Phase-B F72): floats are LEGAL HIGHEST/LOWEST arguments under native arithmetic — the
+    //    implementor usage latitude is SMALLEST-ALGEBRAIC's alone (§15.83.3 r4 / Annex A.1 item 180); §15.43.3
+    //    r2 / §15.58.3 r2-r3 bar only the STANDARD float usages under the OPPOSITE standard mode. The value is
+    //    §15.43.4 r2's greatest finite magnitude of the carrier, negated for LOWEST (§15.58.4 r2). ──
+
+    [Fact]
+    public void Algebraic_FloatArguments_FoldToCarrierExtremes_2023()
+    {
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
+            "01 D USAGE COMP-2.\n           01 S USAGE COMP-1.\n           01 R USAGE COMP-2.",
+            "    COMPUTE R = FUNCTION HIGHEST-ALGEBRAIC(D).\n    DISPLAY R.\n"
+            + "    COMPUTE R = FUNCTION LOWEST-ALGEBRAIC(S).\n    DISPLAY R.", "ALGF"));
+        Assert.True(ok, detail);
+        Assert.Equal("1.7976931348623157E+308\n-3.4028235E+38", output);
+    }
+
+    [Fact]
+    public void Algebraic_SmallestKeepsTheFloatGuard_1516()
+    {
+        // §15.83.3 r4 — the latitude that stays: SMALLEST-ALGEBRAIC of a float remains loud.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
+            "01 D USAGE COMP-2.\n           01 R PIC +9.999.",
+            "    MOVE FUNCTION SMALLEST-ALGEBRAIC(D) TO R.\n    DISPLAY R.", "ALGS"));
+        Assert.False(ok, "SMALLEST-ALGEBRAIC of a float is implementor-rejected (§15.83.3 r4)");
+        Assert.Contains("COBOLNET1516", detail);
+    }
+
+    [Fact]
+    public void Algebraic_StandardDecimalBarsStandardBinaryFloat_1516()
+    {
+        // §15.43.3 r2 — mode-aware, usage-precise: FLOAT-BINARY-64 (§3.166) barred under STANDARD-DECIMAL;
+        // the native COMP-2 stays legal there (the old guard's message claimed otherwise).
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGM.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\n"
+            + "DATA DIVISION.\nWORKING-STORAGE SECTION.\n"
+            + "01 B USAGE FLOAT-BINARY-64.\n01 R USAGE FLOAT-BINARY-64.\nPROCEDURE DIVISION.\nM-P.\n"
+            + "    COMPUTE R = FUNCTION HIGHEST-ALGEBRAIC(B).\n    DISPLAY R.\n    STOP RUN.");
+        Assert.False(ok, "a standard binary float usage is barred under STANDARD-DECIMAL (§15.43.3 r2)");
+        Assert.Contains("COBOLNET1516", detail);
+    }
+
     [Fact]
     public void Algebraic_LiteralArgument_1516()
     {

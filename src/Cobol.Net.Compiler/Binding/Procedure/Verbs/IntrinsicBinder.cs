@@ -1402,16 +1402,49 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (pic.Usage is Usage.Index)   // class index — not category numeric (§13.18.60)
             return AlgebraicArgError(sig);
 
-        // Float usage (COMP-1/COMP-2): under native arithmetic the restriction is implementor-defined (§15.83.3 r4 /
-        // §15.43.3 / §15.58.3), and COBOL.NET defines no PICTURE-based algebraic range for IEEE floats; under
-        // standard-decimal these are barred by rule 2. Loud, complete — never a wrong value.
+        // Float usage — kb/Work R10 (Phase-B F72): the implementor-defined usage latitude is SMALLEST-ALGEBRAIC's
+        // ALONE (§15.83.3 r4; Annex A.1 item 180 documents it for SMALLEST only). HIGHEST/LOWEST (§15.43.3 /
+        // §15.58.3) carry exactly the two mode-aware bars below — under NATIVE arithmetic (the default) nothing
+        // bars any float, §8.5.2.12 item 2 makes every float usage category numeric, and §15.43.4 r2 /
+        // §15.58.4 r2 define the value as the greatest finite magnitude representable in argument-1 (negated for
+        // LOWEST — every float usage is signed). The old guard rejected ALL floats for ALL THREE functions, and
+        // its text asserted COMP-1/COMP-2 are barred by rule 2 under STANDARD-DECIMAL — false: rule 2 bars only
+        // the §3.166 STANDARD BINARY usages (FLOAT-BINARY-*), never the native family.
         if (pic.IsFloat)
         {
-            ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name} does not support a floating-point argument "
-                + "(USAGE COMP-1/COMP-2): the native-arithmetic usage restriction is implementor-defined and "
-                + "COBOL.NET does not define a PICTURE-based algebraic range for IEEE floats (ISO §15.83.3 r4 / "
-                + "§15.43.3 / §15.58.3); under STANDARD-DECIMAL it is barred by rule 2");
-            return new BoundExprError($"FUNCTION {sig.Name} float argument");
+            if (sig.Name == "SMALLEST-ALGEBRAIC")
+            {
+                ctx.Edition.Error("COBOLNET1516", "FUNCTION SMALLEST-ALGEBRAIC does not support a floating-point "
+                    + "argument: the usage restriction under native arithmetic is implementor-defined "
+                    + "(ISO §15.83.3 r4 / Annex A.1 item 180), and COBOL.NET defines no smallest positive "
+                    + "increment for IEEE floats (it is exponent-dependent, not a PICTURE property)");
+                return new BoundExprError($"FUNCTION {sig.Name} float argument");
+            }
+            bool stdBinaryUsage = pic.Usage is Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128;
+            bool stdDecimalUsage = pic.Usage is Usage.FloatDecimal16 or Usage.FloatDecimal34;
+            if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal && stdBinaryUsage)
+            {
+                ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
+                    + "argument-1 shall not specify a standard binary floating-point usage "
+                    + $"(ISO §{(sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3")} rule 2)");
+                return new BoundExprError($"FUNCTION {sig.Name} float argument");
+            }
+            if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
+            {
+                ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
+                    + "argument-1 shall not specify a standard decimal floating-point usage "
+                    + $"(ISO §{(sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3")} rule 3)");
+                return new BoundExprError($"FUNCTION {sig.Name} float argument");
+            }
+            // The greatest finite magnitude of the item's CARRIER (PicInfo.ClrType's mapping — §15.43.4 r2's
+            // "represented in argument-1" is a property of this implementation's representation).
+            string max = pic.Usage switch
+            {
+                Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "3.4028235E+38",
+                Usage.FloatDecimal16 or Usage.FloatDecimal34 => "79228162514264337593543950335",
+                _ => "1.7976931348623157E+308",   // binary64 carrier: COMP-2 / FLOAT-LONG / -EXTENDED / -BINARY-64/128
+            };
+            return new BoundNumLiteral(sig.Name == "LOWEST-ALGEBRAIC" ? "-" + max : max);
         }
 
         // SMALLEST — the smallest positive increment 10^(−scale), independent of digit count / sign / container.
