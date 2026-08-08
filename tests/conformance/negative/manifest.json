@@ -73,6 +73,8 @@
     "function-pointer-staged",
     "inspect-kof-replacing",
     "intrinsic-phrase-word-argument",
+    "kof-undeclared-intrinsic-args",
+    "kof-undeclared-intrinsic-bare",
     "label-records-fd",
     "level88-alnum-value-boolean",
     "level88-boolean-value-alnum",

@@ -234,19 +234,38 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
         string name = cw.GetText();
-        bool isFn = ctx.Data.UserFunctionNames.Contains(name)
+        bool catalogued = IntrinsicCatalog.TryGet(name, out var sig);
+        bool declaredFn = ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase)
-            || ((ctx.Data.RepositoryAllIntrinsic || ctx.Data.RepositoryIntrinsics.Contains(name))
-                && IntrinsicCatalog.TryGet(name, out _));
-        if (!isFn) return null;
+            || (catalogued && (ctx.Data.RepositoryAllIntrinsic || ctx.Data.RepositoryIntrinsics.Contains(name)));
+        if (!declaredFn && !catalogued) return null;
         if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)) return null;   // a declared data item wins — never a mis-routed subscript
+        if (!declaredFn)
+        {
+            // The OTHER arm of the §8.4.3.2.3 SR2 discrimination (kb/Work R22): the name is a catalogued
+            // intrinsic, no data item shadows it, and the REPOSITORY does not declare it — so the reference
+            // is not a legal function-identifier (SR2: without the declaration "the word FUNCTION" is
+            // required) and nothing else resolves it. Until now only the RESERVED names (SIGN/SUM/RANDOM,
+            // the grammar alternative in BindIntrinsic) drew COBOLNET1543; every other catalogued name fell
+            // through to generic unresolved-reference staging and died at RUN time. A bare name (no argument
+            // list) reads as a function only when the function admits zero arguments — mirroring the declared
+            // arm below — so a mere name-collision with, say, SQRT still reports as the ordinary unresolved
+            // name it is.
+            if (sp is null && sig.MinArgs != 0) return null;
+            ctx.Edition.Error("COBOLNET1543",
+                $"'{name}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
+                + $"it. ISO §8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — "
+                + $"write 'FUNCTION {name}', or add 'REPOSITORY. FUNCTION {name} INTRINSIC.' (or FUNCTION ALL "
+                + "INTRINSIC).");
+            return new BoundExprError($"FUNCTION {name}");
+        }
         if (sp is null)
         {
             // A bare name only becomes a function reference when the function genuinely admits ZERO arguments
             // (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form, whose §15.75.2
             // format brackets the whole parenthesised part). Anything else stays a data reference and reports
             // through the ordinary unresolved-name path rather than being turned into an arity error.
-            if (!IntrinsicCatalog.TryGet(name, out var zeroArg) || zeroArg.MinArgs != 0) return null;
+            if (!catalogued || sig.MinArgs != 0) return null;
             var bare = BindIntrinsicCore(name, []);
             // `CURRENT-DATE (1:8)` — the captured group carries a depth-0 colon, so it is a reference
             // modification of the RESULT, not an argument list. ResultRefMod still applies §8.4.3.2.3 SR6 with
