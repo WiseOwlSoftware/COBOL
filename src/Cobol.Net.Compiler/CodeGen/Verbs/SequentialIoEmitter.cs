@@ -35,9 +35,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (ec.IoMaskFor(file) is not 0 and var mask)
         {
             int id = ctx.Names.NextEc();
-            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
+            // The literals travel whenever ANY pair for this file carries WITH LOCATION; __locMask decides
+            // PER RAISED NAME inside __IoCheckEc (§15.32.3 r1 per-condition — kb/Work R06).
+            int locMask = ec.IoLocMaskFor(file);
+            var (stmt, loc) = locMask != 0
+                ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
+                : ("null", "null");
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
-                + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
+                + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             return;
         }

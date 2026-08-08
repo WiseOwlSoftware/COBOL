@@ -1188,6 +1188,47 @@ public sealed class ExceptionConditionConformanceTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1636"));
     }
 
+    [Fact]   // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
+             // (WITH LOCATION) *and* EC-BOUND-SUBSCRIPT (without). The subscript raise must answer 63 spaces /
+             // one space — under the old per-statement bool, the sibling's WITH LOCATION contaminated it and
+             // EXCEPTION-STATEMENT returned "DIVIDE". The zero-divide raise keeps its location operands.
+    public void WithLocation_IsPerCondition_NotPerStatement()
+    {
+        var (ok, stdout, detail) = CobolNet.CompileAndRun("""
+            >>TURN EC-SIZE CHECKING ON WITH LOCATION
+            >>TURN EC-BOUND-SUBSCRIPT CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT053.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TAB.
+               05 WS-CELL PIC 9 OCCURS 3 TIMES VALUE 1.
+            01 WS-I PIC 9 VALUE 5.
+            01 WS-D PIC 9 VALUE 0.
+            01 WS-R PIC 9 VALUE 7.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-ALL.
+            EC-H-P.
+                DISPLAY "S=[" FUNCTION EXCEPTION-STATEMENT "] L=[" FUNCTION EXCEPTION-LOCATION "]".
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                DIVIDE WS-CELL(WS-I) BY WS-D GIVING WS-R.
+                MOVE 2 TO WS-I.
+                DIVIDE WS-CELL(WS-I) BY WS-D GIVING WS-R.
+                STOP RUN.
+            """);
+        Assert.True(ok, detail);
+        var lines = stdout.Split('\n');
+        Assert.Equal(2, lines.Length);
+        // Raise 1 — EC-BOUND-SUBSCRIPT, enabled WITHOUT location: r1's answers, uncontaminated.
+        Assert.Equal($"S=[{new string(' ', 63)}] L=[ ]", lines[0]);
+        // Raise 2 — EC-SIZE-ZERO-DIVIDE, enabled WITH LOCATION: the Table-12 name + the three-part location.
+        Assert.StartsWith($"S=[{"DIVIDE",-63}] L=[ECT053; MAIN-PARA OF MAIN;", lines[1]);
+    }
+
     [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at
              // --std 2002. The old USE-site copy guarded the introduction gate with Level == 3, so the level-2
              // spelling slipped through un-gated; the funnel gates every level (COBOLNET0878).

@@ -829,17 +829,18 @@ public sealed record BoundTerminate(IReadOnlyList<ReportModel> Reports) : BoundS
 /// <summary>The per-statement EC checking decision, computed at BIND time from the compile-time TurnState
 /// (deep-dive D10 — bound nodes carry no parse context, so the line-anchored TURN fold happens in the binder and
 /// its RESULT travels on the bound tree; the emitter renders guards from this record only).</summary>
-/// <param name="Enabled">The enabled (level-3 exception-name, file) pairs RELEVANT to this statement's kind —
-/// EC-SIZE-* for arithmetic, EC-I-O-* per referenced file connector, EC-OVERFLOW-* for STRING/UNSTRING,
-/// EC-PROGRAM-* for CALL/CANCEL, EC-ARGUMENT-FUNCTION for intrinsic-bearing statements. Never empty (an empty
-/// decision binds NO wrapper — the zero-scaffolding rule).</param>
-/// <param name="WithLocation">The enabling TURN carried WITH LOCATION (§7.3.25.4 GR7) — the raise site then
-/// records <paramref name="StatementName"/>/<paramref name="Location"/> into the last-exception state.</param>
+/// <param name="Enabled">The enabled (level-3 exception-name, file, with-location) triples RELEVANT to this
+/// statement's kind — EC-SIZE-* for arithmetic, EC-I-O-* per referenced file connector, EC-OVERFLOW-* for
+/// STRING/UNSTRING, EC-PROGRAM-* for CALL/CANCEL, EC-ARGUMENT-FUNCTION for intrinsic-bearing statements. Never
+/// empty (an empty decision binds NO wrapper — the zero-scaffolding rule). ⛔ <b>WithLocation is PER
+/// (name, file) PAIR, never per statement</b> — §15.32.3 r1 / §15.30.3 r1 key the 63-spaces/one-space answer on
+/// "the TURN directive … that enabled checking for THE EXCEPTION CONDITION associated with the last exception
+/// status": one condition enabled WITH LOCATION must not make a sibling condition's raise record location
+/// information (kb/Work R06 — the former per-statement bool did exactly that).</param>
 /// <param name="StatementName">The uppercase statement name (§15.32.3 r2, Table 12).</param>
 /// <param name="Location">The pre-rendered §15.30.3 r2 location string ("element; para[ OF section]; line").</param>
 public sealed record EcStatementInfo(
-    IReadOnlyList<(string Ec, FileModel? File)> Enabled,
-    bool WithLocation,
+    IReadOnlyList<(string Ec, FileModel? File, bool WithLocation)> Enabled,
     string StatementName,
     string Location);
 

@@ -61,8 +61,29 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return false;   // the continue-after-RAISE path IS the normal exit (GR2 — never fatal by itself)
     }
 
-    public (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info) =>
-        info.WithLocation ? (CsLiteral(info.StatementName), CsLiteral(info.Location)) : ("null", "null");
+    /// <summary>The (stmt, loc) C# operand pair for ONE statically-known enabled name — §15.32.3 r1 /
+    /// §15.30.3 r1 are PER-CONDITION: the pair renders only when THAT name's enabling TURN carried WITH
+    /// LOCATION, never when a sibling condition's did (kb/Work R06 — the former statement-level bool let one
+    /// stray WITH LOCATION contaminate every other condition's 63-spaces answer).</summary>
+    public (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info, string ec, FileModel? file = null) =>
+        info.Enabled.FirstOrDefault(e => e.Ec == ec && (file is null || ReferenceEquals(e.File, file))).WithLocation
+            ? (CsLiteral(info.StatementName), CsLiteral(info.Location))
+            : ("null", "null");
+
+    /// <summary>The (stmt, loc) pair when the raised name is selected at RUNTIME among
+    /// <paramref name="names"/> (<paramref name="nameExpr"/> holds it): constants when the subset is UNIFORM —
+    /// byte-identical to the pre-R06 output, the overwhelmingly common case — else per-name conditional
+    /// expressions, so a mixed statement answers §15.32.3 r1 per condition.</summary>
+    public (string Stmt, string Loc) EcStmtLocExpr(EcStatementInfo info, IEnumerable<string> names, string nameExpr)
+    {
+        var subset = info.Enabled.Where(e => names.Contains(e.Ec)).ToList();
+        if (!subset.Any(e => e.WithLocation)) return ("null", "null");
+        if (subset.All(e => e.WithLocation)) return (CsLiteral(info.StatementName), CsLiteral(info.Location));
+        string test = string.Join(" || ",
+            subset.Where(e => e.WithLocation).Select(e => $"{nameExpr} == {CsLiteral(e.Ec)}"));
+        return ($"(({test}) ? {CsLiteral(info.StatementName)} : null)",
+                $"(({test}) ? {CsLiteral(info.Location)} : null)");
+    }
 
     // ── The BoundEcChecked wrapper (the statement EC context + the EC-ARGUMENT-FUNCTION ambient gate) ────────
 
@@ -144,10 +165,10 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
 
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
-        var (stmt, loc) = EcStmtLoc(ec.Info);
         // One gate ⇒ the raised name is the literal (byte-identical to the pre-generalization output); two or more
-        // ⇒ the actual __af.EcName drives the status/dispatch.
+        // ⇒ the actual __af.EcName drives the status/dispatch — and the per-condition WITH LOCATION answer (R06).
         string ecExpr = gates.Count == 1 ? CsLiteral(gates[0].Ec) : $"__af{id}.EcName";
+        var (stmt, loc) = EcStmtLocExpr(ec.Info, gates.Select(g => g.Ec), ecExpr);
         string nameTest = string.Join(" || ", gates.Select(g => $"__af{id}.EcName == {CsLiteral(g.Ec)}"));
         foreach (var g in gates.Where(g => g.Flag is not null)) w.Line($"ExceptionState.{g.Flag} = true;");
         using (w.Block("try"))
@@ -161,9 +182,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // Previously only the WITH LOCATION arm set it, which was invisible while every fatal EC set the
             // status at its raise site; a gate whose raise is UNCONDITIONAL (EC-OO-NULL / EC-OO-METHOD) has no
             // such site, and FUNCTION EXCEPTION-STATUS returned SPACES inside its own declarative.
-            w.Line(ec.Info.WithLocation
-                ? $"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});"
-                : $"ExceptionState.Set({ecExpr}, true);");
+            w.Line(stmt == "null" && loc == "null"
+                ? $"ExceptionState.Set({ecExpr}, true);"
+                : $"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});");
             w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
             w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
@@ -227,7 +248,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
-        var (stmt, loc) = EcStmtLoc(ecState.Info!);
+        var (stmt, loc) = EcStmtLocExpr(ecState.Info!, enabled, ecnVar);
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
             w.Line($"ExceptionState.Set({ecnVar}, true, {stmt}, {loc});   // §14.6.13.1.1 — the last exception status");
@@ -252,7 +273,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         if (ecState.Info is null || !ecState.Info.Enabled.Any(p => p.Ec == ecName)) return;
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
-        var (stmt, loc) = EcStmtLoc(ecState.Info);
+        var (stmt, loc) = EcStmtLoc(ecState.Info, ecName);
         using (w.Block($"if ({ovfFlag})"))
         {
             w.Line($"ExceptionState.Set({CsLiteral(ecName)}, false, {stmt}, {loc});");
@@ -272,8 +293,22 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         if (ecState.Info is null) return 0;
         int mask = 0;
-        foreach (var (ec, f) in ecState.Info.Enabled)
+        foreach (var (ec, f, _) in ecState.Info.Enabled)
             if (ReferenceEquals(f, file))
+                mask |= ExceptionCatalog.IoBit(ec);
+        return mask;
+    }
+
+    /// <summary>The WITH-LOCATION subset of <see cref="IoMaskFor"/> — same bit positions, so the generated
+    /// <c>__IoCheckEc</c> answers §15.32.3 r1 PER EC-I-O name: the status→EC mapping picks the raised name at
+    /// runtime, and one file's <c>EC-I-O-AT-END … WITH LOCATION</c> must not make its <c>EC-I-O-INVALID-KEY</c>
+    /// raise record location information (kb/Work R06).</summary>
+    public int IoLocMaskFor(FileModel file)
+    {
+        if (ecState.Info is null) return 0;
+        int mask = 0;
+        foreach (var (ec, f, withLoc) in ecState.Info.Enabled)
+            if (withLoc && ReferenceEquals(f, file))
                 mask |= ExceptionCatalog.IoBit(ec);
         return mask;
     }
@@ -350,12 +385,15 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public void EmitIoCheckEc(BoundProgram bound, CodeWriter w)
     {
         var decls = bound.Declaratives ?? [];
-        using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, int __mask, string? __stmt, string? __loc)"))
+        using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, int __mask, int __locMask, string? __stmt, string? __loc)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             w.Line("string? __ec = ExceptionCatalog.IoEcOfStatus(__st);   // §9.1.13.1 status→EC correspondence");
             w.Line("bool __en = __ec is not null && (__mask & ExceptionCatalog.IoBit(__ec)) != 0;");
-            w.Line("if (__en) ExceptionState.SetIo(__ec!, ExceptionCatalog.IsFatalIoStatus(__st), __f, __st, __stmt, __loc);");
+            // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION: the location operands record only when the RAISED
+            // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).
+            w.Line("bool __wl = __ec is not null && (__locMask & ExceptionCatalog.IoBit(__ec)) != 0;");
+            w.Line("if (__en) ExceptionState.SetIo(__ec!, ExceptionCatalog.IsFatalIoStatus(__st), __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");
             using (w.Block("if (__st.Length == 0 || __st[0] == '0')"))
             {
                 // A successful completion: '00' raises nothing; '0x' (x≠0) is EC-I-O-WARNING — F3 may select it

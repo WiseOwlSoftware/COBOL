@@ -131,7 +131,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
         if (checkNotFound)
         {
-            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
+            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!, "EC-PROGRAM-NOT-FOUND");
             using (w.Block($"if ({nf})"))
             {
                 w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true, {stmt}, {loc});   // §8.4.3.13 GR4 — set to exist");
@@ -158,7 +158,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line(PlaceRenderer.Write(op, RuntimeApi.PtrFree(PlaceRenderer.Read(op), na)) + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
             {
-                var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
+                var (stmt, loc) = ec.EcStmtLoc(ecState.Info!, "EC-STORAGE-NOT-ALLOC");
                 using (w.Block($"if ({na})"))
                 {
                     w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false, {stmt}, {loc});   // GR1c — nonfatal (§14.6.13.1.1)");
