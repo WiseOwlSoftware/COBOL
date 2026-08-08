@@ -466,8 +466,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         ctx.EcState.Checked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) ctx.EcState.IoChecked = true;
         bool withLoc = enabled.Any(e => ctx.EcState.Turn.WithLocation(e.Ec, e.File?.CobolName, line));
+        // §15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
+        // statement KIND (the parse rule) — the first TOKEN gave GO where Table 12 requires GO TO, and no token
+        // can repair it because TO is an optional word (`GO PARA.` never spells one). kb/Work R04.
         return new BoundEcChecked(bound, new EcStatementInfo(
-            enabled, withLoc, s.Start.Text.ToUpperInvariant(), EcLocation(line)));
+            enabled, withLoc, Table12StatementNames.NameOf(s), EcLocation(line)));
     }
 
     /// <summary>The §15.30.3 r2 location string for a statement on <paramref name="line"/>:

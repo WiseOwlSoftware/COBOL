@@ -209,6 +209,53 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Contains("LOC: ECT010; MAIN-PARA;", stdout);   // "element; paragraph; line-id" (§15.30.3 r2)
     }
 
+    [Fact]   // §15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column — "GO TO", never the
+             // spelled leading token. A subscripted DEPENDING operand raises EC-BOUND-SUBSCRIPT INSIDE the GO TO
+             // (§8.4.2.3.4 GR2); the F3 declarative reads the name and RESUMEs past (kb/Work R04).
+    public void ExceptionStatement_GoTo_ReturnsTheTable12Name()
+        => AssertSpec(Prog("ECT014", ">>TURN EC-BOUND-SUBSCRIPT CHECKING ON WITH LOCATION", "", """
+            01 WS-TAB.
+               05 WS-CELL PIC 9 OCCURS 3 TIMES VALUE 1.
+            01 WS-I PIC 9 VALUE 5.
+            """, """
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-BOUND-SUBSCRIPT.
+            EC-H-P.
+                DISPLAY "STMT=[" FUNCTION EXCEPTION-STATEMENT "]".
+                RESUME AT NEXT STATEMENT.
+            """, """
+                GO TO TGT-A TGT-B DEPENDING ON WS-CELL(WS-I).
+                DISPLAY "PAST".
+                STOP RUN.
+            TGT-A.
+            TGT-B.
+                DISPLAY "WRONG-TARGET".
+                STOP RUN.
+            """), $"STMT=[{"GO TO",-63}]\nPAST");
+
+    [Fact]   // §15.32.3 r3 + the optional word TO (goToStatement : GO TO? …): `GO PARA.` is the SAME statement
+             // kind with no TO token anywhere — the name must still be "GO TO". This spelling is the one that
+             // defeats any token-derived name (kb/Work R04: first-token gave "GO"; longest-token-match also
+             // gives "GO" because the tokens never spell TO).
+    public void ExceptionStatement_GoWithoutTo_StillReturnsGoTo()
+        => AssertSpec(Prog("ECT015", ">>TURN EC-BOUND-SUBSCRIPT CHECKING ON WITH LOCATION", "", """
+            01 WS-TAB.
+               05 WS-CELL PIC 9 OCCURS 3 TIMES VALUE 1.
+            01 WS-I PIC 9 VALUE 5.
+            """, """
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-BOUND-SUBSCRIPT.
+            EC-H-P.
+                DISPLAY "STMT=[" FUNCTION EXCEPTION-STATEMENT "]".
+                RESUME AT NEXT STATEMENT.
+            """, """
+                GO TGT-A TGT-B DEPENDING ON WS-CELL(WS-I).
+                DISPLAY "PAST".
+                STOP RUN.
+            TGT-A.
+            TGT-B.
+                DISPLAY "WRONG-TARGET".
+                STOP RUN.
+            """), $"STMT=[{"GO TO",-63}]\nPAST");
+
     [Fact]   // §15.32.3 r1 / §15.30.3 r1: WITHOUT the LOCATION phrase no location information is saved —
              // EXCEPTION-STATEMENT is all spaces, EXCEPTION-LOCATION a single space.
     public void WithoutLocation_StatementAndLocationAreSpaces()
