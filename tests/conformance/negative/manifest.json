@@ -73,6 +73,7 @@
     "function-pointer-staged",
     "inspect-kof-replacing",
     "intrinsic-phrase-word-argument",
+    "algebraic-udf-argument",
     "kof-undeclared-intrinsic-args",
     "kof-undeclared-intrinsic-bare",
     "label-records-fd",

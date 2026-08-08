@@ -1444,9 +1444,36 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// at the correct scale (BoundNumLiteral — the LENGTH-fold precedent).</summary>
     private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)
     {
+        // §8.5.2.12 items 3/4/5 make the LINAGE-/LINE-/PAGE-COUNTER registers category-numeric DATA ITEMS, so
+        // §15.43.3/§15.58.3/§15.83.3 r1 ADMITS them (kb/Work R26 — they used to draw the r1 rejection). Their
+        // capacity: LINAGE-COUNTER's "size is equal to the page size specified in the LINAGE clause"
+        // (§8.4.3.14.4 GR1) — a literal operand's value directly, a data-name operand's all-nines (the maximum
+        // page size it can specify); the report counters carry NO size in the standard (§8.4.3.15.4 GR1 —
+        // "temporary unsigned integer data items") and take the documented implementor shape PIC 9(18), the
+        // all-nines of the runtime's long carrier (CONFORMANCE.md item 216). All three registers are UNSIGNED:
+        // LOWEST-ALGEBRAIC = 0, SMALLEST-ALGEBRAIC = 1 (scale 0).
+        if (args[0] is BoundComputedOperand { Expr: BoundLinageCounterRef lc })
+            return CounterRegisterFold(sig, LinagePageCapacity(lc.File));
+        if (args[0] is BoundComputedOperand { Expr: BoundReportCounterRef })
+            return CounterRegisterFold(sig, "999999999999999999");
         if (args[0] is not BoundFieldOperand f || f.Place is RefModPlace || f.Place.Item.IsGroup
             || f.Place.Item.Pic is not { } pic)
             return AlgebraicArgError(sig);
+        // r1 admits "a data item … and shall not be an integer function or numeric function" — an exclusion
+        // that must be WRITTEN because §8.5.2.12 items 6/7 make functions category numeric too. A USER-DEFINED
+        // function's result binds to a synthesized caller temp that wears BoundFieldOperand exactly like
+        // declared data, so `FUNCTION HIGHEST-ALGEBRAIC(FUNCTION MY-FN)` folded a constant from the TEMP's
+        // PICTURE (kb/Work R26, ledger F76). The temp flag is the positive is-a-declared-item test — placed
+        // HERE, not in OperandOf: every other verb legitimately needs the temp→operand mapping.
+        if (f.Place.Item.IsCompilerTemp)
+        {
+            string fsec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
+                : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
+            ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
+                + $"ISO §{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
+                + "function\" — name the data item whose description defines the range instead");
+            return new BoundExprError($"FUNCTION {sig.Name} function argument");
+        }
         // §15.83.3 r1: SMALLEST admits ONLY category numeric; HIGHEST/LOWEST also admit numeric-edited.
         bool edited = pic.Category is PicCategory.NumericEdited;
         if (pic.Category is not PicCategory.Numeric && !(edited && sig.Name != "SMALLEST-ALGEBRAIC"))
@@ -1544,6 +1571,30 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // folded text carries the scale (a 9V99 item's lowest value is "0.00", not "0"), matching the runtime
             // rule and keeping the literal's precision for any arithmetic it feeds.
             : new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.Zero, scale, negative: false));
+    }
+
+    /// <summary>The HIGHEST/LOWEST/SMALLEST fold for a counter register (kb/Work R26): the registers are
+    /// UNSIGNED integers (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1), so LOWEST is 0 and SMALLEST is 1 (scale 0);
+    /// HIGHEST is the register's capacity, computed by the caller.</summary>
+    private static BoundExpr CounterRegisterFold(IntrinsicSig sig, string highest) => sig.Name switch
+    {
+        "SMALLEST-ALGEBRAIC" => new BoundNumLiteral("1"),
+        "LOWEST-ALGEBRAIC" => new BoundNumLiteral("0"),
+        _ => new BoundNumLiteral(highest),
+    };
+
+    /// <summary>§8.4.3.14.4 GR1 — LINAGE-COUNTER's size "is equal to the page size specified in the LINAGE
+    /// clause": a literal operand's value directly; for a data-name operand the page size is set at run time,
+    /// so the capacity is the MAXIMUM the operand item can specify — its all-nines (§15.43.4 r2's "may be
+    /// represented in argument-1" read against the register's largest possible size).</summary>
+    private string LinagePageCapacity(Model.FileModel file)
+    {
+        var body = file.Linage?.Body;
+        if (body?.Literal is { } lit) return lit.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (body?.DataName is { } dn && ctx.Symbols.TryResolve(dn, ctx.ActiveScope, out var items)
+            && items[0].Pic is { } p && p.Digits > 0)
+            return new string('9', p.Digits);
+        return "999999999999999999";   // no resolvable operand shape — the long carrier's own bound
     }
 
     private BoundExpr AlgebraicArgError(IntrinsicSig sig)

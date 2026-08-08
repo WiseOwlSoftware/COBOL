@@ -281,6 +281,13 @@ public sealed class DataItem
     /// <summary>The containing group, or <see langword="null"/> for a top-level (01/77) item.</summary>
     public DataItem? Parent { get; set; }
 
+    /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
+    /// <c>DataBinder.CreateCompilerTemp</c>, THE ONE constructor, sets it). A temp wears the same bound shapes
+    /// as declared data, so a rule whose text admits "a data item" and excludes functions (§15.43.3 r1's shape —
+    /// §8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
+    /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>
+    public bool IsCompilerTemp { get; internal set; }
+
     /// <summary>True for a group item (has children, no PICTURE).</summary>
     public bool IsGroup => Pic is null && Children.Count > 0;
 
