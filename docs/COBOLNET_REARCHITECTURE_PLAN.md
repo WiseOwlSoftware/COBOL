@@ -185,6 +185,35 @@ battery as the per-batch local gate and let CI own the cross-platform axis.
 
 ### ⛔ SESSION HANDOFF — READ THIS BEFORE THE TABLE BELOW.
 
+**⚙ 2026-08-07 SESSION CLOSE — PB46 (both halves) · PB27 · PB35 · PB50 · PB54 · PB52 · PB53 · R03 · R01 · R02.**
+⛔ Run the probe; never quote a count from this paragraph — `kb/Work/` says what is OPEN
+(`python scripts/spec/work.py next`), and it is down to residue items.
+
+⭐ **THE PATTERN, AND IT HELD ON EVERY SINGLE ITEM: THE ENTRY'S STATED DEFECT WAS NOT THE DEFECT.** Wrong layer,
+wrong count, wrong clause, or a blocker that did not exist:
+· **PB46** — "thread a boolean channel through four layers"; underneath, a `default:` arm made FIVE PICTURE
+  categories impossible as method parameters. Its CALL half was filed "blocked on the P13 prototype registry"
+  and was not blocked at all: §14.9.4.2 Format 2 is selected by a SYNTACTIC `AS` phrase whose NESTED arm needs
+  no registry. **Three of this one item's premises failed against its own general format.**
+· **PB27** — "silently accepted"; it was loud, and printing a FALSE diagnostic beside the true one.
+· **PB35** — named MAX and MIN; six clauses carry the rule and one was implemented.
+· **PB50** — "no arm in the token switch"; PB42 had added that arm, and there were two OTHER causes, neither
+  fixable alone.
+· **PB52** — three causes; one had already been fixed by PB31, another was five functions rather than one.
+⭐ **AND FOUR SWEEPS FOUND SOMETHING WORSE THAN THE ITEM BEING WORKED** — most sharply **PB54**, a SILENT WRONG
+ANSWER where `MIN(ZERO + 5, 2)` returned 0 while `FUNCTION MIN(ZERO + 5, 2)` returned 2, for a spelling
+§8.4.3.2 SR2 makes the same reference.
+
+⛔ **THE SESSION'S OWN HARDEST LESSON: A GREEN LOCAL BATTERY CERTIFIED A TREE THAT COULD NOT BUILD FROM
+SCRATCH.** A tool edit wrote `CobolLexer.g4` with a UTF-8 BOM (Python's `utf-8-sig` STRIPS on read and ADDS on
+write), ANTLR rejected it, and the Windows Release job failed on `main` — while Conformance 2686/2686 and Unit
+4029/4029 passed locally, because the incremental build had already produced the generated parser and never
+re-ran the grammar compiler. **The owner noticed before I did.** `SourceEncodingDriftTests` is the byte-level
+guard; it immediately found FOUR more BOM'd files a manual sweep had missed. See DEVLOG 1203.
+⚠ Compounding it: DEVLOG 1198 — written the day before — describes the `cancel-in-progress` hazard that hid it
+(a burst of commits leaves only the LAST with a verdict). **Writing a hazard down is not acting on it.** After a
+push that touches the build, watch the run to completion.
+
 **⚙ 2026-08-05 SESSION CLOSE — EVERY ITEM GATED BEFORE IT LANDED.**
 ⛔ **THE COMMIT/ITEM TALLY THAT USED TO OPEN THIS PARAGRAPH IS GONE, AND ITS LAST VALUE WAS WRONG.** It read
 "THIRTEEN COMMITS, ELEVEN FIX-QUEUE ITEMS" against an actual ten commits — a hand-count in a paragraph whose own
