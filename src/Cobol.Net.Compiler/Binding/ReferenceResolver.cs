@@ -149,18 +149,36 @@ public sealed class ReferenceResolver(DataBinder data)
     private void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
         if (!_reportedUnidentified.Add(dref)) return;
+        // kb/Work R32 — a name DECLARED in the (documented-unsupported) SCREEN SECTION is not undefined:
+        // the documented COBOLNET1560 posture is compile-accept, so the reference stays the staged loud
+        // (RefFailure names the screen-section cause), never the §8.4.2.1 diagnostic. The SAME shape for a
+        // declared ALPHABET-NAME referenced in a data position (kb/Work R38 — GnuCOBOL's INSPECT CONVERTING
+        // alphabet extension): declared-in-another-namespace is a different verdict than "not defined", and
+        // whether the construct is admitted is R38's open adjudication, not this diagnostic's.
+        if (data.ScreenNames.Contains(name)
+            || data.Alphabets.ContainsKey(name) || data.NationalAlphabets.ContainsKey(name)) return;
         string text = dref.GetText();
-        string msg = !data.Symbols.TryResolve(name, data.ActiveScope, out var candidates)
-            ? $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so the "
-              + "statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
-              + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item."
-            : qualifiers.Count > 0
-                ? $"'{text}' does not uniquely identify a data item — '{name}' is declared, but not under the "
+        string msg;
+        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
+            msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
+                + "the statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
+                + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
+        else if (qualifiers.Count == 0)
+            msg = $"'{text}' does not uniquely identify a data item — {candidates.Count} declarations share the "
+                + "name and no qualification distinguishes them (ISO §8.4.2.2 — qualification shall establish "
+                + "uniqueness).";
+        else
+        {
+            int matches = 0;
+            foreach (var c in candidates) if (QualifierChainMatches(c, qualifiers)) matches++;
+            msg = matches > 1
+                ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}' match "
+                  + "the written qualifiers (ISO §8.4.2.2 — qualification shall establish uniqueness; write "
+                  + "further qualifiers to single one out)."
+                : $"'{text}' does not uniquely identify a data item — '{name}' is declared, but not under the "
                   + $"given qualifier{(qualifiers.Count > 1 ? "s" : "")} ({string.Join(" OF ", qualifiers)}) "
-                  + "(ISO §8.4.2.2 — qualification shall establish uniqueness)."
-                : $"'{text}' does not uniquely identify a data item — {candidates.Count} declarations share the "
-                  + "name and no qualification distinguishes them (ISO §8.4.2.2 — qualification shall establish "
-                  + "uniqueness).";
+                  + "(ISO §8.4.2.2 — qualification shall establish uniqueness).";
+        }
         data.Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
     }
 
@@ -564,50 +582,49 @@ public sealed class ReferenceResolver(DataBinder data)
         data.Symbols.TryResolve(name, data.ActiveScope, out var list) ? list[0] : null;
 
     /// <summary>
-    /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> by right-to-left narrowing: resolve the
-    /// outermost qualifier, walk inward through each qualifier, then find <paramref name="name"/> within the
-    /// innermost qualifier's subtree (ISO §8.4.3.3 qualification).
+    /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> (ISO §8.4.2.2) by CANDIDATE-SET matching:
+    /// every in-scope declaration of <paramref name="name"/> whose ancestor chain carries each written
+    /// qualifier in order (inner → outer, §8.4.2.2.2 Format 1 — qualifiers need not be consecutive levels),
+    /// the OUTERMOST qualifier optionally the owning FILE's name (§8.4.2.2 — the FD/SD is the highest
+    /// permissible qualifier; SQ207M's <c>WRITE PRINT-REC IN PRINT-FILE</c>). Exactly ONE survivor resolves;
+    /// zero or several is a resolution failure the caller reports (kb/Work R30).
+    /// <para>⛔ THE UNIQUENESS DEMANDED IS OF THE MATCH, NEVER OF A QUALIFIER NAME IN ISOLATION (kb/Work
+    /// R31): §8.4.2.2.1 — "Identical user-defined names may be specified in a source unit; however,
+    /// uniqueness shall be established through qualification". The prior walk resolved the outermost
+    /// qualifier as a unique unqualified name FIRST, so legal <c>Z IN X</c> — two Xs, exactly one holding a
+    /// Z — was rejected (the differential's syn_definition:931 flip, GnuCOBOL's own "Unique reference with
+    /// ambiguous qualifiers" case). Level-66 RENAMES aliases are registered names with the owning record as
+    /// <see cref="DataItem.Parent"/>, so <c>HARRY OF A-GLOB</c> (NC209A) matches through the same chain.</para>
     /// </summary>
     private DataItem? ResolveQualified(string name, List<string> qualifiers)
     {
-        // §8.4.2.2 — the FD/SD's FILE-NAME is the highest permissible qualifier of its record names and their
-        // subordinates (SQ207M's `WRITE PRINT-REC IN PRINT-FILE`): scope the remaining reference to each of the
-        // file's record descriptions — the named item may BE a record (not only a descendant of one).
-        if (data.FilesByName.TryGetValue(qualifiers[^1], out var file))
-        {
-            foreach (var record in file.Records)
-            {
-                DataItem? s = qualifiers.Count >= 2
-                    ? string.Equals(record.CobolName, qualifiers[^2], StringComparison.OrdinalIgnoreCase)
-                        ? record : FindDescendant(record, qualifiers[^2])
-                    : record;
-                for (int k = qualifiers.Count - 3; k >= 0 && s is not null; k--)
-                    s = FindDescendant(s, qualifiers[k]);
-                if (s is null) continue;
-                if (string.Equals(s.CobolName, name, StringComparison.OrdinalIgnoreCase)) return s;
-                if (FindDescendant(s, name) is { } found) return found;
-            }
-            return null;
-        }
-        DataItem? scope = ResolveUnqualified(qualifiers[^1]);            // outermost qualifier
-        for (int k = qualifiers.Count - 2; k >= 0 && scope is not null; k--)
-            scope = FindDescendant(scope, qualifiers[k]);
-        return scope is null ? null : FindDescendant(scope, name);
+        List<DataItem> survivors = [];
+        if (data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
+            foreach (var cand in candidates)
+                if (QualifierChainMatches(cand, qualifiers) && !survivors.Contains(cand))
+                    survivors.Add(cand);
+        return survivors.Count == 1 ? survivors[0] : null;
     }
 
-    /// <summary>Find a descendant (direct or nested) of <paramref name="scope"/> with COBOL name <paramref name="name"/>.
-    /// A record's level-66 RENAMES aliases live OFF the children (no storage) but ARE qualifiable by the record
-    /// name (ISO §8.4.3.3 — <c>HARRY OF A-GLOB</c> where HARRY is a 66 of A-GLOB, NC209A), so they search too.</summary>
-    private static DataItem? FindDescendant(DataItem scope, string name)
+    /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>,
+    /// consumed inner → outer; when the data ancestors are exhausted, the OUTERMOST qualifier may instead
+    /// name the file whose FD/SD owns the candidate's record.</summary>
+    private bool QualifierChainMatches(DataItem cand, List<string> qualifiers)
     {
-        foreach (var child in scope.Children)
+        DataItem? anc = cand.Parent;
+        for (int qi = 0; qi < qualifiers.Count; qi++)
         {
-            if (string.Equals(child.CobolName, name, StringComparison.OrdinalIgnoreCase)) return child;
-            if (FindDescendant(child, name) is { } found) return found;
+            string q = qualifiers[qi];
+            while (anc is not null && !string.Equals(anc.CobolName, q, StringComparison.OrdinalIgnoreCase))
+                anc = anc.Parent;
+            if (anc is not null) { anc = anc.Parent; continue; }
+            // Data ancestors exhausted: only the OUTERMOST remaining qualifier may be the file name.
+            if (qi != qualifiers.Count - 1 || !data.FilesByName.TryGetValue(q, out var file)) return false;
+            DataItem root = cand;
+            while (root.Parent is { } p) root = p;
+            return file.Records.Contains(root);
         }
-        foreach (var ren in scope.Renames66)
-            if (string.Equals(ren.CobolName, name, StringComparison.OrdinalIgnoreCase)) return ren;
-        return null;
+        return true;
     }
 
     // ── Access-path construction (subscripts attach to OCCURS levels, outer→inner) ───────────────────────

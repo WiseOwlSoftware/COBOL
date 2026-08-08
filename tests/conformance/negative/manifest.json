@@ -151,6 +151,7 @@
     "program-pointer-value-clause",
     "program-pointer-with-picture",
     "property_below_2002",
+    "qualified-ambiguous-match",
     "r01-constant-name-wrong-class-argument",
     "r02-word-trailing-separator",
     "r03-hex-literal-digit-grouping",

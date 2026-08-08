@@ -44,6 +44,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   including the differential at **0 per-case flips** on the R17 grammar change, the leg the handoff said
   to watch. The battery reference (§9 Gates) carries the numbers (single-write rule); the wave continues
   from the top of `work.py next`.
+  **The session then landed R21 (the DateTimeOffset clock seam) · R22 (COBOLNET1543 for every catalogued
+  name) · R30 (COBOLNET1639 — an undeclared name reports at compile time; the Resolve/Probe split) ·
+  R31 (qualified matching goes candidate-set) · R32 (screen names registered), and the R21+R22+R30
+  comprehensive battery's differential leg — 41 flips, all attributed, see the battery reference —
+  spawned register notes R33–R38.** R22's push briefly broke CI on a GREEN TEST PINNING ITS OWN DEFECT
+  (KeywordOmitted_RequiresRepositoryDeclaration_RuntimeLoudFail asserted the run-time loud-fail;
+  rewritten to the compile-time COBOLNET1543 with the R30 landing) — the wave-local filter never matched
+  that class name, which is why the full legs ran before every later landing.
 - **⛔ THE REPO LAYOUT CHANGED 2026-07-27.** `specs/` is now an ORDINARY PUBLIC DIRECTORY holding
   `specs/ISO_COBOL.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
   The Markdown path is unchanged, so all 1,663 spec citations still resolve. Tools that MEASURE the printed page
@@ -1154,7 +1162,22 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R17+R19+R20 tree `bc739114` (2026-08-08 13:38),
+- **⛔ BATTERY REFERENCE — CURRENT, the R21+R22+R30 tree `36ce29fa` (2026-08-08 15:51).**
+  ⚠ **THIS RUN'S VERDICT LINE SAID `NOT GREEN`, AND THAT WAS THE GATE DOING EXACTLY ITS JOB** — the
+  differential was the one leg that could see what R30's new rejection does to REAL programs, and it did:
+  every internal leg green — FULL greenfield Conformance **4279 / 4279, zero skipped** (12 m 17 s) ·
+  greenfield Unit **4089 / 4089** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
+  **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** — and the differential reported **41 per-case
+  flips, every one carrying R30's COBOLNET1639 (or R22's COBOLNET1543), ALL ATTRIBUTED**: 14 moved TOWARD
+  the oracle (AGREE_REJECT — GnuCOBOL-rejected programs we used to compile clean via silent staging,
+  including four syn_definition ambiguity cases that independently validate the R31 rewrite); 3 were REAL
+  over-rejections R30 exposed, fixed in the follow-up commit (R31 qualified matching · R32 screen names ·
+  R38's alphabet-name diagnostic); 24 are spec-correct strict rejections of vendor constructs or open
+  register notes (R34 recursive COPY REPLACING · R35 bare zero-arg UDF · R36 partial REPLACE · R37 the
+  RETURN-CODE/LENGTH-OF register family · R38's construct half). Baseline regenerated in the follow-up
+  commit — the TSV diff is EXACTLY 38 rows (41 − the 3 fixed), each owned by the list above; a fresh
+  differential prints **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** (1323 cases).
+- **⛔ PRIOR BATTERY REFERENCE — the R17+R19+R20 tree `bc739114` (2026-08-08 13:38),
   `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4275 / 4275, zero skipped** (11 m 52 s) ·
   greenfield Unit **4086 / 4086** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
   **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,

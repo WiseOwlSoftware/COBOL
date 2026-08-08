@@ -188,6 +188,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
     public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Names DECLARED in the (documented-unsupported, COBOLNET1560) SCREEN SECTION — kb/Work R32:
+    /// a reference to one keeps the documented compile-accept posture with a staged runtime loud naming the
+    /// screen-section cause, and is exempt from the §8.4.2.1 UNDEFINED diagnostic (COBOLNET1639), because
+    /// "not defined" and "declared in an unsupported section" are different verdicts.</summary>
+    public HashSet<string> ScreenNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
     /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture: with the switch the
     /// debugging section is compiled AND its procedure-trigger leg is modeled (fires; the DEBUG-ITEM register
@@ -347,9 +353,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // not bound. §4.2.6 requires a compile-time WARNING naming the unsupported element (rather than the former
         // silent drop) — the COBOLNET1560 non-support band, catalogued in docs/CONFORMANCE.md §4. The program still
         // compiles; the screen behavior is simply absent.
-        if (program.dataDivision()?.screenSection() is not null)
+        if (program.dataDivision()?.screenSection() is { } scr)
+        {
             Edition.Warning("COBOLNET1560", "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is "
                 + "not supported — it is accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)");
+            // kb/Work R32 — the DECLARED screen names are recorded so a reference keeps the documented posture
+            // (compile-accept + a staged runtime loud naming THIS cause) instead of drawing the §8.4.2.1
+            // UNDEFINED diagnostic: "not defined" and "declared in an unsupported section" are different
+            // verdicts, and R30's demanding resolver must not conflate them (the differential's syn_screen:221
+            // flip did exactly that).
+            foreach (var e in scr.screenDescriptionEntry())
+                if (e.screenName()?.cobolWord()?.GetText() is { } sn) ScreenNames.Add(sn);
+        }
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));

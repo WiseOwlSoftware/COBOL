@@ -255,6 +255,16 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private string RefFailure(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        // kb/Work R32 — a name declared in the (documented-unsupported) SCREEN SECTION: the staged loud
+        // names the actual cause, not a bare unresolved reference. R38 — the same honesty for a declared
+        // ALPHABET-NAME in a data position (the INSPECT CONVERTING alphabet extension adjudication).
+        if (ctx.Data.ScreenNames.Contains(name))
+            return $"reference '{dref.GetText()}' — declared in the SCREEN SECTION, an optional facility "
+                 + "COBOL.NET does not support (COBOLNET1560; docs/CONFORMANCE.md §4)";
+        if (ctx.Data.Alphabets.ContainsKey(name) || ctx.Data.NationalAlphabets.ContainsKey(name))
+            return $"reference '{dref.GetText()}' — declared as an ALPHABET-name (SPECIAL-NAMES), which this "
+                 + "position does not reference as a data item (kb/Work R38 adjudicates the vendor "
+                 + "alphabet-operand extension)";
         string? reason = ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var named)
             ? named.Select(i => i.Class)
                 .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
