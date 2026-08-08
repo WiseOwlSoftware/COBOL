@@ -69,8 +69,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: matrix
-            filter: "FullyQualifiedName~VersionMatrixTests"
+          # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
+          # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
+          - shard: matrix-continuity
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition"
+          - shard: matrix-constructs
+            filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
             filter: "FullyQualifiedName~CorpusRunnerTests|FullyQualifiedName~NistDifferentialTests"
           - shard: rest
@@ -145,8 +149,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: matrix
-            filter: "FullyQualifiedName~VersionMatrixTests"
+          # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
+          # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
+          - shard: matrix-continuity
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition"
+          - shard: matrix-constructs
+            filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
             filter: "FullyQualifiedName~CorpusRunnerTests|FullyQualifiedName~NistDifferentialTests"
           - shard: rest
