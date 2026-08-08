@@ -66,6 +66,7 @@
     "external-linage-externality-at-2023",
     "external-relative-key-consistency-at-2023",
     "external-relative-key-externality-at-2023",
+    "find-string-dangling-start-after",
     "fixed-form-word-continuation",
     "free-non-pointer",
     "func-omitted-arg",

@@ -700,17 +700,50 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         bool last = false, anycase = false;
         var operands = new List<BoundOperand>();
+        BoundExpr Malformed(string why)
+        {
+            ctx.Edition.Error("COBOLNET1504", "FUNCTION FIND-STRING takes argument-1 argument-2 [LAST] "
+                + $"[[START AFTER] argument-3] [ANYCASE], in that order (ISO §15.37.2) — {why}");
+            return new BoundExprError("FUNCTION FIND-STRING");
+        }
+        // ⛔ A POSITIONAL WALK OVER THE §15.37.2 FORMAT, not an order-free switch (kb/Work R20 — ledger F28).
+        // The old walk accepted the phrase words ANYWHERE, REPEATED, and — the dangerous case — a dangling
+        // `START AFTER` with no argument-3, where the two written words were silently DISCARDED and the call
+        // degraded to the plain two-argument form. The general format fixes order and multiplicity; each slot
+        // below is one bracket of it. (BindSubstitute/BindConvert already walk positionally — this was the
+        // last order-free arm.)
+        //   slot 0/1 = argument-1/-2 · 2 = [LAST] open · 3 = LAST taken · 4 = START seen · 5 = AFTER seen ·
+        //   6 = argument-3 taken · 7 = ANYCASE taken (nothing may follow)
+        int slot = 0;
         foreach (var a in argCtxs)
         {
             switch (KeywordWordOf(a))
             {
-                case "LAST": last = true; continue;
-                case "ANYCASE": anycase = true; continue;
-                // START AFTER — the argument-3 introducer words (§15.37.2); the integer that follows is argument-3.
-                case "START" or "AFTER": continue;
+                case "LAST":
+                    if (slot < 2) return Malformed("LAST precedes the two operand arguments");
+                    if (slot > 2) return Malformed(last ? "LAST is repeated" : "LAST follows a later phrase");
+                    last = true; slot = 3; continue;
+                case "START":
+                    if (slot is not (2 or 3)) return Malformed(slot < 2
+                        ? "START precedes the two operand arguments" : "START follows a later phrase");
+                    slot = 4; continue;
+                case "AFTER":
+                    if (slot != 4) return Malformed("AFTER without an immediately preceding START");
+                    slot = 5; continue;
+                case "ANYCASE":
+                    if (slot < 2) return Malformed("ANYCASE precedes the two operand arguments");
+                    if (slot == 7) return Malformed("ANYCASE is repeated");
+                    if (slot is 4 or 5) return Malformed("START AFTER is not followed by argument-3");
+                    anycase = true; slot = 7; continue;
             }
+            if (slot == 4) return Malformed("START is not followed by AFTER");
+            if (slot == 7) return Malformed("an argument follows ANYCASE, which the format places last");
             operands.Add(BindArgOperand(a));
+            slot = slot switch { 0 => 1, 1 => 2, _ => 6 };   // arg-1 → arg-2 → argument-3 (bare or after START AFTER)
         }
+        if (slot is 4 or 5)
+            return Malformed(slot == 4 ? "START is not followed by AFTER"
+                : "START AFTER is not followed by argument-3 — the two written words would be discarded");
         if (operands.Count is < 2 or > 3)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION FIND-STRING takes argument-1 argument-2 "
