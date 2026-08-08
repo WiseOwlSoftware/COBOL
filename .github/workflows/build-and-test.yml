@@ -71,8 +71,15 @@ jobs:
         include:
           # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
           # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
-          - shard: matrix-continuity
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition"
+          # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
+          # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
+          # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
+          - shard: matrix-cont-2002
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
+          - shard: matrix-cont-2014
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
+          - shard: matrix-cont-2023
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
           - shard: matrix-constructs
             filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
@@ -151,8 +158,15 @@ jobs:
         include:
           # The version-matrix class alone was 21 min (its continuity method compiles each corpus program at
           # every later edition) — split at the METHOD, the complement arm again exclusion-shaped.
-          - shard: matrix-continuity
-            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition"
+          # Continuity was still ~20 min alone (each case compiles a FULL corpus program): 1047 = 349
+          # programs x 3 later editions, and the display name carries `edition: NNNN` (program names are
+          # XX###X — a year string cannot collide), so it shards BY EDITION, 349 cases each.
+          - shard: matrix-cont-2002
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2002"
+          - shard: matrix-cont-2014
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2014"
+          - shard: matrix-cont-2023
+            filter: "FullyQualifiedName~VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition&DisplayName~2023"
           - shard: matrix-constructs
             filter: "FullyQualifiedName~VersionMatrixTests&FullyQualifiedName!~Cobol85Program_StillCompilesAtLaterEdition"
           - shard: corpus-nist
