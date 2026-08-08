@@ -292,6 +292,19 @@ public static class CobolDate
             secs -= offsetMinutes * 60m;
             while (secs < 0) { secs += 86400m; day--; }
             while (secs >= 86400m) { secs -= 86400m; day++; }
+            // §15.40.4 r2's adjustment can carry the DATE across the integer-date-form range: argument-2 was
+            // validated 1..3,067,671 (§15.5.2) BEFORE the roll, and the rolled day is what the date fields
+            // render (kb/Work R25 — 3,067,671 with a westward offset threw a raw ArgumentOutOfRangeException
+            // out of Epoch.AddDays below, and day 0 emitted year 1600, violating §15.3.1.3 "greater than
+            // 1600"). A rolled date outside the form is EC-ARGUMENT-FUNCTION and the §15.3 default, exactly
+            // as an out-of-range argument-2 is; a TIME-ONLY format never reads the day, so it rolls freely.
+            if (hasDate && day is < 1 or > 3067671)
+            {
+                Exceptions.ExceptionState.ArgumentError(
+                    $"the UTC adjustment (§15.40.4 r2) moves the date to integer date form {day}, outside "
+                    + "1..3,067,671 (§15.5.2) — the year would leave the §15.3.1.3 range 1601..9999");
+                return "";
+            }
         }
 
         int yy = 0, mo = 0, dm = 0, doy = 0, isoY = 0, isoW = 0, isoD = 0;

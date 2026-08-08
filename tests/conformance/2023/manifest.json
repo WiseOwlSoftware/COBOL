@@ -120,6 +120,7 @@
     "r01_constant_name_intrinsic_argument",
     "r02_underscore_in_cobol_words",
     "r03_hexadecimal_national_and_boolean_literals",
+    "r25_utc_roll_date_range",
     "ref_mod_zero_length",
     "screen_section_reference",
     "set_size",
