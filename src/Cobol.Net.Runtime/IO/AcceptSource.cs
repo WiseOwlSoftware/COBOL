@@ -23,7 +23,7 @@ public static class AcceptSource
     /// <c>COBOLNET_CLOCK</c> environment variable so a test run can pin the clock ACROSS PROCESSES — the
     /// deterministic-clock path — falling back to the local system clock (§14.9.1.4 GR7: "the hardware clock
     /// provides the current date and time"). An in-process test sets <c>RunUnit.Current.Clock</c> instead.</summary>
-    private static DateTime Now() => RunUnit.Current.Clock.Now();
+    private static DateTime Now() => RunUnit.Current.Clock.Now().DateTime;
 
     /// <summary>DATE — the conceptual 6-digit unsigned integer YYMMDD (ISO §14.9.1.4 GR7).</summary>
     public static long Date()

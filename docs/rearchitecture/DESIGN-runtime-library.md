@@ -232,6 +232,16 @@ table — legitimately static, kept. `EcFunctions` reads `RunUnit.Current.Except
 `Intrinsics/CobolIntrinsics.{cs,Exact,Float,Text}` + `CobolDate` are cohesive (the deep-dive's runtime home). No
 reorg beyond: `Pow10*` → `Values/Numeric/Pow10`; `CobolDate`'s `AcceptSource.Now` dependency → `RunUnit.Current.Clock`.
 
+**The clock seam carries the offset (R21, 2026-08-08):** `IClock.Now()` returns **`DateTimeOffset`** — the local
+wall-clock reading WITH the local time differential factor CURRENT-DATE renders at positions 17–21 (§15.21.3 r1)
+and the §15.3.3 offset format fields emit. EVERY now-reading in the greenfield tree goes through the seam —
+the ACCEPT temporal sources, CURRENT-DATE, FORMATTED-CURRENT-DATE, SECONDS-PAST-MIDNIGHT and the §15.100
+windowing execution-time defaults — so one run unit observes one clock and `COBOLNET_CLOCK` pins all of them
+at once (a pin may carry an explicit offset, `2026-06-10T14:30:45.67+02:30`; without one the machine-local
+offset is assumed). The only direct `DateTime[Offset].Now` reads are `SystemClock`'s unpinned fallback and
+`IntrinsicBinder.CompileClock`'s default (WHEN-COMPILED is the compilation timestamp, §15.99.3 r2);
+`ClockSeamDriftTests` is the source-form guard that keeps it that way.
+
 ### 2.8 Namespace / assembly rename (G8)
 Assembly is already `Cobol.Net.Runtime`. At G8, `RootNamespace` `CobolNet.Runtime` → **`Cobol.Net.Runtime`** and the
 sub-namespaces above become real. This is a single coordinated change with the compiler's `RuntimeApi` façade (one

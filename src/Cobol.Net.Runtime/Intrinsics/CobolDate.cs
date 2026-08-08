@@ -37,8 +37,11 @@ public static class CobolDate
         + Math.Abs(t.Offset.Minutes).ToString("00", CultureInfo.InvariantCulture);
 
     /// <summary>CURRENT-DATE (§15.21.3): the 21-character calendar date / time of day / local-offset value at the
-    /// moment of evaluation. IF107A validates plausibility ranges and that successive references never decrease.</summary>
-    public static string CurrentDate() => Format21(DateTimeOffset.Now);
+    /// moment of evaluation, read through the run unit's injectable clock — the same seam every other
+    /// now-function reads, so two now-functions in one run unit cannot disagree (§15.21.1: the value is
+    /// "provided by the system on which the function is evaluated", and the system clock is ONE).
+    /// IF107A validates plausibility ranges and that successive references never decrease.</summary>
+    public static string CurrentDate() => Format21(RunUnit.Current.Clock.Now());
 
     /// <summary>DATE-OF-INTEGER (§15.22.4): integer date form → standard date form YYYYMMDD. An argument outside
     /// 1..3,067,671 (§15.5.2) → 0 (EC default, §15.3).</summary>
@@ -171,8 +174,7 @@ public static class CobolDate
     /// is 100 ns — 7 fraction digits, the .NET <see cref="DateTime"/> resolution. Range [0, 86 400) —
     /// LEAP-SECOND is not supported (the §7.3.17 default OFF is the only mode; §15.5.5), so a returned value
     /// ≥ 86 400 is unreachable (§15.80.3 r4 answered "no"). Reads the injectable <see cref="RunUnit.Clock"/>
-    /// (COBOLNET_CLOCK-deterministic — NOT the <see cref="CurrentDate"/> direct-<c>DateTimeOffset.Now</c>
-    /// path, which predates the seam).</summary>
+    /// (COBOLNET_CLOCK-deterministic — the one seam every now-function shares).</summary>
     public static long SecondsPastMidnight() => RunUnit.Current.Clock.Now().TimeOfDay.Ticks;
 
     // ── The §15.3 date/time FORMAT ENGINE (COBOL-2014 FORMATTED-*/INTEGER-OF-FORMATTED-DATE/etc.) ────────────────
@@ -399,11 +401,13 @@ public static class CobolDate
         return EmitFormatted(format, integerDate, secUnscaled, secScale, offsetMinutes, hasOffset);
     }
 
-    /// <summary>FORMATTED-CURRENT-DATE (§15.38): the current system date/time formatted per the combined format a1.
+    /// <summary>FORMATTED-CURRENT-DATE (§15.38): the current system date/time formatted per the combined format a1
+    /// (§15.38.4 r1 — "the current date and time provided by the system on which the function is evaluated"),
+    /// read through the run unit's injectable clock — the same seam CURRENT-DATE and SECONDS-PAST-MIDNIGHT read.
     /// Time accuracy is to the tick the runtime clock provides (§15.38.4 r2 — implementor-defined).</summary>
     public static string FormattedCurrentDate(string format)
     {
-        DateTimeOffset now = DateTimeOffset.Now;
+        DateTimeOffset now = RunUnit.Current.Clock.Now();
         long id = (now.Date - Epoch).Days + 1;
         decimal sod = (decimal)now.TimeOfDay.TotalSeconds;            // seconds past local midnight, sub-second retained
         long unscaled = (long)(sod * 1_000_000_000m);                 // 9 fraction digits (ample; §15.3.3.2)
