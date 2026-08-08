@@ -58,30 +58,67 @@ public static class CobolArgAdapt
     /// the omitted-argument condition is the negation of this).</summary>
     public static bool Present(CobolArg[] args, int i) => i < args.Length && !args[i].Carrier.IsNull;
 
-    /// <summary>Adapt argument <paramref name="i"/> to a NUMERIC formal described by <paramref name="formal"/>
-    /// (the callee's profile) at <paramref name="formalScale"/>. A native-<c>long</c> carrier at the same scale
-    /// aliases directly; a different scale gets a rescaling view; a character carrier gets a zoned decode/encode
-    /// view through the CALLEE's profile — the same storage characters reinterpreted (§14.2.3 GR8; design D5).</summary>
-    public static ManagedPointer<long> Num(CobolArg[] args, int i, NumProfile formal, int formalScale)
+    /// <summary>Read any NATIVE NUMERIC carrier cell as its Int128-lane unscaled value, or null when the cell is
+    /// not a native numeric (kb/Work R12 — the carrier set is the four <c>PicInfo.ClrType</c> integer carriers;
+    /// a <c>UInt128</c> value beyond <see cref="Int128.MaxValue"/> passes as its container BITS, the same
+    /// contract the R10 store path uses, so the typed write below reinterprets it exactly).</summary>
+    private static Int128? ReadNumericCell(ManagedPointer p) => p switch
     {
-        if (!Present(args, i)) return Omitted<long>(i);
+        ManagedPointer<long> x => x.Value,
+        ManagedPointer<ulong> x => (Int128)x.Value,
+        ManagedPointer<Int128> x => x.Value,
+        ManagedPointer<UInt128> x => unchecked((Int128)x.Value),
+        _ => null,
+    };
+
+    /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
+    private static bool WriteNumericCell(ManagedPointer p, Int128 v)
+    {
+        switch (p)
+        {
+            case ManagedPointer<long> x: x.Value = unchecked((long)v); return true;
+            case ManagedPointer<ulong> x: x.Value = unchecked((ulong)v); return true;
+            case ManagedPointer<Int128> x: x.Value = v; return true;
+            case ManagedPointer<UInt128> x: x.Value = unchecked((UInt128)v); return true;
+            default: return false;
+        }
+    }
+
+    /// <summary>Adapt argument <paramref name="i"/> to a NUMERIC formal described by <paramref name="formal"/>
+    /// (the callee's profile) at <paramref name="formalScale"/>. GENERIC over the formal's CARRIER
+    /// (<c>long</c> / <c>ulong</c> / <c>Int128</c> / <c>UInt128</c> — <c>PicInfo.ClrType</c>'s integer set;
+    /// kb/Work R12: the wide and unsigned tiers used to be routed onto a STRING crossing whose write half was
+    /// never implemented — the generated C# did not compile — while the callee side hardcoded a
+    /// <c>ManagedPointer&lt;long&gt;</c> cell its own carrier-typed reads could not use). A same-carrier
+    /// same-scale argument aliases directly; a different scale or different carrier gets a converting view over
+    /// the SAME storage (§14.2.3 GR8); a character carrier gets the zoned decode/encode view through the
+    /// callee's profile — the D5 boundary. Conversions ride the Int128 lane with the R10 bits contract at the
+    /// UInt128 ends, so a full-container value crosses losslessly between same-carrier cells.</summary>
+    public static ManagedPointer<T> Num<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
+        where T : struct, System.Numerics.INumberBase<T>
+    {
+        if (!Present(args, i)) return Omitted<T>(i);
         switch (args[i].Carrier)
         {
-            case ManagedPointer<long> lp when args[i].Scale == formalScale:
-                return lp;   // same shape, same scale — pure typed aliasing (the common conforming case)
-            case ManagedPointer<long> lp:
-                int callerScale = args[i].Scale;
-                return ManagedPointer<long>.OverField(
-                    () => (long)CobolNum.Rescale(lp.Value, callerScale, formalScale, CobolRounding.Truncation),
-                    v => lp.Value = (long)CobolNum.Rescale(v, formalScale, callerScale, CobolRounding.Truncation));
+            case ManagedPointer<T> tp when args[i].Scale == formalScale:
+                return tp;   // same carrier, same scale — pure typed aliasing (the common conforming case)
             case ManagedPointer<string> sp:
                 // The D5 boundary: the caller's CHARACTER storage viewed as the callee's zoned numeric — decode
                 // and re-encode through the callee's profile on each access (same storage area, §14.2.3 GR8).
-                return ManagedPointer<long>.OverField(
-                    () => (long)CobolNum.ParseDisplay(sp.Value, formal),
-                    v => sp.Value = CobolNum.FormatDisplay(v, formal));
+                return ManagedPointer<T>.OverField(
+                    () => T.CreateTruncating(CobolNum.ParseDisplay(sp.Value, formal)),
+                    v => sp.Value = CobolNum.FormatDisplay(Int128.CreateTruncating(v), formal));
+            case { } np when ReadNumericCell(np) is not null:
+            {
+                // A native numeric cell of a DIFFERENT carrier or scale: a converting view over the caller's
+                // storage. Same-scale cross-carrier reads/writes are bit-faithful through the Int128 lane.
+                int callerScale = args[i].Scale;
+                return ManagedPointer<T>.OverField(
+                    () => T.CreateTruncating(CobolNum.Rescale(ReadNumericCell(np)!.Value, callerScale, formalScale, CobolRounding.Truncation)),
+                    v => WriteNumericCell(np, CobolNum.Rescale(Int128.CreateTruncating(v), formalScale, callerScale, CobolRounding.Truncation)));
+            }
             default:
-                return Omitted<long>(i);
+                return Omitted<T>(i);
         }
     }
 
@@ -107,9 +144,11 @@ public static class CobolArgAdapt
                 return ManagedPointer<string>.OverField(
                     () => CobolString.Store(sp.Value, width),
                     v => sp.Value = CobolString.SpliceInto(sp.Value, 1, Math.Min(width, sp.Value?.Length ?? width), v));
-            case ManagedPointer<long> lp:
+            case { } np when ReadNumericCell(np) is not null:
                 // ANY LENGTH (width -1): the view width is the caller's digit-image width — n follows the
-                // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture.
+                // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture. Generalized over
+                // the four native carriers (kb/Work R12) — the same digit-image view, read/written through the
+                // numeric-cell pair.
                 int digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width);
                 var prof = new NumProfile
                 {
@@ -121,8 +160,8 @@ public static class CobolArgAdapt
                 };
                 int viewWidth = width < 0 ? digits : width;   // ANY LENGTH: the argument's own image width (§13.18.2 GR1)
                 return ManagedPointer<string>.OverField(
-                    () => CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), viewWidth),
-                    v => lp.Value = (long)CobolNum.ParseDisplay(v, prof));
+                    () => CobolString.Store(CobolNum.FormatDisplay(ReadNumericCell(np)!.Value, prof), viewWidth),
+                    v => WriteNumericCell(np, CobolNum.ParseDisplay(v, prof)));
             default:
                 return Omitted<string>(i);
         }
@@ -135,22 +174,24 @@ public static class CobolArgAdapt
     /// cell: the argument's value is rescaled to the formal's scale (truncation — the un-ROUNDED COMPUTE) and
     /// conformed to the formal's digit capacity via <see cref="CobolNum.Store"/>; the callee's stores reach only
     /// the cell, never the caller's storage (contrast <see cref="Num"/>, the §14.2.3 GR8 aliasing view).</summary>
-    public static ManagedPointer<long> NumValue(CobolArg[] args, int i, NumProfile formal, int formalScale)
+    public static ManagedPointer<T> NumValue<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
+        where T : struct, System.Numerics.INumberBase<T>
     {
-        if (!Present(args, i)) return Omitted<long>(i);
+        if (!Present(args, i)) return Omitted<T>(i);
         Int128 v;
         switch (args[i].Carrier)
         {
-            case ManagedPointer<long> lp:
-                v = CobolNum.Rescale(lp.Value, args[i].Scale, formalScale, CobolRounding.Truncation);
+            case { } np when ReadNumericCell(np) is { } nv:
+                v = CobolNum.Rescale(nv, args[i].Scale, formalScale, CobolRounding.Truncation);
                 break;
             case ManagedPointer<string> sp:
                 v = CobolNum.ParseDisplay(sp.Value, formal);   // a character-carried argument decodes through the formal's profile
                 break;
             default:
-                return Omitted<long>(i);
+                return Omitted<T>(i);
         }
-        return ManagedPointer<long>.Cell((long)CobolNum.Store(v, formalScale, formal));
+        // Store's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
+        return ManagedPointer<T>.Cell(T.CreateTruncating(CobolNum.Store(v, formalScale, formal)));
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE formal whose callee-side storage is a CHARACTER
@@ -164,7 +205,7 @@ public static class CobolArgAdapt
         {
             case ManagedPointer<string> sp:
                 return ManagedPointer<string>.Cell(CobolString.Store(sp.Value, width));
-            case ManagedPointer<long> lp:
+            case { } np when ReadNumericCell(np) is { } nv:
                 var prof = new NumProfile
                 {
                     Digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width),
@@ -173,7 +214,7 @@ public static class CobolArgAdapt
                     Truncation = NumericTruncation.DigitCount,
                     ByteForm = NumericByteForm.Zoned,   // the CHARACTER image of the argument: one byte per digit
                 };
-                return ManagedPointer<string>.Cell(CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), width));
+                return ManagedPointer<string>.Cell(CobolString.Store(CobolNum.FormatDisplay(nv, prof), width));
             default:
                 return Omitted<string>(i);
         }
@@ -181,11 +222,32 @@ public static class CobolArgAdapt
 
     /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
     /// returning item's value transfers to the activating element's RETURNING identifier). Null-tolerant: a CALL
-    /// without RETURNING discards the value (deep-dive edge case).</summary>
-    public static void StoreReturn(ManagedPointer? ret, long value)
+    /// without RETURNING discards the value (deep-dive edge case). The overload set spans the four native
+    /// carriers (kb/Work R12); a cross-carrier delivery rides the numeric-cell pair (Int128 lane, bits at the
+    /// UInt128 ends).</summary>
+    public static void StoreReturn(ManagedPointer? ret, long value) => StoreReturnNum(ret, value);
+
+    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
+    public static void StoreReturn(ManagedPointer? ret, ulong value) => StoreReturnNum(ret, (Int128)value);
+
+    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
+    public static void StoreReturn(ManagedPointer? ret, Int128 value) => StoreReturnNum(ret, value);
+
+    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
+    /// <remarks>The string leg renders the UNSIGNED value's own text BEFORE the bits reinterpretation — the
+    /// Int128 lane carries a top-half UInt128 as negative bits, which is exactly right for a typed cell and
+    /// exactly wrong for a character image.</remarks>
+    public static void StoreReturn(ManagedPointer? ret, UInt128 value)
     {
-        if (ret is ManagedPointer<long> lp) lp.Value = value;
-        else if (ret is ManagedPointer<string> sp) sp.Value = value.ToString();
+        if (ret is ManagedPointer<string> sp) { sp.Value = value.ToString(); return; }
+        StoreReturnNum(ret, unchecked((Int128)value));
+    }
+
+    private static void StoreReturnNum(ManagedPointer? ret, Int128 value)
+    {
+        if (ret is null) return;
+        if (WriteNumericCell(ret, value)) return;
+        if (ret is ManagedPointer<string> sp) sp.Value = value.ToString();
     }
 
     /// <summary>String-shaped RETURNING delivery (see <see cref="StoreReturn(ManagedPointer?, long)"/>).</summary>

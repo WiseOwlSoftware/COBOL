@@ -662,18 +662,21 @@ internal static class RuntimeApi
 
     // ── Inter-program ABI (CobolArgAdapt / CobolPassMode; interprogram design D1/D2) — Step 9-final sweep ──
 
-    /// <summary>A LINKAGE formal's numeric carrier adoption — <c>CobolArgAdapt.Num</c>.</summary>
-    public static string ArgAdaptNum(string args, int position, string profile, string scale) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Num)}({args}, {position}, {profile}, {scale})";
+    /// <summary>A LINKAGE formal's numeric carrier adoption — <c>CobolArgAdapt.Num&lt;T&gt;</c> over the
+    /// formal's OWN carrier type (kb/Work R12 — the cell type is the field type, so a wide or unsigned formal's
+    /// carrier-typed reads compile and carry the full container range).</summary>
+    public static string ArgAdaptNum(string args, int position, string profile, string scale, string carrier = "long") =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Num)}<{carrier}>({args}, {position}, {profile}, {scale})";
 
     /// <summary>A LINKAGE formal's text carrier adoption — <c>CobolArgAdapt.Text</c>.</summary>
     public static string ArgAdaptText(string args, int position, string width) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
 
     /// <summary>A BY VALUE numeric formal's DETACHED value-copy cell (ISO §14.2.3 GR10 — stores never reach
-    /// the caller) — <c>CobolArgAdapt.NumValue</c>.</summary>
-    public static string ArgAdaptNumValue(string args, int position, string profile, string scale) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.NumValue)}({args}, {position}, {profile}, {scale})";
+    /// the caller) — <c>CobolArgAdapt.NumValue&lt;T&gt;</c> over the formal's carrier (see
+    /// <see cref="ArgAdaptNum"/>).</summary>
+    public static string ArgAdaptNumValue(string args, int position, string profile, string scale, string carrier = "long") =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.NumValue)}<{carrier}>({args}, {position}, {profile}, {scale})";
 
     /// <summary>A BY VALUE image-carried formal's DETACHED value-copy cell (§14.2.3 GR10, image form) —
     /// <c>CobolArgAdapt.TextValue</c>.</summary>

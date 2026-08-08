@@ -6,6 +6,7 @@
     "boolean_shift",
     "boolean_shift_mixed",
     "ca4_giving_composite",
+    "call_by_reference_wide_comp5",
     "cc_in_copy",
     "cobol_words_equate",
     "cobol_words_intrinsic",

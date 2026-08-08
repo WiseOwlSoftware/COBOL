@@ -140,7 +140,10 @@ internal sealed class ProgramEmitter
                 bool isNum = f.CarrierResident
                     ? f.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !f.Item.StoreAsImage
                     : place is not null && !CallEmitter.CallPlaceIsString(place);
-                return (Formal: f, Place: place, IsNum: isNum);
+                // The numeric cell's type is the formal's OWN carrier (kb/Work R12): a wide or unsigned formal
+                // used to get a ManagedPointer<long> cell its carrier-typed reads could not compile against.
+                string carrier = isNum ? f.Item.ElementType : "string";
+                return (Formal: f, Place: place, IsNum: isNum, Carrier: carrier);
             })
             .ToList();
 
@@ -191,11 +194,13 @@ internal sealed class ProgramEmitter
 
             new DataEmitter(Current.Ctx).Emit();
 
-            foreach (var (f, _, isNum) in formals)
+            foreach (var (f, _, isNum, carrier) in formals)
             {
-                string init = isNum ? "ManagedPointer<long>.Cell(0L)"
+                // A numeric cell defaults through the carrier's own zero (PicInfo.DefaultInitializer — 0L /
+                // 0UL / (Int128)0 / (UInt128)0), so the cell type and the seed cannot drift (kb/Work R12).
+                string init = isNum ? $"ManagedPointer<{carrier}>.Cell({f.Item.Pic!.DefaultInitializer})"
                     : $"ManagedPointer<string>.Cell(new string(' ', {Math.Max(1, f.Item.ImageWidth)}))";
-                w.Line($"private ManagedPointer<{(isNum ? "long" : "string")}> {f.CarrierField} = {init};   "
+                w.Line($"private ManagedPointer<{carrier}> {f.CarrierField} = {init};   "
                     + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
             }
             w.Line();
@@ -286,7 +291,7 @@ internal sealed class ProgramEmitter
     /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
     /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7).</summary>
     private void EmitCallMethod(
-        BoundUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum)> formals, CodeWriter w)
+        BoundUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum, string Carrier)> formals, CodeWriter w)
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
@@ -320,7 +325,7 @@ internal sealed class ProgramEmitter
                             w.Line($"{cell} = 1;   // INDEX-NAME {idx} (LOCAL-STORAGE table cell)");
                 }
             }
-            foreach (var (f, place, isNum) in formals)
+            foreach (var (f, place, isNum, carrier) in formals)
             {
                 if (f.CarrierResident)
                 {
@@ -333,8 +338,8 @@ internal sealed class ProgramEmitter
                     // carried shape to fixed-point numeric, so the text leg has no BY VALUE arm).
                     w.Line(isNum
                         ? $"{f.CarrierField} = {(f.ByValue
-                            ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")
-                            : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}"))};"
+                            ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
+                            : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
                         : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{Math.Max(1, f.Item.Pic!.Length)}")};");
                     continue;
                 }
@@ -343,8 +348,8 @@ internal sealed class ProgramEmitter
                 // round trip over a DETACHED cell (§14.2.3 GR10): copy-in below, and NO copy-out at return.
                 w.Line(isNum
                     ? $"{f.CarrierField} = {(f.ByValue
-                        ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")
-                        : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}"))};"
+                        ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
+                        : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
                     : $"{f.CarrierField} = {(f.ByValue
                         ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")
                         : RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}"))};");
@@ -360,7 +365,7 @@ internal sealed class ProgramEmitter
             }
             w.Line("__asCalled = true;");
             w.Line("try { __Activate(); } finally { __asCalled = false; }");
-            foreach (var (f, place, isNum) in formals)
+            foreach (var (f, place, isNum, _) in formals)
             {
                 if (f.CarrierResident || place is null || f.ByValue) continue;
                 // Copy the (possibly mutated) formal back to the caller's storage — the BY REFERENCE result

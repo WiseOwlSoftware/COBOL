@@ -226,7 +226,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // (the BY VALUE callee re-conforms through its own NumValue cell, GR10).
             return CallPlaceIsString(p)
                 ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
-                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
+                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<{CallNumCarrier(p)}>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
         }
         switch (a.Value)
         {
@@ -234,12 +234,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
             case BoundNumericLiteral n:
             {
+                // The cell type follows the literal's own carrier (kb/Work R12 — a 19+-digit literal used to be
+                // a LOUD stage; the typed crossing takes it natively, and the R10 unsigned-wide fold literal
+                // rides its UInt128 cell the same way).
                 var lit = UnscaledLit(n.Text);
                 int digits = n.Text.Count(char.IsAsciiDigit);
-                if (digits > 18)
-                    return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
-                        + LoudValue("string", $"CALL USING wide numeric literal '{n.Text}' (19+ digits — the Int128 carrier tier)") + "), 0, 0)";
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
+                string cellT = lit.U ? "UInt128" : digits > 18 ? "Int128" : "long";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<{cellT}>.Cell({lit.Expr}), {digits}, {lit.Scale})";
             }
             case BoundComputedOperand expr:
             {
@@ -266,21 +267,26 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// through <c>FromImage</c> — the deep-dive group round-trip).</summary>
     public string RefCarrier(Place p) => CallPlaceIsString(p)
         ? $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})"
-        : $"ManagedPointer<long>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})";
+        : $"ManagedPointer<{CallNumCarrier(p)}>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})";
 
     /// <summary>True when a place's storage crosses the CALL boundary as a character image (string carrier):
-    /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. A native fixed-point
-    /// leaf crosses as its <c>long</c> (fully typed — the common conforming case).</summary>
+    /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. EVERY native
+    /// fixed-point leaf crosses as its own CARRIER (<c>long</c> / <c>ulong</c> / <c>Int128</c> /
+    /// <c>UInt128</c> — kb/Work R12): the former <c>Digits &gt; 18</c> leg routed the wide tiers onto a string
+    /// crossing whose write half was NEVER implemented (the generated C# assigned a string to the native field
+    /// and did not compile) and whose read half was the picture-digit image (lossy for a BinaryCapacity item's
+    /// beyond-picture container values), while the CALLEE side built a <c>ManagedPointer&lt;long&gt;</c> cell
+    /// its own carrier-typed reads could not use. One predicate, both sides, native and value-exact.</summary>
     internal static bool CallPlaceIsString(Place p) =>
         p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
-        || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 }
-        // The ulong carrier tier (kb/Work R10): an unsigned 8-byte BinaryCapacity leaf cannot ride the
-        // ManagedPointer<long> cell (C# has no ulong↔long assignment), so it crosses as its digit image exactly
-        // like the wide (>18-digit) tier. ⚠ Both tiers share the pre-existing picture-digit-image ABI, which
-        // truncates a value beyond the PICTURE's digit count — registered as its own kb/Work item (R12).
-        || p.Item.Pic is { IsUnsignedLongBinary: true };
+        || p.Item.Pic is { IsFloat: true };
+
+    /// <summary>The C# carrier type of a native fixed-point leaf at the CALL boundary — the item's OWN
+    /// <c>ElementType</c> (kb/Work R12: the cell type IS the field type, so the aliasing lambdas and the
+    /// callee's carrier-typed reads compile and carry the full container range by construction).</summary>
+    internal static string CallNumCarrier(Place p) => p.Item.ElementType;
 
     /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
     /// its FULL maximum-allocation image here, never the ODO window: BY REFERENCE "operates as if the [formal]
