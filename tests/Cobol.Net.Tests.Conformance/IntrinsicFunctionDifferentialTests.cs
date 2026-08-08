@@ -475,6 +475,13 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("FUNCTION FIND-STRING(H N START AFTER 1)", "4")]       // r2 — ignore 1 match from the first
     [InlineData("FUNCTION FIND-STRING(H N LAST START AFTER 1)", "4")]  // r1+r2 — 1 before the last
     [InlineData("FUNCTION FIND-STRING(H \"ZZ\")", "0")]                // r3 — no match
+    // kb/Work R08 (Phase-B F25): argument-3 stays in the LONG domain. An unchecked (int) narrowing let any
+    // skip whose LOW 32 BITS fell in 0..Count-1 return a match — 2^32 printed 1 (and 7 for LAST) where r2
+    // exhausts the matches and r3 requires 0; 2^31 and 2^32-1 missed the wrap by luck, which is why sampling
+    // never caught it.
+    [InlineData("FUNCTION FIND-STRING(H N START AFTER 4294967296)", "0")]        // r2+r3 — 2^32 wrapped to 0
+    [InlineData("FUNCTION FIND-STRING(H N LAST START AFTER 4294967296)", "0")]   // the LAST arm printed 7
+    [InlineData("FUNCTION FIND-STRING(H N START AFTER 4294967299)", "0")]        // 2^32+3: low bits 3 = Count
     public void FindString_Positions_2023(string call, string expected)
         => AssertSpec(Program("01 H PIC X(9) VALUE \"ABCABCABC\".\n           01 N PIC X(3) VALUE \"ABC\".\n           01 P PIC 9.",
             $"    MOVE {call} TO P.\n    DISPLAY P.", "IFFIND"), expected, 2023);

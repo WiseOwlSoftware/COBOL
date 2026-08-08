@@ -386,8 +386,12 @@ public static partial class CobolIntrinsics
             positions.Add(i + 1);                                                // 1-based character position
         if (positions.Count == 0) return 0;                                      // rule 3 — no match
         if (skip < 0) skip = 0;
-        int idx = last ? positions.Count - 1 - (int)skip : (int)skip;            // rule 1 (first/LAST) + rule 2 (ignore skip)
-        return idx >= 0 && idx < positions.Count ? positions[idx] : 0;          // exhausted matches → 0 (rule 3)
+        // kb/Work R08: the comparison stays in the LONG domain — an unchecked (int) narrowing let any
+        // argument-3 whose LOW 32 BITS fell in 0..Count-1 return a match position where rule 2 leaves no
+        // matches and rule 3 requires zero (2^32 reproduced; 2^31 and 2^32-1 missed it by luck).
+        if (skip >= positions.Count) return 0;                                   // rule 2 exhausts the matches → 0 (rule 3)
+        long idx = last ? positions.Count - 1 - skip : skip;                     // rule 1 (first/LAST) + rule 2 (ignore skip)
+        return idx >= 0 ? positions[(int)idx] : 0;                               // LAST with skip ≥ count → 0 (rule 3)
     }
 
     /// <summary>TRIM (§15.96.4): the argument with LEADING (<paramref name="mode"/> 1), TRAILING (2), or BOTH
