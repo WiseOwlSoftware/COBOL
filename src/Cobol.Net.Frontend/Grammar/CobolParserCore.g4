@@ -487,6 +487,9 @@ subToken
     | SUB_IDENTIFIER
     | SUB_INTEGERLIT
     | SUB_DECIMALLIT
+    | FLOATLIT         // 1.5E3 / -1.5E3 in a captured region (kb/Work R17 — the SUBSCRIPT-mode float forms
+                       // re-type to the ONE FLOATLIT vocabulary; without this the keyword-omitted
+                       // EXP(+1.5E1) failed the OUTER capture with 'no viable alternative')
     | SUB_STRINGLIT
     | SUB_NATLIT       // national literal argument N"…" (ISO §15.50.3 — FUNCTION LENGTH(N"…") etc.)
     | SUB_BOOLLIT      // boolean literal argument B"…"

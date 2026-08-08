@@ -710,7 +710,11 @@ QUOTE_      : 'QUOTE' | 'QUOTES' ;
 // joined to an exponent (1-4 digits, optionally signed) by 'E', no intervening spaces — e.g. 1.5E3, 2.5E-2, .5E10.
 // MUST precede DECIMALLIT so maximal munch keeps "1.5E3" ONE token, not DECIMALLIT "1.5" + IDENTIFIER "E3" (the
 // old parse error). Additive: the no-space <decimal>E<digits> form was previously always a parse error. (D16.)
-FLOATLIT    : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
+// The body is a FRAGMENT (the Group-B one-body discipline) because THREE tokens consume it: this one, the
+// FN_SIGNED twin, and the SUBSCRIPT-mode forms (kb/Work R17 — the float shape was the one signed-capable
+// literal with no twins, so `FUNCTION EXP(-1.5E3)` lexed as TWO arguments and drew a false COBOLNET1504).
+fragment FLOAT_BODY : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
+FLOATLIT    : FLOAT_BODY ;
 
 // ── Shared literal fragment bodies (rearchitecture PHASE 04, Group B) ──
 // One definition per literal tokenization shape, referenced by BOTH the DEFAULT-mode literal tokens and their
@@ -768,7 +772,13 @@ fragment NAME_BODY                                                              
 // space-surrounded (§8.7.1). These twins re-type to the SUBSCRIPT-mode SIGNED_* token types so the parser sees
 // one vocabulary: MAX(A -4) lexes A SIGNED_INTEGERLIT(-4) = two arguments; MAX(A - 4) lexes A MINUS 4 = one
 // subtraction. Outside argument regions the predicate is false and [+-] lexes PLUS/MINUS exactly as before.
-// The decimal twin MUST precede the integer twin (the SUBSCRIPT-mode ordering note: else -15.6 orphans ".6").
+// The decimal twin MUST precede the integer twin (the SUBSCRIPT-mode ordering note: else -15.6 orphans ".6"),
+// and the FLOAT twin precedes them both (kb/Work R17): "-1.5E3" must stay ONE token — without this twin the
+// signed-decimal rule won maximal munch at "-1.5" and orphaned "E3" as an IDENTIFIER, so the parser reported
+// two arguments (§8.3.3.3.3 r2 makes the sign part of the literal; §15.3 type 10 admits the literal). The
+// sign travels in the TOKEN TEXT and the type is plain FLOATLIT — one vocabulary, zero parser changes, and
+// the emitter's E-form arm renders the signed text as a C# double literal directly.
+FN_SIGNED_FLOATLIT   : {SignedLiteralCanStart()}? [+-] FLOAT_BODY -> type(FLOATLIT) ;
 FN_SIGNED_DECIMALLIT : {SignedLiteralCanStart()}? [+-] DEC_BODY -> type(SIGNED_DECIMALLIT) ;
 FN_SIGNED_INTEGERLIT : {SignedLiteralCanStart()}? [+-] INT_BODY -> type(SIGNED_INTEGERLIT) ;
 
@@ -918,6 +928,12 @@ SUB_WS              : [ \t\r\n]+ ;
 SUB_OF              : 'OF' ;
 SUB_IN              : 'IN' ;
 SUB_ALL             : 'ALL' ;
+
+// The FLOAT forms first (kb/Work R17 — this mode had NO float shape at all, so "1.5E3" in a captured region
+// lexed SUB_DECIMALLIT "1.5" + SUB_IDENTIFIER "E3" and the signed form orphaned identically). Re-typed to
+// the ONE FLOATLIT vocabulary, sign in the token text — same convention as the DEFAULT-mode twin.
+SUB_SIGNED_FLOATLIT : [+-] FLOAT_BODY -> type(FLOATLIT) ;
+SUB_FLOATLIT        : FLOAT_BODY -> type(FLOATLIT) ;
 
 // Sign immediately adjacent to a decimal literal: -15.6, +0.2, -.5 (signed decimal
 // argument to an intrinsic function, ISO §15). MUST precede SIGNED_INTEGERLIT so the

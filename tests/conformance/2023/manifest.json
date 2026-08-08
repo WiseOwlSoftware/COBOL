@@ -121,6 +121,7 @@
     "r03_hexadecimal_national_and_boolean_literals",
     "ref_mod_zero_length",
     "set_size",
+    "signed_float_literal_argument",
     "smallest_algebraic",
     "substitute",
     "usage_packed_no_sign",
