@@ -60,11 +60,45 @@ public sealed class ExceptionEngine
         ExceptionObject = obj;
     }
 
+    // ── The AMBIENT statement context (kb/Work R14 — §15.32.3 r2 / §15.30.3 r2). The (Table-12 statement
+    // name, location) pair is a property of the RAISING STATEMENT, so it travels ambiently: the emitted
+    // checked-statement wrapper enters it (with the set of names whose enabling TURN carried WITH LOCATION —
+    // the pair is per-CONDITION, §15.32.3 r1 / kb/Work R06) and restores the prior context on exit, and
+    // every raise site that calls the 2-argument Set — SEARCH's range conditions, CONTINUE AFTER, the
+    // nonfatal ambient gates, the runtime string/storage sites — picks the pair up WITHOUT threading it.
+    // Before this channel, only the sites an emitter could hand literals to answered r2; every other site
+    // returned 63 spaces under WITH LOCATION (the F3 defect family). ──────────────────────────────────────────
+
+    private string? _stmtName;
+    private string? _stmtLoc;
+    private string[]? _stmtLocNames;
+
+    /// <summary>Enter a checked statement's ambient context; returns the PRIOR context for the emitted
+    /// finally's <see cref="ExitStatement"/> (save/restore, so a nested activation — a CALL inside the
+    /// statement — restores the caller's context on return).</summary>
+    public (string? Stmt, string? Loc, string[]? Names) EnterStatement(string stmt, string loc, string[] locNames)
+    {
+        var prior = (_stmtName, _stmtLoc, _stmtLocNames);
+        (_stmtName, _stmtLoc, _stmtLocNames) = (stmt, loc, locNames);
+        return prior;
+    }
+
+    /// <summary>Restore the prior ambient statement context (the emitted finally).</summary>
+    public void ExitStatement((string? Stmt, string? Loc, string[]? Names) prior) =>
+        (_stmtName, _stmtLoc, _stmtLocNames) = prior;
+
     /// <summary>Record a raised non-I-O exception condition (§14.6.13.1.1: sets the last exception status;
-    /// EXCEPTION-OBJECT is set to null — §14.9.29.4 GR1).</summary>
+    /// EXCEPTION-OBJECT is set to null — §14.9.29.4 GR1). With no explicit pair, the §15.32.3 r2 / §15.30.3 r2
+    /// operands come from the AMBIENT statement context — and only when the raised NAME is one the enabling
+    /// TURN covered WITH LOCATION at this statement (r1 answers spaces for the rest).</summary>
     public void Set(string name, bool fatal, string? statement = null, string? location = null)
     {
         LastName = name.ToUpperInvariant();
+        if (statement is null && _stmtLocNames is { } names && System.Array.IndexOf(names, LastName) >= 0)
+        {
+            statement = _stmtName;
+            location = _stmtLoc;
+        }
         LastFatal = fatal;
         LastFile = null;
         LastIoStatus = null;
@@ -661,6 +695,13 @@ public static class ExceptionState
     /// <inheritdoc cref="ExceptionEngine.Set"/>
     public static void Set(string name, bool fatal, string? statement = null, string? location = null)
         => E.Set(name, fatal, statement, location);
+
+    /// <inheritdoc cref="ExceptionEngine.EnterStatement"/>
+    public static (string? Stmt, string? Loc, string[]? Names) EnterStatement(string stmt, string loc, string[] locNames)
+        => E.EnterStatement(stmt, loc, locNames);
+
+    /// <inheritdoc cref="ExceptionEngine.ExitStatement"/>
+    public static void ExitStatement((string? Stmt, string? Loc, string[]? Names) prior) => E.ExitStatement(prior);
 
     /// <inheritdoc cref="ExceptionEngine.SetIo"/>
     public static void SetIo(string name, bool fatal, string file, string ioStatus, string? statement = null,

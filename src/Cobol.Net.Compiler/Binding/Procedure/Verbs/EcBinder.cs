@@ -366,6 +366,19 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundSetCapacity:
                     Query(FlowSearchNames);
                     break;
+                // The SEARCH range conditions (§14.9.37.4 GR4/GR6/GR9) RAISE via BoundSearch's own bound
+                // Check* flags — this arm exists so the statement carries the wrapper's AMBIENT context
+                // (kb/Work R14): the emitted 2-argument Set calls in EmitSearchScan pick up the §15.32.3 r2 /
+                // §15.30.3 r2 pair from it. Before, a WITH LOCATION no-match SEARCH answered 63 spaces.
+                case BoundSearch:
+                    Query(["EC-RANGE-SEARCH-INDEX", "EC-RANGE-SEARCH-NO-MATCH"]);
+                    break;
+                // CONTINUE AFTER (§14.9.8.4 GR4): the raise is CobolTiming's — bound through
+                // BoundContinueAfter.CheckLessThanZero — and 2-argument; the arm supplies the ambient pair
+                // exactly like SEARCH (kb/Work R14).
+                case BoundContinueAfter:
+                    Query(["EC-CONTINUE-LESS-THAN-ZERO"]);
+                    break;
                 case BoundCallProgram:
                     Query(ProgramNames);
                     Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
@@ -434,6 +447,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // inline through CobolDynTable.RefReceiving with no statement-level node of its own.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-TABLE-LIMIT", null, line))
                 enabled.Add(("EC-BOUND-TABLE-LIMIT", null));
+            // EC-STORAGE-NOT-AVAIL (§14.9.2.4 ALLOCATE GR / CobolDynString's growth sites) and EC-RANGE-INVALID
+            // (§14.9.13.4 — a THRU range with the ends reversed; CobolString.ThruMember) raise from RUNTIME
+            // sites that render inline with no statement-level node, exactly like the gates above — ambient,
+            // conservative, harmless around statements that never reach the raise. They ride the tail so the
+            // 2-argument Set at those sites picks up the ambient (statement, location) pair (kb/Work R14).
+            if (ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, line))
+                enabled.Add(("EC-STORAGE-NOT-AVAIL", null));
+            if (ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, line))
+                enabled.Add(("EC-RANGE-INVALID", null));
             // EC-DATA-NOT-FINITE (fatal, §14.6.13.2 item 3) rides an ambient per-statement gate: any non-exempt read
             // of a NaN/±Inf standard-float sending operand raises it while checking is enabled. Wrapped conservatively
             // (any statement in a checking-on region) — the always-emitted CobolFloat.Sending wrap at the two float

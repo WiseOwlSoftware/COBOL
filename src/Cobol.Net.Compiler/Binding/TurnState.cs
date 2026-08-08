@@ -14,14 +14,23 @@ namespace CobolNet.Binding;
 /// names a LEVEL-3 exception-name; an event matches it per the hierarchy expansion rules: EC-ALL covers every
 /// name except EC-I-O-WARNING (GR2), a level-2 name covers its level-3 children except EC-I-O-WARNING (GR3),
 /// EC-I-O-WARNING toggles only explicitly (GR4); a file-scoped event applies only to that file (GR6/GR8). The
-/// fold is over events with <c>Line &lt; statementLine</c> — strict, because a directive occupies its own line
-/// and a mid-statement directive applies to SUCCEEDING statements only (GR5); the LAST matching event wins
-/// (GR6/GR8 — enabled/disabled "until" the next toggle).
+/// fold is over events with <c>Line &lt; statementLine</c> — strict for REAL directives, which occupy their own
+/// line and apply to SUCCEEDING statements only (GR5) — plus the SYNTHETIC Inclusive events (the GR14 implicit
+/// enable and handler floor), which also govern a statement starting on their own line (kb/Work R14); the LAST
+/// matching event wins (GR6/GR8 — enabled/disabled "until" the next toggle).
 /// </summary>
 public sealed class TurnState
 {
-    /// <summary>One flattened (line, name, file) toggle in source order.</summary>
-    private readonly record struct Ev(int Line, string Ec, string? File, bool On, bool WithLocation);
+    /// <summary>One flattened (line, name, file) toggle in source order. <paramref name="Inclusive"/> marks a
+    /// SYNTHETIC event that governs statements starting ON its own line (kb/Work R14): a REAL directive
+    /// occupies its own line, so no statement can share one and the fold's strict <c>Line &lt;
+    /// statementLine</c> is right for it — but the GR14 implicit enable is placed AT the PERFORM's line and
+    /// imperative-statement-1 can legally START there (`PERFORM WITH LOCATION GO TO … WHEN …` on one line),
+    /// and the GR14 handler floor is placed AT the first WHEN's line, where a handler statement can also
+    /// start. Both synthetics must cover their own line or the same-line statement silently escapes checking
+    /// — measured: the one-line form raised nothing while the two-line form raised and caught.</summary>
+    private readonly record struct Ev(int Line, string Ec, string? File, bool On, bool WithLocation,
+        bool Inclusive = false);
 
     private readonly List<Ev> _events = [];
 
@@ -60,15 +69,17 @@ public sealed class TurnState
     /// enable BEFORE the PERFORM keeps its own settings (GR22 — no implicit is assumed). This overlay is discarded
     /// after imp-1; imp-2..5 then bind under <see cref="WithAllDisabledFrom"/>, which is GR14's other half — NOT
     /// against the base state, as this comment used to claim.
-    /// (Known edge, unobservable while the runtime is staged: a directive on the PERFORM's OWN line, and WITH
-    /// LOCATION precedence when a real enable precedes — refinements for the interceptor wave.)</summary>
+    /// The synthetic is INCLUSIVE (kb/Work R14): imperative-statement-1 can start on the PERFORM's own line
+    /// and must bind under the enable — measured, the one-line form silently escaped checking.
+    /// (Known edge: WITH LOCATION precedence when a real enable precedes — a refinement for the interceptor
+    /// wave.)</summary>
     public TurnState WithImplicitEnable(IEnumerable<(string Ec, string? File)> names, bool withLocation, int imp1Line)
     {
         var s = new TurnState();
         foreach (var e in _events) if (e.Line < imp1Line) s._events.Add(e);   // pre-imp-1 directives (line-sorted)
         foreach (var (ec, file) in names)
             if (!Enabled(ec, file, imp1Line))   // GR14 implicit ON only when not already enabled (else GR22 persists)
-                s._events.Add(new Ev(imp1Line, ec, file, On: true, WithLocation: withLocation));
+                s._events.Add(new Ev(imp1Line, ec, file, On: true, WithLocation: withLocation, Inclusive: true));
         foreach (var e in _events) if (e.Line >= imp1Line) s._events.Add(e);   // imp-1+ directives (line-sorted)
         return s;
     }
@@ -90,7 +101,9 @@ public sealed class TurnState
     {
         var s = new TurnState();
         foreach (var e in _events) if (e.Line < handlerLine) s._events.Add(e);
-        s._events.Add(new Ev(handlerLine, ExceptionCatalog.EcAll, null, On: false, WithLocation: false));
+        // Inclusive: a handler statement can START on the first WHEN's own line and must bind under the floor
+        // (kb/Work R14 — the same same-line rule as the GR14 enable, in the disabling direction).
+        s._events.Add(new Ev(handlerLine, ExceptionCatalog.EcAll, null, On: false, WithLocation: false, Inclusive: true));
         foreach (var e in _events) if (e.Line >= handlerLine) s._events.Add(e);
         return s;
     }
@@ -128,7 +141,10 @@ public sealed class TurnState
         Ev? last = null;
         foreach (var e in _events)
         {
-            if (e.Line >= statementLine) break;   // events are in line order; GR5 — succeeding statements only
+            // Events are in line order; GR5 — a directive governs SUCCEEDING statements only. A synthetic
+            // Inclusive event (the GR14 implicit enable / handler floor) also governs a statement starting
+            // ON its own line — see the Ev remark (kb/Work R14).
+            if (e.Line >= statementLine && !(e.Inclusive && e.Line == statementLine)) break;
             if (!NameMatches(e.Ec, level3)) continue;
             if (e.File is not null && (file is null || !e.File.Equals(file, StringComparison.OrdinalIgnoreCase)))
                 continue;   // a file-scoped event applies only to that file (GR6/GR8)

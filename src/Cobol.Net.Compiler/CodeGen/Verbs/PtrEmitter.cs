@@ -131,10 +131,10 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
         if (checkNotFound)
         {
-            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!, "EC-PROGRAM-NOT-FOUND");
             using (w.Block($"if ({nf})"))
             {
-                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true, {stmt}, {loc});   // §8.4.3.13 GR4 — set to exist");
+                // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true);   // §8.4.3.13 GR4 — set to exist");
                 int did = ctx.Names.NextPtr();
                 w.Line($"int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};");
                 w.Line($"if (__pe{did} >= 0) {{ __pc = __pe{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
@@ -158,10 +158,10 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line(PlaceRenderer.Write(op, RuntimeApi.PtrFree(PlaceRenderer.Read(op), na)) + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
             {
-                var (stmt, loc) = ec.EcStmtLoc(ecState.Info!, "EC-STORAGE-NOT-ALLOC");
                 using (w.Block($"if ({na})"))
                 {
-                    w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false, {stmt}, {loc});   // GR1c — nonfatal (§14.6.13.1.1)");
+                    // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false);   // GR1c — nonfatal (§14.6.13.1.1)");
                     // §14.6.13.1.3 #5: the F3 selection runs; a nonfatal condition with no handler (or
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).

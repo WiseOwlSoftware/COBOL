@@ -148,9 +148,17 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   outward-GLOBAL continuation is realized only on this I-O path — F3 declaratives are not yet GLOBAL-walkable
   (no corpus or conformance driver exercises it; revisit with the OO/2002 wave).
 - **WITH LOCATION (§15.30.3 r1 choice):** without the LOCATION phrase this implementation saves NO location
-  information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces; with it, the bind-time
-  pre-rendered "element; paragraph[ OF section]; line" string and the uppercase statement name are recorded at the
-  raise site.
+  information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces. With it, the bind-time
+  pre-rendered "element; paragraph[ OF section]; line" string and the Table-12 statement name travel on the
+  **AMBIENT statement context** (kb/Work R14): `EmitChecked` emits `ExceptionState.EnterStatement(name, loc,
+  withLocationNames)` around each checked statement (save/restore, so a nested activation restores its
+  caller's), and the 2-argument `ExceptionState.Set` — the form every raise site uses — resolves the pair from
+  it PER-CONDITION (§15.32.3 r1 keys on the RAISED name's own TURN; kb/Work R06). ⚠ The former design recorded
+  the pair "at the raise site" via per-site baked literals, and every site the emitter could NOT hand literals
+  to (SEARCH's range Sets, CONTINUE AFTER, `CobolString`/`CobolDynString`/`CobolTiming`) answered 63 spaces
+  under WITH LOCATION — the F3 defect family. The ONE remaining positional channel is `__IoCheckEc`'s
+  per-(name, FILE) `__locMask` (a name set cannot express file-scoped WITH LOCATION); its explicit operands
+  always win over the ambient fallback. `AmbientExceptionContextTests` pins the contract.
 - **The catalog is NAME-keyed, not a C# enum:** EC-USER-* / EC-IMP-* are
   OPEN families (§14.6.13.1.1 — user-defined by mention, always nonfatal ¶24505), so the canonical identity is the
   NAME; an enum would need a parallel name channel (two representations — the singular-pattern rule).

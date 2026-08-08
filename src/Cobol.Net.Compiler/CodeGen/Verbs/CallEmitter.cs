@@ -139,10 +139,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         string nameTest = string.Join(" || ", ecProg.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
-        var (stmt, loc) = ec.EcStmtLocExpr(ecState.Info!, ecProg, $"__ce{id}.EcName");
         using (w.Block($"catch (CobolCallException __ce{id}) when ({nameTest})"))
         {
-            w.Line($"ExceptionState.Set(__ce{id}.EcName, true, {stmt}, {loc});   // §14.6.13.1.1 — all EC-PROGRAM-* are fatal (Table 13)");
+            // The §15.32.3 r2 pair rides the CALL statement's ambient context (kb/Work R14) — the callee's own
+            // contexts were restored on unwind, so this Set attributes the CALL, not the callee's last statement.
+            w.Line($"ExceptionState.Set(__ce{id}.EcName, true);   // §14.6.13.1.1 — all EC-PROGRAM-* are fatal (Table 13)");
             if (hasPhrase)
                 w.Line($"{phraseFlag} = true;   // the statement's ON EXCEPTION phrase handles it (§14.6.13.1.3 #1; §14.9.4.4 GR3h)");
             else

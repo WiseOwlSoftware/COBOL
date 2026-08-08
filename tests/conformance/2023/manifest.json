@@ -39,6 +39,7 @@
     "ec_size_truncation_prohibited",
     "ec_storage_not_avail",
     "exception_file_arg",
+    "exception_statement_ambient",
     "exit_perform_cycle",
     "exit_perform_multilevel",
     "external_file_status_consistency",

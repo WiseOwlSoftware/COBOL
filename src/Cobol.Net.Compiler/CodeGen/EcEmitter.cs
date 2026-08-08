@@ -61,29 +61,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return false;   // the continue-after-RAISE path IS the normal exit (GR2 — never fatal by itself)
     }
 
-    /// <summary>The (stmt, loc) C# operand pair for ONE statically-known enabled name — §15.32.3 r1 /
-    /// §15.30.3 r1 are PER-CONDITION: the pair renders only when THAT name's enabling TURN carried WITH
-    /// LOCATION, never when a sibling condition's did (kb/Work R06 — the former statement-level bool let one
-    /// stray WITH LOCATION contaminate every other condition's 63-spaces answer).</summary>
-    public (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info, string ec, FileModel? file = null) =>
-        info.Enabled.FirstOrDefault(e => e.Ec == ec && (file is null || ReferenceEquals(e.File, file))).WithLocation
-            ? (CsLiteral(info.StatementName), CsLiteral(info.Location))
-            : ("null", "null");
-
-    /// <summary>The (stmt, loc) pair when the raised name is selected at RUNTIME among
-    /// <paramref name="names"/> (<paramref name="nameExpr"/> holds it): constants when the subset is UNIFORM —
-    /// byte-identical to the pre-R06 output, the overwhelmingly common case — else per-name conditional
-    /// expressions, so a mixed statement answers §15.32.3 r1 per condition.</summary>
-    public (string Stmt, string Loc) EcStmtLocExpr(EcStatementInfo info, IEnumerable<string> names, string nameExpr)
-    {
-        var subset = info.Enabled.Where(e => names.Contains(e.Ec)).ToList();
-        if (!subset.Any(e => e.WithLocation)) return ("null", "null");
-        if (subset.All(e => e.WithLocation)) return (CsLiteral(info.StatementName), CsLiteral(info.Location));
-        string test = string.Join(" || ",
-            subset.Where(e => e.WithLocation).Select(e => $"{nameExpr} == {CsLiteral(e.Ec)}"));
-        return ($"(({test}) ? {CsLiteral(info.StatementName)} : null)",
-                $"(({test}) ? {CsLiteral(info.Location)} : null)");
-    }
+    // The former EcStmtLoc/EcStmtLocExpr per-site (stmt, loc) baking is DELETED (kb/Work R14): the pair now
+    // travels on the runtime's AMBIENT statement context, entered once per checked statement by
+    // <see cref="EmitChecked"/> with exactly the WITH-LOCATION names (per-condition, R06's rule), and every
+    // raise site — emitted OR runtime-internal — reaches it through the 2-argument ExceptionState.Set. One
+    // rule, one place; the sites an emitter could never thread (SEARCH's range Sets, CONTINUE AFTER,
+    // CobolString/CobolDynString/CobolTiming) answered 63 spaces under WITH LOCATION for exactly as long as
+    // the two mechanisms coexisted.
 
     // ── The BoundEcChecked wrapper (the statement EC context + the EC-ARGUMENT-FUNCTION ambient gate) ────────
 
@@ -102,8 +86,41 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         var prev = ecState.Info;
         ecState.Info = ec.Info;
-        // The nonfatal ambient gates enabled at this statement ride a set/reset wrapper around whichever inner
-        // dispatch (the fatal-gated or the plain) the statement needs.
+        bool terminated;
+        // The AMBIENT statement context (kb/Work R14): when any condition enabled at this statement carries
+        // WITH LOCATION, the (Table-12 statement name, §15.30.3 r2 location) pair enters the runtime's ambient
+        // slot together with the names it covers — §15.32.3 r1 is PER-CONDITION (R06), so a raise of an
+        // uncovered name still answers spaces. Every raise site then reaches the pair through the 2-argument
+        // ExceptionState.Set — SEARCH's range Sets, CONTINUE AFTER, the nonfatal gates, the runtime string /
+        // storage sites — with no per-site threading. Save/restore (not set/clear), so a CALL inside the
+        // statement restores this statement's context when the callee returns.
+        // ⛔ FILE-SCOPED entries are EXCLUDED: WITH LOCATION on `EC-I-O-… FILE F1` is per-(name, FILE), which a
+        // name set cannot express — a same-name raise on another file would wrongly stamp the pair. The I-O
+        // path keeps its per-file __locMask channel through __IoCheckEc (R06), and its SetIo passes the pair
+        // POSITIONALLY, which always wins over the ambient fallback.
+        var locNames = ec.Info.Enabled.Where(e => e.WithLocation && e.File is null)
+            .Select(e => e.Ec).Distinct().ToList();
+        if (locNames.Count > 0)
+        {
+            var w = ctx.Writer;
+            int id = ctx.Names.NextEc();
+            string arr = string.Join(", ", locNames.Select(CsLiteral));
+            w.Line($"var __ecs{id} = ExceptionState.EnterStatement({CsLiteral(ec.Info.StatementName)}, "
+                + $"{CsLiteral(ec.Info.Location)}, new[] {{ {arr} }});");
+            using (w.Block("try"))
+                terminated = EmitGatesOrInner(ec);
+            w.Line($"finally {{ ExceptionState.ExitStatement(__ecs{id}); }}");
+        }
+        else
+            terminated = EmitGatesOrInner(ec);
+        ecState.Info = prev;
+        return terminated;
+    }
+
+    /// <summary>The nonfatal ambient gates enabled at this statement ride a set/reset wrapper around whichever
+    /// inner dispatch (the fatal-gated or the plain) the statement needs.</summary>
+    private bool EmitGatesOrInner(BoundEcChecked ec)
+    {
         var gates = NonfatalAmbientGates.Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)).ToList();
         if (gates.Count > 0)
         {
@@ -112,12 +129,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             using (w.Block("try"))
                 EmitArgOrPlain(ec);
             w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
-            ecState.Info = prev;
             return false;   // conservative: the inner dispatch may itself resume past a transfer
         }
-        bool terminated = EmitArgOrPlain(ec);
-        ecState.Info = prev;
-        return terminated;
+        return EmitArgOrPlain(ec);
     }
 
     /// <summary>The inner EC dispatch of a checked statement: the EC-ARGUMENT-FUNCTION fatal ambient gate (with
@@ -166,9 +180,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         // One gate ⇒ the raised name is the literal (byte-identical to the pre-generalization output); two or more
-        // ⇒ the actual __af.EcName drives the status/dispatch — and the per-condition WITH LOCATION answer (R06).
+        // ⇒ the actual __af.EcName drives the status/dispatch.
         string ecExpr = gates.Count == 1 ? CsLiteral(gates[0].Ec) : $"__af{id}.EcName";
-        var (stmt, loc) = EcStmtLocExpr(ec.Info, gates.Select(g => g.Ec), ecExpr);
         string nameTest = string.Join(" || ", gates.Select(g => $"__af{id}.EcName == {CsLiteral(g.Ec)}"));
         foreach (var g in gates.Where(g => g.Flag is not null)) w.Line($"ExceptionState.{g.Flag} = true;");
         using (w.Block("try"))
@@ -177,14 +190,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         {
             // §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
             // is set … the last exception status is set to indicate that exception condition." The guard only
-            // exists where checking IS enabled, so the status is set here unconditionally — with the location
-            // operands when the enabling TURN carried WITH LOCATION (§7.3.25.4 GR7), without them otherwise.
-            // Previously only the WITH LOCATION arm set it, which was invisible while every fatal EC set the
-            // status at its raise site; a gate whose raise is UNCONDITIONAL (EC-OO-NULL / EC-OO-METHOD) has no
-            // such site, and FUNCTION EXCEPTION-STATUS returned SPACES inside its own declarative.
-            w.Line(stmt == "null" && loc == "null"
-                ? $"ExceptionState.Set({ecExpr}, true);"
-                : $"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});");
+            // exists where checking IS enabled, so the status is set here unconditionally. The §15.32.3 r2 /
+            // §15.30.3 r2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
+            // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
+            // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
+            w.Line($"ExceptionState.Set({ecExpr}, true);");
             w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
             w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
@@ -248,16 +258,19 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
-        var (stmt, loc) = EcStmtLocExpr(ecState.Info!, enabled, ecnVar);
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
-            w.Line($"ExceptionState.Set({ecnVar}, true, {stmt}, {loc});   // §14.6.13.1.1 — the last exception status");
+            // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
+            w.Line($"ExceptionState.Set({ecnVar}, true);   // §14.6.13.1.1 — the last exception status");
             if (!hasPhrase)
             {
                 w.Line($"int __r{id} = {EcDispatchExpr(ecnVar, "\"\"")};");
                 w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                // The message decoration reads the statement name back from the status Set just recorded —
+                // the ONE channel — rather than a second baked literal.
                 w.Line($"if (__r{id} != -2) throw new CobolFatalException({ecnVar}, "
-                    + $"\"size error and not resumed (ISO 14.7.5; 14.6.13.1.3 #5/#7)\" + {(stmt == "null" ? "\"\"" : $"\" in \" + {stmt}")});");
+                    + "\"size error and not resumed (ISO 14.7.5; 14.6.13.1.3 #5/#7)\" "
+                    + "+ (ExceptionState.LastStatement is { } __szs ? \" in \" + __szs.TrimEnd() : \"\"));");
             }
             // With an ON SIZE ERROR phrase the phrase handles it (§14.6.13.1.3 #1) — state is set, phrase runs below.
         }
@@ -273,10 +286,10 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         if (ecState.Info is null || !ecState.Info.Enabled.Any(p => p.Ec == ecName)) return;
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
-        var (stmt, loc) = EcStmtLoc(ecState.Info, ecName);
         using (w.Block($"if ({ovfFlag})"))
         {
-            w.Line($"ExceptionState.Set({CsLiteral(ecName)}, false, {stmt}, {loc});");
+            // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+            w.Line($"ExceptionState.Set({CsLiteral(ecName)}, false);");
             if (!hasPhrase)
             {
                 w.Line($"int __r{id} = {EcDispatchExpr(CsLiteral(ecName), "\"\"")};");
