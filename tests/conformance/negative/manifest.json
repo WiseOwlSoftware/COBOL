@@ -75,6 +75,7 @@
     "function-pointer-staged",
     "inspect-kof-replacing",
     "index-name-arithmetic",
+    "inspect-converting-alphabet",
     "intrinsic-index-argument",
     "intrinsic-phrase-word-argument",
     "kof-undeclared-intrinsic-args",

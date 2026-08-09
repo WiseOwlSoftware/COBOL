@@ -186,6 +186,22 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         BoundInspectConvert? converting = null;
         if (ins.inspectConvertingPhrase() is { } conv)
         {
+            // §14.9.22.2 Format 4 (kb/Work R38, adjudicated 2026-08-08): CONVERTING's operands are
+            // {identifier-6 | literal-4} TO {identifier-7 | literal-5} — an ALPHABET-name is NEITHER (a
+            // SPECIAL-NAMES name is not an identifier), so GnuCOBOL's CONVERTING-alphabet extension
+            // (`INSPECT X CONVERTING BETA TO ALPHA` over `ALPHABET BETA IS EBCDIC`) is not ISO in any
+            // edition. The reference kept the honest declared-as-alphabet-name STAGING pending this
+            // adjudication (R32/R38's diagnostic half); the adjudicated posture is the R37-family
+            // compile-time rejection, at the position whose format decides.
+            foreach (var ch in conv.inspectChar())
+                if (ch.dataReference()?.cobolWord()?.GetText() is { } w
+                    && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
+                    && (ctx.Data.Alphabets.ContainsKey(w) || ctx.Data.NationalAlphabets.ContainsKey(w)))
+                    ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                        $"INSPECT CONVERTING references the ALPHABET-name '{w}' — Format 4's operands are "
+                        + "an identifier or a literal (ISO §14.9.22.2), and an alphabet-name is neither "
+                        + "(the CONVERTING-alphabet form is a GnuCOBOL extension). Write the character "
+                        + "strings, or a data item holding them");
             var (from, _) = InspectCharOperand(conv.inspectChar(0));
             var (to, figurative) = InspectCharOperand(conv.inspectChar(1));
             if (figurative && to is BoundStringLiteral f && InspectStaticWidth(from) is { } wf && wf != f.Value.Length)
