@@ -3,7 +3,8 @@
       *> COBOLNET1516 "not a data item"). The folds are compile-time constants: LINAGE-COUNTER's
       *> size "is equal to the page size specified in the LINAGE clause" (8.4.3.14.4 GR1) so
       *> HIGHEST = 66 here; the report counters carry no spec size (8.4.3.15.4 GR1) and take the
-      *> documented implementor shape PIC 9(18) (CONFORMANCE.md item 216). All three are UNSIGNED:
+      *> documented implementor shape PIC 9(18) (CONFORMANCE.md section 3, the counter registers'
+      *> declared capacity). All three are UNSIGNED:
       *> LOWEST = 0, SMALLEST = 1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R26REGS.

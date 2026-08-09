@@ -1466,7 +1466,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (§8.4.3.14.4 GR1) — a literal operand's value directly, a data-name operand's all-nines (the maximum
         // page size it can specify); the report counters carry NO size in the standard (§8.4.3.15.4 GR1 —
         // "temporary unsigned integer data items") and take the documented implementor shape PIC 9(18), the
-        // all-nines of the runtime's long carrier (CONFORMANCE.md item 216). All three registers are UNSIGNED:
+        // all-nines of the runtime's long carrier (CONFORMANCE.md §3, "the counter registers' declared
+        // capacity" — NOT an Annex A.1 item, so it lives with the pinned behavior determinations). All three
+        // registers are UNSIGNED:
         // LOWEST-ALGEBRAIC = 0, SMALLEST-ALGEBRAIC = 1 (scale 0).
         if (args[0] is BoundComputedOperand { Expr: BoundLinageCounterRef lc })
             return CounterRegisterFold(sig, LinagePageCapacity(lc.File));

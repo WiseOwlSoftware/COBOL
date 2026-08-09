@@ -116,6 +116,29 @@ def self_test() -> int:
         else:
             print(f'  SELF-TEST FAILED: {name} -> {findings}')
             rc = 1
+    # kb/Work R23 — the source-citation sweep, proven able to fail for BOTH of its reasons.
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        fake = pathlib.Path(td) / 'Cobol.Net.Fake' / 'X.cs'
+        fake.parent.mkdir(parents=True)
+        fake.write_text('// precision (implementor item 999)\n// and the real one (implementor item 2)\n',
+                        encoding='utf-8')
+        sweep_cases = [
+            ('a citation of a nonexistent A.1 item is caught',
+             sweep_source_citations(register, {2: 'x'}, pathlib.Path(td)), 'no item 999'),
+            ('a citation §7 does not discharge is caught',
+             sweep_source_citations(register, {}, pathlib.Path(td)), 'undischarged'),
+            ('a discharged citation passes',
+             [f for f in sweep_source_citations(register, {2: 'x', 999: 'y'}, pathlib.Path(td))
+              if 'item 2' in f], None),
+        ]
+        for name, got, want in sweep_cases:
+            ok = (not got) if want is None else any(want in f for f in got)
+            if ok:
+                print(f'  ok: {name}')
+            else:
+                print(f'  SELF-TEST FAILED: {name} -> {got}')
+                rc = 1
     print('=== audit_annex_a1 --self-test: ' + ('ALL GREEN (every check proven able to fail)' if not rc else 'FAILED') + ' ===')
     return rc
 
@@ -142,6 +165,38 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
         findings.append(f'{len(unnumbered)} §7 row(s) carry no A.1 item number, so no obligation is discharged '
                         f'by them and nothing can check them')
     return findings, numbered, unnumbered
+
+
+# kb/Work R23 — the drift half: a SOURCE comment claiming "implementor item N" is a documentation claim, and
+# a claim the register does not carry is the documentation equivalent of a dead lookup (CobolDate cited item
+# 171 for months while §7 had no such row). Each citation must name a REAL A.1 item AND a row §7 actually
+# carries. The pattern deliberately catches both spellings used in the tree ("implementor item 171",
+# "A.1 item 180", "Annex A.1 item 29" is E.3's numbering and is NOT matched — only A.1-anchored forms).
+CITATION_RX = re.compile(r'(?:implementor item|A\.1 item)\s+(\d+)')
+
+
+def sweep_source_citations(register: dict[int, dict], numbered: dict[int, str], src_root: pathlib.Path) -> list[str]:
+    """Every `implementor item N` / `A.1 item N` citation in the greenfield source must correspond to a real
+    A.1 item that §7 documents. Returns findings; separated from evaluate() so --self-test drives it too."""
+    findings: list[str] = []
+    for path in sorted(src_root.rglob('*.cs')):
+        parts = path.parts
+        if 'obj' in parts or 'bin' in parts or 'Generated' in parts:
+            continue
+        if not any(p.startswith('Cobol.Net.') for p in parts):
+            continue
+        text = path.read_text(encoding='utf-8', errors='replace')
+        for m in CITATION_RX.finditer(text):
+            n = int(m.group(1))
+            line = text.count('\n', 0, m.start()) + 1
+            where = f'{path.name}:{line}'
+            if n not in register:
+                findings.append(f'{where} cites "{m.group(0)}" but A.1 has no item {n}')
+            elif n not in numbered:
+                findings.append(f'{where} cites "{m.group(0)}" as documented, but CONFORMANCE.md §7 carries '
+                                f'no item-{n} row — the claim is undischarged (A.1-{n}: '
+                                f'"{register[n]["subject"][:60]}")')
+    return findings
 
 
 def main(argv: list[str]) -> int:
@@ -178,6 +233,8 @@ def main(argv: list[str]) -> int:
     # re-learning: feedback_one_rule_one_place.)
     findings_from_rows, numbered, unnumbered = evaluate(register, text)
     findings.extend(findings_from_rows)
+    # kb/Work R23 — source comments claiming "implementor item N" must be discharged by a real §7 row.
+    findings.extend(sweep_source_citations(register, numbered, ROOT / 'src'))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()

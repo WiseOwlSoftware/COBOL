@@ -13,6 +13,31 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1242 — 2026-08-08 17:56 PDT — R23: the citation sweep lands and immediately pays for itself — four register rows, one mis-filing corrected
+
+CobolDate cited "implementor item 171" as documented while §7 carried no such row — a documentation
+claim nothing checked, the dead-lookup shape in prose. Verified against the standard first: A.1 item
+171 IS the SECONDS-PAST-MIDNIGHT precision, required + shall-be-documented — the comment was right and
+the REGISTER was missing the row. §7 now carries it (100 ns / 7 fraction digits, tick-count at scale 7,
+pinned by CobolDateWindowingTests).
+
+The audit gained the sweep the note demanded: sweep_source_citations — every "implementor item N" /
+"A.1 item N" in src/Cobol.Net.* must name a real A.1 item AND a §7 row that discharges it; --self-test
+proves both failure reasons fire (7/7). Its FIRST real run caught three more undischarged claims across
+six sites — item 22 (CHAR-NATIONAL's ALSO-position choice: the FIRST character defined), item 180
+(SMALLEST-ALGEBRAIC rejects float usages under native arithmetic — the increment is exponent-dependent,
+not a PICTURE property), item 188 (the ALPHABET UTF-16 correspondence is the BMP identity on the D-N1
+substrate) — each now a §7 row written from the code's own pinned determination.
+
+And the audit caught the R26 commit's own mistake from two hours earlier: the "§7 item 216" row squatted
+on A.1-216 (USAGE POINTER) — §7 numbers are A.1 CITATIONS, never a sequence. No A.1 item covers the
+counter registers' size, so the determination moved intact to §3 (behavior determinations), with the
+code and golden comments repointed and R26's note carrying the correction. §7's header now quotes the
+fresh audit: 17 of 199 discharged, findings none.
+
+Gate: audit --self-test 7/7 + full audit clean · Unit drift 3169/3169 · the counters golden by name ·
+characterization 33/33.
+
 ## Entry 1241 — 2026-08-08 17:51 PDT — The batch battery's two flips are R35's predicted recovery — and Table 21 yields the standard's own typo (Addendum C5)
 
 The R34+R27+R29+R35 battery: every internal leg green (Conformance 4291/4291 · Unit 4099/4099 ·
