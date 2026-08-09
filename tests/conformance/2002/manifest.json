@@ -102,6 +102,7 @@
     "pointer_data",
     "program_pointer",
     "recursive_ws",
+    "replace_partial_pseudo_text",
     "repository_paragraph",
     "rw_present_when",
     "rw_suppress",
