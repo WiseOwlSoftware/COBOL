@@ -32,9 +32,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **the R-wave (R21–R39) is fully landed** — `work.py next` reports the ranked actionable list EMPTY —
   including R13, decided by the owner 2026-08-08 (**follow GnuCOBOL** on the beyond-PICTURE COMP-5
   DISPLAY; §7 item 56; and the broader preference — implementor latitude + split vendors → follow
-  GnuCOBOL — is in session memory as `follow-gnucobol-on-split-latitude`, LATITUDE ONLY, never
-  GnuCOBOL's non-ISO extensions, which remain the explicit open feature questions recorded in
-  R36/R37/R38/R39). The battery reference below is current at the R33+R38 closing tree; CI green
+  GnuCOBOL — is in session memory as `follow-gnucobol-on-split-latitude`, LATITUDE ONLY — and the vendor axis is
+  now CLOSED by owner decision the same evening: COBOL.NET stays STRICT-ISO permanently, GnuCOBOL's
+  non-ISO extensions are never implemented; R36/R37/R38/R39 carry the record). The battery reference below is current at the R33+R38 closing tree; CI green
   through `b66a292c`. After PB29+PB39, what remains is the A-series analyses (§11) and the P14
   campaigns proper.
 - **▶ THE PRIOR CAMPAIGN (2026-08-08): the R00-audit orphan wave — ELEVEN items landed in one session,
