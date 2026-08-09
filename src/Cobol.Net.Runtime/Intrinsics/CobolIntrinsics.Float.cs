@@ -42,14 +42,31 @@ public static partial class CobolIntrinsics
 
     // ── Financial (ISO §15.9 / §15.74) ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>ANNUITY (§15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
-    /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2).</summary>
-    public static double Annuity(double rate, double periods) =>
-        rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));
+    /// <summary>The ONE §15.9.3 r2/r3 raise site (both carriers funnel here — the PB32 one-site-per-rule
+    /// discipline): a negative rate or a non-positive period count is an incorrect argument VALUE, so
+    /// EC-ARGUMENT-FUNCTION per §15.3 (documented default 0). Fix-queue PB65 — the guards were absent while
+    /// the same file's Log/Log10 carried theirs, and ANNUITY(-0.5 3) returned +0.0714 silently.</summary>
+    internal static long AnnuityDomain(double rate, double periods) =>
+        rate < 0
+            ? Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-1 {rate} is not greater than or equal to zero (§15.9.3 r2)")
+            : Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-2 {periods} is not a positive integer (§15.9.3 r3)");
 
-    /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n.</summary>
+    /// <summary>The ONE §15.74.3 r2 raise site (both carriers).</summary>
+    internal static long PresentValueDomain(double rate) =>
+        Exceptions.ExceptionState.ArgumentError($"PRESENT-VALUE argument-1 {rate} is not greater than -1 (§15.74.3 r2)");
+
+    /// <summary>ANNUITY (§15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
+    /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §15.9.3 r2 (rate ≥ 0) and r3
+    /// (periods a positive integer — integrality is the upstream IntArg latitude; positivity is checked here).</summary>
+    public static double Annuity(double rate, double periods) =>
+        rate < 0 || periods <= 0 ? AnnuityDomain(rate, periods)
+        : rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));
+
+    /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n. Domain: §15.74.3 r2
+    /// (rate &gt; −1) — a rate at or below −1 zeroes or inverts the discount base and the sum is undefined.</summary>
     public static double PresentValue(double rate, params double[] amounts)
     {
+        if (rate <= -1) return PresentValueDomain(rate);
         double pv = 0;
         for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(1 + rate, i + 1);
         return pv;
@@ -88,9 +105,17 @@ public static partial class CobolIntrinsics
     /// <summary>RANDOM (seed) (§15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first
     /// value. Same seed ⇒ same sequence on a given implementation (§15.75.4 rule 2 — per-process determinism is
     /// what NIST IF131A exercises; hazard H7). Seeds 0..32767 must yield distinct sequences (rule 3) — the .NET
-    /// generator satisfies this for the whole int range.</summary>
+    /// generator satisfies this for the whole int range. ⛔ A NEGATIVE seed violates r2 ("zero or a positive
+    /// integer") and raises EC-ARGUMENT-FUNCTION (fix-queue PB65 — the old mask folded it onto a positive seed
+    /// and RANDOM(-5) silently aliased RANDOM(0x7FFFFFFB & …)); the mask remains only as the documented
+    /// wide-seed mapping for legal values beyond the generator's int range.</summary>
     public static double Random(long seed)
     {
+        if (seed < 0)
+        {
+            Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer (§15.75.3 r2)");
+            return 0;
+        }
         _random = new Random((int)(seed & 0x7FFFFFFF));
         return _random.NextDouble();
     }

@@ -43321,12 +43321,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "ANNUITY function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AnnuityDomain",
+  "test-ref": "conformance:2023/pb65_domain_guards",
   "editions": "85,2002,2014,2023",
-  "notes": "SURVIVED ADVERSARIAL REVIEW — NO DOMAIN CHECK. Citation re-validated: `cite.py --check 15.9.3 \"greater than or equal to zero\"` -> OK §15.9.3 2). §15.3's closing argument paragraph read verbatim: 'The rules for a function may place constraints on the permissible values for arguments ... the EC-ARGUMENT-FUNCTION exception condition is set to exist. If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function reference' — with checking ENABLED it shall be raised. Body re-read at review time and unchanged: `public static double Annuity(double rate, double periods) => rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));` — no `rate < 0` guard, no ExceptionState.ArgumentError call, unlike Log/Log10 fourteen lines above in the same file which do call it for their §15.55.3/§15.56.3 domains. The runtime machinery exists and fires; ANNUITY never reaches it. FAILING INPUT re-run independently (PROGRAM-ID ADVD02): PROCEDURE begins `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`, then `COMPUTE R = FUNCTION ANNUITY ( -0.5 3 ). DISPLAY \"NEG-RATE=\" R.` with `01 R PIC S9(5)V9(4).`, and a trailing `COMPUTE R = FUNCTION LOG ( 0 ).` -> prints `NEG-RATE=00000071D` (+0.0714) and only afterwards aborts on the LOG line with `abnormal run-unit termination: EC-ARGUMENT-FUNCTION (fatal): LOG argument must be > 0 (ISO 15.55.3 r2)`, proving checking was in force when ANNUITY silently accepted the negative rate. The literal -0.5 also makes this statically decidable, so §4.2.2 para 3 independently requires a compile-time indication. EDITIONS: all four — not derivable from the spec or Annex E (see AR-15.9.3-1). test-needed.",
-  "state": "GAP"
+  "notes": "PB65 (domain-guard members) LANDED 2026-08-09: the argument-value guards exist at one raise site per rule, both carriers. PROBED: AN-NEG line: ANNUITY(-0.5 3) takes the SS15.9.3 r2 EC path (documented default 0) instead of returning +0.0714; both carriers guard through the one AnnuityDomain raise site. PRIOR (DIVERGES): SURVIVED ADVERSARIAL REVIEW — NO DOMAIN CHECK. Citation re-validated: `cite.py --check 15.9.3 \"greater than or equal to zero\"` -> OK §15.9.3 2). §15.3's closing argument paragraph read verbatim: 'The rules for a function",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.9.3-3",
@@ -47416,12 +47416,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "PRESENT-VALUE function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValue; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValueDomain",
+  "test-ref": "conformance:2023/pb65_domain_guards",
   "editions": "85,2002,2014,2023",
-  "notes": "test-needed. §15.74.3 r2 (cite.py --check: OK) — the value of argument-1 shall be greater than −1. This is a permissible-VALUE constraint, so §15.3 applies: 'If the evaluation of an argument results in an incorrect value for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist'; Annex A.1 item 90 makes only the RETURNED VALUE implementor-defined when checking is off — the condition must still be SET, and must be raised when checking is on. CobolIntrinsics.PresentValue(double rate, params double[] amounts) performs no domain check on rate, unlike its file-mates Log/Log10 which call Exceptions.ExceptionState.ArgumentError, and the binder adds none. Reproduced with the built CLI: (a) COMPILE-TIME-detectable literal violation, edition-independent — `COMPUTE RESULT-X = FUNCTION PRESENT-VALUE(-1.5, 100, 200)` is accepted silently at --std 85 AND --std 2023 and prints 600.000000, so the divergence does not depend on the (2002+) EC machinery and holds at every edition; (b) runtime rate with checking explicitly enabled — `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` then `FUNCTION PRESENT-VALUE(R2 AMT AMT)` with R2 = −2.00 prints 0 and CONTINUES, while the very next `FUNCTION LOG(0)` in the SAME program aborts with 'EC-ARGUMENT-FUNCTION (fatal)' — same directive, same run unit, so the mechanism exists and PRESENT-VALUE alone does not use it; (c) rate = −1.00 exactly makes 1+rate = 0, and the binary64 division through FromDouble SATURATES, printing 223372036.8547 with no exception and no diagnostic.",
-  "state": "GAP"
+  "notes": "PB65 (domain-guard members) LANDED 2026-08-09: the argument-value guards exist at one raise site per rule, both carriers. PROBED: PV-NEG line: PRESENT-VALUE(-2.00, 300) takes the SS15.74.3 r2 EC path; the Dec carrier shares the raise site. PRIOR (DIVERGES): test-needed. §15.74.3 r2 (cite.py --check: OK) — the value of argument-1 shall be greater than −1. This is a permissible-VALUE constraint, so §15.3 applies: 'If the evaluation of an argument results in an incorrect value",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.74.4-1",
@@ -47455,12 +47455,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "RANDOM function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+  "test-ref": "conformance:2023/pb65_domain_guards",
   "editions": "85,2002,2014,2023",
-  "notes": "Neither half of 'it shall be zero or a positive integer' is enforced at bind or at run time, and the §15.3 raise ('If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNCTION exception condition is set to exist') never fires for a RANDOM seed. (a) NEGATIVE: CobolIntrinsics.Float.Random(long seed) does `new Random((int)(seed & 0x7FFFFFFF))`, so a negative seed is silently ALIASED onto a large positive one — REPRODUCED: FUNCTION RANDOM(-5) and FUNCTION RANDOM(2147483643) both return 636542013 (the alias is the two's-complement mask 0x7FFFFFFB, NOT abs(), so it does not even agree with .NET's own Random(int) sign handling). (b) NON-INTEGER: IntrinsicRenderer.IntArg truncates to scale 0, so FUNCTION RANDOM(1.75) silently becomes seed 1 — REPRODUCED: RANDOM(1.75) and RANDOM(1) both return 248668584. Concrete failing input: `COMPUTE R = FUNCTION RANDOM(-5).` then `COMPUTE R = FUNCTION RANDOM(1.75).` — compiles exit 0, zero diagnostics. The EC machinery EXISTS and is already used by sibling intrinsics (Exceptions.ExceptionState.ArgumentError — CobolDate's DATE-OF-INTEGER/DAY-OF-INTEGER range checks, CobolIntrinsics.FromDouble on NaN); RANDOM simply never reaches it, so `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON` cannot catch it either. Fix shape: the seed range/integrality check belongs in the runtime body through ExceptionState.ArgumentError (a runtime-valued seed cannot be screened at bind), plus a bind-time diagnostic for the statically-known literal case. test-needed.",
-  "state": "GAP"
+  "notes": "PB65 (domain-guard members) LANDED 2026-08-09: the argument-value guards exist at one raise site per rule, both carriers. PROBED: RD-NEG line: RANDOM(-5) raises per SS15.75.3 r2 instead of aliasing a positive seed through the mask. PRIOR (DIVERGES): Neither half of 'it shall be zero or a positive integer' is enforced at bind or at run time, and the §15.3 raise ('If the evaluation of an argument results in an incorrect value for that argument ... the EC-ARGUMENT-FUNC",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.75.3-3",

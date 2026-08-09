@@ -152,18 +152,24 @@ public static partial class CobolIntrinsics
     public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs) =>
         CobolDec.FromDouble(Math.Sqrt(VarianceDec(mode, xs).ToDouble()));
 
-    /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).</summary>
+    /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).
+    /// Domain per §15.9.3 r2/r3, through the SAME raise site as the double carrier (one site per rule).</summary>
     public static CobolDec AnnuityDec(CobolRounding mode, CobolDec rate, long periods)
     {
+        if (rate.Sig < 0 || periods <= 0)
+            return CobolDec.From(AnnuityDomain(rate.ToDouble(), periods), 0);
         CobolDec one = CobolDec.From(1, 0);
         if (rate.Sig == 0) return CobolDec.Div(one, CobolDec.From(periods, 0), mode);
         CobolDec pow = CobolDec.Pow(CobolDec.Add(one, rate, mode), CobolDec.From(-periods, 0), mode);
         return CobolDec.Div(rate, CobolDec.Sub(one, pow, mode), mode);
     }
 
-    /// <summary>§15.74 PRESENT-VALUE — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§15.74.4 r1).</summary>
+    /// <summary>§15.74 PRESENT-VALUE — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§15.74.4 r1).
+    /// Domain per §15.74.3 r2 (rate &gt; −1), through the same raise site as the double carrier.</summary>
     public static CobolDec PresentValueDec(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
     {
+        if (CobolDec.Compare(rate, CobolDec.From(-1, 0)) <= 0)
+            return CobolDec.From(PresentValueDomain(rate.ToDouble()), 0);
         CobolDec baseFactor = CobolDec.Add(CobolDec.From(1, 0), rate, mode);
         CobolDec acc = CobolDec.From(0, 0);
         for (int k = 0; k < amounts.Length; k++)
