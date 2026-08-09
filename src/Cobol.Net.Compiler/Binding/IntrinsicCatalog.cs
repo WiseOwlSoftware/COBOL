@@ -223,8 +223,11 @@ public static class IntrinsicCatalog
         Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Unsupported, false, 2002)); // §15.51 (A.4.9 item 2) — Table 21 `Alph1/Anum1/Nat1, Alph2/Anum2/Nat2, Loc3`
         Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3) — §15.52.3 r1: alphanumeric/national, 8 character positions
         Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4) — §15.53.3 r1: alphanumeric/national, 6 character positions
-        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2002)); // §15.54 (A.4.9 item 5)
-        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2002)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
+        // ⛔ 2014, not 2002 (kb/Work R28, decided 2026-08-08): the WG4 CD 1.2 (2009) Annex D.2 item 4 lists
+        // BOTH among "the intrinsic functions ... introduced in this committee draft International Standard"
+        // (the draft of ISO 1989:2014). They were previously windowed 2002, over-accepting at --std 2002.
+        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2014)); // §15.54 (A.4.9 item 5)
+        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2014)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
         // The TEST validators (§15.90/§15.91/§15.93/§15.94) — verdict chains beside their value parsers:
         // the date pair is year-before-month-before-day (D.31.3.8/9 confirm codes 0/1/2[/3]); the NUMVAL
@@ -247,7 +250,11 @@ public static class IntrinsicCatalog
         // draws COBOLNET1501 ("not an intrinsic function of ISO/IEC 1989"). Adding it as a dialect-gated vendor
         // extension is a SEPARATE decision for a future vendor-extension wave, not an ISO edition window.
 
-        // ── COBOL-2014 additions (windows provisional pending the matrix wave) ────────────────────────────────
+        // ── COBOL-2014 additions — windows CONFIRMED 2026-08-08 (kb/Work R28): the WG4 CD 1.2 (2009) Annex
+        // D.2 item 4 new-function list, adversarially verified against the published-2014 inventory. The
+        // former "provisional pending the matrix wave" caveat is retired; NUMVAL-F/TEST-NUMVAL-F moved OUT
+        // of this block to 2002 (the COBOL Consortium's COBOL2002 introduction names them as 2002 additions),
+        // and LOCALE-TIME-FROM-SECONDS/SECONDS-PAST-MIDNIGHT moved IN from 2002. ──────────────────────────
         Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1));     // §15.7.1
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.17
         // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§15.38.1/§15.39.1/
@@ -258,10 +265,13 @@ public static class IntrinsicCatalog
         Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.40.1 (a4 = optional offset minutes)
         Add(new("FORMATTED-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "snn", "FormattedTime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));      // §15.41.1 (a3 = optional offset minutes)
         Add(new("INTEGER-OF-FORMATTED-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "IntegerOfFormattedDate", IntrinsicBind.Runtime, false, 2014)); // §15.48
-        Add(new("NUMVAL-F", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "NumvalF", IntrinsicBind.Runtime, false, 2014));        // §15.69
+        // ⛔ 2002, not 2014 (kb/Work R28, decided 2026-08-08): the COBOL Consortium's COBOL2002 introduction
+        // names NUMVAL-F/TEST-NUMVAL-F among the functions ADDED by COBOL2002, and both are ABSENT from the
+        // WG4 2014-cycle drafts' new-function lists. The provisional 2014 window rejected legal 2002 COBOL.
+        Add(new("NUMVAL-F", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "NumvalF", IntrinsicBind.Runtime, false, 2002));        // §15.69
         Add(new("SECONDS-FROM-FORMATTED-TIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ss", "SecondsFromFormattedTime", IntrinsicBind.Runtime, false, 2014)); // §15.79
         Add(new("TEST-FORMATTED-DATETIME", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "TestFormattedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.92
-        Add(new("TEST-NUMVAL-F", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumvalF", IntrinsicBind.Runtime, false, 2014));   // §15.95
+        Add(new("TEST-NUMVAL-F", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumvalF", IntrinsicBind.Runtime, false, 2002));   // §15.95 — 2002 per the R28 research (see NUMVAL-F above)
         Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "ss", "Trim", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.96.1 — arg-1 + the LEADING/TRAILING phrase + one-or-more argument-2 trim chars (special bind path)
 
         // ── COBOL-2023 additions (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) ────────────────────────────────

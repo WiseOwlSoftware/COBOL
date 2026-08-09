@@ -33,6 +33,7 @@
     "propagate_directive",
     "rounded_mode_prohibited",
     "rounded_modes",
+    "seconds_past_midnight",
     "external_constant_record_weak_type"
   ],
   "pending": []

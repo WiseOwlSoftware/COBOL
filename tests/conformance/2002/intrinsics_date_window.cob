@@ -1,5 +1,7 @@
-      *> ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD / §15.80
-      *> SECONDS-PAST-MIDNIGHT — the Y2K windowing trio + the clock (P11 Step 5). Values hand-derived in
+      *> ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD — the Y2K windowing
+      *> trio (P11 Step 5). (The SECONDS-PAST-MIDNIGHT clock leg moved to 2014/seconds_past_midnight:
+      *> the function is a 2014 introduction per the WG4 CD's D.2 new-function list — kb/Work R28.)
+      *> Values hand-derived in
       *> docs/rearchitecture/PHASE-11-scout-notes.md (spec:date-window): the window is ALWAYS 100 years
       *> ending at maximum-year = argument-2 + argument-3 (§15.100.4 r1 — argument-2 is a SIGNED offset,
       *> NOT a window size); r2a when MOD(maximum-year,100) >= argument-1, else r2b. Every probe PINS
@@ -13,7 +15,6 @@
        01 Y4  PIC 9(4).
        01 D8  PIC 9(8).
        01 J7  PIC 9(7).
-       01 SPM PIC 9(5)V9(7).
        PROCEDURE DIVISION.
        MAIN.
       *> §15.100.4 NOTE 1: in 1995, (4, 23) -> max 2018, MOD 18 >= 4 -> r2a -> 2004.
@@ -48,10 +49,4 @@
       *> §15.25.4 NOTE 1: (95005, -10, 2013) -> YY 95, max 2003, MOD 3 < 95 -> 1995 -> 1995005.
            COMPUTE J7 = FUNCTION DAY-TO-YYYYDDD(95005, -10, 2013)
            DISPLAY "T11=" J7
-      *> §15.80.3 / §15.5.5: standard numeric time form, [0, 86400) under the (only) LEAP-SECOND OFF mode.
-      *> The exact value is clock-dependent — the range probe here; the pinned-clock value leg lives in
-      *> the unit test (RunUnit.Clock injection).
-           COMPUTE SPM = FUNCTION SECONDS-PAST-MIDNIGHT
-           IF SPM < 86400 DISPLAY "T12=RANGE-OK"
-              ELSE DISPLAY "T12=" SPM END-IF
            STOP RUN.
