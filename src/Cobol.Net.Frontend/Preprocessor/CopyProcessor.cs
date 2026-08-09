@@ -427,7 +427,23 @@ public sealed class CopyProcessor(
 
         // Library text is itself in reference (fixed) format — normalize to free form so inserted lines align in
         // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.4.6).
-        string copybookText = ApplyReplacements(NormalizeCopybook(File.ReadAllText(copybookPath)), replacements);
+        string normalized = NormalizeCopybook(File.ReadAllText(copybookPath));
+        // §7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
+        // contain a COPY statement" — GR12 permits nesting only WITHOUT replacing. Before this check the
+        // caller recursed into the spliced text OUTSIDE the replacement scope, so the illegal combination
+        // produced arbitrary partial text and a misleading downstream undefined-reference on whatever name
+        // failed to materialize (GnuCOBOL's recursive-replacement EXTENSION accepts this shape; ISO does
+        // not). Detection uses the SAME FindCopyKeyword the expander splices by, so the report and the
+        // recursion can never disagree about what counts as a COPY statement. Expansion continues after the
+        // report — the diagnostic is the verdict; the splice keeps the downstream parse coherent.
+        if (replacements.Count > 0 && FindCopyKeyword(normalized, 0) >= 0)
+            _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingNestedCopy.Code,
+                $"COPY {libraryName} REPLACING: the library text contains a COPY statement — ISO §7.2.3.4 "
+                + "GR10 forbids the combination (\"If the REPLACING phrase is specified, the library text "
+                + "shall not contain a COPY statement\"); nesting is permitted only without REPLACING "
+                + "(GR12). Flatten the copybook, or drop the REPLACING phrase.",
+                new Common.SourceLocation(_sourceName, 0, LineOf(text, copyIdx), 0), default);
+        string copybookText = ApplyReplacements(normalized, replacements);
         return new OneCopyResult(CopyOutcome.Found, copybookText, copybookPath);
     }
 

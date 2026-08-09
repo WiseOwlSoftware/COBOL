@@ -780,6 +780,21 @@ public static class DiagnosticCatalog
     // class-name receiver, EXCEPTION-OBJECT, the boolean/float reroutes) read the silent Probe form, so a
     // legal alternative reading never draws it. Unsupported-SHAPE nulls of a name that DID resolve keep the
     // documented references-then-fail-loud staging — that debt is a different register entry than a typo.
+    // kb/Work R34. The differential's syn_copy:630 ("COPY: recursive replacement") exposed the shape: GnuCOBOL
+    // extends COPY REPLACING to reach nested-COPY text; ISO forbids the COMBINATION outright — §7.2.3.4 GR10
+    // "If the REPLACING phrase is specified, the library text shall not contain a COPY statement" (GR12 permits
+    // nesting, ≥5 levels, only WITHOUT replacing). Our preprocessor recursed OUTSIDE the replacement scope, so
+    // the illegal source produced arbitrary partial text and a misleading downstream COBOLNET1639 on whatever
+    // name failed to materialize. The verdict (reject) was right by accident; this descriptor makes the REASON
+    // right. Emitted by CopyProcessor.ResolveOneCopy at the outer COPY's line. The GnuCOBOL replacement-reaches-
+    // nested-text semantics remain a vendor-dialect-axis candidate, adjudicated separately.
+    public static readonly DiagnosticDescriptor CopyReplacingNestedCopy = new(
+        "COBOLNET1640", "copy-replacing-nested-copy", EditionSeverity.Error,
+        "A COPY statement with the REPLACING phrase names library text that itself contains a COPY statement. "
+        + "ISO §7.2.3.4 GR10: \"If the REPLACING phrase is specified, the library text shall not contain a "
+        + "COPY statement\"; nesting (at least 5 levels) is permitted only without REPLACING (GR12). Flatten "
+        + "the copybook, or drop the REPLACING phrase.",
+        "ISO §7.2.3.4 GR10 / GR12");
     public static readonly DiagnosticDescriptor UndefinedReference = new(
         "COBOLNET1639", "undefined-reference", EditionSeverity.Error,
         "A statement references a name that no declaration in the source element defines, or that the written "

@@ -14,6 +14,7 @@
     "cobol_words_substitute",
     "cobol_words_undefine",
     "continue_after",
+    "copy_nested_five_levels",
     "da2_function_as_text",
     "da3_hex_literal_operand",
     "da4_function_sending_operand",
