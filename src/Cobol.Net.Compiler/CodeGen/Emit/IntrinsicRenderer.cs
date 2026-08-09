@@ -82,12 +82,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // lifts through DecOperand, so no `…Real` body exists or is needed.)
         if (num.StandardDecimal)
         {
+            // ⛔ THE EXPONENT ARGUMENT LIFTS FROM THE RAW OPERAND, NOT THE LANDED ONE (fix-queue PB56).
+            // DecOperand(Arg(...)) round-tripped a Dec operand through the interim unscaled landing — truncated
+            // at the working scale — and only then lifted it back, which is the very quantization this arm
+            // exists to avoid (the RV-15.34.4-1 triage row measured it).
             if (sig.RuntimeMethod == "E") return new NumX(RuntimeApi.DecE, 0, Dec: true);
             if (sig.RuntimeMethod == "Pi") return new NumX(RuntimeApi.DecPi, 0, Dec: true);
             if (sig.RuntimeMethod == "Exp")
-                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecE, num.DecOperand(Arg(ic, 0)), num.IntermediateMode), 0, Dec: true);
+                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecE, DecArg(ic, 0), num.IntermediateMode), 0, Dec: true);
             if (sig.RuntimeMethod == "Exp10")
-                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), num.DecOperand(Arg(ic, 0)), num.IntermediateMode), 0, Dec: true);
+                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), DecArg(ic, 0), num.IntermediateMode), 0, Dec: true);
+            if (RenderDec(ic) is { } dec)
+                return dec;
         }
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
         // ⛔ FACTORIAL IS ROUTED TO ITS EXACT ARM EVEN WITH A FLOAT ARGUMENT (PB21), and it is the only one.
@@ -330,9 +336,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // and compared FALSE. RealResult restores the screen without re-quantizing — a function's returned value
         // must not depend on the SHAPE of its receiver (§15.4), and under EC-ARGUMENT-FUNCTION checking
         // §14.6.13.1 requires the condition be raised at all. (Found by the Phase-B §15.55 refuter.)
-        return num.Receiver.Real || num.Receiver.Receiverless
-            ? new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true)
-            : new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
+        if (num.Receiver.Real || num.Receiver.Receiverless)
+            return new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true);
+        // ⛔ UNDER A STANDARD MODE THE RESULT CONVERTS IN, IT DOES NOT QUANTIZE (fix-queue PB56). The prose
+        // family's returned value is an implementor-defined binary64 approximation in every mode (§15.4.1
+        // last ¶), but under STANDARD-DECIMAL that approximation enters the expression as an SDIDI operand
+        // per §8.8.1.5.1 — CobolDec.FromDouble, the shortest round-trip identity — and lands at the receiver
+        // ONCE, instead of truncating to unscaled at a receiver-derived working scale first (the triage rows
+        // RV-15.8.4-1 / RV-15.10.4-1 / RV-15.11.4-1 / RV-15.35.4-1 measured the double quantization).
+        // RealResult stays inside the conversion: it is the NaN → EC-ARGUMENT-FUNCTION raise site.
+        if (num.StandardDecimal)
+            return new NumX(RuntimeApi.DecFromDouble(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true);
+        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
@@ -360,10 +375,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <para>⚠ THE SCALE IS A CHOICE, AND IT IS THE FAMILY-FLOOR RULE, NOT A NEW ONE. An SDIDI carries its
     /// exponent at RUN time, so there is no compile-time scale to preserve; the value lands through the same
     /// <c>WorkingScale(floor)</c> discipline the NUMVAL and float families use — the receiver's scale, never below
-    /// the §15.67 fraction floor, capped at the receiver's <c>Int128</c> headroom by the PB13 argument. A quotient
-    /// with more fraction digits than that is truncated before the function sees it, which is a strictly smaller
-    /// wrong than "does not compile" and is NOT the end state: the §15.4.1 r1 answer is a Dec-carrier body, and it
-    /// is ledgered as PB38 rather than left as an unrecorded approximation.</para>
+    /// the §15.67 fraction floor, capped at the receiver's <c>Int128</c> headroom by the PB13 argument.
+    /// ⛔ THE §15.4.1 r1 FAMILY NO LONGER PASSES THROUGH HERE (fix-queue PB56): under a standard mode a
+    /// Dec/float-bearing exact-family call routes to <see cref="RenderDec"/> BEFORE any landing, so this
+    /// truncation now serves only the residual non-EAE consumers (NUMVAL's compile-scale materialization until
+    /// PB60's parser rewrite, integer-argument intake via <c>AsInt</c>) — where scale-0/format semantics make
+    /// the landing the defined behavior rather than an approximation.</para>
     /// </remarks>
     /// <remarks>
     /// ⛔ <b>AND A FLOAT OPERAND LANDS THE SAME WAY UNDER A STANDARD ARITHMETIC MODE (fix-queue PB38).</b> This is
@@ -394,6 +411,75 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return new NumX(RuntimeApi.DecToUnscaled(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
     }
 
+    // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
+
+    /// <summary>An argument as rendered, WITHOUT the unscaled landing — the SDIDI lane's input.</summary>
+    private NumX RawArg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i], num.Receiver);
+
+    /// <summary>An argument lifted to a <c>CobolDec</c> expression from its RAW carrier: a Dec operand passes
+    /// through, a float converts per §8.8.1.5.1, a fixed-point operand lifts exactly — never quantized.</summary>
+    private string DecArg(BoundIntrinsicCall ic, int i) => num.DecOperand(RawArg(ic, i));
+
+    private string DecArgList(BoundIntrinsicCall ic) =>
+        string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => DecArg(ic, i)));
+
+    /// <summary>Does any argument arrive as a Dec (SDIDI) or float carrier, before any landing?</summary>
+    private bool AnyDecOrRealRaw(BoundIntrinsicCall ic) =>
+        ic.Args.Any(a => { var x = num.AsNum(a, num.Receiver); return x.Dec || x.Real; });
+
+    /// <summary>
+    /// Under a standard arithmetic mode, evaluate a §15.4.1 r1 function's equivalent arithmetic expression ON
+    /// the SDIDI carrier (<c>CobolIntrinsics.*Dec</c>) and return the result as a Dec-valued <see cref="NumX"/>
+    /// that lands at the receiver ONCE — the PB56 Dec-carrier body, replacing the interim per-argument
+    /// unscaled landing whose fixed working scale truncated sub-microscale operands to zero.
+    /// </summary>
+    /// <remarks>
+    /// <para>Routing: the exact-EAE family routes here only when a RAW argument is Dec or float — an
+    /// all-fixed-point list stays on the exact Int128 family, whose every EAE step is digit-identical to the
+    /// SDIDI evaluation (documented equivalence, <c>COBOLNET_NUMERIC_DESIGN.md</c> D3; the >34-digit exact
+    /// residue keeps MORE precision than per-op rounding would). The four inexact-EAE financial/statistical
+    /// functions route here for EVERY argument shape — their EAEs divide, so even all-fixed lists must
+    /// evaluate in SDIDI form; this is what removes their COBOLNET0899 stage. Returns null for functions
+    /// with no Dec body (the prose family converts its binary64 result in <see cref="RenderFloat"/>).</para>
+    /// <para>Result carriers: SIGN / ORD-MAX / ORD-MIN return INTEGERS (scale-0 exact); everything else
+    /// returns the SDIDI itself (<c>Dec: true</c>), the same channel the R18 constant arms and MEAN's
+    /// existing SDIDI division already prove end-to-end.</para>
+    /// </remarks>
+    private NumX? RenderDec(BoundIntrinsicCall ic)
+    {
+        string m = ic.Sig.RuntimeMethod;
+        bool inexactEae = m is "Annuity" or "PresentValue" or "Variance" or "StandardDeviation";
+        if (!inexactEae && !AnyDecOrRealRaw(ic)) return null;
+
+        string mode = num.IntermediateMode;
+        return m switch
+        {
+            "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
+            "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
+            "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),
+            "Truncate" => Dec(RuntimeApi.Intrinsic("TruncDec", DecArg(ic, 0))),
+            "FractionPart" => Dec(RuntimeApi.Intrinsic("FractionPartDec", $"{mode}, {DecArg(ic, 0)}")),
+            "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "MaxScaled" => Dec(RuntimeApi.Intrinsic("MaxDec", DecArgList(ic))),
+            "MinScaled" => Dec(RuntimeApi.Intrinsic("MinDec", DecArgList(ic))),
+            "OrdMax" => new NumX(RuntimeApi.Intrinsic("OrdMaxDec", DecArgList(ic)), 0),
+            "OrdMin" => new NumX(RuntimeApi.Intrinsic("OrdMinDec", DecArgList(ic)), 0),
+            "SumScaled" => Dec(RuntimeApi.Intrinsic("SumDec", $"{mode}, {DecArgList(ic)}")),
+            "RangeScaled" => Dec(RuntimeApi.Intrinsic("RangeDec", $"{mode}, {DecArgList(ic)}")),
+            "MeanScaled" => Dec(RuntimeApi.Intrinsic("MeanDec", $"{mode}, {DecArgList(ic)}")),
+            "MedianScaled" => Dec(RuntimeApi.Intrinsic("MedianDec", $"{mode}, {DecArgList(ic)}")),
+            "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{mode}, {DecArgList(ic)}")),
+            "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{mode}, {DecArgList(ic)}")),
+            "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{mode}, {DecArgList(ic)}")),
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            "PresentValue" => Dec(RuntimeApi.Intrinsic("PresentValueDec", $"{mode}, {DecArgList(ic)}")),
+            _ => null,
+        };
+
+        static NumX Dec(string expr) => new(expr, 0, Dec: true);
+    }
+
     /// <summary>Does any argument render as FLOATING (binary64) rather than as a scaled integer? (PB2.)</summary>
     /// <remarks>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
     /// to be computed in binary64 and only then quantized, which is exactly what <see cref="RenderFloat"/>'s
@@ -406,8 +492,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private bool AnyRealArgument(BoundIntrinsicCall ic) =>
         ic.Args.Any(a => Landed(num.AsNum(a, num.Receiver)).Real);
 
-    /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier).</summary>
-    private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(Arg(ic, i));
+    /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier). ⛔ Converts the RAW
+    /// operand (fix-queue PB56): routing through the <see cref="Landed"/> unscaled truncation first turned a
+    /// sub-working-scale Dec operand to ZERO before the double conversion — SQRT(4e-18) probed as 0 where the
+    /// approximation of 2e-9 is required — and <see cref="NumericRenderer.Real"/> carries its own exact arm
+    /// for every carrier (a Dec operand converts via <c>ToDouble</c>, a float passes through).</summary>
+    private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(RawArg(ic, i));
 
     /// <summary>An integer-kind argument as a C# <c>long</c> (truncated to scale 0 when the operand carries a
     /// fraction — integer arguments "shall be integers", §15.3; a fractional value is the program's EC latitude).</summary>

@@ -436,21 +436,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1503", $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{gone} — "
                 + $"it is not available when targeting COBOL-{ctx.Edition.DialectLevel}");
 
-        // Standard-arithmetic staging (P10 Step 12): under STANDARD / STANDARD-DECIMAL, §15.4.1 r1 makes a
-        // function's returned value EQUAL its equivalent arithmetic expression evaluated in SDIDI form. The
-        // exact-engine functions already satisfy that (every EAE step is exact in both engines — the family
-        // header of CobolIntrinsics.Exact.cs carries the equivalence derivation), MEAN evaluates its one
-        // division in SDIDI form (IntrinsicRenderer), and the prose-"approximation" functions (SQRT, the
-        // trig/log family) have NO equivalent arithmetic expression — implementor-defined in every mode
-        // (§15.4.1 last paragraph). The four double-engine functions whose EAEs carry inexact divisions are
-        // the residue — staged LOUD so a standard-arithmetic program never silently gets native results.
-        if (ctx.Data.Options.Arithmetic is ArithmeticMode.Standard or ArithmeticMode.StandardDecimal
-            && sig.Name is "ANNUITY" or "PRESENT-VALUE" or "VARIANCE" or "STANDARD-DEVIATION")
-            ctx.Edition.Error(DiagnosticCatalog.ArithmeticStandardIntrinsic,
-                $"FUNCTION {sig.Name} under ARITHMETIC IS {(ctx.Data.Options.Arithmetic == ArithmeticMode.Standard ? "STANDARD" : "STANDARD-DECIMAL")} "
-                + "is recognized but not yet implemented: §15.4.1 r1 requires the returned value to equal the "
-                + "equivalent arithmetic expression evaluated in the standard-decimal intermediate (§8.8.1.5), "
-                + "and this function's native IEEE-double evaluation cannot honor that equality");
+        // The former standard-arithmetic staging (P10 Step 12 → COBOLNET0899) is GONE (fix-queue PB56):
+        // ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate their §15.4.1 r1 equivalent
+        // arithmetic expressions on the SDIDI carrier (CobolIntrinsics.Dec.cs, dispatched by
+        // IntrinsicRenderer.RenderDec), so a standard-arithmetic program gets the standard-decimal values the
+        // rule requires — the "until CobolDec evaluations land" condition the stage recorded is satisfied.
 
         // A.4.9 LOCALE MODULE — DOCUMENTED NON-SUPPORT (ratified decision 3; conformant per ISO §4.2.7 +
         // Annex A §A.4.1: an implementation accepts an optional element's syntax ONLY when support is claimed).

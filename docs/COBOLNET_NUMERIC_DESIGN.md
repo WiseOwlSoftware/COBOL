@@ -89,11 +89,18 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >     argument (legal at 2014/2023) reached `MaxScaled(params Int128[])` as a raw `CobolDec` and Roslyn reported
 >     `CS1503` on conforming source. **Now landed at the ONE choke point, `IntrinsicRenderer.Arg`**, through the
 >     same `WorkingScale(floor)` discipline the NUMVAL and float families use.
->   · **A float argument still demotes the whole list to binary64**, because `RenderNum`'s `AnyRealArgument`
->     route carries no arithmetic-mode guard while `CombineCore`, `Power` and `ConditionRenderer` all test the
->     mode BEFORE their float branch — the ordering this very section prescribes ("the mode branch runs BEFORE
->     the D16 float branch"). **Still open**, ledgered as PB38: the §15.4.1 r1 answer is a Dec-carrier body, and
->     the interim landing above is exact only to the argument list's common scale.
+>   · **A float argument still demotes the whole list to binary64** — ✅ **CLOSED IN TWO STAGES**: PB38 landed
+>     the mode-before-float ordering at the ONE landing, and **PB56 (2026-08-09) landed the Dec-carrier body
+>     itself** — `CobolIntrinsics.Dec.cs`, dispatched by `IntrinsicRenderer.RenderDec`: under a standard mode a
+>     Dec/float-bearing argument list evaluates its §15.4.1 r1 equivalent arithmetic expression ON the SDIDI
+>     (arguments lifted exactly per §8.8.1.5.1/.2 r1, NEVER quantized) and lands at the receiver once. An
+>     all-fixed-point list stays on the exact Int128 family (the documented equivalence above). The same change
+>     removed the COBOLNET0899 stage: ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate
+>     their inexact-division EAEs in SDIDI form (STANDARD-DEVIATION's root is the §15.4.1-last-¶ prose
+>     approximation, converted in per §8.8.1.5.1), and the prose family's binary64 results CONVERT in
+>     (`CobolDec.FromDouble`) instead of truncating to unscaled at a receiver-derived working scale. Pinned by
+>     `pb56_dec_carrier_intrinsics` (golden) + `CobolIntrinsicsDecTests` (bodies + the exact-carrier agreement
+>     theory that keeps the all-fixed routing honest).
 >   · **MEDIAN and MIDRANGE wrapped on the EXACT path**, at one fifth the magnitude of MAX/MIN/SUM/RANGE,
 >     because returning at scale common+1 spends a decimal digit of carrier headroom that its siblings do not.
 >     **Now `EC-SIZE-OVERFLOW`** per the substrate paragraph's escape-boundary policy, which the code had simply
