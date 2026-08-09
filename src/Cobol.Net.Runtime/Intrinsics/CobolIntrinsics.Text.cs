@@ -422,7 +422,16 @@ public static partial class CobolIntrinsics
     /// negative via EC-ARGUMENT-FUNCTION (§15.3). The documented COBOL.NET maximum returned-value length
     /// (§15.4) is the §8.3.3.4.3 SR1 boolean-literal maximum, 8 191 positions. The '0'/'1' string is the
     /// D-B1 boolean substrate.</summary>
-    public static string BooleanOfInteger(long value, long length)
+    /// <remarks>⛔ THE VALUE CARRIER IS Int128, AND THE BIT WALK COVERS IT (fix-queue PB65 / RV-15.13.4-1 D1).
+    /// §15.13.4 r1's "binary representation of the value of argument-1" is a mathematical bit configuration
+    /// (its own NOTE says so), and §15.13.3 r1 admits ANY positive integer — the previous <c>long</c> carrier
+    /// silently zeroed every bit from 2⁶³ up (the intake bridge EC'd the value to the checking-off default 0,
+    /// and the walk itself stopped at bit 62), so <c>BOOLEAN-OF-INTEGER(2⁶³, 70)</c> returned seventy zeros.
+    /// Every legal fixed-point argument value rides the Int128 lane exactly (§13.18.40.3 SR14 caps a PICTURE
+    /// at 31 digits &lt; 2¹²⁷); bit 127 is the sign bit and a negative value never reaches the walk, so
+    /// <c>i &lt; 127</c> covers the whole carrier. This is INTEGER-OF-BOOLEAN's widening (below), mirrored
+    /// onto the argument side.</remarks>
+    public static string BooleanOfInteger(Int128 value, long length)
     {
         if (length < 1 || length > 8191)
         {
@@ -438,15 +447,15 @@ public static partial class CobolIntrinsics
         }
         var chars = new char[length];
         for (int i = 0; i < length; i++)   // the rightmost position is the low-order digit (§15.13.4 r1)
-            chars[length - 1 - i] = i < 63 && ((value >> i) & 1) != 0 ? '1' : '0';
+            chars[length - 1 - i] = i < 127 && ((value >> i) & 1) != 0 ? '1' : '0';
         return new string(chars);
     }
 
     /// <summary>INTEGER-OF-BOOLEAN (ISO §15.45.4 r1): the unsigned binary value of argument-1's bit
     /// configuration, most-significant bit first, over a temporary boolean item sized to argument-1 (r1a/r1b).
-    /// COBOL.NET's integer channel is a signed 64-bit long, so a configuration above 63 significant bits takes
-    /// EC-ARGUMENT-FUNCTION via the §15.4 maximum-returned-value hook (the documented COBOL.NET policy — §15.45
-    /// itself sets no cap). A zero-length argument (a zero-length hex-boolean literal, §8.3.3.4.3) is value 0 —
+    /// The value rides the exact Int128 carrier; a configuration whose value exceeds the documented D1
+    /// intermediate takes the size-error escape below — LOUD, never a silent cap (§15.45 itself sets no cap).
+    /// A zero-length argument (a zero-length hex-boolean literal, §8.3.3.4.3) is value 0 —
     /// the natural reading of an empty configuration (no explicit rule; flagged in the P11 scout notes).</summary>
     public static Int128 IntegerOfBoolean(string boolean)
     {

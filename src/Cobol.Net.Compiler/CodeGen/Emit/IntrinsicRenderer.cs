@@ -656,8 +656,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             // BOOLEAN-OF-INTEGER (§15.13.4 r1) — a boolean-result function on the D-B1 '0'/'1' substrate:
             // rightmost position = low-order digit, left zero-fill/truncate to argument-2 positions.
+            // Argument-1 crosses the WIDE bridge (Int128 — §15.13.3 r1 admits any positive integer, PB65);
+            // argument-2 stays on the long bridge (§15.4 caps the returned length at 8 191 positions).
             "BooleanOfInteger" =>
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgIntWide(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             // DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) — the national↔alphanumeric repertoire pair (2002);
             // the optional argument-2 is the one-character substitution string (§15.26.3 r2 / §15.66.3 r2).
             "DisplayOf" or "NationalOf" =>
@@ -771,6 +773,23 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>An integer-kind argument inside the STRING channel (CHAR / BASE-CONVERT / the formatted
     /// date-time offsets) — the same (long) truncation the numeric channel's <see cref="IntArg"/> applies.</summary>
     private string ArgInt(BoundOperand op) => AsInt(ArgNum(op));
+
+    /// <summary>The WIDE integer-argument bridge — the Int128-carrier twin of <see cref="ArgInt"/>, for the ONE
+    /// §15 integer argument whose domain exceeds <c>long</c>: BOOLEAN-OF-INTEGER's argument-1 (§15.13.3 r1 —
+    /// any positive integer; §15.13.4 r1's bit configuration is mathematical, so 2⁶³ and up are legal values
+    /// the <see cref="AsInt"/> narrowing EC'd to the checking-off default 0 — fix-queue PB65 / RV-15.13.4-1 D1).
+    /// Every legal fixed-point value rides Int128 exactly, so a scale-0 operand passes through RAW — there is
+    /// no narrowing and therefore no PB22 raise point; the carrier arms mirror <see cref="AsInt"/> exactly
+    /// (Dec BEFORE the scale test — a Dec NumX carries Scale 0 by convention, the PB14/PB32 lesson; the
+    /// unsigned-wide lane narrows through the R10 <c>CobolNum.Widen</c> funnel, loud past the intermediate).</summary>
+    private string ArgIntWide(BoundOperand op) => AsIntWide(ArgNum(op));
+
+    private static string AsIntWide(NumX a) =>
+        a.Real ? RuntimeApi.IntegerArgWide(a.Expr)
+        : a.Dec ? RuntimeApi.DecToUnscaled(a.Expr, "0", CobolRounding.Truncation)
+        : a.U ? RuntimeApi.NumWiden(a.Expr)
+        : a.Scale == 0 ? a.Expr
+        : RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation);
 
     /// <summary>A string-kind argument (the §15.3 alphanumeric-argument shapes): literals, field display
     /// images, and nested alphanumeric intrinsics. A numeric-category operand in a string-argument position

@@ -153,6 +153,18 @@ public static partial class CobolIntrinsics
             : Exceptions.ExceptionState.ArgumentError(
                 $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §15.3)");
 
+    /// <summary>The WIDE floating-point twin of <see cref="IntegerArgReal"/> — the Int128-carrier intake for the
+    /// ONE §15 integer argument whose domain exceeds <c>long</c>: BOOLEAN-OF-INTEGER's argument-1 (§15.13.3 r1
+    /// admits any positive integer, and the bit configuration of a value at or above 2⁶³ is legal and
+    /// representable, fix-queue PB65 / RV-15.13.4-1 D1). The range guard follows <see cref="FromDouble"/>'s
+    /// saturation constant: 1.7e38 is BELOW <c>Int128.MaxValue</c>, so the boundary value cannot slip through
+    /// the cast (the PB22 argument, at the wide carrier).</summary>
+    public static Int128 IntegerArgWideReal(double v) =>
+        double.IsFinite(v) && v > -1.7e38 && v < 1.7e38
+            ? (Int128)Math.Truncate(v)
+            : Exceptions.ExceptionState.ArgumentError(
+                $"the intrinsic integer argument {v} is outside the range the function can represent (ISO §15.3)");
+
     public static double RealResult(double d) => double.IsNaN(d)
         ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
         : d;

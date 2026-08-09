@@ -13,6 +13,39 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1264 — 2026-08-09 13:55 PDT — PB65: BOOLEAN-OF-INTEGER's argument-1 crosses the wide bridge — the 2^63 cliff dies
+
+RV-15.13.4-1's D1 layer: `FUNCTION BOOLEAN-OF-INTEGER(2^63, 70)` returned seventy zeros, silently. Two
+narrowings stacked — the emitter's `AsInt` bridge EC'd any argument past `long` to the checking-off default 0,
+and the runtime bit walk stopped at bit 62. §15.13.4 r1's bit configuration is a MATHEMATICAL one (its own
+NOTE), and §15.13.3 r1 admits any positive integer, so both narrowings were ours, not the spec's.
+
+The fix mirrors INTEGER-OF-BOOLEAN's earlier widening onto the argument side: the runtime body takes Int128
+(walk to bit 126; bit 127 is the sign bit and negatives never reach the walk), and the emitter gains the ONE
+wide bridge — `ArgIntWide`/`AsIntWide` beside `ArgInt`/`AsInt`, carrier-total (Real → the new
+`IntegerArgWideReal` intake at the FromDouble saturation constant; Dec → unscaled at 0 BEFORE the scale test,
+the PB14/PB32 lesson; U → the R10 Widen funnel; scale-0 → RAW, no narrowing and hence no raise point).
+BOOLEAN-OF-INTEGER argument-1 is the ONE §15 integer argument whose domain exceeds long — swept the catalog
+to confirm — so no other arm changes. Stale doc swept in the same file: INTEGER-OF-BOOLEAN's summary still
+claimed the signed-64-bit channel its body no longer has.
+
+Golden `pb65_boolean_wide` (2^62 / 2^63−1 / 2^63 / 2^64+5 at length 70, each bit string derived
+independently in python, plus the Annex D.10 544→6-position left-truncation control). Wave-local gate:
+Conformance ~Intrinsic|~Boolean|~Corpus 778/778, Unit 128/128, the new golden asserted present (1/1).
+
+The row STAYS DIVERGES: its D2/D3 layers — the four class-boolean checkpoints with no arm for a computed
+boolean-intrinsic operand (rejects legal boolean comparison/B-AND, ACCEPTS the illegal alphanumeric mirror,
+crashes in a numeric context) — are now their own register note, PB68.
+
+## Entry 1263 — 2026-08-09 13:52 PDT — The owed comprehensive gate is paid: the six-landing tree measures ALL GREEN
+
+`bash scripts/battery.sh` on `e103a6e3` (the 2026-08-09 six-landing backlog batch, DEVLOG 1257–1262, which
+had run wave-local only): `=== BATTERY: ALL GREEN ===` — Conformance 4313/4313 zero skipped (12m58s), Unit
+4122/4122, characterization 33/33, guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION, GnuCOBOL
+differential 0 PER-CASE FLIP(S) against the committed baseline. Plan §9's battery reference now records this
+run (commit 550d6d2a, doc-only); the b66a292c reference moved to the PRIOR stack unchanged. The session then
+opened the PB65 last-three-singles wave from §0's queue.
+
 ## Entry 1262 — 2026-08-09 13:24 PDT — The MOVE channel joins the SDIDI: the one numeric consumer without the Dec store case — four more rows
 
 The PB56 residue probes paid off: re-probing the pre-PB56 triage rows against the current tree found

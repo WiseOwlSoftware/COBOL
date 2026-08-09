@@ -176,6 +176,12 @@ internal static class RuntimeApi
     public static string IntegerArg(string value, bool real = false) =>
         $"{nameof(CobolIntrinsics)}.{(real ? nameof(CobolIntrinsics.IntegerArgReal) : nameof(CobolIntrinsics.IntegerArg))}({value})";
 
+    /// <summary>The WIDE (Int128) floating-point integer-argument intake — <c>CobolIntrinsics.IntegerArgWideReal</c>,
+    /// for the one §15 integer argument whose domain exceeds <c>long</c> (BOOLEAN-OF-INTEGER argument-1, PB65).
+    /// A non-float wide operand needs no intake at all — Int128 is the lane's own carrier.</summary>
+    public static string IntegerArgWide(string value) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgWideReal)}({value})";
+
     public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath = false) =>
         $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleChecked) : nameof(CobolNum.Rescale))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
