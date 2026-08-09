@@ -98,11 +98,28 @@ public static class CobolDate
     /// legal); argument-3 in 1601..9999 (r4); argument-2+argument-3 in 1700..9999 (r6). Violations →
     /// EC-ARGUMENT-FUNCTION (§15.3, default 0). maximum-year ≥ 1700, so truncating division ≡ the rule's
     /// FUNCTION INTEGER (floor).</summary>
-    public static long YearToYyyy(long yy, long off = 50, long baseYear = 0)
+    // ⛔ OMITTED-NESS IS THE ARITY, NEVER A VALUE (fix-queue PB65). The previous single signature carried a
+    // `baseYear == 0` sentinel and resolved it to the clock year BEFORE the r4 range test, so a program that
+    // WROTE 0 — an r4 violation that must set EC-ARGUMENT-FUNCTION — was silently windowed against the
+    // execution year instead. The renderer emits exactly the arguments present, so the arity is compile-time
+    // fact: the two-argument overload IS the omitted form (argument-3 defaults per §15.100.3 r5 to the year of
+    // FUNCTION CURRENT-DATE, read from the ONE injectable clock), and the three-argument overload validates
+    // argument-3 EXACTLY AS WRITTEN.
+    public static long YearToYyyy(long yy, long off = 50) =>
+        YearToYyyyAt(yy, off, RunUnit.Current.Clock.Now().Year);
+
+    public static long YearToYyyy(long yy, long off, long baseYear) => YearToYyyyAt(yy, off, baseYear);
+
+    /// <summary>The ONE windowing core (§15.100.4 r2). Argument rules (§15.100.3): argument-1 nonnegative
+    /// &lt; 100 (r1 — 0 IS legal); argument-3 in 1601..9999 (r4), validated as GIVEN — the omitted default is
+    /// supplied by the caller's arity, never inferred from a value; argument-2+argument-3 in 1700..9999 (r6).
+    /// Violations → EC-ARGUMENT-FUNCTION (§15.3, documented default 0 — never a legal returned value, since
+    /// every legal window puts the result above 1600, which is what lets the delegating wrappers detect the
+    /// error path). maximum-year ≥ 1700, so truncating division ≡ the rule's FUNCTION INTEGER (floor).</summary>
+    private static long YearToYyyyAt(long yy, long off, long b)
     {
         if (yy is < 0 or > 99)
             return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-1 {yy} is not a nonnegative integer less than 100 (§15.100.3 r1)");
-        long b = baseYear == 0 ? RunUnit.Current.Clock.Now().Year : baseYear;
         if (b is <= 1600 or >= 10000)
             return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-3 {b} is not greater than 1600 and less than 10000 (§15.100.3 r4)");
         long max = off + b;                                   // r1: maximum-year
@@ -120,22 +137,39 @@ public static class CobolDate
     /// TEST-DATE-YYYYMMDD). The r6 sum window is checked uniformly as argument-2+argument-3 (§15.25.3 r6 /
     /// §15.100.3 r6 wording; §15.23.3 r6's "year at the time of execution" phrasing coincides when argument-3
     /// is defaulted — the scout-noted drafting divergence, resolved to the delegated form).</summary>
-    public static long DateToYyyymmdd(long date, long off = 50, long baseYear = 0)
+    public static long DateToYyyymmdd(long date, long off = 50) =>
+        DateToYyyymmddAt(date, off, RunUnit.Current.Clock.Now().Year);
+
+    public static long DateToYyyymmdd(long date, long off, long baseYear) => DateToYyyymmddAt(date, off, baseYear);
+
+    private static long DateToYyyymmddAt(long date, long off, long baseYear)
     {
         if (date is < 1 or > 999999)
             return Exceptions.ExceptionState.ArgumentError($"DATE-TO-YYYYMMDD argument-1 {date} is not a positive integer less than 1000000 (§15.23.3 r1)");
-        return YearToYyyy(date / 10000, off, baseYear) * 10000 + date % 10000;   // §15.23.4 r1
+        long y = YearToYyyyAt(date / 10000, off, baseYear);   // §15.23.4 r1 delegation
+        // ⛔ AN ERRORED DELEGATION RETURNS THE DOCUMENTED DEFAULT WHOLE (fix-queue PB65): the core's 0 is
+        // never a legal windowed year, and composing mmdd onto it manufactured a value out of an evaluation
+        // that raised EC-ARGUMENT-FUNCTION.
+        return y == 0 ? 0 : y * 10000 + date % 10000;
     }
 
     /// <summary>DAY-TO-YYYYDDD (ISO §15.25.4 r1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 1000 + nnn</c>
     /// where <c>YY = argument-1 / 1000</c> and <c>nnn = MOD(argument-1, 1000)</c>. §15.25.3 r1: argument-1 a
     /// POSITIVE integer &lt; 100,000; ordinal-day validity is NOT checked (the NOTE points at
     /// TEST-DAY-YYYYDDD).</summary>
-    public static long DayToYyyyddd(long day, long off = 50, long baseYear = 0)
+    public static long DayToYyyyddd(long day, long off = 50) =>
+        DayToYyyydddAt(day, off, RunUnit.Current.Clock.Now().Year);
+
+    public static long DayToYyyyddd(long day, long off, long baseYear) => DayToYyyydddAt(day, off, baseYear);
+
+    private static long DayToYyyydddAt(long day, long off, long baseYear)
     {
         if (day is < 1 or > 99999)
             return Exceptions.ExceptionState.ArgumentError($"DAY-TO-YYYYDDD argument-1 {day} is not a positive integer less than 100000 (§15.25.3 r1)");
-        return YearToYyyy(day / 1000, off, baseYear) * 1000 + day % 1000;        // §15.25.4 r1
+        long y = YearToYyyyAt(day / 1000, off, baseYear);     // §15.25.4 r1 delegation
+        // The errored delegation returns the documented default WHOLE (see DateToYyyymmddAt — the probe
+        // measured SUMHIGH-OFF=0000365, a manufactured value, where the documented default is 0).
+        return y == 0 ? 0 : y * 1000 + day % 1000;
     }
 
     /// <summary>TEST-DATE-YYYYMMDD (ISO §15.90.4 r1) — the if/else-if CHAIN, year before month before day

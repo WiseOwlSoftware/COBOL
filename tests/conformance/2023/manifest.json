@@ -121,6 +121,7 @@
   "pb54_keyword_omitted_figurative_zero_argument",
   "pb56_dec_carrier_intrinsics",
   "pb5_float_quantize_range",
+  "pb65_date_windowing",
   "pb65_selection_alignment",
   "pb7_keyword_omitted_zero_arg",
   "pb8_refmod_function_result",
