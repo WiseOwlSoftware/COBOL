@@ -255,6 +255,68 @@ public static partial class CobolNum
     /// be 1 — the F74 bug shape this helper exists to fence off).</summary>
     private static UInt128 BinaryModulusU(int bits) => bits >= 128 ? 0 : (UInt128)1 << bits;
 
+    /// <summary>Compare two Int128-lane operands by algebraic VALUE at their own scales (ISO §8.8.4.2.4) —
+    /// sign split, then the magnitude compare rides the unsigned overload's non-widening alignment trick.
+    /// ⛔ THE REASON THIS EXISTS (fix-queue PB65): aligning both sides to the common scale first widens with an
+    /// UNCHECKED multiply, and at (max integer digits) + (max fraction digits) &gt; 38 the widened operand wrapped
+    /// SILENTLY — <c>IF BIGV &gt; SMLV</c> over a <c>PIC 9(24)</c> and a <c>PIC 9V9(15)</c>, two legal in-range
+    /// items, evaluated FALSE. A comparison has a defined answer for every pair of legal operands, so it must
+    /// never widen at all.</summary>
+    public static int Compare(Int128 a, int aScale, Int128 b, int bScale)
+    {
+        if (a < 0 && b >= 0) return -1;
+        if (a >= 0 && b < 0) return 1;
+        int c = CompareU(a < 0 ? (UInt128)(-a) : (UInt128)a, aScale,
+                         b < 0 ? (UInt128)(-b) : (UInt128)b, bScale);
+        return a < 0 ? -c : c;
+    }
+
+    /// <summary>The <see cref="Rescale"/> sibling whose WIDENING is overflow-checked: a value that cannot be
+    /// represented at <paramref name="toScale"/> inside the Int128 intermediate raises the size-error condition
+    /// (EC-SIZE-OVERFLOW) instead of wrapping — the D1 escape-boundary policy (kb/Work PB32/PB65: a 39-digit
+    /// intermediate is not a computable value, and a silent wrap handed MIN a NEGATIVE result over two positive
+    /// arguments). Narrowing rounds exactly as <see cref="Rescale"/> does. Value-semantics consumers (intrinsic
+    /// argument alignment, subscripts, comparisons that still align) ride this; the arithmetic store path keeps
+    /// <see cref="Rescale"/>'s documented wrap-without-phrase determination (CONFORMANCE.md §7 item 179).</summary>
+    public static Int128 RescaleEscape(Int128 value, int fromScale, int toScale, CobolRounding mode)
+    {
+        if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);
+        Int128 f = Pow10Wide(toScale - fromScale);
+        if (value != 0 && Int128.Abs(value) > Int128.MaxValue / f)
+            throw new CobolSizeError($"scale alignment to {toScale} fraction digits exceeds the Int128 "
+                + "intermediate (ISO §8.8.1 alignment at the D1 escape boundary — EC-SIZE-OVERFLOW)");
+        return value * f;
+    }
+
+    /// <summary>The store-semantics widening sibling of <see cref="RescaleEscape"/>: digits a ≤38-digit store
+    /// could never use are dropped BEFORE the multiply (decimal high-order truncation — the same cap
+    /// <c>CobolDec.ToUnscaled</c>'s widening arm applies), so a receiver-bound rescale composes with the
+    /// store's own digit-capacity mod instead of wrapping in binary. Selection results landing in a KNOWN
+    /// receiver ride this (a MOVE has §14.9.25.4 GR6 truncation semantics, not raise semantics); the
+    /// receiverless lane stays loud on <see cref="RescaleEscape"/>.</summary>
+    public static Int128 RescaleStoreCap(Int128 value, int fromScale, int toScale, CobolRounding mode)
+    {
+        if (toScale <= fromScale) return Rescale(value, fromScale, toScale, mode);
+        int shift = toScale - fromScale;
+        if (value == 0) return 0;
+        bool neg = value < 0;
+        Int128 mag = Int128.Abs(value);
+        if (DigitCountWide(mag) + shift > 38)
+        {
+            mag %= Pow10Wide(Math.Max(0, 38 - shift));
+            if (mag == 0) return 0;
+        }
+        Int128 r = mag * Pow10Wide(shift);
+        return neg ? -r : r;
+    }
+
+    private static int DigitCountWide(Int128 mag)
+    {
+        int n = 1;
+        while (mag >= 10) { mag /= 10; n++; }
+        return n;
+    }
+
     /// <summary>Compare an unsigned wide operand against an Int128-lane operand by algebraic VALUE at their own
     /// scales (ISO §8.8.4.2.4). Returns &lt;0 / 0 / &gt;0. A negative right side is always the lesser; the
     /// non-negative compare rides the both-unsigned overload.</summary>

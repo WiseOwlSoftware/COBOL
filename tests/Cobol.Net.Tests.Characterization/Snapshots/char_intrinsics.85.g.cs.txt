@@ -46,7 +46,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxScaled(WS_A, WS_B), 0, _P_2, CobolRounding.Truncation));
+                    WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxAt(0, true, new Int128[] { WS_A, WS_B }, new int[] { 0, 0 }), 0, _P_2, CobolRounding.Truncation));
                     WS_U = CobolString.Store(CobolIntrinsics.UpperCase(WS_T), 5);
                     System.Console.WriteLine(CobolNum.FormatDisplay(WS_R, _P_2) + WS_U);
                     System.Console.WriteLine("5");

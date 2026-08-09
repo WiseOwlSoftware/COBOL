@@ -201,6 +201,16 @@ internal static class RuntimeApi
     public static string NumCompareU(string a, string aScale, string b, string bScale) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.CompareU)}({a}, {aScale}, {b}, {bScale})";
 
+    /// <summary>The Int128-lane exact non-widening comparison at each operand's own scale —
+    /// <c>CobolNum.Compare</c> (fix-queue PB65: the common-scale alignment wrapped at 39 aligned digits).</summary>
+    public static string NumCompareScaled(string a, string aScale, string b, string bScale) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Compare)}({a}, {aScale}, {b}, {bScale})";
+
+    /// <summary>The escape-CHECKED widening rescale — <c>CobolNum.RescaleEscape</c> (fix-queue PB65: a
+    /// value-semantics alignment past the Int128 intermediate is the size-error condition, never a wrap).</summary>
+    public static string NumRescaleEscape(string value, string fromScale, string toScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.RescaleEscape)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+
     /// <summary>An SDIDI intermediate landed to an unscaled value — the instance <c>CobolDec.ToUnscaled</c>.</summary>
     public static string DecToUnscaled(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaled)}({scale}, {RoundingText(mode)})";

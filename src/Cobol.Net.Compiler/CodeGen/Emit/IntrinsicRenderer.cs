@@ -143,8 +143,27 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                     $"{NumericRenderer.Align(a, s)}, {NumericRenderer.Align(b, s)}"), s);
             }
 
-            // Variadic statistics over scale-ALIGNED unscaled values (§8.8.1 alignment = value comparison).
-            case "MaxScaled" or "MinScaled" or "SumScaled" or "RangeScaled":    // §15.59/63/88/76 — result at the common scale
+            // MAX/MIN are pure SELECTION (§15.59.4/§15.63.4: the returned value is the CONTENT of an argument)
+            // — no alignment at all (fix-queue PB65): the §8.8.4.2 comparison is CobolNum.Compare's exact
+            // non-widening compare over each argument AT ITS OWN SCALE, and only the ONE selected value
+            // rescales (escape-checked) to the common scale. The aligned forms wrapped silently at 39 aligned
+            // digits — MIN of two positive arguments returned a NEGATIVE value, the content of NO argument.
+            case "MaxScaled" or "MinScaled":
+            {
+                var (vals, scales, s) = RawArgPairs(ic);
+                // The result scale is the RECEIVER's when one is known (a store then rescales by identity and
+                // the receiver's own §14.9.25.4 GR6 truncation semantics apply, via the store-cap); a
+                // receiverless/float context keeps the common scale and stays LOUD past the escape boundary —
+                // a capped value inside a comparison would silently compare the wrong number (PB13's
+                // receiver-blind-scale lesson, applied in both directions).
+                bool store = !num.Receiver.Receiverless && !num.Receiver.Real;
+                int to = store ? num.Receiver.Scale : s;
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "MaxScaled" ? "MaxAt" : "MinAt",
+                    $"{to}, {(store ? "true" : "false")}, {vals}, {scales}"), to);
+            }
+            // SUM/RANGE genuinely ADD, so they keep aligned arguments — now escape-CHECKED (Align emits
+            // RescaleEscape): an alignment past the Int128 intermediate is the size-error condition, never a wrap.
+            case "SumScaled" or "RangeScaled":                                  // §15.88/76 — result at the common scale
             {
                 var (argList, s) = AlignedArgs(ic);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), s);
@@ -178,8 +197,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "OrdMax" or "OrdMin":                                          // §15.71/72 — 1-based ordinal, tie = first
             {
-                var (argList, _) = AlignedArgs(ic);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), 0);
+                // Pure selection with NO result rescale — every legal argument list has its defined ordinal
+                // (fix-queue PB65; the aligned form wrapped at 39 aligned digits and picked the wrong argument).
+                var (vals, scales, _) = RawArgPairs(ic);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "OrdMax" ? "OrdMaxAt" : "OrdMinAt",
+                    $"{vals}, {scales}"), 0);
             }
             case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
@@ -546,6 +568,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         return (string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s))), s, xs.Any(x => x.Real));
+    }
+
+    /// <summary>The variadic arguments UNALIGNED — parallel value/scale arrays for the selection family
+    /// (fix-queue PB65). Each argument renders at its OWN scale (<c>Align(x, x.Scale)</c> is the identity for
+    /// an exact operand and the standard carrier conversion for Real/Dec/U), so no widening ever happens on
+    /// intake; the common scale is reported for the result's compile-time <see cref="NumX"/>.</summary>
+    private (string Vals, string Scales, int Scale) RawArgPairs(BoundIntrinsicCall ic)
+    {
+        var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
+        int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
+        return ($"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}",
+                $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}", s);
     }
 
     private string StrArgList(BoundIntrinsicCall ic) => string.Join(", ", ic.Args.Select(Str));

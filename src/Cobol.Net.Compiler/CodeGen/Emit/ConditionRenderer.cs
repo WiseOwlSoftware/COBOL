@@ -185,6 +185,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         if (l.U || rr.U)
             return $"{RuntimeApi.NumCompareU(l.Expr, $"{l.Scale}", rr.Expr, $"{rr.Scale}")} {r.Op} 0";
         int s = Math.Max(l.Scale, rr.Scale);
+        // ⛔ DIFFERING SCALES COMPARE WITHOUT WIDENING (fix-queue PB65): aligning to the common scale first
+        // wrapped silently past 38 aligned digits, and IF BIGV > SMLV over legal in-range items answered FALSE.
+        // A comparison has a defined answer for every legal pair (§8.8.4.2.4), so it rides the exact
+        // sign-split/magnitude compare — the same shape the unsigned lane above always used.
+        if (l.Scale != rr.Scale)
+            return $"{RuntimeApi.NumCompareScaled(NumericRenderer.Align(l, l.Scale), $"{l.Scale}", NumericRenderer.Align(rr, rr.Scale), $"{rr.Scale}")} {r.Op} 0";
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }
 

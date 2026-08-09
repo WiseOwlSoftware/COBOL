@@ -437,7 +437,12 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // (loud beyond the intermediate; a 39-digit subscript is not a computable position).
         : x.U ? Align(DeU(x), toScale)
         : toScale == x.Scale ? x.Expr
-        : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
+        // ⛔ ESCAPE-CHECKED (fix-queue PB65): Align's consumers are VALUE-semantics sites — intrinsic argument
+        // alignment, comparisons, subscript/status intake — where a silent Int128 wrap on widening handed MIN a
+        // negative result over two positive arguments. RescaleEscape raises the size-error condition at the D1
+        // escape boundary instead; the arithmetic store path keeps its documented wrap (item 179) and does not
+        // come through here.
+        : RuntimeApi.NumRescaleEscape(x.Expr, $"{x.Scale}", $"{toScale}", CobolRounding.Truncation);
 
     /// <summary>Render a STOP RUN / GOBACK termination-status phrase to a C# <c>long</c> exit-status expression
     /// (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10): the status VALUE truncated to an integer at scale 0 when present
