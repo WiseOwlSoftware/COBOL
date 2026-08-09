@@ -1162,7 +1162,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R23+R36+R39+R28 tree `0cfda3fa` (2026-08-08 19:20).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R33+R38 closing tree `b66a292c` (2026-08-08 20:05).**
+  ⚠ **NOT GREEN as measured — all THREE differential flips pre-understood, two of them AGREEMENT:**
+  FULL greenfield Conformance **4303 / 4303, zero skipped** (12 m 58 s) · greenfield Unit **4099 / 4099** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and
+  **AUDIT CLEAN** · differential: `run_misc:1759` → WE_REJECT carrying R38's Format-4 message — the
+  ADJUDICATED divergence, attribution pre-recorded in the note before the battery ran; `syn_definition:852`
+  and `:878` → **AGREE_REJECT** — GnuCOBOL's own ambiguity testcases now rejected by R33's §8.4.2.2.1
+  enforcement, moving INTO agreement, with ZERO over-rejections anywhere in the 1,323-case GPL population
+  (R33's remaining arbitration, closed). Baseline regenerated, EXACTLY 3 rows; fresh differential
+  **`0 PER-CASE FLIP(S)`**. **This battery closed the R-wave: `work.py next` reports the ranked actionable
+  list EMPTY.**
+- **⛔ PRIOR BATTERY REFERENCE — the R23+R36+R39+R28 tree `0cfda3fa` (2026-08-08 19:20).**
   ⚠ **NOT GREEN as measured — BOTH reds attributed, one of them a real find:** guard-fast **ALL GREEN**
   with NIST **353 MATCH / 0 REGRESSION** and **AUDIT CLEAN** · greenfield Unit **4099 / 4099** ·
   characterization **33 / 33** · Conformance **4293 / 4294** — the ONE red was the version-matrix row
