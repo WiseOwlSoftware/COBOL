@@ -448,17 +448,23 @@ public static partial class CobolIntrinsics
     /// EC-ARGUMENT-FUNCTION via the §15.4 maximum-returned-value hook (the documented COBOL.NET policy — §15.45
     /// itself sets no cap). A zero-length argument (a zero-length hex-boolean literal, §8.3.3.4.3) is value 0 —
     /// the natural reading of an empty configuration (no explicit rule; flagged in the P11 scout notes).</summary>
-    public static long IntegerOfBoolean(string boolean)
+    public static Int128 IntegerOfBoolean(string boolean)
     {
-        long v = 0;
+        // ⛔ THE ACCUMULATOR IS THE EXACT Int128 CARRIER (fix-queue PB65): §15.45.4 r1b is "the unsigned
+        // binary value represented by the same bit configuration" — a mathematical value, and the previous
+        // signed-long accumulator inherited a 63-bit maximum from its carrier (a 64-one-bit item silently
+        // returned the EC default under the OFF checking default). 126 bits ride Int128 exactly; past that
+        // the value exceeds the D1 intermediate — the size-error condition at the escape boundary, LOUD,
+        // exactly as the alignment escape behaves.
+        Int128 v = 0;
         foreach (char c in boolean)
         {
             if (c is not ('0' or '1'))
                 return Exceptions.ExceptionState.ArgumentError(
                     "FUNCTION INTEGER-OF-BOOLEAN argument-1 is not of class boolean (§15.45.3 r1)");
-            if (v > long.MaxValue >> 1)   // 2v (+bit) would exceed long.MaxValue = the 63-bit maximum
-                return Exceptions.ExceptionState.ArgumentError(
-                    "FUNCTION INTEGER-OF-BOOLEAN value exceeds the 63-bit COBOL.NET integer maximum (§15.4)");
+            if (v > Int128.MaxValue >> 1)
+                throw new CobolSizeError("FUNCTION INTEGER-OF-BOOLEAN: the unsigned binary value exceeds "
+                    + "the Int128 intermediate (the D1 escape boundary — EC-SIZE-OVERFLOW)");
             v = (v << 1) | (uint)(c - '0');
         }
         return v;

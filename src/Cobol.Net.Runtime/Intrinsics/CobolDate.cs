@@ -514,7 +514,10 @@ public static class CobolDate
             };
             if (offZero && s.Field is Fld.OffHour or Fld.OffMinute) hi = 0;   // §15.3.3.6.1 — zero sign ⇒ zero magnitude
 
-            int val = 0;
+            // ⛔ WIDE accumulator (fix-queue PB65): the seconds FRACTION subfield may carry up to 18 digits
+            // (docs/CONFORMANCE.md item 202), and a 32-bit local wrapped modulo 2^32 before the widening
+            // assignment — SECONDS-FROM-FORMATTED-TIME at ten fractional digits was wrong by exactly that wrap.
+            long val = 0;
             for (int k = 0; k < s.Width; k++)
             {
                 if (pos >= data.Length) return pos + 1;              // ran out of data
@@ -523,7 +526,7 @@ public static class CobolDate
                 val = val * 10 + (c - '0');
                 if (s.Field != Fld.Fraction)                         // per-digit range narrowing (§15.92.4)
                 {
-                    int mn = val, mx = val;
+                    long mn = val, mx = val;
                     for (int r = 0; r < s.Width - 1 - k; r++) { mn *= 10; mx = mx * 10 + 9; }
                     if (mx < lo || mn > hi) return pos + 1;          // provably out of range at THIS digit
                 }
@@ -531,11 +534,13 @@ public static class CobolDate
             }
             switch (s.Field)
             {
-                case Fld.Year: yy = val; break;      case Fld.Month: mo = val; break;
-                case Fld.DayOfMonth: dm = val; break; case Fld.DayOfYear: doy = val; break;
-                case Fld.Week: wk = val; break;      case Fld.WeekDay: wd = val; break;
-                case Fld.Hour: hh = val; break;      case Fld.Minute: mi = val; break;
-                case Fld.Second: ss = val; break;
+                // The non-Fraction subfields are per-digit range-narrowed to ≤ 4 digits above — the (int)
+                // casts are lossless; only Fraction (up to 18 digits, item 202) needs the wide carrier.
+                case Fld.Year: yy = (int)val; break;      case Fld.Month: mo = (int)val; break;
+                case Fld.DayOfMonth: dm = (int)val; break; case Fld.DayOfYear: doy = (int)val; break;
+                case Fld.Week: wk = (int)val; break;      case Fld.WeekDay: wd = (int)val; break;
+                case Fld.Hour: hh = (int)val; break;      case Fld.Minute: mi = (int)val; break;
+                case Fld.Second: ss = (int)val; break;
                 case Fld.Fraction: frac = val; fracDigits = s.Width; break;
             }
         }
@@ -614,7 +619,15 @@ public static class CobolDate
     /// value is in error, so there is no position to report and the answer is 0 (PB23).</para>
     public static long TestFormattedDatetime(string format, string data) => Analyze(format, data, out _, out _, out _, out _);
 
-    /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).</summary>
+    /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).
+    /// ⛔ THE GUARD PROLOGUE MIRRORS FormattedDatetime's (fix-queue PB65 — the one-of-two-callers shape):
+    /// §15.17.3 r1 bounds argument-1 to the §15.5.2 integer-date range, r2 requires argument-2 in standard
+    /// numeric time form — both are VALUE rules, EC-ARGUMENT-FUNCTION on violation, documented default 0.</summary>
     public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale)
-        => (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
+    {
+        if (integerDate is < 1 or > 3067671)
+        { Exceptions.ExceptionState.ArgumentError($"COMBINED-DATETIME argument-1 {integerDate} outside 1..3,067,671 (§15.17.3 r1 / §15.5.2)"); return 0; }
+        if (SecondsOutOfStandardForm("COMBINED-DATETIME", "argument-2", secUnscaled, secScale)) return 0;
+        return (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
+    }
 }

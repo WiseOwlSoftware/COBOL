@@ -124,6 +124,7 @@
   "pb65_date_windowing",
   "pb65_domain_guards",
   "pb65_selection_alignment",
+  "pb65_wide_values",
   "pb7_keyword_omitted_zero_arg",
   "pb8_refmod_function_result",
   "pb9_reserved_intrinsic_names",
