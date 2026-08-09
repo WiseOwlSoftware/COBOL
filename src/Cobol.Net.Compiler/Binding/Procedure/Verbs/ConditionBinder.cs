@@ -620,8 +620,30 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var qualifiers = dref.dataReferenceSuffix()
             .Select(sfx => sfx.qualification()?.cobolWord().GetText())
             .OfType<string>().ToList();
-        if (qualifiers.Count == 0) return list[0];
-        return list.FirstOrDefault(c => MatchesQualifiers(c.Parent, qualifiers));
+        // §8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
+        // reference must identify EXACTLY ONE level-88. TryResolveCondition returns one namespace tier, so a
+        // plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching more than one —
+        // is genuine ambiguity, previously resolved silently to the first declaration. Strict: report and
+        // bind the first anyway (the compile already fails; no caller fallback runs a different reading).
+        // --permissive: the traditional first match, warned.
+        var matches = qualifiers.Count == 0
+            ? list
+            : list.Where(c => MatchesQualifiers(c.Parent, qualifiers)).ToList();
+        if (matches.Count == 0) return null;
+        if (matches.Count > 1)
+        {
+            if (ctx.Edition.Permissive)
+                ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
+                    $"the condition-name '{dref.GetText()}' matches {matches.Count} level-88 declarations "
+                    + "(ISO §8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
+                    + "the first declaration");
+            else
+                ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                    $"the condition-name '{dref.GetText()}' does not uniquely identify a level-88 — "
+                    + $"{matches.Count} declarations match (ISO §8.4.2.2 Format 2 — qualification shall "
+                    + "establish uniqueness). Qualify by the conditional variable or its containing groups");
+        }
+        return matches[0];
     }
 
     /// <summary>True when each qualifier (innermost→outermost) names the conditional variable itself or one of

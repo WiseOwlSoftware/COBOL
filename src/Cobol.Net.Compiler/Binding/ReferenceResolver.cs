@@ -578,8 +578,26 @@ public sealed class ReferenceResolver(DataBinder data)
     /// disambiguate) — through the ONE scope-aware <see cref="Model.SymbolTable"/> (P7 Step 10a, the DEVLOG-773
     /// pickup): the §11.7 GR5 method-overlay-first precedence (a method-local name shadows object data; sibling
     /// methods' names are invisible) lives in <c>TryResolve</c>, no longer duplicated here.</summary>
-    private DataItem? ResolveUnqualified(string name) =>
-        data.Symbols.TryResolve(name, data.ActiveScope, out var list) ? list[0] : null;
+    private DataItem? ResolveUnqualified(string name)
+    {
+        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var list)) return null;
+        if (list.Count > 1)
+        {
+            // §8.4.2.2.1 (kb/Work R33): "Qualification of a user-defined name is required unless … 1) No
+            // other name has the identical spelling." TryResolve returns ONE namespace tier — the §8.4.6.2.1
+            // rule-3a method overlay OR the unit map, never a mix — so a plural list is genuine same-tier
+            // ambiguity, not legal scope shadowing. Measured before enforcing: ZERO of 762 corpus+NIST
+            // programs hit this (the note's blast-radius sweep). Strict: null → ReportUnidentified's
+            // N-declarations arm (dead until now — R30 built it, this makes it reachable).
+            // --permissive: the traditional first-declared match, warned (the DA6/R29 disposition shape).
+            if (!data.Edition.Permissive) return null;
+            data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
+                $"'{name}' is declared {list.Count} times and referenced without qualification — "
+                + "ISO §8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
+                + "the first declaration");
+        }
+        return list[0];
+    }
 
     /// <summary>
     /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> (ISO §8.4.2.2) by CANDIDATE-SET matching:
