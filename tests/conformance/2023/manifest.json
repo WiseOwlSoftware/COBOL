@@ -13,6 +13,7 @@
     "cobol_words_intrinsic",
     "cobol_words_substitute",
     "cobol_words_undefine",
+    "comp5_display_beyond_picture",
     "continue_after",
     "copy_nested_five_levels",
     "da2_function_as_text",

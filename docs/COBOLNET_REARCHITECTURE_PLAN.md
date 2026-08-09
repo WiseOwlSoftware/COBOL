@@ -24,8 +24,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ THE CURRENT CAMPAIGN (2026-08-08): the R00-audit orphan wave — ELEVEN items landed in one session,
-  NINE register notes remain open, and `kb/Work/` owns every one of them** (`python scripts/spec/work.py
+- **▶ SESSION HANDOFF (2026-08-08 20:15, the owner's standing directive for the NEXT session):
+  COMPLETE THE TWO CATALOG CAMPAIGNS — `kb/Work/PB29.md` (§8.8.1 contributes 21 numbered rules and the
+  catalog holds NONE) and `kb/Work/PB39.md` (326 catalog rule-ids do not match the standard) — BACK TO
+  BACK WITHOUT PAUSING, finishing the register.** The two notes carry the forensics; the tooling is
+  `scripts/spec/` (cite.py, the rule catalog, the traceability inventory). Everything else is CLOSED:
+  **the R-wave (R21–R39) is fully landed** — `work.py next` reports the ranked actionable list EMPTY —
+  including R13, decided by the owner 2026-08-08 (**follow GnuCOBOL** on the beyond-PICTURE COMP-5
+  DISPLAY; §7 item 56; and the broader preference — implementor latitude + split vendors → follow
+  GnuCOBOL — is in session memory as `follow-gnucobol-on-split-latitude`, LATITUDE ONLY, never
+  GnuCOBOL's non-ISO extensions, which remain the explicit open feature questions recorded in
+  R36/R37/R38/R39). The battery reference below is current at the R33+R38 closing tree; CI green
+  through `b66a292c`. After PB29+PB39, what remains is the A-series analyses (§11) and the P14
+  campaigns proper.
+- **▶ THE PRIOR CAMPAIGN (2026-08-08): the R00-audit orphan wave — ELEVEN items landed in one session,
+  NINE register notes remained open at its handoff, and `kb/Work/` owned every one of them** (`python scripts/spec/work.py
   next` — 6 actionable at session end, headed R21 · R22 · R25; the rest are adjudications/decisions).
   The wave's provenance: R00's full-ledger complement measurement dispositioned all 82 batch-4 findings BY
   PROBE (62 measured fixed, 20 open → notes R14–R28, forensics + repro shapes in each note body — DEVLOG
