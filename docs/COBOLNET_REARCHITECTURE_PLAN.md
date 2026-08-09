@@ -1162,7 +1162,19 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R34+R27+R29+R35 tree `7590ce35` (2026-08-08 17:53).**
+- **⛔ BATTERY REFERENCE — CURRENT, the R23+R36+R39+R28 tree `0cfda3fa` (2026-08-08 19:20).**
+  ⚠ **NOT GREEN as measured — BOTH reds attributed, one of them a real find:** guard-fast **ALL GREEN**
+  with NIST **353 MATCH / 0 REGRESSION** and **AUDIT CLEAN** · greenfield Unit **4099 / 4099** ·
+  characterization **33 / 33** · Conformance **4293 / 4294** — the ONE red was the version-matrix row
+  `date-to-yyyymmdd-2002`, whose program bundles SECONDS-PAST-MIDNIGHT into the "2002 quartet": R28's
+  re-windowing (SPM → 2014 per the WG4 CD's D.2 list) correctly broke the row's claim, and the follow-up
+  commit SPLITS it (the trio stays 2002; the new `seconds-past-midnight-2014` row expects 1502 below
+  2014; full VersionMatrix re-run **2026 / 2026** + registry drift green) · the differential reported
+  ONE flip, `listings:205` `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT` carrying R39's **COBOLNET1641** — the
+  GCOS/ACU literal-REPLACE form (`REPLACE LEADING "X" BY SPACES …`), verified against the case source:
+  the vendor construct R36 adjudicated, never ISO-legal, now honestly rejected. Baseline regenerated,
+  EXACTLY 1 row; fresh differential **`0 PER-CASE FLIP(S)`** (1323 cases).
+- **⛔ PRIOR BATTERY REFERENCE — the R34+R27+R29+R35 tree `7590ce35` (2026-08-08 17:53).**
   ⚠ **NOT GREEN as measured, and the two flips were R35's PREDICTED RECOVERY:** every internal leg green —
   FULL greenfield Conformance **4291 / 4291, zero skipped** (11 m 41 s) · greenfield Unit **4099 / 4099** ·
   characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and

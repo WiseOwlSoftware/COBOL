@@ -185,6 +185,7 @@ public static class Constructs
     public const string ExceptionFileN2002 = "exception-file-n-2002";
     public const string BooleanOfInteger2002 = "boolean-of-integer-2002";
     public const string DateToYyyymmdd2002 = "date-to-yyyymmdd-2002";
+    public const string SecondsPastMidnight2014 = "seconds-past-midnight-2014";
     public const string TestNumval2002 = "test-numval-2002";
     public const string ByteLength2002 = "byte-length-2002";
     public const string SmallestAlgebraic2023 = "smallest-algebraic-2023";

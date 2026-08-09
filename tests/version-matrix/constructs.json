@@ -2169,15 +2169,28 @@
     {
       "id": "date-to-yyyymmdd-2002",
       "status": "active",
-      "description": "The Y2K windowing intrinsic trio FUNCTION YEAR-TO-YYYY (ISO 15.100) / DATE-TO-YYYYMMDD (15.23) / DAY-TO-YYYYDDD (15.25) + FUNCTION SECONDS-PAST-MIDNIGHT (15.80). LIVE (P11 Step 5): ONE windowing core (CobolDate.YearToYyyy) the composite pair delegates to (15.23.4 r1 / 15.25.4 r1 by-reference definitions) - the window is ALWAYS 100 years ending at maximum-year = argument-2 + argument-3 (argument-2 a SIGNED offset, default 50; argument-3 defaults to the EXECUTION-time year via the injectable RunUnit.Clock); SECONDS-PAST-MIDNIGHT is type NUMERIC (fractional seconds, documented 100 ns precision, scale 7) on the same clock seam. All four are 2002 introductions; below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502).",
-      "display": "FUNCTION YEAR-TO-YYYY / DATE-TO-YYYYMMDD / DAY-TO-YYYYDDD / SECONDS-PAST-MIDNIGHT (Y2K windowing + clock)",
+      "description": "The Y2K windowing intrinsic trio FUNCTION YEAR-TO-YYYY (ISO 15.100) / DATE-TO-YYYYMMDD (15.23) / DAY-TO-YYYYDDD (15.25). LIVE (P11 Step 5): ONE windowing core (CobolDate.YearToYyyy) the composite pair delegates to (15.23.4 r1 / 15.25.4 r1 by-reference definitions) - the window is ALWAYS 100 years ending at maximum-year = argument-2 + argument-3 (argument-2 a SIGNED offset, default 50; argument-3 defaults to the EXECUTION-time year via the injectable RunUnit.Clock). All three are 2002 introductions; below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502). (SECONDS-PAST-MIDNIGHT was split OUT of this row 2026-08-08: it is a 2014 introduction per the WG4 CD 1.2 Annex D.2 new-function list - kb/Work R28 - and carries its own row seconds-past-midnight-2014.)",
+      "display": "FUNCTION YEAR-TO-YYYY / DATE-TO-YYYYMMDD / DAY-TO-YYYYDDD (Y2K windowing trio)",
       "diagnosticCode": "COBOLNET1502",
-      "citation": "ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD / §15.80 SECONDS-PAST-MIDNIGHT; LIVE (P11 Step 5) — the ONE CobolDate.YearToYyyy windowing core (§15.100.4 r1/r2a/r2b), delegation per §15.23.4/§15.25.4 r1; SECONDS-PAST-MIDNIGHT on the RunUnit.Clock seam (§15.80.3 r3 documented precision 100 ns); D8 window 1502 below 2002",
+      "citation": "ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD; LIVE (P11 Step 5) - the ONE CobolDate.YearToYyyy windowing core (§15.100.4 r1/r2a/r2b), delegation per §15.23.4/§15.25.4 r1; D8 window 1502 below 2002",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET1502",
-      "vcr": "M2 catalog date/time additions; 2002 introduction (the Y2K windowing amendment - derive from the 2002 standard; absent from the 1989 Intrinsic Function Module set)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMDATEWIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 D8 PIC 9(8).\n01 SPM PIC 9(5)V9(7).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE D8 = FUNCTION YEAR-TO-YYYY(4, 23, 1995)\n    COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(851003, 10, 2002)\n    COMPUTE D8 = FUNCTION DAY-TO-YYYYDDD(10004, 20, 2002)\n    COMPUTE SPM = FUNCTION SECONDS-PAST-MIDNIGHT\n    DISPLAY D8\n    STOP RUN.\n"
+      "vcr": "M2 catalog date/time additions; 2002 introduction (the Y2K windowing amendment; absent from the 1989 Intrinsic Function Module set). SPM split to its own 2014 row per kb/Work R28.",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMDATEWIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 D8 PIC 9(8).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE D8 = FUNCTION YEAR-TO-YYYY(4, 23, 1995)\n    COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(851003, 10, 2002)\n    COMPUTE D8 = FUNCTION DAY-TO-YYYYDDD(10004, 20, 2002)\n    DISPLAY D8\n    STOP RUN.\n"
+    },
+    {
+      "id": "seconds-past-midnight-2014",
+      "status": "active",
+      "description": "FUNCTION SECONDS-PAST-MIDNIGHT (ISO 15.80) - the current local time as seconds past midnight in standard numeric time form (type NUMERIC, fractional seconds; documented 100 ns precision, scale 7, Annex A.1 item 171) on the injectable RunUnit.Clock seam. A 2014 INTRODUCTION, not 2002: the WG4 CD 1.2 (2009) Annex D.2 item 4 lists it among 'the intrinsic functions ... introduced in this committee draft International Standard' (kb/Work R28, decided 2026-08-08 from the archived primary document). Split out of the date-to-yyyymmdd-2002 row, whose other three functions are genuinely 2002.",
+      "display": "FUNCTION SECONDS-PAST-MIDNIGHT",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.80 SECONDS-PAST-MIDNIGHT; 2014 introduction per the WG4 CD 1.2 Annex D.2 item 4 new-function list (kb/Work R28); §15.80.3 r3 documented precision 100 ns (A.1 item 171); the RunUnit.Clock seam; D8 window 1502 below 2014",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "kb/Work R28 (2026-08-08): 2014 per the WG4 CD 1.2 Annex D.2 new-function list; previously mis-bundled with the 2002 windowing trio.",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSPM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 SPM PIC 9(5)V9(7).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE SPM = FUNCTION SECONDS-PAST-MIDNIGHT\n    DISPLAY \"OK\"\n    STOP RUN.\n"
     },
     {
       "id": "test-numval-2002",
