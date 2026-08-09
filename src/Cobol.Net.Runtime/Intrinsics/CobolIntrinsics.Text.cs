@@ -162,9 +162,23 @@ public static partial class CobolIntrinsics
 
     /// <summary>BASECONVERT (§15.12.4, 2023): the unsigned integer whose digits are <paramref name="value"/> in
     /// base <paramref name="fromBase"/>, re-expressed as a string of 0-9 / A-F digits in base
-    /// <paramref name="toBase"/> (both bases 2..16 — §15.12.3). An out-of-range base or a digit invalid for the
-    /// source base sets EC-ARGUMENT-FUNCTION and returns the §15.3 default (a zero-length result when checking is
-    /// off). Leading/trailing spaces of the fixed-width argument image are ignored.</summary>
+    /// <paramref name="toBase"/> (both bases 2..16 — §15.12.3). An out-of-range base, a digit invalid for the
+    /// source base, or a DIGITLESS argument sets EC-ARGUMENT-FUNCTION and returns the §15.3 default (a
+    /// zero-length result when checking is off).</summary>
+    /// <remarks><para>⛔ ONLY the TRAILING fixed-width image pad is trimmed, and only the SPACE character
+    /// (fix-queue PB59 / AR-15.12.3-2, AR-15.19.3-4's twin): a leading space in a left-justified alphanumeric
+    /// item is CONTENT and reaches the digit screen — the old symmetric <c>Trim()</c> silently blessed
+    /// <c>"  FF"</c> and turned an ALL-SPACES argument into a fabricated <c>"0"</c> (zero digits consumed, the
+    /// accumulator's 0 indistinguishable from the digit 0 — the guard now counts DIGITS, not the value).</para>
+    /// <para>⛔ LOWERCASE <c>a</c>–<c>f</c> ARE NOT DIGITS (derived 2026-08-09): §15.12.3 r2 sanctions "the
+    /// basic-letters A to F", and §8.1.3.1 Table 1 defines the basic letters as the Latin CAPITAL letters;
+    /// §8.1.3.2 GR3a's case-insensitivity governs the compilation group's TEXT, not runtime data. The previous
+    /// lowercase arm was an unadjudicated leniency with no vendor precedent (the GPL corpus has no BASECONVERT
+    /// case) — rejected loudly, never silently widened.</para>
+    /// <para>The returned-value length is capped by the documented §15.4 maximum (8,191 character positions —
+    /// CONFORMANCE.md item 93, the §8.8.3.2 SR2 concatenation precedent): past it, EC-ARGUMENT-FUNCTION, which
+    /// also bounds §15.12.3 r3's input side (an input within its own 8,191-position item bound whose value
+    /// needs more output digits than the cap takes the same raise).</para></remarks>
     public static string BaseConvert(string value, long fromBase, long toBase)
     {
         if (fromBase is < 2 or > 16 || toBase is < 2 or > 16)
@@ -173,22 +187,34 @@ public static partial class CobolIntrinsics
             return "";
         }
         System.Numerics.BigInteger acc = 0;
-        foreach (char ch in value.Trim())
+        int digitsSeen = 0;
+        foreach (char ch in value.TrimEnd(' '))
         {
             int d = ch is >= '0' and <= '9' ? ch - '0'
-                  : ch is >= 'A' and <= 'F' ? ch - 'A' + 10
-                  : ch is >= 'a' and <= 'f' ? ch - 'a' + 10 : -1;
+                  : ch is >= 'A' and <= 'F' ? ch - 'A' + 10 : -1;
             if (d < 0 || d >= fromBase)
             {
-                Exceptions.ExceptionState.ArgumentError($"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§15.12.3 rule 2)");
+                Exceptions.ExceptionState.ArgumentError($"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§15.12.3 rule 2 — the basic-letters A to F, §8.1.3.1 Table 1)");
                 return "";
             }
             acc = acc * fromBase + d;
+            digitsSeen++;
+        }
+        if (digitsSeen == 0)
+        {
+            Exceptions.ExceptionState.ArgumentError("BASECONVERT argument-1 contains no digits (§15.12.3 rule 2; §15.3)");
+            return "";
         }
         if (acc == 0) return "0";
         const string digits = "0123456789ABCDEF";
         var sb = new System.Text.StringBuilder();
         for (; acc > 0; acc /= toBase) sb.Insert(0, digits[(int)(acc % toBase)]);
+        if (sb.Length > 8191)
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                $"BASECONVERT returned value of {sb.Length} digits exceeds the documented 8,191-position maximum (§15.4; §15.12.3 rule 3; CONFORMANCE.md item 93)");
+            return "";
+        }
         return sb.ToString();
     }
 
@@ -214,6 +240,16 @@ public static partial class CobolIntrinsics
     public static string Convert(string arg, int src, int dst, bool dstHex)
     {
         const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
+
+        // §15.19.3 r1: argument-1 shall not be of zero length — the RUNTIME screen (fix-queue PB59 /
+        // AR-15.19.3-1). The bind-time COBOLNET1514 catches only the zero-length LITERAL (ISO 8.5.4's shape 8);
+        // the other runtime zero-length shapes (a DYNAMIC LENGTH item at length 0, a zero-occurrence ODO group,
+        // …) are only visible here. EC-ARGUMENT-FUNCTION + the §15.3 default, the Substitute shape.
+        if (arg.Length == 0)
+        {
+            Exceptions.ExceptionState.ArgumentError("FUNCTION CONVERT argument-1 is of zero length (§15.19.3 rule 1)");
+            return "";
+        }
 
         // Character translation (§15.19.4 r1/r3): both sides character, no HEX — the ONE item-33 correspondence
         // DISPLAY-OF/NATIONAL-OF share. Under the total identity the r1/r3 substitution sentences are vacuous
@@ -293,11 +329,23 @@ public static partial class CobolIntrinsics
 
     private static byte[] HexDigitsToBytes(string s)
     {
-        string t = s.Trim();                                         // the fixed-width image's surrounding spaces are not digits
+        // ⛔ ONLY the TRAILING image pad, only SPACE (fix-queue PB59 / AR-15.19.3-4): a LEADING space is
+        // content, not padding, and falls through HexVal to the non-digit raise below — the old symmetric
+        // Trim() silently converted "  41" as if it were "41". (Lowercase a–f stay admitted here,
+        // DELIBERATELY unlike BASECONVERT: §15.19.3 r4 says "hexadecimal digits" — the term the hex-literal
+        // format defines over both cases — where §15.12.3 r2 names "the basic-letters A to F".)
+        string t = s.TrimEnd(' ');
         // A malformed HEX source VIOLATES argument rule SR4 (§15.19.3) — that is a FATAL EC-ARGUMENT-FUNCTION
         // (the §15.3 argument-rule default), NOT the nonfatal EC-DATA-CONVERSION (which is only for an untranslatable
         // RESULT value, §15.19.4 r1/r3). ArgumentError throws when checking is on; else the implementor-defined
         // pad/zero result stands.
+        // An all-space source has NO digits — §15.19.3 r4's "a valid string of hexadecimal digits" is violated
+        // (NOT r1: the ITEM is not zero length — citing the zero-length rule here would be a mis-citation).
+        if (t.Length == 0)
+        {
+            Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source contains no hexadecimal digits (§15.19.3 rule 4)");
+            return [];
+        }
         if ((t.Length & 1) != 0)                                     // SR4 — complete bytes ⇒ an even digit count
         { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source is not a whole number of bytes (§15.19.3 SR4)"); t += "0"; }
         var b = new byte[t.Length / 2];

@@ -416,10 +416,61 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("\"FF\", 16, 10", "255")]     // §15.12.4 — base 16 → base 10
     [InlineData("\"255\", 10, 16", "FF")]     //           base 10 → base 16
     [InlineData("\"1010\", 2, 16", "A")]      //           base 2  → base 16 (10 = A)
-    [InlineData("\"0\", 10, 2", "0")]         //           zero
+    [InlineData("\"0\", 10, 2", "0")]         //           zero — one digit CONSUMED (the digitless guard keys on the count, never the accumulator)
+    [InlineData("\"FF  \", 16, 10", "255")]   // PB59 — the TRAILING fixed-width image pad is not content (TrimEnd(' '))
     public void BaseConvert_ReExpressesInTargetBase_2023(string args, string expected)
         => AssertSpec(Program("01 R PIC X(10).",
             $"    MOVE FUNCTION BASECONVERT({args}) TO R.\n    DISPLAY R.", "IFBASE"), expected, 2023);
+
+    [Theory]
+    [InlineData("\"     \", 16, 10")]         // PB59 / AR-15.12.3-2 — DIGITLESS: the old value-keyed guard fabricated "0"
+    [InlineData("\"  FF\", 16, 10")]          // PB59 / §15.12.3 r2 — a LEADING space is content, not padding
+    [InlineData("\"ff\", 16, 10")]            // PB59 / §15.12.3 r2 + §8.1.3.1 Table 1 — lowercase is not a basic letter
+    public void BaseConvert_InvalidDigits_EcArgumentDefault_2023(string args)
+        // Checking OFF: EC-ARGUMENT-FUNCTION is set and the §15.3 default (zero-length) stands — the receiver
+        // keeps only its space fill, so the display line is empty after Normalize's trailing trim.
+        => AssertSpec(Program("01 R PIC X(10).",
+            $"    MOVE FUNCTION BASECONVERT({args}) TO R.\n    DISPLAY \"R=\" R.", "IFBASEE"), "R=", 2023);
+
+    [Fact]
+    public void BaseConvert_InvalidDigits_FatalWhenChecked_2023()
+    {
+        // §15.3 + §14.6.13.1.6 — EC-ARGUMENT-FUNCTION is FATAL under enabled checking: the run terminates.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program("01 R PIC X(10).",
+            ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON\n    MOVE FUNCTION BASECONVERT(\"  FF\", 16, 10) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "a leading space in argument-1 violates §15.12.3 r2 and must be fatal under checking");
+        Assert.Contains("EC-ARGUMENT-FUNCTION", detail);
+    }
+
+    [Fact]
+    public void Convert_HexSource_TrailingPadTrimmed_2023()
+        // PB59 — the trailing fixed-width image pad is not content; the digits convert (the previously
+        // unpinned padded-but-valid case: every prior golden's HEX item was exactly filled).
+        => AssertSpec(Program("01 H PIC X(4) VALUE \"41  \".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION CONVERT(H HEX ANUM) TO R.\n    DISPLAY \"R=\" R.", "IFCONVP"), "R=A", 2023);
+
+    [Fact]
+    public void Convert_HexSource_LeadingSpaceIsContent_FatalWhenChecked_2023()
+    {
+        // PB59 / AR-15.19.3-4 — a leading space is CONTENT (§15.19.3 r4: not a hexadecimal digit), fatal
+        // EC-ARGUMENT-FUNCTION under enabled checking. (Checking off keeps the documented zero-fill result.)
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
+            "01 H PIC X(4) VALUE \"  41\".\n           01 R PIC X(8).",
+            ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON\n    MOVE FUNCTION CONVERT(H HEX ANUM) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "a leading space in a HEX source violates §15.19.3 r4 and must be fatal under checking");
+        Assert.Contains("EC-ARGUMENT-FUNCTION", detail);
+    }
+
+    [Fact]
+    public void Convert_AllSpaceHexSource_FatalWhenChecked_2023()
+    {
+        // PB59 — an all-space HEX source has NO digits (§15.19.3 r4; NOT r1 — the ITEM is not zero length).
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(
+            "01 H PIC X(4) VALUE SPACES.\n           01 R PIC X(8).",
+            ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON\n    MOVE FUNCTION CONVERT(H HEX ANUM) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "a digitless HEX source violates §15.19.3 r4 and must be fatal under checking");
+        Assert.Contains("EC-ARGUMENT-FUNCTION", detail);
+    }
 
     [Fact]
     public void Concat_And_BaseConvert_GatedBelow2023_1502()

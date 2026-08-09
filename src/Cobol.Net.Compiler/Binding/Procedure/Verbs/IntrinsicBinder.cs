@@ -885,7 +885,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (dst == 4 && src != 2)
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: a destination-format of BYTE requires a "
                 + "source-format of HEX (ISO §15.19.3 SR9)");
-        // SR1 — argument-1 shall not be zero length (compile-time catch for an empty literal).
+        // SR1 — argument-1 shall not be zero length. This arm is the COMPILE-TIME catch for the one shape
+        // knowable here (an empty literal — ISO 8.5.4's shape 8); the RUNTIME twin at the top of
+        // CobolIntrinsics.Convert screens the other 8.5.4 zero-length shapes (a DYNAMIC LENGTH item at
+        // length 0, a zero-occurrence ODO group, …) with EC-ARGUMENT-FUNCTION (fix-queue PB59 / AR-15.19.3-1).
         if (operands[0] is BoundStringLiteral { Value.Length: 0 })
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: argument-1 is of zero length (ISO §15.19.3 SR1)");
 

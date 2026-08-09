@@ -43438,12 +43438,12 @@
   "kind": "AR",
   "ordinal": 2,
   "subject": "BASECONVERT function",
-  "verdict": "DIVERGES",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert",
-  "test-ref": "",
+  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.BaseConvert_InvalidDigits_EcArgumentDefault_2023; conformance-test:IntrinsicFunctionDifferentialTests.BaseConvert_InvalidDigits_FatalWhenChecked_2023",
   "editions": "2023",
-  "notes": "VERDICT UPHELD, NOTES CORRECTED. Citation re-validated (cite.py --check 15.12.3 'the basic-letters A to F are used in sequence' -> OK, rule 2). The digit-range core IS right: BaseConvert maps '0'-'9' and 'A'-'F' and calls ExceptionState.ArgumentError for an invalid digit or a digit >= fromBase -- re-verified, BASECONVERT(\"15\", 2, 10) aborts with 'EC-ARGUMENT-FUNCTION (fatal): BASECONVERT: 5 is not a base-2 digit', and an EMBEDDED space is rejected the same way (`01 EM PIC X(6) VALUE \"F F\".` / BASECONVERT(EM, 16, 10) -> \"EC-ARGUMENT-FUNCTION (fatal): ' ' is not a base-16 digit\"). TWO defects, both re-run. (1) THE ZERO-DIGIT INPUT. The body does value.Trim() before the loop, so an argument-1 that is ALL SPACES -- not one character of which is a digit -- falls out of the loop with acc = 0 and returns \"0\" with no exception. Repro (compiles clean, checking ON): '>>TURN EC-ARGUMENT-FUNCTION CHECKING ON' / `01 BL PIC X(6) VALUE SPACES.` `01 R PIC X(24).` / `MOVE FUNCTION BASECONVERT(BL, 10, 16) TO R.` prints 'BLANK=[0                       ]'. r2 plus §15.3 require EC-ARGUMENT-FUNCTION to be set to exist, not a fabricated zero; §15.12.4 has no 'digits in argument-1' to represent. (2) THE TRIM POLICY IS UNDECIDED, NOT MERELY LENIENT, AND MUST BE SETTLED BY THE FIX. Trim() strips LEADING as well as trailing spaces, so BASECONVERT(\"  FF  \", 16, 10) prints 255. Stripping TRAILING blanks is defensible implementor latitude (a fixed-width item could otherwise never be an argument unless exactly filled); LEADING blanks in a left-justified alphanumeric item are CONTENT, not padding, and r2 says the characters used in argument-1 shall be digits. CORRECTION TO THE PRIOR ADJUDICATION, which must not be inherited as settled: it asserted that accepting lowercase 'a'-'f' 'is admissible' on the strength of §3.16 alone. §3.16 does read 'uppercase letter A through Z or lowercase letter a through z' (cite.py --check 3.16 -> OK), but §8.1.3.2 GR3 a) (cite.py --check 8.1.3.2 'treated in a case-sensitive manner' -> OK) says 'COBOL basic letters, when specified in the non-hexadecimal formats of alphanumeric and national literals, are treated in a case-sensitive manner, unless specific rules require otherwise', and §15.12.4 pins the RESULT to 'the upper-case letters A-F'. Argument-1's characters are literal/data content, not a COBOL word, so the case-sensitive limb governs unless r2's 'basic-letters A to F' is read as the specific rule requiring otherwise. Verified behaviour: BASECONVERT(\"ff\", 16, 10) prints 255. The r2 fix must decide this deliberately (survey the other compilers, per the implementor-latitude doctrine) rather than bake the current acceptance in. test-needed.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB59): only the TRAILING image pad is trimmed (TrimEnd(' ') - a leading space is content and reaches the digit screen), and the digitless guard keys on DIGITS CONSUMED, never the accumulator value - an all-spaces argument-1 raises EC-ARGUMENT-FUNCTION (fatal under checking, the zero-length 15.3 default otherwise) instead of fabricating '0'; a genuine one-digit '0' still returns '0' (the InlineData row pins the discriminator). ALSO SETTLED (the triage's flagged sub-decision, derived not inherited): lowercase a-f are NOT digits - 15.12.3 r2 names 'the basic-letters A to F' and 8.1.3.1 Table 1 defines basic letters as the Latin CAPITAL letters; 8.1.3.2 GR3a's case-insensitivity governs compilation-group text, not runtime data; no vendor precedent exists (the GPL corpus has no BASECONVERT case). The old lowercase arm is deleted; 'ff' raises.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.12.3-3",
@@ -43451,12 +43451,12 @@
   "kind": "AR",
   "ordinal": 3,
   "subject": "BASECONVERT function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderString",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert",
+  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.BaseConvert_ReExpressesInTargetBase_2023",
   "editions": "2023",
-  "notes": "UPHELD. Citations validated: cite.py --check 15.12.3 'The maximum length of the input argument' -> OK rule 3, and the enforcing twin cite.py --check 15.4 'maximum length specified by the implementor for a returned value' -> OK ('If the length of the returned value exceeds the maximum length specified by the implementor for a returned value, an EC-ARGUMENT-FUNCTION exception condition is set to exist'). The rule is bounded by an implementor-defined maximum data-item length and THIS PROJECT DEFINES NONE: no maximum data-item or returned-value length appears anywhere in docs/CONFORMANCE.md, and BASECONVERT has no entry at all in docs/COBOLNET_INTRINSICS_DESIGN.md. VERIFIED HALF -- nothing legal is refused: a System.Numerics.BigInteger accumulator and an unbounded StringBuilder result, so `01 BIG PIC X(40) VALUE ALL \"F\".` / BASECONVERT(BIG, 16, 10) returns the exact 49-digit 1461501637330902918203684832716283019655932542975 untruncated, and `01 BIG PIC X(2000) VALUE ALL \"F\".` / BASECONVERT(BIG, 16, 2) yields a result of length exactly 8000 (FUNCTION LENGTH over the nested call reports 000008000), with no diagnostic and no cap. UNVERIFIED HALF -- the boundary itself: with no maximum defined or documented, nothing can set EC-ARGUMENT-FUNCTION for an input or a returned value that exceeds it (§15.4), the failure mode at the de-facto .NET string limit is an OutOfMemory abort rather than the standard's exception condition, and there is no way to state whether the implementation honours r3. Defining AND documenting the maximum data-item / returned-value length is a project-wide implementor-defined element (the Annex A conformance statement), not a BASECONVERT-local fix; r3 cannot close until it exists. test-needed.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB59): the implementor maximum EXISTS and is DOCUMENTED - the Annex A.1 item-93 row in docs/CONFORMANCE.md section 7 (validated by audit_annex_a1.py --check; 21/199 discharged): the maximum returned-value length is 8,191 character positions (the 8.3.3.4.3 SR1 / 8.8.3.2 SR2 literal-and-concatenation maximum, one number not two), exceeding it sets EC-ARGUMENT-FUNCTION per 15.4's own sentence, and 15.12.3 r3's input side is bounded by this determination plus the item bound (no separate A.1 number exists - the row says so). Enforced in BaseConvert after the re-expression (a 2000-F base-16-to-2 conversion still returns its 8,000 digits; 8,192+ raises). Documented BEFORE enforced, per the section-7 preamble's ordering rule.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.12.4-1",
@@ -43854,12 +43854,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "CONVERT function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Convert",
+  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_SyntaxRuleViolations_1514",
   "editions": "2023",
-  "notes": "test-needed. SUSTAINED ON RE-CHECK. TWO HALVES, ONE IMPLEMENTED. BindConvert catches only a zero-length LITERAL (`operands[0] is BoundStringLiteral { Value.Length: 0 }` -> COBOLNET1514). I re-ran both halves myself: FUNCTION CONVERT(\"\" ANUM NAT) -> \"error COBOLNET1514: FUNCTION CONVERT: argument-1 is of zero length (ISO 15.19.3 SR1)\", but\n       01 WS-D  PIC X DYNAMIC LENGTH.\n       >>TURN EC-ARGUMENT-FUNCTION CHECKING ON\n           MOVE FUNCTION CONVERT(WS-D ANUM ANUM HEX) TO WS-R.\n-> DL=[        ] and FUNCTION EXCEPTION-STATUS all spaces: no diagnostic and no EC even with checking EXPLICITLY ON. 15.3 rule 14 (validated: cite.py --check 15.3 \"The rules for a function may place constraints on the permissible values for arguments\") requires the EC-ARGUMENT-FUNCTION condition to be SET TO EXIST when an argument's value is incorrect; only the RESULT is implementor-defined when checking is off, so the silence is a divergence in the half that is missing.\nCITATION: the zero-length-item taxonomy is 8.5.4 \"Zero-length items\" (validated: --check 8.5.4 \"A zero-length item is a data item or a literal whose minimum length is zero\"); 8.5.1.4 does NOT resolve. 8.5.4 lists six shapes (ODO group with zero occurrences, group whose only subordinate is zero-length, ANY LENGTH, DYNAMIC LENGTH, zero-length variable-length record, zero-length intrinsic result) - none is screened at bind time or at runtime.\nEditions: 2023 only, from Annex E item 24 (\"FUNCTION CONVERT. This function has been added to enable conversion between data representations\") - a spec source, verified at specs/ISO_COBOL.md; NOT the IntrinsicCatalog row.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB59): the RUNTIME zero-length screen at the top of Convert (arg.Length == 0 -> EC-ARGUMENT-FUNCTION + the 15.3 default, the Substitute shape) - the only place ISO 8.5.4's runtime zero-length shapes (DYNAMIC LENGTH at 0, zero-occurrence ODO, ...) are visible; the bind-time COBOLNET1514 literal screen stays as the compile-time catch for 8.5.4 shape 8 and its comment now names the runtime twin (the two-arm relationship written down).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.19.3-2",
@@ -43893,12 +43893,12 @@
   "kind": "AR",
   "ordinal": 4,
   "subject": "CONVERT function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#HexDigitsToBytes; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#HexDigitsToBytes",
+  "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_HexSource_LeadingSpaceIsContent_FatalWhenChecked_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_AllSpaceHexSource_FatalWhenChecked_2023; conformance-test:IntrinsicFunctionDifferentialTests.Convert_HexSource_TrailingPadTrimmed_2023",
   "editions": "2023",
-  "notes": "test-needed. SUSTAINED, with the failing inputs re-run. TWO HALVES, ONE IMPLEMENTED, AND THE IMPLEMENTED HALF HAS A HOLE.\n(a) 'valid string of hexadecimal digits ... representing complete bytes' is enforced at RUNTIME in HexDigitsToBytes: an odd digit count and a non-hex digit each call ExceptionState.ArgumentError (EC-ARGUMENT-FUNCTION). HOLE: the method opens with `string t = s.Trim()`, so spaces are DISCARDED rather than diagnosed. Re-ran: `01 WS-LEAD PIC X(4) VALUE \"  41\".` / CONVERT(WS-LEAD HEX BYTE) -> \"A\" with no exception, and `01 WS-BLANK PIC X(4) VALUE SPACES.` / CONVERT(WS-BLANK HEX BYTE) -> empty, again with no exception. The trim is needed for the fixed-width image, so the fix is a trailing-image trim plus a digits-only screen, not deleting the trim.\n(b) 'of display or national usage' is NOWHERE enforced - nothing inspects argument-1's USAGE. Re-ran:\n       01 WS-N9 PIC 9(4) BINARY VALUE 4142.\n           MOVE FUNCTION CONVERT(WS-N9 HEX ANUM) TO WS-R.\n-> R4=[AB]. A BINARY item is neither display nor national usage, so 15.19.3 rule 4 makes it an illegal HEX source and 15.3 rule 14 (validated) requires EC-ARGUMENT-FUNCTION; the compiler silently converts its display image instead.\nALSO RE-RUN: 15.19.4 NOTE 3 b as literally written, FUNCTION CONVERT (X\"41\" HEX ANUM), returns U+00A0 here (re-hexed: A0), not \"A\". That is DEFENSIBLE - X\"41\" is the one character 'A', i.e. a single hex digit, which rule 4 forbids as not 'complete bytes', so the compiler takes the odd-count path and pads; the NOTE's literal form is self-inconsistent and must NOT become a golden. Its evident intent, CONVERT(\"41\" HEX ANUM) -> \"A\", IS met (corpus golden HA=A).\nEditions: 2023 only, from Annex E item 24; NOT the IntrinsicCatalog row.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB59), the digits half: TrimEnd(' ') only - a leading space is content and falls through HexVal to the 15.19.3 r4 non-digit raise (fatal under checking); an all-space source is DIGITLESS and raises under r4, deliberately NOT r1 (the item is not zero length - the mis-citation the triage warned against); the padded-but-valid trailing case is now positively pinned (no prior golden had a padded HEX source). Lowercase hex digits stay admitted HERE deliberately - r4 says 'hexadecimal digits' (the term the hex-literal format defines over both cases), unlike 15.12.3 r2's 'basic-letters A to F'. The USAGE half (a BINARY item as a HEX source) remains open under AR-15.19.3-5's class/usage screen (family 5).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.19.3-5",
