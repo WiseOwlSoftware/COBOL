@@ -45,7 +45,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **NEXT, in queue order (the three PB65 singles ALL LANDED 2026-08-09** — the wide bridge, the Power
   receiver-arm swap, the bounded-codomain quantizer; residues split to PB68 (class-boolean checkpoints)
   and PB69 (sentinel-as-argument); PB65's remaining members are the FMT rows + the ABS window check +
-  the RV-15.38.4-2 doc discharge)**:** **PB59** (CONVERT/Repertoire, 28 rows, silent wrong answers) →
+  the RV-15.38.4-2 doc discharge)**:** **PB59** (CONVERT/Repertoire — family 1 of 7, the item-33
+  TOTAL-IDENTITY declaration + the UTF-8 display device, LANDED 2026-08-09, 7 rows → CONFORMS; the
+  remaining families ride the 7-agent mechanism map in the session record: trims → CHAR → numeric-literal
+  admission → CONVERT screens/ANY channel → width totalization + X'' lexer twin → the ALPHABETIC
+  channel) →
   **PB60** (NUMVAL real parsers, 13) → **PB58** (argument-screen table shape, 41) → PB61 → PB62 →
   PB63 → PB68 (the class-boolean checkpoint extraction) → PB69 (the sentinel-as-argument quadrant) →
   PB64 (LOCALE feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design

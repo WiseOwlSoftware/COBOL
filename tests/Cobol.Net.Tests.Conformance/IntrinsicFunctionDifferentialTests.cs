@@ -565,10 +565,13 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Convert_AnumNatAnum_RoundTrip_2023()
-        // §15.19.4 r1/r3 — ANUM→NAT→ANUM repertoire round-trip returns the original character (Latin-1 ⊂ national).
-        => AssertSpec(Program("01 A PIC X VALUE \"Z\".\n           01 NR PIC N.\n           01 R PIC X(4).",
-            "    MOVE FUNCTION CONVERT(A ANUM NAT) TO NR.\n    MOVE FUNCTION CONVERT(NR NAT ANUM) TO R.\n    DISPLAY R.",
-            "IFCONVR"), "Z", 2023);
+        // §15.19.4 r1/r3 — ANUM→NAT→ANUM round-trip returns the original character. The correspondence is the
+        // Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so the round trip holds for EVERY character — the
+        // wide leg (Š, U+0160) is the one the old Latin-1 cut substituted to '?', which is the whole point.
+        => AssertSpec(Program("01 A PIC XX VALUE \"ZŠ\".\n           01 NR PIC N(2).\n           01 R PIC X(4).",
+            "    MOVE FUNCTION CONVERT(A ANUM NAT) TO NR.\n    MOVE FUNCTION CONVERT(NR NAT ANUM) TO R.\n"
+            + "    IF R(1:2) = A DISPLAY \"RT=SAME\" ELSE DISPLAY \"RT=DIFFER\".",
+            "IFCONVR"), "RT=SAME", 2023);
 
     [Theory]
     [InlineData("CONVERT(A ANUM ANUM)", "COBOLNET1514")]   // SR3 — source == destination
@@ -601,10 +604,12 @@ public sealed class IntrinsicFunctionDifferentialTests
             "    MOVE FUNCTION CONVERT(N ANY ANUM HEX) TO R.\n    DISPLAY R.", "IFCONVANY"), "0041", 2023);
 
     [Fact]
-    public void Convert_UntranslatableSetsDataConversion_WhenChecked_2023()
+    public void Convert_CharacterPathway_NeverSetsDataConversion_2023()
     {
-        // §15.19.4 r1 — a national character with no alphanumeric correspondent (U+0100) yields the substitution
-        // char AND sets EC-DATA-CONVERSION; under >>TURN … CHECKING ON, EXCEPTION-STATUS reports the condition.
+        // The character↔character pathway is the Annex A.1 item-33 TOTAL identity (PB59): a wide national
+        // character (Š, U+0160) IS translatable, so NO EC-DATA-CONVERSION is set even under enabled checking —
+        // a POSITIVE assertion that the old '?'+EC arm is gone, not a blank-status accident (the value leg
+        // proves the conversion really ran and carried the character).
         var src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. IFCONVEC.
@@ -612,18 +617,50 @@ public sealed class IntrinsicFunctionDifferentialTests
             WORKING-STORAGE SECTION.
             01 WS-N PIC N(2) VALUE N"AŠ".
             01 WS-R PIC X(4).
+            01 WS-O PIC 9(6).
             PROCEDURE DIVISION.
             MAIN.
             >>TURN EC-DATA-CONVERSION CHECKING ON
                 MOVE FUNCTION CONVERT(WS-N NAT ANUM) TO WS-R.
             >>TURN EC-DATA-CONVERSION CHECKING OFF
+                COMPUTE WS-O = FUNCTION ORD(WS-R(2:1)).
+                DISPLAY "O=" WS-O.
                 DISPLAY "S=" FUNCTION EXCEPTION-STATUS.
                 STOP RUN.
             """;
         var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
-        // EXCEPTION-STATUS is a fixed-width register; its trailing spaces are trimmed by Normalize.
-        Assert.Equal("S=EC-DATA-CONVERSION", output);
+        // The blank 31-space register trims to nothing under Normalize — the status must be EMPTY.
+        Assert.Equal("O=000353\nS=", output);
+    }
+
+    [Fact]
+    public void Convert_ByteSerializationSetsDataConversion_WhenChecked_2023()
+    {
+        // The 8-bit BYTE serialization (a SEPARATE §8.1.2 determination — see the CobolIntrinsics.Text char-set
+        // model) still substitutes '?' + EC-DATA-CONVERSION for a code unit above 0xFF: this is the surviving
+        // raise site the retired repertoire test used to cover, and its disposition is open PB59 residue
+        // (RV-15.19.4-2 — §15.19.4 r2 authorizes no substitution).
+        var src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFCONVECB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC XX VALUE "AŠ".
+            01 WS-R PIC X(8).
+            PROCEDURE DIVISION.
+            MAIN.
+            >>TURN EC-DATA-CONVERSION CHECKING ON
+                MOVE FUNCTION CONVERT(WS-A ANUM ANUM HEX) TO WS-R.
+            >>TURN EC-DATA-CONVERSION CHECKING OFF
+                DISPLAY "R=" WS-R.
+                DISPLAY "S=" FUNCTION EXCEPTION-STATUS.
+                STOP RUN.
+            """;
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        // 'A' → 41; Š (no one-byte image) → '?' = 3F. EXCEPTION-STATUS trailing spaces trimmed by Normalize.
+        Assert.Equal("R=413F\nS=EC-DATA-CONVERSION", output);
     }
 
     // ── MODULE-NAME (§15.65, Phase 5, DEVLOG 633): the runtime COBOL hierarchy; CURRENT/ACTIVATING/… keyword ──

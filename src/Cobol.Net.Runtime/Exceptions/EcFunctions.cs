@@ -9,9 +9,10 @@ namespace CobolNet.Runtime.Exceptions;
 /// twins (EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 — ISO defines no -N twin for
 /// EXCEPTION-STATEMENT/-STATUS) are the SAME renderings projected to the national repertoire through the ONE
 /// <see cref="CobolIntrinsics.NationalOf"/> translator (§15.66.4): each -N section's "converted at runtime to
-/// the runtime national character set" IS that alphanumeric→national conversion, and under D-N4 (national =
-/// UTF-16, one char per position; Latin-1 ⊂ national) every code point keeps its value. The compiler-side
-/// difference is the result CATEGORY — the catalog's National rows drive Table-16 MOVE/compare legality.
+/// the runtime national character set" IS that alphanumeric→national conversion, and under the Annex A.1
+/// item-33 determination (both repertoires UTF-16; the correspondence is the total identity, PB59) every code
+/// point keeps its value. The compiler-side difference is the result CATEGORY — the catalog's National rows
+/// drive Table-16 MOVE/compare legality.
 /// </summary>
 public static class EcFunctions
 {

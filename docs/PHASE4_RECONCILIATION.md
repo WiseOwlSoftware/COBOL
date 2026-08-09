@@ -711,9 +711,10 @@ both ways); negative corpus +1 (based-level-05).
   HIGH/LOW-VALUE pin in national contexts stays U+00FF/U+0000 (the flagged §8.3.3.6 GR6/GR7 divergence vs
   the native sequence's U+FFFF extreme — byte-stable; `FigurativeConstants` carries the flag).
   **D-N4 Repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
-  0814 guard was LIFTED with the P10 Step-5 DISPLAY-OF/NATIONAL-OF wave; NAT→ANUM keeps the Latin-1 subset
-  identity with '?'+EC-DATA-CONVERSION substitution beyond it). A→N widening and 9→N digit imaging are
-  ≤U+00FF by construction.
+  0814 guard was LIFTED with the P10 Step-5 DISPLAY-OF/NATIONAL-OF wave). The alphanumeric↔national
+  correspondence is the TOTAL UTF-16 IDENTITY in both directions (Annex A.1 item 33, CONFORMANCE.md §7 —
+  the PB59 landing 2026-08-09 retired the interim Latin-1 NAT→ANUM cut and its '?'+EC substitution). A→N
+  widening and 9→N digit imaging are ≤U+00FF by construction.
 
 - **PicInfo (the M2-DATA-1 BinaryItem un-skeleton recipe, adapted).** (1) **Classification**
   (`PicInfo.Analyze`, PicInfo.cs:314–444): remove `hasN`/`has1` from the gate block :372–387 (keep `hasE` +

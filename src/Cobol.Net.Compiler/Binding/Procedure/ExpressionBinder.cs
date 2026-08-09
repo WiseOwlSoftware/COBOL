@@ -160,7 +160,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind an <c>N"…"</c> national literal (ISO §8.3.3.5): SR1 caps the length at 8,191 national
     /// positions. The content repertoire is the FULL national character set — one UTF-16 char per position
     /// (D-N1, §8.1.2 NOTE 2) — including characters above U+00FF: the alphanumeric↔national correspondence
-    /// (§8.1.2; the D-N4 Latin-1 identity + substitution for wider characters) is live through
+    /// (Annex A.1 item 33 — the TOTAL UTF-16 identity, both directions, PB59) is live through
     /// FUNCTION DISPLAY-OF / NATIONAL-OF (§15.26/§15.66), so the former staged-loud Latin-1-only guard is
     /// lifted (P10 national wave).</summary>
     public BoundStringLiteral NationalLiteralOperand(string raw)

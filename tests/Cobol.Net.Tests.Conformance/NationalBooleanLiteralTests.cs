@@ -286,15 +286,17 @@ public sealed class NationalBooleanLiteralTests
 
     /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§8.3.3.5 — the content repertoire is the
     /// full national set, one UTF-16 char per position, D-N1; the P10 national wave lifted the staged
-    /// Latin-1-only 0814 guard when the §8.1.2 correspondence landed). FUNCTION DISPLAY-OF substitutes for it:
-    /// '?' + EC-DATA-CONVERSION when argument-2 is unspecified (§15.26.4 r3 — nonfatal, checking off, the
-    /// substitution stands), the explicit argument-2 substitution character when specified (§15.26.4 r2).
+    /// Latin-1-only 0814 guard). FUNCTION DISPLAY-OF carries it UNCHANGED: the alphanumeric↔national
+    /// correspondence is the Annex A.1 item-33 TOTAL UTF-16 identity (PB59), so §15.26.4 r2/r3's substitution
+    /// machinery is vacuous — argument-2 is accepted and inert, and no EC-DATA-CONVERSION is set from any
+    /// character pathway. The standard display device writes UTF-8 (CONFORMANCE.md item 59), which is what
+    /// makes the wide character assertable in stdout at all.
     /// ⚠ ENCODING-SENSITIVE: the GREEK CAPITAL OMEGA (U+03A9) is written via a \u escape so this .cs file
     /// stays ASCII; the harness writes the .cob as UTF-8 — the compiler's source decoding must see ONE char
-    /// &gt; U+00FF (a Latin-1 read would mis-decode it as two ≤U+00FF chars and print TWO substitution
-    /// characters below).</summary>
+    /// &gt; U+00FF (a Latin-1 read would mis-decode it as two ≤U+00FF chars and the identity would carry
+    /// two mangled chars below).</summary>
     [Fact]
-    public void NationalLiteral_NonLatin1Char_Accepted_DisplayOfSubstitutes()
+    public void NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt()
     {
         string src = $"""
             IDENTIFICATION DIVISION.
@@ -307,6 +309,6 @@ public sealed class NationalBooleanLiteralTests
             """;
         var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("A?B\nA#B", stdout);
+        Assert.Equal($"A{'\u03A9'}B\nA{'\u03A9'}B", stdout);
     }
 }

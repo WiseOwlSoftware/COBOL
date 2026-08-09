@@ -194,25 +194,32 @@ public static partial class CobolIntrinsics
 
     // ── CONVERT (§15.19, 2023) — data-representation conversion ─────────────────────────────────────────────────
     // Source codes: 0 = ANY, 1 = ANUM, 2 = HEX, 3 = NAT.  Dest codes: 1 = ANUM, 3 = NAT, 4 = BYTE.
-    // Char-set model: a PIC X alphanumeric item holds UTF-16 code units — the typed-native alphanumeric REPERTOIRE is
-    // Unicode (the established design), and its native collating sequence is code-unit order (so CHAR/ORD span up to
-    // 0xFFFF). The BYTE-level serialization HERE (ANUM/ANY -> BYTE/HEX) is a DISTINCT, implementor-defined 8-bit
-    // Latin-1 mapping (§8.1.2 NOTE 2 leaves the usage representation implementor-defined): one byte per code unit, the
-    // substitution char '?' + EC-DATA-CONVERSION for a code unit > 0xFF (§15.19.4 r1/r3). National is UTF-16BE, one
-    // char/position (D-N1). Source ANY = the item's canonical display image, always paired with a HEX destination (SR8).
+    // Char-set model, TWO distinct implementor determinations (fix-queue PB59):
+    //   (1) The CHARACTER correspondence (Annex A.1 item 33, CONFORMANCE.md §7): both repertoires are UTF-16, one
+    //       code unit per character position (item 188's substrate), so the alphanumeric↔national correspondence
+    //       is the TOTAL IDENTITY in both directions — see <see cref="Repertoire"/>. No substitution, no
+    //       EC-DATA-CONVERSION, on any character↔character pathway.
+    //   (2) The BYTE serialization (ANUM/ANY → BYTE/HEX) is a DISTINCT, implementor-defined 8-bit Latin-1 mapping
+    //       (§8.1.2 NOTE 2 leaves the usage representation implementor-defined; CONFORMANCE.md item 209's one
+    //       byte per DISPLAY character position): one byte per code unit, '?' + EC-DATA-CONVERSION for a code
+    //       unit > 0xFF. ⚠ §15.19.4 r2 authorizes NO substitution on the HEX legs — this disposition is OPEN
+    //       residue owned by the PB59 CONVERT rework (RV-15.19.4-2), which also owes the ANY raw-storage channel.
+    //       National is UTF-16BE, one char/position (D-N1). Source ANY = the item's canonical display image,
+    //       always paired with a HEX destination (SR8).
 
     /// <summary>CONVERT (§15.19.4): re-express <paramref name="arg"/> (in source format <paramref name="src"/>) in
-    /// the destination format (<paramref name="dst"/> + <paramref name="dstHex"/>). An untranslatable character
-    /// yields the substitution character and sets EC-DATA-CONVERSION (nonfatal, rules 1/3).</summary>
+    /// the destination format (<paramref name="dst"/> + <paramref name="dstHex"/>). The character↔character
+    /// pathways are the item-33 identity (no substitution, no EC); only the 8-bit BYTE serialization can
+    /// substitute (see the char-set model above).</summary>
     public static string Convert(string arg, int src, int dst, bool dstHex)
     {
         const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
 
-        // Repertoire translation (§15.19.4 r1/r3): both sides character, no HEX — the ONE translator DISPLAY-OF/
-        // NATIONAL-OF share (CONVERT never takes a caller substitution character, so sub: null — the
-        // implementor-defined '?' + EC-DATA-CONVERSION).
+        // Character translation (§15.19.4 r1/r3): both sides character, no HEX — the ONE item-33 correspondence
+        // DISPLAY-OF/NATIONAL-OF share. Under the total identity the r1/r3 substitution sentences are vacuous
+        // (NOTE 1/2 name those functions as "the same facility", and they agree).
         if (!dstHex && dst != BYTE && (src == ANUM || src == NAT))
-            return Repertoire(arg, toNational: dst == NAT, sub: null);
+            return Repertoire(arg);
 
         // Bit/byte pathway — reduce argument-1 to a byte string per the source format.
         byte[] bytes;
@@ -248,41 +255,41 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>DISPLAY-OF (§15.26.4): each national character of argument-1 converted to its corresponding
-    /// alphanumeric character (rule 1 — the D-N4 Latin-1↔national identity is the implementor-defined
-    /// correspondence). A national character with no correspondent (code point &gt; U+00FF) takes
-    /// <paramref name="sub"/>, the argument-2 substitution character (rule 2 — no exception); with argument-2
-    /// unspecified it takes the implementor-defined '?' AND sets EC-DATA-CONVERSION (rule 3). Result length =
-    /// the argument's character count (rule 4 — one display position per national position under D-N4).</summary>
-    public static string DisplayOf(string arg, string? sub = null) =>
-        Repertoire(arg, toNational: false, sub is { Length: > 0 } ? sub[0] : null);
+    /// alphanumeric character (rule 1 — the item-33 TOTAL IDENTITY, see <see cref="Repertoire"/>). Under a total
+    /// correspondence no national character lacks a correspondent, so the argument-2 substitution (rule 2) and
+    /// the '?'+EC-DATA-CONVERSION arm (rule 3) are vacuous BY DECLARATION — <paramref name="sub"/> is accepted
+    /// (bind screens still enforce §15.26.3 r2's class and one-position length) and never consumed. Result
+    /// length = the argument's character count (rule 4 — one display position per national position).</summary>
+    public static string DisplayOf(string arg, string? sub = null) => Repertoire(arg);
 
     /// <summary>NATIONAL-OF (§15.66.4): each alphanumeric character of argument-1 converted to its corresponding
-    /// national character (rule 1). Under the D-N4 correspondence the alphanumeric coded set (Latin-1) is a
-    /// SUBSET of national (UTF-16), so every character has a correspondent and the argument-2 substitution
-    /// character (rules 2/3) is never consumed — accepted for §15.66.2 conformance, semantically inert.</summary>
-    public static string NationalOf(string arg, string? sub = null) =>
-        Repertoire(arg, toNational: true, sub is { Length: > 0 } ? sub[0] : null);
+    /// national character (rule 1 — the item-33 TOTAL IDENTITY, see <see cref="Repertoire"/>). Every character
+    /// has a correspondent, so the argument-2 substitution character (rules 2/3) is never consumed — accepted
+    /// for §15.66.2 conformance and §15.66.3 r2 screening, semantically inert BY DECLARATION.</summary>
+    public static string NationalOf(string arg, string? sub = null) => Repertoire(arg);
 
-    /// <summary>The ONE alphanumeric↔national repertoire translator (CONVERT §15.19.4 r1/r3; DISPLAY-OF §15.26.4;
-    /// NATIONAL-OF §15.66.4 — one mechanism, never a second converter). ANUM→NAT keeps the code point (Latin-1 ⊂
-    /// national, D-N4); NAT→ANUM keeps a code point that fits a byte, else substitutes: the caller's
-    /// <paramref name="sub"/> when specified (§15.26.4 r2 — the EC is NOT set for an explicit substitution
-    /// character), or the implementor-defined '?' + EC-DATA-CONVERSION when not (<see cref="Sub"/> —
-    /// §15.19.4 r1/r3, §15.26.4 r3).</summary>
-    private static string Repertoire(string arg, bool toNational, char? sub)
-    {
-        var sb = new System.Text.StringBuilder(arg.Length);
-        foreach (char c in arg)
-            sb.Append(toNational || c <= 0xFF ? c : sub ?? Sub());
-        return sb.ToString();
-    }
+    /// <summary>⛔ THE ONE alphanumeric↔national correspondence (Annex A.1 item 33 — CONFORMANCE.md §7 row 33;
+    /// CONVERT §15.19.4 r1/r3, DISPLAY-OF §15.26.4 r1, NATIONAL-OF §15.66.4 r1, MOVE §14.9.25.4 GR6,
+    /// §8.8.4.2.11 — one mechanism, never a second converter). Both repertoires are UTF-16, one code unit per
+    /// character position (item 188's substrate), so the correspondence is the TOTAL IDENTITY in BOTH
+    /// directions: every character corresponds to the same code unit, no character lacks a correspondent, the
+    /// r2/r3 substitution machinery of §15.26.4/§15.66.4 is vacuous, and EC-DATA-CONVERSION is unreachable from
+    /// any character pathway — a conforming determination (r1 grants the correspondence to the implementor),
+    /// not a dead branch. The previous body cut NAT→ANUM at 0xFF ('?'+EC above it), contradicting item 188 at
+    /// exactly one expression (fix-queue PB59; the triage measured DISPLAY-OF(N"Š") → '?', ORD 64).</summary>
+    private static string Repertoire(string arg) => arg;
 
-    private static char Sub()
+    /// <summary>The 8-bit BYTE-serialization substitution (the §8.1.2 NOTE 2 usage-representation determination —
+    /// see the CONVERT char-set model above): a UTF-16 code unit above 0xFF has no one-byte image, so the
+    /// ANUM/ANY→byte reduction substitutes '?' and sets EC-DATA-CONVERSION. ⚠ NOT the item-33 character
+    /// correspondence (that is total, and raises nothing); §15.19.4 r2's no-substitution wording makes this
+    /// disposition OPEN residue of the PB59 CONVERT rework (RV-15.19.4-2).</summary>
+    private static byte ByteSub()
     {
-        Exceptions.ExceptionState.DataConversionError("value has no destination-repertoire correspondent (§15.19.4 r1/r3; §15.26.4 r3)");
-        return '?';
+        Exceptions.ExceptionState.DataConversionError(
+            "the code unit has no one-byte image in the 8-bit usage-DISPLAY serialization (§8.1.2; RV-15.19.4-2)");
+        return (byte)'?';
     }
-    private static byte ByteSub() { _ = Sub(); return (byte)'?'; }
 
     private static byte[] HexDigitsToBytes(string s)
     {

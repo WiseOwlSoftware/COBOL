@@ -94,6 +94,11 @@ internal static class ProcessObserver
         psi.RedirectStandardInput = true;
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
+        // The standard display device writes UTF-8 (CONFORMANCE.md item 59; the PB59 repertoire-identity
+        // landing) — decode the capture the same way, or a wide character in a golden reads back as OEM
+        // mojibake (Ω arrived as '╬⌐' before this line existed).
+        psi.StandardOutputEncoding = new System.Text.UTF8Encoding(false);
+        psi.StandardErrorEncoding = new System.Text.UTF8Encoding(false);
 
         Process? proc;
         try

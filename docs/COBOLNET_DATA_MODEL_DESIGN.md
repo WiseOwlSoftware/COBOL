@@ -184,8 +184,12 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   recognizes no surrogate pairs, so the supplementary-plane codepoint/code-unit divergence is unreachable), and
   UTF-8/UTF-16 name coded character sets only (§12.3.7 GR7 Table 6 — never a collating sequence).
 - **D-N4 repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
-  staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave; the §8.1.2 correspondence for NAT→ANUM remains
-  the Latin-1 subset identity with '?'+EC-DATA-CONVERSION substitution beyond it).
+  staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave). **The alphanumeric↔national correspondence is
+  the TOTAL UTF-16 IDENTITY in both directions** (Annex A.1 item 33, CONFORMANCE.md §7 — declared with the
+  PB59 landing 2026-08-09): no character lacks a correspondent, the §15.26.4/§15.66.4 r2/r3 substitution
+  machinery is vacuous by declaration, and EC-DATA-CONVERSION is unreachable from any character pathway. The
+  8-bit BYTE serialization of usage DISPLAY (CONVERT's ANUM→HEX/BYTE legs) is a SEPARATE §8.1.2 NOTE 2
+  determination and still substitutes above 0xFF — open residue of the PB59 CONVERT rework (RV-15.19.4-2).
 - **D-B1 boolean (SUPERSEDED 2026-08-04 by D19 — see below).** It read: "one alphanumeric character '0'/'1' per
   boolean position for BOTH usage display AND usage BIT — the §13.18.40.4 GR14 R14 license, a PERMANENTLY
   conforming choice." **The display half is right and stays. The USAGE BIT half was wrong**, and the word
