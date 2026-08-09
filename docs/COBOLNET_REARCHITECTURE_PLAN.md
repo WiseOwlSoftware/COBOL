@@ -24,22 +24,39 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-08 20:15, the owner's standing directive for the NEXT session):
-  COMPLETE THE TWO CATALOG CAMPAIGNS — `kb/Work/PB29.md` (§8.8.1 contributes 21 numbered rules and the
-  catalog holds NONE) and `kb/Work/PB39.md` (326 catalog rule-ids do not match the standard) — BACK TO
-  BACK WITHOUT PAUSING, finishing the register.** The two notes carry the forensics; the tooling is
-  `scripts/spec/` (cite.py, the rule catalog, the traceability inventory).
-  ✅ **BOTH CAMPAIGNS LANDED THE SAME EVENING — THE HANDOFF IS DISCHARGED.**
-  **PB39 (22:35, DEVLOG 1252):** 257 ids re-keyed to the standard's own numbering by the delimiter-form
-  segmenter (count contract held at 3,981; 421/421 verdicts carried; the unexplained-ordinal guard fails
-  `--check` and was proven to fail).
-  **PB29 (22:55, DEVLOG 1253):** all 100 unharvested clauses adjudicated — the batch's remaining 85 in one
-  7-reader + 2-refuter wave (83/84 upheld; the one overturn a DOWNGRADE, §15.6→not-rules) — 81 admitted,
-  4 not-rules with grounds, **denominator 4,311 / GAP 4,233** (run the probe, never quote this), and the
-  per-sublist/per-item kind shapes landed with FATAL guards. The content-keyed scan reports ZERO pending:
-  the blind-spot class is closed and guarded.
-  **Open residue: PB55** (nested-item row-ification is transcription-layout-determined — a denominator
-  question, OWNER DECISION pending). After it: the §11 A-series (A3 unblocked) and the P14 campaigns proper. Everything else is CLOSED:
+- **▶ SESSION HANDOFF (2026-08-09 13:30 — the owner's STANDING DIRECTIVES, all still in force):
+  ① FIX THE KNOWN DEFECT BACKLOG TO ZERO — no new adjudication exploration until it reads zero
+  (owner, 2026-08-09). The backlog = inventory rows with DIVERGES/PARTIAL/NOT-IMPLEMENTED verdicts;
+  session-probe/`work.py next` rank the fix queue. ② Run fully autonomously, no permission pauses;
+  only D13-class spec decisions are owner-reserved. ③ ALL subagents run Opus 5
+  (`CLAUDE_CODE_SUBAGENT_MODEL` is set persistently; also pass `model:'opus'` in workflow scripts).**
+  **WHERE THE CAMPAIGN STANDS (all numbers COMPUTED — run the probe):** the 2026-08-09 triage
+  (DEVLOG 1255, evidence frozen in `docs/rearchitecture/backlog-triage-2026-08-09.json`) probed all
+  331 backlog rows with a 14-group probe+refute fleet: 114 verified fixed by the earlier waves, the
+  live remainder clustered into register notes **PB58–PB66** (+PB56 landed, PB67 = owner decision).
+  Six fix landings followed the same day (DEVLOG 1257–1262): PB56's Dec-carrier bodies, the 39-digit
+  alignment wrap, date-windowing arity overloads, domain guards, wide-value members, and the MOVE
+  Dec-store channel — backlog 331 → 185, each closed row carrying probe evidence + a spec-derived
+  test-ref in its inventory note.
+  **THE FIX LOOP (proven 6×, follow it):** read the cluster note → derive from the spec (`cite.py
+  --check` every citation) → fix at the root, sweep siblings → CLI-probe BEFORE writing the .out →
+  golden + manifest same commit → wave-local gate (full suites when a shared seam moves) →
+  `record_verdicts.py` re-verdict batch → SpecTraceability gate → note/DEVLOG/§0 → commit AND push.
+  **NEXT, in queue order:** PB65's last three singles (BOOLEAN-OF-INTEGER's 63-bit AsInt bridge ·
+  Power's receiver-arm swap RV-15.64.4-1 · the native FromDouble clamp-sentinel family
+  RV-15.75.4-1) → **PB59** (CONVERT/Repertoire, 28 rows, silent wrong answers) → **PB60** (NUMVAL
+  real parsers, 13) → **PB58** (argument-screen table shape, 41) → PB61 → PB62 → PB63 → PB64 (LOCALE
+  feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design first).
+  **OWNER-RESERVED, ask one at a time when he is at the keyboard:** PB67 (the four standard-binary
+  rows → DOCUMENTED-NON-SUPPORT?) · CURRENT-DATE's +14:00 spec hole (RV-15.21.3-1) · PB55's
+  IMPLEMENTATION is decided (rule-is-the-unit, 2026-08-08) and still needs its transcription
+  re-indent + 234-row absorption campaign.
+  **HAZARDS THIS CAMPAIGN KEEPS HITTING:** the one-of-two-callers/two-arm shape (found again 4× —
+  always ask which arm); pre-PB56 triage rows may already be fixed (probe before fixing); MOVE
+  renders sources under ReceiverContext.None by design (its 39-digit receiverless-selection escape
+  raise is DOCUMENTED residue on PB65, not a bug to "fix" casually).
+  (The 2026-08-08 catalog-campaign handoff is DISCHARGED: PB39 DEVLOG 1252, PB29 DEVLOG 1253,
+  denominator 4,311, the content-keyed scan at zero pending, blind-spot class closed and guarded.) Everything else is CLOSED:
   **the R-wave (R21–R39) is fully landed** — `work.py next` reports the ranked actionable list EMPTY —
   including R13, decided by the owner 2026-08-08 (**follow GnuCOBOL** on the beyond-PICTURE COMP-5
   DISPLAY; §7 item 56; and the broader preference — implementor latitude + split vendors → follow
