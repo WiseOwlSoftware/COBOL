@@ -52,7 +52,9 @@
       "Bash(sed 's/[0-9]*[AM]$//')",
       "Bash(sort -k2)",
       "Bash(grep:*)",
-      "Bash(xargs -I {} basename {} .txt)"
+      "Bash(xargs -I {} basename {} .txt)",
+      "Bash(git *)",
+      "PowerShell(New-Item *)"
     ]
   }
 }
