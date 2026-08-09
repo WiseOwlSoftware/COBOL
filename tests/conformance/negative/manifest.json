@@ -179,6 +179,7 @@
     "strong-group-heterogeneous-compare",
     "sync_group_below_2023",
     "test_validators_below_2002",
+    "udf-bare-arity",
     "udf-by-value-arg-class",
     "undefined-name-reference",
     "unlock-sort-file",

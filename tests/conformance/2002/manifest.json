@@ -116,6 +116,7 @@
     "typedef_strong_ok",
     "typedef_weak_elem",
     "typedef_weak_group",
+    "udf_bare_zero_arg",
     "udf_by_value",
     "udf_exit_function",
     "udf_inline_expression",

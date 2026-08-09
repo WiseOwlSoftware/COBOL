@@ -261,10 +261,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         if (sp is null)
         {
-            // A bare name only becomes a function reference when the function genuinely admits ZERO arguments
-            // (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form, whose §15.75.2
-            // format brackets the whole parenthesised part). Anything else stays a data reference and reports
-            // through the ordinary unresolved-name path rather than being turned into an arity error.
+            // A REPOSITORY-DECLARED USER function referenced bare is §8.4.3.2.3 SR2's own case too (kb/Work
+            // R35 — the two-arm-dispatch shape a SIXTH time: PB7 fixed the intrinsic arm of the bare-name
+            // form and never asked the UDF arm, so `MOVE WITHOUTPAR TO X` over a declared zero-argument
+            // function fell to the data path and died as "undefined"). Route it to the UDF bind, whose
+            // prototype machinery owns the zero-vs-N arity verdict — a bare reference to a declared
+            // 2-argument function is an ARITY error about a function, never an undefined name: the user
+            // DECLARED it a function, so there is no coincidental-collision reading to protect.
+            if (ctx.Data.UserFunctionNames.Contains(name)
+                || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
+            {
+                var udfBare = host.Udf.UdfBindCall(name, []);
+                return capturedRefMod is null
+                    ? udfBare
+                    : ResultRefMod(udfBare, ctx.Refs.ReadRefMod(capturedRefMod), argListWritten: false, name);
+            }
+            // A bare CATALOGUED name only becomes a function reference when the function genuinely admits
+            // ZERO arguments (MinArgs 0 — CURRENT-DATE, PI, E, WHEN-COMPILED, and RANDOM's no-argument form,
+            // whose §15.75.2 format brackets the whole parenthesised part). Anything else stays a data
+            // reference: for a name that merely COLLIDES with the catalog, the ordinary unresolved-name path
+            // is the honest verdict, not an arity error about a function never intended.
             if (!catalogued || sig.MinArgs != 0) return null;
             var bare = BindIntrinsicCore(name, []);
             // `CURRENT-DATE (1:8)` — the captured group carries a depth-0 colon, so it is a reference
