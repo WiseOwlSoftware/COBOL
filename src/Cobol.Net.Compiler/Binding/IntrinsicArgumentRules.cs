@@ -325,6 +325,32 @@ internal static class IntrinsicArgumentRules
         _ => null,                                          // Group is handled by the caller
     };
 
+    /// <summary>The static storage REPRESENTATION of an intrinsic argument, as a <see cref="Usage"/> — the axis
+    /// the keyword-keyed §15.19.3 argument rules key on, and the one <see cref="IntrinsicArgumentRules.ClassOfCategory"/>
+    /// cannot answer twice over: Table 2 collapses pointer and program-pointer into ONE class, and class NUMERIC
+    /// spans display digits and binary words. §15.19.3 r4 names the axis outright ("hexadecimal digits <b>of
+    /// display or national usage</b>"); r5's NOTE ("distinct from simply requiring the string to be of class
+    /// alphanumeric") cuts by representation, not class — a numeric or edited DISPLAY item holds alphanumeric
+    /// characters and qualifies, a COMP item's storage is not characters at all and does not; r7's exclusion
+    /// list is six usages. §15.12.3 r1 (BASECONVERT, display-or-national) waits on the same axis. A literal
+    /// answers the usage its category implies (§8.3.1.2 — an N"…" literal is national characters, any other
+    /// string literal display characters), as does a nested intrinsic's STRING result; null = no statically
+    /// fixed representation (a group, a figurative, an ALL literal, a numeric value) — every caller reads null
+    /// as "leave it to the runtime value screen".</summary>
+    public static Usage? StaticUsageOf(BoundOperand op) => op switch
+    {
+        BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { } pic } } => pic.Usage,
+        BoundStringLiteral { Category: PicCategory.National } => Usage.National,
+        BoundStringLiteral => Usage.Display,
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory switch
+        {
+            PicCategory.National => Usage.National,
+            PicCategory.Alphanumeric or PicCategory.Boolean => Usage.Display,
+            _ => null,   // a numeric result is a VALUE, not a stored character string
+        },
+        _ => null,
+    };
+
     /// <summary>
     /// ⛔ THE SCREEN IS DRIVEN FROM HERE, NOT FROM <c>ArgKinds</c> — and the difference is the whole lesson.
     /// </summary>
@@ -552,7 +578,10 @@ internal static class IntrinsicArgumentRules
                 + "USAGE rules. The RENDERER admits numeric literals (r1 lists class numeric — the admitting "
                 + "StrArgList, PB59); STILL unscreened at bind: r1's exclusions and r3's usage-display + "
                 + "unsigned-integer conditions (a signed/fractional literal renders verbatim today)",
-            ["CONVERT"] = "§15.19.3 makes the admissible argument depend on the source-format keyword",
+            ["CONVERT"] = "§15.19.3 keys the admissible argument-1 on the source-format KEYWORD, an axis this "
+                + "ordinal table cannot express; enforced IN FULL at bind by BindConvert's own positional walk "
+                + "plus its r4/r5/r6/r7 screens over StaticUsageOf. The value halves (r4's digit validity, "
+                + "r5/r6 membership of the coded set) are the runtime screens' territory",
             // ⛔ HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC — and the PB12 note that put them here was WRONG about WHY.
             // It recorded them as "left unscreened until a kind can express 'category numeric or numeric-edited'",
             // which reads as a missing capability. Measured, the truth is the opposite: `BindAlgebraicFold`

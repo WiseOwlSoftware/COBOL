@@ -627,6 +627,13 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("01 H PIC XX VALUE \"41\".\n           01 R PIC X(4).", "CONVERT(H HEX BYTE)", "A")]         // r5
     [InlineData("01 A PIC XXX VALUE \"AB\".\n           01 R PIC X(8).", "CONVERT(A ANUM ANUM HEX)", "414220")] // r2, image space 0x20
     [InlineData("01 N PIC N VALUE N\"A\".\n           01 R PIC X(8).", "CONVERT(N NAT ANUM HEX)", "0041")]   // r2 over UTF-16BE
+    // FMT-15.19.2 — NAT is a §8.10 CONTEXT-SENSITIVE word, legal as argument-1's own data-name: the positional
+    // walk binds slot 0 as the OPERAND unconditionally (the old order-free harvest read it as a keyword and
+    // rejected the call with "0 operand + 3 format keyword(s) given").
+    [InlineData("01 NAT PIC XX VALUE \"41\".\n           01 R PIC X(4).", "CONVERT(NAT HEX ANUM)", "A")]
+    // §15.19.3 r5 NOTE — the ANUM-source test is on the REPRESENTATION, not the class: a numeric DISPLAY item
+    // is a valid string of characters from the alphanumeric coded character set ("005" → its hex).
+    [InlineData("01 D PIC 9(3) VALUE 5.\n           01 R PIC X(8).", "CONVERT(D ANUM ANUM HEX)", "303035")]
     public void Convert_Formats_2023(string ws, string call, string expected)
         => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "IFCONV"), expected, 2023);
 
@@ -651,6 +658,29 @@ public sealed class IntrinsicFunctionDifferentialTests
                 $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R."));
         Assert.False(ok, $"{call} violates a §15.19.3 syntax rule");
         Assert.Contains(code, detail);
+    }
+
+    // The §15.19.2 positional format + the §15.19.3 r4/r5/r6/r7 argument screens (PB59 family 5a). The format
+    // is ( argument-1 source-format destination-format ) BY POSITION, so an operand after the format words is
+    // malformed; the source-format keys what argument-1's STORAGE must hold, and the static half of each rule
+    // is its REPRESENTATION (r5's NOTE: "distinct from simply requiring the string to be of class
+    // alphanumeric" — see the admitted numeric-DISPLAY row in Convert_Formats_2023).
+    [Theory]
+    [InlineData("01 A PIC X VALUE \"A\".", "CONVERT(ANUM A ANUM HEX)")]     // operand mid-list (was accepted, printed 41)
+    [InlineData("01 A PIC X VALUE \"A\".", "CONVERT(ANUM ANUM HEX A)")]     // operand after the formats (same defect)
+    [InlineData("01 C PIC 9(4) COMP VALUE 5.", "CONVERT(C ANUM ANUM HEX)")] // r5 — binary storage is not characters
+    [InlineData("01 N PIC N VALUE N\"A\".", "CONVERT(N ANUM ANUM HEX)")]    // r5 — national characters are not the alphanumeric set
+    [InlineData("01 A PIC X VALUE \"A\".", "CONVERT(A NAT ANUM)")]          // r6 — display characters are not national
+    [InlineData("01 C PIC 9(4) COMP VALUE 5.", "CONVERT(C HEX ANUM)")]      // r4 — HEX takes display or national usage
+    [InlineData("01 P USAGE POINTER.", "CONVERT(P ANY ANUM HEX)")]          // r7 — pointer excluded under ANY
+    [InlineData("01 IX USAGE INDEX.", "CONVERT(IX ANY ANUM HEX)")]          // r7 — index excluded under ANY
+    public void Convert_ArgumentRuleViolations_1514(string ws, string call)
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program(ws + "\n           01 R PIC X(8).",
+                $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R."));
+        Assert.False(ok, $"{call} violates a §15.19.2 format rule or §15.19.3 argument rule");
+        Assert.Contains("COBOLNET1514", detail);
     }
 
     [Fact]

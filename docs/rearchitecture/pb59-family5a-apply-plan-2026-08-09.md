@@ -4,6 +4,21 @@
 > defer to the mechanism map beside this file for sites and risks. NOT a worklist: kb/Work/PB59.md owns
 > the rows. Verify every line anchor and citation (cite.py --check) at apply time.
 
+> ## ⚠ APPLIED 2026-08-09 — WITH ONE DERIVATION CORRECTION (the screens are USAGE-keyed, not class-keyed)
+> The positional walk, arity guard, catalog MinArgs 2→3 and DeliberatelyUnscreened rewrite landed as
+> drafted. The r5/r6 screens below did NOT: re-deriving at apply time (rule 1), §15.19.3 keys the static
+> half of r4/r5/r6 on the argument's REPRESENTATION — r4 says "of display or national usage" in so many
+> words, and r5's NOTE ("distinct from simply requiring the string to be of class alphanumeric") cuts by
+> what the storage HOLDS. A class screen mis-answers in both directions: it REJECTS a numeric DISPLAY
+> item (class numeric, yet exactly "a valid string of characters from the alphanumeric coded character
+> set" — the D9 corpus row pins its admission) and the corpus itself held the r6 counterexample —
+> `argument_rule_equivalences_batch1`'s NATIONAL/NAT legs rode a PIC X item, which the class screen and
+> the usage screen BOTH reject; the golden's source was corrected to PIC NN (output byte-identical).
+> The landed shape: the SHARED `IntrinsicArgumentRules.StaticUsageOf` (the usage axis the mechanism map's
+> fixInventory already demanded for §15.12.3 r1), read inline by BindConvert for r4 (display|national),
+> r5 (display), r6 (national) and r7 (the exclusion list). See kb/Work/PB59.md family 5a for the row
+> verdicts and the measured RV-15.19.4-4 residue (ANUM NAT HEX → 41, not the map's 4100 nor 0041 yet).
+
 # PB59-5a apply plan — CONVERT's positional parse + the r5/r6/r7 screens
 (5b — the ANY raw-storage channel + r2/r4 bit padding + the runtime signature — is a separate landing.)
 

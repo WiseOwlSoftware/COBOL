@@ -836,26 +836,38 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             { SubstituteModes = modes };
     }
 
-    /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed by two phrase
-    /// keyword groups: source-format (ANY | ANUM | HEX | NAT) and destination-format (ANUM | NAT [HEX] | BYTE),
-    /// each a bare-word argument (§15.19.2; <see cref="KeywordWordOf"/> — ANY/ALPHANUMERIC/NATIONAL are reserved
-    /// words, the rest arrive as bare names). The operand binds ordinarily; the format words ride the node's
+    /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed BY POSITION by
+    /// two keyword groups: source-format (ANY | ANUM | HEX | NAT) and destination-format (ANUM | NAT [HEX] |
+    /// BYTE), each a bare-word argument (§15.19.2; <see cref="KeywordWordOf"/> — ANY/ALPHANUMERIC/NATIONAL are
+    /// reserved words, the rest §8.10 context-sensitive words that arrive as bare names and stay legal as
+    /// argument-1's own data-name). The operand binds ordinarily; the format words ride the node's
     /// <c>Convert*</c> init-properties. The argument/SR rules (§15.19.3) are enforced here (COBOLNET1514); the
     /// result category (§15.19.1) is National for a NAT destination, Alphanumeric otherwise.</summary>
     private BoundExpr BindConvert(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        var kws = new List<string>();
+        // §15.19.2: ( argument-1 source-format destination-format ) — a POSITIONAL walk, not an order-free
+        // harvest (fix-queue PB59 / FMT-15.19.2). Slot 0 is ALWAYS argument-1 and binds as an OPERAND: NAT /
+        // ANUM / HEX / BYTE are §8.10 CONTEXT-SENSITIVE words, reserved only inside CONVERT's own format
+        // ("otherwise it is treated as a user-defined word"), so a data item NAMED one of them is legal as
+        // argument-1 — the old harvest swallowed it as a keyword (measured: 1504 "0 operand + 3 format
+        // keyword(s) given") and, symmetrically, accepted CONVERT(ANUM WS-A ANUM HEX) with the operand
+        // mid-list. ANY/ALPHANUMERIC/NATIONAL stay §8.9 reserved and can never be data-names, so only the
+        // four context-sensitive words change behavior.
         var operands = new List<BoundOperand>();
-        foreach (var a in argCtxs)
+        var kws = new List<string>();
+        foreach (var (a, at) in argCtxs.Select((a, at) => (a, at)))
         {
+            if (at == 0) { operands.Add(BindArgOperand(a)); continue; }
             if (KeywordWordOf(a) is { } w && IsConvertFormatWord(w)) { kws.Add(w); continue; }
-            operands.Add(BindArgOperand(a));
+            ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: the arguments after argument-1 shall be the "
+                + "source-format and destination-format keywords, in that order (ISO §15.19.2)");
+            return new BoundExprError("FUNCTION CONVERT format");
         }
-        if (operands.Count != 1 || kws.Count < 2)
+        if (operands.Count != 1 || kws.Count is < 2 or > 3)
         {
-            ctx.Edition.Error("COBOLNET1504", "FUNCTION CONVERT takes argument-1 source-format destination-format "
-                + $"(ISO §15.19.2); {operands.Count} operand + {kws.Count} format keyword(s) given");
-            return new BoundExprError("FUNCTION CONVERT");
+            ctx.Edition.Error("COBOLNET1504", "FUNCTION CONVERT takes ( argument-1 source-format "
+                + $"destination-format ) (ISO §15.19.2); {operands.Count} operand + {kws.Count} format keyword(s) given");
+            return new BoundExprError("FUNCTION CONVERT arity");
         }
 
         int src = kws[0] switch { "ANY" => 0, "ALPHANUMERIC" or "ANUM" => 1, "HEX" => 2, "NATIONAL" or "NAT" => 3, _ => -1 };
@@ -891,6 +903,40 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // length 0, a zero-occurrence ODO group, …) with EC-ARGUMENT-FUNCTION (fix-queue PB59 / AR-15.19.3-1).
         if (operands[0] is BoundStringLiteral { Value.Length: 0 })
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: argument-1 is of zero length (ISO §15.19.3 SR1)");
+
+        // §15.19.3 r4/r5/r6/r7 — the source-format keys what argument-1's STORAGE must hold, and the static
+        // half of each rule is its REPRESENTATION (IntrinsicArgumentRules.StaticUsageOf — the keyword-dependent
+        // axis the ordinal ArgSchema cannot express; DeliberatelyUnscreened["CONVERT"] records the disposition).
+        // r4 names the axis outright ("a valid string of hexadecimal digits of display or national usage");
+        // r5 wants "a valid string of characters from the program's alphanumeric coded character set", and its
+        // NOTE ("distinct from simply requiring the string to be of class alphanumeric") cuts by representation,
+        // not class — a numeric or edited DISPLAY item qualifies, a COMP or national item does not; r6 wants
+        // national characters. The VALUE halves (r4's digit validity, r5/r6 membership of the coded set) are
+        // the runtime screens' territory (the hex-digit screen, the Annex A.1 item-33 total correspondence), so
+        // nothing further is screenable at bind; shapes with no static representation pass to runtime.
+        if (IntrinsicArgumentRules.StaticUsageOf(operands[0]) is { } u)
+        {
+            if (src == 1 && u is not Usage.Display)
+                ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: an ANUM source-format reads argument-1 as "
+                    + $"a string of characters from the alphanumeric coded character set, which usage {u} does "
+                    + "not hold (ISO §15.19.3 rule 5)");
+            if (src == 3 && u is not Usage.National)
+                ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: a NAT source-format reads argument-1 as a "
+                    + $"string of national characters, which usage {u} does not hold (ISO §15.19.3 rule 6)");
+            if (src == 2 && u is not (Usage.Display or Usage.National))
+                ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: a HEX source-format takes argument-1 of "
+                    + $"display or national usage, not {u} (ISO §15.19.3 rule 4)");
+            // r7 — ANY takes any usage EXCEPT the address-holding ones; "it is not necessary for the contents
+            // to be valid according to the usage", so this exclusion is the ONLY screen on an ANY source.
+            // ClassOfCategory cannot express it (the pointer/program-pointer collapse), which is why the
+            // predicate reads Usage. MESSAGE-TAG has no Usage member — the usage-inventory drift test forces
+            // that decision when the usage lands.
+            if (src == 0 && u is Usage.Index or Usage.ObjectReference or Usage.Pointer or Usage.ProgramPointer
+                    or Usage.FunctionPointer)
+                ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: an ANY source-format argument-1 shall not "
+                    + "be of usage index, message-tag, object reference, pointer, function-pointer or "
+                    + "program-pointer (ISO §15.19.3 rule 7)");
+        }
 
         // §15.19.3 SR7 — a source-format of ANY takes the operand's RAW storage bits regardless of usage. Resolve
         // ANY to the operand's actual storage encoding at bind time (keeping the runtime free of PICTURE metadata):

@@ -20,6 +20,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 SRC    PIC X(2) VALUE "AB".
+       01 NSRC   PIC NN   VALUE N"AB".
        01 L1     PIC X(8).
        01 L2     PIC X(8).
        01 D-OMIT PIC 9(7).
@@ -38,9 +39,13 @@
            IF L1 = L2 DISPLAY "DST-ANUM-EQV=OK " L1
               ELSE DISPLAY "DST-ANUM-EQV=BAD " L1 " " L2 END-IF
 
-      *> AR-15.19.3-2, the NATIONAL/NAT half of the same rule, in the SOURCE position.
-           MOVE FUNCTION CONVERT (SRC NATIONAL ANUM HEX) TO L1
-           MOVE FUNCTION CONVERT (SRC NAT      ANUM HEX) TO L2
+      *> AR-15.19.3-2, the NATIONAL/NAT half of the same rule, in the SOURCE position. The source item is
+      *> NATIONAL: 15.19.3 r6 reads a NAT-source argument-1 as a string of national characters, so a PIC X
+      *> item there is non-conforming (the PB59 family-5a screen rejects it) - the original PIC X SRC was a
+      *> transcription-era card error of this golden, corrected 2026-08-09; the printed value is unchanged
+      *> because UTF-16BE "AB" hexes to 00410042 from either declaration.
+           MOVE FUNCTION CONVERT (NSRC NATIONAL ANUM HEX) TO L1
+           MOVE FUNCTION CONVERT (NSRC NAT      ANUM HEX) TO L2
            IF L1 = L2 DISPLAY "SRC-NAT-EQV=OK " L1
               ELSE DISPLAY "SRC-NAT-EQV=BAD " L1 " " L2 END-IF
 

@@ -38,13 +38,18 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   numeric-literal admission · the total width dispatch + the X'' lexer twin). Inventory GAP 4187 → 4166;
   A.1 register 21/199 (items 33 + 93 new). THREE comprehensive batteries measured ALL GREEN during the
   session (§9 stack); the fourth is the in-flight one above.
-  **NEXT, in order:** ① **PB59 family 5a** — CONVERT's positional format parse + the r4/r5/r6/r7 bind
-  screens: the apply plan is FROZEN at `docs/rearchitecture/pb59-family5a-apply-plan-2026-08-09.md`,
-  the 7-family mechanism map (sites · behaviors · risks, line-anchored — RE-SCOUT anchors before
-  editing) at `docs/rearchitecture/pb59-mechanism-map-2026-08-09.md`. ② **5b** — the ANY raw-storage
+  **PB59 FAMILY 5a LANDED (2026-08-09, the session's first landing):** CONVERT's positional §15.19.2
+  walk + the r4/r5/r6/r7 bind screens over the NEW shared `IntrinsicArgumentRules.StaticUsageOf`
+  (FMT-15.19.2, AR-15.19.3-5, AR-15.19.3-6 → CONFORMS; AR-15.19.3-7 leg (a) enforced, row open on (b);
+  GAP 4166 → 4163). ⚠ The frozen apply plan's CLASS-keyed r5/r6 screens were CORRECTED at apply to the
+  USAGE axis (r4's own words + r5's NOTE; the plan doc carries the dated correction) — a class screen
+  would have rejected numeric DISPLAY items and the corpus's own `argument_rule_equivalences_batch1`
+  NAT legs (PIC X there was the golden's card error, corrected to PIC NN, output byte-identical).
+  **NEXT, in order:** ① **5b** — the ANY raw-storage
   channel + §15.19.4 r2/r4 trailing zero-bit padding + the runtime `Convert` signature (the map's
-  family-5 fixInventory; the ByteSub '?'+EC on the HEX legs is the open RV-15.19.4-2 residue).
-  ③ **PB59 family 7** — the ALPHABETIC result-category rider + the `OperandCategory` totalization
+  family-5 fixInventory; the ByteSub '?'+EC on the HEX legs is the open RV-15.19.4-2 residue, and the
+  MEASURED RV-15.19.4-4 miss — `ANUM NAT HEX` returns 41 where the rule derives 0041 — rides with it).
+  ② **PB59 family 7** — the ALPHABETIC result-category rider + the `OperandCategory` totalization
   DEFERRED there (it moves MAX/MIN result-type resolution — measure together; the map's family-7
   section has the eleven ResultCategory consumers). Then the queue as ordered below (PB60 → PB58 → …).
   **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
@@ -94,11 +99,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   PB70 (group-refmod MOVE loud stage) → PB71 (the ALL-national parse gap) →
   PB64 (LOCALE feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design
   first) → the PB65 tail members above.
-  **PB59 progress (2026-08-09): families 1–4 and 6 of 7 LANDED** — the item-33 identity + the UTF-8
+  **PB59 progress (2026-08-09): families 1–4, 5a and 6 of 7 LANDED** — the item-33 identity + the UTF-8
   device · the value-path trims + item 93 · CHAR on the one collation reader · the per-function
-  numeric-literal admission · the width totalization + the X'' lexer twin — **17 of its 28 rows
-  CONFORMS**; open: family 5 (the CONVERT screens/ANY channel/bit padding — the largest; its mechanism
-  map is in the session drafts) and family 7 (the ALPHABETIC channel + the OperandCategory totalization
+  numeric-literal admission · CONVERT's positional parse + the r4–r7 usage screens · the width
+  totalization + the X'' lexer twin — **20 of its 28 rows
+  CONFORMS**; open: family 5b (the ANY raw-storage channel/bit padding/runtime signature — the largest;
+  its mechanism map is at `docs/rearchitecture/pb59-mechanism-map-2026-08-09.md`) and family 7 (the
+  ALPHABETIC channel + the OperandCategory totalization
   deferred to it).
   **OWNER-RESERVED, ask one at a time when he is at the keyboard:** PB67 (the four standard-binary
   rows → DOCUMENTED-NON-SUPPORT?) · CURRENT-DATE's +14:00 spec hole (RV-15.21.3-1) · PB55's
