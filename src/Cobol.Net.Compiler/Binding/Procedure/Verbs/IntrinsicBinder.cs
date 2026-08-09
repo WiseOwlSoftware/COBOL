@@ -916,15 +916,40 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// (<c>feedback_one_rule_one_place</c>). This is a local alias, not a second implementation.</para></summary>
     private static PicCategory? OperandCategory(BoundOperand op) => IntrinsicResultType.OperandCategory(op);
 
-    /// <summary>The statically knowable width (character positions) of a function argument, or null when the
-    /// length exists only at runtime (ref-mod views, ANY LENGTH items, computed results).</summary>
+    /// <summary>The statically knowable width (character positions) of a function argument — TOTAL over the
+    /// static shapes (fix-queue PB59 / AR-15.26.3-2, AR-15.66.3-2): null ONLY when the length genuinely exists
+    /// at run time. The previous three-arm partial returned null for a GROUP, a REF-MOD view, an ALL literal
+    /// and a figurative, and its one call site's <c>is {{ }}</c> guard read every null as "skip the screen" —
+    /// so a six-position group or <c>ALL "QQ"</c> as a substitution character sailed past the §15.26.3 r2 /
+    /// §15.66.3 r2 one-position rule with no diagnostic, while the equivalent plain literal was rejected: a
+    /// partial function where the rule needs a total one.</summary>
+    /// <remarks>⚠ The CATEGORY twin (<c>OperandCategory</c>'s null-on-group/ALL/refmod arms, which skip the
+    /// same rules' CLASS halves) is DELIBERATELY not totalized here: giving a group a category changes
+    /// MAX/MIN result-type resolution (<c>UniformArgumentType</c>) and collides with the ALPHABETIC
+    /// result-channel work — it lands with that family, measured together (kb/Work PB59 family 7).</remarks>
     private static int? KnownWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Value.Length,
-        BoundFieldOperand { Place: RefModPlace } => null,
-        BoundFieldOperand { Place.Item: { IsGroup: false, IsAnyLength: false } item } => item.ImageWidth,
-        _ => null,
+        // §8.4.3.3 — a ref-mod view with a LITERAL length has that static width; a computed or
+        // omitted-length form is genuinely runtime.
+        BoundFieldOperand { Place: RefModPlace rm } => int.TryParse(rm.Length, out int n) ? n : null,
+        BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
+        // A group's width is static exactly when nothing beneath it varies at run time — the §15.50.4 r7
+        // dynamic guards plus an ODO subordinate's varying current length (§8.5.1.8 GR7/GR8).
+        BoundFieldOperand { Place.Item: { IsGroup: true } g } =>
+            HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g) || HasOdoBeneath(g) ? null : g.ImageWidth,
+        BoundFieldOperand { Place.Item: { } item } => item.ImageWidth,
+        BoundAllLiteral a => a.Literal.Length,   // §8.3.3.6.4 GR3c — a length-unspecified context takes the literal once
+        BoundFigurative => 1,                    // §8.3.3.6.4 GR3b — a bare figurative is ONE character
+        _ => null,   // computed results / error operands — genuinely runtime
     };
+
+    /// <summary>Does this group have an OCCURS DEPENDING ON table beneath it? Its CURRENT extent varies at run
+    /// time (§8.5.1.8), so the group's width is not statically known. The recursive REDEFINES-excluding walk
+    /// mirrors <see cref="HasDynamicLengthLeaf"/>.</summary>
+    private static bool HasOdoBeneath(DataItem g) =>
+        g.Children.Any(c => c.RedefinesTargetName is null
+                            && (c.OccursSpec?.DependingName is not null || (c.IsGroup && HasOdoBeneath(c))));
 
     /// <summary>DISPLAY-OF / NATIONAL-OF argument rules — DISPLAY-OF (§15.26.3): argument-1 shall be of class
     /// national (r1); argument-2 shall be of class alphabetic or alphanumeric and one character position in

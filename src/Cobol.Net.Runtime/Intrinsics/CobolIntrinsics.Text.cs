@@ -5,10 +5,11 @@ namespace CobolNet.Runtime;
 /// <summary>
 /// Family F3 — character intrinsics (ISO §15). CHAR and ORD are PCS-relative (the program collating sequence,
 /// §15.15 / §15.70): the parameterless overloads realize the NATIVE sequence (ordinal char codes — the greenfield
-/// <c>CollatingModel</c> normalizes STANDARD-1/STANDARD-2/NATIVE to this identity); the <c>ushort[]</c> overloads
-/// take the program's emitted <c>__COLLATE</c> weights table (<c>Positions[c]</c> = c's 0-based collating
-/// position — the same table <c>CobolString.Compare</c> uses), passed ONLY when the binder flagged a non-identity
-/// PCS (hazard H5 — the field does not exist otherwise).
+/// <c>CollatingModel</c> normalizes STANDARD-1/STANDARD-2/NATIVE to this identity); the
+/// <see cref="AlphanumericCollation"/> overloads take the program's emitted <c>__COLLATE</c> object (PB59 —
+/// positions + the §15.15.4 r2 representative array + NextFree; comparison paths read its raw
+/// <c>.Positions</c>), passed ONLY when the binder flagged a non-identity PCS (hazard H5 — the field does not
+/// exist otherwise).
 /// </summary>
 public static partial class CobolIntrinsics
 {
@@ -312,9 +313,13 @@ public static partial class CobolIntrinsics
     {
         // ⛔ ONLY the TRAILING image pad, only SPACE (fix-queue PB59 / AR-15.19.3-4): a LEADING space is
         // content, not padding, and falls through HexVal to the non-digit raise below — the old symmetric
-        // Trim() silently converted "  41" as if it were "41". (Lowercase a–f stay admitted here,
-        // DELIBERATELY unlike BASECONVERT: §15.19.3 r4 says "hexadecimal digits" — the term the hex-literal
-        // format defines over both cases — where §15.12.3 r2 names "the basic-letters A to F".)
+        // Trim() silently converted "  41" as if it were "41". ⛔ LOWERCASE a–f ARE NOT HEXADECIMAL DIGITS
+        // IN DATA (corrected 2026-08-09 by RENDERING the §8.3.3.1 page rather than reasoning from the term):
+        // "The hexadecimal digits are the basic digits '0' through '9' and the basic letters 'A' through
+        // 'F'" — §8.1.3.1 Table 1 makes basic letters the CAPITALS, and §8.1.3.2 GR3a's case-folding covers
+        // compilation-group TEXT (X"4a" in SOURCE is legal via CobolLiteral's decode), not runtime data.
+        // A first draft of this comment defended the lowercase arm from the term's literal-format usage —
+        // the rendered page refuted it, the same one-rule-two-carriers split BASECONVERT's r2 got.
         string t = s.TrimEnd(' ');
         // A malformed HEX source VIOLATES argument rule SR4 (§15.19.3) — that is a FATAL EC-ARGUMENT-FUNCTION
         // (the §15.3 argument-rule default), NOT the nonfatal EC-DATA-CONVERSION (which is only for an untranslatable
@@ -340,7 +345,7 @@ public static partial class CobolIntrinsics
         return b;
     }
     private static int HexVal(char c) => c is >= '0' and <= '9' ? c - '0'
-        : c is >= 'A' and <= 'F' ? c - 'A' + 10 : c is >= 'a' and <= 'f' ? c - 'a' + 10 : -1;
+        : c is >= 'A' and <= 'F' ? c - 'A' + 10 : -1;   // capitals only — §8.3.3.1's hexadecimal-digit definition (PB59)
 
     private static string ToHex(byte[] bytes)
     {

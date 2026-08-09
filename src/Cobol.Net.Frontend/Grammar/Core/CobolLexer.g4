@@ -735,6 +735,16 @@ fragment STR_BODY  : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\''
 // literals can be of zero length" and §8.3.3.4.3 NOTE "Hexadecimal-boolean literals can be of zero length".
 // Format 1's `[01]+` is left exactly as it was — widening THAT is §8.3.3.4.4 GR4, a different change set.
 fragment HEXDIGITS : [0-9a-f]* ;                                                     // caseInsensitive covers A-F
+// Hexadecimal-alphanumeric X"…" / X'…' (§8.3.3.2.2 Format 2 — the printed page shows BOTH delimiters with
+// the hex sequence OPTIONAL, verified at 300 dpi 2026-08-09): one body, both delimiters, zero length legal —
+// the Group-B discipline. The apostrophe arm used to hard-code `+`, so X'' split into IDENTIFIER + a
+// zero-length Format-1 literal and NATIONAL-OF(X'') drew 1546 on the WRONG argument (PB59 / AR-15.66.3-3).
+// ⚠ NO SUB_HEXLIT TWIN, BY MEASUREMENT (PB59, probe pb59f2_subhex): the keyword-omitted intrinsic capture
+// re-lexes its argument text in DEFAULT mode — NATIONAL-OF(X'41') answers through it — and a hex literal is
+// not a legal SUBSCRIPT (§8.4.2.3 subscripts are integers), so the SUBSCRIPT mode has no HEXLIT production
+// to mirror. Reachability was probed, not deduced; a future capture path that re-lexes in SUBSCRIPT mode
+// must add the twin from this fragment.
+fragment HEX_BODY  : [x] '"' HEXDIGITS '"' | [x] '\'' HEXDIGITS '\'' ;
 fragment NAT_BODY  : 'N' STR_BODY                                                    // NATLIT / SUB_NATLIT F1
                    | 'NX' '"' HEXDIGITS '"'                                          // §8.3.3.5.2 Format 2
                    | 'NX' '\'' HEXDIGITS '\'' ;
@@ -807,14 +817,14 @@ STRINGLIT   : STR_BODY ;
 // ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
 // identifier such as NAME is unaffected (it has no opening quote). NX"…" (hex national) is deferred.
 NATLIT      : NAT_BODY ;
-// ⚠ ZERO LENGTH IS LEGAL HERE TOO — §8.3.3.2.3 NOTE 2, "Hexadecimal-alphanumeric literals can be of zero
-// length". The `+` refused `X""`, which then split into an IDENTIFIER and a STRINGLIT exactly as NX/BX did
-// (fix-queue R03's sweep). The GROUPING rule (§8.3.3.2.3 r6, pairs of digits) is enforced at bind by
+// ⚠ ZERO LENGTH IS LEGAL IN BOTH DELIMITERS — §8.3.3.2.3 NOTE 2, "Hexadecimal-alphanumeric literals can be
+// of zero length", and §8.3.3.2.2 Format 2 brackets the hex sequence under BOTH delimiter spellings (page
+// rendered and verified — PB59). The quotation arm's `+` was fixed by R03's sweep; the APOSTROPHE arm kept
+// its `+` until PB59, so X'' split into IDENTIFIER + a zero-length Format-1 literal — the same silent-split
+// hole, one delimiter over. The GROUPING rule (§8.3.3.2.3 r6, pairs of digits) is enforced at bind by
 // CobolLiteral.HexGroupViolation, not here: a lexer that refused an odd count would put the literal back in
 // the silent-split hole this whole item exists to close.
-HEXLIT      : [x] '"' HEXDIGITS '"'
-            | [x] '\'' [0-9a-f]+ '\''
-            ;
+HEXLIT      : HEX_BODY ;
 // Boolean literal B"0101" / B'0101' (binary digits only; ISO §8.3.3.4, COBOL-2002). The leading B is part
 // of the token so maximal-munch prefers it over IDENTIFIER (a bare B) and over a plain STRINGLIT ("B"…").
 // BX"…" (hex boolean) is deferred.

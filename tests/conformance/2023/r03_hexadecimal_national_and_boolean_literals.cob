@@ -91,4 +91,13 @@
            DISPLAY "15=" L.
            MOVE BX"" TO BB.
            DISPLAY "16=[" BB "]".
+      *> 17-18 - the APOSTROPHE delimiter (8.3.3.2.2 Format 2 prints BOTH
+      *> delimiters with the hex sequence OPTIONAL - page rendered, PB59). The
+      *> apostrophe arm's `+` used to make X'' split into IDENTIFIER + a
+      *> zero-length Format-1 literal; row 17 pins the same LENGTH answer the
+      *> X"" row 13 pins, row 18 the well-formed control.
+           MOVE FUNCTION LENGTH(X'') TO L.
+           DISPLAY "17=" L.
+           MOVE FUNCTION LENGTH(X'4142') TO L.
+           DISPLAY "18=" L.
            STOP RUN.
