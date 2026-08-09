@@ -25,13 +25,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 ### Where we are
 
 - **▶ SESSION HANDOFF (2026-08-09 19:05 — resume point for the next session):**
-  **⛔ FIRST ACTION: read the IN-FLIGHT battery's verdict.** A comprehensive battery was RUNNING at
-  handoff over the three-landing batch ending `226d7a01` (the PB59-3/-4/-6 batch, which includes a
-  GRAMMAR change — the X'' lexer twin). Its log:
-  `E:\Temp\claude\E--CobolSharp\e3ee2a5f-98d3-456b-a516-f5995c81b07c\scratchpad\battery-20260809-4.log`
-  (artifacts also under `/tmp/battery-20260809-*`). Gate on the `=== BATTERY: … ===` verdict line; if the
-  file is absent or unfinished, re-run `bash scripts/battery.sh` whole. On green, update the §9 battery
-  reference (stack the prior) BEFORE new code.
+  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The fourth comprehensive
+  battery completed before the /clear: `=== BATTERY: ALL GREEN ===` on `226d7a01` (Conformance
+  4334/4334 · Unit 4124/4124 · NIST 353/0 · differential 0 flips — the X'' grammar change clean through
+  the full edition sweep and the differential). The §9 reference records it. Start at the wave-local
+  discipline directly.
   **WHAT THIS SESSION LANDED (all pushed, DEVLOG 1263–1273):** the three PB65 singles (the
   BOOLEAN-OF-INTEGER wide bridge · the Power receiver-arm swap · the bounded-codomain quantizer) and
   **PB59 families 1–4 + 6 of 7** (the Annex A.1 item-33 TOTAL-IDENTITY correspondence + the UTF-8
@@ -1258,7 +1256,14 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB59 families-1+2 tree `e5673b6b` (2026-08-09 15:20).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB59 families-3+4+6 tree `226d7a01` (2026-08-09 19:20).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
+  Conformance **4334 / 4334, zero skipped** (12 m 24 s) · greenfield Unit **4124 / 4124** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** ·
+  GnuCOBOL differential **`0 PER-CASE FLIP(S)`**. Covers the batch with the X'' GRAMMAR change (the
+  HEX_BODY lexer twin), the AlphanumericCollation emission migration, and the numeric-literal admission —
+  the full edition sweep and the differential both clean on the new lexer.
+- **⛔ PRIOR BATTERY REFERENCE — the PB59 families-1+2 tree `e5673b6b` (2026-08-09 15:20).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
   Conformance **4326 / 4326, zero skipped** (12 m 22 s) · greenfield Unit **4122 / 4122** ·
   characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** ·
