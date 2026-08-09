@@ -28,7 +28,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   COMPLETE THE TWO CATALOG CAMPAIGNS — `kb/Work/PB29.md` (§8.8.1 contributes 21 numbered rules and the
   catalog holds NONE) and `kb/Work/PB39.md` (326 catalog rule-ids do not match the standard) — BACK TO
   BACK WITHOUT PAUSING, finishing the register.** The two notes carry the forensics; the tooling is
-  `scripts/spec/` (cite.py, the rule catalog, the traceability inventory). Everything else is CLOSED:
+  `scripts/spec/` (cite.py, the rule catalog, the traceability inventory).
+  ✅ **PB39 LANDED (2026-08-08 22:35, DEVLOG 1252):** 257 ids re-keyed to the standard's own numbering by
+  the delimiter-form segmenter (count contract held at 3,981; 421/421 verdicts carried; the unexplained-ordinal
+  guard fails `--check` and was proven to fail). Its residue is **PB55** (nested-item row-ification is
+  transcription-layout-determined — a denominator question, owner decision, queued with PB29's batch). PB29
+  continues this session. Everything else is CLOSED:
   **the R-wave (R21–R39) is fully landed** — `work.py next` reports the ranked actionable list EMPTY —
   including R13, decided by the owner 2026-08-08 (**follow GnuCOBOL** on the beyond-PICTURE COMP-5
   DISPLAY; §7 item 56; and the broader preference — implementor latitude + split vendors → follow

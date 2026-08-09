@@ -75,7 +75,18 @@ FURNITURE = re.compile(
 # and it re-parses the rule's text as block syntax, which ate the leading `>` of eight rules. The backslash is
 # optional here so the catalog reads both forms: this regex is the DENOMINATOR of the P14 traceability
 # inventory, and a silent zero-rule extraction would read as "no rules in this clause" rather than as a break.
-ORDINAL = re.compile(r"^(?P<n>\d+)\\?[.)]\s+(?P<text>.*)$")
+# ⛔ The DELIMITER FORM (")" vs ".") is captured because it is load-bearing (fix-queue PB39): §15.68.3 writes its
+# top-level rules `1\)` … and its nested list `1.` …, and the form — not any arithmetic on the ordinals — is what
+# separates them. DEVLOG 1167 proved every ordinal-only heuristic wrong on that clause.
+ORDINAL = re.compile(r"^(?P<n>\d+)\\?(?P<form>[.)])\s+(?P<text>.*)$")
+
+# An INDENTED numbered item inside a rule's body — the standard's nested lists ("GR 4 a) 1. 2. 3. …"). These stay
+# with their parent rule's text, but they are EVIDENCE the segmenter needs: the transcription flattens the TAIL
+# of some nested lists onto column 0 (§14.9.13.4 GR4a is transcribed with items 1-3 indented and items 4-6 at
+# column 0), and a column-0 ordinal that CONTINUES the most recent indented run is that nested list's tail — not
+# a top-level rule. §15.30.3 / §15.31.3 / §15.95.4 each carried such a tail filed as a top-level rule; §15.95.4's
+# own heading ("Returned value rule", singular) says the clause has exactly ONE.
+INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 
 # The rule-block kinds the standard uses. Intrinsic functions use argument/returned-value rules instead of SR/GR.
 # SINGULAR forms are load-bearing, not a nicety: the standard writes "Syntax rule" when a block holds exactly one
@@ -285,25 +296,95 @@ def main() -> int:
     # sub-list (e.g. §7.2.3.4 General rules runs 1..n for COPY, then restarts 1..n for text-word matching). Keyed
     # on (kind, section, ordinal) alone, 173 rules collided and silently overwrote each other — which would have
     # carried the WRONG verdict forward on every inventory refresh. Track the sub-list and qualify the id.
-    sublist = 1
-    last_ordinal = 0
+    #
+    # ⛔ SEGMENTATION IS DECIDED BY THE DELIMITER FORM AND THE INDENTED-RUN EVIDENCE, NEVER BY ORDINAL ARITHMETIC
+    # ALONE (fix-queue PB39, DEVLOG 1167). The old rule — "an ordinal that goes backwards opens a sub-list, and
+    # the sub-list never returns to its parent" — filed 326 top-level rules under sub-list ids the standard does
+    # not use (SR-12.3.7.3-L7.18 for what the standard calls "§12.3.7.3 syntax rule 18"). The mechanism, read
+    # from the transcription itself:
+    #   · whatever delimiter form a run opened with is that level's form; a change of form opens a NEST
+    #     (§15.68.3: `1\)..5\)`, nested `1...7.`, then `6\) 7\)` returning to the top level);
+    #   · EXCEPT that the transcription also drifts form mid-run — §13.18.40.3 writes SR 1-5 as `N.` and SR 6-37
+    #     as `N\)` — so an ordinal that STRICTLY CONTINUES an open level's run (n == last+1) belongs to that
+    #     level regardless of form, preferring a form-matched level when two continue with the same n (§9.3.6);
+    #   · EXCEPT that a column-0 ordinal continuing the most recent INDENTED run is the flattened TAIL of that
+    #     nested list, not a rule (§14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §15.30.3 GR2b).
+    # A stack of open levels [form, sublist-index, last-ordinal] implements this; `levels[0]` is the block's top
+    # level (sublist 1, plain ids). Anything the four cases above cannot place is counted in `unexplained` and
+    # FAILS --check: an unexplained ordinal is a new segmentation shape, and silently guessing at it is how the
+    # 326 wrong ids happened the first time.
+    levels: list[list] = []                      # [form, sublist-index, last-ordinal], innermost last
+    next_sublist = 2
+    last_indented = 0
+    cur_sublist = 1
+    unexplained: list[tuple[str, int, str]] = []   # (section, ordinal, why)
     # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
     # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
     # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
     # is printed on page 95 and was recorded as 96).
     rule_page = 0
 
+    def place(n: int, form: str) -> int:
+        """File a column-0 ordinal on the level stack; returns the sub-list index for its id."""
+        nonlocal levels, next_sublist, last_indented
+        if not levels:
+            levels = [[form, 1, n]]
+            last_indented = 0
+            return 1
+        top = levels[-1]
+        # 1. strict same-form continuation of the innermost open level
+        if form == top[0] and n == top[2] + 1:
+            top[2] = n
+            last_indented = 0
+            return top[1]
+        # 2. the flattened tail of an indented nested list (subsequent tail items arrive via case 1)
+        if last_indented and n == last_indented + 1:
+            levels.append([form, next_sublist, n])
+            next_sublist += 1
+            last_indented = n
+            return levels[-1][1]
+        # 3. a same-form restart — a new sub-list, nested on the stack so its parent's run stays open
+        if form == top[0] and n <= top[2]:
+            levels.append([form, next_sublist, n])
+            next_sublist += 1
+            last_indented = 0
+            return levels[-1][1]
+        # 4. an ordinal that strictly continues an OPEN level's run closes every level above it and continues
+        #    it — the form may drift (§13.18.40.3). Form-matched levels win over form-drifted ones (§9.3.6).
+        for form_matched in (True, False):
+            for i in range(len(levels) - 1, -1, -1):
+                if n == levels[i][2] + 1 and (levels[i][0] == form) == form_matched:
+                    del levels[i + 1:]
+                    levels[i][0] = form
+                    levels[i][2] = n
+                    last_indented = 0
+                    return levels[i][1]
+        # 5. an opening ordinal — a new nest
+        if n == 1:
+            levels.append([form, next_sublist, n])
+            next_sublist += 1
+            last_indented = 0
+            return levels[-1][1]
+        # 6. unexplained — filed as a nest so nothing is dropped, and reported loudly (fatal under --check)
+        unexplained.append((cur[0] if cur else "?", n,
+                            f"{n}{form} continues no open level "
+                            f"(levels={[(f, s, l) for f, s, l in levels]}, indented-run last={last_indented})"))
+        levels.append([form, next_sublist, n])
+        next_sublist += 1
+        last_indented = 0
+        return levels[-1][1]
+
     def flush() -> None:
         nonlocal buf, ordinal
         if cur and ordinal and (text := " ".join(x.strip() for x in buf).strip()):
             sec, kind = cur
-            rid = f"{kind}-{sec}-{ordinal}" if sublist == 1 else f"{kind}-{sec}-L{sublist}.{ordinal}"
+            rid = f"{kind}-{sec}-{ordinal}" if cur_sublist == 1 else f"{kind}-{sec}-L{cur_sublist}.{ordinal}"
             rules.append({
                 "id": rid,
                 "section": sec,
                 "kind": kind,
                 "ordinal": ordinal,
-                "sublist": sublist,
+                "sublist": cur_sublist,
                 "subject": subject_for(sec, titles),
                 "text": re.sub(r"\s+", " ", text),
             })
@@ -337,7 +418,7 @@ def main() -> int:
             # ADMITTED set lives in `spec-unharvested-rule-blocks.json` beside the reason each was admitted, and
             # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
             k = kind_of(title) or admitted.get(num)
-            sublist, last_ordinal = 1, 0
+            levels, next_sublist, last_indented, cur_sublist = [], 2, 0, 1
             if k:
                 cur = (num, k)
                 blocks_seen.append(cur)
@@ -347,16 +428,15 @@ def main() -> int:
         if cur is None:
             continue
         if m := ORDINAL.match(line):
+            flush()
             n = int(m.group("n"))
-            if n <= last_ordinal:          # numbering went backwards or repeated -> a new sub-list
-                flush()
-                sublist += 1
-            else:
-                flush()
-            ordinal, last_ordinal = n, n
+            cur_sublist = place(n, m.group("form"))
+            ordinal = n
             rule_page = page
             buf = [m.group("text")]
         elif ordinal:
+            if im := INDENTED_ORDINAL.match(line):
+                last_indented = int(im.group("n"))
             buf.append(line)
     flush()
 
@@ -531,6 +611,17 @@ def main() -> int:
             print(f"      {rid}")
         sys.exit(1)
 
+    # ⛔ THE SEGMENTATION DRIFT GUARD (fix-queue PB39). Every column-0 ordinal must be EXPLAINED — a level
+    # continuation, a nested-list tail behind an indented run, a same-form restart, or a list opening at 1.
+    # An unexplained ordinal means the transcription carries a list shape the segmenter has never seen; guessing
+    # at it is how 326 rules got ids the standard does not use. Zero on the whole 2023 transcription — proven to
+    # fail by perturbation before being trusted — so any nonzero here is NEW evidence, not noise.
+    if unexplained:
+        print(f"\n⛔ {len(unexplained)} ordinal(s) the segmenter could not EXPLAIN — filed as nests, ids suspect:")
+        for sec, n, why in unexplained[:15]:
+            print(f"      §{sec} rule {n}: {why}")
+        print("   Read the clause (and the printed page) and extend the segmentation evidence; do not ship these ids.")
+
     by_kind = Counter(r["kind"] for r in rules)
     top = Counter(r["section"].split(".")[0] for r in rules)
 
@@ -612,7 +703,7 @@ def main() -> int:
         print("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
 
     if args.check:
-        return 1 if (gaps or unrecognised or added or removed or changed) else 0
+        return 1 if (gaps or unrecognised or added or removed or changed or unexplained) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
