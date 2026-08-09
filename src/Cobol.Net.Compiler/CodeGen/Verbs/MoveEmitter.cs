@@ -321,8 +321,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
                 // is the runtime's MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
                 int ems = RuntimeApi.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
-                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation) : e.Expr;
-                int editScale = e.Real ? ems : e.Scale;
+                // A STANDARD-DECIMAL intermediate lands at the MASK's scale (the §14.7 final transfer — the same
+                // form ArithmeticEmitter's edited path uses; fix-queue PB65: MOVE FUNCTION E under the mode handed
+                // the CobolDec to the Int128 edit path, CS1503 on conforming source).
+                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation)
+                    : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", CobolRounding.Truncation)
+                    : e.Expr;
+                int editScale = e.Real || e.Dec ? ems : e.Scale;
                 return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs + RuntimeApi.EditsArg(pic.EditingRules));
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
@@ -392,6 +397,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
                 int recvScaleM = target.Pic!.Scale;
+                // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
+                // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
+                // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.
+                if (n.Dec)
+                    return target.StoreAsImage
+                        ? RuntimeApi.NumFormatImage(ArithmeticEmitter.Narrow(RuntimeApi.NumStoreDec(n.Expr, target.ProfileName), target), target.ProfileName)
+                        : ArithmeticEmitter.Narrow(RuntimeApi.NumStoreDec(n.Expr, target.ProfileName), target);
                 string nExpr = n.Real ? RuntimeApi.FloatToScaled(n.Expr, $"{recvScaleM}", CobolRounding.Truncation) : n.Expr;
                 int nScale = n.Real ? recvScaleM : n.Scale;
                 string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName, n.U), target);
