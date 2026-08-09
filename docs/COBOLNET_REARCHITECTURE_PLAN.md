@@ -1203,7 +1203,13 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R33+R38 closing tree `b66a292c` (2026-08-08 20:05).**
+- **⛔ BATTERY REFERENCE — CURRENT, the six-landing backlog tree `e103a6e3` (2026-08-09 13:49).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
+  Conformance **4313 / 4313, zero skipped** (12 m 58 s) · greenfield Unit **4122 / 4122** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** ·
+  GnuCOBOL differential **`0 PER-CASE FLIP(S)`** against the committed baseline. This is the comprehensive
+  gate the 2026-08-09 six-landing batch (DEVLOG 1257–1262) was owed — each landing had run wave-local only.
+- **⛔ PRIOR BATTERY REFERENCE — the R33+R38 closing tree `b66a292c` (2026-08-08 20:05).**
   ⚠ **NOT GREEN as measured — all THREE differential flips pre-understood, two of them AGREEMENT:**
   FULL greenfield Conformance **4303 / 4303, zero skipped** (12 m 58 s) · greenfield Unit **4099 / 4099** ·
   characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and
