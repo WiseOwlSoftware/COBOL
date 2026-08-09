@@ -469,30 +469,36 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // runtime implementation is CobolDec.Pow.
         if (StandardDecimal)
             return new NumX(RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode), 0, Dec: true);
-        // ⛔ AN INTEGER BASE RAISED TO AN INTEGER EXPONENT IS EXACT, AND IT IS CHECKED BEFORE THE RECEIVER IS EVEN
-        // CONSULTED (owner decision 2026-08-03; fix-queue PB18 + PB32). Two things turn on this arm:
+        // ⛔ AN INTEGER BASE RAISED TO AN INTEGER EXPONENT IS EXACT, AND THE RECEIVER PLAYS NO ROLE AT ALL
+        // (owner decision 2026-08-03; fix-queue PB18 + PB32 + PB65/RV-15.64.4-1). Three things turn on this arm:
         //   · `COMPUTE R = 10 ** 30` returned 1000000000000000071935427891953 where Int128 holds 10^30 exactly —
         //     the native technique contradicting our OWN documented one (numeric design D3).
-        //   · It is the ROOT of PB32's receiver-shape defect. The arm below returns `Real: true` whenever the
-        //     receiver is receiver-less, so `A ** 2` was binary64 under DISPLAY / an IF subject and exact under
-        //     COMPUTE — which then routed FUNCTION MOD to a DIFFERENT BODY and gave 930000008 against 930000007,
-        //     making `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluate FALSE. A function's value must not depend
-        //     on the SHAPE of its receiver (§15.4); testing the OPERANDS before the receiver is what restores it.
+        //   · It is the ROOT of PB32's receiver-shape defect: `A ** 2` was binary64 under DISPLAY / an IF subject
+        //     and exact under COMPUTE, routing FUNCTION MOD to a DIFFERENT BODY (930000008 vs 930000007). A
+        //     function's value must not depend on the SHAPE of its receiver (§15.4).
+        //   · PB32's fix left the RECEIVER-BEARING arm forcing pscale = FloatWorkingScale (≥ 9) onto a result
+        //     that is an INTEGER by construction, so the ×10⁹ landing pushed a 30-digit exact power past Int128
+        //     inside PowNativeInt, whose double fallback then SATURATED — and FUNCTION MOD consumed the sentinel:
+        //     `COMPUTE R = FUNCTION MOD(A ** 2, B)` printed 320612800 (13657001 owed) into S9(9)/S9(18)/S9(28)
+        //     and the right answer into S9(31), the receiver's PICTURE alone selecting the value. The arms had
+        //     merely SWAPPED (feedback_two_arm_dispatch, fifth sighting). The scale a non-negative integer power
+        //     needs is 0 — for EVERY receiver — so both arms now land identically and the receiver is not read.
         // A scale-0 base to an integer exponent is scale 0 for ANY exponent, so the result scale is known without
         // knowing the exponent's value — which is exactly why this arm is restricted to a scale-0 base (a
         // scale-s base to the n has scale s·n, with no compile-time scale to give it).
-        // ⚠ THE RECEIVER-LESS ARM TAKES IT ONLY FOR A NON-NEGATIVE LITERAL EXPONENT, and that restriction is a
-        // measured correction rather than caution: a negative exponent is §8.8.1.2's RECIPROCAL, which is not an
-        // integer, so landing it at the scale-0 a receiver-less context implies would truncate the value away
-        // (`2 ** -2` ⇒ 0 instead of 0.25 — a regression this arm introduced and probing caught). With a receiver
-        // there IS a scale to land at, so that arm needs no such test and stays exact for every exponent.
+        // ⚠ A NEGATIVE OR RUNTIME-ITEM EXPONENT CANNOT LAND AT A COMPILE-TIME SCALE: §8.8.1.2's reciprocal for a
+        // negative exponent is not an integer (`2 ** -2` at scale 0 ⇒ 0 instead of 0.25 — a measured regression),
+        // and a data-item exponent's sign is a run-time fact, so NO fixed scale serves both regimes — scale 9
+        // corrupts the big positive powers (measured: `A ** X` with X = 2 gave the same 320612800), scale 0
+        // truncates the reciprocals. The carrier that owns its scale AT RUN TIME is the SDIDI, so those shapes
+        // return Dec: PowNativeIntDec computes the same owner-decided values (exact Int128 loop while it fits,
+        // the documented double approximation past it / for the reciprocal) on the carrier every downstream
+        // consumer already handles (the PB32/PB14 carrier-total sweep). Receiver-independent by construction.
         bool integerOperands = !b.Real && !e.Real && !b.Dec && !e.Dec && b.Scale == 0 && e.Scale == 0;
-        bool receiverless = _rcv.Real || _rcv.Receiverless;
-        if (integerOperands && (!receiverless || expIsNonNegativeLiteral))
-        {
-            int pscale = receiverless ? 0 : _rcv.FloatWorkingScale;
-            return new NumX(RuntimeApi.Intrinsic("PowNativeInt", $"{b.Expr}, {e.Expr}, {pscale}"), pscale);
-        }
+        if (integerOperands)
+            return expIsNonNegativeLiteral
+                ? new NumX(RuntimeApi.Intrinsic("PowNativeInt", $"{b.Expr}, {e.Expr}"), 0)
+                : new NumX(RuntimeApi.Intrinsic("PowNativeIntDec", $"{b.Expr}, {e.Expr}"), 0, Dec: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family

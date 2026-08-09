@@ -175,13 +175,15 @@ public static partial class CobolIntrinsics
     /// out-of-range magnitude SATURATES and stays above the receiver's capacity check instead of wrapping — the
     /// PB13 mechanism, reused rather than re-derived.</para>
     /// </remarks>
-    /// <param name="scale">The fraction digits the result is returned at. ⛔ THIS PARAMETER IS WHY THE ARM IS
-    /// CORRECT FOR A NEGATIVE EXPONENT, and its absence was a regression caught by probing rather than reasoning:
-    /// a first cut returned the exact integer at scale 0 unconditionally, so <c>COMPUTE R = 2 ** -2</c> into a
-    /// <c>PIC S9(9)V9(4)</c> gave <b>0.0000</b> where it must give 0.2500 — §8.8.1.2's reciprocal for a negative
-    /// exponent is not an integer, and forcing an integer carrier onto it truncates the whole value away. The
-    /// exact loop still runs at the true integer scale; only the LANDING uses this scale.</param>
-    public static Int128 PowNativeInt(Int128 b, Int128 e, int scale)
+    /// <remarks>⛔ THE RESULT LANDS AT SCALE 0, UNCONDITIONALLY (fix-queue PB65 / RV-15.64.4-1). This body is
+    /// reached ONLY for a NON-NEGATIVE LITERAL exponent (the renderer's compile-time test), whose result is an
+    /// integer by construction — the previous receiver-derived landing scale (≥ 9) multiplied the exact power by
+    /// 10⁹ INSIDE this body, pushing a 30-digit exact value past the carrier and into the saturating double
+    /// fallback, which FUNCTION MOD then consumed as a real value (`COMPUTE R = FUNCTION MOD(A ** 2, B)` printed
+    /// 320612800 where 13657001 was owed, the receiver's PICTURE selecting which). A negative or runtime-item
+    /// exponent takes <see cref="PowNativeIntDec"/>, whose SDIDI result owns its scale at run time — the
+    /// `2 ** -2` ⇒ 0.25 reciprocal that once justified a landing-scale parameter here lives there now.</remarks>
+    public static Int128 PowNativeInt(Int128 b, Int128 e)
     {
         CheckPowRule6((double)b, (double)e);
         if (e >= 0)
@@ -193,14 +195,41 @@ public static partial class CobolIntrinsics
                 if (mag > 1 && Int128.Abs(r) > Int128.MaxValue / mag) { fits = false; break; }
                 r *= b;
             }
-            // Exact only if the integer result AND its landing at `scale` both stay inside the carrier.
-            if (fits && (r == 0 || Int128.Abs(r) <= Int128.MaxValue / Pow10.AsWide(scale)))
-                return r * Pow10.AsWide(scale);
+            if (fits) return r;
         }
-        // The documented double approximation: a negative exponent's reciprocal, or an exact result that left
-        // the carrier. Quantized through FromDouble rather than cast, so an out-of-range magnitude SATURATES and
-        // stays above the receiver's capacity check instead of wrapping (the PB13 mechanism, reused).
-        return FromDouble(Math.Pow((double)b, (double)e), scale);
+        // The documented double approximation: an exact result that left the carrier (a negative exponent
+        // cannot reach this body — see the remarks). Quantized through FromDouble rather than cast, so an
+        // out-of-range magnitude SATURATES and stays above a receiver's capacity check instead of wrapping
+        // (the PB13 mechanism, reused). ⚠ Consumed as an intrinsic ARGUMENT there is no capacity check to
+        // stay above — the sentinel-as-argument residue is ledgered on kb/Work (found by this fix's probing).
+        return FromDouble(Math.Pow((double)b, (double)e), 0);
+    }
+
+    /// <summary>Native <c>**</c> with an integer base and a NEGATIVE-OR-RUNTIME-ITEM integer exponent — the
+    /// same owner-decided values as <see cref="PowNativeInt"/> (exact Int128 loop while the result fits, the
+    /// documented double approximation past it, the §8.8.1.2 reciprocal via double for a negative exponent),
+    /// returned on the SDIDI carrier (fix-queue PB65 / RV-15.64.4-1).</summary>
+    /// <remarks>The exponent's SIGN is a run-time fact for a data-item exponent, and the two regimes need
+    /// different scales — 0 for a positive power (any larger scale eats exactness headroom: scale 9 corrupted
+    /// every power past 29 digits), fraction digits for a reciprocal — so no compile-time scale serves both.
+    /// The SDIDI owns its exponent at run time and every downstream consumer is carrier-total over Dec
+    /// (the PB32/PB14 sweep), which also makes the value receiver-independent (§15.4): DISPLAY, an IF operand,
+    /// a COMPUTE receiver and a FUNCTION argument all see this one result.</remarks>
+    public static CobolDec PowNativeIntDec(Int128 b, Int128 e)
+    {
+        CheckPowRule6((double)b, (double)e);
+        if (e >= 0)
+        {
+            Int128 r = 1, mag = Int128.Abs(b);
+            bool fits = true;
+            for (Int128 i = 0; i < e && fits; i++)
+            {
+                if (mag > 1 && Int128.Abs(r) > Int128.MaxValue / mag) { fits = false; break; }
+                r *= b;
+            }
+            if (fits) return CobolDec.From(r, 0);
+        }
+        return CobolDec.FromDouble(Math.Pow((double)b, (double)e));
     }
 
     /// <summary>§15.7 ABS — the absolute value of a floating-point argument.</summary>
@@ -223,14 +252,27 @@ public static partial class CobolIntrinsics
     /// (§15.64.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER (argument-1 / argument-2))</c>).
     /// ⛔ The zero-divisor leg calls the SHARED <see cref="ModZeroDivisor"/> rather than carrying its own guard
     /// (fix-queue PB32): this body used to answer <c>b == 0 ? 0 : …</c>, which returned the §15.3 default WITHOUT
-    /// ever setting the fatal EC-ARGUMENT-FUNCTION its exact twin sets.</summary>
-    public static double ModReal(double a, double b) => b == 0 ? ModZeroDivisor() : a - (b * Math.Floor(a / b));
+    /// ever setting the fatal EC-ARGUMENT-FUNCTION its exact twin sets.
+    /// <para>⛔ COMPUTED AS THE EXACT CARRIER REMAINDER, NOT THE LITERAL EAE (fix-queue PB65 / RV-15.64.4-1
+    /// sweep): the C# <c>%</c> on doubles is IEC 60559's exact truncated remainder of the two carrier values,
+    /// adjusted by one addition to the floored form §15.64.4 defines. The literal
+    /// <c>a − (b × Math.Floor(a / b))</c> form cancels catastrophically once <c>b·⌊a/b⌋</c> exceeds 2⁵³ —
+    /// measured returning 320612800-class garbage for arguments whose true remainder the carrier represents
+    /// exactly — and §15.4.1's "implementor-defined approximation" has to approximate the EXPRESSION, which
+    /// the exact remainder does and the cancellation does not.</para></summary>
+    public static double ModReal(double a, double b)
+    {
+        if (b == 0) return ModZeroDivisor();
+        double r = a % b;
+        return r != 0 && (r < 0) != (b < 0) ? r + b : r;
+    }
 
     /// <summary>§15.77 REM — the TRUNCATED remainder, whose result takes the sign of argument-1
     /// (§15.77.4: <c>argument-1 − (argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2))</c>).
     /// ⚠ Distinct from <see cref="ModReal(double, double)"/> exactly as the two exact bodies are: REM(−7, 3) is
-    /// −1 where MOD(−7, 3) is 2. Shares <see cref="RemZeroDivisor"/> with the exact carrier for the same reason.</summary>
-    public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a - (b * Math.Truncate(a / b));
+    /// −1 where MOD(−7, 3) is 2. Shares <see cref="RemZeroDivisor"/> with the exact carrier for the same reason,
+    /// and rides the same exact <c>%</c> (which IS the truncated remainder) for the same PB65 sweep reason.</summary>
+    public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a % b;
 
     /// <summary>§15.59 MAX — the greatest argument value.</summary>
     public static double MaxReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Max();

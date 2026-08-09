@@ -42,11 +42,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   --check` every citation) → fix at the root, sweep siblings → CLI-probe BEFORE writing the .out →
   golden + manifest same commit → wave-local gate (full suites when a shared seam moves) →
   `record_verdicts.py` re-verdict batch → SpecTraceability gate → note/DEVLOG/§0 → commit AND push.
-  **NEXT, in queue order:** PB65's last two singles (Power's receiver-arm swap RV-15.64.4-1 · the
-  native FromDouble clamp-sentinel family RV-15.75.4-1; the BOOLEAN-OF-INTEGER wide bridge LANDED
-  2026-08-09, its D2/D3 class-boolean residue split to PB68) → **PB59** (CONVERT/Repertoire, 28 rows,
-  silent wrong answers) → **PB60** (NUMVAL real parsers, 13) → **PB58** (argument-screen table shape,
-  41) → PB61 → PB62 → PB63 → PB68 (the class-boolean checkpoint extraction) → PB64 (LOCALE
+  **NEXT, in queue order:** PB65's last single (the native FromDouble clamp-sentinel family
+  RV-15.75.4-1; the BOOLEAN-OF-INTEGER wide bridge and the Power receiver-arm swap LANDED 2026-08-09 —
+  the D2/D3 class-boolean residue split to PB68, the past-Int128 sentinel-as-argument residue to
+  PB69) → **PB59** (CONVERT/Repertoire, 28 rows, silent wrong answers) → **PB60** (NUMVAL real
+  parsers, 13) → **PB58** (argument-screen table shape, 41) → PB61 → PB62 → PB63 → PB68 (the
+  class-boolean checkpoint extraction) → PB69 (the sentinel-as-argument quadrant) → PB64 (LOCALE
   feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design first).
   **OWNER-RESERVED, ask one at a time when he is at the keyboard:** PB67 (the four standard-binary
   rows → DOCUMENTED-NON-SUPPORT?) · CURRENT-DATE's +14:00 spec hole (RV-15.21.3-1) · PB55's
