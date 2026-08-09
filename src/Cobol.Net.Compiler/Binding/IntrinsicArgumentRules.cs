@@ -45,6 +45,16 @@ internal enum CobolClass
     Numeric,
     Object,
     Pointer,
+
+    /// <summary>Class INDEX (§8.5.2.1 Table 2 — a distinct class, never numeric; §13.18.60's index data items
+    /// and INDEXED BY index-names both present it). No §15 argument rule admits it, so classifying it is what
+    /// REJECTS an index argument (kb/Work R27 — the lattice previously could not express it: an index DATA
+    /// item's <see cref="PicInfo.IndexItem"/> carries category Numeric for storage, so it passed every 'n'
+    /// screen, and an index-NAME fell into the computed-operand-is-numeric arm). USAGE MESSAGE-TAG (Table 2's
+    /// other unexpressed class) has NO <see cref="Usage"/> member — the MCS facility is unmodeled — so it gets
+    /// no dead enum member here; the Usage-inventory drift test forces the classification decision the moment
+    /// the usage lands.</summary>
+    Index,
 }
 
 /// <summary>One argument POSITION's requirement — the §15.x.3 rule for that ordinal, with the clause it was read
@@ -261,6 +271,10 @@ internal static class IntrinsicArgumentRules
         // An arithmetic expression IS a numeric argument (§15.3 types 6 and 10 admit one outright); a nested
         // intrinsic contributes the class of ITS result category.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ClassOfCategory(ic.ResultCategory),
+        // An INDEX-NAME operand (kb/Work R27): class index (§8.5.2.1 Table 2), which no §15 argument rule
+        // admits — BEFORE the generic computed arm, whose is-numeric answer let `FUNCTION INTEGER(IX)`
+        // compute the occurrence number silently.
+        BoundComputedOperand { Expr: BoundIndexRef } => CobolClass.Index,
         BoundComputedOperand => CobolClass.Numeric,
         _ => null,
     };
@@ -287,6 +301,11 @@ internal static class IntrinsicArgumentRules
                 _ => CobolClass.Alphanumeric,
             };
         }
+        // The USAGE-keyed arm rides BEFORE the category table (kb/Work R27): an index DATA item's PicInfo
+        // carries category NUMERIC for the storage model (PicInfo.IndexItem), but §8.5.2.1 Table 2 puts it in
+        // class INDEX — a distinct class no §15 argument rule admits. Keying the usage first is what stops the
+        // storage category from answering the CLASS question.
+        if (p.Item.Pic is { Usage: Usage.Index }) return CobolClass.Index;
         return p.Item.Pic is { } pic ? ClassOfCategory(pic.Category) : null;
     }
 
@@ -735,6 +754,7 @@ internal static class IntrinsicArgumentRules
         CobolClass.Numeric => "numeric",
         CobolClass.Object => "object",
         CobolClass.Pointer => "pointer",
+        CobolClass.Index => "index",
         _ => c.ToString().ToLowerInvariant(),
     };
 }

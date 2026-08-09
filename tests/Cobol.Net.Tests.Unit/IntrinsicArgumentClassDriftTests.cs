@@ -229,4 +229,53 @@ public sealed class IntrinsicArgumentClassDriftTests
                 + "uncited cross rule rejects legal source on a guess.");
         }
     }
+
+    /// <summary>kb/Work R27 — §8.5.2.1 Table 2's CLASS question must be answered for every USAGE, and a new
+    /// usage member must not silently inherit its storage category's answer. An index data item's PicInfo
+    /// carries category NUMERIC for the storage model, so before the usage-keyed arm it passed every
+    /// class-numeric screen and <c>FUNCTION INTEGER(IX)</c> computed the occurrence number silently. USAGE
+    /// MESSAGE-TAG (Table 2's other unexpressed class) deliberately has NO Usage member — the MCS facility is
+    /// unmodeled — so the moment it (or any new usage) lands, this fact goes red until its Table-2 class is
+    /// decided, wired, and recorded here.</summary>
+    [Fact]
+    public void EveryUsageMember_HasATable2ClassDisposition()
+    {
+        // "category" = the item's PicCategory row answers through ClassOfCategory (the storage category IS the
+        // Table-2 class for these usages); anything else names the usage-keyed CobolClass arm in ClassOfPlace.
+        var dispositioned = new Dictionary<CobolNet.Binding.Model.Usage, string>
+        {
+            [CobolNet.Binding.Model.Usage.Display] = "category",
+            [CobolNet.Binding.Model.Usage.Binary] = "category",
+            [CobolNet.Binding.Model.Usage.Packed] = "category",
+            [CobolNet.Binding.Model.Usage.Comp5] = "category",
+            [CobolNet.Binding.Model.Usage.Float] = "category",
+            [CobolNet.Binding.Model.Usage.Double] = "category",
+            [CobolNet.Binding.Model.Usage.Index] = "usage-keyed: CobolClass.Index",
+            [CobolNet.Binding.Model.Usage.ObjectReference] = "category",
+            [CobolNet.Binding.Model.Usage.National] = "category",
+            [CobolNet.Binding.Model.Usage.Bit] = "category",
+            [CobolNet.Binding.Model.Usage.Pointer] = "category",
+            [CobolNet.Binding.Model.Usage.ProgramPointer] = "category",
+            [CobolNet.Binding.Model.Usage.FunctionPointer] = "category",
+            [CobolNet.Binding.Model.Usage.FloatShort] = "category",
+            [CobolNet.Binding.Model.Usage.FloatLong] = "category",
+            [CobolNet.Binding.Model.Usage.FloatExtended] = "category",
+            [CobolNet.Binding.Model.Usage.FloatBinary32] = "category",
+            [CobolNet.Binding.Model.Usage.FloatBinary64] = "category",
+            [CobolNet.Binding.Model.Usage.FloatBinary128] = "category",
+            [CobolNet.Binding.Model.Usage.FloatDecimal16] = "category",
+            [CobolNet.Binding.Model.Usage.FloatDecimal34] = "category",
+            [CobolNet.Binding.Model.Usage.BinaryChar] = "category",
+            [CobolNet.Binding.Model.Usage.BinaryShort] = "category",
+            [CobolNet.Binding.Model.Usage.BinaryLong] = "category",
+            [CobolNet.Binding.Model.Usage.BinaryDouble] = "category",
+        };
+        foreach (var u in Enum.GetValues<CobolNet.Binding.Model.Usage>())
+            Assert.True(dispositioned.ContainsKey(u),
+                $"Usage.{u} has no §8.5.2.1 Table-2 class disposition (kb/Work R27) — decide its Table-2 "
+                + "class, wire the usage-keyed arm in ClassOfPlace if the storage category must not answer, "
+                + "then record the decision here.");
+        // The usage-keyed arm itself exists (the source-form half, same style as the rest of this suite).
+        Assert.Matches(new Regex(@"Usage:\s*Usage\.Index\s*\}\s*\)\s*return\s+CobolClass\.Index"), RulesSource());
+    }
 }
