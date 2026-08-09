@@ -412,12 +412,28 @@ public sealed class IntrinsicFunctionDifferentialTests
             "AB CD\nXYZ", 2023);
     }
 
+    [Fact]
+    public void Concat_AdmitsNumericLiterals_AndFoldedNumericFunctions_2023()
+    {
+        // PB59 / RV-15.18.4-1 — §15.18.3 r1 lists class NUMERIC: a numeric literal concatenates as its own
+        // characters (§15.18.4 r1), and a FOLDED nested numeric function (FUNCTION LENGTH of a fixed item
+        // becomes a BoundNumericLiteral through IntrinsicBinder.OperandOf) reaches the same admitting arm —
+        // both shapes used to compile clean and abort at run time.
+        AssertSpec(Program(
+            "01 A PIC X(3) VALUE \"AB\".\n           01 B PIC X(2) VALUE \"CD\".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION CONCAT(A, 12) TO R.\n    DISPLAY R.\n"
+            + "    MOVE FUNCTION CONCAT(A, FUNCTION LENGTH(B)) TO R.\n    DISPLAY R.", "IFCATN"),
+            "AB 12\nAB 2", 2023);
+    }
+
     [Theory]
     [InlineData("\"FF\", 16, 10", "255")]     // §15.12.4 — base 16 → base 10
     [InlineData("\"255\", 10, 16", "FF")]     //           base 10 → base 16
     [InlineData("\"1010\", 2, 16", "A")]      //           base 2  → base 16 (10 = A)
     [InlineData("\"0\", 10, 2", "0")]         //           zero — one digit CONSUMED (the digitless guard keys on the count, never the accumulator)
     [InlineData("\"FF  \", 16, 10", "255")]   // PB59 — the TRAILING fixed-width image pad is not content (TrimEnd(' '))
+    [InlineData("255, 10, 16", "FF")]         // PB59 / RV-15.12.4-1 — an UNQUOTED numeric literal argument-1 (§15.12.3 r1
+                                              //   admits "an unsigned integer … literal" below base 11; used to abort at run time)
     public void BaseConvert_ReExpressesInTargetBase_2023(string args, string expected)
         => AssertSpec(Program("01 R PIC X(10).",
             $"    MOVE FUNCTION BASECONVERT({args}) TO R.\n    DISPLAY R.", "IFBASE"), expected, 2023);

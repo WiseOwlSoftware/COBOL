@@ -78,27 +78,63 @@ public sealed class OperandStringChannelDriftTests
 
     /// <summary>
     /// The leaves the two channels are meant to answer DIFFERENTLY, asserted so nobody "fixes" them into
-    /// agreement. Making <c>BoundNumericLiteral</c> match the DISPLAY channel would silently admit a numeric
-    /// literal into a string-argument position — the inverse of PB25 and just as quiet.
+    /// agreement. <c>BoundBoolOperand</c> stays a plain loud stage. <c>BoundNumericLiteral</c> is ADMITTED
+    /// PER-FUNCTION since PB59 (§15.12.3 r1 / §15.18.3 r1 admit numeric literals): the arm must stay
+    /// CONDITIONAL — <c>admitNumeric</c> selecting the shared OperandText image, <c>Loud</c> as the DEFAULT —
+    /// because NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 / AR-15.69.3-1) demanding a compile-time
+    /// rejection; an unconditional delegation would turn their wrong-stage defect into a silently-wrong one.
     /// </summary>
     [Fact]
-    public void StrArgVisitor_KeepsTheDeliberatelyDifferentLeaves_Loud()
+    public void StrArgVisitor_NumericLiteral_AdmittedPerFunction_LoudByDefault()
     {
         string body = StrArgVisitorBody();
-        foreach ((string leaf, string why) in new[]
-                 {
-                     ("BoundNumericLiteral", "a numeric literal is a legal DISPLAY operand and NOT a legal "
-                         + "string-argument operand — §15's string functions take alphanumeric/national/boolean"),
-                     ("BoundBoolOperand", "a class-boolean operand does not cross the string-argument channel"),
-                 })
-        {
-            var m = Regex.Match(body, $@"public string Visit\({leaf} n\)\s*=>(?<rhs>[^;]*);");
-            Assert.True(m.Success, $"StrArgVisitor lost its Visit({leaf}) arm");
-            Assert.True(m.Groups["rhs"].Value.Contains("Loud", StringComparison.Ordinal),
-                $"StrArgVisitor.Visit({leaf}) is no longer a loud stage. {why}. If this became a delegation to "
-                + "OperandText.AsString the channel would start ACCEPTING an operand §15.3 excludes, with no "
-                + "diagnostic — silent over-acceptance, the inverse of the PB25 defect this file guards.");
-        }
+
+        var num = Regex.Match(body, @"public string Visit\(BoundNumericLiteral n\)\s*=>(?<rhs>[^;]*);");
+        Assert.True(num.Success, "StrArgVisitor lost its Visit(BoundNumericLiteral) arm");
+        string rhs = num.Groups["rhs"].Value;
+        Assert.True(rhs.Contains("admitNumeric", StringComparison.Ordinal)
+                && rhs.Contains("Loud", StringComparison.Ordinal),
+            "Visit(BoundNumericLiteral) must stay the CONDITIONAL PB59 shape — admitNumeric selecting the "
+            + "shared OperandText image with Loud as the default. Unconditionally Loud re-opens "
+            + "RV-15.12.4-1/RV-15.18.4-1 (legal literals abort at run time); unconditionally delegating "
+            + "silently admits a numeric literal where §15.67.3/§15.69.3 exclude it.");
+        Assert.True(rhs.Contains("OperandText.AsString", StringComparison.Ordinal),
+            "the admitting branch must delegate to the ONE OperandText.AsString image (PB25's rule: never a "
+            + "local re-derivation of the literal image)");
+
+        var bol = Regex.Match(body, @"public string Visit\(BoundBoolOperand n\)\s*=>(?<rhs>[^;]*);");
+        Assert.True(bol.Success, "StrArgVisitor lost its Visit(BoundBoolOperand) arm");
+        Assert.True(bol.Groups["rhs"].Value.Contains("Loud", StringComparison.Ordinal),
+            "Visit(BoundBoolOperand) is no longer a loud stage — a class-boolean operand does not cross the "
+            + "string-argument channel.");
+    }
+
+    /// <summary>The admitting entry (<c>StrNum</c> / the admitting <c>StrArgList</c>) is reached from EXACTLY
+    /// the functions whose §15.x.3 rules admit a numeric literal — BASECONVERT argument-1 and CONCAT. A new
+    /// caller is a new spec claim and must be added here WITH its rule; a blanket route through the admitting
+    /// entry is the over-acceptance this file exists to prevent.</summary>
+    [Fact]
+    public void StrNum_IsReachedFromExactlyTheAdmittingFunctions()
+    {
+        string src = IntrinsicRendererSource();
+        int visitorAt = src.IndexOf("private sealed class StrArgVisitor", StringComparison.Ordinal);
+        string renderers = src[..visitorAt];   // the arm switches live above the visitor class
+
+        // Each admitting CALL SITE (StrNum(ic… / the admitting StrArgList) is attributed to its enclosing
+        // switch arm by the nearest preceding "Name" => label. The token shapes are call-site-precise so the
+        // StrNum/StrArgVisitor helper declarations (which precede every arm) cannot false-attribute, and the
+        // attribution deliberately does NOT scan forward through arm text — the arms' own comments contain
+        // ';', which sank the first draft of this guard (it matched nothing and would have passed green on an
+        // empty caller set had the expected list not been asserted).
+        var callers = Regex.Matches(renderers, @"StrNum\(ic|StrArgList\(ic,\s*admitNumeric:\s*true")
+            .Select(tok => Regex.Matches(renderers[..tok.Index], @"""(?<fn>\w+)""\s*=>")
+                .Select(m => m.Groups["fn"].Value).LastOrDefault())
+            .Where(fn => fn is not null).Distinct().Order().ToList();
+        Assert.True(callers.SequenceEqual(new[] { "BaseConvert", "Concat" }),
+            $"the numeric-admitting string entry is reached from [{string.Join(", ", callers)}] — expected "
+            + "exactly [BaseConvert, Concat] (§15.12.3 r1's unsigned-integer-literal argument-1; §15.18.3 r1's "
+            + "class-numeric list). If a new function legitimately admits numeric literals, add it here WITH "
+            + "the §15.x.3 rule that says so.");
     }
 
     /// <summary>Both string channels cover the SAME leaf set. The generated visitor interface already forces
@@ -121,12 +157,14 @@ public sealed class OperandStringChannelDriftTests
             + $"[{string.Join(", ", strArg.Except(display).Order())}]; only in AsStringVisitor: "
             + $"[{string.Join(", ", display.Except(strArg).Order())}]");
 
-        // Every leaf is either DELEGATED (the shared rule) or DIVERGENT BY DESIGN. A leaf in neither bucket is
-        // one nobody has decided about, which is how PB25 shipped.
+        // Every leaf is DELEGATED (the shared rule), DIVERGENT BY DESIGN, or ADMITTED PER-FUNCTION (PB59 —
+        // the conditional arm the pin test above owns). A leaf in no bucket is one nobody has decided about,
+        // which is how PB25 shipped.
         string[] delegated = ["BoundFieldOperand", "BoundFigurative", "BoundAllLiteral"];
-        string[] divergent = ["BoundNumericLiteral", "BoundBoolOperand", "BoundComputedOperand",
+        string[] divergent = ["BoundBoolOperand", "BoundComputedOperand",
                               "BoundStringLiteral", "BoundOperandError"];
-        var unclassified = strArg.Except(delegated).Except(divergent).Order().ToList();
+        string[] admittedPerFunction = ["BoundNumericLiteral"];
+        var unclassified = strArg.Except(delegated).Except(divergent).Except(admittedPerFunction).Order().ToList();
         Assert.True(unclassified.Count == 0,
             $"BoundOperand leaf/leaves [{string.Join(", ", unclassified)}] are handled by both string channels "
             + "but classified by neither bucket in this guard. Decide explicitly: does the intrinsic-argument "

@@ -120,6 +120,7 @@
   "pb53_by_content_move_rules",
   "pb54_keyword_omitted_figurative_zero_argument",
   "pb56_dec_carrier_intrinsics",
+  "pb59_numeric_literal_argument",
   "pb5_float_quantize_range",
   "pb65_boolean_wide",
   "pb65_codomain_clamp",

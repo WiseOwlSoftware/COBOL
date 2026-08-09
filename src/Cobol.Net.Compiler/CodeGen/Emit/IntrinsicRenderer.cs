@@ -590,7 +590,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}", s);
     }
 
-    private string StrArgList(BoundIntrinsicCall ic) => string.Join(", ", ic.Args.Select(Str));
+    /// <summary>The variadic string-argument list. <paramref name="admitNumeric"/> defaults FALSE and is passed
+    /// true by exactly one caller (CONCAT — §15.18.3 r1 lists class numeric): four arms with three different
+    /// §15.x.3 argument rules share this helper, so the admission is a parameter, never a global flip
+    /// (§15.26.3 r1 / §15.66.3 r1 exclude class numeric outright — PB59).</summary>
+    private string StrArgList(BoundIntrinsicCall ic, bool admitNumeric = false) =>
+        string.Join(", ", ic.Args.Select(a => admitNumeric ? StrNum(a) : Str(a)));
 
     private string CommaFlag => ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "";
 
@@ -663,8 +668,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "WhenCompiled" => EmitText.CsLiteral(WhenCompiledStamp.Value),
             "MaxString" or "MinString" =>                                      // §15.59/63 all-string form (PCS via CollatePrefix, CA23)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)),
-            "Concat" =>                                                        // §15.18 — concatenate all argument images (2023)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
+            "Concat" =>                                                        // §15.18 — concatenate all argument images (2023);
+                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits class NUMERIC → the admitting list (PB59)
+                    StrArgList(ic, admitNumeric: true)),
             // BOOLEAN-OF-INTEGER (§15.13.4 r1) — a boolean-result function on the D-B1 '0'/'1' substrate:
             // rightmost position = low-order digit, left zero-fill/truncate to argument-2 positions.
             // Argument-1 crosses the WIDE bridge (Int128 — §15.13.3 r1 admits any positive integer, PB65);
@@ -675,9 +681,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // the optional argument-2 is the one-character substitution string (§15.26.3 r2 / §15.66.3 r2).
             "DisplayOf" or "NationalOf" =>
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
-            "BaseConvert" =>                                                   // §15.12 — unsigned-integer base conversion (2023)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, {ArgInt(ic.Args[2])}"),
+            "BaseConvert" =>                                                   // §15.12 — unsigned-integer base conversion (2023);
+                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   r1 admits an unsigned integer LITERAL argument-1 below
+                    $"{StrNum(ic.Args[0])}, {ArgInt(ic.Args[1])}, {ArgInt(ic.Args[2])}"),   // base 11 (PB59); args 2/3 stay integers
             "Trim" =>                                                          // §15.96 — delete leading/trailing/both of the char set (default: space)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
                     + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
@@ -804,14 +810,30 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>A string-kind argument (the §15.3 alphanumeric-argument shapes): literals, field display
     /// images, and nested alphanumeric intrinsics. A numeric-category operand in a string-argument position
-    /// stays loud — §15's string functions take alphanumeric/national/boolean arguments (the named channel).</summary>
-    private string Str(BoundOperand op) => op.Accept(_strArg ??= new StrArgVisitor(this));
+    /// stays loud — §15's string functions take alphanumeric/national/boolean arguments (the named channel).
+    /// ⛔ THE DEFAULT IS NON-ADMITTING AND MUST STAY SO: NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 /
+    /// AR-15.69.3-1) DEMANDING a compile-time rejection of a numeric literal — widening this default would
+    /// turn their wrong-stage defect into a silently-wrong one.</summary>
+    private string Str(BoundOperand op) => op.Accept(_strArg ??= new StrArgVisitor(this, admitNumeric: false));
     private StrArgVisitor? _strArg;
+
+    /// <summary>The NUMERIC-ADMITTING string-argument entry (fix-queue PB59 / RV-15.12.4-1, RV-15.18.4-1) —
+    /// for EXACTLY the functions whose §15.x.3 argument rules admit a numeric literal: BASECONVERT argument-1
+    /// (§15.12.3 r1 — "a usage display or national data item or literal, and, if the base … is less than 11,
+    /// … an unsigned integer data item or literal") and CONCAT (§15.18.3 r1 — class numeric is in its list).
+    /// The literal renders through the ONE <c>OperandText.AsString</c> image (raw source text — correct for
+    /// §15.18.4 r1; r3's value conditions are NOT the renderer's to enforce and stay recorded on the
+    /// DeliberatelyUnscreened rows). Never a blanket route — the drift test pins the caller set.</summary>
+    private string StrNum(BoundOperand op) => op.Accept(_strArgNum ??= new StrArgVisitor(this, admitNumeric: true));
+    private StrArgVisitor? _strArgNum;
 
     /// <summary>The string-argument dispatch — an exhaustive generated-visitor implementation (a new
     /// <see cref="BoundOperand"/> leaf is a compile error), INSTANCE-bound so the nested-intrinsic arm
-    /// re-enters the instance <see cref="RenderString"/>.</summary>
-    private sealed class StrArgVisitor(IntrinsicRenderer owner) : IBoundOperandVisitor<string>
+    /// re-enters the instance <see cref="RenderString"/>. ONE class, two cached flagged instances (the
+    /// OperandText pattern): <paramref name="admitNumeric"/>'s ONLY difference is the
+    /// <see cref="BoundNumericLiteral"/> arm — a second visitor CLASS would silently join the drift test's
+    /// end-of-file body slice.</summary>
+    private sealed class StrArgVisitor(IntrinsicRenderer owner, bool admitNumeric) : IBoundOperandVisitor<string>
     {
         private static string Loud(BoundOperand n) => EmitText.LoudValue("string", $"intrinsic string argument '{n.GetType().Name}'");
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
@@ -820,7 +842,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } nested
                 ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
-        public string Visit(BoundNumericLiteral n) => Loud(n);
+        // Admitted PER-FUNCTION (PB59): the raw source-text image via the ONE OperandText channel where the
+        // function's §15.x.3 rule admits a numeric literal (see StrNum); Loud everywhere else — see Str's ⛔.
+        public string Visit(BoundNumericLiteral n) => admitNumeric ? OperandText.AsString(n, owner.Num) : Loud(n);
         // ⛔ A FIGURATIVE CONSTANT IS A LEGAL INTRINSIC ARGUMENT, AND ITS IMAGE IS ALREADY WRITTEN DOWN ONCE
         // (fix-queue PB25). §8.3.3.6.3 SR1 admits a figurative constant "whenever 'literal' appears in a format",
         // and §8.4.3.2.3 SR8 makes a literal a valid argument-1 — so `FUNCTION LOWER-CASE(SPACE)` is legal source.
