@@ -291,7 +291,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (vo.arithmeticExpression() is { } expr)
             return ConditionBinder.SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
                 : ConditionBinder.SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.Expr.CheckLiteral(lit))
-                : new BoundComputedOperand(host.Expr.BindExpr(expr));
+                : new BoundComputedOperand(host.Expr.BindIndexWindowExpr(expr));   // EVALUATE compares — a relation window (kb/Work R29)
         return new BoundOperandError("EVALUATE operand");
     }
 }

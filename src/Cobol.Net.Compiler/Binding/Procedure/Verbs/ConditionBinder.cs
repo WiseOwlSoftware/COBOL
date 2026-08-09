@@ -604,7 +604,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // the temp's cloned category (§8.4.3.2.4 GR1) drives the relation's class dispatch — a raw
                 // computed wrapper would compare an alphanumeric/national result NUMERICALLY. Numeric
                 // renderings are identical either way (AsNum unwraps both to the same FieldNum read).
-                : IntrinsicBinder.OperandOf(host.Expr.BindExpr(expr));
+                : IntrinsicBinder.OperandOf(host.Expr.BindIndexWindowExpr(expr));   // a relation operand — an r7 window (kb/Work R29)
         return new BoundOperandError("comparison operand");
     }
 

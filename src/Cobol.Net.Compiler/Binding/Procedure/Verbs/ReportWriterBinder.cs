@@ -45,8 +45,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                         foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
                         foreach (var v in f.Varyings)
                         {
-                            if (v.FromCtx is { } fc) v.From = host.Expr.BindExpr(fc);
-                            if (v.ByCtx is { } bc) v.By = host.Expr.BindExpr(bc);
+                            if (v.FromCtx is { } fc) v.From = host.Expr.BindIndexWindowExpr(fc);   // RW VARYING (kb/Work R29 — lenient window)
+                            if (v.ByCtx is { } bc) v.By = host.Expr.BindIndexWindowExpr(bc);
                         }
                     }
                 }

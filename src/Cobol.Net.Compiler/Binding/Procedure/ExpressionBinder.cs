@@ -63,6 +63,14 @@ internal enum OperandContext
     /// </para>
     /// </remarks>
     CallByValue,
+
+    /// <summary>An arithmetic-expression position INSIDE one of §13.18.38.3 r7's index-name windows — a
+    /// subscript, the VARYING phrase of PERFORM or SEARCH, the SET statement, or a relation-condition operand
+    /// (kb/Work R29). The §8.8.1.1 class screening is identical to <see cref="Arithmetic"/>; ONLY the
+    /// index-name interception differs: r7 admits an index-name here, so <c>T(IX + 1)</c>,
+    /// <c>SET IX UP BY N</c>, <c>PERFORM … VARYING V FROM IX</c> and <c>IF IX = 2</c> stay legal while
+    /// <c>COMPUTE N = IX + 1</c> does not.</summary>
+    ArithmeticIndexWindow,
 }
 
 /// <summary>
@@ -285,7 +293,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
         : host.Rw.CounterExpr(dref) is { } rcx ? rcx
-        : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
+        : IndexFieldOf(dref) is { } ix ? IndexNameExpr(dref, ix, context)
         // A constant-name substitutes its literal (§13.10.3 SR2 / §13.10.4 GR1) — in a numeric-expression
         // position only a NUMERIC constant is legal, exactly as for a written literal (§8.8.1.1).
         : ctx.Data.ConstantOf(dref) is { } k
@@ -293,6 +301,39 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 : NonNumericConstantExpr(dref.GetText(), k.Category)
         : ctx.Refs.Resolve(dref) is { } p ? OperandRef(dref, p, context)
         : new BoundExprError(RefFailure(dref));
+
+    /// <summary>The §13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
+    /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
+    /// in a subscript, PERFORM/SEARCH VARYING, SET, and a relation condition — those positions bind under
+    /// <see cref="OperandContext.ArithmeticIndexWindow"/> and pass through. A true arithmetic position
+    /// (COMPUTE and the arithmetic verbs, RETRY, CONTINUE AFTER, STOP STATUS …) or a compound
+    /// function-argument expression is NOT in the list and §8.8.1.1 does not name index-names among
+    /// arithmetic operands — the classic vendor extension (GnuCOBOL computes the occurrence number), so the
+    /// disposition is the DA6/PB1 shape: strict = reject with the r7 citation, <c>--permissive</c> = the
+    /// documented coercion (the occurrence number computes, with a warning). CallByValue keeps its own
+    /// §14.9.4.3 SR22 screen and is deliberately not intercepted here.</summary>
+    private BoundExpr IndexNameExpr(Core.DataReferenceContext dref, string ix, OperandContext context)
+    {
+        if (context is OperandContext.Arithmetic or OperandContext.FunctionArgument)
+        {
+            if (ctx.Edition.Permissive)
+                ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
+                    $"the index-name '{dref.GetText()}' is used as an arithmetic operand; §13.18.38.3 r7 "
+                    + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or a relation "
+                    + "condition — accepted under --permissive, computing the occurrence number");
+            else
+            {
+                ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
+                    $"the index-name '{dref.GetText()}' is not an arithmetic operand (ISO §8.8.1.1 names no "
+                    + "index-names; §13.18.38.3 r7 admits an index-name only in a subscript, PERFORM/SEARCH "
+                    + "VARYING, SET, or a relation condition). SET a data item to the index first "
+                    + $"(SET data-item TO {dref.GetText()}) — or --permissive accepts it as the occurrence "
+                    + "number");
+                return new BoundExprError($"index-name '{dref.GetText()}' in an arithmetic expression");
+            }
+        }
+        return new BoundIndexRef(ix);
+    }
 
     /// <summary>The §8.8.1.1 class screen for a resolved data reference used as an expression operand (DA6).
     /// <para>
@@ -495,6 +536,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// The contexts that differ have their own named entries, <see cref="BindFunctionArgumentExpr"/> and
     /// <see cref="BindByValueExpr"/>.</para></summary>
     public BoundExpr BindExpr(IParseTree node) => BindExprCore(node, OperandContext.Arithmetic);
+
+    /// <summary>Bind an arithmetic expression sitting INSIDE one of §13.18.38.3 r7's index-name windows —
+    /// subscripts, SET amounts/values, PERFORM/SEARCH (and RW) VARYING operands, relation/EVALUATE operands —
+    /// where an index-name is a legal operand (kb/Work R29). Identical to <see cref="BindExpr"/> otherwise.</summary>
+    public BoundExpr BindIndexWindowExpr(IParseTree node) => BindExprCore(node, OperandContext.ArithmeticIndexWindow);
 
     /// <summary>Bind a <c>CALL … USING BY VALUE</c> operand. Identical to <see cref="BindExpr"/> except that the
     /// §8.8.1.1 numeric-operand screen does not apply: the operand's legality is ISO §14.9.4.3 SR22's business

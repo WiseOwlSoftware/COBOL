@@ -173,7 +173,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             targets.Add(p);
         }
-        var amount = host.Expr.BindExpr(ud.arithmeticExpression());
+        var amount = host.Expr.BindIndexWindowExpr(ud.arithmeticExpression());   // SET (pointer form) is an r7 window (kb/Work R29)
         return new BoundSetPointerUpDown(targets, amount, ud.DOWN() is not null);
     }
 

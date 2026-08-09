@@ -226,7 +226,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetTo(targets, host.Expr.BindExpr(tv.arithmeticExpression()));
+        return new BoundSetTo(targets, host.Expr.BindIndexWindowExpr(tv.arithmeticExpression()));   // SET is an r7 window (kb/Work R29)
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2) — with the Format-10
@@ -244,7 +244,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetUpDown(targets, host.Expr.BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
+        return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
     }
 
     /// <summary>SET Format 14 (ISO §14.9.39; OCCURS DYNAMIC, data-model D9): reroute when the FIRST target resolves
@@ -265,7 +265,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
         }
-        return new BoundSetCapacity(cap.Table, host.Expr.BindExpr(amount), kind);
+        return new BoundSetCapacity(cap.Table, host.Expr.BindIndexWindowExpr(amount), kind);
     }
 
     private static string SetCapacityKindText(SetCapacityKind kind) =>
@@ -289,7 +289,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundNop();
         }
         bool checkStorage = ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, dref.Start.Line);
-        return new BoundSetSize(p, host.Expr.BindExpr(amount), p.Item.DynLengthLimit, checkStorage);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit, checkStorage);
     }
 
     /// <summary>The SIZE-OF-absent bare-form peek (ISO §14.9.39 Format 16): reroute `SET dyn TO n` when the sole,
@@ -305,7 +305,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.IndexFieldOf(targets[0]) is not null) return null;
         if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
         bool checkStorage = ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, targets[0].Start.Line);
-        return new BoundSetSize(p, host.Expr.BindExpr(amount), p.Item.DynLengthLimit, checkStorage);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit, checkStorage);
     }
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item

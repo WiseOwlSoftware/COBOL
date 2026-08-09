@@ -90,7 +90,7 @@ public sealed partial class StatementBinder
             // the pre-D18 behaviour for them exactly.
             return null;
 
-        var value = Expr.BindExpr(frag.arithmeticExpression());
+        var value = Expr.BindIndexWindowExpr(frag.arithmeticExpression());   // a SUBSCRIPT is an r7 window (kb/Work R29)
         if (value is BoundExprError) return null;   // already diagnosed by the expression binder
 
         // The MODEL is a description carrier only: CreateCompilerTemp clones its Pic (and, for a group, its

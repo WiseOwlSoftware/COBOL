@@ -239,12 +239,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         if (host.Set.SetTargetOf(dref) is not { } var) return null;
         int fromMark = host.Udf.PendingCount;
-        BoundExpr from = host.Expr.BindExpr(exprs[0]);
+        BoundExpr from = host.Expr.BindIndexWindowExpr(exprs[0]);   // PERFORM VARYING is an r7 window (kb/Work R29)
         if (!firstLevel)
             host.Udf.UdfStagePerEvaluationResidue(fromMark,
                 "a PERFORM VARYING AFTER level's FROM operand (re-evaluated per outer augment, §14.9.28 GR13e.2)");
         int byMark = host.Udf.PendingCount;
-        BoundExpr by = exprs.Length > 1 ? host.Expr.BindExpr(exprs[1]) : new BoundNumLiteral("1");
+        BoundExpr by = exprs.Length > 1 ? host.Expr.BindIndexWindowExpr(exprs[1]) : new BoundNumLiteral("1");
         host.Udf.UdfStagePerEvaluationResidue(byMark,
             "a PERFORM VARYING BY operand (evaluated per augment, §14.9.28 GR12)");
         int untilMark = host.Udf.PendingCount;
