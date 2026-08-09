@@ -29,11 +29,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   catalog holds NONE) and `kb/Work/PB39.md` (326 catalog rule-ids do not match the standard) — BACK TO
   BACK WITHOUT PAUSING, finishing the register.** The two notes carry the forensics; the tooling is
   `scripts/spec/` (cite.py, the rule catalog, the traceability inventory).
-  ✅ **PB39 LANDED (2026-08-08 22:35, DEVLOG 1252):** 257 ids re-keyed to the standard's own numbering by
-  the delimiter-form segmenter (count contract held at 3,981; 421/421 verdicts carried; the unexplained-ordinal
-  guard fails `--check` and was proven to fail). Its residue is **PB55** (nested-item row-ification is
-  transcription-layout-determined — a denominator question, owner decision, queued with PB29's batch). PB29
-  continues this session. Everything else is CLOSED:
+  ✅ **BOTH CAMPAIGNS LANDED THE SAME EVENING — THE HANDOFF IS DISCHARGED.**
+  **PB39 (22:35, DEVLOG 1252):** 257 ids re-keyed to the standard's own numbering by the delimiter-form
+  segmenter (count contract held at 3,981; 421/421 verdicts carried; the unexplained-ordinal guard fails
+  `--check` and was proven to fail).
+  **PB29 (22:55, DEVLOG 1253):** all 100 unharvested clauses adjudicated — the batch's remaining 85 in one
+  7-reader + 2-refuter wave (83/84 upheld; the one overturn a DOWNGRADE, §15.6→not-rules) — 81 admitted,
+  4 not-rules with grounds, **denominator 4,311 / GAP 4,233** (run the probe, never quote this), and the
+  per-sublist/per-item kind shapes landed with FATAL guards. The content-keyed scan reports ZERO pending:
+  the blind-spot class is closed and guarded.
+  **Open residue: PB55** (nested-item row-ification is transcription-layout-determined — a denominator
+  question, OWNER DECISION pending). After it: the §11 A-series (A3 unblocked) and the P14 campaigns proper. Everything else is CLOSED:
   **the R-wave (R21–R39) is fully landed** — `work.py next` reports the ranked actionable list EMPTY —
   including R13, decided by the owner 2026-08-08 (**follow GnuCOBOL** on the beyond-PICTURE COMP-5
   DISPLAY; §7 item 56; and the broader preference — implementor latitude + split vendors → follow

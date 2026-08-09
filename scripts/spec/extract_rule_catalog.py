@@ -269,7 +269,18 @@ def main() -> int:
 
     # The clauses ADMITTED to the denominator by adjudication (PB29) — section ⇒ declared rule kind. Read from
     # the manifest so admitting a clause is a data edit with a recorded reason, never a code edit.
-    admitted: dict[str, str] = {}
+    # ⛔ A kind need not be uniform across a clause, and the two non-uniform shapes are EXPLICIT so they cannot
+    # be confused (DEVLOG 1166 recorded the limit; these forms are its removal):
+    #   "SR"                                   — every rule in the clause is this kind;
+    #   {"sublists": {"1": "SR", "2": "GR"}}   — kind per SUB-LIST (§8.3.2.2: five normative sub-lists, two
+    #                                            constrain where words may be WRITTEN ⇒ SR per §5.3.2, three
+    #                                            state effect or treatment ⇒ GR per §5.3.3);
+    #   {"items": {"1": "SR", "4": "GR"}}      — kind per ITEM of a SINGLE list (§8.3.3.3.2: items 1-3
+    #                                            constrain the literal's written form ⇒ SR, item 4 states its
+    #                                            value ⇒ GR). Requires the clause to segment as one list.
+    # A sub-list or item the map does not know is a manifest/segmentation DISAGREEMENT and is FATAL at flush —
+    # silently guessing a kind is the mis-typing this mechanism exists to prevent.
+    admitted: dict[str, str | dict] = {}
     if UNHARVESTED.exists():
         for sec, info in json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"].items():
             if info.get("disposition") == "rules":
@@ -317,6 +328,7 @@ def main() -> int:
     next_sublist = 2
     last_indented = 0
     cur_sublist = 1
+    cur_kinds: dict[str, str] | None = None      # per-sublist kind map for a MIXED-kind admitted block
     unexplained: list[tuple[str, int, str]] = []   # (section, ordinal, why)
     # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
     # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
@@ -378,6 +390,19 @@ def main() -> int:
         nonlocal buf, ordinal
         if cur and ordinal and (text := " ".join(x.strip() for x in buf).strip()):
             sec, kind = cur
+            if cur_kinds is not None:
+                if "sublists" in cur_kinds:
+                    kind = cur_kinds["sublists"].get(str(cur_sublist))
+                elif "items" in cur_kinds:
+                    kind = cur_kinds["items"].get(str(ordinal)) if cur_sublist == 1 else None
+                else:
+                    kind = None
+                if kind is None:
+                    # A sub-list or item the map does not know is a manifest/segmentation DISAGREEMENT —
+                    # writing a guessed kind would be the silent mis-typing the dict form exists to prevent.
+                    sys.exit(f"FATAL: {sec} sub-list {cur_sublist} ordinal {ordinal} has no kind in its "
+                             f"per-sublist/per-item manifest entry ({json.dumps(cur_kinds)}). Re-adjudicate "
+                             f"the clause against the current segmentation before regenerating.")
             rid = f"{kind}-{sec}-{ordinal}" if cur_sublist == 1 else f"{kind}-{sec}-L{cur_sublist}.{ordinal}"
             rules.append({
                 "id": rid,
@@ -419,11 +444,16 @@ def main() -> int:
             # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
             k = kind_of(title) or admitted.get(num)
             levels, next_sublist, last_indented, cur_sublist = [], 2, 0, 1
-            if k:
-                cur = (num, k)
+            if isinstance(k, dict):
+                # Per-sublist kinds: cur carries a hashable token for the seen/with-rules bookkeeping; the
+                # real kind is resolved per rule at flush() from cur_kinds.
+                cur, cur_kinds = (num, "MIXED"), k
+                blocks_seen.append(cur)
+            elif k:
+                cur, cur_kinds = (num, k), None
                 blocks_seen.append(cur)
             else:
-                cur = None
+                cur, cur_kinds = None, None
             continue
         if cur is None:
             continue

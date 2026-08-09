@@ -1,9 +1,108 @@
 {
  "generated_from": "specs\\ISO_COBOL.md",
- "rule_count": 3981,
- "blocks": 621,
+ "rule_count": 4311,
+ "blocks": 702,
  "parse_gaps": [],
  "rules": [
+  {
+   "id": "GR-4.2.10-1",
+   "section": "4.2.10",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "A conforming implementation",
+   "text": "documented language elements not defined in this Working Draft International Standard;"
+  },
+  {
+   "id": "GR-4.2.10-2",
+   "section": "4.2.10",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "A conforming implementation",
+   "text": "language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is not required for conformance to this Working Draft International Standard, and standard support for that element is not claimed by the implementor;"
+  },
+  {
+   "id": "GR-4.2.10-3",
+   "section": "4.2.10",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "A conforming implementation",
+   "text": "language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is required for conformance to this Working Draft International Standard, provided that standard-conforming behavior is also implemented and that an implementor-defined mechanism exists for selection of the nonstandard behavior. An implementation that introduces additional reserved words as nonstandard extensions conforms to this Working Draft International Standard, even though the additional reserved words may prevent translation of some conforming compilation groups. Documentation associated with an implementation shall identify nonstandard extensions for which support is claimed and shall specify any reserved words added for nonstandard extensions. An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time to indicate use of a nonstandard extension in a compilation group. This warning mechanism shall flag only extensions that are syntactically distinguishable."
+  },
+  {
+   "id": "GR-4.4-1",
+   "section": "4.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Conformance to this Working Draft International Standard",
+   "text": "is composed of one or more runtime modules, each resulting from a successful compilation of a conforming compilation unit, and"
+  },
+  {
+   "id": "GR-4.4-2",
+   "section": "4.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Conformance to this Working Draft International Standard",
+   "text": "complies with the explicitly stated provisions and specifications of standard COBOL with respect to the runtime behavior of that run unit. It is possible that two conforming implementations may produce successful but differing results due to such factors as rounding. NOTE The inclusion of non-COBOL components in the run unit does not affect the conformance of the run unit. The processing of a conforming run unit is predictable only to the extent defined in standard COBOL. The results of violating the formats or rules of standard COBOL are undefined unless otherwise specified in this Working Draft International Standard. Situations in which the results of executing a statement are explicitly undefined or unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these situations to happen is a conforming run unit, although the resultant execution is not defined by standard COBOL."
+  },
+  {
+   "id": "SR-5.5-1",
+   "section": "5.5",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Description techniques",
+   "text": "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in the associated rules."
+  },
+  {
+   "id": "SR-5.5-2",
+   "section": "5.5",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Description techniques",
+   "text": "When the term 'integer' is used as a constraint for an operand in a syntax rule, then a) if that operand is a literal, it shall be an integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals; b) if that operand is a data-name or an identifier, it shall reference one of the following: 1\\. an integer intrinsic function, 2\\. a fixed-point numeric data item, other than an intrinsic function, whose description does not include any digit positions to the right of the radix point."
+  },
+  {
+   "id": "GR-5.5-3",
+   "section": "5.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Description techniques",
+   "text": "When the term 'integer' is used as a constraint for an operand in a general rule, that operand shall evaluate at runtime as follows: a) If native arithmetic is in effect, the implementor shall define when the operand represents an integer. b) If any mode of standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item whose form corresponds to the form of arithmetic that is in effect and whose content has the unique value zero or whose decimal fixed-point representation contains only zeros to the right of the decimal point."
+  },
+  {
+   "id": "GR-6.1-1",
+   "section": "6.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "Fixed-form and free-form a) Reference format is described in terms of character positions on a line on an input-output medium. b) A COBOL compiler shall accept source text and library text written in reference format. c) The implementor shall specify the meaning of lines and character positions. d) For purposes of analyzing the text of a compilation group, the first character-string of a compilation group is treated as though it were preceded by a separator space and the last character-string of a compilation group is treated as though it were followed by a separator space."
+  },
+  {
+   "id": "GR-6.1-2",
+   "section": "6.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "Fixed-form a) A COBOL compiler shall process fixed-form reference format lines as though the lines had been logically converted from fixed form to free form as described in 6.5, Logical conversion. b) After logical conversion, the equivalent free-form lines shall meet the requirements of free-form reference format, except that lines may be longer and all characters of the computer's coded character set shall be retained in alphanumeric and national literals. (See rule 3b.)"
+  },
+  {
+   "id": "SR-6.1-3",
+   "section": "6.1",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "Free-form a) The number of character positions on a line may vary from line to line, ranging from a minimum of 0 to a maximum of 255. b) The implementor shall specify any control characters that terminate a free-form line, and whether such control characters may be specified in comments and in the content of alphanumeric and national literals."
+  },
   {
    "id": "SR-6.2.3.2-1",
    "section": "6.2.3.2",
@@ -57,6 +156,159 @@
    "sublist": 1,
    "subject": "Floating indicators",
    "text": "For a continued alphanumeric, boolean, or national literal, the first nonblank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal."
+  },
+  {
+   "id": "SR-6.3.4-1",
+   "section": "6.3.4",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Fixed-form reference format",
+   "text": "Comment-text of a comment line when the indicator area contains a fixed comment indicator."
+  },
+  {
+   "id": "SR-6.3.4-2",
+   "section": "6.3.4",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Fixed-form reference format",
+   "text": "Any of the following or combinations of the following, subject to further syntax specifications, when the indicator area contains a continuation indicator or a source indicator: — character-strings (COBOL words) — separators — comments — floating indicators."
+  },
+  {
+   "id": "SR-6.3.4-3",
+   "section": "6.3.4",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Fixed-form reference format",
+   "text": "All spaces."
+  },
+  {
+   "id": "SR-6.3.5-1",
+   "section": "6.3.5",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Fixed-form reference format",
+   "text": "A line terminates within an alphanumeric or boolean literal without a closing delimiter and the next line that is not a comment line or a blank line contains a fixed continuation indicator; NOTE continuation of literals using the fixed continuation indicator is an obsolete feature."
+  },
+  {
+   "id": "SR-6.3.5-2",
+   "section": "6.3.5",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Fixed-form reference format",
+   "text": "Or a line terminates within an alphanumeric, boolean, or national literal that ends with a floating literal continuation indicator. In the case of continuation with a fixed continuation indicator, any spaces at the end of the fixed-form continued line are part of the literal. In the case of continuation with either a fixed or floating literal continuation indicator, the next line that is not a comment line or a blank line is the continuation line. The first non-space character in the program-text area of the continuation line shall be a quotation symbol matching the quotation symbol used in the opening delimiter. The continuation starts with the character immediately after the quotation symbol in the continuation line. National literals may be continued only with a floating literal continuation indicator. All characters composing any multiple-character separator or multiple-character indicator shall be specified on the same line. All characters forming an invocation operator shall be specified on the same line. Comment lines and blank lines may be interspersed among lines containing the parts of a literal. If there is no fixed continuation indicator in a line, a space is implied before the first nonblank character in the line for purposes of analyzing the text of the compilation group."
+  },
+  {
+   "id": "GR-6.5-1",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a SOURCE FORMAT directive, the reference format mode is determined and the SOURCE FORMAT directive line is logically discarded."
+  },
+  {
+   "id": "GR-6.5-2",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a comment line or a blank line, that line is logically discarded."
+  },
+  {
+   "id": "GR-6.5-3",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line contains an inline comment, the inline comment is replaced by spaces and processing of that line continues."
+  },
+  {
+   "id": "GR-6.5-4",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a fixed-form or free-form line that contains a floating literal continuation indicator, the end of the program text area is set to immediately follow the character preceding the continuation indicator. The continuation indicator and any following characters are logically discarded, and processing of that line continues."
+  },
+  {
+   "id": "GR-6.5-5",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a fixed-form line, contains a source indicator, and is not a continuation line, the program text area of that line is copied to the resultant compilation group."
+  },
+  {
+   "id": "GR-6.5-6",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a fixed-form continuation line identified by a fixed continuation indicator: a) if the continued string is an alphanumeric or boolean literal, the content of the program-text area, beginning with the first character after the initial quotation symbol, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group. b) otherwise, the content of the program-text area, beginning with the first non-space character, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group."
+  },
+  {
+   "id": "GR-6.5-7",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a free-form line and is not a continuation line, that line is copied to the resultant compilation group."
+  },
+  {
+   "id": "GR-6.5-8",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "If the line is a fixed-form or free-form continuation line that follows a line continued with a floating literal continuation indicator, the content of the program-text area, beginning with the first character after the initial quotation symbol, is appended immediately to the right of the last character in the latest logical line of the resultant compilation group."
+  },
+  {
+   "id": "GR-6.5-9",
+   "section": "6.5",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Reference format",
+   "text": "The next input line is obtained and processing iterates at step 1. At the end of the compilation group, processing continues with the resultant logically-converted compilation group. The implementor shall define the effect on the source listing, if any, of logical conversion."
+  },
+  {
+   "id": "GR-7.2.2.5-1",
+   "section": "7.2.2.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Text manipulation elements",
+   "text": "a separator, except for: a space; a pseudo-text delimiter; and the opening and closing delimiters for alphanumeric, boolean, and national literals. In determining which character sequences form text-words, the colon, the right parenthesis, and the left parenthesis characters, in any context except within alphanumeric or national literals, are treated as separators;"
+  },
+  {
+   "id": "GR-7.2.2.5-2",
+   "section": "7.2.2.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Text manipulation elements",
+   "text": "an alphanumeric, boolean, or national literal including the opening and closing delimiters that bound the literal;"
+  },
+  {
+   "id": "GR-7.2.2.5-3",
+   "section": "7.2.2.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Text manipulation elements",
+   "text": "any other character or sequence of contiguous characters from the compile-time coded character set, bounded by separators. The implementor may prohibit the use of one or more characters from outside the COBOL character repertoire in, or as, text-words. NOTE The contexts in which characters from outside the COBOL character repertoire can be used in elements of COBOL syntax are very limited. Because the syntactic validity of elements or constructs is determined after the completion of all text manipulation, the introduction of non-COBOL characters into such elements or constructs through the action of COPY and REPLACE can have unexpected or undesirable results."
   },
   {
    "id": "SR-7.2.3.3-1",
@@ -2138,6 +2390,33 @@
    "text": "If the OFF phrase is specified, checking for the exception condition associated with exception-name-1 is disabled for all procedure division statements and procedure division headers that follow in the compilation group and remains disabled until another TURN directive for exception-name-1 with the ON phrase is encountered; if file-name-1 is specified, checking is disabled only for exception conditions associated with that file-name."
   },
   {
+   "id": "GR-8.1.2-1",
+   "section": "8.1.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Character sets",
+   "text": "The number of bytes used in the memory of the computer to represent characters in the alphanumeric coded character set shall be the same for all characters in that coded character set; the number of bytes shall be determined at compile time."
+  },
+  {
+   "id": "GR-8.1.2-2",
+   "section": "8.1.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Character sets",
+   "text": "The number of bytes used in the memory of the computer to represent characters in the national coded character set shall be the same for all characters in that coded character set; the number of bytes shall be determined at compile time."
+  },
+  {
+   "id": "GR-8.1.2-3",
+   "section": "8.1.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Character sets",
+   "text": "The number of bytes used to represent a character of the national coded character set shall be equal to or greater than the number of bytes used to represent a character of the alphanumeric coded character set. NOTE 3 COBOL processes each fixed-size element of a character set as one character, even when a graphic symbol requires two or more elements for its representation in that character set. Source code rules are described in 8.1.3, COBOL character repertoire. The implementor shall specify the number of bits in a byte for each supported computer. The implementor shall specify the set of characters in and the encoding of each of the computer's alphanumeric character set and the computer's national character set. When these are implemented as one character set, the implementor shall specify the characters that map into the computer's alphanumeric coded character set and the characters that map into the computer's national coded character set. If more than one encoding of the computer's character set is supported, the implementor shall specify the mechanism for selecting the encoding for use at runtime. The implementor shall specify one and only one alphanumeric coded character value associated with each of the following COBOL elements: — the figurative constants: SPACE, QUOTE, and ZERO when associated with an alphanumeric data item — the character used for space filling of alphanumeric data items — the editing characters: 'B', 'C', 'D', 'E', 'R', '0', '-', '+', '\\*', '/', ',', '.', and space characters used for numeric digits in alphanumeric data items and literals NOTE 4 The coded character value of a digit in a numeric data item - even when defined with USAGE DISPLAY - can be modified if the single character position also includes an internal indicator of the sign of a data item. The requirement in this rule for a single value applies only to character positions in alphanumeric data items and literals, not to positions in numeric data items. — the default currency string character associated with the '$' editing symbol. There shall be a single alphanumeric coded character value used for the figurative constant SPACE, for space filling of alphanumeric data items, and corresponding to the picture editing symbol 'B'. There shall be a single alphanumeric coded character value used for the figurative constant ZERO, corresponding to the picture editing symbol '0', and used for the numeric digit '0'. The implementor shall specify one and only one national coded character value associated with each of the following COBOL elements: — the figurative constants: SPACE, QUOTE, and ZERO when associated with a national data item — the character used for space filling of national data items — the editing characters: 'B', 'C', 'D', 'E', 'R', '0', '-', '+', '\\*', '/', ',', '.', and space characters used for numeric digits in national data items and literals NOTE 5 The coded character value of a digit in a numeric data item - even when defined with USAGE NATIONAL - can be modified if the single character position also includes an internal indicator of the sign of a data item. The requirement in this rule for a single value applies only to character positions in national data items and literals, not to positions in numeric data items. — the default currency string character associated with the '$' editing symbol. There shall be a single national coded character value used for the figurative constant SPACE, for space filling of national data items, and corresponding to the picture editing symbol 'B'. There shall be a single national coded character value used for the figurative constant ZERO, corresponding to the picture editing symbol '0', and used for the numeric digit '0'. The coded character values required for the alphanumeric character set and the coded character values for the national character set corresponding to each COBOL element are permitted to be identical or different. However, they shall be treated as equivalent as required by the applicable rules for equivalence of alphanumeric and national characters. When the computer's coded character set at runtime differs from the coded character set known at compile time, the content of alphanumeric and national literals shall be converted, prior to use at runtime, to the computer's runtime alphanumeric or national coded character set as appropriate for the class of the literal, except that the hexadecimal-alphanumeric format and the hexadecimal-national format literals shall not be converted. The implementor shall define the correspondence of each character of the compile-time coded character set with an associated character in the runtime coded character set. If the runtime coded character set is known at compile time, the conversion may occur either at compile time or at runtime. If the runtime coded character set is not known at compile time, conversion occurs at runtime. The implementor determines the point at which runtime conversion occurs. When the computer's compile-time coded character set includes characters that are not also included in the COBOL character repertoire, the implementor shall specify any such additional characters that are prohibited from use as a currency symbol."
+  },
+  {
    "id": "GR-8.1.3.2-1",
    "section": "8.1.3.2",
    "kind": "GR",
@@ -2181,6 +2460,204 @@
    "sublist": 1,
    "subject": "COBOL character repertoire",
    "text": "When an implementation does not provide a graphic representation of all characters of the COBOL character repertoire, substitute graphics may be specified by the implementor to replace the characters not represented."
+  },
+  {
+   "id": "SR-8.3.2.1-1",
+   "section": "8.3.2.1",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "Reserved words shall not be used as user-defined words or system-names."
+  },
+  {
+   "id": "SR-8.3.2.1-2",
+   "section": "8.3.2.1",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "Compiler-directive words, except those that are also reserved words, may be used as user-defined words and system-names."
+  },
+  {
+   "id": "SR-8.3.2.1-3",
+   "section": "8.3.2.1",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "Context-sensitive words may be used as user-defined words and system-names in contexts other than the language construct in which they are defined. Specific rules may apply to the interpretation of a word as user-defined or context-sensitive."
+  },
+  {
+   "id": "SR-8.3.2.1-4",
+   "section": "8.3.2.1",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "A given word may be used as a system-name and as a user-defined word, subject to the rules specified in 8.3.2.2, User-defined words, and 8.3.2.3, System-names."
+  },
+  {
+   "id": "SR-8.3.2.1-5",
+   "section": "8.3.2.1",
+   "kind": "SR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "Intrinsic-function-names may be used as user-defined words and system-names, except for — intrinsic function names LENGTH, RANDOM, SIGN, and SUM; and — intrinsic function names identified in a function-specifier in the REPOSITORY paragraph."
+  },
+  {
+   "id": "SR-8.3.2.2-1",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "a compilation-variable-name may be the same as any other type of user-defined word"
+  },
+  {
+   "id": "SR-8.3.2.2-2",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "a level-number may be the same as a paragraph-name or a section-name"
+  },
+  {
+   "id": "SR-8.3.2.2-3",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "COBOL words",
+   "text": "the same name may be used as any of the following types of user-defined words: — constant-name — data-name — property-name — record-key-name — record-name Further rules for uniqueness are specified in 8.4.2, Uniqueness of reference. With the exception of section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic letter or extended letter. Level-numbers need not be unique; a given specification of a level-number may be identical to any other level-number. The following user-defined words shall be externalized to the operating environment:"
+  },
+  {
+   "id": "GR-8.3.2.2-L2.1",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 2,
+   "subject": "COBOL words",
+   "text": "program-names of outermost programs, object-class-names, function-prototype-names, interface-names, method-names, program-prototype-names, property-names, and user-function-names"
+  },
+  {
+   "id": "GR-8.3.2.2-L2.2",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "COBOL words",
+   "text": "data-names, file-names, and record-names of items described with the EXTERNAL attribute. The implementor shall specify whether extended letters may be specified in user-defined words externalized to the operating environment. For any externalized user-defined words for which the AS phrase is specified, the content of the literal specified in that AS phrase is a name that is externalized to the operating environment. The implementor defines the formation and mapping rules of these names. NOTE The AS phrase provides a way to specify names that are either case-sensitive or not valid COBOL words. Such names can be required by other programming languages or system components. For any externalized user-defined words for which the AS phrase is not specified, the implementor defines the mapping between the user-defined word and the corresponding name that is externalized to the operating environment. Within a run unit, all instances of a given name that is externalized to the operating environment shall identify the same kind of entity or item. Except for method-names and property-names, when two or more source elements identify something with the same externalized name, they refer to the same instance. Externalized names shall be referenced in a source element only:"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.1",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "in the AS phrase in a repository paragraph entry,"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.2",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "in the AS phrase in an EXTERNAL clause,"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.3",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "as program-name in a CALL statement,"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.4",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "as program-name in a CANCEL statement,"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.5",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 5,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "as program-name in a program-address-identifier,"
+  },
+  {
+   "id": "SR-8.3.2.2-L3.6",
+   "section": "8.3.2.2",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 3,
+   "subject": "COBOL words",
+   "text": "as method-name in an INVOKE statement or inline method invocation. All other references to names for which externalization is permitted shall be specified using the user-defined words, as opposed to the externalized names. In the AS phrases, only the externalized names shall be referenced. In the CALL, CANCEL, and INVOKE statements, the inline method invocation, and in the program-address-identifier, either the externalized names or the user-defined words may be referenced, depending on the conditions described below. When an INVOKE statement or an inline method invocation references a method-name using a universal object reference:"
+  },
+  {
+   "id": "GR-8.3.2.2-L4.1",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 4,
+   "subject": "COBOL words",
+   "text": "When the COBOL call convention is implied or COBOL is specified in a CALL-CONVENTION compiler directive, that method-name is treated as a COBOL word that maps to the externalized name of the method to be invoked, applying the same implementor-defined mapping rules as for a method-name for which no AS phrase is specified."
+  },
+  {
+   "id": "GR-8.3.2.2-L4.2",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 4,
+   "subject": "COBOL words",
+   "text": "When call-convention-name-1 is specified in an applicable CALL-CONVENTION compiler directive, that method-name is treated as a literal that maps, in a manner defined by the implementor, to the externalized name of the method to be invoked. When an INVOKE statement or an inline method invocation references a method-name using an object reference that is not a universal object reference, the naming convention and mapping to be used for the method-name is determined by the entry convention of the class or interface that contains the method. If the method being invoked is referenced using a universal object reference, the ENTRY-CONVENTION, if any, in the class or interface definition containing the method is ignored. When a CALL statement, a CANCEL statement, or a program-address-identifier references a program-name that names a compilation unit:"
+  },
+  {
+   "id": "GR-8.3.2.2-L5.1",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 5,
+   "subject": "COBOL words",
+   "text": "If the CALL statement, CANCEL statement, or program-address-identifier specifies a program-prototype-name, the naming convention and mapping used for the program-name is determined by the entry convention indicated by the description of the program to be called, as specified in 12.3.8, REPOSITORY paragraph, General rule 10;"
+  },
+  {
+   "id": "GR-8.3.2.2-L5.2",
+   "section": "8.3.2.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 5,
+   "subject": "COBOL words",
+   "text": "otherwise: a) When the COBOL call convention is implied or COBOL is specified in the CALL-CONVENTION compiler directive, the program-name is treated as a COBOL word that maps to the externalized name of the program, applying the same implementor-defined mapping rules as for a program-name for which no AS phrase is specified. b) When call-convention-name-1 is specified in the CALL-CONVENTION compiler directive, the program-name is treated as a literal that maps, in a manner defined by the implementor, to the externalized name of the program."
+  },
+  {
+   "id": "SR-8.3.2.4.2-1",
+   "section": "8.3.2.4.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Reserved words",
+   "text": "Keywords. Within each format, such words are uppercase and underlined."
+  },
+  {
+   "id": "SR-8.3.2.4.2-2",
+   "section": "8.3.2.4.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Reserved words",
+   "text": "Special character words. The special character words are: | **Word** | **Meaning** | |----------|-------------| | + | Arithmetic operator - unary plus or addition | | Word | Meaning | |--------|-------------| | – | Arithmetic operator - unary minus or subtraction | | \\* | Arithmetic operator - multiplication | | / | Arithmetic operator - division | | ** | Arithmetic operator - exponentiation | | & | Concatenation operator | | > | Relational operator - greater than | | < | Relational operator - less than | | = | Relational operator - equal and assignment operator in COMPUTE | | == | Pseudo-text delimiter in COPY and REPLACE statements | | >= | Relational operator - greater than or equal | | <= | Relational operator - less than or equal | | <> | Relational operator - not equal | | \\*> | Comment indicator | | >> | Compiler directive indicator | | :: | Method invocation operator |"
   },
   {
    "id": "SR-8.3.3.2.3-1",
@@ -2280,6 +2757,87 @@
    "sublist": 1,
    "subject": "Alphanumeric literals",
    "text": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists. The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits."
+  },
+  {
+   "id": "SR-8.3.3.3.2-1",
+   "section": "8.3.3.3.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "A literal shall contain at least one digit."
+  },
+  {
+   "id": "SR-8.3.3.3.2-2",
+   "section": "8.3.3.3.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "A literal shall not contain more than one sign character. If a sign is used, it shall appear as the leftmost character of the literal. If the literal is unsigned, the literal is nonnegative."
+  },
+  {
+   "id": "SR-8.3.3.3.2-3",
+   "section": "8.3.3.3.2",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "A literal shall not contain more than one decimal point. The decimal point is treated as an assumed decimal point, and may appear anywhere within the literal except as the rightmost character."
+  },
+  {
+   "id": "GR-8.3.3.3.2-4",
+   "section": "8.3.3.3.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "The value of a fixed-point numeric literal is the algebraic quantity represented by the characters in the fixed-point numeric literal. The size of a fixed-point numeric literal is equal to the number of digits in the string of characters in the literal. An integer literal is a fixed-point numeric literal that contains no decimal point."
+  },
+  {
+   "id": "SR-8.3.3.3.3-1",
+   "section": "8.3.3.3.3",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "A floating-point numeric literal is formed from two fixed-point numeric literals separated by the letter 'E' without intervening spaces."
+  },
+  {
+   "id": "SR-8.3.3.3.3-2",
+   "section": "8.3.3.3.3",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "The literal to the left of the 'E' represents the significand. It may be signed and shall include a decimal point. The significand shall be from 1 to 36 digits in length. If the significand is signed, the floating-point numeric literal is considered to be signed. If the significand is unsigned, the floating-point numeric literal is considered to be positive."
+  },
+  {
+   "id": "SR-8.3.3.3.3-3",
+   "section": "8.3.3.3.3",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "The literal to the right of the 'E' represents the exponent. It may be signed and shall have a maximum of four digits and no decimal point. The maximum permitted value and minimum permitted value of the exponent is implementor-defined."
+  },
+  {
+   "id": "SR-8.3.3.3.3-4",
+   "section": "8.3.3.3.3",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "If all the digits in the significand are zero, then all the digits of the exponent shall also be zero and neither significand nor exponent shall have a negative sign."
+  },
+  {
+   "id": "GR-8.3.3.3.3-5",
+   "section": "8.3.3.3.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Numeric literals",
+   "text": "The value of a floating-point numeric literal is the algebraic product of the value of its significand and the quantity derived by raising ten to the power of the exponent."
   },
   {
    "id": "SR-8.3.3.4.3-1",
@@ -2523,6 +3081,141 @@
    "sublist": 1,
    "subject": "Figurative constant values",
    "text": "When a figurative constant represents a string of one or more characters and the length of the string is not specified in the rules for the context in which the figurative constant is used, the length of the string is determined from context by applying the following rules in order: a) When a figurative constant is specified in a concatenation expression, the length of the string is one character. b) When a figurative constant is other than ALL literal-1, the length of the string is one character. NOTE 2 For example, when the figurative constant appears in a DISPLAY, STOP, STRING, or UNSTRING statement, it is one character. c) The length of the string is the length of literal-1."
+  },
+  {
+   "id": "SR-8.3.5-1",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The COBOL character space is a separator. Anywhere a space is used as a separator or as part of a separator, more than one space may be used. All spaces immediately following the separators comma, semicolon, or period are considered part of that separator and are not considered to be the separator space."
+  },
+  {
+   "id": "SR-8.3.5-2",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The COBOL characters comma and semicolon, immediately followed by a space, are separators that may be used anywhere the separator space is used. They may be used to improve readability."
+  },
+  {
+   "id": "SR-8.3.5-3",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The COBOL character period, when followed by a space, is a separator. The separator period shall be used only to indicate the end of a sentence, or as shown in formats."
+  },
+  {
+   "id": "SR-8.3.5-4",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "Except when appearing in a picture character-string, the COBOL characters right parenthesis and left parenthesis are separators. Except in pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function or method arguments, a reference modifier, arithmetic or boolean expressions, or conditions."
+  },
+  {
+   "id": "SR-8.3.5-5",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The opening delimiters and closing delimiters of literals are separators. Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing delimiters. The opening delimiters of literals are: — a quotation symbol — the two contiguous characters B\", B', N\", N', X\", and X' — the three contiguous characters BX\", BX', NX\", and NX' The closing delimiters of literals are: — a quotation mark when the opening delimiter uses a quotation mark — an apostrophe when the opening delimiter uses an apostrophe The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter. The closing delimiter shall be immediately followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter. Separators immediately preceding the opening delimiter are not part of the opening delimiter. Separators immediately following the closing delimiter are not part of the closing delimiter."
+  },
+  {
+   "id": "SR-8.3.5-6",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "Pseudo-text delimiters are separators. An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text delimiter shall be immediately followed by one of the separators space, comma, semicolon, or period. Pseudo-text delimiters may appear only in balanced pairs delimiting pseudo-text."
+  },
+  {
+   "id": "SR-8.3.5-7",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The COBOL character colon, except as part of the invocation operator, is a separator and is required when shown in the general formats."
+  },
+  {
+   "id": "SR-8.3.5-8",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The separator space may optionally immediately precede all separators except: a) As specified by reference format rules (See Clause 6, Reference format.) b) The closing delimiter of a literal. In this case, a preceding space is considered as part of the literal and not as a separator. c) The opening pseudo-text delimiter, where the preceding space is required. d) The terminating period of a data description entry that ends with a PICTURE clause that contains a comma or period as the last character of the picture character-string."
+  },
+  {
+   "id": "SR-8.3.5-9",
+   "section": "8.3.5",
+   "kind": "SR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Lexical elements",
+   "text": "The separator space may optionally immediately follow any separator except the opening delimiter of a literal. A space following the opening delimiter of a literal is part of the literal and not a separator."
+  },
+  {
+   "id": "SR-8.4.2.2.1-1",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "No other name has the identical spelling."
+  },
+  {
+   "id": "SR-8.4.2.2.1-2",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "It is unique within the context of a REDEFINES clause."
+  },
+  {
+   "id": "SR-8.4.2.2.1-3",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "It is unique within the context of a VARYING clause."
+  },
+  {
+   "id": "SR-8.4.2.2.1-4",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "Any other definition of the name is subordinate to a type declaration entry for which the type-name is not referenced in any TYPE clause in the source unit."
+  },
+  {
+   "id": "SR-8.4.2.2.1-5",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "The name is a data-name referenced in a data description entry clause whose subject is subordinate to the same group item as that data-name. In this case, the names of any group items superordinate to both the data-name and the subject of the data description entry clause are used as implicit qualifiers for the reference, in addition to any explicit qualifiers needed to establish uniqueness within that group."
+  },
+  {
+   "id": "SR-8.4.2.2.1-6",
+   "section": "8.4.2.2.1",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Qualification",
+   "text": "The name is a paragraph-name and the section containing the reference also contains the named paragraph."
   },
   {
    "id": "SR-8.4.2.2.3-1",
@@ -3893,6 +4586,600 @@
    "text": "Qualified-condition-name-with-subscripts-1 is defined by 8.4.2.2, Qualification."
   },
   {
+   "id": "GR-8.4.6.2.1-1",
+   "section": "8.4.6.2.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Local and global names",
+   "text": "The set of names to be used for determination of a referenced item consists of all names that are defined in source element B and all global names that are defined in source element A and in any source elements that directly or indirectly contain source element A. Using this set of names, the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more items is identified."
+  },
+  {
+   "id": "GR-8.4.6.2.1-2",
+   "section": "8.4.6.2.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Local and global names",
+   "text": "If only one item is identified, it is the referenced item."
+  },
+  {
+   "id": "GR-8.4.6.2.1-3",
+   "section": "8.4.6.2.1",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Local and global names",
+   "text": "If more than one item is identified, no more than one of them may have a name local to source element B. If zero or one of the items has a name local to source element B, the following rules apply: a) If the name is declared in source element B, the item in source element B is the referenced item. b) Otherwise, if source element A is contained within another source element, the referenced item is: 1\\. The item in source element A if the name is declared in source element A."
+  },
+  {
+   "id": "GR-8.4.6.2.1-L2.2",
+   "section": "8.4.6.2.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 2,
+   "subject": "Local and global names",
+   "text": "The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found."
+  },
+  {
+   "id": "SR-8.4.6.3-1",
+   "section": "8.4.6.3",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Scope of names",
+   "text": "If the program-name is that of a program that does not possess the common attribute and that is directly contained within another program, that program-name may be referenced only by statements included in that containing program or, if the program possesses the recursive attribute, in the program itself."
+  },
+  {
+   "id": "SR-8.4.6.3-2",
+   "section": "8.4.6.3",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Scope of names",
+   "text": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program, that program-name may be referenced only by statements included in that containing program and any programs directly or indirectly contained within that containing program, except that the program possessing the common attribute and any programs contained within it may reference the program-name only if the program possesses the recursive attribute."
+  },
+  {
+   "id": "SR-8.4.6.3-3",
+   "section": "8.4.6.3",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Scope of names",
+   "text": "If the program-name is that of an outermost program, that program-name may be referenced by statements included in any source element in the run unit."
+  },
+  {
+   "id": "GR-8.5.1.3.2-1",
+   "section": "8.5.1.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Levels",
+   "text": "Entries that specify elementary items or groups introduced by a RENAMES clause."
+  },
+  {
+   "id": "GR-8.5.1.3.2-2",
+   "section": "8.5.1.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Levels",
+   "text": "Entries that specify noncontiguous working-storage, local storage, and linkage data items."
+  },
+  {
+   "id": "GR-8.5.1.3.2-3",
+   "section": "8.5.1.3.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Levels",
+   "text": "Entries that specify condition-names. Entries describing items by means of RENAMES clauses for the purpose of re-grouping data items have been assigned the special level-number 66. Entries that specify noncontiguous data items that are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77. Entries that specify condition-names to be associated with particular values of a conditional variable have been assigned the special level-number 88."
+  },
+  {
+   "id": "GR-8.5.1.4-1",
+   "section": "8.5.1.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Computer independent data description",
+   "text": "The non-combining character and the following combining characters of a composite sequence defined in ISO/IEC 10646 are each treated as a single character position."
+  },
+  {
+   "id": "GR-8.5.1.4-2",
+   "section": "8.5.1.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Computer independent data description",
+   "text": "The high-half 2 octets and the low-half 2 octets of a four-octet sequence defined in the UTF-16 format of ISO/IEC 10646 are each treated as a single character position. NOTE The UTF-16 format of ISO/IEC 10646 is a coded character set where each code element (or 'code value') consists of two octets. Many, but not all, of the letters and symbols are represented in one code element. In order to accommodate more entities than could otherwise be defined in a two-octet coded character set, the following techniques are used in ISO/IEC 10646: — some abstract characters or text entities are defined as 'combining character sequences' of multiple code elements where a two-octet base character and one or more two-octet combining characters form a complete entity, together called a composite sequence. — some abstract characters or text entities are defined as 'surrogate pairs' consisting of two code elements. These techniques facilitate efficient processing of data as fixed-size two-octet code elements, but present opportunities for corruption of data if not handled correctly. To achieve a better understanding, see ISO/IEC 10646. COBOL does not provide any special handling or recognition of surrogate pairs; nor does COBOL provide recognition of composite sequences. Each two-octet code element of UTF-16 is treated in COBOL as though it were itself a character. Users are responsible for ensuring that any truncation, replacement, or reference-modification that occurs is consistent with the needs of their application."
+  },
+  {
+   "id": "GR-8.5.1.6.4-1",
+   "section": "8.5.1.6.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Alignment of data items in storage",
+   "text": "By use of the SYNCHRONIZED clause."
+  },
+  {
+   "id": "GR-8.5.1.6.4-2",
+   "section": "8.5.1.6.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Alignment of data items in storage",
+   "text": "By recognizing the appropriate natural boundaries and organizing the data suitably without the use of the SYNCHRONIZED clause. Each implementor who provides for special types of alignment shall specify the precise interpretations that are to be made. The use of such items within a group may affect the results of statements in which the group is used as an operand. Each implementor who provides for these special types of alignment shall describe the effect of the implicit FILLER and the semantics of any statement referencing these groups."
+  },
+  {
+   "id": "GR-8.5.1.9.1-1",
+   "section": "8.5.1.9.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Dynamic-capacity tables",
+   "text": "its occurrences are created dynamically,"
+  },
+  {
+   "id": "GR-8.5.1.9.1-2",
+   "section": "8.5.1.9.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Dynamic-capacity tables",
+   "text": "it may have an unlimited capacity, and"
+  },
+  {
+   "id": "SR-8.5.1.9.1-3",
+   "section": "8.5.1.9.1",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Dynamic-capacity tables",
+   "text": "it may be defined in any place, other than the file section, in which a fixed-capacity table may be defined and may be nested in any combination to the same number of levels as a fixed-capacity table. A dynamic-capacity table also differs from fixed-capacity and occurs-depending tables in that table data items are not required to be contiguous in physical memory. The size, location, and time of physical allocation of a dynamic-capacity table are implementor-defined. The current capacity of a dynamic-capacity table may be initialized explicitly in the FROM phrase of the OCCURS clause or implicitly in the VALUE clause. If neither is specified, the current capacity is initialized to zero. The TO phrase of the OCCURS clause may be used to specify an upper value for the current capacity of a dynamic table, which may be exceeded with a nonfatal exception. This value is referred to as the expected capacity. The actual limit for the current capacity imposed by the implementor and by current resource availability is referred to as the maximum capacity."
+  },
+  {
+   "id": "GR-8.5.1.9.6-1",
+   "section": "8.5.1.9.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Dynamic-capacity tables",
+   "text": "EC-BOUND-OVERFLOW. The nonfatal EC-BOUND-OVERFLOW exception condition shall exist when a dynamic-capacity table has an expected capacity and an operation causes this expected capacity to be exceeded. If the change in capacity was implicit and the expected capacity had already been exceeded before the operation, no exception shall exist. If checking for the EC-BOUND-OVERFLOW exception condition is not turned on, or results in the execution of a declarative procedure or a procedure in a WHEN phrase of a PERFORM statement that executes a RESUME statement with the NEXT STATEMENT phrase, the operation shall be allowed to continue, thus exceeding the receiving table's specified expected capacity."
+  },
+  {
+   "id": "GR-8.5.1.9.6-2",
+   "section": "8.5.1.9.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Dynamic-capacity tables",
+   "text": "EC-BOUND-TABLE-LIMIT. The fatal EC-BOUND-TABLE-LIMIT exception condition shall exist when an operation attempts to increase the capacity of a dynamic-capacity table to a value higher than the maximum capacity of the table based on the resources available at runtime."
+  },
+  {
+   "id": "GR-8.5.1.11.3-1",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "an object instance containing the data item is finalized;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-2",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the program containing the data item is an initial program and executes an EXIT PROGRAM or GOBACK;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-3",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the program containing the data item is a main program and executes a GOBACK or STOP;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-4",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the program containing the data item is a called program and a CANCEL is executed referring to it;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-5",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the program containing the data item encounters a fatal exception;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-6",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the variable-length data item is explicitly or implicitly reduced in size;"
+  },
+  {
+   "id": "GR-8.5.1.11.3-7",
+   "section": "8.5.1.11.3",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Variable-length data items",
+   "text": "the variable-length data item is overwritten with a new value. The actual time when the resources used by a variable-length data item are freed is implementor-defined."
+  },
+  {
+   "id": "GR-8.5.1.12.1-1",
+   "section": "8.5.1.12.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Variable-length groups",
+   "text": "For each dynamic-capacity table in either group there is a corresponding table in the other group as specified in 8.5.1.12.2, Positional correspondence."
+  },
+  {
+   "id": "GR-8.5.1.12.1-2",
+   "section": "8.5.1.12.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Variable-length groups",
+   "text": "For each pair of corresponding tables, these tables match, as specified in 8.5.1.12.3, Matching."
+  },
+  {
+   "id": "GR-8.5.1.12.1-3",
+   "section": "8.5.1.12.1",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Variable-length groups",
+   "text": "For each dynamic-length elementary item in either group there is a corresponding dynamic-length elementary item in the other group as specified in 8.5.1.12.2, Positional correspondence."
+  },
+  {
+   "id": "GR-8.5.2.3-1",
+   "section": "8.5.2.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described as alphanumeric by its PICTURE character-string."
+  },
+  {
+   "id": "GR-8.5.2.3-2",
+   "section": "8.5.2.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described with a VALUE clause containing an alphanumeric literal, and without a PICTURE clause."
+  },
+  {
+   "id": "GR-8.5.2.3-3",
+   "section": "8.5.2.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An alphanumeric group item."
+  },
+  {
+   "id": "GR-8.5.2.3-4",
+   "section": "8.5.2.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An alphanumeric function. Such an item is referred to as an alphanumeric data item."
+  },
+  {
+   "id": "GR-8.5.2.5-1",
+   "section": "8.5.2.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described as boolean by its PICTURE character-string."
+  },
+  {
+   "id": "GR-8.5.2.5-2",
+   "section": "8.5.2.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described with a VALUE clause containing a boolean literal, and without a PICTURE clause."
+  },
+  {
+   "id": "GR-8.5.2.5-3",
+   "section": "8.5.2.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the BIT phrase."
+  },
+  {
+   "id": "GR-8.5.2.5-4",
+   "section": "8.5.2.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A boolean function. Such an item is referred to as a boolean data item."
+  },
+  {
+   "id": "GR-8.5.2.8-1",
+   "section": "8.5.2.8",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item explicitly or implicitly described as usage index."
+  },
+  {
+   "id": "GR-8.5.2.8-2",
+   "section": "8.5.2.8",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An index function. Such an item is referred to as an index data item."
+  },
+  {
+   "id": "GR-8.5.2.10-1",
+   "section": "8.5.2.10",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described as national by its PICTURE character-string."
+  },
+  {
+   "id": "GR-8.5.2.10-2",
+   "section": "8.5.2.10",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described with a VALUE clause containing a national literal and described without a PICTURE clause."
+  },
+  {
+   "id": "GR-8.5.2.10-3",
+   "section": "8.5.2.10",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase."
+  },
+  {
+   "id": "GR-8.5.2.10-4",
+   "section": "8.5.2.10",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A national function. Such an item is referred to as a national data item."
+  },
+  {
+   "id": "GR-8.5.2.12-1",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause."
+  },
+  {
+   "id": "GR-8.5.2.12-2",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An elementary data item described with one of the following usages: binary-char, binary-short, binary-long, binary-double, float-short, float-long, float-extended, float-binary-32, float-binary-64, float-binary-128, float-decimal-16, or float-decimal-34."
+  },
+  {
+   "id": "GR-8.5.2.12-3",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A LINE-COUNTER."
+  },
+  {
+   "id": "GR-8.5.2.12-4",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A LINAGE-COUNTER."
+  },
+  {
+   "id": "GR-8.5.2.12-5",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A PAGE-COUNTER."
+  },
+  {
+   "id": "GR-8.5.2.12-6",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A numeric function."
+  },
+  {
+   "id": "GR-8.5.2.12-7",
+   "section": "8.5.2.12",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "An integer function. Such an item is referred to as a numeric data item."
+  },
+  {
+   "id": "GR-8.5.2.13-1",
+   "section": "8.5.2.13",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A data item described as numeric-edited by its PICTURE character-string."
+  },
+  {
+   "id": "GR-8.5.2.13-2",
+   "section": "8.5.2.13",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Class and category of data items and literals",
+   "text": "A data item described as numeric by its PICTURE character-string and described with a BLANK WHEN ZERO clause. Such an item is referred to as a numeric-edited data item."
+  },
+  {
+   "id": "GR-8.5.3.1-1",
+   "section": "8.5.3.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Types",
+   "text": "Currency symbols match if and only if the corresponding currency strings are the same."
+  },
+  {
+   "id": "GR-8.5.3.1-2",
+   "section": "8.5.3.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Types",
+   "text": "Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these type declarations. Comma picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these type declarations. Additionally, locale specifications in the PICTURE clauses match if and only if: — both specify the same SIZE phrase in the LOCALE phrase of the PICTURE clause, and — both specify the LOCALE phrase without a locale-name or both specify the LOCALE phrase with the same external identification, where the external identification is the external-locale-name or literal value associated with a locale-name in the LOCALE clause of the SPECIAL-NAMES paragraph. NOTE When two typed items are defined in the same source element, the above rules mean that either both items are described with the same TYPE clause or both items are described as the same subordinate item in the same type declaration or equivalent declaration."
+  },
+  {
+   "id": "GR-8.5.4-1",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A group data item containing only an occurs-depending table in which the number of occurrences is zero."
+  },
+  {
+   "id": "GR-8.5.4-2",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A group data item containing only a subordinate zero-length item."
+  },
+  {
+   "id": "GR-8.5.4-3",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A data item defined with the ANY LENGTH clause corresponding to an argument or returning item that is a zero-length item."
+  },
+  {
+   "id": "GR-8.5.4-4",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A data item defined with the DYNAMIC LENGTH clause that is a zero-length item."
+  },
+  {
+   "id": "GR-8.5.4-5",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A logical record that has been specified using the variable-length or the fixed-or-variable-length format of the RECORD clause in which the number of characters positions is zero."
+  },
+  {
+   "id": "GR-8.5.4-6",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "An intrinsic function that returns a zero-length value."
+  },
+  {
+   "id": "GR-8.5.4-7",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A variable-length group containing only dynamic-capacity tables each of whose current capacity is zero."
+  },
+  {
+   "id": "GR-8.5.4-8",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A zero-length literal."
+  },
+  {
+   "id": "GR-8.5.4-9",
+   "section": "8.5.4",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Data description and representation",
+   "text": "A reference-modified data item that has resolved to a length of zero, when that has been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH."
+  },
+  {
+   "id": "GR-8.6.7-1",
+   "section": "8.6.7",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Scope and life cycle of data",
+   "text": "The data content of an external data record may be referenced from any runtime element provided that the runtime element has described that record."
+  },
+  {
+   "id": "GR-8.6.7-2",
+   "section": "8.6.7",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Scope and life cycle of data",
+   "text": "If a program is contained within another program, both programs may refer to data possessing the global attribute either in the containing program or in any program that directly or indirectly contains the containing program."
+  },
+  {
+   "id": "GR-8.6.7-3",
+   "section": "8.6.7",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Scope and life cycle of data",
+   "text": "The mechanism whereby an argument value is passed by reference from an activating runtime element to an activated runtime element establishes a common data item. The activated unit and the activating unit may use a different name to refer to the common data item."
+  },
+  {
    "id": "SR-8.7.5.2-1",
    "section": "8.7.5.2",
    "kind": "SR",
@@ -4181,6 +5468,96 @@
    "text": "When both operand-1 and operand-2 are equal to zero, the EC-SIZE-EXPONENTIATION exception condition is set to exist."
   },
   {
+   "id": "SR-8.8.2-1",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "A boolean expression shall begin with one of the following: — the symbol '(' — an identifier that references a boolean data item — a boolean literal — the unary operator B-NOT."
+  },
+  {
+   "id": "SR-8.8.2-2",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "A boolean expression where the preceding operator is a boolean shift operator shall end with one of the following: — the symbol ')' — An integer operand Otherwise the expression shall end with one of the following: — the symbol ')' — an identifier that references a boolean data item — a boolean literal."
+  },
+  {
+   "id": "SR-8.8.2-3",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "There shall be a one-to-one correspondence between left and right parentheses such that each left parenthesis shall be to the left of its corresponding right parenthesis."
+  },
+  {
+   "id": "SR-8.8.2-4",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "The two operands in a binary boolean operation shall not both be the figurative constant ALL literal."
+  },
+  {
+   "id": "SR-8.8.2-5",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "The first operand in a boolean shift operation shall not be the figurative constant ALL literal. The second operand shall be an integer operand."
+  },
+  {
+   "id": "SR-8.8.2-6",
+   "section": "8.8.2",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "The permissible combinations of operands, operators, and parentheses in a boolean expression are specified in Table 4, Combination of symbols in boolean expressions. **Table 4 — Combination of symbols in boolean expressions** | **First Symbol ↓ &nbsp; Second Symbol →** | **Identifier or literal** | **B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC** | **B-NOT** | **(** | **)** | |---|---|---|---|---|---| | Identifier or literal | — | P | — | — | P | | B-AND, B-OR, B-XOR | P | — | P | P | — | | B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC | P | — | — | — | — | | B-NOT | P | — | — | P | — | | ( | P | — | P | P | — | | ) | — | P | — | — | P | > **Table note.** The printed table has a TWO-LEVEL header: the corner cell beside a single spanning cell over all data columns. Markdown cannot span a header cell, so both axes are named in the corner instead. Legend: &nbsp;&nbsp; P &nbsp; indicates a permissible pair &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; — &nbsp; indicates an invalid pair"
+  },
+  {
+   "id": "GR-8.8.2-7",
+   "section": "8.8.2",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "Evaluation of a boolean expression shall proceed as follows: a) Expressions within parentheses shall be evaluated before the parenthesized expression is used in the evaluation of a more inclusive expression. Within parentheses, evaluation shall proceed from the least inclusive set of nested parentheses to the most inclusive set. b) The precedence of operations at the same level of inclusiveness, is: 1st — negation (B-NOT) 2nd — conjunction (B-AND) 3rd — exclusive disjunction (B-XOR) 4th — inclusive disjunction (B-OR) The precedence of boolean shift operations (B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC and B-SHIFT-RC) is the same as that of the preceding operation, if any. If the boolean shift operation is not preceded by another operation, the precedence of that operation is the same as B-AND. c) When the sequence of evaluation is not specified by parentheses, the evaluation of operations with the same precedence shall proceed from left to right. NOTE 1 Parentheses can be used to clarify the logic where consecutive operations of the same precedence are specified or to modify the precedence when it is necessary to deviate from the normal precedence."
+  },
+  {
+   "id": "GR-8.8.2-8",
+   "section": "8.8.2",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "Boolean shift operations shall be performed without regard for the usage of the first operand. Shift left boolean operations shall proceed from the leftmost boolean digit and continue to the penultimate rightmost boolean digit, replacing each boolean digit in turn by its immediate successor to the right. It the operation is a circular shift left, the original leftmost boolean digit shall be placed in the rightmost boolean position, otherwise the value of the rightmost boolean position becomes a boolean zero and the original leftmost Boolean digit is discarded. Shift right boolean operations shall proceed from the rightmost boolean digit and continue to the penultimate leftmost boolean digit, replacing each boolean digit in turn by its immediate successor to the left. If the operation is a circular shift right, the original rightmost boolean digit shall be placed in the leftmost boolean position, otherwise the value of the leftmost boolean position becomes a boolean zero and the original rightmost Boolean digit is discarded. If the second operand is greater than 1, the boolean shift operation is repeated until the number of iterations equals the number specified in the second operand."
+  },
+  {
+   "id": "GR-8.8.2-9",
+   "section": "8.8.2",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "Binary boolean operations shall be performed without regard for the usage of the operands. The result of the evaluation of each boolean shift operation shall be a boolean value whose length shall be the number of boolean positions of the first item referenced in that operation. If the two operands are of equal length, the specified operation, conjoining or disjoining (inclusively or exclusively), shall proceed by operation on boolean values in corresponding boolean positions starting from the leftmost boolean position and continuing to the rightmost boolean position. If the operands are of unequal length, the operation shall proceed as though the shorter operand were extended on the right by a sufficient number of boolean zeros to make the operands of equal length. NOTE 2 Lengths are established for each boolean operation, including unary operations, in the order in which the operations are evaluated. If the operands of a Boolean operation are of zero-length, the result will be of zero-length."
+  },
+  {
+   "id": "GR-8.8.2-10",
+   "section": "8.8.2",
+   "kind": "GR",
+   "ordinal": 10,
+   "sublist": 1,
+   "subject": "Expressions",
+   "text": "The result of the evaluation of each boolean operation shall be a boolean value whose length shall be the number of boolean positions of the larger item referenced in that operation."
+  },
+  {
    "id": "SR-8.8.3.2-1",
    "section": "8.8.3.2",
    "kind": "SR",
@@ -4244,6 +5621,123 @@
    "text": "A concatenation expression shall be equivalent to a literal of the same class and value, and may be used anywhere a literal of that class may be used."
   },
   {
+   "id": "GR-8.8.4.2.1-1",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class numeric."
+  },
+  {
+   "id": "GR-8.8.4.2.1-2",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class alphabetic."
+  },
+  {
+   "id": "GR-8.8.4.2.1-3",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class alphanumeric."
+  },
+  {
+   "id": "GR-8.8.4.2.1-4",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class boolean."
+  },
+  {
+   "id": "GR-8.8.4.2.1-5",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class national."
+  },
+  {
+   "id": "GR-8.8.4.2.1-6",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands where one is a numeric integer and the other is class alphanumeric or national."
+  },
+  {
+   "id": "GR-8.8.4.2.1-7",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of different classes where each operand is from the set of classes alphanumeric, alphabetic, or national."
+  },
+  {
+   "id": "GR-8.8.4.2.1-8",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Comparisons involving indexes or index data items."
+  },
+  {
+   "id": "GR-8.8.4.2.1-9",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class message-tag."
+  },
+  {
+   "id": "GR-8.8.4.2.1-10",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 10,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class object."
+  },
+  {
+   "id": "GR-8.8.4.2.1-11",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 11,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two operands of class pointer where each operand is of the same category."
+  },
+  {
+   "id": "GR-8.8.4.2.1-12",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 12,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two strongly-typed operands of the same type."
+  },
+  {
+   "id": "GR-8.8.4.2.1-13",
+   "section": "8.8.4.2.1",
+   "kind": "GR",
+   "ordinal": 13,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Two compatible variable-length groups. For comparison, an alphanumeric group item shall be treated as an elementary alphanumeric data item. A class alphabetic operand shall be treated as though it were an operand of class alphanumeric. A national group item or a bit group item shall be treated as an elementary national data item or an elementary bit data item, respectively. NOTE All comparisons involving numeric-edited data items are alphanumeric or national comparisons, including when the associated VALUE clause is a numeric literal. Users should be aware this means that algebraic signs in numeric-edited data items usually have counter-intuitive collating sequence ordering, also that two numerically equivalent values in numeric-edited data items will not compare as equal when their picture clauses are different. Comparison of a variable-length group with a compatible group is defined below in 8.8.4.2.17, Comparison of a variable-length group with a compatible group. The first operand is called the subject of the condition; the second operand is called the object of the condition. A relation condition shall contain at least one reference to an operand that is not a literal."
+  },
+  {
    "id": "SR-8.8.4.2.3-1",
    "section": "8.8.4.2.3",
    "kind": "SR",
@@ -4287,6 +5781,87 @@
    "sublist": 1,
    "subject": "Simple relation conditions",
    "text": "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category."
+  },
+  {
+   "id": "GR-8.8.4.2.7-1",
+   "section": "8.8.4.2.7",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of equal length. Comparison effectively proceeds by comparing alphanumeric characters in corresponding alphanumeric character positions starting from the high-order end and continuing until either a pair of unequal characters is encountered or the low-order end of the operand is reached, whichever comes first. The operands are determined to be equal if all pairs of corresponding alphanumeric characters are equal. Two zero-length operands are equal. The first pair of unequal characters encountered are compared to determine their relative position in the alphanumeric collating sequence. The operand that contains the character that is positioned higher in the alphanumeric collating sequence is the greater operand."
+  },
+  {
+   "id": "GR-8.8.4.2.7-2",
+   "section": "8.8.4.2.7",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of unequal length. If the operands are of unequal length, comparison proceeds as though the shorter operand were extended on the right by sufficient alphanumeric spaces to make the operands of equal length. The preceding rule for operands of equal length then apply. When local-based comparisons are specified, for purposes of comparison, trailing spaces are truncated from the operands except that an operand consisting of all spaces is truncated to a single space. NOTE Locale-based comparison is not necessarily a character-by-character comparison; extending the shorter operand with spaces as for non-locale based comparison could alter the culturally-expected results. If the locale does not specify a distinct alphanumeric collating sequence, class alphanumeric and alphabetic operands are mapped to their corresponding representation in the national character set for purposes of comparison; the correspondence between alphanumeric characters and national characters is defined by the implementor. Comparison then proceeds by the algorithm associated with the collating sequence defined by category LC_COLLATE from the current locale. This may be a culturally-sensitive comparison, and is not necessarily performed character-by-character. The determination of whether the relation condition is satisfied is based on the locale specification. Two zero-length operands are equal. If the locale does not define a collating sequence for all characters of the operands, the EC-LOCALE-INCOMPATIBLE exception condition is set to exist."
+  },
+  {
+   "id": "GR-8.8.4.2.8-1",
+   "section": "8.8.4.2.8",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of equal length. Comparison effectively proceeds by comparing boolean values in corresponding boolean positions starting from the leftmost boolean position and continuing until either a pair of unequal boolean values is encountered or the rightmost boolean position of the operand is reached, whichever comes first. The operands are determined to be equal if all pairs of corresponding boolean values are equal. Two zero-length operands are equal."
+  },
+  {
+   "id": "GR-8.8.4.2.8-2",
+   "section": "8.8.4.2.8",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of unequal length. If the operands are of unequal length, comparison proceeds as though the shorter operand were extended on the right by sufficient boolean zeros to make the operands of equal length. The preceding rule for operands of equal length then apply."
+  },
+  {
+   "id": "GR-8.8.4.2.10-1",
+   "section": "8.8.4.2.10",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of equal length. Comparison effectively proceeds by comparing national characters in corresponding national character positions starting from the high-order end and continuing until either a pair of unequal characters is encountered or the low-order end of the operand is reached, whichever comes first. The operands are determined to be equal if all pairs of corresponding national characters are equal. Two zero-length operands are equal. The first pair of unequal characters encountered are compared to determine their relative position in the national collating sequence. The operand that contains the character that is positioned higher in the national collating sequence is the greater operand."
+  },
+  {
+   "id": "GR-8.8.4.2.10-2",
+   "section": "8.8.4.2.10",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "Operands of unequal length. If the operands are of unequal length, comparison proceeds as though the shorter operand were extended on the right by sufficient national spaces to make the operands of equal length. The preceding rule for operands of equal length then apply."
+  },
+  {
+   "id": "GR-8.8.4.2.13-1",
+   "section": "8.8.4.2.13",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "two index-names. The result is the same as if the corresponding occurrence numbers were compared."
+  },
+  {
+   "id": "GR-8.8.4.2.13-2",
+   "section": "8.8.4.2.13",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "an index-name and a numeric data item or numeric literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal."
+  },
+  {
+   "id": "GR-8.8.4.2.13-3",
+   "section": "8.8.4.2.13",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Simple relation conditions",
+   "text": "an index data item and an index-name or another index data item. The actual values are compared without conversion."
   },
   {
    "id": "SR-8.8.4.3.3-1",
@@ -4532,6 +6107,24 @@
    "text": "When used, NOT and the keyword OMITTED specify one condition to be executed for truth value."
   },
   {
+   "id": "SR-8.8.4.12.1-1",
+   "section": "8.8.4.12.1",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Abbreviated combined relation conditions",
+   "text": "The omission of the subject of the relation condition, or"
+  },
+  {
+   "id": "SR-8.8.4.12.1-2",
+   "section": "8.8.4.12.1",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Abbreviated combined relation conditions",
+   "text": "The omission of the subject and relational operator of the relation condition. Within a sequence of relation conditions, both forms of omission may be used."
+  },
+  {
    "id": "SR-8.8.4.12.3-1",
    "section": "8.8.4.12.3",
    "kind": "SR",
@@ -4557,6 +6150,429 @@
    "sublist": 1,
    "subject": "Abbreviated combined relation conditions",
    "text": "The effect of using abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition. NOTE When NOT appears in an abbreviated combined relation condition, it could be as a logical operator preceding the explicit subject of relation-condition-1, or it could be as a part of an extended-relational-operator. However, NOT cannot immediately precede an extended-relational operator. The interaction of these rules often lead to results that are not intuitive and therefore it should be avoided. Some examples of such usage with the expanded equivalent expression follow: | Abbreviated combined relation condition | Expanded equivalent | |---|---| | a > b AND NOT < c OR d | ((a > b) AND (a NOT < c)) OR (a NOT < d) | | a NOT EQUAL b OR c | (a NOT EQUAL b) OR (a NOT EQUAL c) | | NOT a = b OR c | (NOT (a = b)) OR (a = c) | | NOT (a GREATER b OR < c) | NOT ((a GREATER b) OR (a < c)) | | NOT (a NOT > b AND c AND NOT d) | NOT (((a NOT > b) AND (a NOT > c)) AND (NOT (a NOT > d))) | | NOT (a NOT > b XOR c AND NOT d) | NOT ((a NOT > b) XOR ((a NOT > c) AND NOT (a NOT > d))) |"
+  },
+  {
+   "id": "GR-8.8.4.13-1",
+   "section": "8.8.4.13",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Conditional expressions",
+   "text": "The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated."
+  },
+  {
+   "id": "GR-8.8.4.13-2",
+   "section": "8.8.4.13",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Conditional expressions",
+   "text": "Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See 8.8.1, Arithmetic expressions.)"
+  },
+  {
+   "id": "GR-9.1.5-1",
+   "section": "9.1.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "An external file connector may be referenced from any runtime element that describes that file connector."
+  },
+  {
+   "id": "GR-9.1.5-2",
+   "section": "9.1.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program that directly or indirectly contains the containing program."
+  },
+  {
+   "id": "GR-9.1.11-1",
+   "section": "9.1.11",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "No valid record position has been established."
+  },
+  {
+   "id": "GR-9.1.11-2",
+   "section": "9.1.11",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "An optional input file is not present."
+  },
+  {
+   "id": "GR-9.1.11-3",
+   "section": "9.1.11",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "No next or previous logical record exists."
+  },
+  {
+   "id": "GR-9.1.12-1",
+   "section": "9.1.12",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "Statements in a WHEN phrase of an active PERFORM statement where that WHEN phrase is specified with an exception-name, a file-name, or an open option as specified in 14.9.28, PERFORM statement, General rule 17. NOTE EC-ALL and EC-I-O would match any input-output exception condition."
+  },
+  {
+   "id": "GR-9.1.12-2",
+   "section": "9.1.12",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "Statements in a file-exception or exception-name format of a USE declarative as specified in General rule 3 of the USE statement The first one in the list that matches is the one selected. Any others that match are ignored."
+  },
+  {
+   "id": "GR-9.1.13.2-1",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 00. The input-output statement is successfully executed and no further information is available concerning the input-output operation."
+  },
+  {
+   "id": "GR-9.1.13.2-2",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 02. The input-output statement is successfully executed but a duplicate key is detected. a) For a READ statement with the NEXT phrase specified or implied, the key value for the current key of reference is equal to the value of the same key in the next record in the physical file. b) For a READ statement with the PREVIOUS phrase specified, the key value for the current key of reference is equal to the value of the same key in the prior record in the physical file. c) For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed."
+  },
+  {
+   "id": "GR-9.1.13.2-3",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 04. A READ statement is successfully executed but the physical record from the file is shorter than or longer than the minimum or maximum length of records allowed for the fixed file attributes for that file."
+  },
+  {
+   "id": "GR-9.1.13.2-4",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 05 a) For an OPEN statement, it is successfully executed but the file is described as optional and the physical file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the physical file has been created. b) For a DELETE FILE statement, the referenced file is not available."
+  },
+  {
+   "id": "GR-9.1.13.2-5",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 06. A READ statement for a line sequential file has successfully executed but a line delimiter or the end-of-file has not been detected."
+  },
+  {
+   "id": "GR-9.1.13.2-6",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 07. An OPEN or CLOSE statement is successfully executed but a CLOSE statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND phrase references a physical file on a non-reel/unit medium."
+  },
+  {
+   "id": "GR-9.1.13.2-7",
+   "section": "9.1.13.2",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 09. A READ statement for a line sequential file has successfully executed but the record contains one or more characters that are not in the implementor-defined character set for a line sequential file."
+  },
+  {
+   "id": "GR-9.1.13.3-1",
+   "section": "9.1.13.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 0x. An implementor-defined condition exists. The value of x is specified by the implementor and may be any of the uppercase letters 'A' through 'M' or lowercase letters 'a' through 'm', where the range of letters is defined by the sequence of Latin letters shown in Table 1, COBOL character repertoire. This condition shall not duplicate any condition specified by another I-O status value. NOTE It is implementor dependent whether or not upper and lower case versions of letters in this context are equivalent."
+  },
+  {
+   "id": "GR-9.1.13.4-1",
+   "section": "9.1.13.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 10. A sequential READ statement is attempted and no next or prior logical record exists in the physical file because: a) NEXT was specified or implied and the end of the physical file has been reached, or b) PREVIOUS was specified and the beginning of the physical file has been reached, or c) a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present."
+  },
+  {
+   "id": "GR-9.1.13.4-2",
+   "section": "9.1.13.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 14. A sequential READ statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file."
+  },
+  {
+   "id": "GR-9.1.13.5-1",
+   "section": "9.1.13.5",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the runtime element between the successful execution of a READ statement through a file connector and the execution of the next REWRITE statement for that file through the same file connector, or the ascending sequence requirements for successive record key values are violated. (See 14.9.51, WRITE statement.)"
+  },
+  {
+   "id": "GR-9.1.13.5-2",
+   "section": "9.1.13.5",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 22. An attempt is made either: a) to write a record that would create a duplicate key in a physical relative file. b) to write a record that would create a duplicate prime record key in a physical indexed file, or c) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key in the physical file."
+  },
+  {
+   "id": "GR-9.1.13.5-3",
+   "section": "9.1.13.5",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 23. This condition exists because: a) an attempt is made to randomly access a record that does not exist in the physical file; or b) a START or random READ statement is attempted on a file described as optional and the physical file is not present; or c) a START statement is attempted with an invalid key length specification; or d) a START statement is attempted on a sequential file that has no records or that does not support the ability to position at the specified record."
+  },
+  {
+   "id": "GR-9.1.13.5-4",
+   "section": "9.1.13.5",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 24. An attempt is made to write outside the externally-defined boundaries of a physical relative or indexed file. The implementor specifies the manner in which these boundaries are defined. Or, a sequential WRITE statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file."
+  },
+  {
+   "id": "GR-9.1.13.6-1",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 30. A permanent error exists and no further information is available concerning the input-output operation."
+  },
+  {
+   "id": "GR-9.1.13.6-2",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O Status = 31. A permanent error exists during execution of an OPEN statement because the content of the data item referenced by the data-name specified in the USING phrase of the file control entry is not consistent with the specification for the device-name or literal in the ASSIGN clause of that file control entry."
+  },
+  {
+   "id": "GR-9.1.13.6-3",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 34. A permanent error exists because of a boundary violation; an attempt is made to write outside the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined."
+  },
+  {
+   "id": "GR-9.1.13.6-4",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 34, A permanent error exists because of a boundary violation: a) An attempt is made to write outside the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined. b) A READ statement is unsuccessfully executed because the records are variable in length because of an OCCURS DEPENDING ON clause in the record in the associated record description entry and the associated DEPENDING ON item contains a value that makes the number of bytes in the record exceed the value specified or implied by the file description entry."
+  },
+  {
+   "id": "GR-9.1.13.6-5",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a file that is not described as optional and the physical file is not present."
+  },
+  {
+   "id": "GR-9.1.13.6-6",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 37. A permanent error exists because of one of the following reasons: a) For an OPEN statement 1\\. the EXTEND or OUTPUT phrase is specified but the file will not support write operations. 2\\. the I-O phrase is specified but the file will not support the input and output operations that are permitted for the organization of that file when opened in the I-O mode. 3\\. the INPUT phrase is specified but the file will not support read operations. b) A permanent error exists because an OPEN statement or DELETE FILE statement is attempted on a file and insufficient authority exists to access the file. The ability to detect this is processor dependent."
+  },
+  {
+   "id": "GR-9.1.13.6-7",
+   "section": "9.1.13.6",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 39. The OPEN or DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit."
+  },
+  {
+   "id": "GR-9.1.13.7-1",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 41. An OPEN statement or a DELETE FILE statement that is attempted for a file connector in an open mode."
+  },
+  {
+   "id": "GR-9.1.13.7-2",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 42. A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode."
+  },
+  {
+   "id": "GR-9.1.13.7-3",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 43. For a mass storage file in the sequential access mode, the last input-output statement executed for the associated file through a file connector prior to the execution of a DELETE RECORD or REWRITE statement through the same file connector was not a successfully executed READ statement."
+  },
+  {
+   "id": "GR-9.1.13.7-4",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 44. A boundary violation exists because: a) an attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name, or b) an attempt is made to rewrite a record to a sequential file and the record is not the same size as the record being replaced, or c) an attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records are produced, or d) for a line sequential file, an attempt is made to rewrite a record where an I-O status = '06' occurred while executing a read on the record."
+  },
+  {
+   "id": "GR-9.1.13.7-5",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 45. Record identification failure. The input-output statement was unsuccessful because no record description entry was selected for processing with the FORMAT clause or the CODE-SET clause."
+  },
+  {
+   "id": "GR-9.1.13.7-6",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 46. A sequential READ statement is attempted referencing a file connector open in the input or I-O mode and no valid next record has been established because: a) The preceding START statement referencing that file connector was unsuccessful, or b) The preceding READ statement referencing that file connector was unsuccessful."
+  },
+  {
+   "id": "GR-9.1.13.7-7",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 47. The execution of a READ or START statement is attempted referencing a file connector that is not open in the input or I-O mode."
+  },
+  {
+   "id": "GR-9.1.13.7-8",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 48. The execution of a WRITE statement is attempted referencing a file connector that is not open in the correct open mode as follows: a) If the access mode is sequential, the file connector is not open in the extend or output mode. b) If the access mode is dynamic or random, the file connector is not open in the I-O or output mode."
+  },
+  {
+   "id": "GR-9.1.13.7-9",
+   "section": "9.1.13.7",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 49. The execution of a DELETE RECORD or REWRITE statement is attempted referencing a file connector that is not open in the I-O mode."
+  },
+  {
+   "id": "GR-9.1.13.8-1",
+   "section": "9.1.13.8",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector."
+  },
+  {
+   "id": "GR-9.1.13.8-2",
+   "section": "9.1.13.8",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 52. The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected."
+  },
+  {
+   "id": "GR-9.1.13.8-3",
+   "section": "9.1.13.8",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 53. The input-output statement is unsuccessful because the statement requested a record lock, but this run unit holds the maximum number of locks allowed by this implementation."
+  },
+  {
+   "id": "GR-9.1.13.8-4",
+   "section": "9.1.13.8",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 54. The input-output statement is unsuccessful because the statement requested a record lock, but this file connector holds the maximum number of locks allowed by this implementation."
+  },
+  {
+   "id": "GR-9.1.13.9-1",
+   "section": "9.1.13.9",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 61. A file sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is already open by another file connector in a manner that conflicts with this request. The possible violations are: a) An attempt is made to open a physical file that is currently open by another file connector in the sharing with no other mode. b) An attempt is made to open a physical file in the sharing with no other mode and the physical file is currently open by another file connector. c) An attempt is made to open a physical file for I-O or extend and the physical file is currently open by another file connector in the sharing with read only mode. d) An attempt is made to open a physical file in the sharing with read only mode and the physical file is currently open by another file connector in the I-O or extend mode. e) An attempt is made to open a physical file in the output mode and the physical file is currently open by another file connector."
+  },
+  {
+   "id": "GR-9.1.13.9-2",
+   "section": "9.1.13.9",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 62. A file sharing conflict condition exists because a DELETE FILE statement is attempted on a physical file and that physical file is currently open by another file connector."
+  },
+  {
+   "id": "GR-9.1.13.10-1",
+   "section": "9.1.13.10",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status =71. An attempt was made to rewrite or write a record to a line sequential file and the record area contains one or more characters not in the implementor-defined character set for the file. The write or rewrite operation was unsuccessful and the record area remains unchanged."
+  },
+  {
+   "id": "GR-9.1.13.11-1",
+   "section": "9.1.13.11",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "I-O status",
+   "text": "I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other condition specified by another I-O status value. The value of x is defined by the implementor."
   },
   {
    "id": "GR-9.1.14-1",
@@ -4611,6 +6627,132 @@
    "sublist": 2,
    "subject": "Files",
    "text": "If the I-O status indicates a successful completion, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, if control is returned from the NOT INVALID KEY phrase, control is then transferred to the end of the input-output statement."
+  },
+  {
+   "id": "GR-9.1.15-1",
+   "section": "9.1.15",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "The sharing with no other mode specifies exclusive access to a physical file. Associating this file connector with the physical file will be unsuccessful if the physical file is currently open through other file connectors. If the OPEN statement is successful, subsequent requests to open the physical file through other file connectors before this file connector is closed will be unsuccessful. Record locks are ignored."
+  },
+  {
+   "id": "GR-9.1.15-2",
+   "section": "9.1.15",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "The sharing with read only mode restricts concurrent access to a physical file through file connectors other than this one, to input mode. Associating this file connector with the physical file will be unsuccessful if the physical file is associated with another file connector whose open mode is other than input. If the OPEN statement is successful, subsequent requests to open the physical file through other file connectors in a mode other than input before this file connector is closed will be unsuccessful. Record locks are in effect."
+  },
+  {
+   "id": "GR-9.1.15-3",
+   "section": "9.1.15",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Files",
+   "text": "The sharing with all other mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or extend mode, subject to any further restrictions that apply. Record locks are in effect. Multiple paths of access may exist in the same runtime element, contained elements, separate runtime elements within the same run unit, or runtime elements in different run units. The successful opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run units from opening that file with incompatible sharing rules. The file lock is removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file is subject to an active APPLY COMMIT clause. In the case of a file subject to commit and rollback, where a file has been closed and not reopened prior to a commit, the file lock is removed by the COMMIT statement. In the case of a file subject to commit and rollback, where a file was not open prior to the previous commit or if none the start of the run unit and was subsequently opened, the file lock is released by the ROLLBACK statement."
+  },
+  {
+   "id": "GR-9.2.3-1",
+   "section": "9.2.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Screens",
+   "text": "Successful completion with normal termination: CRT status = 0000. The input statement was successfully executed. Termination was achieved by the operator pressing the enter key or entering data into the last character of a screen item for which the AUTO clause is specified and for which no logical next field exists."
+  },
+  {
+   "id": "GR-9.2.3-2",
+   "section": "9.2.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Screens",
+   "text": "Successful completion with termination by a function key keystroke: a) CRT status = 1xxx. The input statement was successfully executed. Termination was achieved by the operator pressing a function key. The number of the function key that was pressed is given by the numeric value of xxx. b) CRT status = 2xxx. The input statement was successfully executed. Termination was achieved by the operator pressing a context-dependent function key. The number of the function assigned to the key that was pressed is given by the numeric value of xxx."
+  },
+  {
+   "id": "GR-9.2.3-3",
+   "section": "9.2.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Screens",
+   "text": "Unsuccessful completion with standard-defined condition. Further terminal I-O statements are not precluded: a) CRT status = 8000. The ACCEPT screen statement was unsuccessful because no input screen item was located at a valid screen position. b) CRT status = 8001. The ACCEPT screen statement was unsuccessful because inconsistent data was entered into a screen item and allowed to remain there. NOTE On some implementations, this will not occur because the operator is forced to correct the data before execution will continue."
+  },
+  {
+   "id": "GR-9.2.3-4",
+   "section": "9.2.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Screens",
+   "text": "Unsuccessful completion with implementor-defined condition: a) CRT status = 9xxx. An implementor-defined condition exists. The numeric value xxx is defined by the implementor."
+  },
+  {
+   "id": "GR-9.3.5.3-1",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "The method name"
+  },
+  {
+   "id": "GR-9.3.5.3-2",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "The expected calling convention"
+  },
+  {
+   "id": "GR-9.3.5.3-3",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "The DECIMAL-POINT IS COMMA clause"
+  },
+  {
+   "id": "GR-9.3.5.3-4",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "The CURRENCY SIGN clause"
+  },
+  {
+   "id": "GR-9.3.5.3-5",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "The LOCALE clause"
+  },
+  {
+   "id": "GR-9.3.5.3-6",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "A description of each parameter, and of the returning item. This description consists of the following clauses: a) ALIGNED clause b) ANY-LENGTH clause c) BLANK WHEN ZERO clause d) DYNAMIC-LENGTH clause e) JUSTIFIED clause f) PICTURE clause g) SIGN clause h) USAGE clause"
+  },
+  {
+   "id": "GR-9.3.5.3-7",
+   "section": "9.3.5.3",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Polymorphism",
+   "text": "If the parameter is a variable-length group, sufficient information to determine if this group would match the group is specified in the invoke statement. Parametric polymorphism is an optional feature in this Working Draft International Standard. When parametric polymorphism is provided, the manner of method resolution may be as defined in 9.3.6, Method invocation, or may be based on a methodology used in the processor's object management system."
   },
   {
    "id": "GR-9.3.6-1",
@@ -8724,6 +10866,24 @@
    "sublist": 1,
    "subject": "Report section",
    "text": "The report section may be specified in a function definition or a program definition. Within a class definition, the report section may be specified only in a factory definition or an instance definition, but not in a method definition. The report section shall not be specified within an interface definition."
+  },
+  {
+   "id": "SR-13.8.6.2.3-1",
+   "section": "13.8.6.2.3",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Physical subdivisions of a report",
+   "text": "Sum counters may be inspected or altered in the procedure division."
+  },
+  {
+   "id": "SR-13.8.6.2.3-2",
+   "section": "13.8.6.2.3",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Physical subdivisions of a report",
+   "text": "Report groups of type DETAIL are accessed by the GENERATE statement. A report item referenced in a function identifier or inline method invocation shall be an elementary report item."
   },
   {
    "id": "SR-13.9.3-1",
@@ -13199,6 +15359,24 @@
    "text": "Zero suppression with replacement editing &nbsp;&nbsp;&nbsp;&nbsp;The symbol 'Z' is used as the symbol for zero suppression with replacement. The replacement character is the character space. &nbsp;&nbsp;&nbsp;&nbsp;Zero suppression with replacement is indicated by specifying a string of one or more symbols 'Z'. &nbsp;&nbsp;&nbsp;&nbsp;There are two ways of representing zero suppression with replacement: a) One way is to represent any or all of the leading numeric character positions to the left of the decimal point position by the symbol 'Z'. The result is that the space character is placed into any character position immediately preceding whichever of the following is encountered first: — the first nonzero numeric character in the item — the first character position for which no zero suppression with replacement is specified — the decimal point position. b) The second way is to represent all of the numeric character positions by the symbol 'Z'. The result depends upon the value of the data to be stored. If the value is not zero, the result is the same as if the zero suppression with replacement were defined only to the left of the decimal point position. If the value is zero, all character positions of the item will contain the character space."
   },
   {
+   "id": "GR-13.18.41.1-1",
+   "section": "13.18.41.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "PRESENT WHEN clause",
+   "text": "The PRESENT WHEN clause specifies a condition under which a report section entry will be processed."
+  },
+  {
+   "id": "GR-13.18.41.1-2",
+   "section": "13.18.41.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "PRESENT WHEN clause",
+   "text": "The PRESENT WHEN clause also enables conditional selection of data description entries by the VALIDATE statement. NOTE The PRESENT WHEN clause feature of the VALIDATE facility is an obsolete feature."
+  },
+  {
    "id": "SR-13.18.41.3-1",
    "section": "13.18.41.3",
    "kind": "SR",
@@ -16763,6 +18941,60 @@
    "text": "When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products. NOTE 2 The details of these restrictions and mechanisms might include parameter matching, representation of a data type, return of a value, and omission of parameters."
   },
   {
+   "id": "GR-14.5.3.2-1",
+   "section": "14.5.3.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined, and"
+  },
+  {
+   "id": "GR-14.5.3.2-2",
+   "section": "14.5.3.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "any unterminated statements that appear between that statement-name and the explicit scope terminator."
+  },
+  {
+   "id": "GR-14.5.3.3-1",
+   "section": "14.5.3.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "for a single imperative statement not contained within another statement, by a) any element that follows the exhaustion of the statement's syntax, or b) the next-encountered statement-name, or c) a separator period."
+  },
+  {
+   "id": "GR-14.5.3.3-2",
+   "section": "14.5.3.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "for a single imperative statement contained within another statement, by a) any element that terminates an imperative statement not contained within another statement, b) the termination of the scope of any containing statement, or c) the next phrase of any containing statement."
+  },
+  {
+   "id": "GR-14.5.3.3-3",
+   "section": "14.5.3.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "for a conditional statement not contained within another statement, by a separator period."
+  },
+  {
+   "id": "GR-14.5.3.3-4",
+   "section": "14.5.3.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Scope of statements",
+   "text": "for a conditional statement contained within another statement, by a) the termination of any containing statement, or b) the next phrase of any containing statement. Any phrase encountered is the next phrase of the most-recently preceding unterminated statement with which that phrase may be syntactically associated. If all permitted occurrences of a phrase have already been specified for a given statement, a subsequent occurrence of that phrase is not syntactically associated with that statement. An unterminated statement is any statement that has begun but has not yet been either explicitly or implicitly terminated. A contained statement is also referred to as a nested statement."
+  },
+  {
    "id": "GR-14.6.2.3.2-1",
    "section": "14.6.2.3.2",
    "kind": "GR",
@@ -16853,6 +19085,483 @@
    "text": "The length of each dynamic-length elementary item that is specified without a VALUE clause is set to zero. Before data is placed in the initial state, the initial alphanumeric and national program collating sequences are determined as specified in 12.3.6, OBJECT-COMPUTER paragraph."
   },
   {
+   "id": "GR-14.6.3-1",
+   "section": "14.6.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "If a procedure is being executed under control of another COBOL statement such as PERFORM, USE, SORT, and MERGE, and the procedure is the last procedure in the range of the controlling statement, then an implied transfer of control occurs from the last statement in the procedure to the control mechanism of the last executed controlling statement. Further, if a procedure is being executed under the control of a PERFORM statement that causes iterative execution, and that procedure is the first procedure in the range of that PERFORM statement, an implicit transfer of control occurs between the control mechanism associated with that PERFORM statement and the first statement in that procedure for each iterative execution of the procedure."
+  },
+  {
+   "id": "GR-14.6.3-2",
+   "section": "14.6.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "When a SORT or MERGE statement is executed, an implicit transfer of control occurs to any associated input or output procedures."
+  },
+  {
+   "id": "GR-14.6.3-3",
+   "section": "14.6.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "When any COBOL statement is executed that results in the execution of exception processing procedures, an implicit transfer of control to those procedures occurs as specified in 14.6.13.1, Exception conditions. NOTE Another implicit transfer of control occurs after execution of the exception processing procedures as specified in 14.6.13.1.3, Fatal exception conditions and 14.6.13.1.4, Nonfatal exception conditions. An explicit transfer of control may be caused only by the execution of a procedure branching or conditional statement. The procedure branching statement EXIT PROGRAM causes an explicit transfer of control only when the statement is executed in a called program. If control is transferred either implicitly or explicitly to a procedure containing no statements, execution proceeds as if the procedure contained only a single sentence consisting of a CONTINUE statement. In this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element. There is no next executable statement when the execution of an EXIT PROGRAM, GOBACK, or STOP statement transfers control outside the COBOL source element. In the declarative section for a fatal exception condition, there is no next executable statement after either the last statement when the paragraph in which it appears is not being executed under the control of some other COBOL statement, or the last statement when the statement is in the range of an active PERFORM statement executed in a different section and this last statement of the declarative section is not also the last statement of the procedure that is the exit of the active PERFORM statement. In these cases, unless the exception occurs in a MERGE statement, a SORT statement, or an I-O statement for which the implementor specifies otherwise, the run unit is terminated abnormally as specified in 14.6.12, Abnormal run unit termination. There is also no next executable statement after the last statement in a source element when the procedure in which it appears is not being executed under the control of some other COBOL statement in that source element, after the end marker, and when there are no procedure division statements in a program, function, or method. In these cases, an implicit GOBACK statement without any optional phrases is executed."
+  },
+  {
+   "id": "GR-14.6.4-1",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "locale identification"
+  },
+  {
+   "id": "GR-14.6.4-2",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "function evaluation"
+  },
+  {
+   "id": "GR-14.6.4-3",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "inline method invocation"
+  },
+  {
+   "id": "GR-14.6.4-4",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "subscript evaluation"
+  },
+  {
+   "id": "GR-14.6.4-5",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "object property evaluation"
+  },
+  {
+   "id": "GR-14.6.4-6",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "length evaluation for an occurs-depending group item"
+  },
+  {
+   "id": "GR-14.6.4-7",
+   "section": "14.6.4",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "reference modification Unless otherwise specified, item identification is done for an identifier as the first step in the evaluation of that identifier and the identifiers within a statement are evaluated in left to right order as the first operation of the execution of that statement."
+  },
+  {
+   "id": "GR-14.6.6-1",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "At run unit activation, the user default locale becomes the current locale for the run unit for all locale categories. The implementor specifies whether a locale set by COBOL is recognized in a non-COBOL runtime module, and whether a locale set by a non-COBOL runtime module is recognized in COBOL. In order to use a locale set by a non-COBOL runtime module, it is necessary to execute a SET statement specifying the USER-DEFAULT phrase."
+  },
+  {
+   "id": "GR-14.6.6-2",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "On activation of a runtime element, if the CHARACTER CLASSIFICATION clause is specified in the OBJECT-COMPUTER paragraph, category LC_CTYPE in the specified locale is used for character classification in the class test and the UPPER-CASE and LOWER-CASE intrinsic functions."
+  },
+  {
+   "id": "GR-14.6.6-3",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "When execution of a set-locale format SET statement switches the locale for one or more locale categories, the new locale becomes the current locale for the run unit for the switched categories; the current locale remains unchanged for categories that are not switched."
+  },
+  {
+   "id": "GR-14.6.6-4",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "If an alphabet-name specified in the PROGRAM COLLATING SEQUENCE clause of the OBJECT-COMPUTER paragraph is associated with a locale, category LC_COLLATE in the associated locale is used for comparisons and ordering as specified in 12.3.6, OBJECT-COMPUTER paragraph."
+  },
+  {
+   "id": "GR-14.6.6-5",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "For a SORT or MERGE statement specifying an alphabet-name associated with a locale in the COLLATING SEQUENCE phrase, category LC_COLLATE in the associated locale is used for that statement. A locale switch during execution of a SORT or MERGE statement has no effect on the processing of that SORT or MERGE statement."
+  },
+  {
+   "id": "GR-14.6.6-6",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "For a data item described with a LOCALE phrase, if a locale-name is specified, locale category LC_MONETARY in that locale is used for editing and de-editing of the data item. If a locale-name is not specified, category LC_MONETARY in the locale current at the time of editing or de-editing is used."
+  },
+  {
+   "id": "GR-14.6.6-7",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "For a LOCALE-COMPARE intrinsic function specifying a locale as an argument, category LC_COLLATE from the specified locale is used for evaluation of that function-identifier; if a locale is not specified as an argument, category LC_COLLATE from the current locale is used."
+  },
+  {
+   "id": "GR-14.6.6-8",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "For a LOCALE-DATE or LOCALE-TIME intrinsic function specifying a locale as an argument, category LC_TIME from the specified locale is used for evaluation of that function-identifier; if a locale is not specified as an argument, category LC_TIME from the current locale is used."
+  },
+  {
+   "id": "GR-14.6.6-9",
+   "section": "14.6.6",
+   "kind": "GR",
+   "ordinal": 9,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "Upon return of control from another COBOL runtime element, the locale in effect for each locale category at the time of exit from the returning runtime element becomes the current locale for that category. NOTE The intended behavior might be that the invoked program, function, or method switches locale for its caller; if not, the invoked program, function, or method is responsible for saving the locale on entry and restoring it before returning."
+  },
+  {
+   "id": "GR-14.6.8.2-1",
+   "section": "14.6.8.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the sending operand is an intermediate data item or a data item described with a standard floating-point usage, the value is treated as if it had been converted to a fixed-point value."
+  },
+  {
+   "id": "GR-14.6.8.2-2",
+   "section": "14.6.8.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the sending operand is a data item described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor defines the manner in which the value is converted to a fixed-point value."
+  },
+  {
+   "id": "GR-14.6.8.2-3",
+   "section": "14.6.8.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the data description of the receiving data item does not include an explicit decimal point specification, the data item is treated as if it had an assumed decimal point immediately following its rightmost digit."
+  },
+  {
+   "id": "GR-14.6.8.2-4",
+   "section": "14.6.8.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the receiving operand is a fixed-point numeric item, the data is aligned by decimal point and is transferred to the receiving digits with zero fill or truncation on either end as required."
+  },
+  {
+   "id": "GR-14.6.8.2-5",
+   "section": "14.6.8.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the receiving operand is a fixed-point numeric-edited item, further alignment, zero fill or truncation, and transfer of digits take place as described in the general rules and editing rules in 13.18.40, PICTURE clause."
+  },
+  {
+   "id": "GR-14.6.8.3-1",
+   "section": "14.6.8.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the receiving data item is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion. If no fatal exception conditions have been set to exist during data conversion, the content of the receiving operand is set to the algebraic value of the sending operand."
+  },
+  {
+   "id": "GR-14.6.8.3-2",
+   "section": "14.6.8.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the receiving data item is described with a standard floating-point usage, the algebraic value is converted and transferred to the receiving data item in a manner consistent with the specifications of ISO/IEC 60559:2020, Clauses 3 and 5."
+  },
+  {
+   "id": "GR-14.6.8.4-1",
+   "section": "14.6.8.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "If the algebraic value of the sending operand is not zero, the exponent and significand of the value are adjusted such that the most significant digit of the significand is not zero."
+  },
+  {
+   "id": "GR-14.6.8.4-2",
+   "section": "14.6.8.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Alignment and transfer of data into data items",
+   "text": "Alignment and zero fill or truncation take place as described in the general rules and editing rules in 13.18.40, PICTURE clause."
+  },
+  {
+   "id": "GR-14.6.9.2-1",
+   "section": "14.6.9.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Operations on dynamic-capacity tables",
+   "text": "If the sending table has a higher current capacity than the receiving table, superfluous elements are not moved and no exception exists,"
+  },
+  {
+   "id": "GR-14.6.9.2-2",
+   "section": "14.6.9.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Operations on dynamic-capacity tables",
+   "text": "If the sending table has a lower current capacity than the receiving table, all the remaining elements of the receiving table are space filled. If the receiving table is a dynamic-capacity table specifying a minimum capacity that is higher than its current capacity, further elements are created and filled with spaces until the current capacity of the table is equal to its minimum capacity as specified in 14.6.9.4, Space filling a dynamic table. Correspondingly numbered elements are moved according to the rules of the MOVE statement specified in 14.9.25, MOVE statement."
+  },
+  {
+   "id": "GR-14.6.10-1",
+   "section": "14.6.10",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "When the data items are not described by the same data description entry, the result of the statement is undefined."
+  },
+  {
+   "id": "GR-14.6.10-2",
+   "section": "14.6.10",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "When the data items are described by the same data description entry, the result of the statement is the same as if the data items shared no part of their respective storage areas. NOTE 1 The execution of a statement can have side effects on implicitly referenced items. When such items share a part or all of their storage areas with other explicitly or implicitly referenced items, there can be unexpected results. Similarly, when the rules for a statement explicitly or implicitly specify or reference multiple receiving operands, and some or all of those receiving operands share a part or all of their storage areas, there may be unexpected results among those receiving operands. NOTE 2 The impact of overlapping operands for both implicit and explicit references is discussed in D.5, Sharing of storage among data items. In the case of reference modification, the unique data item produced by reference modification is not considered to be the same data description entry as any other data description entry. Therefore, if an overlapping situation exists, the results of the operation are undefined."
+  },
+  {
+   "id": "GR-14.6.11-1",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses in the run unit."
+  },
+  {
+   "id": "GR-14.6.11-2",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "An implicit CLOSE statement without any phrases is executed for each file that is in the open mode. These implicit close statements shall be executed for all open files in the run unit, even when an error occurs during the execution of one or more of the CLOSE statements. Any exception processing procedures associated with these files are not executed."
+  },
+  {
+   "id": "GR-14.6.11-3",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "Any storage obtained with an ALLOCATE statement and not yet released by a FREE statement is released."
+  },
+  {
+   "id": "GR-14.6.11-4",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "All instance objects are destroyed. NOTE Any open files in an object are closed before the object is destroyed."
+  },
+  {
+   "id": "GR-14.6.11-5",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "If a locale was in use in the run unit, the implementor specifies whether the locale is reset to the locale in effect when the run unit was activated."
+  },
+  {
+   "id": "GR-14.6.11-6",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "Any resources occupied by dynamic-capacity tables or dynamic-length elementary items are freed."
+  },
+  {
+   "id": "GR-14.6.11-7",
+   "section": "14.6.11",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Execution",
+   "text": "If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each such message. Data-name is the name of the appropriate message-tag and temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE statement for that message-tag."
+  },
+  {
+   "id": "GR-14.6.13.1.2-1",
+   "section": "14.6.13.1.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "An EXIT PROGRAM, GOBACK, RESUME, or STOP statement that is specified in this function, method, or program is executed, or a fatal exception occurs within the scope of the declarative."
+  },
+  {
+   "id": "GR-14.6.13.1.2-2",
+   "section": "14.6.13.1.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "Any directly or indirectly activated runtime element terminates the run unit."
+  },
+  {
+   "id": "GR-14.6.13.1.3-1",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If a conditional phrase without the NOT phrase is specified in the interrupted statement and the rules for that statement indicate that the fatal exception condition is to be processed by the conditional phrase, the procedures for nonfatal exceptions as specified in 14.6.13.1.4, Nonfatal exception conditions, apply."
+  },
+  {
+   "id": "GR-14.6.13.1.3-2",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply."
+  },
+  {
+   "id": "GR-14.6.13.1.3-3",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If the exception condition is a fatal EC-I-O exception condition, then the rules for 9.1.13, I-O status apply, then if the implementor has not specified otherwise, the following rules apply for all fatal exception conditions."
+  },
+  {
+   "id": "GR-14.6.13.1.3-4",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase that specifies the exception-name associated with the exception condition or an exception-name of a higher level in the same hierarchy, the imperative statement in the WHEN phrase is executed. If WHEN COMMON is specified, the imperative-statement within the COMMON phrase is executed. Execution of the last imperative statement is terminated abnormally as specified in 14.6.12, Abnormal run unit termination. NOTE 1 The user is able to continue by using a RESUME statement, although this might not be advisable for most fatal conditions."
+  },
+  {
+   "id": "GR-14.6.13.1.3-5",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If checking for the exception condition is enabled and there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition or an exception-name of a higher level in the same hierarchy, the associated declarative is executed. If execution of the declarative completes normally the execution of the run unit is terminated abnormally as specified in 14.6.12, Abnormal run unit termination. NOTE 2 The user is able to continue by using a RESUME statement, although this might not be advisable for most fatal conditions."
+  },
+  {
+   "id": "GR-14.6.13.1.3-6",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If checking for the exception condition is enabled, and the exception condition is neither EC-FLOW-GLOBAL-EXIT nor EC-FLOW-GLOBAL-GOBACK, and there is an applicable PROPAGATE ON directive, the exception condition is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were executed."
+  },
+  {
+   "id": "GR-14.6.13.1.3-7",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 7,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally as specified in 14.6.12, Abnormal run unit termination."
+  },
+  {
+   "id": "GR-14.6.13.1.3-8",
+   "section": "14.6.13.1.3",
+   "kind": "GR",
+   "ordinal": 8,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected. However, if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally. If checking is not enabled for a fatal exception condition and the exception condition is detected by the compiler, the implementor is not required to produce executable code. It is implementor-defined which fatal exception conditions, if any, are detected at compile time, and the circumstances under which they are detected."
+  },
+  {
+   "id": "GR-14.6.13.1.4-1",
+   "section": "14.6.13.1.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If a conditional phrase without the NOT phrase is specified in the interrupted statement, the imperative statement associated with that conditional phrase is executed as specified in the rules for the specific statement."
+  },
+  {
+   "id": "GR-14.6.13.1.4-2",
+   "section": "14.6.13.1.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase that specifies the exception-name associated with the exception condition or an exception-name of a higher level in the same hierarchy, the imperative statement in the WHEN phrase is executed. Execution of the imperative statement in the WHEN phrase completes as specified in the rules for the PERFORM statement. No associated USE EXCEPTION declarative is executed. If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is also not executed."
+  },
+  {
+   "id": "GR-14.6.13.1.4-3",
+   "section": "14.6.13.1.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "If there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition or an exception-name of a higher level in the same hierarchy, the associated declarative is executed. If execution of the declarative completes normally, execution continues as specified in the rules for normal execution. If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed."
+  },
+  {
+   "id": "GR-14.6.13.1.4-4",
+   "section": "14.6.13.1.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Exception conditions",
+   "text": "Execution of the statement continues as specified in the rules for that statement."
+  },
+  {
    "id": "GR-14.6.13.1.5-1",
    "section": "14.6.13.1.5",
    "kind": "GR",
@@ -16905,6 +19614,60 @@
    "sublist": 2,
    "subject": "Exception conditions",
    "text": "Otherwise, execution of the EXIT or GOBACK statement in the activated element is as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase, instead of an exception object."
+  },
+  {
+   "id": "GR-14.6.13.2-1",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When the content of a boolean sending item is referenced during the execution of a statement and the content of that sending operand would evaluate to false in a boolean class condition, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist, except in the following circumstances: — a sending item is referenced in a class condition, or — a sending item is processed in a VALIDATE statement. The EC-DATA-INCOMPATIBLE exception condition is set to exist for a class condition and a VALIDATE statement when invalid data is detected during item identification. NOTE 1 For example, a subscript reference during a class test could cause the EC-DATA-INCOMPATIBLE exception condition to exist."
+  },
+  {
+   "id": "GR-14.6.13.2-2",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When the content of a numeric sending item that is not described with a standard floating-point usage is referenced during the execution of a statement and the content of that sending operand would evaluate to false in a numeric class condition, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist, except in the following circumstances: — a sending item is referenced in a class condition, or — a sending item is processed in a VALIDATE statement."
+  },
+  {
+   "id": "GR-14.6.13.2-3",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When a sending operand is described with a standard floating-point usage, and the content of the sending operand would evaluate to true in an infinity class condition or to true in a FLOAT-NOT-A-NUMBER class condition, the EC-DATA-NOT-FINITE exception condition is set to exist, except in the following circumstances: — a sending item is referenced in a class condition, or — a sending item is referenced in a sign condition, or — the sending and receiving items in a MOVE statement are defined with the same standard floating-point usage specification, with the exception of endianness, or — a sending item is processed in a VALIDATE statement."
+  },
+  {
+   "id": "GR-14.6.13.2-4",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When a numeric-edited data item is the sending operand of a de-editing MOVE statement and the content of that data item is not a possible result for any editing operation in that data item, the result of the MOVE operation is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist."
+  },
+  {
+   "id": "GR-14.6.13.2-5",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When the internal format of a dynamic-length elementary item is not correctly formed or does not agree with the corresponding DYNAMIC LENGTH clause an EC-DATA-INCOMPATIBLE exception condition is set to exist."
+  },
+  {
+   "id": "GR-14.6.13.2-6",
+   "section": "14.6.13.2",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Exception condition handling",
+   "text": "When the internal format of a dynamic-capacity table, as defined by the implementor, is not correctly formed or does not agree with the corresponding OCCURS clause an EC-DATA-INCOMPATIBLE exception condition is set to exist. If the content of a sending operand is not referenced by a given execution of a statement, any incompatible data in that operand is not detected. If part of a sending operand's content is referenced by a given execution of a statement, it is undefined whether any incompatible data in the unreferenced content is detected. NOTE 2 The content of a data item is not referenced when the data item is a receiving operand, unless that data item is also a sending data item."
   },
   {
    "id": "GR-14.7.4.3-1",
@@ -17141,6 +19904,114 @@
    "text": "if the result of the arithmetic statement is a nonzero value nearer to zero than permitted for the associated resultant data item and the DEFAULT ROUNDED MODE IS PROHIBITED clause or the ROUNDED MODE IS PROHIBITED phrase is in effect, the EC-SIZE-TRUNCATION exception condition is set to exist; and processing proceeds as specified in 14.6.13.1.3, Fatal exception conditions. If a NOT SIZE ERROR phrase is specified, it is ignored. If no size error condition occurs during the execution of the arithmetic operations specified by an arithmetic statement or expression or while storing into the resultant identifiers, the SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or expression or to the imperative-statement specified in the NOT SIZE ERROR phrase if it is specified. In the latter case, if control is returned from the NOT SIZE ERROR phrase, control is then transferred to the end of the arithmetic statement."
   },
   {
+   "id": "GR-14.7.6-1",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "A data item in D1 and a data item in D2 are not implicitly or explicitly described with the keyword FILLER and have the same data-name and the same qualifiers, if any, up to, but not including, D1 and D2."
+  },
+  {
+   "id": "GR-14.7.6-2",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "In a MOVE statement, at least one of the data items is an elementary data item and the resulting move is valid according to the rules for the MOVE statement."
+  },
+  {
+   "id": "GR-14.7.6-3",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "In an ADD or SUBTRACT statement, both of the data items are numeric data items."
+  },
+  {
+   "id": "GR-14.7.6-4",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of class index, message-tag, object, or pointer."
+  },
+  {
+   "id": "GR-14.7.6-5",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "Neither data item is subordinate to a group item that is subordinate to D1 or D2 when the group item contains an OCCURS or REDEFINES clause."
+  },
+  {
+   "id": "GR-14.7.6-6",
+   "section": "14.7.6",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "The name of each data item that satisfies the above conditions is unique after application of the implied qualifiers. Any item identification associated with a corresponding pair of operands is done at the start of the execution of the statement containing the CORRESPONDING phrase, not at the start of the implied statement used for the pair of operands. The implied statements are executed in the order in which the elements in the group data item immediately following CORRESPONDING are specified. For the arithmetic statements with the CORRESPONDING phrase, if the SIZE ERROR phrase is specified and one or more of the implied statements raises a size error condition, the imperative-statement in the SIZE ERROR phrase is executed after all of the implied statements are completed and the NOT SIZE ERROR phrase, if specified, is ignored. For the arithmetic statements with the CORRESPONDING phrase, if the SIZE ERROR phrase is not specified and any of the implied statements raises a size error condition, the level-3 EC-SIZE exception condition for the last of the implied statements that raised a size error condition is set to exist after all of the implied statements are completed. For any statement with the CORRESPONDING phrase, if any of the implied statements would set the EC-DATA-INCOMPATIBLE exception condition to exist, the EC-DATA-INCOMPATIBLE exception condition is set to exist after all of the implied statements are completed."
+  },
+  {
+   "id": "GR-14.7.7-1",
+   "section": "14.7.7",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "The data descriptions of the operands need not be the same; any necessary conversion and decimal point alignment is supplied throughout the calculation."
+  },
+  {
+   "id": "SR-14.7.7-2",
+   "section": "14.7.7",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "For ADD, DIVIDE, MULTIPLY, and SUBTRACT statements when native arithmetic is in effect: a) When none of the operands is — an intrinsic function; — a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or — a floating-point literal; the composite of operands shall not contain more than 31 digits. b) When any of the operands is — an intrinsic function; — a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or — a floating-point literal; the composite of all other operands shall not contain more than 31 digits. The composite of operands is a hypothetical data item resulting from the superimposition of specified operands in a statement aligned on their decimal points."
+  },
+  {
+   "id": "GR-14.7.7-3",
+   "section": "14.7.7",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "When standard-decimal or standard-binary arithmetic is in effect, each arithmetic statement is defined in terms of one or more arithmetic expressions. Unless specified otherwise in rules, transfer of data from an intermediate form into a resultant-identifier shall be according to the specifications in 14.6.8, Alignment and transfer of data into data items. NOTE 1 The ROUNDED phrase applies only to this transfer of data. The specifications of the INTERMEDIATE ROUNDING clause apply to the conversion of arithmetic operands into the appropriate standard intermediate form, and to the arithmetic operations themselves. NOTE 2 A size error condition can occur during the conversion of data items to intermediate form, during execution of arithmetic statements; and during the transfer of data into a resultant-identifier."
+  },
+  {
+   "id": "GR-14.7.7-4",
+   "section": "14.7.7",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "The arithmetic statements may have single or multiple resultant identifiers. These statements have common rules for storing in the resultant identifiers. The execution of these statements proceeds in the following order: a) The initial evaluation of the statement is done and the result of this operation is placed in an intermediate data item. If any form of standard arithmetic is in effect, a standard intermediate data item of the form appropriate to that mode of arithmetic is used. Otherwise, an implementor-defined intermediate data item is used. The rules indicating which data items or literals are part of this evaluation are given in the rules for the individual statements. All item identification for the data items involved in the initial evaluation is done at the start of the execution of the statement. If the size error condition is raised during the initial evaluation, none of the resultant data items are changed and execution proceeds as indicated in 14.7.5, SIZE ERROR phrase and size error condition. b) If the size error condition was not raised during the initial evaluation, the intermediate data item is stored in or combined with and then stored in each single resulting data item in the left-to-right order in which the receiving data items are specified in the statement. Item identification for the receiving data items is done as each data item is accessed unless it was already done in step a. If the size error condition is raised when attempting to store in a resulting data item, only that data item remains unchanged and processing proceeds to the next resulting data item to the right. NOTE 3 Because rule 4 specifies the use of an intermediate data item to hold the value resulting from the initial arithmetic evaluation, and that arithmetic evaluation is complete before any data is moved from that intermediate data item to any receiving operands, the results contained in the receiving operands for all arithmetic statements are defined regardless of whether any of the sending operands share storage with any of the receiving operands. Those results in the receiving operands are the same as if no receiving operand shared any part of its storage area with any sending operand."
+  },
+  {
+   "id": "GR-14.7.8-1",
+   "section": "14.7.8",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "When the range of values is defined by numeric literals, the range of values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2."
+  },
+  {
+   "id": "GR-14.7.8-2",
+   "section": "14.7.8",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Common phrases and features for statements",
+   "text": "When the range of values is defined by alphanumeric or national literals, the range of values depends on the collating sequence used for evaluation of the range. When there is no IN alphabet-name phrase specified for the range, the collating sequence is defined by the implementor. NOTE The intent is to allow an implementor to define the collating sequence in a manner compatible with previous COBOL implementations. When the IN alphabet-name phrase is specified, the collating sequence used for range evaluation is the collating sequence defined by that alphabet. When the alphabet-name is associated with a locale, the range of values is determined from locale category LC_COLLATE in the specific locale associated with that alphabet-name or, if none, in the current locale. When the alphabet-name is associated with the native collating sequence, the computer's runtime collating sequence is used at the time the values are used in execution. The range of values includes all values collating at the starting value and all successive ascending values in the applicable collating sequence up to and including all values collating at the ending value. When the value of literal-1 is greater than the value of literal-2 in the collating sequence in effect at runtime, the EC-RANGE-INVALID exception condition is set to exist, and, upon completion of any exception processing, execution proceeds as if the range of values were empty."
+  },
+  {
    "id": "GR-14.7.9.3-1",
    "section": "14.7.9.3",
    "kind": "GR",
@@ -17175,6 +20046,24 @@
    "sublist": 1,
    "subject": "RETRY phrase",
    "text": "If the I/O operation is unsuccessful on the first attempt because of a file sharing conflict condition or a record operation conflict condition, the following apply: a) If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero, the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13, I-O status, and execution proceeds as indicated for unsuccessful execution in the applicable statement; otherwise, b) The mass storage control system attempts to complete the input-output operation as specified in General rules 1, 2, or 3. If the mass storage control system permits the requested access on one of these attempts, the statement is successful and the results are as if the file sharing or record operation conflict had never occurred. Otherwise, the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13, I-O status, and execution proceeds as indicated for unsuccessful execution in the applicable statement."
+  },
+  {
+   "id": "SR-14.8.2.2-1",
+   "section": "14.8.2.2",
+   "kind": "SR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Parameters",
+   "text": "If the argument is passed by reference, that argument or the formal parameter corresponding to that argument shall be an alphanumeric group item or an elementary item of category alphanumeric, and the formal parameter shall be described with the same number or a smaller number of bytes as the corresponding argument."
+  },
+  {
+   "id": "SR-14.8.2.2-2",
+   "section": "14.8.2.2",
+   "kind": "SR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Parameters",
+   "text": "If the argument is passed by content, the conformance rules are the same as for a MOVE statement with the argument as the sending operand and the corresponding formal parameter as the receiving operand. NOTE If an argument is a group with a level number other than 1 and its subordinate items are described such that the implementation inserts slack bits or bytes, the alignment of the subordinate elementary items might not correspond between the argument and the formal parameter. If either the formal parameter or the corresponding argument is a strongly-typed group item, both shall be of the same type. If either the formal parameter or the argument is a variable length group, the formal parameter and the argument shall be compatible, as described in 8.5.1.12, Variable-length groups. For an argument or formal parameter that is described as an occurs-depending group item passed by reference, the maximum length is used. For an occurs-depending group item passed by content, the length of the argument is determined by the rules of the OCCURS clause for a sending data item."
   },
   {
    "id": "GR-14.8.2.3.2-1",
@@ -26789,6 +29678,60 @@
    "text": "The RETRY phrase is used to control the behavior of the WRITE statement for files opened for file sharing for the case where resources needed to write a record are locked by another run unit. The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase."
   },
   {
+   "id": "GR-15.2-1",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Alphanumeric functions. These are of the class and category alphanumeric. Alphanumeric functions have an implicit usage display. Unless stated otherwise in the definition of a function, the data item is represented in the alphanumeric coded character set in effect when the function is referenced at runtime."
+  },
+  {
+   "id": "GR-15.2-2",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Boolean functions. These are of the class and category boolean. Boolean functions have an implicit usage bit."
+  },
+  {
+   "id": "GR-15.2-3",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "National functions. These are of the class and category national. National functions have an implicit usage national. Unless stated otherwise in the definition of a function, the data item is represented in the national coded character set in effect when the function is referenced at runtime."
+  },
+  {
+   "id": "GR-15.2-4",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 4,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Numeric functions. These are of the class and category numeric. A numeric function has an operational sign."
+  },
+  {
+   "id": "GR-15.2-5",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 5,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Integer functions. These are of the class and category numeric. An integer function has an operational sign and no digits to the right of the decimal point."
+  },
+  {
+   "id": "GR-15.2-6",
+   "section": "15.2",
+   "kind": "GR",
+   "ordinal": 6,
+   "sublist": 1,
+   "subject": "Intrinsic functions",
+   "text": "Index functions. These are of the class and category index."
+  },
+  {
    "id": "AR-15.3-1",
    "section": "15.3",
    "kind": "AR",
@@ -26913,6 +29856,33 @@
    "sublist": 1,
    "subject": "Intrinsic functions",
    "text": "Type declaration. A type-name shall be specified. The size associated with the type declaration may be used in determining the value of the function. A variable-length group shall be referenced as an argument to a function only when explicitly permitted in the function definition. If any function permits a type declaration as an argument, the type declaration shall not describe a variable-length group. The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If the evaluation of an argument results in an incorrect value for that argument or for the returned value according to the rules specified in the function definition and no exception condition was raised during item identification or expression evaluation, the EC-ARGUMENT-FUNCTION exception condition is set to exist. If an exception condition is raised during item identification or expression evaluation, that exception condition is raised, not EC-ARGUMENT-FUNCTION. If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function reference. NOTE An example of another exception condition that might be raised is EC-SIZE-OVERFLOW during evaluation of a subscript or arithmetic expression. When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL. If the subscript ALL is specified for a dynamic-capacity table, the range of values of the subscript is from 1 to the current capacity of the table. When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified. The order of the implicit specification of each occurrence is from left to right, with the first (or leftmost) specification being the identifier with each subscript specified by the word ALL replaced by one, the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one. This process continues with the rightmost ALL subscript being incremented by one for each implicit specification until the rightmost ALL subscript has been incremented through its range of values. If there are any additional ALL subscripts, the ALL subscript immediately to the left of the rightmost ALL subscript is incremented by one, the rightmost ALL subscript is reset to one and the process of varying the rightmost ALL subscript is repeated. The ALL subscript to the left of the rightmost ALL subscript is incremented by one through its range of values. For each additional ALL subscript, this process is repeated in turn until the leftmost ALL subscript has been incremented by one through its range of values. If the ALL subscript is associated with a data item described with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript shall result in at least one argument, otherwise the result of the reference to the function-identifier is undefined."
+  },
+  {
+   "id": "GR-15.3.3.6.1-1",
+   "section": "15.3.3.6.1",
+   "kind": "GR",
+   "ordinal": 1,
+   "sublist": 1,
+   "subject": "Offset time formats",
+   "text": "A plus sign to indicate that the common time portion of the data is adjusted downward by the offset values to represent UTC;"
+  },
+  {
+   "id": "GR-15.3.3.6.1-2",
+   "section": "15.3.3.6.1",
+   "kind": "GR",
+   "ordinal": 2,
+   "sublist": 1,
+   "subject": "Offset time formats",
+   "text": "A minus sign to indicate that the common time portion of the data is adjusted upward by the offset values to represent UTC; or"
+  },
+  {
+   "id": "GR-15.3.3.6.1-3",
+   "section": "15.3.3.6.1",
+   "kind": "GR",
+   "ordinal": 3,
+   "sublist": 1,
+   "subject": "Offset time formats",
+   "text": "A zero to indicate that offset from UTC was not available on the system on which the information was recorded. If the data contains a zero in that character position, the offset-hours and offset-minutes subfields of the data shall both contain zero. NOTE 1 The value \"1014278124Z\" interpreted according to the format 'hhmmss.ssssZ' and the value \"0514278124-0500\" interpreted according to the format 'hhmmss.ssss+hhmm' represent the same time, namely, 10:14:27.8124 Coordinated Universal Time. NOTE 2 The returned value rules for the CURRENT DATE and WHEN COMPILED functions describe cases in which a zero in the sign position of an offset subformat can occur. If the values contained in offset-hours and offset-minutes subfields of data in a receiving field associated with an offset subformat are both zero, the position corresponding to the plus sign in the format shall contain a plus sign. For offset-time values used as sending fields, the position corresponding to the plus sign in the format may contain a zero provided that the offset-hours and offset-minutes subfields of the data both contain zeroes. NOTE 3 When local time is UTC, the data corresponding to the offset subformat of a basic offset date format contains +0000, and the data corresponding to the offset subformat of an extended offset date format contains +00:00. The colon character in the offset subformat of an extended offset time format appears in the data associated with the format."
   },
   {
    "id": "RV-15.4.1-1",

@@ -38,273 +38,381 @@
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Nonstandard extensions are language elements or functionality in an implementation that consist of any of the following:'. Item 3: 'language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is required for conformance ... provided that standard-conforming behavior is also implemented and that an implementor-defined mechanism exists for selection of the nonstandard behavior.' The items are not a bare index: each carries conditions with normative force ('standard support for that element is not claimed', 'provided that ... is also implemented') that determine what an implementation may treat as a nonstandard extension while conforming, and the definition is load-bearing for the trailing shall-requirements (documentation, warning mechanism) that reference 'nonstandard extensions' ⇒ normative. §5.3.2 vs §5.3.3 test: the items define the meaning of a conformance category, not the order in which words or elements may be written ⇒ GR (definitional list)."
   },
   "4.4": {
    "title": "A conforming run unit",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A conforming run unit is one that:'. Item 2: 'complies with the explicitly stated provisions and specifications of standard COBOL with respect to the runtime behavior of that run unit.' The items state the requirements an entity must satisfy to BE a conforming run unit — they define the meaning of the term and impose runtime-behavior compliance, so they are normative, not a bare index. §5.3.2 vs §5.3.3 test: nothing here constrains the order in which words or elements may be written; the items define the meaning of 'conforming run unit' and its runtime-behavior relationship to the standard ⇒ GR."
   },
   "5.5": {
    "title": "Integer operands",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "SR",
+     "2": "SR",
+     "3": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Item 1: 'When the term ‘integer-n’ … is used in a general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified'. Item 2: 'When the term ‘integer’ is used as a constraint for an operand in a syntax rule, then … it shall be an integer literal'. Item 3: 'When the term ‘integer’ is used as a constraint for an operand in a general rule, that operand shall evaluate at runtime as follows'. All three state requirements ('shall') ⇒ normative. Kind test: items 1 and 2 restrict what may be WRITTEN where the term appears (an unsigned nonzero literal; an integer literal or a data item whose description has no digits right of the radix point) — §5.3.2 restrictions on elements as written ⇒ SR. Item 3 explicitly governs runtime evaluation ('shall evaluate at runtime', native vs standard arithmetic) — §5.3.3 execution semantics ⇒ GR. Kinds differ ⇒ mixed-kinds."
   },
   "6.1": {
    "title": "General",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "GR",
+     "3": "SR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The following rules apply to the indicated reference formats:' — the clause itself names them rules. Item 1b: 'A COBOL compiler shall accept source text and library text written in reference format.' Item 2a: 'A COBOL compiler shall process fixed-form reference format lines as though the lines had been logically converted from fixed form to free form'. Item 3a: 'The number of character positions on a line may vary from line to line, ranging from a minimum of 0 to a maximum of 255.' These state requirements on the processor and restrictions on source form ⇒ normative. Kind is not uniform: items 1 and 2 are processor obligations and treatment-during-analysis clarifications ('the first character-string of a compilation group is treated as though it were preceded by a separator space') — §5.3.3's 'defines or clarifies the meaning ... and the effect that it has on either execution or compilation' fits; they do not constrain the order in which words may be written. Item 3 restricts how a free-form line may be written (0–255 character positions; implementor-specified line-terminating control characters and whether they may appear in comments and literals) — §5.3.2's 'impose restrictions on individual words or elements' / how source may be written ⇒ SR. Not all one kind ⇒ mixed-kinds."
   },
   "6.3.4": {
    "title": "Program-text area",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The program-text area may contain:'. Item 2: 'Any of the following or combinations of the following, subject to further syntax specifications, when the indicator area contains a continuation indicator or a source indicator'. Each item states a permission about what may be WRITTEN in the program-text area, conditioned on the indicator-area content — a closed list of permitted source contents, so it carries normative force (an area content outside the list is not permitted). §5.3.2 vs §5.3.3 test: these constrain where/how source text may be written in the reference format (compile-time well-formedness of lines), not the meaning of any construct ⇒ SR."
   },
   "6.3.5": {
    "title": "Continuation of lines",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Continuation of an alphanumeric, boolean, or national literal is indicated when either:'. Item 1: 'A line terminates within an alphanumeric or boolean literal without a closing delimiter and the next line that is not a comment line or a blank line contains a fixed continuation indicator'. The items state the conditions under which continuation of a literal is indicated in source text — normative recognition conditions, not a bare index. §5.3.2 vs §5.3.3 test: these govern how source elements may be WRITTEN across lines and how the written form is analyzed at compile time (reference format, clause 6), i.e. compile-time well-formedness of written text, not execution meaning ⇒ SR."
   },
   "6.5": {
    "title": "Logical conversion",
    "ordinals": 9,
    "lists": 1,
    "longest": 9,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The resultant logically-converted compilation group is created in free-form reference format as follows:'. Item 2: 'If the line is a comment line or a blank line, that line is logically discarded.' The nine items are the required algorithm every conforming compiler applies to convert fixed-form to free-form; they define the effect of SOURCE FORMAT directives, comment lines, continuation indicators, etc. => normative. §5.3.2 vs §5.3.3 test: they do not constrain the order in which the programmer may write words or elements — they define the MEANING/EFFECT of what was written (what each line kind becomes in the resultant compilation group), i.e. they 'define or clarify the meaning' of reference-format constructs => GR."
   },
   "7.2.2.5": {
    "title": "Text-words",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A text-word is a character-string, other than a comment or the COBOL word 'COPY', in source text or in library text that constitutes an element processed by text manipulation. A text-word may be one of the following:'. Item 1: 'a separator, except for: a space; a pseudo-text delimiter; and the opening and closing delimiters for alphanumeric, boolean, and national literals. In determining which character sequences form text-words, the colon, the right parenthesis, and the left parenthesis characters ... are treated as separators'. These define which character sequences constitute text-words — the unit on which COPY/REPLACE matching operates — so they carry normative force (they decide what REPLACING can and cannot match), not a bare index ⇒ normative. §5.3.2 vs §5.3.3 test: the items define the MEANING of 'text-word' (a definitional list of its three forms); they do not constrain the order in which words or elements may be written ⇒ GR. (Item 3's implementor permission 'The implementor may prohibit the use of one or more characters from outside the COBOL character repertoire in, or as, text-words' is still part of the definitional item, not a written-order constraint.)"
   },
   "8.1.2": {
    "title": "Computer's coded character set",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The COBOL specification is independent of the encoding used to represent a computer's coded character set, except that:'. Item 1: 'The number of bytes used in the memory of the computer to represent characters in the alphanumeric coded character set shall be the same for all characters in that coded character set; the number of bytes shall be determined at compile time.' Each item is a 'shall' requirement — clearly normative. §5.3.2 vs §5.3.3 test: the items constrain the runtime/memory representation of the coded character sets (byte counts, fixed-width, national >= alphanumeric), not where or how source text may be written ⇒ GR."
   },
   "8.3.2.1": {
    "title": "General",
    "ordinals": 5,
    "lists": 1,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Within a source element the following apply:'. Item 1: 'Reserved words shall not be used as user-defined words or system-names.' Item 5: 'Intrinsic-function-names may be used as user-defined words and system-names, except for …'. Each item states a prohibition or permission on word use ⇒ normative rules. §5.3.2 test: they 'impose restrictions on individual words' — which classes of COBOL words may be written as user-defined words or system-names in source text, a compile-time well-formedness constraint, not execution meaning ⇒ SR for all five."
   },
   "8.3.2.2": {
    "title": "User-defined words",
    "ordinals": 15,
    "lists": 5,
    "longest": 6,
-   "disposition": "pending",
+   "disposition": "rules",
    "shape": "multi-sublist",
-   "why": "NOT ADJUDICATED 2026-08-04, and the reason is a MECHANISM LIMIT rather than doubt about normativity. All five sub-lists are normative, but they are NOT ALL THE SAME KIND: 'a given user-defined word may be used as only one type ... with the following exceptions' and 'Externalized names shall be referenced in a source element only: ...' constrain where words may be WRITTEN (SR per SS5.3.2), while 'The following user-defined words shall be externalized to the operating environment' and the INVOKE/CALL naming-convention lists state effect and meaning (GR per SS5.3.3). This manifest carries ONE `kind` per CLAUSE, so admitting it as either kind would mis-type half its rules. Admitting it needs per-SUBLIST kinds - a manifest and extractor change, not a judgement call. It is the first clause of the 100 to need one, and there will be others."
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29) with PER-SUBLIST kinds, the mechanism DEVLOG 1166 said this clause needs. All five sub-lists are normative; they are not all one kind. Sub-list 1 ('a given user-defined word may be used as only one type of user-defined word with the following exceptions') and sub-list 3 ('Externalized names shall be referenced in a source element only:') constrain where words may be WRITTEN in source text - SR per SS5.3.2. Sub-list 2 ('The following user-defined words shall be externalized to the operating environment:') states an operating-environment effect, and sub-lists 4 and 5 (the INVOKE method-name and CALL/CANCEL program-name naming-convention lists, 'that method-name is treated as ...') state treatment/meaning - GR per SS5.3.3. Sub-list indices follow the extractor's segmentation: the first list is sublist 1 (plain ids), the remaining four are L2..L5 in document order.",
+   "kind": {
+    "sublists": {
+     "1": "SR",
+     "2": "GR",
+     "3": "SR",
+     "4": "GR",
+     "5": "GR"
+    }
+   }
   },
   "8.3.2.4.2": {
    "title": "Required words",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A required word is a word whose presence is required when the format in which the word appears is used. Required words are of two types:'. Item 1: 'Keywords. Within each format, such words are uppercase and underlined.' Item 2: 'Special character words. The special character words are:' followed by the table assigning each special character word its meaning (e.g. '== | Pseudo-text delimiter in COPY and REPLACE statements'). These define the terms keyword and special character word and bind the presence-required convention that every general format relies on ⇒ normative, not a bare index. §5.3.2 test: syntax rules 'define a term that may be used in the remaining syntax rules' and govern how words 'may be written to form larger elements' — these items define exactly such format-notation terms and constrain what must be written when a format is used; they do not define execution meaning per §5.3.3 ⇒ SR."
   },
   "8.3.3.3.2": {
    "title": "Fixed-point numeric literals",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "SR",
+     "2": "SR",
+     "3": "SR",
+     "4": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The rules for the formation and value of fixed-point numeric literals are as follows:' — the clause itself announces two rule species, formation and value. Item 1: 'A literal shall contain at least one digit.' Items 1-3 are 'shall'/'shall not' constraints on how the literal character-string is WRITTEN (digit presence, sign position, decimal-point position) ⇒ §5.3.2 written-order/form test ⇒ SR. Item 4: 'The value of a fixed-point numeric literal is the algebraic quantity represented by the characters in the fixed-point numeric literal.' — defines the meaning (value and size) of the literal ⇒ §5.3.3 meaning test ⇒ GR. Not all one kind ⇒ mixed-kinds. (Items 2 and 3 each end with a semantic consequence sentence — 'If the literal is unsigned, the literal is nonnegative'; 'The decimal point is treated as an assumed decimal point' — but each item's dominant force is the written-form constraint, so SR per item.)"
   },
   "8.3.3.3.3": {
    "title": "Floating-point numeric literals",
    "ordinals": 5,
    "lists": 1,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "SR",
+     "2": "SR",
+     "3": "SR",
+     "4": "SR",
+     "5": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The rules for the formation and value of floating-point numeric literals are:' — the lead-in itself splits the list into FORMATION and VALUE. Items 1-4 constrain the written form ('The significand ... shall include a decimal point. The significand shall be from 1 to 36 digits in length', 'shall have a maximum of four digits and no decimal point', 'neither significand nor exponent shall have a negative sign') — §5.3.2 test: they constrain how the literal may be WRITTEN ⇒ SR. Item 5: 'The value of a floating-point numeric literal is the algebraic product of the value of its significand and the quantity derived by raising ten to the power of the exponent' — §5.3.3 test: defines the MEANING (value) of the literal ⇒ GR. Not all one kind ⇒ mixed-kinds."
   },
   "8.3.5": {
    "title": "Separators",
    "ordinals": 9,
    "lists": 1,
    "longest": 9,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A separator is one of the following, except when appearing in a literal:'. Item 3: 'The COBOL character period, when followed by a space, is a separator. The separator period shall be used only to indicate the end of a sentence, or as shown in formats.' Item 5: 'The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter.' The items both define the separator inventory and impose shall/may-only constraints (balanced parentheses, required preceding spaces, where the period may be used) => normative. §5.3.2 test: every item constrains where and how characters and delimiters may be WRITTEN in source text — compile-time lexical well-formedness, not execution meaning => SR."
   },
   "8.4.2.2.1": {
    "title": "General",
    "ordinals": 6,
    "lists": 1,
    "longest": 6,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Qualification of a user-defined name is required unless one of the following is true:' (and the preceding sentence: 'uniqueness shall be established through qualification for each user-defined name explicitly referenced, except as specified in rules 2 through 6' — the body itself calls these numbered items RULES). Item 1: 'No other name has the identical spelling.' Item 6: 'The name is a paragraph-name and the section containing the reference also contains the named paragraph.' Each item states a condition exempting a written reference from the qualification requirement ⇒ normative (requirement + enumerated exemptions). §5.3.2 vs §5.3.3 test: the requirement governs what must be WRITTEN in a reference (qualifiers) for the source text to be well-formed — compile-time uniqueness of reference, checked before any execution semantics ⇒ SR for all six items."
   },
   "8.4.6.2.1": {
    "title": "General",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When such a duplicated name is referenced in source element B, the following rules are used to determine the referenced item:' — the body itself calls them rules. Item 2: 'If only one item is identified, it is the referenced item.' The items determine which declared item a duplicated name resolves to, a requirement with force of its own — normative. §5.3.2 vs §5.3.3 test: they do not constrain the order in which words may be written; they define the MEANING (the referent) of a name reference across nested source elements ⇒ GR."
   },
   "8.4.6.3": {
    "title": "Scope of program-names",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The following rules regulate the scope of a program-name for the CALL and CANCEL statements, and the program-address-identifier:'. Item 1: 'If the program-name is that of a program that does not possess the common attribute and that is directly contained within another program, that program-name may be referenced only by statements included in that containing program …'. The lead-in itself calls them rules, and each item states a permission/restriction ('may be referenced only by') ⇒ normative. §5.3.2 test: they restrict WHERE in the source a program-name may be written as a reference (which source elements may contain the referencing statement) — compile-time name-visibility well-formedness, not the runtime meaning of the reference ⇒ SR."
   },
   "8.5.1.3.2": {
    "title": "Level-numbers",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Three types of entries exist for which there is no true concept of level. These are:'. Item 1: 'Entries that specify elementary items or groups introduced by a RENAMES clause.' Item 3: 'Entries that specify condition-names.' The items are noun phrases, but jointly with the lead-in they assert the normative classification that these three entry types stand outside the level hierarchy — the exception invoked by the clause's opening ('There are special level-numbers, 66, 77, and 88, that are exceptions to this rule'), and this classification is asserted here, not elsewhere; the following paragraphs only add the 66/77/88 assignments ⇒ normative, not a bare index. §5.3.3 test: the items 'define or clarify the meaning or relationship of meanings' of the level-number organization (which entries carry no true level), not the order in which words may be written per §5.3.2 ⇒ GR."
   },
   "8.5.1.4": {
    "title": "Limitations of character handling",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The following processing limitations shall apply when ISO/IEC 10646 is chosen as a computer's coded character set:'. Item 2: 'The high-half 2 octets and the low-half 2 octets of a four-octet sequence defined in the UTF-16 format of ISO/IEC 10646 are each treated as a single character position.' The lead-in says 'shall apply' and each item defines how characters are treated at runtime ⇒ normative. §5.3.2 vs §5.3.3 test: these define the runtime meaning of a character position under UTF-16 (processing semantics), not where or how source words may be written ⇒ GR."
   },
   "8.5.1.6.4": {
    "title": "Item alignment for increased object-code efficiency",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Synchronization is accomplished in two ways:'. Item 2: 'By recognizing the appropriate natural boundaries and organizing the data suitably without the use of the SYNCHRONIZED clause.' The items are complete statements defining HOW synchronization (defined just above: 'Data items that are aligned on these natural boundaries ... are defined to be synchronized') is accomplished; item 2's content lives nowhere else, so this is not a bare index whose normative content is elsewhere ⇒ normative. §5.3.3 test: they define/clarify the meaning of synchronization and how it is achieved — a definitional clarification of behavior, not a constraint on the order in which words may be written ⇒ GR."
   },
   "8.5.1.9.1": {
    "title": "General",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "GR",
+     "3": "SR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A dynamic-capacity table differs from an occurs-depending table in that:'. Item 1: 'its occurrences are created dynamically,'; item 2: 'it may have an unlimited capacity,'; item 3: 'it may be defined in any place, other than the file section, in which a fixed-capacity table may be defined and may be nested in any combination to the same number of levels as a fixed-capacity table.' The items carry normative force of their own (a permission of unlimited capacity; a placement permission that excludes the file section) => rules, not prose enumeration. Kind test per item: items 1 and 2 define runtime behavior/meaning of the table concept (§5.3.3 'defines or clarifies the meaning') => GR; item 3 governs WHERE the table may be defined and how deeply nested it may be written in source — §5.3.2 written-placement territory => SR. Not all one kind => mixed-kinds."
   },
   "8.5.1.9.6": {
    "title": "Exceeding capacity",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The creation of a new element in a dynamic-capacity table may result in one of the following exceptions:'. Item 1: 'The nonfatal EC-BOUND-OVERFLOW exception condition shall exist when a dynamic-capacity table has an expected capacity and an operation causes this expected capacity to be exceeded.' Item 2: 'The fatal EC-BOUND-TABLE-LIMIT exception condition shall exist when an operation attempts to increase the capacity of a dynamic-capacity table to a value higher than the maximum capacity of the table based on the resources available at runtime.' Both items carry 'shall exist when' — they define exception conditions and their runtime trigger and continuation semantics, the same shape as the admitted §14.7.5 size-error precedent ⇒ normative. §5.3.2 vs §5.3.3 test: they define when a runtime condition exists and what execution then does, not where words may be written ⇒ GR."
   },
   "8.5.1.11.3": {
    "title": "Availability and persistence of variable-length data items",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The resources used by a variable-length data item may be freed automatically when:'. Item 4: 'the program containing the data item is a called program and a CANCEL is executed referring to it;'. The items are the operative conditions of a normative permission — they define exactly when the implementation is permitted to free the item's resources, so they carry normative force. §5.3.2 vs §5.3.3 test: these are execution-time events (finalization, EXIT PROGRAM, GOBACK, CANCEL, fatal exception, shrink, overwrite), defining runtime resource behavior, not written order of words ⇒ GR."
   },
   "8.5.1.12.1": {
    "title": "General",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Determination of compatibility between a variable-length group and another group is as follows:'. Item 1: 'For each dynamic-capacity table in either group there is a corresponding table in the other group as specified in 8.5.1.12.2, Positional correspondence.' The items jointly DEFINE when two groups are compatible — the term the clause then uses to permit or forbid moves and comparisons ⇒ normative. §5.3.3 test: they 'define or clarify the … relationship of meanings of an element or set of elements' (the compatibility relation between two groups), a definitional list, not a constraint on where words may be written ⇒ GR."
   },
   "8.5.2.3": {
    "title": "Alphanumeric category",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category alphanumeric:'. Item 2: 'An elementary data item described with a VALUE clause containing an alphanumeric literal, and without a PICTURE clause.' Item 4: 'An alphanumeric function.' Each item states a sufficient condition for category membership — a definitional rule the whole standard depends on ⇒ normative. §5.3.3 test: they 'define or clarify the meaning' of category alphanumeric (a definitional category list, same shape as the admitted §8.5.2.12 Numeric category precedent), not where or in what order words may be written per §5.3.2 ⇒ GR."
   },
   "8.5.2.5": {
    "title": "Boolean category",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category boolean:'. Item 3: 'A group item explicitly or implicitly described with a GROUP-USAGE clause with the BIT phrase.' Each item is a defining condition of category membership ('is a data item of category boolean') — normative definitional content, not a bare index of names. §5.3.3 test: the list defines the meaning of the boolean category (which items belong to it), not the order in which words may be written ⇒ GR. Matches the admitted precedent shape (category-definition lists are GR)."
   },
   "8.5.2.8": {
    "title": "Index category",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category index:'. Item 1: 'An elementary data item explicitly or implicitly described as usage index.' The items define category membership ('is a data item of category index') — they define meaning, so they are normative, matching the admitted category-clause precedent. §5.3.3 test: a definitional list of what constitutes the index category defines the meaning of the category, not where words may be written ⇒ GR."
   },
   "8.5.2.10": {
    "title": "National category",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category national:'. Item 3: 'A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase.' The four items are the complete membership definition of the national category (closed by the closing sentence 'Such an item is referred to as a national data item.') => normative definitional list, the same shape as the admitted §8.5.2.12 Numeric category. §5.3.3 test: they define the meaning of 'category national' — category membership, not the order in which words may be written => GR (definitional category list)."
   },
   "8.5.2.12": {
    "title": "Numeric category",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category numeric:'. Item 1: 'An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause.' Item 2 enumerates the numeric usages (binary-char ... float-decimal-34); items 3-5 are LINE-COUNTER, LINAGE-COUNTER, PAGE-COUNTER; items 6-7 numeric and integer functions. Closing: 'Such an item is referred to as a numeric data item.' The items exhaustively define membership in category numeric, which every category-driven rule in the standard depends on ⇒ normative, not a bare index. §5.3.2 vs §5.3.3 test: they define the meaning of a data category (a definitional category list), not the order in which words may be written ⇒ GR."
   },
   "8.5.2.13": {
    "title": "Numeric-edited category",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each of the following is a data item of category numeric-edited:'. Item 2: 'A data item described as numeric by its PICTURE character-string and described with a BLANK WHEN ZERO clause.' The items define category membership — which data items ARE category numeric-edited — and this definition lives nowhere else, so the list is normative (a definitional category list, same shape as the admitted §8.5.2.12 Numeric category). §5.3.2 vs §5.3.3 test: it defines the meaning (category) of a data item, it does not constrain where words may be written ⇒ GR."
   },
   "8.5.3.1": {
    "title": "General",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Each pair of corresponding elementary items shall have the same ALIGNED, BLANK WHEN ZERO, … and USAGE clauses, with the following exceptions:'. Item 1: 'Currency symbols match if and only if the corresponding currency strings are the same.' Item 2: 'Period picture symbols match if and only if the DECIMAL-POINT IS COMMA clause is in effect for both or for neither of these type declarations …'. The items are 'if and only if' definitional conditions completing the definition of when two type declarations are equivalent ⇒ normative. §5.3.3 test: they define/clarify a relationship of meanings (when written picture symbols MATCH across two declarations, hence when declarations are equivalent); they impose no constraint on what may be written or in what order ⇒ GR."
   },
   "8.5.4": {
    "title": "Zero-length items",
    "ordinals": 9,
    "lists": 1,
    "longest": 9,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A zero-length item is a data item or a literal whose minimum length is zero and whose length at runtime is zero. A zero-length item is one of the following:'. Item 1: 'A group data item containing only an occurs-depending table in which the number of occurrences is zero.' Item 9: 'A reference-modified data item that has resolved to a length of zero, when that has been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH.' Each item defines a case that constitutes a zero-length item — the definitional basis for every zero-length-item rule elsewhere ⇒ normative. §5.3.3 test: the items 'define or clarify the meaning' of the term zero-length item, a runtime property ('whose length at runtime is zero'), not the written order of words per §5.3.2 ⇒ GR."
   },
   "8.6.7": {
    "title": "Sharing data items",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Two runtime elements in a run unit may reference common data in the following circumstances:'. Item 1: 'The data content of an external data record may be referenced from any runtime element provided that the runtime element has described that record.' Each item states a permission with a condition ('may ... provided that') about runtime data sharing ⇒ normative. §5.3.2 vs §5.3.3 test: they define the relationship of runtime elements to common data (when references to shared data are established), not written source order ⇒ GR."
   },
   "8.8.1.2": {
    "title": "Native, standard-binary, and standard-decimal arithmetic",
@@ -361,176 +469,232 @@
    "ordinals": 10,
    "lists": 1,
    "longest": 10,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "SR",
+     "2": "SR",
+     "3": "SR",
+     "4": "SR",
+     "5": "SR",
+     "6": "SR",
+     "7": "GR",
+     "8": "GR",
+     "9": "GR",
+     "10": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The following are formation and evaluation rules for boolean expressions:' — the lead-in itself announces two kinds. Items 1-6 constrain the written form: 'A boolean expression shall begin with one of the following', 'There shall be a one-to-one correspondence between left and right parentheses', 'The permissible combinations of operands, operators, and parentheses ... are specified in Table 4' — §5.3.2 test: they constrain the order in which elements may be written ⇒ SR. Items 7-10 define execution: 'Evaluation of a boolean expression shall proceed as follows', 'Boolean shift operations shall be performed without regard for the usage of the first operand', 'The result of the evaluation of each boolean operation shall be a boolean value whose length...' — §5.3.3 test: they define evaluation meaning and results ⇒ GR. Not all one kind ⇒ mixed-kinds."
   },
   "8.8.4.2.1": {
    "title": "General",
    "ordinals": 13,
    "lists": 1,
    "longest": 13,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Comparisons are defined for the following:'. Item 6: 'Two operands where one is a numeric integer and the other is class alphanumeric or national.' Item 11: 'Two operands of class pointer where each operand is of the same category.' The 13 items are not a bare index — they normatively establish the CLOSED SET of operand combinations for which comparison is defined (a pairing outside the list has no defined comparison), and several items carry their own qualifying conditions ('where each operand is of the same category', 'compatible variable-length groups') => normative. §5.3.3 test: they define which class/category relationships have meaning in a relation condition — the relationship of meanings, not where words may be written => GR."
   },
   "8.8.4.2.7": {
    "title": "Comparison of alphanumeric operands",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When a standard comparison is specified, there are two cases to consider: operands of equal length and operands of unequal length.' Item 1: 'Operands of equal length. Comparison effectively proceeds by comparing alphanumeric characters in corresponding alphanumeric character positions starting from the high-order end ... The operands are determined to be equal if all pairs of corresponding alphanumeric characters are equal. Two zero-length operands are equal.' Item 2: unequal length — 'comparison proceeds as though the shorter operand were extended on the right by sufficient alphanumeric spaces'. These specify the comparison algorithm that decides relation conditions at execution ⇒ normative. §5.3.2 vs §5.3.3 test: they define execution semantics of comparison, not where words may be written ⇒ GR."
   },
   "8.8.4.2.8": {
    "title": "Comparison of boolean operands",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'There are two cases to consider: operands of equal length and operands of unequal length.' Item 1: 'Comparison effectively proceeds by comparing boolean values in corresponding boolean positions starting from the leftmost boolean position … Two zero-length operands are equal.' The items define the comparison algorithm and its result for each case — normative execution semantics. §5.3.2 vs §5.3.3 test: they define the meaning/behavior of boolean comparison at execution, not the order of written words ⇒ GR."
   },
   "8.8.4.2.10": {
    "title": "Standard comparison",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When a standard comparison is specified, there are two cases to consider: operands of equal length and operands of unequal length.' Item 1: 'Operands of equal length. Comparison effectively proceeds by comparing national characters in corresponding national character positions starting from the high-order end … The operands are determined to be equal if all pairs of corresponding national characters are equal.' The items define how the comparison executes and what result it produces ⇒ normative. §5.3.3 test: pure execution semantics (how comparison proceeds, which operand is greater), nothing about how source is written ⇒ GR."
   },
   "8.8.4.2.13": {
    "title": "Comparisons involving index-names or index data items",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Relation tests may be made only between' — a restriction completed by the items. Item 1: 'two index-names. The result is the same as if the corresponding occurrence numbers were compared.' Item 3: 'an index data item and an index-name or another index data item. The actual values are compared without conversion.' Each item both permits an operand pairing and defines the comparison's result ⇒ normative. §5.3.3 test: the body of each item defines the MEANING of the comparison (what is compared, whether conversion occurs, what the result equates to) — 'defines or clarifies the meaning ... and the effect that it has on ... execution'; the 'only between' restriction rides the lead-in, but the items' own sentences are execution semantics, and all three items are the same shape ⇒ GR, uniformly."
   },
   "8.8.4.12.1": {
    "title": "General",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: '...and no parentheses are used within such a consecutive sequence, any relation condition except the first may be abbreviated by:'. Item 2: 'The omission of the subject and relational operator of the relation condition.' The items grant the permission that DEFINES which abbreviated written forms are legal source ('may be abbreviated by') ⇒ normative. §5.3.2 vs §5.3.3 test: they constrain how the relation conditions may be WRITTEN (which elements may be omitted from the written sequence) — compile-time well-formedness of the abbreviation, while the meaning of the abbreviation is separately given in 8.8.4.12.4 General rule ⇒ SR."
   },
   "8.8.4.13": {
    "title": "Order of evaluation of conditions",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: '...the evaluation of the conditions within an entire complex condition begins at the left of the entire complex condition and proceeds according to the following rules recursively applied where necessary:'. Item 1: 'The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined...'. The items prescribe evaluation order and short-circuit termination — normative behavior. §5.3.3 test: they define execution semantics (order and termination of evaluation), not how source may be written ⇒ GR."
   },
   "9.1.1": {
    "title": "Physical and logical files",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "not-rules",
+   "shape": "single-list",
+   "why": "NOT-RULES 2026-08-08 (owner decision batch, fix-queue PB29; reader+refuter batch). Lead-in: 'The physical aspects of a file describe the data as it appears on the input or output media and include such features as:'. Item 1: 'The grouping of logical records within the physical limitations of the file medium.' Item 2: 'The means by which the file shall be identified.' The lead-in is explicitly illustrative and non-exhaustive ('include such features as'), and both items are bare noun phrases naming example features — neither states a requirement, permission, prohibition, or definition of its own (item 2's embedded 'shall' sits inside a noun phrase describing a feature, it creates no obligation). §5.3.1 test: these items carry no normative force of their own; the clause's normative content lives in its surrounding unnumbered prose => prose enumeration, not rules."
   },
   "9.1.5": {
    "title": "Sharing file connectors",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Two runtime elements in a run unit may reference common file connectors in the following circumstances:'. Item 1: 'An external file connector may be referenced from any runtime element that describes that file connector.' Item 2: 'If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name ...'. The items state permissions defining exactly when file connectors are shared between runtime elements — semantics that EXTERNAL/GLOBAL behavior and file-state sharing depend on ⇒ normative. §5.3.2 vs §5.3.3 test: they define the relationship between runtime elements and file connectors at execution, not the order in which words may be written ⇒ GR."
   },
   "9.1.11": {
    "title": "File position indicator",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The file position indicator contains the value of the current key … or indicates one of the following conditions for the file connector:'. Item 3: 'No next or previous logical record exists.' The items are the defined states of the file position indicator — a definitional status-condition list whose content (what the indicator can indicate) lives here, referenced by the READ/START/OPEN/CLOSE semantics. Definitional status lists are normative. §5.3.2 vs §5.3.3 test: they define the meaning of a runtime conceptual entity's states, nothing about written word order ⇒ GR."
   },
   "9.1.12": {
    "title": "Input-output exception processing",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'To help describe these conditions the term ‘applicable exception processing statements (or statement)’ is used. … The term is defined as any of the following:'. Item 1: 'Statements in a WHEN phrase of an active PERFORM statement where that WHEN phrase is specified with an exception-name, a file-name, or an open option as specified in 14.9.28, PERFORM statement, General rule 17.' The items define the term, and the closing sentence adds selection semantics: 'The first one in the list that matches is the one selected. Any others that match are ignored.' ⇒ normative. §5.3.3 test: defines a term used in execution semantics of I-O exception handling ('may define a term that may be used in the remaining general rules') and governs runtime transfer of control, not source writing ⇒ GR."
   },
   "9.1.13.2": {
    "title": "Successful completion",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No prose lead-in — the items open the clause directly, each defining an I-O status condition. Item 1: 'I-O status = 00. The input-output statement is successfully executed and no further information is available concerning the input-output operation.' Item 3: 'I-O status = 04. A READ statement is successfully executed but the physical record from the file is shorter than or longer than the minimum or maximum length of records allowed for the fixed file attributes for that file.' Each item defines exactly when a given I-O status value is set — the normative definition of runtime status conditions ⇒ normative. §5.3.3 test: they 'define or clarify the meaning' of each status value and its runtime condition (a status-condition definitional list), nothing about how source is written per §5.3.2 ⇒ GR."
   },
   "9.1.13.3": {
    "title": "Implementor-defined successful completion",
    "ordinals": 1,
    "lists": 1,
    "longest": 1,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No prose lead-in; the single item IS the body. Item 1: 'I-O status = 0x. An implementor-defined condition exists. The value of x is specified by the implementor and may be any of the uppercase letters ''A'' through ''M'' ... This condition shall not duplicate any condition specified by another I-O status value.' It defines when this I-O status condition exists and imposes a 'shall not duplicate' requirement ⇒ normative. §5.3.3 test: it defines the meaning of an I-O status value set at runtime, not written source order ⇒ GR. Same shape as the admitted status-condition precedents (§14.7.5 size-error condition)."
   },
   "9.1.13.4": {
    "title": "At end condition with unsuccessful completion",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No lead-in sentence; the items begin directly under the heading. Item 1: 'I-O status = 10. A sequential READ statement is attempted and no next or prior logical record exists in the physical file because: a) NEXT was specified or implied and the end of the physical file has been reached...'. Item 2: 'I-O status = 14. A sequential READ statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item...'. Each item defines the runtime condition under which a specific I-O status value exists — definitional status conditions, normative. §5.3.3 test: they define the meaning of I-O status values at execution time, not written order of source ⇒ GR."
   },
   "9.1.13.5": {
    "title": "Invalid key condition with unsuccessful completion",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No lead-in sentence — the clause opens directly with the items. Item 1: 'I-O status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the runtime element between the successful execution of a READ statement ... or the ascending sequence requirements for successive record key values are violated.' Item 3: 'I-O status = 23. This condition exists because: a) an attempt is made to randomly access a record that does not exist in the physical file; ...'. Each item defines the runtime condition under which a specific I-O status value exists ('exists', 'An attempt is made') — status-condition definitions, the same shape as the admitted §14.7.5 size-error condition => normative. §5.3.3 test: they define runtime conditions and their meanings, not written order => GR (definitional status-condition list)."
   },
   "9.1.13.6": {
    "title": "Permanent error condition with unsuccessful completion",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No lead-in sentence in this subclause; the items directly define I-O status values. Item 1: 'I-O status = 30. A permanent error exists and no further information is available concerning the input-output operation.' Item 5: 'I-O status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a file that is not described as optional and the physical file is not present.' Each item defines a status-condition: the I-O status value and the runtime circumstance under which it exists ⇒ normative status-condition definitions (the instructions' definitional-list precedent: status conditions are GR). §5.3.2 vs §5.3.3 test: they define when runtime I-O error conditions exist and which value is stored, not where words may be written ⇒ GR. (Transcription note, not affecting the verdict: item 3 duplicates item 4a — both give I-O status = 34 boundary-violation text.)"
   },
   "9.1.13.7": {
    "title": "Logic error condition with unsuccessful completion",
    "ordinals": 9,
    "lists": 1,
    "longest": 9,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). The subclause opens directly with the items; each is of the form 'I-O status = NN. <condition>'. Item 2: 'I-O status = 42. A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode.' Each item DEFINES the exact runtime condition under which the named I-O status value is set — the sole definition of these status values, with sub-lists (item 4 a–d, 6 a–b, 8 a–b) elaborating the conditions. This is a definitional status-condition list, normative on its face (same shape as the admitted size-error-condition precedent). §5.3.2 vs §5.3.3 test: the items define when a runtime condition exists and what status value results — execution semantics, not written order ⇒ GR."
   },
   "9.1.13.8": {
    "title": "Record operation conflict condition with unsuccessful completion",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No prose lead-in; the items ARE the body. Item 1: 'I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector.' Item 2 additionally: 'The implementor shall specify under what conditions a deadlock is detected.' Each item defines the runtime condition that produces a specific I-O status value ⇒ normative (same shape as the admitted §14.7.5 size-error precedent: a status/condition definition). §5.3.3 test: they define the meaning of I-O status values 51–54 and the runtime circumstances producing them — execution semantics, not source form ⇒ GR."
   },
   "9.1.13.9": {
    "title": "File sharing conflict condition with unsuccessful completion",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No prose lead-in — the items open the clause. Item 1: 'I-O status = 61. A file sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is already open by another file connector in a manner that conflicts with this request.' (with sub-items a–e enumerating the violations). Item 2: 'I-O status = 62. A file sharing conflict condition exists because a DELETE FILE statement is attempted on a physical file and that physical file is currently open by another file connector.' Each defines when a runtime condition exists and which status value reports it ('the X condition exists when…' shape) ⇒ normative. §5.3.3 test: defines the meaning of the file sharing conflict condition at execution, not written word order per §5.3.2 ⇒ GR."
   },
   "9.1.13.10": {
    "title": "Record with invalid content with unsuccessful completion",
    "ordinals": 1,
    "lists": 1,
    "longest": 1,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No prose lead-in; the single item IS the body. Item 1: 'I-O status =71. An attempt was made to rewrite or write a record to a line sequential file and the record area contains one or more characters not in the implementor-defined character set for the file. The write or rewrite operation was unsuccessful and the record area remains unchanged.' It defines the condition under which I-O status 71 exists AND its runtime effect (operation unsuccessful, record area unchanged) ⇒ normative. §5.3.3 test: defines the meaning of a runtime status condition and its effect, not written source order ⇒ GR."
   },
   "9.1.13.11": {
    "title": "Implementor-defined condition with unsuccessful completion",
    "ordinals": 1,
    "lists": 1,
    "longest": 1,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No lead-in sentence; the single item begins directly under the heading. Item 1: 'I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other condition specified by another I-O status value. The value of x is defined by the implementor.' It defines a runtime status condition and imposes a 'shall not duplicate' requirement on the implementor's definition — normative. §5.3.3 test: it defines the meaning of the 9x I-O status values at execution time; it does not constrain how source text is written ⇒ GR."
   },
   "9.1.14": {
    "title": "Invalid key condition",
@@ -547,24 +711,30 @@
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The sharing mode controls access to a physical file as follows:'. Item 1: 'The sharing with no other mode specifies exclusive access to a physical file. Associating this file connector with the physical file will be unsuccessful if the physical file is currently open through other file connectors. ... Record locks are ignored.' The three items define the runtime semantics of each standard sharing mode — which concurrent opens succeed or fail and whether record locks are in effect => normative. §5.3.3 test: they define the meaning and runtime effect of the three sharing modes, nothing about how source text is written => GR."
   },
   "9.2.3": {
    "title": "CRT status",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The following is a list of the values placed in the CRT status for the conditions resulting from the execution of an input operation.' Although the lead-in says 'a list', the items carry normative force of their own — each defines a CRT status value and the runtime condition that produces it. Item 3a: 'CRT status = 8000. The ACCEPT screen statement was unsuccessful because no input screen item was located at a valid screen position.' Item 1: 'CRT status = 0000. The input statement was successfully executed. Termination was achieved by the operator pressing the enter key or entering data into the last character of a screen item for which the AUTO clause is specified ...' ⇒ normative status-condition definitions, same shape as the I-O status clauses. §5.3.2 vs §5.3.3 test: they define runtime values and the conditions under which they are set, not where words may be written ⇒ GR."
   },
   "9.3.5.3": {
    "title": "Parametric polymorphism",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The method resolution signature contains all of the information necessary to resolve the identity of the method invoked. The method resolution signature consists of:'. Item 6: 'A description of each parameter, and of the returning item. This description consists of the following clauses: a) ALIGNED clause … h) USAGE clause'. The items are the exhaustive definition of what the method resolution signature consists of — the matching criteria for overload resolution are fixed by exactly this list and are defined nowhere else, so the list carries normative force (not a bare index). §5.3.2 vs §5.3.3 test: it defines the meaning of 'method resolution signature' used in runtime method resolution, not where source words may be written ⇒ GR."
   },
   "9.3.6": {
    "title": "Method invocation",
@@ -591,40 +761,49 @@
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "not-rules",
+   "shape": "single-list",
+   "why": "NOT-RULES 2026-08-08 (owner decision batch, fix-queue PB29; reader+refuter batch). Lead-in: 'A source unit may contain one or more divisions, specified in the following order:'. The four items are bare division names — item 1: 'identification division', item 2: 'environment division', etc. No item states a requirement, permission, prohibition, or definition of its own; the entire normative force (the permitted division set and their required order — SR-shaped, §5.3.2 'the order in which words or elements may be written') resides in the LEAD-IN prose sentence plus the list arrangement. Per the §5.3.1 test this is a prose enumeration: 'a bare index of names whose normative content lives elsewhere' — here in the lead-in sentence. Admitting the four names as four denominator rules would count one ordering requirement as four rules and each counted 'rule' would be an empty name. Caveat for the campaign: the lead-in sentence itself is normative; if the denominator harvests only numbered items, this single ordering rule is carried by prose, not by these items."
   },
   "13.8.6.2.3": {
    "title": "Report Items",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Report items shall not be accessed or referred to by any clauses in any other section of the data division or by any other procedure division statements, except in the following cases:'. Item 1: 'Sum counters may be inspected or altered in the procedure division.' Item 2: 'Report groups of type DETAIL are accessed by the GENERATE statement.' The items are the two permissions carving exceptions out of a 'shall not' prohibition ⇒ normative. §5.3.2 test: the prohibition governs where references to report items may be WRITTEN in source (clauses of other data division sections, procedure division statements) — compile-time well-formedness — and syntax rules explicitly 'impose restrictions on individual words or elements' and 'relax restrictions implied by words or elements', which is precisely what these two exception items do; they do not define execution meaning per §5.3.3 ⇒ SR."
   },
   "13.18.41.1": {
    "title": "General",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). No lead-in sentence; the numbered items open the clause. Item 1: 'The PRESENT WHEN clause specifies a condition under which a report section entry will be processed.' Item 2: 'The PRESENT WHEN clause also enables conditional selection of data description entries by the VALIDATE statement.' Each item defines what the clause does — the two functions of PRESENT WHEN (report-writer processing condition; VALIDATE conditional selection) ⇒ definitional, normative, not a bare index. §5.3.2 vs §5.3.3 test: they define/clarify the meaning of the clause, not where its words may be written (that is 13.18.41.2/13.18.41.3) ⇒ GR."
   },
   "14.5.3.2": {
    "title": "Explicit scope termination",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'An explicit scope terminator terminates the scope of:'. Item 1: 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined'; item 2: 'any unterminated statements that appear between that statement-name and the explicit scope terminator.' The items define exactly what a scope terminator terminates — normative interpretation of program structure. §5.3.2 vs §5.3.3 test: they do not constrain where or in what order words may be written; they define the RELATIONSHIP between a written scope terminator and the statements it terminates — 'defines or clarifies the meaning or relationship of meanings' ⇒ GR."
   },
   "14.5.3.3": {
    "title": "Implicit scope termination",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The scope of a statement that is not explicitly terminated is implicitly terminated as follows:'. Item 2: 'for a single imperative statement contained within another statement, by a) any element that terminates an imperative statement not contained within another statement, b) the termination of the scope of any containing statement, or c) the next phrase of any containing statement.' The items normatively determine where every unterminated statement's scope ends => rules. §5.3.2 vs §5.3.3 test: they impose no constraint on the order in which the programmer may write elements — they define what already-written source MEANS (which statement each phrase associates with, where containment ends), i.e. they clarify the relationship of meanings between statements and their terminators => GR."
   },
   "14.6.2.3.2": {
    "title": "Initial state",
@@ -641,96 +820,120 @@
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'COBOL provides the following types of implicit control flow alterations that override the statement-to-statement transfers of control:'. Item 1: 'If a procedure is being executed under control of another COBOL statement such as PERFORM, USE, SORT, and MERGE, and the procedure is the last procedure in the range of the controlling statement, then an implied transfer of control occurs from the last statement in the procedure to the control mechanism of the last executed controlling statement.' Item 3: implicit transfer to exception processing procedures per 14.6.13.1. The items define when implicit transfers of control occur — the core control-flow semantics of PERFORM ranges, SORT/MERGE procedures and declaratives ⇒ normative. §5.3.2 vs §5.3.3 test: they define execution-time control flow, not the order in which words may be written ⇒ GR."
   },
   "14.6.4": {
    "title": "Item identification",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The item identification steps that are applicable to that identifier are evaluated in the following order:'. Items are step names ('1) locale identification' … '7) reference modification'). Although each item is a bare name whose mechanics are specified elsewhere, the ORDERED list itself is the normative content: it prescribes the mandatory evaluation order of the steps (subscript evaluation before reference modification, etc.), and that ordering requirement exists only here — so this is a rule, not a mere index. §5.3.2 vs §5.3.3 test: the order constrained is the runtime EVALUATION order of an identifier's references, not the order in which words may be written in source text ⇒ GR."
   },
   "14.6.6": {
    "title": "Locale identification",
    "ordinals": 9,
    "lists": 1,
    "longest": 9,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Locale identification is the process of identifying a specific locale for use in locale-based processing. Locale identification occurs as follows:'. Item 1: 'At run unit activation, the user default locale becomes the current locale for the run unit for all locale categories.' Item 9: 'Upon return of control from another COBOL runtime element, the locale in effect for each locale category at the time of exit from the returning runtime element becomes the current locale for that category.' Each item defines runtime behavior (activation, SET statement locale switching, which LC_* category governs which operation) ⇒ normative. §5.3.3 test: they define the meaning and effect of locale identification during execution; nothing constrains how source is written ⇒ GR for all nine."
   },
   "14.6.8.2": {
    "title": "Fixed-point numeric and fixed-point numeric-edited receiving data items",
    "ordinals": 5,
    "lists": 1,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When the receiving data item is a fixed-point numeric data item or a fixed-point numeric-edited data item:'. Item 2: 'If the sending operand is a data item described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor defines the manner in which the value is converted to a fixed-point value.' Item 4: 'If the receiving operand is a fixed-point numeric item, the data is aligned by decimal point and is transferred to the receiving digits with zero fill or truncation on either end as required.' Each item defines conversion, assumed-decimal-point treatment, alignment, fill and truncation behavior of a data transfer ⇒ normative. §5.3.3 test: pure execution semantics — 'defines or clarifies the meaning ... and the effect that it has on ... execution'; nothing constrains the written order of words per §5.3.2 ⇒ GR."
   },
   "14.6.8.3": {
    "title": "Floating-point numeric receiving data items",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When the receiving data item is a floating-point numeric data item:'. Item 2: 'If the receiving data item is described with a standard floating-point usage, the algebraic value is converted and transferred to the receiving data item in a manner consistent with the specifications of ISO/IEC 60559:2020, Clauses 3 and 5.' Each item mandates the runtime conversion/transfer behavior into the receiving item (and item 1 assigns the implementor the duty to specify exception conditions) ⇒ normative. §5.3.3 test: they define execution semantics of the implicit MOVE to floating-point receivers, not written source form ⇒ GR."
   },
   "14.6.8.4": {
    "title": "Floating-point numeric-edited receiving data items",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When the receiving data item is a floating-point numeric-edited data item:'. Item 1: 'If the algebraic value of the sending operand is not zero, the exponent and significand of the value are adjusted such that the most significant digit of the significand is not zero.' Item 2 mandates alignment and zero fill or truncation per the PICTURE clause rules. The items prescribe runtime transfer/normalization behavior — normative. §5.3.3 test: they define execution effects on a receiving item, not the written order of source elements ⇒ GR."
   },
   "14.6.9.2": {
    "title": "Moving a table",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'If the receiving table is not a dynamic-capacity table:'. Item 1: 'If the sending table has a higher current capacity than the receiving table, superfluous elements are not moved and no exception exists,'; item 2: 'If the sending table has a lower current capacity than the receiving table, all the remaining elements of the receiving table are space filled.' The items define the required runtime result of moving a dynamic-capacity table to a non-dynamic receiving table (what is moved, space fill, no exception) => normative. §5.3.3 test: pure execution semantics of a MOVE — defines behavior, not written order => GR."
   },
   "14.6.10": {
    "title": "Overlapping operands",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When the data items referenced by a sending and a receiving operand in any statement are identified as sharing either a part of or all of their storage areas, and the rules for the statement do not provide for a specific result in the following circumstances, then:'. Item 1: 'When the data items are not described by the same data description entry, the result of the statement is undefined.' Item 2: 'When the data items are described by the same data description entry, the result of the statement is the same as if the data items shared no part of their respective storage areas.' The items assign the defined/undefined result of executing any statement with overlapping operands ⇒ normative. §5.3.2 vs §5.3.3 test: they define the meaning (result) of statement execution, not where words may be written ⇒ GR."
   },
   "14.6.11": {
    "title": "Normal run unit termination",
    "ordinals": 7,
    "lists": 1,
    "longest": 7,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'When normal run unit termination occurs, the runtime system performs the following:'. Item 2: 'An implicit CLOSE statement without any phrases is executed for each file that is in the open mode. These implicit close statements shall be executed for all open files in the run unit, even when an error occurs …'. The items prescribe the actions the runtime system performs (including an explicit 'shall') — plainly normative execution requirements. §5.3.2 vs §5.3.3 test: they define runtime termination behavior, nothing about written word order ⇒ GR."
   },
   "14.6.13.1.2": {
    "title": "Normal completion of a declarative procedure",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A declarative procedure is said to complete normally if, during execution of the declarative procedure, none of the following occur:'. Item 1: 'An EXIT PROGRAM, GOBACK, RESUME, or STOP statement that is specified in this function, method, or program is executed, or a fatal exception occurs within the scope of the declarative.' The items are the defining conditions of the term 'complete normally', which §14.6.13.1.3 then relies on ('If execution of the declarative completes normally …') ⇒ normative. §5.3.3 test: they define the meaning of a term in terms of runtime events (statement execution, run unit termination) — execution semantics, not written order ⇒ GR."
   },
   "14.6.13.1.3": {
    "title": "Fatal exception conditions",
    "ordinals": 8,
    "lists": 1,
    "longest": 8,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'If a fatal exception condition exists, processing of the statement is interrupted and one of the following occurs in the order specified:'. Item 4: 'If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase that specifies the exception-name associated with the exception condition ... the imperative statement in the WHEN phrase is executed.' Item 8: 'If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected.' The items are an ordered algorithm dictating runtime disposition of fatal exception conditions ⇒ normative. §5.3.3 test: they define the effect on execution — declarative selection, propagation, abnormal termination — not the order in which words may be written per §5.3.2 ⇒ GR."
   },
   "14.6.13.1.4": {
    "title": "Nonfatal exception conditions",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'If checking for that exception condition is enabled, processing of the statement is interrupted and one of the following occurs in the order specified:'. Item 3: 'If there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition or an exception-name of a higher level in the same hierarchy, the associated declarative is executed.' The items are an ordered dispatch of runtime control-flow outcomes on a nonfatal exception ⇒ normative behavior, each item carrying its own condition and effect. §5.3.3 test: they define the meaning/behavior of exception processing at execution, not written source order ⇒ GR."
   },
   "14.6.13.1.5": {
    "title": "Exception objects",
@@ -747,8 +950,10 @@
    "ordinals": 6,
    "lists": 1,
    "longest": 6,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Incompatible data exists when the content of a sending operand is not valid only in the following cases:'. Item 2: 'When the content of a numeric sending item that is not described with a standard floating-point usage is referenced during the execution of a statement and the content of that sending operand would evaluate to false in a numeric class condition, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE exception condition is set to exist...'. The items define exactly when the incompatible-data condition exists and which exception condition (EC-DATA-INCOMPATIBLE / EC-DATA-NOT-FINITE) is set — defines a runtime condition, like the admitted size-error precedent. §5.3.3 test: they define runtime conditions and their effects, not written order ⇒ GR."
   },
   "14.7.5": {
    "title": "SIZE ERROR phrase and size error condition",
@@ -765,32 +970,47 @@
    "ordinals": 6,
    "lists": 1,
    "longest": 6,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'A pair of data items correspond if:'. Item 1: 'A data item in D1 and a data item in D2 are not implicitly or explicitly described with the keyword FILLER and have the same data-name and the same qualifiers, if any, up to, but not including, D1 and D2.' Item 4: 'Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of class index, message-tag, object, or pointer.' The six items are the complete definition of correspondence — they determine which implied statements a CORRESPONDING statement executes => normative. §5.3.3 test: they define the MEANING of the CORRESPONDING phrase (which operand pairs it selects); they do not constrain how the phrase may be written => GR (definitional condition list)."
   },
   "14.7.7": {
    "title": "Arithmetic statements",
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": {
+    "items": {
+     "1": "GR",
+     "2": "SR",
+     "3": "GR",
+     "4": "GR"
+    }
+   },
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.' The items are normative, not an index, but not all one kind. Item 2: 'For ADD, DIVIDE, MULTIPLY, and SUBTRACT statements when native arithmetic is in effect: ... the composite of operands shall not contain more than 31 digits.' — a shall-constraint on the set of operands as WRITTEN in the statement, checkable at translation from the operands' data descriptions; §5.3.2 test ⇒ SR. Confirmed by the spec's own classification: §14.9.2.3 Syntax rules rule 1 ('When native arithmetic is in effect, the composite of operands described in 14.7.7, Arithmetic statements, is determined as follows') places the composite-of-operands machinery under the ADD statement's SYNTAX rules — citation validated with cite.py --check (OK §14.9.2.3 1). Items 1, 3, 4 are execution semantics: item 1 'any necessary conversion and decimal point alignment is supplied throughout the calculation'; item 3 transfer from intermediate form per 14.6.8 under standard arithmetic; item 4 'The execution of these statements proceeds in the following order: a) The initial evaluation ... is placed in an intermediate data item ... b) ... stored in each single resulting data item in the left-to-right order ...' — §5.3.3 test: they define the meaning of statement execution ⇒ GR."
   },
   "14.7.8": {
    "title": "THROUGH phrase",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'The set of values included in the range is determined by the following rules:' — the body itself names them rules. Item 1: 'When the range of values is defined by numeric literals, the range of values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2.' The items define the semantics of a THROUGH range (item 2 also defines collating-sequence behavior and sets EC-RANGE-INVALID when literal-1 > literal-2) — normative. §5.3.2 vs §5.3.3 test: they define the meaning of the range of values and its runtime evaluation, not where words may be written ⇒ GR."
   },
   "14.8.2.2": {
    "title": "Group items",
    "ordinals": 2,
    "lists": 1,
    "longest": 2,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "SR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'If either the formal parameter or the argument is an alphanumeric group item and neither of them is strongly typed:'. Item 1: 'If the argument is passed by reference, that argument or the formal parameter corresponding to that argument shall be an alphanumeric group item or an elementary item of category alphanumeric, and the formal parameter shall be described with the same number or a smaller number of bytes as the corresponding argument.' Both items state 'shall' conformance requirements ⇒ normative. §5.3.2 test: what is constrained is the written DESCRIPTION of the argument and formal parameter (category, byte count, MOVE-operand pairing) — 'impose restrictions on individual words or elements' as written ⇒ SR. Caveat, validated with cite.py --check (OK): §14.8.1 states 'The conformance rules for parameters and returning items apply at compile time when an explicit reference is made to them from a syntax rule.' and apply at runtime when referenced from a general rule — so the enforcement MOMENT is context-dependent, but the constraint itself is on written descriptions, which is the §5.3.2 axis ⇒ SR."
   },
   "14.8.2.3.2": {
    "title": "Elementary items passed by reference",
@@ -827,24 +1047,29 @@
    "ordinals": 5,
    "lists": 1,
    "longest": 5,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "not-rules",
+   "shape": "single-list",
+   "why": "NOT-RULES 2026-08-08 (owner decision batch, fix-queue PB29; reader+refuter batch). Lead-in: 'Each intrinsic function definition specifies:'. Items: '1) the name and description of the function', '2) the type of the function', '3) the General format of the function', '4) the arguments, if any', '5) the returned value.' The items are bare noun phrases describing the document structure of the function definitions that follow in clause 15 — an index of the parts each definition contains. They state no requirement, permission, or prohibition on programs or processors and define no behavior; every piece of normative content they point at (the actual name, type, format, argument rules, returned value rules) lives in the individual function definitions of 15.x (harvested there as AR/RV per §5.3.4/§5.3.5). This is exactly the 'bare index of names whose normative content lives elsewhere' case ⇒ prose enumeration, not rules."
   },
   "15.2": {
    "title": "Types of functions",
    "ordinals": 6,
    "lists": 1,
    "longest": 6,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'Types of intrinsic functions are:'. Item 2: 'Boolean functions. These are of the class and category boolean. Boolean functions have an implicit usage bit.' Each item defines the class, category, and implicit usage of a function type — and the clause's opening sentence gives that definition operational force: 'the function so described may be used anywhere a sending data item of that class and category may be specified' ⇒ normative definitional content, not a bare index. Kind: this is the general taxonomy of function types, not a per-function Arguments (§5.3.4) or Returned values (§5.3.5) rule list, so AR/RV do not apply; §5.3.2 vs §5.3.3 test: the items define the meaning (class/category/usage of the resulting data item), not where words may be written ⇒ GR."
   },
   "15.3.3.6.1": {
    "title": "Offset subformats",
    "ordinals": 3,
    "lists": 1,
    "longest": 3,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "rules",
+   "shape": "single-list",
+   "kind": "GR",
+   "why": "ADMITTED 2026-08-08 (owner decision: adjudicate all 100, admit the normative ones; fix-queue PB29; reader+refuter batch). Lead-in: 'In the data associated with an offset subformat, the character position that corresponds to the plus sign in the subformat shall contain one of the following values;'. Item 1: 'A plus sign to indicate that the common time portion of the data is adjusted downward by the offset values to represent UTC'. The lead-in's 'shall contain one of the following values' plus each item's defined meaning make this a normative requirement on data content with definitional force. §5.3.2 vs §5.3.3 test: the constraint is on runtime DATA associated with a date-time format, not on how source text is written, and each item defines what the value MEANS ⇒ GR. Although this is in §15, it is format-description prose, not an intrinsic-function Arguments/Returned-values list, so AR/RV do not apply."
   },
   "15.4.1": {
    "title": "Numeric and integer functions",
@@ -861,8 +1086,9 @@
    "ordinals": 4,
    "lists": 1,
    "longest": 4,
-   "disposition": "pending",
-   "shape": "single-list"
+   "disposition": "not-rules",
+   "shape": "single-list",
+   "why": "NOT-RULES 2026-08-08 (owner decision batch, fix-queue PB29; reader+refuter batch). REFUTER OVERTURN (reader said rules/GR). Re-read all 4 items (ordinals verified) plus the full clause frame. The clause opens: 'Table 21, Table of functions, summarizes the functions that are available.' - a SUMMARY - and closes: 'The Value returned column gives a synopsis of the value returned; additional details are specified in the definition of the function.' The items are typographic reading conventions for that summary table - item 4: 'Commas are used only to separate an argument from the next argument in the argument list.' - and impose no requirement, permission, or prohibition on programs or processors; no COBOL processor can obey or violate them. Decisive kind argument from 5.3.1: 'Except for intrinsic functions, rules are categorized as syntax rules and general rules. Intrinsic functions have argument rules and returned value rules instead.' - an admitted rule must be SR, GR, AR, or RV, and these items are NONE: not 5.3.2 SR (nothing about how COBOL source may be written), not 5.3.3 GR (a general rule defines 'the meaning or relationship of meanings of an element or set of elements ... the semantics of the statement and the effect that it has on either execution or compilation' - table-notation glyphs are not language elements and have no effect on execution or compilation), and the reader's own verdict already conceded not-AR/RV ('they constrain no argument a program passes and define no returned value'). The reader's 'their content lives nowhere else' point cuts the other way: what lives here is only a compression scheme; the facts the notation encodes (each function's argument types and positions) live normatively in the per-function Argument rules of 15.7 onward, exactly the 'normative content lives elsewhere' test - the same ground on which the same reader put 15.1 at not-rules ('state no requirement, permission, or prohibition on programs or processors'). Admitting these four items would put typographic apparatus in the conformance denominator. Corrected to not-rules."
   }
  }
 }
