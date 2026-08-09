@@ -24,7 +24,48 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-09 13:30 — the owner's STANDING DIRECTIVES, all still in force):
+- **▶ SESSION HANDOFF (2026-08-09 19:05 — resume point for the next session):**
+  **⛔ FIRST ACTION: read the IN-FLIGHT battery's verdict.** A comprehensive battery was RUNNING at
+  handoff over the three-landing batch ending `226d7a01` (the PB59-3/-4/-6 batch, which includes a
+  GRAMMAR change — the X'' lexer twin). Its log:
+  `E:\Temp\claude\E--CobolSharp\e3ee2a5f-98d3-456b-a516-f5995c81b07c\scratchpad\battery-20260809-4.log`
+  (artifacts also under `/tmp/battery-20260809-*`). Gate on the `=== BATTERY: … ===` verdict line; if the
+  file is absent or unfinished, re-run `bash scripts/battery.sh` whole. On green, update the §9 battery
+  reference (stack the prior) BEFORE new code.
+  **WHAT THIS SESSION LANDED (all pushed, DEVLOG 1263–1273):** the three PB65 singles (the
+  BOOLEAN-OF-INTEGER wide bridge · the Power receiver-arm swap · the bounded-codomain quantizer) and
+  **PB59 families 1–4 + 6 of 7** (the Annex A.1 item-33 TOTAL-IDENTITY correspondence + the UTF-8
+  standard-display device + the UTF-8 test-harness capture · the value-path trims + the item-93
+  returned-value maximum · CHAR/ORD on the ONE `AlphanumericCollation` reader · the per-function
+  numeric-literal admission · the total width dispatch + the X'' lexer twin). Inventory GAP 4187 → 4166;
+  A.1 register 21/199 (items 33 + 93 new). THREE comprehensive batteries measured ALL GREEN during the
+  session (§9 stack); the fourth is the in-flight one above.
+  **NEXT, in order:** ① **PB59 family 5a** — CONVERT's positional format parse + the r4/r5/r6/r7 bind
+  screens: the apply plan is FROZEN at `docs/rearchitecture/pb59-family5a-apply-plan-2026-08-09.md`,
+  the 7-family mechanism map (sites · behaviors · risks, line-anchored — RE-SCOUT anchors before
+  editing) at `docs/rearchitecture/pb59-mechanism-map-2026-08-09.md`. ② **5b** — the ANY raw-storage
+  channel + §15.19.4 r2/r4 trailing zero-bit padding + the runtime `Convert` signature (the map's
+  family-5 fixInventory; the ByteSub '?'+EC on the HEX legs is the open RV-15.19.4-2 residue).
+  ③ **PB59 family 7** — the ALPHABETIC result-category rider + the `OperandCategory` totalization
+  DEFERRED there (it moves MAX/MIN result-type resolution — measure together; the map's family-7
+  section has the eleven ResultCategory consumers). Then the queue as ordered below (PB60 → PB58 → …).
+  **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
+  fix at root, sweep siblings → probe again → golden + manifest (byte-preserving inserts — a JSON
+  round-trip rewrote a whole manifest once) → wave-local gate → `record_verdicts.py` → SpecTraceability
+  gate → note/DEVLOG/§0 → commit AND push. Battery per accumulated batch or any shared-seam/grammar move.
+  **HAZARDS THIS SESSION PAID FOR (beyond the standing list):** work THROUGH a battery freeze — draft
+  the next landing apply-ready in scratchpad (memory `work-through-the-freeze`; the owner asked "why do
+  you keep stopping?" twice); a console probe STRIPS §/wide chars — derive .err/.out content from the
+  diagnostic source or UTF-8 bytes, never the console echo; a restored file keeps its .bak mtime and the
+  incremental build silently tests the STALE assembly (touch + rebuild after any fail-once proof); the
+  negative corpus needs the `*> reject-at:` header; `record_verdicts.py` test-ref forms are
+  conformance/conformance-test/nist/unit/characterization (no `negative:` — use the runner's
+  conformance-test name); Grep's file-list includes UNTRACKED build leftovers — `git ls-files` is the
+  pin-existence oracle (the map's claimed .g.cs pins did not exist).
+  **INCIDENTAL FINDS REGISTERED:** PB68 (class-boolean checkpoints, ex-RV-15.13.4-1 D2/D3) · PB69
+  (FromDouble sentinel-as-argument, `MOD(A ** 3, B)`) · PB70 (group-refmod MOVE loud stage) · PB71
+  (`ALL N"…"` parse gap). All in `work.py next`'s pool.
+- **▶ THE PRIOR HANDOFF (2026-08-09 13:30 — the owner's STANDING DIRECTIVES, all still in force):
   ① FIX THE KNOWN DEFECT BACKLOG TO ZERO — no new adjudication exploration until it reads zero
   (owner, 2026-08-09). The backlog = inventory rows with DIVERGES/PARTIAL/NOT-IMPLEMENTED verdicts;
   session-probe/`work.py next` rank the fix queue. ② Run fully autonomously, no permission pauses;
@@ -52,8 +93,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   channel) →
   **PB60** (NUMVAL real parsers, 13) → **PB58** (argument-screen table shape, 41) → PB61 → PB62 →
   PB63 → PB68 (the class-boolean checkpoint extraction) → PB69 (the sentinel-as-argument quadrant) →
+  PB70 (group-refmod MOVE loud stage) → PB71 (the ALL-national parse gap) →
   PB64 (LOCALE feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design
   first) → the PB65 tail members above.
+  **PB59 progress (2026-08-09): families 1–4 and 6 of 7 LANDED** — the item-33 identity + the UTF-8
+  device · the value-path trims + item 93 · CHAR on the one collation reader · the per-function
+  numeric-literal admission · the width totalization + the X'' lexer twin — **17 of its 28 rows
+  CONFORMS**; open: family 5 (the CONVERT screens/ANY channel/bit padding — the largest; its mechanism
+  map is in the session drafts) and family 7 (the ALPHABETIC channel + the OperandCategory totalization
+  deferred to it).
   **OWNER-RESERVED, ask one at a time when he is at the keyboard:** PB67 (the four standard-binary
   rows → DOCUMENTED-NON-SUPPORT?) · CURRENT-DATE's +14:00 spec hole (RV-15.21.3-1) · PB55's
   IMPLEMENTATION is decided (rule-is-the-unit, 2026-08-08) and still needs its transcription
