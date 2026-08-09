@@ -122,6 +122,7 @@
   "pb56_dec_carrier_intrinsics",
   "pb5_float_quantize_range",
   "pb65_boolean_wide",
+  "pb65_codomain_clamp",
   "pb65_date_windowing",
   "pb65_dec_move_channel",
   "pb65_domain_guards",

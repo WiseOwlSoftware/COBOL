@@ -43387,10 +43387,10 @@
   "ordinal": 1,
   "subject": "ASIN function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec",
-  "test-ref": "conformance:2023/pb56_dec_carrier_intrinsics",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDoubleBounded",
+  "test-ref": "conformance:2023/pb56_dec_carrier_intrinsics; conformance:2023/pb65_codomain_clamp",
   "editions": "85,2002,2014,2023",
-  "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: AS=1.570796326: ASIN(1) lands through ONE final transfer at the receiver's truncation - the round-to-nearest double-quantization artifact (...327) is gone. PRIOR (DIVERGES): test-needed. VERDICT DIVERGES — upheld on adversarial re-adjudication and independently reproduced by this reviewer from a freshly written program.\n\nCITATION RE-VALIDATED MECHANICALLY: python scripts/spec/cite.py --check 15.10.4 \"approximation of the",
+  "notes": "PB56 LANDED 2026-08-09 (the Dec-carrier body, standard modes) + PB65 LANDED 2026-08-09 (the NATIVE fixed-receiver path): ASIN's closed-but-irrational +-pi/2 bound now holds on the quantized native path too - asin(1) at scale 9 clamps to 1.570796326 = floor(pi/2*10^9) instead of rounding to 1.570796327 > pi/2. Golden pb65_codomain_clamp asserts both boundary sides and the untouched interior.",
   "state": "OK"
  },
  {
@@ -43413,10 +43413,10 @@
   "ordinal": 1,
   "subject": "ATAN function",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec",
-  "test-ref": "conformance:2023/pb56_dec_carrier_intrinsics",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDoubleBounded",
+  "test-ref": "conformance:2023/pb56_dec_carrier_intrinsics; conformance:2023/pb65_codomain_clamp",
   "editions": "85,2002,2014,2023",
-  "notes": "PB56 LANDED 2026-08-09: the Dec-carrier body - the SS15.4.1 r1 EAE evaluates ON the SDIDI (CobolIntrinsics.Dec.cs via IntrinsicRenderer.RenderDec), arguments lifted exactly, never quantized; prose-family results convert in per SS8.8.1.5.1. PROBED: AT=0.785398163: ATAN(1) = pi/4 through one final transfer. PRIOR (DIVERGES): SECOND ADVERSARIAL PASS: verdict SURVIVES. Independently reproduced, and the ONE escape reading that could have rescued a CONFORMS is now closed by a receiver-free repro rather than by argument. Two factual errors in the prior record's CAUSE paragrap",
+  "notes": "PB56 LANDED 2026-08-09 (the Dec-carrier body, standard modes) + PB65 LANDED 2026-08-09 (the NATIVE fixed-receiver path): ATAN's OPEN +-pi/2 bound (15.11.4 r1 - strictly greater/less) now holds on the quantized native path - ATAN(1e18) clamps to 1.570796326 inside the open interval. Golden pb65_codomain_clamp.",
   "state": "OK"
  },
  {
@@ -47507,12 +47507,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "RANDOM function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
-  "test-ref": "nist:IF131A",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDoubleBounded; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCodomain",
+  "test-ref": "conformance:2023/pb65_codomain_clamp; nist:IF131A",
   "editions": "85,2002,2014,2023",
-  "notes": "The runtime body conforms (Random.NextDouble() is in [0,1)) and the FLOAT-receiver path (num.Receiver.Real) hands the double through unquantized. The FIXED-POINT receiver path does NOT: RenderFloat wraps the call in FromDouble(call, ws) with ws = Math.Max(num.Receiver.Scale, 9), and FromDouble ends in `(long)Math.Round(scaled, MidpointRounding.AwayFromZero)`, so any returned value >= 0.9999999995 quantizes to exactly 1.000000000 — not 'less than one'. THE QUANTIZATION DEFECT IS DEMONSTRATED, not conjectured: on the same shared code path `01 R PIC 9V9(9). COMPUTE R = FUNCTION SQRT(0.999999999).` prints 1.000000000 while SQRT(0.999999998) prints 0.999999999. For RANDOM the top bucket is one draw in ~2.1e9 (the seeded back-compat generator's NextDouble is InternalSample() * (1.0/int.MaxValue) and only InternalSample() == 2147483646 clears the threshold; the argument-less xoshiro path has the same ~5e-10 probability), so no short deterministic COBOL input exhibits it — the bound is broken by the emitter's generic rounding, not by the generator. Fix shape: clamp (or round toward zero) at the quantization point for range-bounded functions instead of leaving the < 1 bound to FromDouble's AwayFromZero. test-ref conformance-test:...Random_SeededSequence_PinnedToSpec was STRUCK by review — its receivers are PIC V9(9), which has NO integer position, so a 1.000000000 result would silently store as .000000000, and the test asserts nothing about the range. nist:IF131A is kept as corroboration only (a NIST golden is a regression net, never spec-derived, so it cannot close the row); its WS-NUM is PIC S9(5)V9(6), which can represent 1.0, so its `WS-NUM < MAX-RANGE` legs would in principle catch the violation. test-needed: a spec-derived case pinning the < 1 bound on a receiver able to hold 1.0.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB65): the bounded-codomain quantizer. FromDouble's away-from-zero rounding stays (it recovers the SQRT(10)**2 binary64 artifact, NIST IF136A); a function whose 15.x.4 rule bounds the returned value clamps the QUANTIZED result against Int128 scale-37 constants (the limit divides exactly - never a double computation that loses the bound past 15 digits). The family enumerated MECHANICALLY from the 15.x.4 rules: RANDOM [0,1) open (this row), ATAN (-pi/2,pi/2) open, ASIN/ACOS closed-but-IRRATIONAL (rounding asin(1) at scale 9 gave 1.570796327 > pi/2 - outside even the closed bound), FRACTION-PART's EAE-derived |v| < 1; SIN/COS's closed RATIONAL +-1 deliberately absent (rounding cannot exceed an exactly-representable bound the double respects). MEASURED post-fix: ASIN(1) = 1.570796326 = floor(pi/2*10^9), ACOS(-1) = 3.141592653, ATAN(1e18) = 1.570796326, FRACTION-PART(5.9999999996 COMP-2) = 0.999999999, interior ASIN(0.5) untouched, SQRT(0.999999999) STILL 1.000000000 (no stated bound - the legal-approximation contrast), 20k seeded RANDOM draws with zero >= 1. Citations: cite.py --check 15.75.4 1) / 15.8.4 1) / 15.10.4 1) / 15.11.4 1) / 15.42.4 1).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.75.4-2",

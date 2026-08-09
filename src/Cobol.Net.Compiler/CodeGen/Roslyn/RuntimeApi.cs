@@ -182,6 +182,15 @@ internal static class RuntimeApi
     public static string IntegerArgWide(string value) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgWideReal)}({value})";
 
+    /// <summary>The runtime scale-37 codomain-maximum constant for a bounded float-family function (PB65 /
+    /// RV-15.75.4-1) — consumed by <c>CobolIntrinsics.FromDoubleBounded</c>'s clamp.</summary>
+    public static string CodomainConst(CobolNet.Binding.IntrinsicCodomain c) => c switch
+    {
+        CobolNet.Binding.IntrinsicCodomain.UnitOpen => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainBelowOne37)}",
+        CobolNet.Binding.IntrinsicCodomain.HalfPi => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainHalfPi37)}",
+        _ => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainPi37)}",
+    };
+
     public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath = false) =>
         $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleChecked) : nameof(CobolNum.Rescale))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 

@@ -169,6 +169,37 @@ public static partial class CobolIntrinsics
         ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
         : d;
 
+    /// <summary>The scale-37 maxima of the bounded codomains (fix-queue PB65 / RV-15.75.4-1): the largest
+    /// unscaled magnitude PERMITTED inside each codomain, at 37 fraction digits — so the per-scale limit is one
+    /// exact integer division, <c>max37 / 10^(37−scale)</c> (floor, for a positive dividend), never a double
+    /// computation that loses the bound past 15 digits. For the OPEN unit bound the constant is 10³⁷ − 1
+    /// (equality excluded); for the irrational π bounds it is ⌊bound·10³⁷⌋ (equality unreachable — the bound is
+    /// not a decimal), independently derived: π to 40 places via Decimal in python, floor at 37. Both fit
+    /// Int128 (max ≈ 1.70e38).</summary>
+    public static readonly Int128 CodomainBelowOne37 = Int128.Parse("9999999999999999999999999999999999999");
+    public static readonly Int128 CodomainHalfPi37 = Int128.Parse("15707963267948966192313216916397514420");
+    public static readonly Int128 CodomainPi37 = Int128.Parse("31415926535897932384626433832795028841");
+
+    /// <summary>
+    /// ⛔ THE BOUNDED-CODOMAIN QUANTIZER (fix-queue PB65 / RV-15.75.4-1). <see cref="FromDouble"/>'s
+    /// away-from-zero rounding exists to absorb binary64 artifacts (SQRT(10) ** 2 → 10, NIST IF136A) and must
+    /// stay — but for a function whose §15.x.4 rule bounds the returned value, the top half-ulp of the codomain
+    /// rounds OUT of it: RANDOM's [0, 1) produced exactly 1.000000000 in a PIC 9V9(9) receiver (§15.75.4 r1's
+    /// "less than one" is strict), and ASIN(1) at scale 9 rounded to 1.570796327 &gt; π/2 — outside §15.10.4 r1's
+    /// CLOSED bound, because the bound is irrational and the nearest scaled value above it is not "equal to π/2".
+    /// The DOUBLE never exits the codomain (Math.PI/2 &lt; π/2; NextDouble() &lt; 1); only the quantization does,
+    /// which is why the clamp acts on the QUANTIZED value. The clamp is symmetric in magnitude — every family
+    /// member's codomain is symmetric or zero-anchored on the safe side (ACOS ≥ 0, RANDOM ≥ 0 hold in double
+    /// already). The limit divides exactly from the scale-37 constant; <paramref name="scale"/> ≤ 31 always
+    /// (a working scale is capped at the receiver's Int128 headroom and a PICTURE at 31 digits, §13.18.40.3 SR14).
+    /// </summary>
+    public static Int128 FromDoubleBounded(double d, int scale, Int128 max37)
+    {
+        Int128 q = FromDouble(d, scale);
+        Int128 limit = max37 / Pow10.AsWide(37 - scale);
+        return q > limit ? limit : q < -limit ? -limit : q;
+    }
+
     public static Int128 FromDouble(double d, int scale)
     {
         // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the

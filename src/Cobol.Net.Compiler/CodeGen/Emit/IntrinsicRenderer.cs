@@ -369,6 +369,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // RealResult stays inside the conversion: it is the NaN → EC-ARGUMENT-FUNCTION raise site.
         if (num.StandardDecimal)
             return new NumX(RuntimeApi.DecFromDouble(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true);
+        // ⛔ A BOUNDED CODOMAIN CLAMPS THE QUANTIZED VALUE (fix-queue PB65 / RV-15.75.4-1): the catalog row
+        // carries the §15.x.4 bound and the quantizer refuses to round out of it — RANDOM's [0,1) reached
+        // exactly 1.000000000 in a 9V9(9) receiver, ASIN(1) exceeded its closed-but-irrational π/2. The
+        // rounding itself stays (it recovers the SQRT(10) ** 2 binary64 artifact); only the exit is closed.
+        // The Dec arm above needs no clamp: the un-quantized double never exits its codomain.
+        if (sig.Codomain != IntrinsicCodomain.None)
+            return new NumX(RuntimeApi.Intrinsic("FromDoubleBounded",
+                $"{call}, {ws}, {RuntimeApi.CodomainConst(sig.Codomain)}"), ws);
         return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
     }
 
