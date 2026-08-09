@@ -81,7 +81,7 @@ public static class ConditionalCompilationProcessor
         string expanded = new Run(leaveTurnDirectives, leavePropagateDirectives, leaveRefModZeroLengthDirectives,
             leaveFlagDirectives, leaveCobolWordsDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
             dialectLevel).Render(text);
-        return CopyProcessor.ApplyReplaceStatements(expanded);   // Step 3 — REPLACE over the expanded compilation group
+        return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
     }
 
     /// <summary>

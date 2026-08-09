@@ -163,6 +163,7 @@
     "read-auto-with-lock",
     "recursive-contained-ws",
     "ref-mod-zero-length-malformed",
+    "replace-literal-partial-word",
     "remarks-paragraph",
     "report-varying-no-repetition",
     "rerun",

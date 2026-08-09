@@ -89,14 +89,20 @@ public sealed class CopyProcessor(
             _searchPaths.Insert(0, sourceDir);
 
         string expanded = ExpandCopyStatements(sourceText, new HashSet<string>(StringComparer.OrdinalIgnoreCase), 0);
-        return ApplyReplaceStatements(expanded);
+        return ApplyReplaceStatements(expanded, _diagnostics, _sourceName);
     }
 
     /// <summary>
     /// Process REPLACE statements: REPLACE ==pseudo-text-1== BY ==pseudo-text-2==.
     /// REPLACE OFF turns off active replacements.
+    /// A non-pseudo-text operand (kb/Work R39 — the GCOS/ACU literal spelling) draws COBOLNET1641 when a
+    /// <paramref name="diagnostics"/> bag is supplied: REPLACE's operands were never literals in ANY ISO
+    /// edition (§7.2.4.2 general format; §7.2.4.3 SR7), unlike COPY's, whose pre-2023 literal forms ride the
+    /// separate COBOLNET0902 removal gate. Before this the illegal statement was silently half-parsed and the
+    /// failure surfaced downstream as an unrelated undefined-reference.
     /// </summary>
-    internal static string ApplyReplaceStatements(string text)
+    internal static string ApplyReplaceStatements(string text, DiagnosticBag? diagnostics = null,
+        string sourceName = "<source>")
     {
         var result = new StringBuilder();
         var activeReplacements = new List<(string from, string to, ReplaceKind kind)>();
@@ -124,7 +130,19 @@ public sealed class CopyProcessor(
             else
             {
                 activeReplacements.Clear();
-                ParseReplacements(text, ref afterReplace, activeReplacements);
+                bool flagged = false;   // one report per REPLACE statement
+                ParseReplacements(text, ref afterReplace, activeReplacements, p =>
+                {
+                    if (flagged || diagnostics is null) return;
+                    flagged = true;
+                    diagnostics.ReportError(
+                        Editions.Diagnostics.DiagnosticCatalog.ReplaceOperandNotPseudoText.Code,
+                        "a REPLACE statement operand is not pseudo-text — REPLACE admits ==pseudo-text== "
+                        + "(and ==partial-word== under LEADING/TRAILING) operands only, in every ISO edition "
+                        + "(§7.2.4.2; §7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
+                        + "(empty ==== deletes)",
+                        new Common.SourceLocation(sourceName, 0, LineOf(text, p), 0), default);
+                });
             }
 
             while (afterReplace < text.Length && text[afterReplace] != '.')

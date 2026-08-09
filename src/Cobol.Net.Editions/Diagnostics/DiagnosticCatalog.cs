@@ -788,6 +788,21 @@ public static class DiagnosticCatalog
     // name failed to materialize. The verdict (reject) was right by accident; this descriptor makes the REASON
     // right. Emitted by CopyProcessor.ResolveOneCopy at the outer COPY's line. The GnuCOBOL replacement-reaches-
     // nested-text semantics remain a vendor-dialect-axis candidate, adjudicated separately.
+    // kb/Work R39 (found by R36's adjudication probes): `REPLACE LEADING "PREFIX-" BY SPACES` — the GCOS/ACU
+    // vendor spelling — was silently HALF-PARSED: no diagnostic on the statement, nothing applied, and the
+    // failure surfaced downstream as COBOLNET1639 on the never-replaced name. REPLACE's operands were NEVER
+    // literals in any ISO edition (unlike COPY's, which 2023 removed — COBOLNET0902's territory): the
+    // §7.2.4.2 general format admits pseudo-text/partial-word operands only, and §7.2.4.3 SR7 bars literals
+    // as partial-words explicitly. Emitted by CopyProcessor.ApplyReplaceStatements via the same
+    // NoteNonPseudoText hook the COPY gate rides — one detector, two rules, each cited at its own site.
+    public static readonly DiagnosticDescriptor ReplaceOperandNotPseudoText = new(
+        "COBOLNET1641", "replace-operand-not-pseudo-text", EditionSeverity.Error,
+        "A REPLACE statement operand is not pseudo-text. REPLACE's general format (§7.2.4.2) admits "
+        + "==pseudo-text== (and ==partial-word== under LEADING/TRAILING) operands only — a bare literal, "
+        + "identifier or word is not a REPLACE operand in any ISO edition, and §7.2.4.3 SR7 explicitly bars "
+        + "alphanumeric, boolean and national literals as partial-words. Write ==operand== (empty "
+        + "==== deletes under LEADING/TRAILING).",
+        "ISO §7.2.4.2 / §7.2.4.3 SR7");
     public static readonly DiagnosticDescriptor CopyReplacingNestedCopy = new(
         "COBOLNET1640", "copy-replacing-nested-copy", EditionSeverity.Error,
         "A COPY statement with the REPLACING phrase names library text that itself contains a COPY statement. "
