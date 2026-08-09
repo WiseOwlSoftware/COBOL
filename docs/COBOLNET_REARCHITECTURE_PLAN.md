@@ -1210,7 +1210,14 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB65-singles tree `337fd0d5` (2026-08-09 14:31).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB59 families-1+2 tree `e5673b6b` (2026-08-09 15:20).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
+  Conformance **4326 / 4326, zero skipped** (12 m 22 s) · greenfield Unit **4122 / 4122** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** ·
+  GnuCOBOL differential **`0 PER-CASE FLIP(S)`**. Run because family 1 moved a SHARED seam — the UTF-8
+  standard-display-device determination (`ProgramTable.RunMain`) + the test harness's capture decoding
+  (`ProcessObservation`) — which every test's output crosses; all legs prove it clean.
+- **⛔ PRIOR BATTERY REFERENCE — the PB65-singles tree `337fd0d5` (2026-08-09 14:31).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
   Conformance **4316 / 4316, zero skipped** (12 m 35 s — includes the three new PB65 goldens) ·
   greenfield Unit **4122 / 4122** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST

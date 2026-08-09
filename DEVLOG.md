@@ -13,6 +13,16 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1270 — 2026-08-09 16:45 PDT — The shared-seam battery measures ALL GREEN: the UTF-8 device crosses every leg clean
+
+`bash scripts/battery.sh` on `e5673b6b` (PB59 families 1+2): `=== BATTERY: ALL GREEN ===` — Conformance
+4326/4326 zero skipped, Unit 4122/4122, characterization 33/33, guard-fast ALL GREEN with NIST 353 MATCH /
+0 REGRESSION, differential 0 PER-CASE FLIP(S). Run early (two landings, not a full batch) because family 1
+moved the seam every test's OUTPUT crosses — the UTF-8 standard-display-device determination plus the
+harness's capture decoding — and the tiered-gates rule names a moved shared seam as the full-suite
+trigger. All-ASCII output is byte-identical under UTF-8, which is what every green NIST/golden leg just
+proved mechanically rather than by argument. §9 reference updated; prior stacked.
+
 ## Entry 1269 — 2026-08-09 16:10 PDT — PB59 family 2 (the trim half): a leading space is content, a digitless argument raises, the §15.4 maximum is declared — four rows close
 
 BaseConvert and HexDigitsToBytes both opened with a symmetric Trim(), so "  FF" silently converted, an
