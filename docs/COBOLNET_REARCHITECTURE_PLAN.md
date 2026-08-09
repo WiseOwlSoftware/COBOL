@@ -1162,7 +1162,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the R31+R32+R25+R26 tree `2a0898c7` (2026-08-08 16:48),
+- **⛔ BATTERY REFERENCE — CURRENT, the R34+R27+R29+R35 tree `7590ce35` (2026-08-08 17:53).**
+  ⚠ **NOT GREEN as measured, and the two flips were R35's PREDICTED RECOVERY:** every internal leg green —
+  FULL greenfield Conformance **4291 / 4291, zero skipped** (11 m 41 s) · greenfield Unit **4099 / 4099** ·
+  characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** and
+  **NIST AUDIT CLEAN** — and the differential reported exactly TWO flips, `listings:2598` and
+  `run_functions:4457`, both **WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT**: the bare zero-argument UDF cases
+  R35 fixed now compile and AGREE with the oracle (its LANDED section named both in advance). R27's index
+  rejections and R29's arithmetic rejection moved nothing — no DEFAULT-dialect corpus case exercises
+  either shape. Baseline regenerated, the TSV diff EXACTLY 2 rows; a fresh differential prints
+  **`=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`** (1323 cases).
+- **⛔ PRIOR BATTERY REFERENCE — the R31+R32+R25+R26 tree `2a0898c7` (2026-08-08 16:48),
   `=== BATTERY: ALL GREEN ===`:** FULL greenfield Conformance **4285 / 4285, zero skipped** (10 m 49 s) ·
   greenfield Unit **4094 / 4094** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST
   **353 MATCH / 0 REGRESSION** and **NIST AUDIT CLEAN** · GnuCOBOL differential **1323 cases,

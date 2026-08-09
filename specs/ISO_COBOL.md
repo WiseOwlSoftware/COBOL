@@ -29895,6 +29895,18 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 <a id="table-21"></a>
 **Table 21 — Table of functions**
 
+> ⚠ **CORRECTED — see the Addendum (C5).** The standard prints **`LOCAL-TIME-FROM-SECONDS`** in this
+> table's row for the locale time-from-seconds function (page 811, confirmed by image render); it is a
+> TYPO in ISO/IEC 1989:2023 for `LOCALE-TIME-FROM-SECONDS`, the name used by the function's defining
+> clause, the table of contents, the Annex D cross-references and the index. Corrected in this
+> transcription because this table is the function-name INVENTORY and is consumed as data. The printed
+> form is recorded in the Addendum so the change is reversible.
+>
+> **Figure notes (Table 21, printed folios 807–815, as printed):** the CONCAT row's 'Value returned'
+> cell repeats §15.2's generic type sentence — that is the printed page's own text, transcribed
+> faithfully. The table carries NO edition-history column — it is the 2023 inventory only and cannot
+> source introduction editions.
+
 | **Intrinsic-function-name** | **Arguments** | **Type** | **Value returned** |
 |-----------------------------|---------------|----------|--------------------|
 | ABS | Int1 or Num1 | Int or Num | The absolute value of argument-1 |
@@ -29944,7 +29956,7 @@ The 'Value returned' column gives a synopsis of the value returned; additional d
 | LOCALE-COMPARE | Alph1 or Anum1 or Nat1, Alph2 or Anum2, or Nat2, Loc3 | Anum | A character indicating the result of comparing argument-1 to argument-2 using an ordering defined by a locale specified in argument-3 |
 | LOCALE-DATE | Anum1 or Nat1, Loc2 | Anum | A character string containing a date specified by argument-1 in a format specified by argument-2 and a locale identified by argument-2 |
 | LOCALE-TIME | Anum1 or Nat1, Loc2 | Anum | A character string containing a time specified by argument-1 in a format specified by a locale identified by argument-2 |
-| LOCAL-TIME-FROM-SECONDS | Num1, Loc2 | Anum | A character-string containing a time specified by argument-1, in a format specified by a locale identified by argument-2 |
+| LOCALE-TIME-FROM-SECONDS | Num1, Loc2 | Anum | A character-string containing a time specified by argument-1, in a format specified by a locale identified by argument-2 |
 | LOG | Num1 | Num | Natural logarithm of argument-1 |
 | LOG10 | Num1 | Num | Logarithm to base 10 of argument-1 |
 | LOWER-CASE | Alph1 or Anum1 or Nat1 | Anum or Nat | A character string with any uppercase letters in argument-1 set to lowercase |
@@ -47140,6 +47152,33 @@ The separator period after the paragraph name is missing in print, which makes t
 IDENTIFICATION DIVISION paragraph header is `FUNCTION-ID.` and 11.5 requires the period. The same annex
 writes `PROGRAM-ID.`, `CLASS-ID.` and `INTERFACE-ID.` with it. Corrected because these are EXAMPLE PROGRAMS,
 read and compiled as written — the same reason the reserved-word list is corrected at C1.
+
+### C5 · page 811 · Table 21, Table of functions · `LOCAL-TIME-FROM-SECONDS` → `LOCALE-TIME-FROM-SECONDS`
+
+| | |
+|---|---|
+| **Printed** | `LOCAL-TIME-FROM-SECONDS` (wrapped `LOCAL-TIME-FROM-` / `SECONDS` in the name column) |
+| **This transcription** | `LOCALE-TIME-FROM-SECONDS` |
+
+Table 21's row for the locale time-from-seconds function drops the `E` of `LOCALE`. There is no
+`LOCAL-TIME-FROM-SECONDS` function anywhere in the standard.
+
+**The standard contradicts this spelling everywhere else it appears.** Counted across the full PDF text
+layer (2026-08-08; the table row itself is line-wrapped in print, which is why a whole-word count finds
+the typo zero times and the page image was rendered to confirm it):
+
+| spelling | occurrences | where |
+|---|---:|---|
+| `LOCAL-TIME-FROM-SECONDS` | **1** | page 811 — this table row, and nowhere else (page image rendered to verify) |
+| `LOCALE-TIME-FROM-SECONDS` | **6** | the table of contents; 12.3.7 SPECIAL-NAMES (locale references, page 213); **15.54, the function's own defining clause** (page 878); Annex D's function walk-through (page 977); the substantive-changes cross-reference (page 1166); the index (page 1218) |
+
+Six independent occurrences agree — one of them the clause that defines the function — against a single
+deviating table cell. The same one-against-many shape as C1, in the same kind of location: a summary table
+typeset apart from the defining text.
+
+**Why corrected rather than recorded as printed:** Table 21 is the function-name INVENTORY, consumed as
+data — a tool generated from the printed row would look up a function that does not exist and miss the one
+that does (the transcription's own row-vs-clause name diff did exactly that, which is how this was found).
 
 ## Defects recorded but NOT corrected
 
