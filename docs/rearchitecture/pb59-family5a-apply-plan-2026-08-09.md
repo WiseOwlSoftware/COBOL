@@ -17,7 +17,9 @@
 > The landed shape: the SHARED `IntrinsicArgumentRules.StaticUsageOf` (the usage axis the mechanism map's
 > fixInventory already demanded for §15.12.3 r1), read inline by BindConvert for r4 (display|national),
 > r5 (display), r6 (national) and r7 (the exclusion list). See kb/Work/PB59.md family 5a for the row
-> verdicts and the measured RV-15.19.4-4 residue (ANUM NAT HEX → 41, not the map's 4100 nor 0041 yet).
+> verdicts and the measured RV-15.19.4-4 residue (ANUM NAT HEX → 41 today; §15.19.4 r4's trailing
+> pad-to-16-bits derives 4100, exactly the map's predicted golden — an initial "0041" counter-claim in
+> the 5a landing text was a mis-derivation, corrected the same day).
 
 # PB59-5a apply plan — CONVERT's positional parse + the r5/r6/r7 screens
 (5b — the ANY raw-storage channel + r2/r4 bit padding + the runtime signature — is a separate landing.)

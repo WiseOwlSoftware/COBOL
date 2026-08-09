@@ -48,7 +48,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **NEXT, in order:** ① **5b** — the ANY raw-storage
   channel + §15.19.4 r2/r4 trailing zero-bit padding + the runtime `Convert` signature (the map's
   family-5 fixInventory; the ByteSub '?'+EC on the HEX legs is the open RV-15.19.4-2 residue, and the
-  MEASURED RV-15.19.4-4 miss — `ANUM NAT HEX` returns 41 where the rule derives 0041 — rides with it).
+  MEASURED RV-15.19.4-4 miss — `ANUM NAT HEX` returns 41 where r4's pad-to-16-bits derives 4100, the
+  map's own predicted golden; the 5a session's "0041" counter-claim was the mis-derivation, corrected
+  same-day — rides with it).
   ② **PB59 family 7** — the ALPHABETIC result-category rider + the `OperandCategory` totalization
   DEFERRED there (it moves MAX/MIN result-type resolution — measure together; the map's family-7
   section has the eleven ResultCategory consumers). Then the queue as ordered below (PB60 → PB58 → …).
