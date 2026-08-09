@@ -614,7 +614,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// FIRST (a <c>params string[]</c> can take no trailing param), selecting the <c>MaxString(ushort[]|NationalCollation,
     /// params string[])</c> overload. The mirror of <see cref="Collate"/>'s trailing form for the single-arg CHAR/ORD.</summary>
     private static string CollatePrefix(BoundIntrinsicCall ic) =>
-        ic.Collate ? "__COLLATE, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
+        // The alphanumeric MAX/MIN family compares — it never exposes a position number — so it reads the raw
+        // .Positions table (order-equivalent tail; the proof note at CobolString.Weight). CHAR/ORD take the
+        // OBJECT via Collate() above (PB59).
+        ic.Collate ? "__COLLATE.Positions, " : ic.CollateNat ? "__COLLATE_NAT, " : "";
 
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 

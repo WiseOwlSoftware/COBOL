@@ -184,11 +184,16 @@ public static class CobolString
         return 0;
     }
 
-    /// <summary>The collating weight of a code unit under a non-native alphanumeric PROGRAM COLLATING SEQUENCE: a code
-    /// unit within the alphabet's remapped domain (0..weights.Length-1) takes its assigned position; a code unit beyond
-    /// it (the Unicode alphanumeric repertoire extends past the Latin-1 domain the ALPHABET positions) keeps its NATIVE
-    /// position — code-unit order AFTER the whole positioned set (ISO §12.3.7 §12.3.7.4 GR7 1.3), matching ORD's native-ordinal
-    /// branch. Byte-identical to the former <c>weights[c &amp; 0xFF]</c> for every code unit ≤ 0xFF.</summary>
+    /// <summary>The COMPARISON weight of a code unit under a non-native alphanumeric PROGRAM COLLATING
+    /// SEQUENCE: a positioned code unit takes its assigned position; one beyond the block keeps its raw code.
+    /// <para>⛔ THE <c>: c</c> TAIL IS DELIBERATELY NOT THE EXACT §12.3.7.4 GR7 1.3 ARITHMETIC, AND THAT IS
+    /// PROVEN SAFE, NOT ASSUMED (fix-queue PB59): the exact position of an above-block unit is
+    /// <c>NextFree + (c − 256)</c> (<see cref="AlphanumericCollation.Weight"/> — what ORD/CHAR expose), but for
+    /// COMPARISON only the ORDER matters, and the two rules are order-equivalent — every tabulated position is
+    /// &lt; NextFree ≤ 256 ≤ both rules' above-block minimum, and both are strictly increasing in code above the
+    /// block, so no pair of characters ever reorders. Keeping the raw table here spares the sort/key/relation
+    /// pipeline the object plumbing for zero behavioral gain; a reader tempted to "unify" this arm should
+    /// re-derive that proof first.</para></summary>
     private static int Weight(char c, ushort[] weights) => c < weights.Length ? weights[c] : c;
 
     /// <summary>

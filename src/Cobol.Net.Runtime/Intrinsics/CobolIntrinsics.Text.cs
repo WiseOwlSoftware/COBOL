@@ -28,22 +28,29 @@ public static partial class CobolIntrinsics
         return ((char)c).ToString();
     }
 
-    /// <summary>CHAR under a non-identity PCS (§15.15.4 rule 2): the FIRST (lowest-coded) character whose
-    /// collating weight is n−1 — "the first character defined for that position" when ALSO-grouped characters
-    /// share one position.</summary>
-    public static string Char(long n, ushort[] weights)
+    /// <summary>CHAR under a non-identity PCS (§15.15.4): the character at ordinal position <paramref name="n"/>
+    /// of the sequence — a shared (ALSO) position returns "the first character DEFINED for that character
+    /// position" (rule 2 / §12.3.7.4 GR7 1.6: literal-1, in SOURCE order), an above-block position returns its
+    /// native code unit (GR7 1.3), and the §15.15.3 r2 domain is the sequence's own
+    /// <see cref="AlphanumericCollation.PositionCount"/> ("greater than zero and less than or equal to the
+    /// number of positions").</summary>
+    /// <remarks>⛔ THE ONE COLLATION READER (fix-queue PB59 / RV-15.15.4-1/-2, AR-15.15.3-2). The previous body
+    /// carried the pre-PB3 native-ordinal fallback ORD lost (CHAR(255) under an ALSO collapse returned the EC
+    /// default, CHAR(257) two positions low — CHAR and ORD were not inverses), scanned <c>weights[]</c> for the
+    /// LOWEST-coded member of a shared position (CHAR(1) = 'A' where literal-1 'C' is owed), and bounded the
+    /// domain by the 256-entry block (255 refused, 65,536 admitted — inverted on both ends).
+    /// <see cref="AlphanumericCollation.CharAt"/> and <see cref="AlphanumericCollation.Weight"/> are exact
+    /// inverses by construction, which is what makes ORD∘CHAR the identity the golden asserts.</remarks>
+    public static string Char(long n, AlphanumericCollation collation)
     {
-        long wanted = n - 1;
-        // A collating position beyond the alphabet's remapped domain (0..weights.Length-1) belongs to a code unit the
-        // ALPHABET never listed: it keeps its NATIVE position in the Unicode alphanumeric sequence (the inverse of
-        // ORD's native-ordinal branch), so CHAR spans up to 0xFFFF under a non-native PCS too.
-        if (wanted >= weights.Length && wanted <= 0xFFFF)
-            return ((char)wanted).ToString();
-        for (int i = 0; i < weights.Length; i++)
-            if (weights[i] == wanted)
-                return ((char)i).ToString();
-        Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} has no character at that collating position (§15.15.3 rule 1)");
-        return " ";                                          // no character at that position → EC default (§15.3)
+        int c = collation.CharAt(n - 1);
+        if (c < 0)
+        {
+            Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} outside the collating sequence of "
+                + $"{collation.PositionCount} positions (§15.15.3 rule 2)");
+            return " ";                                      // EC default (§15.3)
+        }
+        return ((char)c).ToString();
     }
 
     /// <summary>CHAR-NATIONAL (§15.16.4): the character in ORDINAL position <paramref name="n"/> (1-based) of
@@ -97,41 +104,15 @@ public static partial class CobolIntrinsics
         : national.Weight(s[0]) + 1L;
 
     /// <summary>ORD under a non-identity alphanumeric PCS: the character's collating position + 1 (§15.70.4 r1;
-    /// <c>weights[c]</c> is the 0-based position, and ALSO members share one).</summary>
-    /// <remarks>
-    /// <para>
-    /// ⛔ A CHARACTER PAST THE TABLE CONTINUES THE SEQUENCE — it does NOT fall back to its native ordinal
-    /// (fix-queue PB3). §12.3.7.4 GR7 1.3: "Any characters of the native collating sequence that are not
-    /// specified in the literal phrase shall assume a position in the collating sequence that is greater than
-    /// that of the highest character specified in this literal phrase. The relative order within the set of these
-    /// unspecified characters is unchanged from the native collating sequence."
-    /// </para>
-    /// <para>
-    /// The old <c>c + 1</c> fallback ignored the collating sequence entirely, so a character one past the table
-    /// was numbered by a different rule than its neighbour and left a HOLE. Measured, under
-    /// <c>ALPHABET AL IS "A" ALSO "B"</c>: <c>ORD(X"FF")</c> gave 255 (correct — the ALSO collapse shifts
-    /// everything down one) while <c>ORD(U+0100)</c> gave 257, so ordinal 256 was occupied by nothing. §15.70.4
-    /// r1 returns "the ordinal position", and a sequence containing a hole does not have one.
-    /// </para>
-    /// <para>
-    /// This is the arithmetic <see cref="NationalCollation.Weight"/> has always performed on the national side —
-    /// one rule, two implementations, and only this one was incomplete. It is also the residue of CA26, which
-    /// made the alphanumeric repertoire Unicode without extending the 256-entry table's tail.
-    /// </para>
-    /// </remarks>
-    public static long Ord(string s, ushort[] weights)
-    {
-        if (s.Length == 0)
-            return Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)");
-        char c = s[0];
-        if (c < weights.Length) return weights[c] + 1L;
-
-        // Above the specified block, in unchanged native order: the highest tabulated position, then one
-        // distinct position per code unit past the table. Never a shared bucket, never a gap.
-        int highest = 0;
-        foreach (ushort w in weights) if (w > highest) highest = w;
-        return highest + 1L + (c - weights.Length) + 1L;
-    }
+    /// ALSO members share one position, a character past the positioned block continues the sequence per
+    /// §12.3.7.4 GR7 1.3 — the PB3 arithmetic, which now lives in the ONE
+    /// <see cref="AlphanumericCollation.Weight"/> reader beside its exact inverse
+    /// <see cref="AlphanumericCollation.CharAt"/> (fix-queue PB59: three implementations of GR7 1.3 grew in
+    /// this tree — ORD's correct one, CHAR's pre-PB3 fallback, and CobolString.Weight's order-equivalent
+    /// comparison tail — and the position-number-exposing pair now share this single home).</summary>
+    public static long Ord(string s, AlphanumericCollation collation) => s.Length == 0
+        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
+        : collation.Weight(s[0]) + 1L;
 
     /// <summary>UPPER-CASE (§15.97.4): every lowercase letter replaced by its uppercase correspondent; result
     /// length = argument length (the fixed-width field image in carries the width out).</summary>

@@ -50,10 +50,13 @@ tags: [cobolsharp, work, defect]
 > GR7 1.3, and has done all along. `CobolIntrinsics.Text.Ord(string, ushort[])` now continues the sequence above
 > the highest tabulated position instead of falling back to `c + 1`. One rule, two implementations, and only one
 > of them was incomplete (`feedback_one_rule_one_place`).
-> ⚠ **It did NOT need the data-structure change this entry predicted.** The dense 256-entry array is fine: the
-> table's own maximum position is all the arithmetic needs, so the repair is local to `Ord`. The estimate was
-> wrong in the cheap direction for once — recorded because a scope guess that reads as authoritative is how a
-> fix gets deferred for being "big".
+> ⚠ **"It did NOT need the data-structure change this entry predicted" — TRUE FOR ORD'S ARITHMETIC, FALSE
+> FOR CHAR (corrected 2026-08-09, the PB59 CHAR landing).** The table's own maximum position is all ORD's
+> tail arithmetic needs; but CHAR's §15.15.4 r2 REPRESENTATIVE (literal-1 of an ALSO group, in SOURCE
+> order) is information the dense positions array cannot carry, and the prediction's data structure —
+> `AlphanumericCollation` with RepByPos + NextFree, the national twin's shape — landed with PB59. A reader
+> who trusted the original sentence would have re-derived CHAR's lowest-code scan; the correction is the
+> honest half of the estimate record.
 > Measured after the fix, all six spec-derived: `ORD("A")`=`ORD("B")`=1 · `ORD("C")`=67 · `ORD(X"FF")`=255 ·
 > **`ORD(U+0100)`=256** · `ORD(U+0101)`=257. **CA26's residue on the ORD path is closed.**
 > **GOLDEN** `conformance:2023/pb3_ord_collating_tail`.

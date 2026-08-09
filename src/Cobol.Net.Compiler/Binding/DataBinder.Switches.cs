@@ -377,6 +377,7 @@ public sealed partial class DataBinder
         var pos = new ushort[256];
         Array.Fill(pos, ushort.MaxValue);                  // sentinel: not yet specified
         var specOrder = new List<char>();                  // every specified char in source order (tie rules)
+        var repByPos = new List<ushort>();                 // per position: the FIRST char DEFINED there (§15.15.4 r2 / GR7 1.6 — PB59; the national builder's twin)
         ushort next = 0;
         void Assign(char c, bool advance)
         {
@@ -384,6 +385,7 @@ public sealed partial class DataBinder
             if (pos[code] != ushort.MaxValue) return;      // SR14a duplicate — first wins (diagnostic later)
             pos[code] = next;
             specOrder.Add((char)code);
+            if (repByPos.Count == next) repByPos.Add((ushort)code);   // first occupant of the position wins (ALSO literal-1)
             if (advance) next++;
         }
 
@@ -404,10 +406,13 @@ public sealed partial class DataBinder
             if (entry.ALSO().Length > 0)
             {
                 // k)6: operand-1 and every ALSO operand share ONE ordinal position; operand-1 is the position's
-                // first character (the CHAR() pick and the LOW-VALUE tie winner).
+                // first character (the CHAR() pick and the LOW-VALUE tie winner). ⛔ The advance is GUARDED the
+                // way the national arm's is (PB59): an all-duplicate ALSO group must not advance past an
+                // unoccupied position — GR7 1.3 admits no hole, and RepByPos would acquire one.
+                int before = repByPos.Count;
                 foreach (var op in operands)
                     if (op.Length == 1) Assign(op[0], advance: false);
-                next++;
+                if (repByPos.Count > before) next++;
                 continue;
             }
             // k)1.b: a (possibly multi-character) literal — each character, leftmost first, ascending positions.
@@ -416,7 +421,7 @@ public sealed partial class DataBinder
 
         // §12.3.7.4 GR7 1.3: unspecified characters follow, DISTINCT ascending positions in native relative order.
         for (int code = 0; code < 256; code++)
-            if (pos[code] == ushort.MaxValue) pos[code] = next++;
+            if (pos[code] == ushort.MaxValue) { pos[code] = next; repByPos.Add((ushort)code); next++; }
 
         // GR8/GR9 extremes: highest/lowest POSITION; ties (an ALSO group) take the last/first char SPECIFIED.
         ushort maxPos = 0, minPos = ushort.MaxValue;
@@ -427,7 +432,7 @@ public sealed partial class DataBinder
         for (int code = 0; code < 256; code++) if (pos[code] == minPos) { low = (char)code; break; }
         foreach (char c in specOrder) if (pos[c & 0xFF] == minPos) { low = c; break; }        // tie → FIRST specified
 
-        Alphabets.TryAdd(name, new CollatingTable(pos, high, low));
+        Alphabets.TryAdd(name, new CollatingTable(pos, repByPos.ToArray(), next, high, low));
     }
 
     /// <summary>The national coded-character-set name a definition consists of ("UCS-4" / "UTF-8" / "UTF-16"),

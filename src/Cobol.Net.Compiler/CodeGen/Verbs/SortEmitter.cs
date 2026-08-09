@@ -262,7 +262,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     /// field — ST108A/ST137A shape).</summary>
     private string WeightsExpr(CollatingTable? table) =>
         table is null ? "null"
-        : ReferenceEquals(table, ctx.Data.Collating) ? "__COLLATE"
+        : ReferenceEquals(table, ctx.Data.Collating) ? "__COLLATE.Positions"   // the object's raw table (PB59) — sort compares, never numbers positions
         : $"new ushort[] {{ {string.Join(", ", table.Positions)} }}";
 
     /// <summary>The trailing comparison weights argument for a TABLE sort (emitting a local <c>__sw</c> table for
@@ -270,7 +270,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
     private string TableWeightsArg(CollatingTable? table, int id)
     {
         if (table is null) return "";
-        if (ReferenceEquals(table, ctx.Data.Collating)) return ", __COLLATE";
+        if (ReferenceEquals(table, ctx.Data.Collating)) return ", __COLLATE.Positions";
         ctx.Writer.Line($"ushort[] __sw{id} = {{ {string.Join(", ", table.Positions)} }};   // statement COLLATING SEQUENCE (GR5a)");
         return $", __sw{id}";
     }

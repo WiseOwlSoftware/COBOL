@@ -158,7 +158,13 @@ internal sealed class ProgramEmitter
             if (data.Files.Count > 0)
                 w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
             if (data.Collating is { } collate)
-                w.Line($"private static readonly ushort[] __COLLATE = {{ {string.Join(", ", collate.Positions)} }};");
+                // The NON-native alphanumeric program collating sequence (ISO §12.3.6; fix-queue PB59) — the
+                // object carries the positions + the §15.15.4 r2 representative array + NextFree, mirroring
+                // __COLLATE_NAT below; comparison consumers read .Positions (order-equivalent tail — the
+                // proof note at CobolString.Weight), CHAR/ORD read the exact GR7 1.3 arithmetic.
+                w.Line("private static readonly AlphanumericCollation __COLLATE = new("
+                    + $"new ushort[] {{ {string.Join(", ", collate.Positions)} }}, "
+                    + $"new ushort[] {{ {string.Join(", ", collate.RepByPos)} }}, {collate.NextFree});");
             if (data.NationalCollating is { } nat)
                 // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11; an ALPHABET … FOR
                 // NATIONAL literal phrase) — SPARSE: the specified code units + positions; the runtime computes

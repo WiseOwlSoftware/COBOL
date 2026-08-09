@@ -14,11 +14,22 @@ namespace CobolNet.Binding;
 /// <param name="Positions">Native char code → 0-based collating position. ALSO members share one position
 /// (§12.3.7 GR7 k6); unspecified characters take DISTINCT ascending positions above the highest specified, in
 /// native relative order (§12.3.7.4 GR7 1.3 — never a shared bucket; ORD over them must stay distinct).</param>
+/// <param name="RepByPos">Indexed by position 0..<paramref name="NextFree"/>−1: the FIRST character DEFINED at
+/// that position, in SOURCE order — literal-1 of an ALSO group (§15.15.4 r2's "first character defined" /
+/// GR7 1.6, the CHAR representative; fix-queue PB59 — <c>AlphabetBind</c> computed this into
+/// <c>specOrder</c> and discarded it, so CHAR scanned for the LOWEST-coded member instead).</param>
+/// <param name="NextFree">The first position AFTER the positioned 256-block (= the number of DISTINCT
+/// positions the block occupies; ALSO groups make it smaller than 256). Code unit <c>c ≥ 256</c> takes
+/// position <c>NextFree + (c − 256)</c> (GR7 1.3), giving the sequence
+/// <c>NextFree + (0x10000 − 256)</c> positions — the §15.15.3 r2 domain bound.</param>
 /// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§12.3.7 GR8 + §8.3.3.6 GR6/7):
-/// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.</param>
+/// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.
+/// ⚠ Deliberately still computed over the Latin-1 block — the documented byte-stability pin (the flagged
+/// §8.3.3.6 divergence recorded in PHASE4_RECONCILIATION), not an oversight of GR7 1.3's tail.</param>
 /// <param name="LowValue">The runtime LOW-VALUE character (§12.3.7 GR9): lowest position; tie takes the FIRST
 /// character specified.</param>
-public sealed record CollatingTable(ushort[] Positions, char HighValue, char LowValue);
+public sealed record CollatingTable(ushort[] Positions, ushort[] RepByPos, int NextFree,
+    char HighValue, char LowValue);
 
 /// <summary>
 /// A NATIONAL collating sequence built from an <c>ALPHABET … FOR NATIONAL</c> literal phrase (ISO §12.3.7 GR7 k,
