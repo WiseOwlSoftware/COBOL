@@ -123,6 +123,7 @@
   "pb59_numeric_literal_argument",
   "pb59_operand_category_total",
   "pb5_float_quantize_range",
+  "pb60_numval_one_scan",
   "pb65_boolean_wide",
   "pb65_codomain_clamp",
   "pb65_date_windowing",

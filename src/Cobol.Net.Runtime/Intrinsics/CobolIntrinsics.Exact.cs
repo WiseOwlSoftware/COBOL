@@ -296,57 +296,25 @@ public static partial class CobolIntrinsics
 
     /// <param name="digitCap">The §15.67.3 r3/r4 cap — 31 native, 34 standard-decimal; supplied by the emitter's
     /// <c>DigitCapFlag</c>, the same one the TEST- twins already received.</param>
+    /// <remarks>⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60): the value is a projection of the SAME positional
+    /// <see cref="NvScan"/> that answers §15.93 TEST-NUMVAL, so the value path can never accept what the
+    /// validator rejects. The old body pre-normalized with .NET <c>Trim()</c> (the whole IsWhiteSpace set,
+    /// where §15.67.3 r2's ignorable character is the SPACE only — a TAB-led argument valued clean) and
+    /// double-stripped BOTH sign positions with a toggle (<c>"-12-"</c> valued POSITIVE where the string
+    /// conforms to neither r1 format) — the remove-then-scan shape, retired here. Rescaling: widening is
+    /// exact; narrowing truncates (the requested scale carries the ≥6 working floor; the receiver's store
+    /// rounds/truncates once more); Int128 saturation per <see cref="Rescaled"/> (PB13's sweep).</remarks>
     public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
-        char dec = commaMode ? ',' : '.';
-        string s = text.Trim();
-        if (s.Length == 0)                                   // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError("NUMVAL argument is empty (§15.67.3 — at least one digit required)");
-        bool neg = false;
-        // Trailing CR/DB (uppercase, lowercase, or mixed — §15.67.3 rule 1).
-        if (s.Length >= 2 && (s.EndsWith("CR", StringComparison.OrdinalIgnoreCase)
-                              || s.EndsWith("DB", StringComparison.OrdinalIgnoreCase)))
-        {
-            neg = true;
-            s = s[..^2].TrimEnd();
-        }
-        // ONE leading sign (spaces between sign and digits are "before the first digit" — ignored, rule 2)…
-        if (s.StartsWith('+')) s = s[1..].TrimStart();
-        else if (s.StartsWith('-')) { neg = true; s = s[1..].TrimStart(); }
-        // …or ONE trailing sign (format 2). Both present is malformed; the lenient double-strip mirrors the
-        // legacy parser and yields the same values for conforming inputs.
-        if (s.EndsWith('+')) s = s[..^1].TrimEnd();
-        else if (s.EndsWith('-')) { neg = !neg; s = s[..^1].TrimEnd(); }
-
-        Int128 unscaled = 0;
-        int frac = -1, digits = 0;
-        foreach (char c in s)
-        {
-            if (char.IsAsciiDigit(c))
-            {
-                // §15.67.3 r3/r4 (and §15.68.3 r6/r7 — NUMVAL-C delegates here). Checked BEFORE accumulating, so
-                // an over-long argument never reaches Rescaled's saturation and cannot return a plausible value.
-                if (digits + 1 > digitCap)
-                    return DigitCapExceeded("NUMVAL", digits + 1, digitCap, "ISO §15.67.3 rules 3-4");
-                unscaled = unscaled * 10 + (c - '0');
-                digits++;
-                if (frac >= 0) frac++;
-                continue;
-            }
-            if (c == dec && frac < 0) { frac = 0; continue; }
-            // Malformed content — the EC-ARGUMENT-FUNCTION raise point / §15.3 default 0.
-            return Exceptions.ExceptionState.ArgumentError($"NUMVAL argument '{text}' violates the §15.67.3 formats (unexpected character '{c}')");
-        }
-        if (digits == 0)                                     // the formats require at least one digit
-            return Exceptions.ExceptionState.ArgumentError($"NUMVAL argument '{text}' has no digits (§15.67.3)");
-        if (frac < 0) frac = 0;
-        // Rescale (unscaled, frac) → the requested scale. Widening is exact; narrowing truncates (the requested
-        // scale already carries the ≥ 6 working floor, and the receiver's own store rounds/truncates once more).
-        // ⛔ RETURNS Int128 AND SATURATES THERE, not at long.MaxValue (PB13's sweep — this is PB5's own defect,
-        // in the sibling PB5 never swept). A 20-digit NUMVAL string at the ≥6 floor needs 26 digits, so the old
-        // long clamp fired on an ordinary argument and returned 9223372036.854775807 with NO size error.
-        Int128 r = Rescaled(unscaled, scale - frac);
-        return neg ? -r : r;
+        NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
+        if (p.ErrPos != 0)
+            return p.CapHit
+                ? DigitCapExceeded("NUMVAL", digitCap + 1, digitCap, "ISO §15.67.3 rules 3-4")
+                : Exceptions.ExceptionState.ArgumentError(
+                    $"NUMVAL argument-1 \"{text}\" does not conform to the §15.67.3 formats (first character "
+                    + $"in error at position {p.ErrPos}; §15.93 TEST-NUMVAL reports the same position)");
+        Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
+        return p.Neg ? -r : r;
     }
 
     /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places, SATURATING at the
@@ -371,139 +339,74 @@ public static partial class CobolIntrinsics
     /// <summary>NUMVAL-F (§15.69, COBOL-2014+): the floating NUMVAL — a signed mantissa (with an optional decimal
     /// point) and an optional <c>E±exponent</c> (1..4 exponent digits). Parsed exactly to (unscaled, effective
     /// scale) then rescaled to the emitter's working <paramref name="scale"/> (native arithmetic ⇒ the §15.69.4 r2
-    /// approximation license). Malformed content → the §15.3 default 0. Leading/trailing spaces (and, in the value
-    /// path, any interior space) are ignored (rule 5); TEST-NUMVAL-F enforces exact placement.</summary>
+    /// approximation license). Malformed content → EC-ARGUMENT-FUNCTION and the §15.3 default 0. Space placement
+    /// follows §15.69.3 r5 exactly — the value path and TEST-NUMVAL-F share ONE scan (PB60).</summary>
     /// <param name="digitCap">§15.69.3 r2/r3. ⚠ NUMVAL-F caps the digits of the SIGNIFICAND, not of the whole
     /// literal — the exponent's own 1..4 digits do not count toward it (fix-queue PB34).</param>
+    /// <remarks>⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60): the value is a projection of the SAME positional
+    /// <see cref="NvfScan"/> that answers §15.95 TEST-NUMVAL-F. The old body opened with
+    /// <c>text.Replace(" ", "")</c> — deleting exactly the spaces §15.69.3 r5's except-clause makes ILLEGAL
+    /// ("Embedded spaces … are ignored EXCEPT between the first numeric digit and the last digit that precedes
+    /// a letter 'E'"), so <c>NUMVAL-F("1 2")</c> valued 12 while TEST-NUMVAL-F correctly reported the error —
+    /// the two halves of one rule disagreeing. §15.69.4 r2's approximation license governs only the RESCALE of
+    /// a CONFORMING argument, never admission. Int128 + the saturating shared shift per <see cref="Rescaled"/>
+    /// (PB13's sweep — the old long clamp returned 9223372036 for NUMVAL-F("1E+20")).</remarks>
     public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
-        char dec = commaMode ? ',' : '.';
-        string s = text.Replace(" ", "");
-        if (s.Length == 0)
-            return Exceptions.ExceptionState.ArgumentError("NUMVAL-F argument is empty (§15.69.3)");
-        bool neg = false;
-        int ei = s.IndexOfAny(['E', 'e']);
-        string mant = ei < 0 ? s : s[..ei];
-        string exps = ei < 0 ? "" : s[(ei + 1)..];
-        if (mant.StartsWith('+')) mant = mant[1..];
-        else if (mant.StartsWith('-')) { neg = true; mant = mant[1..]; }
-        Int128 unscaled = 0; int frac = -1, digits = 0;
-        foreach (char c in mant)
-        {
-            if (char.IsAsciiDigit(c))
-            {
-                if (digits + 1 > digitCap)                       // §15.69.3 r2/r3 — SIGNIFICAND digits only
-                    return DigitCapExceeded("NUMVAL-F", digits + 1, digitCap, "ISO §15.69.3 rules 2-3");
-                unscaled = unscaled * 10 + (c - '0'); digits++; if (frac >= 0) frac++; continue;
-            }
-            if (c == dec && frac < 0) { frac = 0; continue; }
-            return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F mantissa '{text}' is malformed (§15.69.3)");
-        }
-        if (digits == 0) return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F '{text}' has no significand digit (§15.69.3)");
-        if (frac < 0) frac = 0;
-        int exp = 0;
-        if (exps.Length > 0)
-        {
-            bool eneg = false;
-            // §15.69.3 makes the sign after E mandatory ({+|-}, not bracketed) — TEST-NUMVAL-F enforces it too.
-            if (exps.StartsWith('+')) exps = exps[1..];
-            else if (exps.StartsWith('-')) { eneg = true; exps = exps[1..]; }
-            else return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F exponent '{text}' lacks the required sign after 'E' (§15.69.3)");
-            if (exps.Length is 0 or > 4 || !exps.All(char.IsAsciiDigit))
-                return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F exponent '{text}' is malformed (§15.69.3)");
-            exp = int.Parse(exps) * (eneg ? -1 : 1);                   // 1..4 exponent digits (§15.69.3)
-        }
-        int shift = scale + exp - frac;                               // the final decimal shift of the unscaled mantissa
-        // ⛔ Int128 + the SATURATING shared shift, not the old long.MaxValue clamp (PB13's sweep). With a 1..4-digit
-        // exponent this clamp was trivially reachable on conforming source: FUNCTION NUMVAL-F("1E+20") returned
-        // 9223372036 — ten orders of magnitude out, silently — where §15.69.4 r2 requires an approximation of the
-        // value argument-1 represents. Pow10.AsWide would also WRAP for a large exponent; Rescaled bounds it first.
-        Int128 r = Rescaled(unscaled, shift);
-        return neg ? -r : r;
+        NvfParse p = NvfScan(text, commaMode, digitCap);
+        if (p.ErrPos != 0)
+            return p.CapHit
+                ? DigitCapExceeded("NUMVAL-F", digitCap + 1, digitCap, "ISO §15.69.3 rules 2-3")
+                : Exceptions.ExceptionState.ArgumentError(
+                    $"NUMVAL-F argument-1 \"{text}\" does not conform to the §15.69.3 format (first character "
+                    + $"in error at position {p.ErrPos}; §15.95 TEST-NUMVAL-F reports the same position)");
+        Int128 r = Rescaled(p.Unscaled, scale + p.Exp - p.Frac);
+        return p.Neg ? -r : r;
     }
 
     /// <summary>TEST-NUMVAL-F (§15.95, COBOL-2014+): 0 if the string conforms to the NUMVAL-F format; else the
     /// 1-based position of the first character in error (an embedded space inside the significand ⇒ the first
-    /// non-space after it, r b.1; a native significand longer than 31 digits ⇒ the 32nd significand digit, r b.2);
-    /// else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1 (r c).</summary>
-    public static long TestNumvalF(string text, bool commaMode = false)
-    {
-        char dec = commaMode ? ',' : '.';
-        int n = text.Length, i = 0, sig = 0; bool anyDigit = false, sawDot = false, pendingSpace = false;
-        int Pos() => i + 1;
-        while (i < n && text[i] == ' ') i++;                          // leading spaces (r5)
-        if (i < n && (text[i] == '+' || text[i] == '-')) i++;
-        while (i < n && text[i] == ' ') i++;                          // spaces before the first digit (r5)
-        for (; i < n; i++)                                            // significand: { digit [ . [digit] ] | . digit }
-        {
-            char c = text[i];
-            if (char.IsAsciiDigit(c))
-            {
-                if (pendingSpace) return Pos();                       // r b.1 — first non-space after an interior space
-                anyDigit = true; if (++sig > 31) return Pos();        // r b.2 — the 32nd significand digit
-                continue;
-            }
-            if (c == dec && !sawDot) { if (pendingSpace) return Pos(); sawDot = true; continue; }
-            if (c == ' ') { pendingSpace = true; continue; }          // trailing/interior space — decided by what follows
-            break;                                                    // 'E' or a bad char — leave it to the exponent scan
-        }
-        if (!anyDigit) return n + 1;                                  // r c — no significand digit (incl. all-space / " +.")
-        pendingSpace = false;
-        if (i < n && (text[i] == 'E' || text[i] == 'e'))
-        {
-            i++;
-            while (i < n && text[i] == ' ') i++;
-            if (i >= n) return n + 1;                                 // r c — dangling E
-            if (text[i] == '+' || text[i] == '-') i++; else return Pos();   // a sign is required after E (§15.69.3)
-            while (i < n && text[i] == ' ') i++;
-            int ed = 0;
-            while (i < n && char.IsAsciiDigit(text[i])) { if (++ed > 4) return Pos(); i++; }   // n = 1..4 digits
-            if (ed == 0) return n + 1;                                // r c — E± with no exponent digit
-        }
-        while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
-        return i == n ? 0 : Pos();                                    // any leftover char is in error
-    }
+    /// non-space after it, r b.1; a significand longer than the cap ⇒ the cap+1-th significand digit, r b.2);
+    /// else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1 (r c). A pure
+    /// projection of the ONE <see cref="NvfScan"/> the NUMVAL-F value path also rides (PB60).</summary>
+    /// <param name="digitCap">The §15.95.4 r1b sub-note cap — 31 native, 34 standard-decimal; the emitter's
+    /// <c>DigitCapFlag</c>, exactly as TEST-NUMVAL/TEST-NUMVAL-C already receive it (the hardcoded 31 this
+    /// replaces was the PB60 probe fleet's sibling find).</param>
+    public static long TestNumvalF(string text, bool commaMode = false, int digitCap = 31) =>
+        NvfScan(text, commaMode, digitCap).ErrPos;
 
     /// <summary>
     /// NUMVAL-C (§15.68): like NUMVAL with a currency string and grouping separators. The currency string —
     /// argument-2, or the SPECIAL-NAMES / default currency the BINDER injected when argument-2 is omitted
-    /// (§15.68.3 rule 3) — is removed wherever it appears (leading/trailing spaces of argument-2 ignored, rule 2);
-    /// grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are ignored (§15.68.4 rule 2);
-    /// then the remainder parses exactly as NUMVAL (sign / CR / DB, rule 3).
+    /// (§15.68.3 rule 3) — is consumed at its ONE §15.68.3 r4a position (leading/trailing spaces of argument-2
+    /// ignored, rule 2); grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are
+    /// ignored where they precede the decimal separator (§15.68.4 rule 2); sign / CR / DB per rule 3.
     /// </summary>
     /// <param name="digitCap">§15.68.3 r6/r7 — enforced by the delegated <see cref="Numval"/> parse, so the
     /// rule has ONE implementation for both functions rather than a copy per twin (fix-queue PB33).</param>
     public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false,
                                  int digitCap = 31)
     {
-        // ⛔ THE FORMAT RULE IS ENFORCED BY THE VALIDATING TWIN, NOT BY A SECOND COPY (fix-queue PB33).
-        // §15.68.3 r4a: "Argument-1 shall have one of the following two formats" — the sign-before-currency form
-        // and the trailing-sign/CR/DB form. `TestNumvalC` already implements BOTH exactly (it is §15.94's whole
-        // job), while this function only STRIPPED the currency and grouping separators and delegated to Numval,
-        // checking nothing. The asymmetry is the one PB33 names — the validating twin was fixed and the
-        // value-producing one was not — and it did not merely return a default: `NUMVAL-C("12$34")` returned
-        // 1234, a WRONG ANSWER, where §15.94 correctly reports an error at position 3.
-        // §15.3: "If the evaluation of an argument results in an incorrect value for that argument … the
-        // EC-ARGUMENT-FUNCTION exception condition is set to exist"; when checking is not enabled the same
-        // clause leaves the result implementor-defined, which is what ArgumentError's 0 return supplies.
-        // ⚠ ONE validator, TWO consumers — never a reimplementation here (feedback_one_rule_one_place). The
-        // digit cap already works this way (PB33's landed half), so the whole rule now has one home.
-        if (TestNumvalC(text, currency, commaMode, anycase, digitCap) is var bad && bad != 0)
-            return Exceptions.ExceptionState.ArgumentError(
-                $"NUMVAL-C argument-1 \"{text}\" does not conform to either §15.68.3 r4a format "
-                + $"(first character in error at position {bad}; §15.94 TEST-NUMVAL-C reports the same position)");
-
-        char group = commaMode ? '.' : ',';
-        string cur = currency.Trim();
-        // ANYCASE (§15.68.3 r4f): the currency match is performed as if both sides were lowercased per
-        // LOWER-CASE — an ordinal-ignore-case removal realizes that correspondence for the invariant set.
-        string s = cur.Length == 0 ? text
-            : text.Replace(cur, "", anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        s = s.Replace(group.ToString(), "", StringComparison.Ordinal);
-        // The currency may sit between the sign and the digits ("- $ 890.05"): removing it can leave interior
-        // spaces after the sign, which Numval's sign-strip + TrimStart already ignores (§15.68.3 r4a's
-        // space-strings around the currency).
-        return Numval(s, scale, commaMode, digitCap);
+        // ⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60, completing PB33's validate-first half). The prior body
+        // validated through TestNumvalC and then STILL valued through `text.Replace(cur, "")` + a grouping
+        // Replace + a Numval re-parse — an unanchored, uncounted removal running before any sign scan, i.e. a
+        // SECOND format model beside the validator's. Its measured cost: NUMVAL-C("R123.45CR", "R") removed
+        // BOTH the leading currency and the R of the trailing CR, leaving "123.45C" for Numval to reject — a
+        // conforming argument valued 0 (RV-15.68.4-1/-3) — and any currency occurrence the r4a position rules
+        // forbid was erased rather than diagnosed (RV-15.68.4-2). Now the SAME NvScan that answers §15.94
+        // consumes the currency AT ITS ONE r4a POSITION and accumulates the value in the same pass; the two
+        // projections cannot disagree. ANYCASE (r4f): the currency match is case-folded per LOWER-CASE — an
+        // ordinal-ignore-case span match realizes that correspondence for the invariant set. §15.3: with
+        // checking off the ArgumentError 0 return supplies the implementor-defined result.
+        NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
+        if (p.ErrPos != 0)
+            return p.CapHit
+                ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §15.68.3 rules 6-7")
+                : Exceptions.ExceptionState.ArgumentError(
+                    $"NUMVAL-C argument-1 \"{text}\" does not conform to either §15.68.3 r4a format "
+                    + $"(first character in error at position {p.ErrPos}; §15.94 TEST-NUMVAL-C reports the same position)");
+        Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
+        return p.Neg ? -r : r;
     }
 
     // ── The §15.93/§15.94 TEST validators — position-reporting scanners beside their value parsers ────────────
@@ -514,47 +417,11 @@ public static partial class CobolIntrinsics
     /// <paramref name="digitCap"/>+1-th digit reports its own position, sub-notes 2/4 — 31 native, 34
     /// standard-decimal [standard-binary's 35 rides the P12/P13 STANDARD-BINARY wave]); else — no specific
     /// character in error: zero-length, only spaces, or valid-but-incomplete like <c>" +."</c> —
-    /// LENGTH+1 (r1c). A dedicated scanner beside <see cref="Numval"/> (the TestNumvalF discipline —
-    /// positions are ordinal in the ORIGINAL string, so remove-and-delegate cannot work).</summary>
-    public static long TestNumval(string text, bool commaMode = false, int digitCap = 31)
-    {
-        char dec = commaMode ? ',' : '.';
-        int n = text.Length, i = 0, digits = 0;
-        bool anyDigit = false, sawDot = false, leadSign = false;
-        while (i < n && text[i] == ' ') i++;                          // leading space-string
-        if (i < n && text[i] is '+' or '-') { leadSign = true; i++; } // format-A leading sign
-        while (i < n && text[i] == ' ') i++;                          // spaces before the first digit (r2)
-        for (; i < n; i++)                                            // { digit [ dec [digit] ] | dec digit }
-        {
-            char c = text[i];
-            if (char.IsAsciiDigit(c))
-            {
-                anyDigit = true;
-                if (++digits > digitCap) return i + 1;                // r1b sub-notes 2/4 — the cap+1-th digit
-                continue;
-            }
-            if (c == dec && !sawDot) { sawDot = true; continue; }
-            break;                                                    // the trailing region (or an error)
-        }
-        // No digit anywhere: a scan that BROKE on a real character reports that character (r1b — e.g. a
-        // misplaced sign); a scan that ran off the end with only valid-but-incomplete content (" +.",
-        // all-spaces, zero-length) is the r1c LENGTH+1 leg.
-        if (!anyDigit) return i < n ? i + 1 : n + 1;
-        while (i < n && text[i] == ' ') i++;                          // spaces before a trailing sign
-        if (i < n)
-        {
-            char c = text[i];
-            // Format-B trailing sign / CR / DB (any case, §15.67.3 r1) — only when no leading sign was taken
-            // (the two formats are ALTERNATIVES).
-            if (!leadSign && c is '+' or '-') i++;
-            else if (!leadSign && i + 1 < n
-                     && ((c is 'C' or 'c' && text[i + 1] is 'R' or 'r')
-                         || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) i += 2;
-            else return i + 1;                                        // r1b — first char in error ("0 1" → 3)
-        }
-        while (i < n && text[i] == ' ') i++;                          // trailing space-string
-        return i == n ? 0 : i + 1;
-    }
+    /// LENGTH+1 (r1c). A pure projection of the ONE <see cref="NvScan"/> the NUMVAL value path also rides
+    /// (PB60) — positions are ordinal in the ORIGINAL string, which is exactly why the scan never
+    /// pre-normalizes.</summary>
+    public static long TestNumval(string text, bool commaMode = false, int digitCap = 31) =>
+        NvScan(text, commaMode, "", false, digitCap, allowGroup: false).ErrPos;
 
     /// <summary>TEST-NUMVAL-C (§15.94.4): the §15.93.4-shaped verdict over the §15.68.3 NUMVAL-C formats —
     /// <c>[sp] [sign] [sp] [currency] [sp] digits[,digits]… [dec [digits]] [sp]</c> (format A, sign BEFORE the
@@ -566,46 +433,138 @@ public static partial class CobolIntrinsics
     /// after the decimal separator; DECIMAL-POINT IS COMMA SWAPS the two roles (r4d). Verdicts: 0 (r1a) /
     /// first-error position (r1b, same sub-notes as TEST-NUMVAL) / LENGTH+1 (r1c).</summary>
     public static long TestNumvalC(string text, string currency, bool commaMode = false, bool anycase = false,
-        int digitCap = 31)
+        int digitCap = 31) =>
+        NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true).ErrPos;
+
+    // ── The ONE positional format scan per family (fix-queue PB60) ─────────────────────────────────────────────
+    // §15.67.3 (NUMVAL) and §15.68.3 r4a (NUMVAL-C) share one grammar shape — [sp] [sign] [sp] [currency] [sp]
+    // digit-groups [dec [digits]] [sp] [trailing sign|CR|DB] [sp] — differing only in whether a currency and
+    // grouping separators are admitted. §15.69.3 (NUMVAL-F) is the E-form. Each scan VALIDATES positionally
+    // (the §15.93/94/95 error-position contract, r1b/r1c) and ACCUMULATES the value in the same pass, so the
+    // TEST- twins and the value functions are projections of ONE parse and can never disagree about what
+    // conforms — the structural end of the remove-then-scan shape (Trim/Replace pre-normalization) whose
+    // measured costs were a TAB-led argument valuing clean, "-12-" valuing positive, an embedded significand
+    // space valuing clean, and a conforming "R123.45CR" valuing 0 because the currency Replace consumed the R
+    // of CR. The digit cap is tested BEFORE accumulating, so the cap+1-th digit reports its own position
+    // (§15.93.4 r1b sub-notes 2/4) and the accumulator can never saturate into a plausible value.
+
+    /// <summary>One scan's result: <c>ErrPos</c> 0 = conforming (the TEST- verdict), else the 1-based first
+    /// error position (LENGTH+1 for the no-specific-character legs); <c>CapHit</c> distinguishes the digit-cap
+    /// error so value projections raise the dedicated §15.67.3 r3/r4-family message; the value fields are
+    /// meaningful only when <c>ErrPos</c> is 0.</summary>
+    private readonly record struct NvParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac);
+
+    private static NvParse NvScan(string text, bool commaMode, string currency, bool anycase,
+        int digitCap, bool allowGroup)
     {
         char dec = commaMode ? ',' : '.';
         char group = commaMode ? '.' : ',';
-        string cur = currency.Trim();
+        string cur = currency.Trim();                                 // r2 — argument-2's edge spaces are ignored
         var cmp = anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-        int n = text.Length, i = 0, digits = 0;
-        bool anyDigit = false, sawDot = false, leadSign = false, sawCur = false;
+        int n = text.Length, i = 0, digits = 0, frac = -1;
+        Int128 unscaled = 0;
+        bool anyDigit = false, sawDot = false, leadSign = false, sawCur = false, neg = false;
         bool AtCurrency() => cur.Length > 0 && !sawCur
             && i + cur.Length <= n && text.AsSpan(i, cur.Length).Equals(cur, cmp);
-        while (i < n && text[i] == ' ') i++;                          // leading space-string
-        if (i < n && text[i] is '+' or '-') { leadSign = true; i++; } // format-A sign — BEFORE the currency
+        while (i < n && text[i] == ' ') i++;                          // leading space-string (§15.67.3 r2 — SPACE only)
+        if (i < n && text[i] is '+' or '-') { leadSign = true; neg = text[i] == '-'; i++; }   // format-A sign, BEFORE the currency
         while (i < n && text[i] == ' ') i++;
-        if (AtCurrency()) { sawCur = true; i += cur.Length; }         // the at-most-once currency (r4a)
-        while (i < n && text[i] == ' ') i++;                          // spaces after the currency
+        if (AtCurrency()) { sawCur = true; i += cur.Length; }         // the at-most-once currency, AT ITS r4a POSITION
+        while (i < n && text[i] == ' ') i++;                          // spaces after the currency / before the first digit
         for (; i < n; i++)                                            // digit groups + one decimal separator
         {
             char c = text[i];
             if (char.IsAsciiDigit(c))
             {
                 anyDigit = true;
-                if (++digits > digitCap) return i + 1;                // r1b sub-notes 2/4
+                if (++digits > digitCap) return new(i + 1, true, false, 0, 0);   // r1b sub-notes 2/4
+                unscaled = unscaled * 10 + (c - '0');
+                if (frac >= 0) frac++;
                 continue;
             }
-            if (c == group && !sawDot && anyDigit) continue;          // grouping only BEFORE the decimal (r2 of §15.68.4)
-            if (c == dec && !sawDot) { sawDot = true; continue; }
+            if (allowGroup && c == group && !sawDot && anyDigit) continue;   // grouping only BEFORE the decimal (§15.68.4 r2)
+            if (c == dec && !sawDot) { sawDot = true; frac = 0; continue; }
             break;
         }
-        if (!anyDigit) return i < n ? i + 1 : n + 1;                  // r1b at the offending char, else r1c
-        while (i < n && text[i] == ' ') i++;
+        // No digit anywhere: a scan that BROKE on a real character reports that character (r1b — e.g. a
+        // misplaced sign); a scan that ran off the end with only valid-but-incomplete content (" +.",
+        // all-spaces, zero-length) is the r1c LENGTH+1 leg.
+        if (!anyDigit) return new(i < n ? i + 1 : n + 1, false, false, 0, 0);
+        while (i < n && text[i] == ' ') i++;                          // spaces before a trailing sign
         if (i < n)
         {
             char c = text[i];
-            if (!leadSign && c is '+' or '-') i++;                    // format-B trailing sign
+            // Format-B trailing sign / CR / DB (any case, §15.67.3 r1) — only when no leading sign was taken
+            // (the two formats are ALTERNATIVES, so a second sign is an ERROR POSITION, never a toggle).
+            // §15.67.4 r2's "contains CR, DB, or the minus sign ⇒ negative" holds by construction: the one
+            // sign the format admits decides.
+            if (!leadSign && c is '+' or '-') { neg = c == '-'; i++; }
             else if (!leadSign && i + 1 < n
                      && ((c is 'C' or 'c' && text[i + 1] is 'R' or 'r')
-                         || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) i += 2;
-            else return i + 1;                                        // r1b
+                         || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) { neg = true; i += 2; }
+            else return new(i + 1, false, false, 0, 0);               // r1b — first char in error ("0 1" → 3)
         }
-        while (i < n && text[i] == ' ') i++;
-        return i == n ? 0 : i + 1;
+        while (i < n && text[i] == ' ') i++;                          // trailing space-string
+        if (i != n) return new(i + 1, false, false, 0, 0);
+        return new(0, false, neg, unscaled, frac < 0 ? 0 : frac);
+    }
+
+    /// <summary>The §15.69.3 E-form scan (see the family comment above): mantissa sign · significand with one
+    /// decimal separator · optional <c>E{+|-}n(1..4)</c>. Spaces are legal leading, trailing, between sign and
+    /// first digit, and around the exponent parts — and ILLEGAL between the first and last significand digits
+    /// (r5's except-clause; r b.1 reports the first non-space after such a space).</summary>
+    private readonly record struct NvfParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac, int Exp);
+
+    private static NvfParse NvfScan(string text, bool commaMode, int digitCap)
+    {
+        char dec = commaMode ? ',' : '.';
+        int n = text.Length, i = 0, sig = 0, frac = -1, exp = 0;
+        Int128 unscaled = 0;
+        bool anyDigit = false, sawDot = false, pendingSpace = false, neg = false;
+        long Pos() => i + 1;
+        while (i < n && text[i] == ' ') i++;                          // leading spaces (r5)
+        if (i < n && (text[i] == '+' || text[i] == '-')) { neg = text[i] == '-'; i++; }
+        while (i < n && text[i] == ' ') i++;                          // spaces before the first digit (r5)
+        for (; i < n; i++)                                            // significand: { digit [ . [digit] ] | . digit }
+        {
+            char c = text[i];
+            if (char.IsAsciiDigit(c))
+            {
+                if (pendingSpace) return new(Pos(), false, false, 0, 0, 0);   // r b.1 — first non-space after an interior space
+                anyDigit = true;
+                if (++sig > digitCap) return new(Pos(), true, false, 0, 0, 0);   // r b.2 — the cap+1-th significand digit
+                unscaled = unscaled * 10 + (c - '0');
+                if (frac >= 0) frac++;
+                continue;
+            }
+            if (c == dec && !sawDot) { if (pendingSpace) return new(Pos(), false, false, 0, 0, 0); sawDot = true; frac = 0; continue; }
+            if (c == ' ') { pendingSpace = true; continue; }          // trailing/interior space — decided by what follows
+            break;                                                    // 'E' or a bad char — the exponent scan decides
+        }
+        if (!anyDigit) return new(n + 1, false, false, 0, 0, 0);      // r c — no significand digit (incl. all-space / " +.")
+        pendingSpace = false;
+        if (i < n && (text[i] == 'E' || text[i] == 'e'))
+        {
+            i++;
+            while (i < n && text[i] == ' ') i++;
+            if (i >= n) return new(n + 1, false, false, 0, 0, 0);     // r c — dangling E
+            bool eneg;
+            if (text[i] == '+') { eneg = false; i++; }
+            else if (text[i] == '-') { eneg = true; i++; }
+            else return new(Pos(), false, false, 0, 0, 0);            // a sign is required after E (§15.69.3)
+            while (i < n && text[i] == ' ') i++;
+            int ed = 0, ev = 0;
+            while (i < n && char.IsAsciiDigit(text[i]))               // n = 1..4 exponent digits
+            {
+                if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);
+                ev = ev * 10 + (text[i] - '0');
+                i++;
+            }
+            if (ed == 0) return new(n + 1, false, false, 0, 0, 0);    // r c — E± with no exponent digit
+            exp = eneg ? -ev : ev;
+        }
+        while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
+        if (i != n) return new(Pos(), false, false, 0, 0, 0);         // any leftover char is in error
+        return new(0, false, neg, unscaled, frac < 0 ? 0 : frac, exp);
     }
 }

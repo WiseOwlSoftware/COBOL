@@ -294,8 +294,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 int ws = num.Receiver.FloatWorkingScale;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
             }
-            case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{CommaFlag}"), 0);
+            case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1;
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,         //   the r1b digit-cap sub-note is MODE-dependent,
+                    $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);         //   exactly as its two TEST- siblings (PB60)
 
             case "IntegerOfBoolean":                                            // §15.45.4 r1 — the unsigned MSB-first value of the bit configuration
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
