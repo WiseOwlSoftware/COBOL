@@ -60,9 +60,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `Table16Operand.Of(Place)` GR2/GR6 ref-mod erasure (two over-rejections fixed), the OoBinder BY
   CONTENT crossing now carries the Place, and SR-14.9.25.3-10 blank→CONFORMS. The corpus caught an
   unguarded IsEdited arm refusing the DE-EDITING move before it shipped. Open derivations split to
-  PB73 (adjudication). ⚠ A comprehensive battery is OWED for this landing (the MOVE seam is shared;
-  NIST + the differential are the exposure — a GnuCOBOL-corpus flip to WE_REJECT needs attribution
-  and a baseline regen).
+  PB73 (adjudication). ✅ Its battery is MEASURED (the §9 reference): all internal legs green, and the
+  differential's 3 flips are all divergence→AGREE FIXES on GnuCOBOL's own syn_move suite — baseline
+  regenerated with the rows attributed.
   **NEXT, in order:** ① **PB59 family 7b** — the `OperandCategory` totalization (groups/ALL per
   §8.5.2.1) + its ref-mod GR6c sibling (scouted: the reader skips the category rewrite its own doc
   cites) — it moves MAX/MIN result-type resolution, measure with the map's eleven ResultCategory
@@ -1280,7 +1280,17 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB59 family-5a+5b tree `3f94645d` (2026-08-09 17:28).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB59-7a+PB72 tree `e219be59` (2026-08-09 18:07).**
+  ✅ **`=== BATTERY: ALL GREEN ===` on every internal leg, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260809-174919`): FULL greenfield Conformance **4354 / 4354, zero skipped** (11 m 37 s)
+  · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with
+  NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **3 PER-CASE FLIP(S), ALL
+  divergence→AGREE FIXES** — GnuCOBOL's own `syn_move` suite rejects the three moves the PB72 arms now
+  refuse (`syn_move:90` alphabetic→numeric · `syn_move:155` alphanumeric-edited→numeric ·
+  `syn_move:189` numeric→alphabetic), each previously WE_ACCEPT_THEY_REJECT and now AGREE_REJECT —
+  external confirmation of the Table-16 completion. The baseline is regenerated with those three rows
+  attributed (the commit carrying this reference); a fresh diff against it reads 0.
+- **⛔ PRIOR BATTERY REFERENCE — the PB59 family-5a+5b tree `3f94645d` (2026-08-09 17:28).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260809-171102`): FULL greenfield Conformance **4348 / 4348, zero skipped**
   (11 m 44 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`
