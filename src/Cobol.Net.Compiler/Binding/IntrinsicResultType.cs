@@ -253,35 +253,50 @@ internal static class IntrinsicResultType
     }
 
     /// <summary>
-    /// ISO §8.5.2.1 — the data category of a bound function argument. THE one definition; <c>IntrinsicBinder</c>
-    /// reads it from here rather than keeping its own copy (<c>feedback_one_rule_one_place</c>). A categorized
-    /// literal, a field reference (a reference-modified operand keeps its item's category, §8.4.3.3.4 GR6), a
-    /// nested intrinsic's own result category, or numeric for a computed arithmetic expression.
+    /// ISO §8.5.2.1 — the data category of a bound function argument, TOTAL over the statically categorized
+    /// shapes (fix-queue PB59 family 7b). THE one definition; <c>IntrinsicBinder</c> reads it from here rather
+    /// than keeping its own copy (<c>feedback_one_rule_one_place</c>). A categorized literal (plain or ALL —
+    /// §8.3.3.6.4 GR9 gives an ALL literal its literal's category), a field reference, a nested intrinsic's own
+    /// result category, or numeric for a computed arithmetic expression; null only for the genuinely
+    /// context-dependent shapes (figuratives, §8.3.3.6.4 GR1/GR4; error operands).
     /// <para>
-    /// ⚠ A GROUP ANSWERS null, AND THAT SURVIVED A DELIBERATE ATTEMPT TO "FIX" IT. §8.5.2.1 does give a group a
-    /// class — "an alphanumeric group item has class and category alphanumeric" — so
-    /// <c>FUNCTION REVERSE(national-group)</c> looks like an unhandled national case, and
-    /// <c>MOVE FUNCTION REVERSE(grp) TO PIC X</c> over a group of <c>PIC N</c> children does compile clean.
-    /// <b>It is not a defect: that group is not a national group.</b> §8.5.2.10 item 3 defines a group of
-    /// category national as "a group item explicitly or implicitly described with a GROUP-USAGE clause with the
-    /// NATIONAL phrase" (§13.18.29); a group whose CHILDREN are national is an ordinary ALPHANUMERIC group item,
-    /// so an alphanumeric result and an accepted MOVE are both correct. GROUP-USAGE is not modelled here
-    /// (DataBinder: "its national/bit group forms are the staged national legs"), so no group this compiler can
-    /// express is anything but alphanumeric, and null — read by every caller as "no fixed class, skip" — is the
-    /// honest answer rather than a guess. <c>IntrinsicArgumentRules.ClassOfPlace</c>'s National and Boolean group
-    /// arms are correspondingly unreachable today and become live with GROUP-USAGE (§8.5.2.5 item 3 is the bit
-    /// twin).
-    /// <br/>The lesson is <c>validate_the_premise_not_only_the_rule</c>: the §8.5.2.1 citation was right and the
-    /// finding was still impossible, because the construct it needed cannot be written.
+    /// ⛔ A REF-MOD VIEW TAKES §8.4.3.3.4 GR6's REWRITES THROUGH THE ONE READER (<see cref="RefModPlace.CategoryOf"/>).
+    /// An earlier revision read the INNER item's category while its own comment cited GR6 — GR6c rewrites a
+    /// numeric view to class-and-category ALPHANUMERIC, so <c>FUNCTION MAX(N9(1:1) "A")</c> is a UNIFORM
+    /// alphanumeric list (§15.59.3 r2) whose answer is "A" by the §8.8.4.2.7 relation — and the skipped rewrite
+    /// sent it down the numeric row, where it ANSWERED 0 (measured). One citation, two behaviors — the code now
+    /// implements the clause it names.
+    /// </para>
+    /// <para>
+    /// ⛔ A GROUP ANSWERS ITS §8.5.2.1 CLASS — "an alphanumeric group item has class and category alphanumeric"
+    /// — NOT null. The former null was defended as "the honest answer", and its OWN analysis refutes that: per
+    /// §8.5.2.10 item 3 a group is category national only under GROUP-USAGE NATIONAL (§13.18.29, staged), so
+    /// every group this compiler can express IS category alphanumeric — a fixed, statically-known category that
+    /// null mis-reported as unknowable. The cost was measured twice: <c>FUNCTION MAX(G1 G2)</c> resolved its
+    /// TYPE through the numeric row (FirstCategory saw nothing) while <c>IsStringOperand</c> chose the string
+    /// BODY, and the two halves of one decision disagreeing crashed at run time ("no numeric render recipe" —
+    /// the exact PB48 shape both sites' comments warn about); and <c>DISPLAY-OF(group)</c> sailed past the
+    /// §15.26.3 r1 class-national screen. The National/Boolean arms below are the GROUP-USAGE/bit-group legs
+    /// (unreachable until those land — <c>ClassOfPlace</c>'s group arm is the same shape, deliberately).
     /// </para>
     /// </summary>
     public static PicCategory? OperandCategory(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Category,
         BoundNumericLiteral => PicCategory.Numeric,
-        BoundFieldOperand f => f.Place.Item.IsGroup ? null : f.Place.Item.Pic?.Category,
+        BoundFieldOperand { Place: RefModPlace rmp } =>
+            rmp.Inner.Item.Pic is { } ip ? RefModPlace.CategoryOf(ip) : PicCategory.Alphanumeric,
+        BoundFieldOperand f => f.Place.Item.IsGroup
+            ? f.Place.Item.Pic?.Category switch
+              {
+                  PicCategory.National => PicCategory.National,
+                  PicCategory.Boolean => PicCategory.Boolean,
+                  _ => PicCategory.Alphanumeric,
+              }
+            : f.Place.Item.Pic?.Category,
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
         BoundComputedOperand => PicCategory.Numeric,
+        BoundAllLiteral al => al.Category,
         _ => null,
     };
 

@@ -141,6 +141,8 @@
   "pb48-figurative-space-numeric-argument",
   "pb52-intrinsic-argument-stage",
   "pb59-concat-alphabetic-to-boolean",
+  "pb59-display-of-all-literal",
+  "pb59-display-of-group",
   "pb59-display-of-group-substitution",
   "pb59-national-of-all-substitution",
   "pb59-national-of-hex-apostrophe-zero",

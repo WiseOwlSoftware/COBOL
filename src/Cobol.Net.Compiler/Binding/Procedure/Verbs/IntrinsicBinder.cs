@@ -984,10 +984,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// so a six-position group or <c>ALL "QQ"</c> as a substitution character sailed past the §15.26.3 r2 /
     /// §15.66.3 r2 one-position rule with no diagnostic, while the equivalent plain literal was rejected: a
     /// partial function where the rule needs a total one.</summary>
-    /// <remarks>⚠ The CATEGORY twin (<c>OperandCategory</c>'s null-on-group/ALL/refmod arms, which skip the
-    /// same rules' CLASS halves) is DELIBERATELY not totalized here: giving a group a category changes
-    /// MAX/MIN result-type resolution (<c>UniformArgumentType</c>) and collides with the ALPHABETIC
-    /// result-channel work — it lands with that family, measured together (kb/Work PB59 family 7).</remarks>
+    /// <remarks>The CATEGORY twin (<c>OperandCategory</c>) is now TOTAL as well — landed with the family-7b
+    /// measurement (2026-08-09): groups answer their §8.5.2.1 class, ALL literals their literal's category,
+    /// and a ref-mod view the §8.4.3.3.4 GR6 rewrite, with MAX/MIN's type resolution and body choice aligned
+    /// on the one classifier.</remarks>
     private static int? KnownWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Value.Length,
@@ -1228,10 +1228,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundStringLiteral => true,
         // National/boolean operands participate through the char pipeline (MAX/MIN over national compares
         // ordinal per D-N3); a nested intrinsic with a string-class result (alphanumeric OR national —
-        // NATIONAL-OF/CONVERT-to-NAT) is a string operand likewise.
-        BoundFieldOperand f => f.Place.Item.IsGroup
-            || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean,
+        // NATIONAL-OF/CONVERT-to-NAT) is a string operand likewise. ⛔ The FIELD arm reads the ONE classifier
+        // (PB59 family 7b) so the BODY choice and UniformArgumentType's TYPE resolution can never split on a
+        // shape again: a group is category alphanumeric (§8.5.2.1), and a ref-mod view takes GR6's rewrites —
+        // the pre-7b split crashed MAX(G1 G2) at run time ("no numeric render recipe").
+        BoundFieldOperand => OperandCategory(op) is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean,
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } => true,
         // A figurative whose ONLY reading is a character value — SPACE, QUOTE, HIGH-VALUE, LOW-VALUE (§8.3.3.6.4
         // GR5–GR8) — is a string operand exactly as a one-character alphanumeric literal is. ZERO is excluded by

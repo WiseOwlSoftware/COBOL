@@ -63,11 +63,16 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   PB73 (adjudication). ✅ Its battery is MEASURED (the §9 reference): all internal legs green, and the
   differential's 3 flips are all divergence→AGREE FIXES on GnuCOBOL's own syn_move suite — baseline
   regenerated with the rows attributed.
-  **NEXT, in order:** ① **PB59 family 7b** — the `OperandCategory` totalization (groups/ALL per
-  §8.5.2.1) + its ref-mod GR6c sibling (scouted: the reader skips the category rewrite its own doc
-  cites) — it moves MAX/MIN result-type resolution, measure with the map's eleven ResultCategory
-  consumers. ② **the BASECONVERT
-  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member).
+  **PB59 FAMILY 7b LANDED (2026-08-09, fourth landing — AR-15.26.3-1 → CONFORMS, GAP 4156):** the
+  `OperandCategory` totalization — groups/ALL/ref-mod through the ONE §8.5.2.1 classifier, with
+  `IsStringOperand` aligned on it. Measured fixes: `MAX(N9(1:1) "A")` answered 0 (wrong answer, the
+  GR6c skip), `MAX(G1 G2)` crashed at run time (type/body split), `DISPLAY-OF(group/ALL)` failed the
+  r1 screen open. Golden `pb59_operand_category_total`; negatives pb59-display-of-group/-all-literal.
+  Wave-local green (Conformance 1030/1030 · Unit 57/57 · SpecTraceability 10/10); the batch battery
+  rides with the next landing.
+  **NEXT, in order:** ① **the BASECONVERT
+  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member) —
+  then ONE comprehensive battery for the 7b+BASECONVERT batch.
   Then the queue as ordered below (PB60 → PB58 → …).
   **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
   fix at root, sweep siblings → probe again → golden + manifest (byte-preserving inserts — a JSON
