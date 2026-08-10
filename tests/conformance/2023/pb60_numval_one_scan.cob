@@ -12,11 +12,18 @@
       *>        construction on the conforming forms: TS ("12.5-") and CV ("12.5CR") value -12.5.
       *> ES/ET: 15.69.3 r5's except-clause - a space between significand digits is ILLEGAL (EC default 0,
       *>        TEST-NUMVAL-F position 3); LG (" - 35E+0 ") holds every LEGAL space placement at once.
+      *> CM/MV/EQ: 15.68.4 r1 carries no channel qualification - COMPUTE, MOVE (the sender renders under the
+      *>        RECEIVER's scale, MoveEmitter#SenderContext) and a relation (each side renders knowing the
+      *>        OTHER side's static scale) all see 0.123456789. Before the threading, MOVE stored
+      *>        0.123456000 and the relation agreed with the truncated value - four channels, three answers.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB60ONESCAN.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 XTAB PIC X(4) VALUE X"09313233".
+       01 WS-A9 PIC X(14) VALUE "$0.123456789".
+       01 WS-R9 PIC S9(4)V9(9).
+       01 WS-E9 PIC -(4)9.9(9).
        01 R    PIC S9(12)V99.
        01 RE   PIC -(12)9.99.
        01 F    PIC S9(9)V9(6).
@@ -62,5 +69,16 @@
            COMPUTE F = FUNCTION NUMVAL-F(" - 35E+0 ").
            MOVE F TO FE.
            DISPLAY "LG=" FE.
+           COMPUTE WS-R9 = FUNCTION NUMVAL-C(WS-A9, "$").
+           MOVE WS-R9 TO WS-E9.
+           DISPLAY "CM=" WS-E9.
+           MOVE FUNCTION NUMVAL-C(WS-A9, "$") TO WS-R9.
+           MOVE WS-R9 TO WS-E9.
+           DISPLAY "MV=" WS-E9.
+           IF FUNCTION NUMVAL-C(WS-A9, "$") = 0.123456789
+               DISPLAY "EQ=YES"
+           ELSE
+               DISPLAY "EQ=NO"
+           END-IF.
            STOP RUN.
        END PROGRAM PB60ONESCAN.

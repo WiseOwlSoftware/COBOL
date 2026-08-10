@@ -315,7 +315,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // A NUMERIC source moving to a numeric-edited receiver is EDITED into the receiver's picture
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
-                NumX e = num.AsNum(source, ReceiverContext.None);
+                NumX e = num.AsNum(source, SenderContext(target));
                 // A float (Real) source lands into the edited receiver via the runtime's ToScaled at the MASK's fraction
                 // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
@@ -392,7 +392,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, ReceiverContext.None);
+                    : num.AsNum(source, SenderContext(target));
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
@@ -412,5 +412,25 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             default:
                 return "default";
         }
+    }
+
+    /// <summary>The RECEIVER-SCALE context a numeric MOVE source renders under (fix-queue PB60 /
+    /// RV-15.68.4-1 half 2). <c>Receiverless</c> STAYS TRUE — the float family keeps its deliberate binary64
+    /// sending value (only a genuinely receiver-less render keeps a float in binary64, per
+    /// <see cref="ReceiverContext"/>'s own doc; MOVE's float landing owns the <c>ToScaled</c> at the receiver
+    /// scale) — but the SCALE and the Int128-headroom cap now carry the ACTUAL receiver, so an exact-family
+    /// intrinsic source renders at the precision the receiver can store instead of the receiver-less floor.
+    /// Measured: <c>MOVE FUNCTION NUMVAL-C("$0.123456789") TO PIC S9(4)V9(9)</c> stored 0.123456000 while
+    /// COMPUTE stored the exact value — §15.68.4 r1 carries no channel qualification. The scale mirrors
+    /// <c>ArithmeticEmitter.ScaleOf</c> (a numeric-edited receiver's scale is its MASK's) and the digits
+    /// <c>ArithmeticEmitter.IntDigitsOf</c> (from <c>DigitPositions</c>, never the '9' count — under-counting
+    /// breaks the PB13 saturation-is-visible invariant).</summary>
+    private ReceiverContext SenderContext(DataItem target)
+    {
+        if (target.Pic is not { } pic) return ReceiverContext.None;
+        int scale = pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
+            ? RuntimeApi.MaskScale(m, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)
+            : pic.Scale;
+        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale) };
     }
 }

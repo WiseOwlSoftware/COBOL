@@ -165,7 +165,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
-        NumX l = num.AsNum(r.Left, ReceiverContext.None), rr = num.AsNum(r.Right, ReceiverContext.None);
+        // Each side renders knowing the OTHER side's static scale (fix-queue PB60 / RV-15.68.4-1 half 2):
+        // §8.8.4.2.4 compares ALGEBRAIC VALUES, so `IF FUNCTION NUMVAL-C(A) = 0.123456789` must see the
+        // function's value at (at least) the literal's 9 fraction digits — the bare receiver-less context
+        // floored the exact family at 6 and the relation agreed with a TRUNCATED value no channel should
+        // hold. Receiverless STAYS TRUE (the float family keeps its deliberate binary64 compare above);
+        // only the working-scale request carries the comparand.
+        NumX l = num.AsNum(r.Left, ReceiverContext.None with { Scale = StaticScaleOf(r.Right) }),
+             rr = num.AsNum(r.Right, ReceiverContext.None with { Scale = StaticScaleOf(r.Left) });
         // A float operand under NATIVE arithmetic (D16): compare the algebraic values natively in IEEE double
         // (§8.8.4.2.4 — "when native arithmetic is in effect, comparison proceeds by the rules of native
         // arithmetic"). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
@@ -437,4 +444,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier.</summary>
     private static string NumericMembershipValue(string raw, int scale) =>
         raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0L" : EmitText.UnscaledAtScale(raw, scale);
+
+    /// <summary>The statically known fraction-digit count of a relation operand — a numeric literal's digits
+    /// right of the decimal point, a field's declared scale (a numeric-edited comparand cannot appear in a
+    /// NUMERIC relation, so the bare <c>Pic.Scale</c> suffices) — 0 when the shape carries no static scale,
+    /// which is exactly the former blanket behavior. Feeds the OTHER side's working-scale request (fix-queue
+    /// PB60 / RV-15.68.4-1): over-asking is safe (the Int128-headroom cap binds), under-asking was the
+    /// measured relation-agrees-with-a-truncated-value defect.</summary>
+    private static int StaticScaleOf(BoundOperand op) => op switch
+    {
+        BoundNumericLiteral nl => nl.Text.IndexOfAny(['.', ',']) is >= 0 and var dp ? nl.Text.Length - dp - 1 : 0,
+        BoundFieldOperand f => f.Place.Item.Pic?.Scale ?? 0,
+        _ => 0,
+    };
 }
