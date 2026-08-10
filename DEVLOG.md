@@ -13,6 +13,21 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1279 — 2026-08-09 17:28 PDT — The 5a+5b battery lands green: 4348/4348, and the differential holds at zero flips
+
+One `bash scripts/battery.sh` run over `3f94645d`, all legs concurrent per the script's phasing:
+FULL greenfield Conformance 4348/4348 zero skipped (11 m 44 s — fourteen rows larger than the prior
+reference, the 5a+5b theories and corpus rows in the population) · Unit 4124/4124 · characterization
+33/33 · guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and a CLEAN audit · GnuCOBOL
+differential `0 PER-CASE FLIP(S)`. The verdict lines were read from the artifact files
+(/tmp/battery-20260809-171102), never the exit code. §9's reference records it; the freeze is lifted.
+The freeze itself was spent per the standing discipline: the family-7 apply plan is drafted apply-ready
+in scratchpad — including two NEW scouted siblings, (1) §8.4.3.3.4 GR2 read against GR1+SR5 makes the
+`IsAlphabetic`-through-refmod reads at MoveBinder:177/217 an over-rejection (a ref-mod view is never
+class alphabetic), and (2) `OperandCategory`'s refmod arm skips the GR6c category rewrite its own doc
+comment cites (a ref-mod view over a numeric display item answers Numeric where GR6c says
+alphanumeric). Both land with family 7, measured together with the OperandCategory totalization.
+
 ## Entry 1278 — 2026-08-09 17:09 PDT — PB59 family 5b: ANY reads the storage it always claimed to, and the padding rules turn out to already be half-built
 
 Family 5 closes. The ANY source-format now delivers what §15.19.3 r7 licenses — the item's RAW STORAGE

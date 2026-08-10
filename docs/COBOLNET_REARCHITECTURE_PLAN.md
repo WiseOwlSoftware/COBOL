@@ -24,11 +24,10 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-09 19:05 — resume point for the next session):**
-  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The fourth comprehensive
-  battery completed before the /clear: `=== BATTERY: ALL GREEN ===` on `226d7a01` (Conformance
-  4334/4334 · Unit 4124/4124 · NIST 353/0 · differential 0 flips — the X'' grammar change clean through
-  the full edition sweep and the differential). The §9 reference records it. Start at the wave-local
+- **▶ SESSION HANDOFF (2026-08-09 19:05 — resume point; battery state UPDATED 2026-08-09 17:28):**
+  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed.** The 5a+5b comprehensive battery measured
+  `=== BATTERY: ALL GREEN ===` on `3f94645d` (Conformance 4348/4348 · Unit 4124/4124 · NIST 353/0 ·
+  differential 0 flips). The §9 reference records it. Start at the wave-local
   discipline directly.
   **WHAT THIS SESSION LANDED (all pushed, DEVLOG 1263–1273):** the three PB65 singles (the
   BOOLEAN-OF-INTEGER wide bridge · the Power receiver-arm swap · the bounded-codomain quantizer) and
@@ -1270,7 +1269,16 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB59 families-3+4+6 tree `226d7a01` (2026-08-09 19:20).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB59 family-5a+5b tree `3f94645d` (2026-08-09 17:28).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260809-171102`): FULL greenfield Conformance **4348 / 4348, zero skipped**
+  (11 m 44 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
+  **`0 PER-CASE FLIP(S)`**. Covers the accumulated 5a+5b batch: CONVERT's positional walk + the
+  r4–r7 usage screens + the catalog MinArgs correction (5a), the ANY raw-storage channel + the
+  r2/r4 zero-bit padding + the deleted ANY→NAT remap + the `CobolBits.NatBytes` serializer (5b),
+  the corrected `argument_rule_equivalences_batch1` golden, and the eleven-row `intrinsics_convert`.
+- **⛔ PRIOR BATTERY REFERENCE — the PB59 families-3+4+6 tree `226d7a01` (2026-08-09 19:20).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run:** FULL greenfield
   Conformance **4334 / 4334, zero skipped** (12 m 24 s) · greenfield Unit **4124 / 4124** ·
   characterization **33 / 33** · `guard-fast` **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** ·
