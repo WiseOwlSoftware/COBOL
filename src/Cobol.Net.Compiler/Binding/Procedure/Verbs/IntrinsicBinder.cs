@@ -938,19 +938,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "program-pointer (ISO §15.19.3 rule 7)");
         }
 
-        // §15.19.3 SR7 — a source-format of ANY takes the operand's RAW storage bits regardless of usage. Resolve
-        // ANY to the operand's actual storage encoding at bind time (keeping the runtime free of PICTURE metadata):
-        // a national operand's bits are UTF-16BE (the NAT reduction, 2 bytes/position); an alphanumeric operand's
-        // are Latin-1 (the ANY default = 1 byte/char). ANY always pairs with a HEX destination (SR8).
-        int runtimeSrc = src == 0 && IsNationalOperand(operands[0]) ? 3 : src;
-
+        // §15.19.3 r7 — a source-format of ANY takes the operand's RAW storage bits regardless of usage. The
+        // node carries the WRITTEN source; the RENDERER's storage channel (IntrinsicRenderer.StorageArg →
+        // OperandText.AsStorageImage) delivers the bytes per the operand's own representation (PB59 family 5b —
+        // the former bind-time ANY→NAT remap was a second mechanism for the same job and is deleted).
         var category = dst == 3 ? PicCategory.National : PicCategory.Alphanumeric;   // §15.19.1 table
         return new BoundIntrinsicCall(sig, operands, category)
-            { ConvertSource = runtimeSrc, ConvertDest = dst, ConvertDestHex = hex };
+            { ConvertSource = src, ConvertDest = dst, ConvertDestHex = hex };
     }
-
-    /// <summary>Is a bound operand a NATIONAL-category item or literal (its storage is UTF-16, per D-N1)?</summary>
-    private static bool IsNationalOperand(BoundOperand op) => OperandCategory(op) is PicCategory.National;
 
     /// <summary>The statically knowable data category of a function argument (drives the §15.3 per-function
     /// argument class/category rules): a categorized literal, a non-group field reference (a reference-modified

@@ -634,6 +634,20 @@ public sealed class IntrinsicFunctionDifferentialTests
     // §15.19.3 r5 NOTE — the ANUM-source test is on the REPRESENTATION, not the class: a numeric DISPLAY item
     // is a valid string of characters from the alphanumeric coded character set ("005" → its hex).
     [InlineData("01 D PIC 9(3) VALUE 5.\n           01 R PIC X(8).", "CONVERT(D ANUM ANUM HEX)", "303035")]
+    // §15.19.4 r4 — the HEX legs hex THE SOURCE'S OWN BITS, padded TRAILING with zero bits to a whole
+    // destination character (16 for national, D-N1); the destination keyword picks only the DIGIT repertoire.
+    // 8-bit "A" → 0x41 0x00 → national digits "4100" (RV-15.19.4-4 — NOT "0041", which would be a re-encoding
+    // r4 never performs).
+    [InlineData("01 A PIC X VALUE \"A\".\n           01 R PIC N(4).", "CONVERT(A ANUM NAT HEX)", "4100")]
+    // §15.19.3 r7 + §15.19.4 r2 — an ANY source is the RAW STORAGE bits: a USAGE BIT item's three bits arrive
+    // packed high-order-first (CobolBits.Pack), which IS r2's pad — B"101" → 1010 0000 → "A0". NOTE 3 c's "E0"
+    // is not derivable from B"101" under either rule (the NOTE is defective; the rule's arithmetic decides).
+    [InlineData("01 B PIC 111 USAGE BIT VALUE B\"101\".\n           01 R PIC X(4).", "CONVERT(B ANY ANUM HEX)", "A0")]
+    // §15.19.4 r4 over the same sub-byte source — pad 3 bits to a 16-bit multiple: "A000" (RV-15.19.4-2 leg b).
+    [InlineData("01 B PIC 111 USAGE BIT VALUE B\"101\".\n           01 R PIC N(4).", "CONVERT(B ANY NAT HEX)", "A000")]
+    // §15.19.3 r7 — ANY over a COMP item hexes its radix-2 STORAGE bytes (V59/§14.4: 258 in a 2-byte binary
+    // carrier = 0x0102), never its display digits (which would be "30323538").
+    [InlineData("01 C PIC 9(4) COMP VALUE 258.\n           01 R PIC X(4).", "CONVERT(C ANY ANUM HEX)", "0102")]
     public void Convert_Formats_2023(string ws, string call, string expected)
         => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "IFCONV"), expected, 2023);
 
@@ -695,8 +709,10 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void Convert_AnyOverNational_ResolvesToNatStorage_2023()
-        // §15.19.3 SR7 — ANY takes the operand's RAW storage bits; a national item's are UTF-16BE (the NAT
-        // reduction), NOT Latin-1 with substitution. N"A" = U+0041 ⇒ "0041" (not "41").
+        // §15.19.3 r7 — ANY takes the operand's RAW storage bits. A national item's storage is UTF-16BE
+        // (D-N1), delivered by the compiler's storage channel (OperandText.AsStorageImage → CobolBits.NatBytes
+        // — PB59 family 5b; the former bind-time ANY→NAT remap that used to produce this same value is
+        // DELETED, so this test now pins the real channel). N"A" = U+0041 ⇒ "0041" (not "41").
         => AssertSpec(Program("01 N PIC N VALUE N\"A\".\n           01 R PIC X(8).",
             "    MOVE FUNCTION CONVERT(N ANY ANUM HEX) TO R.\n    DISPLAY R.", "IFCONVANY"), "0041", 2023);
 
@@ -735,9 +751,10 @@ public sealed class IntrinsicFunctionDifferentialTests
     public void Convert_ByteSerializationSetsDataConversion_WhenChecked_2023()
     {
         // The 8-bit BYTE serialization (a SEPARATE §8.1.2 determination — see the CobolIntrinsics.Text char-set
-        // model) still substitutes '?' + EC-DATA-CONVERSION for a code unit above 0xFF: this is the surviving
-        // raise site the retired repertoire test used to cover, and its disposition is open PB59 residue
-        // (RV-15.19.4-2 — §15.19.4 r2 authorizes no substitution).
+        // model) substitutes '?' + EC-DATA-CONVERSION for a code unit above 0xFF. This is the DOCUMENTED
+        // item-209 disposition (RV-15.19.4-2, decided 2026-08-09): §15.19.4 r2 has no substitution sentence
+        // because the spec's model assumes a total serialization; where ours is partial, the r1/r3-analogous
+        // substitution+EC is the smallest extension of the standard's own machinery — visible, never silent.
         var src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. IFCONVECB.

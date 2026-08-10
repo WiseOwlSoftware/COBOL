@@ -210,15 +210,19 @@ public static partial class CobolIntrinsics
     //   (2) The BYTE serialization (ANUM/ANY → BYTE/HEX) is a DISTINCT, implementor-defined 8-bit Latin-1 mapping
     //       (§8.1.2 NOTE 2 leaves the usage representation implementor-defined; CONFORMANCE.md item 209's one
     //       byte per DISPLAY character position): one byte per code unit, '?' + EC-DATA-CONVERSION for a code
-    //       unit > 0xFF. ⚠ §15.19.4 r2 authorizes NO substitution on the HEX legs — this disposition is OPEN
-    //       residue owned by the PB59 CONVERT rework (RV-15.19.4-2), which also owes the ANY raw-storage channel.
-    //       National is UTF-16BE, one char/position (D-N1). Source ANY = the item's canonical display image,
-    //       always paired with a HEX destination (SR8).
+    //       unit > 0xFF — the r1/r3-ANALOGOUS behavior extended to the serialization legs, a DOCUMENTED
+    //       determination (item 209; RV-15.19.4-2): §15.19.4 r2's silence about an unrepresentable unit exists
+    //       because the spec's model assumes a total serialization, and ours is partial above 0xFF.
+    //       National is UTF-16BE, one char/position (D-N1; CobolBits.NatBytes is the ONE serializer).
+    //       ⛔ Source ANY = the item's RAW STORAGE byte image, emitted by the compiler's storage channel
+    //       (OperandText.AsStorageImage — §15.19.3 r7 "it is not necessary for the contents to be valid
+    //       according to the usage"): char==byte, a sub-byte USAGE BIT source arrives PRE-PACKED high-order-
+    //       first (CobolBits.Pack), never a display image (PB59 family 5b). Always paired with HEX (SR8).
 
     /// <summary>CONVERT (§15.19.4): re-express <paramref name="arg"/> (in source format <paramref name="src"/>) in
     /// the destination format (<paramref name="dst"/> + <paramref name="dstHex"/>). The character↔character
     /// pathways are the item-33 identity (no substitution, no EC); only the 8-bit BYTE serialization can
-    /// substitute (see the char-set model above).</summary>
+    /// substitute (see the char-set model above). An ANY source receives the raw storage byte image.</summary>
     public static string Convert(string arg, int src, int dst, bool dstHex)
     {
         const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
@@ -240,25 +244,33 @@ public static partial class CobolIntrinsics
             return Repertoire(arg);
 
         // Bit/byte pathway — reduce argument-1 to a byte string per the source format.
-        byte[] bytes;
-        switch (src)
+        byte[] bytes = src switch
         {
-            case NAT:                                                // national → UTF-16BE (2 bytes/position, r4 basis)
-                bytes = new byte[arg.Length * 2];
-                for (int i = 0; i < arg.Length; i++) { bytes[2 * i] = (byte)(arg[i] >> 8); bytes[2 * i + 1] = (byte)arg[i]; }
-                break;
-            case HEX:                                                // a string of hex digits representing complete bytes (SR4)
-                bytes = HexDigitsToBytes(arg);
-                break;
-            default:                                                 // ANUM / ANY → Latin-1 (1 byte/char); ANY = the item's canonical image
-                bytes = new byte[arg.Length];
-                for (int i = 0; i < arg.Length; i++)
-                    bytes[i] = arg[i] <= 0xFF ? (byte)arg[i] : ByteSub();
-                break;
-        }
+            // national → UTF-16BE through the ONE serializer (2 bytes/position, the r4 basis); every serialized
+            // char is ≤ 0xFF by construction, so the shared reduction below can never substitute here.
+            NAT => RawBytes(CobolBits.NatBytes(arg)),
+            HEX => HexDigitsToBytes(arg),                            // a string of hex digits representing complete bytes (SR4)
+            // ANUM = the characters under the 1-byte serialization; ANY = the RAW STORAGE byte image the
+            // compiler emitted (char==byte — a wide char can only arrive through an alphanumeric CARRIER whose
+            // storage IS its chars, where the documented item-209 substitution applies as for ANUM).
+            _ => RawBytes(arg),
+        };
 
         // Render the byte string in the destination format.
-        if (dstHex) return ToHex(bytes);                             // r2 (ANUM HEX) / r4 (NAT HEX) — same digit code points (D-N4)
+        if (dstHex)                                                  // r2 (ANUM HEX) / r4 (NAT HEX) — same digit code points (D-N4)
+        {
+            // §15.19.4 r2/r4 — trailing zero-BIT padding to a whole destination character. r2 (8 bits per
+            // alphanumeric character): every reduction above is byte-aligned, and a sub-byte ANY source (USAGE
+            // BIT) arrives PRE-PACKED with its trailing partial byte zero-filled high-order-first
+            // (CobolBits.Pack), so the multiple-of-8 pad is already materialized — B"101" → 0xA0 → "A0".
+            // r4 (16 bits per national character, D-N1): an ODD byte count takes one trailing zero byte —
+            // CONVERT("A" ANUM NAT HEX) = "4100", B"101" ANY NAT HEX = "A000" (RV-15.19.4-4; NOTE 3 c's "E0"
+            // is not derivable from B"101" under either rule — the NOTE is defective, the rule's arithmetic
+            // decides).
+            if (dst == NAT && (bytes.Length & 1) != 0)
+                System.Array.Resize(ref bytes, bytes.Length + 1);
+            return ToHex(bytes);
+        }
         if (dst == NAT)                                              // HEX → NAT (r3): 2 bytes → one national char, pad a trailing odd byte
         {
             var sb = new System.Text.StringBuilder();
@@ -300,13 +312,24 @@ public static partial class CobolIntrinsics
     /// <summary>The 8-bit BYTE-serialization substitution (the §8.1.2 NOTE 2 usage-representation determination —
     /// see the CONVERT char-set model above): a UTF-16 code unit above 0xFF has no one-byte image, so the
     /// ANUM/ANY→byte reduction substitutes '?' and sets EC-DATA-CONVERSION. ⚠ NOT the item-33 character
-    /// correspondence (that is total, and raises nothing); §15.19.4 r2's no-substitution wording makes this
-    /// disposition OPEN residue of the PB59 CONVERT rework (RV-15.19.4-2).</summary>
+    /// correspondence (that is total, and raises nothing). This is the DOCUMENTED item-209 disposition
+    /// (RV-15.19.4-2, decided 2026-08-09): §15.19.4 r2 carries no substitution sentence because the spec's model
+    /// assumes the serialization is total; where ours is partial, the r1/r3-analogous substitution+EC is the
+    /// smallest extension of the standard's own machinery — visible under checking, never silent.</summary>
     private static byte ByteSub()
     {
         Exceptions.ExceptionState.DataConversionError(
-            "the code unit has no one-byte image in the 8-bit usage-DISPLAY serialization (§8.1.2; RV-15.19.4-2)");
+            "the code unit has no one-byte image in the 8-bit usage-DISPLAY serialization (§8.1.2; CONFORMANCE.md item 209)");
         return (byte)'?';
+    }
+
+    /// <summary>The shared char==byte reduction of the bit/byte pathway: one byte per code unit, with the
+    /// documented item-209 substitution (<see cref="ByteSub"/>) for a unit above 0xFF.</summary>
+    private static byte[] RawBytes(string s)
+    {
+        var b = new byte[s.Length];
+        for (int i = 0; i < s.Length; i++) b[i] = s[i] <= 0xFF ? (byte)s[i] : ByteSub();
+        return b;
     }
 
     private static byte[] HexDigitsToBytes(string s)

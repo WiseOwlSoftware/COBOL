@@ -89,6 +89,52 @@ internal static class OperandText
     /// needed). Same rendering as <see cref="AsString"/> over a field operand.</summary>
     public static string FieldImage(Place p, bool deSign = false, bool floatCheck = true) => FieldAsString(p, deSign, floatCheck);
 
+    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§15.19.3 r7: "argument-1
+    /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
+    /// item's STORAGE BITS, never its display image; fix-queue PB59 family 5b / AR-15.19.3-7 leg b). The
+    /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
+    /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
+    /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
+    /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
+    /// materializes §15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
+    /// image — storage, so no GR6a de-sign); a BINARY/PACKED leaf its radix-2/BCD bytes
+    /// (<c>CobolNum.FormatImage</c>, V59/§14.4). A float / COMP-5 leaf has no defined image
+    /// (<see cref="DataItem.IsImageCapable"/>) and stages LOUD rather than returning a plausible wrong image;
+    /// index/pointer/object shapes are unreachable — the §15.19.3 r7 bind screen rejected them.</summary>
+    public static string AsStorageImage(Place p)
+    {
+        // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
+        // storage is the slice's characters (a NATIONAL slice keeps category national, so its bytes are UTF-16BE).
+        if (p is RefModPlace rmp)
+            return rmp.Inner.Item.Pic is { } ip && RefModPlace.CategoryOf(ip) is PicCategory.National
+                ? RuntimeApi.NatBytes(PlaceRenderer.Read(p))
+                : PlaceRenderer.Read(p);
+        // An occurs-depending group sends its current-count storage window (§13.18.38 GR8), same as the display path.
+        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingImage(odo);
+        if (p.Item.IsGroup)
+            return p.Item.IsImageCapable
+                ? $"{PlaceRenderer.Read(p)}.AsImage()"
+                : EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of"));
+        return p.Item.Pic switch
+        {
+            { Category: PicCategory.National } => RuntimeApi.NatBytes(PlaceRenderer.Read(p)),
+            // A USAGE BIT leaf packs its own carrier (an elementary operand is a run of one — §8.5.1.6.3's
+            // shared-byte runs exist only INSIDE a group image, which the group arm above owns).
+            { Category: PicCategory.Boolean, Usage: Usage.Bit } pic =>
+                RuntimeApi.BitsPack(PlaceRenderer.Read(p), pic.Length.ToString()),
+            // Display-form boolean, alphanumeric, edited: the carrier IS the storage, one char per byte.
+            { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.Boolean } =>
+                PlaceRenderer.Read(p),
+            // A zoned leaf stored as its image: the carrier already holds the storage characters.
+            { Category: PicCategory.Numeric, IsFloat: false } when p.Item.StoreAsImage => PlaceRenderer.Read(p),
+            // A native fixed-point leaf: the bytes it occupies at a byte boundary (zoned digits for DISPLAY,
+            // radix-2 / BCD for BINARY / PACKED) — the ONE FormatImage recipe the group codec uses.
+            { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed } =>
+                RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
+            _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "raw-storage image (CONVERT ANY) of")),
+        };
+    }
+
     /// <summary>True if an operand is compared as text (an alphanumeric literal, or an alphanumeric/edited/group
     /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
     public static bool IsString(BoundOperand op) => op.Accept(_isString);

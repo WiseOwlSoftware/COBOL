@@ -762,6 +762,11 @@ internal static class RuntimeApi
     public static string BitsUnpack(string imageExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Unpack)}({imageExpr}, {countExpr})";
 
+    /// <summary>The UTF-16BE byte serialization of a national string — <c>CobolBits.NatBytes</c> (D-N1; the ONE
+    /// national→bytes reduction, shared with the runtime CONVERT NAT arm — PB59 family 5b's ANY storage channel).</summary>
+    public static string NatBytes(string expr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.NatBytes)}({expr})";
+
     /// <summary>One member's slice of an unpacked run carrier — <c>CobolBits.Slice</c>.</summary>
     public static string BitsSlice(string carrierExpr, string offsetExpr, string countExpr) =>
         $"{nameof(CobolBits)}.{nameof(CobolBits.Slice)}({carrierExpr}, {offsetExpr}, {countExpr})";

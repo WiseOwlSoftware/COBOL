@@ -688,9 +688,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.TrimMode}"
                     + string.Concat(ic.Args.Skip(1).Select(a => $", {Str(a)}"))),
             "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
-            "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023)
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ic.ConvertSource}, {ic.ConvertDest}, "
-                    + $"{(ic.ConvertDestHex ? "true" : "false")}"),
+            "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023);
+                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   an ANY source takes the RAW STORAGE image (r7, PB59 5b)
+                    $"{(ic.ConvertSource == 0 ? StorageArg(ic.Args[0]) : Str(ic.Args[0]))}, "
+                    + $"{ic.ConvertSource}, {ic.ConvertDest}, {(ic.ConvertDestHex ? "true" : "false")}"),
             "ModuleName" =>                                                    // §15.65 — the runtime module call-name stack (2023)
                 RuntimeApi.ModuleNameFn(ic.ModuleNameKind),
             "FormattedDate" =>                                                 // §15.39 — integer date per a date format (2014)
@@ -816,6 +817,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// turn their wrong-stage defect into a silently-wrong one.</summary>
     private string Str(BoundOperand op) => op.Accept(_strArg ??= new StrArgVisitor(this, admitNumeric: false));
     private StrArgVisitor? _strArg;
+
+    /// <summary>CONVERT's ANY-source argument — the RAW STORAGE byte image (§15.19.3 r7: any usage, contents
+    /// need not be valid for it — the storage BITS, never the display image; PB59 family 5b). A FIELD renders
+    /// through the ONE storage channel (<see cref="OperandText.AsStorageImage"/>); a literal renders its
+    /// declared storage (an N"…" literal its UTF-16BE bytes, a B"…" literal its packed bits, an alphanumeric
+    /// literal its characters under the item-209 1-byte serialization). Every other shape (computed values,
+    /// figuratives, ALL literals) HAS no storage — those keep the display-image channel they always rode, which
+    /// for a numeric shape stays the deliberately-loud <see cref="Str"/> default.</summary>
+    private string StorageArg(BoundOperand op) => op switch
+    {
+        BoundFieldOperand f => OperandText.AsStorageImage(f.Place),
+        BoundStringLiteral { Category: PicCategory.National } sl => RuntimeApi.NatBytes(EmitText.CsLiteral(sl.Value)),
+        BoundStringLiteral { Category: PicCategory.Boolean } sl =>
+            RuntimeApi.BitsPack(EmitText.CsLiteral(sl.Value), sl.Value.Length.ToString()),
+        _ => Str(op),
+    };
 
     /// <summary>The NUMERIC-ADMITTING string-argument entry (fix-queue PB59 / RV-15.12.4-1, RV-15.18.4-1) —
     /// for EXACTLY the functions whose §15.x.3 argument rules admit a numeric literal: BASECONVERT argument-1

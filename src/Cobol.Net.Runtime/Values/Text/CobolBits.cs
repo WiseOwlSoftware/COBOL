@@ -67,4 +67,17 @@ public static class CobolBits
     public static string Slice(string carrier, int offset, int count) =>
         offset >= carrier.Length ? new string('0', count)
         : carrier.Substring(offset, System.Math.Min(count, carrier.Length - offset)).PadRight(count, '0');
+
+    /// <summary>The UTF-16BE byte serialization of a NATIONAL string — one char per BYTE, two bytes (high-order
+    /// first) per national position (D-N1: national is UTF-16, one code unit per character position). ⛔ THE ONE
+    /// national→bytes reduction: <c>CobolIntrinsics.Convert</c>'s NAT source arm and the compiler-emitted CONVERT
+    /// ANY raw-storage channel (a national leaf's storage bits, §15.19.3 r7) both ride it — never a second
+    /// serializer (fix-queue PB59 family 5b). Not a BIT codec, but it lives here because this class is where the
+    /// storage-byte reductions are: the char==byte string convention is <see cref="Pack"/>'s.</summary>
+    public static string NatBytes(string s)
+    {
+        var image = new char[s.Length * 2];
+        for (int i = 0; i < s.Length; i++) { image[2 * i] = (char)(s[i] >> 8); image[2 * i + 1] = (char)(s[i] & 0xFF); }
+        return new string(image);
+    }
 }

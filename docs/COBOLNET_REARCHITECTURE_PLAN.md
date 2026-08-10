@@ -45,15 +45,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   USAGE axis (r4's own words + r5's NOTE; the plan doc carries the dated correction) — a class screen
   would have rejected numeric DISPLAY items and the corpus's own `argument_rule_equivalences_batch1`
   NAT legs (PIC X there was the golden's card error, corrected to PIC NN, output byte-identical).
-  **NEXT, in order:** ① **5b** — the ANY raw-storage
-  channel + §15.19.4 r2/r4 trailing zero-bit padding + the runtime `Convert` signature (the map's
-  family-5 fixInventory; the ByteSub '?'+EC on the HEX legs is the open RV-15.19.4-2 residue, and the
-  MEASURED RV-15.19.4-4 miss — `ANUM NAT HEX` returns 41 where r4's pad-to-16-bits derives 4100, the
-  map's own predicted golden; the 5a session's "0041" counter-claim was the mis-derivation, corrected
-  same-day — rides with it).
-  ② **PB59 family 7** — the ALPHABETIC result-category rider + the `OperandCategory` totalization
-  DEFERRED there (it moves MAX/MIN result-type resolution — measure together; the map's family-7
-  section has the eleven ResultCategory consumers). Then the queue as ordered below (PB60 → PB58 → …).
+  **PB59 FAMILY 5b LANDED (2026-08-09, second landing — FAMILY 5 COMPLETE, 26 of PB59's 28 rows
+  CONFORMS, GAP 4159):** the ANY raw-storage channel (`OperandText.AsStorageImage` — one storage
+  channel, char==byte, per-shape documented representations; the bind-time ANY→NAT remap DELETED), the
+  §15.19.4 r2/r4 trailing zero-bit padding (r2 = the packed BIT image itself, r4 = the odd-byte zero
+  append; `ANUM NAT HEX` of "A" = 4100, `B"101" ANY NAT HEX` = A000 — NOTE 3 b/c both ruled defective
+  NOTES), and the RV-15.19.4-2(c) substitution DECIDED as the documented item-209 disposition
+  (CONFORMANCE.md item-33 row tail). The runtime signature is UNCHANGED — the packed image made the
+  map's bit-count companion unnecessary. Flips: AR-15.19.3-7 · RV-15.19.4-2 · RV-15.19.4-4 ·
+  RV-15.19.4-5.
+  **NEXT, in order:** ① **PB59 family 7** — the ALPHABETIC result-category rider (RV-15.18.4-3) + the
+  `OperandCategory` totalization DEFERRED there (it moves MAX/MIN result-type resolution — measure
+  together; the map's family-7 section has the eleven ResultCategory consumers). ② **the BASECONVERT
+  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member with
+  family 7). Then the queue as ordered below (PB60 → PB58 → …).
   **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
   fix at root, sweep siblings → probe again → golden + manifest (byte-preserving inserts — a JSON
   round-trip rewrote a whole manifest once) → wave-local gate → `record_verdicts.py` → SpecTraceability
@@ -101,14 +106,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   PB70 (group-refmod MOVE loud stage) → PB71 (the ALL-national parse gap) →
   PB64 (LOCALE feature — deep-dive design doc FIRST, rule 2) → PB66 (external float PICTURE — design
   first) → the PB65 tail members above.
-  **PB59 progress (2026-08-09): families 1–4, 5a and 6 of 7 LANDED** — the item-33 identity + the UTF-8
+  **PB59 progress (2026-08-09): families 1–6 of 7 LANDED** — the item-33 identity + the UTF-8
   device · the value-path trims + item 93 · CHAR on the one collation reader · the per-function
-  numeric-literal admission · CONVERT's positional parse + the r4–r7 usage screens · the width
-  totalization + the X'' lexer twin — **20 of its 28 rows
-  CONFORMS**; open: family 5b (the ANY raw-storage channel/bit padding/runtime signature — the largest;
-  its mechanism map is at `docs/rearchitecture/pb59-mechanism-map-2026-08-09.md`) and family 7 (the
-  ALPHABETIC channel + the OperandCategory totalization
-  deferred to it).
+  numeric-literal admission · CONVERT's positional parse + the r4–r7 usage screens + the ANY
+  raw-storage channel + the r2/r4 padding · the width
+  totalization + the X'' lexer twin — **26 of its 28 rows
+  CONFORMS**; open: family 7 (RV-15.18.4-3's ALPHABETIC channel + the OperandCategory totalization
+  deferred to it; the mechanism map is at `docs/rearchitecture/pb59-mechanism-map-2026-08-09.md`) and
+  the BASECONVERT screen set (AR-15.12.3-1 legs b–f).
   **OWNER-RESERVED, ask one at a time when he is at the keyboard:** PB67 (the four standard-binary
   rows → DOCUMENTED-NON-SUPPORT?) · CURRENT-DATE's +14:00 spec hole (RV-15.21.3-1) · PB55's
   IMPLEMENTATION is decided (rule-is-the-unit, 2026-08-08) and still needs its transcription
