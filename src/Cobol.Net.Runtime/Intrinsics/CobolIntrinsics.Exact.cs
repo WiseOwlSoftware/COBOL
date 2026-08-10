@@ -398,6 +398,14 @@ public static partial class CobolIntrinsics
         // projections cannot disagree. ANYCASE (r4f): the currency match is case-folded per LOWER-CASE — an
         // ordinal-ignore-case span match realizes that correspondence for the invariant set. §15.3: with
         // checking off the ArgumentError 0 return supplies the implementor-defined result.
+        // §15.68.3 r2's content halves, the RUNTIME twin of the bind-time literal screen — a data-item
+        // argument-2's content is only visible here. A digit-bearing or separator-bearing currency could
+        // otherwise consume argument-1 digits as "the currency" and value a wrong number silently.
+        if (InvalidCurrency(currency))
+            return Exceptions.ExceptionState.ArgumentError(
+                $"NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and none "
+                + "of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in any "
+                + "case (§15.68.3 rule 2)");
         NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
         if (p.ErrPos != 0)
             return p.CapHit
@@ -407,6 +415,19 @@ public static partial class CobolIntrinsics
                     + $"(first character in error at position {p.ErrPos}; §15.94 TEST-NUMVAL-C reports the same position)");
         Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
         return p.Neg ? -r : r;
+    }
+
+    /// <summary>§15.68.3 r2's content bans on the currency string (after the rule's own edge-space trim):
+    /// empty/all-space, any digit 0-9, any of <c>* + - , .</c> (the characters are named outright — the
+    /// comma/period ban does not flex with DECIMAL-POINT IS COMMA), or a CR/DB letter pair in any case.
+    /// Shared by NUMVAL-C and TEST-NUMVAL-C (§15.94.3 r1 mirrors the argument rules).</summary>
+    private static bool InvalidCurrency(string currency)
+    {
+        string cur = currency.Trim();
+        return cur.Length == 0
+            || cur.Any(c => char.IsAsciiDigit(c) || c is '*' or '+' or '-' or ',' or '.')
+            || cur.Contains("CR", StringComparison.OrdinalIgnoreCase)
+            || cur.Contains("DB", StringComparison.OrdinalIgnoreCase);
     }
 
     // ── The §15.93/§15.94 TEST validators — position-reporting scanners beside their value parsers ────────────
@@ -433,8 +454,21 @@ public static partial class CobolIntrinsics
     /// after the decimal separator; DECIMAL-POINT IS COMMA SWAPS the two roles (r4d). Verdicts: 0 (r1a) /
     /// first-error position (r1b, same sub-notes as TEST-NUMVAL) / LENGTH+1 (r1c).</summary>
     public static long TestNumvalC(string text, string currency, bool commaMode = false, bool anycase = false,
-        int digitCap = 31) =>
-        NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true).ErrPos;
+        int digitCap = 31)
+    {
+        // §15.68.3 r2 via §15.94.3 r1 — an invalid runtime currency raises EC-ARGUMENT-FUNCTION; the
+        // checking-off verdict is the r1c "no specific character in error" LENGTH+1 leg (no character OF
+        // ARGUMENT-1 is in error — the argument-2 is — and 0 would falsely certify conformance).
+        if (InvalidCurrency(currency))
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                $"TEST-NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and "
+                + "none of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in "
+                + "any case (§15.68.3 rule 2 via §15.94.3 rule 1)");
+            return text.Length + 1;
+        }
+        return NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true).ErrPos;
+    }
 
     // ── The ONE positional format scan per family (fix-queue PB60) ─────────────────────────────────────────────
     // §15.67.3 (NUMVAL) and §15.68.3 r4a (NUMVAL-C) share one grammar shape — [sp] [sign] [sp] [currency] [sp]

@@ -1198,17 +1198,39 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// ordinary operand bind (an unresolved name) until the P11 Step-8 A.4.9 disposition claims it.</summary>
     private BoundExpr BindNumvalCFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
+        string fmt = sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2";
+        // §15.68.2/§15.94.2: ( argument-1 [argument-2] [ANYCASE] ) — a POSITIONAL walk, not an order-free
+        // keyword sweep (fix-queue PB60 / FMT-15.68.2). Slot 0 is ALWAYS argument-1 and binds as an operand
+        // (ANYCASE is §8.10 context-sensitive — a data item so named stays legal there); ANYCASE is admitted
+        // ONCE, after the operands, and nothing may follow it. The old sweep accepted
+        // NUMVAL-C(ANYCASE WS-A "USD") and a doubled trailing ANYCASE (both measured).
         bool anycase = false;
         var operands = new List<BoundOperand>();
-        foreach (var a in argCtxs)
+        foreach (var (a, at) in argCtxs.Select((a, at) => (a, at)))
         {
-            if (KeywordWordOf(a) == "ANYCASE") { anycase = true; continue; }
+            if (at > 0 && KeywordWordOf(a) == "ANYCASE")
+            {
+                if (anycase)
+                {
+                    ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: the ANYCASE keyword is repeated "
+                        + $"(ISO §{fmt} — argument-1 [argument-2] [ANYCASE])");
+                    return new BoundExprError($"FUNCTION {sig.Name} format");
+                }
+                anycase = true;
+                continue;
+            }
+            if (anycase)
+            {
+                ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: an argument follows ANYCASE, which "
+                    + $"the format places last (ISO §{fmt})");
+                return new BoundExprError($"FUNCTION {sig.Name} format");
+            }
             operands.Add(BindArgOperand(a));
         }
         if (operands.Count is < 1 or > 2)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 [argument-2] [ANYCASE] "
-                + $"(ISO §{(sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2")}); {operands.Count} operand argument(s) given");
+                + $"(ISO §{fmt}); {operands.Count} operand argument(s) given");
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
@@ -1217,6 +1239,32 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // `return` above it, so no Verified row could ever screen them. Screened here, after this
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
+        // §15.68.3 r1 (mirrored onto TEST-NUMVAL-C by §15.94.3 r1) — argument-1 shall be of CATEGORY
+        // alphanumeric or national. The §15.3 class row above admits the EDITED categories (class alphanumeric
+        // spans alphanumeric-edited and numeric-edited, Table 2) that r1's CATEGORY wording excludes — the
+        // finer axis screens here (fix-queue PB60 / AR-15.68.3-1). A ref-mod view is plain category
+        // alphanumeric (§8.4.3.3.4 GR6) and passes; shapes with no static category pass to the runtime scan.
+        if (operands.Count > 0
+            && (OperandCategory(operands[0]) is PicCategory.NumericEdited
+                || operands[0] is BoundFieldOperand { Place: not RefModPlace } f1
+                   && f1.Place.Item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null }))
+            ctx.Edition.Error("COBOLNET1627", $"FUNCTION {sig.Name} argument-1 is of an EDITED category; "
+                + "ISO §15.68.3 rule 1 admits category alphanumeric or national only");
+        // §15.68.3 r2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;
+        // a data item's content is the runtime guard's): at least one non-space character; none of the digits
+        // 0-9 or the characters * + - , . ; no CR/DB pair in any case. The characters are named OUTRIGHT —
+        // the comma/period ban does not flex with DECIMAL-POINT IS COMMA.
+        if (operands.Count == 2 && operands[1] is BoundStringLiteral curLit)
+        {
+            string cur = curLit.Value.Trim();
+            if (cur.Length == 0
+                || cur.Any(c => char.IsAsciiDigit(c) || c is '*' or '+' or '-' or ',' or '.')
+                || cur.Contains("CR", StringComparison.OrdinalIgnoreCase)
+                || cur.Contains("DB", StringComparison.OrdinalIgnoreCase))
+                ctx.Edition.Error("COBOLNET1627", $"FUNCTION {sig.Name} argument-2 shall contain at least one "
+                    + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
+                    + "the letter pair CR/DB in any case (ISO §15.68.3 rule 2)");
+        }
         if (operands.Count == 1)
             operands.Add(new BoundStringLiteral(ctx.Data.CurrencyString));   // §15.68.3 r3
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Anycase = anycase };
