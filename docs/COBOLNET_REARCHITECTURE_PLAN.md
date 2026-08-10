@@ -24,11 +24,21 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-09 19:05 — resume point; battery state UPDATED 2026-08-09 17:28):**
-  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed.** The 5a+5b comprehensive battery measured
-  `=== BATTERY: ALL GREEN ===` on `3f94645d` (Conformance 4348/4348 · Unit 4124/4124 · NIST 353/0 ·
-  differential 0 flips). The §9 reference records it. Start at the wave-local
-  discipline directly.
+- **▶ SESSION HANDOFF (2026-08-09 18:45 — the PB59-closing session's resume point):**
+  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The PB59-closing battery
+  measured `=== BATTERY: ALL GREEN ===` on `cc01a38b` (Conformance 4363/4363 · Unit 4124/4124 · NIST
+  353/0 audit-clean · differential 0 flips against the regenerated baseline). The §9 reference records
+  it. Start at the wave-local discipline directly.
+  **✅ PB59 IS CLOSED — ALL 28 ROWS CONFORMS** (five landings this session: 5a · the 4100 correction ·
+  5b · 7a+PB72 · 7b · the BASECONVERT screens; GAP 4166 → 4155; three comprehensive batteries green,
+  one carrying three differential FIX-flips attributed and baselined). Successor notes PB68–PB73 hold
+  every incidental find; PB72 landed same-day, PB73 (adjudication) holds the two open derivations.
+  **NEXT: `work.py next` says PB60 → PB58 → PB61.** ⚠ PB60's triage text is PARTLY STALE — NumvalC now
+  validates through TestNumvalC first (the PB33 delegation) — so it is a PROBE-FIRST landing: CLI-probe
+  each of its 13 rows before writing any fix. The one read-confirmed live lead: NumvalF's VALUE path
+  opens with `Replace(" ", "")`, erasing §15.69.3 r5's interior-space prohibition while TEST-NUMVAL-F
+  enforces it — the PB33 validate-first delegation (NumvalC:491's shape) is the likely fix. The
+  scout's full notes are in the session scratchpad (pb60-scout-notes.md) — re-derive, don't trust.
   **WHAT THIS SESSION LANDED (all pushed, DEVLOG 1263–1273):** the three PB65 singles (the
   BOOLEAN-OF-INTEGER wide bridge · the Power receiver-arm swap · the bounded-codomain quantizer) and
   **PB59 families 1–4 + 6 of 7** (the Annex A.1 item-33 TOTAL-IDENTITY correspondence + the UTF-8
@@ -1288,7 +1298,15 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB59-7a+PB72 tree `e219be59` (2026-08-09 18:07).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB59-CLOSING tree `cc01a38b` (2026-08-09 18:42).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260809-182411`): FULL greenfield Conformance **4363 / 4363, zero skipped**
+  (12 m 11 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
+  **`0 PER-CASE FLIP(S)`** against the regenerated baseline. Covers the 7b+BASECONVERT batch — the
+  OperandCategory totalization (a shared intrinsic-classifier seam) and the CheckBaseConvertArgs
+  screen family — closing PB59 at 28 of 28 rows.
+- **⛔ PRIOR BATTERY REFERENCE — the PB59-7a+PB72 tree `e219be59` (2026-08-09 18:07).**
   ✅ **`=== BATTERY: ALL GREEN ===` on every internal leg, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260809-174919`): FULL greenfield Conformance **4354 / 4354, zero skipped** (11 m 37 s)
   · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast` **ALL GREEN** with
