@@ -24,21 +24,43 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-09 18:45 — the PB59-closing session's resume point):**
-  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The PB59-closing battery
-  measured `=== BATTERY: ALL GREEN ===` on `cc01a38b` (Conformance 4363/4363 · Unit 4124/4124 · NIST
-  353/0 audit-clean · differential 0 flips against the regenerated baseline). The §9 reference records
-  it. Start at the wave-local discipline directly.
-  **✅ PB59 IS CLOSED — ALL 28 ROWS CONFORMS** (five landings this session: 5a · the 4100 correction ·
-  5b · 7a+PB72 · 7b · the BASECONVERT screens; GAP 4166 → 4155; three comprehensive batteries green,
-  one carrying three differential FIX-flips attributed and baselined). Successor notes PB68–PB73 hold
-  every incidental find; PB72 landed same-day, PB73 (adjudication) holds the two open derivations.
-  **NEXT: `work.py next` says PB60 → PB58 → PB61.** ⚠ PB60's triage text is PARTLY STALE — NumvalC now
-  validates through TestNumvalC first (the PB33 delegation) — so it is a PROBE-FIRST landing: CLI-probe
-  each of its 13 rows before writing any fix. The one read-confirmed live lead: NumvalF's VALUE path
-  opens with `Replace(" ", "")`, erasing §15.69.3 r5's interior-space prohibition while TEST-NUMVAL-F
-  enforces it — the PB33 validate-first delegation (NumvalC:491's shape) is the likely fix. The
-  scout's full notes are in the session scratchpad (pb60-scout-notes.md) — re-derive, don't trust.
+- **▶ SESSION HANDOFF (2026-08-09 21:40 — the ultracode-campaign session's resume point; PAUSED for
+  the night by the owner):**
+  **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The PB60-batch battery
+  measured `=== BATTERY: ALL GREEN ===` on `0c9c4ce9` (Conformance 4367/4367 · Unit 4124/4124 · NIST
+  353/0 audit-clean · differential 0 flips). The §9 reference records it. Start at the wave-local
+  discipline directly.
+  **WHAT THE DAY LANDED (two sessions, all pushed, DEVLOG 1276–1288):** PB59 CLOSED at 28/28 (seven
+  families) · PB72 landed (Table 16's alphabetic/edited/noninteger axes + the GR2 ref-mod erasure,
+  externally confirmed by three GnuCOBOL syn_move FIX-flips, baselined) · PB60 at **10 of 13** (the
+  one-scan unification — each NUMVAL family's TEST- validator and value path are projections of ONE
+  positional scan; the MOVE/relation channel threading + the documented item-92 native working-scale
+  determination; the binder walk + category/currency-content screens). GAP **4166 → 4145** across the
+  day. Two batteries tonight, both ALL GREEN.
+  **⭐ THE QUEUE IS FRESHLY RE-MEASURED — do not re-probe blind.** A 17-agent probe+refute fleet
+  (wf_fdd1492c) re-verified every actionable note with pasted CLI runs and --check'd citations:
+  **112 live rows** before tonight's PB60 landings (now ~102). Per-row evidence, mechanisms and
+  blockers are FROZEN in `docs/rearchitecture/backlog-probe-sweep-2026-08-09.json`, and every probed
+  note (PB58 · PB61 · PB62 · PB63 · PB65 · PB68–PB71) carries its sweep block. The refuters BROKE 14
+  of the probers' FIXED claims — trust the sweep's LIVE list, and treat its fixed-upheld rows as
+  test-needed, never as done.
+  **NEXT, in order:** ① **PB60's last three rows** — apply plan FROZEN at
+  `docs/rearchitecture/pb60-remaining-apply-plan-2026-08-09.md` (the SDIDI Dec branch is small and
+  fully specified; the CURRENCY SIGN SET model and the DECIMAL-POINT IS COMMA containment scoping are
+  each measured-blast-radius items). ② **PB58** (38 of 40 live — the argument-screen table's remaining
+  predicate kinds; the sweep names the exact gaps: ORD-MAX/MIN cross-arg, strong-type exclusion,
+  minimum-width ×4, literal/expression integrality, six functions with NO row). ③ PB61 → PB62 → PB63
+  → PB68 → PB69 → PB70 → PB71 per the sweep blocks. ④ PB64/PB66 have COMPLETE UNREVIEWED design
+  drafts frozen beside the sweep (pb64-locale-… / pb66-extfloat-…-2026-08-09.md) — ⛔ PB64's Q1–Q4 are
+  OWNER-RESERVED (Q1 would reverse the ratified locale non-support decision); its T0 posture repair is
+  actionable without the owner. ⑤ PB73's adjudication agent FAILED (schema retry cap) — re-derive
+  before any code moves.
+  **HAZARDS THIS SESSION PAID FOR:** `git status` before `git add -A` after ANY agent fleet (a prober
+  littered the repo root despite explicit ground rules — memory `fleet-litter-check-status-before-add`);
+  a workflow's `unit:` test-ref form needs `<Class>.<Method>`, never a bare class; manifest inserts are
+  CRLF and ASCII-sorted (`pb60` sorts AFTER `pb5_`, digits before '_'); the item-92/§15.4.1 native
+  working-scale determination now governs every NUMVAL channel — extending it needs the CONFORMANCE.md
+  row, not a code-only change.
   **WHAT THIS SESSION LANDED (all pushed, DEVLOG 1263–1273):** the three PB65 singles (the
   BOOLEAN-OF-INTEGER wide bridge · the Power receiver-arm swap · the bounded-codomain quantizer) and
   **PB59 families 1–4 + 6 of 7** (the Annex A.1 item-33 TOTAL-IDENTITY correspondence + the UTF-8
@@ -1298,7 +1320,15 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the PB59-CLOSING tree `cc01a38b` (2026-08-09 18:42).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB60-batch tree `0c9c4ce9` (2026-08-09 21:34).**
+  ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
+  `/tmp/battery-20260809-211701`): FULL greenfield Conformance **4367 / 4367, zero skipped**
+  (12 m 39 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`
+  **ALL GREEN** with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential
+  **`0 PER-CASE FLIP(S)`**. Covers the three-commit PB60 batch — the one-scan unification (a shared
+  runtime seam), the MOVE/relation channel threading (two shared codegen seams), and the binder walk
+  + category/currency screens — with the pb60 golden and its three negatives in the population.
+- **⛔ PRIOR BATTERY REFERENCE — the PB59-CLOSING tree `cc01a38b` (2026-08-09 18:42).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `/tmp/battery-20260809-182411`): FULL greenfield Conformance **4363 / 4363, zero skipped**
   (12 m 11 s) · greenfield Unit **4124 / 4124** · characterization **33 / 33** · `guard-fast`
