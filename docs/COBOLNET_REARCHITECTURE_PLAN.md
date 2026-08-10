@@ -53,11 +53,22 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (CONFORMANCE.md item-33 row tail). The runtime signature is UNCHANGED — the packed image made the
   map's bit-count companion unnecessary. Flips: AR-15.19.3-7 · RV-15.19.4-2 · RV-15.19.4-4 ·
   RV-15.19.4-5.
-  **NEXT, in order:** ① **PB59 family 7** — the ALPHABETIC result-category rider (RV-15.18.4-3) + the
-  `OperandCategory` totalization DEFERRED there (it moves MAX/MIN result-type resolution — measure
-  together; the map's family-7 section has the eleven ResultCategory consumers). ② **the BASECONVERT
-  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member with
-  family 7). Then the queue as ordered below (PB60 → PB58 → …).
+  **PB59 FAMILY 7a + PB72 LANDED (2026-08-09, third landing — one landing over the same edit sites;
+  PB59 at 27 of 28, GAP 4157):** the CONCAT ALPHABETIC rider (RV-15.18.4-3 → CONFORMS; a rider on
+  `BoundIntrinsicCall`, never a PicCategory member) + PB72's Table-16 completion — the four missing
+  alphabetic/edited/noninteger arms (all four cells CLI-probed accepted before, negatives after), the
+  `Table16Operand.Of(Place)` GR2/GR6 ref-mod erasure (two over-rejections fixed), the OoBinder BY
+  CONTENT crossing now carries the Place, and SR-14.9.25.3-10 blank→CONFORMS. The corpus caught an
+  unguarded IsEdited arm refusing the DE-EDITING move before it shipped. Open derivations split to
+  PB73 (adjudication). ⚠ A comprehensive battery is OWED for this landing (the MOVE seam is shared;
+  NIST + the differential are the exposure — a GnuCOBOL-corpus flip to WE_REJECT needs attribution
+  and a baseline regen).
+  **NEXT, in order:** ① **PB59 family 7b** — the `OperandCategory` totalization (groups/ALL per
+  §8.5.2.1) + its ref-mod GR6c sibling (scouted: the reader skips the category rewrite its own doc
+  cites) — it moves MAX/MIN result-type resolution, measure with the map's eleven ResultCategory
+  consumers. ② **the BASECONVERT
+  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member).
+  Then the queue as ordered below (PB60 → PB58 → …).
   **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
   fix at root, sweep siblings → probe again → golden + manifest (byte-preserving inserts — a JSON
   round-trip rewrote a whole manifest once) → wave-local gate → `record_verdicts.py` → SpecTraceability

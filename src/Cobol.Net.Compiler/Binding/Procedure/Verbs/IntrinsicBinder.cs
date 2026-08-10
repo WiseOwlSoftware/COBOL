@@ -646,8 +646,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
 
-        return new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat };
+        // §15.18.4 r3 — CONCAT returns an ALPHABETIC value when argument-1 is usage display and argument-1 and
+        // all argument-2 are of class alphabetic (PB59 family 7 / RV-15.18.4-3). Class alphabetic is a PIC A
+        // DATA ITEM — §8.3.1.2 gives no literal that class, a ref-mod view is class alphanumeric (§8.4.3.3.4
+        // GR2/GR6), and a nested CONCAT contributes through its own rider — and every PIC A item is usage
+        // display, so all-alphabetic subsumes r3's usage-display precondition. Fail-soft: any shape not
+        // provably alphabetic keeps r3's "otherwise" arm (alphanumeric).
+        bool alphabetic = resolved.Name == "CONCAT" && args.Count > 0 && args.All(IsAlphabeticArg);
+
+        return new BoundIntrinsicCall(resolved, args, category, collate)
+            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic };
     }
+
+    /// <summary>Is this argument provably CLASS ALPHABETIC (§8.5.2.1 Table 2 — category alphabetic, the PIC A
+    /// shape)? A ref-mod view never is (§8.4.3.3.4 GR2/GR6 make every view plain alphanumeric); a nested
+    /// CONCAT is exactly when its own §15.18.4 r3 rider says so.</summary>
+    private static bool IsAlphabeticArg(BoundOperand op) => op switch
+    {
+        BoundFieldOperand { Place: RefModPlace } => false,
+        BoundFieldOperand f => f.Place.Item.Pic is { IsAlphabetic: true },
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultIsAlphabetic: true } } => true,
+        _ => false,
+    };
 
     /// <summary>Bind FUNCTION EXCEPTION-FILE(file-connector-name) / EXCEPTION-FILE-N(...) (§15.28.4 r2 / §15.29.4 r2,
     /// COBOL-2023, E.3.3 items 25/26): argument-1 is an FD file-name (a file connector, §15.28.3 rule 1) resolved to

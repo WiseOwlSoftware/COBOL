@@ -563,7 +563,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             }
 
             // Effective BY CONTENT (§14.8.2.3.3): rule-per-formal-category.
-            if (OoContentMismatch(formal, place.Item) is { } cerr)
+            if (OoContentMismatch(formal, place) is { } cerr)
             {
                 Err($"BY CONTENT argument '{dref.GetText()}' does not conform to formal "
                     + $"'{formal.CobolName}': {cerr} (ISO §14.8.2.3.3)");
@@ -698,13 +698,24 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// CONTENT conversion is a documented later refinement), SET for object references (widening — the
     /// argument's class shall be the receiver's class or a subclass), MOVE otherwise (alphanumeric/group
     /// formals take any alphanumeric/group/integer-display argument, pad/truncate per MOVE).</summary>
-    private string? OoContentMismatch(DataItem formal, DataItem arg)
+    private string? OoContentMismatch(DataItem formal, Place argPlace)
     {
+        DataItem arg = argPlace.Item;
+        // §8.4.3.3.4 GR2/GR6 (fix-queue PB72): a REF-MOD argument crosses as the ELEMENTARY plain-alphanumeric
+        // (or GR6b/c national) view it creates, never as the inner item — whose numeric category would satisfy
+        // the COMPUTE arm below for a slice that is class alphanumeric, and whose finer alphabetic/edited flags
+        // refused legal Table-16 crossings. The view's category comes from the ONE GR6 reader
+        // (RefModPlace.CategoryOf); a view is elementary by definition, never a group.
+        PicCategory? argCat = argPlace is RefModPlace rmp
+            ? rmp.Inner.Item.Pic is { } ip ? RefModPlace.CategoryOf(ip) : PicCategory.Alphanumeric
+            : arg.Pic?.Category;
+        bool argIsGroup = argPlace is not RefModPlace && arg.IsGroup;
+
         if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
         {
-            if (arg.IsGroup)
+            if (argIsGroup)
                 return arg.IsImageCapable ? null : "the argument group has no character image (Tier-C)";
-            return arg.Pic?.Category switch
+            return argCat switch
             {
                 PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
                 // Table 16: boolean→alphanumeric is a conforming MOVE; national→alphanumeric is NOT
@@ -717,17 +728,19 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         var f = formal.Pic!;
         return f.Category switch
         {
+            // The numeric/float/object arms key on the VIEW category — a ref-mod view is never numeric or an
+            // object reference (GR6c), so their arg.Pic detail reads are only reachable for a whole-item arg.
             PicCategory.Numeric when f.IsFloat =>
-                arg.Pic is { IsFloat: true } a2 && a2.Usage == f.Usage
+                argCat is PicCategory.Numeric && arg.Pic is { IsFloat: true } a2 && a2.Usage == f.Usage
                     ? null
                     : "a float formal takes the identical float usage BY CONTENT (cross-float COMPUTE "
                       + "conversion is a later refinement)",
             PicCategory.Numeric =>
-                arg.IsGroup ? "a group argument does not conform to a numeric formal (§14.8.2.3.3)"
-                : arg.Pic is { Category: PicCategory.Numeric, IsFloat: false } ? null
+                argIsGroup ? "a group argument does not conform to a numeric formal (§14.8.2.3.3)"
+                : argCat is PicCategory.Numeric && arg.Pic is { IsFloat: false } ? null
                 : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
             PicCategory.ObjectReference =>
-                arg.Pic is { Category: PicCategory.ObjectReference } ap
+                argCat is PicCategory.ObjectReference && arg.Pic is { } ap
                     ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, ap, f)
                     : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
             // ⭐ BOOLEAN / NATIONAL / NUMERIC-EDITED FORMALS ASK TABLE 16, NOT STRICT IDENTITY (fix-queue PB53).
@@ -741,7 +754,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // ⚠ ANY LENGTH keeps its own answer FIRST: §14.8.2.3.3 rule 2c makes such a formal's length
             // "considered to match", which is a statement about LENGTH and leaves the category pair to 2d.
             _ => formal.IsAnyLength && !arg.IsAnyLength ? null
-                : MoveTable16.Refusal(Table16Operand.Of(arg), Table16Operand.Of(formal)),
+                : MoveTable16.Refusal(Table16Operand.Of(argPlace), Table16Operand.Of(formal)),
         };
     }
 

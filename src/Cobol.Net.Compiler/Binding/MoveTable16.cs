@@ -22,6 +22,23 @@ public readonly record struct Table16Operand(
             ? new Table16Operand(PicCategory.Group)
             : new Table16Operand(p.Category, p.IsAlphabetic, p.EditMask is not null,
                 p.Category is PicCategory.Numeric && (p.IsFloat || p.Scale > 0));
+
+    /// <summary>The Table-16 position of a PLACE — the entry every MOVE/INVOKE crossing must use, because a
+    /// REFERENCE-MODIFIED view does not carry the inner item's finer flags (fix-queue PB72): §8.4.3.3.4 GR2
+    /// redefines every usage-DISPLAY non-alphanumeric item as CLASS AND CATEGORY ALPHANUMERIC for reference
+    /// modification, and GR6's lettered rewrites plus GR1/SR5's closed class lists (boolean, alphanumeric,
+    /// national — no alphabetic anywhere in the scheme) mean the unique data item is NEVER alphabetic, NEVER
+    /// edited and NEVER numeric. Reading the INNER item's flags through a view refused legal source both ways:
+    /// <c>MOVE A-ITEM(1:2) TO a-boolean</c> is Table 16's plain alphanumeric→boolean "Yes" (measured refused),
+    /// and the edited twin the same. The CATEGORY itself routes through the ONE GR6 reader
+    /// (<see cref="RefModPlace.CategoryOf"/>); a ref-mod view over a GROUP is an ELEMENTARY alphanumeric item
+    /// (GR6's lead sentence), never Group-exempt.</summary>
+    public static Table16Operand Of(Place p) => p switch
+    {
+        RefModPlace rm => new Table16Operand(
+            rm.Inner.Item.Pic is { } ip ? RefModPlace.CategoryOf(ip) : PicCategory.Alphanumeric),
+        _ => Of(p.Item),
+    };
 }
 
 /// <summary>
@@ -88,6 +105,42 @@ public static class MoveTable16
                 ? "a boolean sending operand does not move to an alphabetic, numeric or numeric-edited receiver "
                   + "(ISO §14.9.25.3 SR10, Table 16)"
                 : null;
+
+        // ⭐ THE ALPHABETIC / EDITED / NONINTEGER AXES, COMPLETED (fix-queue PB72 — the arms below were absent
+        // and every one of their "No" cells was a MEASURED silent acceptance; the table is read AS PRINTED at
+        // specs/ISO_COBOL.md:25263, and with these four arms every cell over the modeled categories is decided
+        // here). The classic '85 rows carry the same "No" cells, so all four arms are version-invariant.
+
+        // ── ALPHABETIC column: a numeric or numeric-edited sender is "No" (`MOVE 5 TO a-pic-a` stored "5   ").
+        //    Boolean and national senders are refused by their ROW arms above; the alphanumeric family is Yes. ──
+        if (receiver.IsAlphabetic && sender.Category is PicCategory.Numeric or PicCategory.NumericEdited)
+            return "a numeric or numeric-edited sending operand does not move to an alphabetic receiver "
+                 + "(ISO §14.9.25.3 SR10, Table 16)";
+
+        // ── ALPHABETIC row: numeric and numeric-edited receivers are "No" (a PIC A sender into PIC 9 stored
+        //    zeros); boolean and national columns are covered above, the alphanumeric family is Yes. ──
+        if (sender.IsAlphabetic && receiver.Category is PicCategory.Numeric or PicCategory.NumericEdited)
+            return "an alphabetic sending operand does not move to a numeric or numeric-edited receiver "
+                 + "(ISO §14.9.25.3 SR10, Table 16)";
+
+        // ── ALPHANUMERIC-EDITED row: numeric and numeric-edited receivers are "No". The DE-EDITING move is
+        //    the NUMERIC-edited row's (numeric-edited → numeric is Yes) — an ALPHANUMERIC edit mask has no
+        //    de-editable value, which is exactly why the two rows differ. ⛔ The category guard is load-bearing:
+        //    IsEdited is set for a NUMERIC-edited item too (Of reads the one EditMask field), and an unguarded
+        //    arm refused the de-editing move — caught by the corpus (move_numeric_edited_source), not by reading. ──
+        if (sender is { Category: PicCategory.Alphanumeric, IsEdited: true }
+            && receiver.Category is PicCategory.Numeric or PicCategory.NumericEdited)
+            return "an alphanumeric-edited sending operand does not move to a numeric or numeric-edited "
+                 + "receiver (ISO §14.9.25.3 SR10, Table 16)";
+
+        // ── NUMERIC row, Noninteger: alphabetic / alphanumeric / alphanumeric-edited receivers are "No"
+        //    (`MOVE 5.5 TO a-pic-x` printed "5.5"); the INTEGER row's Yes is the classic digit-image move.
+        //    The alphabetic receiver is already refused by the column arm above; this closes the plain and
+        //    edited alphanumeric cells. ──
+        if (sender is { Category: PicCategory.Numeric, IsNonInteger: true }
+            && receiver.Category is PicCategory.Alphanumeric)
+            return "a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or "
+                 + "alphanumeric-edited receiver (ISO §14.9.25.3 SR10, Table 16)";
 
         return null;
     }

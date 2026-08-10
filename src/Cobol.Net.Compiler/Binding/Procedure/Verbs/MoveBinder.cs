@@ -154,29 +154,31 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// </summary>
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets)
     {
-        // ── The SENDER's category view ──
-        PicCategory? senderCat = source switch
+        // ── The SENDER's Table-16 position (fix-queue PB72: built in ONE place, and a FIELD builds through
+        // Table16Operand.Of(Place) so a ref-mod view takes §8.4.3.3.4 GR2/GR6's rewrites — category via the one
+        // GR6 reader, and the finer alphabetic/edited/noninteger flags erased, because the unique data item a
+        // view creates is plain class-and-category alphanumeric). An INTRINSIC sender reports the §15.18.4 r3
+        // ALPHABETIC rider alongside its result category — the finer row Table 16 keys on and PicCategory
+        // deliberately cannot express (the PIC A fold). ──
+        Table16Operand senderPos = source switch
         {
-            BoundStringLiteral sl => sl.Category,
-            BoundAllLiteral al => al.Category,
-            BoundFieldOperand { Place: RefModPlace rm } => MoveReceiverCategory(rm),   // same view rule
-            BoundFieldOperand f when f.Place.Item.IsGroup || f.Place.Item.Pic is null => null,   // GR4
-            BoundFieldOperand f => f.Place.Item.Pic!.Category,
-            BoundNumericLiteral => PicCategory.Numeric,
-            // A computed expression is numeric unless it is an intrinsic call with a string result category.
-            BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
-            BoundComputedOperand => PicCategory.Numeric,
-            _ => null,   // figuratives (SR7 below) / errors
+            BoundStringLiteral sl => new Table16Operand(sl.Category),
+            BoundAllLiteral al => new Table16Operand(al.Category),
+            BoundFieldOperand f when f.Place is not RefModPlace
+                                     && (f.Place.Item.IsGroup || f.Place.Item.Pic is null) =>
+                new Table16Operand(PicCategory.Group),   // GR4 — group moves copy without conversion
+            BoundFieldOperand f => Table16Operand.Of(f.Place),
+            BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
+            // A computed expression is numeric unless it is an intrinsic call with a string result category;
+            // a noninteger-valued intrinsic result deliberately stays IsNonInteger: false here — whether §15.4's
+            // temporary item puts a function result in Table 16's noninteger row is an OPEN derivation
+            // (kb/Work PB72 residue), and silently flipping it would reject function-as-text programs the
+            // item-92 determination documents.
+            BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic),
+            BoundComputedOperand => new Table16Operand(PicCategory.Numeric),
+            _ => new Table16Operand(PicCategory.Group),   // figuratives (SR7 below) / errors — category-exempt
         };
-        bool senderNonInteger = source switch
-        {
-            BoundFieldOperand f => f.Place.Item.Pic is { Category: PicCategory.Numeric } p && (p.IsFloat || p.Scale > 0),
-            BoundNumericLiteral nl => nl.Text.Contains('.'),
-            _ => false,
-        };
-        bool senderIsAlphabetic = source is BoundFieldOperand fa && fa.Place.Item.Pic is { IsAlphabetic: true };
-        bool senderIsAnEdited = source is BoundFieldOperand fe
-            && fe.Place.Item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null };
         // §14.9.25.3 SR8: a fixed-width binary sender (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) shall reference
         // only a numeric or numeric-edited receiver — SR10 (Table 16) applies only to cases NOT covered by
         // SR8, so this precedes the Table-16 arms. The family is 2002+ (absent from the '85 corpus), so
@@ -211,11 +213,9 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // ⭐ AND THE CATEGORY-PAIR RULE ITSELF IS NOW ASKED OF THE ONE TABLE (fix-queue PB53). It used to be
             // four inline arms here and a §14.8.2.3.2 STRICT-IDENTITY fallback in the INVOKE argument screen —
             // two answers to one question, and §14.8.2.3.3 rule 2d says the INVOKE crossing asks THIS one.
-            else if (MoveTable16.Refusal(
-                         new Table16Operand(senderCat ?? PicCategory.Group, senderIsAlphabetic, senderIsAnEdited,
-                             senderNonInteger),
-                         new Table16Operand(recvCat, t.Item.Pic is { IsAlphabetic: true },
-                             t.Item.Pic?.EditMask is not null)) is { } refusal)
+            // The RECEIVER position likewise builds through Table16Operand.Of(Place) (PB72): a ref-mod receiver is
+            // plain alphanumeric (GR2/GR6), never the inner item's alphabetic/edited row.
+            else if (MoveTable16.Refusal(senderPos, Table16Operand.Of(t)) is { } refusal)
                 ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}");
         }
     }

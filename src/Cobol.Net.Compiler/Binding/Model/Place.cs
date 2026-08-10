@@ -253,9 +253,17 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// </para>
     /// <para>
     /// NOTE this compiler's <see cref="PicCategory.Alphanumeric"/> covers ISO's alphanumeric AND alphabetic
-    /// categories (the alphabetic-ness rides on <c>PicInfo.IsAlphabetic</c>), so GR6's base case preserves both
-    /// through the same member. No ref-mod result is ever category NUMERIC — GR6c rewrites numeric away — which
-    /// is why the §8.8.1.1 arithmetic-operand bar on a ref-modified operand is correct as it stands.
+    /// categories (the alphabetic-ness rides on <c>PicInfo.IsAlphabetic</c>) — and ⛔ ALPHABETIC-NESS DOES NOT
+    /// SURVIVE REFERENCE MODIFICATION (corrected 2026-08-09, fix-queue PB72): GR2 operates on a usage-DISPLAY
+    /// non-alphanumeric item "as if it were redefined as a data item of class and category alphanumeric", and
+    /// GR1/SR5's closed class lists (boolean, alphanumeric, national) leave no alphabetic result anywhere in
+    /// the ref-mod scheme — an earlier revision of this NOTE claimed the base case "preserves both", and
+    /// reading the INNER item's IsAlphabetic through a view refused legal Table-16 moves. Consumers that need
+    /// the finer Table-16 row build through <c>Table16Operand.Of(Place)</c>, which erases it. No ref-mod result
+    /// is ever category NUMERIC — GR6c rewrites numeric away — which is why the §8.8.1.1 arithmetic-operand
+    /// bar on a ref-modified operand is correct as it stands. (Whether GR2 likewise makes a DISPLAY-FORM
+    /// boolean view alphanumeric — this method keeps it boolean per GR6's base case — is an OPEN adjudication
+    /// registered on kb/Work PB72; the usage-BIT view is boolean under every reading, GR5a.)
     /// </para></summary>
     /// <remarks>
     /// ⚠ <b>GR6 a AND b HAVE NO ARM HERE, AND THAT IS A PROPERTY OF THE MODEL, NOT OF THE RULE.</b>

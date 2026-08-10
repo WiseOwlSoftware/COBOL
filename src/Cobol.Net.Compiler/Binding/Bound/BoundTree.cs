@@ -231,6 +231,15 @@ public sealed record BoundIntrinsicCall(
     /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.</summary>
     public IReadOnlyList<int>? SubstituteModes { get; init; }
 
+    /// <summary>CONCAT (§15.18.4 r3): the returned value is ALPHABETIC — argument-1 is usage display and every
+    /// argument is class alphabetic (a PIC A item, or a nested CONCAT carrying this same rider). The RESULT
+    /// CATEGORY stays <see cref="PicCategory.Alphanumeric"/> — the deliberate PIC A fold (PicInfo) is not
+    /// reopened, because this is per-CALL derived state, not a declarable category, and no §15.3 argument rule
+    /// admits class alphabetic — so the rider carries Table 16's finer row to its ONE consumer
+    /// (<c>Table16Operand</c>, whose IsAlphabetic axis already exists; fix-queue PB59 family 7 /
+    /// RV-15.18.4-3). False for every other function.</summary>
+    public bool ResultIsAlphabetic { get; init; }
+
     /// <summary>CONVERT (§15.19.2) source-format: 0 = ANY, 1 = ANUM/ALPHANUMERIC, 2 = HEX, 3 = NAT/NATIONAL.
     /// Zero for every other function (== ANY, unused there).</summary>
     public int ConvertSource { get; init; }

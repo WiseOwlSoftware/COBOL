@@ -34598,12 +34598,12 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "MOVE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Refusal; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoContentMismatch",
+  "test-ref": "conformance:2023/pb72_table16_admitted_cells; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
+  "editions": "85,2002,2014,2023",
+  "notes": "ADJUDICATED + LANDED 2026-08-09 (PB72, with PB59 family 7): Table 16 is enforced IN FULL over the modeled categories from the ONE MoveTable16.Refusal - the boolean/national arms (PB53) plus the previously ABSENT alphabetic column (numeric/numeric-edited senders - MOVE 5 TO a PIC A item was silently accepted), alphabetic row (numeric receivers - a PIC A sender stored zeros), alphanumeric-edited row's numeric leg, and the noninteger row's alphanumeric leg (MOVE 5.5 TO PIC X printed 5.5); all four cells were CLI-probed accepted before and reject 0819 after (negatives pb72-move-*). Both operand positions build through Table16Operand.Of(Place), which erases the finer alphabetic/edited/noninteger flags for a ref-mod view per 8.4.3.3.4 GR2/GR6 (GR1+SR5's closed class lists admit no alphabetic result) - the previously-refused legal crossings MOVE A-ITEM(1:2)/AE-ITEM(1:2) TO a boolean item are admitted (the corpus golden's RA/RB legs). The INVOKE BY CONTENT crossing (14.8.2.3.3 r2d) asks the same table through the same Of(Place). RESIDUES (kb/Work PB72): whether a NONINTEGER-scaled intrinsic result as sender falls in the noninteger row (15.4 temporary-item derivation, deliberately unchanged); Type-name rows/columns and national-edited await their staged features; the GR2 display-form-boolean view question is an open adjudication on the note.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.25.3-11",
@@ -43828,12 +43828,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "CONCAT function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#ResultCategory; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#IsAlphabetic; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundIntrinsicCall; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Refusal",
+  "test-ref": "conformance:2023/pb72_table16_admitted_cells; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
   "editions": "2023",
-  "notes": "test-needed. §15.18.4 r3's ALPHABETIC half is unimplemented and observably wrong; the 'otherwise alphanumeric' half conforms. Verified on src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe for this review: '01 A PIC A(3) VALUE \"AB\". 01 BOOLR PIC 1(8) USAGE DISPLAY. MOVE A TO BOOLR' is REJECTED with 'COBOLNET0819: MOVE of an alphabetic, alphanumeric-edited, numeric, or numeric-edited operand to a boolean data item is invalid (ISO 14.9.25.3 SR10, Table 16)'; but '01 A PIC A(3) VALUE \"AB\". 01 B PIC A(2) VALUE \"CD\". 01 BOOLR PIC 1(8) USAGE DISPLAY. MOVE FUNCTION CONCAT(A B) TO BOOLR DISPLAY \"B[\" BOOLR \"]\"' compiles CLEAN and prints 'B[AB CD000]'. Per r3 ('if argument-1 is usage display, then if argument-1 and all argument-2 are of class alphabetic, the function will return an alphabetic value, otherwise ... alphanumeric', cite.py --check OK) argument-1 is usage display and every argument is class alphabetic, so the function returns an ALPHABETIC value, and Table 16 read directly in the spec (Alphabetic sender row × Boolean receiver column = 'No', versus Alphanumeric × Boolean = 'Yes') forbids that MOVE. The alphabetic result category is REPRESENTABLE at the sender end — 'PicInfo.IsAlphabetic' exists and MoveBinder.MoveCategoryLegality already consumes it ('bool senderIsAlphabetic = source is BoundFieldOperand fa && fa.Place.Item.Pic is { IsAlphabetic: true };') — what is missing is a channel to carry alphabetic-ness on an intrinsic RESULT: BoundIntrinsicCall.ResultCategory is a PicCategory, which has no Alphabetic member (IntrinsicArgumentRules' own remark records that PicCategory deliberately folds PIC A into Alphanumeric), and senderIsAlphabetic is computed only for a BoundFieldOperand. This is a result-category channel change, not a PicCategory rewrite.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-09 (PB59 family 7): the ALPHABETIC half rides a RIDER on BoundIntrinsicCall (ResultIsAlphabetic), NOT a PicCategory.Alphabetic member - the PIC A fold and the six-type IntrinsicType stay deliberate (their written-down decisions hold: the rider is per-CALL derived state, not a declarable category, and no 15.3 argument rule admits class alphabetic). Set at the ONE generic construction site (BindIntrinsicCore - CONCAT has no bespoke arm) when argument-1 and all argument-2 are provably class alphabetic: a PIC A field that is NOT a ref-mod view (8.4.3.3.4 GR2/GR6 make every view plain alphanumeric and break the chain) or a nested CONCAT carrying the rider; literals never qualify (8.3.1.2), and every PIC A item is usage display so r3's precondition is subsumed. Consumed at Table 16's sender position: MOVE FUNCTION CONCAT(picA picA) TO a boolean item now rejects 0819 (negative pb59-concat-alphabetic-to-boolean) while the plain-X, mixed and ref-mod-argument forms stay admitted (the corpus golden's XB/MX legs + the r3 'otherwise' arm). The 15.18.1 table's two usage-national rows remain unreachable (PIC 9/1 USAGE NATIONAL stages loud, COBOLNET0899) - a pre-existing staging, not this rule's hole. The 'all arguments alphabetic' MAX/MIN analogue has no such row in 15.59.1/15.63.1, so CONCAT is the one function carrying the rider.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.18.4-4",
