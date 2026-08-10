@@ -641,6 +641,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // DISPLAY-OF / NATIONAL-OF (§15.26.3 / §15.66.3) — the argument class/category rules of the sanctioned
         // national↔alphanumeric repertoire pair.
         if (sig.Name is "DISPLAY-OF" or "NATIONAL-OF") CheckRepertoireArgs(sig, args);
+        // BASECONVERT (§15.12.3 r1) — the bind-time screen family (PB59 / AR-15.12.3-1 legs (b)–(f)).
+        if (sig.Name is "BASECONVERT") CheckBaseConvertArgs(args);
 
         // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§15.28–15.33) — flag the
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
@@ -1053,6 +1055,67 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"shall be one character position in length, not {w} "
                 + $"(ISO {(toNat ? "§15.66.3" : "§15.26.3")} rule 2)");
     }
+
+    /// <summary>BASECONVERT argument rules (§15.12.3 r1 — fix-queue PB59 / AR-15.12.3-1 legs (b)–(f)), the
+    /// COMPILE-TIME halves; the runtime twins (the r2 digit screen, the dynamic base range and the equal-bases
+    /// EC) live in <c>CobolIntrinsics.BaseConvert</c>. Argument-1 "shall be a usage display or national data
+    /// item or literal" — the <see cref="IntrinsicArgumentRules.StaticUsageOf"/> axis (a COMP/PACKED item's
+    /// storage is not a digit string; the same shared reader the CONVERT r4–r7 screens ride). When the base in
+    /// argument-2 is a STATIC literal below 11, argument-1 "shall also be an unsigned integer data item or
+    /// literal" — which rejects a SIGNED or SCALED numeric argument-1 and a numeric-edited one (not an
+    /// unsigned integer data item). ⚠ An ALPHANUMERIC string under a sub-11 base is deliberately ADMITTED:
+    /// "unsigned integer … literal" is readable as the literal's KIND or its CONTENT, the corpus and GnuCOBOL
+    /// both accept string arguments at every base (BASECONVERT("1010", 2, 16) is a pinned-green golden), and
+    /// the runtime r2 digit screen owns the content — the narrower reading would reject pinned-legal source
+    /// (follow-GnuCOBOL-on-split-latitude). Argument-2/-3 "shall be positive nonzero numeric integer literals
+    /// or data items with unequal values in the range 2 to 16" — every STATIC-literal violation is flagged at
+    /// compile time per §4.2.2 ¶3 (a non-integer literal base, a literal base outside 2..16, two EQUAL literal
+    /// bases); data-item bases stay the runtime guards' territory.</summary>
+    private void CheckBaseConvertArgs(List<BoundOperand> args)
+    {
+        if (args.Count > 0 && IntrinsicArgumentRules.StaticUsageOf(args[0]) is { } u
+            && u is not (Usage.Display or Usage.National))
+            ctx.Edition.Error("COBOLNET1642", "FUNCTION BASECONVERT: argument-1 shall be a usage display or "
+                + $"national data item or literal, not usage {u} (ISO §15.12.3 rule 1)");
+
+        long? b2 = StaticIntLiteral(args, 1), b3 = StaticIntLiteral(args, 2);
+        if (b2 is { } r2v && r2v is < 2 or > 16)
+            ctx.Edition.Error("COBOLNET1642", "FUNCTION BASECONVERT: argument-2 shall be in the range 2 to 16, "
+                + $"not {r2v} (ISO §15.12.3 rule 1; §4.2.2 — a literal violation is flagged at compile time)");
+        if (b3 is { } r3v && r3v is < 2 or > 16)
+            ctx.Edition.Error("COBOLNET1642", "FUNCTION BASECONVERT: argument-3 shall be in the range 2 to 16, "
+                + $"not {r3v} (ISO §15.12.3 rule 1; §4.2.2 — a literal violation is flagged at compile time)");
+        if (b2 is { } e2 && b3 is { } e3 && e2 == e3)
+            ctx.Edition.Error("COBOLNET1642", "FUNCTION BASECONVERT: argument-2 and argument-3 shall have "
+                + $"unequal values — both are {e2} (ISO §15.12.3 rule 1)");
+        for (int i = 1; i <= 2 && i < args.Count; i++)
+            if (args[i] is BoundNumericLiteral bl && (bl.Text.Contains('.') || bl.Text.Contains(',')))
+                ctx.Edition.Error("COBOLNET1642", $"FUNCTION BASECONVERT: argument-{i + 1} shall be a positive "
+                    + $"nonzero numeric INTEGER literal or data item, not '{bl.Text}' (ISO §15.12.3 rule 1)");
+
+        // r1's sub-11 half. OperandCategory is the totalized §8.5.2.1 reader, so a ref-mod view (class
+        // alphanumeric, GR6c) correctly skips this arm and reads as a string.
+        if (b2 is >= 2 and < 11 && args.Count > 0
+            && OperandCategory(args[0]) is PicCategory.Numeric or PicCategory.NumericEdited)
+        {
+            bool bad = args[0] switch
+            {
+                BoundFieldOperand f0 => f0.Place.Item.Pic is { } p0
+                    && (p0.Category is PicCategory.NumericEdited || p0.Signed || p0.Scale > 0 || p0.IsFloat),
+                BoundNumericLiteral nl0 => nl0.Text.Contains('.') || nl0.Text.Contains(',')
+                    || nl0.Text.StartsWith('-'),
+                _ => false,   // computed results — the runtime digit screen owns their content
+            };
+            if (bad)
+                ctx.Edition.Error("COBOLNET1642", "FUNCTION BASECONVERT: when the base in argument-2 is below "
+                    + "11, argument-1 shall be an unsigned integer data item or literal (ISO §15.12.3 rule 1)");
+        }
+    }
+
+    /// <summary>The statically known integer value of argument <paramref name="i"/> — a plain numeric literal
+    /// only (a data item or expression is runtime territory); null when absent or not an integer literal.</summary>
+    private static long? StaticIntLiteral(IReadOnlyList<BoundOperand> args, int i) =>
+        i < args.Count && args[i] is BoundNumericLiteral nl && long.TryParse(nl.Text, out long v) ? v : null;
 
     /// <summary>The §15.19.2 CONVERT format words (reserved within the argument list, like TRIM's LEADING/TRAILING).</summary>
     private static bool IsConvertFormatWord(string w) =>

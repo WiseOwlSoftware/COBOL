@@ -70,10 +70,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   r1 screen open. Golden `pb59_operand_category_total`; negatives pb59-display-of-group/-all-literal.
   Wave-local green (Conformance 1030/1030 · Unit 57/57 · SpecTraceability 10/10); the batch battery
   rides with the next landing.
-  **NEXT, in order:** ① **the BASECONVERT
-  screen set** — AR-15.12.3-1 legs (b)–(f) on the landed StaticUsageOf axis (PB59's last member) —
-  then ONE comprehensive battery for the 7b+BASECONVERT batch.
-  Then the queue as ordered below (PB60 → PB58 → …).
+  **✅ PB59 IS CLOSED (2026-08-09, fifth landing — ALL 28 ROWS CONFORMS, GAP 4155):** the BASECONVERT
+  screen set landed (CheckBaseConvertArgs / COBOLNET1642 on the shared StaticUsageOf axis + the runtime
+  equal-bases EC twin; five negatives; the sub-11 string-argument latitude recorded as
+  follow-GnuCOBOL). The note's seven families all landed in one day; successors PB68–PB73 carry the
+  residues. **NEXT: ① the comprehensive battery for the accumulated 7b+BASECONVERT batch (owed NOW —
+  the OperandCategory classifier is a shared intrinsic seam), ② then the queue as ordered below
+  (PB60 → PB58 → PB61 → …).**
   **THE FIX LOOP (proven 11× now):** re-scout → cite (`cite.py --check`) → CLI-probe the defect →
   fix at root, sweep siblings → probe again → golden + manifest (byte-preserving inserts — a JSON
   round-trip rewrote a whole manifest once) → wave-local gate → `record_verdicts.py` → SpecTraceability

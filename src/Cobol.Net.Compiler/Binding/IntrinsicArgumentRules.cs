@@ -570,10 +570,12 @@ internal static class IntrinsicArgumentRules
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["BYTE-LENGTH"] = "§15.14.3 r1 admits an argument of ANY class or category",
-            ["BASECONVERT"] = "§15.12.3 r1 constrains USAGE (display or national), not class. The RENDERER "
-                + "admits a numeric LITERAL argument-1 (r1's 'unsigned integer … literal' below base 11 — "
-                + "IntrinsicRenderer.StrNum, PB59); STILL unscreened at bind: r1's usage half, the "
-                + "unsigned-integer condition, and the base-range/unequal-value compile-time half (§4.2.2)",
+            ["BASECONVERT"] = "§15.12.3 r1 constrains USAGE (display or national), not class — an axis this "
+                + "ordinal table cannot express; enforced at bind by CheckBaseConvertArgs over StaticUsageOf "
+                + "(the usage half, the sub-11 unsigned-integer half, and every static-literal base violation "
+                + "per §4.2.2 — range, integer-ness, equality), with the runtime twins (the r2 digit screen, "
+                + "dynamic base range/equality) in CobolIntrinsics.BaseConvert. The RENDERER admits a numeric "
+                + "LITERAL argument-1 (IntrinsicRenderer.StrNum, PB59)",
             ["CONCAT"] = "§15.18.3 r1 admits all classes but index/object/pointer; r2/r3 are cross-argument "
                 + "USAGE rules. The RENDERER admits numeric literals (r1 lists class numeric — the admitting "
                 + "StrArgList, PB59); STILL unscreened at bind: r1's exclusions and r3's usage-display + "

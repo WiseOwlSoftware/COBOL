@@ -168,6 +168,13 @@ public static partial class CobolIntrinsics
             Exceptions.ExceptionState.ArgumentError($"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§15.12.3 rule 1)");
             return "";
         }
+        // §15.12.3 r1 — "with UNEQUAL values": the runtime twin of the compile-time equal-literals screen
+        // (PB59 / AR-15.12.3-1 leg (b)); reachable only through data-item bases the binder cannot read.
+        if (fromBase == toBase)
+        {
+            Exceptions.ExceptionState.ArgumentError($"BASECONVERT argument-2 and argument-3 shall have unequal values — both are {fromBase} (§15.12.3 rule 1)");
+            return "";
+        }
         System.Numerics.BigInteger acc = 0;
         int digitsSeen = 0;
         foreach (char ch in value.TrimEnd(' '))

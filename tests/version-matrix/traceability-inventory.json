@@ -43425,12 +43425,12 @@
   "kind": "AR",
   "ordinal": 1,
   "subject": "BASECONVERT function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrNum",
-  "test-ref": "conformance:2023/pb59_numeric_literal_argument",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckBaseConvertArgs; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#StaticUsageOf; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BaseConvert",
+  "test-ref": "conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic; conformance-test:IntrinsicFunctionDifferentialTests.BaseConvert_EqualDataItemBases_EcArgumentDefault_2023; conformance-test:IntrinsicFunctionDifferentialTests.BaseConvert_ReExpressesInTargetBase_2023; conformance:2023/pb59_numeric_literal_argument",
   "editions": "2023",
-  "notes": "Leg (a) LANDED 2026-08-09 (PB59): BASECONVERT(255, 10, 16) compiles and answers FF (the numeric-literal admission, RV-15.12.4-1). THE ROW STAYS DIVERGES on legs (b)-(f) - the bind-time screen family (equal bases EC, COMP/numeric-edited argument-1 rejection, non-integer base, compile-time base-range per 4.2.2 para 3) - owned by the PB59 CONVERT/BASECONVERT screen rework (family 5), which the DeliberatelyUnscreened rows now name explicitly.",
-  "state": "GAP"
+  "notes": "ALL LEGS LANDED 2026-08-09 (PB59 - the note's last member; leg (a), the numeric-literal admission, landed earlier as RV-15.12.4-1). CheckBaseConvertArgs (COBOLNET1642, invoked from the generic bind path beside CheckRepertoireArgs) enforces the compile-time halves on the SHARED StaticUsageOf axis the CONVERT r4-r7 screens ride: (c) argument-1 usage display|national - a COMP item rejects (was: its DISPLAY digits read as base-16, 0255 -> 597); (b) two equal LITERAL bases reject at bind and equal DATA-ITEM bases raise the runtime EC-ARGUMENT-FUNCTION twin (was: BASECONVERT(\"FF\" 16 16) silently returned FF; the theory pins the runtime leg); (f) a LITERAL base outside 2..16 rejects at bind per 4.2.2 para 3 (was: a swallowed runtime EC under checking-off); (e) a non-integer literal base rejects (was: 2.5 silently truncated to 2, answering 3); (d) under a sub-11 literal base a SIGNED or SCALED numeric or numeric-edited argument-1 rejects (r1's 'shall also be an unsigned integer data item or literal'). DELIBERATE LATITUDE, recorded in the screen's doc: an alphanumeric STRING under a sub-11 base stays ADMITTED - the phrase is readable as the literal's kind or its content, the corpus pins BASECONVERT(\"1010\", 2, 16) = A green, GnuCOBOL accepts string arguments at every base, and the runtime r2 digit screen owns the content (follow-GnuCOBOL-on-split-latitude). Five negatives pb59-baseconvert-*; DeliberatelyUnscreened[\"BASECONVERT\"] rewritten to the enforced disposition.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.12.3-2",

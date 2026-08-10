@@ -459,6 +459,14 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
+    public void BaseConvert_EqualDataItemBases_EcArgumentDefault_2023()
+        // §15.12.3 r1 — the bases shall have "unequal values": DATA-ITEM bases are the runtime twin of the
+        // compile-time equal-literals screen (PB59 / AR-15.12.3-1 leg b — two equal LITERALS are COBOLNET1642
+        // at bind, negative pb59-baseconvert-equal-bases). Checking off: EC + the §15.3 zero-length default.
+        => AssertSpec(Program("01 B2 PIC 99 VALUE 16.\n           01 B3 PIC 99 VALUE 16.\n           01 R PIC X(6).",
+            "    MOVE FUNCTION BASECONVERT(\"FF\", B2, B3) TO R.\n    DISPLAY \"R=\" R.", "IFBASEQ"), "R=", 2023);
+
+    [Fact]
     public void Convert_HexSource_TrailingPadTrimmed_2023()
         // PB59 — the trailing fixed-width image pad is not content; the digits convert (the previously
         // unpinned padded-but-valid case: every prior golden's HEX item was exactly filled).
