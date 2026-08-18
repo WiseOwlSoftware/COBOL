@@ -293,6 +293,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // by argument-1". Found by FloatQuantizeHeadroomDriftTests, not by eye.
             case "NumvalF":
             {
+                // ⛔ THE FLOAT FAMILY'S RECEIVERLESS/REAL ARM, SWEPT HERE AT LAST (fix-queue PB60 / RV-15.69.4-2 —
+                // the sweep RenderFloat's own comment asked for). §15.69.4 r2 makes NUMVAL-F's NATIVE value an
+                // APPROXIMATION, and this compiler's documented determination for an approximated returned value
+                // (CONFORMANCE.md item 92) is the float family's: binary64 unless a FIXED-POINT arithmetic receiver
+                // quantizes it. With no receiver there is no scale to quantize TO, and the ws-9 stand-in was not a
+                // rendering choice but a wrong answer: `IF FUNCTION NUMVAL-F("5E+30") = FUNCTION NUMVAL-F("9E+30")`
+                // was TRUE (both saturating to the Int128 sentinel), `DISPLAY` printed that sentinel, a COMP-2
+                // receiver got 1.7E+29, and NUMVAL-F("1.5E-12") was 0 in every receiver-less channel. Every consumer
+                // of a receiver-less numeric already has its Real arm (relation, text, subscript, argument).
+                // A fixed arithmetic receiver keeps the EXACT Int128 parse below — the receiver's scale is known and
+                // the PB13 cap makes any saturation visible to its capacity check — and so does a MOVE SENDER
+                // (ReceiverContext.MoveSender: the receiver's scale is known and MOVE lands the parsed decimal
+                // digit-for-digit; the binary64 route would land NUMVAL-F("1.5E-8") into V9(9) as 14 through
+                // ToScaled's multiply-then-truncate, and lose every digit past the 17th of a 20-digit argument).
+                if (num.Receiver.Real || (num.Receiver.Receiverless && !num.Receiver.MoveSender))
+                    return new NumX(RuntimeApi.Intrinsic("NumvalFDouble", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0, Real: true);
                 int ws = num.Receiver.FloatWorkingScale;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
             }

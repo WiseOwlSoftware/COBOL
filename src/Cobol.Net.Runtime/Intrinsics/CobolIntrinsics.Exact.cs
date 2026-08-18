@@ -412,8 +412,30 @@ public static partial class CobolIntrinsics
         return p.Neg ? -r : r;
     }
 
-    /// <summary>The §15.69 reject projection — shared by <see cref="NumvalF"/> and <see cref="NumvalFDec"/>
-    /// (see <see cref="NumvalReject"/>).</summary>
+    /// <summary>NUMVAL-F under NATIVE arithmetic in a receiver-less or float-receiver context — the §15.69.4 r2
+    /// approximation ("the returned value is an approximation of the numeric value represented by argument-1")
+    /// carried as binary64, exactly the FLOAT family's documented determination (CONFORMANCE.md item 92;
+    /// <c>IntrinsicRenderer.RenderFloat</c>'s Receiverless/Real arm, PB13): the returned value IS a binary64 and
+    /// the Int128 quantization exists only to land it in a FIXED-POINT arithmetic receiver, whose scale defines
+    /// it. ⛔ THIS ARM WAS NEVER SWEPT TO NUMVAL-F (fix-queue PB60 / RV-15.69.4-2): the receiver-less channels
+    /// rode the Int128 projection at the ws-9 floor, so <c>DISPLAY FUNCTION NUMVAL-F("5E+30")</c> printed the
+    /// saturation sentinel 170141183460469231731687303715.884105727, <c>NUMVAL-F("5E+30") = NUMVAL-F("9E+30")</c>
+    /// was TRUE, a COMP-2 receiver got 1.7E+29, and <c>NUMVAL-F("1.5E-12")</c> was 0 in every one of them.
+    /// The conversion is ONE correctly-rounded <c>double.Parse</c> of the scan's canonical
+    /// <c>[-]digits E exp</c> — never a multiply chain of two roundings; a magnitude past binary64 is ±Infinity,
+    /// the same disposition the float family's EXP(1000) has. Same scan, same reject projection as the twins.</summary>
+    public static double NumvalFDouble(string text, bool commaMode = false, int digitCap = 31)
+    {
+        NvfParse p = NvfScan(text, commaMode, digitCap);
+        if (p.ErrPos != 0) return (double)NumvalFReject(p, text, digitCap);
+        if (p.Unscaled == 0) return 0d;
+        return double.Parse(
+            string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{(p.Neg ? "-" : "")}{p.Unscaled}E{p.Exp - p.Frac}"),
+            System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>The §15.69 reject projection — shared by <see cref="NumvalF"/>, <see cref="NumvalFDouble"/> and
+    /// <see cref="NumvalFDec"/> (see <see cref="NumvalReject"/>).</summary>
     private static Int128 NumvalFReject(NvfParse p, string text, int digitCap) =>
         p.CapHit
             ? DigitCapExceeded("NUMVAL-F", digitCap + 1, digitCap, "ISO §15.69.3 rules 2-3")

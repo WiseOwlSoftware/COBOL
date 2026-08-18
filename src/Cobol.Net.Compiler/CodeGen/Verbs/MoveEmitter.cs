@@ -431,6 +431,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         int scale = pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
             ? RuntimeApi.MaskScale(m, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)
             : pic.Scale;
-        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale) };
+        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
     }
 }

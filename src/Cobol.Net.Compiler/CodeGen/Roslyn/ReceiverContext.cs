@@ -31,9 +31,19 @@ namespace CobolNet.CodeGen;
 /// receiver-less render may keep the float family's value in binary64
 /// (<c>IntrinsicRenderer.RenderFloat</c> / <c>NumericRenderer.Power</c>, PB13).
 /// </param>
+/// <param name="MoveSender">
+/// True when this receiver-less render is a MOVE SOURCE whose receiver's scale and capacity are KNOWN
+/// (<c>MoveEmitter.SenderContext</c> — <see cref="Receiverless"/> stays true because the MOVE emitter owns the
+/// landing). It exists for the one family that has BOTH an exact form and an approximation license — NUMVAL-F
+/// under native arithmetic (kb/Work PB60 / RV-15.69.4-2): a MOVE sender keeps the exact Int128 parse at the
+/// receiver's scale (the parsed decimal lands digit-for-digit), while a genuinely scale-less receiver-less
+/// context (a relation operand, a text operand, an argument, a subscript) takes the float family's binary64.
+/// The float family itself does not consult it — its value HAS no exact form, so its MOVE landing is binary64
+/// through <c>CobolFloat.ToScaled</c> either way.
+/// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, bool InSizeError, int IntegerDigits = 0,
-    bool Receiverless = false)
+    bool Receiverless = false, bool MoveSender = false)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
