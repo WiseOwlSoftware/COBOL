@@ -1880,6 +1880,17 @@ internal sealed class VersionConformancePass
                 && locale.cobolWord() is { Length: > 1 } localeWords
                 && !ReferenceEquals(ctx, localeWords[1]))
                 return base.VisitChildren(ctx);
+            // The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (§12.3.7.2; kb/Work PB100): LOCALE is the phrase's
+            // own keyword (not a lexer token — it arrives as the first definition entry's cobolWord) and locale-name-2 is a
+            // REFERENCE to a SPECIAL-NAMES locale-name; the clause itself is COBOLNET1518 (A.4.9 item 10). The PB27 shape.
+            if (ctx.Parent is CobolParserCore.AlphabetEntryContext ae
+                && ae.Parent is CobolParserCore.AlphabetDefinitionContext adef
+                && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(adef))
+                return base.VisitChildren(ctx);
+            // PICTURE Format 2's `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; kb/Work PB100): LOCALE is the
+            // phrase's own keyword and locale-name-1 a reference; the phrase itself is COBOLNET1518 (A.4.9 item 8).
+            if (ctx.Parent is CobolParserCore.PictureLocalePhraseContext)
+                return base.VisitChildren(ctx);
             // The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (§12.3.6.2; kb/Work PB78) — the same shape as the
             // LOCALE clause: CLASSIFICATION is the clause's own keyword (not a lexer token), and each locale-phrase is
             // either a format keyword (LOCALE / SYSTEM-DEFAULT / USER-DEFAULT — uses OF reserved words) or a

@@ -276,7 +276,12 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    SPECIAL-NAMES `LOCALE` clause (kb/Work PB25) and the OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (A.4.9
    item 7 — kb/Work PB78, 2026-08-18; it used to be swallowed silently after a computer-name) are recognized and
    rejected with the same COBOLNET1518, and so are the `SET LOCALE` formats 11/12 (A.4.9 item 9 — kb/Work PB92,
-   2026-08-18; F11 used to bind as a SET of a data item named LOCALE, F12 was a parse error). **Every locale entry
+   2026-08-18; F11 used to bind as a SET of a data item named LOCALE, F12 was a parse error), the ALPHABET clause's
+   `IS LOCALE [locale-name-2]` phrase in either branch (A.4.9 item 10's second half — kb/Work PB100, 2026-08-18; it
+   used to draw a false "reserved word used as a user-defined word"), the PICTURE clause's Format 2 `LOCALE [IS
+   locale-name-1] SIZE IS integer-1` (item 8 — PB100; it was a raw parse error at SIZE), and the EC-LOCALE family /
+   EC-ORDER-NOT-SUPPORTED exception-names wherever a program names one — USE, RAISE / RAISING, the exception-checking
+   PERFORM's WHEN, >>TURN (item 1 — PB100; they used to be accepted, and could never occur). **Every locale entry
    point the module names is now recognized and rejected by name** (the ORDER TABLE / STANDARD-COMPARE items ride
    §2 row 25).
 

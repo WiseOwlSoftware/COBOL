@@ -12602,12 +12602,12 @@
   "kind": "SR",
   "ordinal": 24,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#AlphabetBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#IsAlphabetLocalePhrase",
+  "test-ref": "conformance:negative/pb100-alphabet-locale-phrase",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB100 (2026-08-18): locale-name-2 belongs to the ALPHABET clause's `IS LOCALE [locale-name-2]` phrase — Annex A.4.9 item 10 ('LOCALE phrases in the ALPHABET clause') of the optional locale module, which COBOL.NET does not provide (CONFORMANCE.md §4 item 5); the phrase is now recognized in either branch and rejected with COBOLNET1518 (it used to draw a false 'reserved word used as a user-defined word' from the §8.9 funnel), so this SR never applies — conformant per §4.2.7 / A.4.1 because it is diagnosed.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-25",
@@ -12771,12 +12771,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "SPECIAL-NAMES paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:negative/pb25-special-names-locale-a49; conformance:negative/pb100-alphabet-locale-phrase; conformance:negative/pb100-picture-locale-format-2",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB25 (the SPECIAL-NAMES LOCALE clause is recognized and rejected with COBOLNET1518, A.4.9 item 10) / PB100 (2026-08-18 — every entry point that would REFERENCE locale-name-1 is now refused by name too: the ALPHABET LOCALE phrase, PICTURE format 2, the EC-LOCALE names): the locale a locale-name-1 references never comes into existence in this processor — documented non-support of the optional locale module (CONFORMANCE.md §4 item 5), conformant per §4.2.7 / A.4.1 because every element is diagnosed.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-6",

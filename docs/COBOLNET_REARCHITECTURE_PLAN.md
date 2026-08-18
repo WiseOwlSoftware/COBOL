@@ -287,10 +287,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   entry points still not refused BY NAME — the ALPHABET clause's LOCALE phrase (a false 0901), PICTURE format 2 (a
   raw parse error), the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names (ACCEPTED in USE / RAISING / TURN) — while
   CONFORMANCE.md §4 item 5 claims every entry point is; owed under EITHER answer to PB64's owner-reserved Q1.
-  **NEXT, in order (`work.py next`):** ① PB100 (feature/locale — the posture repair) · ② PB64 (feature/locale) —
-  owner-reserved (its Q1–Q4 are the owner's; ask the bare question when the session reaches it) · then Phase-B
-  adjudication (the standing order after zero backlog: fix-before-explore holds, so a NEW defect found on the way
-  outranks).
+  **✅ PB100 CLOSED (DEVLOG 1324, 2026-08-18)** — the ALPHABET clause's `IS LOCALE [locale-name-2]` phrase, PICTURE
+  format 2 (`LOCALE [IS locale-name-1] SIZE IS integer-1`) and the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names are
+  refused BY NAME (COBOLNET1518) — the PB64 draft's posture-repair half (T0) is complete; two verdicts →
+  DOCUMENTED-NON-SUPPORT, **GAP 3933**. THE DEFECT BACKLOG IS EMPTY — `work.py next` lists only PB64.
+  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (Q1: reverse council decision 3
+  and implement the A.4.9 module, or keep documented non-support; Q2–Q4 follow only under "implement") — ask the
+  bare question · then Phase-B adjudication (the standing order after zero backlog: fix-before-explore holds, so a
+  NEW defect found on the way outranks). Battery #20 rides with the next landing.
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

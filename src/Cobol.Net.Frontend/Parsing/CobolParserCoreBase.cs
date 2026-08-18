@@ -93,6 +93,12 @@ public abstract class CobolParserCoreBase : Parser
         return false;
     }
 
+    /// <summary>PICTURE Format 2 (locale) — the word after the picture character-string spells LOCALE at 2002+ (ISO
+    /// §13.18.40.2 `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1`; kb/Work PB100). Below 2002
+    /// LOCALE is a user word and the phrase does not exist.</summary>
+    protected bool pictureLocaleAhead() =>
+        Edition.Has(2002) && string.Equals(TokenStream.LT(1)?.Text, "LOCALE", StringComparison.OrdinalIgnoreCase);
+
     protected bool localeClauseAhead()
     {
         if (!Edition.Has(2002)) return false;

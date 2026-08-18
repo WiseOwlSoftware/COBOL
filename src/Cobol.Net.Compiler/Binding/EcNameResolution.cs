@@ -35,6 +35,17 @@ internal static class EcNameResolution
                 + "ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
             return false;
         }
+        // Annex A.4.9 item 1: the EC-LOCALE family and EC-ORDER-NOT-SUPPORTED "in the RAISING phrase of the EXIT and
+        // GOBACK statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase …"
+        // are elements of the optional locale module, which COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4 item
+        // 5); A.4.1 admits the syntax only when support is claimed, so the names are refused BY NAME here — the ONE
+        // funnel every naming site passes through (kb/Work PB100; they used to be accepted, and could never occur).
+        if (info.Name.StartsWith("EC-LOCALE", StringComparison.Ordinal) || info.Name == "EC-ORDER-NOT-SUPPORTED")
+        {
+            edition.Error("COBOLNET1518", $"{where}: exception-name {info.Name} belongs to the optional locale module "
+                + "(ISO Annex A.4.9 item 1), which COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");
+            return false;
+        }
         if (requireLevel3 && info.Level != 3)
         {
             edition.Error("COBOLNET0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "

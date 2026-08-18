@@ -2088,6 +2088,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     pictureText = picText;
                     editingSpecs = BuildEditingSpecs(clause.Context.pictureClause());   // PICTURE EDITING (§13.18.40.2)
+                    // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2): Annex A.4.9
+                    // item 8, an optional locale-module element COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4
+                    // item 5) — refused BY NAME with the module's one diagnostic (kb/Work PB100; it was a raw parse
+                    // error). The character-string is analyzed as Format 1 for recovery; the compile has failed.
+                    if (clause.Context.pictureClause()?.pictureLocalePhrase() is not null)
+                        Edition.Error("COBOLNET1518", $"data item '{cobolName ?? "FILLER"}': the PICTURE clause's LOCALE "
+                            + "phrase (Format 2 — locale editing, ISO §13.18.40.2) is in the optional locale module "
+                            + "(Annex A.4.9 item 8), which COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");
                 }
                 else if (clause.Context.basedClause() is not null)
                     // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The

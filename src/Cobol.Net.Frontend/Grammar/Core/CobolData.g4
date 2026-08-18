@@ -350,7 +350,17 @@ genericDataClause
 // The whole EDITING group is additive/repeatable; SR11 (distinct character-1) is enforced at bind. The 2023
 // introduction gate is VersionConformancePass ParseArm.VisitPictureClause (recognition on editingPhrase presence).
 pictureClause
-    : PIC PIC_STRING editingPhrase*
+    : PIC PIC_STRING editingPhrase* pictureLocalePhrase?
+    ;
+
+// PICTURE Format 2 (locale) — `PIC IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1` (ISO §13.18.40.2).
+// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED (kb/Work PB100): Annex A.4.9 item 8 is an optional
+// locale-module element and COBOL.NET's documented non-support (CONFORMANCE.md §4 item 5) is conformant per A.4.1
+// only when the element is refused BY NAME — the binder emits COBOLNET1518; before this the phrase was a raw parse
+// error at SIZE. LOCALE is not a lexer token (a plain word at COBOL-85, reserved 2002+), so the arm is text-predicated
+// and edition-gated (below 2002 the phrase is unreachable — the alternative simply is not taken).
+pictureLocalePhrase
+    : {pictureLocaleAhead()}? cobolWord (IS cobolWord)? SIZE IS? integerLiteral
     ;
 
 // EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). character-1

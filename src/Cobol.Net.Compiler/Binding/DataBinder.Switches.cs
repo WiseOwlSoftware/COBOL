@@ -497,7 +497,23 @@ public sealed partial class DataBinder
         if (fors.Length > 1)
             Edition.Error("COBOLNET0898", $"ALPHABET {name}: the FOR phrase may be written once — between "
                 + "alphabet-name and IS (ISO §12.3.7.2 general format)");
-        if (fors.Any(f => f.NATIONAL() is not null))
+        bool national = fors.Any(f => f.NATIONAL() is not null);
+        // `IS LOCALE [locale-name-2]` — either branch (§12.3.7.2): Annex A.4.9 item 10 ("LOCALE phrases in the
+        // ALPHABET clause"), an optional locale-module element COBOL.NET documents as NON-SUPPORT (CONFORMANCE.md §4
+        // item 5) — refused BY NAME with the module's one diagnostic (kb/Work PB100; the definition used to read
+        // LOCALE as a code-name and the §8.9 funnel then reported the keyword as a user-defined word). The alphabet
+        // registers as an identity so a PROGRAM COLLATING SEQUENCE / MERGE reference still binds; the compile has
+        // failed. LOCALE is a plain word below 2002 (a code-name-1 there), so the phrase is 2002+ only.
+        if (Edition.DialectLevel >= 2002 && IsAlphabetLocalePhrase(def))
+        {
+            Edition.Error("COBOLNET1518", $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} IS LOCALE: the LOCALE phrase "
+                + "of the ALPHABET clause (ISO §12.3.7.2) is in the optional locale module (Annex A.4.9 item 10), which "
+                + "COBOL.NET documents as not supported (CONFORMANCE.md §4 item 5)");
+            if (national) NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+            else Alphabets.TryAdd(name, null);
+            return;
+        }
+        if (national)
         {
             AlphabetBindNational(name, def);
             return;
@@ -584,6 +600,19 @@ public sealed partial class DataBinder
     /// or null. These are §8.9 CONTEXT-SENSITIVE words scoped to the ALPHABET clause — they arrive as a single
     /// plain <c>cobolWord</c> alphabet entry (never lexer keywords; they stay user-definable elsewhere), so the
     /// shape is: exactly one entry, no THROUGH/ALSO, one cobolWord, whose text is one of the three names.</summary>
+    /// <summary>The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (ISO §12.3.7.2; kb/Work PB100): the first
+    /// definition entry is the bare word LOCALE, optionally followed by one bare-word entry (locale-name-2) — LOCALE is
+    /// not a lexer token, so the phrase arrives as one or two code-name-shaped entries.</summary>
+    internal static bool IsAlphabetLocalePhrase(Core.AlphabetDefinitionContext def)
+    {
+        var entries = def.alphabetEntry();
+        if (entries.Length is 0 or > 2) return false;
+        foreach (var e in entries)
+            if (e.THRU() is not null || e.THROUGH() is not null || e.ALSO().Length > 0 || e.ChildCount != 1 || e.GetChild(0) is not Core.CobolWordContext)
+                return false;
+        return string.Equals(entries[0].GetText(), "LOCALE", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string? CodeSetNameOf(Core.AlphabetDefinitionContext def)
     {
         if (def.alphabetEntry() is not [{ } entry]) return null;
