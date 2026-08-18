@@ -53,6 +53,40 @@ public sealed class DataItem
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
     public PicInfo? Pic { get; set; }
 
+    /// <summary>GROUP-USAGE (ISO §13.18.29; data-model design D20; kb/Work PB79) — <see cref="Model.GroupUsage.None"/>
+    /// for an ordinary (alphanumeric) group (GR3); Bit / National for a declared bit / national group AND for every
+    /// group subordinate to one (SR2/SR3 "explicitly or implicitly" — propagated by <c>DataBinder.ResolveIndexItems</c>,
+    /// the usage-inheritance walk). Never set on an elementary item.</summary>
+    public GroupUsage GroupUsage { get; set; }
+
+    /// <summary>The §13.18.29.4 GR1b/GR2b AS-IF picture of a bit / national group — "treated as though it were an
+    /// elementary data item of usage bit and class and category boolean described with PICTURE 1(m), where m is
+    /// the bit length of the group" / "of usage national … PICTURE N(m), where m is the length of the group" —
+    /// null for every other item. m is the group's bit extent (the §8.5.1.6.3 walk WITHOUT the trailing filler,
+    /// whose NOTE excludes "a record that is entirely a bit group") or its national positions (<see cref="ImageWidth"/>
+    /// — national leaves contribute character positions to a group image, never byte-doubled). A pure function of the
+    /// children, exactly as the width members are.</summary>
+    public PicInfo? AsIfPic => GroupUsage switch
+    {
+        GroupUsage.Bit => new PicInfo(PicCategory.Boolean, Usage.Bit, BitLayout.ExtentBits(this), Digits: 0, Scale: 0, Signed: false),
+        GroupUsage.National => new PicInfo(PicCategory.National, Usage.National, ImageWidth, Digits: 0, Scale: 0, Signed: false),
+        _ => null,
+    };
+
+    /// <summary>⛔ THE ONE READER for an item's OPERAND category (D20): its own PICTURE for an elementary item, the
+    /// as-if picture for a bit / national group, null for an alphanumeric group. Every site that decides class,
+    /// category, a Table 16 row, LENGTH positions, ref-mod admissibility, comparison class or string-operand-ness
+    /// reads THIS — never <see cref="Pic"/> guarded by <see cref="IsGroup"/> — so a GROUP-USAGE group is a boolean /
+    /// national operand everywhere at once. The STRUCTURAL predicates (<see cref="IsGroup"/>, <see cref="IsElementary"/>,
+    /// <see cref="Children"/>) keep their meaning: the group is still laid out, imaged, initialized and walked as
+    /// a group.</summary>
+    public PicInfo? OperandPic => Pic ?? AsIfPic;
+
+    /// <summary>A group that OPERATES as an elementary boolean / national item — GR1b/GR2b (a bit / national group);
+    /// false for an alphanumeric group and for every elementary item. The MOVE classifier's, the emitter's and the
+    /// comparison's "is this a group operation?" test is <c>IsGroup &amp;&amp; !IsAsIfElementary</c>.</summary>
+    public bool IsAsIfElementary => Pic is null && GroupUsage is not GroupUsage.None;
+
     /// <summary>The DEFERRED adjudication mark of a PICTURE-less <c>USAGE NATIONAL</c>/<c>BIT</c> entry
     /// (ISO §13.18.60.4): whether it is a legal GROUP header (the usage sheds to subordinates, GR1) or an illegal
     /// picture-less elementary item (COBOLNET0881) is unknowable until the forest is complete —

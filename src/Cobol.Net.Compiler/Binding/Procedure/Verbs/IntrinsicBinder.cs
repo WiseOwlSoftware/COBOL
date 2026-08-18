@@ -1687,7 +1687,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// always r3's alphanumeric group here.</summary>
     internal static int LengthPositions(DataItem item)
     {
-        if (item.IsElementary && item.Pic is { } pic)
+        // THE ONE category reader (D20/PB79): an elementary item's own picture, a bit / national GROUP's as-if picture
+        // — a bit group's boolean positions are its exact bit extent (no trailing filler), a national group's national
+        // positions its character image width. Only an alphanumeric group falls to r3.
+        if (item.OperandPic is { } pic)
         {
             if (pic.Category is PicCategory.Boolean) return pic.Length;                     // r1 — boolean positions
             if (pic.Usage is Usage.National || pic.Category is PicCategory.National) return pic.Length;   // r2 — national positions

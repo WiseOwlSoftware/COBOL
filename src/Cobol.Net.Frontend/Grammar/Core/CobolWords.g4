@@ -50,6 +50,7 @@ cobolWord
     | FULL_
     | FUNCTION_POINTER
     | GET
+    | GROUP_USAGE
     | HIGHLIGHT
     | HIGH_ORDER_LEFT
     | HIGH_ORDER_RIGHT

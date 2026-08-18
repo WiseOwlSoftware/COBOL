@@ -355,7 +355,7 @@ internal static class IntrinsicArgumentRules
         // national. A group has no PICTURE of its own, so it cannot fall through to the category table.
         if (p.Item.IsGroup)
         {
-            return p.Item.Pic?.Category switch
+            return p.Item.AsIfPic?.Category switch   // D20/PB79 — a bit / national group's as-if picture
             {
                 PicCategory.National => CobolClass.National,
                 PicCategory.Boolean => CobolClass.Boolean,

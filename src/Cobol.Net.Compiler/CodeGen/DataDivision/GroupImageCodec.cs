@@ -91,6 +91,48 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 off += f.Width;
             }
         }
+        if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
+    }
+
+    /// <summary>A BIT GROUP's elementary face (§13.18.29.4 GR1b — "treated as though it were an elementary data item
+    /// … PICTURE 1(m)"; D20/PB79): <c>AsBits()</c> is the group's boolean-position string — its members' bit
+    /// carriers concatenated in declaration order (every member is a bit leaf or a bit group, SR2, and same-level
+    /// bit items sit at successive positions with no filler, §8.5.1.6.3) — and <c>FromBits</c> distributes a
+    /// boolean string back to the members. The packed byte form stays <c>AsImage()</c>/<c>FromImage()</c> (the
+    /// record / REDEFINES / file image); the two agree because both pack the same run.</summary>
+    private static void EmitBitMethods(DataItem group, CodeWriter w)
+    {
+        var members = group.Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)).ToList();
+        static string Carrier(DataItem m) =>
+            m.Occurs is { } o
+                ? (m.IsGroup ? $"string.Concat(System.Array.ConvertAll({m.CsName}, __e => __e.AsBits()))" : $"string.Concat({m.CsName})")
+                : BitCarrierOf(m);
+        w.Line($"public readonly string AsBits() => {(members.Count > 0 ? string.Join(" + ", members.Select(Carrier)) : "\"\"")};");
+        using (w.Block("public void FromBits(string __b)"))
+        {
+            int total = members.Sum(BitLayout.RunBits);
+            w.Line($"__b = {RuntimeApi.StrStoreBoolean("__b", $"{total}", justifiedRight: false)};");   // pad with boolean zeros / truncate to m
+            int at = 0;
+            foreach (var m in members)
+            {
+                int per = m.IsGroup ? m.AsIfPic!.Length : m.Pic!.Length;
+                if (m.Occurs is { } o)
+                {
+                    using (w.Block($"for (int __i = 0; __i < {o}; __i++)"))
+                        w.Line(m.IsGroup
+                            ? $"{m.CsName}[__i].FromBits({RuntimeApi.BitsSlice("__b", $"{at} + __i * {per}", $"{per}")});"
+                            : $"{m.CsName}[__i] = {RuntimeApi.BitsSlice("__b", $"{at} + __i * {per}", $"{per}")};");
+                    at += per * o;
+                }
+                else
+                {
+                    w.Line(m.IsGroup
+                        ? $"{m.CsName}.FromBits({RuntimeApi.BitsSlice("__b", $"{at}", $"{per}")});"
+                        : $"{m.CsName} = {RuntimeApi.BitsSlice("__b", $"{at}", $"{per}")};");
+                    at += per;
+                }
+            }
+        }
     }
 
     /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
@@ -99,13 +141,17 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// §13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
     /// (ISO §14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
     /// item).</summary>
+    /// <summary>A §8.5.1.6.3 run member's BIT CARRIER expression: a bit leaf's '0'/'1' string field; a bit GROUP's
+    /// <c>AsBits()</c> (its subordinates' positions concatenated — D20/PB79).</summary>
+    private static string BitCarrierOf(DataItem m) => m.IsGroup ? $"{m.CsName}.AsBits()" : m.CsName;
+
     private static string AsImageOf(PhysicalModel.Physical f) =>
         // D19/PB43 — a USAGE BIT run images as its PACKED bits (§13.18.60.4 GR5), high-order first, and a run may
         // span several FIELDS because §8.5.1.6.3 puts same-level bit items at successive bit positions. The run's
         // leader packs every member's carrier concatenated; a continuation contributed Width 0 and images as "".
         f.BitRun is { } run
-            ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(m => m.CsName)),
-                                  $"{run.Sum(m => m.Pic!.Length * (m.Occurs ?? 1))}")
+            ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(BitCarrierOf)),
+                                  $"{run.Sum(BitLayout.RunBits)}")
         : f.Width == 0 ? "\"\""
         : f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
@@ -131,7 +177,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // to each member in declaration order; the continuations have Width 0 and consume no slice.
         if (f.BitRun is { } run)
         {
-            int runBits = run.Sum(m => m.Pic!.Length * (m.Occurs ?? 1));
+            int runBits = run.Sum(BitLayout.RunBits);
             // ⚠ The carrier local is named for the run's OFFSET, not a bare `__bits`: a group may hold SEVERAL
             // runs (two bit items separated by a character item are two runs, §8.5.1.6.3 — the character item
             // breaks the same-level adjacency), and they all land in this one method scope. The first version
@@ -141,8 +187,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             int at = 0;
             foreach (var m in run)
             {
-                int n = m.Pic!.Length * (m.Occurs ?? 1);
-                w.Line($"{m.CsName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{n}")};");
+                int n = BitLayout.RunBits(m);
+                // A bit GROUP member distributes its slice to its own subordinates (FromBits — D20/PB79).
+                w.Line(m.IsGroup
+                    ? $"{m.CsName}.FromBits({RuntimeApi.BitsSlice(carrier, $"{at}", $"{n}")});"
+                    : $"{m.CsName} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{n}")};");
                 at += n;
             }
             return;

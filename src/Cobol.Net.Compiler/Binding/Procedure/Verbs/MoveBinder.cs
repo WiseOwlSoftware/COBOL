@@ -109,7 +109,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (source is not (BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } or BoundAllLiteral)) return;
         foreach (var t in targets)
         {
-            if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;   // SR5 exemptions
+            if (t is RefModPlace || t.Item.OperandPic is not { } pic) continue;   // SR5 exemptions (an alphanumeric group; D20)
             if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
             if (pic.Usage is Usage.Index) continue;   // class index — SR1 errored above
 
@@ -142,8 +142,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // The view FIRST: a ref-mod over a GROUP is the elementary ALPHANUMERIC unique item of GR6 (kb/Work PB70) —
         // Table 16 applies to it, where the whole group would be a conversion-free GR4 copy.
         RefModPlace rm => rm.Category,
-        _ when t.Item.IsGroup || t.Item.Pic is null => null,
-        _ => t.Item.Pic!.Category,
+        // D20/PB79: a bit / national group receiver IS a category — its as-if picture's (§13.18.29.4 GR1b/GR2b);
+        // only an alphanumeric group is the GR4 conversion-free copy Table 16 does not reach.
+        _ when t.Item.OperandPic is null => null,
+        _ => t.Item.OperandPic!.Category,
     };
 
     /// <summary>
@@ -166,9 +168,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         {
             BoundStringLiteral sl => new Table16Operand(sl.Category),
             BoundAllLiteral al => new Table16Operand(al.Category),
-            BoundFieldOperand f when f.Place is not RefModPlace
-                                     && (f.Place.Item.IsGroup || f.Place.Item.Pic is null) =>
-                new Table16Operand(PicCategory.Group),   // GR4 — group moves copy without conversion
+            BoundFieldOperand f when f.Place is not RefModPlace && f.Place.Item.OperandPic is null =>
+                new Table16Operand(PicCategory.Group),   // GR4 — an ALPHANUMERIC group moves without conversion (D20)
             BoundFieldOperand f => Table16Operand.Of(f.Place),
             BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
             // An INTRINSIC sender's Table-16 row is its §15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an

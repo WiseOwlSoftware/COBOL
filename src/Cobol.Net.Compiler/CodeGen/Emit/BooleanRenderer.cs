@@ -22,7 +22,8 @@ internal static class BooleanRenderer
     private sealed class RenderVisitor(NumericRenderer num) : IBoundBoolExprVisitor<string>
     {
         public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
-        public string Visit(BoundBoolRef n) => PlaceRenderer.Read(n.Place);     // a category-boolean item IS a '0'/'1' string
+        // A category-boolean item IS a '0'/'1' string; a bit GROUP's is its AsBits() (the OperandText as-if arm — D20/PB79).
+        public string Visit(BoundBoolRef n) => n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place);
         public string Visit(BoundBoolCall n) => OperandText.AsString(new BoundComputedOperand(n.Call), num);   // the boolean function's '0'/'1' image (kb/Work PB68)
         public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);

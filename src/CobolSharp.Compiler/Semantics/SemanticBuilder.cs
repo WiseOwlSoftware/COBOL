@@ -255,20 +255,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     // COMP-n where n is not a supported width (1–5) is not a defined USAGE keyword. Matches COMP-<digits> /
     // COMPUTATIONAL-<digits> exactly, so genuine vendor clauses and data-names (e.g. F-WHENCOMP-01) are untouched.
-    /// <summary>
-    /// For a bare (no-USAGE-prefix) BINARY-CHAR/SHORT/LONG/DOUBLE clause, returns the binary keyword text
-    /// (without any trailing SIGNED/UNSIGNED), or null if the clause is not a bare binary usage. Reads the
-    /// token directly so the signedness word is not glued onto the keyword by GetText().
-    /// </summary>
-    private static string? BareBinaryUsageText(CobolParserCore.UsageClauseContext uc)
-    {
-        if (uc.BINARY_CHAR() != null) return "BINARY-CHAR";
-        if (uc.BINARY_SHORT() != null) return "BINARY-SHORT";
-        if (uc.BINARY_LONG() != null) return "BINARY-LONG";
-        if (uc.BINARY_DOUBLE() != null) return "BINARY-DOUBLE";
-        return null;
-    }
-
     private static bool IsUnsupportedCompUsage(string text)
     {
         string t = text.Trim().ToUpperInvariant();
@@ -1294,13 +1280,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     }
                     else
                     {
-                        // Full form: USAGE IS? usageKeyword → use usageKeyword text.
-                        // Bare BINARY-xxx form has no usageKeyword node — read the binary token directly so a
-                        // trailing SIGNED/UNSIGNED is not concatenated into the keyword (GetText would yield
-                        // "BINARY-CHARSIGNED"). Other bare forms (COMP, BINARY, …) use the clause text.
-                        var kwText = usageClause.usageKeyword()?.GetText()
-                            ?? BareBinaryUsageText(usageClause)
-                            ?? usageClause.GetText();
+                        // `[USAGE IS] usageKeyword` is ONE alternative (kb/Work PB95): the keyword node is always
+                        // present, bare or prefixed, and binarySign / noSignPhrase are its siblings — never glued
+                        // into its text.
+                        var kwText = usageClause.usageKeyword().GetText();
                         usage = UsageMapper.FromUsageKeyword(kwText);
                         // SIGNED (default) / UNSIGNED on a BINARY-xxx usage (ISO §13.18.60).
                         isUnsignedBinary = usageClause.binarySign()?.UNSIGNED() != null;

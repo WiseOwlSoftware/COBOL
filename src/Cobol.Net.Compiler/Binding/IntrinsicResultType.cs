@@ -285,13 +285,10 @@ internal static class IntrinsicResultType
         BoundStringLiteral sl => sl.Category,
         BoundNumericLiteral => PicCategory.Numeric,
         BoundFieldOperand { Place: RefModPlace rmp } => rmp.Category,
+        // D20/PB79 — THE ONE READER: a bit / national group answers its as-if picture's category (§13.18.29.4
+        // GR1a/GR2a), an alphanumeric group ALPHANUMERIC (§8.5.2.1), an elementary item its own.
         BoundFieldOperand f => f.Place.Item.IsGroup
-            ? f.Place.Item.Pic?.Category switch
-              {
-                  PicCategory.National => PicCategory.National,
-                  PicCategory.Boolean => PicCategory.Boolean,
-                  _ => PicCategory.Alphanumeric,
-              }
+            ? f.Place.Item.AsIfPic?.Category ?? PicCategory.Alphanumeric
             : f.Place.Item.Pic?.Category,
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
         BoundComputedOperand => PicCategory.Numeric,

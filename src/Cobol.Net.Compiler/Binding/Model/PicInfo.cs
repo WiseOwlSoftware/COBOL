@@ -53,6 +53,21 @@ public enum PicCategory
 public sealed record SignSpec(bool Leading, bool Separate);
 
 /// <summary>The physical representation a <c>USAGE</c> clause selects.</summary>
+/// <summary>The GROUP-USAGE clause (ISO §13.18.29; data-model design D20; kb/Work PB79): None for an ordinary
+/// group — "an alphanumeric group item" (GR3) — Bit / National for a bit group / national group, declared by the
+/// clause or implied for every group subordinate to one (SR2/SR3).</summary>
+public enum GroupUsage
+{
+    /// <summary>No GROUP-USAGE clause specified or implied — an alphanumeric group item (§13.18.29.4 GR3).</summary>
+    None,
+    /// <summary>GROUP-USAGE BIT — a bit group: class and category boolean, treated as an elementary item of usage bit
+    /// described with PICTURE 1(m) (§13.18.29.4 GR1).</summary>
+    Bit,
+    /// <summary>GROUP-USAGE NATIONAL — a national group: class and category national, treated as an elementary item
+    /// of usage national described with PICTURE N(m) (§13.18.29.4 GR2).</summary>
+    National,
+}
+
 public enum Usage
 {
     /// <summary>USAGE DISPLAY (the default) — character form.</summary>

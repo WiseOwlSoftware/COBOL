@@ -19401,12 +19401,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
+  "test-ref": "conformance:negative/pb79-group-usage-not-a-group",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79). COBOLNET1653 on an entry with a PICTURE (elementary), an entry with no subordinates, a strongly-typed group (StrongTypeModel.IsStrongGroup) or a variable-length group (ReferenceResolver.HasVariableLengthSubordinate).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.29.3-2",
@@ -19414,12 +19414,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
+  "test-ref": "conformance:negative/pb79-group-usage-explicit-usage; conformance:negative/pb79-group-usage-subordinate-conflict; conformance:2023/pb79_group_usage_bit",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79). USAGE BIT implied for the subject (the PicPending.BitUsage adjudication a group-level USAGE BIT clause rides — §13.18.60.4 GR1: every subordinate PICTURE-1 leaf without its own USAGE becomes bit-form; a non-boolean leaf is COBOLNET0881); an explicit USAGE on the subject is COBOLNET1653; every subordinate group is GROUP-USAGE BIT implicitly, a conflicting explicit one COBOLNET1653.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.29.3-3",
@@ -19427,12 +19427,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
+  "test-ref": "conformance:negative/pb79-group-usage-explicit-usage; conformance:2023/pb79_group_usage_national",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79). USAGE NATIONAL implied for the subject (the PicPending.NationalUsage adjudication: every subordinate leaf must be usage national — a boolean/numeric leaf is the national-FORM staged leg (0899, Phase 4a residue), an alphabetic/alphanumeric one COBOLNET0881); an explicit USAGE on the subject and a conflicting subordinate GROUP-USAGE are COBOLNET1653. The SIGN IS SEPARATE half rides the numeric-national leg (staged with it).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.29.4-1",
@@ -19440,12 +19440,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#AsIfPic; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#OperandPic; src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitBitMethods",
+  "test-ref": "conformance:2023/pb79_group_usage_bit",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79; D20). (a) class/category boolean — every category reader goes through OperandPic; (b) treated as PICTURE 1(m): MOVE to/from it pads and truncates in boolean positions, compares as boolean, is a boolean-expression operand, FUNCTION LENGTH = m (r1) with NO trailing filler (the §8.5.1.6.3 NOTE), DISPLAY shows the bit string; (c) subordinates laid out per §8.5.1.6.3 — a nested bit group shares a byte with a preceding same-level bit item (rule 1), the packed image is the run's (AsImage/FromImage), the operand face AsBits/FromBits.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.29.4-2",
@@ -19453,12 +19453,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#AsIfPic; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#OperandPic; src/Cobol.Net.Compiler/Binding/MoveTable16.cs#Of",
+  "test-ref": "conformance:2023/pb79_group_usage_national",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79; D20). (a) class/category national; (b) treated as PICTURE N(m): Table 16's NATIONAL row on both sides of a MOVE (padded/truncated in national positions — the NOTE's purpose), national comparison, INSPECT in national positions, reference-modifiable as an elementary item, FUNCTION LENGTH = m (r2), BYTE-LENGTH = 2m.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.29.4-3",
@@ -19466,12 +19466,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#OperandPic; src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#ExtentBits",
+  "test-ref": "conformance:2023/pb79_group_usage_bit; conformance:2023/pb61_length_byte_length_rule_branches",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB79). No GROUP-USAGE clause specified or implied => an alphanumeric group item: OperandPic is null (GR4 group MOVE, r3 LENGTH, the trailing-filler rule 4 of §8.5.1.6.3 — `01 G USAGE BIT. 05 GA PIC 1(5). 05 GB PIC 1(3).` is an ALPHANUMERIC group of 1 byte: LENGTH 1, BYTE-LENGTH 1).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.30.3-1",
@@ -45505,12 +45505,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LENGTH function",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches",
+  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance:2023/pb79_group_usage_bit",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r1 boolean positions: an elementary boolean item — PIC 1(12) USAGE BIT → 12 (BYTE-LENGTH 2, its ceil(n/8) occupancy), a DISPLAY boolean PIC 1(4) → 4; a boolean literal B\"10110\" → 5; a type declaration for a boolean item (TBOOL TYPEDEF PIC 1(5) USAGE BIT) → 5 (golden BIT/TYPE). PARTIAL: the BIT GROUP ITEM leg cannot be reached — GROUP-USAGE BIT (§13.18.29) does not parse (kb/Work PB79); LengthPositions carries the arm's slot and the note. Boolean items are 2002+; the row is 85-applicable only for the literal/data-item vocabulary that does not exist there.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r1 boolean positions: an elementary boolean item — PIC 1(12) USAGE BIT -> 12 (BYTE-LENGTH 2), a DISPLAY boolean PIC 1(4) -> 4; a boolean literal B\"10110\" -> 5; a boolean TYPEDEF -> 5; and NOW the BIT GROUP ITEM leg (PB79/D20): a GROUP-USAGE BIT group of 3+5+4 bits -> 12 (BYTE-LENGTH 2), a nested bit group of 5 -> 5 — LengthPositions reads the ONE OperandPic. Boolean items are 2002+; the row is 85-applicable only for the vocabulary that does not exist there.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.50.4-2",
@@ -45518,12 +45518,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "LENGTH function",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches",
-  "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r2 national character positions: an elementary usage-national item and a national literal — LENGTH(N\"\") = 0 (golden ZL — the Math.Max(1, …) clamp is gone), the national ODO element counts 2 positions each inside its alphanumeric group (r3 there); a type declaration for a national item — TNATE TYPEDEF PIC N(3) → 3 (golden TYPE). PARTIAL: the NATIONAL GROUP ITEM leg cannot be reached — GROUP-USAGE NATIONAL (§13.18.29) does not parse (kb/Work PB79); a group of PIC N children is r3's alphanumeric group (§13.18.29.4 GR3), which is why LENGTH(TNAT) = 6.",
-  "state": "GAP"
+  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance:2023/pb79_group_usage_national",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r2 national positions: an elementary national item PIC N(4) -> 4 (BYTE-LENGTH 8); and NOW the NATIONAL GROUP ITEM leg (PB79/D20): a GROUP-USAGE NATIONAL group of N(2)+N(3) -> 5 (BYTE-LENGTH 10), a nested national group -> its positions — LengthPositions reads the ONE OperandPic.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.50.4-3",
@@ -50783,12 +50783,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "GROUP-USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#groupUsageClause",
+  "test-ref": "conformance:2023/pb79_group_usage_national; conformance:2023/pb79_group_usage_bit; conformance:negative/pb79-group-usage-85",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB79; data-model design D20). `GROUP-USAGE IS {BIT | NATIONAL}` — GROUP_USAGE is a hyphenated keyword token (a user word below 2002 via cobolWord, funnel-0901'd at >=2002); IS optional. The 85 gate is the ParseArm VisitGroupUsageClause -> group-usage-clause-2002 (COBOLNET0900).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.30.2",
@@ -51186,12 +51186,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "USAGE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageClause",
+  "test-ref": "conformance:2023/pb95_bare_usage_keywords",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB95, found landing PB79). `[USAGE IS] usage-keyword` is ONE alternative over ONE usageKeyword rule — the USAGE keyword is optional for EVERY usage (the former hand-listed bare alternatives omitted POINTER, OBJECT REFERENCE, NATIONAL, BIT, PROGRAM-POINTER, FUNCTION-POINTER). The 2002 words that are user words at 85 need no predicate: `05 BIT.` reads as an '85 entry NAMED BIT (the name alternative is tried first), `05 X BIT.` as the usage, edition-named by the binder / conformance pass.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.61.2",

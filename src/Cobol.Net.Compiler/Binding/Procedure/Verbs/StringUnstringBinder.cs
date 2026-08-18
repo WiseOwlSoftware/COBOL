@@ -315,7 +315,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// reference-modified receiver has no static size (−1; rejected by the caller when it would be needed).</summary>
     private static int StrUnstrReceiveSize(Place p) =>
         p is RefModPlace ? -1
-        : p.Item.IsGroup ? p.Item.ImageWidth
+        : p.Item.IsGroup ? p.Item.AsIfPic?.Length ?? p.Item.ImageWidth   // a bit / national group: its as-if positions (D20/PB79)
         : p.Item.Pic is { Category: PicCategory.Numeric } pic ? pic.Digits
         : p.Item.Pic?.Length ?? 0;
 }

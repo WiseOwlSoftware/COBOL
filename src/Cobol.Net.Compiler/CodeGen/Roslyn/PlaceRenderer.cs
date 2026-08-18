@@ -94,6 +94,12 @@ internal static class PlaceRenderer
         GroupImagePlace g => WriteGroupImage(g.Inner, rhs, "reference modification into group"),
         RenamesPlace n => WriteRenames(n, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
+        // A bit / national GROUP receiving as an ELEMENTARY item (§13.18.29.4 GR1b/GR2b; D20/PB79): the value is
+        // its as-if picture's string — the bit string for a bit group (FromBits distributes the boolean positions
+        // to the subordinates), the national character image for a national group (the ONE group-image store).
+        MemberPlace { Item.IsAsIfElementary: true } m => m.Item.GroupUsage is GroupUsage.Bit
+            ? $"{RenderPath(m.Path, AccessDir.Sending)}.FromBits({rhs});"
+            : WriteGroupImage(m, rhs, "national group receiver"),
         // A member/fixed-table store — the structural path as an assignment target.
         MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
         // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§8.5.1.9.3).

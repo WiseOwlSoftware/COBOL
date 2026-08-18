@@ -44,7 +44,9 @@ public static class MoveClassifier
     public static MoveKind Kind(BoundOperand source, Place target)
     {
         if (target is RefModPlace) return MoveKind.RefModSlice;
-        if (target.Item.IsGroup) return MoveKind.Group;
+        // A bit / national group RECEIVER is an elementary boolean / national receiver (§13.18.29.4 GR1b/GR2b —
+        // D20/PB79): the Convert path over its as-if picture, stored through PlaceRenderer.Write's as-if arm.
+        if (target.Item.IsGroup && !target.Item.IsAsIfElementary) return MoveKind.Group;
         if (IsGroupSender(source)) return MoveKind.GroupToElementary;
         if (target.Item.Pic is { Category: PicCategory.Numeric }
             && source is BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } or BoundAllLiteral { IsDigitOnly: false })
@@ -66,5 +68,6 @@ public static class MoveClassifier
     /// alphanumeric item, §13.18.45). A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
     /// not its storage shape.</summary>
     public static bool IsGroupSender(BoundOperand source) =>
-        source is BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f && f.Place.Item.IsGroup;
+        source is BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f
+        && f.Place.Item.IsGroup && !f.Place.Item.IsAsIfElementary;   // a bit / national group SENDS as elementary (D20/PB79)
 }

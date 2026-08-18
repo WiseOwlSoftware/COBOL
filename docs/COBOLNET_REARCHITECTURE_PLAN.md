@@ -206,7 +206,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   Roslyn) REGISTERED.
   **✅ Battery #14 (PB82 landing, tree `8fa1ace7`):** Conformance **4727/4727** · Unit **4232/4232** · Characterization
   33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
-  **NEXT, in order (`work.py next`):** ① PB79 → PB93 → PB94 → PB91 (PB64/PB66 are features)
+  **✅ PB79 CLOSED (DEVLOG 1317, 2026-08-18)** — the GROUP-USAGE clause (§13.18.29) is modelled per data-model design
+  **D20**: a bit / national group is STRUCTURALLY a group and SEMANTICALLY an elementary boolean / national item —
+  `DataItem.GroupUsage` + `AsIfPic` + **`OperandPic`, THE ONE category reader** every category site now consults;
+  the layout follows §8.5.1.6.3 (a bit group shares a byte with a same-level bit item, no trailing filler), the
+  emitter gives a bit group `AsBits()`/`FromBits()`, and the implied USAGE BIT now reaches PICTURE-1 leaves for the
+  group-level USAGE BIT clause too (§13.18.60.4 GR1 — the sibling defect fixed in place). COBOLNET1653 for the
+  syntax rules; `group-usage-clause-2002` gates below 2002. **PB95 FOUND AND FIXED with it** — bare (USAGE-less)
+  POINTER / OBJECT REFERENCE / NATIONAL / BIT / PROGRAM-POINTER / FUNCTION-POINTER were parse errors; `usageClause`
+  is one `(USAGE IS?)? usageKeyword` alternative. Ten verdicts → CONFORMS (RV-15.50.4-1/2 re-adjudicated from
+  PARTIAL), GAP 3964. Battery #15 owed for this batch.
+  **NEXT, in order (`work.py next`):** ① PB93 → PB94 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

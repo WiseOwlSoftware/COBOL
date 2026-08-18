@@ -260,6 +260,12 @@
       "note": "METHOD-ID GET PROPERTY (11.7, 2002+): a user word at 85, funnel-0901'd >=2002"
     },
     {
+      "token": "GROUP_USAGE",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "the GROUP-USAGE clause (13.18.29, 2002+): a user word below 2002, funnel-0901'd >=2002 (kb/Work PB79)"
+    },
+    {
       "token": "HIGHLIGHT",
       "nameSlot": true,
       "subscriptTrigger": true,

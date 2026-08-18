@@ -33,6 +33,14 @@ internal static class BitLayout
     public static bool IsBitLeaf(DataItem item) =>
         item.IsElementary && item.Pic is { Category: PicCategory.Boolean, Usage: Usage.Bit };
 
+    /// <summary>True for a bit item in §8.5.1.6.3's sense — "an elementary bit data item or bit group item": a bit
+    /// leaf, or a GROUP-USAGE BIT group (§13.18.29.4 GR1a — "a bit group and also a bit data item"; D20/PB79).</summary>
+    public static bool IsBitItem(DataItem item) => IsBitLeaf(item) || item.GroupUsage is GroupUsage.Bit;
+
+    /// <summary>The bit positions a §8.5.1.6.3 run MEMBER contributes — a bit leaf's declared boolean positions, a
+    /// bit group's exact extent (its as-if PICTURE 1(m) length), times its OCCURS (D20/PB79).</summary>
+    public static int RunBits(DataItem m) => (m.IsGroup ? m.AsIfPic!.Length : m.Pic!.Length) * (m.Occurs ?? 1);
+
     /// <summary>The bit extent of one item PER OCCURRENCE — a bit leaf's declared boolean-position count, else the
     /// item's byte extent expressed in bits. A group defers to <see cref="ExtentBits"/> so a nested bit run is laid
     /// out by the same rules (§8.5.1.6.3 applies "within that group" at every level).</summary>
@@ -76,16 +84,17 @@ internal static class BitLayout
             // Rule 1 vs 2: sharing a byte requires the PREVIOUS sibling to be a bit item AT THE SAME LEVEL. Any
             // other predecessor (a character item, a differently-levelled bit item, or nothing at all) sends this
             // item to the first bit of the next available byte.
-            bool sharesByte = IsBitLeaf(c) && prev is not null && IsBitLeaf(prev) && prev.Level == c.Level;
+            bool sharesByte = IsBitItem(c) && prev is not null && IsBitItem(prev) && prev.Level == c.Level;
             if (!sharesByte) cursor = RoundUpToByte(cursor);   // rules 2 and 3 — the same advance, different reasons
 
             cursor += WidthBits(c) * (c.Occurs ?? 1);
             prev = c;
         }
-        // Rule 4 — the trailing filler. Unconditional here because a group reaching this walk is an alphanumeric
-        // group item (§13.18.29.4 GR3: no GROUP-USAGE clause specified or implied), which is exactly the case the
-        // trailing-filler rule names.
-        return RoundUpToByte(cursor);
+        // Rule 4 — the trailing filler: stated for "a record that is an alphanumeric group or strongly-typed group
+        // item" (§13.18.29.4 GR3 makes every group WITHOUT a GROUP-USAGE clause alphanumeric), and its NOTE excludes
+        // "the end of a record that is entirely a bit group" — so a GROUP-USAGE BIT group (D20/PB79) keeps its EXACT
+        // bit extent (its PICTURE 1(m) length, §15.50.4 r1); its character OCCUPANCY is still Characters(extent).
+        return group.GroupUsage is GroupUsage.Bit ? cursor : RoundUpToByte(cursor);
     }
 
     /// <summary>The next byte boundary at or after <paramref name="bits"/> — "the first bit position of the first

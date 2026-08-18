@@ -268,7 +268,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// null (every other receiver) keeps the compile-time width.</summary>
     public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null)
     {
-        var pic = target.Pic!;
+        var pic = target.OperandPic!;   // an elementary receiver's picture, or a bit / national group's as-if picture (D20/PB79)
         // A DYNAMIC LENGTH receiver (ISO §8.5.1.10.4 / §13.18.19): store the sender's DISPLAY image, replacing the
         // old content, with the new length = the SENDING length TRUNCATED ON THE RIGHT to the LIMIT and NO padding
         // (the minimum length is zero, §13.18.19.4 GR1). A figurative constant OTHER THAN `ALL literal` has a
@@ -386,7 +386,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
-                int recvScaleM = target.Pic!.Scale;
+                int recvScaleM = target.OperandPic!.Scale;
                 // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
                 // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
                 // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.

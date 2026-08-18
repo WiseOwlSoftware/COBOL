@@ -16,9 +16,11 @@ namespace CobolNet.Binding;
 public readonly record struct Table16Operand(
     PicCategory Category, bool IsAlphabetic = false, bool IsEdited = false, bool IsNonInteger = false)
 {
-    /// <summary>The Table-16 position of a described elementary item.</summary>
+    /// <summary>The Table-16 position of a described item — its OWN picture, or a bit / national group's as-if
+    /// picture (§13.18.29.4 GR1b/GR2b; D20/PB79: a national group is Table 16's NATIONAL row, never the GR4 group
+    /// exemption); an alphanumeric group is the GR4 conversion-free copy.</summary>
     public static Table16Operand Of(DataItem item) =>
-        item.Pic is not { } p
+        item.OperandPic is not { } p
             ? new Table16Operand(PicCategory.Group)
             : new Table16Operand(p.Category, p.IsAlphabetic, p.EditMask is not null,
                 p.Category is PicCategory.Numeric && (p.IsFloat || p.Scale > 0));

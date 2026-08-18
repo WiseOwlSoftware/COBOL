@@ -303,7 +303,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     private static int? InspectStaticWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral s => s.Value.Length,
-        BoundFieldOperand f when f.Place.Item.IsGroup => f.Place.Item.ImageWidth,
+        BoundFieldOperand f when f.Place.Item.IsGroup =>
+            f.Place.Item.AsIfPic?.Length ?? f.Place.Item.ImageWidth,   // a bit group: its boolean positions (D20/PB79)
         BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.Numeric } pic } => pic.Digits,
         BoundFieldOperand { Place.Item.Pic: { } pic } => pic.Length,
         _ => null,

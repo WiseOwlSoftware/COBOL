@@ -291,6 +291,9 @@ ROUNDING          : 'ROUNDING' ;
 // CLOCK-UNITS-X still lexes as one IDENTIFIER (maximal munch). Also a legal user word via cobolWord where
 // the §8.9 funnel frees it (mirrored in _dataNameTokens).
 CLOCK_UNITS     : 'CLOCK-UNITS' ;
+// GROUP-USAGE (ISO §13.18.29, COBOL-2002 — kb/Work PB79): hyphenated, so it precedes IDENTIFIER; a user word
+// below 2002 via cobolWord (mirrored in _dataNameTokens), funnel-0901'd at >=2002 as a name.
+GROUP_USAGE     : 'GROUP-USAGE' ;
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
 FOREGROUND_COLOR: 'FOREGROUND-COLOR' ;

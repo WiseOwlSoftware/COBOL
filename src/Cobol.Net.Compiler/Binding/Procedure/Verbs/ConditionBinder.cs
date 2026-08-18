@@ -101,7 +101,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference to a category-boolean item.
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ctx.Refs.Resolve(dref) is { } p)
         {
-            var cat = p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category;
+            // THE ONE category reader (D20/PB79): a ref-mod view's category (GR6), else the item's own picture or a
+            // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
+            var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             ctx.Edition.Error("COBOLNET1511", $"operand '{dref.GetText()}' in a boolean expression is not a "
                 + "boolean data item (ISO §8.8.2 — boolean operands only)");

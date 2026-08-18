@@ -355,7 +355,7 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// or national group would be boolean / national by SR1's last sentence once GROUP-USAGE is modelled — kb/Work
     /// PB79). ⛔ THE ONE READER for consumers that hold a <see cref="RefModPlace"/> (kb/Work PB70): six of them
     /// each re-spelled "Pic is {} ip ? CategoryOf(ip) : Alphanumeric", and one returned null for a group.</summary>
-    public PicCategory Category => Inner.Item.Pic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;
+    public PicCategory Category => Inner.Item.OperandPic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;   // a bit / national group is "treated as elementary" (§8.4.3.3.3 SR1 last sentence; D20)
 
     public static PicCategory CategoryOf(PicInfo inner) => inner.Category switch
     {

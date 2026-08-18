@@ -209,6 +209,11 @@ internal static class OperandText
         // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
         // Only a group with a float / COMP-5 / INDEX leaf stays the loud Tier-C island. This is the
         // WRITE / RELEASE / DISPLAY / compare sender path.
+        // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
+        // operand value is its BIT STRING (the subordinates' boolean positions concatenated — AsBits), never the
+        // packed byte image AsImage yields; a NATIONAL group's operand value IS its character image (GR2b).
+        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.Bit)
+            return $"{PlaceRenderer.Read(p)}.AsBits()";
         if (p.Item.IsGroup)
             return p.Item.IsImageCapable
                 ? $"{PlaceRenderer.Read(p)}.AsImage()"

@@ -298,9 +298,105 @@ majority and includes the entire existing corpus. (The same discipline as PB41's
 
 **IN:** the layout function, the sizing surfaces above, `FUNCTION LENGTH`/`BYTE-LENGTH`, and the record image
 codec packing a bit run into its bytes.
-**OUT, and each is loud rather than silently wrong:** `GROUP-USAGE BIT` (§13.18.29) is still not modelled —
-`DataBinder` says so — so a *declared* bit group stays rejected; and a sub-byte `REDEFINES` overlay (a redefiner
-starting mid-byte) is refused rather than given a rounded offset. Both are recorded on [[PB43]].
+**OUT, and each is loud rather than silently wrong:** `GROUP-USAGE BIT` (§13.18.29) — modelled by **D20** (kb/Work
+PB79); and a sub-byte `REDEFINES` overlay (a redefiner starting mid-byte) is refused rather than given a rounded
+offset (recorded on [[PB43]]).
+
+### D20. GROUP-USAGE (§13.18.29): a bit group / national group is STRUCTURALLY a group and SEMANTICALLY an elementary boolean / national item — ONE as-if PICTURE on the DataItem, consulted by every category reader; the layout stays the group's. (kb/Work PB79.)
+
+*Load-bearing spec anchors: §13.18.29.2 general format (`GROUP-USAGE IS {BIT | NATIONAL}`); §13.18.29.3 SR1 (only a
+group that is not strongly typed and not variable-length), SR2 (BIT: USAGE BIT implied; no explicit USAGE on the
+subject; every subordinate elementary item usage bit / category boolean, every subordinate group GROUP-USAGE BIT
+explicitly or implicitly), SR3 (NATIONAL: USAGE NATIONAL implied; every subordinate elementary item usage
+national; signed numerics SIGN IS SEPARATE; subordinate groups GROUP-USAGE NATIONAL); §13.18.29.4 GR1 (a bit
+group is a bit data item, class/category boolean, "treated as though it were an elementary data item … described
+with PICTURE 1(m), where m is the bit length of the group"; storage per §8.5.1.6.3), GR2 (a national group is
+class/category national, "as though … PICTURE N(m), where m is the length of the group"), GR3 (no clause ⇒ an
+alphanumeric group item); §8.5.2.10 item 3 (category national includes a national group); §8.5.1.6.3 (the
+trailing-filler NOTE excludes "a record that is entirely a bit group"); §15.50.4 r1/r2 (LENGTH of a bit / national
+group in boolean / national positions); §14.9.24 Table 16 (a national group sends/receives as category
+national); §8.4.3.3.3 SR1 last sentence (a bit/national group is treated as elementary for reference
+modification).*
+
+**The problem.** `GROUP-USAGE` is not lexed as a keyword and no clause consumes it: `01 NG GROUP-USAGE NATIONAL.`
+is a parse error. Seven inventory rows plus the group legs of RV-15.50.4-1/2 (PB61) are GAP for that reason alone.
+
+**The model — one as-if picture, two structural predicates.** Today `IsGroup ⇔ Pic is null ∧ Children > 0` and
+`IsElementary ⇔ Pic is not null` — 116 + 27 sites — and every category reader answers ALPHANUMERIC for a group
+because that was the only group there was (GR3). A GROUP-USAGE group must stay a GROUP for everything
+STRUCTURAL (children, layout, the record struct, REDEFINES tiers, INITIALIZE/CORRESPONDING walks, file record
+images) and become an ELEMENTARY boolean / national item for everything CATEGORICAL (class/category, Table 16,
+comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
+
+- `DataItem.GroupUsage : GroupUsage { None, Bit, National }` (init-only, from the clause; INHERITED by every
+  subordinate group per SR2/SR3 "explicitly or implicitly", set by the usage-inheritance walk —
+  `DataBinder.ResolveIndexItems`, the same walk that adjudicates a group-level `USAGE BIT / NATIONAL`, because
+  GROUP-USAGE IMPLIES that usage for the subject: one walk, two spellings; that walk now also APPLIES the implied
+  bit form to PICTURE-1 leaves without their own USAGE, §13.18.60.4 GR1 — which the group-level clause never had).
+- `DataItem.AsIfPic : PicInfo?` — the GR1b/GR2b picture: `new PicInfo(PicCategory.Boolean, Usage.Bit, m, 0, 0, false)` for a bit
+  group, `new PicInfo(PicCategory.National, Usage.National, m, 0, 0, false)` for a national group, null
+  otherwise — where m is the group's BIT extent (`BitLayout.ExtentBits` WITHOUT rule 4: §8.5.1.6.3's trailing
+  filler is excluded for "a record that is entirely a bit group") or its NATIONAL length (`ImageWidth` — national
+  leaves already contribute CHARACTER positions to a group image, never byte-doubled, and every subordinate is
+  usage national by SR3). Computed lazily from the forest (no new pass): the extent is a pure function of the
+  children, exactly as `ImageWidth`/`ByteWidth` are today.
+- **`DataItem.OperandPic => Pic ?? AsIfPic`** — THE ONE READER for category. Every site that today asks
+  `Pic?.Category` / `Pic is {} p` to decide class, category, Table 16 row, LENGTH positions, ref-mod
+  admissibility, comparison class, string-operand-ness, DISPLAY-OF class screen, or the intrinsic-argument
+  category screens switches to `OperandPic`. The structural predicates keep their meaning: `IsGroup` (children,
+  no own Pic) and `IsElementary` (own Pic) are unchanged, so the 116 structural sites are untouched by
+  construction; a NEW predicate `IsAsIfElementary => AsIfPic is not null` names the GR1b/GR2b cases where an
+  operation must take the elementary path over a group (MOVE — a national group is a category-national SENDER
+  and RECEIVER, padded/truncated in national positions, never the GR4 conversion-free group copy; comparisons —
+  class national / boolean, not the alphanumeric group comparison; INSPECT/STRING/UNSTRING — a national/boolean
+  operand; INITIALIZE — a national group is initialized as a national item? NO: §14.9.19 walks elementary
+  items regardless — structural; CORRESPONDING — structural).
+- **Storage is unchanged.** A national group's record image is the concatenation of its national subordinates
+  (already what `AsImage()` yields); a bit group's image is the packed bit run `BitLayout` already lays out for a
+  USAGE-BIT-descendant group, minus rule 4's trailing filler (`ExtentBits(group, trailingFiller: !isBitGroup)`).
+  The value a bit group presents as an OPERAND is its bit string (`PICTURE 1(m)`): a new `AsBits()` on the record
+  struct (the concatenation of subordinate bit strings — the SAME concatenation `AsImage()` packs) is what the
+  boolean MOVE / compare / INSPECT paths read; the packed image stays the file/REDEFINES form. A national group's
+  operand value IS its `AsImage()` (UTF-16 national positions).
+
+**Diagnostics (next free codes from session-probe):** SR1 — the clause on a non-group, a strongly-typed group, or
+a variable-length group; SR2/SR3 — an explicit USAGE on the subject; a subordinate elementary item of the wrong
+usage/category (a DISPLAY item inside a national group; a non-boolean inside a bit group); a signed numeric
+subordinate of a national group without SIGN IS SEPARATE; a subordinate group whose OWN GROUP-USAGE disagrees.
+Each ONE descriptor, positioned at the entry through the PB82 cursor.
+
+**Grammar / edition:** `GROUP_USAGE : 'GROUP-USAGE'` (a hyphenated keyword token like CLOCK-UNITS/B-AND);
+`groupUsageClause : GROUP_USAGE IS? (BIT | NATIONAL)` as a `dataDescriptionClause` alternative; `GROUP_USAGE`
+admitted to `cobolWord` as a user word BELOW 2002 and listed in the funnel's `CheckedTokenTypes` so a ≥2002 use
+as a name is 0901'd (the B-AND / SHARING precedent); `constructs.json` row `group-usage-2002` (introducedIn 2002;
+VCR row) with the ParseArm gate on `VisitGroupUsageClause`; the edition-gate sweep (the 85 corpus keeps parsing).
+
+**Consumers to switch to `OperandPic` (the sweep list, each with its rule):** `IntrinsicResultType.OperandCategory`
+(the National/Boolean arms are already written against a group Pic — they become live), `ClassOfPlace`,
+`RefModPlace.Category` (§8.4.3.3.3 SR1 last sentence), `ReferenceResolver.RefModExclusion`, `MoveBinder`'s
+`MoveReceiverCategory` + the sender category (Table 16 national row), `Table16Operand.Of(Place)`,
+`ConditionBinder`'s comparison class, `InspectBinder`/`StringBinder`/`UnstringBinder` operand screens,
+`IntrinsicBinder.LengthPositions` (r1/r2 — drop the `IsElementary` guard, read `OperandPic`),
+`IsStringOperand`, `DISPLAY-OF`/`NATIONAL-OF` argument screens, `DataBinder`'s §13.18.49.3 SR9 SIGN guard (the
+"GROUP-USAGE is not modeled" branch becomes the real check).
+
+**As built (2026-08-18, DEVLOG 1317):** exactly the above, with the emitter half spelled out — a bit group's
+elementary face is `AsBits()` / `FromBits()` (`GroupImageCodec.EmitBitMethods`; read through `OperandText`'s as-if
+arm and `BooleanRenderer`, stored through `PlaceRenderer.Write`'s as-if arm — the ONE place a MemberPlace that is
+an as-if group receives), the packed image stays `AsImage()`/`FromImage()`, and a bit group is a §8.5.1.6.3 RUN
+MEMBER inside an alphanumeric group (`PhysicalModel`: run members are bit items; a group member's carrier is
+`X.AsBits()`, its distribution `X.FromBits(slice)`, `BitLayout.RunBits` its width). A national group's face is its
+character image, stored by `WriteGroupImage`. The MOVE dispatch: `MoveClassifier.Kind` sends an as-if receiver
+down the Convert path over `OperandPic` (`ConvertSource` reads `target.OperandPic`), and `IsGroupSender` excludes
+an as-if sender. Diagnostics: COBOLNET1653 (`GroupUsageRule`) for SR1 + SR2/SR3's explicit-USAGE and
+subordinate-conflict halves; the leaf conformance is the shared 0881 / national-form-staged 0899 legs.
+**Goldens:** `2023/pb79_group_usage_national` (LENGTH 5 / BYTE-LENGTH 10; MOVE pad/truncate both ways; national
+comparison; INSPECT; ref-mod read + write; a nested national group), `2023/pb79_group_usage_bit` (LENGTH 12 /
+BYTE-LENGTH 2; MOVE to bit / display / shorter receivers; MOVE into the group distributing to its leaves; equality;
+`B-OR`; a nested bit group; the group-level USAGE BIT leaves; a bit group sharing a byte inside an alphanumeric
+group), negatives `pb79-group-usage-explicit-usage` / `-not-a-group` / `-subordinate-conflict` (1653) and `-85`
+(0900). Found on the way and fixed with it: **PB95** — `[USAGE IS]` is optional for EVERY usage (§13.18.60.2);
+`usageClause` is one `(USAGE IS?)? usageKeyword` alternative (`2023/pb95_bare_usage_keywords`).
 
 ### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
 

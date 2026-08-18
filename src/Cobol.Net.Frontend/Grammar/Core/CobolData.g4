@@ -255,6 +255,15 @@ dataDescriptionClause
     | anyLengthClause
     | dynamicLengthClause
     | genericDataClause
+    | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
+    ;
+
+// GROUP-USAGE clause (COBOL-2002 §13.18.29): the group item is treated as an elementary item of usage bit /
+// category boolean (BIT) or usage national / category national (NATIONAL) — data-model design D20. Only the
+// GROUP-USAGE token is unique to this clause; BIT / NATIONAL stand alone here (no USAGE prefix), which is why
+// they are dedicated tokens rather than cobolWord-admitted here.
+groupUsageClause
+    : GROUP_USAGE IS? (BIT | NATIONAL)
     ;
 
 // EXTERNAL clause (§13.18.22) — shared storage across run unit
@@ -359,32 +368,18 @@ editingForPhrase
     | POSITIVE IS? literal ( NEGATIVE IS? literal )?
     ;
 
-// USAGE Clause. The optional binarySign applies to the COBOL-2002 BINARY-CHAR/SHORT/LONG/DOUBLE usages
-// (ISO §13.18.60); it is grammatically tolerated after any usageKeyword and ignored for non-binary ones.
+// USAGE Clause (ISO §13.18.60.2): `[USAGE IS] usage-keyword` — the USAGE keyword is OPTIONAL for EVERY usage, so
+// the bare and the prefixed spellings are ONE alternative over ONE usageKeyword rule (kb/Work PB95: the former
+// hand-listed bare alternatives omitted POINTER, OBJECT REFERENCE, NATIONAL, BIT, PROGRAM-POINTER and
+// FUNCTION-POINTER, so `PIC 1(3) BIT` was a parse error). The optional binarySign applies to the COBOL-2002
+// BINARY-CHAR/SHORT/LONG/DOUBLE usages; it is grammatically tolerated after any usageKeyword and rejected by the
+// binder for non-binary ones, as is noSignPhrase off PACKED-DECIMAL (§13.18.60.4 GR11, 2023). A 2002 usage word
+// that is a USER word at 85 (BIT, NATIONAL, PROGRAM-POINTER, FUNCTION-POINTER — all cobolWord) needs no predicate
+// here: in `05 BIT.` the entry-NAME alternative is tried first and wins (an '85 item named BIT), and `05 X BIT.`
+// reads as the usage, which the binder / VersionConformancePass then names as the 2002 introduction — the
+// superset-parse / bind-narrow direction of DESIGN-version-conformance-pipeline.
 usageClause
-    : USAGE IS? usageKeyword binarySign? noSignPhrase?   // full form: USAGE IS DISPLAY / … / PACKED-DECIMAL WITH NO SIGN
-    | DISPLAY                        // bare keyword forms (no USAGE prefix)
-    | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
-    | COMPUTATIONAL_1
-    | COMPUTATIONAL_2
-    | COMPUTATIONAL_3
-    | COMPUTATIONAL_4
-    | COMPUTATIONAL_5
-    | COMP
-    | COMP_1
-    | COMP_2
-    | COMP_3
-    | COMP_4
-    | COMP_5
-    | FLOAT_SHORT
-    | FLOAT_LONG
-    | FLOAT_EXTENDED
-    | FLOAT_BINARY_32 | FLOAT_BINARY_64 | FLOAT_BINARY_128     // §13.18.60.4 GR14-16 IEEE binary32/64/128 (2014)
-    | FLOAT_DECIMAL_16 | FLOAT_DECIMAL_34                       // §13.18.60.4 GR17-18 IEEE decimal64/128 (2014)
-    | (BINARY_CHAR | BINARY_SHORT | BINARY_LONG | BINARY_DOUBLE) binarySign?   // bare BINARY-xxx [SIGNED|UNSIGNED]
-    | BINARY
-    | PACKED_DECIMAL noSignPhrase?   // bare PACKED-DECIMAL [WITH NO SIGN] (§13.18.60.4 GR11, 2023)
-    | INDEX
+    : (USAGE IS?)? usageKeyword binarySign? noSignPhrase?
     ;
 
 // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.2 / GR11 — a COBOL-2023 addition): no trailing sign nibble.

@@ -246,13 +246,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     {
         BoundStringLiteral sl => sl.Category,
         BoundAllLiteral al => al.Category,
-        BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category switch
-        {
-            PicCategory.National => PicCategory.National,
-            PicCategory.Boolean => PicCategory.Boolean,
-            _ => PicCategory.Alphanumeric,
-        },
-        BoundFieldOperand f => f.Place.Item.Pic?.Category,
+        // The ONE ref-mod category reader (kb/Work PB70/PB73) — GR6's rewrites, incl. numeric-national → national.
+        BoundFieldOperand { Place: RefModPlace rm } => rm.Category,
+        // THE ONE category reader (D20/PB79): an elementary item's picture, a bit / national group's as-if picture;
+        // an alphanumeric group has none and takes the alphanumeric (image) branch.
+        BoundFieldOperand f => f.Place.Item.OperandPic?.Category,
         // A COMPUTED operand with a string-class function result — its category is the function's type (§15.2;
         // kb/Work PB68 — the fifth site of the class-boolean rule: two boolean function results compared each
         // other rode the alphanumeric collate-and-space-pad branch instead of the boolean right-zero-extension).
@@ -267,7 +265,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     private string BoolRead(BoundOperand o) => o switch
     {
         BoundBoolOperand b => BooleanRenderer.Render(b.Expr, num),
-        BoundFieldOperand f => PlaceRenderer.Read(f.Place),
+        // A bit GROUP's boolean value is its bit string (AsBits — OperandText's as-if arm), not the struct (D20/PB79).
+        BoundFieldOperand f => f.Place.Item.IsAsIfElementary ? OperandText.FieldImage(f.Place) : PlaceRenderer.Read(f.Place),
         BoundStringLiteral { Category: PicCategory.Boolean } s => EmitText.CsLiteral(s.Value),
         BoundFigurative { Kind: 'Z' } => "\"0\"",
         // A boolean-result function reference — its '0'/'1' image through the ONE string channel (kb/Work PB68).
@@ -277,7 +276,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     private static int AnchorWidth(BoundOperand op) => op switch
     {
-        BoundFieldOperand f => f.Place.Item.Pic?.Length ?? f.Place.Item.ImageWidth,
+        BoundFieldOperand f => f.Place.Item.OperandPic?.Length ?? f.Place.Item.ImageWidth,   // a bit group: its boolean positions (D20)
         BoundStringLiteral s => Math.Max(s.Value.Length, 1),
         BoundAllLiteral a => Math.Max(a.Literal.Length, 1),
         _ => 1,

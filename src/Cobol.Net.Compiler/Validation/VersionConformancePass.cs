@@ -760,6 +760,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The GROUP-USAGE clause (ISO §13.18.29) — a COBOL-2002 introduction (a bit group / national group,
+        /// data-model design D20; kb/Work PB79). SR1–SR3 stay in the binder (COBOLNET1653 + the shared §13.18.60.4 GR1
+        /// leaf conformance); this arm only names the edition.</summary>
+        public override object? VisitGroupUsageClause(CobolParserCore.GroupUsageClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.GroupUsageClause2002, "the GROUP-USAGE clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The ANY LENGTH clause (ISO §13.18.2) — a COBOL-2002 introduction (a LINKAGE item whose length
         /// tracks the corresponding argument at runtime, GR1). Parse-arm (recognition) like the BASED gate:
         /// <c>DataItem.IsAnyLength</c> is cleared by the binder on every SR1/SR2/SR3/SR4 shape violation, so a
@@ -1740,6 +1749,9 @@ internal sealed class VersionConformancePass
             // The 2002 boolean operators (ISO §8.7.2): user words at 85, funnel-0901'd at ≥2002. Their keyword
             // occurrences parse only through the booleanExpression tiers, never a name slot — position-safe.
             CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT,
+            // The 2002 GROUP-USAGE clause word (ISO §13.18.29; D20/PB79): a user word at 85, funnel-0901'd at ≥2002.
+            // Its keyword occurrence parses only through groupUsageClause, never a name slot — position-safe.
+            CobolLexer.GROUP_USAGE,
             // The 2002 file-sharing §8.9-reserved words (SHARING/RETRY/UNLOCK): user words at 85, 0901'd ≥2002.
             // Keyword occurrences parse only through the gated sharing/lock rules, never a name slot.
             CobolLexer.SHARING, CobolLexer.RETRY, CobolLexer.UNLOCK,

@@ -865,6 +865,17 @@ public static class DiagnosticCatalog
         + "in the paragraph. ISO §12.3.6.2's format encloses the clauses in choice indicators within brackets, which "
         + "§5.2.6.4 defines as zero or more of the alternatives, each at most once, in any order. Keep one.",
         "ISO §12.3.6.2 / §5.2.6.4");
+    // kb/Work PB79 (data-model design D20): the GROUP-USAGE clause's syntax rules — SR1 (a group item that is not
+    // strongly typed and not a variable-length group), SR2/SR3 (no explicit USAGE on the subject; every subordinate
+    // group the same GROUP-USAGE). The subordinate LEAF conformance rides the shared §13.18.60.4 GR1 usage-inheritance
+    // check (COBOLNET0881 / the national-form staged 0899 legs), never a second copy here.
+    public static readonly DiagnosticDescriptor GroupUsageRule = new(
+        "COBOLNET1653", "group-usage-rule", EditionSeverity.Error,
+        "A GROUP-USAGE clause violates one of its syntax rules: it is specified on an entry that is not a group item, "
+        + "on a strongly-typed group, or on a variable-length group (SR1); a USAGE clause is explicitly specified on "
+        + "the same entry (SR2/SR3 — the usage is implied); or a subordinate group declares the other GROUP-USAGE "
+        + "(SR2/SR3 — every subordinate group is the same, explicitly or implicitly).",
+        "ISO §13.18.29.3");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

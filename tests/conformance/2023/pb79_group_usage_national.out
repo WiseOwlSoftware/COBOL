@@ -1,0 +1,10 @@
+LEN=5 BYTES=10
+NR=[abcde  ]
+NS=[abc]
+N1=[xy] N2=[z  ]
+EQ
+CNT=04
+RM=[qrs]
+NG=[pqrUV]
+NEST=[123] LEN=3 M2-LEN=2
+M1=[7] M3=[89]

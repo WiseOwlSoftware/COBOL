@@ -73,10 +73,15 @@ internal sealed class PhysicalModel(EmitContext ctx)
         var inRun = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < siblings.Count; i++)
         {
-            if (!BitLayout.IsBitLeaf(siblings[i]) || siblings[i].RedefinesTargetName is not null
+            // A run member is a bit LEAF or a bit GROUP (§8.5.1.6.3 rule 1 names "an elementary bit data item or bit
+            // group item of the same level" — D20/PB79); a bit group contributes its AsBits() carrier and its exact
+            // extent. Only siblings WITHIN a group form runs — level-01 records never share a byte.
+            static bool RunMember(DataItem x) =>
+                BitLayout.IsBitLeaf(x) || (x.GroupUsage is GroupUsage.Bit && x.Parent is not null);
+            if (!RunMember(siblings[i]) || siblings[i].RedefinesTargetName is not null
                 || inRun.Contains(siblings[i])) continue;
             var run = new List<DataItem> { siblings[i] };
-            for (int j = i + 1; j < siblings.Count && BitLayout.IsBitLeaf(siblings[j])
+            for (int j = i + 1; j < siblings.Count && RunMember(siblings[j])
                                 && siblings[j].RedefinesTargetName is null
                                 && siblings[j].Level == siblings[i].Level; j++)
                 run.Add(siblings[j]);
@@ -115,12 +120,14 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
             // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is
             // still a plain sum of Width and every downstream caller is unchanged.
-            if (BitLayout.IsBitLeaf(c))
+            if (runStart.ContainsKey(c) || inRun.Contains(c))
             {
                 var run = runStart.TryGetValue(c, out var r) ? r : null;
-                int runBits = run?.Sum(m => m.Pic!.Length * (m.Occurs ?? 1)) ?? 0;
+                int runBits = run?.Sum(m => BitLayout.RunBits(m)) ?? 0;
+                // A bit GROUP member keeps its record-struct type (IsGroupStruct) — its own AsImage/FromImage still exist
+                // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
                 yield return new Physical(c.CsName, c.FieldType, run is null ? 0 : BitLayout.Characters(runBits),
-                    false, Values.FieldInit(c), comment, occurs, null, run);
+                    c.IsGroup, Values.FieldInit(c), comment, occurs, null, run);
                 continue;
             }
             yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c), comment, occurs, numLeaf);

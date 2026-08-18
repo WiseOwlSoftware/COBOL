@@ -42,6 +42,7 @@ public static class Constructs
     public const string WriteBeforeAndAfterAdvancing2023 = "write-before-and-after-advancing-2023";
     public const string BasedClause2002 = "based-clause-2002";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
+    public const string GroupUsageClause2002 = "group-usage-clause-2002";
     public const string ProcedureReturning2002 = "procedure-returning-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
     public const string PicWide19Digits2002 = "pic-wide-19-digits-2002";

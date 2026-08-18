@@ -1904,6 +1904,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        var groupUsage = GroupUsage.None;   // GROUP-USAGE (§13.18.29; D20/PB79)
         List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§13.18.40.2), threaded to PictureAnalyzer
         List<TableValueSpec>? tableValues = null;       // Format 2 (table) VALUE phrases (§13.18.63.2)
         bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
@@ -1996,6 +1997,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
+                else if (clause.Context.groupUsageClause() is { } gu)
+                    // GROUP-USAGE (ISO §13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
+                    // ParseArm.VisitGroupUsageClause; SR1 (a group, not strongly typed, not variable-length) and the
+                    // subordinate conformance (SR2/SR3) are adjudicated once the forest is complete (ResolveIndexItems);
+                    // the no-explicit-USAGE half of SR2/SR3 is checked below, where both clauses are known.
+                    groupUsage = gu.BIT() is not null ? GroupUsage.Bit : GroupUsage.National;
                 else if (clause.Context.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);
@@ -2186,6 +2193,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var pending = pic is null && entryUsage is Usage.National ? PicPending.NationalUsage
             : pic is null && entryUsage is Usage.Bit ? PicPending.BitUsage
             : PicPending.None;
+        // GROUP-USAGE (§13.18.29.3 SR2/SR3; D20/PB79): "USAGE BIT / NATIONAL is implied for the subject of the entry.
+        // A USAGE clause shall not be explicitly specified for the subject" — the implied usage rides the SAME
+        // Pending adjudication a group-level USAGE BIT / NATIONAL clause rides (§13.18.60.4 GR1: the usage sheds to
+        // every subordinate leaf, checked and applied in ResolveIndexItems), so the two spellings share one walk.
+        if (groupUsage is not GroupUsage.None)
+        {
+            if (usageText is not null)
+                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"{entryWhere}: a USAGE clause shall not be explicitly "
+                    + $"specified for the subject of a GROUP-USAGE {(groupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
+                    + "entry — the usage is implied by the GROUP-USAGE clause (ISO §13.18.29.3 "
+                    + $"{(groupUsage is GroupUsage.Bit ? "SR2" : "SR3")})");
+            else if (pic is not null)
+                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"{entryWhere}: the GROUP-USAGE clause may be specified "
+                    + "only if the subject of the entry is a group item — this entry has a PICTURE clause "
+                    + "(ISO §13.18.29.3 SR1)");
+            else
+                pending = groupUsage is GroupUsage.Bit ? PicPending.BitUsage : PicPending.NationalUsage;
+        }
 
         // USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11, 2023): applies ONLY to PACKED-DECIMAL (grammatically tolerated
         // after any usageKeyword — reject on a non-Packed usage, COBOLNET1565) and forbids an 'S' picture (SR31,
@@ -2311,6 +2336,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Occurs = occurs,
             OccursSpec = occursSpec,
             RedefinesTargetName = redefinesTargetName,
+            GroupUsage = pic is null ? groupUsage : GroupUsage.None,   // §13.18.29 (D20/PB79); never on an elementary item
             DeclaredAt = Edition.Cursor,   // the entry cursor (kb/Work PB82) — where post-build passes report
             Justified = justified,
             BlankWhenZero = blankWhenZero,
@@ -2480,6 +2506,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 : kw.programPointerUsage() is not null ? "PROGRAM-POINTER"
                 : kw.functionPointerUsage() is not null ? "FUNCTION-POINTER"
                 : kw.GetText();
+        // Unreachable since `[USAGE IS] usageKeyword` became ONE alternative (kb/Work PB95): every spelling, bare
+        // or prefixed, carries the usageKeyword node.
         return usage.GetChild(0).GetText();
     }
 
@@ -2680,6 +2708,34 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
             if (item.Children.Count > 0)
             {
+                // GROUP-USAGE (ISO §13.18.29; D20/PB79) — SR1's forest-dependent halves, and SR2/SR3's "all subordinate
+                // group items shall be explicitly or implicitly described with GROUP-USAGE BIT / NATIONAL": a
+                // subordinate group inherits, one that declares the OTHER usage is a violation.
+                if (item.GroupUsage is not GroupUsage.None)
+                {
+                    string gu = item.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL";
+                    if (StrongTypeModel.IsStrongGroup(item))
+                        Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
+                            + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
+                            + "(ISO §13.18.29.3 SR1)");
+                    if (ReferenceResolver.HasVariableLengthSubordinate(item))
+                        Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
+                            + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
+                            + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
+                    foreach (var c in item.Children)
+                    {
+                        if (c.Children.Count == 0) continue;
+                        if (c.GroupUsage is GroupUsage.None) c.GroupUsage = item.GroupUsage;   // implied (SR2/SR3)
+                        else if (c.GroupUsage != item.GroupUsage)
+                        {
+                            using var __c = Edition.At(c);
+                            Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{c.CobolName ?? "FILLER"}': a group "
+                                + $"subordinate to a GROUP-USAGE {gu} group shall itself be GROUP-USAGE {gu}, explicitly or "
+                                + $"implicitly — not GROUP-USAGE {(c.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
+                                + $"(ISO §13.18.29.3 {(item.GroupUsage is GroupUsage.Bit ? "SR2" : "SR3")})");
+                        }
+                    }
+                }
                 // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
                 // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
                 // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
@@ -2702,6 +2758,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     item.Pending = PicPending.None;
                     foreach (var l in Leaves(item))
+                    {
+                        using var __l = Edition.At(l);   // the LEAF's own entry position (kb/Work PB82)
                         if (l.Pic is { Category: PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited })
                             Edition.Error(DiagnosticCatalog.NationalData, "national-form data (a boolean or numeric item "
                                 + $"under a group USAGE NATIONAL) is recognized but not yet implemented "
@@ -2712,15 +2770,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 + "NATIONAL inherited from its group admits boolean, national, "
                                 + "national-edited, numeric, and numeric-edited pictures only "
                                 + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1; §13.18.40.3 SR30)");
+                    }
                 }
                 if (item.Pending is PicPending.BitUsage)
                 {
                     item.Pending = PicPending.None;
                     foreach (var l in Leaves(item))
+                    {
+                        using var __l = Edition.At(l);   // the LEAF's own entry position (kb/Work PB82)
                         if (l.Pic is not null and not { Category: PicCategory.Boolean })
                             Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
                                 + "inherited from its group requires a boolean PICTURE (symbol 1 only) "
                                 + "(ISO §13.18.60.3 SR5 / §13.18.60.4 GR1)");
+                        // §13.18.60.4 GR1 — the group's USAGE BIT (declared, or implied by GROUP-USAGE BIT — §13.18.29.3
+                        // SR2 "USAGE BIT may be implicitly specified") APPLIES to each subordinate boolean leaf that
+                        // has no usage of its own: it becomes bit-form (bits, §8.5.1.6.3 alignment — D19), not the
+                        // display-form SR13b default. Before D20 the check above validated the leaves and left them
+                        // display-form, so `01 G USAGE BIT. 05 A PIC 1(5). 05 B PIC 1(3).` occupied 8 bytes (D20/PB79).
+                        else if (l.OwnUsage is null && l.Pic is { Category: PicCategory.Boolean, Usage: Usage.Display } bp)
+                            l.Pic = bp with { Usage = Usage.Bit };
+                    }
                 }
                 if (item.Pic is { Category: PicCategory.ObjectReference }) item.Pic = null;
                 // A synthesized fixed-width binary profile on a GROUP header sheds the same way (the usage
@@ -2730,6 +2799,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (item.Pic is { Category: PicCategory.Numeric, Usage: Usage.BinaryChar or Usage.BinaryShort
                         or Usage.BinaryLong or Usage.BinaryDouble }) item.Pic = null;
                 foreach (var c in item.Children) Walk(c, isIndex, objRef);
+            }
+            else if (item.GroupUsage is not GroupUsage.None)
+            {
+                // A GROUP-USAGE entry with no subordinates is not a group at all (§13.18.29.3 SR1) — the implied
+                // usage's own Pending mark is consumed here so the picture-less-usage arm below does not double-report.
+                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the GROUP-USAGE "
+                    + "clause may be specified only if the subject of the entry is a group item — this entry has no "
+                    + "subordinate entries (ISO §13.18.29.3 SR1)");
+                item.GroupUsage = GroupUsage.None;
+                item.Pending = PicPending.None;
+                item.Pic = PicInfo.Recovery();
             }
             else if (item.Pending is not PicPending.None)
             {

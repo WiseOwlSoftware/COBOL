@@ -44,6 +44,7 @@ public static partial class ConstructRegistry
         new("write-before-and-after-advancing-2023", "WRITE BEFORE AND AFTER ADVANCING", 2023, null, null, "COBOLNET0900", "ISO §14.9.51 SR17 / GR25e-f; Annex E.3.3 item 2"),
         new("based-clause-2002", "BASED clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.5"),
         new("any-length-clause-2002", "ANY LENGTH clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.2"),
+        new("group-usage-clause-2002", "GROUP-USAGE clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.29"),
         new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOLNET0900", "ISO §14.2"),
         new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOLNET0893", "ISO §12.3.7; pinned pre-band code (VCR Table 7 row 7.3, DEVLOG 558 — in the roadmap traceability band); the W1.5 registry truth-fix (was mislabeled 0900)"),
         new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOLNET0802", "ISO §8.3.1.2 / §13.18.40 (the LIVE digit-capacity gate)"),
