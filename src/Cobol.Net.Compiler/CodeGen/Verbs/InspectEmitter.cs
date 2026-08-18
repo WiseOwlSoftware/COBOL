@@ -100,31 +100,15 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         // ISO §13.18.38 GR7 + §14.6.4 step 6: an occurs-depending group is INSPECTed over its current-count extent;
         // the replaced image (already current-count, read via the GR8 sending slice) splices back over exactly that
         // extent, leaving positions past the count unmodified.
+        // A reference-modified identifier-1 is the elementary alphanumeric unique item of §8.4.3.3.4 GR6 — the
+        // replaced image splices into it (kb/Work PB70: over a GROUP inner it used to fall into the group arm).
+        if (p is RefModPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
+        // ISO §13.18.38 GR7 + §14.6.4 step 6: an occurs-depending group is INSPECTed over its current-count extent;
+        // the replaced image (already current-count, read via the GR8 sending slice) splices back over exactly that
+        // extent, leaving positions past the count unmodified.
         if (p is OdoGroupPlace odo) { w.Line(PlaceRenderer.ReceiveInto(odo, img)); return; }
-        if (p.Item.IsGroup)
-        {
-            if (p is RedefViewPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
-            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
-            // character transfer INTO the group's storage — the same job a group MOVE does, and
-            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
-            // without consideration for the individual items). Refusing it while MOVE allows it made two
-            // verbs disagree about the same receiver — and that is not merely a consistency argument:
-            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
-            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
-            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
-            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
-            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
-            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
-            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
-            // hence the leaf-kind wording now matches the predicate actually tested.
-            if (!p.Item.IsImageCapable)
-            {
-                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "INSPECT REPLACING/CONVERTING into group")));
-                return;
-            }
-            w.Line($"{PlaceRenderer.Read(p)}.FromImage({img});");
-            return;
-        }
+        // A group identifier-1 (§14.9.22.3 SR1 — "an alphanumeric or national group item"): the ONE group-image store.
+        if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupImage(p, img, "INSPECT REPLACING/CONVERTING into group")); return; }
         if (p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } pic)
         {
             bool stringStored = p.Item.StoreAsImage || p is RedefViewPlace || p is RefModPlace;

@@ -139,16 +139,23 @@ public sealed class ReferenceResolver(DataBinder data)
     /// REQUIRED — that silence is exactly the R30 defect.</summary>
     public Place? Probe(Core.DataReferenceContext dref) => ResolveImpl(dref, report: false);
 
-    /// <summary>The drefs already reported by <see cref="ReportUnidentified"/> — one report per source
-    /// reference even when a statement binder resolves the same node more than once.</summary>
-    private readonly HashSet<Core.DataReferenceContext> _reportedUnidentified = [];
+    /// <summary>The drefs this resolver has already DIAGNOSED (an undefined name — <see cref="ReportUnidentified"/> —
+    /// or a rejected reference shape: SR3 ref-mod-of-ref-mod, SR1 identifier-1 exclusion): one report per source
+    /// reference even when a statement binder resolves the same node more than once, and the fact the receiving
+    /// chokepoint asks (<see cref="WasDiagnosed"/>) so that a null it gets back is EITHER already reported OR
+    /// reported there — never a silently dropped receiver (kb/Work PB70).</summary>
+    private readonly HashSet<Core.DataReferenceContext> _diagnosed = [];
+
+    /// <summary>True when a diagnostic has been emitted for <paramref name="dref"/> by this resolver — the
+    /// receiving chokepoint reports an undiagnosed null itself (recognized-not-implemented shape).</summary>
+    public bool WasDiagnosed(Core.DataReferenceContext dref) => _diagnosed.Contains(dref);
 
     /// <summary>The COBOLNET1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
     /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
     private void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
-        if (!_reportedUnidentified.Add(dref)) return;
+        if (!_diagnosed.Add(dref)) return;
         // kb/Work R32 — a name DECLARED in the (documented-unsupported) SCREEN SECTION is not undefined:
         // the documented COBOLNET1560 posture is compile-accept, so the reference stays the staged loud
         // (RefFailure names the screen-section cause), never the §8.4.2.1 diagnostic. The SAME shape for a
@@ -241,9 +248,10 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         if (refModCount > 1)
         {
-            data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
-                $"'{name}' carries {refModCount} reference modifications; a reference-modified item cannot itself "
-                + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
+            if (_diagnosed.Add(dref))
+                data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
+                    $"'{name}' carries {refModCount} reference modifications; a reference-modified item cannot itself "
+                    + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
             return null;
         }
 
@@ -311,10 +319,27 @@ public sealed class ReferenceResolver(DataBinder data)
         if (PlaceForItem(item, indexExprs) is not { } inner) return null;
 
         if (refCtx is null && cleanRef is null) return inner;
-        // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B
-        // view), or a NUMERIC USAGE-DISPLAY item viewed through its character image (ISO §8.4.3.3.4 GR6 — the unique
-        // result is alphanumeric; NC224A's TEST-1-DATA(3:) over PIC 9(6)). Binary/packed usage stays loud.
-        if (item.Pic?.Category is PicCategory.Numeric)
+        // ⛔ ISO §8.4.3.3.3 SR1 — WHAT identifier-1 MAY BE, in ONE place (kb/Work PB70). An excluded shape is a
+        // bind-time rejection (COBOLNET1647), never the run-time NotImplemented a sending ref-mod used to reach nor
+        // the silent drop a receiving one fell into.
+        if (RefModExclusion(item) is { } why)
+        {
+            if (_diagnosed.Add(dref))
+                data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
+                    $"'{dref.GetText()}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
+            return null;
+        }
+        // Reference modification is over a character string. A GROUP (SR1 — "an alphanumeric group item" / "a group
+        // item that is neither a strongly-typed group nor a variable-length group") is viewed through its character
+        // IMAGE — the unique data item is an elementary alphanumeric item over the group's positions (§8.4.3.3.4
+        // GR6); a Tier-B view (RedefViewPlace) is already a character window. A NUMERIC USAGE-DISPLAY item is viewed
+        // through its character image likewise (NC224A's TEST-1-DATA(3:) over PIC 9(6)); a numeric item of usage
+        // NATIONAL (SR1 admits it) has no national image channel yet — the loud stage.
+        if (item.IsGroup)
+        {
+            if (inner is not RedefViewPlace) inner = new GroupImagePlace(inner);
+        }
+        else if (item.Pic?.Category is PicCategory.Numeric)
         {
             if (item.Pic is not { Usage: Usage.Display, IsFloat: false }) return null;
             // P5.7: the bind-time wrap decision reads the COLLECTED early facts (same mid-bind timing the
@@ -322,9 +347,8 @@ public sealed class ReferenceResolver(DataBinder data)
             if (!data.IsImageBackedEarly(item) && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);
         }
         // National/boolean items reference-modify in their OWN character positions (§8.4.3.3 GR1/GR5a — a
-        // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1).
-        else if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean)) return null;
+        // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1); alphanumeric,
+        // alphabetic, alphanumeric-edited and numeric-edited items are character strings already.
         if (cleanRef is not null)
             return ReadRefMod(cleanRef) is { } cs
                 ? new RefModPlace(inner, cs.Start, cs.Length) { AllowZeroLength = cs.AllowZeroLength }
@@ -332,6 +356,51 @@ public sealed class ReferenceResolver(DataBinder data)
         return ReadRefMod(refCtx!) is { } ss
             ? new RefModPlace(inner, ss.Start, ss.Length) { AllowZeroLength = ss.AllowZeroLength }
             : null;
+    }
+
+    /// <summary>ISO §8.4.3.3.3 SR1, read as an EXCLUSION test: the reason <paramref name="item"/> may NOT be
+    /// identifier-1 of a reference modification, or null when it may. Admitted: a boolean, national, alphanumeric or
+    /// alphabetic item (bullets 1–4 — this model's <see cref="PicCategory.Alphanumeric"/> covers alphabetic and
+    /// alphanumeric-edited, <see cref="PicCategory.National"/> covers national-edited); a numeric-edited item and a
+    /// numeric item of usage DISPLAY or NATIONAL, each "not subordinate to a strongly-typed group item" (bullets 5,
+    /// 8); a group that is neither strongly typed nor variable-length (bullet 9; §8.5.1.12 — a variable-length group
+    /// has a dynamic-length item or a dynamic-capacity table subordinate to it). Everything else — a numeric item of
+    /// BINARY / PACKED / COMP-5 / float usage, an index item, a pointer, an object reference — is excluded. Bit and
+    /// national GROUPS are "treated as elementary" by SR1's last sentence; GROUP-USAGE is not yet modelled (kb/Work
+    /// PB79), so they read as ordinary groups here.</summary>
+    internal static string? RefModExclusion(DataItem item)
+    {
+        if (item.IsGroup)
+            return StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item"
+                : HasVariableLengthSubordinate(item)
+                    ? "a variable-length group item (ISO §8.5.1.12 — a dynamic-length item or a dynamic-capacity table is subordinate to it)"
+                : null;
+        // A leaf subordinate to a strongly-typed group (its own class/category still decides bullets 1–4).
+        bool underStrong = StrongTypeModel.IsStronglyTyped(item);
+        return item.Pic switch
+        {
+            null => "an item without character positions",
+            { Category: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } => null,
+            { Category: PicCategory.NumericEdited } =>
+                underStrong ? "a numeric-edited item subordinate to a strongly-typed group item" : null,
+            { Category: PicCategory.Numeric, Usage: Usage.Index } => "an index data item (class index, ISO §13.18.60)",
+            { Category: PicCategory.Numeric, Usage: Usage.Display or Usage.National, IsFloat: false } =>
+                underStrong ? "a numeric item subordinate to a strongly-typed group item" : null,
+            { Category: PicCategory.Numeric } p =>
+                $"a numeric item of USAGE {p.Usage} (SR1 admits usage DISPLAY or NATIONAL only)",
+            { Category: PicCategory.ObjectReference } => "an object reference",
+            { Category: PicCategory.Pointer or PicCategory.ProgramPointer } => "a pointer",
+            { } p => $"an item of category {p.Category}",
+        };
+    }
+
+    /// <summary>§8.5.1.12 — a variable-length group has a dynamic-length elementary item or a dynamic-capacity table
+    /// as a subordinate (at any depth).</summary>
+    private static bool HasVariableLengthSubordinate(DataItem group)
+    {
+        foreach (var c in group.Children)
+            if (c.IsDynamicLength || c.IsDynamicTable || (c.IsGroup && HasVariableLengthSubordinate(c))) return true;
+        return false;
     }
 
     // ── The ONE reference-modification reader (ISO §8.4.3.3.2) ───────────────────────────────────────────────

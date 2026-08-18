@@ -495,6 +495,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
         var place = ctx.Refs.Resolve(dref);
+        // ⛔ THE ONE RECEIVING CHOKEPOINT NEVER DROPS A RECEIVER SILENTLY (kb/Work PB70): `MOVE "Z" TO OK1 TB(2:1) OK2`
+        // used to move into OK1 and OK2 and skip TB without a word — the resolver's unsupported-shape null fell
+        // through .OfType<Place>() in ResolveTargets / Receivers. An undefined name or a rejected shape was already
+        // reported by the resolver (WasDiagnosed); a name that RESOLVED but whose reference shape this compiler does
+        // not implement as a receiver is reported HERE, recognized-not-implemented, so the compilation fails instead
+        // of the statement running one receiver short.
+        if (place is null)
+        {
+            if (!ctx.Refs.WasDiagnosed(dref))
+                ctx.Edition.Error(DiagnosticCatalog.ReceivingReferenceNotImplemented,
+                    $"receiving operand '{dref.GetText()}' names a declared item in a reference shape COBOL.NET does "
+                    + "not yet implement as a receiver (COBOLNET_DESIGN §1.4 — rejected rather than dropped)");
+            return null;
+        }
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 SR30–32; D9) is set ONLY by a SET Format 14 statement
         // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
         // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).

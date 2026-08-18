@@ -185,20 +185,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: false), $"{width}");
-        // ISO §13.18.38 GR8: an occurs-depending group RECEIVER with data-name-1 OUTSIDE the group uses only the
-        // CURRENT-count part (positions past the count are not modified, GR8a); with data-name-1 INSIDE, the MAXIMUM
-        // length is used (GR8b — the normal full-width FromImage). A Tier-B REDEFINES group view's image IS its
-        // character window. A normal record-struct group distributes the image into its typed leaves via FromImage.
-        ctx.Writer.Line(target switch
-        {
-            OdoGroupPlace { DependingInside: false } odo => PlaceRenderer.ReceiveInto(odo, image),
-            RedefViewPlace => PlaceRenderer.Write(target, image),
-            // A group receiver nested under an OCCURS DYNAMIC level (data-model D9): distribute the image through the
-            // RECEIVING accessor (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3), NOT target.Read()
-            // (=RefSending, which drops an out-of-capacity write into benign scratch — silent data loss).
-            DynTablePlace dyn => $"{PlaceRenderer.RenderPath(dyn.Path, AccessDir.Receiving)}.FromImage({image});",
-            _ => $"{PlaceRenderer.Read(target)}.FromImage({image});",
-        });
+        // The ONE group-image store (PlaceRenderer.WriteGroupImage — kb/Work PB70): the §13.18.38 GR8a current-extent
+        // splice for an occurs-depending receiver with data-name-1 outside, the Tier-B view's window, the OCCURS
+        // DYNAMIC receiving accessor, and the plain FromImage — written once for every verb that deposits an image.
+        ctx.Writer.Line(PlaceRenderer.WriteGroupImage(target, image, "MOVE to group"));
     }
 
     /// <summary>The positionally-paired leaves of two groups whose flattened layouts are IDENTICAL — each pair

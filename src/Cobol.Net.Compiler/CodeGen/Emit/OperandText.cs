@@ -117,7 +117,7 @@ internal static class OperandText
         // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
         // storage is the slice's characters (a NATIONAL slice keeps category national, so its bytes are UTF-16BE).
         if (p is RefModPlace rmp)
-            return rmp.Inner.Item.Pic is { } ip && RefModPlace.CategoryOf(ip) is PicCategory.National
+            return rmp.Category is PicCategory.National
                 ? RuntimeApi.NatBytes(PlaceRenderer.Read(p))
                 : PlaceRenderer.Read(p);
         // An occurs-depending group sends its current-count storage window (§13.18.38 GR8), same as the display path.

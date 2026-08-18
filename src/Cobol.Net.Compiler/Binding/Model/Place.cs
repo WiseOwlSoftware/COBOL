@@ -200,6 +200,20 @@ public abstract record AllCount
 public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
+/// A GROUP item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.3.3.3 SR1 — "an alphanumeric
+/// group item" / "a group item that is neither a strongly-typed group nor a variable-length group"; §8.4.3.3.4 GR6 —
+/// the unique data item is an elementary alphanumeric item over the group's positions): reading is the generated
+/// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §13.18.38 GR8);
+/// writing distributes the spliced image back through the ONE group-image store (<c>PlaceRenderer.WriteGroupImage</c>
+/// — <c>FromImage</c>, or the GR8a current-extent splice). A group with a float / COMP-5 / INDEX leaf has no image
+/// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island. The <see cref="NumericImagePlace"/>
+/// shape for groups — kb/Work PB70: before it, the resolver's category gate returned null for every group, which
+/// was a run-time NotImplemented for a sending ref-mod and a SILENT no-op for a receiving one. Rendered by
+/// <c>CodeGen.PlaceRenderer</c>.
+/// </summary>
+public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
+
+/// <summary>
 /// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):
 /// a VIEW over the table's current capacity, NOT its own storage. Reading renders <c>{table-path}.Capacity</c> — the
 /// runtime <see cref="CobolNet.Runtime.CobolDynTable{T}.Capacity"/> (a native <c>long</c>, an unsigned integer per
@@ -331,6 +345,13 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// gains its own member, both arms must appear here**, which is why they are named rather than silently
     /// absent.
     /// </remarks>
+    /// <summary>The category of THIS view's unique data item — <see cref="CategoryOf"/> over the inner item's
+    /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group
+    /// or national group would be boolean / national by SR1's last sentence once GROUP-USAGE is modelled — kb/Work
+    /// PB79). ⛔ THE ONE READER for consumers that hold a <see cref="RefModPlace"/> (kb/Work PB70): six of them
+    /// each re-spelled "Pic is {} ip ? CategoryOf(ip) : Alphanumeric", and one returned null for a group.</summary>
+    public PicCategory Category => Inner.Item.Pic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;
+
     public static PicCategory CategoryOf(PicInfo inner) => inner.Category switch
     {
         // GR6 c — numeric and numeric-edited become national under a national usage, alphanumeric otherwise.

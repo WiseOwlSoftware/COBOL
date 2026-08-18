@@ -106,10 +106,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   DEPENDING, WRITE ADVANCING, STRING/UNSTRING POINTER/TALLYING) lands by VALUE through `Align(…, 0)` — no `_ => "1"`
   swallows remain. PB87 (WRITE … ADVANCING ZERO advanced ONE line; NIST SQ101M's golden pinned it) found by the
   sweep and fixed; SR-14.9.28.3-2 + GR-14.9.28.4-7 → CONFORMS, GAP 4045.
-  **⏳ Battery owed for the PB84+PB85+PB86+PB87 batch** (the numeric renderer's landing/store helpers, the sign
-  condition, the pointer/CALL/INVOKE emitters, the PERFORM grammar, the SQ101M golden) — run it before the next
-  landing builds on it.
-  **NEXT, in order:** ① PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  **✅ PB70 CLOSED (DEVLOG 1304, 2026-08-18)** — a GROUP can be reference-modified: ONE §8.4.3.3.3 SR1 rule
+  (`ReferenceResolver.RefModExclusion`, COBOLNET1647 for every exclusion), ONE group-image channel
+  (`GroupImagePlace`), ONE group-image store (`PlaceRenderer.WriteGroupImage` — five emitter copies folded), ONE
+  category reader (`RefModPlace.Category`), and the receiving chokepoint reports an undiagnosed null (COBOLNET0899)
+  instead of dropping the receiver. Verdicts SR-8.4.3.3.3-1 / GR-8.4.3.3.4-2 / GR-8.4.3.3.4-6 → CONFORMS, GAP 4042.
+  **PB88 REGISTERED** (STRING INTO a ref-modified / edited receiver — illegal per SR4/SR5 — stages loud at run time
+  instead of a bind-time rejection).
+  **⏳ Battery owed for the PB84–PB88 batch** (the numeric renderer's landing/store helpers, the sign condition, the
+  pointer/CALL/INVOKE emitters, the PERFORM grammar, the SQ101M golden, the ref-mod resolver gate, the group-image
+  store, the receiving chokepoint) — run it before the next landing builds on it.
+  **NEXT, in order:** ① PB71 → PB65 → PB88 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

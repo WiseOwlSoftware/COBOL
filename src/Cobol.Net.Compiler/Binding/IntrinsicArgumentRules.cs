@@ -349,9 +349,7 @@ internal static class IntrinsicArgumentRules
         // cite.py --check reports no such clause). The rule now lives in ONE
         // place; a ref-modified boolean item is class BOOLEAN and a ref-modified national item class NATIONAL.
         if (p is RefModPlace rmp)
-            return rmp.Inner.Item.Pic is { } innerPic ? ClassOfCategory(RefModPlace.CategoryOf(innerPic))
-                 : rmp.Inner.Item.IsGroup ? ClassOfPlace(rmp.Inner)   // a ref-modded group takes the group's own class
-                 : null;
+            return ClassOfCategory(rmp.Category);   // a ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70)
         // §8.5.2.1 — an alphanumeric group item has class alphanumeric, a bit group boolean, a national group
         // national. A group has no PICTURE of its own, so it cannot fall through to the category table.
         if (p.Item.IsGroup)

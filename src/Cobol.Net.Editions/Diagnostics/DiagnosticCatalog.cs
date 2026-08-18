@@ -817,6 +817,26 @@ public static class DiagnosticCatalog
     // §14.9.28.3 SR2 — the PERFORM … TIMES count "shall be an integer" (kb/Work PB86): a non-integer data item was
     // accepted and its UNSCALED digits iterated (PIC 9V9 VALUE 1.2 → 12 times); a non-integer function was a
     // parse error in one spelling and ran once in the other.
+    // §8.4.3.3.3 SR1 — the identifier-1 a reference modification may name (kb/Work PB70): every excluded shape
+    // (a strongly-typed / variable-length group, a numeric item of a non-DISPLAY usage, an edited or numeric item
+    // subordinate to a strongly-typed group, an index / pointer / object reference) used to fall to a run-time
+    // NotImplemented — and a receiving one to a silent drop.
+    public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
+        "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
+        "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "
+        + "national, alphanumeric or alphabetic item, an alphanumeric group item, an edited item or a numeric item of "
+        + "usage DISPLAY or NATIONAL (each not subordinate to a strongly-typed group), or a group that is neither "
+        + "strongly-typed nor variable-length (§8.5.1.12). Reference-modify a permitted item, or REDEFINES the storage "
+        + "with a character item.", "ISO §8.4.3.3.3 SR1");
+    // The receiving-side residue (kb/Work PB70): a data reference that RESOLVED to a declared item but whose shape
+    // this compiler does not implement as a receiving operand. It used to be dropped from the receiver list by
+    // .OfType<Place>() — `MOVE "Z" TO OK1 TB(2:1) OK2` moved into OK1 and OK2 and silently skipped TB.
+    public static readonly DiagnosticDescriptor ReceivingReferenceNotImplemented = new(
+        NotImplemented, "receiving-reference-shape-not-implemented", EditionSeverity.Error,
+        "A receiving operand names a declared item in a reference shape COBOL.NET does not yet implement as a receiver "
+        + "(COBOLNET_DESIGN §1.4: an unsupported shape fails loud, never silently). The statement is rejected rather "
+        + "than run with the receiver dropped.", "COBOLNET_DESIGN §1.4",
+        RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor PerformTimesCountNotInteger = new(
         "COBOLNET1646", "perform-times-count-not-integer", EditionSeverity.Error,
         "The PERFORM … TIMES count is not an integer. ISO §14.9.28.3 SR2: \"Each identifier shall reference a numeric "

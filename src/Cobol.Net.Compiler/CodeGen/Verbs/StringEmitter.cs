@@ -146,29 +146,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     private void WriteImage(Place p, string imageExpr)
     {
         var w = ctx.Writer;
-        if (p.Item.IsGroup && p is not RedefViewPlace)
-        {
-            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
-            // character transfer INTO the group's storage — the same job a group MOVE does, and
-            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
-            // without consideration for the individual items). Refusing it while MOVE allows it made two
-            // verbs disagree about the same receiver — and that is not merely a consistency argument:
-            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
-            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
-            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
-            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
-            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
-            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
-            // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
-            // hence the leaf-kind wording now matches the predicate actually tested.
-            if (!p.Item.IsImageCapable)
-            {
-                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group")));
-                return;
-            }
-            w.Line($"{PlaceRenderer.Read(p)}.FromImage({imageExpr});");
-            return;
-        }
+        // A reference-modified identifier-3 is the elementary alphanumeric unique item of §8.4.3.3.4 GR6 — the
+        // updated image splices into it (kb/Work PB70: over a GROUP inner it used to fall into the group arm).
+        if (p is RefModPlace) { w.Line(PlaceRenderer.Write(p, imageExpr)); return; }
+        // A group identifier-3 (§14.9.43.4 GR3a — the alphanumeric MOVE rules): the ONE group-image store.
+        if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupImage(p, imageExpr, "STRING INTO group")); return; }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
             && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
         {

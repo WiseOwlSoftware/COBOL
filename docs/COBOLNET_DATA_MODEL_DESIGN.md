@@ -105,6 +105,14 @@ Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, po
 Concrete kinds:
   • MemberPlace(path)        Read=`path`            Write=`path = rhs;`           (qualified+nested+array indices folded into one access string)
   • RefModPlace(inner,s,l)   Read=`CobolString.RefMod(inner.Read(),s,l)`  Write=`{var t=inner.Read(); inner.Write(CobolString.SpliceInto(t,s,l,rhs));}`
+    — its `Category` is THE ONE reader of the unique item's category (§8.4.3.3.4 GR6 via `CategoryOf` over a PICTURE; ALPHANUMERIC over a group).
+  • NumericImagePlace(inner) — a numeric USAGE DISPLAY item viewed as its zoned character image (§8.4.3.3.4 GR2/GR6): Read=`FormatImage(inner)`, Write=decode back.
+  • GroupImagePlace(inner)   — a GROUP viewed as its character image for reference modification (§8.4.3.3.3 SR1 bullets 3/9; kb/Work PB70, 2026-08-18):
+    Read=`inner.AsImage()` (an occurs-depending group with data-name-1 outside: its CURRENT-count part, §13.18.38 GR8), Write=`PlaceRenderer.WriteGroupImage(inner, image)` — THE ONE
+    group-image store every image-depositing verb calls (MOVE, INSPECT, STRING, UNSTRING, ACCEPT, the ref-mod splice): FromImage / the GR8a current-extent splice / the Tier-B window /
+    the OCCURS DYNAMIC receiving accessor; a group with a float / COMP-5 / INDEX leaf is the loud Tier-C island. `ReferenceResolver.RefModExclusion` is THE §8.4.3.3.3 SR1 admissibility rule
+    (COBOLNET1647 for a strongly-typed / variable-length group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited or numeric leaf under a strongly-typed group, an index / pointer /
+    object reference); `ExpressionBinder.ResolveReceiving` never drops a receiver silently — an undiagnosed null is COBOLNET0899 recognized-not-implemented at the chokepoint.
   • Condition88Place(parent,valueset)  Read=`CobolCond.In(parent.Read(),…)`  Write(true)=set parent to value.
 Every verb emitter (MOVE/ADD/COMPUTE/file READ INTO/WRITE FROM/CALL USING) takes Places and never touches layout — the unification the task demands. CALL BY REFERENCE passes the receiver Place's address: since a `record struct` member or array element is a C# variable, emit `ref` (e.g. `Sub(ref WsRec.Count)`) for BY REFERENCE; BY CONTENT copies the Read(). (A ref-mod or 88 receiver cannot be passed by ref → diagnose or pass by content per ISO.)
 

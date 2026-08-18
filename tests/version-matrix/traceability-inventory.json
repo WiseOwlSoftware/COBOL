@@ -5361,12 +5361,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RefModExclusion; src/Cobol.Net.Compiler/Binding/Model/Place.cs#GroupImagePlace",
+  "test-ref": "conformance:2023/pb70_group_reference_modification; conformance:negative/pb70-refmod-strong-group; conformance:negative/pb70-refmod-binary-item; conformance:negative/pb70-refmod-index-item; conformance:negative/pb70-refmod-leaf-under-strong-group",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB70 (2026-08-18): the SR1 list is ONE exclusion rule (RefModExclusion) at bind - COBOLNET1647 for a strongly-typed or variable-length (8.5.1.12) group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited/numeric leaf subordinate to a strongly-typed group, an index item, a pointer, an object reference; an admitted GROUP is viewed through its character image (GroupImagePlace). Residues: a numeric item of usage NATIONAL (admitted by SR1) has no national image channel yet (loud stage); bit and national GROUPS read as ordinary groups until GROUP-USAGE is modelled (PB79).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.3.3-2",
@@ -5439,12 +5439,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveImpl; src/Cobol.Net.Compiler/Binding/Model/Place.cs#NumericImagePlace",
+  "test-ref": "conformance:2023/pb70_group_reference_modification",
+  "editions": "85,2002,2014,2023",
+  "notes": "A usage-DISPLAY item of a category other than alphanumeric is operated on through its character image: a numeric DISPLAY item via NumericImagePlace (its zoned image), a group via GroupImagePlace (its leaves' images in order) - the golden's T3/T4/T8 read and write a numeric leaf's positions through the group.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.3.4-3",
@@ -5491,12 +5491,12 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "Reference-modification",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/Place.cs#Category; src/Cobol.Net.Compiler/Binding/Model/Place.cs#CategoryOf",
+  "test-ref": "conformance:2023/pb70_group_reference_modification; conformance:negative/pb70-refmod-group-noninteger-numeric-sender",
+  "editions": "85,2002,2014,2023",
+  "notes": "The unique data item is elementary: RefModPlace.Category is the ONE reader every consumer asks (kb/Work PB70 folded six spellings) - CategoryOf applies GR6 a-c over a PICTURE, and a ref-modified GROUP is category alphanumeric, so 14.9.25.3 Table 16 governs a MOVE into it (a noninteger numeric sender is rejected COBOLNET0819 where a whole-group receiver would take a GR4 copy). GR6b (national-edited) cannot be exercised: the category is a recognized-not-implemented PICTURE skeleton.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.4.3-1",

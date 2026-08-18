@@ -138,6 +138,7 @@
   "pb84_sdidi_intermediate_consumers",
   "pb84_standard_decimal_intermediate_consumers",
   "pb86_perform_times_function_count",
+  "pb70_group_reference_modification",
   "pb60_currency_sign_bare_implied_dollar",
   "pb60_currency_sign_set",
   "pb60_nested_configuration_inheritance",

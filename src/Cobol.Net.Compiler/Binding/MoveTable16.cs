@@ -35,8 +35,7 @@ public readonly record struct Table16Operand(
     /// (GR6's lead sentence), never Group-exempt.</summary>
     public static Table16Operand Of(Place p) => p switch
     {
-        RefModPlace rm => new Table16Operand(
-            rm.Inner.Item.Pic is { } ip ? RefModPlace.CategoryOf(ip) : PicCategory.Alphanumeric),
+        RefModPlace rm => new Table16Operand(rm.Category),
         _ => Of(p.Item),
     };
 }

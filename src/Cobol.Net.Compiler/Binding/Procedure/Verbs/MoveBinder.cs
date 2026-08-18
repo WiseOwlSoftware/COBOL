@@ -139,8 +139,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// rule, none complete — the copies are gone.</para></summary>
     private static PicCategory? MoveReceiverCategory(Place t) => t switch
     {
+        // The view FIRST: a ref-mod over a GROUP is the elementary ALPHANUMERIC unique item of GR6 (kb/Work PB70) —
+        // Table 16 applies to it, where the whole group would be a conversion-free GR4 copy.
+        RefModPlace rm => rm.Category,
         _ when t.Item.IsGroup || t.Item.Pic is null => null,
-        RefModPlace rm => rm.Inner.Item.Pic is { } inner ? RefModPlace.CategoryOf(inner) : null,
         _ => t.Item.Pic!.Category,
     };
 

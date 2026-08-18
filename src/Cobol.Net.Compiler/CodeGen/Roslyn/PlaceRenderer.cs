@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Linq;
 using CobolNet.Binding.Model;
+using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
 
@@ -33,6 +34,14 @@ internal static class PlaceRenderer
         // the BYTES it occupies — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED
         // (V59), which is what a span over it renames.
         NumericImagePlace n => RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
+        // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
+        // kb/Work PB70): the generated AsImage(); an occurs-depending group with data-name-1 outside sends its
+        // CURRENT-count part (§13.18.38 GR8, so a position past the count is EC-BOUND-REF-MOD, not a read of the
+        // unused area); a Tier-C group (a float / COMP-5 / INDEX leaf) has no image and stays the loud island.
+        GroupImagePlace g => !g.Inner.Item.IsImageCapable
+            ? EmitText.LoudValue("string", TierCIsland.Reason(g.Inner.Item, "reference modification of group"))
+            : g.Inner is OdoGroupPlace { DependingInside: false } odo ? SendingImage(odo)
+            : $"{Read(g.Inner)}.AsImage()",
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -81,6 +90,8 @@ internal static class PlaceRenderer
         // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).
         NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
+        // The spliced group image goes back through the ONE group-image store (kb/Work PB70).
+        GroupImagePlace g => WriteGroupImage(g.Inner, rhs, "reference modification into group"),
         RenamesPlace n => WriteRenames(n, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
         // A member/fixed-table store — the structural path as an assignment target.
@@ -167,6 +178,35 @@ internal static class PlaceRenderer
     public static string WriteFill(RefModPlace p, string fillChar) =>
         Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar,
             allowZeroLength: p.AllowZeroLength));
+
+    /// <summary>
+    /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §14.9.25.4 GR4 — a group receiver is
+    /// "filled without consideration for the individual elementary or group items", no conversion): the generated
+    /// <c>FromImage</c> distributes the image into the leaves; an occurs-depending group with data-name-1 OUTSIDE
+    /// takes only its CURRENT-count part (§13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
+    /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
+    /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
+    /// (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3 — never RefSending, which drops an
+    /// out-of-capacity write into scratch). A group with a float / COMP-5 / INDEX leaf has no image
+    /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island (COBOLNET_DESIGN §4.2) —
+    /// <paramref name="context"/> names the verb in that message.
+    /// <para>V59 residue (DA5), written ONCE: this is a POSITIONAL character transfer INTO the group's storage — the
+    /// same job a group MOVE does — so a COMP / PACKED group is admitted (its leaves decode their image slices) and
+    /// "BYTES ARE NOT TEXT" does not apply (that rule governs RENDERING a COMP leaf's value as text, not writing
+    /// characters positionally over its bytes). §14.9.43.4 GR3a makes STRING's transfer the alphanumeric MOVE
+    /// rules, §14.9.22.3 SR1 names "an alphanumeric or national group item" a valid INSPECT identifier-1, ACCEPT
+    /// and UNSTRING store by the same MOVE rules — so every verb that deposits an image into a group calls THIS
+    /// (kb/Work PB70 removed five copies of the rule, each carrying this paragraph).</para>
+    /// </summary>
+    public static string WriteGroupImage(Place group, string image, string context) => group switch
+    {
+        RedefViewPlace => Write(group, image),
+        _ when !group.Item.IsImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
+        OdoGroupPlace { DependingInside: false } odo => ReceiveInto(odo, image),
+        OdoGroupPlace odo => $"{Read(odo.Inner)}.FromImage({image});",
+        DynTablePlace dyn => $"{RenderPath(dyn.Path, AccessDir.Receiving)}.FromImage({image});",
+        _ => $"{Read(group)}.FromImage({image});",
+    };
 
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>

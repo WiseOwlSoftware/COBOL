@@ -284,8 +284,7 @@ internal static class IntrinsicResultType
     {
         BoundStringLiteral sl => sl.Category,
         BoundNumericLiteral => PicCategory.Numeric,
-        BoundFieldOperand { Place: RefModPlace rmp } =>
-            rmp.Inner.Item.Pic is { } ip ? RefModPlace.CategoryOf(ip) : PicCategory.Alphanumeric,
+        BoundFieldOperand { Place: RefModPlace rmp } => rmp.Category,
         BoundFieldOperand f => f.Place.Item.IsGroup
             ? f.Place.Item.Pic?.Category switch
               {
