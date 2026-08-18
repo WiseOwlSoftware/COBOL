@@ -135,6 +135,8 @@
   "pb68_boolean_function_operand_contexts",
   "pb69_native_power_past_the_carrier",
   "pb83_standard_decimal_division_prescale",
+  "pb84_sdidi_intermediate_consumers",
+  "pb84_standard_decimal_intermediate_consumers",
   "pb60_currency_sign_bare_implied_dollar",
   "pb60_currency_sign_set",
   "pb60_nested_configuration_inheritance",

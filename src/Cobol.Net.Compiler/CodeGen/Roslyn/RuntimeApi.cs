@@ -79,11 +79,6 @@ internal static class RuntimeApi
     /// 16-byte unsigned COMP-5 read or the HIGHEST-ALGEBRAIC fold literal, kb/Work R10). The lane is picked by
     /// NAME, never by overload: an int constant converts implicitly to both Int128 and UInt128, so a same-name
     /// pair makes every <c>Store(0, …)</c>-shaped emission a CS0121 ambiguity.</summary>
-    /// <summary>The SDIDI final transfer — <c>CobolNum.Store(CobolDec, profile)</c> (MOVE truncation default,
-    /// §14.6.8.2; fix-queue PB65: the MOVE arm was the one numeric consumer without the Dec case).</summary>
-    public static string NumStoreDec(string decExpr, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({decExpr}, {profile})";
-
     public static string NumStore(string value, string scale, string profile, bool u = false) =>
         $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.StoreU) : nameof(CobolNum.Store))}({value}, {scale}, {profile})";
 
@@ -247,6 +242,12 @@ internal static class RuntimeApi
     /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
     /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
     /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
+    /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
+    /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
+    /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
+    public static string DecSign(string decExpr) =>
+        $"{nameof(Int128)}.{nameof(Int128.Sign)}(({decExpr}).{nameof(CobolDec.Sig)})";
+
     public static string DecToUnscaledIntermediate(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledIntermediate)}({scale}, {RoundingText(mode)})";
 

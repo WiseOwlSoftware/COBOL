@@ -67,7 +67,7 @@ internal sealed class _PRG_CHAR_GROUP_MOVE : ICobolProgram
                 case 0:   // MAIN-PARA
                 {
                     WS_SRC.S_NAME = CobolString.Store("BOLT", 4);
-                    WS_SRC.S_QTY = CobolNum.FormatImage((long)(CobolNum.Store(7L, 0, _P_2)), _P_2);
+                    WS_SRC.S_QTY = CobolNum.FormatImage((long)(CobolNum.Store(7L, 0, _P_2, CobolRounding.Truncation)), _P_2);
                     WS_DST.FromImage(CobolString.Store(WS_SRC.AsImage(), 7));
                     System.Console.WriteLine(WS_DST.AsImage());
                     throw new StopRun();

@@ -53,8 +53,8 @@ internal sealed class _PRG_CHAR_TYPEDEF : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    P1.PX = (long)(CobolNum.Store(10L, 0, _P_4));
-                    P1.PY = (long)(CobolNum.Store(20L, 0, _P_5));
+                    P1.PX = (long)(CobolNum.Store(10L, 0, _P_4, CobolRounding.Truncation));
+                    P1.PY = (long)(CobolNum.Store(20L, 0, _P_5, CobolRounding.Truncation));
                     System.Console.WriteLine(CobolNum.FormatDisplay(P1.PX, _P_4) + CobolNum.FormatDisplay(P1.PY, _P_5));
                     throw new StopRun();
                 }

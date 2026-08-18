@@ -400,13 +400,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
                 // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
                 // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.
-                if (n.Dec)
-                    return target.StoreAsImage
-                        ? RuntimeApi.NumFormatImage(ArithmeticEmitter.Narrow(RuntimeApi.NumStoreDec(n.Expr, target.ProfileName), target), target.ProfileName)
-                        : ArithmeticEmitter.Narrow(RuntimeApi.NumStoreDec(n.Expr, target.ProfileName), target);
-                string nExpr = n.Real ? RuntimeApi.FloatToScaled(n.Expr, $"{recvScaleM}", CobolRounding.Truncation) : n.Expr;
-                int nScale = n.Real ? recvScaleM : n.Scale;
-                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName, n.U), target);
+                // …and every carrier stores through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84), so
+                // the Dec/float/native switch is written once for MOVE, the arithmetic store and INVOKE alike.
+                string stored = ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:

@@ -249,7 +249,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // Mode=Content per §8.4.3.2.4 GR5b — the mode is bound, not assumed here).
                 // An unsigned-wide result (a HIGHEST-ALGEBRAIC fold literal — kb/Work R10) funnels through the
                 // same DeU rule as every arithmetic consumer: loud beyond the Int128 intermediate, never a wrap.
-                NumX x = NumericRenderer.DeU(num.Render(expr.Expr, ReceiverContext.None));
+                // An SDIDI intermediate (a STANDARD-DECIMAL expression; a native integer power — kb/Work PB69) lands
+                // through the ONE landing at the receiver-less working scale (kb/Work PB84 — `(long)(CobolDec)` was
+                // a Roslyn error on `CALL … BY VALUE A ** 2`).
+                NumX x = num.Landed(NumericRenderer.DeU(num.Render(expr.Expr, ReceiverContext.None)), ReceiverContext.None);
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
             }
             case BoundAllLiteral all:

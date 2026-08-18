@@ -90,9 +90,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   integers stay exact); Dec→Int128 landings that cannot hold the value raise EC-SIZE-OVERFLOW (A.1 179 "checked",
   three places). **PB83 found and fixed in the same commit** — `CobolDec.Div`'s numerator pre-scale was capped at
   10^38 with an uncapped exponent (`100000 / D30` under STANDARD-DECIMAL was 0; wrong by 10^(scaleUp − 38)).
-  **⏳ Battery owed for the PB68+PB69 batch** (the operand classifier, the relation checkpoint, ExpressionBinder,
-  the numeric renderer's Dec routing, `CobolDec.Div`) — run it before the next landing builds on it.
-  **NEXT, in order:** ① PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  **Battery (PB68+PB69 batch, tree `5c429e98`):** Conformance **4632/4633** — the ONE red was NIST NC250A
+  (`IF 9 ** TWO + (180 - 90) IS NOT POSITIVE` → `CS0019` on `CobolDec > 0`, a PB69 consequence) · Unit 4192/4192 ·
+  Characterization 33/33 · NIST-legacy 353/0 audit-clean · differential 1323 cases, **0 flips**.
+  **✅ PB84 + PB85 CLOSED (DEVLOG 1302, 2026-08-18)** — the red attributed and fixed: five consumers of a rendered
+  intermediate had only a native arm (sign condition, SET pointer UP/DOWN BY, ALLOCATE … CHARACTERS, CALL BY VALUE
+  expression, INVOKE BY CONTENT expression — all ALREADY broken under STANDARD-DECIMAL); now ONE landing
+  (`NumericRenderer.Landed`/`FixedLane`) and ONE store (`StoreArgs`/`StoreExpr`). PB85 (DIVIDE … REMAINDER over a
+  FLOAT-LONG sender was CS0266) rode along; **PB86 REGISTERED** (PERFORM … TIMES with a function-identifier count
+  runs once; the FUNCTION spelling is a parse error; a non-integer count is under-rejected). NC250A green again on
+  the wave-local NIST leg; the battery for the PB84 batch is owed with the next batch.
+  **NEXT, in order:** ① PB86 → PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

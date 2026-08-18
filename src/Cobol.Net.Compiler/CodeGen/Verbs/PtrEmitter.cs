@@ -70,7 +70,9 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     public void EmitSetPointerUpDown(BoundSetPointerUpDown s)
     {
         var w = ctx.Writer;
-        NumX x = num.Render(s.Amount, ReceiverContext.None);
+        // The amount lands through the ONE landing (kb/Work PB84): `SET P UP BY A ** 2` — an SDIDI intermediate
+        // under native arithmetic since PB69, and every STANDARD-DECIMAL expression — was `(long)(CobolDec)`.
+        NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Amount, ReceiverContext.None)), ReceiverContext.None);
         string tmp = $"__ptrBy{ctx.Names.NextPtr()}";
         w.Line($"long {tmp} = (long)({x.Expr});");
         string amount = s.Down ? $"-{tmp}" : tmp;
@@ -103,7 +105,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 w.Line(PlaceRenderer.Write(ret2, addr) + "   // GR4b — the RETURNING pointer also receives the address");
             return;
         }
-        NumX x = num.Render(s.Chars!, ReceiverContext.None);
+        NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Chars!, ReceiverContext.None)), ReceiverContext.None);   // kb/Work PB84
         string size = x.Scale == 0
             ? $"(long)({x.Expr})"
             : $"(long){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}";   // GR1 — round UP

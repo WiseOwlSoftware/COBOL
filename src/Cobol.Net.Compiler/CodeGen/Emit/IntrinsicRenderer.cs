@@ -475,17 +475,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
     /// and the exact Int128 family evaluates the EAE as §15.4.1 r1 requires.</para>
     /// </remarks>
-    private NumX Landed(NumX x)
-    {
-        // The MODE first: under a standard mode a float operand is converted in (§8.8.1.5.1), not computed in.
-        if (x.Real && num.StandardDecimal)
-            x = new NumX(num.DecOperand(x), 0, Dec: true);
-        if (!x.Dec) return x;
-        int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-        // The landing is CHECKED (EC-SIZE-OVERFLOW past the carrier — kb/Work PB69): a value-semantics consumer
-        // has no capacity check downstream, so the modular low-order digits were a wrong answer, not a stage.
-        return new NumX(RuntimeApi.DecToUnscaledIntermediate(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
-    }
+    private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
 

@@ -563,6 +563,61 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// CALL BY CONTENT computed-argument site funnels through the same rule).</summary>
     internal static NumX DeU(NumX x) => x.U ? new NumX(RuntimeApi.NumWiden(x.Expr), x.Scale) : x;
 
+    /// <summary>
+    /// Land a rendered intermediate into the exact <c>Int128</c> lane at the receiver's working scale — the ONE
+    /// landing every value-semantics consumer of a <c>(Expr, Scale)</c> pair shares: an intrinsic argument, a CALL
+    /// BY VALUE arithmetic-expression argument, a SET pointer UP/DOWN BY amount, an ALLOCATE character count. A
+    /// native intermediate is already there; an SDIDI (<c>Dec</c>) intermediate — every arithmetic expression under
+    /// a standard mode, and under NATIVE arithmetic an integer power (kb/Work PB69) — lands CHECKED at
+    /// <c>rcv.WorkingScale(NumvalScaleFloor)</c> (EC-SIZE-OVERFLOW past the carrier — §14.7.5 case 5, A.1 item 179
+    /// "checked" — never the modular low-order digits a STORE may use, because a value-semantics consumer has no
+    /// capacity check downstream); a float under a STANDARD mode is converted in first (§8.8.1.5.1 — the mode
+    /// beats the float branch, COBOLNET_NUMERIC_DESIGN.md D3) and lands the same way. A float under NATIVE
+    /// arithmetic stays binary64 — the consumer's own float arm applies (see <see cref="FixedLane"/> for the
+    /// consumers that have none).
+    /// <para>⛔ kb/Work PB84: after PB69 made <c>A ** 2</c> an SDIDI intermediate under native arithmetic, every
+    /// consumer that read <c>x.Expr</c> as a native carrier — <c>(long)(x.Expr)</c> in the pointer and CALL BY
+    /// VALUE emitters, the sign condition's <c>x.Expr &gt; 0</c> (NIST NC250A), the INVOKE BY CONTENT store —
+    /// became a Roslyn error on conforming COBOL. The same consumers were ALREADY wrong for every STANDARD-DECIMAL
+    /// expression; the SDIDI arm was written once here and the consumers now funnel through it, so the next carrier
+    /// (or the next consumer) has one place to be right in.</para>
+    /// </summary>
+    public NumX Landed(NumX x, ReceiverContext rcv)
+    {
+        if (x.Real && StandardDecimal)
+            x = new NumX(DecOperand(x), 0, Dec: true);
+        if (!x.Dec) return x;
+        int ws = rcv.WorkingScale(ReceiverContext.NumvalScaleFloor);
+        return new NumX(RuntimeApi.DecToUnscaledIntermediate(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
+    }
+
+    /// <summary><see cref="Landed"/> for a consumer that computes ONLY in the exact <c>Int128</c> lane and has no
+    /// float arm of its own — the DIVIDE … REMAINDER subsidiary-quotient kernel (§14.9.12.4 GR7 — kb/Work PB85: a
+    /// FLOAT-LONG dividend was a Roslyn error). A native float lands TRUNCATED at the receiver's float working scale
+    /// (<see cref="ReceiverContext.FloatWorkingScale"/> — the D16 quantizer's one rule); an unsigned-wide read
+    /// funnels through <see cref="DeU"/>; everything else is <see cref="Landed"/>.</summary>
+    public NumX FixedLane(NumX x, ReceiverContext rcv) =>
+        x.Real && !StandardDecimal ? new NumX(Align(x, rcv.FloatWorkingScale), rcv.FloatWorkingScale)
+        : Landed(DeU(x), rcv);
+
+    /// <summary>The value/scale/profile argument run that stores a rendered intermediate into a fixed-point
+    /// receiver's <c>NumProfile</c> — the ONE place the carriers are told apart at a store (kb/Work PB84: the
+    /// arithmetic store, the numeric MOVE and the INVOKE BY CONTENT expression each spelled it, and the third had
+    /// no <c>Dec</c> arm): an SDIDI intermediate takes the <c>CobolNum.Store(CobolDec, profile)</c> overload (the
+    /// §14.7 final transfer); a float lands at the receiver scale through <c>ToScaled</c> with the receiver's
+    /// ROUNDED mode (D16) and then stores as a native at that scale (rescale identity ⇒ no double rounding); a
+    /// native passes its own scale.</summary>
+    public static string StoreArgs(NumX value, int recvScale, CobolRounding mode, string profile) =>
+        value.Dec ? $"{value.Expr}, {profile}"
+        : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode)}, {recvScale}, {profile}"
+        : $"{value.Expr}, {value.Scale}, {profile}";
+
+    /// <summary>The unchecked store of a rendered intermediate into a fixed-point receiver — <see cref="StoreArgs"/>
+    /// through <c>CobolNum.Store</c> (<c>StoreU</c> on the unsigned-wide lane, by name) with <paramref name="mode"/>
+    /// (MOVE truncation by default, §14.6.8.2). Returns the receiver's stored unscaled integer expression.</summary>
+    public static string StoreExpr(NumX value, int recvScale, string profile, CobolRounding mode = CobolRounding.Truncation) =>
+        RuntimeApi.NumStoreRounded(StoreArgs(value, recvScale, mode, profile), mode, value.U);
+
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS
     // one scaled-value→double conversion (ISO §15.4.1 native-arithmetic family; singular-pattern rule).

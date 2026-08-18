@@ -115,7 +115,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in
             // SEVERAL emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores
             // BEFORE the remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.
-            NumX dividend = Snapshot(num.Render(d.Dividend, rcv)), divisor = Snapshot(num.Render(d.Divisor, rcv));
+            // …in the exact Int128 lane the kernel below computes in (kb/Work PB85): a FLOAT-LONG dividend or
+            // divisor lands TRUNCATED at the quotient receiver's float working scale (native — §14.9.12.4 GR7's
+            // subsidiary quotient is then the fixed kernel's, an implementor approximation §15.4.1 permits for a
+            // float sender; under a standard mode the float converts to SDIDI first and lands the same way); an
+            // unsigned-wide read funnels through Widen. It was `Int128 __ie = (double)` — CS0266 on legal source.
+            NumX dividend = Snapshot(num.FixedLane(num.Render(d.Dividend, rcv), rcv)),
+                 divisor = Snapshot(num.FixedLane(num.Render(d.Divisor, rcv), rcv));
             // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c) —
             // a DIRECT kernel call at EXACTLY the receiver scale, not the renderer's working-scale promotion
             // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
@@ -202,7 +208,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     private NumX Snapshot(NumX v)
     {
         string t = $"__ie{ctx.Names.NextStoreTmp()}";
-        ctx.Writer.Line(v.Dec ? $"CobolDec {t} = {v.Expr};" : $"Int128 {t} = {v.Expr};");
+        // Total over the carriers (kb/Work PB85): a float sender snapshotted as `Int128 t = double` was CS0266.
+        string cs = v.Dec ? "CobolDec" : v.Real ? "double" : v.U ? "UInt128" : "Int128";
+        ctx.Writer.Line($"{cs} {t} = {v.Expr};");
         return v with { Expr = t };
     }
 
@@ -330,10 +338,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // identity ⇒ no double-rounding; capacity + SIZE ERROR still apply). A STANDARD-DECIMAL intermediate stores
         // through the SDIDI overloads (the §14.7 final transfer).
         int recvScale = target.Item.Pic!.Scale;
-        string valExprA = value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode) : value.Expr;
-        string args = value.Dec ? $"{value.Expr}, {profile}"
-            : value.Real ? $"{valExprA}, {recvScale}, {profile}"
-            : $"{value.Expr}, {value.Scale}, {profile}";
+        string args = NumericRenderer.StoreArgs(value, recvScale, mode, profile);   // the ONE carrier switch (PB84)
         if (ecState.SizeErrVar is { } flag)
         {
             string tmp = $"__sv{ctx.Names.NextStoreTmp()}";

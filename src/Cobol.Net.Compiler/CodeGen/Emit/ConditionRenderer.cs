@@ -320,6 +320,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // uncast form is a CS0121 ambiguity in the generated code.)
             : v.U
             ? s.Kind switch { 'P' => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} > 0", 'N' => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} < 0", _ => $"{RuntimeApi.NumCompareU(v.Expr, "0", "(Int128)0", "0")} == 0" }
+            // An SDIDI intermediate (§8.8.1.5.2 — every STANDARD-DECIMAL arithmetic expression, and under native
+            // arithmetic an integer power, kb/Work PB69) tests the sign of its significand: exact at every
+            // exponent, and never a landing that could overflow (kb/Work PB84 — `IF 9 ** TWO + (180 - 90) IS
+            // NOT POSITIVE`, NIST NC250A, was a Roslyn CS0019 on `CobolDec > 0`).
+            : v.Dec
+            ? s.Kind switch { 'P' => $"{RuntimeApi.DecSign(v.Expr)} > 0", 'N' => $"{RuntimeApi.DecSign(v.Expr)} < 0", _ => $"{RuntimeApi.DecSign(v.Expr)} == 0" }
             : s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }

@@ -770,9 +770,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // "according to the rules of the COMPUTE statement", i.e. rescale + truncate into the formal's
             // description through the OWNER's internal profile, exactly as the identifier CONTENT arm below
             // does. The binder proved the formal is fixed-point category numeric, so this is the one shape.
+            // …through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84): an SDIDI intermediate (a
+            // STANDARD-DECIMAL expression, a native integer power) takes the CobolDec overload; this arm used to
+            // spell the native store only, a Roslyn CS1503 on `INVOKE … BY CONTENT A ** 2`.
             else if (a.ContentExpr is { } cex
                      && Num.AsNum(new BoundComputedOperand(cex), ReceiverContext.None) is var ex)
-                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(ex.Expr, $"{ex.Scale}", qualProfile)};");
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(ex, a.Formal.Pic!.Scale, qualProfile)};");
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale
@@ -787,7 +790,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                          || (cp.Item.Pic is { Signed: true } && !a.Formal.Pic!.Signed)))
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
-                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(cx.Expr, $"{cx.Scale}", qualProfile)};");
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(cx, a.Formal.Pic!.Scale, qualProfile)};");
             else
                 w.Line(a.Source is { } np
                     ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({Num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});"

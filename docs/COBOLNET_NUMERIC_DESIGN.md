@@ -567,6 +567,23 @@ approximation, consistently, when it does not; and a size error only where an In
 Cost, documented: a 35–38-digit exact intermediate that only `**` can produce rounds to the SDIDI's 34 digits
 inside a native `*` or `/`. **A.1 item 179's "checked" now names three places** (CONFORMANCE.md).
 
+**⛔ THE CONSUMERS OF A RENDERED INTERMEDIATE HAVE ONE LANDING AND ONE STORE (kb/Work PB84/PB85, 2026-08-18).** The
+day after PB69 the PB68+PB69 battery went red on NIST NC250A: `IF 9 ** TWO + (180 - 90) IS NOT POSITIVE` was
+`CS0019` — the sign condition read the rendered `NumX` as a native carrier (`{v.Expr} > 0`), and so did SET pointer
+UP/DOWN BY and ALLOCATE … CHARACTERS (`(long)({x.Expr})`), CALL … BY VALUE arithmetic-expression, and INVOKE … BY
+CONTENT arithmetic-expression (`CobolNum.Store(ex.Expr, ex.Scale, …)`); the same five were ALREADY Roslyn errors for
+every arithmetic expression under STANDARD-DECIMAL. The two-arm-dispatch shape again: the relation renderer, the
+arithmetic store and the MOVE store each had the `Dec` arm, these did not. The rule is now written once:
+`NumericRenderer.Landed(x, rcv)` is THE landing of an intermediate into the Int128 lane at the receiver's working
+scale (`WorkingScale(NumvalScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates); `FixedLane`
+is the same for a consumer with no float arm of its own (the DIVIDE … REMAINDER kernel — a FLOAT-LONG sender was
+snapshotted `Int128 t = double`, PB85 — a native float lands truncated at `FloatWorkingScale`); the sign condition
+tests `Int128.Sign(dec.Sig)` (`RuntimeApi.DecSign` — exact at every exponent, never a landing);
+`NumericRenderer.StoreArgs`/`StoreExpr` are THE carrier switch at a fixed-point store, spelled once for the
+arithmetic store, the numeric MOVE and INVOKE BY CONTENT. **A new consumer of a `NumX` funnels through one of these
+or it is wrong for two of the four carriers.** Goldens `pb84_sdidi_intermediate_consumers` and
+`pb84_standard_decimal_intermediate_consumers`.
+
 **Rejected alternatives.** (a) Raise EC-SIZE-EXPONENTIATION when the exact result does not fit — REJECTED by the
 owner on the survey: principled, and matched by no shipping COBOL, so `1.5 ** 30` would start raising where every
 other compiler approximates. (b) Keep `Math.Pow` everywhere and reword D3 — REJECTED: it leaves `10 ** 30` wrong
