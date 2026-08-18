@@ -11,7 +11,7 @@ Decision-complete design for COBOL.NET's native scaled-integer numeric model. SU
 
 THE CENTRAL HARDENING: the runtime's value engine (`src/Cobol.Net.Runtime/Numeric/CobolNum.cs`) is Int128-monomorphic, NOT long — a long-only engine would silently overflow real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). The single intermediate carrier is an Int128 value + its compile-time scale (conceptually `CobolInt(Int128 Unscaled, int Scale)`). Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
-INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = **EXACT `Int128` repeated multiplication while the result fits the carrier, and the §8.8.1.2 implementor-defined double approximation past it** (⚖ OWNER DECISION 2026-08-03, fix-queue PB18 — `CobolIntrinsics.PowNativeInt`, landing through `CobolIntrinsics.FromDouble` at `ReceiverContext.FloatWorkingScale` so an out-of-range magnitude saturates rather than wraps; see D18); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
+INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = **EXACT `Int128` repeated multiplication while the result fits the carrier, and the §8.8.1.2 implementor-defined double approximation past it** (⚖ OWNER DECISION 2026-08-03, fix-queue PB18 — `CobolIntrinsics.PowNativeIntDec`, ONE arm on the SDIDI carrier since kb/Work PB69: exact Int128 significand while it fits, the double approximation past it, an Int128 landing that cannot hold it raising EC-SIZE-OVERFLOW; see D19); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the `CobolRounding` enum; `Store` is the no-SIZE-ERROR (silent-truncation) branch and `TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR) is the ON SIZE ERROR branch.
 
@@ -512,9 +512,8 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 **(a) The technique — a choice, taken.** §8.8.1.3 makes native arithmetic implementor-defined, so any of exact,
 approximate, or exact-then-raise conforms. COBOL.NET's documented native technique is **exact `Int128` repeated
 multiplication whenever the result fits the carrier, falling back to the double approximation when it does not** —
-never a size error merely for outgrowing the carrier. `CobolIntrinsics.PowNativeInt` is the one implementation;
-the fallback lands through `FromDouble`, so an out-of-range magnitude SATURATES and stays above the receiver's
-capacity check instead of wrapping (the D18/PB13 mechanism, reused rather than re-derived).
+never a size error merely for outgrowing the carrier. `CobolIntrinsics.PowNativeIntDec` is the one implementation
+(since PB69 — see the ⛔ paragraph below; the Int128 twin's saturating fallback is gone).
 
 **Rationale.** Routing an integer power through `System.Math.Pow` contradicted D3's own "exact `Int128`
 fixed-point engine": `COMPUTE R = 10 ** 30` into a `PIC 9(31)` returned `1000000000000000071935427891953` where
@@ -530,12 +529,10 @@ depending on magnitude — and that is deliberate and documented here rather tha
 `1.5 ** 30` needs ~36 significant digits before a receiver is considered and there is no compile-time scale to
 give the result; a scale-0 base raised to an integer is scale 0 **whatever the exponent**, so the result scale is
 known without knowing the exponent's value. A fractional base keeps the approximation arm.
-**⚠ AND A NEGATIVE EXPONENT IS THE RECIPROCAL, NOT AN INTEGER.** `PowNativeInt` therefore takes the LANDING scale
-as a parameter: a first cut returned the exact integer at scale 0 unconditionally and turned `COMPUTE R = 2 ** -2`
-into **0.0000** instead of 0.2500. In a receiver-less context — where the landing scale is 0 — the exact arm is
-taken only for a **non-negative literal** exponent, read from the BOUND TREE (`BoundNumLiteral`) and never from
-the rendered expression text; testing the rendered text silently stopped matching and put every literal exponent
-back on the approximation arm.
+**⚠ AND A NEGATIVE EXPONENT IS THE RECIPROCAL, NOT AN INTEGER.** A first cut returned the exact integer at scale 0
+unconditionally and turned `COMPUTE R = 2 ** -2` into **0.0000** instead of 0.2500 — which is why the result
+carrier is the SDIDI, whose scale is a run-time fact (`2 ** -2` is the Dec 0.25; the exponent's SIGN is a run-time
+fact for a data-item exponent, so no compile-time scale can serve both regimes).
 
 **(b) §8.8.1.2 rule 6 — NOT a choice.** Rule 6's own title is "Native, standard-binary, and standard-decimal
 arithmetic", so it binds native `**` exactly as it binds the SDIDI one. **r6a** (a zero base shall have an
@@ -548,6 +545,27 @@ turned it into zero), both silently. One screen, `CheckPowRule6`, now runs on ev
 **r6b** is a selection rule, not a screen ("if the evaluation yields both a positive and a negative real number,
 the value returned is the positive number") and cannot arise here — both bodies yield a single value. Checked in
 the same pass rather than left to be discovered as a fourth leg.
+
+**⛔ THE VALUE PAST THE CARRIER RIDES THE SDIDI, AND THERE IS ONE ARM (kb/Work PB69, 2026-08-18).** `PowNativeInt`
+— the Int128-returning literal-exponent twin — is deleted. Its past-the-carrier fallback SATURATED to
+`Int128.MaxValue`, which is safe above a STORE's capacity check and poison at every value-semantics consumer:
+`FUNCTION MOD(A ** 3, B)` answered from the sentinel (the same number for A³ and A⁴), `A ** 4 > A ** 3` was FALSE and
+`A ** 3 = A ** 4` TRUE, `A ** 3 / A ** 2` was 1.7e8, and `A ** X` (the Dec arm) gave a third number. Now every
+integer power renders through `PowNativeIntDec`: the exact `Int128` loop while it fits — `CobolDec.From` keeps the
+full significand, so a 38-digit power is exact on the SDIDI too — and the double approximation past it, on the ONE
+carrier that holds both and owns its scale at run time. The consumers follow: a relation compares Decs exactly
+(`CobolDec.Compare`); a NATIVE arithmetic operation with a Dec operand evaluates on the SDIDI (`CombineCore` — it
+used to land the Dec into Int128 at the operation's static scale, which truncated `2 ** -2 + 1` to 1 and did not
+compile for `*` and `/`; the float lane keeps precedence when a float operand or receiver is present); an intrinsic
+with a Dec RAW argument routes to its SDIDI body under native too (`IntrinsicRenderer.RenderNum` — MOD/REM keep
+exact integers exact through `ModDec`/`RemDec`'s integer fast path); an integer argument lands at scale 0 directly
+(`IntArg` reads the RAW operand — the working-scale landing ate the headroom of a 33-digit power); and every
+landing of a Dec into the Int128 carrier that cannot hold it — an argument, an aligned operand, a subscript —
+raises **EC-SIZE-OVERFLOW** (`CobolDec.ToUnscaledIntermediate`; §14.7.5 case 5, A.1 item 179 "checked") instead of
+returning modular low-order digits. The receiver-independent value is therefore: exact when it fits; the
+approximation, consistently, when it does not; and a size error only where an Int128 slot cannot represent it.
+Cost, documented: a 35–38-digit exact intermediate that only `**` can produce rounds to the SDIDI's 34 digits
+inside a native `*` or `/`. **A.1 item 179's "checked" now names three places** (CONFORMANCE.md).
 
 **Rejected alternatives.** (a) Raise EC-SIZE-EXPONENTIATION when the exact result does not fit — REJECTED by the
 owner on the survey: principled, and matched by no shipping COBOL, so `1.5 ** 30` would start raising where every

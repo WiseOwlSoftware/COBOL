@@ -243,6 +243,13 @@ internal static class RuntimeApi
     public static string DecToUnscaledChecked(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledChecked)}({scale}, {RoundingText(mode)})";
 
+    /// <summary>The INTERMEDIATE landing — <c>CobolDec.ToUnscaledIntermediate</c> (kb/Work PB69): an SDIDI value
+    /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
+    /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
+    /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
+    public static string DecToUnscaledIntermediate(string decExpr, string scale, CobolRounding mode) =>
+        $"({decExpr}).{nameof(CobolDec.ToUnscaledIntermediate)}({scale}, {RoundingText(mode)})";
+
     /// <summary>SDIDI exponentiation (ISO §8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
     /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>
     public static string DecPow(string baseOperand, string expOperand, string mode) =>

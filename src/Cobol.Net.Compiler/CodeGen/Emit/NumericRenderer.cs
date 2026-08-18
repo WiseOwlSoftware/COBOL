@@ -301,7 +301,17 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // the D16 float branch: under a standard mode a FLOATING-POINT operand converts into SDIDI form via
         // the §8.8.1.5.1 implementor-defined conversion (CobolDec.FromDouble — the shortest-round-trip decimal
         // identity of the IEEE value; see DecOperand) and the operation itself is the SDIDI one.
-        if (StandardDecimal)
+        // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). Under
+        // native arithmetic the only Dec producer is an integer power (PowNativeIntDec — exact while it fits the
+        // carrier, the owner-decided double approximation past it, the reciprocal for a negative exponent), and
+        // its result has no compile-time scale: landing it into Int128 at the operation's static scale truncated
+        // `2 ** -2 + 1` to 1 (the additive arm) and did not compile at all for `*` and `/` (a raw Dec into an
+        // Int128 slot — CS1503). The SDIDI carries both the exact power and the approximation, so the operation
+        // computes there and the result lands ONCE at the receiver (TryStore(CobolDec), checked). The float lane
+        // keeps precedence when a float operand or a float receiver is present (native float arithmetic is IEEE,
+        // D16). Cost, documented: a 35–38-digit exact intermediate that only `**` can produce rounds to the SDIDI's
+        // 34 digits inside `*` and `/`; MOD/REM keep exact integers exact through their own integer fast path.
+        if (StandardDecimal || ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real))
             return op switch
             {
                 "+" => new NumX($"CobolDec.Add({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
@@ -438,7 +448,10 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// Dec-carrier body, ledgered as PB38.</para></para></summary>
     public static string Align(NumX x, int toScale) =>
         x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
-        : x.Dec ? RuntimeApi.DecToUnscaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        // A Dec that the Int128 carrier cannot hold at this scale is a SIZE ERROR condition (EC-SIZE-OVERFLOW —
+        // §14.7.5 case 5, A.1 item 179 "checked"; kb/Work PB69), never the low-order-digits landing a STORE may
+        // use: an intermediate consumer has no capacity check downstream to catch a truncated value.
+        : x.Dec ? RuntimeApi.DecToUnscaledIntermediate(x.Expr, $"{toScale}", CobolRounding.Truncation)
         // Unsigned-wide (kb/Work R10): the receiver-less integral sites this helper feeds (a subscript, a SET
         // amount, PERFORM VARYING, RETRY, exit status) are Int128-lane consumers — the Widen funnel applies
         // (loud beyond the intermediate; a 39-digit subscript is not a computable position).
@@ -501,11 +514,24 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // return Dec: PowNativeIntDec computes the same owner-decided values (exact Int128 loop while it fits,
         // the documented double approximation past it / for the reciprocal) on the carrier every downstream
         // consumer already handles (the PB32/PB14 carrier-total sweep). Receiver-independent by construction.
+        // ⛔ ONE ARM FOR BOTH EXPONENT SHAPES, AND IT IS THE DEC ONE (kb/Work PB69). The literal-exponent arm used
+        // to return Int128 from PowNativeInt, whose past-the-carrier fallback SATURATED to Int128.MaxValue —
+        // fine above a STORE's capacity check (the receiver reports SIZE ERROR), poison at every VALUE-semantics
+        // consumer: `FUNCTION MOD(A ** 3, B)` answered from the sentinel (639816141 for 980012199), `A ** 4 >
+        // A ** 3` was FALSE and `A ** 3 = A ** 4` TRUE (both saturated), `A ** 3 / A ** 2` was 1.7e8, and the SAME
+        // expression spelled `A ** X` (the Dec arm) gave a THIRD number. The value that leaves the carrier is the
+        // owner-decided double approximation, and the carrier that can hold it AND the exact Int128 fast path is
+        // the SDIDI: PowNativeIntDec is exact while the power fits (CobolDec.From keeps the full significand — no
+        // 34-digit rounding on construction), the approximation past it, receiver-independent by construction.
+        // Consumers: a relation compares Decs exactly (CobolDec.Compare); an intrinsic with a Dec argument routes
+        // to its SDIDI body under native too (IntrinsicRenderer.RenderNum); an Int128 landing that cannot hold the
+        // value raises EC-SIZE-OVERFLOW (CobolDec.ToUnscaledIntermediate — A.1 item 179, "checked") instead of
+        // returning modular digits. `expIsNonNegativeLiteral` no longer selects a body — kept for the callers'
+        // §8.8.1.2 rule-6 screening context only.
+        _ = expIsNonNegativeLiteral;
         bool integerOperands = !b.Real && !e.Real && !b.Dec && !e.Dec && b.Scale == 0 && e.Scale == 0;
         if (integerOperands)
-            return expIsNonNegativeLiteral
-                ? new NumX(RuntimeApi.Intrinsic("PowNativeInt", $"{b.Expr}, {e.Expr}"), 0)
-                : new NumX(RuntimeApi.Intrinsic("PowNativeIntDec", $"{b.Expr}, {e.Expr}"), 0, Dec: true);
+            return new NumX(RuntimeApi.Intrinsic("PowNativeIntDec", $"{b.Expr}, {e.Expr}"), 0, Dec: true);
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         // A receiver-less exponentiation keeps the binary64 result for the same reason the float-intrinsic family

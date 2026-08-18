@@ -85,9 +85,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   is what every class-boolean checkpoint asks (relation validation, the boolean-expression operand — a new
   `BoundBoolCall` — the LENGTH fold, `IsStringOperand`, the condition renderer's fifth site) and §8.8.1.1's
   arithmetic screen fires at bind for a string-class function operand; RV-15.13.4-1 → CONFORMS, GAP 4047.
-  **⏳ Battery owed for the PB68 batch** (the operand classifier, the relation checkpoint, ExpressionBinder) —
-  run it with the next landing.
-  **NEXT, in order:** ① PB69 → PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  **✅ PB69 CLOSED (DEVLOG 1301, 2026-08-18)** — one native `**` arm on the SDIDI (`PowNativeIntDec`; the saturating
+  Int128 twin deleted); a native operation / intrinsic argument with a Dec evaluates on the SDIDI (MOD/REM exact
+  integers stay exact); Dec→Int128 landings that cannot hold the value raise EC-SIZE-OVERFLOW (A.1 179 "checked",
+  three places). **PB83 found and fixed in the same commit** — `CobolDec.Div`'s numerator pre-scale was capped at
+  10^38 with an uncapped exponent (`100000 / D30` under STANDARD-DECIMAL was 0; wrong by 10^(scaleUp − 38)).
+  **⏳ Battery owed for the PB68+PB69 batch** (the operand classifier, the relation checkpoint, ExpressionBinder,
+  the numeric renderer's Dec routing, `CobolDec.Div`) — run it before the next landing builds on it.
+  **NEXT, in order:** ① PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

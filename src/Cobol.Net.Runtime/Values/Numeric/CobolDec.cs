@@ -216,8 +216,19 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         UInt128 den = UAbs(b.Sig);
 
         // Pre-scale the numerator so the integer quotient has 34–36 significant digits.
-        int scaleUp = Math.Max(0, 34 + DigitCount(den) - DigitCount(UAbs(a.Sig)) + 1);
-        var (hi, lo) = Mul128(UAbs(a.Sig), (UInt128)Pow10.AsWide(Math.Min(scaleUp, 38)));
+        // ⛔ THE PRE-SCALE MAY EXCEED 10^38 AND MUST STILL BE APPLIED IN FULL (kb/Work PB83 — found landing PB69):
+        // a short numerator over a long denominator wants scaleUp = 34 + digits(den) − digits(num) + 1, up to 73
+        // for a 1-digit numerator and a 38-digit denominator. The multiplier used to be CAPPED at 10^38 while the
+        // result exponent still subtracted the UNCAPPED scaleUp, so `100000 / 123456789012345678901234567890`
+        // (scaleUp 59) answered 0 under STANDARD-DECIMAL where 8.1E-25 is owed — wrong by 10^(scaleUp − 38). The
+        // scale is applied in two exact steps: first inside the numerator's own Int128 headroom
+        // (k = 38 − digits(num), exact), then the remainder through the 256-bit product — which is at most 10^36
+        // (scaleUp − k = digits(den) − 3 ≤ 36 for a ≤39-digit divisor), so the second factor always fits.
+        UInt128 num = UAbs(a.Sig);
+        int scaleUp = Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
+        int k = Math.Min(scaleUp, 38 - DigitCount(num));
+        num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38
+        var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(scaleUp - k));   // scaleUp − k ≤ 36
         var (q, rem) = DivRem256(hi, lo, den);
 
         // q < 10^37 by construction → fits Int128. Round to 34 digits, folding the division remainder into sticky.
@@ -260,7 +271,15 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <c>TryStore(CobolDec)</c> and the emitter's checked numeric-edited transfer ride this one.</summary>
     public Int128 ToUnscaledChecked(int scale, CobolRounding mode) => ToUnscaledCore(scale, mode, checkedTransfer: true);
 
-    private Int128 ToUnscaledCore(int scale, CobolRounding mode, bool checkedTransfer)
+    /// <summary>The INTERMEDIATE landing (kb/Work PB69): an SDIDI value entering the native Int128 carrier as an
+    /// argument, an arithmetic operand or a subscript — never a store. A magnitude the carrier cannot hold at
+    /// <paramref name="scale"/> is the §14.7.5 case-5 size error condition (the intermediate range is checked,
+    /// A.1 item 179): EC-SIZE-OVERFLOW, never the low-order digits — a value-semantics consumer has no capacity
+    /// check downstream to catch a truncated value (a native integer power past the window used to reach
+    /// FUNCTION MOD as such digits, or, before that, as a saturated sentinel).</summary>
+    public Int128 ToUnscaledIntermediate(int scale, CobolRounding mode) => ToUnscaledCore(scale, mode, checkedTransfer: true, intermediate: true);
+
+    private Int128 ToUnscaledCore(int scale, CobolRounding mode, bool checkedTransfer, bool intermediate = false)
     {
         int shift = Exp + scale;
         if (Sig == 0) return 0;
@@ -269,6 +288,10 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             Int128 sig = Sig;
             if (DigitCount(Int128.Abs(sig)) + shift > 38)
             {
+                if (intermediate)
+                    throw new CobolSizeError("an intermediate value exceeds the native Int128 carrier at this scale "
+                        + "(ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
+                        "EC-SIZE-OVERFLOW");
                 if (checkedTransfer)
                     throw new CobolSizeError("standard-decimal result is further from zero than any fixed-point "
                         + "receiver permits (ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)",

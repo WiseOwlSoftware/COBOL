@@ -100,6 +100,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             if (RenderDec(ic) is { } dec)
                 return dec;
         }
+        // NATIVE arithmetic with an SDIDI-carried ARGUMENT (kb/Work PB69) — today the only native Dec producer is
+        // integer exponentiation past (or within) the Int128 window: the function computes on the SDIDI body when
+        // it has one (MOD/REM keep exact integers exact — CobolIntrinsics.ModDec's integer fast path), rather than
+        // landing the argument into Int128 at a working scale that a 33-digit power already overflows.
+        else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
+            return decNative;
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
         // ⛔ FACTORIAL IS ROUTED TO ITS EXACT ARM EVEN WITH A FLOAT ARGUMENT (PB21), and it is the only one.
         // RenderFloat wraps every result in FromDouble(double, ws), so a ...Real body must return something a
@@ -476,7 +482,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             x = new NumX(num.DecOperand(x), 0, Dec: true);
         if (!x.Dec) return x;
         int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-        return new NumX(RuntimeApi.DecToUnscaled(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
+        // The landing is CHECKED (EC-SIZE-OVERFLOW past the carrier — kb/Work PB69): a value-semantics consumer
+        // has no capacity check downstream, so the modular low-order digits were a wrong answer, not a stage.
+        return new NumX(RuntimeApi.DecToUnscaledIntermediate(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
     }
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
@@ -577,6 +585,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private bool AnyDecOrRealRaw(BoundIntrinsicCall ic) =>
         ic.Args.Any(a => { var x = num.AsNum(a, num.Receiver); return x.Dec || x.Real; });
 
+    /// <summary>Does any argument arrive on the SDIDI carrier (a native integer power — kb/Work PB69)?</summary>
+    private bool AnyDecRaw(BoundIntrinsicCall ic) => ic.Args.Any(a => num.AsNum(a, num.Receiver).Dec);
+
     /// <summary>
     /// Under a standard arithmetic mode, evaluate a §15.4.1 r1 function's equivalent arithmetic expression ON
     /// the SDIDI carrier (<c>CobolIntrinsics.*Dec</c>) and return the result as a Dec-valued <see cref="NumX"/>
@@ -674,7 +685,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>An integer-kind argument as a C# <c>long</c> (truncated to scale 0 when the operand carries a
     /// fraction — integer arguments "shall be integers", §15.3; a fractional value is the program's EC latitude).</summary>
-    private string IntArg(BoundIntrinsicCall ic, int i) => AsInt(Arg(ic, i));
+    private string IntArg(BoundIntrinsicCall ic, int i) => AsInt(RawArg(ic, i));   // an integer lands at scale 0 directly — never through a working scale that eats headroom (kb/Work PB69)
 
     /// <summary>
     /// ⛔ THE ONE NARROWING, AND IT RAISES RATHER THAN WRAPS (fix-queue PB22). This emitted a bare
@@ -699,7 +710,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // test — a Dec NumX carries Scale 0 BY CONVENTION (the PB14/PB32 lesson), so the scale test would pass
         // the CobolDec expression through raw and hand Roslyn the CS1503 this arm exists to close. This was
         // the one carrier-total dispatch in the renderer family still missing its Dec arm.
-        : a.Dec ? RuntimeApi.IntegerArg(RuntimeApi.DecToUnscaled(a.Expr, "0", CobolRounding.Truncation))
+        : a.Dec ? RuntimeApi.IntegerArg(RuntimeApi.DecToUnscaledIntermediate(a.Expr, "0", CobolRounding.Truncation))
         : a.Scale == 0 ? RuntimeApi.IntegerArg(a.Expr)
         : RuntimeApi.IntegerArg(RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation));
 
@@ -914,7 +925,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         x = NumericRenderer.DeU(x);
         if (x.Real) return (RuntimeApi.FloatToScaled(x.Expr, "9", CobolRounding.Truncation), 9);
-        if (x.Dec) return (RuntimeApi.DecToUnscaled(x.Expr, "18", CobolRounding.Truncation), 18);
+        if (x.Dec) return (RuntimeApi.DecToUnscaledIntermediate(x.Expr, "18", CobolRounding.Truncation), 18);
         return (x.Expr, x.Scale);
     }
 
@@ -959,7 +970,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     private static string AsIntWide(NumX a) =>
         a.Real ? RuntimeApi.IntegerArgWide(a.Expr)
-        : a.Dec ? RuntimeApi.DecToUnscaled(a.Expr, "0", CobolRounding.Truncation)
+        : a.Dec ? RuntimeApi.DecToUnscaledIntermediate(a.Expr, "0", CobolRounding.Truncation)
         : a.U ? RuntimeApi.NumWiden(a.Expr)
         : a.Scale == 0 ? a.Expr
         : RuntimeApi.NumRescale(a.Expr, a.Scale.ToString(), "0", CobolRounding.Truncation);

@@ -152,63 +152,13 @@ public static partial class CobolIntrinsics
         return Math.Pow(b, e);
     }
 
-    /// <summary>
-    /// ⛔ NATIVE <c>**</c> WITH AN INTEGER BASE AND AN INTEGER EXPONENT — EXACT WHEN IT FITS, THE DOCUMENTED
-    /// DOUBLE APPROXIMATION WHEN IT DOES NOT (owner decision 2026-08-03; fix-queue PB18).
-    /// </summary>
-    /// <remarks>
-    /// <para>§8.8.1.3 makes native arithmetic implementor-defined, so either technique conforms — but routing an
-    /// integer power through <c>System.Math.Pow</c> contradicted our OWN documented technique (numeric design D3,
-    /// "the exact Int128 fixed-point engine"): <c>COMPUTE R = 10 ** 30</c> into a <c>PIC 9(31)</c> returned
-    /// <c>1000000000000000071935427891953</c> where <see cref="Int128"/> holds 10³⁰ exactly.</para>
-    /// <para><b>The owner's decision and the survey behind it.</b> Exact while the result fits the carrier, the
-    /// documented double approximation past it — never a size error merely for outgrowing the carrier. That
-    /// follows the field: IBM Enterprise COBOL and Micro Focus both fall back to floating point past the fixed
-    /// capacity, and GnuCOBOL has no boundary at all (GMP arbitrary precision). The cost is that the technique is
-    /// VALUE-dependent, which is deliberate and documented rather than drift.</para>
-    /// <para>⚠ SCALE IS WHY THIS ARM IS RESTRICTED TO A SCALE-0 BASE. A scale-<i>s</i> base to the <i>n</i> has
-    /// scale <i>s·n</i>, so <c>1.5 ** 30</c> needs ~36 significant digits before a receiver is even considered —
-    /// there is no compile-time scale to give the result. A scale-0 base raised to an integer is scale 0 whatever
-    /// the exponent, so the result scale is known without knowing the exponent's value. The fractional-base case
-    /// keeps the approximation arm.</para>
-    /// <para>The overflow fallback quantizes through <see cref="FromDouble"/> rather than casting, so an
-    /// out-of-range magnitude SATURATES and stays above the receiver's capacity check instead of wrapping — the
-    /// PB13 mechanism, reused rather than re-derived.</para>
-    /// </remarks>
-    /// <remarks>⛔ THE RESULT LANDS AT SCALE 0, UNCONDITIONALLY (fix-queue PB65 / RV-15.64.4-1). This body is
-    /// reached ONLY for a NON-NEGATIVE LITERAL exponent (the renderer's compile-time test), whose result is an
-    /// integer by construction — the previous receiver-derived landing scale (≥ 9) multiplied the exact power by
-    /// 10⁹ INSIDE this body, pushing a 30-digit exact value past the carrier and into the saturating double
-    /// fallback, which FUNCTION MOD then consumed as a real value (`COMPUTE R = FUNCTION MOD(A ** 2, B)` printed
-    /// 320612800 where 13657001 was owed, the receiver's PICTURE selecting which). A negative or runtime-item
-    /// exponent takes <see cref="PowNativeIntDec"/>, whose SDIDI result owns its scale at run time — the
-    /// `2 ** -2` ⇒ 0.25 reciprocal that once justified a landing-scale parameter here lives there now.</remarks>
-    public static Int128 PowNativeInt(Int128 b, Int128 e)
-    {
-        CheckPowRule6((double)b, (double)e);
-        if (e >= 0)
-        {
-            Int128 r = 1, mag = Int128.Abs(b);
-            bool fits = true;
-            for (Int128 i = 0; i < e && fits; i++)
-            {
-                if (mag > 1 && Int128.Abs(r) > Int128.MaxValue / mag) { fits = false; break; }
-                r *= b;
-            }
-            if (fits) return r;
-        }
-        // The documented double approximation: an exact result that left the carrier (a negative exponent
-        // cannot reach this body — see the remarks). Quantized through FromDouble rather than cast, so an
-        // out-of-range magnitude SATURATES and stays above a receiver's capacity check instead of wrapping
-        // (the PB13 mechanism, reused). ⚠ Consumed as an intrinsic ARGUMENT there is no capacity check to
-        // stay above — the sentinel-as-argument residue is ledgered on kb/Work (found by this fix's probing).
-        return FromDouble(Math.Pow((double)b, (double)e), 0);
-    }
-
-    /// <summary>Native <c>**</c> with an integer base and a NEGATIVE-OR-RUNTIME-ITEM integer exponent — the
-    /// same owner-decided values as <see cref="PowNativeInt"/> (exact Int128 loop while the result fits, the
-    /// documented double approximation past it, the §8.8.1.2 reciprocal via double for a negative exponent),
-    /// returned on the SDIDI carrier (fix-queue PB65 / RV-15.64.4-1).</summary>
+    /// <summary>Native <c>**</c> with an integer base and an integer exponent — EVERY shape (kb/Work PB69 — the
+    /// literal-exponent Int128 twin <c>PowNativeInt</c> is gone: its past-the-carrier fallback saturated to
+    /// Int128.MaxValue, a sentinel that FUNCTION MOD and every comparison consumed as a value). The owner-decided
+    /// values (2026-08-03): the exact Int128 loop while the result fits — <c>CobolDec.From</c> keeps the full
+    /// significand, so a 38-digit power is exact on this carrier too — the documented double approximation past
+    /// it, the §8.8.1.2 reciprocal via double for a negative exponent; returned on the SDIDI carrier, which owns
+    /// its scale at run time and which every downstream consumer handles (fix-queue PB65 / RV-15.64.4-1).</summary>
     /// <remarks>The exponent's SIGN is a run-time fact for a data-item exponent, and the two regimes need
     /// different scales — 0 for a positive power (any larger scale eats exactness headroom: scale 9 corrupted
     /// every power past 29 digits), fraction digits for a reciprocal — so no compile-time scale serves both.

@@ -56,6 +56,12 @@ public static partial class CobolIntrinsics
     public static CobolDec ModDec(CobolRounding mode, CobolDec a, CobolDec b)
     {
         if (b.Sig == 0) return CobolDec.From(ModZeroDivisor(), 0);
+        // Two EXACT integers within the Int128 carrier take the exact remainder (kb/Work PB69): a native integer
+        // power of up to 38 digits arrives here as an exact SDIDI (CobolDec.From keeps the significand), and the
+        // SDIDI equivalent-arithmetic-expression rounds its 34-digit products — the exact remainder IS the value
+        // §15.64.1 defines ("argument-1 modulo argument-2"), and for every operand pair a program can write it is
+        // the §15.64.4 EAE's value as well.
+        if (ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(ModScaled(ia, ib), 0);
         return CobolDec.Sub(a, CobolDec.Mul(b, FloorDec(CobolDec.Div(a, b, mode)), mode), mode);
     }
 
@@ -63,7 +69,33 @@ public static partial class CobolIntrinsics
     public static CobolDec RemDec(CobolRounding mode, CobolDec a, CobolDec b)
     {
         if (b.Sig == 0) return CobolDec.From(ModZeroDivisor(), 0);
+        if (ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(RemScaled(ia, ib), 0);   // kb/Work PB69
         return CobolDec.Sub(a, CobolDec.Mul(b, TruncDec(CobolDec.Div(a, b, mode)), mode), mode);
+    }
+
+    /// <summary>Both SDIDIs are integers whose values fit the Int128 carrier — the exact-remainder precondition.</summary>
+    private static bool ExactIntegers(CobolDec a, CobolDec b, out Int128 ia, out Int128 ib)
+    {
+        ia = ib = 0;
+        return TryExactInteger(a, out ia) && TryExactInteger(b, out ib);
+    }
+
+    private static bool TryExactInteger(CobolDec d, out Int128 v)
+    {
+        v = 0;
+        if (d.Exp < 0)
+        {
+            // A negative exponent may still be an integer value (…000 significand): reduce it.
+            Int128 sig = d.Sig; int exp = d.Exp;
+            while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
+            if (exp < 0) return false;
+            d = new CobolDec(sig, exp);
+        }
+        if (d.Exp > 38) return false;
+        Int128 pow = Pow10.AsWide(d.Exp);
+        if (d.Sig != 0 && Int128.Abs(d.Sig) > Int128.MaxValue / pow) return false;
+        v = d.Sig * pow;
+        return true;
     }
 
     /// <summary>§15.59 MAX — the leftmost argument with the greatest value (§15.59.4 r1/r2).</summary>
