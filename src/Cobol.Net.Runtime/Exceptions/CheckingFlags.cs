@@ -42,6 +42,10 @@ public struct CheckingFlags
     /// <summary>EC-SIZE-OVERFLOW on a floating-point target — an IEEE overflow to ±Inf.</summary>
     public bool FloatOverflow;
 
+    /// <summary>EC-DATA-INCOMPATIBLE — a de-editing MOVE whose numeric-edited sender holds content that is not a
+    /// possible result of any editing operation in that item (§14.6.13.2 rule 4; kb/Work PB66).</summary>
+    public bool DataIncompatible;
+
     /// <summary>EC-DATA-PTR-NULL — a reference through a NULL data-address pointer (§13.18.5.4 GR3), or a NULL
     /// operand on SET pointer UP/DOWN BY (§14.9.39 Format 10 GR18).</summary>
     public bool DataPtrNull;

@@ -195,14 +195,26 @@ public sealed record PicInfo(
     public bool PackedNoSign { get; init; }
 
     /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
-    /// recognized-but-unimplemented SKELETON — an external floating-point picture (symbol E, <c>PicExternalFloat2002</c>)
-    /// or national-edited data (<c>NationalEdited2002</c>) — after <c>PictureAnalyzer.Analyze</c> RECOVERED the category
-    /// to Alphanumeric so the doomed emit stays crash-free. Non-null only on those two skeleton paths; read by the
-    /// <c>VersionConformancePass</c> <c>GateData</c> enumerator (Step 14g.5), which fires the COBOLNET0900 below 2002.
-    /// The recovery ERASES the parse identity (category → Alphanumeric), so this preserves it for the bound-arm gate;
-    /// the ≥2002 not-implemented COBOLNET0899 stays inline in the analyzer (its <c>StagedNotImplemented</c>).</summary>
+    /// recognized-but-unimplemented SKELETON — national-edited data (<c>NationalEdited2002</c>) — after
+    /// <c>PictureAnalyzer.Analyze</c> RECOVERED the category to Alphanumeric so the doomed emit stays crash-free.
+    /// Non-null only on that skeleton path; read by the <c>VersionConformancePass</c> <c>GateData</c> enumerator
+    /// (Step 14g.5), which fires the COBOLNET0900 below 2002. The recovery ERASES the parse identity (category →
+    /// Alphanumeric), so this preserves it for the bound-arm gate; the ≥2002 not-implemented COBOLNET0899 stays inline
+    /// in the analyzer (its <c>StagedNotImplemented</c>). (The floating-point numeric-edited picture — symbol E — is
+    /// LIVE since data-model design D21 / kb/Work PB66: <see cref="IsFloatEdited"/> carries its identity and the
+    /// <c>PicExternalFloat2002</c> gate reads that flag directly.)</summary>
     public string? SkeletonGate { get; init; }
 
+
+    /// <summary>The FLOATING-POINT form of a numeric-edited PICTURE (ISO §13.18.40.4 GR13 b — a significand and an
+    /// exponent separated by the symbol <c>E</c>; data-model design D21, kb/Work PB66): the item's category is still
+    /// numeric-edited (§8.5.2.13) and its <see cref="EditMask"/> is the whole expanded string, but its VALUE is a
+    /// significand with its own power of ten (the exact <c>CobolDec</c> lane), it has no fixed <see cref="Scale"/>
+    /// (0 here) and no <see cref="DigitPositions"/> (0), and every edited store / read dispatches on THIS flag inside
+    /// the runtime entry helpers (<c>RuntimeApi.EditFormat</c> / <c>EditTryFormat</c> / <c>NumericRenderer.FieldNum</c>)
+    /// — never at a call site. The mask's structure is <c>CobolEdit.FloatMask.Parse(EditMask, commaMode)</c>, the ONE
+    /// parser (the analyzer validated the form; consumers read it through the runtime type).</summary>
+    public bool IsFloatEdited { get; init; }
 
     /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
     /// uppercased, the implied point <c>V</c> retained, and the mask's currency symbol CANONICALIZED to <c>$</c> —

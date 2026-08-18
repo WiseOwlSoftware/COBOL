@@ -91,31 +91,53 @@ public sealed class LoudGuardTests
 
     // ── Analyze: the §13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
-    /// <summary>The external-float PICTURE symbol E (ISO §13.18.40.4 GR13b) — its introduction gate (COBOLNET0900)
-    /// MOVED to the post-bind <c>VersionConformancePass</c> GateData enumerator (Step 14g.5), carried on the recovered
-    /// item's <c>PicInfo.SkeletonGate</c> (the category is recovered to Alphanumeric, erasing the parse identity). So
-    /// <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it only STAMPS the gate; the 0900 firing is verified in
-    /// <c>RepositoryPrototypeEditionTests</c> + the version matrix. (The national/boolean category gates moved the same
-    /// way at 14g.1 — <c>UsageDataEditionTests</c>.)</summary>
+    /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §13.18.40.4 GR13 b) — LIVE since data-model
+    /// design D21 (kb/Work PB66). Its introduction gate (COBOLNET0900 below 2002) is the post-bind
+    /// <c>VersionConformancePass</c> GateData enumerator's (<c>PictureConstructId</c> keys on <c>IsFloatEdited</c>),
+    /// so <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it classifies the form; the 0900 firing is verified
+    /// in <c>RepositoryPrototypeEditionTests</c> + the version matrix.</summary>
     [Fact]
-    public void Analyze_ExternalFloat_At85_CarriesSkeletonGate()
+    public void Analyze_FloatEdited_At85_ClassifiesSilently()
     {
         var ed = Ed(85);
-        var pic = PictureAnalyzer.Analyze("9V99E+99", Usage.Display, ed, "data item 'T'");
-        Assert.False(ed.HasErrors, "the 0900 moved to GateData (14g.5) — Analyze is silent at the picture layer below 2002");
-        Assert.Equal(Constructs.PicExternalFloat2002, pic.SkeletonGate);
+        var pic = PictureAnalyzer.Analyze("+9.99E+99", Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, "the 0900 is GateData's (14g.5) — Analyze is silent at the picture layer below 2002");
+        Assert.True(pic.IsFloatEdited);
+        Assert.Equal(PicCategory.NumericEdited, pic.Category);
+        Assert.Null(pic.SkeletonGate);
     }
 
+    /// <summary>A floating-point numeric-edited picture whose significand carries a symbol Table 10 (§13.18.40.6, row
+    /// E) does not admit before the E — V, Z, *, P, S, CR, DB, the currency symbol — is COBOLNET1658 (kb/Work PB66);
+    /// the legal shape classifies numeric-edited silently at 2002+.</summary>
     [Theory]
-    // N(4) and 1(8) left this set at Phase 4a M2-DATA-3/4 (LIVE — the positive facts below); the external
-    // float symbol E stays a Phase-6 skeleton.
     [InlineData("9V99E+99")]
-    public void Analyze_2002Symbol_NotImplementedErrorAt2023(string picture)
+    [InlineData("ZZ9.99E+99")]
+    [InlineData("$9.99E+99")]
+    [InlineData("9.99E99")]
+    public void Analyze_FloatEdited_IllegalSignificandOrExponent_1658(string picture)
     {
         var ed = Ed(2023);
         PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
-        Assert.True(ed.HasErrors, $"PIC {picture} must not classify silently (§13.18.40.4 — no implementation yet)");
-        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("not yet implemented"));
+        Assert.True(ed.HasErrors, $"PIC {picture} must be rejected (§13.18.40.4 GR13 b / §13.18.40.6 Table 10)");
+        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET1658"));
+    }
+
+    [Theory]
+    [InlineData("+9.99E+99", 3, 2, '+', 2)]
+    [InlineData("-9(3).9(2)E+999", 5, 2, '-', 3)]
+    [InlineData("9(3)E+9", 3, 0, '\0', 1)]
+    [InlineData("9,999.99E+9999", 6, 2, '\0', 4)]
+    public void Analyze_FloatEdited_LegalShape_ClassifiesNumericEdited(string picture, int sigDigits, int sigScale, char sigSign, int expDigits)
+    {
+        var ed = Ed(2023);
+        var pic = PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
+        Assert.True(pic.IsFloatEdited);
+        Assert.Equal(PicCategory.NumericEdited, pic.Category);
+        var m = CobolNet.Runtime.CobolEdit.FloatMask.Parse(pic.EditMask!);
+        Assert.Equal((sigDigits, sigScale, sigSign, expDigits), (m.SigDigits, m.SigScale, m.SigSign, m.ExpDigits));
+        Assert.Equal(pic.EditMask!.Length, pic.Length);
     }
 
     /// <summary>PIC N classifies category NATIONAL with the SR13a IMPLIED usage NATIONAL (no USAGE clause;

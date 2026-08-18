@@ -205,9 +205,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         }
         switch (target.Item.Pic)
         {
-            case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
+            case { Category: PicCategory.NumericEdited } npic:
+            {
+                string unsignedInt = RuntimeApi.NumFromAlphanumeric(valueExpr);   // the form dispatch is EditFormatFor's (D21/PB66)
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
+            }
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(valueExpr, CsLiteral(amask))));
                 return;

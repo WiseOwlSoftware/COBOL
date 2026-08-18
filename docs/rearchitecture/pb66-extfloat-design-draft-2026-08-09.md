@@ -1,3 +1,8 @@
+> # ADOPTED — data-model design D21 (`docs/COBOLNET_DATA_MODEL_DESIGN.md`) is the SSOT since 2026-08-18 (DEVLOG 1322).
+> This file is the historical draft D21 re-derived from (every clause re-checked with `cite.py --check`; two
+> decisions changed at adoption — no per-item `FloatEditSpec` projection / static mask field, `IsFloatEdited` alone
+> discriminates and `CobolEdit.FloatMask.Parse` is the one parser). Where this draft and D21 differ, D21 governs.
+>
 > # UNREVIEWED AGENT DRAFT — NOT A DESIGN SSOT (frozen 2026-08-09)
 > Produced by the wf_fdd1492c probe-sweep fleet's PB66 design agent, unreviewed by the main line and
 > NOT adopted. kb/Work/PB66.md owns the item; docs/COBOLNET_DESIGN.md §0.5 does NOT list this file.

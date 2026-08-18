@@ -130,9 +130,14 @@ public static class PictureAnalyzer
                     break;
             }
         }
+        // ── The FLOATING-POINT numeric-edited form (§13.18.40.4 GR13 b — data-model design D21, kb/Work PB66): the
+        //    whole string is validated as significand 'E' exponent and returned as a numeric-edited PicInfo whose
+        //    IsFloatEdited flag drives every store / read dispatch. The COBOL-2002 introduction gate keys on that flag
+        //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
+        if (hasE && invalid is null && !hasN && !has1)
+            return AnalyzeFloatEdited(picture, expanded, usage, edition, where, char1Set.Count > 0);
         if (hasE || invalid is not null || (hasN && has1))
         {
-            if (hasE) StagedNotImplemented(edition, Constructs.PicExternalFloat2002, "Phase 6", where);   // the 0900 is now GateData via SkeletonGate below (14g.5)
             if (invalid is { } bad)
                 // Wording is exact about what IS checked: symbol MEMBERSHIP in the SR2 inventory. The SR2/
                 // §13.18.40.6 precedence-rule validation (symbol ORDER/multiplicity — 'PIC 99.99.99' etc.)
@@ -147,8 +152,7 @@ public static class PictureAnalyzer
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes). An
             // external-float picture carries its 0900 forward on SkeletonGate for the bound-arm gate (14g.5).
-            return PicInfo.Recovery(expanded.Length) with
-                { SkeletonGate = hasE ? Constructs.PicExternalFloat2002 : null };
+            return PicInfo.Recovery(expanded.Length);
         }
 
         // ── Category national (§8.5.2.10) / boolean (§8.5.2.5) — LIVE, Phase 4a track (a). The introduction
@@ -604,6 +608,74 @@ public static class PictureAnalyzer
     /// post-bind <c>VersionConformancePass</c> GateData enumerator over <c>PicInfo.SkeletonGate</c> (Step 14g.5 — the
     /// category is recovered to Alphanumeric, erasing the parse identity, so the flag carries the gate forward). Either
     /// way the compile FAILS below its edition (the 0900) or above (the 0899) — never a silent misbind.</summary>
+    /// <summary>The floating-point numeric-edited PICTURE (ISO §13.18.40.4 GR13 b; data-model design D21 / kb/Work PB66):
+    /// <c>significand E exponent</c>. Validated per string (§13.18.40.6 — Table 10 applies to the two strings
+    /// separately): the exponent is exactly <c>+9</c>…<c>+9999</c>; the significand an optional leading fixed
+    /// sign (SR23 + NOTE 3 sanction the significand's <c>−</c> beside the exponent's <c>+</c>) and then only the
+    /// symbols Table 10 row E admits before E — <c>9 B 0 / , .</c> (no floating insertion, no zero suppression with
+    /// replacement, no S/V/P/CR/DB/currency; an EDITING character is barred by SR12 a) — with one point at most (SR12 b)
+    /// and 1..36 digit positions (SR15 — SR14's 31 does not apply). Every symbol of both parts is a character position
+    /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
+    /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
+    /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
+    private static PicInfo AnalyzeFloatEdited(string picture, string expanded, Usage usage, EditionContext edition,
+        string where, bool hasEditingPhrase)
+    {
+        void Bad(string why) => edition.Error(DiagnosticCatalog.PictureFloatEdited,
+            $"invalid floating-point numeric-edited PICTURE {picture} — {where}: {why}");
+        int eCount = expanded.Count(c => c == 'E');
+        if (eCount > 1) { Bad("the symbol E may appear only once (ISO §13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
+        if (hasEditingPhrase) { Bad("an EDITING character-1 may not be specified for a floating-point edited item (ISO §13.18.40.3 SR12 a)"); return PicInfo.Recovery(expanded.Length); }
+        int e = expanded.IndexOf('E');
+        string sig = expanded[..e], exp = expanded[(e + 1)..];
+        // the exponent: '+' then 1..4 '9's, nothing else (§13.18.40.4 GR13 b)
+        if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
+        {
+            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §13.18.40.4 GR13 b)");
+            return PicInfo.Recovery(expanded.Length);
+        }
+        // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
+        int start = sig.Length > 0 && sig[0] is '+' or '-' ? 1 : 0;
+        bool signed = start == 1;
+        int digits = 0, points = 0;
+        for (int i = start; i < sig.Length; i++)
+        {
+            char c = sig[i];
+            switch (c)
+            {
+                case '9': digits++; break;
+                case '.': points++; break;
+                case 'B': case '0': case '/': case ',': break;
+                case '+': case '-':
+                    Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §13.18.40.6 Table 10 row E; SR25 applies per string)");
+                    return PicInfo.Recovery(expanded.Length);
+                case 'Z': case '*':
+                    Bad($"the symbol '{c}' — zero suppression with replacement shall not be specified for the significand (ISO §13.18.40.4 GR13 b)");
+                    return PicInfo.Recovery(expanded.Length);
+                case 'V': case 'P': case 'S':
+                    Bad($"the symbol '{c}' may not appear in the significand — its point is the real '.' (ISO §13.18.40.6 Table 10 row E; SR17/SR18/SR20)");
+                    return PicInfo.Recovery(expanded.Length);
+                case 'C': case 'D':
+                    Bad("CR / DB may not appear in the significand of a floating-point edited item (ISO §13.18.40.6 Table 10 row E; SR23)");
+                    return PicInfo.Recovery(expanded.Length);
+                default:
+                    Bad($"the symbol '{c}' may not appear in the significand — a currency symbol or floating insertion is not permitted (ISO §13.18.40.4 GR13 b; §13.18.40.6 Table 10 row E)");
+                    return PicInfo.Recovery(expanded.Length);
+            }
+        }
+        if (points > 1) { Bad("the decimal point may appear only once (ISO §13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
+        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
+        if (usage is Usage.National)
+        {
+            // The national-form numeric-edited leg is the Phase 4a staged residue every national-form numeric item shares.
+            edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric-edited data (a floating-point edited PICTURE with USAGE NATIONAL) "
+                + $"is recognized but not yet implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
+            usage = Usage.Display;
+        }
+        return new PicInfo(PicCategory.NumericEdited, usage, Length: expanded.Length, Digits: digits, Scale: 0, Signed: signed)
+        { EditMask = expanded, DigitPositions = 0, IsFloatEdited = true };
+    }
+
     private static void StagedNotImplemented(EditionContext edition, string rowId, string phase, string where)
     {
         var row = ConstructRegistry.Find(rowId)

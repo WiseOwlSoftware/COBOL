@@ -7,10 +7,11 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// EXACT-COUNT witnesses for the Step-14g.5 gates — the FUNCTION-ID … IS PROTOTYPE unit (§11.5, bound-arm over
 /// <c>CallUnit.IsPrototype</c>), the REPOSITORY CLASS/INTERFACE/PROPERTY specifiers (§12.3.8, parse-arm), and the two
-/// recognized-but-unimplemented PICTURE skeletons — an external floating-point picture (symbol E) and national-edited
-/// data — which gate BOUND-arm via <c>PicInfo.SkeletonGate</c> (their category is recovered to Alphanumeric, so
-/// PicInfo's own detection carries the 0900 forward to <c>GateData</c>). The version matrix +
-/// <c>DataSkeletonEditionTests</c> verify PRESENCE; these pin the FIRING COUNT — exactly ONE per construct.
+/// PICTURE-shape gates — the floating-point numeric-edited picture (symbol E; LIVE since data-model design D21 /
+/// kb/Work PB66, keyed on <c>PicInfo.IsFloatEdited</c>) and the recognized-but-unimplemented national-edited skeleton
+/// (<c>PicInfo.SkeletonGate</c>; its category is recovered to Alphanumeric) — which gate BOUND-arm through the ONE
+/// <c>VersionConformancePass.PictureConstructId</c>. The version matrix + <c>DataSkeletonEditionTests</c> verify
+/// PRESENCE; these pin the FIRING COUNT — exactly ONE per construct.
 /// </summary>
 public sealed class RepositoryPrototypeEditionTests
 {
@@ -79,11 +80,11 @@ public sealed class RepositoryPrototypeEditionTests
     public void RepositoryProperty_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Repository, 85, "REPOSITORY PROPERTY 'MYPROP'"));
 
-    /// <summary>An external floating-point PICTURE (symbol E) gates EXACTLY ONCE at 85 — carried by
-    /// <c>PicInfo.SkeletonGate</c> to the bound-arm after the category is recovered to Alphanumeric.</summary>
+    /// <summary>A floating-point numeric-edited PICTURE (symbol E) gates EXACTLY ONCE at 85 — keyed on
+    /// <c>PicInfo.IsFloatEdited</c> through <c>PictureConstructId</c> (kb/Work PB66).</summary>
     [Fact]
-    public void ExternalFloatPicture_At85_ExactlyOne0900()
-        => Assert.Equal(1, Count0900(Prog("01 WS-EF PIC 9V99E+99."), 85, "external floating-point PICTURE"));
+    public void FloatEditedPicture_At85_ExactlyOne0900()
+        => Assert.Equal(1, Count0900(Prog("01 WS-EF PIC +9.99E+99."), 85, "floating-point numeric-edited PICTURE"));
 
     /// <summary>A national-edited PICTURE gates EXACTLY ONCE at 85 (the same SkeletonGate carrier).</summary>
     [Fact]
@@ -111,16 +112,17 @@ public sealed class RepositoryPrototypeEditionTests
         01 DET-1 TYPE DE LINE PLUS 1.
             03 COLUMN 1 PIC X(2) VALUE "DE".
         01 CF-1 TYPE CF WS-KEY LINE PLUS 1.
-            03 TOT PIC 9V99E+99 SUM WS-AMT.
+            03 TOT PIC 9.99E+99 SUM WS-AMT.
         PROCEDURE DIVISION.
         MAIN.
             STOP RUN.
         """;
 
-    /// <summary>DEVLOG-740 regression: an external-float PICTURE on a NON-printable report SUM counter still gates
-    /// EXACTLY ONCE at 85 — the SUM-counter Analyze PicInfo is discarded (only its scale is used), so the 0900 must be
-    /// carried on ReportSumModel.SkeletonGate and fired by GateData's report-Sums walk, else it is silently dropped.</summary>
+    /// <summary>DEVLOG-740 regression: a floating-point numeric-edited PICTURE on a NON-printable report SUM counter
+    /// still gates EXACTLY ONCE at 85 — the SUM-counter Analyze PicInfo is discarded (only its scale is used), so the
+    /// 0900 must be carried on ReportSumModel.SkeletonGate (PictureConstructId) and fired by GateData's report-Sums
+    /// walk, else it is silently dropped.</summary>
     [Fact]
     public void ReportSumExternalFloat_At85_ExactlyOne0900()
-        => Assert.Equal(1, Count0900(ReportSumExternalFloat, 85, "external floating-point PICTURE"));
+        => Assert.Equal(1, Count0900(ReportSumExternalFloat, 85, "floating-point numeric-edited PICTURE"));
 }

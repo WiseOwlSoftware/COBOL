@@ -1,0 +1,27 @@
+VALUE E5=[+1.500E+03] E6=[+0.000E+00] E7=[ 0.000E+00]
+N1->E1 [-1.23456E+04]
+N1->E2 [-123.45E+002]
+0->E1  [ 0.00000E+00]
+0->E2  [+000.00E+000]
+0->E8  [         ] (BLANK WHEN ZERO)
+->E3   [1.23E-4]
+999->E3[9.99E+2]
+1E+10  [9.99E+9] (overflow, unchecked: the pinned image)
+1E-12  [0.00E+0] (underflow: zero)
+F1->E1 [ 6.02214E+23]
+-5->E4 [-50.000E-01]
+1234->E9 [123E+01]
+E1->N2 [1234560}]
+E1->X1 [-1.23456E+04]
+E1->E2 [-123.45E+002]
+E1->NE [-12,345.60]
+E4->N2 [0000500}]
+COMPUTE [9.99E+4]
+SIZE ERROR (overflow)
+after   [9.99E+4] unchanged
+SIZE ERROR (underflow)
+after   [9.99E+4] unchanged
+no phrase [9.99E+9] (the MOVE disposition: pinned)
+MULTIPLY [-246.91E+002]
+DIVIDE   [ 3.33333E-01]
+ADD      [ 15.000E-01]

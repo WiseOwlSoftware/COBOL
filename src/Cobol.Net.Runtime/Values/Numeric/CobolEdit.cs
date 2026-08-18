@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -28,7 +30,7 @@ namespace CobolNet.Runtime;
 /// including zero suppression absorbing GROUPING periods and stopping at the COMMA decimal position (§13.18.40.5
 /// — the legacy engine's dead-flag bug, fixed here per spec).
 /// </summary>
-public static class CobolEdit
+public static partial class CobolEdit
 {
     /// <summary>One resolved PICTURE EDITING phrase for the single-character render (ISO §13.18.40.5): the user
     /// editing <paramref name="Char1"/> renders as <paramref name="Neg"/> when the value is negative and
@@ -258,10 +260,17 @@ public static class CobolEdit
     /// the mask contributes its image digit (a suppressed/replaced position — space, <c>*</c>, a floating symbol's
     /// landing spot — contributes zero), yielding the unscaled value at the mask's fraction scale
     /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
-    /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
+    /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB). Under EC-DATA-INCOMPATIBLE checking (ISO
+    /// §14.6.13.2 rule 4: content "not a possible result for any editing operation in that data item" → the
+    /// exception, the result undefined) the image is verified to be an editing result — <see cref="Format"/> of the
+    /// de-edited value at the mask's scale (with the item's BLANK WHEN ZERO, <paramref name="blankWhenZero"/>) must
+    /// reproduce it: Format IS the one editor, so the round trip is the exact test (kb/Work PB66 sweep — the
+    /// floating-point form's <c>DeEditFloat</c> validates position by position); the fatal exception is raised
+    /// before any receiver is written. With checking off the digit positions are read as before.</summary>
     public static Int128 DeEdit(string image, string picture, char currency = '$', bool commaMode = false,
-        EditRule[]? edits = null, string? currencyString = null)
+        EditRule[]? edits = null, string? currencyString = null, bool blankWhenZero = false)
     {
+        string physical = image;
         // A currency string other than the symbol itself: collapse the physical image to the logical one first
         // (§12.3.7.4 GR13 — the string is "de-edited from the data item when it is used as a sending item").
         if (currencyString is not null && currencyString != currency.ToString())
@@ -304,7 +313,17 @@ public static class CobolEdit
             else if (p == 'D' && c == 'D') negative = true;     // DB rendered
         }
         if (image.Contains('-')) negative = true;               // a floating minus landed inside its zone
-        return negative ? -value : value;
+        Int128 result = negative ? -value : value;
+        if (ExceptionState.DataIncompatibleChecking)
+        {
+            string expected = Format(result, MaskScale(picture, currency, commaMode: false), picture, blankWhenZero,
+                currency, commaMode: false, edits, currencyString);
+            if (commaMode) expected = SwapSeparators(expected);
+            if (expected != physical)
+                ExceptionState.DataIncompatibleError(
+                    $"the content '{physical}' is not a possible result of editing into {picture} (a de-editing MOVE, ISO 14.6.13.2 rule 4)");
+        }
+        return result;
     }
 
     /// <summary>Checked numeric→edited conversion for ARITHMETIC stores under ON SIZE ERROR (ISO §14.7.5 — size

@@ -719,6 +719,19 @@ QUOTE_      : 'QUOTE' | 'QUOTES' ;
 fragment FLOAT_BODY : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
 FLOATLIT    : FLOAT_BODY ;
 
+// The DECIMAL-POINT IS COMMA twin of the floating-point literal (kb/Work PB98): under DECIMAL-POINT IS COMMA "the
+// character written in numeric literals to represent the decimal separator shall be the comma" (ISO §12.3.7.4 GR14 a) —
+// the floating-point form's significand included (§8.3.3.3.3: "two fixed-point numeric literals separated by the
+// letter 'E'"), so `1,5E+3` is ONE literal. The lexer cannot know the SPECIAL-NAMES clause, so the shape is one token
+// in EVERY mode; the binder's ONE normalizer canonicalizes it to dot-decimal and reports COBOLNET0895 when
+// DECIMAL-POINT IS COMMA is not in effect. No dot-mode program legally spells `<digits>,<digits>E<exponent>` (the
+// comma-decimal fixed form assembles in the parser as INTEGERLIT COMMA INTEGERLIT because ',' alone is a token; the
+// float shape needs the E-tail, so it is lexed whole — before this a comma-mode `VALUE 1,5E+3` silently seeded 1 and
+// `MOVE 1,5E+3 TO X` was a parse error). Same body discipline as FLOAT_BODY: fragment + FN_SIGNED twin + SUB forms
+// (SignedLiteralShapeDriftTests scrapes every FLOAT*_BODY).
+fragment FLOAT_COMMA_BODY : ( [0-9]+ ',' [0-9]* | ',' [0-9]+ ) 'E' [-+]? [0-9]+ ;
+COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
+
 // ── Shared literal fragment bodies (rearchitecture PHASE 04, Group B) ──
 // One definition per literal tokenization shape, referenced by BOTH the DEFAULT-mode literal tokens and their
 // SUBSCRIPT-mode SUB_* twins (fragments are mode-independent). The two modes previously re-declared each body
@@ -792,6 +805,7 @@ fragment NAME_BODY                                                              
 // sign travels in the TOKEN TEXT and the type is plain FLOATLIT — one vocabulary, zero parser changes, and
 // the emitter's E-form arm renders the signed text as a C# double literal directly.
 FN_SIGNED_FLOATLIT   : {SignedLiteralCanStart()}? [+-] FLOAT_BODY -> type(FLOATLIT) ;
+FN_SIGNED_COMMA_FLOATLIT : {SignedLiteralCanStart()}? [+-] FLOAT_COMMA_BODY -> type(COMMA_FLOATLIT) ;   // kb/Work PB98
 FN_SIGNED_DECIMALLIT : {SignedLiteralCanStart()}? [+-] DEC_BODY -> type(SIGNED_DECIMALLIT) ;
 FN_SIGNED_INTEGERLIT : {SignedLiteralCanStart()}? [+-] INT_BODY -> type(SIGNED_INTEGERLIT) ;
 
@@ -947,6 +961,8 @@ SUB_ALL             : 'ALL' ;
 // the ONE FLOATLIT vocabulary, sign in the token text — same convention as the DEFAULT-mode twin.
 SUB_SIGNED_FLOATLIT : [+-] FLOAT_BODY -> type(FLOATLIT) ;
 SUB_FLOATLIT        : FLOAT_BODY -> type(FLOATLIT) ;
+SUB_SIGNED_COMMA_FLOATLIT : [+-] FLOAT_COMMA_BODY -> type(COMMA_FLOATLIT) ;   // the DECIMAL-POINT IS COMMA twin (kb/Work PB98)
+SUB_COMMA_FLOATLIT        : FLOAT_COMMA_BODY -> type(COMMA_FLOATLIT) ;
 
 // Sign immediately adjacent to a decimal literal: -15.6, +0.2, -.5 (signed decimal
 // argument to an intrinsic function, ISO §15). MUST precede SIGNED_INTEGERLIT so the

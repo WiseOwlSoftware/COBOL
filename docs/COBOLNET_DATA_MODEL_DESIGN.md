@@ -398,6 +398,84 @@ group), negatives `pb79-group-usage-explicit-usage` / `-not-a-group` / `-subordi
 (0900). Found on the way and fixed with it: **PB95** — `[USAGE IS]` is optional for EVERY usage (§13.18.60.2);
 `usageClause` is one `(USAGE IS?)? usageKeyword` alternative (`2023/pb95_bare_usage_keywords`).
 
+### D21. Floating-point numeric-edited data (the PICTURE symbol E — §13.18.40.4 GR13 b): a numeric-EDITED item whose value channel is EXACT DECIMAL (`CobolDec`), stored as its character image; the form dispatch lives in the four existing edited-store / edited-read choke points. (kb/Work PB66; adopts `docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md`, re-derived 2026-08-18.)
+
+*Load-bearing spec anchors: §13.18.40.4 GR13 b (two parts separated by `E`; the significand a numeric or fixed
+numeric-edited string with no floating insertion and no zero suppression with replacement; the exponent `+9`,
+`+99`, `+999`, `+9999`); §13.18.40.6 (Table 10 is applied to the two strings separately; row `E` admits only
+`B 0 /`, `,`, `.`, the leftmost fixed `+ −` and `9` before it); §13.18.40.3 SR12 b (`E` and `.` at most once),
+SR15 (1–36 significand digit positions — SR14's 31 does NOT apply), SR23 + NOTE 3 (the significand's `−` and the
+exponent's `+` are the one sanctioned two-sign form), SR4 (63 characters); §13.18.40.5 Table 7 (simple, special
+and fixed insertion for the significand, none for the exponent) and rule 8 (zero: all digit positions zero, both
+signs positive); §14.6.8.4 (normalize so the significand's most significant digit is nonzero; then §13.18.40's
+alignment / zero fill / truncation); §14.9.25.4 GR6 item 4 (MOVE: farther than permitted → EC-DATA-OVERFLOW,
+content undefined; nearer to zero than permitted → treated as zero) vs §14.7.5 cases 3/4 (arithmetic: both are the
+size error condition); §14.9.25.4 GR5 + §14.6.13.2 rule 4 (de-editing; incompatible content → EC-DATA-INCOMPATIBLE);
+§8.5.2.13 (category numeric-edited) + §8.5.2.1 Table 2 (class alphanumeric); §13.18.63.3 SR6 (VALUE: a
+floating-point literal, or ZERO / the zero forms); §15.43.4 r1 / §15.58.4 r1 + §8.8.4.4.4 GR3 l
+(HIGHEST/LOWEST-ALGEBRAIC's well-formedness on the entry, keyed on the arithmetic mode's intermediate); Annex A.3
+item 1 c/d (the 31-digit / 3-digit latitude is available only to a processor supporting none of the standard
+float usages / arithmetics — COBOL.NET supports FLOAT-BINARY-* and STANDARD-DECIMAL, so the FULL range is
+mandatory).*
+
+**Decisions (the draft's D-EF1..D-EF9, adopted):** (1) storage is the existing numeric-edited `string` image —
+no new `PicCategory`, no new CLR carrier; every character-position surface works unchanged. (2) the full range:
+significand 1–36 digits, exponent 1–4. (3) the VALUE channel is EXACT DECIMAL — the de-edited value is a
+`CobolDec (Int128 Sig, int Exp)` on the existing `NumX.Dec` lane, never a `double` (a 36-digit significand cannot
+round-trip binary64); `NumX.Dec` now means "a `CobolDec`-carried exact value with its own exponent — a
+standard-decimal intermediate OR a floating-point numeric-edited item's de-edited value". (4) `PicInfo` gains ONE
+flag, `IsFloatEdited` — the sole discriminator (`Scale`/`DigitPositions` are 0 for the form; `EditMask` keeps the
+full string); the parsed shape is NOT a second compile-time model — every reader that needs the significand's
+digits / scale / sign or the exponent's width (the VALUE checks in `DataBinder`, `IntrinsicBinder`'s algebraic
+fold, the runtime itself) parses `EditMask` through the ONE runtime parser `CobolEdit.FloatMask.Parse`. (5) the
+form dispatch lives in the choke points — `RuntimeApi.EditFormatFor` / `EditTryFormatFloat` / `EditComposeFloat`
+(the emitter's edited STORE entries: MOVE, ACCEPT, DISPLAY, STRING, the arithmetic resultant, VALUE) and the edited
+READ (`NumericRenderer.FieldNum`) — never at the call sites. (6) the runtime (`CobolEdit.Float.cs`) gains the
+parsed-mask value type `CobolEdit.FloatMask` (parsed per call from the picture literal the generated code already
+carries — no per-item static field; the parse is a few dozen characters and the image store dominates) and the
+entry points `FormatFloatMove(value, picture, …)` (an Int128+scale, a `CobolDec` or a `double` sender — the MOVE
+disposition), `TryFormatFloat(…, out image)` (the arithmetic store — false on either divergence),
+`DeEditFloat(image, picture, …) → CobolDec`, `FloatExtremeImage` (the pinned overflow image, also the
+HIGHEST/LOWEST-ALGEBRAIC value's image). (7) store = normalize EXACTLY (integer arithmetic to the
+mask's integer-digit count, truncating), then render — no float on the store path (a binary64 sender enters
+through `CobolDec.FromDouble`). (8) the MOVE overflow "undefined" content is PINNED to the saturated extreme image
+(all-nines significand at the maximum exponent, the value's sign) — a CONFORMANCE.md determination; MOVE
+underflow is the rule-8 zero image with no exception; the arithmetic store raises the size error on BOTH
+(receiver unchanged). (9) the §15.43.4 / §15.58.4 r1 well-formedness rule is enforced AT THE FUNCTION REFERENCE:
+`HIGHEST-ALGEBRAIC` of a mask whose extreme exceeds the mode's intermediate (binary64 under NATIVE, decimal128
+under STANDARD-DECIMAL) is a diagnostic; the returned values are the all-nines-significand extremes (LOWEST = 0
+for an unsigned mask, as the standard's fixed-point NOTE table shows).
+
+**Clause interactions:** SIGN on the entry is an SR1 violation (no `S`); DECIMAL-POINT IS COMMA swaps `.`/`,` in
+the significand exactly as the fixed-point path (`SwapSeparators`); CURRENCY is structurally inapplicable;
+BLANK WHEN ZERO wins over rule 8 (spaces — the fixed-point precedent, and §13.18.40.5 rule 10's stated
+precedence for its sibling); VALUE admits a floating-point literal or the zero forms (a nonzero fixed-point
+literal is an SR6 violation) and initializes through `FormatFloat`; the 2023 EDITING phrase is banned for the form.
+
+**Test plan:** the analyzer's negative legs (one per rule: two `E`, a bad exponent, each banned significand
+symbol, >36 digits, no `9`); the positive masks; MOVE store goldens (normalization, zero, sign forms, DECIMAL-POINT
+IS COMMA, overflow → EC-DATA-OVERFLOW + the pinned image, underflow → zero); arithmetic store goldens (both
+divergences raise SIZE ERROR); de-edit goldens (float-edited → numeric / numeric-edited / alphanumeric,
+incompatible content → EC-DATA-INCOMPATIBLE); HIGHEST/LOWEST-ALGEBRAIC per mode; the edition gate at 85; VALUE.
+
+**As landed (DEVLOG 1322, 2026-08-18):** `PictureAnalyzer.AnalyzeFloatEdited` (COBOLNET1658 per violated rule —
+Table 10 rendered from PDF pages 489–490 to confirm the OCR'd row E); the 2002 introduction gate keys on
+`IsFloatEdited` through the ONE `VersionConformancePass.PictureConstructId` (the forest, report printables and the
+report SUM-counter Analyze alike — `PicInfo.SkeletonGate` now carries only the national-edited skeleton); the
+EC-DATA-INCOMPATIBLE flag / fatal ambient gate; COBOLNET1659 (§13.18.63.3 SR6's literal-FORM rule, BOTH
+directions, decided once in `DataBinder.ValidateValueCategory` — the item-VALUE + level-88 funnel) and COBOLNET1660
+(§15.43.4 r1 / §15.58.4 r1); `ValidateNumericValue` serves the numeric-edited subject (SR6's "no truncation of
+digits or sign", SR3's sign representation — for the floating form the significand's own sign symbol);
+`ValueInitializer.EditedImageOfNumericValue` is the ONE compose of a numeric-edited item's numeric VALUE image,
+shared by the initializer and the level-88 membership test (`ConditionRenderer.StringMembershipValue`) so a
+numeric-edited conditional variable compares EDITED images (kb/Work PB97 — that compare read the raw literal text
+and was silently false for every fixed-point numeric-edited condition-name too); the comma-decimal floating-point
+literal `1,5E+3` (kb/Work PB98 — `FLOAT_COMMA_BODY` and its twin set). Goldens `2023/pb66_float_edited_picture`,
+`pb66_float_edited_comma_mode`, `pb66_float_edited_algebraic_and_checking`, `pb97_value_literal_form_and_88_edited`;
+the negatives listed in kb/Work PB66 / PB97 / PB98. CONFORMANCE.md §3 pins the overflow (unchecked → the
+saturated image; checked → the receiver unchanged) and incompatible-content (unchecked → digit-for-digit, a
+non-digit as zero) dispositions.
+
 ### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
 
 *Load-bearing spec anchors: §8.5.1.9.1 :8189 (dynamic-capacity definition — physical=logical capacity, current

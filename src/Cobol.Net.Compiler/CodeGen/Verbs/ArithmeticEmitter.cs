@@ -284,6 +284,25 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
         // per the MOVE editing rules). ROUNDED applies BEFORE editing: the value is rescaled to the mask's
         // fraction scale with the receiver's mode (§14.7.4), then formatted.
+        if (target.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true } fpic)
+        {
+            // A FLOATING-POINT numeric-edited resultant (D21/PB66): the exact result normalizes into the mask; ROUNDED
+            // has no fixed scale to round to (the significand is truncated to the mask's digits, §14.6.8.4 GR2 →
+            // §13.18.40's alignment rules). Under ON SIZE ERROR / EC-SIZE both directions out of range are the size
+            // error condition (§14.7.5 cases 3 AND 4 — the receiver unchanged); without them the MOVE disposition
+            // (overflow → the pinned image, underflow → zero) stands.
+            string fcfg = BwzFlag(target.Item) + EditCfg(target.Item.Pic);
+            if (ecState.SizeErrVar is { } fflag)
+            {
+                string fimg = $"__sv{ctx.Names.NextStoreTmp()}";
+                string fOnFail = ecState.SizeErrEcVar is { } fecn ? $"{{ {fflag} = true; {fecn} = \"EC-SIZE-OVERFLOW\"; }}" : $"{fflag} = true;";
+                w.Line($"if (!{RuntimeApi.EditTryFormatFloat(fpic, value, fimg, fcfg)}) {fOnFail}");
+                w.Line($"else {PlaceRenderer.Write(target, fimg)}");
+                return;
+            }
+            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(fpic, value, "", "", fcfg)));
+            return;
+        }
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
             int ms = RuntimeApi.MaskScale(mask, '$', ctx.Data.DecimalPointIsComma);

@@ -1157,16 +1157,16 @@
     },
     {
       "id": "pic-external-float-2002",
-      "status": "pending",
-      "description": "External floating-point PICTURE (symbol E, ISO 13.18.40). PENDING: the E symbol currently silent-misbinds in PicInfo.Analyze; the W2 loud-guard sweep makes it loud (0900 below 2002); Phase 6 (IEEE float catchall) implements.",
-      "display": "an external floating-point PICTURE (symbol E)",
+      "status": "active",
+      "description": "Floating-point numeric-edited PICTURE (the symbol E — a significand character-string and an exponent +9{1..4}, ISO §13.18.40.4 GR13 b) - introduced 2002. LIVE (data-model design D21 / kb/Work PB66): category numeric-edited, class alphanumeric; the store normalizes the value to a leading-nonzero significand (§14.6.8.4), overflow → EC-DATA-OVERFLOW + the pinned saturated image, underflow → zero (§14.9.25.4 GR6 item 4); the de-editing MOVE, arithmetic GIVING with SIZE ERROR both ways, VALUE, level-88, HIGHEST/LOWEST-ALGEBRAIC. Below 2002 the gate names the edition (0900).",
+      "display": "a floating-point numeric-edited PICTURE (symbol E)",
       "diagnosticCode": "COBOLNET0900",
-      "citation": "ISO §13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING",
+      "citation": "ISO §13.18.40.4 GR13 b) / §13.18.40.6 Table 10 (the E column and row) / §14.6.8.4; LIVE (D21, kb/Work PB66, DEVLOG 1322); introduction gate 0900 below 2002",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
-      "vcr": "M3-4 catchall (float edges split per D16); skeleton (W2)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXTF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-E PIC +9V99E+99.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+      "vcr": "2002 introduction (derive from the 2002 standard); D21 (PB66)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXTF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-E PIC +9.99E+99.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 1.5 TO W-E.\n    STOP RUN.\n"
     },
     {
       "id": "usage-pointer-2002",

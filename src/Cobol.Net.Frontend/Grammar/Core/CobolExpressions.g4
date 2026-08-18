@@ -534,6 +534,7 @@ signedNumericLiteral
 // COMMA-based decimals for DECIMAL-POINT IS COMMA are assembled here in the parser.
 numericLiteralCore
     : FLOATLIT                             // 1.5E3, 2.5E-2 (floating-point literal, ISO §8.3.3.3.3 — D16)
+    | COMMA_FLOATLIT                       // 1,5E3 (the DECIMAL-POINT IS COMMA floating-point literal — kb/Work PB98)
     | DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
     | SIGNED_DECIMALLIT                    // -15.6 (sign-adjacent literal — FUNCTION-argument regions only, P7 Step 12)
     | SIGNED_INTEGERLIT                    // -4 (sign-adjacent literal — FUNCTION-argument regions only)

@@ -193,10 +193,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // slot in the subscript — which is what its enumeration lambda wraps; the list is never a single value.
         p is TableAllPlace all ? FieldNum(all.Element) :
         p is not RefModPlace && !p.Item.StoreAsImage
+            // A FLOATING-POINT numeric-edited sender de-edits to its EXACT value — a CobolDec on the Dec lane (D21/PB66:
+            // a significand with its own power of ten; never a double); EC-DATA-INCOMPATIBLE for impossible content.
+            && p.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true, EditMask: { } fem }
+        ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{(ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "")})", 0, Dec: true)
+        : p is not RefModPlace && !p.Item.StoreAsImage
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
-        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)})",
+        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})",
             CobolNet.Runtime.CobolEdit.MaskScale(dem, '$', ctx.Data.DecimalPointIsComma))
         : FieldNumCore(p, floatCheck: !_floatSendingExempt);
 

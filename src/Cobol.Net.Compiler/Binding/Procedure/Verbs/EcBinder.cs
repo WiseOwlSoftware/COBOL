@@ -478,6 +478,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // which this sees through the BoundSequence recursion.
             if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-OVERFLOW", null, line))
                 enabled.Add(("EC-DATA-OVERFLOW", null));
+            // EC-DATA-INCOMPATIBLE (fatal, §14.6.13.2 rule 4): a de-editing MOVE whose numeric-edited sender holds content
+            // no editing operation could have produced — the floating-point edited de-edit consults it (D21/PB66).
+            if (node is BoundMove && ctx.EcState.Turn.Enabled("EC-DATA-INCOMPATIBLE", null, line))
+                enabled.Add(("EC-DATA-INCOMPATIBLE", null));
         }
         QueryFor(bound);
 

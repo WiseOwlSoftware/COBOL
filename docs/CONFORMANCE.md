@@ -228,6 +228,26 @@ of an unsupported facility.
   not take (8.2 → 8.2 rather than the exact 8.1); whether the manner should be the exact expansion at every
   magnitude, or the shortest-round-trip decimal, is kb/Work PB90 — a survey of GnuCOBOL's `cob_decimal_set_double`
   first, per the follow-GnuCOBOL-on-split-latitude decision.
+- **Floating-point numeric-edited receiver — the overflow, underflow, size-error and incompatible-content
+  dispositions (§14.9.25.4 GR6 item 4; §14.7.5 items 3/4; §14.6.13.2 rule 4; kb/Work PB66, 2026-08-18).**
+  §14.9.25.4 GR6 item 4a says a MOVE whose sending value is farther from zero than the picture permits sets
+  EC-DATA-OVERFLOW "and the content of the receiving data item is undefined"; item 4b says a value nearer to zero
+  than permitted "is treated as zero". COBOL.NET: **under EC-DATA-OVERFLOW checking the exception is fatal at the
+  store and the receiver is UNCHANGED** (a USE declarative may RESUME); **with checking off the receiver holds the
+  pinned SATURATED image** — the all-nines significand at the maximum exponent with the value's sign (`9.99E+9`
+  for `PIC 9.99E+9`; `-9.99999E+99` for a negative value into `-9.9(5)E+99`) — never arbitrary content; underflow
+  stores the §13.18.40.5 rule-8 zero image (all digit positions zero, both signs positive; BLANK WHEN ZERO applies)
+  with no exception. An ARITHMETIC statement's floating-point numeric-edited resultant takes the size error
+  condition in BOTH directions (§14.7.5 items 3 and 4 — the receiver unchanged) under ON SIZE ERROR / EC-SIZE
+  checking; without either, the MOVE disposition above. A de-editing MOVE from content that is not a possible
+  result of editing into the picture (§14.6.13.2 rule 4 — the result "is undefined") raises EC-DATA-INCOMPATIBLE
+  (fatal) under checking with the receiver unchanged; with checking off the image is read digit-for-digit
+  (a non-digit position contributes zero, a missing exponent sign reads positive). Pinned by
+  `2023/pb66_float_edited_picture` and `2023/pb66_float_edited_algebraic_and_checking`. The value of
+  `HIGHEST-ALGEBRAIC` / `LOWEST-ALGEBRAIC` of such an item is that same saturated extreme (§15.43.4 / §15.58.4 r2 —
+  zero for LOWEST of an unsigned picture); an entry whose extreme would fail IN-ARITHMETIC-RANGE for the arithmetic
+  mode in effect (binary64 natively — an exponent of three or four digits — or decimal128 under STANDARD-DECIMAL)
+  is COBOLNET1660 at the function reference (§15.43.4 r1 / §15.58.4 r1).
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 

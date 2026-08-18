@@ -348,11 +348,18 @@ internal sealed class VersionConformancePass
     private void GateDataItem(DataItem item, string where)
     {
         if (UsageConstructId(item) is { } id) Check(id, where);
-        // The recognized-but-unimplemented PICTURE skeletons (external-float symbol E, national-edited) — their
-        // category was RECOVERED to Alphanumeric, so UsageConstructId cannot see them; PicInfo.SkeletonGate carries the
-        // 0900 forward (Step 14g.5). Mutually exclusive with UsageConstructId (a recovered item is never National/etc.).
-        if (item.Pic?.SkeletonGate is { } skeletonId) Check(skeletonId, where);
+        if (item.Pic is { } pic && PictureConstructId(pic) is { } picId) Check(picId, where);
     }
+
+    /// <summary>The 2002-introduction gate a PICTURE's SHAPE carries (or null when version-invariant) — the ONE
+    /// function for every Analyze site: the forest / report printable items (<see cref="GateDataItem"/>) and the
+    /// report SUM-counter scale Analyze (<c>ReportSumModel.SkeletonGate</c>, DataBinder.Reports.cs — a distinct call
+    /// whose PicInfo is otherwise discarded, DEVLOG 740). The floating-point numeric-edited form (symbol E — LIVE,
+    /// data-model design D21 / kb/Work PB66) keys on <see cref="PicInfo.IsFloatEdited"/>; the recognized-but-
+    /// unimplemented national-edited skeleton on <see cref="PicInfo.SkeletonGate"/> (its category was RECOVERED to
+    /// Alphanumeric, so no category key can see it — Step 14g.5).</summary>
+    internal static string? PictureConstructId(PicInfo pic) =>
+        pic.IsFloatEdited ? Constructs.PicExternalFloat2002 : pic.SkeletonGate;
 
     /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
     /// Keyed on the resolved <c>(OwnUsage, Pic.Category, Pic.Usage)</c>: <see cref="DataItem.OwnUsage"/> is mandatory

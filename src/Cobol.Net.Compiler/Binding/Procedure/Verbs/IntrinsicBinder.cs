@@ -2059,6 +2059,37 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (sig.Name == "SMALLEST-ALGEBRAIC")
             return new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.One, pic.Scale, negative: false));
 
+        // A FLOATING-POINT numeric-edited argument-1 (D21/PB66; §15.43.4 r1-r2 / §15.58.4 r1-r2): the extreme is the
+        // all-nines significand at the maximum exponent (LOWEST = 0 for an unsigned mask, as the standard's own
+        // fixed-point NOTE table shows for `$**,**9.99`); r1 is a WELL-FORMEDNESS condition on the entry — its
+        // extreme shall pass an IN-ARITHMETIC-RANGE test, i.e. lie within the intermediate data item's range for the
+        // arithmetic mode in effect (§8.8.4.4.4 GR3 l): binary64 under NATIVE, decimal128 under STANDARD-DECIMAL.
+        if (edited && pic.IsFloatEdited)
+        {
+            var fm = CobolNet.Runtime.CobolEdit.FloatMask.Parse(pic.EditMask!, ctx.Data.DecimalPointIsComma);
+            int intDigits = fm.SigDigits - fm.SigScale;
+            // farthest = (10^d − 1) × 10^(−f) × 10^maxExp  ≈ 10^(intDigits + maxExp); closest nonzero = 10^(intDigits − 1 − maxExp)
+            int farthestExp = intDigits + fm.MaxExp;             // the decimal exponent of the extreme's magnitude
+            int closestExp = intDigits - 1 - fm.MaxExp;
+            bool standardDecimal = ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
+            int modeFarthest = standardDecimal ? 6145 : 308;      // decimal128 ≈ 1E+6145 / binary64 1.797E+308
+            int modeClosest = standardDecimal ? -6176 : -324;     // decimal128 1.0E−6176 / binary64 4.94E−324
+            if (farthestExp > modeFarthest || closestExp < modeClosest)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.AlgebraicFloatEditedRange, $"FUNCTION {sig.Name}: argument-1's picture "
+                    + $"{pic.EditMask} describes values as far from zero as 1E+{farthestExp} and as near as 1E{closestExp}, "
+                    + $"outside the {(standardDecimal ? "standard-decimal" : "native (binary64)")} intermediate's range — the entry "
+                    + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l)");
+                return new BoundExprError($"FUNCTION {sig.Name} floating-point edited argument");
+            }
+            if (sig.Name == "LOWEST-ALGEBRAIC" && fm.SigSign == '\0')
+                return new BoundNumLiteral("0");
+            // the extreme in E notation: d nines with the point after intDigits of them, then E+maxExp
+            string nines = new string('9', fm.SigDigits);
+            string mantissa = fm.SigScale > 0 ? nines[..intDigits] + "." + nines[intDigits..] : nines;
+            string lit = $"{(sig.Name == "LOWEST-ALGEBRAIC" ? "-" : "")}{mantissa}E+{fm.MaxExp}";
+            return new BoundNumLiteral(lit);
+        }
         int scale; System.Numerics.BigInteger unscaled; bool signable;
         if (edited)
         {

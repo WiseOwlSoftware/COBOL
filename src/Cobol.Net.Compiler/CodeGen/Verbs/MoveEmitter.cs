@@ -306,6 +306,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = num.AsNum(source, SenderContext(target));
+                // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
+                // mask scale (it has none); the dispatch is RuntimeApi.EditFormatFor's, keyed on the receiver's picture.
+                if (pic.IsFloatEdited)
+                    return RuntimeApi.EditFormatFor(pic, e, "", "", ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
                 // A float (Real) source lands into the edited receiver via the runtime's ToScaled at the MASK's fraction
                 // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
@@ -324,7 +328,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
-                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
+            {
+                string unsignedInt = RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true));
+                return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
+            }
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:

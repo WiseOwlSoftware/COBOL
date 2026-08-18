@@ -140,6 +140,36 @@ internal static class RuntimeApi
     public static string EditFormat(string value, string scale, string maskLiteral, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.Format)}({value}, {scale}, {maskLiteral}{cfgArgs})";
 
+    /// <summary>THE edited MOVE-semantics store keyed on the receiver's picture (data-model design D21 / kb/Work PB66 —
+    /// the form dispatch lives HERE, never at a call site): a floating-point numeric-edited receiver takes
+    /// <c>CobolEdit.FormatFloatMove</c> over the sender's exact form (an unscaled Int128 + scale, a CobolDec, or a
+    /// binary64 — §14.9.25.4 GR6 item 4: overflow → EC-DATA-OVERFLOW + the pinned saturated image, underflow → zero);
+    /// a fixed-point one the classic <c>CobolEdit.Format</c> over the value ALIGNED at the mask's scale
+    /// (<paramref name="alignedFixed"/> — the caller's rescale, which a floating-point form never needs).</summary>
+    public static string EditFormatFor(PicInfo pic, Emit.NumX value, string alignedFixed, string alignedScale, string cfgArgs)
+    {
+        if (!pic.IsFloatEdited) return EditFormat(alignedFixed, alignedScale, Emit.EmitText.CsLiteral(pic.EditMask!), cfgArgs);
+        string mask = Emit.EmitText.CsLiteral(pic.EditMask!);
+        return value.Real || value.Dec
+            ? $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatFloatMove)}({value.Expr}, {mask}{cfgArgs})"
+            : $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatFloatMove)}({value.Expr}, {value.Scale}, {mask}{cfgArgs})";
+    }
+
+    /// <summary>The floating-point form's ARITHMETIC store (§14.7.5 cases 3/4 — false = the size error condition,
+    /// receiver unchanged): <c>CobolEdit.TryFormatFloat</c> over the result's exact form.</summary>
+    public static string EditTryFormatFloat(PicInfo pic, Emit.NumX value, string imgVar, string cfgArgs)
+    {
+        string mask = Emit.EmitText.CsLiteral(pic.EditMask!);
+        return value.Real || value.Dec
+            ? $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormatFloat)}({value.Expr}, {mask}, out var {imgVar}{cfgArgs})"
+            : $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormatFloat)}({value.Expr}, {value.Scale}, {mask}, out var {imgVar}{cfgArgs})";
+    }
+
+    /// <summary>The compile-time floating-point edited image of a VALUE literal (<c>CobolEdit.FormatFloatMove</c> at
+    /// compile time — the same runtime, so the baked initial content is what a MOVE of the literal would store).</summary>
+    public static string EditComposeFloat(Int128 sig, int exp10, string picture, bool blankWhenZero, bool commaMode) =>
+        CobolEdit.FormatFloatMove(new CobolDec(sig, exp10), picture, blankWhenZero, commaMode);
+
     /// <summary>The trailing <c>edits:</c> named argument for a numeric-edited store carrying PICTURE EDITING
     /// phrases (ISO §13.18.40.2 Format 1) — the resolved single-character render rules serialized as a
     /// <c>CobolEdit.EditRule[]</c>. Empty for every non-editing item, so the generated code of an ordinary program

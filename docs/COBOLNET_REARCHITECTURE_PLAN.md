@@ -250,9 +250,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `work.py next` lists only the two features (PB64 locale, PB66 data-division).
   **✅ Battery #17 (PB96 + PB91 batch, tree `219bb6f8`):** Conformance **4770/4770** · Unit **4232/4232** ·
   Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
-  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) · PB66 (feature/data-division) — the features; the
-  standing order (2026-08-09) after the backlog reaches zero: fix-before-explore holds, so a NEW defect found on the
-  way outranks both.
+  **✅ PB66 CLOSED (DEVLOG 1322, 2026-08-18) — the floating-point numeric-edited PICTURE (symbol E) is LIVE** per
+  data-model design D21: `PictureAnalyzer.AnalyzeFloatEdited` (COBOLNET1658 per violated rule; Table 10 rendered
+  from the PDF), the runtime `CobolEdit.Float.cs` (`FloatMask.Parse` the ONE parser; `FormatFloatMove` /
+  `TryFormatFloat` / `DeEditFloat`), the form dispatch in `RuntimeApi.EditFormatFor` + `NumericRenderer.FieldNum`,
+  EC-DATA-OVERFLOW (unchecked → the pinned saturated image, CONFORMANCE.md §3) / EC-DATA-INCOMPATIBLE (new flag,
+  fatal — and the fixed-point `DeEdit` now raises it too, by the exact `Format(DeEdit(x)) == x` round trip),
+  HIGHEST/LOWEST-ALGEBRAIC + COBOLNET1660, VALUE (COBOLNET1659 both directions of §13.18.63.3 SR6's form rule,
+  COBOLNET1625 no-truncation), the 2002 gate through the ONE `VersionConformancePass.PictureConstructId`.
+  **Two defects found on the way landed with it:** **PB97** (a floating-point literal in a VALUE clause on a
+  fixed-point numeric item CRASHED the backend, CS0595 — the literal now expands to its exact value in
+  `ValidateValueCategory`, the item-VALUE + level-88 funnel; a numeric-edited conditional variable's numeric
+  level-88 VALUEs compared the raw text against the edited image and were NEVER true — the ONE compose
+  `ValueInitializer.EditedImageOfNumericValue` now serves the initializer AND `ConditionRenderer`) and **PB98**
+  (`1,5E+3` under DECIMAL-POINT IS COMMA was a parse error / a silent 1 — `FLOAT_COMMA_BODY` and its twin set).
+  14 verdicts → CONFORMS (RV-15.43.4-1 / RV-15.58.4-1 among them), **GAP 3940**. Registry row
+  `pic-external-float-2002` → active; codes 1658–1660 claimed (next free 1661).
+  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (its Q1–Q4 are the owner's; ask
+  the bare question when the session reaches it) · then Phase-B adjudication (the standing order after zero
+  backlog: fix-before-explore holds, so a NEW defect found on the way outranks). Battery **#18** (this batch) is
+  owed at the next checkpoint.
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

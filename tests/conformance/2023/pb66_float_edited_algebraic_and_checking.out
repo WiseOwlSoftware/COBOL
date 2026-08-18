@@ -1,0 +1,14 @@
+HIGHEST(E1) [ 9.99999E+99]
+LOWEST(E1)  [-9.99999E+99]
+HIGHEST(E3) [9.99E+9]
+LOWEST(E3)  [0.00E+0]
+LOWEST(U1)  [0.000E+00]
+CAUGHT=EC-DATA-OVERFLOW               
+after overflow [9.99E+2] (unchanged)
+after underflow [0.00E+0] (zero, no exception)
+CAUGHT=EC-DATA-INCOMPATIBLE           
+after incompatible [0000000{] (unchanged)
+fixed de-edit [0001250{] from [ 12.50]
+blank-when-zero de-edit [0000000{] from [      ]
+CAUGHT=EC-DATA-INCOMPATIBLE           
+after fixed incompatible [0000000{] (unchanged)

@@ -136,13 +136,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         if (effRaw is not { } raw) return pic.DefaultInitializer;
 
-        // VCR 35 (ISO §13.18.63 SR6; Annex E.2 item 28): at >=2023 a figurative ZERO/ZEROES (with or without ALL)
-        // on a numeric-edited item is treated IDENTICALLY to the numeric literal zero — edited per PICTURE (so a
-        // BLANK WHEN ZERO clause now takes effect, NOTE 2), NOT the pre-2023 left-justified zero-fill ("0000000").
-        // Below 2023 it falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior).
-        if (pic.Category is PicCategory.NumericEdited && ctx.Data.Edition.DialectLevel >= 2023 && FigurativeKind(raw) == 'Z')
-            return EmitText.CsLiteral(RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
-                pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules));
+        // A NUMERIC-EDITED item's numeric VALUE (a numeric literal, or the figurative ZERO at >= 2023) is its EDITED
+        // image — the ONE compose (EditedImageOfNumericValue) the level-88 membership test shares. Below 2023 a
+        // figurative ZERO falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior, VCR 35).
+        if (pic.Category is PicCategory.NumericEdited && EditedImageOfNumericValue(ctx, item, pic, raw) is { } editedImage)
+            return EmitText.CsLiteral(editedImage);
 
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
@@ -153,12 +151,8 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         return pic.Category switch
         {
-            // A NUMERIC literal VALUE on a numeric-edited item converts per the MOVE editing rules
-            // (ISO §13.18.63 GR6) — the edited image is a compile-time constant, baked here. (An alphanumeric
-            // literal stores verbatim — NOTE 3: the programmer supplies the edited form.)
-            PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
-                EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero,
-                    pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules)),
+            // A numeric-edited item's NUMERIC VALUE was composed above (EditedImageOfNumericValue); an alphanumeric
+            // literal stores verbatim (§13.18.63.3 SR7 / NOTE 3: the programmer supplies the edited form).
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
@@ -179,6 +173,55 @@ internal sealed class ValueInitializer(EmitContext ctx)
         pic.IsUnsignedWideBinary ? $"(UInt128)({literal})"
         : pic.IsUnsignedLongBinary ? $"(ulong)({literal})"
         : literal;
+
+    /// <summary>The compile-time EDITED IMAGE of a numeric-edited item's numeric VALUE — a numeric literal converted
+    /// "according to the rules for the MOVE statement" (ISO §13.18.63.3 SR6; formats 1, 2 and 4, so the item VALUE
+    /// and a level-88 condition-name value alike), or the figurative ZERO / ZEROES (with or without ALL) at
+    /// >= 2023, where SR6 treats it identically to the literal zero (VCR 35 — Annex E.2 item 28: pre-2023 it was
+    /// a left-justified zero-fill, which the caller keeps). Null when <paramref name="raw"/> is anything else (an
+    /// alphanumeric literal is SR7's edited form as written; SPACE / HIGH-VALUE … are the figurative fill). The
+    /// dispatch on the item's FORM lives HERE and nowhere else (D21/PB66): a floating-point numeric-edited item
+    /// composes through <see cref="RuntimeApi.EditComposeFloat"/> (the floating-point literal, or a zero form), a
+    /// fixed-point one through <see cref="RuntimeApi.EditCompose"/> — the SAME runtime the MOVE uses, so the baked
+    /// image is what MOVE literal TO item would store (BLANK WHEN ZERO included, NOTE 2).</summary>
+    internal static string? EditedImageOfNumericValue(EmitContext ctx, DataItem item, PicInfo pic, string raw)
+    {
+        if (raw.StartsWith('"') || raw.StartsWith('\'')) return null;
+        bool zeroFigurative = FigurativeKind(raw) == 'Z';
+        if (zeroFigurative && ctx.Data.Edition.DialectLevel < 2023) return null;
+        if (pic.IsFloatEdited)
+            return zeroFigurative || TryParseFloatLiteral(raw, out _, out _)
+                ? RuntimeApi.EditComposeFloat(zeroFigurative ? Int128.Zero : ParsedSig(raw), zeroFigurative ? 0 : ParsedExp(raw),
+                    pic.EditMask!, item.BlankWhenZero, ctx.Data.DecimalPointIsComma)
+                : null;
+        if (zeroFigurative)
+            return RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
+                pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules);
+        return TryParseNumeric(raw, out var uv, out int sc)
+            ? RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero, pic.CurrencyString,
+                ctx.Data.DecimalPointIsComma, pic.EditingRules)
+            : null;
+
+        static Int128 ParsedSig(string r) { TryParseFloatLiteral(r, out var s, out _); return s; }
+        static int ParsedExp(string r) { TryParseFloatLiteral(r, out _, out int e); return e; }
+    }
+
+    /// <summary>Parse a numeric literal — the FLOATING-POINT form too (ISO §8.3.3.3.3: two fixed-point literals joined by
+    /// E, e.g. <c>-1.5E+3</c>) — to a significand and a power of ten (kb/Work PB66); a fixed-point literal is its unscaled
+    /// value at −scale, the figurative ZERO / a zero literal 0E0.</summary>
+    private static bool TryParseFloatLiteral(string raw, out Int128 sig, out int exp10)
+    {
+        sig = 0; exp10 = 0;
+        string t = raw.Trim().ToUpperInvariant();
+        if (t is "ZERO" or "ZEROS" or "ZEROES") return true;
+        int e = t.IndexOf('E');
+        string mant = e < 0 ? t : t[..e];
+        string ex = e < 0 ? "0" : t[(e + 1)..];
+        if (!TryParseNumeric(mant, out var unscaled, out int scale)) return false;
+        if (!int.TryParse(ex, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out int exp)) return false;
+        sig = unscaled; exp10 = exp - scale;
+        return true;
+    }
 
     /// <summary>Parse a canonical (dot-decimal) numeric VALUE text to its unscaled value + scale, for
     /// compile-time editing. False for any non-numeric shape (the caller falls back to verbatim store).</summary>

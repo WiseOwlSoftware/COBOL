@@ -155,10 +155,12 @@ public sealed partial class DataBinder
     /// the VALUE-clause and level-88 capture paths, whose operand texts are not yet classified.</summary>
     internal string NormalizeIfNumericLiteral(string text)
     {
-        bool anyDigit = false;
+        bool anyDigit = false, sawE = false;
         foreach (char c in text)
         {
             if (char.IsAsciiDigit(c)) { anyDigit = true; continue; }
+            // the floating-point form's ONE exponent marker (§8.3.3.3.3) — its significand normalizes like any literal
+            if ((c is 'E' or 'e') && !sawE && anyDigit) { sawE = true; continue; }
             if (c is not ('+' or '-' or '.' or ',')) return text;
         }
         return anyDigit ? NormalizeNumericLiteral(text) : text;

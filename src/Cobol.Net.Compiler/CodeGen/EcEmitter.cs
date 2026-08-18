@@ -146,7 +146,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-ARGUMENT-FUNCTION", "ArgumentFunctionChecking"),   // §15.3 — intrinsic argument/domain error
         ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §8.4.3.3.4 — ref-mod out of range / zero-length
         ("EC-DATA-NOT-FINITE", "FloatNotFiniteChecking"),       // §14.6.13.2 item 3 — NaN/±Inf float sending operand
-        ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §14.9.25.4 GR4 step 4a — MOVE overflows a float receiver
+        ("EC-DATA-OVERFLOW", "FloatOverflowChecking"),          // §14.9.25.4 GR4 step 4a — MOVE overflows a float receiver / a floating-point edited one (D21/PB66)
+        ("EC-DATA-INCOMPATIBLE", "DataIncompatibleChecking"),   // §14.6.13.2 rule 4 — a de-editing MOVE from impossible edited content (D21/PB66)
         ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §14.9.28.4 GR3 — index-name varied from a non-positive item
         ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §13.18.5.4 GR3 / §14.9.39 F10 GR18 — NULL data-address
         ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §13.18.5.4 GR4 — address neither NULL nor valid

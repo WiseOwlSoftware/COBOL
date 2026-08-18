@@ -917,6 +917,35 @@ public static class DiagnosticCatalog
         + "takes alphanumeric literals only (SR4). Under --permissive a representable value is stored with this "
         + "warning; a value no numeric item can hold is an error on both axes.",
         "ISO §13.18.63.3 SR2 / SR4");
+    // kb/Work PB66 (data-model design D21): the floating-point numeric-edited PICTURE (the symbol E) — its syntax rules.
+    public static readonly DiagnosticDescriptor PictureFloatEdited = new(
+        "COBOLNET1658", "picture-float-edited", EditionSeverity.Error,
+        "A floating-point numeric-edited PICTURE (a significand and an exponent separated by the symbol E) violates its "
+        + "form: E and the decimal point may appear only once (ISO §13.18.40.3 SR12 b); the exponent shall be +9, +99, "
+        + "+999 or +9999 (§13.18.40.4 GR13 b); the significand admits only 9, B, 0, /, comma, the point and one leading "
+        + "+ or − (§13.18.40.6 Table 10 row E — no floating insertion, no zero suppression, no S/V/P/CR/DB/currency, "
+        + "no EDITING character); the significand carries 1 to 36 digit positions (§13.18.40.3 SR15).",
+        "ISO §13.18.40.3 / §13.18.40.4 GR13 b / §13.18.40.6");
+    // kb/Work PB66 / PB97: §13.18.63.3 SR6 — a numeric-edited item's numeric VALUE literal shall be of the item's FORM:
+    // a fixed-point numeric-edited item takes a fixed-point literal, a floating-point numeric-edited item a
+    // floating-point literal; ZERO and the zero forms are legal for either. Reaches the item VALUE and the level-88 set.
+    public static readonly DiagnosticDescriptor ValueEditedLiteralForm = new(
+        "COBOLNET1659", "value-edited-literal-form", EditionSeverity.Error,
+        "The form of a numeric VALUE literal for a numeric-edited item shall match the item's form (ISO §13.18.63.3 SR6): "
+        + "a fixed-point numeric-edited item takes a fixed-point literal, a floating-point numeric-edited item a "
+        + "floating-point literal (a mantissa and an exponent, e.g. 1.5E+3); the figurative constant ZERO and the "
+        + "integer / decimal literal zero are legal for either.",
+        "ISO §13.18.63.3 SR6");
+    // kb/Work PB66: §15.43.4 r1 / §15.58.4 r1 — the well-formedness of a floating-point numeric-edited argument-1 of
+    // HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC: its extreme shall pass an IN-ARITHMETIC-RANGE test, i.e. lie within the
+    // intermediate data item's range for the arithmetic mode in effect (§8.8.4.4.4 GR3 l).
+    public static readonly DiagnosticDescriptor AlgebraicFloatEditedRange = new(
+        "COBOLNET1660", "algebraic-float-edited-range", EditionSeverity.Error,
+        "FUNCTION HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC: the floating-point numeric-edited argument-1's data description "
+        + "entry shall be such that its value farthest from zero (all-nines significand at the maximum exponent) would "
+        + "pass an IN-ARITHMETIC-RANGE test under the arithmetic mode in effect — the intermediate data item cannot hold "
+        + "it (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l). Narrow the exponent, or change ARITHMETIC.",
+        "ISO §15.43.4 r1 / §15.58.4 r1");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

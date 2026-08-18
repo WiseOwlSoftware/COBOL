@@ -567,6 +567,30 @@ public sealed class ExceptionEngine
         }
     }
 
+    // ── EC-DATA-INCOMPATIBLE ambient statement gate (a de-editing MOVE from incompatible edited content) ─────────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-INCOMPATIBLE checking enabled (fatal,
+    /// Table 13). The floating-point numeric-edited de-edit (<see cref="CobolEdit.DeEditFloat"/>) consults it
+    /// (kb/Work PB66); the fixed-point de-edit's twin is a documented follow-on.</summary>
+    public bool DataIncompatibleChecking
+    {
+        get => _checking.DataIncompatible;
+        set => _checking.DataIncompatible = value;
+    }
+
+    /// <summary>Raise EC-DATA-INCOMPATIBLE when a de-editing MOVE's numeric-edited sender holds content that is not
+    /// a possible result of any editing operation in that item (ISO §14.6.13.2 rule 4; Table 13 Fatal) — the same
+    /// fatal throw/dispatch contract as <see cref="FloatOverflowError"/>; with checking off the caller's tolerant
+    /// value stands.</summary>
+    public void DataIncompatibleError(string detail)
+    {
+        if (DataIncompatibleChecking)
+        {
+            Set("EC-DATA-INCOMPATIBLE", fatal: true);
+            throw new CobolFatalException("EC-DATA-INCOMPATIBLE", detail);
+        }
+    }
+
     // ── EC-EXTERNAL enablement masks (§14.8.4.1 — the both-elements pairing) ──────────────────────────────────
 
     /// <summary>The pending CALL-site EC-EXTERNAL enablement mask (<see cref="ExternalChecks"/> bits): set by an
@@ -869,6 +893,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FloatNotFiniteError"/>
     public static void FloatNotFiniteError(string detail) => E.FloatNotFiniteError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.DataIncompatibleChecking"/>
+    public static bool DataIncompatibleChecking
+    {
+        get => E.DataIncompatibleChecking;
+        set => E.DataIncompatibleChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.DataIncompatibleError"/>
+    public static void DataIncompatibleError(string detail) => E.DataIncompatibleError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.FloatOverflowChecking"/>
     public static bool FloatOverflowChecking

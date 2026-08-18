@@ -43,8 +43,9 @@ public sealed class DataSkeletonEditionTests
         { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a residue" },    // national-form numeric, SR12
         { "NED1", "01 WS-M PIC NN0NN.", "Phase 4a residue" },                  // national-edited, GR10
         // The FLOAT-SHORT/-LONG/-EXTENDED trio went LIVE at Phase 6a (D16) — see the FloatUsage_* positive facts;
-        // only the external-float PICTURE symbol E (a distinct 6b leg) remains a skeleton here.
-        { "PICE", "01 WS-EF PIC 9V99E+99.", "phase: Phase 6)" },               // external float, §13.18.40.4 GR13b
+        // the floating-point numeric-edited PICTURE (symbol E) went LIVE with data-model design D21 (kb/Work PB66) —
+        // see FloatEditedPicture_CompilesAt2002Plus_RejectedAt85. (Its former skeleton row, PIC 9V99E+99, was itself
+        // an illegal picture: §13.18.40.6 Table 10 admits no V before the E.)
     };
 
     /// <summary>At COBOL-85 every skeleton construct is a 2002 introduction: rejected with the COBOLNET0900
@@ -108,6 +109,30 @@ public sealed class DataSkeletonEditionTests
             Prog("DSKOREFP", "01 WS-O PIC X(4) USAGE OBJECT REFERENCE."), 2002);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0812");
+    }
+
+    /// <summary>The floating-point numeric-edited PICTURE went LIVE with data-model design D21 (kb/Work PB66; ISO
+    /// §13.18.40.4 GR13 b — a significand character-string and an exponent +9{1..4} joined by E; §14.6.8.4 the
+    /// store): it compiles at every 2002+ edition and stays introduction-gated at 85 (COBOLNET0900 naming
+    /// COBOL-2002 — registry row pic-external-float-2002). The former 0899 not-implemented posture is retired.</summary>
+    [Theory]
+    [InlineData("01 WS-EF PIC +9.99E+99.")]
+    [InlineData("01 WS-EF PIC -9(3).9(2)E+999 VALUE 1.5E+3.")]
+    [InlineData("01 WS-EF PIC 9(3)E+9.")]
+    public void FloatEditedPicture_CompilesAt2002Plus_RejectedAt85(string wsEntry)
+    {
+        foreach (int edition in new[] { 2002, 2014, 2023 })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKFE" + edition, wsEntry), edition);
+            // (a VALUE numeric literal on a numeric-edited item is itself a 2023 capability — VCR row 86 — so the
+            // VALUE-bearing shape is checked at 2023 only)
+            if (wsEntry.Contains("VALUE") && edition < 2023) continue;
+            Assert.True(ok, $"a floating-point numeric-edited picture must compile at --std {edition}: {string.Join("\n", errors)}");
+        }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKFE85", wsEntry), 85);
+        Assert.False(ok85, "the floating-point numeric-edited PICTURE is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §13.18.60.4 GR12): a PICTURE-less

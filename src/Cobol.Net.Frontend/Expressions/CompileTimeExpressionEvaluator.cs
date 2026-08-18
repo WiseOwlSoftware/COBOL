@@ -281,7 +281,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// §7.3.6 arithmetic core (which stays consumer-agnostic — the CONSTANT binder keeps float acceptance).</summary>
     private CtNumber? EvaluateDirectiveArithmetic(Core.ArithmeticExpressionContext expr, string where)
     {
-        if (ContainsToken(expr, Core.FLOATLIT))
+        if (ContainsToken(expr, Core.FLOATLIT) || ContainsToken(expr, Core.COMMA_FLOATLIT))
         { ReportDirective(where, "a floating-point numeric literal shall not appear in a compiler directive (ISO §7.3.3 SR10)"); return null; }
         if (ContainsToken(expr, Core.ZERO_ARITH))
         { ReportDirective(where, "a figurative constant shall not appear in a compiler directive (ISO §7.3.3 SR10)"); return null; }

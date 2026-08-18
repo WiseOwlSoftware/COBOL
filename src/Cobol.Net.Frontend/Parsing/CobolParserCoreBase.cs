@@ -298,7 +298,7 @@ public abstract class CobolParserCoreBase : Parser
     /// the legacy binder's copy of this same omission cost 31 NIST regressions.</remarks>
     private static bool IsBoolOperandTerm(int t) => t is
         CobolLexer.IDENTIFIER or CobolLexer.RPAREN or CobolLexer.SUB_RPAREN or CobolLexer.FNARG_RPAREN
-        or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT
+        or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT
         or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
         or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
 
@@ -336,6 +336,7 @@ public abstract class CobolParserCoreBase : Parser
                 case CobolLexer.INTEGERLIT:
                 case CobolLexer.DECIMALLIT:
                 case CobolLexer.FLOATLIT:
+                case CobolLexer.COMMA_FLOATLIT:
                 case CobolLexer.SIGNED_INTEGERLIT:
                 case CobolLexer.SIGNED_DECIMALLIT:
                     sawNumber = true;

@@ -21442,12 +21442,12 @@
   "kind": "SR",
   "ordinal": 15,
   "subject": "PICTURE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+  "test-ref": "conformance:negative/pb66-float-edited-picture-symbols; unit:LoudGuardTests.Analyze_FloatEdited_LegalShape_ClassifiesNumericEdited",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66). The significand holds 1..36 digit positions: PIC 9(37)E+99 and PIC E+99 are COBOLNET1658 (the negative's BG / BH entries); SR14's 31-position cap is NOT applied to the form (DataBinder's capacity guard excludes IsFloatEdited — Annex A.3 item 1 c/d's 31-digit latitude is unavailable to a processor supporting the standard float usages, so the full 36 is mandatory).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-16",
@@ -21546,12 +21546,12 @@
   "kind": "SR",
   "ordinal": 23,
   "subject": "PICTURE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:negative/pb66-float-edited-picture-symbols",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66). The one sanctioned two-sign form is the significand's fixed +/- beside the exponent's + (NOTE 3): -9.9(5)E+99 and +9(3).9(2)E+999 classify and edit (the golden's E1 / E2); a CR or DB in the significand (9.99CRE+99, 9.99DBE+99) and a floating sign string (+++9.99E+99) are COBOLNET1658; the fixed-point mutual exclusion is Analyze's long-standing check.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-24",
@@ -21897,12 +21897,12 @@
   "kind": "GR",
   "ordinal": 13,
   "subject": "PICTURE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:negative/pb66-float-edited-picture-symbols; unit:LoudGuardTests.Analyze_FloatEdited_LegalShape_ClassifiesNumericEdited; unit:LoudGuardTests.Analyze_FloatEdited_IllegalSignificandOrExponent_1658",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB66 / D21). (a) the fixed-point numeric-edited definitions are the long-standing Analyze classification (NIST NC-series editing goldens); (b) the floating-point form — 'two parts, separated without any spaces, by the symbol E', the significand a numeric or fixed-point numeric-edited character-string with neither floating insertion nor zero suppression with replacement, the exponent +9 / +99 / +999 / +9999 — is AnalyzeFloatEdited: one E, the exponent shape, and (with §13.18.40.6 Table 10 row E, rendered from the PDF to confirm the OCR) only 9 B 0 / , . and a leading fixed sign before the E; V P S Z * CR DB the currency symbol, a second E, an EDITING phrase and a SIGN clause are each COBOLNET1658 with a per-rule message. Category numeric-edited (PicInfo.IsFloatEdited the discriminator). (b) is a 2002 introduction — COBOLNET0900 below 2002 (registry row pic-external-float-2002, negative pb66-float-edited-at-85).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.40.4-14",
@@ -26044,12 +26044,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "VALUE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue",
+  "test-ref": "conformance:negative/pb97-value-edited-truncation; conformance:negative/pb66-value-float-edited-truncation; conformance:2023/pb97_value_literal_form_and_88_edited",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB97). A NEGATIVE literal requires a signed numeric subject or 'a numeric-edited data item with a representation of a sign' — an editing sign symbol (+ - CR DB; for the floating-point form the significand's own sign, never the exponent's +): PIC ZZ9.99 VALUE -5 and PIC 9.99E+9 VALUE -1.23E+5 are COBOLNET1625, PIC -ZZ9.99 VALUE -5 and PIC S9(5)V99 VALUE -1.5E+3 seed. (A leading + into an unsigned subject is not rejected — no data is lost.)",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-4",
@@ -26083,12 +26083,12 @@
   "kind": "SR",
   "ordinal": 6,
   "subject": "VALUE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringMembershipValue",
+  "test-ref": "conformance:2023/pb97_value_literal_form_and_88_edited; conformance:2023/pb66_float_edited_picture; conformance:negative/pb66-value-form-float-edited; conformance:negative/pb97-value-form-fixed-edited; conformance:negative/pb97-value-edited-truncation; conformance:negative/pb66-value-float-edited-truncation",
+  "editions": "2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB97 + PB66). A numeric-edited subject's numeric VALUE literals — in formats 1, 2 AND 4 — convert 'according to the rules for the MOVE statement' through the ONE compose (EditedImageOfNumericValue: fixed → CobolEdit.Format, floating → FormatFloatMove, the same runtime a MOVE uses), so an item VALUE bakes the edited image and a level-88 condition-name compares the EDITED image (before PB97 the raw text '10' was compared to ' 10.00' — never true); 'such that no truncation of digits or sign is required' is ValidateNumericValue on the numeric-edited subject (digit positions at the mask's scale; the floating form's significand digits and exponent range — COBOLNET1625); the FORM rule (fixed-point literals for fixed-point formats, floating-point for floating-point, ZERO / the literal zero for either) is decided once in ValidateValueCategory — COBOLNET1659 in either direction. Numeric-literal VALUEs for numeric-edited items are a 2023 capability (Annex E.3.3 item 43 — the VCR-86 gate below 2023, the ZERO forms at every edition).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-7",
@@ -27903,12 +27903,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Alignment and transfer of data into data items",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatCore; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatMove",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb66_float_edited_comma_mode",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66 / D21). The store normalizes EXACTLY in integer arithmetic: the value a×10^e is rescaled so the significand's leading digit position is nonzero (S = a×10^k / a÷10^-k, E = digits + e + scale − sigDigits) — -12345.678 into -9.9(5)E+99 → -1.23456E+04, 0.00012345 into 9.99E+9 → 1.23E-4, 1234 into 9(3)E+99 → 123E+01, 6.02214076E+23 (a binary64 sender) into -9.9(5)E+99 → 6.02214E+23; a zero value takes §13.18.40.5 r8's zero image (no normalization).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.8.4-2",
@@ -27916,12 +27916,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Alignment and transfer of data into data items",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatCore; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#RenderFloat",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb66_float_edited_comma_mode",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66 / D21). After normalization the significand aligns at the mask's point, truncates to the mask's digit count (-12345.678 into +9(3).9(2)E+999 → -123.45E+002 — six digits truncated to five) and zero-fills (1.5E+3 into +9.9(3)E+99 → +1.500E+03); the significand's simple / special / fixed insertion symbols (B 0 / , . +/-) render per §13.18.40.5 Table 7 and the exponent takes none; DECIMAL-POINT IS COMMA exchanges the point and the grouping character in the image (-1,23456E+04; 1.234E+00 for 9.999E+99 in comma mode).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.9.2-1",
@@ -28371,12 +28371,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Exception condition handling",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#DeEditFloat; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#DataIncompatibleError; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates",
+  "test-ref": "conformance:2023/pb66_float_edited_algebraic_and_checking",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66 + its sweep). Under >>TURN EC-DATA-INCOMPATIBLE CHECKING ON a de-editing MOVE from content that is not a possible result of editing raises the (fatal, Table 13) exception before the receiver is written: the floating-point form validates position by position (a non-digit digit position, a wrong insertion character, a missing E or exponent sign — '1.23E+X' planted through a REDEFINES); the FIXED-POINT form verifies the round trip Format(DeEdit(image)) == image (Format IS the one editor, so the test is exact — ' 12.50' and a BLANK WHEN ZERO all-spaces zero pass, 'AB.CDE' raises). With checking off the digit positions are read (a non-digit contributes zero) — the standard's 'undefined' result, CONFORMANCE.md §3.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.2-5",
@@ -28566,12 +28566,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#TryFormatFloat; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#TryFormat; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#TryStore",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb74_sdidi_store_size_error; conformance:2023/pb91_native_overflow_outside_arithmetic",
+  "editions": "85,2002,2014,2023",
+  "notes": "The size error condition when the result is further from zero than the resultant permits: the numeric (CobolNum.TryStore) and fixed-point edited (CobolEdit.TryFormat) checked stores are long-standing (pb74 / pb91 goldens); the floating-point numeric-edited resultant (kb/Work PB66, 2026-08-18) takes TryFormatFloat — COMPUTE E3 = 1.0E+12 into 9.99E+9 under ON SIZE ERROR leaves E3 unchanged and runs the phrase; without the phrase or EC-SIZE checking the MOVE disposition (the pinned saturated image) stands.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-4",
@@ -28579,12 +28579,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#TryFormatFloat",
+  "test-ref": "conformance:2023/pb66_float_edited_picture",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66). A nonzero result nearer to zero than the resultant permits is the size error condition — the case only a floating-point numeric-edited (or floating-point usage) resultant can present: COMPUTE E3 = 1.0E-12 into 9.99E+9 under ON SIZE ERROR leaves E3 unchanged and runs the phrase (TryFormatFloat's Underflow outcome); a fixed-point resultant has no 'nearer to zero than permitted' (its low-order digits truncate, §14.6.8.2). Without the phrase / checking the MOVE disposition (zero) stands.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-5",
@@ -34702,12 +34702,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "MOVE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNum; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#DeEditFloat",
+  "test-ref": "conformance:2023/pb66_float_edited_picture; conformance:2023/pb66_float_edited_algebraic_and_checking",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66 — the floating-point form; the fixed-point de-editing MOVE is the NIST-pinned COBOL-85 behavior). A numeric-edited SENDER de-edits only into a numeric or numeric-edited receiver: E1 → S9(5)V9(3) is -12345.600 and E1 → +9(3).9(2)E+999 is -123.45E+002 (de-edit then edit), while E1 → PIC X(12) copies the characters (an alphanumeric receiver — no de-editing). The floating-point sender de-edits to an EXACT CobolDec (the significand with its own power of ten — never a binary64), so a 36-digit significand round-trips.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.25.4-6",
@@ -34754,12 +34754,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "MOVE statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatMove; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#FloatOverflowError; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatFor",
+  "test-ref": "conformance:2023/pb66_float_edited_algebraic_and_checking; conformance:2023/pb66_float_edited_picture; conformance:2023/ec_data_overflow",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB66 / D21). Item 4 for the floating-point numeric-edited receiver: (a) a sending value farther from zero than the picture permits sets EC-DATA-OVERFLOW — fatal under checking with the receiver unchanged (the golden's USE declarative + RESUME), and with checking off the receiver holds the pinned saturated image (CONFORMANCE.md §3 — the standard's 'undefined' content); (b) a value nearer to zero than permitted is treated as zero (1.0E-12 into 9.99E+9 → 0.00E+0, no exception). The standard-floating-usage half is the pre-existing FloatOverflowChecking path (2023/ec_data_overflow: a MOVE overflowing a COMP-1 receiver).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.25.4-7",
@@ -45258,12 +45258,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "HIGHEST-ALGEBRAIC function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+  "test-ref": "conformance:2023/pb66_float_edited_algebraic_and_checking; conformance:negative/pb66-algebraic-float-edited-range",
   "editions": "2014,2023",
-  "notes": "VERDICT CONFIRMED, EDITION WINDOW CORRECTED, and one further reason added. The rule constrains exactly one construct — a floating-point numeric-edited item (an external floating-point PICTURE, symbol E) — and PictureAnalyzer#Analyze stages that NOT-IMPLEMENTED (Constructs.PicExternalFloat2002 → COBOLNET0899 at ≥2002 / COBOLNET0900 below) and returns PicInfo.Recovery, so the item never acquires PicCategory.NumericEdited and can never be presented to HIGHEST-ALGEBRAIC. Nothing implements the rule; the construct's absence merely makes it unreachable — a green-looking zero fan-out. ⛔ ADDED: the rule's OTHER half is also absent. The well-formedness test it prescribes is an IN-ARITHMETIC-RANGE class condition (§8.5's class-condition format, GR l: 'the condition is true if the numeric content … is neither farther from zero nor closer to zero than is permitted for the form of an intermediate data item appropriate to the mode of arithmetic in effect'), and IN-ARITHMETIC-RANGE exists in COBOL.NET ONLY as a row in ReservedWords.Table — there is no grammar production, no binder arm and no ConstructRegistry row. So neither the domain nor the test exists. EDITIONS corrected to 2014,2023: the rule's domain (external float PICTURE) is a 2002 construct, but IN-ARITHMETIC-RANGE is part of the COBOL-2014 IEEE-754 class-condition package (alongside FLOAT-INFINITY / FLOAT-NOT-A-NUMBER / FARTHEST-FROM-ZERO / NEAREST-TO-ZERO; the reserved-word table records 'added 2014'), so the rule AS WORDED cannot be stated at COBOL-2002. Re-adjudicate the day external floating-point PICTUREs land. No spec-derived test is constructible.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-18 (kb/Work PB66, data-model design D21). The floating-point numeric-edited PICTURE (§13.18.40.4 GR13 b) is LIVE, so the rule is evaluable and enforced AT THE FUNCTION REFERENCE: the fold parses the mask (CobolEdit.FloatMask.Parse — the ONE parser) and requires the all-nines significand at the maximum exponent to lie within the intermediate's range for the arithmetic mode in effect (§8.8.4.4.4 GR3 l — binary64 natively: PIC 9(3)E+999 is ~1E+1002 > 1.8E+308 → COBOLNET1660; decimal128 under ARITHMETIC IS STANDARD-DECIMAL: the same entry passes). Returned value = that extreme (RV-15.43.4-2), verified by MOVE FUNCTION HIGHEST-ALGEBRAIC(E1) TO E1 in the golden.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.43.4-2",
@@ -46194,12 +46194,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "LOWEST-ALGEBRAIC function",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold",
-  "test-ref": "",
-  "editions": "",
-  "notes": "REFUTED on the CITATION; verdict unchanged. The prior record's supporting citation for what a floating-point numeric-edited PICTURE is was '13.18.40.3 b)', and cite.py --check 13.18.40.3 on that exact sentence FAILS. The text is genuine but the clause number is one level short and one sibling off: --find puts it at 13.18.40.4 GENERAL RULE 13 b). This is the precise inherited-citation shape the review is meant to catch, and the corrected clause is recorded here so it does not propagate into code comments or goldens. The substance is unaffected: the rule constrains the data description entry of a SIGNED FLOATING-POINT NUMERIC-EDITED argument-1, requiring it to be such that the most-negative representable value would pass an IN-ARITHMETIC-RANGE test. COBOL.NET cannot declare such an item at all - the 'E' picture symbol is recognized and staged loud (COBOLNET0899, owning phase 'Phase 6') - so the antecedent shape does not exist, and nothing in the compiler relates any ALGEBRAIC fold to an IN-ARITHMETIC-RANGE test. BindAlgebraicFold's edited branch handles ONLY fixed-point numeric-edited masks (CobolEdit.MaskCapacity strips V and P and counts 9/Z/* plus floating-string positions - it has no exponent concept). Genuine NOT-IMPLEMENTED: today no program can reach the rule. Its twin 15.43.4 r1 (HIGHEST-ALGEBRAIC, positive value farthest from zero) is in the same position. When the Phase-6 external-float PICTURE lands, this rule and its twin must land with it. EVIDENCE: cite.py --check 15.58.4 'When argument-1 is a signed floating-point numeric-edited item': OK, rule 1. cite.py --check 13.18.40.3 'To define a floating-point numeric-edited item, characters-string-1 shall consist of two parts, separated without any spaces, by the symbol E.': FAIL - '§13.18.40.3 exists but does NOT contain' it. cite.py --find on the same sentence: '§13.18.40.4 13) (General rules) b) To define a floating-point numeric-edited item, characters-string-1 shall consist of two parts, separated without any spaces, by the symbol E. The first part represents the significand;' - 1 occurrence. CORRECT CITATION = 13.18.40.4 GR13 b). Read PictureAnalyzer#Analyze: `case 'E': hasE = true; break;` then `if (hasE) StagedNotImplemented(edition, Constructs.PicExternalFloat2002, \"Phase 6\", where);`. Prior probe E:/Temp/lowalg_efloat.cob `01 E1 PIC -9.9(5)E+99.` -> COBOLNET0899 'an external floating-point PICTURE (symbol E) is recognized but not yet implemented (owning roadmap phase: Phase 6)' followed by COBOLNET1516 from the fold. Grep of src/Cobol.Net.* for 'IN-ARITHMETIC-RANGE' finds no connection to any ALGEBRAIC fold.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindAlgebraicFold; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited",
+  "test-ref": "conformance:2023/pb66_float_edited_algebraic_and_checking; conformance:negative/pb66-algebraic-float-edited-range",
+  "editions": "2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB66 / D21). The signed floating-point numeric-edited argument's negative extreme (the negated all-nines significand at the maximum exponent) must pass IN-ARITHMETIC-RANGE for the mode in effect — COBOLNET1660 otherwise; LOWEST of an UNSIGNED picture is zero (r2 — the standard's own $**,**9.99 → 0 row), pinned by LOWEST-ALGEBRAIC(U1) → 0.000E+00 in the golden.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.58.4-2",

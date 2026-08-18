@@ -139,9 +139,10 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
                 w.Line(LoudStmt($"ACCEPT temporal into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2, deferred)"));
                 return;
-            case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(call, "0", CsLiteral(mask), ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
+            case { Category: PicCategory.NumericEdited } npic:
+                // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5) — the form
+                // dispatch (fixed / floating-point) is RuntimeApi.EditFormatFor's (D21/PB66).
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(call, 0), call, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 // Alphanumeric-edited: the sending characters place into the mask positions (§13.18.40 insertion).

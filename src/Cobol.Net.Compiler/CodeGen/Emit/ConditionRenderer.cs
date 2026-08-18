@@ -391,10 +391,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string collate = cat is PicCategory.Boolean ? ""
                 : cat is PicCategory.National ? ctx.NatCollateArg : ctx.CollateArg;
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
-            int width = parent.Pic?.Length ?? parent.ImageWidth;
-            string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
+            string lo = EmitText.CsLiteral(StringMembershipValue(low, parent));
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
-            string hi = EmitText.CsLiteral(StringMembershipValue(high, width));
+            string hi = EmitText.CsLiteral(StringMembershipValue(high, parent));
             // §14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
             // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
             // otherwise emergent from the inclusive test). Boolean/other categories keep the inline byte-identical form.
@@ -426,14 +425,24 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         : raw.IndexOf('E') >= 0 || raw.IndexOf('e') >= 0 ? raw.Trim().TrimStart('+')
         : $"{raw.Trim().TrimStart('+')}d";
 
-    /// <summary>A string level-88 VALUE operand's character value: a figurative <c>ALL "literal"</c> repeated to the
-    /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE /
-    /// HIGH-VALUE / LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27),
-    /// else the decoded literal.</summary>
-    private string StringMembershipValue(string raw, int width) =>
-        EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
-        : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
-        : CobolLiteral.Decode(raw);
+    /// <summary>A string level-88 VALUE operand's character value: a NUMERIC-EDITED conditional variable's numeric
+    /// literal (or figurative ZERO at >= 2023) is its EDITED image — ISO §13.18.63.3 SR6 converts a numeric-edited
+    /// item's numeric VALUE literals "according to the rules for the MOVE statement" in formats 1, 2 AND 4, and
+    /// §8.8.4.5 GR2 then compares by the relation-condition rules (kb/Work PB97: the raw text "10" was compared to the
+    /// image " 10.00" — every such condition-name was silently false); a figurative <c>ALL "literal"</c> repeated to
+    /// the conditional variable's width (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE / HIGH-VALUE /
+    /// LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27), else the decoded
+    /// literal.</summary>
+    private string StringMembershipValue(string raw, DataItem parent)
+    {
+        int width = parent.Pic?.Length ?? parent.ImageWidth;
+        if (parent.Pic is { Category: PicCategory.NumericEdited } npic
+            && ValueInitializer.EditedImageOfNumericValue(ctx, parent, npic, raw) is { } edited)
+            return edited;
+        return EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
+            : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
+            : CobolLiteral.Decode(raw);
+    }
 
     /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
     /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill
