@@ -25,8 +25,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 ### Where we are
 
 - **▶ SESSION HANDOFF (2026-08-17 — the live resume point):**
-  **✅ Battery:** the four-landing batch (DEVLOG 1289–1292) measured `=== BATTERY: ALL GREEN ===` on
-  `f58c7547` (Conformance 4372/4372 · Unit 4164/4164 · NIST 353/0 audit-clean · differential 0 flips) — the §9
+  **✅ Battery:** the PB60-closing tree `080733bf` measured every internal leg green (Conformance 4381/4381 ·
+  Unit 4182/4182 · NIST 353/0 audit-clean) and ONE attributed FIX flip in the differential (GnuCOBOL's
+  "SPECIAL-NAMES CLASS" case now AGREE_ACCEPT — the `classValueSet` comma fix; baseline regenerated) — the §9
   reference. No gate is owed; the next landings ride wave-local until the next shared-seam batch.
   **LANDED THIS SESSION (DEVLOG 1289–):** PB60 at **11 of 13** — the SDIDI Dec branch (RV-15.67.4-1(a) and
   the reassigned NUMVAL-F twin RV-15.69.4-3 → CONFORMS; GAP 4145 → 4143): the NUMVAL family's standard-mode
@@ -48,8 +49,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB60 CLOSED (DEVLOG 1294)** — the CURRENCY SIGN SET + multi-character currency string landed
   (`DataBinder.CurrencySigns`, `PicInfo.CurrencyString`, `CobolEdit`'s expand/collapse, COBOLNET1644 for
   §15.68.3 r3); 15 of 15 rows CONFORMS; nine inventory rows flipped (GAP 4129).
-  **NEXT, in order:** ① the battery for the batch (the edit runtime is a shared seam — NIST NC104A/NC107A cross
-  it) → ② PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **NEXT, in order:** ① PB58 (the argument-screen table's missing predicate kinds + the absent rows) → ② PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
@@ -1346,7 +1346,18 @@ result. Run the long legs ONE AT A TIME.
   ⛔ **The detector was proven in the failing direction before it was trusted**, including the exact blind spot:
   two offsetting flips that leave all four totals at 559/487/176/101 are still both named. A fresh full run then
   returned **0 flips** against the committed baseline.
-- **⛔ BATTERY REFERENCE — CURRENT, the 2026-08-17 four-landing tree `f58c7547` (2026-08-17 22:12).**
+- **⛔ BATTERY REFERENCE — CURRENT, the PB60-closing tree `080733bf` (2026-08-17 23:12).**
+  ✅ **ALL INTERNAL LEGS GREEN + ONE ATTRIBUTED FIX FLIP, one `bash scripts/battery.sh` run** (artifacts
+  `scratchpad/battery-2` of session 29c20a89): FULL greenfield Conformance **4381 / 4381, zero skipped**
+  (10 m 46 s) · greenfield Unit **4182 / 4182** · characterization **33 / 33** · `guard-fast` **ALL GREEN**
+  with NIST **353 MATCH / 0 REGRESSION** (audit CLEAN) · GnuCOBOL differential **1 PER-CASE FLIP —
+  `run_fundamental:9066` ("SPECIAL-NAMES CLASS") WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT**, GnuCOBOL's own
+  suite confirming DEVLOG 1293's `classValueSet` fix (`CLASS HEXA IS '0' THRU '9' 'A' THRU 'F'` — the
+  juxtaposed literal groups the grammar had required a comma between); the baseline row is regenerated
+  with that attribution (579/467/197/80). Covers the two landings since the previous reference: the
+  configuration-section inheritance (DEVLOG 1293) and the CURRENCY SIGN SET + multi-character currency
+  string (DEVLOG 1294 — the edit runtime is a shared seam every NIST edited-picture program crosses).
+- **⛔ PRIOR BATTERY REFERENCE — the 2026-08-17 four-landing tree `f58c7547` (2026-08-17 22:12).**
   ✅ **`=== BATTERY: ALL GREEN ===` as measured, one `bash scripts/battery.sh` run** (artifacts
   `scratchpad/battery-1` of session 29c20a89): FULL greenfield Conformance **4372 / 4372, zero skipped**
   (10 m 54 s) · greenfield Unit **4164 / 4164** · characterization **33 / 33** · `guard-fast`

@@ -69,8 +69,11 @@ symbol itself expands. My probe used `FD` as a data-name (a reserved word) and I
 seeing it. The gates: unit 117/117 across the Edit|Picture|Diagnostic|SpecTraceability filters, characterization
 33/33; the broad Conformance filter (Corpus|Edit|Move|Special|Currency|Picture|Oo|Report|Value|Group|
 SpecTraceability) 2985/2985 — every golden and negative in the corpus, `oo_class_env`'s class-level currency
-included; SpecTraceability 10/10 (GAP 4138 → 4129). The battery for the batch follows — the edit runtime is a
-shared seam every NIST edited-picture program crosses.
+included; SpecTraceability 10/10 (GAP 4138 → 4129). **The battery on `080733bf`:** Conformance 4381/4381 · Unit
+4182/4182 · characterization 33/33 · NIST 353/0 audit-clean · GnuCOBOL differential ONE per-case flip —
+`run_fundamental:9066` ("SPECIAL-NAMES CLASS") WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT, GnuCOBOL's own suite
+confirming entry 1293's `classValueSet` fix (`CLASS HEXA IS '0' THRU '9' 'A' THRU 'F'`); the baseline row is
+regenerated with that attribution. Every leg is green; the flip is a fix.
 
 ## Entry 1293 — 2026-08-17 22:22 PDT — PB60: a container's CONFIGURATION SECTION and OPTIONS now reach its contained programs
 
