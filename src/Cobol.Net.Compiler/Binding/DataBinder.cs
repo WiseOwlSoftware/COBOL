@@ -2905,8 +2905,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                           : mm.Binding!.LinkageRoots;
                 else
                     scope = Roots;
-                item.RedefinesTarget = scope.FirstOrDefault(s =>
-                    !ReferenceEquals(s, item) && string.Equals(s.CobolName, tname, StringComparison.OrdinalIgnoreCase));
+                // §13.18.44.3 SR4/SR7 + NOTE 1: data-name-2 is a PRECEDING entry at the same level, and when the name is
+                // not unique "no ambiguity of reference exists because of the required placement" — the NEAREST preceding
+                // same-named sibling. The former whole-scope FirstOrDefault admitted a LATER sibling (illegal source, kb/Work
+                // PB93) and picked the FIRST of duplicates.
+                item.RedefinesTarget = scope.TakeWhile(s => !ReferenceEquals(s, item))
+                    .LastOrDefault(s => string.Equals(s.CobolName, tname, StringComparison.OrdinalIgnoreCase));
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(RootOf(item)))
@@ -2916,6 +2920,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         $"REDEFINES target '{tname}' of method data item "
                         + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
                         + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
+                else if (item.RedefinesTarget is null)
+                    // kb/Work PB93: the PROGRAM-scope miss used to be silent — the item kept RedefinesTargetName (so
+                    // BitLayout / ImageWidth / ByteWidth skipped it as an overlay) against a null RedefinesTarget (so
+                    // the emitter gave it its own field): a storage shape no edition defines. ONE diagnostic; the
+                    // item then binds as an ORDINARY entry (the name cleared below) so no consumer sees the half-state.
+                    Edition.Error(DiagnosticCatalog.RedefinesTargetUnresolved,
+                        $"'{item.CobolName ?? "FILLER"}' REDEFINES '{tname}': data-name-2 does not name a preceding "
+                        + "entry in the same scope (ISO §13.18.44.3 SR4/SR7/SR10; §8.4.2.1)");
+                if (item.RedefinesTarget is null)
+                    item.RedefinesTargetName = null;   // no half-state: an unresolved redefiner is an ordinary entry
+                // §13.18.44.3 SR7 (kb/Work PB93 sweep): data-name-2 shall be the entry that ORIGINALLY defined the area
+                // — a redefiner naming a redefiner is a chain ISO forbids and the field's vendors accept: error strict,
+                // warning under --permissive with the chain semantics (ClassifyRedefinesClasses chases the anchor).
+                if (item.RedefinesTarget is { RedefinesTargetName: not null } viaRedefiner)
+                    Edition.Removed(DiagnosticCatalog.RedefinesOfRedefinition.Code,
+                        $"'{item.CobolName ?? "FILLER"}' REDEFINES '{viaRedefiner.CobolName ?? "FILLER"}', which is itself "
+                        + "a redefinition — data-name-2 shall be the entry that originally defined the storage area "
+                        + "(ISO §13.18.44.3 SR7)");
                 // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
                 // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
                 if (item.RedefinesTarget is { IsAnyLength: true })
@@ -2943,7 +2965,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var info = ren.Renames!;
                 info.From = FindDescendantOrSelf(root, info.FromName);
                 info.Thru = info.ThruName is { } t ? FindDescendantOrSelf(root, t) : null;
-                if (info.From is null || (info.ThruName is not null && info.Thru is null)) continue;
+                if (info.From is null || (info.ThruName is not null && info.Thru is null))
+                {
+                    // kb/Work PB93: an operand naming nothing in the record was skipped silently — the alias then had
+                    // no picture and no span, and every reference to it failed downstream with an unrelated message.
+                    using var __r = Edition.At(ren);
+                    string missing = info.From is null ? info.FromName : info.ThruName!;
+                    Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn ? " THRU " + tn : "")}: "
+                        + $"'{missing}' does not name an item of the record (ISO §13.18.45.3 SR4; §8.4.2.1)");
+                    continue;
+                }
                 // The no-THRU alias inherits the renamed item's description (§13.18.45 GR1) — the resolver
                 // forwards to the FROM item's place; no span, no synthetic alphanumeric picture.
                 if (info.Thru is null) { ren.Pic = info.From.Pic; continue; }

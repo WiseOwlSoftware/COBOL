@@ -218,7 +218,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   PARTIAL), GAP 3964.
   **✅ Battery #15 (PB79 + PB95 landing, tree `5eff5d5e`):** Conformance **4739/4739** · Unit **4232/4232** ·
   Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
-  **NEXT, in order (`work.py next`):** ① PB93 → PB94 → PB91 (PB64/PB66 are features)
+  **✅ PB93 CLOSED (DEVLOG 1318, 2026-08-18)** — an unresolved REDEFINES data-name-2 (COBOLNET1654) or RENAMES operand
+  (COBOLNET1655) is diagnosed at every edition; a REDEFINES binds only to the NEAREST PRECEDING same-level sibling
+  (a later sibling is 1654); a REDEFINES of a redefinition is SR7's COBOLNET1656 (error strict, the anchor-chased
+  chain under --permissive). Four verdicts → CONFORMS, GAP 3960. **PB96 REGISTERED** (a RENAMES range spanning a
+  REDEFINES view double-counts the view — wrong answer). Battery #16 owed for the PB93 batch with the next landing.
+  **NEXT, in order (`work.py next`):** ① PB94 → PB96 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

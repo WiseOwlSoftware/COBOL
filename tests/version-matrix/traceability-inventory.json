@@ -22820,12 +22820,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "REDEFINES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+  "test-ref": "conformance:negative/pb93-redefines-undefined-target; conformance:negative/pb93-redefines-later-sibling; conformance-test:RedefinesTargetTests.UndefinedRedefinesTarget_IsRejected",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB93). data-name-2 resolves among the PRECEDING same-level siblings only (TakeWhile before the subject, nearest match — NOTE 1) — an entry with a lower level number cannot intervene by construction (it would end the sibling list); a name that resolves to nothing, or only to a LATER sibling, is COBOLNET1654 and the entry binds as an ordinary item (no half-state).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.44.3-5",
@@ -22859,12 +22859,12 @@
   "kind": "SR",
   "ordinal": 7,
   "subject": "REDEFINES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+  "test-ref": "conformance:negative/pb93-redefines-of-redefinition; conformance-test:RedefinesTargetTests.RedefinesOfRedefinition_IsAnErrorStrict_AndTheChainUnderPermissive",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB93 sweep). A REDEFINES naming an entry that is itself a redefinition is COBOLNET1656 — error strict; under --permissive a warning with the chain semantics (the classifier chases the anchor, SR11) — the documented dialect leniency (GnuCOBOL/IBM accept chains).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.44.3-8",
@@ -22898,12 +22898,12 @@
   "kind": "SR",
   "ordinal": 10,
   "subject": "REDEFINES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+  "test-ref": "conformance:negative/pb93-redefines-later-sibling; conformance-test:RedefinesTargetTests.LaterSiblingTarget_IsRejected",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB93). The redefining entries FOLLOW the entries defining the area: the lookup admits preceding siblings only, so `05 A REDEFINES B. 05 B.` is COBOLNET1654 (it used to bind to the later B). The 'without intervening entries that define new storage areas' half is the ClassifyRedefinesClasses layout invariant (a redefiner overlays its target's area wherever it stands among the siblings).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.44.3-11",
@@ -23080,12 +23080,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "RENAMES clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+  "test-ref": "conformance:negative/pb93-renames-undefined-operand; conformance-test:RedefinesTargetTests.UndefinedRenamesOperand_IsRejected",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB93). data-name-2 / data-name-3 must name an item of the record the level-66 entry follows (FindDescendantOrSelf over the owning record) — a miss is COBOLNET1655 (it used to `continue` silently, leaving a picture-less alias). The 'shall not be the same data-name' half and SR5's level restrictions are not separately diagnosed (recorded on kb/Work PB96's sweep list with the span-composition defect).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.45.3-5",

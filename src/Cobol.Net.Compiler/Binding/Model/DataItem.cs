@@ -254,8 +254,10 @@ public sealed class DataItem
     /// synthetic item (a debug register, a subscript-segment temp); a TYPE / SAME AS clone carries its template's.</summary>
     public CobolNet.Editions.DiagnosticCursor DeclaredAt { get; init; }
 
-    /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.</summary>
-    public string? RedefinesTargetName { get; init; }
+    /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.
+    /// Settable so an UNRESOLVED redefiner (kb/Work PB93 — diagnosed COBOLNET1654) is demoted to an ordinary entry:
+    /// the layout consumers key on this name, and a name without a target was the half-state.</summary>
+    public string? RedefinesTargetName { get; set; }
 
     /// <summary>The resolved REDEFINES target item (the immediately-redefined entry, which may itself be a
     /// redefiner — SR11). Set by the post-build pass; null for a non-redefining entry.</summary>

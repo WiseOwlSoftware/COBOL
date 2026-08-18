@@ -876,6 +876,32 @@ public static class DiagnosticCatalog
         + "the same entry (SR2/SR3 — the usage is implied); or a subordinate group declares the other GROUP-USAGE "
         + "(SR2/SR3 — every subordinate group is the same, explicitly or implicitly).",
         "ISO §13.18.29.3");
+    // kb/Work PB93: a REDEFINES data-name-2 / RENAMES data-name-2/-3 that names no preceding entry was accepted
+    // SILENTLY (the program-scope REDEFINES miss left RedefinesTargetName set against a null RedefinesTarget, so the
+    // layout consumers disagreed; the RENAMES miss just `continue`d). §8.4.2.1: a statement shall contain a reference
+    // that uniquely identifies the resource — a name that identifies nothing is an error at every edition.
+    public static readonly DiagnosticDescriptor RedefinesTargetUnresolved = new(
+        "COBOLNET1654", "redefines-target-unresolved", EditionSeverity.Error,
+        "The REDEFINES clause's data-name-2 does not name a preceding data description entry in the same scope. "
+        + "ISO §13.18.44.3 SR4/SR7/SR10 place data-name-2 among the entries preceding the subject at the same level; "
+        + "§8.4.2.1 requires every reference to identify a resource. Name the entry that defines the area.",
+        "ISO §13.18.44.3 / §8.4.2.1");
+    public static readonly DiagnosticDescriptor RenamesOperandUnresolved = new(
+        "COBOLNET1655", "renames-operand-unresolved", EditionSeverity.Error,
+        "A RENAMES clause's data-name-2 or data-name-3 does not name an elementary item or group of elementary items in "
+        + "the same record (ISO §13.18.45.3 SR4; §8.4.2.1 requires every reference to identify a resource). Name an "
+        + "item of the record the level-66 entry follows.",
+        "ISO §13.18.45.3 / §8.4.2.1");
+    // kb/Work PB93 (sweep): SR7 — "Multiple redefinitions of the same storage area shall each specify as data-name-2
+    // the data-name of the entry that originally defined the area" — a REDEFINES naming a REDEFINER is illegal ISO
+    // source that GnuCOBOL/IBM accept as a chain (the anchor is chased); error strict, warning + the chain semantics
+    // under --permissive (the documented-dialect-leniency seam, EditionContext.Removed).
+    public static readonly DiagnosticDescriptor RedefinesOfRedefinition = new(
+        "COBOLNET1656", "redefines-of-redefinition", EditionSeverity.Error,
+        "A REDEFINES clause names an entry that is itself a redefinition. ISO §13.18.44.3 SR7 requires each of multiple "
+        + "redefinitions of one storage area to name the entry that ORIGINALLY defined the area. Name the original "
+        + "entry; under --permissive the chain is accepted with this warning (the anchor is the original entry).",
+        "ISO §13.18.44.3 SR7");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "
