@@ -119,3 +119,7 @@ kb/Conformance/
 
 # Machine-local scratch for optional tooling (e.g. an exported TLS cert). Never a build input.
 .claude/local/
+
+# NIST CCVS print files (XXXXX0nn placeholders) a CLI probe run from the repo root would drop here (2026-08-18)
+/xxxxx0[0-9][0-9].txt
+/XXXXX0[0-9][0-9].txt
