@@ -78,7 +78,9 @@ public sealed class OperandStringChannelDriftTests
 
     /// <summary>
     /// The leaves the two channels are meant to answer DIFFERENTLY, asserted so nobody "fixes" them into
-    /// agreement. <c>BoundBoolOperand</c> stays a plain loud stage. <c>BoundNumericLiteral</c> is ADMITTED
+    /// agreement. <c>BoundBoolOperand</c> — a boolean EXPRESSION argument, §8.4.3.2.3 SR8 (kb/Work PB65) — images
+    /// through the ONE <c>BooleanRenderer</c>, never a local re-derivation and never a loud stage (it was a stage
+    /// before the grammar admitted the argument). <c>BoundNumericLiteral</c> is ADMITTED
     /// PER-FUNCTION since PB59 (§15.12.3 r1 / §15.18.3 r1 admit numeric literals): the arm must stay
     /// CONDITIONAL — <c>admitNumeric</c> selecting the shared OperandText image, <c>Loud</c> as the DEFAULT —
     /// because NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 / AR-15.69.3-1) demanding a compile-time
@@ -104,9 +106,10 @@ public sealed class OperandStringChannelDriftTests
 
         var bol = Regex.Match(body, @"public string Visit\(BoundBoolOperand n\)\s*=>(?<rhs>[^;]*);");
         Assert.True(bol.Success, "StrArgVisitor lost its Visit(BoundBoolOperand) arm");
-        Assert.True(bol.Groups["rhs"].Value.Contains("Loud", StringComparison.Ordinal),
-            "Visit(BoundBoolOperand) is no longer a loud stage — a class-boolean operand does not cross the "
-            + "string-argument channel.");
+        Assert.True(bol.Groups["rhs"].Value.Contains("BooleanRenderer.Render", StringComparison.Ordinal),
+            "Visit(BoundBoolOperand) must image a boolean-expression argument through the ONE BooleanRenderer "
+            + "(§8.4.3.2.3 SR8 admits a boolean expression as an argument — kb/Work PB65); a loud stage here "
+            + "re-opens FMT-15.45.2, a local '0'/'1' derivation is a second boolean renderer.");
     }
 
     /// <summary>The admitting entry (<c>StrNum</c> / the admitting <c>StrArgList</c>) is reached from EXACTLY

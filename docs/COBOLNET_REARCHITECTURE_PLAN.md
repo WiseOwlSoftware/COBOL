@@ -128,9 +128,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   processor, ONE `DirectiveResults` record into Bind, ONE leave-set in the CC processor; COBOLNET1650; construct
   `leap-second-directive-2002`); A.1 items 87 and 145 written from measurement. 11 verdicts → CONFORMS, all 34
   PB65 rows OK, GAP 4029.
-  **⏳ Battery owed for the PB71+PB65 batch** (grammar + lexer changed: the ALL figurative arm, functionArgument's
-  boolean arm, the zero-length boolean literal; the directive pipeline; the intrinsic renderer's selection route)
-  — run it before the next landing builds on it.
+  **Battery (PB71+PB65 batch, tree `6b84825e`):** Conformance **4664/4665** · Unit **4195/4196** ·
+  Characterization 33/33 · NIST-legacy 353/0 audit-clean · differential 1323 cases, **0 flips**. The two reds were
+  both GREEN TESTS THAT HELD A GAP OPEN and PB65 closed the gaps: `UdfInvocationTests.KeywordOmitted_DataItemWins`
+  pinned "a data item named MOD wins under FUNCTION ALL INTRINSIC" (its own remark: "enforcing [rule 5] is staged")
+  — now asserts COBOLNET1649 plus the un-declared-name control; `OperandStringChannelDriftTests` pinned
+  `Visit(BoundBoolOperand)` as a loud stage — now asserts the ONE BooleanRenderer image (§8.4.3.2.3 SR8). Both
+  re-run green (46/46, 7/7); the battery for the corrected tree rides with the next batch.
   **NEXT, in order:** ① PB88 → PB80 → PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.

@@ -761,17 +761,31 @@ public sealed class UdfInvocationTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>The D2 data-item-wins safety: a declared data item whose NAME matches an intrinsic stays a
-    /// subscripted reference — never mis-routed to the intrinsic — even under FUNCTION ALL INTRINSIC (SR13 would
-    /// prohibit the declaration; enforcing it is staged, so the reference must remain the data item, not silently
-    /// become a function). Binds as the table element.</summary>
+    /// <summary>ISO §8.3.2.1 rule 5 (kb/Work PB65): under FUNCTION ALL INTRINSIC every intrinsic-function-name is
+    /// "identified in a function-specifier in the REPOSITORY paragraph", so a data item named MOD is an ILLEGAL
+    /// user-defined word — COBOLNET1649 at the declaration. (The previous form of this test pinned "the data item
+    /// wins" as green while its own remark conceded "enforcing it is staged" — the green-test-holds-a-gap-open
+    /// shape; the standard's prohibition is what makes the FUNCTION-less reference unambiguous.)</summary>
     [Fact]
-    public void KeywordOmitted_DataItemWins()
+    public void KeywordOmitted_RepositoryIntrinsicName_CannotBeAUserWord()
     {
         string src = KoGroup("UDFT24", "    FUNCTION ALL INTRINSIC.", "    MOVE MOD(2) TO WS-R.",
             ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.True(ok, "a data item named like an intrinsic must stay a subscript: " + string.Join("\n", errors));
+        Assert.False(ok, "a data item spelling a REPOSITORY-identified intrinsic-function-name shall be rejected (ISO §8.3.2.1 rule 5)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1649");
+    }
+
+    /// <summary>The rule-5 CONTROL: without a REPOSITORY entry for MOD an intrinsic-function-name IS a legal
+    /// user-defined word (§8.3.2.1 rule 5's permission), and the FUNCTION-less spelling `MOD(2)` is the subscripted
+    /// data item — never mis-routed to the intrinsic (§8.4.3.2.3 SR2 requires the word FUNCTION there).</summary>
+    [Fact]
+    public void KeywordOmitted_UndeclaredIntrinsicName_StaysADataItem()
+    {
+        string src = KoGroup("UDFT24B", "    FUNCTION UDFDBL.", "    MOVE MOD(2) TO WS-R.",
+            ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, "a data item named like an un-declared intrinsic must stay a subscript: " + string.Join("\n", errors));
     }
 
     /// <summary>§8.4.3.2.3 SR2: WITHOUT a REPOSITORY intrinsic/ALL specifier the word FUNCTION is REQUIRED — a
