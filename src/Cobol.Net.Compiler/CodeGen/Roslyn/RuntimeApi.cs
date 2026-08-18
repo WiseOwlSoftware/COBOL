@@ -231,9 +231,17 @@ internal static class RuntimeApi
     public static string NumRescaleEscape(string value, string fromScale, string toScale, CobolRounding mode) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.RescaleEscape)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
-    /// <summary>An SDIDI intermediate landed to an unscaled value — the instance <c>CobolDec.ToUnscaled</c>.</summary>
+    /// <summary>An SDIDI intermediate landed to an unscaled value — the instance <c>CobolDec.ToUnscaled</c> (the
+    /// UNCHECKED §14.7 final transfer: MOVE, alignment, an arithmetic store with no size-error checking).</summary>
     public static string DecToUnscaled(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaled)}({scale}, {RoundingText(mode)})";
+
+    /// <summary>The SIZE-ERROR-CHECKED sibling — <c>CobolDec.ToUnscaledChecked</c> (kb/Work PB74): a magnitude past
+    /// the Int128 carrier raises <c>CobolSizeError</c> EC-SIZE-TRUNCATION for the statement's ON SIZE ERROR /
+    /// EC-SIZE machinery instead of returning the low-order digits. The checked numeric-EDITED transfer in
+    /// <c>ArithmeticEmitter.StoreArith</c> rides this; the numeric receiver's <c>TryStore(CobolDec)</c> calls it directly.</summary>
+    public static string DecToUnscaledChecked(string decExpr, string scale, CobolRounding mode) =>
+        $"({decExpr}).{nameof(CobolDec.ToUnscaledChecked)}({scale}, {RoundingText(mode)})";
 
     /// <summary>SDIDI exponentiation (ISO §8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
     /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>

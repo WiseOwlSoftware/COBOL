@@ -37,9 +37,11 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   PB75 (an SDIDI range overflow outside an arithmetic statement is a raw CLR crash), PB76 (the
   far-below-precision remainder marker reads as a half-tie — `10 ** -20 ROUNDED` into V9(9) stores 0.000000001).
   **✅ PB76 LANDED (DEVLOG 1290)** — the marker is a signed below-half remainder; golden + `CobolDecRoundingTests`.
-  **NEXT, in order:** ① PB74 (`ToUnscaledChecked` + `TryStore(CobolDec)` + the checked edited path) → ② PB60's RV-15.69.4-2 (NATIVE NUMVAL-F: the float family's Receiverless/Real
-  convention, item-92 record) → ③ the battery for the batch → ④ PB60's last two rows (the CURRENCY SIGN SET
-  model; DECIMAL-POINT IS COMMA containment scoping) → ⑤ PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  **✅ PB74 LANDED (DEVLOG 1291)** — `ToUnscaledChecked` beneath `TryStore(CobolDec)` and the checked edited
+  transfer; the three PROHIBITED raises now name EC-SIZE-TRUNCATION; two goldens.
+  **NEXT, in order:** ① PB60's RV-15.69.4-2 (NATIVE NUMVAL-F: the float family's Receiverless/Real
+  convention, item-92 record) → ② the battery for the batch → ③ PB60's last two rows (the CURRENCY SIGN SET
+  model; DECIMAL-POINT IS COMMA containment scoping) → ④ PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

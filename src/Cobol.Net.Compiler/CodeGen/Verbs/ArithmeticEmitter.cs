@@ -283,12 +283,15 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // .ToUnscaled and the numeric path's TryStore already throw/flag on that; the Int128 edited path used
             // plain Rescale (silent truncation) — the DEVLOG-610-audited PROHIBITED leak. Use RescaleChecked in
             // the checked branch so all three receiver categories agree; the unchecked branch stays silent
-            // (matching the numeric Store path's no-phrase behavior).
+            // (matching the numeric Store path's no-phrase behavior). The Dec arm's checked form is likewise
+            // ToUnscaledChecked (kb/Work PB74): the unchecked ToUnscaled hands EditTryFormat the low-order digits
+            // of an out-of-carrier value — 0 for 10 ** 100 — which the mask then "fits", no size error.
             string Aligned(bool checkedPath) =>
                 // A float (Real) result lands at the mask scale via the runtime's ToScaled with the receiver's ROUNDED
                 // mode (D16 review: the edited-receiver arithmetic path was missed by the Real integration → CS1503).
                 value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{ms}", mode)
-                : value.Dec ? RuntimeApi.DecToUnscaled(value.Expr, $"{ms}", mode)
+                : value.Dec ? (checkedPath ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{ms}", mode)
+                                           : RuntimeApi.DecToUnscaled(value.Expr, $"{ms}", mode))
                 : value.Scale == ms ? value.Expr
                 : RuntimeApi.NumRescale(value.Expr, $"{value.Scale}", $"{ms}", mode, checkedPath);
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule

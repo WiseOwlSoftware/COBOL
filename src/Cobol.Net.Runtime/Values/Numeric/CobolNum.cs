@@ -43,7 +43,7 @@ public static partial class CobolNum
     {
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, fromScale, toScale))
             throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer to an edited receiver "
-                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)");
+                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
         return Rescale(value, fromScale, toScale, mode);
     }
 
@@ -121,8 +121,11 @@ public static partial class CobolNum
     {
         stored = 0;
         Int128 v;
-        try { v = value.ToUnscaled(receiver.FractionScale, mode); }
-        catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§14.7.4.3 r7)
+        // The CHECKED transfer (kb/Work PB74): a magnitude past the Int128 carrier is a size error here, never the
+        // low-order digits the unchecked ToUnscaled keeps — those passed the capacity check below as 0 and stored,
+        // so COMPUTE X5 = 10 ** 100 ON SIZE ERROR ran NOT ON SIZE ERROR under STANDARD-DECIMAL.
+        try { v = value.ToUnscaledChecked(receiver.FractionScale, mode); }
+        catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§14.7.4.3 r7) or the §14.7.5 case-3 overflow
         if (receiver.Truncation == NumericTruncation.BinaryCapacity)
         {
             if (!InBinaryRange(v, receiver)) return false;

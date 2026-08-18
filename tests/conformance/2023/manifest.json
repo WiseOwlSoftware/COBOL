@@ -134,6 +134,8 @@
   "pb65_selection_alignment",
   "pb65_wide_values",
   "pb72_table16_admitted_cells",
+  "pb74_sdidi_intermediate_prohibited_ec",
+  "pb74_sdidi_store_size_error",
   "pb76_sdidi_subprecision_rounding",
   "pb7_keyword_omitted_zero_arg",
   "pb8_refmod_function_result",

@@ -242,16 +242,40 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     }
 
     /// <summary>The value as an unscaled integer at <paramref name="scale"/> fraction digits, rounded with the
-    /// RECEIVER's mode (the §14.7 final transfer; feeds the normal store/capacity pipeline).</summary>
-    public Int128 ToUnscaled(int scale, CobolRounding mode)
+    /// RECEIVER's mode — the UNCHECKED §14.7 final transfer (a MOVE, or an arithmetic statement with no SIZE
+    /// ERROR phrase and no EC-SIZE checking): a magnitude past the Int128 carrier keeps only the low-order digits
+    /// a ≤38-digit store could use, which is the same high-order truncation the store then applies to a value
+    /// that overflows its picture (§14.9.25.4 GR6 for MOVE; the documented no-phrase disposition for arithmetic).
+    /// The CHECKED transfer is <see cref="ToUnscaledChecked"/>.</summary>
+    public Int128 ToUnscaled(int scale, CobolRounding mode) => ToUnscaledCore(scale, mode, checkedTransfer: false);
+
+    /// <summary>The SIZE-ERROR-CHECKED §14.7 final transfer (kb/Work PB74): identical to <see cref="ToUnscaled"/>
+    /// except that a magnitude the Int128 carrier cannot hold — which no fixed-point receiver can hold either —
+    /// raises <see cref="CobolSizeError"/> EC-SIZE-TRUNCATION (§14.7.5 case 3: "the result of an arithmetic
+    /// statement is further from zero than permitted for the associated resultant data item"; no-phrase rule 4
+    /// names the condition) instead of returning the low-order digits. ⛔ The unchecked arm's "keep only the
+    /// digits a store could use" returned 0 for 10¹⁰⁰, and <c>CobolNum.TryStore(CobolDec, …)</c> then
+    /// capacity-checked THAT 0 and stored it — under STANDARD-DECIMAL <c>COMPUTE X5 = 10 ** 100 ON SIZE ERROR</c>
+    /// ran NOT ON SIZE ERROR and overwrote the receiver, where storing rule 1 requires it unchanged.
+    /// <c>TryStore(CobolDec)</c> and the emitter's checked numeric-edited transfer ride this one.</summary>
+    public Int128 ToUnscaledChecked(int scale, CobolRounding mode) => ToUnscaledCore(scale, mode, checkedTransfer: true);
+
+    private Int128 ToUnscaledCore(int scale, CobolRounding mode, bool checkedTransfer)
     {
         int shift = Exp + scale;
         if (Sig == 0) return 0;
         if (shift >= 0)
         {
-            // Widening: keep only digits a ≤38-digit store could ever use; the store's own capacity rules apply.
             Int128 sig = Sig;
-            if (DigitCount(Int128.Abs(sig)) + shift > 38) sig %= Pow10.AsWide(Math.Max(0, 38 - shift));
+            if (DigitCount(Int128.Abs(sig)) + shift > 38)
+            {
+                if (checkedTransfer)
+                    throw new CobolSizeError("standard-decimal result is further from zero than any fixed-point "
+                        + "receiver permits (ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)",
+                        "EC-SIZE-TRUNCATION");
+                // Widening: keep only digits a ≤38-digit store could ever use; the store's own capacity rules apply.
+                sig %= Pow10.AsWide(Math.Max(0, 38 - shift));
+            }
             if (sig == 0) return 0;                            // a far-out-of-range value keeps no store digits
             return sig * Pow10.AsWide(shift);
         }
@@ -299,8 +323,11 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             switch (mode)
             {
                 case CobolRounding.Prohibited:
-                    // §11.9.11: PROHIBITED + not exactly representable ⇒ EC-SIZE-TRUNCATION, results undefined.
-                    throw new CobolSizeError("INTERMEDIATE ROUNDING IS PROHIBITED: inexact standard-decimal intermediate");
+                    // §11.9.11.2 r3d: PROHIBITED + not exactly representable in SDIDI form ⇒ EC-SIZE-TRUNCATION,
+                    // results undefined. The level-3 NAME travels with the raise (kb/Work PB74's sweep): a
+                    // >>TURN EC-SIZE program selecting on EXCEPTION-STATUS saw the default EC-SIZE-OVERFLOW here.
+                    throw new CobolSizeError("INTERMEDIATE ROUNDING IS PROHIBITED: inexact standard-decimal intermediate "
+                        + "(ISO §11.9.11.2 r3d — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
                 case CobolRounding.Truncation:
                     break;
                 case CobolRounding.NearestEven:
@@ -351,7 +378,9 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         int sign = q < 0 || rem < 0 ? -1 : 1;
         return mode switch
         {
-            CobolRounding.Prohibited => throw new CobolSizeError("PROHIBITED rounding on an inexact transfer"),
+            // §14.7.4.3 r7 — the level-3 name is EC-SIZE-TRUNCATION (PB74's sweep: the default name latched OVERFLOW).
+            CobolRounding.Prohibited => throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer "
+                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION"),
             CobolRounding.Truncation => q,
             CobolRounding.AwayFromZero => q + sign,
             CobolRounding.TowardGreater => sign > 0 ? q + 1 : q,

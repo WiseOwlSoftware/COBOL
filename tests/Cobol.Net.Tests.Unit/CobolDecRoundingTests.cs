@@ -63,6 +63,34 @@ public sealed class CobolDecRoundingTests
         Assert.Equal(-6176, q.Exp);
     }
 
+    // ── The CHECKED final transfer (kb/Work PB74): an out-of-carrier magnitude is a size error, never 0 ────
+
+    [Fact]
+    public void ToUnscaledChecked_OutOfCarrierMagnitude_IsSizeErrorTruncation()
+    {
+        var huge = new CobolDec(1, 100);                                                   // 10¹⁰⁰ — inside decimal128, past Int128
+        Assert.Equal((Int128)0, huge.ToUnscaled(0, CobolRounding.Truncation));            // unchecked: the low-order digits (0)
+        var ex = Assert.Throws<CobolSizeError>(() => huge.ToUnscaledChecked(0, CobolRounding.Truncation));
+        Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);                                    // §14.7.5 no-phrase rule 4
+        var fits = new CobolDec(12345, 33);                                                // 1.2345×10³⁷ — 38 digits, fits
+        Assert.Equal(Int128.Parse("12345" + new string('0', 33)), fits.ToUnscaledChecked(0, CobolRounding.Truncation));
+    }
+
+    [Fact]
+    public void TryStoreDec_OutOfCarrierMagnitude_ReportsFalse_ReceiverUntouched()
+    {
+        var pic95 = new NumProfile   // PIC 9(5) DISPLAY
+        {
+            Digits = 5, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch,
+            Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 5,
+        };
+        Assert.False(CobolNum.TryStore(new CobolDec(1, 100), pic95, CobolRounding.Truncation, out Int128 stored));
+        Assert.Equal((Int128)0, stored);                                                   // the caller leaves the receiver alone
+        Assert.False(CobolNum.TryStore(new CobolDec(1, 30), pic95, CobolRounding.Truncation, out _));   // the control that always worked
+        Assert.True(CobolNum.TryStore(new CobolDec(1, 4), pic95, CobolRounding.Truncation, out stored));
+        Assert.Equal((Int128)10000, stored);
+    }
+
     /// <summary>The at-scale controls the sub-precision case must agree with: an exact tie rounds away (r4), a
     /// below-half remainder rounds down.</summary>
     [Fact]

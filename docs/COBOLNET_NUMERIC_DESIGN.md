@@ -72,7 +72,14 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the
 >   §8.8.1.2 r6 / r4 EC-SIZE-EXPONENTIATION legs; a non-integer exponent is the r2e double approximation
 >   converted through `FromDouble`). The receiver's ROUNDED applies only at the final transfer via the
->   `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1). An Int128 significand represents every
+>   `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1). The final transfer has an UNCHECKED and a
+>   CHECKED form (PB74, 2026-08-17): `CobolDec.ToUnscaled` (MOVE / no-phrase store) keeps only the low-order
+>   digits of a magnitude past the Int128 carrier — the same high-order truncation the store then applies —
+>   while `ToUnscaledChecked` (ridden by `TryStore(CobolDec)` and the emitter's checked numeric-edited
+>   transfer) raises `CobolSizeError` EC-SIZE-TRUNCATION for it (§14.7.5 case 3 / no-phrase rule 4), so
+>   `10 ** 100 ON SIZE ERROR` fires and leaves the receiver unchanged. Every PROHIBITED raise carries its
+>   level-3 name — EC-SIZE-TRUNCATION per §14.7.4.3 r7 (the transfer) and §11.9.11.2 r3d (the intermediate) —
+>   so an EXCEPTION-STATUS / USE / PERFORM-WHEN selection sees the right condition. An Int128 significand represents every
 >   decimal128 value's 34-digit significand exactly; only the rejection of `decimal` (96-bit/28-digit) stands.
 > - **Intrinsic functions under the standard modes (§15.4.1 r1):** a function WITH an equivalent arithmetic
 >   expression must return exactly the SDIDI-evaluated EAE value. The exact-Int128 family (MOD/REM/MAX/MIN/
