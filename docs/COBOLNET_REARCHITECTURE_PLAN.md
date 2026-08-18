@@ -215,7 +215,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   syntax rules; `group-usage-clause-2002` gates below 2002. **PB95 FOUND AND FIXED with it** — bare (USAGE-less)
   POINTER / OBJECT REFERENCE / NATIONAL / BIT / PROGRAM-POINTER / FUNCTION-POINTER were parse errors; `usageClause`
   is one `(USAGE IS?)? usageKeyword` alternative. Ten verdicts → CONFORMS (RV-15.50.4-1/2 re-adjudicated from
-  PARTIAL), GAP 3964. Battery #15 owed for this batch.
+  PARTIAL), GAP 3964.
+  **✅ Battery #15 (PB79 + PB95 landing, tree `5eff5d5e`):** Conformance **4739/4739** · Unit **4232/4232** ·
+  Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
   **NEXT, in order (`work.py next`):** ① PB93 → PB94 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
