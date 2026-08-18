@@ -1,0 +1,10 @@
+T0 LENGTH unassociated=0017
+T1 W sends [ABcccddd            ]
+T2 B sends [ABcccddd            ]
+T3 LENGTH associated=0008
+T4 LENGTH W=0008
+T5 B receives [XYZ12345eee]
+T6 B compares its current part
+T7 B(2:4)=[YZ12]
+T8 B sends 3 [XYZ12345eee         ]
+T9 LENGTH after SET NULL=0017

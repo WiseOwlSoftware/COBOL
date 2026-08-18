@@ -136,9 +136,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `Visit(BoundBoolOperand)` as a loud stage — now asserts the ONE BooleanRenderer image (§8.4.3.2.3 SR8). Both
   re-run green (46/46, 7/7); the battery for the corrected tree rides with the next batch.
   **✅ PB88 CLOSED (DEVLOG 1307, 2026-08-18)** — STRING/UNSTRING syntax-rule violations (SR4/5/6/7/11; SR2/5/6/7/10)
-  are bind-time COBOLNET1651 through ONE `Reject` helper; ten verdicts → CONFORMS, GAP 4019. Battery owed for the
-  PB88 batch with the next landing.
-  **NEXT, in order:** ① PB80 → PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
+  are bind-time COBOLNET1651 through ONE `Reject` helper; ten verdicts → CONFORMS, GAP 4019.
+  **✅ PB80 + PB89 CLOSED (DEVLOG 1308, 2026-08-18)** — a BASED occurs-depending group is an ODO operand: ONE wrap
+  rule (`ReferenceResolver.WrapIfOdoGroup` over the class-tier window and the struct member alike), ONE image reader
+  (`PlaceRenderer.GroupImage`), ONE storage-boundary store (`WriteFullGroupImage` — READ into a record area, FILE
+  STATUS group, CALL copy-in/out; no Place-based emitter spells `.FromImage(` any more — RL210A broke the first gate), LENGTH
+  r4a's maximum for an unassociated based entry through `RuntimeApi.PtrIsNull` (the null pointer is a singleton).
+  PB89: `SET ADDRESS OF … TO NULL` (SR19) parses, binds and disassociates. Four verdicts → CONFORMS, GAP 4015.
+  **Battery owed for the PB88 + PB80/PB89 batch — running now.**
+  **NEXT, in order:** ① PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

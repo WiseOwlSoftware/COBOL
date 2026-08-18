@@ -174,7 +174,15 @@ public sealed record BoundReportVaryingRef(string CsName) : BoundExpr;
 /// runtime-sourced from <paramref name="Depending"/> (data-name-1's place). Produced only by the LENGTH /
 /// BYTE-LENGTH variable-length-group builder; the backend renders <c>CobolTable.OdoExtent</c> — the SAME helper
 /// the group's sending image slices with, so the two extents cannot disagree.</summary>
-public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccurs, int FixedWidth, int ElemWidth) : BoundExpr;
+public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccurs, int FixedWidth, int ElemWidth) : BoundExpr
+{
+    /// <summary>The BASED entry's data-address field (<c>__addr_X</c>) when the group is a BASED record (kb/Work PB80):
+    /// §15.50.4 r4a / §15.14.4 r2a — "if argument-1 is a based entry not associated with actual data … the length
+    /// of argument-1 is determined in accordance with the rules of the OCCURS clause for a receiving data item", i.e.
+    /// GR8b's MAXIMUM; only an ASSOCIATED entry reads data-name-1 (r4b). The renderer tests the pointer for null
+    /// BEFORE anything under the entry is dereferenced (a null data address traps in <c>CobolPtr.Deref</c>).</summary>
+    public string? BasedAddress { get; init; }
+}
 
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
@@ -664,7 +672,7 @@ public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = 
 
 /// <summary><c>SET ADDRESS OF based-item TO pointer</c> (ISO §14.9.39 Format 7; SR18 — the receiver shall be
 /// BASED; GR12–13 — the address VALUE is assigned, a snapshot): <c>__addr_B = pointer</c>.</summary>
-public sealed record BoundSetAddressOfBased(DataItem Based, Place Source) : BoundStatement;
+public sealed record BoundSetAddressOfBased(DataItem Based, Place? Source) : BoundStatement;   // Source null ⇒ TO NULL (SR19; kb/Work PB89)
 
 /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
 /// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-4 twin.</summary>

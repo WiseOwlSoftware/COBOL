@@ -107,10 +107,17 @@ Concrete kinds:
   • RefModPlace(inner,s,l)   Read=`CobolString.RefMod(inner.Read(),s,l)`  Write=`{var t=inner.Read(); inner.Write(CobolString.SpliceInto(t,s,l,rhs));}`
     — its `Category` is THE ONE reader of the unique item's category (§8.4.3.3.4 GR6 via `CategoryOf` over a PICTURE; ALPHANUMERIC over a group).
   • NumericImagePlace(inner) — a numeric USAGE DISPLAY item viewed as its zoned character image (§8.4.3.3.4 GR2/GR6): Read=`FormatImage(inner)`, Write=decode back.
+  • OdoGroupPlace(inner,…)  — wraps ANY group place whose subtree holds an occurs-depending table (§13.18.38 GR8): a record-struct member OR a Tier-B / BASED class-tier window
+    (kb/Work PB80, 2026-08-18 — a BASED ODO record sent its maximum image; `ReferenceResolver.WrapIfOdoGroup` is the ONE wrap rule, `PlaceRenderer.GroupImage` the ONE image reader
+    over both storage shapes: a struct's `AsImage()`, a window's `Read`, a wrapper's inner). LENGTH/BYTE-LENGTH's ODO term (`BoundOdoExtent.BasedAddress`) answers r4a's maximum for an
+    UNASSOCIATED based entry through the runtime's null-pointer test (`RuntimeApi.PtrIsNull` — the null pointer is a singleton, never a C# null).
   • GroupImagePlace(inner)   — a GROUP viewed as its character image for reference modification (§8.4.3.3.3 SR1 bullets 3/9; kb/Work PB70, 2026-08-18):
     Read=`inner.AsImage()` (an occurs-depending group with data-name-1 outside: its CURRENT-count part, §13.18.38 GR8), Write=`PlaceRenderer.WriteGroupImage(inner, image)` — THE ONE
     group-image store every image-depositing verb calls (MOVE, INSPECT, STRING, UNSTRING, ACCEPT, the ref-mod splice): FromImage / the GR8a current-extent splice / the Tier-B window /
-    the OCCURS DYNAMIC receiving accessor; a group with a float / COMP-5 / INDEX leaf is the loud Tier-C island. `ReferenceResolver.RefModExclusion` is THE §8.4.3.3.3 SR1 admissibility rule
+    the OCCURS DYNAMIC receiving accessor; a group with a float / COMP-5 / INDEX leaf is the loud Tier-C island. Its sibling `PlaceRenderer.WriteFullGroupImage` is the STORAGE-BOUNDARY
+    store (a record area receiving a READ, a FILE STATUS group, CALL's copy-in/out — the WHOLE image, never GR8's current-extent slice; it unwraps an occurs-depending wrapper — kb/Work PB80:
+    an FD record holding an ODO is an `OdoGroupPlace` over a class-tier window, and a `Read(record).FromImage(…)` spelled at an emitter was CS1061). No Place-based emitter spells `.FromImage(` itself (the codec generator and OoEmitter's fresh method-LINKAGE root are the record struct's own member).
+    `ReferenceResolver.RefModExclusion` is THE §8.4.3.3.3 SR1 admissibility rule
     (COBOLNET1647 for a strongly-typed / variable-length group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited or numeric leaf under a strongly-typed group, an index / pointer /
     object reference); `ExpressionBinder.ResolveReceiving` never drops a receiver silently — an undiagnosed null is COBOLNET0899 recognized-not-implemented at the chokepoint.
   • Condition88Place(parent,valueset)  Read=`CobolCond.In(parent.Read(),…)`  Write(true)=set parent to value.

@@ -380,19 +380,15 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // A Tier-B view record (a multi-01 FD whose shared area is a synthesized REDEFINES) has no struct to call
         // FromImage on — its Read() is a string window — so splice the padded image into its backing via Write, as for
         // an elementary record. (Mirrors EmitGroupImage's RedefViewPlace handling.)
-        if (record is not RedefViewPlace && record.Item.IsGroup)
+        if (record.Item.IsGroup)
         {
-            // A mixed-usage record area distributes through the same generated FromImage — its BINARY/PACKED
-            // leaves decode their zoned digit slices (the §13.18.60 USAGE GR4 implementor representation,
-            // COBOLNET_DESIGN §14.4/§8.2: the record codec IS the AsImage/FromImage pair). Only a record with a
-            // float/COMP-5/INDEX leaf stays the loud Tier-C island (§1.4) rather than emit a string-into-struct
-            // assignment that fails the backend compile (the old ST133A/ST134A/SQ203A CS0029 class).
-            if (!record.Item.IsImageCapable)
-            {
-                w.Line(LoudStmt(TierCIsland.Reason($"record area '{record.Item.CobolName}' contains float/COMP-5/INDEX leaves")));
-                return;
-            }
-            w.Line($"{PlaceRenderer.Read(record)}.FromImage({RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}")});");
+            // A STORAGE-boundary write: the WHOLE record image, whatever the record area's storage shape (a
+            // record struct, a Tier-B view over a shared area, an occurs-depending record — kb/Work PB80) — the
+            // ONE full-image store. A mixed-usage record area distributes through the generated FromImage (its
+            // BINARY/PACKED leaves decode their byte slices — COBOLNET_DESIGN §14.4/§8.2); a record with a
+            // float/COMP-5/INDEX leaf is the loud Tier-C island inside the helper (§1.4).
+            w.Line(PlaceRenderer.WriteFullGroupImage(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}"),
+                $"record area '{record.Item.CobolName}' read"));
             return;
         }
         w.Line(PlaceRenderer.Write(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.Pic?.Length ?? record.Item.ImageWidth}")));
@@ -430,7 +426,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // A GROUP status item fills without conversion through the image facility (§14.9.25.4 GR4 — the
             // CCVS shape `01 SQ-FS2-STATUS. 03 KEY-1 PIC X. 03 KEY-2 PIC X.`); a struct field cannot take the
             // raw string write.
-            ctx.Writer.Line($"{PlaceRenderer.Read(place)}.FromImage({status});");
+            ctx.Writer.Line(PlaceRenderer.WriteFullGroupImage(place, status, "FILE STATUS group"));   // the ONE full-image store (kb/Work PB80)
             return;
         }
         ctx.Writer.Line(PlaceRenderer.Write(place, status));

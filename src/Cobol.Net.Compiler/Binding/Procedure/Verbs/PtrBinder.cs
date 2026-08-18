@@ -37,8 +37,12 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         {
             // SET ADDRESS OF based-item TO pointer (GR12–13 — the address VALUE is assigned; a snapshot).
             var basedRef = sa.dataReference(0);
-            var senderRef = sa.dataReference(1);
             if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();   // 0869 reported
+            // SR19 — identifier-6 "shall be the predefined address NULL or shall reference a data-pointer": TO NULL
+            // disassociates the based item (its implicit pointer becomes NULL — §13.18.5 GR2's initial state; kb/Work
+            // PB89 — the form was a parse error).
+            if (sa.NULL_() is not null) return new BoundSetAddressOfBased(based, null);
+            var senderRef = sa.dataReference(1);
             if (PtrResolvePointer(senderRef, "the sender of SET ADDRESS OF (ISO §14.9.39 SR17)") is not { } src)
                 return new BoundNop();
             return new BoundSetAddressOfBased(based, src);

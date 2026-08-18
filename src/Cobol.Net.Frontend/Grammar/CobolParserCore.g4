@@ -1177,7 +1177,7 @@ setBooleanStatement
 //   SET ADDRESS OF based-item TO pointer   — rebase a BASED/LINKAGE item
 //   SET pointer TO ADDRESS OF identifier   — take a pointer to an item (ADDRESS OF as sender)
 setAddressStatement
-    : SET ADDRESS OF dataReference TO dataReference
+    : SET ADDRESS OF dataReference TO (dataReference | NULL_)   // SR19 — identifier-6 is a data-pointer or the predefined address NULL (kb/Work PB89)
     | SET dataReference TO ADDRESS OF dataReference
     ;
 

@@ -245,6 +245,11 @@ internal static class RuntimeApi
     /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
     /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
     /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
+    /// <summary>Is a data-address / pointer expression the NULL pointer? The runtime's null is the
+    /// <c>ManagedPointer.Null</c> SINGLETON, never a C# null — a bare <c>is null</c> test is always false on it (kb/Work
+    /// PB80: the LENGTH r4a association guard read an unallocated BASED entry as associated).</summary>
+    public static string PtrIsNull(string ptrExpr) => $"({ptrExpr} is null || {ptrExpr}.{nameof(ManagedPointer.IsNull)})";
+
     public static string DecSign(string decExpr) =>
         $"{nameof(Int128)}.{nameof(Int128.Sign)}(({decExpr}).{nameof(CobolDec.Sig)})";
 

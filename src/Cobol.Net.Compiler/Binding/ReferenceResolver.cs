@@ -496,7 +496,10 @@ public sealed class ReferenceResolver(DataBinder data)
             if (sc.BasedPointerField is { } addr)
                 offset = $"CobolPtr.OffsetOf({addr}) + {offset}";
             // (whole-group image analysis moved OUT of resolve to the post-bind UsageCollectionPass, PHASE-05 Step 5)
-            return new RedefViewPlace(backing, offset, item.ImageWidth, item);
+            // A class-tier GROUP holding an occurs-depending table is an ODO operand exactly like a struct group
+            // (kb/Work PB80: a BASED record — string-canonical — sent its MAXIMUM image; §13.18.38.4 GR8 does not
+            // care how the group is stored). ONE wrap rule for both storage shapes.
+            return WrapIfOdoGroup(new RedefViewPlace(backing, offset, item.ImageWidth, item), item);
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.
@@ -519,15 +522,19 @@ public sealed class ReferenceResolver(DataBinder data)
         // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
         // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
         // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9 MOVE GR4.)
-        var member = new MemberPlace(path, item);
-        // A group whose subtree contains an occurs-depending table is an ODO operand (ISO §13.18.38 GR8): wrap it so
-        // the sending slice / receiving direction-split applies. data-name-1 is resolved post-build, declared anywhere
-        // outside the table (SR20), and read at the operation site via CobolTable.Occ (storage-form-agnostic).
-        if (item.IsGroup && OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } table
-            && ResolveItem(dep) is { } depPlace)
-            return OdoModel.WrapGroup(member, depPlace, item, table);
-        return member;
+        return WrapIfOdoGroup(new MemberPlace(path, item), item);
     }
+
+    /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §13.18.38 GR8): wrap
+    /// it so the sending slice / receiving direction-split applies — whatever the group's storage shape (a record
+    /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
+    /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ
+    /// (storage-form-agnostic). Any other place passes through unchanged.</summary>
+    private Place WrapIfOdoGroup(Place place, DataItem item) =>
+        item.IsGroup && OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } table
+            && ResolveItem(dep) is { } depPlace
+            ? OdoModel.WrapGroup(place, depPlace, item, table)
+            : place;
 
     /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's conditional
     /// variable, a SET condition's variable, or an FD record area) — view-aware via <see cref="PlaceForItem"/>, so a

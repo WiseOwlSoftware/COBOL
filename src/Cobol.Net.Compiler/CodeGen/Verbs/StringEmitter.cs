@@ -198,13 +198,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
             // positionally over its bytes. A float/COMP-5/INDEX group is still imageless and stays loud —
             // hence the leaf-kind wording now matches the predicate actually tested.
-            if (!target.Item.IsImageCapable)
-            {
-                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group")));
-                return;
-            }
-            string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");
-            w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, image) : $"{PlaceRenderer.Read(target)}.FromImage({image});");
+            // The ONE group-image store (MOVE rules — §14.9.48.4 GR11c: a GR8a current-extent splice for an
+            // occurs-depending receiver, the Tier-B window, the Tier-C loud island; kb/Work PB80).
+            w.Line(PlaceRenderer.WriteGroupImage(target, RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}"), "UNSTRING INTO group"));
             return;
         }
         switch (target.Item.Pic)

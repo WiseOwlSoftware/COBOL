@@ -300,7 +300,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
     /// RETURNING delivery) is such a boundary.</summary>
     internal static string CallStringRead(Place p) => p is OdoGroupPlace odo
-        ? $"{PlaceRenderer.Read(odo)}.AsImage()"
+        ? PlaceRenderer.GroupImage(odo)   // the FULL image (GR8 is a sending-operand rule, not a boundary one) — window or struct (kb/Work PB80)
         : OperandText.FieldImage(p);
 
     internal static string CallStringWrite(Place p, string value) =>
@@ -312,7 +312,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // back OUT through a raw write (or refuse the write for a group the guard had just admitted). Kept in
         // lockstep deliberately; `V59ImagePredicateDriftTests` fails if they diverge again.
         p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsImageCapable
-            ? $"{PlaceRenderer.Read(p)}.FromImage({value});"
+            ? PlaceRenderer.WriteFullGroupImage(p, value, "CALL boundary copy")   // the FULL image — an ODO wrapper is unwrapped (kb/Work PB80)
             : PlaceRenderer.Write(p, value);
 
     /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2). Under enabled

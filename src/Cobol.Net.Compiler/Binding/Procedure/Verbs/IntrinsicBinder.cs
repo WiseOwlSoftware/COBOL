@@ -1817,11 +1817,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     // the table the record's trailing part, so the operand IS the OdoGroupPlace).
                     if (HasRuntimeLength(c))
                     { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has a runtime-length element — a per-occurrence sum"); return; }
-                    if (odo is null)   // a BASED entry / REDEFINES-class record: the resolver never wraps it (kb/Work PB80)
-                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' lies inside a BASED entry or a REDEFINES-class record, whose data-name-1 extent is not yet applied"); return; }
+                    if (odo is null)   // the resolver wraps every ODO group operand — struct member or class-tier window (kb/Work PB80); reaching here is a shape it could not resolve
+                    { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.CsName}' has no resolvable data-name-1 place"); return; }
                     int elem = c.ByteWidth, max = c.Occurs ?? 1;
                     fixedPart -= (long)elem * max;
-                    Add(new BoundOdoExtent(odo.Depending, spec.Min, max, 0, elem));
+                    // r4a / r2a — a BASED entry not associated with actual data answers the maximum (GR8b): the
+                    // entry's data-address field guards the ODO term (kb/Work PB80).
+                    Add(new BoundOdoExtent(odo.Depending, spec.Min, max, 0, elem)
+                        { BasedAddress = group.Class?.BasedPointerField });   // null for a non-BASED class
                 }
                 else if (c.Occurs is not null)
                 {

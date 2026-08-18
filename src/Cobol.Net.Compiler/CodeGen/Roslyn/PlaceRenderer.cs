@@ -41,7 +41,7 @@ internal static class PlaceRenderer
         GroupImagePlace g => !g.Inner.Item.IsImageCapable
             ? EmitText.LoudValue("string", TierCIsland.Reason(g.Inner.Item, "reference modification of group"))
             : g.Inner is OdoGroupPlace { DependingInside: false } odo ? SendingImage(odo)
-            : $"{Read(g.Inner)}.AsImage()",
+            : GroupImage(g.Inner),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -198,19 +198,38 @@ internal static class PlaceRenderer
     /// and UNSTRING store by the same MOVE rules — so every verb that deposits an image into a group calls THIS
     /// (kb/Work PB70 removed five copies of the rule, each carrying this paragraph).</para>
     /// </summary>
+    /// <summary>The FULL-image store into a group place — a STORAGE-BOUNDARY write (a file record area receiving a
+    /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §13.18.38 GR8 sending/receiving
+    /// slice: an occurs-depending wrapper is unwrapped and its inner takes the whole image (kb/Work PB80 — an FD
+    /// record holding an ODO table is now an <see cref="OdoGroupPlace"/> over a class-tier window, and a
+    /// <c>Read(record).FromImage(…)</c> spelled at the call site was CS1061 on the string).</summary>
+    public static string WriteFullGroupImage(Place group, string image, string context) =>
+        group is OdoGroupPlace o ? WriteFullGroupImage(o.Inner, image, context) : WriteGroupImage(group, image, context);
+
     public static string WriteGroupImage(Place group, string image, string context) => group switch
     {
         RedefViewPlace => Write(group, image),
         _ when !group.Item.IsImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         OdoGroupPlace { DependingInside: false } odo => ReceiveInto(odo, image),
-        OdoGroupPlace odo => $"{Read(odo.Inner)}.FromImage({image});",
+        OdoGroupPlace odo => WriteGroupImage(odo.Inner, image, context),   // GR8b — the maximum length, whatever the inner's storage shape
         DynTablePlace dyn => $"{RenderPath(dyn.Path, AccessDir.Receiving)}.FromImage({image});",
         _ => $"{Read(group)}.FromImage({image});",
     };
 
+    /// <summary>The character IMAGE of a group place, whatever its storage shape (kb/Work PB80): a record-struct
+    /// group's generated <c>AsImage()</c>; a Tier-B / BASED class-tier window's <c>Read</c> (already the string
+    /// window); an occurs-depending wrapper's inner image (the wrapper's own <see cref="SendingImage"/> is the GR8
+    /// slice of this). THE ONE reader — a consumer that spells <c>.AsImage()</c> itself is wrong for the window shape.</summary>
+    public static string GroupImage(Place group) => group switch
+    {
+        RedefViewPlace => Read(group),
+        OdoGroupPlace o => GroupImage(o.Inner),
+        _ => $"{Read(group)}.AsImage()",
+    };
+
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
-    public static string SendingImage(OdoGroupPlace p) => $"{Read(p.Inner)}.AsImage().Substring(0, {LengthExpr(p)})";
+    public static string SendingImage(OdoGroupPlace p) => $"{GroupImage(p.Inner)}.Substring(0, {LengthExpr(p)})";
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
     /// splice the stored prefix over the live image, leaving positions past the count unmodified. <c>allowZeroLength</c>
@@ -218,7 +237,8 @@ internal static class PlaceRenderer
     /// reference-modification violation — this internal splice is not a user ref-mod, so it must not raise
     /// EC-BOUND-REF-MOD under checking (review V48).</summary>
     public static string ReceiveInto(OdoGroupPlace p, string imageExpr) =>
-        $"{Read(p.Inner)}.FromImage({RuntimeApi.StrSpliceInto($"{Read(p.Inner)}.AsImage()", "1", LengthExpr(p), imageExpr, allowZeroLength: true)});";
+        WriteGroupImage(p.Inner, RuntimeApi.StrSpliceInto(GroupImage(p.Inner), "1", LengthExpr(p), imageExpr, allowZeroLength: true),
+            "occurs-depending group receive");
 
     /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current character extent (GR8):
     /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site.</summary>

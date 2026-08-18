@@ -21039,12 +21039,12 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "OCCURS clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup; src/Cobol.Net.Compiler/Binding/Model/OdoModel.cs#WrapGroup; src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingImage; src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReceiveInto; src/Cobol.Net.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#GroupImage",
+  "test-ref": "conformance:2023/pb80_based_odo_group; conformance:2023/pb70_group_reference_modification",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB80 (2026-08-18): GR8a (data-name-1 outside the group) — the sending image is the current-count part and a receiving store touches only it; GR8b (inside) — the maximum length — for EVERY storage shape of the group: a record-struct member and a Tier-B / BASED class-tier window alike (WrapIfOdoGroup wraps both; PlaceRenderer.GroupImage is the ONE image reader over both). A BASED ODO record sent its MAXIMUM before (MOVE BODO TO OUT gave ABcccdddeee for NN = 2), a MOVE into it wrote past the current extent, and a comparison / ref-mod read the maximum. The WORKING-STORAGE twin is the control on every golden row; a REDEFINES-class ODO group cannot be declared (13.18.44 SR forbids redefining a variable-size item), so BASED is the only class-tier shape.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.38.4-9",
@@ -38862,12 +38862,12 @@
   "kind": "SR",
   "ordinal": 19,
   "subject": "SET statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setAddressStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetAddress; src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetAddressOfBased",
+  "test-ref": "conformance:2023/pb80_based_odo_group",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB89 (2026-08-18): identifier-6 of Format 7 'shall be the predefined address NULL or shall reference a data-pointer' — SET ADDRESS OF based-item TO NULL was a parse error (the grammar admitted only a data reference); it now disassociates the based item (its implicit pointer becomes NULL, 13.18.5 GR2's initial state — LENGTH answers the maximum again). The data-pointer sender form was already implemented.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-20",
@@ -43542,12 +43542,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "BYTE-LENGTH function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOdoExtent",
-  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches",
-  "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.4 r2b (sending rules, §13.18.38.4 GR8): an OCCURS DEPENDING group's CURRENT extent — golden ODO/ODO5: 1 + 3×2 = 7 then 11 after MOVE 5, ODON: 1 + 2×4 = 9 (national elements) — built by VariableLengthGroupSum as a BoundOdoExtent (data-name-1 clamped to [integer-1, integer-2], EC-BOUND-ODO outside, the SAME CobolTable.OdoExtent the sending image slices with); it staged loud before. r2a for a TYPE DECLARATION: 'the rules of the OCCURS clause for a receiving data item' (GR8b, the maximum) — golden TODO = 2 + 5×3 = 17. PARTIAL: r2a's BASED-ENTRY half (an unassociated based group → the maximum; an associated one → the current extent) is not applied — a BASED root is a string-canonical class the resolver never wraps as an OdoGroupPlace, so LENGTH stages loud by name and the group's GR8 sending slice is missing too — kb/Work PB80.",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup",
+  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance:2023/pb80_based_odo_group",
+  "editions": "2014,2023",
+  "notes": "kb/Work PB80 (2026-08-18) closes the PB61 residue: r2a's BASED-entry half rides the same builder as LENGTH's r4a (BYTE-LENGTH is the bytes projection of the ONE VariableLengthGroupSum) — the unassociated maximum vs the associated current extent, guarded by BoundOdoExtent.BasedAddress.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.14.4-3",
@@ -45544,12 +45544,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "LENGTH function",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOdoExtent",
-  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches",
-  "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r4b (sending rules, §13.18.38.4 GR8): the ODO group's CURRENT extent — golden ODO/ODO5 = 7 → 11 (1 + 3×2, 1 + 5×2), ODON = 9 — as a BoundOdoExtent (EC-BOUND-ODO outside integer-1..integer-2); this arm had staged loud while its file-mates were rewritten (the two-arm scar), and the arm that then landed ignored a dynamic leaf beside the table (ODOD = 16 now, was 11). r4a for a TYPE DECLARATION → the maximum: TODO = 17. PARTIAL: r4a's BASED-ITEM half — the resolver never wraps a string-canonical (BASED) group as an OdoGroupPlace — is kb/Work PB80 (a named loud stage; the group's own GR8 sending slice is missing too, measured: MOVE of a BASED ODO group copies the maximum).",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#WrapIfOdoGroup; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundOdoExtent",
+  "test-ref": "conformance:2023/pb61_length_byte_length_rule_branches; conformance:2023/pb80_based_odo_group",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB80 (2026-08-18) closes the PB61 residue: r4a's BASED-entry half — an UNASSOCIATED based entry answers the receiving-item (maximum) length (LENGTH(BODO) = 17 before ALLOCATE and after SET ADDRESS OF BODO TO NULL; BoundOdoExtent.BasedAddress guards the ODO term with the runtime's null-pointer test, before data-name-1 is read), an associated one r4b's current extent (8 at NN = 2). The resolver now wraps a class-tier (BASED) ODO group as an OdoGroupPlace exactly like a struct group (WrapIfOdoGroup — ONE rule), so the LENGTH builder's ODO term, the GR8 sending slice and the receiving direction-split all apply. r4a for a TYPE declaration and r4b/r7 for the storage forms were landed by PB61.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.50.4-5",

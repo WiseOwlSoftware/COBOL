@@ -59,7 +59,9 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 + $"({s.Based.Class?.RejectReason ?? "unclassified"})"));
             return;
         }
-        ctx.Writer.Line($"{addr} = {PlaceRenderer.Read(s.Source)};   // SET ADDRESS OF (ISO §14.9.39 F7 GR12-13 — a snapshot)");
+        ctx.Writer.Line(s.Source is { } src
+            ? $"{addr} = {PlaceRenderer.Read(src)};   // SET ADDRESS OF (ISO §14.9.39 F7 GR12-13 — a snapshot)"
+            : $"{addr} = ManagedPointer.Null;   // SET ADDRESS OF … TO NULL (ISO §14.9.39 F7 SR19 — disassociated; kb/Work PB89)");
     }
 
     /// <summary><c>SET pointer… {UP|DOWN} BY n</c> (ISO §14.9.39 Format 10): the amount evaluates ONCE, then

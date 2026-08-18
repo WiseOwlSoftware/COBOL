@@ -92,7 +92,7 @@ public static class OdoModel
     /// <summary>Wrap a resolved GROUP place whose subtree contains the occurs-depending <paramref name="table"/>
     /// (ISO §13.18.38 GR8). The fixed prefix is everything before the table in the group's emitted image — exact
     /// because the table is the record's trailing storage (SR22, enforced at bind).</summary>
-    public static OdoGroupPlace WrapGroup(MemberPlace inner, Place depending, DataItem group, DataItem table)
+    public static OdoGroupPlace WrapGroup(Place inner, Place depending, DataItem group, DataItem table)
     {
         int elem = table.ImageWidth;                          // per-occurrence character width
         int max = table.Occurs ?? 1;                          // the allocated capacity = integer-2 (§8.5.1.8)

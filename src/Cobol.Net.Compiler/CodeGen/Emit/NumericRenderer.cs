@@ -116,8 +116,16 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
     // An OCCURS DEPENDING table's current extent (ISO §13.18.38 GR8; the §15.50.4 r4b / §15.14.4 r2b channel,
     // kb/Work PB61): CobolTable.OdoExtent over data-name-1's current count — scale 0, EC-BOUND-ODO inside.
-    public NumX Visit(BoundOdoExtent n) => new(RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(PlaceRenderer.Read(n.Depending)),
-        n.MinOccurs, n.MaxOccurs, n.FixedWidth, n.ElemWidth), 0);
+    public NumX Visit(BoundOdoExtent n)
+    {
+        string extent = RuntimeApi.TableOdoExtent(RuntimeApi.TableOcc(PlaceRenderer.Read(n.Depending)),
+            n.MinOccurs, n.MaxOccurs, n.FixedWidth, n.ElemWidth);
+        // A BASED entry not associated with actual data answers GR8b's maximum (§15.50.4 r4a / §15.14.4 r2a —
+        // kb/Work PB80); the null test comes FIRST, before data-name-1 (possibly inside the entry) is read.
+        return new(n.BasedAddress is { } addr
+            ? $"({RuntimeApi.PtrIsNull(addr)} ? (long){n.FixedWidth + (long)n.MaxOccurs * n.ElemWidth} : {extent})"
+            : extent, 0);
+    }
     public NumX Visit(BoundBinary n)
     {
         // A binary node's CHILDREN are never the final transfer (a sub-expression operand), so they render with
