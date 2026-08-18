@@ -126,7 +126,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             {
                 bool all = item.ALL() is not null;
                 var v = StrUnstrOperand(item.strUnstrOperand(), "UNSTRING delimiter");
-                if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal); all = true; }
+                if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal) { Category = allLit.Category }; all = true; }
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
 

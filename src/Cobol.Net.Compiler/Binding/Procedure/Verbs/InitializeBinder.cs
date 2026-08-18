@@ -272,7 +272,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             string rest = t[3..].TrimStart();
             // ALL "literal" / ALL 'literal' repeats to the receiver width (§8.3.3.6.4 GR2); ALL <figurative-word> ≡ the bare word.
-            if (CobolLiteral.IsStringLiteral(rest)) return new BoundAllLiteral(CobolLiteral.Decode(rest));
+            if (CobolLiteral.IsStringLiteral(rest)) return BoundAllLiteral.Of(rest);   // the category rides on literal-1 (PB71)
             if (InitializeFigurativeKind(rest) is { } k) return new BoundFigurative(k);
         }
         // N"…"/B"…" (and the apostrophe forms) VALUE clauses re-produce their category-tagged literal (declaration-time

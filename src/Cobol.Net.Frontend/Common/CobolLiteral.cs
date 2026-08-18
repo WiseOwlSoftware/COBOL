@@ -11,6 +11,10 @@ namespace CobolNet.Common;
 /// twins AND — the confirmed silent-miscompile fix — the hard-coded <c>'"'</c>-only guards that used to gate whether
 /// to decode, so an apostrophe-delimited <c>VALUE 'x'</c> no longer falls through to raw text (DESIGN-data-model §2.8).
 /// </summary>
+/// <summary>The class of a quoted literal (ISO §8.3.3.2 / §8.3.3.4 / §8.3.3.5) — what <see cref="CobolLiteral.ClassOf"/>
+/// answers from the prefix. Front-end-side (no PICTURE model here); the binder maps it onto its data category.</summary>
+public enum LiteralClass { Alphanumeric, National, Boolean }
+
 public static class CobolLiteral
 {
     /// <summary>The prefix letters a quoted literal may carry: <c>N</c> national (§8.3.3.5), <c>B</c> boolean
@@ -47,7 +51,14 @@ public static class CobolLiteral
             prefix = body[..1].ToUpperInvariant();
             body = body[1..];
         }
-        return body.Length >= 2 && body[0] is '"' or '\'' && body[^1] == body[0] ? (prefix, body) : null;
+        // ⛔ ONE literal, WELL-FORMED (kb/Work PB71): the former first/last-character test answered "a literal" for
+        // `"A"&"B"` (a concatenation's source text) and Decode then produced `A"&"B`. Inside the delimiters an
+        // embedded delimiter shall be doubled (§8.3.1.2), so an undoubled one before the end is not this literal.
+        if (body.Length < 2 || body[0] is not ('"' or '\'') || body[^1] != body[0]) return null;
+        char d = body[0];
+        for (int i = 1; i < body.Length - 1; i++)
+            if (body[i] == d) { if (i + 1 < body.Length - 1 && body[i + 1] == d) i++; else return null; }
+        return (prefix, body);
     }
 
     /// <summary>True when <paramref name="raw"/> is a quoted literal in EITHER ISO delimiter, optionally with an
@@ -59,6 +70,31 @@ public static class CobolLiteral
     /// what makes <c>VALUE ALL X"41"</c> initialize to <c>AAAA</c> instead of to the characters <c>ALLX</c>.
     /// </remarks>
     public static bool IsStringLiteral(string raw) => SplitLiteral(raw) is not null;
+
+    /// <summary>The CLASS of a quoted literal by its PREFIX — ISO §8.3.3.2 (<c>"…"</c> / <c>X"…"</c> alphanumeric),
+    /// §8.3.3.5 (<c>N"…"</c> / <c>NX"…"</c> national), §8.3.3.4 (<c>B"…"</c> / <c>BX"…"</c> boolean) — or
+    /// <see langword="null"/> when <paramref name="raw"/> is not a quoted literal. ⛔ THE ONE CLASSIFIER (kb/Work
+    /// PB71): the VALUE-clause validator computed the class from <c>raw[0]</c>/<c>raw[1]</c> and so refused the
+    /// Format-2 hexadecimal spellings (<c>NX"…"</c>, <c>BX"…"</c>) and every <c>ALL literal</c>; the ALL-figurative
+    /// binder tested two token kinds of four. Both ask this now.</summary>
+    public static LiteralClass? ClassOf(string raw) => SplitLiteral(raw) switch
+    {
+        null => null,
+        ("N" or "NX", _) => LiteralClass.National,
+        ("B" or "BX", _) => LiteralClass.Boolean,
+        _ => LiteralClass.Alphanumeric,
+    };
+
+    /// <summary>If <paramref name="raw"/> is the figurative <c>ALL literal</c> form (a VALUE / level-88 operand
+    /// text), the RAW literal after ALL — still prefixed, so <see cref="ClassOf"/> and <see cref="Decode"/> apply
+    /// to it; otherwise <see langword="null"/>.</summary>
+    public static string? AllLiteralRaw(string raw)
+    {
+        string t = raw.TrimStart();
+        if (t.Length < 3 || !t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)) return null;
+        string rest = t[3..].TrimStart();
+        return IsStringLiteral(rest) ? rest : null;
+    }
 
     /// <summary>Decode a <c>STRINGLIT</c> (or an <c>N</c>/<c>B</c>/<c>X</c>-prefixed national, boolean or
     /// HEXADECIMAL literal) to its character value; returns <paramref name="raw"/> unchanged when it is not a

@@ -93,7 +93,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.figurativeConstant() is { } fig)
         {
             if (fig.ZERO() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
-            if (fig.BOOLLIT() is { } allBl) return new BoundBoolAll(CobolLiteral.Decode(allBl.GetText()));   // ALL B"…"
+            if (fig.allLiteral() is { } al && al.allLiteralOperand().All(o => o.BOOLLIT() is not null))   // ALL B"…" (a concatenated literal-1 folds — kb/Work PB71)
+                return new BoundBoolAll(string.Concat(al.allLiteralOperand().Select(o => CobolLiteral.Decode(o.GetText()))));
             return new BoundBoolError($"figurative constant '{fig.GetText()}' in a boolean expression "
                 + "(ISO §8.8.2 — only ZERO and ALL B\"…\" are boolean figuratives)");
         }
@@ -136,7 +137,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         var nn = vo.nonNumericLiteral();
         if (nn?.BOOLLIT() is not null) return true;
-        if (nn?.figurativeConstant()?.BOOLLIT() is not null) return true;
+        if (nn?.figurativeConstant()?.allLiteral() is { } al && al.allLiteralOperand().All(o => o.BOOLLIT() is not null)) return true;   // ALL B"…" (kb/Work PB71)
         // A concatenation expression whose class is boolean (§8.8.3.3 GR1) routes through the boolean channel
         // like the equivalent single B"…" literal it folds to (GR3). ClassOf is diagnostic-free — the fold
         // (and its SR diagnostics) happens exactly once, on the bind path this predicate selects.

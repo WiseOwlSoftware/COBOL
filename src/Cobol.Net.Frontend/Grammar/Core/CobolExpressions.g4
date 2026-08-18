@@ -485,13 +485,18 @@ numericLiteral
 // precedence); the plain single-token alternatives are untouched, so a non-concatenated literal parses with
 // exactly the same shape as before. AMPERSAND appears in no other rule, so prediction is unambiguous: a literal
 // followed by '&' can only be a concatenation expression.
+// figurativeConstant is listed FIRST (kb/Work PB71): `ALL "A" & "B"` is the figurative ALL over the concatenated
+// literal-1 "AB" (§8.3.3.6.3 SR2 — literal-1 "may be a concatenation expression"), and ANTLR resolves the tie
+// between that reading and "a concatenation whose first operand is ALL "A"" (illegal — §8.8.3.2 SR1) toward the
+// lower alternative. A concatenation that merely CONTAINS an ALL figurative (`"X" & ALL "A"`) still parses as a
+// concatenation and is rejected COBOLNET1541 by ConcatFolder as before.
 nonNumericLiteral
-    : concatenationExpression
+    : figurativeConstant
+    | concatenationExpression
     | STRINGLIT
     | NATLIT
     | BOOLLIT
     | HEXLIT
-    | figurativeConstant
     ;
 
 // ISO §8.8.3.1 general format: {literal-1 | concatenation-expression-1} & literal-2 — left-recursive in the
@@ -536,6 +541,21 @@ integerLiteral
     : INTEGERLIT
     ;
 
+// The literal-1 of the ALL figurative (§8.3.3.6.3 SR2): one literal of any class — plain / hexadecimal alphanumeric,
+// national N"…" / NX"…", boolean B"…" / BX"…" — or a concatenation of them (§8.8.3; the operands shall be of one
+// class, §8.8.3.2 SR1 — VersionConformancePass reports a mix, and a zero-length literal-1). Greedy: the ALL binds the
+// WHOLE concatenation (kb/Work PB71).
+allLiteral
+    : allLiteralOperand (AMPERSAND allLiteralOperand)*
+    ;
+
+allLiteralOperand
+    : STRINGLIT
+    | HEXLIT
+    | NATLIT
+    | BOOLLIT
+    ;
+
 figurativeConstant
     : ZERO
     | SPACE
@@ -543,9 +563,8 @@ figurativeConstant
     | LOW_VALUE
     | QUOTE_
     | NULL_
-    | ALL STRINGLIT
-    | ALL HEXLIT
-    | ALL BOOLLIT       // ALL B"…" — a boolean figurative (ISO §8.3.3.6.4 / §8.8.2 :9331); 2002+ (binder-gated)
+    | ALL allLiteral    // Format 6 — ALL literal-1 (§8.3.3.6.3 SR2: an alphanumeric, boolean or national literal, which
+                        // may be a concatenation expression; kb/Work PB71 — ONE arm for the four literal kinds)
     | ALL ZERO
     | ALL SPACE
     | ALL HIGH_VALUE

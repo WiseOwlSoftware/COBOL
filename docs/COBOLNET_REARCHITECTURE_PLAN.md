@@ -113,10 +113,14 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   instead of dropping the receiver. Verdicts SR-8.4.3.3.3-1 / GR-8.4.3.3.4-2 / GR-8.4.3.3.4-6 → CONFORMS, GAP 4042.
   **PB88 REGISTERED** (STRING INTO a ref-modified / edited receiver — illegal per SR4/SR5 — stages loud at run time
   instead of a bind-time rejection).
-  **⏳ Battery owed for the PB84–PB88 batch** (the numeric renderer's landing/store helpers, the sign condition, the
-  pointer/CALL/INVOKE emitters, the PERFORM grammar, the SQ101M golden, the ref-mod resolver gate, the group-image
-  store, the receiving chokepoint) — run it before the next landing builds on it.
-  **NEXT, in order:** ① PB71 → PB65 → PB88 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  **✅ Battery (PB84–PB88 batch, tree `d35b84d5`):** Conformance **4645/4645** · Unit **4192/4192** ·
+  Characterization 33/33 · NIST-legacy 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB71 CLOSED (DEVLOG 1305, 2026-08-18)** — the ALL figurative over every literal kind: ONE grammar arm
+  (`ALL allLiteral` — plain / hex / national / boolean, and a concatenated literal-1 per §8.3.3.6.3 SR2), ONE
+  literal-class classifier (`CobolLiteral.ClassOf`), ONE constructor (`BoundAllLiteral.Of`); the VALUE validator
+  and the version pass ask the same; COBOLNET1648 (zero-length literal-1). SR-8.3.3.6.3-2 + FMT-8.3.3.6.2 →
+  CONFORMS, GAP 4040. Battery owed for the PB71 batch with the next landing.
+  **NEXT, in order:** ① PB65 (open members) → PB88 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

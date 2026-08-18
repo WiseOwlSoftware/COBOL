@@ -821,6 +821,13 @@ public static class DiagnosticCatalog
     // (a strongly-typed / variable-length group, a numeric item of a non-DISPLAY usage, an edited or numeric item
     // subordinate to a strongly-typed group, an index / pointer / object reference) used to fall to a run-time
     // NotImplemented — and a receiving one to a silent drop.
+    // §8.3.3.6.3 SR2 — the ALL figurative's literal-1 "shall be neither a figurative constant nor a zero-length
+    // literal" (kb/Work PB71): `MOVE ALL "" TO X` compiled and stored spaces.
+    public static readonly DiagnosticDescriptor AllLiteralZeroLength = new(
+        "COBOLNET1648", "all-literal-zero-length", EditionSeverity.Error,
+        "The literal-1 of the figurative constant ALL literal-1 is a zero-length literal. ISO §8.3.3.6.3 SR2: "
+        + "\"Literal-1 shall be an alphanumeric, boolean, or national literal … The literal shall be neither a "
+        + "figurative constant nor a zero-length literal.\" Write at least one character.", "ISO §8.3.3.6.3 SR2");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

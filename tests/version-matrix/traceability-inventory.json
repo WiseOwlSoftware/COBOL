@@ -4373,12 +4373,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Figurative constant values",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#allLiteral; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#Of; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant",
+  "test-ref": "conformance:2023/pb71_all_national_boolean_figurative; conformance:negative/pb71-all-literal-zero-length; conformance:negative/pb71-all-literal-mixed-class-concatenation; conformance:negative/pb71-value-all-alphanumeric-on-national",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB71 (2026-08-18): literal-1 is an alphanumeric (plain or hexadecimal), boolean or national literal, or a concatenation of them - ONE grammar arm (ALL allLiteral), ONE constructor (BoundAllLiteral.Of - the category rides on literal-1's class through CobolLiteral.ClassOf), the & fold per 8.8.3.3 GR2; a zero-length literal-1 is COBOLNET1648 and a mixed-class concatenation COBOLNET1540 (the version pass); the national/boolean literal-1 is the COBOL-2002 introduction below 2002 (COBOLNET0900). Before: ALL N\"...\" had no grammar arm, ALL B\"...\" parsed and died at run time, VALUE refused NX\"...\"/BX\"...\" and every ALL literal (a raw-text classifier).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.3.6.3-3",
@@ -49301,12 +49301,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "Figurative constant values",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+  "test-ref": "conformance:2023/pb71_all_national_boolean_figurative",
+  "editions": "85,2002,2014,2023",
+  "notes": "Formats 1-6 (ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE with the optional ALL, ALL literal-1) are the figurativeConstant rule; Format 7 (symbolic-character-1) binds through the SPECIAL-NAMES SYMBOLIC CHARACTERS path. kb/Work PB71 made Format 6 total over the literal kinds.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-8.4.2.2.2",

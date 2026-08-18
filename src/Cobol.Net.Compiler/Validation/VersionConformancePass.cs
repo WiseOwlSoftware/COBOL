@@ -1608,6 +1608,46 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The <c>ALL literal</c> figurative's literal-1 (ISO §8.3.3.6.3 SR2 — kb/Work PB71): a national or
+        /// boolean literal-1 is the same COBOL-2002 introduction as the bare literal (statement-scoped, as above —
+        /// a VALUE clause's is the data/PIC gate's), and a hexadecimal literal-1 of any class takes the §8.3.3 digit
+        /// GROUPING check. The tokens are direct children of figurativeConstant, not of nonNumericLiteral, so the
+        /// override above never saw them — `ALL B"1"` at --std 85 was ungated.</summary>
+        public override object? VisitFigurativeConstant(CobolParserCore.FigurativeConstantContext ctx)
+        {
+            var ops = ctx.allLiteral()?.allLiteralOperand() ?? [];
+            if (ops.Length == 0) return base.VisitChildren(ctx);
+            bool nat = ops.Any(o => o.NATLIT() is not null), bl = ops.Any(o => o.BOOLLIT() is not null);
+            if ((nat || bl) && InStatement(ctx))
+                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
+                    nat ? "the figurative ALL N\"…\"" : "the figurative ALL B\"…\"");
+            // A concatenated literal-1 uses the & operator — the COBOL-2002 introduction (§8.8.3), position-blind.
+            if (ops.Length > 1) _p.Check(Constructs.ConcatOperator2002, "a concatenation expression (the & operator) as ALL literal-1");
+            bool malformedHex = false;
+            foreach (var o in ops)
+                if ((o.HEXLIT() ?? o.NATLIT() ?? o.BOOLLIT()) is { } t && CobolLiteral.HexGroupViolation(t.GetText()) is { } why)
+                {
+                    malformedHex = true;
+                    _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.HexLiteralDigitGrouping.Code,
+                        EditionSeverity.Error, DiagnosticCatalog.HexLiteralDigitGrouping.Id,
+                        $"the literal {t.GetText()} {why}", "", "ISO §8.3.3"));
+                }
+            // §8.3.3.6.3 SR2 — literal-1 "shall be neither a figurative constant nor a zero-length literal" (a
+            // malformed hexadecimal literal-1 decodes to nothing and is already reported above); the operands of a
+            // concatenated literal-1 are of ONE class (§8.8.3.2 SR1).
+            if (!malformedHex && ops.All(o => CobolLiteral.Decode(o.GetText()).Length == 0))
+                _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.AllLiteralZeroLength.Code,
+                    EditionSeverity.Error, DiagnosticCatalog.AllLiteralZeroLength.Id,
+                    $"'{ctx.GetText()}': the literal-1 of an ALL figurative shall not be a zero-length literal (ISO §8.3.3.6.3 SR2)",
+                    "", "ISO §8.3.3.6.3 SR2"));
+            if (ops.Select(o => CobolLiteral.ClassOf(o.GetText())).Distinct().Count() > 1)
+                _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConcatClassMismatch.Code,
+                    EditionSeverity.Error, DiagnosticCatalog.ConcatClassMismatch.Id,
+                    $"'{ctx.GetText()}': the operands of a concatenated ALL literal-1 shall be of the same class (ISO §8.8.3.2 SR1)",
+                    "", "ISO §8.8.3.2 SR1"));
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>A concatenation expression — the <c>&amp;</c> operator joining literals (ISO §8.8.3) — is a
         /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND, unlike the national/
         /// boolean literal gate above: §8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,

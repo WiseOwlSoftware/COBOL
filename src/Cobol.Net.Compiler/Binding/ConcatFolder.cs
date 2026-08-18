@@ -72,13 +72,28 @@ internal static class ConcatFolder
             if (op.NATLIT() is not null) return PicCategory.National;
             if (op.BOOLLIT() is not null) return PicCategory.Boolean;
             if (op.STRINGLIT() is not null || op.HEXLIT() is not null) return PicCategory.Alphanumeric;
-            if (op.figurativeConstant() is { } fig)
+            if (op.figurativeConstant() is { } fig && fig.allLiteral() is { } al)   // ALL literal-1: literal-1's class (kb/Work PB71)
             {
-                if (fig.BOOLLIT() is not null) return PicCategory.Boolean;              // ALL B"…"
-                if (fig.STRINGLIT() is not null || fig.HEXLIT() is not null) return PicCategory.Alphanumeric;
+                var first = al.allLiteralOperand()[0];
+                if (first.NATLIT() is not null) return PicCategory.National;
+                if (first.BOOLLIT() is not null) return PicCategory.Boolean;
+                return PicCategory.Alphanumeric;
             }
         }
         return PicCategory.Alphanumeric;   // GR1b — both/all operands figurative ⇒ class alphanumeric
+    }
+
+    /// <summary>Fold the literal-1 of an <c>ALL literal-1</c> figurative — one literal or a concatenation of them
+    /// (§8.3.3.6.3 SR2) — to its equivalent single literal, DIAGNOSTIC-FREE (the version pass reports a class mix
+    /// and a zero-length literal-1): the value is the operands' decoded texts concatenated (§8.8.3.3 GR2), the class
+    /// the first operand's. The text-plumbed DATA-division paths re-quote it through <see cref="Folded.RawText"/>
+    /// (kb/Work PB71 — a VALUE ALL "A" &amp; "B" used to reach the raw-text ALL reader as the source text).</summary>
+    public static Folded FoldAll(Core.AllLiteralContext al)
+    {
+        var ops = al.allLiteralOperand();
+        var cat = ops[0].NATLIT() is not null ? PicCategory.National
+            : ops[0].BOOLLIT() is not null ? PicCategory.Boolean : PicCategory.Alphanumeric;
+        return new Folded(cat, string.Concat(ops.Select(o => CobolLiteral.Decode(o.GetText()))));
     }
 
     /// <summary>Fold <paramref name="ctx"/> to its equivalent single literal (§8.8.3.3 GR2/GR3), reporting the

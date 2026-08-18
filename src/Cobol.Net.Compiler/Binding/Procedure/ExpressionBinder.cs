@@ -199,8 +199,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// </remarks>
     public static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
-        if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(CobolLiteral.Decode(allLit.GetText()));
-        if (fig.HEXLIT() is { } allHex) return new BoundAllLiteral(CobolLiteral.Decode(allHex.GetText()));
+        // ⛔ ONE ARM FOR EVERY LITERAL-1 KIND (kb/Work PB71): §8.3.3.6.3 SR2 admits an alphanumeric (plain or
+        // hexadecimal), boolean or national literal-1, and the category rides on the literal's class through
+        // BoundAllLiteral.Of. Two arms of four were written here: `ALL B"1"` (the grammar HAD the token) parsed and
+        // died at RUN time exactly as `ALL X"41"` once did — the PB4 shape, one arm later, under the remark that
+        // records it — and `ALL N"…"` had no grammar arm at all.
+        if (fig.allLiteral() is { } al)
+            return BoundAllLiteral.Of(al.allLiteralOperand().Select(o => o.GetText()).ToArray());
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
         if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');

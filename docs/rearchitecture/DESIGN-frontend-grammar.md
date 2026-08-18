@@ -342,6 +342,23 @@ captured token run faithfully.
 **3.3c Mode inventory** stays: DEFAULT, PICMODE, SUBSCRIPT, COMMENT_MODE (`CobolLexer.g4:497,651,726,782`).
 No change to mode semantics; only the shared-fragment factoring in 3.3b.
 
+**3.3d The ALL figurative's literal-1 (kb/Work PB71, 2026-08-18).** `figurativeConstant`'s Format-6 arm is
+`ALL allLiteral`, where `allLiteral : allLiteralOperand (AMPERSAND allLiteralOperand)*` and
+`allLiteralOperand : STRINGLIT | HEXLIT | NATLIT | BOOLLIT` — ONE arm for the four literal kinds §8.3.3.6.3 SR2
+admits (alphanumeric plain or hexadecimal, national N/NX, boolean B/BX), and literal-1 "may be a concatenation
+expression". Two load-bearing decisions: (1) `nonNumericLiteral` lists `figurativeConstant` BEFORE
+`concatenationExpression`, because `ALL "A" & "B"` is genuinely ambiguous between "ALL over the concatenated
+literal-1 AB" (legal, SR2) and "a concatenation whose first operand is the figurative ALL "A"" (illegal, §8.8.3.2
+SR1) — ANTLR resolves a true ambiguity toward the lower alternative, so the legal reading wins, while `"X" & ALL
+"A"` still parses as a concatenation and is rejected COBOLNET1541 by `ConcatFolder`. (2) Every consumer asks
+`fig.allLiteral()` — the binder (`BoundAllLiteral.Of`, the category from `CobolLiteral.ClassOf`), `ConcatFolder`,
+the boolean channel, INSPECT's SR3 screen, the legacy oracle — so a fifth literal kind is one grammar line and one
+classifier arm; the former shape (`ALL STRINGLIT | ALL HEXLIT | ALL BOOLLIT`, tested token-by-token at five sites)
+is what let `ALL B"1"` parse and die at run time. The version pass's `VisitFigurativeConstant` owns the
+statement-scoped 2002 gate for a national/boolean literal-1, the §8.3.3 hexadecimal grouping check, the SR2
+zero-length check (COBOLNET1648) and the §8.8.3.2 SR1 same-class check (COBOLNET1540) — the tree walk, as for the
+bare literals.
+
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 
 - **Delete** `Grammar/CobolDialect.g4`, `CobolParserGenerics.g4`, `CobolParserJsonXml.g4`,

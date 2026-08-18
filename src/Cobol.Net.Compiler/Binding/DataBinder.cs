@@ -1120,16 +1120,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     private void ValidateValueCategory(PicInfo pic, string raw, string where)
     {
-        bool isNatLit = raw.Length >= 3 && raw[0] is 'N' or 'n' && raw[1] is '"' or '\'';
-        bool isBoolLit = raw.Length >= 3 && raw[0] is 'B' or 'b' && raw[1] is '"' or '\'';
-        bool isPlainString = raw.Length >= 1 && raw[0] is '"' or '\'';
+        // ⛔ THE LITERAL'S CLASS COMES FROM THE ONE CLASSIFIER (CobolLiteral.ClassOf — kb/Work PB71): the former
+        // raw-text tests (`raw[1] is '"'`) refused the Format-2 hexadecimal spellings NX"…" / BX"…" (§8.3.3.5.2 /
+        // §8.3.3.4.2 — the SAME class as N"…" / B"…") and every `ALL literal` figurative, whose class is
+        // literal-1's (§8.3.3.6.3 SR2 / §14.9.25.4 GR7 Table 17). `ALL "AB"` (an alphanumeric literal-1) stays
+        // illegal for a national or boolean item; `ALL SPACES` / `ALL ZEROS` is the figurative WORD (legal).
+        LiteralClass? lit = CobolLiteral.ClassOf(raw);
+        string? allRaw = CobolLiteral.AllLiteralRaw(raw);
+        LiteralClass? allLit = allRaw is null ? null : CobolLiteral.ClassOf(allRaw);
+        bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
+        bool isBoolLit = lit is LiteralClass.Boolean || allLit is LiteralClass.Boolean;
+        bool isPlainString = lit is LiteralClass.Alphanumeric;
         bool isNumeric = raw.Length >= 1 && (char.IsAsciiDigit(raw[0]) || raw[0] is '+' or '-' or '.');
-        // The part after a leading ALL (GetText concatenates tokens, so `ALL SPACES` → "ALLSPACES",
-        // `ALL "AB"` → 'ALL"AB"'). `ALL "literal"` is an alphanumeric ALL-literal (illegal for national/
-        // boolean); `ALL SPACES` / `ALL ZEROS` is just the figurative WORD repeated (legal).
+        // The part after a leading ALL (GetText concatenates tokens, so `ALL SPACES` → "ALLSPACES").
         string afterAll = raw.Length > 3 && raw.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)
             ? raw[3..] : raw;
-        bool isAllQuoted = !ReferenceEquals(afterAll, raw) && afterAll.Length >= 1 && afterAll[0] is '"' or '\'';
+        bool isAllQuoted = allLit is LiteralClass.Alphanumeric;
         string word = afterAll.ToUpperInvariant();
         bool isZeroWord = word is "ZERO" or "ZEROS" or "ZEROES";
         bool isNationalFigurative = isZeroWord
@@ -1145,7 +1151,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
                     + "literal (N\"…\") or a figurative constant (ISO §13.18.63 SR5)");
                 break;
-            case PicCategory.National when isNatLit && CobolLiteral.Decode(raw).Length > pic.Length:
+            case PicCategory.National when lit is LiteralClass.National && CobolLiteral.Decode(raw).Length > pic.Length:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE national literal exceeds the item's "
                     + $"{pic.Length} national positions (ISO §13.18.63 SR5)");
                 break;
@@ -1155,7 +1161,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
                     + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63 SR10)");
                 break;
-            case PicCategory.Boolean when isBoolLit && CobolLiteral.Decode(raw).Length > pic.Length:
+            case PicCategory.Boolean when lit is LiteralClass.Boolean && CobolLiteral.Decode(raw).Length > pic.Length:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
                     + $"{pic.Length} boolean positions (ISO §13.18.63 SR10)");
                 break;
@@ -2443,6 +2449,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // [the] literal were written"; DataBinder.Constants.ConstantValueRawText).
         if (item.valueClauseOperand().FirstOrDefault() is { } op0
             && (op0.nonNumericLiteral()?.concatenationExpression() is not null
+                || op0.nonNumericLiteral()?.figurativeConstant()?.allLiteral() is { } al0 && al0.allLiteralOperand().Length > 1   // ALL over a concatenated literal-1 (PB71)
                 || ConstantValueRawText(op0) is not null))
             return RawValueOperandText(op0);
         return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
@@ -2456,6 +2463,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private string RawValueOperandText(Core.ValueClauseOperandContext op) =>
         op.nonNumericLiteral()?.concatenationExpression() is { } ce
             ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
+            // ALL over a concatenated literal-1 (§8.3.3.6.3 SR2 — kb/Work PB71): `ALL` + the folded literal re-quoted,
+            // so the raw-text ALL reader (CobolLiteral.AllLiteralRaw) sees ONE literal of the right class.
+            : op.nonNumericLiteral()?.figurativeConstant()?.allLiteral() is { } al && al.allLiteralOperand().Length > 1
+            ? "ALL" + ConcatFolder.FoldAll(al).RawText
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
 

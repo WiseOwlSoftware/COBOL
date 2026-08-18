@@ -312,10 +312,27 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
     /// split consult (feedback_one_mechanism_per_job).</summary>
     public bool IsDigitOnly => Literal.Length > 0 && Literal.All(c => c is >= '0' and <= '9');
 
-    /// <summary>The literal's data category — always Alphanumeric today: <c>ALL N"…"</c>/<c>ALL B"…"</c>
-    /// (§8.3.3.6.3 SR2) are grammar residue (figurativeConstant admits only ALL STRINGLIT/HEXLIT); the
-    /// property exists so that leg lands on the <see cref="BoundStringLiteral.Category"/> shape.</summary>
+    /// <summary>The literal's data category — literal-1's own (§8.3.3.6.3 SR2 admits an alphanumeric, boolean or
+    /// national literal-1; §14.9.25.4 GR7 / Table 17 give the ALL figurative that category): Alphanumeric for
+    /// <c>ALL "…"</c> / <c>ALL X"…"</c>, National for <c>ALL N"…"</c> / <c>ALL NX"…"</c>, Boolean for
+    /// <c>ALL B"…"</c> / <c>ALL BX"…"</c>. Set through <see cref="Of"/> — the ONE constructor from source text.</summary>
     public PicCategory Category { get; init; } = PicCategory.Alphanumeric;
+
+    /// <summary>THE constructor from the literal's RAW source text (kb/Work PB71): the value through
+    /// <see cref="CobolNet.Common.CobolLiteral.Decode"/>, the category through the ONE literal-class classifier
+    /// (<see cref="CobolNet.Common.CobolLiteral.ClassOf"/>). Every producer of an ALL literal — the
+    /// figurative-constant binder, INITIALIZE REPLACING, a Report Writer VALUE — builds through this, so a
+    /// national or boolean literal-1 keeps its category everywhere.</summary>
+    public static BoundAllLiteral Of(params string[] rawLiterals) =>
+        new(string.Concat(rawLiterals.Select(CobolNet.Common.CobolLiteral.Decode)))   // a concatenated literal-1 (§8.3.3.6.3 SR2) folds by §8.8.3.3 GR2
+        {
+            Category = CobolNet.Common.CobolLiteral.ClassOf(rawLiterals[0]) switch      // one class across the operands (§8.8.3.2 SR1 — the version pass reports a mix)
+            {
+                CobolNet.Common.LiteralClass.National => PicCategory.National,
+                CobolNet.Common.LiteralClass.Boolean => PicCategory.Boolean,
+                _ => PicCategory.Alphanumeric,
+            },
+        };
 }
 
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>

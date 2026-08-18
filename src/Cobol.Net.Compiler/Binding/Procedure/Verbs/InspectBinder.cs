@@ -249,7 +249,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         var fig = c.figurativeConstant() ?? c.literal()?.nonNumericLiteral()?.figurativeConstant();
         if (fig is not null)
         {
-            if (fig.STRINGLIT() is not null)
+            if (fig.allLiteral() is not null)   // EVERY ALL literal-1 form — alphanumeric, hexadecimal, national, boolean (kb/Work PB71)
                 return (new BoundOperandError(
                     "INSPECT operand ALL \"literal\" (ISO §14.9.22.3 SR3 — a figurative constant beginning with ALL is not permitted)"), false);
             return (new BoundStringLiteral(InspectFigurativeChar(fig).ToString()), true);
