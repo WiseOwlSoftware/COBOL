@@ -529,7 +529,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitObjectComputerParagraph(CobolParserCore.ObjectComputerParagraphContext ctx)
     {
-        if (ctx.programCollatingSequenceClause() is { } pcsClause)
+        // The clause is one of the paragraph's objectComputerClause list since kb/Work PB78 (the greenfield grammar's
+        // shape — either clause, either order, with or without a computer-name); the legacy oracle keeps its 85 view.
+        var pcsClause = ctx.objectComputerClause().Select(c => c.programCollatingSequenceClause()).FirstOrDefault(c => c is not null);
+        if (pcsClause is not null)
         {
             // Shape-only update for the 2002 PCS grammar superset (cobolWord is an array now; the FOR
             // forms / alphabet-name-2 are greenfield-only — the legacy oracle keeps the 85 single-name view).

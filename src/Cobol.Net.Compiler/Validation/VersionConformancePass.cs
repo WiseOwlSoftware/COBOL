@@ -1083,6 +1083,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>OBJECT-COMPUTER clauses WITHOUT computer-name-1 (ISO §12.3.6.2 — the name is optional and the
+        /// clauses may follow the period directly): a 2002 relaxation — X3.23-1985 hung MEMORY SIZE / PROGRAM COLLATING
+        /// SEQUENCE / SEGMENT-LIMIT off a REQUIRED computer-name (kb/Work PB78). The empty paragraph is legal at every
+        /// edition; only a clause without a name is gated. CHARACTER CLASSIFICATION itself is rejected by the binder as
+        /// A.4.9 documented non-support (COBOLNET1518) at every edition.</summary>
+        public override object? VisitObjectComputerParagraph(CobolParserCore.ObjectComputerParagraphContext ctx)
+        {
+            if (ctx.computerName() is null && ctx.objectComputerClause().Length > 0)
+                _p.Check(Constructs.ComputerNameOptional2002, "an OBJECT-COMPUTER clause without computer-name-1");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>CLASS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the second SPECIAL-NAMES FOR-phrase site (matching
         /// SwitchBindClass's <c>cd.FOR()</c>).</summary>
         public override object? VisitClassDefinitionClause(CobolParserCore.ClassDefinitionClauseContext ctx)
@@ -1848,6 +1860,14 @@ internal sealed class VersionConformancePass
             if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
                 && locale.cobolWord() is { Length: > 1 } localeWords
                 && !ReferenceEquals(ctx, localeWords[1]))
+                return base.VisitChildren(ctx);
+            // The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (§12.3.6.2; kb/Work PB78) — the same shape as the
+            // LOCALE clause: CLASSIFICATION is the clause's own keyword (not a lexer token), and each locale-phrase is
+            // either a format keyword (LOCALE / SYSTEM-DEFAULT / USER-DEFAULT — uses OF reserved words) or a
+            // REFERENCE to a SPECIAL-NAMES locale-name (reference positions stay unchecked by the funnel's policy).
+            // The clause itself is COBOLNET1518 (A.4.9 item 7 documented non-support); a second, false statement
+            // about SYSTEM-DEFAULT being "used as a user-defined word" is exactly the PB27 shape.
+            if (ctx.Parent is CobolParserCore.CharacterClassificationClauseContext or CobolParserCore.ClassificationForPhraseContext)
                 return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation

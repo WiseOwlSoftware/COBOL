@@ -173,9 +173,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   structural `IArithmeticStatement` marker. And ONE dispatch per raise: `CobolFatalException.Dispatched` — every
   fatal EC used to be re-dispatched by each enclosing statement's guard (a USE declarative ran twice for one raise
   inside a PERFORM). Six verdicts → CONFORMS, GAP 4003. **PB91 REGISTERED** (the native carrier's Int128 overflow
-  in a non-arithmetic context wraps silently under EC-SIZE checking). Battery owed for the PB75 batch with the next
-  landing.
-  **NEXT, in order:** ① PB78 → PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
+  in a non-arithmetic context wraps silently under EC-SIZE checking).
+  **✅ Battery #11 (PB75 batch, tree `ed88ef94`):** Conformance **4698/4698** · Unit **4221/4221** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB78 CLOSED (DEVLOG 1313, 2026-08-18)** — OBJECT-COMPUTER's computer-name-1 is optional before its clauses
+  (§12.3.6.2; the name-less clause form gated `computer-name-optional-2002` below 2002), the clauses a list (any
+  order, a duplicate COBOLNET1652), the '85 attribute sink kept behind the name; CHARACTER CLASSIFICATION parsed and
+  rejected as A.4.9 documented non-support (COBOLNET1518, one diagnostic). Fourteen verdicts, GAP 3989. **PB92
+  REGISTERED** (SET LOCALE formats 11/12 mis-diagnosed). Battery owed for the PB78 batch with the next landing.
+  **NEXT, in order:** ① PB92 → PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

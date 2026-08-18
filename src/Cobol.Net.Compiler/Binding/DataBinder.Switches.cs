@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
@@ -328,9 +329,32 @@ public sealed partial class DataBinder
                      .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
             // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (ISO §12.3.6 — the 85 single-name IS form, the 2002
-            // two-name IS form, and the 2002 FOR ALPHANUMERIC/FOR NATIONAL forms; resolved AFTER the walk).
-            if (para.objectComputerParagraph()?.programCollatingSequenceClause() is { } pcs)
-                pcsClause = pcs;
+            // two-name IS form, and the 2002 FOR ALPHANUMERIC/FOR NATIONAL forms; resolved AFTER the walk). The
+            // paragraph's clauses are a list since kb/Work PB78 (either clause, either order, with or without a
+            // computer-name); §5.2.6.4 admits each at most once — a second is COBOLNET1652.
+            if (para.objectComputerParagraph() is { } ocp)
+            {
+                foreach (var oc in ocp.objectComputerClause())
+                {
+                    if (oc.programCollatingSequenceClause() is { } pcs)
+                    {
+                        if (pcsClause is not null)
+                            Edition.Error(DiagnosticCatalog.ObjectComputerDuplicateClause,
+                                "the OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE clause is specified more than once "
+                                + "(ISO §12.3.6.2 — the paragraph's clauses may each appear at most once, §5.2.6.4)");
+                        pcsClause = pcs;
+                    }
+                    // §12.3.6 CHARACTER CLASSIFICATION — an §A.4.9 item 7 optional-locale element ("OBJECT-COMPUTER
+                    // paragraph, CHARACTER CLASSIFICATION clause"). Documented non-support is conformant per §4.2.7 /
+                    // §A.4.1 only because it is DIAGNOSED: the same COBOLNET1518 the SPECIAL-NAMES LOCALE clause and
+                    // the LOCALE phrases carry (kb/Work PB78 — the attribute sink swallowed it silently after a name).
+                    if (oc.characterClassificationClause() is not null)
+                        Edition.Error("COBOLNET1518", "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is in the optional "
+                            + "locale module (ISO/IEC 1989:2023 Annex A §A.4.9 item 7), which COBOL.NET does not support — "
+                            + "documented non-support, conformant per ISO §4.2.7 / §A.4.1; the character classification is "
+                            + "that of the runtime coded character set (§12.3.6.4 GR6).");
+                }
+            }
             if (para.specialNamesParagraph() is not { } sn) continue;
             foreach (var entry in sn.specialNameEntry())
             {

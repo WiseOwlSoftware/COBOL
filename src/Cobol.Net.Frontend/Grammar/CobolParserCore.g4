@@ -371,14 +371,47 @@ repositoryEntry
     | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
     ;
 
-// SOURCE-COMPUTER.
+// SOURCE-COMPUTER. [computer-name-1] . (ISO §12.3.5.2 — computer-name-1 is OPTIONAL; SR1: without it the second
+// period may be omitted). The empty paragraph was legal in X3.23-1985 too; the '85 WITH DEBUGGING MODE clause hung
+// off a name, and so does the attribute SINK here (a name-less `SOURCE-COMPUTER. WITH DEBUGGING MODE.` is illegal at
+// every edition — '85 required the name, 2002 deleted the clause). ⚠ The sink must stay BEHIND the name: it is
+// `~(DOT | …)+`, and reachable without a name it would swallow the next paragraph header (kb/Work PB78).
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT (computerName computerAttributes? DOT)?
+    : SOURCE_COMPUTER DOT ((computerName computerAttributes?)? DOT)?
     ;
 
+// OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ]… . (ISO
+// §12.3.6.2 — the name is OPTIONAL and the two clauses may follow the period directly, in any order, each at most
+// once — the figure notes; SR4: with nothing at all the second period may be omitted). X3.23-1985 hung MEMORY SIZE /
+// PROGRAM COLLATING SEQUENCE / SEGMENT-LIMIT off a REQUIRED name — the clauses WITHOUT a name are the 2002
+// relaxation, gated on recognition (VersionConformancePass ParseArm.VisitObjectComputerParagraph,
+// computer-name-optional-2002 — kb/Work PB78: `OBJECT-COMPUTER. PROGRAM COLLATING SEQUENCE IS REV.` was `unexpected
+// 'PROGRAM'`). computerAttributes stays the token SINK for the deleted '85 clauses (MEMORY SIZE, SEGMENT-LIMIT —
+// VisitComputerAttributes' token scan), reachable only behind a name; it stops at PROGRAM and CHARACTER so the two
+// standard clauses are recognized, never swallowed.
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT (computerName computerAttributes?
-      programCollatingSequenceClause? DOT)?
+    : OBJECT_COMPUTER DOT ((computerName computerAttributes?)? objectComputerClause* DOT)?
+    ;
+
+objectComputerClause
+    : programCollatingSequenceClause
+    | characterClassificationClause
+    ;
+
+// CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC IS locale-phrase-1 | FOR
+// NATIONAL IS locale-phrase-2}…} (§12.3.6.2), locale-phrase = locale-name | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT.
+// ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED — an §A.4.9 item 7 optional-locale element ("OBJECT-COMPUTER
+// paragraph, CHARACTER CLASSIFICATION clause"); the binder emits the documented-non-support COBOLNET1518 the LOCALE
+// clause carries (kb/Work PB78 — it was swallowed silently by the attribute sink after a name, a parse error without
+// one). CLASSIFICATION is not a token (an ordinary word at '85), so the arm is predicated on the word's text after
+// the CHARACTER token; the four locale-phrase spellings are all words here — the binder never gets to tell them
+// apart, since the clause is rejected whole.
+characterClassificationClause
+    : CHARACTER {classificationAhead()}? cobolWord (classificationForPhrase+ | IS? cobolWord cobolWord?)
+    ;
+
+classificationForPhrase
+    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 // PROGRAM COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
@@ -395,7 +428,7 @@ computerName
     ;
 
 computerAttributes
-    : ~(DOT | PROGRAM)+
+    : ~(DOT | PROGRAM | CHARACTER)+
     ;
 
 // ==========================================

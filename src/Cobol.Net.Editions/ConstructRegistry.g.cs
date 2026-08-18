@@ -197,5 +197,6 @@ public static partial class ConstructRegistry
         new("report-multi-column-2002", "multiple/relative COLUMN (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.14 Format 1 SR10/GR7–GR12; introduction gate = VersionConformancePass ParseArm.VisitReportColumnClause"),
         new("report-multi-line-2002", "multiple LINE (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.35 Format 1 SR10/GR9; recognized + edition-gated (ParseArm.VisitReportLineClause), repetition staged 0899"),
         new("user-word-underscore-2002", "the underscore in a COBOL word", 2002, null, null, "COBOLNET0900", "ISO §8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only"),
+        new("computer-name-optional-2002", "an OBJECT-COMPUTER clause without computer-name-1", 2002, null, null, "COBOLNET0900", "ISO §12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name format; parse-arm gate (VisitObjectComputerParagraph)"),
     ];
 }

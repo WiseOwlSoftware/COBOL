@@ -2307,6 +2307,19 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard); the word-character-set half of §8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOLNET1567 rather than as a construct row",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWUS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MY_NAME PIC X(5) VALUE \"hello\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY MY_NAME.\n    STOP RUN.\n"
+    },
+    {
+      "id": "computer-name-optional-2002",
+      "status": "active",
+      "description": "OBJECT-COMPUTER clauses WITHOUT computer-name-1 — ISO §12.3.6.2 makes computer-name-1 optional and lets the clauses (PROGRAM COLLATING SEQUENCE, CHARACTER CLASSIFICATION) follow the paragraph's period directly. X3.23-1985 hung the clauses (MEMORY SIZE, PROGRAM COLLATING SEQUENCE, SEGMENT-LIMIT) off a REQUIRED computer-name, so the name-less clause form is a 2002 relaxation; the empty paragraph (and SOURCE-COMPUTER's, §12.3.5.2) was legal at 85 already. Parsed at every edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than `unexpected 'PROGRAM'`. kb/Work PB78.",
+      "display": "an OBJECT-COMPUTER clause without computer-name-1",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name format; parse-arm gate (VisitObjectComputerParagraph)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 relaxation: computer-name-1 optional in SOURCE-COMPUTER and OBJECT-COMPUTER, and the OBJECT-COMPUTER clauses may stand without it (§12.3.5.2 / §12.3.6.2; the '85 formats required the name before any clause)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CNOPT.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER.\n    PROGRAM COLLATING SEQUENCE IS AL.\nSPECIAL-NAMES.\n    ALPHABET AL IS STANDARD-1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X VALUE \"a\".\nPROCEDURE DIVISION.\nMAIN.\n    IF A > \"B\" DISPLAY \"GT\" ELSE DISPLAY \"LE\" END-IF.\n    STOP RUN.\n"
     }
   ]
 }

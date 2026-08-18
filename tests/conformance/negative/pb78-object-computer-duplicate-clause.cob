@@ -1,0 +1,15 @@
+      *> reject-at: 2002 2014 2023
+      *> ISO 12.3.6.2's format encloses the OBJECT-COMPUTER clauses in choice indicators within brackets - 5.2.6.4:
+      *> zero or more, EACH AT MOST ONCE, any order. A second PROGRAM COLLATING SEQUENCE clause is COBOLNET1652.
+      *> kb/Work PB78.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB78DUP.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       OBJECT-COMPUTER.
+           PROGRAM COLLATING SEQUENCE IS AL
+           PROGRAM COLLATING SEQUENCE IS AL.
+       SPECIAL-NAMES.
+           ALPHABET AL IS STANDARD-1.
+       PROCEDURE DIVISION.
+           STOP RUN.

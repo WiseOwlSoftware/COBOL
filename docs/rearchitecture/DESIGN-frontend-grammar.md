@@ -359,6 +359,21 @@ statement-scoped 2002 gate for a national/boolean literal-1, the §8.3.3 hexadec
 zero-length check (COBOLNET1648) and the §8.8.3.2 SR1 same-class check (COBOLNET1540) — the tree walk, as for the
 bare literals.
 
+**3.3e The computer paragraphs (kb/Work PB78, 2026-08-18).** `objectComputerParagraph : OBJECT_COMPUTER DOT
+((computerName computerAttributes?)? objectComputerClause* DOT)?` — ISO §12.3.6.2's `[computer-name-1]` is optional
+and the two clauses (`programCollatingSequenceClause | characterClassificationClause`) may follow the period in any
+order (each at most once, §5.2.6.4 — a duplicate is COBOLNET1652 in the binder). Two load-bearing decisions: (1) the
+'85 attribute SINK `computerAttributes : ~(DOT | PROGRAM | CHARACTER)+` (MEMORY SIZE / SEGMENT-LIMIT / WITH
+DEBUGGING MODE — deleted 2002, gated by `VisitComputerAttributes`' token scan) stays BEHIND the name — a
+`~(…)+` sink reachable without one would swallow the next paragraph header — and now stops at CHARACTER as well as
+PROGRAM, so both standard clauses are recognized rather than eaten. (2) `characterClassificationClause : CHARACTER
+{classificationAhead()}? cobolWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the arm is
+predicated on the word after CHARACTER; the clause is PARSED SO IT CAN BE DIAGNOSED (A.4.9 item 7 documented
+non-support, COBOLNET1518 in the binder — the LOCALE clause's shape), and its words are exempt from the §8.9
+funnel exactly as the LOCALE clause's are. The name-less clause form is the 2002 relaxation of the '85 required-name
+format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` keeps the same
+shape (`((computerName computerAttributes?)? DOT)?`). The legacy oracle reads the clause list too.
+
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 
 - **Delete** `Grammar/CobolDialect.g4`, `CobolParserGenerics.g4`, `CobolParserJsonXml.g4`,

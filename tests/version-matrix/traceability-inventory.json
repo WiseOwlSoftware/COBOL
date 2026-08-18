@@ -11744,12 +11744,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "SOURCE-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): without computer-name-1 the second period may be omitted — `SOURCE-COMPUTER.` directly followed by OBJECT-COMPUTER parses (the golden).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.5.4-1",
@@ -11835,12 +11835,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): with neither computer-name-1 nor any clause the second period may be omitted — the whole entry is optional in the grammar (`OBJECT-COMPUTER.` directly followed by the next paragraph parses).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-1",
@@ -11848,12 +11848,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:2023/pb60_nested_configuration_inheritance",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB60 (2026-08-18): the OBJECT-COMPUTER clauses apply to the source unit and to every contained source unit — the golden's contained program inherits the PROGRAM COLLATING SEQUENCE (its PCS leg).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-2",
@@ -11861,12 +11861,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#computerName",
+  "test-ref": "conformance:2023/pb3_ord_collating_tail; conformance:2023/pb78_object_computer_optional_name",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): computer-name-1 MAY identify an equipment configuration — COBOL.NET defines none: any computer-name is accepted and implies the one object computer, the .NET runtime (documented on CONFORMANCE.md's A.1 item 127 row).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-3",
@@ -11874,12 +11874,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): the paragraph without computer-name-1 — the object computer is the implementor's, i.e. the same .NET runtime a named paragraph gets; the name-less clause form behaves identically (PCS=REV).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-4",
@@ -11887,12 +11887,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#configurationParagraph",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): no OBJECT-COMPUTER paragraph anywhere — the object computer is the implementor's (every program without the paragraph runs on the one .NET runtime).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-5",
@@ -11900,12 +11900,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): the CHARACTER CLASSIFICATION clause is Annex A.4.9 item 7 of the optional locale module, which COBOL.NET does not provide (CONFORMANCE.md §4 item 5); the clause is recognized and rejected with COBOLNET1518 — conformant per §4.2.7 / §A.4.1 because it is diagnosed. Its rules 5a–5j therefore never apply.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-6",
@@ -11913,12 +11913,12 @@
   "kind": "GR",
   "ordinal": 6,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:negative/pb78-object-computer-character-classification; conformance:2023/pb78_object_computer_optional_name",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): without a CHARACTER CLASSIFICATION clause the initial character classifications are those of the computer's coded character set at runtime — the ONLY classification COBOL.NET has (the clause itself is documented non-support), so every program takes this rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-7",
@@ -11926,12 +11926,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): LC_CTYPE-driven case mappings and class tests presuppose the CHARACTER CLASSIFICATION clause — A.4.9 item 7, documented non-support (COBOLNET1518); the case correspondence and class tests come from the runtime coded character set (CONFORMANCE.md §3 case-mapping bullet).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-8",
@@ -11939,12 +11939,12 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:negative/pb78-object-computer-character-classification",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): the initial-state effect of an explicit CHARACTER CLASSIFICATION (locale-name-1/-2's LC_CTYPE) — A.4.9 item 7, documented non-support (COBOLNET1518).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-9",
@@ -11952,12 +11952,12 @@
   "kind": "GR",
   "ordinal": 9,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:2023/pb3_ord_collating_tail; conformance:2002/alphabet_national",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): the PROGRAM COLLATING SEQUENCE clause sets the initial alphanumeric (alphabet-name-1) and national (alphabet-name-2, 2002+) program collating sequences; an unspecified half is the native sequence — with or without computer-name-1 (the golden's REV alphabet makes \"A\" > \"B\").",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-10",
@@ -11978,12 +11978,12 @@
   "kind": "GR",
   "ordinal": 11,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveProgramCollating; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:2023/pb60_nested_configuration_inheritance; conformance:2023/pb3_ord_collating_tail",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): the program collating sequences determine the truth value of alphanumeric / national comparisons — `IF X > \"B\"` under REV (\"B\" before \"A\") is TRUE for X = \"A\" (the golden's observable), also across the contained-program inheritance golden.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.6.4-12",
@@ -49964,12 +49964,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "SOURCE-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): SOURCE-COMPUTER. [computer-name-1] . — the name is optional (the empty paragraph was legal at '85 too); the '85 WITH DEBUGGING MODE clause hangs off a name in the grammar (the attribute sink stays behind it — reachable without a name it would swallow the next paragraph header).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.3.6.2",
@@ -49977,12 +49977,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "OBJECT-COMPUTER paragraph",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#characterClassificationClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb78-object-computer-clause-without-name-85; conformance:negative/pb78-object-computer-character-classification; conformance:negative/pb78-object-computer-duplicate-clause; conformance:2023/pb3_ord_collating_tail",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB78 (2026-08-18): OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ] . — computer-name-1 is optional and the two clauses may follow the period directly, in any order, each at most once (the figure notes; a duplicate is COBOLNET1652). The '85 format hung the clauses off a REQUIRED name, so the name-less clause form is gated below 2002 (computer-name-optional-2002, COBOLNET0900) — it was `unexpected 'PROGRAM'`. CHARACTER CLASSIFICATION is parsed and rejected as A.4.9 item 7 documented non-support (COBOLNET1518) at every edition — the attribute sink used to swallow it silently after a name. The MEMORY SIZE / SEGMENT-LIMIT sink stays behind the name (VisitComputerAttributes).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.3.7.2",

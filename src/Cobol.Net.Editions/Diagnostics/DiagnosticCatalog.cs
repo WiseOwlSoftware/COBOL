@@ -864,6 +864,14 @@ public static class DiagnosticCatalog
         + "DELIMITED BY phrase (SR7), COUNT IN / TALLYING IN / POINTER items are integers without P (SR5/SR6), and no "
         + "operand may be a variable-length group (SR10). Rejected at bind — the statement is not run.",
         "ISO §14.9.43.3 / §14.9.48.3");
+    // kb/Work PB78: the OBJECT-COMPUTER paragraph's clauses (§12.3.6.2's bracketed choice indicators — §5.2.6.4:
+    // zero or more, EACH AT MOST ONCE, any order) are a list since computer-name-1 became optional in the grammar.
+    public static readonly DiagnosticDescriptor ObjectComputerDuplicateClause = new(
+        "COBOLNET1652", "object-computer-duplicate-clause", EditionSeverity.Error,
+        "An OBJECT-COMPUTER clause (PROGRAM COLLATING SEQUENCE, CHARACTER CLASSIFICATION) is specified more than once "
+        + "in the paragraph. ISO §12.3.6.2's format encloses the clauses in choice indicators within brackets, which "
+        + "§5.2.6.4 defines as zero or more of the alternatives, each at most once, in any order. Keep one.",
+        "ISO §12.3.6.2 / §5.2.6.4");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

@@ -195,4 +195,5 @@ public static class Constructs
     public const string ReportMultiColumn2002 = "report-multi-column-2002";
     public const string ReportMultiLine2002 = "report-multi-line-2002";
     public const string UserWordUnderscore2002 = "user-word-underscore-2002";
+    public const string ComputerNameOptional2002 = "computer-name-optional-2002";
 }

@@ -54,6 +54,13 @@ public abstract class CobolParserCoreBase : Parser
     /// even when the predicate is reached: a bare <c>LOCALE IS FOO</c> has no locale-name and is not this clause.
     /// </para>
     /// </summary>
+    /// <summary>True when the word after the CHARACTER token (already consumed) spells CLASSIFICATION — the
+    /// OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.6.2; kb/Work PB78). CLASSIFICATION is not a lexer
+    /// token (a plain word at COBOL-85), so the arm is predicated on the text; every edition recognizes the shape
+    /// and the binder rejects it as the A.4.9 documented non-support it is.</summary>
+    protected bool classificationAhead() =>
+        string.Equals(TokenStream.LT(1)?.Text, "CLASSIFICATION", StringComparison.OrdinalIgnoreCase);
+
     protected bool localeClauseAhead()
     {
         if (!Edition.Has(2002)) return false;
