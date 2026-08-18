@@ -247,8 +247,9 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   SubChecked` raise `CobolSizeError` (never a bare OverflowException) — a native Int128 overflow or a zero divisor in
   a condition / argument / subscript under EC-SIZE checking is the size error condition, dispatched like the decimal
   carrier's (PB75). Two verdicts (§14.7.5 cases 2 and 5) → CONFORMS, GAP 3954. **THE DEFECT BACKLOG IS EMPTY** —
-  `work.py next` lists only the two features (PB64 locale, PB66 data-division). Battery #17 owed for the PB96 + PB91
-  batch.
+  `work.py next` lists only the two features (PB64 locale, PB66 data-division).
+  **✅ Battery #17 (PB96 + PB91 batch, tree `219bb6f8`):** Conformance **4770/4770** · Unit **4232/4232** ·
+  Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
   **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) · PB66 (feature/data-division) — the features; the
   standing order (2026-08-09) after the backlog reaches zero: fix-before-explore holds, so a NEW defect found on the
   way outranks both.
