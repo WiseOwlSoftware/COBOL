@@ -206,12 +206,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "OrdMaxString" or "OrdMinString":                              // all-string form (PCS via CollatePrefix, CA23)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, CollatePrefix(ic) + StrArgList(ic)), 0);
 
-            // NUMVAL / NUMVAL-C (§15.67/§15.68): parse to (unscaled, actual scale), rescaled to the compile-time
+            // NUMVAL / NUMVAL-C (§15.67/§15.68) under NATIVE arithmetic (the standard-mode value is RenderDec's
+            // exact SDIDI arm — §15.4.1; PB60): parse to (unscaled, actual scale), rescaled to the compile-time
             // working scale — the ≥6 floor is the NUMVAL rule (the receiver scale is stale in IF conditions; the
             // suite's deepest literal fraction is 5 digits, so 6 is lossless), CAPPED at the receiver's Int128
-            // headroom by the same PB13 argument the float family uses. These carried the defect too: the runtime
-            // clamped the parsed value at long.MaxValue, so a 20-digit NUMVAL string at ws = 6 needs 26 digits and
-            // silently became 9223372036.854775807.
+            // headroom by the same PB13 argument the float family uses (the CONFORMANCE.md item-92 native
+            // working-scale determination). These carried the defect too: the runtime clamped the parsed value at
+            // long.MaxValue, so a 20-digit NUMVAL string at ws = 6 needs 26 digits and silently became
+            // 9223372036.854775807.
             case "Numval":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
@@ -479,12 +481,28 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
         string m = ic.Sig.RuntimeMethod;
-        bool inexactEae = m is "Annuity" or "PresentValue" or "Variance" or "StandardDeviation";
-        if (!inexactEae && !AnyDecOrRealRaw(ic)) return null;
+        // Functions whose standard-mode value is FIXED for EVERY argument shape route here unconditionally: the
+        // four inexact-EAE financial/statistical functions (their EAEs divide, so even all-fixed lists must
+        // evaluate in SDIDI form), and the NUMVAL family — §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 name the
+        // returned value outright ("the numeric value represented by argument-1"; NUMVAL-F's r2/r3 pair grants
+        // NATIVE arithmetic the approximation and STANDARD-DECIMAL none), and §15.4.1 places it in an SDIDI. Their
+        // argument is a string, so the carrier question never arises; before this arm the standard-mode value
+        // rode the native Int128 projection at the item-92 working scale (fix-queue PB60, RV-15.67.4-1a).
+        bool alwaysDec = m is "Annuity" or "PresentValue" or "Variance" or "StandardDeviation"
+                           or "Numval" or "NumvalC" or "NumvalF";
+        if (!alwaysDec && !AnyDecOrRealRaw(ic)) return null;
 
         string mode = num.IntermediateMode;
         return m switch
         {
+            // The NUMVAL family: the ONE positional scan's (sign, unscaled, frac[, exp]) lifted to the SDIDI exactly
+            // at the parsed scale — no working scale, no receiver. The digit cap is 34 here by construction (this
+            // arm runs only under the standard modes) and is still passed explicitly, exactly as the TEST- twins
+            // receive it, so the scan's r1b sub-note-4 verdict and the value agree on the same number.
+            "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
+            "NumvalC" => Dec(RuntimeApi.Intrinsic("NumvalCDec",
+                $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}")),
+            "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
             "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
             "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),

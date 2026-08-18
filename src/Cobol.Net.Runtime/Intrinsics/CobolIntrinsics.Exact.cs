@@ -307,14 +307,67 @@ public static partial class CobolIntrinsics
     public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
         NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
-        if (p.ErrPos != 0)
-            return p.CapHit
-                ? DigitCapExceeded("NUMVAL", digitCap + 1, digitCap, "ISO §15.67.3 rules 3-4")
-                : Exceptions.ExceptionState.ArgumentError(
-                    $"NUMVAL argument-1 \"{text}\" does not conform to the §15.67.3 formats (first character "
-                    + $"in error at position {p.ErrPos}; §15.93 TEST-NUMVAL reports the same position)");
+        if (p.ErrPos != 0) return NumvalReject(p, text, digitCap);
         Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
         return p.Neg ? -r : r;
+    }
+
+    /// <summary>The §15.67 reject projection of a non-conforming scan — ONE message per family, shared by the
+    /// native (Int128) and standard-decimal (<see cref="NumvalDec"/>) value projections so the two arithmetic
+    /// modes cannot drift apart on what they say about the same malformed argument. Returns the §15.3
+    /// implementor-defined default (0) with checking off.</summary>
+    private static Int128 NumvalReject(NvParse p, string text, int digitCap) =>
+        p.CapHit
+            ? DigitCapExceeded("NUMVAL", digitCap + 1, digitCap, "ISO §15.67.3 rules 3-4")
+            : Exceptions.ExceptionState.ArgumentError(
+                $"NUMVAL argument-1 \"{text}\" does not conform to the §15.67.3 formats (first character "
+                + $"in error at position {p.ErrPos}; §15.93 TEST-NUMVAL reports the same position)");
+
+    // ── The STANDARD-DECIMAL projections of the same scans (fix-queue PB60, RV-15.67.4-1a) ────────────────────
+    // §15.4.1: under a standard arithmetic mode "the returned value for numeric and integer functions is
+    // contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in
+    // effect" — the SDIDI (§8.8.1.5.2, 34 digits). §15.67.4 r1 / §15.68.4 r1 fix that value with no latitude
+    // ("the numeric value represented by argument-1"), and §15.69.4 r3 says it outright for NUMVAL-F ("If
+    // standard-decimal arithmetic is in effect, the returned value is the numeric value represented by
+    // argument-1" — where r2 grants native arithmetic only an approximation). So the standard-mode value is the
+    // scan's (sign, unscaled, frac[, exp]) lifted to CobolDec EXACTLY at the parsed scale — no working scale, no
+    // receiver, no ≥6/≥9 floor. Before these landed the standard-mode value rode the NATIVE Int128 projection at
+    // the item-92 working scale: a receiver-less DISPLAY of NUMVAL("1.2345678") printed 1.234567, and a 34-digit
+    // argument (legal under the r4 cap) rescaled past the Int128 carrier and rendered a SATURATION artifact
+    // (170141183460469231731687303715884.105727) as if it were the value. The digit cap keeps the significand
+    // ≤34 digits, which Int128 carries exactly, so the lift itself never rounds; NUMVAL-F's E-exponent can reach
+    // past decimal128's range and passes through the ONE §8.8.1.5.2 r2 range check (CobolDec.FromParsed).
+
+    /// <summary>NUMVAL under STANDARD-DECIMAL arithmetic — the §15.67.4 r1 value as an SDIDI, exact at the parsed
+    /// scale (see the family comment above). Same <see cref="NvScan"/>, same reject projection as the native twin.</summary>
+    public static CobolDec NumvalDec(string text, bool commaMode = false, int digitCap = 34)
+    {
+        NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
+        if (p.ErrPos != 0) return CobolDec.From(NumvalReject(p, text, digitCap), 0);
+        return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
+    }
+
+    /// <summary>NUMVAL-C under STANDARD-DECIMAL arithmetic — the §15.68.4 r1 value as an SDIDI, exact at the
+    /// parsed scale; the currency and grouping rules are the one scan's (see <see cref="NumvalC"/>).</summary>
+    public static CobolDec NumvalCDec(string text, string currency, bool commaMode = false, bool anycase = false,
+                                      int digitCap = 34)
+    {
+        if (InvalidCurrency(currency)) return CobolDec.From(NumvalCInvalidCurrency(currency), 0);
+        NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
+        if (p.ErrPos != 0) return CobolDec.From(NumvalCReject(p, text, digitCap), 0);
+        return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
+    }
+
+    /// <summary>NUMVAL-F under STANDARD-DECIMAL arithmetic — §15.69.4 r3's exact value as an SDIDI:
+    /// significand × 10^(exponent − fraction digits), through the §8.8.1.5.2 r2 range check (a 4-digit
+    /// E-exponent can exceed decimal128's ±6144 adjusted exponent — EC-SIZE-OVERFLOW / UNDERFLOW, the same
+    /// disposition every SDIDI operation result gets). <paramref name="mode"/> is the INTERMEDIATE ROUNDING
+    /// mode (§11.9.11) the range check's subnormal re-round uses.</summary>
+    public static CobolDec NumvalFDec(CobolRounding mode, string text, bool commaMode = false, int digitCap = 34)
+    {
+        NvfParse p = NvfScan(text, commaMode, digitCap);
+        if (p.ErrPos != 0) return CobolDec.From(NumvalFReject(p, text, digitCap), 0);
+        return CobolDec.FromParsed(p.Neg ? -p.Unscaled : p.Unscaled, p.Exp - p.Frac, mode);
     }
 
     /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places, SATURATING at the
@@ -354,15 +407,19 @@ public static partial class CobolIntrinsics
     public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
-        if (p.ErrPos != 0)
-            return p.CapHit
-                ? DigitCapExceeded("NUMVAL-F", digitCap + 1, digitCap, "ISO §15.69.3 rules 2-3")
-                : Exceptions.ExceptionState.ArgumentError(
-                    $"NUMVAL-F argument-1 \"{text}\" does not conform to the §15.69.3 format (first character "
-                    + $"in error at position {p.ErrPos}; §15.95 TEST-NUMVAL-F reports the same position)");
+        if (p.ErrPos != 0) return NumvalFReject(p, text, digitCap);
         Int128 r = Rescaled(p.Unscaled, scale + p.Exp - p.Frac);
         return p.Neg ? -r : r;
     }
+
+    /// <summary>The §15.69 reject projection — shared by <see cref="NumvalF"/> and <see cref="NumvalFDec"/>
+    /// (see <see cref="NumvalReject"/>).</summary>
+    private static Int128 NumvalFReject(NvfParse p, string text, int digitCap) =>
+        p.CapHit
+            ? DigitCapExceeded("NUMVAL-F", digitCap + 1, digitCap, "ISO §15.69.3 rules 2-3")
+            : Exceptions.ExceptionState.ArgumentError(
+                $"NUMVAL-F argument-1 \"{text}\" does not conform to the §15.69.3 format (first character "
+                + $"in error at position {p.ErrPos}; §15.95 TEST-NUMVAL-F reports the same position)");
 
     /// <summary>TEST-NUMVAL-F (§15.95, COBOL-2014+): 0 if the string conforms to the NUMVAL-F format; else the
     /// 1-based position of the first character in error (an embedded space inside the significand ⇒ the first
@@ -401,21 +458,29 @@ public static partial class CobolIntrinsics
         // §15.68.3 r2's content halves, the RUNTIME twin of the bind-time literal screen — a data-item
         // argument-2's content is only visible here. A digit-bearing or separator-bearing currency could
         // otherwise consume argument-1 digits as "the currency" and value a wrong number silently.
-        if (InvalidCurrency(currency))
-            return Exceptions.ExceptionState.ArgumentError(
-                $"NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and none "
-                + "of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in any "
-                + "case (§15.68.3 rule 2)");
+        if (InvalidCurrency(currency)) return NumvalCInvalidCurrency(currency);
         NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
-        if (p.ErrPos != 0)
-            return p.CapHit
-                ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §15.68.3 rules 6-7")
-                : Exceptions.ExceptionState.ArgumentError(
-                    $"NUMVAL-C argument-1 \"{text}\" does not conform to either §15.68.3 r4a format "
-                    + $"(first character in error at position {p.ErrPos}; §15.94 TEST-NUMVAL-C reports the same position)");
+        if (p.ErrPos != 0) return NumvalCReject(p, text, digitCap);
         Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
         return p.Neg ? -r : r;
     }
+
+    /// <summary>The §15.68.3 r2 runtime reject of an invalid argument-2 — shared by <see cref="NumvalC"/> and
+    /// <see cref="NumvalCDec"/> (TEST-NUMVAL-C carries its own r1c LENGTH+1 leg beside this raise).</summary>
+    private static Int128 NumvalCInvalidCurrency(string currency) =>
+        Exceptions.ExceptionState.ArgumentError(
+            $"NUMVAL-C argument-2 \"{currency}\" shall contain at least one non-space character and none "
+            + "of the digits 0-9, the characters '*' '+' '-' ',' '.', or the letter pair CR/DB in any "
+            + "case (§15.68.3 rule 2)");
+
+    /// <summary>The §15.68 reject projection — shared by <see cref="NumvalC"/> and <see cref="NumvalCDec"/>
+    /// (see <see cref="NumvalReject"/>).</summary>
+    private static Int128 NumvalCReject(NvParse p, string text, int digitCap) =>
+        p.CapHit
+            ? DigitCapExceeded("NUMVAL-C", digitCap + 1, digitCap, "ISO §15.68.3 rules 6-7")
+            : Exceptions.ExceptionState.ArgumentError(
+                $"NUMVAL-C argument-1 \"{text}\" does not conform to either §15.68.3 r4a format "
+                + $"(first character in error at position {p.ErrPos}; §15.94 TEST-NUMVAL-C reports the same position)");
 
     /// <summary>§15.68.3 r2's content bans on the currency string (after the rule's own edge-space trim):
     /// empty/all-space, any digit 0-9, any of <c>* + - , .</c> (the characters are named outright — the

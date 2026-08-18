@@ -22,6 +22,14 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// fits the 34-digit significand, §8.8.1.5.2).</summary>
     public static CobolDec From(Int128 unscaled, int scale) => new(unscaled, -scale);
 
+    /// <summary>Lift an exactly-parsed decimal — significand × 10^<paramref name="exp"/>, the value a NUMVAL-F
+    /// argument represents under standard-decimal arithmetic (§15.69.4 r3; fix-queue PB60) — into SDIDI form
+    /// through the ONE rounding funnel. A ≤34-digit significand passes exactly (no rounding); the §8.8.1.5.2 r2
+    /// range check applies, which <see cref="From"/> may skip only because a fixed-point operand can never leave
+    /// the decimal128 range — a 4-digit E-exponent can (10^9999 ⇒ EC-SIZE-OVERFLOW; 10^-9999 rounds onto the
+    /// 10^-6176 subnormal quantum under <paramref name="mode"/> and, at zero, EC-SIZE-UNDERFLOW).</summary>
+    public static CobolDec FromParsed(Int128 sig, int exp, CobolRounding mode) => Round34(sig, exp, sticky: false, mode);
+
     /// <summary>FUNCTION E under a standard arithmetic mode — the EXACT §15.27.3 r3 value
     /// (2.718281828459045235360287471352662, the full 34-digit SDIDI significand; kb/Work R18). The compiler
     /// folds FUNCTION E to THIS constant and evaluates EXP's §15.34.4 equivalent arithmetic expression

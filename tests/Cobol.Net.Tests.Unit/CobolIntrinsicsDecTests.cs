@@ -118,4 +118,80 @@ public sealed class CobolIntrinsicsDecTests
         Assert.Equal(CobolIntrinsics.MedianScaled(exact), CobolIntrinsics.MedianDec(m, dec).ToUnscaled(3, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.MidrangeScaled(exact), CobolIntrinsics.MidrangeDec(m, dec).ToUnscaled(3, CobolRounding.Truncation));
     }
+
+    // ── The NUMVAL family under STANDARD-DECIMAL (PB60, RV-15.67.4-1a): the one scan lifted EXACTLY ─────
+    // §15.4.1 places the returned value in an SDIDI; §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 fix it as "the
+    // numeric value represented by argument-1" — no working scale, no receiver, no approximation.
+
+    private const CobolRounding Nafz = CobolRounding.NearestAwayFromZero;
+
+    [Fact]
+    public void NumvalDec_IsTheParsedValueAtTheParsedScale()
+    {
+        var v = CobolIntrinsics.NumvalDec("1.2345678");
+        Assert.Equal((System.Int128)12345678, v.Sig);                        // identity: the PARSED scale (7),
+        Assert.Equal(-7, v.Exp);                                             //   never the native ≥6 floor
+        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec("0.5CR"));             // §15.67.4 r2 — CR negates
+        AssertDec(D(-5, 1), CobolIntrinsics.NumvalDec(" - 0.5 "));           // §15.67.3 r2 — spaces before the digit
+        AssertDec(D(1500, 3), CobolIntrinsics.NumvalDec("1.500"));           // trailing zeros keep their scale
+        // A 34-digit argument is legal under the standard-decimal cap (§15.67.3 r4) and exact (§8.8.1.5.2's
+        // 34 digits) — the native projection saturated its Int128 rescale on this input.
+        var n34 = CobolIntrinsics.NumvalDec("1234567890123456789012345678901234");
+        Assert.Equal(System.Int128.Parse("1234567890123456789012345678901234"), n34.Sig);
+        Assert.Equal(0, n34.Exp);
+        AssertDec(D(125, 1), CobolIntrinsics.NumvalDec("12,5", commaMode: true));   // §15.67.3 r5
+    }
+
+    [Fact]
+    public void NumvalCDec_ConsumesCurrencyAndGrouping_Exactly()
+    {
+        AssertDec(D(12345678901234, 10), CobolIntrinsics.NumvalCDec("$1,234.5678901234", "$"));   // §15.68.4 r2
+        AssertDec(D(-12345, 2), CobolIntrinsics.NumvalCDec("R123.45CR", "R"));                    // the r4a position (PB60)
+        AssertDec(D(-12345, 2), CobolIntrinsics.NumvalCDec("usd 123.45-", "USD", anycase: true)); // r4f
+    }
+
+    [Fact]
+    public void NumvalFDec_LiftsTheExponent_ThroughTheOneRangeCheck()
+    {
+        AssertDec(D(15, 9), CobolIntrinsics.NumvalFDec(Nafz, "1.5E-8"));                  // 15 × 10^(−8−1)
+        AssertDec(D(123456789012345, 17), CobolIntrinsics.NumvalFDec(Nafz, "1.23456789012345E-3"));
+        var big = CobolIntrinsics.NumvalFDec(Nafz, "1E+40");                               // in range, exact
+        Assert.Equal((System.Int128)1, big.Sig);
+        Assert.Equal(40, big.Exp);
+        AssertDec(D(-350, 1), CobolIntrinsics.NumvalFDec(Nafz, " - 35E+0 "));              // §15.69.3 r5's legal spaces
+        // A 4-digit E-exponent can leave decimal128 (§8.8.1.5.2 r2) — the ONE range check every SDIDI result gets.
+        var ex = Assert.Throws<CobolSizeError>(() => CobolIntrinsics.NumvalFDec(Nafz, "1E+9999"));
+        Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
+    }
+
+    /// <summary>The drift half for this family: on the shared fixed-point domain the SDIDI projection, landed
+    /// at the native projection's working scale, is digit-identical to the native projection — the two
+    /// arithmetic modes read ONE scan and cannot disagree about a conforming argument's value.</summary>
+    [Theory]
+    [InlineData("12.5")]
+    [InlineData("-0.001")]
+    [InlineData("1234567.891")]
+    [InlineData("12.5CR")]
+    [InlineData(" + 7 ")]
+    public void NumvalFamily_DecAgreesWithNative_OnTheSharedDomain(string text)
+    {
+        Assert.Equal(CobolIntrinsics.Numval(text, 6), CobolIntrinsics.NumvalDec(text).ToUnscaled(6, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.NumvalC(text, "$", 6), CobolIntrinsics.NumvalCDec(text, "$").ToUnscaled(6, CobolRounding.Truncation));
+        if (!text.Contains("CR"))   // NUMVAL-F has no CR form (§15.69.3 r1)
+            Assert.Equal(CobolIntrinsics.NumvalF(text, 9), CobolIntrinsics.NumvalFDec(Nafz, text).ToUnscaled(9, CobolRounding.Truncation));
+    }
+
+    /// <summary>The reject projections are SHARED: a non-conforming argument yields the §15.3 default (0)
+    /// from both modes' value functions, through the one message per family (checking off here).</summary>
+    [Theory]
+    [InlineData("-12-")]                                     // neither §15.67.3 r1 format
+    [InlineData("12345678901234567890123456789012345")]      // 35 digits — past the standard-decimal cap too
+    [InlineData("")]                                         // r1c — no digit anywhere
+    public void NumvalFamily_RejectProjection_IsSharedAcrossModes(string text)
+    {
+        Assert.Equal((System.Int128)0, CobolIntrinsics.Numval(text, 6, digitCap: 34));
+        AssertDec(D(0, 0), CobolIntrinsics.NumvalDec(text));
+        Assert.Equal((System.Int128)0, CobolIntrinsics.NumvalF(text, 9, digitCap: 34));
+        AssertDec(D(0, 0), CobolIntrinsics.NumvalFDec(Nafz, text));
+    }
 }

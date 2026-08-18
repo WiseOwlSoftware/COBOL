@@ -108,9 +108,23 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
 >   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
 >   log/E/PI) has no EAE — implementor-defined in every mode (§15.4.1 last ¶), converting into expressions per
->   §8.8.1.5.2 r1. **Staged LOUD:** ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION (inexact-division
->   EAEs on the double engine) reject under the standard modes with COBOLNET0899 `arithmetic-standard-intrinsic`
->   (IntrinsicBinder) until CobolDec evaluations land.
+>   §8.8.1.5.2 r1. (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION were staged loud under the standard
+>   modes — COBOLNET0899 — until their SDIDI evaluations landed with PB56; the stage is gone.)
+>   **The NUMVAL family under the standard modes (PB60, RV-15.67.4-1a / RV-15.69.4-3, 2026-08-17):** NUMVAL /
+>   NUMVAL-C / NUMVAL-F have no EAE, but their returned value is FIXED by their own rules — §15.67.4 r1 and
+>   §15.68.4 r1 "the numeric value represented by argument-1", and §15.69.4 r3 says it outright for NUMVAL-F
+>   under standard-decimal (r2 grants NATIVE and standard-binary the approximation) — and §15.4.1 places it in
+>   an SDIDI temporary. So the standard-mode value is the ONE positional scan's (sign, unscaled, frac[, exp])
+>   lifted to `CobolDec` EXACTLY at the parsed scale (`CobolIntrinsics.NumvalDec` / `NumvalCDec` / `NumvalFDec`
+>   — projections of the same `NvScan`/`NvfScan` the native twins and the TEST- validators ride, sharing the
+>   native twins' reject projections), dispatched by `IntrinsicRenderer.RenderDec`'s NUMVAL arm, which routes
+>   UNCONDITIONALLY under the standard modes (the argument is a string — no carrier question arises). No working
+>   scale, no receiver, no ≥6/≥9 floor: `NUMVAL("1.2345678")` is 1.2345678 in every channel, a 34-digit argument
+>   (legal under the standard-mode digit cap) is exact, and NUMVAL-F's E-exponent lifts through
+>   `CobolDec.FromParsed` — the ONE §8.8.1.5.2 r2 range check every SDIDI result gets (`1E+9999` ⇒
+>   EC-SIZE-OVERFLOW). The NATIVE-mode value stays the documented item-92 working-scale determination
+>   (CONFORMANCE.md). Pinned by `pb60_numval_standard_decimal` + the NUMVAL tests in `CobolIntrinsicsDecTests`
+>   (incl. the native-agreement theory on the shared fixed-point domain).
 > - **The RW SUM clause (§8.8.1.5.1 names it):** documented-equivalence consumption at the ReportWriterEmitter
 >   chokepoint — each §13.18.54 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
 >   in both engines; no routing needed.

@@ -24,8 +24,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
 
 ### Where we are
 
-- **▶ SESSION HANDOFF (2026-08-09 21:40 — the ultracode-campaign session's resume point; PAUSED for
-  the night by the owner):**
+- **▶ SESSION HANDOFF (2026-08-17 — the live resume point):**
+  **Battery:** the last comprehensive battery is the 08-09 one on `0c9c4ce9` (ALL GREEN, §9); this session's
+  landings ride WAVE-LOCAL gates so far — a battery is owed once the accumulated batch (PB60 SDIDI branch +
+  PB76 + PB74) is in, before the next shared-seam move.
+  **LANDED THIS SESSION (DEVLOG 1289–):** PB60 at **11 of 13** — the SDIDI Dec branch (RV-15.67.4-1(a) and
+  the reassigned NUMVAL-F twin RV-15.69.4-3 → CONFORMS; GAP 4145 → 4143): the NUMVAL family's standard-mode
+  value is the one scan lifted exactly to `CobolDec` (`NumvalDec/NumvalCDec/NumvalFDec`, `RenderDec`'s
+  unconditional NUMVAL arm, `CobolDec.FromParsed` for the E-exponent's range check).
+  **REGISTERED THIS SESSION (each a probe-measured wrong answer or crash, each its own mechanism):** PB74 (the
+  SDIDI final transfer's widening arm masks ON SIZE ERROR — `10 ** 100` into 9(5) stores 0, NOT ON SIZE ERROR),
+  PB75 (an SDIDI range overflow outside an arithmetic statement is a raw CLR crash), PB76 (the
+  far-below-precision remainder marker reads as a half-tie — `10 ** -20 ROUNDED` into V9(9) stores 0.000000001).
+  **NEXT, in order:** ① PB76 (one marker, one file) → ② PB74 (`ToUnscaledChecked` + `TryStore(CobolDec)` + the
+  checked edited path) → ③ PB60's RV-15.69.4-2 (NATIVE NUMVAL-F: the float family's Receiverless/Real
+  convention, item-92 record) → ④ the battery for the batch → ⑤ PB60's last two rows (the CURRENCY SIGN SET
+  model; DECIMAL-POINT IS COMMA containment scoping) → ⑥ PB58 → PB61 → PB62 → PB63 → PB68 → PB69 → PB70 → PB71
+  per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
+  handoff below records.
+- **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record
+  and hazards still apply):**
   **✅ THE BATTERY QUESTION IS SETTLED — no gate is owed at session start.** The PB60-batch battery
   measured `=== BATTERY: ALL GREEN ===` on `0c9c4ce9` (Conformance 4367/4367 · Unit 4124/4124 · NIST
   353/0 audit-clean · differential 0 flips). The §9 reference records it. Start at the wave-local

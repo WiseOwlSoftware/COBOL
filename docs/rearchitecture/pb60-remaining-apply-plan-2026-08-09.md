@@ -1,6 +1,13 @@
 # PB60's last three rows — apply plan (drafted through the PB60-batch battery freeze, 2026-08-09)
 
-## RV-15.67.4-1(a) — the SDIDI Dec branch (STANDARD-DECIMAL exactness)
+## RV-15.67.4-1(a) — the SDIDI Dec branch (STANDARD-DECIMAL exactness) — ✅ LANDED 2026-08-17
+> Applied as drafted (plus RV-15.69.4-3, the NUMVAL-F twin): `CobolIntrinsics.NumvalDec/NumvalCDec/NumvalFDec`
+> project the one scan to `CobolDec` at the parsed scale (`CobolDec.FromParsed` for the E-exponent, through the
+> §8.8.1.5.2 r2 range check); `IntrinsicRenderer.RenderDec` gained the three arms, routed unconditionally under
+> the standard modes; the reject projections were extracted so both modes share one message per family.
+> Golden `pb60_numval_standard_decimal`; design text in `COBOLNET_NUMERIC_DESIGN.md` D3 + CONFORMANCE.md item
+> 92 (native-only). The section below is kept as the record of the design that was applied.
+
 Derivation: §15.4.1 (SDIDI temporary under the standard modes) + §8.8.1.5.2 (34-digit precision).
 The one-scan makes it trivial:
 1. Runtime: `NumvalDec/NumvalCDec/NumvalFDec` — project NvScan/NvfScan to the SDIDI carrier at the
