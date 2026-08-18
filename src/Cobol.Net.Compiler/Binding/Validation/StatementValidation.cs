@@ -224,28 +224,18 @@ internal sealed class StatementValidation(DataBinder data)
     /// ordering stage — COBOLNET0899 <c>strong-group-ordering-signed-leaf</c>, P10 Step 16).</summary>
     public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
     {
-        static bool IsBoolOperand(BoundOperand o) => o switch
-        {
-            BoundBoolOperand => true,   // a boolean EXPRESSION (B-op tier, increment 2)
-            BoundStringLiteral { Category: PicCategory.Boolean } => true,
-            BoundAllLiteral { Category: PicCategory.Boolean } => true,
-            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
-            BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
-            _ => false,
-        };
+        // ⛔ The class of an operand is asked of the ONE classifier (IntrinsicResultType.OperandCategory — total
+        // over literals, fields, ref-mod views, groups, ALL literals, boolean expressions and COMPUTED operands),
+        // never re-derived here (kb/Work PB68): the local switch that stood here had no arm for a
+        // BoundComputedOperand wrapping a BOOLEAN-result intrinsic, so `IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) =
+        // B"100000"` — exactly the §8.8.4.2.8 boolean comparison — was rejected as a class mix, while the mirror
+        // against an ALPHANUMERIC literal (illegal) was accepted and evaluated. §15.13.1 makes the function's type
+        // boolean; §15.2 item 2 its class and category; the classifier already knew.
+        static bool IsBoolOperand(BoundOperand o) => IntrinsicResultType.OperandCategory(o) is PicCategory.Boolean;
         bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
         if (lb || rb)
         {
-            static bool BoolCompatible(BoundOperand o) =>
-                o is BoundFigurative { Kind: 'Z' } || o switch
-                {
-                    BoundBoolOperand => true,
-                    BoundStringLiteral { Category: PicCategory.Boolean } => true,
-                    BoundAllLiteral { Category: PicCategory.Boolean } => true,
-                    BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
-                    BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
-                    _ => false,
-                };
+            static bool BoolCompatible(BoundOperand o) => o is BoundFigurative { Kind: 'Z' } || IsBoolOperand(o);
             if (!(BoolCompatible(left) && BoolCompatible(right)))
                 data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
                     + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "

@@ -297,6 +297,9 @@ internal static class IntrinsicResultType
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
         BoundComputedOperand => PicCategory.Numeric,
         BoundAllLiteral al => al.Category,
+        // A boolean EXPRESSION operand (the B-op tier, §8.8.2) is class and category boolean — the classifier is
+        // TOTAL over the operand kinds so the relation checkpoint asks it instead of re-deriving (kb/Work PB68).
+        BoundBoolOperand => PicCategory.Boolean,
         _ => null,
     };
 

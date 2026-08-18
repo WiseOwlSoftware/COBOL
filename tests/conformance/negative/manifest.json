@@ -222,6 +222,8 @@
   "pb63-exception-file-n-sd",
   "pb63-exception-file-no-fd",
   "pb63-exception-file-sd",
+  "pb68-boolean-function-arithmetic",
+  "pb68-boolean-function-vs-alphanumeric-literal",
   "pb72-move-alphabetic-to-numeric",
   "pb72-move-edited-to-numeric",
   "pb72-move-noninteger-to-alphanumeric",

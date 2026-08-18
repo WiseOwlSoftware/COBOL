@@ -43503,12 +43503,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "BOOLEAN-OF-INTEGER function",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsIntWide",
-  "test-ref": "conformance:2023/pb65_boolean_wide; conformance:2002/intrinsics_boolean_conv",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#BooleanOfInteger; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsIntWide; src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#OperandCategory; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindBoolOperandValue; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringCategoryOf",
+  "test-ref": "conformance:2023/pb65_boolean_wide; conformance:2002/intrinsics_boolean_conv; conformance:2023/pb68_boolean_function_operand_contexts; conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic",
   "editions": "2002,2014,2023",
-  "notes": "D1 LANDED 2026-08-09 (PB65): argument-1 crosses the WIDE Int128 bridge (emitter ArgIntWide/AsIntWide, carrier-total, mirroring AsInt; runtime body walks to bit 126) - BOOLEAN-OF-INTEGER(2^63, 70) and (2^64+5, 70) now return the exact bit configurations, golden pb65_boolean_wide with independently derived strings + the Annex D.10 truncation control. Citations re-checked: cite.py --check 15.13.4 r1 (bit configuration, mathematical per its NOTE), 15.13.3 r1 (any positive integer). THE ROW STAYS DIVERGES on its D2/D3 layers - the four class-boolean checkpoints with no arm for a computed boolean-intrinsic operand (rejects legal boolean comparison/B-AND, accepts the illegal alphanumeric mirror TRUE, crashes in a numeric context, LENGTH misclassified) - now owned by kb/Work/PB68; the row closes when PB68 lands.",
-  "state": "GAP"
+  "notes": "LANDED 2026-08-18 (kb/Work PB68 — the D2/D3 layers): §15.13.1 'The function type is boolean' + §15.2 item 2 make the RESULT class/category boolean, and every checkpoint now asks the ONE classifier (IntrinsicResultType.OperandCategory — total; it gained the BoundBoolOperand arm) instead of re-deriving: the relation checkpoint (`IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) = B\"100000\"` is the §8.8.4.2.8 comparison and binds — REL-EQ/ITEM/FF/EXT/NE in the golden; the alphanumeric MIRROR is now COBOLNET0844, negative pb68-boolean-function-vs-alphanumeric-literal — it used to be accepted and TRUE), the boolean-expression operand (§8.8.2 'an identifier referencing a boolean data item' — a function-identifier IS an identifier: BoundBoolCall, BAND/BXOR/BEXPR-REL/SIMPLE), the LENGTH fold (r1's boolean positions: LEN=8), the string-operand and condition-renderer classifiers (two boolean function results compared each other take the right-zero-extension), and §8.8.1.1's arithmetic screen at BIND (negative pb68-boolean-function-arithmetic — it compiled clean and threw NotImplemented at run time; --permissive decodes the digits like a data item). D1 (the wide bridge, PB65) stands as recorded.",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.14.3-1",

@@ -336,6 +336,12 @@ public sealed record BoundBoolLiteral(string Bits) : BoundBoolExpr;
 /// <summary>A reference to a category-boolean data item (including a static ref-mod of one).</summary>
 public sealed record BoundBoolRef(Place Place) : BoundBoolExpr;
 
+/// <summary>A BOOLEAN-result function reference as a boolean-expression operand (ISO §8.8.2 — "an identifier
+/// referencing a boolean data item": §8.4.3.1.2 makes a function-identifier an identifier and §8.4.3.2.4 GR1 a
+/// reference to a temporary data item, whose class/category is the function's type — §15.13.1 BOOLEAN-OF-INTEGER;
+/// kb/Work PB68). Renders as the call's '0'/'1' string image through the ONE string channel.</summary>
+public sealed record BoundBoolCall(BoundIntrinsicCall Call) : BoundBoolExpr;
+
 /// <summary>The figurative <c>ALL B"…"</c> (and figurative ZERO, normalized to <c>ALL B"0"</c> at bind) — a
 /// positionless pattern that materializes to the OTHER operand's length (ISO §8.3.3.6.4 GR2). <c>B-NOT ALL …</c>
 /// constant-folds to the flipped pattern at bind (ALL is positionless).</summary>

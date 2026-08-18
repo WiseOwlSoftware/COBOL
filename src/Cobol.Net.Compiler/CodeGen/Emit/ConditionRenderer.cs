@@ -253,6 +253,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             _ => PicCategory.Alphanumeric,
         },
         BoundFieldOperand f => f.Place.Item.Pic?.Category,
+        // A COMPUTED operand with a string-class function result — its category is the function's type (§15.2;
+        // kb/Work PB68 — the fifth site of the class-boolean rule: two boolean function results compared each
+        // other rode the alphanumeric collate-and-space-pad branch instead of the boolean right-zero-extension).
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Boolean or PicCategory.National or PicCategory.Alphanumeric } ic } => ic.ResultCategory,
         _ => null,
     };
 
@@ -266,6 +270,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         BoundFieldOperand f => PlaceRenderer.Read(f.Place),
         BoundStringLiteral { Category: PicCategory.Boolean } s => EmitText.CsLiteral(s.Value),
         BoundFigurative { Kind: 'Z' } => "\"0\"",
+        // A boolean-result function reference — its '0'/'1' image through the ONE string channel (kb/Work PB68).
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } } => OperandText.AsString(o, num),
         _ => EmitText.LoudValue("string", $"boolean relation operand '{o.GetType().Name}'"),
     };
 

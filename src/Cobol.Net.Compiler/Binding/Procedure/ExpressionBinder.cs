@@ -641,7 +641,33 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (pe.dataReference() is { } dref) return RefExpr(dref, context);
         if (pe.arithmeticExpression() is { } paren) return BindExprCore(paren, context);
         // FUNCTION call (ISO §15; the 1989 Intrinsic Function Module) — StatementBinder.Intrinsics.cs.
-        if (pe.functionCall() is { } fc) return host.Intrinsic.BindIntrinsic(fc);
+        if (pe.functionCall() is { } fc)
+        {
+            var call = host.Intrinsic.BindIntrinsic(fc);
+            // §8.8.1.1's class screen for a FUNCTION-IDENTIFIER operand (kb/Work PB68 — the fourth site of the
+            // class-boolean rule): a function-identifier references a temporary data item (§8.4.3.2.4 GR1) whose
+            // class is the function's type (§15.2), so an alphanumeric, national or BOOLEAN function is not "an
+            // identifier referencing a numeric data item" — the same DA6 rule OperandRef applies to a data item,
+            // with the same dialect gate (strict rejects; --permissive decodes the digit characters). Before this,
+            // `COMPUTE N = FUNCTION BOOLEAN-OF-INTEGER(5, 8) + 1` compiled clean and died at run time with an
+            // unhandled NotImplemented — a crash on legal-shaped source, the wrong stage.
+            if (context is OperandContext.Arithmetic
+                && call is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } sc)
+            {
+                string what = $"FUNCTION {sc.Sig.Name} (a {sc.ResultCategory.ToString().ToLowerInvariant()} function, ISO §15.2)";
+                if (ctx.Edition.Permissive)
+                    ctx.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand (ISO §8.8.1.1); accepted "
+                        + "under --permissive, decoding its digit characters as an unsigned integer");
+                else
+                {
+                    ctx.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
+                        + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
+                        + "ZERO in an arithmetic expression. --permissive accepts it as a digit-decoding extension");
+                    return new BoundExprError($"{what} in an arithmetic expression (ISO §8.8.1.1)");
+                }
+            }
+            return call;
+        }
         return new BoundExprError("primary-expression operand");
     }
 

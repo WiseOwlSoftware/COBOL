@@ -53,8 +53,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var sig = ic.Sig;
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
+        // A string-class function result in a NUMERIC context reaches here only under --permissive (the binder's
+        // §8.8.1.1 screen rejects it under strict conformance — kb/Work PB68): the DA6 leniency, the same
+        // digit-character decode an alphanumeric DATA ITEM gets there (CobolNum.FromAlphanumeric over the
+        // function's string image, an unsigned integer). It used to be a loud RUNTIME value on legal-shaped
+        // source, i.e. an unhandled exception at the wrong stage.
         if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
-            return new NumX(EmitText.LoudValue("long", $"string-class FUNCTION {sig.Name} in a numeric context"), 0);
+            return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic)), 0);
 
         // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
         // computes over scale-aligned Int128, which is right (deep-dive D1) — but a FLOATING-POINT argument is

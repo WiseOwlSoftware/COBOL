@@ -79,9 +79,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   METHOD-ID element, TOP-LEVEL's IsMain arm, `ModuleStackInvariantTests`, A.1 rows 133/134/136/137 and the r2b3
   determination; 19 of 19 rows CONFORMS, GAP 4048. REGISTERED: **PB82** (bind-time diagnostics carry no source
   position; post-COPY line numbers are resultant-text ordinals — a MAJOR usability item).
-  **⏳ Battery owed for the PB62+PB63 batch** (the variadic argument pipeline, the file registration and status
-  path, the paragraph table) — run it before the next landing builds on it.
-  **NEXT, in order:** ① PB68 → PB69 → PB70 → PB71 → PB79 → PB80 → PB81 → PB82
+  **✅ Battery (PB62+PB63 batch, tree `21af3703`):** Conformance **4628/4628** · Unit **4187/4187** ·
+  Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB68 CLOSED (DEVLOG 1300, 2026-08-18)** — the ONE operand classifier (`IntrinsicResultType.OperandCategory`)
+  is what every class-boolean checkpoint asks (relation validation, the boolean-expression operand — a new
+  `BoundBoolCall` — the LENGTH fold, `IsStringOperand`, the condition renderer's fifth site) and §8.8.1.1's
+  arithmetic screen fires at bind for a string-class function operand; RV-15.13.4-1 → CONFORMS, GAP 4047.
+  **⏳ Battery owed for the PB68 batch** (the operand classifier, the relation checkpoint, ExpressionBinder) —
+  run it with the next landing.
+  **NEXT, in order:** ① PB69 → PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

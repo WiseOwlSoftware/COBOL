@@ -106,6 +106,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "boolean data item (ISO §8.8.2 — boolean operands only)");
             return new BoundBoolError($"non-boolean operand '{dref.GetText()}'");
         }
+        // A sole FUNCTION reference whose result is class boolean — §8.8.2's "an identifier referencing a boolean
+        // data item": a function-identifier IS an identifier (§8.4.3.1.2) referencing a temporary data item
+        // (§8.4.3.2.4 GR1) whose category is the function's type (§15.13.1 BOOLEAN-OF-INTEGER; kb/Work PB68 — it
+        // fell to the 1511 default below, "not a valid boolean operand", on legal source).
+        if (vo.arithmeticExpression() is { } fexpr && SoleFunctionCall(fexpr) is { } fc)
+        {
+            var bound = host.Intrinsic.BindIntrinsic(fc);
+            if (bound is BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } bic) return new BoundBoolCall(bic);
+            if (bound is BoundExprError err) return new BoundBoolError(err.Feature);   // already loud
+            ctx.Edition.Error("COBOLNET1511", $"operand '{fc.GetText()}' in a boolean expression is not a "
+                + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
+            return new BoundBoolError($"non-boolean function operand '{fc.GetText()}'");
+        }
         ctx.Edition.Error("COBOLNET1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
@@ -131,7 +144,25 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
             return (p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category) is PicCategory.Boolean;
+        // A sole FUNCTION-keyword reference to a catalogued BOOLEAN-typed function (§15.2 type 2 — today
+        // BOOLEAN-OF-INTEGER): diagnostic-free, from the catalog's declared type (kb/Work PB68).
+        if (vo.arithmeticExpression() is { } fx && SoleFunctionCall(fx) is { } sfc && sfc.functionName() is { } fn
+            && IntrinsicCatalog.TryGet(fn.GetText(), out var fsig) && fsig.Type == IntrinsicType.Boolean)
+            return true;
         return false;
+    }
+
+    /// <summary>The sole <c>functionCall</c> primary of an arithmetic expression (no operators, signs or
+    /// parentheses around it), or null — the function-identifier twin of <see cref="SoleDataRef"/>.</summary>
+    public static Core.FunctionCallContext? SoleFunctionCall(Core.ArithmeticExpressionContext expr)
+    {
+        IParseTree n = expr;
+        while (n is not Core.PrimaryExpressionContext)
+        {
+            if (n.ChildCount != 1) return null;
+            n = n.GetChild(0);
+        }
+        return ((Core.PrimaryExpressionContext)n).functionCall();
     }
 
     /// <summary>The set of category-boolean ITEMS referenced in a bound boolean expression, for the §14.9.8 GR3
@@ -142,8 +173,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolBinary b => System.Math.Max(Gr3Width(b.Left), Gr3Width(b.Right)),
         BoundBoolNot n => Gr3Width(n.Operand),
         BoundBoolShift s => Gr3Width(s.Operand),   // rule 9 — result length = the FIRST operand (the count adds none)
+        BoundBoolCall c => StaticBoolCallWidth(c) ?? 0,   // a boolean function's static width when its length argument is a literal (kb/Work PB68)
         _ => 0,   // literals / ALL / error contribute no ITEM width
     };
+
+    /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§15.13.4
+    /// r1 "a boolean item of length argument-2") when it is a numeric literal; null when the length is a runtime
+    /// value (the §8.8.4.3 SR1 length-1 test and the GR3 store width then fail OPEN — no false rejection).</summary>
+    private static int? StaticBoolCallWidth(BoundBoolCall c) =>
+        c.Call.Sig.Name == "BOOLEAN-OF-INTEGER" && c.Call.Args.Count == 2
+        && c.Call.Args[1] is BoundNumericLiteral { Text: { } t } && int.TryParse(t, out int w) ? w : null;
 
     /// <summary>The static length of a ref-mod boolean operand (its own §8.4.3.3 unique data item at the
     /// ref-mod length); a dynamic/computed length is not statically known — GR3 stages that leg (returns the
@@ -179,6 +218,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolBinary b => BoolExprAllLengthOne(b.Left) && BoolExprAllLengthOne(b.Right),
         BoundBoolNot n => BoolExprAllLengthOne(n.Operand),
         BoundBoolShift s => BoolExprAllLengthOne(s.Operand),   // shift preserves length (rule 9)
+        BoundBoolCall c => (StaticBoolCallWidth(c) ?? 1) == 1,   // a runtime-length result fails open (kb/Work PB68)
         BoundBoolAll => true,   // positionless — materializes to the sibling's length
         _ => true,              // error nodes already reported
     };

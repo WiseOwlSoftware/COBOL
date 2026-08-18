@@ -23,6 +23,7 @@ internal static class BooleanRenderer
     {
         public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
         public string Visit(BoundBoolRef n) => PlaceRenderer.Read(n.Place);     // a category-boolean item IS a '0'/'1' string
+        public string Visit(BoundBoolCall n) => OperandText.AsString(new BoundComputedOperand(n.Call), num);   // the boolean function's '0'/'1' image (kb/Work PB68)
         public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
         public string Visit(BoundBoolBinary n) => RenderBinary(n);

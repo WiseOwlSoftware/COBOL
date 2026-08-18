@@ -1512,7 +1512,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the pre-7b split crashed MAX(G1 G2) at run time ("no numeric render recipe").
         BoundFieldOperand => OperandCategory(op) is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean,
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } => true,
+        // A nested intrinsic with a STRING-class result — alphanumeric, national OR boolean (§15.2 types 1/2/4; the
+        // boolean image is its '0'/'1' string, D-B1) — is a string operand (kb/Work PB68: the boolean result had no
+        // arm and a numeric context over BOOLEAN-OF-INTEGER died with an unhandled NotImplemented at run time).
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } } => true,
         // A figurative whose ONLY reading is a character value — SPACE, QUOTE, HIGH-VALUE, LOW-VALUE (§8.3.3.6.4
         // GR5–GR8) — is a string operand exactly as a one-character alphanumeric literal is. ZERO is excluded by
         // the neutrality test rather than by name, so the §8.3.3.6.4 table stays written down once (PB48).
@@ -1607,8 +1610,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // national or carrier child (X(3)+N(2) is 7, not 5).
         BoundFieldOperand f => new BoundNumLiteral(LengthPositions(f.Place.Item).ToString()),
         // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
-        // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } =>
+        // D-N1, so .Length IS the §15.50.4 character-position count for both; and BOOLEAN — r1's boolean
+        // positions ARE the '0'/'1' image's length, kb/Work PB68) keeps a runtime .Length.
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image
         // ⛔ A FIGURATIVE CONSTANT IS A LEGAL LENGTH ARGUMENT, AND THE ARM BELOW USED TO REFUSE IT ALONGSIDE THE
         // NUMERIC LITERAL IT CORRECTLY REFUSES (fix-queue PB25). One arm standing for TWO rules enforced neither:

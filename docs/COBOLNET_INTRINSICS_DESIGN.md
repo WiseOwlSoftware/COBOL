@@ -340,6 +340,24 @@ FOLLOWS an argument list or sits on a zero-argument function (`CURRENT-DATE (1:8
 shape), and it applies §8.4.3.3.3 SR2 (class) only. `FunctionRefModSr6SweepTests` sweeps the CATALOG: every
 argument-permitting row in both forms draws 1543 (never 1504/1639), every zero-argument row does not.
 
+### The class of a function's RESULT is asked of ONE classifier — `IntrinsicResultType.OperandCategory` (PB59 → PB68).
+
+§15.2 gives every function a type (alphanumeric / boolean / integer / national / numeric), and a function-identifier
+references a temporary data item of that class and category (§8.4.3.2.4 GR1) — so a `BoundComputedOperand` wrapping
+a `BoundIntrinsicCall` carries the call's `ResultCategory`, and `IntrinsicResultType.OperandCategory` is TOTAL over
+the operand kinds (literals, fields, ref-mod views per §8.4.3.3.4 GR6, groups, ALL literals, boolean expressions,
+computed operands). **Every checkpoint that needs an operand's class asks it; none re-derives** — the lesson of PB68,
+where four sites each kept a local class switch and none had learned the computed boolean operand: the relation
+checkpoint (`StatementValidation.CheckRelationalOperands` — `IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) = B"100000"`
+was rejected as a class mix while the illegal alphanumeric mirror was accepted), the boolean-expression operand
+(`ConditionBinder.BindBoolOperandValue` — §8.8.2's "an identifier referencing a boolean data item" now binds a
+`BoundBoolCall`, rendered through the string channel), the LENGTH fold and `IsStringOperand` (a boolean function's
+'0'/'1' image is a string operand), the condition renderer's `StringCategoryOf`/`BoolRead` (two boolean function
+results compared each other take §8.8.4.2.8's right-zero-extension), and §8.8.1.1's arithmetic screen, which now
+fires at BIND for a string-class function operand (`ExpressionBinder.BindPrimary` — it compiled clean and threw at
+run time; `--permissive` decodes the digits exactly as for a data item, the DA6 gate). Pinned by
+`pb68_boolean_function_operand_contexts` and the `pb68-*` negatives.
+
 ### The ALL subscript in an argument (§15.3): ONE enumerating operand, three ranges, admissible only where the format repeats an argument (PB62).
 
 §15.3: "When the definition of a function permits an argument to be repeated a variable number of times, a table
