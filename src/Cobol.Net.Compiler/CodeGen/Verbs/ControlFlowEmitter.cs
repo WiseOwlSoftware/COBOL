@@ -35,7 +35,9 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextDep();
-        w.Line($"int __dep{id} = (int)({num.AsNum(d.Selector, ReceiverContext.None).Expr});");
+        // The selector "shall be an integer" (§14.9.20.3 SR2) — read through the ONE integer landing so a P-scaled or
+        // unsigned-wide item selects by VALUE (kb/Work PB86's sweep of raw integer-identifier reads).
+        w.Line($"int __dep{id} = (int)({NumericRenderer.Align(num.AsNum(d.Selector, ReceiverContext.None), 0)});");
         // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an in-range GO TO … DEPENDING transfer is DEBUG-CONTENTS SPACES,
         // DEBUG-LINE the GO TO DEPENDING statement's own line.
         string cause = dispatch.DebugActive ? $" __dbgCause = DebugCause.Transfer; __dbgLine = {d.SourceLine};" : "";
@@ -357,12 +359,15 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));
     }
 
-    private static string CountExpr(BoundOperand count) => count switch
+    /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once): a literal verbatim; an
+    /// error operand loud; every other operand — an integer data item (a P-scaled or unsigned-wide read included),
+    /// a function-identifier's result (kb/Work PB86: it used to fall to a `_ => "1"` default and run the body
+    /// ONCE) — through the ONE integer landing, <see cref="NumericRenderer.Align"/> at scale 0.</summary>
+    private string CountExpr(BoundOperand count) => count switch
     {
         BoundNumericLiteral n => n.Text,
-        BoundFieldOperand f => PlaceRenderer.Read(f.Place),
         BoundOperandError e => LoudValue("long", e.Feature),
-        _ => "1",
+        _ => $"(long)({NumericRenderer.Align(num.AsNum(count, ReceiverContext.None), 0)})",
     };
 
 

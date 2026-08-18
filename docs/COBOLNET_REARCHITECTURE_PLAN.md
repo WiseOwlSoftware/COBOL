@@ -99,8 +99,17 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (`NumericRenderer.Landed`/`FixedLane`) and ONE store (`StoreArgs`/`StoreExpr`). PB85 (DIVIDE … REMAINDER over a
   FLOAT-LONG sender was CS0266) rode along; **PB86 REGISTERED** (PERFORM … TIMES with a function-identifier count
   runs once; the FUNCTION spelling is a parse error; a non-integer count is under-rejected). NC250A green again on
-  the wave-local NIST leg; the battery for the PB84 batch is owed with the next batch.
-  **NEXT, in order:** ① PB86 → PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
+  the wave-local NIST leg.
+  **✅ PB86 + PB87 CLOSED (DEVLOG 1303, 2026-08-18)** — the TIMES count: a function-identifier count evaluates (grammar
+  arm + `IntrinsicBinder`), §14.9.28.3 SR2 is enforced through the ONE integer classifier
+  (`IntrinsicResultType.IsIntegerOperand` — COBOLNET1646), and every integer-identifier read (the count, GO TO
+  DEPENDING, WRITE ADVANCING, STRING/UNSTRING POINTER/TALLYING) lands by VALUE through `Align(…, 0)` — no `_ => "1"`
+  swallows remain. PB87 (WRITE … ADVANCING ZERO advanced ONE line; NIST SQ101M's golden pinned it) found by the
+  sweep and fixed; SR-14.9.28.3-2 + GR-14.9.28.4-7 → CONFORMS, GAP 4045.
+  **⏳ Battery owed for the PB84+PB85+PB86+PB87 batch** (the numeric renderer's landing/store helpers, the sign
+  condition, the pointer/CALL/INVOKE emitters, the PERFORM grammar, the SQ101M golden) — run it before the next
+  landing builds on it.
+  **NEXT, in order:** ① PB70 → PB71 → PB65 → PB79 → PB80 → PB81 → PB82 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

@@ -440,7 +440,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     private string LinesExpr(BoundOperand lines) => lines switch
     {
         BoundNumericLiteral n => $"(int)({n.Text})",
-        BoundFieldOperand f => $"(int)({num.AsNum(f, ReceiverContext.None).Expr})",
-        _ => "1",
+        BoundOperandError e => LoudValue("int", e.Feature),
+        // An integer identifier (§14.9.47.3 SR — identifier-2 an integer item) reads by VALUE through the ONE integer
+        // landing (kb/Work PB86's sweep: the raw read mis-counted a P-scaled item; the `_ => "1"` default was a swallow).
+        _ => $"(int)({NumericRenderer.Align(num.AsNum(lines, ReceiverContext.None), 0)})",
     };
 }

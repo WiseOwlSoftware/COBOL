@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -254,8 +255,25 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));
 
-    private BoundOperand CountOperand(Core.PerformTimesContext t) =>
-        t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
-        : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
-        : new BoundNumericLiteral("1");
+    /// <summary>The TIMES count (§14.9.28.2 Format 2 — <c>{identifier-1 | integer-1}</c>): an integer literal, a
+    /// function-identifier (§8.4.3.2.4 GR1 — the FUNCTION spelling, or the keyword-omitted form under FUNCTION ALL
+    /// INTRINSIC, which <see cref="ExpressionBinder.FieldOperand"/> already resolves), or a data reference. §14.9.28.3
+    /// SR2 "Identifier-1 shall be an integer" is enforced HERE for every shape through the ONE integer classifier
+    /// (<see cref="IntrinsicResultType.IsIntegerOperand"/>): a scale-0 numeric elementary item that is not USAGE
+    /// INDEX, or a function whose resolved type is integer (§15.2 type 5). kb/Work PB86: a non-integer item was
+    /// accepted and its unscaled digits iterated; a function count ran once.</summary>
+    private BoundOperand CountOperand(Core.PerformTimesContext t)
+    {
+        BoundOperand op =
+            t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
+            : t.functionCall() is { } fc ? host.Intrinsic.IntrinsicOperand(fc)
+            : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
+            : new BoundOperandError("PERFORM … TIMES count shape (ISO §14.9.28.2 Format 2)");
+        if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
+            ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
+                $"PERFORM ... TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
+                + "shall be an integer (ISO §14.9.28.3 SR2) — an integer data item, an integer literal, or an "
+                + "integer-type function-identifier (§15.2 type 5)");
+        return op;
+    }
 }

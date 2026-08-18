@@ -101,8 +101,13 @@ performOptions
     | performVarying
     ;
 
+// §14.9.28.2 Format 2: `{identifier-1 | integer-1} TIMES` — an identifier includes a function-identifier
+// (§8.4.3.1.2 / §8.4.3.2.4 GR1: it references a temporary item; SR2's "an integer" is met by an integer-type
+// function). functionCall FIRST — it begins with the FUNCTION token, so the alternation is unambiguous (the
+// DISPLAY / INSPECT / FROM slots follow the same shape). kb/Work PB86: the arm was missing (a parse error), and
+// the keyword-omitted spelling bound but ran ONCE.
 performTimes
-    : (integerLiteral | dataReference) TIMES
+    : (integerLiteral | functionCall | dataReference) TIMES
     ;
 
 performUntil

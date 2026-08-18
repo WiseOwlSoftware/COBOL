@@ -254,7 +254,7 @@ SM205A	SM	green	-	valid	-
 SM206A	SM	green	-	valid	-
 SM207A	SM	green	-	valid	-
 SM208A	SM	green	-	valid	-
-SQ101M	SQ	divergent	-	valid	ISO §14.9.51 GR25a — WRITE ADVANCING identifier operands (overpunch/COMP)
+SQ101M	SQ	divergent	-	valid	ISO §14.9.51 GR25a — WRITE ADVANCING identifier operands (overpunch/COMP); §14.9.51.4 GR (c) — BEFORE ADVANCING ZERO (WRT-TEST-GF-25) is NO repositioning: the legacy advanced one line (kb/Work PB87)
 SQ102A	SQ	green	-	valid	-
 SQ103A	SQ	green	-	valid	-
 SQ104A	SQ	green	-	valid	-

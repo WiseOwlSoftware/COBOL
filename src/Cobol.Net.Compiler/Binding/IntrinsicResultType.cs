@@ -312,13 +312,19 @@ internal static class IntrinsicResultType
     private static bool IsIntegerArg(IReadOnlyList<BoundOperand> args, int i) =>
         i < args.Count && IsIntegerOperand(args[i]);
 
-    private static bool IsIntegerOperand(BoundOperand op) => op switch
+    /// <summary>The ONE "is this operand an integer" classifier (§15.2 type 5 for a function result; a scale-0
+    /// numeric elementary item for a data item; a literal without a decimal point) — the §15.x integer-argument
+    /// rows ask it, and so does every statement rule that says "shall be an integer" (§14.9.28.3 SR2 for the
+    /// PERFORM … TIMES count — kb/Work PB86).</summary>
+    public static bool IsIntegerOperand(BoundOperand op) => op switch
     {
         BoundNumericLiteral n => !n.Text.Contains('.') && !n.Text.Contains(','),
         // Usage INDEX is excluded: it is class index (§13.18.60), not an integer argument, and it reaches here
         // as a scale-0 numeric PicInfo that would otherwise answer true.
+        // Scale ≤ 0: a trailing-P picture (`PIC 9P`, scale −1) has no digit position to the right of the decimal
+        // point — it IS an integer (its value is a multiple of 10); a leading-P (`PIC P9`, scale 2) is not.
         BoundFieldOperand { Place.Item: { IsGroup: false } item } =>
-            item.Pic is { Category: PicCategory.Numeric, Scale: 0, Usage: not Usage.Index },
+            item.Pic is { Category: PicCategory.Numeric, Scale: <= 0, Usage: not Usage.Index },
         // ⚠ A NESTED CALL IS ASKED FOR ITS RESOLVED TYPE, NOT ITS DECLARED ONE. Reading `ic.Sig.Type` here would
         // answer NUMERIC for `FUNCTION SUM(FUNCTION ABS(I) J)` — ABS's row DECLARES Numeric and resolves to
         // Integer only against its own argument — so the outer "all arguments integer" row would never be

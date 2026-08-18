@@ -814,6 +814,16 @@ public static class DiagnosticCatalog
     // §15.3 — the ALL subscript in an intrinsic argument (kb/Work PB62): admissible only "when the definition of a
     // function permits an argument to be repeated a variable number of times"; the former bind-time expansion ran
     // for every function and let `FUNCTION MOD(E(ALL) B)` bind over a one-occurrence table.
+    // §14.9.28.3 SR2 — the PERFORM … TIMES count "shall be an integer" (kb/Work PB86): a non-integer data item was
+    // accepted and its UNSCALED digits iterated (PIC 9V9 VALUE 1.2 → 12 times); a non-integer function was a
+    // parse error in one spelling and ran once in the other.
+    public static readonly DiagnosticDescriptor PerformTimesCountNotInteger = new(
+        "COBOLNET1646", "perform-times-count-not-integer", EditionSeverity.Error,
+        "The PERFORM … TIMES count is not an integer. ISO §14.9.28.3 SR2: \"Each identifier shall reference a numeric "
+        + "elementary item described in the data division. Identifier-1 shall be an integer.\" — an integer data item "
+        + "(category numeric, no fraction digits, not USAGE INDEX), an integer literal, or a function-identifier whose "
+        + "type is integer (§15.2 type 5). Write an integer count.",
+        "ISO §14.9.28.3 SR2");
     public static readonly DiagnosticDescriptor AllSubscriptNotRepeatable = new(
         "COBOLNET1645", "all-subscript-not-repeatable-argument", EditionSeverity.Error,
         "A table(ALL) argument is written to an intrinsic function whose general format does not repeat an argument. "

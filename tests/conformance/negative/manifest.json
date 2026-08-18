@@ -224,6 +224,8 @@
   "pb63-exception-file-sd",
   "pb68-boolean-function-arithmetic",
   "pb68-boolean-function-vs-alphanumeric-literal",
+  "pb86-perform-times-non-integer-item",
+  "pb86-perform-times-non-integer-function",
   "pb72-move-alphabetic-to-numeric",
   "pb72-move-edited-to-numeric",
   "pb72-move-noninteger-to-alphanumeric",

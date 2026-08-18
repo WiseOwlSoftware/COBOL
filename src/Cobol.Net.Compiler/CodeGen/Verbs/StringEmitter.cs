@@ -34,7 +34,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         int id = ctx.Names.NextStrUnstr();
         string ptr = $"__strPtr{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR4 — the user's initial value
+            ? $"long {ptr} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0)});"   // GR4 — the user's initial value (by VALUE — kb/Work PB86)
             : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
         w.Line($"bool {ovf} = false;");
         w.Line($"string {acc} = {ReadImage(s.Into)};");
@@ -83,10 +83,10 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             w.Line($"bool[] {alls} = System.Array.Empty<bool>();");
         }
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR11a / GR12 — user-initialized
+            ? $"long {ptr} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0)});"   // GR11a / GR12 — user-initialized (by VALUE — kb/Work PB86)
             : $"long {ptr} = 1;");                                                    // GR11a — leftmost position
         w.Line(s.Tallying is { } t0
-            ? $"long {tly} = (long)({num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None).Expr});"   // GR14 — adds to the current value
+            ? $"long {tly} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None), 0)});"   // GR14 — adds to the current value (by VALUE — kb/Work PB86)
             : $"long {tly} = 0;");
         w.Line($"bool {ovf} = false;");
         using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))

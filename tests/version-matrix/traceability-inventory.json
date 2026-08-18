@@ -35443,12 +35443,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "PERFORM statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand; src/Cobol.Net.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand",
+  "test-ref": "conformance:2023/pb86_perform_times_function_count; conformance:negative/pb86-perform-times-non-integer-item; conformance:negative/pb86-perform-times-non-integer-function",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB86 (2026-08-18): 'Identifier-1 shall be an integer' is enforced at bind for every count shape (a scale<=0 numeric elementary item that is not USAGE INDEX; a function whose resolved type is integer, 15.2 type 5) - COBOLNET1646. A function-identifier count (8.4.3.2.4 GR1) is admitted and evaluated; before this it ran the body once and the FUNCTION spelling was a parse error.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-3",
@@ -35716,12 +35716,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "PERFORM statement",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#CountExpr",
+  "test-ref": "conformance:2023/pb86_perform_times_function_count; nist:NC102A",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB86 (2026-08-18): the count is rendered once into the loop's bound (`long __n = ...`) - a literal verbatim, every other operand (an integer data item by VALUE - a P-scaled or unsigned-wide read included - or a function-identifier's result) through the ONE integer landing, NumericRenderer.Align(..., 0). NC102A PFM-TEST-F2-6 corroborates that modifying the count item inside the body does not change the iteration count.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.28.4-8",
