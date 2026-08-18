@@ -508,17 +508,23 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// (a) no paragraph-name and no section-name: empty ("; ; "), (b) a paragraph-name, plus " OF section" when
     /// the paragraph is within a section, (c) a section-name and no paragraph-name: the section-name alone
     /// (the paragraph-name-OMITTED paragraph carries the empty name, never a placeholder — ProcedureTableBuilder);
-    /// part 3 the implementor-defined line identifier — the compilation unit's resultant-text line
-    /// (docs/CONFORMANCE.md; kb/Work PB82 for the source-line map).</summary>
+    /// part 3 the implementor-defined line identifier (docs/CONFORMANCE.md §4 determination; kb/Work PB82) — the
+    /// line of the statement's first token IN THE FILE THAT PHYSICALLY HOLDS IT: a bare number for the main
+    /// source, <c>copybook-name(line)</c> for a statement inside COPY-incorporated text — <paramref name="line"/>
+    /// is the RESULTANT (token) line, mapped here through the preprocessing chain's origin table.</summary>
     private string EcLocation(int line)
     {
+        var origin = ctx.Edition.OriginOf(line);
+        string lineId = string.Equals(origin.File, ctx.Edition.SourceFile, StringComparison.Ordinal)
+            ? origin.Line.ToString()
+            : $"{Path.GetFileName(origin.File)}({origin.Line})";
         string para = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.Paragraphs.Count ? ctx.Table.Paragraphs[ctx.BindCursor].Cobol : "";
         string? sec = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.ParaSections.Count ? ctx.Table.ParaSections[ctx.BindCursor]?.Name : null;
         string proc = para.Length == 0
             ? sec ?? ""                                          // (c) the section alone, or (a) nothing at all
             : para + (sec is not null ? " OF " + sec : "");      // (b) paragraph [OF section]
         string element = ctx.CurrentMethodScope?.MethodName ?? ctx.EcState.ProgramName;
-        return $"{element}; {proc}; {line}";
+        return $"{element}; {proc}; {lineId}";
     }
 
     /// <summary>Does a bound statement (or a statement nested inside it) contain an intrinsic-function call — the

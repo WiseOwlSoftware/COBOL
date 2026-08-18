@@ -77,6 +77,36 @@ unchanged on the final text.
 resolved within the copybook and do not leak out), so GR5's "scoped-and-reverting" is satisfied by construction.
 No cross-copybook SOURCE FORMAT state is threaded.
 
+### §3.5 The origin line map (kb/Work PB82 — landed 2026-08-18)
+
+Every stage of the chain that CHANGES the line count is MAPPED: it takes and returns a `MappedText` (the text plus
+ONE `SourceOrigin(File, Line)` per `Split('
+')` piece — the invariant the constructor asserts), and its string
+overload is the mapped one's `.Text` (one implementation, never two). `OriginWriter` assembles the outputs: an
+output line piece takes the origin of the FIRST content written into it. The stages and their splice rules —
+- the fixed→free normalizer (`ConvertFixedToFree(..., origins)`): a continuation join strips the previous output
+  line's newline and REOPENS its origin, so the joined line keeps its head line's number; a discarded
+  `>>SOURCE FORMAT` directive line keeps its slot;
+- the CC driver's `Render(MappedText)`: an omitted or directive line keeps its own origin (a blank output line), a
+  block keeps its lines', a copybook expansion the copybook's (through `RenderCopybook(MappedText, depth)`);
+- `CopyProcessor.ExpandCopiesOneLevel(MappedText)`: the text before a COPY keeps its origins, the two framing
+  newlines belong to the COPY statement's own line, the incorporated text carries the copybook's path and physical
+  lines (`NormalizeCopybookMapped` — a fixed-form member's continuation joins are tracked exactly like the main
+  source's) — and `ResolveOneCopy`, `OnNonPseudoTextOperand`, the CC `DirectiveDiag` all report at the SOURCE
+  origin of the position they are looking at, never at an ordinal of the text being processed;
+- `ApplyReplaceStatements(MappedText)` / `ApplyReplacements(MappedText)`: a REPLACE statement's own lines vanish
+  from the resultant text; kept text keeps its origins, a replacement's text takes the origin of the line its
+  match started on.
+
+`Frontend.Preprocess` returns the final `MappedText`, publishes `Frontend.LineMap` (`SourceLineMap`: resultant
+line → origin; `Locate` is the ONE conversion to a 0-based `SourceLocation`), asserts every later stage (NIST
+substitution, the six directive stages) is line-count preserving, and hands the map to the parser listener
+(`CobolErrorListener` — which also stopped reporting every syntax error one line late), to the directive stages'
+diagnostics, and (via `CompilerDriver` → `EditionContext.LineMap`) to the binder's diagnostic cursor and
+`EXCEPTION-LOCATION`. The `>>TURN` / `>>FLAG` / `>>REF-MOD-ZERO-LENGTH` event lines are compared with token lines
+and therefore stay in RESULTANT space — the map is consulted only at the user-facing boundary. Consumer side:
+`docs/COBOLNET_VALIDATION_DESIGN.md` §2 "Positions".
+
 ## §4 Wiring (greenfield only)
 
 `Frontend.Preprocess`: replace the two calls `ConditionalCompilationProcessor.Process(...)` (before COPY) +

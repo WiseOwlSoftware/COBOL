@@ -29,7 +29,7 @@ namespace CobolNet.Validation;
 /// Syntactic options decide from the parse node directly; options needing a resolved fact look it up by name in the
 /// models reachable from <see cref="GroupBindContext"/>. Design SSOT: <c>docs/rearchitecture/DESIGN-flag-directives.md</c>.
 /// </summary>
-internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
+internal sealed class FlagConformancePass : CursorFollowingVisitor   // the cursor follows the walk (kb/Work PB82)
 {
     private readonly FlagState _flag;
     private readonly IDiagnosticSink _sink;
@@ -83,7 +83,7 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports,
         IReadOnlySet<string> fileStatusNames, IReadOnlySet<string> fileStatus88Is04, IReadOnlySet<string> fileStatus88Is07,
         RefModZeroLengthState refModZl, TurnState turn,
-        IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> unitByCtx)
+        IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> unitByCtx) : base(sink)
     {
         _flag = flag;
         _sink = sink;
@@ -149,7 +149,7 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
 
         var pass = new FlagConformancePass(flag, sink, linage, varying, fileStatus, fs88_04, fs88_07,
             group.Session.RefModZeroLength, group.Session.Turn, unitByCtx);
-        pass.Visit(group.Tree);
+        pass.VisitPositioned(group.Tree);
         pass.FlagEcProgramDirectives(group.Units);   // b EC-PROGRAM-EXCEPTIONS — cross-ref >>TURN lines with call/invoke units
     }
 

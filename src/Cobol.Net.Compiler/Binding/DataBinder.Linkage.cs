@@ -140,6 +140,7 @@ public sealed partial class DataBinder
         bool byValue = false;
         foreach (var prm in pd.usingClause()?.usingParameter() ?? [])
         {
+            using var _ = Edition.At(prm);
             Core.DataReferenceContext dref;
             bool optional = false;
             if (prm.usingByValue() is { } vb) { byValue = true; dref = vb.dataReference(); }
@@ -259,6 +260,7 @@ public sealed partial class DataBinder
         foreach (var root in Roots)
         {
             if (!root.IsAnyLength) continue;
+            using var _ = Edition.At(root);
             string where = $"data item '{root.CobolName ?? "FILLER"}'";
             if (!LinkageRoots.Contains(root))
                 Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may be specified only in an "

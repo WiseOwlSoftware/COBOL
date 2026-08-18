@@ -30,7 +30,8 @@ public static class PropagateDirectiveProcessor
     /// <c>&gt;&gt;PROPAGATE</c> is the four-compilers introduction diagnostic (COBOLNET0883), never silently
     /// ignored; at 2002+ it is recognized (syntax-checked: <c>ON</c> | <c>OFF</c>, OFF default) and blanked, its
     /// runtime semantics deferred to PHASE-13. Line-count preserving.</summary>
-    public static string Process(string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath)
+    public static string Process(string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath,
+        SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return text;
         var lines = text.Split('\n');
@@ -42,7 +43,7 @@ public static class PropagateDirectiveProcessor
             if (!body.StartsWith("PROPAGATE", StringComparison.OrdinalIgnoreCase)
                 || (body.Length > 9 && !char.IsWhiteSpace(body[9]))) continue;
 
-            var loc = new SourceLocation(sourcePath, 0, i, 0);
+            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             if (dialectLevel < 2002)
             {
                 diagnostics.ReportError("COBOLNET0883",

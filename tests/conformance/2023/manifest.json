@@ -152,6 +152,7 @@
   "pb75_sdidi_overflow_outside_arithmetic",
   "pb78_object_computer_optional_name",
   "pb81_substitute_table_all",
+  "pb82_exception_location_source_line",
   "pb60_currency_sign_set",
   "pb60_nested_configuration_inheritance",
   "pb60_numvalf_native_channels",

@@ -25,7 +25,7 @@ public static class FlagDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate each directive word, collect the FLAG-02/FLAG-14
     /// toggle events, syntax-check each operand, and blank the directive lines. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<FlagEvent> Events) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
+        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
@@ -43,7 +43,7 @@ public static class FlagDirectiveProcessor
 
             string keyword = FlagDirectiveLine.DirectiveWord(directive);   // "FLAG-02" / "FLAG-14" (7 chars)
             string operand = body.Length > keyword.Length ? body[keyword.Length..].Trim() : "";
-            var loc = new SourceLocation(sourcePath, 0, i, 0);
+            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
             // The directive-WORD edition gate, routed through the ONE ConstructRegistry (the >>REF-MOD-ZERO-LENGTH
             // precedent — one funnel for every construct, uniform across the four editions): >>FLAG-14 is a 2023

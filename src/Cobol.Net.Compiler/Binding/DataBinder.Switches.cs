@@ -336,6 +336,7 @@ public sealed partial class DataBinder
             {
                 foreach (var oc in ocp.objectComputerClause())
                 {
+                    using var _ = Edition.At(oc);
                     if (oc.programCollatingSequenceClause() is { } pcs)
                     {
                         if (pcsClause is not null)
@@ -358,6 +359,7 @@ public sealed partial class DataBinder
             if (para.specialNamesParagraph() is not { } sn) continue;
             foreach (var entry in sn.specialNameEntry())
             {
+                using var _ = Edition.At(entry);
                 // §12.3.7 LOCALE clause — an §A.4.9 item 10 optional-locale element ("SPECIAL-NAMES paragraph:
                 // LOCALE clause and LOCALE phrases in the ALPHABET clause"). COBOL.NET's non-support of the
                 // locale module is conformant per §4.2.7 / §A.4.1 only because it is DIAGNOSED, so this carries

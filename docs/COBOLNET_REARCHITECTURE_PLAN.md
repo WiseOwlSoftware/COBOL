@@ -191,8 +191,20 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   **✅ PB81 CLOSED (DEVLOG 1315, 2026-08-18)** — SUBSTITUTE with a table(ALL) among its pairs pairs the enumerated
   elements at run time (`SubstituteFlat`; the flat bound form with one flag per part; the §15.87.2 shapes only a
   count can decide are EC-ARGUMENT-FUNCTION); the staged 0899 descriptor retired. Six verdicts → CONFORMS, GAP
-  3974. Battery owed for the PB92 + PB81 batch with the next landing.
-  **NEXT, in order:** ① PB82 → PB79 → PB91 (PB64/PB66 are features)
+  3974.
+  **✅ Battery #13 (PB92 + PB81 batch, tree `3d9e04de`):** Conformance **4716/4716** · Unit **4221/4221** ·
+  Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB82 CLOSED (DEVLOG 1316, 2026-08-18)** — every diagnostic names the file, line and column the user edits:
+  the ORIGIN LINE MAP (`SourceLineMap`/`MappedText`/`OriginWriter` through the normalizer, the CC+COPY driver and
+  REPLACE — the parser listener's +1 fixed on the way, the CC directive and continuation-gate positions with it,
+  the NIST marker strip made line-preserving) and the DIAGNOSTIC CURSOR (`IDiagnosticSink.Cursor`, positioned by
+  the statement / entry / model-pass / parse-tree walkers; `EditionContext` stamps `file(line,col): `
+  automatically; the bound tree's DEBUG-LINE and EXCEPTION-LOCATION lines map at production). CONFORMANCE.md's
+  EXCEPTION-LOCATION determination revised to the physical source line (`copybook(line)` for copied text). Zero
+  new inventory rows (usability), GAP 3974. **PB93** (REDEFINES of an undefined data-name accepted silently) and
+  **PB94** (VALUE literal class vs subject category unenforced — an alphanumeric VALUE on a numeric item reaches
+  Roslyn) REGISTERED. Battery #14 owed for this landing.
+  **NEXT, in order (`work.py next`):** ① PB79 → PB93 → PB94 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

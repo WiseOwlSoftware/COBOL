@@ -88,7 +88,7 @@ internal sealed class VersionConformancePass
         //    (absorbs the former EditionValidator). Recognition-based so a below-edition construct that ALSO
         //    has a semantic error still names its edition — the bound node it would have produced may be
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
-        new ParseArm(pass, reservedWords).Visit(group.Tree);
+        new ParseArm(pass, reservedWords).VisitPositioned(group.Tree);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -443,7 +443,7 @@ internal sealed class VersionConformancePass
     /// its bind diagnostics — intended (both are true; the tests are contains-based).
     /// </summary>
     private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords)
-        : CobolParserCoreBaseVisitor<object?>
+        : CursorFollowingVisitor(p._sink)   // the cursor follows the walk (kb/Work PB82)
     {
         private readonly VersionConformancePass _p = p;
         // The effective reserved-word set for THIS compilation group (P2.4/D9 seam): the generated §8.9 table

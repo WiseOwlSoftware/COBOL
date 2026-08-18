@@ -233,6 +233,7 @@ public sealed partial class DataBinder
         if (rs is null) return;
         foreach (var rd in rs.reportDescriptionEntry())
         {
+            using var _ = Edition.At(rd);
             if (rd.reportName()?.GetText() is not { } name) continue;
             var model = new ReportModel { Name = name, CsIndex = Reports.Count };
             BindReportDescriptionClauses(rd, model);
@@ -311,6 +312,7 @@ public sealed partial class DataBinder
         int lineChainDepth = 0;   // stack frames whose conditions the CURRENT line already carries
         foreach (var ge in rd.reportGroupEntry())
         {
+            using var _ = Edition.At(ge);
             int.TryParse(ge.levelNumber().GetText(), out int level);
             string? entryName = ge.reportGroupName()?.GetText();
             if (level == 1)
@@ -504,6 +506,7 @@ public sealed partial class DataBinder
                 var item = new DataItem
                 {
                     Level = level,
+                    DeclaredAt = Edition.Cursor,
                     CobolName = entryName,
                     CsName = "_rptItem" + _uidCounter,
                     Pic = pic,

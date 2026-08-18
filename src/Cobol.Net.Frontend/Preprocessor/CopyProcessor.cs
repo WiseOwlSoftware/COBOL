@@ -28,14 +28,15 @@ public sealed class CopyProcessor(
     /// below (the ==pseudo-text== form is the only 2023-conforming shape); the pre-removal substitution
     /// semantics are preserved either way. The strict/permissive decision is the ONE
     /// <see cref="EditionSeverityPolicy"/> (P2.9 — never a local <c>if(permissive)</c>).</summary>
-    private void OnNonPseudoTextOperand(string text, int pos)
+    private void OnNonPseudoTextOperand(MappedText mapped, int pos)
     {
         if (dialectLevel < 2023 || _nonPseudoTextFlagged || _diagnostics is null) return;
         _nonPseudoTextFlagged = true;
-        int line = LineOf(text, pos);
+        var at = mapped.OriginAt(pos);   // the SOURCE origin (kb/Work PB82)
+        int line = at.Line;
         const string msg = "a non-pseudo-text COPY REPLACING operand (identifier/literal/word) was removed in "
             + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
-        var loc = new Common.SourceLocation(_sourceName, 0, line, 0);
+        var loc = at.ToLocation();
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
         if (severity == EditionSeverity.Error)
             _diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
@@ -67,17 +68,10 @@ public sealed class CopyProcessor(
         if (!_searchPaths.Contains(sourceDir)) _searchPaths.Insert(0, sourceDir);
     }
 
-    private void Report(DiagnosticDescriptor descriptor, int line, params object[] args)
-        => _diagnostics?.Report(descriptor, new SourceLocation(_sourceName, 0, line, 0), TextSpan.Empty, args);
-
-    /// <summary>0-based line number of <paramref name="index"/> within <paramref name="text"/>.</summary>
-    private static int LineOf(string text, int index)
-    {
-        int line = 0;
-        for (int i = 0; i < index && i < text.Length; i++)
-            if (text[i] == '\n') line++;
-        return line;
-    }
+    /// <summary>Report at a SOURCE origin (kb/Work PB82) — the file and physical line the text at a position came
+    /// from, never an ordinal of the text being processed.</summary>
+    private void Report(DiagnosticDescriptor descriptor, SourceOrigin at, params object[] args)
+        => _diagnostics?.Report(descriptor, at.ToLocation(), TextSpan.Empty, args);
 
     /// <summary>
     /// Process all COPY and REPLACE statements in the source text.
@@ -103,8 +97,16 @@ public sealed class CopyProcessor(
     /// </summary>
     internal static string ApplyReplaceStatements(string text, DiagnosticBag? diagnostics = null,
         string sourceName = "<source>")
+        => ApplyReplaceStatements(MappedText.Identity(text, sourceName), diagnostics, sourceName).Text;
+
+    /// <summary>The MAPPED REPLACE pass (kb/Work PB82): a REPLACE statement's own lines vanish from the resultant
+    /// text, and a replacement may change a line count — the kept text keeps its origins, a replacement's lines take
+    /// the origin of the line its match started on.</summary>
+    internal static MappedText ApplyReplaceStatements(MappedText mapped, DiagnosticBag? diagnostics = null,
+        string sourceName = "<source>")
     {
-        var result = new StringBuilder();
+        string text = mapped.Text;
+        var w = new OriginWriter();
         var activeReplacements = new List<(string from, string to, ReplaceKind kind)>();
         int pos = 0;
 
@@ -113,11 +115,11 @@ public sealed class CopyProcessor(
             int replaceIdx = FindKeywordAtLineStart(text, pos, "REPLACE");
             if (replaceIdx < 0)
             {
-                result.Append(ApplyReplacements(text[pos..], activeReplacements));
+                w.AppendMapped(ApplyReplacements(mapped.Slice(pos, text.Length - pos), activeReplacements));
                 break;
             }
 
-            result.Append(ApplyReplacements(text[pos..replaceIdx], activeReplacements));
+            w.AppendMapped(ApplyReplacements(mapped.Slice(pos, replaceIdx - pos), activeReplacements));
 
             int afterReplace = replaceIdx + "REPLACE".Length;
             SkipWhitespace(text, ref afterReplace);
@@ -141,7 +143,7 @@ public sealed class CopyProcessor(
                         + "(and ==partial-word== under LEADING/TRAILING) operands only, in every ISO edition "
                         + "(§7.2.4.2; §7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
                         + "(empty ==== deletes)",
-                        new Common.SourceLocation(sourceName, 0, LineOf(text, p), 0), default);
+                        mapped.OriginAt(p).ToLocation(), default);
                 });
             }
 
@@ -152,7 +154,7 @@ public sealed class CopyProcessor(
             pos = afterReplace;
         }
 
-        return result.ToString();
+        return w.Finish();
     }
 
     /// <summary>A COBOL text-word (ISO §7.3.2) with its span in the source string.</summary>
@@ -172,15 +174,21 @@ public sealed class CopyProcessor(
     /// match multi-line pseudo-text nor respect word boundaries (".", "(", ")" are their own words).
     /// </summary>
     private static string ApplyReplacements(string text, List<(string from, string to, ReplaceKind kind)> replacements)
+        => ApplyReplacements(MappedText.Identity(text, "<source>"), replacements).Text;
+
+    /// <summary>The MAPPED word-replacement pass (kb/Work PB82) — the ONE implementation: unchanged text keeps its
+    /// origins; a replacement's text (which may span lines) takes the origin of the line its match started on.</summary>
+    private static MappedText ApplyReplacements(MappedText mapped, List<(string from, string to, ReplaceKind kind)> replacements)
     {
         var active = replacements
             .Select(r => (tokens: TokenizeTextWords(r.from).Select(w => w.Value).ToList(), r.to, r.kind))
             .Where(r => r.tokens.Count > 0)   // empty/malformed operand cannot match
             .ToList();
-        if (active.Count == 0) return text;
+        if (active.Count == 0) return mapped;
 
+        string text = mapped.Text;
         var words = TokenizeTextWords(text);
-        var sb = new StringBuilder();
+        var sb = new OriginWriter();
         int copiedUpTo = 0; // chars of `text` already emitted
         int w = 0;
         while (w < words.Count)
@@ -199,8 +207,8 @@ public sealed class CopyProcessor(
 
                     int matchStart = words[w].Start;
                     int matchEnd = words[w + tokens.Count - 1].End;
-                    sb.Append(text, copiedUpTo, matchStart - copiedUpTo);
-                    sb.Append(to);
+                    sb.AppendSlice(mapped, copiedUpTo, matchStart - copiedUpTo);
+                    sb.Append(to.AsSpan(), mapped.OriginAt(matchStart));
                     copiedUpTo = matchEnd;
                     w += tokens.Count;
                     matched = true;
@@ -217,16 +225,17 @@ public sealed class CopyProcessor(
                     && word.Length >= part.Length && word.EndsWith(part, StringComparison.OrdinalIgnoreCase);
                 if (!leading && !trailing) continue;
 
-                sb.Append(text, copiedUpTo, words[w].Start - copiedUpTo);
+                sb.AppendSlice(mapped, copiedUpTo, words[w].Start - copiedUpTo);
+                SourceOrigin at = mapped.OriginAt(words[w].Start);
                 if (leading)
                 {
-                    sb.Append(to);
-                    sb.Append(word, part.Length, word.Length - part.Length);
+                    sb.Append(to.AsSpan(), at);
+                    sb.Append(word.AsSpan(part.Length, word.Length - part.Length), at);
                 }
                 else // trailing
                 {
-                    sb.Append(word, 0, word.Length - part.Length);
-                    sb.Append(to);
+                    sb.Append(word.AsSpan(0, word.Length - part.Length), at);
+                    sb.Append(to.AsSpan(), at);
                 }
                 copiedUpTo = words[w].End;
                 w++;
@@ -235,8 +244,8 @@ public sealed class CopyProcessor(
             }
             if (!matched) w++;
         }
-        sb.Append(text, copiedUpTo, text.Length - copiedUpTo);
-        return sb.ToString();
+        sb.AppendSlice(mapped, copiedUpTo, text.Length - copiedUpTo);
+        return sb.Finish();
     }
 
     /// <summary>
@@ -339,47 +348,10 @@ public sealed class CopyProcessor(
         return i + 1 >= text.Length || !char.IsDigit(text[i + 1]);
     }
 
+    /// <summary>The recursive COPY-only expansion behind <see cref="Process"/> (the legacy compiler's path): the ONE
+    /// one-level expander, <see cref="ExpandCopiesOneLevel"/>, fed with itself as the copybook expander.</summary>
     private string ExpandCopyStatements(string text, HashSet<string> alreadyIncluded, int depth)
-    {
-        if (depth > MaxCopyDepth)
-        {
-            Report(DiagnosticDescriptors.CBL3622, 0, MaxCopyDepth);
-            return text;
-        }
-
-        var result = new StringBuilder();
-        int pos = 0;
-
-        while (pos < text.Length)
-        {
-            int copyIdx = FindCopyKeyword(text, pos);
-            if (copyIdx < 0)
-            {
-                result.Append(text, pos, text.Length - pos);
-                break;
-            }
-
-            result.Append(text, pos, copyIdx - pos);
-
-            var one = ResolveOneCopy(text, copyIdx, alreadyIncluded, out int afterCopy);
-            if (one.Outcome == CopyOutcome.Found)
-            {
-                string expanded = ExpandCopyStatements(one.Text, alreadyIncluded, depth + 1);
-                result.AppendLine();
-                result.Append(expanded);
-                result.AppendLine();
-                alreadyIncluded.Remove(one.CopybookPath!);
-            }
-            else
-            {
-                result.AppendLine(one.Text);   // the not-found / circular comment fallback
-            }
-
-            pos = afterCopy;
-        }
-
-        return result.ToString();
-    }
+        => ExpandCopiesOneLevel(text, alreadyIncluded, depth, (copybook, d) => ExpandCopyStatements(copybook, alreadyIncluded, d));
 
     /// <summary>The disposition of one resolved COPY statement.</summary>
     internal enum CopyOutcome { Found, NotFound, Circular }
@@ -388,15 +360,19 @@ public sealed class CopyProcessor(
     /// <see cref="CopyOutcome.Found"/>, the copybook's path (so the caller removes it from the include set after
     /// recursing). <see cref="Text"/> is the copybook's NormalizeCopybook+ApplyReplacements text (Found) or the
     /// comment fallback (NotFound/Circular).</summary>
-    internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath);
+    /// <param name="Mapped">The incorporated library text with its origins (the copybook's path and physical lines,
+    /// after normalization and COPY … REPLACING — kb/Work PB82); null for the not-found / circular comment lines.</param>
+    internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath, MappedText? Mapped = null);
 
     /// <summary>Parse and resolve ONE COPY statement whose keyword is at <paramref name="copyIdx"/> — read the
     /// text-name + optional IN/OF qualifier + REPLACING (advancing <paramref name="afterCopy"/> past the
     /// terminating period), find the copybook, and return its NormalizeCopybook+ApplyReplacements text (NOT
     /// recursively expanded — the caller recurses). Shared by <see cref="ExpandCopyStatements"/> (legacy path) and
     /// <see cref="ExpandCopiesOneLevel"/> (the merged CC+COPY driver), so the two never diverge.</summary>
-    internal OneCopyResult ResolveOneCopy(string text, int copyIdx, HashSet<string> alreadyIncluded, out int afterCopy)
+    internal OneCopyResult ResolveOneCopy(MappedText mapped, int copyIdx, HashSet<string> alreadyIncluded, out int afterCopy)
     {
+        string text = mapped.Text;
+        SourceOrigin at = mapped.OriginAt(copyIdx);   // the COPY statement's SOURCE origin (kb/Work PB82)
         afterCopy = copyIdx + "COPY".Length;
         SkipWhitespace(text, ref afterCopy);
 
@@ -419,7 +395,7 @@ public sealed class CopyProcessor(
             afterCopy += "REPLACING".Length;
             SkipWhitespace(text, ref afterCopy);
             // The VCR-row-4 gate rides the operand reads (COPY only — REPLACE is not in the E.2 removal).
-            ParseReplacements(text, ref afterCopy, replacements, p => OnNonPseudoTextOperand(text, p));
+            ParseReplacements(text, ref afterCopy, replacements, p => OnNonPseudoTextOperand(mapped, p));
         }
 
         while (afterCopy < text.Length && text[afterCopy] != '.')
@@ -432,20 +408,21 @@ public sealed class CopyProcessor(
             // ISO §7.2.3.4 GR 2: library text shall be available. Hard error under named-strict dialects;
             // Default/--nist keep the lenient comment fallback (NIST safe).
             if (_strict)
-                Report(DiagnosticDescriptors.CBL3620, LineOf(text, copyIdx),
+                Report(DiagnosticDescriptors.CBL3620, at,
                     libraryName, string.Join("; ", _searchPaths));
             return new OneCopyResult(CopyOutcome.NotFound, $"*> COPY {libraryName} — copybook not found", null);
         }
         if (!alreadyIncluded.Add(copybookPath))
         {
             // ISO §7.2.3.3 SR 1: a COPY shall not directly or indirectly include itself.
-            Report(DiagnosticDescriptors.CBL3621, LineOf(text, copyIdx), libraryName);
+            Report(DiagnosticDescriptors.CBL3621, at, libraryName);
             return new OneCopyResult(CopyOutcome.Circular, $"*> COPY {libraryName} — circular include skipped", null);
         }
 
         // Library text is itself in reference (fixed) format — normalize to free form so inserted lines align in
         // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.4.6).
-        string normalized = NormalizeCopybook(File.ReadAllText(copybookPath));
+        var normalizedMapped = NormalizeCopybookMapped(File.ReadAllText(copybookPath), copybookPath);
+        string normalized = normalizedMapped.Text;
         // §7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
         // contain a COPY statement" — GR12 permits nesting only WITHOUT replacing. Before this check the
         // caller recursed into the spliced text OUTSIDE the replacement scope, so the illegal combination
@@ -460,9 +437,9 @@ public sealed class CopyProcessor(
                 + "GR10 forbids the combination (\"If the REPLACING phrase is specified, the library text "
                 + "shall not contain a COPY statement\"); nesting is permitted only without REPLACING "
                 + "(GR12). Flatten the copybook, or drop the REPLACING phrase.",
-                new Common.SourceLocation(_sourceName, 0, LineOf(text, copyIdx), 0), default);
-        string copybookText = ApplyReplacements(normalized, replacements);
-        return new OneCopyResult(CopyOutcome.Found, copybookText, copybookPath);
+                at.ToLocation(), default);
+        var copybookMapped = ApplyReplacements(normalizedMapped, replacements);
+        return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped);
     }
 
     /// <summary>Expand every COPY statement in <paramref name="text"/> ONE level (no recursion into the copybook):
@@ -473,41 +450,53 @@ public sealed class CopyProcessor(
     /// text so an omitted-branch COPY is never expanded (design SSOT <c>DESIGN-cc-in-copy.md</c>).</summary>
     internal string ExpandCopiesOneLevel(string text, HashSet<string> alreadyIncluded, int depth,
         Func<string, int, string> expandCopybook)
+        => ExpandCopiesOneLevel(MappedText.Identity(text, _sourceName), alreadyIncluded, depth,
+            (m, d) => MappedText.Identity(expandCopybook(m.Text, d), m.Lines[0].File)).Text;
+
+    /// <summary>The MAPPED one-level expansion (kb/Work PB82): the text before a COPY keeps its origins, the
+    /// incorporated copybook's lines carry the copybook's, and the framing newlines belong to the COPY statement's
+    /// own line — so a diagnostic or EXCEPTION-LOCATION inside copied text names the copybook file and line, and
+    /// one after the COPY names the main source's own line, not the resultant ordinal.</summary>
+    internal MappedText ExpandCopiesOneLevel(MappedText mapped, HashSet<string> alreadyIncluded, int depth,
+        Func<MappedText, int, MappedText> expandCopybook)
     {
+        string text = mapped.Text;
         if (depth > MaxCopyDepth)
         {
-            Report(DiagnosticDescriptors.CBL3622, 0, MaxCopyDepth);
-            return text;
+            Report(DiagnosticDescriptors.CBL3622, mapped.OriginAt(0), MaxCopyDepth);
+            return mapped;
         }
 
-        var result = new StringBuilder();
+        var w = new OriginWriter();
         int pos = 0;
         while (pos < text.Length)
         {
             int copyIdx = FindCopyKeyword(text, pos);
             if (copyIdx < 0)
             {
-                result.Append(text, pos, text.Length - pos);
+                w.AppendSlice(mapped, pos, text.Length - pos);
                 break;
             }
-            result.Append(text, pos, copyIdx - pos);
+            w.AppendSlice(mapped, pos, copyIdx - pos);
+            SourceOrigin copyLine = mapped.OriginAt(copyIdx);
 
-            var one = ResolveOneCopy(text, copyIdx, alreadyIncluded, out int afterCopy);
+            var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, out int afterCopy);
             if (one.Outcome == CopyOutcome.Found)
             {
-                string processed = expandCopybook(one.Text, depth + 1);   // CC + nested COPY on the copybook
-                result.AppendLine();
-                result.Append(processed);
-                result.AppendLine();
+                var processed = expandCopybook(one.Mapped!, depth + 1);   // CC + nested COPY on the copybook
+                w.NewLine(copyLine);
+                w.AppendMapped(processed);
+                w.NewLine(copyLine);
                 alreadyIncluded.Remove(one.CopybookPath!);
             }
             else
             {
-                result.AppendLine(one.Text);
+                w.Append(one.Text.AsSpan(), copyLine);
+                w.NewLine(copyLine);
             }
             pos = afterCopy;
         }
-        return result.ToString();
+        return w.Finish();
     }
 
     /// <summary>
@@ -544,7 +533,12 @@ public sealed class CopyProcessor(
     /// from the sequence-number area (columns 1-6 numeric) instead, then convert; fall back to
     /// the general normalizer for anything that does not look like a sequence-numbered member.
     /// </summary>
-    private static string NormalizeCopybook(string text)
+    private static string NormalizeCopybook(string text) => NormalizeCopybookMapped(text, "<copybook>").Text;
+
+    /// <summary>The MAPPED copybook normalization (kb/Work PB82) — the ONE implementation: the free-form library text
+    /// with, per line, the copybook's path and physical line (a fixed-form member's continuation joins are tracked
+    /// exactly as the main source's are).</summary>
+    private static MappedText NormalizeCopybookMapped(string text, string copybookPath)
     {
         var lines = text.Split('\n');
         int seqLines = 0, total = 0;
@@ -563,8 +557,8 @@ public sealed class CopyProcessor(
         }
         bool fixedForm = total > 0 && seqLines * 100 / total >= 50;
         return fixedForm
-            ? ReferenceFormatProcessor.ConvertFixedToFree(text)
-            : ReferenceFormatProcessor.NormalizeToFreeForm(text);
+            ? ReferenceFormatProcessor.ConvertFixedToFreeMapped(text, copybookPath)
+            : ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, dialectLevel: 85, permissive: false, diagnostics: null, copybookPath);
     }
 
     /// <summary>

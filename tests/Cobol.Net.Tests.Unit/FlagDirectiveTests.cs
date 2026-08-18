@@ -171,7 +171,7 @@ public sealed class FlagDirectiveTests
     public void Compile_Flag14ReadPreviousOn_EmitsCobolnet1621()
     {
         var warnings = CompileWarnings(ReadPreviousProgram.Replace("{DIRECTIVE}", "       >>FLAG-14 READ-PREVIOUS ON\n"));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public sealed class FlagDirectiveTests
             .Replace("{DIRECTIVE}", "")
             .Replace("           CLOSE F.\n", "       >>FLAG-02 I-O-STATUS-07 ON\n           CLOSE F WITH NO REWIND.\n");
         var warnings = CompileWarnings(program);
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal));
     }
 
     // ── Incr 1a: the VALUE-clause data options g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO (§7.3.15.4 GR4 g/l) ──
@@ -211,7 +211,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(ValueProgram(
             "       >>FLAG-14 NUM-ED-ZERO-FIGCONST ON\n", "01 NE PIC ZZ9.99 VALUE ZERO."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("NUM-ED-ZERO-FIGCONST", StringComparison.Ordinal));
     }
 
@@ -220,7 +220,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(ValueProgram(
             "       >>FLAG-14 VALUE-ZERO ON\n", "01 NE PIC ZZ9.99 VALUE ZERO."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("VALUE-ZERO", StringComparison.Ordinal));
     }
 
@@ -328,7 +328,7 @@ public sealed class FlagDirectiveTests
     {
         // A numeric literal on a numeric-edited item carries no editing symbols (editing is now auto-supplied).
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 A PIC ZZZ9 VALUE 5."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("VALUE-EDITING", StringComparison.Ordinal));
     }
 
@@ -336,7 +336,7 @@ public sealed class FlagDirectiveTests
     public void Compile_ValueEditingOn_Flags_NonnumericLiteralWithoutEditingSymbols()
     {
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 B PIC ZZZ9 VALUE \"0005\"."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("VALUE-EDITING", StringComparison.Ordinal));
     }
 
@@ -362,7 +362,7 @@ public sealed class FlagDirectiveTests
     public void Compile_ValueFigConLengthOn_Flags_FigurativeValueNoPictureNoUsage()
     {
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 A VALUE SPACE."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("VALUE-FIG-CON-LENGTH", StringComparison.Ordinal));
     }
 
@@ -371,7 +371,7 @@ public sealed class FlagDirectiveTests
     {
         // USAGE DISPLAY without a PICTURE still has no specified length.
         var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 E USAGE DISPLAY VALUE SPACE."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("VALUE-FIG-CON-LENGTH", StringComparison.Ordinal));
     }
 
@@ -414,7 +414,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(WriteProgram(linage: true,
             "       >>FLAG-14 WRITE-END-OF-PAGE ON\n", "WRITE OUT-REC."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("WRITE-END-OF-PAGE", StringComparison.Ordinal));
     }
 
@@ -453,7 +453,7 @@ public sealed class FlagDirectiveTests
     public void Compile_TerminateWithVaryingOn_Flags_ReportContainingVarying()
     {
         var warnings = CompileWarnings(ReportProgram(varying: true, "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n"));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("TERMINATE-WITH-VARYING", StringComparison.Ordinal));
     }
 
@@ -479,7 +479,7 @@ public sealed class FlagDirectiveTests
         // MOVE AE TO AE where AE is alphanumeric-edited (PIC X(3)BX(3), a 'B' insertion) — GR4 d condition (1).
         var warnings = CompileWarnings(MoveProgram(
             "       01 AE PIC X(3)BX(3).\n", "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE AE TO AE."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("MOVE-TO-SAME-NAME", StringComparison.Ordinal));
     }
 
@@ -490,7 +490,7 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(MoveProgram(
             "       01 G.\n          05 CNT PIC 9.\n          05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.\n",
             "       >>FLAG-02 MOVE-TO-SAME-NAME ON\n", "MOVE G TO G."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("MOVE-TO-SAME-NAME", StringComparison.Ordinal));
     }
 
@@ -548,7 +548,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(SetIndexProgram("",
             "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX TO 3."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
     }
 
@@ -557,7 +557,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(SetIndexProgram("",
             "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX UP BY 1."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
     }
 
@@ -567,7 +567,7 @@ public sealed class FlagDirectiveTests
         // >>TURN EC-ALL CHECKING ON enables the level-3 EC-RANGE-INDEX through the exception hierarchy.
         var warnings = CompileWarnings(SetIndexProgram("",
             "       >>TURN EC-ALL CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET IDX TO 3."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal));
     }
 
@@ -630,7 +630,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(IoStatusProgram(PlainFs,
             "       >>FLAG-14 I-O-STATUS-04 ON\n", If("FS = \"04\"")));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("I-O-STATUS-04", StringComparison.Ordinal));
     }
 
@@ -640,7 +640,7 @@ public sealed class FlagDirectiveTests
         // The FILE-STATUS item may be on EITHER side of the relation ('07' = FS).
         var warnings = CompileWarnings(IoStatusProgram(PlainFs,
             "       >>FLAG-14 I-O-STATUS-07 ON\n", If("\"07\" = FS")));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("I-O-STATUS-07", StringComparison.Ordinal));
     }
 
@@ -650,7 +650,7 @@ public sealed class FlagDirectiveTests
         // A reference to a level-88 condition-name whose VALUE is '04', defined on the FILE-STATUS item.
         var warnings = CompileWarnings(IoStatusProgram(FsWith88,
             "       >>FLAG-14 I-O-STATUS-04 ON\n", If("FS-AVAIL")));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("I-O-STATUS-04", StringComparison.Ordinal));
     }
 
@@ -708,7 +708,7 @@ public sealed class FlagDirectiveTests
     {
         var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "I-O",
             "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN I-O F.\n           WRITE F-REC.\n"));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("I-O-DECLARATIVE", StringComparison.Ordinal));
     }
 
@@ -718,7 +718,7 @@ public sealed class FlagDirectiveTests
         // A READ NEXT (sequential retrieval, AT-END-capable) without AT END, with an INPUT declarative present.
         var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "INPUT",
             "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN INPUT F.\n           READ F NEXT RECORD.\n"));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1621", StringComparison.Ordinal)
             && w.Contains("I-O-DECLARATIVE", StringComparison.Ordinal));
     }
 
@@ -778,7 +778,7 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(EcProgramProgram(
             "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-PROGRAM CHECKING ON\n",
             "COMPUTE R = FUNCTION MAX(N 3)."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("EC-PROGRAM-EXCEPTIONS", StringComparison.Ordinal));
     }
 
@@ -789,7 +789,7 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(EcProgramProgram(
             "       >>FLAG-02 EC-PROGRAM-EXCEPTIONS ON\n", "       >>TURN EC-ALL CHECKING ON\n",
             "COMPUTE R = FUNCTION MAX(N 3)."));
-        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
             && w.Contains("EC-PROGRAM-EXCEPTIONS", StringComparison.Ordinal));
     }
 

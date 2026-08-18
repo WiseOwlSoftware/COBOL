@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;   // ParseCanceledException (thrown by BailErrorStrategy on the SLL pass)
 using CobolNet.Editions;
+using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
@@ -54,6 +55,14 @@ public sealed class Frontend
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
+    /// <summary>The RESULTANT-line → source-origin map of the last parsed source (kb/Work PB82): built by the
+    /// preprocessing chain (fixed-form continuation joins, conditional compilation, COPY, REPLACE — the stages that
+    /// change line counts), consulted by every user-facing position: the parser's diagnostic locations (via
+    /// <see cref="CobolErrorListener"/>), the binder's diagnostic cursor and <c>FUNCTION EXCEPTION-LOCATION</c>'s
+    /// line identifier. The directive stages after COPY are line-count preserving (asserted below), so their
+    /// resultant lines — the &gt;&gt;TURN / &gt;&gt;FLAG anchors — stay directly comparable to token lines.</summary>
+    public SourceLineMap LineMap { get; private set; } = SourceLineMap.Identity("<source>", 0);
+
     /// <summary>The <c>&gt;&gt;TURN</c> directive events of the LAST parsed source (ISO §7.3.25), anchored to
     /// 1-based lines of the final preprocessed text (so token <c>Start.Line</c> is directly comparable — the
     /// compile-time TurnState's basis, deep-dive D10). Empty when the source has no TURN directives.</summary>
@@ -89,8 +98,9 @@ public sealed class Frontend
     /// </summary>
     public CobolParserCore.CompilationUnitContext? Parse(string sourcePath, DiagnosticBag diagnostics)
     {
-        string processed = Preprocess(sourcePath, diagnostics);
-        return LexAndParse(processed, sourcePath, diagnostics);
+        var processed = Preprocess(sourcePath, diagnostics);
+        LineMap = new SourceLineMap(processed.Lines);
+        return LexAndParse(processed.Text, sourcePath, diagnostics);
     }
 
     /// <summary>
@@ -98,15 +108,18 @@ public sealed class Frontend
     /// compilation (<c>&gt;&gt;DEFINE/IF/…</c>) → COPY expansion → NIST placeholder substitution. Each stage is a
     /// no-op on source that does not use it, so an ordinary program passes through essentially unchanged.
     /// </summary>
-    private string Preprocess(string sourcePath, DiagnosticBag diagnostics)
+    private MappedText Preprocess(string sourcePath, DiagnosticBag diagnostics)
     {
         string raw = File.ReadAllText(sourcePath);
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
+        // The archive-marker strip is line-count preserving (markers become blank lines), so the origin map the
+        // normalizer builds below still names the physical lines of the file on disk.
         raw = ReferenceFormatProcessor.StripNistArchiveMarkers(raw);
         // The edition-aware overload carries the fixed-form continuation gates (VCR rows 2/94, W3): only the
-        // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE.
-        string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw, DialectLevel, Permissive, diagnostics, sourcePath);
+        // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE. Mapped (kb/Work
+        // PB82): a fixed-form continuation JOINS physical lines, and the map records which line each output came from.
+        var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, DialectLevel, Permissive, diagnostics, sourcePath);
 
         // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
         // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
@@ -115,24 +128,34 @@ public sealed class Frontend
         // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive);
-        text = ConditionalCompilationProcessor.ProcessWithCopy(text, sourceDir, copy, LeftDirectives,
+        mapped = ConditionalCompilationProcessor.ProcessWithCopyMapped(mapped, sourceDir, copy, LeftDirectives,
             diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel);
 
+        // From here on the text is in its FINAL line frame: every stage below is line-count preserving (asserted),
+        // so `mapped.Lines` stays the origin of each resultant line and the directive stages' event lines are the
+        // parser's token lines. A stage that changed the count would break both at once — the one throw covers both.
+        string text = mapped.Text;
+        int linesBefore = CountLines(text);
+        var lineMap = new SourceLineMap(mapped.Lines);   // the directive stages' diagnostics name SOURCE lines through it
         if (NistTestName is { } nist)
+        {
             text = NistPreprocessor.Process(text, nist);
+            if (CountLines(text) != linesBefore)
+                throw new InvalidOperationException(
+                    "NistPreprocessor changed the line count — the source-line map would misattribute every later line (kb/Work PB82)");
+        }
 
         // >>TURN directive collection runs LAST — after COPY (so copybook TURNs are seen) and after the
         // line-count-neutral NIST substitution — on the FINAL text, so each TurnEvent.Line is directly
         // comparable to the parser tokens' Start.Line (the TurnState anchor, deep-dive D10 / hazard H3).
-        int linesBefore = CountLines(text);
-        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath);
+        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
 
         // >>PROPAGATE (ISO §7.3.21): recognize + edition-gate (introduction gate; runtime semantics are PHASE-13).
         // Line-count preserving like the >>TURN stage.
-        text = PropagateDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath);
+        text = PropagateDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "PropagateDirectiveProcessor changed the line count (hazard H3)");
@@ -141,7 +164,7 @@ public sealed class Frontend
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
         (text, RefModZeroLengthEvents) =
-            RefModZeroLengthDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+            RefModZeroLengthDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
@@ -149,7 +172,7 @@ public sealed class Frontend
         // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
-        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
@@ -157,19 +180,19 @@ public sealed class Frontend
         // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
         // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
         // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
-        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
         // >>LEAP-SECOND (ISO §7.3.17): the ONE compilation-group ON/OFF fact the §15.3 date/time consumers read
         // (kb/Work PB65 — it used to be consumed and discarded). Line-count preserving like the stages above.
-        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
 
-        return text;
+        return new MappedText(text, mapped.Lines);   // the constructor re-asserts the line-count invariant
     }
 
     /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
@@ -206,7 +229,7 @@ public sealed class Frontend
 
         var parser = new CobolParserCore(tokens) { DialectLevel = DialectLevel };
         parser.RemoveErrorListeners();
-        parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));
+        parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
 
         CobolParserCore.CompilationUnitContext tree;
         try

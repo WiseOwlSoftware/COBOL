@@ -1,2 +1,2 @@
 ok=false
-error COBOLNET0900: OCCURS DYNAMIC (dynamic-capacity table) requires COBOL-2014 (targeting COBOL-85) — the OCCURS DYNAMIC clause (ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9 — the CobolDynTable<T> growable substrate; CAPACITY register + SET Format 14 + SEARCH over current capacity)
+tests/characterization/negative/char_neg_occurs_dyn85.cob(6,28): error COBOLNET0900: OCCURS DYNAMIC (dynamic-capacity table) requires COBOL-2014 (targeting COBOL-85) — the OCCURS DYNAMIC clause (ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9 — the CobolDynTable<T> growable substrate; CAPACITY register + SET Format 14 + SEARCH over current capacity)

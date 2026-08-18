@@ -12,4 +12,10 @@ public interface IDiagnosticSink
 {
     /// <summary>Record one edition diagnostic. Passed <c>in</c> (a readonly-struct value; no copy).</summary>
     void Report(in EditionDiagnostic diagnostic);
+
+    /// <summary>The diagnostic cursor (kb/Work PB82) — the RESULTANT-text position of the construct being processed,
+    /// stamped onto every diagnostic reported while it is set. Positioned through
+    /// <see cref="DiagnosticCursorExtensions.At(IDiagnosticSink, int, int)"/>. The default is a no-op: a sink whose
+    /// diagnostics carry their own fixed position (the frontend's per-directive bag sinks) has no cursor to keep.</summary>
+    DiagnosticCursor Cursor { get => default; set { } }
 }

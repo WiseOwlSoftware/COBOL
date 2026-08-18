@@ -53,7 +53,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
-        _paraLine.Add(sentences.Length > 0 ? sentences[0].Start.Line : 0);   // DEBUG-LINE source line (VCR 7.17)
+        _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);   // DEBUG-LINE source line (VCR 7.17)
         _paras.Add((name, method, sentences));
     }
 
@@ -70,7 +70,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         for (int n = 2; !used.Add(method); n++) method = $"P__Anon_{n}";
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
-        _paraLine.Add(sentences[0].Start.Line);
+        _paraLine.Add(ctx.SourceLine(sentences[0]));
         // The paragraph-name-OMITTED paragraph (§14.4.3) has NO name — the empty string, never a display
         // placeholder (kb/Work PB63 / RV-15.30.3-2: EXCEPTION-LOCATION's r2b2 field printed the placeholder where
         // the standard defines an empty procedure field or the bare section-name).
@@ -125,7 +125,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // PERFORM/GO TO — SR4). The walk records the BoundDeclarative scopes (StatementBinder.Declaratives.cs).
         foreach (var dp in pd.declarativePart())
             foreach (var sec in dp.declarativeSection())
+            {
+                using var _ = ctx.Edition.At(sec);   // the declarative section's position (kb/Work PB82)
                 DeclCollectSection(sec, used);
+            }
         _entryPc = _paras.Count;
 
         // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
@@ -135,6 +138,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         foreach (var unit in pd.procedureUnit())
         {
+            using var _ = ctx.Edition.At(unit);   // the paragraph / section header's position (kb/Work PB82)
             if (unit.paragraphDefinition() is { } para)
                 AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
             else if (unit.sectionDefinition() is { } section)

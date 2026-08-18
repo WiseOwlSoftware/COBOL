@@ -11,7 +11,8 @@ namespace CobolNet.Frontend.Parsing;
 /// Extracts [COBOLxxxx] diagnostic codes from messages produced by CobolErrorStrategy
 /// and caps total errors at <see cref="MaxErrors"/> to prevent cascading noise.
 /// </summary>
-public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourcePath) : BaseErrorListener
+public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+    : BaseErrorListener
 {
     /// <summary>
     /// Maximum number of parse errors to report per file.
@@ -48,7 +49,12 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
             }
         }
 
-        var location = new SourceLocation(sourcePath, 0, line, charPositionInLine);
+        // ANTLR's `line` is 1-based and counts the RESULTANT text (after COPY / REPLACE / continuation joins);
+        // SourceLocation.Line is 0-based (its ToString adds the 1 back). Passing the token line straight through
+        // reported every parse error one line late — kb/Work PB82. The map names the file and physical line the
+        // user edits (a copybook's own path and line for an error inside copied text).
+        var origin = lineMap?.Origin(line) ?? new SourceOrigin(sourcePath, line);
+        var location = new SourceLocation(origin.File, 0, Math.Max(origin.Line - 1, 0), charPositionInLine);
         var span = new TextSpan(offendingSymbol?.StartIndex ?? 0,
             offendingSymbol?.StopIndex ?? 0);
         diagnostics.ReportError(code, message, location, span);

@@ -165,7 +165,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // The paragraph's LAST executable statement source line — the X3.23-1985 DEBUG-LINE for a FALL THROUGH
             // trigger (VCR 7.17; only used when the debug facility is active). 0 for an empty paragraph.
             int lastLine = table.Paragraphs[i].Sentences
-                .SelectMany(s => s.statement()).LastOrDefault()?.Start.Line ?? 0;
+                .SelectMany(s => s.statement()).LastOrDefault() is { } last ? Ctx.SourceLine(last) : 0;
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
         // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole main pc
@@ -308,6 +308,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// node — the zero-scaffolding gate (ISO §7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
     private BoundStatement BindStatement(Core.StatementContext s)
     {
+        // The diagnostic cursor (kb/Work PB82): every diagnostic reported while THIS statement binds — its own
+        // verb binder, its operands, its conditions — carries the statement's source position; a nested statement
+        // positions its own and restores this one on exit.
+        using var _ = data.Edition.At(s);
         // Object-property references (D-P2) and user-function activations (M2-UDF-1): mark-on-entry /
         // drain-own-suffix — a reference resolved while THIS statement bound (including in its condition)
         // belongs to THIS statement's wrap; one resolved inside a nested statement was already drained by
@@ -365,7 +369,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.validateFacilityStatement() is not null
             => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
-        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(s.Start.Line),
+        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(Ctx.SourceLine(s)),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).

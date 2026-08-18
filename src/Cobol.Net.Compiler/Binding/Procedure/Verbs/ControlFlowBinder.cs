@@ -73,7 +73,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
                 targets.Add(range.Start);
             }
-            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, g.Start.Line);
+            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, ctx.SourceLine(g));
         }
         if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
         if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
@@ -83,7 +83,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindExit(Core.ExitStatementContext e)
     {
-        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(e.Start.Line);
+        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(ctx.SourceLine(e));
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
         if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
@@ -108,7 +108,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                     "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
                 return new BoundNop();
             }
-            return new BoundExitSection(sec.EndPc, e.Start.Line);
+            return new BoundExitSection(sec.EndPc, ctx.SourceLine(e));
         }
         if (e.METHOD() is not null) return host.Oo.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
         if (e.FUNCTION() is not null) return host.Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
@@ -158,7 +158,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         else if (start > end)
             return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
 
-        return new BoundOutOfLinePerform(start, end, BindPerformControl(p), p.Start.Line);
+        return new BoundOutOfLinePerform(start, end, BindPerformControl(p), ctx.SourceLine(p));
     }
 
     /// <summary>An inline PERFORM is Format 3 (exception-checking) iff it carries any WHEN phrase (ordinary /

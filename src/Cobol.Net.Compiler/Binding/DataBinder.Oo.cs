@@ -232,6 +232,7 @@ public sealed partial class DataBinder
         int pos = 0;
         foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
         {
+            using var _ = Edition.At(prm);
             Core.DataReferenceContext dref;
             if (prm.usingByValue() is { } vb)
             {
@@ -488,6 +489,7 @@ public sealed partial class DataBinder
         var clone = new DataItem
         {
             Level = src.Level,
+            DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
             Pic = src.Pic,

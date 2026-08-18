@@ -109,7 +109,13 @@ public static class CompilerDriver
         // or not-yet-introduced construct may have no emit path at all (exit criterion 9: no codegen on an
         // errored tree). frontend.TurnEvents are the >>TURN directive events (ISO §7.3.25) that build the
         // group's compile-time TurnState (deep-dive D10).
-        var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
+        var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive)
+        {
+            // kb/Work PB82: bind-time diagnostics and the bound tree's user-facing lines (DEBUG-LINE,
+            // EXCEPTION-LOCATION) name the file and line the USER edits, through the frontend's origin map.
+            LineMap = frontend.LineMap,
+            SourceFile = options.SourcePath,
+        };
         var emitter = new CSharpEmitter();
         var bound = emitter.Bind(tree, edition, frontend.Directives);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)

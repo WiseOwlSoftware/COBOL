@@ -41,6 +41,26 @@ semantics).
   exception is the UDF-invocation gate, which stays bind-time because an intrinsic FUNCTION and a user-function
   call are syntactically identical). ALL severity routes through `Removed()`/the registry
   (see `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
+- **Positions** (kb/Work PB82 — `Cobol.Net.Editions/DiagnosticCursor.cs`, `Binding/DiagnosticCursorAt.cs`,
+  `Frontend/Common/SourceLineMap.cs`): every diagnostic names the file, line and column the USER edits, in the
+  `file(line,col): ` shape the parse layer prints, through TWO structural mechanisms — no report site passes a
+  location. (1) **The diagnostic CURSOR**: `IDiagnosticSink.Cursor` (a default no-op member) is positioned by the
+  walkers with `using var _ = sink.At(ctx)` — `StatementBinder.BindStatement` per statement (nested statements
+  restore), `DataBinder.BindEntries` per entry (+ the FD/SD/SELECT/I-O-CONTROL/SPECIAL-NAMES/OBJECT-COMPUTER/RD/
+  USING loops), `ProcedureTableBuilder` per declarative section / procedure unit, the post-build model passes at
+  `DataItem.DeclaredAt` (captured from the cursor when the item is bound), and the two parse-tree passes through
+  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). `EditionContext` implements
+  the cursor for real and `Error`/`Warning` stamp the prefix AUTOMATICALLY; no cursor ⇒ the bare
+  `error CODE: message` (a diagnostic about the unit as a whole — never a fabricated line). (2) **The ORIGIN LINE
+  MAP**: the cursor is in RESULTANT-text space (the ANTLR token line after COPY / REPLACE / continuation joins);
+  `EditionContext.OriginOf` maps it to the source file and physical line through `Frontend.LineMap`, the table the
+  preprocessing chain builds (`MappedText`/`OriginWriter` through the normalizer, the CC+COPY driver, REPLACE) —
+  the same map the parser listener, the directive stages' diagnostics, `EXCEPTION-LOCATION`'s line identifier and
+  the bound tree's DEBUG-LINE `SourceLine` fields (`BinderContext.SourceLine`) consume. The `>>TURN` / `>>FLAG` /
+  `>>REF-MOD-ZERO-LENGTH` anchors stay in resultant space by design (event lines compared with token lines).
+  A new walker positions the cursor once at its loop; a new line-count-changing preprocessing stage is written
+  MAPPED (its string overload = the mapped one's `.Text`). Guards: `DiagnosticPositionTests`,
+  `SourceLineMapTests`, `2023/pb82_exception_location_source_line`.
 - **The band** (`Cobol.Net.Editions/EditionCodes.cs`): 0900 introduction / 0901 reserved word / 0902 removed /
   0903 obsolete-archaic. Pinned pre-band codes kept: 0801/0802 (digit capacity), 0873 (DATA RECORDS),
   0810/0811 (ALTER / bare GO TO), 0882 (CALL ON OVERFLOW) — their sites route through `Removed()` unrenumbered.

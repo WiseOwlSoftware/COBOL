@@ -35,7 +35,7 @@ public static class RefModZeroLengthDirectiveProcessor
     /// directive, blank the directive lines. At <paramref name="dialectLevel"/> &lt; 2023 the directive is the
     /// four-compilers introduction diagnostic (COBOLNET0900), never silently ignored. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<RefModZeroLengthEvent> Events) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
+        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
@@ -48,7 +48,7 @@ public static class RefModZeroLengthDirectiveProcessor
             if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
                 || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
 
-            var loc = new SourceLocation(sourcePath, 0, i, 0);
+            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
             // Introduction gate (§7.3.23 is a COBOL-2023 addition): reject below 2023 via the ONE ConstructRegistry
             // (COBOLNET0900). Check is a no-op at 2023+ (Available). Single-sources the message + version-matrix row.

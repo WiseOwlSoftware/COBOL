@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Common;
 
 using CobolNet.Binding.Model;
 
@@ -69,8 +70,43 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// positions) — delegated to <see cref="Edition"/>.</summary>
     public int MaxDigits => Edition.MaxDigits;
 
+    // ── The diagnostic cursor and the source-line map (kb/Work PB82) ──────────────────────────────────────────
+    // A bind-time diagnostic used to be a bare "error CODE: message" — no file, no line, no column — because the
+    // ~160 report sites pass no location and the channel accepted none. The fix is STRUCTURAL: the walkers
+    // (StatementBinder per statement, DataBinder per entry, the parse-tree conformance arms per node) position the
+    // cursor with `using var _ = edition.At(ctx)`, and Error/Warning stamp the prefix AUTOMATICALLY — no report
+    // site changes and a new one cannot forget. The cursor is in RESULTANT-text space (the ANTLR token line after
+    // COPY / REPLACE / continuation joins); the prefix maps it to the file and line the USER edits through
+    // LineMap, the origin table the preprocessing chain built (Frontend.LineMap). SourceLineOf is the same map for
+    // the bound tree's user-facing lines (DEBUG-LINE, EXCEPTION-LOCATION's third part).
+
+    /// <summary>The RESULTANT-line → source-origin map of the compilation unit being bound; the driver sets it from
+    /// the frontend. Null = the identity map on <see cref="SourceFile"/> (a unit-test bind without a frontend).</summary>
+    public SourceLineMap? LineMap { get; set; }
+
+    /// <summary>The main source file — the identity origin when no <see cref="LineMap"/> is set.</summary>
+    public string SourceFile { get; set; } = "<source>";
+
+    /// <summary>The <see cref="IDiagnosticSink.Cursor"/> — REAL here (the interface default is a no-op).</summary>
+    public DiagnosticCursor Cursor { get; set; }
+
+    /// <summary>The source origin (file, 1-based physical line) of RESULTANT line <paramref name="resultantLine"/>
+    /// — the ONE mapping every user-facing consumer of a token line goes through.</summary>
+    public SourceOrigin OriginOf(int resultantLine) =>
+        LineMap?.Origin(resultantLine) ?? new SourceOrigin(SourceFile, resultantLine);
+
+    /// <summary>The user's source line for RESULTANT line <paramref name="resultantLine"/> (the line in the file that
+    /// physically holds it — the main source or a copybook).</summary>
+    public int SourceLineOf(int resultantLine) => OriginOf(resultantLine).Line;
+
+    /// <summary>The <c>file(line,col): </c> prefix for the current cursor — rendered by <see cref="SourceLocation"/>
+    /// itself (the ONE format source; the parse-layer diagnostics print the same object), or empty when no cursor
+    /// is set — a diagnostic about the compilation unit as a whole.</summary>
+    private string Prefix() =>
+        Cursor.IsSet ? OriginOf(Cursor.Line).ToLocation(Cursor.Column) + ": " : "";
+
     /// <summary>Record an edition-gating error (fails the compile).</summary>
-    public void Error(string code, string message) => Diagnostics.Add($"error {code}: {message}");
+    public void Error(string code, string message) => Diagnostics.Add($"{Prefix()}error {code}: {message}");
 
     /// <summary>Record a diagnostic keyed by a catalogue <see cref="DiagnosticDescriptor"/> (P2.10 — the
     /// first-class registry replacing bare <c>COBOLNETnnnn</c> string literals). Emits the descriptor's
@@ -82,7 +118,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
-    public void Warning(string code, string message) => Warnings.Add($"warning {code}: {message}");
+    public void Warning(string code, string message) => Warnings.Add($"{Prefix()}warning {code}: {message}");
 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor

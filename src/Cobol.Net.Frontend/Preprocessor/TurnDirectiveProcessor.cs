@@ -31,7 +31,7 @@ public static class TurnDirectiveProcessor
     /// <paramref name="dialectLevel"/> &lt; 2002 a <c>&gt;&gt;TURN</c> is the four-compilers diagnostic (the EC
     /// model is 2002+ — COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN per-edition gating), never silently ignored.</summary>
     public static (string Text, IReadOnlyList<TurnEvent> Events) Process(
-        string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath)
+        string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
         var lines = text.Split('\n');
@@ -44,7 +44,7 @@ public static class TurnDirectiveProcessor
             if (!body.StartsWith("TURN", StringComparison.OrdinalIgnoreCase)
                 || (body.Length > 4 && !char.IsWhiteSpace(body[4]))) continue;
 
-            var loc = new SourceLocation(sourcePath, 0, i, 0);
+            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             if (dialectLevel < 2002)
             {
                 diagnostics.ReportError("COBOLNET0875",

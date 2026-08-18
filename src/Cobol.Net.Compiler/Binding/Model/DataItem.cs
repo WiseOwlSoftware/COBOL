@@ -214,6 +214,12 @@ public sealed class DataItem
     /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
     public List<Condition88> Own88s { get; } = [];
 
+    /// <summary>Where this item's data description entry begins — the diagnostic cursor captured when it was bound
+    /// (kb/Work PB82), so a POST-BUILD pass (REDEFINES / RENAMES resolution, ODO, ANY LENGTH, TYPE expansion, …)
+    /// can position its diagnostics at the entry: <c>using var _ = Edition.At(item);</c>. Default (unset) for a
+    /// synthetic item (a debug register, a subscript-segment temp); a TYPE / SAME AS clone carries its template's.</summary>
+    public CobolNet.Editions.DiagnosticCursor DeclaredAt { get; init; }
+
     /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.</summary>
     public string? RedefinesTargetName { get; init; }
 

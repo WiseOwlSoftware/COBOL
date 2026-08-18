@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using CobolNet.Editions;
+using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 
 namespace CobolNet.Frontend.Preprocessor;
@@ -52,8 +53,10 @@ public static class ReferenceFormatProcessor
     /// Remove NIST CCVS archive-control lines ('*HEADER,…' and '*END-OF,…') that delimit
     /// members inside newcob.val. They begin in column 1 (the sequence area), so reference-format
     /// normalization would otherwise read column 7 as an indicator and emit the rest of the line
-    /// (e.g. ',SM102A') as stray code. These markers are never valid COBOL, so strip them from
-    /// the raw text before any other processing.
+    /// (e.g. ',SM102A') as stray code. These markers are never valid COBOL, so blank them out of
+    /// the raw text before any other processing. LINE-COUNT PRESERVING (kb/Work PB82): a marker becomes an
+    /// empty line, so the source-line map the normalizer builds next still names the physical lines of the
+    /// file on disk (dropping the header made every reported line one short).
     /// </summary>
     public static string StripNistArchiveMarkers(string sourceText)
     {
@@ -62,10 +65,8 @@ public static class ReferenceFormatProcessor
         foreach (var line in lines)
         {
             string trimmed = line.TrimStart();
-            if (trimmed.StartsWith("*HEADER,", StringComparison.Ordinal) ||
-                trimmed.StartsWith("*END-OF,", StringComparison.Ordinal))
-                continue;
-            kept.Add(line);
+            kept.Add(trimmed.StartsWith("*HEADER,", StringComparison.Ordinal) ||
+                     trimmed.StartsWith("*END-OF,", StringComparison.Ordinal) ? "" : line);
         }
         return string.Join('\n', kept);
     }
@@ -100,6 +101,14 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static string NormalizeToFreeForm(
         string sourceText, int dialectLevel, bool permissive, DiagnosticBag? diagnostics, string sourcePath)
+        => NormalizeToFreeFormMapped(sourceText, dialectLevel, permissive, diagnostics, sourcePath).Text;
+
+    /// <summary>The MAPPED normalizer (kb/Work PB82): the free-form text plus, per output line, the physical line of
+    /// <paramref name="sourcePath"/> it came from — a fixed-form continuation JOINS lines, so the output line count is
+    /// smaller than the source's and every later stage (COPY, the parser, the binder) would otherwise number lines the
+    /// user cannot find. The string overload is this one's <c>.Text</c>.</summary>
+    public static MappedText NormalizeToFreeFormMapped(
+        string sourceText, int dialectLevel, bool permissive, DiagnosticBag? diagnostics, string sourcePath)
     {
         var gates = diagnostics is null ? null : new EditionGates(dialectLevel, permissive, diagnostics, sourcePath);
         var lines = sourceText.Split('\n');
@@ -117,7 +126,11 @@ public static class ReferenceFormatProcessor
         // structural AUTO-DETECTION (a documented extension over the standard's fixed-form GR2 default; it is what
         // classifies the NIST fixed corpus and free-form real-world source without a directive — DEVLOG 931).
         if (switches.Count == 0)
-            return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText, gates) : sourceText;
+        {
+            if (!IsFixedForm(sourceText)) return MappedText.Identity(sourceText, sourcePath);
+            var (fl, fo) = ConvertFixedToFreeMapped(sourceText, gates, 0);
+            return Mapped(fl, fo, sourcePath);
+        }
 
         // Per-segment. The INITIAL segment (before the first directive) is auto-detected; each subsequent segment
         // is in the format its preceding directive declared (GR4 bootstrap: a leading directive makes the initial
@@ -125,6 +138,7 @@ public static class ReferenceFormatProcessor
         // directive lines blanked — a fixed segment's continuation joins reduce its line count exactly as the
         // whole-file path already does.
         var outLines = new List<string>();
+        var outOrigins = new List<int>();   // the 1-based source line of each output line (kb/Work PB82)
         bool segFixed = IsFixedForm(string.Join('\n', lines[..switches[0].Index]));
         int segStart = 0;
         for (int s = 0; s <= switches.Count; s++)
@@ -133,19 +147,47 @@ public static class ReferenceFormatProcessor
             if (segEnd > segStart)
             {
                 if (segFixed)
-                    outLines.AddRange(SplitLines(
-                        ConvertFixedToFree(string.Join('\n', lines[segStart..segEnd]), gates, segStart)));
+                {
+                    var (sl, so) = ConvertFixedToFreeMapped(string.Join('\n', lines[segStart..segEnd]), gates, segStart);
+                    outLines.AddRange(sl);
+                    outOrigins.AddRange(so);
+                }
                 else
-                    for (int k = segStart; k < segEnd; k++) outLines.Add(lines[k].TrimEnd('\r'));   // free: as-is
+                    for (int k = segStart; k < segEnd; k++) { outLines.Add(lines[k].TrimEnd('\r')); outOrigins.Add(k + 1); }   // free: as-is
             }
             if (s < switches.Count)
             {
                 outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
+                outOrigins.Add(switches[s].Index + 1);
                 segFixed = switches[s].Fixed;     // switch the format for the following segment
                 segStart = switches[s].Index + 1;
             }
         }
-        return string.Join('\n', outLines);
+        return Mapped(outLines, outOrigins, sourcePath);
+    }
+
+    /// <summary>Assemble output lines and their source lines into a <see cref="MappedText"/> of <paramref name="file"/>.</summary>
+    private static MappedText Mapped(List<string> outLines, List<int> outOrigins, string file)
+    {
+        var origins = new SourceOrigin[outLines.Count == 0 ? 1 : outLines.Count];
+        for (int i = 0; i < origins.Length; i++) origins[i] = new SourceOrigin(file, i < outOrigins.Count ? outOrigins[i] : 1);
+        return new MappedText(string.Join('\n', outLines), origins);
+    }
+
+    /// <summary>The MAPPED fixed→free conversion (kb/Work PB82): the output lines (a fixed-form continuation JOINS
+    /// physical lines) and, per output line, the 1-based physical source line where that output line STARTED — the
+    /// first source line that wrote content into it (a joined continuation keeps its head line's number).</summary>
+    private static (List<string> Lines, List<int> Origins) ConvertFixedToFreeMapped(string sourceText, EditionGates? gates, int lineOffset)
+    {
+        var origins = new List<int>();
+        string converted = ConvertFixedToFree(sourceText, gates, lineOffset, origins);
+        var outLines = SplitLines(converted).ToList();
+        // origins has one entry per '\n' — SplitLines drops the artifact final empty piece, so the counts agree;
+        // any residue is a defect in the tracking, never silently padded.
+        if (origins.Count != outLines.Count)
+            throw new InvalidOperationException(
+                $"ConvertFixedToFree origin tracking: {origins.Count} origin(s) for {outLines.Count} output line(s) (kb/Work PB82)");
+        return (outLines, origins);
     }
 
     /// <summary>Split a <see cref="ConvertFixedToFree"/> result into clean per-line strings for the per-segment
@@ -193,7 +235,7 @@ public static class ReferenceFormatProcessor
             Emit(severity, "COBOLNET0903",
                 "the fixed continuation indicator (hyphen in column 7) is obsolete as of COBOL-2023 "
                 + "(Annex F.2 item 4; use the floating continuation indicator) — first use at line " + line,
-                new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn));
+                new SourceOrigin(sourcePath, line).ToLocation(IndicatorColumn));
         }
 
         /// <summary>A continuation that SPLICES a COBOL word across lines — REMOVED at 2023
@@ -204,7 +246,7 @@ public static class ReferenceFormatProcessor
             _wordFlagged = true;
             const string msg = "continuation of a COBOL word in fixed-form reference format was removed in "
                 + "COBOL-2023 (Annex E.2 item 1 bullet 2) — first use at line ";
-            var loc = new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn);
+            var loc = new SourceOrigin(sourcePath, line).ToLocation(IndicatorColumn);
             var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
             Emit(severity, "COBOLNET0902", msg + line, loc);
         }
@@ -320,14 +362,38 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static string ConvertFixedToFree(string sourceText) => ConvertFixedToFree(sourceText, gates: null);
 
+    /// <summary>The MAPPED fixed→free conversion of a whole text originating in <paramref name="file"/> (kb/Work PB82).</summary>
+    public static MappedText ConvertFixedToFreeMapped(string sourceText, string file)
+    {
+        var (l, o) = ConvertFixedToFreeMapped(sourceText, gates: null, 0);
+        return Mapped(l, o, file);
+    }
+
     /// <param name="lineOffset">The file-relative index (0-based) of this text's first line — nonzero when
     /// converting one SOURCE-FORMAT SEGMENT of a larger file, so the <see cref="EditionGates"/> continuation
     /// diagnostics report the file line, not the segment-relative one.</param>
-    private static string ConvertFixedToFree(string sourceText, EditionGates? gates, int lineOffset = 0)
+    /// <param name="origins">When given (kb/Work PB82), receives the 1-based physical source line of each output line,
+    /// one entry per newline written — the line that FIRST wrote content into that output line, so a continuation
+    /// joined into its predecessor leaves the predecessor's origin standing.</param>
+    private static string ConvertFixedToFree(string sourceText, EditionGates? gates, int lineOffset = 0, List<int>? origins = null)
     {
         var lines = sourceText.Split('\n');
         var result = new StringBuilder();
         int lineNo = lineOffset;
+        // Origin tracking (kb/Work PB82): each newline appended to the builder completes one output line, whose
+        // origin is the source line being processed — unless the line was REOPENED by a continuation join, which
+        // strips the previous output line's newline (see the '-' arm) and hands its origin back, so the joined line
+        // keeps its HEAD line's number. Newlines are counted incrementally from `scanned`; the join is the one
+        // place the builder shrinks, and it is handled there, never inferred from the length.
+        int nlSeen = 0, scanned = 0;
+        int? reopenedOrigin = null;
+        void SyncOrigins(int srcLine)
+        {
+            if (origins is null) return;
+            for (int i = scanned; i < result.Length; i++)
+                if (result[i] == '\n') { nlSeen++; origins.Add(reopenedOrigin ?? srcLine); reopenedOrigin = null; }
+            scanned = result.Length;
+        }
 
         // Literal state carried across lines for continuation decisions
         bool inLiteral = false;
@@ -339,6 +405,7 @@ public static class ReferenceFormatProcessor
 
         foreach (var rawLine in lines)
         {
+            if (lineNo > lineOffset) SyncOrigins(lineNo);   // the previous source line's newly completed output lines
             lineNo++;
             var line = rawLine.TrimEnd('\r');
 
@@ -446,6 +513,22 @@ public static class ReferenceFormatProcessor
                         && LastNonSpace(result) is { } prevCh && IsCobolWordChar(prevCh)
                         && sourceArea.TrimStart() is { Length: > 0 } contText && IsCobolWordChar(contText[0]))
                         gates.OnWordContinuation(lineNo);
+                    // The join REOPENS the previous output line: strip its newline HERE (HandleContinuation then
+                    // finds none), give its origin back so the completed joined line keeps the head line's number.
+                    if (origins is not null)
+                    {
+                        while (result.Length > 0 && result[result.Length - 1] is '\n' or '\r')
+                        {
+                            if (result[result.Length - 1] == '\n' && nlSeen > 0)
+                            {
+                                nlSeen--;
+                                reopenedOrigin = origins[^1];
+                                origins.RemoveAt(origins.Count - 1);
+                            }
+                            result.Length--;
+                        }
+                        scanned = result.Length;
+                    }
                     HandleContinuation(result, sourceArea,
                         ref inLiteral, ref pendingQuote);
                     break;
@@ -461,6 +544,7 @@ public static class ReferenceFormatProcessor
                     break;
             }
         }
+        SyncOrigins(lineNo);   // the last source line's output lines
 
         return result.ToString();
     }

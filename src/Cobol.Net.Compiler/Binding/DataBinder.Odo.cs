@@ -109,6 +109,7 @@ public sealed partial class DataBinder
         foreach (var item in AllItems())
         {
             if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
+            using var _ = Edition.At(item);
             string subject = item.CobolName ?? item.CsName;
 
             // SR16: 0 ≤ integer-1 < integer-2.
@@ -225,6 +226,7 @@ public sealed partial class DataBinder
         foreach (var item in AllItems())
         {
             if (item.OccursSpec is not { IsDynamic: true } spec) continue;
+            using var _ = Edition.At(item);
             string subject = item.CobolName ?? item.CsName;
 
             // §8.5.1.9.1 item 3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file

@@ -72,9 +72,18 @@ public static class ConditionalCompilationProcessor
     /// </summary>
     public static string ProcessWithCopy(string text, string sourceDir, CopyProcessor copyProcessor,
         IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
+        => ProcessWithCopyMapped(MappedText.Identity(text, sourcePath ?? "<source>"), sourceDir, copyProcessor,
+            leaveDirectives, diagnostics, sourcePath, dialectLevel).Text;
+
+    /// <summary>The MAPPED driver (kb/Work PB82): the same interleaved CC + COPY + REPLACE manipulation over a text
+    /// that carries its per-line origins, returning the resultant text with ITS origins — main-source lines keep
+    /// their physical line, copied lines carry the copybook's path and line, so every downstream position (the
+    /// parser's, the binder's, EXCEPTION-LOCATION's) can name what the user edits.</summary>
+    public static MappedText ProcessWithCopyMapped(MappedText text, string sourceDir, CopyProcessor copyProcessor,
+        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
-        string expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
+        var expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
             dialectLevel).Render(text);
         return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
     }
@@ -128,33 +137,42 @@ public static class ConditionalCompilationProcessor
         /// (COPY-expanded when interleaving) at each directive/omitted-line boundary — a COPY statement always lies
         /// wholly within one emitting block, so multi-line COPY REPLACING and mid-line COPY are handled by the
         /// copybook engine's char scan.</summary>
-        public string Render(string text)
+        public string Render(string text) => Render(MappedText.Identity(text, _diag.SourcePath ?? "<source>")).Text;
+
+        /// <summary>The MAPPED render (kb/Work PB82): every output line carries the origin of the input line it came
+        /// from — an omitted or directive line its own, a block its lines', a copybook expansion the copybook's.</summary>
+        public MappedText Render(MappedText input)
         {
-            var lines = text.Split('\n');
+            var lines = input.Text.Split('\n');
             var output = new List<string>(lines.Length);
+            var outputOrigins = new List<SourceOrigin>(lines.Length);
             var block = new List<string>();
+            var blockOrigins = new List<SourceOrigin>();
 
             void Flush()
             {
                 if (block.Count == 0) return;
-                string blockText = string.Join('\n', block);
+                var blockText = new MappedText(string.Join('\n', block), blockOrigins.ToArray());
                 block.Clear();
-                string expanded = _copy is null
+                blockOrigins.Clear();
+                MappedText expanded = _copy is null
                     ? blockText
                     : _copy.ExpandCopiesOneLevel(blockText, _alreadyIncluded, _depth, RenderCopybook);
-                output.AddRange(expanded.Split('\n'));
+                output.AddRange(expanded.Text.Split('\n'));
+                outputOrigins.AddRange(expanded.Lines);
             }
 
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i];
+                SourceOrigin origin = input.Lines[i];
                 string trimmed = line.TrimEnd('\r').TrimStart();
-                _diag.Line = i;
+                _diag.At = origin;
 
                 if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
                 {
-                    if (_stack.Count == 0 || _stack.Peek().Emitting) block.Add(line);   // accumulate; COPY expands at Flush
-                    else { Flush(); output.Add(""); }                                   // omitted ordinary line
+                    if (_stack.Count == 0 || _stack.Peek().Emitting) { block.Add(line); blockOrigins.Add(origin); }   // accumulate; COPY expands at Flush
+                    else { Flush(); output.Add(""); outputOrigins.Add(origin); }                                     // omitted ordinary line
                     continue;
                 }
 
@@ -162,7 +180,7 @@ public static class ConditionalCompilationProcessor
                 // so the block's copybooks' own directives (a copybook >>DEFINE / >>IF) have already run — the
                 // following directive's condition + emitting state see them (ISO §7.2.1 Step-2 encounter order).
                 Flush();
-                _diag.Line = i;   // Flush may have re-anchored _diag.Line inside a copybook; restore for this line
+                _diag.At = origin;   // Flush may have re-anchored _diag.At inside a copybook; restore for this line
                 bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
                 var (keyword, rest) = SplitDirective(trimmed);
                 string emit = "";   // directives are consumed by default (output blank line)
@@ -190,7 +208,7 @@ public static class ConditionalCompilationProcessor
                         // Format 1: >>EVALUATE selection-subject   Format 2: >>EVALUATE TRUE
                         bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
                         var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false,
-                            StartLine = i, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
+                            Start = origin, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
                         string subj = rest.Trim();
                         if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
                         else if (parentActive) f.Subject = EvaluateOperandText(subj, _evaluator, _diag, ">>EVALUATE");
@@ -226,7 +244,7 @@ public static class ConditionalCompilationProcessor
                             // c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
                             // and a >>WHEN OTHER and FLAG-14 EVALUATE was ON at the >>EVALUATE line.
                             if (f.SawWhen && f.SawWhenOther && f.EvaluateFlagOn)
-                                _diag.FlagWarn(FlagOption.Flag14Evaluate, f.StartLine);
+                                _diag.FlagWarn(FlagOption.Flag14Evaluate, f.Start);
                             _stack.Pop();
                         }
                         break;
@@ -257,20 +275,22 @@ public static class ConditionalCompilationProcessor
                         break;
                 }
                 output.Add(emit);
+                outputOrigins.Add(origin);
             }
 
             Flush();
-            return string.Join('\n', output);
+            return new MappedText(string.Join('\n', output), outputOrigins.ToArray());
         }
 
         /// <summary>Expand one incorporated copybook through the SAME driver at <paramref name="depth"/> — its own
         /// directives + nested COPY are processed with this run's shared state; the depth is restored on return so
-        /// the SR1/depth guards stay accurate across sibling copybooks.</summary>
-        private string RenderCopybook(string copybookText, int depth)
+        /// the SR1/depth guards stay accurate across sibling copybooks. The copybook's text carries ITS origins
+        /// (its path and physical lines — kb/Work PB82).</summary>
+        private MappedText RenderCopybook(MappedText copybookText, int depth)
         {
             int saved = _depth;
             _depth = depth;
-            string result = Render(copybookText);
+            var result = Render(copybookText);
             _depth = saved;
             return result;
         }
@@ -291,7 +311,7 @@ public static class ConditionalCompilationProcessor
         // >>WHEN OTHER — syntactic presence (independent of which branch emits). Captured at the >>EVALUATE line.
         public bool SawWhen;
         public bool SawWhenOther;
-        public int StartLine;
+        public SourceOrigin Start;   // where the >>EVALUATE directive is (its source file and physical line)
         public bool EvaluateFlagOn;   // FLAG-14 EVALUATE was ON at the >>EVALUATE directive's line (the GR2 anchor)
     }
 
@@ -496,12 +516,16 @@ public static class ConditionalCompilationProcessor
 
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
     /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOLNET1619 (the directive-expression
-    /// violation); the §7.3.11.3 SR2 redefinition is COBOLNET1618. <see cref="Line"/> is set before each directive.</summary>
+    /// violation); the §7.3.11.3 SR2 redefinition is COBOLNET1618. <see cref="At"/> is set before each directive
+    /// (kb/Work PB82: the SOURCE origin of the directive line — the copybook's own file and line when the directive
+    /// is inside copied text — never an index into the text being rendered).</summary>
     private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath, FlagScanState flagScan) : ICtDiagnostics
     {
-        private readonly string _path = sourcePath ?? "";
+        /// <summary>The source file the directives are read from (kb/Work PB82 — the identity origin of unmapped text).</summary>
+        public string? SourcePath => sourcePath;
         private readonly FlagScanState _flagScan = flagScan;
-        public int Line;
+        /// <summary>The origin (file, physical line) of the directive being processed.</summary>
+        public SourceOrigin At = new(sourcePath ?? "", 1);
 
         /// <summary>FLAG-14 b (§7.3.15.4 GR4 b; E.2 item 6) — flag a compile-time arithmetic EXPRESSION (one with a
         /// real <c>addOp</c>/<c>mulOp</c>, not a bare literal) when COMPILE-TIME-ARITHMETIC-EXPRESSIONS is ON at the
@@ -510,7 +534,7 @@ public static class ConditionalCompilationProcessor
         {
             if (_flagScan.IsOn(FlagOption.Flag14CompileTimeArithmeticExpressions)
                 && (HasDescendant<CobolParserCore.AddOpContext>(tree) || HasDescendant<CobolParserCore.MulOpContext>(tree)))
-                FlagWarn(FlagOption.Flag14CompileTimeArithmeticExpressions, Line);
+                FlagWarn(FlagOption.Flag14CompileTimeArithmeticExpressions, At);
         }
 
         public void Report(CtDiagCode code, string message) => Emit("COBOLNET1619", message);
@@ -523,9 +547,9 @@ public static class ConditionalCompilationProcessor
             $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
 
         /// <summary>Emit a migration-flag WARNING for a frontend-inline FLAG option (b / c) at
-        /// <paramref name="line"/> — the same code/message shape as <c>FlagConformancePass</c> for the bound
+        /// <paramref name="at"/> — the same code/message shape as <c>FlagConformancePass</c> for the bound
         /// options, so the two collection sites are indistinguishable to the user.</summary>
-        public void FlagWarn(FlagOption option, int line)
+        public void FlagWarn(FlagOption option, SourceOrigin at)
         {
             var info = FlagOptions.Info(option);
             string code = info.Directive == FlagDirective.Flag14
@@ -533,7 +557,7 @@ public static class ConditionalCompilationProcessor
                 : Editions.Diagnostics.DiagnosticCatalog.Flag02Warning.Code;
             bag?.ReportWarning(code,
                 $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
-                new SourceLocation(_path, 0, line, 0), default);
+                at.ToLocation(), default);
         }
 
         /// <summary>COBOLNET1567 — the §8.3.2.1 word-length ceiling on a directive-carried word, the SAME code
@@ -542,6 +566,6 @@ public static class ConditionalCompilationProcessor
             Emit(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code, violation);
 
         private void Emit(string code, string message) =>
-            bag?.ReportError(code, message, new SourceLocation(_path, 0, Line, 0), default);
+            bag?.ReportError(code, message, At.ToLocation(), default);
     }
 }

@@ -31,7 +31,7 @@ public static class LeapSecondDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate + syntax-check each directive, resolve the group's
     /// ON/OFF state, blank the directive lines. Returns the text and whether ON is in effect for the group.</summary>
     public static (string Text, bool LeapSecondOn) Process(
-        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
+        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, false);
         var lines = text.Split('\n');
@@ -45,7 +45,7 @@ public static class LeapSecondDirectiveProcessor
             if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
                 || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
 
-            var loc = new SourceLocation(sourcePath, 0, i, 0);
+            var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             // Introduction gate (§7.3 compiler directives are COBOL-2002 additions): reject below 2002 via the ONE
             // ConstructRegistry (COBOLNET0900); a no-op at 2002+.
             ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),

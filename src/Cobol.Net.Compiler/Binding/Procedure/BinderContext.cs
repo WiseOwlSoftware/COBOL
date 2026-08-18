@@ -30,6 +30,12 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// single instance, preserving emission order.</summary>
     public EditionContext Edition => data.Edition;
 
+    /// <summary>The USER's source line of a parse context's first token (kb/Work PB82) — the line in the file that
+    /// physically holds it, through the preprocessing chain's origin map. This is what a bound node's
+    /// <c>SourceLine</c> (the X3.23-1985 DEBUG-LINE) is built from; the raw <c>ctx.Start.Line</c> is the RESULTANT
+    /// line and stays the anchor for the TURN / FLAG / REF-MOD-ZERO-LENGTH directive folds only.</summary>
+    public int SourceLine(Antlr4.Runtime.ParserRuleContext c) => Edition.SourceLineOf(c.Start.Line);
+
     /// <summary>The ONE scope-aware name resolver (per binder — P6 Exec Step B).</summary>
     public SymbolTable Symbols => data.Symbols;
 

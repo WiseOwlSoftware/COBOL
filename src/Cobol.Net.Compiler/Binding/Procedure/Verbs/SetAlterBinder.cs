@@ -84,8 +84,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     {
         AlterEnsureScan();
         return AlterOwningPc(g) is { } pc && _alterSwFields!.TryGetValue(pc, out var field)
-            ? new BoundGoToAlterable(field, writtenTarget, g.Start.Line)
-            : new BoundGoTo(writtenTarget, g.Start.Line);
+            ? new BoundGoToAlterable(field, writtenTarget, ctx.SourceLine(g))
+            : new BoundGoTo(writtenTarget, ctx.SourceLine(g));
     }
 
     /// <summary>Bind the target-less <c>GO TO.</c> (ANSI X3.23-1985 only — obsolete there, DELETED by ISO/IEC
@@ -103,8 +103,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         // flag awaits the EditionContext warning channel — it must not fail the 85 compile).
         AlterEnsureScan();
         return AlterOwningPc(g) is { } pc && _alterSwFields!.TryGetValue(pc, out var field)
-            ? new BoundGoToAlterable(field, -1, g.Start.Line)
-            : new BoundGoTo(-1, g.Start.Line);
+            ? new BoundGoToAlterable(field, -1, ctx.SourceLine(g))
+            : new BoundGoTo(-1, ctx.SourceLine(g));
     }
 
     /// <summary>Bind <c>ALTER {proc-1 TO [PROCEED TO] proc-2}…</c> (ANSI X3.23-1985; 85-ONLY — rejected at 2002+

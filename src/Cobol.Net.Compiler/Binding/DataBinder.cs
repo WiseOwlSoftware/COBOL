@@ -555,6 +555,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool rootIsTemplate = false;   // true while the current level-1 subtree is a TYPEDEF template (D17)
         foreach (var entry in entries)
         {
+            using var _ = Edition.At(entry);   // the entry cursor (kb/Work PB82): every diagnostic below names this entry
             // A CONSTANT entry (ISO §13.10; the constantEntryBody alternative) is a COMPILE-TIME substitution,
             // not storage: fold it into the constant table and produce NO DataItem. Checked BEFORE the 66/88
             // early-outs so a mis-leveled constant entry gets its §13.10.2 level diagnostic, never a RENAMES/
@@ -714,6 +715,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (fc is null) return;
         foreach (var grp in fc.fileControlClauseGroup())
         {
+            using var _ = Edition.At(grp);
             if (grp.fileName()?.GetText() is not { } name) continue;
             var file = new FileModel { CobolName = name, SelectName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
             foreach (var clauses in grp.fileControlClauses())
@@ -900,6 +902,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (fs is null) return;
         foreach (var fd in fs.fileDescriptionEntry())
         {
+            using var _ = Edition.At(fd);
             if (fd.fileName()?.GetText() is not { } name) continue;
             var records = BindEntries(fd.dataDescriptionEntry(), rootNames, EntrySection.File);
             if (!FilesByName.TryGetValue(name, out var file))
@@ -943,6 +946,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // by ISO/IEC 1989:2002 — accepted-inert at 85 (every NIST SD writes it), rejected ≥2002.
         foreach (var sd in fs.sortMergeDescriptionEntry())
         {
+            using var _ = Edition.At(sd);
             if (sd.fileName()?.GetText() is not { } sdName) continue;
             var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
             if (!FilesByName.TryGetValue(sdName, out var sdFile))
@@ -1035,6 +1039,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (io is null) return;
         foreach (var clause in io.ioControlClause())
         {
+            using var _ = Edition.At(clause);
             // Format 2 only — SAME RECORD AREA (the RECORD word distinguishes it; SORT/SORT-MERGE are Format 3).
             if (clause.sameClause() is not { } same || same.RECORD() is null) continue;
             DataItem? anchor = null;
@@ -1309,6 +1314,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// reference back to one is a recursive type declaration (§13.18.58.3 SR2 → COBOLNET1530).</summary>
     private void ExpandType(DataItem item, HashSet<string> expanding)
     {
+        using var _ = Edition.At(item);
         string typeName = item.TypeRefName!;
         item.TypeRefName = null;   // mark expanded (idempotent; also stops a cloned nested ref being re-processed)
         string subject = item.CobolName ?? item.CsName;
@@ -1445,6 +1451,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var clone = new DataItem
         {
             Level = src.Level + levelDelta,
+            DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
             Pic = src.Pic,
@@ -1534,6 +1541,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// a target already on it is the SR3 cycle.</summary>
     private void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
     {
+        using var _ = Edition.At(item);
         if (item.SameAsName is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
         string targetName = item.SameAsName;
         item.SameAsName = null;
@@ -1757,9 +1765,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var item in AllItems())
             if (item.RedefinesTarget is { } tgt && StrongTypeModel.IsStronglyTyped(tgt)
                 && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
+            {
+                using var _ = Edition.At(item);
                 Edition.Error("COBOLNET1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
                     + $"'{tgt.CobolName ?? tgt.CsName}': a strongly-typed item shall not be redefined in whole or in "
                     + "part (ISO §13.18.57.3 SR4)");
+            }
 
         foreach (var owner in Roots)
             foreach (var ren66 in owner.Renames66)
@@ -1767,8 +1778,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     && ((ri.From is { } f && StrongTypeModel.IsStronglyTyped(f))
                         || (ri.Thru is { } t && StrongTypeModel.IsStronglyTyped(t))
                         || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
+                {
+                    using var _ = Edition.At(ren66);
                     Edition.Error("COBOLNET1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
                         + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
+                }
     }
 
     /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>
@@ -1783,6 +1797,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var item = new DataItem
         {
             Level = 66,
+            DeclaredAt = Edition.Cursor,
             CobolName = name,
             CsName = DataItem.Sanitize(name),
             Renames = new RenamesInfo
@@ -2296,6 +2311,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Occurs = occurs,
             OccursSpec = occursSpec,
             RedefinesTargetName = redefinesTargetName,
+            DeclaredAt = Edition.Cursor,   // the entry cursor (kb/Work PB82) — where post-build passes report
             Justified = justified,
             BlankWhenZero = blankWhenZero,
             Synchronized = synchronized,
@@ -2656,6 +2672,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         void Walk(DataItem item, bool inherited, PicInfo? inheritedObjRef)
         {
+            using var _ = Edition.At(item);
             bool isIndex = ReferenceEquals(item.Pic, PicInfo.IndexItem) || (inherited && item.Pic is null);
             // USAGE OBJECT REFERENCE inherits the same way (§13.18.60.4 GR1): a group header sheds its
             // synthesized reference profile; a PICTURE-less leaf below takes it (sharing the immutable
@@ -2790,6 +2807,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var item in AllItems())
             if (item.RedefinesTargetName is { } tname)
             {
+                using var _ = Edition.At(item);
                 // A subordinate (02+) redefiner scopes to its own siblings (correct in every scope). A top-level
                 // 01/77 method redefiner must scope to the OWNING METHOD's own roots (§13.18.44.3 SR — the target
                 // is a prior sibling in the same data description; a method may NOT redefine object/program data,
@@ -2883,6 +2901,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var item in AllItems())
         {
             if (item.RedefinesTarget is null) continue;
+            using var _ = Edition.At(item);
             DataItem anchor = item;
             while (anchor.RedefinesTarget is { } t) anchor = t;     // chase the chain to the original (SR11)
             if (!byAnchor.TryGetValue(anchor, out var cls))
