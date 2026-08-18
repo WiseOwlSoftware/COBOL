@@ -530,32 +530,43 @@ public sealed record Receiver(Place Place, CobolRounding Rounding);
 /// path is not emitted — its behavior is unchanged).</summary>
 public sealed record SizeErrorPhrase(IReadOnlyList<BoundStatement>? OnError, IReadOnlyList<BoundStatement>? NotOnError);
 
+/// <summary>An ARITHMETIC statement (ISO §14.7.5's ADD / COMPUTE / DIVIDE / MULTIPLY / SUBTRACT, incl. CORRESPONDING)
+/// — the statements that OWN their size error condition: <c>ArithmeticEmitter.EmitArith</c> wraps their evaluation
+/// and stores in the §14.7.5 shape (the SIZE ERROR phrase, the EC-SIZE handling, the fatal default), so the generic
+/// EC-SIZE statement guard skips them (kb/Work PB75 — otherwise a size error dispatched by the statement would be
+/// dispatched again by the guard). A structural marker, not a name list: a new arithmetic statement declares it with
+/// its <see cref="SizeError"/> and is excluded by construction (<c>EcSizeGuardDriftTests</c> holds the two in step).</summary>
+public interface IArithmeticStatement
+{
+    SizeErrorPhrase? SizeError { get; }
+}
+
 /// <summary><c>ADD addends TO targets</c> — each target ← target + Σ addends.</summary>
-public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>ADD addends GIVING targets</c> — each target ← Σ addends.</summary>
-public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>SUBTRACT minuends FROM targets</c> — each target ← target − Σ minuends.</summary>
-public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>SUBTRACT minuends FROM from GIVING targets</c> — each target ← from − Σ minuends.</summary>
-public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>MULTIPLY a BY targets</c> — each target ← target × a.</summary>
-public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>MULTIPLY a BY b GIVING targets</c> — each target ← a × b.</summary>
-public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>DIVIDE divisor INTO targets</c> — each target ← target ÷ divisor.</summary>
-public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 /// <summary><c>DIVIDE divisor INTO dividend GIVING targets</c> / <c>DIVIDE dividend BY divisor GIVING targets</c>
 /// — each target ← dividend ÷ divisor.</summary>
-public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 
 /// <summary><c>DIVIDE … GIVING quotient REMAINDER remainder</c> (ISO §14.9.12 Formats 4–5): one quotient receiver;
 /// the remainder = dividend − (intermediate quotient × divisor), where the intermediate quotient is TRUNCATED at
 /// the quotient receiver's scale even when the stored quotient is ROUNDED (GR7).</summary>
 public sealed record BoundDivideRemainder(
-    BoundExpr Dividend, BoundExpr Divisor, Receiver Quotient, Place Remainder, SizeErrorPhrase? SizeError) : BoundStatement;
+    BoundExpr Dividend, BoundExpr Divisor, Receiver Quotient, Place Remainder, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 
 /// <summary><c>COMPUTE targets = rhs</c>.</summary>
-public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 
 /// <summary><c>COMPUTE boolean-targets = boolean-expression</c> (ISO §14.9.8 Format 2). Each receiver is an
 /// elementary boolean item; the stored value is resized to <paramref name="Gr3Width"/> = the number of boolean

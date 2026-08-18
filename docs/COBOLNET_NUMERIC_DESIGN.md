@@ -607,6 +607,18 @@ greps the sites; golden `pb77_move_past_the_carrier` pins sixteen spec-derived r
 move** — the in-carrier binary64 product's own rounding is the documented conversion manner (CONFORMANCE.md §3),
 and whether it should become the exact expansion everywhere is kb/Work PB90.
 
+**A size error that ESCAPES an arithmetic statement is a fatal exception condition, not a crash (kb/Work PB75,
+2026-08-18).** Every `CobolSizeError` raise site — the SDIDI decimal128 range check (`CobolDec.Clamp`, §8.8.1.5.2
+r2), `CobolDec.Pow`'s bounds, the PROHIBITED-inexact intermediate, `CobolNum.RescaleEscape`'s Int128 escape
+boundary (PB69), the zero divisors, `IntegerOfBoolean`'s width — can fire OUTSIDE an arithmetic statement (a
+condition, a DISPLAY / function argument, a subscript, an INVOKE argument, or a no-phrase statement whose checking
+is off), where nothing caught it: `IF 10 ** 100000 > 5` under STANDARD-DECIMAL was an unhandled stack trace, exit
+127. `CobolSizeError` now derives from `CobolFatalException`; the EC design's D9–D12 machinery gives a checked
+non-arithmetic statement the USE / PERFORM-WHEN dispatch (§14.7.5 no-phrase rules → §14.6.13.1.3 #4/#5) and the
+run-unit boundary terminates the rest loudly (#7 / #8) — the disposition table in COBOLNET_CONDITIONS_EXCEPTIONS
+_DESIGN.md. Arithmetic statements' own `catch (CobolSizeError)` (the phrase; `EmitArith`) is unchanged and takes
+precedence (#1).
+
 **Rejected alternatives.** (a) Raise EC-SIZE-EXPONENTIATION when the exact result does not fit — REJECTED by the
 owner on the survey: principled, and matched by no shipping COBOL, so `1.5 ** 30` would start raising where every
 other compiler approximates. (b) Keep `Math.Pow` everywhere and reword D3 — REJECTED: it leaves `10 ** 30` wrong

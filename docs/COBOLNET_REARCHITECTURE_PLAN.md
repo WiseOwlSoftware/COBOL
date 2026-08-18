@@ -163,8 +163,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   or alphabetic category — §8.4.3.3.4 GR6's exception list is exhaustive, GR2 governs the operation — so PB72's
   2026-08-09 alphabetic erasure is REVERSED (`MOVE A-ITEM(1:2) TO a-boolean` is a "No" cell again; GnuCOBOL's
   any-slice-is-alphanumeric reading is the permissive leniency, `Table16Operand.Lenient`). Four verdicts →
-  CONFORMS, GAP 4008. Battery owed for the PB73 batch with the next landing.
-  **NEXT, in order:** ① PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
+  CONFORMS, GAP 4008.
+  **✅ Battery #10 (PB73 batch, tree `e939f354`):** Conformance **4690/4690** · Unit **4218/4218** · Characterization
+  33/33 · NIST 353/0 audit-clean · differential 1323 cases, **0 flips**. ALL GREEN.
+  **✅ PB75 CLOSED (DEVLOG 1312, 2026-08-18)** — a size error outside an arithmetic statement is a fatal exception
+  condition (§14.7.5 no-phrase rules → §14.6.13.1.3): `CobolSizeError : CobolFatalException`; the EC-SIZE family
+  is an ambient gate for every non-arithmetic statement (USE F3 / PERFORM WHEN dispatch, RESUME, abnormal
+  termination; checking off → loud termination at RunMain, item 70), arithmetic statements excluded by the
+  structural `IArithmeticStatement` marker. And ONE dispatch per raise: `CobolFatalException.Dispatched` — every
+  fatal EC used to be re-dispatched by each enclosing statement's guard (a USE declarative ran twice for one raise
+  inside a PERFORM). Six verdicts → CONFORMS, GAP 4003. **PB91 REGISTERED** (the native carrier's Int128 overflow
+  in a non-arithmetic context wraps silently under EC-SIZE checking). Battery owed for the PB75 batch with the next
+  landing.
+  **NEXT, in order:** ① PB78 → PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

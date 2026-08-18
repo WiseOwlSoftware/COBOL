@@ -38,4 +38,4 @@ public sealed record BoundCorresponding(
     IReadOnlyList<CorrespondingHoist> Hoists,
     IReadOnlyList<CorrespondingPair> Pairs,
     CobolRounding Rounding,
-    SizeErrorPhrase? SizeError) : BoundStatement;
+    SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;

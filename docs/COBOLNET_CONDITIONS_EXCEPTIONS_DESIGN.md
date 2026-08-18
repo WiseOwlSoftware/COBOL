@@ -141,6 +141,27 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   (EC-SIZE-ZERO-DIVIDE at the divide kernels; EC-SIZE-TRUNCATION at the TryStore/TryFormat receiver-capacity
   failures; EC-SIZE-OVERFLOW otherwise) and an ENABLED statement routes through the same two-phase TryStore shape
   even WITHOUT the phrase — the phrase, when present, handles (status still set, §14.6.13.1.4 #1).
+  **And the family reaches every OTHER statement (kb/Work PB75, 2026-08-18).** §14.7.5: the size error condition
+  "may occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
+  subscript, an INVOKE argument, all rendered inline — and without a phrase "processing proceeds as specified in
+  14.6.13.1.3". So `CobolSizeError` IS a `CobolFatalException` (its EcName the Table 13 level-3 name); the binder's
+  ambient tail queries the family for every non-arithmetic statement (`EcBinder.EcWrap`) and `EcEmitter.
+  FatalAmbientGates` carries the four names with no flag (unconditional raise sites, like EC-OO-NULL) — a checked
+  IF / DISPLAY / MOVE gets the generic guard: status set, the F3 selection (USE F3 / the enclosing PERFORM's WHEN,
+  #4/#5), RESUME or the abnormal termination (#7). ARITHMETIC statements are excluded from that guard by the
+  structural marker `IArithmeticStatement` (every bound statement carrying a `SizeErrorPhrase`; `EmitArith` owns
+  their §14.7.5 shape). With checking OFF the raise reaches `ProgramTable.RunMain`'s `CobolFatalException` catch
+  and terminates loudly (#8 — the implementor's documented choice; `IF 10 ** 100000 > 5` under STANDARD-DECIMAL
+  was an unhandled stack trace, exit 127).
+- **ONE dispatch per raise (kb/Work PB75).** A guard that processed a fatal condition (the F3 selection ran and did
+  not RESUME) marks it `CobolFatalException.Dispatched = true` before rethrowing for the abnormal termination
+  (#7); every guard's `catch … when (!Dispatched && name)` lets it pass, and every "dispatched-then-terminate"
+  throw (RAISE unresumed, the arithmetic EC-SIZE default, the I-O fatal default, the CALL-site dispatches) throws
+  it pre-marked. Before this, EVERY ENCLOSING statement re-dispatched the same condition on its way out — measured:
+  a fatal EC-BOUND-REF-MOD raise inside `PERFORM 2 TIMES` ran the USE declarative twice, once from the MOVE's
+  guard and once from the PERFORM's, before terminating; and with the new EC-SIZE gate on the PERFORM, a
+  PERFORM-WHEN-handled size error fell through to the USE declarative and CONTINUED. Golden
+  `pb75_sdidi_overflow_outside_arithmetic`, `SizeErrorDispositionTests`, `EcSizeGuardDriftTests`.
 - **`__IoCheckEc`** is the EC-aware after-verb hook a statement with enabled EC-I-O checking calls INSTEAD of
   `__IoCheck`: same F1 behavior (phrase short-circuits §9.1.13.1, GR3a/b selection, the GR4b outward-GLOBAL walk)
   plus the §9.1.13.1 status→EC raise gated by the per-statement compile-time mask (`ExceptionCatalog.IoMaskNames`

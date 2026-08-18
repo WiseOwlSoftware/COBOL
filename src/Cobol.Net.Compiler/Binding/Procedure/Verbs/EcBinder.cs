@@ -330,9 +330,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             }
             switch (node)
             {
-                case BoundAddTo or BoundAddGiving or BoundSubtractFrom or BoundSubtractGiving or BoundMultiplyBy
-                    or BoundMultiplyGiving or BoundDivideInto or BoundDivideGiving or BoundDivideRemainder
-                    or BoundCompute or BoundCorresponding:
+                // The arithmetic statements — the structural marker, not a name list (kb/Work PB75): the statement's
+                // own §14.7.5 shape (EmitArith) takes the EC-SIZE family.
+                case IArithmeticStatement:
                     Query(SizeNames);
                     break;
                 case BoundStringStmt:
@@ -398,6 +398,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     Query(["EC-RANGE-PERFORM-VARYING"]);
                     break;
             }
+            // ⛔ THE EC-SIZE FAMILY IS AMBIENT FOR EVERY OTHER STATEMENT TOO (kb/Work PB75). §14.7.5: the size error
+            // condition "may occur as a result of … the evaluation of an arithmetic expression" — a condition, a
+            // function argument, a subscript, an INVOKE argument all render inline — and without a SIZE ERROR
+            // phrase the level-3 EC-SIZE-* "is set to exist, and processing proceeds as specified in 14.6.13.1.3".
+            // The raise sites are unconditional (CobolSizeError, a CobolFatalException), so the guard around a
+            // size-error-free statement is harmless; an ARITHMETIC statement took its family above and EmitArith
+            // owns its handling — the emitter's generic guard skips it (IArithmeticStatement), so the family is not
+            // queried twice here. `IF 10 ** 100000 > 5` under STANDARD-DECIMAL was an unhandled stack trace.
+            if (node is not IArithmeticStatement) Query(SizeNames);
             // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
             // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).
             if (ctx.EcState.Turn.Enabled("EC-ARGUMENT-FUNCTION", null, line) && ContainsIntrinsic(node))

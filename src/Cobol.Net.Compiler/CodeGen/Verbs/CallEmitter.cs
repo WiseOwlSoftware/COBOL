@@ -150,7 +150,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             {
                 w.Line($"int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
                 w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
-                w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message);   // §14.6.13.1.3 #5/#7");
+                w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message) {{ Dispatched = true }};   // §14.6.13.1.3 #5/#7 (dispatched here)");
             }
         }
     }
@@ -178,7 +178,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 w.Line($"int __oq{id} = {ec.EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};   // the name enters the F3 tiers");
                 w.Line($"if (__oq{id} >= 0) {{ __pc = __oq{id}; break; }}");
                 w.Line($"if (__oq{id} != -2) throw new CobolFatalException(\"EC-OO-EXCEPTION\", "
-                    + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\");");
+                    + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\") { Dispatched = true };");
             }
             w.Line("// -1/-2: declarative completed / RESUME NEXT — normal continuation (:24604)");
         }
@@ -188,7 +188,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"if (__pr{id} >= 0) {{ __pc = __pr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
                 + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
-                + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\");");
+                + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\") { Dispatched = true };");
         }
     }
 

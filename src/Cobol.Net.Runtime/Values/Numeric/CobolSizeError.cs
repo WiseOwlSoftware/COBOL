@@ -1,20 +1,31 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
-/// Signals a size error raised <i>during expression evaluation</i> (ISO/IEC 1989:2023 §14.7.5 phase-a — e.g. a
-/// divide-by-zero, §14.7.5 case 2). It is thrown ONLY from the checked arithmetic helpers a statement opts into by
-/// carrying an ON SIZE ERROR phrase (e.g. <see cref="CobolNum.DivideOrThrow"/>); generated code that has a SIZE
-/// ERROR phrase wraps its evaluation+store in a <c>try/catch (CobolSizeError)</c> and runs the imperative. A
-/// statement without the phrase never invokes the checked helpers, so its behavior is unchanged.
-/// <para><paramref name="ecName"/> identifies the precise EC-SIZE-* condition (ISO §14.6.13.1.6 Table 13) for a
-/// statement compiled with EC-SIZE checking enabled (&gt;&gt;TURN, §7.3.25): a zero divisor is
-/// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact and
-/// generic evaluation overflows default to EC-SIZE-OVERFLOW ("arithmetic overflow in calculation").</para>
+/// The size error condition (ISO/IEC 1989:2023 §14.7.5) raised <i>during expression evaluation or a store</i> — a
+/// zero divisor (case 2), an exponentiation-rule violation (case 1), a native or standard-decimal INTERMEDIATE past
+/// its range (cases 5/7 — <c>CobolDec</c>'s decimal128 range check, <c>CobolNum.RescaleEscape</c>), a
+/// PROHIBITED-inexact transfer or intermediate (§14.7.4.3 r7 / §11.9.11.2 r3d), a checked store past the receiver
+/// (case 3). Two dispositions, decided by WHERE it surfaces (kb/Work PB75):
+/// <list type="bullet">
+///   <item>inside an arithmetic statement's checked shape — an ON SIZE ERROR phrase or EC-SIZE checking — the
+///         statement's own <c>try/catch (CobolSizeError)</c> takes it: the phrase runs, or the EC-SIZE handling
+///         sets the status and dispatches (§14.7.5 "if the SIZE ERROR phrase is specified" / no-phrase rules 1–5);</item>
+///   <item>ESCAPING — from a condition, a DISPLAY / function argument, a subscript, an INVOKE argument, or a
+///         no-phrase arithmetic statement whose checking is off — it IS the fatal exception condition §14.7.5's
+///         no-phrase rules name (EC-SIZE-OVERFLOW / -ZERO-DIVIDE / -EXPONENTIATION / -TRUNCATION, "processing
+///         proceeds as specified in 14.6.13.1.3"), so it derives from <see cref="CobolFatalException"/>: a
+///         statement compiled with that EC's checking enabled dispatches its USE F3 declarative or the enclosing
+///         PERFORM's WHEN (§14.6.13.1.3 #4/#5) else terminates the run unit (#7); with checking off it reaches
+///         <c>ProgramTable.RunMain</c>'s boundary (#8 — this implementation terminates loudly, "abnormal run-unit
+///         termination: EC-SIZE-… (fatal): …", exit 1 — never a raw CLR crash, which is what
+///         <c>IF 10 ** 100000 &gt; 5</c> under STANDARD-DECIMAL used to be).</item>
+/// </list>
+/// <para><paramref name="ecName"/> is the precise Table 13 level-3 EC-SIZE-* name (§14.6.13.1.6): a zero divisor is
+/// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact
+/// EC-SIZE-TRUNCATION; a range overflow EC-SIZE-OVERFLOW ("arithmetic overflow in calculation").</para>
 /// </summary>
-public sealed class CobolSizeError(string detail, string ecName = "EC-SIZE-OVERFLOW") : Exception(detail)
-{
-    /// <summary>The Table 13 level-3 EC-SIZE-* exception-name of this size-error condition.</summary>
-    public string EcName { get; } = ecName;
-}
+public sealed class CobolSizeError(string detail, string ecName = "EC-SIZE-OVERFLOW") : CobolFatalException(ecName, detail);

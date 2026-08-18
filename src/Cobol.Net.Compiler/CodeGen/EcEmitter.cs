@@ -167,13 +167,30 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
         ("EC-BOUND-TABLE-LIMIT", "BoundTableLimitChecking"),    // §14.9.39.4 GR30 — growth past the implementor max
+        // ⛔ THE EC-SIZE FAMILY FOR NON-ARITHMETIC STATEMENTS (kb/Work PB75). §14.7.5: the size error condition "may
+        // occur as a result of … the evaluation of an arithmetic expression" — a condition, a function argument, a
+        // subscript, an INVOKE argument — and without a SIZE ERROR phrase the level-3 EC-SIZE-* "is set to exist,
+        // and processing proceeds as specified in 14.6.13.1.3". The raise sites are unconditional throws of
+        // CobolSizeError (a CobolFatalException), so FLAG = null exactly as for EC-OO-NULL; the entry gives such a
+        // statement its try/catch so the condition reaches a USE declarative / PERFORM WHEN (#4/#5) or terminates
+        // (#7). ARITHMETIC statements are EXCLUDED below (IArithmeticStatement): EmitArith owns their §14.7.5 shape
+        // (phrase, EC-SIZE handling, fatal default) and a second guard would dispatch the same condition twice.
+        ("EC-SIZE-OVERFLOW", null),                             // §14.7.5 cases 5/7 — an intermediate past its range
+        ("EC-SIZE-ZERO-DIVIDE", null),                          // §14.7.5 case 2 — a zero divisor
+        ("EC-SIZE-EXPONENTIATION", null),                       // §14.7.5 case 1 — the exponentiation rules violated
+        ("EC-SIZE-TRUNCATION", null),                           // §14.7.4.3 r7 / §11.9.11.2 r3d — a PROHIBITED-inexact intermediate
     ];
 
     private bool EmitArgOrPlain(BoundEcChecked ec)
     {
         // The fatal ambient gates enabled at this statement: intrinsic calls / ref-mod render inline inside
         // arbitrary expressions, so the guard wraps the STATEMENT and the runtime error sites consult the flag(s).
-        var gates = FatalAmbientGates.Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)).ToList();
+        // An ARITHMETIC statement owns its EC-SIZE family (EmitArith — kb/Work PB75), so those gates skip it.
+        bool arithmetic = ec.Inner is IArithmeticStatement;
+        var gates = FatalAmbientGates
+            .Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)
+                        && !(arithmetic && g.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)))
+            .ToList();
         if (gates.Count == 0)
             return Statements.EmitStatement(ec.Inner);
 
@@ -186,7 +203,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         foreach (var g in gates.Where(g => g.Flag is not null)) w.Line($"ExceptionState.{g.Flag} = true;");
         using (w.Block("try"))
             Statements.EmitStatement(ec.Inner);
-        using (w.Block($"catch (CobolFatalException __af{id}) when ({nameTest})"))
+        // `!Dispatched`: a condition an INNER statement's guard already processed passes through to the boundary
+        // (§14.6.13.1.3 #7) — one dispatch per raise, not one per nesting level (kb/Work PB75).
+        using (w.Block($"catch (CobolFatalException __af{id}) when (!__af{id}.Dispatched && ({nameTest}))"))
         {
             // §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
             // is set … the last exception status is set to indicate that exception condition." The guard only
@@ -197,7 +216,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             w.Line($"ExceptionState.Set({ecExpr}, true);");
             w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
             w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
-            w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
+            w.Line($"if (__r{id} != -2) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
         }
         var reset = gates.Where(g => g.Flag is not null).Select(g => $"ExceptionState.{g.Flag} = false;").ToList();
         if (reset.Count > 0) w.Line("finally { " + string.Join(" ", reset) + " }");
@@ -232,7 +251,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
         if (r.Fatal)
             w.Line($"if (__r{id} != -2) throw new CobolFatalException({CsLiteral(r.EcName)}, "
-                + "\"raised by RAISE and not resumed (ISO 14.6.13.1.3 #5/#7)\");");
+                + "\"raised by RAISE and not resumed (ISO 14.6.13.1.3 #5/#7)\") { Dispatched = true };");
         // Nonfatal: handled-or-not, execution continues after the RAISE (§14.6.13.1.4 #3/#4).
         return false;
     }
@@ -270,7 +289,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 // the ONE channel — rather than a second baked literal.
                 w.Line($"if (__r{id} != -2) throw new CobolFatalException({ecnVar}, "
                     + "\"size error and not resumed (ISO 14.7.5; 14.6.13.1.3 #5/#7)\" "
-                    + "+ (ExceptionState.LastStatement is { } __szs ? \" in \" + __szs.TrimEnd() : \"\"));");
+                    + "+ (ExceptionState.LastStatement is { } __szs ? \" in \" + __szs.TrimEnd() : \"\")) { Dispatched = true };");
             }
             // With an ON SIZE ERROR phrase the phrase handles it (§14.6.13.1.3 #1) — state is set, phrase runs below.
         }
@@ -462,7 +481,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             w.Line("if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed (§14.9.33)");
             w.Line("if (__en && ExceptionCatalog.IsFatalIoStatus(__st))");
             w.Line("    throw new CobolFatalException(__ec!, \"I-O status \" + __st + \" on \" + __f"
-                + " + (__stmt is null ? \"\" : \" (\" + __stmt + \")\"));   // §9.1.13.1 fatal classes; §14.6.13.1.3 #5/#7");
+                + " + (__stmt is null ? \"\" : \" (\" + __stmt + \")\")) { Dispatched = true };   // §9.1.13.1 fatal classes; §14.6.13.1.3 #5/#7 (dispatched above)");
             w.Line("return -1;");
         }
         w.Line();

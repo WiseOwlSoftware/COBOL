@@ -28137,12 +28137,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Exception conditions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitEcPerformMember; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitExceptionPerform; src/Cobol.Net.Runtime/Exceptions/CobolFatalException.cs#Dispatched",
+  "test-ref": "conformance:2023/pb75_sdidi_overflow_outside_arithmetic; conformance:2023/f3_perform_handler_turn_off_all; conformance:2023/exception_statement_ambient",
+  "editions": "2023",
+  "notes": "kb/Work PB75 (2026-08-18) + the F3 PERFORM wave: a fatal condition raised within imperative-statement-1 of an exception-checking PERFORM whose WHEN names it (or a higher level) runs that WHEN's imperative statement (the ambient F3 frame wins over the USE tiers, §14.9.28.4 GR17); after the handler the run unit terminates abnormally unless it RESUMEs (RESUME AT NEXT STATEMENT continues after the lowest-level raising statement, §14.9.33.4 GR2a3). ONE dispatch per raise: the PERFORM statement's own guard lets a condition its inner statement already dispatched pass (CobolFatalException.Dispatched) — before, it re-dispatched it to the USE declarative and continued.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.3-5",
@@ -28150,12 +28150,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "Exception conditions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/Cobol.Net.Runtime/Exceptions/CobolFatalException.cs#Dispatched",
+  "test-ref": "conformance:2023/pb75_sdidi_overflow_outside_arithmetic; conformance:2023/ec_data_not_finite; conformance:2023/ec_bound_subscript; conformance-test:SizeErrorDispositionTests.FatalRaiseInsideAPerform_IsDispatchedOnce_ThenTerminates",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB75 (2026-08-18) + the EC waves: with checking enabled and an applicable USE declarative naming the condition (or a higher level), the declarative executes; if it completes normally (no RESUME) the run unit terminates abnormally. The declarative runs ONCE per raise — every enclosing statement's guard lets the dispatched condition pass on its way to the boundary (measured: a raise inside PERFORM 2 TIMES ran the declarative twice before this landing).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.3-6",
@@ -28176,12 +28176,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "Exception conditions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/Cobol.Net.Runtime/Control/ProgramTable.cs#RunMain; src/Cobol.Net.Runtime/Control/ProgramTable.cs#AbnormalTermination",
+  "test-ref": "conformance-test:SizeErrorDispositionTests.CheckingOn_NoHandler_TerminatesAbnormally; conformance-test:SizeErrorDispositionTests.FatalRaiseInsideAPerform_IsDispatchedOnce_ThenTerminates",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB75 (2026-08-18) + the EC waves: with checking enabled and no WHEN / USE / PROPAGATE that resumes, execution of the run unit is terminated abnormally (§14.6.12): the guard rethrows the (dispatched) fatal to ProgramTable.RunMain, which writes 'abnormal run-unit termination: EC-… (fatal): …' to stderr and exits 1 — the size-error family included, which used to escape as a raw CLR crash.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.3-8",
@@ -28190,10 +28190,10 @@
   "ordinal": 8,
   "subject": "Exception conditions",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Store; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
-  "test-ref": "conformance:2023/pb77_move_past_the_carrier; unit:CarrierLandingFormTests.FromDouble_PastTheCarrier_FollowsTheLanding",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Store; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/Cobol.Net.Runtime/Control/ProgramTable.cs#RunMain",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier; unit:CarrierLandingFormTests.FromDouble_PastTheCarrier_FollowsTheLanding; conformance-test:SizeErrorDispositionTests.CheckingOff_TerminatesLoudly_NeverARawCrash",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB77 (2026-08-18): with checking for a fatal exception condition NOT enabled 'the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected'. COBOL.NET's determination for the arithmetic size error condition without a SIZE ERROR phrase (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4; A.1 item 70) — execution continues and the resultant identifier receives the LOW-ORDER digits of the result aligned at its scale (CobolNum.Store's high-order truncation), for EVERY carrier: the SDIDI (CobolDec.ToUnscaled, PB74), the native exact family (Rescaled's unchecked arm), a binary64 (ToScaledUnchecked / FromDouble's unchecked form). Before, a value past the Int128 carrier landed the saturation sentinel and the store kept ITS low digits (COMPUTE X5 = a COMP-2 1.0E+40 stored 03715; now 90752, the exact expansion's). Documented on CONFORMANCE.md (the item-70 row). The checked half (the phrase / EC-SIZE checking) is unchanged: the receiver stays as it was and the size error fires.",
+  "notes": "kb/Work PB77 + PB75 (2026-08-18): with checking for a fatal exception condition NOT enabled 'the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected'. COBOL.NET's determination for the arithmetic size error condition without a SIZE ERROR phrase (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4; A.1 item 70): execution continues and the resultant identifier receives the LOW-ORDER digits of the result aligned at its scale (CobolNum.Store's high-order truncation), for EVERY value carrier — SDIDI (CobolDec.ToUnscaled, PB74), the native exact family (Rescaled's unchecked arm), a binary64 (ToScaledUnchecked / FromDouble's unchecked form — the exact decimal expansion past the Int128 carrier). A non-finite binary64 landing in a fixed-point receiver stores ZERO. An INTERMEDIATE that cannot be formed at all (a standard-decimal intermediate past decimal128, a native value past the Int128 escape boundary in a value-semantics position, an exponentiation-rule violation, a zero divisor) has no result: execution does NOT continue — the run unit terminates abnormally, exit 1, naming the condition (PB75; it used to be a raw CLR crash, exit 127). Documented on CONFORMANCE.md (the item-70 row).",
   "state": "OK"
  },
  {
@@ -28618,12 +28618,12 @@
   "kind": "GR",
   "ordinal": 7,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolDec.cs#Clamp; src/Cobol.Net.Runtime/Values/Numeric/CobolSizeError.cs#CobolSizeError",
+  "test-ref": "conformance:2023/pb75_sdidi_overflow_outside_arithmetic; conformance-test:SizeErrorDispositionTests.CheckingOff_TerminatesLoudly_NeverARawCrash; conformance:2023/pb74_sdidi_store_size_error",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB75 (2026-08-18): under standard-decimal arithmetic an operation whose result lies outside the decimal128 range (§8.8.1.5.2 r2 — 10 ** 100000) is the size error condition: CobolDec's range check raises CobolSizeError EC-SIZE-OVERFLOW wherever the operation is evaluated — an arithmetic statement (the phrase / EC-SIZE handling) OR a condition, a function argument, a MOVE sender — and the raise now takes the §14.7.5 no-phrase dispositions (§14.6.13.1.3) instead of escaping as a CLR crash.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-8",
@@ -28709,12 +28709,12 @@
   "kind": "GR",
   "ordinal": 3,
   "subject": "Common phrases and features for statements",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolSizeError.cs#CobolSizeError; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/Cobol.Net.Runtime/Control/ProgramTable.cs#RunMain",
+  "test-ref": "conformance:2023/pb75_sdidi_overflow_outside_arithmetic; conformance-test:SizeErrorDispositionTests.CheckingOff_TerminatesLoudly_NeverARawCrash; conformance-test:SizeErrorDispositionTests.CheckingOn_NoHandler_TerminatesAbnormally; conformance-test:SizeErrorDispositionTests.NativeReceiverlessOverflow_TerminatesLoudly; unit:EcSizeGuardDriftTests.CobolSizeError_IsACobolFatalException_WithItsLevel3Name",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB75 (2026-08-18): with no SIZE ERROR phrase, an intermediate whose new value is outside the intermediate's range sets EC-SIZE-OVERFLOW to exist 'and processing proceeds as specified in 14.6.13.1.3' — for the SDIDI carrier (decimal128) and the native receiverless lane (the Int128 escape boundary, PB69) alike, in ANY statement: an arithmetic statement's EC-SIZE handling (unchanged) or, for a condition / argument / subscript / MOVE, the generic fatal statement guard (CobolSizeError is a CobolFatalException; the binder queries the family for every non-arithmetic statement) — USE F3 / PERFORM WHEN dispatch (#4/#5), RESUME or abnormal termination (#7); with checking off the run-unit boundary terminates loudly (#8). Before: an unhandled stack trace, exit 127. NOT covered: the native carrier's Int128 overflow inside a NON-arithmetic statement (a wrapped product in a condition) — kb/Work PB91.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.5-L3.4",
