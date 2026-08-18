@@ -48209,12 +48209,12 @@
   "kind": "RV",
   "ordinal": 1,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#SubstituteFlat",
+  "test-ref": "conformance:2023/pb81_substitute_table_all; conformance:2023/pb58_argument_predicates_legal",
+  "editions": "2023",
+  "notes": "kb/Work PB81 (2026-08-18): a zero-length argument-1 or argument-2 sets EC-ARGUMENT-FUNCTION and returns a zero-length value — and, in the flat form, so do the §15.87.2 shapes only a runtime count can decide (an odd enumerated element count, a keyword before an argument-3 element, FIRST with LAST): the golden's MIX/ODD rows land the zero-length default with checking off.",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.87.4-2",
@@ -48222,12 +48222,12 @@
   "kind": "RV",
   "ordinal": 2,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+  "test-ref": "conformance:2023/substitute; conformance:2023/pb81_substitute_table_all",
+  "editions": "2023",
+  "notes": "The returned value is argument-1 with every argument-2 match replaced by argument-3 (the `substitute` golden's ALL/MULTI rows; PB81's P2/P3/TWO rows over enumerated pairs).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.87.4-3",
@@ -48235,12 +48235,12 @@
   "kind": "RV",
   "ordinal": 3,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+  "test-ref": "conformance:2023/substitute; conformance:2023/pb81_substitute_table_all",
+  "editions": "2023",
+  "notes": "The left-to-right copy with argument-3 substituted at each match and the scan resuming past the matched source substring; 3a FIRST / 3b LAST substitute only the first / last occurrence (the `substitute` golden's FIRST/LAST rows; PB81's FIR row — FIRST attaching to the pair an enumeration's first element opens).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.87.4-4",
@@ -48248,12 +48248,12 @@
   "kind": "RV",
   "ordinal": 4,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+  "test-ref": "conformance:2023/substitute; conformance:2023/pb81_substitute_table_all",
+  "editions": "2023",
+  "notes": "Subsequent argument-2/argument-3 pairs are tried from the first position following the previous substitution — the single-pass scan (the `substitute` golden's MULTI row; PB81's TWO row over two enumerations).",
+  "state": "OK"
  },
  {
   "rule-id": "RV-15.87.4-5",
@@ -48261,12 +48261,12 @@
   "kind": "RV",
   "ordinal": 5,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Substitute",
+  "test-ref": "conformance:2023/substitute; conformance:2023/pb81_substitute_table_all",
+  "editions": "2023",
+  "notes": "ANYCASE matches as if both argument-1 and argument-2 were lowered per LOWER-CASE without LOCALE (the `substitute` golden's ANY row; PB81's AC row over an enumerated pair).",
+  "state": "OK"
  },
  {
   "rule-id": "AR-15.88.3-1",
@@ -52980,12 +52980,12 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "SUBSTITUTE function",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindSubstitute; src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderSubstitute; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#SubstituteFlat",
+  "test-ref": "conformance:2023/substitute; conformance:2023/pb81_substitute_table_all; conformance:2023/pb15_result_type_follows_argument",
+  "editions": "2023",
+  "notes": "kb/Work PB81 (2026-08-18): FUNCTION SUBSTITUTE ( argument-1 { [ANYCASE] [FIRST | LAST] argument-2 argument-3 } … ) — the pair repeats, so §15.3's table(ALL) is admissible among the pairs and its elements form the pairs by position at run time (the FLAT form: CobolIntrinsics.SubstituteFlat pairs the enumerated elements; a keyword before an enumeration attaches to the pair its first element opens). Written pairs pair at bind as before (SubstituteModes per pair). The ALL argument was the staged COBOLNET0899 (`substitute-all-subscript-argument`, retired).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-15.88.2",

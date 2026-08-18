@@ -905,11 +905,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="BoundIntrinsicCall.Args"/> carries [source, from₁, to₁, from₂, to₂, …].</summary>
     private BoundExpr BindSubstitute(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        var operands = new List<BoundOperand>();   // [source, from₁, to₁, from₂, to₂, …]
-        var modes = new List<int>();               // one mode per completed pair
+        var operands = new List<BoundOperand>();   // [source, from₁, to₁, from₂, to₂, …] — or [source, part₁, part₂, …] when flat
+        var modes = new List<int>();               // one mode per completed pair — or one flag PER PART when flat
         int pending = 0;                           // phrase flags accumulating for the NEXT pair
         bool haveSource = false;
         int pairOperands = 0;                      // operands seen since the last completed pair
+        // ⛔ A table(ALL) argument (§15.3 — admissible, SUBSTITUTE's `{ argument-2 argument-3 } …` repeats — kb/Work
+        // PB81): its elements form the PAIRS at run time — a from/to interleave over a runtime count — so the call
+        // switches to the FLAT form: every operand after argument-1 is a PART (a written operand, or an enumeration),
+        // and the flag list carries the keywords preceding each part, which attach to the pair the part's FIRST
+        // element starts (§15.3: "as if each table element … were specified", in order — the keywords precede
+        // argument-2 of the pair an element opens). CobolIntrinsics.SubstituteFlat pairs the elements, takes each
+        // pair's mode from its argument-2 element, and raises EC-ARGUMENT-FUNCTION for an odd count, a keyword before
+        // an argument-3 element, or FIRST with LAST — the §15.87.2 malformed shapes, decided at run time because the
+        // count is. Before this the ALL argument was the staged COBOLNET0899.
+        bool flat = false;
+        var partFlags = new List<int>();
         BoundExpr Malformed() { ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE takes argument-1 and one "
             + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return new BoundExprError("FUNCTION SUBSTITUTE"); }
 
@@ -921,28 +932,40 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 case "FIRST": pending |= 1; continue;
                 case "LAST": pending |= 2; continue;
             }
-            // A table(ALL) argument (§15.3 — admissible, SUBSTITUTE's `{ argument-2 argument-3 } …` repeats):
-            // its elements would form the PAIRS at run time — a from/to interleave over a runtime count that this
-            // bind-time pairing (and the per-pair mode list) cannot express. Staged LOUD at bind (kb/Work PB81),
-            // where it used to compile clean and throw at run time on the plain subscript path.
             if (TryBindAllArgument(sig, a, operands))
             {
-                ctx.Edition.Error(DiagnosticCatalog.SubstituteAllSubscript,
-                    "FUNCTION SUBSTITUTE with a table(ALL) argument (ISO §15.3 over the `{ argument-2 argument-3 } …` "
-                    + "repetition) is recognized but not yet implemented — the argument-2/argument-3 pairs would be "
-                    + "formed at run time from the enumerated elements; write the pairs.");
-                return new BoundExprError("FUNCTION SUBSTITUTE table(ALL) argument");
+                if (!haveSource) return Malformed();   // argument-1 is one operand, never an enumeration (§15.87.2)
+                flat = true;
+                partFlags.Add(pending);
+                pending = 0;
+                continue;
             }
             var op = BindArgOperand(a);
             if (!haveSource) { operands.Add(op); haveSource = true; continue; }
             operands.Add(op);
+            partFlags.Add(pending);   // the flags this operand carries as a PART (the flat form's per-part list)
+            if (flat) { pending = 0; continue; }   // the pairing is a run-time fact once an enumeration is in play
             if (++pairOperands == 2)   // argument-2 then argument-3 complete a pair
             {
-                if ((pending & 3) == 3) return Malformed();   // FIRST and LAST are mutually exclusive (§15.87.2)
-                modes.Add(pending);
+                // The pair's mode: the flags recorded on its argument-2 plus any pending before argument-3 — the
+                // union the bind-time pairing always applied (a keyword between the two operands rides the pair).
+                int pairMode = partFlags[^2] | pending;
+                if ((pairMode & 3) == 3) return Malformed();   // FIRST and LAST are mutually exclusive (§15.87.2)
+                modes.Add(pairMode);
                 pending = 0;
                 pairOperands = 0;
             }
+            else pending = 0;   // recorded on argument-2's part; anything before argument-3 accrues to the pair above
+        }
+        if (flat)
+        {
+            // The pairing is a run-time fact; only the shape rules decidable here are decided here (a source, at
+            // least one part, no dangling keyword). CheckArgumentClasses screens every operand as usual.
+            if (!haveSource || operands.Count < 2 || pending != 0) return Malformed();
+            CheckArgumentClasses(sig, operands);
+            return new BoundIntrinsicCall(
+                sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
+                { SubstituteModes = partFlags, SubstituteFlat = true };
         }
         // A well-formed call ends on a completed pair with no dangling keyword/operand (§15.87.3 rule requires
         // at least one pair; the source alone or a half pair is malformed).

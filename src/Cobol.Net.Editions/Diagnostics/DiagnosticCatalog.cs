@@ -802,15 +802,8 @@ public static class DiagnosticCatalog
     // §15.68.3 r3 — NUMVAL-C / TEST-NUMVAL-C without argument-2 in a unit whose SPECIAL-NAMES paragraph specifies
     // two or more distinct currency strings (kb/Work PB60 / AR-15.68.3-3: the former single-symbol model
     // injected whichever clause bound last, silently).
-    // §15.3 over SUBSTITUTE's `{ argument-2 argument-3 } …` (kb/Work PB81): the elements of a table(ALL) would form
-    // the from/to PAIRS at run time — staged loud at bind rather than thrown at run time.
-    public static readonly DiagnosticDescriptor SubstituteAllSubscript = new(
-        NotImplemented, "substitute-all-subscript-argument", EditionSeverity.Error,
-        "FUNCTION SUBSTITUTE with a table(ALL) argument is recognized but not yet implemented: ISO §15.3 makes the ALL "
-        + "stand for every occurrence, so the argument-2/argument-3 pairs of §15.87.2 would be formed at run time from "
-        + "the enumerated elements (with the FIRST/LAST/ANYCASE modes attaching to the pair each element starts) — the "
-        + "bind-time pairing cannot express a runtime count. Write the pairs.", "ISO §15.3 / §15.87.2",
-        RecognizedNotImplemented);
+    // (The former SubstituteAllSubscript stage — SUBSTITUTE with a table(ALL) argument — landed as the run-time
+    // pairing CobolIntrinsics.SubstituteFlat, kb/Work PB81, 2026-08-18.)
     // §15.3 — the ALL subscript in an intrinsic argument (kb/Work PB62): admissible only "when the definition of a
     // function permits an argument to be repeated a variable number of times"; the former bind-time expansion ran
     // for every function and let `FUNCTION MOD(E(ALL) B)` bind over a one-occurrence table.

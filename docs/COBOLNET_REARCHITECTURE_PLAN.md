@@ -187,8 +187,12 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   row flipped). Green.
   **✅ PB92 CLOSED (DEVLOG 1314, 2026-08-18)** — SET LOCALE formats 11/12 recognized (predicated, 2002+) and rejected
   as A.4.9 item 9 documented non-support (ONE COBOLNET1518); every locale entry point is now named. Nine verdicts →
-  DOCUMENTED-NON-SUPPORT, GAP 3980. Battery owed for the PB92 batch with the next landing.
-  **NEXT, in order:** ① PB81 → PB82 → PB79 → PB91 (PB64/PB66 are features)
+  DOCUMENTED-NON-SUPPORT, GAP 3980.
+  **✅ PB81 CLOSED (DEVLOG 1315, 2026-08-18)** — SUBSTITUTE with a table(ALL) among its pairs pairs the enumerated
+  elements at run time (`SubstituteFlat`; the flat bound form with one flag per part; the §15.87.2 shapes only a
+  count can decide are EC-ARGUMENT-FUNCTION); the staged 0899 descriptor retired. Six verdicts → CONFORMS, GAP
+  3974. Battery owed for the PB92 + PB81 batch with the next landing.
+  **NEXT, in order:** ① PB82 → PB79 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

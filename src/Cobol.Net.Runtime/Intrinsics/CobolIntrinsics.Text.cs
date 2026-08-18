@@ -446,6 +446,55 @@ public static partial class CobolIntrinsics
         return sb.ToString();
     }
 
+    /// <summary>SUBSTITUTE with a table(ALL) among its argument-2 / argument-3 pairs (ISO §15.3 over §15.87.2's
+    /// `{ argument-2 argument-3 } …` repetition — kb/Work PB81): the pairing is a RUN-TIME fact. Each
+    /// <paramref name="parts"/> entry is a written operand (a singleton) or an enumerated table(ALL); the elements are
+    /// paired in order — an even-position element is an argument-2, the next its argument-3 — and each pair's mode is
+    /// the flag on the part whose FIRST element opens the pair (<paramref name="partFlags"/>, the keywords that preceded
+    /// it in the source; the keywords precede argument-2). The §15.87.2 shapes the binder cannot decide statically are
+    /// decided here and set EC-ARGUMENT-FUNCTION with a zero-length result: an odd element count (an argument-2 without
+    /// its argument-3), a keyword flag on an argument-3 element, or FIRST together with LAST. The substitution itself is
+    /// the ONE <see cref="Substitute"/> kernel.</summary>
+    public static string SubstituteFlat(string source, string[][] parts, int[] partFlags)
+    {
+        int n = 0;
+        foreach (var p in parts) n += p.Length;
+        if (n % 2 != 0)
+        {
+            Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: the enumerated argument-2 / argument-3 list has an odd number of elements — every argument-2 needs its argument-3 (ISO §15.87.2 over §15.3)");
+            return "";
+        }
+        var froms = new string[n / 2];
+        var tos = new string[n / 2];
+        var modes = new int[n / 2];
+        int at = 0;
+        for (int p = 0; p < parts.Length; p++)
+            for (int e = 0; e < parts[p].Length; e++, at++)
+            {
+                int flag = e == 0 ? partFlags[p] : 0;
+                if ((at & 1) == 0)
+                {
+                    if ((flag & 3) == 3)
+                    {
+                        Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: FIRST and LAST are specified for one argument-2 / argument-3 pair (ISO §15.87.2)");
+                        return "";
+                    }
+                    froms[at / 2] = parts[p][e];
+                    modes[at / 2] = flag;
+                }
+                else
+                {
+                    if (flag != 0)
+                    {
+                        Exceptions.ExceptionState.ArgumentError("SUBSTITUTE: an ANYCASE / FIRST / LAST keyword precedes an argument-3 element — the keywords precede argument-2 (ISO §15.87.2)");
+                        return "";
+                    }
+                    tos[at / 2] = parts[p][e];
+                }
+            }
+        return Substitute(source, froms, tos, modes);
+    }
+
     /// <summary>FIND-STRING (§15.37.4): the 1-based character position of argument-2 (<paramref name="needle"/>)
     /// within argument-1 (<paramref name="hay"/>). With <paramref name="last"/> the LAST occurrence is sought
     /// (rule 1); <paramref name="skip"/> is argument-3 — the number of matches to ignore before determining the

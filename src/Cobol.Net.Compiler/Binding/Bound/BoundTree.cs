@@ -245,8 +245,16 @@ public sealed record BoundIntrinsicCall(
 
     /// <summary>SUBSTITUTE (§15.87.2): one mode flag per (argument-2, argument-3) pair — bit 0 = FIRST (rule 3.a),
     /// bit 1 = LAST (rule 3.b), bit 2 = ANYCASE (rule 5); 0 = replace ALL occurrences. <see cref="Args"/> holds
-    /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.</summary>
+    /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.
+    /// <para>When <see cref="SubstituteFlat"/> is set (kb/Work PB81 — a table(ALL) argument among the pairs, §15.3),
+    /// the pairing is a RUN-TIME fact: <see cref="Args"/> holds [argument-1, part₁, part₂, …] where a part is a written
+    /// operand or a table(ALL) enumeration, and this list has one flag PER PART — the keywords preceding it, which
+    /// attach to the pair the part's FIRST element starts (a written operand is its own first element).</para></summary>
     public IReadOnlyList<int>? SubstituteModes { get; init; }
+
+    /// <summary>SUBSTITUTE with a table(ALL) argument (kb/Work PB81): the argument-2 / argument-3 pairs are formed at run
+    /// time from the enumerated elements (<c>CobolIntrinsics.SubstituteFlat</c>); see <see cref="SubstituteModes"/>.</summary>
+    public bool SubstituteFlat { get; init; }
 
     /// <summary>FUNCTION LENGTH measured in BYTES over the argument's storage image (kb/Work PB61): §15.50.4 r6
     /// gives a DYNAMIC LENGTH elementary item its "current length … in bytes" — for a national item 2 × its

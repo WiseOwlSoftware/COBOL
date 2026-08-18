@@ -390,9 +390,19 @@ bound over a one-occurrence table before), and the arity gate counts the argumen
 elements when its ranges are fixed and as the one argument §15.3 guarantees otherwise. "The evaluation of an ALL
 subscript shall result in at least one argument, otherwise the result … is undefined" — COBOL.NET defines the
 undefined case as EC-ARGUMENT-FUNCTION (set when checking is on) and terminates the reference with that name
-either way (`CobolTable.AllArgs`), never handing an empty list to a body. TRIM's repeated argument-2 and
-SUBSTITUTE's repeated pairs bind through their own per-function binders (not `BindIntrinsicArgs`), so an ALL there
-is today the ordinary subscript path's verdict — recorded, not hidden. Under a STANDARD arithmetic mode the summing
+either way (`CobolTable.AllArgs`), never handing an empty list to a body. TRIM's repeated argument-2 binds through
+its own per-function binder (not `BindIntrinsicArgs`), so an ALL there is today the ordinary subscript path's
+verdict — recorded, not hidden. **SUBSTITUTE's repeated PAIRS take the ALL as of kb/Work PB81 (2026-08-18):** an
+enumeration among the pairs makes the pairing a RUN-TIME fact, so `BindSubstitute` switches to the FLAT form —
+`Args` = [argument-1, part₁, part₂, …] where a part is a written operand or a `TableAllPlace`, `SubstituteModes`
+one flag PER PART (the keywords that preceded it, which attach to the pair the part's FIRST element opens — the
+keywords precede argument-2), `SubstituteFlat = true` — and `IntrinsicRenderer.RenderSubstitute` emits
+`CobolIntrinsics.SubstituteFlat(source, string[][] parts, int[] partFlags)`, each part its singleton or its
+`AllArgs` enumeration. The runtime pairs the elements in order, takes each pair's mode from its argument-2
+element, and decides the §15.87.2 shapes only a count can decide (an odd element count, a keyword on an
+argument-3 element, FIRST with LAST) as EC-ARGUMENT-FUNCTION with the zero-length default, then runs the ONE
+`Substitute` kernel. Written-only calls keep the bind-time pairing byte-for-byte (`SubstituteModes` per pair).
+The staged `substitute-all-subscript-argument` descriptor is retired. Golden `pb81_substitute_table_all`. Under a STANDARD arithmetic mode the summing
 family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) now always evaluates on the SDIDI carrier (`RenderDec`'s `alwaysDec` —
 RV-15.60.4-1: the native arms aligned every argument to the list's maximum scale on Int128 first, so
 `MEAN(10³⁰, 2.0)` raised a size error where the SDIDI holds 500000000000000000000000000001 exactly). Pinned by

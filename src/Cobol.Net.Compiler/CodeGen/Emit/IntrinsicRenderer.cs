@@ -956,6 +956,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// (Args[1..] taken two at a time; one <see cref="BoundIntrinsicCall.SubstituteModes"/> entry per pair).</summary>
     private string RenderSubstitute(BoundIntrinsicCall ic)
     {
+        // The FLAT form (kb/Work PB81 — a table(ALL) among the pairs): every part after argument-1 is ONE string[]
+        // (a written operand's singleton, or the enumeration), paired at run time by SubstituteFlat with the
+        // per-part flags.
+        if (ic.SubstituteFlat)
+        {
+            var parts = ic.Args.Skip(1).Select(a => a is BoundFieldOperand { Place: TableAllPlace all }
+                ? AllArgsExpr(all, "string", Str)
+                : $"new string[] {{ {Str(a)} }}");
+            return RuntimeApi.Intrinsic("SubstituteFlat", $"{Str(ic.Args[0])}, "
+                + $"new string[][] {{ {string.Join(", ", parts)} }}, "
+                + $"new int[] {{ {string.Join(", ", ic.SubstituteModes ?? [])} }}");
+        }
         var froms = new List<string>();
         var tos = new List<string>();
         for (int i = 1; i + 1 < ic.Args.Count; i += 2)
