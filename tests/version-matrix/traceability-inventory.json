@@ -26031,12 +26031,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "VALUE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue",
+  "test-ref": "conformance:negative/pb94-value-alphanumeric-on-numeric; conformance:negative/pb94-value-nonnumeric-on-numeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB94). The CLASS half — 'all literals in the VALUE clause shall be numeric' — is COBOLNET1657 for an alphanumeric literal, ALL literal or character figurative on a numeric subject (an ALL FORMATS rule: the item VALUE and the condition-name VALUEs share the funnel); error strict, the representable vendor leniency (a digits-only literal is the number, ALL digits repeat to the digit width, a character figurative is ZERO) is a --permissive warning; a non-numeric content is an error on both axes. The RANGE / exact-representation half was already COBOLNET1625 (ValidateNumericValue); the float legs (a/b) are the float items' own.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-3",
@@ -26057,12 +26057,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "VALUE clause",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+  "test-ref": "conformance:negative/pb94-value-numeric-on-alphanumeric; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
+  "editions": "85,2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (PB94). A numeric literal on an alphabetic / alphanumeric / alphanumeric-edited subject is COBOLNET1657 (error strict; the characters as MOVE would store them, with a warning, under --permissive); a national / boolean literal on those subjects is the pre-catalog COBOLNET0898 leg. The alphanumeric-literal SIZE halves ('shall not exceed the size indicated by an explicit PICTURE clause') keep the historical truncating store for alphanumeric receivers (documented on ValidateValueCategory) — the numeric-edited size leg is COBOLNET1570 at 2023 (VCR 34).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-5",

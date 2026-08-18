@@ -902,6 +902,21 @@ public static class DiagnosticCatalog
         + "redefinitions of one storage area to name the entry that ORIGINALLY defined the area. Name the original "
         + "entry; under --permissive the chain is accepted with this warning (the anchor is the original entry).",
         "ISO §13.18.44.3 SR7");
+    // kb/Work PB94: §13.18.63.3 SR2 ("If the category of the subject of the entry is numeric, all literals in the VALUE
+    // clause shall be numeric") and SR4 ("If the item is of category alphabetic, alphanumeric, or alphanumeric-edited
+    // literals in the VALUE clause shall be alphanumeric literals") were unenforced — `PIC 9 VALUE "abc"` reached the
+    // C# backend (CS0103), `PIC 99 VALUE "7"` and `PIC X(2) VALUE 12` compiled silently. Error strict at every
+    // edition; under --permissive the REPRESENTABLE vendor leniency (a digits-only alphanumeric literal on a numeric
+    // item is that number; a numeric literal on an alphanumeric item is its digits, left-justified; a character
+    // figurative on a numeric item is ZERO — a native numeric holds no character fill) is a warning. The national /
+    // boolean halves of the same family (SR5 / SR10) are the pre-catalog COBOLNET0898 band.
+    public static readonly DiagnosticDescriptor ValueLiteralClass = new(
+        "COBOLNET1657", "value-literal-class", EditionSeverity.Error,
+        "A VALUE clause literal's class does not match the subject's category: a numeric item takes numeric literals "
+        + "(or figurative ZERO) only (ISO §13.18.63.3 SR2); an alphabetic, alphanumeric or alphanumeric-edited item "
+        + "takes alphanumeric literals only (SR4). Under --permissive a representable value is stored with this "
+        + "warning; a value no numeric item can hold is an error on both axes.",
+        "ISO §13.18.63.3 SR2 / SR4");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

@@ -222,8 +222,13 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   (COBOLNET1655) is diagnosed at every edition; a REDEFINES binds only to the NEAREST PRECEDING same-level sibling
   (a later sibling is 1654); a REDEFINES of a redefinition is SR7's COBOLNET1656 (error strict, the anchor-chased
   chain under --permissive). Four verdicts → CONFORMS, GAP 3960. **PB96 REGISTERED** (a RENAMES range spanning a
-  REDEFINES view double-counts the view — wrong answer). Battery #16 owed for the PB93 batch with the next landing.
-  **NEXT, in order (`work.py next`):** ① PB94 → PB96 → PB91 (PB64/PB66 are features)
+  REDEFINES view double-counts the view — wrong answer).
+  **✅ PB94 CLOSED (DEVLOG 1319, 2026-08-18)** — the VALUE clause's literal-class rules (§13.18.63.3 SR2 numeric / SR4
+  alphanumeric subjects) are enforced: COBOLNET1657, error strict at every edition, the representable vendor
+  leniency (a digits-only literal is the number, a numeric literal on PIC X its characters, a character figurative
+  on a numeric item ZERO) a warning under --permissive; `PIC 9 VALUE "abc"` no longer reaches the C# backend. Two
+  verdicts → CONFORMS, GAP 3958. Battery #16 owed for the PB93 + PB94 batch with the next landing.
+  **NEXT, in order (`work.py next`):** ① PB96 → PB91 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

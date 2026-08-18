@@ -1130,7 +1130,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return sawDigit && anyNonZero;
     }
 
-    private void ValidateValueCategory(PicInfo pic, string raw, string where)
+    /// <summary>The numeric-literal FORM test (§8.3.1.2 fixed-point: an optional sign, digits, at most one decimal
+    /// point, at least one digit) — the shape a permissive digits-only alphanumeric VALUE must have to be stored as a
+    /// number (kb/Work PB94).</summary>
+    private static bool IsNumericLiteralForm(string text)
+    {
+        string t = text.Trim();
+        if (t.StartsWith('+') || t.StartsWith('-')) t = t[1..];
+        bool digit = false, dot = false;
+        foreach (char c in t)
+        {
+            if (c == '.') { if (dot) return false; dot = true; continue; }
+            if (!char.IsAsciiDigit(c)) return false;
+            digit = true;
+        }
+        return digit;
+    }
+
+    /// <summary>Returns the raw VALUE text to STORE — the input unchanged, or (kb/Work PB94, --permissive only) the
+    /// representable numeric rewrite of a class-mismatched literal on a numeric subject.</summary>
+    private string ValidateValueCategory(PicInfo pic, string raw, string where)
     {
         // ⛔ THE LITERAL'S CLASS COMES FROM THE ONE CLASSIFIER (CobolLiteral.ClassOf — kb/Work PB71): the former
         // raw-text tests (`raw[1] is '"'`) refused the Format-2 hexadecimal spellings NX"…" / BX"…" (§8.3.3.5.2 /
@@ -1181,7 +1200,50 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
                     + "literal may seed only a data item of its own category (ISO §13.18.63 SR5/SR10)");
                 break;
+            // ── kb/Work PB94 — §13.18.63.3 SR2: a NUMERIC subject takes numeric literals (and figurative ZERO) only.
+            //    A digits-only alphanumeric literal (or a digits-only ALL "literal" repeated to the digit width) is
+            //    the representable vendor leniency: error strict, warning + the number under --permissive; a
+            //    character figurative (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) is stored as ZERO under --permissive
+            //    (a native numeric holds no character fill — said in the warning); anything else is an error on
+            //    both axes (the former path rendered it as a numeric initializer and the C# backend crashed).
+            case PicCategory.Numeric when isPlainString || isAllQuoted:
+            {
+                string content = CobolLiteral.Decode(isAllQuoted ? allRaw! : raw);
+                if (isAllQuoted && content.Length > 0 && content.All(char.IsAsciiDigit))
+                {
+                    // ALL "digits" repeats to the receiver's digit positions (§8.3.3.6.4 GR2 — MoveEmitter.AllDigitFill's rule)
+                    int w = Math.Max(pic.Digits, 1);
+                    content = string.Concat(Enumerable.Repeat(content, w / content.Length + 1))[..w];
+                }
+                if (IsNumericLiteralForm(content))
+                {
+                    Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal "
+                        + $"{raw} is alphanumeric but the item is numeric — all literals in the VALUE clause of a "
+                        + "numeric item shall be numeric (ISO §13.18.63.3 SR2); under --permissive it is stored as "
+                        + $"the number {content.Trim()}");
+                    return Edition.Permissive ? content.Trim() : raw;
+                }
+                Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is not a "
+                    + "numeric literal and the item is numeric (ISO §13.18.63.3 SR2)");
+                return raw;
+            }
+            case PicCategory.Numeric when isNationalFigurative && !isZeroWord:
+                Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the figurative constant "
+                    + $"{raw} is not a numeric literal — the VALUE of a numeric item shall be numeric or ZERO (ISO "
+                    + "§13.18.63.3 SR2); under --permissive the item is initialized to ZERO (a native numeric item "
+                    + "holds no character fill)");
+                return Edition.Permissive ? "0" : raw;
+            // ── SR4: an alphabetic / alphanumeric / alphanumeric-edited subject takes alphanumeric literals only —
+            //    a numeric literal is the vendor leniency (the digits, left-justified, as MOVE would store them):
+            //    error strict, warning + that store under --permissive.
+            case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw):
+                Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal {raw} is "
+                    + "numeric but the item is alphabetic / alphanumeric / alphanumeric-edited — its VALUE literals "
+                    + "shall be alphanumeric (ISO §13.18.63.3 SR4); under --permissive the literal's characters are "
+                    + "stored as MOVE would store them");
+                break;
         }
+        return raw;
     }
 
     /// <summary>ISO §13.18.63.3 SR2/SR3: a numeric VALUE literal on a fixed-point numeric subject shall be a
@@ -1850,8 +1912,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' category must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses.
-                                ValidateValueCategory(rp, rawLo, $"condition-name '{name}'");
-                                ValidateValueCategory(rp, rawHi, $"condition-name '{name}'");
+                                rawLo = ValidateValueCategory(rp, rawLo, $"condition-name '{name}'");
+                                rawHi = ValidateValueCategory(rp, rawHi, $"condition-name '{name}'");
                             }
                             cond.Values.Add((rawLo, rawHi));
                         }
@@ -1866,7 +1928,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // check and the stored value share one text without double diagnostics.
                                 string raw = RawValueOperandText(op);
                                 if (parent.Pic is { } sp)
-                                    ValidateValueCategory(sp, raw, $"condition-name '{name}'");
+                                    raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'");
                                 cond.Values.Add((raw, null));
                             }
                     }
@@ -2238,7 +2300,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
-        if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        if (rawValue is { } rv && pic is not null) rawValue = ValidateValueCategory(pic, rv, entryWhere);
         // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
         // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
         // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
