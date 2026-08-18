@@ -148,7 +148,15 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   · differential 1323 cases, TWO flips both PB88's and both WE_ACCEPT_THEY_REJECT → AGREE_REJECT (baseline rows
   flipped, attributed). `guard-fast.sh` now re-observes a program whose group VANISHED, not only one that said
   NO-VERDICT. No gate is owed.
-  **NEXT, in order:** ① PB77 → PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
+  **✅ PB77 CLOSED (DEVLOG 1310, 2026-08-18)** — every carrier's landing past the Int128 carrier has TWO forms
+  chosen by the LANDING: checked (ON SIZE ERROR / EC-SIZE, intermediate consumers) saturates so the capacity check
+  raises (PB13); unchecked (MOVE §14.6.8.2 r4, the no-phrase store §14.6.13.1.3 item 8, INVOKE BY CONTENT) keeps
+  the low-order digits — `Rescaled(…, checkedLanding)`, `CobolFloat.ToScaledUnchecked` + `LowOrderDigits` (the
+  exact binary64 expansion), `FromDouble(…, checkedLanding)`; `RuntimeApi.FloatToScaled` names the landing with no
+  default. Four verdicts → CONFORMS, GAP 4011. **PB90 REGISTERED** (analysis: the in-carrier float→fixed manner —
+  exact expansion vs shortest round-trip vs today's rounded product; GnuCOBOL survey first). Battery owed for the
+  PB77 batch with the next landing.
+  **NEXT, in order:** ① PB73 → PB75 → PB78 → PB81 → PB82 → PB79 (PB64/PB66 are features)
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

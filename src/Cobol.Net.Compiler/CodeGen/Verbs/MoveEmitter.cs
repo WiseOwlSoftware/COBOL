@@ -314,7 +314,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A STANDARD-DECIMAL intermediate lands at the MASK's scale (the §14.7 final transfer — the same
                 // form ArithmeticEmitter's edited path uses; fix-queue PB65: MOVE FUNCTION E under the mode handed
                 // the CobolDec to the Int128 edit path, CS1503 on conforming source).
-                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation)
+                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation, checkedLanding: false)   // a MOVE: §14.6.8.2 r4 truncation, low-order digits past the carrier (kb/Work PB77)
                     : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", CobolRounding.Truncation)
                     : e.Expr;
                 int editScale = e.Real || e.Dec ? ems : e.Scale;

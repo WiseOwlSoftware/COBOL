@@ -584,6 +584,29 @@ arithmetic store, the numeric MOVE and INVOKE BY CONTENT. **A new consumer of a 
 or it is wrong for two of the four carriers.** Goldens `pb84_sdidi_intermediate_consumers` and
 `pb84_standard_decimal_intermediate_consumers`.
 
+**⛔ EVERY CARRIER'S LANDING PAST THE Int128 CARRIER HAS TWO FORMS, CHOSEN BY THE LANDING — NEVER BY THE VALUE
+(kb/Work PB77, 2026-08-18).** The CHECKED landing — an arithmetic store under ON SIZE ERROR / EC-SIZE checking, and
+every intermediate consumer with no capacity check downstream (`Align`, an argument) — SATURATES so the receiver's
+capacity check raises the size error (PB13's invariant, `ReceiverContext.WorkingScale`'s cap keeping the sentinel
+above the receiver). The UNCHECKED landing — a MOVE (§14.6.8.2 r4 "truncation on either end"; there is no size
+error in a MOVE), the no-phrase arithmetic store (§14.6.13.1.3 item 8 — CONFORMANCE.md item 70: the resultant takes
+the LOW-ORDER digits), INVOKE BY CONTENT — keeps the low-order digits, because it has no check to see a sentinel and
+truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)` stored 884105727 and
+`COMPUTE X5 = <COMP-2 1.0E+40>` stored 03715, the low digits of `Int128.MaxValue`. The SDIDI carrier had the two
+forms since PB74 (`CobolDec.ToUnscaledChecked` / `ToUnscaled`); the pair now exists for the native exact family
+(`CobolIntrinsics.Rescaled(…, checkedLanding)` — the unchecked arm is `CobolNum.RescaleStoreCap`, digits a ≤38-digit
+store could never use dropped BEFORE the multiply) and the float family (`CobolFloat.ToScaled` checked /
+`ToScaledUnchecked` unchecked — inside the carrier ONE function, `RoundScaled`; past it `CobolFloat.LowOrderDigits`,
+the double's exact ±m·2^e expansion at the landing scale rounded by the ONE `CobolNum.RoundDiv` kernel over
+`BigInteger`, the runtime's second and last cold BigInteger path; `CobolIntrinsics.FromDouble(…, checkedLanding)`
+likewise). The emitter NAMES the landing at every site — `RuntimeApi.FloatToScaled(…, bool checkedLanding)` has no
+default; `NumericRenderer.StoreArgs(…, checkedLanding)` takes it from `ecState.SizeErrVar` (arithmetic) or `false`
+(`StoreExpr`: MOVE, INVOKE); the quantizer / NUMVAL-family renders carry the ONE `NumericRenderer.CheckedFlag`
+(`, checkedLanding: true` under `ReceiverContext.InSizeError`). `CarrierLandingFormTests` pins the kernels and
+greps the sites; golden `pb77_move_past_the_carrier` pins sixteen spec-derived rows. **In-carrier landings did not
+move** — the in-carrier binary64 product's own rounding is the documented conversion manner (CONFORMANCE.md §3),
+and whether it should become the exact expansion everywhere is kb/Work PB90.
+
 **Rejected alternatives.** (a) Raise EC-SIZE-EXPONENTIATION when the exact result does not fit — REJECTED by the
 owner on the survey: principled, and matched by no shipping COBOL, so `1.5 ** 30` would start raising where every
 other compiler approximates. (b) Keep `Math.Pow` everywhere and reword D3 — REJECTED: it leaves `10 ** 30` wrong

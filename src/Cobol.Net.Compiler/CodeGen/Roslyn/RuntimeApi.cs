@@ -308,10 +308,13 @@ internal static class RuntimeApi
     /// member rename breaks HERE, never the generated text.</summary>
     public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";
 
-    /// <summary>A floating-point intermediate landed to a scaled integer at a target fraction scale —
-    /// <c>CobolFloat.ToScaled</c> (MOVE truncates toward zero, §14.6.8.2).</summary>
-    public static string FloatToScaled(string value, string scale, CobolRounding mode) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.ToScaled)}({value}, {scale}, {RoundingText(mode)})";
+    /// <summary>A floating-point intermediate landed to a scaled integer at a target fraction scale — the CHECKED
+    /// <c>CobolFloat.ToScaled</c> (saturates past the carrier so a capacity check raises — an ON SIZE ERROR / EC-SIZE
+    /// store, an intermediate consumer) or the UNCHECKED <c>CobolFloat.ToScaledUnchecked</c> (the low-order digits —
+    /// a MOVE, §14.6.8.2 r4; the no-phrase store; INVOKE BY CONTENT). The caller names the LANDING (kb/Work PB77) —
+    /// there is no default, so a new site has to say which store it is.</summary>
+    public static string FloatToScaled(string value, string scale, CobolRounding mode, bool checkedLanding) =>
+        $"{nameof(CobolFloat)}.{(checkedLanding ? nameof(CobolFloat.ToScaled) : nameof(CobolFloat.ToScaledUnchecked))}({value}, {scale}, {RoundingText(mode)})";
 
     /// <summary>The checked read of a standard-float SENDING operand — <c>CobolFloat.Sending(value)</c>: raises the
     /// fatal EC-DATA-NOT-FINITE for a NaN/±Infinity content under checking (ISO §14.6.13.2 item 3), else returns the

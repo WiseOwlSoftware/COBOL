@@ -304,11 +304,14 @@ public static partial class CobolIntrinsics
     /// conforms to neither r1 format) — the remove-then-scan shape, retired here. Rescaling: widening is
     /// exact; narrowing truncates (the requested scale carries the ≥6 working floor; the receiver's store
     /// rounds/truncates once more); Int128 saturation per <see cref="Rescaled"/> (PB13's sweep).</remarks>
-    public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31)
+    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77):
+    /// the emitter passes <c>true</c> under ON SIZE ERROR / EC-SIZE checking; a MOVE sender and the no-phrase store
+    /// take the low-order digits.</param>
+    public static Int128 Numval(string text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false)
     {
         NvParse p = NvScan(text, commaMode, "", false, digitCap, allowGroup: false);
         if (p.ErrPos != 0) return NumvalReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
+        Int128 r = Rescaled(p.Unscaled, scale - p.Frac, checkedLanding);
         return p.Neg ? -r : r;
     }
 
@@ -370,19 +373,26 @@ public static partial class CobolIntrinsics
         return CobolDec.FromParsed(p.Neg ? -p.Unscaled : p.Unscaled, p.Exp - p.Frac, mode);
     }
 
-    /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places, SATURATING at the
-    /// <c>Int128</c> carrier instead of wrapping. The saturation is safe for the same reason
-    /// <c>ReceiverContext.WorkingScale</c> makes the float quantizer's safe: the emitter caps the working scale at
-    /// the receiver's headroom, so a saturated value still exceeds the receiver's capacity after the store's
-    /// rescale and RAISES the size error (§14.7.5 case 5) rather than storing silently. ⚠ <c>Pow10.AsWide</c>
-    /// itself WRAPS past 10³⁸ (its fallback loop is unchecked), so the exponent is bounded BEFORE the call —
-    /// without that guard a large <c>E±nn</c> would multiply by a wrapped power and produce a plausible wrong
-    /// value rather than a saturated one.</summary>
-    private static Int128 Rescaled(Int128 unscaled, int shift)
+    /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places. Past the <c>Int128</c>
+    /// carrier the LANDING decides (kb/Work PB77 — the two-form rule every carrier now follows, PB74's
+    /// <c>CobolDec.ToUnscaledChecked</c>/<c>ToUnscaled</c> being the first): a CHECKED landing (ON SIZE ERROR /
+    /// EC-SIZE checking) SATURATES instead of wrapping — safe for the same reason <c>ReceiverContext.WorkingScale</c>
+    /// makes the float quantizer's safe: the emitter caps the working scale at the receiver's headroom, so a
+    /// saturated value still exceeds the receiver's capacity after the store's rescale and RAISES the size error
+    /// (§14.7.5 case 5) rather than storing silently; an UNCHECKED landing (a MOVE sender — §14.6.8.2 r4; the
+    /// no-phrase store — §14.6.13.1.3 item 8) keeps the LOW-ORDER digits through <c>CobolNum.RescaleStoreCap</c>
+    /// (the digits a ≤38-digit store could never use are dropped BEFORE the multiply), because a truncating store
+    /// has no check to expose a sentinel and truncating one stored garbage (<c>MOVE FUNCTION NUMVAL-F("5E+30") TO
+    /// PIC 9(5)</c> stored 03715, the low digits of <c>Int128.MaxValue</c>; §14.6.8.2 r4 says 00000).
+    /// ⚠ <c>Pow10.AsWide</c> itself WRAPS past 10³⁸ (its fallback loop is unchecked), so the exponent is bounded
+    /// BEFORE the call — without that guard a large <c>E±nn</c> would multiply by a wrapped power and produce a
+    /// plausible wrong value rather than a saturated one.</summary>
+    private static Int128 Rescaled(Int128 unscaled, int shift, bool checkedLanding)
     {
         if (unscaled == 0) return Int128.Zero;
         if (shift == 0) return unscaled;
         if (shift < 0) return -shift > 38 ? Int128.Zero : unscaled / Pow10.AsWide(-shift);
+        if (!checkedLanding) return CobolNum.RescaleStoreCap(unscaled, 0, shift, CobolRounding.Truncation);
         if (shift > 38) return unscaled > 0 ? Int128.MaxValue : Int128.MinValue;
         Int128 limit = Int128.MaxValue / Pow10.AsWide(shift);
         if (Int128.Abs(unscaled) > limit) return unscaled > 0 ? Int128.MaxValue : Int128.MinValue;
@@ -404,11 +414,12 @@ public static partial class CobolIntrinsics
     /// the two halves of one rule disagreeing. §15.69.4 r2's approximation license governs only the RESCALE of
     /// a CONFORMING argument, never admission. Int128 + the saturating shared shift per <see cref="Rescaled"/>
     /// (PB13's sweep — the old long clamp returned 9223372036 for NUMVAL-F("1E+20")).</remarks>
-    public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31)
+    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77).</param>
+    public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
         if (p.ErrPos != 0) return NumvalFReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale + p.Exp - p.Frac);
+        Int128 r = Rescaled(p.Unscaled, scale + p.Exp - p.Frac, checkedLanding);
         return p.Neg ? -r : r;
     }
 
@@ -463,8 +474,9 @@ public static partial class CobolIntrinsics
     /// </summary>
     /// <param name="digitCap">§15.68.3 r6/r7 — enforced by the delegated <see cref="Numval"/> parse, so the
     /// rule has ONE implementation for both functions rather than a copy per twin (fix-queue PB33).</param>
+    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77).</param>
     public static Int128 NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false,
-                                 int digitCap = 31)
+                                 int digitCap = 31, bool checkedLanding = false)
     {
         // ⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60, completing PB33's validate-first half). The prior body
         // validated through TestNumvalC and then STILL valued through `text.Replace(cur, "")` + a grouping
@@ -483,7 +495,7 @@ public static partial class CobolIntrinsics
         if (InvalidCurrency(currency)) return NumvalCInvalidCurrency(currency);
         NvParse p = NvScan(text, commaMode, currency, anycase, digitCap, allowGroup: true);
         if (p.ErrPos != 0) return NumvalCReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale - p.Frac);
+        Int128 r = Rescaled(p.Unscaled, scale - p.Frac, checkedLanding);
         return p.Neg ? -r : r;
     }
 

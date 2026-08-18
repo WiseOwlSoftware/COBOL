@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using System.Numerics;
 using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime;
@@ -69,7 +70,16 @@ public static class CobolFloat
     /// capacity + SIZE ERROR check. NaN → 0 (implementor-defined; the resulting 0 is in range and exact, so the
     /// store commits it silently — NO SIZE ERROR / EC-SIZE is raised for a NaN source). ±Infinity and any magnitude
     /// beyond the wide engine SATURATE to <see cref="Int128.MaxValue"/>/<see cref="Int128.MinValue"/> so that
-    /// capacity check fires SIZE ERROR reliably — never a silent-wrong store.</summary>
+    /// capacity check fires SIZE ERROR reliably — never a silent-wrong store.
+    /// <para>⛔ THIS IS THE CHECKED LANDING (kb/Work PB77) — the form for a store whose capacity check RAISES: an
+    /// arithmetic statement under ON SIZE ERROR / EC-SIZE checking (§14.7.5 case 3), and every intermediate consumer
+    /// with no capacity check downstream (an alignment, an argument), where a huge sentinel is the loud answer. A
+    /// TRUNCATING landing — a MOVE (§14.6.8.2 r4: "truncation on either end"), the no-phrase arithmetic store
+    /// (§14.6.13.1.3 item 8 — the documented low-order-digits disposition), INVOKE BY CONTENT — takes
+    /// <see cref="ToScaledUnchecked"/> instead: it has no check to see the sentinel, and truncating a sentinel stores
+    /// garbage (<c>MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)</c> stored 884105727, the low digits of
+    /// <c>Int128.MaxValue</c>). The SDIDI carrier's <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c> pair is the
+    /// same two-form rule (PB74).</para></summary>
     public static Int128 ToScaled(double v, int scale, CobolRounding mode)
     {
         if (double.IsNaN(v)) return Int128.Zero;
@@ -78,6 +88,58 @@ public static class CobolFloat
         // is otherwise undefined for an out-of-range double.
         if (scaled >= 1.7014118e38) return Int128.MaxValue;
         if (scaled <= -1.7014118e38) return Int128.MinValue;
+        return RoundScaled(scaled, mode);
+    }
+
+    /// <summary>The UNCHECKED landing of a binary64 into a fixed-point receiver (kb/Work PB77) — a MOVE (§14.6.8.2
+    /// r1/r2/r4: the value converted to fixed point, aligned by decimal point, "zero fill or truncation on either
+    /// end"), the no-phrase arithmetic store, INVOKE BY CONTENT. Within the Int128 carrier it is <see cref="ToScaled"/>
+    /// exactly (the same binary64 product, the same rounding); beyond it the value's exact decimal expansion keeps
+    /// supplying the LOW-ORDER digits (<see cref="LowOrderDigits"/>) — never a saturation sentinel, which has no
+    /// capacity check downstream to expose it. A non-finite value (NaN, ±Infinity — EC-DATA-NOT-FINITE at the
+    /// sending read under checking, §14.6.13.2 item 3; with checking off the receiving operand's disposition is the
+    /// implementor's, §14.6.13.1.3 item 8) lands as ZERO: not a number, no digits — the disposition
+    /// <see cref="ToScaled"/> already gave NaN.</summary>
+    public static Int128 ToScaledUnchecked(double v, int scale, CobolRounding mode)
+    {
+        if (!double.IsFinite(v)) return Int128.Zero;
+        double scaled = v * Pow10.AsDouble(scale);
+        if (scaled > -1.7014118e38 && scaled < 1.7014118e38) return RoundScaled(scaled, mode);
+        return LowOrderDigits(v, scale, mode);
+    }
+
+    private static readonly BigInteger Pow10Big38 = BigInteger.Pow(10, 38);
+
+    /// <summary>The 38 LOW-ORDER digits, sign kept, of a finite binary64's EXACT value at <paramref name="scale"/>
+    /// fraction digits, rounded per <paramref name="mode"/> (kb/Work PB77) — the digits a truncating landing keeps of a
+    /// value the Int128 carrier cannot hold (the receiver's own store then keeps ITS low-order digits of these, so the
+    /// composition is exact whenever the receiver's digit positions fit under 38 minus the landing's excess scale —
+    /// which <c>ReceiverContext.WorkingScale</c>'s cap guarantees). A double is ±m·2^e exactly (m &lt; 2^53), so
+    /// v·10^scale = ±m·5^scale·2^(e+scale): an integer when e+scale ≥ 0, otherwise a quotient rounded by the ONE
+    /// <c>CobolNum.RoundDiv</c> kernel. Cold path — a magnitude at or past 1.7×10^38 at the landing scale — so the
+    /// expansion rides <see cref="BigInteger"/> (as BASECONVERT's digit accumulation does); the engine's hot paths
+    /// stay native (<c>CobolNum</c>'s design note). Correct for EVERY finite double, so a determination that lands
+    /// the exact expansion inside the carrier as well needs only the caller's carrier test removed.</summary>
+    public static Int128 LowOrderDigits(double v, int scale, CobolRounding mode)
+    {
+        long bits = BitConverter.DoubleToInt64Bits(v);
+        bool neg = bits < 0;
+        int exp = (int)((bits >> 52) & 0x7FF);
+        long man = bits & 0xF_FFFF_FFFF_FFFFL;
+        if (exp == 0) exp = 1; else man |= 1L << 52;          // subnormal / normal significand
+        exp -= 1075;                                          // v = ±man × 2^exp
+        BigInteger scaled = new BigInteger(man) * BigInteger.Pow(5, scale);
+        if (neg) scaled = -scaled;
+        int e2 = exp + scale;
+        scaled = e2 >= 0 ? scaled << e2 : CobolNum.RoundDiv(scaled, BigInteger.One << -e2, mode);
+        return (Int128)(scaled % Pow10Big38);                 // sign-preserving remainder — the low-order digits
+    }
+
+    /// <summary>The in-carrier rounding of a binary64 product to an <see cref="Int128"/> per a COBOL ROUNDED mode —
+    /// shared by <see cref="ToScaled"/> and <see cref="ToScaledUnchecked"/> (kb/Work PB77: the two landings differ
+    /// ONLY past the carrier).</summary>
+    private static Int128 RoundScaled(double scaled, CobolRounding mode)
+    {
         double r = mode switch
         {
             CobolRounding.Truncation        => Math.Truncate(scaled),

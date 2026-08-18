@@ -27812,12 +27812,12 @@
   "kind": "GR",
   "ordinal": 1,
   "subject": "Alignment and transfer of data into data items",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#SenderContext",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier; conformance:2023/pb60_numvalf_native_channels",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB77 (2026-08-18): an intermediate sending operand (a function's returned value — NUMVAL-F's exact Int128 parse, the float family's binary64 per CONFORMANCE.md item 92) is 'treated as if it had been converted to a fixed-point value' and then aligned/truncated per rule 4 — now for a value past the carrier as well (the golden's NVF-* and D40-* rows). A standard-float (FLOAT-BINARY-64) sending item takes the same double landing as a FLOAT-LONG one (rule 2).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.8.2-2",
@@ -27825,12 +27825,12 @@
   "kind": "GR",
   "ordinal": 2,
   "subject": "Alignment and transfer of data into data items",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#LowOrderDigits",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB77 (2026-08-18): the implementor-defined manner in which a FLOAT-SHORT/-LONG/-EXTENDED value converts to fixed point is documented in CONFORMANCE.md (the §14.6.8.2 r2 row): the binary64's product with 10^scale, truncated toward zero, inside the Int128 carrier; the exact decimal expansion's low-order digits past it (a COMP-2 holding 1.0E+40 moves 90752 into PIC 9(5) — the double's exact value is 10000000000000000303786028427003666890752); a non-finite value (checking off) lands zero. Pinned by the golden's D40-*/DN-* rows.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.8.2-3",
@@ -27851,12 +27851,12 @@
   "kind": "GR",
   "ordinal": 4,
   "subject": "Alignment and transfer of data into data items",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#LowOrderDigits; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Store; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreArgs",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier; unit:CarrierLandingFormTests.ToScaled_PastTheCarrier_SaturatesChecked_LandsLowOrderDigitsUnchecked; unit:CarrierLandingFormTests.NumvalFamily_PastTheCarrier_FollowsTheLanding",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB77 (2026-08-18): a fixed-point numeric receiver takes the sending value aligned by decimal point 'with zero fill or truncation on either end' — for EVERY sending magnitude, including one past the Int128 carrier. Every carrier's landing now has two forms chosen by the LANDING: the CHECKED landing (ON SIZE ERROR / EC-SIZE) saturates so the capacity check raises (PB13); the UNCHECKED landing (MOVE, the no-phrase store, INVOKE BY CONTENT) keeps the low-order digits — the native exact family through CobolNum.RescaleStoreCap (Rescaled's unchecked arm), the float family through the exact binary64 expansion (CobolFloat.LowOrderDigits) — where before both saturated and the MOVE stored the sentinel's low digits (MOVE FUNCTION NUMVAL-F(\"5E+30\") TO PIC V9(9) stored 884105727 for 000000000). The SDIDI carrier had the two forms since PB74. In-carrier MOVEs are unchanged.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.8.2-5",
@@ -28189,12 +28189,12 @@
   "kind": "GR",
   "ordinal": 8,
   "subject": "Exception conditions",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Store; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#ToScaledUnchecked; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Rescaled; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "test-ref": "conformance:2023/pb77_move_past_the_carrier; unit:CarrierLandingFormTests.FromDouble_PastTheCarrier_FollowsTheLanding",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB77 (2026-08-18): with checking for a fatal exception condition NOT enabled 'the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected'. COBOL.NET's determination for the arithmetic size error condition without a SIZE ERROR phrase (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4; A.1 item 70) — execution continues and the resultant identifier receives the LOW-ORDER digits of the result aligned at its scale (CobolNum.Store's high-order truncation), for EVERY carrier: the SDIDI (CobolDec.ToUnscaled, PB74), the native exact family (Rescaled's unchecked arm), a binary64 (ToScaledUnchecked / FromDouble's unchecked form). Before, a value past the Int128 carrier landed the saturation sentinel and the store kept ITS low digits (COMPUTE X5 = a COMP-2 1.0E+40 stored 03715; now 90752, the exact expansion's). Documented on CONFORMANCE.md (the item-70 row). The checked half (the phrase / EC-SIZE checking) is unchanged: the receiver stays as it was and the size error fires.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.4-1",

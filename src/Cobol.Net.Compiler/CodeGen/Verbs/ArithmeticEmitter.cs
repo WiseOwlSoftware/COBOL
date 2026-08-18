@@ -297,8 +297,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // of an out-of-carrier value — 0 for 10 ** 100 — which the mask then "fits", no size error.
             string Aligned(bool checkedPath) =>
                 // A float (Real) result lands at the mask scale via the runtime's ToScaled with the receiver's ROUNDED
-                // mode (D16 review: the edited-receiver arithmetic path was missed by the Real integration → CS1503).
-                value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{ms}", mode)
+                // mode (D16 review: the edited-receiver arithmetic path was missed by the Real integration → CS1503) —
+                // the CHECKED landing under the phrase, the low-order digits without it (kb/Work PB77: the Real arm
+                // ignored checkedPath, so a no-phrase edited store of a value past the carrier formatted the sentinel).
+                value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{ms}", mode, checkedPath)
                 : value.Dec ? (checkedPath ? RuntimeApi.DecToUnscaledChecked(value.Expr, $"{ms}", mode)
                                            : RuntimeApi.DecToUnscaled(value.Expr, $"{ms}", mode))
                 : value.Scale == ms ? value.Expr
@@ -338,7 +340,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // identity ⇒ no double-rounding; capacity + SIZE ERROR still apply). A STANDARD-DECIMAL intermediate stores
         // through the SDIDI overloads (the §14.7 final transfer).
         int recvScale = target.Item.Pic!.Scale;
-        string args = NumericRenderer.StoreArgs(value, recvScale, mode, profile);   // the ONE carrier switch (PB84)
+        // The ONE carrier switch (PB84); the landing's form is the statement's (PB77) — CHECKED under ON SIZE ERROR /
+        // EC-SIZE checking (the branch below), the low-order digits for the no-phrase store.
+        string args = NumericRenderer.StoreArgs(value, recvScale, mode, profile, checkedLanding: ecState.SizeErrVar is not null);
         if (ecState.SizeErrVar is { } flag)
         {
             string tmp = $"__sv{ctx.Names.NextStoreTmp()}";

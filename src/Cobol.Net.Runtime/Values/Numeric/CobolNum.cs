@@ -10,7 +10,9 @@ namespace CobolNet.Runtime;
 /// <remarks>
 /// <para>A COBOL fixed-point datum is represented as a native integer holding its <b>unscaled</b> value (every
 /// digit, with the decimal point implied by a compile-time scale) — exactly the COBOL definition of fixed-point.
-/// So all arithmetic is native integer math; nothing uses the software <c>decimal</c> or <c>BigInteger</c> types.
+/// So all arithmetic is native integer math; nothing on an arithmetic path uses the software <c>decimal</c> or
+/// <c>BigInteger</c> types (the two cold exceptions are BASECONVERT's digit accumulation and the exact expansion of
+/// a binary64 PAST the Int128 carrier in a truncating landing — <c>CobolFloat.LowOrderDigits</c>, kb/Work PB77).
 /// (Pictures wider than 18 digits — COBOL-2002+ allows 31–38 — use a fixed-size <c>Int128</c> value-type escape
 /// hatch (far cheaper than <c>BigInteger</c>), added when a program needs it; <c>COMP-1</c>/<c>COMP-2</c> are
 /// <c>float</c>/<c>double</c> and bypass this engine.)</para>
@@ -704,9 +706,11 @@ public static partial class CobolNum
     /// per a COBOL ROUNDED mode — the kernel for scale reduction. GENERIC over the integer carrier so the
     /// <see cref="Int128"/> lane and the unsigned-wide <see cref="UInt128"/> lane (kb/Work R10) round by the ONE
     /// implementation rather than a hand-synced copy (the negative-value arms are simply unreachable for an
-    /// unsigned carrier). <paramref name="divisor"/> is a positive power of ten.
+    /// unsigned carrier) — and <see cref="System.Numerics.BigInteger"/> for the one cold path that divides an exact
+    /// binary64 expansion by a power of two (<c>CobolFloat.LowOrderDigits</c>, kb/Work PB77). <paramref name="divisor"/>
+    /// is positive (a power of ten, or that power of two).
     /// </summary>
-    private static T RoundDiv<T>(T value, T divisor, CobolRounding mode) where T : System.Numerics.INumber<T>
+    internal static T RoundDiv<T>(T value, T divisor, CobolRounding mode) where T : System.Numerics.INumber<T>
     {
         T q = value / divisor, rem = value % divisor;
         if (rem == T.Zero) return q;

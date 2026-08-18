@@ -243,13 +243,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "Numval":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}{CheckedFlag}"), ws);
             }
             case "NumvalC":
             {
                 int ws = num.Receiver.WorkingScale(ReceiverContext.NumvalScaleFloor);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}"), ws);
+                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{CheckedFlag}"), ws);
             }
 
             // The §15.93/§15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
@@ -348,7 +348,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 if (num.Receiver.Real || (num.Receiver.Receiverless && !num.Receiver.MoveSender))
                     return new NumX(RuntimeApi.Intrinsic("NumvalFDouble", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0, Real: true);
                 int ws = num.Receiver.FloatWorkingScale;
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}"), ws);
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}{CheckedFlag}"), ws);
             }
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,         //   the r1b digit-cap sub-note is MODE-dependent,
@@ -434,10 +434,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // exactly 1.000000000 in a 9V9(9) receiver, ASIN(1) exceeded its closed-but-irrational π/2. The
         // rounding itself stays (it recovers the SQRT(10) ** 2 binary64 artifact); only the exit is closed.
         // The Dec arm above needs no clamp: the un-quantized double never exits its codomain.
+        // The quantizer's landing form past the carrier is the STATEMENT's (kb/Work PB77): saturate under ON SIZE
+        // ERROR / EC-SIZE checking (the capacity check raises), the low-order digits for the no-phrase store.
         if (sig.Codomain != IntrinsicCodomain.None)
             return new NumX(RuntimeApi.Intrinsic("FromDoubleBounded",
-                $"{call}, {ws}, {RuntimeApi.CodomainConst(sig.Codomain)}"), ws);
-        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}"), ws);
+                $"{call}, {ws}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), ws);
+        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}{CheckedFlag}"), ws);
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────
@@ -782,6 +784,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// modes (sub-note 4), omitted for the native default 31 (sub-note 2).</summary>
     private string DigitCapFlag => num.StandardDecimal ? ", digitCap: 34" : "";
 
+    /// <summary>The landing form past the Int128 carrier for a quantizer / exact-family parse (kb/Work PB77) — the
+    /// ONE <c>NumericRenderer.CheckedFlag</c>, read from the receiver context this render runs under.</summary>
+    private string CheckedFlag => num.CheckedFlag;
+
     /// <summary>The trailing weights argument for a PCS-flagged CHAR/ORD/CHAR-NATIONAL (hazard H5: the binder
     /// set <see cref="BoundIntrinsicCall.Collate"/>/<see cref="BoundIntrinsicCall.CollateNat"/> ONLY when the
     /// matching non-identity PCS exists — exactly when the program class emitted its <c>__COLLATE</c> /
@@ -941,7 +947,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private static (string Expr, int Scale) SecondsArg(NumX x)
     {
         x = NumericRenderer.DeU(x);
-        if (x.Real) return (RuntimeApi.FloatToScaled(x.Expr, "9", CobolRounding.Truncation), 9);
+        if (x.Real) return (RuntimeApi.FloatToScaled(x.Expr, "9", CobolRounding.Truncation, checkedLanding: true), 9);
         if (x.Dec) return (RuntimeApi.DecToUnscaledIntermediate(x.Expr, "18", CobolRounding.Truncation), 18);
         return (x.Expr, x.Scale);
     }

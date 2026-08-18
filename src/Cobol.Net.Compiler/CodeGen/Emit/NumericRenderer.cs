@@ -455,7 +455,9 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// strictly smaller wrong than "does not compile" and it is not the end state — the §15.4.1 r1 answer is a
     /// Dec-carrier body, ledgered as PB38.</para></para></summary>
     public static string Align(NumX x, int toScale) =>
-        x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        // CHECKED: an intermediate consumer has no capacity check downstream, so a value past the carrier stays the
+        // loud sentinel here — never the low-order digits a STORE may take (kb/Work PB77; the Dec arm below raises).
+        x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation, checkedLanding: true)
         // A Dec that the Int128 carrier cannot hold at this scale is a SIZE ERROR condition (EC-SIZE-OVERFLOW —
         // §14.7.5 case 5, A.1 item 179 "checked"; kb/Work PB69), never the low-order-digits landing a STORE may
         // use: an intermediate consumer has no capacity check downstream to catch a truncated value.
@@ -556,7 +558,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // float-intrinsic family; ReceiverContext.FloatWorkingScale is the one rule both consume.
         int ws = _rcv.FloatWorkingScale;
         return new NumX(RuntimeApi.Intrinsic("FromDouble",
-            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}"), ws);
+            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}{CheckedFlag}"), ws);
     }
 
     private static NumX Negate(NumX x) =>
@@ -612,19 +614,30 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// receiver's <c>NumProfile</c> — the ONE place the carriers are told apart at a store (kb/Work PB84: the
     /// arithmetic store, the numeric MOVE and the INVOKE BY CONTENT expression each spelled it, and the third had
     /// no <c>Dec</c> arm): an SDIDI intermediate takes the <c>CobolNum.Store(CobolDec, profile)</c> overload (the
-    /// §14.7 final transfer); a float lands at the receiver scale through <c>ToScaled</c> with the receiver's
-    /// ROUNDED mode (D16) and then stores as a native at that scale (rescale identity ⇒ no double rounding); a
-    /// native passes its own scale.</summary>
-    public static string StoreArgs(NumX value, int recvScale, CobolRounding mode, string profile) =>
+    /// §14.7 final transfer — whose <c>Store</c>/<c>TryStore</c> pair already tells the two landings apart, PB74); a
+    /// float lands at the receiver scale through <c>ToScaled</c> (CHECKED — <paramref name="checkedLanding"/>, an
+    /// ON SIZE ERROR / EC-SIZE store) or <c>ToScaledUnchecked</c> (a MOVE, the no-phrase store, INVOKE BY CONTENT —
+    /// the low-order digits past the carrier, kb/Work PB77) with the receiver's ROUNDED mode (D16) and then stores as
+    /// a native at that scale (rescale identity ⇒ no double rounding); a native passes its own scale (an exact-family
+    /// intrinsic chose ITS landing form at the render — <c>IntrinsicRenderer.CheckedFlag</c>).</summary>
+    public static string StoreArgs(NumX value, int recvScale, CobolRounding mode, string profile, bool checkedLanding) =>
         value.Dec ? $"{value.Expr}, {profile}"
-        : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode)}, {recvScale}, {profile}"
+        : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode, checkedLanding)}, {recvScale}, {profile}"
         : $"{value.Expr}, {value.Scale}, {profile}";
 
     /// <summary>The unchecked store of a rendered intermediate into a fixed-point receiver — <see cref="StoreArgs"/>
-    /// through <c>CobolNum.Store</c> (<c>StoreU</c> on the unsigned-wide lane, by name) with <paramref name="mode"/>
-    /// (MOVE truncation by default, §14.6.8.2). Returns the receiver's stored unscaled integer expression.</summary>
+    /// (the UNCHECKED landing: a MOVE's §14.6.8.2 r4 truncation, INVOKE BY CONTENT) through <c>CobolNum.Store</c>
+    /// (<c>StoreU</c> on the unsigned-wide lane, by name) with <paramref name="mode"/> (MOVE truncation by default,
+    /// §14.6.8.2). Returns the receiver's stored unscaled integer expression.</summary>
     public static string StoreExpr(NumX value, int recvScale, string profile, CobolRounding mode = CobolRounding.Truncation) =>
-        RuntimeApi.NumStoreRounded(StoreArgs(value, recvScale, mode, profile), mode, value.U);
+        RuntimeApi.NumStoreRounded(StoreArgs(value, recvScale, mode, profile, checkedLanding: false), mode, value.U);
+
+    /// <summary>The trailing <c>checkedLanding: true</c> argument for a runtime quantizer / exact-family parse rendered
+    /// under ON SIZE ERROR / EC-SIZE checking (kb/Work PB77): the value's landing past the Int128 carrier is then the
+    /// SATURATING one (the receiver's capacity check raises, PB13); a MOVE sender or a no-phrase store — the default —
+    /// takes the low-order digits. ONE spelling for the float family's <c>FromDouble</c>, native <c>**</c>, and the
+    /// NUMVAL family (<c>IntrinsicRenderer</c> reads it through <c>ReceiverContext.InSizeError</c>).</summary>
+    internal string CheckedFlag => _rcv.InSizeError ? ", checkedLanding: true" : "";
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS

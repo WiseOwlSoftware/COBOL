@@ -193,24 +193,33 @@ public static partial class CobolIntrinsics
     /// already). The limit divides exactly from the scale-37 constant; <paramref name="scale"/> ≤ 31 always
     /// (a working scale is capped at the receiver's Int128 headroom and a PICTURE at 31 digits, §13.18.40.3 SR14).
     /// </summary>
-    public static Int128 FromDoubleBounded(double d, int scale, Int128 max37)
+    public static Int128 FromDoubleBounded(double d, int scale, Int128 max37, bool checkedLanding = false)
     {
-        Int128 q = FromDouble(d, scale);
+        Int128 q = FromDouble(d, scale, checkedLanding);
         Int128 limit = max37 / Pow10.AsWide(37 - scale);
         return q > limit ? limit : q < -limit ? -limit : q;
     }
 
-    public static Int128 FromDouble(double d, int scale)
+    /// <param name="checkedLanding">The LANDING's form (kb/Work PB77 — the same two-form rule as
+    /// <c>CobolFloat.ToScaled</c> / <c>ToScaledUnchecked</c> and <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c>):
+    /// <c>true</c> under ON SIZE ERROR / EC-SIZE checking, where a value past the carrier SATURATES so the store's
+    /// capacity check raises the size error (PB13's invariant — the working scale keeps the sentinel above the
+    /// receiver's capacity); <c>false</c> for the no-phrase store (§14.6.13.1.3 item 8 — the receiver takes the
+    /// LOW-ORDER digits of the result, the documented disposition), where the sentinel had no check to expose it and
+    /// its low digits were stored as the answer (<c>COMPUTE X = FUNCTION EXP10(40)</c> stored 03715 in PIC 9(5)). An
+    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does.</param>
+    public static Int128 FromDouble(double d, int scale, bool checkedLanding = false)
     {
         // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the
         // §15.3 default 0 when checking is off, the raise (throw) when the statement carries enabled checking (the
         // ambient gate). NaN only — an over-range ±∞ is a legal overflow that saturates like a finite over-range
         // value (the receiver store size-truncates).
         if (double.IsNaN(d)) return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)");
-        if (double.IsInfinity(d)) return d > 0 ? Int128.MaxValue : Int128.MinValue;
+        if (double.IsInfinity(d)) return !checkedLanding ? Int128.Zero : d > 0 ? Int128.MaxValue : Int128.MinValue;
         double scaled = d * Pow10.AsDouble(scale);
-        if (scaled >= 1.7e38) return Int128.MaxValue;
-        if (scaled <= -1.7e38) return Int128.MinValue;
+        if (scaled >= 1.7e38 || scaled <= -1.7e38)
+            return checkedLanding ? (scaled > 0 ? Int128.MaxValue : Int128.MinValue)
+                 : CobolFloat.LowOrderDigits(d, scale, CobolRounding.NearestAwayFromZero);   // the same rounding as below
         return (Int128)Math.Round(scaled, MidpointRounding.AwayFromZero);
     }
 
