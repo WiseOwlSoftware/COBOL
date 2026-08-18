@@ -165,6 +165,14 @@ internal static class RuntimeApi
             : $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormatFloat)}({value.Expr}, {value.Scale}, {mask}, out var {imgVar}{cfgArgs})";
     }
 
+    /// <summary>A floating-point literal as the EXACT standard-decimal operand (ISO §8.8.1.5.2 r1 — the literal's
+    /// value, significand × 10^exponent, lifted through the ONE range-checking funnel <c>CobolDec.FromParsed</c>; a
+    /// 35/36-digit significand rounds to decimal128's 34 under the intermediate rounding mode). Under STANDARD-DECIMAL
+    /// arithmetic this replaces the binary64 form a floating literal takes natively (D16), so a 20-digit significand or
+    /// a 4-digit exponent reaches the intermediate exactly (kb/Work PB99).</summary>
+    public static string DecFromParsedLiteral(Int128 sig, int exp10, string modeExpr) =>
+        $"CobolDec.FromParsed({Emit.EmitText.IntLiteral(sig.ToString())}, {exp10}, {modeExpr})";
+
     /// <summary>The compile-time floating-point edited image of a VALUE literal (<c>CobolEdit.FormatFloatMove</c> at
     /// compile time — the same runtime, so the baked initial content is what a MOVE of the literal would store).</summary>
     public static string EditComposeFloat(Int128 sig, int exp10, string picture, bool blankWhenZero, bool commaMode) =>

@@ -1187,6 +1187,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             //    keeps the floating form (its initializer is a binary64 literal).
             case PicCategory.Numeric when isFloatLit && !pic.IsFloat:
                 return CobolNet.Common.NumericLiteral.ExpandFloatingPoint(raw);
+            //    A numeric literal (either form) seeding a FLOAT-SHORT / FLOAT-LONG / FLOAT-BINARY-32/64 subject shall be
+            //    "a permissible value within the range indicated by ... the USAGE clause" (§13.18.63.3 SR2) — the
+            //    receiver's binary form (kb/Work PB99: a value beyond it became an overflowing C# double literal, CS0594).
+            case PicCategory.Numeric when isNumeric && pic.IsFloat && !CobolNet.Common.NumericLiteral.FitsBinaryFloat(raw, pic.IsSingle):
+                Edition.Error(DiagnosticCatalog.FloatingLiteral, $"{where}: the VALUE literal {raw} lies outside the range of the "
+                    + $"item's {(pic.IsSingle ? "binary32 (FLOAT-SHORT / FLOAT-BINARY-32)" : "binary64 (FLOAT-LONG / FLOAT-BINARY-64)")} "
+                    + "usage — a numeric VALUE shall be a permissible value within the range the USAGE indicates (ISO §13.18.63.3 SR2; "
+                    + "the exponent range is implementor-defined, §8.3.3.3.3 r3)");
+                return raw;
             //    §13.18.63.3 SR6 — a numeric-edited subject's numeric literal shall be of ITS form: "literals for
             //    fixed-point formats shall be specified as fixed-point, while literals for floating-point formats
             //    shall be specified as floating-point, though the figurative constant ZERO or ZEROES and the integer

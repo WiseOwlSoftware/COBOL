@@ -74,6 +74,82 @@ public static class NumericLiteral
         }
     }
 
+    /// <summary>Which ISO §8.3.3.3.3 form rule a floating-point literal violates (kb/Work PB99), or None.</summary>
+    public enum FloatingLiteralIssue
+    {
+        None,
+        /// <summary>SR2: the significand shall be from 1 to 36 digits.</summary>
+        SignificandDigits,
+        /// <summary>SR3: the exponent shall have a maximum of four digits.</summary>
+        ExponentDigits,
+        /// <summary>SR4: a zero significand requires a zero exponent, and neither part may carry a negative sign.</summary>
+        ZeroForm,
+    }
+
+    /// <summary>The ISO §8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
+    /// satisfy <see cref="IsFloatingPointForm"/>). SR2's "shall include a decimal point" is the lexer's shape
+    /// (a point-less <c>1E10</c> is a user-defined word, §8.3.1.1); the digit counts and the zero form are checked
+    /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.</summary>
+    public static FloatingLiteralIssue CheckFloatingPointForm(string text)
+    {
+        string t = text.Trim();
+        int e = t.IndexOfAny(['E', 'e']);
+        string sig = t[..e], exps = t[(e + 1)..];
+        bool sigNeg = sig.StartsWith('-'), expNeg = exps.StartsWith('-');
+        string sigDigits = sig.TrimStart('+', '-').Replace(".", "");
+        string expDigits = exps.TrimStart('+', '-');
+        if (sigDigits.Length is < 1 or > 36) return FloatingLiteralIssue.SignificandDigits;
+        if (expDigits.Length > 4) return FloatingLiteralIssue.ExponentDigits;
+        bool sigZero = sigDigits.All(c => c == '0'), expZero = expDigits.All(c => c == '0');
+        if (sigZero && (!expZero || sigNeg || expNeg)) return FloatingLiteralIssue.ZeroForm;
+        return FloatingLiteralIssue.None;
+    }
+
+    /// <summary>True when the numeric literal's value (fixed-point or floating-point form) is representable in the
+    /// IEEE binary64 (<paramref name="single"/>: binary32) range — finite, and not a nonzero value that rounds to
+    /// zero (below the smallest subnormal). The implementor-defined exponent range of ISO §8.3.3.3.3 r3 for a
+    /// literal that evaluates in a binary floating-point form: a procedure-division floating-point literal (D16 —
+    /// binary64) and a VALUE on a FLOAT-SHORT / FLOAT-LONG / FLOAT-BINARY-32/64 item (kb/Work PB99).</summary>
+    public static bool FitsBinaryFloat(string text, bool single = false)
+    {
+        string t = text.Trim();
+        var style = System.Globalization.NumberStyles.Float;
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        bool zeroLiteral = t.TrimStart('+', '-').Split(['E', 'e'])[0].All(c => c is '0' or '.');
+        if (single)
+        {
+            if (!float.TryParse(t, style, inv, out float f) || float.IsInfinity(f)) return false;
+            return f != 0f || zeroLiteral;
+        }
+        if (!double.TryParse(t, style, inv, out double d) || double.IsInfinity(d)) return false;
+        return d != 0d || zeroLiteral;
+    }
+
+    /// <summary>The EXACT value of a canonical numeric literal of EITHER form as a significand and a power of ten
+    /// (ISO §8.3.3.3.3 GR5 for the floating form; a fixed-point literal is its unscaled digits at 10^−scale) — the ONE
+    /// exact parser the binder's range checks, the standard-decimal literal operand and the VALUE initializer share
+    /// (kb/Work PB99). False for any non-numeric text; a significand wider than Int128 (never a legal literal —
+    /// 36 digits fit) also returns false.</summary>
+    public static bool TryParseExact(string text, out Int128 sig, out int exp10)
+    {
+        sig = 0; exp10 = 0;
+        string t = text.Trim();
+        int e = t.IndexOfAny(['E', 'e']);
+        string mant = e < 0 ? t : t[..e];
+        string ex = e < 0 ? "0" : t[(e + 1)..];
+        bool neg = mant.StartsWith('-');
+        mant = mant.TrimStart('+', '-');
+        int dot = mant.IndexOf('.');
+        string digits = dot < 0 ? mant : mant.Remove(dot, 1);
+        int scale = dot < 0 ? 0 : mant.Length - dot - 1;
+        if (digits.Length == 0 || digits.Length > 38 || !digits.All(char.IsAsciiDigit)) return false;
+        if (!Int128.TryParse(digits, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var u)) return false;
+        if (!int.TryParse(ex, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out int exp)) return false;
+        sig = neg ? -u : u;
+        exp10 = exp - scale;
+        return true;
+    }
+
     /// <summary>The EXACT value of a floating-point numeric literal (ISO §8.3.3.3.3 GR5: "the algebraic product of
     /// the value of its significand and the quantity derived by raising ten to the power of the exponent") as a
     /// canonical fixed-point literal text — <c>1.5E+3</c> → <c>1500</c>, <c>-1.234E-5</c> → <c>-0.00001234</c>,

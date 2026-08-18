@@ -946,6 +946,17 @@ public static class DiagnosticCatalog
         + "pass an IN-ARITHMETIC-RANGE test under the arithmetic mode in effect — the intermediate data item cannot hold "
         + "it (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l). Narrow the exponent, or change ARITHMETIC.",
         "ISO §15.43.4 r1 / §15.58.4 r1");
+    // kb/Work PB99: §8.3.3.3.3 SR2/SR3/SR4 — the floating-point literal's form — and r3's implementor-defined exponent
+    // range (binary64 for a procedure-division literal, D16; the receiver's binary form for a VALUE on a FLOAT item).
+    public static readonly DiagnosticDescriptor FloatingLiteral = new(
+        "COBOLNET1661", "floating-point-literal", EditionSeverity.Error,
+        "A floating-point numeric literal shall have a significand of 1 to 36 digits with a decimal point, an exponent of at "
+        + "most four digits, and — when the significand is zero — a zero exponent and no negative sign (ISO §8.3.3.3.3 "
+        + "SR2/SR3/SR4); its value shall lie within the implementor-defined exponent range (r3): the IEEE binary64 range "
+        + "(about 4.9E-324 to 1.8E+308) for a literal that evaluates in an arithmetic expression or seeds a FLOAT-LONG / "
+        + "FLOAT-BINARY-64 item, the binary32 range for FLOAT-SHORT / FLOAT-BINARY-32; a floating-point numeric-edited "
+        + "VALUE keeps the exact value.",
+        "ISO §8.3.3.3.3 SR2/SR3/SR4/r3");
     public static readonly DiagnosticDescriptor RefModIdentifierNotPermitted = new(
         "COBOLNET1647", "ref-mod-identifier-not-permitted", EditionSeverity.Error,
         "Reference modification is applied to an item ISO §8.4.3.3.3 SR1 does not admit as identifier-1: a boolean, "

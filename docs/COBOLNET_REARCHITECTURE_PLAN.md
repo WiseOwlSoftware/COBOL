@@ -272,13 +272,19 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   the drift test did its job) · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases,
   **1 flip, attributed**: `run_fundamental:72` (GnuCOBOL's "DISPLAY literals, DECIMAL-POINT is COMMA" — `DISPLAY
   1,23E0`) WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT, the PB98 comma-decimal floating literal — baselined. GREEN.
-  **PB99 OPEN (found 2026-08-18 probing PB66's literal legs):** a floating-point literal beyond binary64 or with a
-  five-digit exponent crashes the backend (CS0594) — §8.3.3.3.3 SR2/SR3/SR4 unchecked, the implementor-defined
-  exponent range undocumented; the crash class ranks it first.
-  **NEXT, in order (`work.py next`):** ① PB99 (frontend/literals — a crash) · ② PB64 (feature/locale) —
-  owner-reserved (its Q1–Q4 are the owner's; ask the bare question when the session reaches it) · then Phase-B
-  adjudication (the standing order after zero backlog: fix-before-explore holds, so a NEW defect found on the way
-  outranks).
+  **✅ PB99 CLOSED (DEVLOG 1323, 2026-08-18)** — the floating-point literal's form rules (§8.3.3.3.3 SR2/SR3/SR4 →
+  COBOLNET1661 at the ONE normalizer), its implementor-defined exponent range documented (CONFORMANCE.md §7 A.1
+  item 82; A.3 item 1 → Claimed) and diagnosed at compile time (binary64 natively in arithmetic, decimal128 under
+  STANDARD-DECIMAL, the FLOAT subject's binary form for a VALUE — never Roslyn's CS0594), and — the part the crash
+  hid — a floating literal in an OPERAND position (MOVE source, relation / EVALUATE comparand, PERFORM VARYING
+  FROM / BY, function argument) and every literal under STANDARD-DECIMAL is now its EXACT value on the Dec lane
+  (`NumericRenderer.LiteralOperandNum` / `RenderOperandLike` / `LiteralNum`; D16's binary64 latitude stays inside
+  native arithmetic expressions / statements only, and D16's paragraph says so). Five verdicts → CONFORMS, **GAP
+  3935**. THE DEFECT BACKLOG IS EMPTY AGAIN — `work.py next` lists only PB64.
+  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (its Q1–Q4 are the owner's; ask
+  the bare question when the session reaches it) · then Phase-B adjudication (the standing order after zero
+  backlog: fix-before-explore holds, so a NEW defect found on the way outranks). Battery **#19** (PB99) is owed at
+  the next checkpoint.
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

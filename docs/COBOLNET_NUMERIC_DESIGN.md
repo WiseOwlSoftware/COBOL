@@ -258,9 +258,19 @@ under STANDARD / STANDARD-DECIMAL each operand not already in SDIDI form is conv
 **Floating-point LITERALS (§8.3.3.3.3).** A `FLOATLIT` lexer
 token — `( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+` (significand SHALL include a decimal point, §8.3.3.3.3
 r2; 'E' not `[eE]` — the lexer is case-insensitive) placed BEFORE `DECIMALLIT` so maximal munch keeps `1.5E3` one
-token — plus a `FLOATLIT` alt in `numericLiteralCore`. `EmitText.UnscaledLit` detects the E and returns a `Real`
-NumX with the literal verbatim (a COBOL float literal is already valid C# `double` syntax). A float literal is a
-floating-point operand (§8.8.1) → any expression containing it evaluates in IEEE binary64.
+token — plus a `FLOATLIT` alt in `numericLiteralCore` (and the DECIMAL-POINT IS COMMA twin `COMMA_FLOATLIT`,
+kb/Work PB98). `EmitText.UnscaledLit` detects the E and returns a `Real` NumX with the literal verbatim (a COBOL
+float literal is already valid C# `double` syntax). **Where that binary64 form applies (kb/Work PB99, 2026-08-18):**
+inside an ARITHMETIC expression or statement under NATIVE arithmetic only — §8.8.1.3 leaves the method of
+evaluating an arithmetic expression / statement to the implementor, and a float literal there is a floating-point
+operand, so the expression evaluates in IEEE binary64 (`NumericRenderer.LiteralNum`). In an OPERAND position — a
+MOVE source, a relation / EVALUATE comparand, a PERFORM VARYING FROM / BY value, a function argument, a CALL BY
+VALUE argument — the literal is its EXACT value (§8.3.3.3.3 GR5: significand × 10^exponent) on the `Dec` lane
+(`LiteralOperandNum` → `CobolDec.FromParsed`), and under ARITHMETIC IS STANDARD-DECIMAL every floating literal is
+that exact decimal128 operand (§8.8.1.5.2 r1). The binder checks the literal's FORM (SR2/SR3/SR4 — COBOLNET1661) at
+the ONE normalizer and its RANGE at the ONE expression chokepoint (`CheckLiteral`: binary64 natively, decimal128
+under standard-decimal) and at the VALUE funnel for a FLOAT-* subject (the receiver's binary form) — the
+implementor-defined exponent range of §8.3.3.3.3 r3, CONFORMANCE.md §7 A.1 item 82.
 
 **Float-integration edge cases.** The Real integration covers these paths: a float source/result into a
 NUMERIC-EDITED receiver (MOVE + COMPUTE) lands via `ToScaled` at the MASK scale (`CobolEdit.MaskScale`, NOT

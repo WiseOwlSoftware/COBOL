@@ -273,6 +273,8 @@
   "pb97-value-form-fixed-edited",
   "pb97-value-edited-truncation",
   "pb98-comma-float-literal-without-comma-mode",
+  "pb99-floating-literal-form",
+  "pb99-floating-literal-range",
   "pb94-value-alphanumeric-on-numeric",
   "pb94-value-nonnumeric-on-numeric",
   "pb94-value-numeric-on-alphanumeric",

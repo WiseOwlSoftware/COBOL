@@ -89,6 +89,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         finally { _rcv = saved; _floatSendingExempt = savedEx; _outermost = savedOut; }
     }
 
+    /// <summary>Render a bound expression that the FORMAT admits only as an OPERAND — PERFORM VARYING's FROM / BY
+    /// (ISO §14.9.28.2: identifier, index-name or literal; the binder types them BoundExpr for convenience): a bare
+    /// floating-point literal keeps its EXACT value (<see cref="LiteralOperandNum"/> — kb/Work PB99: `FROM 1.0E+3`
+    /// set a 20-decimal item to 999.999…9161, the binary64 1E+23 product), everything else renders as an expression
+    /// under <see cref="ReceiverContext.None"/>.</summary>
+    public NumX RenderOperandLike(BoundExpr e) =>
+        e is BoundNumLiteral nl ? LiteralOperandNum(nl.Text) : Render(e, ReceiverContext.None);
+
     /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>
     /// (re-entrant — see <see cref="Render"/>). <paramref name="floatSendingExempt"/> suppresses the float
     /// finiteness wrap for an EC-DATA-NOT-FINITE-exempt operand (a same-usage MOVE source).</summary>
@@ -105,7 +113,33 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     }
 
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
-    public NumX Visit(BoundNumLiteral n) => EmitText.UnscaledLit(n.Text);
+    public NumX Visit(BoundNumLiteral n) => LiteralNum(n.Text);
+
+    /// <summary>A numeric literal inside an ARITHMETIC expression or statement (a <c>BoundNumLiteral</c>): the
+    /// fixed-point / binary64 rendering of <see cref="EmitText.UnscaledLit"/> — a floating-point literal is a binary64
+    /// operand under NATIVE arithmetic (numeric design D16: §8.8.1.3 leaves the method of evaluating an arithmetic
+    /// expression / statement to the implementor) — except that under ARITHMETIC IS STANDARD-DECIMAL it is the EXACT
+    /// decimal128 operand (ISO §8.8.1.5.2 r1 — <c>CobolDec.FromParsed</c>; kb/Work PB99: a binary64 on the way lost
+    /// every digit past the 17th and could not carry a 4-digit exponent at all).</summary>
+    private NumX LiteralNum(string text) =>
+        StandardDecimal && CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
+            && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
+        ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true)
+        : EmitText.UnscaledLit(text);
+
+    /// <summary>A numeric literal in an OPERAND position (a <c>BoundNumericLiteral</c> — a MOVE source, a relation
+    /// or EVALUATE comparand, a function argument, a PERFORM VARYING value, a CALL BY VALUE argument): a
+    /// floating-point literal is its EXACT value in EVERY mode (ISO §8.3.3.3.3 GR5 — significand × 10^exponent; a
+    /// MOVE / comparison is not native arithmetic, so D16's binary64 latitude does not reach it — kb/Work PB99: `MOVE
+    /// 1.2345678901234567890123E+3 TO N` stored 1234.567890123456858…, and the same literal into a floating-point
+    /// numeric-edited item defeated D21's exact channel), carried on the Dec lane — every consumer of an operand
+    /// already accepts it (the PB84 landing / store funnel; <see cref="Real"/> converts it where a binary64 body
+    /// wants a double). A fixed-point literal is unchanged.</summary>
+    private NumX LiteralOperandNum(string text) =>
+        CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
+            && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
+        ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true)
+        : EmitText.UnscaledLit(text);
     public NumX Visit(BoundNumRef n) => FieldNum(n.Place);
     public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);   // an index IS its 1-based occurrence number (§3.5)
     // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
@@ -163,7 +197,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
     // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
-    public NumX Visit(BoundNumericLiteral n) => EmitText.UnscaledLit(n.Text);
+    public NumX Visit(BoundNumericLiteral n) => LiteralOperandNum(n.Text);
     public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);
     public NumX Visit(BoundComputedOperand n) => n.Expr.Accept(this);
     public NumX Visit(BoundFigurative n) => n.Kind == 'Z'

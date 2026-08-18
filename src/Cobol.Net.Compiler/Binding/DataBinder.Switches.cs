@@ -147,6 +147,16 @@ public sealed partial class DataBinder
                     + "DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
                 break;
         }
+        // §8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the
+        // expression funnel (ExpressionBinder.CheckLiteral) and the VALUE / level-88 funnel normalize through this method.
+        if (Common.NumericLiteral.IsFloatingPointForm(norm)
+            && Common.NumericLiteral.CheckFloatingPointForm(norm) is var fissue && fissue != Common.NumericLiteral.FloatingLiteralIssue.None)
+            Edition.Error(DiagnosticCatalog.FloatingLiteral, $"floating-point numeric literal '{text}': " + fissue switch
+            {
+                Common.NumericLiteral.FloatingLiteralIssue.SignificandDigits => "the significand shall be from 1 to 36 digits in length (ISO §8.3.3.3.3 SR2)",
+                Common.NumericLiteral.FloatingLiteralIssue.ExponentDigits => "the exponent shall have a maximum of four digits (ISO §8.3.3.3.3 SR3)",
+                _ => "when all the digits of the significand are zero, all the digits of the exponent shall be zero and neither part shall have a negative sign (ISO §8.3.3.3.3 SR4)",
+            });
         return norm;   // canonical dot-decimal; a diagnosed literal is normalized too so downstream decode stays well-formed
     }
 

@@ -214,13 +214,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         sig = 0; exp10 = 0;
         string t = raw.Trim().ToUpperInvariant();
         if (t is "ZERO" or "ZEROS" or "ZEROES") return true;
-        int e = t.IndexOf('E');
-        string mant = e < 0 ? t : t[..e];
-        string ex = e < 0 ? "0" : t[(e + 1)..];
-        if (!TryParseNumeric(mant, out var unscaled, out int scale)) return false;
-        if (!int.TryParse(ex, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture, out int exp)) return false;
-        sig = unscaled; exp10 = exp - scale;
-        return true;
+        return CobolNet.Common.NumericLiteral.TryParseExact(t, out sig, out exp10);   // the ONE exact parser (PB99)
     }
 
     /// <summary>Parse a canonical (dot-decimal) numeric VALUE text to its unscaled value + scale, for

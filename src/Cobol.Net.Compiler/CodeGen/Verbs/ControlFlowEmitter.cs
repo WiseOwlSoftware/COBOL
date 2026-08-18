@@ -303,7 +303,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1)
                     {
                         body();
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.Render(levels[k].By, ReceiverContext.None));
+                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
                     }
                     else
                     {
@@ -311,7 +311,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // §14.9.28 GR13e ('85 6.20.4 GR10(d)1): the OUTER variable augments FIRST, THEN the inner
                         // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
                         // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.Render(levels[k].By, ReceiverContext.None));
+                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
                         InitVaryingTarget(v, levels[k + 1]);
                     }
                 }
@@ -332,7 +332,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");
-                    set.AugmentSetTarget(levels[k].Var, down: false, num.Render(levels[k].By, ReceiverContext.None));
+                    set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
                 }
             }
         }
@@ -350,13 +350,13 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         if (v.CheckIndexRange && lv.Var is SetIndexTarget ix && lv.From is BoundNumRef)
         {
             string tmp = $"__pv{ctx.Names.NextVary()}";
-            ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(num.Render(lv.From, ReceiverContext.None), 0)});");
+            ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(num.RenderOperandLike(lv.From), 0)});");
             ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
                 + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
             ctx.Writer.Line($"{ix.IndexField} = {tmp};");
             return;
         }
-        set.StoreSetTarget(lv.Var, num.Render(lv.From, ReceiverContext.None));
+        set.StoreSetTarget(lv.Var, num.RenderOperandLike(lv.From));
     }
 
     /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once): a literal verbatim; an

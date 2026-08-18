@@ -4035,12 +4035,12 @@
   "kind": "SR",
   "ordinal": 1,
   "subject": "Numeric literals",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#FLOAT_BODY; src/Cobol.Net.Frontend/Common/NumericLiteral.cs#IsFloatingPointForm",
+  "test-ref": "conformance:2023/pb99_floating_literal_extremes; conformance:2023/pb66_float_edited_comma_mode; unit:SignedLiteralShapeDriftTests.EveryNumericBody_HasItsFunctionArgumentSignedTwin",
+  "editions": "2002,2014,2023",
+  "notes": "The lexer's FLOAT_BODY (and its DECIMAL-POINT IS COMMA twin FLOAT_COMMA_BODY, kb/Work PB98) is exactly the form — a fixed-point literal, the letter E without intervening spaces, a fixed-point exponent; the sign-adjacent twins (function-argument regions, SUBSCRIPT mode) keep -1.5E3 one token (kb/Work R17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.3.3.3-2",
@@ -4048,12 +4048,12 @@
   "kind": "SR",
   "ordinal": 2,
   "subject": "Numeric literals",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#NormalizeNumericLiteral",
+  "test-ref": "conformance:negative/pb99-floating-literal-form; conformance:2023/pb99_floating_literal_extremes",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB99). 'shall include a decimal point' is the lexer's shape (a point-less 1E10 is a user-defined word, §8.3.1.1 — it is diagnosed as an undefined name, which it is); 'from 1 to 36 digits' is checked at the ONE normalizer both funnels share (COBOLNET1661 — a 40-digit significand); a 36-digit significand seeds a floating-point numeric-edited item exactly (the golden's E1).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.3.3.3-3",
@@ -4061,12 +4061,12 @@
   "kind": "SR",
   "ordinal": 3,
   "subject": "Numeric literals",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm; src/Cobol.Net.Frontend/Common/NumericLiteral.cs#FitsBinaryFloat; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#CheckLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+  "test-ref": "conformance:negative/pb99-floating-literal-form; conformance:negative/pb99-floating-literal-range; conformance:2023/pb99_floating_literal_extremes; conformance:2023/pb99_floating_literal_standard_decimal",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB99). 'a maximum of four digits' — COBOLNET1661 for a fifth (1.0E12345, which used to reach Roslyn as an overflowing C# double literal, CS0594); the IMPLEMENTOR-DEFINED maximum / minimum exponent VALUE is documented in CONFORMANCE.md §7 A.1 item 82 and enforced at compile time: the binary64 range for a literal in a native arithmetic expression / statement (about 4.9E-324..1.8E+308 — 1.0E+400 / 1.0E-400 → 1661), decimal128's under STANDARD-DECIMAL (1.0E+400 / 1.0E+398 evaluates to 100), the receiver's binary form for a VALUE on a FLOAT-SHORT (binary32) / FLOAT-LONG (binary64) item (§13.18.63.3 SR2), and no bound beyond the receiver's PICTURE for a VALUE on a fixed-point or floating-point numeric-edited item (PIC 9E+9999 VALUE 1.0E+9999).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.3.3.3-4",
@@ -4074,12 +4074,12 @@
   "kind": "SR",
   "ordinal": 4,
   "subject": "Numeric literals",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#NormalizeNumericLiteral",
+  "test-ref": "conformance:negative/pb99-floating-literal-form",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB99). A zero significand with a nonzero exponent (0.0E+5), a negative zero significand (-0.0E+0) or a negative-signed exponent (0.0E-0) is COBOLNET1661 — in a VALUE clause, a level-88 and a statement alike (the ONE normalizer).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.3.3.3.3-5",
@@ -4087,12 +4087,12 @@
   "kind": "GR",
   "ordinal": 5,
   "subject": "Numeric literals",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Common/NumericLiteral.cs#TryParseExact; src/Cobol.Net.Frontend/Common/NumericLiteral.cs#ExpandFloatingPoint; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralOperandNum; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue",
+  "test-ref": "conformance:2023/pb99_floating_literal_operand_exact; conformance:2023/pb99_floating_literal_standard_decimal; conformance:2023/pb99_floating_literal_extremes; conformance:2023/pb97_value_literal_form_and_88_edited",
+  "editions": "2002,2014,2023",
+  "notes": "LANDED 2026-08-18 (kb/Work PB99). The literal's value — significand × 10^exponent — is carried EXACTLY wherever the standard's semantics are the value's: a VALUE clause (NumericLiteral.ExpandFloatingPoint for a fixed-point subject, EditComposeFloat for a floating-point numeric-edited one), an OPERAND position (a MOVE source, a relation / EVALUATE comparand, a PERFORM VARYING FROM / BY value, a function argument — NumericRenderer.LiteralOperandNum → CobolDec.FromParsed on the exact-decimal lane; before PB99 MOVE 1.2345678901234567890123E+3 stored 1234.56789012345685803008 and FROM 1.0E+3 set a 20-decimal item to 999.999…9161), and every position under ARITHMETIC IS STANDARD-DECIMAL (§8.8.1.5.2 r1). Inside a NATIVE arithmetic expression or statement the literal is a binary64 operand (numeric design D16 — §8.8.1.3's implementor-defined method; documented, CONFORMANCE.md §7 item 82).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.3.3.4.3-1",
