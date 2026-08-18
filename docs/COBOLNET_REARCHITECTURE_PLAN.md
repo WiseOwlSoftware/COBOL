@@ -291,10 +291,26 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   format 2 (`LOCALE [IS locale-name-1] SIZE IS integer-1`) and the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names are
   refused BY NAME (COBOLNET1518) — the PB64 draft's posture-repair half (T0) is complete; two verdicts →
   DOCUMENTED-NON-SUPPORT, **GAP 3933**. THE DEFECT BACKLOG IS EMPTY — `work.py next` lists only PB64.
-  **NEXT, in order (`work.py next`):** ① PB64 (feature/locale) — owner-reserved (Q1: reverse council decision 3
-  and implement the A.4.9 module, or keep documented non-support; Q2–Q4 follow only under "implement") — ask the
-  bare question · then Phase-B adjudication (the standing order after zero backlog: fix-before-explore holds, so a
-  NEW defect found on the way outranks). Battery #20 rides with the next landing.
+  **⚖ OWNER DECISIONS 2026-08-18 — PB64, THE LOCALE FACILITY IS A GO (they supersede council decision 3 of
+  2026-07-03):** **Q1** IMPLEMENT the Annex A.4.9 locale module · **Q2** the user / system default locales come
+  from the environment variables `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` (with the .NET `CurrentCulture` /
+  `InstalledUICulture` / `INVARIANT` fallbacks; determination L2 as drafted) · **Q3** YES — a locale-based
+  collating sequence for INDEXED file keys (L8) · **Q4** `STANDARD-COMPARE` / `ORDER TABLE` over Unicode CLDR +
+  UCA data (.NET's ICU root collation and tables derived from it), with the conformance statement fixed VERBATIM
+  and never reworded: **"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and
+  CLDR/UCA data."** The design is ADOPTED: `docs/rearchitecture/DESIGN-locale-facility.md` (renamed from the
+  08-09 draft; the decisions in its header; §12's T1–T7 the plan; T0 landed as PB78 / PB92 / PB100; the
+  diagnostic band starts at COBOLNET1662). CONFORMANCE.md §4 item 5 keeps the per-item COBOLNET1518 refusals
+  until each increment lands, then flips them.
+  **⏸ HANDOFF 2026-08-18 ~16:30 PDT — PAUSED at the owner's request before T1 begins** (docs-only commit
+  `PB64: adopt the locale design`): the owner is diverting to the COLLATION task next and will provide guidance
+  for it (T2/T3 of the design — the `CobolCollation` collapse and the locale collation — are the natural home;
+  read the guidance first, then the design's §4.4). Nothing of T1 is coded; no tree is dirty.
+  **NEXT, in order:** ① the owner's collation guidance · ② PB64 T1 (`LocaleSymbol` + `LocaleRef` +
+  `LocaleFacts` + `LocaleState` on `RunUnit`; the SPECIAL-NAMES LOCALE clause declares; `SET` formats 11/12;
+  revert PB100's `EcNameResolution` refusal of the EC-LOCALE names; four constructs.json rows; goldens) → T2 …
+  T7 per the design's §12, a battery per increment · then Phase-B adjudication (a NEW defect found on the way
+  outranks). Battery #20 rides with the next landing.
   per the sweep blocks; PB75 rides with the EC-model work its note describes; PB64/PB66/PB73 as the 08-09
   handoff below records.
 - **▶ THE 2026-08-09 21:40 HANDOFF (its NEXT list is superseded by the block above; the day's landing record

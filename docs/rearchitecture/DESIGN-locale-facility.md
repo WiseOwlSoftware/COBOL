@@ -1,18 +1,37 @@
-> # UNREVIEWED AGENT DRAFT — NOT A DESIGN SSOT (frozen 2026-08-09)
-> Produced by the wf_fdd1492c probe-sweep fleet's PB64 design agent, unreviewed by the main line and
-> NOT adopted. ⛔ Its own Q1 is OWNER-RESERVED: adopting any of it would REVERSE the ratified locale
-> documented-non-support decision (council decision 3, 2026-07-03). Q2–Q4 are likewise owner-reserved
-> (default-locale mechanism, INDEXED-key locale collation, the ISO/IEC 14651 table). kb/Work/PB64.md
-> owns the item; docs/COBOLNET_DESIGN.md §0.5 does NOT list this file. Track T0 (posture repair — the
-> current tree silently accepts CHARACTER CLASSIFICATION where the non-support posture must diagnose)
-> is actionable under EITHER owner answer and is recorded on the note.
+> # ADOPTED DESIGN — the locale facility is being IMPLEMENTED (owner decision, 2026-08-18)
+> Drafted 2026-08-09 by the wf_fdd1492c probe-sweep fleet's PB64 design agent; reviewed and adopted by the main
+> line on 2026-08-18 when the owner answered the four reserved questions (§15). Registered in
+> `docs/COBOLNET_DESIGN.md` §0.5 and `docs/DOC_INDEX.md`. kb/Work/PB64.md owns the item.
+>
+> **The four owner decisions (2026-08-18), verbatim of record — they supersede council decision 3 (2026-07-03):**
+> - **Q1 — IMPLEMENT the A.4.9 locale module.** COBOL.NET claims support for Annex A.4.9 items 1–13 as each
+>   increment of §12 lands; the ratified documented-non-support posture is REVERSED (until an item lands, its entry
+>   point stays refused BY NAME with COBOLNET1518, and CONFORMANCE.md §4 item 5 tracks the remainder).
+> - **Q2 — the two defaults come from ENVIRONMENT VARIABLES** (DETERMINATION L2 as drafted): `COBOL_USER_LOCALE`
+>   (else the process `CultureInfo.CurrentCulture`, else `INVARIANT`) and `COBOL_SYSTEM_LOCALE` (else
+>   `CultureInfo.InstalledUICulture`, else `INVARIANT`), read ONCE at run-unit activation (L3).
+> - **Q3 — YES, a locale-based collating sequence IS offered for INDEXED file keys** (DETERMINATION L8 as
+>   drafted; the key locale is captured at OPEN and the cross-locale key-order caveat is documented).
+> - **Q4 — `STANDARD-COMPARE` / the `ORDER TABLE` clause are implemented over Unicode CLDR + UCA data** (.NET's
+>   ICU `CompareInfo` root collation, plus tables derived from it — never a hand-vendored ISO 14651 file). The
+>   conformance statement COBOL.NET makes, VERBATIM and nowhere reworded:
+>   **"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."**
+>   (CONFORMANCE.md §2 A.3 item 25 and §7 carry that sentence.)
+>
+> **T0 (posture repair) LANDED before adoption:** rows 6–8 and 14 of §1 as kb/Work PB78 (2026-08-18), rows 9–10
+> as PB92, rows 4–5 and 11 plus A.4.9 item 1's exception-names as PB100 — every entry point is refused by name
+> today. Under the implement decision those refusals are removed increment by increment (§12), and the PB100
+> `EcNameResolution` refusal of the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names is REVERTED at T1 (support is
+> claimed, so the names are legal again — the raise sites of §4.10 then make them live).
+> **The diagnostic band of §7 is re-based:** codes 1642–1660 were claimed by other work between drafting and
+> adoption; the locale band starts at COBOLNET1662 (`scripts/session-probe.ps1` is the authority at each landing).
 
 # DESIGN — The LOCALE Facility (ISO/IEC 1989:2023 Annex A.4.9)
 
-Status: **DESIGN — DRAFT, nothing implemented.** Drafted 2026-08-09 against `cobol.exe` built 2026-08-09 18:24.
-Owns `kb/Work/PB64.md` and its 42 traceability-inventory rows.
-Intended repo path: `docs/rearchitecture/DESIGN-locale-facility.md`; register it in `docs/COBOLNET_DESIGN.md` §0.5
-and `docs/DOC_INDEX.md` in the same change set that lands it (CLAUDE.md rule 6).
+Status: **ADOPTED — IN IMPLEMENTATION (T1 first; §12 sequences the seven increments).** Drafted 2026-08-09,
+adopted 2026-08-18. Owns `kb/Work/PB64.md` and its 42 traceability-inventory rows.
+Repo path: `docs/rearchitecture/DESIGN-locale-facility.md`; registered in `docs/COBOLNET_DESIGN.md` §0.5 and
+`docs/DOC_INDEX.md` (CLAUDE.md rule 6).
 
 Scope: the **whole** locale facility the standard defines — Annex A.4.9 items 1–13 plus the rules the module
 reaches into: the SPECIAL-NAMES `LOCALE` clause and the `ALPHABET … IS LOCALE` phrase (§12.3.7), the
@@ -750,11 +769,17 @@ design is small and complete:
   intrinsic function*" (§12.3.7.3 SR9).
 - argument-4 is the ordering **level**; absent ⇒ "*the highest level defined in the ordering table*"
   (§15.85.4 r1).
-- **⚠ OWNER-RESERVED (Q4, §15):** whether to (a) ship the ISO/IEC 14651:2020 default table, (b) map it onto
-  .NET's ICU root collation with a documented equivalence claim, or (c) keep A.3 item 25 non-support with the
-  *correct* named diagnostic. This design cannot choose: (a) needs an external data acquisition, (b) is a
-  conformance claim about someone else's data, and (c) is a scope reduction. All three are specified below in
-  §15 so the owner picks one.
+- **⚖ OWNER DECISION (Q4, 2026-08-18): (b) — Unicode CLDR + UCA as the base implementation.** The default
+  ordering table `ISO 14651_2020_TABLE1` is realized as the UCA/CLDR root collation .NET's ICU `CompareInfo`
+  exposes (ISO/IEC 14651's Common Template Table is synchronized with the Unicode DUCET / CLDR root data), with
+  the ordering levels (argument-4: 1 primary, 2 secondary, 3 tertiary, 4 the full strength) mapped onto
+  `CompareOptions` (`IgnoreNonSpace|IgnoreCase|IgnoreWidth` ⇢ level 1, `IgnoreCase|IgnoreWidth` ⇢ 2,
+  `IgnoreWidth` ⇢ 3, `None` ⇢ 4) and any DERIVED table (a materialized order vector, as §4.4.5's ORD/CHAR
+  vector) built from that data at run time — never a hand-vendored ISO file. `ORDER TABLE ordering-name-1 IS
+  literal-9` accepts `"ISO 14651_2020_TABLE1"` (case-insensitively, the underscore/space spelling of §15.85.3 r5)
+  and, as an implementor extension, a CLDR locale tag naming a tailored collation; any other literal-9 is
+  `EC-ORDER-NOT-SUPPORTED` at the reference (§15.85.4 r2). The conformance statement COBOL.NET makes, VERBATIM:
+  **"Implements collation behavior consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."**
 
 ### 4.10 Exceptions
 
@@ -833,25 +858,28 @@ emitted. Rewriting them is part of the landing, not a follow-up.
 
 ## 7. Diagnostics
 
-`COBOLNET1518` is the single A.4.9 non-support diagnostic and has exactly one raise site
-(`IntrinsicBinder.LocaleUnsupported`) plus the SPECIAL-NAMES arm in `DataBinder.Switches.cs`. Under the
-implement decision it is **deleted**, not left dormant: a dead diagnostic is a lie in the user documentation.
+`COBOLNET1518` is the single A.4.9 non-support diagnostic (after T0 it has one raise site per entry point:
+`IntrinsicBinder.LocaleUnsupported`, the SPECIAL-NAMES / ALPHABET / CHARACTER CLASSIFICATION / SET LOCALE /
+PICTURE arms, and `EcNameResolution`). Under the implement decision each arm is **deleted as its increment lands**
+(never left dormant — a dead diagnostic is a lie in the user documentation); after T7 the descriptor itself goes.
 
-New codes are needed for the syntax rules that only become reachable once the syntax is accepted. The
-band starts at the next free code — the catalog's current maximum is `COBOLNET1641`, so **`COBOLNET1642`+**,
-re-confirmed from `scripts/session-probe.ps1` at implementation time rather than from this document:
+New codes are needed for the syntax rules that only become reachable once the syntax is accepted. ⚠ The band
+drafted here as 1642–1650 was CLAIMED by other work between drafting and adoption (the catalog's maximum was
+COBOLNET1661 at adoption); the locale band therefore starts at **COBOLNET1662**, allocated increment by increment
+from `scripts/session-probe.ps1` — the rules below keep their letters (a–i) so the design's references survive
+renumbering:
 
-| Code | Rule |
+| Rule | Reachable from |
 |---|---|
-| 1642 | locale-name not declared in a SPECIAL-NAMES LOCALE clause (§12.3.6.3 SR3 / §12.3.7.3 SR24 / §13.18.40.3 SR37 / §14.9.39.3 SR26 / §15.51.3 r4 …) — **one code, every site**, with the citing site named in the message |
-| 1643 | duplicate locale-name in SPECIAL-NAMES |
-| 1644 | `SET LOCALE` names a category more than once (§5.2.6.4 "each at most once") |
-| 1645 | `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 |
-| 1646 | identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) |
-| 1647 | format-2 PICTURE violates SR32–SR36 (one code, sub-rule named) |
-| 1648 | `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19 / §13.17.3 SR9) |
-| 1649 | an alphabet defined `IS LOCALE` used where a **coded character set** is required (§12.3.7.3 SR16g/SR17d, Table 6) |
-| 1650 | `CHARACTER CLASSIFICATION` / `PROGRAM COLLATING SEQUENCE` specified twice in one OBJECT-COMPUTER paragraph |
+| (a) locale-name not declared in a SPECIAL-NAMES LOCALE clause (§12.3.6.3 SR3 / §12.3.7.3 SR24 / §13.18.40.3 SR37 / §14.9.39.3 SR26 / §15.51.3 r4 …) — **one code, every site**, with the citing site named in the message | T1 |
+| (b) duplicate locale-name in SPECIAL-NAMES | T1 |
+| (c) `SET LOCALE` names a category more than once (§5.2.6.4 "each at most once") | T1 |
+| (d) `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 | T1 |
+| (e) identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) | T1 |
+| (f) format-2 PICTURE violates SR32–SR36 (one code, sub-rule named) | T6 |
+| (g) `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19 / §13.17.3 SR9) | T6 |
+| (h) an alphabet defined `IS LOCALE` used where a **coded character set** is required (§12.3.7.3 SR16g/SR17d, Table 6) | T3 |
+| (i) `CHARACTER CLASSIFICATION` / `PROGRAM COLLATING SEQUENCE` specified twice in one OBJECT-COMPUTER paragraph — ✅ landed with PB78 (COBOLNET1652 `object-computer-duplicate-clause`) | done |
 
 ⚠ Under the **keep-non-support** decision (§15 Q1 answer "no"), a different, smaller set is required — one
 named diagnostic per un-named entry point (rows 6–11 of §1) reusing `COBOLNET1518` with a per-element
@@ -1034,7 +1062,8 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 
 ## 12. Migration plan — seven increments, each independently battery-green
 
-**T0 · Posture repair (required under EITHER answer to Q1, and landable first).** Fix §1 rows 4–11 so every
+**T0 · Posture repair — ✅ LANDED (PB78 2026-08-18: rows 6–8 and 14; PB92: rows 9–10; PB100: rows 4–5, 11 and
+A.4.9 item 1's exception-names).** As drafted: fix §1 rows 4–11 so every
 locale entry point is *named*: the ALPHABET LOCALE phrase, `CHARACTER CLASSIFICATION` (including the ordering
 defect — the grammar work of G3 is needed either way), `SET LOCALE`/save-locale, and `PICTURE` format 2 all
 parse and then draw the cited A.4.9 diagnostic. Row 14 (the mandatory computer-name) rides G3 and is **not a
@@ -1091,23 +1120,16 @@ feature that breaks them.
 
 **Owner-reserved (this design cannot answer them):**
 
-- **Q1 — Does COBOL.NET claim A.4.9 support?** Ratified council decision 3 (2026-07-03) dispositions the locale
-  module to *documented non-support*, which is conforming under §4.2.7 + A.4.1. This design specifies the
-  implementation because CLAUDE.md rule 3 forbids scoping a design to the current posture — but **adopting it
-  reverses a ratified decision**, and that is the owner's call. ⚠ Note that T0 (§12) is owed under **either**
-  answer: today's behaviour is not the non-support posture, it is an A.4.1 violation (silent accept) plus a
-  rejection of legal source.
-- **Q2 — Are `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` the right implementor mechanism** for §8.2.1's two
-  "the implementor shall specify the manner…" duties, or should the defaults come from a compiler option / a
-  runtime configuration file instead? (Determination L2 proposes the env vars because they make CI
-  reproducible; the owner may prefer an option so the mechanism is visible in the compile command.)
-- **Q3 — Should a locale-based collating sequence be offered for INDEXED file keys** (§A.3 item 41 makes it
-  processor-dependent, so either answer conforms)? Determination L8 proposes yes, with the cross-locale
-  key-order caveat documented.
-- **Q4 — `STANDARD-COMPARE` / ISO/IEC 14651:2020**: (a) acquire and ship the default ordering table, (b) claim
-  .NET's ICU root collation as a logically-equivalent implementation of it, or (c) keep A.3 item 25
-  non-support with a correct named diagnostic. This is a data-acquisition and conformance-claim question, not
-  a design question.
+- **Q1 — Does COBOL.NET claim A.4.9 support?** ✅ **ANSWERED 2026-08-18: YES — implement.** Council decision 3
+  (2026-07-03, documented non-support) is superseded. T0 landed first (PB78 / PB92 / PB100).
+- **Q2 — the default-locale mechanism.** ✅ **ANSWERED 2026-08-18: environment variables** — `COBOL_USER_LOCALE`
+  / `COBOL_SYSTEM_LOCALE` with the .NET culture fallbacks (DETERMINATION L2 as drafted; no compiler option, no
+  configuration file).
+- **Q3 — locale-based collating for INDEXED file keys.** ✅ **ANSWERED 2026-08-18: YES** (DETERMINATION L8 as
+  drafted, with the cross-locale key-order caveat documented).
+- **Q4 — `STANDARD-COMPARE` / ISO/IEC 14651:2020.** ✅ **ANSWERED 2026-08-18: Unicode CLDR + UCA as the base
+  implementation** (§4.9); the conformance statement is fixed verbatim: "Implements collation behavior
+  consistent with ISO/IEC 14651 through derived tables and CLDR/UCA data."
 
 **Design questions this document answers, recorded so they are not re-opened silently:** what an external
 locale identification is (L1), the two defaults (L2), foreign-switch visibility (L3), the saved-locale handle
